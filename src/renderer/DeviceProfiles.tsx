@@ -156,6 +156,7 @@ const DeviceProfiles = ({
     [devices, selectedDeviceId],
   );
   const isFluid = engine === 'fluid';
+  const isApo = engine === 'apo';
   /**
    * Whichever engine is in use, and only that one.
    *
@@ -163,11 +164,15 @@ const DeviceProfiles = ({
    * the engine is absent — an explicit `false` is the only thing that warns.
    * Reading the other engine's flag would send somebody who is running the
    * FluidEQ Engine into Equalizer APO's Device Selector for an output that is
-   * being processed perfectly well.
+   * being processed perfectly well. `engine === null` (status not answered
+   * yet) reads neither flag: with no engine known there is no repair to name.
    */
-  const isEngineMissing = isFluid
-    ? selectedDevice?.isFluidEngineAttached === false
-    : selectedDevice?.isEqualizerApoAttached === false;
+  let isEngineMissing = false;
+  if (isFluid) {
+    isEngineMissing = selectedDevice?.isFluidEngineAttached === false;
+  } else if (isApo) {
+    isEngineMissing = selectedDevice?.isEqualizerApoAttached === false;
+  }
   const showEngineNotice =
     isEngineMissing && dismissedApoDeviceId !== selectedDevice?.id;
 

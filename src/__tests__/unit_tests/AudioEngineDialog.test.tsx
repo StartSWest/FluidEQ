@@ -185,4 +185,49 @@ describe('AudioEngineDialog', () => {
       screen.getByText(`Now: ${en['engine.apo.name']}`),
     ).toBeInTheDocument();
   });
+
+  // The dialog draws `is-running` on Apply rather than disabling it — see the
+  // report's note on why — so nothing in the DOM stops a second click while
+  // the first is still in flight. The handler's own guard is what has to
+  // refuse it.
+  it('refuses a second Apply press while the first is still in flight', async () => {
+    let resolveApply: () => void = () => {};
+    const onApply = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveApply = resolve;
+        }),
+    );
+    render(<AudioEngineDialog status={status()} onApply={onApply} />);
+
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    fireEvent.click(applyButton());
+    fireEvent.click(applyButton());
+    fireEvent.click(applyButton());
+
+    expect(onApply).toHaveBeenCalledTimes(1);
+
+    resolveApply();
+    await waitFor(() =>
+      expect(applyButton()).not.toHaveAttribute('aria-busy', 'true'),
+    );
+  });
+
+  it('gives each radio a description pointing at its own lines list', () => {
+    render(<AudioEngineDialog status={status()} onApply={jest.fn()} />);
+
+    const [fluid, apo] = screen.getAllByRole('radio');
+    const fluidDescribedBy = fluid.getAttribute('aria-describedby');
+    const apoDescribedBy = apo.getAttribute('aria-describedby');
+
+    expect(fluidDescribedBy).toBeTruthy();
+    expect(apoDescribedBy).toBeTruthy();
+    expect(fluidDescribedBy).not.toBe(apoDescribedBy);
+    expect(
+      document.getElementById(fluidDescribedBy as string),
+    ).toHaveTextContent(en['engine.fluid.l1']);
+    expect(document.getElementById(apoDescribedBy as string)).toHaveTextContent(
+      en['engine.apo.l1'],
+    );
+  });
 });

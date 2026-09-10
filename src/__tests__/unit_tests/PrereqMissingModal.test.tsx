@@ -15,9 +15,11 @@ jest.mock('renderer/utils/apoInstall', () => ({
   startEqualizerApoInstall: jest.fn(async () => 'started'),
 }));
 
+const OK = { ok: true, declined: false, endpoints: [] };
+
 const renderModal = (
-  engine: TAudioEngine,
-  onInstallFluid = jest.fn(async () => {}),
+  engine: TAudioEngine | null,
+  onInstallFluid = jest.fn(async () => OK),
 ) => {
   render(
     <PrereqMissingModal
@@ -98,5 +100,64 @@ describe('PrereqMissingModal', () => {
     await waitFor(() =>
       expect(screen.queryByRole('alert')).not.toBeInTheDocument(),
     );
+  });
+
+  // Finding: the handler used to drop `result.declined`/`result.error` and
+  // return `void`, so a Windows prompt that was declined — or a setup that
+  // failed outright — cleared the "Starting…" label and left the banner
+  // looking like the button had done nothing at all.
+  it('shows the declined message when the Windows prompt is declined', async () => {
+    const onInstallFluid = renderModal(
+      'fluid',
+      jest.fn(async () => ({ ok: false, declined: true, endpoints: [] })),
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en['prereq.install.fluid'] }),
+    );
+
+    expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
+    await waitFor(() => expect(onInstallFluid).toHaveBeenCalledTimes(1));
+  });
+
+  it('shows the failed message when the engine install fails outright', async () => {
+    renderModal(
+      'fluid',
+      jest.fn(async () => ({
+        ok: false,
+        declined: false,
+        error: 'the helper did not run',
+        endpoints: [],
+      })),
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: en['prereq.install.fluid'] }),
+    );
+
+    expect(await screen.findByText(en['engine.failed'])).toBeInTheDocument();
+  });
+
+  // While the engine status has not answered yet, neither variant's copy is
+  // safe: it could name the wrong engine's repair. The generic failure text
+  // stays up; the title, the credit line and the install button wait.
+  it('renders no engine-specific content while the engine is not known yet', () => {
+    renderModal(null);
+
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+    expect(screen.getByText(/Something is missing/)).toBeInTheDocument();
+    expect(screen.queryByText(/bundled unchanged/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en['prereq.install.apo'] }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en['prereq.install.fluid'] }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en['prereq.retry'] }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en['prereq.dismiss'] }),
+    ).toBeInTheDocument();
   });
 });

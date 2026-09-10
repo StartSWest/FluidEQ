@@ -23,6 +23,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { IAudioEngineStatus, TAudioEngine } from 'common/audioEngine';
+import { engineDisplayName } from '../utils/audioEngineApi';
 import { useTranslation } from '../utils/I18nContext';
 // The footer and the APO repairs are raw `<button class="button">`s rather
 // than the `Button` widget — they are native buttons in a focus trap — so the
@@ -78,6 +79,10 @@ interface IEngineOptionProps {
    * one of these — and a role that receives keys has to be reachable. */
   onNavigate: (event: KeyboardEvent<HTMLDivElement>) => void;
   optionRef: (element: HTMLDivElement | null) => void;
+  /** Id of this row's own lines list, so a screen reader announces the three
+   * lines as the radio's description rather than leaving them undiscoverable
+   * text that only a sighted pointer happens to land on. */
+  descriptionId: string;
 }
 
 const EngineOption = ({
@@ -89,6 +94,7 @@ const EngineOption = ({
   onSelect,
   onNavigate,
   optionRef,
+  descriptionId,
 }: IEngineOptionProps) => (
   <div
     ref={optionRef}
@@ -96,6 +102,7 @@ const EngineOption = ({
     aria-checked={isChecked}
     aria-disabled={isDisabled}
     aria-label={name}
+    aria-describedby={descriptionId}
     tabIndex={isChecked && !isDisabled ? 0 : -1}
     className="engine-dialog__option"
     onClick={() => {
@@ -120,7 +127,7 @@ const EngineOption = ({
           <span className="engine-dialog__recommended">{recommended}</span>
         )}
       </div>
-      <ul className="engine-dialog__lines">
+      <ul id={descriptionId} className="engine-dialog__lines">
         {lines.map(([text, kind]) => (
           <li
             key={text}
@@ -245,13 +252,12 @@ const AudioEngineDialog = ({
   );
 
   const moveSelection = (event: KeyboardEvent<HTMLDivElement>) => {
-    const step =
-      // eslint-disable-next-line no-nested-ternary
-      event.key === 'ArrowDown' || event.key === 'ArrowRight'
-        ? 1
-        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
-          ? -1
-          : 0;
+    let step = 0;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      step = 1;
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      step = -1;
+    }
     if (step === 0 || isApplying) {
       return;
     }
@@ -294,13 +300,9 @@ const AudioEngineDialog = ({
     }
   };
 
-  const currentName =
-    // eslint-disable-next-line no-nested-ternary
-    status.engine === 'fluid'
-      ? t('engine.fluid.name')
-      : status.engine === 'apo'
-        ? t('engine.apo.name')
-        : undefined;
+  const currentName = status.engine
+    ? engineDisplayName(status.engine, t)
+    : undefined;
 
   return createPortal(
     <div
@@ -348,6 +350,7 @@ const AudioEngineDialog = ({
                 optionRef={(element) => {
                   optionRefs.current[index] = element;
                 }}
+                descriptionId={`engine-dialog__lines-${option.engine}`}
               />
             ))}
           </div>

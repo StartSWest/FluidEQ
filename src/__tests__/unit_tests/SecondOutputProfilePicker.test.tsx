@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import en from '../../common/i18n/en';
 import SecondOutputProfilePicker from '../../renderer/SecondOutputProfilePicker';
 import { assignDeviceProfile } from '../../renderer/utils/equalizerApi';
 
@@ -71,4 +72,54 @@ it('keeps an unassigned output neutral instead of claiming the first saved profi
   );
   expect(screen.getByRole('menu')).toHaveTextContent('Neutral');
   expect(assign).not.toHaveBeenCalled();
+});
+
+describe('the OFF badge under the FluidEQ Engine', () => {
+  // Main reports both `isEqualizerApoAttached` and `isFluidEngineAttached`
+  // regardless of which engine is running. Reading the wrong one under the
+  // FluidEQ Engine printed OFF on every output of a machine that has no
+  // Equalizer APO and needs none.
+  it('reads the engine’s own flag, not Equalizer APO’s', async () => {
+    render(
+      <SecondOutputProfilePicker
+        device={{
+          ...device,
+          isEqualizerApoAttached: false,
+          isFluidEngineAttached: true,
+        }}
+        engine="fluid"
+        presetName="Warm"
+        onChanged={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('menu')).toHaveAttribute(
+        'aria-disabled',
+        'false',
+      ),
+    );
+    expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
+  });
+
+  it('shows OFF when the engine itself is not attached to this output', async () => {
+    render(
+      <SecondOutputProfilePicker
+        device={{
+          ...device,
+          isEqualizerApoAttached: false,
+          isFluidEngineAttached: false,
+        }}
+        engine="fluid"
+        presetName="Warm"
+        onChanged={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('menu')).toHaveAttribute(
+        'aria-disabled',
+        'false',
+      ),
+    );
+    expect(screen.getByText(en['output.off'])).toBeInTheDocument();
+  });
 });

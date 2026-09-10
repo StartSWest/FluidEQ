@@ -30,6 +30,8 @@ import type {
   TAudioEngine,
   TSystemDspChainResult,
 } from 'common/audioEngine';
+import { ErrorCode } from 'common/errors';
+import type { Translate } from 'common/i18n';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import {
   buildResponseHandler,
@@ -132,4 +134,42 @@ export const setSystemDspChain = (
     simpleResponseHandler<TSystemDspChainResult>(),
     channel,
   );
+};
+
+/**
+ * The name shown for an engine, wherever the app names one at all.
+ *
+ * One shared definition rather than the same two-armed comparison written out
+ * at each call site — the dialog and the menu heading carried their own
+ * copies of it, both as nested ternaries that needed their own lint waiver.
+ */
+export const engineDisplayName = (
+  engine: TAudioEngine,
+  t: Translate,
+): string =>
+  engine === 'fluid' ? t('engine.fluid.name') : t('engine.apo.name');
+
+/**
+ * Which engine variant the blocking prerequisite banner should show.
+ *
+ * `FLUID_ENGINE_NOT_INSTALLED` and `EQUALIZER_APO_NOT_INSTALLED` name their
+ * own engine — the failure *is* that engine being absent, regardless of which
+ * one is chosen. Every other blocking code (today, only `CONFIG_NOT_FOUND`) is
+ * about the config file the chosen engine reads, so the banner has to ask the
+ * engine status instead of the error code: reading the code alone showed
+ * Equalizer APO's variant — its credit line, its installer — for a
+ * `CONFIG_NOT_FOUND` on a machine running the FluidEQ Engine, which has
+ * nothing to do with Equalizer APO.
+ */
+export const prereqBannerEngine = (
+  code: ErrorCode,
+  status: IAudioEngineStatus | undefined,
+): TAudioEngine => {
+  if (code === ErrorCode.FLUID_ENGINE_NOT_INSTALLED) {
+    return 'fluid';
+  }
+  if (code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED) {
+    return 'apo';
+  }
+  return status?.engine === 'fluid' ? 'fluid' : 'apo';
 };

@@ -102,6 +102,7 @@ export default function AudioTroubleshooter({
   }, [onClose]);
 
   const isApo = engine === 'apo';
+  const isFluid = engine === 'fluid';
 
   /**
    * Everything below the first step depends on which engine is running: three
@@ -186,6 +187,18 @@ export default function AudioTroubleshooter({
     },
   ];
 
+  // Neither engine's own repairs while the status is not known yet: showing
+  // Equalizer APO's Device Selector on a machine actually running the FluidEQ
+  // Engine (or the other way round) sends someone to fix a program that is
+  // not carrying their audio at all. The restart step is engine-neutral, so
+  // it stays.
+  let engineOwnSteps: IStep[] = [];
+  if (isApo) {
+    engineOwnSteps = apoSteps;
+  } else if (isFluid) {
+    engineOwnSteps = engineSteps;
+  }
+
   const steps: IStep[] = [
     {
       title: 'Restart Windows Audio',
@@ -196,7 +209,7 @@ export default function AudioTroubleshooter({
       cost: 'A few seconds of silence. Windows asks for permission.',
       action: { label: 'Restart audio', run: onRestartAudio },
     },
-    ...(isApo ? apoSteps : engineSteps),
+    ...engineOwnSteps,
   ];
 
   return (

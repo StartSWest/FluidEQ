@@ -190,4 +190,19 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
+
+  // While the engine status has not answered yet, neither flag is the right
+  // one to read: showing Equalizer APO's notice for a machine that turns out
+  // to be running the FluidEQ Engine sends someone to repair a program that
+  // is not carrying their audio.
+  it('shows no notice at all while the engine is not known yet', async () => {
+    renderProfiles({
+      engine: null,
+      device: { ...detachedDevice, isEqualizerApoAttached: false },
+    });
+
+    await screen.findByText('USB Speakers');
+    expect(screen.queryByText(en['output.off'])).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
 });

@@ -28,6 +28,7 @@ import {
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import type { TAudioEngine } from 'common/audioEngine';
+import type { IEngineSetupResult } from 'main/engineSetup';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import {
   featureTourDismissal,
@@ -169,7 +170,9 @@ import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   attachFluidEngine,
+  engineDisplayName,
   installFluidEngine,
+  prereqBannerEngine,
   setAudioEngine,
 } from './utils/audioEngineApi';
 
@@ -1650,13 +1653,38 @@ const AppContent = () => {
     return result;
   };
 
-  /** The single button on the blocking `FLUID_ENGINE_NOT_INSTALLED` banner. */
-  const handleInstallFluidEngine = async () => {
+  /**
+   * The single button on the blocking `FLUID_ENGINE_NOT_INSTALLED` banner.
+   *
+   * Returns the result rather than swallowing it: a declined Windows prompt
+   * or an outright failure is an answer the banner has to show, not silence
+   * that leaves the button looking like it did nothing.
+   */
+  const handleInstallFluidEngine = async (): Promise<IEngineSetupResult> => {
     const result = await installFluidEngine();
     if (result.ok) {
       notifyAudioEngineChanged();
       await refreshEngineStatus();
       performHealthCheck();
+    }
+    return result;
+  };
+
+  /**
+   * The troubleshooter's own "put the engine back" step.
+   *
+   * It has no inline error slot of its own — unlike the blocking banner and
+   * the output notice, its steps are a list of buttons with no room kept for
+   * a result line — so a declined or failed attempt is surfaced through the
+   * native message box the rest of the app already uses for this kind of
+   * one-shot outcome.
+   */
+  const handleTroubleshootEnableEngine = async () => {
+    const result = await handleInstallFluidEngine();
+    if (!result.ok) {
+      await window.electron.ipcRenderer.showNativeMessage(
+        t(result.declined ? 'engine.declined' : 'engine.failed'),
+      );
     }
   };
 
@@ -1780,12 +1808,9 @@ const AppContent = () => {
   // Undefined until main answers, and while no engine has been chosen — the
   // menu heading falls back to naming what the column does rather than
   // guessing at an engine.
-  let engineName;
-  if (engineStatus?.engine === 'fluid') {
-    engineName = t('engine.fluid.name');
-  } else if (engineStatus?.engine === 'apo') {
-    engineName = t('engine.apo.name');
-  }
+  const engineName = engineStatus?.engine
+    ? engineDisplayName(engineStatus.engine, t)
+    : undefined;
 
   let connectionStatus = t('app.status.ready');
   if (isLoading) {
@@ -2659,7 +2684,7 @@ const AppContent = () => {
             onRestartAudio={handleRestartWindowsAudio}
             onReconfigure={handleConfigureEqualizerApo}
             onReinstallApo={handleReinstallApo}
-            onEnableEngine={handleInstallFluidEngine}
+            onEnableEngine={handleTroubleshootEnableEngine}
             enableEngineLabel={t('output.enable')}
           />
         )}
@@ -2679,11 +2704,7 @@ const AppContent = () => {
             isBlockingError && (
               <PrereqMissingModal
                 key={prereqNonce}
-                engine={
-                  globalError.code === ErrorCode.FLUID_ENGINE_NOT_INSTALLED
-                    ? 'fluid'
-                    : 'apo'
-                }
+                engine={prereqBannerEngine(globalError.code, engineStatus)}
                 isLoading={isLoading}
                 onRetry={performHealthCheck}
                 onInstallFluid={handleInstallFluidEngine}

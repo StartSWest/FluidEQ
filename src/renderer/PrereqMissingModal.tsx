@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useState } from 'react';
 import { BUNDLED_ENGINE, PRODUCT_NAME } from 'common/branding';
 import type { TAudioEngine } from 'common/audioEngine';
+import type { IEngineSetupResult } from 'main/engineSetup';
 import Button from './widgets/Button';
 import { useTranslation } from './utils/I18nContext';
 import { startEqualizerApoInstall } from './utils/apoInstall';
@@ -31,13 +32,18 @@ interface IPrereqMissingModalProps {
    * missing. Equalizer APO being absent is not a fault at all under
    * `'fluid'` — nothing here may offer to install it in that case, or the
    * repair for one engine is handed to somebody running the other.
+   *
+   * `null` while the engine status has not answered yet: neither variant's
+   * copy is safe to show, because it might name the wrong engine's repair —
+   * so nothing engine-specific renders (no title, no credit line, no install
+   * button) until it is known. The blocking failure itself still shows.
    */
-  engine: TAudioEngine;
+  engine: TAudioEngine | null;
   isLoading: boolean;
   errorMsg: string;
   actionMsg: string;
   onRetry: () => void;
-  onInstallFluid: () => Promise<void>;
+  onInstallFluid: () => Promise<IEngineSetupResult>;
 }
 
 export default function PrereqMissingModal({
@@ -73,10 +79,16 @@ export default function PrereqMissingModal({
     setIsStarting(false);
   };
 
+  // A declined Windows prompt or an outright failure is an answer, not
+  // silence: the banner used to swallow both and just clear `isStarting`,
+  // which looked exactly like a button that did nothing.
   const handleInstallFluid = async () => {
     setIsStarting(true);
     setStartError(undefined);
-    await onInstallFluid();
+    const result = await onInstallFluid();
+    if (!result.ok) {
+      setStartError(t(result.declined ? 'engine.declined' : 'engine.failed'));
+    }
     setIsStarting(false);
   };
 
@@ -92,7 +104,12 @@ export default function PrereqMissingModal({
   return (
     <aside className="prereq-notice" role="alert">
       <div className="prereq-notice__copy">
-        <h2>{isApo ? t('prereq.title.apo') : t('prereq.title.fluid')}</h2>
+        {/* Naming an engine before the status answer is in would be a guess
+            that can name the wrong one's repair, so the title waits with the
+            rest of the engine-specific copy below. */}
+        {engine && (
+          <h2>{isApo ? t('prereq.title.apo') : t('prereq.title.fluid')}</h2>
+        )}
         <p>
           {errorMsg} {actionMsg}
         </p>
@@ -100,7 +117,7 @@ export default function PrereqMissingModal({
             explanation of what its setup will ask for. Under the FluidEQ
             Engine neither applies, so only the failure that did happen is
             shown. */}
-        {(startError || isApo) && (
+        {engine && (startError || isApo) && (
           <p className="dependency-credit">
             {startError ??
               t('prereq.credit.apo', {
@@ -115,14 +132,16 @@ export default function PrereqMissingModal({
             the way out of this notice. Retry and Dismiss used to wear the same
             filled accent, which made three equal-looking buttons out of one
             recommendation and two ways of putting it off. */}
-        <Button
-          ariaLabel={installLabel}
-          isDisabled={isLoading || isStarting}
-          className="default"
-          handleChange={isApo ? handleInstallApo : handleInstallFluid}
-        >
-          {isStarting ? t('prereq.starting') : installLabel}
-        </Button>
+        {engine && (
+          <Button
+            ariaLabel={installLabel}
+            isDisabled={isLoading || isStarting}
+            className="default"
+            handleChange={isApo ? handleInstallApo : handleInstallFluid}
+          >
+            {isStarting ? t('prereq.starting') : installLabel}
+          </Button>
+        )}
         <Button
           ariaLabel={t('prereq.retry')}
           isDisabled={isLoading}
