@@ -56,6 +56,7 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'Hechos por ti',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'Parte de FluidEQ Plus. Elígelo para ver cómo desbloquearlo.',

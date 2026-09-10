@@ -54,6 +54,8 @@ const eq = {
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
+  // The picker's heading over the scenes a member made in the Studio.
+  'graph.member.mine': 'Made by you',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'Part of FluidEQ Plus. Choose it to see how to unlock it.',
