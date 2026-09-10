@@ -38,6 +38,9 @@ export const givenBandCount = (
       const removeButton = await requireDriver(webdriver)
         .$('.main-content')
         .$('.removeFilter');
+      // Twice: the bin arms on the first press and deletes on the second.
+      // There is no undo in this app, so it asks.
+      removeButton.click();
       removeButton.click();
       await new Promise<void>((resolve) => {
         setTimeout(resolve, 1000);
@@ -85,6 +88,8 @@ export const whenChangeBandCount = (
       const removeButton = await requireDriver(webdriver)
         .$('.main-content')
         .$('.removeFilter');
+      // Arms, then deletes. See the loop above.
+      removeButton.click();
       removeButton.click();
     }
 

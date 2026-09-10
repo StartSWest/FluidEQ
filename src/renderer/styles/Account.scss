@@ -1,0 +1,479 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Compound so it beats `.about` regardless of which stylesheet the bundler
+// happens to emit first. Both are single classes on their own, and equal
+// specificity would leave this panel's width decided by import order.
+.about.account {
+  @include dialog.surface(780px, 680px);
+}
+
+.account__body {
+  gap: $spacing-m;
+}
+
+/**
+ * The thesis of the panel, marked as such.
+ *
+ * A rule down the side rather than a heavier weight: this is the paragraph that
+ * says nothing changes if you never sign in, and it has to read as the frame
+ * around the offer rather than as a warning about it. Signed in it moves to
+ * the foot, smaller: the frame is still there, but the person comes first.
+ */
+.account__optional {
+  margin: 0;
+  padding-left: $spacing-s;
+  border-left: 2px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.65;
+
+  &--foot {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+}
+
+/**
+ * The person, as a band across the top: initials in their own colour (the
+ * same colour the community paints them in), name, address, and what they
+ * are here as chips. The colour is a wash from the left so the band belongs
+ * to them rather than to the app.
+ */
+.account__hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background:
+    linear-gradient(
+      100deg,
+      hsl(var(--identity-hue, 170deg) 55% 45% / 16%),
+      transparent 55%
+    ),
+    $block-lift;
+
+  @media (max-width: 620px) {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    .account__sign-out {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+/**
+ * Initials, not a photograph.
+ *
+ * The provider's picture is on a remote origin and `img-src` allows only
+ * `'self'`, `data:` and `blob:` — so the choice was widening the policy for a
+ * decoration, or drawing something. See `authClient.ts` for the longer note.
+ */
+.account__avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  color: hsl(var(--identity-hue, 170deg) 85% 78%);
+  border-radius: $radius-pill;
+  background: hsl(var(--identity-hue, 170deg) 55% 21%);
+  box-shadow:
+    0 0 0 2px $surface-panel,
+    0 0 0 4px hsl(var(--identity-hue, 170deg) 70% 55% / 60%);
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.02em;
+}
+
+.account__who {
+  display: grid;
+  // Without this a long address makes the row wider than the dialog instead of
+  // wrapping inside it, and the panel grows a horizontal scrollbar.
+  min-width: 0;
+  gap: 2px;
+}
+
+.account__name {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+}
+
+.account__email {
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+.account__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-top: 6px;
+}
+
+.account__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    color: $secondary-light;
+  }
+
+  &--plus {
+    color: $surface-base;
+    border-color: transparent;
+    background: $secondary-default;
+  }
+
+  &--grace {
+    color: $amber;
+    border-color: color-mix(in srgb, $amber 45%, transparent);
+  }
+}
+
+// The two cards side by side; one under the other once the dialog is
+// squeezed to the point where a card would be narrower than its buttons.
+.account__cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: $spacing-m;
+
+  @media (max-width: 720px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Signed out: why on the left, how on the right.
+.account__split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: $spacing-l;
+
+  @media (max-width: 720px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-m;
+  }
+}
+
+.account__pitch {
+  display: grid;
+  align-content: start;
+  gap: $spacing-m;
+}
+
+.account__perks {
+  display: grid;
+  gap: $spacing-s;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.45;
+  }
+}
+
+.account__perk-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.account__form-column {
+  display: grid;
+  align-content: start;
+  gap: $spacing-s;
+}
+
+.account__notice {
+  display: grid;
+  gap: $spacing-xxs;
+  padding: $spacing-s;
+  border: 1px solid color-mix(in srgb, $amber 30%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 8%, transparent);
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.55;
+}
+
+.account__notice-title {
+  color: $amber;
+  font-weight: $weight-medium;
+}
+
+.account__error {
+  margin: 0;
+  color: $amber;
+  font-size: $text-body;
+  line-height: 1.55;
+}
+
+.account__waiting {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-s;
+  margin: 0;
+}
+
+.account__waiting-title {
+  display: block;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-medium;
+}
+
+.account__waiting-hint {
+  display: block;
+  margin-top: 2px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+/**
+ * A dot that breathes while the browser has the conversation.
+ *
+ * The wait has no known length — somebody may be resetting a password — so
+ * there is nothing honest to draw a progress bar from. A steady pulse says
+ * "still listening" without claiming to know how far along it is.
+ */
+.account__pulse {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  animation: account-pulse 1.6s $ease-out infinite;
+}
+
+@keyframes account-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    box-shadow: 0 0 0 0 color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account__pulse {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+.account__actions {
+  display: flex;
+  flex-wrap: wrap;
+  // The link-buttons sit beside a 32px filled button; centred, not stretched,
+  // or their underline lands at a different height from the button's text.
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  margin-top: $spacing-xxs;
+}
+
+.account__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+/**
+ * The subscription card.
+ *
+ * A gradient hairline down the left is the one flourish: it is the only thing
+ * in this panel that is sold, and it should read as a distinct object without
+ * shouting — the loud element inside it is the button, not the box.
+ */
+.plus-card {
+  position: relative;
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-s $spacing-s $spacing-s ($spacing-s + 6px);
+  border: 1px solid rgba($white, 0.07);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-block 60%, transparent);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: linear-gradient(
+      180deg,
+      $secondary-light,
+      $secondary-default 55%,
+      $complementary
+    );
+  }
+
+  &--grace::before {
+    background: $amber;
+  }
+}
+
+.plus-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+}
+
+.plus-card__eyebrow {
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.plus-card__badge {
+  padding: 1px 8px;
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.plus-card__pitch {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.6;
+}
+
+.plus-card__price {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.plus-card__line {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.55;
+
+  &--grace {
+    color: $amber;
+  }
+}
+
+.plus-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+}
+
+.plus-card__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+// The development strip: a rule above it and a small label, so it reads as a
+// tool bolted under the card rather than as part of the offer. Exists in no
+// packaged build.
+.plus-card__dev {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  margin-top: $spacing-xs;
+  padding-top: $spacing-s;
+  border-top: 1px dashed $border-subtle;
+}
+
+.plus-card__dev-label {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// The leaderboard card lives in Leaderboard.scss, beside the board it puts
+// you on. The Plus terms, the panel's other page, live in PlusTerms.scss.
+
+// The front page stays mounted while the terms are read, so a half-typed
+// sign-in is still there on the way back. `hidden` alone loses to the body's
+// own `display: grid`, which is an author rule and outranks the browser's.
+.account__body[hidden] {
+  display: none;
+}
+
+.account__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-m;
+}
+
+// Compound, to beat `.account-link`'s own size whichever sheet comes first.
+.account-link.account__terms-link {
+  justify-self: start;
+  font-size: $text-small;
+}

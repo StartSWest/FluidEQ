@@ -41,7 +41,6 @@ import {
   resolveAccentStroke,
   resolveFigureStroke,
   resolveFigureStrokeWidth,
-  resolveGlowStroke,
   resolvePresentedStrokeWidth,
   resolveTracePaint,
 } from 'renderer/graph/liveTracePaint';
@@ -256,20 +255,6 @@ describe('how heavy that stroke is', () => {
 });
 
 describe('the halo and the lit tips', () => {
-  it('halos a look in its own paint, gradient and all', () => {
-    // For a gradient look that is the very same ramp, so the glow round a
-    // spectrum is a spectrum rather than one travelling hue.
-    const ramp = resolveTracePaint('level', ['#000', '#fff'], '#54ff8a', PLOT);
-    expect(resolveGlowStroke(ramp, true, ON)).toBe(ramp);
-  });
-
-  it('carries the trace’s opt-out, so the two never disagree', () => {
-    expect(resolveGlowStroke('#54ff8a', false, ON)).toBe(
-      euphoriaTraceColour(ON.hue),
-    );
-    expect(resolveGlowStroke('#54ff8a', false, OFF)).toBe('#54ff8a');
-  });
-
   it('lets the mode reach the tips whatever the look is painted in', () => {
     // Unlike the figure and its halo, the accents never claimed to be
     // self-coloured — so the sweep took them even on a spectrum look.

@@ -28,6 +28,7 @@ const app: Partial<Dictionary> = {
   'recovery.reload': 'FluidEQ neu laden',
   'recovery.quit': 'Beenden',
   'recovery.copy': 'Details kopieren',
+  'recovery.history': 'Frühere Fehler',
   'app.tagline': 'Ihr Klang. Auf jedem Gerät. Automatisch.',
   'app.actions': 'FluidEQ-Aktionen',
   'app.actions.title': 'Audio-Aktionen',
@@ -198,6 +199,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
   'tabs.karaoke': 'Karaoke',
+  'tabs.community': 'Community',
   'tabs.scrollBack': 'Tabs zurück scrollen',
   'tabs.scrollForward': 'Tabs weiter scrollen',
   'notice.apoReconfigured':

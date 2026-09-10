@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': '请支持我们',
+  'tour.rainbow.title': '欢迎使用彩虹模式',
+  'tour.rainbow.subtitle': '一键开启',
+  'tour.rainbow.lead':
+    '彩虹色、发光点缀和流转整个色谱的边框。只改变外观，不改变声音。',
+  'tour.rainbow.how':
+    '在这里即可立即开启，无需达到 ×10。你的选择会被保存，也可随时关闭。支持完全自愿。',
+  'tour.rainbow.enable': '开启彩虹模式',
+  'tour.rainbow.disable': '关闭彩虹模式',
+  'tour.rainbow.waveform': '顶部波形预览',
+  'tour.rainbow.toggleHint':
+    '点击上方的“RAINBOW MODE”开关即可开启或关闭彩虹模式。',
   'tour.eyebrow': '本版本新功能',
   'tour.title': 'FluidEQ 新功能',
   'tour.close': '关闭',

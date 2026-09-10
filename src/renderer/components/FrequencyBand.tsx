@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import {
   IFilter,
+  isBandEnabled,
   MAX_GAIN,
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
@@ -28,6 +29,7 @@ import {
   ForwardedRef,
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -83,6 +85,31 @@ const FrequencyBand = forwardRef(
       () => isMinSliderCount || isLoading,
       [isLoading, isMinSliderCount],
     );
+    /**
+     * Whether the bin is armed, i.e. the next press on it actually deletes.
+     *
+     * Disarmed by the pointer leaving the band as well as by Escape, and that
+     * is not tidiness: the bin only exists while the band is hovered, so an
+     * armed one left behind would be invisible until the pointer came back —
+     * and the press that brought it back would be the second press.
+     */
+    const [isDeleteArmed, setIsDeleteArmed] = useState(false);
+
+    // Escape as well, for the keyboard: the pointer leaving is no help to
+    // somebody who tabbed here, and an armed control they cannot stand down is
+    // worse than one that never asked.
+    useEffect(() => {
+      if (!isDeleteArmed) {
+        return undefined;
+      }
+      const onKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setIsDeleteArmed(false);
+        }
+      };
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }, [isDeleteArmed]);
     // *** Define functions for updating filter values and obtain throttled versions of them  ***
     const normalSetGain = useCallback(
       async (newValue: number) => {
@@ -157,9 +184,9 @@ const FrequencyBand = forwardRef(
     return (
       <div
         ref={ref}
-        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
+        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
-        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}`}
+        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}${isBandEnabled(filter) ? '' : ' · off'}`}
         // Select before the browser starts a slider drag so any interaction
         // with this band's controls updates the selected-band editor.
         onPointerDown={(event) => {
@@ -172,15 +199,49 @@ const FrequencyBand = forwardRef(
           requestBandMenu(filter.id, event.clientX, event.clientY);
         }}
         onMouseEnter={() => onHover?.(true)}
-        onMouseLeave={() => onHover?.(false)}
+        onMouseLeave={() => {
+          onHover?.(false);
+          setIsDeleteArmed(false);
+        }}
       >
         {!flatLayout && (
-          <IconButton
-            icon={IconName.TRASH}
-            className="removeFilter"
-            handleClick={onRemoveEqualizerSlider}
-            isDisabled={isRemoveDisabled}
-          />
+          <div className={`removeFilterRow${isDeleteArmed ? ' is-armed' : ''}`}>
+            <IconButton
+              // Still the bin, deliberately. A tick here would be a different
+              // target under a pointer that is already over the button, and the
+              // armed state is carried by the button filling in solid rather
+              // than by a colour alone.
+              icon={IconName.TRASH}
+              className={`removeFilter${isDeleteArmed ? ' is-armed' : ''}`}
+              ariaLabel={isDeleteArmed ? 'eq.delete.armedAria' : undefined}
+              // Arms rather than deletes. This bin sits a few pixels above the
+              // band's own slider, appears on hover, and takes with it a tuning
+              // that nothing in this app can put back.
+              handleClick={() => {
+                if (isDeleteArmed) {
+                  setIsDeleteArmed(false);
+                  onRemoveEqualizerSlider();
+                  return;
+                }
+                setIsDeleteArmed(true);
+              }}
+              isDisabled={isRemoveDisabled}
+            />
+            {/* The way out, beside the armed bin. It appears only while the bin
+                is armed, so the band carries one control at rest and the pair
+                is allowed to reach a little past the band's own width — the
+                neighbours' bins are invisible until they are hovered, so there
+                is nothing there to collide with. */}
+            {isDeleteArmed && (
+              <IconButton
+                icon={IconName.CANCEL}
+                className="removeFilterKeep"
+                ariaLabel="eq.delete.keepAria"
+                handleClick={() => setIsDeleteArmed(false)}
+                isDisabled={false}
+              />
+            )}
+          </div>
         )}
         {/* ONE SHAPE AT EVERY BAND COUNT.
 

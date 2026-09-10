@@ -8,7 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IFilter } from 'common/constants';
+import { IFilter, isBandEnabled } from 'common/constants';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -37,6 +37,8 @@ interface IBandMenuProps {
   x: number;
   y: number;
   onReset: (filters: readonly IFilter[]) => void;
+  /** Put the bands in or out of the chain, keeping everything they are set to. */
+  onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
   onClose: () => void;
 }
@@ -53,13 +55,17 @@ const BandMenu = ({
   x,
   y,
   onReset,
+  onSetEnabled,
   onAddBeside,
   onClose,
 }: IBandMenuProps) => {
   const { t } = useTranslation();
   // Over a selection the menu is about all of it, and growing a neighbour
-  // beside "several bands" means nothing — only reset survives.
+  // beside "several bands" means nothing — only reset and the switch survive.
   const isSelection = filters.length > 1;
+  // Same reading as the switch in the editor row: any band still in the chain
+  // means the entry offers to take them out.
+  const isAnyEnabled = filters.some(isBandEnabled);
   // Held in state, not a ref: `AnchoredMenu` measures the anchor in an
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
@@ -122,6 +128,25 @@ const BandMenu = ({
             {isSelection
               ? t('eq.menu.resetSelection', { count: filters.length })
               : t('eq.menu.reset')}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onSetEnabled(filters, !isAnyEnabled);
+            onClose();
+          }}
+        >
+          <MenuIcon name="power" className="band-menu__icon" />
+          <span>
+            {(() => {
+              if (isSelection) {
+                return isAnyEnabled
+                  ? t('eq.menu.disableSelection', { count: filters.length })
+                  : t('eq.menu.enableSelection', { count: filters.length });
+              }
+              return isAnyEnabled ? t('eq.menu.disable') : t('eq.menu.enable');
+            })()}
           </span>
         </button>
         {!isSelection && (

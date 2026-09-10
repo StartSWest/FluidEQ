@@ -45,6 +45,8 @@ interface IOptionEntry {
   value: string;
   label: string;
   display: ReactNode | (() => ReactNode);
+  /** A heading the list draws above the first entry of each run sharing it. */
+  group?: string;
 }
 
 interface IDropdownProps {

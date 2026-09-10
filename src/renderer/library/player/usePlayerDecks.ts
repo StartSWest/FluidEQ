@@ -22,7 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * reasons that are invisible afterwards. See each one.
  */
 import { MutableRefObject, useEffect, useRef } from 'react';
-import { readStoredVolume } from './playbackMemory';
+import { readAppVolume } from '../../audio/appVolume';
 
 export interface IPlayerDecks {
   audioElements: readonly [HTMLAudioElement, HTMLAudioElement];
@@ -46,7 +46,7 @@ export const usePlayerDecks = (
     readonly [HTMLAudioElement, HTMLAudioElement] | undefined
   >(undefined);
   if (!audioElementsRef.current) {
-    const storedVolume = readStoredVolume();
+    const storedVolume = readAppVolume();
     const first = new Audio();
     const second = new Audio();
     [first, second].forEach((element) => {

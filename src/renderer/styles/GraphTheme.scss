@@ -1250,6 +1250,18 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// A premium scene fills the card behind the toolbar and all four SVG gutters.
+// The plot clips it to the card's rounded corners. The two canvases are never
+// mounted together. No euphoria keyframe here on purpose: that
+// animation exists to tick `--euphoria-hue` for the 2D painter to read, and a
+// scene is handed the accent as a uniform instead, so the two cannot disagree.
+.chart-scene-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 // *** Output level meter *****************************************************
 //
 // How loud the output actually is, in real decibels below full scale, down the
@@ -1351,6 +1363,61 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 50%;
   background: $analogous-2;
   vertical-align: middle;
+}
+
+// A premium scene's row carries the tier's name as a small pill after the
+// name, rather than a dot before it: the dot already means "yours", and this
+// means "paid for", which is a different fact. The pill is the accent at low
+// opacity so it reads as a tag on the row, not a second button in it. It has
+// to stay small enough that the longest scene name in the longest language
+// still fits the closed trigger without pushing the pill out of the box.
+.graph-look-badge {
+  flex: 0 0 auto;
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+// A Plus look the account cannot draw yet.
+//
+// The same row as an unlocked one, with two differences that say "not yet
+// yours" without saying "broken": the name is quieted a step, and the tag
+// carries a lock in front of the word. The icon is deliberately left at full
+// strength — the swatch is the whole pitch, and a greyed-out picture of a
+// look nobody can see is not an invitation to anything.
+.graph-look-option--locked .graph-look-name {
+  opacity: 0.72;
+}
+
+.graph-look-badge--locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.graph-look-badge__lock {
+  width: 7px;
+  height: 8px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  rect {
+    fill: currentColor;
+    stroke: none;
+  }
 }
 
 // Hide everything but the live trace.
@@ -1477,11 +1544,13 @@ it under the terms of the GNU General Public License version 3 or later.
   //
   // With nothing behind it but the workspace, a panel drawn on top of a panel
   // is a second sheet of the same colour: it flattens the graph and adds an
-  // edge where the eye expects none. At zero the drawing floats on the app's
-  // own background, which is what the expanded view looked like it wanted to be
-  // all along.
+  // edge where the eye expects none. It used to go clear here and float the
+  // drawing on the app's own background; that background is a theme colour
+  // — navy on Ocean — and every scene was designed against black. So the
+  // surface stays, solid, and black: a stage, not a panel.
   > .graph-wrapper::before {
-    opacity: 0;
+    background: $black;
+    opacity: 1;
   }
 
   // Only the overlay controls are irrelevant over the workspace. Hiding every
@@ -2165,6 +2234,10 @@ it under the terms of the GNU General Public License version 3 or later.
     // that a blur of zero is the literal keyword `none`. `blur(0px)` is still a
     // filter: it promotes a compositing layer and re-composites the region
     // every frame to produce a result identical to not doing it.
+    //
+    // The declaration itself went missing and left this note behind, which is
+    // why the slider moved and nothing happened.
+    backdrop-filter: var(--graph-overlay-filter, none);
 
     // The surface, as a layer of its own behind the drawing.
     //
@@ -2180,11 +2253,11 @@ it under the terms of the GNU General Public License version 3 or later.
       position: absolute;
       z-index: -1;
       border-radius: inherit;
-      // The card's own gradient, rebuilt on the layer that carries the
-      // transparency. A flat colour here was the one place the graph stopped
-      // looking like the panels around it, and full screen is where it is most
-      // visible.
-      background: panel-top($secondary-dark, 5%);
+      // Black, in both of these modes. This carried the card's own gradient so
+      // the graph matched the panels around it; but expanded and full screen
+      // are for watching, the scenes are drawn against black, and a navy or
+      // grey sheet under a night sky or a fire read as a tint on the picture.
+      background: $black;
 
       // No fade at the edges. The card is a card: it has an edge, and the edge
       // is where it stops.

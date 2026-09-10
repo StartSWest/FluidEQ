@@ -88,6 +88,13 @@ const IStateSchema = {
         id: {
           type: 'string',
         },
+        // Not in `required`, and it must never be: every state and preset
+        // written before the per-band switch existed lacks it, and a schema
+        // that demands it turns each of those files into a validation failure
+        // — which is how a saved preset stops loading.
+        isEnabled: {
+          type: 'boolean',
+        },
         quality: {
           type: 'number',
         },
@@ -165,6 +172,13 @@ export const IPresetSchemaV1 = {
         id: {
           type: 'string',
         },
+        // Not in `required`, and it must never be: every state and preset
+        // written before the per-band switch existed lacks it, and a schema
+        // that demands it turns each of those files into a validation failure
+        // — which is how a saved preset stops loading.
+        isEnabled: {
+          type: 'boolean',
+        },
         quality: {
           type: 'number',
         },
@@ -237,6 +251,13 @@ const IPresetSchemaV2 = {
         },
         id: {
           type: 'string',
+        },
+        // Not in `required`, and it must never be: every state and preset
+        // written before the per-band switch existed lacks it, and a schema
+        // that demands it turns each of those files into a validation failure
+        // — which is how a saved preset stops loading.
+        isEnabled: {
+          type: 'boolean',
         },
         quality: {
           type: 'number',

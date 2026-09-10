@@ -134,7 +134,7 @@ import {
 } from './unattendedUpdate';
 import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
-import { installMainFailureRecovery } from './crashRecovery';
+import { installMainFailureRecovery, recordFailure } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
@@ -161,6 +161,12 @@ import {
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
+import { registerAccountIpc } from './ipc/account';
+import { registerScenePacksIpc } from './ipc/scenePacks';
+import { registerMemberScenesIpc } from './ipc/memberScenes';
+import { registerCommunityIpc } from './ipc/community';
+import { registerLeaderboardIpc } from './ipc/leaderboard';
+import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
 import {
   handleLibraryMedia,
@@ -190,6 +196,10 @@ import {
   watchSystemMedia,
 } from './systemMedia';
 import { claimInstance, isAnotherInstanceLive } from './singleInstance';
+import {
+  getDevelopmentDebugPort,
+  getDevelopmentInstance,
+} from './developmentInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import {
@@ -578,8 +588,24 @@ const checkForUpdatesIfDue = (reason: string) => {
  * collapses the burst into one request.
  */
 const watchForUpdateOpportunities = () => {
-  powerMonitor.on('resume', () => checkForUpdatesIfDue('wake from sleep'));
-  powerMonitor.on('unlock-screen', () => checkForUpdatesIfDue('screen unlock'));
+  // The subscription rides the same signals, for the same reason: each one
+  // means somebody has come back to the machine, which is when an answer is
+  // worth fetching and the only time a change in it could be noticed.
+  const checkEntitlementIfDue = (reason: string) => {
+    accountIpc.entitlement
+      .checkIfDue(reason)
+      .then(() => scenePacksIpc.refreshIfDue(reason))
+      .then(() => leaderboardIpc.uploadIfDue(reason))
+      .catch(() => undefined);
+  };
+  powerMonitor.on('resume', () => {
+    checkForUpdatesIfDue('wake from sleep');
+    checkEntitlementIfDue('wake from sleep');
+  });
+  powerMonitor.on('unlock-screen', () => {
+    checkForUpdatesIfDue('screen unlock');
+    checkEntitlementIfDue('screen unlock');
+  });
   // The screen locking means the machine has been left. Nothing there is
   // watching a restart happen, and it is the longest uninterrupted stretch
   // this app ever gets.
@@ -587,8 +613,14 @@ const watchForUpdateOpportunities = () => {
     applyUpdateIfUnattended('the screen locking'),
   );
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.on('show', () => checkForUpdatesIfDue('window shown'));
-    mainWindow.on('focus', () => checkForUpdatesIfDue('window focused'));
+    mainWindow.on('show', () => {
+      checkForUpdatesIfDue('window shown');
+      checkEntitlementIfDue('window shown');
+    });
+    mainWindow.on('focus', () => {
+      checkForUpdatesIfDue('window focused');
+      checkEntitlementIfDue('window focused');
+    });
     // The other half: the window leaving the screen is the moment a pending
     // update stops being in anybody's way. Both events, because closing to
     // the tray and minimising to the taskbar are different signals for the
@@ -829,7 +861,9 @@ const syncDatabasesOnStartup = async () => {
   });
 };
 
-if (process.platform !== 'win32') {
+const developmentInstance = getDevelopmentInstance(app.isPackaged);
+
+if (process.platform !== 'win32' && !developmentInstance) {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
@@ -2031,6 +2065,7 @@ const syncActiveApoFilesFromDisk = async () => {
     generatedChanged = adoptBypassFromConfig(
       chain.features,
       chain.shared ?? '',
+      !!chain.custom,
     );
 
     APO_FEATURES.forEach((feature) => {
@@ -2183,10 +2218,12 @@ const REDACT_AS = os.userInfo().username;
 
 ipcMain.on(ChannelEnum.LOG_ERROR, (_event, args) => {
   const [context, detail] = (args as string[]) ?? [];
-  log.error(
-    `[renderer] ${redact(String(context ?? ''), REDACT_AS)}`,
-    redact(String(detail ?? ''), REDACT_AS),
-  );
+  const safeContext = `[renderer] ${redact(String(context ?? ''), REDACT_AS)}`;
+  const safeDetail = redact(String(detail ?? ''), REDACT_AS);
+  log.error(safeContext, safeDetail);
+  // Also into the journal the debug recovery dialog prints: the React error
+  // that took the window down is the entry a developer is looking for.
+  recordFailure(safeContext, safeDetail);
 });
 
 ipcMain.on(ChannelEnum.LOG_INFO, (_event, args) => {
@@ -2807,6 +2844,89 @@ const stopRemoteAudioLan = registerRemoteAudioIpc({
 
 const stopOutputMirrors = registerOutputMirrorIpc(() => mainWindow);
 
+// Registers the channels and reads whatever session is already on disk; it
+// contacts nothing. A build with no backend configured resolves to a store that
+// reports signed out forever, so this costs an unconfigured checkout one file
+// read that finds nothing.
+// DEVELOPMENT ONLY, and compiled to nothing in a packaged build: `isPackaged`
+// is decided by the binary's name, which nothing here can change. Two
+// environment variables let the premium path be looked at before a backend
+// exists — a pretend subscription, and a directory of signed packs from the
+// publishing tool. Neither loosens anything: the server still serves only
+// paying accounts, and a pack still has to verify against the compiled-in key.
+const developmentEntitlement =
+  !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
+    ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
+    : undefined;
+const developmentPacksDir =
+  !app.isPackaged && process.env.FLUIDEQ_DEV_SCENE_PACKS_DIR
+    ? process.env.FLUIDEQ_DEV_SCENE_PACKS_DIR
+    : undefined;
+// The merchant has no test mode, so in development the Account panel can ask
+// the server to send the merchant's own signed events for this account and
+// watch the subscription switch on and off. Nothing to configure: the server
+// holds the secret and admits admins only. See `membershipSimulator.ts`.
+const developmentSimulator = !app.isPackaged;
+// A cast of sample people laid over the community and the leaderboard, so the
+// panels can be looked at full before there is anyone in them. Nothing is
+// written anywhere; see `sampleCommunity.ts`.
+const developmentSampleCommunity =
+  !app.isPackaged && process.env.FLUIDEQ_DEV_COMMUNITY_SAMPLE === '1';
+
+const accountIpc = registerAccountIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  logger: log,
+  developmentEntitlement,
+  developmentSimulator,
+});
+
+// The premium looks ride on the account: they are listed only while the
+// subscription is live, and fetched on the same "somebody is back at the
+// machine" events. Registering reads the cache; it contacts nothing.
+const scenePacksIpc = registerScenePacksIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+  developmentPacksDir,
+});
+
+// Scenes members make in the Studio. Registering watches nothing: a linked
+// folder is watched only while the Studio is open.
+const memberScenesIpc = registerMemberScenesIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+});
+
+// The community's REST calls and its live feed. Registering opens nothing:
+// the feed connects when the Community tab is on screen and closes when it
+// leaves, because a chat nobody is looking at does not need a socket.
+const communityIpc = registerCommunityIpc({
+  getMainWindow: () => mainWindow,
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  logger: log,
+  sampleContent: developmentSampleCommunity,
+});
+
+// Listening minutes. Counted always, kept on this machine, and uploaded only
+// for an account that opted in — on the same events as everything else.
+const leaderboardIpc = registerLeaderboardIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+  sampleContent: developmentSampleCommunity,
+});
+
 registerKaraokeIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
@@ -2862,12 +2982,13 @@ if (isDebug && process.getuid?.() === 0) {
  * filled the tab, buttons with no class, two sections that sat side by side.
  * Every one passed the whole suite.
  *
- * Bound to the loopback address on purpose, and gated on `isDebug` so it can
+ * Bound to the loopback address on purpose, and gated on unpackaged dev so it can
  * never reach a packaged build — an open protocol port is remote control of
  * the browser, not merely a diagnostic.
  */
-if (process.env.NODE_ENV === 'development') {
-  app.commandLine.appendSwitch('remote-debugging-port', '9222');
+const developmentDebugPort = getDevelopmentDebugPort(app.isPackaged);
+if (developmentDebugPort) {
+  app.commandLine.appendSwitch('remote-debugging-port', developmentDebugPort);
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
 }
 
@@ -3053,6 +3174,14 @@ app.on('before-quit', (event) => {
   destroyTray();
   stopRemoteAudioLan();
   stopOutputMirrors();
+  // Aborts a sign-in that is still waiting on the browser. Without it the
+  // loopback socket outlives the quit, and the next launch cannot bind while
+  // the old listener is still holding a port nobody is going to answer on.
+  accountIpc.dispose();
+  scenePacksIpc.dispose();
+  memberScenesIpc.dispose();
+  communityIpc.dispose();
+  leaderboardIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows
@@ -3094,7 +3223,10 @@ let releaseInstanceMarker: (() => void) | undefined;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
-} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
+} else if (
+  !developmentInstance &&
+  isAnotherInstanceLive(INSTANCE_MARKER_PATH)
+) {
   // Electron's lock did not catch this one, so it is the other build: dev
   // started while the installed copy is running, or the other way round. Said
   // out loud rather than quitting blankly — a window that never appears is the
@@ -3104,7 +3236,11 @@ if (!app.requestSingleInstanceLock()) {
   );
   app.quit();
 } else {
-  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
+  // Named development profiles have their own data AND demo APO config. Keep
+  // their per-profile Electron lock, but never claim the real system-EQ lock.
+  if (!developmentInstance) {
+    releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
+  }
   app.on('second-instance', () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       return;

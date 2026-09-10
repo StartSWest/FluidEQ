@@ -56,7 +56,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: baseline;
   justify-content: space-between;
   padding: 11px 18px 13px;
-  border-top: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
+  border-top: 1px solid rgba($white, 0.09);
   background: $block-lift;
 }
 
@@ -100,8 +100,7 @@ it under the terms of the GNU General Public License version 3 or later.
     z-index: 1;
     top: -18px;
     padding: 9px 12px;
-    border-bottom: 1px solid
-      color-mix(in srgb, $secondary-light 16%, transparent);
+    border-bottom: 1px solid rgba($white, 0.09);
     color: $text-faint;
     background: color-mix(in srgb, $surface-menu-top 96%, transparent);
     font-size: $text-small;
@@ -113,8 +112,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   td {
     padding: 10px 12px;
-    border-bottom: 1px solid
-      color-mix(in srgb, $secondary-light 8%, transparent);
+    border-bottom: 1px solid rgba($white, 0.09);
     // Top, not middle: the numbers belong beside the name they describe, and
     // centring them against a two-line cell floats them into the explanation.
     vertical-align: top;

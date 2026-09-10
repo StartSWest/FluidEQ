@@ -18,24 +18,61 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useMemo } from 'react';
 import { IFilter } from 'common/constants';
-import { IDriverFilter } from 'common/driver';
+import { DRIVER_PROFILES, IDriverFilter } from 'common/driver';
 import { getCombinedLineData, getFilterLineData } from '../graph/utils';
-import { IChartLineDataPointsById } from '../graph/ChartController';
+import {
+  IChartLineDataPointsById,
+  IChartPointData,
+} from '../graph/ChartController';
 import { useTranslation } from '../utils/I18nContext';
 
 const WIDTH = 280;
 const HEIGHT = 58;
-/**
- * Half-scale of the preview in dB.
- *
- * Matched to the largest gain any driver profile uses, so a full-strength
- * filter reaches the top of the box. A wider range would be more "honest"
- * about absolute size but would draw every curve as a flat line, which tells
- * the user nothing — the axis is labelled so the scale is not a secret.
- */
-const RANGE_DB = 1.5;
 const MIN_HZ = 20;
 const MAX_HZ = 20000;
+
+/** The real combined response of a driver layer, on the graph's own sampling. */
+const getCurvePoints = (
+  filters: readonly IDriverFilter[],
+): IChartPointData[] => {
+  const lines: IChartLineDataPointsById = {};
+  filters.forEach((filter, index) => {
+    const asFilter: IFilter = {
+      id: String(index),
+      frequency: filter.frequency,
+      gain: filter.gain,
+      quality: filter.quality,
+      type: filter.type,
+    };
+    lines[asFilter.id] = getFilterLineData(asFilter);
+  });
+  return getCombinedLineData(0, lines).filter(
+    (point) => point.x >= MIN_HZ && point.x <= MAX_HZ,
+  );
+};
+
+/**
+ * Half-scale of the preview in dB, measured from the catalogue, not typed.
+ *
+ * This was a hardcoded 1.5 that outlived two retunings of the profiles. When
+ * they were flattened the number stayed, so the deepest curve in the app only
+ * ever reached a third of the way up a box labelled ±1.5 dB and every profile
+ * drew as the same faint droop through the middle. Deriving it means the
+ * deepest profile always touches the top edge and every other one keeps its
+ * true size relative to that, which is the comparison the panel exists to make.
+ * The label is filled in from the same number, so the zoom is never a secret.
+ */
+export const DRIVER_CURVE_RANGE_DB =
+  Math.ceil(
+    DRIVER_PROFILES.reduce(
+      (widest, profile) =>
+        getCurvePoints(profile.filters).reduce(
+          (peak, point) => Math.max(peak, Math.abs(point.y)),
+          widest,
+        ),
+      0.5,
+    ) * 10,
+  ) / 10;
 
 interface IDriverCurveProps {
   filters: IDriverFilter[];
@@ -56,30 +93,18 @@ export default function DriverCurve({ filters }: IDriverCurveProps) {
       return '';
     }
 
-    const lines: IChartLineDataPointsById = {};
-    filters.forEach((filter, index) => {
-      const asFilter: IFilter = {
-        id: String(index),
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      };
-      lines[asFilter.id] = getFilterLineData(asFilter);
-    });
-
     const logMin = Math.log10(MIN_HZ);
     const logSpan = Math.log10(MAX_HZ) - logMin;
 
-    return getCombinedLineData(0, lines)
-      .filter((point) => point.x >= MIN_HZ && point.x <= MAX_HZ)
+    return getCurvePoints(filters)
       .map((point, index) => {
         const x = ((Math.log10(point.x) - logMin) / logSpan) * WIDTH;
         const clamped = Math.max(
-          -RANGE_DB,
-          Math.min(RANGE_DB, Number(point.y) || 0),
+          -DRIVER_CURVE_RANGE_DB,
+          Math.min(DRIVER_CURVE_RANGE_DB, Number(point.y) || 0),
         );
-        const y = HEIGHT / 2 - (clamped / RANGE_DB) * (HEIGHT / 2 - 4);
+        const y =
+          HEIGHT / 2 - (clamped / DRIVER_CURVE_RANGE_DB) * (HEIGHT / 2 - 4);
         return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
       })
       .join(' ');

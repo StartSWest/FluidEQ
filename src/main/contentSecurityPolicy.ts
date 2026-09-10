@@ -95,7 +95,7 @@ const contentSecurityPolicy = (isDebug: boolean): string =>
     "font-src 'self' data:",
     "worker-src 'self' blob:",
     isDebug
-      ? `connect-src 'self' ws: http://localhost:1212 ${MODEL_HOSTS}`
+      ? `connect-src 'self' ws: ${MODEL_HOSTS}`
       : `connect-src 'self' ${MODEL_HOSTS}`,
     "object-src 'none'",
     "base-uri 'self'",

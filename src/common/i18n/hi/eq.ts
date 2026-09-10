@@ -53,6 +53,12 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'विज़ुअलाइज़र अपने आप बदलें',
   'graph.autoSwitch.off': 'ऑटो: बंद',
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
+  // The product name of the tier, so it is not translated: the same word
+  // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'आपके बनाए',
+  'graph.scene.badge': 'Plus',
+  'graph.scene.locked':
+    'FluidEQ Plus का हिस्सा। इसे चुनकर देखें कि इसे कैसे खोलें।',
   'graph.style.next': 'अगली शैली',
   'graph.style.previous': 'पिछली शैली',
   'graph.style.search': 'शैलियाँ खोजें',
@@ -118,7 +124,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.starfield': 'वार्प गति',
   'graph.styleName.candles': 'मोमबत्तियाँ',
   'graph.styleName.arches': 'मेहराब',
-  'graph.styleName.flames': 'लपटें',
+  'graph.styleName.flames': 'नाचती लपटें',
   'graph.styleName.barcode': 'बारकोड',
   'graph.styleName.rain': 'बारिश',
   'graph.styleName.honeycomb': 'मधुकोष',
@@ -204,6 +210,8 @@ const eq: Partial<Dictionary> = {
     'आवाज़ बहुत आगे महसूस हो तो प्रेज़ेन्स क्षेत्र में चौड़ी, हल्की कटौती।',
   'driver.filter.trebleSoftening':
     'तीखी रिकॉर्डिंग या पहनने पर उजली लगने वाली आवाज़ के लिए ट्रेबल में थोड़ी कटौती।',
+  'driver.filter.edgeSoftening':
+    'जहाँ कठोर डायाफ्राम नोट की शुरुआत को कठोर बनाता है, वहाँ हल्की कटौती।',
   'driver.filter.vocalLift':
     'मिडरेंज पीछे सुनाई दे तो आज़माने के लिए स्वर में हल्की बढ़ोतरी।',
   'driver.filter.bassTidying':
@@ -226,7 +234,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'कोई सुधार नहीं',
   'driver.none.hint': 'सिर्फ़ आपके बैंड और ध्वनि रंग',
   'driver.strength': 'मात्रा',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'आपकी आवाज़',
   'app.soundPanel': 'साउंड पैनल',
   'profiles.title': 'सहेजी गई प्रोफ़ाइलें',
@@ -380,12 +388,28 @@ const eq: Partial<Dictionary> = {
   'eq.frequency': 'आवृत्ति',
   'eq.gain': 'गेन',
   'eq.gainDisabled': 'गेन · लागू नहीं',
+  'eq.gainReset': 'Ctrl+क्लिक हर चयनित बैंड को 0 dB पर लौटाता है',
   'eq.quality': 'क्वालिटी (Q)',
+  'eq.active': 'सक्रिय',
+  'eq.activeAria': 'चयनित बैंड लागू करें',
+  'eq.activeGroupAria': 'चयनित {count} बैंड लागू करें',
   'eq.delete': 'बैंड हटाएँ',
   'eq.deleteAria': 'चुना हुआ EQ बैंड हटाएँ',
+  'eq.deleteSelectionAria': 'चुने हुए {count} बैंड हटाएँ',
+  'eq.delete.armed': 'हटाएँ',
+  'eq.delete.keep': 'रहने दें',
+  'eq.delete.keepAria': 'बैंड रहने दें और हटाना रद्द करें।',
+  'eq.delete.armedAria':
+    'यह बैंड हटाने के लिए दोबारा दबाएँ। इसका गेन और Q भी साथ चले जाएँगे और वापस नहीं लाए जा सकते।',
+  'eq.delete.armedAriaGroup':
+    '{count} बैंड हटाने के लिए दोबारा दबाएँ। उन पर सेट सब कुछ साथ चला जाएगा और वापस नहीं लाया जा सकता।',
   'eq.menu.aria': '{frequency} Hz पर बैंड',
   'eq.menu.subject': '{frequency} Hz',
   'eq.menu.reset': 'बैंड रीसेट करें',
+  'eq.menu.disable': 'बैंड बंद करें',
+  'eq.menu.enable': 'बैंड चालू करें',
+  'eq.menu.disableSelection': '{count} बैंड बंद करें',
+  'eq.menu.enableSelection': '{count} बैंड चालू करें',
   'eq.menu.addLeft': 'बाईं ओर बैंड जोड़ें',
   'eq.menu.addRight': 'दाईं ओर बैंड जोड़ें',
   'eq.menu.selection': '{count} बैंड चुने गए',

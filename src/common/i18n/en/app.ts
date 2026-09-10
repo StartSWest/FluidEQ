@@ -26,6 +26,7 @@ const app = {
   'recovery.reload': 'Reload FluidEQ',
   'recovery.quit': 'Quit',
   'recovery.copy': 'Copy details',
+  'recovery.history': 'Earlier failures',
   'app.tagline': 'Your sound. Every device. Automatically.',
   'app.actions': 'FluidEQ actions',
   'app.actions.title': 'Audio actions',
@@ -194,6 +195,7 @@ const app = {
   // qualifies, so a narrow window says less rather than saying it badly.
   'tabs.mediaShort': 'Media',
   'tabs.karaoke': 'Karaoke',
+  'tabs.community': 'Community',
   'tabs.scrollBack': 'Scroll tabs back',
   'tabs.scrollForward': 'Scroll tabs forward',
   'notice.apoReconfigured':

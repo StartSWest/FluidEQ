@@ -47,6 +47,32 @@ if (!('ResizeObserver' in globalThis)) {
   });
 }
 
+/**
+ * `IntersectionObserver`, on the same terms as the one above.
+ *
+ * The live trace watches its own canvas so a drawing scrolled out of the plot
+ * stops asking for frames. jsdom has no viewport to intersect with, so a real
+ * one has nothing to report; without a stub the constructor throws inside the
+ * ref callback and takes the whole render down before anything can be asserted.
+ * Inert on purpose: the loop it gates is a canvas paint, which jsdom cannot do
+ * anyway — see the null `getContext` above.
+ */
+if (!('IntersectionObserver' in globalThis)) {
+  Object.assign(globalThis, {
+    IntersectionObserver: class {
+      observe(): void {}
+
+      unobserve(): void {}
+
+      disconnect(): void {}
+
+      takeRecords(): [] {
+        return [];
+      }
+    },
+  });
+}
+
 // No `matchMedia` stub here, deliberately. jsdom does not implement it, and
 // adding one globally changed what other suites saw: `KaraokeWorkspace`
 // captures `window.matchMedia` at describe time and restores it after every

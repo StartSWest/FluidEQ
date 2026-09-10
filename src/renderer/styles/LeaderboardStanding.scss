@@ -1,0 +1,177 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Where you stand, at the top of the board: the rank large on the left, the
+// points and what they are made of on the right. The parts' colours come from
+// `--part`, set in Leaderboard.scss.
+.leaderboard-standing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-l;
+  padding: $spacing-m $spacing-l;
+  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      90% 160% at 0% 0%,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 60%
+    ),
+    $block-lift;
+  @include animate(rise-in);
+
+  @container eq-panel (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-s;
+    padding: $spacing-m;
+  }
+}
+
+.leaderboard-standing__rank {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 96px;
+  padding-right: $spacing-l;
+  border-right: 1px solid $border-subtle;
+
+  @container eq-panel (max-width: 600px) {
+    justify-items: start;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+}
+
+// A display size, so the display weight's rule does not apply: bold is the
+// ceiling at every size in this app, and at this one it is plenty.
+.leaderboard-standing__number {
+  color: $secondary-light;
+  font-size: 2.3rem;
+  font-weight: $weight-bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 22px color-mix(in srgb, $secondary-default 40%, transparent);
+}
+
+.leaderboard-standing__hash {
+  margin-right: 2px;
+  font-size: 1.3rem;
+  opacity: 0.55;
+  vertical-align: 0.35em;
+}
+
+.leaderboard-standing__of {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderboard-standing__body {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.leaderboard-standing__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-s;
+}
+
+.leaderboard-standing__points {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+// Its own name rather than the rows' keyframe from Leaderboard.scss: a
+// stylesheet that animated with a keyframe defined in another would lose the
+// animation the day the other one is imported somewhere else first.
+@keyframes leaderboard-standing-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+// The score, split into its parts. Segments are flex items grown by their
+// points, so they always sum to the whole bar whatever the total is.
+.leaderboard-standing__bar {
+  display: flex;
+  gap: 2px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 6%, transparent);
+}
+
+.leaderboard-standing__segment {
+  flex-basis: 0;
+  min-width: 4px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--part) 92%, $white),
+    var(--part)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--part) 50%, transparent);
+  transform-origin: left center;
+  @include animate(leaderboard-standing-grow, 640ms, $ease-out, 120ms);
+}
+
+.leaderboard-standing__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: $text-muted;
+    font-size: $text-small;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // A part not yet earned stays in the key, quieter, so the key is always the
+  // same five and says what else there is to do.
+  .is-empty {
+    opacity: 0.5;
+  }
+}
+
+.leaderboard-standing__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--part);
+}
+
+.leaderboard-standing__next {
+  margin: 0;
+  color: $secondary-light;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+}

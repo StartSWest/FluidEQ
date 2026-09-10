@@ -71,9 +71,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Leuchten',
   'look.off': 'Aus',
   'look.glowHint': 'Wie stark die Form im Takt wächst und aufleuchtet.',
-  'look.glowNeedsRainbow':
-    'Benötigt den Regenbogenmodus. Ohne ihn verändert Leuchten die Zeichnung nicht.',
   'look.needsRainbow': 'Benötigt den Regenbogenmodus.',
+  'look.glowNotForForm': 'Diese Form hat kein Leuchten.',
   'look.rainbowBorder': 'Regenbogenrand',
   'look.rainbowBorderHint':
     'Umrahmt das Diagramm mit einer Farbe, die das ganze Spektrum durchläuft.',
@@ -118,7 +117,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Drücke die Leertaste, damit es hüpft',
   'support.game.hint': 'Im Takt drücken, wenn die Spitze die Linie erreicht',
   'support.game.howTo':
-    'Tippe das Wesen an oder drücke bei jedem Beat die Leertaste. Bleib dran — bei ×10 passiert etwas.',
+    'Spiele Musik ab und tippe auf das Tier oder drücke die Leertaste, sobald eine Spitze die Mittellinie erreicht. Erreiche ×10, um den Regenbogenmodus freizuschalten.',
   'support.game.thanks':
     'Wenn dich davon etwas zum Lächeln gebracht hat: Ideen und Unterstützung halten das hier am Leben.',
   'support.game.noAudio': 'Spiel etwas ab, dann erscheint der Takt hier',
@@ -127,7 +126,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': 'Regenbogen teilen',
   'support.game.shareTitle': 'Teile dein Ergebnis',
   'support.game.shareUnlock':
-    'Erreiche ×10 und diese Karte wird zum Regenbogenmodus – mit dem ganzen Farbspektrum.',
+    'Schalte den Regenbogenmodus durch Spielen oder Bestätigen deines Beitrags frei, um dieser Karte Regenbogenfarben zu geben.',
   'support.game.shareNote':
     'Speichere die Karte und hänge sie an deinen Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
   'support.game.shareSave': 'Karte speichern',
@@ -159,9 +158,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Adresse kopieren',
   'support.copied': 'Kopiert',
   'support.openWallet': 'In der Wallet öffnen',
-  'support.contributed': 'Ich habe beigetragen — Stern und Tanz freischalten',
+  'support.contributed': 'Ich habe beigetragen — Regenbogenmodus aktivieren',
+  'support.rainbowHint':
+    'Schon beigetragen? Mit „Ich habe beigetragen“ schaltest du den Regenbogenmodus sofort ein. ×10 ist nicht nötig.',
   'support.thanks':
-    'Danke — Ihr Begleiter hat seinen Stern, und jetzt tanzt er.',
+    'Danke — der Regenbogenmodus ist freigeschaltet und dein Tier hat seinen Stern und seinen Tanz.',
   'support.releaseNotes': 'Sehen, was in dieser Version neu ist',
   'support.footerBefore':
     'Lieber Zeit beitragen? Issues und Pull Requests sind genauso willkommen auf',

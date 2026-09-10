@@ -11,6 +11,7 @@ import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
 import BlackThemeSlide from './BlackThemeSlide';
 import ShareAudioSlide from './ShareAudioSlide';
+import RainbowModeSlide from './RainbowModeSlide';
 import {
   CustomLooksSlide,
   DspSlide,
@@ -127,6 +128,13 @@ export const featureTourFor = (version: string): ITourSlide[] => {
   const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
   const featuredIds = new Set(featured.map((entry) => entry.id));
   return [
+    {
+      id: 'rainbow-mode',
+      titleKey: 'tour.rainbow.title',
+      subtitleKey: 'tour.rainbow.subtitle',
+      isNew: true,
+      Body: RainbowModeSlide,
+    },
     ...featured.map((entry) => ({
       ...entry,
       isNew: true,

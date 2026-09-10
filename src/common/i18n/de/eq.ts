@@ -54,6 +54,12 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Visualisierungen automatisch wechseln',
   'graph.autoSwitch.off': 'Auto: Aus',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  // The product name of the tier, so it is not translated: the same word
+  // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'Von dir erstellt',
+  'graph.scene.badge': 'Plus',
+  'graph.scene.locked':
+    'Teil von FluidEQ Plus. Auswählen, um zu sehen, wie es freigeschaltet wird.',
   'graph.style.next': 'Nächster Stil',
   'graph.style.previous': 'Vorheriger Stil',
   'graph.style.search': 'Stile suchen',
@@ -119,7 +125,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.starfield': 'Warp-Geschwindigkeit',
   'graph.styleName.candles': 'Kerzen',
   'graph.styleName.arches': 'Bögen',
-  'graph.styleName.flames': 'Flammen',
+  'graph.styleName.flames': 'Tanzende Flammen',
   'graph.styleName.barcode': 'Strichcode',
   'graph.styleName.rain': 'Regen',
   'graph.styleName.honeycomb': 'Waben',
@@ -206,6 +212,8 @@ const eq: Partial<Dictionary> = {
     'Eine breite, sanfte Präsenzabsenkung, wenn der Klang zu aufdringlich wirkt.',
   'driver.filter.trebleSoftening':
     'Eine kleine Höhenabsenkung für scharfe Aufnahmen oder einen hellen Klang durch den Sitz.',
+  'driver.filter.edgeSoftening':
+    'Eine sanfte Absenkung dort, wo eine steife Membran den Anschlag hart macht.',
   'driver.filter.vocalLift':
     'Eine leichte Stimmverstärkung zum Ausprobieren bei zurückhaltenden Mitten.',
   'driver.filter.bassTidying':
@@ -228,7 +236,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Keine Korrektur',
   'driver.none.hint': 'Nur Ihre Bänder und der Klangcharakter',
   'driver.strength': 'Stärke',
-  'driver.range': '±1,5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'IHR KLANG',
   'app.soundPanel': 'Sound-Panel',
   'profiles.title': 'Gespeicherte Profile',
@@ -385,12 +393,28 @@ const eq: Partial<Dictionary> = {
   'eq.frequency': 'Frequenz',
   'eq.gain': 'Verstärkung',
   'eq.gainDisabled': 'Verstärkung · —',
+  'eq.gainReset': 'Strg+Klick setzt jedes ausgewählte Band auf 0 dB zurück',
   'eq.quality': 'Güte (Q)',
+  'eq.active': 'Aktiv',
+  'eq.activeAria': 'Ausgewähltes Band anwenden',
+  'eq.activeGroupAria': 'Die {count} ausgewählten Bänder anwenden',
   'eq.delete': 'Band löschen',
   'eq.deleteAria': 'Gewähltes EQ-Band löschen',
+  'eq.deleteSelectionAria': 'Die {count} gewählten Bänder löschen',
+  'eq.delete.armed': 'Löschen',
+  'eq.delete.keep': 'Behalten',
+  'eq.delete.keepAria': 'Das Band behalten und das Löschen abbrechen.',
+  'eq.delete.armedAria':
+    'Noch einmal drücken, um dieses Band zu löschen. Pegel und Q gehen mit und lassen sich nicht zurückholen.',
+  'eq.delete.armedAriaGroup':
+    'Noch einmal drücken, um {count} Bänder zu löschen. Alles, was an ihnen eingestellt ist, geht mit und lässt sich nicht zurückholen.',
   'eq.menu.aria': 'Band bei {frequency} Hz',
   'eq.menu.subject': '{frequency} Hz',
   'eq.menu.reset': 'Band zurücksetzen',
+  'eq.menu.disable': 'Band deaktivieren',
+  'eq.menu.enable': 'Band aktivieren',
+  'eq.menu.disableSelection': '{count} Bänder deaktivieren',
+  'eq.menu.enableSelection': '{count} Bänder aktivieren',
   'eq.menu.addLeft': 'Band links hinzufügen',
   'eq.menu.addRight': 'Band rechts hinzufügen',
   'eq.menu.selection': '{count} Bänder ausgewählt',

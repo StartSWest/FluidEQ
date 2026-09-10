@@ -29,6 +29,7 @@ import {
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
 import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
+import { useAppVolume } from '../audio/appVolume';
 import {
   claimPlayback,
   registerPlayer,
@@ -40,7 +41,6 @@ import {
   TKaraokeParseErrorCode,
 } from '../../common/karaoke/types';
 
-const KARAOKE_VOLUME_KEY = 'fluideq.karaoke.volume';
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
 
 export type TKaraokePlaybackStatus =
@@ -68,19 +68,6 @@ export interface IKaraokeSessionWarning {
 
 const asKaraokeParseError = (error: unknown): KaraokeParseError | undefined =>
   error instanceof KaraokeParseError ? error : undefined;
-
-const persistedVolume = (): number => {
-  try {
-    const stored = window.localStorage.getItem(KARAOKE_VOLUME_KEY);
-    if (stored === null) {
-      return 0.8;
-    }
-    const value = Number(stored);
-    return Number.isFinite(value) && value >= 0 && value <= 1 ? value : 0.8;
-  } catch {
-    return 0.8;
-  }
-};
 
 const displayTitleFromFile = (file: File): string => {
   const extension = karaokeFileExtension(file.name);
@@ -153,12 +140,17 @@ export const useKaraokeSession = (isActive: boolean) => {
   const playheadMsRef = useRef(0);
   const isActiveRef = useRef(isActive);
   const [durationMs, setDurationMs] = useState(0);
-  const [volume, setVolumeState] = useState(persistedVolume);
+  // The app's fader, shared with the library and the Media tab. It used to be
+  // a karaoke-only level under its own key, defaulting to 0.8 with no control
+  // anywhere in the UI — so a karaoke song played four fifths as loud as the
+  // same song in the library and nothing on screen said why.
+  const volume = useAppVolume();
   // Solo listening scales the backing track under the master volume; 1 is
   // normal playback, 0 is voice alone. A ref, because the element must be
   // retuned inside callbacks that never re-render.
   const backingScaleRef = useRef(1);
-  const volumeRef = useRef(persistedVolume());
+  const volumeRef = useRef(volume);
+  volumeRef.current = volume;
   playheadMsRef.current = playheadMs;
   isActiveRef.current = isActive;
 
@@ -439,19 +431,13 @@ export const useKaraokeSession = (isActive: boolean) => {
     }
   }, []);
 
-  const setVolume = useCallback((nextVolume: number) => {
-    const normalized = Math.min(1, Math.max(0, nextVolume));
-    setVolumeState(normalized);
-    volumeRef.current = normalized;
+  // The backing track follows the app's fader, wherever it was moved from —
+  // this tab's own bar, or another tab's while karaoke keeps playing behind it.
+  useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = normalized * backingScaleRef.current;
+      audioRef.current.volume = volume * backingScaleRef.current;
     }
-    try {
-      window.localStorage.setItem(KARAOKE_VOLUME_KEY, String(normalized));
-    } catch {
-      // A private/locked storage area should not disable local playback.
-    }
-  }, []);
+  }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -561,7 +547,6 @@ export const useKaraokeSession = (isActive: boolean) => {
     playheadMs,
     readPlayheadMs,
     durationMs,
-    volume,
     loadFiles,
     applySong,
     clear,
@@ -571,7 +556,6 @@ export const useKaraokeSession = (isActive: boolean) => {
     seek,
     restart,
     seekLyric,
-    setVolume,
     setBackingScale,
   };
 };

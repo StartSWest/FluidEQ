@@ -30,6 +30,7 @@ import { ErrorCode, ErrorDescription } from 'common/errors';
 import type { TAudioEngine } from 'common/audioEngine';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
+import { isAccountConfigured } from 'common/accountConfig';
 import {
   featureTourDismissal,
   shouldShowFeatureTour,
@@ -53,6 +54,14 @@ import MainContent from './MainContent';
 import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import SupportDialog from './SupportDialog';
+import AccountDialog from './account/AccountDialog';
+import {
+  subscribeAccountPanelRequests,
+  type TAccountPanelPage,
+} from './account/accountPanel';
+import CommunityPanel from './community/CommunityPanel';
+import UsageMeter from './usage/UsageMeter';
+import { useCommunity } from './community/communityStore';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -74,6 +83,7 @@ import {
 import {
   useIsChromeIdle,
   useIsPointerNearChrome,
+  useIsPointerNearSideChrome,
   watchChromeIdle,
 } from './utils/idleChrome';
 import { reportError } from './utils/logger';
@@ -214,6 +224,7 @@ type TWorkspaceTab =
   | 'video'
   | 'library'
   | 'karaoke'
+  | 'community'
   | 'config';
 
 /**
@@ -249,6 +260,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'video',
   'library',
   'karaoke',
+  'community',
   'dsp',
   'share',
   'config',
@@ -656,6 +668,8 @@ const AppContent = () => {
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const isDspTab = activeWorkspaceTab === 'dsp';
   const isShareTab = activeWorkspaceTab === 'share';
+  const isCommunityTab = activeWorkspaceTab === 'community';
+  const unreadMentions = useCommunity().unreadMentions.length;
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
   // A loaded silent player keeps only its controller/media shell for five
@@ -796,6 +810,30 @@ const AppContent = () => {
         <MenuIcon name="microphone" />
         <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
       </button>
+      {/* Only in a build with a backend — every fork and every checkout
+          without a .env has no community to show, and a tab that opens an
+          empty room is worse than no tab. */}
+      {isAccountConfigured() && (
+        <button
+          type="button"
+          role="tab"
+          aria-selected={isCommunityTab}
+          aria-label={t('tabs.community')}
+          className={`workspace-tab${isCommunityTab ? ' is-active' : ''}`}
+          onClick={() => selectTopWorkspaceTab('community')}
+        >
+          <MenuIcon name="community" />
+          <span className="workspace-tab__label">{t('tabs.community')}</span>
+          {unreadMentions > 0 && !isCommunityTab && (
+            <span
+              className="workspace-tab__badge"
+              aria-label={t('community.mentions.unread', {
+                count: unreadMentions,
+              })}
+            />
+          )}
+        </button>
+      )}
     </WorkspaceTabStrip>
   );
 
@@ -817,6 +855,24 @@ const AppContent = () => {
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
+  // Which page of the Account panel is open, or none. A page rather than a
+  // flag because the leaderboard's guide opens it straight on the terms.
+  const [accountDialogPage, setAccountDialogPage] = useState<
+    TAccountPanelPage | undefined
+  >();
+  // A locked Plus look in the picker leads here: choosing one is a request to
+  // see what Plus is and how to get it, not a selection. Only honoured when a
+  // backend is configured — without one the panel has nothing to offer, and a
+  // locked row never appears in the first place.
+  useEffect(
+    () =>
+      subscribeAccountPanelRequests((page) => {
+        if (isAccountConfigured()) {
+          setAccountDialogPage(page);
+        }
+      }),
+    [],
+  );
   const [showProcessesDialog, setShowProcessesDialog] = useState(false);
   // What the last import did. Reported the same way as a recoverable failure —
   // in the corner, dismissable — rather than as a modal alert, because there
@@ -1021,6 +1077,8 @@ const AppContent = () => {
   const isChromeIdle = useIsChromeIdle();
   // The bar answers to the pointer, not to the clock — see `idleChrome`.
   const isPointerNearChrome = useIsPointerNearChrome();
+  // The drawer tabs answer the side edges the same way.
+  const isPointerNearSideChrome = useIsPointerNearSideChrome();
 
   // Published on `#root` for the stylesheets that have to know: a panel over
   // a floating bar clears it while it is up and takes the room back when it
@@ -1033,6 +1091,17 @@ const AppContent = () => {
     );
     return () => root?.classList.remove('is-chrome-idle');
   }, [isAppFullScreen, isChromeIdle, isPointerNearChrome]);
+  // And the same for the two drawer tabs, which are the only chrome that
+  // lives on the vertical edges. Kept apart from the flag above so that
+  // reaching for a panel does not also summon the header and the transport.
+  useEffect(() => {
+    const root = document.getElementById('root');
+    root?.classList.toggle(
+      'is-side-chrome-awake',
+      isAppFullScreen && isPointerNearSideChrome,
+    );
+    return () => root?.classList.remove('is-side-chrome-awake');
+  }, [isAppFullScreen, isPointerNearSideChrome]);
   useEffect(() => {
     // Every mode the graph is drawn in, not only the ones that fill the screen.
     //
@@ -2208,6 +2277,24 @@ const AppContent = () => {
                   <MenuIcon name="support" />
                   {t('app.menu.support')}
                 </button>
+                {/* Absent entirely from a build with no backend configured,
+                    which is every fork and every checkout without a .env. A
+                    row that opens a panel offering a sign-in that cannot
+                    complete is worse than no row. */}
+                {isAccountConfigured() && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workspace-header__menu-support"
+                    onClick={() => {
+                      setShowAudioToolsMenu(false);
+                      setAccountDialogPage('home');
+                    }}
+                  >
+                    <MenuIcon name="artist" />
+                    {t('account.menu')}
+                  </button>
+                )}
                 {/* The theme, above the language it sits beside: one row per
                     thing that changes how the whole window looks. */}
                 <ThemePicker />
@@ -2492,6 +2579,16 @@ const AppContent = () => {
                 <div className="workspace-tab-panel__scroll">
                   <RemoteAudioPanel />
                 </div>
+              </div>
+            )}
+            {activeWorkspaceTab === 'community' && (
+              // No `__scroll` wrapper: the conversation scrolls inside its own
+              // thread and the composer stays put at the foot of the card.
+              <div
+                key={activeWorkspaceTab}
+                className="workspace-tab-panel workspace-tab-panel--community"
+              >
+                <CommunityPanel onSignIn={() => setAccountDialogPage('home')} />
               </div>
             )}
             {/* Dimmed with the rest of the group, and still readable.
@@ -2876,6 +2973,13 @@ const AppContent = () => {
           <ProcessesDialog onClose={() => setShowProcessesDialog(false)} />
         )}
 
+        {accountDialogPage !== undefined && (
+          <AccountDialog
+            initialPage={accountDialogPage}
+            onClose={() => setAccountDialogPage(undefined)}
+          />
+        )}
+
         {showSupportDialog && (
           <SupportDialog
             // Opens on top rather than replacing this one. Reading the
@@ -2935,6 +3039,9 @@ export default function App() {
                 meant to reach the whole window. It renders nothing; it puts the
                 streak on the document root where every stylesheet can see it. */}
             <EuphoriaGlow />
+            {/* Counts listening while music plays. Renders nothing, sends
+                nothing anywhere unless the person joined the leaderboard. */}
+            <UsageMeter />
             <Router>
               <Routes>
                 <Route path="/" element={<AppContent />} />

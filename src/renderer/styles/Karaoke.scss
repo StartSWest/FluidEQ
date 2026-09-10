@@ -3391,21 +3391,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     both;
   overflow: hidden;
   color: $text-muted;
-  background:
-    radial-gradient(
-      circle at 17% 20%,
-      rgba(103, 47, 151, 0.22),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 82% 12%,
-      color-mix(in srgb, $secondary-default 15%, transparent),
-      transparent 31%
-    ),
-    // The pane colour, flat — the same one every other tab stands on. The
-    // ramp down to the shell and the old well was where the Maker's darkness
-    // started: everything on it was then a wash over near-black.
-    linear-gradient(145deg, $surface-panel, $surface-panel);
+  @include surface-artwork(
+    (
+      radial-gradient(
+        circle at 17% 20%,
+        rgba(103, 47, 151, 0.22),
+        transparent 35%
+      ),
+      radial-gradient(
+        circle at 82% 12%,
+        color-mix(in srgb, $secondary-default 15%, transparent),
+        transparent 31%
+      ),
+      // The pane colour, flat — the same one every other tab stands on. The
+      // ramp down to the shell and the old well was where the Maker's darkness
+      // started: everything on it was then a wash over near-black.
+      linear-gradient(145deg, $surface-panel, $surface-panel)
+    )
+  );
   border-radius: inherit;
 
   button,
@@ -4152,9 +4155,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background:
-    radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%),
-    $block-lift;
+  background-color: $block-lift;
+  @include surface-artwork(
+    radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%)
+  );
   border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
   border-radius: $radius-l;
   box-shadow: 0 22px 48px color-mix(in srgb, $surface-base 48%, transparent);
@@ -7935,9 +7939,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-height: calc(100dvh - 48px);
   overflow: hidden;
   padding: 18px;
-  background:
-    radial-gradient(circle at 20% 0, rgba(80, 35, 121, 0.24), transparent 42%),
-    $block-lift;
+  background-color: $block-lift;
+  @include surface-artwork(
+    radial-gradient(circle at 20% 0, rgba(80, 35, 121, 0.24), transparent 42%)
+  );
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-xl;
   box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
@@ -8600,9 +8605,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__consent-modal {
   width: min(530px, 100%);
   padding: 22px;
-  background:
-    radial-gradient(circle at 18% 0, rgba(67, 39, 124, 0.25), transparent 46%),
-    $block-lift;
+  background-color: $block-lift;
+  @include surface-artwork(
+    radial-gradient(circle at 18% 0, rgba(67, 39, 124, 0.25), transparent 46%)
+  );
   border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-xl;
   box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
@@ -8630,9 +8636,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 12px;
   padding: 20px;
   color: $text-muted;
-  background:
-    radial-gradient(circle at 12% 0, rgba($red, 0.2), transparent 50%),
-    $block-lift;
+  background-color: $block-lift;
+  @include surface-artwork(
+    radial-gradient(circle at 12% 0, rgba($red, 0.2), transparent 50%)
+  );
   border: 1px solid rgba(255, 104, 129, 0.3);
   border-radius: $radius-l;
   box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);

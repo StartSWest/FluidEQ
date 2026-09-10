@@ -15,7 +15,12 @@ export const createGraphMotionState = (): IGraphMotionState => ({
 });
 
 export const hasGraphMotion = (style: GraphStyle): boolean =>
-  style === 'rain' || style === 'starfield' || isGraphScene(style);
+  style === 'rain' || isGraphScene(style);
+
+/** Scenery has ambient travel even when every measured band is silent. */
+export const hasGraphAmbientMotion = (style: GraphStyle): boolean =>
+  hasGraphMotion(style) ||
+  ['truss', 'stalactites', 'arches', 'starfield', 'slope'].includes(style);
 
 interface IMotionArgs {
   state: IGraphMotionState;
@@ -90,47 +95,27 @@ export const createMovingGraphShape = ({
     loudest = Math.max(loudest, energy);
     const seed = ((index * 2654435761) % 65536) / 65536;
     const previous = state.travel[index] ?? seed;
-    const speed =
-      style === 'rain' ? 0.22 + energy * 0.34 : 0.12 + energy * 0.28;
+    const speed = 0.22 + energy * 0.34;
     const position = (previous + (elapsed / 1000) * speed) % 1;
     state.travel[index] = position;
-    if (style === 'rain') {
-      for (let layer = 0; layer < 3; layer += 1) {
-        const phase = (position + layer / 3 + seed * layer * 0.17) % 1;
-        const landing = bottom - height * energy * 0.16;
-        const lane = width / bands.length;
-        const dropX = x + (layer - 1) * lane * 0.23;
-        const length = (3 + energy * 18) * (0.55 + layer * 0.23);
-        if (phase < 0.82) {
-          const fall = phase / 0.82;
-          const row = top + fall * (landing - top);
-          const wind = (1 - fall) * lane * 0.22;
-          path += `M ${(dropX + wind).toFixed(2)},${row.toFixed(2)} L ${(dropX + wind - length * 0.12).toFixed(2)},${Math.min(landing, row + length).toFixed(2)} `;
-        } else {
-          const splash = (phase - 0.82) / 0.18;
-          const spread = lane * 0.3 * splash;
-          const lift = Math.sin(splash * Math.PI) * (3 + energy * 9);
-          // Only the landing part of each drop's life splashes, so the floor
-          // has little expanding impacts instead of a permanent dotted line.
-          path += `M ${(dropX - spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} M ${(dropX + spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(-2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} `;
-        }
-      }
-    } else {
-      const cx = left + width / 2;
-      const cy = top + height / 2;
-      for (let layer = 0; layer < 3; layer += 1) {
-        const angle = index * 2.399963229728653 + layer * 1.7;
-        const depth = (position + layer / 3) % 1;
-        const radius = depth ** 2;
-        const tail = Math.max(0, radius - (0.008 + energy * 0.09) * depth);
-        // Project to the rectangular viewport, not an ellipse occupying only
-        // its centre. Three depths give near streaks and distant pinpoints.
-        const cosine = Math.cos(angle);
-        const sine = Math.sin(angle);
-        const edge = 1 / Math.max(Math.abs(cosine), Math.abs(sine));
-        const dx = cosine * edge * width * 0.49;
-        const dy = sine * edge * height * 0.49;
-        path += `M ${(cx + dx * tail).toFixed(2)},${(cy + dy * tail).toFixed(2)} L ${(cx + dx * radius).toFixed(2)},${(cy + dy * radius).toFixed(2)} `;
+    for (let layer = 0; layer < 3; layer += 1) {
+      const phase = (position + layer / 3 + seed * layer * 0.17) % 1;
+      const landing = bottom - height * energy * 0.16;
+      const lane = width / bands.length;
+      const dropX = x + (layer - 1) * lane * 0.23;
+      const length = (3 + energy * 18) * (0.55 + layer * 0.23);
+      if (phase < 0.82) {
+        const fall = phase / 0.82;
+        const row = top + fall * (landing - top);
+        const wind = (1 - fall) * lane * 0.22;
+        path += `M ${(dropX + wind).toFixed(2)},${row.toFixed(2)} L ${(dropX + wind - length * 0.12).toFixed(2)},${Math.min(landing, row + length).toFixed(2)} `;
+      } else {
+        const splash = (phase - 0.82) / 0.18;
+        const spread = lane * 0.3 * splash;
+        const lift = Math.sin(splash * Math.PI) * (3 + energy * 9);
+        // Only the landing part of each drop's life splashes, so the floor
+        // has little expanding impacts instead of a permanent dotted line.
+        path += `M ${(dropX - spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} M ${(dropX + spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(-2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} `;
       }
     }
   });

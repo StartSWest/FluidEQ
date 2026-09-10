@@ -54,6 +54,12 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Cambio automatico visualizzazioni',
   'graph.autoSwitch.off': 'Auto: No',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  // The product name of the tier, so it is not translated: the same word
+  // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'Creati da te',
+  'graph.scene.badge': 'Plus',
+  'graph.scene.locked':
+    'Parte di FluidEQ Plus. Scegli questo look per vedere come sbloccarlo.',
   'graph.style.next': 'Stile successivo',
   'graph.style.previous': 'Stile precedente',
   'graph.style.search': 'Cerca stili',
@@ -119,7 +125,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.starfield': 'Velocità warp',
   'graph.styleName.candles': 'Candele',
   'graph.styleName.arches': 'Archi',
-  'graph.styleName.flames': 'Fiamme',
+  'graph.styleName.flames': 'Fiamme danzanti',
   'graph.styleName.barcode': 'Codice a barre',
   'graph.styleName.rain': 'Pioggia',
   'graph.styleName.honeycomb': 'Alveare',
@@ -205,6 +211,8 @@ const eq: Partial<Dictionary> = {
     'Un taglio ampio e delicato della presenza se il suono risulta troppo in primo piano.',
   'driver.filter.trebleSoftening':
     'Un piccolo taglio degli alti per registrazioni aspre o una vestibilità dal suono brillante.',
+  'driver.filter.edgeSoftening':
+    'Un taglio delicato dove un diaframma rigido indurisce l’attacco delle note.',
   'driver.filter.vocalLift':
     'Un lieve rinforzo delle voci da provare se i medi sembrano arretrati.',
   'driver.filter.bassTidying':
@@ -227,7 +235,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Nessuna compensazione',
   'driver.none.hint': 'Solo le tue bande e il carattere',
   'driver.strength': 'Intensità',
-  'driver.range': '±1,5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'IL TUO SUONO',
   'app.soundPanel': 'Pannello audio',
   'profiles.title': 'Profili salvati',
@@ -383,12 +391,28 @@ const eq: Partial<Dictionary> = {
   'eq.frequency': 'Frequenza',
   'eq.gain': 'Guadagno',
   'eq.gainDisabled': 'Guadagno · n/d',
+  'eq.gainReset': 'Ctrl+clic riporta ogni banda selezionata a 0 dB',
   'eq.quality': 'Fattore Q',
+  'eq.active': 'Attiva',
+  'eq.activeAria': 'Applica la banda selezionata',
+  'eq.activeGroupAria': 'Applica le {count} bande selezionate',
   'eq.delete': 'Elimina banda',
   'eq.deleteAria': 'Elimina la banda di EQ selezionata',
+  'eq.deleteSelectionAria': 'Elimina le {count} bande selezionate',
+  'eq.delete.armed': 'Elimina',
+  'eq.delete.keep': 'Mantieni',
+  'eq.delete.keepAria': 'Mantieni la banda e annulla l’eliminazione.',
+  'eq.delete.armedAria':
+    'Premi di nuovo per eliminare questa banda. Guadagno e Q se ne vanno con lei e non si possono recuperare.',
+  'eq.delete.armedAriaGroup':
+    'Premi di nuovo per eliminare {count} bande. Tutto ciò che hanno impostato se ne va con loro e non si può recuperare.',
   'eq.menu.aria': 'Banda a {frequency} Hz',
   'eq.menu.subject': '{frequency} Hz',
   'eq.menu.reset': 'Ripristina banda',
+  'eq.menu.disable': 'Disattiva banda',
+  'eq.menu.enable': 'Attiva banda',
+  'eq.menu.disableSelection': 'Disattiva {count} bande',
+  'eq.menu.enableSelection': 'Attiva {count} bande',
   'eq.menu.addLeft': 'Aggiungi banda a sinistra',
   'eq.menu.addRight': 'Aggiungi banda a destra',
   'eq.menu.selection': '{count} bande selezionate',

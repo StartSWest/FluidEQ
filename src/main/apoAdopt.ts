@@ -24,6 +24,7 @@ import {
   IAudioDevice,
   ICustomFxSettings,
   IState,
+  APO_LAYERS,
   TApoFeature,
   TApoLayer,
 } from '../common/constants';
@@ -116,6 +117,7 @@ export const createApoAdoption = ({
   const adoptBypassFromConfig = (
     features: Partial<Record<TApoFeature, string>>,
     shared: string,
+    customIncluded = false,
   ): boolean => {
     const wouldWrite = stateToApoFiles(
       { ...state, bypassed: undefined },
@@ -135,7 +137,14 @@ export const createApoAdoption = ({
       bypassed.push('convolution');
     }
 
-    const next = bypassed.length ? bypassed : undefined;
+    // Custom FX is user-owned, so it never appears in wouldWrite.features.
+    // Omitting it here erased its bypass on every readback of our own writes.
+    if (state.customFx && !customIncluded) {
+      bypassed.push('custom');
+    }
+    const next = bypassed.length
+      ? APO_LAYERS.filter((layer) => bypassed.includes(layer))
+      : undefined;
 
     if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
       return false;
@@ -227,7 +236,7 @@ export const createApoAdoption = ({
       // one with no file at all, so the very case this has to recognise is the
       // one the "no bands, nothing to adopt" check bows out of.
       if (features) {
-        adoptBypassFromConfig(features, chain.shared ?? '');
+        adoptBypassFromConfig(features, chain.shared ?? '', !!chain.custom);
       }
 
       // The measurement, if the state has lost it and the config still has it.

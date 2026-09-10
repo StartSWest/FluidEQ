@@ -28,6 +28,7 @@ import {
   IDeviceProfileSettings,
   getDefaultState,
 } from '../../../common/constants';
+import { getDriverProfile } from '../../../common/driver';
 import expandApoConfig from '../../utils/apoConfig';
 
 const GUID = '{2de2e800-7980-4b45-a318-34276fe3d3b4}';
@@ -285,14 +286,21 @@ describe('per-device state isolation', () => {
       return config.slice(start, next === -1 ? undefined : next);
     };
 
+    // Read from the profile rather than typed. As a literal 3000 Hz this
+    // failed the day the driver catalogue was retuned, over an isolation
+    // property that has nothing to do with which frequency the filter is at.
+    const driverBand = `Fc ${
+      getDriverProfile('balanced-armature-iem')?.filters[0].frequency
+    } Hz`;
+
     // The loaded device gets its bands plus both layers.
     const loaded = blockFor('{FULL}');
     expect(loaded).toContain('Fc 100 Hz Gain 4 dB');
-    expect(loaded).toContain('Fc 3000 Hz');
+    expect(loaded).toContain(driverBand);
 
     // The bare one gets none of it — no leaked layers, no leaked preamp.
     const bare = blockFor(GUID);
-    expect(bare).not.toContain('Fc 3000 Hz');
+    expect(bare).not.toContain(driverBand);
     expect(bare).not.toContain('Fc 105 Hz');
     expect(bare).toContain('Preamp: 0 dB');
   });

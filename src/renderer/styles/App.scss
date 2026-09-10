@@ -2361,6 +2361,7 @@ $tab-bar-inset: 8px;
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
+.workspace-tab-panel--community,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
@@ -2548,6 +2549,29 @@ $tab-bar-inset: 8px;
   }
 }
 
+// The community fills the card and does not scroll as a whole: its thread
+// scrolls, its composer stays at the foot. Flex so the panel's child can take
+// the height and no more.
+.workspace-tab-panel--community {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+// A dot on a tab for unread @mentions. Small and in the accent: it marks a
+// request for this person's attention, not general activity, and it is gone
+// the moment the tab is opened.
+.workspace-tab__badge {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: 0 0 0 2px $surface-base;
+}
+
 // Sections that fill a workspace card sit directly on it instead of painting
 // a second card on top: one surface, not a stack of nested boxes.
 //
@@ -2601,7 +2625,12 @@ $tab-bar-inset: 8px;
   transform: translateY(-50%);
   cursor: pointer;
   animation: drawer-tab-hint 14s $ease-out infinite;
-  transition: right 180ms ease-out;
+  // Opacity and transform for full screen, where the tab tucks itself off the
+  // edge until the pointer comes for it — see `is-side-chrome-awake` below.
+  transition:
+    right 180ms ease-out,
+    opacity $motion-base ease,
+    transform $motion-base ease;
 
   // Open, the tab rides on the panel's own edge and travels with it. Left at
   // the window's edge it ended up underneath the panel it opened, and on a
@@ -2669,7 +2698,10 @@ $tab-bar-inset: 8px;
   // Offset from the other tab's cycle, so the two never light together and
   // read as one thing flashing across the window.
   animation: drawer-tab-hint 14s $ease-out 7s infinite;
-  transition: left 180ms ease-out;
+  transition:
+    left 180ms ease-out,
+    opacity $motion-base ease,
+    transform $motion-base ease;
 
   // The same, on the other edge.
   &.is-open {
@@ -2822,6 +2854,56 @@ $tab-bar-inset: 8px;
   .side-bar-toggle {
     animation: none;
   }
+}
+
+// *** The drawer tabs in full screen *****************************************
+//
+// The picture is the window here, and two handles pinned to its sides are the
+// same interruption the header and the transport are — so they keep the same
+// bargain those two keep: away while nothing is happening, back the moment the
+// pointer goes to where they live.
+//
+// Three things put them on screen, and any one is enough. The frame being up
+// at all, which is what the absence of `is-chrome-idle` says. The pointer at a
+// side edge — `is-side-chrome-awake`, published by App from the same store the
+// two bars read, and separate from them so that reaching for a panel does not
+// drag the header and the transport back with it. And the tab's own panel
+// being open, because then the tab is also how it shuts.
+//
+// No hint pulse in this mode. A tab that appears only once you reach for it
+// has nothing left to advertise, and a light blinking over a full-screen
+// picture every fourteen seconds is precisely the chrome the mode exists to
+// take away.
+.app-workspace.is-app-full > :is(.side-bar-toggle, .right-content-toggle) {
+  animation: none;
+}
+
+// `:focus-visible` is the keyboard's version of reaching for the edge. Without
+// it the Tab key still lands on these buttons — opacity does not take an
+// element out of the focus order — and the ring would be drawn on something
+// invisible, sitting off the side of the screen.
+#root.is-chrome-idle:not(.is-side-chrome-awake)
+  .app-workspace.is-app-full
+  > :is(.side-bar-toggle, .right-content-toggle):not(.is-open):not(
+    :focus-visible
+  ) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+// Out through the edge it belongs to, rather than dissolving where it stands:
+// the tab is a thing that lives just off the screen, and it should read as
+// having gone back there.
+#root.is-chrome-idle:not(.is-side-chrome-awake)
+  .app-workspace.is-app-full
+  > .side-bar-toggle:not(.is-open):not(:focus-visible) {
+  transform: translate(-100%, -50%);
+}
+
+#root.is-chrome-idle:not(.is-side-chrome-awake)
+  .app-workspace.is-app-full
+  > .right-content-toggle:not(.is-open):not(:focus-visible) {
+  transform: translate(100%, -50%);
 }
 
 // *** Right column ***********************************************************

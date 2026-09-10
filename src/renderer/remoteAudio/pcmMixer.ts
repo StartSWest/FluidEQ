@@ -33,6 +33,16 @@ export interface IPcmMixer {
   resume(): Promise<void>;
   setPeerMode(peerId: string, mode: TRemoteAudioStreamMode): void;
   setOutput(sinkId: string): Promise<void>;
+  /**
+   * The app's fader, 0 to 1.
+   *
+   * A gain stage of its own because there is nowhere else to put it: a sender's
+   * audio arrives as PCM and is played by the worklet, so there is no media
+   * element to turn down. Without it the one kind of sound this app makes that
+   * ignored the fader entirely was somebody else's music arriving over the LAN
+   * — full scale, whatever the bar said.
+   */
+  setVolume(volume: number): void;
   close(): Promise<void>;
 }
 
@@ -54,6 +64,7 @@ export const createPcmMixer = async (
   outputSinkId: string,
   onPlaybackBlocked: (blocked: boolean) => void,
   onMeter: TRemoteAudioMeterListener,
+  initialVolume: number,
 ): Promise<IPcmMixer> => {
   const context = new AudioContext({
     latencyHint: 'interactive',
@@ -69,13 +80,19 @@ export const createPcmMixer = async (
     numberOfOutputs: 1,
     outputChannelCount: [2],
   });
+  // The fader, between the worklet and whichever output path this machine
+  // has. On the node rather than on the `<audio>` sink below, because the
+  // direct-sink path has no element at all — one stage, both paths.
+  const fader = context.createGain();
+  fader.gain.value = Math.min(1, Math.max(0, initialVolume));
+  mixer.connect(fader);
   const usesDirectOutput = typeof context.setSinkId === 'function';
   const destination = usesDirectOutput
     ? undefined
     : context.createMediaStreamDestination();
   const sink = usesDirectOutput ? undefined : createAudioSink();
   if (destination && sink) {
-    mixer.connect(destination);
+    fader.connect(destination);
     sink.autoplay = true;
     sink.volume = 1;
     sink.srcObject = destination.stream;
@@ -83,7 +100,7 @@ export const createPcmMixer = async (
     // Chromium's direct sink path avoids the extra MediaStream + <audio>
     // playback queue. That queue was outside the measured network buffer and
     // kept Video visibly behind even when its packets arrived on time.
-    mixer.connect(context.destination);
+    fader.connect(context.destination);
   }
   let currentSinkId = outputSinkId;
   let isClosed = false;
@@ -195,6 +212,16 @@ export const createPcmMixer = async (
     },
     setOutput: async (sinkId: string) => {
       await switchOutput(sinkId);
+    },
+    setVolume: (volume) => {
+      if (isClosed) {
+        return;
+      }
+      // Ramped over the length of one render quantum rather than assigned: a
+      // step change in gain is a discontinuity in the waveform, and a fader
+      // dragged across its travel is a hundred of them — heard as a crackle.
+      const level = Math.min(1, Math.max(0, volume));
+      fader.gain.setTargetAtTime(level, context.currentTime, 0.01);
     },
     close: async () => {
       if (isClosed) {

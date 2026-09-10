@@ -294,7 +294,8 @@ a crash dump on the machine is only matchable to a session by that number.
 
 ## Acceptance
 
-Native does not become the default until all of this holds:
+Native is the default path: `pnpm build` compiles the host unconditionally and
+`pnpm test` runs its smoke suite. These were the gates it had to pass first:
 
 - zero underruns in a 30-minute stress run
 - no renderer long tasks attributable to DSP
@@ -324,5 +325,6 @@ means nothing.
 
 ## Not in this document
 
-How the host is built, signed, packaged or published. That lives outside the
-repository.
+How the host is signed and published. Building and packaging are in
+`.erb/scripts/build-native-dsp.ts` and `.erb/scripts/package-signed.ts`; see
+[ARCHITECTURE.md](ARCHITECTURE.md).

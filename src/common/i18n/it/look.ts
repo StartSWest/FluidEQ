@@ -71,9 +71,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Bagliore',
   'look.off': 'Disattivato',
   'look.glowHint': 'Quanto la figura cresce e si illumina a ritmo.',
-  'look.glowNeedsRainbow':
-    'Richiede la modalità Arcobaleno. Se è spenta, il bagliore non cambia il disegno.',
   'look.needsRainbow': 'Richiede la modalità Arcobaleno.',
+  'look.glowNotForForm': 'Questa forma non ha bagliore.',
   'look.rainbowBorder': 'Bordo arcobaleno',
   'look.rainbowBorderHint':
     'Circonda il grafico con un colore che percorre l’intero spettro.',
@@ -117,7 +116,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Premi spazio per farlo saltare',
   'support.game.hint': 'Premi a tempo quando il picco raggiunge la linea',
   'support.game.howTo':
-    'Tocca la creatura o premi spazio a ogni battito. Continua così e a ×10 succede qualcosa.',
+    'Riproduci musica, poi tocca la mascotte o premi Spazio quando un picco raggiunge la linea centrale. Raggiungi ×10 per sbloccare la modalità arcobaleno.',
   'support.game.thanks':
     'Se qualcosa qui ti ha strappato un sorriso, idee e sostegno sono ciò che lo tiene vivo.',
   'support.game.noAudio': 'Metti della musica e il ritmo comparirà qui',
@@ -126,7 +125,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': "Condividi l'arcobaleno",
   'support.game.shareTitle': 'Condividi il tuo punteggio',
   'support.game.shareUnlock':
-    'Arriva a ×10 e questa scheda diventa modalità arcobaleno, spettro incluso.',
+    'Sblocca la modalità arcobaleno giocando o confermando il tuo contributo per dare i suoi colori a questa scheda.',
   'support.game.shareNote':
     "Salva la scheda e allegala al post: nessuna di queste reti può ricavare un'immagine da un link.",
   'support.game.shareSave': 'Salva scheda',
@@ -158,9 +157,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copia l’indirizzo',
   'support.copied': 'Copiato',
   'support.openWallet': 'Apri nel wallet',
-  'support.contributed': 'Ho contribuito — sblocca la stella e il ballo',
+  'support.contributed': 'Ho contribuito — attiva la modalità arcobaleno',
+  'support.rainbowHint':
+    'Hai contribuito? Attiva subito la modalità arcobaleno con «Ho contribuito». Non serve raggiungere ×10.',
   'support.thanks':
-    'Grazie — il tuo animaletto ha la sua stella, e adesso balla.',
+    'Grazie — la modalità arcobaleno è sbloccata e la tua mascotte ha la sua stella e il suo ballo.',
   'support.releaseNotes': 'Guarda le novità di questa versione',
   'support.footerBefore':
     'Preferisci contribuire con il tempo? Issue e pull request sono altrettanto benvenute su',

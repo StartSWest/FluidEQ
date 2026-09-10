@@ -28,6 +28,7 @@ const app: Partial<Dictionary> = {
   'recovery.reload': 'FluidEQ फिर से लोड करें',
   'recovery.quit': 'बाहर निकलें',
   'recovery.copy': 'विवरण कॉपी करें',
+  'recovery.history': 'पिछली विफलताएँ',
   'app.tagline': 'आपकी आवाज़। हर डिवाइस पर। अपने आप।',
   'app.actions': 'FluidEQ क्रियाएँ',
   'app.actions.title': 'ऑडियो क्रियाएँ',
@@ -194,6 +195,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',
   'tabs.karaoke': 'कराओके',
+  'tabs.community': 'समुदाय',
   'tabs.scrollBack': 'टैब पीछे स्क्रॉल करें',
   'tabs.scrollForward': 'टैब आगे स्क्रॉल करें',
   'notice.apoReconfigured':

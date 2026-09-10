@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { RefObject } from 'react';
+import { ReactNode, RefObject } from 'react';
 import BrandMark from '../icons/BrandMark';
 import '../styles/DialogHeader.scss';
 
@@ -37,6 +37,8 @@ interface IDialogHeaderProps {
   onClose: () => void;
   /** For a dialog that opens with the way out focused. */
   closeRef?: RefObject<HTMLButtonElement | null>;
+  /** Optional content between the identity and close control. */
+  children?: ReactNode;
 }
 
 /**
@@ -66,6 +68,7 @@ export default function DialogHeader({
   closeLabel,
   onClose,
   closeRef,
+  children,
 }: IDialogHeaderProps) {
   return (
     <div className="dialog-header">
@@ -89,6 +92,7 @@ export default function DialogHeader({
           </div>
         </div>
       </div>
+      {children}
       <button
         ref={closeRef}
         type="button"

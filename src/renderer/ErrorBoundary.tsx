@@ -37,6 +37,9 @@ interface IErrorBoundaryState {
   error?: Error;
   componentStack?: string;
   recoveryStopped?: boolean;
+  /** What main saw, in a debug build: earlier crashes in the loop, the
+   * renderer's exit reason, and where the full log file is. Empty otherwise. */
+  history?: string;
 }
 
 /**
@@ -75,7 +78,11 @@ export default class ErrorBoundary extends Component<
     try {
       this.unsubscribeStatus = window.electron.ipcRenderer.on(
         ChannelEnum.RECOVERY_STATUS,
-        () => this.setState({ recoveryStopped: true }),
+        (_state, history) =>
+          this.setState({
+            recoveryStopped: true,
+            history: typeof history === 'string' ? history : undefined,
+          }),
       );
     } catch (error) {
       reportError('Recovery bridge is unavailable', error);
@@ -121,7 +128,7 @@ export default class ErrorBoundary extends Component<
   };
 
   render() {
-    const { error, componentStack, recoveryStopped } = this.state;
+    const { error, componentStack, recoveryStopped, history } = this.state;
     const { children } = this.props;
     const locale = readInitialLocale();
 
@@ -131,7 +138,11 @@ export default class ErrorBoundary extends Component<
 
     return (
       <div className="crash-screen" role="alert">
-        <div className="crash-screen__card">
+        <div
+          className={`crash-screen__card${
+            history ? ' crash-screen__card--verbose' : ''
+          }`}
+        >
           <p className="eyebrow">{PRODUCT_NAME}</p>
           <h1>{translate(locale, 'recovery.title')}</h1>
           <p className="crash-screen__lead">
@@ -145,6 +156,17 @@ export default class ErrorBoundary extends Component<
             {error.message || String(error)}
             {componentStack ? `\n${componentStack.trim()}` : ''}
           </pre>
+
+          {history ? (
+            <>
+              <p className="eyebrow crash-screen__caption">
+                {translate(locale, 'recovery.history')}
+              </p>
+              <pre className="crash-screen__detail crash-screen__detail--history">
+                {history}
+              </pre>
+            </>
+          ) : null}
 
           <div className="crash-screen__actions">
             <button
@@ -160,7 +182,9 @@ export default class ErrorBoundary extends Component<
               onClick={() => {
                 navigator.clipboard
                   ?.writeText(
-                    `${error.message}\n${error.stack ?? ''}\n${componentStack ?? ''}`,
+                    `${error.message}\n${error.stack ?? ''}\n${componentStack ?? ''}${
+                      history ? `\n\n${history}` : ''
+                    }`,
                   )
                   .catch(() => undefined);
               }}

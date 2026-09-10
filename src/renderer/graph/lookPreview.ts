@@ -43,8 +43,8 @@ import { IChartPointData } from './ChartController';
 import { WAVEFORM_POINT_COUNT } from './liveSpectrumFrames';
 
 export const resolveLookWaveform = (
-  displayed: IChartPointData[],
-  live: IChartPointData[],
+  displayed: readonly IChartPointData[],
+  live: readonly IChartPointData[],
   waveform: readonly number[],
 ): readonly number[] => {
   if (displayed === live || displayed.length === 0) {

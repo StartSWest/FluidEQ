@@ -19,6 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { CSSProperties, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
+import {
+  commitAppVolume,
+  setAppVolume,
+  useAppVolume,
+} from '../../audio/appVolume';
 import { setTransportSlot } from '../../audio/transportSlot';
 import useTransportStrip from '../../audio/useTransportStrip';
 import SongEqBadge from '../../components/SongEqBadge';
@@ -97,10 +102,15 @@ const SourceTransportBar = ({
 
   const barRef = useRef<HTMLDivElement | null>(null);
 
+  // The app's fader, read from the one place that holds it. Never from the
+  // source: a source that could be set but not read used to draw a made-up
+  // 100% here — see `ITransportSource.setVolume`.
+  const volume = useAppVolume();
+
   // Where the fader was before it was muted — see `NowPlayingBar`.
-  const restoreVolumeRef = useRef(source.volume || 1);
-  if ((source.volume ?? 0) > 0) {
-    restoreVolumeRef.current = source.volume ?? 1;
+  const restoreVolumeRef = useRef(volume || 1);
+  if (volume > 0) {
+    restoreVolumeRef.current = volume;
   }
 
   // The same strip of window the library's bar reserves, reserved the
@@ -339,29 +349,21 @@ const SourceTransportBar = ({
                     type="button"
                     className="now-playing-bar__volume-icon"
                     aria-label={t(
-                      (source.volume ?? 1) > 0
-                        ? 'library.mute'
-                        : 'library.unmute',
+                      volume > 0 ? 'library.mute' : 'library.unmute',
                     )}
-                    title={t(
-                      (source.volume ?? 1) > 0
-                        ? 'library.mute'
-                        : 'library.unmute',
-                    )}
-                    aria-pressed={(source.volume ?? 1) === 0}
+                    title={t(volume > 0 ? 'library.mute' : 'library.unmute')}
+                    aria-pressed={volume === 0}
                     onClick={() => {
-                      const current = source.volume ?? 1;
-                      if (current > 0) {
-                        restoreVolumeRef.current = current;
-                        source.setVolume?.(0);
-                        return;
+                      if (volume > 0) {
+                        restoreVolumeRef.current = volume;
+                        setAppVolume(0);
+                      } else {
+                        setAppVolume(restoreVolumeRef.current);
                       }
-                      source.setVolume?.(restoreVolumeRef.current);
+                      commitAppVolume();
                     }}
                   >
-                    <TransportIcon
-                      name={(source.volume ?? 1) > 0 ? 'volume' : 'volumeOff'}
-                    />
+                    <TransportIcon name={volume > 0 ? 'volume' : 'volumeOff'} />
                   </button>
                   <input
                     type="range"
@@ -369,22 +371,26 @@ const SourceTransportBar = ({
                     min={0}
                     max={1}
                     step={0.01}
-                    value={source.volume ?? 1}
+                    value={volume}
                     style={
                       {
-                        '--now-playing-progress': `${(source.volume ?? 1) * 100}%`,
+                        '--now-playing-progress': `${volume * 100}%`,
                       } as CSSProperties
                     }
                     aria-label={t('library.volume')}
                     onChange={(event) =>
-                      source.setVolume?.(Number(event.target.value))
+                      setAppVolume(Number(event.target.value))
                     }
+                    onPointerUp={commitAppVolume}
+                    onPointerCancel={commitAppVolume}
+                    onKeyUp={commitAppVolume}
+                    onBlur={commitAppVolume}
                   />
                   <span
                     className="now-playing-bar__volume-value"
                     aria-hidden="true"
                   >
-                    {Math.round((source.volume ?? 1) * 100)}%
+                    {Math.round(volume * 100)}%
                   </span>
                 </div>
               )}

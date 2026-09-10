@@ -1,8 +1,137 @@
 # What's new in FluidEQ
 
-Every released version, newest first. FluidEQ shows you the newest section of
+Release notes, newest first, including unreleased work. FluidEQ shows you the newest section of
 this file the first time you run a new version — the **What's new** entry in the
 actions menu opens it again any time.
+
+---
+
+## 1.6.5
+
+**Unreleased — in development.**
+
+Choose how an imported headphone correction shapes your sound, with clearer
+controls and a consistent look for dialogs and menus.
+
+### New
+
+- **An optional account.** **Account** in the actions menu opens a small
+  panel: sign in with your email and password, or create an account and type
+  the six-digit code that arrives by email. Forgot the password? A code goes
+  to the address and you set a new one in the same place. Your password goes
+  straight to the account service and is kept nowhere in the app. Signing in
+  is optional: everything runs on this machine exactly as before, nothing is
+  tracked, and nothing that was free has been taken away. The panel says so
+  before it offers anything: signed out, that sentence and the three things
+  an account is for stand beside the form; signed in, you come first — your
+  initials in your own colour, your name, and tags for Plus and the
+  leaderboard — with the Plus and leaderboard cards side by side under it.
+- **FluidEQ Plus.** Once signed in, the Account panel offers a small monthly
+  subscription with visualizers that exist nowhere else, the community and the
+  leaderboard, with more added every month. Paying happens on FluidEQ's Buy
+  Me a Coffee page in your browser — pay with the same email as your account
+  and Plus switches on by itself; the app never sees your card. The panel shows
+  the renewal date, opens the same page to change or cancel the membership,
+  and — if the app cannot reach the server — keeps Plus on for fourteen days
+  from the last confirmation and says so.
+- **Premium looks drawn on the graphics card.** Plus looks are GPU scenes —
+  curtains of light, not lines — and appear in the look picker, the arrows,
+  Space, the click on the plot and the auto-cycle alongside every free form,
+  marked with a small **Plus** pill and their own icon. They are downloaded
+  once, verified as genuinely from FluidEQ every time they are read, and play
+  offline. Any one that cannot run on your machine falls back to a free form
+  instead of showing a blank plot. The launch set is eight: **Aurora**,
+  **Bloom**, **Chrome**, **Ember**, **Nebula**, **Prism**, **Rain** and
+  **Tunnel**.
+- **The Plus looks are in the picker before you subscribe.** They sit at the
+  end of the list under a _FluidEQ Plus_ heading, each with its own icon and a
+  locked **Plus** pill, so the free app shows what Plus is instead of hiding
+  it. Choosing one opens the Account panel, where Plus is explained and
+  bought; the look on screen stays as it was, and the arrows, Space, the plot
+  click and the auto-cycle never land on a locked row.
+- **A Community tab.** Channels for general talk, looks, help and feature
+  requests, with @mentions that light up the tab when someone names you.
+  Anyone signed in can read everything; posting comes with Plus, and the
+  feature-requests channel is the star contributors' direct line to the maker.
+  Before a first message you choose a handle and agree to a short code of
+  conduct. Every message row can be reported or its author blocked, and your
+  own messages deleted. The rules — who may post, how fast, where — are
+  enforced by the server, not the app. Every channel has its own picture and
+  a line saying what it is for, every person wears a colour of their own on
+  their avatar and name, your own messages sit on a faint tint of that
+  colour, and the rail ends with who you are in here. The message box is one
+  rounded bar with the send arrow inside it and says how Enter and
+  Shift+Enter behave; the row actions are pictures that appear on hover; an
+  empty channel greets you rather than leaving a blank pane; and on a narrow
+  window the channels become a strip above the conversation.
+- **A leaderboard of who is here most.** Off unless you join it from the
+  Account panel, where the card says exactly what leaves the machine: one
+  number for each day — whole minutes of music that actually played, capped
+  at sixteen hours — with its date, and nothing else. Never what played or
+  from where. Places are scored in points, the same way for everyone, the
+  maker included: ten per hour listened, twenty per active day, five per
+  message in the community, and ten for each person who mentions you on a
+  day — so showing up and taking part beat leaving the app running. The
+  server checks every number that arrives: nothing over sixteen hours, no day
+  that has not begun, nothing older than two weeks, and no day growing faster
+  than the clock. The board lives in the Community tab: your standing on top
+  — your rank, your points and a bar of what they are made of, and how far
+  the next person is — then the top three on a podium, first in the middle
+  and crowned, and everyone else as a row lit to their share of the leader's
+  points. How to earn points stands beside the board on a wide window and
+  under it on a narrow one, with how the numbers are known and a link to
+  everything the app sends. The Account card draws today's tally as a ring
+  filling toward the sixteen-hour cap. A button removes everything you ever
+  sent, after saying plainly that your place goes with it.
+- **Plus terms, in plain words, before you pay.** Upgrading to Plus — from
+  the Account panel or the community — first shows the terms: the four
+  things that matter most on top, then what the membership is, how your
+  account is kept, everything the app sends with when and who can see it,
+  what never leaves your computer, how it is protected, fair play, the
+  community rules, what is kept and how to delete it, and the fine print.
+  Payment opens only after you tick that you agree, and the version you
+  agreed to is recorded as the payment page opens. The same terms are one
+  click away in the Account panel and beside the leaderboard at any time.
+- **Apply a Squiglink import as EQ or as a curve.** In EQ Presets, choose
+  **Apply as EQ** to use the imported bands in the editor, or **Apply as curve**
+  to use a separate headphone correction with its own strength and switch,
+  like OPRA. Applying a curve replaces the current headphone correction.
+- **Confirm before replacing your EQ.** If an EQ is already set, a dialog
+  matching your theme offers **Replace EQ**, **Apply as curve**, or **Cancel**.
+  Switching import modes removes the previous import so the same correction
+  is not applied twice.
+
+### Improved
+
+- **Imported curves stay with their controls.** Their applied response appears
+  in the import section's graph, follows the correction strength, and stays out
+  of the OPRA graph. **Also applied** identifies the curve as a custom headphone
+  correction instead of showing the export's name.
+- **Consistent dialog and menu borders.** Popup windows, dialogs and context
+  menus share a subtle border and rounded corners. Rainbow mode adds the same
+  rainbow border across them without changing their background colour or
+  transparency; with reduced motion, the colours stay still.
+- **A matching border for the top waveform.** Rainbow mode gives the top wave
+  panel a softly glowing spectrum rim, with the same movement as the windows
+  and menus.
+- **Quieter dividers and cards.** Decorative top lines and bright header rules
+  are removed, and internal dialog cards use softer borders.
+- **Edit style follows Ocean and Black.** The graph's style editor uses the
+  selected theme's popup surface, with an opaque background that keeps graph
+  labels from showing through its controls. Rainbow border and Lit peaks use
+  the app's themed switches. In fullscreen, the control bar moves left to leave
+  room for the editor, just as it does in the normal view.
+
+### Fixed
+
+- **Wave controls remain available in EQ's larger views.** Wave height and
+  position stay in the View menu in expanded and fullscreen EQ, including when
+  only the wave is visible.
+- **Custom FX stays switched off.** Turning off its pill in **Also applied**
+  no longer turns it back on when FluidEQ reads the APO configuration.
+- **Edit a saved Share Audio code.** The sender still restores its saved code
+  after restarting, but you can clear it and type a new one without the old
+  code reappearing. Stopping a session also keeps the code you are editing.
 
 ---
 

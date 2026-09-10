@@ -105,6 +105,8 @@ export interface IPerViewSetting<T> {
   get: () => T;
   /** Sets it for the current mode only; the other two are left alone. */
   set: (next: T) => void;
+  /** Sets it for all three modes at once — see `shareAcrossViews`. */
+  setEvery: (next: T) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
@@ -202,6 +204,16 @@ export const createPerViewSetting = <T>(
       }
       values[view] = next;
       writeStored(keyFor(view), serialize(next));
+      emit();
+    },
+    setEvery: (next: T) => {
+      if (GRAPH_VIEWS.every((mode) => values[mode] === next)) {
+        return;
+      }
+      GRAPH_VIEWS.forEach((mode) => {
+        values[mode] = next;
+        writeStored(keyFor(mode), serialize(next));
+      });
       emit();
     },
     subscribe: (listener: () => void) => {
@@ -1251,11 +1263,40 @@ migrateLegacyWaveSize();
  * while the expanded and full-screen views are for watching, where three
  * quarters leaves the scenes their sky and the curves their room.
  */
-const waveHeightSetting = createPerViewSetting(
-  VIEW_KEYS.waveHeight,
-  { normal: 1, expanded: 0.75, fullscreen: 0.75 },
-  parseWaveHeight,
-  serializeWaveControl,
+/**
+ * One value for the two big modes, and a fixed one for the pane.
+ *
+ * Wave height and position describe the wave itself, not the frame around
+ * it, so expanded and full screen share a single value: what is set in
+ * one is what the other draws with, and the controls appear in both.
+ *
+ * The pane is not one of them. The graph there shares its card with the
+ * response curves, the band handles and the legends — it is a
+ * measurement, it uses the whole plot, and a control for making it
+ * shorter is a control for making the reading worse. So the two rows are
+ * not offered there and the pane reads a constant, whatever the big modes
+ * have been set to.
+ *
+ * Written through the per-view store rather than beside it, so the
+ * storage format and its migrations stay in one place.
+ */
+const shareAcrossBigViews = <T>(
+  setting: IPerViewSetting<T>,
+  pane: T,
+): IPerViewSetting<T> => ({
+  ...setting,
+  get: () => (view === 'normal' ? pane : setting.get()),
+  set: setting.setEvery,
+});
+
+const waveHeightSetting = shareAcrossBigViews(
+  createPerViewSetting(
+    VIEW_KEYS.waveHeight,
+    { normal: 1, expanded: 0.75, fullscreen: 0.75 },
+    parseWaveHeight,
+    serializeWaveControl,
+  ),
+  1,
 );
 
 export const setGraphWaveHeight = (next: number) => {
@@ -1277,11 +1318,14 @@ export const useGraphWaveHeight = () =>
  * exactly bottom-to-centre; the inverted and mirrored forms make the symmetric
  * move from their own edges.
  */
-const wavePositionSetting = createPerViewSetting(
-  VIEW_KEYS.wavePosition,
+const wavePositionSetting = shareAcrossBigViews(
+  createPerViewSetting(
+    VIEW_KEYS.wavePosition,
+    0,
+    parseWavePosition,
+    serializeWaveControl,
+  ),
   0,
-  parseWavePosition,
-  serializeWaveControl,
 );
 
 export const setGraphWavePosition = (next: number) => {

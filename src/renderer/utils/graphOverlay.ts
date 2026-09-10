@@ -72,12 +72,17 @@ const DEFAULT_OPACITY = 1;
  * a solid card over your own video is a default that has to be undone before
  * the mode is any use — which meant discovering a slider first.
  *
- * 0.2 rather than 0, which is the slider at 80 rather than at 100. The card
- * keeps just enough ground to sit on that the curve and the labels stay
- * readable over a bright picture, while four fifths of what is behind it comes
- * through.
+ * All the way through, in both modes that are laid over something.
+ *
+ * Nothing at all is drawn behind the graph by default: the trace, the grid
+ * and the header sit straight over the picture at full strength, which is
+ * the whole point of going into these modes while something is playing. A
+ * card of any weight over a video is a thing to undo before the mode is any
+ * use, and undoing it means finding a slider first. The slider still goes
+ * the other way for anyone reading a response curve, and it has ticks at
+ * the quarters.
  */
-const DEFAULT_OVERLAID_OPACITY = 0.2;
+const DEFAULT_OVERLAID_OPACITY = 0;
 const DEFAULT_BLUR = 0;
 
 /**

@@ -907,9 +907,15 @@ $eq-bubble-applied-face: color-mix(
   // The filter column is the wide one because it is the only field whose value
   // is a name rather than a number, and the two shelves and the two passes are
   // told apart by a word each.
+  //
+  // The three dials get a floor of 64px — the 50px face plus air — and grow to
+  // whatever their caption needs. Fixed columns were tried at 64px and clipped
+  // the German "Verstärkung" and the Russian "Добротность (Q)" to stubs: the
+  // dial is the same size in every language and the word above it is not, so
+  // the word is what has to size the column.
   grid-template-columns:
-    minmax(104px, max-content) 162px 96px 138px 64px
-    minmax(104px, max-content);
+    minmax(104px, max-content) 162px repeat(3, minmax(64px, max-content))
+    minmax(56px, max-content) minmax(104px, max-content);
   align-items: stretch;
   justify-self: center;
   gap: 8px;
@@ -964,24 +970,39 @@ $eq-bubble-applied-face: color-mix(
 
 .eq-flat-editor__control {
   .dropdown,
-  .number-input,
-  .input-wrapper,
   .dropdown > [role='menu'] {
     width: 100%;
   }
 }
 
-// Every editable control in the row is exactly one control height, so the
-// dropdown, the two number fields and the buttons share top and bottom edges.
+// A column whose control is narrower than its caption — the three dials and
+// the on/off switch. The caption sits over the middle of the thing it names
+// rather than over the left edge of a track the thing does not fill.
+//
+// Left alignment is right for the two columns whose content starts at the left,
+// the band's name and the filter list, and wrong for a 50px circle in a wider
+// one.
+.eq-flat-editor__control--centred > span {
+  text-align: center;
+}
+
+// The switch, optically centred on the control line like the dials beside it.
+// It is 28px in a 38px row, so without this it sits at the top of its cell and
+// the row grows a step nothing else in it takes.
+.eq-flat-editor__switch {
+  display: flex;
+  height: $control-height;
+  align-items: center;
+  justify-content: center;
+}
+
+// The one field left in the row is exactly one control height, so it shares
+// top and bottom edges with the buttons at either end of the row. The three
+// dials centre themselves on the same line — see `.eq-flat-editor .knob`.
 .eq-flat-editor {
-  .dropdown > [role='menu'],
-  .number-input .input-wrapper {
+  .dropdown > [role='menu'] {
     height: $control-height;
     min-height: $control-height;
-  }
-
-  .number-input input[type='text'] {
-    height: 100%;
   }
 }
 
@@ -1029,48 +1050,6 @@ $eq-bubble-applied-face: color-mix(
   cursor: help;
 }
 
-.eq-flat-editor__input-row {
-  display: grid;
-  min-width: 0;
-  height: $control-height;
-  grid-template-columns: minmax(0, 1fr) 30px;
-  align-items: stretch;
-  gap: 6px;
-
-  .number-input {
-    min-width: 0;
-  }
-}
-
-.eq-flat-editor__reset-gain {
-  width: 30px;
-  height: $control-height;
-  padding: 0;
-  color: $secondary-light;
-  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
-  }
-
-  &:focus-visible {
-    border-color: $secondary-light;
-    @include focus-ring;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
-}
-
 // The dial is a circle rather than a field, so it is optically centred on the
 // control row instead of being squashed into its exact height.
 // 50px, up from 46: the value drawn in the middle was six pixels tall and
@@ -1108,10 +1087,22 @@ $eq-bubble-applied-face: color-mix(
 //
 // `$red` rather than the two hand-mixed pinks that were here, which existed
 // only because nothing had reached for the token.
-.eq-flat-editor__delete {
-  width: 100%;
-  height: $control-height;
+// The cell the delete button stands in, which holds two buttons once it is
+// armed. A wrapper rather than a second grid child: the row's last column is
+// sized for this control, and a sibling appearing in the grid would either need
+// a column of its own standing empty most of the time or would push the whole
+// row along the moment somebody reached for delete.
+.eq-flat-editor__delete-cell {
+  display: flex;
+  min-width: 0;
   align-self: end;
+  gap: 6px;
+}
+
+.eq-flat-editor__delete {
+  flex: 1 1 0;
+  min-width: 0;
+  height: $control-height;
   padding-inline: 12px;
   color: $text-muted;
   border: 1px solid rgba($edge-tint, 0.14);
@@ -1137,6 +1128,76 @@ $eq-bubble-applied-face: color-mix(
   &:disabled {
     cursor: default;
     opacity: $disabled-opacity;
+  }
+
+  // Armed: the next press is the one that deletes.
+  //
+  // Filled rather than merely redder, and that is the point of it. The rest
+  // state is an outline, hover tints the same outline, and a third shade of
+  // the same treatment would be a difference nobody notices on the control
+  // their pointer is already sitting on — which is exactly when it has to be
+  // noticed. Solid red under white is a different kind of button, not a
+  // brighter one, and it survives being looked at by somebody who cannot tell
+  // the two reds apart.
+  //
+  // AFTER the hover and focus rules on purpose: the pointer is by definition
+  // still on this button when it becomes armed, so anything hover sets has to
+  // be overridden here or the armed state never shows at all.
+  &.is-armed,
+  &.is-armed:hover:not(:disabled),
+  &.is-armed:focus-visible {
+    color: $white;
+    border-color: $red;
+    background: $red;
+  }
+}
+
+// The way back, beside the armed button.
+//
+// Quiet on purpose, and the one place in this app where the quiet button is the
+// recommended one: emphasis follows the recommendation everywhere else because
+// the loud button is the thing to do, and here the loud button is the thing
+// that cannot be taken back. Red carries the warning; this carries the exit,
+// and it must not compete with the red for attention or the pair reads as two
+// equally good options.
+.eq-flat-editor__keep {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  height: $control-height;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 12px;
+  gap: 6px;
+  color: $text-primary;
+  border: 1px solid rgba($edge-tint, 0.22);
+  border-radius: $radius-s;
+  background: rgba($edge-tint, 0.06);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    border-color: rgba($edge-tint, 0.4);
+    background: rgba($edge-tint, 0.13);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.eq-flat-editor__keep-icon {
+  display: grid;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  place-items: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
   }
 }
 
@@ -1177,8 +1238,8 @@ $eq-bubble-applied-face: color-mix(
 @container eq-panel (max-width: 800px) {
   .eq-flat-editor {
     grid-template-columns:
-      minmax(96px, max-content) 104px 92px 128px 60px
-      #{$control-height};
+      minmax(96px, max-content) 104px repeat(3, minmax(60px, max-content))
+      minmax(52px, max-content) #{$control-height};
   }
 
   .eq-flat-editor__delete {
@@ -1186,6 +1247,16 @@ $eq-bubble-applied-face: color-mix(
     width: $control-height;
     padding-inline: 0;
     place-items: center;
+  }
+
+  // The stated way out goes, and only here. The column is one control wide at
+  // this size, so a second button either grows the row the moment somebody
+  // reaches for delete or reserves space for something that is almost never on
+  // screen — both worse than what is left, which is the same red button and the
+  // two ways out that need no room at all: press anywhere else, or Escape. The
+  // button's own tooltip is the whole sentence, including that.
+  .eq-flat-editor__keep {
+    display: none;
   }
 
   // Swapped, not restyled. A multiplication sign standing in for a bin was
@@ -1235,10 +1306,19 @@ $eq-bubble-applied-face: color-mix(
     --range-length: 112px;
   }
 
+  // Four columns, because four of the six cells are now small round things of
+  // the same width — three dials and a switch — and they belong on one line.
+  // The three that are not (the band's name, the filter list and Delete) take
+  // the full width and get a line each, so nothing is squeezed to a quarter of
+  // the card to keep a grid tidy.
   .eq-flat-editor {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 12px;
+  }
+
+  .eq-flat-editor__control--wide {
+    grid-column: 1 / -1;
   }
 
   .eq-flat-editor__identity {
@@ -1253,16 +1333,22 @@ $eq-bubble-applied-face: color-mix(
     }
   }
 
-  .eq-flat-editor__delete {
+  .eq-flat-editor__delete-cell {
     grid-column: 1 / -1;
+  }
+
+  .eq-flat-editor__delete {
     // Back to a full-width button on its own row, so the icon-only form has
     // nothing left to solve. It exists for a row that ran out of horizontal
     // room; this row has the whole card. Written out because the container
     // query above still matches at this width — a narrow window means a narrow
     // panel — and without this the button would keep the compromise long after
     // the reason for it had gone.
-    display: block;
-    width: 100%;
+    display: flex;
+    width: auto;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 12px;
 
     .eq-flat-editor__delete-label {
       display: inline;
@@ -1272,19 +1358,27 @@ $eq-bubble-applied-face: color-mix(
       display: none;
     }
   }
+
+  // And the way out comes back with the room for it.
+  .eq-flat-editor__keep {
+    display: flex;
+  }
 }
 
 // The selected-band pane, folded rather than stretched.
 //
-// Its six columns are fixed widths adding to about 700px, so below that they
-// simply ran off the card. One column was tried and is worse: six fields at
-// full width is a stack three hundred pixels tall, which on a short phone-
-// shaped window is the whole editor. Two columns fold it to three rows and
-// every field keeps a width you can read a number in.
+// Its columns are fixed widths adding to about 700px, so below that they simply
+// ran off the card. One column was tried and is worse: six fields at full width
+// is a stack three hundred pixels tall, which on a short phone-shaped window is
+// the whole editor.
+//
+// The four-column fold set at 940px above already holds here — the dials and
+// the switch need about 250px between them and there is no window this app runs
+// in that is narrower than that — so this stop only widens the pane to the card
+// and stacks the band's name.
 @media (max-width: $bp-two-column) {
   .eq-flat-editor {
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   // Which band, across the top: it names what the rest of the pane edits.

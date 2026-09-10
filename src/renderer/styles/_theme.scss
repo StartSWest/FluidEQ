@@ -535,9 +535,35 @@ $transition-control:
 // opens over arbitrary content and the text on it has to win against whatever
 // is behind — but 0.94 of the panel family reads as glass over the workspace
 // rather than as a hole cut in it.
+// Keep decorative surface artwork available when the border adds its own layer.
+@mixin surface-artwork($image) {
+  --rainbow-surface-image: #{$image};
+  background-image: $image;
+}
+
+// Clip the spectrum to the actual border. An inner masking fill used to replace
+// every window's own background with the darker menu colour in Rainbow mode.
+@mixin rainbow-border {
+  border-color: transparent;
+  background-image: var(--rainbow-sweep), var(--rainbow-surface-image, none);
+  // The Maker has three artwork layers; none may inherit the border-only clip.
+  background-clip: border-area, border-box, border-box, border-box;
+  background-origin: border-box, padding-box, padding-box, padding-box;
+  background-size:
+    200% 100%,
+    auto,
+    auto,
+    auto;
+  animation: rainbow-border-drift 12s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 @mixin menu-surface {
-  border: 1px solid $border-menu;
-  border-radius: $radius-l;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-m;
   // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
   // actually available; without somewhere for the overflow to go, that cap
   // would clip the last entries instead of letting them be reached — the exact
@@ -576,11 +602,7 @@ $transition-control:
   // hue that animates every frame. Every button and panel is hundreds; an open
   // menu is one, and only while it is open.
   .is-euphoric & {
-    // Its own sweep: the hue does not inherit, deliberately — see the
-    // @property declaration in Euphoria.scss for why. One open menu animating
-    // itself is nothing; the whole document inheriting it was gigabytes.
-    animation: euphoria-sweep 3.6s linear infinite;
-    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 45%);
+    @include rainbow-border;
     box-shadow:
       0 18px 44px rgba($black, 0.5),
       0 0 30px hsl(var(--euphoria-hue, 160deg) 95% 60% / 20%),

@@ -53,6 +53,12 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'ビジュアライザーの自動切り替え',
   'graph.autoSwitch.off': '自動: オフ',
   'graph.autoSwitch.every': '自動: {seconds}秒',
+  // The product name of the tier, so it is not translated: the same word
+  // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'あなたが作成',
+  'graph.scene.badge': 'Plus',
+  'graph.scene.locked':
+    'FluidEQ Plus の一部です。選ぶと解除する方法が表示されます。',
   'graph.style.next': '次のスタイル',
   'graph.style.previous': '前のスタイル',
   'graph.style.search': 'スタイルを検索',
@@ -117,7 +123,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.starfield': 'ワープ速度',
   'graph.styleName.candles': 'ろうそく',
   'graph.styleName.arches': 'アーチ',
-  'graph.styleName.flames': '炎',
+  'graph.styleName.flames': '踊る炎',
   'graph.styleName.barcode': 'バーコード',
   'graph.styleName.rain': '雨',
   'graph.styleName.honeycomb': '蜂の巣',
@@ -202,6 +208,8 @@ const eq: Partial<Dictionary> = {
     '音が前に出すぎると感じる場合に、プレゼンス帯域を広く穏やかに抑えます。',
   'driver.filter.trebleSoftening':
     '鋭い録音や、装着によって明るく感じる音の高域を少し抑えます。',
+  'driver.filter.edgeSoftening':
+    '硬い振動板が音の立ち上がりをきつくする帯域を、わずかに抑えます。',
   'driver.filter.vocalLift':
     '中域が引っ込んで聞こえる場合に試す、わずかなボーカルの持ち上げです。',
   'driver.filter.bassTidying':
@@ -224,7 +232,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': '補正なし',
   'driver.none.hint': '自分のバンドと音の傾向だけ',
   'driver.strength': '強さ',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'あなたの音',
   'app.soundPanel': 'サウンドパネル',
   'profiles.title': '保存したプロファイル',
@@ -376,12 +384,28 @@ const eq: Partial<Dictionary> = {
   'eq.frequency': '周波数',
   'eq.gain': 'ゲイン',
   'eq.gainDisabled': 'ゲイン · 該当なし',
+  'eq.gainReset': 'Ctrl+クリックで選択中のすべてのバンドを 0 dB に戻します',
   'eq.quality': 'Q（尖鋭度）',
+  'eq.active': '有効',
+  'eq.activeAria': '選択中のバンドを適用',
+  'eq.activeGroupAria': '選択中の {count} 個のバンドを適用',
   'eq.delete': 'バンドを削除',
   'eq.deleteAria': '選択中の EQ バンドを削除',
+  'eq.deleteSelectionAria': '選択中の {count} 本のバンドを削除',
+  'eq.delete.armed': '削除',
+  'eq.delete.keep': '残す',
+  'eq.delete.keepAria': 'バンドを残して削除をやめます。',
+  'eq.delete.armedAria':
+    'もう一度押すとこのバンドを削除します。ゲインと Q も一緒になくなり、元に戻せません。',
+  'eq.delete.armedAriaGroup':
+    'もう一度押すと {count} 本のバンドを削除します。設定もすべて一緒になくなり、元に戻せません。',
   'eq.menu.aria': '{frequency} Hz のバンド',
   'eq.menu.subject': '{frequency} Hz',
   'eq.menu.reset': 'バンドをリセット',
+  'eq.menu.disable': 'バンドを無効化',
+  'eq.menu.enable': 'バンドを有効化',
+  'eq.menu.disableSelection': '{count} 個のバンドを無効化',
+  'eq.menu.enableSelection': '{count} 個のバンドを有効化',
   'eq.menu.addLeft': '左にバンドを追加',
   'eq.menu.addRight': '右にバンドを追加',
   'eq.menu.selection': '{count} バンドを選択中',

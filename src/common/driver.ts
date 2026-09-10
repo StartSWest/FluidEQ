@@ -40,6 +40,15 @@ export type { IDriverSettings };
  * boosts. Exact-model measurements and the listener's fit take precedence:
  * https://news.harman.com/blog/samsung-x-akg-q-a-with-harmans-dr-sean-olive
  * These particular gains are conservative design choices, not research targets.
+ *
+ * Shallow is not the same as identical. Trimmed to a single ~0.4 dB shelf each,
+ * eleven of the twelve entries drew the same faint droop: 48 of the 66 possible
+ * pairs sat under 0.5 dB apart at their most different point, and the closest
+ * two were 0.04 dB apart — a picker whose every choice does the same thing.
+ * Each profile therefore has to differ from every other one by a margin an ear
+ * can hear, which it earns from *where* and in *which direction* it acts rather
+ * than from depth: a rise, a fall placed low, a fall placed high and a bass tidy
+ * are four different curves at gains none of which can ruin a listen.
  */
 export interface IDriverFilter {
   type: FilterTypeEnum;
@@ -82,16 +91,24 @@ const pk = (
   reason,
 });
 
+/**
+ * Q is stated per shelf rather than fixed, because it is what places the knee.
+ *
+ * A shelf at 0.5 is so gradual that it has already started falling two octaves
+ * below its own frequency, which is why two shelves aimed six kilohertz apart
+ * still measured 0.45 dB from each other. Nothing here goes above 0.7, the
+ * point at which a shelf starts to grow a shoulder instead of a slope.
+ */
 const highShelf = (
   frequency: number,
   gain: number,
+  quality: number,
   reason: TranslationKey,
 ): IDriverFilter => ({
   type: FilterTypeEnum.HSC,
   frequency,
   gain,
-  // Low Q avoids a resonant shoulder on a deliberately broad adjustment.
-  quality: 0.5,
+  quality,
   reason,
 });
 
@@ -109,9 +126,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Dynamic',
     tagline: 'Moving coil, the type most headphones use',
     category: 'headphone',
+    // The earcup cavity pushes the upper mids forward, and the diaphragm stops
+    // moving as one piece somewhere above it — a shelf, because exactly where
+    // depends on dome geometry rather than on the driver being dynamic.
     filters: [
-      pk(3000, -0.5, 0.7, 'driver.filter.presenceSoftening'),
-      highShelf(7000, -0.35, 'driver.filter.trebleSoftening'),
+      pk(3400, -0.9, 0.9, 'driver.filter.presenceSoftening'),
+      highShelf(6500, -0.9, 0.5, 'driver.filter.trebleSoftening'),
     ],
     note: 'driver.profile.note.headphone',
   },
@@ -120,9 +140,11 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Planar magnetic',
     tagline: 'Flat diaphragm driven across its whole surface',
     category: 'headphone',
+    // The one profile that lifts the mids: a large planar's reputation for
+    // sounding polite through voices sits below the presence region, not in it.
     filters: [
-      pk(2000, 0.35, 0.65, 'driver.filter.vocalLift'),
-      highShelf(9000, -0.25, 'driver.filter.trebleSoftening'),
+      pk(1600, 0.9, 0.8, 'driver.filter.vocalLift'),
+      highShelf(9000, -0.8, 0.6, 'driver.filter.trebleSoftening'),
     ],
     note: 'driver.profile.note.headphone',
   },
@@ -131,9 +153,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Single dynamic',
     tagline: 'One moving-coil driver, the most common in-ear design',
     category: 'iem',
+    // A sealed dynamic builds up mid-bass, and the canal peak above it is the
+    // listener's ear rather than the driver — hence a wide dip that comes back
+    // up in the top octave instead of a shelf that stays down.
     filters: [
-      pk(200, -0.4, 0.65, 'driver.filter.bassTidying'),
-      highShelf(6500, -0.35, 'driver.filter.trebleSoftening'),
+      pk(200, -1, 0.8, 'driver.filter.bassTidying'),
+      pk(6500, -0.9, 0.8, 'driver.filter.trebleSoftening'),
     ],
     note: 'driver.profile.note.iem',
   },
@@ -142,9 +167,11 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Balanced armature',
     tagline: 'Sealed armature drivers, common in stage and budget IEMs',
     category: 'iem',
+    // Two broad dips rather than one dip and a shelf: an armature's hardness
+    // and its splashiness are separate regions with clean treble between them.
     filters: [
-      pk(3000, -0.6, 0.75, 'driver.filter.presenceSoftening'),
-      highShelf(7500, -0.35, 'driver.filter.trebleSoftening'),
+      pk(2800, -1.2, 1.1, 'driver.filter.presenceSoftening'),
+      pk(9000, -0.9, 1, 'driver.filter.trebleSoftening'),
     ],
     note: 'driver.profile.note.iem',
   },
@@ -153,9 +180,13 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Hybrid',
     tagline: 'Dynamic woofer with balanced armature mids and treble',
     category: 'iem',
+    // The only three-part curve, because a hybrid is the only type with a
+    // handover: woofer bleed below it, the crossover itself, and an armature
+    // doing treble duty above it.
     filters: [
-      pk(250, -0.35, 0.65, 'driver.filter.bassTidying'),
-      pk(3000, -0.35, 0.7, 'driver.filter.presenceSoftening'),
+      pk(250, -0.8, 0.8, 'driver.filter.bassTidying'),
+      pk(2000, -0.7, 1, 'driver.filter.presenceSoftening'),
+      highShelf(7100, -1, 0.5, 'driver.filter.trebleSoftening'),
     ],
     note: 'driver.profile.note.iem',
   },
@@ -164,7 +195,17 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Titanium coated',
     tagline: 'Stiff metal-coated diaphragm',
     category: 'material',
-    filters: [highShelf(6000, -0.45, 'driver.filter.trebleSoftening')],
+    // Where the diaphragm stops behaving as a piston, and how hard it hits on
+    // the way there, is the whole of what stiffness and self-damping predict.
+    // A metal coating is heavy enough to break up well inside the band, which
+    // is why this acts a full octave and a half below Graphene. The dip is also
+    // what keeps the two from being one curve drawn twice: two shelves this
+    // gradual, aimed six kilohertz apart, still measured 0.45 dB from each
+    // other, and a shape you cannot tell apart is a choice that does nothing.
+    filters: [
+      pk(7000, -1.1, 0.9, 'driver.filter.edgeSoftening'),
+      highShelf(12000, -0.5, 0.6, 'driver.filter.trebleSoftening'),
+    ],
     note: 'driver.profile.note.material',
   },
   {
@@ -172,7 +213,9 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Graphene',
     tagline: 'Very high stiffness for its weight',
     category: 'material',
-    filters: [highShelf(7000, -0.25, 'driver.filter.trebleSoftening')],
+    // Stiff enough for its mass to push breakup into the top octave, so this
+    // leaves everything below 8 kHz alone where titanium does not.
+    filters: [highShelf(11000, -0.9, 0.7, 'driver.filter.trebleSoftening')],
     note: 'driver.profile.note.material',
   },
   {
@@ -180,7 +223,8 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: 'Bio-cellulose',
     tagline: 'Naturally well-damped diaphragm',
     category: 'material',
-    filters: [highShelf(8000, 0.35, 'driver.filter.airLift')],
+    // Well damped costs air, so this is the one material curve that rises.
+    filters: [highShelf(8000, 0.9, 0.6, 'driver.filter.airLift')],
     note: 'driver.profile.note.material',
   },
   {
@@ -188,7 +232,13 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: '50 mm and larger',
     tagline: 'Big over-ear diaphragm',
     category: 'size',
-    filters: [pk(4000, -0.45, 0.7, 'driver.filter.presenceSoftening')],
+    // More radiating area carries more upper-bass warmth, and a bigger
+    // diaphragm breaks up lower than a smaller one — the two together are what
+    // separates this from the 40 mm entry.
+    filters: [
+      pk(150, -0.7, 0.7, 'driver.filter.bassTidying'),
+      pk(3500, -0.9, 0.8, 'driver.filter.presenceSoftening'),
+    ],
     note: 'driver.profile.note.size',
   },
   {
@@ -196,7 +246,7 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: '40 mm',
     tagline: 'The most common over-ear size',
     category: 'size',
-    filters: [pk(5000, -0.35, 0.7, 'driver.filter.presenceSoftening')],
+    filters: [pk(5000, -1, 0.9, 'driver.filter.presenceSoftening')],
     note: 'driver.profile.note.size',
   },
   {
@@ -204,7 +254,9 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: '30 mm and smaller',
     tagline: 'Compact on-ear and portable drivers',
     category: 'size',
-    filters: [pk(250, -0.35, 0.7, 'driver.filter.bassTidying')],
+    // Upper bass only. A small driver is usually tuned to fake weight it
+    // cannot produce; asking it for more deep bass is the wrong direction.
+    filters: [pk(250, -1, 0.8, 'driver.filter.bassTidying')],
     note: 'driver.profile.note.small',
   },
   {
@@ -212,7 +264,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     name: '10 mm in-ear',
     tagline: 'Typical single dynamic in-ear diaphragm',
     category: 'size',
-    filters: [highShelf(7000, -0.3, 'driver.filter.trebleSoftening')],
+    // Same two regions as the single-dynamic topology entry and deliberately
+    // gentler in both: diameter is the weaker predictor of the two.
+    filters: [
+      pk(200, -0.6, 0.8, 'driver.filter.bassTidying'),
+      highShelf(7000, -0.7, 0.5, 'driver.filter.trebleSoftening'),
+    ],
     note: 'driver.profile.note.iem',
   },
 ];

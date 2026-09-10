@@ -145,15 +145,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 0 18px color-mix(in srgb, $secondary-light 20%, transparent);
 }
 
-// One column or two, decided at the bottom of this file.
-//
-// `display: contents` is what lets both layouts share one set of rules: the
-// wrappers disappear and their children sit directly in the body's own grid,
-// exactly as they did before there were any wrappers to group them. The
-// two-column rule turns them back into real boxes.
 .support-dialog__stage,
 .support-dialog__ask {
-  display: contents;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--support-gap);
 }
 
 // At desktop width the left side is the interactive playground and the right
@@ -161,7 +158,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // columns inside one large modal" feeling and makes the game discoverable.
 @media (min-width: 860px) {
   .support-dialog__scroll {
-    align-items: stretch;
+    align-items: start;
     grid-template-columns: minmax(300px, 0.88fr) minmax(420px, 1.12fr);
     column-gap: 18px;
   }
@@ -178,7 +175,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .support-dialog__stage {
-    position: relative;
+    position: sticky;
+    top: 0;
     overflow: hidden;
     padding: 24px 20px 20px;
     background: color-mix(in srgb, $surface-base 42%, transparent);
@@ -451,8 +449,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // because it was the only part that looked interactive.
 .support-method--primary {
   position: relative;
-  border-color: color-mix(in srgb, $secondary-light 34%, transparent);
-  background: color-mix(in srgb, $surface-menu-top 72%, transparent);
+  border-color: color-mix(in srgb, $secondary-light 62%, transparent);
+  background: color-mix(in srgb, $secondary-default 12%, $surface-plot);
   cursor: pointer;
   transition:
     $transition-control,
@@ -503,14 +501,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Quiet on purpose: it is a self-declaration, not a call to action.
-.support-dialog__contributed {
-  @include ghost-button;
-  padding: 9px 12px;
-  border-radius: $radius-xs;
-  border-style: dashed;
-  font-size: $text-lead;
-  font-weight: $weight-bold;
+// Preview the reward on the coffee card and confirmation before Rainbow is
+// unlocked. The local sweep leaves the rest of the dialog unchanged.
+.button.support-dialog__contributed,
+.support-method--primary.support-method--qr {
+  --rainbow-sweep: linear-gradient(
+    90deg,
+    #ff4d6d,
+    #ff9f45,
+    #ffd93d,
+    #6bcb77,
+    #36c9d6,
+    #5b8cff,
+    #b06ab3,
+    #ff4d6d
+  );
+
+  border-width: 2px;
+
+  // Interactive states reset the background shorthand; restore the border
+  // layer while preserving the control's normal surface colour.
+  &,
+  &:hover:not([aria-disabled='true']):not(:disabled),
+  &:focus-visible:not([aria-disabled='true']):not(:disabled),
+  &:active:not([aria-disabled='true']):not(:disabled) {
+    @include rainbow-border;
+  }
+}
+
+.button.support-dialog__contributed {
+  min-width: 0;
+  min-height: 40px;
+  white-space: normal;
+
+  + .support-method__hint {
+    margin: 0;
+  }
 }
 
 // A status, not a control. Centred inside a full-width bordered box it read
@@ -736,15 +762,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Earning the badge.
-//
-// Fires once per install and is the only thing standing between asking and
-// having, so it is allowed to be theatrical. Everything animated here is
-// `translate`, `rotate`, `scale` and `opacity` — all composited — because the
-// one time this runs is the one time dropped frames would be noticed.
+// The badge is already saved when this starts. The portal clears itself on
+// animationend, so the celebration never delays the unlock or clips inside
+// the dialog's scrolling body.
 .support-earn {
-  position: absolute;
-  z-index: 10;
+  position: fixed;
+  z-index: 1500;
   top: 50%;
   left: 50%;
   pointer-events: none;

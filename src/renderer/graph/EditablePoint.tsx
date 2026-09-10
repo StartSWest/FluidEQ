@@ -237,7 +237,7 @@ const EditablePoint = ({
   return (
     <g
       ref={groupRef}
-      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}`}
+      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
       aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
@@ -274,6 +274,7 @@ const EditablePoint = ({
       />
       <title>
         {point.name}: {data.x} Hz · {data.y.toFixed(2)} dB
+        {point.isEnabled ? '' : ' · off'}
         {selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}
       </title>
     </g>

@@ -151,6 +151,11 @@ const normalizeFilter = (
     gain: clampGain(gain),
     quality: clampQuality(quality),
     type: type as FilterTypeEnum,
+    // Only written when the band is actually off, so a state file gains a key
+    // per band only once somebody has used the switch — and anything else in
+    // the file, including a hand-edited `true`, comes back as the band being
+    // on, which is what every state written before the switch existed means.
+    ...(filter.isEnabled === false ? { isEnabled: false } : {}),
   };
 };
 

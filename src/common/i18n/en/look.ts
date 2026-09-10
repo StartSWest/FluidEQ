@@ -70,9 +70,8 @@ const look = {
   'look.glow': 'Glow',
   'look.off': 'Off',
   'look.glowHint': 'How hard the figure swells and brightens on a beat.',
-  'look.glowNeedsRainbow':
-    'Needs Rainbow mode. With it off, glow does not change the drawing.',
   'look.needsRainbow': 'Needs Rainbow mode.',
+  'look.glowNotForForm': 'This form has no glow.',
   'look.rainbowBorder': 'Rainbow border',
   'look.rainbowBorderHint':
     'Rings the graph in a colour that travels around the whole wheel.',
@@ -115,7 +114,7 @@ const look = {
   'support.petHint': 'Press space to make it jump',
   'support.game.hint': 'Tap on the beat when the spike reaches the line',
   'support.game.howTo':
-    'Tap the pet or press space on every beat. Keep it up and something happens at ×10.',
+    'Play music, then tap the pet or press Space as a spike reaches the centre line. Reach ×10 to unlock Rainbow mode.',
   'support.game.thanks':
     'If any of this made you smile, ideas and support are what keep it coming.',
   'support.game.noAudio': 'Play something and the beat shows up here',
@@ -124,7 +123,7 @@ const look = {
   'support.game.shareEuphoria': 'Share rainbow',
   'support.game.shareTitle': 'Share your score',
   'support.game.shareUnlock':
-    'Reach ×10 and this card turns into Rainbow mode — spectrum and all.',
+    'Unlock Rainbow mode by playing or confirming your contribution to give this card its rainbow colours.',
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',
@@ -156,8 +155,11 @@ const look = {
   'support.copy': 'Copy address',
   'support.copied': 'Copied',
   'support.openWallet': 'Open in wallet',
-  'support.contributed': 'I contributed — unlock the star and the dance',
-  'support.thanks': 'Thank you — your pet has its star, and it dances now.',
+  'support.contributed': 'I contributed — enable Rainbow mode',
+  'support.rainbowHint':
+    'Contributed? Turn Rainbow mode on immediately with “I contributed”. No ×10 required.',
+  'support.thanks':
+    'Thank you — Rainbow mode is unlocked, and your pet has its star and dance.',
   'support.releaseNotes': "See what's new in this version",
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',

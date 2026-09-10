@@ -289,7 +289,8 @@ export const registerFiltersIpc = ({
         isInRange(edit.frequency, MIN_FREQUENCY, MAX_FREQUENCY) &&
         isInRange(edit.quality, MIN_QUALITY, MAX_QUALITY) &&
         (edit.type === undefined ||
-          Object.values(FilterTypeEnum).includes(edit.type)),
+          Object.values(FilterTypeEnum).includes(edit.type)) &&
+        (edit.isEnabled === undefined || typeof edit.isEnabled === 'boolean'),
     );
 
     if (!isValid) {
@@ -311,6 +312,9 @@ export const registerFiltersIpc = ({
       }
       if (edit.type !== undefined) {
         filter.type = edit.type;
+      }
+      if (edit.isEnabled !== undefined) {
+        filter.isEnabled = edit.isEnabled;
       }
     });
     state.isFlat = false;

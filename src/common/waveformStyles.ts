@@ -411,7 +411,10 @@ export const createWaveformShape = (
       if (bands.length >= 2) {
         const bandStep = width / bands.length;
         const barWidth = Math.max(1, bandStep * 0.66);
-        const segment = Math.max(3, height / 8);
+        // A rung is as tall as its bar is wide, so the ladder keeps its
+        // shape at every wave height and only the count of lit rungs
+        // answers the slider. Divided by the height it stretched instead.
+        const segment = Math.max(3, barWidth * 0.62);
         for (let index = 0; index < bands.length; index += 1) {
           const magnitude = bandHeight(bands[index], height);
           // Always at least the bottom rung, so a quiet band reads as a
@@ -429,7 +432,8 @@ export const createWaveformShape = (
         return { line: '', mirror: '', fill };
       }
       const barWidth = Math.max(1, step * 0.62);
-      const segment = Math.max(3, height / 6);
+      // The rung's shape comes from its width — see the band ladder above.
+      const segment = Math.max(3, barWidth * 0.62);
       for (let index = 0; index < samples.length; index += 1) {
         const magnitude = Math.abs(at(index)) * 2;
         const lit = Math.floor(magnitude / segment);

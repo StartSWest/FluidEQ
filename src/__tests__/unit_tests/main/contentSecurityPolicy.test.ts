@@ -112,9 +112,20 @@ describe('the app window content security policy', () => {
     ].forEach((host) => expect(matches(host)).toBe(true));
   });
 
-  it('lets the dev server talk to its own hot reload', () => {
+  /**
+   * A development window can run on any port now, so the policy names none:
+   * the page is served by the dev server, which makes that server `'self'`,
+   * and its hot-reload socket is the `ws:` source. A fixed
+   * `http://localhost:1212` would be wrong for every window but one.
+   */
+  it('lets the dev server talk to its own hot reload, on whatever port it has', () => {
+    expect(directives(true)['connect-src']).toContain("'self'");
     expect(directives(true)['connect-src']).toContain('ws:');
-    expect(directives(true)['connect-src']).toContain('http://localhost:1212');
+    expect(
+      directives(true)['connect-src'].some((source) =>
+        /^https?:\/\/localhost:\d+$/.test(source),
+      ),
+    ).toBe(false);
     // And not in a packaged build, which has neither.
     expect(directives(false)['connect-src']).not.toContain('ws:');
   });

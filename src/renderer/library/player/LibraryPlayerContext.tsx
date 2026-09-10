@@ -51,7 +51,11 @@ import { useDspSettings } from '../../dsp/store';
 import { usePlaybackHandoff } from '../../audio/playbackHandoff';
 import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
 import { useLibrary } from '../LibraryContext';
-import { readStoredVolume } from './playbackMemory';
+import {
+  commitAppVolume,
+  setAppVolume,
+  useAppVolume,
+} from '../../audio/appVolume';
 import {
   ILibraryPlayerClock,
   ILibraryPlayerContextValue,
@@ -104,10 +108,12 @@ export const LibraryPlayerProvider = ({
   // element every transport command reaches instead, for exactly as long as
   // the current track is a video.
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
-  // Read from storage rather than defaulted and corrected afterwards: the
-  // decks below are built at the stored level, and a state that disagreed with
-  // them for one render would put a burst of full-scale audio through them.
-  const [volume, setVolumeState] = useState(readStoredVolume);
+  // The app's fader, not this player's: karaoke and the Media tab read the
+  // same number, so the level does not change when the tab does. Read from
+  // storage rather than defaulted and corrected afterwards — the decks below
+  // are built at the stored level, and a state that disagreed with them for
+  // one render would put a burst of full-scale audio through them.
+  const volume = useAppVolume();
   // Two hidden decks, built once, kept at the listener's level. See
   // `usePlayerDecks` for why they are never rendered.
   const { audioElements, volumeRef } = usePlayerDecks(volume, videoElementRef);
@@ -483,16 +489,14 @@ export const LibraryPlayerProvider = ({
    * Next/Previous, the scrubber and the fader — the controls that move the
    * listener rather than the list. See `useTransportControls`.
    */
-  const { skip, seek, setVolume, commitVolume } = useTransportControls({
+  const { skip, seek } = useTransportControls({
     activeElement,
     startSeekFade,
     finishCrossfadeRef,
     hostOwnsTransportRef,
     seekHost,
     publishedPositionMs,
-    volumeRef,
     setPositionMs,
-    setVolumeState,
     setQueue,
   });
   /**
@@ -505,10 +509,9 @@ export const LibraryPlayerProvider = ({
     retainWhenHidden,
     publishedPositionMs,
     publishedDurationMs,
-    volume,
     toggle,
     seek,
-    setVolume,
+    setVolume: setAppVolume,
   });
   // Publish the handoff lease before giving up audible ownership. Otherwise
   // the synchronous owner update can let another tab's paused bar flash for
@@ -555,8 +558,8 @@ export const LibraryPlayerProvider = ({
       seek,
       setShuffle,
       cycleRepeat,
-      setVolume,
-      commitVolume,
+      setVolume: setAppVolume,
+      commitVolume: commitAppVolume,
       registerVideoElement,
     }),
     [
@@ -582,8 +585,6 @@ export const LibraryPlayerProvider = ({
       seek,
       setShuffle,
       cycleRepeat,
-      setVolume,
-      commitVolume,
       registerVideoElement,
     ],
   );

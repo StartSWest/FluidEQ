@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': 'Por favor, contribuye',
+  'tour.rainbow.title': 'Te damos la bienvenida al modo arcoíris',
+  'tour.rainbow.subtitle': 'Actívalo con un clic',
+  'tour.rainbow.lead':
+    'Colores del arcoíris, detalles luminosos y un borde que recorre el espectro. Solo cambia el aspecto, nunca el sonido.',
+  'tour.rainbow.how':
+    'Actívalo aquí al instante, sin llegar a ×10. Tu elección se guarda y puedes desactivarlo cuando quieras. Contribuir es opcional.',
+  'tour.rainbow.enable': 'Activar el modo arcoíris',
+  'tour.rainbow.disable': 'Desactivar el modo arcoíris',
+  'tour.rainbow.waveform': 'Vista previa de la onda superior',
+  'tour.rainbow.toggleHint':
+    'Haz clic en el interruptor «RAINBOW MODE» de arriba para activarlo o desactivarlo.',
   'tour.eyebrow': 'NOVEDADES DE ESTA VERSIÓN',
   'tour.title': 'Novedades de FluidEQ',
   'tour.close': 'Cerrar',

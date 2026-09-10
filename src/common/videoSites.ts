@@ -87,6 +87,20 @@ export const VIDEO_LINK_BLOCKED = 'video-link-blocked';
 export const VIDEO_GRAPH_FULLSCREEN_REQUEST =
   'fluideq-video-graph-fullscreen-request';
 
+/**
+ * The page changed how loud it is, sent from the preload to the `<webview>`.
+ *
+ * A signal and not a level: the preload runs in an isolated world, where the
+ * page's own player object — the one that knows YouTube's slider is at 100
+ * while the element sits at half for a loud master — is not reachable. So it
+ * reports only that something moved, and the pane asks the page itself.
+ *
+ * Without it the fader on the bar was a number this app made up. The page was
+ * never asked what it was playing at, so the bar said 100% over a quiet video
+ * and the first drag jumped the sound somewhere else entirely.
+ */
+export const VIDEO_GUEST_VOLUME_CHANGED = 'fluideq-video-guest-volume-changed';
+
 export interface IVideoSite {
   id: string;
   /** The brand's own name. Never translated — nobody localises "YouTube". */

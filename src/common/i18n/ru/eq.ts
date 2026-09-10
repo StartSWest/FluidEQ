@@ -54,6 +54,12 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Автосмена визуализаторов',
   'graph.autoSwitch.off': 'Авто: Выкл.',
   'graph.autoSwitch.every': 'Авто: {seconds}с',
+  // The product name of the tier, so it is not translated: the same word
+  // appears on the checkout and on the Account panel.
+  'graph.member.mine': 'Созданы вами',
+  'graph.scene.badge': 'Plus',
+  'graph.scene.locked':
+    'Входит в FluidEQ Plus. Выберите, чтобы узнать, как открыть доступ.',
   'graph.style.next': 'Следующий стиль',
   'graph.style.previous': 'Предыдущий стиль',
   'graph.style.search': 'Поиск стилей',
@@ -119,7 +125,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.starfield': 'Варп-скорость',
   'graph.styleName.candles': 'Свечи',
   'graph.styleName.arches': 'Арки',
-  'graph.styleName.flames': 'Пламя',
+  'graph.styleName.flames': 'Танцующее пламя',
   'graph.styleName.barcode': 'Штрихкод',
   'graph.styleName.rain': 'Дождь',
   'graph.styleName.honeycomb': 'Соты',
@@ -205,6 +211,8 @@ const eq: Partial<Dictionary> = {
     'Широкое и мягкое ослабление присутствия, если звук слишком напористый.',
   'driver.filter.trebleSoftening':
     'Небольшое ослабление высоких частот для резких записей или яркого звучания из-за посадки.',
+  'driver.filter.edgeSoftening':
+    'Мягкое ослабление там, где жёсткая мембрана делает атаку нот резкой.',
   'driver.filter.vocalLift':
     'Лёгкий подъём вокала, если средние частоты кажутся отодвинутыми.',
   'driver.filter.bassTidying':
@@ -227,7 +235,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Без коррекции',
   'driver.none.hint': 'Только ваши полосы и характер',
   'driver.strength': 'Сила',
-  'driver.range': '±1,5 дБ',
+  'driver.range': '±{db} дБ',
   'profiles.eyebrow': 'ВАШ ЗВУК',
   'app.soundPanel': 'Панель звука',
   'profiles.title': 'Сохранённые профили',
@@ -383,12 +391,28 @@ const eq: Partial<Dictionary> = {
   'eq.frequency': 'Частота',
   'eq.gain': 'Усиление',
   'eq.gainDisabled': 'Усиление · —',
+  'eq.gainReset': 'Ctrl+щелчок возвращает каждую выбранную полосу к 0 дБ',
   'eq.quality': 'Добротность (Q)',
+  'eq.active': 'Активна',
+  'eq.activeAria': 'Применять выбранную полосу',
+  'eq.activeGroupAria': 'Применять выбранные полосы ({count})',
   'eq.delete': 'Удалить полосу',
   'eq.deleteAria': 'Удалить выбранную полосу эквалайзера',
+  'eq.deleteSelectionAria': 'Удалить выбранные полосы ({count})',
+  'eq.delete.armed': 'Удалить',
+  'eq.delete.keep': 'Оставить',
+  'eq.delete.keepAria': 'Оставить полосу и отменить удаление.',
+  'eq.delete.armedAria':
+    'Нажмите ещё раз, чтобы удалить эту полосу. Усиление и Q уйдут вместе с ней, вернуть их нельзя.',
+  'eq.delete.armedAriaGroup':
+    'Нажмите ещё раз, чтобы удалить полосы ({count}). Все их настройки уйдут вместе с ними, вернуть их нельзя.',
   'eq.menu.aria': 'Полоса на {frequency} Гц',
   'eq.menu.subject': '{frequency} Гц',
   'eq.menu.reset': 'Сбросить полосу',
+  'eq.menu.disable': 'Отключить полосу',
+  'eq.menu.enable': 'Включить полосу',
+  'eq.menu.disableSelection': 'Отключить полосы ({count})',
+  'eq.menu.enableSelection': 'Включить полосы ({count})',
   'eq.menu.addLeft': 'Добавить полосу слева',
   'eq.menu.addRight': 'Добавить полосу справа',
   'eq.menu.selection': 'Выбрано полос: {count}',

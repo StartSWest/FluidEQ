@@ -32,7 +32,6 @@ const usePublishedTransport = (options: {
   /** The clock of whichever engine is playing. */
   publishedPositionMs: number;
   publishedDurationMs: number;
-  volume: number;
   toggle: () => void;
   seek: (positionMs: number) => void;
   setVolume: (value: number) => void;
@@ -43,7 +42,6 @@ const usePublishedTransport = (options: {
     retainWhenHidden,
     publishedPositionMs,
     publishedDurationMs,
-    volume,
     toggle,
     seek,
     setVolume,
@@ -73,7 +71,6 @@ const usePublishedTransport = (options: {
       durationMs: publishedDurationMs,
       toggle,
       seek,
-      volume,
       setVolume,
       identity: buildSongIdentity(
         'library',
@@ -90,7 +87,6 @@ const usePublishedTransport = (options: {
     publishedDurationMs,
     toggle,
     seek,
-    volume,
     setVolume,
   ]);
 

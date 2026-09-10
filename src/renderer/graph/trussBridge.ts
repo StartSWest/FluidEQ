@@ -2,6 +2,17 @@ import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import createTrussRoad from 'common/graphTruss';
 import { vehicleSize } from 'common/graphRoad';
+import {
+  createFireworkPaths,
+  IFirework,
+  IRocket,
+  ROCKET_CLIMB,
+  shellFor,
+  shellLife,
+} from './bridgeFireworks';
+
+export type { IFirework, IRocket } from './bridgeFireworks';
+export { ROCKET_CLIMB, SHELL_KINDS } from './bridgeFireworks';
 
 /**
  * The bridge at night: a suspension bridge.
@@ -55,16 +66,43 @@ import { vehicleSize } from 'common/graphRoad';
 export const FADE_BANDS = 4;
 /** And burns at one of three strengths: quiet, middling, loud. */
 export const LEVEL_BINS = 3;
-/** A rocket climbs for 0.5s; how long its sparks live is the shell's. */
-export const ROCKET_CLIMB = 0.5;
-const ROCKET_LIMIT = 8;
+/**
+ * How many shells may be in the sky at once.
+ *
+ * Eight was more than the treble ever fills and every one of them is a
+ * few hundred segments of stroking on a full-screen canvas. Five reads as
+ * a busy sky and costs a third less.
+ */
+const ROCKET_LIMIT = 5;
 /** Stars over the bridge: seeded, twinkling, flaring on the beat. */
 // Over the plot and a plot's width past each end: the scene is allowed to
 // overflow, and the sky and the sea reach whatever panel margins there are.
-const STARS = 192;
-/** The sea: rows of swell, and samples per row. */
-const SEA_ROWS = 14;
-const SEA_STEPS = 40;
+/**
+ * The sky is the window now, not the top of the plot, so the same count
+ * spread over three or four times the area and read as an empty night.
+ * They are small arcs in two fills and cost nothing measurable.
+ */
+const STARS = 340;
+/**
+ * The sea: rows of swell, and samples per row.
+ *
+ * Every row is a translucent fill the width of the scene, and blending
+ * those is the whole of what this look costs to raster: fourteen rows at
+ * a hundred and twenty samples each held the bridge at three times the
+ * frame budget on a 1440p screen while the profile showed the script
+ * idle. Nine rows read as the same water and cost a third of it.
+ */
+const SEA_ROWS = 9;
+const SEA_STEPS = 22;
+/**
+ * How far past the plot the water goes, as a fraction of its width.
+ *
+ * The rest of the scene overflows by a full plot width each way; the sea
+ * does not need to, because it is a flat body and nobody can tell where
+ * it stops beyond the panel's own margin — and every pixel of it is
+ * blended.
+ */
+const SEA_REACH = 0.35;
 /** Where the horizon sits, as a fraction of the plot's depth from the top. */
 const SEA_HORIZON = 0.6;
 /** One crossing of the deck takes this long, in seconds of bridge clock. */
@@ -73,112 +111,6 @@ export const CROSSING_SECONDS = 24;
 export const CAR_COLOURS = ['#77efdb', '#f7cf76', '#ed93c7', '#9bbcff'];
 /** How long the deck takes to close half the distance to the music. */
 export const DECK_HALF_LIFE_MS = 120;
-
-/** The shells, each a different way of throwing sparks. */
-export type ShellKind =
-  'peony' | 'chrysanthemum' | 'willow' | 'ring' | 'palm' | 'crackle';
-export const SHELL_KINDS: ShellKind[] = [
-  'peony',
-  'chrysanthemum',
-  'willow',
-  'ring',
-  'palm',
-  'crackle',
-];
-
-/**
- * How each kind throws its sparks: how many, how fast, how heavy, how long
- * they trail, how thick they draw, whether they twinkle, and how long the
- * shell lives. Willow is slow and long; crackle is many tiny flickers;
- * palm is a few fat arms; ring is one speed for every spark.
- */
-const SHELLS: Record<
-  ShellKind,
-  {
-    sparks: number;
-    speed: number;
-    spread: number;
-    gravity: number;
-    tail: number;
-    width: number;
-    twinkle: boolean;
-    life: number;
-  }
-> = {
-  peony: {
-    sparks: 36,
-    speed: 1,
-    spread: 0.2,
-    gravity: 0.7,
-    tail: 0.3,
-    width: 1.6,
-    twinkle: false,
-    life: 1.5,
-  },
-  chrysanthemum: {
-    sparks: 48,
-    speed: 1,
-    spread: 0.15,
-    gravity: 0.6,
-    tail: 0.6,
-    width: 1.4,
-    twinkle: true,
-    life: 1.9,
-  },
-  willow: {
-    sparks: 30,
-    speed: 0.75,
-    spread: 0.1,
-    gravity: 1.3,
-    tail: 1,
-    width: 1.8,
-    twinkle: false,
-    life: 2.6,
-  },
-  ring: {
-    sparks: 40,
-    speed: 1.05,
-    spread: 0,
-    gravity: 0.35,
-    tail: 0.15,
-    width: 1.6,
-    twinkle: false,
-    life: 1.4,
-  },
-  palm: {
-    sparks: 9,
-    speed: 0.85,
-    spread: 0.1,
-    gravity: 0.9,
-    tail: 0.5,
-    width: 4,
-    twinkle: false,
-    life: 1.7,
-  },
-  crackle: {
-    sparks: 70,
-    speed: 0.9,
-    spread: 0.45,
-    gravity: 0.5,
-    tail: 0.05,
-    width: 1.2,
-    twinkle: true,
-    life: 1.6,
-  },
-};
-
-export interface IRocket {
-  kind: ShellKind;
-  x: number;
-  /** Where it bursts, in plot pixels. */
-  burstY: number;
-  /** Where it launches from: the deck, at that x. */
-  launchY: number;
-  at: number;
-  /** Degrees around the colour wheel: each rocket its own. */
-  hue: number;
-  strength: number;
-}
 
 export interface IBridgeCar {
   body: Path2D;
@@ -191,28 +123,6 @@ export interface IBridgeCar {
   /** 0..1: how much this car's band is playing right now. */
   level: number;
   colour: string;
-}
-
-export interface IFirework {
-  /** The rocket's trail while climbing, or the sparks after the burst. */
-  path: Path2D;
-  /**
-   * The sparks' tails, in three pieces from the spark back: each piece is
-   * painted fainter and thinner than the one before, so a tail tapers off
-   * instead of ending in a chunk. Three strokes a burst, whatever the
-   * spark count.
-   */
-  tails?: Path2D[];
-  /** Twinkling sparks: the half of them lit this instant, painted white. */
-  twinkle?: Path2D;
-  /** The flash at the moment of the burst, for its first 150ms. */
-  flash?: Path2D;
-  hue: number;
-  /** 0..1, how much of it is left. */
-  glow: number;
-  /** Line width for the sparks, in pixels. */
-  width: number;
-  climbing: boolean;
 }
 
 export const createTrussBridge = () => ({
@@ -297,7 +207,7 @@ export const advanceTrussBridge = (
     state.deck[index] += (y - state.deck[index]) * settle;
   });
   state.rockets = state.rockets.filter(
-    (rocket) => seconds - rocket.at <= ROCKET_CLIMB + SHELLS[rocket.kind].life,
+    (rocket) => seconds - rocket.at <= ROCKET_CLIMB + shellLife(rocket.kind),
   );
   // The beat, the bass and the treble are read from the LIVE frame, not
   // the eased trace: the trace's attack and release are a look's choice,
@@ -351,7 +261,7 @@ export const advanceTrussBridge = (
       const seed = state.launched;
       state.launched += 1;
       state.rockets.unshift({
-        kind: SHELL_KINDS[seed % SHELL_KINDS.length],
+        kind: shellFor(seed),
         x: left + width * (0.1 + noise(seed * 3 + 1) * 0.8),
         burstY: top + sky * (0.1 + noise(seed * 3 + 2) * 0.45),
         launchY: deckTop,
@@ -396,6 +306,15 @@ export const createTrussBridgePaths = (
    * and a car or a shell sized from that would squash with the wave.
    */
   sizeHeight = baseline - top,
+  /**
+   * The whole window, in the same space as everything else.
+   *
+   * The bridge answers the height slider; the sky and the sea do not.
+   * Laid out inside the plot's box they shrank with the deck, so a short
+   * wave left a band of stars over a strip of sea in the middle of a
+   * black screen. Both are scenery and both reach the window's edges.
+   */
+  frame = { top, bottom: baseline },
 ) => {
   const left = columns[0]?.[0] ?? 0;
   const right = columns[columns.length - 1]?.[0] ?? 1;
@@ -414,7 +333,15 @@ export const createTrussBridgePaths = (
   // margins: the deck and the truss carry on level past both ends, a
   // plot's width each way, at the road's own pitch so the joints keep
   // their spacing. The cables and the anchors stay on the span.
-  const reach = width;
+  /**
+   * How far the deck and its truss carry on past the plot.
+   *
+   * A full plot width each way tripled the length of every member, and
+   * stroking that truss was five milliseconds a frame on a full screen —
+   * for structure that lives outside the panel and nobody sees. A third
+   * still clears any margin the panel has at any window size.
+   */
+  const reach = width * 0.35;
   const pitch = span.length >= 2 ? Math.max(1, span[1][0] - span[0][0]) : 1;
   const approach = Math.ceil(reach / pitch);
   const road: Projected[] = [
@@ -484,6 +411,9 @@ export const createTrussBridgePaths = (
   };
   const lampsOn = new Path2D();
   const lampsOff = new Path2D();
+  // What each lamp throws onto the road under it. Painted as one faint
+  // fill, so a lit bridge reads as lit rather than as beads on a wire.
+  const lampCones = new Path2D();
   const lampR = Math.max(1.2, size * 1.1);
   // The road surface: half the asphalt's thickness, sized with the cars.
   const roadHalf = Math.max(2.5, size * 2.6);
@@ -522,15 +452,17 @@ export const createTrussBridgePaths = (
   footing.moveTo(left - reach, baseline);
   footing.lineTo(right + reach, baseline);
 
-  // The sky: stars in the top 45% of the plot — a fixed sky, whatever the
-  // deck does under it, because a star field that squeezed with the deck
-  // read as the sky beating — each twinkling at its own rate; the lit ones
-  // flare with the beat.
+  // The sky: stars from the top of the WINDOW down to the horizon — a
+  // fixed sky, whatever the deck does under it, because a star field that
+  // squeezed with the deck read as the sky beating — each twinkling at
+  // its own rate; the lit ones flare with the beat.
   const stars = new Path2D();
   const brightStars = new Path2D();
+  const skyTop = Math.min(frame.top, top);
+  const skyDepth = Math.max(1, top + height * SEA_HORIZON - skyTop);
   for (let star = 0; star < STARS; star += 1) {
-    const x = left - reach + noise(star * 3 + 1) * (width + reach * 2);
-    const y = top + noise(star * 3 + 2) * height * 0.45;
+    const x = left - width + noise(star * 3 + 1) * width * 3;
+    const y = skyTop + noise(star * 3 + 2) * skyDepth;
     const r = (0.6 + noise(star * 3 + 3) * 1.1) * Math.min(1.6, size);
     const twinkle = Math.sin(seconds * (1.2 + noise(star) * 3) + star) > 0.5;
     const target = twinkle ? brightStars : stars;
@@ -548,7 +480,7 @@ export const createTrussBridgePaths = (
   const sea: Path2D[] = [];
   const horizon = top + height * SEA_HORIZON;
   {
-    const nearest = baseline + size * 6;
+    const nearest = Math.max(frame.bottom, baseline) + size * 6;
     const swell = 1 + state.bass * 1.6;
     const rowY = (row: number, x: number) => {
       const t = (row + 1) / SEA_ROWS;
@@ -566,9 +498,9 @@ export const createTrussBridgePaths = (
     // the bottom of the overflow with no swell to leave a gap.
     const rowYOrFloor = (row: number, x: number) =>
       row < SEA_ROWS ? rowY(row, x) : nearest + size * 4;
-    // Three plots wide, sampled at the same pitch as one.
-    const seaLeft = left - reach;
-    const seaWidth = width + reach * 2;
+    const seaReach = width * SEA_REACH;
+    const seaLeft = left - seaReach;
+    const seaWidth = width + seaReach * 2;
     const steps = SEA_STEPS * 3;
     for (let row = 0; row < SEA_ROWS; row += 1) {
       const body = new Path2D();
@@ -742,10 +674,19 @@ export const createTrussBridgePaths = (
         const wobble = Math.sin(seconds * 3.1 + x * 0.05) * 1.2;
         reflections.moveTo(x + wobble, baseline + 2);
         reflections.lineTo(x - wobble, baseline + size * (4 + thump * 4));
-        // A lamp where the hanger meets the cable.
+        // A lamp where the hanger meets the cable, and its cone of light
+        // down onto the deck: a narrow wedge from the lamp to a pool the
+        // width of a car on the road.
         const target = hanger % 2 === state.blinkParity ? lampsOn : lampsOff;
         target.moveTo(x + lampR, y);
         target.arc(x, y, lampR, 0, Math.PI * 2);
+        const roadY = deckAt(x) - roadHalf;
+        const pool = size * 5;
+        lampCones.moveTo(x - lampR, y);
+        lampCones.lineTo(x + lampR, y);
+        lampCones.lineTo(x + pool, roadY);
+        lampCones.lineTo(x - pool, roadY);
+        lampCones.closePath();
         hanger += 1;
       }
     });
@@ -820,105 +761,15 @@ export const createTrussBridgePaths = (
     return { body, dark, wheels, hubs, level, colour };
   });
 
-  // Fireworks: a climbing trail, a flash, then the shell's sparks with
-  // tails, thrown out and falling; the whole burst breathes with the level.
-  const fireworks: IFirework[] = [];
-  state.rockets.forEach((rocket, index) => {
-    const age = seconds - rocket.at;
-    if (age < 0) {
-      return;
-    }
-    const shell = SHELLS[rocket.kind];
-    const path = new Path2D();
-    if (age < ROCKET_CLIMB) {
-      const climb = (time: number) => {
-        const f = Math.min(1, time / ROCKET_CLIMB);
-        return (
-          rocket.launchY + (rocket.burstY - rocket.launchY) * (1 - (1 - f) ** 2)
-        );
-      };
-      const wobble = Math.sin(age * 40 + index) * 1.5;
-      path.moveTo(rocket.x - wobble, climb(Math.max(0, age - 0.12)));
-      path.lineTo(rocket.x + wobble, climb(age));
-      fireworks.push({
-        path,
-        hue: rocket.hue,
-        glow: 1,
-        width: 3,
-        climbing: true,
-      });
-      return;
-    }
-    const t = age - ROCKET_CLIMB;
-    const life = 1 - t / shell.life;
-    if (life <= 0) {
-      return;
-    }
-    let flash: Path2D | undefined;
-    const reach = sizeHeight * (0.16 + rocket.strength * 0.24) * shell.speed;
-    if (t < 0.15) {
-      flash = new Path2D();
-      const r = reach * 0.3 * (1 - t / 0.15) + 3;
-      flash.moveTo(rocket.x + r, rocket.burstY);
-      flash.arc(rocket.x, rocket.burstY, r, 0, Math.PI * 2);
-    }
-    const tails = [new Path2D(), new Path2D(), new Path2D()];
-    const twinkle = shell.twinkle ? new Path2D() : undefined;
-    const gravity = sizeHeight * shell.gravity;
-    for (let spark = 0; spark < shell.sparks; spark += 1) {
-      // Palm throws its arms upward; everything else all round.
-      const angle =
-        rocket.kind === 'palm'
-          ? -Math.PI * 0.85 + (spark / (shell.sparks - 1)) * Math.PI * 0.7
-          : (spark / shell.sparks) * Math.PI * 2 + index * 0.37;
-      const speed =
-        reach * (1 - shell.spread + noise(spark * 7 + index) * shell.spread);
-      // Air drag: the burst slows as it spreads, so a shell stays a shell.
-      const at = (time: number): Projected => {
-        const drag = 1 - Math.exp(-time * 2.2);
-        return [
-          rocket.x + Math.cos(angle) * speed * drag,
-          rocket.burstY +
-            Math.sin(angle) * speed * drag +
-            0.5 * gravity * time * time,
-        ];
-      };
-      const [ax, ay] = at(Math.max(0, t - 0.08));
-      const [bx, by] = at(t);
-      // A twinkling spark is lit only some frames: on when its seed and
-      // the time agree, off otherwise, so the shell glitters.
-      const lit = !twinkle || noise(spark * 3 + Math.floor(t * 24)) > 0.5;
-      if (lit) {
-        path.moveTo(ax, ay);
-        path.lineTo(bx, by);
-      }
-      if (twinkle && lit) {
-        twinkle.moveTo(bx, by);
-        twinkle.lineTo(bx + 0.5, by + 0.5);
-      }
-      // The tail in three pieces back from the spark's head.
-      let [px, py] = [ax, ay];
-      tails.forEach((piece, step) => {
-        const [tx, ty] = at(
-          Math.max(0, t - 0.08 - (shell.tail * (step + 1)) / 3),
-        );
-        piece.moveTo(px, py);
-        piece.lineTo(tx, ty);
-        [px, py] = [tx, ty];
-      });
-    }
-    fireworks.push({
-      path,
-      tails,
-      twinkle,
-      flash,
-      hue: rocket.hue,
-      // Breathes with the level: a burst over a loud passage burns brighter.
-      glow: life * (0.7 + state.glow * 0.3),
-      width: shell.width,
-      climbing: false,
-    });
-  });
+  // Fireworks: their own module — see bridgeFireworks. The horizon goes
+  // in so a burst over the water is mirrored in it.
+  const fireworks: IFirework[] = createFireworkPaths(
+    state.rockets,
+    seconds,
+    sizeHeight,
+    horizon,
+    state.glow,
+  );
 
   return {
     shape: deck,
@@ -932,8 +783,11 @@ export const createTrussBridgePaths = (
     footing,
     lampsOn,
     lampsOff,
+    lampCones,
     sea,
     horizon,
+    /** How deep the haze over the waterline is, in pixels. */
+    horizonHaze: size * (10 + state.bass * 14),
     towers,
     towersBelow,
     bracing,

@@ -297,8 +297,10 @@ drift away from it.
 
 ![The DSP tab with the Maximizer stage selected: the nine stages listed down the left in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer, Master — with a dot marking those that are on, and Crossfade under a playback-options heading below them. The stage itself fills the rest: a preset picker reading Rock, a line saying it raises the overall level without letting peaks pass the ceiling, and a rolling six-second graph of the output against the ceiling with the amount being held down shaded under it, annotated with the current reduction, peak hold, output and drive. Beneath the graph sit the drive and ceiling knobs under Loudness, and look-ahead and release under Timing. A line at the top of the page says the rack applies to music played inside FluidEQ and does not change Spotify, YouTube or other apps.](docs/07-dsp-maximizer-and-processing-chain.png)
 
-**Local and account-free.** No cloud, no telemetry, no proprietary driver, no
-virtual audio device. Three downloads are worth naming, because being caught out
+**Local, and account-free by default.** No cloud, no telemetry, no analytics, no
+proprietary driver, no virtual audio device. Your audio never leaves the
+machine. Signing in is optional and changes none of that — the equaliser, the
+library and the visualizers neither know nor care whether you have. Three downloads are worth naming, because being caught out
 by one of them later is worse than the download itself: asking the Karaoke Maker
 to transcribe lyrics fetches a speech-recognition model (about 570 MB where your
 graphics card can run it, about 1.1 GB where it cannot), asking it to read a
@@ -440,24 +442,30 @@ with the pencil on its row.
 - **Windows only.** Both audio engines are Windows-specific and there is no
   equivalent to target elsewhere. On other platforms FluidEQ starts with two
   demonstration endpoints so the UI can be developed, and touches nothing.
+  The native DSP host builds on every platform but only has a real audio
+  backend on Windows, so `pnpm build` needs Visual Studio 2022 there and the
+  media player, Karaoke and Share Audio are Windows features.
 - **Traditional Chinese readers get Simplified.** Locale matching uses the
   primary subtag, so `zh-TW` resolves to `zh`.
 - **No right-to-left languages.** See above — the layout has not been mirrored.
 
 ## Where things live
 
-| Path            | What is in it                                                                                                                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                 |
-| `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `main.ts` owns the IPC surface and the live state. |
-| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                  |
-| `native/`       | The C++ audio engine behind the DSP tab: `dsp-core` is the chain itself, `dsp-host` the executable that runs it in a process of its own. Built with CMake.                                    |
-| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                |
-| `CLAUDE.md`     | The constraints that are not obvious from the code.                                                                                                                                           |
+| Path            | What is in it                                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                           |
+| `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `ipc/` and `main.ts` own the IPC surface and the live state. |
+| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                            |
+| `native/`       | The C++ audio engine: `dsp-core` is the chain itself, `dsp-host` the executable that runs it in a process of its own, `remote-audio-capture` the Share Audio capture binary. Built with CMake.          |
+| `.erb/scripts/` | Every build, check, smoke-test and packaging script.                                                                                                                                                    |
+| `docs/`         | [ARCHITECTURE.md](docs/ARCHITECTURE.md), the generated user guide, design briefs and specs, and dated QA snapshots under `docs/qa/`.                                                                    |
+| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                          |
+| `CLAUDE.md`     | Instructions for coding agents; `AGENTS.md` points at it.                                                                                                                                               |
 
 ## Supporting the work
 
-Nothing here is tracked. No telemetry, no analytics, no account.
+Nothing here is tracked. No telemetry, no analytics, and no account is
+required — signing in is optional, and nothing in the app is gated behind it.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by
@@ -493,7 +501,7 @@ whole interface goes rainbow with the sound.
 ### Requirements
 
 - Windows 10 or 11
-- [Node.js](https://nodejs.org/) 20+ and pnpm
+- [Node.js](https://nodejs.org/) 22+ and pnpm
 - Visual Studio 2022 with **Desktop development with C++**
 - Equalizer APO, for real system-audio integration
 
@@ -509,14 +517,37 @@ pnpm dev
 On non-Windows systems FluidEQ exposes two demonstration endpoints, so the UI
 and the device-assignment flow can be worked on without touching system audio.
 
+To run another worktree alongside an existing development or installed app,
+choose a separate name and two unused ports:
+
+```powershell
+$env:PORT = '1213'
+$env:FLUIDEQ_DEVTOOLS_PORT = '9223'
+$env:FLUIDEQ_DEV_INSTANCE = 'alpine'
+pnpm dev
+```
+
+The named instance keeps its settings, Chromium session and demonstration APO
+configuration under `FluidEQ-dev/<name>` in the application-data directory.
+It can use audio playback and capture without editing the system APO
+configuration. Only one window can own each named profile. Packaged builds
+ignore these development options and retain the normal single-instance lock.
+
 ### Commands
 
 ```powershell
-pnpm test:unit
+pnpm typecheck
+pnpm typecheck:styles
+pnpm typecheck:encoding
 pnpm lint
-pnpm build
+pnpm build            # native host first, then main and renderer bundles
+pnpm test             # unit tests, then the native smoke tests
+pnpm test:cucumber    # not part of pnpm test
 pnpm package
 ```
+
+Jest refuses to start without a build, so `pnpm build` always comes before
+`pnpm test`.
 
 `pnpm package` builds an installer into `release/build`, which is what you want
 for checking a change end to end on a real machine.

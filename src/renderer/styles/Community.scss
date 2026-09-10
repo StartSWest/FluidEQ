@@ -1,0 +1,288 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The conversation half of the Community tab: the channel head and the
+// thread. The rail, the welcome and the people (avatars, names, roles) live
+// in CommunityRail.scss; the message bar and its gates in
+// CommunityComposer.scss.
+
+.community__main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.community__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.community__head-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.community__head-text {
+  display: grid;
+  min-width: 0;
+}
+
+.community__head-name {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.community__head-description {
+  color: $text-faint;
+  font-size: $text-small;
+  @include truncate;
+}
+
+// ---------------------------------------------------------------- thread
+
+// Messages scroll under a soft edge at the top and the bottom rather than
+// being guillotined by the head and the composer.
+.community__thread {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: $spacing-s 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    black 14px,
+    black calc(100% - 14px),
+    transparent
+  );
+  @include slim-scrollbar;
+}
+
+.community__older {
+  display: block;
+  margin: 0 auto $spacing-s;
+}
+
+.community__empty {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: auto;
+  padding: $spacing-xl 0;
+  text-align: center;
+}
+
+.community__empty-title {
+  margin: $spacing-xs 0 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-medium;
+}
+
+.community__empty-hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+}
+
+// The day, as a small pill on a rule, so a scroll through a week reads its
+// dates without them competing with the names.
+.community__day {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  margin: $spacing-s 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  span {
+    padding: 2px 10px;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-pill;
+    background: $block-lift;
+  }
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: $border-subtle;
+  }
+}
+
+.community__message {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 2px 10px;
+  padding: 5px 8px;
+  border-radius: $radius-s;
+
+  &:hover,
+  &:focus-within {
+    background: color-mix(in srgb, $white 3.5%, transparent);
+  }
+
+  // A turn continuing: no avatar, no name, tucked under the previous one. The
+  // time appears in the avatar's column on hover, so a line in the middle of
+  // a turn can still be dated without a header on every line.
+  &--continues {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+
+  &--continues .community__body {
+    grid-column: 2;
+  }
+
+  &--continues .community__time {
+    position: absolute;
+    top: 3px;
+    left: 8px;
+    width: 32px;
+    text-align: center;
+    font-size: $text-micro;
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &--continues:hover .community__time {
+    opacity: 1;
+  }
+
+  // Your own words, faintly on your own colour, so a scroll back finds them.
+  &--own {
+    background: hsl(var(--identity-hue, 170deg) 60% 50% / 5%);
+  }
+
+  // Somebody said your name: a rule down the side in the accent, so it can be
+  // found while scrolling without reading every line.
+  &--mentions-me {
+    box-shadow: inset 3px 0 0
+      color-mix(in srgb, $secondary-default 70%, transparent);
+  }
+}
+
+.community__body {
+  min-width: 0;
+}
+
+.community__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.community__time {
+  color: $text-dim;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+.community__text {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.community__mention {
+  padding: 0 3px;
+  color: $secondary-light;
+  border-radius: 4px;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+  &--me {
+    color: $surface-base;
+    background: $secondary-default;
+  }
+}
+
+// Row actions: present on hover and on keyboard focus, invisible otherwise.
+// Pictures with their names as labels; a row of three words on every message
+// would be louder than the messages.
+.community__actions {
+  position: absolute;
+  top: 3px;
+  right: 8px;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  background: $surface-panel;
+  opacity: 0;
+  transition: opacity $motion-fast $ease-out;
+}
+
+.community__message:hover .community__actions,
+.community__message:focus-within .community__actions {
+  opacity: 1;
+}
+
+.community__action {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 7%, transparent);
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+
+  &--danger:hover:not(:disabled) {
+    color: $red;
+    background: color-mix(in srgb, $red 14%, transparent);
+  }
+}

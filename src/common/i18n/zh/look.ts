@@ -69,8 +69,8 @@ const look: Partial<Dictionary> = {
   'look.glow': '辉光',
   'look.off': '关闭',
   'look.glowHint': '图形随节拍扩张和变亮的强度。',
-  'look.glowNeedsRainbow': '需要彩虹模式。关闭时，辉光不会改变图形。',
   'look.needsRainbow': '需要彩虹模式。',
+  'look.glowNotForForm': '此形态没有光晕。',
   'look.rainbowBorder': '彩虹边框',
   'look.rainbowBorderHint': '用贯穿整个色谱的颜色环绕图表。',
   'look.borderWeight': '边框粗细',
@@ -112,7 +112,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': '按空格键让它跳一下',
   'support.game.hint': '波峰到达线上时跟着节拍按下',
   'support.game.howTo':
-    '跟着节拍点击宠物或按空格键。坚持下去，到 ×10 会有惊喜。',
+    '播放音乐，当波峰到达中央线时，点击宠物或按空格键。达到 ×10 即可解锁彩虹模式。',
   'support.game.thanks':
     '如果这让你会心一笑，你的想法和支持就是它继续下去的动力。',
   'support.game.noAudio': '播放音乐后节拍会显示在这里',
@@ -121,7 +121,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': '分享彩虹',
   'support.game.shareTitle': '分享你的分数',
   'support.game.shareUnlock':
-    '达到 ×10，这张卡片就会变成彩虹模式，整条光谱都在上面。',
+    '通过游戏或确认支持来解锁彩虹模式，让这张卡片呈现彩虹色。',
   'support.game.shareNote':
     '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
   'support.game.shareSave': '保存卡片',
@@ -152,8 +152,10 @@ const look: Partial<Dictionary> = {
   'support.copy': '复制地址',
   'support.copied': '已复制',
   'support.openWallet': '在钱包中打开',
-  'support.contributed': '我支持过了 — 解锁星星和舞蹈',
-  'support.thanks': '谢谢 — 你的小伙伴有了它的星星，现在会跳舞了。',
+  'support.contributed': '我支持过了 — 开启彩虹模式',
+  'support.rainbowHint':
+    '已经支持过了？点击“我支持过了”即可立即开启彩虹模式，无需达到 ×10。',
+  'support.thanks': '谢谢！彩虹模式已解锁，你的宠物也有了星星和舞蹈。',
   'support.releaseNotes': '看看这个版本有什么新变化',
   'support.footerBefore':
     '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',

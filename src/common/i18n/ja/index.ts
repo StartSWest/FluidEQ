@@ -30,6 +30,10 @@ import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
 import about from './about';
+import account from './account';
+import community from './community';
+import leaderboard from './leaderboard';
+import terms from './terms';
 
 const ja: Partial<Dictionary> = {
   ...karaoke,
@@ -44,6 +48,10 @@ const ja: Partial<Dictionary> = {
   ...tour,
   ...help,
   ...about,
+  ...account,
+  ...community,
+  ...leaderboard,
+  ...terms,
 };
 
 export default ja;

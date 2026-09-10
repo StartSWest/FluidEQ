@@ -71,9 +71,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Resplandor',
   'look.off': 'Apagado',
   'look.glowHint': 'Cuánto crece y brilla la figura con el ritmo.',
-  'look.glowNeedsRainbow':
-    'Necesita el modo arcoíris. Apagado, el resplandor no cambia el dibujo.',
   'look.needsRainbow': 'Necesita el modo arcoíris.',
+  'look.glowNotForForm': 'Esta forma no tiene brillo.',
   'look.rainbowBorder': 'Borde arcoíris',
   'look.rainbowBorderHint':
     'Rodea la gráfica con un color que recorre todo el espectro.',
@@ -116,7 +115,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Pulsa espacio para hacerlo saltar',
   'support.game.hint': 'Pulsa al ritmo cuando el pico llegue a la línea',
   'support.game.howTo':
-    'Toca la mascota o pulsa espacio en cada golpe. Sigue así y algo pasa al llegar a ×10.',
+    'Reproduce música y toca la mascota o pulsa Espacio cuando un pico llegue a la línea central. Llega a ×10 para desbloquear el modo arcoíris.',
   'support.game.thanks':
     'Si algo de esto te ha sacado una sonrisa, tus ideas y tu apoyo son lo que lo mantiene vivo.',
   'support.game.noAudio': 'Pon algo de música y el ritmo aparecerá aquí',
@@ -125,7 +124,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': 'Comparte el arcoíris',
   'support.game.shareTitle': 'Comparte tu puntuación',
   'support.game.shareUnlock':
-    'Llega a ×10 y esta tarjeta activa el modo arcoíris, con todo el espectro.',
+    'Desbloquea el modo arcoíris jugando o confirmando tu contribución para darle sus colores a esta tarjeta.',
   'support.game.shareNote':
     'Guarda la tarjeta y adjúntala a tu publicación: ninguna de estas redes puede sacar una imagen de un enlace.',
   'support.game.shareSave': 'Guardar tarjeta',
@@ -157,8 +156,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copiar dirección',
   'support.copied': 'Copiada',
   'support.openWallet': 'Abrir en el monedero',
-  'support.contributed': 'He colaborado: desbloquea la estrella y el baile',
-  'support.thanks': 'Gracias: tu mascota ya tiene su estrella, y ahora baila.',
+  'support.contributed': 'He contribuido — activar el modo arcoíris',
+  'support.rainbowHint':
+    '¿Has contribuido? Activa el modo arcoíris al instante con «He contribuido». No necesitas llegar a ×10.',
+  'support.thanks':
+    'Gracias: has desbloqueado el modo arcoíris, y tu mascota tiene su estrella y su baile.',
   'support.releaseNotes': 'Mira las novedades de esta versión',
   'support.footerBefore':
     '¿Prefieres aportar tiempo? Las incidencias y los pull requests son igual de bienvenidos en',

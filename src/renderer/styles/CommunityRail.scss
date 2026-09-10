@@ -1,0 +1,464 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The whole tab: a rail of channels and the conversation beside it. Fills the
+// card and never grows past it — the thread scrolls, the panel does not.
+//
+// Every person in here wears a colour of their own, carried on the element as
+// `--identity-hue` (see `identity.ts`). The avatar, the name and the podium
+// ring are all built from that one number here, so a colour never appears in
+// the markup and the same handle is the same shade in every place it shows.
+.community {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(184px, 228px) minmax(0, 1fr);
+  min-height: 0;
+  gap: $spacing-s;
+
+  // Narrow: the rail becomes a strip of pills above the conversation.
+  @container eq-panel (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+}
+
+// ---------------------------------------------------------------- welcome
+
+.community--signed-out {
+  display: grid;
+  place-items: center;
+}
+
+.community__welcome {
+  display: grid;
+  max-width: 420px;
+  gap: $spacing-s;
+  padding: $spacing-l $spacing-m;
+  text-align: center;
+  justify-items: center;
+}
+
+// A big soft mark over the title: the room has a picture before it has a
+// sentence, the way every other empty pane in the app opens.
+.community__welcome-mark,
+.community__empty-mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  color: $secondary-light;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      color-mix(in srgb, $secondary-default 28%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, $secondary-default 8%, transparent);
+  box-shadow: 0 0 34px color-mix(in srgb, $secondary-default 22%, transparent);
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.community__welcome-title {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+}
+
+.community__welcome-body,
+.community__gate-body {
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.6;
+}
+
+// Three things the room is for, as chips under the pitch.
+.community__perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $spacing-xs;
+  margin: $spacing-xs 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 7px;
+    color: $text-faint;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-pill;
+    font-size: $text-small;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $secondary-light;
+  }
+}
+
+// ---------------------------------------------------------------- rail
+
+.community__rail {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xxs;
+  min-height: 0;
+  padding: $spacing-xs;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+  overflow-y: auto;
+  @include slim-scrollbar;
+
+  // Narrow: one wrapping strip, the channels and the leaderboard in it
+  // together, the head on its own line above them.
+  @container eq-panel (max-width: 600px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    overflow: visible;
+  }
+}
+
+.community__rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+  padding: 6px 8px 8px;
+
+  @container eq-panel (max-width: 600px) {
+    flex: 1 1 100%;
+    padding: 4px 8px;
+  }
+}
+
+// Whether the feed is live. A dot, not a word, is what says it at a glance;
+// the word is there for whoever wants to read it.
+.community__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-faint;
+  font-size: $text-micro;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.community__live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $text-dim;
+}
+
+.community__live--live .community__live-dot {
+  background: $secondary-default;
+  box-shadow: 0 0 6px color-mix(in srgb, $secondary-default 70%, transparent);
+}
+
+.community__live--connecting .community__live-dot {
+  background: $amber;
+}
+
+.community__channels {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xxs;
+
+  @container eq-panel (max-width: 600px) {
+    display: contents;
+  }
+}
+
+// A channel row: its picture in a small tile, its name, and what it is for in
+// a line underneath. The tile is what lights when the row is the one open.
+.community__channel {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 5px 8px 5px 6px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-s;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+
+  // The open channel: a tinted row with a short accent bar down its left edge,
+  // the same mark the sidebar uses for the section that is on.
+  &.is-active {
+    position: relative;
+    color: $text-primary;
+    background: color-mix(in srgb, $secondary-default 13%, transparent);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      left: 0;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: $secondary-default;
+      box-shadow: 0 0 8px
+        color-mix(in srgb, $secondary-default 60%, transparent);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: -2px;
+  }
+
+  @container eq-panel (max-width: 600px) {
+    min-height: 34px;
+    padding: 3px 10px 3px 5px;
+
+    &.is-active::before {
+      display: none;
+    }
+  }
+}
+
+.community__channel-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: $text-faint;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $white 5%, transparent);
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .community__channel.is-active & {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+.community__channel-text {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.community__channel-name {
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  @include truncate;
+
+  .community__channel.is-active & {
+    font-weight: $weight-semibold;
+  }
+}
+
+.community__channel-blurb {
+  color: $text-dim;
+  font-size: $text-micro;
+  @include truncate;
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+// Unread @mentions: a count in the accent, because it is a request for this
+// person's attention specifically, not just activity.
+.community__unread {
+  flex: 0 0 auto;
+  min-width: 18px;
+  padding: 0 5px;
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+// The board sits apart from the channels under a rule of its own. The rule is
+// drawn above the row rather than as its top border: as a border it squared
+// off the row's top corners, and the open board showed a flat-topped tint
+// under a line while every channel above it was rounded all round.
+.community__channel--board {
+  position: relative;
+  margin-top: 13px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 6px;
+    left: 6px;
+    height: 1px;
+    background: $border-subtle;
+    pointer-events: none;
+  }
+
+  @container eq-panel (max-width: 600px) {
+    margin: 0;
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Who you are in here, at the foot of the rail.
+.community__me {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px 8px 6px 6px;
+  border-top: 1px solid $border-subtle;
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+.community__me-text {
+  display: grid;
+  min-width: 0;
+
+  .community__name,
+  .community__handle {
+    @include truncate;
+  }
+}
+
+.community__blocked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+  padding: 2px 8px 4px;
+  color: $text-faint;
+  font-size: $text-small;
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+.community__link {
+  padding: 0;
+  color: $secondary-light;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ---------------------------------------------------------------- people
+
+.community__avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  color: hsl(var(--identity-hue, 170deg) 85% 78%);
+  border-radius: $radius-pill;
+  background: hsl(var(--identity-hue, 170deg) 55% 21%);
+  box-shadow: inset 0 0 0 1px hsl(var(--identity-hue, 170deg) 70% 55% / 38%);
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.02em;
+
+  &--rail {
+    width: 30px;
+    height: 30px;
+  }
+
+  &--podium {
+    width: 48px;
+    height: 48px;
+    font-size: $text-lead;
+    box-shadow:
+      0 0 0 2px $surface-panel,
+      0 0 0 4px hsl(var(--identity-hue, 170deg) 70% 55% / 70%);
+  }
+}
+
+.community__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  &--hued {
+    color: hsl(var(--identity-hue, 170deg) 80% 80%);
+  }
+}
+
+.community__handle {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// The maker and the star contributors carry a small mark; it is the one place
+// hierarchy shows, and it is a tag on the name, not a colour on the message.
+.community__role {
+  padding: 0 6px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-pill;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &--admin {
+    color: $complementary;
+    border-color: color-mix(in srgb, $complementary 50%, transparent);
+  }
+}

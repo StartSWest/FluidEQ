@@ -326,22 +326,6 @@ export const resolveFigureStrokeWidth = (
 ): number => (isEuphoric && hasBorder ? borderWidth : strokeWidth);
 
 /**
- * What the halo is stroked with.
- *
- * The trace's own paint, which is the point: for a gradient look that is the
- * very same gradient, so the glow round a spectrum is a spectrum and the glow
- * round a level ramp reddens with it. It carries the trace's opt-out too, and
- * must — without it the sweep would recolour the halo while the figure kept its
- * gradient, which is a spectrum haloed in one travelling hue.
- */
-export const resolveGlowStroke = (
-  paint: TracePaint,
-  isSelfColoured: boolean,
-  euphoria: IEuphoriaPaint,
-): TracePaint =>
-  euphoria.isOn && !isSelfColoured ? euphoriaTraceColour(euphoria.hue) : paint;
-
-/**
  * What a lit tip is stroked with.
  *
  * Unlike the figure and its halo, the accents never claimed to be

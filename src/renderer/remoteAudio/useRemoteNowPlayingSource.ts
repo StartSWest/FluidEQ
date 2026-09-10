@@ -49,6 +49,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buildSongIdentity } from 'common/songIdentity';
 import { REMOTE_NUDGE_LIMIT_MS } from '../../common/remoteAudio';
 import type { TRemoteTransportCommand } from '../../common/remoteAudio';
+import { setAppVolume } from '../audio/appVolume';
 import { registerPlayer, stopAllPlayback } from '../audio/playbackOwner';
 import {
   clearTransportSource,
@@ -134,6 +135,11 @@ const useRemoteNowPlayingSource = (
       positionMs: playing.positionMs,
       durationMs: playing.durationMs,
       toggle: () => sendTransport(peerId, { command: 'toggle' }),
+      // This machine is the one playing the sender's audio, so the fader is
+      // ours to apply — see the gain stage in `createPcmMixer`. Nothing is
+      // sent over the link for it: how loud somebody else's speakers are is
+      // not this end's business.
+      setVolume: setAppVolume,
       stop: playing.canStop
         ? () => sendTransport(peerId, { command: 'stop' })
         : undefined,

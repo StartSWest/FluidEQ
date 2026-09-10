@@ -20,12 +20,18 @@ pnpm dev
 Before submitting a pull request, run:
 
 ```powershell
-pnpm build
-pnpm test:unit
+pnpm typecheck
+pnpm typecheck:styles
+pnpm typecheck:encoding
 pnpm lint
+pnpm build
+pnpm test
 ```
 
-If a check cannot run on your platform, say so clearly in the pull request.
+`pnpm build` compiles the native host first and needs Visual Studio 2022 with
+the C++ workload on Windows; `pnpm test` runs the unit tests and then the
+native smoke tests. If a check cannot run on your platform, say so clearly in
+the pull request.
 
 ## Pull requests
 

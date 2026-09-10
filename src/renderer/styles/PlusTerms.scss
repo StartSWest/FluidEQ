@@ -1,0 +1,423 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Plus terms, as a page of the Account panel. A document to be read:
+// the four facts that matter most as cards on top, then numbered sections
+// down a left rail of pictures, with what the app sends as a list of rows.
+// The foot is outside the scrolling body — the dialog's third grid row — so
+// the agreement is always on screen, however far down the reader is.
+
+// The page's own width decides the layout, not the window's: the panel is a
+// dialog, and its body is what the text has to fit.
+.account__terms {
+  container: plus-terms / inline-size;
+  padding-bottom: $spacing-l;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.plus-terms {
+  display: grid;
+  gap: $spacing-l;
+  min-width: 0;
+}
+
+// ---------------------------------------------------------------- lede
+
+.plus-terms__lede {
+  display: grid;
+  justify-items: start;
+  gap: $spacing-s;
+}
+
+.plus-terms__meta {
+  padding: 2px 10px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+.about__body .plus-terms__intro {
+  max-width: 76ch;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.7;
+}
+
+// ---------------------------------------------------------------- short
+
+.plus-terms__short {
+  display: grid;
+  gap: 10px;
+}
+
+.plus-terms__highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @container plus-terms (max-width: 520px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.plus-terms__highlight {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 3px;
+  align-items: start;
+  padding: 12px 14px 13px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      110% 90% at 0% 0%,
+      color-mix(in srgb, $secondary-default 12%, transparent),
+      transparent 65%
+    ),
+    $block-lift;
+  @include stagger-in(4, 50ms, 80ms);
+}
+
+.plus-terms__highlight-mark {
+  display: grid;
+  grid-row: 1 / span 2;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: $secondary-light;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, $secondary-default 30%, transparent),
+    0 0 18px color-mix(in srgb, $secondary-default 14%, transparent);
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+.plus-terms__highlight-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.4;
+}
+
+.plus-terms__highlight-body {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// ---------------------------------------------------------------- sections
+
+.plus-terms__sections {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Each section under a rule, the content on a rail indented past the picture
+// so the pictures read as a column of their own down the page.
+.plus-terms__section {
+  display: grid;
+  gap: 10px;
+  padding: $spacing-m 0;
+  border-top: 1px solid $border-subtle;
+
+  > :not(.plus-terms__heading) {
+    margin-left: 40px;
+
+    @container plus-terms (max-width: 520px) {
+      margin-left: 0;
+    }
+  }
+}
+
+.plus-terms__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+}
+
+.plus-terms__heading-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 11%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, $secondary-default 24%, transparent);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.plus-terms__heading-number {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+// `margin-block`, not `margin`: the section's rail indent is a left margin,
+// and this rule is as specific as that one and comes after it.
+.about__body .plus-terms__text {
+  max-width: 76ch;
+  margin-block: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.7;
+}
+
+.plus-terms__points {
+  display: grid;
+  gap: 6px;
+  max-width: 76ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding-left: 16px;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.65;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0.66em;
+      left: 2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $secondary-default;
+      box-shadow: 0 0 6px
+        color-mix(in srgb, $secondary-default 60%, transparent);
+    }
+  }
+}
+
+// ---------------------------------------------------------------- sent
+
+// What the app sends: a row per thing, what it is in the row's own voice and
+// the two facts under it side by side, labelled small so the eye runs down
+// the "what" column first.
+.plus-terms__sent {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plus-terms__sent-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+  transition: border-color $motion-fast $ease-out;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+.plus-terms__sent-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.plus-terms__sent-body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plus-terms__sent-what {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.45;
+}
+
+.plus-terms__sent-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px $spacing-m;
+  margin: 0;
+
+  @container plus-terms (max-width: 520px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  div {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  dt {
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.55;
+  }
+}
+
+// ---------------------------------------------------------------- foot
+
+// Outside the scrolling body, as the dialog's last row: the way back while
+// reading, the agreement when the terms stand before a payment.
+.plus-terms-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  padding: 12px 20px 14px;
+  border-top: 1px solid $border-subtle;
+  background: $block-lift;
+}
+
+.plus-terms-agree {
+  display: grid;
+  gap: 10px;
+  padding: 14px 20px 16px;
+  border-top: 1px solid $border-subtle;
+  background: $block-lift;
+
+  .account__error {
+    margin: 0;
+  }
+}
+
+// The agreement is a row a person ticks, dashed until they do. The box is
+// the browser's own, in the accent: a custom one would be one more control
+// to learn at the one moment nothing should be unfamiliar.
+.plus-terms-agree__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  color: $text-muted;
+  border: 1px dashed color-mix(in srgb, $secondary-default 38%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 5%, transparent);
+  font-size: $text-body;
+  line-height: 1.5;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color $motion-fast $ease-out,
+    background-color $motion-fast $ease-out;
+
+  input {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin: 1px 0 0;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  &:focus-within {
+    @include focus-ring;
+  }
+
+  &.is-agreed {
+    color: $text-primary;
+    border-style: solid;
+    border-color: color-mix(in srgb, $secondary-default 62%, transparent);
+    background: color-mix(in srgb, $secondary-default 11%, transparent);
+  }
+}
+
+.plus-terms-agree__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+}
+
+.plus-terms-agree__buttons {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  margin-left: auto;
+}
+
+.plus-terms-agree__hint {
+  flex: 1 1 220px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}

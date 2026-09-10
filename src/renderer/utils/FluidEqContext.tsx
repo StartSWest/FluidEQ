@@ -37,6 +37,7 @@ import {
   IFiltersMap,
   IConvolutionProfile,
   IEqImportReference,
+  isBandEnabled,
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
   TApoLayer,
@@ -310,7 +311,13 @@ const filterReducer: IFilterReducer = (
             edit.frequency !== filter.frequency) ||
             (edit.gain !== undefined && edit.gain !== filter.gain) ||
             (edit.quality !== undefined && edit.quality !== filter.quality) ||
-            (edit.type !== undefined && edit.type !== filter.type))
+            (edit.type !== undefined && edit.type !== filter.type) ||
+            // Compared through the helper, not against the raw field: a band
+            // that has never been switched off stores nothing, so
+            // `false !== undefined` would report a change on every batch that
+            // merely restates "on".
+            (edit.isEnabled !== undefined &&
+              edit.isEnabled !== isBandEnabled(filter)))
         );
       });
       if (landing.length === 0) {
@@ -330,6 +337,9 @@ const filterReducer: IFilterReducer = (
         }
         if (edit.type !== undefined) {
           filter.type = edit.type;
+        }
+        if (edit.isEnabled !== undefined) {
+          filter.isEnabled = edit.isEnabled;
         }
       });
       return filtersCloned;

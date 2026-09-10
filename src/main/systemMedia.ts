@@ -207,6 +207,28 @@ while ($true) {
 
 let child: ChildProcess | undefined;
 
+/**
+ * Who to tell, and what was last said.
+ *
+ * BOTH EXIST BECAUSE THE WINDOW CAN BE RELOADED AND THE WATCHER CANNOT.
+ *
+ * A subscribe used to be dropped whenever a child was already running, which
+ * meant the callback belonged to the FIRST window for the life of the process.
+ * Reload the window — crash recovery, a dev restart, Ctrl+R — and the new one
+ * asked for the watcher, was told it was already running, and then never
+ * received a single snapshot: they were still being sent to a sender that no
+ * longer existed. The bar said nothing was playing while a browser tab played,
+ * and nothing short of quitting the app fixed it.
+ *
+ * The remembered snapshot is the other half. The child prints only when what
+ * the bar would draw has changed, so a window arriving mid-song has to be told
+ * where things stand rather than waiting for the next change — which for a
+ * player that publishes no timeline is not one second away but the end of the
+ * track.
+ */
+let notify: ((snapshot: ISystemMediaSnapshot | undefined) => void) | undefined;
+let lastSnapshot: ISystemMediaSnapshot | undefined;
+
 /** Parse one line of the watcher's output. Anything unrecognised is nothing
  * playing, which is also what the script prints when a session throws. */
 export const parseSystemMediaLine = (
@@ -256,14 +278,22 @@ export const parseSystemMediaLine = (
 /**
  * Start reporting what the machine is playing.
  *
- * Idempotent on purpose: the window asks for this whenever its own players
- * fall silent, which can happen twice in a row for one pause, and a second
- * child would be a second PowerShell reading the same sessions.
+ * One child, however many times this is asked for: the window asks whenever
+ * its own players fall silent, which can happen twice in a row for one pause,
+ * and a second child would be a second PowerShell reading the same sessions.
+ *
+ * But the LISTENER is replaced every time, and the caller is answered with
+ * what is playing right now before this returns. See `notify` for the reload
+ * this is the whole point of.
  */
 export const watchSystemMedia = (
   onSnapshot: (snapshot: ISystemMediaSnapshot | undefined) => void,
 ): void => {
+  notify = onSnapshot;
   if (child) {
+    // Already watching, for somebody else. Hand the new subscriber the state
+    // rather than making it wait for the next change.
+    onSnapshot(lastSnapshot);
     return;
   }
 
@@ -286,9 +316,13 @@ export const watchSystemMedia = (
     const lines = pending.split(/\r?\n/);
     pending = lines.pop() ?? '';
     lines.forEach((line) => {
-      if (line.trim()) {
-        onSnapshot(parseSystemMediaLine(line));
+      if (!line.trim()) {
+        return;
       }
+      lastSnapshot = parseSystemMediaLine(line);
+      // `notify` rather than `onSnapshot`: this child outlives the window that
+      // started it, and the reading must go to whoever is listening NOW.
+      notify?.(lastSnapshot);
     });
   });
 
@@ -298,7 +332,8 @@ export const watchSystemMedia = (
   // write a stack trace on every cycle.
   child.on('exit', () => {
     child = undefined;
-    onSnapshot(undefined);
+    lastSnapshot = undefined;
+    notify?.(undefined);
   });
 };
 
@@ -307,6 +342,11 @@ export const watchSystemMedia = (
 export const stopWatchingSystemMedia = (): void => {
   child?.kill();
   child = undefined;
+  // Cleared with the child: a reading kept past the watcher's life would be
+  // handed to the next subscriber as though it were current, and it would name
+  // whatever was playing whenever this was last switched off.
+  lastSnapshot = undefined;
+  notify = undefined;
 };
 
 /**

@@ -23,11 +23,11 @@ import {
   clampGraphColumns,
   getColumnCount,
   isDiscreteGraphStyle,
-  hole,
   rect,
 } from './graphStyles';
 import { WaveformStyle, createWaveformShape } from './waveformStyles';
 import { createGraphScene, isGraphScene } from './graphScenes';
+import toColumns from './graphColumns';
 import { createGraphStems } from './graphStems';
 import createGraphTerrace from './graphTerrace';
 import createTrussRoad from './graphTruss';
@@ -64,46 +64,7 @@ import createGraphStalactites from './graphStalactites';
  * So the column stands at the centre of its bucket, which is a constant, and
  * carries the peak's height.
  */
-export const toColumns = (
-  points: readonly Projected[],
-  count: number,
-): Projected[] => {
-  if (points.length <= count) {
-    return points as Projected[];
-  }
-  const perColumn = points.length / count;
-  /**
-   * The column's x comes from an EVEN DIVISION of the span, not from a
-   * sample's own position.
-   *
-   * It used to be the x of whichever sample sat in the middle of the bucket.
-   * That is fixed, which is what mattered — a bar must not shuffle sideways
-   * as the music moves — but it is not EVENLY SPACED: the bucket bounds are
-   * floored, so consecutive middles land a sample nearer or further than the
-   * pair before them. Against a constant bar width the gaps then came out
-   * visibly uneven, and at some piece counts more than others, which read as
-   * the drawing being wrong rather than as rounding.
-   *
-   * An even division is fixed for the same reason and even as well: it
-   * depends only on the count and the plot.
-   */
-  const left = points[0][0];
-  const stride = (points[points.length - 1][0] - left) / count;
-  const columns: Projected[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const from = Math.floor(index * perColumn);
-    const to = Math.max(from + 1, Math.floor((index + 1) * perColumn));
-    // Smallest y is the tallest bar: the axis grows downward in pixels.
-    let [, peak] = points[from];
-    for (let at = from + 1; at < to; at += 1) {
-      if (points[at][1] < peak) {
-        [, peak] = points[at];
-      }
-    }
-    columns.push([left + (index + 0.5) * stride, peak]);
-  }
-  return columns;
-};
+export { default as toColumns } from './graphColumns';
 
 /**
  * The other end of each bucket: its QUIETEST point.
@@ -343,6 +304,8 @@ const PIECE_BUILDERS: Partial<
       baseline: number,
       width: number,
       ceiling: number,
+      /** Which piece this is, so a form can vary them and not flicker. */
+      index: number,
     ) => string
   >
 > = {
@@ -351,9 +314,18 @@ const PIECE_BUILDERS: Partial<
   pillars: (x, y, baseline, width) =>
     rect(x - width / 2, y, width, Math.max(0, baseline - y)),
   blocks: (x, y, baseline, width, ceiling) => {
-    // A bounded row count keeps LEDs readable and the path affordable even
-    // when the visualizer fills a high-resolution display.
-    const segment = Math.max(8, (baseline - ceiling) / 28);
+    /**
+     * A CELL IS A CELL, whatever the height slider says.
+     *
+     * Dividing the plot into a fixed twenty-eight rows made the cell's
+     * shape a function of the wave's height: tall letterboxes on a full
+     * screen, slivers on a short one, and the same look reading as a
+     * different form at each setting. Sized from the column's own width
+     * instead, the LED keeps its landscape shape at every height and it
+     * is the COUNT that answers the slider — fewer cells in a shorter
+     * meter, which is what a real meter does.
+     */
+    const segment = Math.max(6, width * 0.6);
     const separation = Math.max(2, segment * 0.22);
     const lit = Math.floor(
       Math.min(Math.max(0, baseline - ceiling), Math.max(0, baseline - y)) /
@@ -370,26 +342,56 @@ const PIECE_BUILDERS: Partial<
     }
     return d;
   },
-  skyline: (x, y, baseline, width) => {
-    const pane = Math.max(1.4, width * 0.16);
-    const floorHeight = 17;
-    let d = rect(x - width / 2, y, width, Math.max(0, baseline - y));
-    for (
-      let floor = baseline - floorHeight;
-      floor > y + floorHeight * 0.7;
-      floor -= floorHeight
-    ) {
-      for (let column = -1; column <= 1; column += 2) {
-        d += hole(
-          x + column * width * 0.22 - pane / 2,
-          floor - pane / 2,
-          pane,
-          pane,
-        );
-      }
+  /**
+   * A TOWER, not a bar with holes in it.
+   *
+   * The windows used to be punched out of the block, which made them the
+   * colour of whatever was behind the graph and the building a stencil.
+   * The silhouette is solid now and the lit windows are painted onto it by
+   * the city scene, which is what a city at night looks like.
+   *
+   * Three roofs, chosen by the piece's own index so a building keeps its
+   * shape from frame to frame: a flat top, a setback with a narrower
+   * storey above it, and a mast. Only the tall ones get a mast, and only
+   * the tall ones get a beacon on it.
+   */
+  skyline: (x, y, baseline, width, ceiling, index) => {
+    const height = Math.max(0, baseline - y);
+    if (height < 1) {
+      return '';
+    }
+    const kind = pieceNoise(index * 41 + 7);
+    const half = width / 2;
+    if (kind < 0.34) {
+      // A setback: the top storey stands in from the walls below it.
+      const setback = Math.min(height * 0.34, width * 0.85);
+      const inset = width * 0.17;
+      return (
+        rect(x - half, y + setback, width, height - setback) +
+        rect(x - half + inset, y, width - inset * 2, setback)
+      );
+    }
+    let d = rect(x - half, y, width, height);
+    if (kind > 0.72 && height > (baseline - ceiling) * 0.35) {
+      // A mast, and a housing at its foot so it does not read as a hair.
+      const mast = Math.max(4, width * 0.55);
+      const stem = Math.max(1, width * 0.06);
+      d += rect(x - width * 0.16, y - mast * 0.28, width * 0.32, mast * 0.28);
+      d += rect(x - stem / 2, y - mast, stem, mast);
     }
     return d;
   },
+};
+
+/**
+ * A repeatable number per piece.
+ *
+ * The roofs must not change between frames, so they are drawn from the
+ * piece's index rather than from anything measured off the window.
+ */
+const pieceNoise = (seed: number) => {
+  const v = Math.sin(seed * 12.9898) * 43758.5453;
+  return v - Math.floor(v);
 };
 
 /** The narrowest each of them may be drawn, whatever the density. */
@@ -430,7 +432,7 @@ export const createGraphPieces = (
   );
   const depth = Math.max(1, baseline - ceiling);
   return figure.map(([x, y], index) => ({
-    d: build(x, y, baseline, width, ceiling),
+    d: build(x, y, baseline, width, ceiling, index),
     across: figure.length > 1 ? index / (figure.length - 1) : 0,
     energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
   }));
@@ -1268,6 +1270,20 @@ export const createGraphShape = (
         path += `M ${(x - splash).toFixed(1)},${y.toFixed(1)} h ${(
           splash * 2
         ).toFixed(1)} `;
+      }
+      // Filled, the picker shows the storm's cloud bank as well: a band
+      // along the top whose base hangs lower where the band is loud, which
+      // is what the running scene makes of the same numbers.
+      if (filled && figure.length >= 2) {
+        const depth = Math.max(1, baseline - ceiling);
+        let cloud = `M ${figure[0][0].toFixed(1)},${ceiling.toFixed(1)}`;
+        for (let index = 0; index < figure.length; index += 1) {
+          const [x, y] = figure[index];
+          const hang = 0.06 + Math.max(0, (baseline - y) / depth) * 0.42;
+          cloud += ` L ${x.toFixed(1)},${(ceiling + depth * hang).toFixed(1)}`;
+        }
+        cloud += ` L ${figure[figure.length - 1][0].toFixed(1)},${ceiling.toFixed(1)} Z`;
+        path += cloud;
       }
       return path.trim();
     }

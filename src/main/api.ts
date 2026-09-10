@@ -32,6 +32,32 @@ import type {
 } from '../common/karaoke/makerPersistence';
 import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import type { IAccountState } from './account/session';
+import type { IEntitlementStatus } from './account/entitlement';
+import type { IScenePacksListing } from './ipc/scenePacks';
+import type {
+  IMemberScenesListing,
+  IStudioState,
+  TAddOutcome,
+  TStarterOutcome,
+} from './ipc/memberScenes';
+import type { TCommunityResult } from './ipc/community';
+import type {
+  ICommunityChannel,
+  ICommunityMention,
+  ICommunityMessage,
+  ICommunityProfile,
+} from './community/communityApi';
+import type { ILiveEvent, TLiveStatus } from './community/communityLive';
+import type {
+  ILeaderboardBoard,
+  ILeaderboardStatus,
+  TLeaderboardResult,
+} from './ipc/leaderboard';
+import type { TLeaderboardPeriod } from './usage/leaderboardApi';
+import type { TSceneFailure } from './scenePackStore';
+import type { IScenePack } from '../common/scenePacks';
+import type { TBillingOutcome } from './ipc/account';
 import type {
   ILibraryIndex,
   ILibraryNormalizationAnalysis,
@@ -635,6 +661,284 @@ const onRemoteAudioLanError = (listener: () => void) => {
   };
 };
 
+const getAccountState = () =>
+  ipcRenderer.invoke('account-state') as Promise<IAccountState>;
+
+/**
+ * What was typed crosses once, in one direction. The password is not kept on
+ * either side; the main process turns it into a session and forgets it.
+ */
+const signUpAccount = (details: {
+  email: string;
+  password: string;
+  name?: string;
+}) => ipcRenderer.invoke('account-sign-up', details) as Promise<IAccountState>;
+
+const signInAccount = (credentials: { email: string; password: string }) =>
+  ipcRenderer.invoke('account-sign-in', credentials) as Promise<IAccountState>;
+
+const confirmAccountCode = (code: string) =>
+  ipcRenderer.invoke('account-confirm-code', code) as Promise<IAccountState>;
+
+const resendAccountCode = () =>
+  ipcRenderer.invoke('account-resend-code') as Promise<IAccountState>;
+
+const forgotAccountPassword = (email: string) =>
+  ipcRenderer.invoke(
+    'account-forgot-password',
+    email,
+  ) as Promise<IAccountState>;
+
+const resetAccountPassword = (details: { code: string; password: string }) =>
+  ipcRenderer.invoke(
+    'account-reset-password',
+    details,
+  ) as Promise<IAccountState>;
+
+const abandonAccountPending = () =>
+  ipcRenderer.invoke('account-abandon-pending') as Promise<IAccountState>;
+
+const signOutAccount = () =>
+  ipcRenderer.invoke('account-sign-out') as Promise<void>;
+
+const onAccountState = (listener: (state: IAccountState) => void) => {
+  const wrapped = (_event: IpcRendererEvent, state: IAccountState) =>
+    listener(state);
+  ipcRenderer.on('account-state-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('account-state-changed', wrapped);
+  };
+};
+
+const getEntitlementStatus = () =>
+  ipcRenderer.invoke('entitlement-status') as Promise<IEntitlementStatus>;
+
+const refreshEntitlement = () =>
+  ipcRenderer.invoke('entitlement-refresh') as Promise<IEntitlementStatus>;
+
+/**
+ * The server mints the page for this account; the renderer never sees the
+ * URL. It names the Plus terms version the person just agreed to.
+ */
+const openCheckout = (termsVersion: number) =>
+  ipcRenderer.invoke(
+    'entitlement-open-checkout',
+    termsVersion,
+  ) as Promise<TBillingOutcome>;
+
+const openSubscriptionPortal = () =>
+  ipcRenderer.invoke('entitlement-open-portal') as Promise<TBillingOutcome>;
+
+/** Development only: whether the pretend-membership buttons may be shown. */
+const isMembershipSimulatorAvailable = () =>
+  ipcRenderer.invoke('dev-membership-available') as Promise<boolean>;
+
+/** Development only: send the merchant's own event to the real server. */
+const simulateMembership = (simulation: 'started' | 'cancelled') =>
+  ipcRenderer.invoke(
+    'dev-membership-simulate',
+    simulation,
+  ) as Promise<TBillingOutcome>;
+
+const onEntitlementChanged = (
+  listener: (status: IEntitlementStatus) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, status: IEntitlementStatus) =>
+    listener(status);
+  ipcRenderer.on('entitlement-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('entitlement-changed', wrapped);
+  };
+};
+
+/** Summaries only — no shader source crosses until a pack is about to draw. */
+const listScenePacks = () =>
+  ipcRenderer.invoke('scene-packs-list') as Promise<IScenePacksListing>;
+
+const loadScenePack = (id: string) =>
+  ipcRenderer.invoke('scene-packs-load', id) as Promise<IScenePack | undefined>;
+
+const refreshScenePacks = () =>
+  ipcRenderer.invoke('scene-packs-refresh') as Promise<IScenePacksListing>;
+
+const reportScenePackFailure = (id: string, reason: TSceneFailure) =>
+  ipcRenderer.invoke('scene-packs-report-failure', id, reason) as Promise<void>;
+
+const onScenePacksChanged = (
+  listener: (listing: IScenePacksListing) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, listing: IScenePacksListing) =>
+    listener(listing);
+  ipcRenderer.on('scene-packs-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('scene-packs-changed', wrapped);
+  };
+};
+
+// Member scenes and the Studio. No call takes a path: folders are chosen in
+// the system dialog by the main process, which never accepts one from here.
+const listMemberScenes = () =>
+  ipcRenderer.invoke('member-scenes-list') as Promise<IMemberScenesListing>;
+
+const loadMemberScene = (lookId: string) =>
+  ipcRenderer.invoke('member-scenes-load', lookId) as Promise<
+    IScenePack | undefined
+  >;
+
+const removeMemberScene = (lookId: string) =>
+  ipcRenderer.invoke('member-scenes-remove', lookId) as Promise<boolean>;
+
+const reportMemberSceneFailure = (lookId: string, reason: TSceneFailure) =>
+  ipcRenderer.invoke(
+    'member-scenes-report-failure',
+    lookId,
+    reason,
+  ) as Promise<void>;
+
+const onMemberScenesChanged = (
+  listener: (listing: IMemberScenesListing) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, listing: IMemberScenesListing) =>
+    listener(listing);
+  ipcRenderer.on('member-scenes-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('member-scenes-changed', wrapped);
+  };
+};
+
+const openStudio = () =>
+  ipcRenderer.invoke('studio-open') as Promise<IStudioState>;
+
+const closeStudio = () => ipcRenderer.invoke('studio-close') as Promise<void>;
+
+const linkStudioFolder = () =>
+  ipcRenderer.invoke('studio-link-folder') as Promise<IStudioState>;
+
+const unlinkStudioFolder = () =>
+  ipcRenderer.invoke('studio-unlink') as Promise<IStudioState>;
+
+const createStudioStarter = () =>
+  ipcRenderer.invoke('studio-create-starter') as Promise<TStarterOutcome>;
+
+const addStudioSceneToLooks = () =>
+  ipcRenderer.invoke('studio-add-to-looks') as Promise<TAddOutcome>;
+
+const showStudioFolder = () =>
+  ipcRenderer.invoke('studio-show-folder') as Promise<void>;
+
+const onStudioChanged = (listener: (state: IStudioState) => void) => {
+  const wrapped = (_event: IpcRendererEvent, state: IStudioState) =>
+    listener(state);
+  ipcRenderer.on('studio-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('studio-changed', wrapped);
+  };
+};
+
+// The community. Every call answers a result rather than throwing, so the one
+// word the server used for a refusal survives the bridge.
+const communityProfile = () =>
+  ipcRenderer.invoke('community-profile') as Promise<
+    TCommunityResult<ICommunityProfile | undefined>
+  >;
+const communityCreateProfile = (handle: string, displayName: string) =>
+  ipcRenderer.invoke(
+    'community-create-profile',
+    handle,
+    displayName,
+  ) as Promise<TCommunityResult<ICommunityProfile>>;
+const communityAcceptConduct = () =>
+  ipcRenderer.invoke('community-accept-conduct') as Promise<
+    TCommunityResult<void>
+  >;
+const communityChannels = () =>
+  ipcRenderer.invoke('community-channels') as Promise<
+    TCommunityResult<ICommunityChannel[]>
+  >;
+const communityMessages = (channelId: string, beforeId?: number) =>
+  ipcRenderer.invoke('community-messages', channelId, beforeId) as Promise<
+    TCommunityResult<ICommunityMessage[]>
+  >;
+const communitySend = (channelId: string, body: string) =>
+  ipcRenderer.invoke('community-send', channelId, body) as Promise<
+    TCommunityResult<ICommunityMessage>
+  >;
+const communityDelete = (id: number) =>
+  ipcRenderer.invoke('community-delete', id) as Promise<TCommunityResult<void>>;
+const communityReport = (id: number, reason: string) =>
+  ipcRenderer.invoke('community-report', id, reason) as Promise<
+    TCommunityResult<void>
+  >;
+const communityBlocks = () =>
+  ipcRenderer.invoke('community-blocks') as Promise<TCommunityResult<string[]>>;
+const communityBlock = (userId: string) =>
+  ipcRenderer.invoke('community-block', userId) as Promise<
+    TCommunityResult<void>
+  >;
+const communityUnblock = (userId: string) =>
+  ipcRenderer.invoke('community-unblock', userId) as Promise<
+    TCommunityResult<void>
+  >;
+const communityMentions = () =>
+  ipcRenderer.invoke('community-mentions') as Promise<
+    TCommunityResult<ICommunityMention[]>
+  >;
+const communityMentionsRead = (ids: readonly number[]) =>
+  ipcRenderer.invoke('community-mentions-read', ids) as Promise<
+    TCommunityResult<void>
+  >;
+/** Open the live feed while the tab is on screen; close it when it leaves. */
+const communityOpen = () =>
+  ipcRenderer.invoke('community-open') as Promise<TLiveStatus>;
+const communityClose = () =>
+  ipcRenderer.invoke('community-close') as Promise<void>;
+const onCommunityEvent = (listener: (event: ILiveEvent) => void) => {
+  const wrapped = (_event: IpcRendererEvent, event: ILiveEvent) =>
+    listener(event);
+  ipcRenderer.on('community-event', wrapped);
+  return () => {
+    ipcRenderer.removeListener('community-event', wrapped);
+  };
+};
+const onCommunityLiveStatus = (listener: (status: TLiveStatus) => void) => {
+  const wrapped = (_event: IpcRendererEvent, status: TLiveStatus) =>
+    listener(status);
+  ipcRenderer.on('community-live-status', wrapped);
+  return () => {
+    ipcRenderer.removeListener('community-live-status', wrapped);
+  };
+};
+
+// Listening minutes and the leaderboard. Seconds go up as they are observed;
+// whether any of it leaves the machine is the person's choice, kept by main.
+const usageAccrue = (seconds: number) =>
+  ipcRenderer.invoke('usage-accrue', seconds) as Promise<void>;
+const leaderboardStatus = () =>
+  ipcRenderer.invoke('leaderboard-status') as Promise<ILeaderboardStatus>;
+const leaderboardOptIn = (value: boolean) =>
+  ipcRenderer.invoke(
+    'leaderboard-opt-in',
+    value,
+  ) as Promise<ILeaderboardStatus>;
+const leaderboardBoard = (period: TLeaderboardPeriod) =>
+  ipcRenderer.invoke('leaderboard-board', period) as Promise<
+    TLeaderboardResult<ILeaderboardBoard>
+  >;
+const leaderboardRemoveMe = () =>
+  ipcRenderer.invoke('leaderboard-remove-me') as Promise<
+    TLeaderboardResult<void>
+  >;
+const onLeaderboardStatus = (
+  listener: (status: ILeaderboardStatus) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, status: ILeaderboardStatus) =>
+    listener(status);
+  ipcRenderer.on('leaderboard-status-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('leaderboard-status-changed', wrapped);
+  };
+};
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -722,6 +1026,64 @@ export default {
     onRemoteAudioLanStreaming,
     onRemoteAudioLanNetwork,
     onRemoteAudioLanError,
+    getAccountState,
+    signUpAccount,
+    signInAccount,
+    confirmAccountCode,
+    resendAccountCode,
+    forgotAccountPassword,
+    resetAccountPassword,
+    abandonAccountPending,
+    signOutAccount,
+    onAccountState,
+    getEntitlementStatus,
+    refreshEntitlement,
+    openCheckout,
+    openSubscriptionPortal,
+    isMembershipSimulatorAvailable,
+    simulateMembership,
+    onEntitlementChanged,
+    listScenePacks,
+    loadScenePack,
+    refreshScenePacks,
+    reportScenePackFailure,
+    onScenePacksChanged,
+    listMemberScenes,
+    loadMemberScene,
+    removeMemberScene,
+    reportMemberSceneFailure,
+    onMemberScenesChanged,
+    openStudio,
+    closeStudio,
+    linkStudioFolder,
+    unlinkStudioFolder,
+    createStudioStarter,
+    addStudioSceneToLooks,
+    showStudioFolder,
+    onStudioChanged,
+    communityProfile,
+    communityCreateProfile,
+    communityAcceptConduct,
+    communityChannels,
+    communityMessages,
+    communitySend,
+    communityDelete,
+    communityReport,
+    communityBlocks,
+    communityBlock,
+    communityUnblock,
+    communityMentions,
+    communityMentionsRead,
+    communityOpen,
+    communityClose,
+    onCommunityEvent,
+    onCommunityLiveStatus,
+    usageAccrue,
+    leaderboardStatus,
+    leaderboardOptIn,
+    leaderboardBoard,
+    leaderboardRemoveMe,
+    onLeaderboardStatus,
     // Spread rather than nested, so the native engine's calls sit beside every
     // other one here. Its own module because this file is already long enough
     // that a reader has to search it — see the head of `dspHost/bridge.ts`.
