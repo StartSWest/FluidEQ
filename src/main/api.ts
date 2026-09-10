@@ -35,6 +35,12 @@ import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
 import type { IScenePacksListing } from './ipc/scenePacks';
+import type {
+  IMemberScenesListing,
+  IStudioState,
+  TAddOutcome,
+  TStarterOutcome,
+} from './ipc/memberScenes';
 import type { TCommunityResult } from './ipc/community';
 import type {
   ICommunityChannel,
@@ -769,6 +775,66 @@ const onScenePacksChanged = (
   };
 };
 
+// Member scenes and the Studio. No call takes a path: folders are chosen in
+// the system dialog by the main process, which never accepts one from here.
+const listMemberScenes = () =>
+  ipcRenderer.invoke('member-scenes-list') as Promise<IMemberScenesListing>;
+
+const loadMemberScene = (lookId: string) =>
+  ipcRenderer.invoke('member-scenes-load', lookId) as Promise<
+    IScenePack | undefined
+  >;
+
+const removeMemberScene = (lookId: string) =>
+  ipcRenderer.invoke('member-scenes-remove', lookId) as Promise<boolean>;
+
+const reportMemberSceneFailure = (lookId: string, reason: TSceneFailure) =>
+  ipcRenderer.invoke(
+    'member-scenes-report-failure',
+    lookId,
+    reason,
+  ) as Promise<void>;
+
+const onMemberScenesChanged = (
+  listener: (listing: IMemberScenesListing) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, listing: IMemberScenesListing) =>
+    listener(listing);
+  ipcRenderer.on('member-scenes-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('member-scenes-changed', wrapped);
+  };
+};
+
+const openStudio = () =>
+  ipcRenderer.invoke('studio-open') as Promise<IStudioState>;
+
+const closeStudio = () => ipcRenderer.invoke('studio-close') as Promise<void>;
+
+const linkStudioFolder = () =>
+  ipcRenderer.invoke('studio-link-folder') as Promise<IStudioState>;
+
+const unlinkStudioFolder = () =>
+  ipcRenderer.invoke('studio-unlink') as Promise<IStudioState>;
+
+const createStudioStarter = () =>
+  ipcRenderer.invoke('studio-create-starter') as Promise<TStarterOutcome>;
+
+const addStudioSceneToLooks = () =>
+  ipcRenderer.invoke('studio-add-to-looks') as Promise<TAddOutcome>;
+
+const showStudioFolder = () =>
+  ipcRenderer.invoke('studio-show-folder') as Promise<void>;
+
+const onStudioChanged = (listener: (state: IStudioState) => void) => {
+  const wrapped = (_event: IpcRendererEvent, state: IStudioState) =>
+    listener(state);
+  ipcRenderer.on('studio-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('studio-changed', wrapped);
+  };
+};
+
 // The community. Every call answers a result rather than throwing, so the one
 // word the server used for a refusal survives the bridge.
 const communityProfile = () =>
@@ -982,6 +1048,19 @@ export default {
     refreshScenePacks,
     reportScenePackFailure,
     onScenePacksChanged,
+    listMemberScenes,
+    loadMemberScene,
+    removeMemberScene,
+    reportMemberSceneFailure,
+    onMemberScenesChanged,
+    openStudio,
+    closeStudio,
+    linkStudioFolder,
+    unlinkStudioFolder,
+    createStudioStarter,
+    addStudioSceneToLooks,
+    showStudioFolder,
+    onStudioChanged,
     communityProfile,
     communityCreateProfile,
     communityAcceptConduct,
