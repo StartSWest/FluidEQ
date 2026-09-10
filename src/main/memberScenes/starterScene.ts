@@ -5,8 +5,10 @@ import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
  * music, so the stage has something alive on it before anybody has asked an
  * AI for anything — and a working example of every channel for the AI to
  * build on. Aurora curtains follow the slow spectrum, stars answer the treble,
- * the lake ripples with the waveform, and a beat lifts the light. In silence
- * the clock stops and it holds still, which is what every scene should do.
+ * the lake ripples with the waveform, and a beat lifts the light. The scene
+ * clock keeps running in silence, so only the slow drift of the curtains goes
+ * on then — every bright or fast movement is driven by the music, which is
+ * what a calm silence needs.
  *
  * It keeps the member rules (`memberSceneRules.ts`): no `#` lines, one loop
  * with a constant bound, nothing outside plain ASCII. A test holds it to them.
