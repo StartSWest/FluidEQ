@@ -143,12 +143,16 @@ const eq: Partial<Dictionary> = {
   'output.title': '自动配置',
   'output.device': '输出设备',
   'output.active': '使用中',
-  'output.apoOff': 'APO 已关闭',
+  'output.off': '已关闭',
   'output.apoMissingTitle': '此输出未启用 Equalizer APO',
   'output.apoMissingBody':
     '在 Equalizer APO 的设备选择器中启用 {device} 并重启 Windows 之前，FluidEQ 无法更改此输出。',
   'output.apoConfigure': '在设备选择器中启用',
-  'output.apoCancel': '取消',
+  'output.engineMissingTitle': '此输出未启用 FluidEQ',
+  'output.engineMissingBody':
+    '为 {device} 启用时会请求 Windows 授权，并让音频短暂重启。无需重启电脑。',
+  'output.enable': '启用',
+  'output.notNow': '暂不',
   'output.none': '未找到活动的输出设备',
   'output.mapping': '自动绑定',
   'output.mapping.neutral': '无处理输出',

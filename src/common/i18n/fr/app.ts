@@ -37,8 +37,8 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Importer des réglages d’égalisation…',
   'app.menu.importConvolution': 'Importer une réponse impulsionnelle…',
   'app.menu.restartAudio': 'Redémarrer l’audio de Windows',
-  'app.menu.reconfigure': 'Reconfigurer Equalizer APO',
-  'app.menu.apoSettings': 'Réglages d’Equalizer APO',
+  'engine.apo.reconfigure': 'Reconfigurer Equalizer APO',
+  'engine.apo.settings': 'Réglages d’Equalizer APO',
   'app.menu.support': 'Soutenir le projet',
   'app.menu.fix': 'Corriger',
   'app.menu.reportProblem': 'Signaler un problème',
@@ -86,7 +86,45 @@ const app: Partial<Dictionary> = {
     'Un service Chromium démarré à la demande. FluidEQ ne le réclame jamais par son nom.',
   'app.menu.reinstallApp': 'Réinstaller {product}…',
   'app.menu.fixAudio': 'Résoudre les problèmes audio…',
-  'app.menu.reinstallApo': 'Réinstaller Equalizer APO…',
+  'app.menu.audioEngine': 'Moteur audio…',
+  'engine.apo.reinstall': 'Réinstaller Equalizer APO…',
+  'engine.title': 'Comment FluidEQ doit-il traiter votre son ?',
+  'engine.subtitle':
+    'Un seul moteur tourne pour tout le PC. En changer demande une autorisation à Windows, une fois.',
+  'engine.now': 'Actuellement : {engine}',
+  'engine.recommended': 'RECOMMANDÉ',
+  'engine.fluid.name': 'Moteur FluidEQ',
+  'engine.fluid.l1':
+    'Les effets et le panneau de votre carte son continuent de fonctionner',
+  'engine.fluid.l2':
+    'L’EQ et le rack DSP s’appliquent à tout, sans redémarrage',
+  'engine.fluid.l3':
+    'Les commandes personnalisées d’APO, Peace et les plugins VST ne fonctionnent pas',
+  'engine.apo.name': 'Equalizer APO',
+  'engine.apo.l1': 'Commandes personnalisées, Peace, plugins VST',
+  'engine.apo.l2':
+    'Prend la place de l’emplacement d’effets de votre carte son ; les panneaux du fabricant peuvent perdre des réglages',
+  'engine.apo.l3':
+    'Le rack DSP ne fonctionne que dans la lecture de la Bibliothèque. Installation à part, et Windows redémarre.',
+  'engine.apply': 'Appliquer',
+  'engine.cancel': 'Annuler',
+  'engine.installing': 'Changement de moteur…',
+  'engine.declined': 'L’autorisation Windows a été refusée : rien n’a changé.',
+  'engine.failed': 'Le moteur n’a pas pu être changé. Rien n’a changé.',
+  'engine.unsupported': 'Nécessite Windows 10 version 1803 ou plus récent.',
+  'prereq.title.apo': 'Equalizer APO demande votre attention',
+  'prereq.title.fluid': 'Le moteur FluidEQ demande votre attention',
+  'prereq.install.apo': 'Installer APO',
+  'prereq.install.fluid': 'Installer le moteur FluidEQ',
+  'prereq.retry': 'Réessayer',
+  'prereq.dismiss': 'Ignorer',
+  'prereq.credit.apo':
+    'Equalizer APO est fourni avec {product} — rien ne sera téléchargé. Son installation demande quelles sorties audio égaliser, puis un redémarrage. Projet GPLv2 distinct de {author}, inclus sans modification.',
+  'prereq.starting': 'Démarrage…',
+  'prereq.bundleMissing':
+    'Cette version ne contient pas sa copie d’Equalizer APO. Ouverture du projet officiel à la place.',
+  'prereq.notStarted':
+    'Equalizer APO n’a pas démarré — une autorisation administrateur est nécessaire. Réessayez et acceptez l’invite Windows.',
   'whatsNew.eyebrow': 'HISTORIQUE DES VERSIONS',
   'whatsNew.title': 'Notes de version de FluidEQ',
   'whatsNew.loading': 'Chargement des notes de version…',

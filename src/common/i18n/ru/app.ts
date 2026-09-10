@@ -37,8 +37,8 @@ const app: Partial<Dictionary> = {
   'app.menu.importEq': 'Импорт настроек эквалайзера…',
   'app.menu.importConvolution': 'Импорт импульсной характеристики…',
   'app.menu.restartAudio': 'Перезапустить звук Windows',
-  'app.menu.reconfigure': 'Перенастроить Equalizer APO',
-  'app.menu.apoSettings': 'Настройки Equalizer APO',
+  'engine.apo.reconfigure': 'Перенастроить Equalizer APO',
+  'engine.apo.settings': 'Настройки Equalizer APO',
   'app.menu.support': 'Поддержать проект',
   'app.menu.fix': 'Исправить',
   'app.menu.reportProblem': 'Сообщить о проблеме',
@@ -86,7 +86,45 @@ const app: Partial<Dictionary> = {
     'Служба Chromium, запускаемая по необходимости. FluidEQ никогда не просит её по имени.',
   'app.menu.reinstallApp': 'Переустановить {product}…',
   'app.menu.fixAudio': 'Исправить проблемы со звуком…',
-  'app.menu.reinstallApo': 'Переустановить Equalizer APO…',
+  'app.menu.audioEngine': 'Звуковой движок…',
+  'engine.apo.reinstall': 'Переустановить Equalizer APO…',
+  'engine.title': 'Как FluidEQ должен обрабатывать ваш звук?',
+  'engine.subtitle':
+    'Для всего компьютера работает один движок. Смена один раз запросит разрешение Windows.',
+  'engine.now': 'Сейчас: {engine}',
+  'engine.recommended': 'РЕКОМЕНДУЕТСЯ',
+  'engine.fluid.name': 'Движок FluidEQ',
+  'engine.fluid.l1':
+    'Собственные эффекты и панель вашей звуковой карты продолжают работать',
+  'engine.fluid.l2':
+    'Эквалайзер и стойка DSP применяются ко всему, без перезапуска',
+  'engine.fluid.l3': 'Свои команды APO, Peace и плагины VST не работают',
+  'engine.apo.name': 'Equalizer APO',
+  'engine.apo.l1': 'Свои команды, Peace, плагины VST',
+  'engine.apo.l2':
+    'Занимает слот эффектов вашей звуковой карты; панели производителя могут потерять регуляторы',
+  'engine.apo.l3':
+    'Стойка DSP работает только при воспроизведении из Библиотеки. Отдельная установка, Windows перезагружается.',
+  'engine.apply': 'Применить',
+  'engine.cancel': 'Отмена',
+  'engine.installing': 'Смена движка…',
+  'engine.declined':
+    'Разрешение Windows отклонено, поэтому ничего не изменилось.',
+  'engine.failed': 'Не удалось сменить движок. Ничего не изменилось.',
+  'engine.unsupported': 'Требуется Windows 10 версии 1803 или новее.',
+  'prereq.title.apo': 'Equalizer APO требует внимания',
+  'prereq.title.fluid': 'Движок FluidEQ требует внимания',
+  'prereq.install.apo': 'Установить APO',
+  'prereq.install.fluid': 'Установить движок FluidEQ',
+  'prereq.retry': 'Повторить',
+  'prereq.dismiss': 'Закрыть',
+  'prereq.credit.apo':
+    'Equalizer APO входит в состав {product} — ничего скачиваться не будет. Его установщик спросит, какие звуковые устройства обрабатывать, и попросит перезагрузку. Отдельный проект под GPLv2 от {author}, включён без изменений.',
+  'prereq.starting': 'Запуск…',
+  'prereq.bundleMissing':
+    'В этой сборке нет копии Equalizer APO. Вместо неё откроется официальный проект.',
+  'prereq.notStarted':
+    'Equalizer APO не запустился — нужны права администратора. Повторите и подтвердите запрос Windows.',
   'whatsNew.eyebrow': 'ИСТОРИЯ ВЕРСИЙ',
   'whatsNew.title': 'Примечания к выпускам FluidEQ',
   'whatsNew.loading': 'Загрузка заметок о выпуске…',
