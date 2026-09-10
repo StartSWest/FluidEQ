@@ -37,7 +37,7 @@ import {
   IFluidEngineStatus,
   TAudioEngine,
 } from '../common/audioEngine';
-import { isEqualizerAPOInstalled } from './registry';
+import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
 
 /**
@@ -243,7 +243,12 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         resolve({ installed: false, endpoints: [] });
         return;
       }
-      resolve(parseFluidEngineStatus(stdout));
+      const status = parseFluidEngineStatus(stdout);
+      // Only a status the helper actually produced: the fallbacks above are
+      // "could not ask", which must not turn into "not installed" for every
+      // flush that follows.
+      noteFluidEngineRegistered(status.installed);
+      resolve(status);
     });
   });
 

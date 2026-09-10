@@ -43,6 +43,7 @@ import {
   getConfigPath,
   getFluidEngineConfigDir,
   isEngineInstalled,
+  noteFluidEngineRegistered,
 } from 'main/registry';
 
 describe('the engine-aware config directory', () => {
@@ -102,5 +103,25 @@ describe('the engine-aware config directory', () => {
     fs.writeFileSync(path.join(engineDir, 'FluidEQ-Engine.dll'), '', 'utf8');
 
     expect(await isEngineInstalled('fluid')).toBe(true);
+  });
+
+  // The DLL alone once said "installed" on a machine whose effect Windows
+  // never loaded, because the registration beside it was missing: the
+  // helper's status is the authority once it has spoken.
+  it('defers to the helper once it has said the engine is not registered', async () => {
+    const engineDir = path.join(programFiles, 'FluidEQ Engine');
+    fs.mkdirSync(engineDir, { recursive: true });
+    fs.writeFileSync(path.join(engineDir, 'FluidEQ-Engine.dll'), '', 'utf8');
+
+    noteFluidEngineRegistered(false);
+    expect(await isEngineInstalled('fluid')).toBe(false);
+
+    noteFluidEngineRegistered(true);
+    expect(await isEngineInstalled('fluid')).toBe(true);
+
+    // A registration alone is not an install either: the DLL still decides
+    // when the helper's answer and the disk disagree the other way.
+    fs.rmSync(engineDir, { recursive: true, force: true });
+    expect(await isEngineInstalled('fluid')).toBe(false);
   });
 });

@@ -19,10 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { EventEmitter } from 'events';
 
 const isEqualizerAPOInstalledSpy = jest.fn().mockResolvedValue(false);
+const noteFluidEngineRegisteredSpy = jest.fn();
 
 jest.mock('main/registry', () => ({
   isEqualizerAPOInstalled: (...args: unknown[]) =>
     isEqualizerAPOInstalledSpy(...args),
+  noteFluidEngineRegistered: (...args: unknown[]) =>
+    noteFluidEngineRegisteredSpy(...args),
 }));
 
 /**
@@ -163,6 +166,33 @@ describe('reading the combined audio engine status', () => {
     expect(isEqualizerAPOInstalledSpy).toHaveBeenCalledTimes(1);
     expect(status.engine).toBe('fluid');
     expect(status.apo).toEqual({ installed: true });
+  });
+
+  // The flush gate remembers the helper's `installed` answer, so a status
+  // the helper produced has to reach it — and one it did not (the helper
+  // missing, or talking past the cap) must not, or "could not ask" becomes
+  // "not installed" for every flush that follows.
+  it('hands the helper’s own installed answer to the flush gate, and nothing else', async () => {
+    noteFluidEngineRegisteredSpy.mockClear();
+
+    let promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    fakeChild.stdout.emit('data', '{"installed":true,"endpoints":[]}');
+    fakeChild.emit('close', 0);
+    await promise;
+    expect(noteFluidEngineRegisteredSpy).toHaveBeenCalledWith(true);
+
+    fakeChild = new FakeChildProcess();
+    promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    resolveChild();
+    await promise;
+    expect(noteFluidEngineRegisteredSpy).toHaveBeenLastCalledWith(false);
+
+    noteFluidEngineRegisteredSpy.mockClear();
+    fakeChild = new FakeChildProcess();
+    promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    fakeChild.emit('error', new Error('helper missing'));
+    await promise;
+    expect(noteFluidEngineRegisteredSpy).not.toHaveBeenCalled();
   });
 
   it('folds a failed probe under fluid to not installed', async () => {

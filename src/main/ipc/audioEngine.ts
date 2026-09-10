@@ -265,6 +265,11 @@ export const registerAudioEngineIpc = ({
     try {
       const result = await runEngineSetup(command, args);
       if (result.ok) {
+        // Re-read before the reflush, not after: the flush gate remembers
+        // the helper's last `installed` answer, and an install that has just
+        // put the registration back would otherwise be refused by the
+        // answer from before it ran.
+        await readAudioEngineStatus(userDataDir, getEngine());
         await reflush();
       }
       succeed(event, channel, result);

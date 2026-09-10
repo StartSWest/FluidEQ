@@ -80,10 +80,30 @@ export const getFluidEngineDllPath = (): string =>
     'FluidEQ-Engine.dll',
   );
 
+/**
+ * What the helper's `status` last said about the effect being registered
+ * with Windows, or nothing until it has been asked.
+ *
+ * The DLL on disk is not the whole of "installed": the first machine this
+ * ran on had the DLL, the class registration and every output attached, and
+ * no audio-engine record — so audiodg.exe never loaded it. The DLL check
+ * said installed, the helper said not, and the app offered nothing because
+ * the two disagreed. The helper is the authority; this remembers its answer
+ * between reads, because a process spawn on every slider move is not.
+ */
+let fluidEngineRegistered: boolean | undefined;
+
+export const noteFluidEngineRegistered = (registered: boolean): void => {
+  fluidEngineRegistered = registered;
+};
+
 export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> =>
   engine === 'apo'
     ? isEqualizerAPOInstalled()
-    : Promise.resolve(fs.existsSync(getFluidEngineDllPath()));
+    : Promise.resolve(
+        fs.existsSync(getFluidEngineDllPath()) &&
+          fluidEngineRegistered !== false,
+      );
 
 /**
  * A config directory is unusable to Equalizer APO's own reader unless

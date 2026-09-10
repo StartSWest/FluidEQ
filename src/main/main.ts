@@ -1691,8 +1691,9 @@ const handleUpdateHelperCore = async <T>(
 ) => {
   // Whether the chosen engine is there is asked on every change, because it
   // can be uninstalled while the app is running. Under 'fluid' this is a file
-  // check and no registry probe: Equalizer APO being absent is not a failure
-  // when it is not the engine being written to.
+  // check plus the helper's last word on the registration, and no registry
+  // probe: Equalizer APO being absent is not a failure when it is not the
+  // engine being written to.
   const engine = session.audioEngine;
   if (engine === null) {
     handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
