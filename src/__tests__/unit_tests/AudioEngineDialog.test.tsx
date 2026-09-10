@@ -161,6 +161,9 @@ describe('AudioEngineDialog', () => {
     fireEvent.click(applyButton());
     expect(await screen.findByText(en['engine.failed'])).toBeInTheDocument();
     expect(screen.queryByText(en['engine.declined'])).not.toBeInTheDocument();
+    // The helper's own reason travels with the translated line; a decline
+    // carries none, since "you said no" needs no diagnosis.
+    expect(screen.getByText('the helper did not run')).toBeInTheDocument();
   });
 
   it('puts the loud style on the recommendation and the quiet one on the decline', () => {

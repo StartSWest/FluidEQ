@@ -260,6 +260,16 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.45;
 }
 
+// The helper's reason, in the muted face so the translated line stays the
+// headline; wraps rather than widening the dialog, since a Windows error
+// message can run past one line.
+.engine-dialog__error-detail {
+  display: block;
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
 // The narrowest the window goes. Padding is the first thing to give: a card
 // with 20px either side loses a third of its line length at 360px.
 @media (max-width: 480px) {

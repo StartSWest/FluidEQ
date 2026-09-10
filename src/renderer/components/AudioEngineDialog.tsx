@@ -156,6 +156,14 @@ const AudioEngineDialog = ({
   );
   const [isApplying, setIsApplying] = useState(false);
   const [failure, setFailure] = useState<'declined' | 'failed' | undefined>();
+  /**
+   * The helper's own sentence about a failure, shown under the translated
+   * line. The first real install failed on "could not stop Audiosrv: a stop
+   * control has been sent to a service that other running services are
+   * dependent on" — and the screen said only that the engine could not be
+   * switched, which sent the diagnosis to a file nobody knew to open.
+   */
+  const [failureDetail, setFailureDetail] = useState<string | undefined>();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
   // Applying resolves after a Windows permission prompt, which the dialog may
@@ -283,6 +291,7 @@ const AudioEngineDialog = ({
     }
     setIsApplying(true);
     setFailure(undefined);
+    setFailureDetail(undefined);
     try {
       await onApply(selected);
     } catch (error) {
@@ -290,7 +299,9 @@ const AudioEngineDialog = ({
       // it earns a sentence saying nothing changed rather than an error.
       const message = error instanceof Error ? error.message : String(error);
       if (mounted.current) {
-        setFailure(message.includes('declined') ? 'declined' : 'failed');
+        const declined = message.includes('declined');
+        setFailure(declined ? 'declined' : 'failed');
+        setFailureDetail(declined || !message ? undefined : message);
         setIsApplying(false);
       }
       return;
@@ -425,6 +436,11 @@ const AudioEngineDialog = ({
           {failure && (
             <p className="engine-dialog__error" role="alert">
               {t(failure === 'declined' ? 'engine.declined' : 'engine.failed')}
+              {failureDetail && (
+                <span className="engine-dialog__error-detail">
+                  {failureDetail}
+                </span>
+              )}
             </p>
           )}
         </div>
