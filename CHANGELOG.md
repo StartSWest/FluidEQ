@@ -8,12 +8,33 @@ actions menu opens it again any time.
 
 ## 1.6.4
 
-Meet Fluid, find your way around, and read every detail more comfortably.
-This release brings an illustrated offline user guide, a dedicated Help menu,
-a new About screen, and clearer text throughout both themes.
+FluidEQ can now run its own audio engine as well as Equalizer APO. Meet Fluid,
+find your way around, and read every detail more comfortably. This release
+brings a built-in audio processing engine, an illustrated offline user guide,
+a dedicated Help menu, a new About screen, and clearer text throughout both
+themes.
 
 ### New
 
+- **A FluidEQ engine of its own.** Alongside Equalizer APO, FluidEQ can now
+  process your sound with its own audio engine. It sits after your sound
+  card's own effects, so the manufacturer's panel and effects keep working,
+  and turning it on needs no restart — just one Windows permission.
+- **Choose your engine on install, or change it any time.** The installer now
+  asks which engine to use, the FluidEQ Engine or Equalizer APO, each with a
+  line explaining the trade-off. **Audio engine…** in the actions menu opens
+  the same choice later.
+- **The DSP rack runs on the whole PC under the FluidEQ Engine**, not only
+  what FluidEQ itself plays — every app's sound goes through the same rack.
+  Two things stay as they were: Denoise still only measures and repairs
+  Library playback, and switching the Equaliser to linear phase adds about
+  171 ms of delay, shown right on the DSP page.
+- **An output the FluidEQ Engine has not attached to yet can be turned on
+  right where you notice it.** Its "not enabled for this output" notice has
+  its own **Enable** button — one click and a single Windows permission.
+- **Uninstalling FluidEQ takes its own engine with it.** If you chose the
+  FluidEQ Engine, removing FluidEQ removes the engine too. You are only asked
+  about Equalizer APO if it is actually installed.
 - **An illustrated guide inside FluidEQ.** Open **Help → User guide** or press
   **F1** for 16 chapters illustrated with 14 real interface captures. Learn the
   EQ, headphone corrections, convolution, device profiles, second outputs,

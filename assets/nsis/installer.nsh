@@ -297,10 +297,10 @@
       ; StdUtils.nsh is included by electron-builder's own shared header, ahead
       ; of this file, so the plug-in is already there for both passes.
       ;
-      ; The price is a visible console: StdUtils hard-codes SW_SHOWNORMAL, so
-      ; the helper's console window shows for the seconds it takes rather than
-      ; being hidden as it was under SW_HIDE. Knowing what happened is worth
-      ; more than not seeing it happen.
+      ; StdUtils hard-codes SW_SHOWNORMAL, which used to flash the helper's
+      ; console window for the seconds it took. The helper is now a
+      ; windowed-subsystem executable, so SW_SHOWNORMAL shows nothing at all -
+      ; there is no window to normal-show.
       ${StdUtils.ExecShellWaitEx} $0 $1 \
         "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" "runas" \
         "install --attach-all --restart-audio"

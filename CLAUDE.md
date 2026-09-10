@@ -352,6 +352,44 @@ Everything worth knowing about them is available through commands:
   `extraResources` entry names its files explicitly for a reason: the APO
   source archive lives in that directory and rode along once, adding 38MB to
   every user's installer. It belongs in the release, not in the app.
+- **The engine DLL has to live outside the user profile.** `audiodg.exe` runs
+  as LOCAL SERVICE, which has no read access anywhere under a user's own
+  profile. A DLL installed to `%ProgramFiles%\FluidEQ Engine` is where LOCAL
+  SERVICE can actually open it; anywhere under `C:\Users\...` and the effect
+  attaches cleanly, reports success, and never makes a sound — silently,
+  because loading a DLL the process cannot read fails the same way as no
+  effect being registered at all.
+- **An `FxProperties` edit needs both `Audiosrv` and `AudioEndpointBuilder`
+  restarted before it takes effect.** Windows reads an endpoint's effect list
+  once and holds it, so a registry write with nothing after it changes what is
+  on disk and not what is playing. The helper's `--restart-audio` restarts
+  both services and waits on `NotifyServiceStatusChange`'s own signal that
+  each one actually stopped — never a `Sleep` guessing how long that takes,
+  which is the timer this project forbids everywhere else too.
+- **Never write pids 5, 6 or 7 — only the composite lists, pids 13, 14, 15.**
+  5/6/7 are the single-effect `FxProperties` values, and Windows only reads
+  them when the composite lists are absent. Writing one directly replaces
+  whatever a vendor already registered there instead of adding to it, and the
+  vendor's own control panel then reads its registration as gone — silently,
+  on somebody else's driver.
+- **The DLL waits on `FindFirstChangeNotification`, not a poll.** It is told a
+  config changed, never guesses when to check again. That also means a change
+  to how `deviceProfiles.ts` lays the config text out is a change to what the
+  DLL parses on the other end of that notification: extend
+  `native/system-apo/tests/config_test.cpp` in the same commit.
+- **`fluideq-dsp.txt` is the chain wire between the app and the engine.**
+  `native/system-apo/tests/dsp_chain_test.cpp` freezes a reference line
+  produced by the real encoder (`encodeChainSettings`) rather than a
+  hand-written one, because a layout the two sides disagree about does not
+  fail loudly — it decodes a Q as a threshold and still sounds like music.
+  Bumping `FEQ_CHAIN_PARAM_LEAD` moves every index after it, so regenerate
+  that reference line in the same commit or the test compares one stale
+  layout against another and proves nothing.
+- **The setup helper is a windowed program, not a console one.** Run it from
+  an interactive shell without piping or capturing its output and the shell
+  returns before a single line prints. `FluidEQ-Engine-Setup.exe status |
+Out-String` (or any other capture) is what actually waits for it and shows
+  the answer.
 
 ## Equalizer APO is bundled
 
@@ -413,7 +451,9 @@ line, 2 consent declined, 3 ran and failed — and every run writes
 `FluidEQ Engine setup exited with code N` to the install log. `StdUtils.nsh` is
 included by electron-builder's shared header ahead of `installer.nsh`, so it is
 available in both the installer and the uninstaller pass; the plug-in hard-codes
-`SW_SHOWNORMAL`, so the helper's console window is visible while it works.
+`SW_SHOWNORMAL`, which needs the helper to be a windowed-subsystem executable —
+one with no window ever shows nothing, rather than the console flash an
+earlier build had.
 
 The ten translations live in `assets/nsis/engine-strings.nsh`, pulled in with
 `!include /CHARSET=UTF8`. That is load-bearing: electron-builder passes
