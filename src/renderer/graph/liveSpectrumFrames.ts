@@ -284,6 +284,27 @@ export const createFrameBuffers = (): IFrameBuffers => {
 export const NO_POINTS: IChartPointData[] = [];
 export const NO_WAVEFORM: number[] = [];
 
+/**
+ * The shape of silence: the analyser's own axis, every band at the floor.
+ *
+ * A capture that has nothing to report publishes `NO_POINTS`, and a drawing
+ * handed an empty array has no bands to draw and used to remove itself from the
+ * page — which is what made the visualizer vanish the instant the music
+ * stopped. This is what it draws instead. It is deliberately not an invented
+ * frame: every band reads `MIN_GAIN`, so the figure rests flat rather than
+ * moving to music that is not playing.
+ *
+ * Shared and frozen for the same reason as the empties above, and more so:
+ * silence is the one state that can last for hours, and minting three hundred
+ * and twenty objects per render through it would make an idle window the most
+ * allocating thing in the app.
+ */
+export const SILENT_POINTS: readonly IChartPointData[] = Object.freeze(
+  createFrequencyAxis(MAX_FREQUENCY * 2).map((frequency) =>
+    Object.freeze({ x: frequency, y: MIN_GAIN }),
+  ),
+);
+
 export const writeFrequencyPoints = (
   target: IChartPointData[],
   axis: number[],
