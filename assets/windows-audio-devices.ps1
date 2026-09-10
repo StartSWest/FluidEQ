@@ -23,6 +23,14 @@ public static class AquaAudioDevices
     // PKEY_FX_ModeEffectClsid (,14). Unlike the APO probe, which scans every
     // value present, the engine's effect is only ever listed in one of these
     // two, so only they are read.
+    //
+    // The helper checks three (,13 as well, PKEY_FX_StreamEffectClsid) and
+    // this probe checks two, and they agree on the only question this one
+    // asks. `plan_attach` in native/system-apo/setup/fx_list.cpp appends OUR
+    // class id to the EFX or the MFX list and to no other, so an attached
+    // endpoint always names the engine in ,15 or ,14. The helper reads ,13
+    // because it also has to carry a vendor's own stream effects across when
+    // it edits — never because the engine can be found there.
     private const string CompositeEndpointEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15";
     private const string CompositeModeEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14";
 

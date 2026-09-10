@@ -501,5 +501,19 @@ required. You can uninstall it from Windows Settings at any time."
 
       apoRemoved:
     ${EndIf}
+
+    ; The engine answer, forgotten with the engine.
+    ;
+    ; This file is what the app reads at startup to decide which engine it
+    ; writes to, and a recorded answer is obeyed without asking. Left behind
+    ; by an uninstall, it would survive into a reinstall on a machine whose
+    ; audio engine has just been removed: the installer would never put the
+    ; question, and the app would come up writing into an engine that is no
+    ; longer there. Only on a real uninstall — the ${IfNot} ${isUpdated}
+    ; above — so an update keeps the user's choice.
+    ${If} ${FileExists} "$APPDATA\FluidEQ\audio-engine.json"
+      Delete "$APPDATA\FluidEQ\audio-engine.json"
+      !insertmacro InstallLog "Removed the recorded audio engine choice."
+    ${EndIf}
   ${EndIf}
 !macroend
