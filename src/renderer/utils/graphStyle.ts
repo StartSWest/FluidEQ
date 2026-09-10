@@ -35,12 +35,21 @@ import {
   resolveBuiltInLook,
   resolveCustomLook,
 } from 'common/customLooks';
+import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId, packIdOfLook } from 'common/scenePacks';
 import {
   getCustomLook,
   getCustomLooks,
   subscribeCustomLooks,
 } from './customLooks';
+import {
+  getMemberSceneSummary,
+  getUsableMemberScene,
+  getUsableMemberScenes,
+  isMemberSceneListingLoaded,
+  subscribeMemberScenes,
+  type IUsableMemberScene,
+} from './memberScenes';
 import {
   getScenePackSummary,
   getUsableScene,
@@ -49,6 +58,7 @@ import {
   subscribeScenePacks,
   type IUsableScene,
 } from './scenePacks';
+import type { TDrawableScene } from '../graph/SceneCanvas';
 
 import { readStored, STORAGE_KEY, writeStored } from './graphStorage';
 
@@ -110,13 +120,17 @@ const rememberFormPalette = (style: GraphStyle, palette: GraphPalette) => {
  * an id survives that where a held object would go stale.
  */
 let selectedId = DEFAULT_GRAPH_LOOK_ID;
+
+/** A Plus look or a member's scene: drawn on the GPU, with no palette. */
+const isSceneLookId = (id: string) => isPremiumLookId(id) || isMemberLookId(id);
+
 const canonicalLookId = (id: string) => {
-  // Both prefixed kinds are kept as they are. This is the quiet one for the
-  // premium prefix: an unrecognised id falls through to `getGraphLook`, which
-  // answers the default for anything it does not know — so without this line
-  // every premium selection was silently rewritten to Fluid on the next launch
-  // and nothing failed anywhere.
-  if (isCustomLookId(id) || isPremiumLookId(id)) {
+  // Every prefixed kind is kept as it is. This is the quiet one for the scene
+  // prefixes: an unrecognised id falls through to `getGraphLook`, which answers
+  // the default for anything it does not know — so without this line every
+  // scene selection was silently rewritten to Fluid on the next launch and
+  // nothing failed anywhere.
+  if (isCustomLookId(id) || isSceneLookId(id)) {
     return id;
   }
   const look = getGraphLook(id);
@@ -124,11 +138,13 @@ const canonicalLookId = (id: string) => {
 };
 
 /**
- * The free look a premium selection is drawn as when the scene itself cannot
- * run — or, before the pack list has arrived, the default.
+ * The free look a scene selection is drawn as when the scene itself cannot
+ * run — or, before its list has arrived, the default.
  */
-const fallbackLookFor = (premiumId: string): IResolvedLook => {
-  const summary = getScenePackSummary(packIdOfLook(premiumId));
+const fallbackLookFor = (sceneId: string): IResolvedLook => {
+  const summary = isMemberLookId(sceneId)
+    ? getMemberSceneSummary(sceneId)
+    : getScenePackSummary(packIdOfLook(sceneId));
   return resolveBuiltInLook(
     summary
       ? getGraphLook(graphLookId(summary.fallbackStyle, 'auto'))
@@ -136,8 +152,10 @@ const fallbackLookFor = (premiumId: string): IResolvedLook => {
   );
 };
 
-/** A premium row in the picker: the scene's own id over its fallback's tuning. */
-const resolveSceneRow = (scene: IUsableScene): IResolvedLook => ({
+/** A scene's row in the picker: the scene's own id over its fallback's tuning. */
+const resolveSceneRow = (
+  scene: IUsableScene | IUsableMemberScene,
+): IResolvedLook => ({
   ...resolveBuiltInLook(getGraphLook(graphLookId(scene.fallbackStyle, 'auto'))),
   id: scene.lookId,
   label: scene.names.en,
@@ -178,7 +196,7 @@ const computeResolved = (): IResolvedLook => {
   // canvas is mounted over this value; when it cannot — no GPU, a shader that
   // will not compile, a lapsed subscription — the value it needs is already
   // what this hands it. Every failure path is "mount the 2D canvas instead".
-  if (isPremiumLookId(selectedId)) {
+  if (isSceneLookId(selectedId)) {
     return fallbackLookFor(selectedId);
   }
   // `getGraphLook` answers with the first look for anything it does not know,
@@ -242,6 +260,8 @@ export const getSelectableLooks = (
    * so the auto-cycle can never land on a row that would show nothing.
    */
   scenes: readonly IUsableScene[] = getUsableScenes(),
+  /** Scenes the member made, on the same terms: only ones that can draw. */
+  memberScenes: readonly IUsableMemberScene[] = getUsableMemberScenes(),
 ): IResolvedLook[] => {
   const selected = getGraphLook(selectedId).style;
   return [
@@ -263,6 +283,7 @@ export const getSelectableLooks = (
     ),
     ...customLooks.map(resolveCustomLook),
     ...scenes.map(resolveSceneRow),
+    ...memberScenes.map(resolveSceneRow),
   ];
 };
 
@@ -281,7 +302,7 @@ export const getSelectableLooks = (
 export const getGraphPalette = (): GraphPalette => {
   // A scene has no palette; the toggle is disabled for it, and `auto` keeps the
   // rows around it drawn the ordinary way.
-  if (isPremiumLookId(selectedId)) {
+  if (isSceneLookId(selectedId)) {
     return 'auto';
   }
   const custom = getCustomLook(selectedId);
@@ -295,7 +316,7 @@ export const getGraphPalette = (): GraphPalette => {
  * selection itself is just the form's other id.
  */
 export const setGraphPalette = (palette: GraphPalette) => {
-  if (getCustomLook(selectedId) || isPremiumLookId(selectedId)) {
+  if (getCustomLook(selectedId) || isSceneLookId(selectedId)) {
     return;
   }
   const { style } = getGraphLook(selectedId);
@@ -400,6 +421,20 @@ subscribeScenePacks(() => {
   refresh();
 });
 
+// The same for a member's scene: removed, quarantined, or Plus lapsed. Its own
+// fallback form, and only once the list has arrived.
+subscribeMemberScenes(() => {
+  if (
+    isMemberLookId(selectedId) &&
+    isMemberSceneListingLoaded() &&
+    !getUsableMemberScene(selectedId)
+  ) {
+    selectedId = fallbackLookFor(selectedId).id;
+    persistSelection();
+  }
+  refresh();
+});
+
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => {
@@ -457,7 +492,7 @@ export const useGraphPalette = () =>
 export const useIsPaletteSelectable = () =>
   useSyncExternalStore(
     subscribe,
-    () => !isCustomLookId(selectedId) && !isPremiumLookId(selectedId),
+    () => !isCustomLookId(selectedId) && !isSceneLookId(selectedId),
     () => true,
   );
 
@@ -473,10 +508,18 @@ export const useIsPaletteSelectable = () =>
  * Null while a draft is open as well: the designer edits a look's tuning, and
  * a scene has none to edit.
  */
-const selectedScene = (): IUsableScene | null =>
-  !draft && isPremiumLookId(selectedId)
-    ? (getUsableScene(packIdOfLook(selectedId)) ?? null)
-    : null;
+const selectedScene = (): TDrawableScene | null => {
+  if (draft) {
+    return null;
+  }
+  if (isPremiumLookId(selectedId)) {
+    return getUsableScene(packIdOfLook(selectedId)) ?? null;
+  }
+  if (isMemberLookId(selectedId)) {
+    return getUsableMemberScene(selectedId) ?? null;
+  }
+  return null;
+};
 
 export const useSceneLook = () =>
   useSyncExternalStore(subscribe, selectedScene, () => null);
