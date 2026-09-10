@@ -105,6 +105,8 @@ const app: Partial<Dictionary> = {
     'DSP रैक केवल लाइब्रेरी प्लेबैक में चलता है। अलग सेटअप, और Windows पुनः शुरू होता है।',
   'engine.apply': 'लागू करें',
   'engine.cancel': 'रद्द करें',
+  'engine.close': 'बंद करें',
+  'engine.switched': '{engine} पर बदल दिया गया',
   'engine.installing': 'इंजन बदला जा रहा है…',
   'engine.declined': 'Windows की अनुमति नहीं मिली, इसलिए कुछ नहीं बदला।',
   'engine.failed': 'इंजन नहीं बदला जा सका। कुछ नहीं बदला।',

@@ -244,6 +244,20 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
 }
 
+// The switch landed: the same tick the cards use for what an engine gives
+// you, in the same accent, so "done" reads in the dialog's own vocabulary.
+.engine-dialog__now--switched {
+  display: inline-flex;
+  align-items: center;
+  color: $secondary-light;
+  gap: 6px;
+
+  .engine-dialog__mark {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+}
+
 // `auto` and not `space-between`: with the "Now" line absent on a first run,
 // space-between leaves Cancel and Apply hard against the left edge.
 .engine-dialog__actions {

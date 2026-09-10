@@ -166,6 +166,52 @@ describe('AudioEngineDialog', () => {
     expect(screen.getByText('the helper did not run')).toBeInTheDocument();
   });
 
+  // The dialog stays open after a switch so the two engines can be compared
+  // back to back. What it has to do then: say the switch landed, stop
+  // offering a Cancel there is nothing left to cancel, and put the focus
+  // somewhere other than the Apply button that has just gone grey.
+  it('says the switch landed and offers Close, ready for the next one', async () => {
+    const onApply = jest.fn().mockResolvedValue(undefined);
+    const onCancel = jest.fn();
+    const { rerender } = render(
+      <AudioEngineDialog
+        status={status({ engine: 'fluid' })}
+        onApply={onApply}
+        onCancel={onCancel}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Equalizer APO/ }));
+    fireEvent.click(applyButton());
+    const switched = en['engine.switched'].replace(
+      '{engine}',
+      en['engine.apo.name'],
+    );
+    expect(await screen.findByText(switched)).toBeInTheDocument();
+
+    // What the parent does after a successful switch: re-read the status.
+    rerender(
+      <AudioEngineDialog
+        status={status({ engine: 'apo' })}
+        onApply={onApply}
+        onCancel={onCancel}
+      />,
+    );
+    const close = screen.getByRole('button', { name: en['engine.close'] });
+    expect(close).toHaveFocus();
+    expect(
+      screen.queryByRole('button', { name: en['engine.cancel'] }),
+    ).not.toBeInTheDocument();
+    expect(applyButton()).toBeDisabled();
+
+    // The other engine is one click away, and choosing it re-arms Apply.
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    expect(applyButton()).toBeEnabled();
+
+    fireEvent.click(close);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
   it('puts the loud style on the recommendation and the quiet one on the decline', () => {
     render(
       <AudioEngineDialog

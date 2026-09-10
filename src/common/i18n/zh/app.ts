@@ -102,6 +102,8 @@ const app: Partial<Dictionary> = {
     'DSP 机架仅在媒体库播放时生效。需单独安装，且 Windows 会重启。',
   'engine.apply': '应用',
   'engine.cancel': '取消',
+  'engine.close': '关闭',
+  'engine.switched': '已切换到 {engine}',
   'engine.installing': '正在切换引擎…',
   'engine.declined': 'Windows 授权被拒绝，因此没有任何更改。',
   'engine.failed': '无法切换引擎，没有任何更改。',

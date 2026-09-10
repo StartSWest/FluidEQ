@@ -107,6 +107,8 @@ const app: Partial<Dictionary> = {
     'Il rack DSP funziona solo nella riproduzione della Libreria. Installazione a parte e Windows si riavvia.',
   'engine.apply': 'Applica',
   'engine.cancel': 'Annulla',
+  'engine.close': 'Chiudi',
+  'engine.switched': 'Passato a {engine}',
   'engine.installing': 'Cambio del motore…',
   'engine.declined':
     'Il permesso di Windows è stato negato, quindi non è cambiato nulla.',

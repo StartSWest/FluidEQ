@@ -1647,7 +1647,11 @@ const AppContent = () => {
     notifyAudioEngineChanged();
     await refreshEngineStatus();
     performHealthCheck();
-    setShowEngineDialog(false);
+    // The dialog stays open: comparing the two engines is done by switching
+    // back and forth while something plays, and a dialog that closed on
+    // every Apply made each comparison a trip through the menu. The blocking
+    // first-run copy still goes away by itself, because choosing an engine
+    // is what un-blocks it.
   };
 
   const handleApoAction = (action: TApoAction) => {

@@ -164,11 +164,20 @@ const AudioEngineDialog = ({
    * switched, which sent the diagnosis to a file nobody knew to open.
    */
   const [failureDetail, setFailureDetail] = useState<string | undefined>();
+  /**
+   * The engine the last Apply switched to, while the dialog stays open for
+   * the next comparison. Without it the only sign of a switch was the "Now"
+   * line changing one word, and Apply going grey — which reads as the
+   * button having broken rather than as the job being done.
+   */
+  const [switchedTo, setSwitchedTo] = useState<TAudioEngine | undefined>();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const closeRef = useRef<HTMLButtonElement>(null);
   // Applying resolves after a Windows permission prompt, which the dialog may
-  // not outlive: the parent closes it on success. Writing state into an
-  // unmounted tree is a warning that trains people to ignore warnings.
+  // not outlive: the blocking first-run copy unmounts the moment an engine is
+  // chosen. Writing state into an unmounted tree is a warning that trains
+  // people to ignore warnings.
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -292,6 +301,7 @@ const AudioEngineDialog = ({
     setIsApplying(true);
     setFailure(undefined);
     setFailureDetail(undefined);
+    setSwitchedTo(undefined);
     try {
       await onApply(selected);
     } catch (error) {
@@ -308,8 +318,18 @@ const AudioEngineDialog = ({
     }
     if (mounted.current) {
       setIsApplying(false);
+      setSwitchedTo(selected);
     }
   };
+
+  // Apply goes grey the moment the engine it names is the running one, and
+  // the focus it held goes with it — to the page behind the dialog. Close is
+  // the next thing anybody presses after a switch, so that is where it lands.
+  useEffect(() => {
+    if (switchedTo) {
+      closeRef.current?.focus();
+    }
+  }, [switchedTo]);
 
   const currentName = status.engine
     ? engineDisplayName(status.engine, t)
@@ -400,22 +420,36 @@ const AudioEngineDialog = ({
 
         <div className="engine-dialog__foot">
           <div className="engine-dialog__footer">
-            {(isApplying || currentName) && (
-              <p className="engine-dialog__now">
-                {isApplying
-                  ? t('engine.installing')
-                  : t('engine.now', { engine: currentName ?? '' })}
+            {switchedTo && !isApplying ? (
+              <p
+                className="engine-dialog__now engine-dialog__now--switched"
+                role="status"
+              >
+                <Mark kind="yes" />
+                {t('engine.switched', {
+                  engine: engineDisplayName(switchedTo, t),
+                })}
               </p>
+            ) : (
+              (isApplying || currentName) && (
+                <p className="engine-dialog__now">
+                  {isApplying
+                    ? t('engine.installing')
+                    : t('engine.now', { engine: currentName ?? '' })}
+                </p>
+              )
             )}
             <div className="engine-dialog__actions">
               {onCancel && (
                 <button
+                  ref={closeRef}
                   type="button"
                   className="button small subtle"
                   disabled={isApplying}
                   onClick={onCancel}
                 >
-                  {t('engine.cancel')}
+                  {/* Nothing is left to cancel once a switch has landed. */}
+                  {t(switchedTo ? 'engine.close' : 'engine.cancel')}
                 </button>
               )}
               {/* Not disabled while it works: `is-running` is the app's way of

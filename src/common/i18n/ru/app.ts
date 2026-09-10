@@ -107,6 +107,8 @@ const app: Partial<Dictionary> = {
     'Стойка DSP работает только при воспроизведении из Библиотеки. Отдельная установка, Windows перезагружается.',
   'engine.apply': 'Применить',
   'engine.cancel': 'Отмена',
+  'engine.close': 'Закрыть',
+  'engine.switched': 'Переключено на {engine}',
   'engine.installing': 'Смена движка…',
   'engine.declined':
     'Разрешение Windows отклонено, поэтому ничего не изменилось.',

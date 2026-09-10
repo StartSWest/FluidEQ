@@ -105,6 +105,8 @@ const app: Partial<Dictionary> = {
     'Das DSP-Rack läuft nur in der Wiedergabe der Bibliothek. Eigene Einrichtung, und Windows startet neu.',
   'engine.apply': 'Übernehmen',
   'engine.cancel': 'Abbrechen',
+  'engine.close': 'Schließen',
+  'engine.switched': 'Umgestellt auf {engine}',
   'engine.installing': 'Engine wird gewechselt…',
   'engine.declined':
     'Die Windows-Berechtigung wurde abgelehnt, es hat sich nichts geändert.',

@@ -102,6 +102,8 @@ const app = {
     'DSP rack works in Library playback only. Separate setup, Windows restarts.',
   'engine.apply': 'Apply',
   'engine.cancel': 'Cancel',
+  'engine.close': 'Close',
+  'engine.switched': 'Switched to {engine}',
   'engine.installing': 'Switching the engine…',
   'engine.declined': 'Windows permission was declined, so nothing changed.',
   'engine.failed': 'The engine could not be switched. Nothing changed.',

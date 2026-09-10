@@ -108,6 +108,8 @@ const app: Partial<Dictionary> = {
     'Le rack DSP ne fonctionne que dans la lecture de la Bibliothèque. Installation à part, et Windows redémarre.',
   'engine.apply': 'Appliquer',
   'engine.cancel': 'Annuler',
+  'engine.close': 'Fermer',
+  'engine.switched': 'Passé à {engine}',
   'engine.installing': 'Changement de moteur…',
   'engine.declined': 'L’autorisation Windows a été refusée : rien n’a changé.',
   'engine.failed': 'Le moteur n’a pas pu être changé. Rien n’a changé.',

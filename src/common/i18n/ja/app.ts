@@ -105,6 +105,8 @@ const app: Partial<Dictionary> = {
     'DSP ラックはライブラリ再生でのみ動作します。別途セットアップが必要で、Windows は再起動します。',
   'engine.apply': '適用',
   'engine.cancel': 'キャンセル',
+  'engine.close': '閉じる',
+  'engine.switched': '{engine} に切り替えました',
   'engine.installing': 'エンジンを切り替えています…',
   'engine.declined': 'Windows の許可が拒否されたため、何も変更されていません。',
   'engine.failed':
