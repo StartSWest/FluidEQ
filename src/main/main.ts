@@ -69,6 +69,7 @@ import {
 import { TAudioEngine } from '../common/audioEngine';
 import {
   loadAudioEnginePreference,
+  migrateAudioEnginePreference,
   saveAudioEnginePreference,
 } from './audioEngineStore';
 import { neutraliseEngine } from './engineNeutralise';
@@ -3116,20 +3117,21 @@ const onAppReady = async () => {
   // a health check — which is the first flush of the launch and must already
   // know where to write.
   //
-  // An install that predates the engine had Equalizer APO and no preference
-  // file, and must keep working with nothing asked and nothing changed: APO
-  // present means 'apo', written down so the question is settled once. Off
-  // Windows neither engine is really installable and both resolve to the same
-  // sandbox directory, so 'apo' is the honest answer there too. Only a fresh
-  // Windows machine with no APO stays `null`, which is the state the first-run
-  // dialog exists to answer.
+  // The rule itself lives in `migrateAudioEnginePreference`, where it can be
+  // held to all four of its cells; this is the machine it is asked about.
+  // The registry probe is only run when the file has no answer — a recorded
+  // preference is obeyed whatever the machine looks like.
   const enginePreference = loadAudioEnginePreference(userDataDir);
-  session.audioEngine =
-    enginePreference.engine ??
-    (process.platform !== 'win32' || (await isEqualizerAPOInstalled())
-      ? 'apo'
-      : null);
-  if (enginePreference.engine === null && session.audioEngine === 'apo') {
+  const isWindows = process.platform === 'win32';
+  const migration = migrateAudioEnginePreference(enginePreference, {
+    isWindows,
+    apoInstalled:
+      enginePreference.engine === null && isWindows
+        ? await isEqualizerAPOInstalled()
+        : false,
+  });
+  session.audioEngine = migration.engine;
+  if (migration.persist) {
     try {
       saveAudioEnginePreference(userDataDir, 'apo');
     } catch (error) {

@@ -64,6 +64,47 @@ export const loadAudioEnginePreference = (
   }
 };
 
+/** What the machine looks like, for the migration rule below. */
+export interface IAudioEngineFacts {
+  isWindows: boolean;
+  apoInstalled: boolean;
+}
+
+/** The engine this launch uses, and whether the answer is worth recording. */
+export interface IAudioEngineMigration {
+  engine: TAudioEngine | null;
+  persist: boolean;
+}
+
+/**
+ * The engine a launch runs on, from the file and the machine.
+ *
+ * A rule rather than four lines inside `onAppReady`, because it is the one
+ * decision at startup that can silently move an existing install onto the
+ * wrong engine and there was nothing exercising it:
+ *
+ * - A file that names an engine is obeyed, and nothing is written back.
+ * - No file, Equalizer APO present: an install that predates the FluidEQ
+ *   Engine keeps working with nothing asked and nothing changed, and the
+ *   answer is written down so the question is settled once.
+ * - No file, no Equalizer APO, on Windows: `null` — the state the first-run
+ *   dialog exists to answer, and nothing is written until it is answered.
+ * - Off Windows neither engine is really installable and both resolve to the
+ *   same sandbox directory, so `'apo'` is the honest answer there too.
+ */
+export const migrateAudioEnginePreference = (
+  preference: IAudioEnginePreference,
+  facts: IAudioEngineFacts,
+): IAudioEngineMigration => {
+  if (preference.engine !== null) {
+    return { engine: preference.engine, persist: false };
+  }
+  if (!facts.isWindows || facts.apoInstalled) {
+    return { engine: 'apo', persist: true };
+  }
+  return { engine: null, persist: false };
+};
+
 export const saveAudioEnginePreference = (
   userDataDir: string,
   engine: TAudioEngine | null,

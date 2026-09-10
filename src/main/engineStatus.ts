@@ -162,8 +162,12 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
  * crosses this, further chunks are dropped and the result is treated as
  * unreadable rather than let a runaway or hostile helper grow the buffer
  * without bound.
+ *
+ * stderr is held to the same cap. It is drained so a chatty child cannot
+ * block on a full pipe, and draining it into an unbounded string is the same
+ * unbounded buffer under another name.
  */
-const MAX_STDOUT_BYTES = 1024 * 1024;
+const MAX_OUTPUT_BYTES = 1024 * 1024;
 
 /**
  * Runs the helper's `status` command — never elevates, never throws.
@@ -180,6 +184,7 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
     let stdoutBytes = 0;
     let stdoutOverflowed = false;
     let stderr = '';
+    let stderrBytes = 0;
     let settled = false;
 
     const child = execFile(getEngineSetupPath(), ['status'], {
@@ -191,7 +196,7 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         return;
       }
       stdoutBytes += Buffer.byteLength(chunk);
-      if (stdoutBytes > MAX_STDOUT_BYTES) {
+      if (stdoutBytes > MAX_OUTPUT_BYTES) {
         stdoutOverflowed = true;
         return;
       }
@@ -200,8 +205,15 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
 
     // Drained for the same reason `runEngineSetup` drains it: a chatty child
     // must never be able to block on a full stderr pipe just because nothing
-    // here reads it.
+    // here reads it. Kept reading past the cap, retained only up to it.
     child.stderr?.on('data', (chunk: Buffer | string) => {
+      if (stderrBytes > MAX_OUTPUT_BYTES) {
+        return;
+      }
+      stderrBytes += Buffer.byteLength(chunk);
+      if (stderrBytes > MAX_OUTPUT_BYTES) {
+        return;
+      }
       stderr += chunk.toString();
     });
 
@@ -270,18 +282,20 @@ const probeApoInstalled = async (): Promise<boolean> => {
  * read: the fluid status comes from the setup helper and the APO status
  * from the registry, neither of which lives under `userData`.
  *
- * The APO registry probe is skipped under `'fluid'`: an EqualizerAPO install
- * that has nothing to do with the chosen engine is not this app's business
- * to report on, and `isEqualizerAPOInstalled` is one more `regedit` round
- * trip the fluid-only path has no reason to pay for.
+ * Equalizer APO is probed whatever the current engine is. Skipping it under
+ * `'fluid'` reported `apo.installed: false` on a machine that has Equalizer
+ * APO installed, and the "switch back to Equalizer APO" path reads exactly
+ * that field to decide whether to run APO's installer — so every switch back
+ * re-ran the installer and asked for a reboot. One `regedit` round trip on a
+ * screen the user has deliberately opened is the cheaper side of that trade.
+ * The ordinary flush path still never asks this question under `'fluid'`.
  */
 export const readAudioEngineStatus = async (
   _userDataDir: string,
   engine: TAudioEngine | null,
 ): Promise<IAudioEngineStatus> => {
-  const shouldProbeApo = engine === 'apo' || engine === null;
   const [apoInstalled, fluid] = await Promise.all([
-    shouldProbeApo ? probeApoInstalled() : Promise.resolve(false),
+    probeApoInstalled(),
     readFluidEngineStatus(),
   ]);
   return {

@@ -144,13 +144,35 @@ describe('reading the combined audio engine status', () => {
     fakeChild.emit('close', 0);
   };
 
-  it('never probes Equalizer APO when the engine is fluid', async () => {
+  /**
+   * The probe used to be skipped under `'fluid'`, which reported Equalizer
+   * APO as absent on machines that have it — and the switch back to Equalizer
+   * APO reads that field to decide whether to run APO's installer, so it ran
+   * every time and asked for a reboot.
+   */
+  it('probes Equalizer APO even when the engine is fluid', async () => {
+    isEqualizerAPOInstalledSpy.mockResolvedValueOnce(true);
+
     const promise = readAudioEngineStatus('C:\\userData', 'fluid');
     resolveChild();
     const status = await promise;
 
-    expect(isEqualizerAPOInstalledSpy).not.toHaveBeenCalled();
+    expect(isEqualizerAPOInstalledSpy).toHaveBeenCalledTimes(1);
     expect(status.engine).toBe('fluid');
+    expect(status.apo).toEqual({ installed: true });
+  });
+
+  it('folds a failed probe under fluid to not installed', async () => {
+    isEqualizerAPOInstalledSpy.mockRejectedValueOnce(
+      new Error('registry read failed'),
+    );
+
+    const promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    resolveChild();
+
+    await expect(promise).resolves.toEqual(
+      expect.objectContaining({ apo: { installed: false } }),
+    );
   });
 
   it('probes Equalizer APO when the engine is apo', async () => {

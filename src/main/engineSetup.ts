@@ -186,8 +186,13 @@ export const parseEngineSetupOutput = (
  * accumulated stdout crosses this, further chunks are dropped and the result
  * is treated as a parse failure rather than let a runaway helper grow the
  * buffer forever.
+ *
+ * The same cap applies to stderr, which had none: it is drained so a chatty
+ * child cannot block on a full pipe, and "drained without bound" is the same
+ * unbounded buffer with a different name — one this process would go on
+ * holding for a helper that never stops writing.
  */
-const MAX_STDOUT_BYTES = 1024 * 1024;
+const MAX_OUTPUT_BYTES = 1024 * 1024;
 
 /**
  * Runs one setup command and resolves with what happened — never rejects.
@@ -213,6 +218,7 @@ export const runEngineSetup = (
     let stdoutBytes = 0;
     let stdoutOverflowed = false;
     let stderr = '';
+    let stderrBytes = 0;
     let settled = false;
 
     const child = execFile(exePath, [command, ...args], {
@@ -224,13 +230,23 @@ export const runEngineSetup = (
         return;
       }
       stdoutBytes += Buffer.byteLength(chunk);
-      if (stdoutBytes > MAX_STDOUT_BYTES) {
+      if (stdoutBytes > MAX_OUTPUT_BYTES) {
         stdoutOverflowed = true;
         return;
       }
       stdout += chunk.toString();
     });
+    // Kept reading past the cap — the pipe still has to drain — but nothing
+    // over it is retained. Only the first megabyte can reach the log, which
+    // is already more of a helper's complaint than anyone will read.
     child.stderr?.on('data', (chunk: Buffer | string) => {
+      if (stderrBytes > MAX_OUTPUT_BYTES) {
+        return;
+      }
+      stderrBytes += Buffer.byteLength(chunk);
+      if (stderrBytes > MAX_OUTPUT_BYTES) {
+        return;
+      }
       stderr += chunk.toString();
     });
 

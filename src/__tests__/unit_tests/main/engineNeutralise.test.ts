@@ -35,6 +35,8 @@ import { neutraliseEngine } from '../../../main/engineNeutralise';
 import { flushPendingWrites, forgetPath } from '../../../main/asyncWriter';
 // eslint-disable-next-line import/first
 import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';
+// eslint-disable-next-line import/first
+import { FLUID_ENGINE_DSP_FILENAME } from '../../../common/audioEngine';
 
 const installed = isEngineInstalled as jest.MockedFunction<
   typeof isEngineInstalled
@@ -71,7 +73,10 @@ describe('neutralising the engine that is not in use', () => {
 
   afterEach(async () => {
     await flushPendingWrites().catch(() => undefined);
-    forgetPath(path.join(root, 'config', FLUIDEQ_CONFIG_FILENAME));
+    ['config', 'fluid-config', 'apo-config'].forEach((dir) => {
+      forgetPath(path.join(root, dir, FLUIDEQ_CONFIG_FILENAME));
+      forgetPath(path.join(root, dir, FLUID_ENGINE_DSP_FILENAME));
+    });
     fs.rmSync(root, { recursive: true, force: true });
   });
 
@@ -104,5 +109,49 @@ describe('neutralising the engine that is not in use', () => {
     );
     expect(written).not.toMatch(/^Device:/m);
     expect(written).not.toMatch(/^Include:/m);
+  });
+
+  /**
+   * The rack file has no `Device:` guard in the DLL, so a neutral root leaves
+   * it running: the maximizer, the bass engine and the linear-phase delay
+   * stayed on every output after a switch to Equalizer APO.
+   */
+  it('deletes the DSP rack file when the engine being left is the FluidEQ Engine', async () => {
+    const configDir = path.join(root, 'fluid-config');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
+      '# FluidEQ Engine DSP chain v1\r\n1 2 3\r\n',
+      'utf8',
+    );
+    installed.mockResolvedValue(true);
+    configPath.mockResolvedValue(configDir);
+
+    const outcome = await neutraliseEngine('fluid', SETTINGS, () => presets);
+    await flushPendingWrites();
+
+    expect(outcome).toBe('written');
+    expect(fs.existsSync(path.join(configDir, FLUID_ENGINE_DSP_FILENAME))).toBe(
+      false,
+    );
+    const written = fs.readFileSync(
+      path.join(configDir, FLUIDEQ_CONFIG_FILENAME),
+      'utf8',
+    );
+    expect(written).not.toMatch(/^Device:/m);
+  });
+
+  it('leaves a rack file alone when the engine being left is Equalizer APO', async () => {
+    const configDir = path.join(root, 'apo-config');
+    fs.mkdirSync(configDir, { recursive: true });
+    const strayPath = path.join(configDir, FLUID_ENGINE_DSP_FILENAME);
+    fs.writeFileSync(strayPath, 'not ours\r\n', 'utf8');
+    installed.mockResolvedValue(true);
+    configPath.mockResolvedValue(configDir);
+
+    await neutraliseEngine('apo', SETTINGS, () => presets);
+    await flushPendingWrites();
+
+    expect(fs.existsSync(strayPath)).toBe(true);
   });
 });

@@ -30,13 +30,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * The cure is one write into the other engine's directory, at the moment of
  * the switch and never again: the same root file the disabled state produces
  * — two comment lines, no `Device:` block, no `Include:` — which is what
- * both engines read as "nothing to do".
+ * both engines read as "nothing to do"; plus, for the FluidEQ Engine, the
+ * deletion of its DSP rack file, which no `Device:` guard covers.
  */
 
+import fs from 'fs';
+import path from 'path';
+import log from 'electron-log';
 import { IDeviceProfileSettings } from '../common/constants';
-import { TAudioEngine } from '../common/audioEngine';
+import { FLUID_ENGINE_DSP_FILENAME, TAudioEngine } from '../common/audioEngine';
 import { flushDeviceProfiles, TPresetDirForDevice } from './deviceProfiles';
+import { forgetPath } from './asyncWriter';
 import { getConfigPath, isEngineInstalled } from './registry';
+
+/**
+ * Delete the FluidEQ Engine's DSP rack file out of a directory.
+ *
+ * The neutral root above stops the EQ, but it cannot stop the rack: the
+ * engine DLL reads `fluideq-dsp.txt` before the config tree and outside every
+ * `Device:` guard (`resolve_chain` in `native/system-apo/src/config.cpp`), so
+ * a root with no `Device:` block leaves the maximizer, the bass engine and
+ * the linear-phase delay running on every output. The sweep in
+ * `deviceProfiles.ts` does not reach it either — the rack file is not one of
+ * the `fluideq-<id>-<feature>.txt` names that sweep matches. The DLL reads a
+ * missing file as "no rack", so deleting it is the whole cure.
+ *
+ * `forgetPath` because the rack goes through the coalescing writer, which
+ * would otherwise skip the next identical write against a file that is no
+ * longer there.
+ */
+const removeDspRackFile = (configDirPath: string): void => {
+  const rackPath = path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME);
+  try {
+    fs.rmSync(rackPath, { force: true });
+    forgetPath(rackPath);
+  } catch (error) {
+    // A rack file we cannot delete is one that keeps processing: worth a line
+    // in the log, but not a reason to abandon the rest of the switch.
+    log.error(
+      `Could not remove the FluidEQ Engine DSP rack file at ${rackPath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+};
 
 /**
  * Write the neutral root into `other`'s directory, only if `other` is
@@ -72,5 +109,10 @@ export const neutraliseEngine = async (
     false,
     undefined,
   );
+  // Only the FluidEQ Engine reads a rack file; Equalizer APO's directory
+  // never has one, so there is nothing to delete when `other` is `'apo'`.
+  if (other === 'fluid') {
+    removeDspRackFile(configDirPath);
+  }
   return 'written';
 };

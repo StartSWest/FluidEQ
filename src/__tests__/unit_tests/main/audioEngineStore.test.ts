@@ -28,6 +28,7 @@ import os from 'os';
 import path from 'path';
 import {
   loadAudioEnginePreference,
+  migrateAudioEnginePreference,
   saveAudioEnginePreference,
 } from 'main/audioEngineStore';
 import { AUDIO_ENGINE_FILENAME } from 'common/audioEngine';
@@ -99,5 +100,56 @@ describe('the audio engine preference file', () => {
       version: 1,
       engine: null,
     });
+  });
+});
+
+/**
+ * The startup rule that decides which engine an existing install runs on.
+ *
+ * It ran on every launch with nothing exercising it, and it is the one place
+ * that can quietly move a working install onto the other engine — or write a
+ * choice the user was never asked for.
+ */
+describe('migrating the audio engine preference at startup', () => {
+  it('obeys a recorded choice and records nothing', () => {
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: 'fluid' },
+        { isWindows: true, apoInstalled: true },
+      ),
+    ).toEqual({ engine: 'fluid', persist: false });
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: 'apo' },
+        { isWindows: true, apoInstalled: false },
+      ),
+    ).toEqual({ engine: 'apo', persist: false });
+  });
+
+  it('settles an install that predates the engine on Equalizer APO', () => {
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: null },
+        { isWindows: true, apoInstalled: true },
+      ),
+    ).toEqual({ engine: 'apo', persist: true });
+  });
+
+  it('leaves a fresh Windows machine unanswered for the first-run dialog', () => {
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: null },
+        { isWindows: true, apoInstalled: false },
+      ),
+    ).toEqual({ engine: null, persist: false });
+  });
+
+  it('answers Equalizer APO off Windows, where both engines are the same sandbox', () => {
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: null },
+        { isWindows: false, apoInstalled: false },
+      ),
+    ).toEqual({ engine: 'apo', persist: true });
   });
 });
