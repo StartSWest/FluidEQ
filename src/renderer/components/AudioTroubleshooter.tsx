@@ -59,6 +59,16 @@ interface IAudioTroubleshooterProps {
   /** Re-registers the FluidEQ Engine and re-attaches every output. */
   onEnableEngine: () => void;
   /**
+   * Takes the engine off the output Windows is currently playing through,
+   * restoring whatever effect chain it replaced.
+   *
+   * The only way out of the engine that does not mean switching engines: a
+   * user handing one output back to another audio tool, or proving to
+   * themselves that a fault is or is not ours, had no control anywhere in the
+   * app that did it.
+   */
+  onRemoveEngineFromOutput: () => void;
+  /**
    * The label for that step, translated by the shell.
    *
    * Handed in rather than looked up here because this file's own copy is
@@ -73,7 +83,12 @@ interface IStep {
   /** The symptom this one actually addresses. */
   when: string;
   cost: string;
-  action?: { label: string; run: () => void };
+  /**
+   * `quiet` is for a step that removes something rather than repairing it:
+   * the panel recommends its repairs, so an undo must not wear their
+   * emphasis.
+   */
+  action?: { label: string; run: () => void; quiet?: boolean };
   detail?: ReactNode;
 }
 
@@ -84,6 +99,7 @@ export default function AudioTroubleshooter({
   onReconfigure,
   onReinstallApo,
   onEnableEngine,
+  onRemoveEngineFromOutput,
   enableEngineLabel,
 }: IAudioTroubleshooterProps) {
   // Which steps have been tried, so somebody working down the list can see
@@ -185,6 +201,22 @@ export default function AudioTroubleshooter({
         'reboot.',
       action: { label: enableEngineLabel, run: onEnableEngine },
     },
+    {
+      title: `Remove the ${PRODUCT_NAME} Engine from this output`,
+      when:
+        'This one output is wrong in a way none of the above fixes, or you ' +
+        'want to hand it back to another audio program. The engine comes off ' +
+        'the output Windows is playing through right now, and whatever it ' +
+        'replaced goes back on.',
+      cost:
+        'Windows asks for permission, and audio restarts for a moment. Your ' +
+        'other outputs are untouched, and the step above puts it back.',
+      action: {
+        label: 'Remove from this output',
+        run: onRemoveEngineFromOutput,
+        quiet: true,
+      },
+    },
   ];
 
   // Neither engine's own repairs while the status is not known yet: showing
@@ -260,7 +292,11 @@ export default function AudioTroubleshooter({
               {step.action && (
                 <button
                   type="button"
-                  className="troubleshoot__action"
+                  className={
+                    step.action.quiet
+                      ? 'troubleshoot__action troubleshoot__action--quiet'
+                      : 'troubleshoot__action'
+                  }
                   onClick={() => {
                     setTried((was) => ({ ...was, [index]: true }));
                     step.action?.run();

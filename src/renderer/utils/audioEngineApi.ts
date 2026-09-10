@@ -173,3 +173,31 @@ export const prereqBannerEngine = (
   }
   return status?.engine === 'fluid' ? 'fluid' : 'apo';
 };
+
+/** What applying an engine choice has to install first, if anything. */
+export interface IEngineInstallsNeeded {
+  fluid: boolean;
+  apo: boolean;
+}
+
+/**
+ * Whether applying `engine` needs its installer run first.
+ *
+ * Pure, and fed a status read at the moment of the decision rather than the
+ * one the window happened to be holding: the status the dialog was opened
+ * with said Equalizer APO was not installed on every machine running the
+ * FluidEQ Engine (the probe used to be skipped under `'fluid'`), so switching
+ * back re-ran Equalizer APO's installer and asked for a reboot on a machine
+ * that already had it.
+ *
+ * A status that could not be read at all is treated as "nothing to install":
+ * running an installer on a guess is the expensive mistake, and the engine
+ * that is genuinely missing reports itself again through the blocking banner.
+ */
+export const engineInstallsNeeded = (
+  engine: TAudioEngine,
+  status: IAudioEngineStatus | undefined,
+): IEngineInstallsNeeded => ({
+  fluid: engine === 'fluid' && status?.fluid.installed === false,
+  apo: engine === 'apo' && status?.apo.installed === false,
+});

@@ -166,6 +166,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The step that takes the engine away rather than repairing it. Every other
+// button here is something this panel is recommending; this one is here to be
+// findable, not to be pressed, so it drops the accent and keeps only the
+// outline.
+.troubleshoot__action--quiet {
+  border-color: rgba($edge-tint, 0.22);
+  background: none;
+  color: $text-muted;
+
+  &:hover {
+    border-color: rgba($edge-tint, 0.4);
+    background: rgba($white, 0.06);
+    color: $text-primary;
+  }
+}
+
 .troubleshoot__foot {
   margin: 16px 0 0;
   padding-top: 14px;

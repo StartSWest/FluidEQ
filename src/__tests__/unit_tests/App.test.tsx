@@ -38,7 +38,10 @@ import {
   claimPlayback,
   resetPlaybackOwner,
 } from '../../renderer/audio/playbackOwner';
-import { prereqBannerEngine } from '../../renderer/utils/audioEngineApi';
+import {
+  engineInstallsNeeded,
+  prereqBannerEngine,
+} from '../../renderer/utils/audioEngineApi';
 import { setGraphView } from '../../renderer/utils/graphStyle';
 
 describe('App', () => {
@@ -698,5 +701,50 @@ describe('prereqBannerEngine', () => {
     expect(prereqBannerEngine(ErrorCode.CONFIG_NOT_FOUND, undefined)).toBe(
       'apo',
     );
+  });
+});
+
+/**
+ * Applying an engine choice used to read the window's cached status, which
+ * reported Equalizer APO as absent on every machine running the FluidEQ
+ * Engine — so switching back re-ran Equalizer APO's installer and asked for a
+ * reboot on a machine that already had it. The handler now re-reads the
+ * status and feeds it to this, so the rule itself is what is tested.
+ */
+describe('engineInstallsNeeded', () => {
+  const status = (apo: boolean, fluid: boolean): IAudioEngineStatus => ({
+    engine: 'fluid',
+    apo: { installed: apo },
+    fluid: { installed: fluid, endpoints: [] },
+    fluidSupported: true,
+  });
+
+  it('installs nothing when the chosen engine is already installed', () => {
+    expect(engineInstallsNeeded('apo', status(true, true))).toEqual({
+      apo: false,
+      fluid: false,
+    });
+    expect(engineInstallsNeeded('fluid', status(true, true))).toEqual({
+      apo: false,
+      fluid: false,
+    });
+  });
+
+  it('installs only the engine being switched to', () => {
+    expect(engineInstallsNeeded('apo', status(false, false))).toEqual({
+      apo: true,
+      fluid: false,
+    });
+    expect(engineInstallsNeeded('fluid', status(false, false))).toEqual({
+      apo: false,
+      fluid: true,
+    });
+  });
+
+  it('installs nothing when the status could not be read', () => {
+    expect(engineInstallsNeeded('apo', undefined)).toEqual({
+      apo: false,
+      fluid: false,
+    });
   });
 });

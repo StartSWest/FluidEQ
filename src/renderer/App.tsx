@@ -155,6 +155,7 @@ import EuphoriaGlow from './components/EuphoriaGlow';
 import {
   createPreset,
   deletePreset,
+  getAudioDevices,
   getPresetListFromFiles,
   importConvolutionFile,
   importEqFile,
@@ -170,7 +171,10 @@ import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   attachFluidEngine,
+  detachFluidEngine,
   engineDisplayName,
+  engineInstallsNeeded,
+  getAudioEngineStatus,
   installFluidEngine,
   prereqBannerEngine,
   setAudioEngine,
@@ -1610,8 +1614,20 @@ const AppContent = () => {
    * that needs a Windows restart, so the choice is saved first and the setup
    * run after, and the config it will read is already on disk when it is.
    */
+  /**
+   * The status is re-read here rather than taken from the hook's snapshot:
+   * the dialog can have been open since before either engine was installed,
+   * and acting on a stale `installed: false` runs an installer the machine
+   * does not need — which is how switching back to Equalizer APO used to
+   * re-run its installer and ask for a reboot.
+   */
   const handleApplyAudioEngine = async (engine: TAudioEngine) => {
-    if (engine === 'fluid' && !engineStatus?.fluid.installed) {
+    const fresh = await getAudioEngineStatus().catch((error) => {
+      reportError('the audio engine status could not be read', error);
+      return undefined;
+    });
+    const needed = engineInstallsNeeded(engine, fresh);
+    if (needed.fluid) {
       const result = await installFluidEngine();
       if (result.declined) {
         throw new Error('declined');
@@ -1621,7 +1637,7 @@ const AppContent = () => {
       }
     }
     await setAudioEngine(engine);
-    if (engine === 'apo' && !engineStatus?.apo.installed) {
+    if (needed.apo) {
       await startEqualizerApoInstall();
       localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
       setShowAudioRestartRecommendation(true);
@@ -1681,6 +1697,45 @@ const AppContent = () => {
    */
   const handleTroubleshootEnableEngine = async () => {
     const result = await handleInstallFluidEngine();
+    if (!result.ok) {
+      await window.electron.ipcRenderer.showNativeMessage(
+        t(result.declined ? 'engine.declined' : 'engine.failed'),
+      );
+    }
+  };
+
+  /** One output off the engine again, with its old effect chain restored. */
+  const handleDetachFluidEngine = async (guid: string) => {
+    const result = await detachFluidEngine(guid);
+    if (result.ok) {
+      notifyAudioEngineChanged();
+      await refreshEngineStatus();
+      performHealthCheck();
+    }
+    return result;
+  };
+
+  /**
+   * The troubleshooter's "take it off this output" step.
+   *
+   * The output is resolved here rather than passed down: the troubleshooter
+   * has no device list of its own, and "this output" means the one Windows is
+   * playing through — the same device the rest of the shell is showing. An
+   * output list that cannot be read, a declined prompt and an outright
+   * failure all come back through the same native message box the Enable step
+   * uses, because this panel's steps have no inline slot for a result line.
+   */
+  const handleTroubleshootRemoveEngine = async () => {
+    const devices = await getAudioDevices().catch((error) => {
+      reportError('the audio outputs could not be read', error);
+      return undefined;
+    });
+    const current = devices?.find((device) => device.isDefault);
+    if (!current) {
+      await window.electron.ipcRenderer.showNativeMessage(t('engine.failed'));
+      return;
+    }
+    const result = await handleDetachFluidEngine(current.guid);
     if (!result.ok) {
       await window.electron.ipcRenderer.showNativeMessage(
         t(result.declined ? 'engine.declined' : 'engine.failed'),
@@ -2685,6 +2740,7 @@ const AppContent = () => {
             onReconfigure={handleConfigureEqualizerApo}
             onReinstallApo={handleReinstallApo}
             onEnableEngine={handleTroubleshootEnableEngine}
+            onRemoveEngineFromOutput={handleTroubleshootRemoveEngine}
             enableEngineLabel={t('output.enable')}
           />
         )}
