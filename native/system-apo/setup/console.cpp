@@ -21,7 +21,14 @@ namespace {
 /** A standard handle the caller actually left us, or null. */
 HANDLE inherited(DWORD which) {
   const HANDLE handle = GetStdHandle(which);
-  if (handle == INVALID_HANDLE_VALUE) {
+  // Both are "nothing was handed down", and `GetStdHandle` returns them for
+  // different reasons: NULL when the process has no such handle at all (the
+  // usual answer for a windowed-subsystem program launched from Explorer or
+  // by ShellExecute), INVALID_HANDLE_VALUE when the call itself failed. The
+  // NULL arm is redundant with what every caller compares against and is
+  // written out anyway, so this function's contract is one value rather than
+  // "null, or whatever GetStdHandle felt like".
+  if (handle == INVALID_HANDLE_VALUE || handle == nullptr) {
     return nullptr;
   }
   return handle;

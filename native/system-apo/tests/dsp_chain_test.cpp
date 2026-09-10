@@ -307,6 +307,72 @@ void a_rack_alone_is_not_a_pass_through() {
   CHECK(!graph.is_passthrough());
 }
 
+/**
+ * An EQ-only edit — a band dragged — must not restart the rack.
+ *
+ * The graph is rebuilt on every configuration change, and a rebuilt rack
+ * under linear phase is silent for 8192 frames while its kernel primes: 171 ms
+ * at 48 kHz, on every frame of a drag. `inherit_rack` keeps the running chain
+ * when the rack file has not changed by a single value.
+ */
+void an_eq_only_edit_keeps_the_rack_running() {
+  std::printf("an EQ-only edit keeps the rack chain that is already primed\n");
+  std::vector<double> values = reference_values();
+  values[kEqEnabled] = 1.0;
+  values[kEqPhase] = 1.0;  // Linear: a fresh chain is silent while it primes.
+
+  const Chain before = chain_with(values, "Preamp: 0 dB\r\n");
+  Graph running(before, kRate, 2, 480);
+  // A second of tone, so this graph is well past its own priming.
+  std::vector<std::vector<float>> primed(2, tone(1000.0, 0.5, kRate, 0));
+  run_blocks(running, primed, 480);
+
+  // The same rack file, a different EQ line: exactly the shape a band drag
+  // produces.
+  const Chain after = chain_with(values, "Preamp: -3 dB\r\n");
+  Graph inheriting(after, kRate, 2, 480);
+  Graph fresh(after, kRate, 2, 480);
+  inheriting.inherit_rack(running);
+  CHECK(inheriting.rack_is_shared_with(running));
+  CHECK(!fresh.rack_is_shared_with(running));
+
+  std::vector<std::vector<float>> through_inherited(
+      2, tone(1000.0, 0.5, 480, 0));
+  run_blocks(inheriting, through_inherited, 480);
+  std::vector<std::vector<float>> through_fresh(2, tone(1000.0, 0.5, 480, 0));
+  run_blocks(fresh, through_fresh, 480);
+
+  const double inherited_peak = peak_db(through_inherited[0], 0, 480);
+  const double fresh_peak = peak_db(through_fresh[0], 0, 480);
+  std::printf("       first block: inherited %.1f dBFS, fresh %.1f dBFS\n",
+              inherited_peak, fresh_peak);
+  // Audio comes straight out of the shared chain...
+  CHECK(inherited_peak > -20.0);
+  // ...and the control says what the alternative sounds like: a chain that
+  // starts from nothing has nothing to give for its first 8192 frames.
+  CHECK(fresh_peak < -60.0);
+}
+
+void a_changed_rack_is_never_shared() {
+  std::printf("a rack whose values changed is built fresh\n");
+  std::vector<double> values = reference_values();
+  values[kEqEnabled] = 1.0;
+  const Chain before = chain_with(values);
+  Graph running(before, kRate, 2, 480);
+
+  std::vector<double> edited = values;
+  edited[kMaximizerEnabled] = 1.0;  // One value in the rack itself.
+  Graph rebuilt(chain_with(edited), kRate, 2, 480);
+  rebuilt.inherit_rack(running);
+  CHECK(!rebuilt.rack_is_shared_with(running));
+
+  // And a rack that is identical but running at another rate: the same array
+  // builds different buffers and a different kernel there.
+  Graph other_rate(before, 44100, 2, 480);
+  other_rate.inherit_rack(running);
+  CHECK(!other_rate.rack_is_shared_with(running));
+}
+
 }  // namespace
 
 int main() {
@@ -321,5 +387,7 @@ int main() {
   linear_phase_latency_is_known_before_the_first_block();
   channels_beyond_two_pass_the_rack_by();
   a_rack_alone_is_not_a_pass_through();
+  an_eq_only_edit_keeps_the_rack_running();
+  a_changed_rack_is_never_shared();
   return report();
 }

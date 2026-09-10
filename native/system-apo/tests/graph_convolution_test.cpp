@@ -256,6 +256,52 @@ void over_long_impulse_response_is_truncated() {
   std::filesystem::remove(path, ignored);
 }
 
+/**
+ * The truncation happens before the conversion now — a long file at another
+ * rate used to be resampled whole and then thrown away down to 65536 taps —
+ * so the check that matters is that the taps that survive still land where
+ * the file put them. Cutting the input before the resampler means the last
+ * kept sample is produced from a window that has to still be full; getting
+ * that margin wrong shows up here as a tap in the wrong place, or missing.
+ */
+void long_impulse_at_another_rate_keeps_its_taps() {
+  std::printf("a long 44.1 kHz impulse is cut before it is converted\n");
+  const std::filesystem::path path =
+      std::filesystem::temp_directory_path() / "fluideq-engine-ir-long-44100.wav";
+  // Far past the 65536 taps the engine runs, at a rate that forces the
+  // conversion: without the pre-truncation this is a 300000-sample resample
+  // whose result is immediately cut to 65536.
+  std::vector<float> kernel(300000, 0.0f);
+  kernel[0] = 1.0f;
+  kernel[48] = 0.5f;
+  const Chain chain = convolution_chain(path, 44100, kernel);
+  Graph graph(chain, kRate, 1, 512);
+  CHECK(mentions(graph.warnings(), "resampl"));
+  // The file's own length, not the converted one.
+  CHECK(mentions(graph.warnings(), "300000"));
+  CHECK(mentions(graph.warnings(), "65536"));
+
+  std::vector<std::vector<float>> channels(1, std::vector<float>(2048, 0.0f));
+  channels[0][0] = 1.0f;
+  run_blocks(graph, channels, 512);
+
+  const size_t latency = graph.latency_frames();
+  const size_t expected =
+      latency + static_cast<size_t>(std::lround(48.0 * 48000.0 / 44100.0));
+  const size_t found = peak_near(channels[0], expected, 6);
+  std::printf("       second tap at %zu (target %zu +/- 1)\n", found, expected);
+  CHECK(found + 1 >= expected && found <= expected + 1);
+  // And the first tap is still where it was. Checked as a peak position
+  // rather than a sample value: the conversion spreads a single sample over
+  // the resampler's window, so the energy is at `latency` without any one
+  // sample being exactly 1.0.
+  const size_t first = peak_near(channels[0], latency, 6);
+  CHECK(first + 1 >= latency && first <= latency + 1);
+
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
+}
+
 void graphic_eq_applies() {
   std::printf("a graphic curve cuts 12 dB at 1 kHz\n");
   const Chain chain = chain_from("GraphicEQ: 20 0; 1000 -12; 20000 0\r\n");
@@ -331,6 +377,7 @@ int main() {
   convolution_and_graphic_eq_combine();
   stereo_convolvers_do_not_share_history();
   over_long_impulse_response_is_truncated();
+  long_impulse_at_another_rate_keeps_its_taps();
   graphic_eq_applies();
   unreadable_impulse_response_is_survived();
   absurd_sample_rate_caps_the_graphic_fir();

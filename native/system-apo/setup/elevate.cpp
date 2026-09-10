@@ -112,9 +112,13 @@ int relaunch_elevated(const std::vector<std::wstring>& arguments,
   request.lpVerb = L"runas";
   request.lpFile = exe.c_str();
   request.lpParameters = line.empty() ? nullptr : line.c_str();
-  // Hidden rather than SW_SHOWNORMAL: the child is a console program with
-  // nothing to show, and a console window flashing on screen in the middle of
-  // a consent prompt reads as something having gone wrong.
+  // Hidden rather than SW_SHOWNORMAL. The child is a windowed-subsystem
+  // program now (it borrows the caller's console instead of owning one), so
+  // it has no window of its own to hide — but `nShow` is also what Windows
+  // hands the child as its startup show state, and SW_HIDE is what keeps any
+  // window it or its CRT might raise off the screen during a consent prompt.
+  // The elevated child writes its answer to a file for this process to read
+  // back; nothing about it is meant to be looked at.
   request.nShow = SW_HIDE;
 
   if (ShellExecuteExW(&request) == 0) {

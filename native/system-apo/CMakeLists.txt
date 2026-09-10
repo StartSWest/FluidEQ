@@ -113,13 +113,23 @@ add_test(NAME engine-dll-process
 # decide what happens to somebody else's audio driver can be exercised on
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
-  setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp)
+  setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
+  setup/attach_outcome.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
 
 add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
+
+# The verdict a whole `--attach-all` run reaches, which is the half of the
+# loop that can be tested without a registry: one endpoint that refuses to be
+# read must not fail an install that worked everywhere else.
+add_executable(fluideq-engine-attach-outcome-test tests/attach_outcome_test.cpp)
+target_link_libraries(fluideq-engine-attach-outcome-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-attach-outcome
+  COMMAND fluideq-engine-attach-outcome-test)
 
 # Decoding the raw bytes of a registry string value, which is its own kind of
 # bug: a `REG_MULTI_SZ` whose last entry has no terminator, or whose byte count

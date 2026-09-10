@@ -52,9 +52,16 @@ void fill_entry(EXPLICIT_ACCESS_W& entry, PSID who, DWORD rights) {
   entry.Trustee.ptstrName = static_cast<LPWSTR>(who);
 }
 
-}  // namespace
-
-bool apply_engine_acl(const std::wstring& directory, std::wstring& error) {
+/**
+ * SYSTEM full, Administrators full, Users whatever `user_rights` says.
+ *
+ * The list REPLACES what was inherited (`PROTECTED_DACL_SECURITY_INFORMATION`)
+ * rather than adding to it, which is also what lets `backup\` be tighter than
+ * the root it sits inside: without the protected flag the root's inheritable
+ * "Users modify" would come straight back down into it.
+ */
+bool apply_acl(const std::wstring& directory, DWORD user_rights,
+               std::wstring& error) {
   WellKnownSid system;
   WellKnownSid administrators;
   WellKnownSid users;
@@ -69,12 +76,7 @@ bool apply_engine_acl(const std::wstring& directory, std::wstring& error) {
   EXPLICIT_ACCESS_W entries[3] = {};
   fill_entry(entries[0], system.get(), FILE_ALL_ACCESS);
   fill_entry(entries[1], administrators.get(), FILE_ALL_ACCESS);
-  // Modify, which is read, write, execute and delete — and deliberately not
-  // full control: an ordinary user has no reason to be able to rewrite the
-  // permissions on a directory the audio engine reads.
-  fill_entry(entries[2], users.get(),
-             FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE |
-                 DELETE);
+  fill_entry(entries[2], users.get(), user_rights);
 
   PACL list = nullptr;
   const DWORD built = SetEntriesInAclW(3, entries, nullptr, &list);
@@ -97,6 +99,25 @@ bool apply_engine_acl(const std::wstring& directory, std::wstring& error) {
     return false;
   }
   return true;
+}
+
+}  // namespace
+
+bool apply_engine_acl(const std::wstring& directory, std::wstring& error) {
+  // Modify, which is read, write, execute and delete — and deliberately not
+  // full control: an ordinary user has no reason to be able to rewrite the
+  // permissions on a directory the audio engine reads.
+  return apply_acl(directory,
+                   FILE_GENERIC_READ | FILE_GENERIC_WRITE |
+                       FILE_GENERIC_EXECUTE | DELETE,
+                   error);
+}
+
+bool apply_backup_acl(const std::wstring& directory, std::wstring& error) {
+  // Read, and no DELETE. See `acl.h`: a deleted backup is a detach with
+  // nothing to restore from, which leaves mirrored composite entries on a
+  // vendor's endpoint for good.
+  return apply_acl(directory, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE, error);
 }
 
 }  // namespace fluideq_engine::setup

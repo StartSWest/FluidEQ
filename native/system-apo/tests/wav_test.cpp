@@ -208,6 +208,49 @@ void oversized_data_chunk_never_reads_past_the_end() {
   CHECK(!parse_wav(wav.data(), wav.size()));
 }
 
+void a_data_chunk_past_the_cap_is_refused_on_its_claim() {
+  std::printf("a data chunk larger than the cap is refused on its claim\n");
+  std::vector<uint8_t> wav = build_wav(basic_fmt(3, 1, 48000, 32), {});
+  const char tag[4] = {'d', 'a', 't', 'a'};
+  const auto found = std::search(wav.begin(), wav.end(), tag, tag + 4);
+  CHECK(found != wav.end());
+  if (found == wav.end()) {
+    return;
+  }
+  // 128 MiB declared, with no payload behind it. The refusal has to come from
+  // the number itself — before anything is sized from it — rather than from
+  // the bounds check noticing the bytes are absent, because on a real file
+  // those bytes are present and 128 MiB of them would be read into audiodg's
+  // address space.
+  const uint32_t declared = 128u * 1024u * 1024u;
+  const size_t size_offset = static_cast<size_t>(found - wav.begin()) + 4;
+  wav[size_offset] = static_cast<uint8_t>(declared & 0xFF);
+  wav[size_offset + 1] = static_cast<uint8_t>((declared >> 8) & 0xFF);
+  wav[size_offset + 2] = static_cast<uint8_t>((declared >> 16) & 0xFF);
+  wav[size_offset + 3] = static_cast<uint8_t>((declared >> 24) & 0xFF);
+  CHECK(declared > fluideq_engine::kMaxWavBytes);
+  CHECK(!parse_wav(wav.data(), wav.size()));
+}
+
+/**
+ * The positive control for the check above: the same builder, the same
+ * parser, one sample of payload and a truthful chunk size, still read. A cap
+ * that rejected everything would pass the refusal check on its own.
+ */
+void a_file_under_the_cap_is_still_read() {
+  std::printf("a file under the cap is still read\n");
+  std::vector<uint8_t> data;
+  const float value = 0.5f;
+  uint8_t raw[4];
+  std::memcpy(raw, &value, sizeof(raw));
+  data.insert(data.end(), raw, raw + sizeof(raw));
+  const std::vector<uint8_t> wav = build_wav(basic_fmt(3, 1, 48000, 32), data);
+  const auto parsed = parse_wav(wav.data(), wav.size());
+  CHECK(parsed.has_value());
+  CHECK(parsed && parsed->mono.size() == 1);
+  CHECK(parsed && std::fabs(static_cast<double>(parsed->mono[0]) - 0.5) < 1e-6);
+}
+
 }  // namespace
 
 int main() {
@@ -218,6 +261,8 @@ int main() {
   a_20_byte_buffer_is_not_a_wav();
   unsupported_format_tag_is_refused();
   oversized_data_chunk_never_reads_past_the_end();
+  a_data_chunk_past_the_cap_is_refused_on_its_claim();
+  a_file_under_the_cap_is_still_read();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

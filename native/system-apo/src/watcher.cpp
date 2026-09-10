@@ -163,7 +163,7 @@ void Watcher::load_initial() {
     log_.write("configuration directory " + to_utf8(config_dir_) +
                " is not present; waiting for it");
   }
-  reload();
+  reload(Carry::State);
 }
 
 bool Watcher::start() {
@@ -171,6 +171,14 @@ bool Watcher::start() {
   if (stop_event_ == nullptr) {
     log_.write("could not create the stop event; configuration changes will "
                "not be picked up");
+    return false;
+  }
+  reset_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (reset_event_ == nullptr) {
+    CloseHandle(stop_event_);
+    stop_event_ = nullptr;
+    log_.write("could not create the reset event; the effect would keep its "
+               "filter state across a pipeline flush");
     return false;
   }
   unsigned id = 0;
@@ -182,6 +190,8 @@ bool Watcher::start() {
   if (handle == 0) {
     CloseHandle(stop_event_);
     stop_event_ = nullptr;
+    CloseHandle(reset_event_);
+    reset_event_ = nullptr;
     log_.write("could not start the configuration watcher; changes will not "
                "be picked up");
     return false;
@@ -204,6 +214,12 @@ void Watcher::stop() noexcept {
   if (stop_event_ != nullptr) {
     CloseHandle(stop_event_);
     stop_event_ = nullptr;
+  }
+  // After the join for the same reason the stop event is: the thread waits on
+  // it, and closing a handle a wait is standing on is undefined.
+  if (reset_event_ != nullptr) {
+    CloseHandle(reset_event_);
+    reset_event_ = nullptr;
   }
   // Only now: until the thread has joined it is still the owner of these.
   slot_.clear();
@@ -255,22 +271,28 @@ void Watcher::run() {
     if (watching_config) {
       // A write that landed between the last resolve and this notification
       // being armed would otherwise never be seen.
-      reload();
+      reload(Carry::State);
     }
 
     bool rearm = false;
-    HANDLE handles[2] = {stop_event_, change.get()};
+    HANDLE handles[3] = {stop_event_, reset_event_, change.get()};
     while (!rearm) {
-      const DWORD woke = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+      const DWORD woke = WaitForMultipleObjects(3, handles, FALSE, INFINITE);
       if (woke == WAIT_OBJECT_0) {
         return;
       }
-      if (woke != WAIT_OBJECT_0 + 1) {
+      if (woke == WAIT_OBJECT_0 + 1) {
+        // `Reset` asked for it. A fresh graph whatever the configuration says,
+        // and no state carried into it — see `request_reset`.
+        reload(Carry::Nothing);
+        continue;
+      }
+      if (woke != WAIT_OBJECT_0 + 2) {
         rearm = true;  // The handle went bad; rebuild the watch.
         break;
       }
       if (watching_config) {
-        reload();
+        reload(Carry::State);
       } else if (is_directory(config_dir_)) {
         rearm = true;  // It exists now: watch it directly instead.
         break;
@@ -281,12 +303,23 @@ void Watcher::run() {
     }
   }
 
-  // Nothing left to watch. Waiting on the stop event alone is not a poll and
-  // costs nothing; the alternative — returning — would leave `stop()` joining
-  // a thread that had already gone, which is fine, but this keeps the audio
-  // running with whatever graph was last published rather than silently
-  // abandoning the endpoint's ability to be reconfigured without a restart.
-  WaitForSingleObject(stop_event_, INFINITE);
+  // Nothing left to watch. Waiting here is not a poll and costs nothing; the
+  // alternative — returning — would leave `stop()` joining a thread that had
+  // already gone, which is fine, but this keeps the audio running with
+  // whatever graph was last published rather than silently abandoning the
+  // endpoint's ability to be reconfigured without a restart.
+  //
+  // The reset event is waited on as well: a pipeline flush must still clear
+  // the filter state on an endpoint whose configuration directory has gone.
+  HANDLE idle_handles[2] = {stop_event_, reset_event_};
+  for (;;) {
+    const DWORD woke =
+        WaitForMultipleObjects(2, idle_handles, FALSE, INFINITE);
+    if (woke != WAIT_OBJECT_0 + 1) {
+      return;  // Stop, or a wait that cannot be repeated.
+    }
+    reload(Carry::Nothing);
+  }
 }
 
 bool Watcher::stop_requested() const noexcept {
@@ -296,7 +329,18 @@ bool Watcher::stop_requested() const noexcept {
          WaitForSingleObject(stop_event_, 0) == WAIT_OBJECT_0;
 }
 
-void Watcher::reload() {
+void Watcher::request_reset() noexcept {
+  // Null before `start()` and after `stop()`. Both are states in which there
+  // is nothing to reset: no thread is running and no graph is on the audio
+  // thread. `LockForProcess`/`UnlockForProcess` and `Reset` all arrive on the
+  // audio engine's non-real-time thread, so this handle cannot be closed
+  // underneath the call.
+  if (reset_event_ != nullptr) {
+    SetEvent(reset_event_);
+  }
+}
+
+void Watcher::reload(Carry carry) {
   try {
     const FileProvider provider = [](const std::wstring& path) {
       return read_whole_file(path);
@@ -311,7 +355,10 @@ void Watcher::reload() {
     }
 
     const std::string next = signature_of(chain);
-    if (have_signature_ && next == signature_) {
+    // A reset rebuilds even when the configuration is byte-for-byte what it
+    // already was: the whole point of the rebuild is the state, not the
+    // chain.
+    if (carry == Carry::State && have_signature_ && next == signature_) {
       return;
     }
 
@@ -332,8 +379,16 @@ void Watcher::reload() {
     // do is the click that carrying them over exists to avoid. The pointer
     // itself is safe — nothing is destroyed until `publish` below, and only
     // this thread destroys anything.
-    if (const Graph* previous = slot_.active()) {
-      graph->inherit_state(*previous);
+    if (carry == Carry::State) {
+      if (Graph* previous = slot_.active()) {
+        graph->inherit_state(*previous);
+        // The rack, when the new graph asks for exactly the same one. Under
+        // linear phase a fresh `FeqChain` re-converges over about 171 ms, so
+        // an EQ-only edit — a band dragged — used to mute and rebuild the
+        // maximizer, the bass engine and the delay on every frame of the
+        // drag. See `Graph::inherit_rack`.
+        graph->inherit_rack(*previous);
+      }
     }
     log_chain(chain, *graph);
     publish(std::move(graph));

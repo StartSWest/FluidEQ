@@ -90,13 +90,54 @@ class Graph {
    * The convolvers are deliberately NOT carried: their history is a spectrum
    * partitioned against one specific kernel and means nothing to another.
    *
-   * Neither is the DSP rack, and for a harder reason: its state lives behind
-   * an opaque handle with no way to copy it, and the handle itself belongs to
-   * a graph the audio thread may still be inside. So a rack edit restarts the
-   * rack's delay lines — inaudible at the default minimum phase, and the
-   * length of the kernel under linear phase.
+   * Neither is the DSP rack: its state lives behind an opaque handle with no
+   * way to copy it. When the rack has not changed at all, `inherit_rack`
+   * takes the whole handle instead of copying anything out of it.
    */
   void inherit_state(const Graph& previous) noexcept;
+
+  /**
+   * Keep running `previous`'s rack instead of this graph's own.
+   *
+   * Only when the two racks are the same rack: identical `dsp_values`, the
+   * same sample rate, the same channel count and the same rack width. Under
+   * anything else this does nothing and the new graph keeps the chain it
+   * built.
+   *
+   * WHY IT EXISTS. A rack chain is built fresh with every graph, and a fresh
+   * chain under linear-phase EQ re-converges over 8192 frames — 171 ms at
+   * 48 kHz. But a graph is rebuilt on every configuration change, and an
+   * EQ-only edit (a band dragged) changes the configuration without touching
+   * the rack at all. So dragging one band muted and re-primed the maximizer,
+   * the bass engine and the delay on every frame of the drag, for a rack that
+   * had not changed by a single value.
+   *
+   * WHY SHARING IS SAFE, which is the part that is not obvious. The chain is
+   * held in a `shared_ptr` and both graphs hold it at once, so this is two
+   * threads' worth of reasoning:
+   *
+   * - Processing. `feq_chain_process` runs on the audio thread and there is
+   *   exactly one — the graph handover (`GraphSlot::adopt`) happens at a
+   *   block boundary on that same thread, so two graphs can never be inside
+   *   `process` at the same instant. A shared chain is therefore touched by
+   *   one caller at a time even though two objects point at it.
+   * - Destruction. Graphs are destroyed only by the watcher thread, through
+   *   `Watcher::owned_`/`reclaim`, and only once the audio thread has
+   *   completed two blocks past the publish that superseded them. So the last
+   *   `shared_ptr` release — the one that calls `feq_chain_destroy` — happens
+   *   on the watcher thread, after the audio thread has provably left both
+   *   graphs. `shared_ptr`'s own count is atomic, which covers the copy made
+   *   here against a release happening on the same thread later.
+   *
+   * MOVING the chain out of the previous graph would be wrong for the first
+   * of those reasons in reverse: the previous graph is still the active one
+   * at the moment this is called, and the audio thread can be inside its
+   * `process`.
+   */
+  void inherit_rack(const Graph& previous) noexcept;
+
+  /** Whether both graphs are running the very same rack chain object. */
+  bool rack_is_shared_with(const Graph& other) const noexcept;
 
   /** Same band count and the same types in the same order. */
   bool has_same_band_layout(const Graph& other) const noexcept;
@@ -183,8 +224,20 @@ class Graph {
    * `decode_dsp_chain`. Null whenever the app has not written a rack file,
    * the file was unreadable, or the array was not a snapshot this build's
    * decoder recognises — all of which leave the EQ below running.
+   *
+   * `shared_ptr` rather than `unique_ptr` so consecutive graphs with an
+   * identical rack can go on running the same chain rather than re-priming a
+   * new one — see `inherit_rack` for why that is safe, and for the 171 ms it
+   * saves on every band drag.
    */
-  std::unique_ptr<FeqChain, detail::ChainDeleter> rack_;
+  std::shared_ptr<FeqChain> rack_;
+  /**
+   * The array the rack was built from, kept so `inherit_rack` can tell "the
+   * same rack" from "a rack". Compared by value: the file is rewritten on
+   * every rack change, so a stamp or a pointer would say "changed" for a
+   * rewrite of identical numbers, which is exactly the case that matters.
+   */
+  std::vector<double> dsp_values_;
   // How many of `channels_` the rack actually runs on: 1 or 2, never more.
   // A stream with more carries the rest past it untouched, because the rack
   // is a stereo processor (`FEQ_CHAIN_CHANNELS`) and there is no sensible

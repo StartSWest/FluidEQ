@@ -167,7 +167,36 @@ class Watcher {
   /** Signals, joins, and destroys every graph. Safe to call more than once. */
   void stop() noexcept;
 
+  /**
+   * Ask for a graph carrying none of the previous one's state. Any thread.
+   *
+   * This is how `IAudioProcessingObject::Reset` is served. Its contract says
+   * only that it "is not real-time compliant and must not be called from a
+   * real-time processing thread" — which names the caller's thread and says
+   * nothing about the audio thread being idle meanwhile. So `Reset` may not
+   * zero a biquad history, a convolver's overlap or the rack's chain in
+   * place: every one of those is memory the audio thread can be inside at
+   * that instant, and writing it from another thread is the race this whole
+   * two-pointer handover exists to avoid.
+   *
+   * A whole new graph is the reset instead — new biquads, new convolvers, a
+   * new rack chain, all at their start-up state — handed over the same way
+   * every other rebuild is. It lands a block or two later than the call
+   * returns, which is what a flush of the audio pipeline can afford; the
+   * alternative lands sooner and corrupts state.
+   */
+  void request_reset() noexcept;
+
  private:
+  /** Whether a rebuild carries the running graph's state into its successor. */
+  enum class Carry {
+    /** An ordinary reload: histories move across so a band drag has no click. */
+    State,
+    /** A reset: nothing moves across, and the rebuild happens even if the
+        configuration is byte-for-byte what it already was. */
+    Nothing,
+  };
+
   /** A graph this object owns, and the block count when it was superseded. */
   struct Retired {
     Graph* graph;
@@ -177,7 +206,7 @@ class Watcher {
   static unsigned __stdcall thread_entry(void* self);
   void run();
   /** Resolve the config and publish a graph if anything actually changed. */
-  void reload();
+  void reload(Carry carry);
   /**
    * Whether `stop()` has already been asked for.
    *
@@ -213,6 +242,9 @@ class Watcher {
   bool have_passthrough_reason_ = false;
 
   HANDLE stop_event_ = nullptr;
+  // Auto-reset: one wake per request, and a request that arrives while a
+  // rebuild is already running is served by the next wait rather than lost.
+  HANDLE reset_event_ = nullptr;
   HANDLE thread_ = nullptr;
 };
 

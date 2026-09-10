@@ -28,6 +28,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 
+/**
+ * The largest `Convolution:` file this reader will touch: 64 MiB.
+ *
+ * There was no cap at all, and this reader runs inside audiodg.exe on
+ * whatever path a config file names. 64 MiB is about six minutes of 32-bit
+ * float mono at 48 kHz — far past any impulse response, and past the point
+ * where reading the rest could still be a service to the user rather than a
+ * hole somebody can drop a DVD image into. Bigger than this is `nullopt` and
+ * a warning line, with neither the file read off disk nor its declared
+ * `data` chunk believed.
+ */
+constexpr size_t kMaxWavBytes = 64u * 1024u * 1024u;
+
 struct WavData {
   uint32_t sample_rate;
   // First channel only. A convolution kernel is a mono impulse response;
@@ -43,6 +56,9 @@ struct WavData {
  * the read happens — a chunk whose declared size runs past the buffer
  * (truncated file, or a `data` size larger than what is actually there)
  * fails the whole parse rather than reading past `bytes + size`.
+ *
+ * A buffer, or a declared `data` chunk, past `kMaxWavBytes` is refused
+ * before anything is allocated for it.
  *
  * Accepts PCM (format tag 1) at 8/16/24/32 bits, IEEE float (tag 3) at 32/64
  * bits, and WAVE_FORMAT_EXTENSIBLE (tag 0xFFFE) whose sub-format resolves to

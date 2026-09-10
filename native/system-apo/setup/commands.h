@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
+#include "attach_outcome.h"
 #include "fx_list.h"
 
 namespace fluideq_engine::setup {
@@ -30,11 +31,6 @@ struct Options {
   bool restart_audio = false;
   bool purge = false;
   Slot slot = Slot::Efx;
-};
-
-struct EndpointResult {
-  std::wstring guid;
-  bool attached = false;
 };
 
 struct CommandResult {

@@ -210,11 +210,23 @@ STDMETHODIMP_(ULONG) Apo::Release() {
 }
 
 STDMETHODIMP Apo::Reset() {
-  // Nothing survives a reset that a reset would have to clear. The filter
-  // histories live in the graph, which is rebuilt from the configuration at
-  // the next `LockForProcess`; zeroing them here would mean touching memory
-  // the audio thread owns from a thread that does not, to remove at most one
-  // block's worth of decaying tail.
+  // Plenty survives a reset. The graph is built once per lock and kept across
+  // every stream start and stop inside it, so its biquad histories, its
+  // convolvers' overlap buffers — up to 65536 taps, over a second at 48 kHz —
+  // and the rack's own state all carry the previous stream's tail into the
+  // next one. The comment that used to sit here said the opposite and was
+  // wrong: `LockForProcess` is not called again for a flush.
+  //
+  // None of it may be zeroed from here. `Reset`'s documented contract is that
+  // it "is not real-time compliant and must not be called from a real-time
+  // processing thread" — that names the caller, and does not promise the
+  // audio thread is idle while it runs. So the reset is a whole new graph,
+  // asked of the watcher and handed over by the same two-pointer exchange as
+  // any other rebuild; it lands a block or two after this returns, which is
+  // the price of not writing state another thread may be inside.
+  if (watcher_) {
+    watcher_->request_reset();
+  }
   return S_OK;
 }
 

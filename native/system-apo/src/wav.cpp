@@ -143,7 +143,7 @@ float read_sample(const uint8_t* bytes, size_t offset, uint16_t format_tag,
 }  // namespace
 
 std::optional<WavData> parse_wav(const uint8_t* bytes, size_t size) {
-  if (bytes == nullptr || size < 12) {
+  if (bytes == nullptr || size < 12 || size > kMaxWavBytes) {
     return std::nullopt;
   }
   if (std::memcmp(bytes, "RIFF", 4) != 0 ||
@@ -164,6 +164,13 @@ std::optional<WavData> parse_wav(const uint8_t* bytes, size_t size) {
       return std::nullopt;
     }
     const size_t chunk_data = pos + 8;
+    // The cap comes before the bounds check, so a header claiming a gigabyte
+    // of samples is refused on its own claim rather than on how much of it
+    // happens to be present. Nothing is allocated from a declared size until
+    // both have passed.
+    if (*chunk_size > kMaxWavBytes) {
+      return std::nullopt;
+    }
     // The bounds check every chunk gets, `data` included: a declared size
     // that runs past the buffer fails the whole parse right here, before a
     // single byte of it is read, rather than a `data` chunk in particular
@@ -185,7 +192,14 @@ std::optional<WavData> parse_wav(const uint8_t* bytes, size_t size) {
 
     // RIFF chunks are word-aligned: an odd payload is followed by one pad
     // byte that is not part of the chunk's declared size.
-    const size_t advance = *chunk_size + (*chunk_size % 2);
+    //
+    // Widened to `size_t` before the addition: `*chunk_size` is a `uint32_t`,
+    // and a declared size of 0xFFFFFFFF plus its pad byte wraps to 0 in that
+    // type — an advance of zero on a 64-bit build is a loop that never leaves
+    // this chunk. (The bounds check above already refuses that size against
+    // any real buffer; this is the arithmetic not depending on it.)
+    const size_t advance =
+        static_cast<size_t>(*chunk_size) + (*chunk_size % 2u);
     pos = chunk_data + advance;
   }
 
@@ -243,10 +257,14 @@ std::optional<WavData> read_wav(const std::wstring& path) {
 
   LARGE_INTEGER file_size{};
   if (!GetFileSizeEx(file, &file_size) || file_size.QuadPart <= 0 ||
-      file_size.QuadPart > static_cast<LONGLONG>(UINT32_MAX)) {
+      file_size.QuadPart > static_cast<LONGLONG>(kMaxWavBytes)) {
     CloseHandle(file);
-    // Empty, or larger than a chunk size in the format this reader parses
-    // could ever truthfully describe.
+    // Empty, or past the cap. Checked against the size the file system
+    // reports rather than after reading it: this runs inside audiodg.exe on
+    // whatever path a config file names, so the file the user pointed at is
+    // never read into memory before its size has been agreed to.
+    // `kMaxWavBytes` is well under `UINT32_MAX`, so a chunk size in the
+    // format this reader parses can still describe every byte of it.
     return std::nullopt;
   }
 

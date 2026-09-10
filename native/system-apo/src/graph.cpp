@@ -144,12 +144,39 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
                                 std::vector<std::string>& warnings) {
   const std::optional<WavData> wav = read_wav(path);
   if (!wav || wav->mono.empty()) {
-    warnings.push_back("Convolution file could not be read: " + narrow(path));
+    // The size cap is named here because it is the one refusal a user can act
+    // on: the others (missing, damaged, a compressed format) are all "this is
+    // not a WAVE this engine can read", but "too large" is a file they can
+    // trim. `read_wav` cannot say which of the two it hit without growing a
+    // reason type for one caller, so the line names both.
+    warnings.push_back("Convolution file could not be read — missing, not a "
+                       "supported WAVE, or larger than " +
+                       std::to_string(kMaxWavBytes / (1024u * 1024u)) +
+                       " MiB: " + narrow(path));
     return {};
   }
 
+  const size_t source_taps = wav->mono.size();
+  bool truncated = false;
+
   std::vector<float> kernel = wav->mono;
   if (wav->sample_rate != sample_rate) {
+    // Truncated BEFORE the conversion rather than after it. A six-minute file
+    // at 44.1 kHz is sixteen million samples; converting all of them means an
+    // allocation that size and the converter's work on every one, and then
+    // all but the first 65536 are thrown away. Only the input that can still
+    // land inside `kMaxKernelTaps` at the stream's rate is converted, plus
+    // one resampler window so the last kept tap is produced from a full
+    // window rather than from an input that stops underneath it.
+    const double source_needed =
+        std::ceil(static_cast<double>(kMaxKernelTaps) *
+                  static_cast<double>(wav->sample_rate) /
+                  static_cast<double>(sample_rate)) +
+        static_cast<double>(FEQ_RESAMPLER_TAPS);
+    if (source_needed < static_cast<double>(kernel.size())) {
+      kernel.resize(static_cast<size_t>(source_needed));
+      truncated = true;
+    }
     kernel = resample_mono(kernel, static_cast<double>(wav->sample_rate),
                            static_cast<double>(sample_rate));
     // Checked, and the failure warning pushed, BEFORE the success warning
@@ -166,10 +193,17 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
                        std::to_string(sample_rate) + " Hz.");
   }
   if (kernel.size() > kMaxKernelTaps) {
-    warnings.push_back("Convolution file is " + std::to_string(kernel.size()) +
-                       " samples; only the first " +
-                       std::to_string(kMaxKernelTaps) + " are used.");
     kernel.resize(kMaxKernelTaps);
+    truncated = true;
+  }
+  // The file's own length, not the converted one: after a pre-resample
+  // truncation the converted vector is a number this engine chose, and
+  // reporting it would tell the user their file was the size of our limit.
+  if (truncated) {
+    warnings.push_back("Convolution file is " + std::to_string(source_taps) +
+                       " samples at " + std::to_string(wav->sample_rate) +
+                       " Hz; only the first " +
+                       std::to_string(kMaxKernelTaps) + " are used.");
   }
   return kernel;
 }
@@ -249,7 +283,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    */
   RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
                               max_frames_, warnings_);
-  rack_ = std::move(rack.chain);
+  rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
+  dsp_values_ = chain.dsp_values;
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
@@ -411,6 +446,28 @@ void Graph::inherit_state(const Graph& previous) noexcept {
   for (size_t at = 0; at < count; ++at) {
     states_[at] = previous.states_[at];
   }
+}
+
+void Graph::inherit_rack(const Graph& previous) noexcept {
+  // Every one of these has to hold. `dsp_values_` alone is not enough: the
+  // same array at a different sample rate or channel count builds a chain
+  // with different buffer sizes and a different kernel, and running the old
+  // one on the new stream would be the wrong filter at the wrong rate.
+  if (rack_ == nullptr || previous.rack_ == nullptr ||
+      sample_rate_ != previous.sample_rate_ ||
+      channels_ != previous.channels_ ||
+      rack_channels_ != previous.rack_channels_ ||
+      dsp_values_ != previous.dsp_values_) {
+    return;
+  }
+  // The chain this graph built is released here, on the watcher thread, and
+  // was never reachable from the audio thread — this graph has not been
+  // published yet.
+  rack_ = previous.rack_;
+}
+
+bool Graph::rack_is_shared_with(const Graph& other) const noexcept {
+  return rack_ != nullptr && rack_ == other.rack_;
 }
 
 bool Graph::has_same_band_layout(const Graph& other) const noexcept {

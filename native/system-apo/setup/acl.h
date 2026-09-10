@@ -30,6 +30,29 @@ namespace fluideq_engine::setup {
  */
 bool apply_engine_acl(const std::wstring& directory, std::wstring& error);
 
+/**
+ * SYSTEM and Administrators full, Users READ only, all of it inherited.
+ *
+ * For `backup\` and nothing else. Those files are the record of what each
+ * endpoint's effect lists held before the engine was attached, and a detach
+ * or an uninstall restores from them. Under the tree's ordinary "Users
+ * modify" an unelevated user could delete one — at which point the detach has
+ * no reference to restore and, by `detach_one`'s own rule, takes only our own
+ * entry out and treats every other key as one that was always there. On a
+ * machine where attaching had to mirror a vendor's single-effect keys into
+ * composite lists, those mirrored entries then stay behind for good.
+ *
+ * Read rather than none: the app never opens these, but a user looking at why
+ * their audio changed should be able to see what was recorded about their own
+ * machine. Writing them is the engine's business, and the engine is elevated
+ * when it does it.
+ *
+ * `engine.log` is unaffected — it sits in the root, not in `backup\`, and the
+ * effect inside audiodg.exe (LOCAL SERVICE, covered by SYSTEM here) writes it
+ * under the root's own permissions.
+ */
+bool apply_backup_acl(const std::wstring& directory, std::wstring& error);
+
 }  // namespace fluideq_engine::setup
 
 #endif  // FLUIDEQ_ENGINE_SETUP_ACL_H

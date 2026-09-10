@@ -132,6 +132,12 @@ std::vector<std::wstring> endpoints_with_backups() {
   return guids;
 }
 
+/**
+ * The endpoints named on the command line: one bad id is the whole command.
+ *
+ * A user who asked for a specific output and did not get it must be told so;
+ * there is no "most of it worked" here to fall back on.
+ */
 void attach_each(const std::vector<std::wstring>& guids, Slot slot,
                  CommandResult& result) {
   for (const std::wstring& guid : guids) {
@@ -147,6 +153,37 @@ void attach_each(const std::vector<std::wstring>& guids, Slot slot,
       return;
     }
     result.endpoints.push_back(one);
+  }
+}
+
+/**
+ * Every render endpoint on the machine, and the loop finishes.
+ *
+ * Deliberately not `attach_each` with a flag: the two have opposite rules.
+ * The awkward endpoint is real — a composite list stored as `REG_EXPAND_SZ`,
+ * a key an OEM's driver locked down — and aborting on it left the engine
+ * installed, attached to every output before it, with the audio restart
+ * skipped and an exit code that said the install had failed. The verdict is
+ * `summarise_attach_all`'s, which is the pure half of this and the tested
+ * one.
+ */
+void attach_all_endpoints(const std::vector<std::wstring>& guids, Slot slot,
+                          CommandResult& result) {
+  for (const std::wstring& guid : guids) {
+    EndpointResult one;
+    one.guid = guid;
+    if (!endpoint_key_exists(guid)) {
+      one.error = L"there is no output with the id " + guid;
+    } else if (!attach_one(guid, slot, one.attached, one.error)) {
+      if (one.error.empty()) {
+        one.error = L"the output could not be attached";
+      }
+    }
+    result.endpoints.push_back(one);
+  }
+  const AttachOutcome outcome = summarise_attach_all(result.endpoints);
+  if (!outcome.ok) {
+    fail(result, outcome.error);
   }
 }
 
@@ -210,7 +247,7 @@ void run_install(const Options& options, CommandResult& result) {
     for (const Endpoint& endpoint : found) {
       guids.push_back(endpoint.guid);
     }
-    attach_each(guids, options.slot, result);
+    attach_all_endpoints(guids, options.slot, result);
     if (!result.ok) {
       return;
     }
@@ -273,6 +310,13 @@ bool ensure_engine_tree(std::wstring& error) {
     return false;
   }
   if (!apply_engine_acl(root, error)) {
+    return false;
+  }
+  // After the root, and it undoes what the root just inherited into it: the
+  // backups are the only record of what each endpoint held before the engine
+  // touched it, and a user who can delete one leaves a detach with nothing to
+  // restore from. See `acl.h`.
+  if (!apply_backup_acl(backup_dir(), error)) {
     return false;
   }
   // An empty `config.txt` rather than none: the effect's watcher waits on the
@@ -342,6 +386,14 @@ std::wstring result_json(const std::wstring& command,
     out += json_escape(result.endpoints[at].guid);
     out += L"\",\"attached\":";
     out += result.endpoints[at].attached ? L"true" : L"false";
+    // Only present on the endpoints that failed, so a reader can tell an
+    // output that was skipped by `--attach-all` from one that simply is not
+    // attached yet. `readFluidEngineStatus` ignores unknown fields.
+    if (!result.endpoints[at].error.empty()) {
+      out += L",\"error\":\"";
+      out += json_escape(result.endpoints[at].error);
+      out += L'"';
+    }
     out += L'}';
   }
   out += L"]}";
