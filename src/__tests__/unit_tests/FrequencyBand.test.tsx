@@ -26,7 +26,17 @@ import {
 import FrequencyBand from 'renderer/components/FrequencyBand';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import { removeEqualizerSlider } from 'renderer/utils/equalizerApi';
 import { setup } from '../utils/userEventUtils';
+
+// The band talks to Equalizer APO directly when it removes itself. These cases
+// are about whether it asks first, so the write is stubbed rather than run.
+jest.mock('renderer/utils/equalizerApi', () => ({
+  ...jest.requireActual('renderer/utils/equalizerApi'),
+  removeEqualizerSlider: jest.fn(() => Promise.resolve()),
+}));
+
+const removeSlider = jest.mocked(removeEqualizerSlider);
 
 describe('FrequencyBand', () => {
   const filter = getDefaultFilterWithId();
@@ -41,6 +51,7 @@ describe('FrequencyBand', () => {
 
   beforeEach(() => {
     handleSubmit.mockClear();
+    removeSlider.mockClear();
   });
 
   it('should render with name', () => {
@@ -151,5 +162,62 @@ describe('FrequencyBand', () => {
     expect(container.querySelector('.bandWrapper--dense')).toBeInTheDocument();
     expect(screen.getByLabelText(filterGainRangeLabel)).toBeInTheDocument();
     expect(screen.queryByLabelText(trashIconLabel)).not.toBeInTheDocument();
+  });
+
+  /**
+   * The bin asks before it deletes.
+   *
+   * There is no undo in this app: the removal goes straight through to
+   * Equalizer APO and the frequency, gain, Q and type somebody arrived at by
+   * ear are gone. This bin is 22 pixels across, sits above the band's own
+   * slider and only appears on hover, so it is easy to hit meaning the slider.
+   */
+  describe('deleting a band', () => {
+    it('arms on the first press and does not remove anything', async () => {
+      const { user, container } = setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <FrequencyBand filter={filter} isMinSliderCount={false} />
+        </FluidEqProviderWrapper>,
+      );
+
+      await user.click(screen.getByLabelText(trashIconLabel));
+
+      expect(removeSlider).not.toHaveBeenCalled();
+      expect(container.querySelector('.removeFilter.is-armed')).not.toBeNull();
+      // And a way out beside it, rather than a red button with no visible
+      // answer other than pressing it again.
+      expect(container.querySelector('.removeFilterKeep')).not.toBeNull();
+    });
+
+    it('removes the band on the second press', async () => {
+      const { user, container } = setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <FrequencyBand filter={filter} isMinSliderCount={false} />
+        </FluidEqProviderWrapper>,
+      );
+
+      const bin = () => container.querySelector('.removeFilter') as HTMLElement;
+      await user.click(bin());
+      await user.click(bin());
+
+      expect(removeSlider).toHaveBeenCalledWith(filter.id);
+    });
+
+    it('stands down when the way out is taken', async () => {
+      const { user, container } = setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <FrequencyBand filter={filter} isMinSliderCount={false} />
+        </FluidEqProviderWrapper>,
+      );
+
+      await user.click(screen.getByLabelText(trashIconLabel));
+      await user.click(container.querySelector('.removeFilterKeep') as Element);
+
+      expect(removeSlider).not.toHaveBeenCalled();
+      expect(container.querySelector('.removeFilter.is-armed')).toBeNull();
+      // Back to one control, so the band is not left carrying a cancel for
+      // something nobody is doing.
+      expect(container.querySelector('.removeFilterKeep')).toBeNull();
+    });
   });
 });

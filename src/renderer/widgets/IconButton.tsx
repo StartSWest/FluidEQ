@@ -36,6 +36,14 @@ interface IIconButtonProps {
   icon: IconName;
   isDisabled: boolean;
   className?: string;
+  /**
+   * What it says instead of the icon's own name.
+   *
+   * A button whose meaning changes without its glyph changing has to say so:
+   * the band's bin is armed by its first press, and "Trash Icon" read out over
+   * a control that is one press from deleting says nothing about that.
+   */
+  ariaLabel?: TranslationKey;
   handleClick: (e?: MouseEvent) => void;
 }
 
@@ -43,6 +51,7 @@ const IconButton = ({
   icon,
   isDisabled,
   className,
+  ariaLabel,
   handleClick,
 }: IIconButtonProps) => {
   const { t } = useTranslation();
@@ -83,14 +92,16 @@ const IconButton = ({
     <div
       role="button"
       aria-label={t(
-        {
-          [IconName.EDIT]: 'common.icon.edit',
-          [IconName.DELETE]: 'common.icon.delete',
-          [IconName.TRASH]: 'common.icon.trash',
-          [IconName.ACCEPT]: 'common.icon.accept',
-          [IconName.CANCEL]: 'common.icon.cancel',
-        }[icon] as TranslationKey,
+        ariaLabel ??
+          ({
+            [IconName.EDIT]: 'common.icon.edit',
+            [IconName.DELETE]: 'common.icon.delete',
+            [IconName.TRASH]: 'common.icon.trash',
+            [IconName.ACCEPT]: 'common.icon.accept',
+            [IconName.CANCEL]: 'common.icon.cancel',
+          }[icon] as TranslationKey),
       )}
+      title={ariaLabel ? t(ariaLabel) : undefined}
       className={`iconButton center ${className || ''}`}
       onKeyUp={onKeyUp}
       onClick={activate}

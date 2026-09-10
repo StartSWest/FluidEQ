@@ -72,6 +72,25 @@ $filter-dropdown-width: 56px;
     box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.22);
   }
 
+  // A band switched off. Its column keeps its place in the strip — that is the
+  // whole point of switching a band off rather than deleting it — and gives up
+  // its colour so the strip reads as "this one is out" at a glance.
+  //
+  // Not `pointer-events: none`, and not a disabled slider: the fader still
+  // works and the band can still be selected, because setting a band up while
+  // it is muted and then switching it in is exactly the A/B this exists for.
+  &.is-off {
+    .band-frequency-caption,
+    .band-gain-caption {
+      color: $text-muted;
+    }
+
+    .slider {
+      opacity: 0.42;
+      filter: grayscale(0.85);
+    }
+  }
+
   /*
    * ONE GAP AT EVERY DENSITY, because it is a vertical measurement.
    *
@@ -241,33 +260,86 @@ $filter-dropdown-width: 56px;
     max-width: 100%;
   }
 
-  // Delete affordance for the non-flat band layout.
-  .removeFilter {
+  // Delete affordance for the non-flat band layout: one bin at rest, the bin
+  // and a way out once it is armed. The row is what carries the placement, so
+  // adding the second button moves neither of them.
+  .removeFilterRow {
     position: absolute;
     top: -7px;
     right: 50%;
     z-index: 5;
+    display: flex;
+    gap: 5px;
+    transform: translateX(50%);
+    // At thirty-one bands a band is narrower than these two buttons, and the
+    // pair is allowed to reach past it rather than shrink to something nobody
+    // can hit. Nothing is there to be covered: every other band's bin is at
+    // zero opacity until that band is hovered.
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
+
+  .removeFilter,
+  .removeFilterKeep {
     display: grid;
     width: 22px;
     height: 22px;
     place-items: center;
-    border: 1px solid rgba($red, 0.24);
     border-radius: $radius-pill;
     background: color-mix(in srgb, $surface-menu 96%, transparent);
     box-shadow: 0 6px 18px rgba($black, 0.35);
     opacity: 0;
-    transform: translateX(50%);
     cursor: pointer;
+  }
+
+  .removeFilterKeep {
+    border: 1px solid rgba($edge-tint, 0.3);
+    color: $text-primary;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .removeFilter {
+    border: 1px solid rgba($red, 0.24);
 
     &[aria-disabled='true'] {
       cursor: default;
       opacity: 0;
       pointer-events: none;
     }
+
+    // Armed: the next press is the one that deletes. Filled, so the change is
+    // a different kind of button rather than a second shade of the same one —
+    // this is 22 pixels across and a tint on it would be invisible.
+    &.is-armed {
+      border-color: $red;
+      background: $red;
+
+      svg path:not([fill='none']) {
+        fill: $white;
+      }
+    }
   }
 
   &:hover .removeFilter:not([aria-disabled='true']),
-  .removeFilter:focus-visible:not([aria-disabled='true']) {
+  &:hover .removeFilterKeep,
+  .removeFilter:focus-visible:not([aria-disabled='true']),
+  .removeFilterKeep:focus-visible {
+    opacity: 1;
+  }
+
+  // Armed and shown, even with the pointer off the band. It is only reachable
+  // by hovering, so this is nearly always redundant — except for the keyboard,
+  // where a bin armed by Enter would otherwise arm invisibly and leave a band
+  // one press from deletion with nothing on screen to say so.
+  .removeFilterRow.is-armed .removeFilter,
+  .removeFilterRow.is-armed .removeFilterKeep {
     opacity: 1;
   }
 }

@@ -33,6 +33,7 @@ import {
   FIXED_BAND_SIZES,
   IFilter,
   IFilterEdit,
+  isBandEnabled,
   DEFAULT_QUALITY,
   MAX_NUM_FILTERS,
   MAX_FREQUENCY,
@@ -64,9 +65,10 @@ import {
   setFixedBand,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
-import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
+import Switch from './widgets/Switch';
 import BandMenu, { BAND_MENU_EVENT } from './components/BandMenu';
+
 import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
@@ -86,6 +88,7 @@ import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import Chevron from './icons/Chevron';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
+import ConfirmIcon from './icons/ConfirmIcon';
 import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 
@@ -305,6 +308,16 @@ const MainContent = () => {
   );
   const selectedCount = selectedFilters.length;
   const isGroupEdit = selectedCount > 1;
+  /**
+   * What the on/off switch shows for the selection.
+   *
+   * `some` rather than `every`: a mixed selection reads as on, so pressing the
+   * switch means "switch these off" and pressing it again means "switch them
+   * back on". Read the other way a mixed group would read as off, and the
+   * first press would turn ON the bands the user had just been looking at as
+   * off — the opposite of what the control appears to offer.
+   */
+  const isSelectionEnabled = selectedFilters.some(isBandEnabled);
 
   // Read by the group edit below, which runs from a throttled timer and must
   // see the selection and the bands as they are when it fires rather than as
@@ -599,14 +612,56 @@ const MainContent = () => {
    * outright — the alternative is a button that refuses to do anything at all
    * once the selection is large enough.
    */
+  /**
+   * The bands a delete would actually take, floor included.
+   *
+   * Read by the confirmation as well as by the delete itself, so the question
+   * says the real number rather than the number selected: pressing delete with
+   * everything selected removes all but the minimum, and asking "delete 10
+   * bands?" before removing 6 would be a lie told by the safeguard.
+   */
+  const deletableFilters = useMemo(
+    () =>
+      selectedFilters.slice(
+        0,
+        Math.max(0, frequencySortedFilters.length - MIN_NUM_FILTERS),
+      ),
+    [frequencySortedFilters.length, selectedFilters],
+  );
+
+  /**
+   * Whether Delete is armed, i.e. the next press on it actually deletes.
+   *
+   * The confirmation is the button itself rather than a panel over the plot:
+   * the question is about bands that are lit on the graph, and anything drawn
+   * on top of them hides the only answer to "which ones?".
+   */
+  const [isDeleteArmed, setIsDeleteArmed] = useState(false);
+  const deleteCellRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * The button's own sentence, which is also what it says while armed.
+   *
+   * The label collapses to a bare bin as soon as the row runs out of room, so
+   * this carries the whole thing — including, once armed, that the next press
+   * is the one that removes the band.
+   */
+  const deleteLabel = (() => {
+    if (isDeleteArmed) {
+      return isGroupEdit
+        ? t('eq.delete.armedAriaGroup', { count: deletableFilters.length })
+        : t('eq.delete.armedAria');
+    }
+    return isGroupEdit
+      ? t('eq.deleteSelectionAria', { count: selectedCount })
+      : t('eq.deleteAria');
+  })();
+
   const deleteSelectedFilter = async () => {
     if (selectedCount === 0) {
       return;
     }
-    const deletable = selectedFilters.slice(
-      0,
-      Math.max(0, frequencySortedFilters.length - MIN_NUM_FILTERS),
-    );
+    const deletable = deletableFilters;
     if (deletable.length === 0) {
       return;
     }
@@ -815,6 +870,37 @@ const MainContent = () => {
     }
   };
 
+  /**
+   * Put bands in or out of the chain, keeping everything they are set to.
+   *
+   * Absolute rather than a per-band flip, like `setSelectedType` below and
+   * unlike the dials: asked to switch off, a mixed set goes off in its
+   * entirety. A control whose result depends on which bands in a selection
+   * happened to be on already is one nobody can predict, and the state the
+   * user can see — the one the switch is drawn in — is what they are acting
+   * on.
+   *
+   * Shared by the switch in the selected-band row and by the band menu, so
+   * "off" means the same thing whichever way it is reached.
+   */
+  const setFiltersEnabled = async (
+    targets: readonly IFilter[],
+    isEnabled: boolean,
+  ) => {
+    const edits: IFilterEdit[] = targets
+      .filter((filter) => isBandEnabled(filter) !== isEnabled)
+      .map((filter) => ({ id: filter.id, isEnabled }));
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
   /** Gain back to nothing and Q back to the default: the bands as they were born. */
   const resetFilters = async (targets: readonly IFilter[]) => {
     const edits: IFilterEdit[] = targets.map((filter) => {
@@ -843,6 +929,39 @@ const MainContent = () => {
   const [bandMenu, setBandMenu] = useState<
     { filterId: string; x: number; y: number } | undefined
   >(undefined);
+
+  // Everything that disarms Delete, and not one of them is a timer: a button that
+  // goes back to safe on its own schedule is a button whose second press means
+  // something different depending on how long you thought about it.
+  useEffect(() => {
+    if (!isDeleteArmed) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (!deleteCellRef.current?.contains(event.target as Node)) {
+        setIsDeleteArmed(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDeleteArmed(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isDeleteArmed]);
+
+  // An armed button that now means a different set of bands is worse than no
+  // safeguard at all. Pressing elsewhere already disarms it; this is the case
+  // that never goes through the pointer — arrow keys and Select all move the
+  // selection while the button is armed.
+  useEffect(() => {
+    setIsDeleteArmed(false);
+  }, [selectedFilterIds]);
   useEffect(() => {
     const onOpen = (event: Event) => {
       const { detail } = event as CustomEvent<{
@@ -890,6 +1009,7 @@ const MainContent = () => {
           x={bandMenu.x}
           y={bandMenu.y}
           onReset={resetFilters}
+          onSetEnabled={setFiltersEnabled}
           onAddBeside={addFilterBeside}
           onClose={() => setBandMenu(undefined)}
         />
@@ -1234,7 +1354,7 @@ const MainContent = () => {
                 })()}
               </strong>
             </div>
-            <div className="eq-flat-editor__control">
+            <div className="eq-flat-editor__control eq-flat-editor__control--wide">
               <span>{t('eq.filter')}</span>
               <Dropdown
                 name="selected-band-filter-type"
@@ -1256,7 +1376,7 @@ const MainContent = () => {
                 visible rather than hidden so the row does not reshuffle, with
                 the reason on the row itself. */}
             <div
-              className="eq-flat-editor__control"
+              className="eq-flat-editor__control eq-flat-editor__control--centred"
               title={
                 isGroupEdit
                   ? 'Frequency is per band — select a single band to change it'
@@ -1264,19 +1384,34 @@ const MainContent = () => {
               }
             >
               <span>{t('eq.frequency')}</span>
-              <NumberInput
-                name="selected-band-frequency"
+              {/* A dial, like Q beside it. The knob reads a range that starts
+                  above zero as a ratio and sweeps it logarithmically, which is
+                  the only honest way to turn 1 Hz to 20 kHz with one hand: on
+                  an even sweep everything below 2 kHz — which is most of what
+                  a band is ever placed on — would sit inside a tenth of the
+                  travel. */}
+              <Knob
+                name={t('eq.frequency')}
                 value={selectedFilter.frequency}
                 min={MIN_FREQUENCY}
                 max={MAX_FREQUENCY}
                 isDisabled={isGroupEdit}
-                showArrows
-                handleSubmit={(newValue) =>
+                // Whole hertz: what a band is stored as and what Equalizer APO
+                // is written in.
+                step={1}
+                unit="Hz"
+                handleChange={(newValue) =>
                   updateSelectedGroup('frequency', newValue)
                 }
               />
             </div>
-            <div className="eq-flat-editor__control">
+            <div
+              className="eq-flat-editor__control eq-flat-editor__control--centred"
+              // The gesture that replaced the reset button, said out loud:
+              // Ctrl+click is invisible, and the button it stands in for was
+              // the only thing announcing that a band could be put back.
+              title={isSelectedGainDisabled ? undefined : t('eq.gainReset')}
+            >
               <span>
                 {isSelectedGainDisabled ? t('eq.gainDisabled') : t('eq.gain')}
               </span>
@@ -1293,50 +1428,39 @@ const MainContent = () => {
                   Set by Q
                 </div>
               ) : (
-                <div className="eq-flat-editor__input-row">
-                  <NumberInput
-                    name="selected-band-gain"
-                    value={selectedFilter.gain}
-                    min={MIN_GAIN}
-                    max={MAX_GAIN}
-                    isDisabled={false}
-                    floatPrecision={2}
-                    showArrows
-                    handleSubmit={(newValue) =>
-                      updateSelectedGroup('gain', newValue)
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="eq-flat-editor__reset-gain"
-                    aria-label={
-                      isGroupEdit
-                        ? `Reset all ${selectedCount} selected gains to 0 dB`
-                        : 'Reset selected gain to 0 dB'
-                    }
-                    title={
-                      isGroupEdit
-                        ? `Reset all ${selectedCount} selected gains to 0 dB`
-                        : 'Reset selected gain to 0 dB'
-                    }
-                    // Enabled while any band in the selection is off zero, not
-                    // only the primary: a group where the primary happens to
-                    // sit at 0 dB still has something to reset.
-                    disabled={
-                      isBlockingError ||
-                      !selectedFilters.some((filter) => filter.gain !== 0)
-                    }
-                    onClick={resetSelectedGain}
-                  >
-                    ↺
-                  </button>
-                </div>
+                /* Bipolar, so the dial grows its arc from the centre and rests
+                   with the notch straight up at flat — a boost and a cut of the
+                   same size are mirror images of each other.
+
+                   The reset button that used to stand beside it is gone: it was
+                   the companion of a text box, which had no other way to say
+                   "back to flat", and beside a dial it was an unlabelled square
+                   parked between two circles. Its job moved onto the dial's own
+                   Ctrl+click, where every other dial in the app already keeps
+                   it — and got better in the move, because `onReset` flattens
+                   the whole selection absolutely instead of nudging it by the
+                   shown band's distance from zero. */
+                <Knob
+                  name={t('eq.gain')}
+                  value={selectedFilter.gain}
+                  min={MIN_GAIN}
+                  max={MAX_GAIN}
+                  isDisabled={false}
+                  // The resolution the gain sliders already move in.
+                  step={0.01}
+                  unit="dB"
+                  defaultValue={0}
+                  onReset={resetSelectedGain}
+                  handleChange={(newValue) =>
+                    updateSelectedGroup('gain', newValue)
+                  }
+                />
               )}
             </div>
-            <div className="eq-flat-editor__control">
+            <div className="eq-flat-editor__control eq-flat-editor__control--centred">
               <span>{t('eq.quality')}</span>
               <Knob
-                name="selected-band-quality"
+                name={t('eq.quality')}
                 value={selectedFilter.quality}
                 min={MIN_QUALITY}
                 max={MAX_QUALITY}
@@ -1351,38 +1475,92 @@ const MainContent = () => {
                 }
               />
             </div>
+            {/* In or out of the chain, without losing what the band was set
+                to. Next to Delete because the two are the same kind of thing —
+                what happens to the band itself, rather than what shape it has
+                — and in that order because this is the reversible one.
+
+                A mixed selection reads as on and switches everything off, which
+                is the only reading that makes the second press undo the first.
+                Deriving it per band would make the control mean "flip each of
+                these", and a switch nobody can predict the result of is worse
+                than no switch. */}
+            <div className="eq-flat-editor__control eq-flat-editor__control--centred">
+              <span>{t('eq.active')}</span>
+              <div className="eq-flat-editor__switch">
+                <Switch
+                  id="selected-band-enabled"
+                  ariaLabel={
+                    isGroupEdit
+                      ? t('eq.activeGroupAria', { count: selectedCount })
+                      : t('eq.activeAria')
+                  }
+                  isOn={isSelectionEnabled}
+                  isDisabled={isBlockingError}
+                  handleToggle={() =>
+                    setFiltersEnabled(selectedFilters, !isSelectionEnabled)
+                  }
+                />
+              </div>
+            </div>
             {/* The title is what the icon-only form needs: once the row is
                 squeezed and the label collapses, a bare glyph is the only
                 thing left, and hovering has to be able to say what it does.
                 It carries the full sentence rather than the button text, so
                 it is worth having even when the label is showing. */}
-            <button
-              type="button"
-              aria-label={
-                isGroupEdit
-                  ? `Delete the ${selectedCount} selected bands`
-                  : t('eq.deleteAria')
-              }
-              title={
-                isGroupEdit
-                  ? `Delete the ${selectedCount} selected bands`
-                  : t('eq.deleteAria')
-              }
-              className="eq-flat-editor__delete"
-              disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
-              onClick={deleteSelectedFilter}
-            >
-              {/* Rendered always, shown only when the row runs out of room.
-                  `currentColor` so it dims with the button when there is only
-                  one band left and deleting is not allowed. */}
-              <TrashIcon
-                className="eq-flat-editor__delete-icon"
-                fill="currentColor"
-              />
-              <span className="eq-flat-editor__delete-label">
-                {t('eq.delete')}
-              </span>
-            </button>
+            <div className="eq-flat-editor__delete-cell" ref={deleteCellRef}>
+              <button
+                type="button"
+                aria-label={deleteLabel}
+                title={deleteLabel}
+                className={`eq-flat-editor__delete${
+                  isDeleteArmed ? ' is-armed' : ''
+                }`}
+                disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
+                // Arms rather than deletes. There is no undo anywhere in this
+                // app, and this button sits one control along from the on/off
+                // switch it is easiest to have meant instead.
+                onClick={() => {
+                  if (isDeleteArmed) {
+                    setIsDeleteArmed(false);
+                    deleteSelectedFilter();
+                    return;
+                  }
+                  setIsDeleteArmed(true);
+                }}
+              >
+                {/* Rendered always, shown only when the row runs out of room.
+                    `currentColor` so it dims with the button when there is only
+                    one band left and deleting is not allowed. */}
+                <TrashIcon
+                  className="eq-flat-editor__delete-icon"
+                  fill="currentColor"
+                />
+                <span className="eq-flat-editor__delete-label">
+                  {isDeleteArmed ? t('eq.delete.armed') : t('eq.delete')}
+                </span>
+              </button>
+              {/* The way out, said rather than implied. Pressing elsewhere and
+                  Escape both stand the button down, but neither is on screen,
+                  and a control that has turned red with no visible way back is
+                  a control people press again to find out. */}
+              {isDeleteArmed && (
+                <button
+                  type="button"
+                  className="eq-flat-editor__keep"
+                  aria-label={t('eq.delete.keepAria')}
+                  title={t('eq.delete.keepAria')}
+                  onClick={() => setIsDeleteArmed(false)}
+                >
+                  <span className="eq-flat-editor__keep-icon">
+                    <ConfirmIcon variant="cancel" />
+                  </span>
+                  <span className="eq-flat-editor__delete-label">
+                    {t('eq.delete.keep')}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
