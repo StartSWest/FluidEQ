@@ -243,7 +243,7 @@ if(WIN32)
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/decoders/platform/windows/media_foundation_decoder.cpp)
   # Both ship with Windows. WASAPI is a user-mode COM API: no driver, no
-  # kernel component, nothing to install and nothing to sign â and the Media
+  # kernel component, nothing to install and nothing to sign — and the Media
   # Foundation libraries below are the same kind of thing.
   # What this process costs, which only this process can cheaply see: Electron
   # measures its own children and the host is not one of them.

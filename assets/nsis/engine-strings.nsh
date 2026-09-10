@@ -6,8 +6,9 @@
 ; cost a screenful of mangled apostrophes to learn. electron-builder hands
 ; makensis the main script on stdin with -INPUTCHARSET UTF8, and that flag
 ; reaches the main script only: an !include without a byte-order mark is read
-; in the machine's ANSI code page instead. "Windows’" arrived on the page as
-; "Windowsâ€™", and every Cyrillic, Devanagari and CJK string here would have
+; in the machine's ANSI code page instead. The apostrophe in "Windows’"
+; arrived on the page as three characters (a-circumflex, euro sign, trade
+; mark sign), and every Cyrillic, Devanagari and CJK string here would have
 ; arrived as nonsense.
 ;
 ; A BOM would fix it and cannot be used: this project's encoding check rejects
