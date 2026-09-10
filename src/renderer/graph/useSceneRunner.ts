@@ -65,8 +65,11 @@ export interface ISceneRunnerOptions {
   spectrumRect: readonly [number, number, number, number];
   /** Replaces what the scene hears — the Studio's test signals. */
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
-  /** After every drawn frame: what the scene heard, and the ladder's scale. */
-  onDrawn?: (frame: ISceneFrame, scale: number) => void;
+  /**
+   * After every drawn frame: what the scene heard, the ladder's scale, and
+   * the musical accent's envelope the scene was given.
+   */
+  onDrawn?: (frame: ISceneFrame, scale: number, musicAccent: number) => void;
 }
 
 /**
@@ -255,7 +258,7 @@ export default function useSceneRunner({
       guard?.begin(backingWidth, backingHeight);
       program.draw(frame, backingWidth, backingHeight);
       guard?.end(deltaMs);
-      drawnRef.current?.(frame, scale);
+      drawnRef.current?.(frame, scale, program.musicAccent());
       return true;
     },
     [dropProgram],

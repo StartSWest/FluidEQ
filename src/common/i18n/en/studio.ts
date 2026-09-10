@@ -1,0 +1,173 @@
+/**
+ * The Studio: where Plus members make scenes with their own AI and watch them
+ * live. The AI prompt itself is English in every language (see
+ * `renderer/studio/aiPrompt.ts`); everything a member reads is here.
+ *
+ * The problem sentences are keyed by the rule's own code, so a refusal
+ * reaches the member as the thing to change, with the line to change it on.
+ */
+const studio = {
+  'studio.title': 'Studio',
+  'studio.description': 'Make scenes with your AI and watch them live',
+  'studio.rail.blurb': 'Build your own scenes',
+
+  'studio.gate.title':
+    'Build your own scenes, and play the ones other members make',
+  'studio.gate.body':
+    'The Studio is part of FluidEQ Plus. Describe a scene to your AI and watch it come alive on your music while it writes it.',
+  'studio.gate.cta': 'See Plus',
+
+  'studio.start.title': 'Make a scene with your AI',
+  'studio.start.step1.title': 'Copy the prompt',
+  'studio.start.step1.body': 'It tells your AI how FluidEQ scenes are built.',
+  'studio.start.step2.title': 'Add your idea',
+  'studio.start.step2.body': 'At the very end, in your own words.',
+  'studio.start.step3.title': 'Link the folder',
+  'studio.start.step3.body':
+    'Save the files it gives you into a folder and link it. It plays here as you change it.',
+
+  'studio.action.copyPrompt': 'Copy AI prompt',
+  'studio.action.createStarter': 'Create starter project…',
+  'studio.action.linkFolder': 'Link folder…',
+  'studio.action.showFolder': 'Show folder',
+  'studio.action.unlink': 'Unlink',
+  'studio.action.addToLooks': 'Add to my looks',
+
+  'studio.notice.copied':
+    'Copied. Paste it into your AI and write your idea at the end.',
+  'studio.notice.copiedIdea':
+    'Copied with that idea at the end. Paste it into your AI.',
+  'studio.notice.copyFailed':
+    'The clipboard is not available. The prompt is selected below; press Ctrl+C.',
+  'studio.notice.starterExists':
+    'That folder already has a scene. Choose an empty folder, or link that one instead.',
+  'studio.notice.added': '{name} is in your looks, under Made by you.',
+  'studio.notice.addFailed': 'This version can be added once it plays.',
+
+  'studio.ideas.title': 'Ideas to start from — adds the idea to the prompt',
+  'studio.idea.pet.label': 'My pet, alive',
+  'studio.idea.pet.text':
+    "My pet's photo. Ears twitch on every beat, the tail sways with the bass, the eyes glow with the treble, and the background shimmers with the slow spectrum.",
+  'studio.idea.city.label': 'Neon city',
+  'studio.idea.city.text':
+    'A neon city at night. Each building is a band of the spectrum, windows light with the mids, and a train crosses the skyline on each musical accent.',
+  'studio.idea.sea.label': 'Deep sea',
+  'studio.idea.sea.text':
+    'Deep sea. Jellyfish pulse with the bass, plankton sparkle with the treble, and light rays sway with the overall level.',
+  'studio.idea.vinyl.label': 'Vinyl',
+  'studio.idea.vinyl.text':
+    'A spinning vinyl record seen from above. The grooves glow from the waveform and the needle throws sparks on beats.',
+  'studio.idea.fire.label': 'Campfire',
+  'studio.idea.fire.text':
+    'A campfire under stars. The flames are the spectrum, embers fly up on hi-hats, the stars twinkle with the treble.',
+  'studio.idea.aurora.label': 'Northern lights',
+  'studio.idea.aurora.text':
+    'Northern lights over a lake. The curtains follow the slow spectrum, their reflection ripples with the waveform, a shooting star crosses on each accent.',
+
+  'studio.prompt.label': 'The AI prompt',
+  'studio.prompt.ideaHere': '← your idea goes here',
+
+  'studio.hears.title': 'What your scene hears',
+  'studio.hears.level.name': 'Level',
+  'studio.hears.level.body': 'overall loudness',
+  'studio.hears.beat.name': 'Beat',
+  'studio.hears.beat.body': 'a pulse on every beat',
+  'studio.hears.bass.name': 'Bass',
+  'studio.hears.bass.body': 'the low end, on its own',
+  'studio.hears.mid.name': 'Mids',
+  'studio.hears.mid.body': 'voices and chords',
+  'studio.hears.treble.name': 'Treble',
+  'studio.hears.treble.body': 'hi-hats and air',
+  'studio.hears.spectrum.name': 'Spectrum',
+  'studio.hears.spectrum.body': 'every frequency, fast or smooth',
+  'studio.hears.accent.name': 'Accent',
+  'studio.hears.accent.body': 'a rare big moment, every few seconds',
+  'studio.hears.waveform.name': 'Waveform',
+  'studio.hears.waveform.body': 'the shape of the sound',
+  'studio.hears.picture.name': 'Picture',
+  'studio.hears.picture.body': 'your own image, with a mask for each part',
+
+  'studio.watching': 'Watching {folder}',
+  'studio.status.live': 'Updated from your last save',
+  'studio.status.problem': 'The last working version is still playing',
+  'studio.status.waiting': 'Waiting for a version that plays',
+  'studio.empty': 'Nothing to show yet',
+  'studio.stage.label': '{name}, playing live',
+
+  'studio.meters.title': 'What it hears now',
+  'studio.meter.level': 'Level',
+  'studio.meter.beat': 'Beat',
+  'studio.meter.bass': 'Bass',
+  'studio.meter.mid': 'Mids',
+  'studio.meter.treble': 'Treble',
+  'studio.meter.accent': 'Accent',
+
+  'studio.signals.title': 'Test with',
+  'studio.signals.hint':
+    'Test signals only drive the stage. Your music is never touched.',
+  'studio.signal.live': 'Live music',
+  'studio.signal.silence': 'Silence',
+  'studio.signal.bass': 'Bass',
+  'studio.signal.mid': 'Mids',
+  'studio.signal.treble': 'Treble',
+  'studio.signal.beat': 'Beat',
+  'studio.signal.accent': 'Accent',
+
+  'studio.size.title': 'Size',
+  'studio.size.graph': 'Graph',
+  'studio.size.narrow': 'Narrow',
+  'studio.size.wide': 'Wide',
+  'studio.size.full': 'Fullscreen',
+  'studio.size.exit': 'Exit fullscreen',
+
+  'studio.cost.full': 'Runs smoothly',
+  'studio.cost.scaled': 'Drawn at {percent}% size',
+  'studio.cost.heavy': 'Too heavy for this computer',
+  'studio.cost.unavailable': "This computer can't draw scenes right now",
+
+  'studio.file.pack': 'pack.json',
+  'studio.file.source': 'The shader',
+  'studio.file.artwork': 'The picture',
+  'studio.problem.heading': 'This version cannot play yet',
+  'studio.problem.line': '{file}, line {line}',
+  'studio.problem.too-large': 'The shader is over 64 KB.',
+  'studio.problem.unterminated-comment': 'A /* comment is never closed.',
+  'studio.problem.preprocessor':
+    'Lines that start with # are not allowed. Use const instead of #define.',
+  'studio.problem.non-ascii':
+    'Only plain ASCII characters are allowed outside comments.',
+  'studio.problem.while':
+    'while loops are not allowed. Use a for loop with a fixed count.',
+  'studio.problem.do':
+    'do loops are not allowed. Use a for loop with a fixed count.',
+  'studio.problem.main': 'A scene must not define main(). FluidEQ writes it.',
+  'studio.problem.loop-shape':
+    'A loop must count from one fixed number to another.',
+  'studio.problem.loop-bound': 'A loop runs more than 128 times.',
+  'studio.problem.loop-assign': 'A loop changes its own counter inside it.',
+  'studio.problem.entry-point':
+    'There is no vec4 sceneColour(vec2 uv) function.',
+  'studio.problem.not-a-pack': 'This is not a scene FluidEQ can read.',
+  'studio.problem.bad-id':
+    'The id must be 2 to 48 lowercase letters, digits and dashes.',
+  'studio.problem.names-missing': 'An English name is required.',
+  'studio.problem.name-too-long': 'A name is longer than 40 characters.',
+  'studio.problem.bad-fallback':
+    'fallbackStyle is not one of the looks FluidEQ has.',
+  'studio.problem.bad-swatch': 'swatch needs 2 to 4 colours like #00e5cf.',
+  'studio.problem.bad-artwork':
+    'The picture is not a WebP of the size pack.json gives.',
+  'studio.problem.contract-too-new':
+    'This scene was written for a newer FluidEQ. Update the app.',
+  'studio.problem.bad-json': 'pack.json is not valid JSON.',
+  'studio.problem.missing-file': 'A file the scene needs is missing.',
+  'studio.problem.unsafe-path':
+    'File names must be plain names of files in this folder.',
+  'studio.problem.file-too-large': 'A file is larger than a scene allows.',
+  'studio.compile.heading': 'The shader did not compile',
+  'studio.compile.hint': 'Fix it and save, or paste the error into your AI.',
+  'studio.heavy.body':
+    "It couldn't keep smooth motion even at an eighth of its size, so FluidEQ stopped it before it could freeze the screen. Try fewer loop steps, fewer texture reads, or fewer layers.",
+} as const;
+
+export default studio;

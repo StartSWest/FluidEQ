@@ -34,6 +34,7 @@ import account from './account';
 import community from './community';
 import leaderboard from './leaderboard';
 import terms from './terms';
+import studio from './studio';
 
 const de: Partial<Dictionary> = {
   ...karaoke,
@@ -52,6 +53,7 @@ const de: Partial<Dictionary> = {
   ...community,
   ...leaderboard,
   ...terms,
+  ...studio,
 };
 
 export default de;

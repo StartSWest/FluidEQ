@@ -25,6 +25,7 @@ import Composer from './Composer';
 import Glyph, { channelGlyph } from './Glyph';
 import LeaderboardView from './LeaderboardView';
 import MessageThread from './MessageThread';
+import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 import '../styles/Leaderboard.scss';
@@ -58,7 +59,9 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
   const community = useCommunity();
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
-  const [showBoard, setShowBoard] = useState(false);
+  // Which of the rail's places fills the main area: a channel's conversation,
+  // the leaderboard, or the Studio.
+  const [view, setView] = useState<'channel' | 'board' | 'studio'>('channel');
 
   useEffect(() => {
     if (!signedIn) {
@@ -140,7 +143,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
 
         <div className="community__channels">
           {community.channels.map((channel) => {
-            const isActive = !showBoard && channel.id === active?.id;
+            const isActive = view === 'channel' && channel.id === active?.id;
             const unread = unreadIn(channel.id);
             return (
               <button
@@ -150,7 +153,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
                 aria-current={isActive ? 'true' : undefined}
                 title={channelDescription(channel, t)}
                 onClick={() => {
-                  setShowBoard(false);
+                  setView('channel');
                   selectChannel(channel.id).catch(() => undefined);
                 }}
               >
@@ -184,9 +187,9 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
             written, and it belongs with the people it ranks. */}
         <button
           type="button"
-          className={`community__channel community__channel--board${showBoard ? ' is-active' : ''}`}
-          aria-current={showBoard ? 'true' : undefined}
-          onClick={() => setShowBoard(true)}
+          className={`community__channel community__channel--board${view === 'board' ? ' is-active' : ''}`}
+          aria-current={view === 'board' ? 'true' : undefined}
+          onClick={() => setView('board')}
         >
           <span className="community__channel-mark">
             <Glyph name="board" />
@@ -194,6 +197,25 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
           <span className="community__channel-text">
             <span className="community__channel-name">
               {t('leaderboard.title')}
+            </span>
+          </span>
+        </button>
+
+        {/* The Studio: where members make scenes. Under the board, because it
+            is a place to go rather than a conversation to follow. */}
+        <button
+          type="button"
+          className={`community__channel community__channel--studio${view === 'studio' ? ' is-active' : ''}`}
+          aria-current={view === 'studio' ? 'true' : undefined}
+          onClick={() => setView('studio')}
+        >
+          <span className="community__channel-mark">
+            <Glyph name="studio" />
+          </span>
+          <span className="community__channel-text">
+            <span className="community__channel-name">{t('studio.title')}</span>
+            <span className="community__channel-blurb">
+              {t('studio.rail.blurb')}
             </span>
           </span>
         </button>
@@ -241,7 +263,8 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
       </nav>
 
       <section className="community__main">
-        {showBoard && (
+        {view === 'studio' && <StudioPanel />}
+        {view === 'board' && (
           <>
             <header className="community__head">
               <span className="community__head-mark">
@@ -254,7 +277,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
             <LeaderboardView />
           </>
         )}
-        {!showBoard && active && (
+        {view === 'channel' && active && (
           <header className="community__head">
             <span className="community__head-mark">
               <Glyph name={channelGlyph(active.id)} />
@@ -270,7 +293,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
           </header>
         )}
 
-        {!showBoard && (
+        {view === 'channel' && (
           <MessageThread
             messages={messages}
             me={profile}
@@ -295,7 +318,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
           />
         )}
 
-        {!showBoard && active && (
+        {view === 'channel' && active && (
           <Composer
             channel={active}
             profile={profile}

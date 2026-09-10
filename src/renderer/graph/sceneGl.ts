@@ -39,6 +39,11 @@ export interface ISceneProgram {
   /** Upload this frame's measurement and draw one triangle. */
   draw(frame: ISceneFrame, width: number, height: number): void;
   isSettled(): boolean;
+  /**
+   * The musical accent's envelope as the scene last received it, 0..1. It is
+   * derived here, not in the frame, so the Studio's meter reads it from here.
+   */
+  musicAccent(): number;
   dispose(): void;
 }
 
@@ -378,6 +383,7 @@ export const compileScene = (
         gl.deleteProgram(program);
       },
       isSettled: () => settled && accentEnvelope === 0,
+      musicAccent: () => accentEnvelope,
     },
   };
 };

@@ -1,0 +1,152 @@
+const studio = {
+  'studio.title': '工作室',
+  'studio.description': '用你的 AI 创作场景，并实时观看',
+  'studio.rail.blurb': '创作你自己的场景',
+
+  'studio.gate.title': '创作你自己的场景，播放其他会员的作品',
+  'studio.gate.body':
+    '工作室是 FluidEQ Plus 的一部分。向你的 AI 描述一个场景，看着它在 AI 编写时随你的音乐活起来。',
+  'studio.gate.cta': '了解 Plus',
+
+  'studio.start.title': '用你的 AI 创作一个场景',
+  'studio.start.step1.title': '复制提示词',
+  'studio.start.step1.body': '它会告诉你的 AI，FluidEQ 场景是怎样构成的。',
+  'studio.start.step2.title': '写下你的想法',
+  'studio.start.step2.body': '写在最后，用你自己的话。',
+  'studio.start.step3.title': '关联文件夹',
+  'studio.start.step3.body':
+    '把 AI 给你的文件保存到一个文件夹并关联它。你每次修改，这里都会实时播放。',
+
+  'studio.action.copyPrompt': '复制 AI 提示词',
+  'studio.action.createStarter': '创建入门项目…',
+  'studio.action.linkFolder': '关联文件夹…',
+  'studio.action.showFolder': '打开文件夹',
+  'studio.action.unlink': '取消关联',
+  'studio.action.addToLooks': '添加到我的外观',
+
+  'studio.notice.copied': '已复制。粘贴到你的 AI 中，并在末尾写下你的想法。',
+  'studio.notice.copiedIdea':
+    '已复制，并在末尾附上了这个想法。粘贴到你的 AI 中。',
+  'studio.notice.copyFailed': '剪贴板不可用。下方已选中提示词，请按 Ctrl+C。',
+  'studio.notice.starterExists':
+    '该文件夹里已经有一个场景。请选择一个空文件夹，或直接关联它。',
+  'studio.notice.added': '{name} 已加入你的外观，位于“你创作的”下。',
+  'studio.notice.addFailed': '这个版本能播放之后才能添加。',
+
+  'studio.ideas.title': '入门灵感 — 会把想法加到提示词里',
+  'studio.idea.pet.label': '我的宠物，活起来',
+  'studio.idea.pet.text':
+    '我的宠物照片。耳朵随每个节拍抖动，尾巴随低音摇摆，眼睛随高音发光，背景随慢速频谱闪烁。',
+  'studio.idea.city.label': '霓虹城市',
+  'studio.idea.city.text':
+    '夜晚的霓虹城市。每栋楼是频谱的一个频段，窗户随中音亮起，每个音乐重音时都有一列火车驶过天际线。',
+  'studio.idea.sea.label': '深海',
+  'studio.idea.sea.text':
+    '深海。水母随低音搏动，浮游生物随高音闪烁，光束随整体音量摇曳。',
+  'studio.idea.vinyl.label': '黑胶',
+  'studio.idea.vinyl.text':
+    '俯视一张旋转的黑胶唱片。纹路随波形发光，唱针在节拍上迸出火花。',
+  'studio.idea.fire.label': '篝火',
+  'studio.idea.fire.text':
+    '星空下的篝火。火焰就是频谱，火星随镲片飞起，星星随高音闪烁。',
+  'studio.idea.aurora.label': '北极光',
+  'studio.idea.aurora.text':
+    '湖面上的北极光。光幕跟随慢速频谱，倒影随波形泛起涟漪，每个重音时划过一颗流星。',
+
+  'studio.prompt.label': 'AI 提示词',
+  'studio.prompt.ideaHere': '← 在这里写你的想法',
+
+  'studio.hears.title': '你的场景能听到什么',
+  'studio.hears.level.name': '音量',
+  'studio.hears.level.body': '整体响度',
+  'studio.hears.beat.name': '节拍',
+  'studio.hears.beat.body': '每个节拍一次脉冲',
+  'studio.hears.bass.name': '低音',
+  'studio.hears.bass.body': '单独的低频部分',
+  'studio.hears.mid.name': '中音',
+  'studio.hears.mid.body': '人声与和弦',
+  'studio.hears.treble.name': '高音',
+  'studio.hears.treble.body': '镲片与空气感',
+  'studio.hears.spectrum.name': '频谱',
+  'studio.hears.spectrum.body': '每个频率，快速或平滑',
+  'studio.hears.accent.name': '重音',
+  'studio.hears.accent.body': '每隔几秒一次的高光时刻',
+  'studio.hears.waveform.name': '波形',
+  'studio.hears.waveform.body': '声音的形状',
+  'studio.hears.picture.name': '图片',
+  'studio.hears.picture.body': '你自己的图片，每个部分一张遮罩',
+
+  'studio.watching': '正在监视 {folder}',
+  'studio.status.live': '已按你最近一次保存更新',
+  'studio.status.problem': '上一个可用版本仍在播放',
+  'studio.status.waiting': '正在等待一个能播放的版本',
+  'studio.empty': '暂时没有可显示的内容',
+  'studio.stage.label': '{name}，实时播放中',
+
+  'studio.meters.title': '它此刻听到的',
+  'studio.meter.level': '音量',
+  'studio.meter.beat': '节拍',
+  'studio.meter.bass': '低音',
+  'studio.meter.mid': '中音',
+  'studio.meter.treble': '高音',
+  'studio.meter.accent': '重音',
+
+  'studio.signals.title': '测试信号',
+  'studio.signals.hint': '测试信号只驱动舞台，绝不会改动你的音乐。',
+  'studio.signal.live': '实时音乐',
+  'studio.signal.silence': '静音',
+  'studio.signal.bass': '低音',
+  'studio.signal.mid': '中音',
+  'studio.signal.treble': '高音',
+  'studio.signal.beat': '节拍',
+  'studio.signal.accent': '重音',
+
+  'studio.size.title': '尺寸',
+  'studio.size.graph': '图表',
+  'studio.size.narrow': '窄',
+  'studio.size.wide': '宽',
+  'studio.size.full': '全屏',
+  'studio.size.exit': '退出全屏',
+
+  'studio.cost.full': '运行流畅',
+  'studio.cost.scaled': '以 {percent}% 尺寸绘制',
+  'studio.cost.heavy': '对这台电脑来说太重了',
+  'studio.cost.unavailable': '这台电脑目前无法绘制场景',
+
+  'studio.file.pack': 'pack.json',
+  'studio.file.source': '着色器',
+  'studio.file.artwork': '图片',
+  'studio.problem.heading': '这个版本还不能播放',
+  'studio.problem.line': '{file}，第 {line} 行',
+  'studio.problem.too-large': '着色器超过 64 KB。',
+  'studio.problem.unterminated-comment': '有一个 /* 注释没有闭合。',
+  'studio.problem.preprocessor':
+    '不允许以 # 开头的行。请用 const 代替 #define。',
+  'studio.problem.non-ascii': '注释以外只允许普通 ASCII 字符。',
+  'studio.problem.while': '不允许 while 循环。请使用次数固定的 for 循环。',
+  'studio.problem.do': '不允许 do 循环。请使用次数固定的 for 循环。',
+  'studio.problem.main': '场景不能定义 main()，它由 FluidEQ 编写。',
+  'studio.problem.loop-shape': '循环必须从一个固定数字数到另一个固定数字。',
+  'studio.problem.loop-bound': '有一个循环超过 128 次。',
+  'studio.problem.loop-assign': '有一个循环在内部修改了自己的计数器。',
+  'studio.problem.entry-point': '缺少 vec4 sceneColour(vec2 uv) 函数。',
+  'studio.problem.not-a-pack': '这不是 FluidEQ 能读取的场景。',
+  'studio.problem.bad-id': 'id 必须是 2 到 48 个小写字母、数字和连字符。',
+  'studio.problem.names-missing': '必须有英文名称。',
+  'studio.problem.name-too-long': '有一个名称超过 40 个字符。',
+  'studio.problem.bad-fallback': 'fallbackStyle 不是 FluidEQ 已有的外观。',
+  'studio.problem.bad-swatch': 'swatch 需要 2 到 4 个颜色，例如 #00e5cf。',
+  'studio.problem.bad-artwork': '图片不是 pack.json 所写尺寸的 WebP。',
+  'studio.problem.contract-too-new':
+    '这个场景是为更新版本的 FluidEQ 编写的。请更新应用。',
+  'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
+  'studio.problem.missing-file': '缺少场景需要的文件。',
+  'studio.problem.unsafe-path': '文件名必须是本文件夹中文件的普通名称。',
+  'studio.problem.file-too-large': '有一个文件超过了场景允许的大小。',
+  'studio.compile.heading': '着色器编译失败',
+  'studio.compile.hint': '修正后保存，或把错误粘贴给你的 AI。',
+  'studio.heavy.body':
+    '即使缩小到八分之一尺寸，它也无法保持流畅，所以 FluidEQ 在它冻结屏幕之前停止了它。试试减少循环次数、纹理读取或图层。',
+} as const;
+
+export default studio;

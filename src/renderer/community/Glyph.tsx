@@ -20,7 +20,8 @@ export type TCommunityGlyph =
   | 'upload'
   | 'monitor'
   | 'mail'
-  | 'refresh';
+  | 'refresh'
+  | 'studio';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -46,6 +47,15 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M3 4.5h9a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8l-3 2.5V12.5H3a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Z" />
             <path d="M14 8h3a2 2 0 0 1 2 2v3.5a2 2 0 0 1-2 2h-1v2.2L13.3 15.5H11" />
+          </>
+        );
+      case 'studio':
+        // A brush at work, and the spark of the thing it is making.
+        return (
+          <>
+            <path d="M3.5 16.5 4 13l8.6-8.6a1.9 1.9 0 0 1 2.7 2.7L6.7 15.7Z" />
+            <path d="M11.2 5.8l2.9 2.9" opacity="0.6" />
+            <path d="M16 12.5v4.5M13.75 14.75h4.5" />
           </>
         );
       case 'looks':
