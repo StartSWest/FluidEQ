@@ -83,6 +83,17 @@ describe('reading what the device script printed', () => {
     expect(parseDeviceJson('42')).toEqual([]);
     expect(parseDeviceJson('"a string"')).toEqual([]);
   });
+
+  it('passes the fluid engine attach flag through untouched', () => {
+    const parsed = parseDeviceJson(
+      JSON.stringify([
+        { id: 'a', name: 'Speakers', isFluidEngineAttached: true },
+        { id: 'b', name: 'Headphones', isFluidEngineAttached: null },
+      ]),
+    );
+    expect(parsed[0].isFluidEngineAttached).toBe(true);
+    expect(parsed[1].isFluidEngineAttached).toBeNull();
+  });
 });
 
 describe('deciding which outputs to show', () => {

@@ -1,0 +1,271 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * Everything one output endpoint's resolved `Chain` actually does to audio.
+ *
+ * The effect Windows loads into audiodg.exe gets a buffer and a frame count
+ * and nothing else: no thread of its own, no allocator it may call, and no
+ * way to report a failure that is not a glitch the user hears. So the split
+ * here is absolute — the constructor does every expensive thing (reads the
+ * impulse response off disk, resamples it, designs the graphic-EQ FIR,
+ * allocates every convolver and every filter history), and `process` is
+ * arithmetic over memory that already exists.
+ *
+ * A `Chain` that changes while audio is running is applied by building a
+ * second `Graph` off the audio thread and handing it over; `inherit_state`
+ * carries the filter histories across so a gain nudge does not restart every
+ * biquad from silence, which is heard as a click.
+ */
+#ifndef FLUIDEQ_ENGINE_GRAPH_H
+#define FLUIDEQ_ENGINE_GRAPH_H
+
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "fluideq/biquad.h"
+#include "fluideq/chain.h"
+#include "fluideq/convolver.h"
+#include "fluideq_engine/config.h"
+
+namespace fluideq_engine {
+
+namespace detail {
+
+// Stateless deleters so `std::unique_ptr` calls the matching `feq_*_destroy`
+// instead of `delete` on an opaque C handle. Both destroy functions already
+// treat a null pointer as a no-op, same as `delete`, so no extra guard here.
+struct ConvolverKernelDeleter {
+  void operator()(FeqConvolverKernel* kernel) const noexcept {
+    feq_convolver_kernel_destroy(kernel);
+  }
+};
+struct ConvolverDeleter {
+  void operator()(FeqConvolver* state) const noexcept {
+    feq_convolver_destroy(state);
+  }
+};
+struct ChainDeleter {
+  void operator()(FeqChain* chain) const noexcept { feq_chain_destroy(chain); }
+};
+
+}  // namespace detail
+
+class Graph {
+ public:
+  /**
+   * Builds the whole graph. Never on the audio thread: this opens a file,
+   * allocates, and can take milliseconds designing a FIR.
+   *
+   * `max_frames` is the largest block `process` will accept. A larger one is
+   * refused rather than handled, because handling it would mean either
+   * allocating or writing past something the caller owns.
+   */
+  Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
+        uint32_t max_frames);
+  ~Graph();
+  Graph(const Graph&) = delete;
+  Graph& operator=(const Graph&) = delete;
+
+  /**
+   * In place, over `channels` planar buffers of `frames` samples each.
+   *
+   * Real-time safe by construction: no allocation, no free, no lock, no OS
+   * call, no throw. `frames` above `max_frames` and a null buffer are both
+   * left untouched rather than clamped — a short block of the caller's audio
+   * is a glitch, a partially processed one is a glitch plus a discontinuity.
+   */
+  void process(float* const* planar, uint32_t frames) noexcept;
+
+  /**
+   * Copy `previous`'s biquad histories into this graph.
+   *
+   * Only when band layout, channel count and sample rate agree; anything else
+   * would feed a filter the tail of a differently shaped one, which rings.
+   * The convolvers are deliberately NOT carried: their history is a spectrum
+   * partitioned against one specific kernel and means nothing to another.
+   *
+   * Neither is the DSP rack: its state lives behind an opaque handle with no
+   * way to copy it. When the rack has not changed at all, `inherit_rack`
+   * takes the whole handle instead of copying anything out of it. Call only
+   * while both graphs' filter histories are idle, at an audio block boundary.
+   */
+  void inherit_state(const Graph& previous) noexcept;
+
+  /** Watcher thread, before publication. Reset graphs leave this disabled. */
+  void request_state_transfer() noexcept { transfer_state_ = true; }
+
+  /** Audio thread, between blocks, while the previous histories are idle. */
+  void adopt_state(const Graph* previous) noexcept {
+    if (transfer_state_ && previous != nullptr) {
+      inherit_state(*previous);
+    }
+  }
+
+  /**
+   * Keep running `previous`'s rack instead of this graph's own.
+   *
+   * Only when the two racks are the same rack: identical `dsp_values`, the
+   * same sample rate, the same channel count, the same `max_frames` and the
+   * same rack width. `max_frames` matters because it is what sizes the
+   * chain's internal buffers at build time — a chain built for one block
+   * size shared into a graph that accepts a larger one would have
+   * `feq_chain_process` write past buffers it was never sized for. Under
+   * anything else this does nothing and the new graph keeps the chain it
+   * built.
+   *
+   * WHY IT EXISTS. A rack chain is built fresh with every graph, and a fresh
+   * chain under linear-phase EQ re-converges over 8192 frames — 171 ms at
+   * 48 kHz. But a graph is rebuilt on every configuration change, and an
+   * EQ-only edit (a band dragged) changes the configuration without touching
+   * the rack at all. So dragging one band muted and re-primed the maximizer,
+   * the bass engine and the delay on every frame of the drag, for a rack that
+   * had not changed by a single value.
+   *
+   * WHY SHARING IS SAFE, which is the part that is not obvious. The chain is
+   * held in a `shared_ptr` and both graphs hold it at once, so this is two
+   * threads' worth of reasoning:
+   *
+   * - Processing. `feq_chain_process` runs on the audio thread and there is
+   *   exactly one — the graph handover (`GraphSlot::adopt`) happens at a
+   *   block boundary on that same thread, so two graphs can never be inside
+   *   `process` at the same instant. A shared chain is therefore touched by
+   *   one caller at a time even though two objects point at it.
+   * - Destruction. Graphs are destroyed only by the watcher thread, through
+   *   `Watcher::owned_`/`reclaim`, and only once the audio thread has
+   *   completed two blocks past the publish that superseded them. So the last
+   *   `shared_ptr` release — the one that calls `feq_chain_destroy` — happens
+   *   on the watcher thread, after the audio thread has provably left both
+   *   graphs. `shared_ptr`'s own count is atomic, which covers the copy made
+   *   here against a release happening on the same thread later.
+   *
+   * MOVING the chain out of the previous graph would be wrong for the first
+   * of those reasons in reverse: the previous graph is still the active one
+   * at the moment this is called, and the audio thread can be inside its
+   * `process`.
+   */
+  void inherit_rack(const Graph& previous) noexcept;
+
+  /** Whether both graphs are running the very same rack chain object. */
+  bool rack_is_shared_with(const Graph& other) const noexcept;
+
+  /** Same band count and the same types in the same order. */
+  bool has_same_band_layout(const Graph& other) const noexcept;
+
+  /**
+   * True when this graph is guaranteed to leave audio exactly as it found it
+   * — either the config never named this endpoint, or it named it and asked
+   * for nothing. The caller uses it to skip the effect entirely.
+   */
+  bool is_passthrough() const noexcept;
+
+  /**
+   * Frames of delay this graph adds, for the host to report to Windows.
+   *
+   * Every convolution stage's block-pipeline latency, plus the graphic-EQ
+   * FIR's own group delay — it is designed linear-phase, so its energy sits
+   * at the centre tap and an n-tap kernel puts the signal out n/2 frames
+   * later. A `Convolution:` impulse response contributes no such term: it is
+   * causal, and its delay is part of the sound it reproduces.
+   *
+   * So this is 0, one convolver's latency, one plus the FIR's half-length,
+   * or both stages together — never a fixed constant.
+   *
+   * Plus the rack's own (`feq_chain_latency_frames`), which linear-phase EQ
+   * dominates at 8192 frames — 171 ms at 48 kHz. That is why the constructor
+   * primes the rack rather than leaving its kernel to be adopted by the first
+   * audio block: this number is read once, at publish time, and cached for
+   * `GetLatency`.
+   */
+  uint32_t latency_frames() const noexcept;
+
+  /**
+   * What went wrong that was survivable, in English, for the log.
+   *
+   * A missing impulse response, one at the wrong sample rate, or a kernel
+   * longer than this engine will run are all handled rather than refused: a
+   * config with one bad line still has to produce audio. The log line is the
+   * only place that difference is visible, so it has to say which.
+   */
+  const std::vector<std::string>& warnings() const noexcept;
+
+ private:
+  bool transfer_state_ = false;
+  uint32_t sample_rate_;
+  uint32_t channels_;
+  uint32_t max_frames_;
+  bool passthrough_;
+  double preamp_linear_;
+  uint32_t latency_frames_;
+
+  // Band types in file order, kept apart from the coefficients so a layout
+  // comparison does not have to compare floating-point coefficients that two
+  // equivalent layouts can differ in.
+  std::vector<FilterType> layout_;
+  // One entry per band, shared by every channel: the coefficients depend on
+  // the band and the sample rate, never on which channel is being filtered.
+  std::vector<FeqBiquadCoefficients> coefficients_;
+  // `channels_ * coefficients_.size()`, channel-major.
+  std::vector<FeqBiquadState> states_;
+
+  // The kernels outlive every convolver built from them, and each is shared
+  // by all channels; only the per-channel `FeqConvolver` carries history.
+  //
+  // Owned through `unique_ptr` so a throw anywhere after one of these is
+  // created — `warnings_.push_back`, the FIR design's allocations, the next
+  // `feq_convolver_kernel_create` — still runs its destructor rather than
+  // leaking the handle. Declared AFTER the kernels on purpose: members are
+  // destroyed in reverse declaration order, and each convolver holds a
+  // pointer into the kernel it was built from, so the convolvers must go
+  // first.
+  std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
+      impulse_kernel_;
+  std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
+      graphic_kernel_;
+  std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
+      impulse_;
+  std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
+      graphic_;
+
+  /**
+   * The DSP rack, when `Chain::dsp_values` decoded into one.
+   *
+   * The same `fluideq-dsp-core` chain the Library player runs, with the
+   * stages that cannot live inside audiodg.exe taken out by
+   * `decode_dsp_chain`. Null whenever the app has not written a rack file,
+   * the file was unreadable, or the array was not a snapshot this build's
+   * decoder recognises — all of which leave the EQ below running.
+   *
+   * `shared_ptr` rather than `unique_ptr` so consecutive graphs with an
+   * identical rack can go on running the same chain rather than re-priming a
+   * new one — see `inherit_rack` for why that is safe, and for the 171 ms it
+   * saves on every band drag.
+   */
+  std::shared_ptr<FeqChain> rack_;
+  /**
+   * The array the rack was built from, kept so `inherit_rack` can tell "the
+   * same rack" from "a rack". Compared by value: the file is rewritten on
+   * every rack change, so a stamp or a pointer would say "changed" for a
+   * rewrite of identical numbers, which is exactly the case that matters.
+   */
+  std::vector<double> dsp_values_;
+  // How many of `channels_` the rack actually runs on: 1 or 2, never more.
+  // A stream with more carries the rest past it untouched, because the rack
+  // is a stereo processor (`FEQ_CHAIN_CHANNELS`) and there is no sensible
+  // answer for a centre channel or an LFE.
+  uint32_t rack_channels_ = 0;
+  // `rack_channels_` pointers, filled in `process`. A member because the
+  // audio thread may not allocate one per block.
+  std::vector<float*> rack_planes_;
+
+  std::vector<std::string> warnings_;
+};
+
+}  // namespace fluideq_engine
+
+#endif  // FLUIDEQ_ENGINE_GRAPH_H

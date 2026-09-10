@@ -30,6 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { ISSUES_URL, PRODUCT_NAME } from './branding';
+import { TAudioEngine } from './audioEngine';
 
 /**
  * Where reports are meant to go.
@@ -121,7 +122,10 @@ export interface IGatheredFacts {
   platform: string;
   arch: string;
   electron: string;
+  /** Which engine is processing the audio, or `null` if none was chosen. */
+  audioEngine: TAudioEngine | null;
   isEqualizerApoInstalled: boolean;
+  fluidEngineInstalled: boolean;
   /** Already tailed and redacted, in main, before crossing the bridge. */
   appLog: string;
   installLog: string;
@@ -145,11 +149,21 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     platform,
     arch,
     electron,
+    audioEngine,
     isEqualizerApoInstalled,
+    fluidEngineInstalled,
     description,
     appLog,
     installLog,
   } = facts;
+
+  // Which engine, spelled the way the dialog spells it. "none chosen" is a
+  // real answer and a different bug from either engine being missing.
+  const engineNames: Record<TAudioEngine, string> = {
+    fluid: `${PRODUCT_NAME} Engine`,
+    apo: 'Equalizer APO',
+  };
+  const engineName = audioEngine ? engineNames[audioEngine] : 'none chosen';
 
   const sections = [
     '### What happened',
@@ -163,7 +177,9 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     `| ${PRODUCT_NAME} | ${appVersion} |`,
     `| Windows | ${platform} ${arch} |`,
     `| Electron | ${electron} |`,
+    `| Audio engine | ${engineName} |`,
     `| Equalizer APO | ${isEqualizerApoInstalled ? 'installed' : 'NOT installed'} |`,
+    `| ${PRODUCT_NAME} Engine | ${fluidEngineInstalled ? 'installed' : 'NOT installed'} |`,
   ];
 
   if (installLog.trim()) {

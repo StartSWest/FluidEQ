@@ -1,0 +1,300 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Above every other dialog in the app. This one can be the blocking first run,
+// where nothing behind it works — so nothing may be drawn over it.
+.engine-dialog-backdrop {
+  @include backdrop(2600);
+}
+
+.engine-dialog {
+  // Head and foot are fixed; only the two cards between them scroll, so the
+  // question and the Apply button stay on screen in a window short enough to
+  // clip them.
+  @include surface(620px, 760px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.engine-dialog__head {
+  display: grid;
+  padding: $spacing-l $spacing-l $spacing-m;
+  gap: 6px;
+}
+
+.engine-dialog__title {
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+}
+
+.engine-dialog__subtitle {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.engine-dialog__body {
+  display: grid;
+  padding: 0 $spacing-l $spacing-m;
+  overflow-y: auto;
+  gap: $spacing-s;
+  align-content: start;
+  @include slim-scrollbar;
+}
+
+.engine-dialog__options {
+  display: grid;
+  gap: $spacing-s;
+}
+
+// A card rather than a dot with a label beside it: each answer is three lines
+// of consequence, and a bare radio list puts them all at the same weight as
+// the name. The whole card is the hit area.
+.engine-dialog__option {
+  @include section-surface;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: $spacing-m;
+  gap: 0 $spacing-s;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  &:hover:not([aria-disabled='true']) {
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: $hover-lift;
+  }
+
+  &[aria-checked='true'] {
+    border-color: color-mix(in srgb, $secondary-light 58%, transparent);
+    background: color-mix(in srgb, $secondary-default 9%, transparent);
+    box-shadow:
+      0 0 20px color-mix(in srgb, $secondary-default 14%, transparent),
+      inset 0 1px 0 rgba($white, 0.05);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.engine-dialog__radio {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border: 1px solid color-mix(in srgb, $edge-tint 42%, transparent);
+  border-radius: 50%;
+
+  &::after {
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: $secondary-default;
+    content: '';
+    transform: scale(0);
+    transition: transform $motion-fast $ease-spring;
+  }
+
+  [aria-checked='true'] > & {
+    border-color: $secondary-light;
+
+    &::after {
+      transform: scale(1);
+    }
+  }
+}
+
+.engine-dialog__option-body {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.engine-dialog__option-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.engine-dialog__name {
+  color: $white;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+// The recommendation says so on the card, not only in the order of the two:
+// somebody reading two dense lists needs to be told which one to take.
+.engine-dialog__recommended {
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+  color: $secondary-light;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.engine-dialog__lines {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.engine-dialog__line {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: start;
+  gap: $spacing-xs;
+  font-size: $text-body;
+  line-height: 1.45;
+
+  // What the engine gives you, and what it costs you, told apart by weight of
+  // ink as well as by the mark — the dash lines are the trade-off and read as
+  // the quieter half of the card.
+  &--yes {
+    color: $text-muted;
+  }
+
+  &--no {
+    color: $text-dim;
+  }
+}
+
+.engine-dialog__mark {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+
+  &--yes {
+    stroke: $secondary-light;
+  }
+
+  &--no {
+    stroke: $text-dim;
+  }
+}
+
+// Outside the disabled card on purpose: dimmed to the same opacity as the row
+// it explains, the explanation for why the row cannot be used is the least
+// readable thing on screen.
+.engine-dialog__note {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.engine-dialog__apo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.engine-dialog__foot {
+  display: grid;
+  padding: $spacing-m $spacing-l $spacing-l;
+  border-top: 1px solid rgba($edge-tint, 0.09);
+  gap: $spacing-xs;
+}
+
+.engine-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.engine-dialog__now {
+  min-width: 0;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+  overflow-wrap: anywhere;
+}
+
+// `auto` and not `space-between`: with the "Now" line absent on a first run,
+// space-between leaves Cancel and Apply hard against the left edge.
+.engine-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: auto;
+  gap: $spacing-xs;
+}
+
+.engine-dialog__error {
+  margin: 0;
+  color: $red;
+  font-size: $text-body;
+  line-height: 1.45;
+}
+
+// The helper's reason, in the muted face so the translated line stays the
+// headline; wraps rather than widening the dialog, since a Windows error
+// message can run past one line.
+.engine-dialog__error-detail {
+  display: block;
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+// The narrowest the window goes. Padding is the first thing to give: a card
+// with 20px either side loses a third of its line length at 360px.
+@media (max-width: 480px) {
+  .engine-dialog__head {
+    padding: $spacing-m $spacing-m $spacing-s;
+  }
+
+  .engine-dialog__body {
+    padding: 0 $spacing-m $spacing-s;
+  }
+
+  .engine-dialog__option {
+    padding: $spacing-s;
+  }
+
+  .engine-dialog__foot {
+    padding: $spacing-s $spacing-m $spacing-m;
+  }
+
+  .engine-dialog__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .engine-dialog__apo-actions > .button {
+    flex: 1 1 auto;
+  }
+}

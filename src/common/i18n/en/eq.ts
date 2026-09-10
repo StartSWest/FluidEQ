@@ -150,12 +150,16 @@ const eq = {
   'output.title': 'Automatic profile',
   'output.device': 'Output device',
   'output.active': 'ACTIVE',
-  'output.apoOff': 'APO OFF',
+  'output.off': 'OFF',
   'output.apoMissingTitle': 'Equalizer APO is not enabled for this output',
   'output.apoMissingBody':
     'FluidEQ cannot change {device} until you enable it in Equalizer APO’s Device Selector and restart Windows.',
   'output.apoConfigure': 'Enable in Device Selector',
-  'output.apoCancel': 'Cancel',
+  'output.engineMissingTitle': 'FluidEQ is not enabled for this output',
+  'output.engineMissingBody':
+    'Enabling it for {device} asks for Windows permission and restarts audio for a moment. No reboot.',
+  'output.enable': 'Enable',
+  'output.notNow': 'Not now',
   'output.none': 'No active outputs found',
   'output.mapping': 'Automatic mapping',
   'output.mapping.neutral': 'Neutral output',

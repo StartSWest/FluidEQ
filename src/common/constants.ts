@@ -806,6 +806,16 @@ export interface IAudioDevice {
    * cannot send somebody into the Device Selector on a guess.
    */
   isEqualizerApoAttached?: boolean | null;
+  /**
+   * Whether the FluidEQ Engine's APO is registered on this particular
+   * Windows endpoint.
+   *
+   * `null`/missing means Windows could not answer, not that the engine is
+   * absent — the same convention as `isEqualizerApoAttached`, and for the
+   * same reason: a registry read failure must read as "unknown", not as a
+   * confident "not attached".
+   */
+  isFluidEngineAttached?: boolean | null;
 }
 
 export interface IDeviceProfileAssignment {

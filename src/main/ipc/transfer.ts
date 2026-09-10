@@ -47,6 +47,7 @@ import { fromDspChainPresetFile } from '../../common/dsp/dspChainPresetFile';
 import { fetchPreset, savePreset, savePresetBaseline } from '../flush';
 import { getCustomFileNameForDevice } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
+import { TAudioEngine } from '../../common/audioEngine';
 import { importConvolutionFile, importEqFile } from '../importSettings';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 
@@ -71,6 +72,7 @@ export interface ITransferIpcDeps {
     activeAudioDeviceId: string;
     activeAudioDevice: IAudioDevice | undefined;
     hasActiveSessionOverride: boolean;
+    audioEngine: TAudioEngine | null;
   };
   activeBaselineDir: () => string;
 
@@ -431,7 +433,7 @@ export const registerTransferIpc = ({
       }
 
       if (!session.configPath) {
-        session.configPath = await getConfigPath();
+        session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
       }
       applyingLayer('convolution');
       state.convolution = importConvolutionFile(sourcePath, session.configPath);
@@ -492,7 +494,9 @@ export const registerTransferIpc = ({
       let custom: string | undefined;
       try {
         if (!session.configPath) {
-          session.configPath = await getConfigPath();
+          session.configPath = await getConfigPath(
+            session.audioEngine ?? 'apo',
+          );
         }
         custom = fs.readFileSync(
           path.join(
@@ -612,7 +616,9 @@ export const registerTransferIpc = ({
       if (bundle.custom !== undefined) {
         if (isSafeImportedCustomBlock(bundle.custom)) {
           if (!session.configPath) {
-            session.configPath = await getConfigPath();
+            session.configPath = await getConfigPath(
+              session.audioEngine ?? 'apo',
+            );
           }
           // Over the top of this output's own custom file, which is the only part
           // of an import that destroys something written by hand. It is also the

@@ -61,7 +61,21 @@ import {
   repairUnusedPreamps,
 } from './flush';
 import { flushPendingWrites, hasUnsettledWrites } from './asyncWriter';
-import { getConfigPath, isEqualizerAPOInstalled } from './registry';
+import {
+  getConfigPath,
+  isEngineInstalled,
+  isEqualizerAPOInstalled,
+} from './registry';
+import { TAudioEngine } from '../common/audioEngine';
+import {
+  loadAudioEnginePreference,
+  migrateAudioEnginePreference,
+  saveAudioEnginePreference,
+} from './audioEngineStore';
+import { neutraliseEngine } from './engineNeutralise';
+import { writeSystemDspChain } from './systemDspChain';
+import { getEngineSetupPath, runEngineSetup } from './engineSetup';
+import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import gatherBugReportFacts from './bugReportFacts';
 import ChannelEnum from '../common/channels';
@@ -134,6 +148,7 @@ import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
+import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
 import {
@@ -976,17 +991,45 @@ const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
  * the config lives, none of which outlives the process.
  */
 const session: {
-  /** Equalizer APO's config directory, resolved once and cached. */
+  /**
+   * The chosen engine's config directory, resolved once and cached.
+   *
+   * Cleared whenever the engine changes. Kept across a switch it would send
+   * the next flush into the directory the app has just neutralised.
+   */
   configPath: string;
   activeAudioDeviceId: string;
   activeAudioDevice: IAudioDevice | undefined;
   /** The user opened a device explicitly, so its profile wins over the default. */
   hasActiveSessionOverride: boolean;
+  /**
+   * The engine being written to, loaded from `audioEngineStore.ts` at the top
+   * of `onAppReady` and changed only by `SET_AUDIO_ENGINE`.
+   *
+   * `null` means the first-run dialog has not been answered — a state the
+   * update path refuses rather than defaults, because defaulting is exactly
+   * what the startup migration is responsible for doing once, in one place.
+   */
+  audioEngine: TAudioEngine | null;
+  /**
+   * Raised while `SET_AUDIO_ENGINE` is neutralising one engine and pointing
+   * the session at the other.
+   *
+   * For that stretch `configPath` still names the engine being left, and an
+   * EQ edit arriving in the middle of it would flush the live chain straight
+   * back over the neutral root that was just written there — both engines
+   * processing the same audio, which is the exact thing the switch exists to
+   * prevent. The update path skips its flush while this is up; the reflush
+   * that ends the switch writes the state out once, into the right place.
+   */
+  engineSwitching: boolean;
 } = {
   configPath: '',
   activeAudioDeviceId: '',
   activeAudioDevice: undefined,
   hasActiveSessionOverride: false,
+  audioEngine: null,
+  engineSwitching: false,
 };
 // The live APO reader must never observe the half-state between an app edit
 // mutating memory and that edit reaching the generated files. Otherwise it can
@@ -1586,8 +1629,19 @@ const retryHelper = async (attempts: number, f: () => unknown) => {
   }
 };
 
+/**
+ * Everything the update path uses an IPC event for, which is one method.
+ *
+ * Stated as its own type so the same path can be run with nobody waiting on
+ * the answer — an engine switch reflushes, and there is no request in flight
+ * to reply to. The alternative was a fake `IpcMainEvent`, which means a cast
+ * through `unknown` over a hundred-property interface to reach a function
+ * that only ever calls `reply`.
+ */
+type TReplySink = { reply: (channel: string, ...args: unknown[]) => void };
+
 const handleError = (
-  event: Electron.IpcMainEvent,
+  event: TReplySink,
   channel: ChannelEnum | string,
   errorCode: ErrorCode,
   // Only for failures the user can act on — a file at the wrong sample rate,
@@ -1608,12 +1662,33 @@ const handleError = (
 };
 
 const updateConfigPath = async (
-  event: Electron.IpcMainEvent,
+  event: TReplySink,
   channel: ChannelEnum | string,
 ) => {
+  const engine = session.audioEngine;
+  if (engine === null) {
+    handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
+    return false;
+  }
+  // Before `getConfigPath`, not after, because under 'fluid' that call CREATES
+  // the directory it hands back. A machine that has never had the engine would
+  // otherwise end up with its folder under %ProgramData% and a file watcher on
+  // it, for an engine that is not there to read any of it.
+  if (!(await isEngineInstalled(engine))) {
+    handleError(
+      event,
+      channel,
+      engine === 'fluid'
+        ? ErrorCode.FLUID_ENGINE_NOT_INSTALLED
+        : ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
+    );
+    return false;
+  }
   try {
-    // Retrive session.configPath assuming EqualizerAPO is installed
-    session.configPath = await getConfigPath();
+    // The chosen engine's directory, resolved once and cached. Under 'fluid'
+    // this is a computed path; under 'apo' it is the registry lookup, which
+    // throws when Equalizer APO is not installed.
+    session.configPath = await getConfigPath(engine);
     // Overwrite the config file if necessary
     if (!checkConfigFile(session.configPath)) {
       updateConfig(session.configPath);
@@ -1642,22 +1717,36 @@ const sessionHeadroom = (): ISessionHeadroom => ({
 });
 
 const handleUpdateHelperCore = async <T>(
-  event: Electron.IpcMainEvent,
+  event: TReplySink,
   channel: ChannelEnum | string,
   response: T,
   syncActiveProfile = false,
   useActiveSessionOverride = false,
 ) => {
-  // Check whether EqualizerAPO is installed every time a change is made
-  const isInstalled = await isEqualizerAPOInstalled();
-  if (!isInstalled) {
-    handleError(event, channel, ErrorCode.EQUALIZER_APO_NOT_INSTALLED);
+  // Whether the chosen engine is there is asked on every change, because it
+  // can be uninstalled while the app is running. Under 'fluid' this is a file
+  // check plus the helper's last word on the registration, and no registry
+  // probe: Equalizer APO being absent is not a failure when it is not the
+  // engine being written to.
+  const engine = session.audioEngine;
+  if (engine === null) {
+    handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
+    return;
+  }
+  if (!(await isEngineInstalled(engine))) {
+    handleError(
+      event,
+      channel,
+      engine === 'fluid'
+        ? ErrorCode.FLUID_ENGINE_NOT_INSTALLED
+        : ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
+    );
     return;
   }
 
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(engine);
     }
     startApoConfigWatcher();
     if (!checkConfigFile(session.configPath)) {
@@ -1725,17 +1814,27 @@ const handleUpdateHelperCore = async <T>(
             state,
           }
         : undefined;
-    // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
-    await retryHelper(5, () => {
-      return flushDeviceProfiles(
-        deviceProfileSettings,
-        presetDirForDevice,
-        session.configPath,
-        activeOverride,
-        state.isEnabled,
-        sessionHeadroom(),
-      );
-    });
+    // Flush changes to EqualizerAPO with a retry in case several requests to
+    // write are occuring at the same time.
+    //
+    // Skipped mid-switch: `session.configPath` still points at the engine
+    // being left, whose directory has just been neutralised, and writing the
+    // live chain into it would make that engine audible again alongside the
+    // new one. Everything else here still happens — the profile is saved, the
+    // reply is a success — because the state is real; only its destination is
+    // in doubt, and the reflush that ends the switch settles that.
+    if (!session.engineSwitching) {
+      await retryHelper(5, () => {
+        return flushDeviceProfiles(
+          deviceProfileSettings,
+          presetDirForDevice,
+          session.configPath,
+          activeOverride,
+          state.isEnabled,
+          sessionHeadroom(),
+        );
+      });
+    }
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE);
     return;
@@ -1755,7 +1854,7 @@ const handleUpdateHelperCore = async <T>(
 };
 
 const handleUpdateHelper = async <T>(
-  event: Electron.IpcMainEvent,
+  event: TReplySink,
   channel: ChannelEnum | string,
   response: T,
   syncActiveProfile = false,
@@ -1780,7 +1879,7 @@ const handleUpdateHelper = async <T>(
 };
 
 const handleUpdate = async (
-  event: Electron.IpcMainEvent,
+  event: TReplySink,
   channel: ChannelEnum | string,
   syncActiveProfile = false,
   useActiveSessionOverride = false,
@@ -1792,6 +1891,60 @@ const handleUpdate = async (
     syncActiveProfile,
     useActiveSessionOverride,
   );
+};
+
+/**
+ * Tell the update path's two reply shapes apart.
+ *
+ * `TSuccess` carries `result` and nothing else, so the presence of a numeric
+ * `errorCode` is the whole distinction — the same test `ipcRequest.ts` makes
+ * on the window's side of the same wire.
+ */
+const isErrorReply = (payload: unknown): payload is TError =>
+  typeof payload === 'object' &&
+  payload !== null &&
+  'errorCode' in payload &&
+  typeof payload.errorCode === 'number';
+
+/**
+ * Rewrite the current state into whichever engine is chosen now, and say
+ * whether it landed.
+ *
+ * This is what an engine switch, an install and an attach all end in: the
+ * chain has to reach the engine that is live now, and none of those requests
+ * is the channel the update path replies on. So the update path is run
+ * against a sink instead of an event, and the error it would have replied
+ * with is handed back to the caller rather than logged and dropped — a
+ * reflush that failed after a switch is precisely the failure that otherwise
+ * reaches the window as "the switch worked" while nothing is being processed.
+ *
+ * Deliberately no `adoptExistingApoConfig()`, unlike the health check: that
+ * believes the config on disk over the app's state, which is right once at
+ * startup and wrong here. The directory being flushed into belongs to the
+ * engine that was NOT in use, so whatever it holds is older than what the
+ * user is listening to — adopting it would replace the live chain with a
+ * stale one at the moment of the switch.
+ */
+const reflushCurrentState = async (): Promise<TReflushResult> => {
+  let failure: TError | undefined;
+  const sink: TReplySink = {
+    reply: (channel, ...args) => {
+      const [payload] = args;
+      if (isErrorReply(payload)) {
+        log.error(`Reflush failed on ${channel}`, payload);
+        // The first refusal is the one that describes the switch: anything
+        // after it is a consequence of the same missing engine.
+        failure = failure ?? payload;
+      }
+    },
+  };
+  // A label for the log and for the "saved because of" note on the profile,
+  // not a channel anyone listens on — the reply goes to the sink above.
+  const channel = 'engineReflush';
+  if (await updateConfigPath(sink, channel)) {
+    await handleUpdate(sink, channel);
+  }
+  return failure ? { ok: false, error: failure } : { ok: true };
 };
 
 const doesFilterIdExist = (
@@ -2042,7 +2195,7 @@ function startApoConfigWatcher() {
 ipcMain.on(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
   const channel = ChannelEnum.GATHER_BUG_REPORT;
   try {
-    const facts = await gatherBugReportFacts();
+    const facts = await gatherBugReportFacts(session.audioEngine);
     event.reply(channel, { result: facts });
   } catch (e) {
     log.error('Could not gather a bug report', e);
@@ -2134,6 +2287,30 @@ registerProfilesIpc({
   retryHelper,
 });
 
+registerAudioEngineIpc({
+  userDataDir,
+  getEngine: () => session.audioEngine,
+  setEngine: (engine) => {
+    session.audioEngine = engine;
+    // The cached directory belongs to the engine being left. Kept, it would
+    // send the next flush — the reflush this switch is about to run — into
+    // the folder the app has just finished neutralising.
+    session.configPath = '';
+  },
+  setSwitching: (isSwitching) => {
+    session.engineSwitching = isSwitching;
+  },
+  isSwitching: () => session.engineSwitching,
+  getConfigPath,
+  isEngineInstalled,
+  reflush: reflushCurrentState,
+  runEngineSetup,
+  readAudioEngineStatus,
+  neutraliseEngine: (other) =>
+    neutraliseEngine(other, deviceProfileSettings, presetDirForDevice),
+  writeSystemDspChain,
+});
+
 /**
  * Write one config file back to disk.
  *
@@ -2166,7 +2343,7 @@ ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
 
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
     fs.writeFileSync(path.join(session.configPath, fileName), contents, 'utf8');
     const reply: TSuccess<void> = { result: undefined };
@@ -2255,7 +2432,7 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
     const tree = readApoConfigTree(session.configPath);
     const reply: TSuccess<IApoConfigTree | undefined> = {
@@ -2403,9 +2580,34 @@ ipcMain.on('quit-app', () => {
 // checks fail, so a reference captured here would be undefined forever.
 registerUpdatesIpc({ getActiveAutoUpdater: () => activeAutoUpdater });
 
+/**
+ * Where Equalizer APO's own tools live — always APO's, never the session's.
+ *
+ * These two menu items open executables that ship inside the Equalizer APO
+ * installation, so the directory they need is APO's and nothing else. Asking
+ * for the session's engine sent them to `%ProgramData%\FluidEQ\engine` for a
+ * user on the FluidEQ Engine — a folder with no `Editor.exe` in it, reported
+ * as "the tools were not found", and CREATED by the very act of asking. The
+ * installed check comes first for the same reason it does everywhere else:
+ * `getConfigPath` is not a question that can be asked for free.
+ */
+const equalizerApoRootDir = async (): Promise<string | null> => {
+  if (!(await isEqualizerAPOInstalled())) {
+    return null;
+  }
+  return path.dirname(await getConfigPath('apo'));
+};
+
+/** The one wording both menu items fall back to when APO is not there. */
+const APO_NOT_LOCATED =
+  'Equalizer APO is not installed or its installation could not be located.';
+
 ipcMain.handle('open-equalizer-apo-configurator', async () => {
   try {
-    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const equalizerApoRoot = await equalizerApoRootDir();
+    if (equalizerApoRoot === null) {
+      return APO_NOT_LOCATED;
+    }
     const configuratorPath = ['DeviceSelector.exe', 'Configurator.exe']
       .map((fileName) => path.join(equalizerApoRoot, fileName))
       .find((candidate) => fs.existsSync(candidate));
@@ -2416,13 +2618,16 @@ ipcMain.handle('open-equalizer-apo-configurator', async () => {
 
     return shell.openPath(configuratorPath);
   } catch {
-    return 'Equalizer APO is not installed or its installation could not be located.';
+    return APO_NOT_LOCATED;
   }
 });
 
 ipcMain.handle('open-equalizer-apo-settings', async () => {
   try {
-    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const equalizerApoRoot = await equalizerApoRootDir();
+    if (equalizerApoRoot === null) {
+      return APO_NOT_LOCATED;
+    }
     // Equalizer APO 1.4.x renamed the old Configurator executable to Editor.
     // Keep the legacy name as a fallback for older installations.
     const settingsPath = ['Editor.exe', 'Configurator.exe']
@@ -2479,6 +2684,23 @@ ipcMain.handle(
 ipcMain.handle('restart-windows-audio', async () => {
   if (process.platform !== 'win32') {
     return 'Restarting Windows Audio is only available on Windows.';
+  }
+
+  // The engine helper when it is there: it restarts AudioEndpointBuilder as
+  // well as Audiosrv, which a changed effect list needs before Windows reads
+  // it again, and it stops a vendor service that depends on Audiosrv first
+  // (Realtek's blocked the plain stop with error 1051 on the first machine).
+  // The PowerShell restart below restarts Audiosrv alone and remains only for
+  // a build with no helper beside it — a source checkout without a native
+  // build.
+  if (fs.existsSync(getEngineSetupPath())) {
+    const result = await runEngineSetup('restart-audio', []);
+    if (result.ok) {
+      return '';
+    }
+    return result.declined
+      ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
+      : `Windows Audio could not be restarted. ${result.error ?? ''}`.trim();
   }
 
   const restartCommand = Buffer.from(
@@ -3043,6 +3265,45 @@ app.on('will-quit', () => {
  * out, the window creation can simply be awaited.
  */
 const onAppReady = async () => {
+  // Which engine, before anything can ask for a config directory.
+  //
+  // Here rather than at module scope because the answer needs a registry
+  // probe, and before the window because the first thing the renderer does is
+  // a health check — which is the first flush of the launch and must already
+  // know where to write.
+  //
+  // The rule itself lives in `migrateAudioEnginePreference`, where it can be
+  // held to all four of its cells; this is the machine it is asked about.
+  // The registry probe is only run when the file has no answer — a recorded
+  // preference is obeyed whatever the machine looks like.
+  const enginePreference = loadAudioEnginePreference(userDataDir);
+  const isWindows = process.platform === 'win32';
+  const migration = migrateAudioEnginePreference(enginePreference, {
+    isWindows,
+    apoInstalled:
+      enginePreference.engine === null && isWindows
+        ? await isEqualizerAPOInstalled()
+        : false,
+  });
+  session.audioEngine = migration.engine;
+  if (migration.persist) {
+    try {
+      saveAudioEnginePreference(userDataDir, 'apo');
+    } catch (error) {
+      // A read-only or full %APPDATA% must not take the launch down with it.
+      // This write only settles the question for NEXT time; the answer for
+      // this session is already in `session.audioEngine`, and letting the
+      // throw escape would abort the rest of `onAppReady` — no window, no
+      // tray, no message, on a machine where nothing is actually wrong with
+      // the audio.
+      log.error(
+        'Could not record the migrated audio engine preference',
+        userDataDir,
+        error,
+      );
+    }
+  }
+
   // Identity, set here rather than at module scope on purpose.
   //
   // app.setName feeds app.getPath('userData'), which is read at import time

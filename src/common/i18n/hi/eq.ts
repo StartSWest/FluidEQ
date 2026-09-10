@@ -151,12 +151,16 @@ const eq: Partial<Dictionary> = {
   'output.title': 'स्वचालित प्रोफ़ाइल',
   'output.device': 'आउटपुट डिवाइस',
   'output.active': 'चालू',
-  'output.apoOff': 'APO बंद',
+  'output.off': 'बंद',
   'output.apoMissingTitle': 'इस आउटपुट के लिए Equalizer APO चालू नहीं है',
   'output.apoMissingBody':
     'FluidEQ {device} को तब तक नहीं बदल सकता, जब तक आप उसे Equalizer APO के Device Selector में चालू करके Windows को पुनः शुरू नहीं करते।',
   'output.apoConfigure': 'Device Selector में चालू करें',
-  'output.apoCancel': 'रद्द करें',
+  'output.engineMissingTitle': 'इस आउटपुट के लिए FluidEQ चालू नहीं है',
+  'output.engineMissingBody':
+    '{device} के लिए इसे चालू करने पर Windows अनुमति माँगेगा और ऑडियो पल भर के लिए फिर शुरू होगा। कंप्यूटर पुनः शुरू करने की ज़रूरत नहीं।',
+  'output.enable': 'चालू करें',
+  'output.notNow': 'अभी नहीं',
   'output.none': 'कोई चालू आउटपुट नहीं मिला',
   'output.mapping': 'स्वचालित जोड़',
   'output.mapping.neutral': 'बिना बदलाव वाला आउटपुट',

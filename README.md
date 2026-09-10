@@ -5,11 +5,11 @@
 **[fluideq.com](https://fluideq.com)** · [Download](https://github.com/StartSWest/FluidEQ/releases)
 · [What's new](CHANGELOG.md) · [Report a bug](https://github.com/StartSWest/FluidEQ/issues)
 
-FluidEQ is a free, open-source graphical interface for
-[Equalizer APO](https://sourceforge.net/projects/equalizerapo/) — a system-wide
-parametric equalizer for Windows 10 and 11. It puts a modern workflow on top of
-the engine: tune once per output, and the right sound follows the right device
-without you touching anything again.
+FluidEQ is a free, open-source system-wide parametric equalizer for Windows 10
+and 11, processed by its own audio engine or by
+[Equalizer APO](https://sourceforge.net/projects/equalizerapo/) — your choice.
+Tune once per output, and the right sound follows the right device without you
+touching anything again.
 
 ![The FluidEQ EQ page: fifteen parametric bands drawn as vertical sliders from 25 Hz to 16 kHz, and above them a row of chips naming everything else applied to this output — a Razer Kraken V3 Pro headphone correction at 100%, the fifteen EQ bands, the Music voicing and Smart EQ on Balance — each with its own switch and strength slider. The selected band's filter type, frequency, gain and Q sit in a panel underneath. In the graph below, the headphone, EQ, voicing and Smart EQ curves are drawn over the live spectrum. Down the left are the engine switch, the preamp, auto-normalize and a stereo level meter; down the right, the output column with the device picker, the second output, the driver-type panel and the named profiles for this device. The live output meter runs across the title bar, between Online Media and EQ on one side and DSP, Library and Karaoke on the other.](docs/03-eq-parametric-bands-and-live-response.png)
 
@@ -345,7 +345,7 @@ column is.
 ## How device switching works
 
 FluidEQ writes one `Device:` block per assigned output into its own config file,
-which Equalizer APO includes. Because APO accumulates every block whose device
+which the chosen engine includes. Because it accumulates every block whose device
 matches, the block for the output you are listening on is the one that applies.
 Each block names a file of its own:
 
@@ -382,16 +382,49 @@ findable again rather than accumulating a fresh set every launch.
 
 No virtual output device and no kernel driver.
 
+## Audio engine
+
+FluidEQ runs on either of two engines, chosen once during install and
+changeable any time from **Audio engine…** in the actions menu. The
+**FluidEQ Engine** is FluidEQ's own audio processing engine: it sits after
+your sound card's own effects, so the manufacturer's panel and its own
+effects keep working, and switching to it needs no reboot — one Windows
+permission prompt while audio catches up. **Equalizer APO** is the classic
+third-party engine this project has carried since the start: it runs custom
+APO commands, Peace and VST plugins, but it takes over your sound card's
+effects slot and needs a restart after install.
+
+The FluidEQ Engine installs to `%ProgramFiles%\FluidEQ Engine` and keeps its
+configuration in `%ProgramData%\FluidEQ\engine\config`, the file FluidEQ
+writes and the engine reads back. Windows will not load an unsigned audio
+effect at all until something clears `DisableProtectedAudioDG` in the
+registry — the same switch Equalizer APO has always flipped — so the FluidEQ
+Engine sets it too, and leaves it set on removal in case another effect on
+the machine still needs it. It needs Windows 10 version 1803 or later.
+
+Under the FluidEQ Engine, the DSP rack runs for the whole PC rather than only
+what FluidEQ itself plays — every app's sound goes through the same chain.
+Two limits still apply: Denoise still only measures and repairs Library
+tracks, and switching the parametric Equaliser to linear phase adds about
+171 ms of delay, shown right on the DSP page.
+
+To remove the FluidEQ Engine, uninstall FluidEQ — its uninstaller takes the
+engine out with it. To remove just the engine without uninstalling FluidEQ,
+run `FluidEQ-Engine-Setup.exe uninstall` from the `resources\native` folder
+inside FluidEQ's install directory.
+
 ## Getting started
 
-FluidEQ is Windows-only, because Equalizer APO is the audio engine.
+FluidEQ is Windows-only, because both audio engines are.
 
 1. Download the installer from
    [Releases](https://github.com/StartSWest/FluidEQ/releases) and run it.
-2. It carries Equalizer APO with it and offers to install it — nothing is
-   downloaded and there is no second website to visit. APO's own setup opens so
-   you can tick every output you want FluidEQ to manage; reboot when it asks.
-   Already have Equalizer APO? It is left completely alone.
+2. Choose an engine when asked — the FluidEQ Engine or Equalizer APO, see
+   [Audio engine](#audio-engine) above. Nothing is downloaded and there is no
+   second website to visit; both installers are carried inside FluidEQ's own.
+   Picking Equalizer APO opens its own setup so you can tick every output you
+   want FluidEQ to manage; reboot when it asks. Already have Equalizer APO
+   installed? It is left completely alone.
 3. Pick your output at the top right, then tune.
 
 That is the whole setup. Nothing needs saving — every edit attaches itself to
@@ -406,7 +439,7 @@ with the pencil on its row.
 ## Known limitations
 
 - **SmartScreen warns.** On install, and on updates.
-- **Windows only.** Equalizer APO is the audio engine and there is no
+- **Windows only.** Both audio engines are Windows-specific and there is no
   equivalent to target elsewhere. On other platforms FluidEQ starts with two
   demonstration endpoints so the UI can be developed, and touches nothing.
 - **Traditional Chinese readers get Simplified.** Locale matching uses the

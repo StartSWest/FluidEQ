@@ -1,0 +1,120 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Above the troubleshooter (4000) and the engine dialog (2600): both of them
+// can be what asked this question, and the answer must not appear behind the
+// panel that asked it.
+.restart-dialog-backdrop {
+  @include backdrop(4100);
+}
+
+.restart-dialog {
+  @include surface(460px, 400px);
+  padding: $spacing-l;
+  gap: $spacing-m;
+}
+
+.restart-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// The restart arrows, in the accent, in a ring: the same mark the notice bar
+// uses for its "restart now", so the card reads as that action's own window.
+.restart-dialog__glyph {
+  display: grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, $secondary-light 36%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  place-items: center;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+}
+
+.restart-dialog__title {
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+}
+
+.restart-dialog__body {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+
+  &--failed {
+    color: $red;
+  }
+}
+
+// What Windows said, under the translated line, in the quiet face so the
+// line stays the headline; wraps rather than widening the card.
+.restart-dialog__reason {
+  display: block;
+  margin-top: $spacing-xs;
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+.restart-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// Kept in the flow even when empty, so the buttons do not jump down a line
+// the moment the restart starts.
+.restart-dialog__status {
+  min-width: 0;
+  min-height: 1.4em;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+}
+
+// `auto` and not `space-between`: with the status line empty, space-between
+// would put Cancel against the left edge.
+.restart-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: auto;
+  gap: $spacing-xs;
+}
+
+@media (max-width: 480px) {
+  .restart-dialog {
+    padding: $spacing-m;
+  }
+
+  .restart-dialog__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

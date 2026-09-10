@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs';
+import path from 'path';
 import {
   IAudioDevice,
   IDeviceProfileAssignment,
@@ -47,6 +48,7 @@ import {
   assignDeviceProfile,
   discoverAudioDevices,
   flushDeviceProfiles,
+  getCustomFileNameForDevice,
   getStateForAudioDevice,
   removeAssignmentForPreset,
   removeDeviceProfile,
@@ -56,6 +58,7 @@ import {
   TPresetDirForDevice,
 } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
+import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
 
@@ -118,6 +121,7 @@ export interface IProfilesIpcDeps {
     activeAudioDeviceId: string;
     activeAudioDevice: IAudioDevice | undefined;
     hasActiveSessionOverride: boolean;
+    audioEngine: TAudioEngine | null;
   };
   handleUpdate: (
     event: Electron.IpcMainEvent,
@@ -544,7 +548,9 @@ export const registerProfilesIpc = ({
         // later EQ edit is made in FluidEQ.
         try {
           if (!session.configPath) {
-            session.configPath = await getConfigPath();
+            session.configPath = await getConfigPath(
+              session.audioEngine ?? 'apo',
+            );
           }
           if (!checkConfigFile(session.configPath)) {
             updateConfig(session.configPath);
@@ -672,10 +678,41 @@ export const registerProfilesIpc = ({
     });
   });
 
+  /**
+   * Forget an output: drop the assignment, and delete its custom file with it.
+   *
+   * This is the one place that deletes a custom file at all. `removeStaleFiles`
+   * in deviceProfiles.ts never touches one — a disabled flush (neutralising the
+   * engine being left) or an engine switch both produce an empty keep-set, and
+   * a sweep cannot tell "this output is unplugged" from "this output is gone
+   * for good" from that alone, so it must not infer deletion from either. This
+   * handler is the one place the user has actually said "gone for good," so it
+   * is the one place allowed to act on it, and it does so by name rather than
+   * by leaving it to a sweep that would also catch the wrong case.
+   */
   ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
-    removeDeviceProfile(deviceProfileSettings, arg[0]);
+    const deviceId = arg[0] as string;
+    removeDeviceProfile(deviceProfileSettings, deviceId);
     await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+    if (session.configPath) {
+      const customFilePath = path.join(
+        session.configPath,
+        getCustomFileNameForDevice(deviceId),
+      );
+      try {
+        // Deleted directly with fs, not through the async writer: the custom
+        // file is created once with a plain fs.writeFileSync (see
+        // ensureCustomFiles in deviceProfiles.ts) and never routed through
+        // scheduleWrite again, so there is nothing cached to forget.
+        fs.rmSync(customFilePath, { force: true });
+      } catch (e) {
+        log.error(
+          `Could not delete the custom file for the output being forgotten: "${deviceId}"`,
+        );
+        log.error(e);
+      }
+    }
     await handleUpdate(event, channel);
   });
 };

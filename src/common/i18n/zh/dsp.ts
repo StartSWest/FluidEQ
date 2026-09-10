@@ -22,6 +22,10 @@ const dsp = {
     'DSP 仅处理从音乐库播放的音轨，不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
   'dsp.idle':
     '请从音乐库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
+  'dsp.scope.system': '全系统 · {output}',
+  'dsp.scope.systemAll': '全系统',
+  'dsp.scope.systemDelay': '{ms} 毫秒延迟',
+  'dsp.scope.useFluid': '使用 FluidEQ Engine',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.engineDown':
     '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',
@@ -65,6 +69,7 @@ const dsp = {
   'dsp.denoisePreset.strong': '强力清理',
   'dsp.denoise.description':
     '在任何染色之前先修复音源：嘶声、市电哼声、爆音，以及一个神经网络人声清理器。数值取自音轨本身的实测，而非猜测。',
+  'dsp.denoise.libraryOnly': '仅限音乐库播放',
   'dsp.denoise.isolate': '独听',
   'dsp.denoise.isolateHint': '只听这一级正在去掉的部分。',
   'dsp.denoise.isolateOn': '保留信号已移除——现在只听到被去掉的部分。',

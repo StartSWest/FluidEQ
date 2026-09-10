@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useMemo } from 'react';
 import { DeviceMatchEnum } from 'common/audioDeviceBridge';
 import { AUTOMATIC_PRESET_PREFIX } from 'common/constants';
+import type { TAudioEngine } from 'common/audioEngine';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
@@ -20,7 +21,12 @@ import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
 import SecondOutputProfilePicker from './SecondOutputProfilePicker';
 
-const ExtraOutputs = () => {
+interface IExtraOutputsProps {
+  /** Passed straight down to the per-output badge. See the picker. */
+  engine: TAudioEngine | null;
+}
+
+const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
   const { t } = useTranslation();
   const isSinglePlayer = useSinglePlayer();
   const {
@@ -187,6 +193,7 @@ const ExtraOutputs = () => {
                     window.electron?.platform === 'win32' && (
                       <SecondOutputProfilePicker
                         device={target.device}
+                        engine={engine}
                         presetName={target.presetName}
                         onChanged={refresh}
                       />

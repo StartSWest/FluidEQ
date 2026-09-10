@@ -35,7 +35,8 @@ import os from 'os';
 import path from 'path';
 import { app } from 'electron';
 import { IGatheredFacts, takeLogTail } from '../common/bugReport';
-import { isEqualizerAPOInstalled } from './registry';
+import { TAudioEngine } from '../common/audioEngine';
+import { isEngineInstalled, isEqualizerAPOInstalled } from './registry';
 
 /** Both logs sit together, which is why the installer writes where it does. */
 const getLogDirectory = () => path.join(app.getPath('userData'), 'logs');
@@ -64,7 +65,14 @@ const getAccountName = (): string | undefined => {
   }
 };
 
-const gatherBugReportFacts = async (): Promise<IGatheredFacts> => {
+/**
+ * `audioEngine` is passed in rather than read here, because the live answer
+ * is the session's and not the file's: a switch made during this launch is
+ * already in memory and may not be what the preference file said at startup.
+ */
+const gatherBugReportFacts = async (
+  audioEngine: TAudioEngine | null,
+): Promise<IGatheredFacts> => {
   const accountName = getAccountName();
   const logs = getLogDirectory();
 
@@ -76,7 +84,18 @@ const gatherBugReportFacts = async (): Promise<IGatheredFacts> => {
     // guess in: it is the first thing anybody reading the report will check.
   }
 
+  let fluidEngineInstalled = false;
+  try {
+    fluidEngineInstalled = await isEngineInstalled('fluid');
+  } catch {
+    // Same direction to guess in, and for the same reason: "which engine, and
+    // is it actually there" is the first pair of questions any report about
+    // silent audio has to answer.
+  }
+
   return {
+    audioEngine,
+    fluidEngineInstalled,
     appVersion: app.getVersion(),
     // A version, never a machine name. `os.hostname()` is deliberately absent.
     platform: `${os.type()} ${os.release()}`,

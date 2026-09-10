@@ -175,26 +175,22 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-xs;
 }
 
+// Why the last press did not take. Inside the copy block rather than beside
+// the buttons: it is a sentence about what happened, and it has to be read
+// before the same button is pressed again.
+//
+// Written against the ancestor as well as the class: `.device-apo-notice p`
+// above sets the muted colour at the same specificity this class alone has,
+// and comes first, so a bare `.device-apo-notice__error` painted nothing.
+.device-apo-notice p.device-apo-notice__error {
+  color: $red;
+}
+
 .device-apo-notice__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: $spacing-s;
-}
-
-.link-button {
-  padding: 7px 9px;
-  color: $secondary-light;
-  border: 0;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
-    outline: none;
-  }
 }
 
 // Option row inside the output picker. Device names are long and arbitrary,

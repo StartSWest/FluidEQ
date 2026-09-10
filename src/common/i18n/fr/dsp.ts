@@ -22,6 +22,10 @@ const dsp = {
     'Le DSP traite uniquement les pistes audio lues depuis la Bibliothèque. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',
   'dsp.idle':
     'Lisez une piste audio depuis la Bibliothèque pour utiliser le DSP. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',
+  'dsp.scope.system': 'Tout le système · {output}',
+  'dsp.scope.systemAll': 'Tout le système',
+  'dsp.scope.systemDelay': '{ms} ms de latence',
+  'dsp.scope.useFluid': 'Utiliser FluidEQ Engine',
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
   'dsp.engineDown':
@@ -73,6 +77,7 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Nettoyage poussé',
   'dsp.denoise.description':
     'Répare la source avant que quoi que ce soit ne la colore : souffle, ronflement secteur, craquements et un nettoyeur vocal neuronal. Mesuré sur la piste elle-même, pas deviné.',
+  'dsp.denoise.libraryOnly': 'Uniquement à la lecture depuis la Bibliothèque',
   'dsp.denoise.isolate': 'Isoler',
   'dsp.denoise.isolateHint': 'Écouter uniquement ce que cette étape retire.',
   'dsp.denoise.isolateOn':

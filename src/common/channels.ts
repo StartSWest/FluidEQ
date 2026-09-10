@@ -158,6 +158,24 @@ enum ChannelEnum {
   // Runs the Equalizer APO installer that ships inside ours. Nobody is sent to
   // a website to find one.
   INSTALL_EQUALIZER_APO = 'installEqualizerApo',
+  // Which engine is chosen, which are installed, and which outputs the FluidEQ
+  // Engine is attached to. One read, because the two probes behind it are a
+  // registry round trip and a helper process — asking them separately would
+  // pay for both twice on every render of the dialog.
+  GET_AUDIO_ENGINE_STATUS = 'getAudioEngineStatus',
+  // Switch engines. Never a plain preference write: the engine being left has
+  // to be neutralised first, or both of them process the same output.
+  SET_AUDIO_ENGINE = 'setAudioEngine',
+  INSTALL_FLUID_ENGINE = 'installFluidEngine',
+  // One output on or off the engine, by endpoint GUID. Attaching is what the
+  // "not enabled for this output" notice offers under the FluidEQ Engine, in
+  // place of Equalizer APO's Device Selector.
+  ATTACH_FLUID_ENGINE = 'attachFluidEngine',
+  DETACH_FLUID_ENGINE = 'detachFluidEngine',
+  // The DSP rack, system-wide. The renderer already builds this array for the
+  // Library player's host; under the FluidEQ Engine the same array is written
+  // beside the config so the DLL runs the rack on every output.
+  SET_SYSTEM_DSP_CHAIN = 'setSystemDspChain',
   // Everything a bug report needs, already redacted. Gathered in main because
   // the logs and the registry are not reachable from the renderer.
   GATHER_BUG_REPORT = 'gatherBugReport',

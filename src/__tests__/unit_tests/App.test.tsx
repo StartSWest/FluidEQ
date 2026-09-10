@@ -25,10 +25,12 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import type { IAudioEngineStatus } from '../../common/audioEngine';
 import {
   DISCLAIMER_ACCEPTED_KEY,
   buildAcceptance,
 } from '../../common/disclaimer';
+import { ErrorCode } from '../../common/errors';
 import { VIDEO_GRAPH_FULLSCREEN_REQUEST } from '../../common/videoSites';
 import App from '../../renderer/App';
 import { Channels } from '../../main/api';
@@ -36,6 +38,10 @@ import {
   claimPlayback,
   resetPlaybackOwner,
 } from '../../renderer/audio/playbackOwner';
+import {
+  engineInstallsNeeded,
+  prereqBannerEngine,
+} from '../../renderer/utils/audioEngineApi';
 import { setGraphView } from '../../renderer/utils/graphStyle';
 
 describe('App', () => {
@@ -639,5 +645,106 @@ describe('App', () => {
     const gate = screen.getByRole('alertdialog');
     expect(gate).toHaveAttribute('aria-modal', 'true');
     expect(gate).toContainElement(document.activeElement as HTMLElement);
+  });
+});
+
+/**
+ * The blocking prerequisite banner used to pick its Equalizer APO/FluidEQ
+ * Engine variant straight from the error code — right for the two codes that
+ * name their own engine, wrong for `CONFIG_NOT_FOUND`, which is about the
+ * config file the *chosen* engine reads and says nothing about which engine
+ * that is. A `CONFIG_NOT_FOUND` on a machine running the FluidEQ Engine still
+ * showed Equalizer APO's title, its credit line and its installer.
+ *
+ * Exercised as a pure function rather than through a full `<App />` render:
+ * every one of these three IPC round trips in the test harness never
+ * resolves (the mocked `once` above is a no-op), so `engineStatus` and
+ * `globalError` never populate in that environment — there is nothing this
+ * derivation could observe by mounting the whole tree that it cannot observe
+ * by being called directly with the status it would have received.
+ */
+describe('prereqBannerEngine', () => {
+  const engineStatus = (
+    engine: IAudioEngineStatus['engine'],
+  ): IAudioEngineStatus => ({
+    engine,
+    apo: { installed: true },
+    fluid: { installed: true, endpoints: [] },
+    fluidSupported: true,
+  });
+
+  it('always shows the FluidEQ Engine when it is the one reported missing', () => {
+    expect(
+      prereqBannerEngine(
+        ErrorCode.FLUID_ENGINE_NOT_INSTALLED,
+        engineStatus('apo'),
+      ),
+    ).toBe('fluid');
+  });
+
+  it('always shows Equalizer APO when it is the one reported missing', () => {
+    expect(
+      prereqBannerEngine(
+        ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
+        engineStatus('fluid'),
+      ),
+    ).toBe('apo');
+  });
+
+  it('follows the running engine for a missing config file', () => {
+    expect(
+      prereqBannerEngine(ErrorCode.CONFIG_NOT_FOUND, engineStatus('fluid')),
+    ).toBe('fluid');
+    expect(
+      prereqBannerEngine(ErrorCode.CONFIG_NOT_FOUND, engineStatus('apo')),
+    ).toBe('apo');
+    expect(prereqBannerEngine(ErrorCode.CONFIG_NOT_FOUND, undefined)).toBe(
+      'apo',
+    );
+  });
+});
+
+/**
+ * Applying an engine choice used to read the window's cached status, which
+ * reported Equalizer APO as absent on every machine running the FluidEQ
+ * Engine — so switching back re-ran Equalizer APO's installer and asked for a
+ * reboot on a machine that already had it. The handler now re-reads the
+ * status and feeds it to this, so the rule itself is what is tested.
+ */
+describe('engineInstallsNeeded', () => {
+  const status = (apo: boolean, fluid: boolean): IAudioEngineStatus => ({
+    engine: 'fluid',
+    apo: { installed: apo },
+    fluid: { installed: fluid, endpoints: [] },
+    fluidSupported: true,
+  });
+
+  it('installs nothing when the chosen engine is already installed', () => {
+    expect(engineInstallsNeeded('apo', status(true, true))).toEqual({
+      apo: false,
+      fluid: false,
+    });
+    expect(engineInstallsNeeded('fluid', status(true, true))).toEqual({
+      apo: false,
+      fluid: false,
+    });
+  });
+
+  it('installs only the engine being switched to', () => {
+    expect(engineInstallsNeeded('apo', status(false, false))).toEqual({
+      apo: true,
+      fluid: false,
+    });
+    expect(engineInstallsNeeded('fluid', status(false, false))).toEqual({
+      apo: false,
+      fluid: true,
+    });
+  });
+
+  it('installs nothing when the status could not be read', () => {
+    expect(engineInstallsNeeded('apo', undefined)).toEqual({
+      apo: false,
+      fluid: false,
+    });
   });
 });

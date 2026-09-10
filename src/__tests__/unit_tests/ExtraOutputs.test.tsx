@@ -74,7 +74,7 @@ describe('ExtraOutputs', () => {
       toggleTarget: jest.fn(),
     });
 
-    render(<ExtraOutputs />);
+    render(<ExtraOutputs engine="apo" />);
 
     const header = screen.getByRole('button', { name: /Second output/i });
     const section = header.closest('.sidebar-section') as HTMLElement;
@@ -110,7 +110,7 @@ describe('ExtraOutputs', () => {
       toggleTarget: jest.fn(),
     });
 
-    render(<ExtraOutputs />);
+    render(<ExtraOutputs engine="apo" />);
 
     const header = screen.getByRole('button', { name: /Second output/i });
     expect(header).toHaveAttribute('aria-expanded', 'false');

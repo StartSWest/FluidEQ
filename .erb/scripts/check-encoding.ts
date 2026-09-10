@@ -17,8 +17,17 @@ whole suite and got committed:
     every em-dash is re-encoded a byte at a time as if it were Latin-1: E2 80
     94 becomes C3 A2 C2 80 C2 94, which renders as a dash followed by two
     invisible C1 control codes.
+  - Windows PowerShell 5.1 does the same through CP1252 rather than Latin-1,
+    and CP1252 gives 80-9F printable characters: the same em-dash comes back
+    as `a-circumflex, euro sign, right double quote` -- three visible glyphs
+    and not one control code. Thirty of those got past the first two
+    signatures in one document while this check reported the tree clean.
   - `Out-File` and `>` write a UTF-8 BOM, invisible in every editor, which
     changes the first token of the file.
+
+The signatures themselves live in `encodingPatterns.ts`, where Jest holds each
+one to bytes a real round-trip produced -- the positive control without which
+"unmangled" and "matches nothing" read the same.
 
 Both fail silently, and mostly they land in comments, which is why nobody sees
 them until a person reads the file. Not always, though: this check's first run
@@ -34,8 +43,18 @@ trigger.
 import { execFileSync } from 'child_process';
 import { readFileSync } from 'fs';
 import path from 'path';
+import { isMangledLine } from './encodingPatterns';
 
 const REPO_ROOT = path.join(__dirname, '..', '..');
+
+/**
+ * Text this project authors that carries no extension.
+ *
+ * `native/CMakeLists.txt` held a Latin-1-mangled em-dash for weeks: the file
+ * is full of comments, the comment is where mangling lands, and an
+ * extension-only filter never opened it.
+ */
+const TEXT_BASENAMES = new Set(['CMakeLists.txt']);
 
 /** Text this project authors. Binaries and vendored trees are not ours. */
 const TEXT_EXTENSIONS = new Set([
@@ -59,36 +78,6 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 /**
- * A C1 control character, which is the loudest half of the signature.
- *
- * A 3-byte UTF-8 character -- every dash, curly quote and ellipsis in this
- * tree -- is E2 followed by two continuation bytes in 80-BF. Mis-decoded as
- * Latin-1 the lead becomes `a-circumflex` (U+00E2) and BOTH continuations
- * become codepoints in U+0080-U+009F, which is the C1 control block: no
- * printable character, no keyboard, and nothing any of this project's ten
- * locales contains. One anywhere in a source file means the bytes went through
- * the wrong decoder.
- *
- * The first version of this looked for the lead character instead and matched
- * U+00C2/U+00C3 only, which is what a mangled TWO-byte character starts with.
- * It therefore missed every mangled em-dash -- the nine that prompted the
- * script. Its own positive control caught that, which is the whole argument
- * for writing one.
- */
-const C1_CONTROL = /[\u0080-\u009f]/;
-
-/**
- * The other half: a mangled two-byte character, whose tail can be printable.
- *
- * `middle dot` is C2 B7, and mis-decoded it is U+00C2 followed by U+00B7 --
- * a real, printable character, so `C1_CONTROL` never sees it. That exact case
- * had been sitting in a `title` attribute in the karaoke workspace. The lead
- * is restricted to the two characters a mangled 2-byte sequence can start
- * with, so ordinary accented prose does not trip it.
- */
-const MANGLED_PAIR = /[\u00c2\u00c3][\u0080-\u00bf]/;
-
-/**
  * The one legitimate reason to hold these bytes: text about decoding text.
  *
  * `karaokeFiles.test.ts` asserts that the same two bytes read one way under a
@@ -110,7 +99,12 @@ const tracked = execFileSync('git', ['ls-files', '-z'], {
   maxBuffer: 32 * 1024 * 1024,
 })
   .split('\0')
-  .filter((name) => name !== '' && TEXT_EXTENSIONS.has(path.extname(name)));
+  .filter(
+    (name) =>
+      name !== '' &&
+      (TEXT_EXTENSIONS.has(path.extname(name)) ||
+        TEXT_BASENAMES.has(path.basename(name))),
+  );
 
 const offences: string[] = [];
 
@@ -136,7 +130,7 @@ tracked.forEach((name) => {
   }
 
   text.split('\n').forEach((line, index) => {
-    if (C1_CONTROL.test(line) || MANGLED_PAIR.test(line)) {
+    if (isMangledLine(line)) {
       offences.push(
         `${name}:${index + 1}  double-encoded UTF-8: ${line.trim().slice(0, 72)}`,
       );

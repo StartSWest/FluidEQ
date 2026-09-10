@@ -14,6 +14,8 @@ import {
   IDeviceProfileSettings,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
+import type { TAudioEngine } from 'common/audioEngine';
+import type { IEngineSetupResult } from 'main/engineSetup';
 import Dropdown from './widgets/Dropdown';
 import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
@@ -33,10 +35,23 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 };
 
 interface IDeviceProfilesProps {
+  /**
+   * Which engine is carrying the audio, passed in rather than fetched here.
+   *
+   * The shell already holds one answer for the whole window; a second fetch
+   * from this panel would be a second round trip on every mount and a second
+   * thing to keep in step with a switch made in the engine dialog.
+   */
+  engine: TAudioEngine | null;
   onConfigureApo: () => Promise<boolean>;
+  onAttachFluidEngine: (guid: string) => Promise<IEngineSetupResult>;
 }
 
-const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
+const DeviceProfiles = ({
+  engine,
+  onConfigureApo,
+  onAttachFluidEngine,
+}: IDeviceProfilesProps) => {
   // Re-read the state, do not raise the loading flag: that flag is the
   // start-up screen, so noticing a headphone plug used to blank the whole
   // workspace and rebuild it instead of moving the bands to that output's
@@ -49,6 +64,13 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const [dismissedApoDeviceId, setDismissedApoDeviceId] = useState('');
+  // Why the engine did not get attached, when it did not. A declined Windows
+  // prompt is an answer rather than a fault, so the notice stays open with
+  // that sentence under it instead of closing as though it had worked.
+  const [attachFailure, setAttachFailure] = useState<
+    'declined' | 'failed' | undefined
+  >();
+  const [isAttaching, setIsAttaching] = useState(false);
   const activeDeviceIdRef = useRef('');
 
   const refresh = useCallback(async () => {
@@ -133,16 +155,34 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
     () => devices.find((device) => device.id === selectedDeviceId),
     [devices, selectedDeviceId],
   );
-  const isApoMissing = selectedDevice?.isEqualizerApoAttached === false;
-  const showApoNotice =
-    isApoMissing && dismissedApoDeviceId !== selectedDevice?.id;
+  const isFluid = engine === 'fluid';
+  const isApo = engine === 'apo';
+  /**
+   * Whichever engine is in use, and only that one.
+   *
+   * `undefined`/`null` on either flag means Windows could not answer, not that
+   * the engine is absent — an explicit `false` is the only thing that warns.
+   * Reading the other engine's flag would send somebody who is running the
+   * FluidEQ Engine into Equalizer APO's Device Selector for an output that is
+   * being processed perfectly well. `engine === null` (status not answered
+   * yet) reads neither flag: with no engine known there is no repair to name.
+   */
+  let isEngineMissing = false;
+  if (isFluid) {
+    isEngineMissing = selectedDevice?.isFluidEngineAttached === false;
+  } else if (isApo) {
+    isEngineMissing = selectedDevice?.isEqualizerApoAttached === false;
+  }
+  const showEngineNotice =
+    isEngineMissing && dismissedApoDeviceId !== selectedDevice?.id;
 
   useEffect(() => {
     setDismissedApoDeviceId('');
+    setAttachFailure(undefined);
   }, [selectedDeviceId]);
 
   useEffect(() => {
-    if (!showApoNotice) {
+    if (!showEngineNotice) {
       return undefined;
     }
     const dismissOnEscape = (event: KeyboardEvent) => {
@@ -152,7 +192,7 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
     };
     document.addEventListener('keydown', dismissOnEscape);
     return () => document.removeEventListener('keydown', dismissOnEscape);
-  }, [selectedDevice, showApoNotice]);
+  }, [selectedDevice, showEngineNotice]);
   const assignedPreset = selectedDeviceId
     ? settings.assignments[selectedDeviceId]?.presetName || ''
     : '';
@@ -181,6 +221,21 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
     if (selectedDevice && (await onConfigureApo())) {
       setDismissedApoDeviceId(selectedDevice.id);
     }
+  };
+
+  const handleEnableEngine = async () => {
+    if (!selectedDevice || isAttaching) {
+      return;
+    }
+    setIsAttaching(true);
+    setAttachFailure(undefined);
+    const result = await onAttachFluidEngine(selectedDevice.guid);
+    if (result.ok) {
+      setDismissedApoDeviceId(selectedDevice.id);
+    } else {
+      setAttachFailure(result.declined ? 'declined' : 'failed');
+    }
+    setIsAttaching(false);
   };
 
   const deviceOptions: IOptionEntry[] = useMemo(
@@ -216,8 +271,11 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
           <span className="device-profiles__label device-profiles__label--row">
             {t('output.device')}
             <span className="device-profiles__badges">
-              {isApoMissing && (
-                <span className="apo-badge">{t('output.apoOff')}</span>
+              {/* Engine-neutral: the badge says this output is not being
+                  processed, and which piece of software is not processing it
+                  is the engine dialog's business, not a pill's. */}
+              {isEngineMissing && (
+                <span className="apo-badge">{t('output.off')}</span>
               )}
               {selectedDevice?.isDefault && (
                 <span className="default-badge">{t('output.active')}</span>
@@ -242,7 +300,7 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
         <span>{t('output.mapping.hint')}</span>
       </div>
       <p className="device-profiles__hint">{t('output.hint')}</p>
-      {showApoNotice &&
+      {showEngineNotice &&
         selectedDevice &&
         createPortal(
           <aside
@@ -253,30 +311,60 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
             aria-describedby="device-apo-notice-body"
           >
             <div className="device-apo-notice__copy">
-              <span className="apo-badge">{t('output.apoOff')}</span>
+              <span className="apo-badge">{t('output.off')}</span>
               <h2 id="device-apo-notice-title">
-                {t('output.apoMissingTitle')}
+                {isFluid
+                  ? t('output.engineMissingTitle')
+                  : t('output.apoMissingTitle')}
               </h2>
               <p id="device-apo-notice-body">
-                {t('output.apoMissingBody', { device: selectedDevice.name })}
+                {isFluid
+                  ? t('output.engineMissingBody', {
+                      device: selectedDevice.name,
+                    })
+                  : t('output.apoMissingBody', { device: selectedDevice.name })}
               </p>
+              {attachFailure && (
+                <p className="device-apo-notice__error">
+                  {t(
+                    attachFailure === 'declined'
+                      ? 'engine.declined'
+                      : 'engine.failed',
+                  )}
+                </p>
+              )}
             </div>
             <div className="device-apo-notice__actions">
+              {/* Under the engine this is one Windows prompt and a moment of
+                  silence, so it is done from here; under Equalizer APO the
+                  only way in is APO's own Device Selector, which is a
+                  different program and a restart. */}
+              {isFluid ? (
+                <Button
+                  ariaLabel={t('output.enable')}
+                  isDisabled={isAttaching}
+                  className="small"
+                  handleChange={handleEnableEngine}
+                >
+                  {t('output.enable')}
+                </Button>
+              ) : (
+                <Button
+                  ariaLabel={t('output.apoConfigure')}
+                  isDisabled={false}
+                  className="default"
+                  handleChange={handleConfigureApo}
+                >
+                  {t('output.apoConfigure')}
+                </Button>
+              )}
               <Button
-                ariaLabel={t('output.apoConfigure')}
+                ariaLabel={t('output.notNow')}
                 isDisabled={false}
-                className="default"
-                handleChange={handleConfigureApo}
-              >
-                {t('output.apoConfigure')}
-              </Button>
-              <Button
-                ariaLabel={t('output.apoCancel')}
-                isDisabled={false}
-                className="subtle"
+                className={isFluid ? 'small subtle' : 'subtle'}
                 handleChange={() => setDismissedApoDeviceId(selectedDevice.id)}
               >
-                {t('output.apoCancel')}
+                {t('output.notNow')}
               </Button>
             </div>
           </aside>,

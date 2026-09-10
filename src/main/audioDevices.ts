@@ -114,6 +114,7 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
         isDefault: true,
         isActive: true,
         isEqualizerApoAttached: true,
+        isFluidEngineAttached: true,
       },
       {
         id: 'demo-headphones',
@@ -122,6 +123,7 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
         isDefault: false,
         isActive: true,
         isEqualizerApoAttached: true,
+        isFluidEngineAttached: true,
       },
     ];
   }

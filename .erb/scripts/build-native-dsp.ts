@@ -19,9 +19,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { spawnSync } from 'child_process';
 import { createHash } from 'crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'fs';
 import path from 'path';
 import { brotliDecompressSync } from 'zlib';
+import { newestVersionDir } from './versionDirs';
 
 const ROOT = path.join(__dirname, '..', '..');
 const NATIVE_DIR = path.join(ROOT, 'native');
@@ -75,16 +85,129 @@ const visualStudioRoot = (): string | undefined => {
   return install && existsSync(install) ? install : undefined;
 };
 
+/**
+ * `audiodg.exe` needs these beside `FluidEQ-Engine.dll` because the effect is
+ * linked `/MD` — against the shared C++ runtime rather than a static one —
+ * and audiodg.exe searches its own directory and the system directory,
+ * never ours. A machine without the matching Visual C++ Redistributable
+ * installed fails to load the effect with nothing on screen to say why.
+ */
+const CRT_DLLS = ['msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll'];
+
+/** The `Microsoft.VC*.CRT` folder under one `Redist\MSVC\<version>\x64`. */
+const crtFolderUnder = (x64Dir: string): string | undefined => {
+  if (!existsSync(x64Dir)) {
+    return undefined;
+  }
+  const match = readdirSync(x64Dir).find((name) =>
+    /^Microsoft\.VC\d+\.CRT$/i.test(name),
+  );
+  return match ? path.join(x64Dir, match) : undefined;
+};
+
+/**
+ * The x64 CRT redistributable directory matching the toolset this build
+ * compiled against, or undefined when none can be found.
+ *
+ * The toolset version is read from `VC/Tools/MSVC` rather than hard-coded: it
+ * changes with every Visual Studio update, and a hard-coded version silently
+ * stops matching the next time somebody updates their install. When the
+ * installed toolset has no redist folder of its own — possible right after
+ * an update ships a newer compiler slightly ahead of its redistributable —
+ * the newest redist version that does carry the x64 CRT folder is used
+ * instead.
+ */
+const crtRedistDir = (vsRoot: string): string | undefined => {
+  const redistRoot = path.join(vsRoot, 'VC', 'Redist', 'MSVC');
+  if (!existsSync(redistRoot)) {
+    return undefined;
+  }
+
+  const toolsRoot = path.join(vsRoot, 'VC', 'Tools', 'MSVC');
+  const toolsetVersion = existsSync(toolsRoot)
+    ? newestVersionDir(
+        readdirSync(toolsRoot).filter((name) =>
+          existsSync(path.join(toolsRoot, name, 'bin')),
+        ),
+      )
+    : undefined;
+  if (toolsetVersion) {
+    const matched = crtFolderUnder(
+      path.join(redistRoot, toolsetVersion, 'x64'),
+    );
+    if (matched) {
+      return matched;
+    }
+  }
+
+  const redistVersionsWithCrt = readdirSync(redistRoot).filter(
+    (name) => crtFolderUnder(path.join(redistRoot, name, 'x64')) !== undefined,
+  );
+  const newestRedist = newestVersionDir(redistVersionsWithCrt);
+  return newestRedist
+    ? crtFolderUnder(path.join(redistRoot, newestRedist, 'x64'))
+    : undefined;
+};
+
+/**
+ * Copies the three CRT DLLs into `native/.build/bin` so the helper's
+ * `install` command — which copies every `*.dll` beside itself into
+ * `%ProgramFiles%\FluidEQ Engine\` — ships them with the app. Copied only
+ * when missing or stale: rebuilding the DSP host should not rewrite three
+ * files that have not changed on every run.
+ *
+ * Fails loudly rather than skipping: an engine shipped without its runtime
+ * fails to load inside audiodg.exe with nothing in the app's own log, because
+ * the failure happens before the effect's own logging code ever runs.
+ */
+const copyCrtDlls = (vsRoot: string): void => {
+  const sourceDir = crtRedistDir(vsRoot);
+  if (!sourceDir) {
+    fail(
+      `no x64 CRT redistributable was found under ${path.join(
+        vsRoot,
+        'VC',
+        'Redist',
+        'MSVC',
+      )}. audiodg.exe needs ${CRT_DLLS.join(
+        ', ',
+      )} beside the engine DLL, or it fails to load with nothing to say why.`,
+    );
+    return;
+  }
+
+  const binDir = path.join(BUILD_DIR, 'bin');
+  for (const name of CRT_DLLS) {
+    const source = path.join(sourceDir, name);
+    if (!existsSync(source)) {
+      fail(`${source} does not exist; cannot ship ${name} with the engine`);
+      return;
+    }
+    const target = path.join(binDir, name);
+    const upToDate =
+      existsSync(target) &&
+      statSync(target).mtimeMs >= statSync(source).mtimeMs;
+    if (upToDate) {
+      console.log(`native dsp build: ${name} already up to date`);
+      continue;
+    }
+    copyFileSync(source, target);
+    console.log(`native dsp build: copied ${name} from ${sourceDir}`);
+  }
+};
+
 interface ITools {
   cmake: string;
   /** Empty on platforms where the compiler is already on PATH. */
   environmentSetup: string;
   generator: string[];
+  /** Empty on platforms with no Visual Studio to speak of. */
+  vsRoot: string;
 }
 
 const resolveTools = (): ITools => {
   if (!isWindows) {
-    return { cmake: 'cmake', environmentSetup: '', generator: [] };
+    return { cmake: 'cmake', environmentSetup: '', generator: [], vsRoot: '' };
   }
   const vs = visualStudioRoot();
   if (!vs) {
@@ -109,7 +232,7 @@ const resolveTools = (): ITools => {
   const generator = existsSync(ninja)
     ? ['-G', 'Ninja', `-DCMAKE_MAKE_PROGRAM=${ninja}`]
     : [];
-  return { cmake, environmentSetup: vcvars, generator };
+  return { cmake, environmentSetup: vcvars, generator, vsRoot: vs };
 };
 
 /** One shell line that establishes the MSVC environment, then runs `exe`. */
@@ -313,5 +436,18 @@ if (isWindows) {
   if (!existsSync(capturePath)) {
     fail(`the LAN capture helper was not produced at ${capturePath}`);
   }
+  const enginePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Engine.dll');
+  if (!existsSync(enginePath)) {
+    fail(`the engine effect DLL was not produced at ${enginePath}`);
+  }
+  const engineSetupPath = path.join(
+    BUILD_DIR,
+    'bin',
+    'FluidEQ-Engine-Setup.exe',
+  );
+  if (!existsSync(engineSetupPath)) {
+    fail(`the engine setup helper was not produced at ${engineSetupPath}`);
+  }
+  copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

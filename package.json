@@ -285,7 +285,11 @@
         "to": "native",
         "filter": [
           "FluidEQ-DSP*",
-          "FluidEQ-LAN-Capture*"
+          "FluidEQ-LAN-Capture*",
+          "FluidEQ-Engine*",
+          "msvcp140.dll",
+          "vcruntime140.dll",
+          "vcruntime140_1.dll"
         ]
       },
       {

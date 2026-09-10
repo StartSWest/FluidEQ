@@ -1,0 +1,55 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/*
+ * The version resource, which here is not a nicety.
+ *
+ * This DLL loads into audiodg.exe, a process the user never launched and
+ * cannot inspect from Task Manager's process list. When system audio breaks,
+ * the first thing anyone does is look at what is loaded into it — and an
+ * unnamed DLL in that list is indistinguishable from something that has no
+ * business being there. FileDescription and CompanyName are how this one says
+ * whose it is.
+ *
+ * FEQ_CORE_VERSION is a marketing string ("0.1.0-identity"), not four
+ * numbers, so the binary version fields stay at 1.0.0.0 and the string goes
+ * where a string belongs.
+ */
+
+#include <winver.h>
+
+#ifndef FEQ_ENGINE_VERSION_STRING
+#define FEQ_ENGINE_VERSION_STRING "0.0.0"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Ivan Carmenates Garcia"
+      VALUE "FileDescription", "FluidEQ Engine"
+      VALUE "FileVersion", FEQ_ENGINE_VERSION_STRING
+      VALUE "InternalName", "FluidEQ-Engine"
+      VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
+      VALUE "OriginalFilename", "FluidEQ-Engine.dll"
+      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductVersion", FEQ_ENGINE_VERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

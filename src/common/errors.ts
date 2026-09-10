@@ -29,6 +29,14 @@ export enum ErrorCode {
   OPRA_READ_ERROR,
   CONVOLUTION_CATALOG_ERROR,
   IMPORT_ERROR,
+  /**
+   * No engine preference on disk yet — the first-run dialog has not been
+   * answered. Distinct from either engine being missing: there is nothing to
+   * install until the user has said which one, so the banner that answers
+   * this one is the chooser, not an installer.
+   */
+  AUDIO_ENGINE_NOT_CHOSEN,
+  FLUID_ENGINE_NOT_INSTALLED,
 }
 
 export type ErrorDescription = {
@@ -50,6 +58,11 @@ export type ErrorDescription = {
 export const BLOCKING_ERROR_CODES: ReadonlySet<ErrorCode> = new Set([
   ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
   ErrorCode.CONFIG_NOT_FOUND,
+  // Both stop every write the app exists to make: with no engine chosen there
+  // is no directory to write to, and with the chosen engine missing there is
+  // nothing on the other side reading what was written.
+  ErrorCode.AUDIO_ENGINE_NOT_CHOSEN,
+  ErrorCode.FLUID_ENGINE_NOT_INSTALLED,
 ]);
 
 export const isBlockingError = (error?: ErrorDescription) =>
@@ -117,6 +130,16 @@ export const errors: Record<ErrorCode, ErrorDescription> = {
     shortError: 'That file could not be imported.',
     action: `Please check that the file is an Equalizer APO EQ text file, a ${PRODUCT_NAME} profile, or a WAV impulse response.`,
     code: ErrorCode.IMPORT_ERROR,
+  },
+  [ErrorCode.AUDIO_ENGINE_NOT_CHOSEN]: {
+    shortError: 'No audio engine has been chosen yet.',
+    action: `Please choose the audio engine ${PRODUCT_NAME} should use.`,
+    code: ErrorCode.AUDIO_ENGINE_NOT_CHOSEN,
+  },
+  [ErrorCode.FLUID_ENGINE_NOT_INSTALLED]: {
+    shortError: `The ${PRODUCT_NAME} Engine is not installed.`,
+    action: `Please install the ${PRODUCT_NAME} Engine before retrying.`,
+    code: ErrorCode.FLUID_ENGINE_NOT_INSTALLED,
   },
 };
 

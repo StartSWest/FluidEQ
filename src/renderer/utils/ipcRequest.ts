@@ -37,6 +37,10 @@ import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
+import type { IAudioEngineStatus } from 'common/audioEngine';
+// Type only, so the renderer bundle never pulls `child_process` in behind the
+// engine setup helper's module.
+import type { IEngineSetupResult } from 'main/engineSetup';
 
 /**
  * One request to the main process, and how it is allowed to fail.
@@ -181,7 +185,9 @@ export const buildResponseHandler = <
     | IGatheredFacts
     | IApoConfigTree
     | IChainImport
-    | ISongEqEntry,
+    | ISongEqEntry
+    | IAudioEngineStatus
+    | IEngineSetupResult,
 >(
   resultEvaluator: (
     result: Type,
@@ -229,7 +235,9 @@ export const simpleResponseHandler = <
     | IGatheredFacts
     | IApoConfigTree
     | IChainImport
-    | ISongEqEntry,
+    | ISongEqEntry
+    | IAudioEngineStatus
+    | IEngineSetupResult,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);

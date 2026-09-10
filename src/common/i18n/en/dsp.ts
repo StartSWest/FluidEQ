@@ -31,6 +31,10 @@ const dsp = {
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',
   'dsp.idle':
     'Play an audio track from Library to use DSP. Received shared audio, karaoke, videos and other apps are not processed.',
+  'dsp.scope.system': 'System-wide · {output}',
+  'dsp.scope.systemAll': 'System-wide',
+  'dsp.scope.systemDelay': '{ms} ms delay',
+  'dsp.scope.useFluid': 'Use FluidEQ Engine',
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
   'dsp.engineDown':
@@ -79,6 +83,7 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Strong cleanup',
   'dsp.denoise.description':
     'Repairs the source before anything colours it: hiss, mains hum, clicks and a neural voice cleaner. Measured from the track itself, not guessed.',
+  'dsp.denoise.libraryOnly': 'Library playback only',
   'dsp.denoise.isolate': 'Isolate',
   'dsp.denoise.isolateHint': 'Hear only what this stage is removing.',
   'dsp.denoise.isolateOn':
