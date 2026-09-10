@@ -1,12 +1,22 @@
-; Equalizer APO, installed and removed alongside FluidEQ.
+; The audio engine, chosen at installation and removed at uninstallation.
 ;
-; FluidEQ writes Equalizer APO's configuration file; APO is the thing that
-; actually processes the audio. Without it the app opens and does nothing, so
-; the installer carries APO with it. Nobody is sent to a website to hunt for a
-; download.
+; FluidEQ writes an equaliser configuration file; something inside Windows'
+; audio pipeline has to read it and process the sound. Two things can:
 ;
-; APO's own installer is run, visibly and unmodified. That is deliberate and it
-; is not laziness:
+;   - The FluidEQ Audio Processing Engine, built in this repository and shipped
+;     in resources\native. It sits after the sound card's own effects, so
+;     vendor panels keep working, and it needs no reboot.
+;   - Equalizer APO, the classic third-party engine, carried in
+;     resources\equalizer-apo. It runs custom commands, Peace and VST plugins,
+;     takes over the sound card's effect slot, and needs a restart.
+;
+; Only one of them is ever installed here, because only one of them can own the
+; configuration the app writes. The choice is a page rather than a yes/no box:
+; a question with two real answers and a consequence each is not a question a
+; message box can ask.
+;
+; Both installers are run visibly-elevated with ExecShellWait "runas". APO's
+; own installer is run unmodified, and that is deliberate rather than laziness:
 ;
 ;   - APO attaches itself to individual audio endpoints, and its Device
 ;     Selector is where you say which ones. Installed silently it would attach
@@ -23,20 +33,72 @@
 ; That archive is a licence obligation rather than a courtesy; fetch the one
 ; matching the pinned version with `pnpm fetch-apo:source`.
 
+; The engine page, declared here at file scope rather than through
+; electron-builder's `customPageAfterChangeDir` hook.
+;
+; That hook is the documented place for a page after the directory page, and it
+; is the wrong one for this installer: app-builder-lib only inserts it from
+; `templates/nsis/assistedInstaller.nsh`, which is included when `ONE_CLICK` is
+; NOT defined. FluidEQ is a one-click installer (`build.nsis.oneClick` is left
+; at its default of true), so `oneClick.nsh` is included instead and
+; `customPageAfterChangeDir` is never reached. Defining it would have compiled
+; cleanly and shown nothing — the silent kind of wrong.
+;
+; What the one-click template does give us is position: this file is included
+; as the shared header, ahead of `installer.nsi` and therefore ahead of every
+; `MUI_PAGE_*` macro. A `Page` declared here is the first page in the list, so
+; the engine question comes before the licence page and before the files are
+; extracted, which is when it still has to be answered. The functions it names
+; are defined further down in `customHeader`, where MUI2 and nsDialogs have
+; been included; NSIS resolves function references at the end of compilation,
+; so naming them here is fine.
+;
+; Guarded because `installer.nsi` is compiled a second time with
+; BUILD_UNINSTALLER to produce the uninstaller, and that build must not grow an
+; installer page.
+!ifndef BUILD_UNINSTALLER
+  Page custom EnginePageCreate EnginePageLeave
+!endif
+
 ; Write a line to the install log.
 ;
 ; DetailPrint is useless here: a one-click installer hides its detail pane, so
 ; every message about what happened during setup went nowhere. When somebody
-; reports "it did not offer to install Equalizer APO" on a machine nobody can
+; reports "it did not offer to install an audio engine" on a machine nobody can
 ; attach a debugger to, this file is the only evidence there is.
 ;
 ; Beside the app's own logs, so there is one place to ask for.
-!macro ApoLog Text
+!macro InstallLog Text
   CreateDirectory "$APPDATA\FluidEQ\logs"
   FileOpen $9 "$APPDATA\FluidEQ\logs\install.log" a
   FileSeek $9 0 END
   FileWrite $9 "${Text}$\r$\n"
   FileClose $9
+!macroend
+
+; Record the engine the user chose, where the app reads it on every launch.
+;
+; The shape is `IAudioEnginePreference` from src/common/audioEngine.ts and it
+; is parsed by `loadAudioEnginePreference`, which answers "never chosen" for
+; anything it cannot read — so a file written wrong here is indistinguishable
+; from no file at all, and the app would ask again on first launch.
+;
+; FileWrite is safe for this despite the installer being Unicode: measured on
+; NSIS 3.0.4.1, a Unicode installer's FileWrite emits the string as bytes in
+; the system code page, not UTF-16, and this document is pure ASCII, which
+; every Windows code page agrees on. Hence no BOM and no UTF-16, which is what
+; `fs.readFileSync(path, 'utf8')` needs.
+!macro WriteEngineChoice Engine
+  CreateDirectory "$APPDATA\FluidEQ"
+  ClearErrors
+  FileOpen $9 "$APPDATA\FluidEQ\audio-engine.json" w
+  ${If} ${Errors}
+    !insertmacro InstallLog "Could not write audio-engine.json; the app will ask instead."
+  ${Else}
+    FileWrite $9 '{"version":1,"engine":"${Engine}"}'
+    FileClose $9
+    !insertmacro InstallLog "Engine preference written: ${Engine}."
+  ${EndIf}
 !macroend
 
 ; Is Equalizer APO installed? Answer in $0, empty if not.
@@ -63,6 +125,118 @@
   SetRegView Default
 !macroend
 
+; The ten translations. The charset is named at the include because this file
+; is read in the machine's ANSI code page otherwise; engine-strings.nsh says
+; the rest.
+!include /CHARSET=UTF8 "${__FILEDIR__}\engine-strings.nsh"
+
+; Everything that belongs to the page, and the strings behind it.
+;
+; `customHeader` is where `installer.nsi` lets a script add its own top-level
+; declarations, and it is inserted immediately after `addLangs` — the earliest
+; point at which every language table exists. A LangString for a language that
+; has not been loaded is a warning, and electron-builder runs makensis with
+; -WX, so a warning is a failed build.
+;
+; It is also inserted in the BUILD_UNINSTALLER pass, which is what the
+; uninstaller needs for `$(EngineNotRemoved)`. The page itself is fenced out of
+; that pass: an uninstaller has no use for a Var, a dialog or a function that
+; asks which engine to install.
+!macro customHeader
+  !insertmacro EngineLangStrings
+
+  !ifndef BUILD_UNINSTALLER
+    !include nsDialogs.nsh
+
+    ; "fluid", "apo", or "keep" — nothing was asked, so nothing is changed.
+    Var EngineChoice
+    Var EngineDialog
+    Var EngineRadioFluid
+    Var EngineRadioApo
+
+    ; The page. Coordinates are dialog units, which is what makes the same
+    ; layout hold under Japanese and Simplified Chinese: those language files
+    ; ask for a 9pt font, every dialog unit grows with it, and so does the
+    ; 300x140 unit area nsDialogs is given.
+    ;
+    ; The label heights are measured rather than guessed. At 288 units wide the
+    ; longest translation of each hint wraps to four lines (Spanish, French,
+    ; Russian and German for Equalizer APO), and Devanagari needs 15px a line
+    ; where Latin needs 13 — so 34 units (55px) is three Hindi lines or four
+    ; Latin ones with room left, and the "why" line needs 28. The whole column
+    ; ends at 134 of the 140 available.
+    Function EnginePageCreate
+      ; A silent install is an unattended one and there is nobody to ask; an
+      ; update is not the moment to ask, because FluidEQ applies updates by
+      ; closing itself and running this installer with no window and often
+      ; nobody at the machine. Both leave the choice at "keep", so the engine
+      ; already on the machine is left exactly as it is.
+      ${If} ${Silent}
+      ${OrIf} ${isUpdated}
+        Abort
+      ${EndIf}
+
+      ; The app has already answered this question — either from its own engine
+      ; dialog or from a previous installation. Asking again would let a
+      ; re-install silently move somebody's audio to the other engine.
+      ${If} ${FileExists} "$APPDATA\FluidEQ\audio-engine.json"
+        Abort
+      ${EndIf}
+
+      !insertmacro MUI_HEADER_TEXT "$(EngineTitle)" "$(EngineSubtitle)"
+
+      nsDialogs::Create 1018
+      Pop $EngineDialog
+      ${If} $EngineDialog == error
+        ; No dialog means no answer, and the choice stays at "keep": neither
+        ; engine is installed and the app asks on first launch, which is
+        ; better than picking one on somebody's behalf.
+        Abort
+      ${EndIf}
+
+      ${NSD_CreateRadioButton} 0u 0u 300u 12u "$(EngineFluid)"
+      Pop $EngineRadioFluid
+      ; WS_GROUP opens the radio group here. The hint labels sit between the
+      ; two buttons in z-order, and without a group boundary of our own the
+      ; auto-radio walk would be free to run into whatever the dialog holds.
+      ${NSD_AddStyle} $EngineRadioFluid ${WS_GROUP}
+      ${NSD_Check} $EngineRadioFluid
+
+      ${NSD_CreateLabel} 12u 14u 288u 34u "$(EngineFluidHint)"
+      Pop $0
+
+      ${NSD_CreateRadioButton} 0u 52u 300u 12u "$(EngineApo)"
+      Pop $EngineRadioApo
+
+      ${NSD_CreateLabel} 12u 66u 288u 34u "$(EngineApoHint)"
+      Pop $0
+
+      ; Closes the radio group, and says why the consent prompt is coming.
+      ${NSD_CreateLabel} 0u 106u 300u 28u "$(EngineWhy)"
+      Pop $0
+      ${NSD_AddStyle} $0 ${WS_GROUP}
+
+      nsDialogs::Show
+    FunctionEnd
+
+    Function EnginePageLeave
+      ${NSD_GetState} $EngineRadioApo $0
+      ${If} $0 == ${BST_CHECKED}
+        StrCpy $EngineChoice "apo"
+      ${Else}
+        StrCpy $EngineChoice "fluid"
+      ${EndIf}
+    FunctionEnd
+  !endif
+!macroend
+
+; NSIS variables start empty, and empty is not one of the three answers.
+; Silent installs never run a page at all, so this is the only place the
+; default can be set for them.
+!macro customInit
+  StrCpy $EngineChoice "keep"
+!macroend
+
 !macro customInstall
   ; Nothing identifying goes in this file. Ever.
   ;
@@ -74,98 +248,101 @@
   ; Nothing is lost. What matters for diagnosis is whether the pieces were
   ; where they should be, not the absolute path they were at — and the layout
   ; under the install directory is fixed and already known from the build.
-  !insertmacro ApoLog "--- FluidEQ ${VERSION} install ---"
+  !insertmacro InstallLog "--- FluidEQ ${VERSION} install ---"
 
-  ; Already there? Leave it entirely alone. Plenty of people arrive at FluidEQ
-  ; because they already use Equalizer APO, quite possibly a newer build than
-  ; the one bundled here, and with devices already configured. Running the
-  ; installer over that would be an unasked-for downgrade.
-  !insertmacro ReadApoUninstallString
-  ${If} $0 != ""
-    !insertmacro ApoLog "Equalizer APO already installed - leaving it alone."
-    Goto apoDone
-  ${EndIf}
-  !insertmacro ApoLog "Equalizer APO not found in the registry."
+  ${If} $EngineChoice == "keep"
+    ; A silent install, an update, or a machine that has already answered.
+    ; Neither engine is touched and no preference is written, so whatever is
+    ; installed keeps processing the audio and the app keeps its own answer.
+    !insertmacro InstallLog "No engine question was asked - leaving the audio engine as it is."
 
-  ; The bundled installer has to actually be on disk. It is placed by
-  ; extraResources and extracted before this macro runs, but a filter typo or a
-  ; build that skipped the fetch would leave it missing — and silently doing
-  ; nothing is exactly the failure that is impossible to diagnose remotely.
-  ${IfNot} ${FileExists} "$INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe"
-    !insertmacro ApoLog "MISSING: resources\equalizer-apo\equalizer-apo-setup.exe"
-    MessageBox MB_OK|MB_ICONEXCLAMATION \
-      "This build of FluidEQ is missing its copy of the Equalizer APO \
+  ${ElseIf} $EngineChoice == "fluid"
+    ; The engine has to actually be on disk. It is placed by extraResources
+    ; and extracted before this macro runs, but a filter typo or a build that
+    ; skipped `build:native-dsp` would leave it missing — and silently doing
+    ; nothing is exactly the failure that is impossible to diagnose remotely.
+    ${IfNot} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe"
+      !insertmacro InstallLog "MISSING: resources\native\FluidEQ-Engine-Setup.exe"
+      MessageBox MB_OK|MB_ICONEXCLAMATION "$(EngineBundleMissing)"
+    ${Else}
+      !insertmacro InstallLog "Running the FluidEQ Engine setup..."
+
+      ; ExecShellWait, NOT ExecWait. This is the whole reason the first attempt
+      ; at the Equalizer APO side silently did nothing, and it applies
+      ; unchanged here.
+      ;
+      ; FluidEQ installs per-user and therefore runs unelevated. Placing an APO
+      ; inside Windows' audio stack needs administrator. `ExecWait` calls
+      ; CreateProcess, which does not elevate and cannot: it fails with
+      ; ERROR_ELEVATION_REQUIRED (740) and returns immediately, so nothing
+      ; opens and setup carries on as though it had worked.
+      ;
+      ; Only ShellExecute honours the manifest and raises the UAC dialog, and
+      ; ExecShellWait is how NSIS reaches it. The `runas` verb asks for
+      ; elevation explicitly rather than relying on the manifest being read.
+      ;
+      ; It reports failure through the error flag rather than an exit code, so
+      ; declining UAC and failing to launch look the same from here. Both mean
+      ; the engine did not get installed, which is what the app needs to know.
+      ClearErrors
+      ExecShellWait "runas" \
+        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" \
+        "install --attach-all --restart-audio" SW_HIDE
+      ${If} ${Errors}
+        !insertmacro InstallLog "Engine setup could not start (UAC declined, or launch failed)."
+        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineDeclined)"
+      ${Else}
+        !insertmacro InstallLog "FluidEQ Engine setup finished."
+      ${EndIf}
+    ${EndIf}
+
+    ; Written even when the engine did not get installed. The preference is
+    ; the answer to "which engine does this machine use", not to "did it work"
+    ; — and it is what makes the app show its install button rather than ask
+    ; the question all over again.
+    !insertmacro WriteEngineChoice "fluid"
+
+  ${ElseIf} $EngineChoice == "apo"
+    ; Already there? Leave it entirely alone. Plenty of people arrive at
+    ; FluidEQ because they already use Equalizer APO, quite possibly a newer
+    ; build than the one bundled here, and with devices already configured.
+    ; Running the installer over that would be an unasked-for downgrade.
+    !insertmacro ReadApoUninstallString
+    ${If} $0 != ""
+      !insertmacro InstallLog "Equalizer APO already installed - leaving it alone."
+    ${Else}
+      !insertmacro InstallLog "Equalizer APO not found in the registry."
+
+      ; Same reasoning as the engine above: the bundled installer has to be on
+      ; disk, and a build that lost it must say so rather than do nothing.
+      ${IfNot} ${FileExists} "$INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe"
+        !insertmacro InstallLog "MISSING: resources\equalizer-apo\equalizer-apo-setup.exe"
+        MessageBox MB_OK|MB_ICONEXCLAMATION \
+          "This build of FluidEQ is missing its copy of the Equalizer APO \
 installer. FluidEQ will install, but it cannot process audio until Equalizer \
 APO is installed separately."
-    Goto apoDone
-  ${EndIf}
-
-  ; A silent FluidEQ install is an unattended one, and APO's installer needs
-  ; someone present to choose devices. The bundled copy stays in the install
-  ; directory either way, so it can still be run by hand afterwards from the
-  ; resources\equalizer-apo folder.
-  ${If} ${Silent}
-    !insertmacro ApoLog "Silent install - skipping Equalizer APO."
-    Goto apoDone
-  ${EndIf}
-
-  ; An update is not a moment to ask anything. FluidEQ applies updates by
-  ; closing itself and running this installer, so there is no window and often
-  ; nobody at the machine — a message box here is a restart that hangs on a
-  ; button nobody is there to press. `${Silent}` covers the path the app
-  ; actually uses; this covers an update installer run by hand, which is the
-  ; same event and equally not the time. Somebody who declined APO at
-  ; installation gets the button inside the app, not an ambush during an
-  ; update.
-  ${If} ${isUpdated}
-    !insertmacro ApoLog "Update - leaving Equalizer APO to the app's own button."
-    Goto apoDone
-  ${EndIf}
-
-  MessageBox MB_YESNO|MB_ICONQUESTION \
-    "FluidEQ needs Equalizer APO to process audio. It is included with this \
-installer - nothing will be downloaded.$\r$\n$\r$\nIts setup will now open so \
-you can choose which audio devices to equalise. Your computer will need to \
-restart afterwards.$\r$\n$\r$\nInstall Equalizer APO now?" \
-    /SD IDYES IDNO apoDeclined
-
-  !insertmacro ApoLog "Running the Equalizer APO installer..."
-
-  ; ExecShellWait, NOT ExecWait. This is the whole reason the first attempt
-  ; silently did nothing.
-  ;
-  ; FluidEQ installs per-user and therefore runs unelevated. Equalizer APO's
-  ; installer is manifested `requireAdministrator`. `ExecWait` calls
-  ; CreateProcess, which does not elevate and cannot: it simply fails with
-  ; ERROR_ELEVATION_REQUIRED (740) and returns immediately. The prompt appeared,
-  ; the user said yes, nothing opened, and FluidEQ launched over the top of it.
-  ;
-  ; Only ShellExecute honours the manifest and raises the UAC dialog, and
-  ; ExecShellWait is how NSIS reaches it. The `runas` verb asks for elevation
-  ; explicitly rather than relying on the manifest being read.
-  ;
-  ; It reports failure through the error flag rather than an exit code, so
-  ; there is no code to record — declining UAC and failing to launch look the
-  ; same from here. Both mean APO did not get installed, which is what the app
-  ; needs to know.
-  ClearErrors
-  ExecShellWait "runas" \
-    "$INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe" "" SW_SHOWNORMAL
-  ${If} ${Errors}
-    !insertmacro ApoLog "Could not start the Equalizer APO installer (UAC declined, or launch failed)."
-    MessageBox MB_OK|MB_ICONINFORMATION \
-      "Equalizer APO was not installed - administrator permission is \
+      ${Else}
+        ; No yes/no box in front of this one any more: the page already asked,
+        ; and asking the same question twice reads as setup not having heard
+        ; the first answer.
+        !insertmacro InstallLog "Running the Equalizer APO installer..."
+        ClearErrors
+        ExecShellWait "runas" \
+          "$INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe" "" SW_SHOWNORMAL
+        ${If} ${Errors}
+          !insertmacro InstallLog "Could not start the Equalizer APO installer (UAC declined, or launch failed)."
+          MessageBox MB_OK|MB_ICONINFORMATION \
+            "Equalizer APO was not installed - administrator permission is \
 required.$\r$\n$\r$\nFluidEQ will still install. You can install Equalizer APO \
 at any time from the button inside the app."
-  ${Else}
-    !insertmacro ApoLog "Equalizer APO setup finished."
+        ${Else}
+          !insertmacro InstallLog "Equalizer APO setup finished."
+        ${EndIf}
+      ${EndIf}
+    ${EndIf}
+
+    !insertmacro WriteEngineChoice "apo"
   ${EndIf}
-  Goto apoDone
-
-  apoDeclined:
-    !insertmacro ApoLog "Equalizer APO declined by the user."
-
-  apoDone:
 !macroend
 
 !macro customUnInstall
@@ -173,6 +350,28 @@ at any time from the button inside the app."
   ; one. Asking whether to tear out the audio engine in the middle of that is
   ; both alarming and wrong, so this only runs on a real uninstall.
   ${IfNot} ${isUpdated}
+    ; Ours goes first, and without a question. The engine is a FluidEQ
+    ; component that nothing else uses, and `uninstall` puts every output's
+    ; effect list back to the backup it took before attaching — so leaving it
+    ; behind would leave a DLL inside Windows' audio stack with nothing left
+    ; to configure it.
+    ${If} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe"
+      !insertmacro InstallLog "Removing the FluidEQ Engine..."
+      ; ExecShellWait for the same reason as the install side: detaching an
+      ; APO needs administrator and this uninstaller does not have it, so
+      ; CreateProcess would fail with ERROR_ELEVATION_REQUIRED and leave the
+      ; engine installed while appearing to have removed it.
+      ClearErrors
+      ExecShellWait "runas" \
+        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" "uninstall" SW_HIDE
+      ${If} ${Errors}
+        !insertmacro InstallLog "The FluidEQ Engine could not be removed (UAC declined, or launch failed)."
+        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineNotRemoved)"
+      ${Else}
+        !insertmacro InstallLog "FluidEQ Engine removed."
+      ${EndIf}
+    ${EndIf}
+
     !insertmacro ReadApoUninstallString
     ${If} $0 != ""
       ; Defaults to NO, and says why. Equalizer APO is a system-wide audio
@@ -187,7 +386,7 @@ are unsure, choose No.$\r$\n$\r$\nYour equaliser settings will be removed \
 either way." \
         /SD IDNO IDNO apoKept
 
-      !insertmacro ApoLog "Running the Equalizer APO uninstaller."
+      !insertmacro InstallLog "Running the Equalizer APO uninstaller."
       ; ExecShellWait for the same reason as the install side: APO's
       ; uninstaller needs administrator and this uninstaller does not have it,
       ; so CreateProcess would fail with ERROR_ELEVATION_REQUIRED and leave
@@ -198,7 +397,7 @@ either way." \
       ClearErrors
       ExecShellWait "runas" "$0" "" SW_SHOWNORMAL
       ${If} ${Errors}
-        !insertmacro ApoLog "Could not start the Equalizer APO uninstaller."
+        !insertmacro InstallLog "Could not start the Equalizer APO uninstaller."
         MessageBox MB_OK|MB_ICONINFORMATION \
           "Equalizer APO could not be removed - administrator permission is \
 required. You can uninstall it from Windows Settings at any time."
@@ -206,7 +405,7 @@ required. You can uninstall it from Windows Settings at any time."
       Goto apoRemoved
 
       apoKept:
-        !insertmacro ApoLog "Leaving Equalizer APO installed."
+        !insertmacro InstallLog "Leaving Equalizer APO installed."
 
       apoRemoved:
     ${EndIf}

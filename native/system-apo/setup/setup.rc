@@ -12,6 +12,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * publisher from this block. An unnamed binary asking to change the machine
  * is a binary a careful person says no to, and rightly.
  *
+ * "FluidEQ Audio Processing Engine Setup", in full, because that is the name
+ * the installer's engine page has just used. The consent prompt arrives
+ * seconds after it, and a name that does not match the one on the page is
+ * indistinguishable from something else having asked.
+ *
  * FEQ_CORE_VERSION is a marketing string ("0.1.0-identity"), not four
  * numbers, so the binary version fields stay at 1.0.0.0 and the string goes
  * where a string belongs.
@@ -37,12 +42,12 @@ BEGIN
     BLOCK "040904B0"
     BEGIN
       VALUE "CompanyName", "Ivan Carmenates Garcia"
-      VALUE "FileDescription", "FluidEQ Engine Setup"
+      VALUE "FileDescription", "FluidEQ Audio Processing Engine Setup"
       VALUE "FileVersion", FEQ_SETUP_VERSION_STRING
       VALUE "InternalName", "FluidEQ-Engine-Setup"
       VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
       VALUE "OriginalFilename", "FluidEQ-Engine-Setup.exe"
-      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductName", "FluidEQ Audio Processing Engine Setup"
       VALUE "ProductVersion", FEQ_SETUP_VERSION_STRING
     END
   END

@@ -376,6 +376,24 @@ attaches to individual audio endpoints and its Device Selector is where the
 user says which, so a silent install attaches to nothing and the equaliser
 looks broken.
 
+APO is now one of two engines, so setup asks first: an nsDialogs page declared
+at file scope in `installer.nsh` — **not** through `customPageAfterChangeDir`,
+which electron-builder only reaches from the assisted installer and this
+one-click build never includes — offers the FluidEQ Audio Processing Engine or
+Equalizer APO, and writes the answer to `%APPDATA%\FluidEQ\audio-engine.json`
+for the app to read at startup. It is skipped, leaving both engines untouched,
+under `${Silent}`, under `${isUpdated}`, and whenever that file already exists.
+`customUnInstall` removes our engine first and without asking — it is ours, and
+`FluidEQ-Engine-Setup.exe uninstall` puts every output's effect list back — and
+only then asks the unchanged "Also uninstall Equalizer APO?" question, and only
+when APO is actually installed.
+
+The ten translations live in `assets/nsis/engine-strings.nsh`, pulled in with
+`!include /CHARSET=UTF8`. That is load-bearing: makensis applies electron-
+builder's `-INPUTCHARSET UTF8` to the main script only, so a BOM-less include
+is read in the machine's ANSI code page and every non-ASCII character arrives
+mangled. A BOM would also fix it and `pnpm typecheck:encoding` rejects one.
+
 ## The weekly cold build
 
 `.github/workflows/weekly-build.yml` builds the whole thing from an empty
