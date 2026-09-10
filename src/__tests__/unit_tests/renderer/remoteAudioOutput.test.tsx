@@ -39,6 +39,18 @@ const sink = {
   volume: 0,
 };
 
+/**
+ * The app's fader, as a graph node.
+ *
+ * A sender's audio is PCM played by a worklet, so there is no media element to
+ * turn down — the level has to be a gain stage of its own, and this is what
+ * the tests watch it through.
+ */
+const fader = {
+  connect: jest.fn(),
+  gain: { setTargetAtTime: jest.fn(), value: 0 },
+};
+
 const installAudioFakes = (
   directOutput = false,
   state: AudioContextState = 'running',
@@ -49,9 +61,11 @@ const installAudioFakes = (
       const context = {
         audioWorklet: { addModule: jest.fn().mockResolvedValue(undefined) },
         close: jest.fn().mockResolvedValue(undefined),
+        createGain: jest.fn(() => fader),
         createMediaStreamDestination: jest.fn(() => ({
           stream: { getTracks: () => [] },
         })),
+        currentTime: 0,
         destination: {},
         resume: resumeAudioContext,
         state,
@@ -74,6 +88,8 @@ const installAudioFakes = (
 describe('remote audio output following', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // `clearAllMocks` resets the calls, not a plain property.
+    fader.gain.value = 0;
     sink.setSinkId.mockResolvedValue(undefined);
     directSetSinkId.mockResolvedValue(undefined);
     resumeAudioContext.mockResolvedValue(undefined);
@@ -82,13 +98,70 @@ describe('remote audio output following', () => {
 
   it('uses Chromium direct output instead of an extra playback queue', async () => {
     installAudioFakes(true);
-    const mixer = await createPcmMixer('default', jest.fn(), jest.fn());
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
 
     await mixer.setOutput('speakers-direct');
 
     expect(directSetSinkId).toHaveBeenCalledWith('speakers-direct');
     expect(globalThis.Audio).not.toHaveBeenCalled();
     await mixer.close();
+  });
+
+  /**
+   * A SENDER'S AUDIO USED TO IGNORE THE FADER ENTIRELY.
+   *
+   * It was the one sound this app makes that played at full scale whatever the
+   * bar said, because there is no media element in this path to turn down — the
+   * PCM goes straight from the worklet to the output.
+   */
+  it('opens at the level the app is already at', async () => {
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 0.35);
+
+    expect(fader.gain.value).toBe(0.35);
+    await mixer.close();
+  });
+
+  it.each([
+    ['the direct sink path', true],
+    ['the media-element path', false],
+  ])('puts the fader before %s', async (_label, directOutput) => {
+    installAudioFakes(directOutput);
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
+
+    // The worklet reaches the output through the fader and never around it.
+    expect(fader.connect).toHaveBeenCalledTimes(1);
+    await mixer.close();
+  });
+
+  it('follows the fader while a sender is playing', async () => {
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
+
+    mixer.setVolume(0.4);
+
+    // Ramped rather than assigned: a step change in gain is a discontinuity in
+    // the waveform, and a fader dragged across its travel is a hundred of them.
+    expect(fader.gain.setTargetAtTime).toHaveBeenCalledWith(0.4, 0, 0.01);
+    await mixer.close();
+  });
+
+  it('holds the fader inside its travel', async () => {
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
+
+    mixer.setVolume(1.8);
+    mixer.setVolume(-0.5);
+
+    expect(fader.gain.setTargetAtTime).toHaveBeenNthCalledWith(1, 1, 0, 0.01);
+    expect(fader.gain.setTargetAtTime).toHaveBeenNthCalledWith(2, 0, 0, 0.01);
+    await mixer.close();
+  });
+
+  it('ignores the fader once the session is closed', async () => {
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
+    await mixer.close();
+
+    mixer.setVolume(0.2);
+
+    expect(fader.gain.setTargetAtTime).not.toHaveBeenCalled();
   });
 
   it('keeps the listener usable while playback waits for a user gesture', async () => {
@@ -101,7 +174,7 @@ describe('remote audio output following', () => {
         }),
     );
     const onBlocked = jest.fn();
-    const mixer = await createPcmMixer('default', onBlocked, jest.fn());
+    const mixer = await createPcmMixer('default', onBlocked, jest.fn(), 1);
     expect(onBlocked).toHaveBeenLastCalledWith(true);
     expect(allowPlayback).toBeDefined();
     allowPlayback?.();
@@ -110,7 +183,7 @@ describe('remote audio output following', () => {
   });
 
   it('serializes output changes and recovers after one device rejects', async () => {
-    const mixer = await createPcmMixer('default', jest.fn(), jest.fn());
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 1);
     const pending: {
       reject(error: Error): void;
       resolve(): void;
@@ -157,6 +230,7 @@ describe('remote audio output following', () => {
         .mockRejectedValueOnce(new Error('missing'))
         .mockResolvedValueOnce(undefined),
       setPeerMode: jest.fn(),
+      setVolume: jest.fn(),
     };
     const outputRef = { current: 'previous-output' };
     resolveSelectedOutputSinkId.mockResolvedValue('new-output');
@@ -181,6 +255,7 @@ describe('remote audio output following', () => {
       resume: jest.fn(),
       setOutput: jest.fn().mockRejectedValue(new Error('missing')),
       setPeerMode: jest.fn(),
+      setVolume: jest.fn(),
     };
     const outputRef = { current: 'working-output' };
     resolveSelectedOutputSinkId.mockResolvedValue('new-output');

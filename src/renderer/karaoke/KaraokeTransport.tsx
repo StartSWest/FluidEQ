@@ -47,6 +47,14 @@ export interface IKaraokeTransportLevel {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  /**
+   * Called when the gesture ends, not while it runs.
+   *
+   * For a level that is written to disk: `onChange` fires a hundred times
+   * across one drag of a step-0.01 slider, and a synchronous `localStorage`
+   * write on each of them lands on the main thread during the drag.
+   */
+  onCommit?: () => void;
   channel?: TKaraokeTransportChannel;
   icon?: ReactNode;
   valueText?: string;
@@ -303,9 +311,12 @@ const KaraokeTransportLevel = ({
             if (level.value > 0) {
               restoreRef.current = level.value;
               level.onChange(0);
-              return;
+            } else {
+              level.onChange(restoreRef.current);
             }
-            level.onChange(restoreRef.current);
+            // A mute is a finished gesture, so it is remembered immediately
+            // rather than waiting for a drag that is not coming.
+            level.onCommit?.();
           }}
           disabled={level.disabled}
           aria-label={t(level.value > 0 ? 'library.mute' : 'library.unmute')}
@@ -341,6 +352,10 @@ const KaraokeTransportLevel = ({
           onTouch(level.id);
           level.onChange(Number(event.target.value));
         }}
+        onPointerUp={level.onCommit}
+        onPointerCancel={level.onCommit}
+        onKeyUp={level.onCommit}
+        onBlur={level.onCommit}
       />
       <span className="karaoke-transport__volume-value" aria-hidden="true">
         {valueText}
@@ -364,19 +379,25 @@ const KaraokeTransport = ({
 }: IKaraokeTransportProps) => {
   const { t } = useTranslation();
   /**
-   * Which fader is on the bar, of the two or three this song has.
+   * Which fader is on the bar, of the three or four this song has.
    *
-   * The last one touched, and the backing track until one is. Three faders
-   * side by side took the whole right half of the bar and made the karaoke
-   * tab a different shape from every other tab; behind a menu entirely, the
-   * one being adjusted needed two presses for every nudge. One on show and
-   * the rest a press away is the arrangement the Smart EQ pane already uses.
+   * The last one touched, and the app's volume until one is — which is what
+   * every other tab's bar opens on, so karaoke is not the one window where
+   * the fader on show is a stem. Four faders side by side took the whole
+   * right half of the bar and made the karaoke tab a different shape from
+   * every other tab; behind a menu entirely, the one being adjusted needed
+   * two presses for every nudge. One on show and the rest a press away is the
+   * arrangement the Smart EQ pane already uses.
    */
   const isTight = useMediaQuery('(max-width: 700px)');
 
   const [lastLevelId, setLastLevelId] = useState<string | undefined>(undefined);
   const shownLevel =
     levels.find((level) => level.id === lastLevelId) ??
+    // The one that is not a mix channel — the app's own volume. A level with
+    // no `channel` is not part of the mix, which is the same rule the icon
+    // above already follows.
+    levels.find((level) => level.channel === undefined) ??
     levels.find((level) => level.channel === 'backing') ??
     levels[0];
 

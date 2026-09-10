@@ -31,58 +31,14 @@ import type {
 const STORAGE_KEY = 'fluideq.library.playback';
 
 /**
- * The volume fader, under its own key rather than inside the blob above.
+ * The fader used to live here, under `fluideq.library.volume`.
  *
- * Deliberately separate: what was playing is a session, and gets cleared when
- * the queue does. How loud the user wants this app is a preference, and losing
- * it because a queue was emptied would be a small, repeated annoyance.
+ * It is `renderer/audio/appVolume` now, because it was never the library's:
+ * karaoke kept a second one and the Media tab invented a third, so the same
+ * app played at three different levels depending on the open tab. The old key
+ * is still read once, there, so nobody's remembered level was lost to the
+ * move.
  */
-const VOLUME_KEY = 'fluideq.library.volume';
-
-/**
- * Where the fader sits when nothing has been stored.
- *
- * Unity, because that is what a fresh `HTMLAudioElement` already opens at — so
- * a first run behaves exactly as it did before any of this existed.
- */
-export const DEFAULT_VOLUME = 1;
-
-/**
- * The stored volume, or unity.
- *
- * Read before the audio element is constructed, not after. Setting it
- * afterwards means the element exists at full scale for however long the first
- * render takes, and someone who left the fader at 17% gets a burst of
- * hundred-percent audio on launch — which is the exact opposite of what
- * remembering their volume was for.
- */
-export const readStoredVolume = (): number => {
-  try {
-    const stored = window.localStorage.getItem(VOLUME_KEY);
-    // The empty string is checked separately because `Number('')` is 0, not
-    // NaN — so a truncated or half-written entry would read as silence and the
-    // app would open muted with nothing to explain why.
-    if (stored === null || stored.trim() === '') {
-      return DEFAULT_VOLUME;
-    }
-    const value = Number(stored);
-    // Rejects NaN, Infinity and anything outside the fader's range in one
-    // test — a stored `null` or `"loud"` both become NaN, and NaN fails every
-    // comparison, so this returns the default for all of them.
-    return value >= 0 && value <= 1 ? value : DEFAULT_VOLUME;
-  } catch {
-    return DEFAULT_VOLUME;
-  }
-};
-
-export const writeStoredVolume = (value: number): void => {
-  try {
-    window.localStorage.setItem(VOLUME_KEY, String(value));
-  } catch {
-    // Not worth failing a volume change over; it just will not be there next
-    // time, exactly as the playback memory below treats its own failures.
-  }
-};
 
 const CONTINUATION_KEY = 'fluideq.library.keepPlaying';
 

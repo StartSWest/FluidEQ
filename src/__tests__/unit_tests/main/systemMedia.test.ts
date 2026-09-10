@@ -27,7 +27,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * of `undefined` because a browser published none is the failure this guards.
  */
 
-import { parseSystemMediaLine } from '../../../main/systemMedia';
+import { EventEmitter } from 'events';
+import { spawn } from 'child_process';
+import {
+  parseSystemMediaLine,
+  stopWatchingSystemMedia,
+  watchSystemMedia,
+} from '../../../main/systemMedia';
+
+jest.mock('child_process', () => ({ spawn: jest.fn() }));
+
+/** A watcher child: stdout to push lines into, and an exit to fire. */
+const fakeChild = () => {
+  const stdout = new EventEmitter();
+  const child = Object.assign(new EventEmitter(), {
+    kill: jest.fn(),
+    stdout,
+  });
+  (spawn as jest.Mock).mockReturnValue(child);
+  return { child, stdout };
+};
+
+const PLAYING_LINE =
+  '{"app":"Chrome","title":"Kura Kura","artist":"TWICE","isPlaying":true,"positionMs":1000,"durationMs":200000,"canNext":false,"canPrevious":false,"canSeek":true}';
 
 describe('what the machine is playing', () => {
   it('reads a session the way the watcher prints it', () => {
@@ -105,5 +127,94 @@ describe('what the machine is playing', () => {
     expect(spotify?.canNext).toBe(true);
     expect(spotify?.canPrevious).toBe(true);
     expect(spotify?.canSeek).toBe(true);
+  });
+});
+
+/**
+ * THE WATCHER OUTLIVES THE WINDOW THAT STARTED IT.
+ *
+ * Reported as "it says nothing is playing while I am playing a video in
+ * Chrome": the window had been reloaded — crash recovery, a dev restart — and
+ * every reading was still being posted to the sender that had gone with the
+ * old document, because a second subscribe was dropped on the floor whenever a
+ * child was already running. Nothing but quitting the app brought the bar
+ * back.
+ */
+describe('watching across a reload', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    stopWatchingSystemMedia();
+  });
+
+  afterEach(() => stopWatchingSystemMedia());
+
+  it('starts one child however many times it is asked', () => {
+    fakeChild();
+    watchSystemMedia(jest.fn());
+    watchSystemMedia(jest.fn());
+
+    expect(spawn).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends readings to the window that subscribed last', () => {
+    const { stdout } = fakeChild();
+    const gone = jest.fn();
+    watchSystemMedia(gone);
+    const reloaded = jest.fn();
+    watchSystemMedia(reloaded);
+    gone.mockClear();
+    reloaded.mockClear();
+
+    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+
+    expect(reloaded).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Kura Kura', isPlaying: true }),
+    );
+    expect(gone).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The child prints only when what the bar would draw has changed, so a
+   * window arriving mid-song must be told where things stand. For a player
+   * that publishes no timeline the next change is not a second away — it is
+   * the end of the track.
+   */
+  it('hands a fresh window what is playing without waiting for a change', () => {
+    const { stdout } = fakeChild();
+    watchSystemMedia(jest.fn());
+    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+
+    const reloaded = jest.fn();
+    watchSystemMedia(reloaded);
+
+    expect(reloaded).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Kura Kura' }),
+    );
+  });
+
+  it('does not hand on a reading from a watcher that has been stopped', () => {
+    const { stdout } = fakeChild();
+    watchSystemMedia(jest.fn());
+    stdout.emit('data', Buffer.from(`${PLAYING_LINE}\n`, 'utf8'));
+    stopWatchingSystemMedia();
+
+    fakeChild();
+    const later = jest.fn();
+    watchSystemMedia(later);
+
+    // A new child, so nothing is replayed: the old reading would have named
+    // whatever was playing when the watcher was last switched off.
+    expect(later).not.toHaveBeenCalled();
+  });
+
+  it('says nothing is playing when the watcher dies', () => {
+    const { child } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener);
+    listener.mockClear();
+
+    child.emit('exit');
+
+    expect(listener).toHaveBeenCalledWith(undefined);
   });
 });

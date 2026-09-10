@@ -43,7 +43,10 @@ import {
   VIDEO_AD_BLOCK_DEFAULT,
   VIDEO_AD_BLOCK_REQUEST,
 } from '../common/videoAdBlock';
-import { VIDEO_GRAPH_FULLSCREEN_REQUEST } from '../common/videoSites';
+import {
+  VIDEO_GRAPH_FULLSCREEN_REQUEST,
+  VIDEO_GUEST_VOLUME_CHANGED,
+} from '../common/videoSites';
 
 /**
  * ClearTube's `content.css`, verbatim.
@@ -196,6 +199,30 @@ const handleVideoDoubleClick = (event: MouseEvent) => {
 };
 
 window.addEventListener('dblclick', handleVideoDoubleClick, true);
+
+/**
+ * Tell the pane when the page changes its own level.
+ *
+ * `volumechange` does not bubble, so this is registered in capture on the
+ * window: it catches every media element the page has now and every one it
+ * creates later, which no per-element listener can do on a site that swaps
+ * players between an ad and the video.
+ *
+ * A bare signal carrying no number, on purpose. This world cannot see the
+ * page's player object, so the level it could read here is the element's —
+ * which on YouTube is the slider position already multiplied by that video's
+ * loudness normalisation, and not the number its slider shows. The pane asks
+ * the page for that itself; all this has to say is "go and ask again".
+ */
+window.addEventListener(
+  'volumechange',
+  (event) => {
+    if (event.target instanceof HTMLMediaElement) {
+      ipcRenderer.sendToHost(VIDEO_GUEST_VOLUME_CHANGED);
+    }
+  },
+  true,
+);
 
 /** How often to sweep the page, in milliseconds. ClearTube's own cadence. */
 const SWEEP_INTERVAL_MS = 350;

@@ -5,6 +5,7 @@ import type {
   ILanPairingOption,
   TRemoteAudioStopMode,
 } from '../../common/remoteAudio';
+import { getAppVolume } from '../audio/appVolume';
 import { createPcmMixer, type IPcmMixer } from './pcmMixer';
 import type { TRemoteAudioMeterListener } from './meter';
 import type {
@@ -64,6 +65,7 @@ const useRemoteAudioListenerActions = ({
             publishListenerState();
           },
           publishMeter,
+          getAppVolume(),
         );
       } catch {
         if (

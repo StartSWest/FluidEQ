@@ -416,17 +416,83 @@ export const TOGGLE_PLAYBACK = `(() => {
 })()`;
 
 /**
- * The guest's own volume, for the fader on our bar.
+ * ASK THE PAGE'S OWN PLAYER FIRST. WRITING `media.volume` IS THE FALLBACK.
+ *
+ * This used to write `media.volume` and nothing else, and on YouTube that is
+ * not the same knob its own slider moves. YouTube normalises loud masters —
+ * its slider at 100% on a loud music video sets `video.volume` to about half —
+ * so our fader at 100% wrote 1 and the video jumped to roughly twice what the
+ * site's own 100% sounds like. Touching YouTube's slider afterwards put the
+ * normalised value back and it dropped again, which is exactly what it looked
+ * like from the outside: two controls fighting over one property.
+ *
+ * `#movie_player` exposes `getVolume`/`setVolume` in whole percent, the same
+ * pair its own slider uses, so going through them means our 100% and its 100%
+ * are the same sound and neither overwrites the other. Everything else gets
+ * `media.volume`, which IS the knob a plain `<video>`'s native controls move —
+ * so there is one control on those pages too, not two.
  *
  * Set on every media element rather than only the one being listened to: a
  * page that swaps players between an ad and the video would otherwise start
  * the next one back at full volume, having never been told.
  */
+const GUEST_PLAYER_EXPRESSION = `(() => {
+  const player = document.querySelector('#movie_player');
+  return player
+    && typeof player.getVolume === 'function'
+    && typeof player.setVolume === 'function'
+    ? player
+    : null;
+})()`;
+
 export const setGuestVolumeScript = (volume: number) => `(() => {
+  const level = ${Math.min(1, Math.max(0, volume))};
+  const player = ${GUEST_PLAYER_EXPRESSION};
+  if (player) {
+    try {
+      player.setVolume(Math.round(level * 100));
+      // Its slider and its mute button are one control: a page told to play at
+      // a level while still muted stays silent and looks broken.
+      if (level > 0 && typeof player.unMute === 'function' && player.isMuted()) {
+        player.unMute();
+      }
+      return 'player';
+    } catch (e) {
+      // Fall through to the element below rather than leaving it unset.
+    }
+  }
   document.querySelectorAll('video, audio').forEach((media) => {
-    try { media.volume = ${Math.min(1, Math.max(0, volume))}; } catch (e) { /* gone */ }
+    try { media.volume = level; } catch (e) { /* gone */ }
   });
-  return 'ok';
+  return 'element';
+})()`;
+
+/**
+ * What the page is actually playing at, 0 to 1, or null if it has no player.
+ *
+ * The bar used to show a number this end invented — a hard-coded 100% that
+ * never changed however quiet the page was — so the first drag of the fader
+ * moved the sound to somewhere unrelated to where the readout had been
+ * sitting. Read from the same place `setGuestVolumeScript` writes to, so the
+ * two cannot disagree.
+ */
+export const READ_GUEST_VOLUME = `(() => {
+  const player = ${GUEST_PLAYER_EXPRESSION};
+  if (player) {
+    try {
+      const level = player.isMuted() ? 0 : player.getVolume() / 100;
+      return Number.isFinite(level) ? Math.min(1, Math.max(0, level)) : null;
+    } catch (e) {
+      // Fall through: a player mid-teardown still has a media element.
+    }
+  }
+  const media = Array.from(document.querySelectorAll('video, audio'));
+  if (!media.length) { return null; }
+  media.sort(
+    (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+  );
+  const chosen = media.find((el) => !el.paused && !el.ended) || media[0];
+  return chosen.muted ? 0 : chosen.volume;
 })()`;
 
 /**

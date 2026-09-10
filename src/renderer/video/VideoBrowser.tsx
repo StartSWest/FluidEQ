@@ -28,6 +28,7 @@ import {
   IVideoSite,
   VIDEO_BROWSER_PARTITION,
   VIDEO_GRAPH_FULLSCREEN_REQUEST,
+  VIDEO_GUEST_VOLUME_CHANGED,
   VIDEO_SITES,
   VIDEO_LINK_BLOCKED,
   buildSearchUrl,
@@ -59,6 +60,12 @@ import {
   releasePlayback,
 } from '../audio/playbackOwner';
 import {
+  clampAppVolume,
+  commitAppVolume,
+  setAppVolume,
+  useAppVolume,
+} from '../audio/appVolume';
+import {
   clearTransportSource,
   setTransportSource,
 } from '../audio/transportSource';
@@ -71,6 +78,7 @@ import {
   PROBE_PLAYBACK,
   PROBE_PLAYBACK_PHASE,
   PROBE_SKIP_CONTROLS,
+  READ_GUEST_VOLUME,
   READ_NOW_PLAYING,
   READ_PLAYBACK_CLOCK,
   READ_POSITION,
@@ -255,6 +263,17 @@ const RESUME_SAMPLE_MS = 5000;
 const TRANSPORT_CLOCK_SAMPLE_MS = 250;
 
 /**
+ * How many times one document is told the app's level again before it wins.
+ *
+ * See `guestVolumeArgumentsRef`: a site sets its own remembered level while
+ * its player mounts, and that first move must not be mistaken for the user
+ * moving its slider. Four is past every initialisation seen here and small
+ * enough that a page which simply will not take a level is believed rather
+ * than argued with.
+ */
+const GUEST_VOLUME_ARGUMENT_LIMIT = 4;
+
+/**
  * Which run of the page-stripping is the current one.
  *
  * Module scope rather than component state: nothing renders from it, it must
@@ -317,9 +336,37 @@ const VideoBrowser = ({
 }: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
-  /** The guest's own volume, held here because the page cannot be asked what
-   * it is — only told. Starts where a fresh media element does. */
-  const guestVolumeRef = useRef(1);
+  /**
+   * The app's fader — the same number the library and karaoke play at.
+   *
+   * It used to be a `useRef(1)` this pane invented, which is why the bar said
+   * 100% over a page playing at a third of that and the first drag jumped the
+   * sound. The page is both told this and asked for it: see the volume
+   * listener below.
+   */
+  const appVolume = useAppVolume();
+  /** The last level sent to the page, and how many sends are still in flight —
+   * together, the guard that stops the page's echo dragging the fader back.
+   * See the volume branch of `handleGuestMessage`. */
+  const lastPushedVolumeRef = useRef<number | undefined>(undefined);
+  const pendingVolumePushesRef = useRef(0);
+  /**
+   * How many times this document has been told the level again after setting
+   * one of its own, and whether it has agreed to ours yet.
+   *
+   * A NEW PAGE TAKES THE APP'S LEVEL, NOT THE OTHER WAY ROUND. A site opens
+   * each video at whatever it remembers for itself, and that first move is
+   * indistinguishable from a report — so without this, opening the Media tab
+   * replaced the app's fader with YouTube's remembered level, on every click.
+   *
+   * Bounded, and the bound is the point: a site that answers a level with a
+   * different one every time would otherwise be argued with for as long as it
+   * kept answering. Four attempts is past every initialisation observed here
+   * (YouTube writes its own level twice while its player mounts); after that
+   * the page is believed, because a page that will not take a level is one
+   * whose own number is the only true one.
+   */
+  const guestVolumeArgumentsRef = useRef(0);
   /** Whether the guest is playing, for the description rebuilt when the fader
    * moves — that has no event of its own to read the state from. */
   const playingRef = useRef(false);
@@ -505,6 +552,48 @@ const VideoBrowser = ({
   }, [pageToken]);
 
   /**
+   * Put a level on the page, and remember that we are the ones who did.
+   *
+   * The two refs it keeps are what tell our own echo from the page moving its
+   * slider: the guest fires `volumechange` for both, and the reading that
+   * comes back from ours must not be mistaken for a report.
+   */
+  const pushGuestVolume = useCallback((level: number) => {
+    const view = webviewRef.current;
+    if (!view) {
+      return;
+    }
+    lastPushedVolumeRef.current = level;
+    pendingVolumePushesRef.current += 1;
+    const settle = () => {
+      pendingVolumePushesRef.current -= 1;
+    };
+    try {
+      view.executeJavaScript(setGuestVolumeScript(level)).then(settle, settle);
+    } catch {
+      // No web contents to set it on.
+      settle();
+    }
+  }, []);
+
+  /**
+   * Put the app's level on the page — on every change, and on every document.
+   *
+   * `pageToken` as well as the level, because a site is a whole browser: it
+   * opens each new video at whatever it remembers for itself, so a page told
+   * once at attach would be back at its own level after the next click. This
+   * is what makes the Media tab play at the same volume as the library rather
+   * than at whatever the site last used.
+   */
+  useEffect(() => {
+    if (!isGuestReady) {
+      return;
+    }
+    guestVolumeArgumentsRef.current = 0;
+    pushGuestVolume(appVolume);
+  }, [appVolume, isGuestReady, pageToken, pushGuestVolume]);
+
+  /**
    * This pane's half of the one-player rule.
    *
    * The guest is a whole browser and we do not own what it is doing, so both
@@ -640,18 +729,10 @@ const VideoBrowser = ({
         previous: skipsRef.current.previous
           ? () => press('previous')
           : undefined,
-        volume: guestVolumeRef.current,
-        setVolume: (value: number) => {
-          guestVolumeRef.current = value;
-          try {
-            view
-              .executeJavaScript(setGuestVolumeScript(value))
-              .catch(() => undefined);
-          } catch {
-            // Same: nothing to set it on.
-          }
-          describe(playingRef.current);
-        },
+        // The level itself is not published — the bar reads the app's fader,
+        // which is the same number every other tab plays at. This only says
+        // the page can be set, and does it. See `ITransportSource.setVolume`.
+        setVolume: setAppVolume,
       });
     };
     const stopPlaybackClock = () => {
@@ -1031,7 +1112,17 @@ const VideoBrowser = ({
       if (isCancelled) {
         // The mode changed while this was in flight. Take it straight back
         // out rather than leaving a sheet nothing holds the key to.
-        view.removeInsertedCSS(inserted).catch(() => undefined);
+        //
+        // Wrapped for the same reason `executeJavaScript` is throughout this
+        // file: it asks the tag for a web contents id, and a tag that is no
+        // longer attached answers that by THROWING rather than rejecting, so
+        // a `.catch` alone does not catch it. See the cleanup below, where
+        // that difference had teeth.
+        try {
+          view.removeInsertedCSS(inserted).catch(() => undefined);
+        } catch {
+          // Detached; the sheet went with the document.
+        }
       } else {
         key = inserted;
       }
@@ -1053,7 +1144,24 @@ const VideoBrowser = ({
     return () => {
       isCancelled = true;
       if (key !== undefined) {
-        view.removeInsertedCSS(key).catch(() => undefined);
+        /**
+         * A RENDER ERROR ANYWHERE IN THE APP USED TO ARRIVE HERE AS A SECOND,
+         * FATAL ONE.
+         *
+         * React unmounts the whole tree when a render throws, and this cleanup
+         * runs with the `<webview>` already detached. `removeInsertedCSS` asks
+         * the tag for a web contents id, which a detached tag answers by
+         * THROWING — not by rejecting — so the `.catch` beside it never saw
+         * it. The unmount then threw while React was recovering from the first
+         * error, and what should have been one recoverable crash became
+         * "automatic window recovery budget exhausted" with this stack on the
+         * screen instead of the real one.
+         */
+        try {
+          view.removeInsertedCSS(key).catch(() => undefined);
+        } catch {
+          // Detached; the sheet went with the document.
+        }
       }
       try {
         view
@@ -1259,6 +1367,63 @@ const VideoBrowser = ({
       const { channel } = event as Event & { channel?: string };
       if (channel === VIDEO_GRAPH_FULLSCREEN_REQUEST) {
         onRequestGraphFullScreenRef.current();
+        return;
+      }
+      if (channel !== VIDEO_GUEST_VOLUME_CHANGED) {
+        return;
+      }
+      /**
+       * The page moved its own level. Follow it.
+       *
+       * The site's slider and this app's fader are one control, not two
+       * multiplying each other — which is the whole of the bug this fixes:
+       * they used to be two, and 100% on both was roughly twice the sound of
+       * 100% on either.
+       *
+       * Ignored while a push of ours is still in flight, and ignored when it
+       * comes back as the level we last sent. Both are the same guard against
+       * the same race: a drag sends a level per step, and a reading from an
+       * earlier step landing after a later one would drag the fader backwards
+       * under the pointer.
+       */
+      if (pendingVolumePushesRef.current > 0) {
+        return;
+      }
+      try {
+        view
+          .executeJavaScript(READ_GUEST_VOLUME)
+          .then((reading) => {
+            if (
+              typeof reading !== 'number' ||
+              !Number.isFinite(reading) ||
+              pendingVolumePushesRef.current > 0
+            ) {
+              return reading;
+            }
+            const level = clampAppVolume(reading);
+            if (level === lastPushedVolumeRef.current) {
+              // The page took what it was given. From here its own moves are
+              // the user's, and they are followed.
+              guestVolumeArgumentsRef.current = GUEST_VOLUME_ARGUMENT_LIMIT;
+              return reading;
+            }
+            if (
+              guestVolumeArgumentsRef.current < GUEST_VOLUME_ARGUMENT_LIMIT &&
+              lastPushedVolumeRef.current !== undefined
+            ) {
+              // A page still settling into its own remembered level. Say it
+              // again rather than adopting it — see `guestVolumeArgumentsRef`.
+              guestVolumeArgumentsRef.current += 1;
+              pushGuestVolume(lastPushedVolumeRef.current);
+              return reading;
+            }
+            setAppVolume(level);
+            commitAppVolume();
+            return reading;
+          })
+          .catch(() => undefined);
+      } catch {
+        // No web contents to ask; the fader keeps the level it has.
       }
     };
 
@@ -1312,7 +1477,10 @@ const VideoBrowser = ({
       view.removeEventListener('ipc-message', handleGuestMessage);
       view.removeEventListener('dom-ready', handleReady);
     };
-  }, [syncNavigationState]);
+    // `pushGuestVolume` has no dependencies of its own, so naming it here
+    // costs nothing: these listeners are still registered once for the life
+    // of the pane, which is what every ref above them exists to allow.
+  }, [syncNavigationState, pushGuestVolume]);
 
   const goTo = useCallback((url: string) => {
     setBlockedUrl('');

@@ -5,30 +5,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The three controls that move the listener rather than the list.
+ * The two controls that move the listener rather than the list.
  *
- * Next/Previous, the scrubber and the fader. Grouped because each one has to
- * do something to the DECK as well as to the state — a jump silences and
- * restores the level around itself, Previous chooses between rewinding and
- * changing track by asking where the playhead is, and the fader has to be
- * audible immediately while being written to disk only when it settles.
+ * Next/Previous and the scrubber. Grouped because each one has to do something
+ * to the DECK as well as to the state — a jump silences and restores the level
+ * around itself, and Previous chooses between rewinding and changing track by
+ * asking where the playhead is.
  *
- * That last split is what keeps a drag smooth: the level follows the pointer
- * with nothing in between, and the synchronous `localStorage` write does not
- * land a hundred times across one drag of a step-0.01 slider.
+ * The fader was here too and is not any more: it is not the library's, it is
+ * the app's, and it lives in `appVolume` where karaoke and the Media tab can
+ * read the same number. See that module for what having one each cost.
  */
 import { MutableRefObject, useCallback } from 'react';
 import { ILibraryQueue, advanceQueue } from '../../../common/library/queue';
-import { writeStoredVolume } from './playbackMemory';
-import { PREVIOUS_RESTART_THRESHOLD_MS, clampVolume } from './playerContract';
+import { PREVIOUS_RESTART_THRESHOLD_MS } from './playerContract';
 
 export interface ITransportControls {
   /** Next, or Previous — which rewinds first if the track is underway. */
   skip: (direction: 1 | -1) => void;
   seek: (nextPositionMs: number) => void;
-  /** Audible at once; not written to disk until `commitVolume`. */
-  setVolume: (value: number) => void;
-  commitVolume: () => void;
 }
 
 export const useTransportControls = (options: {
@@ -42,9 +37,7 @@ export const useTransportControls = (options: {
   seekHost: (positionMs: number) => void;
   /** The clock of whichever engine is playing. See `publishedPositionMs`. */
   publishedPositionMs: number;
-  volumeRef: MutableRefObject<number>;
   setPositionMs: (value: number) => void;
-  setVolumeState: (value: number) => void;
   setQueue: (
     update: (current: ILibraryQueue | undefined) => ILibraryQueue | undefined,
   ) => void;
@@ -56,9 +49,7 @@ export const useTransportControls = (options: {
     hostOwnsTransportRef,
     seekHost,
     publishedPositionMs,
-    volumeRef,
     setPositionMs,
-    setVolumeState,
     setQueue,
   } = options;
 
@@ -163,32 +154,5 @@ export const useTransportControls = (options: {
     [publishedPositionMs, finishCrossfadeRef, seek, setQueue],
   );
 
-  /**
-   * Move the fader. Audible immediately, not written to disk.
-   *
-   * The split is what keeps a drag smooth. The effect on `volume` above sets
-   * the element on every change, so the sound tracks the pointer with nothing
-   * in between; what does NOT happen per change is the `localStorage` write,
-   * which is synchronous and would land on the main thread a hundred times
-   * across one drag of a `step={0.01}` slider.
-   */
-  const setVolume = useCallback(
-    (value: number) => {
-      setVolumeState(clampVolume(value));
-    },
-    [setVolumeState],
-  );
-
-  /**
-   * Remember where the fader was left.
-   *
-   * Called when a gesture ends — pointer released, key lifted, mute toggled —
-   * rather than on every value. Reads from the ref instead of taking an
-   * argument so a caller cannot commit a value the player is not actually at.
-   */
-  const commitVolume = useCallback(() => {
-    writeStoredVolume(volumeRef.current);
-  }, [volumeRef]);
-
-  return { skip, seek, setVolume, commitVolume };
+  return { skip, seek };
 };
