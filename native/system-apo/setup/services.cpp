@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <winsvc.h>
 
 #include <string>
+#include <vector>
 
 #include "fs.h"
 
@@ -175,6 +176,55 @@ bool start_service(SC_HANDLE service, const wchar_t* name,
 
 }  // namespace
 
+/**
+ * Stop every running service that depends on `service`, in the order the
+ * service control manager says they must go.
+ *
+ * Windows refuses to stop a service while a dependent is running: error 1051,
+ * `ERROR_DEPENDENT_SERVICES_RUNNING`. On the first machine this ran on the
+ * dependent was Realtek's `RtkAudioUniversalService`, so the engine was
+ * installed and attached to every output and then never loaded, because the
+ * one step that makes Windows read the new effect list failed at its first
+ * call. `Restart-Service -Force` and `net stop /y` do exactly this walk;
+ * the names stopped are handed back so `restart_audio` can bring them up
+ * again afterwards.
+ */
+bool stop_dependents(SC_HANDLE manager, SC_HANDLE service,
+                     const wchar_t* name, std::vector<std::wstring>& stopped,
+                     std::wstring& error) {
+  DWORD needed = 0;
+  DWORD count = 0;
+  if (EnumDependentServicesW(service, SERVICE_ACTIVE, nullptr, 0, &needed,
+                             &count) != 0) {
+    return true;  // Nothing running depends on it.
+  }
+  if (GetLastError() != ERROR_MORE_DATA) {
+    error = std::wstring(L"could not list what depends on ") + name + L": " +
+            describe_error(GetLastError());
+    return false;
+  }
+  std::vector<BYTE> buffer(needed);
+  auto* entries = reinterpret_cast<LPENUM_SERVICE_STATUSW>(buffer.data());
+  if (EnumDependentServicesW(service, SERVICE_ACTIVE, entries, needed,
+                             &needed, &count) == 0) {
+    error = std::wstring(L"could not list what depends on ") + name + L": " +
+            describe_error(GetLastError());
+    return false;
+  }
+  // The manager returns them in the order they have to stop: a service that
+  // depends on another dependent comes before it.
+  for (DWORD i = 0; i < count; ++i) {
+    const std::wstring dependent = entries[i].lpServiceName;
+    ServiceHandle handle;
+    if (!open_service(manager, dependent.c_str(), handle, error) ||
+        !stop_service(handle.get(), dependent.c_str(), error)) {
+      return false;
+    }
+    stopped.push_back(dependent);
+  }
+  return true;
+}
+
 bool restart_audio(std::wstring& error) {
   const ServiceHandle manager(OpenSCManagerW(nullptr, nullptr,
                                              SC_MANAGER_CONNECT));
@@ -189,10 +239,29 @@ bool restart_audio(std::wstring& error) {
       !open_service(manager.get(), kBuilderService, builder, error)) {
     return false;
   }
-  return stop_service(audio.get(), kAudioService, error) &&
-         stop_service(builder.get(), kBuilderService, error) &&
-         start_service(builder.get(), kBuilderService, error) &&
-         start_service(audio.get(), kAudioService, error);
+  std::vector<std::wstring> dependents;
+  if (!stop_dependents(manager.get(), audio.get(), kAudioService, dependents,
+                       error) ||
+      !stop_service(audio.get(), kAudioService, error) ||
+      !stop_service(builder.get(), kBuilderService, error) ||
+      !start_service(builder.get(), kBuilderService, error) ||
+      !start_service(audio.get(), kAudioService, error)) {
+    return false;
+  }
+  // Back up in reverse: the last one stopped is the deepest dependency.
+  // A vendor service that will not come back is reported rather than left
+  // silently down — its control panel would be the first thing to notice.
+  for (auto it = dependents.rbegin(); it != dependents.rend(); ++it) {
+    ServiceHandle handle;
+    if (!open_service(manager.get(), it->c_str(), handle, error) ||
+        !start_service(handle.get(), it->c_str(), error)) {
+      error = L"audio is running again, but a service that depends on it "
+              L"did not restart: " +
+              error;
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace fluideq_engine::setup
