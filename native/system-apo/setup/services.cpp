@@ -134,9 +134,15 @@ bool wait_for_state(SC_HANDLE service, const wchar_t* name, DWORD mask,
 
 bool open_service(SC_HANDLE manager, const wchar_t* name,
                   ServiceHandle& service, std::wstring& error) {
+  // ENUMERATE_DEPENDENTS as well as start/stop/query: listing what depends
+  // on Audiosrv is its own access right, and without it the walk that
+  // exists to get past error 1051 fails one step earlier with "access is
+  // denied" (5) — on an elevated handle, which is what made it look like the
+  // elevation had not happened.
   service = ServiceHandle(OpenServiceW(
       manager, name,
-      SERVICE_QUERY_STATUS | SERVICE_START | SERVICE_STOP));
+      SERVICE_QUERY_STATUS | SERVICE_START | SERVICE_STOP |
+          SERVICE_ENUMERATE_DEPENDENTS));
   if (!service.valid()) {
     error = std::wstring(L"could not open the ") + name + L" service: " +
             describe_error(GetLastError());

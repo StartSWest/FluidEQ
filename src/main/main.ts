@@ -74,7 +74,7 @@ import {
 } from './audioEngineStore';
 import { neutraliseEngine } from './engineNeutralise';
 import { writeSystemDspChain } from './systemDspChain';
-import { runEngineSetup } from './engineSetup';
+import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import gatherBugReportFacts from './bugReportFacts';
@@ -2647,6 +2647,23 @@ ipcMain.handle(
 ipcMain.handle('restart-windows-audio', async () => {
   if (process.platform !== 'win32') {
     return 'Restarting Windows Audio is only available on Windows.';
+  }
+
+  // The engine helper when it is there: it restarts AudioEndpointBuilder as
+  // well as Audiosrv, which a changed effect list needs before Windows reads
+  // it again, and it stops a vendor service that depends on Audiosrv first
+  // (Realtek's blocked the plain stop with error 1051 on the first machine).
+  // The PowerShell restart below restarts Audiosrv alone and remains only for
+  // a build with no helper beside it — a source checkout without a native
+  // build.
+  if (fs.existsSync(getEngineSetupPath())) {
+    const result = await runEngineSetup('restart-audio', []);
+    if (result.ok) {
+      return '';
+    }
+    return result.declined
+      ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
+      : `Windows Audio could not be restarted. ${result.error ?? ''}`.trim();
   }
 
   const restartCommand = Buffer.from(
