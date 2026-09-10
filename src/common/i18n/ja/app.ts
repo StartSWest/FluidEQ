@@ -204,6 +204,11 @@ const app: Partial<Dictionary> = {
   'notice.importComplete': '読み込みが完了しました',
   'notice.restartConfirm':
     '音が数秒とまり、Windows が管理者権限を求めます。続けますか？',
+  'restart.title': 'Windows オーディオを再起動',
+  'restart.action': 'オーディオを再起動',
+  'restart.running': 'オーディオを再起動しています…',
+  'restart.failed': 'Windows オーディオを再起動できませんでした。',
+  'restart.tryAgain': 'もう一度試す',
   'update.title': 'FluidEQ の更新',
   'update.available':
     'バージョン {version} が利用できます。ダウンロード中です。',

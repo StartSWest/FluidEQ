@@ -164,6 +164,7 @@ import {
   savePreset,
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
+import RestartAudioDialog from './components/RestartAudioDialog';
 import AudioEngineDialog, {
   type TApoAction,
 } from './components/AudioEngineDialog';
@@ -837,6 +838,7 @@ const AppContent = () => {
   const { status: engineStatus, refresh: refreshEngineStatus } =
     useAudioEngineStatus();
   const [showEngineDialog, setShowEngineDialog] = useState(false);
+  const [showRestartDialog, setShowRestartDialog] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and
   // the only route to "Install Equalizer APO" was gone until the error
@@ -1769,20 +1771,16 @@ const AppContent = () => {
   const handleImportEq = () => runImport(importEqFile);
   const handleImportConvolution = () => runImport(importConvolutionFile);
 
-  const handleRestartWindowsAudio = async () => {
-    const confirmed = await window.electron.ipcRenderer.confirmNative(
-      t('notice.restartConfirm'),
-      t('whatsNew.ok'),
-      t('config.cancel'),
-    );
-    if (!confirmed) {
-      return;
-    }
+  /** The menu item, the notice bar and the troubleshooter all open the card. */
+  const handleRestartWindowsAudio = () => setShowRestartDialog(true);
 
+  /**
+   * The restart itself, run by the card's own button; what comes back is the
+   * reason it did not work, or nothing. The card shows the outcome, so there
+   * is no message box here any more.
+   */
+  const performWindowsAudioRestart = async (): Promise<string> => {
     const error = await window.electron.ipcRenderer.restartWindowsAudio();
-    await window.electron.ipcRenderer.showNativeMessage(
-      error || t('notice.restartDone'),
-    );
     if (!error) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
@@ -1801,6 +1799,7 @@ const AppContent = () => {
       window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
       performHealthCheck();
     }
+    return error;
   };
 
   const dismissAudioRestartRecommendation = () => {
@@ -2779,6 +2778,12 @@ const AppContent = () => {
             onApply={handleApplyAudioEngine}
             onCancel={() => setShowEngineDialog(false)}
             onApoAction={handleApoAction}
+          />
+        )}
+        {showRestartDialog && (
+          <RestartAudioDialog
+            onRestart={performWindowsAudioRestart}
+            onClose={() => setShowRestartDialog(false)}
           />
         )}
         {globalError && !isBlockingError && (

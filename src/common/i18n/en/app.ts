@@ -200,6 +200,11 @@ const app = {
   'notice.importComplete': 'Import complete',
   'notice.restartConfirm':
     'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
+  'restart.title': 'Restart Windows audio',
+  'restart.action': 'Restart audio',
+  'restart.running': 'Restarting audio…',
+  'restart.failed': 'Windows audio could not be restarted.',
+  'restart.tryAgain': 'Try again',
   'update.title': 'FluidEQ update',
   'update.available': 'Version {version} is available. Downloading it now.',
   'update.downloading': 'Downloading the update… {percent}%',

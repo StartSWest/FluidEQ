@@ -208,6 +208,11 @@ const app: Partial<Dictionary> = {
   'notice.importComplete': 'Importation terminée',
   'notice.restartConfirm':
     'Le son va s’interrompre quelques secondes et Windows demandera une autorisation d’administrateur. Continuer ?',
+  'restart.title': 'Redémarrer l’audio de Windows',
+  'restart.action': 'Redémarrer l’audio',
+  'restart.running': 'Redémarrage de l’audio…',
+  'restart.failed': 'L’audio de Windows n’a pas pu être redémarré.',
+  'restart.tryAgain': 'Réessayer',
   'update.title': 'Mise à jour de FluidEQ',
   'update.available':
     'La version {version} est disponible. Téléchargement en cours.',

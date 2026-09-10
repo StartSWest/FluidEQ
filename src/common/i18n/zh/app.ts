@@ -195,6 +195,11 @@ const app: Partial<Dictionary> = {
   'notice.importComplete': '导入完成',
   'notice.restartConfirm':
     '声音会中断几秒，Windows 会请求管理员权限。要继续吗？',
+  'restart.title': '重启 Windows 音频',
+  'restart.action': '重启音频',
+  'restart.running': '正在重启音频…',
+  'restart.failed': '无法重启 Windows 音频。',
+  'restart.tryAgain': '重试',
   'update.title': 'FluidEQ 更新',
   'update.available': '有新版本 {version}，正在下载。',
   'update.downloading': '正在下载更新… {percent}%',

@@ -205,6 +205,11 @@ const app: Partial<Dictionary> = {
   'notice.importComplete': 'Импорт завершён',
   'notice.restartConfirm':
     'Звук пропадёт на несколько секунд, и Windows запросит права администратора. Продолжить?',
+  'restart.title': 'Перезапустить звук Windows',
+  'restart.action': 'Перезапустить звук',
+  'restart.running': 'Перезапуск звука…',
+  'restart.failed': 'Не удалось перезапустить звук Windows.',
+  'restart.tryAgain': 'Попробовать снова',
   'update.title': 'Обновление FluidEQ',
   'update.available': 'Доступна версия {version}. Загружается.',
   'update.downloading': 'Загрузка обновления… {percent}%',
