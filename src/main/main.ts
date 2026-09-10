@@ -148,6 +148,7 @@ import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerScenePacksIpc } from './ipc/scenePacks';
+import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerCommunityIpc } from './ipc/community';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
@@ -2665,6 +2666,16 @@ const scenePacksIpc = registerScenePacksIpc({
   developmentPacksDir,
 });
 
+// Scenes members make in the Studio. Registering watches nothing: a linked
+// folder is watched only while the Studio is open.
+const memberScenesIpc = registerMemberScenesIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+});
+
 // The community's REST calls and its live feed. Registering opens nothing:
 // the feed connects when the Community tab is on screen and closes when it
 // leaves, because a chat nobody is looking at does not need a socket.
@@ -2939,6 +2950,7 @@ app.on('before-quit', (event) => {
   // the old listener is still holding a port nobody is going to answer on.
   accountIpc.dispose();
   scenePacksIpc.dispose();
+  memberScenesIpc.dispose();
   communityIpc.dispose();
   leaderboardIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
