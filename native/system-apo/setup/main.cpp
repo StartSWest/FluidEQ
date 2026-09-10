@@ -24,10 +24,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * prompt was declined, 3 the command ran and failed — with the reason in the
  * JSON rather than in the exit code, because there is only one of those and
  * there are many ways for an audio driver's registry key to surprise us.
+ *
+ * It is a windows subsystem program with a `wWinMain`, and prints through
+ * whatever console the caller already had (see `console.h`). The installer
+ * runs it through StdUtils' `ExecShellWaitEx`, which is the only way to read
+ * its exit code and hard-codes `SW_SHOWNORMAL`: as a console program it
+ * flashed a black window on screen during every install and uninstall.
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+// The command line, taken apart here rather than by the CRT: a windows
+// subsystem entry point is handed one string, not an argument vector.
+#include <shellapi.h>
 
 // WIN32_LEAN_AND_MEAN leaves COM out of `windows.h`, and the device
 // enumerator this program reaches through needs an initialised apartment.
@@ -42,6 +52,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "backup.h"
 #include "com_registration.h"
 #include "commands.h"
+#include "console.h"
 #include "elevate.h"
 #include "endpoints.h"
 #include "fs.h"
@@ -57,6 +68,7 @@ using fluideq_engine::setup::FxValues;
 using fluideq_engine::setup::Options;
 using fluideq_engine::setup::Slot;
 using fluideq_engine::setup::backup_exists;
+using fluideq_engine::setup::borrow_caller_console;
 using fluideq_engine::setup::config_dir;
 using fluideq_engine::setup::ensure_engine_tree;
 using fluideq_engine::setup::installed_dll_path;
@@ -90,6 +102,9 @@ const char kUsage[] =
     "An output id looks like {00000000-0000-0000-0000-000000000000} and is\n"
     "listed by the status command, which is the only one that never asks for\n"
     "administrator rights.\n"
+    "\n"
+    "From an interactive shell, pipe or capture the output (the helper is a\n"
+    "windowed program and the shell will not wait for it otherwise).\n"
     "\n"
     "Exit codes: 0 done, 1 command line, 2 elevation declined, 3 failed.\n";
 
@@ -281,9 +296,8 @@ int run_through_elevation(int argc, wchar_t** argv, const Options& options) {
   return code;
 }
 
-}  // namespace
-
-int wmain(int argc, wchar_t** argv) {
+/** Everything the program does, once it has an argument vector to do it on. */
+int run_main(int argc, wchar_t** argv) {
   Options options;
   if (!parse(argc, argv, options)) {
     std::fputs(kUsage, stderr);
@@ -308,5 +322,26 @@ int wmain(int argc, wchar_t** argv) {
   }
 
   CoUninitialize();
+  return code;
+}
+
+}  // namespace
+
+// Unnamed parameters: `/W4 /WX` makes an unused one an error, and a windows
+// subsystem entry point is handed four things this program has no use for —
+// it has no window and no instance of its own.
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
+  // Before anything is printed, and before the parse that prints the usage.
+  borrow_caller_console();
+
+  int argc = 0;
+  wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+  if (argv == nullptr) {
+    std::fputs("FluidEQ-Engine-Setup: the command line could not be read.\n",
+               stderr);
+    return 1;
+  }
+  const int code = run_main(argc, argv);
+  LocalFree(argv);
   return code;
 }

@@ -22,6 +22,13 @@ guess about when something else becomes ready.
 Every command this script runs against the installed engine is echoed first,
 so a run can be read back from its own transcript without repeating it.
 
+FluidEQ-Engine-Setup.exe is a windowed program - it has no console of its
+own, so that the installer does not flash a black window while it runs. A
+shell only waits for a windowed program when its output is being captured,
+which is why every call to it here goes through Invoke-SetupCommand and
+assigns what it printed. A bare call would return before the helper had
+finished and the step after it would read the machine mid-change.
+
 Run it twice - once on this PC, once on the Alienware laptop - and send back
 the `gate-results.txt` file it writes each time.
 #>
@@ -154,6 +161,10 @@ function Set-Utf8NoBom {
 # Runs the setup helper with its arguments echoed first, captures the one
 # line of JSON it always prints (see setup/main.cpp's print_json), and
 # returns the exit code alongside the parsed result.
+#
+# Assigning $output is what makes PowerShell wait for it and what makes
+# $LASTEXITCODE mean anything: the helper is a windowed program, and a shell
+# does not wait on one of those unless it is reading its output.
 function Invoke-SetupCommand {
     param([Parameter(Mandatory)][string[]]$CommandArgs)
     Write-Host ""

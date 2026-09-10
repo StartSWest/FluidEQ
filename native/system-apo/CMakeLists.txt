@@ -138,7 +138,7 @@ add_executable(fluideq-engine-setup
   setup/main.cpp setup/commands.cpp setup/registry.cpp
   setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
-  setup/fs.cpp
+  setup/fs.cpp setup/console.cpp
   # The version resource is what the consent prompt shows the user before
   # they decide whether to let this program change their machine.
   setup/setup.rc)
@@ -150,6 +150,13 @@ target_link_libraries(fluideq-engine-setup PRIVATE
   advapi32 shell32 ole32 version)
 set_target_properties(fluideq-engine-setup PROPERTIES
   OUTPUT_NAME "FluidEQ-Engine-Setup"
+  # The windows subsystem, so Windows never gives this program a console of
+  # its own. The installer has to run it through StdUtils' `ExecShellWaitEx`
+  # to read its exit code at all, and that call hard-codes `SW_SHOWNORMAL` —
+  # as a console program it flashed a black window on screen during every
+  # install and every uninstall, with nothing the .nsh could pass to stop it.
+  # It still prints: `setup/console.cpp` borrows the caller's console or pipe.
+  WIN32_EXECUTABLE TRUE
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
@@ -161,4 +168,8 @@ set_source_files_properties(setup/setup.rc PROPERTIES COMPILE_DEFINITIONS
 # file name.
 target_link_options(fluideq-engine-setup PRIVATE
   "/MANIFEST:EMBED"
-  "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/setup/setup.manifest")
+  "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/setup/setup.manifest"
+  # Spelled out rather than left to the linker's guess at which start-up
+  # routine goes with which entry point: the wide one is what keeps endpoint
+  # names and paths out of the ANSI code page.
+  "/ENTRY:wWinMainCRTStartup")
