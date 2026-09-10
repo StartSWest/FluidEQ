@@ -389,10 +389,10 @@ only then asks the unchanged "Also uninstall Equalizer APO?" question, and only
 when APO is actually installed.
 
 The ten translations live in `assets/nsis/engine-strings.nsh`, pulled in with
-`!include /CHARSET=UTF8`. That is load-bearing: makensis applies electron-
-builder's `-INPUTCHARSET UTF8` to the main script only, so a BOM-less include
-is read in the machine's ANSI code page and every non-ASCII character arrives
-mangled. A BOM would also fix it and `pnpm typecheck:encoding` rejects one.
+`!include /CHARSET=UTF8`. That is load-bearing: electron-builder passes
+`-INPUTCHARSET UTF8` for the main script only, so a BOM-less include is read
+in the machine's ANSI code page and every non-ASCII character arrives mangled.
+A BOM would also fix it and `pnpm typecheck:encoding` rejects one.
 
 ## The weekly cold build
 
