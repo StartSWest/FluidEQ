@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AUTOMATIC_PRESET_PREFIX, type IAudioDevice } from 'common/constants';
+import type { TAudioEngine } from 'common/audioEngine';
 import Dropdown from './widgets/Dropdown';
 import { useTranslation } from './utils/I18nContext';
 import { assignDeviceProfile } from './utils/equalizerApi';
@@ -8,12 +9,15 @@ import { reportError } from './utils/logger';
 
 interface IProps {
   device: IAudioDevice;
+  /** Which engine's endpoint answer the badge below is allowed to read. */
+  engine: TAudioEngine | null;
   presetName: string;
   onChanged(): Promise<void>;
 }
 
 const SecondOutputProfilePicker = ({
   device,
+  engine,
   presetName,
   onChanged,
 }: IProps) => {
@@ -112,8 +116,13 @@ const SecondOutputProfilePicker = ({
         isDisabled={busy || !loaded || names.length === 0}
         handleChange={select}
       />
-      {device.isEqualizerApoAttached === false && (
-        <span className="apo-badge">{t('output.apoOff')}</span>
+      {/* The engine in use decides which answer counts. Reading Equalizer
+          APO's under the FluidEQ Engine put an OFF badge on every output of
+          a machine that has no Equalizer APO and does not need one. */}
+      {(engine === 'fluid'
+        ? device.isFluidEngineAttached
+        : device.isEqualizerApoAttached) === false && (
+        <span className="apo-badge">{t('output.off')}</span>
       )}
       {error && (
         <span className="extra-outputs__obstacle" role="alert">

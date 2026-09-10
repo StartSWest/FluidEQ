@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ReactNode, useEffect, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
+import type { TAudioEngine } from 'common/audioEngine';
 import '../styles/AudioTroubleshooter.scss';
 
 /**
@@ -42,10 +43,29 @@ import '../styles/AudioTroubleshooter.scss';
  */
 
 interface IAudioTroubleshooterProps {
+  /**
+   * Which engine is carrying the audio.
+   *
+   * Three of the steps below are Equalizer APO's own repairs — its Device
+   * Selector, its two installation modes, its installer. Under the FluidEQ
+   * Engine none of them exist, and offering them would send somebody into a
+   * program they do not have to fix a fault it is not causing.
+   */
+  engine: TAudioEngine | null;
   onClose: () => void;
   onRestartAudio: () => void;
   onReconfigure: () => void;
   onReinstallApo: () => void;
+  /** Re-registers the FluidEQ Engine and re-attaches every output. */
+  onEnableEngine: () => void;
+  /**
+   * The label for that step, translated by the shell.
+   *
+   * Handed in rather than looked up here because this file's own copy is
+   * still English: localising the whole troubleshooter is a job of its own,
+   * and a half-translated panel is worse than a consistently English one.
+   */
+  enableEngineLabel: string;
 }
 
 interface IStep {
@@ -58,10 +78,13 @@ interface IStep {
 }
 
 export default function AudioTroubleshooter({
+  engine,
   onClose,
   onRestartAudio,
   onReconfigure,
   onReinstallApo,
+  onEnableEngine,
+  enableEngineLabel,
 }: IAudioTroubleshooterProps) {
   // Which steps have been tried, so somebody working down the list can see
   // where they are. Not persisted and not authoritative — it is a reminder,
@@ -78,16 +101,14 @@ export default function AudioTroubleshooter({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const steps: IStep[] = [
-    {
-      title: 'Restart Windows Audio',
-      when:
-        'Sound has stopped, or the graph has gone flat while something is ' +
-        'playing. This is the fix for almost every case, and the one to try ' +
-        'first.',
-      cost: 'A few seconds of silence. Windows asks for permission.',
-      action: { label: 'Restart audio', run: onRestartAudio },
-    },
+  const isApo = engine === 'apo';
+
+  /**
+   * Everything below the first step depends on which engine is running: three
+   * of the four are Equalizer APO's own repairs, and the machine running the
+   * FluidEQ Engine may not have Equalizer APO on it at all.
+   */
+  const apoSteps: IStep[] = [
     {
       title: 'Re-select your devices in Equalizer APO',
       when:
@@ -148,6 +169,34 @@ export default function AudioTroubleshooter({
         </p>
       ),
     },
+  ];
+
+  const engineSteps: IStep[] = [
+    {
+      title: `Put the ${PRODUCT_NAME} Engine back on your outputs`,
+      when:
+        'One device is equalised and another is not, or a headset you have ' +
+        'just plugged in is being ignored. The engine attaches to each ' +
+        'output separately, and a Windows update can detach it from one it ' +
+        'was already on.',
+      cost:
+        'Windows asks for permission, and audio restarts for a moment. No ' +
+        'reboot.',
+      action: { label: enableEngineLabel, run: onEnableEngine },
+    },
+  ];
+
+  const steps: IStep[] = [
+    {
+      title: 'Restart Windows Audio',
+      when:
+        'Sound has stopped, or the graph has gone flat while something is ' +
+        'playing. This is the fix for almost every case, and the one to try ' +
+        'first.',
+      cost: 'A few seconds of silence. Windows asks for permission.',
+      action: { label: 'Restart audio', run: onRestartAudio },
+    },
+    ...(isApo ? apoSteps : engineSteps),
   ];
 
   return (

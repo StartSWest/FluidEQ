@@ -57,10 +57,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: $spacing-xs;
 }
 
+// Allowed to shrink, and therefore to wrap.
+//
+// It used to be `flex-shrink: 0`, which pins the row at the width of all three
+// buttons laid end to end — and every `.button` is `white-space: nowrap`, so
+// the row simply ran off the edge and took a horizontal scrollbar with it. The
+// three labels happened to fit while the first read "Install APO"; it now
+// names the engine ("Install FluidEQ Engine", and longer again in German), and
+// at the 312px this notice is in a 360px window the last button was cut off.
 .prereq-notice__actions {
   display: flex;
-  flex-shrink: 0;
+  min-width: 0;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: $spacing-s;
 }
 

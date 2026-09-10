@@ -27,6 +27,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
+import type { TAudioEngine } from 'common/audioEngine';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import {
   featureTourDismissal,
@@ -161,6 +162,16 @@ import {
   savePreset,
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
+import AudioEngineDialog, {
+  type TApoAction,
+} from './components/AudioEngineDialog';
+import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
+import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
+import {
+  attachFluidEngine,
+  installFluidEngine,
+  setAudioEngine,
+} from './utils/audioEngineApi';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 /**
@@ -813,6 +824,12 @@ const AppContent = () => {
   // automatic — but reachable, which is the whole point of it existing.
   const [showAbout, setShowAbout] = useState(false);
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
+  // Which engine is processing the audio, held once for the whole shell: the
+  // output panels, the troubleshooter and the dialog all read this one answer
+  // rather than each asking main for its own copy.
+  const { status: engineStatus, refresh: refreshEngineStatus } =
+    useAudioEngineStatus();
+  const [showEngineDialog, setShowEngineDialog] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and
   // the only route to "Install Equalizer APO" was gone until the error
@@ -1571,6 +1588,78 @@ const AppContent = () => {
     }
   };
 
+  const handleOpenEngineDialog = () => {
+    // Asked again on the way in: the answer can have changed since the window
+    // opened — Equalizer APO installed from outside, the engine attached to a
+    // new output — and this dialog is where that is acted on.
+    refreshEngineStatus();
+    setShowEngineDialog(true);
+  };
+
+  /**
+   * Put the chosen engine in place, in the order that leaves the machine
+   * usable if any step of it fails.
+   *
+   * Install first, then record the choice: a preference naming an engine that
+   * is not on disk is the `FLUID_ENGINE_NOT_INSTALLED` wall, and reaching it
+   * because the user closed a Windows prompt would be this dialog's own doing.
+   * Equalizer APO is the other way round — its setup is a separate program
+   * that needs a Windows restart, so the choice is saved first and the setup
+   * run after, and the config it will read is already on disk when it is.
+   */
+  const handleApplyAudioEngine = async (engine: TAudioEngine) => {
+    if (engine === 'fluid' && !engineStatus?.fluid.installed) {
+      const result = await installFluidEngine();
+      if (result.declined) {
+        throw new Error('declined');
+      }
+      if (!result.ok) {
+        throw new Error(result.error ?? 'engine setup failed');
+      }
+    }
+    await setAudioEngine(engine);
+    if (engine === 'apo' && !engineStatus?.apo.installed) {
+      await startEqualizerApoInstall();
+      localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
+      setShowAudioRestartRecommendation(true);
+    }
+    notifyAudioEngineChanged();
+    await refreshEngineStatus();
+    performHealthCheck();
+    setShowEngineDialog(false);
+  };
+
+  const handleApoAction = (action: TApoAction) => {
+    setShowEngineDialog(false);
+    if (action === 'reconfigure') {
+      handleConfigureEqualizerApo();
+    } else if (action === 'settings') {
+      handleOpenEqualizerApoSettings();
+    } else {
+      handleReinstallApo();
+    }
+  };
+
+  /** One output through the engine, from the notice that says it is not. */
+  const handleAttachFluidEngine = async (guid: string) => {
+    const result = await attachFluidEngine(guid);
+    if (result.ok) {
+      await refreshEngineStatus();
+      performHealthCheck();
+    }
+    return result;
+  };
+
+  /** The single button on the blocking `FLUID_ENGINE_NOT_INSTALLED` banner. */
+  const handleInstallFluidEngine = async () => {
+    const result = await installFluidEngine();
+    if (result.ok) {
+      notifyAudioEngineChanged();
+      await refreshEngineStatus();
+      performHealthCheck();
+    }
+  };
+
   /**
    * Import an EQ or an impulse response the user already has.
    *
@@ -1682,6 +1771,21 @@ const AppContent = () => {
     }
     handleToggleMaximizeWindow().catch(() => undefined);
   };
+
+  // No engine chosen yet. Its own name because it is answered by a dialog
+  // rather than by the red banner every other blocking failure raises.
+  const isEngineUnchosen =
+    isBlockingError && globalError?.code === ErrorCode.AUDIO_ENGINE_NOT_CHOSEN;
+
+  // Undefined until main answers, and while no engine has been chosen — the
+  // menu heading falls back to naming what the column does rather than
+  // guessing at an engine.
+  let engineName;
+  if (engineStatus?.engine === 'fluid') {
+    engineName = t('engine.fluid.name');
+  } else if (engineStatus?.engine === 'apo') {
+    engineName = t('engine.apo.name');
+  }
 
   let connectionStatus = t('app.status.ready');
   if (isLoading) {
@@ -1935,31 +2039,27 @@ const AppContent = () => {
                         </button>
                       </div>
 
+                      {/* The engine underneath, whichever one it is. The
+                          heading used to be the literal "Equalizer APO" over
+                          three Equalizer APO repairs; under the FluidEQ Engine
+                          all three are meaningless, and a menu offering them
+                          anyway reads as three broken items rather than as one
+                          engine not being in use. They live in the engine
+                          dialog now, which renders them only under APO. */}
                       <div className="workspace-header__menu-column">
                         <p className="workspace-header__menu-heading">
-                          Equalizer APO
+                          {engineName ?? t('app.actions.title')}
                         </p>
                         <button
                           type="button"
                           role="menuitem"
                           onClick={() => {
                             setShowAudioToolsMenu(false);
-                            handleConfigureEqualizerApo();
+                            handleOpenEngineDialog();
                           }}
                         >
                           <MenuIcon name="configure" />
-                          {t('app.menu.reconfigure')}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleOpenEqualizerApoSettings();
-                          }}
-                        >
-                          <MenuIcon name="settings" />
-                          {t('app.menu.apoSettings')}
+                          {t('app.menu.audioEngine')}
                         </button>
 
                         <hr className="workspace-header__menu-rule" />
@@ -1967,8 +2067,8 @@ const AppContent = () => {
                         {/* First, above the individual repairs, because it is
                             the one to open when you do not already know which
                             of them you need — which is everybody whose audio
-                            has just stopped. The three below are the same
-                            actions, for anyone who does know. */}
+                            has just stopped. The one below is the same action,
+                            for anyone who does know. */}
                         <button
                           type="button"
                           role="menuitem"
@@ -1981,11 +2081,6 @@ const AppContent = () => {
                           {t('app.menu.fixAudio')}
                         </button>
 
-                        {/* Repairing, rather than configuring. APO can be
-                            installed and still not working — a Windows update
-                            can detach it from an endpoint. Reconfigure covers
-                            a device that was never ticked; this covers one it
-                            has lost. */}
                         <button
                           type="button"
                           role="menuitem"
@@ -1996,17 +2091,6 @@ const AppContent = () => {
                         >
                           <MenuIcon name="restart" />
                           {t('app.menu.restartAudio')}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleReinstallApo();
-                          }}
-                        >
-                          <MenuIcon name="settings" />
-                          {t('app.menu.reinstallApo')}
                         </button>
                       </div>
                     </div>
@@ -2310,6 +2394,7 @@ const AppContent = () => {
                     onChange={applyDspSettings}
                     onCommit={persistDspSettings}
                     engineState={dspEngineState}
+                    onOpenEngineDialog={handleOpenEngineDialog}
                   />
                 </div>
               </div>
@@ -2524,11 +2609,15 @@ const AppContent = () => {
               renamePreset={renamePreset}
               deletePreset={deletePreset}
             />
-            <DeviceProfiles onConfigureApo={handleConfigureEqualizerApo} />
+            <DeviceProfiles
+              engine={engineStatus?.engine ?? null}
+              onConfigureApo={handleConfigureEqualizerApo}
+              onAttachFluidEngine={handleAttachFluidEngine}
+            />
             {/* Directly under the output picker: it is the same question asked
                 twice over — that one chooses where the sound goes, this one
                 adds a second somewhere. */}
-            <ExtraOutputs />
+            <ExtraOutputs engine={engineStatus?.engine ?? null} />
             {/* Sits with the output device because it answers the same question:
                 what is this sound coming out of. */}
             <DriverPicker />
@@ -2565,19 +2654,52 @@ const AppContent = () => {
             piece of chrome that the mode exists to get rid of. */}
         {showTroubleshooter && (
           <AudioTroubleshooter
+            engine={engineStatus?.engine ?? null}
             onClose={() => setShowTroubleshooter(false)}
             onRestartAudio={handleRestartWindowsAudio}
             onReconfigure={handleConfigureEqualizerApo}
             onReinstallApo={handleReinstallApo}
+            onEnableEngine={handleInstallFluidEngine}
+            enableEngineLabel={t('output.enable')}
           />
         )}
-        {globalError && isBlockingError && (
-          <PrereqMissingModal
-            key={prereqNonce}
-            isLoading={isLoading}
-            onRetry={performHealthCheck}
-            errorMsg={globalError.shortError}
-            actionMsg={globalError.action}
+        {/* No engine chosen at all is a question, not a fault: the same dialog
+            the menu opens, without a way out of it, because there is nothing
+            behind it that works until it is answered. `engineStatus` is
+            undefined only while main's first answer is in flight, and the
+            loading screen covers that. */}
+        {isEngineUnchosen
+          ? engineStatus && (
+              <AudioEngineDialog
+                status={engineStatus}
+                onApply={handleApplyAudioEngine}
+              />
+            )
+          : globalError &&
+            isBlockingError && (
+              <PrereqMissingModal
+                key={prereqNonce}
+                engine={
+                  globalError.code === ErrorCode.FLUID_ENGINE_NOT_INSTALLED
+                    ? 'fluid'
+                    : 'apo'
+                }
+                isLoading={isLoading}
+                onRetry={performHealthCheck}
+                onInstallFluid={handleInstallFluidEngine}
+                errorMsg={globalError.shortError}
+                actionMsg={globalError.action}
+              />
+            )}
+        {/* Never beside the blocking copy of itself: two identical dialogs
+            stacked, one of which cannot be closed, is the worst possible way
+            to ask a question once. */}
+        {showEngineDialog && !isEngineUnchosen && engineStatus && (
+          <AudioEngineDialog
+            status={engineStatus}
+            onApply={handleApplyAudioEngine}
+            onCancel={() => setShowEngineDialog(false)}
+            onApoAction={handleApoAction}
           />
         )}
         {globalError && !isBlockingError && (

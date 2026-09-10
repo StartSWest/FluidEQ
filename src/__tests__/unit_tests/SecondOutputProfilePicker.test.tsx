@@ -31,6 +31,7 @@ it('shows this output’s saved profile and changes only this output', async () 
   render(
     <SecondOutputProfilePicker
       device={device}
+      engine="apo"
       presetName="Warm"
       onChanged={changed}
     />,
@@ -60,6 +61,7 @@ it('keeps an unassigned output neutral instead of claiming the first saved profi
   render(
     <SecondOutputProfilePicker
       device={device}
+      engine="apo"
       presetName=""
       onChanged={jest.fn()}
     />,

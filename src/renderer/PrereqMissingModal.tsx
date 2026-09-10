@@ -19,23 +19,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useState } from 'react';
 import { BUNDLED_ENGINE, PRODUCT_NAME } from 'common/branding';
+import type { TAudioEngine } from 'common/audioEngine';
 import Button from './widgets/Button';
+import { useTranslation } from './utils/I18nContext';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 import './styles/Modal.scss';
 
 interface IPrereqMissingModalProps {
+  /**
+   * Which engine the app is trying to use, and therefore which one is
+   * missing. Equalizer APO being absent is not a fault at all under
+   * `'fluid'` — nothing here may offer to install it in that case, or the
+   * repair for one engine is handed to somebody running the other.
+   */
+  engine: TAudioEngine;
   isLoading: boolean;
   errorMsg: string;
   actionMsg: string;
   onRetry: () => void;
+  onInstallFluid: () => Promise<void>;
 }
 
 export default function PrereqMissingModal({
+  engine,
   isLoading,
   errorMsg,
   actionMsg,
   onRetry,
+  onInstallFluid,
 }: IPrereqMissingModalProps) {
+  const { t } = useTranslation();
   const [isDismissed, setIsDismissed] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string>();
@@ -44,22 +57,26 @@ export default function PrereqMissingModal({
 
   // Opens the copy that shipped inside FluidEQ's own installer. It is already
   // on disk; there is nothing to download and nowhere to go.
-  const handleInstall = async () => {
+  const handleInstallApo = async () => {
     setIsStarting(true);
     setStartError(undefined);
     // Which failure it was, and the download page already opening if it is the
-    // one that warrants it. Shared with the Reinstall menu item, which had its
-    // own half of this rule and was missing the half that matters.
+    // one that warrants it. Shared with the Reinstall action in the engine
+    // dialog, which had its own half of this rule and was missing the half
+    // that matters.
     const outcome = await startEqualizerApoInstall();
     if (outcome === 'bundle-missing') {
-      setStartError(
-        'This build is missing its copy of Equalizer APO. Opening the official project instead.',
-      );
+      setStartError(t('prereq.bundleMissing'));
     } else if (outcome === 'not-started') {
-      setStartError(
-        'Equalizer APO did not start — administrator permission is needed. Try again and approve the Windows prompt.',
-      );
+      setStartError(t('prereq.notStarted'));
     }
+    setIsStarting(false);
+  };
+
+  const handleInstallFluid = async () => {
+    setIsStarting(true);
+    setStartError(undefined);
+    await onInstallFluid();
     setIsStarting(false);
   };
 
@@ -67,42 +84,60 @@ export default function PrereqMissingModal({
     return null;
   }
 
+  const isApo = engine === 'apo';
+  const installLabel = isApo
+    ? t('prereq.install.apo')
+    : t('prereq.install.fluid');
+
   return (
     <aside className="prereq-notice" role="alert">
       <div className="prereq-notice__copy">
-        <h2>Equalizer APO needs attention</h2>
+        <h2>{isApo ? t('prereq.title.apo') : t('prereq.title.fluid')}</h2>
         <p>
           {errorMsg} {actionMsg}
         </p>
-        <p className="dependency-credit">
-          {startError ??
-            `Equalizer APO is included with ${PRODUCT_NAME} — nothing will be downloaded. Its setup will ask which audio devices to equalise, and for a restart afterwards. Separate GPLv2 project by ${BUNDLED_ENGINE.author}, bundled unchanged.`}
-        </p>
+        {/* The credit is Equalizer APO's licence obligation and its
+            explanation of what its setup will ask for. Under the FluidEQ
+            Engine neither applies, so only the failure that did happen is
+            shown. */}
+        {(startError || isApo) && (
+          <p className="dependency-credit">
+            {startError ??
+              t('prereq.credit.apo', {
+                product: PRODUCT_NAME,
+                author: BUNDLED_ENGINE.author,
+              })}
+          </p>
+        )}
       </div>
       <div className="prereq-notice__actions">
+        {/* Loud, and the only loud one here: installing the missing piece is
+            the way out of this notice. Retry and Dismiss used to wear the same
+            filled accent, which made three equal-looking buttons out of one
+            recommendation and two ways of putting it off. */}
         <Button
-          ariaLabel="Run the bundled Equalizer APO installer"
+          ariaLabel={installLabel}
           isDisabled={isLoading || isStarting}
           className="default"
-          handleChange={handleInstall}
+          handleChange={isApo ? handleInstallApo : handleInstallFluid}
         >
-          {isStarting ? 'Starting…' : 'Install APO'}
+          {isStarting ? t('prereq.starting') : installLabel}
         </Button>
         <Button
-          ariaLabel="Retry after installation"
+          ariaLabel={t('prereq.retry')}
           isDisabled={isLoading}
-          className="default"
+          className="default subtle"
           handleChange={onRetry}
         >
-          Retry
+          {t('prereq.retry')}
         </Button>
         <Button
-          ariaLabel="Dismiss Equalizer APO warning"
+          ariaLabel={t('prereq.dismiss')}
           isDisabled={false}
-          className="default"
+          className="default subtle"
           handleChange={() => setIsDismissed(true)}
         >
-          Dismiss
+          {t('prereq.dismiss')}
         </Button>
       </div>
     </aside>
