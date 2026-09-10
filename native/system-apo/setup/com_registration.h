@@ -18,10 +18,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <string>
 
-namespace fluideq_engine::setup {
+#include "com_paths.h"
 
-/** `{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}` — the effect's class id. */
-extern const wchar_t kEngineClsid[];
+namespace fluideq_engine::setup {
 
 /** What the class id is called wherever Windows shows it to a person. */
 extern const wchar_t kEngineFriendlyName[];
@@ -44,6 +43,16 @@ bool enable_unsigned_effects(std::wstring& error);
 
 /** The DLL path the COM registration names, or empty when not registered. */
 std::wstring registered_dll_path();
+
+/**
+ * Whether the `AudioProcessingObjects` record exists.
+ *
+ * Part of what "installed" means, not a detail of it: a class registration
+ * with a DLL on disk and no record is an effect audiodg.exe will never
+ * create, and a status that called that installed left the app with nothing
+ * to offer — the engine was "on", attached everywhere, and silent.
+ */
+bool apo_record_present();
 
 }  // namespace fluideq_engine::setup
 

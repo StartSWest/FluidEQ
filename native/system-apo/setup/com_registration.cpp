@@ -10,39 +10,60 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
+#include "com_paths.h"
 #include "fs.h"
 #include "multi_sz.h"
 #include "reg_key.h"
 
 namespace fluideq_engine::setup {
 
-const wchar_t kEngineClsid[] = L"{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}";
 const wchar_t kEngineFriendlyName[] = L"FluidEQ Engine";
 
 namespace {
 
 const wchar_t kAudioPath[] =
     L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Audio";
-const wchar_t kApoPath[] =
-    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Audio"
-    L"\\AudioProcessingObjects";
-// HKEY_CLASSES_ROOT is a merged view of this key and the per-user one. A
-// machine-wide registration has to be written to the machine-wide half by
-// name: writing through the merged view lands wherever it happens to resolve.
-const wchar_t kClassesPath[] = L"SOFTWARE\\Classes\\CLSID";
 
 /** `IID_IAudioProcessingObject` — the one interface the effect advertises. */
 const wchar_t kApoInterface[] = L"{FD7F2B29-24D0-4B5C-B177-592C39F9CA10}";
 
-std::wstring clsid_path() {
-  return std::wstring(kClassesPath) + L"\\" + kEngineClsid;
-}
+std::wstring clsid_path() { return clsid_registration_path(); }
 
-std::wstring apo_path() { return std::wstring(kApoPath) + L"\\" + kEngineClsid; }
+std::wstring apo_path() { return apo_registration_path(); }
+
+/** The whole tree at `path` gone, or never there; anything else is an error. */
+bool delete_tree(const std::wstring& path, std::wstring& error) {
+  RegKey parent;
+  const std::wstring above = path.substr(0, path.find_last_of(L'\\'));
+  const LSTATUS opened =
+      RegOpenKeyExW(HKEY_LOCAL_MACHINE, above.c_str(), 0,
+                    KEY_READ | KEY_WRITE | KEY_WOW64_64KEY, parent.receive());
+  if (opened == ERROR_FILE_NOT_FOUND) {
+    return true;
+  }
+  if (opened != ERROR_SUCCESS) {
+    error = L"could not open " + above + L": " +
+            describe_error(static_cast<unsigned long>(opened));
+    return false;
+  }
+  const LSTATUS deleted = RegDeleteTreeW(parent.get(), kEngineClsid);
+  if (deleted != ERROR_SUCCESS && deleted != ERROR_FILE_NOT_FOUND) {
+    error = L"could not remove " + path + L": " +
+            describe_error(static_cast<unsigned long>(deleted));
+    return false;
+  }
+  return true;
+}
 
 }  // namespace
 
 bool register_engine(const std::wstring& dll_path, std::wstring& error) {
+  // A machine that ran a build from before the record moved has it under the
+  // Audio policy key, where it does nothing but mislead the next person who
+  // looks. Taken out first so an install always ends with exactly two keys.
+  if (!delete_tree(misplaced_apo_record_path(), error)) {
+    return false;
+  }
   {
     RegKey clsid;
     LSTATUS status = create_write(clsid_path(), clsid);
@@ -114,30 +135,19 @@ bool register_engine(const std::wstring& dll_path, std::wstring& error) {
 }
 
 bool unregister_engine(std::wstring& error) {
-  const std::wstring paths[] = {clsid_path(), apo_path()};
+  const std::wstring paths[] = {clsid_path(), apo_path(),
+                                misplaced_apo_record_path()};
   for (const std::wstring& path : paths) {
-    RegKey parent;
-    const std::wstring above = path.substr(0, path.find_last_of(L'\\'));
-    const LSTATUS opened =
-        RegOpenKeyExW(HKEY_LOCAL_MACHINE, above.c_str(), 0,
-                      KEY_READ | KEY_WRITE | KEY_WOW64_64KEY,
-                      parent.receive());
-    if (opened == ERROR_FILE_NOT_FOUND) {
-      continue;
-    }
-    if (opened != ERROR_SUCCESS) {
-      error = L"could not open " + above + L": " +
-              describe_error(static_cast<unsigned long>(opened));
-      return false;
-    }
-    const LSTATUS deleted = RegDeleteTreeW(parent.get(), kEngineClsid);
-    if (deleted != ERROR_SUCCESS && deleted != ERROR_FILE_NOT_FOUND) {
-      error = L"could not remove " + path + L": " +
-              describe_error(static_cast<unsigned long>(deleted));
+    if (!delete_tree(path, error)) {
       return false;
     }
   }
   return true;
+}
+
+bool apo_record_present() {
+  RegKey record;
+  return open_read(apo_path(), record) == ERROR_SUCCESS;
 }
 
 bool enable_unsigned_effects(std::wstring& error) {

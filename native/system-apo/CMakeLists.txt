@@ -114,8 +114,16 @@ add_test(NAME engine-dll-process
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
-  setup/attach_outcome.cpp)
+  setup/attach_outcome.cpp setup/com_paths.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+# The two registry paths the effect is found by. Pinned in a test because a
+# wrong one fails with no message anywhere: the install succeeds, the effect
+# is attached, and audiodg.exe skips it — which is what the first build did.
+add_executable(fluideq-engine-com-paths-test tests/com_paths_test.cpp)
+target_link_libraries(fluideq-engine-com-paths-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-com-paths COMMAND fluideq-engine-com-paths-test)
 
 add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-test

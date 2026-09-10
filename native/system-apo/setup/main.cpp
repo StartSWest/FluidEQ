@@ -72,6 +72,7 @@ using fluideq_engine::setup::borrow_caller_console;
 using fluideq_engine::setup::config_dir;
 using fluideq_engine::setup::ensure_engine_tree;
 using fluideq_engine::setup::installed_dll_path;
+using fluideq_engine::setup::apo_record_present;
 using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::is_elevated;
 using fluideq_engine::setup::is_valid_endpoint_guid;
@@ -205,7 +206,8 @@ int print_status() {
   }
 
   const std::wstring registered = registered_dll_path();
-  const bool installed = !registered.empty() && path_exists(registered);
+  const bool installed =
+      !registered.empty() && path_exists(registered) && apo_record_present();
   std::wstring out = L"{\"installed\":";
   out += installed ? L"true" : L"false";
   out += L",\"dllPath\":\"";
