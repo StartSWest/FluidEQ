@@ -6,9 +6,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import { DRIVER_PROFILES } from 'common/driver';
 import DriverPicker from '../../renderer/components/DriverPicker';
+import { DRIVER_CURVE_RANGE_DB } from '../../renderer/components/DriverCurve';
 import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import { setDriver } from '../../renderer/utils/equalizerApi';
+import {
+  getCombinedLineData,
+  getFilterLineData,
+} from '../../renderer/graph/utils';
+import { IChartLineDataPointsById } from '../../renderer/graph/ChartController';
 
 jest.mock('../../renderer/utils/equalizerApi', () => ({
   setDriver: jest.fn(),
@@ -107,6 +114,42 @@ it('serializes writes so a reply cannot acknowledge a later adjustment', async (
   await act(async () => {
     resolvers[1]();
   });
+});
+
+/**
+ * The plot's stated scale, against the catalogue it is drawn from.
+ *
+ * It used to be a 1.5 typed into the component and a "±1.5 dB" typed into ten
+ * dictionaries, and it outlived two retunings of the profiles: by the time
+ * anyone looked, the deepest curve in the app reached a third of the way up a
+ * box that claimed to be full at 1.5. Nothing failed, because a label and a
+ * constant that agree with each other and with nothing else look correct.
+ */
+it('states the scale it actually draws at', () => {
+  setup();
+  const deepest = DRIVER_PROFILES.reduce((widest, profile) => {
+    const lines: IChartLineDataPointsById = {};
+    profile.filters.forEach((filter, index) => {
+      lines[String(index)] = getFilterLineData({
+        id: String(index),
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
+    return getCombinedLineData(0, lines)
+      .filter((point) => point.x >= 20 && point.x <= 20000)
+      .reduce((peak, point) => Math.max(peak, Math.abs(point.y)), widest);
+  }, 0);
+
+  // The deepest profile has to reach the top of the box: within a tenth,
+  // which is the resolution the label is written to.
+  expect(DRIVER_CURVE_RANGE_DB).toBeGreaterThanOrEqual(deepest);
+  expect(DRIVER_CURVE_RANGE_DB).toBeLessThan(deepest + 0.1);
+  expect(
+    screen.getByText(`±${DRIVER_CURVE_RANGE_DB.toFixed(1)} dB`),
+  ).toBeTruthy();
 });
 
 it('reports failed writes and accepts the next adjustment', async () => {

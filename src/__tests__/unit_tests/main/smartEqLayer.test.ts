@@ -33,6 +33,7 @@ import {
   hasSmartEqLayer,
 } from 'common/smartEq';
 import { getChainPeakGain } from 'common/response';
+import { getDriverProfile } from 'common/driver';
 import { fetchPreset, savePreset, stateToString } from 'main/flush';
 import {
   deviceProfilesToFiles,
@@ -123,9 +124,15 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
     const state = fullyLoaded();
 
     const band = indexOfLine(state, 'Fc 100 Hz Gain 4 dB');
-    // 'music' voicing: a low shelf at 105 Hz. IEM driver profile: 3 kHz.
+    // 'music' voicing: a low shelf at 105 Hz. The driver frequency is read
+    // from the profile, not typed: this asserted a literal 3000 Hz and so
+    // failed the day the catalogue was retuned, over an ordering it still got
+    // right.
     const voicing = indexOfLine(state, 'ON LSC Fc 105 Hz');
-    const driver = indexOfLine(state, 'Fc 3000 Hz');
+    const driver = indexOfLine(
+      state,
+      `Fc ${getDriverProfile('balanced-armature-iem')?.filters[0].frequency} Hz`,
+    );
     const smart = indexOfLine(state, 'Fc 1000 Hz Gain 3 dB Q 1.4');
     const preamp = indexOfLine(state, 'Preamp:');
 

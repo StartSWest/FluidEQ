@@ -193,6 +193,7 @@ const eq: Partial<Dictionary> = {
     '如果声音过于前冲，可尝试宽缓地削减临场感。',
   'driver.filter.trebleSoftening':
     '轻微削减高频，适合尖锐的录音或佩戴后偏亮的声音。',
+  'driver.filter.edgeSoftening': '在刚性振膜使音符起音变硬的频段做轻微削减。',
   'driver.filter.vocalLift': '如果中频听起来靠后，可尝试轻微提升人声。',
   'driver.filter.bassTidying': '轻微削减中低频，减少掩盖人声的暖厚感。',
   'driver.filter.airLift': '仅在声音过于柔暗时，尝试少量增加空气感。',
@@ -212,7 +213,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': '不做补偿',
   'driver.none.hint': '仅使用你的频段和声音风格',
   'driver.strength': '强度',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': '你的声音',
   'app.soundPanel': '声音面板',
   'profiles.title': '已命名的配置',

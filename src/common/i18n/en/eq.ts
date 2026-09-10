@@ -199,6 +199,8 @@ const eq = {
     'Broad, gentle presence trim for a sound that feels too forward.',
   'driver.filter.trebleSoftening':
     'A small treble trim for sharp recordings or a bright fit.',
+  'driver.filter.edgeSoftening':
+    'A gentle trim where a stiff diaphragm hardens note attacks.',
   'driver.filter.vocalLift':
     'A slight vocal lift to try when the midrange feels recessed.',
   'driver.filter.bassTidying':
@@ -221,7 +223,7 @@ const eq = {
   'driver.none': 'No compensation',
   'driver.none.hint': 'Your bands and voicing only',
   'driver.strength': 'Strength',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'YOUR SOUND',
   'app.soundPanel': 'Sound panel',
   'profiles.title': 'Named profiles',

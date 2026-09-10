@@ -202,6 +202,8 @@ const eq: Partial<Dictionary> = {
     'Une atténuation large et douce de la présence si le son paraît trop en avant.',
   'driver.filter.trebleSoftening':
     'Une légère atténuation des aigus pour les enregistrements agressifs ou une écoute brillante.',
+  'driver.filter.edgeSoftening':
+    'Une légère atténuation là où un diaphragme rigide durcit l’attaque des notes.',
   'driver.filter.vocalLift':
     'Un léger renfort vocal à essayer si les médiums semblent en retrait.',
   'driver.filter.bassTidying':
@@ -224,7 +226,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Sans compensation',
   'driver.none.hint': 'Vos bandes et le caractère seulement',
   'driver.strength': 'Intensité',
-  'driver.range': '±1,5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'VOTRE SON',
   'app.soundPanel': 'Panneau du son',
   'profiles.title': 'Profils enregistrés',

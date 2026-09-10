@@ -198,6 +198,8 @@ const eq: Partial<Dictionary> = {
     '音が前に出すぎると感じる場合に、プレゼンス帯域を広く穏やかに抑えます。',
   'driver.filter.trebleSoftening':
     '鋭い録音や、装着によって明るく感じる音の高域を少し抑えます。',
+  'driver.filter.edgeSoftening':
+    '硬い振動板が音の立ち上がりをきつくする帯域を、わずかに抑えます。',
   'driver.filter.vocalLift':
     '中域が引っ込んで聞こえる場合に試す、わずかなボーカルの持ち上げです。',
   'driver.filter.bassTidying':
@@ -220,7 +222,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': '補正なし',
   'driver.none.hint': '自分のバンドと音の傾向だけ',
   'driver.strength': '強さ',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'あなたの音',
   'app.soundPanel': 'サウンドパネル',
   'profiles.title': '保存したプロファイル',

@@ -203,6 +203,8 @@ const eq: Partial<Dictionary> = {
     'Recorte amplio y suave de presencia si el sonido resulta demasiado adelantado.',
   'driver.filter.trebleSoftening':
     'Un pequeño recorte de agudos para grabaciones incisivas o un ajuste brillante.',
+  'driver.filter.edgeSoftening':
+    'Un recorte suave donde un diafragma rígido endurece el ataque de las notas.',
   'driver.filter.vocalLift':
     'Un leve realce vocal para probar si los medios suenan retraídos.',
   'driver.filter.bassTidying':
@@ -225,7 +227,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Sin compensación',
   'driver.none.hint': 'Solo tus bandas y el carácter',
   'driver.strength': 'Intensidad',
-  'driver.range': '±1,5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'TU SONIDO',
   'app.soundPanel': 'Panel de sonido',
   'profiles.title': 'Perfiles guardados',

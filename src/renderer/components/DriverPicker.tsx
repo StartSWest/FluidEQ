@@ -26,7 +26,7 @@ import {
   scaleDriverFilters,
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
-import DriverCurve from './DriverCurve';
+import DriverCurve, { DRIVER_CURVE_RANGE_DB } from './DriverCurve';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
@@ -45,7 +45,7 @@ import '../styles/DriverPicker.scss';
 const DriverPicker = () => {
   const { isBlockingError, isEnabled, driver, setDriver, setGlobalError } =
     useFluidEqContext();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const activeId = driver?.profileId ?? '';
   const intensity = driver?.intensity ?? DEFAULT_DRIVER_INTENSITY;
@@ -178,9 +178,18 @@ const DriverPicker = () => {
               <span>1 kHz</span>
               <span>20 kHz</span>
             </div>
-            {/* Naming the scale keeps the zoom from overstating the effect. */}
+            {/* Naming the scale keeps the zoom from overstating the effect,
+                and it is read from the curve's own axis so the two cannot
+                drift apart the way a hardcoded ±1.5 dB did. Six of the ten
+                dictionaries spelled that number with a comma, so the figure
+                goes through the locale rather than into the string. */}
             <span className="driver-picker__range" aria-hidden="true">
-              {t('driver.range')}
+              {t('driver.range', {
+                db: DRIVER_CURVE_RANGE_DB.toLocaleString(locale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }),
+              })}
             </span>
           </div>
 

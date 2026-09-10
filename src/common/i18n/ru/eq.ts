@@ -201,6 +201,8 @@ const eq: Partial<Dictionary> = {
     'Широкое и мягкое ослабление присутствия, если звук слишком напористый.',
   'driver.filter.trebleSoftening':
     'Небольшое ослабление высоких частот для резких записей или яркого звучания из-за посадки.',
+  'driver.filter.edgeSoftening':
+    'Мягкое ослабление там, где жёсткая мембрана делает атаку нот резкой.',
   'driver.filter.vocalLift':
     'Лёгкий подъём вокала, если средние частоты кажутся отодвинутыми.',
   'driver.filter.bassTidying':
@@ -223,7 +225,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Без коррекции',
   'driver.none.hint': 'Только ваши полосы и характер',
   'driver.strength': 'Сила',
-  'driver.range': '±1,5 дБ',
+  'driver.range': '±{db} дБ',
   'profiles.eyebrow': 'ВАШ ЗВУК',
   'app.soundPanel': 'Панель звука',
   'profiles.title': 'Сохранённые профили',

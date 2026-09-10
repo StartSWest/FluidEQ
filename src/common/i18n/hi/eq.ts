@@ -200,6 +200,8 @@ const eq: Partial<Dictionary> = {
     'आवाज़ बहुत आगे महसूस हो तो प्रेज़ेन्स क्षेत्र में चौड़ी, हल्की कटौती।',
   'driver.filter.trebleSoftening':
     'तीखी रिकॉर्डिंग या पहनने पर उजली लगने वाली आवाज़ के लिए ट्रेबल में थोड़ी कटौती।',
+  'driver.filter.edgeSoftening':
+    'जहाँ कठोर डायाफ्राम नोट की शुरुआत को कठोर बनाता है, वहाँ हल्की कटौती।',
   'driver.filter.vocalLift':
     'मिडरेंज पीछे सुनाई दे तो आज़माने के लिए स्वर में हल्की बढ़ोतरी।',
   'driver.filter.bassTidying':
@@ -222,7 +224,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'कोई सुधार नहीं',
   'driver.none.hint': 'सिर्फ़ आपके बैंड और ध्वनि रंग',
   'driver.strength': 'मात्रा',
-  'driver.range': '±1.5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'आपकी आवाज़',
   'app.soundPanel': 'साउंड पैनल',
   'profiles.title': 'सहेजी गई प्रोफ़ाइलें',

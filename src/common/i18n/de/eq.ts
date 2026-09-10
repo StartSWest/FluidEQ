@@ -202,6 +202,8 @@ const eq: Partial<Dictionary> = {
     'Eine breite, sanfte Präsenzabsenkung, wenn der Klang zu aufdringlich wirkt.',
   'driver.filter.trebleSoftening':
     'Eine kleine Höhenabsenkung für scharfe Aufnahmen oder einen hellen Klang durch den Sitz.',
+  'driver.filter.edgeSoftening':
+    'Eine sanfte Absenkung dort, wo eine steife Membran den Anschlag hart macht.',
   'driver.filter.vocalLift':
     'Eine leichte Stimmverstärkung zum Ausprobieren bei zurückhaltenden Mitten.',
   'driver.filter.bassTidying':
@@ -224,7 +226,7 @@ const eq: Partial<Dictionary> = {
   'driver.none': 'Keine Korrektur',
   'driver.none.hint': 'Nur Ihre Bänder und der Klangcharakter',
   'driver.strength': 'Stärke',
-  'driver.range': '±1,5 dB',
+  'driver.range': '±{db} dB',
   'profiles.eyebrow': 'IHR KLANG',
   'app.soundPanel': 'Sound-Panel',
   'profiles.title': 'Gespeicherte Profile',
