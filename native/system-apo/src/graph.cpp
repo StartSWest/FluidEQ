@@ -435,7 +435,8 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
 }
 
 void Graph::inherit_state(const Graph& previous) noexcept {
-  if (!has_same_band_layout(previous) || channels_ != previous.channels_) {
+  if (!has_same_band_layout(previous) || channels_ != previous.channels_ ||
+      sample_rate_ != previous.sample_rate_) {
     return;
   }
   // Element-wise rather than assigning the vector: this runs on the handover

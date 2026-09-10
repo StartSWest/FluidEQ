@@ -73,18 +73,25 @@ struct ConnectionFormat {
  */
 ConnectionFormat describe_format(const WAVEFORMATEX* format);
 
+// Effects discovery and processing are separate host operations. Offering
+// IAudioSystemEffects3 supports discovery; it does not prove that Windows
+// has initialized or connected this object to a processing graph.
 class Apo final : public IAudioProcessingObject,
                   public IAudioProcessingObjectRT,
                   public IAudioProcessingObjectConfiguration,
-                  public IAudioSystemEffects2 {
+                  public IAudioSystemEffects3 {
  public:
-  Apo();
+  explicit Apo(IUnknown* outer = nullptr);
   ~Apo();
 
   Apo(const Apo&) = delete;
   Apo& operator=(const Apo&) = delete;
 
-  // IUnknown, shared by all four interfaces.
+  // The factory and an aggregating host own this non-delegating identity.
+  IUnknown* inner_unknown() noexcept;
+
+  // Every public interface delegates identity and lifetime to the host when
+  // aggregated, or to our inner identity when created on its own.
   STDMETHODIMP QueryInterface(REFIID riid, void** object) override;
   STDMETHODIMP_(ULONG) AddRef() override;
   STDMETHODIMP_(ULONG) Release() override;
@@ -121,8 +128,29 @@ class Apo final : public IAudioProcessingObject,
   STDMETHODIMP GetEffectsList(LPGUID* effects, UINT* count,
                               HANDLE event) override;
 
+  // IAudioSystemEffects3: the same one effect, reported as always on and
+  // not switchable from the Windows sound settings — the app is its switch.
+  STDMETHODIMP GetControllableSystemEffectsList(AUDIO_SYSTEMEFFECT** effects,
+                                                UINT* count,
+                                                HANDLE event) override;
+  STDMETHODIMP SetAudioSystemEffectState(GUID effect_id,
+                                         AUDIO_SYSTEMEFFECT_STATE state) override;
+
  private:
-  /** Reads the endpoint's guid and friendly name out of a device collection. */
+  class InnerUnknown final : public IUnknown {
+   public:
+    explicit InnerUnknown(Apo& owner) : owner_(owner) {}
+    STDMETHODIMP QueryInterface(REFIID riid, void** object) override;
+    STDMETHODIMP_(ULONG) AddRef() override;
+    STDMETHODIMP_(ULONG) Release() override;
+
+   private:
+    Apo& owner_;
+  };
+
+  HRESULT query_inner(REFIID riid, void** object);
+  /** Prefer the endpoint store; the device collection contains KS topology. */
+  void read_endpoint_properties(IPropertyStore* properties);
   void read_endpoint(IMMDeviceCollection* collection, UINT index);
   /**
    * Whether this instance was created for ordinary playback.
@@ -138,9 +166,13 @@ class Apo final : public IAudioProcessingObject,
   void release_locked_state() noexcept;
 
   std::atomic<ULONG> references_{1};
+  InnerUnknown inner_{*this};
+  // Borrowed, never AddRef'd: the outer owns the inner. Holding a reference
+  // back to it would make the audio graph impossible to release.
+  IUnknown* controlling_unknown_;
 
   // Set once by `Initialize`, read by `LockForProcess`. Empty when Windows
-  // gave this instance no device collection to look in, which the resolver
+  // gave this instance no usable endpoint properties, which the resolver
   // reads as "only configuration blocks with no `Device:` guard apply".
   Endpoint endpoint_;
   // All-zero until an init structure that carries one arrives, which is what

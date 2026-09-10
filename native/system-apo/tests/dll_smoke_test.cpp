@@ -48,14 +48,54 @@ using fluideq_engine_test::unload_engine;
 namespace {
 
 /**
- * A structure from an SDK newer than this one: version 3's layout with
- * unknown fields appended, which is how every previous version of this
- * structure grew.
+ * Unknown layouts must be refused; a known layout in a larger allocation
+ * remains valid when cbSize still identifies the known structure.
  */
 struct FutureInit {
   APOInitSystemEffects3 known;
   BYTE appended[64];
 };
+
+void check_format_pairs(IAudioProcessingObject* apo, IAudioMediaType* requested,
+                        IAudioMediaType* pcm) {
+  // Optional output pointers are useful for probing without allocating a
+  // suggestion. Unsupported opposite formats cannot be repaired on this side.
+  CHECK(apo->IsInputFormatSupported(nullptr, requested, nullptr) == S_OK);
+  CHECK(apo->IsOutputFormatSupported(nullptr, pcm, nullptr) == S_FALSE);
+  IAudioMediaType* supported = requested;
+  CHECK(apo->IsInputFormatSupported(pcm, requested, &supported) ==
+        APOERR_FORMAT_NOT_SUPPORTED);
+  CHECK(supported == requested);
+  CHECK(apo->IsInputFormatSupported(nullptr, nullptr, &supported) == E_POINTER);
+  CHECK(supported == requested);
+
+  for (WORD channels : {WORD(1), WORD(6), WORD(8)}) {
+    for (DWORD rate : {DWORD(44100), DWORD(48000), DWORD(96000)}) {
+      const auto format = float_format(channels, rate);
+      IAudioMediaType* opposite = nullptr;
+      CHECK(CreateAudioMediaType(&format.Format, sizeof(format), &opposite) == S_OK);
+      if (opposite == nullptr) {
+        continue;
+      }
+      const ScopeGuard release([&] { opposite->Release(); });
+      for (bool input : {true, false}) {
+        supported = nullptr;
+        const HRESULT result = input
+            ? apo->IsInputFormatSupported(opposite, requested, &supported)
+            : apo->IsOutputFormatSupported(opposite, requested, &supported);
+        CHECK(result == S_FALSE);
+        CHECK(supported != nullptr);
+        if (supported != nullptr) {
+          const auto* actual = supported->GetAudioFormat();
+          CHECK(actual != nullptr && actual->nChannels == channels);
+          CHECK(actual != nullptr && actual->nSamplesPerSec == rate);
+          CHECK(is_float32(actual));
+          supported->Release();
+        }
+      }
+    }
+  }
+}
 
 void run(const wchar_t* dll_path, const std::wstring& root) {
   // Nothing here locks, so nothing here writes a log or reads a config; the
@@ -164,6 +204,26 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
                             reinterpret_cast<void**>(&effects)) == S_OK);
   CHECK(apo->QueryInterface(__uuidof(IAudioSystemEffects2),
                             reinterpret_cast<void**>(&effects2)) == S_OK);
+  // Windows 11's effects API reports the same effect through version 3.
+  IAudioSystemEffects3* effects3 = nullptr;
+  CHECK(apo->QueryInterface(__uuidof(IAudioSystemEffects3),
+                            reinterpret_cast<void**>(&effects3)) == S_OK);
+  if (effects3 != nullptr) {
+    AUDIO_SYSTEMEFFECT* controllable = nullptr;
+    UINT controllable_count = 0;
+    CHECK(effects3->GetControllableSystemEffectsList(
+              &controllable, &controllable_count, nullptr) == S_OK);
+    CHECK(controllable_count == 1);
+    if (controllable != nullptr && controllable_count == 1) {
+      CHECK(IsEqualGUID(controllable[0].id, kEffectId));
+      CHECK(controllable[0].canSetState == FALSE);
+      CHECK(controllable[0].state == AUDIO_SYSTEMEFFECT_STATE_ON);
+    }
+    CoTaskMemFree(controllable);
+    CHECK(effects3->SetAudioSystemEffectState(
+              kEffectId, AUDIO_SYSTEMEFFECT_STATE_OFF) == E_NOTIMPL);
+    effects3->Release();
+  }
   CHECK(apo->QueryInterface(__uuidof(IUnknown),
                             reinterpret_cast<void**>(&unknown)) == S_OK);
   IUnknown* absent = nullptr;
@@ -221,6 +281,8 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
     supported = nullptr;
   }
 
+  check_format_pairs(apo, float_type, pcm_type);
+
   // --- Initialize ---------------------------------------------------------
   APOInitSystemEffects init = {};
   init.APOInit.cbSize = sizeof(APOInitSystemEffects);
@@ -257,38 +319,35 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
   init3.APOInit.clsid = kEngineClsid;
   CHECK(initialize_fresh(sizeof(APOInitSystemEffects3), &init3) == S_OK);
 
-  // A structure from a later SDK degrades to the newest layout known here
-  // rather than being refused. Refusing it is not a harmless failure: the
-  // effect never loads, and every output on the machine plays unprocessed
-  // with nothing on screen to say why.
+  // An unknown size does not tell us where pointers live. In particular,
+  // v3 did not extend v2: it removed fields and rearranged the layout.
   FutureInit future = {};
   future.known.APOInit.cbSize = sizeof(FutureInit);
   future.known.APOInit.clsid = kEngineClsid;
+  CHECK(initialize_fresh(sizeof(FutureInit), &future) == E_INVALIDARG);
+  future.known.APOInit.cbSize = sizeof(APOInitSystemEffects3);
   CHECK(initialize_fresh(sizeof(FutureInit), &future) == S_OK);
 
   // A host with nothing to say about the endpoint is not an error.
   CHECK(initialize_fresh(0, nullptr) == S_OK);
+  CHECK(initialize_fresh(sizeof(init3), nullptr) == E_INVALIDARG);
+  CHECK(initialize_fresh(0, &init3) == E_INVALIDARG);
+  CHECK(initialize_fresh(sizeof(init3) - 1, &init3) == E_INVALIDARG);
 
-  // Too small to carry even the size field, and a size that matches no known
-  // version even after the byte-count retry below, are both refused rather
-  // than guessed at: guessing means dereferencing whatever sits where a
-  // pointer used to be. The buffer passed in is deliberately the same length
-  // as `cbSize` here, so the retry against the real byte count lands on the
-  // same unmatched value and still refuses.
+  // Neither a short buffer nor an unknown declared layout can be parsed.
   alignas(APOInitSystemEffects) BYTE stub[sizeof(APOInitSystemEffects)] = {};
   CHECK(initialize_fresh(4, stub) == E_INVALIDARG);
   auto* stub_base = reinterpret_cast<APOInitBaseStruct*>(stub);
   stub_base->cbSize = sizeof(APOInitBaseStruct);
   CHECK(initialize_fresh(sizeof(APOInitBaseStruct), stub) == E_INVALIDARG);
 
-  // A `cbSize` that names no known version does not refuse the payload when
-  // the byte count Windows actually passed matches one exactly: here the host
-  // miscomputed `cbSize` as 60 but handed over the full version 2 structure,
-  // and reading it is exactly as safe as if `cbSize` had been set correctly.
+  // The buffer's allocation size alone does not identify its contents.
   APOInitSystemEffects2 bad_cbsize = {};
   bad_cbsize.APOInit.cbSize = 60;
   bad_cbsize.APOInit.clsid = kEngineClsid;
-  CHECK(initialize_fresh(sizeof(APOInitSystemEffects2), &bad_cbsize) == S_OK);
+  CHECK(initialize_fresh(sizeof(APOInitSystemEffects2), &bad_cbsize) == E_INVALIDARG);
+  bad_cbsize.APOInit.cbSize = 0;
+  CHECK(initialize_fresh(sizeof(APOInitSystemEffects2), &bad_cbsize) == E_INVALIDARG);
 }
 
 }  // namespace

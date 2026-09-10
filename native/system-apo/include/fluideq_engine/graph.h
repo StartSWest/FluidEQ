@@ -85,16 +85,27 @@ class Graph {
   /**
    * Copy `previous`'s biquad histories into this graph.
    *
-   * Only when the two agree on band layout and channel count; anything else
+   * Only when band layout, channel count and sample rate agree; anything else
    * would feed a filter the tail of a differently shaped one, which rings.
    * The convolvers are deliberately NOT carried: their history is a spectrum
    * partitioned against one specific kernel and means nothing to another.
    *
    * Neither is the DSP rack: its state lives behind an opaque handle with no
    * way to copy it. When the rack has not changed at all, `inherit_rack`
-   * takes the whole handle instead of copying anything out of it.
+   * takes the whole handle instead of copying anything out of it. Call only
+   * while both graphs' filter histories are idle, at an audio block boundary.
    */
   void inherit_state(const Graph& previous) noexcept;
+
+  /** Watcher thread, before publication. Reset graphs leave this disabled. */
+  void request_state_transfer() noexcept { transfer_state_ = true; }
+
+  /** Audio thread, between blocks, while the previous histories are idle. */
+  void adopt_state(const Graph* previous) noexcept {
+    if (transfer_state_ && previous != nullptr) {
+      inherit_state(*previous);
+    }
+  }
 
   /**
    * Keep running `previous`'s rack instead of this graph's own.
@@ -184,6 +195,7 @@ class Graph {
   const std::vector<std::string>& warnings() const noexcept;
 
  private:
+  bool transfer_state_ = false;
   uint32_t sample_rate_;
   uint32_t channels_;
   uint32_t max_frames_;

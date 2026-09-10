@@ -47,9 +47,9 @@ namespace fluideq_engine {
 class GraphSlot {
  public:
   /**
-   * Audio thread, at the start of a block. Real-time safe: one exchange, at
-   * most one store, one load, no allocation and no branch into the operating
-   * system.
+   * Audio thread, at the start of a block. Copies biquad histories into
+   * preallocated storage here, when the previous graph is no longer being
+   * processed. No allocation, destruction, lock or operating system call.
    *
    * THE INVARIANT: a graph is taken OUT of `pending_` by the exchange before
    * it is published into `active_`, so exactly one thread ever holds a graph
@@ -64,6 +64,7 @@ class GraphSlot {
   Graph* adopt() noexcept {
     Graph* next = pending_.exchange(nullptr, std::memory_order_acq_rel);
     if (next != nullptr) {
+      next->adopt_state(active_.load(std::memory_order_relaxed));
       active_.store(next, std::memory_order_release);
     }
     return active_.load(std::memory_order_relaxed);

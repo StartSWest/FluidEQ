@@ -81,134 +81,9 @@ constexpr GUID kDefaultProcessingMode = {
 
 constexpr GUID kNoProcessingMode = {};
 
-/**
- * Three holders so nothing leaks when a `std::wstring` throws.
- *
- * Everything `read_endpoint` touches is either a COM reference, a
- * CoTaskMem allocation or a PROPVARIANT, and the only throwing expression
- * anywhere near them is building the strings out of what they hold. A
- * `bad_alloc` on the way past a hand-written release leaks an `IMMDevice`,
- * an `IPropertyStore` and a device-name string inside audiodg.exe, once per
- * endpoint that ever initialises while the machine is short of memory.
- */
-template <typename Interface>
-class ComPtr {
- public:
-  ComPtr() = default;
-  ~ComPtr() {
-    if (pointer_ != nullptr) {
-      pointer_->Release();
-    }
-  }
-  ComPtr(const ComPtr&) = delete;
-  ComPtr& operator=(const ComPtr&) = delete;
-
-  Interface** receive() noexcept { return &pointer_; }
-  Interface* get() const noexcept { return pointer_; }
-
- private:
-  Interface* pointer_ = nullptr;
-};
-
-class CoTaskString {
- public:
-  CoTaskString() = default;
-  ~CoTaskString() { CoTaskMemFree(text_); }
-  CoTaskString(const CoTaskString&) = delete;
-  CoTaskString& operator=(const CoTaskString&) = delete;
-
-  LPWSTR* receive() noexcept { return &text_; }
-  const wchar_t* get() const noexcept { return text_; }
-
- private:
-  LPWSTR text_ = nullptr;
-};
-
-class PropVariant {
- public:
-  PropVariant() { PropVariantInit(&value_); }
-  ~PropVariant() { PropVariantClear(&value_); }
-  PropVariant(const PropVariant&) = delete;
-  PropVariant& operator=(const PropVariant&) = delete;
-
-  PROPVARIANT* receive() noexcept { return &value_; }
-  const PROPVARIANT& get() const noexcept { return value_; }
-
- private:
-  PROPVARIANT value_;
-};
-
-/**
- * The endpoint guid out of an `IMMDevice` id.
- *
- * The id is `{0.0.0.00000000}.{guid}`; the config files name the second
- * brace group alone, upper-cased, which is the form Equalizer APO's own
- * Device Selector writes into a `Device:` line.
- */
-std::wstring guid_from_device_id(const wchar_t* id) {
-  if (id == nullptr) {
-    return std::wstring();
-  }
-  const std::wstring text(id);
-  const size_t open = text.find_last_of(L'{');
-  if (open == std::wstring::npos || text.back() != L'}') {
-    return std::wstring();
-  }
-  std::wstring guid = text.substr(open);
-  for (wchar_t& letter : guid) {
-    if (letter >= L'a' && letter <= L'z') {
-      letter = static_cast<wchar_t>(letter - L'a' + L'A');
-    }
-  }
-  return guid;
-}
-
 }  // namespace
 
 // ---------------------------------------------------------------------------
-
-Apo::Apo() { g_object_count.fetch_add(1, std::memory_order_relaxed); }
-
-Apo::~Apo() {
-  release_locked_state();
-  g_object_count.fetch_sub(1, std::memory_order_relaxed);
-}
-
-STDMETHODIMP Apo::QueryInterface(REFIID riid, void** object) {
-  if (object == nullptr) {
-    return E_POINTER;
-  }
-  *object = nullptr;
-  if (IsEqualIID(riid, __uuidof(IUnknown)) ||
-      IsEqualIID(riid, __uuidof(IAudioProcessingObject))) {
-    *object = static_cast<IAudioProcessingObject*>(this);
-  } else if (IsEqualIID(riid, __uuidof(IAudioProcessingObjectRT))) {
-    *object = static_cast<IAudioProcessingObjectRT*>(this);
-  } else if (IsEqualIID(riid,
-                        __uuidof(IAudioProcessingObjectConfiguration))) {
-    *object = static_cast<IAudioProcessingObjectConfiguration*>(this);
-  } else if (IsEqualIID(riid, __uuidof(IAudioSystemEffects))) {
-    *object = static_cast<IAudioSystemEffects*>(this);
-  } else if (IsEqualIID(riid, __uuidof(IAudioSystemEffects2))) {
-    *object = static_cast<IAudioSystemEffects2*>(this);
-  } else {
-    return E_NOINTERFACE;
-  }
-  AddRef();
-  return S_OK;
-}
-
-STDMETHODIMP_(ULONG) Apo::AddRef() {
-  return references_.fetch_add(1, std::memory_order_relaxed) + 1;
-}
-
-STDMETHODIMP_(ULONG) Apo::Release() {
-  const ULONG left = references_.fetch_sub(1, std::memory_order_acq_rel) - 1;
-  if (left == 0) {
-    delete this;
-  }
-  return left;
-}
 
 STDMETHODIMP Apo::Reset() {
   // Plenty survives a reset. The graph is built once per lock and kept across
@@ -256,6 +131,7 @@ STDMETHODIMP Apo::GetLatency(HNSTIME* time) {
 }
 
 STDMETHODIMP Apo::GetRegistrationProperties(APO_REG_PROPERTIES** properties) {
+  trace(endpoint_.guid, "registration properties asked for");
   if (properties == nullptr) {
     return E_POINTER;
   }
@@ -276,9 +152,8 @@ STDMETHODIMP Apo::GetRegistrationProperties(APO_REG_PROPERTIES** properties) {
 
   registration->clsid = kEngineClsid;
   // In place because the graph processes a buffer where it finds it, and all
-  // three MUST_MATCH flags because this effect neither resamples, remixes nor
-  // converts sample types: a format the two sides disagree about is one the
-  // audio engine has to reconcile before it reaches here.
+  // three format dimensions must match: this effect does not resample,
+  // remix channels or convert sample types. Keep the registry in agreement.
   registration->Flags = static_cast<APO_FLAG>(
       APO_FLAG_INPLACE | APO_FLAG_SAMPLESPERFRAME_MUST_MATCH |
       APO_FLAG_FRAMESPERSECOND_MUST_MATCH | APO_FLAG_BITSPERSAMPLE_MUST_MATCH);
@@ -299,46 +174,6 @@ STDMETHODIMP Apo::GetRegistrationProperties(APO_REG_PROPERTIES** properties) {
   return S_OK;
 }
 
-void Apo::read_endpoint(IMMDeviceCollection* collection, UINT index) {
-  if (collection == nullptr) {
-    return;
-  }
-  ComPtr<IMMDevice> device;
-  if (FAILED(collection->Item(index, device.receive())) ||
-      device.get() == nullptr) {
-    return;
-  }
-
-  // Built into locals first, and moved into the members only once every
-  // handle above has been released: a throw here leaves the endpoint
-  // unnamed, which is a pass-through, rather than half-named.
-  std::wstring guid;
-  {
-    CoTaskString id;
-    if (SUCCEEDED(device.get()->GetId(id.receive()))) {
-      guid = guid_from_device_id(id.get());
-    }
-  }
-
-  std::wstring name;
-  {
-    ComPtr<IPropertyStore> store;
-    if (SUCCEEDED(device.get()->OpenPropertyStore(STGM_READ,
-                                                  store.receive())) &&
-        store.get() != nullptr) {
-      PropVariant value;
-      if (SUCCEEDED(store.get()->GetValue(PKEY_Device_FriendlyName,
-                                          value.receive())) &&
-          value.get().vt == VT_LPWSTR && value.get().pwszVal != nullptr) {
-        name = value.get().pwszVal;
-      }
-    }
-  }
-
-  endpoint_.guid = std::move(guid);
-  endpoint_.friendly_name = std::move(name);
-}
-
 bool Apo::is_default_processing_mode() const {
   return IsEqualGUID(processing_mode_, kDefaultProcessingMode) != 0 ||
          IsEqualGUID(processing_mode_, kNoProcessingMode) != 0;
@@ -351,102 +186,61 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
   if (initialized_) {
     return APOERR_ALREADY_INITIALIZED;
   }
-  // A host with nothing to say about the endpoint is not an error: the
-  // resolver then applies only the configuration blocks that name no device,
-  // and the log says so.
-  if (size == 0 || data == nullptr) {
+  if (size == 0 && data == nullptr) {
     initialized_ = true;
     return S_OK;
   }
-  if (size < sizeof(APOInitBaseStruct)) {
+  if (data == nullptr || size < sizeof(APOInitBaseStruct)) {
     return E_INVALIDARG;
   }
 
-  // Which structure the host says it filled in, rather than how many bytes it
-  // happened to pass. `size` still caps it: reading past what was handed over
-  // is reading somebody else's stack, and a host that left `cbSize` at zero
-  // leaves `size` as the only number there is.
+  // cbSize identifies the layout; size bounds every access. The v3 layout
+  // is smaller than v2 and reordered fields, so a larger unknown structure
+  // cannot safely be interpreted as the newest one we know.
   const auto* base = reinterpret_cast<const APOInitBaseStruct*>(data);
-  UINT32 declared = base->cbSize;
-  trace(L"", "initialize: " + std::to_string(size) + " bytes handed over, " +
-                 "cbSize " + std::to_string(declared) + " (known layouts: " +
-                 std::to_string(sizeof(APOInitSystemEffects)) + ", " +
-                 std::to_string(sizeof(APOInitSystemEffects2)) + ", " +
-                 std::to_string(sizeof(APOInitSystemEffects3)) + ")");
-  if (declared == 0 || declared > size) {
-    declared = size;
+  const UINT32 declared = base->cbSize;
+  if (declared > size) {
+    return E_INVALIDARG;
   }
-
-  // The biggest layout this code knows, whichever version that happens to be:
-  // the versions are not ordered by size and a later SDK could reorder them
-  // again.
-  constexpr UINT32 kLargestKnown = static_cast<UINT32>(
-      sizeof(APOInitSystemEffects2) > sizeof(APOInitSystemEffects3)
-          ? sizeof(APOInitSystemEffects2)
-          : sizeof(APOInitSystemEffects3));
-
-  // Tries one candidate size against the cascade; returns whether it named a
-  // known layout. Anything larger than every known version is a later SDK
-  // extending the newest layout, and is read as that rather than refused:
-  // refusing means the effect never loads and every output on the machine
-  // plays unprocessed, with nothing on screen to say why. Anything else has
-  // to match a known size exactly — a size between two of them names a layout
-  // this code cannot know, and guessing would mean dereferencing whatever
-  // sits where a pointer used to be.
-  const auto read_as = [&](UINT32 candidate) -> bool {
-    if (candidate > kLargestKnown ||
-        candidate == sizeof(APOInitSystemEffects3)) {
+  try {
+    trace(L"", "initialize: " + std::to_string(size) +
+                   " bytes, declared layout " + std::to_string(declared));
+    if (declared == sizeof(APOInitSystemEffects3)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects3*>(data);
       processing_mode_ = init->AudioProcessingMode;
-      read_endpoint(init->pDeviceCollection,
-                    init->nSoftwareIoDeviceInCollection);
-      return true;
-    }
-    if (candidate == sizeof(APOInitSystemEffects2)) {
+      read_endpoint_properties(init->pAPOEndpointProperties);
+      read_endpoint(init->pDeviceCollection, init->nSoftwareIoDeviceInCollection);
+    } else if (declared == sizeof(APOInitSystemEffects2)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects2*>(data);
       processing_mode_ = init->AudioProcessingMode;
-      read_endpoint(init->pDeviceCollection,
-                    init->nSoftwareIoDeviceInCollection);
-      return true;
-    }
-    if (candidate == sizeof(APOInitSystemEffects)) {
+      read_endpoint_properties(init->pAPOEndpointProperties);
+      read_endpoint(init->pDeviceCollection, init->nSoftwareIoDeviceInCollection);
+    } else if (declared == sizeof(APOInitSystemEffects)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects*>(data);
-      // Version 1 has no index; the collection it carries holds the one
-      // endpoint this instance was created for.
+      read_endpoint_properties(init->pAPOEndpointProperties);
       read_endpoint(init->pDeviceCollection, 0);
-      return true;
-    }
-    return false;
-  };
-
-  try {
-    // `declared` first, and — only when it names nothing this code knows —
-    // retried against `size`, the byte count Windows actually handed over. A
-    // host can miscompute `cbSize` while still passing a buffer that is
-    // exactly one known layout's size, and refusing that payload is the same
-    // silent failure as refusing an oversized one: the effect never loads.
-    // Reading `size` bytes is always in bounds, because the check above
-    // already guarantees `size` bytes exist. `read_as` has no effect when it
-    // returns false, so calling it twice with the same value when `declared`
-    // already equals `size` costs nothing.
-    if (!read_as(declared) && !read_as(size)) {
-      trace(L"", "initialize refused: neither size names a layout this "
-                 "effect knows");
+    } else {
+      trace(L"", "initialize refused: unsupported structure layout");
       return E_INVALIDARG;
     }
-  } catch (...) {
-    // Only the two strings in `endpoint_` can throw here, and an endpoint we
-    // could not name is a pass-through, not a reason to refuse to load.
+    trace(endpoint_.guid,
+          "initialized for \"" + to_utf8(endpoint_.friendly_name) + "\"" +
+              (is_default_processing_mode() ? "" : ", not the default mode"));
+  } catch (const std::bad_alloc&) {
     endpoint_ = Endpoint();
+    return E_OUTOFMEMORY;
+  } catch (...) {
+    endpoint_ = Endpoint();
+    return E_FAIL;
   }
   initialized_ = true;
-  trace(endpoint_.guid,
-        "initialized for \"" + to_utf8(endpoint_.friendly_name) + "\"" +
-            (is_default_processing_mode() ? "" : ", not the default mode"));
   return S_OK;
 }
 
 STDMETHODIMP Apo::GetInputChannelCount(UINT32* channels) {
+  if (!locked_) {
+    trace(endpoint_.guid, "channel count asked for");
+  }
   if (channels == nullptr) {
     return E_POINTER;
   }
@@ -459,6 +253,9 @@ STDMETHODIMP Apo::GetEffectsList(LPGUID* effects, UINT* count, HANDLE event) {
   // effect's list is one fixed id for the life of the object, so there is
   // nothing to signal and nothing to keep the handle for.
   UNREFERENCED_PARAMETER(event);
+  if (!locked_) {
+    trace(endpoint_.guid, "effects list asked for");
+  }
   if (effects == nullptr || count == nullptr) {
     return E_POINTER;
   }
@@ -473,6 +270,41 @@ STDMETHODIMP Apo::GetEffectsList(LPGUID* effects, UINT* count, HANDLE event) {
   *effects = ids;
   *count = 1;
   return S_OK;
+}
+
+STDMETHODIMP Apo::GetControllableSystemEffectsList(
+    AUDIO_SYSTEMEFFECT** effects, UINT* count, HANDLE event) {
+  UNREFERENCED_PARAMETER(event);
+  if (!locked_) {
+    trace(endpoint_.guid, "controllable effects list asked for");
+  }
+  if (effects == nullptr || count == nullptr) {
+    return E_POINTER;
+  }
+  *effects = nullptr;
+  *count = 0;
+
+  auto* list =
+      static_cast<AUDIO_SYSTEMEFFECT*>(CoTaskMemAlloc(sizeof(AUDIO_SYSTEMEFFECT)));
+  if (list == nullptr) {
+    return E_OUTOFMEMORY;
+  }
+  list[0].id = kEffectId;
+  // Not switchable from Windows' own sound settings: the app is the switch,
+  // and a toggle there that this effect then ignored would be a lie.
+  list[0].canSetState = FALSE;
+  list[0].state = AUDIO_SYSTEMEFFECT_STATE_ON;
+  *effects = list;
+  *count = 1;
+  return S_OK;
+}
+
+STDMETHODIMP Apo::SetAudioSystemEffectState(GUID effect_id,
+                                            AUDIO_SYSTEMEFFECT_STATE state) {
+  UNREFERENCED_PARAMETER(state);
+  // Reported as not controllable, so a host that asks anyway is asking for
+  // something the list said it could not have.
+  return IsEqualGUID(effect_id, kEffectId) != 0 ? E_NOTIMPL : E_INVALIDARG;
 }
 
 STDMETHODIMP_(UINT32) Apo::CalcInputFrames(UINT32 output_frames) {

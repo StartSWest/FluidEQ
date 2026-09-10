@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import fs from 'fs';
+import { randomUUID } from 'crypto';
 import log from 'electron-log';
 
 /**
@@ -57,6 +58,28 @@ const observed = (promise: Promise<void>): Promise<void> => {
   return promise;
 };
 
+/** Publish a complete file. The native engine reads concurrently with saves;
+ * truncating the live file briefly turns a device's EQ into pass-through. */
+const writeAtomically = async (
+  filePath: string,
+  contents: string,
+): Promise<void> => {
+  const temporary = `${filePath}.${process.pid}-${randomUUID()}.tmp`;
+  const handle = await fs.promises.open(temporary, 'wx');
+  try {
+    try {
+      await fs.promises.writeFile(handle, contents, 'utf8');
+    } finally {
+      await handle.close();
+    }
+    // Same directory, so the replacement stays on the same filesystem.
+    // Readers with an open handle finish reading the previous complete file.
+    await fs.promises.rename(temporary, filePath);
+  } finally {
+    await fs.promises.rm(temporary, { force: true });
+  }
+};
+
 const drain = (filePath: string, entry: IPathState): void => {
   if (entry.inFlight || entry.pending === undefined) {
     return;
@@ -65,7 +88,7 @@ const drain = (filePath: string, entry: IPathState): void => {
   entry.pending = undefined;
   const landed = async () => {
     try {
-      await fs.promises.writeFile(filePath, contents, 'utf8');
+      await writeAtomically(filePath, contents);
       const stat = await fs.promises.stat(filePath);
       entry.disk = { mtimeMs: stat.mtimeMs, size: stat.size };
       entry.failure = undefined;

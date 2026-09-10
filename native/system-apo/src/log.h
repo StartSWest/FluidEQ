@@ -20,6 +20,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_LOG_H
 #define FLUIDEQ_ENGINE_LOG_H
 
+#include <guiddef.h>
+
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -58,6 +60,9 @@ class Log {
  * `endpoint_guid` is allowed and tags the line `{no endpoint}`.
  */
 void trace(const std::wstring& endpoint_guid, std::string_view message) noexcept;
+
+/** `{XXXXXXXX-XXXX-...}` for a log line; a GUID that will not format is "?". */
+std::string guid_text(const GUID& id);
 
 /**
  * UTF-8 for the log, with a printable stand-in for anything unconvertible.

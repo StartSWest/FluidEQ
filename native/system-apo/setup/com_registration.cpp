@@ -108,10 +108,8 @@ bool register_engine(const std::wstring& dll_path, std::wstring& error) {
     if (status == ERROR_SUCCESS) {
       status = set_string(apo.get(), L"APOInterface0", kApoInterface);
     }
-    // 0xF is INPLACE | SAMPLESPERFRAME_MUST_MATCH | FRAMESPERSECOND_MUST_MATCH
-    // | BITSPERSAMPLE_MUST_MATCH: the effect writes into the buffer it was
-    // given and does not resample, change the frame size or change the
-    // sample format, so the engine is told not to insert a converter for it.
+    // INPLACE and all three MUST_MATCH flags: the effect does not resample,
+    // remix channels or convert sample types. Match GetRegistrationProperties.
     const std::pair<const wchar_t*, DWORD> numbers[] = {
         {L"MajorVersion", 1},         {L"MinorVersion", 0},
         {L"Flags", 0xF},              {L"MinInputConnections", 1},

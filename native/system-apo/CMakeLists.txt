@@ -50,6 +50,11 @@ target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graph COMMAND fluideq-engine-graph-test)
 
+add_executable(fluideq-engine-graph-slot-test tests/graph_slot_test.cpp)
+target_link_libraries(fluideq-engine-graph-slot-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-graph-slot COMMAND fluideq-engine-graph-slot-test)
+
 add_executable(fluideq-engine-graph-convolution-test
   tests/graph_convolution_test.cpp)
 target_link_libraries(fluideq-engine-graph-convolution-test
@@ -71,7 +76,8 @@ add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
 # file's name is what someone debugging a broken audio stack reads out of the
 # module list of a process they did not start.
 add_library(fluideq-engine SHARED
-  src/apo.cpp src/apo_format.cpp src/apo_process.cpp
+  src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
+  src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/chain_signature.cpp src/paths.cpp src/log.cpp
   src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose
@@ -90,12 +96,11 @@ set_target_properties(fluideq-engine PROPERTIES
 set_source_files_properties(src/engine.rc PROPERTIES COMPILE_DEFINITIONS
   "FEQ_ENGINE_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
 
-# Both DLL tests load the DLL the way audiodg.exe does, so they take the path
+# The DLL tests load the built module directly, so they take the path
 # CMake put it at rather than one spelled out here.
 #
-# Two binaries rather than one: the COM surface and the audio path are
-# different bugs with different owners, and one file covering both was past
-# the 500-line limit.
+# The COM surface, standalone processing, and aggregated endpoint processing
+# exercise different host contracts and are kept in separate binaries.
 add_executable(fluideq-engine-dll-smoke-test tests/dll_smoke_test.cpp)
 target_link_libraries(fluideq-engine-dll-smoke-test
   PRIVATE feq_strict ole32 audiomediatypecrt)
@@ -107,6 +112,12 @@ target_link_libraries(fluideq-engine-dll-process-test
   PRIVATE feq_strict ole32 audiomediatypecrt)
 add_test(NAME engine-dll-process
   COMMAND fluideq-engine-dll-process-test $<TARGET_FILE:fluideq-engine>)
+
+add_executable(fluideq-engine-dll-aggregation-test tests/dll_aggregation_test.cpp)
+target_link_libraries(fluideq-engine-dll-aggregation-test
+  PRIVATE feq_strict ole32 propsys audiomediatypecrt)
+add_test(NAME engine-dll-aggregation
+  COMMAND fluideq-engine-dll-aggregation-test $<TARGET_FILE:fluideq-engine>)
 
 # The decision the setup helper makes about an endpoint, with no Windows API
 # anywhere near it. Split out from the helper's executable so the rules that

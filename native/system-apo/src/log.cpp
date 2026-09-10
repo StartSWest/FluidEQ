@@ -9,6 +9,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <combaseapi.h>
+
 #include <cstdio>
 #include <string>
 
@@ -88,6 +90,14 @@ Log::Log(const std::wstring& endpoint_guid)
       tag_(endpoint_guid.empty() ? std::string("{no endpoint} ")
                                  : to_utf8(endpoint_guid) + " ") {}
 
+std::string guid_text(const GUID& id) {
+  wchar_t text[64] = {};
+  if (StringFromGUID2(id, text, 64) == 0) {
+    return std::string("?");
+  }
+  return to_utf8(text);
+}
+
 void trace(const std::wstring& endpoint_guid,
            std::string_view message) noexcept {
   try {
@@ -105,7 +115,11 @@ void Log::write(std::string_view message) noexcept {
   // `noexcept` is a promise, and building the line allocates. A log that
   // cannot allocate is not a reason to tear down an audio endpoint.
   try {
-    const std::string line = timestamp() + tag_ + std::string(message) + "\r\n";
+    // Discovery also loads the DLL into callers other than audiodg. Without
+    // a process id, a discovery probe looked like proof of live processing.
+    const std::string line = timestamp() + "pid=" +
+                             std::to_string(GetCurrentProcessId()) + " " +
+                             tag_ + std::string(message) + "\r\n";
 
     const std::lock_guard<std::mutex> held(mutex_);
     // FILE_APPEND_DATA without FILE_WRITE_DATA is what makes each write land

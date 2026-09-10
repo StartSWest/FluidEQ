@@ -91,6 +91,43 @@ describe('background file writes', () => {
     expect(hasUnsettledWrites()).toBe(false);
   });
 
+  it('keeps the complete old configuration visible until its replacement is ready', async () => {
+    fs.writeFileSync(file, 'Preamp: -20 dB\n');
+    const started = deferred();
+    const gate = deferred();
+    const original = fs.promises.writeFile.bind(fs.promises);
+    jest
+      .spyOn(fs.promises, 'writeFile')
+      .mockImplementationOnce(async (...args) => {
+        await original(args[0], 'Preamp:', 'utf8');
+        started.resolve();
+        await gate.promise;
+        await original(args[0], ' -10 dB\n', 'utf8');
+      });
+    const saving = scheduleWrite(file, 'Preamp: -10 dB\n');
+    await started.promise;
+    try {
+      expect(fs.readFileSync(file, 'utf8')).toBe('Preamp: -20 dB\n');
+    } finally {
+      gate.resolve();
+      await saving;
+    }
+    expect(fs.readFileSync(file, 'utf8')).toBe('Preamp: -10 dB\n');
+    expect(fs.readdirSync(directory)).toEqual(['profile.txt']);
+  });
+
+  it('preserves the previous EQ and cleans up when publishing a save fails', async () => {
+    fs.writeFileSync(file, 'Preamp: -20 dB\n');
+    const failure = new Error('replacement denied');
+    jest.spyOn(log, 'error').mockImplementation(() => undefined);
+    jest.spyOn(fs.promises, 'rename').mockRejectedValueOnce(failure);
+    await expect(scheduleWrite(file, 'Preamp: -10 dB\n')).rejects.toBe(failure);
+    expect(fs.readFileSync(file, 'utf8')).toBe('Preamp: -20 dB\n');
+    expect(fs.readdirSync(directory)).toEqual(['profile.txt']);
+    await scheduleWrite(file, 'Preamp: -10 dB\n');
+    expect(fs.readFileSync(file, 'utf8')).toBe('Preamp: -10 dB\n');
+  });
+
   it('waits for queued config operations at shutdown and keeps only the latest pending edit', async () => {
     const gate = deferred();
     const started = deferred();

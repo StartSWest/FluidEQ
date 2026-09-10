@@ -245,8 +245,8 @@ unsigned __stdcall Watcher::thread_entry(void* self) {
 
 void Watcher::run() {
   // FILE_NAME covers a create, a rename and a delete; LAST_WRITE and SIZE
-  // cover a file being rewritten in place, which is what the app does when it
-  // flushes a profile. Together they are every way a configuration changes.
+  // cover external editors rewriting in place. The app publishes complete
+  // profiles by rename, so FILE_NAME is required even for an existing file.
   constexpr DWORD kFilter = FILE_NOTIFY_CHANGE_LAST_WRITE |
                             FILE_NOTIFY_CHANGE_SIZE |
                             FILE_NOTIFY_CHANGE_FILE_NAME;
@@ -354,7 +354,7 @@ void Watcher::reload(Carry carry) {
       return;
     }
 
-    const std::string next = signature_of(chain);
+    std::string next = signature_of(chain);
     // A reset rebuilds even when the configuration is byte-for-byte what it
     // already was: the whole point of the rebuild is the state, not the
     // chain.
@@ -370,18 +370,12 @@ void Watcher::reload(Carry carry) {
       // it, so an abandoned rebuild cannot be mistaken for a loaded one.
       return;
     }
-    signature_ = next;
-    have_signature_ = true;
-
-    // The audio thread is writing this graph's filter histories while they
-    // are read. That race is deliberate and bounded: the values are one
-    // biquad's last two samples, so the worst a stale or half-written one can
-    // do is the click that carrying them over exists to avoid. The pointer
-    // itself is safe — nothing is destroyed until `publish` below, and only
-    // this thread destroys anything.
+    // Histories are mutable audio-thread state. Copy them at adoption, never
+    // concurrently with processing. The rack's shared ownership can be
+    // prepared here because its handle and configuration remain immutable.
     if (carry == Carry::State) {
+      graph->request_state_transfer();
       if (Graph* previous = slot_.active()) {
-        graph->inherit_state(*previous);
         // The rack, when the new graph asks for exactly the same one. Under
         // linear phase a fresh `FeqChain` re-converges over about 171 ms, so
         // an EQ-only edit — a band dragged — used to mute and rebuild the
@@ -392,6 +386,8 @@ void Watcher::reload(Carry carry) {
     }
     log_chain(chain, *graph);
     publish(std::move(graph));
+    signature_.swap(next);
+    have_signature_ = true;
   } catch (const std::exception& error) {
     log_.write(std::string("configuration reload failed: ") + error.what());
   } catch (...) {

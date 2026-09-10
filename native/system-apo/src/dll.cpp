@@ -61,26 +61,29 @@ class Factory final : public IClassFactory {
       return E_POINTER;
     }
     *object = nullptr;
-    // Aggregation would let a containing object answer QueryInterface on
-    // this one's behalf, and this object's answers are what the audio engine
-    // uses to decide what it may call on the audio thread.
-    if (outer != nullptr) {
-      return CLASS_E_NOAGGREGATION;
+    // An aggregating host must receive the inner IUnknown, so it can own
+    // that identity while exposing the APO interfaces as its own.
+    if (outer != nullptr && !IsEqualIID(riid, __uuidof(IUnknown))) {
+      return E_NOINTERFACE;
     }
-    auto* apo = new (std::nothrow) Apo();
+    auto* apo = new (std::nothrow) Apo(outer);
     if (apo == nullptr) {
       return E_OUTOFMEMORY;
     }
-    const HRESULT asked = apo->QueryInterface(riid, object);
+    IUnknown* const inner = apo->inner_unknown();
+    const HRESULT asked = inner->QueryInterface(riid, object);
     // The constructor's reference; whatever `QueryInterface` handed out has
     // its own, and on failure this is the one that destroys the object.
-    apo->Release();
+    inner->Release();
     // The first line the log ever gets from a host: without it, an effect
     // the audio engine never creates and one it creates and then drops are
     // the same empty file.
-    trace(L"", SUCCEEDED(asked) ? "created by the host"
-                                : "created, but the interface asked for is "
-                                  "not one this effect offers");
+    trace(L"", (SUCCEEDED(asked) ? (outer == nullptr
+                                      ? "created standalone, as "
+                                      : "created aggregated, as ")
+                                 : "created, but the host asked for an "
+                                   "interface this effect does not offer: ") +
+                   guid_text(riid));
     return asked;
   }
 

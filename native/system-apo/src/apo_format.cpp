@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "apo.h"
+#include "log.h"
 
 // After `apo.h`, which is what pulls in `windows.h`: mmreg.h is one of the
 // old multimedia headers and does not include it itself — on its own it does
@@ -73,6 +74,7 @@ HRESULT suggest_float(const WAVEFORMATEX* requested,
   // documented "the channels are in their natural order" and is what a
   // plain WAVEFORMATEX request means anyway.
   if (requested != nullptr &&
+      requested->nChannels == channels &&
       requested->wFormatTag == WAVE_FORMAT_EXTENSIBLE &&
       requested->cbSize >= sizeof(WAVEFORMATEXTENSIBLE) -
                                sizeof(WAVEFORMATEX)) {
@@ -94,7 +96,10 @@ ConnectionFormat describe_format(const WAVEFORMATEX* format) {
   described.channels = format->nChannels;
   described.rate = format->nSamplesPerSec;
   if (format->wBitsPerSample != 32 || format->nChannels == 0 ||
-      format->nChannels > kMaxChannels || format->nSamplesPerSec == 0) {
+      format->nChannels > kMaxChannels || format->nSamplesPerSec == 0 ||
+      format->nBlockAlign != format->nChannels * sizeof(float) ||
+      format->nAvgBytesPerSec !=
+          static_cast<uint64_t>(format->nSamplesPerSec) * format->nBlockAlign) {
     return described;
   }
   if (format->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
@@ -121,30 +126,44 @@ ConnectionFormat describe_format(const WAVEFORMATEX* format) {
 STDMETHODIMP Apo::IsInputFormatSupported(IAudioMediaType* opposite,
                                          IAudioMediaType* requested,
                                          IAudioMediaType** supported) {
-  UNREFERENCED_PARAMETER(opposite);
-  if (supported == nullptr) {
-    return E_POINTER;
+  if (!locked_) {
+    trace(endpoint_.guid, "format asked about");
   }
-  *supported = nullptr;
   if (requested == nullptr) {
     return E_POINTER;
   }
   const WAVEFORMATEX* format = requested->GetAudioFormat();
-  if (describe_format(format).acceptable) {
-    // The requested type handed straight back, with a reference of its own.
-    // The alternative reading of the contract — S_OK with a null out
-    // parameter — is the one that crashes a caller which dereferences it,
-    // and this one costs a caller that ignores it only a release it was
-    // going to make anyway.
-    *supported = requested;
-    requested->AddRef();
-    return S_OK;
-  }
-  const HRESULT made = suggest_float(format, supported);
-  if (FAILED(made)) {
-    *supported = nullptr;
+  const ConnectionFormat input = describe_format(format);
+  const ConnectionFormat output = describe_format(
+      opposite == nullptr ? nullptr : opposite->GetAudioFormat());
+  if (opposite != nullptr && !output.acceptable) {
     return APOERR_FORMAT_NOT_SUPPORTED;
   }
+  if (input.acceptable &&
+      (opposite == nullptr ||
+       (input.channels == output.channels && input.rate == output.rate))) {
+    if (supported != nullptr) {
+      *supported = requested;
+      requested->AddRef();
+    }
+    return S_OK;
+  }
+  if (supported == nullptr) {
+    return S_FALSE;
+  }
+  if (opposite != nullptr) {
+    // No remixing or resampling: negotiate the already fixed opposite side
+    // instead of accepting a pair that LockForProcess will later reject.
+    *supported = opposite;
+    opposite->AddRef();
+    return S_FALSE;
+  }
+  IAudioMediaType* suggestion = nullptr;
+  const HRESULT made = suggest_float(format, &suggestion);
+  if (FAILED(made)) {
+    return APOERR_FORMAT_NOT_SUPPORTED;
+  }
+  *supported = suggestion;
   return S_FALSE;
 }
 

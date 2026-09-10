@@ -270,6 +270,21 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
   process_ones(rt, buffer, kChannels, kFrames);
   CHECK(all_close(buffer, kChannels * kFrames, 0.251189f, 1.0e-4f));
 
+  // The app now replaces files atomically. A watcher that observes only
+  // writes to the original file can miss this final rename and stay stale.
+  const std::wstring temporary = config_dir + L"\\config.pending";
+  const ScopeGuard cleanup([&] { DeleteFileW(temporary.c_str()); });
+  CHECK(write_text_file(temporary, "Preamp: -18 dB\r\n"));
+  CHECK(MoveFileExW(temporary.c_str(), (config_dir + L"\\config.txt").c_str(),
+                     MOVEFILE_REPLACE_EXISTING) != 0);
+  swapped = false;
+  for (uint32_t block = 0; block < kMaxBlocks && !swapped; ++block) {
+    process_ones(rt, buffer, kChannels, kFrames);
+    swapped = all_close(buffer, kChannels * kFrames, 0.125893f, 1.0e-4f);
+    SwitchToThread();
+  }
+  CHECK(swapped);
+
   CHECK(config->UnlockForProcess() == S_OK);
 
   // The watcher thread wrote why it is passing audio through untouched;
