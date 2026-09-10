@@ -41,6 +41,12 @@ present in upstream AQUA:
 - an embedded player for a fixed list of media sites, in a session of its own;
 - media transport controls for whatever is playing on the machine;
 - mirroring the output to further audio devices;
+- an out-of-process native DSP host and a DSP rack (exciter, bass, compressor,
+  dimension, denoise, maximizer and master stages) with its own presets;
+- a local media library with a scanner, playlists and visualizers;
+- Karaoke playback and a Karaoke Maker with vocal separation, pitch guides and
+  translated lyrics;
+- Share Audio, streaming the output to other machines on the local network;
 - ten-language localisation;
 - in-app updates and release notes;
 - the FluidEQ name and visual identity.

@@ -2,8 +2,9 @@
 
 The guide uses real FluidEQ interface captures, not generated UI artwork.
 
-- `01` through `13` are the existing FluidEQ 1.6.0 captures used by this
-  repository's README. The files are unchanged.
+- `01` through `13` were captured from FluidEQ 1.6.0 and are used by this
+  repository's README. The files are unchanged since; the version is the one at
+  capture time, not the current release.
 - `14-share-audio-roles.png` was captured from the running FluidEQ 1.6.3
   development window on September 5, 2026, in its selected Spanish locale.
   The capture rectangle includes the Share Audio heading, monitor and role

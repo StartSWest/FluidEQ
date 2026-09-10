@@ -1,5 +1,7 @@
 # FluidEQ Karaoke — commercial licensing strategy
 
+> Historical. Written for a paid-binary distribution model that did not ship; FluidEQ is free and GPL-3.0-or-later. The dependency policy in section 2 still applies; the candidate-library table was never reconciled against the lockfile.
+
 Status: engineering licensing plan, not legal advice
 Reviewed: 2026-08-10
 
