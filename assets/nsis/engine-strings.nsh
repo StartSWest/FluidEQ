@@ -113,6 +113,22 @@ LangString EngineDeclined ${LANG_JAPANESE} "FluidEQ Engine はインストール
 LangString EngineDeclined ${LANG_GERMAN} "FluidEQ Engine wurde nicht installiert – dafür sind Administratorrechte nötig. FluidEQ wird trotzdem installiert; die Engine kannst du über die Schaltfläche in der App installieren."
 LangString EngineDeclined ${LANG_ITALIAN} "FluidEQ Engine non è stato installato – servono i permessi di amministratore. FluidEQ si installa comunque; puoi installare il motore dal pulsante dentro l’app."
 
+; `$2` is the helper's exit code, put there by ${StdUtils.WaitForProcEx} a
+; line before the message box. A LangString compiles to an ordinary NSIS
+; string, so a variable reference inside one is resolved when the string is
+; used rather than when it is defined — which is why the number goes in as a
+; variable and not as a placeholder somebody would have to substitute.
+LangString EngineFailed ${LANG_ENGLISH} "FluidEQ Engine setup did not finish (code $2). FluidEQ will still install; the app will offer the engine again."
+LangString EngineFailed ${LANG_SIMPCHINESE} "FluidEQ Engine 的安装未能完成（代码 $2）。FluidEQ 仍会安装；应用会再次提供该引擎。"
+LangString EngineFailed ${LANG_HINDI} "FluidEQ Engine का सेटअप पूरा नहीं हुआ (कोड $2)। FluidEQ फिर भी इंस्टॉल होगा; ऐप इंजन को दोबारा देगा।"
+LangString EngineFailed ${LANG_SPANISHINTERNATIONAL} "La instalación de FluidEQ Engine no terminó (código $2). FluidEQ se instalará igualmente; la aplicación volverá a ofrecer el motor."
+LangString EngineFailed ${LANG_FRENCH} "L’installation de FluidEQ Engine ne s’est pas terminée (code $2). FluidEQ s’installe quand même ; l’application proposera de nouveau le moteur."
+LangString EngineFailed ${LANG_PORTUGUESEBR} "A instalação do FluidEQ Engine não terminou (código $2). O FluidEQ instala-se à mesma; a aplicação voltará a oferecer o motor."
+LangString EngineFailed ${LANG_RUSSIAN} "Установка FluidEQ Engine не завершилась (код $2). FluidEQ всё равно установится; приложение снова предложит движок."
+LangString EngineFailed ${LANG_JAPANESE} "FluidEQ Engine のセットアップが完了しませんでした（コード $2）。FluidEQ のインストールは続きます。アプリがエンジンを改めて提案します。"
+LangString EngineFailed ${LANG_GERMAN} "Die Einrichtung von FluidEQ Engine wurde nicht abgeschlossen (Code $2). FluidEQ wird trotzdem installiert; die App bietet die Engine erneut an."
+LangString EngineFailed ${LANG_ITALIAN} "L’installazione di FluidEQ Engine non è stata completata (codice $2). FluidEQ si installa comunque; l’app riproporrà il motore."
+
 LangString EngineBundleMissing ${LANG_ENGLISH} "This build of FluidEQ is missing its copy of the FluidEQ Audio Processing Engine. FluidEQ will install, and it will offer the engine again from the button inside the app."
 LangString EngineBundleMissing ${LANG_SIMPCHINESE} "此版本的 FluidEQ 缺少 FluidEQ Audio Processing Engine 的副本。FluidEQ 仍会安装，之后会在应用内的按钮再次提供该引擎。"
 LangString EngineBundleMissing ${LANG_HINDI} "FluidEQ के इस बिल्ड में FluidEQ Audio Processing Engine की प्रति नहीं है। FluidEQ इंस्टॉल हो जाएगा और बाद में ऐप के अंदर दिए बटन से इंजन फिर से देगा।"
@@ -134,4 +150,19 @@ LangString EngineNotRemoved ${LANG_RUSSIAN} "Не удалось удалить 
 LangString EngineNotRemoved ${LANG_JAPANESE} "FluidEQ Engine を削除できませんでした – 管理者の許可が必要です。FluidEQ フォルダーで FluidEQ-Engine-Setup.exe uninstall を実行すると削除できます。"
 LangString EngineNotRemoved ${LANG_GERMAN} "FluidEQ Engine konnte nicht entfernt werden – dafür sind Administratorrechte nötig. Du kannst sie entfernen, indem du im FluidEQ-Ordner FluidEQ-Engine-Setup.exe uninstall ausführst."
 LangString EngineNotRemoved ${LANG_ITALIAN} "Non è stato possibile rimuovere FluidEQ Engine – servono i permessi di amministratore. Puoi rimuoverlo eseguendo FluidEQ-Engine-Setup.exe uninstall dalla cartella di FluidEQ."
+
+; Separate from EngineNotRemoved, which names administrator permission as the
+; cause. That is right for a declined consent prompt and a lie for a removal
+; that was allowed to run and then failed — and until the exit code was being
+; read, those two could not be told apart to write a second message for.
+LangString EngineRemoveFailed ${LANG_ENGLISH} "FluidEQ Engine could not be removed (code $2). You can remove it by running FluidEQ-Engine-Setup.exe uninstall from the FluidEQ folder."
+LangString EngineRemoveFailed ${LANG_SIMPCHINESE} "无法移除 FluidEQ Engine（代码 $2）。你可以在 FluidEQ 文件夹中运行 FluidEQ-Engine-Setup.exe uninstall 来移除它。"
+LangString EngineRemoveFailed ${LANG_HINDI} "FluidEQ Engine हटाया नहीं जा सका (कोड $2)। आप इसे FluidEQ फ़ोल्डर में FluidEQ-Engine-Setup.exe uninstall चलाकर हटा सकते हैं।"
+LangString EngineRemoveFailed ${LANG_SPANISHINTERNATIONAL} "No se pudo quitar FluidEQ Engine (código $2). Puedes quitarlo ejecutando FluidEQ-Engine-Setup.exe uninstall desde la carpeta de FluidEQ."
+LangString EngineRemoveFailed ${LANG_FRENCH} "FluidEQ Engine n’a pas pu être supprimé (code $2). Vous pouvez le supprimer en lançant FluidEQ-Engine-Setup.exe uninstall depuis le dossier FluidEQ."
+LangString EngineRemoveFailed ${LANG_PORTUGUESEBR} "Não foi possível remover o FluidEQ Engine (código $2). Podes removê-lo executando FluidEQ-Engine-Setup.exe uninstall na pasta do FluidEQ."
+LangString EngineRemoveFailed ${LANG_RUSSIAN} "Не удалось удалить FluidEQ Engine (код $2). Удалить его можно, запустив FluidEQ-Engine-Setup.exe uninstall из папки FluidEQ."
+LangString EngineRemoveFailed ${LANG_JAPANESE} "FluidEQ Engine を削除できませんでした（コード $2）。FluidEQ フォルダーで FluidEQ-Engine-Setup.exe uninstall を実行すると削除できます。"
+LangString EngineRemoveFailed ${LANG_GERMAN} "FluidEQ Engine konnte nicht entfernt werden (Code $2). Du kannst sie entfernen, indem du im FluidEQ-Ordner FluidEQ-Engine-Setup.exe uninstall ausführst."
+LangString EngineRemoveFailed ${LANG_ITALIAN} "Non è stato possibile rimuovere FluidEQ Engine (codice $2). Puoi rimuoverlo eseguendo FluidEQ-Engine-Setup.exe uninstall dalla cartella di FluidEQ."
 !macroend

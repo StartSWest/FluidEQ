@@ -385,8 +385,35 @@ for the app to read at startup. It is skipped, leaving both engines untouched,
 under `${Silent}`, under `${isUpdated}`, and whenever that file already exists.
 `customUnInstall` removes our engine first and without asking — it is ours, and
 `FluidEQ-Engine-Setup.exe uninstall` puts every output's effect list back — and
-only then asks the unchanged "Also uninstall Equalizer APO?" question, and only
-when APO is actually installed.
+only then asks the "Also uninstall Equalizer APO?" question, and only when APO
+is actually installed.
+
+Two things about that macro are easy to get wrong and were:
+
+- **What says the engine is installed is the installed DLL, not the helper.**
+  `FluidEQ-Engine-Setup.exe` ships in every build, so gating on it raised a
+  consent prompt on every uninstall — Equalizer APO users included — and then
+  told them to hand-run the removal of something they never had. The gate is
+  `$PROGRAMFILES64\FluidEQ Engine\FluidEQ-Engine.dll` (where `install_dir()`
+  puts it), and the helper is checked as well only because it is what does the
+  removing.
+- **A `MessageBox` in the uninstaller must not carry `/SD`.** electron-builder's
+  `un.onInit` runs `SetSilent silent` right after its own "are you sure" box, so
+  every ordinary one-click uninstall is silent by the time `customUnInstall`
+  runs, and NSIS answers a `/SD` box with its default instead of showing it.
+  `/SD IDNO` therefore meant the APO question was asked of nobody, always
+  answered No. The cost of dropping it is that a real `/S` uninstall now stops
+  on the box.
+
+Both helper runs go through `${StdUtils.ExecShellWaitEx}` and
+`${StdUtils.WaitForProcEx}` rather than `ExecShellWait`, which reports only
+through the error flag and cannot tell a helper that ran and failed from one
+that never started. The exit codes are the helper's own — 0 done, 1 bad command
+line, 2 consent declined, 3 ran and failed — and every run writes
+`FluidEQ Engine setup exited with code N` to the install log. `StdUtils.nsh` is
+included by electron-builder's shared header ahead of `installer.nsh`, so it is
+available in both the installer and the uninstaller pass; the plug-in hard-codes
+`SW_SHOWNORMAL`, so the helper's console window is visible while it works.
 
 The ten translations live in `assets/nsis/engine-strings.nsh`, pulled in with
 `!include /CHARSET=UTF8`. That is load-bearing: electron-builder passes

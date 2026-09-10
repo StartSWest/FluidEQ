@@ -122,6 +122,9 @@
       "Software\Microsoft\Windows\CurrentVersion\Uninstall\EqualizerAPO" \
       "UninstallString"
   ${EndIf}
+  ; Default, not 64, and that is safe here: FluidEQ installs per-user, so
+  ; `SHELL_CONTEXT` is HKCU for the rest of this run, and HKCU is not
+  ; WOW64-redirected — there is no 64-bit view of it to get back to.
   SetRegView Default
 !macroend
 
@@ -263,12 +266,16 @@
     ; nothing is exactly the failure that is impossible to diagnose remotely.
     ${IfNot} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe"
       !insertmacro InstallLog "MISSING: resources\native\FluidEQ-Engine-Setup.exe"
+      ; Said out loud in the log because the next line records a preference of
+      ; "fluid" for an engine this build could not install, and the two
+      ; together look like a contradiction to whoever reads it.
+      !insertmacro InstallLog "Preference written as fluid despite the missing bundle - the app will offer the engine."
       MessageBox MB_OK|MB_ICONEXCLAMATION "$(EngineBundleMissing)"
     ${Else}
       !insertmacro InstallLog "Running the FluidEQ Engine setup..."
 
-      ; ExecShellWait, NOT ExecWait. This is the whole reason the first attempt
-      ; at the Equalizer APO side silently did nothing, and it applies
+      ; ShellExecute, NOT CreateProcess. This is the whole reason the first
+      ; attempt at the Equalizer APO side silently did nothing, and it applies
       ; unchanged here.
       ;
       ; FluidEQ installs per-user and therefore runs unelevated. Placing an APO
@@ -277,22 +284,52 @@
       ; ERROR_ELEVATION_REQUIRED (740) and returns immediately, so nothing
       ; opens and setup carries on as though it had worked.
       ;
-      ; Only ShellExecute honours the manifest and raises the UAC dialog, and
-      ; ExecShellWait is how NSIS reaches it. The `runas` verb asks for
-      ; elevation explicitly rather than relying on the manifest being read.
+      ; Only ShellExecute honours the manifest and raises the UAC dialog. The
+      ; `runas` verb asks for elevation explicitly rather than relying on the
+      ; manifest being read.
       ;
-      ; It reports failure through the error flag rather than an exit code, so
-      ; declining UAC and failing to launch look the same from here. Both mean
-      ; the engine did not get installed, which is what the app needs to know.
-      ClearErrors
-      ExecShellWait "runas" \
-        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" \
-        "install --attach-all --restart-audio" SW_HIDE
-      ${If} ${Errors}
-        !insertmacro InstallLog "Engine setup could not start (UAC declined, or launch failed)."
-        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineDeclined)"
+      ; StdUtils rather than NSIS's own ExecShellWait, because ExecShellWait
+      ; reports through the error flag alone: a helper that ran and failed and
+      ; a helper that never started are the same event from there, and the
+      ; install log could not tell them apart. The helper answers in its exit
+      ; code — 0 done, 1 bad command line, 2 consent declined, 3 ran and failed
+      ; (native/system-apo/setup/main.cpp) — and this is how that code is read.
+      ; StdUtils.nsh is included by electron-builder's own shared header, ahead
+      ; of this file, so the plug-in is already there for both passes.
+      ;
+      ; The price is a visible console: StdUtils hard-codes SW_SHOWNORMAL, so
+      ; the helper's console window shows for the seconds it takes rather than
+      ; being hidden as it was under SW_HIDE. Knowing what happened is worth
+      ; more than not seeing it happen.
+      ${StdUtils.ExecShellWaitEx} $0 $1 \
+        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" "runas" \
+        "install --attach-all --restart-audio"
+      ${If} $0 == "ok"
+        ; Only "ok" carries a process handle; passing anything else to
+        ; WaitForProcEx is undefined behaviour by its own documentation.
+        ${StdUtils.WaitForProcEx} $2 $1
+        ${If} $2 == "error"
+          !insertmacro InstallLog "FluidEQ Engine setup ran, but its exit code could not be read."
+        ${Else}
+          !insertmacro InstallLog "FluidEQ Engine setup exited with code $2."
+          ${If} $2 == 0
+            !insertmacro InstallLog "FluidEQ Engine installed."
+          ${ElseIf} $2 == 2
+            !insertmacro InstallLog "The consent prompt was declined - the engine was not installed."
+            MessageBox MB_OK|MB_ICONINFORMATION "$(EngineDeclined)"
+          ${Else}
+            !insertmacro InstallLog "The FluidEQ Engine setup ran and failed."
+            MessageBox MB_OK|MB_ICONEXCLAMATION "$(EngineFailed)"
+          ${EndIf}
+        ${EndIf}
+      ${ElseIf} $0 == "no_wait"
+        ; ShellExecuteEx handed the file to a running instance instead of
+        ; starting a process. Not reachable for an .exe, and recorded rather
+        ; than assumed away.
+        !insertmacro InstallLog "FluidEQ Engine setup started, but could not be waited for."
       ${Else}
-        !insertmacro InstallLog "FluidEQ Engine setup finished."
+        !insertmacro InstallLog "Engine setup could not start (UAC declined, or launch failed) - Win32 error $1."
+        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineDeclined)"
       ${EndIf}
     ${EndIf}
 
@@ -355,36 +392,91 @@ at any time from the button inside the app."
     ; effect list back to the backup it took before attaching — so leaving it
     ; behind would leave a DLL inside Windows' audio stack with nothing left
     ; to configure it.
-    ${If} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe"
-      !insertmacro InstallLog "Removing the FluidEQ Engine..."
-      ; ExecShellWait for the same reason as the install side: detaching an
-      ; APO needs administrator and this uninstaller does not have it, so
+    ;
+    ; What decides is whether the engine is INSTALLED, not whether the helper
+    ; that installs it is on disk. The helper ships in every build, so gating
+    ; on it raised a consent prompt on every single uninstall — including for
+    ; the people who chose Equalizer APO and the people the question was never
+    ; put to — and, when they said no to a prompt for something they had never
+    ; installed, told them to go and hand-run its uninstaller.
+    ;
+    ; `$PROGRAMFILES64` is where the DLL lands: `install_dir()` in
+    ; native/system-apo/setup/fs.cpp resolves FOLDERID_ProgramFiles from a
+    ; 64-bit process, and Program Files — unlike System32 — is not part of the
+    ; WOW64 file redirection, so this 32-bit uninstaller reads the real
+    ; directory without a `${DisableX64FSRedirection}` around it.
+    ${IfNot} ${FileExists} "$PROGRAMFILES64\FluidEQ Engine\FluidEQ-Engine.dll"
+      !insertmacro InstallLog "Engine not installed - nothing to remove."
+    ${ElseIfNot} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe"
+      ; The engine is in, and the only thing that can take it out again is
+      ; missing from this installation. Logged and no more: it takes a broken
+      ; build to reach, and the message that would fit here is one telling the
+      ; user to run a file that is not there.
+      !insertmacro InstallLog "Engine installed, but MISSING: resources\native\FluidEQ-Engine-Setup.exe - it cannot be removed from here."
+    ${Else}
+      !insertmacro InstallLog "Removing FluidEQ Engine..."
+      ; ShellExecute for the same reason as the install side: detaching an APO
+      ; needs administrator and this uninstaller does not have it, so
       ; CreateProcess would fail with ERROR_ELEVATION_REQUIRED and leave the
-      ; engine installed while appearing to have removed it.
-      ClearErrors
-      ExecShellWait "runas" \
-        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" "uninstall" SW_HIDE
-      ${If} ${Errors}
-        !insertmacro InstallLog "The FluidEQ Engine could not be removed (UAC declined, or launch failed)."
-        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineNotRemoved)"
+      ; engine installed while appearing to have removed it. StdUtils for the
+      ; same reason too — the exit code is the only thing that distinguishes a
+      ; declined prompt from a removal that ran and failed.
+      ${StdUtils.ExecShellWaitEx} $0 $1 \
+        "$INSTDIR\resources\native\FluidEQ-Engine-Setup.exe" "runas" "uninstall"
+      ${If} $0 == "ok"
+        ${StdUtils.WaitForProcEx} $2 $1
+        ${If} $2 == "error"
+          !insertmacro InstallLog "FluidEQ Engine setup ran, but its exit code could not be read."
+        ${Else}
+          !insertmacro InstallLog "FluidEQ Engine setup exited with code $2."
+          ${If} $2 == 0
+            !insertmacro InstallLog "FluidEQ Engine removed."
+          ${ElseIf} $2 == 2
+            !insertmacro InstallLog "The consent prompt was declined - the engine is still installed."
+            MessageBox MB_OK|MB_ICONINFORMATION "$(EngineNotRemoved)"
+          ${Else}
+            !insertmacro InstallLog "The removal ran and failed - the engine is still installed."
+            MessageBox MB_OK|MB_ICONEXCLAMATION "$(EngineRemoveFailed)"
+          ${EndIf}
+        ${EndIf}
+      ${ElseIf} $0 == "no_wait"
+        !insertmacro InstallLog "FluidEQ Engine setup started, but could not be waited for."
       ${Else}
-        !insertmacro InstallLog "FluidEQ Engine removed."
+        !insertmacro InstallLog "The FluidEQ Engine could not be removed (UAC declined, or launch failed) - Win32 error $1."
+        MessageBox MB_OK|MB_ICONINFORMATION "$(EngineNotRemoved)"
       ${EndIf}
     ${EndIf}
 
     !insertmacro ReadApoUninstallString
     ${If} $0 != ""
+      ; No /SD, deliberately, and that is the only reason this question is ever
+      ; seen. electron-builder's own `un.onInit` asks "are you sure you want to
+      ; uninstall" and then runs `SetSilent silent` for the rest of the
+      ; uninstall, so by the time this line executes ${Silent} is true on every
+      ; ordinary one-click uninstall. A /SD default is exactly what NSIS
+      ; answers with in that state — `my_MessageBox` in Source/exehead/util.c
+      ; returns the default and never shows the box — so `/SD IDNO` meant the
+      ; user was silently told No and APO was silently kept, every time.
+      ; Without /SD the same code falls through to "no silent or no default,
+      ; just show".
+      ;
+      ; What it costs: an uninstall genuinely run with /S, from a script or a
+      ; management tool, now stops on this box. That is the price of ever
+      ; asking at all, and it is the smaller of the two failures — a silent
+      ; uninstall is rare here, and a question nobody can answer is a question
+      ; that should not have been written.
+      ;
       ; Defaults to NO, and says why. Equalizer APO is a system-wide audio
       ; component: Peace, its own Configuration Editor, and anything else
       ; built on it stop working the moment it goes. Removing somebody's audio
       ; stack because they uninstalled one front end would be a nasty
       ; surprise, so the safe answer is the one they get by pressing Enter.
-      MessageBox MB_YESNO|MB_ICONQUESTION \
+      MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 \
         "Also uninstall Equalizer APO?$\r$\n$\r$\nIt is a system-wide audio \
 component, and other applications - such as Peace - may be using it. If you \
 are unsure, choose No.$\r$\n$\r$\nYour equaliser settings will be removed \
 either way." \
-        /SD IDNO IDNO apoKept
+        IDNO apoKept
 
       !insertmacro InstallLog "Running the Equalizer APO uninstaller."
       ; ExecShellWait for the same reason as the install side: APO's
