@@ -47,6 +47,9 @@ jest.mock('electron', () => ({
   },
 }));
 
+// Imports come after jest.mock on purpose: the module under test reads the
+// mocked dependency at import time, so hoisting the import above the mock
+// would bind it to the real one and the test would exercise nothing.
 // eslint-disable-next-line import/first
 import { registerAudioEngineIpc } from '../../../main/ipc/audioEngine';
 // eslint-disable-next-line import/first

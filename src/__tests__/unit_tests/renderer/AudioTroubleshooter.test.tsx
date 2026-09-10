@@ -1,4 +1,10 @@
-/* FluidEQ — GPL-3.0-or-later */
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
 
 /**
  * Which repairs the panel offers, and to whom.
