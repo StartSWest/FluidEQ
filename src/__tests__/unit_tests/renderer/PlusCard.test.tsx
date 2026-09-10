@@ -11,7 +11,7 @@ import type { TBillingOutcome } from '../../../main/ipc/account';
 import PlusCard from '../../../renderer/account/PlusCard';
 
 let mockCheckoutConfigured = true;
-let mockPrice = '$3.99 / month';
+let mockPrice = '$3.99';
 const mockOpenCheckout = jest.fn((): Promise<TBillingOutcome> =>
   Promise.resolve({ ok: true }),
 );
@@ -51,7 +51,7 @@ describe('the Plus card', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckoutConfigured = true;
-    mockPrice = '$3.99 / month';
+    mockPrice = '$3.99';
   });
 
   /**
@@ -85,7 +85,8 @@ describe('the Plus card', () => {
     );
 
     expect(screen.getByText('account.plus.pitch')).toBeInTheDocument();
-    expect(screen.getByText('$3.99 / month')).toBeInTheDocument();
+    // The amount as configured, the month in the reader's language.
+    expect(screen.getByText('account.plus.perMonth:$3.99')).toBeInTheDocument();
     const upgrade = screen.getByRole('button', {
       name: 'account.plus.upgrade',
     });

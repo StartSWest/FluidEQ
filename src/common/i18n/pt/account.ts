@@ -81,6 +81,7 @@ const account = {
   'account.plus.grace':
     'Não foi possível confirmar a tua subscrição. Continua ativa até {date} — liga-te à internet antes disso para a manter.',
   'account.plus.checkAgain': 'Verificar de novo',
+  'account.plus.perMonth': '{price} / mês',
   'account.plus.checkoutOpened':
     'O Buy Me a Coffee está aberto no teu navegador. Volta aqui depois de pagares e o Plus fica ativo.',
   'account.plus.error.rejected':

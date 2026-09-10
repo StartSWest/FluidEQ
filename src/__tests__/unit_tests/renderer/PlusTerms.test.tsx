@@ -34,7 +34,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 
 jest.mock('../../../common/accountConfig', () => ({
-  ACCOUNT_CONFIG: { plusPrice: '$3.99 / month' },
+  ACCOUNT_CONFIG: { plusPrice: '$3.99' },
   isCheckoutConfigured: () => true,
 }));
 

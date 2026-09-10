@@ -28,12 +28,14 @@ import '../styles/PlusTerms.scss';
 /**
  * Every number the terms quote, from the constant the code keeps it with.
  *
- * The contact is the support address the build was made with; a build
- * without one points at the site instead, so the sentence never ends in a
- * blank.
+ * The price is the configured amount with the month in the reader's own
+ * language ("$5 / Monat"): the amount is what the checkout charges, the period
+ * is ours to say. The contact is the support address the build was made with;
+ * a build without one points at the site instead, so the sentence never ends
+ * in a blank.
  */
-const termsValues = (): Record<string, string | number> => ({
-  price: ACCOUNT_CONFIG.plusPrice,
+const termsValues = (monthly: string): Record<string, string | number> => ({
+  price: monthly,
   refundDays: PLUS_REFUND_DAYS,
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
@@ -58,7 +60,13 @@ const termsValues = (): Record<string, string | number> => ({
  */
 export default function PlusTermsDocument() {
   const { t, locale } = useTranslation();
-  const values = useMemo(termsValues, []);
+  const values = useMemo(
+    () =>
+      termsValues(
+        t('account.plus.perMonth', { price: ACCOUNT_CONFIG.plusPrice }),
+      ),
+    [t],
+  );
   const effective = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {

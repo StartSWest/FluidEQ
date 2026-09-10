@@ -138,7 +138,9 @@ export default function PlusCard({
       {entitlement.state === 'none' && (
         <>
           <p className="plus-card__pitch">{t('account.plus.pitch')}</p>
-          <p className="plus-card__price">{ACCOUNT_CONFIG.plusPrice}</p>
+          <p className="plus-card__price">
+            {t('account.plus.perMonth', { price: ACCOUNT_CONFIG.plusPrice })}
+          </p>
           <div className="plus-card__actions">
             <button
               type="button"

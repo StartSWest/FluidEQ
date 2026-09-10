@@ -342,7 +342,10 @@ export const registerAccountIpc = ({
         };
       }
       // The webhook has written the row; read it back the way a real payment
-      // is read back, through the same check every other event triggers.
+      // is read back, through the same check every other event triggers. A
+      // window started with FLUIDEQ_DEV_ENTITLED=1 stops pinning Plus on
+      // first, or the server's answer would never reach the screen.
+      entitled.releaseDevelopmentOverride();
       await entitled.checkNow();
       return { ok: true };
     },

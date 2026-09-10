@@ -129,6 +129,24 @@ describe('what a stored subscription means at a given moment', () => {
     expect(status.graceEndsAt).toBe(NOW + ENTITLEMENT_GRACE_MS);
   });
 
+  /**
+   * Grace is for a renewal the app may have missed. A membership cancelled
+   * to end with its period was never going to renew, so it ends on the day
+   * it said it would — the enter-grace case above is the positive control.
+   */
+  it('ends a cancelled subscription with its period, without grace', () => {
+    expect(
+      resolveEntitlementState(
+        record({
+          cancelAtPeriodEnd: true,
+          periodEndsAt: NOW - DAY,
+          verifiedAt: NOW - 3 * DAY,
+        }),
+        NOW,
+      ).state,
+    ).toBe('none');
+  });
+
   it('is nothing once both the period and the grace window are gone', () => {
     expect(
       resolveEntitlementState(
@@ -264,6 +282,32 @@ describe('the entitlement controller', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  /**
+   * A window started with the development pin used to keep Plus on over the
+   * pretend cancellation, so the button looked broken while the server had
+   * cancelled. Releasing the pin hands the window back to the record, and
+   * says so even when nothing was fetched.
+   */
+  it('lets the pretend membership release the development pin, once', () => {
+    const entitlement = createEntitlement({
+      config: CONFIG,
+      session: session(),
+      store: store(),
+      onChange: (status) => changes.push(status),
+      now: () => clock,
+      fetchImpl,
+      developmentOverride: { state: 'active', plan: 'plus (development)' },
+    });
+    expect(entitlement.status().state).toBe('active');
+
+    entitlement.releaseDevelopmentOverride();
+    expect(entitlement.status()).toEqual({ state: 'none' });
+    expect(changes).toEqual([{ state: 'none' }]);
+
+    entitlement.releaseDevelopmentOverride();
+    expect(changes).toHaveLength(1);
   });
 
   it('asks only for the caller’s own row, with both keys, and stores the answer', async () => {

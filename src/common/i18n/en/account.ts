@@ -91,6 +91,8 @@ const account = {
   'account.plus.grace':
     'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',
   'account.plus.checkAgain': 'Check again',
+  // The configured amount, as the checkout shows it ("$5"), per month.
+  'account.plus.perMonth': '{price} / month',
   'account.plus.checkoutOpened':
     'Buy Me a Coffee is open in your browser. Come back here once you have paid, and Plus turns on.',
   'account.plus.error.rejected':

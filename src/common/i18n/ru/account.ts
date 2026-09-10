@@ -80,6 +80,7 @@ const account = {
   'account.plus.grace':
     'Не удалось подтвердить подписку. Она действует до {date} — подключитесь к интернету до этого, чтобы её сохранить.',
   'account.plus.checkAgain': 'Проверить ещё раз',
+  'account.plus.perMonth': '{price} / мес.',
   'account.plus.checkoutOpened':
     'Buy Me a Coffee открыт в браузере. Вернитесь сюда после оплаты — и Plus включится.',
   'account.plus.error.rejected':

@@ -316,17 +316,31 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 }
 
+// The board sits apart from the channels under a rule of its own. The rule is
+// drawn above the row rather than as its top border: as a border it squared
+// off the row's top corners, and the open board showed a flat-topped tint
+// under a line while every channel above it was rounded all round.
 .community__channel--board {
-  margin-top: $spacing-xs;
-  padding-top: 9px;
-  border-top: 1px solid $border-subtle;
-  border-radius: 0 0 $radius-s $radius-s;
+  position: relative;
+  margin-top: 13px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 6px;
+    left: 6px;
+    height: 1px;
+    background: $border-subtle;
+    pointer-events: none;
+  }
 
   @container eq-panel (max-width: 600px) {
     margin: 0;
-    padding-top: 3px;
-    border-top: 0;
-    border-radius: $radius-s;
+
+    &::after {
+      display: none;
+    }
   }
 }
 

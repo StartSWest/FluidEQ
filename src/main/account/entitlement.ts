@@ -134,6 +134,12 @@ export const resolveEntitlementState = (
   if (record.periodEndsAt > now) {
     return { state: 'active', ...shared };
   }
+  // A membership cancelled to end with this period ended with it. The grace
+  // below is for a renewal the app may have missed, and this one was never
+  // going to renew.
+  if (record.cancelAtPeriodEnd) {
+    return NONE;
+  }
   // The period we last saw has ended. If the server was heard from recently
   // enough, the likeliest explanation is that it renewed while we were not
   // listening — so it stays on, with a visible end to that assumption.
@@ -151,6 +157,13 @@ export interface IEntitlement {
   checkNow(): Promise<IEntitlementStatus>;
   /** The account is gone; there is nothing to be entitled through. */
   forget(): void;
+  /**
+   * DEVELOPMENT ONLY: drop the fixed answer and follow the server from here
+   * on. The pretend membership calls this — pressing it is asking to see the
+   * real path, and a pin that kept Plus on over it made "pretend a
+   * cancellation" look broken while the server had in fact cancelled.
+   */
+  releaseDevelopmentOverride(): void;
 }
 
 export interface IEntitlementOptions {
@@ -256,10 +269,18 @@ export const createEntitlement = (
       : undefined;
   };
 
+  // The development pin holds until the pretend membership releases it.
+  let override = options.developmentOverride;
+
   const status = (): IEntitlementStatus =>
-    options.developmentOverride ?? resolveEntitlementState(ownRecord(), now());
+    override ?? resolveEntitlementState(ownRecord(), now());
 
   const listeners = new Set<(status: IEntitlementStatus) => void>();
+
+  const announce = (current: IEntitlementStatus) => {
+    onChange(current);
+    listeners.forEach((listener) => listener(current));
+  };
 
   const remember = (next: IEntitlementRecord | undefined) => {
     const before = JSON.stringify(status());
@@ -271,9 +292,7 @@ export const createEntitlement = (
       store.clear();
     }
     if (JSON.stringify(status()) !== before) {
-      const current = status();
-      onChange(current);
-      listeners.forEach((listener) => listener(current));
+      announce(status());
     }
   };
 
@@ -368,6 +387,15 @@ export const createEntitlement = (
     forget: () => {
       lastCheckedAt = 0;
       remember(undefined);
+    },
+    releaseDevelopmentOverride: () => {
+      if (!override) {
+        return;
+      }
+      override = undefined;
+      // Said out loud even when the stored answer happens to match: the
+      // window was showing the pin, not the record.
+      announce(status());
     },
   };
 };

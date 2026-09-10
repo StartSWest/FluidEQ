@@ -43,15 +43,17 @@ export interface IAccountConfig {
    */
   apiUrl: string;
   /**
-   * The price as text, shown beside the upgrade offer and nowhere else — and
-   * the switch for the offer itself: empty means signing in works but nothing
-   * is for sale, which is every build until a merchant account exists.
+   * The monthly amount as text — "$5" — shown on the upgrade offer and in the
+   * Plus terms with "/ month" after it in the reader's language, and the
+   * switch for the offer itself: empty means signing in works but nothing is
+   * for sale, which is every build until a merchant account exists.
    *
-   * Text rather than a number and a currency, because the checkout page shows
-   * the real figure — with the buyer's tax — and anything the app computed
-   * would disagree with it somewhere in the world. Requiring it for the offer
-   * is deliberate: a button that opens a checkout without saying what it costs
-   * is the kind of thing that earns a chargeback.
+   * The amount alone: a period written here would be English in all ten
+   * languages. Text rather than a number and a currency, because the checkout
+   * page shows the real figure — with the buyer's tax — and anything the app
+   * computed would disagree with it somewhere in the world. Requiring it for
+   * the offer is deliberate: a button that opens a checkout without saying
+   * what it costs is the kind of thing that earns a chargeback.
    */
   plusPrice: string;
 }
