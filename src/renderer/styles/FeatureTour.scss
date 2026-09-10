@@ -41,6 +41,78 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: minmax(200px, 21%) minmax(0, 1fr);
 }
 
+// Equal side columns center the contribution link on the header itself,
+// regardless of the title's translated length. The title can shrink safely.
+.feature-tour > .dialog-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+
+  .dialog-header__close {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+.feature-tour__notes.feature-tour__contribute {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  font-weight: $weight-bold;
+}
+
+.tour-slide__art.tour-rainbow {
+  align-content: center;
+  grid-template-rows: auto auto auto;
+  gap: calc(var(--tour-unit) * 1.2);
+  padding: calc(var(--tour-unit) * 1.2);
+
+  figcaption {
+    display: grid;
+    gap: 8px;
+    color: $secondary-light;
+    font-size: calc(var(--tour-unit) * 1.05);
+    font-weight: $weight-semibold;
+    text-align: center;
+  }
+}
+
+.tour-rainbow__wave {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-m;
+  background: transparent;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: inherit;
+  }
+}
+
+// Both theme captures use the same 436×82 CSS-pixel crop at 2× resolution.
+// Measured from the real pill; percentages keep its hit target aligned on resize.
+.tour-rainbow__toggle {
+  position: absolute;
+  top: calc(10.5 / 82 * 100%);
+  left: calc(163.484375 / 436 * 100%);
+  width: calc(109.03125 / 436 * 100%);
+  height: calc(14.671875 / 82 * 100%);
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 // The rail: what is new, as a list. The active entry is the one on stage.
 .feature-tour__rail {
   display: flex;

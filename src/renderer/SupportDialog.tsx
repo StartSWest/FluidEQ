@@ -16,13 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -43,46 +37,26 @@ import supportQrImage from '../../assets/support-qr.png';
 import MemoryTraceButton from './components/MemoryTraceButton';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
+import SupportRainbowUnlock from './components/SupportRainbowUnlock';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
 
-/**
- * Development builds only, and webpack removes the branch entirely from a
- * release: `process.env.NODE_ENV` is substituted with a literal at build time,
- * so `'production' !== 'production'` folds to `false` and the button below is
- * dead code the minifier drops. It cannot reach a user by accident.
- */
+// Webpack substitutes NODE_ENV so the release minifier removes these controls.
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
-/**
- * The shipped version, substituted by webpack. Empty outside the bundler — a
- * bare unit-test import — so the badge is conditional rather than "vundefined".
- *
- * Defined once in `common/branding`, alongside the name it sits next to.
- */
+// Empty outside webpack; the badge must not render as "vundefined" in tests.
 const APP_VERSION = PRODUCT_VERSION;
 
 interface ISupportDialogProps {
   hasContributed: boolean;
   onContributed: () => void;
-  /**
-   * Put the badge back to unearned. Everything the creature does — the game,
-   * the tap, euphoria mode — is behind that one flag, and it is a one-way door
-   * by design, so there is otherwise no way to see the unearned state again
-   * without clearing local storage by hand.
-   */
+  /** Development reset for the contribution badge and Rainbow unlock. */
   onResetContribution: () => void;
   onClose: () => void;
   /** Open the release notes on top of this dialog. */
   onShowReleaseNotes: () => void;
-  /**
-   * True while another dialog is stacked over this one.
-   *
-   * Both dialogs listen for Escape on the document and both trap Tab, so the
-   * covered one has to stand down or a single keypress closes them both and
-   * focus is fought over between two modals.
-   */
+  /** Stand down while covered so Escape and Tab reach only the top modal. */
   isCovered?: boolean;
 }
 
@@ -90,26 +64,6 @@ const COPY_FEEDBACK_MS = 2000;
 
 /** How long the creature keeps the face the last tap earned it. */
 const PET_MOOD_MS = 700;
-
-/**
- * How long the badge celebration runs before the panel becomes the new one.
- *
- * Long enough to register as a moment and short enough not to be a wait. The
- * badge is earned exactly once per install and everything the creature can do
- * is behind it, so arriving with no ceremony — the panel simply having
- * different contents on the next frame — read as a glitch rather than as
- * something being unlocked.
- */
-const BADGE_CELEBRATION_MS = 1500;
-
-/**
- * Stars in the burst.
- *
- * Laid out on a fixed ring rather than at random: two people earning the badge
- * should see the same thing, and a random spread reliably produces one run
- * with three stars stacked on top of each other.
- */
-const BADGE_STARS = 12;
 
 export default function SupportDialog({
   hasContributed,
@@ -141,44 +95,12 @@ export default function SupportDialog({
   // the animation ends by itself.
   const [petTaps, setPetTaps] = useState(0);
   const gameRef = useRef<IRhythmGameHandle>(null);
-  // One tap does both. Scoring goes through a ref rather than an effect on the
-  // counter, so the moment that is graded is the moment the key went down —
-  // an effect would score a render later, which in a game about timing is a
-  // handicap the player did not earn.
-  // The tap's result comes back out of the game, because the creature that
-  // reacts to it lives up here rather than in the panel.
-  //
-  // The mood is a reaction to one tap and is dropped after a moment — left up
-  // it stops being a reaction and becomes the pet's face. The streak itself is
-  // not held here at all: it lives in the run store and is put on the document
-  // root by the shell, so it outlives this dialog being closed.
+  // Score at keydown through the ref, not a render later in an effect.
+  // The face reacts briefly; the run store keeps the streak across closing.
   const [mood, setMood] = useState<'perfect' | 'miss' | ''>('');
   const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  // The one-off arrival. Held here rather than derived from the badge, because
-  // it has to run BEFORE the badge exists — the celebration is the thing that
-  // hands it over.
-  const [isEarning, setIsEarning] = useState(false);
-  const earnRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  /**
-   * Earn the badge, with a moment made of it.
-   *
-   * The flag is flipped at the END of the animation rather than the start, so
-   * the stars play over the panel that asked for the contribution and the new
-   * one arrives as the thing they were leading up to. Flipping first put the
-   * game on screen underneath the celebration, which read as the panel having
-   * already changed and the stars being decoration over it.
-   */
-  const earnBadge = useCallback(() => {
-    setIsEarning(true);
-    earnRef.current = setTimeout(() => {
-      earnRef.current = undefined;
-      setIsEarning(false);
-      onContributed();
-    }, BADGE_CELEBRATION_MS);
-  }, [onContributed]);
   const bouncePet = useCallback(() => {
     setPetTaps((count) => count + 1);
     const result = gameRef.current?.registerTap();
@@ -204,18 +126,7 @@ export default function SupportDialog({
       if (moodResetRef.current !== undefined) {
         clearTimeout(moodResetRef.current);
       }
-      // Closing the panel mid-celebration must not lose the badge. The timer
-      // is what hands it over, so if it is still pending when this unmounts
-      // the contribution is credited immediately rather than dropped.
-      if (earnRef.current !== undefined) {
-        clearTimeout(earnRef.current);
-        onContributed();
-      }
     },
-    // Intentionally empty: this is unmount cleanup, and re-running it whenever
-    // the parent hands down a new callback identity would credit the badge on
-    // every re-render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const petHopClass =
@@ -248,17 +159,17 @@ export default function SupportDialog({
         toggleAdBlockRevealed();
         return;
       }
-      // Space bounces the pet, for supporters only.
-      //
-      // It has to be swallowed. The close button takes focus when the dialog
-      // opens, so an un-prevented space would activate it and the dialog would
-      // shut on the first press — and every later press would land on whatever
-      // else had focus. Enter still activates buttons, which is the standard
-      // fallback, and someone without the badge never reaches this branch, so
-      // nobody pays for a toy they do not have.
-      if (event.key === ' ' && hasContributed) {
+      // Space plays from the stage or the initially focused close button.
+      // Focused payment/unlock controls retain normal keyboard activation.
+      const isGameTarget =
+        event.target instanceof Element &&
+        (event.target.closest('.support-dialog__stage') !== null ||
+          event.target === closeRef.current);
+      if (event.key === ' ' && isGameTarget) {
         event.preventDefault();
-        bouncePet();
+        if (!event.repeat) {
+          bouncePet();
+        }
         return;
       }
       // A modal must not leak focus to the workspace behind it.
@@ -284,7 +195,7 @@ export default function SupportDialog({
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [bouncePet, hasContributed, isCovered, onClose]);
+  }, [bouncePet, isCovered, onClose]);
 
   useEffect(
     () => () => {
@@ -326,11 +237,7 @@ export default function SupportDialog({
     >
       <div
         ref={dialogRef}
-        // The game changes the header's job. Without it the creature is a mark
-        // beside a title; with it she is the thing being aimed, and she has to
-        // sit over the line she is jumping. It also earns the panel a second
-        // column wherever there is width for one — see Support.scss.
-        className={`support-dialog${hasContributed ? ' support-dialog--game' : ''}`}
+        className="support-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-dialog-title"
@@ -377,35 +284,27 @@ export default function SupportDialog({
           <div className="support-dialog__stage">
             <div className="support-dialog__header">
               <div className="support-dialog__identity">
-                {/* A button only for supporters: without the badge there is
-                nothing to press, and a control that does nothing is worse
-                than no control. Clicking does what space does, since space
-                is standing in for the click. */}
-                {hasContributed ? (
-                  <button
-                    type="button"
-                    className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
-                    aria-label={t('support.petHint')}
-                    // Pointer *down*, not click. A click fires on release, so the
-                    // bounce would lag the press by however long the button was
-                    // held — useless for tapping in time, and it is meant to feel
-                    // identical to hitting space.
-                    onPointerDown={bouncePet}
-                    // The pointer path never reaches a keyboard user, and space is
-                    // handled globally for the whole dialog, so Enter is the only
-                    // gap left.
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        bouncePet();
-                      }
-                    }}
-                  >
-                    <SupportPetHero hasContributed={hasContributed} />
-                  </button>
-                ) : (
+                <button
+                  type="button"
+                  className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
+                  aria-label={t('support.petHint')}
+                  // Pointer *down*, not click. A click fires on release, so the
+                  // bounce would lag the press by however long the button was
+                  // held — useless for tapping in time, and it is meant to feel
+                  // identical to hitting space.
+                  onPointerDown={bouncePet}
+                  // The pointer path never reaches a keyboard user, and space is
+                  // handled globally for the whole dialog, so Enter is the only
+                  // gap left.
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.repeat) {
+                      event.preventDefault();
+                      bouncePet();
+                    }
+                  }}
+                >
                   <SupportPetHero hasContributed={hasContributed} />
-                )}
+                </button>
                 <div>
                   <span className="eyebrow">{t('support.eyebrow')}</span>
                   <h2 id="support-dialog-title">{t('support.title')}</h2>
@@ -413,15 +312,47 @@ export default function SupportDialog({
               </div>
             </div>
 
-            {/* Below the header rather than inside it: the heartbeat needs the
-                full width of the column for the spike to have somewhere to
-                travel. Supporters only, like everything else the creature
-                does. */}
-            {hasContributed && <RhythmGame ref={gameRef} />}
+            {/* The game used to be hidden behind the contribution flag, so
+                nobody could discover the play-to-unlock route before donating. */}
+            <RhythmGame ref={gameRef} />
           </div>
 
           {/* The ask, and the second column when there is one. */}
           <div className="support-dialog__ask">
+            {hasCoffee && (
+              <a
+                className="support-method support-method--primary support-method--qr"
+                href={SUPPORT_CONFIG.coffeeUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <div className="support-method__text">
+                  <span className="support-method__label">
+                    {t('support.coffee')}
+                  </span>
+                  <span className="support-method__hint">
+                    {t('support.coffee.hint')}
+                  </span>
+                </div>
+                {/* The artwork ships with the app rather than being generated,
+                so the branded code from Buy Me a Coffee is what people scan.
+                It is therefore pinned to whatever page it was made for — if
+                FLUIDEQ_COFFEE_URL ever changes, replace this file too. */}
+                <img
+                  className="qr-code"
+                  src={supportQrImage}
+                  alt="QR code for the Buy me a coffee page"
+                  width={168}
+                  height={168}
+                />
+              </a>
+            )}
+
+            <SupportRainbowUnlock
+              hasContributed={hasContributed}
+              onContributed={onContributed}
+            />
+
             <p className="support-dialog__pitch">{t('support.pitch')}</p>
 
             {/* Said plainly rather than implied. Someone deciding whether to
@@ -444,35 +375,6 @@ export default function SupportDialog({
                   <span className="support-method__hint">
                     {t('support.card.hint')}
                   </span>
-                </a>
-              )}
-
-              {hasCoffee && (
-                <a
-                  className="support-method support-method--primary support-method--qr"
-                  href={SUPPORT_CONFIG.coffeeUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  <div className="support-method__text">
-                    <span className="support-method__label">
-                      {t('support.coffee')}
-                    </span>
-                    <span className="support-method__hint">
-                      {t('support.coffee.hint')}
-                    </span>
-                  </div>
-                  {/* The artwork ships with the app rather than being generated,
-                  so the branded code from Buy Me a Coffee is what people scan.
-                  It is therefore pinned to whatever page it was made for — if
-                  FLUIDEQ_COFFEE_URL ever changes, replace this file too. */}
-                  <img
-                    className="qr-code"
-                    src={supportQrImage}
-                    alt="QR code for the Buy me a coffee page"
-                    width={168}
-                    height={168}
-                  />
                 </a>
               )}
 
@@ -528,50 +430,12 @@ export default function SupportDialog({
               ))}
             </div>
 
-            {/* Self-declared, and honest about it: the app cannot see a Payment
-            Link checkout or an on-chain transfer, so this is the user telling
-            us. It only ever adds something, which is why an unverifiable
-            claim is harmless here. */}
-            {hasContributed ? (
-              <p className="support-dialog__thanks">{t('support.thanks')}</p>
-            ) : (
-              <button
-                type="button"
-                className="support-dialog__contributed"
-                disabled={isEarning}
-                onClick={earnBadge}
-              >
-                {t('support.contributed')}
-              </button>
-            )}
-
-            {/* The chord, as a button, for a machine that cannot press it.
-
-                Ctrl+Shift+Alt+B is not a chord a Mac keyboard produces, so on
-                one there is no way into the switch at all. Rather than invent a
-                second chord and have two things to keep in step, development
-                gets a button; the chord is left exactly as it is.
-
-                Outside the contributed branch on purpose — the two buttons
-                above are behind the badge, and this is not a toy. It folds away
-                in a release the same way they do, so the switch stays something
-                somebody has to go and find, which is the whole point of it.
-
-                Untranslated, like the others: ten locales for a string no user
-                will ever read. */}
+            {/* Mac keyboards cannot produce Ctrl+Shift+Alt+B. Development gets
+                a button for the same action, independent of the badge.
+                Debug-only labels are deliberately untranslated. */}
             {IS_DEV && (
               <div className="support-dialog__dev-row">
-                {/* Thirty-six consecutive perfect taps is the right price for
-                    euphoria mode and the wrong price for LOOKING at it. Every
-                    change to the rainbow — the bands, the graph trace, the
-                    titlebar meter, the share card — otherwise costs a flawless
-                    run against real music before it can be seen at all.
-
-                    It flips the two flags and touches nothing else. It used to
-                    write a streak of 36 and a matching score straight into the
-                    run, which meant the shortcut invented points nobody played
-                    for — and left the share card showing a number that had
-                    never been earned. The score belongs to the player. */}
+                {/* Preview the look without inventing a score or a donation. */}
                 <button
                   type="button"
                   className="support-dialog__dev-reset"
@@ -598,26 +462,13 @@ export default function SupportDialog({
                     ? 'dev: hide ad blocker switch'
                     : 'dev: show ad blocker switch'}
                 </button>
-                {/* The memory recorder, which used to sit in the titlebar.
-                    It is a development tool with a development tool's audience,
-                    and the titlebar is the most contested strip in the window
-                    — it already carries the analyser, the transport, the pet
-                    and the window controls, and at a narrow width this was the
-                    thing pushing them into each other. Here it is among the
-                    other switches nobody but a developer goes looking for. */}
+                {/* Keep debug tools out of the crowded titlebar. */}
                 <MemoryTraceButton />
               </div>
             )}
 
-            {/* The two quiet lines at the bottom share a row.
-                Stacked, they were two separate bands and a rule for what
-                amounts to one sentence of housekeeping, in a panel with no
-                vertical space to spare. They wrap back into a stack whenever
-                the column is too narrow to hold both. */}
+            {/* Sharing a wrapping row saves height in short windows. */}
             <div className="support-dialog__links">
-              {/* What the last version changed, one click away. Someone
-                  weighing up a contribution is entitled to see what the money
-                  has been producing. */}
               <button
                 type="button"
                 className="support-dialog__notes"
@@ -641,36 +492,6 @@ export default function SupportDialog({
           </div>
         </div>
       </div>
-
-      {/* The moment itself, and a sibling of the panel rather than a child of
-          it. The panel scrolls and clips its own overflow, so a burst inside
-          would be cut off at its edges and would drift if the list had been
-          scrolled. Out here it covers the whole modal, centred on it, and it
-          is removed the instant it is over — a permanent invisible overlay
-          across a dialog full of buttons is a hit-testing problem waiting to
-          happen. */}
-      {isEarning && (
-        <div className="support-earn" aria-hidden="true">
-          <span className="support-earn__core">★</span>
-          {Array.from({ length: BADGE_STARS }, (_value, index) => (
-            <span
-              key={index}
-              className="support-earn__star"
-              // The ring is computed here rather than written out as a dozen
-              // nth-child rules: one angle per star, evenly spaced, and the
-              // count changes by editing one number.
-              style={
-                {
-                  '--star-angle': `${(index * 360) / BADGE_STARS}deg`,
-                  '--star-delay': `${index * 18}ms`,
-                } as CSSProperties
-              }
-            >
-              ★
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

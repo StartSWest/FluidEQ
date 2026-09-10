@@ -164,6 +164,12 @@ export interface IEditableChartPoint {
   data: IChartPointData;
   selected: boolean;
   hovered: boolean;
+  /**
+   * Whether the band is in the chain. A switched-off band keeps its handle —
+   * it is still draggable and still the way back on — but contributes no curve,
+   * so the handle has to say so or the graph looks like it lost a band.
+   */
+  isEnabled: boolean;
   /**  is where the press landed, in chart units — see the drag state. */
   onSelect: (mode: SelectionMode, grab: IChartPointData) => void;
   onChange: (data: IChartPointData) => void;

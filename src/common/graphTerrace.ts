@@ -1,5 +1,12 @@
 import type { Projected } from './graphStyles';
 
+/**
+ * The shelves' heights as fractions of each band's height: the first is
+ * the skyline, the rest the lower tiers. Exported so the valley can put a
+ * wall under every rim.
+ */
+export const TERRACE_TIER_FRACTIONS = [1, 0.74, 0.48, 0.22];
+
 /** Four shelves share one measured skyline; the lower edges provide depth. */
 const createGraphTerrace = (points: readonly Projected[], baseline: number) => {
   if (points.length < 2) {
@@ -8,7 +15,7 @@ const createGraphTerrace = (points: readonly Projected[], baseline: number) => {
   const halfStep = (points[1][0] - points[0][0]) / 2;
   const left = points[0][0] - halfStep;
   const right = points[points.length - 1][0] + halfStep;
-  const edges = [1, 0.74, 0.48, 0.22].map((fraction) => {
+  const edges = TERRACE_TIER_FRACTIONS.map((fraction) => {
     const row = (y: number) => baseline - (baseline - y) * fraction;
     let edge = `M ${left.toFixed(1)},${row(points[0][1]).toFixed(1)}`;
     points.forEach(([x, y]) => {

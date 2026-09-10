@@ -72,9 +72,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Lueur',
   'look.off': 'Désactivée',
   'look.glowHint': 'Intensité du gonflement et de la lueur sur le rythme.',
-  'look.glowNeedsRainbow':
-    'Nécessite le mode Arc-en-ciel. Sans lui, la lueur ne change pas le dessin.',
   'look.needsRainbow': 'Nécessite le mode Arc-en-ciel.',
+  'look.glowNotForForm': "Cette forme n'a pas de halo.",
   'look.rainbowBorder': 'Bordure arc-en-ciel',
   'look.rainbowBorderHint':
     'Entoure le graphique d’une couleur qui parcourt tout le spectre.',
@@ -118,7 +117,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Appuyez sur espace pour le faire sauter',
   'support.game.hint': 'Appuyez en rythme quand le pic atteint la ligne',
   'support.game.howTo':
-    'Touchez la créature ou appuyez sur espace à chaque temps. Continuez et quelque chose arrive à ×10.',
+    'Lance de la musique, puis touche la mascotte ou appuie sur Espace quand un pic atteint la ligne centrale. Atteins ×10 pour débloquer le mode arc-en-ciel.',
   'support.game.thanks':
     'Si tout cela vous a fait sourire, vos idées et votre soutien sont ce qui fait avancer le projet.',
   'support.game.noAudio': 'Lancez un morceau et le rythme apparaîtra ici',
@@ -127,7 +126,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': "Partager l'arc-en-ciel",
   'support.game.shareTitle': 'Partagez votre score',
   'support.game.shareUnlock':
-    'Atteignez ×10 et cette carte passe en mode arc-en-ciel, spectre compris.',
+    'Débloque le mode arc-en-ciel en jouant ou en confirmant ta contribution pour donner ses couleurs à cette carte.',
   'support.game.shareNote':
     "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
   'support.game.shareSave': 'Enregistrer la carte',
@@ -159,9 +158,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copier l’adresse',
   'support.copied': 'Copiée',
   'support.openWallet': 'Ouvrir dans le portefeuille',
-  'support.contributed': 'J’ai contribué — débloquer l’étoile et la danse',
+  'support.contributed': 'J’ai contribué — activer le mode arc-en-ciel',
+  'support.rainbowHint':
+    'Tu as contribué ? Active immédiatement le mode arc-en-ciel avec « J’ai contribué ». Pas besoin d’atteindre ×10.',
   'support.thanks':
-    'Merci — votre compagnon a son étoile, et il danse maintenant.',
+    'Merci — le mode arc-en-ciel est débloqué, et ta mascotte a son étoile et sa danse.',
   'support.releaseNotes': 'Voir les nouveautés de cette version',
   'support.footerBefore':
     'Vous préférez donner du temps ? Les tickets et les pull requests sont tout aussi bienvenus sur',

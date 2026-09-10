@@ -356,7 +356,29 @@ export interface IFilter {
   gain: number;
   type: FilterTypeEnum;
   quality: number;
+  /**
+   * Whether this band is applied. Absent means yes.
+   *
+   * Optional because every state, preset and imported measurement written
+   * before the switch existed has no opinion about it, and the honest reading
+   * of no opinion is the behaviour those files already had. Ask through
+   * `isBandEnabled` rather than testing the field: `filter.isEnabled` is
+   * falsy for a band that has never been switched off, which is the one wrong
+   * answer available.
+   */
+  isEnabled?: boolean;
 }
+
+/**
+ * Whether a band contributes to what is heard.
+ *
+ * A disabled band keeps its frequency, gain, shape and place in the row; it is
+ * simply not written to Equalizer APO and not drawn into the response. That is
+ * the whole of the feature — A/B a single band without losing what it was set
+ * to, the same bargain the layer bypass switches offer for a whole layer.
+ */
+export const isBandEnabled = (filter: Pick<IFilter, 'isEnabled'>) =>
+  filter.isEnabled !== false;
 
 /**
  * One band's share of a group edit.
@@ -372,6 +394,7 @@ export interface IFilterEdit {
   gain?: number;
   quality?: number;
   type?: FilterTypeEnum;
+  isEnabled?: boolean;
 }
 
 /** Provenance shown when an EQ export was imported from an external tool. */

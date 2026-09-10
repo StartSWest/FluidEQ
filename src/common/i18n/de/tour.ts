@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': 'Bitte unterstütze uns',
+  'tour.rainbow.title': 'Willkommen im Regenbogenmodus',
+  'tour.rainbow.subtitle': 'Mit einem Klick einschalten',
+  'tour.rainbow.lead':
+    'Regenbogenfarben, leuchtende Akzente und ein Rand, der das Farbspektrum durchläuft. Nur das Aussehen ändert sich, nie der Klang.',
+  'tour.rainbow.how':
+    'Hier sofort einschalten — ×10 ist nicht nötig. Deine Wahl wird gespeichert und du kannst den Modus jederzeit ausschalten. Beiträge sind freiwillig.',
+  'tour.rainbow.enable': 'Regenbogenmodus einschalten',
+  'tour.rainbow.disable': 'Regenbogenmodus ausschalten',
+  'tour.rainbow.waveform': 'Vorschau der oberen Wellenform',
+  'tour.rainbow.toggleHint':
+    'Klicke oben auf den Schalter „RAINBOW MODE“, um den Modus ein- oder auszuschalten.',
   'tour.eyebrow': 'NEU IN DIESER VERSION',
   'tour.title': 'Neu in FluidEQ',
   'tour.close': 'Schließen',

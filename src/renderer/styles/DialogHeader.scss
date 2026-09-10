@@ -23,18 +23,9 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: space-between;
   gap: $spacing-m;
   padding: 10px 14px 10px 18px;
-  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  // A second accent rule made this divider brighter than the window frame.
+  border-bottom: 1px solid rgba($white, 0.09);
   background: $block-lift;
-
-  &::after {
-    position: absolute;
-    right: 0;
-    bottom: -1px;
-    left: 0;
-    height: 1px;
-    background: color-mix(in srgb, $secondary-light 34%, transparent);
-    content: '';
-  }
 }
 
 .dialog-header__identity {

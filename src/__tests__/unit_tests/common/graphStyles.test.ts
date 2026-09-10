@@ -807,11 +807,12 @@ describe('the later forms are the right way up', () => {
     });
   });
 
-  it('plaits the braid out of exactly two strands', () => {
-    // One rope, drawn as two continuous polylines that cross. A third `M` would
-    // mean a strand had been broken into pieces.
+  it('plaits the braid out of exactly five strands', () => {
+    // One cord, drawn as five continuous polylines that cross — two read as
+    // a pair of lines, not as a braid. A sixth `M` would mean a strand had
+    // been broken into pieces.
     const path = createGraphShape(flat, 'braid', BASELINE);
-    expect((path.match(/M /g) ?? []).length).toBe(2);
+    expect((path.match(/M /g) ?? []).length).toBe(5);
   });
 
   it('opens the canyon above the signal, not below it', () => {

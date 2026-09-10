@@ -30,6 +30,9 @@ import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
 import about from './about';
+import account from './account';
+import community from './community';
+import leaderboard from './leaderboard';
 
 const es: Partial<Dictionary> = {
   ...karaoke,
@@ -44,6 +47,9 @@ const es: Partial<Dictionary> = {
   ...tour,
   ...help,
   ...about,
+  ...account,
+  ...community,
+  ...leaderboard,
 };
 
 export default es;

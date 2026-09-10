@@ -23,6 +23,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a purchase: nothing in the app is gated behind it and the app never asks
  * twice on its own.
  *
+ * Deliberately nothing to do with the optional account in `accountConfig.ts`.
+ * These are two separate things that would be easy to conflate later: a
+ * contribution is a gift that unlocks a colour scheme on the honour system,
+ * and it buys no feature and confers no status. If anything is ever sold on a
+ * subscription, it does not belong on this flag — the whole reason this one can
+ * be self-declared is that lying about it costs nobody anything.
+ *
  * Every destination comes from a build-time environment variable (see
  * .env.example), never from a committed literal. Two reasons: a payment
  * destination is per-maintainer rather than per-project, and a wrong crypto

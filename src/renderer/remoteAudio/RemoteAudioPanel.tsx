@@ -23,7 +23,9 @@ const RemoteAudioPanel = () => {
   const [selectedRole, setSelectedRole] = useState<'listener' | 'sender'>(
     'listener',
   );
-  const [pairingCode, setPairingCode] = useState('');
+  // Undefined means not restored yet; an empty string is the user's edit.
+  // Treating both as empty restored the saved code on every deletion.
+  const [pairingCode, setPairingCode] = useState<string | undefined>();
   const [copiedCode, setCopiedCode] = useState('');
   const displayedRole = selectedRole;
   useEffect(() => {
@@ -32,15 +34,15 @@ const RemoteAudioPanel = () => {
     }
   }, [remote.role]);
   useEffect(() => {
-    if (displayedRole !== 'sender' || pairingCode) {
+    if (displayedRole !== 'sender' || pairingCode !== undefined) {
       return undefined;
     }
     let cancelled = false;
     window.electron.ipcRenderer
       .getSavedRemoteAudioLanSenderCode()
       .then((savedCode) => {
-        if (!cancelled && savedCode) {
-          setPairingCode((current) => current || savedCode);
+        if (!cancelled) {
+          setPairingCode((current) => current ?? savedCode ?? '');
         }
         return undefined;
       })
@@ -128,14 +130,6 @@ const RemoteAudioPanel = () => {
     await remote.stop();
     // Stopping is not forgetting. Keep the chosen card open and retain the
     // entered code so the user can reconnect it or replace it with another.
-    if (displayedRole === 'sender') {
-      const savedCode = await window.electron.ipcRenderer
-        .getSavedRemoteAudioLanSenderCode()
-        .catch(() => undefined);
-      if (savedCode) {
-        setPairingCode(savedCode);
-      }
-    }
     setSelectedRole(displayedRole);
   };
 
@@ -241,7 +235,7 @@ const RemoteAudioPanel = () => {
         )}
         {displayedRole === 'sender' && (
           <RemoteAudioSenderWorkspace
-            pairingCode={pairingCode}
+            pairingCode={pairingCode ?? ''}
             remote={remote}
             setPairingCode={setPairingCode}
             stopSession={stopSession}

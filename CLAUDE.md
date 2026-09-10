@@ -391,3 +391,13 @@ and an open invitation to help; what it lacked was anything watching the tree.
 The cache is off deliberately. A warm cache answers "does this build for
 someone who already built it", which is not the question. If the job fails, fix
 the tree — do not fix the job by making it easier.
+
+- **A new build-time variable blanks the running dev window.** `process.env.X`
+  in the renderer is replaced at compile time by the list in
+  `.erb/configs/public-env.ts`, read once when `pnpm dev` starts. Add a key to
+  that list and reference it from a renderer-reachable module, and the dev
+  server already running leaves the raw `process.env.X` in the bundle — the
+  renderer has no `process`, the module throws on load, and the window goes
+  white with nothing in the console that names the cause. Restart `pnpm dev`
+  before believing anything else; this is what emptied the window when
+  `FLUIDEQ_API_URL` was added.

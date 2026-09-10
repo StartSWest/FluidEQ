@@ -105,6 +105,8 @@ export interface IPerViewSetting<T> {
   get: () => T;
   /** Sets it for the current mode only; the other two are left alone. */
   set: (next: T) => void;
+  /** Sets it for all three modes at once — see `shareAcrossViews`. */
+  setEvery: (next: T) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
@@ -202,6 +204,16 @@ export const createPerViewSetting = <T>(
       }
       values[view] = next;
       writeStored(keyFor(view), serialize(next));
+      emit();
+    },
+    setEvery: (next: T) => {
+      if (GRAPH_VIEWS.every((mode) => values[mode] === next)) {
+        return;
+      }
+      GRAPH_VIEWS.forEach((mode) => {
+        values[mode] = next;
+        writeStored(keyFor(mode), serialize(next));
+      });
       emit();
     },
     subscribe: (listener: () => void) => {
@@ -1251,11 +1263,31 @@ migrateLegacyWaveSize();
  * while the expanded and full-screen views are for watching, where three
  * quarters leaves the scenes their sky and the curves their room.
  */
-const waveHeightSetting = createPerViewSetting(
-  VIEW_KEYS.waveHeight,
-  { normal: 1, expanded: 0.75, fullscreen: 0.75 },
-  parseWaveHeight,
-  serializeWaveControl,
+/**
+ * A setting that is the same in every view.
+ *
+ * Wave height and position describe the wave itself, not the frame around
+ * it. Kept per view they behaved as though the controls only existed in
+ * the two big modes: whatever was set there, the graph in its pane went
+ * back to full height, which is exactly how it was reported. Written
+ * through the per-view store rather than beside it, so the storage format
+ * and its migrations stay in one place; setting every mode is the whole
+ * of what makes it one value.
+ */
+const shareAcrossViews = <T>(
+  setting: IPerViewSetting<T>,
+): IPerViewSetting<T> => ({
+  ...setting,
+  set: setting.setEvery,
+});
+
+const waveHeightSetting = shareAcrossViews(
+  createPerViewSetting(
+    VIEW_KEYS.waveHeight,
+    { normal: 1, expanded: 0.75, fullscreen: 0.75 },
+    parseWaveHeight,
+    serializeWaveControl,
+  ),
 );
 
 export const setGraphWaveHeight = (next: number) => {
@@ -1277,11 +1309,13 @@ export const useGraphWaveHeight = () =>
  * exactly bottom-to-centre; the inverted and mirrored forms make the symmetric
  * move from their own edges.
  */
-const wavePositionSetting = createPerViewSetting(
-  VIEW_KEYS.wavePosition,
-  0,
-  parseWavePosition,
-  serializeWaveControl,
+const wavePositionSetting = shareAcrossViews(
+  createPerViewSetting(
+    VIEW_KEYS.wavePosition,
+    0,
+    parseWavePosition,
+    serializeWaveControl,
+  ),
 );
 
 export const setGraphWavePosition = (next: number) => {

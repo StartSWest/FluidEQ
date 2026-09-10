@@ -35,6 +35,7 @@ import {
   toggleGraphFullScreen,
   useGraphCoverageHidden,
   useGraphGridHidden,
+  useSceneLook,
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import {
@@ -61,6 +62,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
+import SceneCanvas from './SceneCanvas';
 import { LIVE_FULL_SCALE_DB } from './liveSpectrumFrames';
 import { getWaveTransform } from './liveTracePaint';
 
@@ -326,6 +328,10 @@ const CoverageOverlay = ({
    * frame rate, and the retained copy must not be a second reason to re-render
    * — it is read during a render that was already happening.
    */
+  // Gone is also untouchable. The group fades rather than unmounting, and
+  // its grab strips each declare their own pointer events — which is why a
+  // limit line nobody could see was still following a drag across the wave.
+  // Every strip reads this and switches its events off with the picture.
   const isGone = isResponseHidden || !coverage?.length;
   if (coverage?.length) {
     lastCoverage.current = coverage;
@@ -480,7 +486,7 @@ const CoverageOverlay = ({
                     y={Math.min(floorY, fullY)}
                     width={width}
                     height={Math.abs(floorY - fullY)}
-                    pointerEvents="all"
+                    pointerEvents={isGone ? 'none' : 'all'}
                     onPointerDown={(event) => {
                       event.stopPropagation();
                       const db = dbAt(event);
@@ -567,7 +573,7 @@ const CoverageOverlay = ({
                   {hasCustomPresenceRange(region.label) && (
                     <g
                       className="chart-presence__reset"
-                      pointerEvents="all"
+                      pointerEvents={isGone ? 'none' : 'all'}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={() => resetPresenceRange(region.label)}
                     >
@@ -667,7 +673,7 @@ const CoverageOverlay = ({
                           y={y - PRESENCE_GRAB_PX}
                           width={width}
                           height={PRESENCE_GRAB_PX * 2}
-                          pointerEvents="all"
+                          pointerEvents={isGone ? 'none' : 'all'}
                           onPointerDown={(event) => {
                             event.stopPropagation();
                             dragging.current = dragKey;
@@ -871,7 +877,7 @@ const CoverageOverlay = ({
                 y={y - PRESENCE_GRAB_PX}
                 width={Math.max(0, edge)}
                 height={PRESENCE_GRAB_PX * 2}
-                pointerEvents="all"
+                pointerEvents={isGone ? 'none' : 'all'}
                 onPointerDown={(event) => {
                   event.stopPropagation();
                   dragging.current = 'limit';
@@ -984,10 +990,37 @@ const Chart = ({
   const yAxisTickValues = useMemo(() => {
     return [MIN_GAIN, -10, 0, 10, MAX_GAIN];
   }, []);
+  const scene = useSceneLook();
   // The live trace is projected through yScaleGain and then transformed on the
   // canvas. Apply that same transform to its right-hand dB axis so the labels
   // continue to describe the visible trace when its height or position changes.
   const liveLevelScale = useMemo(() => {
+    if (scene?.spectrumRange) {
+      // A scene may reserve sky for its spectrum. Move the ruler and the
+      // measured contour together, retaining the same decibel domain.
+      const [bottom, top] = scene.spectrumRange;
+      // A compact panel still needs its toolbar gutter. The authored sky
+      // range cannot put 0 dB underneath the controls or crush the ruler.
+      const topY = Math.max(
+        (1 - top) * height - margins.top,
+        Math.min(...yScaleGain.range().map(Number)),
+      );
+      const bottomY = Math.max(
+        (1 - bottom) * height - margins.top,
+        topY + height * 0.24,
+      );
+      const scale = yScaleGain.copy();
+      return scale.range(
+        scale
+          .domain()
+          .map(
+            (value) =>
+              bottomY +
+              ((Number(value) - MIN_GAIN) / (MAX_GAIN - MIN_GAIN)) *
+                (topY - bottomY),
+          ),
+      );
+    }
     const primaryLiveCurve = liveCurves[liveCurves.length - 1];
     if (!primaryLiveCurve) {
       return yScaleGain;
@@ -1005,7 +1038,24 @@ const Chart = ({
     return yScaleGain
       .copy()
       .range(range.map((value) => translateY + scaleY * value));
-  }, [liveCurves, yScaleGain]);
+  }, [liveCurves, yScaleGain, scene?.spectrumRange, height, margins.top]);
+
+  // The scene fills the panel, while the right-hand scale lives inside the
+  // SVG gutters. Share that scale's actual endpoints rather than estimating
+  // a second dB mapping from the full canvas height.
+  const sceneSpectrumRect = useMemo<
+    readonly [number, number, number, number]
+  >(() => {
+    const range = xScaleFreq.range().map(Number);
+    return [
+      (margins.left + range[0]) / Math.max(1, width),
+      (margins.left + range[1]) / Math.max(1, width),
+      1 -
+        (margins.top + Number(liveLevelScale(MIN_GAIN))) / Math.max(1, height),
+      1 -
+        (margins.top + Number(liveLevelScale(MAX_GAIN))) / Math.max(1, height),
+    ];
+  }, [xScaleFreq, liveLevelScale, margins.left, margins.top, width, height]);
 
   // Near-flat waves cannot carry five legible labels. Thin the same scale
   // rather than letting labels overlap; the remaining marks stay exact.
@@ -1032,6 +1082,8 @@ const Chart = ({
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
 
   const svgRef = useRef<SVGSVGElement>(null);
+  // Which canvas to mount for the live trace. Null is the ordinary look and
+  // every way a premium scene can fail; see `useSceneLook`.
   const selectionRef = useRef<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -1145,18 +1197,30 @@ const Chart = ({
 
           Handed how to draw and not what: the measurement it reads for itself,
           which is what keeps this chart still while the music plays. */}
-      {liveCurves.length > 0 && (
-        <LiveTraceCanvas
-          curves={liveCurves}
-          xScale={xScaleFreq}
-          yScale={yScaleGain}
-          width={svgWidth}
-          height={svgHeight}
-          offsetLeft={margins.left}
-          offsetTop={margins.top}
-          isForeground={isLiveOutputForeground}
-        />
-      )}
+      {liveCurves.length > 0 &&
+        (scene ? (
+          // A premium scene owns the whole plot and the 2D trace is not
+          // drawn under it. Every way a scene can fail makes `scene` null
+          // again, and the ordinary canvas below takes over with the look
+          // the store already resolved for it.
+          <SceneCanvas
+            scene={scene}
+            width={width}
+            height={height}
+            spectrumRect={sceneSpectrumRect}
+          />
+        ) : (
+          <LiveTraceCanvas
+            curves={liveCurves}
+            xScale={xScaleFreq}
+            yScale={yScaleGain}
+            width={svgWidth}
+            height={svgHeight}
+            offsetLeft={margins.left}
+            offsetTop={margins.top}
+            isForeground={isLiveOutputForeground}
+          />
+        ))}
       <svg
         ref={svgRef}
         width={svgWidth}

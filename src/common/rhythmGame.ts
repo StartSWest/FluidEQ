@@ -104,11 +104,10 @@ const FLAT_MISS_PENALTY = 15;
  * compound, so a good run recovers from a disaster quickly — and it caps, so
  * one lucky stretch cannot put the record out of reach forever.
  *
- * Thirty-six consecutive hits to reach the ceiling. That is a long way, and it
- * is meant to be: the multiplier is also what the creature's face is reading,
- * so the climb has to be worth watching.
+ * Whole steps keep the multiplier readable and make the Rainbow unlock
+ * reachable in nine perfect taps instead of thirty-six quarter steps.
  */
-const STREAK_STEP = 0.25;
+const STREAK_STEP = 1;
 const MAX_STREAK_MULTIPLIER = 10;
 
 export const getStreakMultiplier = (streak: number) =>
@@ -117,11 +116,8 @@ export const getStreakMultiplier = (streak: number) =>
 /**
  * The shortest streak that reaches the ceiling.
  *
- * Derived from the two constants above rather than written as 36, so retuning
- * the step or the ceiling cannot leave a stale number behind. Exported because
- * the development shortcut needs somewhere honest to jump to — hardcoding the
- * streak there would mean a shortcut that silently stops reaching euphoria the
- * first time either constant moves.
+ * Derived from the step and ceiling so scoring, celebrations and share cards
+ * agree when the climb changes.
  */
 export const EUPHORIA_STREAK = Math.ceil(
   (MAX_STREAK_MULTIPLIER - 1) / STREAK_STEP,

@@ -11,6 +11,18 @@ it under the terms of the GNU General Public License version 3 or later.
  * big things, one slide each. Strings are per slide, prefixed by the slide.
  */
 const tour = {
+  'tour.contribute': 'Please contribute',
+  'tour.rainbow.title': 'Welcome to Rainbow mode',
+  'tour.rainbow.subtitle': 'Turn it on in one click',
+  'tour.rainbow.lead':
+    'Rainbow colours, glowing accents and a border that travels through the spectrum. Only the look changes, never your sound.',
+  'tour.rainbow.how':
+    'Enable it here immediately — no ×10 required. Your choice is remembered and you can turn it off any time. Contributions are optional.',
+  'tour.rainbow.enable': 'Enable Rainbow mode',
+  'tour.rainbow.disable': 'Turn off Rainbow mode',
+  'tour.rainbow.waveform': 'Top waveform preview',
+  'tour.rainbow.toggleHint':
+    'Click the “RAINBOW MODE” toggle above to enable or disable it.',
   'tour.eyebrow': 'NEW IN THIS VERSION',
   'tour.title': "What's new in FluidEQ",
   'tour.close': 'Close',

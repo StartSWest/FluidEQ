@@ -39,6 +39,24 @@ const PUBLIC_ENV_DEFAULTS = {
   // With none set the private route is simply not offered, and the public one
   // through GitHub still is.
   FLUIDEQ_SUPPORT_EMAIL: '',
+  // The optional account backend. Both or none: a build with one of them
+  // would show a sign-in that cannot complete. Empty means the app has no
+  // accounts at all, which is the right default for a fork and the arrangement
+  // every existing build already has.
+  //
+  // The key here is the *publishable* one. `accountConfig.ts` refuses every
+  // other shape, including the legacy JWT keys, because a service-role key
+  // pasted here would ship to every user and bypass every database policy.
+  FLUIDEQ_SUPABASE_URL: '',
+  FLUIDEQ_SUPABASE_ANON_KEY: '',
+  // Where the checkout and billing-portal functions answer; empty means the
+  // Supabase project's own gateway. The one line that changes when they move
+  // under the product's domain.
+  FLUIDEQ_API_URL: '',
+  // The price as text, and the switch for the upgrade offer: empty means
+  // signing in works but there is nothing to buy, which is every build until
+  // a merchant account exists.
+  FLUIDEQ_PLUS_PRICE: '',
 };
 
 export default PUBLIC_ENV_DEFAULTS;

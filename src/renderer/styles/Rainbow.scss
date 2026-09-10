@@ -19,6 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'theme' as *;
 
+// A popup inside another surface must not copy its parent's decorative artwork.
+@property --rainbow-surface-image {
+  syntax: '*';
+  inherits: false;
+  initial-value: none;
+}
+
 /*
  * Rainbow mode, everywhere the graph is not.
  *
@@ -64,6 +71,23 @@ html.is-euphoric {
   }
 }
 
+@keyframes rainbow-border-drift {
+  from {
+    background-position:
+      0% 50%,
+      0 0,
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      200% 50%,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+
 // The bar under the open tab, which was the accent doing this job already.
 //
 // Both of them: the section rail inside the page, and the one under the chosen
@@ -77,25 +101,40 @@ html.is-euphoric {
   animation: rainbow-drift 12s linear infinite;
 }
 
-// Import and Save Preset are the same modal surface, so the rainbow edge is
-// applied to their shared class. Keeping the fill on the padding box leaves the
-// dialog readable while the one-pixel border carries the moving spectrum.
-.is-euphoric .dsp-import {
-  border-color: transparent;
-  background:
-    linear-gradient($surface-menu, $surface-menu) padding-box,
-    var(--rainbow-sweep) border-box;
-  background-size:
-    auto,
-    200% 100%;
-  animation: rainbow-drift 12s linear infinite;
+// The shared menu/dialog mixins cover their families. These semantic surfaces
+// include the older custom dialogs and portalled context menus too. Dropdown
+// uses role=menu on its trigger, so that control is explicitly excluded.
+html
+  body
+  :is(
+    [role='dialog'],
+    [role='alertdialog'],
+    dialog,
+    [data-anchored-menu],
+    [role='menu']:not(.dropdown > [role='menu']),
+    .graph-legend-menu__list
+  ) {
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-m;
+}
+
+html.is-euphoric
+  body
+  :is(
+    [role='dialog'],
+    [role='alertdialog'],
+    dialog,
+    [data-anchored-menu],
+    [role='menu']:not(.dropdown > [role='menu']),
+    .graph-legend-menu__list
+  ) {
+  @include rainbow-border;
 }
 
 // A moving gradient behind text is exactly the thing this setting is for
 // people who cannot have. The colours stay; only the travel stops.
 @media (prefers-reduced-motion: reduce) {
-  .is-euphoric .workspace-tab-group__bar,
-  .is-euphoric .dsp-import {
+  .is-euphoric .workspace-tab-group__bar {
     animation: none;
   }
 }

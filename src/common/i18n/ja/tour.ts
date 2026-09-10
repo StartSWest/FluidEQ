@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': 'ご支援をお願いします',
+  'tour.rainbow.title': 'レインボーモードへようこそ',
+  'tour.rainbow.subtitle': 'ワンクリックで有効に',
+  'tour.rainbow.lead':
+    '虹色のカラー、輝くアクセント、色相を巡る枠。変わるのは見た目だけで、音には影響しません。',
+  'tour.rainbow.how':
+    'ここですぐに有効にできます。×10は不要です。設定は保存され、いつでも無効にできます。支援は任意です。',
+  'tour.rainbow.enable': 'レインボーモードを有効にする',
+  'tour.rainbow.disable': 'レインボーモードを無効にする',
+  'tour.rainbow.waveform': '上部の波形プレビュー',
+  'tour.rainbow.toggleHint':
+    '上の「RAINBOW MODE」スイッチをクリックして、有効・無効を切り替えます。',
   'tour.eyebrow': 'このバージョンの新機能',
   'tour.title': 'FluidEQ の新機能',
   'tour.close': '閉じる',

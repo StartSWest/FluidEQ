@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   IFiltersMap,
   IFilter,
+  isBandEnabled,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_QUALITY,
@@ -43,6 +44,14 @@ import {
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
 import LookIcon from 'renderer/icons/LookIcon';
+import SceneLookIcon from 'renderer/icons/SceneLookIcon';
+import {
+  isLockedLookId,
+  isPremiumLookId,
+  resolveSceneName,
+} from 'common/scenePacks';
+import { useLockedScenes, useUsableScenes } from 'renderer/utils/scenePacks';
+import { requestAccountPanel } from 'renderer/account/accountPanel';
 import PaletteIcon from 'renderer/icons/PaletteIcon';
 import {
   FilterActionEnum,
@@ -494,14 +503,25 @@ interface IFrequencyResponseChartProps {
 const FrequencyResponseChart = ({
   isVisible,
 }: IFrequencyResponseChartProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
   const selectedLookId = useSelectedLookId();
+  const isPremiumSceneSelected = isPremiumLookId(selectedLookId);
   const graphPalette: GraphPalette = useGraphPalette();
   const isPaletteSelectable = useIsPaletteSelectable();
   const customLooks = useCustomLooks();
+  // The premium scenes that can run right now. Subscribed here so the picker
+  // rebuilds when they arrive or a subscription lapses — the same reason the
+  // custom looks are.
+  const usableScenes = useUsableScenes();
+  // The Plus scenes this account cannot draw. Shown anyway, locked, at the end
+  // of the list: the free app says what Plus is instead of hiding it, and
+  // choosing one leads to the place where it stops being locked. Never in
+  // `getSelectableLooks` — nothing that cycles, remembers or draws a look can
+  // land on one.
+  const lockedScenes = useLockedScenes();
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   /**
    * Closing, but not yet gone.
@@ -538,6 +558,17 @@ const FrequencyResponseChart = ({
   // A pending close must not fire into an unmounted component, and leaving the
   // graph is itself a reason for the panel to be gone.
   useEffect(() => () => clearTimeout(designerExitTimer.current), []);
+
+  // The standard editor rebases a selection onto 2D geometry. Keeping it open
+  // on a Plus scene silently replaces that scene with a fallback draft.
+  useEffect(() => {
+    if (isPremiumSceneSelected) {
+      clearTimeout(designerExitTimer.current);
+      designerExitTimer.current = undefined;
+      setIsDesignerClosing(false);
+      setIsDesignerOpen(false);
+    }
+  }, [isPremiumSceneSelected]);
 
   // The toolbar stays while the designer is open — the panel was opened from
   // it, sits beside it, and every control in it is judged against the drawing
@@ -586,60 +617,139 @@ const FrequencyResponseChart = ({
    * while the live curve is updating.
    */
   const graphLookOptions = useMemo(
-    () =>
-      getSelectableLooks(customLooks, graphPalette).map((look) => {
-        // The form's name and nothing else. The palette used to be appended
-        // here, back when the list held every form three times; with one row
-        // per form the suffix would be the same word on all forty-seven and
-        // the toggle beside the list already says which is on.
-        const builtInLabel = look.isCustom
-          ? look.label
-          : t(`graph.styleName.${look.style}` as TranslationKey);
+    () => [
+      ...getSelectableLooks(customLooks, graphPalette, usableScenes).map(
+        (look) => {
+          // The form's name and nothing else. The palette used to be appended
+          // here, back when the list held every form three times; with one row
+          // per form the suffix would be the same word on all forty-seven and
+          // the toggle beside the list already says which is on.
+          //
+          // A premium scene carries its own name, already in every language the
+          // pack was published with, and is never routed through `t()`: a
+          // runtime name is not a translation key.
+          const scene = isPremiumLookId(look.id)
+            ? usableScenes.find((entry) => entry.lookId === look.id)
+            : undefined;
+          const ownName = scene
+            ? resolveSceneName(scene, locale)
+            : look.isCustom && look.label;
+          const builtInLabel =
+            ownName || t(`graph.styleName.${look.style}` as TranslationKey);
+          return {
+            value: look.id,
+            label: builtInLabel,
+            // The name is wrapped rather than handed over as a bare string, because
+            // the dropdown renders `display` straight into the trigger — a loose
+            // text node with nothing to hang a rule on. Styling the closed control
+            // needs an element.
+            //
+            // A look the user made is marked on the row rather than in the label,
+            // so the search still matches the name they typed instead of the word
+            // "custom".
+            //
+            // The glyph goes in front of it, in both places `display` is used —
+            // every row of the open list and the closed trigger. A hundred and
+            // thirty-eight rows of "Terrace", "Crown" and "Truss" say nothing
+            // about what any of them draws, and the only way to find out was to
+            // select one and look; the icon answers the shape and the colouring at
+            // once, since it is painted by the same resolver as the trace itself.
+            display: (
+              <span className="graph-look-option">
+                {scene ? (
+                  <SceneLookIcon
+                    className="graph-look-option__icon"
+                    swatch={scene.swatch}
+                  />
+                ) : (
+                  <LookIcon
+                    className="graph-look-option__icon"
+                    style={look.style}
+                    palette={look.palette}
+                    colours={look.colours}
+                  />
+                )}
+                <span
+                  className={`graph-look-name${
+                    look.isCustom ? ' graph-look-name--custom' : ''
+                  }${scene ? ' graph-look-name--premium' : ''}`}
+                >
+                  {builtInLabel}
+                </span>
+                {scene && (
+                  <span className="graph-look-badge">
+                    {t('graph.scene.badge')}
+                  </span>
+                )}
+              </span>
+            ),
+          };
+        },
+      ),
+      // The locked rows, painted like a Plus row with the lock where the tag
+      // is, under a heading with the tier's name, so the list says "these
+      // exist and they are Plus" in one glance. The icon is the pack's real
+      // swatch at full strength — it is the whole pitch — and only the name
+      // is quieted, so the row reads as not yet yours rather than as broken.
+      ...lockedScenes.map((scene) => {
+        const name = resolveSceneName(scene, locale);
         return {
-          value: look.id,
-          label: builtInLabel,
-          // The name is wrapped rather than handed over as a bare string, because
-          // the dropdown renders `display` straight into the trigger — a loose
-          // text node with nothing to hang a rule on. Styling the closed control
-          // needs an element.
-          //
-          // A look the user made is marked on the row rather than in the label,
-          // so the search still matches the name they typed instead of the word
-          // "custom".
-          //
-          // The glyph goes in front of it, in both places `display` is used —
-          // every row of the open list and the closed trigger. A hundred and
-          // thirty-eight rows of "Terrace", "Crown" and "Truss" say nothing
-          // about what any of them draws, and the only way to find out was to
-          // select one and look; the icon answers the shape and the colouring at
-          // once, since it is painted by the same resolver as the trace itself.
+          value: scene.lookId,
+          label: name,
+          group: t('account.plus.eyebrow'),
           display: (
-            <span className="graph-look-option">
-              <LookIcon
+            <span
+              className="graph-look-option graph-look-option--locked"
+              title={t('graph.scene.locked')}
+            >
+              <SceneLookIcon
                 className="graph-look-option__icon"
-                style={look.style}
-                palette={look.palette}
-                colours={look.colours}
+                swatch={scene.swatch}
               />
-              <span
-                className={`graph-look-name${
-                  look.isCustom ? ' graph-look-name--custom' : ''
-                }`}
-              >
-                {builtInLabel}
+              <span className="graph-look-name graph-look-name--premium">
+                {name}
+              </span>
+              <span className="graph-look-badge graph-look-badge--locked">
+                <svg
+                  className="graph-look-badge__lock"
+                  viewBox="0 0 10 12"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M2.5 5V3.6a2.5 2.5 0 0 1 5 0V5" />
+                  <rect x="1" y="5" width="8" height="6" rx="1.4" />
+                </svg>
+                {t('graph.scene.badge')}
               </span>
             </span>
           ),
         };
       }),
+    ],
     // The palette is passed to the resolver rather than left for it to read,
     // which is what makes this dependency a real one. Every row is drawn in
     // whichever palette is on, so without it the menu froze in the previous
     // one and its ids went stale with it — the list still held `bars` while
     // the selection had become `bars-rainbow`, so the dropdown matched
-    // nothing and cycling walked a list nobody could see.
-    [customLooks, graphPalette, t],
+    // nothing and cycling walked a list nobody could see. The scenes are a
+    // dependency for the same reason: they arrive after first paint, and
+    // change when a subscription starts or lapses.
+    [customLooks, graphPalette, usableScenes, lockedScenes, locale, t],
   );
+
+  /**
+   * A locked row is not a selection. Choosing it asks for the Account panel,
+   * where Plus is explained and bought, and the look on screen stays put —
+   * the dropdown closes on its own and its trigger keeps showing the current
+   * look, because a locked id never matches the selection.
+   */
+  const chooseGraphLook = useCallback((lookId: string) => {
+    if (isLockedLookId(lookId)) {
+      requestAccountPanel();
+      return;
+    }
+    setGraphLook(lookId);
+  }, []);
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
@@ -1461,6 +1571,7 @@ const FrequencyResponseChart = ({
         data: { x: filter.frequency, y: curveGain },
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
+        isEnabled: isBandEnabled(filter),
         onSelect: (mode: SelectionMode, grab: IChartPointData) =>
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
@@ -1649,7 +1760,7 @@ const FrequencyResponseChart = ({
               isFilterable
               filterPlaceholder={t('graph.style.search')}
               placement="down"
-              handleChange={setGraphLook}
+              handleChange={chooseGraphLook}
             />
             <button
               type="button"
@@ -1707,35 +1818,37 @@ const FrequencyResponseChart = ({
                 "none of these, quite". The label says which of the two things it
                 will do, since opening it on a look somebody made edits that look
                 rather than starting another. */}
-            <button
-              type="button"
-              className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
-              // There is nothing to design against with the wave switched off:
-              // every control in the panel is judged by what it does to a
-              // drawing that is not there.
-              disabled={isDisplayedWaveHidden}
-              onClick={() =>
-                isDesignerOpen ? closeDesigner() : openDesigner()
-              }
-              aria-pressed={isDesignerOpen}
-              title={(() => {
-                if (isDisplayedWaveHidden) {
-                  return t('graph.design.showWave');
+            {!isPremiumSceneSelected && (
+              <button
+                type="button"
+                className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
+                // There is nothing to design against with the wave switched off:
+                // every control in the panel is judged by what it does to a
+                // drawing that is not there.
+                disabled={isDisplayedWaveHidden}
+                onClick={() =>
+                  isDesignerOpen ? closeDesigner() : openDesigner()
                 }
-                return isDesignerOpen
-                  ? t('graph.design.closeHint')
-                  : t('graph.design.createHint');
-              })()}
-            >
-              {(() => {
-                if (isDesignerOpen) {
-                  return t('graph.design.close');
-                }
-                return customLooks.some((look) => look.id === selectedLookId)
-                  ? t('graph.design.edit')
-                  : t('graph.design.new');
-              })()}
-            </button>
+                aria-pressed={isDesignerOpen}
+                title={(() => {
+                  if (isDisplayedWaveHidden) {
+                    return t('graph.design.showWave');
+                  }
+                  return isDesignerOpen
+                    ? t('graph.design.closeHint')
+                    : t('graph.design.createHint');
+                })()}
+              >
+                {(() => {
+                  if (isDesignerOpen) {
+                    return t('graph.design.close');
+                  }
+                  return customLooks.some((look) => look.id === selectedLookId)
+                    ? t('graph.design.edit')
+                    : t('graph.design.new');
+                })()}
+              </button>
+            )}
             {/* Solo — the wave with every curve dropped — had a button here and
               no longer does. It is the last stop of Ctrl+W, and as a control
               of its own it was the odd one in a row where everything else names
@@ -1909,7 +2022,7 @@ const FrequencyResponseChart = ({
           dialog of its own — what the panel is for is watching this chart
           change while the sliders move. Unmounted when closed, so the draft it
           holds is dropped with it. */}
-      {isDesignerOpen && (
+      {isDesignerOpen && !isPremiumSceneSelected && (
         <LookDesigner onClose={closeDesigner} isClosing={isDesignerClosing} />
       )}
     </div>

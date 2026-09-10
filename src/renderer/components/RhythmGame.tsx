@@ -42,6 +42,7 @@ import {
 import {
   useLiveAudioFrame,
   useLiveAudioControl,
+  useLiveAudioCapture,
 } from '../audio/LiveAudioContext';
 import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
@@ -118,6 +119,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   // instruction, the score and a live waveform around it both crowds the card
   // and invites tapping at a game no longer in front of them.
   const [isSharing, setIsSharing] = useState(false);
+  // Without its own capture claim, the game only heard music while another
+  // spectrum view happened to keep the analyser open.
+  useLiveAudioCapture(!isSharing);
   const [lastHit, setLastHit] = useState<IRhythmHit>();
   const [hitSeq, setHitSeq] = useState(0);
   // Redrawn from the state each frame. Kept in React state rather than mutated
@@ -368,10 +372,8 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   return (
     <>
       <div className="rhythm-game">
-        {/* How to play, and what it is worth playing for. Kept above the trace
-          because someone who has not worked out that this is a game will never
-          look below it — and deliberately vague about the reward, since
-          spoiling it costs the only surprise the app has. */}
+        {/* Instructions sit above the trace so the unlock route is visible
+            before the player starts tapping. */}
         <p className="rhythm-game__howto">{t('support.game.howTo')}</p>
         {/* The record used to sit here and no longer appears anywhere. It is
           still kept, because the card falls back to it when the current run is
@@ -390,14 +392,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               multiplier gained a digit — while the creature above it and the
               target line below it both stay on the true middle. This way the
               number holds the centre line and the pill hangs off it. */}
-            {run.streak > 1 && (
-              <span className="rhythm-game__streak">
-                ×
-                {getStreakMultiplier(run.streak)
-                  .toFixed(2)
-                  .replace(/\.?0+$/, '')}
-              </span>
-            )}
+            <span className="rhythm-game__streak">
+              ×{getStreakMultiplier(run.streak)}
+            </span>
           </span>
         </div>
 

@@ -35,11 +35,20 @@ import {
   resolveBuiltInLook,
   resolveCustomLook,
 } from 'common/customLooks';
+import { isPremiumLookId, packIdOfLook } from 'common/scenePacks';
 import {
   getCustomLook,
   getCustomLooks,
   subscribeCustomLooks,
 } from './customLooks';
+import {
+  getScenePackSummary,
+  getUsableScene,
+  getUsableScenes,
+  isScenePackListingLoaded,
+  subscribeScenePacks,
+  type IUsableScene,
+} from './scenePacks';
 
 import { readStored, STORAGE_KEY, writeStored } from './graphStorage';
 
@@ -102,12 +111,37 @@ const rememberFormPalette = (style: GraphStyle, palette: GraphPalette) => {
  */
 let selectedId = DEFAULT_GRAPH_LOOK_ID;
 const canonicalLookId = (id: string) => {
-  if (isCustomLookId(id)) {
+  // Both prefixed kinds are kept as they are. This is the quiet one for the
+  // premium prefix: an unrecognised id falls through to `getGraphLook`, which
+  // answers the default for anything it does not know — so without this line
+  // every premium selection was silently rewritten to Fluid on the next launch
+  // and nothing failed anywhere.
+  if (isCustomLookId(id) || isPremiumLookId(id)) {
     return id;
   }
   const look = getGraphLook(id);
   return graphLookId(canonicalGraphStyle(look.style), look.palette);
 };
+
+/**
+ * The free look a premium selection is drawn as when the scene itself cannot
+ * run — or, before the pack list has arrived, the default.
+ */
+const fallbackLookFor = (premiumId: string): IResolvedLook => {
+  const summary = getScenePackSummary(packIdOfLook(premiumId));
+  return resolveBuiltInLook(
+    summary
+      ? getGraphLook(graphLookId(summary.fallbackStyle, 'auto'))
+      : DEFAULT_GRAPH_LOOK,
+  );
+};
+
+/** A premium row in the picker: the scene's own id over its fallback's tuning. */
+const resolveSceneRow = (scene: IUsableScene): IResolvedLook => ({
+  ...resolveBuiltInLook(getGraphLook(graphLookId(scene.fallbackStyle, 'auto'))),
+  id: scene.lookId,
+  label: scene.names.en,
+});
 try {
   selectedId = canonicalLookId(
     window.localStorage.getItem(STORAGE_KEY) || selectedId,
@@ -138,6 +172,14 @@ const computeResolved = (): IResolvedLook => {
   const custom = getCustomLook(selectedId);
   if (custom) {
     return resolveCustomLook(custom);
+  }
+  // A premium selection resolves to its fallback FORM here, always. The 2D
+  // canvas never learns that premium exists: when the scene runs, a different
+  // canvas is mounted over this value; when it cannot — no GPU, a shader that
+  // will not compile, a lapsed subscription — the value it needs is already
+  // what this hands it. Every failure path is "mount the 2D canvas instead".
+  if (isPremiumLookId(selectedId)) {
+    return fallbackLookFor(selectedId);
   }
   // `getGraphLook` answers with the first look for anything it does not know,
   // which is what a stale id from an older version or a deleted custom look
@@ -193,6 +235,13 @@ export const getSelectableLooks = (
    * an argument is what makes the dependency real rather than remembered.
    */
   palette: GraphPalette = getGraphPalette(),
+  /**
+   * The premium scenes that can actually run right now, for the same reason
+   * the other two are parameters. Everything in this list draws; a scene that
+   * cannot — no subscription, no GPU, a shader that failed here — is not in it,
+   * so the auto-cycle can never land on a row that would show nothing.
+   */
+  scenes: readonly IUsableScene[] = getUsableScenes(),
 ): IResolvedLook[] => {
   const selected = getGraphLook(selectedId).style;
   return [
@@ -213,6 +262,7 @@ export const getSelectableLooks = (
       ),
     ),
     ...customLooks.map(resolveCustomLook),
+    ...scenes.map(resolveSceneRow),
   ];
 };
 
@@ -229,6 +279,11 @@ export const getSelectableLooks = (
  * and the toggle does not reach into one.
  */
 export const getGraphPalette = (): GraphPalette => {
+  // A scene has no palette; the toggle is disabled for it, and `auto` keeps the
+  // rows around it drawn the ordinary way.
+  if (isPremiumLookId(selectedId)) {
+    return 'auto';
+  }
   const custom = getCustomLook(selectedId);
   return custom ? custom.palette : getGraphLook(selectedId).palette;
 };
@@ -240,7 +295,7 @@ export const getGraphPalette = (): GraphPalette => {
  * selection itself is just the form's other id.
  */
 export const setGraphPalette = (palette: GraphPalette) => {
-  if (getCustomLook(selectedId)) {
+  if (getCustomLook(selectedId) || isPremiumLookId(selectedId)) {
     return;
   }
   const { style } = getGraphLook(selectedId);
@@ -325,6 +380,26 @@ subscribeCustomLooks(() => {
   refresh();
 });
 
+// A scene can stop being usable underneath the selection — the subscription
+// lapsed, the pack was quarantined, a new version arrived without it. The
+// selection then lands on THAT SCENE'S fallback form, not on Fluid: somebody
+// who chose an aurora should get the nearest free form, not the first one.
+//
+// Only once the list has actually been received. At startup the store is empty
+// until the main process answers, and re-pointing then would throw away a
+// premium selection on every launch before the packs had a chance to arrive.
+subscribeScenePacks(() => {
+  if (
+    isPremiumLookId(selectedId) &&
+    isScenePackListingLoaded() &&
+    !getUsableScene(packIdOfLook(selectedId))
+  ) {
+    selectedId = fallbackLookFor(selectedId).id;
+    persistSelection();
+  }
+  refresh();
+});
+
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => {
@@ -382,9 +457,29 @@ export const useGraphPalette = () =>
 export const useIsPaletteSelectable = () =>
   useSyncExternalStore(
     subscribe,
-    () => !isCustomLookId(selectedId),
+    () => !isCustomLookId(selectedId) && !isPremiumLookId(selectedId),
     () => true,
   );
+
+/**
+ * The premium scene to draw, or null to draw the ordinary look.
+ *
+ * Separate from `useGraphLook` on purpose: that one keeps returning a plain
+ * look so the 2D canvas and everything else never learn a scene exists. This
+ * is the one question the chart asks to decide which canvas to mount, and it
+ * answers null the moment a scene stops being usable — which is every failure
+ * path collapsing to the same place.
+ *
+ * Null while a draft is open as well: the designer edits a look's tuning, and
+ * a scene has none to edit.
+ */
+const selectedScene = (): IUsableScene | null =>
+  !draft && isPremiumLookId(selectedId)
+    ? (getUsableScene(packIdOfLook(selectedId)) ?? null)
+    : null;
+
+export const useSceneLook = () =>
+  useSyncExternalStore(subscribe, selectedScene, () => null);
 
 // The two layers beneath this one. Re-exported so every caller keeps one
 // address for the graph store: the split is how the code is organised, not

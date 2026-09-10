@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * Euphoria mode: two flags, and they are not the same question.
  *
- *   ACHIEVED — has this install ever won the game? Persisted, one-way.
+ *   ACHIEVED — unlocked through play or contribution? Persisted, one-way.
  *   ENABLED  — is the look switched on right now? Persisted preference.
  *
  * They were previously muddled together, and the muddle was a real bug: the
@@ -33,20 +33,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * ACHIEVED on permanently and ENABLED on once. After that, ENABLED is the only
  * thing that decides what is painted, and the player owns it.
  *
- * Neither flag has anything to do with the development build. `IS_DEV` gates a
- * shortcut button that jumps the streak; it is a way of *playing* the game
- * quickly, not a third mode. In a production build that button does not exist
- * and these two flags behave identically.
+ * Contribution confirmation uses the same unlock event without changing the
+ * score. Neither flag depends on the development preview shortcut.
  */
 
 import { useSyncExternalStore } from 'react';
 
 /**
- * ACHIEVED. Persisted, and deliberately one-way: thirty-six consecutive
- * perfect taps is the price of admission and it is paid once. Afterwards the
- * mode is a switch rather than something to re-earn every session — nobody
- * wants to grind back to a colour scheme they have already proved they can
- * reach.
+ * ACHIEVED. Persisted and one-way, whether unlocked through play or contribution.
+ * Afterwards the mode is a switch, not something to re-earn every session.
  */
 const ACHIEVED_KEY = 'fluideq-euphoria-reached';
 const ENABLED_KEY = 'fluideq-euphoria-enabled';
@@ -107,7 +102,7 @@ export const setEuphoriaEnabled = (next: boolean) => {
 export const toggleEuphoriaEnabled = () => setEuphoriaEnabled(!enabled);
 
 /**
- * A run just hit the ceiling.
+ * A run hit the ceiling, or the user confirmed a contribution.
  *
  * Unlocks the mode forever and switches it on now, so the moment of winning
  * shows the thing that was won. Called on the transition, never on the
@@ -140,7 +135,7 @@ export const winEuphoria = () => {
 // forever. Primitives are stable by definition, and most callers only care
 // about one of them anyway.
 
-/** Whether this install has ever won the game. */
+/** Whether this install has unlocked Rainbow through play or contribution. */
 export const useIsEuphoriaAchieved = () =>
   useSyncExternalStore(
     subscribe,

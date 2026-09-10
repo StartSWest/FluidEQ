@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': 'Поддержите проект',
+  'tour.rainbow.title': 'Добро пожаловать в режим «Радуга»',
+  'tour.rainbow.subtitle': 'Включите одним нажатием',
+  'tour.rainbow.lead':
+    'Радужные цвета, светящиеся акценты и рамка, переливающаяся всеми цветами спектра. Меняется только оформление, но не звук.',
+  'tour.rainbow.how':
+    'Включите прямо здесь — достигать ×10 не нужно. Выбор сохраняется, и режим можно выключить в любой момент. Поддержка добровольная.',
+  'tour.rainbow.enable': 'Включить режим «Радуга»',
+  'tour.rainbow.disable': 'Выключить режим «Радуга»',
+  'tour.rainbow.waveform': 'Предпросмотр верхней волны',
+  'tour.rainbow.toggleHint':
+    'Нажмите переключатель «RAINBOW MODE» выше, чтобы включить или выключить режим.',
   'tour.eyebrow': 'НОВОЕ В ЭТОЙ ВЕРСИИ',
   'tour.title': 'Что нового в FluidEQ',
   'tour.close': 'Закрыть',

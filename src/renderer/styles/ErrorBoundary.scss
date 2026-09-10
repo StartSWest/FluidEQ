@@ -66,6 +66,29 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
+// With a journal behind it the card carries two stacks, and 620px wraps a
+// frame with a bundle URL in it onto three lines. The extra width is only
+// taken when there is something to put in it.
+.crash-screen__card--verbose {
+  width: min(880px, 100%);
+}
+
+.crash-screen__caption {
+  margin: 2px 0 -4px;
+}
+
+// Context rather than the fault itself, so it drops the red and sits quieter
+// than the block above it. Development only: main sends this journal to the
+// window in a debug build and sends an empty string in a packaged one.
+.crash-screen__detail--history {
+  // Tall enough for a whole entry at a glance, capped so the buttons stay on
+  // screen on a short window rather than scrolling with the card.
+  max-height: min(360px, 34vh);
+  color: $text-muted;
+  border-color: $border-subtle;
+  font-size: $text-small;
+}
+
 .crash-screen__actions {
   display: flex;
   flex-wrap: wrap;

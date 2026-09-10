@@ -52,6 +52,18 @@ interface IKnobProps {
    * decibels.
    */
   defaultValue?: number;
+  /**
+   * What Ctrl+click does, where going home is not the same as setting this
+   * value.
+   *
+   * The EQ's gain dial shows one band but drives every band selected, and it
+   * drives them by a delta so the selection keeps its shape. "Back to flat"
+   * is the one thing that cannot be said that way: a delta large enough to
+   * flatten the band being shown leaves the rest wherever that delta put
+   * them, and it is no delta at all when the shown band is already at zero.
+   * Given this, the gesture calls it instead of writing `defaultValue`.
+   */
+  onReset?: () => void;
   handleChange: (newValue: number) => Promise<void>;
 }
 
@@ -64,6 +76,7 @@ const Knob = ({
   isDisabled,
   unit,
   defaultValue,
+  onReset,
   handleChange,
 }: IKnobProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -135,6 +148,13 @@ const Knob = ({
    */
   const showsArc = arcLength > 0 || !isBipolar;
   /**
+   * Decimals this dial can actually reach, read off its own step.
+   *
+   * Used both to round what is written and to decide what is drawn, so the
+   * readout never promises a resolution the control does not have.
+   */
+  const precision = step < 1 ? Math.ceil(-Math.log10(step)) : 0;
+  /**
    * As many digits as fit inside the dial, and no more.
    *
    * The face is about 40px across, which is roughly six characters of the
@@ -143,22 +163,27 @@ const Knob = ({
    * with the text running out past the metal.
    *
    * Kilohertz above 10k, whole numbers from 1,000 up, and decimals only where
-   * the value is small enough for them to be worth reading. Nothing here is
-   * frequency-specific: a knob does not know what it is turning.
+   * the value is small enough for them to be worth reading AND the step can
+   * land on them: a dial that moves in whole hertz drawing "630.0" spends one
+   * of its six characters on a digit it can never set. Nothing here is
+   * frequency-specific: a knob does not know what it is turning, only how
+   * finely it turns.
    */
   const displayValue = (() => {
     const magnitude = Math.abs(value);
     if (magnitude >= 10_000) {
       return `${(value / 1_000).toFixed(1)}k`;
     }
-    if (magnitude >= 1_000) {
-      return value.toFixed(0);
-    }
-    return magnitude < 1 ? value.toFixed(2) : value.toFixed(1);
+    const decimals =
+      magnitude >= 1_000 ? 0 : Math.min(magnitude < 1 ? 2 : 1, precision);
+    const text = value.toFixed(decimals);
+    // A value that rounds away to nothing must not keep its minus sign:
+    // (-0.04).toFixed(1) is "-0.0", which on a bipolar dial reads as a cut
+    // that is not there.
+    return Number(text) === 0 ? (0).toFixed(decimals) : text;
   })();
 
   const updateValue = (nextValue: number) => {
-    const precision = step < 1 ? Math.ceil(-Math.log10(step)) : 0;
     const rounded = Number(nextValue.toFixed(precision));
     const next = Math.min(max, Math.max(min, rounded));
     if (next !== value) {
@@ -203,8 +228,15 @@ const Knob = ({
      * cannot also drag the value away from the home it was just sent to.
      * `metaKey` because on a Mac keyboard that is the same finger.
      */
-    if ((event.ctrlKey || event.metaKey) && defaultValue !== undefined) {
-      updateValue(defaultValue);
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      (onReset || defaultValue !== undefined)
+    ) {
+      if (onReset) {
+        onReset();
+      } else if (defaultValue !== undefined) {
+        updateValue(defaultValue);
+      }
       inputRef.current?.focus();
       event.preventDefault();
       return;

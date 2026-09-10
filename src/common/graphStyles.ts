@@ -167,9 +167,25 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
     style === 'weave' ||
     style === 'bezier' ||
     style === 'feather' ||
-    style === 'zipper'
+    style === 'zipper' ||
+    // Warp speed: retired after its hyperspace rebuild was turned down.
+    style === 'starfield'
   ) {
     return 'line';
+  }
+  // Stalactites: the cave stays loadable for saved looks and is out of the
+  // picker; Ivan dropped it from the 2D set.
+  if (style === 'stalactites') {
+    return 'area';
+  }
+  // Road trip: likewise dropped from the 2D set; the night road stays
+  // loadable for saved looks.
+  if (style === 'racer') {
+    return 'area';
+  }
+  // Rainfall: the storm, dropped the same day.
+  if (style === 'rain') {
+    return 'area';
   }
   if (style === 'caps' || style === 'crown' || style === 'diamonds') {
     return 'dots';
@@ -238,7 +254,7 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   starfield: 'Warp speed',
   candles: 'Candles',
   arches: 'Arches',
-  flames: 'Flames',
+  flames: 'Dancing flames',
   barcode: 'Barcode',
   rain: 'Rainfall',
   honeycomb: 'Honeycomb',
@@ -268,6 +284,11 @@ export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
 };
 
 /** Whether a style is painted rather than stroked, so the caller can say so. */
+/**
+ * Echo is not here on purpose. It is a sea of waves receding to a
+ * horizon, and the water wants a body: stroked, the rows read as a stack
+ * of wires, and the same scene filled reads as distance.
+ */
 const STROKED_STYLES = new Set<GraphStyle>([
   'line',
   'steps',
@@ -279,12 +300,10 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'zipper',
   'slope',
   'ecg',
-  'echo',
   // The bridge: an open truss over water with wireframe cars, which is
   // the design; filled only makes its posts solid.
   'truss',
   'starfield',
-  'rain',
   'braid',
   'stitch',
   'wave-line',
@@ -386,10 +405,17 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   truss: 'signal',
   sawtooth: 'signal',
   ecg: 'signal',
-  starfield: 'signal',
+  // Hyperspace: the tunnel's streaks coloured by where they fly.
+  starfield: 'rainbow',
   barcode: 'signal',
-  rain: 'signal',
-  fence: 'signal',
+  // The storm: the cloud bank, dark at its base and pale at its tops.
+  rain: 'level',
+  // The countryside: weathered wood, a ramp from the foot of a picket up.
+  fence: 'level',
+  // The night city: concrete, lighter where the street light reaches it
+  // and near black at the roofline. The spectrum is in the heights and in
+  // the lit windows, so the towers themselves can be towers.
+  skyline: 'level',
   'wave-line': 'signal',
   'wave-mirror': 'signal',
   'wave-ribbon': 'signal',
@@ -412,7 +438,9 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   bubbles: 'rainbow',
   diamonds: 'rainbow',
   invaders: 'rainbow',
-  arches: 'rainbow',
+  // The aqueduct: the evening sky through the arches, a ramp up from the
+  // horizon.
+  arches: 'level',
   honeycomb: 'rainbow',
   braid: 'rainbow',
   stitch: 'rainbow',
@@ -434,9 +462,10 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   'wave-filled': 'level',
   'wave-blocks': 'level',
   // A scene lit by the music: one colour that moves with the loudness.
-  flames: 'heat',
+  // The fire: a ramp from the white-hot base to the red tips.
+  flames: 'level',
   // A city at night: its windows light up with the music.
-  skyline: 'heat',
+
   // The road at night reads its ground by the level ramp: dark at the
   // foot, lit at the ridge, brighter as the music climbs.
   racer: 'level',
@@ -841,13 +870,21 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   bubbles: 0.85,
   dots: 0.9,
   blocks: 0.74,
-  spikes: 0.74,
+  // Denser: at three quarters the spikes were washed toward the black and
+  // read as pastel; solid colour is what vibrant means on a black stage.
+  spikes: 0.94,
   stems: 0.84,
   terrace: 0.74,
   scatter: 0.74,
   ribs: 1,
   contour: 0.74,
   stalactites: 0.74,
+  // The fire's outer flame carries the ramp: washed out, it read as grass.
+  flames: 0.95,
+  // The storm's cloud bank is a body against the sky.
+  rain: 0.92,
+  // Pickets are planks: translucent, the hills showed through the wood.
+  fence: 0.97,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
@@ -942,7 +979,6 @@ const STROKE_ONLY_STYLES = new Set<GraphStyle>([
   'dashes',
   'slope',
   'starfield',
-  'rain',
   'feather',
   'zipper',
   'stitch',
@@ -955,6 +991,17 @@ const STROKE_ONLY_STYLES = new Set<GraphStyle>([
 /** Whether painting this form instead of stroking it draws anything. */
 export const canGraphFill = (style: GraphStyle): boolean =>
   !STROKE_ONLY_STYLES.has(style);
+
+/**
+ * The forms that never glow. A glow is a halo stroked round a figure's
+ * silhouette; on a grid of LEDs the silhouette is a stand-in curve that has
+ * nothing to do with the cells, and the halo round it read as a cheap trick
+ * laid over the blocks. The Glow control is disabled for these.
+ */
+const GLOWLESS_STYLES = new Set<GraphStyle>(['blocks']);
+
+export const canGraphGlow = (style: GraphStyle): boolean =>
+  !GLOWLESS_STYLES.has(style);
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 export const DISCRETE_STYLES = new Set<GraphStyle>([

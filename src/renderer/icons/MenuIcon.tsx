@@ -56,6 +56,11 @@ const PATHS: Record<string, string> = {
     'M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6L12 4zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z',
   // Anticlockwise arrow: put the bands back where they started.
   reset: 'M5 11a7 7 0 1 1 2 5M5 6v5h5',
+  // The IEC power mark — a ring broken at the top with a stroke through the
+  // gap. Deliberately the standard one rather than something invented: it is
+  // the single glyph everybody already reads as "in or out", which is what a
+  // band being switched off means here.
+  power: 'M12 4v7M17.2 7.3a7 7 0 1 1-10.4 0',
   // Plus in a circle.
   plus: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8.5v7M8.5 12h7',
   // Four rails of different heights: a band layout in miniature.
@@ -120,6 +125,10 @@ const PATHS: Record<string, string> = {
   album:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
+  // A speech bubble with its tail: the community tab. One bubble rather than
+  // two overlapping — at 13px two read as a blot.
+  community:
+    'M5 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-8l-4 3.5V15H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
   // A luggage tag with its eyelet: what a genre actually is — a label stuck
   // on the record by whoever tagged it, not a property of the music. The
   // other shelf glyphs draw the thing they list; this one draws the tag,

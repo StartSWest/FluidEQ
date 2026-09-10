@@ -27,6 +27,7 @@ import {
   IFilter,
   IGraphicEqPoint,
   IPresetV2,
+  isBandEnabled,
   IState,
   NO_GAIN_FILTER_TYPES,
   TApoFeature,
@@ -317,7 +318,12 @@ const buildLayers = (state: IState): IApoLayer[] => {
     } else {
       addLayer(
         'eq',
-        layerFilters(Object.values(state.filters)).filter(
+        // A band switched off is dropped here rather than written as an APO
+        // `OFF` filter, and that is what keeps the preamp honest: auto
+        // normalize reserves headroom by measuring the filters that were
+        // actually written, so a band left in the chain in any form would go
+        // on reserving room for a boost nobody can hear.
+        layerFilters(Object.values(state.filters).filter(isBandEnabled)).filter(
           // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in
           // APO after the user presses Reset gains.
           ({ gain, type }) =>

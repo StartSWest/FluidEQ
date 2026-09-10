@@ -49,8 +49,8 @@ const getFrameBudget = () =>
  *
  * The loop stops on its own. `onFrame` reports whether anything is still
  * moving, and once a shape has arrived at the last measurement there is no
- * reason to keep waking up — a silent room should cost nothing. `kick` starts
- * it again when the next measurement lands.
+ * reason for a meter to keep waking up. Environmental scenes may continue
+ * their ambient motion in silence. Every consumer stops while hidden.
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
@@ -58,6 +58,8 @@ const useSmoothFrames = (
 ) => {
   const frameRef = useRef<number | undefined>(undefined);
   const lastDrawRef = useRef(0);
+  const enabledRef = useRef(isEnabled);
+  enabledRef.current = isEnabled;
   // Held in refs so changing either does not tear down and restart the loop
   // mid-motion, which would show as a hitch exactly when the mode changes.
   const onFrameRef = useRef(onFrame);
@@ -71,12 +73,20 @@ const useSmoothFrames = (
   }, []);
 
   const kick = useCallback(() => {
-    if (frameRef.current !== undefined) {
+    if (
+      frameRef.current !== undefined ||
+      !enabledRef.current ||
+      document.hidden
+    ) {
       return;
     }
     lastDrawRef.current = performance.now();
 
     const tick = (now: number) => {
+      if (document.hidden || !enabledRef.current) {
+        frameRef.current = undefined;
+        return;
+      }
       const elapsed = now - lastDrawRef.current;
       if (!shouldDrawFrame(elapsed, getFrameBudget())) {
         // Too soon for this mode. Still queued, so the next frame is
@@ -99,6 +109,22 @@ const useSmoothFrames = (
   }, [isEnabled, stop]);
 
   useEffect(() => stop, [stop]);
+
+  // Minimize/hide pauses every consumer, even when new audio keeps arriving.
+  // Restoring starts with a fresh delta so scenery cannot jump ahead by the
+  // entire hidden interval. Audio capture and playback are unaffected.
+  useEffect(() => {
+    const visibilityChanged = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        kick();
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityChanged);
+    return () =>
+      document.removeEventListener('visibilitychange', visibilityChanged);
+  }, [kick, stop]);
 
   return isEnabled ? kick : stop;
 };

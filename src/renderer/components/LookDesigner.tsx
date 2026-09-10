@@ -24,6 +24,7 @@ import {
   MIN_GRAPH_COLUMNS,
   getGraphLook,
   canGraphFill,
+  canGraphGlow,
   hasGraphGap,
   isDiscreteGraphStyle,
   resolveGraphPalette,
@@ -554,6 +555,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   // On the ones it does not, the choice below is not offered and the setting
   // is read as stroked whatever an older saved look happens to hold.
   const canFill = canGraphFill(style);
+  // And whether it glows at all — see `canGraphGlow`.
+  const canGlow = canGraphGlow(style);
   const isFilled = canFill && tuning.filled;
   const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
@@ -938,40 +941,45 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           </SettingRow>
         )}
 
-        {/* What the mode does to this look, gathered under its own heading.
-
-            These three do nothing at all outside euphoria, and scattered among
-            the settings that always apply they read as broken rather than as
-            conditional. Under a heading in the mode's own colour they read as
-            what they are: a section that belongs to something else.
-
-            Greyed rather than hidden when the mode is off, because a control
-            that vanishes takes its explanation with it — "why is there no glow
-            setting" is a worse question than "why is this one disabled", and
-            the second answers itself in the hint underneath. */}
-        <p className="look-designer__group">{t('look.rainbow')}</p>
-
+        {/* The glow: the figure's own light, in any mode. It lived under the
+            rainbow heading and was disabled outside the mode, which made it a
+            dead slider on every ordinary look; the halo is the figure's own
+            colour and has nothing to do with the hue sweep. */}
         <SettingRow
           id="look-designer-glow"
           label={t('look.glow')}
           value={
-            tuning.glow > 0
+            canGlow && tuning.glow > 0
               ? `${Math.round(tuning.glow * 100)}%`
               : t('look.off')
           }
-          isDisabled={!isEuphoric}
-          hint={isEuphoric ? t('look.glowHint') : t('look.glowNeedsRainbow')}
+          isDisabled={!canGlow}
+          hint={canGlow ? t('look.glowHint') : t('look.glowNotForForm')}
         >
           <SettingSlider
             id="look-designer-glow"
             min={MIN_GLOW}
             max={MAX_GLOW}
             step={0.05}
-            value={tuning.glow}
-            isDisabled={!isEuphoric}
+            value={canGlow ? tuning.glow : 0}
+            isDisabled={!canGlow}
             onChange={(glow) => tune({ glow })}
           />
         </SettingRow>
+
+        {/* What the mode does to this look, gathered under its own heading.
+
+            The border and its weight do nothing at all outside euphoria, and
+            scattered among the settings that always apply they read as broken
+            rather than as conditional. Under a heading in the mode's own
+            colour they read as what they are: a section that belongs to
+            something else.
+
+            Greyed rather than hidden when the mode is off, because a control
+            that vanishes takes its explanation with it — "why is there no
+            border setting" is a worse question than "why is this one
+            disabled", and the second answers itself in the hint underneath. */}
+        <p className="look-designer__group">{t('look.rainbow')}</p>
 
         <div
           className={`look-designer__row look-designer__row--switch${

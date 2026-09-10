@@ -55,7 +55,9 @@ describe('visualizer timing', () => {
     expect(resolveLookWaveform(live, live, [0.2, 0.8])).toEqual([0.2, 0.8]);
   });
 
-  it.each(['flames', 'braid', 'bubbles', 'racer', 'invaders'] as const)(
+  // Invaders and Warp speed run on their own scene clocks now, tested with
+  // their scenes; the motion module no longer draws them.
+  it.each(['flames', 'braid', 'bubbles', 'racer'] as const)(
     '%s moves continuously at every refresh rate and freezes on pause',
     (style) => {
       const paths = [30, 60, 144].map((hz) => {
@@ -93,16 +95,7 @@ describe('visualizer timing', () => {
     },
   );
 
-  it.each([
-    'rain',
-    'starfield',
-    'flames',
-    'braid',
-    'bubbles',
-    'racer',
-    'invaders',
-    'echo',
-  ] as const)(
+  it.each(['rain', 'flames', 'braid', 'bubbles', 'racer', 'echo'] as const)(
     '%s responds to audio, stops scheduling in silence, and handles resized plots',
     (style) => {
       const args = {
@@ -140,7 +133,7 @@ describe('visualizer timing', () => {
     },
   );
 
-  it.each(['bubbles', 'invaders'] as const)(
+  it.each(['bubbles'] as const)(
     '%s preserves the editable gap during animation',
     (style) => {
       const args = {
@@ -167,7 +160,7 @@ describe('visualizer timing', () => {
     },
   );
 
-  it.each(['rain', 'starfield'] as const)(
+  it.each(['rain'] as const)(
     '%s travels at the same speed at 30, 60 and 144 Hz and freezes while paused',
     (style) => {
       const runs = [30, 60, 144].map((hz) => {
@@ -323,7 +316,9 @@ describe('peak animation', () => {
 
 describe('curated forms and settings', () => {
   it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
-    expect(GRAPH_FORM_LOOKS).toHaveLength(42);
+    // Four more retired in the September review: Warp speed, Stalactites,
+    // Road trip and Rainfall.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(38);
     expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
     (
@@ -343,6 +338,10 @@ describe('curated forms and settings', () => {
         'feather',
         'zipper',
         'diamonds',
+        'starfield',
+        'stalactites',
+        'racer',
+        'rain',
       ] as const
     ).forEach((style) => {
       expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);

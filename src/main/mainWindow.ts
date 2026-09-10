@@ -259,6 +259,7 @@ export const createMainWindowFactory = ({
           throw failure.reason;
         }
       },
+      isDebug,
     );
     const appSession = created.webContents.session;
 

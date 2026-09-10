@@ -69,7 +69,7 @@
   gap: 12px;
   padding: 22px 16px;
   overflow-y: auto;
-  border-right: 1px solid rgba($edge-tint, 0.12);
+  border-right: 1px solid rgba($white, 0.09);
   background: $block-lift;
 
   label {
@@ -156,7 +156,7 @@
 
 .help-guide__chapter {
   padding: 32px 0 40px;
-  border-top: 1px solid rgba($edge-tint, 0.16);
+  border-top: 1px solid rgba($white, 0.09);
   figure {
     margin: 24px 0;
   }
@@ -178,7 +178,7 @@
   width: 100%;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.22);
+  border: 1px solid rgba($white, 0.09);
   border-radius: $radius-m;
   background: $surface-base;
   cursor: zoom-in;
@@ -231,7 +231,7 @@
     max-height: 190px;
     padding: 12px 16px;
     border-right: 0;
-    border-bottom: 1px solid rgba($edge-tint, 0.12);
+    border-bottom: 1px solid rgba($white, 0.09);
     gap: 8px;
   }
   .help-guide__rail nav {

@@ -29,7 +29,7 @@ import {
 
 describe('redacting a report', () => {
   it('takes the account name out of a Windows path', () => {
-    expect(redact('at C:\\Users\\ivancarmenates\\AppData\\Roaming\\x')).toBe(
+    expect(redact('at C:\\Users\\somebody\\AppData\\Roaming\\x')).toBe(
       'at C:\\Users\\<user>\\AppData\\Roaming\\x',
     );
   });

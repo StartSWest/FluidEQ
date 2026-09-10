@@ -22,6 +22,7 @@ import {
   AutoEqFormat,
   IFilter,
   IFiltersMap,
+  isBandEnabled,
   IState,
   TApoLayer,
 } from 'common/constants';
@@ -118,7 +119,8 @@ const isFilterEqual = (f1: IFilter, f2: IFilter) => {
     f1.frequency === f2.frequency &&
     f1.gain === f2.gain &&
     f1.quality === f2.quality &&
-    f1.type === f2.type
+    f1.type === f2.type &&
+    isBandEnabled(f1) === isBandEnabled(f2)
   );
 };
 
@@ -157,6 +159,16 @@ export const buildChartData = ({
 
   // Update filter lines that have changed
   Object.values(filters).forEach((filter) => {
+    // A band switched off gets no line at all, not a flat one.
+    //
+    // The EQ curve is the sum over this map, so leaving the band out is what
+    // makes the drawing agree with what Equalizer APO was actually told — the
+    // same reasoning as the bypassed layers above, one band down. Its handle
+    // stays on the graph, drawn muted, because it is still a band you can pick
+    // up and switch back on.
+    if (!isBandEnabled(filter)) {
+      return;
+    }
     // New filters have no previous data
     if (!(filter.id in prevFilters.current)) {
       updatedFilterLines[filter.id] = getFilterLineData(filter);

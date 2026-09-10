@@ -12,6 +12,17 @@ import type { Projected } from './graphStyles';
  */
 export const ECHO_HORIZON = 0.6;
 
+/**
+ * How much narrower a wave is by the time it reaches the horizon.
+ *
+ * Exported because anything else drawn on this plane has to use it or the
+ * perspective disagrees with itself: rails that met at a point while the
+ * waves stopped at 38% of the width put the far rows inside a fan that
+ * was converging faster than they were, which is exactly how it looked —
+ * wrong.
+ */
+export const ECHO_SQUEEZE = 0.62;
+
 const point = ([x, y]: Projected) => `${x.toFixed(1)},${y.toFixed(1)}`;
 
 /** Where a wave stands at `depth`, and how tall it still is. */
@@ -24,7 +35,7 @@ export const projectEchoWave = (
   height: number,
 ): { wave: Projected[]; floor: number } => {
   const centre = (left + right) / 2;
-  const squeeze = 1 - depth * 0.62;
+  const squeeze = 1 - depth * ECHO_SQUEEZE;
   const floor = bottom - depth * height * ECHO_HORIZON;
   const decay = 1 - depth * 0.7;
   return {

@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
 import { useTranslation } from '../../utils/I18nContext';
 import DialogHeader from '../DialogHeader';
 import type { ISlideActions, ITourSlide, TTourTab } from './slides';
@@ -52,6 +53,9 @@ export default function FeatureTour({
   isCovered,
 }: IFeatureTourProps) {
   const { t } = useTranslation();
+  const hasCoffee = getSupportMethods().some(
+    (method) => method.id === 'coffee',
+  );
   const [index, setIndex] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const isLast = index === slides.length - 1;
@@ -128,7 +132,18 @@ export default function FeatureTour({
           version={version}
           closeLabel={t('tour.close')}
           onClose={close}
-        />
+        >
+          {hasCoffee && (
+            <a
+              className="feature-tour__notes feature-tour__contribute"
+              href={SUPPORT_CONFIG.coffeeUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {t('tour.contribute')}
+            </a>
+          )}
+        </DialogHeader>
 
         <div className="feature-tour__body">
           <nav className="feature-tour__rail" aria-label={t('tour.rail')}>

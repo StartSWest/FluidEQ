@@ -1,8 +1,10 @@
-import { GraphStyle, Projected, hole, rect } from './graphStyles';
+import { GraphStyle, Projected } from './graphStyles';
 import createGraphSawtooth from './graphSawtooth';
 import createGraphPulse from './graphPulse';
 import createGraphEcho from './graphEcho';
 import createGraphRoad from './graphRoad';
+import toColumns from './graphColumns';
+import { createGraphInvaders } from './graphInvaders';
 
 export const isGraphScene = (style: GraphStyle): boolean =>
   [
@@ -79,28 +81,47 @@ export const createGraphScene = ({
   let path = '';
 
   if (style === 'braid') {
-    const spine = smooth(points);
-    const upper: Projected[] = [];
-    const lower: Projected[] = [];
+    // The spine from the columns, not every FFT point: five strands over
+    // five hundred points was eight milliseconds of stroking at 2560 wide,
+    // and the braid reads exactly the same from ninety-six.
+    const spine = smooth(toColumns(points, Math.min(points.length, 96)));
+    // Five strands round the spine, each on its own phase, so the cord
+    // reads as woven rather than as two lines crossing. Filled, each
+    // neighbouring pair is closed into a ribbon.
+    const strandCount = 5;
+    const strands: Projected[][] = Array.from(
+      { length: strandCount },
+      () => [],
+    );
     spine.forEach(([x, y]) => {
       const energy = energyAt(y);
       // A fixed number of broad turns survives both a narrow pane and a
       // dense FFT. The old point-index pitch crushed it into a jagged cord.
-      const twist = Math.sin(
-        ((x - left) / width) * Math.PI * 16 - seconds * 1.7,
-      );
+      const phase = ((x - left) / width) * Math.PI * 16 - seconds * 1.7;
       const radius = Math.min(height * 0.09, 5 + energy * 32);
       const centre = Math.max(top + radius, Math.min(bottom - radius, y));
-      upper.push([x, centre + twist * radius]);
-      lower.push([x, centre - twist * radius]);
+      strands.forEach((strand, k) => {
+        const twist = Math.sin(phase + (k / strandCount) * Math.PI * 2);
+        strand.push([x, centre + twist * radius]);
+      });
     });
-    return filled
-      ? `${line(upper)} ${line([...lower].reverse()).replace(/^M/, 'L')} Z`
-      : `${line(upper)} ${line(lower)}`;
+    if (filled) {
+      return strands
+        .slice(0, -1)
+        .map(
+          (strand, k) =>
+            `${line(strand)} ${line([...strands[k + 1]].reverse()).replace(/^M/, 'L')} Z`,
+        )
+        .join(' ');
+    }
+    return strands.map((strand) => line(strand)).join(' ');
   }
 
   if (style === 'racer') {
     return createGraphRoad(points, top, bottom, seconds);
+  }
+  if (style === 'invaders') {
+    return createGraphInvaders(points, top, bottom);
   }
 
   points.forEach(([x, y], index) => {
@@ -143,33 +164,6 @@ export const createGraphScene = ({
           path += `M ${point(cx - inner, cy)} a ${inner},${inner} 0 1,1 ${inner * 2},0 a ${inner},${inner} 0 1,1 ${-inner * 2},0 Z `;
         }
       }
-    } else if (style === 'invaders') {
-      const unit = Math.max(0.7, Math.min(5, pieceWidth / 7));
-      const cx = x + Math.sin(seconds * 1.5) * step * 0.13;
-      const cy = Math.max(top + unit * 4, Math.min(bottom - unit * 4, y));
-      const march = Math.sin(seconds * 4 + index * 0.3) > 0 ? 1 : -1;
-      path += rect(cx - unit * 2.5, cy - unit, unit * 5, unit * 2.5);
-      [-1, 1].forEach((side) => {
-        path += rect(
-          cx + side * unit * 3 - unit / 2,
-          cy - unit / 2,
-          unit,
-          unit * 2,
-        );
-        path += rect(
-          cx + side * unit * 1.5 - unit / 2,
-          cy - unit * 2.5,
-          unit,
-          unit * 1.5,
-        );
-        path += rect(
-          cx + side * unit * (2 + march * 0.5) - unit / 2,
-          cy + unit * 1.5,
-          unit,
-          unit,
-        );
-        path += hole(cx + side * unit - unit / 2, cy - unit / 2, unit, unit);
-      });
     }
   });
   return path;

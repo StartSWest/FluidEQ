@@ -1,0 +1,154 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+/**
+ * The sign-in forms.
+ *
+ * Three small forms and two code steps share one grammar: a pair of tabs on
+ * top where there is a choice to make, fields with the label above the box,
+ * one loud button, and quiet link-buttons for changing course. The tabs are
+ * text with a rule underneath rather than pills, because pills read as the
+ * loud control and the loud control here is the submit.
+ */
+.account-form {
+  display: grid;
+  gap: $spacing-s;
+}
+
+.account-form__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.account-form__tabs {
+  display: flex;
+  gap: $spacing-m;
+  border-bottom: 1px solid rgba($white, 0.08);
+}
+
+.account-form__tab {
+  position: relative;
+  padding: 0 0 $spacing-xs;
+  margin-bottom: -1px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: $text-faint;
+  font-size: $text-lead;
+  font-weight: $weight-medium;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+    transition: background $motion-fast $ease-out;
+  }
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+  }
+
+  &--on {
+    color: $text-primary;
+
+    &::after {
+      background: $secondary-default;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+.account-field {
+  display: grid;
+  gap: $spacing-xxs;
+
+  input {
+    width: 100%;
+    min-width: 0;
+    min-height: $control-height;
+  }
+}
+
+.account-field__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-xs;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  letter-spacing: 0.02em;
+}
+
+.account-field__hint {
+  color: $text-dim;
+  font-weight: $weight-regular;
+}
+
+// Six digits, spaced so each one can be checked against the email at a
+// glance. Wide enough for them and no wider: a full-width box makes six
+// characters look lost.
+.account-field__code {
+  max-width: 11ch;
+  font-size: $text-title;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+// A button dressed as a link: the quiet way out of a form, sitting beside
+// the loud way through it. No border and no surface so it never competes.
+.account-link {
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $text-accent;
+  font-size: $text-body;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, $text-accent 40%, transparent);
+  text-underline-offset: 3px;
+
+  &:hover:not(:disabled) {
+    text-decoration-color: $text-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+    text-decoration: none;
+  }
+}

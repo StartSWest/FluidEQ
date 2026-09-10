@@ -71,9 +71,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'Brilho',
   'look.off': 'Desativado',
   'look.glowHint': 'Quanto a figura cresce e brilha com a batida.',
-  'look.glowNeedsRainbow':
-    'Requer o modo Arco-íris. Desativado, o brilho não altera o desenho.',
   'look.needsRainbow': 'Requer o modo Arco-íris.',
+  'look.glowNotForForm': 'Esta forma não tem brilho.',
   'look.rainbowBorder': 'Borda arco-íris',
   'look.rainbowBorderHint':
     'Contorna o gráfico com uma cor que percorre todo o espectro.',
@@ -116,7 +115,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'Pressione espaço para fazê-lo pular',
   'support.game.hint': 'Toque no ritmo quando o pico chegar à linha',
   'support.game.howTo':
-    'Toque no bichinho ou pressione espaço a cada batida. Continue e algo acontece no ×10.',
+    'Reproduza música e toque no mascote ou pressione Espaço quando um pico chegar à linha central. Alcance ×10 para desbloquear o modo arco-íris.',
   'support.game.thanks':
     'Se algo aqui te fez sorrir, ideias e apoio são o que mantêm isto vivo.',
   'support.game.noAudio': 'Toque algo e o ritmo aparece aqui',
@@ -125,7 +124,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': 'Partilhar o arco-íris',
   'support.game.shareTitle': 'Partilhe a sua pontuação',
   'support.game.shareUnlock':
-    'Chegue a ×10 e este cartão passa a modo arco-íris, com todo o espetro.',
+    'Desbloqueie o modo arco-íris jogando ou confirmando sua contribuição para dar suas cores a este cartão.',
   'support.game.shareNote':
     'Guarde o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
   'support.game.shareSave': 'Guardar cartão',
@@ -157,8 +156,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'Copiar endereço',
   'support.copied': 'Copiado',
   'support.openWallet': 'Abrir na carteira',
-  'support.contributed': 'Eu contribuí — libere a estrela e a dança',
-  'support.thanks': 'Obrigado — seu bichinho ganhou a estrela e agora dança.',
+  'support.contributed': 'Eu contribuí — ativar o modo arco-íris',
+  'support.rainbowHint':
+    'Já contribuiu? Ative o modo arco-íris imediatamente com “Eu contribuí”. Não é preciso alcançar ×10.',
+  'support.thanks':
+    'Obrigado — o modo arco-íris está desbloqueado, e seu mascote tem sua estrela e sua dança.',
   'support.releaseNotes': 'Veja as novidades desta versão',
   'support.footerBefore':
     'Prefere contribuir com tempo? Issues e pull requests são igualmente bem-vindos no',

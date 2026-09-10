@@ -297,8 +297,10 @@ drift away from it.
 
 ![The DSP tab with the Maximizer stage selected: the nine stages listed down the left in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer, Master — with a dot marking those that are on, and Crossfade under a playback-options heading below them. The stage itself fills the rest: a preset picker reading Rock, a line saying it raises the overall level without letting peaks pass the ceiling, and a rolling six-second graph of the output against the ceiling with the amount being held down shaded under it, annotated with the current reduction, peak hold, output and drive. Beneath the graph sit the drive and ceiling knobs under Loudness, and look-ahead and release under Timing. A line at the top of the page says the rack applies to music played inside FluidEQ and does not change Spotify, YouTube or other apps.](docs/07-dsp-maximizer-and-processing-chain.png)
 
-**Local and account-free.** No cloud, no telemetry, no proprietary driver, no
-virtual audio device. Three downloads are worth naming, because being caught out
+**Local, and account-free by default.** No cloud, no telemetry, no analytics, no
+proprietary driver, no virtual audio device. Your audio never leaves the
+machine. Signing in is optional and changes none of that — the equaliser, the
+library and the visualizers neither know nor care whether you have. Three downloads are worth naming, because being caught out
 by one of them later is worse than the download itself: asking the Karaoke Maker
 to transcribe lyrics fetches a speech-recognition model (about 570 MB where your
 graphics card can run it, about 1.1 GB where it cannot), asking it to read a
@@ -424,7 +426,8 @@ with the pencil on its row.
 
 ## Supporting the work
 
-Nothing here is tracked. No telemetry, no analytics, no account.
+Nothing here is tracked. No telemetry, no analytics, and no account is
+required — signing in is optional, and nothing in the app is gated behind it.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by

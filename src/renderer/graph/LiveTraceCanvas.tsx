@@ -440,6 +440,16 @@ const HALO_SCALE = 1 / 3;
 const SEA_SCALE = 1 / 3;
 
 /**
+ * How coarse the blocky surface is.
+ *
+ * A third of the resolution with the smoothing off is sharp, but the
+ * steps are three pixels and nobody reads that as blocky — it looks like
+ * a slightly rough drawing. A tenth makes a block a block, which is the
+ * point, and costs a hundredth of the blending rather than a ninth.
+ */
+const BLOCK_SCALE = 1 / 10;
+
+/**
  * Hand the context a flat colour, or build the ramp one describes.
  *
  * Built inside the figure's own transform rather than once per frame, because a
@@ -2056,16 +2066,13 @@ const LiveTraceCanvas = ({
          */
         const paintOnSurface = (
           draw: (target: CanvasRenderingContext2D) => void,
-          smooth: boolean,
+          { scale, smooth }: { scale: number; smooth: boolean },
         ) => {
           const surface =
             seaCanvasRef.current ?? document.createElement('canvas');
           seaCanvasRef.current = surface;
-          const surfaceWidth = Math.max(1, Math.ceil(canvas.width * SEA_SCALE));
-          const surfaceHeight = Math.max(
-            1,
-            Math.ceil(canvas.height * SEA_SCALE),
-          );
+          const surfaceWidth = Math.max(1, Math.ceil(canvas.width * scale));
+          const surfaceHeight = Math.max(1, Math.ceil(canvas.height * scale));
           if (
             surface.width !== surfaceWidth ||
             surface.height !== surfaceHeight
@@ -2083,12 +2090,12 @@ const LiveTraceCanvas = ({
           surface2d.clearRect(0, 0, surfaceWidth, surfaceHeight);
           surface2d.save();
           surface2d.setTransform(
-            base.a * SEA_SCALE,
-            base.b * SEA_SCALE,
-            base.c * SEA_SCALE,
-            base.d * SEA_SCALE,
-            base.e * SEA_SCALE,
-            base.f * SEA_SCALE,
+            base.a * scale,
+            base.b * scale,
+            base.c * scale,
+            base.d * scale,
+            base.e * scale,
+            base.f * scale,
           );
           draw(surface2d);
           surface2d.restore();
@@ -2103,7 +2110,7 @@ const LiveTraceCanvas = ({
         /** Stretched smoothly: water, which has no edges to lose. */
         const paintLowRes = (
           draw: (target: CanvasRenderingContext2D) => void,
-        ) => paintOnSurface(draw, true);
+        ) => paintOnSurface(draw, { scale: SEA_SCALE, smooth: true });
 
         /**
          * Stretched WITHOUT smoothing, so a third of the resolution comes
@@ -2116,7 +2123,7 @@ const LiveTraceCanvas = ({
          */
         const paintBlocky = (
           draw: (target: CanvasRenderingContext2D) => void,
-        ) => paintOnSurface(draw, false);
+        ) => paintOnSurface(draw, { scale: BLOCK_SCALE, smooth: false });
 
         /**
          * The whole canvas in this curve's scene space.
@@ -3465,12 +3472,11 @@ const LiveTraceCanvas = ({
           horizon.moveTo(plot.left, echoPaths.horizon);
           horizon.lineTo(plot.right, echoPaths.horizon);
           context.stroke(horizon);
-          // Back to front: each past wave dimmer and thinner with depth, a
-          // beat's wave heavier and brighter all the way back. Thirty rows
-          // of translucent water is a screen of blending, so they go on the
-          // cheap surface — see paintBlocky. The live wave in front is the
-          // figure and is drawn at full resolution with everything else.
-          paintBlocky((target) => {
+          // Back to front: each past row dimmer and thinner with depth, a
+          // beat's row heavier and brighter all the way back. Drawn here at
+          // full resolution — the steps are the geometry's own, so nothing
+          // is gained by rasterising them coarsely and the edges stay hard.
+          ((target: CanvasRenderingContext2D) => {
             echoPaths.waves.forEach((wave) => {
               const remaining = (1 - wave.depth) ** 1.5;
               if (wave.body) {
@@ -3495,13 +3501,7 @@ const LiveTraceCanvas = ({
                 target.stroke(wave.line);
               }
             });
-          });
-          // The crests that caught the beat, glinting on the near wave.
-          context.strokeStyle = '#fff';
-          context.lineWidth = 1.2;
-          context.lineCap = 'round';
-          setAlpha(context, opacity * 0.9);
-          context.stroke(echoPaths.glints);
+          })(context);
         }
         if (pulsePaths) {
           const clock = motionRef.current.travel[0] ?? 0;

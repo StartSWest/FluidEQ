@@ -39,7 +39,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   justify-content: flex-end;
   padding: 11px 16px 13px;
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid rgba($white, 0.09);
   background: $block-lift;
 }
 
@@ -87,7 +87,7 @@ it under the terms of the GNU General Public License version 3 or later.
     margin: 14px -4px 8px;
     padding: 10px 12px 9px;
     color: $secondary-light;
-    border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+    border: 1px solid rgba($white, 0.09);
     border-radius: $radius-s;
     background: color-mix(in srgb, $surface-menu-top 94%, transparent);
     box-shadow:

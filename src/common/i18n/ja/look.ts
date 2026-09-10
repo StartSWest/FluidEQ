@@ -70,9 +70,8 @@ const look: Partial<Dictionary> = {
   'look.glow': 'グロー',
   'look.off': 'オフ',
   'look.glowHint': 'ビートに合わせて図形が膨らみ、明るくなる強さです。',
-  'look.glowNeedsRainbow':
-    'レインボーモードが必要です。オフではグローは描画を変えません。',
   'look.needsRainbow': 'レインボーモードが必要です。',
+  'look.glowNotForForm': 'この形にはグローがありません。',
   'look.rainbowBorder': 'レインボー枠',
   'look.rainbowBorderHint': '全色相を巡る色でグラフを囲みます。',
   'look.borderWeight': '枠の太さ',
@@ -114,7 +113,7 @@ const look: Partial<Dictionary> = {
   'support.petHint': 'スペースキーで跳ねさせられます',
   'support.game.hint': 'ピークが線に達したらリズムに合わせて押します',
   'support.game.howTo':
-    'ビートに合わせてペットをタップするかスペースキーを押してください。続けると ×10 で何かが起こります。',
+    '音楽を再生し、波のピークが中央の線に来たらペットをタップするかスペースキーを押します。×10に到達するとレインボーモードを解除できます。',
   'support.game.thanks':
     '少しでも楽しんでいただけたなら、アイデアや支援がこの先を作ります。',
   'support.game.noAudio': '何か再生するとビートがここに出ます',
@@ -123,7 +122,7 @@ const look: Partial<Dictionary> = {
   'support.game.shareEuphoria': 'レインボーを共有',
   'support.game.shareTitle': 'スコアを共有',
   'support.game.shareUnlock':
-    '×10 に到達すると、このカードはレインボーモードになります。スペクトラムもすべて。',
+    'ゲームをプレイするか支援を確認してレインボーモードを解除すると、このカードが虹色になります。',
   'support.game.shareNote':
     'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
   'support.game.shareSave': 'カードを保存',
@@ -155,8 +154,11 @@ const look: Partial<Dictionary> = {
   'support.copy': 'アドレスをコピー',
   'support.copied': 'コピーしました',
   'support.openWallet': 'ウォレットで開く',
-  'support.contributed': '支援しました — 星とダンスを解除',
-  'support.thanks': 'ありがとうございます — 相棒に星がつき、踊りはじめました。',
+  'support.contributed': '支援しました — レインボーモードを有効にする',
+  'support.rainbowHint':
+    '支援済みですか？「支援しました」ですぐにレインボーモードを有効にできます。×10は不要です。',
+  'support.thanks':
+    'ありがとう！レインボーモードが解除され、ペットに星とダンスが加わりました。',
   'support.releaseNotes': 'このバージョンの新機能を見る',
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',

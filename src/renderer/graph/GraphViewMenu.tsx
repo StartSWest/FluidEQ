@@ -159,11 +159,21 @@ interface IPlacement {
  * with a mouse is luck. Within three points of a quarter the thumb goes
  * to it; further away it is free.
  */
-const WAVE_HEIGHT_SNAPS = [25, 50, 75];
-const WAVE_HEIGHT_SNAP_REACH = 3;
-export const snapWaveHeight = (percent: number): number => {
-  const near = WAVE_HEIGHT_SNAPS.find(
-    (snap) => Math.abs(percent - snap) <= WAVE_HEIGHT_SNAP_REACH,
+/**
+ * The quarters, on every percentage slider in this menu.
+ *
+ * A slider that lands exactly on a quarter is worth more than three
+ * decimal places of freedom either side of it: half height and half
+ * see-through are the settings people actually mean, and hitting one by
+ * hand on an 86px track is luck. The ticks say where they are and the
+ * reach makes the thumb fall into them. Blur is not a percentage and has
+ * no quarters worth naming, so it stays a plain slider.
+ */
+const PERCENT_SNAPS = [25, 50, 75];
+const PERCENT_SNAP_REACH = 3;
+export const snapPercent = (percent: number): number => {
+  const near = PERCENT_SNAPS.find(
+    (snap) => Math.abs(percent - snap) <= PERCENT_SNAP_REACH,
   );
   return near ?? percent;
 };
@@ -559,7 +569,7 @@ const GraphViewMenu = ({
             {/* The three snap points, drawn as ticks on the track so the
                 thumb is seen to land on something. */}
             <span className="graph-view-menu__track">
-              {WAVE_HEIGHT_SNAPS.map((snap) => (
+              {PERCENT_SNAPS.map((snap) => (
                 <i
                   key={snap}
                   className="graph-view-menu__snap"
@@ -583,7 +593,7 @@ const GraphViewMenu = ({
                 disabled={isWaveHidden}
                 onChange={(event) =>
                   onChangeWaveHeight(
-                    snapWaveHeight(Number(event.target.value)) / 100,
+                    snapPercent(Number(event.target.value)) / 100,
                   )
                 }
               />
@@ -730,20 +740,32 @@ const GraphViewMenu = ({
                   <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
                 </Icon>
                 <span>{t('graph.seeThrough')}</span>
-                <input
-                  id="graph-see-through"
-                  type="range"
-                  min={minOverlayOpacity * 100}
-                  max={100}
-                  step={1}
-                  // Inverted, so right is more see-through. The stored value is
-                  // an opacity because that is what CSS wants; the slider is a
-                  // transparency because that is what the label says.
-                  value={Math.round((1 - overlayOpacity) * 100)}
-                  onChange={(event) =>
-                    onChangeOverlayOpacity(1 - Number(event.target.value) / 100)
-                  }
-                />
+                <span className="graph-view-menu__track">
+                  {PERCENT_SNAPS.map((snap) => (
+                    <i
+                      key={snap}
+                      className="graph-view-menu__snap"
+                      style={{ '--snap-frac': snap / 100 } as CSSProperties}
+                      aria-hidden
+                    />
+                  ))}
+                  <input
+                    id="graph-see-through"
+                    type="range"
+                    min={minOverlayOpacity * 100}
+                    max={100}
+                    step={1}
+                    // Inverted, so right is more see-through. The stored value
+                    // is an opacity because that is what CSS wants; the slider
+                    // is a transparency because that is what the label says.
+                    value={Math.round((1 - overlayOpacity) * 100)}
+                    onChange={(event) =>
+                      onChangeOverlayOpacity(
+                        1 - snapPercent(Number(event.target.value)) / 100,
+                      )
+                    }
+                  />
+                </span>
               </label>
               <label
                 className="graph-view-menu__slider graph-view-menu__slider--overlay"

@@ -1,0 +1,506 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The leaderboard, in two places: the board itself inside the Community tab,
+// and the card in the Account panel that puts you on it. Both build people's
+// colours from `--identity-hue` exactly as the chat does; see Community.scss.
+
+// ---------------------------------------------------------------- board
+
+.leaderboard {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-s;
+  min-height: 0;
+  padding: $spacing-s 4px 0;
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.leaderboard__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-s;
+}
+
+.leaderboard__players {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// The podium. First in the middle and a step higher, the way every podium is
+// read; the pedestals are the person's own colour fading into the card.
+// Flex rather than a three-column grid so a board with one or two people
+// stands in the middle instead of leaving empty thirds beside it.
+.leaderboard__podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: $spacing-s;
+  margin: $spacing-xs 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard__place {
+  display: grid;
+  flex: 1 1 0;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  max-width: 240px;
+  padding: 10px 8px 0;
+  border-radius: $radius-m $radius-m 0 0;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--identity-hue, 170deg) 60% 45% / 3%),
+    hsl(var(--identity-hue, 170deg) 60% 45% / 12%)
+  );
+  text-align: center;
+
+  &--1 {
+    order: 2;
+  }
+
+  &--2 {
+    order: 1;
+  }
+
+  &--3 {
+    order: 3;
+  }
+
+  > * {
+    max-width: 100%;
+  }
+
+  .community__handle,
+  .leaderboard__place-name {
+    @include truncate;
+  }
+}
+
+.leaderboard__place-you {
+  padding: 0 7px;
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.leaderboard__place-rank {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 2px;
+  color: $text-primary;
+  border-radius: 50%;
+  background: color-mix(in srgb, $white 8%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+
+  .leaderboard__place--1 & {
+    color: $surface-base;
+    background: $secondary-default;
+    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+}
+
+.leaderboard__place--1 .community__avatar--podium {
+  width: 56px;
+  height: 56px;
+  font-size: $text-title;
+}
+
+.leaderboard__place-points {
+  margin-top: 2px;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+
+  .leaderboard__place--1 & {
+    font-size: $text-title;
+  }
+}
+
+// Where the points came from: three small figures with a picture each. In
+// the accent for the replies, because those are the rare ones.
+.leaderboard__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 10px;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+
+  .leaderboard__row &,
+  .leaderboard__me & {
+    justify-content: flex-start;
+  }
+}
+
+.leaderboard__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.8;
+  }
+
+  &--replies {
+    color: $secondary-light;
+  }
+}
+
+.leaderboard__points {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderboard__scoring {
+  margin: $spacing-xs 0 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.5;
+}
+
+// The step each place stands on: three heights, in the person's colour, so
+// the podium reads as a podium even before the numbers are compared.
+.leaderboard__pedestal {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin-top: 6px;
+  border-top: 2px solid hsl(var(--identity-hue, 170deg) 70% 58% / 80%);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--identity-hue, 170deg) 60% 45% / 30%),
+    hsl(var(--identity-hue, 170deg) 60% 45% / 10%)
+  );
+
+  .leaderboard__place--1 & {
+    height: 34px;
+  }
+
+  .leaderboard__place--2 & {
+    height: 22px;
+  }
+}
+
+// Everyone from fourth on: a row with a bar under the name showing their
+// hours against the leader's, so the shape of the board is visible before a
+// number is read.
+.leaderboard__rows {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard__row {
+  display: grid;
+  grid-template-columns: 28px 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border-radius: $radius-s;
+  transition: background $motion-fast $ease-out;
+
+  &:hover {
+    background: color-mix(in srgb, $white 3.5%, transparent);
+  }
+
+  // Your own row, wherever it lands: the accent down the side, as a mention.
+  &--me {
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    box-shadow: inset 3px 0 0
+      color-mix(in srgb, $secondary-default 70%, transparent);
+  }
+}
+
+.leaderboard__rank {
+  color: $text-faint;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderboard__who {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.leaderboard__who-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+
+.leaderboard__bar {
+  display: block;
+  height: 3px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 6%, transparent);
+  overflow: hidden;
+}
+
+.leaderboard__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: $radius-pill;
+  background: hsl(var(--identity-hue, 170deg) 70% 58%);
+  transition: width $motion-base $ease-out;
+}
+
+// Your own place, pinned under the board when it is not on it.
+.leaderboard__me {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: $spacing-xs;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+}
+
+.leaderboard__me-rank {
+  color: $secondary-light;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderboard__me-hash {
+  margin-right: 1px;
+  opacity: 0.6;
+  font-size: $text-lead;
+}
+
+.leaderboard__me-text {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.leaderboard__join {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  margin-top: $spacing-xs;
+  padding: 10px 12px;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-m;
+}
+
+.leaderboard__join-text {
+  flex: 1 1 200px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// Rows-to-be while the first answer is on its way. A CSS animation, not a
+// timer: it shimmers on its own and stops when the rows replace it.
+@keyframes leaderboard-shimmer {
+  from {
+    background-position: -200px 0;
+  }
+
+  to {
+    background-position: 200px 0;
+  }
+}
+
+.leaderboard__skeleton {
+  display: grid;
+  gap: 6px;
+}
+
+.leaderboard__skeleton-row {
+  display: block;
+  height: 40px;
+  border-radius: $radius-s;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent),
+    color-mix(in srgb, $white 6%, transparent),
+    color-mix(in srgb, $white 3%, transparent)
+  );
+  background-size: 400px 100%;
+  animation: leaderboard-shimmer 1.4s linear infinite;
+}
+
+.leaderboard__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------- card
+
+// The card in the Account panel: the same object as the Plus card, quieter —
+// it is an offer to send something, and it has to read as one to be declined.
+.leaderboard-card {
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-s;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-block 60%, transparent);
+}
+
+.leaderboard-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .plus-card__badge {
+    margin-left: auto;
+  }
+}
+
+.leaderboard-card__mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: $secondary-light;
+  border-radius: 7px;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Today's tally as a ring filling toward the sixteen-hour cap.
+.leaderboard-card__tally {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.leaderboard-card__ring {
+  width: 52px;
+  height: 52px;
+  transform: rotate(-90deg);
+}
+
+.leaderboard-card__ring-track,
+.leaderboard-card__ring-fill {
+  fill: none;
+  stroke-width: 5;
+}
+
+.leaderboard-card__ring-track {
+  stroke: color-mix(in srgb, $white 8%, transparent);
+}
+
+.leaderboard-card__ring-fill {
+  stroke: $secondary-default;
+  stroke-linecap: round;
+  transition: stroke-dashoffset $motion-base $ease-out;
+}
+
+.leaderboard-card__body {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.6;
+}
+
+.leaderboard-card__today {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderboard-card__note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+// The question before the one thing on this card that cannot be undone. Amber
+// like every other warning in the app, in place of the buttons it replaces.
+.leaderboard-card__confirm {
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-s;
+  border: 1px solid color-mix(in srgb, $amber 35%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 8%, transparent);
+}
+
+.leaderboard-card__confirm-title {
+  color: $amber;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.leaderboard-card__confirm-body {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+// The quiet button in red: the destructive choice is never the loud one,
+// but it must not read as the safe one either.
+.leaderboard-card__danger.button.subtle {
+  color: $red;
+  border-color: color-mix(in srgb, $red 45%, transparent);
+  background: color-mix(in srgb, $red 6%, transparent);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $white;
+    border-color: $red;
+    background: color-mix(in srgb, $red 22%, transparent);
+  }
+}

@@ -21,7 +21,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // quietest part of most music and the least costly strip to cover — and leaves
 // the rest of the plot alone.
 .look-designer {
-  @include panel-surface;
+  @include menu-surface;
   // Grows out of the corner it is anchored to, and shrinks back into it.
   //
   // The exit needs the chart's help: React drops the element the instant the
@@ -53,9 +53,8 @@ it under the terms of the GNU General Public License version 3 or later.
   // The legend strip above sets `pointer-events: none` on itself so clicks fall
   // through to the plot. This is a panel, not a caption, and must catch them.
   pointer-events: auto;
-  // Enough that the trace behind stays legible while the panel is read, opaque
-  // enough that the text on it is not sitting on moving bars.
-  background: color-mix(in srgb, $surface-base 94%, transparent);
+  // This floats above the graph: the shell's translucent floor made it look
+  // too dark in Ocean and let graph labels show through its controls.
   // Clipped again. This was `visible` to let the panel's own form dropdown open
   // past the edge; that dropdown is gone — the picker in the header does the
   // job — and nothing left in here escapes its own box.
@@ -68,8 +67,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // across, so without this the two are stacked on top of each other and the one
 // thing that says which look is selected disappears behind the thing editing
 // it.
-.graph-wrapper.is-designing .live-output-controls {
-  right: 272px;
+.graph-wrapper.is-designing {
+  --graph-controls-right: 272px;
+
+  .live-output-controls {
+    right: var(--graph-controls-right);
+  }
 }
 
 .look-designer__header {
@@ -77,7 +80,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px 8px;
-  border-bottom: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+  border-bottom: 1px solid rgba($white, 0.09);
 
   h2 {
     margin: 0;
@@ -143,13 +146,14 @@ it under the terms of the GNU General Public License version 3 or later.
     gap: 8px;
     flex-wrap: wrap;
 
-    // The caption owns the checkbox rather than sitting beside it, so it has to
-    // take the row's width for its own space-between to push the control to the
-    // right edge. Left to size itself it shrink-wraps the word and the switch
-    // ends up tucked against it.
+    // Keep the label and themed switch at opposite ends of the row.
     > .look-designer__caption {
       flex: 1 1 auto;
-      cursor: pointer;
+      align-items: center;
+
+      > label {
+        cursor: pointer;
+      }
     }
   }
 }
@@ -465,16 +469,12 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.look-designer__check {
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  accent-color: $secondary-default;
-  cursor: pointer;
-
-  &:disabled {
-    cursor: not-allowed;
-  }
+.look-designer .switch {
+  --switch-width: 30px;
+  --switch-height: 16px;
+  --switch-thumb: 10px;
+  --switch-inset: 2px;
+  flex: 0 0 auto;
 }
 
 .look-designer__name {
@@ -550,7 +550,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   gap: 6px;
   padding: 9px 12px 11px;
-  border-top: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+  border-top: 1px solid rgba($white, 0.09);
 }
 
 .look-designer__button {
@@ -595,7 +595,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // Nothing to make room for once the panel spans the card.
-  .graph-wrapper.is-designing .live-output-controls {
-    right: 10px;
+  .graph-wrapper.is-designing {
+    --graph-controls-right: 10px;
   }
 }

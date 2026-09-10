@@ -28,6 +28,7 @@ const app: Partial<Dictionary> = {
   'recovery.reload': '重新加载 FluidEQ',
   'recovery.quit': '退出',
   'recovery.copy': '复制详情',
+  'recovery.history': '先前的故障',
   'app.tagline': '你的声音，每台设备，自动生效。',
   'app.actions': 'FluidEQ 操作',
   'app.actions.title': '音频操作',
@@ -153,6 +154,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',
   'tabs.karaoke': '卡拉OK',
+  'tabs.community': '社区',
   'tabs.scrollBack': '向前滚动标签',
   'tabs.scrollForward': '向后滚动标签',
   'notice.apoReconfigured':

@@ -2,6 +2,18 @@
 import { Dictionary } from '../en';
 
 const tour: Partial<Dictionary> = {
+  'tour.contribute': 'Contribuisci, per favore',
+  'tour.rainbow.title': 'Benvenuto nella modalità arcobaleno',
+  'tour.rainbow.subtitle': 'Attivala con un clic',
+  'tour.rainbow.lead':
+    'Colori arcobaleno, accenti luminosi e un bordo che percorre lo spettro. Cambia solo l’aspetto, mai il suono.',
+  'tour.rainbow.how':
+    'Attivala subito qui, senza raggiungere ×10. La scelta viene salvata e puoi disattivarla quando vuoi. Contribuire è facoltativo.',
+  'tour.rainbow.enable': 'Attiva la modalità arcobaleno',
+  'tour.rainbow.disable': 'Disattiva la modalità arcobaleno',
+  'tour.rainbow.waveform': 'Anteprima dell’onda in alto',
+  'tour.rainbow.toggleHint':
+    'Fai clic sul pulsante «RAINBOW MODE» qui sopra per attivare o disattivare la modalità.',
   'tour.eyebrow': 'NOVITÀ DI QUESTA VERSIONE',
   'tour.title': 'Novità di FluidEQ',
   'tour.close': 'Chiudi',
