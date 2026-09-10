@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "apo.h"
+#include "log.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -74,6 +75,12 @@ class Factory final : public IClassFactory {
     // The constructor's reference; whatever `QueryInterface` handed out has
     // its own, and on failure this is the one that destroys the object.
     apo->Release();
+    // The first line the log ever gets from a host: without it, an effect
+    // the audio engine never creates and one it creates and then drops are
+    // the same empty file.
+    trace(L"", SUCCEEDED(asked) ? "created by the host"
+                                : "created, but the interface asked for is "
+                                  "not one this effect offers");
     return asked;
   }
 

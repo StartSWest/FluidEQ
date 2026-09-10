@@ -29,6 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "apo.h"
 
 #include <cstring>
+#include "log.h"
 #include <new>
 #include <string>
 #include <utility>
@@ -367,6 +368,11 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
   // leaves `size` as the only number there is.
   const auto* base = reinterpret_cast<const APOInitBaseStruct*>(data);
   UINT32 declared = base->cbSize;
+  trace(L"", "initialize: " + std::to_string(size) + " bytes handed over, " +
+                 "cbSize " + std::to_string(declared) + " (known layouts: " +
+                 std::to_string(sizeof(APOInitSystemEffects)) + ", " +
+                 std::to_string(sizeof(APOInitSystemEffects2)) + ", " +
+                 std::to_string(sizeof(APOInitSystemEffects3)) + ")");
   if (declared == 0 || declared > size) {
     declared = size;
   }
@@ -424,6 +430,8 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
     // returns false, so calling it twice with the same value when `declared`
     // already equals `size` costs nothing.
     if (!read_as(declared) && !read_as(size)) {
+      trace(L"", "initialize refused: neither size names a layout this "
+                 "effect knows");
       return E_INVALIDARG;
     }
   } catch (...) {
@@ -432,6 +440,9 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
     endpoint_ = Endpoint();
   }
   initialized_ = true;
+  trace(endpoint_.guid,
+        "initialized for \"" + to_utf8(endpoint_.friendly_name) + "\"" +
+            (is_default_processing_mode() ? "" : ", not the default mode"));
   return S_OK;
 }
 

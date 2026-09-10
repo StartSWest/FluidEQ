@@ -48,6 +48,18 @@ class Log {
 };
 
 /**
+ * One line from a place that has no `Log` of its own yet.
+ *
+ * Creation, `Initialize` and the refusals in `LockForProcess` all happen
+ * before the instance owns a log, and every one of them is a point where the
+ * audio engine can drop the effect without a word: the first machine this
+ * ran on showed an installed, attached, restarted engine and an empty log,
+ * which said only that `LockForProcess` was never reached — not why. Empty
+ * `endpoint_guid` is allowed and tags the line `{no endpoint}`.
+ */
+void trace(const std::wstring& endpoint_guid, std::string_view message) noexcept;
+
+/**
  * UTF-8 for the log, with a printable stand-in for anything unconvertible.
  *
  * Endpoint friendly names and impulse-response paths both reach the log from

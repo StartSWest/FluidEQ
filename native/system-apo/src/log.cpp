@@ -88,6 +88,16 @@ Log::Log(const std::wstring& endpoint_guid)
       tag_(endpoint_guid.empty() ? std::string("{no endpoint} ")
                                  : to_utf8(endpoint_guid) + " ") {}
 
+void trace(const std::wstring& endpoint_guid,
+           std::string_view message) noexcept {
+  try {
+    Log(endpoint_guid).write(message);
+  } catch (...) {
+    // The constructor builds two strings; a line that cannot be built is
+    // not a reason to fail the call that wanted it written.
+  }
+}
+
 void Log::write(std::string_view message) noexcept {
   if (path_.empty()) {
     return;
