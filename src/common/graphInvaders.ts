@@ -19,6 +19,16 @@ const sprite = (...frames: Bitmap[]): Sprite => ({
   height: frames[0].length,
 });
 
+/**
+ * The poses, by frame index. The first two are the cabinet's own march pair
+ * and stay first, because the picker's still preview alternates `% 2`; the
+ * third is the in-between the live scene passes through, so an alien rising
+ * with its band lifts its arms in two steps rather than snapping.
+ */
+export const POSE_DOWN = 0;
+export const POSE_UP = 1;
+export const POSE_HALF = 2;
+
 /** The top row's creature: the squid, smallest and fastest to twitch. */
 export const SQUID = sprite(
   [
@@ -38,6 +48,16 @@ export const SQUID = sprite(
     'XX.XX.XX',
     'XXXXXXXX',
     '.X....X.',
+    'X......X',
+    '.X....X.',
+  ],
+  [
+    '...XX...',
+    '..XXXX..',
+    '.XXXXXX.',
+    'XX.XX.XX',
+    'XXXXXXXX',
+    '.X.XX.X.',
     'X......X',
     '.X....X.',
   ],
@@ -65,6 +85,16 @@ export const CRAB = sprite(
     '..X.....X..',
     '.X.......X.',
   ],
+  [
+    '..X.....X..',
+    '...X...X...',
+    '..XXXXXXX..',
+    'XXX.XXX.XXX',
+    'XXXXXXXXXXX',
+    '.XXXXXXXXX.',
+    '..X.....X..',
+    '...XX.XX...',
+  ],
 );
 
 /** The bottom rows' octopus, the widest. */
@@ -88,6 +118,16 @@ export const OCTOPUS = sprite(
     '..XXX..XXX..',
     '.XX..XX..XX.',
     '..XX....XX..',
+  ],
+  [
+    '....XXXX....',
+    '.XXXXXXXXXX.',
+    'XXXXXXXXXXXX',
+    'XXX..XX..XXX',
+    'XXXXXXXXXXXX',
+    '...XX..XX...',
+    '.XX.XXXX.XX.',
+    '.X........X.',
   ],
 );
 
@@ -135,6 +175,74 @@ export const BURST = sprite([
   '..X..X.X..X..',
   '.X..X...X..X.',
 ]);
+
+/**
+ * A blockhouse: the arched shelter the fighter hides behind.
+ *
+ * Sixteen by twelve rather than the cabinet's twenty-two by sixteen. The
+ * arch has to survive being drawn at a couple of pixels a cell on a
+ * compact panel, and at that size the original's one-cell shoulders close
+ * up into a solid brick.
+ */
+export const BUNKER = sprite([
+  '...XXXXXXXXXX...',
+  '..XXXXXXXXXXXX..',
+  '.XXXXXXXXXXXXXX.',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXXXXXXXXXXXXX',
+  'XXXXX......XXXXX',
+  'XXXX........XXXX',
+  'XXX..........XXX',
+  'XXX..........XXX',
+  'XXX..........XXX',
+]);
+
+/**
+ * The cabinet's readouts, five by seven.
+ *
+ * Only the characters the scene actually prints. A full face would be
+ * three hundred lines of table for twenty-six letters that never appear,
+ * and the readout is fixed text: two labels and the digits under them.
+ */
+const GLYPHS: Record<string, Bitmap> = {
+  '0': ['.XXX.', 'X...X', 'X..XX', 'X.X.X', 'XX..X', 'X...X', '.XXX.'],
+  '1': ['..X..', '.XX..', '..X..', '..X..', '..X..', '..X..', '.XXX.'],
+  '2': ['.XXX.', 'X...X', '....X', '...X.', '..X..', '.X...', 'XXXXX'],
+  '3': ['XXXXX', '...X.', '..XX.', '....X', 'X...X', 'X...X', '.XXX.'],
+  '4': ['...X.', '..XX.', '.X.X.', 'X..X.', 'XXXXX', '...X.', '...X.'],
+  '5': ['XXXXX', 'X....', 'XXXX.', '....X', '....X', 'X...X', '.XXX.'],
+  '6': ['..XX.', '.X...', 'X....', 'XXXX.', 'X...X', 'X...X', '.XXX.'],
+  '7': ['XXXXX', '....X', '...X.', '..X..', '.X...', '.X...', '.X...'],
+  '8': ['.XXX.', 'X...X', 'X...X', '.XXX.', 'X...X', 'X...X', '.XXX.'],
+  '9': ['.XXX.', 'X...X', 'X...X', '.XXXX', '....X', '...X.', '.XX..'],
+  C: ['.XXX.', 'X...X', 'X....', 'X....', 'X....', 'X...X', '.XXX.'],
+  D: ['XXXX.', 'X...X', 'X...X', 'X...X', 'X...X', 'X...X', 'XXXX.'],
+  E: ['XXXXX', 'X....', 'X....', 'XXXX.', 'X....', 'X....', 'XXXXX'],
+  H: ['X...X', 'X...X', 'X...X', 'XXXXX', 'X...X', 'X...X', 'X...X'],
+  I: ['XXXXX', '..X..', '..X..', '..X..', '..X..', '..X..', 'XXXXX'],
+  O: ['.XXX.', 'X...X', 'X...X', 'X...X', 'X...X', 'X...X', '.XXX.'],
+  R: ['XXXX.', 'X...X', 'X...X', 'XXXX.', 'X.X..', 'X..X.', 'X...X'],
+  S: ['.XXXX', 'X....', 'X....', '.XXX.', '....X', '....X', 'XXXX.'],
+  T: ['XXXXX', '..X..', '..X..', '..X..', '..X..', '..X..', '..X..'],
+  '-': ['.....', '.....', '.....', 'XXXXX', '.....', '.....', '.....'],
+  ' ': ['.....', '.....', '.....', '.....', '.....', '.....', '.....'],
+};
+
+/** The width of one readout character, in sprite pixels, gap included. */
+export const GLYPH_PITCH = 6;
+
+/**
+ * A line of text as one bitmap, so the run merger treats the whole line
+ * at once rather than a rectangle per character.
+ */
+export const textBitmap = (text: string): Bitmap =>
+  Array.from({ length: 7 }, (_, row) =>
+    [...text.toUpperCase()]
+      .map((character) => (GLYPHS[character] ?? GLYPHS[' '])[row])
+      .join('.'),
+  );
 
 export type AlienKind = 'squid' | 'crab' | 'octopus';
 export const ALIENS: Record<AlienKind, Sprite> = {

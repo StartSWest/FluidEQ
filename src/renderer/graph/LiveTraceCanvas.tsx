@@ -85,6 +85,7 @@ import {
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import createGraphSawtooth from 'common/graphSawtooth';
+import { invaderUnit } from 'common/graphInvaders';
 import {
   advanceRoadTrip,
   createRoadTrip,
@@ -100,6 +101,7 @@ import {
 } from './echoWaves';
 import {
   advancePulseMonitor,
+  createPulseGrid,
   createPulseMonitor,
   createPulsePaths,
   echoDrift,
@@ -131,6 +133,11 @@ import {
 import { createFluidBarPaint, heatColour } from './lookColours';
 import createDotPaths from './dotPaths';
 import createBubblePaths from './bubblePaths';
+import {
+  advanceBubbleMotes,
+  createBubbleMotePaths,
+  createBubbleMotes,
+} from './bubbleMotes';
 import {
   advanceBubbleStorm,
   bubbleShake,
@@ -233,7 +240,18 @@ import {
   createSpaceInvasion,
   createSpaceInvasionPaths,
   invasionShake,
+  SHIP_LANE,
 } from './spaceInvasion';
+import {
+  createCabinetFramePaths,
+  createInvaderCabinet,
+  createShelterPaths,
+  IChromeBox,
+  INVADER_GREEN,
+  INVADER_POINTS,
+  INVADER_READOUT,
+  readoutFloor,
+} from './invaderCabinet';
 import {
   advanceCaveDrips,
   CAVE_CEILING,
@@ -440,16 +458,6 @@ const HALO_SCALE = 1 / 3;
 const SEA_SCALE = 1 / 3;
 
 /**
- * How coarse the blocky surface is.
- *
- * A third of the resolution with the smoothing off is sharp, but the
- * steps are three pixels and nobody reads that as blocky — it looks like
- * a slightly rough drawing. A tenth makes a block a block, which is the
- * point, and costs a hundredth of the blending rather than a ninth.
- */
-const BLOCK_SCALE = 1 / 10;
-
-/**
  * Hand the context a flat colour, or build the ramp one describes.
  *
  * Built inside the figure's own transform rather than once per frame, because a
@@ -497,6 +505,9 @@ const LiveTraceCanvas = ({
   const caveDripsRef = useRef(createCaveDrips());
   const caveClockRef = useRef(0);
   const invasionRef = useRef(createSpaceInvasion());
+  const invaderCabinetRef = useRef(createInvaderCabinet());
+  /** Whether the last frame drawn was the arcade, to tell an arrival. */
+  const wasInvadersRef = useRef(false);
   const invasionClockRef = useRef(0);
   const warpRef = useRef(createWarpTunnel());
   const warpClockRef = useRef(0);
@@ -531,6 +542,8 @@ const LiveTraceCanvas = ({
   const slopeFieldRef = useRef(createSlopeField());
   const slopeClockRef = useRef(0);
   const bubbleStormRef = useRef(createBubbleStorm());
+  const bubbleMotesRef = useRef(createBubbleMotes());
+  const bubbleMotesClockRef = useRef(0);
   const sawtoothScopeRef = useRef(createSawtoothScope());
   const pulseMonitorRef = useRef(createPulseMonitor());
   const echoWavesRef = useRef(createEchoWaves());
@@ -538,6 +551,18 @@ const LiveTraceCanvas = ({
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /**
+   * The app's own chrome lying over this canvas, in the canvas's pixels:
+   * the titlebar and the transport bar where they overlap it, the graph's
+   * controls strip, and in full screen the creature pinned in the top-left
+   * corner. A scene that prints along the canvas's edge — the arcade's
+   * score — moves clear of these rather than under them.
+   *
+   * Measured from the DOM rather than assumed, so a hidden bar counts as no
+   * bar, and re-measured whenever the canvas or the strip changes size —
+   * which is what entering and leaving full screen does to both.
+   */
+  const chromeRef = useRef<readonly IChromeBox[]>([]);
   const visibleRef = useRef(true);
   const intersectionRef = useRef<IntersectionObserver | null>(null);
   const transitionRef = useRef(new GraphLookTransition());
@@ -950,6 +975,31 @@ const LiveTraceCanvas = ({
           playingRef.current,
         );
       }
+      /**
+       * The monitor's ruled paper, over the whole window: it is scenery,
+       * so the height slider moves the trace and not the grid.
+       *
+       * The one thing here built in the SCREEN's space rather than the
+       * scene's. Scene space is the screen stretched vertically by the
+       * height slider, and a square in it is a rectangle on the glass —
+       * the paper would print taller-than-wide cells at any setting below
+       * full, with the horizontal rules drawn thicker than the vertical
+       * ones by the same amount. Ruled on the glass instead, the squares
+       * stay square and it is their count that answers the slider.
+       *
+       * Only when the measurement grid is off. Two sets of rules over each
+       * other is two instruments arguing — the decibel scale is a reading
+       * and the paper is a picture, and neither survives the other being
+       * there. The grid the user asked for wins.
+       */
+      const pulseGrid =
+        chosen === 'ecg' && isGridHiddenRef.current
+          ? createPulseGrid(
+              { left: 0, right: width, top: 0, bottom: height },
+              depth,
+              baseline,
+            )
+          : undefined;
       const pulsePaths =
         chosen === 'ecg'
           ? createPulsePaths(
@@ -1051,13 +1101,43 @@ const LiveTraceCanvas = ({
         chosen === 'invaders'
           ? sceneSpace(toColumns(projected, tuning.columns))
           : undefined;
+      // Coming back to the arcade is a new coin: a fresh fight, three ships
+      // and both readouts at nothing. The hi-score is this sitting's, not a
+      // record — leaving the visualizer ends the sitting.
+      if (invasionColumns && !wasInvadersRef.current) {
+        invasionRef.current = createSpaceInvasion();
+        invaderCabinetRef.current = createInvaderCabinet();
+      }
+      wasInvadersRef.current = Boolean(invasionColumns);
       if (invasionColumns && playingRef.current) {
         invasionClockRef.current += motionDeltaMs / 1000;
         moving = true;
       }
+      // Where the fight's sky starts: under the cabinet's readout row, so a
+      // loud band's aliens and the saucer never fly through the score. The
+      // row is in the window's pixels and the fight in the scene's, which
+      // differ by the wave's offset — screen = translateY + scene while the
+      // wave stands up. Hung down, the top of the window is the fighter's
+      // side and the row is not over the formation at all.
+      const invaderCeiling = (() => {
+        if (!invasionColumns || invasionColumns.length < 2) {
+          return sceneTop;
+        }
+        const span =
+          invasionColumns[invasionColumns.length - 1][0] -
+          invasionColumns[0][0];
+        const unit = invaderUnit(depth, span / (invasionColumns.length - 1));
+        const placed = getWaveTransform(curves[0], baseline, plot.top);
+        if (placed.scaleY < 0) {
+          return sceneTop;
+        }
+        const floor = readoutFloor(height, unit, chromeRef.current);
+        return Math.max(sceneTop, floor - placed.translateY);
+      })();
       if (invasionColumns) {
         advanceSpaceInvasion(
           invasionRef.current,
+          invaderCabinetRef.current,
           invasionColumns,
           sceneSpace(toColumns(liveProjected, tuning.columns)),
           sceneTop,
@@ -1065,6 +1145,7 @@ const LiveTraceCanvas = ({
           invasionClockRef.current,
           playingRef.current,
           depth,
+          invaderCeiling,
         );
       }
       const invasionPaths = invasionColumns
@@ -1075,6 +1156,28 @@ const LiveTraceCanvas = ({
             sceneBase,
             invasionClockRef.current,
             depth,
+            invaderCeiling,
+          )
+        : undefined;
+      // The cabinet the fight happens inside. The shelters stand with the
+      // fight, over the fighter's lane; the ground and the readouts are the
+      // machine's screen edges, in the window's own pixels — see
+      // `createCabinetFramePaths` for why they never go through the wave.
+      const shelterPath = invasionPaths
+        ? createShelterPaths(
+            invaderCabinetRef.current,
+            sceneBase - (sceneBase - sceneTop) * SHIP_LANE,
+            invasionPaths.unit,
+          )
+        : undefined;
+      const cabinetFrame = invasionPaths
+        ? createCabinetFramePaths(
+            invaderCabinetRef.current,
+            width,
+            height,
+            invasionPaths.unit,
+            chromeRef.current,
+            waveformRef.current,
           )
         : undefined;
       // Hyperspace: the streaks are its figure, the sky and the rest scenery.
@@ -1418,6 +1521,31 @@ const LiveTraceCanvas = ({
             skyFrame,
           )
         : undefined;
+      // The specks the bubbles rise through, over the whole window: they
+      // are scenery, so the height slider moves the bubbles and not them.
+      const motesOn = chosen === 'bubbles';
+      if (motesOn && playingRef.current) {
+        bubbleMotesClockRef.current += motionDeltaMs / 1000;
+        moving = true;
+      }
+      if (motesOn) {
+        advanceBubbleMotes(
+          bubbleMotesRef.current,
+          sceneSpace(toColumns(liveProjected, tuning.columns)),
+          sceneTop,
+          sceneBase,
+          bubbleMotesClockRef.current,
+          playingRef.current,
+        );
+      }
+      const motePaths = motesOn
+        ? createBubbleMotePaths(
+            bubbleMotesRef.current,
+            bubbleMotesClockRef.current,
+            depth,
+            skyFrame,
+          )
+        : undefined;
       const isSceneForm = Boolean(
         pulsePaths ||
         echoPaths ||
@@ -1488,7 +1616,11 @@ const LiveTraceCanvas = ({
        * dead zone — the canvas would throw on the first frame of every scene.
        */
       const overflowsPlot =
-        isSceneForm || Boolean(cityPaths) || Boolean(fieldPaths);
+        isSceneForm ||
+        Boolean(pulseGrid) ||
+        Boolean(cityPaths) ||
+        Boolean(fieldPaths) ||
+        Boolean(motePaths);
       if (
         hasGraphMotion(chosen) &&
         !invasionPaths &&
@@ -2014,7 +2146,29 @@ const LiveTraceCanvas = ({
       context.lineCap = 'round';
       context.lineJoin = 'round';
 
-      curves.forEach((curve) => {
+      // The arcade's screen edges — ground, score, hi-score, spare ships and
+      // credit — once, in the window's own pixels and under everything,
+      // before any curve's transform is set. Through the wave they would
+      // float mid-panel at half height, print upside down in the mirror and
+      // shake when the ship is hit.
+      if (cabinetFrame) {
+        const paintEdge = (path: Path2D, colour: string, alpha: number) => {
+          setAlpha(context, opacity * alpha);
+          if (isFilled) {
+            context.fillStyle = colour;
+            context.fill(path);
+          } else {
+            context.strokeStyle = colour;
+            context.lineWidth = 1;
+            context.stroke(path);
+          }
+        };
+        paintEdge(cabinetFrame.ground, INVADER_GREEN, 0.9);
+        paintEdge(cabinetFrame.spare, INVADER_GREEN, 0.75);
+        paintEdge(cabinetFrame.readout, INVADER_READOUT, 0.85);
+      }
+
+      curves.forEach((curve, curveIndex) => {
         const wave = getWaveTransform(curve, baseline, plot.top);
         const bubblePaths =
           chosen === 'bubbles' && wave.scaleY !== 0
@@ -2064,10 +2218,10 @@ const LiveTraceCanvas = ({
          * context lost, a canvas that will not give one) the caller's own
          * drawing runs here at full cost.
          */
-        const paintOnSurface = (
+        const paintLowRes = (
           draw: (target: CanvasRenderingContext2D) => void,
-          { scale, smooth }: { scale: number; smooth: boolean },
         ) => {
+          const scale = SEA_SCALE;
           const surface =
             seaCanvasRef.current ?? document.createElement('canvas');
           seaCanvasRef.current = surface;
@@ -2101,29 +2255,11 @@ const LiveTraceCanvas = ({
           surface2d.restore();
           context.save();
           context.setTransform(1, 0, 0, 1, 0, 0);
-          context.imageSmoothingEnabled = smooth;
+          context.imageSmoothingEnabled = true;
           setAlpha(context, 1);
           context.drawImage(surface, 0, 0, canvas.width, canvas.height);
           context.restore();
         };
-
-        /** Stretched smoothly: water, which has no edges to lose. */
-        const paintLowRes = (
-          draw: (target: CanvasRenderingContext2D) => void,
-        ) => paintOnSurface(draw, { scale: SEA_SCALE, smooth: true });
-
-        /**
-         * Stretched WITHOUT smoothing, so a third of the resolution comes
-         * back as blocks rather than as a blur.
-         *
-         * Same cost, and on a drawing made of lines it is the better
-         * answer: interpolating a wireframe up softens every edge it has,
-         * where nearest-neighbour keeps them hard and the coarseness reads
-         * as a choice rather than as a blurry picture.
-         */
-        const paintBlocky = (
-          draw: (target: CanvasRenderingContext2D) => void,
-        ) => paintOnSurface(draw, { scale: BLOCK_SCALE, smooth: false });
 
         /**
          * The whole canvas in this curve's scene space.
@@ -2311,6 +2447,59 @@ const LiveTraceCanvas = ({
           }
         };
 
+        // The paper is the same sheet for every curve — ruled symmetrically
+        // about the baseline, so the mirror's flip lands it exactly on
+        // itself — and painting it once instead of per curve is the whole
+        // of that cost saved on a mirrored look.
+        if (pulseGrid && curveIndex === 0) {
+          // The paper first, under everything: fine squares and a heavy
+          // line every fifth, in the look's own colour, brightening with
+          // the beat like the rest of the instrument.
+          const lift =
+            0.55 +
+            pulseThump(
+              pulseMonitorRef.current,
+              motionRef.current.travel[0] ?? 0,
+            ) *
+              0.45;
+          context.save();
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.12 * lift);
+          context.stroke(pulseGrid.fine);
+          setAlpha(context, opacity * 0.3 * lift);
+          context.stroke(pulseGrid.heavy);
+          // The write head lights the paper it is passing over, and the
+          // glow trails off behind it — the tube's own afterglow, which is
+          // what stops the sweep reading as a line that simply appears.
+          if (pulsePaths) {
+            const [scanX] = pulsePaths.head;
+            const reach = (plot.right - plot.left) * 0.14;
+            const scan = context.createLinearGradient(
+              scanX - reach,
+              0,
+              scanX,
+              0,
+            );
+            scan.addColorStop(0, 'rgba(255,255,255,0)');
+            scan.addColorStop(1, 'rgba(255,255,255,0.1)');
+            context.fillStyle = scan;
+            setAlpha(context, opacity * lift);
+            context.fillRect(scanX - reach, 0, reach, height);
+          }
+          context.restore();
+        }
+        if (motePaths) {
+          // Small dots drifting up over the whole screen, in the look's
+          // own colour. Nothing is painted behind them.
+          enterSceneSpace();
+          context.fillStyle = canvasPaint;
+          motePaths.bands.forEach((band) => {
+            setAlpha(context, opacity * band.alpha);
+            context.fill(band.path);
+          });
+          context.restore();
+        }
         if (fieldPaths) {
           // The field first, in the look's own colour: the grid of ticks
           // from faintest to brightest, the beat's band leaving the curve,
@@ -2941,14 +3130,35 @@ const LiveTraceCanvas = ({
             );
             context.stroke(band.path);
           });
+          // The boss: a red glow round its hull, the hull, and its running
+          // lights chasing along the rim.
+          context.strokeStyle = '#ff4d6d';
+          context.lineWidth = invasionPaths.unit * 2.4;
+          context.lineJoin = 'round';
+          setAlpha(context, opacity * (0.16 + invasionPaths.thump * 0.14));
+          context.stroke(invasionPaths.saucer);
           context.fillStyle = '#ff4d6d';
           setAlpha(context, opacity * 0.95);
           if (isFilled) {
             context.fill(invasionPaths.saucer);
           } else {
-            context.strokeStyle = '#ff4d6d';
+            context.lineWidth = 1;
             context.stroke(invasionPaths.saucer);
           }
+          context.fillStyle = '#fff3b0';
+          setAlpha(context, opacity);
+          context.fill(invasionPaths.saucerLights);
+          // Its plasma: a soft halo, the flame, the white-hot core.
+          context.strokeStyle = '#ff7a1f';
+          context.lineWidth = invasionPaths.unit * 2;
+          setAlpha(context, opacity * 0.22);
+          context.stroke(invasionPaths.plasmaFlame);
+          context.fillStyle = '#ff5a2a';
+          setAlpha(context, opacity * 0.9);
+          context.fill(invasionPaths.plasmaFlame);
+          context.fillStyle = '#fff3b0';
+          setAlpha(context, opacity);
+          context.fill(invasionPaths.plasmaCore);
           context.strokeStyle = '#ff5d7a';
           context.lineWidth = invasionPaths.unit * 1.6;
           setAlpha(context, opacity * 0.3);
@@ -2964,6 +3174,19 @@ const LiveTraceCanvas = ({
           context.lineWidth = invasionPaths.unit * 0.55;
           setAlpha(context, opacity * 0.95);
           context.stroke(invasionPaths.shots);
+          // The shelters over the fire that is eating them, so a bolt is
+          // seen to stop AT the arch rather than in front of it.
+          if (shelterPath) {
+            setAlpha(context, opacity);
+            if (isFilled) {
+              context.fillStyle = INVADER_GREEN;
+              context.fill(shelterPath);
+            } else {
+              context.strokeStyle = INVADER_GREEN;
+              context.lineWidth = 1;
+              context.stroke(shelterPath);
+            }
+          }
           // The ship: the pixel fighter — flames first, then hull, canopy
           // and stripes, each its own colour — with a soft glow round the
           // hull that swells on the beat. Stroked, every layer is outlined.
@@ -2992,9 +3215,39 @@ const LiveTraceCanvas = ({
           setAlpha(context, opacity * 0.95);
           context.fill(invasionPaths.shipFlash);
           context.fill(invasionPaths.muzzle);
+          // The bubble: a soft halo of its own dots under a crisp ring.
+          context.strokeStyle = '#7fe3ff';
+          context.lineWidth = invasionPaths.unit * 2.2;
+          context.lineJoin = 'round';
+          setAlpha(context, opacity * 0.18);
+          context.stroke(invasionPaths.shield);
           context.fillStyle = '#7fe3ff';
-          setAlpha(context, opacity * 0.8);
+          setAlpha(context, opacity * (0.7 + invasionPaths.thump * 0.3));
           context.fill(invasionPaths.shield);
+          // The last ship coming apart: the fireball behind, its hot heart,
+          // then the fighter's own pixels flying out in its own colours —
+          // white all over for the first instant of the blast.
+          const { wreckage } = invasionPaths;
+          if (wreckage) {
+            const { glow } = wreckage;
+            context.fillStyle = '#ff7a1f';
+            setAlpha(context, opacity * glow * 0.85);
+            context.fill(wreckage.fire);
+            context.fillStyle = '#fff3b0';
+            setAlpha(context, opacity * glow * glow);
+            context.fill(wreckage.heart);
+            paintPart(wreckage.hull, wreckage.flash ? '#fff' : '#d6dee8', glow);
+            paintPart(
+              wreckage.stripes,
+              wreckage.flash ? '#fff' : '#ff4d6d',
+              glow,
+            );
+            paintPart(
+              wreckage.canopy,
+              wreckage.flash ? '#fff' : '#6fe6ff',
+              glow,
+            );
+          }
           // The bursts in the alien's own colour, fading.
           context.fillStyle = canvasPaint;
           invasionPaths.bursts.forEach((band) => {
@@ -3858,6 +4111,13 @@ const LiveTraceCanvas = ({
           context.fillStyle = '#fff';
           setAlpha(context, opacity * 0.9);
           context.fill(invasionPaths.flash);
+          // The points won, over everything: painted with the rest of the
+          // scene they came out under the formation and could not be read.
+          context.fillStyle = INVADER_POINTS;
+          setAlpha(context, opacity);
+          context.fill(invasionPaths.popups);
+          setAlpha(context, opacity * 0.5);
+          context.fill(invasionPaths.popupsFading);
         }
         if (cavePaths) {
           // The rock's shading: the flank away from the light darkened, a
@@ -4218,6 +4478,50 @@ const LiveTraceCanvas = ({
     },
     [kickFrames],
   );
+
+  // Where the app's chrome lies over the canvas — see `chromeRef`. Only the
+  // pieces that actually cover it count: a strip scrolled away or a creature
+  // on a different display is no reason to push a readout down.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const wrapper = canvas.closest('.graph-wrapper');
+    const strips = wrapper
+      ? [...wrapper.querySelectorAll('.live-output-controls')]
+      : [];
+    const measure = () => {
+      const box = canvas.getBoundingClientRect();
+      chromeRef.current = [
+        ...strips,
+        ...document.querySelectorAll(
+          '.window-titlebar, .now-playing-bar, .fullscreen-chrome > *',
+        ),
+      ]
+        .map((piece) => piece.getBoundingClientRect())
+        .filter(
+          (rect) =>
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.bottom > box.top &&
+            rect.top < box.bottom &&
+            rect.right > box.left &&
+            rect.left < box.right,
+        )
+        .map((rect) => ({
+          left: rect.left - box.left,
+          right: rect.right - box.left,
+          top: rect.top - box.top,
+          bottom: rect.bottom - box.top,
+        }));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    strips.forEach((strip) => observer.observe(strip));
+    measure();
+    return () => observer.disconnect();
+  }, [width, height]);
 
   useEffect(() => {
     if (easedRef.current.length !== points.length) {

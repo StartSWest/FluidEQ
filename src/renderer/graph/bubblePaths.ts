@@ -12,6 +12,18 @@ interface ICentre {
   y: number;
 }
 
+/**
+ * How big a bubble is on its way up.
+ *
+ * A sine over the climb put every bubble's widest point halfway and shrank
+ * it to nothing well before the top, which is why the form was a shoal in
+ * the lower half of a black window. A bubble grows quickly as it leaves
+ * the floor, holds its size for the climb and only goes at the surface,
+ * where it pops — which is what a bubble does.
+ */
+const riseEnvelope = (phase: number) =>
+  Math.min(1, phase * 7) * Math.min(1, (1 - phase) * 9);
+
 /** A cheap deterministic hash in [0, 1): a bolt must not re-shape per frame. */
 const noise = (seed: number, step: number) => {
   const v = Math.sin(seed * 12.9898 + step * 78.233) * 43758.5453;
@@ -112,7 +124,7 @@ const createBubblePaths = (
             growth *
             (0.48 + energy * 0.65) *
             [1, 0.62, 0.35][layer],
-        ) * Math.sin(phase * Math.PI),
+        ) * riseEnvelope(phase),
       );
       const cy = (bottom - phase * depth) * scaleY;
       const cx =

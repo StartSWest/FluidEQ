@@ -6,6 +6,7 @@ import {
   pulseVertices,
   sliceByX,
 } from 'common/graphPulse';
+import type { ISkyFrame } from './terraceValley';
 
 /**
  * What makes the pulse a monitor and not a drawing of one.
@@ -19,6 +20,11 @@ import {
  *
  * Decided once per frame, before the curves, so a mirrored wave shows the
  * same thump without deciding it twice.
+ *
+ * Behind all of it, the paper: the ruled grid every monitor of this kind
+ * prints on, fine squares with a heavier line every fifth, over the whole
+ * window. It is what turns a line on black into an instrument, and it is
+ * what fills the screen the trace does not reach.
  */
 
 /** The tail is 45% of the plot; the wiped gap ahead of the head, 4%. */
@@ -115,6 +121,66 @@ export const pulseShake = (state: PulseMonitor, seconds: number) => {
  * tail in four slices, the one nearest the head brightest. `shape` is the
  * pumped trace shut against the floor, for the fill and outline.
  */
+/**
+ * Squares this tall, as a fraction of the plot's true depth, and never
+ * bigger than this many pixels.
+ *
+ * Tied to the depth alone the paper grew with the window and a full
+ * screen ruled itself into a dozen enormous boxes, which reads as a chart
+ * background rather than as a monitor. The cap keeps the squares the size
+ * they are on paper however large the screen gets, so a bigger window
+ * shows more of them.
+ */
+const CELL = 1 / 22;
+const CELL_MAX = 46;
+/** Every fifth line is the heavy one, the way the paper is printed. */
+const HEAVY = 5;
+
+/**
+ * The ruled paper behind the trace, over the whole window.
+ *
+ * Given the screen's own frame and baseline, not the scene's: one step
+ * has to measure the same across and down or the cells are not squares,
+ * and scene space is the screen stretched vertically. Sized from the
+ * plot's TRUE depth rather than the rendered one, so the height slider
+ * changes how MANY squares fit and never their shape — the same rule
+ * every other form here follows. Ruled outward from the trace's own
+ * floor, so a heavy line lands on the baseline rather than wherever the
+ * window happens to start.
+ */
+export const createPulseGrid = (
+  frame: ISkyFrame,
+  sizeHeight: number,
+  baseline: number,
+) => {
+  const cell = Math.max(10, Math.min(CELL_MAX, sizeHeight * CELL));
+  const fine = new Path2D();
+  const heavy = new Path2D();
+  const width = Math.max(1, frame.right - frame.left);
+  const columns = Math.ceil(width / cell);
+  for (let column = 0; column <= columns; column += 1) {
+    const x = frame.left + column * cell;
+    const path = column % HEAVY === 0 ? heavy : fine;
+    path.moveTo(x, frame.top);
+    path.lineTo(x, frame.bottom);
+  }
+  const rows = Math.ceil((frame.bottom - frame.top) / cell) + HEAVY;
+  for (let step = 0; step <= rows; step += 1) {
+    const path = step % HEAVY === 0 ? heavy : fine;
+    const up = baseline - step * cell;
+    const down = baseline + step * cell;
+    if (up >= frame.top && up <= frame.bottom) {
+      path.moveTo(frame.left, up);
+      path.lineTo(frame.right, up);
+    }
+    if (step > 0 && down >= frame.top && down <= frame.bottom) {
+      path.moveTo(frame.left, down);
+      path.lineTo(frame.right, down);
+    }
+  }
+  return { fine, heavy };
+};
+
 export const createPulsePaths = (
   state: PulseMonitor,
   points: readonly Projected[],

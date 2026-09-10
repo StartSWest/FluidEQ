@@ -554,78 +554,89 @@ const GraphViewMenu = ({
           {/* Continuous controls replace the three-stop Ctrl+B size mode. The
               old control mixed plot margins with wave amplitude, which made
               none of its three labels a complete description of what moved.
-              These stay open while dragged so the graph remains the readout. */}
-          <label
-            className={`graph-view-menu__slider${
-              isWaveHidden ? ' is-disabled' : ''
-            }`}
-            htmlFor="graph-wave-height"
-            title={t('graph.waveHeightHint')}
-          >
-            <Icon>
-              <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
-            </Icon>
-            <span>{t('graph.waveHeight')}</span>
-            {/* The three snap points, drawn as ticks on the track so the
-                thumb is seen to land on something. */}
-            <span className="graph-view-menu__track">
-              {PERCENT_SNAPS.map((snap) => (
-                <i
-                  key={snap}
-                  className="graph-view-menu__snap"
-                  style={
-                    {
-                      '--snap-frac':
-                        (snap - MIN_GRAPH_WAVE_HEIGHT * 100) /
-                        (100 - MIN_GRAPH_WAVE_HEIGHT * 100),
-                    } as CSSProperties
-                  }
-                  aria-hidden
-                />
-              ))}
-              <input
-                id="graph-wave-height"
-                type="range"
-                min={MIN_GRAPH_WAVE_HEIGHT * 100}
-                max={100}
-                step={1}
-                value={Math.round(waveHeight * 100)}
-                disabled={isWaveHidden}
-                onChange={(event) =>
-                  onChangeWaveHeight(
-                    snapPercent(Number(event.target.value)) / 100,
-                  )
-                }
-              />
-            </span>
-          </label>
+              These stay open while dragged so the graph remains the readout.
 
-          <label
-            className={`graph-view-menu__slider${
-              isWaveHidden || waveOrientation === 'centred'
-                ? ' is-disabled'
-                : ''
-            }`}
-            htmlFor="graph-wave-position"
-            title={t('graph.wavePositionHint')}
-          >
-            <Icon>
-              <path d="M2 3h12M2 8h12M2 13h12M8 12.5V8.8M5.8 11l2.2 2.2 2.2-2.2" />
-            </Icon>
-            <span>{t('graph.wavePosition')}</span>
-            <input
-              id="graph-wave-position"
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={Math.round(wavePosition * 100)}
-              disabled={isWaveHidden || waveOrientation === 'centred'}
-              onChange={(event) =>
-                onChangeWavePosition(Number(event.target.value) / 100)
-              }
-            />
-          </label>
+              Offered in the two big modes only. The graph in its pane shares
+              the card with the response curves, the band handles and the
+              legends: it is a measurement, it uses the whole plot, and a
+              control for making it shorter there is a control for making the
+              reading worse. Both big modes write one shared value, so what is
+              set out here is what the pane draws with. */}
+          {view !== 'normal' && (
+            <>
+              <label
+                className={`graph-view-menu__slider${
+                  isWaveHidden ? ' is-disabled' : ''
+                }`}
+                htmlFor="graph-wave-height"
+                title={t('graph.waveHeightHint')}
+              >
+                <Icon>
+                  <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
+                </Icon>
+                <span>{t('graph.waveHeight')}</span>
+                {/* The three snap points, drawn as ticks on the track so the
+                thumb is seen to land on something. */}
+                <span className="graph-view-menu__track">
+                  {PERCENT_SNAPS.map((snap) => (
+                    <i
+                      key={snap}
+                      className="graph-view-menu__snap"
+                      style={
+                        {
+                          '--snap-frac':
+                            (snap - MIN_GRAPH_WAVE_HEIGHT * 100) /
+                            (100 - MIN_GRAPH_WAVE_HEIGHT * 100),
+                        } as CSSProperties
+                      }
+                      aria-hidden
+                    />
+                  ))}
+                  <input
+                    id="graph-wave-height"
+                    type="range"
+                    min={MIN_GRAPH_WAVE_HEIGHT * 100}
+                    max={100}
+                    step={1}
+                    value={Math.round(waveHeight * 100)}
+                    disabled={isWaveHidden}
+                    onChange={(event) =>
+                      onChangeWaveHeight(
+                        snapPercent(Number(event.target.value)) / 100,
+                      )
+                    }
+                  />
+                </span>
+              </label>
+
+              <label
+                className={`graph-view-menu__slider${
+                  isWaveHidden || waveOrientation === 'centred'
+                    ? ' is-disabled'
+                    : ''
+                }`}
+                htmlFor="graph-wave-position"
+                title={t('graph.wavePositionHint')}
+              >
+                <Icon>
+                  <path d="M2 3h12M2 8h12M2 13h12M8 12.5V8.8M5.8 11l2.2 2.2 2.2-2.2" />
+                </Icon>
+                <span>{t('graph.wavePosition')}</span>
+                <input
+                  id="graph-wave-position"
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round(wavePosition * 100)}
+                  disabled={isWaveHidden || waveOrientation === 'centred'}
+                  onChange={(event) =>
+                    onChangeWavePosition(Number(event.target.value) / 100)
+                  }
+                />
+              </label>
+            </>
+          )}
 
           {/* Four states, so it cycles and names the one it will go to next
               rather than the one you are in. Every look is drawn from the same

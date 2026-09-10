@@ -17,6 +17,7 @@ import {
   SHAKE_LIFE,
   STARS,
 } from 'renderer/graph/spaceInvasion';
+import { createInvaderCabinet } from 'renderer/graph/invaderCabinet';
 
 const columns: Projected[] = Array.from({ length: 12 }, (_, i) => [
   20 + i * 20,
@@ -81,8 +82,19 @@ describe('the fight', () => {
     live: readonly Projected[],
     seconds: number,
     playing = true,
+    cabinet = createInvaderCabinet(),
   ) =>
-    advanceSpaceInvasion(state, columns, live, 20, 160, seconds, playing, 140);
+    advanceSpaceInvasion(
+      state,
+      cabinet,
+      columns,
+      live,
+      20,
+      160,
+      seconds,
+      playing,
+      140,
+    );
 
   it('keeps the aliens between the saucer lane and the ship', () => {
     const unit = invaderUnit(140, 20);
@@ -101,7 +113,8 @@ describe('the fight', () => {
       expect(shot.column).toBeGreaterThanOrEqual(10);
       expect(shot.dx).toBeGreaterThan(0);
     });
-    expect(state.frame).toBe(1);
+    // The beat steps the formation's march along.
+    expect(state.marchPhase).toBe(1);
     expect(state.shipTarget).toBeGreaterThanOrEqual(columns[10][0]);
     // The shots fly on the clock and land as a burst and a flash.
     for (let t = 0.05; t < 1; t += 0.03) {

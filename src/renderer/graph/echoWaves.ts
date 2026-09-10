@@ -23,16 +23,18 @@ import { ECHO_SQUEEZE, projectEchoWave } from 'common/graphEcho';
  */
 
 /** Waves are let go every 100ms of clock and reach the horizon in 2.6s. */
-export const EMIT_EVERY = 0.14;
+export const EMIT_EVERY = 0.26;
 export const WAVE_LIFE = 2.6;
 /**
  * How many rows stand behind the live one.
  *
  * Each is a filled band the width of the scene, and the blending is what
- * this look costs to raster. Eighteen rows reach the horizon at the same
- * spacing and cost a third less than thirty did.
+ * this look costs to raster: thirty rows was five milliseconds a frame
+ * over the budget on a full screen, all of it blending. Ten rows reach
+ * the horizon at the same spacing, spaced further apart in time so the
+ * trail is as long as it was, and cost a third of what thirty did.
  */
-const WAVE_LIMIT = 18;
+const WAVE_LIMIT = 10;
 /**
  * A snapshot keeps 72 columns of the wave, not the full trace. Thirty
  * waves of a few hundred points each, rebuilt every frame, was the frame;
@@ -40,6 +42,9 @@ const WAVE_LIMIT = 18;
  * paths are written straight into Path2D rather than through text.
  */
 export const SNAPSHOT_COLUMNS = 72;
+
+/** How far a row slides sideways at its deepest, as a fraction of width. */
+const SWAY = 0.07;
 
 /** How many rails run back to the vanishing point. */
 const RAILS = 18;
@@ -187,9 +192,21 @@ export const createEchoWavePaths = (
         bottom,
         height,
       );
+      /**
+       * The tail drifts sideways as it goes back.
+       *
+       * Rows receding straight away from the viewer read as a stack;
+       * sliding each one by how deep it is turns the trail into something
+       * that snakes into the distance. The offset is a function of the
+       * row's own depth, so a row keeps its place in the snake for its
+       * whole life rather than sliding out from under itself.
+       */
+      const sway =
+        Math.sin(depth * 3.1 + seconds * 0.5) * (right - left) * SWAY;
+      const swayed: Projected[] = projected.wave.map(([x, y]) => [x + sway, y]);
       waves.push({
-        line: trace(projected.wave),
-        body: filled ? trace(projected.wave, projected.floor) : undefined,
+        line: trace(swayed),
+        body: filled ? trace(swayed, projected.floor) : undefined,
         depth,
         strength: wave.strength,
       });
