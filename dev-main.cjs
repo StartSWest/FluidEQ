@@ -27,4 +27,5 @@ Object.entries(require('./.erb/configs/public-env').default).forEach(
   },
 );
 
+require('./src/main/developmentInstance').configureDevelopmentInstance(app);
 require('./src/main/main.ts');

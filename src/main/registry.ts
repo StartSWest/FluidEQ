@@ -20,6 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
+import { getDevelopmentInstance } from './developmentInstance';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -53,13 +54,18 @@ const isSoftwareInstalled = async (softwareKey: string) => {
   return false;
 };
 
+const usesDemoConfig = () =>
+  process.platform !== 'win32' ||
+  Boolean(app && getDevelopmentInstance(app.isPackaged));
+
 export const isEqualizerAPOInstalled = () =>
-  process.platform === 'win32'
+  !usesDemoConfig()
     ? isSoftwareInstalled('EqualizerAPO')
     : Promise.resolve(true);
 
 export const getConfigPath = async () => {
-  if (process.platform !== 'win32') {
+  // Independent dev windows must never overwrite the other app's live EQ.
+  if (usesDemoConfig()) {
     const demoConfigPath = path.join(
       app.getPath('userData'),
       'demo-equalizerapo',

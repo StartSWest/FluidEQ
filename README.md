@@ -479,6 +479,22 @@ pnpm dev
 On non-Windows systems FluidEQ exposes two demonstration endpoints, so the UI
 and the device-assignment flow can be worked on without touching system audio.
 
+To run another worktree alongside an existing development or installed app,
+choose a separate name and two unused ports:
+
+```powershell
+$env:PORT = '1213'
+$env:FLUIDEQ_DEVTOOLS_PORT = '9223'
+$env:FLUIDEQ_DEV_INSTANCE = 'alpine'
+pnpm dev
+```
+
+The named instance keeps its settings, Chromium session and demonstration APO
+configuration under `FluidEQ-dev/<name>` in the application-data directory.
+It can use audio playback and capture without editing the system APO
+configuration. Only one window can own each named profile. Packaged builds
+ignore these development options and retain the normal single-instance lock.
+
 ### Commands
 
 ```powershell
