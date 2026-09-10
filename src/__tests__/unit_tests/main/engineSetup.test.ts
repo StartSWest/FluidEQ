@@ -41,6 +41,8 @@ jest.mock('child_process', () => ({
 
 // eslint-disable-next-line import/first
 import { parseEngineSetupOutput, runEngineSetup } from 'main/engineSetup';
+// eslint-disable-next-line import/first
+import log from 'electron-log';
 
 beforeEach(() => {
   fakeChild = new FakeChildProcess();
@@ -82,6 +84,28 @@ describe('parsing the setup helper output', () => {
   it('defaults endpoints to an empty list when the field is missing', () => {
     const result = parseEngineSetupOutput('{"ok":true}', 0);
     expect(result.endpoints).toEqual([]);
+  });
+
+  // A partial `--attach-all` reports `ok: true` overall (one usable engine is
+  // enough) with the failure named per endpoint instead — this is the field
+  // that lets a partial install still say which output needs a retry.
+  it('keeps the per-endpoint error a partial --attach-all reports', () => {
+    const result = parseEngineSetupOutput(
+      '{"ok":true,"error":"","endpoints":[' +
+        '{"guid":"{A}","attached":true},' +
+        '{"guid":"{B}","attached":false,"error":"the output could not be attached"}' +
+        ']}',
+      0,
+    );
+    expect(result.endpoints).toEqual([
+      { guid: '{A}', attached: true, backupExists: false },
+      {
+        guid: '{B}',
+        attached: false,
+        backupExists: false,
+        error: 'the output could not be attached',
+      },
+    ]);
   });
 });
 
@@ -125,5 +149,39 @@ describe('running the setup helper', () => {
     expect(result.declined).toBe(false);
     expect(result.error).toBeTruthy();
     expect(result.endpoints).toEqual([]);
+  });
+
+  // Otherwise a partial `--attach-all` reports overall success and the
+  // failed endpoint's guid and reason reach nowhere a user or a bug report
+  // could ever find them.
+  it('logs each failed endpoint from a partial --attach-all', async () => {
+    const warn = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
+    const promise = runEngineSetup(
+      'install',
+      ['--attach-all'],
+      'C:\\fake-setup.exe',
+    );
+    fakeChild.stdout.emit(
+      'data',
+      '{"ok":true,"error":"","endpoints":[' +
+        '{"guid":"{A}","attached":true},' +
+        '{"guid":"{B}","attached":false,"error":"the output could not be attached"}' +
+        ']}',
+    );
+    fakeChild.emit('close', 0);
+
+    const result = await promise;
+
+    expect(result.ok).toBe(true);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(
+      warn.mock.calls.some(
+        ([message]) =>
+          typeof message === 'string' &&
+          message.includes('{B}') &&
+          message.includes('the output could not be attached'),
+      ),
+    ).toBe(true);
+    warn.mockRestore();
   });
 });

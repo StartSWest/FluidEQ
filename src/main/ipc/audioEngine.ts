@@ -93,6 +93,18 @@ export interface IAudioEngineIpcDeps {
    * there — leaving both engines processing the same audio.
    */
   setSwitching: (isSwitching: boolean) => void;
+  /**
+   * Read per call, for the same reason as `getEngine`: whether a switch is
+   * running changes underneath this module, between `setSwitching(true)` and
+   * the `finally` that lowers it again.
+   *
+   * `SET_SYSTEM_DSP_CHAIN` checks it before scheduling a rack write, because
+   * a switch empties the directory that write would land in —
+   * `neutraliseEngine` deletes the FluidEQ Engine's rack file when it is the
+   * engine being left, and a write scheduled into the same path during that
+   * window would resurrect the file after the delete.
+   */
+  isSwitching: () => boolean;
   getConfigPath: (engine: TAudioEngine) => Promise<string>;
   /** Whether the engine's driver is on this machine at all. */
   isEngineInstalled: (engine: TAudioEngine) => Promise<boolean>;
@@ -121,6 +133,7 @@ export const registerAudioEngineIpc = ({
   getEngine,
   setEngine,
   setSwitching,
+  isSwitching,
   getConfigPath,
   isEngineInstalled,
   reflush,
@@ -331,6 +344,15 @@ export const registerAudioEngineIpc = ({
       return;
     }
     if (getEngine() !== 'fluid') {
+      succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
+      return;
+    }
+    // A switch empties the FluidEQ Engine's directory when it is the engine
+    // being left (`neutraliseEngine` deletes the rack file). Scheduling a
+    // write into that same path here, mid-switch, would land after the
+    // delete and bring the file back with no control in the app that reaches
+    // it again — so this is refused as `'not-fluid'` rather than queued.
+    if (isSwitching()) {
       succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
       return;
     }

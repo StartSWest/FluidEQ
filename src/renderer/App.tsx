@@ -1732,13 +1732,15 @@ const AppContent = () => {
     });
     const current = devices?.find((device) => device.isDefault);
     if (!current) {
-      await window.electron.ipcRenderer.showNativeMessage(t('engine.failed'));
+      await window.electron.ipcRenderer.showNativeMessage(
+        t('engine.detachFailed'),
+      );
       return;
     }
     const result = await handleDetachFluidEngine(current.guid);
     if (!result.ok) {
       await window.electron.ipcRenderer.showNativeMessage(
-        t(result.declined ? 'engine.declined' : 'engine.failed'),
+        t(result.declined ? 'engine.declined' : 'engine.detachFailed'),
       );
     }
   };

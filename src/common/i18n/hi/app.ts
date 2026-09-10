@@ -108,6 +108,8 @@ const app: Partial<Dictionary> = {
   'engine.installing': 'इंजन बदला जा रहा है…',
   'engine.declined': 'Windows की अनुमति नहीं मिली, इसलिए कुछ नहीं बदला।',
   'engine.failed': 'इंजन नहीं बदला जा सका। कुछ नहीं बदला।',
+  'engine.detachFailed':
+    'इस आउटपुट से FluidEQ इंजन नहीं हटाया जा सका। कुछ नहीं बदला।',
   'engine.unsupported': 'Windows 10 संस्करण 1803 या नया चाहिए।',
   'prereq.title.apo': 'Equalizer APO पर ध्यान देना ज़रूरी है',
   'prereq.title.fluid': 'FluidEQ इंजन पर ध्यान देना ज़रूरी है',

@@ -111,6 +111,8 @@ const app: Partial<Dictionary> = {
   'engine.installing': 'Changement de moteur…',
   'engine.declined': 'L’autorisation Windows a été refusée : rien n’a changé.',
   'engine.failed': 'Le moteur n’a pas pu être changé. Rien n’a changé.',
+  'engine.detachFailed':
+    'Le moteur FluidEQ n’a pas pu être retiré de cette sortie. Rien n’a changé.',
   'engine.unsupported': 'Nécessite Windows 10 version 1803 ou plus récent.',
   'prereq.title.apo': 'Equalizer APO demande votre attention',
   'prereq.title.fluid': 'Le moteur FluidEQ demande votre attention',

@@ -109,6 +109,8 @@ const app: Partial<Dictionary> = {
   'engine.declined': 'Windows の許可が拒否されたため、何も変更されていません。',
   'engine.failed':
     'エンジンを切り替えられませんでした。何も変更されていません。',
+  'engine.detachFailed':
+    'この出力から FluidEQ エンジンを取り外せませんでした。何も変更されていません。',
   'engine.unsupported': 'Windows 10 バージョン 1803 以降が必要です。',
   'prereq.title.apo': 'Equalizer APO の対応が必要です',
   'prereq.title.fluid': 'FluidEQ エンジンの対応が必要です',

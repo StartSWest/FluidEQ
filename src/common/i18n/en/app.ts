@@ -105,6 +105,8 @@ const app = {
   'engine.installing': 'Switching the engine…',
   'engine.declined': 'Windows permission was declined, so nothing changed.',
   'engine.failed': 'The engine could not be switched. Nothing changed.',
+  'engine.detachFailed':
+    'FluidEQ Engine could not be removed from this output. Nothing changed.',
   'engine.unsupported': 'Needs Windows 10 version 1803 or later.',
   'prereq.title.apo': 'Equalizer APO needs attention',
   'prereq.title.fluid': 'The FluidEQ Engine needs attention',

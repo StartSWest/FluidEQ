@@ -52,6 +52,13 @@ export interface IFluidEngineEndpoint {
   guid: string;
   attached: boolean;
   backupExists: boolean;
+  /**
+   * Set only by `--attach-all`, on the endpoints it could not attach — an
+   * explicit `attach <guid>` reports its one failure as the command's own
+   * `error` instead. Kept per endpoint so a partial install still names which
+   * outputs need a retry rather than folding into one opaque failure.
+   */
+  error?: string;
 }
 
 export interface IFluidEngineStatus {

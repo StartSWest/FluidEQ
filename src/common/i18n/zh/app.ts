@@ -105,6 +105,7 @@ const app: Partial<Dictionary> = {
   'engine.installing': '正在切换引擎…',
   'engine.declined': 'Windows 授权被拒绝，因此没有任何更改。',
   'engine.failed': '无法切换引擎，没有任何更改。',
+  'engine.detachFailed': '无法从此输出移除 FluidEQ 引擎，没有任何更改。',
   'engine.unsupported': '需要 Windows 10 版本 1803 或更高。',
   'prereq.title.apo': 'Equalizer APO 需要处理',
   'prereq.title.fluid': 'FluidEQ 引擎需要处理',

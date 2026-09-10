@@ -110,6 +110,8 @@ const app: Partial<Dictionary> = {
     'Die Windows-Berechtigung wurde abgelehnt, es hat sich nichts geändert.',
   'engine.failed':
     'Die Engine konnte nicht gewechselt werden. Es hat sich nichts geändert.',
+  'engine.detachFailed':
+    'Die FluidEQ-Engine konnte nicht von diesem Ausgang entfernt werden. Es hat sich nichts geändert.',
   'engine.unsupported': 'Erfordert Windows 10 Version 1803 oder neuer.',
   'prereq.title.apo': 'Equalizer APO braucht Aufmerksamkeit',
   'prereq.title.fluid': 'Die FluidEQ-Engine braucht Aufmerksamkeit',

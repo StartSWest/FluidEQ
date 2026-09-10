@@ -85,6 +85,7 @@ describe('the audio engine channels', () => {
   let reflush: jest.Mock;
   let setEngine: jest.Mock;
   let setSwitching: jest.Mock;
+  let isSwitching: jest.Mock;
   let isEngineInstalled: jest.Mock;
   let runEngineSetup: jest.Mock;
   let writeSystemDspChain: jest.Mock;
@@ -124,9 +125,10 @@ describe('the audio engine channels', () => {
       record(`set:${next}`);
       engine = next;
     });
-    setSwitching = jest.fn((isSwitching: boolean) => {
-      switching = isSwitching;
+    setSwitching = jest.fn((nextSwitching: boolean) => {
+      switching = nextSwitching;
     });
+    isSwitching = jest.fn(() => switching);
     isEngineInstalled = jest.fn(async () => true);
     runEngineSetup = jest.fn(async () => OK);
     writeSystemDspChain = jest.fn(async () => undefined);
@@ -137,6 +139,7 @@ describe('the audio engine channels', () => {
       getEngine: () => engine,
       setEngine,
       setSwitching,
+      isSwitching,
       getConfigPath,
       isEngineInstalled,
       reflush,
@@ -295,6 +298,21 @@ describe('the audio engine channels', () => {
       values,
     );
     expect(replied(reply)).toEqual({ result: 'written' });
+  });
+
+  // A rack write scheduled mid-switch would land in the directory
+  // `neutraliseEngine` is in the middle of emptying, after its own delete —
+  // resurrecting the file the switch just removed.
+  it('refuses a rack write while a switch is in progress', async () => {
+    engine = 'fluid';
+    switching = true;
+    const reply = await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [
+      encodeChainSettings(DSP_DEFAULTS),
+    ]);
+
+    expect(getConfigPath).not.toHaveBeenCalled();
+    expect(writeSystemDspChain).not.toHaveBeenCalled();
+    expect(replied(reply)).toEqual({ result: 'not-fluid' });
   });
 
   it('writes no rack under Equalizer APO', async () => {

@@ -40,7 +40,7 @@ import log from 'electron-log';
 import { IDeviceProfileSettings } from '../common/constants';
 import { FLUID_ENGINE_DSP_FILENAME, TAudioEngine } from '../common/audioEngine';
 import { flushDeviceProfiles, TPresetDirForDevice } from './deviceProfiles';
-import { forgetPath } from './asyncWriter';
+import { forgetPath, settlePath } from './asyncWriter';
 import { getConfigPath, isEngineInstalled } from './registry';
 
 /**
@@ -58,10 +58,17 @@ import { getConfigPath, isEngineInstalled } from './registry';
  * `forgetPath` because the rack goes through the coalescing writer, which
  * would otherwise skip the next identical write against a file that is no
  * longer there.
+ *
+ * `settlePath` first: the rack also goes through the coalescing writer from
+ * `SET_SYSTEM_DSP_CHAIN`, which returns before its write has reached disk. A
+ * write still in flight at the moment of the delete would otherwise land
+ * afterwards and resurrect the file the switch just removed, leaving the old
+ * engine's rack running again with nothing in the app aware it came back.
  */
-const removeDspRackFile = (configDirPath: string): void => {
+const removeDspRackFile = async (configDirPath: string): Promise<void> => {
   const rackPath = path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME);
   try {
+    await settlePath(rackPath);
     fs.rmSync(rackPath, { force: true });
     forgetPath(rackPath);
   } catch (error) {
@@ -112,7 +119,7 @@ export const neutraliseEngine = async (
   // Only the FluidEQ Engine reads a rack file; Equalizer APO's directory
   // never has one, so there is nothing to delete when `other` is `'apo'`.
   if (other === 'fluid') {
-    removeDspRackFile(configDirPath);
+    await removeDspRackFile(configDirPath);
   }
   return 'written';
 };

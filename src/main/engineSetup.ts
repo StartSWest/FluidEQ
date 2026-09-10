@@ -93,6 +93,7 @@ export const getEngineSetupPath = (): string =>
 interface IRawSetupEndpoint {
   guid?: unknown;
   attached?: unknown;
+  error?: unknown;
 }
 
 interface IParsedSetupEndpoint {
@@ -100,17 +101,22 @@ interface IParsedSetupEndpoint {
   attached: boolean;
 }
 
-const isRawSetupEndpoint = (value: unknown): value is IParsedSetupEndpoint =>
+const isRawSetupEndpoint = (
+  value: unknown,
+): value is IRawSetupEndpoint & IParsedSetupEndpoint =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as IRawSetupEndpoint).guid === 'string' &&
   typeof (value as IRawSetupEndpoint).attached === 'boolean';
 
 /**
- * The helper's endpoint list carries `guid`/`attached` only — `backupExists`
- * belongs to the `status` command's document, not this one (see
- * `commands.cpp`'s `result_json`) — so it is always `false` here rather than
- * left `undefined` and silently disagreeing with `IFluidEngineEndpoint`.
+ * The helper's endpoint list carries `guid`/`attached`, and `error` only on
+ * the endpoints `--attach-all` could not attach — `backupExists` belongs to
+ * the `status` command's document, not this one (see `commands.cpp`'s
+ * `result_json`) — so it is always `false` here rather than left `undefined`
+ * and silently disagreeing with `IFluidEngineEndpoint`. `error`'s type is
+ * checked here rather than trusted from the guard above, which only vouches
+ * for `guid`/`attached`.
  */
 const parseSetupEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
   Array.isArray(value)
@@ -118,6 +124,9 @@ const parseSetupEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
         guid: endpoint.guid,
         attached: endpoint.attached,
         backupExists: false,
+        ...(typeof endpoint.error === 'string' && endpoint.error.length > 0
+          ? { error: endpoint.error }
+          : {}),
       }))
     : [];
 
@@ -286,6 +295,17 @@ export const runEngineSetup = (
         });
         return;
       }
-      resolve(parseEngineSetupOutput(stdout, code));
+      const result = parseEngineSetupOutput(stdout, code);
+      // A partial `--attach-all` reports `ok: true` — one usable engine is
+      // enough — so a failed endpoint's guid and reason would otherwise never
+      // reach anywhere a user or a bug report could find them.
+      result.endpoints
+        .filter((endpoint) => endpoint.error)
+        .forEach((endpoint) => {
+          log.warn(
+            `FluidEQ Engine Setup (${command}) could not attach ${endpoint.guid}: ${endpoint.error}`,
+          );
+        });
+      resolve(result);
     });
   });

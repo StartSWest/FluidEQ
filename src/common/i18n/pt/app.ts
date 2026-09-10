@@ -110,6 +110,8 @@ const app: Partial<Dictionary> = {
   'engine.declined':
     'A permissão do Windows foi recusada, por isso nada mudou.',
   'engine.failed': 'Não foi possível trocar de motor. Nada mudou.',
+  'engine.detachFailed':
+    'Não foi possível remover o motor FluidEQ desta saída. Nada mudou.',
   'engine.unsupported': 'Requer o Windows 10 versão 1803 ou posterior.',
   'prereq.title.apo': 'O Equalizer APO precisa de atenção',
   'prereq.title.fluid': 'O Motor FluidEQ precisa de atenção',

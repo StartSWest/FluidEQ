@@ -2262,6 +2262,7 @@ registerAudioEngineIpc({
   setSwitching: (isSwitching) => {
     session.engineSwitching = isSwitching;
   },
+  isSwitching: () => session.engineSwitching,
   getConfigPath,
   isEngineInstalled,
   reflush: reflushCurrentState,

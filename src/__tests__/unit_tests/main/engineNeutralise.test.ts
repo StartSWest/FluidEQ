@@ -32,7 +32,11 @@ import { getConfigPath, isEngineInstalled } from '../../../main/registry';
 // eslint-disable-next-line import/first
 import { neutraliseEngine } from '../../../main/engineNeutralise';
 // eslint-disable-next-line import/first
-import { flushPendingWrites, forgetPath } from '../../../main/asyncWriter';
+import {
+  flushPendingWrites,
+  forgetPath,
+  scheduleWrite,
+} from '../../../main/asyncWriter';
 // eslint-disable-next-line import/first
 import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';
 // eslint-disable-next-line import/first
@@ -73,7 +77,13 @@ describe('neutralising the engine that is not in use', () => {
 
   afterEach(async () => {
     await flushPendingWrites().catch(() => undefined);
-    ['config', 'fluid-config', 'apo-config'].forEach((dir) => {
+    [
+      'config',
+      'fluid-config',
+      'apo-config',
+      'fluid-config-race',
+      'fluid-config-race-control',
+    ].forEach((dir) => {
       forgetPath(path.join(root, dir, FLUIDEQ_CONFIG_FILENAME));
       forgetPath(path.join(root, dir, FLUID_ENGINE_DSP_FILENAME));
     });
@@ -139,6 +149,40 @@ describe('neutralising the engine that is not in use', () => {
       'utf8',
     );
     expect(written).not.toMatch(/^Device:/m);
+  });
+
+  /**
+   * `scheduleWrite` returns before its write reaches disk. Without
+   * `settlePath` ahead of the delete, that write can land after
+   * `fs.rmSync` and resurrect the rack file the switch just removed.
+   */
+  it('is not undone by a rack write still in flight when the switch happens', async () => {
+    const configDir = path.join(root, 'fluid-config-race');
+    fs.mkdirSync(configDir, { recursive: true });
+    const rackPath = path.join(configDir, FLUID_ENGINE_DSP_FILENAME);
+    installed.mockResolvedValue(true);
+    configPath.mockResolvedValue(configDir);
+
+    scheduleWrite(rackPath, '# FluidEQ Engine DSP chain v1\r\n4 5 6\r\n');
+    const outcome = await neutraliseEngine('fluid', SETTINGS, () => presets);
+    await flushPendingWrites();
+
+    expect(outcome).toBe('written');
+    expect(fs.existsSync(rackPath)).toBe(false);
+  });
+
+  // Positive control for the race above: the same scheduled write, with
+  // nothing deleting the file afterwards, does land — proving the assertion
+  // above is testing a real race and not "nothing is ever written here".
+  it('positive control: the same scheduled write lands when nothing deletes it', async () => {
+    const configDir = path.join(root, 'fluid-config-race-control');
+    fs.mkdirSync(configDir, { recursive: true });
+    const rackPath = path.join(configDir, FLUID_ENGINE_DSP_FILENAME);
+
+    scheduleWrite(rackPath, '# FluidEQ Engine DSP chain v1\r\n4 5 6\r\n');
+    await flushPendingWrites();
+
+    expect(fs.existsSync(rackPath)).toBe(true);
   });
 
   it('leaves a rack file alone when the engine being left is Equalizer APO', async () => {

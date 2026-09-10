@@ -111,6 +111,8 @@ const app: Partial<Dictionary> = {
   'engine.declined':
     'Разрешение Windows отклонено, поэтому ничего не изменилось.',
   'engine.failed': 'Не удалось сменить движок. Ничего не изменилось.',
+  'engine.detachFailed':
+    'Не удалось убрать движок FluidEQ с этого выхода. Ничего не изменилось.',
   'engine.unsupported': 'Требуется Windows 10 версии 1803 или новее.',
   'prereq.title.apo': 'Equalizer APO требует внимания',
   'prereq.title.fluid': 'Движок FluidEQ требует внимания',
