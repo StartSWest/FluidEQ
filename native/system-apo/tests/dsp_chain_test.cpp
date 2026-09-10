@@ -371,6 +371,14 @@ void a_changed_rack_is_never_shared() {
   Graph other_rate(before, 44100, 2, 480);
   other_rate.inherit_rack(running);
   CHECK(!other_rate.rack_is_shared_with(running));
+
+  // Same values, same rate, same channels — but a different `max_frames`,
+  // which is what sizes the shared chain's internal buffers at build time.
+  // Sharing across that would have `feq_chain_process` write past buffers it
+  // was never sized for.
+  Graph other_block_size(before, kRate, 2, 960);
+  other_block_size.inherit_rack(running);
+  CHECK(!other_block_size.rack_is_shared_with(running));
 }
 
 }  // namespace

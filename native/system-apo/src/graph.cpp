@@ -453,9 +453,14 @@ void Graph::inherit_rack(const Graph& previous) noexcept {
   // same array at a different sample rate or channel count builds a chain
   // with different buffer sizes and a different kernel, and running the old
   // one on the new stream would be the wrong filter at the wrong rate.
+  // `max_frames_` is checked too: `build_rack` sizes the chain's internal
+  // buffers to it, so a chain built for one block size handed to a graph
+  // that accepted a larger one would have `feq_chain_process` write past
+  // buffers it never sized for that many frames.
   if (rack_ == nullptr || previous.rack_ == nullptr ||
       sample_rate_ != previous.sample_rate_ ||
       channels_ != previous.channels_ ||
+      max_frames_ != previous.max_frames_ ||
       rack_channels_ != previous.rack_channels_ ||
       dsp_values_ != previous.dsp_values_) {
     return;

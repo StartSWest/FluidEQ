@@ -224,6 +224,11 @@ STDMETHODIMP Apo::Reset() {
   // asked of the watcher and handed over by the same two-pointer exchange as
   // any other rebuild; it lands a block or two after this returns, which is
   // the price of not writing state another thread may be inside.
+  //
+  // This relies on Windows calling `Reset`, `LockForProcess` and
+  // `UnlockForProcess` on its own control thread, one at a time, never
+  // concurrently with each other — the same assumption `Watcher::request_reset`
+  // in `watcher.cpp` already states, about the same three calls.
   if (watcher_) {
     watcher_->request_reset();
   }

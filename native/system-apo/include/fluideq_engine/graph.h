@@ -100,7 +100,11 @@ class Graph {
    * Keep running `previous`'s rack instead of this graph's own.
    *
    * Only when the two racks are the same rack: identical `dsp_values`, the
-   * same sample rate, the same channel count and the same rack width. Under
+   * same sample rate, the same channel count, the same `max_frames` and the
+   * same rack width. `max_frames` matters because it is what sizes the
+   * chain's internal buffers at build time — a chain built for one block
+   * size shared into a graph that accepts a larger one would have
+   * `feq_chain_process` write past buffers it was never sized for. Under
    * anything else this does nothing and the new graph keeps the chain it
    * built.
    *

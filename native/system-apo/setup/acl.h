@@ -48,8 +48,9 @@ bool apply_engine_acl(const std::wstring& directory, std::wstring& error);
  * when it does it.
  *
  * `engine.log` is unaffected — it sits in the root, not in `backup\`, and the
- * effect inside audiodg.exe (LOCAL SERVICE, covered by SYSTEM here) writes it
- * under the root's own permissions.
+ * effect inside audiodg.exe (LOCAL SERVICE) writes it under the root's own
+ * permissions: LOCAL SERVICE is a member of BUILTIN\Users, so it is the
+ * root's Users ACE — Modify — that lets it write there, not the SYSTEM entry.
  */
 bool apply_backup_acl(const std::wstring& directory, std::wstring& error);
 
