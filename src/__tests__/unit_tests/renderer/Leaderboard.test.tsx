@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { PART_POINTS, SCORE_PARTS } from '../../../common/leaderboardScore';
+import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import LeaderboardCard from '../../../renderer/account/LeaderboardCard';
 import LeaderboardView from '../../../renderer/community/LeaderboardView';
 import { resetLeaderboardStore } from '../../../renderer/usage/leaderboardStore';
@@ -50,7 +52,6 @@ beforeEach(() => {
           minutes: 600,
           activeDays: 9,
           messages: 12,
-          replies: 3,
           mentions: 5,
         },
         {
@@ -62,7 +63,6 @@ beforeEach(() => {
           minutes: 90,
           activeDays: 2,
           messages: 0,
-          replies: 0,
           mentions: 0,
         },
       ],
@@ -72,7 +72,6 @@ beforeEach(() => {
         minutes: 30,
         activeDays: 1,
         messages: 0,
-        replies: 0,
         mentions: 0,
         players: 120,
       },
@@ -164,13 +163,46 @@ describe('the leaderboard view', () => {
     expect(await screen.findByText('Ada')).toBeInTheDocument();
     expect(screen.getByText('leaderboard.hours:10')).toBeInTheDocument();
     expect(screen.getByText('leaderboard.players:120')).toBeInTheDocument();
-    // Rank 40 is not in the top rows, so it appears as my own pinned line.
-    expect(screen.getByText('leaderboard.you')).toBeInTheDocument();
+    // My standing leads the board, wherever I rank: the rank of the total,
+    // and the one person just ahead with the points it takes to pass them.
+    expect(screen.getByText('leaderboard.hero.title')).toBeInTheDocument();
+    expect(screen.getByText('leaderboard.hero.of:120')).toBeInTheDocument();
+    expect(
+      screen.getByText('leaderboard.hero.toPass:31,Bob'),
+    ).toBeInTheDocument();
 
     await userEvent.click(
       screen.getByRole('tab', { name: 'leaderboard.thisMonth' }),
     );
     expect(bridge.leaderboardBoard).toHaveBeenLastCalledWith('month');
+  });
+
+  /**
+   * How points are earned stands beside the board, the same for everyone,
+   * and says where the numbers come from with a way to everything sent.
+   */
+  it('explains every way to earn points, and leads to what the app sends', async () => {
+    const requests = jest.fn();
+    const unsubscribe = subscribeAccountPanelRequests(requests);
+    render(<LeaderboardView />);
+    const guide = await screen.findByRole('complementary', {
+      name: 'leaderboard.guide.title',
+    });
+    expect(guide).toHaveTextContent('leaderboard.guide.lead');
+    SCORE_PARTS.forEach((part) => {
+      expect(guide).toHaveTextContent(
+        `leaderboard.guide.value:${PART_POINTS[part]}`,
+      );
+    });
+    // The limits come from the scoring's own numbers.
+    expect(guide).toHaveTextContent('leaderboard.guide.hours:16');
+    expect(guide).toHaveTextContent('leaderboard.guide.messages:20');
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'leaderboard.guide.terms' }),
+    );
+    expect(requests).toHaveBeenCalledWith('terms');
+    unsubscribe();
   });
 
   it('says why when the server refuses', async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
+import { PART_POINTS } from 'common/leaderboardScore';
 import type { TLeaderboardFailure } from 'main/usage/leaderboardApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -9,7 +10,7 @@ import {
   setLeaderboardOptIn,
   useLeaderboard,
 } from '../usage/leaderboardStore';
-import '../styles/Leaderboard.scss';
+import '../styles/LeaderboardCard.scss';
 
 const ERROR_KEYS: Record<TLeaderboardFailure, TranslationKey> = {
   plus_required: 'leaderboard.error.plusRequired',
@@ -100,7 +101,11 @@ export default function LeaderboardCard() {
       </div>
 
       <p className="leaderboard-card__body">{t('leaderboard.card.body')}</p>
-      <p className="leaderboard-card__note">{t('leaderboard.scoring')}</p>
+      {/* The numbers come from the scoring itself, so the sentence cannot
+          drift from the board it explains in any of the ten languages. */}
+      <p className="leaderboard-card__note">
+        {t('leaderboard.scoring', { ...PART_POINTS })}
+      </p>
       {status.optedIn && !status.eligible && (
         <p className="leaderboard-card__note">
           {t('leaderboard.card.plusOnly')}

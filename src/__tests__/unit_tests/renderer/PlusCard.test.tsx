@@ -45,6 +45,7 @@ jest.mock('../../../renderer/account/entitlementStore', () => ({
 }));
 
 const JUNE_FIRST = Date.UTC(2027, 5, 1, 12);
+const onUpgrade = jest.fn();
 
 describe('the Plus card', () => {
   beforeEach(() => {
@@ -60,12 +61,28 @@ describe('the Plus card', () => {
    */
   it('is absent entirely when there is nothing to buy', () => {
     mockCheckoutConfigured = false;
-    const { container } = render(<PlusCard entitlement={{ state: 'none' }} />);
+    const { container } = render(
+      <PlusCard
+        entitlement={{ state: 'none' }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('offers the upgrade with the loud style and the price as given', async () => {
-    render(<PlusCard entitlement={{ state: 'none' }} />);
+  /**
+   * The upgrade leads to the terms, never straight to the checkout: nobody
+   * pays without having been shown what they agree to and what is sent.
+   */
+  it('offers the upgrade with the loud style and the price, and asks for the terms rather than the checkout', async () => {
+    render(
+      <PlusCard
+        entitlement={{ state: 'none' }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
 
     expect(screen.getByText('account.plus.pitch')).toBeInTheDocument();
     expect(screen.getByText('$3.99 / month')).toBeInTheDocument();
@@ -76,18 +93,22 @@ describe('the Plus card', () => {
     expect(upgrade).not.toHaveClass('subtle');
 
     await userEvent.click(upgrade);
-    expect(mockOpenCheckout).toHaveBeenCalled();
+    expect(onUpgrade).toHaveBeenCalledTimes(1);
+    expect(mockOpenCheckout).not.toHaveBeenCalled();
   });
 
-  it('says where the browser failed to open, where a screen reader will hear it', async () => {
-    mockOpenCheckout.mockResolvedValueOnce({ ok: false, failure: 'rejected' });
-    render(<PlusCard entitlement={{ state: 'none' }} />);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'account.plus.upgrade' }),
+  it('says the checkout is waiting in the browser once the terms opened it', () => {
+    render(
+      <PlusCard
+        entitlement={{ state: 'none' }}
+        onUpgrade={onUpgrade}
+        checkoutOpened
+      />,
     );
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'account.plus.error.rejected',
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'account.plus.checkoutOpened',
     );
+    expect(screen.queryByText('account.plus.checkoutHint')).toBeNull();
   });
 
   it('shows an active subscription with its renewal date and a quiet manage button', async () => {
@@ -98,6 +119,8 @@ describe('the Plus card', () => {
           renewing: true,
           periodEndsAt: JUNE_FIRST,
         }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
       />,
     );
 
@@ -125,6 +148,8 @@ describe('the Plus card', () => {
           renewing: false,
           periodEndsAt: JUNE_FIRST,
         }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
       />,
     );
     expect(screen.getByText(/account\.plus\.ends:/)).toBeInTheDocument();
@@ -136,7 +161,11 @@ describe('the Plus card', () => {
 
   it('explains a grace period, names its end, and offers to check again', async () => {
     render(
-      <PlusCard entitlement={{ state: 'grace', graceEndsAt: JUNE_FIRST }} />,
+      <PlusCard
+        entitlement={{ state: 'grace', graceEndsAt: JUNE_FIRST }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
     );
 
     expect(screen.getByRole('status')).toHaveTextContent(

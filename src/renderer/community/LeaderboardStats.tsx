@@ -1,6 +1,7 @@
 import type { ILeaderboardScore } from 'main/usage/leaderboardApi';
 import { useTranslation } from '../utils/I18nContext';
 import Glyph from './Glyph';
+import { PART_GLYPHS } from './leaderboardParts';
 
 interface ILeaderboardStatsProps {
   score: ILeaderboardScore;
@@ -9,10 +10,11 @@ interface ILeaderboardStatsProps {
 }
 
 /**
- * Where a score came from, as a row of small figures under the points: the
+ * Where a score came from, as a row of small figures under the name: the
  * hours, the messages, and — only when there are any, because they are the
- * rare thing — the replies from the maker. The picture in front of each
- * figure is what makes three numbers readable at a glance.
+ * rarer thing — the people who mentioned them. Each picture is painted in its
+ * part's colour, the same one the guide beside the board and the standing bar
+ * use.
  */
 export default function LeaderboardStats({
   score,
@@ -22,26 +24,26 @@ export default function LeaderboardStats({
   return (
     <span className="leaderboard__stats">
       <span
-        className="leaderboard__stat"
+        className="leaderboard__stat leaderboard-part--hours"
         title={t('leaderboard.stat.hours', { hours })}
       >
-        <Glyph name="looks" />
+        <Glyph name={PART_GLYPHS.hours} />
         {t('leaderboard.hours', { hours })}
       </span>
       <span
-        className="leaderboard__stat"
+        className="leaderboard__stat leaderboard-part--messages"
         title={t('leaderboard.stat.messages', { count: score.messages })}
       >
-        <Glyph name="general" />
+        <Glyph name={PART_GLYPHS.messages} />
         {score.messages}
       </span>
-      {score.replies > 0 && (
+      {score.mentions > 0 && (
         <span
-          className="leaderboard__stat leaderboard__stat--replies"
-          title={t('leaderboard.stat.replies', { count: score.replies })}
+          className="leaderboard__stat leaderboard-part--mentions"
+          title={t('leaderboard.stat.mentions', { count: score.mentions })}
         >
-          <Glyph name="mention" />
-          {score.replies}
+          <Glyph name={PART_GLYPHS.mentions} />
+          {score.mentions}
         </span>
       )}
     </span>

@@ -2684,7 +2684,6 @@ const leaderboardIpc = registerLeaderboardIpc({
   config: ACCOUNT_CONFIG,
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
-  getLocale: () => getTrayLocale(),
   logger: log,
   sampleContent: developmentSampleCommunity,
 });

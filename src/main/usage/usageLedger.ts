@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import {
+  DAILY_LISTENING_CAP_HOURS,
+  LISTENING_WINDOW_DAYS,
+} from '../../common/leaderboardScore';
 import writeFileAtomically from '../atomicWrite';
 
 /**
@@ -7,17 +11,19 @@ import writeFileAtomically from '../atomicWrite';
  *
  * The renderer reports seconds as it observes them; this keeps the running
  * total for each local day, remembers how much of each day has been uploaded,
- * and forgets days older than two months. Plain JSON, not the OS cipher: a
- * count of minutes is not a secret, and a file a person can open and read is
- * the right shape for the one piece of data this app ever sends about them.
+ * and forgets days older than the fortnight the server still accepts — a day
+ * that can no longer be sent is a day with no reason to be kept. Plain JSON,
+ * not the OS cipher: a count of minutes is not a secret, and a file a person
+ * can open and read is the right shape for the one piece of data this app
+ * ever sends about them.
  *
  * The cap is sixteen hours a day. A machine left playing overnight is not
  * listening, and a board won by whoever forgot to press stop is not worth
  * having.
  */
 
-export const DAILY_CAP_MINUTES = 16 * 60;
-export const KEEP_DAYS = 60;
+export const DAILY_CAP_MINUTES = DAILY_LISTENING_CAP_HOURS * 60;
+export const KEEP_DAYS = LISTENING_WINDOW_DAYS;
 
 const FILE_NAME = 'usage-ledger.json';
 
@@ -106,12 +112,15 @@ export const createUsageLedger = ({
 
   const save = () => writeFileAtomically(filePath, JSON.stringify(file));
 
+  /** The oldest day still inside the window, as a key. */
+  const cutoff = () => localDayKey(now() - KEEP_DAYS * 24 * 60 * 60 * 1000);
+
   /** Drop days older than the window, measured from today's key. */
   const prune = () => {
-    const cutoff = localDayKey(now() - KEEP_DAYS * 24 * 60 * 60 * 1000);
+    const oldest = cutoff();
     const kept: Record<string, IUsageDay> = {};
     Object.entries(file.days).forEach(([day, value]) => {
-      if (day >= cutoff) {
+      if (day >= oldest) {
         kept[day] = value;
       }
     });
@@ -154,8 +163,11 @@ export const createUsageLedger = ({
       return { day, minutes: minutesOf(file.days[day]?.seconds ?? 0) };
     },
 
+    // Days past the window stay out even before a write prunes them: a ledger
+    // read back after a fortnight away holds days the server would drop.
     pending: () =>
       Object.entries(file.days)
+        .filter(([day]) => day >= cutoff())
         .map(([day, value]) => ({
           day,
           minutes: minutesOf(value.seconds),

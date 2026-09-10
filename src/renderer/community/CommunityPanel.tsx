@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { isCheckoutConfigured } from 'common/accountConfig';
+import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
-import { openCheckout, useEntitlement } from '../account/entitlementStore';
+import { useEntitlement } from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
 import { channelDescription, channelName } from './channelNames';
 import {
@@ -305,9 +306,7 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
             onSend={sendMessage}
             onCreateProfile={createProfile}
             onAcceptConduct={acceptConduct}
-            onUpgrade={() => {
-              openCheckout().catch(() => undefined);
-            }}
+            onUpgrade={() => requestAccountPanel('subscribe')}
             onClearError={clearCommunityError}
           />
         )}

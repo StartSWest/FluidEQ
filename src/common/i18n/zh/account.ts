@@ -71,6 +71,8 @@ const account = {
   'account.plus.grace':
     '无法确认你的订阅。它将保持有效至 {date}——请在此之前连接网络以保留。',
   'account.plus.checkAgain': '再次检查',
+  'account.plus.checkoutOpened':
+    'Buy Me a Coffee 已在你的浏览器中打开。付款后回到这里，Plus 就会开启。',
   'account.plus.error.rejected': '无法打开付款页面。请稍后重试。',
 
   'account.dev.label': '开发',

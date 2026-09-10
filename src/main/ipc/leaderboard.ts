@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import type { IAccountConfig } from '../../common/accountConfig';
-import { PRODUCT_VERSION } from '../../common/branding';
+import { LISTENING_UPLOAD_INTERVAL_HOURS } from '../../common/leaderboardScore';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import {
@@ -19,8 +19,9 @@ import { sampleBoard } from '../community/sampleCommunity';
  *
  * The renderer reports seconds as it observes music playing; nothing leaves
  * this machine unless the person opted in, and then only whole minutes per
- * local day. Uploads happen on the same "somebody is back at the machine"
- * events the subscription check uses, and never on a clock. The tally is
+ * local day, with the date, for the last fortnight. Uploads happen on the
+ * same "somebody is back at the machine" events the subscription check uses,
+ * and never on a clock. The tally is
  * kept whether or not anyone opts in, so the Account panel can say "today: 2 h"
  * before asking; opting out stops the uploads, and "remove my data" deletes
  * every row of theirs on the server and the local tally with it.
@@ -32,8 +33,6 @@ export interface ILeaderboardIpcDeps {
   config: IAccountConfig;
   session: IAccountSession;
   entitlement: IEntitlement;
-  /** The renderer's language, for the one field of the row that names it. */
-  getLocale: () => string;
   logger?: { info(message: string): void; warn(message: string): void };
   now?: () => number;
   fetchImpl?: typeof fetch;
@@ -60,7 +59,8 @@ export interface ILeaderboardBoard {
 export type TLeaderboardResult<T> =
   { ok: true; value: T } | { ok: false; failure: TLeaderboardFailure };
 
-export const USAGE_UPLOAD_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
+export const USAGE_UPLOAD_STALE_AFTER_MS =
+  LISTENING_UPLOAD_INTERVAL_HOURS * 60 * 60 * 1000;
 
 const CHANNELS = [
   'usage-accrue',
@@ -79,7 +79,6 @@ export const registerLeaderboardIpc = ({
   config,
   session,
   entitlement,
-  getLocale,
   logger,
   now = Date.now,
   fetchImpl,
@@ -132,7 +131,7 @@ export const registerLeaderboardIpc = ({
       return;
     }
     try {
-      await api.uploadDays(pending, PRODUCT_VERSION, getLocale());
+      await api.uploadDays(pending);
       pending.forEach((entry) => ledger.markUploaded(entry.day, entry.minutes));
       lastUploadAt = now();
       logger?.info(`Leaderboard: uploaded ${pending.length} day(s).`);

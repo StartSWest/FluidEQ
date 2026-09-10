@@ -65,23 +65,33 @@ controls and a consistent look for dialogs and menus.
   empty channel greets you rather than leaving a blank pane; and on a narrow
   window the channels become a strip above the conversation.
 - **A leaderboard of who is here most.** Off unless you join it from the
-  Account panel, where the card says exactly what leaves the machine: once a
-  day, one number — whole minutes of music that actually played, capped at
-  sixteen hours — with the date, the app version and your language. Never what
-  played or from where. Places are scored in points: ten per hour listened,
-  twenty per active day, five per message in the community, fifty per reply
-  from the maker, two per mention by someone else — so showing up and taking
-  part beat leaving the app running, and every row shows the hours, the
-  messages and the replies its points came from. The board itself lives in
-  the Community tab, under a trophy: the top three stand on a podium in their
-  own colours, first in the middle and a step higher; everyone from fourth on
-  is a row with a bar showing their points against the leader's; your own
-  place is pinned
-  underneath in the accent whenever it is not on screen, and a **You** tag
-  marks you on the podium when it is. The Account card draws today's tally
-  as a ring filling toward the sixteen-hour cap, and the board offers the
-  join button itself when you are not on it. A button removes everything you
-  ever sent.
+  Account panel, where the card says exactly what leaves the machine: one
+  number for each day — whole minutes of music that actually played, capped
+  at sixteen hours — with its date, and nothing else. Never what played or
+  from where. Places are scored in points, the same way for everyone, the
+  maker included: ten per hour listened, twenty per active day, five per
+  message in the community, and ten for each person who mentions you on a
+  day — so showing up and taking part beat leaving the app running. The
+  server checks every number that arrives: nothing over sixteen hours, no day
+  that has not begun, nothing older than two weeks, and no day growing faster
+  than the clock. The board lives in the Community tab: your standing on top
+  — your rank, your points and a bar of what they are made of, and how far
+  the next person is — then the top three on a podium, first in the middle
+  and crowned, and everyone else as a row lit to their share of the leader's
+  points. How to earn points stands beside the board on a wide window and
+  under it on a narrow one, with how the numbers are known and a link to
+  everything the app sends. The Account card draws today's tally as a ring
+  filling toward the sixteen-hour cap. A button removes everything you ever
+  sent, after saying plainly that your place goes with it.
+- **Plus terms, in plain words, before you pay.** Upgrading to Plus — from
+  the Account panel or the community — first shows the terms: the four
+  things that matter most on top, then what the membership is, how your
+  account is kept, everything the app sends with when and who can see it,
+  what never leaves your computer, how it is protected, fair play, the
+  community rules, what is kept and how to delete it, and the fine print.
+  Payment opens only after you tick that you agree, and the version you
+  agreed to is recorded as the payment page opens. The same terms are one
+  click away in the Account panel and beside the leaderboard at any time.
 - **Apply a Squiglink import as EQ or as a curve.** In EQ Presets, choose
   **Apply as EQ** to use the imported bands in the editor, or **Apply as curve**
   to use a separate headphone correction with its own strength and switch,

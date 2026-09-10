@@ -8,6 +8,7 @@ import type { TranslationKey } from 'common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { channelName } from './channelNames';
 import Glyph from './Glyph';
+import '../styles/CommunityComposer.scss';
 
 interface IComposerProps {
   channel: ICommunityChannel;

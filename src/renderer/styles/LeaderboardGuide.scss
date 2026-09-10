@@ -1,0 +1,184 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// How points are earned, beside the board on a wide pane and under it on a
+// narrow one — the switch is the `leaderboard` container in Leaderboard.scss.
+// Each part wears its `--part` colour, set there too, so a rule here, a
+// segment of the standing bar and a figure under a name read as one thing.
+
+.leaderboard-guide {
+  display: grid;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      120% 70% at 100% 0%,
+      color-mix(in srgb, $secondary-default 11%, transparent),
+      transparent 70%
+    ),
+    $block-lift;
+  @include animate(rise-in);
+
+  // Beside the board it stays in view while the rows scroll under the
+  // standing card — on a window tall enough to show all of it. A stuck
+  // column taller than the pane hides its own foot until the very end of the
+  // board, and the foot is where the terms link is; in Russian the guide
+  // measures about 650px, so shorter windows let it scroll with the rows.
+  @container leaderboard (min-width: 960px) {
+    @media (min-height: 900px) {
+      position: sticky;
+      top: 0;
+    }
+  }
+}
+
+.leaderboard-guide__head {
+  display: grid;
+  gap: 4px;
+}
+
+.leaderboard-guide__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.leaderboard-guide__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // Under the board the width is there to use: two by two, never three and
+  // an orphan, and one column only where two would squeeze the sentences.
+  @container leaderboard (max-width: 959.98px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @container leaderboard (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// One rule: its picture on a lit tile, its name and sentence, and its worth
+// large enough to compare down the column without reading the sentences.
+.leaderboard-guide__item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 10px;
+  border: 1px solid color-mix(in srgb, var(--part) 24%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--part) 11%, transparent),
+    transparent 72%
+  );
+  @include stagger-in(4, 50ms, 120ms);
+}
+
+.leaderboard-guide__mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--part);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, var(--part) 15%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--part) 32%, transparent),
+    0 0 16px color-mix(in srgb, var(--part) 16%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.leaderboard-guide__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.leaderboard-guide__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.leaderboard-guide__rule {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+.leaderboard-guide__value {
+  color: var(--part);
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--part) 45%, transparent);
+}
+
+// How the numbers are known. Set apart by a dashed edge rather than a colour:
+// it is not a fifth way to earn, it is the terms under all four.
+.leaderboard-guide__fair {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed color-mix(in srgb, $secondary-default 30%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 5%, transparent);
+}
+
+.leaderboard-guide__fair-mark {
+  color: $secondary-light;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.leaderboard-guide__fair-text {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.55;
+  }
+
+  .account-link {
+    margin-top: 2px;
+    font-size: $text-small;
+  }
+}
+
+.leaderboard-guide__fair-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}

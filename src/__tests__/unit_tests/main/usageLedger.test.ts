@@ -120,6 +120,22 @@ describe('the usage ledger', () => {
     expect(ledger.pending()).toEqual([{ day: localDayKey(clock), minutes: 1 }]);
   });
 
+  /**
+   * The window is the fortnight the server still accepts. A ledger read back
+   * after longer away must not offer the old days before any new listening
+   * prunes them: they would be sent and dropped, for nothing.
+   */
+  it('keeps the same fortnight the server accepts, and never offers older days', () => {
+    expect(KEEP_DAYS).toBe(14);
+    const ledger = build();
+    ledger.accrue(600);
+    clock += (KEEP_DAYS + 1) * DAY_MS;
+    expect(ledger.pending()).toEqual([]);
+    // Positive control: inside the window the same day is still offered.
+    clock -= 2 * DAY_MS;
+    expect(ledger.pending()).toEqual([{ day: localDayKey(NOON), minutes: 10 }]);
+  });
+
   it('ignores nonsense seconds', () => {
     const ledger = build();
     ledger.accrue(Number.NaN);

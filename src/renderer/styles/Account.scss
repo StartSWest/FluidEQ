@@ -455,4 +455,25 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The leaderboard card lives in Leaderboard.scss, beside the board it puts
-// you on.
+// you on. The Plus terms, the panel's other page, live in PlusTerms.scss.
+
+// The front page stays mounted while the terms are read, so a half-typed
+// sign-in is still there on the way back. `hidden` alone loses to the body's
+// own `display: grid`, which is an author rule and outranks the browser's.
+.account__body[hidden] {
+  display: none;
+}
+
+.account__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-m;
+}
+
+// Compound, to beat `.account-link`'s own size whichever sheet comes first.
+.account-link.account__terms-link {
+  justify-self: start;
+  font-size: $text-small;
+}

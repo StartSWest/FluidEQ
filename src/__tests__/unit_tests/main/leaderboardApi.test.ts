@@ -37,7 +37,6 @@ describe('reading the board', () => {
         minutes: '540',
         active_days: '9',
         messages: '12',
-        replies: '3',
         mentions: '4',
       }),
     ).toEqual({
@@ -49,7 +48,6 @@ describe('reading the board', () => {
       minutes: 540,
       activeDays: 9,
       messages: 12,
-      replies: 3,
       mentions: 4,
     });
     expect(readRow({ rank: 2, handle: 'bob', minutes: 10 })).toMatchObject({
@@ -64,7 +62,6 @@ describe('reading the board', () => {
       points: 100,
       activeDays: 0,
       messages: 0,
-      replies: 0,
       mentions: 0,
     });
   });
@@ -83,7 +80,6 @@ describe('reading the board', () => {
       minutes: 120,
       activeDays: 0,
       messages: 0,
-      replies: 0,
       mentions: 0,
       players: 42,
     });
@@ -104,32 +100,25 @@ describe('the leaderboard API', () => {
     fetchImpl = jest.fn();
   });
 
-  it('uploads one row per day, replacing on conflict, with the version and language only', async () => {
+  /**
+   * Exactly the date and the minutes, and the account's own id for the
+   * conflict target. The app version and the language were sent once and
+   * read by nothing; `toEqual` fails the day a field comes back.
+   */
+  it('uploads one row per day, replacing on conflict, with the date and minutes only', async () => {
     fetchImpl.mockResolvedValue(new Response(null, { status: 204 }));
-    await build().uploadDays(
-      [{ day: '2026-09-07', minutes: 95 }],
-      '1.6.5',
-      'es',
-    );
+    await build().uploadDays([{ day: '2026-09-07', minutes: 95 }]);
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('usage_days?on_conflict=user_id,day');
     expect((init.headers as Record<string, string>).Prefer).toContain(
       'resolution=merge-duplicates',
     );
     const body = JSON.parse(String(init.body)) as Record<string, unknown>[];
-    expect(body).toEqual([
-      {
-        user_id: 'me',
-        day: '2026-09-07',
-        minutes: 95,
-        app_version: '1.6.5',
-        locale: 'es',
-      },
-    ]);
+    expect(body).toEqual([{ user_id: 'me', day: '2026-09-07', minutes: 95 }]);
   });
 
   it('sends nothing when there is nothing pending', async () => {
-    await build().uploadDays([], '1.6.5', 'en');
+    await build().uploadDays([]);
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -145,7 +134,7 @@ describe('the leaderboard API', () => {
   it('maps the server’s refusal of a non-paying account', async () => {
     fetchImpl.mockResolvedValue(json({ message: 'P0001: plus_required' }, 400));
     await expect(
-      build().uploadDays([{ day: '2026-09-07', minutes: 1 }], '1', 'en'),
+      build().uploadDays([{ day: '2026-09-07', minutes: 1 }]),
     ).rejects.toMatchObject({ failure: 'plus_required' });
   });
 

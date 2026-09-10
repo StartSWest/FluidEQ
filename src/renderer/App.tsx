@@ -53,7 +53,10 @@ import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import SupportDialog from './SupportDialog';
 import AccountDialog from './account/AccountDialog';
-import { subscribeAccountPanelRequests } from './account/accountPanel';
+import {
+  subscribeAccountPanelRequests,
+  type TAccountPanelPage,
+} from './account/accountPanel';
 import CommunityPanel from './community/CommunityPanel';
 import UsageMeter from './usage/UsageMeter';
 import { useCommunity } from './community/communityStore';
@@ -833,16 +836,20 @@ const AppContent = () => {
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
-  const [showAccountDialog, setShowAccountDialog] = useState(false);
+  // Which page of the Account panel is open, or none. A page rather than a
+  // flag because the leaderboard's guide opens it straight on the terms.
+  const [accountDialogPage, setAccountDialogPage] = useState<
+    TAccountPanelPage | undefined
+  >();
   // A locked Plus look in the picker leads here: choosing one is a request to
   // see what Plus is and how to get it, not a selection. Only honoured when a
   // backend is configured — without one the panel has nothing to offer, and a
   // locked row never appears in the first place.
   useEffect(
     () =>
-      subscribeAccountPanelRequests(() => {
+      subscribeAccountPanelRequests((page) => {
         if (isAccountConfigured()) {
-          setShowAccountDialog(true);
+          setAccountDialogPage(page);
         }
       }),
     [],
@@ -2112,7 +2119,7 @@ const AppContent = () => {
                     className="workspace-header__menu-support"
                     onClick={() => {
                       setShowAudioToolsMenu(false);
-                      setShowAccountDialog(true);
+                      setAccountDialogPage('home');
                     }}
                   >
                     <MenuIcon name="artist" />
@@ -2411,7 +2418,7 @@ const AppContent = () => {
                 key={activeWorkspaceTab}
                 className="workspace-tab-panel workspace-tab-panel--community"
               >
-                <CommunityPanel onSignIn={() => setShowAccountDialog(true)} />
+                <CommunityPanel onSignIn={() => setAccountDialogPage('home')} />
               </div>
             )}
             {/* Dimmed with the rest of the group, and still readable.
@@ -2756,8 +2763,11 @@ const AppContent = () => {
           <ProcessesDialog onClose={() => setShowProcessesDialog(false)} />
         )}
 
-        {showAccountDialog && (
-          <AccountDialog onClose={() => setShowAccountDialog(false)} />
+        {accountDialogPage !== undefined && (
+          <AccountDialog
+            initialPage={accountDialogPage}
+            onClose={() => setAccountDialogPage(undefined)}
+          />
         )}
 
         {showSupportDialog && (

@@ -6,7 +6,6 @@ import { ACCOUNT_CONFIG, isCheckoutConfigured } from 'common/accountConfig';
 import { useTranslation } from '../utils/I18nContext';
 import {
   isMembershipSimulatorAvailable,
-  openCheckout,
   openSubscriptionPortal,
   refreshEntitlement,
   simulateMembership,
@@ -15,12 +14,17 @@ import {
 
 interface IPlusCardProps {
   entitlement: IEntitlementStatus;
+  /** Show the terms, with the agreement that leads to the checkout. */
+  onUpgrade: () => void;
+  /** The checkout was opened from the terms and is waiting in the browser. */
+  checkoutOpened: boolean;
 }
 
 const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
   network: 'account.error.network',
   signed_out: 'account.error.expired',
   rejected: 'account.plus.error.rejected',
+  terms_outdated: 'terms.error.outdated',
 };
 
 /**
@@ -35,15 +39,23 @@ const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
  * subscription and re-checking a doubtful one are things a person is already
  * committed to; neither needs encouraging.
  *
- * Both pages are minted by the server on request, so a press is a round trip
- * before the browser opens. The button says so while it waits — a click that
- * visibly does nothing for a second reads as broken — and a failure is named
- * where it happened rather than left to the silence.
+ * The upgrade does not open the checkout: it opens the terms, and the
+ * agreement at their foot does. Nobody pays without having been shown what
+ * the app sends and what they are agreeing to.
+ *
+ * The management page is minted by the server on request, so a press is a
+ * round trip before the browser opens. The button says so while it waits — a
+ * click that visibly does nothing for a second reads as broken — and a
+ * failure is named where it happened rather than left to the silence.
  */
-export default function PlusCard({ entitlement }: IPlusCardProps) {
+export default function PlusCard({
+  entitlement,
+  onUpgrade,
+  checkoutOpened,
+}: IPlusCardProps) {
   const { t, locale } = useTranslation();
   const [opening, setOpening] = useState<
-    'checkout' | 'portal' | TMembershipSimulation | undefined
+    'portal' | TMembershipSimulation | undefined
   >();
   const [error, setError] = useState<TBillingFailure | undefined>();
   // Development only. Asked once; every packaged build answers no, and the
@@ -75,7 +87,7 @@ export default function PlusCard({ entitlement }: IPlusCardProps) {
     epochMs === undefined ? '' : dates.format(new Date(epochMs));
 
   const open = async (
-    which: 'checkout' | 'portal' | TMembershipSimulation,
+    which: 'portal' | TMembershipSimulation,
     run: () => Promise<{ ok: boolean; failure?: TBillingFailure }>,
   ) => {
     setOpening(which);
@@ -132,16 +144,18 @@ export default function PlusCard({ entitlement }: IPlusCardProps) {
               type="button"
               className="button small"
               disabled={opening !== undefined}
-              onClick={() => {
-                open('checkout', openCheckout).catch(() => undefined);
-              }}
+              onClick={onUpgrade}
             >
-              {opening === 'checkout'
-                ? t('account.plus.opening')
-                : t('account.plus.upgrade')}
+              {t('account.plus.upgrade')}
             </button>
           </div>
-          <p className="plus-card__hint">{t('account.plus.checkoutHint')}</p>
+          {checkoutOpened ? (
+            <p className="plus-card__line" role="status">
+              {t('account.plus.checkoutOpened')}
+            </p>
+          ) : (
+            <p className="plus-card__hint">{t('account.plus.checkoutHint')}</p>
+          )}
         </>
       )}
 

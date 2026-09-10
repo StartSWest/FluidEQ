@@ -11,9 +11,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The conversation half of the Community tab: the channel head, the thread,
-// the composer and the gates in front of it. The rail, the welcome and the
-// people (avatars, names, roles) live in CommunityRail.scss.
+// The conversation half of the Community tab: the channel head and the
+// thread. The rail, the welcome and the people (avatars, names, roles) live
+// in CommunityRail.scss; the message bar and its gates in
+// CommunityComposer.scss.
 
 .community__main {
   display: flex;
@@ -65,6 +66,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- thread
 
+// Messages scroll under a soft edge at the top and the bottom rather than
+// being guillotined by the head and the composer.
 .community__thread {
   display: flex;
   flex: 1 1 auto;
@@ -73,6 +76,13 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: $spacing-s 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    black 14px,
+    black calc(100% - 14px),
+    transparent
+  );
   @include slim-scrollbar;
 }
 
@@ -103,6 +113,8 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-body;
 }
 
+// The day, as a small pill on a rule, so a scroll through a week reads its
+// dates without them competing with the names.
 .community__day {
   display: flex;
   align-items: center;
@@ -112,6 +124,13 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-micro;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
+  span {
+    padding: 2px 10px;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-pill;
+    background: $block-lift;
+  }
 
   &::before,
   &::after {
@@ -135,7 +154,9 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $white 3.5%, transparent);
   }
 
-  // A turn continuing: no avatar, no name, tucked under the previous one.
+  // A turn continuing: no avatar, no name, tucked under the previous one. The
+  // time appears in the avatar's column on hover, so a line in the middle of
+  // a turn can still be dated without a header on every line.
   &--continues {
     padding-top: 1px;
     padding-bottom: 1px;
@@ -143,6 +164,21 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--continues .community__body {
     grid-column: 2;
+  }
+
+  &--continues .community__time {
+    position: absolute;
+    top: 3px;
+    left: 8px;
+    width: 32px;
+    text-align: center;
+    font-size: $text-micro;
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &--continues:hover .community__time {
+    opacity: 1;
   }
 
   // Your own words, faintly on your own colour, so a scroll back finds them.
@@ -249,233 +285,4 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $red;
     background: color-mix(in srgb, $red 14%, transparent);
   }
-}
-
-// ---------------------------------------------------------------- composer
-
-.community__composer {
-  display: grid;
-  gap: 5px;
-  padding: $spacing-s 4px 0;
-  border-top: 1px solid $border-subtle;
-}
-
-// One bar: the box and the arrow inside it. The bar lights on focus, not the
-// box, because the whole thing is the control.
-.community__composer-box {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  padding: 5px 5px 5px 12px;
-  border: 1px solid $border-field;
-  border-radius: 16px;
-  background: $surface-field;
-  transition:
-    border-color $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
-
-  &:focus-within {
-    border-color: $border-field-focus;
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, $secondary-default 16%, transparent);
-  }
-}
-
-.community__input {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 28px;
-  max-height: 140px;
-  padding: 6px 0;
-  color: $text-primary;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: $text-body;
-  line-height: 1.45;
-  resize: none;
-
-  &::placeholder {
-    color: $text-dim;
-  }
-
-  &:focus-visible {
-    outline: none;
-  }
-}
-
-.community__send {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  color: $text-dim;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, $white 5%, transparent);
-  cursor: pointer;
-  transition:
-    background $motion-fast $ease-out,
-    color $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &.is-ready {
-    color: $surface-base;
-    background: $secondary-default;
-    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 45%, transparent);
-  }
-
-  &:disabled {
-    cursor: default;
-  }
-}
-
-.community__composer-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s;
-  padding: 0 12px;
-  color: $text-dim;
-  font-size: $text-micro;
-}
-
-.community__composer-count {
-  font-variant-numeric: tabular-nums;
-
-  &.is-full {
-    color: $amber;
-  }
-}
-
-// The gates: what stands between a person and posting, one at a time. A
-// picture, the sentence, and the one button that clears it.
-.community__gate {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: $spacing-s $spacing-m;
-  margin-top: $spacing-xs;
-  padding: $spacing-s $spacing-m $spacing-s $spacing-s;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-block 60%, transparent);
-
-  &--form {
-    align-items: start;
-
-    .button {
-      margin-top: 22px;
-    }
-  }
-
-  &--quiet {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    color: $text-faint;
-    font-size: $text-small;
-    border-style: dashed;
-    background: transparent;
-
-    svg {
-      width: 14px;
-      height: 14px;
-    }
-  }
-
-  @container eq-panel (max-width: 600px) {
-    grid-template-columns: auto minmax(0, 1fr);
-
-    .button {
-      grid-column: 2;
-      justify-self: start;
-      margin-top: 0;
-    }
-  }
-}
-
-.community__gate-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  color: $secondary-light;
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-.community__gate-text {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.community__gate-title {
-  color: $text-primary;
-  font-size: $text-lead;
-  font-weight: $weight-medium;
-}
-
-.community__fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-s;
-  width: 100%;
-  margin-top: 4px;
-}
-
-.community__field {
-  display: grid;
-  flex: 1 1 160px;
-  gap: 3px;
-  color: $text-faint;
-  font-size: $text-small;
-
-  input {
-    min-height: $control-height-sm;
-    padding: 0 $field-padding-inline;
-    color: $text-primary;
-    border: 1px solid $border-field;
-    border-radius: $radius-xs;
-    background: $surface-field;
-    font: inherit;
-    font-size: $text-body;
-
-    &:focus-visible {
-      outline: none;
-      border-color: $border-field-focus;
-    }
-  }
-}
-
-.community__at-field {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: $text-dim;
-
-  input {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-}
-
-.community__error {
-  margin: 0;
-  color: $amber;
-  font-size: $text-small;
-  line-height: 1.5;
 }

@@ -155,7 +155,11 @@ export default function MessageThread({
               className={`community__message${continues ? ' community__message--continues' : ''}${mentionsMe ? ' community__message--mentions-me' : ''}${own ? ' community__message--own' : ''}`}
               style={identityStyle(message.handle)}
             >
-              {!continues && (
+              {continues ? (
+                <time className="community__time">
+                  {timeOf.format(new Date(message.createdAt))}
+                </time>
+              ) : (
                 <Avatar
                   handle={message.handle}
                   displayName={message.displayName}

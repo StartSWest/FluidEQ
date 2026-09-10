@@ -1,4 +1,5 @@
 import type { IAccountConfig } from 'common/accountConfig';
+import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
 import type { IAccountSession } from './session';
 
@@ -31,9 +32,11 @@ import type { IAccountSession } from './session';
  * monthly subscription stops inside one billing cycle. Measured from when the
  * server last CONFIRMED the subscription, not from when the period ends — a
  * token that expires while the machine is offline is precisely the case this
- * exists to cover.
+ * exists to cover. The number is the one the Plus terms promise, from the
+ * same constant.
  */
-export const ENTITLEMENT_GRACE_MS = 14 * 24 * 60 * 60 * 1000;
+export const ENTITLEMENT_GRACE_MS =
+  PLUS_OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000;
 
 /**
  * How stale the last check has to be before an event triggers another.

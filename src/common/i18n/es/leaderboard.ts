@@ -2,7 +2,7 @@ const leaderboard = {
   'leaderboard.title': 'Clasificación',
   'leaderboard.card.title': 'Clasificación',
   'leaderboard.card.body':
-    'Quién escucha más, entre los miembros Plus. Desactivada salvo que te unas. Si lo haces, una vez al día la aplicación envía un solo número —minutos enteros de música reproducida, con un tope de dieciséis horas— junto con la fecha, la versión y tu idioma. Nunca qué escuchaste, ni desde dónde.',
+    'Quién escucha más, entre los miembros Plus. Desactivada salvo que te unas. Si lo haces, la aplicación envía un solo número por cada día —minutos enteros de música reproducida, con un tope de dieciséis horas— con su fecha, y lo actualiza cuando vuelves al ordenador o abres la clasificación. Nunca qué escuchaste, ni desde dónde.',
   'leaderboard.card.today': 'Hoy hasta ahora: {hours} h',
   'leaderboard.card.join': 'Unirme a la clasificación',
   'leaderboard.card.leave': 'Salir de la clasificación',
@@ -22,11 +22,34 @@ const leaderboard = {
   'leaderboard.you': 'Tú',
   'leaderboard.players': '{count} oyentes clasificados',
   'leaderboard.points': '{points} pts',
+  'leaderboard.hero.title': 'Tu posición',
+  'leaderboard.hero.of': 'de {count}',
+  'leaderboard.hero.toPass': '{points} pts para superar a {name}',
+  'leaderboard.hero.leading': 'Vas en cabeza.',
+  'leaderboard.part.hours': 'Escucha',
+  'leaderboard.part.days': 'Días activos',
+  'leaderboard.part.messages': 'Mensajes',
+  'leaderboard.part.mentions': 'Menciones',
+  'leaderboard.guide.title': 'Cómo ganar puntos',
+  'leaderboard.guide.lead':
+    'Todo el mundo gana puntos igual, el creador también.',
+  'leaderboard.guide.hours':
+    'Cada hora de música que suena, hasta {limit} horas al día.',
+  'leaderboard.guide.days': 'Cada día que escuchas {limit} minutos o más.',
+  'leaderboard.guide.messages':
+    'Cada mensaje que publicas, hasta {limit} al día.',
+  'leaderboard.guide.mentions':
+    'Cada persona que te @menciona, una vez al día cada una.',
+  'leaderboard.guide.value': '+{points}',
+  'leaderboard.guide.fairTitle': 'Cómo se saben los números',
+  'leaderboard.guide.fair':
+    'Tu ordenador cuenta los minutos de música y envía un total por día, solo después de unirte, nunca qué escuchas. Los mensajes y las menciones se cuentan en el servidor. Allí se comprueba cada número, y quien hace trampas sale de la clasificación.',
+  'leaderboard.guide.terms': 'Todo lo que envía la aplicación',
   'leaderboard.stat.hours': '{hours} horas escuchadas',
   'leaderboard.stat.messages': '{count} mensajes publicados',
-  'leaderboard.stat.replies': '{count} respuestas del creador',
+  'leaderboard.stat.mentions': '{count} menciones de otras personas',
   'leaderboard.scoring':
-    'Puntos: 10 por hora escuchada, 20 por día activo, 5 por mensaje, 50 por respuesta del creador, 2 por mención de otra persona.',
+    'Puntos: {hours} por hora escuchada, {days} por día activo, {messages} por mensaje, {mentions} por cada persona que te menciona en un día. El creador los gana igual.',
   'leaderboard.empty': 'Aún no hay nadie clasificado.',
   'leaderboard.notJoined':
     'No estás en la clasificación. Únete desde el panel Cuenta.',

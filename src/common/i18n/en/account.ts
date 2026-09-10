@@ -91,6 +91,8 @@ const account = {
   'account.plus.grace':
     'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',
   'account.plus.checkAgain': 'Check again',
+  'account.plus.checkoutOpened':
+    'Buy Me a Coffee is open in your browser. Come back here once you have paid, and Plus turns on.',
   'account.plus.error.rejected':
     'The billing page could not be opened. Try again in a moment.',
 

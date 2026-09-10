@@ -46,11 +46,11 @@ describe('the billing client', () => {
     fetchImpl = jest.fn();
   });
 
-  it('asks the configured API for a checkout with the token, and returns its URL', async () => {
+  it('asks the configured API for a checkout with the token and the terms agreed to, and returns its URL', async () => {
     fetchImpl.mockResolvedValue(
       json({ url: 'https://checkout.stripe.com/c/1' }),
     );
-    expect(await build().checkoutUrl('access-1')).toBe(
+    expect(await build().checkoutUrl('access-1', 1)).toBe(
       'https://checkout.stripe.com/c/1',
     );
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
@@ -59,6 +59,21 @@ describe('the billing client', () => {
     const headers = init.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer access-1');
     expect(headers.apikey).toBe(CONFIG.supabaseAnonKey);
+    // The server records the agreement as it answers; the version is the
+    // whole of what it is told.
+    expect(JSON.parse(String(init.body))).toEqual({ termsVersion: 1 });
+  });
+
+  it('names a server that wants newer terms apart from any other refusal', async () => {
+    fetchImpl.mockResolvedValue(json({ error: 'terms_outdated' }, 409));
+    await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
+      failure: 'terms_outdated',
+    });
+    // The same status for an account already paying is a plain refusal.
+    fetchImpl.mockResolvedValue(json({ error: 'already subscribed' }, 409));
+    await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
+      failure: 'rejected',
+    });
   });
 
   it('asks for the portal at its own address', async () => {
@@ -73,18 +88,18 @@ describe('the billing client', () => {
 
   it('names a refused token so the app can sign the person out', async () => {
     fetchImpl.mockResolvedValue(json({ error: 'unauthorized' }, 401));
-    await expect(build().checkoutUrl('stale')).rejects.toMatchObject({
+    await expect(build().checkoutUrl('stale', 1)).rejects.toMatchObject({
       failure: 'signed_out',
     });
   });
 
   it('names a server refusal and a dead network apart', async () => {
     fetchImpl.mockResolvedValue(json({ error: 'stripe' }, 502));
-    await expect(build().checkoutUrl('a')).rejects.toMatchObject({
+    await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
       failure: 'rejected',
     });
     fetchImpl.mockRejectedValue(new TypeError('offline'));
-    await expect(build().checkoutUrl('a')).rejects.toMatchObject({
+    await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
       failure: 'network',
     });
   });

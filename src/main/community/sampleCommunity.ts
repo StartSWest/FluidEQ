@@ -1,3 +1,4 @@
+import { scoreOf } from '../../common/leaderboardScore';
 import type { ILeaderboardRow, IMyRank } from '../usage/leaderboardApi';
 import type { ICommunityMessage, TCommunityRole } from './communityApi';
 
@@ -28,9 +29,8 @@ export interface ISamplePerson {
   /** Days with at least half an hour played, all time and this month. */
   activeDays: number;
   activeDaysMonth: number;
-  /** Messages posted, replies from the maker, mentions by others: all time. */
+  /** Messages posted, and people who mentioned them once a day: all time. */
   messages: number;
-  replies: number;
   mentions: number;
 }
 
@@ -43,7 +43,7 @@ const person = (
   role: TCommunityRole,
   hours: [allTime: number, month: number],
   days: [allTime: number, month: number],
-  activity: [messages: number, replies: number, mentions: number],
+  activity: [messages: number, mentions: number],
 ): ISamplePerson => ({
   handle,
   displayName,
@@ -53,56 +53,30 @@ const person = (
   activeDays: days[0],
   activeDaysMonth: days[1],
   messages: activity[0],
-  replies: activity[1],
-  mentions: activity[2],
+  mentions: activity[1],
 });
 
 export const SAMPLE_PEOPLE: readonly ISamplePerson[] = [
-  person(
-    'ada',
-    'Ada Lovelace',
-    'contributor',
-    [812, 96],
-    [210, 24],
-    [34, 6, 11],
-  ),
-  person('mei', 'Mei Tanaka', 'member', [640, 71], [160, 19], [21, 3, 7]),
-  person('kwame', 'Kwame Mensah', 'member', [521, 58], [140, 17], [9, 1, 2]),
+  person('ada', 'Ada Lovelace', 'contributor', [812, 96], [210, 24], [34, 17]),
+  person('mei', 'Mei Tanaka', 'member', [640, 71], [160, 19], [21, 10]),
+  person('kwame', 'Kwame Mensah', 'member', [521, 58], [140, 17], [9, 3]),
   person(
     'lena_k',
     'Lena Kowalski',
     'contributor',
     [402, 44],
     [120, 15],
-    [28, 5, 9],
+    [28, 14],
   ),
-  person('ravi', 'Ravi Patel', 'member', [377, 39], [95, 12], [6, 0, 1]),
-  person('sol', 'Sol Martínez', 'member', [290, 31], [80, 10], [14, 2, 4]),
-  person('nia', 'Nia Okafor', 'member', [210, 22], [66, 9], [7, 1, 3]),
-  person('jonas', 'Jonas Berg', 'member', [168, 18], [51, 7], [4, 0, 1]),
-  person('yuki', 'Yuki Sato', 'member', [121, 14], [40, 6], [5, 1, 2]),
-  person('tom_h', 'Tom Hardy', 'member', [96, 9], [30, 4], [3, 0, 0]),
-  person('aisha', 'Aisha Rahman', 'member', [73, 7], [22, 3], [2, 0, 1]),
-  person('diego', 'Diego Ruiz', 'member', [41, 4], [12, 2], [1, 0, 0]),
+  person('ravi', 'Ravi Patel', 'member', [377, 39], [95, 12], [6, 1]),
+  person('sol', 'Sol Martínez', 'member', [290, 31], [80, 10], [14, 6]),
+  person('nia', 'Nia Okafor', 'member', [210, 22], [66, 9], [7, 4]),
+  person('jonas', 'Jonas Berg', 'member', [168, 18], [51, 7], [4, 1]),
+  person('yuki', 'Yuki Sato', 'member', [121, 14], [40, 6], [5, 3]),
+  person('tom_h', 'Tom Hardy', 'member', [96, 9], [30, 4], [3, 0]),
+  person('aisha', 'Aisha Rahman', 'member', [73, 7], [22, 3], [2, 1]),
+  person('diego', 'Diego Ruiz', 'member', [41, 4], [12, 2], [1, 0]),
 ];
-
-/**
- * The server's scoring, repeated for the cast: ten points an hour, twenty an
- * active day, five a message, fifty a reply from the maker, two a mention.
- * See migration 0009 in the private repository; this must match it.
- */
-export const scoreOf = (score: {
-  minutes: number;
-  activeDays: number;
-  messages: number;
-  replies: number;
-  mentions: number;
-}): number =>
-  Math.floor(score.minutes / 6) +
-  score.activeDays * 20 +
-  score.messages * 5 +
-  score.replies * 50 +
-  score.mentions * 2;
 
 interface ISampleLine {
   handle: string;
@@ -286,7 +260,6 @@ export const sampleBoard = (
       minutes: month ? entry.month : entry.allTime,
       activeDays: month ? entry.activeDaysMonth : entry.activeDays,
       messages: Math.round(entry.messages * share),
-      replies: Math.round(entry.replies * share),
       mentions: Math.round(entry.mentions * share),
     };
     return {

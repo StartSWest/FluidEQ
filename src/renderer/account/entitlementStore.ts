@@ -69,8 +69,11 @@ export const refreshEntitlement = async () => {
 
 const NOTHING_TO_OPEN: TBillingOutcome = { ok: false, failure: 'rejected' };
 
-export const openCheckout = async (): Promise<TBillingOutcome> =>
-  (await bridge()?.openCheckout?.()) ?? NOTHING_TO_OPEN;
+/** Only after the terms were shown and agreed to: the version is that proof. */
+export const openCheckout = async (
+  termsVersion: number,
+): Promise<TBillingOutcome> =>
+  (await bridge()?.openCheckout?.(termsVersion)) ?? NOTHING_TO_OPEN;
 
 export const openSubscriptionPortal = async (): Promise<TBillingOutcome> =>
   (await bridge()?.openSubscriptionPortal?.()) ?? NOTHING_TO_OPEN;

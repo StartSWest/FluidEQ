@@ -12,8 +12,8 @@ import {
   SAMPLE_PEOPLE,
   sampleBoard,
   sampleMessages,
-  scoreOf,
 } from '../../../main/community/sampleCommunity';
+import { scoreOf } from '../../../common/leaderboardScore';
 
 describe('the sample community, development only', () => {
   it('writes the reader into the one line that names them, and marks every row as a sample', () => {
@@ -38,7 +38,6 @@ describe('the sample community, development only', () => {
     const nobody = {
       activeDays: 1,
       messages: 0,
-      replies: 0,
       mentions: 0,
     };
     const real = [
@@ -65,15 +64,13 @@ describe('the sample community, development only', () => {
     );
     expect(rows[0].handle).toBe('ada');
     expect(rows[rows.length - 1].handle).toBe('ivan');
-    // The cast is scored the way the server scores: replies from the maker
-    // are worth the most.
+    // The cast is scored the way the server scores.
     const ada = SAMPLE_PEOPLE.find((entry) => entry.handle === 'ada');
     expect(rows[0].points).toBe(
       scoreOf({
         minutes: ada?.allTime ?? 0,
         activeDays: ada?.activeDays ?? 0,
         messages: ada?.messages ?? 0,
-        replies: ada?.replies ?? 0,
         mentions: ada?.mentions ?? 0,
       }),
     );

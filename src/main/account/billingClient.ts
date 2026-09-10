@@ -12,7 +12,14 @@ import type { IAccountConfig } from 'common/accountConfig';
  * all live on the merchant's page; the app only ever opens it.
  */
 
-export type TBillingFailure = 'network' | 'signed_out' | 'rejected';
+/**
+ * `terms_outdated` is the server refusing a checkout because the terms the
+ * person agreed to are older than the ones it now requires: the app is out
+ * of date, and paying under text nobody showed them is exactly what the
+ * version exists to prevent.
+ */
+export type TBillingFailure =
+  'network' | 'signed_out' | 'rejected' | 'terms_outdated';
 
 export class BillingError extends Error {
   readonly failure: TBillingFailure;
@@ -47,11 +54,22 @@ export const readBillingUrl = (value: unknown): string | undefined => {
   }
 };
 
+/** Whether a refusal's body names outdated terms. */
+const refusesTerms = async (response: Response): Promise<boolean> => {
+  try {
+    const body: unknown = await response.json();
+    return isRecord(body) && body.error === 'terms_outdated';
+  } catch {
+    return false;
+  }
+};
+
 const call = async (
   config: IAccountConfig,
   name: 'create-checkout' | 'create-portal',
   accessToken: string,
   fetchImpl: typeof fetch,
+  request: Record<string, unknown> = {},
 ): Promise<string> => {
   let response: Response;
   try {
@@ -62,7 +80,7 @@ const call = async (
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: '{}',
+      body: JSON.stringify(request),
     });
   } catch (error) {
     throw new BillingError('network', `${name} is unreachable: ${error}`);
@@ -71,7 +89,12 @@ const call = async (
     throw new BillingError('signed_out', `${name} refused the token.`);
   }
   if (!response.ok) {
-    throw new BillingError('rejected', `${name} answered ${response.status}.`);
+    throw new BillingError(
+      response.status === 409 && (await refusesTerms(response))
+        ? 'terms_outdated'
+        : 'rejected',
+      `${name} answered ${response.status}.`,
+    );
   }
   let body: unknown;
   try {
@@ -136,8 +159,12 @@ const sync = async (
 };
 
 export interface IBillingClient {
-  /** Where to pay, for this account. */
-  checkoutUrl(accessToken: string): Promise<string>;
+  /**
+   * Where to pay, for this account, having agreed to this version of the Plus
+   * terms. The server records the agreement as it answers, so the record and
+   * the checkout cannot come apart.
+   */
+  checkoutUrl(accessToken: string, termsVersion: number): Promise<string>;
   /** Where this account's subscription is managed. */
   portalUrl(accessToken: string): Promise<string>;
   /** Have the server match this account against the merchant's records. */
@@ -148,8 +175,8 @@ export const createBillingClient = (
   config: IAccountConfig,
   fetchImpl: typeof fetch = fetch,
 ): IBillingClient => ({
-  checkoutUrl: (accessToken) =>
-    call(config, 'create-checkout', accessToken, fetchImpl),
+  checkoutUrl: (accessToken, termsVersion) =>
+    call(config, 'create-checkout', accessToken, fetchImpl, { termsVersion }),
   portalUrl: (accessToken) =>
     call(config, 'create-portal', accessToken, fetchImpl),
   syncMembership: (accessToken) => sync(config, accessToken, fetchImpl),

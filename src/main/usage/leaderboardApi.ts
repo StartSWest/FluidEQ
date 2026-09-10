@@ -5,25 +5,27 @@ import type { IPendingDay } from './usageLedger';
 /**
  * The leaderboard's REST surface.
  *
- * Uploads are one row per day, replaced on conflict, so a day that keeps
- * growing overwrites its own earlier number rather than adding to it. The board
- * and the caller's own rank come from two database functions that return
- * handles and minutes and nothing else — no ids, no days.
+ * An upload is one row per day holding two things, the date and that day's
+ * whole minutes, replaced on conflict, so a day that keeps growing overwrites
+ * its own earlier number rather than adding to it. The app version and the
+ * language rode along once and are no longer sent: nothing read them, and
+ * data nobody reads is still data somebody holds. The board and the caller's
+ * own rank come from two database functions that return handles and scores
+ * and nothing else — no ids, no days.
  */
 
 export type TLeaderboardPeriod = 'all' | 'month';
 
 /**
  * What a place on the board is made of. The server scores it — ten points an
- * hour, twenty an active day, five a message, fifty a reply from the maker,
- * two a mention — and hands back the parts so a row can say why.
+ * hour, twenty an active day, five a message, ten for each person who
+ * mentions you on a day — and hands back the parts so a row can say why.
  */
 export interface ILeaderboardScore {
   points: number;
   minutes: number;
   activeDays: number;
   messages: number;
-  replies: number;
   mentions: number;
 }
 
@@ -80,7 +82,6 @@ const readScore = (
     minutes,
     activeDays: optional(value.active_days),
     messages: optional(value.messages),
-    replies: optional(value.replies),
     mentions: optional(value.mentions),
     // An old server has no points; hours alone are the score it ranked by.
     points: readInteger(value.points) ?? Math.floor(minutes / 6),
@@ -130,11 +131,7 @@ export interface ILeaderboardApiOptions {
 }
 
 export interface ILeaderboardApi {
-  uploadDays(
-    days: readonly IPendingDay[],
-    appVersion: string,
-    locale: string,
-  ): Promise<void>;
+  uploadDays(days: readonly IPendingDay[]): Promise<void>;
   fetchBoard(period: TLeaderboardPeriod): Promise<ILeaderboardRow[]>;
   fetchMyRank(period: TLeaderboardPeriod): Promise<IMyRank | undefined>;
   /** Every row of mine, gone. */
@@ -218,10 +215,12 @@ export const createLeaderboardApi = ({
   };
 
   return {
-    uploadDays: async (days, appVersion, locale) => {
+    uploadDays: async (days) => {
       if (days.length === 0) {
         return;
       }
+      // The id is the account's own, from its own token; the server replaces
+      // it with the token's subject anyway, and the conflict target needs it.
       const userId = await whoAmI();
       await request(
         'POST',
@@ -230,8 +229,6 @@ export const createLeaderboardApi = ({
           user_id: userId,
           day: entry.day,
           minutes: entry.minutes,
-          app_version: appVersion.slice(0, 32),
-          locale: locale.slice(0, 8),
         })),
         'resolution=merge-duplicates,return=minimal',
       );

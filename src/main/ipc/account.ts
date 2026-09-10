@@ -4,6 +4,7 @@ import {
   isAccountConfigured,
   isCheckoutConfigured,
 } from '../../common/accountConfig';
+import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import { createAccountCredentialStore } from '../accountCredentials';
 import { createEncryptedJsonStore } from '../encryptedJsonStore';
 import openExternalIfSafe from '../safeExternal';
@@ -277,12 +278,24 @@ export const registerAccountIpc = ({
     }
   };
 
-  ipcMain.handle('entitlement-open-checkout', (): Promise<TBillingOutcome> => {
-    if (!isCheckoutConfigured() || session.state().status !== 'signed-in') {
-      return Promise.resolve({ ok: false, failure: 'signed_out' });
-    }
-    return openBillingPage((token) => billing.checkoutUrl(token));
-  });
+  // The renderer names the terms version it showed and the person agreed to.
+  // Anything but the current one is refused here, before the server is asked:
+  // a checkout is never opened on an agreement to text this build does not
+  // carry.
+  ipcMain.handle(
+    'entitlement-open-checkout',
+    (_event, termsVersion: unknown): Promise<TBillingOutcome> => {
+      if (!isCheckoutConfigured() || session.state().status !== 'signed-in') {
+        return Promise.resolve({ ok: false, failure: 'signed_out' });
+      }
+      if (termsVersion !== PLUS_TERMS_VERSION) {
+        return Promise.resolve({ ok: false, failure: 'terms_outdated' });
+      }
+      return openBillingPage((token) =>
+        billing.checkoutUrl(token, PLUS_TERMS_VERSION),
+      );
+    },
+  );
 
   ipcMain.handle('entitlement-open-portal', (): Promise<TBillingOutcome> => {
     if (session.state().status !== 'signed-in') {

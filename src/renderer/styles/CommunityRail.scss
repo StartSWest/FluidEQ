@@ -214,9 +214,25 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $white 5%, transparent);
   }
 
+  // The open channel: a tinted row with a short accent bar down its left edge,
+  // the same mark the sidebar uses for the section that is on.
   &.is-active {
+    position: relative;
     color: $text-primary;
     background: color-mix(in srgb, $secondary-default 13%, transparent);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      left: 0;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: $secondary-default;
+      box-shadow: 0 0 8px
+        color-mix(in srgb, $secondary-default 60%, transparent);
+    }
   }
 
   &:focus-visible {
@@ -227,6 +243,10 @@ it under the terms of the GNU General Public License version 3 or later.
   @container eq-panel (max-width: 600px) {
     min-height: 34px;
     padding: 3px 10px 3px 5px;
+
+    &.is-active::before {
+      display: none;
+    }
   }
 }
 

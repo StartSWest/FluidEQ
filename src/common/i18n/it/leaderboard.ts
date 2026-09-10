@@ -2,7 +2,7 @@ const leaderboard = {
   'leaderboard.title': 'Classifica',
   'leaderboard.card.title': 'Classifica',
   'leaderboard.card.body':
-    'Chi ascolta di più, tra i membri Plus. Disattivata finché non partecipi. Se lo fai, una volta al giorno l’app invia un solo numero — minuti interi di musica riprodotta, con un tetto di sedici ore — con la data, la versione e la tua lingua. Mai cosa hai ascoltato, né da dove.',
+    'Chi ascolta di più, tra i membri Plus. Disattivata finché non partecipi. Se lo fai, l’app invia un solo numero per ogni giorno — minuti interi di musica riprodotta, con un tetto di sedici ore — con la sua data, e lo aggiorna quando torni al computer o apri la classifica. Mai cosa hai ascoltato, né da dove.',
   'leaderboard.card.today': 'Oggi finora: {hours} h',
   'leaderboard.card.join': 'Partecipa alla classifica',
   'leaderboard.card.leave': 'Esci dalla classifica',
@@ -21,11 +21,34 @@ const leaderboard = {
   'leaderboard.you': 'Tu',
   'leaderboard.players': '{count} ascoltatori in classifica',
   'leaderboard.points': '{points} pt',
+  'leaderboard.hero.title': 'La tua posizione',
+  'leaderboard.hero.of': 'su {count}',
+  'leaderboard.hero.toPass': '{points} pt per superare {name}',
+  'leaderboard.hero.leading': 'Sei in testa.',
+  'leaderboard.part.hours': 'Ascolto',
+  'leaderboard.part.days': 'Giorni attivi',
+  'leaderboard.part.messages': 'Messaggi',
+  'leaderboard.part.mentions': 'Menzioni',
+  'leaderboard.guide.title': 'Come guadagnare punti',
+  'leaderboard.guide.lead':
+    'Tutti guadagnano allo stesso modo, il creatore compreso.',
+  'leaderboard.guide.hours':
+    'Ogni ora di musica che suona, fino a {limit} ore al giorno.',
+  'leaderboard.guide.days': 'Ogni giorno in cui ascolti {limit} minuti o più.',
+  'leaderboard.guide.messages':
+    'Ogni messaggio che pubblichi, fino a {limit} al giorno.',
+  'leaderboard.guide.mentions':
+    'Ogni persona che ti @menziona, una volta al giorno ciascuna.',
+  'leaderboard.guide.value': '+{points}',
+  'leaderboard.guide.fairTitle': 'Da dove vengono i numeri',
+  'leaderboard.guide.fair':
+    'Il tuo computer conta i minuti di musica e invia un totale al giorno, solo dopo che hai partecipato, mai cosa ascolti. Messaggi e menzioni si contano sul server. Lì ogni numero viene controllato, e chi bara esce dalla classifica.',
+  'leaderboard.guide.terms': 'Tutto ciò che l’app invia',
   'leaderboard.stat.hours': '{hours} ore di ascolto',
   'leaderboard.stat.messages': '{count} messaggi pubblicati',
-  'leaderboard.stat.replies': '{count} risposte del creatore',
+  'leaderboard.stat.mentions': '{count} menzioni da altri',
   'leaderboard.scoring':
-    'Punti: 10 per ora di ascolto, 20 per giorno attivo, 5 per messaggio, 50 per risposta del creatore, 2 per menzione da parte di altri.',
+    'Punti: {hours} per ora di ascolto, {days} per giorno attivo, {messages} per messaggio, {mentions} per ogni persona che ti menziona in un giorno. Il creatore li guadagna allo stesso modo.',
   'leaderboard.empty': 'Nessuno in classifica, per ora.',
   'leaderboard.notJoined':
     'Non sei in classifica. Partecipa dal pannello Account.',

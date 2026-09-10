@@ -1,21 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
+import { isCheckoutConfigured } from 'common/accountConfig';
+import { PLUS_TERMS_VERSION } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from '../components/DialogHeader';
 import Glyph from '../community/Glyph';
 import { identityStyle } from '../community/identity';
 import { useLeaderboard } from '../usage/leaderboardStore';
+import type { TAccountPanelPage } from './accountPanel';
 import { signOutAccount, useAccount } from './accountStore';
 import { useEntitlement } from './entitlementStore';
 import PlusCard from './PlusCard';
+import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
 import SignInForms from './SignInForms';
+import SubscribeAgreement from './SubscribeAgreement';
 import initialsOf from './initials';
 import '../styles/Account.scss';
 
 interface IAccountDialogProps {
   onClose: () => void;
+  /**
+   * The page to open on. The leaderboard's guide opens straight on the terms,
+   * and every way into paying opens on the terms with the agreement under
+   * them.
+   */
+  initialPage?: TAccountPanelPage;
 }
 
 /**
@@ -56,13 +67,29 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * optional is on both: this app has promised since its first release that it
  * is local and account-free, and that is still true for anybody who closes
  * this without typing anything.
+ *
+ * The Plus terms are a page of the same panel rather than a dialog of their
+ * own: reached from a link on either side, from the leaderboard, and — with
+ * the agreement at their foot — from every button that leads to paying.
  */
-export default function AccountDialog({ onClose }: IAccountDialogProps) {
+export default function AccountDialog({
+  onClose,
+  initialPage = 'home',
+}: IAccountDialogProps) {
   const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const termsRef = useRef<HTMLDivElement>(null);
   const account = useAccount();
   const entitlement = useEntitlement();
   const { status: board } = useLeaderboard();
+  const [page, setPage] = useState<TAccountPanelPage>(initialPage);
+  const [checkoutOpened, setCheckoutOpened] = useState(false);
+
+  // A request for another page while the panel is already open — the
+  // composer's upgrade with the panel on screen — moves it there.
+  useEffect(() => {
+    setPage(initialPage);
+  }, [initialPage]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -77,14 +104,46 @@ export default function AccountDialog({ onClose }: IAccountDialogProps) {
   const { identity, status } = account;
   const signedIn = status === 'signed-in' && identity !== undefined;
   const displayName = identity?.name ?? identity?.email ?? '';
+  const termsOffered = isCheckoutConfigured();
+
+  // Paying needs an account with nothing to pay for yet: signed out, the
+  // panel asks for the account first; already a member, there is nothing to
+  // agree to and the terms are simply shown. Without a price configured there
+  // is no Plus to describe at all.
+  const shown: TAccountPanelPage = (() => {
+    if (!termsOffered) {
+      return 'home';
+    }
+    if (page === 'subscribe') {
+      if (!signedIn) {
+        return 'home';
+      }
+      return entitlement.state === 'none' ? 'subscribe' : 'terms';
+    }
+    return page;
+  })();
+  const onTerms = shown !== 'home';
 
   // The forms take the caret themselves; the close button gets it only when
-  // there is nothing to type into.
+  // there is nothing to type into. The terms take it on their own page, so
+  // the keys scroll the document from the first press.
   useEffect(() => {
-    if (signedIn || status === 'unavailable') {
+    if (onTerms) {
+      termsRef.current?.focus();
+    } else if (signedIn || status === 'unavailable') {
       closeRef.current?.focus();
     }
-  }, [signedIn, status]);
+  }, [onTerms, signedIn, status]);
+
+  const termsLink = termsOffered && (
+    <button
+      type="button"
+      className="account-link account__terms-link"
+      onClick={() => setPage('terms')}
+    >
+      {t('terms.link')}
+    </button>
+  );
 
   const errorLine = account.error && (
     <p className="account__error" role="alert">
@@ -109,15 +168,50 @@ export default function AccountDialog({ onClose }: IAccountDialogProps) {
         aria-labelledby="account-title"
       >
         <DialogHeader
-          eyebrow={t('account.eyebrow')}
-          title={t('account.title')}
+          eyebrow={onTerms ? t('terms.eyebrow') : t('account.eyebrow')}
+          title={onTerms ? t('terms.title') : t('account.title')}
           titleId="account-title"
+          version={onTerms ? String(PLUS_TERMS_VERSION) : undefined}
           closeLabel={t('account.close')}
           onClose={onClose}
           closeRef={closeRef}
         />
 
-        <div className="about__body account__body">
+        {onTerms && (
+          <>
+            {/* Keyed on the page so switching between reading and agreeing
+                starts the document from its top. */}
+            <div
+              key={shown}
+              ref={termsRef}
+              tabIndex={-1}
+              className="about__body account__body account__terms"
+            >
+              <PlusTermsDocument />
+            </div>
+            {shown === 'subscribe' ? (
+              <SubscribeAgreement
+                onBack={() => setPage('home')}
+                onOpened={() => {
+                  setCheckoutOpened(true);
+                  setPage('home');
+                }}
+              />
+            ) : (
+              <footer className="plus-terms-foot">
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => setPage('home')}
+                >
+                  {t('terms.back')}
+                </button>
+              </footer>
+            )}
+          </>
+        )}
+
+        <div className="about__body account__body" hidden={onTerms}>
           {signedIn && (
             <>
               <section
@@ -167,13 +261,20 @@ export default function AccountDialog({ onClose }: IAccountDialogProps) {
               {errorLine}
 
               <div className="account__cards">
-                <PlusCard entitlement={entitlement} />
+                <PlusCard
+                  entitlement={entitlement}
+                  onUpgrade={() => setPage('subscribe')}
+                  checkoutOpened={checkoutOpened}
+                />
                 <LeaderboardCard />
               </div>
 
-              <p className="account__optional account__optional--foot">
-                {t('account.optional')}
-              </p>
+              <div className="account__foot">
+                <p className="account__optional account__optional--foot">
+                  {t('account.optional')}
+                </p>
+                {termsLink}
+              </div>
             </>
           )}
 
@@ -213,6 +314,7 @@ export default function AccountDialog({ onClose }: IAccountDialogProps) {
                     {t('account.perk.board')}
                   </li>
                 </ul>
+                {termsLink}
               </aside>
               <div className="account__form-column">
                 <SignInForms account={account} />

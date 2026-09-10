@@ -10,7 +10,17 @@ export type TCommunityGlyph =
   | 'block'
   | 'delete'
   | 'lock'
-  | 'mention';
+  | 'mention'
+  | 'crown'
+  | 'headphones'
+  | 'calendar'
+  | 'shield'
+  | 'card'
+  | 'person'
+  | 'upload'
+  | 'monitor'
+  | 'mail'
+  | 'refresh';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -19,7 +29,8 @@ interface IGlyphProps {
 
 /**
  * The community's small pictures: one per channel the server ships with, the
- * trophy for the leaderboard, and the four actions. Hand-drawn on a 20-unit
+ * trophy for the leaderboard, the four actions, one per part of a score, and
+ * the few the Plus terms need for their sections. Hand-drawn on a 20-unit
  * grid, stroked in `currentColor`, so each one takes the row's own state —
  * dim at rest, lit when active — the way the look picker's icons do.
  *
@@ -94,11 +105,89 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <rect x="4.5" y="9" width="11" height="8" rx="1.8" />
           </>
         );
+      case 'crown':
+        // Three points, a band, and a jewel on the middle one.
+        return (
+          <>
+            <path d="M3 15 2 6.5l4.6 3.4L10 4.5l3.4 5.4L18 6.5 17 15Z" />
+            <path d="M3.5 17.5h13" />
+          </>
+        );
       case 'mention':
         return (
           <>
             <circle cx="10" cy="10" r="3" />
             <path d="M13 10v1.2a1.8 1.8 0 0 0 3.6 0V10a6.6 6.6 0 1 0-2.6 5.3" />
+          </>
+        );
+      case 'headphones':
+        // The band and two cups: listening.
+        return (
+          <>
+            <path d="M3.5 13v-2.5a6.5 6.5 0 0 1 13 0V13" />
+            <rect x="2.5" y="12" width="3.5" height="5.5" rx="1.4" />
+            <rect x="14" y="12" width="3.5" height="5.5" rx="1.4" />
+          </>
+        );
+      case 'calendar':
+        // A page with a tick: a day that counted.
+        return (
+          <>
+            <rect x="3" y="4.5" width="14" height="12.5" rx="2" />
+            <path d="M3 8.5h14M7 2.5v4M13 2.5v4" />
+            <path d="M7.2 12.6l1.9 1.9 3.7-3.8" />
+          </>
+        );
+      case 'shield':
+        // A shield with a tick: checked, protected.
+        return (
+          <>
+            <path d="M10 2.5 16 5v4.8c0 3.6-2.5 6.4-6 7.7-3.5-1.3-6-4.1-6-7.7V5Z" />
+            <path d="M7.3 10.2 9.2 12l3.6-3.8" />
+          </>
+        );
+      case 'card':
+        return (
+          <>
+            <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
+            <path d="M2.5 8.5h15M5.5 12.5h3" />
+          </>
+        );
+      case 'person':
+        return (
+          <>
+            <circle cx="10" cy="7" r="3.2" />
+            <path d="M3.8 17c.8-3.2 3.2-5 6.2-5s5.4 1.8 6.2 5" />
+          </>
+        );
+      case 'upload':
+        // An arrow leaving a tray: what is sent.
+        return (
+          <>
+            <path d="M10 13V3.5M5.8 7.6 10 3.5l4.2 4.1" />
+            <path d="M3.5 12.5v2.5A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-2.5" />
+          </>
+        );
+      case 'monitor':
+        // The computer: what stays on it.
+        return (
+          <>
+            <rect x="2.5" y="3.5" width="15" height="10" rx="1.8" />
+            <path d="M7 17h6M10 13.5V17" />
+          </>
+        );
+      case 'mail':
+        return (
+          <>
+            <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
+            <path d="M3.2 5.6 10 11l6.8-5.4" />
+          </>
+        );
+      case 'refresh':
+        return (
+          <>
+            <path d="M16 10a6 6 0 1 1-1.8-4.3" />
+            <path d="M16.2 3.2v3.3h-3.3" />
           </>
         );
       case 'channel':

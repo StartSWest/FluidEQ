@@ -710,9 +710,15 @@ const getEntitlementStatus = () =>
 const refreshEntitlement = () =>
   ipcRenderer.invoke('entitlement-refresh') as Promise<IEntitlementStatus>;
 
-/** The server mints the page for this account; the renderer never sees the URL. */
-const openCheckout = () =>
-  ipcRenderer.invoke('entitlement-open-checkout') as Promise<TBillingOutcome>;
+/**
+ * The server mints the page for this account; the renderer never sees the
+ * URL. It names the Plus terms version the person just agreed to.
+ */
+const openCheckout = (termsVersion: number) =>
+  ipcRenderer.invoke(
+    'entitlement-open-checkout',
+    termsVersion,
+  ) as Promise<TBillingOutcome>;
 
 const openSubscriptionPortal = () =>
   ipcRenderer.invoke('entitlement-open-portal') as Promise<TBillingOutcome>;
