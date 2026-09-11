@@ -196,10 +196,6 @@ import {
   watchSystemMedia,
 } from './systemMedia';
 import { claimInstance, isAnotherInstanceLive } from './singleInstance';
-import {
-  getDevelopmentDebugPort,
-  getDevelopmentInstance,
-} from './developmentInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import {
@@ -861,9 +857,7 @@ const syncDatabasesOnStartup = async () => {
   });
 };
 
-const developmentInstance = getDevelopmentInstance(app.isPackaged);
-
-if (process.platform !== 'win32' && !developmentInstance) {
+if (process.platform !== 'win32') {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
@@ -2991,13 +2985,12 @@ if (isDebug && process.getuid?.() === 0) {
  * filled the tab, buttons with no class, two sections that sat side by side.
  * Every one passed the whole suite.
  *
- * Bound to the loopback address on purpose, and gated on unpackaged dev so it can
+ * Bound to the loopback address on purpose, and gated on `isDebug` so it can
  * never reach a packaged build — an open protocol port is remote control of
  * the browser, not merely a diagnostic.
  */
-const developmentDebugPort = getDevelopmentDebugPort(app.isPackaged);
-if (developmentDebugPort) {
-  app.commandLine.appendSwitch('remote-debugging-port', developmentDebugPort);
+if (process.env.NODE_ENV === 'development') {
+  app.commandLine.appendSwitch('remote-debugging-port', '9222');
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
 }
 
@@ -3232,10 +3225,7 @@ let releaseInstanceMarker: (() => void) | undefined;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
-} else if (
-  !developmentInstance &&
-  isAnotherInstanceLive(INSTANCE_MARKER_PATH)
-) {
+} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
   // Electron's lock did not catch this one, so it is the other build: dev
   // started while the installed copy is running, or the other way round. Said
   // out loud rather than quitting blankly — a window that never appears is the
@@ -3245,11 +3235,9 @@ if (!app.requestSingleInstanceLock()) {
   );
   app.quit();
 } else {
-  // Named development profiles have their own data AND demo APO config. Keep
-  // their per-profile Electron lock, but never claim the real system-EQ lock.
-  if (!developmentInstance) {
-    releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
-  }
+  // One FluidEQ at a time, whatever build or checkout it comes from: two
+  // copies write the same engine config and adopt each other's writes.
+  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
   app.on('second-instance', () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       return;

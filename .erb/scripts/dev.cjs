@@ -51,6 +51,41 @@ const buildNativeEngine = () => {
   });
 };
 
+/**
+ * Swap the engine Windows actually runs for the one just built, when they
+ * differ — see `sync-dev-engine.ts` for why building it is not enough.
+ *
+ * A declined permission prompt starts dev anyway, with the reason said out
+ * loud: that was a choice, and refusing to start over it only makes the next
+ * `pnpm dev` ask again. A failed swap stops, for the same reason a failed
+ * build does.
+ */
+const syncInstalledEngine = () => {
+  const { spawnSync } = require('child_process');
+  const tsNode = require.resolve('ts-node/dist/bin.js');
+  const script = path.join(__dirname, 'sync-dev-engine.ts');
+  const result = spawnSync(process.execPath, [tsNode, script], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (result.status === 2) {
+    console.warn(
+      chalk.black.bgYellow.bold(
+        'Starting dev against the previously installed FluidEQ Engine — what you hear through it is not this build.',
+      ),
+    );
+    return;
+  }
+  if (result.status !== 0) {
+    console.error(
+      chalk.whiteBright.bgRed.bold(
+        'The FluidEQ Engine could not be updated to this build. Fix it before starting dev — the chain file this build writes may not be the one the installed engine reads.',
+      ),
+    );
+    process.exit(1);
+  }
+};
+
 const startDevServer = () => {
   const cli = require.resolve('webpack-cli/bin/cli.js');
   const config = path.join(
@@ -90,6 +125,7 @@ probe.once('listening', () => {
       );
       process.exit(1);
     }
+    syncInstalledEngine();
     startDevServer();
   });
 });
