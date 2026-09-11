@@ -37,6 +37,8 @@ const terms = {
     'O teu email recebe os códigos que confirmam o teu endereço e repõem a tua palavra-passe. Nunca é mostrado a outros membros: na comunidade apareces com o nome de utilizador e o nome visível que escolheres.',
   'terms.account.p3':
     'No teu computador, a aplicação guarda a tua sessão cifrada pelo sistema operativo. As contas são pessoais: não partilhes a tua palavra-passe.',
+  'terms.account.p4':
+    'O Plus funciona em até 5 computadores ao mesmo tempo: em casa e no trabalho, ou os computadores entre os quais o Compartilhar áudio toca. Iniciar sessão num sexto termina a sessão do que está há mais tempo sem uso.',
 
   'terms.sent.title': 'O que a aplicação envia, e quando',
   'terms.sent.intro':
@@ -75,7 +77,7 @@ const terms = {
   'terms.sent.community.who':
     'Mensagens, nomes de utilizador e nomes visíveis: todos os membros com sessão iniciada. Denúncias: o criador. Bloqueios: só tu.',
   'terms.sent.board.what':
-    'Um número por dia: os minutos inteiros de música que tocou, até {capHours} horas, com a sua data',
+    'Um número por dia de cada um dos teus computadores: os minutos inteiros de música que tocou, até {capHours} horas, com a sua data e um número aleatório que distingue os teus computadores',
   'terms.sent.board.when':
     'Só se te juntares à classificação: quando voltas ao computador, no máximo a cada {uploadHours} horas, e quando abres a classificação',
   'terms.sent.board.who':
@@ -127,7 +129,7 @@ const terms = {
 
   'terms.fair.title': 'Jogo limpo na classificação',
   'terms.fair.p1':
-    'O tempo de escuta é contado pela aplicação no teu computador, por isso o servidor não o pode ver acontecer. Em vez disso, verifica cada número: não mais de {capHours} horas por dia, nenhum dia que ainda não tenha começado, nada com mais de {windowDays} dias, e nenhum dia que cresça mais depressa do que o relógio. As mensagens e as menções são contadas no servidor, a partir do que foi realmente publicado.',
+    'O tempo de escuta é contado pela aplicação no teu computador, por isso o servidor não o pode ver acontecer. Em vez disso, verifica cada número: não mais de {capHours} horas por dia, nenhum dia que ainda não tenha começado, nada com mais de {windowDays} dias, e nenhum dia que cresça mais depressa do que o relógio. Os números dos teus computadores somam-se num só dia, que também não cresce mais depressa do que o relógio, por isso vários a tocar ao mesmo tempo não podem somar mais tempo do que o que passou. As mensagens e as menções são contadas no servidor, a partir do que foi realmente publicado.',
   'terms.fair.p2':
     'Todos ganham pontos da mesma forma, o criador incluído. Alterar a aplicação ou o que ela envia, automatizar a escuta ou as publicações, ou subir com mais de uma conta tira-te da classificação, e pode tirar-te da comunidade.',
   'terms.fair.p3':

@@ -53,6 +53,8 @@ const account = {
     'アカウントサービスが拒否しました。しばらくしてからもう一度お試しください。',
   'account.error.expired':
     'このサインインは無効になりました。もう一度サインインしてください。',
+  'account.error.signedOutElsewhere':
+    'アカウントが別のパソコンでサインインしたため、このパソコンはサインアウトされました。Plus は同時に最大 5 台のパソコンで使えます。ここでもう一度サインインすると、最も長く使われていないパソコンがサインアウトされます。',
   'account.error.malformed':
     'アカウントサービスから FluidEQ が読めない応答が返りました。',
   'account.error.wrongCredentials': 'メールアドレスかパスワードが違います。',

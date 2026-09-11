@@ -37,6 +37,8 @@ const terms = {
     'La tua email riceve i codici che confermano l’indirizzo e reimpostano la password. Non viene mai mostrata agli altri membri: nella community compari con il nome utente e il nome visualizzato che scegli.',
   'terms.account.p3':
     'Sul tuo computer, l’app conserva la sessione cifrata dal sistema operativo. Gli account sono personali: tieni per te la tua password.',
+  'terms.account.p4':
+    'Plus funziona su un massimo di 5 computer alla volta: a casa e al lavoro, o i computer tra cui suona Condividi audio. Accedere su un sesto disconnette quello usato meno di recente.',
 
   'terms.sent.title': 'Cosa invia l’app, e quando',
   'terms.sent.intro':
@@ -75,7 +77,7 @@ const terms = {
   'terms.sent.community.who':
     'Messaggi, nomi utente e nomi visualizzati: tutti i membri che hanno effettuato l’accesso. Segnalazioni: il creatore. Blocchi: solo tu.',
   'terms.sent.board.what':
-    'Un numero al giorno: i minuti interi di musica riprodotta, fino a {capHours} ore, con la sua data',
+    'Un numero al giorno da ciascuno dei tuoi computer: i minuti interi di musica riprodotta, fino a {capHours} ore, con la sua data e un numero casuale che distingue i tuoi computer',
   'terms.sent.board.when':
     'Solo se partecipi alla classifica: quando torni al computer, al massimo ogni {uploadHours} ore, e quando apri la classifica',
   'terms.sent.board.who':
@@ -127,7 +129,7 @@ const terms = {
 
   'terms.fair.title': 'Correttezza in classifica',
   'terms.fair.p1':
-    'Il tempo di ascolto è contato dall’app sul tuo computer, quindi il server non può vederlo accadere. Controlla invece ogni numero: non più di {capHours} ore al giorno, nessun giorno che non sia ancora iniziato, nulla più vecchio di {windowDays} giorni, e nessun giorno che cresca più veloce dell’orologio. Messaggi e menzioni si contano sul server, in base a ciò che è stato davvero pubblicato.',
+    'Il tempo di ascolto è contato dall’app sul tuo computer, quindi il server non può vederlo accadere. Controlla invece ogni numero: non più di {capHours} ore al giorno, nessun giorno che non sia ancora iniziato, nulla più vecchio di {windowDays} giorni, e nessun giorno che cresca più veloce dell’orologio. I numeri dei tuoi computer si sommano in un solo giorno, che a sua volta non cresce più veloce dell’orologio: più computer che suonano insieme non possono sommare più tempo di quanto ne sia passato. Messaggi e menzioni si contano sul server, in base a ciò che è stato davvero pubblicato.',
   'terms.fair.p2':
     'Tutti guadagnano punti allo stesso modo, il creatore compreso. Modificare l’app o ciò che invia, automatizzare ascolto o messaggi, o salire con più di un account ti toglie dalla classifica, e può toglierti dalla community.',
   'terms.fair.p3':

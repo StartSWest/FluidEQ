@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizzatori, la nuova galleria: una scena che pubblichi lì viene mostrata ai membri Plus finché non la ritiri, e le condizioni spiegano cosa inviano la navigazione, l’aggiunta e le segnalazioni.',
   'termsNotice.change.5':
-    'Plus ora si può pagare all’anno oltre che al mese, e l’abbonamento si rinnova alla fine del periodo che hai pagato. Una scena che pubblichi in Visualizzatori ora la vede chiunque abbia effettuato l’accesso; solo i membri Plus la riproducono e la aggiungono.',
+    'Plus ora si può pagare all’anno oltre che al mese, e l’abbonamento si rinnova alla fine del periodo che hai pagato. Una scena che pubblichi in Visualizzatori ora la vede chiunque abbia effettuato l’accesso; solo i membri Plus la riproducono e la aggiungono. Plus funziona su un massimo di 5 computer alla volta, e la classifica somma l’ascolto dei tuoi computer senza lasciare che un giorno cresca più veloce dell’orologio.',
 } as const;
 
 export default termsNotice;

@@ -53,6 +53,8 @@ const account = {
     'Le service de comptes a refusé. Réessayez dans un instant.',
   'account.error.expired':
     'Cette connexion n’est plus valable. Veuillez vous reconnecter.',
+  'account.error.signedOutElsewhere':
+    'Cet ordinateur a été déconnecté parce que votre compte s’est connecté sur un autre. Plus fonctionne sur 5 ordinateurs à la fois au maximum : reconnectez-vous pour l’utiliser ici, et c’est celui utilisé le moins récemment qui sera déconnecté.',
   'account.error.malformed':
     'Le service de comptes a envoyé quelque chose que FluidEQ n’a pas pu lire.',
   'account.error.wrongCredentials': 'E-mail ou mot de passe incorrect.',

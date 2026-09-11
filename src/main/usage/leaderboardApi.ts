@@ -130,6 +130,8 @@ export const readMyRank = (value: unknown): IMyRank | undefined => {
 export interface ILeaderboardApiOptions {
   config: IAccountConfig;
   accessToken: () => Promise<string>;
+  /** This installation's random id — see `computerId.ts`. */
+  computerId: () => string;
   fetchImpl?: typeof fetch;
 }
 
@@ -144,6 +146,7 @@ export interface ILeaderboardApi {
 export const createLeaderboardApi = ({
   config,
   accessToken,
+  computerId,
   fetchImpl = fetch,
 }: ILeaderboardApiOptions): ILeaderboardApi => {
   const request = async (
@@ -224,12 +227,17 @@ export const createLeaderboardApi = ({
       }
       // The id is the account's own, from its own token; the server replaces
       // it with the token's subject anyway, and the conflict target needs it.
+      // Each computer reports its own days; the server adds them into the
+      // account's day and holds the sum to the clock, so an office day and a
+      // home evening both count while two computers at once count once.
       const userId = await whoAmI();
+      const device = computerId();
       await request(
         'POST',
-        'usage_days?on_conflict=user_id,day',
+        'usage_device_days?on_conflict=user_id,device,day',
         days.map((entry) => ({
           user_id: userId,
+          device,
           day: entry.day,
           minutes: entry.minutes,
         })),
@@ -250,7 +258,11 @@ export const createLeaderboardApi = ({
       readMyRank(await request('POST', 'rpc/my_rank', { period })),
 
     deleteMine: async () => {
-      await request('DELETE', `usage_days?user_id=eq.${await whoAmI()}`);
+      // Every computer's reports, then the days they added up to: the other
+      // way round, a report arriving in between would rebuild a day.
+      const userId = await whoAmI();
+      await request('DELETE', `usage_device_days?user_id=eq.${userId}`);
+      await request('DELETE', `usage_days?user_id=eq.${userId}`);
     },
   };
 };

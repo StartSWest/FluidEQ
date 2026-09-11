@@ -37,6 +37,8 @@ const terms = {
     'An Ihre E-Mail gehen die Codes, die Ihre Adresse bestätigen und Ihr Passwort zurücksetzen. Anderen Mitgliedern wird sie nie gezeigt: In der Community erscheinen Sie unter dem Handle und dem Anzeigenamen, die Sie wählen.',
   'terms.account.p3':
     'Auf Ihrem Computer speichert die App Ihre Sitzung, verschlüsselt durch das Betriebssystem. Konten sind persönlich: Behalten Sie Ihr Passwort für sich.',
+  'terms.account.p4':
+    'Plus läuft auf bis zu 5 Computern gleichzeitig – zu Hause und bei der Arbeit oder auf den Computern, zwischen denen „Audio teilen“ spielt. Eine Anmeldung auf einem sechsten meldet den am längsten nicht genutzten ab.',
 
   'terms.sent.title': 'Was die App sendet, und wann',
   'terms.sent.intro':
@@ -75,7 +77,7 @@ const terms = {
   'terms.sent.community.who':
     'Nachrichten, Handles und Anzeigenamen: alle angemeldeten Mitglieder. Meldungen: der Macher. Blockierungen: nur Sie.',
   'terms.sent.board.what':
-    'Eine Zahl pro Tag: die ganzen Minuten gespielter Musik, bis zu {capHours} Stunden, mit ihrem Datum',
+    'Eine Zahl pro Tag von jedem Ihrer Computer: die ganzen Minuten gespielter Musik, bis zu {capHours} Stunden, mit ihrem Datum und einer Zufallszahl, die Ihre Computer unterscheidet',
   'terms.sent.board.when':
     'Nur wenn Sie der Rangliste beitreten: wenn Sie an den Computer zurückkehren, höchstens alle {uploadHours} Stunden, und wenn Sie die Rangliste öffnen',
   'terms.sent.board.who':
@@ -128,7 +130,7 @@ const terms = {
 
   'terms.fair.title': 'Fairness in der Rangliste',
   'terms.fair.p1':
-    'Die Hörzeit zählt die App auf Ihrem Computer, der Server kann also nicht zusehen. Stattdessen prüft er jede Zahl: nicht mehr als {capHours} Stunden am Tag, kein Tag, der noch nicht begonnen hat, nichts, was älter als {windowDays} Tage ist, und kein Tag, der schneller wächst als die Uhr. Nachrichten und Erwähnungen zählt der Server, anhand dessen, was tatsächlich gepostet wurde.',
+    'Die Hörzeit zählt die App auf Ihrem Computer, der Server kann also nicht zusehen. Stattdessen prüft er jede Zahl: nicht mehr als {capHours} Stunden am Tag, kein Tag, der noch nicht begonnen hat, nichts, was älter als {windowDays} Tage ist, und kein Tag, der schneller wächst als die Uhr. Die Zahlen Ihrer Computer ergeben zusammen einen einzigen Tag, der ebenfalls nicht schneller wächst als die Uhr – mehrere Computer, die gleichzeitig spielen, können also nicht mehr Zeit ergeben, als vergangen ist. Nachrichten und Erwähnungen zählt der Server, anhand dessen, was tatsächlich gepostet wurde.',
   'terms.fair.p2':
     'Alle verdienen Punkte auf dieselbe Weise, auch der Macher. Wer die App oder ihre Daten verändert, Hören oder Posten automatisiert oder mit mehreren Konten aufsteigt, fliegt aus der Rangliste und kann aus der Community ausgeschlossen werden.',
   'terms.fair.p3':

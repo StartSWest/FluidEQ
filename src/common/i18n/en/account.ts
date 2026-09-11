@@ -62,6 +62,9 @@ const account = {
     'The account service refused that. Try again in a moment.',
   'account.error.expired':
     'That sign-in is no longer valid. Please sign in again.',
+  // Signing in on a sixth computer signs out the least recently used one.
+  'account.error.signedOutElsewhere':
+    'This computer was signed out because your account signed in on another one. Plus runs on up to 5 computers at a time: sign in again to use it here, and the one used least recently is signed out instead.',
   'account.error.malformed':
     'The account service sent something FluidEQ could not read.',
   'account.error.wrongCredentials': 'Wrong email or password.',

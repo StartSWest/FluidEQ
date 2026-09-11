@@ -53,6 +53,8 @@ const account = {
     'El servicio de cuentas lo rechazó. Inténtalo de nuevo en un momento.',
   'account.error.expired':
     'Esa sesión ya no es válida. Vuelve a iniciar sesión.',
+  'account.error.signedOutElsewhere':
+    'Se cerró la sesión en este ordenador porque tu cuenta inició sesión en otro. Plus funciona en hasta 5 ordenadores a la vez: vuelve a iniciar sesión para usarlo aquí y se cerrará la del que lleve más tiempo sin usarse.',
   'account.error.malformed':
     'El servicio de cuentas envió algo que FluidEQ no pudo leer.',
   'account.error.wrongCredentials': 'Correo o contraseña incorrectos.',

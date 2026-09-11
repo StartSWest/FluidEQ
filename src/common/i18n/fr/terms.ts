@@ -37,6 +37,8 @@ const terms = {
     'Votre e-mail reçoit les codes qui confirment votre adresse et réinitialisent votre mot de passe. Il n’est jamais montré aux autres membres : dans la communauté, vous apparaissez sous l’identifiant et le nom d’affichage que vous choisissez.',
   'terms.account.p3':
     'Sur votre ordinateur, l’application conserve votre session chiffrée par le système d’exploitation. Les comptes sont personnels : gardez votre mot de passe pour vous.',
+  'terms.account.p4':
+    'Plus fonctionne sur 5 ordinateurs à la fois au maximum : à la maison et au travail, ou les ordinateurs entre lesquels Partager l’audio diffuse. Se connecter sur un sixième déconnecte celui utilisé le moins récemment.',
 
   'terms.sent.title': 'Ce que l’application envoie, et quand',
   'terms.sent.intro':
@@ -75,7 +77,7 @@ const terms = {
   'terms.sent.community.who':
     'Messages, identifiants et noms d’affichage : tous les membres connectés. Signalements : le créateur. Blocages : vous seul.',
   'terms.sent.board.what':
-    'Un nombre par jour : les minutes entières de musique jouée, jusqu’à {capHours} heures, avec sa date',
+    'Un nombre par jour depuis chacun de vos ordinateurs : les minutes entières de musique jouée, jusqu’à {capHours} heures, avec sa date et un nombre aléatoire qui distingue vos ordinateurs',
   'terms.sent.board.when':
     'Seulement si vous rejoignez le classement : quand vous revenez à l’ordinateur, au plus toutes les {uploadHours} heures, et quand vous ouvrez le classement',
   'terms.sent.board.who':
@@ -129,7 +131,7 @@ const terms = {
 
   'terms.fair.title': 'Fair-play au classement',
   'terms.fair.p1':
-    'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les messages et les mentions sont comptés sur le serveur, à partir de ce qui a vraiment été publié.',
+    'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les nombres de vos ordinateurs s’additionnent en un seul jour, qui n’augmente pas non plus plus vite que l’horloge : plusieurs ordinateurs qui jouent en même temps ne peuvent donc pas totaliser plus de temps qu’il ne s’en est écoulé. Les messages et les mentions sont comptés sur le serveur, à partir de ce qui a vraiment été publié.',
   'terms.fair.p2':
     'Tout le monde gagne ses points de la même façon, le créateur compris. Modifier l’application ou ce qu’elle envoie, automatiser l’écoute ou les messages, ou grimper avec plusieurs comptes vous retire du classement, et peut vous exclure de la communauté.',
   'terms.fair.p3':

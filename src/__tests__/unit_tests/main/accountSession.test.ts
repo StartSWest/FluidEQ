@@ -469,6 +469,36 @@ describe('the account session', () => {
       expect(store.current()).toBeUndefined();
     });
 
+    /**
+     * The server ends the least recently used session when the account signs
+     * in on a sixth computer. The computer it ended says so, rather than
+     * calling its sign-in simply "no longer valid".
+     */
+    it('says so when this computer was signed out by the account signing in elsewhere', async () => {
+      const store = fakeStore({
+        refreshToken: 'refresh-0',
+        identity: { id: 'user-1' },
+      });
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse(
+          {
+            code: 400,
+            error_code: 'refresh_token_not_found',
+            msg: 'Invalid Refresh Token: Refresh Token Not Found',
+          },
+          400,
+        ),
+      );
+      const session = build(store);
+
+      await expect(session.accessToken()).rejects.toMatchObject({
+        failure: 'signed_out_elsewhere',
+      });
+      expect(session.state().status).toBe('signed-out');
+      expect(session.state().error).toBe('signed_out_elsewhere');
+      expect(store.current()).toBeUndefined();
+    });
+
     it('is refused outright when nobody is signed in', async () => {
       await expect(build(fakeStore()).accessToken()).rejects.toMatchObject({
         failure: 'expired',

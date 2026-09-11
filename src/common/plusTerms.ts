@@ -34,7 +34,10 @@
  * published scene's picture, name, category and maker are shown to anyone
  * signed in, not only to Plus members, who alone can play and add it; so
  * publishing refuses an older version too, as the checkout does. Exporting a
- * file is unchanged and keeps accepting 3.
+ * file is unchanged and keeps accepting 3. And Plus runs on up to five
+ * computers at a time, with each computer's listening reported under a random
+ * id and added into one day that cannot outrun the clock — still version 5,
+ * because version 5 has not reached a release.
  */
 export const PLUS_TERMS_VERSION = 5;
 

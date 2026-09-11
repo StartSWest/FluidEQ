@@ -54,6 +54,8 @@ const account = {
     'Der Kontodienst hat das abgelehnt. Versuchen Sie es gleich noch einmal.',
   'account.error.expired':
     'Diese Anmeldung ist nicht mehr gültig. Bitte melden Sie sich erneut an.',
+  'account.error.signedOutElsewhere':
+    'Dieser Computer wurde abgemeldet, weil sich Ihr Konto auf einem anderen angemeldet hat. Plus läuft auf bis zu 5 Computern gleichzeitig: Melden Sie sich erneut an, um es hier zu nutzen – dann wird stattdessen der am längsten nicht genutzte abgemeldet.',
   'account.error.malformed':
     'Der Kontodienst hat etwas gesendet, das FluidEQ nicht lesen konnte.',
   'account.error.wrongCredentials': 'E-Mail oder Passwort falsch.',

@@ -49,6 +49,7 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
   rate_limited: 'account.error.rateLimited',
   invalid_email: 'account.error.invalidEmail',
   already_registered: 'account.error.alreadyRegistered',
+  signed_out_elsewhere: 'account.error.signedOutElsewhere',
 };
 
 /**

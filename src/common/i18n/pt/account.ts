@@ -53,6 +53,8 @@ const account = {
     'O serviço de contas recusou isso. Tenta de novo daqui a um momento.',
   'account.error.expired':
     'Essa sessão já não é válida. Inicia sessão de novo.',
+  'account.error.signedOutElsewhere':
+    'A sessão neste computador foi terminada porque a tua conta iniciou sessão noutro. O Plus funciona em até 5 computadores ao mesmo tempo: inicia sessão de novo para o usar aqui e é terminada a do que está há mais tempo sem uso.',
   'account.error.malformed':
     'O serviço de contas enviou algo que o FluidEQ não conseguiu ler.',
   'account.error.wrongCredentials': 'Email ou palavra-passe errados.',

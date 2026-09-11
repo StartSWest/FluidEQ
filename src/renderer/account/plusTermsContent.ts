@@ -160,7 +160,12 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'person',
     title: 'terms.account.title',
     body: 'paragraphs',
-    lines: ['terms.account.p1', 'terms.account.p2', 'terms.account.p3'],
+    lines: [
+      'terms.account.p1',
+      'terms.account.p2',
+      'terms.account.p3',
+      'terms.account.p4',
+    ],
   },
   {
     id: 'sent',

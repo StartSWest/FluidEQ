@@ -239,9 +239,10 @@ export const createAccountSession = (
       // Only a refusal means the credential is dead. A network failure leaves
       // the stored token alone: the machine being offline is not a reason to
       // sign somebody out, and they would have no way to get back in.
-      if (failureOf(error) === 'expired') {
+      const failure = failureOf(error);
+      if (failure === 'expired' || failure === 'signed_out_elsewhere') {
         forget();
-        lastError = 'expired';
+        lastError = failure;
         publish();
       }
       throw error;

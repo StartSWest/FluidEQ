@@ -94,10 +94,12 @@ describe('reading the board', () => {
 
 describe('the leaderboard API', () => {
   let fetchImpl: jest.Mock;
+  const COMPUTER = '0b6e3f2a-3c1d-4e5f-8a9b-1c2d3e4f5a6b';
   const build = () =>
     createLeaderboardApi({
       config: CONFIG,
       accessToken: () => Promise.resolve(token),
+      computerId: () => COMPUTER,
       fetchImpl,
     });
 
@@ -106,20 +108,23 @@ describe('the leaderboard API', () => {
   });
 
   /**
-   * Exactly the date and the minutes, and the account's own id for the
-   * conflict target. The app version and the language were sent once and
-   * read by nothing; `toEqual` fails the day a field comes back.
+   * Exactly the date and the minutes, this computer's random id, and the
+   * account's own id for the conflict target. The app version and the
+   * language were sent once and read by nothing; `toEqual` fails the day a
+   * field comes back.
    */
-  it('uploads one row per day, replacing on conflict, with the date and minutes only', async () => {
+  it('uploads one row per day for this computer, replacing on conflict, with the date and minutes only', async () => {
     fetchImpl.mockResolvedValue(new Response(null, { status: 204 }));
     await build().uploadDays([{ day: '2026-09-07', minutes: 95 }]);
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain('usage_days?on_conflict=user_id,day');
+    expect(url).toContain('usage_device_days?on_conflict=user_id,device,day');
     expect((init.headers as Record<string, string>).Prefer).toContain(
       'resolution=merge-duplicates',
     );
     const body = JSON.parse(String(init.body)) as Record<string, unknown>[];
-    expect(body).toEqual([{ user_id: 'me', day: '2026-09-07', minutes: 95 }]);
+    expect(body).toEqual([
+      { user_id: 'me', device: COMPUTER, day: '2026-09-07', minutes: 95 },
+    ]);
   });
 
   it('sends nothing when there is nothing pending', async () => {
@@ -143,11 +148,14 @@ describe('the leaderboard API', () => {
     ).rejects.toMatchObject({ failure: 'plus_required' });
   });
 
-  it('deletes only my own rows', async () => {
-    fetchImpl.mockResolvedValue(new Response(null, { status: 204 }));
+  it('deletes only my own rows: every computer’s reports, then the days', async () => {
+    fetchImpl.mockImplementation(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
     await build().deleteMine();
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    expect(init.method).toBe('DELETE');
-    expect(url).toContain('usage_days?user_id=eq.me');
+    const calls = fetchImpl.mock.calls as [string, RequestInit][];
+    expect(calls.map(([, init]) => init.method)).toEqual(['DELETE', 'DELETE']);
+    expect(calls[0][0]).toContain('usage_device_days?user_id=eq.me');
+    expect(calls[1][0]).toContain('usage_days?user_id=eq.me');
   });
 });

@@ -61,7 +61,13 @@ export type TAuthFailure =
   | 'bad_code'
   | 'rate_limited'
   | 'invalid_email'
-  | 'already_registered';
+  | 'already_registered'
+  /**
+   * This computer's sign-in was ended from elsewhere: nearly always the
+   * account signing in on a sixth computer, which signs out the one used
+   * least recently (Plus runs on five at a time).
+   */
+  | 'signed_out_elsewhere';
 
 export class AuthError extends Error {
   readonly failure: TAuthFailure;
@@ -165,6 +171,11 @@ const failureOf = (status: number, body: unknown): TAuthFailure => {
     case 'user_already_exists':
     case 'email_exists':
       return 'already_registered';
+    // The session this token belonged to is gone. The server removes the
+    // least recently used one when an account signs in on a sixth computer.
+    case 'refresh_token_not_found':
+    case 'session_not_found':
+      return 'signed_out_elsewhere';
     default:
       break;
   }

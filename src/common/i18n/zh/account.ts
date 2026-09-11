@@ -47,6 +47,8 @@ const account = {
   'account.error.network': '无法连接账户服务。请检查网络连接后重试。',
   'account.error.rejected': '账户服务拒绝了该请求。请稍后重试。',
   'account.error.expired': '该登录已失效。请重新登录。',
+  'account.error.signedOutElsewhere':
+    '此电脑已退出登录，因为你的账户在另一台电脑上登录了。Plus 最多可同时在 5 台电脑上使用：在这里重新登录即可继续使用，最久未使用的那台电脑会被退出登录。',
   'account.error.malformed': '账户服务返回了 FluidEQ 无法读取的内容。',
   'account.error.wrongCredentials': '邮箱或密码错误。',
   'account.error.unconfirmed': '该账户尚未确认。请输入邮件中的验证码以完成。',

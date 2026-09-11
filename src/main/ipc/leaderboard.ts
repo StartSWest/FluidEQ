@@ -12,6 +12,7 @@ import {
   type TLeaderboardPeriod,
 } from '../usage/leaderboardApi';
 import { createUsageLedger, type IUsageLedger } from '../usage/usageLedger';
+import readComputerId from '../usage/computerId';
 import { sampleBoard } from '../community/sampleCommunity';
 
 /**
@@ -85,9 +86,16 @@ export const registerLeaderboardIpc = ({
   sampleContent = false,
 }: ILeaderboardIpcDeps) => {
   const ledger: IUsageLedger = createUsageLedger({ userDataDir, now });
+  // Read the first time a day is sent, not at startup: somebody who never
+  // joins the board never has the file made.
+  let computerId: string | undefined;
   const api = createLeaderboardApi({
     config,
     accessToken: () => session.accessToken(),
+    computerId: () => {
+      computerId ??= readComputerId(userDataDir);
+      return computerId;
+    },
     fetchImpl,
   });
   let lastUploadAt = 0;

@@ -48,6 +48,8 @@ const terms = {
     'Your email receives the codes that confirm your address and reset your password. It is never shown to other members: in the community you appear by the handle and display name you choose.',
   'terms.account.p3':
     'On your computer, the app keeps your session encrypted by the operating system. Accounts are personal, so keep your password to yourself.',
+  'terms.account.p4':
+    'Plus runs on up to 5 computers at a time — at home and at work, or the computers Share Audio plays between. Signing in on a sixth signs out the one used least recently.',
 
   'terms.sent.title': 'What the app sends, and when',
   'terms.sent.intro':
@@ -86,7 +88,7 @@ const terms = {
   'terms.sent.community.who':
     'Messages, handles and display names: every signed-in member. Reports: the maker. Blocks: only you.',
   'terms.sent.board.what':
-    'One number per day: the whole minutes of music that played, up to {capHours} hours, with its date',
+    'One number per day from each of your computers: the whole minutes of music that played, up to {capHours} hours, with its date and a random number that tells your computers apart',
   'terms.sent.board.when':
     'Only if you join the leaderboard: when you come back to the computer, at most every {uploadHours} hours, and when you open the board',
   'terms.sent.board.who':
@@ -138,7 +140,7 @@ const terms = {
 
   'terms.fair.title': 'Fair play on the leaderboard',
   'terms.fair.p1':
-    'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Messages and mentions are counted on the server, from what was actually posted.',
+    'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed. Messages and mentions are counted on the server, from what was actually posted.',
   'terms.fair.p2':
     'Everyone earns points the same way, the maker included. Changing the app or what it sends, automating listening or posting, or climbing with more than one account takes you off the board, and can take you out of the community.',
   'terms.fair.p3':

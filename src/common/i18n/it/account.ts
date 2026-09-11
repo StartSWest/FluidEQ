@@ -52,6 +52,8 @@ const account = {
   'account.error.rejected':
     'Il servizio account ha rifiutato. Riprova tra un momento.',
   'account.error.expired': 'Questo accesso non è più valido. Accedi di nuovo.',
+  'account.error.signedOutElsewhere':
+    'Questo computer è stato disconnesso perché il tuo account ha effettuato l’accesso su un altro. Plus funziona su un massimo di 5 computer alla volta: accedi di nuovo per usarlo qui e verrà disconnesso quello usato meno di recente.',
   'account.error.malformed':
     'Il servizio account ha inviato qualcosa che FluidEQ non è riuscito a leggere.',
   'account.error.wrongCredentials': 'Email o password errati.',

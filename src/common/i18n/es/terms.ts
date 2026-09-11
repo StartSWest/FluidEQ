@@ -37,6 +37,8 @@ const terms = {
     'Tu correo recibe los códigos que confirman tu dirección y restablecen tu contraseña. Nunca se muestra a otros miembros: en la comunidad apareces con el nombre de usuario y el nombre visible que elijas.',
   'terms.account.p3':
     'En tu ordenador, la aplicación guarda tu sesión cifrada por el sistema operativo. Las cuentas son personales: no compartas tu contraseña.',
+  'terms.account.p4':
+    'Plus funciona en hasta 5 ordenadores a la vez: en casa y en el trabajo, o los ordenadores entre los que suena Compartir audio. Iniciar sesión en un sexto cierra la sesión del que lleve más tiempo sin usarse.',
 
   'terms.sent.title': 'Qué envía la aplicación, y cuándo',
   'terms.sent.intro':
@@ -75,7 +77,7 @@ const terms = {
   'terms.sent.community.who':
     'Mensajes, nombres de usuario y nombres visibles: todos los miembros con sesión iniciada. Reportes: el creador. Bloqueos: solo tú.',
   'terms.sent.board.what':
-    'Un número por día: los minutos enteros de música que sonó, hasta {capHours} horas, con su fecha',
+    'Un número por día desde cada uno de tus ordenadores: los minutos enteros de música que sonó, hasta {capHours} horas, con su fecha y un número al azar que distingue tus ordenadores',
   'terms.sent.board.when':
     'Solo si te unes a la clasificación: al volver al ordenador, como mucho cada {uploadHours} horas, y al abrir la clasificación',
   'terms.sent.board.who':
@@ -127,7 +129,7 @@ const terms = {
 
   'terms.fair.title': 'Juego limpio en la clasificación',
   'terms.fair.p1':
-    'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los mensajes y las menciones se cuentan en el servidor, a partir de lo que de verdad se publicó.',
+    'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los números de tus ordenadores se suman en un solo día, que tampoco crece más rápido que el reloj, así que varios sonando a la vez no pueden sumar más tiempo del que ha pasado. Los mensajes y las menciones se cuentan en el servidor, a partir de lo que de verdad se publicó.',
   'terms.fair.p2':
     'Todo el mundo gana puntos igual, el creador también. Modificar la aplicación o lo que envía, automatizar la escucha o las publicaciones, o escalar con más de una cuenta te saca de la clasificación, y puede sacarte de la comunidad.',
   'terms.fair.p3':
