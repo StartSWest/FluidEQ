@@ -45,7 +45,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 14px 16px;
   border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
   border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
+  // The corner notices' surface, but solid. They mix it at 97%, which is
+  // harmless over a toast that fades in seconds; this one stays put over the
+  // panel beside the Plus tab, and measured there the cyan Save button behind
+  // it showed through as a ghost button next to "Got it".
+  background: $surface-menu-top;
   box-shadow: 0 16px 40px rgba($black, 0.45);
 }
 
