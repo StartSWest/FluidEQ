@@ -21,7 +21,6 @@ import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 import { TAudioEngine } from '../common/audioEngine';
-import { getDevelopmentInstance } from './developmentInstance';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -55,12 +54,8 @@ const isSoftwareInstalled = async (softwareKey: string) => {
   return false;
 };
 
-const usesDemoConfig = () =>
-  process.platform !== 'win32' ||
-  Boolean(app && getDevelopmentInstance(app.isPackaged));
-
 export const isEqualizerAPOInstalled = () =>
-  !usesDemoConfig()
+  process.platform === 'win32'
     ? isSoftwareInstalled('EqualizerAPO')
     : Promise.resolve(true);
 
@@ -128,11 +123,10 @@ const ensureConfigDirWithEmptyConfigFile = (configDir: string): string => {
 };
 
 export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
-  if (usesDemoConfig()) {
-    // Neither engine is really installable off Windows, and an independent
-    // development window must never overwrite the live EQ of the app running
-    // beside it: both resolve to the same sandbox directory this always used,
-    // regardless of which engine was chosen.
+  if (process.platform !== 'win32') {
+    // Neither engine is really installable off Windows: both resolve to the
+    // same sandbox directory this always used, regardless of which engine was
+    // chosen.
     return ensureConfigDirWithEmptyConfigFile(
       path.join(app.getPath('userData'), 'demo-equalizerapo'),
     );

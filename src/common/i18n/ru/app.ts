@@ -251,23 +251,33 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'Подбирается автоматически. Отключите авто-нормализацию, чтобы задать вручную.',
   'sidebar.headroom': 'ЗАПАС APO',
+  'sidebar.headroom.fluid': 'ЗАПАС',
   'sidebar.autoPreamp': 'Авто-нормализация',
   'sidebar.visualizer': 'ВИЗУАЛИЗАЦИЯ',
   'sidebar.graphView': 'График АЧХ',
   'config.eyebrow': 'ЧТО ЧИТАЕТ ДВИЖОК',
   'config.title': 'Конфигурация Equalizer APO',
+  'config.title.fluid': 'Конфигурация движка FluidEQ',
   'config.lede': 'То, что сейчас лежит на диске, а не то, что задумал FluidEQ.',
   'config.reload': 'Обновить',
   'config.reloadTitle': 'Перечитать конфигурацию с диска',
   'config.reading': 'Чтение…',
   'config.absent':
     'FluidEQ ещё ничего не записал в эту установку Equalizer APO.',
+  'config.absent.fluid': 'FluidEQ ещё не записал конфигурацию движка FluidEQ.',
   'config.status.notIncluded':
     'Equalizer APO не подключает эту конфигурацию. Ничего из перечисленного ниже не применяется.',
+  'config.status.notIncluded.fluid':
+    'Движок FluidEQ не читает эту конфигурацию. Ничего из перечисленного ниже не применяется.',
   'config.status.engineOff':
-    'Движок FluidEQ выключен — в этой конфигурации не назван ни один выход, поэтому Equalizer APO ничего из неё не применяет.',
+    'Системный эквалайзер выключен — в этой конфигурации не назван ни один выход, поэтому Equalizer APO ничего из неё не применяет.',
+  'config.status.engineOff.fluid':
+    'Системный эквалайзер выключен — в этой конфигурации не назван ни один выход, поэтому движок FluidEQ ничего из неё не применяет.',
   'config.status.active': 'Активна — Equalizer APO применяет эту конфигурацию.',
+  'config.status.active.fluid':
+    'Активна — движок FluidEQ применяет эту конфигурацию.',
   'config.outputsAria': 'Выходы в конфигурации Equalizer APO',
+  'config.outputsAria.fluid': 'Выходы в конфигурации движка FluidEQ',
   'config.filters.one': '{count} фильтр',
   'config.filters.many': 'фильтров: {count}',
   'config.impulse': 'импульс',
@@ -290,6 +300,8 @@ const app: Partial<Dictionary> = {
     'Создан автоматически — будет переписан при следующем изменении.',
   'config.hint.saving':
     'Сохранение записывает файл; Equalizer APO его подхватывает.',
+  'config.hint.saving.fluid':
+    'Сохранение записывает файл; движок FluidEQ его подхватывает.',
   'config.edit': 'Изменить',
   'config.cancel': 'Отмена',
   'config.save': 'Сохранить',

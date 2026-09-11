@@ -816,6 +816,13 @@ export interface IAudioDevice {
    * confident "not attached".
    */
   isFluidEngineAttached?: boolean | null;
+  /**
+   * The rate Windows runs this output at in shared mode — its "Default
+   * Format" in Sound settings, and so the rate every system effect on it,
+   * the FluidEQ Engine included, processes at. Missing when Windows did not
+   * say.
+   */
+  sampleRate?: number;
 }
 
 export interface IDeviceProfileAssignment {

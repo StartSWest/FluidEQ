@@ -17,6 +17,7 @@ import { ErrorDescription } from 'common/errors';
 import { suggestSearches } from 'common/searchHistory';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
+import { useCurrentEngine } from './utils/audioEngineContext';
 import {
   clearConvolution,
   downloadConvolution,
@@ -35,6 +36,7 @@ const ConvolutionPanel = () => {
   const { convolution, isEnabled, refreshState, setGlobalError } =
     useFluidEqContext();
   const { t } = useTranslation();
+  const isFluid = useCurrentEngine() === 'fluid';
   const [query, setQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchHistory = useConvolutionSearchHistory();
@@ -119,7 +121,9 @@ const ConvolutionPanel = () => {
     <section className="convolution-panel" aria-labelledby="convolution-title">
       <div className="convolution-panel__intro">
         <div>
-          <p className="eyebrow">{t('convolution.eyebrow')}</p>
+          <p className="eyebrow">
+            {t(isFluid ? 'convolution.eyebrow.fluid' : 'convolution.eyebrow')}
+          </p>
           <h2 id="convolution-title">{t('convolution.title')}</h2>
           <p>{t('convolution.intro')}</p>
           <a
@@ -248,7 +252,11 @@ const ConvolutionPanel = () => {
               )}
             </div>
           </div>
-          <div className="convolution-notice">{t('convolution.notice')}</div>
+          {/* The 48 kHz reason is Equalizer APO's: it needs the impulse at
+              the output's own rate. The FluidEQ Engine converts it itself. */}
+          <div className="convolution-notice">
+            {t(isFluid ? 'convolution.notice.fluid' : 'convolution.notice')}
+          </div>
           <div className="convolution-results" aria-live="polite">
             {isLoading && (
               <div className="convolution-empty">

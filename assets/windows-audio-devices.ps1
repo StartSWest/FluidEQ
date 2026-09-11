@@ -124,7 +124,43 @@ public static class AquaAudioDevices
     {
         [FieldOffset(0)] public ushort valueType;
         [FieldOffset(8)] public IntPtr pointerValue;
+        // VT_BLOB: a byte count, then a pointer on its own 8-byte boundary.
+        [FieldOffset(8)] public uint blobSize;
+        [FieldOffset(16)] public IntPtr blobData;
         public string AsString() { return valueType == 31 ? Marshal.PtrToStringUni(pointerValue) : ""; }
+    }
+
+    [DllImport("ole32.dll")]
+    private static extern int PropVariantClear(ref PROPVARIANT value);
+
+    // PKEY_AudioEngine_DeviceFormat: the WAVEFORMATEX the audio engine runs
+    // this output at in shared mode, i.e. the "Default Format" in Sound
+    // settings. nSamplesPerSec sits four bytes in.
+    private static readonly PROPERTYKEY DeviceFormatKey = new PROPERTYKEY {
+        formatId = new Guid("F19F064D-082C-4E27-BC73-6882A1BB8E4C"),
+        propertyId = 0
+    };
+
+    private static Nullable<int> ReadSampleRate(IPropertyStore store)
+    {
+        var key = DeviceFormatKey;
+        PROPVARIANT value;
+        if (store.GetValue(ref key, out value) != 0)
+            return null;
+        try
+        {
+            // VT_BLOB, and long enough to hold the rate: anything else is a
+            // format this probe does not understand, not a rate of zero.
+            if (value.valueType != 65 || value.blobSize < 8 ||
+                value.blobData == IntPtr.Zero)
+                return null;
+            var rate = Marshal.ReadInt32(value.blobData, 4);
+            return rate > 0 ? (Nullable<int>)rate : null;
+        }
+        finally
+        {
+            PropVariantClear(ref value);
+        }
     }
 
     public class Device
@@ -136,6 +172,7 @@ public static class AquaAudioDevices
         public bool isActive { get; set; }
         public Nullable<bool> isEqualizerApoAttached { get; set; }
         public Nullable<bool> isFluidEngineAttached { get; set; }
+        public Nullable<int> sampleRate { get; set; }
     }
 
     private static bool ContainsEqualizerApoClsid(object rawValue)
@@ -291,7 +328,8 @@ public static class AquaAudioDevices
                 isDefault = String.Equals(id, defaultId, StringComparison.OrdinalIgnoreCase),
                 isActive = (state & 1) == 1,
                 isEqualizerApoAttached = IsEqualizerApoAttached(guid),
-                isFluidEngineAttached = IsFluidEngineAttached(guid)
+                isFluidEngineAttached = IsFluidEngineAttached(guid),
+                sampleRate = ReadSampleRate(store)
             });
         }
         return result;

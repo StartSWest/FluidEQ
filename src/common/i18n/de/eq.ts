@@ -496,6 +496,7 @@ const eq: Partial<Dictionary> = {
     '{range}: wie weit es abweicht, gemessen an der nötigen Schwelle',
   'eq.smart.gap.countdown': 'schreibt in {seconds}s',
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
+  'convolution.eyebrow.fluid': 'IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',
   'convolution.intro':
     'Laden Sie eine geprüfte Minimalphasen-Impulsantwort für Ihren Hörer und wenden Sie sie vor dem parametrischen EQ an. Der Frequenzgang unten zeigt beide Kurven.',
@@ -507,7 +508,9 @@ const eq: Partial<Dictionary> = {
   'convolution.searchPlaceholder':
     'Versuchen Sie „Kraken“, „HD 650“ oder einen Messanbieter',
   'convolution.notice':
-    'Den herunterladbaren Katalog stellt AutoEq bereit. Dateien werden als 48-kHz-WAV importiert, weil Equalizer APO verlangt, dass die Impulsantwort zur Abtastrate des aktiven Ausgangs passt.',
+    'Den herunterladbaren Katalog stellt AutoEq bereit. Jeder Download passt zur Abtastrate, mit der Windows Ihren Ausgang betreibt (44,1 oder 48 kHz), weil Equalizer APO eine Impulsantwort nur mit dieser Rate anwendet.',
+  'convolution.notice.fluid':
+    'Den herunterladbaren Katalog stellt AutoEq bereit. Jeder Download passt zur Abtastrate, mit der Windows Ihren Ausgang betreibt, und die FluidEQ-Engine rechnet jede andere Rate selbst um.',
   'convolution.loading': 'Offizieller Katalog wird geladen…',
   'convolution.empty':
     'Keine passende Impulsantwort. Versuchen Sie einen kürzeren Modellnamen.',

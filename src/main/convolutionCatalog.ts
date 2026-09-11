@@ -162,6 +162,31 @@ export const getConvolutionCatalog = async (query = '') => {
   return filtered.slice(0, 160);
 };
 
+/**
+ * The AutoEq file that suits an output running at `outputRate`.
+ *
+ * AutoEq publishes every impulse at 44.1 and 48 kHz. The catalogue used to
+ * fetch the 48 kHz one whatever the output ran at, so on a 44.1 kHz output
+ * Equalizer APO played none of it (it applies an impulse only at the
+ * output's own rate) and the FluidEQ Engine converted it once more than it
+ * needed to. The 44.1 kHz family — 88.2 and 176.4 included — takes the 44.1
+ * file; everything else, and an output whose rate Windows did not report,
+ * the 48 kHz one.
+ */
+export const catalogRateFor = (outputRate: unknown): 44100 | 48000 =>
+  typeof outputRate === 'number' && outputRate > 0 && outputRate % 44100 === 0
+    ? 44100
+    : 48000;
+
+/** Where AutoEq keeps an entry's impulse at `rate`. */
+const wavUrlAt = (entry: IConvolutionCatalogEntry, rate: number): string => {
+  const [encodedDirectory, encodedModel] = entry.id.split('|');
+  const modelName = decodeURIComponent(encodedModel ?? '');
+  return `${AUTOEQ_RAW_ROOT}/${encodedDirectory}/${encodeURIComponent(
+    `${modelName} minimum phase ${rate}Hz.wav`,
+  )}`;
+};
+
 const findEntry = async (entryId: string) => {
   const entry = (await loadCatalog()).find(
     (candidate) => candidate.id === entryId,
@@ -267,11 +292,23 @@ const fetchGraphFilters = async (downloadUrl: string): Promise<IFiltersMap> => {
 export const downloadConvolution = async (
   entryId: string,
   configDir: string,
+  outputRate?: number,
 ): Promise<IConvolutionProfile> => {
   const entry = await findEntry(entryId);
-  const response = await fetch(entry.downloadUrl, {
+  let rate: number = catalogRateFor(outputRate);
+  let downloadUrl = wavUrlAt(entry, rate);
+  let response = await fetch(downloadUrl, {
     headers: { 'User-Agent': 'FluidEQ-Convolution-Downloader' },
   });
+  // A model published only at 48 kHz still downloads; the engine converts
+  // it, and it is what every download was before the rate was chosen.
+  if (response.status === 404 && rate !== 48000) {
+    rate = 48000;
+    downloadUrl = wavUrlAt(entry, rate);
+    response = await fetch(downloadUrl, {
+      headers: { 'User-Agent': 'FluidEQ-Convolution-Downloader' },
+    });
+  }
   if (!response.ok) {
     throw new Error(`Convolution download failed with HTTP ${response.status}`);
   }
@@ -283,9 +320,9 @@ export const downloadConvolution = async (
   if (buffer.length > MAX_WAV_BYTES) {
     throw new Error('The convolution file is too large to import safely.');
   }
-  validateWav(buffer, entry.sampleRate);
+  validateWav(buffer, rate);
   const analysis = analyzeConvolutionBuffer(buffer);
-  const graphFilters = await fetchGraphFilters(entry.downloadUrl);
+  const graphFilters = await fetchGraphFilters(downloadUrl);
 
   const fileName = `fluideq-ir-${createHash('sha1')
     .update(entry.id)
@@ -304,7 +341,7 @@ export const downloadConvolution = async (
   }
 
   return {
-    name: `${entry.name} · ${entry.phase} · ${entry.sampleRate / 1000} kHz`,
+    name: `${entry.name} · ${entry.phase} · ${rate / 1000} kHz`,
     // AutoEq publishes the matching ParametricEQ file next to each WAV. Keep
     // those points as a visual approximation of the FIR response; APO still
     // applies the downloaded WAV itself.

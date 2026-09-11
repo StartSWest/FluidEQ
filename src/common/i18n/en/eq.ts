@@ -499,6 +499,7 @@ const eq = {
     '{range}: how far it disagrees, against the amount needed to act',
   'eq.smart.gap.countdown': 'writing in {seconds}s',
   'convolution.eyebrow': 'APO impulse responses',
+  'convolution.eyebrow.fluid': 'Impulse responses',
   'convolution.title': 'Convolution library',
   'convolution.intro':
     'Download a verified, minimum-phase headphone impulse and apply it before your parametric EQ. The shared response graph below keeps both curves visible.',
@@ -510,7 +511,9 @@ const eq = {
   'convolution.searchPlaceholder':
     'Try “Kraken”, “HD 650”, or a measurement provider',
   'convolution.notice':
-    'AutoEq provides the downloadable catalogue. Files are imported as 48 kHz WAV because Equalizer APO requires the impulse response to match the active output sample rate.',
+    'AutoEq provides the downloadable catalogue. Each download matches the rate Windows runs your output at (44.1 or 48 kHz), because Equalizer APO applies an impulse response only at that rate.',
+  'convolution.notice.fluid':
+    'AutoEq provides the downloadable catalogue. Each download matches the rate Windows runs your output at, and the FluidEQ Engine converts any other rate itself.',
   'convolution.loading': 'Loading official catalogue…',
   'convolution.empty':
     'No matching impulse responses. Try a shorter model name.',

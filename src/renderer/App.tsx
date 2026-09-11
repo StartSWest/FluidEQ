@@ -180,6 +180,7 @@ import AudioEngineDialog, {
 } from './components/AudioEngineDialog';
 import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
 import { useAudioRestart } from './utils/useAudioRestart';
+import { AudioEngineContext } from './utils/audioEngineContext';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   attachFluidEngine,
@@ -1965,7 +1966,7 @@ const AppContent = () => {
   }
 
   return (
-    <>
+    <AudioEngineContext.Provider value={engineStatus?.engine ?? null}>
       <header
         ref={titlebarRef}
         className="workspace-header window-titlebar"
@@ -3040,7 +3041,7 @@ const AppContent = () => {
         <MandatoryUpdateModal />
         <DisclaimerGate />
       </main>
-    </>
+    </AudioEngineContext.Provider>
   );
 };
 

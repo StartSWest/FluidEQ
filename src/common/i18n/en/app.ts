@@ -244,23 +244,34 @@ const app = {
   'sidebar.preampAria': 'Pre-Amplification Gain (dB)',
   'sidebar.preampAuto': 'Set for you. Turn off Auto normalize to adjust it.',
   'sidebar.headroom': 'APO HEADROOM',
+  'sidebar.headroom.fluid': 'HEADROOM',
   'sidebar.autoPreamp': 'Auto normalize',
   'sidebar.visualizer': 'VISUALIZER',
   'sidebar.graphView': 'Response graph',
   'config.eyebrow': 'WHAT THE ENGINE READS',
   'config.title': 'Equalizer APO config',
+  'config.title.fluid': 'FluidEQ Engine config',
   'config.lede': 'What is on disk right now, not what FluidEQ intends.',
   'config.reload': 'Reload',
   'config.reloadTitle': 'Read the config from disk again',
   'config.reading': 'Reading…',
   'config.absent':
     'FluidEQ has not written to this Equalizer APO installation yet.',
+  'config.absent.fluid':
+    'FluidEQ has not written the FluidEQ Engine config yet.',
   'config.status.notIncluded':
     'Equalizer APO is not including this config. Nothing below is being applied.',
+  'config.status.notIncluded.fluid':
+    'The FluidEQ Engine is not reading this config. Nothing below is being applied.',
   'config.status.engineOff':
-    'The FluidEQ engine is switched off — this config names no output, so Equalizer APO is applying none of it.',
+    'System EQ is switched off — this config names no output, so Equalizer APO is applying none of it.',
+  'config.status.engineOff.fluid':
+    'System EQ is switched off — this config names no output, so the FluidEQ Engine is applying none of it.',
   'config.status.active': 'Active — Equalizer APO is applying this config.',
+  'config.status.active.fluid':
+    'Active — the FluidEQ Engine is applying this config.',
   'config.outputsAria': 'Outputs in the Equalizer APO config',
+  'config.outputsAria.fluid': 'Outputs in the FluidEQ Engine config',
   'config.filters.one': '{count} filter',
   'config.filters.many': '{count} filters',
   'config.impulse': 'impulse',
@@ -281,6 +292,8 @@ const app = {
   'config.hint.custom': 'Yours. Never overwritten.',
   'config.hint.generated': 'Generated — rewritten on the next change.',
   'config.hint.saving': 'Saving writes the file; Equalizer APO picks it up.',
+  'config.hint.saving.fluid':
+    'Saving writes the file; the FluidEQ Engine picks it up.',
   'config.edit': 'Edit',
   'config.cancel': 'Cancel',
   'config.save': 'Save',

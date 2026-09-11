@@ -27,6 +27,7 @@ import NumberInput from './widgets/NumberInput';
 import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
+import { useCurrentEngine } from './utils/audioEngineContext';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import OutputLevelMeter from './graph/OutputLevelMeter';
 import Spinner from './icons/Spinner';
@@ -55,6 +56,7 @@ const SideBar = ({
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
     useFluidEqContext();
   const { t } = useTranslation();
+  const isFluid = useCurrentEngine() === 'fluid';
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -146,7 +148,9 @@ const SideBar = ({
             ) : null}
           </div>
           <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
-            <span className="control-kicker">{t('sidebar.headroom')}</span>
+            <span className="control-kicker">
+              {t(isFluid ? 'sidebar.headroom.fluid' : 'sidebar.headroom')}
+            </span>
             <h4>{t('sidebar.autoPreamp')}</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>

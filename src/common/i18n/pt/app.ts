@@ -253,24 +253,35 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'É ajustado sozinho. Desligue Normalizar automaticamente para mudar.',
   'sidebar.headroom': 'MARGEM DO APO',
+  'sidebar.headroom.fluid': 'MARGEM',
   'sidebar.autoPreamp': 'Normalizar automaticamente',
   'sidebar.visualizer': 'VISUALIZADOR',
   'sidebar.graphView': 'Gráfico de resposta',
   'config.eyebrow': 'O QUE O MOTOR LÊ',
   'config.title': 'Configuração do Equalizer APO',
+  'config.title.fluid': 'Configuração do Motor FluidEQ',
   'config.lede': 'O que está no disco agora, não o que o FluidEQ pretende.',
   'config.reload': 'Recarregar',
   'config.reloadTitle': 'Ler a configuração do disco outra vez',
   'config.reading': 'Lendo…',
   'config.absent':
     'O FluidEQ ainda não escreveu nada nesta instalação do Equalizer APO.',
+  'config.absent.fluid':
+    'O FluidEQ ainda não escreveu a configuração do Motor FluidEQ.',
   'config.status.notIncluded':
     'O Equalizer APO não está incluindo esta configuração. Nada do que está abaixo é aplicado.',
+  'config.status.notIncluded.fluid':
+    'O Motor FluidEQ não está lendo esta configuração. Nada do que está abaixo é aplicado.',
   'config.status.engineOff':
-    'O motor do FluidEQ está desligado: esta configuração não nomeia nenhuma saída, então o Equalizer APO não aplica nada dela.',
+    'O EQ do sistema está desligado: esta configuração não nomeia nenhuma saída, então o Equalizer APO não aplica nada dela.',
+  'config.status.engineOff.fluid':
+    'O EQ do sistema está desligado: esta configuração não nomeia nenhuma saída, então o Motor FluidEQ não aplica nada dela.',
   'config.status.active':
     'Ativa: o Equalizer APO está aplicando esta configuração.',
+  'config.status.active.fluid':
+    'Ativa: o Motor FluidEQ está aplicando esta configuração.',
   'config.outputsAria': 'Saídas na configuração do Equalizer APO',
+  'config.outputsAria.fluid': 'Saídas na configuração do Motor FluidEQ',
   'config.filters.one': '{count} filtro',
   'config.filters.many': '{count} filtros',
   'config.impulse': 'impulso',
@@ -292,6 +303,8 @@ const app: Partial<Dictionary> = {
   'config.hint.generated': 'Gerado: reescrito na próxima alteração.',
   'config.hint.saving':
     'Salvar grava o arquivo; o Equalizer APO o assume em seguida.',
+  'config.hint.saving.fluid':
+    'Salvar grava o arquivo; o Motor FluidEQ o assume em seguida.',
   'config.edit': 'Editar',
   'config.cancel': 'Cancelar',
   'config.save': 'Salvar',

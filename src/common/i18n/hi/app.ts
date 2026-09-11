@@ -246,23 +246,34 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     'यह अपने आप तय होता है। खुद बदलने के लिए “अपने आप सामान्य करें” बंद करें।',
   'sidebar.headroom': 'APO हेडरूम',
+  'sidebar.headroom.fluid': 'हेडरूम',
   'sidebar.autoPreamp': 'अपने आप सामान्य करें',
   'sidebar.visualizer': 'विज़ुअलाइज़र',
   'sidebar.graphView': 'रिस्पॉन्स ग्राफ़',
   'config.eyebrow': 'इंजन असल में क्या पढ़ता है',
   'config.title': 'Equalizer APO कॉन्फ़िग',
+  'config.title.fluid': 'FluidEQ इंजन कॉन्फ़िग',
   'config.lede': 'अभी डिस्क पर जो है वही, न कि जो FluidEQ चाहता है।',
   'config.reload': 'फिर से पढ़ें',
   'config.reloadTitle': 'कॉन्फ़िग को डिस्क से दोबारा पढ़ें',
   'config.reading': 'पढ़ा जा रहा है…',
   'config.absent':
     'FluidEQ ने इस Equalizer APO इंस्टॉलेशन में अभी तक कुछ नहीं लिखा है।',
+  'config.absent.fluid':
+    'FluidEQ ने अभी तक FluidEQ इंजन का कॉन्फ़िग नहीं लिखा है।',
   'config.status.notIncluded':
     'Equalizer APO इस कॉन्फ़िग को शामिल नहीं कर रहा। नीचे का कुछ भी लागू नहीं हो रहा।',
+  'config.status.notIncluded.fluid':
+    'FluidEQ इंजन यह कॉन्फ़िग नहीं पढ़ रहा। नीचे का कुछ भी लागू नहीं हो रहा।',
   'config.status.engineOff':
-    'FluidEQ इंजन बंद है — यह कॉन्फ़िग किसी आउटपुट का नाम नहीं लेता, इसलिए Equalizer APO इसमें से कुछ भी लागू नहीं कर रहा।',
+    'सिस्टम EQ बंद है — यह कॉन्फ़िग किसी आउटपुट का नाम नहीं लेता, इसलिए Equalizer APO इसमें से कुछ भी लागू नहीं कर रहा।',
+  'config.status.engineOff.fluid':
+    'सिस्टम EQ बंद है — यह कॉन्फ़िग किसी आउटपुट का नाम नहीं लेता, इसलिए FluidEQ इंजन इसमें से कुछ भी लागू नहीं कर रहा।',
   'config.status.active': 'चालू — Equalizer APO यह कॉन्फ़िग लागू कर रहा है।',
+  'config.status.active.fluid':
+    'चालू — FluidEQ इंजन यह कॉन्फ़िग लागू कर रहा है।',
   'config.outputsAria': 'Equalizer APO कॉन्फ़िग के आउटपुट',
+  'config.outputsAria.fluid': 'FluidEQ इंजन कॉन्फ़िग के आउटपुट',
   'config.filters.one': '{count} फ़िल्टर',
   'config.filters.many': '{count} फ़िल्टर',
   'config.impulse': 'इंपल्स',
@@ -285,6 +296,8 @@ const app: Partial<Dictionary> = {
   'config.hint.generated': 'अपने आप बनी — अगले बदलाव पर फिर से लिखी जाएगी।',
   'config.hint.saving':
     'सहेजने पर फ़ाइल लिखी जाती है; Equalizer APO उसे उठा लेता है।',
+  'config.hint.saving.fluid':
+    'सहेजने पर फ़ाइल लिखी जाती है; FluidEQ इंजन उसे उठा लेता है।',
   'config.edit': 'संपादित करें',
   'config.cancel': 'रद्द करें',
   'config.save': 'सहेजें',
