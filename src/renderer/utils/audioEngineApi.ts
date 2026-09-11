@@ -70,50 +70,75 @@ export const setAudioEngine = (engine: TAudioEngine): Promise<void> => {
 };
 
 /**
+ * One engine setup command, settled with what happened — never rejected.
+ *
+ * Every one of these waits on a person first: the setup helper raises a
+ * Windows permission prompt, and main cannot answer until somebody does. The
+ * transport's ten-second deadline used to reject the call while the prompt was
+ * still on screen, and the rejection reached callers that — reasonably, for a
+ * call that returns a result — did not catch it: the whole window was replaced
+ * by the crash screen, over an engine install nobody had even answered yet.
+ *
+ * So no deadline (main replies to every one of these, and `runEngineSetup`
+ * never rejects either), and anything the transport does throw comes back as
+ * a failed result, which every caller already knows how to show. The engine
+ * must never be able to take FluidEQ down; this is its door into the window.
+ */
+const engineSetupCall = (
+  channel: ChannelEnum,
+  args: unknown[],
+): Promise<IEngineSetupResult> => {
+  window.electron.ipcRenderer.sendMessage(channel, args);
+  return promisifyResult<IEngineSetupResult>(
+    buildResponseHandler<IEngineSetupResult>((result, resolve) =>
+      resolve(result),
+    ),
+    channel,
+    null,
+  ).catch((error: unknown) => ({
+    ok: false,
+    declined: false,
+    error: error instanceof Error ? error.message : String(error),
+    endpoints: [],
+  }));
+};
+
+/**
  * Install the FluidEQ Engine, attaching every output.
  *
  * One elevation prompt, raised by the setup helper itself. `declined` in the
  * result is the user having said no to it, which is an answer and not a
  * failure — the caller shows what it says rather than an error.
  */
-export const installFluidEngine = (): Promise<IEngineSetupResult> => {
-  const channel = ChannelEnum.INSTALL_FLUID_ENGINE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult<IEngineSetupResult>(
-    buildResponseHandler<IEngineSetupResult>((result, resolve) =>
-      resolve(result),
-    ),
-    channel,
-  );
-};
+export const installFluidEngine = (): Promise<IEngineSetupResult> =>
+  engineSetupCall(ChannelEnum.INSTALL_FLUID_ENGINE, []);
 
-/** Put one output through the engine. Rejected unless `guid` is one. */
-export const attachFluidEngine = (
-  guid: string,
-): Promise<IEngineSetupResult> => {
-  const channel = ChannelEnum.ATTACH_FLUID_ENGINE;
-  window.electron.ipcRenderer.sendMessage(channel, [guid]);
-  return promisifyResult<IEngineSetupResult>(
-    buildResponseHandler<IEngineSetupResult>((result, resolve) =>
-      resolve(result),
-    ),
-    channel,
-  );
-};
+/** Put one output through the engine. Refused unless `guid` is one. */
+export const attachFluidEngine = (guid: string): Promise<IEngineSetupResult> =>
+  engineSetupCall(ChannelEnum.ATTACH_FLUID_ENGINE, [guid]);
 
 /** Take one output back off the engine. */
-export const detachFluidEngine = (
-  guid: string,
-): Promise<IEngineSetupResult> => {
-  const channel = ChannelEnum.DETACH_FLUID_ENGINE;
-  window.electron.ipcRenderer.sendMessage(channel, [guid]);
-  return promisifyResult<IEngineSetupResult>(
-    buildResponseHandler<IEngineSetupResult>((result, resolve) =>
-      resolve(result),
-    ),
-    channel,
-  );
-};
+export const detachFluidEngine = (guid: string): Promise<IEngineSetupResult> =>
+  engineSetupCall(ChannelEnum.DETACH_FLUID_ENGINE, [guid]);
+
+/**
+ * Whether a failed switch is only Equalizer APO not being installed yet.
+ *
+ * Switching to Equalizer APO on a machine without it is supported: main
+ * records the choice and takes the chain off the FluidEQ Engine, and then the
+ * write into APO's folder fails, because the installer that makes that folder
+ * runs after the switch. That failure used to end the whole apply before the
+ * installer was ever started — the dialog said nothing had changed while the
+ * engine had in fact been switched off.
+ */
+export const isAwaitingApoInstall = (
+  error: unknown,
+  needed: IEngineInstallsNeeded,
+): boolean =>
+  needed.apo &&
+  typeof error === 'object' &&
+  error !== null &&
+  (error as { code?: unknown }).code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED;
 
 /**
  * Send the DSP rack to the engine, so it runs on every output rather than

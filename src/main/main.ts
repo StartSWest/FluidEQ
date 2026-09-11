@@ -1679,7 +1679,19 @@ const updateConfigPath = async (
   // the directory it hands back. A machine that has never had the engine would
   // otherwise end up with its folder under %ProgramData% and a file watcher on
   // it, for an engine that is not there to read any of it.
-  if (!(await isEngineInstalled(engine))) {
+  //
+  // A probe that throws — the registry read behind Equalizer APO's answer —
+  // counts as not installed: the banner it raises has a Retry, while the
+  // rejection used to escape every handler that calls this and end the whole
+  // main process.
+  const installed = await isEngineInstalled(engine).catch((error: unknown) => {
+    log.error(
+      `Could not tell whether the ${engine} engine is installed`,
+      error,
+    );
+    return false;
+  });
+  if (!installed) {
     handleError(
       event,
       channel,
@@ -2253,10 +2265,18 @@ ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
 
 ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
   const channel = ChannelEnum.HEALTH_CHECK;
-  const res = await updateConfigPath(event, channel);
-  if (res) {
-    adoptExistingApoConfig();
-    await handleUpdate(event, channel);
+  // Guarded end to end: this is an `ipcMain` listener, so a throw anywhere in
+  // it is an unhandled rejection in main, which the crash handler answers by
+  // ending the app. A health check that fails has to say so and stop.
+  try {
+    const res = await updateConfigPath(event, channel);
+    if (res) {
+      adoptExistingApoConfig();
+      await handleUpdate(event, channel);
+    }
+  } catch (error) {
+    log.error('The health check failed', error);
+    handleError(event, channel, ErrorCode.FAILURE);
   }
 });
 
@@ -2495,8 +2515,16 @@ registerTransferIpc({
 
 ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
   const channel = ChannelEnum.GET_STATE;
-  const res = await updateConfigPath(event, channel);
-  if (res) {
+  // Guarded for the same reason as the health check above: this is the real
+  // one, the request every launch and every Retry makes.
+  try {
+    // A false answer has already been replied to, with the reason it failed.
+    // Replying CONFIG_NOT_FOUND on top of it sent a second answer to a
+    // request that had its first — one that could land on the NEXT GET_STATE
+    // and replace its real error with the wrong one.
+    if (!(await updateConfigPath(event, channel))) {
+      return;
+    }
     if (hydrateActiveConvolution()) {
       save(state, userDataDir);
     }
@@ -2506,8 +2534,9 @@ ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
     syncCustomFxFromConfig();
     const reply: TSuccess<IState> = { result: state };
     event.reply(channel, reply);
-  } else {
-    handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
+  } catch (error) {
+    log.error('Reading the state failed', error);
+    handleError(event, channel, ErrorCode.FAILURE);
   }
 });
 

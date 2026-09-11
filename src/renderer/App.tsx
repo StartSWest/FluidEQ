@@ -192,6 +192,7 @@ import {
   engineInstallsNeeded,
   getAudioEngineStatus,
   installFluidEngine,
+  isAwaitingApoInstall,
   prereqBannerEngine,
   setAudioEngine,
 } from './utils/audioEngineApi';
@@ -1740,7 +1741,13 @@ const AppContent = () => {
         throw new Error(result.error ?? 'engine setup failed');
       }
     }
-    await setAudioEngine(engine);
+    try {
+      await setAudioEngine(engine);
+    } catch (error) {
+      if (!isAwaitingApoInstall(error, needed)) {
+        throw error;
+      }
+    }
     if (needed.apo) {
       await startEqualizerApoInstall();
       localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');

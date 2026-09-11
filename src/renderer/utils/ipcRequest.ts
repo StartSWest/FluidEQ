@@ -101,6 +101,12 @@ export const toError = (
 ): Error & ErrorDescription =>
   Object.assign(new Error(description.shortError), description);
 
+/**
+ * `timeout` null is no deadline at all: the reply is waited for however long
+ * it takes. For requests that wait on a person before main can answer — a
+ * Windows permission prompt — where any number of seconds is a guess at how
+ * long somebody takes to read one, and main answers every one of them.
+ */
 export const promisifyResult = <Type>(
   responseHandler: (
     arg: TResult<Type>,
@@ -108,7 +114,7 @@ export const promisifyResult = <Type>(
     reject: (reason?: ErrorDescription) => void,
   ) => void,
   channel: string,
-  timeout = TIMEOUT,
+  timeout: number | null = TIMEOUT,
 ) => {
   return new Promise<Type>((resolve, reject) => {
     let timer: NodeJS.Timeout;
@@ -149,6 +155,9 @@ export const promisifyResult = <Type>(
     let allowedSleepRecovery = true;
 
     const arm = () => {
+      if (timeout === null) {
+        return;
+      }
       timer = setTimeout(() => {
         const elapsed = Date.now() - startedAt;
         if (allowedSleepRecovery && elapsed > timeout * SLEEP_ELAPSED_FACTOR) {
