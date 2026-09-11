@@ -431,6 +431,12 @@ class WasapiBackend final : public IAudioOutputBackend {
     HANDLE task = AvSetMmThreadCharacteristicsW(L"Pro Audio", &task_index);
 
     if (FAILED(client_->Start())) {
+      // A stream that would not start is a dead one, the same as a stream
+      // that stopped being asked for: Windows audio restarting underneath it
+      // is how this happens, and nothing else would ever reopen it. Returning
+      // quietly used to leave playback silent while the host went on
+      // reporting a stream that was running.
+      reopen_.store(true, std::memory_order_release);
       if (task != nullptr) {
         AvRevertMmThreadCharacteristics(task);
       }
@@ -506,7 +512,11 @@ class WasapiBackend final : public IAudioOutputBackend {
         }
       }
 
-      render_client_->ReleaseBuffer(available, 0);
+      if (FAILED(render_client_->ReleaseBuffer(available, 0))) {
+        // Same as a failed GetBuffer above: the device has gone.
+        reopen_.store(true, std::memory_order_release);
+        break;
+      }
       periods_.fetch_add(1, std::memory_order_relaxed);
     }
 

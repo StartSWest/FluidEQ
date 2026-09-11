@@ -387,6 +387,15 @@ void Watcher::reload(Carry carry) {
         graph->inherit_rack(*previous);
       }
     }
+    // Said once, as the graph that did it is replaced: a count that only
+    // ever lived on the audio thread, where nothing may write a log line.
+    if (const Graph* previous = slot_.active()) {
+      const uint32_t silenced = previous->silenced_blocks();
+      if (silenced > 0) {
+        log_.write("silenced " + std::to_string(silenced) +
+                   " block(s) whose samples were not all real numbers");
+      }
+    }
     log_chain(chain, *graph, owner);
     publish(std::move(graph));
     signature_.swap(next);

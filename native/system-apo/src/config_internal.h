@@ -31,7 +31,8 @@ bool iequals(std::string_view a, std::string_view b);
 std::vector<std::string_view> split_ws(std::string_view s);
 
 // `std::from_chars` only. `strtod` reads the locale too, and turns "1.41"
-// into 1 on a machine set to a comma-decimal locale.
+// into 1 on a machine set to a comma-decimal locale. False for a value that
+// is not finite: see the definition.
 bool parse_double(std::string_view token, double& out);
 
 }  // namespace fluideq_engine::detail

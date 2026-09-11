@@ -221,6 +221,29 @@ void filter_grammar() {
   CHECK(bw && std::abs(bw->quality - 1.4142135) < 1e-6);
 }
 
+// `from_chars` reads "nan" and "inf" as numbers. One of them in a gain, a Q
+// or a preamp turned every sample of the output into NaN and stayed latched
+// in the filter history; nothing FluidEQ writes is ever anything but finite.
+void numbers_that_are_not_finite_are_refused() {
+  std::printf("nan and inf are not numbers this grammar takes\n");
+  CHECK(!parse_filter("ON PK Fc 1000 Hz Gain nan dB Q 1"));
+  CHECK(!parse_filter("ON PK Fc inf Hz Gain 3 dB Q 1"));
+  CHECK(!parse_filter("ON PK Fc 1000 Hz Gain 3 dB Q -inf"));
+  CHECK(!parse_filter("ON PK Fc 1000 Hz Gain 3 dB BW Oct nan"));
+  CHECK(parse_graphic("20 inf; 1000 0").empty());
+  CHECK(parse_graphic("nan 0; 1000 0").empty());
+  // The positive control, so the refusals above cannot be passing on a
+  // grammar that refuses everything.
+  CHECK(parse_filter("ON PK Fc 1000 Hz Gain 3 dB Q 1").has_value());
+
+  Files files;
+  files[L"C:\\cfg\\config.txt"] = "Preamp: nan dB\r\n";
+  const auto nan_preamp =
+      resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(nan_preamp.preamp_db == 0.0);
+  CHECK(!nan_preamp.matched);
+}
+
 void graphic_and_preamp_grammar() {
   std::printf("graphic and preamp grammar\n");
   const auto points = parse_graphic("20 -2.5; 1000 0; 20000 3");
@@ -252,6 +275,7 @@ int main() {
   include_cannot_escape_or_loop();
   include_depth_is_limited();
   filter_grammar();
+  numbers_that_are_not_finite_are_refused();
   graphic_and_preamp_grammar();
   utf16_with_bom_is_read();
   if (g_failures == 0) {

@@ -22,9 +22,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq_engine/graph.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <limits>
 #include <vector>
 
 #include "fluideq_engine/config.h"
@@ -170,6 +172,66 @@ void oversized_block_is_refused() {
   CHECK(identical);
 }
 
+bool all_finite(const std::vector<float>& samples) {
+  for (const float sample : samples) {
+    if (!std::isfinite(sample)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * One NaN in, and then clean audio: the block with it is silenced, and the
+ * clean block after it plays — rather than the NaN living on in the biquad's
+ * history and turning every block after it into NaN too.
+ */
+void a_nan_is_silenced_and_forgotten() {
+  std::printf("a sample that is not a number is silenced, not kept\n");
+  const Chain chain = chain_from("Filter: ON PK Fc 1000 Hz Gain 6 dB Q 1\r\n");
+  Graph graph(chain, kRate, 1, 480);
+
+  std::vector<float> poisoned = tone(1000.0, 0.5, 480, 0);
+  poisoned[100] = std::numeric_limits<float>::quiet_NaN();
+  float* planar[1] = {poisoned.data()};
+  graph.process(planar, 480);
+  CHECK(all_finite(poisoned));
+  bool silent = true;
+  for (const float sample : poisoned) {
+    silent = silent && sample == 0.0f;
+  }
+  CHECK(silent);
+  CHECK(graph.silenced_blocks() == 1);
+
+  // The positive control is the one that matters: a clean block afterwards
+  // comes out as music, not as the NaN the filter would otherwise remember.
+  std::vector<float> clean = tone(1000.0, 0.5, 480, 480);
+  planar[0] = clean.data();
+  graph.process(planar, 480);
+  CHECK(all_finite(clean));
+  float loudest = 0.0f;
+  for (const float sample : clean) {
+    loudest = std::max(loudest, std::fabs(sample));
+  }
+  CHECK(loudest > 0.1f);
+  CHECK(graph.silenced_blocks() == 1);
+}
+
+void an_infinity_is_silenced_too() {
+  std::printf("an infinite sample is silenced as well\n");
+  const Chain chain = chain_from("Preamp: -6 dB\r\n");
+  Graph graph(chain, kRate, 2, 480);
+  std::vector<float> left = tone(1000.0, 0.5, 480, 0);
+  std::vector<float> right = tone(1000.0, 0.5, 480, 0);
+  right[7] = std::numeric_limits<float>::infinity();
+  float* planar[2] = {left.data(), right.data()};
+  graph.process(planar, 480);
+  // Both channels, not only the one that carried it: half a stereo pair
+  // silenced is a hole in the image rather than a dropout.
+  CHECK(all_finite(left) && all_finite(right));
+  CHECK(left[10] == 0.0f && right[10] == 0.0f);
+}
+
 }  // namespace
 
 int main() {
@@ -179,5 +241,7 @@ int main() {
   unmatched_chain_is_passthrough();
   state_inherits_across_gain_change();
   oversized_block_is_refused();
+  a_nan_is_silenced_and_forgotten();
+  an_infinity_is_silenced_too();
   return report();
 }

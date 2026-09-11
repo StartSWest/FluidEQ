@@ -59,7 +59,13 @@ std::vector<std::string_view> split_ws(std::string_view s) {
 bool parse_double(std::string_view token, double& out) {
   const auto result =
       std::from_chars(token.data(), token.data() + token.size(), out);
-  return result.ec == std::errc() && result.ptr == token.data() + token.size();
+  // Finite only. `from_chars` reads "nan" and "inf" as numbers, and one of
+  // them in a preamp, a gain or a Q turned every sample on the output into
+  // NaN — which Windows plays as silence, or as a full-scale burst — and then
+  // stayed latched in the filter history across every reload after it. No
+  // number FluidEQ writes is anything but finite.
+  return result.ec == std::errc() &&
+         result.ptr == token.data() + token.size() && std::isfinite(out);
 }
 
 }  // namespace detail

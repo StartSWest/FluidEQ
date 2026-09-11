@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_GRAPH_H
 #define FLUIDEQ_ENGINE_GRAPH_H
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -194,7 +195,17 @@ class Graph {
    */
   const std::vector<std::string>& warnings() const noexcept;
 
+  /**
+   * Blocks this graph had to silence because they came out with a sample
+   * that was not a real number — see the end of `process`. Any thread; the
+   * watcher reads it once the graph is being replaced, for the log.
+   */
+  uint32_t silenced_blocks() const noexcept {
+    return silenced_blocks_.load(std::memory_order_relaxed);
+  }
+
  private:
+  std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;
   uint32_t sample_rate_;
   uint32_t channels_;

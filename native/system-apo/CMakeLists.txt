@@ -21,7 +21,8 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # a graphic-EQ FIR from a resolved `Chain`, and the per-output processing
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
-  src/wav.cpp src/graphic_eq.cpp src/dsp_chain.cpp src/graph.cpp)
+  src/wav.cpp src/graphic_eq.cpp src/dsp_chain.cpp src/graph.cpp
+  src/graph_stages.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
