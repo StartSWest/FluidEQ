@@ -12,8 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the chain arrived — is a real defect with a real symptom, and it belongs
  * somewhere a test can reach without a renderer.
  */
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
+import { playerRunsRack, rackFor, useRackGate } from './rackPlacement';
 import {
   INativeBackendController,
   createNativeBackendController,
@@ -36,6 +37,7 @@ import {
   setDspNativeTransport,
   useDspNativeDeviceGeneration,
   setDspNativeState,
+  setDspRackGate,
   useDspNativeState,
   useDspOutputSafetyEnabled,
 } from './store';
@@ -73,12 +75,21 @@ export const useNativeBackend = (
 ): INativeBackendController | undefined => {
   const nativeState = useDspNativeState();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
+  // The rack as this player may run it: switched off at the root while the
+  // FluidEQ Engine is off, the one case the player's copy stands aside for
+  // (`rackPlacement.ts`). The same identity as `settings` otherwise, so the
+  // update below does not run for a gate change that leaves it alone.
+  const gate = useRackGate();
+  const hostSettings = useMemo(
+    () => rackFor(settings, playerRunsRack(gate)),
+    [settings, gate],
+  );
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
-  const settingsRef = useRef(settings);
+  const settingsRef = useRef(hostSettings);
   const safetyRef = useRef(outputSafetyEnabled);
   // Assigned at render rather than in an effect: an effect below may read them
   // in the same commit, and child effects run before a parent's.
-  settingsRef.current = settings;
+  settingsRef.current = hostSettings;
   safetyRef.current = outputSafetyEnabled;
 
   useEffect(() => {
@@ -157,9 +168,9 @@ export const useNativeBackend = (
 
   useEffect(() => {
     controllerRef.current
-      ?.update(settings, outputSafetyEnabled)
+      ?.update(hostSettings, outputSafetyEnabled)
       .catch(() => undefined);
-  }, [settings, outputSafetyEnabled]);
+  }, [hostSettings, outputSafetyEnabled]);
 
   /**
    * The track-level gains, routed to the host for as long as it is audible.
@@ -409,6 +420,23 @@ export const useNativeMirror = (
   useEffect(() => {
     mirrorRef.current?.sync(state);
   }, [state.mediaPath, state.isPlaying, state.positionMs, state]);
+
+  /**
+   * Whether the Library player is the sound right now — its own engine
+   * engaged and the track playing. While it is, the FluidEQ Engine's copy of
+   * the rack stands aside, or every track the Library plays would go through
+   * the rack twice (`rackPlacement.ts`). A player whose host failed plays
+   * through its media elements with no rack of its own, so the engine keeps
+   * its copy and the Library still gets one.
+   */
+  const isAudible = controller !== undefined && state.isPlaying;
+  useEffect(() => {
+    if (!isAudible) {
+      return undefined;
+    }
+    setDspRackGate({ libraryAudible: true });
+    return () => setDspRackGate({ libraryAudible: false });
+  }, [isAudible]);
 
   /**
    * The scrubber's way through to the deck that is audible.

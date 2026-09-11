@@ -6,10 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { IFluidEngineStatus, TAudioEngine } from 'common/audioEngine';
 import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
-import useEngineTrouble from '../audio/useEngineTrouble';
+import type { TEngineTrouble } from '../audio/engineTrouble';
 import { useTranslation } from '../utils/I18nContext';
 import Button from '../widgets/Button';
 // The output notice's look, which this shares: it is the same message — this
@@ -37,12 +36,11 @@ const problemLines = (problems: readonly string[]): TranslationKey[] => [
 ];
 
 interface IEngineTroubleNoticeProps {
-  engine: TAudioEngine | null;
   /**
-   * What the setup helper last said about the engine — which outputs it is
-   * on and which version is installed — from the status the window holds.
+   * What `useEngineTrouble` found, from the shell — which also turns the DSP
+   * rack off while the engine is, so the two read the same answer.
    */
-  fluid: IFluidEngineStatus | undefined;
+  trouble: TEngineTrouble | undefined;
   /** A dialog this notice's own buttons open is up: step aside for it. */
   isHidden: boolean;
   onRestartAudio: () => void;
@@ -59,14 +57,12 @@ interface IEngineTroubleNoticeProps {
  * went wrong inside it; Equalizer APO is the way out when it is not.
  */
 const EngineTroubleNotice = ({
-  engine,
-  fluid,
+  trouble,
   isHidden,
   onRestartAudio,
   onUseApo,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
-  const trouble = useEngineTrouble(engine, fluid);
   // Put away for as long as this trouble lasts: one that ends and comes back
   // later is a new one, and is worth saying again.
   const [dismissedKey, setDismissedKey] = useState<string | undefined>();

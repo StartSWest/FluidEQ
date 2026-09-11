@@ -137,9 +137,11 @@ import {
   applyDspSettings,
   persistDspSettings,
   publishSystemDspChain,
+  setDspRackGate,
   useDspEngineState,
   useDspSettings,
 } from './dsp/store';
+import useEngineTrouble from './audio/useEngineTrouble';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
@@ -587,6 +589,7 @@ const AppContent = () => {
     isLoading,
     globalError,
     isBlockingError,
+    isEnabled,
     isEngineUsable,
     isGraphViewOn,
     performHealthCheck,
@@ -899,6 +902,24 @@ const AppContent = () => {
   const { status: engineStatus, refresh: refreshEngineStatus } =
     useAudioEngineStatus();
   const runningEngine = engineStatus?.engine;
+  // Whether the FluidEQ Engine is failing where it can be heard: for the
+  // notice that says so, and for the DSP rack, which runs nowhere while the
+  // engine is off.
+  const engineTrouble = useEngineTrouble(
+    runningEngine ?? null,
+    engineStatus?.fluid,
+  );
+  const isEngineOff = engineTrouble?.kind === 'off';
+  useEffect(() => {
+    // Before the publish below, so the first rack of a launch already knows
+    // where it may run (`rackPlacement.ts`): under the FluidEQ Engine,
+    // FluidEQ switched off or the engine not running leaves it nowhere.
+    setDspRackGate({
+      engine: runningEngine ?? null,
+      eqEnabled: isEnabled,
+      engineOff: isEngineOff,
+    });
+  }, [runningEngine, isEnabled, isEngineOff]);
   useEffect(() => {
     // FluidEQ takes the rack away from the engine when it quits, so the DSP
     // page's own publish — which waits for the page to be opened — would
@@ -2971,8 +2992,7 @@ const AppContent = () => {
             the ones that take the whole window: whatever it says can wait
             until they are answered, and it is still true afterwards. */}
         <EngineTroubleNotice
-          engine={engineStatus?.engine ?? null}
-          fluid={engineStatus?.fluid}
+          trouble={engineTrouble}
           isHidden={
             audioRestart.isOpen ||
             showEngineDialog ||

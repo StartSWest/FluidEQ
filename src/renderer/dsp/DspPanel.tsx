@@ -27,6 +27,7 @@ import DspNormalizerCard from './DspNormalizerCard';
 import DspChainPresetBar from './DspChainPresetBar';
 import DspScopeNotice from './DspScopeNotice';
 import DspSideTabs from './DspSideTabs';
+import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
 import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
@@ -223,8 +224,13 @@ const DspPanel = ({
    * the original rule: that rack only exists inside the Library player's own
    * host, so it is live only while that host is actually engaged.
    */
+  // And under the FluidEQ Engine, not while it is off: FluidEQ switched off
+  // or the engine not running leaves the rack running nowhere, and a page
+  // whose every control still answered would say otherwise.
+  const suspension = rackSuspension(useRackGate());
   const isRackEngaged =
-    isSystemWide || (hasLibraryPlayback && nativeState === 'engaged');
+    suspension === undefined &&
+    (isSystemWide || (hasLibraryPlayback && nativeState === 'engaged'));
   const isRackLive = settings.enabled && isRackEngaged;
   /**
    * Availability only gates the controls. The saved sound and host lifetime
@@ -427,6 +433,7 @@ const DspPanel = ({
         </div>
         <DspScopeNotice
           status={audioEngine}
+          suspension={suspension}
           isRackEngaged={isRackEngaged}
           phase={eq.phase}
           onOpenEngineDialog={onOpenEngineDialog}

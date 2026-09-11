@@ -38,6 +38,7 @@ import studio from './studio';
 import plus from './plus';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
+import dspOff from './dspOff';
 import engineUpdate from './engineUpdate';
 
 const zh: Partial<Dictionary> = {
@@ -61,6 +62,7 @@ const zh: Partial<Dictionary> = {
   ...plus,
   ...termsNotice,
   ...engineHealth,
+  ...dspOff,
   ...engineUpdate,
 };
 

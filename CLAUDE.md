@@ -405,6 +405,14 @@ Everything worth knowing about them is available through commands:
   Bumping `FEQ_CHAIN_PARAM_LEAD` moves every index after it, so regenerate
   that reference line in the same commit or the test compares one stale
   layout against another and proves nothing.
+- **Under the FluidEQ Engine the rack runs in exactly one place.** The
+  Library player's host while the Library plays, the engine the rest of the
+  time, and nowhere while FluidEQ is switched off or the engine is off
+  (`rackPlacement.ts`). Both used to run it, so every Library track went
+  through the rack twice, and FluidEQ's switch left the rack playing on
+  everything. The DSP store is the only sender of the engine's copy and
+  switches it off at the root when it belongs elsewhere; anything else that
+  sends a rack to the engine brings the doubling back.
 - **`status-{GUID}.json` is the engine telling the app what it is doing.**
   The DLL writes one per output into its root (`status_file.h`) inside
   `LockForProcess` — before any audio passes — and again on every change and

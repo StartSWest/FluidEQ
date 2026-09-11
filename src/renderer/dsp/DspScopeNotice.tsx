@@ -13,7 +13,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * reports the feature as broken rather than as misunderstood, which is why
  * that sentence has always been body text here rather than a tooltip. Under
  * FluidEQ Engine the same rack runs inside audiodg.exe on every attached
- * output, so the sentence would be a lie and the pill says so instead.
+ * output, so the sentence would be a lie and the pill says so instead. And
+ * while FluidEQ is switched off or the engine is not running, the rack runs
+ * nowhere under the FluidEQ Engine, and the line says that and why.
  *
  * Its own file rather than more of `DspPanel.tsx`, which is already past the
  * project's 500-line limit.
@@ -30,6 +32,8 @@ import {
 import { getAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
+import useEqualizerPower from '../utils/useEqualizerPower';
+import type { TRackSuspension } from './rackPlacement';
 
 /**
  * The delay linear phase costs, as the page prints it.
@@ -47,6 +51,12 @@ const LINEAR_PHASE_DELAY_MS = Math.round(
 
 interface IDspScopeNoticeProps {
   status: IAudioEngineStatus | undefined;
+  /**
+   * Why the rack is off everywhere, under the FluidEQ Engine — FluidEQ
+   * switched off, or the engine not running (`rackPlacement.ts`). Said in
+   * place of the scope, because while it holds the rack has none.
+   */
+  suspension: TRackSuspension | undefined;
   /** False while nothing is playing through the Library player. */
   isRackEngaged: boolean;
   /** The rack's own EQ phase mode, which is what costs the delay. */
@@ -57,11 +67,13 @@ interface IDspScopeNoticeProps {
 
 const DspScopeNotice = ({
   status,
+  suspension,
   isRackEngaged,
   phase,
   onOpenEngineDialog,
 }: IDspScopeNoticeProps) => {
   const { t } = useTranslation();
+  const power = useEqualizerPower();
   const isSystemWide = status?.engine === 'fluid';
   const [output, setOutput] = useState('');
 
@@ -97,6 +109,32 @@ const DspScopeNotice = ({
       window.removeEventListener('fluideq-output-changed', onOutputChanged);
     };
   }, [isSystemWide, readOutput]);
+
+  if (suspension !== undefined) {
+    // Amber, the page's "not now" rather than a fault: the rack is intact and
+    // comes back as it was the moment FluidEQ, or the engine, does.
+    return (
+      <p className="dsp-scope is-idle" role="status">
+        {t(
+          suspension === 'switched-off'
+            ? 'dspOff.switchedOff'
+            : 'dspOff.engineOff',
+        )}
+        {suspension === 'switched-off' ? (
+          <button
+            type="button"
+            className="link-button dsp-scope-link"
+            disabled={power.isBlockingError}
+            onClick={() => {
+              power.toggle().catch(() => undefined);
+            }}
+          >
+            {t('dspOff.turnOn')}
+          </button>
+        ) : undefined}
+      </p>
+    );
+  }
 
   if (isSystemWide) {
     return (

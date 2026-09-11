@@ -13,13 +13,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * written and the rack stays Library-only; main answers `'not-fluid'` and
  * that is a supported configuration, not a failure.
  *
- * Its own module rather than more of `store.ts`, and for a reason worth
- * stating: it is called from two places that must not both send. The store
- * writes on every settings change, which is what makes the rack reach the
- * engine with nothing playing; `nativeBackend.ts` sends the array it has just
- * encoded for the host, which is what makes engaging the player carry the
- * rack even if the store never emitted. De-duplicating here means one edit is
- * one IPC message however many callers noticed it.
+ * The store is its one caller: it sends on every settings change, which is
+ * what makes the rack reach the engine with nothing playing, and whenever the
+ * rack's place changes (`rackPlacement.ts`). The Library player's host used
+ * to send here too, and that was half of the rack running twice on every
+ * track the Library played. De-duplicating here means one edit is one IPC
+ * message however often it is asked for.
  */
 
 import { setSystemDspChain } from '../utils/audioEngineApi';

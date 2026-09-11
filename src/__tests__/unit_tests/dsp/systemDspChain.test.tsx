@@ -36,7 +36,10 @@ import {
   applyDspSettings,
   readDspOutputSafetyEnabled,
   setDspNativeState,
+  setDspRackGate,
 } from '../../../renderer/dsp/store';
+import { resetRackGate } from '../../../renderer/dsp/rackPlacement';
+import en from '../../../common/i18n/en';
 import {
   resetSystemDspChain,
   sendSystemDspChain,
@@ -58,6 +61,8 @@ let chainsSent: number[][] = [];
 let chainAnswer: TSystemDspChainResult = 'written';
 /** How many times `GET_AUDIO_ENGINE_STATUS` has actually been asked. */
 let statusFetches = 0;
+/** Every `SET_ENABLE` asked for — FluidEQ's own switch. */
+let switchedTo: boolean[] = [];
 /** What `getAudioEngineStatus` answers with for the case being rendered. */
 let engineStatus: IAudioEngineStatus;
 
@@ -105,6 +110,10 @@ const installBridge = () => {
     [ChannelEnum.SET_SYSTEM_DSP_CHAIN]: (values) => {
       chainsSent.push(values[0] as number[]);
       return chainAnswer;
+    },
+    [ChannelEnum.SET_ENABLE]: (values) => {
+      switchedTo.push(values[0] as boolean);
+      return undefined;
     },
   };
   const results = new Map<string, unknown>();
@@ -164,6 +173,10 @@ beforeEach(() => {
   engineStatus = FLUID_STATUS;
   chainAnswer = 'written';
   statusFetches = 0;
+  switchedTo = [];
+  // Where the rack may run is module state too; every case starts with the
+  // gate the window has before anything has told it otherwise.
+  resetRackGate();
   installBridge();
   // The store is a module singleton, so a case that leaves an edited rack
   // behind decides what the next one sends. Put it back to the defaults, then
@@ -390,6 +403,145 @@ describe('a refresh that discovers the chosen engine changed', () => {
         outputSafetyEnabled: readDspOutputSafetyEnabled(),
       }),
     );
+  });
+});
+
+describe('where the rack runs, from the engine’s side', () => {
+  // The rack switched on, with a stage in it, so switching it off at the root
+  // is a different array from the one the page holds.
+  const edited: IDspSettings = {
+    ...DSP_DEFAULTS,
+    enabled: true,
+    maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true },
+  };
+  const encoded = (of: IDspSettings) =>
+    encodeChainSettings(of, {
+      outputSafetyEnabled: readDspOutputSafetyEnabled(),
+    });
+
+  /**
+   * The engine holding the rack as the page has it, before anything moves
+   * the rack elsewhere — the positive control for every case below.
+   */
+  const engineHoldsTheRack = async () => {
+    act(() => {
+      setDspRackGate({ engine: 'fluid' });
+      applyDspSettings(edited);
+    });
+    await waitFor(() =>
+      expect(chainsSent[chainsSent.length - 1]).toEqual(encoded(edited)),
+    );
+    chainsSent = [];
+  };
+
+  it('stands aside while the Library plays, and takes it back after', async () => {
+    await engineHoldsTheRack();
+    // The Library player runs the rack on what it plays; the engine running
+    // it again on the player's output was every effect applied twice.
+    act(() => setDspRackGate({ libraryAudible: true }));
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    expect(chainsSent[0]).toEqual(encoded({ ...edited, enabled: false }));
+
+    act(() => setDspRackGate({ libraryAudible: false }));
+    await waitFor(() => expect(chainsSent).toHaveLength(2));
+    expect(chainsSent[1]).toEqual(encoded(edited));
+  });
+
+  it('is off while FluidEQ is switched off, and back when it is on', async () => {
+    await engineHoldsTheRack();
+    act(() => setDspRackGate({ eqEnabled: false }));
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    expect(chainsSent[0]).toEqual(encoded({ ...edited, enabled: false }));
+
+    act(() => setDspRackGate({ eqEnabled: true }));
+    await waitFor(() => expect(chainsSent).toHaveLength(2));
+    expect(chainsSent[1]).toEqual(encoded(edited));
+  });
+
+  it('is off while the engine is not running', async () => {
+    await engineHoldsTheRack();
+    act(() => setDspRackGate({ engineOff: true }));
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    expect(chainsSent[0]).toEqual(encoded({ ...edited, enabled: false }));
+  });
+
+  it('sends nothing for a gate change that leaves its place alone', async () => {
+    await engineHoldsTheRack();
+    act(() => setDspRackGate({ eqEnabled: true }));
+    await flushBridge();
+    expect(chainsSent).toHaveLength(0);
+  });
+});
+
+describe('the DSP page while the rack runs nowhere', () => {
+  const renderSwitchedOff = (setIsEnabled = jest.fn()) => {
+    render(
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, isEnabled: false, setIsEnabled }}
+      >
+        <DspPanel
+          settings={DSP_DEFAULTS}
+          onChange={() => undefined}
+          onCommit={() => undefined}
+          engineState="running"
+          onOpenEngineDialog={() => undefined}
+        />
+      </FluidEqProviderWrapper>,
+    );
+    return setIsEnabled;
+  };
+
+  it('says FluidEQ is off, and every control with it', async () => {
+    act(() => setDspRackGate({ engine: 'fluid', eqEnabled: false }));
+    renderSwitchedOff();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      en['dspOff.switchedOff'],
+    );
+    // In place of the scope, not beside it: the rack has none while off.
+    expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Equaliser/i })).toBeDisabled();
+  });
+
+  it('turns FluidEQ back on from the line that says it is off', async () => {
+    act(() => setDspRackGate({ engine: 'fluid', eqEnabled: false }));
+    const setIsEnabled = renderSwitchedOff();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: en['dspOff.turnOn'] }),
+    );
+
+    await waitFor(() => expect(setIsEnabled).toHaveBeenCalledWith(true));
+    expect(switchedTo).toEqual([true]);
+  });
+
+  it('says the engine is not running, with no way to turn it on from here', async () => {
+    act(() => setDspRackGate({ engine: 'fluid', engineOff: true }));
+    renderPanel();
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      en['dspOff.engineOff'],
+    );
+    expect(
+      screen.queryByRole('button', { name: en['dspOff.turnOn'] }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+  });
+
+  it('stays the Library player’s page under Equalizer APO', async () => {
+    // FluidEQ's switch is about APO's EQ there; the rack is the player's.
+    engineStatus = APO_STATUS;
+    act(() => setDspRackGate({ engine: 'apo', eqEnabled: false }));
+    renderSwitchedOff();
+
+    expect(
+      await screen.findByText(/played from Library only/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(en['dspOff.switchedOff']),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeDisabled();
   });
 });
 

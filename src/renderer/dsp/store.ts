@@ -16,6 +16,13 @@ import {
 } from '../../common/dsp/analysisWire';
 import { encodeChainSettings } from '../../common/dsp/chainWire';
 import { sendSystemDspChain } from './systemChain';
+import {
+  IRackGate,
+  engineRunsRack,
+  rackFor,
+  readRackGate,
+  updateRackGate,
+} from './rackPlacement';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 
@@ -136,18 +143,34 @@ const subscribe = (listener: () => void) => {
 };
 
 /**
- * The rack, to the engine that runs it on every output.
+ * The rack, to the engine that runs it on every output — switched off at the
+ * root whenever it belongs somewhere else (`rackPlacement.ts`): in the
+ * Library player while that plays, or nowhere while the engine is off.
  *
- * From here rather than from the player's chain push alone, because that one
- * only fires while the host is engaged — and the whole point of the
- * system-wide rack is that it applies with nothing playing at all. The send
- * is de-duplicated inside `systemChain.ts`, so the two callers between them
- * still make one IPC message per edit.
+ * The only sender. The player's host used to send the same array on every
+ * push of its own, which was one of the two halves of the rack running twice.
+ * The send is de-duplicated inside `systemChain.ts`.
  */
 const pushSystemChain = (): void => {
   sendSystemDspChain(
-    encodeChainSettings(readDspSettings(), { outputSafetyEnabled }),
+    encodeChainSettings(
+      rackFor(readDspSettings(), engineRunsRack(readRackGate())),
+      { outputSafetyEnabled },
+    ),
   );
+};
+
+/**
+ * Tell the rack where it may run, and send the engine what that leaves it.
+ *
+ * Called by the shell with the engine, FluidEQ's switch and whether the engine
+ * is off, and by the Library player with whether it is playing. The player's
+ * own copy follows the same gate through `useRackGate`.
+ */
+export const setDspRackGate = (patch: Partial<IRackGate>): void => {
+  if (updateRackGate(patch)) {
+    pushSystemChain();
+  }
 };
 
 /**

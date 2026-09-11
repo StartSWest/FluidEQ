@@ -16,10 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ErrorDescription } from 'common/errors';
-import { useCallback } from 'react';
-import { disableEqualizer, enableEqualizer } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import useEqualizerPower from '../utils/useEqualizerPower';
 import Switch from '../widgets/Switch';
 
 interface IEqualizerEnablerSwitchProps {
@@ -29,27 +26,13 @@ interface IEqualizerEnablerSwitchProps {
 export default function EqualizerEnablerSwitch({
   id,
 }: IEqualizerEnablerSwitchProps) {
-  const { isBlockingError, isEnabled, setGlobalError, setIsEnabled } =
-    useFluidEqContext();
-
-  const handleToggleEqualizer = useCallback(async () => {
-    try {
-      if (isEnabled) {
-        await disableEqualizer();
-      } else {
-        await enableEqualizer();
-      }
-      setIsEnabled(!isEnabled);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  }, [isEnabled, setGlobalError, setIsEnabled]);
+  const { isBlockingError, isEnabled, toggle } = useEqualizerPower();
 
   return (
     <Switch
       id={id}
       isOn={isEnabled}
-      handleToggle={handleToggleEqualizer}
+      handleToggle={toggle}
       isDisabled={isBlockingError}
     />
   );

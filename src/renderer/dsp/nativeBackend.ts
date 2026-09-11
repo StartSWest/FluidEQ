@@ -17,7 +17,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { IDspSettings } from '../../common/dsp/chain';
 import { encodeChainSettings } from '../../common/dsp/chainWire';
-import { sendSystemDspChain } from './systemChain';
 import {
   encodeNoiseProfile,
   INoiseProfile,
@@ -173,15 +172,14 @@ export const createNativeBackendController = (
     }
   };
 
-  const pushChain = (settings: IDspSettings, outputSafetyEnabled: boolean) => {
-    const values = encodeChainSettings(settings, { outputSafetyEnabled });
-    // The same array, to the engine that runs it on everything else. Never
-    // awaited and never allowed to fail this call: the host is what makes the
-    // Library audible, and a file write on the other side of an IPC has no
-    // business standing between a knob and the sound.
-    sendSystemDspChain(values);
-    return bridge.applyDspHostChain(values);
-  };
+  // The host's copy only. This used to send the same array to the FluidEQ
+  // Engine as well, and the engine then ran it a second time on everything
+  // the host played; the store is now the one sender, and it knows when the
+  // engine's copy has to stand aside (`rackPlacement.ts`).
+  const pushChain = (settings: IDspSettings, outputSafetyEnabled: boolean) =>
+    bridge.applyDspHostChain(
+      encodeChainSettings(settings, { outputSafetyEnabled }),
+    );
 
   return {
     engage: (settings, outputSafetyEnabled) =>
