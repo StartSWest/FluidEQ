@@ -408,6 +408,13 @@ Two limits still apply: Denoise still only measures and repairs Library
 tracks, and switching the parametric Equaliser to linear phase adds about
 171 ms of delay, shown right on the DSP page.
 
+Your EQ applies only while FluidEQ is running. Closing the window keeps
+FluidEQ running in the tray, and the EQ with it; **Quit** from the tray icon
+turns every output back to flat — the DSP rack included — and the next launch
+puts your settings back. Shutting down or signing out of Windows does the same.
+Uninstalling FluidEQ turns its EQ off in both engines, including an Equalizer
+APO you choose to keep.
+
 To remove the FluidEQ Engine, uninstall FluidEQ — its uninstaller takes the
 engine out with it. To remove just the engine without uninstalling FluidEQ,
 run `FluidEQ-Engine-Setup.exe uninstall` from the `resources\native` folder

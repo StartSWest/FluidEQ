@@ -154,12 +154,11 @@ const pushSystemChain = (): void => {
  * Send the rack as it currently stands, whether or not it just changed.
  *
  * For the moment the window learns it is running under FluidEQ Engine. The
- * rack file survives between sessions, so it is usually already right — but
- * "usually" covers a machine where it was deleted, a profile carried over
- * from another installation, or an engine only just switched to, and in every
- * one of those the engine would go on running last week's rack until the user
- * happened to touch a control. The send is de-duplicated, so calling this
- * when nothing has moved costs one array comparison.
+ * rack file does not survive between sessions — quitting FluidEQ removes it,
+ * so nothing keeps processing once the app is gone — and an engine only just
+ * switched to has never had one, so without this the engine would run no rack
+ * until the user happened to touch a control. The send is de-duplicated, so
+ * calling this when nothing has moved costs one array comparison.
  */
 export const publishSystemDspChain = (): void => {
   pushSystemChain();

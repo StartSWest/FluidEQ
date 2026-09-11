@@ -372,6 +372,17 @@ Everything worth knowing about them is available through commands:
   whatever a vendor already registered there instead of adding to it, and the
   vendor's own control panel then reads its registration as gone — silently,
   on somebody else's driver.
+- **Quitting FluidEQ turns the engine off; launching turns it back on.** Both
+  engines live inside Windows' audio service and keep applying what they last
+  read, so an EQ used to outlive the app. `engineQuitReset.ts` now writes the
+  "nothing to do" root and deletes the DSP rack on `before-quit`, and on the
+  window's `session-end` (Windows sends no `before-quit` at shutdown), after
+  sealing the directory in `asyncWriter` so a late write cannot bring the EQ
+  back. Two things depend on it: every engine-config write must go through
+  `asyncWriter`, or the seal cannot refuse it; and the launch must write the
+  state back — the health check's flush does the EQ, and `App.tsx` republishes
+  the rack, which the DSP page alone would only send once it was opened. The
+  uninstaller does the same to both engines' roots (`NeutraliseEngineConfigs`).
 - **The DLL waits on `FindFirstChangeNotification`, not a poll.** It is told a
   config changed, never guesses when to check again. That also means a change
   to how `deviceProfiles.ts` lays the config text out is a change to what the

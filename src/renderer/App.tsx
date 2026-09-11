@@ -136,6 +136,7 @@ import DspPanel from './dsp/DspPanel';
 import {
   applyDspSettings,
   persistDspSettings,
+  publishSystemDspChain,
   useDspEngineState,
   useDspSettings,
 } from './dsp/store';
@@ -895,6 +896,15 @@ const AppContent = () => {
   // rather than each asking main for its own copy.
   const { status: engineStatus, refresh: refreshEngineStatus } =
     useAudioEngineStatus();
+  const runningEngine = engineStatus?.engine;
+  useEffect(() => {
+    // FluidEQ takes the rack away from the engine when it quits, so the DSP
+    // page's own publish — which waits for the page to be opened — would
+    // leave every launch running no rack until then.
+    if (runningEngine === 'fluid') {
+      publishSystemDspChain();
+    }
+  }, [runningEngine]);
   const [showEngineDialog, setShowEngineDialog] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and

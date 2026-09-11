@@ -74,6 +74,7 @@ import {
 } from './audioEngineStore';
 import { neutraliseEngine } from './engineNeutralise';
 import { writeSystemDspChain } from './systemDspChain';
+import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
 import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
@@ -3087,6 +3088,26 @@ if (isDebug) {
   require('electron-debug').default({ showDevTools: false });
 }
 
+/**
+ * Take the EQ off every output as FluidEQ goes — see `engineQuitReset.ts`.
+ *
+ * Only once this process has written an engine config: `configPath` is set by
+ * the first health check. The copy that quits at once because another is
+ * already running never gets that far, and resetting from there would take
+ * the EQ off the copy the user is actually using.
+ */
+const resetActiveEngineForQuit = async (): Promise<void> => {
+  if (session.configPath) {
+    await resetEngineForQuit(session.configPath);
+  }
+};
+
+const resetActiveEngineAtSessionEnd = (): void => {
+  if (session.configPath) {
+    resetEngineAtSessionEnd(session.configPath);
+  }
+};
+
 const createMainWindow = createMainWindowFactory({
   firstRunPlacement,
   isDebug,
@@ -3098,6 +3119,9 @@ const createMainWindow = createMainWindowFactory({
   },
   setMainWindow: (next) => {
     mainWindow = next;
+    // Windows shutting down or logging off reaches the app only as this
+    // window event: Electron sends no `before-quit` for it on Windows.
+    next?.on('session-end', resetActiveEngineAtSessionEnd);
   },
   setUpAutoUpdates,
   setUpMemoryTraceTrigger,
@@ -3173,10 +3197,15 @@ app.on('before-quit', (event) => {
   // straight after a slider drag can find the last position still in the
   // queue. Hold the quit until it lands, then quit again; the second pass
   // falls through to the shutdown below. A few small files: milliseconds.
+  //
+  // Then the engine in use is turned off, so no output keeps FluidEQ's EQ
+  // once FluidEQ is gone; the next launch writes it back.
   if (!pendingWritesFlushed) {
     event.preventDefault();
     flushPendingWrites()
       .catch(() => undefined)
+      .then(resetActiveEngineForQuit)
+      .catch((error) => log.error('Resetting the audio engine failed', error))
       .finally(() => {
         pendingWritesFlushed = true;
         app.quit();

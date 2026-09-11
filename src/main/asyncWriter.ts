@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import fs from 'fs';
+import path from 'path';
 import { randomUUID } from 'crypto';
 import log from 'electron-log';
 
@@ -49,6 +50,35 @@ const operations = new Map<
   string,
   { pending?: () => Promise<void>; inFlight: Promise<void> }
 >();
+
+/** Directories this process has stopped writing into; see `sealDirectory`. */
+const sealedDirectories = new Set<string>();
+
+/** Windows paths name the same file whatever their case. */
+const pathKey = (target: string): string => {
+  const resolved = path.resolve(target);
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+};
+
+const isSealed = (target: string): boolean => {
+  const key = pathKey(target);
+  return [...sealedDirectories].some(
+    (directory) => key === directory || key.startsWith(directory + path.sep),
+  );
+};
+
+/**
+ * Refuse every later write into `directory`, for the rest of this process.
+ *
+ * For quitting. Once the engine's directory has been set to "nothing to do",
+ * a write still arriving from the window — the end of a drag, an automatic
+ * profile following the music — would put the EQ back on an output with no
+ * FluidEQ left running to take it off again. A refused write resolves at
+ * once, as a write of unchanged contents does, so nothing waiting on it hangs.
+ */
+export const sealDirectory = (directory: string): void => {
+  sealedDirectories.add(pathKey(directory));
+};
 
 /** Observe background failures without changing the promise callers await. */
 const observed = (promise: Promise<void>): Promise<void> => {
@@ -173,6 +203,22 @@ export const settlePath = async (filePath: string): Promise<void> => {
   }
 };
 
+/**
+ * Write a file now, past the queue and past any seal: the one write a sealed
+ * directory still takes, which is the write the seal exists to protect.
+ * Whatever was already on its way to this path lands first, so it cannot land
+ * afterwards and undo this one.
+ */
+export const writeFileNow = async (
+  filePath: string,
+  contents: string,
+): Promise<void> => {
+  // A failed earlier write is not this write's failure.
+  await settlePath(filePath).catch(() => undefined);
+  await writeAtomically(filePath, contents);
+  paths.delete(filePath);
+};
+
 const diskIsUnchanged = (filePath: string, entry: IPathState): boolean => {
   if (!entry.disk) {
     return false;
@@ -197,6 +243,9 @@ export const scheduleWrite = (
   filePath: string,
   contents: string,
 ): Promise<void> => {
+  if (isSealed(filePath)) {
+    return Promise.resolve();
+  }
   const entry = paths.get(filePath);
   if (entry) {
     if (
@@ -303,6 +352,10 @@ export const scheduleWriteOperation = (
   key: string,
   work: () => Promise<void>,
 ): Promise<void> => {
+  // Keyed by the config directory the operation writes into.
+  if (isSealed(key)) {
+    return Promise.resolve();
+  }
   const existing = operations.get(key);
   if (existing) {
     existing.pending = work;

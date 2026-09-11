@@ -128,6 +128,58 @@
   SetRegView Default
 !macroend
 
+; Overwrite FluidEQ's root config file in one engine directory with the root
+; both engines read as "nothing to do" — comments only, no Device: block, no
+; Include: — and only where FluidEQ had written one. The app writes the same
+; thing when it quits (src/main/engineQuitReset.ts); the uninstaller cannot
+; count on that, because the app may have been ended rather than quit.
+!macro NeutraliseFluidEqRoot Dir
+  ${If} ${FileExists} "${Dir}\fluideq.txt"
+    ClearErrors
+    FileOpen $R9 "${Dir}\fluideq.txt" w
+    ${If} ${Errors}
+      !insertmacro InstallLog "Could not turn FluidEQ's EQ off in ${Dir}."
+    ${Else}
+      FileWrite $R9 "# Written by the FluidEQ uninstaller.$\r$\n# FluidEQ engine disabled; no Equalizer APO rules are active."
+      FileClose $R9
+      !insertmacro InstallLog "Turned FluidEQ's EQ off in ${Dir}."
+    ${EndIf}
+  ${EndIf}
+!macroend
+
+; No output keeps FluidEQ's EQ after FluidEQ is gone — whichever engine was
+; carrying it, and whatever happens next. Equalizer APO is often kept (the
+; question below defaults to No), and it goes on applying whatever
+; fluideq.txt tells it; the FluidEQ Engine stays attached if its removal is
+; declined at the UAC prompt, and it goes on applying the same file plus its
+; DSP rack. So both are turned off first, unconditionally, and the removals
+; that follow are free to succeed or not.
+!macro NeutraliseEngineConfigs
+  Push $R0
+  Push $R9
+  ReadEnvStr $R0 PROGRAMDATA
+  ${If} $R0 != ""
+    !insertmacro NeutraliseFluidEqRoot "$R0\FluidEQ\engine\config"
+    ; Read outside every Device: guard, so the neutral root alone would leave
+    ; the rack running.
+    Delete "$R0\FluidEQ\engine\config\fluideq-dsp.txt"
+  ${EndIf}
+
+  ; The native view first, for the same reason as ReadApoUninstallString.
+  SetRegView 64
+  ReadRegStr $R0 HKLM "Software\EqualizerAPO" "ConfigPath"
+  ${If} $R0 == ""
+    SetRegView 32
+    ReadRegStr $R0 HKLM "Software\EqualizerAPO" "ConfigPath"
+  ${EndIf}
+  SetRegView Default
+  ${If} $R0 != ""
+    !insertmacro NeutraliseFluidEqRoot "$R0"
+  ${EndIf}
+  Pop $R9
+  Pop $R0
+!macroend
+
 ; The ten translations. The charset is named at the include because this file
 ; is read in the machine's ANSI code page otherwise; engine-strings.nsh says
 ; the rest.
@@ -387,6 +439,8 @@ at any time from the button inside the app."
   ; one. Asking whether to tear out the audio engine in the middle of that is
   ; both alarming and wrong, so this only runs on a real uninstall.
   ${IfNot} ${isUpdated}
+    !insertmacro NeutraliseEngineConfigs
+
     ; Ours goes first, and without a question. The engine is a FluidEQ
     ; component that nothing else uses, and `uninstall` puts every output's
     ; effect list back to the backup it took before attaching — so leaving it
