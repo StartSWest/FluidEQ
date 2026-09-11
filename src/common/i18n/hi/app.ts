@@ -209,6 +209,9 @@ const app: Partial<Dictionary> = {
   'restart.running': 'ऑडियो फिर चालू हो रहा है…',
   'restart.failed': 'Windows ऑडियो फिर से चालू नहीं हो सका।',
   'restart.tryAgain': 'फिर कोशिश करें',
+  'restart.close': 'बंद करें',
+  'restart.declined':
+    'Windows अनुमति नहीं दी गई, इसलिए ऑडियो फिर से चालू नहीं हुआ।',
   'update.title': 'FluidEQ अपडेट',
   'update.available': 'संस्करण {version} उपलब्ध है। अभी डाउनलोड हो रहा है।',
   'update.downloading': 'अपडेट डाउनलोड हो रहा है… {percent}%',

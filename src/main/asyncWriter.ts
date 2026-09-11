@@ -58,6 +58,51 @@ const observed = (promise: Promise<void>): Promise<void> => {
   return promise;
 };
 
+/**
+ * The codes a rename comes back with when a reader holds the file it would
+ * replace. The engine's watcher opens every config file the moment anything
+ * in its folder changes — this writer's own temporary file included — and a
+ * plain rename cannot replace a file with a handle on it, even one opened
+ * with delete sharing (EPERM). EBUSY is the same collision with a reader that
+ * did not share delete at all, which is how Equalizer APO opens its files.
+ */
+const REPLACE_BLOCKED = new Set(['EPERM', 'EACCES', 'EBUSY']);
+
+const errorCode = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return undefined;
+  }
+  const { code } = error as { code: unknown };
+  return typeof code === 'string' ? code : undefined;
+};
+
+/**
+ * The same contents written over the file where it stands, for when the
+ * rename was refused because somebody is reading it.
+ *
+ * Without this the refused rename was simply lost, and the last position of
+ * a drag could be the one that never reached the engine: the screen said one
+ * EQ and the speakers played the one before, until something else changed.
+ * The engine opens with write sharing, so this succeeds where the rename
+ * could not, and the write itself wakes the engine's watcher again after the
+ * reader is done — the reload that follows reads the finished file. Written
+ * first and cut to length after, never truncated first: an empty file is the
+ * pass-through blip the rename exists to prevent.
+ */
+const overwriteInPlace = async (
+  filePath: string,
+  contents: string,
+): Promise<void> => {
+  const bytes = Buffer.from(contents, 'utf8');
+  const handle = await fs.promises.open(filePath, 'r+');
+  try {
+    await handle.write(bytes, 0, bytes.length, 0);
+    await handle.truncate(bytes.length);
+  } finally {
+    await handle.close();
+  }
+};
+
 /** Publish a complete file. The native engine reads concurrently with saves;
  * truncating the live file briefly turns a device's EQ into pass-through. */
 const writeAtomically = async (
@@ -74,7 +119,14 @@ const writeAtomically = async (
     }
     // Same directory, so the replacement stays on the same filesystem.
     // Readers with an open handle finish reading the previous complete file.
-    await fs.promises.rename(temporary, filePath);
+    try {
+      await fs.promises.rename(temporary, filePath);
+    } catch (error) {
+      if (!REPLACE_BLOCKED.has(errorCode(error) ?? '')) {
+        throw error;
+      }
+      await overwriteInPlace(filePath, contents);
+    }
   } finally {
     await fs.promises.rm(temporary, { force: true });
   }

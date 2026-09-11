@@ -214,6 +214,9 @@ const app: Partial<Dictionary> = {
   'restart.running': 'Перезапуск звука…',
   'restart.failed': 'Не удалось перезапустить звук Windows.',
   'restart.tryAgain': 'Попробовать снова',
+  'restart.close': 'Закрыть',
+  'restart.declined':
+    'Разрешение Windows отклонено, поэтому звук не был перезапущен.',
   'update.title': 'Обновление FluidEQ',
   'update.available': 'Доступна версия {version}. Загружается.',
   'update.downloading': 'Загрузка обновления… {percent}%',

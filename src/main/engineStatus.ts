@@ -155,6 +155,26 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
 };
 
 /**
+ * The `installed` the helper actually printed, or nothing when it printed no
+ * such field — which `parseFluidEngineStatus` deliberately cannot tell apart
+ * from "not installed", because the status dialog wants one answer either
+ * way. The flush gate is the one reader that must tell them apart.
+ */
+const answeredInstalled = (stdout: string): boolean | undefined => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stdout.trim());
+  } catch {
+    return undefined;
+  }
+  if (typeof parsed !== 'object' || parsed === null) {
+    return undefined;
+  }
+  const { installed } = parsed as IRawStatus;
+  return typeof installed === 'boolean' ? installed : undefined;
+};
+
+/**
  * `execFile`'s own `maxBuffer` option only truncates output when a callback
  * is passed to it — this module reads `stdout`/`stderr` by hand instead (see
  * `runEngineSetup`'s own comment on the same point), so `maxBuffer` here
@@ -226,7 +246,7 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
       resolve({ installed: false, endpoints: [] });
     });
 
-    child.on('close', () => {
+    child.on('close', (code: number | null) => {
       if (settled) {
         return;
       }
@@ -244,10 +264,16 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         return;
       }
       const status = parseFluidEngineStatus(stdout);
-      // Only a status the helper actually produced: the fallbacks above are
-      // "could not ask", which must not turn into "not installed" for every
-      // flush that follows.
-      noteFluidEngineRegistered(status.installed);
+      // Only the helper's own yes or no reaches the flush gate. Its
+      // `{"error":…}` document (exit 3: the audio stack could not be asked,
+      // which happens mid-restart and at login before Audiosrv is up) also
+      // parses to "not installed", and caching that refused every EQ change
+      // under 'fluid' — and made a switch to Equalizer APO skip neutralising
+      // the engine that was still running, so both processed the sound.
+      const answer = code === 0 ? answeredInstalled(stdout) : undefined;
+      if (answer !== undefined) {
+        noteFluidEngineRegistered(answer);
+      }
       resolve(status);
     });
   });

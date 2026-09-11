@@ -93,4 +93,24 @@ describe('the audio troubleshooter', () => {
     expect(button('Remove from this output')).toBeNull();
     expect(button('Open Device Selector')).toBeNull();
   });
+
+  // The restart card opens over this panel and handles its own Escape; one
+  // press used to close both and lose the record of what had been tried.
+  it('leaves an Escape alone that a card in front already handled', () => {
+    const props = handlers();
+    renderPanel('fluid', props);
+
+    const handled = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    });
+    handled.preventDefault();
+    document.body.dispatchEvent(handled);
+    expect(props.onClose).not.toHaveBeenCalled();
+
+    // Positive control: an Escape nobody handled still closes the panel.
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
 });

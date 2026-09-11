@@ -204,6 +204,8 @@ const app: Partial<Dictionary> = {
   'restart.running': '正在重启音频…',
   'restart.failed': '无法重启 Windows 音频。',
   'restart.tryAgain': '重试',
+  'restart.close': '关闭',
+  'restart.declined': 'Windows 权限被拒绝，因此音频未重启。',
   'update.title': 'FluidEQ 更新',
   'update.available': '有新版本 {version}，正在下载。',
   'update.downloading': '正在下载更新… {percent}%',

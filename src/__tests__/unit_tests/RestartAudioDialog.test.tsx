@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import en from 'common/i18n/en';
 import RestartAudioDialog from 'renderer/components/RestartAudioDialog';
 
@@ -14,7 +14,13 @@ const restartButton = () =>
 
 describe('RestartAudioDialog', () => {
   it('asks in the app, with the loud style on the restart', () => {
-    render(<RestartAudioDialog onRestart={jest.fn()} onClose={jest.fn()} />);
+    render(
+      <RestartAudioDialog
+        phase="ask"
+        onRestart={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(screen.getByText(en['notice.restartConfirm'])).toBeInTheDocument();
@@ -26,67 +32,106 @@ describe('RestartAudioDialog', () => {
     expect(restartButton()).toHaveFocus();
   });
 
-  it('closes on Cancel and on Escape, but never mid-restart', async () => {
+  // A vendor service that hangs on its way up used to leave the card on
+  // "Restarting audio…" with every way out disabled. Closing now sends the
+  // restart to the background instead.
+  it('can be closed while Windows is still restarting', () => {
     const onClose = jest.fn();
-    let finish: (error: string) => void = () => {};
-    const onRestart = jest.fn(
-      () =>
-        new Promise<string>((resolve) => {
-          finish = resolve;
-        }),
+    const onRestart = jest.fn();
+    render(
+      <RestartAudioDialog
+        phase="running"
+        onRestart={onRestart}
+        onClose={onClose}
+      />,
     );
-    render(<RestartAudioDialog onRestart={onRestart} onClose={onClose} />);
 
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onClose).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(restartButton());
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    // Progress from the first second: the button breathes and the foot says
-    // what is happening, because Windows takes seconds to answer.
     expect(restartButton()).toHaveClass('is-running');
     expect(screen.getByText(en['restart.running'])).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: en['config.cancel'] }),
-    ).toBeDisabled();
+    const close = screen.getByRole('button', { name: en['restart.close'] });
+    expect(close).toBeEnabled();
+    expect(close).toHaveFocus();
 
-    finish('');
-    await waitFor(() =>
-      expect(screen.getByText(en['notice.restartDone'])).toBeInTheDocument(),
-    );
-    const ok = screen.getByRole('button', { name: en['whatsNew.ok'] });
-    expect(ok).toHaveFocus();
-    fireEvent.click(ok);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    fireEvent.click(close);
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it('shows the reason it failed and offers to try again', async () => {
-    const onRestart = jest
-      .fn()
-      .mockResolvedValueOnce('Windows said no')
-      .mockResolvedValueOnce('');
-    render(<RestartAudioDialog onRestart={onRestart} onClose={jest.fn()} />);
-
-    fireEvent.click(restartButton());
-    expect(await screen.findByText(en['restart.failed'])).toBeInTheDocument();
-    expect(screen.getByText('Windows said no')).toBeInTheDocument();
-
-    const again = screen.getByRole('button', { name: en['restart.tryAgain'] });
-    fireEvent.click(again);
-    expect(onRestart).toHaveBeenCalledTimes(2);
+  it('says in the language on screen that permission was declined', () => {
+    render(
+      <RestartAudioDialog
+        phase="failed"
+        outcome={{ ok: false, declined: true }}
+        onRestart={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(screen.getByText(en['restart.declined'])).toBeInTheDocument();
+    expect(screen.queryByText(en['restart.failed'])).not.toBeInTheDocument();
     expect(
-      await screen.findByText(en['notice.restartDone']),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Windows said no')).not.toBeInTheDocument();
+      screen.getByRole('button', { name: en['restart.tryAgain'] }),
+    ).toHaveFocus();
   });
 
-  it('refuses a second press while the first is still in flight', () => {
-    const onRestart = jest.fn(() => new Promise<string>(() => {}));
-    render(<RestartAudioDialog onRestart={onRestart} onClose={jest.fn()} />);
+  it('shows the helper’s reason under a failure', () => {
+    render(
+      <RestartAudioDialog
+        phase="failed"
+        outcome={{
+          ok: false,
+          declined: false,
+          detail: 'Audiosrv started and then stopped again',
+        }}
+        onRestart={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(screen.getByText(en['restart.failed'])).toBeInTheDocument();
+    expect(
+      screen.getByText('Audiosrv started and then stopped again'),
+    ).toBeInTheDocument();
+  });
 
-    fireEvent.click(restartButton());
-    fireEvent.click(restartButton());
-    expect(onRestart).toHaveBeenCalledTimes(1);
+  it('closes with its OK once the restart is done', () => {
+    const onClose = jest.fn();
+    render(
+      <RestartAudioDialog
+        phase="done"
+        outcome={{ ok: true, declined: false }}
+        onRestart={jest.fn()}
+        onClose={onClose}
+      />,
+    );
+    expect(screen.getByText(en['notice.restartDone'])).toBeInTheDocument();
+    const ok = screen.getByRole('button', { name: en['whatsNew.ok'] });
+    expect(ok).toHaveFocus();
+    fireEvent.click(ok);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // The troubleshooter underneath listens on the document, subscribed
+  // before the card was, and heard every Escape first.
+  it('keeps its Escape from the listeners behind it', () => {
+    const behind = jest.fn();
+    document.addEventListener('keydown', behind);
+    try {
+      const { unmount } = render(
+        <RestartAudioDialog
+          phase="ask"
+          onRestart={jest.fn()}
+          onClose={jest.fn()}
+        />,
+      );
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(behind).not.toHaveBeenCalled();
+      unmount();
+
+      // Positive control: with the card gone, the same key reaches them.
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(behind).toHaveBeenCalledTimes(1);
+    } finally {
+      document.removeEventListener('keydown', behind);
+    }
   });
 });

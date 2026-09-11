@@ -42,9 +42,11 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
   // Every refusal below is logged: a refused lock is an output Windows
   // quietly plays unprocessed, and the format it offered is the only clue.
   if (input_count != 1 || output_count != 1) {
-    trace(endpoint_.guid, "lock refused: " + std::to_string(input_count) +
-                              " inputs and " + std::to_string(output_count) +
-                              " outputs; this effect takes one of each");
+    trace_built(endpoint_.guid, [&] {
+      return "lock refused: " + std::to_string(input_count) + " inputs and " +
+             std::to_string(output_count) +
+             " outputs; this effect takes one of each";
+    });
     return APOERR_NUM_CONNECTIONS_INVALID;
   }
   if (inputs == nullptr || outputs == nullptr || inputs[0] == nullptr ||
@@ -69,9 +71,10 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
            (format.acceptable ? "" : " (not float32, or too many channels)");
   };
   if (!input_format.acceptable || !output_format.acceptable) {
-    trace(endpoint_.guid, "lock refused: format in " +
-                              describe(input_format) + ", out " +
-                              describe(output_format));
+    trace_built(endpoint_.guid, [&] {
+      return "lock refused: format in " + describe(input_format) + ", out " +
+             describe(output_format);
+    });
     return APOERR_FORMAT_NOT_SUPPORTED;
   }
   // The registration flags told the audio engine these must agree; checking
@@ -79,9 +82,10 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
   // channel count and writing another.
   if (input_format.channels != output_format.channels ||
       input_format.rate != output_format.rate) {
-    trace(endpoint_.guid, "lock refused: in " + describe(input_format) +
-                              " does not match out " +
-                              describe(output_format));
+    trace_built(endpoint_.guid, [&] {
+      return "lock refused: in " + describe(input_format) +
+             " does not match out " + describe(output_format);
+    });
     return APOERR_FORMAT_NOT_SUPPORTED;
   }
   if (in.u32MaxFrameCount == 0) {
@@ -89,10 +93,11 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
     return APOERR_INVALID_CONNECTION_FORMAT;
   }
   if (out.u32MaxFrameCount < in.u32MaxFrameCount) {
-    trace(endpoint_.guid, "lock refused: output holds " +
-                              std::to_string(out.u32MaxFrameCount) +
-                              " frames, input up to " +
-                              std::to_string(in.u32MaxFrameCount));
+    trace_built(endpoint_.guid, [&] {
+      return "lock refused: output holds " +
+             std::to_string(out.u32MaxFrameCount) + " frames, input up to " +
+             std::to_string(in.u32MaxFrameCount);
+    });
     return APOERR_INVALID_OUTPUT_MAXFRAMECOUNT;
   }
   if (in.pBuffer == 0 || out.pBuffer == 0) {

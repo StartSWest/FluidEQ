@@ -70,6 +70,50 @@ describe('background file writes', () => {
     expect(write).not.toHaveBeenCalled();
   });
 
+  // The engine's watcher holds a config file open while it reads it, and a
+  // rename cannot replace a file somebody has open. The refused rename used
+  // to be the end of that save, so the last position of a drag could be the
+  // one that never reached the speakers.
+  it('writes in place when a reader holds the file a save would replace', async () => {
+    fs.writeFileSync(file, 'the old chain, longer than the new one');
+    const blocked = Object.assign(new Error('operation not permitted'), {
+      code: 'EPERM',
+    });
+    jest.spyOn(fs.promises, 'rename').mockRejectedValueOnce(blocked);
+
+    await scheduleWrite(file, 'new chain');
+
+    // Cut to the new length, so nothing of the longer old file survives.
+    expect(fs.readFileSync(file, 'utf8')).toBe('new chain');
+    // And no temporary file is left in the folder the engine watches.
+    expect(fs.readdirSync(directory)).toEqual(['profile.txt']);
+  });
+
+  it('lands the save with a real reader holding the file open', async () => {
+    fs.writeFileSync(file, 'old');
+    const reader = fs.openSync(file, 'r');
+    try {
+      await scheduleWrite(file, 'saved while being read');
+    } finally {
+      fs.closeSync(reader);
+    }
+    expect(fs.readFileSync(file, 'utf8')).toBe('saved while being read');
+  });
+
+  // The positive control: only "somebody has it open" falls back. A disk
+  // that is full is a failed save and has to stay one.
+  it('still fails a save whose rename failed for any other reason', async () => {
+    fs.writeFileSync(file, 'kept');
+    const full = Object.assign(new Error('no space left on device'), {
+      code: 'ENOSPC',
+    });
+    jest.spyOn(fs.promises, 'rename').mockRejectedValueOnce(full);
+    jest.spyOn(log, 'error').mockImplementation(() => undefined);
+
+    await expect(scheduleWrite(file, 'lost')).rejects.toBe(full);
+    expect(fs.readFileSync(file, 'utf8')).toBe('kept');
+  });
+
   it('coalesces a drag to its latest value while a write is in flight', async () => {
     const gate = deferred();
     const original = fs.promises.writeFile.bind(fs.promises);

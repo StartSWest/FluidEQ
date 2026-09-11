@@ -109,7 +109,10 @@ export default function AudioTroubleshooter({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      // A card opened from one of these steps — "Restart Windows audio" —
+      // handles its own Escape and marks it handled. Closing here as well
+      // shut both with one press and lost the record of what had been tried.
+      if (event.key === 'Escape' && !event.defaultPrevented) {
         onClose();
       }
     };

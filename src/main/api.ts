@@ -31,6 +31,7 @@ import type {
   IKaraokeMakerExportResult,
 } from '../common/karaoke/makerPersistence';
 import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
+import type { IAudioRestartOutcome } from '../common/audioEngine';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
@@ -136,7 +137,7 @@ const openEqualizerApoSettings = () =>
   ipcRenderer.invoke('open-equalizer-apo-settings') as Promise<string>;
 
 const restartWindowsAudio = () =>
-  ipcRenderer.invoke('restart-windows-audio') as Promise<string>;
+  ipcRenderer.invoke('restart-windows-audio') as Promise<IAudioRestartOutcome>;
 
 /** A native message box owned by the window; resolves when it is dismissed. */
 const showNativeMessage = (message: string) =>
