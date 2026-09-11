@@ -1,0 +1,26 @@
+diff --git a/index.js b/index.js
+index c741263829040a395c37ff1207a7a24a719af39d..8001bca48fbcca95265c59a0dc42b330e5ed9a9b 100644
+--- a/index.js
++++ b/index.js
+@@ -268,6 +268,21 @@ module.exports = (pattern, {
+       return;
+     }
+ 
++    // FluidEQ patch: on Windows the root watcher is recursive, so it is told
++    // about every path in the tree -- worktrees, package stores, node_modules
++    // -- and used to stat each one before asking whether it was watched at
++    // all. A worktree's package store being torn down answered that stat with
++    // EPERM, which rejected this listener's promise and killed `pnpm dev`.
++    // A path that is neither known nor wanted is none of this watcher's
++    // business, so it is dropped before anything touches the disk.
++    if (
++      type !== EV_DISCOVER &&
++      !dirs.has(changepath) &&
++      !shouldWatch(changepath, absolutePatterns)
++    ) {
++      return;
++    }
++
+     const stats = await stat(changepath);
+ 
+     // this is a known directory that no longer exists, remove it

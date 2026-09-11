@@ -15,6 +15,7 @@ overrides:
 patchedDependencies:
   '@huggingface/transformers@3.7.6': 4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275
   music-metadata@11.14.0: 72bb58a6ec2f697221c65bd5cef07a65c4c916ba6702d21c37b62b3c8110b57b
+  watchboy@0.4.3: 38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659
 
 importers:
 
@@ -10831,7 +10832,7 @@ snapshots:
       chalk: 3.0.0
       import-from: 3.0.0
       runtime-required: 1.1.0
-      watchboy: 0.4.3
+      watchboy: 0.4.3(patch_hash=38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659)
 
   emittery@0.13.1: {}
 
@@ -15137,7 +15138,7 @@ snapshots:
     dependencies:
       makeerror: 1.0.12
 
-  watchboy@0.4.3:
+  watchboy@0.4.3(patch_hash=38a0fe91b903b79e17cb6d8957dfa0b9b1034d76a72aa1cb24ef46db3efec659):
     dependencies:
       lodash.difference: 4.5.0
       micromatch: 4.0.8
