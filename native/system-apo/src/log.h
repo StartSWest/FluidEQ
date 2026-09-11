@@ -61,6 +61,28 @@ class Log {
  */
 void trace(const std::wstring& endpoint_guid, std::string_view message) noexcept;
 
+/** The empty tag `trace` reads as `{no endpoint}`, without building a string. */
+const std::wstring& no_endpoint() noexcept;
+
+/**
+ * `trace` for a message that has to be built first.
+ *
+ * Building one allocates, and a `std::bad_alloc` thrown while building it at
+ * the call site escaped `CreateInstance` and `LockForProcess` into
+ * audiodg.exe — the one failure this effect may never cause, and in
+ * `CreateInstance` after the host had already been handed a reference. The
+ * builder runs inside the same no-throw boundary as the write instead.
+ */
+template <typename Build>
+void trace_built(const std::wstring& endpoint_guid, Build&& build) noexcept {
+  try {
+    trace(endpoint_guid, build());
+  } catch (...) {
+    // Out of memory while building the line: the line is lost, the host's
+    // call is not.
+  }
+}
+
 /** `{XXXXXXXX-XXXX-...}` for a log line; a GUID that will not format is "?". */
 std::string guid_text(const GUID& id);
 

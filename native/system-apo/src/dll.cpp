@@ -78,12 +78,14 @@ class Factory final : public IClassFactory {
     // The first line the log ever gets from a host: without it, an effect
     // the audio engine never creates and one it creates and then drops are
     // the same empty file.
-    trace(L"", (SUCCEEDED(asked) ? (outer == nullptr
+    trace_built(no_endpoint(), [&] {
+      return (SUCCEEDED(asked) ? (outer == nullptr
                                       ? "created standalone, as "
                                       : "created aggregated, as ")
-                                 : "created, but the host asked for an "
-                                   "interface this effect does not offer: ") +
-                   guid_text(riid));
+                               : "created, but the host asked for an "
+                                 "interface this effect does not offer: ") +
+             guid_text(riid);
+    });
     return asked;
   }
 

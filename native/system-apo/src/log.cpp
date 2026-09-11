@@ -98,6 +98,13 @@ std::string guid_text(const GUID& id) {
   return to_utf8(text);
 }
 
+const std::wstring& no_endpoint() noexcept {
+  // Default construction of a wide string does not allocate, so this cannot
+  // throw where every other way of spelling an empty tag at a call site can.
+  static const std::wstring empty;
+  return empty;
+}
+
 void trace(const std::wstring& endpoint_guid,
            std::string_view message) noexcept {
   try {
