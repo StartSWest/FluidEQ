@@ -488,6 +488,7 @@ const eq: Partial<Dictionary> = {
     '{range}: cuánto discrepa, frente a lo que hace falta para actuar',
   'eq.smart.gap.countdown': 'escribe en {seconds}s',
   'convolution.eyebrow': 'RESPUESTAS AL IMPULSO DE APO',
+  'convolution.eyebrow.fluid': 'RESPUESTAS AL IMPULSO',
   'convolution.title': 'Biblioteca de convolución',
   'convolution.intro':
     'Descarga un impulso de fase mínima verificado para tus auriculares y aplícalo antes del EQ paramétrico. La gráfica de abajo muestra ambas curvas.',
@@ -499,7 +500,9 @@ const eq: Partial<Dictionary> = {
   'convolution.searchPlaceholder':
     'Prueba con «Kraken», «HD 650» o el nombre de un laboratorio',
   'convolution.notice':
-    'El catálogo descargable lo proporciona AutoEq. Los archivos se importan como WAV de 48 kHz porque Equalizer APO exige que la respuesta al impulso coincida con la frecuencia de muestreo de la salida activa.',
+    'El catálogo descargable lo proporciona AutoEq. Cada descarga coincide con la frecuencia a la que Windows hace funcionar tu salida (44,1 o 48 kHz), porque Equalizer APO solo aplica una respuesta al impulso a esa frecuencia.',
+  'convolution.notice.fluid':
+    'El catálogo descargable lo proporciona AutoEq. Cada descarga coincide con la frecuencia a la que Windows hace funcionar tu salida, y el Motor FluidEQ convierte él mismo cualquier otra frecuencia.',
   'convolution.loading': 'Cargando el catálogo oficial…',
   'convolution.empty':
     'No hay respuestas al impulso que coincidan. Prueba con un nombre más corto.',

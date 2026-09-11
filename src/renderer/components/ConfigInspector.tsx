@@ -35,6 +35,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
+import { useCurrentEngine } from '../utils/audioEngineContext';
 import { LAYER_SWATCH } from '../styles/color';
 import '../styles/ConfigInspector.scss';
 
@@ -248,6 +249,7 @@ const ConfigFileNode = ({
   unwrittenLayers?: IApoConfigLayer[];
 }) => {
   const { t } = useTranslation();
+  const isFluid = useCurrentEngine() === 'fluid';
   // Open on arrival. There are never more than a handful and the whole point
   // of coming here is to see them; a tree that must be unfolded before it says
   // anything is a worse answer than the five files it is hiding.
@@ -416,7 +418,9 @@ const ConfigFileNode = ({
               {saveError && <p className="config-node__error">{saveError}</p>}
               <div className="config-node__actions">
                 <span className="config-node__hint">
-                  {t('config.hint.saving')}
+                  {t(
+                    isFluid ? 'config.hint.saving.fluid' : 'config.hint.saving',
+                  )}
                 </span>
                 <button type="button" onClick={() => setDraft(undefined)}>
                   {t('config.cancel')}
@@ -487,6 +491,9 @@ const splitLabel = (device: IApoConfigDevice) => {
 
 const ConfigInspector = () => {
   const { t } = useTranslation();
+  // The page shows whichever engine's folder the app writes to; its words
+  // have to name that engine, not the one that used to be the only choice.
+  const isFluid = useCurrentEngine() === 'fluid';
   const {
     isEnabled,
     bypassed,
@@ -710,7 +717,9 @@ const ConfigInspector = () => {
       <div className="config-inspector__bar">
         <div className="config-inspector__title">
           <span className="eyebrow">{t('config.eyebrow')}</span>
-          <h2 id="config-title">{t('config.title')}</h2>
+          <h2 id="config-title">
+            {t(isFluid ? 'config.title.fluid' : 'config.title')}
+          </h2>
           <p className="config-inspector__lede">{t('config.lede')}</p>
         </div>
         {/* Icon and label, sized like the rest of the app's controls. A bare
@@ -733,7 +742,9 @@ const ConfigInspector = () => {
       </div>
 
       {state.status === 'absent' && (
-        <p className="config-inspector__note">{t('config.absent')}</p>
+        <p className="config-inspector__note">
+          {t(isFluid ? 'config.absent.fluid' : 'config.absent')}
+        </p>
       )}
       {state.status === 'failed' && (
         <p className="config-inspector__note config-inspector__note--error">
@@ -753,24 +764,36 @@ const ConfigInspector = () => {
               any different from a flat chain when all you can see is files. */}
           {!state.tree.isIncludedByApo && (
             <p className="config-status config-status--off">
-              {t('config.status.notIncluded')}
+              {t(
+                isFluid
+                  ? 'config.status.notIncluded.fluid'
+                  : 'config.status.notIncluded',
+              )}
             </p>
           )}
           {state.tree.isIncludedByApo && !state.tree.isApplied && (
             <p className="config-status config-status--off">
-              {t('config.status.engineOff')}
+              {t(
+                isFluid
+                  ? 'config.status.engineOff.fluid'
+                  : 'config.status.engineOff',
+              )}
             </p>
           )}
           {state.tree.isIncludedByApo && state.tree.isApplied && (
             <p className="config-status config-status--on">
-              {t('config.status.active')}
+              {t(
+                isFluid ? 'config.status.active.fluid' : 'config.status.active',
+              )}
             </p>
           )}
 
           <div
             className="config-inspector__cards"
             role="tablist"
-            aria-label={t('config.outputsAria')}
+            aria-label={t(
+              isFluid ? 'config.outputsAria.fluid' : 'config.outputsAria',
+            )}
           >
             {devices.map((device) => {
               const { output, profile } = splitLabel(device);

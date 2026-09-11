@@ -251,11 +251,13 @@ const app: Partial<Dictionary> = {
   'sidebar.preampAuto':
     '自動で設定されます。自分で決めるには自動ノーマライズをオフにしてください。',
   'sidebar.headroom': 'APO ヘッドルーム',
+  'sidebar.headroom.fluid': 'ヘッドルーム',
   'sidebar.autoPreamp': '自動ノーマライズ',
   'sidebar.visualizer': 'ビジュアライザー',
   'sidebar.graphView': '周波数特性',
   'config.eyebrow': 'エンジンが実際に読むもの',
   'config.title': 'Equalizer APO の設定',
+  'config.title.fluid': 'FluidEQ エンジンの設定',
   'config.lede':
     'いま実際にディスクにある内容です。FluidEQ の意図ではありません。',
   'config.reload': '再読み込み',
@@ -263,12 +265,21 @@ const app: Partial<Dictionary> = {
   'config.reading': '読み込み中…',
   'config.absent':
     'FluidEQ はこの Equalizer APO にまだ何も書き込んでいません。',
+  'config.absent.fluid':
+    'FluidEQ はまだ FluidEQ エンジンの設定を書き込んでいません。',
   'config.status.notIncluded':
     'Equalizer APO はこの設定を読み込んでいません。以下は何も適用されていません。',
+  'config.status.notIncluded.fluid':
+    'FluidEQ エンジンはこの設定を読み込んでいません。以下は何も適用されていません。',
   'config.status.engineOff':
-    'FluidEQ のエンジンがオフです。この設定は出力を一つも指定していないため、Equalizer APO は何も適用しません。',
+    'システム EQ がオフです。この設定は出力を一つも指定していないため、Equalizer APO は何も適用しません。',
+  'config.status.engineOff.fluid':
+    'システム EQ がオフです。この設定は出力を一つも指定していないため、FluidEQ エンジンは何も適用しません。',
   'config.status.active': '有効 — Equalizer APO がこの設定を適用しています。',
+  'config.status.active.fluid':
+    '有効 — FluidEQ エンジンがこの設定を適用しています。',
   'config.outputsAria': 'Equalizer APO の設定にある出力',
+  'config.outputsAria.fluid': 'FluidEQ エンジンの設定にある出力',
   'config.filters.one': 'フィルター {count} 個',
   'config.filters.many': 'フィルター {count} 個',
   'config.impulse': 'インパルス応答',
@@ -291,6 +302,8 @@ const app: Partial<Dictionary> = {
   'config.hint.generated': '自動生成 — 次の変更で書き直されます。',
   'config.hint.saving':
     '保存するとファイルに書き込まれ、Equalizer APO が読み取ります。',
+  'config.hint.saving.fluid':
+    '保存するとファイルに書き込まれ、FluidEQ エンジンが読み取ります。',
   'config.edit': '編集',
   'config.cancel': 'キャンセル',
   'config.save': '保存',

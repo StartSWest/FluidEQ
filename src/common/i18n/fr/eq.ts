@@ -488,6 +488,7 @@ const eq: Partial<Dictionary> = {
     '{range} : son désaccord, face au seuil requis pour agir',
   'eq.smart.gap.countdown': 'écrit dans {seconds}s',
   'convolution.eyebrow': 'RÉPONSES IMPULSIONNELLES APO',
+  'convolution.eyebrow.fluid': 'RÉPONSES IMPULSIONNELLES',
   'convolution.title': 'Bibliothèque de convolution',
   'convolution.intro':
     'Téléchargez une réponse impulsionnelle à phase minimale vérifiée pour votre casque et appliquez-la avant l’égaliseur paramétrique. La courbe ci-dessous affiche les deux.',
@@ -499,7 +500,9 @@ const eq: Partial<Dictionary> = {
   'convolution.searchPlaceholder':
     'Essayez « Kraken », « HD 650 » ou le nom d’un laboratoire',
   'convolution.notice':
-    'Le catalogue téléchargeable est fourni par AutoEq. Les fichiers sont importés en WAV 48 kHz : Equalizer APO exige que la réponse impulsionnelle corresponde à la fréquence d’échantillonnage de la sortie active.',
+    'Le catalogue téléchargeable est fourni par AutoEq. Chaque téléchargement correspond à la fréquence à laquelle Windows fait fonctionner votre sortie (44,1 ou 48 kHz) : Equalizer APO n’applique une réponse impulsionnelle qu’à cette fréquence.',
+  'convolution.notice.fluid':
+    'Le catalogue téléchargeable est fourni par AutoEq. Chaque téléchargement correspond à la fréquence à laquelle Windows fait fonctionner votre sortie, et le moteur FluidEQ convertit lui-même toute autre fréquence.',
   'convolution.loading': 'Chargement du catalogue officiel…',
   'convolution.empty':
     'Aucune réponse impulsionnelle ne correspond. Essayez un nom plus court.',

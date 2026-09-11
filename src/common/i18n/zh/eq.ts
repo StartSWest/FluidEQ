@@ -456,6 +456,7 @@ const eq: Partial<Dictionary> = {
   'eq.smart.gap.title': '{range}：偏差程度，对照采取行动所需的阈值',
   'eq.smart.gap.countdown': '{seconds} 秒后写入',
   'convolution.eyebrow': 'APO 脉冲响应',
+  'convolution.eyebrow.fluid': '脉冲响应',
   'convolution.title': '卷积库',
   'convolution.intro':
     '下载经过验证的最小相位耳机脉冲响应，在参数均衡之前应用。下方的频响图会同时显示两条曲线。',
@@ -466,7 +467,9 @@ const eq: Partial<Dictionary> = {
   'convolution.search': '搜索耳机型号',
   'convolution.searchPlaceholder': '试试“Kraken”“HD 650”或某个测量机构',
   'convolution.notice':
-    '可下载的目录由 AutoEq 提供。文件按 48 kHz WAV 导入，因为 Equalizer APO 要求脉冲响应与当前输出的采样率一致。',
+    '可下载的目录由 AutoEq 提供。每次下载都与 Windows 运行你的输出所用的采样率（44.1 或 48 kHz）一致，因为 Equalizer APO 只会以该采样率应用脉冲响应。',
+  'convolution.notice.fluid':
+    '可下载的目录由 AutoEq 提供。每次下载都与 Windows 运行你的输出所用的采样率一致，其他采样率由 FluidEQ 引擎自行转换。',
   'convolution.loading': '正在加载官方目录…',
   'convolution.empty': '没有匹配的脉冲响应，试试更短的型号名。',
   'convolution.source': '来源',

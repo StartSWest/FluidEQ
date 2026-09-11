@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcMain } from 'electron';
 import log from 'electron-log';
 import {
+  IAudioDevice,
   IFiltersMap,
   IOpraProduct,
   IOpraUpdateStatus,
@@ -58,6 +59,8 @@ export interface IReferencesIpcDeps {
     configPath: string;
     activeAudioDeviceId: string;
     audioEngine: TAudioEngine | null;
+    /** Its rate picks which of AutoEq's two impulse files to download. */
+    activeAudioDevice?: IAudioDevice;
   };
 
   /** Bounds a published curve so a bad measurement cannot silence the output. */
@@ -232,6 +235,7 @@ export const registerReferencesIpc = ({
       state.convolution = await downloadConvolution(
         entryId,
         session.configPath,
+        session.activeAudioDevice?.sampleRate,
       );
       await handleUpdate(event, channel, false, true);
     } catch (error) {

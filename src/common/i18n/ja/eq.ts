@@ -476,6 +476,7 @@ const eq: Partial<Dictionary> = {
   'eq.smart.gap.title': '{range}: ずれの大きさと、動くために必要な量',
   'eq.smart.gap.countdown': '{seconds}秒後に適用',
   'convolution.eyebrow': 'APO インパルス応答',
+  'convolution.eyebrow.fluid': 'インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',
   'convolution.intro':
     '検証済みの最小位相インパルス応答をダウンロードし、パラメトリック EQ の前段に適用します。下のグラフには両方の曲線が出ます。',
@@ -487,7 +488,9 @@ const eq: Partial<Dictionary> = {
   'convolution.searchPlaceholder':
     '「Kraken」「HD 650」や測定元の名前で試してください',
   'convolution.notice':
-    'ダウンロード可能なカタログは AutoEq が提供しています。Equalizer APO はインパルス応答が出力のサンプリング周波数と一致することを要求するため、48 kHz WAV として取り込みます。',
+    'ダウンロード可能なカタログは AutoEq が提供しています。Equalizer APO はインパルス応答を出力のサンプリング周波数でしか適用しないため、各ダウンロードは Windows が出力を動かしている周波数 (44.1 kHz または 48 kHz) に合わせます。',
+  'convolution.notice.fluid':
+    'ダウンロード可能なカタログは AutoEq が提供しています。各ダウンロードは Windows が出力を動かしているサンプリング周波数に合わせ、それ以外の周波数は FluidEQ エンジンが自動で変換します。',
   'convolution.loading': '公式カタログを読み込んでいます…',
   'convolution.empty':
     '一致するインパルス応答がありません。機種名を短くしてみてください。',
