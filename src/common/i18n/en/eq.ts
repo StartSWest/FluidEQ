@@ -174,6 +174,10 @@ const eq = {
     'Enabling it for {device} asks for Windows permission and restarts audio for a moment. No reboot.',
   'output.enable': 'Enable',
   'output.notNow': 'Not now',
+  'output.noEffectsTitle': 'No EQ can reach this output',
+  'output.noEffectsBody':
+    'Windows runs no audio effects on {device}, so no equalizer can change it — Remote Desktop audio is one such output. To hear your EQ, play through the PC’s own speakers or headphones.',
+  'output.gotIt': 'Got it',
   'output.none': 'No active outputs found',
   'output.mapping': 'Automatic mapping',
   'output.mapping.neutral': 'Neutral output',

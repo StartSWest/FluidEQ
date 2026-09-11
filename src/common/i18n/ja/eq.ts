@@ -167,6 +167,10 @@ const eq: Partial<Dictionary> = {
     '{device} で有効にすると Windows の許可を求め、音声が一瞬だけ再起動します。PC の再起動は不要です。',
   'output.enable': '有効にする',
   'output.notNow': '後で',
+  'output.noEffectsTitle': 'この出力には EQ をかけられません',
+  'output.noEffectsBody':
+    'Windows は {device} でオーディオ効果を実行しないため、どのイコライザーでも変更できません（リモート デスクトップの音声がこの例です）。EQ を聴くには、PC 本体のスピーカーやヘッドホンで再生してください。',
+  'output.gotIt': 'OK',
   'output.none': '有効な出力が見つかりません',
   'output.mapping': '自動割り当て',
   'output.mapping.neutral': '無処理の出力',

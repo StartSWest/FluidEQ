@@ -172,6 +172,10 @@ const eq: Partial<Dictionary> = {
     'Activarlo para {device} pide permiso a Windows y reinicia el audio un instante. Sin reiniciar el equipo.',
   'output.enable': 'Activar',
   'output.notNow': 'Ahora no',
+  'output.noEffectsTitle': 'Ningún EQ puede llegar a esta salida',
+  'output.noEffectsBody':
+    'Windows no aplica efectos de audio en {device}, así que ningún ecualizador puede cambiarla; el audio de Escritorio remoto es una salida así. Para oír tu EQ, reproduce por los altavoces o auriculares del propio PC.',
+  'output.gotIt': 'Entendido',
   'output.none': 'No se han encontrado salidas activas',
   'output.mapping': 'Asignación automática',
   'output.mapping.neutral': 'Salida neutra',

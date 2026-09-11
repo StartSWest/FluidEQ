@@ -171,6 +171,10 @@ const eq: Partial<Dictionary> = {
     'L’activer pour {device} demande une autorisation à Windows et coupe l’audio un instant. Aucun redémarrage.',
   'output.enable': 'Activer',
   'output.notNow': 'Plus tard',
+  'output.noEffectsTitle': 'Aucun EQ ne peut agir sur cette sortie',
+  'output.noEffectsBody':
+    'Windows n’applique aucun effet audio sur {device}, donc aucun égaliseur ne peut la modifier : l’audio du Bureau à distance en est un exemple. Pour entendre votre EQ, écoutez sur les haut-parleurs ou le casque du PC lui-même.',
+  'output.gotIt': 'Compris',
   'output.none': 'Aucune sortie active trouvée',
   'output.mapping': 'Association automatique',
   'output.mapping.neutral': 'Sortie neutre',

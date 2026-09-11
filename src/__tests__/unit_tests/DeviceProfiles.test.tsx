@@ -206,3 +206,66 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });
+
+// Remote Desktop's audio is listed as an output, reads "not attached" under
+// both engines — it has no effect slots at all — and used to be offered a
+// repair that failed with "there is no output with the id…".
+describe('DeviceProfiles on an output Windows runs no effects on', () => {
+  const remoteAudio = {
+    id: 'remote',
+    name: 'Remote Audio',
+    guid: '{6C26BA7D-F0B2-4225-B422-8168C5261E45}',
+    isDefault: true,
+    isActive: true,
+    isEqualizerApoAttached: false,
+    isFluidEngineAttached: false,
+    canHostEffects: false,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each<TAudioEngine>(['fluid', 'apo'])(
+    'says no EQ can reach it, and offers no repair, under %s',
+    async (engine) => {
+      const { onAttachFluidEngine, onConfigureApo } = renderProfiles({
+        engine,
+        device: remoteAudio,
+      });
+
+      const notice = await screen.findByRole('alertdialog');
+      expect(notice).toHaveTextContent(en['output.noEffectsTitle']);
+      expect(notice).toHaveTextContent('Remote Audio');
+      expect(
+        screen.queryByRole('button', { name: en['output.enable'] }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: en['output.apoConfigure'] }),
+      ).not.toBeInTheDocument();
+      // The EQ is not on this output, so the picker still says OFF.
+      expect(screen.getAllByText(en['output.off'])).toHaveLength(2);
+
+      fireEvent.click(screen.getByRole('button', { name: en['output.gotIt'] }));
+      await waitFor(() =>
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      );
+      expect(onAttachFluidEngine).not.toHaveBeenCalled();
+      expect(onConfigureApo).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps the repair for an output whose answer could not be read', async () => {
+    renderProfiles({
+      engine: 'fluid',
+      device: { ...remoteAudio, name: 'USB Speakers', canHostEffects: null },
+    });
+
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+      en['output.engineMissingTitle'],
+    );
+    expect(
+      screen.getByRole('button', { name: en['output.enable'] }),
+    ).toBeInTheDocument();
+  });
+});

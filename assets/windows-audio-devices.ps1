@@ -34,6 +34,14 @@ public static class AquaAudioDevices
     private const string CompositeEndpointEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15";
     private const string CompositeModeEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14";
 
+    // Where Windows keeps each output that audio effects can run on, and the
+    // only place either engine attaches: the helper looks nowhere else, and
+    // neither does Equalizer APO's Device Selector. Remote Desktop's audio is
+    // enumerated as an output like any other, but its key is under
+    // RemoteRender instead, with no FxProperties at all.
+    private const string RenderEndpointsKey =
+        @"SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render\";
+
     [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
     private class MMDeviceEnumeratorComObject { }
 
@@ -172,7 +180,32 @@ public static class AquaAudioDevices
         public bool isActive { get; set; }
         public Nullable<bool> isEqualizerApoAttached { get; set; }
         public Nullable<bool> isFluidEngineAttached { get; set; }
+        public Nullable<bool> canHostEffects { get; set; }
         public Nullable<int> sampleRate { get; set; }
+    }
+
+    // The two probes below answer "not attached" for an output with no key
+    // under Render at all, which is true and useless: it offered a repair —
+    // attach the engine, open the Device Selector — that can never work on
+    // an output Windows runs no effects on. This is the question underneath.
+    private static Nullable<bool> CanHostEffects(string deviceGuid)
+    {
+        try
+        {
+            using (var machine = RegistryKey.OpenBaseKey(
+                RegistryHive.LocalMachine,
+                RegistryView.Registry64))
+            using (var endpoint = machine.OpenSubKey(RenderEndpointsKey + deviceGuid))
+            {
+                return endpoint != null;
+            }
+        }
+        catch
+        {
+            // Unknown, as in the probes below: a locked registry must not
+            // declare a real output unfixable.
+            return null;
+        }
     }
 
     private static bool ContainsEqualizerApoClsid(object rawValue)
@@ -203,8 +236,7 @@ public static class AquaAudioDevices
                 RegistryHive.LocalMachine,
                 RegistryView.Registry64))
             using (var properties = machine.OpenSubKey(
-                @"SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render\" +
-                deviceGuid + @"\FxProperties"))
+                RenderEndpointsKey + deviceGuid + @"\FxProperties"))
             {
                 if (properties == null)
                     return false;
@@ -258,8 +290,7 @@ public static class AquaAudioDevices
                 RegistryHive.LocalMachine,
                 RegistryView.Registry64))
             using (var properties = machine.OpenSubKey(
-                @"SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render\" +
-                deviceGuid + @"\FxProperties"))
+                RenderEndpointsKey + deviceGuid + @"\FxProperties"))
             {
                 if (properties == null)
                     return false;
@@ -329,6 +360,7 @@ public static class AquaAudioDevices
                 isActive = (state & 1) == 1,
                 isEqualizerApoAttached = IsEqualizerApoAttached(guid),
                 isFluidEngineAttached = IsFluidEngineAttached(guid),
+                canHostEffects = CanHostEffects(guid),
                 sampleRate = ReadSampleRate(store)
             });
         }

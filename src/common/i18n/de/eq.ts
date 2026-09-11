@@ -171,6 +171,10 @@ const eq: Partial<Dictionary> = {
     'Die Aktivierung für {device} fragt Windows um Erlaubnis und startet den Ton kurz neu. Kein Neustart des PCs.',
   'output.enable': 'Aktivieren',
   'output.notNow': 'Jetzt nicht',
+  'output.noEffectsTitle': 'Kein EQ erreicht diesen Ausgang',
+  'output.noEffectsBody':
+    'Windows führt auf {device} keine Audioeffekte aus, daher kann kein Equalizer ihn verändern – Remotedesktop-Audio ist so ein Ausgang. Um deinen EQ zu hören, spiele über die eigenen Lautsprecher oder Kopfhörer des PCs ab.',
+  'output.gotIt': 'Verstanden',
   'output.none': 'Keine aktiven Ausgänge gefunden',
   'output.mapping': 'Automatische Zuordnung',
   'output.mapping.neutral': 'Neutrale Ausgabe',

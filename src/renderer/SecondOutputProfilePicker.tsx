@@ -6,6 +6,7 @@ import Dropdown from './widgets/Dropdown';
 import { useTranslation } from './utils/I18nContext';
 import { assignDeviceProfile } from './utils/equalizerApi';
 import { reportError } from './utils/logger';
+import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 
 interface IProps {
   device: IAudioDevice;
@@ -116,12 +117,10 @@ const SecondOutputProfilePicker = ({
         isDisabled={busy || !loaded || names.length === 0}
         handleChange={select}
       />
-      {/* The engine in use decides which answer counts. Reading Equalizer
-          APO's under the FluidEQ Engine put an OFF badge on every output of
-          a machine that has no Equalizer APO and does not need one. */}
-      {(engine === 'fluid'
-        ? device.isFluidEngineAttached
-        : device.isEqualizerApoAttached) === false && (
+      {/* The engine in use decides which answer counts, and an output
+          Windows runs no effects on is off under both — see
+          `outputEngineState`. */}
+      {isOutputOff(outputEngineState(device, engine)) && (
         <span className="apo-badge">{t('output.off')}</span>
       )}
       {error && (

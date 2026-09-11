@@ -122,4 +122,28 @@ describe('the OFF badge under the FluidEQ Engine', () => {
     );
     expect(screen.getByText(en['output.off'])).toBeInTheDocument();
   });
+
+  // Remote Desktop's audio: no effect slots, so nothing is processing it
+  // whichever engine is chosen, even if a flag were to say otherwise.
+  it('shows OFF on an output Windows runs no effects on', async () => {
+    render(
+      <SecondOutputProfilePicker
+        device={{
+          ...device,
+          isFluidEngineAttached: true,
+          canHostEffects: false,
+        }}
+        engine="fluid"
+        presetName="Warm"
+        onChanged={jest.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('menu')).toHaveAttribute(
+        'aria-disabled',
+        'false',
+      ),
+    );
+    expect(screen.getByText(en['output.off'])).toBeInTheDocument();
+  });
 });

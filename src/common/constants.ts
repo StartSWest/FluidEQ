@@ -817,6 +817,17 @@ export interface IAudioDevice {
    */
   isFluidEngineAttached?: boolean | null;
   /**
+   * Whether Windows runs audio effects on this output at all.
+   *
+   * `false` for an output with no endpoint key under `MMDevices\Audio\Render`,
+   * which is the only place either engine can attach. Remote Desktop's audio
+   * is the case that exists: it is listed as an output like any other, but it
+   * lives under `RemoteRender` with no effect slots, so both flags above read
+   * `false` there and the repair they led to could never work. `null`/missing
+   * means Windows could not answer, the same convention as those flags.
+   */
+  canHostEffects?: boolean | null;
+  /**
    * The rate Windows runs this output at in shared mode — its "Default
    * Format" in Sound settings, and so the rate every system effect on it,
    * the FluidEQ Engine included, processes at. Missing when Windows did not

@@ -165,6 +165,10 @@ const eq: Partial<Dictionary> = {
     '为 {device} 启用时会请求 Windows 授权，并让音频短暂重启。无需重启电脑。',
   'output.enable': '启用',
   'output.notNow': '暂不',
+  'output.noEffectsTitle': '均衡器无法作用于此输出',
+  'output.noEffectsBody':
+    'Windows 不会在 {device} 上运行音频效果，因此任何均衡器都无法更改它——远程桌面音频就是这样的输出。要听到你的 EQ，请通过电脑自带的扬声器或耳机播放。',
+  'output.gotIt': '知道了',
   'output.none': '未找到活动的输出设备',
   'output.mapping': '自动绑定',
   'output.mapping.neutral': '无处理输出',

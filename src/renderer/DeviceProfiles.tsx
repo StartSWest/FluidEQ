@@ -22,6 +22,7 @@ import SidebarSection from './components/SidebarSection';
 import { IOptionEntry } from './widgets/List';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
+import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -156,25 +157,12 @@ const DeviceProfiles = ({
     [devices, selectedDeviceId],
   );
   const isFluid = engine === 'fluid';
-  const isApo = engine === 'apo';
-  /**
-   * Whichever engine is in use, and only that one.
-   *
-   * `undefined`/`null` on either flag means Windows could not answer, not that
-   * the engine is absent — an explicit `false` is the only thing that warns.
-   * Reading the other engine's flag would send somebody who is running the
-   * FluidEQ Engine into Equalizer APO's Device Selector for an output that is
-   * being processed perfectly well. `engine === null` (status not answered
-   * yet) reads neither flag: with no engine known there is no repair to name.
-   */
-  let isEngineMissing = false;
-  if (isFluid) {
-    isEngineMissing = selectedDevice?.isFluidEngineAttached === false;
-  } else if (isApo) {
-    isEngineMissing = selectedDevice?.isEqualizerApoAttached === false;
-  }
+  // Whichever engine is in use, and only an explicit answer from Windows —
+  // see `outputEngineState`.
+  const engineState = outputEngineState(selectedDevice, engine);
+  const cannotHostEffects = engineState === 'no-effects';
   const showEngineNotice =
-    isEngineMissing && dismissedApoDeviceId !== selectedDevice?.id;
+    isOutputOff(engineState) && dismissedApoDeviceId !== selectedDevice?.id;
 
   useEffect(() => {
     setDismissedApoDeviceId('');
@@ -238,6 +226,25 @@ const DeviceProfiles = ({
     setIsAttaching(false);
   };
 
+  /** The notice's words for the output it is about. */
+  const noticeCopy = (device: IAudioDevice) => {
+    if (cannotHostEffects) {
+      return {
+        title: t('output.noEffectsTitle'),
+        body: t('output.noEffectsBody', { device: device.name }),
+      };
+    }
+    return isFluid
+      ? {
+          title: t('output.engineMissingTitle'),
+          body: t('output.engineMissingBody', { device: device.name }),
+        }
+      : {
+          title: t('output.apoMissingTitle'),
+          body: t('output.apoMissingBody', { device: device.name }),
+        };
+  };
+
   const deviceOptions: IOptionEntry[] = useMemo(
     () =>
       devices.map((device) => ({
@@ -274,7 +281,7 @@ const DeviceProfiles = ({
               {/* Engine-neutral: the badge says this output is not being
                   processed, and which piece of software is not processing it
                   is the engine dialog's business, not a pill's. */}
-              {isEngineMissing && (
+              {isOutputOff(engineState) && (
                 <span className="apo-badge">{t('output.off')}</span>
               )}
               {selectedDevice?.isDefault && (
@@ -313,16 +320,10 @@ const DeviceProfiles = ({
             <div className="device-apo-notice__copy">
               <span className="apo-badge">{t('output.off')}</span>
               <h2 id="device-apo-notice-title">
-                {isFluid
-                  ? t('output.engineMissingTitle')
-                  : t('output.apoMissingTitle')}
+                {noticeCopy(selectedDevice).title}
               </h2>
               <p id="device-apo-notice-body">
-                {isFluid
-                  ? t('output.engineMissingBody', {
-                      device: selectedDevice.name,
-                    })
-                  : t('output.apoMissingBody', { device: selectedDevice.name })}
+                {noticeCopy(selectedDevice).body}
               </p>
               {attachFailure && (
                 <p className="device-apo-notice__error">
@@ -338,34 +339,52 @@ const DeviceProfiles = ({
               {/* Under the engine this is one Windows prompt and a moment of
                   silence, so it is done from here; under Equalizer APO the
                   only way in is APO's own Device Selector, which is a
-                  different program and a restart. */}
-              {isFluid ? (
+                  different program and a restart. On an output Windows runs
+                  no effects on, there is nothing to do but know it. */}
+              {cannotHostEffects ? (
                 <Button
-                  ariaLabel={t('output.enable')}
-                  isDisabled={isAttaching}
+                  ariaLabel={t('output.gotIt')}
+                  isDisabled={false}
                   className="small"
-                  handleChange={handleEnableEngine}
+                  handleChange={() =>
+                    setDismissedApoDeviceId(selectedDevice.id)
+                  }
                 >
-                  {t('output.enable')}
+                  {t('output.gotIt')}
                 </Button>
               ) : (
-                <Button
-                  ariaLabel={t('output.apoConfigure')}
-                  isDisabled={false}
-                  className="default"
-                  handleChange={handleConfigureApo}
-                >
-                  {t('output.apoConfigure')}
-                </Button>
+                <>
+                  {isFluid ? (
+                    <Button
+                      ariaLabel={t('output.enable')}
+                      isDisabled={isAttaching}
+                      className="small"
+                      handleChange={handleEnableEngine}
+                    >
+                      {t('output.enable')}
+                    </Button>
+                  ) : (
+                    <Button
+                      ariaLabel={t('output.apoConfigure')}
+                      isDisabled={false}
+                      className="default"
+                      handleChange={handleConfigureApo}
+                    >
+                      {t('output.apoConfigure')}
+                    </Button>
+                  )}
+                  <Button
+                    ariaLabel={t('output.notNow')}
+                    isDisabled={false}
+                    className={isFluid ? 'small subtle' : 'subtle'}
+                    handleChange={() =>
+                      setDismissedApoDeviceId(selectedDevice.id)
+                    }
+                  >
+                    {t('output.notNow')}
+                  </Button>
+                </>
               )}
-              <Button
-                ariaLabel={t('output.notNow')}
-                isDisabled={false}
-                className={isFluid ? 'small subtle' : 'subtle'}
-                handleChange={() => setDismissedApoDeviceId(selectedDevice.id)}
-              >
-                {t('output.notNow')}
-              </Button>
             </div>
           </aside>,
           document.body,
