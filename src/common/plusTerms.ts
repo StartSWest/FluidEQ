@@ -14,7 +14,11 @@
  * under the text they were shown.
  */
 
-export const PLUS_TERMS_VERSION = 1;
+/**
+ * 2: the minimum age went from 16 to 18. Version 1 never reached a release,
+ * but an agreement on record has to name one text, not two.
+ */
+export const PLUS_TERMS_VERSION = 2;
 
 /** The day this version took effect, as a calendar date. */
 export const PLUS_TERMS_EFFECTIVE = '2026-09-10';
@@ -31,8 +35,14 @@ export const PLUS_OFFLINE_GRACE_DAYS = 14;
 /** Days after which a closed account and everything tied to it is gone. */
 export const PLUS_ACCOUNT_DELETION_DAYS = 30;
 
-/** The youngest a person may be to create an account. */
-export const PLUS_MINIMUM_AGE = 16;
+/**
+ * The youngest a person may be to create an account.
+ *
+ * Buy Me a Coffee, which takes the payment, requires every account holder to
+ * be 18 or old enough to sign a binding contract. Sixteen here promised a
+ * membership the payment side would not sell.
+ */
+export const PLUS_MINIMUM_AGE = 18;
 
 /** A calendar date (`YYYY-MM-DD`) as a Date at noon UTC, so no zone moves it a day. */
 export const termsEffectiveDate = (): Date =>

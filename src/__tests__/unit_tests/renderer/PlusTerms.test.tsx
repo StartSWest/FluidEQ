@@ -9,7 +9,10 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import type { TBillingOutcome } from '../../../main/ipc/account';
-import { PLUS_TERMS_VERSION } from '../../../common/plusTerms';
+import {
+  PLUS_MINIMUM_AGE,
+  PLUS_TERMS_VERSION,
+} from '../../../common/plusTerms';
 import AccountDialog from '../../../renderer/account/AccountDialog';
 import {
   TERMS_SECTIONS,
@@ -165,6 +168,20 @@ describe('the Plus terms', () => {
     expect(
       screen.getByText(/^terms\.membership\.p3:.*\b14\b/),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        new RegExp(`^terms\\.account\\.p1:.*\\b${PLUS_MINIMUM_AGE}\\b`),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  /**
+   * Buy Me a Coffee, which takes the payment, requires every account holder
+   * to be 18. Terms that let a younger person join promise a membership the
+   * payment side will not sell.
+   */
+  it('never admit anyone younger than the payment side allows', () => {
+    expect(PLUS_MINIMUM_AGE).toBeGreaterThanOrEqual(18);
   });
 
   it('ask for an account before any agreement, and show a member only the text', () => {
