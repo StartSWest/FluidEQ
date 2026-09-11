@@ -112,6 +112,14 @@ const configuration: webpack.Configuration = {
       // variables and must never be added here.
       FLUIDEQ_SIGN_PUBLISHER: '',
       FLUIDEQ_UPDATE_URL: '',
+      // The GitHub App the forum signs in through. Main only, and deliberately
+      // not in `public-env`: nothing in the window needs either value. The
+      // secret is a public client's — GitHub's own guidance for an app on the
+      // user's machine is that it ships inside it and PKCE protects the flow
+      // — but a value only one process uses belongs to that process. Empty
+      // means the forum is read-only, which is right for a fork.
+      FLUIDEQ_GITHUB_CLIENT_ID: '',
+      FLUIDEQ_GITHUB_CLIENT_SECRET: '',
       // The same public values the renderer gets, because `src/common` is read
       // by both and a constant that resolves in one process and comes back
       // empty in the other is a fault nothing reports. PRODUCT_VERSION was

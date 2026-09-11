@@ -152,6 +152,24 @@ describe('the app window content security policy', () => {
     expect(directives(true)['img-src']).toContain('fluideq-media:');
   });
 
+  it("shows the forum's pictures, and only as pictures", () => {
+    // Without these every avatar in the Forum tab falls back to initials and
+    // every screenshot in a post is a broken link. They are image sources and
+    // nothing more: the forum's requests go through the main process, so a
+    // GitHub host in connect-src would be a hole with no feature behind it.
+    [false, true].forEach((isDebug) => {
+      expect(directives(isDebug)['img-src']).toContain('https://github.com');
+      expect(directives(isDebug)['img-src']).toContain(
+        'https://*.githubusercontent.com',
+      );
+      expect(
+        directives(isDebug)['connect-src'].some((source) =>
+          source.includes('github'),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it('states every directive it relies on rather than leaning on the default', () => {
     // default-src is a fallback, and a directive that is merely absent is easy
     // to believe is set. Each of these is written out.

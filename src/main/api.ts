@@ -73,6 +73,15 @@ import type {
   TLeaderboardResult,
 } from './ipc/leaderboard';
 import type { TLeaderboardPeriod } from './usage/leaderboardApi';
+import type {
+  IForumBoards,
+  IForumTopic,
+  IForumTopicPage,
+  IForumTopicQuery,
+  TForumAuthState,
+  TForumPostKind,
+  TForumResult,
+} from '../common/forum/forumTypes';
 import type { TSceneFailure } from './scenePackStore';
 import type { IScenePack } from '../common/scenePacks';
 import type { TBillingOutcome } from './ipc/account';
@@ -1060,6 +1069,68 @@ const onLeaderboardStatus = (
   };
 };
 
+// The forum: the project's GitHub Discussions. Every call answers a result
+// rather than throwing, so the reason something failed survives the bridge.
+const forumState = () =>
+  ipcRenderer.invoke('forum-state') as Promise<TForumAuthState>;
+const forumSignIn = (locale: string) =>
+  ipcRenderer.invoke('forum-sign-in', locale) as Promise<
+    TForumResult<TForumAuthState>
+  >;
+const forumCancelSignIn = () =>
+  ipcRenderer.invoke('forum-sign-in-cancel') as Promise<void>;
+const forumSignOut = () =>
+  ipcRenderer.invoke('forum-sign-out') as Promise<TForumAuthState>;
+const forumBoards = () =>
+  ipcRenderer.invoke('forum-boards') as Promise<TForumResult<IForumBoards>>;
+const forumTopics = (query: IForumTopicQuery) =>
+  ipcRenderer.invoke('forum-topics', query) as Promise<
+    TForumResult<IForumTopicPage>
+  >;
+const forumTopic = (number: number, cursor?: string) =>
+  ipcRenderer.invoke('forum-topic', number, cursor) as Promise<
+    TForumResult<IForumTopic>
+  >;
+const forumCreateTopic = (draft: {
+  board: string;
+  title: string;
+  body: string;
+}) =>
+  ipcRenderer.invoke('forum-create-topic', draft) as Promise<
+    TForumResult<number>
+  >;
+const forumReply = (draft: {
+  topicId: string;
+  body: string;
+  replyToId?: string;
+}) => ipcRenderer.invoke('forum-reply', draft) as Promise<TForumResult<void>>;
+const forumEdit = (draft: { id: string; kind: TForumPostKind; body: string }) =>
+  ipcRenderer.invoke('forum-edit', draft) as Promise<TForumResult<void>>;
+const forumEditTitle = (topicId: string, title: string) =>
+  ipcRenderer.invoke('forum-edit-title', topicId, title) as Promise<
+    TForumResult<void>
+  >;
+const forumDelete = (id: string) =>
+  ipcRenderer.invoke('forum-delete', id) as Promise<TForumResult<void>>;
+const forumUpvote = (id: string, on: boolean) =>
+  ipcRenderer.invoke('forum-upvote', id, on) as Promise<
+    TForumResult<{ upvotes: number; hasUpvoted: boolean }>
+  >;
+const forumMarkAnswer = (id: string, on: boolean) =>
+  ipcRenderer.invoke('forum-mark-answer', id, on) as Promise<
+    TForumResult<void>
+  >;
+const forumPreview = (body: string) =>
+  ipcRenderer.invoke('forum-preview', body) as Promise<TForumResult<string>>;
+const onForumState = (listener: (state: TForumAuthState) => void) => {
+  const wrapped = (_event: IpcRendererEvent, state: TForumAuthState) =>
+    listener(state);
+  ipcRenderer.on('forum-state-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('forum-state-changed', wrapped);
+  };
+};
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -1220,6 +1291,22 @@ export default {
     leaderboardBoard,
     leaderboardRemoveMe,
     onLeaderboardStatus,
+    forumState,
+    forumSignIn,
+    forumCancelSignIn,
+    forumSignOut,
+    forumBoards,
+    forumTopics,
+    forumTopic,
+    forumCreateTopic,
+    forumReply,
+    forumEdit,
+    forumEditTitle,
+    forumDelete,
+    forumUpvote,
+    forumMarkAnswer,
+    forumPreview,
+    onForumState,
     // Spread rather than nested, so the native engine's calls sit beside every
     // other one here. Its own module because this file is already long enough
     // that a reader has to search it — see the head of `dspHost/bridge.ts`.

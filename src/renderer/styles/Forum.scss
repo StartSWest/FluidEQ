@@ -1,0 +1,359 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Forum tab: the rail's forum-only parts, the head and the toolbar. It
+// stands on the Community tab's grid and rail — `.community`,
+// `.community__rail`, `.community__channel` — so the two neighbouring tabs
+// are one family. The list and the shared chips are in ForumList.scss, the
+// thread in ForumThread.scss and ForumPost.scss, the words in ForumProse.scss
+// and the writing surfaces in ForumComposer.scss.
+
+.forum__main {
+  gap: $spacing-xs;
+}
+
+// ---------------------------------------------------------------- rail
+
+// Where the forum lives, beside the eyebrow: GitHub's mark and its name, in
+// the dim ink — a fact about the room, not a control.
+.forum__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+
+  svg {
+    flex: 0 0 auto;
+    width: 11px;
+    height: 11px;
+  }
+}
+
+.forum__source-word {
+  @include truncate;
+}
+
+// A board's topic count: a quiet number, not the accent pill Community uses
+// for mentions — a count of topics is not a request for attention.
+.forum__count {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 0 6px;
+  color: $text-faint;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 6%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  .community__channel.is-active & {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+// Who is writing, or how to start: the rail's foot, above a rule like the
+// Community's own card.
+.forum__identity {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding: 12px 8px 6px;
+  border-top: 1px solid $border-subtle;
+
+  @container eq-panel (max-width: 600px) {
+    flex: 1 1 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    margin-top: 0;
+    padding: 8px;
+
+    .forum__identity-body {
+      display: none;
+    }
+  }
+
+  // Narrow, the list's own "Sign in to post" sits right under the rail, and
+  // two loud buttons for one action one above the other is one too many.
+  // The waiting card stays: it is the only place to cancel from.
+  &--signed-out {
+    @container eq-panel (max-width: 600px) {
+      display: none;
+    }
+  }
+}
+
+.forum__identity-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.forum__identity-body {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.forum__identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+
+// The GitHub mark inside the sign-in button, sized to the label. An anchor
+// in the read-only build, so the link underline is taken off the button face.
+.forum__github-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Waiting on the browser: a breathing dot, so the card is visibly alive
+// while the person is on GitHub's page.
+.forum__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: 0 0 0 0 color-mix(in srgb, $secondary-default 60%, transparent);
+  animation: forum-pulse 1.6s $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes forum-pulse {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  to {
+    box-shadow: 0 0 0 7px color-mix(in srgb, $secondary-default 0%, transparent);
+  }
+}
+
+.forum__me .community__link {
+  justify-self: end;
+}
+
+// A GitHub picture, round, on a thin ring so light and dark avatars both
+// have an edge against the card.
+.forum__avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: color-mix(in srgb, $white 6%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, $white 12%, transparent),
+    0 2px 8px rgba($black, 0.35);
+
+  &--rail {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+// ---------------------------------------------------------------- head
+
+.forum__head {
+  min-width: 0;
+}
+
+.forum__head-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.forum__new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// A round icon button: refresh, dismiss, edit a title.
+.forum__icon-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: $text-faint;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $text-primary;
+    border-color: $border-subtle;
+    background: color-mix(in srgb, $white 6%, transparent);
+    outline: none;
+  }
+
+  // Turning while a read is in flight: the button that asked says so.
+  &.is-busy svg {
+    color: $secondary-light;
+    animation: forum-spin 0.9s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes forum-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+// ---------------------------------------------------------------- toolbar
+
+.forum__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 2px 2px 0;
+}
+
+// The search box: the field's face on the form, the glyph and the input
+// inside it carrying none of their own — the same arrangement as the
+// Community's message bar.
+.forum__search {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: $control-height-sm;
+  padding: 0 4px 0 10px;
+  border: 1px solid $border-field;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  transition: $transition-control;
+
+  &:focus-within {
+    border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+.forum__search-glyph {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  color: $text-dim;
+}
+
+// Written with the global base's two `:not()`s: one pseudo-class short and
+// the base lights the input on hover inside a box that is already lit.
+input.forum__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  color: $text-primary;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: $text-body;
+
+  &:hover:not(:disabled):not([aria-disabled='true']),
+  &:focus,
+  &:focus-visible {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+  }
+
+  // The browser's own clear cross; the box has one that matches the app.
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+}
+
+// A smaller round button, inside the search box's own height.
+.forum__icon-button.forum__search-clear {
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.forum__filters {
+  flex: 0 0 auto;
+}
+
+// What reading signed out means, said once and quietly above the list.
+.forum__notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 0 4px;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+  }
+}

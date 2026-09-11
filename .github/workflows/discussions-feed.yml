@@ -37,68 +37,177 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Every discussion, every board and every comment — paged, rather than
+      # the first fifty of each. The app's Forum tab reads this file for
+      # anybody who has not signed in to GitHub, and a forum that silently
+      # stops at its fiftieth topic is one whose oldest answers vanish.
       - name: Read the discussions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
           NAME: ${{ github.event.repository.name }}
         run: |
-          gh api graphql -F owner="$OWNER" -F name="$NAME" -f query='
-            query ($owner: String!, $name: String!) {
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const { GH_TOKEN, OWNER, NAME } = process.env;
+
+          const graphql = async (query, variables) => {
+            const response = await fetch('https://api.github.com/graphql', {
+              method: 'POST',
+              headers: {
+                Authorization: `bearer ${GH_TOKEN}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ query, variables }),
+            });
+            const payload = await response.json();
+            if (!response.ok || payload.errors) {
+              throw new Error(JSON.stringify(payload.errors ?? payload));
+            }
+            return payload.data;
+          };
+
+          const PERSON = 'login avatarUrl url';
+          const REPLY = `id bodyText bodyHTML createdAt url isMinimized upvoteCount authorAssociation author { ${PERSON} }`;
+          const COMMENT = `
+            id bodyText bodyHTML createdAt url isAnswer isMinimized upvoteCount authorAssociation
+            author { ${PERSON} }
+            replies(first: 50) { totalCount nodes { ${REPLY} } }`;
+
+          const DISCUSSIONS = `
+            query ($owner: String!, $name: String!, $cursor: String) {
               repository(owner: $owner, name: $name) {
-                discussions(first: 50, orderBy: { field: UPDATED_AT, direction: DESC }) {
+                discussionCategories(first: 25) {
+                  nodes { id name slug emoji emojiHTML description isAnswerable }
+                }
+                discussions(first: 20, after: $cursor, orderBy: { field: UPDATED_AT, direction: DESC }) {
                   totalCount
+                  pageInfo { hasNextPage endCursor }
                   nodes {
-                    number title bodyText bodyHTML createdAt updatedAt upvoteCount url
+                    id number title bodyText bodyHTML createdAt updatedAt upvoteCount url locked
+                    authorAssociation
                     category { name slug emoji emojiHTML }
-                    author { login avatarUrl url }
+                    author { ${PERSON} }
                     answer { id }
                     comments(first: 50) {
                       totalCount
-                      nodes {
-                        id bodyText bodyHTML createdAt url isAnswer
-                        author { login avatarUrl url }
-                        replies(first: 20) {
-                          nodes { id bodyText createdAt url author { login avatarUrl url } }
-                        }
-                      }
+                      pageInfo { hasNextPage endCursor }
+                      nodes { ${COMMENT} }
                     }
                   }
                 }
               }
-            }' > raw.json
+            }`;
+
+          const MORE_COMMENTS = `
+            query ($owner: String!, $name: String!, $number: Int!, $cursor: String) {
+              repository(owner: $owner, name: $name) {
+                discussion(number: $number) {
+                  comments(first: 50, after: $cursor) {
+                    pageInfo { hasNextPage endCursor }
+                    nodes { ${COMMENT} }
+                  }
+                }
+              }
+            }`;
+
+          (async () => {
+            const discussions = [];
+            let categories = [];
+            let totalCount = 0;
+            let cursor = null;
+            do {
+              const data = await graphql(DISCUSSIONS, { owner: OWNER, name: NAME, cursor });
+              const repository = data.repository;
+              categories = repository.discussionCategories.nodes;
+              totalCount = repository.discussions.totalCount;
+              discussions.push(...repository.discussions.nodes);
+              const page = repository.discussions.pageInfo;
+              cursor = page.hasNextPage ? page.endCursor : null;
+            } while (cursor);
+
+            // A thread longer than one page of comments reads the rest of
+            // itself, so no conversation is cut off part way down.
+            for (const discussion of discussions) {
+              let page = discussion.comments.pageInfo;
+              while (page.hasNextPage) {
+                const data = await graphql(MORE_COMMENTS, {
+                  owner: OWNER,
+                  name: NAME,
+                  number: discussion.number,
+                  cursor: page.endCursor,
+                });
+                const more = data.repository.discussion.comments;
+                discussion.comments.nodes.push(...more.nodes);
+                page = more.pageInfo;
+              }
+            }
+
+            fs.writeFileSync(
+              'raw.json',
+              JSON.stringify({ categories, totalCount, discussions }),
+            );
+            console.log(`${discussions.length} discussion(s) read`);
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
 
       - name: Shape it into what the site renders
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
           const raw = JSON.parse(fs.readFileSync('raw.json', 'utf8'));
-          const repo = raw.data.repository.discussions;
 
-          // Only the fields the page draws. Bodies stay as plain text: the site
-          // escapes them before rendering, and shipping GitHub's HTML would put
-          // markup from strangers into the page.
+          // Two readers: fluideq.com and the app's Forum tab. Fields are only
+          // ever added here, never renamed or dropped, because the site reads
+          // the older ones. `body` stays plain text for the site, which
+          // escapes it; `bodyHtml` is GitHub's own rendering, sanitised by
+          // GitHub, and both readers run their own allowlist over it again
+          // before it reaches a page.
           const person = (a) => ({
             login: a?.login ?? 'ghost',
             avatarUrl: a?.avatarUrl ?? null,
             url: a?.url ?? null,
           });
 
+          // The owner is the maker; members and collaborators maintain it.
+          const role = (association) =>
+            association === 'OWNER'
+              ? 'maker'
+              : association === 'MEMBER' || association === 'COLLABORATOR'
+                ? 'maintainer'
+                : 'none';
+
           const reply = (r) => ({
             id: r.id,
             body: r.bodyText ?? '',
+            bodyHtml: r.bodyHTML ?? '',
             createdAt: r.createdAt,
             url: r.url,
+            isMinimized: Boolean(r.isMinimized),
+            upvotes: r.upvoteCount ?? 0,
+            role: role(r.authorAssociation),
             author: person(r.author),
+          });
+
+          const comment = (c) => ({
+            ...reply(c),
+            isAnswer: Boolean(c.isAnswer),
+            replyTotal: c.replies?.totalCount ?? 0,
+            replies: (c.replies?.nodes ?? []).map(reply),
           });
 
           // A topic created through the site arrives here authored by the
           // giscus bot: the bot opens the container, and the person's post is
           // its first comment. The person is the author the page should show,
-          // and their comment is the real opening post.
+          // and their comment is the real opening post. GraphQL names the bot
+          // `giscus`; `giscus[bot]` is its REST spelling, taken as well.
+          const isGiscus = (login) => login === 'giscus' || login === 'giscus[bot]';
           const promoteGiscus = (node) => {
             const comments = node.comments?.nodes ?? [];
-            if ((node.author?.login ?? '') !== 'giscus' || !comments.length) {
+            if (!isGiscus(node.author?.login ?? '') || !comments.length) {
               return { node, opening: null, rest: comments };
             }
             return { node, opening: comments[0], rest: comments.slice(1) };
@@ -106,42 +215,57 @@ jobs:
 
           const feed = {
             generatedAt: new Date().toISOString(),
-            total: repo.totalCount,
-            topics: repo.nodes.map((rawNode) => {
+            total: raw.totalCount,
+            // Every board, including the ones nobody has posted in yet, so a
+            // reader sees where a first topic could go.
+            categories: raw.categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              slug: c.slug,
+              emoji: (c.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
+              description: c.description ?? '',
+              isAnswerable: Boolean(c.isAnswerable),
+            })),
+            topics: raw.discussions.map((rawNode) => {
               const { node, opening, rest } = promoteGiscus(rawNode);
+              const text = (opening ? opening.bodyText : node.bodyText) ?? '';
               return {
-              number: node.number,
-              title: node.title,
-              body: (opening ? opening.bodyText : node.bodyText) ?? '',
-              // GitHub's own rendering of the markdown, sanitized by GitHub
-              // before it ever leaves their API. The site runs its own
-              // allowlist over it again before it touches the page.
-              bodyHtml: (opening ? opening.bodyHTML : node.bodyHTML) ?? '',
-              excerpt: ((opening ? opening.bodyText : node.bodyText) ?? '').replace(/\s+/g, ' ').slice(0, 220),
-              createdAt: node.createdAt,
-              updatedAt: node.updatedAt,
-              upvotes: node.upvoteCount,
-              url: node.url,
-              category: node.category?.name ?? 'General',
-              categorySlug: node.category?.slug ?? 'general',
-              // GitHub returns the shortcode (":pray:") in `emoji`; the real character
-              // is inside emojiHTML. The site renders text, so take the character.
-              emoji: (node.category?.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
-              answered: Boolean(node.answer),
-              // Created through the site: its opening post lives in the widget,
-              // so the page must not render it a second time above it.
-              viaSite: Boolean(opening),
-              replies: Math.max(0, (node.comments?.totalCount ?? 0) - (opening ? 1 : 0)),
-              author: person(opening ? opening.author : node.author),
-              comments: rest.map((c) => ({
-                id: c.id,
-                body: c.bodyText ?? '',
-                createdAt: c.createdAt,
-                url: c.url,
-                isAnswer: Boolean(c.isAnswer),
-                author: person(c.author),
-                replies: (c.replies?.nodes ?? []).map(reply),
-              })),
+                id: node.id,
+                // What an edit of the opening post is addressed to.
+                postId: opening ? opening.id : node.id,
+                number: node.number,
+                title: node.title,
+                body: text,
+                bodyHtml: (opening ? opening.bodyHTML : node.bodyHTML) ?? '',
+                excerpt: text.replace(/\s+/g, ' ').slice(0, 220),
+                createdAt: node.createdAt,
+                updatedAt: node.updatedAt,
+                upvotes: node.upvoteCount,
+                url: node.url,
+                locked: Boolean(node.locked),
+                role: role(opening ? opening.authorAssociation : node.authorAssociation),
+                category: node.category?.name ?? 'General',
+                categorySlug: node.category?.slug ?? 'general',
+                // GitHub returns the shortcode (":pray:") in `emoji`; the real
+                // character is inside emojiHTML, and both readers draw text.
+                emoji: (node.category?.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
+                answered: Boolean(node.answer),
+                // Created through the site: its opening post lives in the
+                // widget, so the page must not render it a second time.
+                viaSite: Boolean(opening),
+                replies: Math.max(0, (node.comments?.totalCount ?? 0) - (opening ? 1 : 0)),
+                author: person(opening ? opening.author : node.author),
+                // What was said under a promoted opening post was said to the
+                // topic, so it reads as the topic's first comments.
+                comments: [
+                  ...(opening?.replies?.nodes ?? []).map((r) => ({
+                    ...reply(r),
+                    isAnswer: false,
+                    replyTotal: 0,
+                    replies: [],
+                  })),
+                  ...rest.map(comment),
+                ],
               };
             }),
           };

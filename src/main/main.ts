@@ -172,6 +172,7 @@ import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { createSampleGallery } from './plus/sampleGallery';
 import { registerCommunityIpc } from './ipc/community';
+import { registerForumIpc } from './ipc/forum';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
@@ -3001,6 +3002,15 @@ const leaderboardIpc = registerLeaderboardIpc({
   sampleContent: developmentSampleCommunity,
 });
 
+// The forum: the project's GitHub Discussions. Independent of the FluidEQ
+// account — reading needs nothing and writing needs a GitHub sign-in — and
+// registering contacts nothing until the Forum tab asks.
+const forumIpc = registerForumIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  logger: log,
+});
+
 registerKaraokeIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
@@ -3287,6 +3297,8 @@ app.on('before-quit', (event) => {
   memberScenesIpc.dispose();
   communityIpc.dispose();
   leaderboardIpc.dispose();
+  // The forum's GitHub sign-in holds a loopback socket for the same reason.
+  forumIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows

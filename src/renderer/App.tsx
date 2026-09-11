@@ -60,6 +60,7 @@ import {
   type TAccountPanelPage,
 } from './account/accountPanel';
 import CommunityPanel from './community/CommunityPanel';
+import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import { useCommunity } from './community/communityStore';
 import ProcessesDialog from './components/ProcessesDialog';
@@ -229,6 +230,7 @@ type TWorkspaceTab =
   | 'library'
   | 'karaoke'
   | 'community'
+  | 'forum'
   | 'config';
 
 /**
@@ -265,6 +267,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'library',
   'karaoke',
   'community',
+  'forum',
   'dsp',
   'share',
   'config',
@@ -673,6 +676,7 @@ const AppContent = () => {
   const isDspTab = activeWorkspaceTab === 'dsp';
   const isShareTab = activeWorkspaceTab === 'share';
   const isCommunityTab = activeWorkspaceTab === 'community';
+  const isForumTab = activeWorkspaceTab === 'forum';
   const unreadMentions = useCommunity().unreadMentions.length;
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
@@ -838,6 +842,20 @@ const AppContent = () => {
           )}
         </button>
       )}
+      {/* In every build, unlike Plus: the forum is the project's GitHub
+          Discussions, readable with no backend and no account at all, so a
+          fork shows it too — and last, beside the channels it complements. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isForumTab}
+        aria-label={t('tabs.forum')}
+        className={`workspace-tab${isForumTab ? ' is-active' : ''}`}
+        onClick={() => selectTopWorkspaceTab('forum')}
+      >
+        <MenuIcon name="forum" />
+        <span className="workspace-tab__label">{t('tabs.forum')}</span>
+      </button>
     </WorkspaceTabStrip>
   );
 
@@ -963,7 +981,10 @@ const AppContent = () => {
     (graphVisibilityByTab?.[activeWorkspaceTab] ??
       (activeWorkspaceTab === 'karaoke' ||
       activeWorkspaceTab === 'library' ||
-      activeWorkspaceTab === 'share'
+      activeWorkspaceTab === 'share' ||
+      // A forum is read top to bottom; a spectrum under the thread takes the
+      // height the conversation needs. Still one switch away.
+      activeWorkspaceTab === 'forum'
         ? false
         : isGraphViewOn));
   const setActiveTabGraphVisibility = useCallback(
@@ -2620,6 +2641,16 @@ const AppContent = () => {
                   onSignIn={() => setAccountDialogPage('home')}
                   onShowGraph={() => selectTopWorkspaceTab('eq')}
                 />
+              </div>
+            )}
+            {activeWorkspaceTab === 'forum' && (
+              // Like Community: the list and the thread scroll inside
+              // themselves, so the panel does not.
+              <div
+                key={activeWorkspaceTab}
+                className="workspace-tab-panel workspace-tab-panel--forum"
+              >
+                <ForumPanel />
               </div>
             )}
             {/* Dimmed with the rest of the group, and still readable.

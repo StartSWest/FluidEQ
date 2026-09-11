@@ -2362,6 +2362,7 @@ $tab-bar-inset: 8px;
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
 .workspace-tab-panel--community,
+.workspace-tab-panel--forum,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
@@ -2551,8 +2552,10 @@ $tab-bar-inset: 8px;
 
 // The community fills the card and does not scroll as a whole: its thread
 // scrolls, its composer stays at the foot. Flex so the panel's child can take
-// the height and no more.
-.workspace-tab-panel--community {
+// the height and no more. The forum is built the same way: its list and its
+// thread each scroll inside themselves.
+.workspace-tab-panel--community,
+.workspace-tab-panel--forum {
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;

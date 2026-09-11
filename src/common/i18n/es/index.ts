@@ -32,6 +32,7 @@ import help from './help';
 import about from './about';
 import account from './account';
 import community from './community';
+import forum from './forum';
 import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
@@ -53,6 +54,7 @@ const es: Partial<Dictionary> = {
   ...about,
   ...account,
   ...community,
+  ...forum,
   ...leaderboard,
   ...terms,
   ...studio,

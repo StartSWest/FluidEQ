@@ -41,6 +41,9 @@ const MODEL_HOSTS = [
   'https://*.xethub.hf.co',
 ].join(' ');
 
+/** Where the Forum tab's pictures come from; see the policy's notes below. */
+const GITHUB_IMAGE_HOSTS = 'https://github.com https://*.githubusercontent.com';
+
 /**
  * The Content-Security-Policy for FluidEQ's own window.
  *
@@ -84,13 +87,20 @@ const MODEL_HOSTS = [
  *    local audio, video and cached covers over its own scheme — resolved by
  *    id against the index in Task 6 and Task 8, never by a path the document
  *    supplies.
+ *  - GitHub's image hosts in img-src, for the Forum tab: people's avatars
+ *    and the pictures in their posts. Images only — a picture cannot run
+ *    anything, and every request the forum makes still goes through the
+ *    main process. `github.com` is there because an attachment's link starts
+ *    there and redirects to `private-user-images.githubusercontent.com`;
+ *    external images in a post arrive through GitHub's own camo proxy, which
+ *    is one of the same hosts, so no third party is ever contacted.
  */
 const contentSecurityPolicy = (isDebug: boolean): string =>
   [
     "default-src 'self'",
     isDebug ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: fluideq-media:",
+    `img-src 'self' data: blob: fluideq-media: ${GITHUB_IMAGE_HOSTS}`,
     "media-src 'self' blob: data: file: fluideq-media:",
     "font-src 'self' data:",
     "worker-src 'self' blob:",

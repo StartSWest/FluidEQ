@@ -1,0 +1,310 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The words of a forum post, as GitHub rendered them and `GithubHtml`
+// rebuilt them: paragraphs, lists, code, quotes, tables, GitHub's alerts and
+// its syntax colours. A step larger than the rest of the UI's text — this is
+// the one place in the app where people read paragraphs.
+
+.forum-prose {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.62;
+  overflow-wrap: anywhere;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  p,
+  ul,
+  ol,
+  dl,
+  blockquote,
+  pre,
+  table,
+  details,
+  .forum-prose__alert {
+    margin: 0 0 0.7em;
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 1.1em 0 0.45em;
+    color: $text-primary;
+    font-weight: $weight-semibold;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.18em;
+  }
+
+  h4 {
+    font-size: 1.08em;
+  }
+
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+
+  strong,
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  a {
+    color: $secondary-light;
+    text-decoration: underline;
+    text-decoration-color: color-mix(
+      in srgb,
+      $secondary-light 35%,
+      transparent
+    );
+    text-underline-offset: 2px;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration-color: currentColor;
+      outline: none;
+    }
+  }
+
+  ul,
+  ol {
+    padding-left: 1.4em;
+  }
+
+  li + li {
+    margin-top: 0.2em;
+  }
+
+  li > ul,
+  li > ol {
+    margin: 0.2em 0 0;
+  }
+
+  hr {
+    height: 1px;
+    margin: 1em 0;
+    border: 0;
+    background: $border-subtle;
+  }
+
+  blockquote {
+    padding: 2px 0 2px 12px;
+    color: $text-faint;
+    border-left: 3px solid
+      color-mix(in srgb, $secondary-default 40%, transparent);
+  }
+
+  code {
+    padding: 0.1em 0.38em;
+    color: $text-primary;
+    border-radius: 5px;
+    background: color-mix(in srgb, $white 8%, transparent);
+    font-family: $font-mono;
+    font-size: 0.88em;
+  }
+
+  pre {
+    padding: 10px 12px;
+    overflow-x: auto;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-s;
+    background: color-mix(in srgb, $black 28%, transparent);
+    font-family: $font-mono;
+    font-size: 0.86em;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-wrap: normal;
+    @include slim-scrollbar;
+
+    code {
+      padding: 0;
+      background: none;
+      font-size: 1em;
+    }
+  }
+
+  kbd {
+    padding: 0.05em 0.4em;
+    border: 1px solid $border-subtle;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    font-family: $font-mono;
+    font-size: 0.85em;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 4px 0;
+    border-radius: $radius-s;
+    box-shadow: 0 6px 18px rgba($black, 0.3);
+  }
+
+  // GitHub wraps an image in a link to itself; the link must not draw an
+  // underline under a picture.
+  a:has(> img) {
+    display: inline-block;
+    text-decoration: none;
+  }
+
+  table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.94em;
+    @include slim-scrollbar;
+  }
+
+  th,
+  td {
+    padding: 5px 10px;
+    border: 1px solid $border-subtle;
+  }
+
+  th {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 4%, transparent);
+    font-weight: $weight-semibold;
+  }
+
+  details {
+    padding: 6px 10px;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-s;
+
+    > summary {
+      color: $text-primary;
+      cursor: pointer;
+    }
+
+    &[open] > summary {
+      margin-bottom: 6px;
+    }
+  }
+
+  del,
+  s {
+    color: $text-dim;
+  }
+
+  mark {
+    color: $surface-base;
+    border-radius: 3px;
+    background: $neon-yellow;
+  }
+}
+
+.forum-prose__mention {
+  font-weight: $weight-semibold;
+  text-decoration: none;
+}
+
+// A task list draws its boxes where the bullets would be.
+.forum-prose ul.forum-prose__tasks {
+  padding-left: 0.2em;
+  list-style: none;
+}
+
+.forum-prose__task {
+  margin: 0 7px 0 0;
+  vertical-align: -1px;
+  accent-color: $secondary-default;
+}
+
+.forum-prose__image-link {
+  display: inline-flex;
+  padding: 3px 10px;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-pill;
+  font-size: $text-small;
+}
+
+// GitHub's alerts: `> [!NOTE]` and its four siblings, each on its own hue.
+.forum-prose__alert {
+  --alert: #{$secondary-light};
+
+  padding: 8px 12px;
+  border-left: 3px solid var(--alert);
+  border-radius: 0 $radius-s $radius-s 0;
+  background: color-mix(in srgb, var(--alert) 8%, transparent);
+
+  &--tip {
+    --alert: #{$neon-lime};
+  }
+
+  &--important {
+    --alert: #{$neon-purple};
+  }
+
+  &--warning {
+    --alert: #{$amber};
+  }
+
+  &--caution {
+    --alert: #{$red};
+  }
+}
+
+.forum-prose__alert-title {
+  color: var(--alert);
+  font-weight: $weight-semibold;
+}
+
+// GitHub's syntax colours, one class per token kind, drawn from the app's own
+// palette and lifted towards white so they read on the dark code well.
+.forum-prose pre {
+  .pl-c {
+    color: $text-dim;
+    font-style: italic;
+  }
+
+  .pl-k {
+    color: color-mix(in srgb, $complementary 62%, $white);
+  }
+
+  .pl-s,
+  .pl-pds,
+  .pl-sr {
+    color: color-mix(in srgb, $analogous-2 62%, $white);
+  }
+
+  .pl-c1,
+  .pl-v,
+  .pl-smi {
+    color: color-mix(in srgb, $neon-cyan 62%, $white);
+  }
+
+  .pl-en,
+  .pl-e {
+    color: color-mix(in srgb, $triadic-1 55%, $white);
+  }
+
+  .pl-ent {
+    color: $secondary-light;
+  }
+}

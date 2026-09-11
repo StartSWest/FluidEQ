@@ -40,7 +40,7 @@ Exact versions are in `package.json` and `pnpm-workspace.yaml`.
 | ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Main                | `src/main/main.ts` (`dev-main.cjs` in dev)                 | Registers `fluideq-media://` before `app.ready`, owns the tray, menus, APO files, updates, and spawns every child below.                                                                                                                               |
 | Preload             | `src/main/preload.ts`                                      | Typed for the renderer by `src/renderer/preload.d.ts`. `dspHost/bridge.ts` uses `import type` only so `child_process` never enters the preload bundle.                                                                                                 |
-| Renderer            | `src/renderer/index.tsx` → `App.tsx`                       | Tabs in order: `eq, presets, voicing, convolution, video, library, karaoke, dsp, share, config`.                                                                                                                                                       |
+| Renderer            | `src/renderer/index.tsx` → `App.tsx`                       | Tabs in order: `eq, presets, voicing, convolution, video, library, karaoke, community, forum, dsp, share, config`.                                                                                                                                     |
 | Native DSP host     | `native/dsp-host/` → `FluidEQ-DSP.exe`                     | Located by `src/main/dspHost/hostPath.ts` (resources dir, then `native/.build/bin`, never cwd). Supervised by `src/main/dspHost/supervisor.ts`: `stopped / starting / ready / failed`, bounded restart budget, started explicitly and never at launch. |
 | LAN capture         | `native/remote-audio-capture/` → `FluidEQ-LAN-Capture.exe` | Windows-only. Spawned by `src/main/nativeCaptureProcess.ts` with `--parent-pid`; captures the system mix excluding its own process tree.                                                                                                               |
 | Library scan worker | `src/main/library/scanWorker.ts`                           | Separate process driven by `scanHost.ts`.                                                                                                                                                                                                              |
@@ -59,9 +59,9 @@ by `.erb/scripts/generate-native-parameters.ts`. Spec:
 **IPC.** Channel names live in `src/common/channels.ts`; the renderer API is
 assembled in `src/main/api.ts` and exposed through the preload. Handlers are
 split across `src/main/ipc/` (one file per surface: `dspHost`, `filters`,
-`karaoke`, `layers`, `library`, `libraryPlaylists`, `outputMirror`, `preamp`,
-`processes`, `profiles`, `references`, `remoteAudio`, `songEq`, `transfer`,
-`updates`, `video`, `window`) with a remainder still in `main.ts`.
+`forum`, `karaoke`, `layers`, `library`, `libraryPlaylists`, `outputMirror`,
+`preamp`, `processes`, `profiles`, `references`, `remoteAudio`, `songEq`,
+`transfer`, `updates`, `video`, `window`) with a remainder still in `main.ts`.
 
 ## Equalizer APO integration
 
@@ -143,6 +143,17 @@ split across `src/main/ipc/` (one file per surface: `dspHost`, `filters`,
 - **Build-time public env.** `.erb/configs/public-env.ts` lists the
   `FLUIDEQ_*` values inlined into the renderer bundle (version, URLs, support
   addresses). They are public by construction; `.env.example` is committed.
+- **Forum.** The Forum tab is the repository's GitHub Discussions
+  (`src/main/forum/`, `src/main/ipc/forum.ts`, `src/renderer/forum/`). Signed
+  out it reads `discussions.json`, which `discussions-feed.yml` publishes on the
+  `discussions-data` branch on every discussion event (the same file
+  fluideq.com reads); signed in it reads and writes through GitHub's GraphQL
+  API with the person's own token. Sign-in is a GitHub App's authorization-code
+  flow with PKCE and a one-shot loopback server (`githubOAuth.ts`), waited on as
+  an event, never polled; the token set is kept under the credential cipher in
+  `forum-github.json`. `FLUIDEQ_GITHUB_CLIENT_ID` / `FLUIDEQ_GITHUB_CLIENT_SECRET`
+  are compiled into main only; with them unset the tab is read-only. Post bodies
+  are rebuilt from an allowlist in `GithubHtml.tsx`, never set as HTML.
 
 ## Directory map
 

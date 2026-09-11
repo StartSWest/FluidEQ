@@ -1,0 +1,291 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// A thread in the Forum tab: the bar above it, its title, and the
+// conversation's shape — the replies hanging on their thread line, the box
+// at the foot. Each post is in ForumPost.scss, the words in ForumProse.scss,
+// the shared chips in ForumList.scss and the writing surfaces in
+// ForumComposer.scss.
+
+.forum__thread-view,
+.forum__compose {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  @include animate(rise-in, $motion-fast);
+
+  // A thread is read, so on a wide card it keeps a reading column — a line
+  // of a post running 1,500px across a 2560 card is a line nobody finds the
+  // start of again. The rules under the bar still span the card.
+  > .forum__thread-bar,
+  > .forum__scroll {
+    padding-inline: max(4px, calc((100% - 940px) / 2));
+  }
+}
+
+.forum__thread-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.forum__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-pill;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+  @include truncate;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    transition: translate $motion-fast $ease-out;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+    outline: none;
+
+    svg {
+      translate: -2px 0;
+    }
+  }
+}
+
+.forum__github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  @container eq-panel (max-width: 520px) {
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+.forum__thread {
+  gap: $spacing-s;
+  padding-top: $spacing-s;
+}
+
+.forum__thread-head {
+  display: grid;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.forum__thread-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// The thread's title: the largest words on the tab, still under the size
+// where `$weight-semibold` stops being a UI weight.
+.forum__thread-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  color: $text-primary;
+  font-size: calc(#{$text-title} * 1.25);
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.forum__title-edit {
+  margin-top: 1px;
+  opacity: 0.6;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.forum__title-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+
+  input {
+    flex: 1 1 260px;
+    min-width: 0;
+    font-size: $text-lead;
+  }
+}
+
+// ---------------------------------------------------------------- thread
+
+.forum__replies-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: $spacing-xs;
+  padding: 0 4px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  &::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: $border-subtle;
+  }
+}
+
+.forum__comments {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forum__comment {
+  display: grid;
+  gap: 6px;
+  scroll-margin: $spacing-l;
+}
+
+// Replies hang off their comment on a thread line drawn down from its
+// avatar, so a long exchange still reads as one conversation.
+.forum__replies {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  margin: 0 0 0 30px;
+  padding: 0 0 0 14px;
+  list-style: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    bottom: 12px;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-default 35%, transparent),
+      color-mix(in srgb, $white 7%, transparent)
+    );
+  }
+
+  @container eq-panel (max-width: 520px) {
+    margin-left: 10px;
+  }
+}
+
+.forum__reply-box {
+  margin-left: 44px;
+  @include animate(rise-in, $motion-fast);
+
+  @container eq-panel (max-width: 520px) {
+    margin-left: 10px;
+  }
+}
+
+.forum__no-replies {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: $spacing-m 0;
+  text-align: center;
+}
+
+.forum__to-github {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  color: $secondary-light;
+  font-size: $text-small;
+  text-decoration: none;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
+
+  &--nested {
+    align-self: start;
+    margin-left: 44px;
+  }
+}
+
+.forum__thread-foot {
+  display: grid;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+  scroll-margin: $spacing-m;
+}
+
+.forum__notice--locked {
+  justify-content: center;
+  padding: 10px;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-s;
+  font-size: $text-small;
+}
+
+.forum__sign-in-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs $spacing-s;
+  padding: 12px 14px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-block 60%, transparent);
+  font-size: $text-body;
+}

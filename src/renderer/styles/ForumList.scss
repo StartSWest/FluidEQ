@@ -1,0 +1,361 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Forum tab's list of topics, and the pieces the list and the thread
+// share: the scroller, the chips, the loading rows and the error bar. The
+// rail, the head and the toolbar are in Forum.scss.
+
+// ---------------------------------------------------------------- list
+
+.forum__list-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-xs;
+  min-height: 0;
+  min-width: 0;
+
+  // On a wide card the list keeps a readable column in the middle and the
+  // rest is air. Padding rather than a max-width, so the scroller itself still
+  // spans the card and its bar stays at the card's edge like every other tab.
+  // The percentage is of this box, which is as wide as each child.
+  > .forum__head,
+  > .forum__toolbar,
+  > .forum__notice,
+  > .forum__scroll {
+    padding-inline: max(4px, calc((100% - 1080px) / 2));
+  }
+}
+
+// The one box in each view that scrolls, under the same soft edges as the
+// Community thread.
+.forum__scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 4px 2px $spacing-s;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    black 10px,
+    black calc(100% - 14px),
+    transparent
+  );
+  @include slim-scrollbar;
+}
+
+.forum__topics {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // A reload over a list already on screen changes nothing here: the rows
+  // stay as they are and the refresh button turning is the whole signal.
+  // Coming back to the window reloads, and a list that dimmed every time the
+  // person alt-tabbed back would flicker for no reason they could see.
+  > li {
+    @include stagger-in(10, 22ms);
+  }
+}
+
+// A topic: who started it, what it is, where it stands. One button, so the
+// whole row is the target.
+.forum__topic {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px 11px 11px;
+  color: inherit;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $white 2.5%, transparent);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    translate $motion-fast $ease-out;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-light 28%, transparent);
+    background: color-mix(in srgb, $secondary-default 6%, transparent);
+    translate: 0 -1px;
+  }
+
+  &:focus-visible {
+    outline: none;
+    @include focus-ring;
+  }
+
+  // Answered: the accent down the left edge — the one thing a person with
+  // the same question scans the list for.
+  &.is-answered::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: -1px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: $secondary-default;
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+
+  .forum__avatar,
+  .community__avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  @container eq-panel (max-width: 520px) {
+    grid-template-columns: 30px minmax(0, 1fr);
+
+    .forum__avatar,
+    .community__avatar {
+      width: 30px;
+      height: 30px;
+    }
+  }
+}
+
+.forum__topic-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+// A step over the rest of the row: the title is what is scanned, and the
+// excerpt under it is read only once a title has caught the eye.
+.forum__topic-title {
+  color: $text-primary;
+  font-size: calc(#{$text-lead} * 1.08);
+  font-weight: $weight-semibold;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  transition: color $motion-fast $ease-out;
+
+  .forum__topic:hover & {
+    color: $white;
+  }
+}
+
+.forum__topic-excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: color-mix(in srgb, $text-faint 70%, transparent);
+  font-size: $text-small;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.forum__topic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+  margin-top: 3px;
+}
+
+.forum__byline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.forum__login {
+  color: $text-faint;
+  font-weight: $weight-medium;
+}
+
+// Replies and upvotes, stacked in a narrow column at the right of the row.
+.forum__topic-stats {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  padding-top: 1px;
+
+  @container eq-panel (max-width: 520px) {
+    display: none;
+  }
+}
+
+// A count in a small pill of its own. Replies light when there are any —
+// a topic somebody has answered reads differently from one waiting.
+.forum__stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 46px;
+  padding: 2px 8px 2px 7px;
+  color: $text-dim;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 4%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.is-lit {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 13%, transparent);
+  }
+}
+
+.forum__more {
+  align-self: center;
+  margin-top: $spacing-s;
+}
+
+// ---------------------------------------------------------------- chips
+
+.forum__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font: inherit;
+  font-size: $text-micro;
+  font-weight: $weight-medium;
+  line-height: 1.6;
+  white-space: nowrap;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &--answer {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &--quiet {
+    color: $text-dim;
+  }
+
+  // The answered chip in a thread's head is a button: it scrolls to the
+  // answer.
+  &:is(button) {
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $secondary-light;
+      outline: none;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- loading
+
+.forum__topic--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.forum__skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 4%, transparent) 20%,
+    color-mix(in srgb, $white 9%, transparent) 50%,
+    color-mix(in srgb, $white 4%, transparent) 80%
+  );
+  background-size: 300% 100%;
+  animation: forum-shimmer 1.4s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  &--avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+
+  &--title {
+    width: 55%;
+    height: 12px;
+  }
+
+  &--line {
+    width: 85%;
+    height: 9px;
+    margin-top: 4px;
+  }
+
+  &--meta {
+    width: 30%;
+    height: 8px;
+    margin-top: 6px;
+  }
+}
+
+@keyframes forum-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+// ---------------------------------------------------------------- errors
+
+.forum__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding: 7px 6px 7px 12px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $amber 45%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 10%, transparent);
+  font-size: $text-small;
+  line-height: 1.45;
+  @include animate(rise-in, $motion-fast);
+}
+
+.forum__error-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}

@@ -131,6 +131,11 @@ const PATHS: Record<string, string> = {
   // was only the community's chat.
   plusTab:
     'M10.5 3.5Q11.4 9.6 17.5 10.5 11.4 11.4 10.5 17.5 9.6 11.4 3.5 10.5 9.6 9.6 10.5 3.5zM18.5 15.5v6M15.5 18.5h6',
+  // The forum: a bubble with a second behind it, GitHub's own picture for
+  // Discussions. The back one is only its right and lower edges, set clear of
+  // the front one — a full overlapping pair reads as a blot at 13px.
+  forum:
+    'M4.5 4h10a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H9l-3.5 3v-3h-1a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM18.5 8h1a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-1v3l-3.5-3H11',
   // A luggage tag with its eyelet: what a genre actually is — a label stuck
   // on the record by whoever tagged it, not a property of the music. The
   // other shelf glyphs draw the thing they list; this one draws the tag,

@@ -1,0 +1,309 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Writing in the Forum tab: the markdown editor, the reply and edit boxes
+// built on it, and the form that starts a topic.
+
+// ---------------------------------------------------------------- editor
+
+// One control: the bar of modes and marks, the box, the line of hints. The
+// frame lights on focus, not the box inside, the way the Community's message
+// bar does — the whole thing is what is being typed into.
+.forum-editor {
+  display: grid;
+  min-width: 0;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 5%, transparent);
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  &:focus-within {
+    border-color: $border-field-focus;
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  &.is-disabled {
+    opacity: 0.7;
+  }
+}
+
+.forum-editor__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 6px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.forum-editor__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+}
+
+.forum-editor__tool {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 8%, transparent);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+}
+
+// The box grows with what is written, between a line or three and a height
+// that still leaves the thread above it in view; past that it scrolls.
+// Written with the global control base's `:not()`s, which light every
+// textarea on hover at exactly that specificity.
+textarea.forum-editor__input {
+  min-height: 92px;
+  max-height: 340px;
+  padding: 10px 12px;
+  color: $text-primary;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: $text-lead;
+  line-height: 1.55;
+  resize: none;
+  field-sizing: content;
+  @include slim-scrollbar;
+
+  &::placeholder {
+    color: $text-dim;
+  }
+
+  &:hover:not(:disabled):not([aria-disabled='true']),
+  &:focus,
+  &:focus-visible {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:disabled {
+    background: transparent;
+  }
+}
+
+.forum-editor__preview {
+  min-height: 92px;
+  max-height: 340px;
+  padding: 10px 12px;
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.forum-editor__preview-note {
+  color: $text-dim;
+  font-size: $text-small;
+}
+
+.forum-editor__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  padding: 5px 12px 6px;
+  color: $text-dim;
+  border-top: 1px solid color-mix(in srgb, $white 4%, transparent);
+  font-size: $text-micro;
+}
+
+// ---------------------------------------------------------------- composer
+
+.forum-composer {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.forum-composer__context {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+.forum-composer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+// ---------------------------------------------------------------- new topic
+
+.forum__compose-body {
+  gap: $spacing-m;
+  padding: $spacing-s 4px $spacing-m;
+}
+
+.forum__field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  input {
+    width: 100%;
+    font-size: $text-lead;
+  }
+}
+
+.forum__label {
+  padding: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.02em;
+}
+
+// The boards as a row of choices with their pictures: all visible at once,
+// because which room a topic goes in decides who reads it.
+.forum__board-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.forum__board-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: $control-height-sm;
+  padding: 0 14px 0 10px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    outline: none;
+  }
+
+  &.is-selected {
+    color: $white;
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 22%, transparent);
+
+    svg {
+      color: $secondary-light;
+    }
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+}
+
+.forum__guidance {
+  margin: 0;
+  padding: 8px 12px;
+  color: $text-muted;
+  border-left: 3px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: 0 $radius-s $radius-s 0;
+  background: color-mix(in srgb, $secondary-default 6%, transparent);
+  font-size: $text-small;
+  line-height: 1.5;
+  @include animate(rise-in, $motion-fast);
+}
+
+.forum__aside {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-dim;
+  font-size: $text-small;
+  text-decoration: none;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:is(a) {
+    color: $secondary-light;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+      outline: none;
+    }
+  }
+}
+
+.forum__compose-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+
+  // The buttons keep to the right when a long notice pushes them onto a
+  // line of their own, where every other form in the app has its buttons.
+  .forum-composer__actions {
+    margin-left: auto;
+  }
+}

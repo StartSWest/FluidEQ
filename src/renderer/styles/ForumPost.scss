@@ -1,0 +1,282 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// One post in a Forum thread: the card, who wrote it and when, and the
+// row of what the reader may do to it. The thread around it is in
+// ForumThread.scss; the words inside it in ForumProse.scss.
+
+// ---------------------------------------------------------------- posts
+
+.forum-post {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 8px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $white 2.5%, transparent);
+
+  // The opening post is the topic: lifted a step, with the accent across its
+  // top rim so the eye lands there first.
+  &--opening {
+    background: color-mix(in srgb, $secondary-default 5%, $surface-block);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, $secondary-light 40%, transparent),
+      0 10px 28px rgba($black, 0.22);
+  }
+
+  // The accepted answer: the accent all round and a glow, because it is what
+  // everybody after the asker came to the thread for.
+  &.is-answer {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  // A reply hangs on the thread line rather than sitting in a box of its
+  // own: a stack of bordered cards inside a bordered card read as a spreadsheet.
+  &--reply {
+    gap: 6px;
+    padding: 9px 12px 6px;
+    border-color: transparent;
+    border-radius: $radius-m;
+    background: color-mix(in srgb, $white 2%, transparent);
+    transition: background $motion-fast $ease-out;
+
+    &:hover,
+    &:focus-within {
+      background: color-mix(in srgb, $white 4%, transparent);
+    }
+  }
+}
+
+.forum-post__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+
+  .forum__chip {
+    margin-left: auto;
+  }
+
+  .forum-post--reply & .forum__avatar,
+  .forum-post--reply & .community__avatar {
+    width: 24px;
+    height: 24px;
+    font-size: $text-micro;
+  }
+}
+
+.forum-post__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 8px;
+  min-width: 0;
+}
+
+.forum-post__login {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-decoration: none;
+
+  &:is(a):hover,
+  &:is(a):focus-visible {
+    color: $secondary-light;
+    text-decoration: underline;
+    outline: none;
+  }
+}
+
+// "Author" beside a reply from whoever started the topic: a quiet outline,
+// below the maker's and maintainers' role tags in weight.
+.forum-post__mark {
+  padding: 0 6px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.forum-post__time,
+.forum-post__edited {
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.forum-post__edited {
+  font-style: italic;
+}
+
+.forum-post__body {
+  padding-left: 42px;
+
+  .forum-post--reply & {
+    padding-left: 33px;
+  }
+
+  @container eq-panel (max-width: 520px) {
+    padding-left: 0;
+
+    .forum-post--reply & {
+      padding-left: 0;
+    }
+  }
+}
+
+.forum-post__hidden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 0 42px;
+  padding: 8px 12px;
+  color: $text-dim;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-s;
+  font-size: $text-small;
+}
+
+// The row of what can be done: the upvote pill first, then quiet words, and
+// GitHub's link pushed to the far end.
+.forum-post__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+  // Level with the words above, so the row reads as belonging to them.
+  padding-left: 42px;
+
+  .forum-post--reply & {
+    padding-left: 33px;
+  }
+
+  @container eq-panel (max-width: 520px) {
+    padding-left: 0;
+  }
+}
+
+.forum-post__upvote {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px 0 6px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: transparent;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    transition: translate $motion-fast $ease-spring;
+  }
+
+  &:hover:not(.is-static),
+  &:focus-visible {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    outline: none;
+
+    svg {
+      translate: 0 -1px;
+    }
+  }
+
+  &.is-on {
+    color: $surface-base;
+    border-color: $secondary-default;
+    background: $secondary-default;
+    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 40%, transparent);
+
+    svg {
+      fill: currentColor;
+    }
+  }
+
+  &.is-static {
+    cursor: default;
+  }
+}
+
+.forum-post__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  color: $text-dim;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  font-size: $text-small;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+    outline: none;
+  }
+
+  &--answer:hover,
+  &--answer:focus-visible {
+    color: $secondary-light;
+  }
+
+  &--danger:hover,
+  &--danger:focus-visible {
+    color: $red;
+    background: color-mix(in srgb, $red 12%, transparent);
+  }
+
+  &--end {
+    margin-left: auto;
+  }
+}
+
+.forum-post__confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-small;
+  @include animate(pop-in, $motion-fast);
+}
