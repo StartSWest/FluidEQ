@@ -67,8 +67,13 @@ std::string signature_of(const Chain& chain) {
     out += ';';
   }
   out += "|g=";
-  for (const GraphicPoint& point : chain.graphic) {
-    out += number(point.frequency) + ',' + number(point.gain_db) + ';';
+  // A separator per curve: the same points split differently between two
+  // curves is a different response, and must not sign the same.
+  for (const std::vector<GraphicPoint>& curve : chain.graphic_curves) {
+    for (const GraphicPoint& point : curve) {
+      out += number(point.frequency) + ',' + number(point.gain_db) + ';';
+    }
+    out += '/';
   }
   out += "|f=";
   for (const std::wstring& file : chain.files_read) {

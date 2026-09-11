@@ -56,7 +56,7 @@ void symmetric_and_matches_the_target_curve() {
   const std::vector<GraphicPoint> points = {
       {20.0, 0.0}, {1000.0, -12.0}, {20000.0, 0.0}};
   constexpr uint32_t kRate = 48000;
-  const auto kernel = design_graphic_kernel(points, kRate, 4097);
+  const auto kernel = design_graphic_kernel({points}, kRate, 4097);
   CHECK(kernel.size() == 4097);
 
   bool symmetric = true;
@@ -79,6 +79,41 @@ void symmetric_and_matches_the_target_curve() {
   std::printf("       100 Hz measures %.2f dB (target %.2f)\n", at_100,
               target_100);
   CHECK(std::fabs(at_100 - target_100) < 1.5);
+}
+
+// Two curves in series multiply their magnitudes, so the one kernel designed
+// from both has to measure their dB added — at a point where each has a
+// breakpoint the other does not, and between points on both.
+void curves_add_in_decibels() {
+  std::printf("two curves design one kernel measuring their sum\n");
+  constexpr uint32_t kRate = 48000;
+  const std::vector<GraphicPoint> dip = {
+      {20.0, 0.0}, {1000.0, -12.0}, {20000.0, 0.0}};
+  // Written out of order on purpose: each curve is sorted on its own.
+  const std::vector<GraphicPoint> tilt = {{10000.0, -3.0}, {100.0, 3.0}};
+
+  const auto both = design_graphic_kernel({dip, tilt}, kRate, 4097);
+  const auto dip_only = design_graphic_kernel({dip}, kRate, 4097);
+  const auto tilt_only = design_graphic_kernel({tilt}, kRate, 4097);
+  CHECK(both.size() == 4097);
+
+  for (const double hz : {100.0, 400.0, 1000.0, 5000.0, 10000.0}) {
+    const double measured = dtft_magnitude_db(both, hz, kRate);
+    const double summed = dtft_magnitude_db(dip_only, hz, kRate) +
+                          dtft_magnitude_db(tilt_only, hz, kRate);
+    std::printf("       %6.0f Hz measures %6.2f dB (sum of the two %6.2f)\n",
+                hz, measured, summed);
+    CHECK(std::fabs(measured - summed) < 0.25);
+  }
+  // Against the curves themselves as well, not only against each other: at
+  // 1 kHz the dip is -12 and the tilt, half way in log frequency between its
+  // two points, is 0.
+  CHECK(std::fabs(dtft_magnitude_db(both, 1000.0, kRate) - (-12.0)) < 1.0);
+  // And a positive control: the tilt alone is nowhere near -12 there, so
+  // the check above cannot pass on the dip alone by accident of the tilt.
+  CHECK(std::fabs(dtft_magnitude_db(tilt_only, 1000.0, kRate)) < 0.5);
+  CHECK(std::fabs(dtft_magnitude_db(both, 100.0, kRate) -
+                  dtft_magnitude_db(dip_only, 100.0, kRate) - 3.0) < 0.25);
 }
 
 void empty_points_is_a_centred_unit_impulse() {
@@ -109,6 +144,7 @@ void even_tap_count_is_forced_odd() {
 int main() {
   std::printf("fluideq graphic eq kernel design\n");
   symmetric_and_matches_the_target_curve();
+  curves_add_in_decibels();
   empty_points_is_a_centred_unit_impulse();
   even_tap_count_is_forced_odd();
   if (g_failures == 0) {

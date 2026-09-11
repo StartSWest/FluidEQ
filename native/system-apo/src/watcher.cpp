@@ -458,7 +458,7 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph) {
     line += " (" + files + ")";
   }
   line += " bands=" + std::to_string(chain.bands.size());
-  line += " graphic=" + std::to_string(chain.graphic.size());
+  line += " graphic_curves=" + std::to_string(chain.graphic_curves.size());
   line += " preamp=" + decibels(chain.preamp_db) + " dB";
   line += " ir=" + (chain.convolution_path.empty()
                         ? std::string("none")

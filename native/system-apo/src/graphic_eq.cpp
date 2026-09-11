@@ -25,9 +25,9 @@ constexpr double kPi = 3.14159265358979323846;
 // afterwards, but the actual meaning of "no GraphicEQ line applied": every
 // bin gets unity magnitude, and the inverse transform of an all-ones
 // spectrum is an exact impulse at index 0 (in exact arithmetic; in floating
-// point it is exact to well under any tolerance a caller would use). That is
-// what turns an empty `points` into a bypass kernel below, with no branch
-// dedicated to it.
+// point it is exact to well under any tolerance a caller would use). That,
+// and a sum over no curves being 0 dB too, is what turns "nothing to apply"
+// into a bypass kernel below, with no branch dedicated to it.
 double interpolated_gain_db(const std::vector<GraphicPoint>& points,
                             double frequency) {
   if (points.empty()) {
@@ -58,8 +58,9 @@ double interpolated_gain_db(const std::vector<GraphicPoint>& points,
 
 }  // namespace
 
-std::vector<float> design_graphic_kernel(const std::vector<GraphicPoint>& points,
-                                         uint32_t sample_rate, uint32_t taps) {
+std::vector<float> design_graphic_kernel(
+    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+    uint32_t taps) {
   const uint32_t n = taps | 1u;  // Force odd: one centre sample, exact
                                  // integer group delay of n/2.
 
@@ -72,11 +73,13 @@ std::vector<float> design_graphic_kernel(const std::vector<GraphicPoint>& points
     m <<= 1;
   }
 
-  std::vector<GraphicPoint> sorted(points);
-  std::sort(sorted.begin(), sorted.end(),
-           [](const GraphicPoint& a, const GraphicPoint& b) {
-             return a.frequency < b.frequency;
-           });
+  std::vector<std::vector<GraphicPoint>> sorted(curves);
+  for (std::vector<GraphicPoint>& curve : sorted) {
+    std::sort(curve.begin(), curve.end(),
+              [](const GraphicPoint& a, const GraphicPoint& b) {
+                return a.frequency < b.frequency;
+              });
+  }
 
   std::vector<double> real(m, 0.0);
   std::vector<double> imaginary(m, 0.0);  // Zero phase throughout: the
@@ -87,8 +90,11 @@ std::vector<float> design_graphic_kernel(const std::vector<GraphicPoint>& points
     const double frequency = static_cast<double>(k) *
                              static_cast<double>(sample_rate) /
                              static_cast<double>(m);
-    const double magnitude =
-        std::pow(10.0, interpolated_gain_db(sorted, frequency) / 20.0);
+    double gain_db = 0.0;
+    for (const std::vector<GraphicPoint>& curve : sorted) {
+      gain_db += interpolated_gain_db(curve, frequency);
+    }
+    const double magnitude = std::pow(10.0, gain_db / 20.0);
     real[k] = magnitude;
     if (k != 0 && k != half) {
       // Mirror to the negative-frequency bin so the spectrum is conjugate

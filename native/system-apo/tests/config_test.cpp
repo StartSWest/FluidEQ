@@ -96,6 +96,37 @@ void follows_includes_and_device_guards() {
                   L"C:\\cfg\\fluideq-device-b.txt") == chain.files_read.end());
 }
 
+// The layout FluidEQ writes when a driver-type curve, a headphone correction
+// published as a curve and the EQ in graphic mode are all on: one feature
+// file each, each with its own `GraphicEQ:` line. Equalizer APO runs all
+// three; this resolver used to keep only the last one it read.
+void every_graphic_curve_is_kept() {
+  std::printf("every graphic curve is kept, in file order\n");
+  Files files;
+  files[L"C:\\cfg\\config.txt"] = "Include: fluideq.txt\r\n";
+  files[L"C:\\cfg\\fluideq.txt"] =
+      "Device: {AAAA}\r\nChannel: all\r\nInclude: fluideq-device-a.txt\r\n";
+  files[L"C:\\cfg\\fluideq-device-a.txt"] =
+      "Include: fluideq-a-driver.txt\r\nInclude: fluideq-a-headphone.txt\r\n"
+      "Include: fluideq-a-eq.txt\r\nPreamp: -4 dB\r\n";
+  files[L"C:\\cfg\\fluideq-a-driver.txt"] = "GraphicEQ: 20 1; 20000 1\r\n";
+  files[L"C:\\cfg\\fluideq-a-headphone.txt"] =
+      "GraphicEQ: 20 0; 1000 -3; 20000 0\r\n";
+  files[L"C:\\cfg\\fluideq-a-eq.txt"] = "GraphicEQ: 100 2; 10000 -2\r\n";
+  const auto chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Headphones"},
+                                   provider(files));
+  CHECK(chain.matched);
+  CHECK(chain.graphic_curves.size() == 3);
+  CHECK(chain.graphic_curves.size() == 3 &&
+        chain.graphic_curves[0].size() == 2 &&
+        chain.graphic_curves[0][0].gain_db == 1.0 &&
+        chain.graphic_curves[1].size() == 3 &&
+        chain.graphic_curves[1][1].gain_db == -3.0 &&
+        chain.graphic_curves[2].size() == 2 &&
+        chain.graphic_curves[2][1].gain_db == -2.0);
+  CHECK(chain.preamp_db == -4.0);
+}
+
 void neutral_root_is_passthrough() {
   std::printf("neutral root is passthrough\n");
   Files files;
@@ -213,6 +244,7 @@ void utf16_with_bom_is_read() {
 int main() {
   std::printf("fluideq engine config\n");
   follows_includes_and_device_guards();
+  every_graphic_curve_is_kept();
   neutral_root_is_passthrough();
   missing_root_is_passthrough();
   rack_file_absence_means_no_rack();

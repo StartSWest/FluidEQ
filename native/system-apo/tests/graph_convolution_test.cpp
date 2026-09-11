@@ -151,7 +151,8 @@ void convolution_and_graphic_eq_combine() {
   const Chain chain = convolution_chain(path, 48000, two_tap_impulse_response(),
                                         "GraphicEQ: 20 0; 20000 0\r\n");
   CHECK(chain.matched);
-  CHECK(chain.graphic.size() == 2);
+  CHECK(chain.graphic_curves.size() == 1 &&
+        chain.graphic_curves[0].size() == 2);
 
   Graph graph(chain, kRate, 1, 512);
   // Two convolvers in series, each with its own block-pipeline latency, plus
@@ -306,7 +307,8 @@ void graphic_eq_applies() {
   std::printf("a graphic curve cuts 12 dB at 1 kHz\n");
   const Chain chain = chain_from("GraphicEQ: 20 0; 1000 -12; 20000 0\r\n");
   CHECK(chain.matched);
-  CHECK(chain.graphic.size() == 3);
+  CHECK(chain.graphic_curves.size() == 1 &&
+        chain.graphic_curves[0].size() == 3);
 
   Graph graph(chain, kRate, 1, 480);
   CHECK(!graph.is_passthrough());
@@ -327,6 +329,53 @@ void graphic_eq_applies() {
                         rms_db(reference, kFrames / 2, kFrames);
   std::printf("       measures %.2f dB (target -12)\n", change);
   CHECK(std::fabs(change - (-12.0)) < 1.5);
+}
+
+/**
+ * Everything FluidEQ can put on one output at once: a convolution file, two
+ * graphic curves (a driver-type curve and a headphone correction published
+ * as one), a parametric band and the preamp. Each is a level change at 1 kHz
+ * that can be told apart in the total, and the total is only right if every
+ * one of them is applied — the second curve was the one this engine used to
+ * drop, which measured 3 dB short here.
+ */
+void everything_on_one_output_applies() {
+  std::printf("convolution, two graphic curves, a band and the preamp stack\n");
+  const std::filesystem::path path =
+      std::filesystem::temp_directory_path() / "fluideq-engine-ir-stack.wav";
+  // A single tap at half amplitude: -6.02 dB, with no shape of its own.
+  std::vector<float> half(64, 0.0f);
+  half[0] = 0.5f;
+  const Chain chain = convolution_chain(
+      path, 48000, half,
+      "GraphicEQ: 20 -2; 20000 -2\r\n"
+      "GraphicEQ: 20 -3; 20000 -3\r\n"
+      "Filter 1: ON PK Fc 1000 Hz Gain -4 dB Q 1\r\n"
+      "Preamp: -1 dB\r\n");
+  CHECK(chain.matched);
+  CHECK(chain.graphic_curves.size() == 2);
+  CHECK(chain.bands.size() == 1);
+
+  Graph graph(chain, kRate, 1, 480);
+  // Both curves in ONE graphic FIR: the impulse response's convolver, the
+  // graphic FIR's convolver and that FIR's own group delay — not a second
+  // FIR's worth on top for the second curve.
+  CHECK(graph.latency_frames() ==
+        2 * feq_convolver_latency() + kGraphicTapsAt48k / 2);
+
+  constexpr uint32_t kFrames = kRate;  // One second.
+  std::vector<std::vector<float>> channels(1, tone(1000.0, 0.25, kFrames, 0));
+  const std::vector<float> reference = channels[0];
+  run_blocks(graph, channels, 480);
+
+  const double change = rms_db(channels[0], kFrames / 2, kFrames) -
+                        rms_db(reference, kFrames / 2, kFrames);
+  const double expected = 20.0 * std::log10(0.5) - 2.0 - 3.0 - 4.0 - 1.0;
+  std::printf("       measures %.2f dB (target %.2f)\n", change, expected);
+  CHECK(std::fabs(change - expected) < 0.3);
+
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
 }
 
 void unreadable_impulse_response_is_survived() {
@@ -379,6 +428,7 @@ int main() {
   over_long_impulse_response_is_truncated();
   long_impulse_at_another_rate_keeps_its_taps();
   graphic_eq_applies();
+  everything_on_one_output_applies();
   unreadable_impulse_response_is_survived();
   absurd_sample_rate_caps_the_graphic_fir();
   return report();

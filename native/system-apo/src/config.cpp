@@ -321,7 +321,7 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     if (detail::iequals(line.command, "GraphicEQ")) {
       std::vector<GraphicPoint> points = parse_graphic(line.body);
       if (!points.empty()) {
-        chain.graphic = std::move(points);
+        chain.graphic_curves.push_back(std::move(points));
         chain.matched = true;
       }
       continue;

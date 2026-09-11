@@ -208,10 +208,10 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
   return kernel;
 }
 
-/** The `GraphicEQ:` curve as a linear-phase FIR at the stream's rate. */
-std::vector<float> design_graphic(const std::vector<GraphicPoint>& points,
-                                  uint32_t sample_rate,
-                                  std::vector<std::string>& warnings) {
+/** Every `GraphicEQ:` curve as one linear-phase FIR at the stream's rate. */
+std::vector<float> design_graphic(
+    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+    std::vector<std::string>& warnings) {
   const double scaled = static_cast<double>(kGraphicTapsAt48k) *
                         static_cast<double>(sample_rate) /
                         kGraphicReferenceRate;
@@ -230,7 +230,7 @@ std::vector<float> design_graphic(const std::vector<GraphicPoint>& points,
   } else {
     taps = static_cast<uint32_t>(std::lround(scaled)) | 1u;
   }
-  return design_graphic_kernel(points, sample_rate, taps);
+  return design_graphic_kernel(curves, sample_rate, taps);
 }
 
 using ConvolverPtr = std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>;
@@ -328,9 +328,11 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     }
   }
 
-  if (!chain.graphic.empty()) {
+  // One stage for every curve at once, not one per curve: see
+  // `Chain::graphic_curves`.
+  if (!chain.graphic_curves.empty()) {
     const std::vector<float> kernel =
-        design_graphic(chain.graphic, sample_rate_, warnings_);
+        design_graphic(chain.graphic_curves, sample_rate_, warnings_);
     if (!kernel.empty()) {
       graphic_kernel_.reset(feq_convolver_kernel_create(
           kernel.data(), static_cast<uint32_t>(kernel.size())));

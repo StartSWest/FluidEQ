@@ -55,8 +55,18 @@ struct Chain {
   // Empty when no `Convolution:` line applied. Absolute: a relative one on
   // disk has already been joined to the config directory.
   std::wstring convolution_path;
-  // Empty when no `GraphicEQ:` line applied.
-  std::vector<GraphicPoint> graphic;
+  /**
+   * Every `GraphicEQ:` line that applied, one curve each, in file order.
+   *
+   * Kept side by side rather than each line replacing the last. FluidEQ
+   * writes one per layer — the driver type, a headphone correction published
+   * as a curve, the EQ itself in graphic mode — and Equalizer APO runs every
+   * one of them in series; keeping only the last dropped the others under
+   * this engine, with nothing anywhere to say so. `design_graphic_kernel`
+   * adds them in dB, which is the same response as running them in series,
+   * in one FIR with one delay.
+   */
+  std::vector<std::vector<GraphicPoint>> graphic_curves;
   std::vector<Band> bands;
   double preamp_db = 0.0;
   /**
