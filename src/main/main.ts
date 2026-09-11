@@ -66,7 +66,7 @@ import {
   isEngineInstalled,
   isEqualizerAPOInstalled,
 } from './registry';
-import { TAudioEngine } from '../common/audioEngine';
+import { IAudioRestartOutcome, TAudioEngine } from '../common/audioEngine';
 import {
   loadAudioEnginePreference,
   migrateAudioEnginePreference,
@@ -2681,71 +2681,80 @@ ipcMain.handle(
   },
 );
 
-ipcMain.handle('restart-windows-audio', async () => {
-  if (process.platform !== 'win32') {
-    return 'Restarting Windows Audio is only available on Windows.';
-  }
-
-  // The engine helper when it is there: it restarts AudioEndpointBuilder as
-  // well as Audiosrv, which a changed effect list needs before Windows reads
-  // it again, and it stops a vendor service that depends on Audiosrv first
-  // (Realtek's blocked the plain stop with error 1051 on the first machine).
-  // The PowerShell restart below restarts Audiosrv alone and remains only for
-  // a build with no helper beside it — a source checkout without a native
-  // build.
-  if (fs.existsSync(getEngineSetupPath())) {
-    const result = await runEngineSetup('restart-audio', []);
-    if (result.ok) {
-      return '';
+ipcMain.handle(
+  'restart-windows-audio',
+  async (): Promise<IAudioRestartOutcome> => {
+    if (process.platform !== 'win32') {
+      return { ok: false, declined: false };
     }
-    return result.declined
-      ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
-      : `Windows Audio could not be restarted. ${result.error ?? ''}`.trim();
-  }
 
-  const restartCommand = Buffer.from(
-    'Restart-Service -Name Audiosrv -Force',
-    'utf16le',
-  ).toString('base64');
-  const elevateCommand = [
-    // `$PSHOME` and not `'powershell.exe'`, for the reason the constant below
-    // is used instead of a bare name: `Start-Process -Verb RunAs` goes through
-    // ShellExecute, which searches the working directory first — and the
-    // working directory here is inherited from the app, which a shortcut sets
-    // to the install directory. A `powershell.exe` dropped there would be the
-    // one the user is asked to approve for administrator rights.
-    //
-    // `Join-Path` and not a quoted `"$PSHOME\powershell.exe"`: this whole
-    // string is one `-Command` argument, and a double quote inside one has to
-    // survive libuv escaping it and then PowerShell re-reading the raw command
-    // line. That round trip is the classic way an elevation prompt starts
-    // failing for no visible reason, so there are no double quotes here at all.
-    "$process = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe')",
-    '-Verb RunAs -WindowStyle Hidden',
-    `-ArgumentList '-NoProfile','-EncodedCommand','${restartCommand}'`,
-    '-Wait -PassThru;',
-    'exit $process.ExitCode',
-  ].join(' ');
+    // The engine helper when it is there: it restarts AudioEndpointBuilder as
+    // well as Audiosrv, which a changed effect list needs before Windows reads
+    // it again, and it stops a vendor service that depends on Audiosrv first
+    // (Realtek's blocked the plain stop with error 1051 on the first machine).
+    // The PowerShell restart below restarts Audiosrv alone and remains only for
+    // a build with no helper beside it — a source checkout without a native
+    // build.
+    if (fs.existsSync(getEngineSetupPath())) {
+      const result = await runEngineSetup('restart-audio', []);
+      return {
+        ok: result.ok,
+        declined: result.declined,
+        ...(!result.ok && !result.declined && result.error
+          ? { detail: result.error }
+          : {}),
+      };
+    }
 
-  return new Promise<string>((resolve) => {
-    execFile(
-      // Absolute, because a bare `'powershell.exe'` is resolved by libuv
-      // against the CURRENT DIRECTORY before PATH — and a shortcut-launched
-      // Electron app has its install directory as the current directory. This
-      // particular call then asks Windows to elevate whatever it found.
-      POWERSHELL_PATH,
-      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', elevateCommand],
-      { windowsHide: true },
-      (error) => {
-        resolve(
-          error
-            ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
-            : '',
-        );
-      },
-    );
-  });
-});
+    const restartCommand = Buffer.from(
+      'Restart-Service -Name Audiosrv -Force',
+      'utf16le',
+    ).toString('base64');
+    const elevateCommand = [
+      // `$PSHOME` and not `'powershell.exe'`, for the reason the constant below
+      // is used instead of a bare name: `Start-Process -Verb RunAs` goes through
+      // ShellExecute, which searches the working directory first — and the
+      // working directory here is inherited from the app, which a shortcut sets
+      // to the install directory. A `powershell.exe` dropped there would be the
+      // one the user is asked to approve for administrator rights.
+      //
+      // `Join-Path` and not a quoted `"$PSHOME\powershell.exe"`: this whole
+      // string is one `-Command` argument, and a double quote inside one has to
+      // survive libuv escaping it and then PowerShell re-reading the raw command
+      // line. That round trip is the classic way an elevation prompt starts
+      // failing for no visible reason, so there are no double quotes here at all.
+      "$process = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe')",
+      '-Verb RunAs -WindowStyle Hidden',
+      `-ArgumentList '-NoProfile','-EncodedCommand','${restartCommand}'`,
+      '-Wait -PassThru;',
+      'exit $process.ExitCode',
+    ].join(' ');
+
+    return new Promise<IAudioRestartOutcome>((resolve) => {
+      execFile(
+        // Absolute, because a bare `'powershell.exe'` is resolved by libuv
+        // against the CURRENT DIRECTORY before PATH — and a shortcut-launched
+        // Electron app has its install directory as the current directory. This
+        // particular call then asks Windows to elevate whatever it found.
+        POWERSHELL_PATH,
+        [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          elevateCommand,
+        ],
+        { windowsHide: true },
+        (error) => {
+          // PowerShell exits the same way for a declined prompt and a failed
+          // restart, so there is no telling them apart here; the card says
+          // only that it did not work.
+          resolve({ ok: !error, declined: false });
+        },
+      );
+    });
+  },
+);
 
 /**
  * The titlebar's transport buttons, pressed on behalf of the whole machine.

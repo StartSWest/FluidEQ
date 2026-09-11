@@ -209,6 +209,9 @@ const app = {
   'restart.running': 'Restarting audio…',
   'restart.failed': 'Windows audio could not be restarted.',
   'restart.tryAgain': 'Try again',
+  'restart.close': 'Close',
+  'restart.declined':
+    'Windows permission was declined, so audio was not restarted.',
   'update.title': 'FluidEQ update',
   'update.available': 'Version {version} is available. Downloading it now.',
   'update.downloading': 'Downloading the update… {percent}%',

@@ -213,6 +213,9 @@ const app: Partial<Dictionary> = {
   'restart.running': 'オーディオを再起動しています…',
   'restart.failed': 'Windows オーディオを再起動できませんでした。',
   'restart.tryAgain': 'もう一度試す',
+  'restart.close': '閉じる',
+  'restart.declined':
+    'Windows の許可が拒否されたため、オーディオは再起動されませんでした。',
   'update.title': 'FluidEQ の更新',
   'update.available':
     'バージョン {version} が利用できます。ダウンロード中です。',

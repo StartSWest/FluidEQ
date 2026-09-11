@@ -19,40 +19,51 @@ it under the terms of the GNU General Public License version 3 or later.
  * Four states, one card: the question, the restart in progress (the button
  * breathes and the foot says so — a click that shows nothing for the seconds
  * Windows takes reads as a dead button), done, and failed with the reason.
+ * The restart itself belongs to `useAudioRestart`, so the card can be closed
+ * while Windows works and the restart carries on without it.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import type { IAudioRestartOutcome } from 'common/audioEngine';
+import type { TRestartPhase } from '../utils/useAudioRestart';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/Button.scss';
 import '../styles/RestartAudioDialog.scss';
 
 export interface IRestartAudioDialogProps {
-  /** Resolves to an empty string on success, or the reason it did not work. */
-  onRestart: () => Promise<string>;
+  phase: TRestartPhase;
+  outcome?: IAudioRestartOutcome;
+  onRestart: () => void;
   onClose: () => void;
 }
 
-type TPhase = 'ask' | 'running' | 'done' | 'failed';
-
 const RestartAudioDialog = ({
+  phase,
+  outcome,
   onRestart,
   onClose,
 }: IRestartAudioDialogProps) => {
   const { t } = useTranslation();
-  const [phase, setPhase] = useState<TPhase>('ask');
-  const [reason, setReason] = useState('');
   const surfaceRef = useRef<HTMLDivElement>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const isRunning = phase === 'running';
 
   useEffect(() => {
     const previousFocus = document.activeElement;
+    // Opened again while Windows is still restarting, the one thing to press
+    // is Close; Restart is breathing and refuses a second go.
+    if (phase === 'running') {
+      closeRef.current?.focus();
+    }
     return () => {
       if (previousFocus instanceof HTMLElement) {
         previousFocus.focus();
       }
     };
+    // Once, on mount: the phase effect below takes over from there.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // The recommended answer is where a keyboard lands: Enter restarts, and
@@ -66,14 +77,16 @@ const RestartAudioDialog = ({
   }, [isRunning]);
 
   useEffect(() => {
+    // In the capture phase and stopped there. The troubleshooter this card
+    // opens over listens on the document too, subscribed earlier, so it
+    // heard every Escape first: one press closed both, and mid-restart it
+    // threw away the troubleshooter's record of what had been tried. The
+    // graph's full-screen Escape, on the window, is kept out the same way.
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        // Not while Windows is mid-restart: there is nothing to cancel, and a
-        // card that vanishes then leaves the outcome with nowhere to land.
-        if (!isRunning) {
-          event.preventDefault();
-          onClose();
-        }
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
         return;
       }
       if (event.key !== 'Tab') {
@@ -84,10 +97,11 @@ const RestartAudioDialog = ({
           'button:not(:disabled)',
         ) ?? [],
       );
+      event.preventDefault();
+      event.stopPropagation();
       if (!buttons.length) {
         return;
       }
-      event.preventDefault();
       const current = buttons.findIndex(
         (button) => button === document.activeElement,
       );
@@ -95,26 +109,17 @@ const RestartAudioDialog = ({
         (current + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length
       ]?.focus();
     };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isRunning, onClose]);
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [onClose]);
 
-  const handleRestart = async () => {
-    if (isRunning) {
-      return;
-    }
-    setPhase('running');
-    setReason('');
-    const error = await onRestart();
-    setReason(error);
-    setPhase(error ? 'failed' : 'done');
-  };
-
+  const failedLine =
+    outcome?.declined === true ? t('restart.declined') : t('restart.failed');
   const body = {
     ask: t('notice.restartConfirm'),
     running: t('notice.restartConfirm'),
     done: t('notice.restartDone'),
-    failed: t('restart.failed'),
+    failed: failedLine,
   }[phase];
 
   return createPortal(
@@ -122,7 +127,7 @@ const RestartAudioDialog = ({
       className="restart-dialog-backdrop"
       role="presentation"
       onClick={(event) => {
-        if (event.target === event.currentTarget && !isRunning) {
+        if (event.target === event.currentTarget) {
           onClose();
         }
       }}
@@ -154,8 +159,8 @@ const RestartAudioDialog = ({
           }`}
         >
           {body}
-          {phase === 'failed' && reason && (
-            <span className="restart-dialog__reason">{reason}</span>
+          {phase === 'failed' && outcome?.detail && (
+            <span className="restart-dialog__reason">{outcome.detail}</span>
           )}
         </p>
         <div className="restart-dialog__foot">
@@ -174,23 +179,26 @@ const RestartAudioDialog = ({
               </button>
             ) : (
               <>
+                {/* Enabled while Windows works: closing sends the restart
+                    to the background rather than cancelling it, which is
+                    not something a service restart half done can do. */}
                 <button
+                  ref={closeRef}
                   type="button"
                   className="button small subtle"
-                  disabled={isRunning}
                   onClick={onClose}
                 >
-                  {t('config.cancel')}
+                  {isRunning ? t('restart.close') : t('config.cancel')}
                 </button>
                 {/* Not disabled while it works — `is-running` is how this app
                     shows a button doing something — so it stays where a
-                    finger is, and the guard above refuses a second press. */}
+                    finger is, and the restart's owner refuses a second go. */}
                 <button
                   ref={primaryRef}
                   type="button"
                   className={`button small${isRunning ? ' is-running' : ''}`}
                   aria-busy={isRunning}
-                  onClick={handleRestart}
+                  onClick={onRestart}
                 >
                   {phase === 'failed'
                     ? t('restart.tryAgain')

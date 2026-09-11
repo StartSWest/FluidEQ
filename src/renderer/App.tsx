@@ -27,7 +27,7 @@ import {
   type MouseEvent,
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
-import type { TAudioEngine } from 'common/audioEngine';
+import type { IAudioRestartOutcome, TAudioEngine } from 'common/audioEngine';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { isAccountConfigured } from 'common/accountConfig';
@@ -179,6 +179,7 @@ import AudioEngineDialog, {
   type TApoAction,
 } from './components/AudioEngineDialog';
 import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
+import { useAudioRestart } from './utils/useAudioRestart';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   attachFluidEngine,
@@ -894,7 +895,6 @@ const AppContent = () => {
   const { status: engineStatus, refresh: refreshEngineStatus } =
     useAudioEngineStatus();
   const [showEngineDialog, setShowEngineDialog] = useState(false);
-  const [showRestartDialog, setShowRestartDialog] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and
   // the only route to "Install Equalizer APO" was gone until the error
@@ -1762,6 +1762,19 @@ const AppContent = () => {
   };
 
   /**
+   * The banner's Retry asks the engine again before checking health.
+   *
+   * The check alone answers from what the engine last said about itself, so
+   * after a moment when it could not be asked — Windows Audio restarting, or
+   * not up yet at login — Retry kept showing the same wall until the app was
+   * restarted.
+   */
+  const handlePrereqRetry = async () => {
+    await refreshEngineStatus();
+    performHealthCheck();
+  };
+
+  /**
    * The troubleshooter's own "put the engine back" step.
    *
    * It has no inline error slot of its own — unlike the blocking banner and
@@ -1844,36 +1857,39 @@ const AppContent = () => {
   const handleImportEq = () => runImport(importEqFile);
   const handleImportConvolution = () => runImport(importConvolutionFile);
 
-  /** The menu item, the notice bar and the troubleshooter all open the card. */
-  const handleRestartWindowsAudio = () => setShowRestartDialog(true);
-
   /**
-   * The restart itself, run by the card's own button; what comes back is the
-   * reason it did not work, or nothing. The card shows the outcome, so there
-   * is no message box here any more.
+   * The restart itself, run by the card's own button through
+   * `useAudioRestart`, which owns it so it outlives the card. The card shows
+   * the outcome, so there is no message box here any more.
    */
-  const performWindowsAudioRestart = async (): Promise<string> => {
-    const error = await window.electron.ipcRenderer.restartWindowsAudio();
-    if (!error) {
-      localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
-      setShowAudioRestartRecommendation(false);
-      /**
-       * Audiosrv came back; the loopback stream did not necessarily come with it.
-       *
-       * Chromium can keep the old capture track `live` after Windows invalidates
-       * its endpoint, feeding silence forever. A retry is not enough because the
-       * capture sees that live track and correctly refuses to open a duplicate.
-       * The output-change path is the owner of a full rebind: it removes the
-       * track listeners, stops every track, disconnects the analyser graph,
-       * closes its AudioContext and clears its pump before opening a fresh
-       * loopback. Reusing that path also means repeated restart notifications
-       * are coalesced instead of accumulating streams or timers.
-       */
-      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
-      performHealthCheck();
-    }
-    return error;
-  };
+  const performWindowsAudioRestart =
+    async (): Promise<IAudioRestartOutcome> => {
+      const outcome = await window.electron.ipcRenderer.restartWindowsAudio();
+      if (outcome.ok) {
+        localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
+        setShowAudioRestartRecommendation(false);
+        /**
+         * Audiosrv came back; the loopback stream did not necessarily come with it.
+         *
+         * Chromium can keep the old capture track `live` after Windows invalidates
+         * its endpoint, feeding silence forever. A retry is not enough because the
+         * capture sees that live track and correctly refuses to open a duplicate.
+         * The output-change path is the owner of a full rebind: it removes the
+         * track listeners, stops every track, disconnects the analyser graph,
+         * closes its AudioContext and clears its pump before opening a fresh
+         * loopback. Reusing that path also means repeated restart notifications
+         * are coalesced instead of accumulating streams or timers.
+         */
+        window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+        performHealthCheck();
+      }
+      return outcome;
+    };
+
+  const audioRestart = useAudioRestart(performWindowsAudioRestart);
+
+  /** The menu item, the notice bar and the troubleshooter all open the card. */
+  const handleRestartWindowsAudio = audioRestart.open;
 
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
@@ -2864,7 +2880,7 @@ const AppContent = () => {
                 key={prereqNonce}
                 engine={prereqBannerEngine(globalError.code, engineStatus)}
                 isLoading={isLoading}
-                onRetry={performHealthCheck}
+                onRetry={handlePrereqRetry}
                 onInstallFluid={handleInstallFluidEngine}
                 errorMsg={globalError.shortError}
                 actionMsg={globalError.action}
@@ -2881,10 +2897,12 @@ const AppContent = () => {
             onApoAction={handleApoAction}
           />
         )}
-        {showRestartDialog && (
+        {audioRestart.isOpen && (
           <RestartAudioDialog
-            onRestart={performWindowsAudioRestart}
-            onClose={() => setShowRestartDialog(false)}
+            phase={audioRestart.phase}
+            outcome={audioRestart.outcome}
+            onRestart={audioRestart.run}
+            onClose={audioRestart.close}
           />
         )}
         {globalError && !isBlockingError && (

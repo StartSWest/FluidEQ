@@ -195,6 +195,39 @@ describe('reading the combined audio engine status', () => {
     expect(noteFluidEngineRegisteredSpy).not.toHaveBeenCalled();
   });
 
+  // The helper's own "could not ask" document. It parses to "not installed"
+  // for the dialog, and cached as that it refused every EQ change until the
+  // app restarted — at login, before Windows Audio was up, on a machine
+  // where the engine was installed and working.
+  it('does not tell the flush gate "not installed" when the helper could not ask', async () => {
+    noteFluidEngineRegisteredSpy.mockClear();
+
+    let promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    fakeChild.stdout.emit('data', '{"error":"the audio stack is not up"}');
+    fakeChild.emit('close', 3);
+    const status = await promise;
+    expect(status.fluid.installed).toBe(false);
+    expect(noteFluidEngineRegisteredSpy).not.toHaveBeenCalled();
+
+    // A document with an answer, but from a run that failed, is not an
+    // answer either.
+    fakeChild = new FakeChildProcess();
+    promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    fakeChild.stdout.emit('data', '{"installed":false,"endpoints":[]}');
+    fakeChild.emit('close', 3);
+    await promise;
+    expect(noteFluidEngineRegisteredSpy).not.toHaveBeenCalled();
+
+    // Positive control: the same "not installed" from a run that worked is
+    // the helper's real answer, and does reach the gate.
+    fakeChild = new FakeChildProcess();
+    promise = readAudioEngineStatus('C:\\userData', 'fluid');
+    fakeChild.stdout.emit('data', '{"installed":false,"endpoints":[]}');
+    fakeChild.emit('close', 0);
+    await promise;
+    expect(noteFluidEngineRegisteredSpy).toHaveBeenCalledWith(false);
+  });
+
   it('folds a failed probe under fluid to not installed', async () => {
     isEqualizerAPOInstalledSpy.mockRejectedValueOnce(
       new Error('registry read failed'),
