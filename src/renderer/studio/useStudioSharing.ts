@@ -39,8 +39,9 @@ const IMPORT_FAILURES: Record<string, TranslationKey> = {
 /**
  * Export and "Open a scene file", with everything they can say back.
  *
- * Export asks for the terms first only when this computer has not shared
- * under the version this app carries. A refusal because the account has no
+ * Export asks for the terms first only when the signed-in account has not
+ * shared, on this computer, under the version this app carries — another
+ * account's agreement here does not count. A refusal because the account has no
  * Plus opens the Plus card, which is where that answer can be acted on.
  */
 export default function useStudioSharing() {

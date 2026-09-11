@@ -181,7 +181,13 @@ export const registerMemberSharingIpc = ({
   const refOf = (lookId: unknown) =>
     typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
 
-  ipcMain.handle('studio-terms-agreed', () => readAgreedTerms(userDataDir));
+  // For whoever is signed in. An agreement another account made on this
+  // computer says nothing about this one, and answering with it let a second
+  // account share without ever being shown the terms.
+  ipcMain.handle('studio-terms-agreed', () => {
+    const me = accountId();
+    return me ? readAgreedTerms(userDataDir, me) : 0;
+  });
 
   ipcMain.handle(
     'studio-export',
@@ -197,8 +203,11 @@ export const registerMemberSharingIpc = ({
       if (!build.ok) {
         return { ok: false, reason: 'no-build' };
       }
+      // The account the server will record the agreement for is the one this
+      // token belongs to, so the two are taken together.
+      const me = accountId();
       const accessToken = await token();
-      if (!accessToken) {
+      if (!accessToken || !me || accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
 
@@ -228,8 +237,8 @@ export const registerMemberSharingIpc = ({
         return signed;
       }
       // The server recorded the agreement with the signature; remember it
-      // here so the next export does not ask again.
-      writeAgreedTerms(userDataDir, termsVersion);
+      // here, for this account, so its next export does not ask again.
+      writeAgreedTerms(userDataDir, me, termsVersion);
       onTermsAgreed?.(termsVersion);
 
       const filePath = target.filePath.endsWith(MEMBER_SCENE_FILE_EXTENSION)

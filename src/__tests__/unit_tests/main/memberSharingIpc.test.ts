@@ -73,6 +73,10 @@ let calls: string[];
 let store: IMemberSceneStore;
 let announced: number;
 let folder: string | undefined;
+/** Who is signed in: a computer can be shared. */
+let signedInAs: string;
+/** Somebody else signs in while the token is being fetched. */
+let switchDuringToken: boolean;
 
 /** The server: signs whatever pack arrives, as the author it is told. */
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
@@ -105,8 +109,13 @@ const setup = () => {
     userDataDir: path.join(root, 'userData'),
     config,
     session: {
-      state: () => ({ status: 'signed-in', identity: { id: ME } }),
-      accessToken: async () => 'token',
+      state: () => ({ status: 'signed-in', identity: { id: signedInAs } }),
+      accessToken: async () => {
+        if (switchDuringToken) {
+          signedInAs = SOMEONE;
+        }
+        return 'token';
+      },
     } as never,
     entitlement: {
       status: () => status,
@@ -142,6 +151,8 @@ beforeEach(async () => {
   blockList = [];
   calls = [];
   announced = 0;
+  signedInAs = ME;
+  switchDuringToken = false;
   folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
   await writeStarterProject(folder);
@@ -175,6 +186,40 @@ describe('exporting a scene', () => {
     expect(written).toMatchObject({ schema: 1, algorithm: 'ed25519' });
     // The agreement is remembered, so the next export does not ask again.
     expect(await invoke('studio-terms-agreed')).toBe(3);
+    registration.dispose();
+  });
+
+  // A shared computer: one account's agreement must not let the next one
+  // share without being shown the terms — the app would then tell the server
+  // that account agreed.
+  it('asks a second account on the same computer, and not the first again', async () => {
+    const registration = setup();
+    saveTarget = path.join(root, 'northern-lake.json');
+    await invoke<Promise<TExportOutcome>>('studio-export', 3);
+    expect(await invoke('studio-terms-agreed')).toBe(3);
+
+    signedInAs = SOMEONE;
+    expect(await invoke('studio-terms-agreed')).toBe(0);
+
+    signedInAs = ME;
+    expect(await invoke('studio-terms-agreed')).toBe(3);
+    registration.dispose();
+  });
+
+  // The server records the agreement for the token's account; with somebody
+  // else signed in by then, which account agreed cannot be told apart.
+  it('signs nothing when another account signs in while it starts', async () => {
+    const registration = setup();
+    saveTarget = path.join(root, 'northern-lake.json');
+    switchDuringToken = true;
+    expect(await invoke('studio-export', 3)).toEqual({
+      ok: false,
+      reason: 'signed-out',
+    });
+    expect(calls).not.toContain(`${config.apiUrl}/sign-member-scene`);
+    expect(await invoke('studio-terms-agreed')).toBe(0);
+    signedInAs = ME;
+    expect(await invoke('studio-terms-agreed')).toBe(0);
     registration.dispose();
   });
 

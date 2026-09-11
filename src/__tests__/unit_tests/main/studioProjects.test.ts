@@ -20,10 +20,6 @@ import {
   without,
   writeProjectList,
 } from '../../../main/memberScenes/studioProjects';
-import {
-  readAgreedTerms,
-  writeAgreedTerms,
-} from '../../../main/memberScenes/termsAgreement';
 import { createPictureCache } from '../../../main/plus/pictureCache';
 
 let root: string;
@@ -130,15 +126,6 @@ describe('the Studio’s projects', () => {
     expect(list.projects.map((project) => project.folder)).not.toContain(
       folderAt('p0'),
     );
-  });
-});
-
-describe('the terms agreed on this computer', () => {
-  it('starts at none and only ever goes up', () => {
-    expect(readAgreedTerms(root)).toBe(0);
-    writeAgreedTerms(root, 4);
-    writeAgreedTerms(root, 3);
-    expect(readAgreedTerms(root)).toBe(4);
   });
 });
 

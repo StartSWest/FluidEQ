@@ -30,7 +30,12 @@ import {
 import { writeStarterProject } from '../../../main/memberScenes/project';
 import { readAgreedTerms } from '../../../main/memberScenes/termsAgreement';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
-import { fakeResponse, ME, webpBytes } from '../../utils/memberSceneFixtures';
+import {
+  fakeResponse,
+  ME,
+  SOMEONE,
+  webpBytes,
+} from '../../utils/memberSceneFixtures';
 /* eslint-enable import/first */
 
 const config = {
@@ -51,6 +56,10 @@ let root: string;
 let folder: string | undefined;
 let entitled: boolean;
 let signedIn: boolean;
+/** Who is signed in: a computer can be shared. */
+let signedInAs: string;
+/** Somebody else signs in while the token is being fetched. */
+let switchDuringAuth: boolean;
 let answer: Response;
 let calls: Array<{ url: string; body: Record<string, unknown> }>;
 
@@ -63,10 +72,14 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 }) as unknown as typeof fetch;
 
 const access = (): IGalleryAccess => ({
-  accountId: () => (signedIn ? ME : undefined),
+  accountId: () => (signedIn ? signedInAs : undefined),
   entitled: () => entitled && signedIn,
-  auth: async () =>
-    signedIn ? { config, accessToken: 'token', fetchImpl } : undefined,
+  auth: async () => {
+    if (switchDuringAuth) {
+      signedInAs = SOMEONE;
+    }
+    return signedIn ? { config, accessToken: 'token', fetchImpl } : undefined;
+  },
 });
 
 const userDataDir = () => path.join(root, 'userData');
@@ -86,6 +99,8 @@ beforeEach(async () => {
   await writeStarterProject(folder);
   entitled = true;
   signedIn = true;
+  signedInAs = ME;
+  switchDuringAuth = false;
   answer = fakeResponse(200, { published: {} });
   calls = [];
 });
@@ -119,7 +134,24 @@ describe('publishing from the Studio', () => {
     expect(Buffer.from(String(calls[0]?.body.picture), 'base64')).toEqual(
       Buffer.from(webpBytes()),
     );
-    expect(readAgreedTerms(userDataDir())).toBe(4);
+    // Remembered for the account that published, and for nobody else here.
+    expect(readAgreedTerms(userDataDir(), ME)).toBe(4);
+    expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
+  });
+
+  // The server would record the agreement for whoever the token belongs to;
+  // with somebody else signed in by the time it arrived, there is no telling
+  // which account agreed, so nothing is sent.
+  it('publishes nothing when another account signs in while it starts', async () => {
+    setup();
+    switchDuringAuth = true;
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'signed-out',
+    });
+    expect(calls).toEqual([]);
+    expect(readAgreedTerms(userDataDir(), ME)).toBe(0);
+    expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
   });
 
   it('sends nothing without Plus, without a project, or with a category not on the list', async () => {
@@ -164,7 +196,7 @@ describe('publishing from the Studio', () => {
       ok: false,
       reason: 'terms',
     });
-    expect(readAgreedTerms(userDataDir())).toBe(0);
+    expect(readAgreedTerms(userDataDir(), ME)).toBe(0);
   });
 });
 

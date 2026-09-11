@@ -117,8 +117,11 @@ export const registerPlusPublishingIpc = ({
       if (!build.ok) {
         return { ok: false, reason: 'no-build' };
       }
+      // The account the server will record the agreement for is the one this
+      // token belongs to, so the two are taken together.
+      const me = access.accountId();
       const auth = await access.auth();
-      if (!auth) {
+      if (!auth || !me || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
       const published = await publishScene(auth, {
@@ -128,8 +131,9 @@ export const registerPlusPublishingIpc = ({
         picture: Buffer.from(picture).toString('base64'),
       });
       if (published.ok) {
-        // The server recorded the agreement with the publication.
-        writeAgreedTerms(userDataDir, termsVersion);
+        // The server recorded the agreement with the publication, for this
+        // account; so is this.
+        writeAgreedTerms(userDataDir, me, termsVersion);
         onTermsAgreed?.(termsVersion);
       }
       return published;
