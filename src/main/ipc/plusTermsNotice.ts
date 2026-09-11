@@ -42,7 +42,7 @@ export interface IPlusTermsNoticeIpcDeps {
   config: IAccountConfig;
   session: IAccountSession;
   entitlement: IEntitlement;
-  logger?: { warn(message: string): void };
+  logger?: { info(message: string): void; warn(message: string): void };
   fetchImpl?: typeof fetch;
 }
 
@@ -141,6 +141,12 @@ export const registerPlusTermsNoticeIpc = ({
       return;
     }
     known = { accountId: id, agreed: Math.max(agreed, agreedBy(id) ?? 0) };
+    // Said once per account and session, because the answer is the whole
+    // reason a member does or does not see the notice, and nothing on screen
+    // says which it was.
+    logger?.info(
+      `Plus terms: version ${agreed} is the newest on record for this account (asked after ${reason}; this build carries ${PLUS_TERMS_VERSION}).`,
+    );
   };
 
   const checkIfDue = async (reason: string) => {
