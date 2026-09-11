@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type {
+  IGalleryQuery,
   IGalleryScene,
   TGallerySort,
   TPlusCategory,
@@ -26,9 +27,29 @@ export interface IMakerRef {
 
 export type TGalleryPage =
   | { kind: 'browse' }
-  | { kind: 'scene'; scene: IGalleryScene }
+  | {
+      kind: 'scene';
+      scene: IGalleryScene;
+      /**
+       * The list the scene was opened from, so its page can step to the one
+       * before and after it without going back to that list.
+       */
+      from?: Omit<IGalleryQuery, 'offset'>;
+    }
   | { kind: 'maker'; maker: IMakerRef }
   | { kind: 'mine' };
+
+/** A page's own name, for what is remembered about it. */
+export const galleryPageKey = (page: TGalleryPage) => {
+  switch (page.kind) {
+    case 'scene':
+      return `scene:${page.scene.lookId}`;
+    case 'maker':
+      return `maker:${page.maker.authorId}`;
+    default:
+      return page.kind;
+  }
+};
 
 /** The gallery's front page as the member left it: sort, category, search. */
 export interface IBrowseFilters {
@@ -95,6 +116,25 @@ export const openGalleryPage = (page: TGalleryPage) =>
         : [...navigation.trail, navigation.page].slice(-MAX_TRAIL),
   });
 
+/**
+ * Shows `page` in place of the one showing: the next scene in a list rather
+ * than a page opened on top, so Back still goes where the member came from.
+ */
+export const replaceGalleryPage = (page: TGalleryPage) =>
+  publish({ ...navigation, place: 'visualizers', page });
+
+/**
+ * How far down each page was scrolled, by page, so Back lands where the
+ * member left rather than at the top of the gallery.
+ */
+const scrolled = new Map<string, number>();
+
+export const rememberGalleryScroll = (key: string, top: number) => {
+  scrolled.set(key, top);
+};
+
+export const galleryScrollOf = (key: string) => scrolled.get(key) ?? 0;
+
 export const setBrowseFilters = (filters: IBrowseFilters) => {
   if (filters !== navigation.filters) {
     publish({ ...navigation, filters });
@@ -111,4 +151,5 @@ export const goBackInGallery = () => {
 export const resetPlusNavigation = () => {
   navigation = INITIAL;
   listeners.clear();
+  scrolled.clear();
 };

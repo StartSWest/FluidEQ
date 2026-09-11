@@ -4,13 +4,9 @@ const plus = {
     'Plus सदस्यों के बनाए सीन — अपने रूपों में जोड़ें और पसंद करें',
   'plus.visualizers.blurb': 'सदस्यों के सीन',
 
-  'plus.gate.title': 'सदस्यों के बनाए सारे विज़ुअलाइज़र, एक ही जगह',
-  'plus.gate.point1':
-    'Plus सदस्यों का प्रकाशित कोई भी सीन चलाएँ और जो अच्छे लगें उन्हें पसंद करें',
-  'plus.gate.point2': 'स्टूडियो में अपने AI के साथ अपने सीन बनाएँ',
-  'plus.gate.point3':
-    'लीडरबोर्ड पर ऊपर चढ़ें: आपके सीन को मिली हर पसंद पॉइंट देती है',
   'plus.gate.cta': 'Plus देखें',
+  'plus.browse.text':
+    'Plus के साथ ये सीन आपके संगीत पर चलते हैं, आप इन्हें अपने रूपों में जोड़ सकते हैं और पसंद कर सकते हैं।',
 
   'plus.gallery.search': 'सीन या बनाने वाले खोजें',
   'plus.gallery.sort': 'क्रम',
@@ -55,6 +51,7 @@ const plus = {
 
   'plus.like.label': '{name} को पसंद करें ({count} पसंद)',
   'plus.like.own': 'आपके सीन को {count} पसंद मिली हैं',
+  'plus.like.plusOnly': '{count} पसंद। सीन पसंद करना Plus का हिस्सा है।',
   'plus.like.offline':
     'पसंद करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
 
@@ -66,8 +63,11 @@ const plus = {
   'plus.add.failed': '{name} जोड़ा नहीं जा सका। फिर कोशिश करें।',
 
   'plus.scene.back': 'वापस',
+  'plus.scene.previous': 'पिछला सीन: {name}',
+  'plus.scene.next': 'अगला सीन: {name}',
   'plus.scene.loading': 'सीन डाउनलोड हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
+  'plus.scene.plusPlays': 'Plus के साथ यह सीन यहीं आपके संगीत पर चलता है',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
   'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
   'plus.scene.changed':
@@ -80,6 +80,7 @@ const plus = {
   'plus.scene.adds': 'जोड़े गए',
   'plus.scene.add': 'मेरे रूपों में जोड़ें',
   'plus.scene.update': 'मेरी कॉपी अपडेट करें',
+  'plus.scene.getPlus': 'जोड़ने के लिए Plus लें',
   'plus.scene.play': 'ग्राफ़ पर चलाएँ',
   'plus.scene.inLooks': 'आपके रूपों में, “सदस्यों के बनाए” के अंदर',
   'plus.scene.inLooksOwn': 'आपके रूपों में, “आपके बनाए” के अंदर',
@@ -91,6 +92,7 @@ const plus = {
   'plus.scene.moreByYou': 'आपके और सीन',
 
   'plus.maker.you': 'आप',
+  'plus.maker.rank': 'रैंक',
   'plus.maker.scenes': 'सीन',
   'plus.maker.empty': 'अभी कुछ प्रकाशित नहीं है।',
 

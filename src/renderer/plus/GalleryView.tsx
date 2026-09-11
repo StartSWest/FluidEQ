@@ -73,7 +73,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
   );
 
   const open = (scene: IGalleryScene) =>
-    openGalleryPage({ kind: 'scene', scene });
+    openGalleryPage({ kind: 'scene', scene, from: query });
 
   const pickCategory = (category: TPlusCategory | undefined) =>
     setFilters((current) => ({

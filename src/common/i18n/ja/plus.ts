@@ -4,13 +4,9 @@ const plus = {
     'Plus メンバーが作ったシーン。マイ表示に追加して、いいねできます',
   'plus.visualizers.blurb': 'メンバーのシーン',
 
-  'plus.gate.title': 'メンバーが作るビジュアライザーを、ひとつの場所に',
-  'plus.gate.point1':
-    'Plus メンバーが公開したシーンをどれでも再生して、気に入ったものにいいね',
-  'plus.gate.point2': 'スタジオで AI と一緒に自分のシーンを作成',
-  'plus.gate.point3':
-    'ランキングで上位へ：あなたのシーンへのいいねがポイントになります',
   'plus.gate.cta': 'Plus を見る',
+  'plus.browse.text':
+    'Plus なら、これらのシーンがあなたの音楽で動き、マイ表示に追加したり、いいねしたりできます。',
 
   'plus.gallery.search': 'シーンや作者を検索',
   'plus.gallery.sort': '並べ替え',
@@ -57,6 +53,7 @@ const plus = {
 
   'plus.like.label': '{name} にいいね（{count} 件）',
   'plus.like.own': 'あなたのシーンへのいいね：{count} 件',
+  'plus.like.plusOnly': 'いいね：{count} 件。いいねは Plus の機能です。',
   'plus.like.offline':
     'いいねには接続が必要です。オンラインでもう一度お試しください。',
 
@@ -69,8 +66,12 @@ const plus = {
   'plus.add.failed': '{name} を追加できませんでした。もう一度お試しください。',
 
   'plus.scene.back': '戻る',
+  'plus.scene.previous': '前のシーン：{name}',
+  'plus.scene.next': '次のシーン：{name}',
   'plus.scene.loading': 'シーンをダウンロード中…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
+  'plus.scene.plusPlays':
+    'Plus なら、このシーンがここであなたの音楽に合わせて動きます',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
   'plus.scene.blocked': 'このシーンは削除されました。',
   'plus.scene.changed':
@@ -83,6 +84,7 @@ const plus = {
   'plus.scene.adds': '追加',
   'plus.scene.add': 'マイ表示に追加',
   'plus.scene.update': '自分のコピーを更新',
+  'plus.scene.getPlus': 'Plus で追加する',
   'plus.scene.play': 'グラフで再生',
   'plus.scene.inLooks': 'マイ表示の「メンバーが作成」にあります',
   'plus.scene.inLooksOwn': 'マイ表示の「あなたが作成」にあります',
@@ -94,6 +96,7 @@ const plus = {
   'plus.scene.moreByYou': 'あなたのほかのシーン',
 
   'plus.maker.you': 'あなた',
+  'plus.maker.rank': '順位',
   'plus.maker.scenes': 'シーン',
   'plus.maker.empty': '現在公開されているものはありません。',
 

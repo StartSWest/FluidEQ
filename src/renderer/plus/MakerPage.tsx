@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import Avatar from '../community/Avatar';
+import Glyph from '../community/Glyph';
 import { identityStyle } from '../community/identity';
 import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
@@ -14,15 +15,48 @@ interface IMakerPageProps {
 }
 
 /**
+ * Where this maker stands on the all-time leaderboard, once the board has
+ * answered; undefined while it has not, when they are not on it, or when
+ * this account cannot see it. Asked of the board directly rather than
+ * through the leaderboard's own store, so opening a maker never changes
+ * which period the leaderboard page shows.
+ */
+const useMakerRank = (maker: IMakerRef, own: boolean) => {
+  const [rank, setRank] = useState<number>();
+  useEffect(() => {
+    let cancelled = false;
+    setRank(undefined);
+    window.electron?.ipcRenderer
+      ?.leaderboardBoard?.('all')
+      .then((result) => {
+        if (cancelled || !result.ok) {
+          return undefined;
+        }
+        const board = result.value;
+        // Handles are unique; an account with none is not on the board.
+        const row = maker.handle
+          ? board.rows.find((entry) => entry.handle === maker.handle)
+          : undefined;
+        setRank(own ? (board.me?.rank ?? row?.rank) : row?.rank);
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [maker.handle, own]);
+  return rank;
+};
+
+/**
  * Everything one member has published, and what it earned. Only the name and
  * handle they already show in Community: never an email, never an account id.
  */
 export default function MakerPage({ maker, me }: IMakerPageProps) {
   const { t, locale } = useTranslation();
-  const { list, loadMore, reload } = useGalleryList({
-    sort: 'liked',
-    authorId: maker.authorId,
-  });
+  const query = { sort: 'liked', authorId: maker.authorId } as const;
+  const { list, loadMore, reload } = useGalleryList(query);
+  const rank = useMakerRank(maker, maker.authorId === me);
   const local = useUsableMemberScenes();
   const localById = useMemo(
     () => new Map(local.map((scene) => [scene.lookId, scene])),
@@ -59,6 +93,14 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
           )}
         </span>
         <dl className="gallery-figures gallery-maker__figures">
+          {rank !== undefined && (
+            <div className="gallery-maker__rank">
+              <dt>{t('plus.maker.rank')}</dt>
+              <dd>
+                <Glyph name="board" />#{numbers.format(rank)}
+              </dd>
+            </div>
+          )}
           <div>
             <dt>{t('plus.maker.scenes')}</dt>
             <dd>
@@ -91,7 +133,9 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
             scene={scene}
             me={me}
             local={localById.get(scene.lookId)}
-            onOpen={(next) => openGalleryPage({ kind: 'scene', scene: next })}
+            onOpen={(next) =>
+              openGalleryPage({ kind: 'scene', scene: next, from: query })
+            }
           />
         ))}
       </GalleryList>

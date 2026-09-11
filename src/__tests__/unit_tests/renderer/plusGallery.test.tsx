@@ -11,6 +11,7 @@ import type { IGalleryScene } from '../../../common/plusGallery';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
+import { resetScenePictures } from '../../../renderer/plus/scenePictures';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
 
@@ -50,6 +51,14 @@ jest.mock('../../../renderer/plus/ScenePreview', () => ({
   ),
 }));
 
+// Drawing a scene's own frame needs WebGL too: stand in with a picture that
+// is recognisably the drawn one.
+const mockRenderSceneStill = jest.fn();
+jest.mock('../../../renderer/graph/sceneStill', () => ({
+  renderSceneStill: (...args: unknown[]) => mockRenderSceneStill(...args),
+  blobAsDataUrl: async () => 'data:image/webp;base64,ZHJhd24=',
+}));
+
 const scene = (over: Partial<IGalleryScene> = {}): IGalleryScene => ({
   lookId: `member:${SOMEONE}:neon-city`,
   authorId: SOMEONE,
@@ -81,6 +90,7 @@ const bridge = {
   unpublishScene: jest.fn(),
   listMemberScenes: jest.fn(),
   onMemberScenesChanged: jest.fn(() => () => undefined),
+  leaderboardBoard: jest.fn(),
 };
 
 beforeEach(() => {
@@ -90,6 +100,8 @@ beforeEach(() => {
   resetGalleryStore();
   resetGalleryActions();
   resetMemberSceneStore();
+  resetScenePictures();
+  mockRenderSceneStill.mockResolvedValue(undefined);
   bridge.listGallery.mockResolvedValue({
     ok: true,
     scenes: [
@@ -104,6 +116,7 @@ beforeEach(() => {
     more: false,
   });
   bridge.galleryPicture.mockResolvedValue(undefined);
+  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
   bridge.listMemberScenes.mockResolvedValue({
     entitled: true,
     scenes: [],
@@ -115,14 +128,62 @@ beforeEach(() => {
   });
 });
 
+// The suite-wide stub never reports anything, as jsdom has no viewport. Here
+// every card is on screen the moment it is watched, so its picture is asked.
+const InertObserver = globalThis.IntersectionObserver;
+// A constructor returning an object: `new` hands back that object.
+function OnScreenObserver(
+  callback: (entries: Array<{ isIntersecting: boolean }>) => void,
+) {
+  return {
+    observe: () => callback([{ isIntersecting: true }]),
+    disconnect: () => undefined,
+    unobserve: () => undefined,
+  };
+}
+
+beforeAll(() => {
+  globalThis.IntersectionObserver =
+    OnScreenObserver as unknown as typeof IntersectionObserver;
+});
+
+afterAll(() => {
+  globalThis.IntersectionObserver = InertObserver;
+});
+
 const renderGallery = () => render(<VisualizersView onShowGraph={jest.fn()} />);
 
 describe('Visualizers', () => {
-  it('shows members without Plus what it is, and asks the server nothing', () => {
+  it('lets members without Plus browse, with the way into Plus and no Add', async () => {
     mockEntitled = false;
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: false,
+      reason: 'not-entitled',
+    });
     renderGallery();
-    expect(screen.getByText('plus.gate.title')).toBeInTheDocument();
-    expect(bridge.listGallery).not.toHaveBeenCalled();
+    expect(
+      await screen.findByRole('button', { name: 'Neon City' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('plus.browse.text')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'plus.card.add' }),
+    ).not.toBeInTheDocument();
+    // The count is there; the heart to press is not.
+    expect(
+      screen.queryByRole('button', { name: /plus\.like\.label/ }),
+    ).not.toBeInTheDocument();
+
+    // A scene's page: its picture and the way in, and nothing played. (The
+    // pictures may ask for a scene to draw a frame from; the main process
+    // refuses that without Plus.)
+    await userEvent.click(screen.getByRole('button', { name: 'Neon City' }));
+    expect(
+      await screen.findByRole('button', { name: 'plus.scene.getPlus' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('plus.scene.plusPlays')).toBeInTheDocument();
+    expect(screen.queryByText('plus.scene.loading')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
+    expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 
   // The control: a Plus member sees the scenes the server lists.
@@ -220,6 +281,49 @@ describe('Visualizers', () => {
     expect(
       screen.getByRole('button', { name: 'plus.like.label:Neon City,40' }),
     ).toBeInTheDocument();
+  });
+
+  it('shows a real frame of the scene, never a drawing, when it has no picture', async () => {
+    const pack = { id: 'neon-city', version: 1, names: { en: 'Neon City' } };
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: true,
+      own: false,
+      pack,
+    });
+    mockRenderSceneStill.mockResolvedValue(new Blob(['frame']));
+    const { container } = renderGallery();
+    await screen.findByRole('button', { name: 'Neon City' });
+    // The published picture was asked for first, and there was none.
+    await waitFor(() =>
+      expect(bridge.galleryPicture).toHaveBeenCalledWith(
+        SOMEONE,
+        'neon-city',
+        1,
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector('.gallery-picture__image'),
+      ).toHaveAttribute('src', 'data:image/webp;base64,ZHJhd24='),
+    );
+    expect(mockRenderSceneStill).toHaveBeenCalledWith(pack);
+    // Both cards were drawn, one after the other, from their own scenes.
+    await waitFor(() => expect(mockRenderSceneStill).toHaveBeenCalledTimes(2));
+  });
+
+  it('shows a published picture as it is, and draws nothing', async () => {
+    bridge.galleryPicture.mockResolvedValue(
+      'data:image/webp;base64,cHVibGlzaGVk',
+    );
+    const { container } = renderGallery();
+    await screen.findByRole('button', { name: 'Neon City' });
+    await waitFor(() =>
+      expect(
+        container.querySelector('.gallery-picture__image'),
+      ).toHaveAttribute('src', 'data:image/webp;base64,cHVibGlzaGVk'),
+    );
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+    expect(mockRenderSceneStill).not.toHaveBeenCalled();
   });
 
   it('puts the heart back and says so when the like could not be sent', async () => {
@@ -351,6 +455,65 @@ describe('a scene’s page', () => {
     expect(
       await screen.findByRole('heading', { name: 'Neon City' }),
     ).toBeInTheDocument();
+  });
+
+  it('shows the maker’s place on the leaderboard', async () => {
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: false,
+      reason: 'unavailable',
+    });
+    bridge.leaderboardBoard.mockResolvedValue({
+      ok: true,
+      value: {
+        period: 'all',
+        rows: [
+          { rank: 3, handle: 'ada', displayName: 'Ada', points: 900 },
+          { rank: 7, handle: 'mei', displayName: 'Mei Tanaka', points: 400 },
+        ],
+      },
+    });
+    await openNeonCity();
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'plus.card.by:Mei Tanaka' }),
+    );
+    expect(await screen.findByText('#7')).toBeInTheDocument();
+    expect(screen.getByText('plus.maker.rank')).toBeInTheDocument();
+    expect(bridge.leaderboardBoard).toHaveBeenCalledWith('all');
+  });
+
+  it('steps through the list it was opened from, and Back goes to that list', async () => {
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: false,
+      reason: 'unavailable',
+    });
+    await openNeonCity();
+    // The first of the list: only a way forward.
+    expect(
+      screen.queryByRole('button', { name: /plus\.scene\.previous/ }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'plus.scene.next:Deep Sea' }),
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Deep Sea' }),
+    ).toBeInTheDocument();
+    // The arrow keys step too.
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(
+      await screen.findByRole('heading', { name: 'Neon City' }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('heading', { name: 'Deep Sea' });
+    // Stepping replaced the page: one Back is the gallery, not the last scene.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'plus.scene.back' }),
+    );
+    expect(
+      await screen.findByRole('searchbox', { name: 'plus.gallery.search' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Neon City' }),
+    ).not.toBeInTheDocument();
   });
 });
 

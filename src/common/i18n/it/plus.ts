@@ -4,13 +4,9 @@ const plus = {
     'Scene create dai membri Plus, da aggiungere ai tuoi aspetti e a cui mettere mi piace',
   'plus.visualizers.blurb': 'Scene dei membri',
 
-  'plus.gate.title': 'Tutti i visualizzatori dei membri, in un solo posto',
-  'plus.gate.point1':
-    'Riproduci qualsiasi scena pubblicata dai membri Plus e metti mi piace alle tue preferite',
-  'plus.gate.point2': 'Crea le tue nello Studio, con la tua IA',
-  'plus.gate.point3':
-    'Scala la classifica: i mi piace alle tue scene valgono punti',
   'plus.gate.cta': 'Scopri Plus',
+  'plus.browse.text':
+    'Con Plus queste scene si muovono con la tua musica, le aggiungi ai tuoi aspetti e puoi mettere mi piace.',
 
   'plus.gallery.search': 'Cerca scene o autori',
   'plus.gallery.sort': 'Ordina',
@@ -56,6 +52,7 @@ const plus = {
 
   'plus.like.label': 'Mi piace a {name} ({count} mi piace)',
   'plus.like.own': 'La tua scena ha {count} mi piace',
+  'plus.like.plusOnly': '{count} mi piace. Mettere mi piace fa parte di Plus.',
   'plus.like.offline':
     'Per mettere mi piace serve una connessione. Riprova online.',
 
@@ -68,8 +65,12 @@ const plus = {
   'plus.add.failed': 'Non è stato possibile aggiungere {name}. Riprova.',
 
   'plus.scene.back': 'Indietro',
+  'plus.scene.previous': 'Scena precedente: {name}',
+  'plus.scene.next': 'Scena successiva: {name}',
   'plus.scene.loading': 'Download della scena…',
   'plus.scene.playing': 'Dal vivo con la tua musica',
+  'plus.scene.plusPlays':
+    'Con Plus, questa scena si muove qui con la tua musica',
   'plus.scene.unavailable': 'Questa scena non si può scaricare ora.',
   'plus.scene.blocked': 'Questa scena è stata rimossa.',
   'plus.scene.changed':
@@ -82,6 +83,7 @@ const plus = {
   'plus.scene.adds': 'Aggiunte',
   'plus.scene.add': 'Aggiungi ai miei aspetti',
   'plus.scene.update': 'Aggiorna la mia copia',
+  'plus.scene.getPlus': 'Passa a Plus per aggiungerla',
   'plus.scene.play': 'Riproduci sul grafico',
   'plus.scene.inLooks': 'Nei tuoi aspetti, in Creati dai membri',
   'plus.scene.inLooksOwn': 'Nei tuoi aspetti, in Creati da te',
@@ -93,6 +95,7 @@ const plus = {
   'plus.scene.moreByYou': 'Altre tue',
 
   'plus.maker.you': 'Tu',
+  'plus.maker.rank': 'Posizione',
   'plus.maker.scenes': 'Scene',
   'plus.maker.empty': 'Nulla di pubblicato al momento.',
 

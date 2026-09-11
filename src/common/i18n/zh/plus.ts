@@ -3,11 +3,9 @@ const plus = {
   'plus.visualizers.description': 'Plus 会员创作的场景，可添加到你的外观并点赞',
   'plus.visualizers.blurb': '会员的场景',
 
-  'plus.gate.title': '会员创作的所有可视化，尽在一处',
-  'plus.gate.point1': '播放 Plus 会员发布的任何场景，为喜欢的点赞',
-  'plus.gate.point2': '在工作室里和你的 AI 一起创作自己的场景',
-  'plus.gate.point3': '冲上排行榜：你的场景获得的赞都会变成积分',
   'plus.gate.cta': '了解 Plus',
+  'plus.browse.text':
+    '有了 Plus，这些场景会随你的音乐播放，还能添加到你的外观并点赞。',
 
   'plus.gallery.search': '搜索场景或作者',
   'plus.gallery.sort': '排序',
@@ -50,6 +48,7 @@ const plus = {
 
   'plus.like.label': '为 {name} 点赞（{count} 个赞）',
   'plus.like.own': '你的场景获得了 {count} 个赞',
+  'plus.like.plusOnly': '{count} 个赞。给场景点赞是 Plus 的功能。',
   'plus.like.offline': '点赞需要网络连接。请联网后重试。',
 
   'plus.add.done': '{name} 已添加到你的外观。',
@@ -59,8 +58,11 @@ const plus = {
   'plus.add.failed': '无法添加 {name}。请重试。',
 
   'plus.scene.back': '返回',
+  'plus.scene.previous': '上一个场景：{name}',
+  'plus.scene.next': '下一个场景：{name}',
   'plus.scene.loading': '正在下载场景…',
   'plus.scene.playing': '随你的音乐实时播放',
+  'plus.scene.plusPlays': '有了 Plus，这个场景会在这里随你的音乐播放',
   'plus.scene.unavailable': '暂时无法下载这个场景。',
   'plus.scene.blocked': '这个场景已被下架。',
   'plus.scene.changed': '这个场景未通过 FluidEQ 的检查，因此不会播放。',
@@ -72,6 +74,7 @@ const plus = {
   'plus.scene.adds': '添加',
   'plus.scene.add': '添加到我的外观',
   'plus.scene.update': '更新我的副本',
+  'plus.scene.getPlus': '开通 Plus 即可添加',
   'plus.scene.play': '在图表上播放',
   'plus.scene.inLooks': '已在你的外观中，位于“会员创作”',
   'plus.scene.inLooksOwn': '已在你的外观中，位于“你创作的”',
@@ -83,6 +86,7 @@ const plus = {
   'plus.scene.moreByYou': '你的更多作品',
 
   'plus.maker.you': '你',
+  'plus.maker.rank': '排名',
   'plus.maker.scenes': '场景',
   'plus.maker.empty': '目前没有已发布的作品。',
 

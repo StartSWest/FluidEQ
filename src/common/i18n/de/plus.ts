@@ -4,13 +4,9 @@ const plus = {
     'Szenen von Plus-Mitgliedern – zu Ihren Darstellungen hinzufügen und liken',
   'plus.visualizers.blurb': 'Szenen von Mitgliedern',
 
-  'plus.gate.title': 'Alle Visualizer der Mitglieder an einem Ort',
-  'plus.gate.point1':
-    'Jede Szene abspielen, die Plus-Mitglieder veröffentlichen, und Ihre Favoriten liken',
-  'plus.gate.point2': 'Eigene im Studio erstellen, mit Ihrer KI',
-  'plus.gate.point3':
-    'In der Rangliste aufsteigen: Likes für Ihre Szenen bringen Punkte',
   'plus.gate.cta': 'Plus ansehen',
+  'plus.browse.text':
+    'Mit Plus laufen diese Szenen zu Ihrer Musik, Sie fügen sie Ihren Darstellungen hinzu und können sie liken.',
 
   'plus.gallery.search': 'Szenen oder Ersteller suchen',
   'plus.gallery.sort': 'Sortieren',
@@ -58,6 +54,7 @@ const plus = {
 
   'plus.like.label': '{name} liken ({count} Likes)',
   'plus.like.own': 'Ihre Szene hat {count} Likes',
+  'plus.like.plusOnly': '{count} Likes. Szenen liken gehört zu Plus.',
   'plus.like.offline':
     'Liken braucht eine Verbindung. Versuchen Sie es online erneut.',
 
@@ -71,8 +68,11 @@ const plus = {
     '{name} konnte nicht hinzugefügt werden. Versuchen Sie es erneut.',
 
   'plus.scene.back': 'Zurück',
+  'plus.scene.previous': 'Vorherige Szene: {name}',
+  'plus.scene.next': 'Nächste Szene: {name}',
   'plus.scene.loading': 'Szene wird heruntergeladen…',
   'plus.scene.playing': 'Live zu Ihrer Musik',
+  'plus.scene.plusPlays': 'Mit Plus läuft diese Szene hier zu Ihrer Musik',
   'plus.scene.unavailable':
     'Diese Szene kann gerade nicht heruntergeladen werden.',
   'plus.scene.blocked': 'Diese Szene wurde entfernt.',
@@ -86,6 +86,7 @@ const plus = {
   'plus.scene.adds': 'Hinzugefügt',
   'plus.scene.add': 'Zu meinen Darstellungen',
   'plus.scene.update': 'Meine Kopie aktualisieren',
+  'plus.scene.getPlus': 'Mit Plus hinzufügen',
   'plus.scene.play': 'Im Diagramm abspielen',
   'plus.scene.inLooks':
     'In Ihren Darstellungen, unter „Von Mitgliedern erstellt“',
@@ -98,6 +99,7 @@ const plus = {
   'plus.scene.moreByYou': 'Mehr von Ihnen',
 
   'plus.maker.you': 'Sie',
+  'plus.maker.rank': 'Platz',
   'plus.maker.scenes': 'Szenen',
   'plus.maker.empty': 'Derzeit nichts veröffentlicht.',
 

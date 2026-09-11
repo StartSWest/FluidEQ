@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import type { IGalleryQuery, IGalleryScene } from 'common/plusGallery';
 import type { TGalleryListOutcome } from 'main/ipc/plusGallery';
 
@@ -197,82 +197,8 @@ export const useGalleryScene = (scene: IGalleryScene): IGalleryScene =>
     () => scene,
   );
 
-// ---------------------------------------------------------------- pictures
-
-/** A picture per scene version: its data URL, or null when it has none. */
-const pictures = new Map<string, string | null>();
-const picturesAsked = new Set<string>();
-
-const pictureKey = (scene: Pick<IGalleryScene, 'lookId' | 'version'>) =>
-  `${scene.lookId}@${scene.version}`;
-
-/**
- * A scene's picture, asked for once the element is near the screen, so a
- * page of sixty cards downloads the dozen that are visible first.
- */
-export const useScenePicture = (
-  scene: Pick<IGalleryScene, 'lookId' | 'authorId' | 'sceneId' | 'version'>,
-  element: Element | null,
-): string | null | undefined => {
-  const key = pictureKey(scene);
-  const [picture, setPicture] = useState(() => pictures.get(key));
-
-  useEffect(() => {
-    setPicture(pictures.get(key));
-    if (pictures.has(key) || !element) {
-      return undefined;
-    }
-    let cancelled = false;
-    const fetchPicture = () => {
-      if (picturesAsked.has(key)) {
-        return;
-      }
-      picturesAsked.add(key);
-      bridge()
-        ?.galleryPicture?.(scene.authorId, scene.sceneId, scene.version)
-        .then((dataUrl) => {
-          // A picture that did not come is not remembered as missing: the
-          // next time the card is shown is the next chance.
-          picturesAsked.delete(key);
-          if (dataUrl) {
-            pictures.set(key, dataUrl);
-          }
-          if (!cancelled) {
-            setPicture(dataUrl ?? null);
-          }
-          return undefined;
-        })
-        .catch(() => picturesAsked.delete(key));
-    };
-    if (typeof IntersectionObserver === 'undefined') {
-      fetchPicture();
-      return () => {
-        cancelled = true;
-      };
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          observer.disconnect();
-          fetchPicture();
-        }
-      },
-      { rootMargin: '240px' },
-    );
-    observer.observe(element);
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-    };
-  }, [key, element, scene.authorId, scene.sceneId, scene.version]);
-
-  return picture;
-};
-
 /** For tests: a clean module between runs. */
 export const resetGalleryStore = () => {
   lists.clear();
   listeners.clear();
-  pictures.clear();
-  picturesAsked.clear();
 };

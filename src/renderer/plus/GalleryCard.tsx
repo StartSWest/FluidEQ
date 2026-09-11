@@ -2,12 +2,13 @@ import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import type { IUsableMemberScene } from '../utils/memberScenes';
+import { addGalleryScene, useAddingScenes } from './galleryActions';
 import {
-  addGalleryScene,
-  toggleGalleryLike,
-  useAddingScenes,
-} from './galleryActions';
-import { categoryKey, LikeButton, ScenePicture } from './GalleryParts';
+  categoryKey,
+  SceneHeart,
+  ScenePicture,
+  usePlusEntitled,
+} from './GalleryParts';
 import type { IMakerRef } from './plusNavigation';
 
 interface IGalleryCardProps {
@@ -28,7 +29,9 @@ interface IGalleryCardProps {
  * The picture and the name both open the scene's page, where it plays; the
  * card itself plays nothing, so browsing downloads pictures and nothing else.
  * Add is the quiet style here — a grid of sixty loud buttons says nothing —
- * and the loud one on the scene's page.
+ * and the loud one on the scene's page. Without Plus the card is the picture,
+ * the name and the counts: the way in is on the scene's page, once, rather
+ * than sixty times down the grid.
  */
 export default function GalleryCard({
   scene,
@@ -38,6 +41,7 @@ export default function GalleryCard({
   onMaker,
 }: IGalleryCardProps) {
   const { t, locale } = useTranslation();
+  const entitled = usePlusEntitled();
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
@@ -102,25 +106,20 @@ export default function GalleryCard({
           <span className="gallery-card__adds">
             {t('plus.card.adds', { count: adds })}
           </span>
-          <LikeButton
-            scene={scene}
-            name={name}
-            own={own}
-            onToggle={() => {
-              toggleGalleryLike(scene).catch(() => undefined);
-            }}
-          />
-          <button
-            type="button"
-            className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
-            aria-busy={adding}
-            disabled={addState !== '' || adding}
-            onClick={() => {
-              addGalleryScene(scene, name).catch(() => undefined);
-            }}
-          >
-            {addLabel}
-          </button>
+          <SceneHeart scene={scene} name={name} own={own} />
+          {entitled && (
+            <button
+              type="button"
+              className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
+              aria-busy={adding}
+              disabled={addState !== '' || adding}
+              onClick={() => {
+                addGalleryScene(scene, name).catch(() => undefined);
+              }}
+            >
+              {addLabel}
+            </button>
+          )}
         </div>
       </div>
     </article>

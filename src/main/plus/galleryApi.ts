@@ -28,8 +28,12 @@ import { MAX_MEMBER_SCENE_FILE_BYTES } from '../../common/memberSceneFile';
  * against the member key before a byte of it is used.
  */
 
-/** Largest picture accepted; the publishing function refuses bigger. */
-export const MAX_PICTURE_BYTES = 256 * 1024;
+/**
+ * Largest picture accepted; the publishing function refuses bigger. A
+ * 1280 by 720 WebP of a busy scene at a quality that shows it off lands
+ * between 100 and 400KB.
+ */
+export const MAX_PICTURE_BYTES = 512 * 1024;
 
 export const SCENE_BUCKET = 'member-scenes';
 

@@ -83,6 +83,7 @@ const row = (over: Record<string, unknown> = {}) => ({
 
 let root: string;
 let entitled: boolean;
+let signedIn: boolean;
 let store: IMemberSceneStore;
 let announced: number;
 let refreshed: number;
@@ -110,7 +111,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 }) as unknown as typeof fetch;
 
 const access = (): IGalleryAccess => ({
-  accountId: () => ME,
+  accountId: () => (signedIn ? ME : undefined),
   entitled: () => entitled,
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 });
@@ -144,6 +145,7 @@ beforeEach(() => {
   handlers.clear();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-gallery-ipc-'));
   entitled = true;
+  signedIn = true;
   announced = 0;
   refreshed = 0;
   calls = [];
@@ -156,7 +158,7 @@ afterEach(() => {
 });
 
 describe('listing', () => {
-  it('lists the gallery for a Plus member, and nothing without Plus', async () => {
+  it('lists the gallery for anyone signed in, Plus or not', async () => {
     setup();
     const listed = await invoke<Promise<TGalleryListOutcome>>(
       'plus-gallery-list',
@@ -166,9 +168,22 @@ describe('listing', () => {
       'neon-city',
     ]);
     entitled = false;
+    const browsed = await invoke<Promise<TGalleryListOutcome>>(
+      'plus-gallery-list',
+      {},
+    );
+    expect(browsed.ok && browsed.scenes.map((scene) => scene.sceneId)).toEqual([
+      'neon-city',
+    ]);
+  });
+
+  it('lists nothing to somebody signed out, and asks the server nothing', async () => {
+    setup();
+    signedIn = false;
     expect(
       await invoke<Promise<TGalleryListOutcome>>('plus-gallery-list', {}),
-    ).toEqual({ ok: false, reason: 'not-entitled' });
+    ).toEqual({ ok: false, reason: 'signed-out' });
+    expect(calls).toEqual([]);
   });
 
   it('rebuilds the query from only the parts that check out', async () => {
@@ -346,6 +361,39 @@ describe('pictures', () => {
     expect(
       await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1),
     ).toBeUndefined();
+  });
+
+  it('shows the picture without Plus, and never downloads the scene for it', async () => {
+    setup();
+    entitled = false;
+    bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());
+    publishScene(SOMEONE);
+    expect(
+      await invoke<Promise<string>>(
+        'plus-gallery-picture',
+        SOMEONE,
+        'neon-city',
+        1,
+      ),
+    ).toMatch(/^data:image\/webp;base64,/);
+    // Playing and adding stay Plus: the scene file is not even asked for.
+    expect(
+      await invoke<Promise<TGalleryPreviewOutcome>>(
+        'plus-gallery-preview',
+        SOMEONE,
+        'neon-city',
+        1,
+      ),
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(
+      await invoke<Promise<TGalleryAddOutcome>>(
+        'plus-gallery-add',
+        SOMEONE,
+        'neon-city',
+        1,
+      ),
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls.some((call) => call.url.endsWith('scene.json'))).toBe(false);
   });
 });
 

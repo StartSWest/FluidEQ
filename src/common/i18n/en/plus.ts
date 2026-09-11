@@ -9,13 +9,9 @@ const plus = {
     'Scenes Plus members made, to add to your looks and like',
   'plus.visualizers.blurb': 'Scenes members made',
 
-  'plus.gate.title': 'Every visualizer members make, in one place',
-  'plus.gate.point1':
-    'Play any scene Plus members publish, and like the ones you love',
-  'plus.gate.point2': 'Make your own in the Studio, with your AI',
-  'plus.gate.point3':
-    'Climb the leaderboard: likes on scenes you make earn points',
   'plus.gate.cta': 'See Plus',
+  'plus.browse.text':
+    'Plus plays these scenes on your music, adds them to your looks and lets you like them.',
 
   'plus.gallery.search': 'Search scenes or makers',
   'plus.gallery.sort': 'Sort',
@@ -60,6 +56,7 @@ const plus = {
 
   'plus.like.label': 'Like {name} ({count} likes)',
   'plus.like.own': 'Your scene has {count} likes',
+  'plus.like.plusOnly': '{count} likes. Liking scenes is part of Plus.',
   'plus.like.offline': 'Liking needs a connection. Try again online.',
 
   'plus.add.done': '{name} is in your looks.',
@@ -71,8 +68,11 @@ const plus = {
   'plus.add.failed': '{name} could not be added. Try again.',
 
   'plus.scene.back': 'Back',
+  'plus.scene.previous': 'Previous scene: {name}',
+  'plus.scene.next': 'Next scene: {name}',
   'plus.scene.loading': 'Downloading the scene…',
   'plus.scene.playing': 'Playing on your music',
+  'plus.scene.plusPlays': 'With Plus, this scene plays here on your music',
   'plus.scene.unavailable': 'This scene cannot be downloaded right now.',
   'plus.scene.blocked': 'This scene has been taken down.',
   'plus.scene.changed':
@@ -85,6 +85,7 @@ const plus = {
   'plus.scene.adds': 'Added',
   'plus.scene.add': 'Add to my looks',
   'plus.scene.update': 'Update my copy',
+  'plus.scene.getPlus': 'Get Plus to add it',
   'plus.scene.play': 'Play on the graph',
   'plus.scene.inLooks': 'In your looks, under Made by members',
   'plus.scene.inLooksOwn': 'In your looks, under Made by you',
@@ -96,6 +97,7 @@ const plus = {
   'plus.scene.moreByYou': 'More by you',
 
   'plus.maker.you': 'You',
+  'plus.maker.rank': 'Rank',
   'plus.maker.scenes': 'Scenes',
   'plus.maker.empty': 'Nothing published right now.',
 

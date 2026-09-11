@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
-import { useEntitlement } from '../account/entitlementStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { setGalleryNotice, useGalleryNotice } from './galleryActions';
+import { usePlusEntitled } from './GalleryParts';
 import { markGalleryStale } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import {
+  galleryPageKey,
+  galleryScrollOf,
   goBackInGallery,
+  rememberGalleryScroll,
   usePlusNavigation,
   type TGalleryPage,
 } from './plusNavigation';
@@ -23,21 +26,19 @@ interface IVisualizersViewProps {
   onShowGraph: () => void;
 }
 
-/** What members without Plus find here: what it is, and the way in. */
-function PlusGate() {
+/**
+ * What a member without Plus reads over the gallery they are browsing: what
+ * Plus would let them do with it, and the way in — one line, not a wall in
+ * front of the scenes, because the scenes are the best argument for it.
+ */
+function PlusBar() {
   const { t } = useTranslation();
   return (
-    <div className="gallery-gate">
-      <span className="gallery-gate__mark" aria-hidden="true">
+    <div className="gallery-plusbar">
+      <span className="gallery-plusbar__mark" aria-hidden="true">
         <Glyph name="plus" />
       </span>
-      <span className="gallery-gate__eyebrow">{t('account.plus.eyebrow')}</span>
-      <h3 className="gallery-gate__title">{t('plus.gate.title')}</h3>
-      <ul className="gallery-gate__points">
-        <li>{t('plus.gate.point1')}</li>
-        <li>{t('plus.gate.point2')}</li>
-        <li>{t('plus.gate.point3')}</li>
-      </ul>
+      <span className="gallery-plusbar__text">{t('plus.browse.text')}</span>
       <button
         type="button"
         className="button small"
@@ -81,18 +82,20 @@ function PageBar({
  * the leaderboard for whoever made it.
  *
  * Only one scene plays here at a time, on its own page; the cards are
- * pictures, so browsing costs pictures and nothing else.
+ * pictures, so browsing costs pictures and nothing else. Any member can
+ * browse; playing, adding and liking are Plus.
  */
 export default function VisualizersView({
   onShowGraph,
 }: IVisualizersViewProps) {
   const { t } = useTranslation();
   const { page } = usePlusNavigation();
-  const entitlement = useEntitlement();
   const account = useAccount();
   const notice = useGalleryNotice();
-  const entitled = entitlement.state !== 'none';
+  const entitled = usePlusEntitled();
   const me = account.identity?.id;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pageKey = galleryPageKey(page);
 
   // Coming here is when the gallery is worth asking again; what was on
   // screen stays there while it does.
@@ -101,26 +104,32 @@ export default function VisualizersView({
     return () => setGalleryNotice(undefined);
   }, []);
 
-  let content = <PlusGate />;
-  if (entitled) {
-    content = <GalleryView me={me} />;
-    if (page.kind === 'scene') {
-      content = (
-        <ScenePage
-          key={page.scene.lookId}
-          scene={page.scene}
-          me={me}
-          onShowGraph={onShowGraph}
-        />
-      );
-    } else if (page.kind === 'maker') {
-      content = (
-        <MakerPage key={page.maker.authorId} maker={page.maker} me={me} />
-      );
+  // Each page opens where it was left — the gallery at the card that was
+  // opened, a page never seen at its top. Before paint, so it never shows
+  // at the wrong place first. The lists are kept, so the height is there.
+  useLayoutEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = galleryScrollOf(pageKey);
     }
-  }
-  // Taking one's own scene down needs no Plus.
-  if (page.kind === 'mine') {
+  }, [pageKey]);
+
+  let content = <GalleryView me={me} />;
+  if (page.kind === 'scene') {
+    content = (
+      <ScenePage
+        key={page.scene.lookId}
+        scene={page.scene}
+        from={page.from}
+        me={me}
+        onShowGraph={onShowGraph}
+      />
+    );
+  } else if (page.kind === 'maker') {
+    content = (
+      <MakerPage key={page.maker.authorId} maker={page.maker} me={me} />
+    );
+  } else if (page.kind === 'mine') {
+    // Taking one's own scene down needs no Plus.
     content = <YourScenes me={me} />;
   }
 
@@ -139,11 +148,16 @@ export default function VisualizersView({
           </span>
         </span>
       </header>
-      <div className="gallery-visualizers">
-        {page.kind !== 'browse' && (entitled || page.kind === 'mine') && (
-          <PageBar page={page} />
-        )}
-        {notice && entitled && (
+      <div
+        ref={scrollRef}
+        className="gallery-visualizers"
+        onScroll={(event) =>
+          rememberGalleryScroll(pageKey, event.currentTarget.scrollTop)
+        }
+      >
+        {page.kind !== 'browse' && <PageBar page={page} />}
+        {!entitled && page.kind !== 'mine' && <PlusBar />}
+        {notice && (
           <p
             className={`studio-notice gallery-notice${notice.ok ? ' studio-notice--ok' : ''}`}
             role="status"

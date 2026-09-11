@@ -426,9 +426,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// A scene's picture over its own colours. The colours show until the picture
-// arrives, and stay for a scene whose picture never does, so no card is ever
-// a grey hole.
+// A scene's picture: always the real scene. It shimmers while it comes —
+// published pictures arrive in a moment, frames drawn from the scene in turn
+// — and a scene nothing could be had for is a quiet tile, never a drawing
+// standing in for it.
 .gallery-picture {
   position: relative;
   display: block;
@@ -437,18 +438,43 @@ it under the terms of the GNU General Public License version 3 or later.
   background-color: $surface-plot;
 }
 
-.gallery-picture__image,
-.gallery-art {
+.gallery-picture--loading {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, $surface-plot) 0%,
+    color-mix(in srgb, $white 8%, $surface-plot) 50%,
+    color-mix(in srgb, $white 3%, $surface-plot) 100%
+  );
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-picture__image {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.gallery-picture__image {
   object-fit: cover;
   @include animate(fade-in, $motion-base);
+}
+
+.gallery-picture__none {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $text-dim;
+
+  svg {
+    width: 28px;
+    height: 28px;
+    opacity: 0.6;
+  }
 }
 
 // ---------------------------------------------------------------- like
@@ -651,6 +677,94 @@ it under the terms of the GNU General Public License version 3 or later.
 .gallery-preview__veil--failed {
   color: $text-muted;
   background: color-mix(in srgb, $surface-plot 78%, transparent);
+}
+
+// The scene before and after this one, on the stage's two edges: glass over
+// the scene, quiet until the pointer is on the stage, and never over the
+// middle of the picture.
+.gallery-step {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: $text-primary;
+  border: 1px solid rgba($white, 0.16);
+  border-radius: 50%;
+  background: rgba($black, 0.42);
+  box-shadow: 0 6px 18px rgba($black, 0.35);
+  cursor: pointer;
+  opacity: 0.7;
+  transform: translateY(-50%);
+  backdrop-filter: blur(6px);
+  transition:
+    opacity $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .gallery-preview:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-light 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 32%, rgba($black, 0.5));
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.gallery-step--back {
+  left: 12px;
+}
+
+.gallery-step--next {
+  right: 12px;
+}
+
+// Without Plus the picture stays in full view: what Plus would do with it
+// sits low on it, on a shade that only darkens the bottom edge.
+.gallery-preview__plus {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 14px 12px;
+  color: $text-primary;
+  background: linear-gradient(
+    0deg,
+    rgba($black, 0.72),
+    rgba($black, 0.4) 55%,
+    transparent
+  );
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-shadow: 0 1px 2px rgba($black, 0.6);
+  pointer-events: none;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: $secondary-light;
+  }
 }
 
 .gallery-preview__spinner {
@@ -881,10 +995,32 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-maker__figures {
   flex: 1 1 280px;
-  max-width: 360px;
+  // Three figures, or four with a place on the leaderboard: as many columns
+  // as there are, each at least wide enough for its number.
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  max-width: 480px;
 
   div {
     background: color-mix(in srgb, $black 22%, transparent);
+  }
+}
+
+// The maker's place on the leaderboard, in the trophy's gold: the one
+// figure here that is a standing rather than a count.
+.gallery-maker__figures .gallery-maker__rank {
+  border-color: color-mix(in srgb, $amber 42%, transparent);
+  background: color-mix(in srgb, $amber 10%, rgba($black, 0.22));
+
+  dd {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: color-mix(in srgb, $amber 70%, $white);
+  }
+
+  svg {
+    width: 15px;
+    height: 15px;
   }
 }
 
@@ -1042,99 +1178,56 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// ---------------------------------------------------------------- gate
+// ---------------------------------------------------------------- without Plus
 
-.gallery-gate {
-  display: grid;
-  justify-items: center;
-  gap: $spacing-s;
-  max-width: 460px;
-  margin: $spacing-l auto;
-  padding: $spacing-l $spacing-m;
-  text-align: center;
-  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
-  border-radius: $radius-xl;
+// Over the gallery for a member without Plus: one line of what Plus does
+// with these scenes, and the way in. A strip rather than a card in front of
+// the grid — the scenes under it are the argument.
+.gallery-plusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px $spacing-m;
+  padding: 8px 8px 8px 10px;
+  border: 1px solid color-mix(in srgb, $secondary-light 26%, transparent);
+  border-radius: $radius-m;
   background:
-    radial-gradient(
-      120% 90% at 100% 0%,
-      color-mix(in srgb, $secondary-default 16%, transparent),
-      transparent 60%
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 14%, transparent),
+      color-mix(in srgb, $secondary-default 4%, transparent) 70%
     ),
     $block-lift;
-  box-shadow: 0 18px 48px rgba($black, 0.35);
+
+  .button {
+    gap: 6px;
+    margin-inline-start: auto;
+  }
 }
 
-.gallery-gate__mark {
+.gallery-plusbar__mark {
   display: grid;
+  flex: 0 0 auto;
   place-items: center;
-  width: 60px;
-  height: 60px;
+  width: 28px;
+  height: 28px;
   color: $surface-base;
   border-radius: 50%;
   background: linear-gradient(135deg, $secondary-light, $secondary-default);
-  box-shadow: 0 0 34px color-mix(in srgb, $secondary-default 32%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 30%, transparent);
 
   svg {
-    width: 30px;
-    height: 30px;
+    width: 16px;
+    height: 16px;
   }
 }
 
-.gallery-gate__eyebrow {
-  color: $secondary-light;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.gallery-gate__title {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-title;
-  font-weight: $weight-semibold;
-  text-wrap: balance;
-}
-
-.gallery-gate__points {
-  display: grid;
-  gap: 7px;
-  margin: 0 0 $spacing-xs;
-  padding: 0;
-  list-style: none;
-  text-align: start;
-
-  li {
-    position: relative;
-    padding-inline-start: 22px;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.5;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 3px;
-      inset-inline-start: 0;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: color-mix(in srgb, $secondary-default 22%, transparent);
-      box-shadow: inset 0 0 0 4px
-        color-mix(in srgb, $secondary-default 12%, transparent);
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 8px;
-      inset-inline-start: 5px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: $secondary-light;
-    }
-  }
+.gallery-plusbar__text {
+  flex: 1 1 260px;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
 }
 
 // ---------------------------------------------------------------- dialogs
@@ -1292,19 +1385,22 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The Studio's publish dialog: the picture the gallery will show, beside what
-// it is.
+// The Studio's publish dialog. The picture is the hero: it is the real scene,
+// exactly as the gallery will show it, so it takes the dialog's whole width,
+// with what it is and the way to take another under it.
 .studio-publish__scene {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
-  align-items: center;
-  gap: $spacing-m;
+  gap: 10px;
   padding: 10px;
   @include section-surface;
+}
 
-  @media (max-width: 520px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.studio-publish__frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: $radius-s;
+  box-shadow: 0 10px 28px rgba($black, 0.45);
 }
 
 .studio-publish__picture {
@@ -1312,26 +1408,57 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: $radius-xs;
-  box-shadow: 0 8px 22px rgba($black, 0.4);
+}
+
+.studio-publish__taking {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-s;
+  color: $text-primary;
+  background: color-mix(in srgb, $surface-plot 55%, transparent);
+  font-size: $text-small;
+  backdrop-filter: blur(2px);
 }
 
 .studio-publish__about {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: $spacing-s;
+  row-gap: 2px;
   min-width: 0;
   color: $text-faint;
   font-size: $text-small;
 
   strong {
+    grid-column: 1;
     color: $text-primary;
     font-size: $text-body;
     font-weight: $weight-semibold;
     overflow-wrap: anywhere;
   }
+
+  > span {
+    grid-column: 1;
+  }
 }
 
-.studio-publish__hint {
+.studio-publish__retake {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.studio-publish__about .studio-publish__hint {
+  grid-column: 1 / -1;
   margin-top: 4px;
   color: $text-dim;
   line-height: 1.45;

@@ -14,8 +14,21 @@ import type { ISceneFrame } from '../graph/sceneGl';
  * smooth as the frames that draw it.
  */
 
+/**
+ * `showcase` is not one of the buttons: it is what a scene hears while its
+ * picture is taken — music-like, every channel busy at once, over moving
+ * broadband noise — so the picture shows the scene doing things rather than
+ * waiting for a song.
+ */
 export type TStudioSignal =
-  'live' | 'silence' | 'bass' | 'mid' | 'treble' | 'beat' | 'accent';
+  | 'live'
+  | 'silence'
+  | 'bass'
+  | 'mid'
+  | 'treble'
+  | 'beat'
+  | 'accent'
+  | 'showcase';
 
 export const STUDIO_SIGNALS: readonly TStudioSignal[] = [
   'live',
@@ -87,6 +100,16 @@ export const studioBands = (
         mid: 0.36,
         treble: 0.18 + 0.42 * hat,
       };
+    case 'showcase':
+      // A loud, busy chorus: kick and bass together, a moving melody in the
+      // mids, hats on the offbeats.
+      return {
+        level: 0.58 + 0.28 * kick,
+        beat: kick,
+        bass: 0.52 + 0.42 * kick,
+        mid: 0.46 + 0.18 * Math.sin(seconds * 1.9) + 0.12 * hat,
+        treble: 0.32 + 0.46 * hat,
+      };
     case 'accent':
     default: {
       // A hard onset with the bass the engine requires, once a period.
@@ -113,6 +136,44 @@ export const fillStudioSpectrum = (bands: IBands, spectrum: Uint8Array) => {
       bands.bass * gaussian(f, 0.16, 0.12) +
       bands.mid * gaussian(f, 0.5, 0.16) +
       bands.treble * gaussian(f, 0.82, 0.13);
+    spectrum[texel] = Math.round(Math.min(1, energy) * 255);
+  }
+};
+
+/** A repeatable 0..1 value for a texel at one step of the noise's clock. */
+const hashed = (texel: number, step: number) => {
+  const value = Math.sin(texel * 12.9898 + step * 78.233) * 43758.5453;
+  return value - Math.floor(value);
+};
+
+/** Steps of the showcase noise per second; eased between, so it flows. */
+const NOISE_STEPS_PER_S = 9;
+
+/**
+ * The showcase spectrum: the three bands where they live in hertz, over
+ * broadband noise that tilts down toward the treble the way music does, and
+ * moves every frame — so bars, peaks and anything reading the spectrum have
+ * something to do.
+ */
+export const fillShowcaseSpectrum = (
+  bands: IBands,
+  seconds: number,
+  spectrum: Uint8Array,
+) => {
+  const clock = seconds * NOISE_STEPS_PER_S;
+  const step = Math.floor(clock);
+  const blend = clock - step;
+  const eased = blend * blend * (3 - 2 * blend);
+  for (let texel = 0; texel < SPECTRUM_TEXELS; texel += 1) {
+    const f = texel / (SPECTRUM_TEXELS - 1);
+    const noise =
+      hashed(texel, step) * (1 - eased) + hashed(texel, step + 1) * eased;
+    const tilt = 0.62 - 0.4 * f;
+    const energy =
+      tilt * (0.45 + 0.55 * noise) * (0.6 + 0.4 * bands.level) +
+      0.55 * bands.bass * gaussian(f, 0.14, 0.1) +
+      0.4 * bands.mid * gaussian(f, 0.48, 0.14) +
+      0.35 * bands.treble * gaussian(f, 0.8, 0.12);
     spectrum[texel] = Math.round(Math.min(1, energy) * 255);
   }
 };
@@ -154,7 +215,11 @@ export const shapeStudioFrame = (
     return frame;
   }
   const bands = studioBands(signal, frame.timeSeconds);
-  fillStudioSpectrum(bands, buffers.spectrum);
+  if (signal === 'showcase') {
+    fillShowcaseSpectrum(bands, frame.timeSeconds, buffers.spectrum);
+  } else {
+    fillStudioSpectrum(bands, buffers.spectrum);
+  }
   fillStudioWaveform(bands, frame.timeSeconds, buffers.waveform);
   return {
     ...frame,

@@ -4,13 +4,9 @@ const plus = {
     'Сцены участников Plus — добавляйте в свои оформления и ставьте лайки',
   'plus.visualizers.blurb': 'Сцены участников',
 
-  'plus.gate.title': 'Все визуализаторы участников в одном месте',
-  'plus.gate.point1':
-    'Запускайте любые сцены, которые публикуют участники Plus, и лайкайте любимые',
-  'plus.gate.point2': 'Создавайте свои в Студии вместе с вашим ИИ',
-  'plus.gate.point3':
-    'Поднимайтесь в таблице лидеров: лайки ваших сцен приносят очки',
   'plus.gate.cta': 'Узнать о Plus',
+  'plus.browse.text':
+    'С Plus эти сцены оживают под вашу музыку, их можно добавлять в свои оформления и лайкать.',
 
   'plus.gallery.search': 'Поиск сцен или авторов',
   'plus.gallery.sort': 'Сортировка',
@@ -56,6 +52,7 @@ const plus = {
 
   'plus.like.label': 'Лайкнуть «{name}» (лайков: {count})',
   'plus.like.own': 'У вашей сцены лайков: {count}',
+  'plus.like.plusOnly': 'Лайков: {count}. Ставить лайки можно с Plus.',
   'plus.like.offline':
     'Для лайков нужно подключение. Попробуйте снова, когда будете онлайн.',
 
@@ -67,8 +64,11 @@ const plus = {
   'plus.add.failed': 'Не удалось добавить «{name}». Попробуйте ещё раз.',
 
   'plus.scene.back': 'Назад',
+  'plus.scene.previous': 'Предыдущая сцена: {name}',
+  'plus.scene.next': 'Следующая сцена: {name}',
   'plus.scene.loading': 'Сцена скачивается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
+  'plus.scene.plusPlays': 'С Plus эта сцена оживает здесь под вашу музыку',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
   'plus.scene.blocked': 'Эта сцена удалена.',
   'plus.scene.changed':
@@ -81,6 +81,7 @@ const plus = {
   'plus.scene.adds': 'Добавили',
   'plus.scene.add': 'Добавить в мои оформления',
   'plus.scene.update': 'Обновить мою копию',
+  'plus.scene.getPlus': 'Оформите Plus, чтобы добавить',
   'plus.scene.play': 'Запустить на графике',
   'plus.scene.inLooks': 'В ваших оформлениях, в разделе «Созданы участниками»',
   'plus.scene.inLooksOwn': 'В ваших оформлениях, в разделе «Созданы вами»',
@@ -92,6 +93,7 @@ const plus = {
   'plus.scene.moreByYou': 'Ещё ваши',
 
   'plus.maker.you': 'Вы',
+  'plus.maker.rank': 'Место',
   'plus.maker.scenes': 'Сцены',
   'plus.maker.empty': 'Сейчас ничего не опубликовано.',
 

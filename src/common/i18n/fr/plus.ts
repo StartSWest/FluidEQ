@@ -4,13 +4,9 @@ const plus = {
     'Des scènes créées par les membres Plus, à ajouter à vos styles et à aimer',
   'plus.visualizers.blurb': 'Scènes des membres',
 
-  'plus.gate.title': 'Tous les visualiseurs des membres, au même endroit',
-  'plus.gate.point1':
-    'Lancez toute scène publiée par les membres Plus et aimez vos préférées',
-  'plus.gate.point2': 'Créez les vôtres dans le Studio, avec votre IA',
-  'plus.gate.point3':
-    'Grimpez au classement : les « j’aime » sur vos scènes rapportent des points',
   'plus.gate.cta': 'Découvrir Plus',
+  'plus.browse.text':
+    'Avec Plus, ces scènes s’animent sur votre musique, vous les ajoutez à vos styles et vous pouvez les aimer.',
 
   'plus.gallery.search': 'Rechercher des scènes ou des créateurs',
   'plus.gallery.sort': 'Trier',
@@ -56,6 +52,7 @@ const plus = {
 
   'plus.like.label': 'Aimer {name} ({count} j’aime)',
   'plus.like.own': 'Votre scène a {count} j’aime',
+  'plus.like.plusOnly': '{count} j’aime. Aimer des scènes fait partie de Plus.',
   'plus.like.offline':
     'Aimer une scène demande une connexion. Réessayez en ligne.',
 
@@ -68,8 +65,12 @@ const plus = {
   'plus.add.failed': '{name} n’a pas pu être ajoutée. Réessayez.',
 
   'plus.scene.back': 'Retour',
+  'plus.scene.previous': 'Scène précédente : {name}',
+  'plus.scene.next': 'Scène suivante : {name}',
   'plus.scene.loading': 'Téléchargement de la scène…',
   'plus.scene.playing': 'En direct sur votre musique',
+  'plus.scene.plusPlays':
+    'Avec Plus, cette scène s’anime ici sur votre musique',
   'plus.scene.unavailable':
     'Cette scène ne peut pas être téléchargée pour l’instant.',
   'plus.scene.blocked': 'Cette scène a été retirée.',
@@ -84,6 +85,7 @@ const plus = {
   'plus.scene.adds': 'Ajouts',
   'plus.scene.add': 'Ajouter à mes styles',
   'plus.scene.update': 'Mettre à jour ma copie',
+  'plus.scene.getPlus': 'Passez à Plus pour l’ajouter',
   'plus.scene.play': 'Lancer sur le graphique',
   'plus.scene.inLooks': 'Dans vos styles, sous « Créés par des membres »',
   'plus.scene.inLooksOwn': 'Dans vos styles, sous « Créés par vous »',
@@ -95,6 +97,7 @@ const plus = {
   'plus.scene.moreByYou': 'Vos autres scènes',
 
   'plus.maker.you': 'Vous',
+  'plus.maker.rank': 'Classement',
   'plus.maker.scenes': 'Scènes',
   'plus.maker.empty': 'Rien de publié pour le moment.',
 

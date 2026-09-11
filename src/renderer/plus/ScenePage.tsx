@@ -3,6 +3,7 @@ import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
+import { requestAccountPanel } from '../account/accountPanel';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
@@ -10,16 +11,22 @@ import { useTranslation } from '../utils/I18nContext';
 import { setGraphLook } from '../utils/graphStyle';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import GalleryCard from './GalleryCard';
+import { addGalleryScene, useAddingScenes } from './galleryActions';
 import {
-  addGalleryScene,
-  toggleGalleryLike,
-  useAddingScenes,
-} from './galleryActions';
-import { categoryKey, LikeButton, ScenePicture } from './GalleryParts';
-import { useGalleryList, useGalleryScene } from './galleryStore';
+  categoryKey,
+  SceneHeart,
+  ScenePicture,
+  usePlusEntitled,
+} from './GalleryParts';
+import {
+  useGalleryList,
+  useGalleryScene,
+  type TListQuery,
+} from './galleryStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
+import SceneSteps from './SceneSteps';
 
 /** Cards under "More by": one row on a wide pane, two on a narrow one. */
 const MORE_BY = 4;
@@ -38,10 +45,14 @@ const PREVIEW_FAILURES: Record<
 type TPreview =
   | { state: 'loading' }
   | { state: 'ready'; pack: IScenePack }
-  | { state: 'failed'; key: TranslationKey };
+  | { state: 'failed'; key: TranslationKey }
+  /** No Plus: the picture, and what Plus would do with it. */
+  | { state: 'plus' };
 
 interface IScenePageProps {
   scene: IGalleryScene;
+  /** The list it was opened from, for stepping to the next one. */
+  from?: TListQuery;
   me: string | undefined;
   onShowGraph: () => void;
 }
@@ -53,13 +64,18 @@ interface IScenePageProps {
  * The scene file is downloaded and verified in the main process before a byte
  * of it reaches here, exactly as Add would verify it; the page then plays the
  * pack it was handed and nothing else. Add reuses that same download.
+ *
+ * Without Plus nothing is downloaded: the page shows the scene's picture and
+ * everything about it, and the one loud button is the way into Plus.
  */
 export default function ScenePage({
   scene: opened,
+  from: openedFrom,
   me,
   onShowGraph,
 }: IScenePageProps) {
   const { t, locale } = useTranslation();
+  const entitled = usePlusEntitled();
   const scene = useGalleryScene(opened);
   const adding = useAddingScenes().has(scene.lookId);
   const localScenes = useUsableMemberScenes();
@@ -88,8 +104,12 @@ export default function ScenePage({
 
   useEffect(() => {
     let cancelled = false;
-    setPreview({ state: 'loading' });
     setReported(false);
+    if (!entitled) {
+      setPreview({ state: 'plus' });
+      return undefined;
+    }
+    setPreview({ state: 'loading' });
     if (!isSceneRenderingAvailable()) {
       setPreview({ state: 'failed', key: 'plus.scene.cannotDraw' });
       return undefined;
@@ -121,9 +141,16 @@ export default function ScenePage({
     return () => {
       cancelled = true;
     };
-  }, [opened.authorId, opened.sceneId, opened.version]);
+  }, [opened.authorId, opened.sceneId, opened.version, entitled]);
 
-  const moreBy = useGalleryList({ sort: 'liked', authorId: scene.authorId });
+  const makerQuery = useMemo(
+    () => ({ sort: 'liked', authorId: scene.authorId }) as const,
+    [scene.authorId],
+  );
+  const moreBy = useGalleryList(makerQuery);
+  // Opened from a card: step through that card's list. Opened any other
+  // way, through its maker's.
+  const from = openedFrom ?? makerQuery;
   const others = useMemo(
     () =>
       moreBy.list.scenes
@@ -146,7 +173,18 @@ export default function ScenePage({
       {local ? t('plus.scene.update') : t('plus.scene.add')}
     </button>
   );
-  if (current) {
+  if (!entitled) {
+    primary = (
+      <button
+        type="button"
+        className="button small"
+        onClick={() => requestAccountPanel('subscribe')}
+      >
+        <Glyph name="plus" />
+        {t('plus.scene.getPlus')}
+      </button>
+    );
+  } else if (current) {
     primary = (
       <button
         type="button"
@@ -197,6 +235,13 @@ export default function ScenePage({
               {t(preview.key)}
             </span>
           )}
+          <SceneSteps scene={scene} from={from} paused={reporting} />
+          {preview.state === 'plus' && (
+            <span className="gallery-preview__plus">
+              <Glyph name="plus" />
+              {t('plus.scene.plusPlays')}
+            </span>
+          )}
         </div>
       </div>
 
@@ -234,14 +279,11 @@ export default function ScenePage({
 
         <div className="gallery-scene__actions">
           {primary}
-          <LikeButton
+          <SceneHeart
             scene={scene}
             name={name}
             own={own}
             className="gallery-like--large"
-            onToggle={() => {
-              toggleGalleryLike(scene).catch(() => undefined);
-            }}
           />
         </div>
         {current && (
@@ -284,7 +326,11 @@ export default function ScenePage({
                 me={me}
                 local={localById.get(entry.lookId)}
                 onOpen={(next) =>
-                  openGalleryPage({ kind: 'scene', scene: next })
+                  openGalleryPage({
+                    kind: 'scene',
+                    scene: next,
+                    from: makerQuery,
+                  })
                 }
               />
             ))}

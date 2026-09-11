@@ -96,7 +96,10 @@ beforeEach(async () => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-publish-ipc-'));
   folder = path.join(root, 'project');
   fs.mkdirSync(folder);
-  await writeStarterProject(folder);
+  await writeStarterProject(folder, {
+    name: 'My First Scene',
+    id: 'my-first-scene',
+  });
   entitled = true;
   signedIn = true;
   signedInAs = ME;
@@ -179,8 +182,9 @@ describe('publishing from the Studio', () => {
     expect(
       await invoke('studio-publish', 4, 'space', new Uint8Array(64)),
     ).toEqual({ ok: false, reason: 'no-picture' });
+    // Over the 512KB a 1280 by 720 picture is allowed.
     expect(
-      await invoke('studio-publish', 4, 'space', webpBytes(300 * 1024)),
+      await invoke('studio-publish', 4, 'space', webpBytes(600 * 1024)),
     ).toEqual({ ok: false, reason: 'no-picture' });
     expect(await invoke('studio-publish', 4, 'space', 'UklGRg==')).toEqual({
       ok: false,

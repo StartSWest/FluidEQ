@@ -165,7 +165,6 @@ export default function YourScenes({ me }: IYourScenesProps) {
                     authorId: me ?? '',
                     sceneId: scene.sceneId,
                     version: scene.version,
-                    swatch: scene.swatch,
                   }}
                 />
                 <span className="gallery-row__text">

@@ -1,53 +1,68 @@
 import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene, TPlusCategory } from 'common/plusGallery';
+import { useEntitlement } from '../account/entitlementStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { useScenePicture } from './galleryStore';
-import SwatchArt from './SwatchArt';
+import { toggleGalleryLike } from './galleryActions';
+import { useScenePicture } from './scenePictures';
 
 export const categoryKey = (category: TPlusCategory): TranslationKey =>
   `plus.category.${category}` as TranslationKey;
 
+/**
+ * Whether this member has Plus. Anybody signed in browses the gallery; what
+ * downloads a scene — playing it on its page, Add — and liking are Plus.
+ */
+export const usePlusEntitled = () => useEntitlement().state !== 'none';
+
 interface IScenePictureProps {
-  scene: Pick<
-    IGalleryScene,
-    'lookId' | 'authorId' | 'sceneId' | 'version' | 'swatch'
-  >;
+  scene: Pick<IGalleryScene, 'lookId' | 'authorId' | 'sceneId' | 'version'>;
   className?: string;
   /** Read by a screen reader; the picture is otherwise decoration. */
   label?: string;
 }
 
-/** A published scene's picture, over a cover drawn from its colours. */
+/**
+ * A scene's picture: always the real scene — the frame its maker took, or
+ * one drawn from the scene itself (see `scenePictures`). A shimmer while it
+ * comes; a quiet tile when nothing could be had.
+ */
 export function ScenePicture({ scene, className, label }: IScenePictureProps) {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const picture = useScenePicture(scene, element);
   return (
     <div
       ref={setElement}
-      className={`gallery-picture${className ? ` ${className}` : ''}`}
+      className={`gallery-picture gallery-picture--${picture.state}${className ? ` ${className}` : ''}`}
       role={label ? 'img' : undefined}
       aria-label={label}
     >
-      <SwatchArt seed={scene.lookId} swatch={scene.swatch} />
-      {picture && (
+      {picture.state === 'ready' && (
         <img
           className="gallery-picture__image"
-          src={picture}
+          src={picture.url}
           alt=""
           draggable={false}
         />
+      )}
+      {picture.state === 'none' && (
+        <span className="gallery-picture__none" aria-hidden="true">
+          <Glyph name="looks" />
+        </span>
       )}
     </div>
   );
 }
 
+const useLikeCount = (likes: number) => {
+  const { locale } = useTranslation();
+  return new Intl.NumberFormat(locale, { notation: 'compact' }).format(likes);
+};
+
 interface ILikeButtonProps {
   scene: IGalleryScene;
   name: string;
-  /** The member's own scene: the count, without the heart to press. */
-  own: boolean;
   onToggle: () => void;
   className?: string;
 }
@@ -56,37 +71,84 @@ interface ILikeButtonProps {
 export function LikeButton({
   scene,
   name,
-  own,
   onToggle,
   className,
 }: ILikeButtonProps) {
-  const { t, locale } = useTranslation();
-  const count = new Intl.NumberFormat(locale, { notation: 'compact' }).format(
-    scene.likes,
-  );
-  const base = `gallery-like${scene.liked ? ' is-on' : ''}${own ? ' is-count' : ''}${className ? ` ${className}` : ''}`;
-  if (own) {
-    return (
-      <span
-        className={base}
-        title={t('plus.like.own', { count: String(scene.likes) })}
-      >
-        <Glyph name="heart" />
-        <span className="gallery-like__count">{count}</span>
-      </span>
-    );
-  }
+  const { t } = useTranslation();
+  const count = useLikeCount(scene.likes);
+  const label = t('plus.like.label', { name, count: String(scene.likes) });
   return (
     <button
       type="button"
-      className={base}
+      className={`gallery-like${scene.liked ? ' is-on' : ''}${className ? ` ${className}` : ''}`}
       aria-pressed={scene.liked}
-      aria-label={t('plus.like.label', { name, count: String(scene.likes) })}
-      title={t('plus.like.label', { name, count: String(scene.likes) })}
+      aria-label={label}
+      title={label}
       onClick={onToggle}
     >
       <Glyph name="heart" />
       <span className="gallery-like__count">{count}</span>
     </button>
+  );
+}
+
+interface ILikeCountProps {
+  scene: IGalleryScene;
+  /** The line saying why there is no heart to press here. */
+  title: string;
+  className?: string;
+}
+
+/**
+ * The count without the heart to press: on the member's own scene, and for
+ * a member without Plus, where liking is not theirs to do.
+ */
+export function LikeCount({ scene, title, className }: ILikeCountProps) {
+  const count = useLikeCount(scene.likes);
+  return (
+    <span
+      className={`gallery-like is-count${className ? ` ${className}` : ''}`}
+      title={title}
+    >
+      <Glyph name="heart" />
+      <span className="gallery-like__count">{count}</span>
+    </span>
+  );
+}
+
+interface ISceneHeartProps {
+  scene: IGalleryScene;
+  name: string;
+  own: boolean;
+  className?: string;
+}
+
+/** A scene's heart as this member can use it. */
+export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
+  const { t } = useTranslation();
+  const entitled = usePlusEntitled();
+  const count = String(scene.likes);
+  if (own || !entitled) {
+    return (
+      <LikeCount
+        scene={scene}
+        className={className}
+        title={
+          own
+            ? t('plus.like.own', { count })
+            : t('plus.like.plusOnly', { count })
+        }
+      />
+    );
+  }
+  return (
+    <LikeButton
+      scene={scene}
+      name={name}
+      className={className}
+      onToggle={() => {
+        toggleGalleryLike(scene).catch(() => undefined);
+      }}
+    />
   );
 }

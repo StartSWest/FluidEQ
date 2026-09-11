@@ -4,13 +4,9 @@ const plus = {
     'Cenas criadas por membros Plus, para adicionar aos seus visuais e curtir',
   'plus.visualizers.blurb': 'Cenas dos membros',
 
-  'plus.gate.title': 'Todos os visualizadores dos membros, num só lugar',
-  'plus.gate.point1':
-    'Reproduza qualquer cena que os membros Plus publicarem e curta as suas favoritas',
-  'plus.gate.point2': 'Crie as suas no Estúdio, com a sua IA',
-  'plus.gate.point3':
-    'Suba na classificação: curtidas nas suas cenas valem pontos',
   'plus.gate.cta': 'Ver o Plus',
+  'plus.browse.text':
+    'Com o Plus, estas cenas tocam com a sua música, você as adiciona aos seus visuais e curte.',
 
   'plus.gallery.search': 'Buscar cenas ou criadores',
   'plus.gallery.sort': 'Ordenar',
@@ -56,6 +52,7 @@ const plus = {
 
   'plus.like.label': 'Curtir {name} ({count} curtidas)',
   'plus.like.own': 'Sua cena tem {count} curtidas',
+  'plus.like.plusOnly': '{count} curtidas. Curtir cenas faz parte do Plus.',
   'plus.like.offline': 'Curtir precisa de conexão. Tente de novo online.',
 
   'plus.add.done': '{name} está nos seus visuais.',
@@ -67,8 +64,11 @@ const plus = {
   'plus.add.failed': 'Não foi possível adicionar {name}. Tente de novo.',
 
   'plus.scene.back': 'Voltar',
+  'plus.scene.previous': 'Cena anterior: {name}',
+  'plus.scene.next': 'Próxima cena: {name}',
   'plus.scene.loading': 'Baixando a cena…',
   'plus.scene.playing': 'Ao vivo com a sua música',
+  'plus.scene.plusPlays': 'Com o Plus, esta cena toca aqui com a sua música',
   'plus.scene.unavailable': 'Esta cena não pode ser baixada agora.',
   'plus.scene.blocked': 'Esta cena foi removida.',
   'plus.scene.changed':
@@ -81,6 +81,7 @@ const plus = {
   'plus.scene.adds': 'Adições',
   'plus.scene.add': 'Adicionar aos meus visuais',
   'plus.scene.update': 'Atualizar minha cópia',
+  'plus.scene.getPlus': 'Assine o Plus para adicionar',
   'plus.scene.play': 'Reproduzir no gráfico',
   'plus.scene.inLooks': 'Nos seus visuais, em Feitos por membros',
   'plus.scene.inLooksOwn': 'Nos seus visuais, em Feitos por você',
@@ -92,6 +93,7 @@ const plus = {
   'plus.scene.moreByYou': 'Mais suas',
 
   'plus.maker.you': 'Você',
+  'plus.maker.rank': 'Posição',
   'plus.maker.scenes': 'Cenas',
   'plus.maker.empty': 'Nada publicado no momento.',
 
