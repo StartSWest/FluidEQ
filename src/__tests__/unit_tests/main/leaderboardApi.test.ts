@@ -17,6 +17,7 @@ const CONFIG = {
   supabaseAnonKey: `sb_publishable_${'a'.repeat(40)}`,
   apiUrl: 'https://project.supabase.co/functions/v1',
   plusPrice: '',
+  plusYearlyPrice: '',
 };
 
 const token = `h.${Buffer.from(JSON.stringify({ sub: 'me' })).toString('base64url')}.s`;

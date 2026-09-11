@@ -16,6 +16,7 @@ const CONFIG = {
   supabaseAnonKey: `sb_publishable_${'a'.repeat(40)}`,
   apiUrl: 'https://fluideq.com/api',
   plusPrice: '$3.99 / month',
+  plusYearlyPrice: '',
 };
 
 const json = (body: unknown, status = 200) =>

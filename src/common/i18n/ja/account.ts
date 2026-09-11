@@ -83,6 +83,8 @@ const account = {
     'サブスクリプションを確認できませんでした。{date} まで有効です。それまでにインターネットに接続すると維持されます。',
   'account.plus.checkAgain': 'もう一度確認',
   'account.plus.perMonth': '{price} / 月',
+  'account.plus.perYear': '{price} / 年',
+  'account.plus.priceChoice': '{monthly} または {yearly}',
   'account.plus.checkoutOpened':
     'ブラウザで Buy Me a Coffee が開いています。お支払い後にここへ戻ると、Plus が有効になります。',
   'account.plus.error.rejected':

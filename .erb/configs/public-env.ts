@@ -57,6 +57,8 @@ const PUBLIC_ENV_DEFAULTS = {
   // signing in works but there is nothing to buy, which is every build until
   // a merchant account exists.
   FLUIDEQ_PLUS_PRICE: '',
+  // The yearly price beside it, as text; empty means monthly only.
+  FLUIDEQ_PLUS_PRICE_YEARLY: '',
 };
 
 export default PUBLIC_ENV_DEFAULTS;

@@ -83,6 +83,8 @@ const account = {
     'आपकी सदस्यता की पुष्टि नहीं हो सकी। यह {date} तक चालू रहेगी — इसे बनाए रखने के लिए उससे पहले इंटरनेट से जुड़ें।',
   'account.plus.checkAgain': 'फिर जाँचें',
   'account.plus.perMonth': '{price} / माह',
+  'account.plus.perYear': '{price} / वर्ष',
+  'account.plus.priceChoice': '{monthly} या {yearly}',
   'account.plus.checkoutOpened':
     'Buy Me a Coffee आपके ब्राउज़र में खुला है। भुगतान के बाद यहाँ लौटें, और Plus चालू हो जाएगा।',
   'account.plus.error.rejected':

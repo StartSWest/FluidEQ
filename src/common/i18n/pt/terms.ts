@@ -22,9 +22,9 @@ const terms = {
 
   'terms.membership.title': 'A subscrição',
   'terms.membership.p1':
-    'O Plus acrescenta ao FluidEQ visualizadores premium, o Estúdio para criares os teus e os partilhares com outros membros, publicar na comunidade e a classificação. Custa {price} e renova-se todos os meses até cancelares.',
+    'O Plus acrescenta ao FluidEQ visualizadores premium, o Estúdio para criares os teus e os partilhares com outros membros, publicar na comunidade e a classificação. Custa {price} e renova-se no fim de cada período pago até cancelares.',
   'terms.membership.p2':
-    'O pagamento é tratado pelo Buy Me a Coffee, segundo os seus próprios termos. O FluidEQ nunca vê o teu cartão nem os teus dados bancários. Podes cancelar a qualquer momento no Buy Me a Coffee: o Plus fica ativo até ao fim do mês que pagaste e não é cobrado mais nada.',
+    'O pagamento é tratado pelo Buy Me a Coffee, segundo os seus próprios termos. O FluidEQ nunca vê o teu cartão nem os teus dados bancários. Podes cancelar a qualquer momento no Buy Me a Coffee: o Plus fica ativo até ao fim do período que pagaste e não é cobrado mais nada.',
   'terms.membership.p3':
     'Se uma cobrança foi um engano, ou se o Plus não é para ti, pede nos {refundDays} dias seguintes a essa cobrança e é reembolsada na totalidade, sem perguntas.',
   'terms.membership.p4':

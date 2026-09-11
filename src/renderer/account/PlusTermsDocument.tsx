@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
-import { ACCOUNT_CONFIG } from 'common/accountConfig';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
 import {
@@ -19,6 +18,7 @@ import {
 } from 'common/plusTerms';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import plusPriceText from './plusPrice';
 import {
   TERMS_HIGHLIGHTS,
   TERMS_SECTIONS,
@@ -29,14 +29,15 @@ import '../styles/PlusTerms.scss';
 /**
  * Every number the terms quote, from the constant the code keeps it with.
  *
- * The price is the configured amount with the month in the reader's own
- * language ("$5 / Monat"): the amount is what the checkout charges, the period
- * is ours to say. The contact is the support address the build was made with;
- * a build without one points at the site instead, so the sentence never ends
- * in a blank.
+ * The price is the configured amount with the period in the reader's own
+ * language ("$5 / Monat", and the yearly one beside it when the build offers
+ * one): the amount is what the checkout charges, the period is ours to say.
+ * The contact is the support address the build was made with; a build
+ * without one points at the site instead, so the sentence never ends in a
+ * blank.
  */
-const termsValues = (monthly: string): Record<string, string | number> => ({
-  price: monthly,
+const termsValues = (price: string): Record<string, string | number> => ({
+  price,
   refundDays: PLUS_REFUND_DAYS,
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
@@ -62,13 +63,7 @@ const termsValues = (monthly: string): Record<string, string | number> => ({
  */
 export default function PlusTermsDocument() {
   const { t, locale } = useTranslation();
-  const values = useMemo(
-    () =>
-      termsValues(
-        t('account.plus.perMonth', { price: ACCOUNT_CONFIG.plusPrice }),
-      ),
-    [t],
-  );
+  const values = useMemo(() => termsValues(plusPriceText(t)), [t]);
   const effective = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {

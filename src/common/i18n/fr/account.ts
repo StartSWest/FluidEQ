@@ -83,6 +83,8 @@ const account = {
     'Votre abonnement n’a pas pu être confirmé. Il reste actif jusqu’au {date} — connectez-vous à Internet avant pour le conserver.',
   'account.plus.checkAgain': 'Vérifier à nouveau',
   'account.plus.perMonth': '{price} / mois',
+  'account.plus.perYear': '{price} / an',
+  'account.plus.priceChoice': '{monthly} ou {yearly}',
   'account.plus.checkoutOpened':
     'Buy Me a Coffee est ouvert dans votre navigateur. Revenez ici une fois le paiement fait, et Plus s’active.',
   'account.plus.error.rejected':

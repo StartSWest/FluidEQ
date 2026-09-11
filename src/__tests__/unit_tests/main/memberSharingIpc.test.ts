@@ -51,6 +51,7 @@ const config: IAccountConfig = {
   supabaseAnonKey: 'sb_publishable_test',
   apiUrl: 'https://project.supabase.co/functions/v1',
   plusPrice: '$5',
+  plusYearlyPrice: '',
 };
 
 const invoke = <T>(channel: string, ...args: unknown[]) => {

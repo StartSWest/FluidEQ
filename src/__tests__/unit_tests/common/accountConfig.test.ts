@@ -23,6 +23,7 @@ const OFF = {
   supabaseAnonKey: '',
   apiUrl: '',
   plusPrice: '',
+  plusYearlyPrice: '',
 };
 
 describe('account backend configuration', () => {
@@ -35,6 +36,7 @@ describe('account backend configuration', () => {
       supabaseAnonKey: KEY_OK,
       apiUrl: `${URL_OK}/functions/v1`,
       plusPrice: '',
+      plusYearlyPrice: '',
     });
     expect(isAccountConfigured(buildAccountConfig(valid))).toBe(true);
     // Accounts without anything to buy is a whole state, not a half-configured one.
@@ -71,6 +73,26 @@ describe('account backend configuration', () => {
     expect(isCheckoutConfigured(config)).toBe(true);
   });
 
+  it('offers a yearly plan beside the monthly one, trimmed', () => {
+    const config = buildAccountConfig({
+      ...valid,
+      FLUIDEQ_PLUS_PRICE: '$5',
+      FLUIDEQ_PLUS_PRICE_YEARLY: ' $40 ',
+    });
+    expect(config.plusPrice).toBe('$5');
+    expect(config.plusYearlyPrice).toBe('$40');
+  });
+
+  /** The monthly price is the switch; a yearly one alone sells nothing. */
+  it('ignores a yearly price when there is no monthly one', () => {
+    const config = buildAccountConfig({
+      ...valid,
+      FLUIDEQ_PLUS_PRICE_YEARLY: '$40',
+    });
+    expect(config.plusYearlyPrice).toBe('');
+    expect(isCheckoutConfigured(config)).toBe(false);
+  });
+
   /** A price is a short line beside a button, not a paragraph. */
   it('drops a price that is too long to be one', () => {
     const config = buildAccountConfig({
@@ -79,6 +101,13 @@ describe('account backend configuration', () => {
     });
     expect(config.plusPrice).toBe('');
     expect(isCheckoutConfigured(config)).toBe(false);
+    expect(
+      buildAccountConfig({
+        ...valid,
+        FLUIDEQ_PLUS_PRICE: '$5',
+        FLUIDEQ_PLUS_PRICE_YEARLY: 'x'.repeat(41),
+      }).plusYearlyPrice,
+    ).toBe('');
   });
 
   it('offers no checkout when the account pair is incomplete', () => {

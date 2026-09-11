@@ -12,6 +12,7 @@ import PlusCard from '../../../renderer/account/PlusCard';
 
 let mockCheckoutConfigured = true;
 let mockPrice = '$3.99';
+let mockYearlyPrice = '';
 const mockOpenCheckout = jest.fn((): Promise<TBillingOutcome> =>
   Promise.resolve({ ok: true }),
 );
@@ -30,7 +31,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../common/accountConfig', () => ({
   get ACCOUNT_CONFIG() {
-    return { plusPrice: mockPrice };
+    return { plusPrice: mockPrice, plusYearlyPrice: mockYearlyPrice };
   },
   isCheckoutConfigured: () => mockCheckoutConfigured,
 }));
@@ -52,6 +53,24 @@ describe('the Plus card', () => {
     jest.clearAllMocks();
     mockCheckoutConfigured = true;
     mockPrice = '$3.99';
+    mockYearlyPrice = '';
+  });
+
+  it('quotes the yearly plan beside the monthly one when the build has one', () => {
+    mockPrice = '$5';
+    mockYearlyPrice = '$40';
+    render(
+      <PlusCard
+        entitlement={{ state: 'none' }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
+    expect(
+      screen.getByText(
+        'account.plus.priceChoice:account.plus.perMonth:$5,account.plus.perYear:$40',
+      ),
+    ).toBeInTheDocument();
   });
 
   /**

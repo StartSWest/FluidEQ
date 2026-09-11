@@ -93,6 +93,9 @@ const account = {
   'account.plus.checkAgain': 'Check again',
   // The configured amount, as the checkout shows it ("$5"), per month.
   'account.plus.perMonth': '{price} / month',
+  // The yearly amount ("$40"), per year, and the two offered together.
+  'account.plus.perYear': '{price} / year',
+  'account.plus.priceChoice': '{monthly} or {yearly}',
   'account.plus.checkoutOpened':
     'Buy Me a Coffee is open in your browser. Come back here once you have paid, and Plus turns on.',
   'account.plus.error.rejected':

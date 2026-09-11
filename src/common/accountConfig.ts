@@ -26,6 +26,7 @@ export interface IAccountEnv {
   FLUIDEQ_SUPABASE_ANON_KEY?: string;
   FLUIDEQ_API_URL?: string;
   FLUIDEQ_PLUS_PRICE?: string;
+  FLUIDEQ_PLUS_PRICE_YEARLY?: string;
 }
 
 export interface IAccountConfig {
@@ -56,6 +57,14 @@ export interface IAccountConfig {
    * what it costs is the kind of thing that earns a chargeback.
    */
   plusPrice: string;
+  /**
+   * The yearly amount as text — "$40" — offered beside the monthly one, with
+   * "/ year" after it in the reader's language. Empty means monthly only.
+   *
+   * Only ever alongside a monthly price: the monthly one is what switches the
+   * offer on, and a yearly figure with nothing to buy would be an orphan.
+   */
+  plusYearlyPrice: string;
 }
 
 const EMPTY_CONFIG: IAccountConfig = {
@@ -63,6 +72,7 @@ const EMPTY_CONFIG: IAccountConfig = {
   supabaseAnonKey: '',
   apiUrl: '',
   plusPrice: '',
+  plusYearlyPrice: '',
 };
 
 const readPlainText = (value: string | undefined): string => {
@@ -155,12 +165,34 @@ export const buildAccountConfig = (env: IAccountEnv): IAccountConfig => {
   if (!supabaseUrl || !supabaseAnonKey) {
     return EMPTY_CONFIG;
   }
+  const plusPrice = readPlainText(env.FLUIDEQ_PLUS_PRICE);
   return {
     supabaseUrl,
     supabaseAnonKey,
     apiUrl: readApiBase(env.FLUIDEQ_API_URL) || `${supabaseUrl}/functions/v1`,
-    plusPrice: readPlainText(env.FLUIDEQ_PLUS_PRICE),
+    plusPrice,
+    plusYearlyPrice: plusPrice
+      ? readPlainText(env.FLUIDEQ_PLUS_PRICE_YEARLY)
+      : '',
   };
+};
+
+/**
+ * The yearly price, read so that a dev server started before it existed
+ * survives.
+ *
+ * webpack swaps `process.env.NAME` for a literal only for the names it was
+ * given when it started, and a renderer has no `process`: an unswapped read
+ * throws while the module loads and the whole window goes white. Every build
+ * and every fresh `pnpm dev` swaps this one; a window already running simply
+ * shows no yearly price until it is restarted.
+ */
+const readYearlyPrice = (): string | undefined => {
+  try {
+    return process.env.FLUIDEQ_PLUS_PRICE_YEARLY;
+  } catch {
+    return undefined;
+  }
 };
 
 // Named one at a time rather than handing over `process.env`, because webpack
@@ -171,6 +203,7 @@ export const ACCOUNT_CONFIG: IAccountConfig = buildAccountConfig({
   FLUIDEQ_SUPABASE_ANON_KEY: process.env.FLUIDEQ_SUPABASE_ANON_KEY,
   FLUIDEQ_API_URL: process.env.FLUIDEQ_API_URL,
   FLUIDEQ_PLUS_PRICE: process.env.FLUIDEQ_PLUS_PRICE,
+  FLUIDEQ_PLUS_PRICE_YEARLY: readYearlyPrice(),
 });
 
 /** Whether this build has a backend to sign in to at all. */

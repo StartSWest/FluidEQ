@@ -28,8 +28,13 @@
  * while browsing, adding and reporting there. Publishing records an agreement
  * to this version, and the server's publishing and checkout refuse an older
  * one; exporting a file still accepts 3, because nothing about it changed.
+ *
+ * 5: a yearly plan beside the monthly one — the price quotes both, and a
+ * membership renews at the end of whichever period was paid for. Only the
+ * checkout refuses an older version: publishing and exporting are unchanged
+ * and keep accepting 4 and 3.
  */
-export const PLUS_TERMS_VERSION = 4;
+export const PLUS_TERMS_VERSION = 5;
 
 /** The day this version took effect, as a calendar date. */
 export const PLUS_TERMS_EFFECTIVE = '2026-09-11';

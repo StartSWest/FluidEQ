@@ -19,6 +19,7 @@ const CONFIG = {
   supabaseAnonKey: `sb_publishable_${'a'.repeat(40)}`,
   apiUrl: 'https://project.supabase.co/functions/v1',
   plusPrice: '',
+  plusYearlyPrice: '',
 };
 
 /** A JWT whose payload says who we are; the signature is never checked here. */

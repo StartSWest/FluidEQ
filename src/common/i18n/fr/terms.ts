@@ -22,9 +22,9 @@ const terms = {
 
   'terms.membership.title': 'L’abonnement',
   'terms.membership.p1':
-    'Plus ajoute à FluidEQ des visualiseurs premium, le Studio pour créer les vôtres et les partager avec d’autres membres, la publication dans la communauté et le classement. Il coûte {price} et se renouvelle chaque mois jusqu’à ce que vous le résiliiez.',
+    'Plus ajoute à FluidEQ des visualiseurs premium, le Studio pour créer les vôtres et les partager avec d’autres membres, la publication dans la communauté et le classement. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez.',
   'terms.membership.p2':
-    'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin du mois payé, et rien d’autre n’est prélevé.',
+    'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin de la période payée, et rien d’autre n’est prélevé.',
   'terms.membership.p3':
     'Si un prélèvement était une erreur, ou si Plus n’est pas pour vous, demandez-le dans les {refundDays} jours qui suivent ce prélèvement et il est remboursé intégralement, sans question.',
   'terms.membership.p4':

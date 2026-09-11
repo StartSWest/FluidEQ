@@ -33,9 +33,9 @@ const terms = {
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'Plus adds premium visualizers, the Studio for making your own and sharing them with other members, posting in the community and the leaderboard to FluidEQ. It costs {price} and renews every month until you cancel.',
+    'Plus adds premium visualizers, the Studio for making your own and sharing them with other members, posting in the community and the leaderboard to FluidEQ. It costs {price}, and renews at the end of each period you paid for until you cancel.',
   'terms.membership.p2':
-    'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the month you paid for, and nothing more is charged.',
+    'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p3':
     'If a charge was a mistake, or Plus is not for you, ask within {refundDays} days of that charge and it is refunded in full, no questions asked.',
   'terms.membership.p4':

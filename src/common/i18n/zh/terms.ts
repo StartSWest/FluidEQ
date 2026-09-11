@@ -20,9 +20,9 @@ const terms = {
 
   'terms.membership.title': '会员',
   'terms.membership.p1':
-    'Plus 为 FluidEQ 增加高级可视化效果、用来创作自己的场景并与其他会员分享的工作室、在社区发言和排行榜。价格为 {price}，每月自动续订，直到你取消。',
+    'Plus 为 FluidEQ 增加高级可视化效果、用来创作自己的场景并与其他会员分享的工作室、在社区发言和排行榜。价格为 {price}，在每个已付费周期结束时自动续订，直到你取消。',
   'terms.membership.p2':
-    '付款由 Buy Me a Coffee 按其自身条款处理。FluidEQ 从不接触你的银行卡或银行信息。你可以随时在 Buy Me a Coffee 上取消：Plus 会保持到已付费月份结束，之后不再扣费。',
+    '付款由 Buy Me a Coffee 按其自身条款处理。FluidEQ 从不接触你的银行卡或银行信息。你可以随时在 Buy Me a Coffee 上取消：Plus 会保持到已付费周期结束，之后不再扣费。',
   'terms.membership.p3':
     '如果某次扣款是误操作，或者 Plus 不适合你，请在该次扣款后 {refundDays} 天内提出，将全额退款，不问原因。',
   'terms.membership.p4':

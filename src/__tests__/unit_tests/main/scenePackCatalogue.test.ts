@@ -17,6 +17,7 @@ const CONFIG = {
   supabaseAnonKey: `sb_publishable_${'a'.repeat(40)}`,
   apiUrl: 'https://project.supabase.co/functions/v1',
   plusPrice: '$5 / month',
+  plusYearlyPrice: '',
 };
 
 const AURORA = {
