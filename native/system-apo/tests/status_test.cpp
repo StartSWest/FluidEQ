@@ -47,8 +47,9 @@ void a_processing_output() {
       status_json(status, 4242, "2026-09-11T12:00:00.000Z");
   CHECK(text ==
         "{\"version\":1,\"endpoint\":\"{947B0242-A1CF-4483-A44E-B72DA462C901}\","
-        "\"pid\":4242,\"locked\":true,\"processing\":true,\"reason\":\"\","
-        "\"problems\":[],\"at\":\"2026-09-11T12:00:00.000Z\"}\r\n");
+        "\"pid\":4242,\"locked\":true,\"processing\":true,\"owner\":true,"
+        "\"reason\":\"\",\"problems\":[],"
+        "\"at\":\"2026-09-11T12:00:00.000Z\"}\r\n");
 }
 
 void a_pass_through_with_problems() {
@@ -56,10 +57,12 @@ void a_pass_through_with_problems() {
   EngineStatus status;
   status.endpoint = L"{AAAA}";
   status.locked = true;
+  status.owner = false;
   status.reason = "FluidEQ is not running";
   status.problems = {"convolution", "reload-failed"};
   const std::string text = status_json(status, 7, "t");
   CHECK(text.find("\"processing\":false") != std::string::npos);
+  CHECK(text.find("\"owner\":false") != std::string::npos);
   CHECK(text.find("\"reason\":\"FluidEQ is not running\"") !=
         std::string::npos);
   CHECK(text.find("\"problems\":[\"convolution\",\"reload-failed\"]") !=

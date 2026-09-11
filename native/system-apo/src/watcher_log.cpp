@@ -119,6 +119,7 @@ void Watcher::report_status(bool locked) noexcept {
       status.endpoint = endpoint_.guid;
       status.locked = true;
       status.processing = last_processing_;
+      status.owner = last_owner_;
       status.reason = passthrough_reason_;
       status.problems = graph_problems_;
       if (reload_failed_) {

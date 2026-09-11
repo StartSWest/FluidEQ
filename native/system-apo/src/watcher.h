@@ -254,6 +254,7 @@ class Watcher {
 
   // What the last published graph does, for the status file.
   bool last_processing_ = false;
+  bool last_owner_ = true;
   std::vector<std::string> graph_problems_;
   // The watcher's own problems: a reload that threw (the previous graph
   // keeps running) until one works again, and a directory it cannot watch.

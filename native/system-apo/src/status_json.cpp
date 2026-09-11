@@ -67,6 +67,7 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
          ",\"pid\":" + std::to_string(pid) +
          ",\"locked\":" + (status.locked ? "true" : "false") +
          ",\"processing\":" + (status.processing ? "true" : "false") +
+         ",\"owner\":" + (status.owner ? "true" : "false") +
          ",\"reason\":" + quoted(status.reason) +
          ",\"problems\":" + problems + ",\"at\":" + quoted(at) + "}\r\n";
 }

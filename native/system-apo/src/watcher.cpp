@@ -408,6 +408,7 @@ void Watcher::reload(Carry carry) {
     signature_.swap(next);
     have_signature_ = true;
     last_processing_ = processing;
+    last_owner_ = owner;
     graph_problems_.swap(problems);
     reload_failed_ = false;
     report_status(true);

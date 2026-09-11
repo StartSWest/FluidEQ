@@ -34,6 +34,14 @@ struct EngineStatus {
   bool locked = false;
   /** And the engine is changing it, rather than passing it through. */
   bool processing = false;
+  /**
+   * The engine sees FluidEQ running (`owner_link.h`). False is its own reason
+   * to pass the output through, and the one the app must tell apart from an
+   * EQ that simply asks for nothing: while FluidEQ is open it means the line
+   * between the two is down. A field rather than `reason`'s wording, which is
+   * a sentence for people and free to change.
+   */
+  bool owner = true;
   /** Why it is passing it through, when it is; empty when processing. */
   std::string reason;
   /**
