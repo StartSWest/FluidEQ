@@ -162,6 +162,7 @@ import {
 } from './ipc/dspHost';
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
+import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
@@ -3070,6 +3071,10 @@ registerLibraryPlaylistsIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
 });
+
+// What the FluidEQ Engine says about each output, for the notice that says
+// when it is failing. Watches nothing until the window first asks.
+registerEngineHealthIpc({ getMainWindow: () => mainWindow });
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

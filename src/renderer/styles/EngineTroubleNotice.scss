@@ -1,0 +1,62 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// What this adds to `.device-apo-notice` (DeviceProfiles.scss), whose look
+// it shares: the same message, "this output is not being processed", for a
+// reason the engine gave rather than one the device list did.
+
+// The output notice comes first. It asks for the engine to be put on an
+// output at all, which has to be answered before anything about how the
+// engine runs there means anything — and the two sit in the same spot.
+body:has(.device-apo-notice:not(.engine-trouble-notice))
+  .engine-trouble-notice {
+  display: none;
+}
+
+// Caution rather than alarm: the engine is running, and most of what was
+// asked for is playing. Red stays with an output nothing reaches at all.
+.device-apo-notice.engine-trouble-notice--partial {
+  border-color: color-mix(in srgb, $amber 52%, transparent);
+
+  .apo-badge {
+    color: $amber;
+    border-color: color-mix(in srgb, $amber 40%, transparent);
+    background: color-mix(in srgb, $amber 10%, transparent);
+  }
+}
+
+// One line per thing that is off, marked in the column the engine dialog
+// marks its own lines in, so the two read as the same kind of list.
+.engine-trouble-notice__problems {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    align-items: start;
+    gap: $spacing-xs;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.45;
+
+    &::before {
+      width: 6px;
+      height: 6px;
+      margin: 0.5em 0 0 4px;
+      border-radius: 50%;
+      background: $amber;
+      content: '';
+    }
+  }
+}

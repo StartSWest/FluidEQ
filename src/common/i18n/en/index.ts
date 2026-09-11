@@ -54,6 +54,7 @@ import terms from './terms';
 import studio from './studio';
 import plus from './plus';
 import termsNotice from './termsNotice';
+import engineHealth from './engineHealth';
 
 const en = {
   ...karaoke,
@@ -76,6 +77,7 @@ const en = {
   ...studio,
   ...plus,
   ...termsNotice,
+  ...engineHealth,
 };
 
 export type TranslationKey = keyof typeof en;

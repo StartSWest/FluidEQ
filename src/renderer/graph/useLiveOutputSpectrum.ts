@@ -37,6 +37,7 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalanceCapture';
+import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
@@ -715,6 +716,7 @@ const useLiveOutputSpectrum = () => {
       let bufferSlot = 0;
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
       let trackReferenceDb: number | undefined;
+      const isSignalEdge = createSignalEdge();
 
       // One block of samples, read into again per channel per tick, and the
       // ballistics that carry each channel's two readings between ticks.
@@ -772,6 +774,11 @@ const useLiveOutputSpectrum = () => {
         analyser.getFloatFrequencyData(frequencyData);
         readAbsoluteLevels(frequencyData, cells, levelBuffer);
         const peak = getPeakLevel(frequencyData);
+        // Sound starting is the moment Windows is known to be playing through
+        // this output — see `outputSignal.ts` for who needs to know.
+        if (isSignalEdge(peak !== undefined)) {
+          announceOutputSignal(activeAudioContext);
+        }
 
         let reference: number | undefined;
         if (peak !== undefined) {
