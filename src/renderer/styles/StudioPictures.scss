@@ -19,6 +19,31 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-m;
 }
 
+.studio-picture-downloads {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+
+  > .button {
+    gap: 6px;
+  }
+}
+.studio-picture-regions {
+  width: 100%;
+}
+.studio-picture-regions > summary {
+  cursor: pointer;
+  color: $secondary-light;
+  font-size: $text-body;
+}
+.studio-picture-regions .studio-pictures__list {
+  margin-top: 12px;
+}
+.studio-picture__frame > svg {
+  width: 100%;
+  height: 100%;
+}
+
 .studio-pictures__head {
   display: grid;
   gap: 4px;

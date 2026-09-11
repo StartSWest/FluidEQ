@@ -868,6 +868,11 @@ const showStudioFolder = () =>
   ipcRenderer.invoke('studio-show-folder') as Promise<void>;
 
 /** The pictures the open project's scene asks for, and its image now. */
+const copyStudioPicture = (bytes: Uint8Array, name: string) =>
+  ipcRenderer.invoke('studio-picture-copy', bytes, name) as Promise<
+    import('./ipc/studioPictureCopy').TPictureCopyOutcome
+  >;
+
 const readStudioPictures = () =>
   ipcRenderer.invoke('studio-pictures') as Promise<TStudioPictures>;
 
@@ -1248,6 +1253,7 @@ export default {
     chooseStudioProjectsRoot,
     addStudioSceneToLooks,
     showStudioFolder,
+    copyStudioPicture,
     readStudioPictures,
     readStudioPicturePhoto,
     writeStudioSettings,

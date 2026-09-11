@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': '正在加载场景…',
+  'studio.picture.download': '保存图片',
+  'studio.picture.downloaded': '图片已保存',
+  'studio.picture.downloadFailed': '无法保存图片。',
+  'studio.picture.separate': '独立图片（{count}）',
+  'studio.picture.separateHint':
+    '这些是同一张图片的不同部分。保存它们不会更改场景。',
   'studio.project.previous': '上一个项目',
   'studio.project.next': '下一个项目',
   'studio.title': '工作室',

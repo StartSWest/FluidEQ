@@ -1,5 +1,11 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import fs from 'fs';
+import { readManifest } from '../memberScenes/project';
+import {
+  readArtworkRegions,
+  type IArtworkRegion,
+} from '../memberScenes/artworkRegions';
+import { registerStudioPictureCopy } from './studioPictureCopy';
 import {
   keepPicturePhoto,
   readPictureAtlas,
@@ -36,6 +42,7 @@ export type TStudioPictures =
       width: number;
       height: number;
       pictures: IStudioPicture[];
+      regions?: IArtworkRegion[];
       /** The image in the folder, when it is one the scene can use. */
       image?: Uint8Array;
     };
@@ -96,6 +103,11 @@ export const registerStudioPicturesIpc = ({
   dialogImpl,
   logger,
 }: IStudioPicturesDeps): (() => void) => {
+  const stopCopies = registerStudioPictureCopy({
+    getMainWindow,
+    entitled,
+    activeFolder,
+  });
   // Read fresh on every ask: the member's AI rewrites pack.json whenever it
   // likes, and a card showing last minute's pictures would fill the wrong
   // regions.
@@ -109,6 +121,14 @@ export const registerStudioPicturesIpc = ({
       return read;
     }
     const { atlas } = read;
+    const manifest = await readManifest(folder).catch(
+      () => ({}) as Record<string, unknown>,
+    );
+    const regions = readArtworkRegions(
+      manifest.artworkRegions,
+      atlas.width,
+      atlas.height,
+    );
     const [image, keeps] = await Promise.all([
       readPictureImage(folder, atlas),
       readPictureKeeps(folder, atlas),
@@ -117,6 +137,7 @@ export const registerStudioPicturesIpc = ({
       kind: 'atlas',
       width: atlas.width,
       height: atlas.height,
+      ...(regions.length ? { regions } : {}),
       pictures: atlas.pictures.map((slot) => ({
         ...slot,
         ...(keeps[slot.id] ?? { framed: slot.framing, hasPhoto: false }),
@@ -219,5 +240,8 @@ export const registerStudioPicturesIpc = ({
     },
   );
 
-  return () => CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
+  return () => {
+    stopCopies();
+    CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
+  };
 };

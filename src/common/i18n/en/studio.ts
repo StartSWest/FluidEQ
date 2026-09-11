@@ -7,6 +7,13 @@
  * reaches the member as the thing to change, with the line to change it on.
  */
 const studio = {
+  'studio.stage.loading': 'Loading scene…',
+  'studio.picture.download': 'Save image',
+  'studio.picture.downloaded': 'Image saved',
+  'studio.picture.downloadFailed': 'Could not save the image.',
+  'studio.picture.separate': 'Separate images ({count})',
+  'studio.picture.separateHint':
+    'These are parts of one image. Saving them leaves the scene unchanged.',
   'studio.project.previous': 'Previous project',
   'studio.project.next': 'Next project',
   'studio.title': 'Studio',

@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': 'Carregando cena…',
+  'studio.picture.download': 'Salvar imagem',
+  'studio.picture.downloaded': 'Imagem salva',
+  'studio.picture.downloadFailed': 'Não foi possível salvar a imagem.',
+  'studio.picture.separate': 'Imagens separadas ({count})',
+  'studio.picture.separateHint':
+    'São partes de uma única imagem. Salvá-las não altera a cena.',
   'studio.project.previous': 'Projeto anterior',
   'studio.project.next': 'Próximo projeto',
   'studio.title': 'Estúdio',

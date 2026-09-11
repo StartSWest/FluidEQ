@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': 'Загрузка сцены…',
+  'studio.picture.download': 'Сохранить изображение',
+  'studio.picture.downloaded': 'Изображение сохранено',
+  'studio.picture.downloadFailed': 'Не удалось сохранить изображение.',
+  'studio.picture.separate': 'Отдельные изображения ({count})',
+  'studio.picture.separateHint':
+    'Это части одного изображения. Их сохранение не изменяет сцену.',
   'studio.project.previous': 'Предыдущий проект',
   'studio.project.next': 'Следующий проект',
   'studio.title': 'Студия',

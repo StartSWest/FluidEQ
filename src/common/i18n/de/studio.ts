@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': 'Szene wird geladen…',
+  'studio.picture.download': 'Bild speichern',
+  'studio.picture.downloaded': 'Bild gespeichert',
+  'studio.picture.downloadFailed': 'Das Bild konnte nicht gespeichert werden.',
+  'studio.picture.separate': 'Einzelbilder ({count})',
+  'studio.picture.separateHint':
+    'Dies sind Teile eines Bildes. Das Speichern verändert die Szene nicht.',
   'studio.project.previous': 'Vorheriges Projekt',
   'studio.project.next': 'Nächstes Projekt',
   'studio.title': 'Studio',

@@ -5,6 +5,7 @@ import type { IStudioPicture, TStudioPictures } from 'main/ipc/studioPictures';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import type { IPicturePreview } from './useScenePictures';
+import StudioPictureDownloads from './StudioPictureDownloads';
 import '../styles/Gallery.scss';
 import '../styles/StudioPictures.scss';
 
@@ -62,6 +63,8 @@ export default function StudioPictures({
             : t('studio.picture.badSlot')}
         </span>
       </div>
+
+      {pictures.kind === 'atlas' && <StudioPictureDownloads atlas={pictures} />}
 
       {pictures.kind === 'atlas' && (
         <ul className="studio-pictures__list">

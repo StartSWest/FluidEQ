@@ -28,6 +28,7 @@ import StudioStage, {
   type TStudioSize,
 } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
+import StudioStageLoading from './StudioStageLoading';
 import {
   addStudioSceneToLooks,
   linkStudioFolder,
@@ -101,7 +102,20 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
   const [size, setSize] = useState<TStudioSize>('graph');
-  const [trouble, setTrouble] = useState<TStageTrouble>();
+  const [stageProblem, setStageProblem] = useState<{
+    identity?: string;
+    serial: number;
+    value: TStageTrouble;
+  }>();
+  const trouble =
+    stageProblem?.identity === state.activeId && stageProblem?.serial === serial
+      ? stageProblem.value
+      : undefined;
+  const setTrouble = useCallback(
+    (value: TStageTrouble) =>
+      setStageProblem({ identity: state.activeId, serial, value }),
+    [state.activeId, serial],
+  );
   const [scale, setScale] = useState(1);
   const [notice, setNotice] = useState<TBenchNotice>();
   const [naming, setNaming] = useState(false);
@@ -113,9 +127,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
   useEffect(() => {
-    setTrouble(undefined);
+    setStageProblem(undefined);
     setNotice(undefined);
-  }, [serial]);
+  }, [serial, state.activeId]);
 
   const onDrawn = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard) => {
@@ -175,7 +189,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       </span>
     </div>
   );
-  if (!project) {
+  if (project && !pack && !problems) {
+    stage = (
+      <div className="studio-stage__well">
+        <div className={`studio-stage studio-stage--${size}`} aria-busy="true">
+          <StudioStageLoading name={name} />
+        </div>
+      </div>
+    );
+  } else if (!project) {
     stage = (
       <div className="studio-stage__well studio-stage__well--start">
         <span className="studio-stage__start-mark" aria-hidden="true">
@@ -210,6 +232,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   } else if (pack && playing) {
     stage = (
       <StudioStage
+        key={state.activeId}
         identity={state.activeId ?? ''}
         pack={pack}
         serial={serial}

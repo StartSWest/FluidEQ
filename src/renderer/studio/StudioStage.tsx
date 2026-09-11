@@ -9,6 +9,7 @@ import useSceneRunner, {
   type ISceneTuning,
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
+import StudioStageLoading from './StudioStageLoading';
 import {
   createStudioSignalBuffers,
   shapeStudioFrame,
@@ -68,6 +69,8 @@ export default function StudioStage({
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
+  const [settled, setSettled] = useState(false);
+  const firstFrame = useRef(false);
   useLiveAudioCapture(true);
 
   // The canvas takes the frame's measured size; the frame's shape comes from
@@ -115,7 +118,10 @@ export default function StudioStage({
   const packRef = useRef(pack);
   packRef.current = pack;
   const troubleRef = useRef(onTrouble);
-  troubleRef.current = onTrouble;
+  troubleRef.current = (trouble) => {
+    setSettled(true);
+    onTrouble(trouble);
+  };
 
   const source = useMemo<ISceneSource>(
     () => ({
@@ -149,8 +155,13 @@ export default function StudioStage({
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const onFrame = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent, heard) =>
-      drawnRef.current(frame, drawnScale, accent, heard),
+    (frame, drawnScale, accent, heard) => {
+      if (!firstFrame.current && frame.fade > 0) {
+        firstFrame.current = true;
+        setSettled(true);
+      }
+      drawnRef.current(frame, drawnScale, accent, heard);
+    },
     [],
   );
 
@@ -170,6 +181,7 @@ export default function StudioStage({
         ref={frameRef}
         className={`studio-stage studio-stage--${size}`}
         data-testid="studio-stage"
+        aria-busy={!settled}
       >
         <canvas
           ref={canvasRef}
@@ -177,6 +189,7 @@ export default function StudioStage({
           aria-label={t('studio.stage.label', { name: pack.names.en })}
           style={{ width: box.width, height: box.height }}
         />
+        {!settled && <StudioStageLoading name={pack.names.en} />}
         {size === 'full' && (
           <button
             type="button"

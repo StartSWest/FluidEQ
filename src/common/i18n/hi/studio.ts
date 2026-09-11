@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': 'दृश्य लोड हो रहा है…',
+  'studio.picture.download': 'चित्र सहेजें',
+  'studio.picture.downloaded': 'चित्र सहेजा गया',
+  'studio.picture.downloadFailed': 'चित्र सहेजा नहीं जा सका।',
+  'studio.picture.separate': 'अलग चित्र ({count})',
+  'studio.picture.separateHint':
+    'ये एक ही चित्र के हिस्से हैं। इन्हें सहेजने से दृश्य नहीं बदलेगा।',
   'studio.project.previous': 'पिछला प्रोजेक्ट',
   'studio.project.next': 'अगला प्रोजेक्ट',
   'studio.title': 'स्टूडियो',

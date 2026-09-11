@@ -185,6 +185,19 @@ describe('a new project', () => {
 });
 
 describe('opening the Studio', () => {
+  it('shows loading, not an empty scene, while the selected project is being read', async () => {
+    bridge.openStudio.mockResolvedValue({
+      entitled: true,
+      projects: [project],
+      activeId: project.id,
+    });
+    render(<StudioPanel />);
+    expect(await screen.findByText('studio.stage.loading')).toBeInTheDocument();
+    expect(
+      screen.queryByText('studio.stage.startTitle'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('studio.stage.empty')).not.toBeInTheDocument();
+  });
   it('shows no Plus offer while it is still asking whether there is Plus', async () => {
     let answer: (value: unknown) => void = () => undefined;
     bridge.openStudio.mockReturnValue(

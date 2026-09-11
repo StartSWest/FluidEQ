@@ -1,4 +1,11 @@
 const studio = {
+  'studio.stage.loading': 'シーンを読み込み中…',
+  'studio.picture.download': '画像を保存',
+  'studio.picture.downloaded': '画像を保存しました',
+  'studio.picture.downloadFailed': '画像を保存できませんでした。',
+  'studio.picture.separate': '個別の画像（{count}）',
+  'studio.picture.separateHint':
+    '1枚の画像を構成するパーツです。保存してもシーンは変更されません。',
   'studio.project.previous': '前のプロジェクト',
   'studio.project.next': '次のプロジェクト',
   'studio.title': 'スタジオ',

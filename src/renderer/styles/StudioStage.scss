@@ -170,6 +170,69 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
 }
 
+.studio-stage__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, $secondary-default 12%, $surface-well),
+    $surface-well 75%
+  );
+}
+
+.studio-stage__loading-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+  color: $secondary-light;
+
+  > svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid color-mix(in srgb, $secondary-light 15%, transparent);
+    border-top-color: $secondary-light;
+    border-radius: 50%;
+    animation: studio-loading-turn 1.2s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation: none;
+    }
+  }
+}
+
+.studio-stage__loading-title {
+  color: $text-primary;
+  font-size: $text-body;
+}
+.studio-stage__loading-name {
+  color: $text-dim;
+  font-size: $text-small;
+  max-width: 100%;
+  @include truncate;
+}
+@keyframes studio-loading-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .studio-stage__exit {
   position: absolute;
   top: $spacing-m;
