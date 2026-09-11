@@ -196,6 +196,8 @@ const terms = {
   'terms.back': '戻る',
   'terms.error.outdated':
     '規約が更新されました。購読の前に FluidEQ をアップデートして新しいバージョンをお読みください。',
+  'terms.error.priceOutdated':
+    '価格が変更されました。購読の前に FluidEQ をアップデートして現在の価格をご確認ください。',
 };
 
 export default terms;

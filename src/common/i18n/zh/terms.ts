@@ -182,6 +182,8 @@ const terms = {
     '付款页面会在你的浏览器中打开。请使用与 FluidEQ 账户相同的邮箱。',
   'terms.back': '返回',
   'terms.error.outdated': '条款已更新。请先更新 FluidEQ 阅读新版本，再订阅。',
+  'terms.error.priceOutdated':
+    '价格已变更。请先更新 FluidEQ 查看当前价格，再订阅。',
 };
 
 export default terms;

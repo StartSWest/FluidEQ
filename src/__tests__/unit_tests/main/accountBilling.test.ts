@@ -60,15 +60,23 @@ describe('the billing client', () => {
     const headers = init.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer access-1');
     expect(headers.apikey).toBe(CONFIG.supabaseAnonKey);
-    // The server records the agreement as it answers; the version is the
-    // whole of what it is told.
-    expect(JSON.parse(String(init.body))).toEqual({ termsVersion: 1 });
+    // The server records the agreement as it answers: the version agreed to,
+    // and the prices this build quoted beside it, so it can refuse a copy
+    // that shows one figure while the merchant charges another.
+    expect(JSON.parse(String(init.body))).toEqual({
+      termsVersion: 1,
+      prices: { monthly: CONFIG.plusPrice, yearly: CONFIG.plusYearlyPrice },
+    });
   });
 
-  it('names a server that wants newer terms apart from any other refusal', async () => {
+  it('names a server that wants newer terms or prices apart from any other refusal', async () => {
     fetchImpl.mockResolvedValue(json({ error: 'terms_outdated' }, 409));
     await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
       failure: 'terms_outdated',
+    });
+    fetchImpl.mockResolvedValue(json({ error: 'price_outdated' }, 409));
+    await expect(build().checkoutUrl('a', 1)).rejects.toMatchObject({
+      failure: 'price_outdated',
     });
     // The same status for an account already paying is a plain refusal.
     fetchImpl.mockResolvedValue(json({ error: 'already subscribed' }, 409));

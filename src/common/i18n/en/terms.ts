@@ -208,6 +208,9 @@ const terms = {
   'terms.back': 'Back',
   'terms.error.outdated':
     'These terms have changed. Update FluidEQ to read the new version before subscribing.',
+  // The prices this copy of the app shows are not the ones being charged.
+  'terms.error.priceOutdated':
+    'The price has changed. Update FluidEQ to see the current price before subscribing.',
 } as const;
 
 export default terms;

@@ -197,6 +197,8 @@ const terms = {
   'terms.back': 'Volver',
   'terms.error.outdated':
     'Estas condiciones han cambiado. Actualiza FluidEQ para leer la nueva versión antes de suscribirte.',
+  'terms.error.priceOutdated':
+    'El precio ha cambiado. Actualiza FluidEQ para ver el precio actual antes de suscribirte.',
 };
 
 export default terms;

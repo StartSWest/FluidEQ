@@ -17,9 +17,14 @@ import type { IAccountConfig } from 'common/accountConfig';
  * person agreed to are older than the ones it now requires: the app is out
  * of date, and paying under text nobody showed them is exactly what the
  * version exists to prevent.
+ *
+ * `price_outdated` is the same refusal for the price: the prices this build
+ * shows are not the ones the merchant charges. An old build after a price
+ * change, or a copy somebody edited — either way the person would be agreeing
+ * to one figure and paying another, and updating the app is the way through.
  */
 export type TBillingFailure =
-  'network' | 'signed_out' | 'rejected' | 'terms_outdated';
+  'network' | 'signed_out' | 'rejected' | 'terms_outdated' | 'price_outdated';
 
 export class BillingError extends Error {
   readonly failure: TBillingFailure;
@@ -54,13 +59,20 @@ export const readBillingUrl = (value: unknown): string | undefined => {
   }
 };
 
-/** Whether a refusal's body names outdated terms. */
-const refusesTerms = async (response: Response): Promise<boolean> => {
+/** Which of the outdated-app refusals a 409 names, if either. */
+const outdatedFailure = async (
+  response: Response,
+): Promise<'terms_outdated' | 'price_outdated' | undefined> => {
   try {
     const body: unknown = await response.json();
-    return isRecord(body) && body.error === 'terms_outdated';
+    if (!isRecord(body)) {
+      return undefined;
+    }
+    return body.error === 'terms_outdated' || body.error === 'price_outdated'
+      ? body.error
+      : undefined;
   } catch {
-    return false;
+    return undefined;
   }
 };
 
@@ -89,10 +101,10 @@ const call = async (
     throw new BillingError('signed_out', `${name} refused the token.`);
   }
   if (!response.ok) {
+    const outdated =
+      response.status === 409 ? await outdatedFailure(response) : undefined;
     throw new BillingError(
-      response.status === 409 && (await refusesTerms(response))
-        ? 'terms_outdated'
-        : 'rejected',
+      outdated ?? 'rejected',
       `${name} answered ${response.status}.`,
     );
   }
@@ -161,8 +173,9 @@ const sync = async (
 export interface IBillingClient {
   /**
    * Where to pay, for this account, having agreed to this version of the Plus
-   * terms. The server records the agreement as it answers, so the record and
-   * the checkout cannot come apart.
+   * terms at the prices this build shows. The server refuses either one when
+   * it is not what it now requires, and records the agreement as it answers,
+   * so the record and the checkout cannot come apart.
    */
   checkoutUrl(accessToken: string, termsVersion: number): Promise<string>;
   /** Where this account's subscription is managed. */
@@ -175,8 +188,13 @@ export const createBillingClient = (
   config: IAccountConfig,
   fetchImpl: typeof fetch = fetch,
 ): IBillingClient => ({
+  // The prices come from the main process's own copy of the build's values,
+  // never from the window: what is checked is what this build quotes.
   checkoutUrl: (accessToken, termsVersion) =>
-    call(config, 'create-checkout', accessToken, fetchImpl, { termsVersion }),
+    call(config, 'create-checkout', accessToken, fetchImpl, {
+      termsVersion,
+      prices: { monthly: config.plusPrice, yearly: config.plusYearlyPrice },
+    }),
   portalUrl: (accessToken) =>
     call(config, 'create-portal', accessToken, fetchImpl),
   syncMembership: (accessToken) => sync(config, accessToken, fetchImpl),

@@ -17,6 +17,7 @@ const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
   signed_out: 'account.error.expired',
   rejected: 'account.plus.error.rejected',
   terms_outdated: 'terms.error.outdated',
+  price_outdated: 'terms.error.priceOutdated',
 };
 
 /**

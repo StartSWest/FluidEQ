@@ -197,6 +197,8 @@ const terms = {
   'terms.back': 'Voltar',
   'terms.error.outdated':
     'Estes termos mudaram. Atualiza o FluidEQ para ler a nova versão antes de subscrever.',
+  'terms.error.priceOutdated':
+    'O preço mudou. Atualiza o FluidEQ para veres o preço atual antes de subscrever.',
 };
 
 export default terms;

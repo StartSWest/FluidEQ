@@ -198,6 +198,8 @@ const terms = {
   'terms.back': 'Indietro',
   'terms.error.outdated':
     'Queste condizioni sono cambiate. Aggiorna FluidEQ per leggere la nuova versione prima di abbonarti.',
+  'terms.error.priceOutdated':
+    'Il prezzo è cambiato. Aggiorna FluidEQ per vedere il prezzo attuale prima di abbonarti.',
 };
 
 export default terms;

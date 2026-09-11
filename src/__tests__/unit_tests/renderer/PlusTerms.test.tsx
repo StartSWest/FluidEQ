@@ -134,6 +134,23 @@ describe('the Plus terms', () => {
     ).toBeInTheDocument();
   });
 
+  it('names a refusal for an outdated price where it happened, and stays on the terms', async () => {
+    mockOpenCheckout.mockResolvedValueOnce({
+      ok: false,
+      failure: 'price_outdated',
+    });
+    render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
+    await userEvent.click(screen.getByLabelText('terms.agree.check'));
+    await userEvent.click(agreeButton());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'terms.error.priceOutdated',
+    );
+    expect(
+      screen.getByRole('heading', { name: 'terms.title' }),
+    ).toBeInTheDocument();
+  });
+
   it('go back agreeing to nothing', async () => {
     render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
     await userEvent.click(screen.getByRole('button', { name: 'terms.back' }));
