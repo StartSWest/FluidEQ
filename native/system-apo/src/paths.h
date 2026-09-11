@@ -43,6 +43,17 @@ std::wstring config_dir();
 std::wstring log_path();
 
 /**
+ * `\\.\pipe\FluidEQ-Engine-Owner`: the pipe FluidEQ keeps open for as long
+ * as it runs (`src/main/engineOwnerPipe.ts` names the same one). See
+ * `owner_link.h` for what the engine does with it.
+ *
+ * TEST ONLY: `FLUIDEQ_ENGINE_OWNER_PIPE`, when set, replaces the name, so a
+ * test can serve its own pipe without depending on whether FluidEQ happens
+ * to be running on the machine. Same reasoning as `FLUIDEQ_ENGINE_ROOT`.
+ */
+std::wstring owner_pipe_name();
+
+/**
  * The deepest existing directory at or above `path`, or empty if none is.
  *
  * The watcher needs somewhere real to wait when the configuration directory
@@ -54,6 +65,9 @@ std::wstring deepest_existing(const std::wstring& path);
 
 /** `path` without its last component, or empty when it has only one. */
 std::wstring parent_of(const std::wstring& path);
+
+/** Whether `path` names an existing directory. False for an empty one. */
+bool is_directory(const std::wstring& path);
 
 }  // namespace fluideq_engine
 

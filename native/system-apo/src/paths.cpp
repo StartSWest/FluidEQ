@@ -49,6 +49,8 @@ std::wstring trim_separators(std::wstring path) {
   return path;
 }
 
+}  // namespace
+
 bool is_directory(const std::wstring& path) {
   if (path.empty()) {
     return false;
@@ -57,8 +59,6 @@ bool is_directory(const std::wstring& path) {
   return attributes != INVALID_FILE_ATTRIBUTES &&
          (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
-
-}  // namespace
 
 std::wstring engine_root() {
   const std::wstring override_root = environment(L"FLUIDEQ_ENGINE_ROOT");
@@ -93,6 +93,12 @@ std::wstring log_path() {
     return std::wstring();
   }
   return root + L"\\engine.log";
+}
+
+std::wstring owner_pipe_name() {
+  const std::wstring override_name = environment(L"FLUIDEQ_ENGINE_OWNER_PIPE");
+  return override_name.empty() ? std::wstring(L"\\\\.\\pipe\\FluidEQ-Engine-Owner")
+                               : override_name;
 }
 
 std::wstring parent_of(const std::wstring& path) {

@@ -49,6 +49,7 @@ using fluideq_engine_test::kEngineClsid;
 using fluideq_engine_test::kFrames;
 using fluideq_engine_test::kRate;
 using fluideq_engine_test::load_engine;
+using fluideq_engine_test::g_owner_pipe;
 using fluideq_engine_test::run_dll_test;
 using fluideq_engine_test::ScopeGuard;
 using fluideq_engine_test::unload_engine;
@@ -285,7 +286,43 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
   }
   CHECK(swapped);
 
+  // --- FluidEQ ended from Task Manager ------------------------------------
+  // Nothing of the app's runs: only its end of the pipe closes, and the
+  // configuration on disk still says -18 dB. The effect has to stop applying
+  // it by itself, while the audio keeps running.
+  g_owner_pipe.close();
+  bool bypassed = false;
+  for (uint32_t block = 0; block < kMaxBlocks && !bypassed; ++block) {
+    process_ones(rt, buffer, kChannels, kFrames);
+    bypassed = all_close(buffer, kChannels * kFrames, 1.0f, 1.0e-6f);
+    SwitchToThread();
+  }
+  CHECK(bypassed);
+
+  // --- FluidEQ started again ----------------------------------------------
+  // A new pipe, and the configuration write a starting app makes, which is
+  // what tells the effect to look for it.
+  CHECK(g_owner_pipe.open());
+  CHECK(write_text_file(config_dir + L"\\config.txt", "Preamp: -6 dB\r\n"));
+  swapped = false;
+  for (uint32_t block = 0; block < kMaxBlocks && !swapped; ++block) {
+    process_ones(rt, buffer, kChannels, kFrames);
+    swapped = all_close(buffer, kChannels * kFrames, 0.501187f, 1.0e-4f);
+    SwitchToThread();
+  }
+  CHECK(swapped);
+
   CHECK(config->UnlockForProcess() == S_OK);
+
+  // --- Locking while FluidEQ is not running -------------------------------
+  // The first graph is built knowing it: audio never starts processed and
+  // then drops to pass-through, or the other way round.
+  g_owner_pipe.close();
+  CHECK(config->LockForProcess(1, inputs, 1, outputs) == S_OK);
+  process_ones(rt, buffer, kChannels, kFrames);
+  CHECK(all_close(buffer, kChannels * kFrames, 1.0f, 1.0e-6f));
+  CHECK(config->UnlockForProcess() == S_OK);
+  CHECK(g_owner_pipe.open());
 
   // The watcher thread wrote why it is passing audio through untouched;
   // without that line an engine doing nothing looks the same as one that

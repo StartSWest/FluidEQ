@@ -75,6 +75,7 @@ import {
 import { neutraliseEngine } from './engineNeutralise';
 import { writeSystemDspChain } from './systemDspChain';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
+import { startEngineOwnerPipe } from './engineOwnerPipe';
 import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
@@ -3445,6 +3446,11 @@ const onAppReady = async () => {
   // declares the scheme's privileges and has to run before `whenReady`;
   // this one answers its requests and has to run after.
   handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
+  // Before the window, so before anything writes an engine configuration: the
+  // FluidEQ Engine only applies one while this process holds its pipe open,
+  // which is how a FluidEQ ended from Task Manager stops shaping the audio.
+  // See `engineOwnerPipe.ts`. Never rejects.
+  await startEngineOwnerPipe();
   try {
     await createMainWindow();
     // AFTER THE WINDOW, NOT BEFORE IT.

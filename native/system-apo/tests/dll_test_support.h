@@ -40,6 +40,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
 
 namespace fluideq_engine_test {
 
@@ -258,8 +259,59 @@ inline bool write_text_file(const std::wstring& path, const char* text) {
 }
 
 /**
- * The whole of both binaries' `wmain`: COM, a private engine root, the body,
- * and the verdict.
+ * FluidEQ's pipe, served by the test binary itself.
+ *
+ * Without it the effect passes every endpoint through untouched, which is
+ * what it does when FluidEQ is not running — so every check that expects the
+ * configuration to be applied needs one, and the checks for FluidEQ going
+ * away close it. A private name through `FLUIDEQ_ENGINE_OWNER_PIPE`, so the
+ * result never depends on whether FluidEQ is running on the machine.
+ */
+class OwnerPipe {
+ public:
+  ~OwnerPipe() { close(); }
+
+  void set_name(std::wstring name) { name_ = std::move(name); }
+
+  /**
+   * Opens `instances` of it. Every lock takes one — the effect's link holds
+   * a connection while any endpoint is locked — and an instance a link has
+   * let go of cannot be connected to again, so a binary that locks many
+   * times needs one per lock.
+   */
+  bool open(size_t instances = 128) {
+    close();
+    for (size_t at = 0; at < instances; ++at) {
+      const HANDLE instance = CreateNamedPipeW(
+          name_.c_str(), PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+          PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+          PIPE_UNLIMITED_INSTANCES, 4096, 4096, 0, nullptr);
+      if (instance == INVALID_HANDLE_VALUE) {
+        return false;
+      }
+      instances_.push_back(instance);
+    }
+    return true;
+  }
+
+  /** FluidEQ ending, as the effect sees it. */
+  void close() noexcept {
+    for (const HANDLE instance : instances_) {
+      CloseHandle(instance);
+    }
+    instances_.clear();
+  }
+
+ private:
+  std::wstring name_;
+  std::vector<HANDLE> instances_;
+};
+
+inline OwnerPipe g_owner_pipe;
+
+/**
+ * The whole of both binaries' `wmain`: COM, a private engine root, FluidEQ's
+ * pipe, the body, and the verdict.
  */
 inline int run_dll_test(int argc, wchar_t** argv, const char* banner,
                         const wchar_t* tag,
@@ -287,6 +339,19 @@ inline int run_dll_test(int argc, wchar_t** argv, const char* banner,
   const ScopeGuard clean_root([&root] {
     SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_ROOT", nullptr);
     remove_temp_root(root);
+  });
+
+  const std::wstring pipe = L"\\\\.\\pipe\\fluideq-engine-test-owner-" +
+                            std::to_wstring(GetCurrentProcessId());
+  g_owner_pipe.set_name(pipe);
+  if (!g_owner_pipe.open()) {
+    std::printf("  could not serve a FluidEQ pipe for the effect to find\n");
+    return 1;
+  }
+  SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_OWNER_PIPE", pipe.c_str());
+  const ScopeGuard close_pipe([] {
+    SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_OWNER_PIPE", nullptr);
+    g_owner_pipe.close();
   });
 
   body(argv[1], root);

@@ -412,6 +412,9 @@ Your EQ applies only while FluidEQ is running. Closing the window keeps
 FluidEQ running in the tray, and the EQ with it; **Quit** from the tray icon
 turns every output back to flat — the DSP rack included — and the next launch
 puts your settings back. Shutting down or signing out of Windows does the same.
+Under the FluidEQ Engine that holds even when FluidEQ is ended from Task
+Manager or crashes: the engine notices FluidEQ has gone and passes the sound
+through untouched until it is back.
 Uninstalling FluidEQ turns its EQ off in both engines, including an Equalizer
 APO you choose to keep.
 

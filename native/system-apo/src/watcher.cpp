@@ -11,11 +11,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <algorithm>
 #include <exception>
 #include <memory>
-#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "chain_signature.h"
+#include "config_file.h"
 #include "paths.h"
 
 namespace fluideq_engine {
@@ -32,17 +33,6 @@ namespace {
 // are finished and every block from here on runs the new graph or a later
 // one.
 constexpr uint64_t kGraceBlocks = 2;
-
-// A configuration file larger than this is not one FluidEQ wrote. Reading it
-// would mean allocating it inside audiodg.exe, which is a protected process
-// with a working set nobody expects an effect to move.
-constexpr long long kMaxConfigBytes = 4LL * 1024 * 1024;
-
-// The `ignored` line is emitted once per distinct set. The cap stops a config
-// being rewritten with a different stray command every second from growing
-// this list without bound; a machine that reaches it has already told the log
-// everything it had to say.
-constexpr size_t kMaxIgnoredSetsLogged = 32;
 
 /**
  * The change-notification handle, closed on every way out of `run()`.
@@ -76,64 +66,12 @@ class ChangeNotification {
   HANDLE handle_;
 };
 
-bool is_directory(const std::wstring& path) {
-  if (path.empty()) {
-    return false;
-  }
-  const DWORD attributes = GetFileAttributesW(path.c_str());
-  return attributes != INVALID_FILE_ATTRIBUTES &&
-         (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-}
-
 /**
- * The whole file, or nothing.
- *
- * `FILE_SHARE_WRITE | FILE_SHARE_DELETE` because the app rewrites these files
- * while this runs, and a share mode that excluded the writer would make the
- * effect the reason the app's own save failed.
+ * The link's own lines, under no endpoint: it belongs to the process, not to
+ * any one of the outputs whose watchers share it.
  */
-std::optional<std::string> read_whole_file(const std::wstring& path) {
-  const HANDLE file = CreateFileW(
-      path.c_str(), GENERIC_READ,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
-      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-  if (file == INVALID_HANDLE_VALUE) {
-    return std::nullopt;
-  }
-  LARGE_INTEGER size = {};
-  if (GetFileSizeEx(file, &size) == 0 || size.QuadPart > kMaxConfigBytes) {
-    CloseHandle(file);
-    return std::nullopt;
-  }
-  std::string text(static_cast<size_t>(size.QuadPart), '\0');
-  size_t filled = 0;
-  while (filled < text.size()) {
-    DWORD read = 0;
-    const DWORD want = static_cast<DWORD>(
-        std::min<size_t>(text.size() - filled, 1u << 20));
-    if (ReadFile(file, text.data() + filled, want, &read, nullptr) == 0) {
-      CloseHandle(file);
-      return std::nullopt;
-    }
-    if (read == 0) {
-      break;  // Truncated under us; what arrived is what there is.
-    }
-    filled += read;
-  }
-  CloseHandle(file);
-  text.resize(filled);
-  return text;
-}
-
-std::string join(const std::vector<std::string>& items) {
-  std::string out;
-  for (const std::string& item : items) {
-    if (!out.empty()) {
-      out += ", ";
-    }
-    out += item;
-  }
-  return out;
+void log_owner(std::string_view message) noexcept {
+  trace(no_endpoint(), message);
 }
 
 }  // namespace
@@ -163,7 +101,18 @@ void Watcher::load_initial() {
     log_.write("configuration directory " + to_utf8(config_dir_) +
                " is not present; waiting for it");
   }
+  // Before the first reload, so the first graph already knows whether
+  // FluidEQ is there — `acquire` has tried the pipe by the time it returns.
+  owner_ = OwnerLink::acquire(owner_pipe_name(), &log_owner);
+  if (owner_ == nullptr) {
+    log_.write("cannot tell whether FluidEQ is running; the configuration "
+               "applies whether it is or not");
+  }
   reload(Carry::State);
+}
+
+bool Watcher::owner_present() const noexcept {
+  return owner_ == nullptr || owner_->present();
 }
 
 bool Watcher::start() {
@@ -181,6 +130,22 @@ bool Watcher::start() {
                "filter state across a pipeline flush");
     return false;
   }
+  if (owner_ != nullptr) {
+    owner_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    try {
+      if (owner_event_ != nullptr) {
+        owner_->subscribe(owner_event_);
+      }
+    } catch (...) {
+      CloseHandle(owner_event_);
+      owner_event_ = nullptr;
+    }
+    if (owner_event_ == nullptr) {
+      // FluidEQ coming or going is then only noticed at the next change in
+      // the configuration directory, which a starting app always makes.
+      log_.write("could not subscribe to FluidEQ coming and going");
+    }
+  }
   unsigned id = 0;
   // `_beginthreadex` rather than `CreateThread`: this thread runs the C++
   // runtime — strings, vectors, the resolver — and the CRT wants to know
@@ -192,6 +157,11 @@ bool Watcher::start() {
     stop_event_ = nullptr;
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
+    if (owner_event_ != nullptr) {
+      owner_->unsubscribe(owner_event_);
+      CloseHandle(owner_event_);
+      owner_event_ = nullptr;
+    }
     log_.write("could not start the configuration watcher; changes will not "
                "be picked up");
     return false;
@@ -221,6 +191,15 @@ void Watcher::stop() noexcept {
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
   }
+  // Unsubscribed before it is closed: the link may be setting it from its own
+  // thread right up until `unsubscribe` returns.
+  if (owner_event_ != nullptr) {
+    owner_->unsubscribe(owner_event_);
+    CloseHandle(owner_event_);
+    owner_event_ = nullptr;
+  }
+  // The last watcher to let go ends the link's thread and its connection.
+  owner_.reset();
   // Only now: until the thread has joined it is still the owner of these.
   slot_.clear();
   for (const Retired& retired : owned_) {
@@ -275,9 +254,14 @@ void Watcher::run() {
     }
 
     bool rearm = false;
-    HANDLE handles[3] = {stop_event_, reset_event_, change.get()};
+    // The link's event last, and only when there is one: a null handle in the
+    // array fails the whole wait.
+    HANDLE handles[4] = {stop_event_, reset_event_, change.get(),
+                         owner_event_};
+    const DWORD count = owner_event_ != nullptr ? 4 : 3;
     while (!rearm) {
-      const DWORD woke = WaitForMultipleObjects(3, handles, FALSE, INFINITE);
+      const DWORD woke =
+          WaitForMultipleObjects(count, handles, FALSE, INFINITE);
       if (woke == WAIT_OBJECT_0) {
         return;
       }
@@ -287,9 +271,22 @@ void Watcher::run() {
         reload(Carry::Nothing);
         continue;
       }
+      if (count == 4 && woke == WAIT_OBJECT_0 + 3) {
+        // FluidEQ came or went. The reload reads which, and either builds the
+        // configuration's graph or a pass-through one.
+        reload(Carry::State);
+        continue;
+      }
       if (woke != WAIT_OBJECT_0 + 2) {
         rearm = true;  // The handle went bad; rebuild the watch.
         break;
+      }
+      // A starting app writes into this directory before anything else, so a
+      // change here is the moment a missing pipe may have become a present
+      // one. Asked before the reload rather than after: the link connects on
+      // its own thread and wakes this one again when it has.
+      if (owner_ != nullptr) {
+        owner_->retry();
       }
       if (watching_config) {
         reload(Carry::State);
@@ -343,9 +340,13 @@ void Watcher::request_reset() noexcept {
 void Watcher::reload(Carry carry) {
   try {
     const FileProvider provider = [](const std::wstring& path) {
-      return read_whole_file(path);
+      return read_config_file(path);
     };
-    const Chain chain = resolve_chain(config_dir_, endpoint_, provider);
+    // With FluidEQ gone, nothing is read at all: the graph is built from an
+    // empty chain, which is pass-through, rack included.
+    const bool owner = owner_present();
+    const Chain chain =
+        owner ? resolve_chain(config_dir_, endpoint_, provider) : Chain{};
     // `UnlockForProcess` waits for this thread with no timeout, so every
     // phase that takes real time is followed by a chance to abandon: the
     // resolve above reads a directory of files, the construction below
@@ -354,7 +355,9 @@ void Watcher::reload(Carry carry) {
       return;
     }
 
-    std::string next = signature_of(chain);
+    // FluidEQ's presence is part of what was loaded: the same files with and
+    // without it build different graphs.
+    std::string next = signature_of(chain) + (owner ? "|o=1" : "|o=0");
     // A reset rebuilds even when the configuration is byte-for-byte what it
     // already was: the whole point of the rebuild is the state, not the
     // chain.
@@ -384,7 +387,7 @@ void Watcher::reload(Carry carry) {
         graph->inherit_rack(*previous);
       }
     }
-    log_chain(chain, *graph);
+    log_chain(chain, *graph, owner);
     publish(std::move(graph));
     signature_.swap(next);
     have_signature_ = true;
@@ -442,72 +445,6 @@ void Watcher::reclaim() {
   }
   owned_.erase(owned_.begin(),
                owned_.begin() + static_cast<ptrdiff_t>(boundary));
-}
-
-void Watcher::log_chain(const Chain& chain, const Graph& graph) {
-  std::string files;
-  for (const std::wstring& file : chain.files_read) {
-    if (!files.empty()) {
-      files += ", ";
-    }
-    files += to_utf8(file_name_of(file));
-  }
-  std::string line = "chain loaded: files=" +
-                     std::to_string(chain.files_read.size());
-  if (!files.empty()) {
-    line += " (" + files + ")";
-  }
-  line += " bands=" + std::to_string(chain.bands.size());
-  line += " graphic_curves=" + std::to_string(chain.graphic_curves.size());
-  line += " preamp=" + decibels(chain.preamp_db) + " dB";
-  line += " ir=" + (chain.convolution_path.empty()
-                        ? std::string("none")
-                        : to_utf8(chain.convolution_path));
-  line += " rack=" + (chain.dsp_values.empty()
-                          ? std::string("none")
-                          : std::to_string(chain.dsp_values.size()) +
-                                " values");
-  line += " latency=" + std::to_string(graph.latency_frames()) + " frames";
-  log_.write(line);
-
-  for (const std::string& warning : graph.warnings()) {
-    log_.write("graph warning: " + warning);
-  }
-
-  if (!chain.ignored.empty() &&
-      logged_ignored_.size() < kMaxIgnoredSetsLogged) {
-    const std::string set = join(chain.ignored);
-    const bool seen = std::find(logged_ignored_.begin(), logged_ignored_.end(),
-                                set) != logged_ignored_.end();
-    if (!seen) {
-      // Recorded before it is written, so reaching the cap silences the line
-      // rather than turning it into one entry per reload.
-      logged_ignored_.push_back(set);
-      log_.write("ignored commands (this engine does not run them): " + set);
-    }
-  }
-
-  std::string reason;
-  if (graph.is_passthrough()) {
-    if (!is_directory(config_dir_)) {
-      reason = "no configuration directory";
-    } else if (chain.files_read.empty()) {
-      reason = "no config.txt in the configuration directory";
-    } else if (!chain.matched) {
-      reason = "no configuration block names this endpoint";
-    } else {
-      reason = "the configuration asks for nothing on this endpoint";
-    }
-  }
-  if (!have_passthrough_reason_ || reason != passthrough_reason_) {
-    passthrough_reason_ = reason;
-    have_passthrough_reason_ = true;
-    if (!reason.empty()) {
-      log_.write("pass-through: " + reason);
-    } else {
-      log_.write("processing this endpoint");
-    }
-  }
 }
 
 }  // namespace fluideq_engine

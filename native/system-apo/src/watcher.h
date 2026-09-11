@@ -35,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
 #include "log.h"
+#include "owner_link.h"
 
 namespace fluideq_engine {
 
@@ -221,7 +222,9 @@ class Watcher {
   bool stop_requested() const noexcept;
   void publish(std::unique_ptr<Graph> graph);
   void reclaim();
-  void log_chain(const Chain& chain, const Graph& graph);
+  void log_chain(const Chain& chain, const Graph& graph, bool owner_present);
+  /** No link means the link could not run: then FluidEQ counts as present. */
+  bool owner_present() const noexcept;
 
   GraphSlot& slot_;
   Log& log_;
@@ -247,6 +250,14 @@ class Watcher {
   // rebuild is already running is served by the next wait rather than lost.
   HANDLE reset_event_ = nullptr;
   HANDLE thread_ = nullptr;
+
+  // Whether FluidEQ is running — see `owner_link.h`. Without it the engine
+  // passes every endpoint through untouched, whatever the files say: a
+  // configuration nobody is left running to take off again must not go on
+  // shaping somebody's audio.
+  std::shared_ptr<OwnerLink> owner_;
+  // Auto-reset, set by the link each time FluidEQ comes or goes.
+  HANDLE owner_event_ = nullptr;
 };
 
 }  // namespace fluideq_engine

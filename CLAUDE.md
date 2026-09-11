@@ -383,6 +383,15 @@ Everything worth knowing about them is available through commands:
   state back — the health check's flush does the EQ, and `App.tsx` republishes
   the rack, which the DSP page alone would only send once it was opened. The
   uninstaller does the same to both engines' roots (`NeutraliseEngineConfigs`).
+  End task, a crash or a power cut run none of that, so the FluidEQ Engine
+  also refuses to apply anything unless FluidEQ is alive: the app serves
+  `\\.\pipe\FluidEQ-Engine-Owner` from startup (`engineOwnerPipe.ts`, awaited
+  before the window exists) and the DLL holds one connection to it per
+  process (`owner_link.h`); the pipe breaking is the signal, no heartbeat.
+  The engine only looks for the pipe again when its config folder changes,
+  which is why the app writes `fluideq-owner.txt` there once it is serving.
+  Every DLL test serves that pipe (`OwnerPipe` in `dll_test_support.h`) — a
+  new one that expects processing without it will only ever see pass-through.
 - **The DLL waits on `FindFirstChangeNotification`, not a poll.** It is told a
   config changed, never guesses when to check again. That also means a change
   to how `deviceProfiles.ts` lays the config text out is a change to what the
