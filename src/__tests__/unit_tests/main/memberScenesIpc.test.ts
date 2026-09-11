@@ -109,7 +109,10 @@ describe('member scenes over IPC', () => {
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
     const state = await invoke<Promise<IStudioState>>('studio-link-folder');
-    expect(state.folder?.name).toBe('my-scene');
+    expect(state.projects.map((entry) => entry.folderName)).toEqual([
+      'my-scene',
+    ]);
+    expect(state.activeId).toBe(state.projects[0]?.id);
     const added = await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
     expect(added).toMatchObject({
       ok: true,
@@ -167,6 +170,65 @@ describe('member scenes over IPC', () => {
     expect(await invoke('studio-create-starter')).toBe('exists');
     chosen = undefined;
     expect(await invoke('studio-create-starter')).toBe('cancelled');
+    registration.dispose();
+  });
+
+  it('keeps many projects, and works on the one that is open', async () => {
+    const registration = setup();
+    const city = await project();
+    const sea = path.join(root, 'sea');
+    fs.mkdirSync(sea);
+    await writeStarterProject(sea);
+    fs.writeFileSync(
+      path.join(sea, 'pack.json'),
+      fs
+        .readFileSync(path.join(sea, 'pack.json'), 'utf8')
+        .replace('"my-first-scene"', '"deep-sea"')
+        .replace('"My First Scene"', '"Deep Sea"'),
+    );
+    await invoke<Promise<IStudioState>>('studio-open');
+    chosen = city;
+    await invoke<Promise<IStudioState>>('studio-link-folder');
+    chosen = sea;
+    const both = await invoke<Promise<IStudioState>>('studio-link-folder');
+
+    // Most recent first, named by what the scene is called, the new one open.
+    expect(both.projects.map((entry) => entry.names?.en)).toEqual([
+      'Deep Sea',
+      'My First Scene',
+    ]);
+    expect(both.activeId).toBe(both.projects[0]?.id);
+    expect(await invoke('studio-add-to-looks')).toMatchObject({
+      ok: true,
+      scene: { packId: 'deep-sea' },
+    });
+
+    // Opening the other one moves the work to it.
+    const cityId = both.projects[1]?.id;
+    const switched = await invoke<Promise<IStudioState>>(
+      'studio-select-project',
+      cityId,
+    );
+    expect(switched.activeId).toBe(cityId);
+    expect(await invoke('studio-add-to-looks')).toMatchObject({
+      ok: true,
+      scene: { packId: 'my-first-scene' },
+    });
+
+    // An id the list does not hold changes nothing.
+    expect(
+      (await invoke<Promise<IStudioState>>('studio-select-project', 'nope'))
+        .activeId,
+    ).toBe(cityId);
+
+    // Removing the open one opens the other, and leaves the folder as it was.
+    const after = await invoke<Promise<IStudioState>>(
+      'studio-forget-project',
+      cityId,
+    );
+    expect(after.projects.map((entry) => entry.folderName)).toEqual(['sea']);
+    expect(after.activeId).toBe(after.projects[0]?.id);
+    expect(fs.existsSync(path.join(city, 'pack.json'))).toBe(true);
     registration.dispose();
   });
 

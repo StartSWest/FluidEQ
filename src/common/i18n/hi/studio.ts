@@ -22,10 +22,53 @@ const studio = {
   'studio.action.createStarter': 'शुरुआती प्रोजेक्ट बनाएँ…',
   'studio.action.linkFolder': 'फ़ोल्डर जोड़ें…',
   'studio.action.showFolder': 'फ़ोल्डर दिखाएँ',
-  'studio.action.unlink': 'जुड़ाव हटाएँ',
   'studio.action.addToLooks': 'मेरे रूपों में जोड़ें',
   'studio.action.export': 'एक्सपोर्ट करें…',
   'studio.action.import': 'सीन फ़ाइल खोलें…',
+  'studio.action.publish': 'प्रकाशित करें…',
+
+  'studio.project.label': 'प्रोजेक्ट',
+  'studio.project.group': 'आपके प्रोजेक्ट',
+  'studio.project.none': 'प्रोजेक्ट चुनें',
+  'studio.project.new': 'नया प्रोजेक्ट…',
+  'studio.project.add': 'फ़ोल्डर जोड़ें…',
+  'studio.project.forget': 'सूची से हटाएँ',
+  'studio.project.forgetHint':
+    'फ़ोल्डर और उसकी फ़ाइलें आपके कंप्यूटर पर ही रहेंगी।',
+
+  'studio.publish.title': '{name} प्रकाशित करें',
+  'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
+  'studio.publish.version': 'संस्करण {version}',
+  'studio.publish.pictureAlt': '{name}, जैसा गैलरी में दिखेगा',
+  'studio.publish.pictureHint':
+    'अभी-अभी स्टेज से ली गई। गैलरी में यह ऐसा ही दिखेगा।',
+  'studio.publish.category': 'श्रेणी',
+  'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
+  'studio.publish.point1':
+    'हर Plus सदस्य इसे विज़ुअलाइज़र में ढूँढ सकेगा, अपने रूपों में जोड़ सकेगा और पसंद कर सकेगा।',
+  'studio.publish.point2': 'हर पसंद से आपको लीडरबोर्ड पर पॉइंट मिलते हैं।',
+  'studio.publish.point3':
+    'आप इसे कभी भी हटा सकते हैं। जिन्होंने इसे पहले ही जोड़ लिया है, उनकी कॉपी उनके पास रहेगी।',
+  'studio.publish.point3Update':
+    'जिन्होंने इसे जोड़ा है, उन्हें अपडेट करें दिखेगा, और दबाने तक पुराना संस्करण रहेगा।',
+  'studio.publish.read': 'शर्तें पढ़ें',
+  'studio.publish.cancel': 'रद्द करें',
+  'studio.publish.go': 'प्रकाशित करें',
+  'studio.publish.goUpdate': 'अपडेट प्रकाशित करें',
+  'studio.publish.agree': 'सहमत हों और प्रकाशित करें',
+  'studio.publish.running': 'प्रकाशित हो रहा है…',
+  'studio.publish.done': '{name} गैलरी में है।',
+  'studio.publish.updated': 'गैलरी में {name} का नया संस्करण है।',
+  'studio.publish.noPicture':
+    'तस्वीर नहीं ली जा सकी। सीन को चलने दें, फिर कोशिश करें।',
+  'studio.publish.offline':
+    'प्रकाशित करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
+  'studio.publish.rateLimited':
+    'एक घंटे में यह बहुत ज़्यादा प्रकाशन है। बाद में कोशिश करें।',
+  'studio.publish.signedOut': 'अपना सीन प्रकाशित करने के लिए साइन इन करें।',
+  'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
+  'studio.publish.outdated':
+    'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
 
   'studio.notice.copied':
     'कॉपी हो गया। इसे अपने AI में चिपकाएँ और आखिर में अपना विचार लिखें।',
@@ -119,7 +162,6 @@ const studio = {
   'studio.hears.picture.name': 'चित्र',
   'studio.hears.picture.body': 'आपकी अपनी तस्वीर, हर हिस्से का अपना मास्क',
 
-  'studio.watching': '{folder} पर नज़र',
   'studio.status.live': 'आपके पिछले सेव से अपडेट हुआ',
   'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
   'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',

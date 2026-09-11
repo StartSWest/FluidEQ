@@ -200,7 +200,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Multimedia en línea',
   'tabs.mediaShort': 'Multimedia',
   'tabs.karaoke': 'Karaoke',
-  'tabs.community': 'Comunidad',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'Desplazar pestañas atrás',
   'tabs.scrollForward': 'Desplazar pestañas adelante',
   'notice.apoReconfigured':

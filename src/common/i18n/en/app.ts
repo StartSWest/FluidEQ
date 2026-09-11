@@ -195,7 +195,7 @@ const app = {
   // qualifies, so a narrow window says less rather than saying it badly.
   'tabs.mediaShort': 'Media',
   'tabs.karaoke': 'Karaoke',
-  'tabs.community': 'Community',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'Scroll tabs back',
   'tabs.scrollForward': 'Scroll tabs forward',
   'notice.apoReconfigured':

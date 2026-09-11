@@ -821,12 +821,12 @@ const AppContent = () => {
           type="button"
           role="tab"
           aria-selected={isCommunityTab}
-          aria-label={t('tabs.community')}
+          aria-label={t('tabs.plus')}
           className={`workspace-tab${isCommunityTab ? ' is-active' : ''}`}
           onClick={() => selectTopWorkspaceTab('community')}
         >
-          <MenuIcon name="community" />
-          <span className="workspace-tab__label">{t('tabs.community')}</span>
+          <MenuIcon name="plusTab" />
+          <span className="workspace-tab__label">{t('tabs.plus')}</span>
           {unreadMentions > 0 && !isCommunityTab && (
             <span
               className="workspace-tab__badge"
@@ -2615,7 +2615,10 @@ const AppContent = () => {
                 key={activeWorkspaceTab}
                 className="workspace-tab-panel workspace-tab-panel--community"
               >
-                <CommunityPanel onSignIn={() => setAccountDialogPage('home')} />
+                <CommunityPanel
+                  onSignIn={() => setAccountDialogPage('home')}
+                  onShowGraph={() => selectTopWorkspaceTab('eq')}
+                />
               </div>
             )}
             {/* Dimmed with the rest of the group, and still readable.

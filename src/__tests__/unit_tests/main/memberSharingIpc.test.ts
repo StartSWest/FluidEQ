@@ -112,7 +112,7 @@ const setup = () => {
       subscribe: () => () => undefined,
     } as never,
     store,
-    linkedFolder: () => folder,
+    activeFolder: () => folder,
     announce: () => {
       announced += 1;
     },

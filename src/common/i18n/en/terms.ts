@@ -102,6 +102,17 @@ const terms = {
     'When a member’s scene plays, to show its likes, and when you press the heart or take a like back',
   'terms.sent.sceneLike.who':
     'Nothing about what is on screen is kept. Members see how many likes a scene has, never who gave them.',
+  'terms.sent.scenePublish.what':
+    'A scene you publish, its picture, the category you chose, your display name and your account id',
+  'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
+  'terms.sent.scenePublish.who':
+    'Every Plus member, in Visualizers, until you unpublish it: the scene, its picture, its category and your display name. The maker keeps the record that you published it, as for an export.',
+  'terms.sent.gallery.what':
+    'In Visualizers: what you search for, which scenes you open and add, and any scene you report with its reason',
+  'terms.sent.gallery.when':
+    'When you browse Visualizers, press Add, or send a report',
+  'terms.sent.gallery.who':
+    'Searches and what you open are not kept. Members see how many added a scene, never who. Reports: only the maker.',
 
   'terms.never.title': 'What never leaves your computer',
   'terms.never.p1':
@@ -110,7 +121,7 @@ const terms = {
   'terms.never.p3':
     'Your audio devices and their names, and the other apps on your computer.',
   'terms.never.p4':
-    'The scenes you make and your Studio folders, unless you export a scene.',
+    'The scenes you make and your Studio folders, unless you export or publish a scene.',
 
   'terms.protect.title': 'How it is protected',
   'terms.protect.p1': 'Every request is encrypted on its way.',
@@ -148,7 +159,7 @@ const terms = {
   'terms.keep.p4':
     'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, messages, leaderboard days and membership record.',
   'terms.keep.p5':
-    'Scenes: the record of what you exported, the likes you gave and the likes your scenes received are deleted with your account. A scene blocked for breaking these terms keeps only its fingerprint, without your name, so it stays blocked.',
+    'Scenes: a scene you publish stays in Visualizers until you unpublish it, which removes it and its picture at once. What you published, the record of what you exported, the scenes you added, the likes you gave and the likes your scenes received are deleted with your account. A scene blocked for breaking these terms keeps only its fingerprint, without your name, so it stays blocked.',
 
   'terms.looks.title': 'The Plus looks',
   'terms.looks.p1':
@@ -173,6 +184,10 @@ const terms = {
     'A scene another member shares is their work, licensed to you for personal use while you are a member. You can play it, like it, and pass the file on unchanged to other Plus members. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
   'terms.scenes.p8':
     'A file you have sent stays with whoever has it. If you want a scene to stop opening everywhere, ask the maker, who can block it the same way as a scene that breaks the rules.',
+  'terms.scenes.p9':
+    'If you publish a scene to Visualizers, you also let FluidEQ keep it there and show it — with its picture, its category and your display name — to Plus members until you unpublish it. You can unpublish it at any time, with or without Plus. Members who already added it keep their copy, under the same terms as a file you sent them.',
+  'terms.scenes.p10':
+    'Publishing is optional and separate from exporting a file. Any member can report a published scene; only the maker reads reports, and can take a scene down that breaks these terms or someone else’s rights.',
 
   'terms.changes.title': 'Changes, and the fine print',
   'terms.changes.p1':

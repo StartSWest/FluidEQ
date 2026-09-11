@@ -21,10 +21,55 @@ const studio = {
   'studio.action.createStarter': 'スタータープロジェクトを作成…',
   'studio.action.linkFolder': 'フォルダーをリンク…',
   'studio.action.showFolder': 'フォルダーを開く',
-  'studio.action.unlink': 'リンクを解除',
   'studio.action.addToLooks': 'マイ表示に追加',
   'studio.action.export': 'エクスポート…',
   'studio.action.import': 'シーンファイルを開く…',
+  'studio.action.publish': '公開…',
+
+  'studio.project.label': 'プロジェクト',
+  'studio.project.group': 'あなたのプロジェクト',
+  'studio.project.none': 'プロジェクトを選択',
+  'studio.project.new': '新しいプロジェクト…',
+  'studio.project.add': 'フォルダーを追加…',
+  'studio.project.forget': '一覧から外す',
+  'studio.project.forgetHint':
+    'フォルダーとファイルはコンピューターにそのまま残ります。',
+
+  'studio.publish.title': '{name} を公開',
+  'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
+  'studio.publish.version': 'バージョン {version}',
+  'studio.publish.pictureAlt': 'ギャラリーでの {name} の表示',
+  'studio.publish.pictureHint':
+    'たった今ステージから撮影しました。ギャラリーではこのように表示されます。',
+  'studio.publish.category': 'カテゴリ',
+  'studio.publish.pickCategory': '先にカテゴリを選んでください',
+  'studio.publish.point1':
+    'すべての Plus メンバーがビジュアライザーで見つけ、マイ表示に追加して、いいねできます。',
+  'studio.publish.point2': 'いいねのたびにランキングのポイントが入ります。',
+  'studio.publish.point3':
+    'いつでも公開を停止できます。追加済みのメンバーは自分のコピーを使い続けられます。',
+  'studio.publish.point3Update':
+    '追加済みのメンバーには「更新」が表示され、押すまでは以前のバージョンのままです。',
+  'studio.publish.read': '利用規約を読む',
+  'studio.publish.cancel': 'キャンセル',
+  'studio.publish.go': '公開',
+  'studio.publish.goUpdate': '更新を公開',
+  'studio.publish.agree': '同意して公開',
+  'studio.publish.running': '公開中…',
+  'studio.publish.done': '{name} をギャラリーに公開しました。',
+  'studio.publish.updated':
+    'ギャラリーの {name} を新しいバージョンにしました。',
+  'studio.publish.noPicture':
+    '画像を撮影できませんでした。シーンを再生してから、もう一度お試しください。',
+  'studio.publish.offline':
+    '公開には接続が必要です。オンラインでもう一度お試しください。',
+  'studio.publish.rateLimited':
+    '1 時間の公開回数が多すぎます。しばらくしてからお試しください。',
+  'studio.publish.signedOut': 'シーンを公開するにはサインインしてください。',
+  'studio.publish.failed':
+    'シーンを公開できませんでした。もう一度お試しください。',
+  'studio.publish.outdated':
+    'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
 
   'studio.notice.copied':
     'コピーしました。AI に貼り付けて、最後にアイデアを書いてください。',
@@ -120,7 +165,6 @@ const studio = {
   'studio.hears.picture.name': '画像',
   'studio.hears.picture.body': '自分の画像。パーツごとにマスク付き',
 
-  'studio.watching': '{folder} を監視中',
   'studio.status.live': '最後の保存で更新されました',
   'studio.status.problem': '最後に動いたバージョンを再生中です',
   'studio.status.waiting': '再生できるバージョンを待っています',

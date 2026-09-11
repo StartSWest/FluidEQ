@@ -1,0 +1,128 @@
+const plus = {
+  'plus.visualizers.title': 'विज़ुअलाइज़र',
+  'plus.visualizers.description':
+    'Plus सदस्यों के बनाए सीन — अपने रूपों में जोड़ें और पसंद करें',
+  'plus.visualizers.blurb': 'सदस्यों के सीन',
+
+  'plus.gate.title': 'सदस्यों के बनाए सारे विज़ुअलाइज़र, एक ही जगह',
+  'plus.gate.point1':
+    'Plus सदस्यों का प्रकाशित कोई भी सीन चलाएँ और जो अच्छे लगें उन्हें पसंद करें',
+  'plus.gate.point2': 'स्टूडियो में अपने AI के साथ अपने सीन बनाएँ',
+  'plus.gate.point3':
+    'लीडरबोर्ड पर ऊपर चढ़ें: आपके सीन को मिली हर पसंद पॉइंट देती है',
+  'plus.gate.cta': 'Plus देखें',
+
+  'plus.gallery.search': 'सीन या बनाने वाले खोजें',
+  'plus.gallery.sort': 'क्रम',
+  'plus.gallery.sort.liked': 'सबसे ज़्यादा पसंद',
+  'plus.gallery.sort.week': 'इस हफ़्ते',
+  'plus.gallery.sort.new': 'सबसे नए',
+  'plus.gallery.categories': 'श्रेणियाँ',
+  'plus.gallery.all': 'सभी',
+  'plus.gallery.mine': 'आपके सीन',
+  'plus.gallery.more': 'और दिखाएँ',
+  'plus.gallery.loading': 'सीन लोड हो रहे हैं…',
+  'plus.gallery.empty.title': 'यहाँ अभी कोई सीन नहीं है',
+  'plus.gallery.empty.body':
+    'स्टूडियो में एक बनाएँ और प्रकाशित करें। वह पहला होगा।',
+  'plus.gallery.empty.search': '“{query}” से कुछ नहीं मिला।',
+  'plus.gallery.empty.category': 'इस श्रेणी में अभी कोई सीन नहीं है।',
+  'plus.gallery.empty.openStudio': 'स्टूडियो खोलें',
+  'plus.gallery.error.offline':
+    'गैलरी के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
+  'plus.gallery.error.signedOut': 'गैलरी देखने के लिए फिर से साइन इन करें।',
+  'plus.gallery.error.server': 'गैलरी लोड नहीं हो सकी। फिर कोशिश करें।',
+  'plus.gallery.retry': 'फिर कोशिश करें',
+
+  'plus.category.nature': 'प्रकृति',
+  'plus.category.cities': 'शहर',
+  'plus.category.space': 'अंतरिक्ष',
+  'plus.category.water': 'पानी',
+  'plus.category.fire-light': 'आग और रोशनी',
+  'plus.category.retro-games': 'रेट्रो गेम',
+  'plus.category.animals': 'जानवर',
+  'plus.category.abstract': 'अमूर्त',
+  'plus.category.worlds-3d': '3D दुनिया',
+
+  'plus.card.by': '{name} का',
+  'plus.card.byYou': 'आपका',
+  'plus.card.anonymous': 'एक Plus सदस्य',
+  'plus.card.adds': '{count} ने जोड़ा',
+  'plus.card.add': 'जोड़ें',
+  'plus.card.added': 'जोड़ा गया',
+  'plus.card.update': 'अपडेट करें',
+  'plus.card.open': '{name} खोलें',
+
+  'plus.like.label': '{name} को पसंद करें ({count} पसंद)',
+  'plus.like.own': 'आपके सीन को {count} पसंद मिली हैं',
+  'plus.like.offline':
+    'पसंद करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
+
+  'plus.add.done': '{name} आपके रूपों में है।',
+  'plus.add.unavailable': '{name} अभी डाउनलोड नहीं हो सका। फिर कोशिश करें।',
+  'plus.add.blocked': '{name} हटा दिया गया है।',
+  'plus.add.changed':
+    '{name} FluidEQ की जाँच में पास नहीं हुआ, इसलिए जोड़ा नहीं गया।',
+  'plus.add.failed': '{name} जोड़ा नहीं जा सका। फिर कोशिश करें।',
+
+  'plus.scene.back': 'वापस',
+  'plus.scene.loading': 'सीन डाउनलोड हो रहा है…',
+  'plus.scene.playing': 'आपके संगीत पर लाइव',
+  'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
+  'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
+  'plus.scene.changed':
+    'यह सीन FluidEQ की जाँच में पास नहीं हुआ, इसलिए नहीं चलेगा।',
+  'plus.scene.heavy': 'यह सीन इस कंप्यूटर के लिए बहुत भारी है।',
+  'plus.scene.broken': 'यह सीन इस कंप्यूटर पर नहीं चलता।',
+  'plus.scene.cannotDraw': 'यह कंप्यूटर अभी सीन नहीं बना सकता।',
+  'plus.scene.likes': 'पसंद',
+  'plus.scene.week': 'इस हफ़्ते',
+  'plus.scene.adds': 'जोड़े गए',
+  'plus.scene.add': 'मेरे रूपों में जोड़ें',
+  'plus.scene.update': 'मेरी कॉपी अपडेट करें',
+  'plus.scene.play': 'ग्राफ़ पर चलाएँ',
+  'plus.scene.inLooks': 'आपके रूपों में, “सदस्यों के बनाए” के अंदर',
+  'plus.scene.inLooksOwn': 'आपके रूपों में, “आपके बनाए” के अंदर',
+  'plus.scene.fine':
+    'जोड़े गए सीन आपके रूपों से तब तक चलते हैं जब तक आपके पास Plus है। कोई उन्हें बेच नहीं सकता।',
+  'plus.scene.report': 'इस सीन की रिपोर्ट करें',
+  'plus.scene.reported': 'रिपोर्ट हो गई। धन्यवाद।',
+  'plus.scene.moreBy': '{name} के और सीन',
+  'plus.scene.moreByYou': 'आपके और सीन',
+
+  'plus.maker.you': 'आप',
+  'plus.maker.scenes': 'सीन',
+  'plus.maker.empty': 'अभी कुछ प्रकाशित नहीं है।',
+
+  'plus.mine.title': 'आपके सीन',
+  'plus.mine.hint':
+    'कोई सीन प्रकाशित या अपडेट करने के लिए, स्टूडियो में उसका प्रोजेक्ट खोलें और प्रकाशित करें दबाएँ।',
+  'plus.mine.openStudio': 'स्टूडियो खोलें',
+  'plus.mine.empty': 'आपने अभी तक कुछ प्रकाशित नहीं किया है।',
+  'plus.mine.published': '{date} को प्रकाशित',
+  'plus.mine.updated': '{date} को अपडेट',
+  'plus.mine.version': 'संस्करण {version}',
+  'plus.mine.blocked': 'FluidEQ ने हटाया',
+  'plus.mine.unpublish': 'प्रकाशन हटाएँ',
+  'plus.mine.confirm':
+    'गैलरी से हटाएँ? जिन सदस्यों ने इसे जोड़ा है, उनकी कॉपी उनके पास रहेगी।',
+  'plus.mine.confirmYes': 'प्रकाशन हटाएँ',
+  'plus.mine.confirmNo': 'रहने दें',
+  'plus.mine.unpublished': '{name} अब गैलरी में नहीं है।',
+  'plus.mine.failed': 'प्रकाशन हटाया नहीं जा सका। फिर कोशिश करें।',
+
+  'plus.report.title': '{name} की रिपोर्ट करें',
+  'plus.report.lead':
+    'इसमें क्या गलत है? रिपोर्ट सिर्फ़ FluidEQ के निर्माता पढ़ते हैं।',
+  'plus.report.reason.rights':
+    'इसमें मेरा या किसी और का काम बिना अनुमति इस्तेमाल हुआ है',
+  'plus.report.reason.flashing': 'यह चमकता है या देखने में मुश्किल है',
+  'plus.report.reason.offensive': 'यह आपत्तिजनक है',
+  'plus.report.reason.broken': 'यह चलता नहीं',
+  'plus.report.send': 'रिपोर्ट भेजें',
+  'plus.report.sending': 'भेजी जा रही है…',
+  'plus.report.cancel': 'रद्द करें',
+  'plus.report.failed': 'रिपोर्ट भेजी नहीं जा सकी। फिर कोशिश करें।',
+} as const;
+
+export default plus;

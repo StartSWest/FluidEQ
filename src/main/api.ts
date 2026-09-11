@@ -43,6 +43,21 @@ import type {
   TStarterOutcome,
 } from './ipc/memberScenes';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
+import type {
+  TGalleryAddOutcome,
+  TGalleryListOutcome,
+  TGalleryPreviewOutcome,
+} from './ipc/plusGallery';
+import type {
+  TMineOutcome,
+  TPublishOutcome,
+  TUnpublishOutcome,
+} from './ipc/plusPublishing';
+import type {
+  IGalleryQuery,
+  TPlusCategory,
+  TReportReason,
+} from '../common/plusGallery';
 import type { ILikeStatus } from './memberScenes/social';
 import type { TCommunityResult } from './ipc/community';
 import type {
@@ -817,8 +832,11 @@ const closeStudio = () => ipcRenderer.invoke('studio-close') as Promise<void>;
 const linkStudioFolder = () =>
   ipcRenderer.invoke('studio-link-folder') as Promise<IStudioState>;
 
-const unlinkStudioFolder = () =>
-  ipcRenderer.invoke('studio-unlink') as Promise<IStudioState>;
+const selectStudioProject = (id: string) =>
+  ipcRenderer.invoke('studio-select-project', id) as Promise<IStudioState>;
+
+const forgetStudioProject = (id: string) =>
+  ipcRenderer.invoke('studio-forget-project', id) as Promise<IStudioState>;
 
 const createStudioStarter = () =>
   ipcRenderer.invoke('studio-create-starter') as Promise<TStarterOutcome>;
@@ -857,6 +875,78 @@ const onStudioChanged = (listener: (state: IStudioState) => void) => {
     ipcRenderer.removeListener('studio-changed', wrapped);
   };
 };
+
+/**
+ * Publishes the Studio's open project, read from disk in the main process;
+ * the picture is the only thing sent from here, and it must be a small WebP.
+ */
+const publishStudioScene = (
+  termsVersion: number,
+  category: TPlusCategory,
+  picture: Uint8Array,
+) =>
+  ipcRenderer.invoke(
+    'studio-publish',
+    termsVersion,
+    category,
+    picture,
+  ) as Promise<TPublishOutcome>;
+
+// The Plus gallery. Scenes are named by author and scene id, never by a path.
+const listGallery = (query: IGalleryQuery) =>
+  ipcRenderer.invoke(
+    'plus-gallery-list',
+    query,
+  ) as Promise<TGalleryListOutcome>;
+
+const galleryPicture = (authorId: string, sceneId: string, version: number) =>
+  ipcRenderer.invoke(
+    'plus-gallery-picture',
+    authorId,
+    sceneId,
+    version,
+  ) as Promise<string | undefined>;
+
+const previewGalleryScene = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+) =>
+  ipcRenderer.invoke(
+    'plus-gallery-preview',
+    authorId,
+    sceneId,
+    version,
+  ) as Promise<TGalleryPreviewOutcome>;
+
+const addGalleryScene = (authorId: string, sceneId: string, version: number) =>
+  ipcRenderer.invoke(
+    'plus-gallery-add',
+    authorId,
+    sceneId,
+    version,
+  ) as Promise<TGalleryAddOutcome>;
+
+const reportGalleryScene = (
+  authorId: string,
+  sceneId: string,
+  reason: TReportReason,
+) =>
+  ipcRenderer.invoke(
+    'plus-gallery-report',
+    authorId,
+    sceneId,
+    reason,
+  ) as Promise<boolean>;
+
+const myPublishedScenes = () =>
+  ipcRenderer.invoke('plus-gallery-mine') as Promise<TMineOutcome>;
+
+const unpublishScene = (sceneId: string) =>
+  ipcRenderer.invoke(
+    'plus-gallery-unpublish',
+    sceneId,
+  ) as Promise<TUnpublishOutcome>;
 
 // The community. Every call answers a result rather than throwing, so the one
 // word the server used for a refusal survives the bridge.
@@ -1079,7 +1169,16 @@ export default {
     openStudio,
     closeStudio,
     linkStudioFolder,
-    unlinkStudioFolder,
+    selectStudioProject,
+    forgetStudioProject,
+    publishStudioScene,
+    listGallery,
+    galleryPicture,
+    previewGalleryScene,
+    addGalleryScene,
+    reportGalleryScene,
+    myPublishedScenes,
+    unpublishScene,
     createStudioStarter,
     addStudioSceneToLooks,
     showStudioFolder,

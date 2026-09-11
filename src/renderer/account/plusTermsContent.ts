@@ -114,6 +114,20 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     when: 'terms.sent.sceneLike.when',
     who: 'terms.sent.sceneLike.who',
   },
+  {
+    id: 'scene-publish',
+    glyph: 'upload',
+    what: 'terms.sent.scenePublish.what',
+    when: 'terms.sent.scenePublish.when',
+    who: 'terms.sent.scenePublish.who',
+  },
+  {
+    id: 'gallery',
+    glyph: 'plus',
+    what: 'terms.sent.gallery.what',
+    when: 'terms.sent.gallery.when',
+    who: 'terms.sent.gallery.who',
+  },
 ];
 
 export interface ITermsSection {
@@ -232,6 +246,8 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p6',
       'terms.scenes.p7',
       'terms.scenes.p8',
+      'terms.scenes.p9',
+      'terms.scenes.p10',
     ],
   },
   {

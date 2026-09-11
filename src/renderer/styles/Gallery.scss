@@ -1,0 +1,1338 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Visualizers, in the Plus tab: the gallery of scenes members publish, a
+// scene's page, a maker's page and the member's own published scenes.
+//
+// The gallery is pictures first. A card is its picture — 16:9, the shape the
+// graph is — with the name, the maker and the numbers under it in one tight
+// block, so a page of them reads as a wall of scenes rather than a table of
+// rows. The pink is the heart's, the same one the graph's option bar and the
+// leaderboard use for a like.
+
+// ---------------------------------------------------------------- pages
+
+.gallery-visualizers {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-s;
+  min-height: 0;
+  padding: $spacing-m 4px $spacing-m;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container: plus / inline-size;
+  @include slim-scrollbar;
+}
+
+.gallery-page {
+  display: grid;
+  align-content: start;
+  gap: $spacing-m;
+  min-width: 0;
+}
+
+.gallery-notice {
+  @include animate(fade-in, $motion-fast);
+}
+
+.gallery-fine {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.gallery-section-title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.gallery-pagebar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.gallery-pagebar__title {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  @include truncate;
+}
+
+.gallery-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 6px;
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: $border-field-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// ---------------------------------------------------------------- toolbar
+
+.gallery-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.gallery-search {
+  display: flex;
+  flex: 1 1 200px;
+  align-items: center;
+  gap: 7px;
+  max-width: 320px;
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  @include field-static;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: $text-faint;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 0;
+    color: $text-primary;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: $text-body;
+    outline: none;
+
+    &::placeholder {
+      color: $text-dim;
+    }
+
+    &::-webkit-search-cancel-button {
+      filter: grayscale(1);
+      cursor: pointer;
+    }
+  }
+}
+
+.gallery-sorts {
+  flex: 0 1 auto;
+}
+
+.gallery-toolbar__mine {
+  margin-inline-start: auto;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Categories, and the category a scene is published under: pills, because
+// they are chosen from a fixed list and never typed.
+.gallery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gallery-chip {
+  padding: 4px 11px;
+  color: $text-faint;
+  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font: inherit;
+  font-size: $text-small;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-default 48%, transparent);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-checked='true'] {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+// ---------------------------------------------------------------- grid
+
+// As many columns as fit at 196px or more. The cards size the rows; a lone
+// card in the last row keeps its width instead of stretching across it.
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: $spacing-s;
+  transition: opacity $motion-fast $ease-out;
+
+  &.is-refreshing {
+    opacity: 0.72;
+  }
+}
+
+.gallery-grid--row {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  @container plus (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.gallery-card {
+  @include animate(rise-in, $motion-base, $ease-out);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+  transition:
+    border-color $motion-fast $ease-out,
+    transform $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 42%, transparent);
+    box-shadow: 0 10px 28px rgba($black, 0.32);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+.gallery-card__thumb {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: -2px;
+  }
+}
+
+.gallery-card__tag {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  padding: 2px 8px;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: $radius-pill;
+  background: rgba($black, 0.55);
+  font-size: $text-micro;
+  backdrop-filter: blur(6px);
+}
+
+.gallery-card__body {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px 10px;
+}
+
+.gallery-card__name,
+.gallery-card__by {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  @include truncate;
+
+  &:focus-visible {
+    border-radius: 3px;
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.gallery-card__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  &:hover {
+    color: $secondary-light;
+  }
+}
+
+.gallery-card__by {
+  color: $text-faint;
+  font-size: $text-small;
+
+  &:hover {
+    color: $text-primary;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.gallery-card__by--plain {
+  cursor: default;
+
+  &:hover {
+    color: $text-faint;
+    text-decoration: none;
+  }
+}
+
+.gallery-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.gallery-card__adds {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  @include truncate;
+}
+
+.gallery-card__add {
+  flex: 0 0 auto;
+
+  &.is-done {
+    color: $analogous-2;
+    border-color: color-mix(in srgb, $analogous-2 38%, transparent);
+    background: color-mix(in srgb, $analogous-2 8%, transparent);
+    opacity: 1;
+  }
+}
+
+.gallery-card--skeleton {
+  animation: none;
+  pointer-events: none;
+}
+
+.gallery-card__ghost-picture,
+.gallery-card__ghost-line {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 4%, transparent) 0%,
+    color-mix(in srgb, $white 9%, transparent) 50%,
+    color-mix(in srgb, $white 4%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-card__ghost-picture {
+  aspect-ratio: 16 / 9;
+}
+
+.gallery-card__ghost-line {
+  height: 9px;
+  margin: 10px 10px 0;
+  border-radius: $radius-pill;
+
+  &:last-child {
+    margin-bottom: 14px;
+  }
+}
+
+.gallery-card__ghost-line--short {
+  width: 45%;
+}
+
+@keyframes gallery-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// A scene's picture over its own colours. The colours show until the picture
+// arrives, and stay for a scene whose picture never does, so no card is ever
+// a grey hole.
+.gallery-picture {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: $surface-plot;
+}
+
+.gallery-picture__image,
+.gallery-art {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-picture__image {
+  object-fit: cover;
+  @include animate(fade-in, $motion-base);
+}
+
+// ---------------------------------------------------------------- like
+
+.gallery-like {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 9px;
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: color-mix(in srgb, $analogous-1 55%, transparent);
+  }
+
+  &.is-on {
+    color: $white;
+    border-color: color-mix(in srgb, $analogous-1 70%, transparent);
+    background: color-mix(in srgb, $analogous-1 16%, transparent);
+
+    svg {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+
+  &.is-count {
+    color: $text-faint;
+    cursor: default;
+
+    &:hover {
+      border-color: $border-field;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.gallery-like--large {
+  min-height: $control-height-sm;
+  padding: 4px 12px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// ---------------------------------------------------------------- lists
+
+.gallery-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding: 8px 10px 8px 12px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 9%, transparent);
+  font-size: $text-small;
+
+  .button svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.gallery-empty {
+  margin: $spacing-l auto;
+  max-width: 380px;
+
+  .button {
+    margin-top: $spacing-s;
+  }
+
+  .community__empty-mark svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.gallery-more {
+  display: flex;
+  justify-content: center;
+  padding-top: $spacing-xs;
+}
+
+// ---------------------------------------------------------------- scene
+
+// The stage takes the width; who made it and what to do with it stand in a
+// column beside it, and fold under it when the pane is narrow.
+.gallery-scene {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  align-items: start;
+
+  @container plus (max-width: 720px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.gallery-scene__main {
+  min-width: 0;
+}
+
+.gallery-preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $surface-plot;
+  box-shadow: 0 16px 40px rgba($black, 0.38);
+}
+
+.gallery-preview__frame,
+.gallery-preview__still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-preview__canvas {
+  display: block;
+}
+
+.gallery-preview__tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: $radius-pill;
+  background: rgba($black, 0.55);
+  font-size: $text-micro;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.gallery-preview__live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $analogous-2;
+  box-shadow: 0 0 8px $analogous-2;
+  animation: gallery-live 2.4s $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes gallery-live {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.gallery-preview__veil {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-s;
+  padding: $spacing-m;
+  color: $text-primary;
+  background: color-mix(in srgb, $surface-plot 58%, transparent);
+  font-size: $text-body;
+  text-align: center;
+  backdrop-filter: blur(3px);
+}
+
+.gallery-preview__veil--failed {
+  color: $text-muted;
+  background: color-mix(in srgb, $surface-plot 78%, transparent);
+}
+
+.gallery-preview__spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  animation: gallery-spin 0.9s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 3s;
+  }
+}
+
+@keyframes gallery-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gallery-scene__info {
+  display: grid;
+  align-content: start;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.gallery-scene__name {
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.gallery-scene__byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.gallery-scene__maker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 10px 2px 2px;
+  color: $text-primary;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+  transition: $transition-control;
+
+  .community__avatar {
+    width: 26px;
+    height: 26px;
+    font-size: $text-micro;
+  }
+
+  span:last-child {
+    @include truncate;
+  }
+
+  &:hover {
+    border-color: $border-field;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.gallery-pill {
+  padding: 2px 9px;
+  color: $text-faint;
+  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font-size: $text-micro;
+}
+
+// Three numbers side by side: label small over value large, the way a
+// scoreboard reads.
+.gallery-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+
+  div {
+    display: grid;
+    gap: 1px;
+    padding: 8px 10px;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-s;
+    background: $block-lift;
+  }
+
+  dt {
+    color: $text-dim;
+    font-size: $text-micro;
+    @include truncate;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.gallery-scene__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+
+  .button {
+    flex: 1 1 auto;
+  }
+}
+
+.gallery-scene__have {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: $analogous-2;
+  font-size: $text-small;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.gallery-scene__report {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  padding: 2px 0;
+  color: $text-faint;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    color: $analogous-2;
+  }
+
+  &:focus-visible {
+    border-radius: 3px;
+    outline: 2px solid $secondary-light;
+    outline-offset: 2px;
+  }
+}
+
+.gallery-scene__more {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: $spacing-s;
+  padding-top: $spacing-s;
+  border-top: 1px solid $border-subtle;
+}
+
+// ---------------------------------------------------------------- maker
+
+.gallery-maker__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      120% 150% at 0% 0%,
+      hsl(var(--identity-hue, 170deg) 70% 45% / 18%),
+      transparent 58%
+    ),
+    $block-lift;
+}
+
+.gallery-maker__who {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 2px;
+  min-width: 0;
+
+  .community__handle {
+    @include truncate;
+  }
+}
+
+.gallery-maker__name {
+  margin: 0;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  @include truncate;
+}
+
+.gallery-maker__figures {
+  flex: 1 1 280px;
+  max-width: 360px;
+
+  div {
+    background: color-mix(in srgb, $black 22%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------- yours
+
+.gallery-mine__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+
+  .gallery-fine {
+    flex: 1 1 260px;
+  }
+
+  .button svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.gallery-rows {
+  display: grid;
+  gap: $spacing-s;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+
+  @container plus (max-width: 640px) {
+    grid-template-columns: 96px minmax(0, 1fr);
+
+    .gallery-row__numbers,
+    .gallery-row__actions {
+      grid-column: 1 / -1;
+    }
+
+    .gallery-row__actions {
+      justify-content: flex-start;
+    }
+  }
+}
+
+.gallery-row.is-blocked {
+  border-color: color-mix(in srgb, $red 38%, transparent);
+}
+
+.gallery-row--skeleton {
+  height: 84px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent) 0%,
+    color-mix(in srgb, $white 7%, transparent) 50%,
+    color-mix(in srgb, $white 3%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-row__picture {
+  border-radius: $radius-xs;
+}
+
+.gallery-row__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gallery-row__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.gallery-row__meta {
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+.gallery-row__blocked {
+  justify-self: start;
+  padding: 1px 8px;
+  color: $red;
+  border: 1px solid color-mix(in srgb, $red 45%, transparent);
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.gallery-row__numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(64px, auto));
+  gap: $spacing-s;
+  margin: 0;
+
+  div {
+    display: grid;
+  }
+
+  dt {
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.gallery-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+}
+
+.gallery-row__confirm {
+  flex: 1 1 100%;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: end;
+}
+
+.gallery-danger.button {
+  color: $white;
+  border-color: color-mix(in srgb, $red 70%, transparent);
+  background: color-mix(in srgb, $red 62%, $surface-base);
+  box-shadow: none;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, $red 78%, $surface-base);
+  }
+}
+
+// ---------------------------------------------------------------- gate
+
+.gallery-gate {
+  display: grid;
+  justify-items: center;
+  gap: $spacing-s;
+  max-width: 460px;
+  margin: $spacing-l auto;
+  padding: $spacing-l $spacing-m;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
+  border-radius: $radius-xl;
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 60%
+    ),
+    $block-lift;
+  box-shadow: 0 18px 48px rgba($black, 0.35);
+}
+
+.gallery-gate__mark {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  color: $surface-base;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $secondary-light, $secondary-default);
+  box-shadow: 0 0 34px color-mix(in srgb, $secondary-default 32%, transparent);
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.gallery-gate__eyebrow {
+  color: $secondary-light;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.gallery-gate__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  text-wrap: balance;
+}
+
+.gallery-gate__points {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 $spacing-xs;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+
+  li {
+    position: relative;
+    padding-inline-start: 22px;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.5;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      inset-inline-start: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: color-mix(in srgb, $secondary-default 22%, transparent);
+      box-shadow: inset 0 0 0 4px
+        color-mix(in srgb, $secondary-default 12%, transparent);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      inset-inline-start: 5px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: $secondary-light;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- dialogs
+
+.gallery-dialog-backdrop {
+  @include backdrop(4100);
+}
+
+.gallery-dialog {
+  @include surface(480px, 640px);
+  gap: $spacing-m;
+  padding: $spacing-l;
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.gallery-dialog--wide {
+  width: min(540px, 100%);
+}
+
+.gallery-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.gallery-dialog__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 36%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.gallery-dialog__mark--warn {
+  color: $amber;
+  border-color: color-mix(in srgb, $amber 40%, transparent);
+  background: color-mix(in srgb, $amber 10%, transparent);
+}
+
+.gallery-dialog__title {
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.gallery-dialog__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.55;
+}
+
+.gallery-dialog__label {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.gallery-dialog__error {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+}
+
+.gallery-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+}
+
+.gallery-dialog__aside {
+  margin-inline-end: auto;
+}
+
+.gallery-reasons {
+  display: grid;
+  gap: 6px;
+}
+
+.gallery-reason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  color: $text-primary;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $block-lift;
+  font-size: $text-body;
+  cursor: pointer;
+  transition: $transition-control;
+
+  input {
+    flex: 0 0 auto;
+    margin: 0;
+    accent-color: $secondary-default;
+  }
+
+  &:hover {
+    border-color: $border-field-hover;
+  }
+
+  &:has(input:checked) {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 9%, transparent);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+.gallery-points {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 12px 14px;
+  list-style: none;
+  @include section-surface;
+
+  li {
+    position: relative;
+    padding-inline-start: 18px;
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.55;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      inset-inline-start: 0;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: $secondary-default;
+      box-shadow: 0 0 8px
+        color-mix(in srgb, $secondary-default 60%, transparent);
+    }
+  }
+}
+
+// The Studio's publish dialog: the picture the gallery will show, beside what
+// it is.
+.studio-publish__scene {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px;
+  @include section-surface;
+
+  @media (max-width: 520px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.studio-publish__picture {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: $radius-xs;
+  box-shadow: 0 8px 22px rgba($black, 0.4);
+}
+
+.studio-publish__about {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    overflow-wrap: anywhere;
+  }
+}
+
+.studio-publish__hint {
+  margin-top: 4px;
+  color: $text-dim;
+  line-height: 1.45;
+}

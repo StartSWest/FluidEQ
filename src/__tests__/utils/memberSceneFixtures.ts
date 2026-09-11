@@ -67,12 +67,30 @@ export const memberPayload = ({
  * What `fetch` answers, as far as the code under test reads it. The test
  * environment has no `Response` of its own.
  */
-export const fakeResponse = (status: number, body: unknown): Response =>
-  ({
+export const fakeResponse = (status: number, body: unknown): Response => {
+  const bytes =
+    body instanceof Uint8Array
+      ? body
+      : new TextEncoder().encode(
+          typeof body === 'string' ? body : JSON.stringify(body),
+        );
+  return {
     ok: status >= 200 && status < 300,
     status,
+    headers: { get: () => null },
     json: async () => body,
-  }) as unknown as Response;
+    arrayBuffer: async () =>
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  } as unknown as Response;
+};
+
+/** A few bytes that are a WebP by their RIFF header, as a picture must be. */
+export const webpBytes = (size = 64): Uint8Array => {
+  const bytes = new Uint8Array(size);
+  bytes.set(new TextEncoder().encode('RIFF'), 0);
+  bytes.set(new TextEncoder().encode('WEBP'), 8);
+  return bytes;
+};
 
 export const signedEnvelope = (
   payload: string,

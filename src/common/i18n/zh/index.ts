@@ -35,6 +35,7 @@ import community from './community';
 import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
+import plus from './plus';
 
 const zh: Partial<Dictionary> = {
   ...karaoke,
@@ -54,6 +55,7 @@ const zh: Partial<Dictionary> = {
   ...leaderboard,
   ...terms,
   ...studio,
+  ...plus,
 };
 
 export default zh;

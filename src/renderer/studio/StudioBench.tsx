@@ -5,10 +5,14 @@ import type {
   TMemberSceneFile,
 } from 'common/memberScenes';
 import { resolveSceneName } from 'common/scenePacks';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { promptWithIdea } from './aiPrompt';
 import StudioMeters from './StudioMeters';
+import StudioProjects from './StudioProjects';
+import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
+import useStudioPublish from './useStudioPublish';
 import useStudioSharing from './useStudioSharing';
 import StudioStage, {
   type TStageDrawn,
@@ -18,8 +22,8 @@ import StudioStage, {
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
 import {
   addStudioSceneToLooks,
+  forgetStudioProject,
   showStudioFolder,
-  unlinkStudioFolder,
   type IStudioView,
 } from './studioStore';
 
@@ -31,13 +35,15 @@ const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
   artwork: 'studio.file.artwork',
 };
 
-type TAddNotice = 'added' | 'addFailed' | 'copied' | 'copyFailed' | undefined;
+type TAddNotice =
+  'added' | 'addFailed' | 'copied' | 'copyFailed' | 'starterExists' | undefined;
 
 const NOTICE_KEYS: Record<Exclude<TAddNotice, undefined>, TranslationKey> = {
   added: 'studio.notice.added',
   addFailed: 'studio.notice.addFailed',
   copied: 'studio.notice.copied',
   copyFailed: 'studio.notice.copyFailed',
+  starterExists: 'studio.notice.starterExists',
 };
 
 /** The first driver error line, which is the one worth reading. */
@@ -71,9 +77,10 @@ interface IStudioBenchProps {
 }
 
 /**
- * The Studio with a folder linked: the scene live on the stage, what it hears
+ * The Studio with a project open: the scene live on the stage, what it hears
  * beside it, and every way to test it — so the work, and the judging of it,
- * happen on one surface.
+ * happen on one surface. Which project is open is chosen at the top; only
+ * that one is watched and only it plays.
  */
 export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
@@ -98,9 +105,12 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }, []);
   const onExitFullscreen = useCallback(() => setSize('graph'), []);
 
-  const folderName = state.folder?.name ?? '';
+  const project = state.projects.find((entry) => entry.id === state.activeId);
+  const folderName = project?.folderName ?? '';
   const name = pack ? resolveSceneName(pack, locale) : folderName;
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
+  const publishing = useStudioPublish(view, playing, name);
+  const unfit = !pack || Boolean(problems) || trouble !== undefined;
 
   let status: TranslationKey = 'studio.status.waiting';
   if (pack && (problems || trouble?.kind === 'compile')) {
@@ -141,10 +151,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   return (
     <div className="studio-bench">
       <div className="studio-bench__top">
-        <span className="studio-project" title={state.folder?.path}>
-          <span className="studio-project__dot" aria-hidden="true" />
-          {t('studio.watching', { folder: folderName })}
-        </span>
+        <StudioProjects
+          state={state}
+          onStarterExists={() => setAddNotice('starterExists')}
+        />
         <span className="studio-bench__status">{t(status)}</span>
         <span className="studio-bench__top-actions">
           <button
@@ -163,22 +173,25 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           >
             {t('studio.action.showFolder')}
           </button>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={() => {
-              unlinkStudioFolder().catch(() => undefined);
-            }}
-          >
-            {t('studio.action.unlink')}
-          </button>
+          {project && (
+            <button
+              type="button"
+              className="button small subtle"
+              title={t('studio.project.forgetHint')}
+              onClick={() => {
+                forgetStudioProject(project.id).catch(() => undefined);
+              }}
+            >
+              {t('studio.project.forget')}
+            </button>
+          )}
         </span>
       </div>
 
       <div className={`studio-bench__grid studio-bench__grid--${size}`}>
         {pack && playing ? (
           <StudioStage
-            identity={state.folder?.path ?? ''}
+            identity={state.activeId ?? ''}
             pack={pack}
             serial={serial}
             signal={signal}
@@ -186,6 +199,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onTrouble={setTrouble}
             onDrawn={onDrawn}
             onExitFullscreen={onExitFullscreen}
+            stillRef={publishing.stillRef}
           />
         ) : (
           <div className="studio-stage__well studio-stage__well--empty">
@@ -299,6 +313,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </p>
       )}
 
+      {publishing.notice && (
+        <p
+          className={`studio-notice${publishing.notice.ok ? ' studio-notice--ok' : ''}`}
+          role="status"
+        >
+          {t(publishing.notice.key, publishing.notice.vars)}
+        </p>
+      )}
+
       <div className="studio-actions studio-actions--end">
         {addNotice && (
           <span
@@ -329,15 +352,25 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               sharing.startExport();
             }
           }}
-          disabled={!pack || Boolean(problems) || trouble !== undefined}
+          disabled={unfit}
         >
           {t('studio.action.export')}
         </button>
         <button
           type="button"
+          className={`button small subtle${publishing.capturing ? ' is-running' : ''}`}
+          aria-busy={publishing.capturing}
+          onClick={publishing.begin}
+          disabled={unfit}
+        >
+          <Glyph name="upload" />
+          {t('studio.action.publish')}
+        </button>
+        <button
+          type="button"
           className="button small"
           onClick={add}
-          disabled={!pack || Boolean(problems) || trouble !== undefined}
+          disabled={unfit}
         >
           {t('studio.action.addToLooks')}
         </button>
@@ -348,6 +381,17 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           running={sharing.exporting}
           onAgree={sharing.agreeAndExport}
           onCancel={sharing.cancelTerms}
+        />
+      )}
+
+      {publishing.draft && pack && (
+        <StudioPublishDialog
+          name={name}
+          version={pack.version}
+          draft={publishing.draft}
+          running={publishing.publishing}
+          onPublish={publishing.publish}
+          onCancel={publishing.cancel}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
@@ -25,6 +25,8 @@ import Composer from './Composer';
 import Glyph, { channelGlyph } from './Glyph';
 import LeaderboardView from './LeaderboardView';
 import MessageThread from './MessageThread';
+import { openPlusPlace, usePlusNavigation } from '../plus/plusNavigation';
+import VisualizersView from '../plus/VisualizersView';
 import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
@@ -33,16 +35,21 @@ import '../styles/Leaderboard.scss';
 interface ICommunityPanelProps {
   /** Opens the Account panel; sign-in lives there, not here. */
   onSignIn: () => void;
+  /** Shows the graph, where a look chosen in the Plus gallery plays. */
+  onShowGraph: () => void;
 }
 
 /**
- * The Community tab.
+ * The Plus tab: the community's channels, and every place Plus has — the
+ * Visualizers gallery of scenes members publish, the leaderboard and the
+ * Studio. It was called Community until it held all of Plus.
  *
  * A place you go and stay, which is why it is a tab and the Account is a
- * dialog. Channels down the left with a picture each, the conversation in the
- * middle, and at the bottom whatever stands between this person and posting —
- * see `Composer`. The rail ends with the person themself, because a chat
- * should say who you are in it before you say anything.
+ * dialog. Channels down the left with a picture each, then the places, the
+ * one open in the middle — for a channel, with whatever stands between this
+ * person and posting at the bottom, see `Composer`. The rail ends with the
+ * person themself, because a chat should say who you are in it before you
+ * say anything.
  *
  * Reading is free for anyone signed in; posting is for Plus. Neither rule is
  * decided here. The database decides, and this panel only shows the sentence
@@ -52,7 +59,10 @@ interface ICommunityPanelProps {
  * allows two hundred listeners at once, and a chat nobody is looking at does
  * not need one.
  */
-export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
+export default function CommunityPanel({
+  onSignIn,
+  onShowGraph,
+}: ICommunityPanelProps) {
   const { t } = useTranslation();
   const account = useAccount();
   const entitlement = useEntitlement();
@@ -60,8 +70,9 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
   // Which of the rail's places fills the main area: a channel's conversation,
-  // the leaderboard, or the Studio.
-  const [view, setView] = useState<'channel' | 'board' | 'studio'>('channel');
+  // the Visualizers gallery, the leaderboard or the Studio.
+  const { place: view } = usePlusNavigation();
+  const setView = openPlusPlace;
 
   useEffect(() => {
     if (!signedIn) {
@@ -183,11 +194,32 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
           })}
         </div>
 
-        {/* A place in the rail rather than a channel: it is read, not
-            written, and it belongs with the people it ranks. */}
+        {/* Places in the rail rather than channels: they are gone to, not
+            followed. The gallery of members' scenes first, under a rule of
+            its own that parts the places from the conversations. */}
         <button
           type="button"
-          className={`community__channel community__channel--board${view === 'board' ? ' is-active' : ''}`}
+          className={`community__channel community__channel--places${view === 'visualizers' ? ' is-active' : ''}`}
+          aria-current={view === 'visualizers' ? 'true' : undefined}
+          onClick={() => setView('visualizers')}
+        >
+          <span className="community__channel-mark">
+            <Glyph name="looks" />
+          </span>
+          <span className="community__channel-text">
+            <span className="community__channel-name">
+              {t('plus.visualizers.title')}
+            </span>
+            <span className="community__channel-blurb">
+              {t('plus.visualizers.blurb')}
+            </span>
+          </span>
+        </button>
+
+        {/* The leaderboard belongs with the people it ranks. */}
+        <button
+          type="button"
+          className={`community__channel${view === 'board' ? ' is-active' : ''}`}
           aria-current={view === 'board' ? 'true' : undefined}
           onClick={() => setView('board')}
         >
@@ -201,11 +233,10 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
           </span>
         </button>
 
-        {/* The Studio: where members make scenes. Under the board, because it
-            is a place to go rather than a conversation to follow. */}
+        {/* The Studio: where members make the scenes the gallery shows. */}
         <button
           type="button"
-          className={`community__channel community__channel--studio${view === 'studio' ? ' is-active' : ''}`}
+          className={`community__channel${view === 'studio' ? ' is-active' : ''}`}
           aria-current={view === 'studio' ? 'true' : undefined}
           onClick={() => setView('studio')}
         >
@@ -263,6 +294,9 @@ export default function CommunityPanel({ onSignIn }: ICommunityPanelProps) {
       </nav>
 
       <section className="community__main">
+        {view === 'visualizers' && (
+          <VisualizersView onShowGraph={onShowGraph} />
+        )}
         {view === 'studio' && <StudioPanel />}
         {view === 'board' && (
           <>

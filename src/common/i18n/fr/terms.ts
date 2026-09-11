@@ -92,6 +92,18 @@ const terms = {
     'Quand la scène d’un membre est jouée, pour afficher ses J’aime, et quand vous cliquez sur le cœur ou retirez un J’aime',
   'terms.sent.sceneLike.who':
     'Rien de ce qui est à l’écran n’est conservé. Les membres voient combien de J’aime a une scène, jamais qui les a donnés.',
+  'terms.sent.scenePublish.what':
+    'Une scène que vous publiez, son image, la catégorie choisie, votre nom d’affichage et l’identifiant de votre compte',
+  'terms.sent.scenePublish.when':
+    'Quand vous cliquez sur Publier dans le Studio',
+  'terms.sent.scenePublish.who':
+    'Tous les membres Plus, dans Visualiseurs, jusqu’à ce que vous la dépubliiez : la scène, son image, sa catégorie et votre nom d’affichage. Le créateur garde la trace de votre publication, comme pour un export.',
+  'terms.sent.gallery.what':
+    'Dans Visualiseurs : ce que vous recherchez, les scènes que vous ouvrez et ajoutez, et toute scène que vous signalez avec son motif',
+  'terms.sent.gallery.when':
+    'Quand vous parcourez Visualiseurs, cliquez sur Ajouter ou envoyez un signalement',
+  'terms.sent.gallery.who':
+    'Les recherches et ce que vous ouvrez ne sont pas conservés. Les membres voient combien ont ajouté une scène, jamais qui. Signalements : le créateur seulement.',
 
   'terms.never.title': 'Ce qui ne quitte jamais votre ordinateur',
   'terms.never.p1':
@@ -100,7 +112,7 @@ const terms = {
   'terms.never.p3':
     'Vos périphériques audio et leurs noms, et les autres applications de votre ordinateur.',
   'terms.never.p4':
-    'Les scènes que vous créez et vos dossiers du Studio, sauf si vous exportez une scène.',
+    'Les scènes que vous créez et vos dossiers du Studio, sauf si vous exportez ou publiez une scène.',
 
   'terms.protect.title': 'Comment c’est protégé',
   'terms.protect.p1': 'Chaque requête voyage chiffrée.',
@@ -139,7 +151,7 @@ const terms = {
   'terms.keep.p4':
     'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos messages, vos jours au classement et la trace de votre abonnement.',
   'terms.keep.p5':
-    'Scènes : la trace de ce que vous avez exporté, les J’aime que vous avez donnés et ceux que vos scènes ont reçus sont supprimés avec votre compte. Une scène bloquée pour non-respect de ces conditions ne garde que son empreinte, sans votre nom, pour rester bloquée.',
+    'Scènes : une scène publiée reste dans Visualiseurs jusqu’à ce que vous la dépubliiez, ce qui la retire aussitôt avec son image. Ce que vous avez publié, la trace de ce que vous avez exporté, les scènes que vous avez ajoutées, les J’aime que vous avez donnés et ceux que vos scènes ont reçus sont supprimés avec votre compte. Une scène bloquée pour non-respect de ces conditions ne garde que son empreinte, sans votre nom, pour rester bloquée.',
 
   'terms.looks.title': 'Les styles Plus',
   'terms.looks.p1':
@@ -164,6 +176,10 @@ const terms = {
     'Une scène qu’un autre membre partage est son œuvre, concédée pour votre usage personnel tant que vous êtes membre. Vous pouvez la jouer, l’aimer et transmettre le fichier sans le modifier à d’autres membres Plus. Merci de ne pas la modifier, la présenter comme la vôtre, la publier ailleurs ou la vendre.',
   'terms.scenes.p8':
     'Un fichier que vous avez envoyé reste chez ceux qui l’ont. Si vous voulez qu’une scène cesse de s’ouvrir partout, demandez-le au créateur, qui peut la bloquer comme une scène qui enfreint les règles.',
+  'terms.scenes.p9':
+    'Si vous publiez une scène dans Visualiseurs, vous permettez aussi à FluidEQ de l’y garder et de la montrer — avec son image, sa catégorie et votre nom d’affichage — aux membres Plus jusqu’à ce que vous la dépubliiez. Vous pouvez la dépublier à tout moment, avec ou sans Plus. Ceux qui l’ont déjà ajoutée gardent leur copie, aux mêmes conditions qu’un fichier que vous leur auriez envoyé.',
+  'terms.scenes.p10':
+    'Publier est facultatif et distinct de l’export d’un fichier. Tout membre peut signaler une scène publiée ; seul le créateur lit les signalements et peut retirer une scène qui enfreint ces conditions ou les droits de quelqu’un d’autre.',
 
   'terms.changes.title': 'Changements, et les petits caractères',
   'terms.changes.p1':

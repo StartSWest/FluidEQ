@@ -91,6 +91,18 @@ const terms = {
     'Wenn die Szene eines Mitglieds läuft, um ihre „Gefällt mir“ anzuzeigen, und wenn Sie auf das Herz klicken oder ein „Gefällt mir“ zurücknehmen',
   'terms.sent.sceneLike.who':
     'Was gerade läuft, wird nicht gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem.',
+  'terms.sent.scenePublish.what':
+    'Eine Szene, die Sie veröffentlichen, ihr Bild, die gewählte Kategorie, Ihr Anzeigename und Ihre Konto-ID',
+  'terms.sent.scenePublish.when':
+    'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
+  'terms.sent.scenePublish.who':
+    'Alle Plus-Mitglieder, unter „Visualizer“, bis Sie sie zurückziehen: die Szene, ihr Bild, ihre Kategorie und Ihr Anzeigename. Der Macher bewahrt die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+  'terms.sent.gallery.what':
+    'Unter „Visualizer“: wonach Sie suchen, welche Szenen Sie öffnen und hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
+  'terms.sent.gallery.when':
+    'Wenn Sie „Visualizer“ durchstöbern, auf „Hinzufügen“ klicken oder eine Meldung senden',
+  'terms.sent.gallery.who':
+    'Suchen und was Sie öffnen werden nicht gespeichert. Mitglieder sehen, wie oft eine Szene hinzugefügt wurde, nie, von wem. Meldungen: nur der Macher.',
 
   'terms.never.title': 'Was Ihren Computer nie verlässt',
   'terms.never.p1':
@@ -99,7 +111,7 @@ const terms = {
   'terms.never.p3':
     'Ihre Audiogeräte und deren Namen sowie die anderen Apps auf Ihrem Computer.',
   'terms.never.p4':
-    'Die Szenen, die Sie erstellen, und Ihre Studio-Ordner, solange Sie keine Szene exportieren.',
+    'Die Szenen, die Sie erstellen, und Ihre Studio-Ordner, solange Sie keine Szene exportieren oder veröffentlichen.',
 
   'terms.protect.title': 'Wie es geschützt ist',
   'terms.protect.p1': 'Jede Anfrage wird verschlüsselt übertragen.',
@@ -138,7 +150,7 @@ const terms = {
   'terms.keep.p4':
     'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen weg, zusammen mit Profil, Nachrichten, Ranglistentagen und Mitgliedschaftsdaten.',
   'terms.keep.p5':
-    'Szenen: Die Aufzeichnung Ihrer Exporte, die „Gefällt mir“, die Sie vergeben haben, und die, die Ihre Szenen bekommen haben, werden mit Ihrem Konto gelöscht. Eine wegen Verstoßes gegen diese Bedingungen gesperrte Szene behält nur ihren Fingerabdruck, ohne Ihren Namen, damit sie gesperrt bleibt.',
+    'Szenen: Eine veröffentlichte Szene bleibt unter „Visualizer“, bis Sie sie zurückziehen; das entfernt sie samt Bild sofort. Was Sie veröffentlicht haben, die Aufzeichnung Ihrer Exporte, die Szenen, die Sie hinzugefügt haben, die „Gefällt mir“, die Sie vergeben haben, und die, die Ihre Szenen bekommen haben, werden mit Ihrem Konto gelöscht. Eine wegen Verstoßes gegen diese Bedingungen gesperrte Szene behält nur ihren Fingerabdruck, ohne Ihren Namen, damit sie gesperrt bleibt.',
 
   'terms.looks.title': 'Die Plus-Looks',
   'terms.looks.p1':
@@ -163,6 +175,10 @@ const terms = {
     'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und Ihnen für die persönliche Nutzung überlassen, solange Sie Mitglied sind. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert an andere Plus-Mitglieder weitergeben. Bitte verändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nicht anderswo und verkaufen Sie sie nicht.',
   'terms.scenes.p8':
     'Eine Datei, die Sie verschickt haben, bleibt bei denen, die sie haben. Wenn sich eine Szene nirgends mehr öffnen soll, bitten Sie den Macher darum, der sie wie eine regelwidrige Szene sperren kann.',
+  'terms.scenes.p9':
+    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie FluidEQ außerdem, sie dort zu speichern und Plus-Mitgliedern zu zeigen – mit ihrem Bild, ihrer Kategorie und Ihrem Anzeigenamen –, bis Sie sie zurückziehen. Sie können sie jederzeit zurückziehen, mit oder ohne Plus. Wer sie schon hinzugefügt hat, behält seine Kopie, zu denselben Bedingungen wie eine Datei, die Sie ihm geschickt haben.',
+  'terms.scenes.p10':
+    'Veröffentlichen ist freiwillig und etwas anderes, als eine Datei zu exportieren. Jedes Mitglied kann eine veröffentlichte Szene melden; nur der Macher liest Meldungen und kann eine Szene entfernen, die gegen diese Bedingungen oder die Rechte anderer verstößt.',
 
   'terms.changes.title': 'Änderungen, und das Kleingedruckte',
   'terms.changes.p1':

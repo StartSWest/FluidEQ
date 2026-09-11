@@ -78,7 +78,8 @@ export const listGallery = async (
   auth: IAuthorised,
   query: IGalleryQuery,
 ): Promise<
-  { ok: true; scenes: IGalleryScene[] } | { ok: false; reason: TGalleryFailure }
+  | { ok: true; scenes: IGalleryScene[]; more: boolean }
+  | { ok: false; reason: TGalleryFailure }
 > => {
   let response: Response;
   try {
@@ -107,6 +108,9 @@ export const listGallery = async (
         const scene = parseGalleryRow(row);
         return scene ? [scene] : [];
       }),
+      // Counted before parsing: a full page with a row dropped still has
+      // another page behind it.
+      more: rows.length >= GALLERY_PAGE_SIZE,
     };
   } catch {
     return { ok: false, reason: 'server' };
@@ -182,7 +186,8 @@ const download = async (
   }
 };
 
-const isWebp = (bytes: Uint8Array) =>
+/** A WebP by its own RIFF header, whatever it claims to be. */
+export const isWebp = (bytes: Uint8Array) =>
   bytes.length > 16 &&
   String.fromCharCode(...bytes.subarray(0, 4)) === 'RIFF' &&
   String.fromCharCode(...bytes.subarray(8, 12)) === 'WEBP';

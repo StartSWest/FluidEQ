@@ -22,11 +22,17 @@
  * one by file lets other members play it, a like is points for its author.
  * Exporting a scene also records an agreement to this version, so nobody
  * shares under a text they were not shown.
+ *
+ * 4: Visualizers, the gallery — publishing a scene lets FluidEQ keep and
+ * show it to Plus members until it is unpublished, and what the app sends
+ * while browsing, adding and reporting there. Publishing records an agreement
+ * to this version, and the server's publishing and checkout refuse an older
+ * one; exporting a file still accepts 3, because nothing about it changed.
  */
-export const PLUS_TERMS_VERSION = 3;
+export const PLUS_TERMS_VERSION = 4;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-10';
+export const PLUS_TERMS_EFFECTIVE = '2026-09-11';
 
 /** Days after a charge within which it is refunded on request, in full. */
 export const PLUS_REFUND_DAYS = 14;

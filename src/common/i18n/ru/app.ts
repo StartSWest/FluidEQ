@@ -200,7 +200,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Онлайн-медиа',
   'tabs.mediaShort': 'Медиа',
   'tabs.karaoke': 'Караоке',
-  'tabs.community': 'Сообщество',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'Прокрутить вкладки назад',
   'tabs.scrollForward': 'Прокрутить вкладки вперёд',
   'notice.apoReconfigured':

@@ -91,6 +91,17 @@ const terms = {
     'Cuando se reproduce la escena de un miembro, para mostrar sus me gusta, y cuando pulsas el corazón o retiras un me gusta',
   'terms.sent.sceneLike.who':
     'No se guarda nada de lo que está en pantalla. Los miembros ven cuántos me gusta tiene una escena, nunca quién los dio.',
+  'terms.sent.scenePublish.what':
+    'Una escena que publicas, su imagen, la categoría que elegiste, tu nombre visible y el id de tu cuenta',
+  'terms.sent.scenePublish.when': 'Cuando pulsas Publicar en el Estudio',
+  'terms.sent.scenePublish.who':
+    'Todos los miembros Plus, en Visualizadores, hasta que la retires: la escena, su imagen, su categoría y tu nombre visible. El creador guarda el registro de que la publicaste, como con una exportación.',
+  'terms.sent.gallery.what':
+    'En Visualizadores: lo que buscas, qué escenas abres y añades, y cualquier escena que denuncies con su motivo',
+  'terms.sent.gallery.when':
+    'Cuando exploras Visualizadores, pulsas Añadir o envías una denuncia',
+  'terms.sent.gallery.who':
+    'Las búsquedas y lo que abres no se guardan. Los miembros ven cuántos añadieron una escena, nunca quién. Denuncias: solo el creador.',
 
   'terms.never.title': 'Lo que nunca sale de tu ordenador',
   'terms.never.p1':
@@ -99,7 +110,7 @@ const terms = {
   'terms.never.p3':
     'Tus dispositivos de audio y sus nombres, y las demás aplicaciones de tu ordenador.',
   'terms.never.p4':
-    'Las escenas que creas y tus carpetas del Estudio, salvo que exportes una escena.',
+    'Las escenas que creas y tus carpetas del Estudio, salvo que exportes o publiques una escena.',
 
   'terms.protect.title': 'Cómo se protege',
   'terms.protect.p1': 'Cada petición viaja cifrada.',
@@ -137,7 +148,7 @@ const terms = {
   'terms.keep.p4':
     'Tu cuenta: pide que se borre y desaparece en {deletionDays} días, junto con tu perfil, tus mensajes, tus días en la clasificación y el registro de tu membresía.',
   'terms.keep.p5':
-    'Escenas: el registro de lo que exportaste, los me gusta que diste y los que recibieron tus escenas se borran con tu cuenta. Una escena bloqueada por incumplir estas condiciones conserva solo su huella, sin tu nombre, para que siga bloqueada.',
+    'Escenas: una escena que publicas sigue en Visualizadores hasta que la retiras, y retirarla la quita al instante junto con su imagen. Lo que publicaste, el registro de lo que exportaste, las escenas que añadiste, los me gusta que diste y los que recibieron tus escenas se borran con tu cuenta. Una escena bloqueada por incumplir estas condiciones conserva solo su huella, sin tu nombre, para que siga bloqueada.',
 
   'terms.looks.title': 'Los looks Plus',
   'terms.looks.p1':
@@ -162,6 +173,10 @@ const terms = {
     'Una escena que comparte otro miembro es obra suya, con licencia para tu uso personal mientras seas miembro. Puedes reproducirla, darle me gusta y pasar el archivo sin cambios a otros miembros de Plus. Por favor, no la modifiques, no la presentes como tuya, no la publiques en otro sitio ni la vendas.',
   'terms.scenes.p8':
     'Un archivo que has enviado se queda con quien lo tenga. Si quieres que una escena deje de abrirse en todas partes, pídeselo al creador, que puede bloquearla igual que una escena que incumple las normas.',
+  'terms.scenes.p9':
+    'Si publicas una escena en Visualizadores, también permites que FluidEQ la guarde ahí y la muestre —con su imagen, su categoría y tu nombre visible— a los miembros Plus hasta que la retires. Puedes retirarla cuando quieras, tengas Plus o no. Quien ya la añadió conserva su copia, en las mismas condiciones que un archivo que le enviaste.',
+  'terms.scenes.p10':
+    'Publicar es opcional y distinto de exportar un archivo. Cualquier miembro puede denunciar una escena publicada; solo el creador lee las denuncias, y puede retirar una escena que incumpla estas condiciones o los derechos de otra persona.',
 
   'terms.changes.title': 'Cambios, y la letra pequeña',
   'terms.changes.p1':

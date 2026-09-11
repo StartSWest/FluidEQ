@@ -1,12 +1,12 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
-import fs from 'fs';
 import path from 'path';
 import { parseMemberLookId } from '../../common/memberScenes';
+import type { TLocalizedName } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
-import writeFileAtomically from '../atomicWrite';
 import {
   readProject,
+  readProjectNames,
   writeStarterProject,
   type TProjectBuild,
 } from '../memberScenes/project';
@@ -19,6 +19,15 @@ import {
   type IMemberSceneStore,
   type IMemberSceneSummary,
 } from '../memberScenes/store';
+import {
+  byRecent,
+  readProjectList,
+  withActive,
+  withFolder,
+  without,
+  writeProjectList,
+  type IProjectList,
+} from '../memberScenes/studioProjects';
 import type { TSceneFailure } from '../scenePackStore';
 
 /**
@@ -30,13 +39,14 @@ import type { TSceneFailure } from '../scenePackStore';
  * membership ended can still take their work out of the app.
  *
  * NO PATH EVER COMES FROM THE PAGE. Folders are chosen in the system dialog
- * here, and "Add to my looks" saves the build this process made from the
- * linked folder — never a pack the renderer hands back. The renderer is told
- * the folder's path so the member can see which one is linked; it cannot
- * send one.
+ * here and named to the page by an id made here; "Add to my looks" saves the
+ * build this process made from the open project's folder — never a pack the
+ * renderer hands back. The renderer is told each folder's path so the member
+ * can see which is which; it cannot send one.
  *
- * The folder is watched only while the Studio is open. Closing it, losing
- * Plus, or quitting stops the watcher.
+ * Only the open project is watched, and only while the Studio is open.
+ * Switching projects, closing the Studio, losing Plus, or quitting stops the
+ * watcher; the projects not open are a line in a list and cost nothing.
  */
 
 export interface IMemberScenesListing {
@@ -50,11 +60,23 @@ export interface IMemberScenesListing {
   locked: IMemberSceneSummary[];
 }
 
+export interface IStudioProject {
+  /** What the page names it by. Its folder is never accepted back. */
+  id: string;
+  /** The folder's own name and where it is, for display only. */
+  folderName: string;
+  path: string;
+  /** What its scene is called, when its `pack.json` could be read. */
+  names?: TLocalizedName;
+}
+
 export interface IStudioState {
   entitled: boolean;
-  /** The linked folder, for display. Never accepted back from the page. */
-  folder?: { name: string; path: string };
-  /** The latest build of the linked folder, while the Studio is open. */
+  /** Most recently opened first. */
+  projects: IStudioProject[];
+  /** The project on the bench: the only one watched, the only one playing. */
+  activeId?: string;
+  /** The latest build of the open project, while the Studio is open. */
   build?: TProjectBuild;
 }
 
@@ -80,8 +102,8 @@ export interface IMemberScenesIpcDeps {
 
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
-  /** The Studio's linked folder, for sharing's export. */
-  linkedFolder(): string | undefined;
+  /** The open project's folder, for export and publish. */
+  activeFolder(): string | undefined;
   /** Tell the renderer the list of member scenes changed. */
   announce(): void;
   dispose(): void;
@@ -95,7 +117,8 @@ const CHANNELS = [
   'studio-open',
   'studio-close',
   'studio-link-folder',
-  'studio-unlink',
+  'studio-select-project',
+  'studio-forget-project',
   'studio-create-starter',
   'studio-add-to-looks',
   'studio-show-folder',
@@ -115,23 +138,15 @@ export const registerMemberScenesIpc = ({
   const store = createMemberSceneStore({ userDataDir, logger });
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
-  const readLinkedFolder = (): string | undefined => {
-    try {
-      const parsed: unknown = JSON.parse(fs.readFileSync(studioPath, 'utf8'));
-      const folder =
-        typeof parsed === 'object' && parsed !== null
-          ? (parsed as { folder?: unknown }).folder
-          : undefined;
-      return typeof folder === 'string' ? folder : undefined;
-    } catch {
-      return undefined;
-    }
-  };
-
-  let linkedFolder = readLinkedFolder();
+  let projects: IProjectList = readProjectList(studioPath);
+  /** Each project's scene names, read from its `pack.json`, by project id. */
+  const projectNames = new Map<string, TLocalizedName>();
   let studioOpen = false;
   let watcher: IProjectWatcher | undefined;
   let lastBuild: TProjectBuild | undefined;
+
+  const activeFolder = () =>
+    projects.projects.find((project) => project.id === projects.active)?.folder;
 
   const accountId = () => session.state().identity?.id;
   const entitled = () =>
@@ -162,9 +177,16 @@ export const registerMemberScenesIpc = ({
 
   const studioState = (): IStudioState => ({
     entitled: entitled(),
-    ...(linkedFolder
-      ? { folder: { name: path.basename(linkedFolder), path: linkedFolder } }
-      : {}),
+    projects: byRecent(projects).map((project) => {
+      const names = projectNames.get(project.id);
+      return {
+        id: project.id,
+        folderName: path.basename(project.folder),
+        path: project.folder,
+        ...(names ? { names } : {}),
+      };
+    }),
+    ...(projects.active ? { activeId: projects.active } : {}),
     ...(studioOpen && lastBuild ? { build: lastBuild } : {}),
   });
 
@@ -181,19 +203,44 @@ export const registerMemberScenesIpc = ({
 
   const startWatching = () => {
     stopWatching();
-    if (!linkedFolder || !studioOpen || !entitled()) {
+    const folder = activeFolder();
+    const { active } = projects;
+    if (!folder || !active || !studioOpen || !entitled()) {
       return;
     }
-    watcher = watchProject(linkedFolder, (build) => {
+    watcher = watchProject(folder, (build) => {
       lastBuild = build;
+      // Held by the id this watcher started with, so a build that lands as
+      // the member switches projects cannot rename the one they switched to.
+      if (build.ok) {
+        projectNames.set(active, build.pack.names);
+      }
       announceStudio();
     });
   };
 
-  const link = (folder: string | undefined) => {
-    linkedFolder = folder;
-    writeFileAtomically(studioPath, JSON.stringify(folder ? { folder } : {}));
-    startWatching();
+  /** Every project's name, read afresh: they are edited outside the app. */
+  const refreshNames = async () => {
+    await Promise.all(
+      projects.projects.map(async (project) => {
+        const names = await readProjectNames(project.folder);
+        if (names) {
+          projectNames.set(project.id, names);
+        } else {
+          projectNames.delete(project.id);
+        }
+      }),
+    );
+    announceStudio();
+  };
+
+  const adopt = (next: IProjectList) => {
+    const switched = next.active !== projects.active;
+    projects = next;
+    writeProjectList(studioPath, next);
+    if (switched || !watcher) {
+      startWatching();
+    }
   };
 
   const chooseFolder = async (
@@ -254,6 +301,7 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('studio-open', () => {
     studioOpen = true;
     startWatching();
+    refreshNames().catch(() => undefined);
     return studioState();
   });
 
@@ -268,13 +316,26 @@ export const registerMemberScenesIpc = ({
     }
     const folder = await chooseFolder(['openDirectory']);
     if (folder) {
-      link(folder);
+      adopt(withFolder(projects, folder, Date.now()));
+      await refreshNames();
     }
     return studioState();
   });
 
-  ipcMain.handle('studio-unlink', () => {
-    link(undefined);
+  ipcMain.handle('studio-select-project', (_event, id: unknown) => {
+    if (typeof id === 'string' && entitled()) {
+      adopt(withActive(projects, id, Date.now()));
+    }
+    return studioState();
+  });
+
+  // Takes the project off the list. Its folder, and every file in it, stays
+  // exactly where it is.
+  ipcMain.handle('studio-forget-project', (_event, id: unknown) => {
+    if (typeof id === 'string') {
+      adopt(without(projects, id));
+      projectNames.delete(id);
+    }
     return studioState();
   });
 
@@ -290,7 +351,8 @@ export const registerMemberScenesIpc = ({
       }
       const outcome = await writeStarterProject(folder);
       if (outcome === 'written') {
-        link(folder);
+        adopt(withFolder(projects, folder, Date.now()));
+        await refreshNames();
       }
       return outcome;
     },
@@ -301,12 +363,13 @@ export const registerMemberScenesIpc = ({
     if (!entitled() || !me) {
       return { ok: false, reason: 'not-entitled' };
     }
-    if (!linkedFolder) {
+    const folder = activeFolder();
+    if (!folder) {
       return { ok: false, reason: 'no-build' };
     }
     // Read the folder again rather than trusting the last watched build: the
     // press may land between a save and the watcher's rebuild.
-    const build = await readProject(linkedFolder);
+    const build = await readProject(folder);
     if (!build.ok) {
       return { ok: false, reason: 'no-build' };
     }
@@ -321,14 +384,15 @@ export const registerMemberScenesIpc = ({
   });
 
   ipcMain.handle('studio-show-folder', async () => {
-    if (linkedFolder) {
-      await openPath(linkedFolder);
+    const folder = activeFolder();
+    if (folder) {
+      await openPath(folder);
     }
   });
 
   return {
     store,
-    linkedFolder: () => linkedFolder,
+    activeFolder,
     announce: announceScenes,
     dispose: () => {
       unsubscribe();

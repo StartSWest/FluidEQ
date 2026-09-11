@@ -119,6 +119,18 @@ export type TReadOutcome =
   | { ok: false; reason: TReadFailure };
 
 /**
+ * What a member file says, once its signature verifies against the member key
+ * and its pack passes every rule; nothing otherwise. The one door every shared
+ * scene comes in through, whether from a file or from the gallery.
+ */
+export const openMemberEnvelope = (
+  envelope: IScenePackEnvelope,
+): IMemberScenePayload | null => {
+  const payload = verifyMemberSceneEnvelope(envelope);
+  return payload ? parseMemberScenePayload(payload) : null;
+};
+
+/**
  * A scene file somebody sent, or why it cannot be opened.
  *
  * "Unreadable" is not a scene file at all — a screenshot picked by mistake.
@@ -149,8 +161,7 @@ export const readMemberSceneFile = async (
   if (!isScenePackEnvelope(envelope)) {
     return { ok: false, reason: 'unreadable' };
   }
-  const payload = verifyMemberSceneEnvelope(envelope);
-  const parsed = payload ? parseMemberScenePayload(payload) : null;
+  const parsed = openMemberEnvelope(envelope);
   if (!parsed) {
     return { ok: false, reason: 'changed' };
   }

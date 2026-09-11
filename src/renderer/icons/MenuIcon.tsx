@@ -125,10 +125,12 @@ const PATHS: Record<string, string> = {
   album:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
-  // A speech bubble with its tail: the community tab. One bubble rather than
-  // two overlapping — at 13px two read as a blot.
-  community:
-    'M5 5h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-8l-4 3.5V15H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+  // A spark with a small plus beside it: the Plus tab, where the channels,
+  // the members' visualizers, the leaderboard and the Studio live. The same
+  // spark the Plus card inside it wears. It was a speech bubble while the tab
+  // was only the community's chat.
+  plusTab:
+    'M10.5 3.5Q11.4 9.6 17.5 10.5 11.4 11.4 10.5 17.5 9.6 11.4 3.5 10.5 9.6 9.6 10.5 3.5zM18.5 15.5v6M15.5 18.5h6',
   // A luggage tag with its eyelet: what a genre actually is — a label stuck
   // on the record by whoever tagged it, not a property of the music. The
   // other shelf glyphs draw the thing they list; this one draws the tag,

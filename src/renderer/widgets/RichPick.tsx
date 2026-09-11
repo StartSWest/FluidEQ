@@ -53,6 +53,12 @@ interface IRichPickProps {
   triggerExtra?: ReactNode;
   /** Rendered in the root under the trigger, for a caller's own messages. */
   children?: ReactNode;
+  /**
+   * Actions under the list — "New project…" rather than another project.
+   * Handed the menu's own close, so an action can shut it before it opens a
+   * dialog of its own.
+   */
+  renderFooter?: (close: () => void) => ReactNode;
 }
 
 /**
@@ -100,6 +106,7 @@ const RichPick = ({
   triggerClassName,
   triggerExtra,
   children,
+  renderFooter,
 }: IRichPickProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -313,6 +320,12 @@ const RichPick = ({
             </Fragment>
           );
         })}
+
+        {renderFooter && (
+          <div className="rich-pick__footer">
+            {renderFooter(() => setIsOpen(false))}
+          </div>
+        )}
       </AnchoredMenu>
     </div>
   );

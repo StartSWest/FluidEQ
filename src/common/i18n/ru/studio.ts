@@ -23,10 +23,53 @@ const studio = {
   'studio.action.createStarter': 'Создать стартовый проект…',
   'studio.action.linkFolder': 'Подключить папку…',
   'studio.action.showFolder': 'Показать папку',
-  'studio.action.unlink': 'Отключить',
   'studio.action.addToLooks': 'Добавить в мои оформления',
   'studio.action.export': 'Экспортировать…',
   'studio.action.import': 'Открыть файл сцены…',
+  'studio.action.publish': 'Опубликовать…',
+
+  'studio.project.label': 'Проект',
+  'studio.project.group': 'Ваши проекты',
+  'studio.project.none': 'Выберите проект',
+  'studio.project.new': 'Новый проект…',
+  'studio.project.add': 'Добавить папку…',
+  'studio.project.forget': 'Убрать из списка',
+  'studio.project.forgetHint':
+    'Папка и её файлы останутся на вашем компьютере.',
+
+  'studio.publish.title': 'Опубликовать «{name}»',
+  'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
+  'studio.publish.version': 'Версия {version}',
+  'studio.publish.pictureAlt': '«{name}» так, как её покажет галерея',
+  'studio.publish.pictureHint':
+    'Снято со сцены только что. Так она будет выглядеть в галерее.',
+  'studio.publish.category': 'Категория',
+  'studio.publish.pickCategory': 'Сначала выберите категорию',
+  'studio.publish.point1':
+    'Любой участник Plus найдёт её в разделе «Визуализаторы», добавит в свои оформления и сможет лайкнуть.',
+  'studio.publish.point2': 'Каждый лайк приносит вам очки в таблице лидеров.',
+  'studio.publish.point3':
+    'Вы можете снять её с публикации в любой момент. Кто уже добавил её, сохранит свою копию.',
+  'studio.publish.point3Update':
+    'Кто её добавил, увидит «Обновить» и сохранит старую версию, пока не нажмёт.',
+  'studio.publish.read': 'Прочитать условия',
+  'studio.publish.cancel': 'Отмена',
+  'studio.publish.go': 'Опубликовать',
+  'studio.publish.goUpdate': 'Опубликовать обновление',
+  'studio.publish.agree': 'Принять и опубликовать',
+  'studio.publish.running': 'Публикация…',
+  'studio.publish.done': '«{name}» теперь в галерее.',
+  'studio.publish.updated': 'В галерее новая версия «{name}».',
+  'studio.publish.noPicture':
+    'Не удалось сделать снимок. Дайте сцене поиграть и попробуйте снова.',
+  'studio.publish.offline':
+    'Для публикации нужно подключение. Попробуйте снова, когда будете онлайн.',
+  'studio.publish.rateLimited':
+    'Слишком много публикаций за час. Попробуйте позже.',
+  'studio.publish.signedOut': 'Войдите, чтобы опубликовать сцену.',
+  'studio.publish.failed': 'Не удалось опубликовать сцену. Попробуйте ещё раз.',
+  'studio.publish.outdated':
+    'У условий Plus есть новая версия. Обновите FluidEQ, чтобы прочитать её и опубликовать.',
 
   'studio.notice.copied':
     'Скопировано. Вставьте в свой ИИ и допишите идею в конце.',
@@ -122,7 +165,6 @@ const studio = {
   'studio.hears.picture.name': 'Изображение',
   'studio.hears.picture.body': 'ваша картинка, с маской для каждой части',
 
-  'studio.watching': 'Отслеживается {folder}',
   'studio.status.live': 'Обновлено после последнего сохранения',
   'studio.status.problem': 'Последняя рабочая версия продолжает играть',
   'studio.status.waiting': 'Ждём версию, которая заиграет',

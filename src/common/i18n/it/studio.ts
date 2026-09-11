@@ -23,10 +23,55 @@ const studio = {
   'studio.action.createStarter': 'Crea progetto iniziale…',
   'studio.action.linkFolder': 'Collega cartella…',
   'studio.action.showFolder': 'Mostra cartella',
-  'studio.action.unlink': 'Scollega',
   'studio.action.addToLooks': 'Aggiungi ai miei aspetti',
   'studio.action.export': 'Esporta…',
   'studio.action.import': 'Apri un file di scena…',
+  'studio.action.publish': 'Pubblica…',
+
+  'studio.project.label': 'Progetto',
+  'studio.project.group': 'I tuoi progetti',
+  'studio.project.none': 'Scegli un progetto',
+  'studio.project.new': 'Nuovo progetto…',
+  'studio.project.add': 'Aggiungi una cartella…',
+  'studio.project.forget': 'Togli dall’elenco',
+  'studio.project.forgetHint':
+    'La cartella e i suoi file restano sul tuo computer.',
+
+  'studio.publish.title': 'Pubblica {name}',
+  'studio.publish.titleUpdate': 'Aggiorna {name} nella galleria',
+  'studio.publish.version': 'Versione {version}',
+  'studio.publish.pictureAlt': '{name}, come apparirà nella galleria',
+  'studio.publish.pictureHint':
+    'Presa dal palco proprio ora. È così che apparirà nella galleria.',
+  'studio.publish.category': 'Categoria',
+  'studio.publish.pickCategory': 'Scegli prima una categoria',
+  'studio.publish.point1':
+    'Ogni membro Plus potrà trovarla in Visualizzatori, aggiungerla ai suoi aspetti e metterle mi piace.',
+  'studio.publish.point2':
+    'Ogni mi piace ti fa guadagnare punti in classifica.',
+  'studio.publish.point3':
+    'Puoi ritirarla quando vuoi. Chi l’ha già aggiunta conserva la sua copia.',
+  'studio.publish.point3Update':
+    'Chi l’ha aggiunta vedrà Aggiorna e terrà la versione precedente finché non lo preme.',
+  'studio.publish.read': 'Leggi le condizioni',
+  'studio.publish.cancel': 'Annulla',
+  'studio.publish.go': 'Pubblica',
+  'studio.publish.goUpdate': 'Pubblica aggiornamento',
+  'studio.publish.agree': 'Accetta e pubblica',
+  'studio.publish.running': 'Pubblicazione…',
+  'studio.publish.done': '{name} è nella galleria.',
+  'studio.publish.updated': 'La galleria ha la nuova versione di {name}.',
+  'studio.publish.noPicture':
+    'Non è stato possibile scattare l’immagine. Lascia che la scena si riproduca, poi riprova.',
+  'studio.publish.offline':
+    'Per pubblicare serve una connessione. Riprova online.',
+  'studio.publish.rateLimited':
+    'Sono tante pubblicazioni in un’ora. Riprova più tardi.',
+  'studio.publish.signedOut': 'Accedi per pubblicare la tua scena.',
+  'studio.publish.failed':
+    'Non è stato possibile pubblicare la scena. Riprova.',
+  'studio.publish.outdated':
+    'Le condizioni di Plus hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
 
   'studio.notice.copied':
     'Copiato. Incollalo nella tua IA e scrivi la tua idea alla fine.',
@@ -120,7 +165,6 @@ const studio = {
   'studio.hears.picture.name': 'Immagine',
   'studio.hears.picture.body': 'la tua immagine, con una maschera per parte',
 
-  'studio.watching': 'Osservo {folder}',
   'studio.status.live': 'Aggiornato dal tuo ultimo salvataggio',
   'studio.status.problem':
     'L’ultima versione funzionante è ancora in riproduzione',

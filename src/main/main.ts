@@ -166,6 +166,10 @@ import { registerAccountIpc } from './ipc/account';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
+import { registerPlusGalleryIpc } from './ipc/plusGallery';
+import { registerPlusPublishingIpc } from './ipc/plusPublishing';
+import { createGalleryAccess } from './plus/galleryAccess';
+import { createSampleGallery } from './plus/sampleGallery';
 import { registerCommunityIpc } from './ipc/community';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
@@ -2900,8 +2904,8 @@ const scenePacksIpc = registerScenePacksIpc({
   developmentPacksDir,
 });
 
-// Scenes members make in the Studio. Registering watches nothing: a linked
-// folder is watched only while the Studio is open.
+// Scenes members make in the Studio. Registering watches nothing: the open
+// project's folder is watched only while the Studio is open.
 const memberScenesIpc = registerMemberScenesIpc({
   getMainWindow: () => mainWindow,
   userDataDir,
@@ -2909,6 +2913,15 @@ const memberScenesIpc = registerMemberScenesIpc({
   entitlement: accountIpc.entitlement,
   logger: log,
 });
+
+// With the sample community on, the gallery gets sample scenes too: the Plus
+// looks this account has, credited to the cast. See `sampleGallery.ts`.
+const developmentSampleGallery = developmentSampleCommunity
+  ? createSampleGallery({
+      packs: () => scenePacksIpc.store.list(),
+      load: (id) => scenePacksIpc.store.load(id),
+    })
+  : undefined;
 
 // Sharing them between members: export signed by the server, import verified
 // against the member key, likes, and the block list.
@@ -2919,9 +2932,33 @@ const memberSharingIpc = registerMemberSharingIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   store: memberScenesIpc.store,
-  linkedFolder: memberScenesIpc.linkedFolder,
+  activeFolder: memberScenesIpc.activeFolder,
   announce: memberScenesIpc.announce,
   logger: log,
+  sample: developmentSampleGallery,
+});
+
+// The Plus gallery: members' published scenes, found, added and reported;
+// and the member's own side of it — the Studio's Publish, their published
+// scenes, taking one down.
+const galleryAccess = createGalleryAccess({
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+});
+const plusGalleryIpc = registerPlusGalleryIpc({
+  access: galleryAccess,
+  store: memberScenesIpc.store,
+  refreshBlocked: memberSharingIpc.refreshBlocked,
+  announce: memberScenesIpc.announce,
+  onEntitlementChange: (listener) => accountIpc.entitlement.subscribe(listener),
+  sample: developmentSampleGallery,
+  logger: log,
+});
+const plusPublishingIpc = registerPlusPublishingIpc({
+  access: galleryAccess,
+  userDataDir,
+  activeFolder: memberScenesIpc.activeFolder,
 });
 
 // The community's REST calls and its live feed. Registering opens nothing:
@@ -3226,6 +3263,8 @@ app.on('before-quit', (event) => {
   // the old listener is still holding a port nobody is going to answer on.
   accountIpc.dispose();
   scenePacksIpc.dispose();
+  plusPublishingIpc.dispose();
+  plusGalleryIpc.dispose();
   memberSharingIpc.dispose();
   memberScenesIpc.dispose();
   communityIpc.dispose();

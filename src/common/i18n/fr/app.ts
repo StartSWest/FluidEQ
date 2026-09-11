@@ -203,7 +203,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Médias en ligne',
   'tabs.mediaShort': 'Médias',
   'tabs.karaoke': 'Karaoké',
-  'tabs.community': 'Communauté',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'Faire défiler les onglets vers la gauche',
   'tabs.scrollForward': 'Faire défiler les onglets vers la droite',
   'notice.apoReconfigured':

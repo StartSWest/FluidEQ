@@ -23,10 +23,54 @@ const studio = {
   'studio.action.createStarter': 'Crear proyecto inicial…',
   'studio.action.linkFolder': 'Vincular carpeta…',
   'studio.action.showFolder': 'Mostrar carpeta',
-  'studio.action.unlink': 'Desvincular',
   'studio.action.addToLooks': 'Añadir a mis estilos',
   'studio.action.export': 'Exportar…',
   'studio.action.import': 'Abrir un archivo de escena…',
+  'studio.action.publish': 'Publicar…',
+
+  'studio.project.label': 'Proyecto',
+  'studio.project.group': 'Tus proyectos',
+  'studio.project.none': 'Elige un proyecto',
+  'studio.project.new': 'Proyecto nuevo…',
+  'studio.project.add': 'Añadir una carpeta…',
+  'studio.project.forget': 'Quitar de la lista',
+  'studio.project.forgetHint':
+    'La carpeta y sus archivos se quedan en tu equipo.',
+
+  'studio.publish.title': 'Publicar {name}',
+  'studio.publish.titleUpdate': 'Actualizar {name} en la galería',
+  'studio.publish.version': 'Versión {version}',
+  'studio.publish.pictureAlt': '{name}, como se verá en la galería',
+  'studio.publish.pictureHint':
+    'Tomada del escenario ahora mismo. Así se verá en la galería.',
+  'studio.publish.category': 'Categoría',
+  'studio.publish.pickCategory': 'Elige primero una categoría',
+  'studio.publish.point1':
+    'Cualquier miembro Plus podrá encontrarla en Visualizadores, añadirla a sus estilos y darle me gusta.',
+  'studio.publish.point2': 'Cada me gusta te da puntos en la clasificación.',
+  'studio.publish.point3':
+    'Puedes retirarla cuando quieras. Quien ya la añadió conserva su copia.',
+  'studio.publish.point3Update':
+    'Quien la añadió verá Actualizar y conserva la versión anterior hasta que lo pulse.',
+  'studio.publish.read': 'Leer las condiciones',
+  'studio.publish.cancel': 'Cancelar',
+  'studio.publish.go': 'Publicar',
+  'studio.publish.goUpdate': 'Publicar actualización',
+  'studio.publish.agree': 'Aceptar y publicar',
+  'studio.publish.running': 'Publicando…',
+  'studio.publish.done': '{name} está en la galería.',
+  'studio.publish.updated': 'La galería tiene la nueva versión de {name}.',
+  'studio.publish.noPicture':
+    'No se pudo tomar la imagen. Deja que la escena se reproduzca y vuelve a intentarlo.',
+  'studio.publish.offline':
+    'Publicar necesita conexión. Vuelve a intentarlo con internet.',
+  'studio.publish.rateLimited':
+    'Son muchas publicaciones en una hora. Inténtalo más tarde.',
+  'studio.publish.signedOut': 'Inicia sesión para publicar tu escena.',
+  'studio.publish.failed':
+    'No se pudo publicar la escena. Vuelve a intentarlo.',
+  'studio.publish.outdated':
+    'Las condiciones de Plus tienen una versión nueva. Actualiza FluidEQ para leerla y publicar.',
 
   'studio.notice.copied':
     'Copiado. Pégalo en tu IA y escribe tu idea al final.',
@@ -119,7 +163,6 @@ const studio = {
   'studio.hears.picture.name': 'Imagen',
   'studio.hears.picture.body': 'tu propia imagen, con una máscara por parte',
 
-  'studio.watching': 'Vigilando {folder}',
   'studio.status.live': 'Actualizado con tu último guardado',
   'studio.status.problem': 'La última versión que funciona sigue sonando',
   'studio.status.waiting': 'Esperando una versión que se reproduzca',

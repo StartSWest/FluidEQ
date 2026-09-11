@@ -22,7 +22,9 @@ export type TCommunityGlyph =
   | 'mail'
   | 'refresh'
   | 'studio'
-  | 'heart';
+  | 'heart'
+  | 'plus'
+  | 'folder';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -198,6 +200,19 @@ export default function Glyph({ name, className }: IGlyphProps) {
         // A like on a member's scene.
         return (
           <path d="M10 16.8S3.2 12.6 3.2 7.6a3.5 3.5 0 0 1 6.8-1.2 3.5 3.5 0 0 1 6.8 1.2c0 5-6.8 9.2-6.8 9.2Z" />
+        );
+      case 'plus':
+        // A spark with a small plus beside it: Plus, and what is in it.
+        return (
+          <>
+            <path d="M9 2.5Q9.8 7.7 15 8.5 9.8 9.3 9 14.5 8.2 9.3 3 8.5 8.2 7.7 9 2.5Z" />
+            <path d="M15.5 13v4.5M13.25 15.25h4.5" opacity="0.7" />
+          </>
+        );
+      case 'folder':
+        // A project folder in the Studio.
+        return (
+          <path d="M2.5 6.2A1.7 1.7 0 0 1 4.2 4.5h3.4l1.7 1.8h6.5a1.7 1.7 0 0 1 1.7 1.7v6.8a1.7 1.7 0 0 1-1.7 1.7H4.2a1.7 1.7 0 0 1-1.7-1.7Z" />
         );
       case 'refresh':
         return (

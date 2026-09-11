@@ -30,10 +30,54 @@ const studio = {
   'studio.action.createStarter': 'Create starter project…',
   'studio.action.linkFolder': 'Link folder…',
   'studio.action.showFolder': 'Show folder',
-  'studio.action.unlink': 'Unlink',
   'studio.action.addToLooks': 'Add to my looks',
   'studio.action.export': 'Export…',
+  'studio.action.publish': 'Publish…',
   'studio.action.import': 'Open a scene file…',
+
+  'studio.project.label': 'Project',
+  'studio.project.group': 'Your projects',
+  'studio.project.none': 'Choose a project',
+  'studio.project.new': 'New project…',
+  'studio.project.add': 'Add a folder…',
+  'studio.project.forget': 'Remove from list',
+  'studio.project.forgetHint':
+    'The folder and its files stay on your computer.',
+
+  // Publishing to the Plus gallery. Asked with the terms' own points the
+  // first time, then only the category and the picture.
+  'studio.publish.title': 'Publish {name}',
+  'studio.publish.titleUpdate': 'Update {name} in the gallery',
+  'studio.publish.version': 'Version {version}',
+  'studio.publish.pictureAlt': '{name}, as the gallery will show it',
+  'studio.publish.pictureHint':
+    'Taken from the stage just now. This is how it shows in the gallery.',
+  'studio.publish.category': 'Category',
+  'studio.publish.pickCategory': 'Choose a category first',
+  'studio.publish.point1':
+    'Every Plus member can find it in Visualizers, add it to their looks and like it.',
+  'studio.publish.point2': 'Each like earns you points on the leaderboard.',
+  'studio.publish.point3':
+    'You can unpublish it at any time. Members who already added it keep their copy.',
+  'studio.publish.point3Update':
+    'Members who added it see Update, and keep the old version until they press it.',
+  'studio.publish.read': 'Read the terms',
+  'studio.publish.cancel': 'Cancel',
+  'studio.publish.go': 'Publish',
+  'studio.publish.goUpdate': 'Publish update',
+  'studio.publish.agree': 'Agree and publish',
+  'studio.publish.running': 'Publishing…',
+  'studio.publish.done': '{name} is in the gallery.',
+  'studio.publish.updated': 'The gallery has the new version of {name}.',
+  'studio.publish.noPicture':
+    'The picture could not be taken. Let the scene play, then try again.',
+  'studio.publish.offline': 'Publishing needs a connection. Try again online.',
+  'studio.publish.rateLimited':
+    'That is a lot of publishing for one hour. Try again later.',
+  'studio.publish.signedOut': 'Sign in to publish your scene.',
+  'studio.publish.failed': 'The scene could not be published. Try again.',
+  'studio.publish.outdated':
+    'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
 
   'studio.notice.copied':
     'Copied. Paste it into your AI and write your idea at the end.',
@@ -126,7 +170,6 @@ const studio = {
   'studio.hears.picture.name': 'Picture',
   'studio.hears.picture.body': 'your own image, with a mask for each part',
 
-  'studio.watching': 'Watching {folder}',
   'studio.status.live': 'Updated from your last save',
   'studio.status.problem': 'The last working version is still playing',
   'studio.status.waiting': 'Waiting for a version that plays',

@@ -25,13 +25,21 @@ import {
   type ILikeStatus,
 } from '../memberScenes/social';
 import type { IMemberSceneStore } from '../memberScenes/store';
+import {
+  readAgreedTerms,
+  writeAgreedTerms,
+} from '../memberScenes/termsAgreement';
+import {
+  isSampleGalleryAuthor,
+  type ISampleGallery,
+} from '../plus/sampleGallery';
 
 /**
  * Sharing members' scenes, over IPC: export, import, likes, and the block
  * list that decides which shared scenes may still open.
  *
- * Every call asks for Plus afresh. Export reads the linked folder again and
- * sends the server what is on disk, never a pack the page holds; import reads
+ * Every call asks for Plus afresh. Export reads the Studio's open project again
+ * and sends the server what is on disk, never a pack the page holds; import reads
  * the file the member picked in the system dialog, and nothing else. No
  * channel takes a path.
  */
@@ -64,18 +72,26 @@ export interface IMemberSharingIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   store: IMemberSceneStore;
-  /** The Studio's linked folder, from its own registration. */
-  linkedFolder: () => string | undefined;
+  /** The Studio's open project's folder, from its own registration. */
+  activeFolder: () => string | undefined;
   /** Tell the renderer the list of member scenes changed. */
   announce: () => void;
   logger?: { warn(message: string): void };
   dialogImpl?: IDialogLike;
   fetchImpl?: typeof fetch;
   now?: () => number;
+  /** DEVELOPMENT ONLY: the gallery's sample scenes, liked in memory. */
+  sample?: ISampleGallery;
 }
 
 export interface IMemberSharingRegistration {
   refreshIfDue(reason: string): Promise<void>;
+  /**
+   * Asks for the block list now. Anything about to bring a shared scene in
+   * calls this first, so a scene blocked since the list was last asked cannot
+   * slip in.
+   */
+  refreshBlocked(): Promise<void>;
   dispose(): void;
 }
 
@@ -90,21 +106,7 @@ const CHANNELS = [
   'member-scenes-like',
 ] as const;
 
-const TERMS_FILE = path.join('member-scenes', 'terms.json');
 const BLOCKED_FILE = path.join('member-scenes', 'blocked.json');
-
-const readNumberFile = (file: string, field: string): number => {
-  try {
-    const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
-    const value =
-      typeof parsed === 'object' && parsed !== null
-        ? (parsed as Record<string, unknown>)[field]
-        : undefined;
-    return typeof value === 'number' && Number.isInteger(value) ? value : 0;
-  } catch {
-    return 0;
-  }
-};
 
 const readBlocked = (file: string): string[] => {
   try {
@@ -124,14 +126,14 @@ export const registerMemberSharingIpc = ({
   session,
   entitlement,
   store,
-  linkedFolder,
+  activeFolder,
   announce,
   logger,
   dialogImpl = dialog,
   fetchImpl = fetch,
   now = Date.now,
+  sample,
 }: IMemberSharingIpcDeps): IMemberSharingRegistration => {
-  const termsPath = path.join(userDataDir, TERMS_FILE);
   const blockedPath = path.join(userDataDir, BLOCKED_FILE);
   let lastBlockRefresh = 0;
 
@@ -176,9 +178,7 @@ export const registerMemberSharingIpc = ({
   const refOf = (lookId: unknown) =>
     typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
 
-  ipcMain.handle('studio-terms-agreed', () =>
-    readNumberFile(termsPath, 'agreed'),
-  );
+  ipcMain.handle('studio-terms-agreed', () => readAgreedTerms(userDataDir));
 
   ipcMain.handle(
     'studio-export',
@@ -186,7 +186,7 @@ export const registerMemberSharingIpc = ({
       if (!entitled()) {
         return { ok: false, reason: 'not-entitled' };
       }
-      const folder = linkedFolder();
+      const folder = activeFolder();
       if (!folder || typeof termsVersion !== 'number') {
         return { ok: false, reason: 'no-build' };
       }
@@ -226,7 +226,7 @@ export const registerMemberSharingIpc = ({
       }
       // The server recorded the agreement with the signature; remember it
       // here so the next export does not ask again.
-      writeFileAtomically(termsPath, JSON.stringify({ agreed: termsVersion }));
+      writeAgreedTerms(userDataDir, termsVersion);
 
       const filePath = target.filePath.endsWith(MEMBER_SCENE_FILE_EXTENSION)
         ? target.filePath
@@ -288,10 +288,21 @@ export const registerMemberSharingIpc = ({
     };
   });
 
+  const sampleRef = (lookId: unknown) => {
+    const ref = refOf(lookId);
+    return sample && ref && isSampleGalleryAuthor(ref.authorId)
+      ? ref
+      : undefined;
+  };
+
   const likeStatus = async (
     lookId: unknown,
   ): Promise<ILikeStatus | undefined> => {
     const ref = refOf(lookId);
+    const sampled = sampleRef(lookId);
+    if (sampled) {
+      return sample?.likeStatus(sampled.authorId, sampled.packId);
+    }
     const accessToken = entitled() ? await token() : undefined;
     if (!ref || !accessToken) {
       return undefined;
@@ -313,6 +324,11 @@ export const registerMemberSharingIpc = ({
     'member-scenes-like',
     async (_event, lookId: unknown, liked: unknown) => {
       const ref = refOf(lookId);
+      const sampled = sampleRef(lookId);
+      if (sampled && typeof liked === 'boolean') {
+        sample?.like(sampled.authorId, sampled.packId, liked);
+        return likeStatus(lookId);
+      }
       const accessToken = entitled() ? await token() : undefined;
       if (
         !ref ||
@@ -345,6 +361,7 @@ export const registerMemberSharingIpc = ({
         await refreshBlocked();
       }
     },
+    refreshBlocked,
     dispose: () => {
       unsubscribe();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));

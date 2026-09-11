@@ -235,6 +235,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Actions under the list, apart from it: they make or bring a new entry
+// rather than choose one, so a hairline separates them and they sit in the
+// quiet accent instead of the rows' white.
+.rich-pick__footer {
+  display: grid;
+  gap: 2px;
+  margin: 4px -6px 0;
+  padding: 6px 6px 0;
+  border-top: 1px solid $border-subtle;
+}
+
+.rich-pick__action {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  padding: 7px 8px;
+  color: $secondary-light;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    background: $hover-accent;
+    outline: none;
+  }
+}
+
 // Collapsing to the glyph in a narrow window is NOT part of this pattern; it
 // is a decision about how crowded the band toolbar gets, and it lives in
 // `VoicingQuickPick.scss` with the rest of what belongs to that one control.

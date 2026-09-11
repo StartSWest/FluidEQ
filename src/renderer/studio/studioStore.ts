@@ -6,11 +6,13 @@ import type {
   TStarterOutcome,
 } from 'main/ipc/memberScenes';
 import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
+import type { TPublishOutcome } from 'main/ipc/plusPublishing';
+import type { TPlusCategory } from 'common/plusGallery';
 import type { TProjectBuild } from 'main/memberScenes/project';
 
 /**
- * The Studio, as the renderer sees it: the linked folder, the latest build
- * of it, and the last build that worked.
+ * The Studio, as the renderer sees it: the member's projects, the latest
+ * build of the open one, and the last build of it that worked.
  *
  * The last working pack is kept here because it is what the stage shows while
  * the member is between a broken save and a fixed one. It changes only when a
@@ -18,7 +20,8 @@ import type { TProjectBuild } from 'main/memberScenes/project';
  * makes the stage recompile the version it is already playing.
  *
  * The session is opened when the Studio appears and closed when it leaves,
- * which is what starts and stops the folder watcher in the main process.
+ * which is what starts and stops the open project's watcher in the main
+ * process.
  */
 
 export interface IStudioView {
@@ -31,7 +34,10 @@ export interface IStudioView {
   problems?: Extract<TProjectBuild, { ok: false }>['problems'];
 }
 
-const INITIAL: IStudioView = { state: { entitled: false }, serial: 0 };
+const INITIAL: IStudioView = {
+  state: { entitled: false, projects: [] },
+  serial: 0,
+};
 
 let view: IStudioView = INITIAL;
 const listeners = new Set<() => void>();
@@ -51,11 +57,12 @@ const adopt = (state: IStudioState) => {
     publish({ state, pack: build.pack, serial: view.serial + 1 });
     return;
   }
+  const sameProject = state.activeId === view.state.activeId;
   publish({
     state,
-    // A folder unlinked or swapped leaves nothing worth keeping on stage.
-    pack:
-      state.folder?.path === view.state.folder?.path ? view.pack : undefined,
+    // Another project on the bench leaves nothing of this one worth keeping
+    // on stage: the next build of the new one is what plays.
+    pack: sameProject ? view.pack : undefined,
     serial: view.serial,
     ...(build && !build.ok ? { problems: build.problems } : {}),
   });
@@ -98,12 +105,31 @@ export const linkStudioFolder = async () => {
   }
 };
 
-export const unlinkStudioFolder = async () => {
-  const state = await bridge()?.unlinkStudioFolder?.();
+/** Puts another project on the bench; the one there stops being watched. */
+export const selectStudioProject = async (id: string) => {
+  const state = await bridge()?.selectStudioProject?.(id);
   if (state) {
     adopt(state);
   }
 };
+
+/** Takes a project off the list. Its folder stays exactly as it is. */
+export const forgetStudioProject = async (id: string) => {
+  const state = await bridge()?.forgetStudioProject?.(id);
+  if (state) {
+    adopt(state);
+  }
+};
+
+export const publishStudioScene = async (
+  termsVersion: number,
+  category: TPlusCategory,
+  picture: Uint8Array,
+): Promise<TPublishOutcome> =>
+  (await bridge()?.publishStudioScene?.(termsVersion, category, picture)) ?? {
+    ok: false,
+    reason: 'offline',
+  };
 
 export const createStudioStarter = async (): Promise<TStarterOutcome> =>
   (await bridge()?.createStudioStarter?.()) ?? 'refused';

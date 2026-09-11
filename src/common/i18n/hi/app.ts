@@ -195,7 +195,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',
   'tabs.karaoke': 'कराओके',
-  'tabs.community': 'समुदाय',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'टैब पीछे स्क्रॉल करें',
   'tabs.scrollForward': 'टैब आगे स्क्रॉल करें',
   'notice.apoReconfigured':

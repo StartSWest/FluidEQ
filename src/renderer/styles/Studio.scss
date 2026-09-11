@@ -334,21 +334,26 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-s;
 }
 
-.studio-project {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  max-width: 100%;
-  padding: 4px 11px;
-  color: $text-muted;
-  border: 1px solid color-mix(in srgb, $analogous-2 38%, transparent);
-  border-radius: $radius-pill;
-  background: color-mix(in srgb, $analogous-2 7%, transparent);
-  font-size: $text-small;
-  @include truncate;
+// The project picker: the open project's name, with the pulsing dot that says
+// its folder is being watched, over the list of every other one.
+.studio-projects {
+  min-width: 0;
+  max-width: min(360px, 100%);
+
+  .rich-pick__trigger {
+    max-width: 100%;
+
+    > span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      @include truncate;
+    }
+  }
 }
 
-.studio-project__dot {
+.studio-projects__live {
   flex: 0 0 auto;
   width: 7px;
   height: 7px;
@@ -375,6 +380,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-bench__top-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: $spacing-s;
   margin-inline-start: auto;
 }

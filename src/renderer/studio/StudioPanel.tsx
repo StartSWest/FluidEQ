@@ -8,11 +8,12 @@ import { openStudioSession, useStudio } from './studioStore';
 import '../styles/Studio.scss';
 
 /**
- * The Studio, as the main area of the Community tab.
+ * The Studio, as the main area of the Plus tab.
  *
  * Opening it opens the session — which is what starts the main process
- * watching the linked folder — and leaving it closes the session, so a folder
- * is watched only while somebody is looking at what it builds.
+ * watching the open project's folder — and leaving it closes the session, so
+ * a folder is watched only while somebody is looking at what it builds, and
+ * only the one project on the bench is ever watched or played.
  */
 export default function StudioPanel() {
   const { t } = useTranslation();
@@ -42,7 +43,7 @@ export default function StudioPanel() {
         </button>
       </div>
     );
-  } else if (state.folder) {
+  } else if (state.activeId) {
     body = <StudioBench view={view} />;
   }
 

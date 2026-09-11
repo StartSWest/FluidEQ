@@ -3,13 +3,19 @@ import fs from 'fs';
 import path from 'path';
 import {
   checkMemberScene,
+  MAX_MEMBER_NAME_LENGTH,
+  sanitizeDisplayText,
   type IMemberSceneProblem,
   type TMemberProblemCode,
   type TMemberSceneFile,
 } from '../../common/memberScenes';
 import { MAX_MEMBER_SOURCE_BYTES } from '../../common/memberSceneRules';
 import { MAX_SCENE_ARTWORK_BYTES } from '../../common/sceneArtwork';
-import { SCENE_PACK_SCHEMA, type IScenePack } from '../../common/scenePacks';
+import {
+  SCENE_PACK_SCHEMA,
+  type IScenePack,
+  type TLocalizedName,
+} from '../../common/scenePacks';
 import { STARTER_MANIFEST, STARTER_SOURCE } from './starterScene';
 
 /**
@@ -202,6 +208,34 @@ export const readProject = async (folder: string): Promise<TProjectBuild> => {
       ok: false,
       problems: [{ code: 'missing-file', file: 'pack.json' }],
     };
+  }
+};
+
+/**
+ * What a project calls its scene, for the Studio's list of projects, read
+ * from `pack.json` alone — the list names folders that are not open, and
+ * building each one to learn its name would compile nothing for nobody.
+ * Cleaned the way every name on screen is; nothing when there is no English
+ * name to fall back on.
+ */
+export const readProjectNames = async (
+  folder: string,
+): Promise<TLocalizedName | undefined> => {
+  try {
+    const { names } = await readManifest(folder);
+    if (!isRecord(names)) {
+      return undefined;
+    }
+    const cleaned: Record<string, string> = {};
+    Object.entries(names).forEach(([locale, raw]) => {
+      const name = sanitizeDisplayText(raw);
+      if (/^[a-z]{2}$/.test(locale) && name) {
+        cleaned[locale] = name.slice(0, MAX_MEMBER_NAME_LENGTH);
+      }
+    });
+    return cleaned.en ? (cleaned as TLocalizedName) : undefined;
+  } catch {
+    return undefined;
   }
 };
 

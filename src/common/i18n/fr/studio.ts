@@ -24,10 +24,54 @@ const studio = {
   'studio.action.createStarter': 'Créer un projet de départ…',
   'studio.action.linkFolder': 'Lier un dossier…',
   'studio.action.showFolder': 'Afficher le dossier',
-  'studio.action.unlink': 'Délier',
   'studio.action.addToLooks': 'Ajouter à mes styles',
   'studio.action.export': 'Exporter…',
   'studio.action.import': 'Ouvrir un fichier de scène…',
+  'studio.action.publish': 'Publier…',
+
+  'studio.project.label': 'Projet',
+  'studio.project.group': 'Vos projets',
+  'studio.project.none': 'Choisir un projet',
+  'studio.project.new': 'Nouveau projet…',
+  'studio.project.add': 'Ajouter un dossier…',
+  'studio.project.forget': 'Retirer de la liste',
+  'studio.project.forgetHint':
+    'Le dossier et ses fichiers restent sur votre ordinateur.',
+
+  'studio.publish.title': 'Publier {name}',
+  'studio.publish.titleUpdate': 'Mettre à jour {name} dans la galerie',
+  'studio.publish.version': 'Version {version}',
+  'studio.publish.pictureAlt': '{name}, tel que la galerie l’affichera',
+  'studio.publish.pictureHint':
+    'Prise sur la scène à l’instant. C’est ainsi qu’elle apparaîtra dans la galerie.',
+  'studio.publish.category': 'Catégorie',
+  'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
+  'studio.publish.point1':
+    'Tout membre Plus pourra la trouver dans Visualiseurs, l’ajouter à ses styles et l’aimer.',
+  'studio.publish.point2':
+    'Chaque « j’aime » vous rapporte des points au classement.',
+  'studio.publish.point3':
+    'Vous pouvez la dépublier à tout moment. Ceux qui l’ont déjà ajoutée gardent leur copie.',
+  'studio.publish.point3Update':
+    'Ceux qui l’ont ajoutée verront « Mettre à jour » et gardent l’ancienne version jusqu’à ce qu’ils cliquent.',
+  'studio.publish.read': 'Lire les conditions',
+  'studio.publish.cancel': 'Annuler',
+  'studio.publish.go': 'Publier',
+  'studio.publish.goUpdate': 'Publier la mise à jour',
+  'studio.publish.agree': 'Accepter et publier',
+  'studio.publish.running': 'Publication…',
+  'studio.publish.done': '{name} est dans la galerie.',
+  'studio.publish.updated': 'La galerie a la nouvelle version de {name}.',
+  'studio.publish.noPicture':
+    'L’image n’a pas pu être prise. Laissez la scène tourner, puis réessayez.',
+  'studio.publish.offline':
+    'La publication demande une connexion. Réessayez en ligne.',
+  'studio.publish.rateLimited':
+    'Cela fait beaucoup de publications en une heure. Réessayez plus tard.',
+  'studio.publish.signedOut': 'Connectez-vous pour publier votre scène.',
+  'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
+  'studio.publish.outdated':
+    'Les conditions Plus ont une version plus récente. Mettez FluidEQ à jour pour la lire et publier.',
 
   'studio.notice.copied':
     'Copié. Collez-le dans votre IA et écrivez votre idée à la fin.',
@@ -121,7 +165,6 @@ const studio = {
   'studio.hears.picture.name': 'Image',
   'studio.hears.picture.body': 'votre propre image, avec un masque par partie',
 
-  'studio.watching': 'Surveille {folder}',
   'studio.status.live': 'Mis à jour depuis votre dernier enregistrement',
   'studio.status.problem': 'La dernière version qui fonctionne joue toujours',
   'studio.status.waiting': 'En attente d’une version qui joue',

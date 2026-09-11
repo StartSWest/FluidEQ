@@ -199,7 +199,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'オンラインメディア',
   'tabs.mediaShort': 'メディア',
   'tabs.karaoke': 'カラオケ',
-  'tabs.community': 'コミュニティ',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': 'タブを前へスクロール',
   'tabs.scrollForward': 'タブを後へスクロール',
   'notice.apoReconfigured':

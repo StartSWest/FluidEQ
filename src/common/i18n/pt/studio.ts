@@ -23,10 +23,53 @@ const studio = {
   'studio.action.createStarter': 'Criar projeto inicial…',
   'studio.action.linkFolder': 'Vincular pasta…',
   'studio.action.showFolder': 'Mostrar pasta',
-  'studio.action.unlink': 'Desvincular',
   'studio.action.addToLooks': 'Adicionar aos meus visuais',
   'studio.action.export': 'Exportar…',
   'studio.action.import': 'Abrir um arquivo de cena…',
+  'studio.action.publish': 'Publicar…',
+
+  'studio.project.label': 'Projeto',
+  'studio.project.group': 'Seus projetos',
+  'studio.project.none': 'Escolha um projeto',
+  'studio.project.new': 'Novo projeto…',
+  'studio.project.add': 'Adicionar uma pasta…',
+  'studio.project.forget': 'Tirar da lista',
+  'studio.project.forgetHint':
+    'A pasta e os arquivos dela continuam no seu computador.',
+
+  'studio.publish.title': 'Publicar {name}',
+  'studio.publish.titleUpdate': 'Atualizar {name} na galeria',
+  'studio.publish.version': 'Versão {version}',
+  'studio.publish.pictureAlt': '{name}, como a galeria vai mostrar',
+  'studio.publish.pictureHint':
+    'Tirada do palco agora mesmo. É assim que ela aparece na galeria.',
+  'studio.publish.category': 'Categoria',
+  'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
+  'studio.publish.point1':
+    'Qualquer membro Plus poderá encontrá-la em Visualizadores, adicioná-la aos visuais e curtir.',
+  'studio.publish.point2': 'Cada curtida vale pontos na classificação.',
+  'studio.publish.point3':
+    'Você pode despublicar quando quiser. Quem já adicionou mantém a própria cópia.',
+  'studio.publish.point3Update':
+    'Quem adicionou verá Atualizar e mantém a versão antiga até clicar.',
+  'studio.publish.read': 'Ler os termos',
+  'studio.publish.cancel': 'Cancelar',
+  'studio.publish.go': 'Publicar',
+  'studio.publish.goUpdate': 'Publicar atualização',
+  'studio.publish.agree': 'Aceitar e publicar',
+  'studio.publish.running': 'Publicando…',
+  'studio.publish.done': '{name} está na galeria.',
+  'studio.publish.updated': 'A galeria tem a nova versão de {name}.',
+  'studio.publish.noPicture':
+    'Não foi possível tirar a imagem. Deixe a cena tocar e tente de novo.',
+  'studio.publish.offline':
+    'Publicar precisa de conexão. Tente de novo online.',
+  'studio.publish.rateLimited':
+    'São muitas publicações em uma hora. Tente mais tarde.',
+  'studio.publish.signedOut': 'Entre para publicar sua cena.',
+  'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
+  'studio.publish.outdated':
+    'Os termos do Plus têm uma versão mais nova. Atualize o FluidEQ para ler e publicar.',
 
   'studio.notice.copied':
     'Copiado. Cole na sua IA e escreva sua ideia no final.',
@@ -119,7 +162,6 @@ const studio = {
   'studio.hears.picture.name': 'Imagem',
   'studio.hears.picture.body': 'sua própria imagem, com uma máscara por parte',
 
-  'studio.watching': 'Observando {folder}',
   'studio.status.live': 'Atualizado com seu último salvamento',
   'studio.status.problem': 'A última versão que funciona continua tocando',
   'studio.status.waiting': 'Aguardando uma versão que toque',

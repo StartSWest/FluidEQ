@@ -91,6 +91,17 @@ const terms = {
     'Quando a cena de um membro é reproduzida, para mostrar as curtidas, e quando carregas no coração ou retiras uma curtida',
   'terms.sent.sceneLike.who':
     'Nada do que está no ecrã é guardado. Os membros veem quantas curtidas uma cena tem, nunca quem as deu.',
+  'terms.sent.scenePublish.what':
+    'Uma cena que publicas, a sua imagem, a categoria que escolheste, o teu nome visível e o id da tua conta',
+  'terms.sent.scenePublish.when': 'Quando carregas em Publicar no Estúdio',
+  'terms.sent.scenePublish.who':
+    'Todos os membros Plus, em Visualizadores, até a despublicares: a cena, a sua imagem, a categoria e o teu nome visível. O criador guarda o registo de que a publicaste, como numa exportação.',
+  'terms.sent.gallery.what':
+    'Em Visualizadores: o que procuras, que cenas abres e adicionas, e qualquer cena que denuncies com o motivo',
+  'terms.sent.gallery.when':
+    'Quando exploras Visualizadores, carregas em Adicionar ou envias uma denúncia',
+  'terms.sent.gallery.who':
+    'As pesquisas e o que abres não são guardados. Os membros veem quantos adicionaram uma cena, nunca quem. Denúncias: só o criador.',
 
   'terms.never.title': 'O que nunca sai do teu computador',
   'terms.never.p1':
@@ -99,7 +110,7 @@ const terms = {
   'terms.never.p3':
     'Os teus dispositivos de áudio e os seus nomes, e as outras aplicações do teu computador.',
   'terms.never.p4':
-    'As cenas que crias e as tuas pastas do Estúdio, a menos que exportes uma cena.',
+    'As cenas que crias e as tuas pastas do Estúdio, a menos que exportes ou publiques uma cena.',
 
   'terms.protect.title': 'Como é protegido',
   'terms.protect.p1': 'Cada pedido viaja cifrado.',
@@ -137,7 +148,7 @@ const terms = {
   'terms.keep.p4':
     'A tua conta: pede que seja apagada e desaparece em {deletionDays} dias, com o teu perfil, as tuas mensagens, os teus dias na classificação e o registo da subscrição.',
   'terms.keep.p5':
-    'Cenas: o registo do que exportaste, as curtidas que deste e as que as tuas cenas receberam são apagados com a tua conta. Uma cena bloqueada por violar estes termos guarda só a sua impressão digital, sem o teu nome, para continuar bloqueada.',
+    'Cenas: uma cena que publicas fica em Visualizadores até a despublicares, o que a remove de imediato com a sua imagem. O que publicaste, o registo do que exportaste, as cenas que adicionaste, as curtidas que deste e as que as tuas cenas receberam são apagados com a tua conta. Uma cena bloqueada por violar estes termos guarda só a sua impressão digital, sem o teu nome, para continuar bloqueada.',
 
   'terms.looks.title': 'Os looks Plus',
   'terms.looks.p1':
@@ -162,6 +173,10 @@ const terms = {
     'Uma cena que outro membro partilha é trabalho dele, licenciado para teu uso pessoal enquanto fores membro. Podes reproduzi-la, curti-la e passar o ficheiro sem alterações a outros membros Plus. Por favor, não a alteres, não a apresentes como tua, não a publiques noutro lado nem a vendas.',
   'terms.scenes.p8':
     'Um ficheiro que enviaste fica com quem o tiver. Se quiseres que uma cena deixe de abrir em todo o lado, pede ao criador, que a pode bloquear da mesma forma que uma cena que viola as regras.',
+  'terms.scenes.p9':
+    'Se publicares uma cena em Visualizadores, também permites que o FluidEQ a guarde lá e a mostre — com a sua imagem, a categoria e o teu nome visível — aos membros Plus até a despublicares. Podes despublicá-la quando quiseres, com ou sem Plus. Quem já a adicionou mantém a sua cópia, nas mesmas condições de um ficheiro que lhe enviaste.',
+  'terms.scenes.p10':
+    'Publicar é opcional e diferente de exportar um ficheiro. Qualquer membro pode denunciar uma cena publicada; só o criador lê as denúncias e pode retirar uma cena que viole estes termos ou os direitos de outra pessoa.',
 
   'terms.changes.title': 'Alterações, e as letras pequenas',
   'terms.changes.p1':

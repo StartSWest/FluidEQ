@@ -190,7 +190,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',
   'tabs.karaoke': '卡拉OK',
-  'tabs.community': '社区',
+  'tabs.plus': 'Plus',
   'tabs.scrollBack': '向前滚动标签',
   'tabs.scrollForward': '向后滚动标签',
   'notice.apoReconfigured':
