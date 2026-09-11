@@ -163,6 +163,7 @@ import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
+import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
@@ -598,6 +599,7 @@ const watchForUpdateOpportunities = () => {
       .checkIfDue(reason)
       .then(() => scenePacksIpc.refreshIfDue(reason))
       .then(() => memberSharingIpc.refreshIfDue(reason))
+      .then(() => plusTermsNoticeIpc.checkIfDue(reason))
       .then(() => leaderboardIpc.uploadIfDue(reason))
       .catch(() => undefined);
   };
@@ -2891,6 +2893,18 @@ const accountIpc = registerAccountIpc({
   developmentSimulator,
 });
 
+// The Plus terms promise that a member is told when they change. Asks the
+// server which version this account agreed to on the same events as the
+// membership, and only until it knows.
+const plusTermsNoticeIpc = registerPlusTermsNoticeIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+});
+
 // The premium looks ride on the account: they are listed only while the
 // subscription is live, and fetched on the same "somebody is back at the
 // machine" events. Registering reads the cache; it contacts nothing.
@@ -2934,6 +2948,7 @@ const memberSharingIpc = registerMemberSharingIpc({
   store: memberScenesIpc.store,
   activeFolder: memberScenesIpc.activeFolder,
   announce: memberScenesIpc.announce,
+  onTermsAgreed: plusTermsNoticeIpc.agreed,
   logger: log,
   sample: developmentSampleGallery,
 });
@@ -2959,6 +2974,7 @@ const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,
   userDataDir,
   activeFolder: memberScenesIpc.activeFolder,
+  onTermsAgreed: plusTermsNoticeIpc.agreed,
 });
 
 // The community's REST calls and its live feed. Registering opens nothing:
@@ -3262,6 +3278,7 @@ app.on('before-quit', (event) => {
   // loopback socket outlives the quit, and the next launch cannot bind while
   // the old listener is still holding a port nobody is going to answer on.
   accountIpc.dispose();
+  plusTermsNoticeIpc.dispose();
   scenePacksIpc.dispose();
   plusPublishingIpc.dispose();
   plusGalleryIpc.dispose();

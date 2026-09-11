@@ -40,6 +40,8 @@ export interface IPlusPublishingIpcDeps {
   userDataDir: string;
   /** The Studio's open project's folder, from its own registration. */
   activeFolder: () => string | undefined;
+  /** A publication recorded an agreement to this version of the Plus terms. */
+  onTermsAgreed?: (version: number) => void;
 }
 
 const CHANNELS = [
@@ -65,6 +67,7 @@ export const registerPlusPublishingIpc = ({
   access,
   userDataDir,
   activeFolder,
+  onTermsAgreed,
 }: IPlusPublishingIpcDeps) => {
   ipcMain.handle('plus-gallery-mine', async (): Promise<TMineOutcome> => {
     const auth = access.accountId() ? await access.auth() : undefined;
@@ -127,6 +130,7 @@ export const registerPlusPublishingIpc = ({
       if (published.ok) {
         // The server recorded the agreement with the publication.
         writeAgreedTerms(userDataDir, termsVersion);
+        onTermsAgreed?.(termsVersion);
       }
       return published;
     },

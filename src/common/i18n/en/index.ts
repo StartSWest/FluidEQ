@@ -52,6 +52,7 @@ import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
 import plus from './plus';
+import termsNotice from './termsNotice';
 
 const en = {
   ...karaoke,
@@ -72,6 +73,7 @@ const en = {
   ...terms,
   ...studio,
   ...plus,
+  ...termsNotice,
 };
 
 export type TranslationKey = keyof typeof en;

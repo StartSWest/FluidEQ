@@ -147,6 +147,7 @@ import ThemePicker from './components/ThemePicker';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
+import PlusTermsNotice from './components/PlusTermsNotice';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
@@ -2966,6 +2967,9 @@ const AppContent = () => {
             playing while the user is on any tab, and the loaned curve is
             already audible before this ever draws. */}
         <SongEqNotice />
+        {/* Here too: the terms promise that the app tells a member when they
+            change, and a member need never open the Plus tab to use Plus. */}
+        <PlusTermsNotice />
         {showFeatureTour && (
           <FeatureTour
             version={APP_VERSION}

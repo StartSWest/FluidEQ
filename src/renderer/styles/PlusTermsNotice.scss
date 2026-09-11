@@ -1,0 +1,183 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// Top right, under the titlebar — below the Plus tab and the account the
+// notice is about — in the same face as the other corner notices
+// (`song-eq-notice`, `speech-memory-notice`): one visual language for
+// "something to know", whoever raised it.
+//
+// The LOWEST of the app's overlays, on purpose. It asks nothing urgent and it
+// stays until it is put away, so it must never be in front of something the
+// person opened or something with a deadline: every menu and popover
+// (`menu-surface`, 1000 and up), a modal's backdrop (1000 and up), the
+// now-playing bar (1100), a full-screen video (1150), the song EQ toast whose
+// Undo only lasts as long as it does (1190), and every prompt (1200 and up).
+// Above the workspace itself, which is all it has to be seen over. A menu
+// opened across it simply covers it; the prompts make it step aside — see
+// the last rule here.
+.plus-terms-notice {
+  @include animate(slide-in-right, $motion-base);
+  position: fixed;
+  z-index: 990;
+  top: calc($title-bar-height + 16px);
+  right: 18px;
+  display: flex;
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 36px));
+  // Its shape holds in a short window: the sentences scroll inside it and the
+  // two answers stay in reach. The floor is the top of the now-playing bar,
+  // not the window's edge — the bar is drawn over this, and at 720x480 it hid
+  // both buttons. `--now-playing-bar-height` is the bar and its inset, as the
+  // bar publishes it; with no bar it falls to nothing.
+  max-height: calc(
+    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
+  );
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+}
+
+.plus-terms-notice__body {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.plus-terms-notice__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: $secondary-light;
+}
+
+.plus-terms-notice__text {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+
+  strong {
+    color: $secondary-light;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    line-height: 1.3;
+  }
+}
+
+// The version and its date, in the pill the terms page opens with, so the
+// notice and the page it leads to name the version the same way.
+.plus-terms-notice__meta {
+  justify-self: start;
+  max-width: 100%;
+  padding: 2px 10px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
+.plus-terms-notice__change {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+}
+
+// More than one version missed: the changes as the short history they are,
+// newest first, down a rail with a stop per version. The newest stop is lit —
+// it is the version the pill names and the one now in effect.
+.plus-terms-notice__changes {
+  display: grid;
+  gap: 10px;
+  margin: 2px 0 0 3px;
+  padding: 0 0 0 14px;
+  border-left: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  list-style: none;
+
+  li {
+    position: relative;
+    display: grid;
+    gap: 2px;
+
+    &::before {
+      position: absolute;
+      top: 4px;
+      left: -18.5px;
+      width: 8px;
+      height: 8px;
+      box-sizing: border-box;
+      border: 1.5px solid color-mix(in srgb, $secondary-light 70%, transparent);
+      border-radius: 50%;
+      background: $surface-menu-top;
+      content: '';
+    }
+
+    &:first-child::before {
+      border-color: $secondary-light;
+      background: $secondary-light;
+      box-shadow: 0 0 8px
+        color-mix(in srgb, $secondary-default 45%, transparent);
+    }
+  }
+}
+
+.plus-terms-notice__version {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+// Under the sentences rather than under the icon, like the other corner
+// notices' answers: the text and its buttons share one left edge.
+.plus-terms-notice__actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-left: 32px;
+}
+
+// One thing at a time. Being lowest keeps whatever lands on it readable; it
+// does not stop the two being drawn across each other, and measured in the
+// running window at 1026px that is what happened — the output notice
+// (`.device-apo-notice`, centred under the titlebar, 620px wide) lay over most
+// of this one with its buttons sticking out beside it. Every prompt in the app
+// opens in that strip under the titlebar, centred, and below about 1500px of
+// width each of them reaches this corner. So while one is up — or anything
+// modal, the song EQ toast that shares this corner, or full screen, which
+// takes away the titlebar this is placed under — the notice steps aside, and
+// slides back in when they are gone.
+body:has(
+    [aria-modal='true'],
+    .device-apo-notice,
+    .audio-restart-notice,
+    .prereq-notice,
+    .song-eq-notice,
+    .app-workspace.is-app-full
+  )
+  .plus-terms-notice {
+  display: none;
+}

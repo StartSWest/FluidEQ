@@ -96,6 +96,7 @@ import type {
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
+import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 
 export type Channels = string;
 
@@ -1216,5 +1217,6 @@ export default {
     // that a reader has to search it — see the head of `dspHost/bridge.ts`.
     ...dspHostBridge,
     ...outputMirrorBridge,
+    ...plusTermsNoticeBridge,
   },
 };

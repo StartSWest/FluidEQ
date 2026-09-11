@@ -76,6 +76,8 @@ export interface IMemberSharingIpcDeps {
   activeFolder: () => string | undefined;
   /** Tell the renderer the list of member scenes changed. */
   announce: () => void;
+  /** An export recorded an agreement to this version of the Plus terms. */
+  onTermsAgreed?: (version: number) => void;
   logger?: { warn(message: string): void };
   dialogImpl?: IDialogLike;
   fetchImpl?: typeof fetch;
@@ -128,6 +130,7 @@ export const registerMemberSharingIpc = ({
   store,
   activeFolder,
   announce,
+  onTermsAgreed,
   logger,
   dialogImpl = dialog,
   fetchImpl = fetch,
@@ -227,6 +230,7 @@ export const registerMemberSharingIpc = ({
       // The server recorded the agreement with the signature; remember it
       // here so the next export does not ask again.
       writeAgreedTerms(userDataDir, termsVersion);
+      onTermsAgreed?.(termsVersion);
 
       const filePath = target.filePath.endsWith(MEMBER_SCENE_FILE_EXTENSION)
         ? target.filePath

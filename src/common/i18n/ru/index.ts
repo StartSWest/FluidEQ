@@ -36,6 +36,7 @@ import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
 import plus from './plus';
+import termsNotice from './termsNotice';
 
 const ru: Partial<Dictionary> = {
   ...karaoke,
@@ -56,6 +57,7 @@ const ru: Partial<Dictionary> = {
   ...terms,
   ...studio,
   ...plus,
+  ...termsNotice,
 };
 
 export default ru;
