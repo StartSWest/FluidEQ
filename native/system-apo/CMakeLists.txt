@@ -80,6 +80,7 @@ add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/watcher_log.cpp src/owner_link.cpp src/config_file.cpp
+  src/status_file.cpp src/status_json.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose
   # this is.
@@ -104,6 +105,16 @@ add_executable(fluideq-engine-owner-link-test
   tests/owner_link_test.cpp src/owner_link.cpp)
 target_link_libraries(fluideq-engine-owner-link-test PRIVATE feq_strict)
 add_test(NAME engine-owner-link COMMAND fluideq-engine-owner-link-test)
+
+# The status file the effect writes for the app: its exact text, which a
+# TypeScript parser on the other side has to agree with, and the count that
+# lets several instances on one output share it. paths.cpp for the root the
+# file goes in; shell32 and ole32 are what that root is looked up with.
+add_executable(fluideq-engine-status-test
+  tests/status_test.cpp src/status_json.cpp src/status_file.cpp src/paths.cpp)
+target_link_libraries(fluideq-engine-status-test
+  PRIVATE feq_strict shell32 ole32)
+add_test(NAME engine-status COMMAND fluideq-engine-status-test)
 
 # The DLL tests load the built module directly, so they take the path
 # CMake put it at rather than one spelled out here.

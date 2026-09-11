@@ -200,6 +200,9 @@ void Watcher::stop() noexcept {
   }
   // The last watcher to let go ends the link's thread and its connection.
   owner_.reset();
+  // Windows has let this output go: say so, or the app goes on reading a
+  // "locked" left by an engine that is no longer running it.
+  report_status(false);
   // Only now: until the thread has joined it is still the owner of these.
   slot_.clear();
   for (const Retired& retired : owned_) {
@@ -244,6 +247,8 @@ void Watcher::run() {
     if (!change.valid()) {
       log_.write("cannot watch " + to_utf8(watched) +
                  "; configuration changes will not be picked up");
+      unwatched_ = true;
+      report_status(true);
       break;
     }
     const bool watching_config = watched == config_dir_;
@@ -397,13 +402,24 @@ void Watcher::reload(Carry carry) {
       }
     }
     log_chain(chain, *graph, owner);
+    const bool processing = !graph->is_passthrough();
+    std::vector<std::string> problems = graph->problems();
     publish(std::move(graph));
     signature_.swap(next);
     have_signature_ = true;
+    last_processing_ = processing;
+    last_owner_ = owner;
+    graph_problems_.swap(problems);
+    reload_failed_ = false;
+    report_status(true);
   } catch (const std::exception& error) {
     log_.write(std::string("configuration reload failed: ") + error.what());
+    reload_failed_ = true;
+    report_status(true);
   } catch (...) {
     log_.write("configuration reload failed");
+    reload_failed_ = true;
+    report_status(true);
   }
 }
 

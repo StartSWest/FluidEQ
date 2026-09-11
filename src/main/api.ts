@@ -98,6 +98,7 @@ import type {
   TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
+import { engineHealthBridge } from './engineHealthBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 
@@ -1229,5 +1230,6 @@ export default {
     ...dspHostBridge,
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
+    ...engineHealthBridge,
   },
 };

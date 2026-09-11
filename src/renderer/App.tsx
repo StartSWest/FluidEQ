@@ -177,6 +177,7 @@ import {
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 import RestartAudioDialog from './components/RestartAudioDialog';
+import EngineTroubleNotice from './components/EngineTroubleNotice';
 import AudioEngineDialog, {
   type TApoAction,
 } from './components/AudioEngineDialog';
@@ -2948,6 +2949,21 @@ const AppContent = () => {
             onClose={audioRestart.close}
           />
         )}
+        {/* Steps aside for the two dialogs its own buttons open, and for
+            the ones that take the whole window: whatever it says can wait
+            until they are answered, and it is still true afterwards. */}
+        <EngineTroubleNotice
+          engine={engineStatus?.engine ?? null}
+          fluidEndpoints={engineStatus?.fluid.endpoints}
+          isHidden={
+            audioRestart.isOpen ||
+            showEngineDialog ||
+            isEngineUnchosen ||
+            Boolean(globalError && isBlockingError)
+          }
+          onRestartAudio={handleRestartWindowsAudio}
+          onUseApo={handleOpenEngineDialog}
+        />
         {globalError && !isBlockingError && (
           <div className="workspace-notice" role="alert">
             <div>

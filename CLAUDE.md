@@ -405,6 +405,16 @@ Everything worth knowing about them is available through commands:
   Bumping `FEQ_CHAIN_PARAM_LEAD` moves every index after it, so regenerate
   that reference line in the same commit or the test compares one stale
   layout against another and proves nothing.
+- **`status-{GUID}.json` is the engine telling the app what it is doing.**
+  The DLL writes one per output into its root (`status_file.h`) inside
+  `LockForProcess` — before any audio passes — and again on every change and
+  unlock; `src/main/engineHealth.ts` reads it. The text is pinned on both
+  sides (`status_test.cpp`, `engineHealth.test.ts`): a field renamed on one
+  side reads as "the engine is not running" on a machine where it is, so
+  extend both in the same commit. The notice built on it
+  (`EngineTroubleNotice`) calls the engine off only once the live capture
+  has heard sound, and only from a read made after that sound — not running
+  is the normal state of every output nothing is playing on.
 - **The setup helper is a windowed program, not a console one.** Run it from
   an interactive shell without piping or capturing its output and the shell
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |
