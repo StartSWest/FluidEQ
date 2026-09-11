@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizadores, la nueva galería: una escena que publiques allí se muestra a los miembros Plus hasta que la retires, y las condiciones detallan qué se envía al explorar, añadir y denunciar.',
   'termsNotice.change.5':
-    'Plus ahora se puede pagar por año además de por mes, y la membresía se renueva al final del periodo que hayas pagado. Una escena que publicas en Visualizadores ahora la ve cualquiera con sesión iniciada; solo los miembros Plus la reproducen y la añaden. Plus funciona en hasta 5 ordenadores a la vez, y la clasificación suma la escucha de tus ordenadores sin dejar que un día crezca más rápido que el reloj.',
+    'Plus ahora se puede pagar por año además de por mes, y la membresía se renueva al final del periodo que hayas pagado. Una escena que publicas en Visualizadores ahora la ve cualquiera con sesión iniciada, que puede verla funcionar unos segundos; solo los miembros Plus la reproducen completa y la añaden. Plus funciona en hasta 5 ordenadores a la vez, y la clasificación suma la escucha de tus ordenadores sin dejar que un día crezca más rápido que el reloj.',
 } as const;
 
 export default termsNotice;

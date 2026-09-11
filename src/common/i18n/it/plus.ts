@@ -71,6 +71,9 @@ const plus = {
   'plus.scene.playing': 'Dal vivo con la tua musica',
   'plus.scene.plusPlays':
     'Con Plus, questa scena si muove qui con la tua musica',
+  'plus.scene.taste': 'Anteprima · {seconds} s',
+  'plus.scene.keepWatching':
+    'Continua a guardarla con la tua musica, e aggiungila ai tuoi aspetti, con Plus.',
   'plus.scene.unavailable': 'Questa scena non si può scaricare ora.',
   'plus.scene.blocked': 'Questa scena è stata rimossa.',
   'plus.scene.changed':

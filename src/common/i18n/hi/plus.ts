@@ -68,6 +68,9 @@ const plus = {
   'plus.scene.loading': 'सीन डाउनलोड हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
   'plus.scene.plusPlays': 'Plus के साथ यह सीन यहीं आपके संगीत पर चलता है',
+  'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
+  'plus.scene.keepWatching':
+    'Plus के साथ इसे अपने संगीत पर देखते रहें, और अपने रूपों में जोड़ें।',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
   'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
   'plus.scene.changed':

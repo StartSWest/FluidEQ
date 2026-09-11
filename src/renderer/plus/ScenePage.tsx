@@ -27,6 +27,7 @@ import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
+import SceneTaste from './SceneTaste';
 
 /** Cards under "More by": one row on a wide pane, two on a narrow one. */
 const MORE_BY = 4;
@@ -45,9 +46,14 @@ const PREVIEW_FAILURES: Record<
 type TPreview =
   | { state: 'loading' }
   | { state: 'ready'; pack: IScenePack }
+  /** No Plus: the scene plays for a taste of it. */
+  | { state: 'taste'; pack: IScenePack }
   | { state: 'failed'; key: TranslationKey }
-  /** No Plus: the picture, and what Plus would do with it. */
-  | { state: 'plus' };
+  /**
+   * No Plus: the picture, and what Plus would do with it — once the taste
+   * is over, or when there was none to give.
+   */
+  | { state: 'plus'; tasted: boolean };
 
 interface IScenePageProps {
   scene: IGalleryScene;
@@ -65,8 +71,9 @@ interface IScenePageProps {
  * of it reaches here, exactly as Add would verify it; the page then plays the
  * pack it was handed and nothing else. Add reuses that same download.
  *
- * Without Plus nothing is downloaded: the page shows the scene's picture and
- * everything about it, and the one loud button is the way into Plus.
+ * Without Plus the scene plays for ten seconds (see `SceneTaste`) so the
+ * member sees what it does, then its picture stays with the way into Plus
+ * beside it; the one loud button on the page is that way in.
  */
 export default function ScenePage({
   scene: opened,
@@ -105,13 +112,13 @@ export default function ScenePage({
   useEffect(() => {
     let cancelled = false;
     setReported(false);
-    if (!entitled) {
-      setPreview({ state: 'plus' });
-      return undefined;
-    }
     setPreview({ state: 'loading' });
     if (!isSceneRenderingAvailable()) {
-      setPreview({ state: 'failed', key: 'plus.scene.cannotDraw' });
+      setPreview(
+        entitled
+          ? { state: 'failed', key: 'plus.scene.cannotDraw' }
+          : { state: 'plus', tasted: false },
+      );
       return undefined;
     }
     window.electron?.ipcRenderer
@@ -121,14 +128,16 @@ export default function ScenePage({
           return undefined;
         }
         if (outcome.ok) {
-          setPreview({ state: 'ready', pack: outcome.pack });
+          setPreview({
+            state: entitled ? 'ready' : 'taste',
+            pack: outcome.pack,
+          });
+        } else if (outcome.reason === 'not-entitled') {
+          setPreview({ state: 'plus', tasted: false });
         } else {
           setPreview({
             state: 'failed',
-            key:
-              outcome.reason === 'not-entitled'
-                ? 'plus.scene.unavailable'
-                : PREVIEW_FAILURES[outcome.reason],
+            key: PREVIEW_FAILURES[outcome.reason],
           });
         }
         return undefined;
@@ -203,7 +212,7 @@ export default function ScenePage({
     <div className="gallery-page gallery-scene">
       <div className="gallery-scene__main">
         <div className="gallery-preview">
-          {preview.state === 'ready' ? (
+          {preview.state === 'ready' && (
             <ScenePreview
               identity={`${scene.lookId}@${preview.pack.version}`}
               pack={preview.pack}
@@ -212,7 +221,18 @@ export default function ScenePage({
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
             />
-          ) : (
+          )}
+          {preview.state === 'taste' && (
+            <SceneTaste
+              identity={`${scene.lookId}@${preview.pack.version}`}
+              pack={preview.pack}
+              onTrouble={(trouble) =>
+                setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
+              }
+              onOver={() => setPreview({ state: 'plus', tasted: true })}
+            />
+          )}
+          {preview.state !== 'ready' && preview.state !== 'taste' && (
             <ScenePicture scene={scene} className="gallery-preview__still" />
           )}
           {preview.state === 'ready' && (
@@ -237,9 +257,26 @@ export default function ScenePage({
           )}
           <SceneSteps scene={scene} from={from} paused={reporting} />
           {preview.state === 'plus' && (
-            <span className="gallery-preview__plus">
+            <span
+              className={`gallery-preview__plus${preview.tasted ? ' is-tasted' : ''}`}
+            >
               <Glyph name="plus" />
-              {t('plus.scene.plusPlays')}
+              <span className="gallery-preview__plus-text">
+                {t(
+                  preview.tasted
+                    ? 'plus.scene.keepWatching'
+                    : 'plus.scene.plusPlays',
+                )}
+              </span>
+              {preview.tasted && (
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={() => requestAccountPanel('subscribe')}
+                >
+                  {t('plus.gate.cta')}
+                </button>
+              )}
             </span>
           )}
         </div>

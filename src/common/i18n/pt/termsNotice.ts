@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizadores, a nova galeria: uma cena que publiques lá é mostrada aos membros Plus até a despublicares, e os termos detalham o que se envia ao explorar, adicionar e denunciar.',
   'termsNotice.change.5':
-    'O Plus agora pode ser pago por ano além de por mês, e a assinatura renova-se no fim do período que pagaste. Uma cena que publicas em Visualizadores passa a ser vista por qualquer pessoa com sessão iniciada; só os membros Plus a reproduzem e adicionam. O Plus funciona em até 5 computadores ao mesmo tempo, e a classificação soma a escuta dos teus computadores sem deixar um dia crescer mais depressa do que o relógio.',
+    'O Plus agora pode ser pago por ano além de por mês, e a assinatura renova-se no fim do período que pagaste. Uma cena que publicas em Visualizadores passa a ser vista por qualquer pessoa com sessão iniciada, que a pode ver a funcionar durante uns segundos; só os membros Plus a reproduzem por inteiro e adicionam. O Plus funciona em até 5 computadores ao mesmo tempo, e a classificação soma a escuta dos teus computadores sem deixar um dia crescer mais depressa do que o relógio.',
 } as const;
 
 export default termsNotice;

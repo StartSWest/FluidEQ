@@ -3,7 +3,7 @@ import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import { useGalleryList, type TListQuery } from './galleryStore';
-import { replaceGalleryPage } from './plusNavigation';
+import { openGalleryPage } from './plusNavigation';
 
 interface ISceneStepsProps {
   scene: IGalleryScene;
@@ -28,8 +28,8 @@ const Chevron = ({ back }: { back: boolean }) => (
 /**
  * The scene before and after this one, in the list it was opened from: two
  * arrows on the stage and the arrow keys, so looking through the gallery is
- * one scene after another rather than back to the grid every time. Each step
- * replaces the page, so Back still goes to that list.
+ * one scene after another rather than back to the grid every time. Back is
+ * the gallery in one press however many steps were taken.
  *
  * Near the end of what is loaded the next page of the list is asked for, so
  * the last arrow is never a dead end while there is more to see.
@@ -53,7 +53,7 @@ export default function SceneSteps({ scene, from, paused }: ISceneStepsProps) {
 
   const step = (to: IGalleryScene | undefined) => {
     if (to) {
-      replaceGalleryPage({ kind: 'scene', scene: to, from });
+      openGalleryPage({ kind: 'scene', scene: to, from });
     }
   };
 
@@ -77,7 +77,7 @@ export default function SceneSteps({ scene, from, paused }: ISceneStepsProps) {
         undefined;
       if (to) {
         event.preventDefault();
-        replaceGalleryPage({ kind: 'scene', scene: to, from });
+        openGalleryPage({ kind: 'scene', scene: to, from });
       }
     };
     document.addEventListener('keydown', onKeyDown);

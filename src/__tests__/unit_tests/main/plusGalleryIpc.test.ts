@@ -363,7 +363,7 @@ describe('pictures', () => {
     ).toBeUndefined();
   });
 
-  it('shows the picture without Plus, and never downloads the scene for it', async () => {
+  it('shows and plays a scene without Plus, but keeps nothing', async () => {
     setup();
     entitled = false;
     bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());
@@ -376,7 +376,7 @@ describe('pictures', () => {
         1,
       ),
     ).toMatch(/^data:image\/webp;base64,/);
-    // Playing and adding stay Plus: the scene file is not even asked for.
+    // Its page may play it — verified exactly as with Plus — for the taste.
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
         'plus-gallery-preview',
@@ -384,7 +384,8 @@ describe('pictures', () => {
         'neon-city',
         1,
       ),
-    ).toEqual({ ok: false, reason: 'not-entitled' });
+    ).toMatchObject({ ok: true, pack: { id: 'neon-city' } });
+    // Keeping it is Plus.
     expect(
       await invoke<Promise<TGalleryAddOutcome>>(
         'plus-gallery-add',
@@ -393,7 +394,18 @@ describe('pictures', () => {
         1,
       ),
     ).toEqual({ ok: false, reason: 'not-entitled' });
-    expect(calls.some((call) => call.url.endsWith('scene.json'))).toBe(false);
+    expect(store.list()).toEqual([]);
+    expect(announced).toBe(0);
+  });
+
+  it('plays nothing to somebody signed out', async () => {
+    setup();
+    signedIn = false;
+    publishScene(SOMEONE);
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls).toEqual([]);
   });
 });
 

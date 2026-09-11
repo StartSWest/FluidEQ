@@ -69,6 +69,9 @@ const plus = {
   'plus.scene.loading': 'Сцена скачивается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
   'plus.scene.plusPlays': 'С Plus эта сцена оживает здесь под вашу музыку',
+  'plus.scene.taste': 'Превью · {seconds} с',
+  'plus.scene.keepWatching':
+    'Смотрите дальше под свою музыку и добавляйте в оформления — с Plus.',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
   'plus.scene.blocked': 'Эта сцена удалена.',
   'plus.scene.changed':

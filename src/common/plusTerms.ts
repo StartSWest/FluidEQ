@@ -32,7 +32,8 @@
  * 5: a yearly plan beside the monthly one — the price quotes both, and a
  * membership renews at the end of whichever period was paid for. And a
  * published scene's picture, name, category and maker are shown to anyone
- * signed in, not only to Plus members, who alone can play and add it; so
+ * signed in, not only to Plus members, and it plays for them for a few
+ * seconds on its page; only Plus members play it in full and add it. So
  * publishing refuses an older version too, as the checkout does. Exporting a
  * file is unchanged and keeps accepting 3. And Plus runs on up to five
  * computers at a time, with each computer's listening reported under a random

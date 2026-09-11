@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
+import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
 
@@ -13,6 +14,8 @@ interface IScenePreviewProps {
   pack: IScenePack;
   label: string;
   onTrouble: (trouble: TPreviewTrouble) => void;
+  /** After every frame drawn, with the frame. */
+  onDrawn?: (frame: ISceneFrame) => void;
 }
 
 /**
@@ -30,6 +33,7 @@ export default function ScenePreview({
   pack,
   label,
   onTrouble,
+  onDrawn,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -74,11 +78,19 @@ export default function ScenePreview({
     [identity],
   );
 
+  const drawnRef = useRef(onDrawn);
+  drawnRef.current = onDrawn;
+  const drawn = useCallback(
+    (frame: ISceneFrame) => drawnRef.current?.(frame),
+    [],
+  );
+
   const canvasRef = useSceneRunner({
     source,
     width: box.width,
     height: box.height,
     spectrumRect: [0, 1, 0, 1],
+    onDrawn: drawn,
   });
 
   return (

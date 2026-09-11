@@ -97,7 +97,7 @@ const terms = {
     'Una scena che pubblichi, la sua immagine, la categoria che hai scelto, il tuo nome visibile e l’id del tuo account',
   'terms.sent.scenePublish.when': 'Quando premi Pubblica nello Studio',
   'terms.sent.scenePublish.who':
-    'In Visualizzatori, finché non la ritiri: chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, la categoria e il tuo nome visibile, e i membri Plus possono anche riprodurla e aggiungerla. Il creatore conserva il registro della pubblicazione, come per un’esportazione.',
+    'In Visualizzatori, finché non la ritiri: chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, la categoria e il tuo nome visibile e può vederla in azione per qualche secondo, e i membri Plus possono riprodurla per intero e aggiungerla. Il creatore conserva il registro della pubblicazione, come per un’esportazione.',
   'terms.sent.gallery.what':
     'In Visualizzatori: cosa cerchi, quali scene apri e aggiungi, e ogni scena che segnali con il motivo',
   'terms.sent.gallery.when':
@@ -177,7 +177,7 @@ const terms = {
   'terms.scenes.p8':
     'Un file che hai inviato resta a chi lo ha. Se vuoi che una scena smetta di aprirsi ovunque, chiedilo al creatore, che può bloccarla come una scena che viola le regole.',
   'terms.scenes.p9':
-    'Se pubblichi una scena in Visualizzatori, permetti anche a FluidEQ di conservarla lì finché non la ritiri, di mostrare la sua immagine, il nome, la categoria e il tuo nome visibile a chiunque abbia effettuato l’accesso a FluidEQ, e di offrire la scena stessa ai membri Plus, che possono riprodurla e aggiungerla. Puoi ritirarla quando vuoi, con o senza Plus. Chi l’ha già aggiunta conserva la sua copia, alle stesse condizioni di un file che gli hai inviato.',
+    'Se pubblichi una scena in Visualizzatori, permetti anche a FluidEQ di conservarla lì finché non la ritiri, di mostrare la sua immagine, il nome, la categoria e il tuo nome visibile a chiunque abbia effettuato l’accesso a FluidEQ, di riprodurgliela per qualche secondo, e di offrire la scena stessa ai membri Plus, che possono riprodurla per intero e aggiungerla. Puoi ritirarla quando vuoi, con o senza Plus. Chi l’ha già aggiunta conserva la sua copia, alle stesse condizioni di un file che gli hai inviato.',
   'terms.scenes.p10':
     'Pubblicare è facoltativo e diverso dall’esportare un file. Ogni membro può segnalare una scena pubblicata; solo il creatore legge le segnalazioni e può rimuovere una scena che viola queste condizioni o i diritti di altri.',
 

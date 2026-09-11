@@ -61,20 +61,14 @@ export interface IBrowseFilters {
 interface IPlusNavigation {
   place: TPlusPlace;
   page: TGalleryPage;
-  /** The pages behind this one, most recent last, for Back. */
-  trail: TGalleryPage[];
   filters: IBrowseFilters;
 }
 
 const INITIAL: IPlusNavigation = {
   place: 'channel',
   page: { kind: 'browse' },
-  trail: [],
   filters: { sort: 'liked', text: '' },
 };
-
-/** Deep enough for scene → maker → scene → maker and back out. */
-const MAX_TRAIL = 12;
 
 let navigation = INITIAL;
 const listeners = new Set<() => void>();
@@ -104,28 +98,13 @@ export const openPlusPlace = (place: TPlusPlace) => {
   }
 };
 
-/** Opens a gallery page on top of the one showing. */
+/** Shows a gallery page in place of the one showing. */
 export const openGalleryPage = (page: TGalleryPage) =>
-  publish({
-    ...navigation,
-    place: 'visualizers',
-    page,
-    trail:
-      page.kind === 'browse'
-        ? []
-        : [...navigation.trail, navigation.page].slice(-MAX_TRAIL),
-  });
-
-/**
- * Shows `page` in place of the one showing: the next scene in a list rather
- * than a page opened on top, so Back still goes where the member came from.
- */
-export const replaceGalleryPage = (page: TGalleryPage) =>
   publish({ ...navigation, place: 'visualizers', page });
 
 /**
  * How far down each page was scrolled, by page, so Back lands where the
- * member left rather than at the top of the gallery.
+ * member left the gallery rather than at its top.
  */
 const scrolled = new Map<string, number>();
 
@@ -141,11 +120,15 @@ export const setBrowseFilters = (filters: IBrowseFilters) => {
   }
 };
 
-export const goBackInGallery = () => {
-  const trail = [...navigation.trail];
-  const previous = trail.pop() ?? { kind: 'browse' as const };
-  publish({ ...navigation, page: previous, trail });
-};
+/**
+ * Back is the gallery, in one press, from any page — scene, maker, the next
+ * scene and the one after. It used to walk back through every page opened,
+ * which after a few arrows and a maker or two meant pressing it over and
+ * over to get anywhere (Ivan: "tiene que ir al root siempre de una sola
+ * vez"). The gallery reopens where it was scrolled to.
+ */
+export const goBackInGallery = () =>
+  publish({ ...navigation, page: { kind: 'browse' } });
 
 /** For tests: a clean module between runs. */
 export const resetPlusNavigation = () => {

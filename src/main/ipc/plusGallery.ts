@@ -32,14 +32,14 @@ import {
  * The Plus gallery, over IPC: listing it, its pictures, a scene's page, Add
  * and Report. The member's own publishing is in `plusPublishing.ts`.
  *
- * Browsing is for every account: the list, the pictures and a report need
- * somebody signed in and nothing more, so a member without Plus can see what
- * Plus members make. Everything that downloads a scene's file — its page
- * playing it, and Add — needs Plus, asked afresh on every call; the server
- * asks the same of every file it serves. A scene from the gallery comes in
- * through the same door as a file somebody sent: the signature against the
- * member key, every rule on the pack, then the block list — so Add can never
- * keep something "Open a scene file" would refuse.
+ * Browsing is for every account: the list, the pictures, a scene playing on
+ * its page and a report need somebody signed in and nothing more, so a
+ * member without Plus sees what Plus members make — the page gives them ten
+ * seconds of it. Keeping a scene — Add — needs Plus, asked afresh on every
+ * call. A scene from the gallery comes in through the same door as a file
+ * somebody sent: the signature against the member key, every rule on the
+ * pack, then the block list — so neither the page nor Add can take in
+ * something "Open a scene file" would refuse.
  *
  * NO PATH EVER COMES FROM THE PAGE. The page names scenes by author and scene
  * id, both checked the way a look id is, and a query is rebuilt from only the
@@ -303,18 +303,18 @@ export const registerPlusGalleryIpc = ({
       sceneId: unknown,
       version: unknown,
     ): Promise<TGalleryPreviewOutcome> => {
+      // Anyone signed in may watch a scene on its page: with Plus for as
+      // long as they like, without it for the taste the page gives. What
+      // stays Plus is keeping it — Add, below.
       const ref = sceneRefOf(authorId, sceneId);
-      // A sample has no published picture, so its card's frame is drawn from
-      // its pack for whoever is browsing — development only, and nothing is
-      // downloaded to do it.
-      if (ref && isSample(ref.authorId) && signedIn()) {
+      if (!ref || !signedIn()) {
+        return { ok: false, reason: 'not-entitled' };
+      }
+      if (isSample(ref.authorId)) {
         const pack = sample?.pack(ref.packId);
         return pack
           ? { ok: true, pack, own: false }
           : { ok: false, reason: 'unavailable' };
-      }
-      if (!ref || !access.entitled()) {
-        return { ok: false, reason: 'not-entitled' };
       }
       if (store.isBlocked(ref.authorId, ref.packId)) {
         return { ok: false, reason: 'blocked' };

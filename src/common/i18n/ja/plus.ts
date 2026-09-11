@@ -72,6 +72,9 @@ const plus = {
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
   'plus.scene.plusPlays':
     'Plus なら、このシーンがここであなたの音楽に合わせて動きます',
+  'plus.scene.taste': 'プレビュー · {seconds} 秒',
+  'plus.scene.keepWatching':
+    'Plus なら、あなたの音楽で見続けて、マイ表示に追加できます。',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
   'plus.scene.blocked': 'このシーンは削除されました。',
   'plus.scene.changed':

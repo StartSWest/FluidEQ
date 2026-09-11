@@ -99,7 +99,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Quand vous cliquez sur Publier dans le Studio',
   'terms.sent.scenePublish.who':
-    'Dans Visualiseurs, jusqu’à ce que vous la dépubliiez : toute personne connectée à FluidEQ voit son image, son nom, sa catégorie et votre nom d’affichage, et les membres Plus peuvent aussi la lire et l’ajouter. Le créateur garde la trace de votre publication, comme pour un export.',
+    'Dans Visualiseurs, jusqu’à ce que vous la dépubliiez : toute personne connectée à FluidEQ voit son image, son nom, sa catégorie et votre nom d’affichage et peut la regarder quelques secondes, et les membres Plus peuvent la lire en entier et l’ajouter. Le créateur garde la trace de votre publication, comme pour un export.',
   'terms.sent.gallery.what':
     'Dans Visualiseurs : ce que vous recherchez, les scènes que vous ouvrez et ajoutez, et toute scène que vous signalez avec son motif',
   'terms.sent.gallery.when':
@@ -179,7 +179,7 @@ const terms = {
   'terms.scenes.p8':
     'Un fichier que vous avez envoyé reste chez ceux qui l’ont. Si vous voulez qu’une scène cesse de s’ouvrir partout, demandez-le au créateur, qui peut la bloquer comme une scène qui enfreint les règles.',
   'terms.scenes.p9':
-    'Si vous publiez une scène dans Visualiseurs, vous permettez aussi à FluidEQ de l’y garder jusqu’à ce que vous la dépubliiez, de montrer son image, son nom, sa catégorie et votre nom d’affichage à toute personne connectée à FluidEQ, et de proposer la scène elle-même aux membres Plus, qui peuvent la lire et l’ajouter. Vous pouvez la dépublier à tout moment, avec ou sans Plus. Ceux qui l’ont déjà ajoutée gardent leur copie, aux mêmes conditions qu’un fichier que vous leur auriez envoyé.',
+    'Si vous publiez une scène dans Visualiseurs, vous permettez aussi à FluidEQ de l’y garder jusqu’à ce que vous la dépubliiez, de montrer son image, son nom, sa catégorie et votre nom d’affichage à toute personne connectée à FluidEQ, de la lui faire jouer quelques secondes, et de proposer la scène elle-même aux membres Plus, qui peuvent la lire en entier et l’ajouter. Vous pouvez la dépublier à tout moment, avec ou sans Plus. Ceux qui l’ont déjà ajoutée gardent leur copie, aux mêmes conditions qu’un fichier que vous leur auriez envoyé.',
   'terms.scenes.p10':
     'Publier est facultatif et distinct de l’export d’un fichier. Tout membre peut signaler une scène publiée ; seul le créateur lit les signalements et peut retirer une scène qui enfreint ces conditions ou les droits de quelqu’un d’autre.',
 

@@ -73,6 +73,9 @@ const plus = {
   'plus.scene.loading': 'Szene wird heruntergeladen…',
   'plus.scene.playing': 'Live zu Ihrer Musik',
   'plus.scene.plusPlays': 'Mit Plus läuft diese Szene hier zu Ihrer Musik',
+  'plus.scene.taste': 'Vorschau · {seconds} s',
+  'plus.scene.keepWatching':
+    'Mit Plus sehen Sie sie weiter zu Ihrer Musik und fügen sie Ihren Darstellungen hinzu.',
   'plus.scene.unavailable':
     'Diese Szene kann gerade nicht heruntergeladen werden.',
   'plus.scene.blocked': 'Diese Szene wurde entfernt.',

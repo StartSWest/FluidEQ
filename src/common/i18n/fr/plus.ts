@@ -71,6 +71,9 @@ const plus = {
   'plus.scene.playing': 'En direct sur votre musique',
   'plus.scene.plusPlays':
     'Avec Plus, cette scène s’anime ici sur votre musique',
+  'plus.scene.taste': 'Aperçu · {seconds} s',
+  'plus.scene.keepWatching':
+    'Continuez à la regarder sur votre musique, et ajoutez-la à vos styles, avec Plus.',
   'plus.scene.unavailable':
     'Cette scène ne peut pas être téléchargée pour l’instant.',
   'plus.scene.blocked': 'Cette scène a été retirée.',

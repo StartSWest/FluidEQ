@@ -63,6 +63,9 @@ const plus = {
   'plus.scene.loading': '正在下载场景…',
   'plus.scene.playing': '随你的音乐实时播放',
   'plus.scene.plusPlays': '有了 Plus，这个场景会在这里随你的音乐播放',
+  'plus.scene.taste': '预览 · {seconds} 秒',
+  'plus.scene.keepWatching':
+    '开通 Plus，继续随你的音乐观看，并把它添加到你的外观。',
   'plus.scene.unavailable': '暂时无法下载这个场景。',
   'plus.scene.blocked': '这个场景已被下架。',
   'plus.scene.changed': '这个场景未通过 FluidEQ 的检查，因此不会播放。',

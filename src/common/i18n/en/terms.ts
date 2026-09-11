@@ -108,7 +108,7 @@ const terms = {
     'A scene you publish, its picture, the category you chose, your display name and your account id',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
   'terms.sent.scenePublish.who':
-    'In Visualizers, until you unpublish it: anyone signed in to FluidEQ sees its picture, its name, its category and your display name, and Plus members can also play it and add it. The maker keeps the record that you published it, as for an export.',
+    'In Visualizers, until you unpublish it: anyone signed in to FluidEQ sees its picture, its name, its category and your display name and can watch it play for a few seconds, and Plus members can play it in full and add it. The maker keeps the record that you published it, as for an export.',
   'terms.sent.gallery.what':
     'In Visualizers: what you search for, which scenes you open and add, and any scene you report with its reason',
   'terms.sent.gallery.when':
@@ -187,7 +187,7 @@ const terms = {
   'terms.scenes.p8':
     'A file you have sent stays with whoever has it. If you want a scene to stop opening everywhere, ask the maker, who can block it the same way as a scene that breaks the rules.',
   'terms.scenes.p9':
-    'If you publish a scene to Visualizers, you also let FluidEQ keep it there until you unpublish it, show its picture, its name, its category and your display name to anyone signed in to FluidEQ, and offer the scene itself to Plus members, who can play it and add it. You can unpublish it at any time, with or without Plus. Members who already added it keep their copy, under the same terms as a file you sent them.',
+    'If you publish a scene to Visualizers, you also let FluidEQ keep it there until you unpublish it, show its picture, its name, its category and your display name to anyone signed in to FluidEQ, play it for them for a few seconds, and offer the scene itself to Plus members, who can play it in full and add it. You can unpublish it at any time, with or without Plus. Members who already added it keep their copy, under the same terms as a file you sent them.',
   'terms.scenes.p10':
     'Publishing is optional and separate from exporting a file. Any member can report a published scene; only the maker reads reports, and can take a scene down that breaks these terms or someone else’s rights.',
 

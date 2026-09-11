@@ -738,6 +738,24 @@ it under the terms of the GNU General Public License version 3 or later.
   right: 12px;
 }
 
+// A taste's ten seconds, running out along the bottom edge of the stage.
+.gallery-taste {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: rgba($black, 0.35);
+  pointer-events: none;
+}
+
+.gallery-taste__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+  box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 60%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
 // Without Plus the picture stays in full view: what Plus would do with it
 // sits low on it, on a shade that only darkens the bottom edge.
 .gallery-preview__plus {
@@ -765,6 +783,24 @@ it under the terms of the GNU General Public License version 3 or later.
     height: 16px;
     color: $secondary-light;
   }
+
+  // After the taste: the way in, right where the scene stopped.
+  &.is-tasted {
+    flex-wrap: wrap;
+    padding-top: 44px;
+    font-size: $text-lead;
+    pointer-events: auto;
+
+    .button {
+      margin-inline-start: auto;
+      text-shadow: none;
+    }
+  }
+}
+
+.gallery-preview__plus-text {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .gallery-preview__spinner {

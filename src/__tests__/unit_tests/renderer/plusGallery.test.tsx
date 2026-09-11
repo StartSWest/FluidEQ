@@ -46,8 +46,27 @@ jest.mock('../../../renderer/graph/sceneHealth', () => ({
 // these tests are about.
 jest.mock('../../../renderer/plus/ScenePreview', () => ({
   __esModule: true,
-  default: ({ label }: { label: string }) => (
-    <div data-testid="scene-preview">{label}</div>
+  default: ({
+    label,
+    onDrawn,
+  }: {
+    label: string;
+    onDrawn?: (frame: { timeSeconds: number }) => void;
+  }) => (
+    <div data-testid="scene-preview">
+      {label}
+      {/* Eleven seconds of frames, half a second apart. */}
+      <button
+        type="button"
+        onClick={() =>
+          Array.from({ length: 23 }, (_, step) =>
+            onDrawn?.({ timeSeconds: step / 2 }),
+          )
+        }
+      >
+        draw eleven seconds
+      </button>
+    </div>
   ),
 }));
 
@@ -173,16 +192,42 @@ describe('Visualizers', () => {
       screen.queryByRole('button', { name: /plus\.like\.label/ }),
     ).not.toBeInTheDocument();
 
-    // A scene's page: its picture and the way in, and nothing played. (The
-    // pictures may ask for a scene to draw a frame from; the main process
-    // refuses that without Plus.)
+    // A scene's page, when the scene could not be had to play: its picture
+    // and the way in.
     await userEvent.click(screen.getByRole('button', { name: 'Neon City' }));
     expect(
       await screen.findByRole('button', { name: 'plus.scene.getPlus' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('plus.scene.plusPlays')).toBeInTheDocument();
-    expect(screen.queryByText('plus.scene.loading')).not.toBeInTheDocument();
+    expect(await screen.findByText('plus.scene.plusPlays')).toBeInTheDocument();
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
+    expect(bridge.addGalleryScene).not.toHaveBeenCalled();
+  });
+
+  it('plays a scene for ten seconds without Plus, then offers Plus', async () => {
+    mockEntitled = false;
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: true,
+      own: false,
+      pack: { id: 'neon-city', version: 1, names: { en: 'Neon City' } },
+    });
+    renderGallery();
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Neon City' }),
+    );
+    expect(await screen.findByTestId('scene-preview')).toBeInTheDocument();
+    expect(screen.getByText('plus.scene.taste:10')).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'draw eleven seconds' }),
+    );
+    // Over: the picture, what Plus would do, and the way in right there.
+    expect(
+      await screen.findByText('plus.scene.keepWatching'),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
+    // One over the gallery, and one on the stage where the scene stopped.
+    expect(
+      screen.getAllByRole('button', { name: 'plus.gate.cta' }),
+    ).toHaveLength(2);
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 
@@ -448,13 +493,16 @@ describe('a scene’s page', () => {
         offset: 0,
       }),
     );
-    // Back goes to the scene, and back again to the gallery.
+    // Back is the gallery in one press, not the scene the maker came from.
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.scene.back' }),
     );
     expect(
-      await screen.findByRole('heading', { name: 'Neon City' }),
+      await screen.findByRole('searchbox', { name: 'plus.gallery.search' }),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Neon City' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows the maker’s place on the leaderboard', async () => {
@@ -504,7 +552,7 @@ describe('a scene’s page', () => {
     ).toBeInTheDocument();
     await userEvent.keyboard('{ArrowRight}');
     await screen.findByRole('heading', { name: 'Deep Sea' });
-    // Stepping replaced the page: one Back is the gallery, not the last scene.
+    // After three steps, one Back is the gallery, not the scene before.
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.scene.back' }),
     );
