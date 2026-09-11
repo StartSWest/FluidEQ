@@ -45,6 +45,7 @@ export default function StudioTestCard({
             type="button"
             className="studio-segment"
             aria-pressed={signal === entry}
+            title={t(`studio.signalHint.${entry}` as TranslationKey)}
             disabled={idle}
             onClick={() => onSignal(entry)}
           >

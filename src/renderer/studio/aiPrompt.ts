@@ -27,14 +27,14 @@ already holds a working pack.json and scene.frag: rewrite both for my idea,
 keep the file names, and save them there. FluidEQ plays every save at once,
 and if it shows me a problem I will paste it to you; fix exactly that. If you
 cannot edit files, reply with the complete contents of each file and nothing
-else: first pack.json, then scene.frag. If my idea needs a picture, also
-describe exactly how I should lay out artwork.webp (see ARTWORK). Do not
-explain unless I ask.
+else: first pack.json, then scene.frag. If my idea is about photos of mine,
+write the scene for them (see ARTWORK) and tell me in one line to choose
+them under "Pictures in the scene" in FluidEQ. Do not explain unless I ask.
 
 FILES
   pack.json     metadata (format below)
   scene.frag    the shader body
-  artwork.webp  optional picture atlas that I make myself
+  artwork.webp  optional: my photos, which FluidEQ puts together (see ARTWORK)
 
 pack.json:
 {
@@ -58,8 +58,18 @@ pack.json:
 - params: up to 8 sliders the listener can adjust, each
   { "id": "glow", "names": { "en": "Glow" }, "min": 0, "max": 1, "value": 0.5 }.
   Each becomes "uniform float uParam_<id>;" automatically. Do not declare it.
-- With artwork add: "artworkFile": "artwork.webp", "artworkWidth": W,
-  "artworkHeight": H (the exact pixel size of the image).
+  I tune them in FluidEQ, which writes my values back as "value": when you
+  rewrite pack.json, keep each existing param's "value" unless I ask.
+- response (optional): how the scene answers the music, which I also tune in
+  FluidEQ: { "sensitivity": 1, "threshold": 0.05, "attack": 40,
+  "release": 300 }. sensitivity 0.25-4 scales what it hears; threshold 0-0.6
+  silences everything below it; attack 0-1000 and release 0-3000 are the
+  milliseconds a rise and a fall take. Set it only if the idea needs it (a
+  scene that should rest through quiet parts, a slow glow), and keep an
+  existing "response" unless I ask.
+- With photos add: "artworkFile": "artwork.webp", "artworkWidth": W,
+  "artworkHeight": H, and "pictures" naming each photo's place in it (see
+  ARTWORK).
 
 scene.frag must define exactly this function and may define helpers above it:
   vec4 sceneColour(vec2 uv)
@@ -90,7 +100,7 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
   vec3  uAccent      the app's theme colour, if you want to match it.
   vec4  uSpectrumRect  where the app's live frequency axis sits:
                        (left, right, floor, ceiling) in uv units.
-  sampler2D uArtwork   the artwork atlas, if pack.json names one. Origin at the
+  sampler2D uArtwork   my photos, if pack.json names them. Origin at the
                        bottom-left, premultiplied RGBA. Do not use it otherwise.
 
 RULES (FluidEQ refuses the scene otherwise)
@@ -114,16 +124,35 @@ HELPERS YOU MAY COPY
   }
   float band(float f) { return texture(uSpectrumSlow, vec2(clamp(f, 0.0, 1.0), 0.5)).r; }
 
-ARTWORK AND MASKS
-A photo comes alive by masking its parts and giving each part its own channel.
-Put the picture in one region of the atlas and paint masks beside it: white
-where a part is, black elsewhere, one mask per moving part (for example red
-channel = ears, green = tail, blue = eyes). In the shader, sample the mask at
-the same place as the picture and use it to move, bend, brighten or tint only
-that part - e.g. ears twitch with uBeat, the tail sways with uBands.x, the eyes
-glow with uBands.z. Tell me the exact atlas layout: the image size, where the
-picture goes, and what each mask must cover. WebP, not animated, at most 4096
-pixels wide and 4096 x 2048 in total, at most 6 MB.
+ARTWORK
+A scene may use photos of mine: my pet, a place, a poster. They all live in
+one image, artwork.webp, W x H pixels, each photo a named place in it:
+  "pictures": [
+    { "id": "pet", "names": { "en": "Your pet" },
+      "x": 0, "y": 0, "width": 1280, "height": 1280 }
+  ]
+- x, y, width, height: pixels from the image's top-left corner, inside it.
+  id: a-z, 0-9, - and _, starting with a letter. Up to 8 photos; one may
+  cover the whole image. Name each for what I should put there, in every
+  language you can.
+- Optional per photo: "fit": "cover" (fill the place, cropping) or
+  "contain" (the whole photo, clear margins), and "focus": [x, y], the point
+  of the photo kept at the centre as fractions from its top-left - [0.5, 0.4]
+  keeps a pet's face in view. I can reframe each photo in FluidEQ.
+- I choose any photo for each place in FluidEQ, which crops it to fill the
+  place, centred, and saves the image. You never make, lay out or split the
+  image, and I will not paint masks. W at most 4096, W x H at most
+  4096 x 2048. Size each place for its photo: 1280 x 1280 for a pet,
+  1920 x 1080 for a landscape.
+- In the shader, a place's own q (0..1, origin bottom-left) is at
+    vec2 a = (vec2(x, H - y - height) + q * vec2(width, height)) / vec2(W, H);
+  and its colour is texture(uArtwork, a).
+Bring each photo alive from what is in it: find parts by brightness, colour,
+edges (compare neighbouring samples) or distance from the centre, where the
+subject usually is, and move, bend, light or tint them with the music - the
+photo breathing with uBands.x, a glow along its edges on uBeat, colours
+warming with uBands.y, particles in front with uBands.z. Keep each photo
+recognisable: light and move parts of it, never wash it out.
 
 MY IDEA:`;
 

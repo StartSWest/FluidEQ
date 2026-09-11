@@ -57,6 +57,10 @@ class ProjectProblem extends Error {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+/** A manifest filename stays inside the project folder. */
+export const isPlainFileName = (name: string) =>
+  PLAIN_NAME.test(name) && !name.includes('..');
+
 /**
  * The real path of a file the manifest names, or a problem.
  *
@@ -64,12 +68,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
  * is asked anything; the real-path comparison then catches the one route the
  * pattern cannot see — a plain name that is itself a link out of the folder.
  */
-const resolveInside = async (
+export const resolveInside = async (
   folder: string,
   name: string,
   file: TMemberSceneFile,
 ): Promise<string> => {
-  if (!PLAIN_NAME.test(name) || name.includes('..')) {
+  if (!isPlainFileName(name)) {
     throw new ProjectProblem('unsafe-path', file);
   }
   let real: string;
@@ -94,7 +98,7 @@ const resolveInside = async (
   return real;
 };
 
-const readBounded = async (
+export const readBounded = async (
   real: string,
   limit: number,
   file: TMemberSceneFile,
@@ -106,7 +110,7 @@ const readBounded = async (
   return fs.promises.readFile(real);
 };
 
-const readManifest = async (
+export const readManifest = async (
   folder: string,
 ): Promise<Record<string, unknown>> => {
   let real: string;
@@ -182,6 +186,9 @@ const buildRawPack = async (folder: string) => {
       ...(manifest.spectrumRange === undefined
         ? {}
         : { spectrumRange: manifest.spectrumRange }),
+      ...(manifest.response === undefined
+        ? {}
+        : { response: manifest.response }),
     },
     artworkHash,
   };

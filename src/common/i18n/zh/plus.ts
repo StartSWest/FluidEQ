@@ -1,6 +1,8 @@
 const plus = {
+  'plus.official.included': 'Plus 已包含',
   'plus.visualizers.title': '可视化',
-  'plus.visualizers.description': 'Plus 会员创作的场景，可添加到你的外观并点赞',
+  'plus.visualizers.description':
+    'FluidEQ 和 Plus 社区创作的场景，随你的音乐律动',
   'plus.visualizers.blurb': '会员的场景',
 
   'plus.gate.cta': '了解 Plus',

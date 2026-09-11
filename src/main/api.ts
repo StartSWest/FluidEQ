@@ -42,6 +42,14 @@ import type {
   TAddOutcome,
   TNewProjectResult,
 } from './ipc/memberScenes';
+import type {
+  IPictureKeepRequest,
+  TArtworkWrite,
+  TPictureChoice,
+  TStudioPictures,
+} from './ipc/studioPictures';
+import type { IStudioSettingsOutcome } from './ipc/studioSettings';
+import type { ISceneResponse } from '../common/sceneResponse';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
 import type {
   TGalleryAddOutcome,
@@ -859,6 +867,44 @@ const addStudioSceneToLooks = () =>
 const showStudioFolder = () =>
   ipcRenderer.invoke('studio-show-folder') as Promise<void>;
 
+/** The pictures the open project's scene asks for, and its image now. */
+const readStudioPictures = () =>
+  ipcRenderer.invoke('studio-pictures') as Promise<TStudioPictures>;
+
+/** A photo chosen in the system dialog; `label` names picture files in it. */
+const chooseStudioPicture = (label: string) =>
+  ipcRenderer.invoke('studio-choose-picture', label) as Promise<TPictureChoice>;
+
+/**
+ * The open scene's settings — its controls' values and how it answers the
+ * music — written into its pack.json, and into the member's look of it.
+ */
+const writeStudioSettings = (settings: {
+  params?: Record<string, number>;
+  response?: ISceneResponse | null;
+}) =>
+  ipcRenderer.invoke(
+    'studio-write-settings',
+    settings,
+  ) as Promise<IStudioSettingsOutcome>;
+
+/** The kept photo behind one of the scene's pictures, to frame it again. */
+const readStudioPicturePhoto = (id: string) =>
+  ipcRenderer.invoke('studio-picture-photo', id) as Promise<
+    Uint8Array | undefined
+  >;
+
+/**
+ * The scene's image with a photo laid in, saved where its pack.json says,
+ * and the photo and its framing kept beside the scene.
+ */
+const saveStudioPicture = (picture: Uint8Array, keep?: IPictureKeepRequest) =>
+  ipcRenderer.invoke(
+    'studio-save-picture',
+    picture,
+    keep,
+  ) as Promise<TArtworkWrite>;
+
 /** The terms version this computer last shared a scene under; 0 for never. */
 const studioTermsAgreed = () =>
   ipcRenderer.invoke('studio-terms-agreed') as Promise<number>;
@@ -911,24 +957,32 @@ const listGallery = (query: IGalleryQuery) =>
     query,
   ) as Promise<TGalleryListOutcome>;
 
-const galleryPicture = (authorId: string, sceneId: string, version: number) =>
+const galleryPicture = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+  revision?: string,
+) =>
   ipcRenderer.invoke(
     'plus-gallery-picture',
     authorId,
     sceneId,
     version,
+    revision,
   ) as Promise<string | undefined>;
 
 const previewGalleryScene = (
   authorId: string,
   sceneId: string,
   version: number,
+  revision?: string,
 ) =>
   ipcRenderer.invoke(
     'plus-gallery-preview',
     authorId,
     sceneId,
     version,
+    revision,
   ) as Promise<TGalleryPreviewOutcome>;
 
 const addGalleryScene = (authorId: string, sceneId: string, version: number) =>
@@ -1194,6 +1248,11 @@ export default {
     chooseStudioProjectsRoot,
     addStudioSceneToLooks,
     showStudioFolder,
+    readStudioPictures,
+    readStudioPicturePhoto,
+    writeStudioSettings,
+    chooseStudioPicture,
+    saveStudioPicture,
     onStudioChanged,
     studioTermsAgreed,
     exportStudioScene,

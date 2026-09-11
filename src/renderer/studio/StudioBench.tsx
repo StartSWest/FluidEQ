@@ -5,6 +5,7 @@ import type {
   TMemberSceneFile,
 } from 'common/memberScenes';
 import { resolveSceneName } from 'common/scenePacks';
+import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import StudioMaker from './StudioMaker';
@@ -14,6 +15,11 @@ import StudioProjects from './StudioProjects';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioTestCard from './StudioTestCard';
+import StudioFramingDialog from './StudioFramingDialog';
+import StudioPictures, { pictureName } from './StudioPictures';
+import StudioSettings from './StudioSettings';
+import useStudioTuning from './useStudioTuning';
+import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing from './useStudioSharing';
 import StudioStage, {
@@ -48,8 +54,22 @@ const firstError = (log: string) =>
     .map((line) => line.trim())
     .find((line) => /error/i.test(line)) ?? log.trim();
 
+/**
+ * A problem with the scene's picture is one the member fixes here, with a
+ * photo of their own, rather than by asking their AI again.
+ */
+const isPictureProblem = (problem: IMemberSceneProblem) =>
+  problem.file === 'artwork' &&
+  (problem.code === 'missing-file' ||
+    problem.code === 'bad-artwork' ||
+    problem.code === 'file-too-large');
+
 const Problem = ({ problem }: { problem: IMemberSceneProblem }) => {
   const { t } = useTranslation();
+  const what: TranslationKey =
+    problem.file === 'artwork' && problem.code === 'missing-file'
+      ? 'studio.picture.missing'
+      : (`studio.problem.${problem.code}` as TranslationKey);
   return (
     <li className="studio-problem">
       <span className="studio-problem__where">
@@ -60,9 +80,7 @@ const Problem = ({ problem }: { problem: IMemberSceneProblem }) => {
             })
           : t(FILE_KEYS[problem.file])}
       </span>
-      <span className="studio-problem__what">
-        {t(`studio.problem.${problem.code}` as TranslationKey)}
-      </span>
+      <span className="studio-problem__what">{t(what)}</span>
     </li>
   );
 };
@@ -89,6 +107,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [naming, setNaming] = useState(false);
   const feed = useRef<TStageDrawn | undefined>(undefined);
   const sharing = useStudioSharing();
+  const picture = useScenePictures(t('studio.picture.files'), view);
+  const tuner = useStudioTuning(pack, state.activeId);
 
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
@@ -97,9 +117,12 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setNotice(undefined);
   }, [serial]);
 
-  const onDrawn = useCallback<TStageDrawn>((frame, drawnScale, accent) => {
-    feed.current?.(frame, drawnScale, accent);
-  }, []);
+  const onDrawn = useCallback<TStageDrawn>(
+    (frame, drawnScale, accent, heard) => {
+      feed.current?.(frame, drawnScale, accent, heard);
+    },
+    [],
+  );
   const onExitFullscreen = useCallback(() => setSize('graph'), []);
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
@@ -108,6 +131,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
   const publishing = useStudioPublish(view, playing, name);
   const unfit = !pack || Boolean(problems) || trouble !== undefined;
+  // The Publish dialog plays the scene itself, so the stage behind it stops:
+  // two copies of one scene would halve what a slow machine can give either.
+  const pausedForPublish = publishing.draft !== undefined;
+  // Held here as well as by whichever stage is playing, because the stage and
+  // the dialog's hand over in one commit, releases before claims: without
+  // this the capture would close and reopen, and the dialog's scene would
+  // start on a gap in the music.
+  useLiveAudioCapture(playing);
 
   let status: TranslationKey = 'studio.status.waiting';
   if (pack && (problems || trouble?.kind === 'compile')) {
@@ -174,6 +205,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </span>
       </div>
     );
+  } else if (pack && playing && pausedForPublish) {
+    stage = <div className="studio-stage__well studio-stage__well--empty" />;
   } else if (pack && playing) {
     stage = (
       <StudioStage
@@ -182,6 +215,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         serial={serial}
         signal={signal}
         size={size}
+        tuning={tuner.tuning}
         onTrouble={setTrouble}
         onDrawn={onDrawn}
         onExitFullscreen={onExitFullscreen}
@@ -190,6 +224,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }
 
   const notices = [
+    picture.notice && {
+      ok: picture.notice.ok,
+      text: t(picture.notice.key),
+    },
     sharing.notice && {
       ok: sharing.notice.ok,
       text: t(sharing.notice.key, sharing.notice.vars),
@@ -245,6 +283,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
                       />
                     ))}
                   </ul>
+                  {problems.some(isPictureProblem) && (
+                    <span className="studio-problems__hint">
+                      {t('studio.picture.hint')}
+                    </span>
+                  )}
                 </>
               )}
               {trouble?.kind === 'compile' && (
@@ -267,10 +310,25 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               )}
             </div>
           )}
+          {project && (
+            <StudioPictures
+              pictures={picture.pictures}
+              previews={picture.previews}
+              busy={
+                picture.opening ??
+                (picture.saving ? picture.session?.picture.id : undefined)
+              }
+              onOpen={picture.open}
+            />
+          )}
         </div>
 
         <div className="studio-bench__side">
-          <StudioMeters feed={feed} onScale={setScale} />
+          <StudioMeters
+            feed={feed}
+            onScale={setScale}
+            response={tuner.response}
+          />
           <StudioTestCard
             signal={signal}
             onSignal={setSignal}
@@ -279,6 +337,20 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}
+          />
+          <StudioSettings
+            params={tuner.params}
+            values={tuner.values}
+            response={tuner.response}
+            saved={tuner.saved}
+            idle={!(pack && playing)}
+            canResetParams={tuner.canResetParams}
+            canResetResponse={tuner.canResetResponse}
+            onParam={tuner.setParam}
+            onResponse={tuner.setResponse}
+            onCommit={tuner.commit}
+            onResetParams={tuner.resetParams}
+            onResetResponse={tuner.resetResponse}
           />
           <div className="studio-card studio-ship">
             <button
@@ -292,8 +364,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             </button>
             <button
               type="button"
-              className={`button small subtle${publishing.capturing ? ' is-running' : ''}`}
-              aria-busy={publishing.capturing}
+              className={`button small subtle${publishing.preparing ? ' is-running' : ''}`}
+              aria-busy={publishing.preparing}
               onClick={publishing.begin}
               disabled={unfit}
             >
@@ -329,6 +401,24 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         />
       )}
 
+      {picture.session && picture.pictures?.kind === 'atlas' && (
+        <StudioFramingDialog
+          name={pictureName(
+            picture.session.picture,
+            picture.pictures.pictures.findIndex(
+              (entry) => entry.id === picture.session?.picture.id,
+            ),
+            locale,
+            t,
+          )}
+          session={picture.session}
+          saving={picture.saving}
+          onSave={picture.save}
+          onAnother={picture.another}
+          onCancel={picture.cancel}
+        />
+      )}
+
       {sharing.askTerms && (
         <StudioShareDialog
           running={sharing.exporting}
@@ -339,12 +429,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
 
       {publishing.draft && pack && (
         <StudioPublishDialog
+          identity={state.activeId ?? ''}
+          pack={pack}
           name={name}
-          version={pack.version}
           draft={publishing.draft}
           running={publishing.publishing}
-          retaking={publishing.capturing}
-          onRetake={publishing.retake}
+          tuning={tuner.tuning}
+          onCapture={publishing.capture}
+          onChoose={publishing.choose}
           onPublish={publishing.publish}
           onCancel={publishing.cancel}
         />

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { useTranslation } from '../utils/I18nContext';
-import { useUsableMemberScenes } from '../utils/memberScenes';
+import useGalleryLocalScenes from './useGalleryLocalScenes';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
 import { identityStyle } from '../community/identity';
@@ -26,6 +27,9 @@ const useMakerRank = (maker: IMakerRef, own: boolean) => {
   useEffect(() => {
     let cancelled = false;
     setRank(undefined);
+    if (maker.authorId === FLUIDEQ_CREATOR_ID) {
+      return undefined;
+    }
     window.electron?.ipcRenderer
       ?.leaderboardBoard?.('all')
       .then((result) => {
@@ -44,7 +48,7 @@ const useMakerRank = (maker: IMakerRef, own: boolean) => {
     return () => {
       cancelled = true;
     };
-  }, [maker.handle, own]);
+  }, [maker.authorId, maker.handle, own]);
   return rank;
 };
 
@@ -57,11 +61,8 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
   const query = { sort: 'liked', authorId: maker.authorId } as const;
   const { list, loadMore, reload } = useGalleryList(query);
   const rank = useMakerRank(maker, maker.authorId === me);
-  const local = useUsableMemberScenes();
-  const localById = useMemo(
-    () => new Map(local.map((scene) => [scene.lookId, scene])),
-    [local],
-  );
+  const localById = useGalleryLocalScenes();
+  const official = maker.authorId === FLUIDEQ_CREATOR_ID;
   const numbers = new Intl.NumberFormat(locale);
   const totals = list.scenes.reduce(
     (sum, scene) => ({
@@ -91,9 +92,12 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
           {maker.handle && (
             <span className="community__handle">@{maker.handle}</span>
           )}
+          {official && (
+            <span className="gallery-pill">{t('plus.official.included')}</span>
+          )}
         </span>
         <dl className="gallery-figures gallery-maker__figures">
-          {rank !== undefined && (
+          {!official && rank !== undefined && (
             <div className="gallery-maker__rank">
               <dt>{t('plus.maker.rank')}</dt>
               <dd>
@@ -108,14 +112,18 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
               {list.more ? '+' : ''}
             </dd>
           </div>
-          <div>
-            <dt>{t('plus.scene.likes')}</dt>
-            <dd>{numbers.format(totals.likes)}</dd>
-          </div>
-          <div>
-            <dt>{t('plus.scene.adds')}</dt>
-            <dd>{numbers.format(totals.adds)}</dd>
-          </div>
+          {!official && (
+            <>
+              <div>
+                <dt>{t('plus.scene.likes')}</dt>
+                <dd>{numbers.format(totals.likes)}</dd>
+              </div>
+              <div>
+                <dt>{t('plus.scene.adds')}</dt>
+                <dd>{numbers.format(totals.adds)}</dd>
+              </div>
+            </>
+          )}
         </dl>
       </header>
 

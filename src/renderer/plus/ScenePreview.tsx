@@ -4,7 +4,10 @@ import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
-import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
+import useSceneRunner, {
+  type ISceneSource,
+  type ISceneTuning,
+} from '../graph/useSceneRunner';
 
 export type TPreviewTrouble = 'heavy' | 'unavailable' | 'compile';
 
@@ -16,10 +19,15 @@ interface IScenePreviewProps {
   onTrouble: (trouble: TPreviewTrouble) => void;
   /** After every frame drawn, with the frame. */
   onDrawn?: (frame: ISceneFrame) => void;
+  /** Replaces what the scene hears — the Studio's test signals. */
+  shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
+  /** The member's settings over the pack's — the Studio's, in Publish. */
+  tuning?: ISceneTuning;
 }
 
 /**
- * A published scene playing on the member's own music, on its page.
+ * A scene playing on the member's own music: a published one on its page,
+ * or the member's own in the Publish dialog, where the cover is caught.
  *
  * The same runner the graph and the Studio use, with the warm-up ladder and
  * the brightness limiter, because this is where a stranger's scene is first
@@ -34,6 +42,8 @@ export default function ScenePreview({
   label,
   onTrouble,
   onDrawn,
+  shapeFrame,
+  tuning,
 }: IScenePreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -44,8 +54,12 @@ export default function ScenePreview({
     if (!frame) {
       return undefined;
     }
-    const observer = new ResizeObserver(() => {
-      const { width, height } = frame.getBoundingClientRect();
+    // The layout size, never the painted one: in the Publish dialog the frame
+    // first appears inside the dialog's pop-in, scaled to 88%, and a
+    // bounding rectangle taken then kept the canvas at 88% of its frame for
+    // good — the size never changes again, so nothing measured it again.
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
       setBox((previous) =>
         Math.round(previous.width) === Math.round(width) &&
         Math.round(previous.height) === Math.round(height)
@@ -90,6 +104,8 @@ export default function ScenePreview({
     width: box.width,
     height: box.height,
     spectrumRect: [0, 1, 0, 1],
+    shapeFrame,
+    ...(tuning ? { tuning } : {}),
     onDrawn: drawn,
   });
 

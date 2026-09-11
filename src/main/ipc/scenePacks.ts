@@ -64,6 +64,7 @@ export interface IScenePacksListing {
 
 export interface IScenePacksIpcRegistration {
   store: IScenePackStore;
+  announce(): void;
   /** Announce an event; a fetch follows only if the last one is stale. */
   refreshIfDue(reason: string): Promise<void>;
   dispose(): void;
@@ -328,6 +329,7 @@ export const registerScenePacksIpc = ({
 
   return {
     store,
+    announce,
     refreshIfDue: async (reason) => {
       if (!isDue()) {
         return;

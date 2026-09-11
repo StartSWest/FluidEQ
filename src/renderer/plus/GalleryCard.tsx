@@ -16,7 +16,7 @@ interface IGalleryCardProps {
   /** The member's own account, to tell their scenes from everyone else's. */
   me: string | undefined;
   /** This scene in the member's looks, if it is there. */
-  local: IUsableMemberScene | undefined;
+  local: Pick<IUsableMemberScene, 'version'> | undefined;
   onOpen: (scene: IGalleryScene) => void;
   /** Absent on a maker's own page, where the name would lead back to it. */
   onMaker?: (maker: IMakerRef) => void;
@@ -104,7 +104,9 @@ export default function GalleryCard({
         )}
         <div className="gallery-card__foot">
           <span className="gallery-card__adds">
-            {t('plus.card.adds', { count: adds })}
+            {scene.official
+              ? t('plus.official.included')
+              : t('plus.card.adds', { count: adds })}
           </span>
           <SceneHeart scene={scene} name={name} own={own} />
           {entitled && (

@@ -1,0 +1,305 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's Pictures card: one tile per picture the scene asks for, the
+// picture itself first, its name and size under it, and the button last, so
+// a row of tiles lines up however long a name is. As many to a row as fit.
+
+.studio-pictures {
+  gap: $spacing-m;
+}
+
+.studio-pictures__head {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.studio-pictures__lead {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.studio-pictures__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: $spacing-m;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-picture {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
+  min-width: 0;
+
+  .button {
+    justify-self: start;
+    gap: 6px;
+
+    svg {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+// Every tile the same shape whatever the picture's, the picture whole inside
+// it on the scene's own dark, so a wide strip and a square sit in one row.
+.studio-picture__frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: $radius-s;
+  background: $black;
+
+  // Laid over the frame rather than in its grid: a percentage height in the
+  // frame's own auto-sized row resolves against the picture, not the frame,
+  // and cropped a square pet to the frame's width instead of showing it whole.
+  img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    @include animate(fade-in, $motion-base);
+  }
+
+  // Nothing in it yet: a place for a photo, not a broken picture.
+  &.is-empty {
+    border-style: dashed;
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: color-mix(in srgb, $secondary-default 5%, transparent);
+  }
+}
+
+.studio-picture__empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: $spacing-s;
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: center;
+
+  svg {
+    width: 22px;
+    height: 22px;
+    color: $secondary-light;
+    opacity: 0.7;
+  }
+}
+
+.studio-picture__busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, $black 55%, transparent);
+  @include animate(fade-in, $motion-fast);
+}
+
+.studio-picture__about {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.studio-picture__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+}
+
+.studio-picture__size {
+  color: $text-dim;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------- framing
+
+// The framing editor: the photo in its place, as big as the window allows
+// without the dialog scrolling, with what the place cuts off shown faintly
+// around it.
+.gallery-dialog.studio-framing {
+  width: min(720px, 100%);
+  max-height: min(900px, calc(100vh - #{$spacing-l} * 2));
+
+  @media (max-width: 620px), (max-height: 620px) {
+    max-height: calc(100vh - #{$spacing-m});
+  }
+
+  .gallery-dialog__foot {
+    padding-top: $spacing-m;
+    border-top: 1px solid $border-subtle;
+  }
+
+  .button {
+    gap: 6px;
+
+    svg {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+.studio-framing__heading {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.studio-framing__size {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// Sized by its height as much as its width: a tall place in a wide dialog
+// would otherwise run off the bottom of a laptop's window.
+.studio-framing__stage {
+  position: relative;
+  justify-self: center;
+  width: min(100%, calc(min(440px, 52vh) * var(--aspect, 1)));
+  aspect-ratio: var(--aspect, 1);
+  overflow: hidden;
+  border-radius: $radius-m;
+  background:
+    repeating-conic-gradient(rgba($white, 0.04) 0 25%, transparent 0 50%) 0 0 /
+      18px 18px,
+    color-mix(in srgb, $black 70%, $surface-block);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &.is-dragging {
+    cursor: grabbing;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-framing__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// The place: an edge to judge by, and thirds to line a face up with while
+// the photo moves.
+.studio-framing__frame {
+  position: absolute;
+  border: 1px solid rgba($white, 0.75);
+  box-shadow:
+    0 0 0 1px rgba($black, 0.45),
+    0 0 24px rgba($black, 0.5);
+  pointer-events: none;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &::before {
+    background:
+      linear-gradient(
+        90deg,
+        transparent calc(33.333% - 0.5px),
+        rgba($white, 0.35) 0,
+        rgba($white, 0.35) calc(33.333% + 0.5px),
+        transparent 0
+      ),
+      linear-gradient(
+        90deg,
+        transparent calc(66.666% - 0.5px),
+        rgba($white, 0.35) 0,
+        rgba($white, 0.35) calc(66.666% + 0.5px),
+        transparent 0
+      );
+  }
+
+  &::after {
+    background:
+      linear-gradient(
+        180deg,
+        transparent calc(33.333% - 0.5px),
+        rgba($white, 0.35) 0,
+        rgba($white, 0.35) calc(33.333% + 0.5px),
+        transparent 0
+      ),
+      linear-gradient(
+        180deg,
+        transparent calc(66.666% - 0.5px),
+        rgba($white, 0.35) 0,
+        rgba($white, 0.35) calc(66.666% + 0.5px),
+        transparent 0
+      );
+  }
+
+  .is-dragging &::before,
+  .is-dragging &::after {
+    opacity: 1;
+  }
+}
+
+.studio-framing__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: center;
+}
+
+.studio-framing__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px $spacing-m;
+}
+
+.studio-framing__zoom {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-framing__percent {
+  min-width: 4.5ch;
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}

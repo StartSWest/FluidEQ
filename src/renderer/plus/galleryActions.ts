@@ -4,6 +4,7 @@ import type { IGalleryScene, TReportReason } from 'common/plusGallery';
 import type { TGalleryAddOutcome } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
 import { likeMemberSceneLook } from '../utils/memberScenes';
+import { getUsableScenes, refreshScenePacks } from '../utils/scenePacks';
 import { patchGalleryScene } from './galleryStore';
 
 /**
@@ -87,15 +88,29 @@ export const addGalleryScene = async (
       scene.sceneId,
       scene.version,
     )) ?? { ok: false, reason: 'unavailable' };
+    // Add may answer before the official pack announcement arrives. Refresh
+    // its real store so the card and Play agree with the premium look picker.
+    if (outcome.ok && scene.official) {
+      const { lookId } = outcome;
+      if (
+        !getUsableScenes().some(
+          (local) => local.lookId === lookId && local.version >= scene.version,
+        )
+      ) {
+        await refreshScenePacks();
+      }
+    }
   } catch {
     outcome = { ok: false, reason: 'unavailable' };
   }
   adding.delete(scene.lookId);
   addingSnapshot = new Set(adding);
   if (outcome.ok) {
-    patchGalleryScene(scene.lookId, {
+    patchGalleryScene(outcome.lookId, {
       added: true,
-      adds: scene.added ? scene.adds : scene.adds + 1,
+      ...(scene.official
+        ? {}
+        : { adds: scene.added ? scene.adds : scene.adds + 1 }),
     });
     setGalleryNotice({ ok: true, key: 'plus.add.done', vars: { name } });
     return true;

@@ -4,7 +4,10 @@ import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
-import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
+import useSceneRunner, {
+  type ISceneSource,
+  type ISceneTuning,
+} from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
 import {
   createStudioSignalBuffers,
@@ -23,6 +26,8 @@ export type TStageDrawn = (
   frame: ISceneFrame,
   scale: number,
   musicAccent: number,
+  /** What the scene heard before its response bent it. */
+  heard: ISceneFrame,
 ) => void;
 
 interface IStudioStageProps {
@@ -33,6 +38,8 @@ interface IStudioStageProps {
   serial: number;
   signal: TStudioSignal;
   size: TStudioSize;
+  /** The member's settings, live, over the pack's. */
+  tuning?: ISceneTuning;
   onTrouble: (trouble: TStageTrouble) => void;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
@@ -53,6 +60,7 @@ export default function StudioStage({
   serial,
   signal,
   size,
+  tuning,
   onTrouble,
   onDrawn,
   onExitFullscreen,
@@ -141,7 +149,8 @@ export default function StudioStage({
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const onFrame = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent) => drawnRef.current(frame, drawnScale, accent),
+    (frame, drawnScale, accent, heard) =>
+      drawnRef.current(frame, drawnScale, accent, heard),
     [],
   );
 
@@ -151,6 +160,7 @@ export default function StudioStage({
     height: box.height,
     spectrumRect: [0, 1, 0, 1],
     shapeFrame,
+    ...(tuning ? { tuning } : {}),
     onDrawn: onFrame,
   });
 

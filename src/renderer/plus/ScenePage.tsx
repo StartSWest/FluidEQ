@@ -9,7 +9,7 @@ import Glyph from '../community/Glyph';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { useTranslation } from '../utils/I18nContext';
 import { setGraphLook } from '../utils/graphStyle';
-import { useUsableMemberScenes } from '../utils/memberScenes';
+import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import { addGalleryScene, useAddingScenes } from './galleryActions';
 import {
@@ -85,11 +85,7 @@ export default function ScenePage({
   const entitled = usePlusEntitled();
   const scene = useGalleryScene(opened);
   const adding = useAddingScenes().has(scene.lookId);
-  const localScenes = useUsableMemberScenes();
-  const localById = useMemo(
-    () => new Map(localScenes.map((entry) => [entry.lookId, entry])),
-    [localScenes],
-  );
+  const localById = useGalleryLocalScenes();
   const local = localById.get(scene.lookId);
   const [preview, setPreview] = useState<TPreview>({ state: 'loading' });
   const [reporting, setReporting] = useState(false);
@@ -122,7 +118,12 @@ export default function ScenePage({
       return undefined;
     }
     window.electron?.ipcRenderer
-      ?.previewGalleryScene?.(opened.authorId, opened.sceneId, opened.version)
+      ?.previewGalleryScene?.(
+        opened.authorId,
+        opened.sceneId,
+        opened.version,
+        opened.updatedAt,
+      )
       .then((outcome) => {
         if (cancelled) {
           return undefined;
@@ -150,7 +151,13 @@ export default function ScenePage({
     return () => {
       cancelled = true;
     };
-  }, [opened.authorId, opened.sceneId, opened.version, entitled]);
+  }, [
+    opened.authorId,
+    opened.sceneId,
+    opened.version,
+    opened.updatedAt,
+    entitled,
+  ]);
 
   const makerQuery = useMemo(
     () => ({ sort: 'liked', authorId: scene.authorId }) as const,
@@ -199,7 +206,7 @@ export default function ScenePage({
         type="button"
         className="button small"
         onClick={() => {
-          setGraphLook(scene.lookId);
+          setGraphLook(local.lookId);
           onShowGraph();
         }}
       >
@@ -299,20 +306,24 @@ export default function ScenePage({
           <span className="gallery-pill">{t(categoryKey(scene.category))}</span>
         </div>
 
-        <dl className="gallery-figures">
-          <div>
-            <dt>{t('plus.scene.likes')}</dt>
-            <dd>{numbers.format(scene.likes)}</dd>
-          </div>
-          <div>
-            <dt>{t('plus.scene.week')}</dt>
-            <dd>{numbers.format(scene.likesWeek)}</dd>
-          </div>
-          <div>
-            <dt>{t('plus.scene.adds')}</dt>
-            <dd>{numbers.format(scene.adds)}</dd>
-          </div>
-        </dl>
+        {scene.official ? (
+          <p className="gallery-pill">{t('plus.official.included')}</p>
+        ) : (
+          <dl className="gallery-figures">
+            <div>
+              <dt>{t('plus.scene.likes')}</dt>
+              <dd>{numbers.format(scene.likes)}</dd>
+            </div>
+            <div>
+              <dt>{t('plus.scene.week')}</dt>
+              <dd>{numbers.format(scene.likesWeek)}</dd>
+            </div>
+            <div>
+              <dt>{t('plus.scene.adds')}</dt>
+              <dd>{numbers.format(scene.adds)}</dd>
+            </div>
+          </dl>
+        )}
 
         <div className="gallery-scene__actions">
           {primary}
@@ -330,7 +341,7 @@ export default function ScenePage({
           </p>
         )}
         <p className="gallery-fine">{t('plus.scene.fine')}</p>
-        {!own && (
+        {!own && !scene.official && (
           <button
             type="button"
             className="gallery-scene__report"
@@ -375,7 +386,7 @@ export default function ScenePage({
         </section>
       )}
 
-      {reporting && (
+      {reporting && !scene.official && (
         <ReportDialog
           scene={scene}
           name={name}

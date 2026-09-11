@@ -1280,10 +1280,6 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
-.gallery-dialog--wide {
-  width: min(540px, 100%);
-}
-
 .gallery-dialog__head {
   display: flex;
   align-items: center;
@@ -1419,83 +1415,4 @@ it under the terms of the GNU General Public License version 3 or later.
         color-mix(in srgb, $secondary-default 60%, transparent);
     }
   }
-}
-
-// The Studio's publish dialog. The picture is the hero: it is the real scene,
-// exactly as the gallery will show it, so it takes the dialog's whole width,
-// with what it is and the way to take another under it.
-.studio-publish__scene {
-  display: grid;
-  gap: 10px;
-  padding: 10px;
-  @include section-surface;
-}
-
-.studio-publish__frame {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  border-radius: $radius-s;
-  box-shadow: 0 10px 28px rgba($black, 0.45);
-}
-
-.studio-publish__picture {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-}
-
-.studio-publish__taking {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-s;
-  color: $text-primary;
-  background: color-mix(in srgb, $surface-plot 55%, transparent);
-  font-size: $text-small;
-  backdrop-filter: blur(2px);
-}
-
-.studio-publish__about {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: $spacing-s;
-  row-gap: 2px;
-  min-width: 0;
-  color: $text-faint;
-  font-size: $text-small;
-
-  strong {
-    grid-column: 1;
-    color: $text-primary;
-    font-size: $text-body;
-    font-weight: $weight-semibold;
-    overflow-wrap: anywhere;
-  }
-
-  > span {
-    grid-column: 1;
-  }
-}
-
-.studio-publish__retake {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-}
-
-.studio-publish__about .studio-publish__hint {
-  grid-column: 1 / -1;
-  margin-top: 4px;
-  color: $text-dim;
-  line-height: 1.45;
 }

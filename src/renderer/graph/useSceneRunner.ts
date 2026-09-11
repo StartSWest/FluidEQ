@@ -22,6 +22,8 @@ import {
 } from './sceneGl';
 import type { IFlashGuard } from './sceneFlashGuard';
 import type { ICostLadder } from './sceneHealth';
+import { createSceneTuner } from './sceneTuner';
+import type { ISceneRunnerOptions } from './sceneRunnerTypes';
 import { decodeSceneArtwork } from './sceneArtwork';
 import {
   createSpectrumTexels,
@@ -31,46 +33,8 @@ import {
   parseAccent,
 } from './sceneUniforms';
 
-/**
- * Where a scene comes from and what to do when it cannot run — the only thing
- * that differs between an official look on the graph, a member's look on the
- * graph, and the Studio's live stage. The runner below is the same for all
- * three, so a member's scene is drawn by exactly the code an official one is,
- * plus the two safeguards its source asks for.
- */
-export interface ISceneSource {
-  /** What is being drawn. A change starts the clock and the fade again. */
-  identity: string;
-  /** Which version of it. A change swaps the program in place. */
-  version: string;
-  /** For the console, where a person can act on it. */
-  name: string;
-  load(): Promise<IScenePack | undefined>;
-  /** The machine or the bridge failed, not the scene: fall back this session. */
-  block(): void;
-  /** The scene itself failed here. `log` is the driver's message. */
-  reportFailure(reason: 'compile' | 'context-lost', log?: string): void;
-  /** Too slow even at the ladder's floor. */
-  tooSlow(): void;
-  createLadder(): ICostLadder;
-  /** Present only for scenes drawn through the brightness limiter. */
-  createGuard?: (gl: WebGL2RenderingContext) => IFlashGuard | null;
-}
-
-export interface ISceneRunnerOptions {
-  source: ISceneSource;
-  /** The full panel, including the toolbar and axis gutters. */
-  width: number;
-  height: number;
-  spectrumRect: readonly [number, number, number, number];
-  /** Replaces what the scene hears — the Studio's test signals. */
-  shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
-  /**
-   * After every drawn frame: what the scene heard, the ladder's scale, and
-   * the musical accent's envelope the scene was given.
-   */
-  onDrawn?: (frame: ISceneFrame, scale: number, musicAccent: number) => void;
-}
+export type { ISceneRunnerOptions, ISceneSource } from './sceneRunnerTypes';
+export type { ISceneTuning } from './sceneTuner';
 
 /**
  * The GPU loop behind every scene: context, program, frame, recovery.
@@ -90,6 +54,7 @@ export default function useSceneRunner({
   height,
   spectrumRect,
   shapeFrame,
+  tuning,
   onDrawn,
 }: ISceneRunnerOptions): RefObject<HTMLCanvasElement | null> {
   const { points, waveform } = useLiveAudioFrame();
@@ -122,6 +87,9 @@ export default function useSceneRunner({
   sourceRef.current = source;
   const shapeRef = useRef(shapeFrame);
   shapeRef.current = shapeFrame;
+  const tuningRef = useRef(tuning);
+  tuningRef.current = tuning;
+  const tunerRef = useRef(createSceneTuner());
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const pointsRef = useRef(points);
@@ -253,12 +221,19 @@ export default function useSceneRunner({
         waveform: waveformRef.current,
         params: paramsRef.current,
       };
-      const frame = shapeRef.current ? shapeRef.current(heard) : heard;
+      const shaped = shapeRef.current ? shapeRef.current(heard) : heard;
+      const frame = tunerRef.current.apply(
+        shaped,
+        deltaMs,
+        packRef.current,
+        paramsRef.current,
+        tuningRef.current,
+      );
       const guard = guardRef.current;
       guard?.begin(backingWidth, backingHeight);
       program.draw(frame, backingWidth, backingHeight);
       guard?.end(deltaMs);
-      drawnRef.current?.(frame, scale, program.musicAccent());
+      drawnRef.current?.(frame, scale, program.musicAccent(), shaped);
       return true;
     },
     [dropProgram],
@@ -438,6 +413,7 @@ export default function useSceneRunner({
     fadeRef.current = 0;
     clockRef.current = 0;
     energyRef.current = createEnergyState();
+    tunerRef.current.reset();
     accentRef.current = parseAccent(
       getComputedStyle(document.documentElement).getPropertyValue('--accent'),
     );

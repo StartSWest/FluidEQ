@@ -70,8 +70,15 @@ export const registerPlusPublishingIpc = ({
   onTermsAgreed,
 }: IPlusPublishingIpcDeps) => {
   ipcMain.handle('plus-gallery-mine', async (): Promise<TMineOutcome> => {
-    const auth = access.accountId() ? await access.auth() : undefined;
-    return auth ? listPublished(auth) : { ok: false, reason: 'signed-out' };
+    const me = access.accountId();
+    const auth = me ? await access.auth() : undefined;
+    if (!auth || access.accountId() !== me) {
+      return { ok: false, reason: 'signed-out' };
+    }
+    const outcome = await listPublished(auth);
+    return access.accountId() === me
+      ? outcome
+      : { ok: false, reason: 'signed-out' };
   });
 
   ipcMain.handle(
@@ -80,7 +87,7 @@ export const registerPlusPublishingIpc = ({
       const me = access.accountId();
       const ref = me ? sceneRefOf(me, sceneId) : undefined;
       const auth = ref ? await access.auth() : undefined;
-      if (!ref || !auth) {
+      if (!ref || !auth || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
       return unpublishScene(auth, ref.packId);
@@ -98,6 +105,9 @@ export const registerPlusPublishingIpc = ({
       if (!access.entitled()) {
         return { ok: false, reason: 'not-entitled' };
       }
+      // Capture the author before any await: switching accounts during the
+      // project read must not publish this member's work under the next one.
+      const me = access.accountId();
       const folder = activeFolder();
       if (
         !folder ||
@@ -119,10 +129,15 @@ export const registerPlusPublishingIpc = ({
       }
       // The account the server will record the agreement for is the one this
       // token belongs to, so the two are taken together.
-      const me = access.accountId();
       const auth = await access.auth();
       if (!auth || !me || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
+      }
+      if (!access.entitled()) {
+        return { ok: false, reason: 'not-entitled' };
+      }
+      if (activeFolder() !== folder) {
+        return { ok: false, reason: 'no-build' };
       }
       const published = await publishScene(auth, {
         termsVersion,
@@ -134,7 +149,11 @@ export const registerPlusPublishingIpc = ({
         // The server recorded the agreement with the publication, for this
         // account; so is this.
         writeAgreedTerms(userDataDir, me, termsVersion);
-        onTermsAgreed?.(termsVersion);
+        // The completion belongs to the original author; a new account must
+        // not adopt its agreement through the current-account callback.
+        if (access.accountId() === me) {
+          onTermsAgreed?.(termsVersion);
+        }
       }
       return published;
     },

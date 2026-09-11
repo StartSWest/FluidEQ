@@ -28,6 +28,7 @@ import {
   type TPublishOutcome,
 } from '../../../main/ipc/plusPublishing';
 import { writeStarterProject } from '../../../main/memberScenes/project';
+import * as projects from '../../../main/memberScenes/project';
 import { readAgreedTerms } from '../../../main/memberScenes/termsAgreement';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
@@ -60,6 +61,8 @@ let signedIn: boolean;
 let signedInAs: string;
 /** Somebody else signs in while the token is being fetched. */
 let switchDuringAuth: boolean;
+let duringAuth: (() => void) | undefined;
+let duringFetch: (() => void) | undefined;
 let answer: Response;
 let calls: Array<{ url: string; body: Record<string, unknown> }>;
 
@@ -68,6 +71,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
     url: String(input),
     body: JSON.parse(String(init?.body ?? '{}')),
   });
+  duringFetch?.();
   return answer;
 }) as unknown as typeof fetch;
 
@@ -75,6 +79,7 @@ const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? signedInAs : undefined),
   entitled: () => entitled && signedIn,
   auth: async () => {
+    duringAuth?.();
     if (switchDuringAuth) {
       signedInAs = SOMEONE;
     }
@@ -84,11 +89,12 @@ const access = (): IGalleryAccess => ({
 
 const userDataDir = () => path.join(root, 'userData');
 
-const setup = () =>
+const setup = (onTermsAgreed?: (version: number) => void) =>
   registerPlusPublishingIpc({
     access: access(),
     userDataDir: userDataDir(),
     activeFolder: () => folder,
+    onTermsAgreed,
   });
 
 beforeEach(async () => {
@@ -104,15 +110,67 @@ beforeEach(async () => {
   signedIn = true;
   signedInAs = ME;
   switchDuringAuth = false;
+  duringAuth = undefined;
+  duringFetch = undefined;
   answer = fakeResponse(200, { published: {} });
   calls = [];
 });
 
 afterEach(() => {
+  jest.restoreAllMocks();
   fs.rmSync(root, { recursive: true, force: true });
 });
 
 describe('publishing from the Studio', () => {
+  it('keeps the initiating account across the asynchronous project read', async () => {
+    const read = projects.readProject;
+    jest
+      .spyOn(projects, 'readProject')
+      .mockImplementationOnce(async (project) => {
+        const build = await read(project);
+        signedInAs = SOMEONE;
+        return build;
+      });
+    setup();
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'signed-out',
+    });
+    expect(calls).toEqual([]);
+  });
+
+  it.each(['project', 'entitlement'])(
+    'rechecks %s after acquiring the token',
+    async (change) => {
+      setup();
+      duringAuth = () => {
+        if (change === 'project') {
+          folder = path.join(root, 'other');
+        } else {
+          entitled = false;
+        }
+      };
+      expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+        ok: false,
+        reason: change === 'project' ? 'no-build' : 'not-entitled',
+      });
+      expect(calls).toEqual([]);
+    },
+  );
+
+  it('records a completed publication for its author without updating the new account', async () => {
+    const onTermsAgreed = jest.fn();
+    setup(onTermsAgreed);
+    duringFetch = () => {
+      signedInAs = SOMEONE;
+    };
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(readAgreedTerms(userDataDir(), ME)).toBe(4);
+    expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
+    expect(onTermsAgreed).not.toHaveBeenCalled();
+  });
   // The control: the project on disk goes, with the picture, the category and
   // the terms, and the agreement is remembered.
   it('publishes what is on disk, with the picture the page took', async () => {
@@ -205,6 +263,30 @@ describe('publishing from the Studio', () => {
 });
 
 describe('the member’s own published scenes', () => {
+  it.each(['plus-gallery-mine', 'plus-gallery-unpublish'])(
+    'refuses %s if the account changed during auth',
+    async (channel) => {
+      setup();
+      switchDuringAuth = true;
+      expect(await invoke(channel, 'neon-city')).toEqual({
+        ok: false,
+        reason: 'signed-out',
+      });
+      expect(calls).toEqual([]);
+    },
+  );
+
+  it('does not expose an old account list after the response arrives', async () => {
+    setup();
+    answer = fakeResponse(200, []);
+    duringFetch = () => {
+      signedInAs = SOMEONE;
+    };
+    expect(await invoke('plus-gallery-mine')).toEqual({
+      ok: false,
+      reason: 'signed-out',
+    });
+  });
   it('are listed and taken down with the account alone, without Plus', async () => {
     setup();
     entitled = false;

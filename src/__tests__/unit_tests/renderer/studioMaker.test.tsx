@@ -15,6 +15,11 @@ import StudioPanel from '../../../renderer/studio/StudioPanel';
 import { resetStudioIdea } from '../../../renderer/studio/studioIdea';
 import { resetStudioStore } from '../../../renderer/studio/studioStore';
 
+// The empty Studio does not request audio; capture is owned by the app shell.
+jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
+  useLiveAudioCapture: jest.fn(),
+}));
+
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',

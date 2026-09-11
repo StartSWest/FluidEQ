@@ -66,11 +66,26 @@ const studio = {
   'studio.publish.title': 'Опубликовать «{name}»',
   'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
   'studio.publish.version': 'Версия {version}',
-  'studio.publish.pictureAlt': '«{name}» так, как её покажет галерея',
-  'studio.publish.pictureHint':
-    'Ваша сцена только что в Студии, под бодрый тестовый припев. Так она будет выглядеть в галерее.',
-  'studio.publish.retake': 'Снять ещё раз',
-  'studio.publish.taking': 'Снимаем картинку…',
+  'studio.publish.hears': 'Что слышит сцена',
+  'studio.publish.yourMusic': 'Ваша музыка',
+  'studio.publish.demo': 'Демо',
+  'studio.publish.capture': 'Поймать этот момент',
+  'studio.publish.capturing': 'Снимаем…',
+  'studio.publish.quietTitle': 'Ничего не играет',
+  'studio.publish.quietBody':
+    'Включите музыку в любом приложении или используйте демо.',
+  'studio.publish.useDemo': 'Включить демо',
+  'studio.publish.cover': 'Обложка',
+  'studio.publish.coverHint':
+    'Поймайте момент, когда сцена выглядит лучше всего. Галерея покажет обложку с галочкой.',
+  'studio.publish.auto': 'Авто',
+  'studio.publish.shot': 'Обложка {number}',
+  'studio.publish.missed':
+    'Этот момент не удалось поймать. Попробуйте ещё раз.',
+  'studio.publish.stageHeavy':
+    'Сцена слишком тяжёлая, чтобы играть здесь. Обложки ниже по-прежнему подходят.',
+  'studio.publish.stageUnavailable':
+    'Сцена сейчас не может играть здесь. Обложки ниже по-прежнему подходят.',
   'studio.publish.category': 'Категория',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
   'studio.publish.point1':
@@ -98,6 +113,31 @@ const studio = {
   'studio.publish.failed': 'Не удалось опубликовать сцену. Попробуйте ещё раз.',
   'studio.publish.outdated':
     'У условий Plus есть новая версия. Обновите FluidEQ, чтобы прочитать её и опубликовать.',
+
+  'studio.picture.files': 'Изображения',
+  'studio.picture.missing':
+    'Сцена использует ваши изображения, а в папке их пока нет.',
+  'studio.picture.hint':
+    'Выберите их ниже, в разделе «Изображения сцены». Подойдёт любое фото.',
+  'studio.picture.title': 'Изображения сцены',
+  'studio.picture.lead':
+    'Сцена просит эти изображения. Выберите любое фото для каждого, и FluidEQ подгонит его.',
+  'studio.picture.pick': 'Выбрать фото…',
+  'studio.picture.replace': 'Сменить…',
+  'studio.picture.empty': 'Фото пока нет',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': 'Изображение {number}',
+  'studio.picture.saving': 'Сохраняем изображение…',
+  'studio.picture.saved': 'Ваше изображение уже в сцене.',
+  'studio.picture.noSlot': 'Эта сцена не использует изображение.',
+  'studio.picture.badSlot':
+    'pack.json просит изображение, которое FluidEQ не может сделать. Попросите ИИ простое имя файла и размер не больше 4096 × 2048.',
+  'studio.picture.tooLarge':
+    'Файл больше 40 МБ. Выберите изображение поменьше.',
+  'studio.picture.unreadable':
+    'FluidEQ не смог прочитать это изображение. Попробуйте JPG или PNG.',
+  'studio.picture.failed':
+    'Не удалось сохранить изображение в папке проекта. Попробуйте ещё раз.',
 
   'studio.notice.copyFailed':
     'Буфер обмена недоступен. Промпт выделен ниже; нажмите Ctrl+C.',
@@ -146,7 +186,7 @@ const studio = {
 
   'studio.idea.pet.label': 'Мой питомец, живой',
   'studio.idea.pet.text':
-    'Фото моего питомца. Уши дёргаются на каждый удар, хвост покачивается с басами, глаза светятся с высокими, а фон мерцает с медленным спектром.',
+    'Фото моего питомца, живое под музыку. Оно дышит с басами, мягкое свечение обводит силуэт на каждый удар, цвета теплеют со средними, а с высокими поднимаются искры.',
   'studio.idea.city.label': 'Неоновый город',
   'studio.idea.city.text':
     'Неоновый город ночью. Каждое здание — полоса спектра, окна загораются со средними, а поезд пересекает горизонт на каждом музыкальном акценте.',
@@ -201,6 +241,69 @@ const studio = {
   'studio.signal.treble': 'Высокие',
   'studio.signal.beat': 'Удар',
   'studio.signal.accent': 'Акцент',
+  'studio.signal.showcase': 'Всё сразу',
+  'studio.signalHint.live':
+    'То, что играет на этом компьютере, так, как сцена услышит это на графике.',
+  'studio.signalHint.silence':
+    'Совсем ничего. Хорошая сцена здесь отдыхает, лишь медленно дрейфуя.',
+  'studio.signalHint.bass':
+    'Только ровный бас. Показывает, что движется с низами.',
+  'studio.signalHint.mid': 'Только средние: голоса и аккорды.',
+  'studio.signalHint.treble': 'Только тарелки и воздух, в ритм.',
+  'studio.signalHint.beat': 'Бочка на каждую долю, 118 BPM.',
+  'studio.signalHint.accent':
+    'Один большой момент каждые 7,5 секунды, как вступающий припев.',
+  'studio.signalHint.showcase': 'Все каналы сразу, как при съёмке обложки.',
+  'studio.meters.heard': 'что играет',
+  'studio.meters.got': 'что получает сцена',
+
+  'studio.settings.title': 'Настройки сцены',
+  'studio.settings.controls': 'Её регуляторы',
+  'studio.settings.controlsLead':
+    'Ползунки этой сцены, названные так, как в её коде.',
+  'studio.settings.response': 'Как она отвечает на музыку',
+  'studio.settings.responseLead':
+    'Измените то, что она слышит, до того как она это услышит. При 100% и нуле она слышит музыку как есть.',
+  'studio.settings.sensitivity': 'Чувствительность',
+  'studio.settings.sensitivityHint':
+    'Насколько сильно она реагирует. Больше для тихого трека, меньше, если громкий держит её на максимуме.',
+  'studio.settings.threshold': 'Порог',
+  'studio.settings.thresholdHint':
+    'Ниже него она ничего не слышит и может отдыхать в тихих местах.',
+  'studio.settings.attack': 'Атака',
+  'studio.settings.attackHint':
+    'Как быстро она поднимается к услышанному. Коротко — резко, долго — нарастает.',
+  'studio.settings.release': 'Спад',
+  'studio.settings.releaseHint':
+    'Как медленно она опускается обратно. Долго оставляет свечение после каждого удара.',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} мс',
+  'studio.settings.reset': 'Сбросить',
+  'studio.settings.carries':
+    'Сохраняется в сцене, когда вы отпускаете: ваши стили и галерея тоже это получат.',
+  'studio.settings.saving': 'Сохраняем в сцене…',
+  'studio.settings.saved': 'Сохранено в сцене.',
+  'studio.settings.savedLook': 'Сохранено в сцене и в вашем стиле.',
+  'studio.settings.failed':
+    'Не удалось сохранить настройки. Попробуйте ещё раз.',
+
+  'studio.picture.adjust': 'Кадрировать…',
+  'studio.framing.title': 'Кадрировать «{name}»',
+  'studio.framing.hint':
+    'Перетаскивайте, чтобы сдвинуть фото. Колесо или ползунок меняют масштаб.',
+  'studio.framing.stage':
+    '{name} на своём месте. Стрелки сдвигают фото, плюс и минус меняют масштаб.',
+  'studio.framing.role': 'кадрирование фото',
+  'studio.framing.fit': 'Как фото вписывается',
+  'studio.framing.cover': 'Заполнить место',
+  'studio.framing.contain': 'Фото целиком',
+  'studio.framing.zoom': 'Масштаб',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'Как предлагает сцена',
+  'studio.framing.another': 'Другое фото…',
+  'studio.framing.cancel': 'Отмена',
+  'studio.framing.use': 'Использовать это фото',
+  'studio.framing.saving': 'Сохраняем…',
 
   'studio.size.title': 'Размер',
   'studio.size.graph': 'График',

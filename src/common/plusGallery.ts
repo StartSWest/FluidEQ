@@ -4,7 +4,10 @@ import {
   parseMemberLookId,
   sanitizeDisplayText,
 } from './memberScenes';
-import type { TLocalizedName } from './scenePacks';
+import { premiumLookId, type TLocalizedName } from './scenePacks';
+
+/** Reserved catalogue identity, never a member account or leaderboard entry. */
+export const FLUIDEQ_CREATOR_ID = '00000000-0000-4000-8000-000000000001';
 
 /**
  * The Plus gallery: scenes members publish, as the server lists them and the
@@ -61,6 +64,8 @@ export interface IGalleryQuery {
 }
 
 export interface IGalleryScene {
+  /** The signed FluidEQ collection, delivered through the official pack store. */
+  official?: boolean;
   /** The id the look picker uses once it is added. */
   lookId: string;
   authorId: string;
@@ -164,6 +169,10 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   if (!parseMemberLookId(lookId)) {
     return undefined;
   }
+  const official = value.official === true;
+  if (official !== (authorId === FLUIDEQ_CREATOR_ID)) {
+    return undefined;
+  }
   const names = readNames(value.names);
   const swatch = readSwatch(value.swatch);
   const version = count(value.version);
@@ -189,11 +198,14 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
       ? value.author_handle
       : null;
   return {
-    lookId,
+    lookId: official ? premiumLookId(sceneId) : lookId,
+    ...(official ? { official: true } : {}),
     authorId,
     sceneId,
-    authorName: authorName ? authorName.slice(0, MAX_AUTHOR_NAME) : null,
-    authorHandle,
+    authorName: official
+      ? 'FluidEQ'
+      : authorName?.slice(0, MAX_AUTHOR_NAME) || null,
+    authorHandle: official ? 'fluideq' : authorHandle,
     version,
     category: value.category,
     names,

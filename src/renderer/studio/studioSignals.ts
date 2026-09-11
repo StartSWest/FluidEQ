@@ -15,10 +15,10 @@ import type { ISceneFrame } from '../graph/sceneGl';
  */
 
 /**
- * `showcase` is not one of the buttons: it is what a scene hears while its
- * picture is taken — music-like, every channel busy at once, over moving
- * broadband noise — so the picture shows the scene doing things rather than
- * waiting for a song.
+ * `showcase` is everything at once: music-like, every channel busy, over
+ * moving broadband noise. It is what a scene hears while its picture is
+ * taken, so the picture shows it doing things rather than waiting for a
+ * song, and the last of the test buttons, so a member can see the same.
  */
 export type TStudioSignal =
   | 'live'
@@ -38,6 +38,7 @@ export const STUDIO_SIGNALS: readonly TStudioSignal[] = [
   'treble',
   'beat',
   'accent',
+  'showcase',
 ];
 
 const BEAT_PERIOD_S = 60 / 118;

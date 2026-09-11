@@ -1,7 +1,8 @@
 const plus = {
+  'plus.official.included': 'Plus में शामिल',
   'plus.visualizers.title': 'विज़ुअलाइज़र',
   'plus.visualizers.description':
-    'Plus सदस्यों के बनाए सीन — अपने रूपों में जोड़ें और पसंद करें',
+    'FluidEQ और Plus समुदाय के दृश्य, आपके संगीत के लिए तैयार',
   'plus.visualizers.blurb': 'सदस्यों के सीन',
 
   'plus.gate.cta': 'Plus देखें',

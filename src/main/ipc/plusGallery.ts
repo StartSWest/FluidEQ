@@ -3,13 +3,18 @@ import type { IMemberScenePayload } from '../../common/memberSceneFile';
 import { memberLookId } from '../../common/memberScenes';
 import {
   cleanGalleryQuery,
+  FLUIDEQ_CREATOR_ID,
   isGallerySort,
   isPlusCategory,
   isReportReason,
   type IGalleryQuery,
   type IGalleryScene,
 } from '../../common/plusGallery';
-import type { IScenePack, IScenePackEnvelope } from '../../common/scenePacks';
+import {
+  premiumLookId,
+  type IScenePack,
+  type IScenePackEnvelope,
+} from '../../common/scenePacks';
 import { openMemberEnvelope } from '../memberScenes/sharing';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import {
@@ -22,11 +27,8 @@ import {
 } from '../plus/galleryApi';
 import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
 import { createPictureCache } from '../plus/pictureCache';
-import {
-  isSampleGalleryAuthor,
-  sortGalleryRows,
-  type ISampleGallery,
-} from '../plus/sampleGallery';
+import { fetchOfficialScene } from '../plus/officialGallery';
+import type { IScenePackStore } from '../scenePackStore';
 
 /**
  * The Plus gallery, over IPC: listing it, its pictures, a scene's page, Add
@@ -76,8 +78,8 @@ export interface IPlusGalleryIpcDeps {
   announce: () => void;
   /** Subscribe to Plus switching on or off; answers the unsubscribe. */
   onEntitlementChange: (listener: () => void) => () => void;
-  /** DEVELOPMENT ONLY: sample scenes laid into the gallery. */
-  sample?: ISampleGallery;
+  officialStore?: IScenePackStore;
+  announceOfficial?: () => void;
   logger?: { warn(message: string): void };
 }
 
@@ -135,7 +137,15 @@ const readQuery = (value: unknown): IGalleryQuery => {
 interface IFetchedScene {
   envelope: IScenePackEnvelope;
   payload: IMemberScenePayload;
+  revision: string;
 }
+
+const readRevision = (value: unknown) =>
+  typeof value === 'string' &&
+  value.length <= 40 &&
+  Number.isFinite(Date.parse(value))
+    ? value
+    : '';
 
 export const registerPlusGalleryIpc = ({
   access,
@@ -143,21 +153,21 @@ export const registerPlusGalleryIpc = ({
   refreshBlocked,
   announce,
   onEntitlementChange,
-  sample,
+  officialStore,
+  announceOfficial,
   logger,
 }: IPlusGalleryIpcDeps): IPlusGalleryRegistration => {
   const pictures = createPictureCache(PICTURE_CACHE_BYTES);
   const picturesInFlight = new Map<string, Promise<string | undefined>>();
   const previews = new Map<string, IFetchedScene>();
-  const isSample = (authorId: string) =>
-    sample !== undefined && isSampleGalleryAuthor(authorId);
 
   const picture = async (
     authorId: string,
     sceneId: string,
     version: number,
+    revision: string,
   ): Promise<string | undefined> => {
-    const key = `${authorId}/${sceneId}@${version}`;
+    const key = `${authorId}/${sceneId}@${version}:${revision}`;
     const cached = pictures.get(key);
     if (cached) {
       return cached;
@@ -187,11 +197,13 @@ export const registerPlusGalleryIpc = ({
     authorId: string,
     sceneId: string,
     version?: number,
+    revision = '',
   ): Promise<IFetchedScene | TGallerySceneFailure> => {
     const lookId = memberLookId(authorId, sceneId);
     const kept = previews.get(lookId);
     if (
       kept &&
+      kept.revision === revision &&
       version !== undefined &&
       kept.payload.pack.version === version
     ) {
@@ -214,7 +226,7 @@ export const registerPlusGalleryIpc = ({
     ) {
       return 'changed';
     }
-    const fetched = { envelope, payload };
+    const fetched = { envelope, payload, revision };
     previews.delete(lookId);
     previews.set(lookId, fetched);
     if (previews.size > PREVIEW_CACHE_SCENES) {
@@ -243,16 +255,6 @@ export const registerPlusGalleryIpc = ({
       const listed = auth
         ? await listGallery(auth, query)
         : ({ ok: false, reason: 'signed-out' } as const);
-      if (sample) {
-        // In development the cast's scenes stand in whether or not the
-        // gallery's server half is deployed yet.
-        const real = listed.ok ? listed.scenes : [];
-        return {
-          ok: true,
-          scenes: sortGalleryRows([...real, ...sample.rows(query)], query.sort),
-          more: listed.ok && listed.more,
-        };
-      }
       if (!listed.ok) {
         return listed;
       }
@@ -270,26 +272,36 @@ export const registerPlusGalleryIpc = ({
 
   ipcMain.handle(
     'plus-gallery-picture',
-    (_event, authorId: unknown, sceneId: unknown, version: unknown) => {
+    (
+      _event,
+      authorId: unknown,
+      sceneId: unknown,
+      version: unknown,
+      rawRevision: unknown,
+    ) => {
       const ref = sceneRefOf(authorId, sceneId);
       if (
         !ref ||
         !signedIn() ||
-        isSample(ref.authorId) ||
+        ref.authorId === FLUIDEQ_CREATOR_ID ||
         typeof version !== 'number' ||
         !Number.isInteger(version) ||
         version < 1
       ) {
         return undefined;
       }
-      const key = `${ref.authorId}/${ref.packId}@${version}`;
+      const revision = readRevision(rawRevision);
+      const key = `${ref.authorId}/${ref.packId}@${version}:${revision}`;
       const inFlight = picturesInFlight.get(key);
       if (inFlight) {
         return inFlight;
       }
-      const request = picture(ref.authorId, ref.packId, version).finally(() =>
-        picturesInFlight.delete(key),
-      );
+      const request = picture(
+        ref.authorId,
+        ref.packId,
+        version,
+        revision,
+      ).finally(() => picturesInFlight.delete(key));
       picturesInFlight.set(key, request);
       return request;
     },
@@ -302,6 +314,7 @@ export const registerPlusGalleryIpc = ({
       authorId: unknown,
       sceneId: unknown,
       version: unknown,
+      rawRevision: unknown,
     ): Promise<TGalleryPreviewOutcome> => {
       // Anyone signed in may watch a scene on its page: with Plus for as
       // long as they like, without it for the taste the page gives. What
@@ -310,9 +323,14 @@ export const registerPlusGalleryIpc = ({
       if (!ref || !signedIn()) {
         return { ok: false, reason: 'not-entitled' };
       }
-      if (isSample(ref.authorId)) {
-        const pack = sample?.pack(ref.packId);
-        return pack
+      if (ref.authorId === FLUIDEQ_CREATOR_ID) {
+        const me = access.accountId();
+        const auth = await access.auth();
+        const fetched = auth
+          ? await fetchOfficialScene(auth, ref.packId)
+          : undefined;
+        const pack = fetched?.pack;
+        return pack && me === access.accountId()
           ? { ok: true, pack, own: false }
           : { ok: false, reason: 'unavailable' };
       }
@@ -323,6 +341,7 @@ export const registerPlusGalleryIpc = ({
         ref.authorId,
         ref.packId,
         typeof version === 'number' ? version : undefined,
+        readRevision(rawRevision),
       );
       if (typeof fetched === 'string') {
         return { ok: false, reason: fetched };
@@ -348,9 +367,36 @@ export const registerPlusGalleryIpc = ({
       if (!ref || !access.entitled() || !me) {
         return { ok: false, reason: 'not-entitled' };
       }
-      // A sample was never signed, so there is nothing to keep.
-      if (isSample(ref.authorId)) {
-        return { ok: false, reason: 'unavailable' };
+      if (ref.authorId === FLUIDEQ_CREATOR_ID) {
+        const auth = await access.auth();
+        const fetched = auth
+          ? await fetchOfficialScene(auth, ref.packId)
+          : undefined;
+        if (!access.entitled() || access.accountId() !== me) {
+          return { ok: false, reason: 'not-entitled' };
+        }
+        if (!fetched || !officialStore) {
+          return { ok: false, reason: 'unavailable' };
+        }
+        try {
+          officialStore.adopt([
+            {
+              id: fetched.pack.id,
+              version: fetched.pack.version,
+              envelope: fetched.envelope,
+            },
+          ]);
+          if (!officialStore.load(ref.packId)) {
+            return { ok: false, reason: 'refused' };
+          }
+          announceOfficial?.();
+          return { ok: true, lookId: premiumLookId(ref.packId) };
+        } catch (error) {
+          logger?.warn(
+            `Adding an official gallery scene failed: ${String(error)}`,
+          );
+          return { ok: false, reason: 'refused' };
+        }
       }
       // A scene blocked since the list was last asked must not slip in.
       await refreshBlocked();
@@ -401,9 +447,8 @@ export const registerPlusGalleryIpc = ({
       if (!ref || !signedIn() || !isReportReason(reason)) {
         return false;
       }
-      // A report on a sample goes nowhere, and says it went.
-      if (isSample(ref.authorId)) {
-        return true;
+      if (ref.authorId === FLUIDEQ_CREATOR_ID) {
+        return false;
       }
       const auth = await access.auth();
       return auth ? reportScene(auth, ref.authorId, ref.packId, reason) : false;

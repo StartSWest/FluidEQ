@@ -17,7 +17,8 @@ export const categoryKey = (category: TPlusCategory): TranslationKey =>
 export const usePlusEntitled = () => useEntitlement().state !== 'none';
 
 interface IScenePictureProps {
-  scene: Pick<IGalleryScene, 'lookId' | 'authorId' | 'sceneId' | 'version'>;
+  scene: Pick<IGalleryScene, 'lookId' | 'authorId' | 'sceneId' | 'version'> &
+    Partial<Pick<IGalleryScene, 'updatedAt'>>;
   className?: string;
   /** Read by a screen reader; the picture is otherwise decoration. */
   label?: string;
@@ -128,6 +129,9 @@ export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
   const { t } = useTranslation();
   const entitled = usePlusEntitled();
   const count = String(scene.likes);
+  if (scene.official) {
+    return null;
+  }
   if (own || !entitled) {
     return (
       <LikeCount

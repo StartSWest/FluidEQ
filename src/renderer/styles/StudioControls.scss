@@ -1,0 +1,203 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's sliders — a scene's own controls, how it answers the music,
+// the zoom on a photo being framed — and the card they sit in.
+
+// The app's slider: a thin track with a round accent thumb. The part of the
+// track below the thumb is lit, from `--fill` (a percentage the component
+// sets), so where a value sits reads at a glance across a column of them.
+.studio-slider {
+  width: 100%;
+  min-width: 0;
+  height: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $secondary-default 80%, transparent) var(--fill, 0%),
+    rgba($white, 0.12) var(--fill, 0%)
+  );
+  appearance: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+    border: 2px solid color-mix(in srgb, $black 55%, $secondary-light);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 45%, transparent);
+    appearance: none;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  &:hover:not(:disabled)::-webkit-slider-thumb,
+  &:active:not(:disabled)::-webkit-slider-thumb {
+    transform: scale(1.15);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::-webkit-slider-thumb {
+      @include focus-ring;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+// ---------------------------------------------------------------- settings
+
+.studio-settings {
+  gap: 12px;
+  container: settings / inline-size;
+
+  // Waiting for a scene, not broken: the settings still show, unlit.
+  &.is-idle .studio-settings__group {
+    opacity: $disabled-opacity;
+  }
+
+  // Under the stage, where the column's cards pair up, the settings take a
+  // row of their own rather than half of one beside nothing.
+  @container studio (min-width: 480px) and (max-width: 760px) {
+    grid-column: 1 / -1;
+  }
+}
+
+// Wide enough, the scene's controls and its response sit side by side.
+.studio-settings__groups {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+
+  @container settings (min-width: 440px) {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: $spacing-l;
+
+    .studio-settings__group + .studio-settings__group {
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+}
+
+// A group: its title and reset on one line, what it does under them, then
+// its sliders. Groups are parted by a hairline, not boxed: they are two
+// halves of one card.
+.studio-settings__group {
+  display: grid;
+  // Side by side, the shorter group is stretched to its neighbour's height;
+  // its rows stay packed at the top instead of spreading into the gap.
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px solid $border-subtle;
+  }
+}
+
+.studio-settings__group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.studio-settings__group-title {
+  min-width: 0;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// A reset is a small thing next to a title, so it reads as a word, not a
+// button — but a word that answers the pointer and the keyboard.
+.studio-settings__reset {
+  flex: 0 0 auto;
+  padding: 1px 4px;
+  color: $secondary-light;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $white;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    color: $text-dim;
+    cursor: default;
+  }
+}
+
+.studio-settings__lead {
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.5;
+}
+
+.studio-setting {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.studio-setting__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.studio-setting__label {
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+.studio-setting__value {
+  flex: 0 0 auto;
+  color: $text-primary;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-settings__saved {
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+
+  &.is-failed {
+    color: $amber;
+  }
+}

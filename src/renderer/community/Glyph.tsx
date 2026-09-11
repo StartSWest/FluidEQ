@@ -25,7 +25,8 @@ export type TCommunityGlyph =
   | 'copy'
   | 'check'
   | 'download'
-  | 'close';
+  | 'close'
+  | 'camera';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -222,6 +223,14 @@ export default function Glyph({ name, className }: IGlyphProps) {
         );
       case 'close':
         return <path d="M5 5l10 10M15 5 5 15" />;
+      case 'camera':
+        // A camera: catching a scene's cover.
+        return (
+          <>
+            <path d="M2.5 7.3A1.8 1.8 0 0 1 4.3 5.5h2.2l1.3-2h4.4l1.3 2h2.2a1.8 1.8 0 0 1 1.8 1.8v7.4a1.8 1.8 0 0 1-1.8 1.8H4.3a1.8 1.8 0 0 1-1.8-1.8Z" />
+            <circle cx="10" cy="11" r="3.2" />
+          </>
+        );
       default:
         return null;
     }

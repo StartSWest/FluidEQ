@@ -7,8 +7,8 @@ import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
  * Every picture in the gallery is the real scene.
  *
  * A published scene carries the picture its maker took in the Studio, and
- * that is what a card shows. A scene without one — a development sample, or
- * a picture that would not download — gets a frame drawn here from the scene
+ * that is what a card shows. A scene without one, or whose picture would not
+ * download, gets a frame drawn here from the scene
  * itself, under the same showcase signal the Studio uses, so the gallery
  * never shows a drawing standing in for a scene. Those are drawn one at a
  * time, on one shared context, and only for cards near the screen.
@@ -23,7 +23,8 @@ export type TScenePicture =
 type TSceneRef = Pick<
   IGalleryScene,
   'lookId' | 'authorId' | 'sceneId' | 'version'
->;
+> &
+  Partial<Pick<IGalleryScene, 'updatedAt'>>;
 
 /** Pictures by scene version: a data URL, or null for one that cannot draw. */
 const pictures = new Map<string, string | null>();
@@ -49,7 +50,8 @@ let drawing: Promise<unknown> = Promise.resolve();
 
 const bridge = () => window.electron?.ipcRenderer;
 
-const pictureKey = (scene: TSceneRef) => `${scene.lookId}@${scene.version}`;
+const pictureKey = (scene: TSceneRef) =>
+  `${scene.lookId}@${scene.version}:${scene.updatedAt ?? ''}`;
 
 /**
  * A frame of the scene itself, drawn in turn. Undefined when the scene could
@@ -62,6 +64,7 @@ const drawFrame = (scene: TSceneRef): Promise<string | null | undefined> => {
       scene.authorId,
       scene.sceneId,
       scene.version,
+      scene.updatedAt,
     );
     if (!outcome?.ok) {
       return undefined;
@@ -85,7 +88,12 @@ const pictureOf = (scene: TSceneRef) => {
   }
   const request = (async () => {
     const published = await bridge()
-      ?.galleryPicture?.(scene.authorId, scene.sceneId, scene.version)
+      ?.galleryPicture?.(
+        scene.authorId,
+        scene.sceneId,
+        scene.version,
+        scene.updatedAt,
+      )
       .catch(() => undefined);
     return published ?? drawFrame(scene);
   })().then((result) => {

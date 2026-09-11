@@ -66,11 +66,26 @@ const studio = {
   'studio.publish.title': '{name} を公開',
   'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
   'studio.publish.version': 'バージョン {version}',
-  'studio.publish.pictureAlt': 'ギャラリーでの {name} の表示',
-  'studio.publish.pictureHint':
-    'にぎやかなテスト用のサビで動く、たった今のステージ上のシーンです。ギャラリーではこのように表示されます。',
-  'studio.publish.retake': '撮り直す',
-  'studio.publish.taking': '撮影しています…',
+  'studio.publish.hears': 'シーンが聴く音',
+  'studio.publish.yourMusic': 'あなたの音楽',
+  'studio.publish.demo': 'デモ',
+  'studio.publish.capture': 'この瞬間をキャプチャ',
+  'studio.publish.capturing': 'キャプチャしています…',
+  'studio.publish.quietTitle': '何も再生されていません',
+  'studio.publish.quietBody':
+    'いずれかのアプリで音楽を再生するか、デモを使ってください。',
+  'studio.publish.useDemo': 'デモを使う',
+  'studio.publish.cover': 'カバー',
+  'studio.publish.coverHint':
+    'シーンがいちばん映える瞬間をキャプチャしてください。チェックの付いたカバーがギャラリーに表示されます。',
+  'studio.publish.auto': '自動',
+  'studio.publish.shot': 'カバー {number}',
+  'studio.publish.missed':
+    'その瞬間をキャプチャできませんでした。もう一度お試しください。',
+  'studio.publish.stageHeavy':
+    'このシーンはここで再生するには重すぎます。下のカバーはそのまま使えます。',
+  'studio.publish.stageUnavailable':
+    '今はここでシーンを再生できません。下のカバーはそのまま使えます。',
   'studio.publish.category': 'カテゴリ',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.point1':
@@ -100,6 +115,31 @@ const studio = {
     'シーンを公開できませんでした。もう一度お試しください。',
   'studio.publish.outdated':
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
+
+  'studio.picture.files': '画像',
+  'studio.picture.missing':
+    'このシーンはあなたの画像を使いますが、フォルダにまだ画像がありません。',
+  'studio.picture.hint':
+    '下の「シーンの画像」で選んでください。どんな写真でも使えます。',
+  'studio.picture.title': 'シーンの画像',
+  'studio.picture.lead':
+    'このシーンはこれらの画像を使います。それぞれに好きな写真を選ぶと、FluidEQ が合わせて調整します。',
+  'studio.picture.pick': '写真を選ぶ…',
+  'studio.picture.replace': '変更…',
+  'studio.picture.empty': 'まだ写真がありません',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': '画像 {number}',
+  'studio.picture.saving': '画像を保存しています…',
+  'studio.picture.saved': '画像がシーンに入りました。',
+  'studio.picture.noSlot': 'このシーンは画像を使いません。',
+  'studio.picture.badSlot':
+    'pack.json が FluidEQ では作れない画像を求めています。AI に、単純なファイル名と 4096 × 2048 以下のサイズにするよう頼んでください。',
+  'studio.picture.tooLarge':
+    'このファイルは 40 MB を超えています。もっと小さい画像を選んでください。',
+  'studio.picture.unreadable':
+    'FluidEQ はこの画像を読み込めませんでした。JPG か PNG を試してください。',
+  'studio.picture.failed':
+    '画像をプロジェクトのフォルダに保存できませんでした。もう一度お試しください。',
 
   'studio.notice.copyFailed':
     'クリップボードを使えません。下のプロンプトを選択したので Ctrl+C を押してください。',
@@ -148,7 +188,7 @@ const studio = {
 
   'studio.idea.pet.label': 'うちのペットを動かす',
   'studio.idea.pet.text':
-    'うちのペットの写真。耳はビートのたびにぴくっと動き、しっぽは低音で揺れ、目は高音で光り、背景はゆっくりしたスペクトラムできらめく。',
+    'うちのペットの写真が音楽で生きる。低音で呼吸し、ビートのたびにやわらかな光が輪郭をなぞり、中音で色が温かくなり、高音できらめきが立ちのぼる。',
   'studio.idea.city.label': 'ネオンの街',
   'studio.idea.city.text':
     '夜のネオンの街。ビルの一つひとつがスペクトラムの帯で、窓は中音で灯り、音楽のアクセントごとに電車がスカイラインを横切る。',
@@ -203,6 +243,68 @@ const studio = {
   'studio.signal.treble': '高音',
   'studio.signal.beat': 'ビート',
   'studio.signal.accent': 'アクセント',
+  'studio.signal.showcase': 'すべて同時',
+  'studio.signalHint.live':
+    'このコンピューターで再生中の音。シーンがグラフで聴くのと同じです。',
+  'studio.signalHint.silence':
+    '何も鳴りません。よいシーンはここで休み、ゆっくり漂うだけです。',
+  'studio.signalHint.bass': '一定の低音だけ。低音で何が動くかがわかります。',
+  'studio.signalHint.mid': '中音だけ：声と和音。',
+  'studio.signalHint.treble': 'ハイハットと空気感だけ、リズムに乗って。',
+  'studio.signalHint.beat': '毎拍のキック、118 BPM。',
+  'studio.signalHint.accent': '7.5 秒ごとに大きな瞬間。サビが来るように。',
+  'studio.signalHint.showcase':
+    'すべてのチャンネルが同時に。カバーを撮るときと同じです。',
+  'studio.meters.heard': '鳴っている音',
+  'studio.meters.got': 'シーンが受け取る音',
+
+  'studio.settings.title': 'シーンの設定',
+  'studio.settings.controls': 'シーンのコントロール',
+  'studio.settings.controlsLead':
+    'このシーンのスライダー。名前はコードのとおりです。',
+  'studio.settings.response': '音楽への反応',
+  'studio.settings.responseLead':
+    '聴く前に、聴く音を調整します。100% とゼロなら、音楽をそのまま聴きます。',
+  'studio.settings.sensitivity': '感度',
+  'studio.settings.sensitivityHint':
+    'どれだけ強く反応するか。静かな曲では上げ、大きな曲で振り切れるなら下げます。',
+  'studio.settings.threshold': 'しきい値',
+  'studio.settings.thresholdHint':
+    'これより下は何も聴こえず、静かな部分で休めます。',
+  'studio.settings.attack': 'アタック',
+  'studio.settings.attackHint':
+    '聴いた音へどれだけ速く上がるか。短いと鋭く、長いとふくらみます。',
+  'studio.settings.release': 'リリース',
+  'studio.settings.releaseHint':
+    'どれだけゆっくり戻るか。長いと、打つたびに余韻の光が残ります。',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} ms',
+  'studio.settings.reset': 'リセット',
+  'studio.settings.carries':
+    '手を離すとシーンに保存されます。スタイルとギャラリーにも反映されます。',
+  'studio.settings.saving': 'シーンに保存しています…',
+  'studio.settings.saved': 'シーンに保存しました。',
+  'studio.settings.savedLook': 'シーンとあなたのスタイルに保存しました。',
+  'studio.settings.failed':
+    '設定を保存できませんでした。もう一度お試しください。',
+
+  'studio.picture.adjust': 'トリミング…',
+  'studio.framing.title': '「{name}」をトリミング',
+  'studio.framing.hint':
+    'ドラッグで写真を動かし、ホイールかスライダーで拡大します。',
+  'studio.framing.stage':
+    '{name} の配置。矢印キーで写真を動かし、プラスとマイナスで拡大します。',
+  'studio.framing.role': '写真のトリミング',
+  'studio.framing.fit': '写真の収め方',
+  'studio.framing.cover': 'スペースを埋める',
+  'studio.framing.contain': '写真全体',
+  'studio.framing.zoom': 'ズーム',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'シーンのおすすめどおり',
+  'studio.framing.another': '別の写真…',
+  'studio.framing.cancel': 'キャンセル',
+  'studio.framing.use': 'この写真を使う',
+  'studio.framing.saving': '保存しています…',
 
   'studio.size.title': 'サイズ',
   'studio.size.graph': 'グラフ',

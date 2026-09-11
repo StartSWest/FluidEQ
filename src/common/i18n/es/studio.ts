@@ -68,11 +68,26 @@ const studio = {
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Actualizar {name} en la galería',
   'studio.publish.version': 'Versión {version}',
-  'studio.publish.pictureAlt': '{name}, como se verá en la galería',
-  'studio.publish.pictureHint':
-    'Tu escena en el escenario ahora mismo, sonando con un estribillo de prueba animado. Así se verá en la galería.',
-  'studio.publish.retake': 'Tomar otra',
-  'studio.publish.taking': 'Tomando la imagen…',
+  'studio.publish.hears': 'Lo que oye la escena',
+  'studio.publish.yourMusic': 'Tu música',
+  'studio.publish.demo': 'Demo',
+  'studio.publish.capture': 'Capturar este momento',
+  'studio.publish.capturing': 'Capturando…',
+  'studio.publish.quietTitle': 'No suena nada',
+  'studio.publish.quietBody':
+    'Pon música en cualquier aplicación, o usa la demo.',
+  'studio.publish.useDemo': 'Usar la demo',
+  'studio.publish.cover': 'Portada',
+  'studio.publish.coverHint':
+    'Captura el momento en que la escena luce mejor. La portada marcada es la que muestra la galería.',
+  'studio.publish.auto': 'Auto',
+  'studio.publish.shot': 'Portada {number}',
+  'studio.publish.missed':
+    'Ese momento no se pudo capturar. Inténtalo de nuevo.',
+  'studio.publish.stageHeavy':
+    'La escena es demasiado pesada para reproducirse aquí. Las portadas de abajo siguen sirviendo.',
+  'studio.publish.stageUnavailable':
+    'La escena no se puede reproducir aquí ahora. Las portadas de abajo siguen sirviendo.',
   'studio.publish.category': 'Categoría',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.point1':
@@ -101,6 +116,31 @@ const studio = {
     'No se pudo publicar la escena. Vuelve a intentarlo.',
   'studio.publish.outdated':
     'Las condiciones de Plus tienen una versión nueva. Actualiza FluidEQ para leerla y publicar.',
+
+  'studio.picture.files': 'Imágenes',
+  'studio.picture.missing':
+    'La escena usa imágenes tuyas y la carpeta todavía no tiene ninguna.',
+  'studio.picture.hint':
+    'Elígelas abajo, en Imágenes de la escena. Sirve cualquier foto.',
+  'studio.picture.title': 'Imágenes de la escena',
+  'studio.picture.lead':
+    'La escena pide estas imágenes. Elige cualquier foto para cada una y FluidEQ la ajusta.',
+  'studio.picture.pick': 'Elegir una foto…',
+  'studio.picture.replace': 'Cambiar…',
+  'studio.picture.empty': 'Sin foto todavía',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': 'Imagen {number}',
+  'studio.picture.saving': 'Guardando la imagen…',
+  'studio.picture.saved': 'Tu imagen ya está en la escena.',
+  'studio.picture.noSlot': 'Esta escena no usa ninguna imagen.',
+  'studio.picture.badSlot':
+    'pack.json pide una imagen que FluidEQ no puede hacer. Pide a tu IA un nombre de archivo simple y un tamaño de hasta 4096 × 2048.',
+  'studio.picture.tooLarge':
+    'Ese archivo pasa de 40 MB. Elige una imagen más pequeña.',
+  'studio.picture.unreadable':
+    'FluidEQ no pudo leer esa imagen. Prueba con un JPG o un PNG.',
+  'studio.picture.failed':
+    'La imagen no se pudo guardar en la carpeta del proyecto. Inténtalo de nuevo.',
 
   'studio.notice.copyFailed':
     'El portapapeles no está disponible. El prompt está seleccionado abajo; pulsa Ctrl+C.',
@@ -147,7 +187,7 @@ const studio = {
 
   'studio.idea.pet.label': 'Mi mascota, viva',
   'studio.idea.pet.text':
-    'La foto de mi mascota. Las orejas se mueven con cada golpe, la cola se mece con los graves, los ojos brillan con los agudos y el fondo reluce con el espectro lento.',
+    'La foto de mi mascota, viva con la música. Respira con los graves, un brillo suave recorre su silueta en cada golpe, sus colores se calientan con los medios y suben chispas con los agudos.',
   'studio.idea.city.label': 'Ciudad de neón',
   'studio.idea.city.text':
     'Una ciudad de neón de noche. Cada edificio es una banda del espectro, las ventanas se encienden con los medios y un tren cruza el horizonte en cada acento musical.',
@@ -202,6 +242,70 @@ const studio = {
   'studio.signal.treble': 'Agudos',
   'studio.signal.beat': 'Golpe',
   'studio.signal.accent': 'Acento',
+  'studio.signal.showcase': 'Todo junto',
+  'studio.signalHint.live':
+    'Lo que suena en este equipo, tal como lo oirá la escena en la gráfica.',
+  'studio.signalHint.silence':
+    'Nada en absoluto. Una buena escena descansa aquí, solo con una deriva lenta.',
+  'studio.signalHint.bass':
+    'Solo un bajo constante. Muestra qué se mueve con los graves.',
+  'studio.signalHint.mid': 'Solo los medios: voces y acordes.',
+  'studio.signalHint.treble': 'Solo platillos y aire, marcando el ritmo.',
+  'studio.signalHint.beat': 'Un bombo en cada golpe, a 118 BPM.',
+  'studio.signalHint.accent':
+    'Un gran momento cada 7,5 segundos, como un estribillo que entra.',
+  'studio.signalHint.showcase':
+    'Todos los canales a la vez, como cuando se toma una portada.',
+  'studio.meters.heard': 'lo que suena',
+  'studio.meters.got': 'lo que recibe la escena',
+
+  'studio.settings.title': 'Ajustes de la escena',
+  'studio.settings.controls': 'Sus controles',
+  'studio.settings.controlsLead':
+    'Los deslizadores que trae esta escena, con los nombres de su código.',
+  'studio.settings.response': 'Cómo responde a la música',
+  'studio.settings.responseLead':
+    'Ajusta lo que oye antes de oírlo. Al 100% y en cero, oye la música tal cual.',
+  'studio.settings.sensitivity': 'Sensibilidad',
+  'studio.settings.sensitivityHint':
+    'Cuánto reacciona. Más para una canción suave, menos si una fuerte la deja siempre al máximo.',
+  'studio.settings.threshold': 'Umbral',
+  'studio.settings.thresholdHint':
+    'Por debajo no oye nada, así puede descansar en las partes suaves.',
+  'studio.settings.attack': 'Ataque',
+  'studio.settings.attackHint':
+    'Qué tan rápido sube a lo que oye. Corto es contundente; largo, crece despacio.',
+  'studio.settings.release': 'Liberación',
+  'studio.settings.releaseHint':
+    'Qué tan despacio vuelve a bajar. Largo deja un brillo después de cada golpe.',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} ms',
+  'studio.settings.reset': 'Restablecer',
+  'studio.settings.carries':
+    'Se guarda en la escena al soltar: tus estilos y la galería también lo reciben.',
+  'studio.settings.saving': 'Guardando en la escena…',
+  'studio.settings.saved': 'Guardado en la escena.',
+  'studio.settings.savedLook': 'Guardado en la escena y en tu estilo.',
+  'studio.settings.failed':
+    'No se pudieron guardar los ajustes. Inténtalo de nuevo.',
+
+  'studio.picture.adjust': 'Encuadrar…',
+  'studio.framing.title': 'Encuadrar «{name}»',
+  'studio.framing.hint':
+    'Arrastra para mover la foto. Usa la rueda o el deslizador para acercar.',
+  'studio.framing.stage':
+    '{name} en su lugar. Las flechas mueven la foto; más y menos acercan.',
+  'studio.framing.role': 'encuadre de foto',
+  'studio.framing.fit': 'Cómo encaja la foto',
+  'studio.framing.cover': 'Llenar el espacio',
+  'studio.framing.contain': 'Foto entera',
+  'studio.framing.zoom': 'Zoom',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'Como sugiere la escena',
+  'studio.framing.another': 'Otra foto…',
+  'studio.framing.cancel': 'Cancelar',
+  'studio.framing.use': 'Usar esta foto',
+  'studio.framing.saving': 'Guardando…',
 
   'studio.size.title': 'Tamaño',
   'studio.size.graph': 'Gráfica',

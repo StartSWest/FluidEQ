@@ -34,6 +34,8 @@ import {
   type IProjectList,
 } from '../memberScenes/studioProjects';
 import type { TSceneFailure } from '../scenePackStore';
+import { registerStudioPicturesIpc } from './studioPictures';
+import { registerStudioSettingsIpc } from './studioSettings';
 
 /**
  * Member scenes and the Studio, as the renderer sees them.
@@ -444,6 +446,23 @@ export const registerMemberScenesIpc = ({
     }
   });
 
+  // The Pictures card, and the scene's settings.
+  const disposePictures = registerStudioPicturesIpc({
+    getMainWindow,
+    entitled,
+    activeFolder,
+    dialogImpl,
+    ...(logger ? { logger } : {}),
+  });
+  const disposeSettings = registerStudioSettingsIpc({
+    entitled,
+    activeFolder,
+    accountId,
+    store,
+    announceScenes,
+    ...(logger ? { logger } : {}),
+  });
+
   return {
     store,
     activeFolder,
@@ -451,6 +470,8 @@ export const registerMemberScenesIpc = ({
     dispose: () => {
       unsubscribe();
       stopWatching();
+      disposePictures();
+      disposeSettings();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },
   };

@@ -1,31 +1,40 @@
 import { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
+import type { IScenePack } from 'common/scenePacks';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
+import type { ISceneFrame } from '../graph/sceneGl';
+import type { ISceneTuning } from '../graph/useSceneRunner';
 import { categoryKey } from '../plus/GalleryParts';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
+import StudioPublishCamera from './StudioPublishCamera';
+import StudioPublishCovers from './StudioPublishCovers';
 import type { IPublishDraft } from './useStudioPublish';
 import '../styles/Gallery.scss';
+import '../styles/StudioPublish.scss';
 
 interface IStudioPublishDialogProps {
+  /** The project, so the dialog's stage is its own. */
+  identity: string;
+  pack: IScenePack;
   name: string;
-  version: number;
   draft: IPublishDraft;
   running: boolean;
-  /** Another picture is being taken from the stage. */
-  retaking: boolean;
-  onRetake: () => void;
+  /** The Studio's settings, so the scene plays here as it does on the stage. */
+  tuning: ISceneTuning;
+  onCapture: (frames: ISceneFrame[]) => void;
+  onChoose: (id: number) => void;
   onPublish: (category: TPlusCategory) => void;
   onCancel: () => void;
 }
 
 /**
- * Publishing a scene to the gallery: the picture it will show with — the real
- * scene, taken from the stage a moment ago while it played the showcase, and
- * taken again from a later moment on request — a category from the fixed
- * list, and the three sentences that matter about what publishing means.
+ * Publishing a scene to the gallery: the scene itself, playing, to catch its
+ * cover from — a picture the dialog opens with is there already, and every
+ * capture joins it to choose between — then a category from the fixed list
+ * and the three sentences that matter about what publishing means.
  *
  * The category is chosen, never typed: nothing reaches the gallery that a
  * member wrote except the scene's own name, which the app already checked.
@@ -33,12 +42,14 @@ interface IStudioPublishDialogProps {
  * the scene already has.
  */
 export default function StudioPublishDialog({
+  identity,
+  pack,
   name,
-  version,
   draft,
   running,
-  retaking,
-  onRetake,
+  tuning,
+  onCapture,
+  onChoose,
   onPublish,
   onCancel,
 }: IStudioPublishDialogProps) {
@@ -69,7 +80,7 @@ export default function StudioPublishDialog({
     >
       <div
         ref={surfaceRef}
-        className="gallery-dialog gallery-dialog--wide"
+        className="gallery-dialog studio-publish"
         role="dialog"
         aria-modal="true"
         aria-labelledby="studio-publish-title"
@@ -79,80 +90,75 @@ export default function StudioPublishDialog({
           <span className="gallery-dialog__mark" aria-hidden="true">
             <Glyph name="upload" />
           </span>
-          <h2 id="studio-publish-title" className="gallery-dialog__title">
-            {update
-              ? t('studio.publish.titleUpdate', { name })
-              : t('studio.publish.title', { name })}
-          </h2>
-        </div>
-
-        <div className="studio-publish__scene">
-          <span className="studio-publish__frame" aria-busy={retaking}>
-            <img
-              className="studio-publish__picture"
-              src={draft.pictureUrl}
-              alt={t('studio.publish.pictureAlt', { name })}
-            />
-            {retaking && (
-              <span className="studio-publish__taking" role="status">
-                <span className="gallery-preview__spinner" aria-hidden="true" />
-                {t('studio.publish.taking')}
-              </span>
-            )}
-          </span>
-          <span className="studio-publish__about">
-            <strong>{name}</strong>
-            <span>
-              {t('studio.publish.version', { version: String(version) })}
+          <span className="studio-publish__heading">
+            <h2 id="studio-publish-title" className="gallery-dialog__title">
+              {update
+                ? t('studio.publish.titleUpdate', { name })
+                : t('studio.publish.title', { name })}
+            </h2>
+            <span className="studio-publish__version">
+              {t('studio.publish.version', { version: String(pack.version) })}
             </span>
-            <span className="studio-publish__hint">
-              {t('studio.publish.pictureHint')}
-            </span>
-            <button
-              type="button"
-              className="button small subtle studio-publish__retake"
-              disabled={running || retaking}
-              onClick={onRetake}
-            >
-              <Glyph name="refresh" />
-              {t('studio.publish.retake')}
-            </button>
           </span>
         </div>
 
-        <span className="gallery-dialog__label" id="studio-publish-category">
-          {t('studio.publish.category')}
-        </span>
-        <div
-          className="gallery-chips"
-          role="radiogroup"
-          aria-labelledby="studio-publish-category"
-        >
-          {PLUS_CATEGORIES.map((entry, index) => (
-            <button
-              key={entry}
-              ref={index === 0 ? firstRef : undefined}
-              type="button"
-              role="radio"
-              aria-checked={category === entry}
-              className="gallery-chip"
-              disabled={running}
-              onClick={() => setCategory(entry)}
-            >
-              {t(categoryKey(entry))}
-            </button>
-          ))}
-        </div>
+        <div className="studio-publish__body">
+          <StudioPublishCamera
+            identity={identity}
+            pack={pack}
+            name={name}
+            locked={running}
+            tuning={tuning}
+            onCapture={onCapture}
+          />
 
-        <ul className="gallery-points">
-          <li>{t('studio.publish.point1')}</li>
-          <li>{t('studio.publish.point2')}</li>
-          <li>
-            {update
-              ? t('studio.publish.point3Update')
-              : t('studio.publish.point3')}
-          </li>
-        </ul>
+          <StudioPublishCovers
+            shots={draft.shots}
+            chosen={draft.chosen}
+            missed={draft.missed}
+            locked={running}
+            onChoose={onChoose}
+          />
+
+          <div className="studio-publish__category">
+            <span
+              className="gallery-dialog__label"
+              id="studio-publish-category"
+            >
+              {t('studio.publish.category')}
+            </span>
+            <div
+              className="gallery-chips"
+              role="radiogroup"
+              aria-labelledby="studio-publish-category"
+            >
+              {PLUS_CATEGORIES.map((entry, index) => (
+                <button
+                  key={entry}
+                  ref={index === 0 ? firstRef : undefined}
+                  type="button"
+                  role="radio"
+                  aria-checked={category === entry}
+                  className="gallery-chip"
+                  disabled={running}
+                  onClick={() => setCategory(entry)}
+                >
+                  {t(categoryKey(entry))}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <ul className="gallery-points studio-publish__points">
+            <li>{t('studio.publish.point1')}</li>
+            <li>{t('studio.publish.point2')}</li>
+            <li>
+              {update
+                ? t('studio.publish.point3Update')
+                : t('studio.publish.point3')}
+            </li>
+          </ul>
+        </div>
 
         <div className="gallery-dialog__foot">
           <button

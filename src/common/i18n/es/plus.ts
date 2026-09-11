@@ -1,7 +1,8 @@
 const plus = {
+  'plus.official.included': 'Incluido con Plus',
   'plus.visualizers.title': 'Visualizadores',
   'plus.visualizers.description':
-    'Escenas creadas por miembros Plus, para añadir a tus estilos y darles me gusta',
+    'Escenas de FluidEQ y la comunidad Plus, listas para tu música',
   'plus.visualizers.blurb': 'Escenas de los miembros',
 
   'plus.gate.cta': 'Ver Plus',

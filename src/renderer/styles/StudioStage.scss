@@ -192,6 +192,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .studio-meter__track {
+  position: relative;
   height: 6px;
   overflow: hidden;
   border-radius: $radius-pill;
@@ -202,12 +203,62 @@ it under the terms of the GNU General Public License version 3 or later.
 // a width is laid out, and six meters laid out sixty times a second is work
 // the scene beside them needs more.
 .studio-meter__fill {
+  position: relative;
   display: block;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, $secondary-dark, $secondary-light);
   transform: scaleX(0);
   transform-origin: left center;
+}
+
+// The music as played, under what the scene got from it: shown only while a
+// response bends one into the other.
+.studio-meter__heard {
+  position: absolute;
+  inset: 0;
+  display: none;
+  border-radius: inherit;
+  background: color-mix(in srgb, $white 22%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+
+  .is-bent & {
+    display: block;
+  }
+}
+
+// Where the threshold cuts in, on the music's scale.
+.studio-meter__gate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: $amber;
+  box-shadow: 0 0 6px color-mix(in srgb, $amber 70%, transparent);
+}
+
+.studio-meters__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.studio-meters__swatch {
+  width: 14px;
+  height: 5px;
+  margin-left: 4px;
+  border-radius: $radius-pill;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+
+  &.is-heard {
+    margin-left: 0;
+    background: color-mix(in srgb, $white 22%, transparent);
+  }
 }
 
 .studio-meter--beat .studio-meter__fill,

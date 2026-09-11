@@ -67,11 +67,25 @@ const studio = {
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Atualizar {name} na galeria',
   'studio.publish.version': 'Versão {version}',
-  'studio.publish.pictureAlt': '{name}, como a galeria vai mostrar',
-  'studio.publish.pictureHint':
-    'Sua cena no palco agora mesmo, tocando com um refrão de teste animado. É assim que ela aparece na galeria.',
-  'studio.publish.retake': 'Tirar outra',
-  'studio.publish.taking': 'Tirando a imagem…',
+  'studio.publish.hears': 'O que a cena ouve',
+  'studio.publish.yourMusic': 'Sua música',
+  'studio.publish.demo': 'Demo',
+  'studio.publish.capture': 'Capturar este momento',
+  'studio.publish.capturing': 'Capturando…',
+  'studio.publish.quietTitle': 'Nada está tocando',
+  'studio.publish.quietBody': 'Toque música em qualquer app, ou use a demo.',
+  'studio.publish.useDemo': 'Usar a demo',
+  'studio.publish.cover': 'Capa',
+  'studio.publish.coverHint':
+    'Capture o momento em que a cena fica mais bonita. A capa marcada é a que a galeria mostra.',
+  'studio.publish.auto': 'Auto',
+  'studio.publish.shot': 'Capa {number}',
+  'studio.publish.missed':
+    'Não foi possível capturar esse momento. Tente de novo.',
+  'studio.publish.stageHeavy':
+    'A cena é pesada demais para tocar aqui. As capas abaixo continuam valendo.',
+  'studio.publish.stageUnavailable':
+    'A cena não pode tocar aqui agora. As capas abaixo continuam valendo.',
   'studio.publish.category': 'Categoria',
   'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
   'studio.publish.point1':
@@ -99,6 +113,31 @@ const studio = {
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.outdated':
     'Os termos do Plus têm uma versão mais nova. Atualize o FluidEQ para ler e publicar.',
+
+  'studio.picture.files': 'Imagens',
+  'studio.picture.missing':
+    'A cena usa imagens suas, e a pasta ainda não tem nenhuma.',
+  'studio.picture.hint':
+    'Escolha abaixo, em Imagens da cena. Qualquer foto serve.',
+  'studio.picture.title': 'Imagens da cena',
+  'studio.picture.lead':
+    'A cena pede estas imagens. Escolha qualquer foto para cada uma e o FluidEQ a ajusta.',
+  'studio.picture.pick': 'Escolher uma foto…',
+  'studio.picture.replace': 'Trocar…',
+  'studio.picture.empty': 'Ainda sem foto',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': 'Imagem {number}',
+  'studio.picture.saving': 'Salvando a imagem…',
+  'studio.picture.saved': 'Sua imagem já está na cena.',
+  'studio.picture.noSlot': 'Esta cena não usa imagem.',
+  'studio.picture.badSlot':
+    'O pack.json pede uma imagem que o FluidEQ não consegue fazer. Peça à sua IA um nome de arquivo simples e um tamanho de até 4096 × 2048.',
+  'studio.picture.tooLarge':
+    'Esse arquivo passa de 40 MB. Escolha uma imagem menor.',
+  'studio.picture.unreadable':
+    'O FluidEQ não conseguiu ler essa imagem. Tente um JPG ou PNG.',
+  'studio.picture.failed':
+    'Não foi possível salvar a imagem na pasta do projeto. Tente de novo.',
 
   'studio.notice.copyFailed':
     'A área de transferência não está disponível. O prompt está selecionado abaixo; pressione Ctrl+C.',
@@ -144,7 +183,7 @@ const studio = {
 
   'studio.idea.pet.label': 'Meu pet, vivo',
   'studio.idea.pet.text':
-    'A foto do meu pet. As orelhas se mexem a cada batida, o rabo balança com os graves, os olhos brilham com os agudos e o fundo cintila com o espectro lento.',
+    'A foto do meu pet, viva com a música. Ela respira com os graves, um brilho suave contorna a silhueta a cada batida, as cores esquentam com os médios e faíscas sobem com os agudos.',
   'studio.idea.city.label': 'Cidade neon',
   'studio.idea.city.text':
     'Uma cidade neon à noite. Cada prédio é uma faixa do espectro, as janelas acendem com os médios e um trem cruza o horizonte a cada acento musical.',
@@ -199,6 +238,70 @@ const studio = {
   'studio.signal.treble': 'Agudos',
   'studio.signal.beat': 'Batida',
   'studio.signal.accent': 'Acento',
+  'studio.signal.showcase': 'Tudo junto',
+  'studio.signalHint.live':
+    'O que toca neste computador, como a cena vai ouvir no gráfico.',
+  'studio.signalHint.silence':
+    'Nada. Uma boa cena descansa aqui, só com um movimento lento.',
+  'studio.signalHint.bass':
+    'Só um grave constante. Mostra o que se move com os graves.',
+  'studio.signalHint.mid': 'Só os médios: vozes e acordes.',
+  'studio.signalHint.treble': 'Só pratos e ar, marcando o ritmo.',
+  'studio.signalHint.beat': 'Um bumbo em cada batida, a 118 BPM.',
+  'studio.signalHint.accent':
+    'Um grande momento a cada 7,5 segundos, como um refrão entrando.',
+  'studio.signalHint.showcase':
+    'Todos os canais ao mesmo tempo, como quando uma capa é feita.',
+  'studio.meters.heard': 'o que toca',
+  'studio.meters.got': 'o que a cena recebe',
+
+  'studio.settings.title': 'Ajustes da cena',
+  'studio.settings.controls': 'Seus controles',
+  'studio.settings.controlsLead':
+    'Os controles deslizantes desta cena, com os nomes do código dela.',
+  'studio.settings.response': 'Como ela responde à música',
+  'studio.settings.responseLead':
+    'Ajuste o que ela ouve antes de ouvir. Em 100% e zero, ouve a música como é.',
+  'studio.settings.sensitivity': 'Sensibilidade',
+  'studio.settings.sensitivityHint':
+    'O quanto reage. Mais para uma música baixa, menos quando uma alta a deixa sempre no máximo.',
+  'studio.settings.threshold': 'Limiar',
+  'studio.settings.thresholdHint':
+    'Abaixo disso ela não ouve nada, e pode descansar nas partes calmas.',
+  'studio.settings.attack': 'Ataque',
+  'studio.settings.attackHint':
+    'Com que rapidez sobe ao que ouve. Curto é marcante; longo cresce devagar.',
+  'studio.settings.release': 'Liberação',
+  'studio.settings.releaseHint':
+    'Com que lentidão volta a cair. Longo deixa um brilho depois de cada batida.',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} ms',
+  'studio.settings.reset': 'Redefinir',
+  'studio.settings.carries':
+    'Salvo na cena ao soltar: seus estilos e a galeria recebem também.',
+  'studio.settings.saving': 'Salvando na cena…',
+  'studio.settings.saved': 'Salvo na cena.',
+  'studio.settings.savedLook': 'Salvo na cena e no seu estilo.',
+  'studio.settings.failed':
+    'Não foi possível salvar os ajustes. Tente de novo.',
+
+  'studio.picture.adjust': 'Enquadrar…',
+  'studio.framing.title': 'Enquadrar “{name}”',
+  'studio.framing.hint':
+    'Arraste para mover a foto. Use a roda ou o controle para aproximar.',
+  'studio.framing.stage':
+    '{name} no seu lugar. As setas movem a foto; mais e menos aproximam.',
+  'studio.framing.role': 'enquadramento de foto',
+  'studio.framing.fit': 'Como a foto se encaixa',
+  'studio.framing.cover': 'Preencher o espaço',
+  'studio.framing.contain': 'Foto inteira',
+  'studio.framing.zoom': 'Zoom',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'Como a cena sugere',
+  'studio.framing.another': 'Outra foto…',
+  'studio.framing.cancel': 'Cancelar',
+  'studio.framing.use': 'Usar esta foto',
+  'studio.framing.saving': 'Salvando…',
 
   'studio.size.title': 'Tamanho',
   'studio.size.graph': 'Gráfico',

@@ -1,7 +1,8 @@
 const plus = {
+  'plus.official.included': 'Входит в Plus',
   'plus.visualizers.title': 'Визуализаторы',
   'plus.visualizers.description':
-    'Сцены участников Plus — добавляйте в свои оформления и ставьте лайки',
+    'Сцены от FluidEQ и сообщества Plus для вашей музыки',
   'plus.visualizers.blurb': 'Сцены участников',
 
   'plus.gate.cta': 'Узнать о Plus',

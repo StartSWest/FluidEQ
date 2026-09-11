@@ -172,7 +172,6 @@ import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { createGalleryAccess } from './plus/galleryAccess';
-import { createSampleGallery } from './plus/sampleGallery';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
@@ -2963,15 +2962,6 @@ const memberScenesIpc = registerMemberScenesIpc({
   logger: log,
 });
 
-// With the sample people on, the gallery gets sample scenes too: the Plus
-// looks this account has, credited to the cast. See `sampleGallery.ts`.
-const developmentSampleGallery = developmentSamplePeople
-  ? createSampleGallery({
-      packs: () => scenePacksIpc.store.list(),
-      load: (id) => scenePacksIpc.store.load(id),
-    })
-  : undefined;
-
 // Sharing them between members: export signed by the server, import verified
 // against the member key, likes, and the block list.
 const memberSharingIpc = registerMemberSharingIpc({
@@ -2985,7 +2975,6 @@ const memberSharingIpc = registerMemberSharingIpc({
   announce: memberScenesIpc.announce,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
   logger: log,
-  sample: developmentSampleGallery,
 });
 
 // The Plus gallery: members' published scenes, found, added and reported;
@@ -3002,7 +2991,8 @@ const plusGalleryIpc = registerPlusGalleryIpc({
   refreshBlocked: memberSharingIpc.refreshBlocked,
   announce: memberScenesIpc.announce,
   onEntitlementChange: (listener) => accountIpc.entitlement.subscribe(listener),
-  sample: developmentSampleGallery,
+  officialStore: scenePacksIpc.store,
+  announceOfficial: scenePacksIpc.announce,
   logger: log,
 });
 const plusPublishingIpc = registerPlusPublishingIpc({

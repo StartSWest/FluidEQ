@@ -11,6 +11,10 @@ import type { IStudioState } from '../../../main/ipc/memberScenes';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
+import type { IScenePack } from '../../../common/scenePacks';
+
+// The camera owns WebGL; these tests exercise the dialog and real cover list.
+jest.mock('../../../renderer/studio/StudioPublishCamera', () => () => null);
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -105,11 +109,31 @@ describe('the Studio’s projects', () => {
 });
 
 describe('the publish dialog', () => {
-  const onRetake = jest.fn();
+  const pack: IScenePack = {
+    schema: 1,
+    id: 'neon-city',
+    version: 3,
+    contract: 1,
+    names: { en: 'Neon City' },
+    fallbackStyle: 'skyline',
+    swatch: ['#050a1a', '#00e5cf'],
+    source: '',
+    params: [],
+  };
 
   const draft = (over: Partial<IPublishDraft> = {}): IPublishDraft => ({
-    picture: new Uint8Array(8),
-    pictureUrl: 'data:image/webp;base64,UklGRg==',
+    shots: [
+      {
+        id: 1,
+        kind: 'auto',
+        picture: {
+          bytes: new Uint8Array(8),
+          url: 'data:image/webp;base64,UklGRg==',
+        },
+      },
+    ],
+    chosen: 1,
+    missed: false,
     agreed: true,
     ...over,
   });
@@ -119,11 +143,13 @@ describe('the publish dialog', () => {
     render(
       <StudioPublishDialog
         name="Neon City"
-        version={3}
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
         draft={draft()}
         running={false}
-        retaking={false}
-        onRetake={onRetake}
         onPublish={onPublish}
         onCancel={jest.fn()}
       />,
@@ -138,48 +164,59 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenCalledWith('space');
   });
 
-  it('takes another picture on request, and says so while it does', async () => {
+  it('selects completed covers and identifies captures still being drawn', async () => {
+    const onChoose = jest.fn();
     const { rerender } = render(
       <StudioPublishDialog
         name="Neon City"
-        version={3}
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={onChoose}
         draft={draft()}
         running={false}
-        retaking={false}
-        onRetake={onRetake}
         onPublish={jest.fn()}
         onCancel={jest.fn()}
       />,
     );
     await userEvent.click(
-      screen.getByRole('button', { name: 'studio.publish.retake' }),
+      screen.getByRole('radio', { name: /studio.publish.shot:1/ }),
     );
-    expect(onRetake).toHaveBeenCalled();
+    expect(onChoose).toHaveBeenCalledWith(1);
     rerender(
       <StudioPublishDialog
         name="Neon City"
-        version={3}
-        draft={draft()}
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({
+          shots: [...draft().shots, { id: 2, kind: 'captured' }],
+        })}
         running={false}
-        retaking
-        onRetake={onRetake}
         onPublish={jest.fn()}
         onCancel={jest.fn()}
       />,
     );
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'studio.publish.taking',
-    );
     expect(
-      screen.getByRole('button', { name: 'studio.publish.retake' }),
-    ).toBeDisabled();
+      screen.getByRole('status', { name: 'studio.publish.capturing' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('radio', { name: /studio.publish.shot:2/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('asks for the agreement the first time, and starts an update on its category', () => {
     render(
       <StudioPublishDialog
         name="Neon City"
-        version={3}
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
         draft={draft({
           agreed: false,
           published: {
@@ -196,8 +233,6 @@ describe('the publish dialog', () => {
           },
         })}
         running={false}
-        retaking={false}
-        onRetake={onRetake}
         onPublish={jest.fn()}
         onCancel={jest.fn()}
       />,

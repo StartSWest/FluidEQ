@@ -29,10 +29,6 @@ import {
   readAgreedTerms,
   writeAgreedTerms,
 } from '../memberScenes/termsAgreement';
-import {
-  isSampleGalleryAuthor,
-  type ISampleGallery,
-} from '../plus/sampleGallery';
 
 /**
  * Sharing members' scenes, over IPC: export, import, likes, and the block
@@ -82,8 +78,6 @@ export interface IMemberSharingIpcDeps {
   dialogImpl?: IDialogLike;
   fetchImpl?: typeof fetch;
   now?: () => number;
-  /** DEVELOPMENT ONLY: the gallery's sample scenes, liked in memory. */
-  sample?: ISampleGallery;
 }
 
 export interface IMemberSharingRegistration {
@@ -135,7 +129,6 @@ export const registerMemberSharingIpc = ({
   dialogImpl = dialog,
   fetchImpl = fetch,
   now = Date.now,
-  sample,
 }: IMemberSharingIpcDeps): IMemberSharingRegistration => {
   const blockedPath = path.join(userDataDir, BLOCKED_FILE);
   let lastBlockRefresh = 0;
@@ -301,21 +294,10 @@ export const registerMemberSharingIpc = ({
     };
   });
 
-  const sampleRef = (lookId: unknown) => {
-    const ref = refOf(lookId);
-    return sample && ref && isSampleGalleryAuthor(ref.authorId)
-      ? ref
-      : undefined;
-  };
-
   const likeStatus = async (
     lookId: unknown,
   ): Promise<ILikeStatus | undefined> => {
     const ref = refOf(lookId);
-    const sampled = sampleRef(lookId);
-    if (sampled) {
-      return sample?.likeStatus(sampled.authorId, sampled.packId);
-    }
     const accessToken = entitled() ? await token() : undefined;
     if (!ref || !accessToken) {
       return undefined;
@@ -337,11 +319,6 @@ export const registerMemberSharingIpc = ({
     'member-scenes-like',
     async (_event, lookId: unknown, liked: unknown) => {
       const ref = refOf(lookId);
-      const sampled = sampleRef(lookId);
-      if (sampled && typeof liked === 'boolean') {
-        sample?.like(sampled.authorId, sampled.packId, liked);
-        return likeStatus(lookId);
-      }
       const accessToken = entitled() ? await token() : undefined;
       if (
         !ref ||

@@ -344,6 +344,7 @@ describe('Visualizers', () => {
         SOMEONE,
         'neon-city',
         1,
+        '2026-09-10T12:00:00Z',
       ),
     );
     await waitFor(() =>
@@ -406,6 +407,7 @@ describe('a scene’s page', () => {
       SOMEONE,
       'neon-city',
       1,
+      '2026-09-10T12:00:00Z',
     );
     expect(
       screen.getByRole('heading', { name: 'Neon City' }),

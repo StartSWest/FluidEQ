@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   MAX_GALLERY_QUERY,
@@ -9,7 +9,7 @@ import {
 } from 'common/plusGallery';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { useUsableMemberScenes } from '../utils/memberScenes';
+import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
 import { useGalleryList } from './galleryStore';
@@ -51,7 +51,7 @@ export default function GalleryView({ me }: IGalleryViewProps) {
   const setFilters = (next: (current: IBrowseFilters) => IBrowseFilters) =>
     setBrowseFilters(next(filters));
   const [asked, setAsked] = useState(filters.text.trim());
-  const local = useUsableMemberScenes();
+  const localById = useGalleryLocalScenes();
 
   const query = {
     sort: filters.sort,
@@ -66,11 +66,6 @@ export default function GalleryView({ me }: IGalleryViewProps) {
       setAsked(wanted);
     }
   }, [list.loading, wanted, asked]);
-
-  const localById = useMemo(
-    () => new Map(local.map((scene) => [scene.lookId, scene])),
-    [local],
-  );
 
   const open = (scene: IGalleryScene) =>
     openGalleryPage({ kind: 'scene', scene, from: query });

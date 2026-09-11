@@ -5,6 +5,11 @@ import {
 } from './graphStyles';
 import type { LocaleCode } from './i18n';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
+import {
+  isNeutralResponse,
+  readResponse,
+  type ISceneResponse,
+} from './sceneResponse';
 
 /**
  * A premium look, as data.
@@ -89,6 +94,11 @@ export interface IScenePack {
   artwork?: ISceneArtwork;
   /** Optional bottom/top of the live dB scale in normalized panel coordinates. */
   spectrumRange?: readonly [number, number];
+  /**
+   * How the scene answers the music (see `sceneResponse.ts`), as its author
+   * tuned it. Absent means as the engine hears it.
+   */
+  response?: ISceneResponse;
 }
 
 /**
@@ -289,6 +299,10 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
       }
     });
   }
+  // Kept in range rather than refused: a response is taste, and a slider
+  // pushed past its end is still the author's meaning.
+  const response =
+    raw.response === undefined ? undefined : readResponse(raw.response);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -301,6 +315,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     params,
     ...(artwork ? { artwork } : {}),
     ...(spectrumRange ? { spectrumRange } : {}),
+    ...(response && !isNeutralResponse(response) ? { response } : {}),
   };
 };
 

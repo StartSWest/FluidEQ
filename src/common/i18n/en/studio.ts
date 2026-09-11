@@ -77,11 +77,24 @@ const studio = {
   'studio.publish.title': 'Publish {name}',
   'studio.publish.titleUpdate': 'Update {name} in the gallery',
   'studio.publish.version': 'Version {version}',
-  'studio.publish.pictureAlt': '{name}, as the gallery will show it',
-  'studio.publish.pictureHint':
-    'Your scene on the stage just now, playing to a busy test chorus. This is how it shows in the gallery.',
-  'studio.publish.retake': 'Take another',
-  'studio.publish.taking': 'Taking the picture…',
+  'studio.publish.hears': 'What the scene hears',
+  'studio.publish.yourMusic': 'Your music',
+  'studio.publish.demo': 'Demo',
+  'studio.publish.capture': 'Capture this moment',
+  'studio.publish.capturing': 'Capturing…',
+  'studio.publish.quietTitle': 'Nothing is playing',
+  'studio.publish.quietBody': 'Play music in any app, or use the demo.',
+  'studio.publish.useDemo': 'Use the demo',
+  'studio.publish.cover': 'Cover',
+  'studio.publish.coverHint':
+    'Capture the moment the scene looks its best. The cover with the tick is the one the gallery shows.',
+  'studio.publish.auto': 'Auto',
+  'studio.publish.shot': 'Cover {number}',
+  'studio.publish.missed': 'That moment could not be captured. Try again.',
+  'studio.publish.stageHeavy':
+    'The scene is too heavy to play here. The covers below still work.',
+  'studio.publish.stageUnavailable':
+    'The scene cannot play here right now. The covers below still work.',
   'studio.publish.category': 'Category',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.point1':
@@ -108,6 +121,32 @@ const studio = {
   'studio.publish.failed': 'The scene could not be published. Try again.',
   'studio.publish.outdated':
     'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
+
+  // The pictures a scene asks for: any photo for each, fitted by FluidEQ.
+  'studio.picture.files': 'Pictures',
+  'studio.picture.missing':
+    'The scene uses pictures of yours, and the folder has none yet.',
+  'studio.picture.hint':
+    'Choose them below, in Pictures in the scene. Any photo works.',
+  'studio.picture.title': 'Pictures in the scene',
+  'studio.picture.lead':
+    'The scene asks for these. Choose any photo for each and FluidEQ fits it in.',
+  'studio.picture.pick': 'Choose a photo…',
+  'studio.picture.replace': 'Change…',
+  'studio.picture.empty': 'No photo yet',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': 'Picture {number}',
+  'studio.picture.saving': 'Saving the picture…',
+  'studio.picture.saved': 'Your picture is in the scene.',
+  'studio.picture.noSlot': 'This scene does not use a picture.',
+  'studio.picture.badSlot':
+    'pack.json asks for a picture FluidEQ cannot make. Ask your AI for a plain file name and a size up to 4096 × 2048.',
+  'studio.picture.tooLarge':
+    'That file is over 40 MB. Choose a smaller picture.',
+  'studio.picture.unreadable':
+    'FluidEQ could not read that picture. Try a JPG or PNG.',
+  'studio.picture.failed':
+    'The picture could not be saved in the project folder. Try again.',
 
   'studio.notice.copyFailed':
     'The clipboard is not available. The prompt is selected below; press Ctrl+C.',
@@ -153,7 +192,7 @@ const studio = {
 
   'studio.idea.pet.label': 'My pet, alive',
   'studio.idea.pet.text':
-    "My pet's photo. Ears twitch on every beat, the tail sways with the bass, the eyes glow with the treble, and the background shimmers with the slow spectrum.",
+    "My pet's photo, alive with the music. It breathes with the bass, a soft glow traces its outline on every beat, its colours warm with the mids, and sparkles drift up with the treble.",
   'studio.idea.city.label': 'Neon city',
   'studio.idea.city.text':
     'A neon city at night. Each building is a band of the spectrum, windows light with the mids, and a train crosses the skyline on each musical accent.',
@@ -208,6 +247,71 @@ const studio = {
   'studio.signal.treble': 'Treble',
   'studio.signal.beat': 'Beat',
   'studio.signal.accent': 'Accent',
+  'studio.signal.showcase': 'Everything',
+  'studio.signalHint.live':
+    'What is playing on this computer, as the scene will hear it on the graph.',
+  'studio.signalHint.silence':
+    'Nothing at all. A good scene rests here, with only a slow drift.',
+  'studio.signalHint.bass':
+    'Only a steady bass. Shows what moves with the low end.',
+  'studio.signalHint.mid': 'Only the mids: voices and chords.',
+  'studio.signalHint.treble': 'Only hi-hats and air, ticking.',
+  'studio.signalHint.beat': 'A kick on every beat, at 118 BPM.',
+  'studio.signalHint.accent':
+    'One big moment every 7.5 seconds, like a chorus hitting.',
+  'studio.signalHint.showcase':
+    'Every channel busy at once, as when a cover is taken.',
+  'studio.meters.heard': 'played',
+  'studio.meters.got': 'what the scene gets',
+
+  // The scene's settings: its own controls, and how it answers the music.
+  'studio.settings.title': 'Scene settings',
+  'studio.settings.controls': 'Its controls',
+  'studio.settings.controlsLead':
+    'The sliders this scene brings, named as its code names them.',
+  'studio.settings.response': 'How it answers the music',
+  'studio.settings.responseLead':
+    'Bend what it hears before it hears it. At 100% and zero it hears the music as it is.',
+  'studio.settings.sensitivity': 'Sensitivity',
+  'studio.settings.sensitivityHint':
+    'How strongly it reacts. More for a quiet track, less when a loud one keeps it pinned.',
+  'studio.settings.threshold': 'Threshold',
+  'studio.settings.thresholdHint':
+    'Below this it hears nothing, so it can rest through the quiet parts.',
+  'studio.settings.attack': 'Attack',
+  'studio.settings.attackHint':
+    'How fast it rises to what it hears. Short is punchy, long swells.',
+  'studio.settings.release': 'Release',
+  'studio.settings.releaseHint':
+    'How slowly it falls back. Long leaves a glow after each hit.',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} ms',
+  'studio.settings.reset': 'Reset',
+  'studio.settings.carries':
+    'Saved into the scene when you let go: your looks and the gallery get it too.',
+  'studio.settings.saving': 'Saving into the scene…',
+  'studio.settings.saved': 'Saved into the scene.',
+  'studio.settings.savedLook': 'Saved into the scene and your look of it.',
+  'studio.settings.failed': 'The settings could not be saved. Try again.',
+
+  // Framing a photo into one of the scene's pictures.
+  'studio.picture.adjust': 'Frame…',
+  'studio.framing.title': 'Frame “{name}”',
+  'studio.framing.hint':
+    'Drag to move the photo. Scroll or use the slider to zoom.',
+  'studio.framing.stage':
+    '{name} in its place. The arrow keys move the photo, plus and minus zoom.',
+  'studio.framing.role': 'photo framing',
+  'studio.framing.fit': 'How the photo fits',
+  'studio.framing.cover': 'Fill the space',
+  'studio.framing.contain': 'Whole photo',
+  'studio.framing.zoom': 'Zoom',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'As the scene suggests',
+  'studio.framing.another': 'Another photo…',
+  'studio.framing.cancel': 'Cancel',
+  'studio.framing.use': 'Use this photo',
+  'studio.framing.saving': 'Saving…',
 
   'studio.size.title': 'Size',
   'studio.size.graph': 'Graph',

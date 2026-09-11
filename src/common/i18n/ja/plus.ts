@@ -1,7 +1,8 @@
 const plus = {
+  'plus.official.included': 'Plus に含まれます',
   'plus.visualizers.title': 'ビジュアライザー',
   'plus.visualizers.description':
-    'Plus メンバーが作ったシーン。マイ表示に追加して、いいねできます',
+    'FluidEQ と Plus コミュニティのシーンを、あなたの音楽とともに',
   'plus.visualizers.blurb': 'メンバーのシーン',
 
   'plus.gate.cta': 'Plus を見る',

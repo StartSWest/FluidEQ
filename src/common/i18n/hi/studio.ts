@@ -65,11 +65,25 @@ const studio = {
   'studio.publish.title': '{name} प्रकाशित करें',
   'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
   'studio.publish.version': 'संस्करण {version}',
-  'studio.publish.pictureAlt': '{name}, जैसा गैलरी में दिखेगा',
-  'studio.publish.pictureHint':
-    'अभी-अभी स्टेज पर आपका सीन, एक जोशीली टेस्ट धुन पर चलता हुआ। गैलरी में यह ऐसा ही दिखेगा।',
-  'studio.publish.retake': 'दूसरी लें',
-  'studio.publish.taking': 'तस्वीर ली जा रही है…',
+  'studio.publish.hears': 'सीन क्या सुनता है',
+  'studio.publish.yourMusic': 'आपका संगीत',
+  'studio.publish.demo': 'डेमो',
+  'studio.publish.capture': 'यह पल कैप्चर करें',
+  'studio.publish.capturing': 'कैप्चर हो रहा है…',
+  'studio.publish.quietTitle': 'कुछ नहीं बज रहा',
+  'studio.publish.quietBody':
+    'किसी भी ऐप में संगीत चलाएँ, या डेमो इस्तेमाल करें।',
+  'studio.publish.useDemo': 'डेमो इस्तेमाल करें',
+  'studio.publish.cover': 'कवर',
+  'studio.publish.coverHint':
+    'वह पल कैप्चर करें जब सीन सबसे अच्छा दिखे। टिक वाला कवर ही गैलरी में दिखता है।',
+  'studio.publish.auto': 'ऑटो',
+  'studio.publish.shot': 'कवर {number}',
+  'studio.publish.missed': 'वह पल कैप्चर नहीं हो सका। फिर से कोशिश करें।',
+  'studio.publish.stageHeavy':
+    'यह सीन यहाँ चलने के लिए बहुत भारी है। नीचे के कवर अब भी काम करते हैं।',
+  'studio.publish.stageUnavailable':
+    'यह सीन अभी यहाँ नहीं चल सकता। नीचे के कवर अब भी काम करते हैं।',
   'studio.publish.category': 'श्रेणी',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.point1':
@@ -97,6 +111,30 @@ const studio = {
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
   'studio.publish.outdated':
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
+
+  'studio.picture.files': 'चित्र',
+  'studio.picture.missing':
+    'यह सीन आपके चित्र इस्तेमाल करता है, और फ़ोल्डर में अभी कोई चित्र नहीं है।',
+  'studio.picture.hint':
+    'इन्हें नीचे, सीन के चित्र में चुनें। कोई भी फ़ोटो चलेगी।',
+  'studio.picture.title': 'सीन के चित्र',
+  'studio.picture.lead':
+    'सीन को ये चित्र चाहिए। हर एक के लिए कोई भी फ़ोटो चुनें, FluidEQ उसे ढाल देगा।',
+  'studio.picture.pick': 'फ़ोटो चुनें…',
+  'studio.picture.replace': 'बदलें…',
+  'studio.picture.empty': 'अभी कोई फ़ोटो नहीं',
+  'studio.picture.size': '{width} × {height}',
+  'studio.picture.unnamed': 'चित्र {number}',
+  'studio.picture.saving': 'चित्र सहेजा जा रहा है…',
+  'studio.picture.saved': 'आपका चित्र सीन में आ गया है।',
+  'studio.picture.noSlot': 'यह सीन कोई चित्र इस्तेमाल नहीं करता।',
+  'studio.picture.badSlot':
+    'pack.json ऐसा चित्र माँगता है जो FluidEQ नहीं बना सकता। अपने AI से सरल फ़ाइल नाम और 4096 × 2048 तक का आकार माँगें।',
+  'studio.picture.tooLarge': 'यह फ़ाइल 40 MB से बड़ी है। कोई छोटा चित्र चुनें।',
+  'studio.picture.unreadable':
+    'FluidEQ यह चित्र नहीं पढ़ सका। JPG या PNG आज़माएँ।',
+  'studio.picture.failed':
+    'चित्र प्रोजेक्ट फ़ोल्डर में सहेजा नहीं जा सका। फिर से कोशिश करें।',
 
   'studio.notice.copyFailed':
     'क्लिपबोर्ड उपलब्ध नहीं है। नीचे प्रॉम्प्ट चुना हुआ है; Ctrl+C दबाएँ।',
@@ -142,7 +180,7 @@ const studio = {
 
   'studio.idea.pet.label': 'मेरा पालतू, जीवंत',
   'studio.idea.pet.text':
-    'मेरे पालतू की तस्वीर। हर बीट पर कान फड़कें, बेस के साथ पूँछ झूले, ट्रेबल के साथ आँखें चमकें, और धीमे स्पेक्ट्रम के साथ पृष्ठभूमि झिलमिलाए।',
+    'मेरे पालतू की फ़ोटो, संगीत के साथ जीवंत। बेस के साथ साँस ले, हर बीट पर हल्की चमक उसकी रूपरेखा पर चले, मिड्स के साथ रंग गर्म हों, और ट्रेबल के साथ चिंगारियाँ ऊपर उठें।',
   'studio.idea.city.label': 'नियॉन शहर',
   'studio.idea.city.text':
     'रात में एक नियॉन शहर। हर इमारत स्पेक्ट्रम का एक बैंड हो, मिड्स के साथ खिड़कियाँ जलें, और हर संगीत-उभार पर एक ट्रेन क्षितिज पार करे।',
@@ -197,6 +235,68 @@ const studio = {
   'studio.signal.treble': 'ट्रेबल',
   'studio.signal.beat': 'बीट',
   'studio.signal.accent': 'उभार',
+  'studio.signal.showcase': 'सब एक साथ',
+  'studio.signalHint.live':
+    'इस कंप्यूटर पर जो बज रहा है, जैसा सीन उसे ग्राफ़ पर सुनेगा।',
+  'studio.signalHint.silence':
+    'कुछ भी नहीं। अच्छा सीन यहाँ आराम करता है, बस धीमे बहाव के साथ।',
+  'studio.signalHint.bass':
+    'सिर्फ़ एक स्थिर बेस। दिखाता है कि बेस के साथ क्या हिलता है।',
+  'studio.signalHint.mid': 'सिर्फ़ मिड्स: आवाज़ें और कॉर्ड।',
+  'studio.signalHint.treble': 'सिर्फ़ हाई-हैट और हवा, ताल पर।',
+  'studio.signalHint.beat': 'हर बीट पर एक किक, 118 BPM पर।',
+  'studio.signalHint.accent':
+    'हर 7.5 सेकंड में एक बड़ा पल, जैसे कोरस आ रहा हो।',
+  'studio.signalHint.showcase': 'सारे चैनल एक साथ व्यस्त, जैसे कवर लेते समय।',
+  'studio.meters.heard': 'जो बज रहा है',
+  'studio.meters.got': 'जो सीन को मिलता है',
+
+  'studio.settings.title': 'सीन की सेटिंग',
+  'studio.settings.controls': 'इसके नियंत्रण',
+  'studio.settings.controlsLead':
+    'इस सीन के स्लाइडर, उसी नाम से जो उसके कोड में हैं।',
+  'studio.settings.response': 'यह संगीत का जवाब कैसे देता है',
+  'studio.settings.responseLead':
+    'सुनने से पहले बदलें कि यह क्या सुनता है। 100% और शून्य पर यह संगीत जैसा है वैसा सुनता है।',
+  'studio.settings.sensitivity': 'संवेदनशीलता',
+  'studio.settings.sensitivityHint':
+    'कितनी ज़ोर से प्रतिक्रिया देता है। धीमे गाने के लिए ज़्यादा, और जब तेज़ गाना इसे हमेशा चरम पर रखे तो कम।',
+  'studio.settings.threshold': 'सीमा',
+  'studio.settings.thresholdHint':
+    'इससे नीचे यह कुछ नहीं सुनता, ताकि शांत हिस्सों में आराम कर सके।',
+  'studio.settings.attack': 'अटैक',
+  'studio.settings.attackHint':
+    'सुनी हुई चीज़ तक कितनी तेज़ी से उठता है। छोटा हो तो तीखा, लंबा हो तो धीरे-धीरे बढ़ता है।',
+  'studio.settings.release': 'रिलीज़',
+  'studio.settings.releaseHint':
+    'कितनी धीरे वापस गिरता है। लंबा हो तो हर चोट के बाद चमक रह जाती है।',
+  'studio.settings.percent': '{percent}%',
+  'studio.settings.ms': '{ms} ms',
+  'studio.settings.reset': 'रीसेट करें',
+  'studio.settings.carries':
+    'छोड़ते ही सीन में सहेजा जाता है: आपकी शैलियों और गैलरी को भी यही मिलता है।',
+  'studio.settings.saving': 'सीन में सहेजा जा रहा है…',
+  'studio.settings.saved': 'सीन में सहेजा गया।',
+  'studio.settings.savedLook': 'सीन और आपकी शैली में सहेजा गया।',
+  'studio.settings.failed': 'सेटिंग सहेजी नहीं जा सकीं। फिर से कोशिश करें।',
+
+  'studio.picture.adjust': 'फ़्रेम करें…',
+  'studio.framing.title': '“{name}” को फ़्रेम करें',
+  'studio.framing.hint':
+    'फ़ोटो खिसकाने के लिए खींचें। ज़ूम के लिए व्हील या स्लाइडर इस्तेमाल करें।',
+  'studio.framing.stage':
+    '{name} अपनी जगह पर। तीर कुंजियाँ फ़ोटो खिसकाती हैं, प्लस और माइनस ज़ूम करते हैं।',
+  'studio.framing.role': 'फ़ोटो फ़्रेमिंग',
+  'studio.framing.fit': 'फ़ोटो कैसे बैठती है',
+  'studio.framing.cover': 'जगह भरें',
+  'studio.framing.contain': 'पूरी फ़ोटो',
+  'studio.framing.zoom': 'ज़ूम',
+  'studio.framing.percent': '{percent}%',
+  'studio.framing.reset': 'जैसा सीन सुझाता है',
+  'studio.framing.another': 'दूसरी फ़ोटो…',
+  'studio.framing.cancel': 'रद्द करें',
+  'studio.framing.use': 'यह फ़ोटो इस्तेमाल करें',
+  'studio.framing.saving': 'सहेजा जा रहा है…',
 
   'studio.size.title': 'आकार',
   'studio.size.graph': 'ग्राफ़',

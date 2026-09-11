@@ -4,9 +4,10 @@
  * report dialog. The Studio's side of publishing is in `studio.ts`.
  */
 const plus = {
+  'plus.official.included': 'Included with Plus',
   'plus.visualizers.title': 'Visualizers',
   'plus.visualizers.description':
-    'Scenes Plus members made, to add to your looks and like',
+    'Scenes by FluidEQ and the Plus community, ready for your music',
   'plus.visualizers.blurb': 'Scenes members made',
 
   'plus.gate.cta': 'See Plus',

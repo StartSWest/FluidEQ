@@ -4,11 +4,8 @@ import type { ILeaderboardRow, IMyRank } from '../usage/leaderboardApi';
 /**
  * People, for development.
  *
- * A leaderboard with one name and a gallery with one maker show none of what
- * the design is for — the colours per person, the podium, the bars, a maker's
- * page. This is a fixed cast, ranked into the real board and credited with
- * sample scenes in the gallery (see `sampleGallery.ts`), so both can be looked
- * at full.
+ * A fixed cast for reviewing the leaderboard's colours, podium and bars.
+ * The visualizer gallery always uses real creators and published scenes.
  *
  * DEVELOPMENT ONLY: `main.ts` switches it on from a shell variable and never
  * in a packaged build. The real board stays exactly as the server sent it;

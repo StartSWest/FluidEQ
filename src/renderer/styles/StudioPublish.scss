@@ -1,0 +1,326 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's Publish dialog: the scene playing on the left, to catch its
+// cover from, and what publishing asks on the right. Wide, because the scene
+// is the thing being judged and a thumbnail of it judges nothing; the two
+// columns fold into one wherever the window is narrower than both need.
+
+// Two classes, to outrank the shared dialog surface's own width and height —
+// its small-screen height included, which is why that is restated here.
+.gallery-dialog.studio-publish {
+  width: min(980px, 100%);
+  max-height: min(860px, calc(100vh - #{$spacing-l} * 2));
+  container: publish / inline-size;
+
+  @media (max-width: 620px), (max-height: 620px) {
+    max-height: calc(100vh - #{$spacing-m});
+  }
+
+  // A long dialog: its answer sits on a line of its own.
+  .gallery-dialog__foot {
+    padding-top: $spacing-m;
+    border-top: 1px solid $border-subtle;
+  }
+
+  // The Studio's own spacing for a glyph in a button: the dialog is drawn
+  // outside the Studio's tree, so its rule does not reach in here.
+  .button {
+    gap: 6px;
+
+    svg {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+.studio-publish__heading {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.studio-publish__version {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// The scene on the left and what it becomes on the right: the covers caught
+// from it, then the category. The spare height of a scene taller than both
+// goes under the category, so the covers keep their place at the top.
+// Stacked in one column, the covers take a row of four under the scene.
+.studio-publish__body {
+  display: grid;
+  grid-template-areas:
+    'camera covers'
+    'camera category'
+    'points points';
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  gap: $spacing-m $spacing-l;
+  min-width: 0;
+
+  @container publish (max-width: 760px) {
+    grid-template-areas:
+      'camera'
+      'covers'
+      'category'
+      'points';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+}
+
+.studio-publish__camera,
+.studio-publish__covers,
+.studio-publish__category {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+
+.studio-publish__camera {
+  grid-area: camera;
+  gap: 10px;
+}
+
+.studio-publish__covers {
+  grid-area: covers;
+  gap: 8px;
+}
+
+.studio-publish__category {
+  grid-area: category;
+  gap: 8px;
+}
+
+.studio-publish__points {
+  grid-area: points;
+}
+
+// ---------------------------------------------------------------- stage
+
+// Black behind the scene, not the dialog's colour: a scene is drawn to sit
+// on the graph's dark, and a lighter ground would show through its edges
+// while it fades in.
+.studio-publish__viewfinder {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-m;
+  background: $black;
+  box-shadow: 0 18px 44px rgba($black, 0.5);
+  isolation: isolate;
+}
+
+// The shutter's answer: the frame blinks white for a moment.
+.studio-publish__flash {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: $white;
+  opacity: 0;
+  pointer-events: none;
+  animation: studio-publish-flash 380ms $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes studio-publish-flash {
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+// Nothing is heard: said over the scene, which is at rest anyway, with the
+// way out of it.
+.studio-publish__quiet {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: $spacing-m;
+  color: $text-muted;
+  background: radial-gradient(
+    ellipse at center,
+    rgba($black, 0.72),
+    rgba($black, 0.4) 75%
+  );
+  font-size: $text-small;
+  line-height: 1.45;
+  text-align: center;
+  @include animate(fade-in, $motion-base);
+
+  strong {
+    color: $white;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  .button {
+    margin-top: 8px;
+  }
+}
+
+.studio-publish__trouble {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  padding: $spacing-l;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.studio-publish__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+// ---------------------------------------------------------------- covers
+
+.studio-publish__shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  @container publish (max-width: 760px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.studio-publish__shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.12);
+  border-radius: $radius-s;
+  background: $surface-well;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+  @include animate(fade-in, $motion-base);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba($white, 0.34);
+  }
+
+  &[aria-checked='true'] {
+    border-color: $secondary-default;
+    box-shadow:
+      0 0 0 1px $secondary-default,
+      0 0 18px color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &.is-drawing {
+    display: grid;
+    place-items: center;
+    cursor: default;
+
+    .gallery-preview__spinner {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // A place a capture will go.
+  &.is-empty {
+    border-style: dashed;
+    border-color: rgba($white, 0.1);
+    background: none;
+    cursor: default;
+    animation: none;
+  }
+}
+
+.studio-publish__shot-tag {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  padding: 1px 7px;
+  color: $text-muted;
+  border-radius: $radius-pill;
+  background: rgba($black, 0.62);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.studio-publish__shot-check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: $black;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: 0 2px 6px rgba($black, 0.4);
+
+  svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.4;
+  }
+}
+
+.studio-publish__covers-hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  &.is-missed {
+    color: $amber;
+  }
+}

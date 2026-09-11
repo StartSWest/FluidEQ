@@ -36,7 +36,6 @@ import {
   type IMemberSceneStore,
 } from '../../../main/memberScenes/store';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
-import { createSampleGallery } from '../../../main/plus/sampleGallery';
 import {
   fakeResponse,
   ME,
@@ -116,7 +115,7 @@ const access = (): IGalleryAccess => ({
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 });
 
-const setup = (sample?: ReturnType<typeof createSampleGallery>) => {
+const setup = () => {
   store = createMemberSceneStore({
     userDataDir: path.join(root, 'userData'),
     appVersion: '1.0.0',
@@ -131,7 +130,6 @@ const setup = (sample?: ReturnType<typeof createSampleGallery>) => {
       announced += 1;
     },
     onEntitlementChange: () => () => undefined,
-    ...(sample ? { sample } : {}),
   });
 };
 
@@ -216,6 +214,30 @@ describe('listing', () => {
 });
 
 describe('a scene’s page', () => {
+  it('refreshes the cover and scene when republished without a manifest version bump', async () => {
+    setup();
+    publishScene(SOMEONE);
+    const imagePath = `${SOMEONE}/neon-city/picture.webp`;
+    bucket.set(imagePath, webpBytes(64));
+    const first = '2026-09-10T12:00:00Z';
+    const next = '2026-09-11T12:00:00Z';
+    const cover = await invoke(
+      'plus-gallery-picture',
+      SOMEONE,
+      'neon-city',
+      1,
+      first,
+    );
+    await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1, first);
+    bucket.set(imagePath, webpBytes(96));
+    publishScene(SOMEONE, memberPack({ names: { en: 'Changed scene' } }));
+    expect(
+      await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1, next),
+    ).not.toBe(cover);
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1, next),
+    ).toMatchObject({ ok: true, pack: { names: { en: 'Changed scene' } } });
+  });
   it('plays the scene the member key vouches for', async () => {
     setup();
     publishScene(SOMEONE);
@@ -429,50 +451,12 @@ describe('reporting', () => {
   });
 });
 
-describe('the development sample', () => {
-  const sample = () =>
-    createSampleGallery({
-      packs: () => [
-        {
-          id: 'aurora',
-          version: 2,
-          names: { en: 'Aurora' },
-          fallbackStyle: 'ridge',
-          swatch: ['#030414', '#19f2b3'],
-        },
-      ],
-      load: (id) =>
-        id === 'aurora' ? memberPack({ id: 'aurora' }) : undefined,
-      now: () => Date.parse('2026-09-11T00:00:00Z'),
-    });
-
-  it('lays the sample scenes in beside the real ones, and plays them', async () => {
-    setup(sample());
-    const listed = await invoke<Promise<TGalleryListOutcome>>(
-      'plus-gallery-list',
-      { sort: 'new' },
-    );
-    expect(
-      listed.ok && listed.scenes.map((scene) => scene.sceneId).sort(),
-    ).toEqual(['aurora', 'neon-city']);
-    const aurora = listed.ok
-      ? listed.scenes.find((scene) => scene.sceneId === 'aurora')
-      : undefined;
-    expect(
-      await invoke('plus-gallery-preview', aurora?.authorId, 'aurora', 2),
-    ).toMatchObject({ ok: true, pack: { id: 'aurora' } });
-    // Never signed, so there is nothing to keep, and no picture to fetch.
-    expect(
-      await invoke('plus-gallery-add', aurora?.authorId, 'aurora', 2),
-    ).toEqual({
-      ok: false,
-      reason: 'unavailable',
-    });
-    expect(
-      await invoke('plus-gallery-picture', aurora?.authorId, 'aurora', 2),
-    ).toBeUndefined();
-    expect(
-      calls.some((call) => call.url.includes(String(aurora?.authorId))),
-    ).toBe(false);
+it('lists only server publications, without fabricated creators or scenes', async () => {
+  setup();
+  rows = [];
+  expect(await invoke('plus-gallery-list', { sort: 'new' })).toEqual({
+    ok: true,
+    scenes: [],
+    more: false,
   });
 });
