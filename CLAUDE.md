@@ -424,6 +424,17 @@ Everything worth knowing about them is available through commands:
   app starts depending on something new from the engine, and move
   `ENGINE_STATUS_SINCE` only with it (`engineVersion.test.ts` holds them
   together).
+- **An app update never replaces the installed engine — the app does, after
+  launch.** An update runs setup silently, often with nobody at the machine,
+  and a Windows prompt there has no one to answer it, so `installer.nsh`
+  leaves both engines alone (the `keep` path). `src/main/engineUpdate.ts`
+  compares every DLL beside the setup helper with the installed copies by
+  SHA-256 — the version resource cannot tell two builds apart — and
+  `EngineUpdateNotice` offers `install --restart-audio`, without
+  `--attach-all`, so every output stays as the user left it. `pnpm dev`'s
+  `sync-dev-engine` asks the same question of the engine it just compiled.
+  A DLL added beside the helper joins the comparison by itself, because
+  `install` copies every DLL there.
 - **The setup helper is a windowed program, not a console one.** Run it from
   an interactive shell without piping or capturing its output and the shell
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |

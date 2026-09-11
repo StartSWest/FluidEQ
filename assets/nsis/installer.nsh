@@ -309,6 +309,12 @@
     ; A silent install, an update, or a machine that has already answered.
     ; Neither engine is touched and no preference is written, so whatever is
     ; installed keeps processing the audio and the app keeps its own answer.
+    ;
+    ; Which also means an installed FluidEQ Engine is never updated from here:
+    ; replacing it takes a Windows permission prompt, and an update runs
+    ; silently, often with nobody at the machine to answer one. The app
+    ; compares the engine it carries with the installed one after launch
+    ; (src/main/engineUpdate.ts) and offers the update in its window instead.
     !insertmacro InstallLog "No engine question was asked - leaving the audio engine as it is."
 
   ${ElseIf} $EngineChoice == "fluid"

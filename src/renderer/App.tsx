@@ -178,11 +178,13 @@ import {
 import { startEqualizerApoInstall } from './utils/apoInstall';
 import RestartAudioDialog from './components/RestartAudioDialog';
 import EngineTroubleNotice from './components/EngineTroubleNotice';
+import EngineUpdateNotice from './components/EngineUpdateNotice';
 import AudioEngineDialog, {
   type TApoAction,
 } from './components/AudioEngineDialog';
 import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
 import { useAudioRestart } from './utils/useAudioRestart';
+import { useEngineUpdate } from './utils/useEngineUpdate';
 import { AudioEngineContext } from './utils/audioEngineContext';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
@@ -195,6 +197,7 @@ import {
   isAwaitingApoInstall,
   prereqBannerEngine,
   setAudioEngine,
+  updateFluidEngine,
 } from './utils/audioEngineApi';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
@@ -1910,6 +1913,31 @@ const AppContent = () => {
   /** The menu item, the notice bar and the troubleshooter all open the card. */
   const handleRestartWindowsAudio = audioRestart.open;
 
+  /**
+   * This app's engine in place of the one installed, run by the update
+   * notice's own button through `useEngineUpdate`, which owns it so it
+   * outlives the notice.
+   *
+   * It ends in a restart of Windows audio, so it is followed by what a
+   * restart is followed by: the capture rebuilt on the restarted output, and
+   * the health check. The status is read again whatever the answer, so the
+   * notice is offered only while there is still an engine to install.
+   */
+  const performEngineUpdate = async (): Promise<IAudioRestartOutcome> => {
+    const outcome = await updateFluidEngine();
+    if (outcome.ok) {
+      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+      performHealthCheck();
+    }
+    await refreshEngineStatus();
+    return outcome;
+  };
+
+  const engineUpdate = useEngineUpdate(
+    engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
+    performEngineUpdate,
+  );
+
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
     setShowAudioRestartRecommendation(false);
@@ -2953,6 +2981,23 @@ const AppContent = () => {
           }
           onRestartAudio={handleRestartWindowsAudio}
           onUseApo={handleOpenEngineDialog}
+        />
+        {/* Waits for the same things, for the troubleshooter, and for the
+            tour and the release notes that open on the first launch after an
+            update — the launch this is most likely to have something to say
+            on. Two panels arriving together on first run read as a
+            malfunction. */}
+        <EngineUpdateNotice
+          update={engineUpdate}
+          isHidden={
+            audioRestart.isOpen ||
+            showEngineDialog ||
+            isEngineUnchosen ||
+            Boolean(globalError && isBlockingError) ||
+            showTroubleshooter ||
+            showFeatureTour ||
+            whatsNewScope !== null
+          }
         />
         {globalError && !isBlockingError && (
           <div className="workspace-notice" role="alert">

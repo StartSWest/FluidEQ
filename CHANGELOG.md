@@ -124,6 +124,12 @@ controls and a consistent look for dialogs and menus.
 
 ### Fixed
 
+- **The FluidEQ Engine keeps up with the app.** Updating FluidEQ used to leave
+  the engine it had installed exactly as it was, so engine fixes never reached
+  anyone who updated. When the engine on your PC is not the one your FluidEQ
+  comes with, a notice now offers **Update engine**: one Windows permission,
+  a few seconds of silence while audio restarts, and your outputs and EQ stay
+  as they were.
 - **Wave controls remain available in EQ's larger views.** Wave height and
   position stay in the View menu in expanded and fullscreen EQ, including when
   only the wave is visible.

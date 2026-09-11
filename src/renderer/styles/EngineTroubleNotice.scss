@@ -15,7 +15,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // The output notice comes first. It asks for the engine to be put on an
 // output at all, which has to be answered before anything about how the
 // engine runs there means anything — and the two sit in the same spot.
-body:has(.device-apo-notice:not(.engine-trouble-notice))
+//
+// The engine update notice shares the spot too, and goes after this one
+// (EngineUpdateNotice.scss). Not excluded here, the two rules hid each other
+// and neither was on screen.
+body:has(
+    .device-apo-notice:not(.engine-trouble-notice):not(.engine-update-notice)
+  )
   .engine-trouble-notice {
   display: none;
 }

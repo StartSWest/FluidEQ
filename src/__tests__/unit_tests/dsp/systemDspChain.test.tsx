@@ -66,6 +66,7 @@ const FLUID_STATUS: IAudioEngineStatus = {
   apo: { installed: false },
   fluid: { installed: true, endpoints: [] },
   fluidSupported: true,
+  fluidUpdateReady: false,
 };
 
 const APO_STATUS: IAudioEngineStatus = {
@@ -73,6 +74,7 @@ const APO_STATUS: IAudioEngineStatus = {
   apo: { installed: true },
   fluid: { installed: false, endpoints: [] },
   fluidSupported: true,
+  fluidUpdateReady: false,
 };
 
 /**

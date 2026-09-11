@@ -17,6 +17,7 @@ const status = (
   apo: { installed: true },
   fluid: { installed: false, endpoints: [] },
   fluidSupported: true,
+  fluidUpdateReady: false,
   ...overrides,
 });
 

@@ -60,6 +60,7 @@ const STATUS: IAudioEngineStatus = {
   apo: { installed: true },
   fluid: { installed: false, endpoints: [] },
   fluidSupported: true,
+  fluidUpdateReady: false,
 };
 
 const OK: IEngineSetupResult = {
@@ -91,6 +92,7 @@ describe('the audio engine channels', () => {
   let isSwitching: jest.Mock;
   let isEngineInstalled: jest.Mock;
   let runEngineSetup: jest.Mock;
+  let readAudioEngineStatus: jest.Mock;
   let writeSystemDspChain: jest.Mock;
   let getConfigPath: jest.Mock;
 
@@ -134,6 +136,10 @@ describe('the audio engine channels', () => {
     isSwitching = jest.fn(() => switching);
     isEngineInstalled = jest.fn(async () => true);
     runEngineSetup = jest.fn(async () => OK);
+    readAudioEngineStatus = jest.fn(async () => {
+      record('status');
+      return STATUS;
+    });
     writeSystemDspChain = jest.fn(async () => undefined);
     getConfigPath = jest.fn(async () => path.join(userDataDir, 'config'));
 
@@ -147,7 +153,7 @@ describe('the audio engine channels', () => {
       isEngineInstalled,
       reflush,
       runEngineSetup,
-      readAudioEngineStatus: async () => STATUS,
+      readAudioEngineStatus,
       neutraliseEngine,
       writeSystemDspChain,
     });
@@ -256,6 +262,74 @@ describe('the audio engine channels', () => {
 
     expect(reflush).not.toHaveBeenCalled();
     expect(replied(reply)).toEqual({ result: DECLINED });
+  });
+
+  describe('the engine update', () => {
+    // The outputs the engine is on were the user's choice; `--attach-all`
+    // would put it on every one of them, including the ones taken off.
+    it('replaces the engine and restarts audio, and touches no output', async () => {
+      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(runEngineSetup).toHaveBeenCalledTimes(1);
+      expect(runEngineSetup).toHaveBeenCalledWith('install', [
+        '--restart-audio',
+      ]);
+    });
+
+    it('calls it done once the installed engine is this build, then reflushes', async () => {
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(order).toEqual(['status', 'reflush']);
+      expect(replied(reply)).toEqual({ result: { ok: true, declined: false } });
+    });
+
+    // The helper saying it copied everything is not the files matching.
+    it('does not call it done while the installed engine still differs', async () => {
+      readAudioEngineStatus.mockResolvedValue({
+        ...STATUS,
+        fluidUpdateReady: true,
+      });
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(replied(reply)).toEqual({
+        result: { ok: false, declined: false },
+      });
+    });
+
+    it('says a declined prompt was declined, and changes nothing after it', async () => {
+      runEngineSetup.mockResolvedValue(DECLINED);
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(readAudioEngineStatus).not.toHaveBeenCalled();
+      expect(reflush).not.toHaveBeenCalled();
+      expect(replied(reply)).toEqual({ result: { ok: false, declined: true } });
+    });
+
+    it("passes the helper's own reason on when it ran and failed", async () => {
+      runEngineSetup.mockResolvedValue({
+        ok: false,
+        declined: false,
+        error: 'could not copy FluidEQ-Engine.dll: Access is denied. (5)',
+        endpoints: [],
+      });
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(reflush).not.toHaveBeenCalled();
+      expect(replied(reply)).toEqual({
+        result: {
+          ok: false,
+          declined: false,
+          detail: 'could not copy FluidEQ-Engine.dll: Access is denied. (5)',
+        },
+      });
+    });
+
+    it('answers a failure rather than no answer when the check itself throws', async () => {
+      readAudioEngineStatus.mockRejectedValue(new Error('status unreadable'));
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+
+      expect(replied(reply)).toEqual({ errorCode: ErrorCode.FAILURE });
+    });
   });
 
   it('attaches and detaches one endpoint', async () => {

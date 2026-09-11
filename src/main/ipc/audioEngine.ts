@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Which engine processes the audio, and everything that follows from
  * changing the answer.
  *
- * Six channels, and the two that matter are `SET_AUDIO_ENGINE` — where the
+ * Seven channels, and the two that matter are `SET_AUDIO_ENGINE` — where the
  * order of four steps is the whole correctness of the feature — and
  * `SET_SYSTEM_DSP_CHAIN`, which is the only path by which a renderer-built
  * array of doubles reaches a file the audio driver reads.
@@ -36,6 +36,7 @@ import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
 import {
   IAudioEngineStatus,
+  IAudioRestartOutcome,
   TAudioEngine,
   TSystemDspChainResult,
   isAudioEngine,
@@ -286,6 +287,55 @@ export const registerAudioEngineIpc = ({
       '--attach-all',
       '--restart-audio',
     ]);
+  });
+
+  /**
+   * This app's engine in place of the one installed, and Windows audio
+   * restarted onto it.
+   *
+   * `install` without `--attach-all`: which outputs the engine is on was the
+   * user's choice, and an update keeps it — the files and the registration
+   * are replaced, and no output's effect list is touched.
+   *
+   * Success is the fresh status having no update left to offer, not the
+   * helper saying it copied everything: the two have disagreed before, which
+   * is why `sync-dev-engine` checks the files after the same command. So the
+   * status is read before the reply, which also refreshes the flush gate the
+   * way `runAndReflush` does for the other commands. A status that cannot be
+   * read at all just after the restart — the helper's own "could not ask",
+   * which offers no update either — leaves the helper's word standing; the
+   * next launch compares again.
+   */
+  ipcMain.on(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
+    const channel = ChannelEnum.UPDATE_FLUID_ENGINE;
+    try {
+      const result = await runEngineSetup('install', ['--restart-audio']);
+      if (!result.ok) {
+        succeed<IAudioRestartOutcome>(event, channel, {
+          ok: false,
+          declined: result.declined,
+          ...(!result.declined && result.error ? { detail: result.error } : {}),
+        });
+        return;
+      }
+      const { fluidUpdateReady } = await readAudioEngineStatus(
+        userDataDir,
+        getEngine(),
+      );
+      await reflush();
+      if (fluidUpdateReady) {
+        log.error(
+          'The engine update reported success, but the installed engine still is not this build.',
+        );
+      }
+      succeed<IAudioRestartOutcome>(event, channel, {
+        ok: !fluidUpdateReady,
+        declined: false,
+      });
+    } catch (error) {
+      log.error('The FluidEQ Engine could not be updated', error);
+      refuse(event, channel, ErrorCode.FAILURE);
+    }
   });
 
   const endpointCommand = async (

@@ -14,11 +14,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the machine this was written on, a 19:39 build beside a 17:06 installed copy
  * with different bytes, and nothing inside the app able to tell the two apart.
  *
- * Only when a file actually differs (see `engineSync.ts`): the swap costs a
- * UAC prompt and a few seconds of silence while Windows audio restarts, and
- * neither belongs on a `pnpm dev` where nothing changed. The engine embeds no
- * build revision, so ninja leaves it byte-identical until one of its own
- * sources changes.
+ * Only when a file actually differs — the same comparison the app runs after
+ * an update (`src/main/engineUpdate.ts`): the swap costs a UAC prompt and a
+ * few seconds of silence while Windows audio restarts, and neither belongs on
+ * a `pnpm dev` where nothing changed. The engine embeds no build revision, so
+ * ninja leaves it byte-identical until one of its own sources changes.
  *
  * The swap is the same `install --restart-audio` the app's own Apply runs,
  * from the helper beside the fresh build: that path already moves aside a DLL
@@ -37,9 +37,9 @@ import path from 'path';
 import {
   differingFiles,
   ENGINE_DLL,
-  helperError,
-  planEngineSync,
-} from './engineSync';
+  planEngineUpdate,
+} from '../../src/main/engineUpdate';
+import { helperError } from './engineSync';
 
 const BUILD_BIN = path.join(__dirname, '..', '..', 'native', '.build', 'bin');
 const HELPER = path.join(BUILD_BIN, 'FluidEQ-Engine-Setup.exe');
@@ -64,7 +64,7 @@ const fail = (message: string): never => {
   process.exit(1);
 };
 
-const sync = () => {
+const sync = async () => {
   if (process.platform !== 'win32') {
     return;
   }
@@ -72,7 +72,12 @@ const sync = () => {
     fail(`the build left no engine or setup helper in ${BUILD_BIN}`);
   }
 
-  const plan = planEngineSync(BUILD_BIN, INSTALL_DIR);
+  const plan = await planEngineUpdate(BUILD_BIN, INSTALL_DIR);
+  if (plan.kind === 'no-bundle') {
+    // Checked just above; reaching this means the engine vanished between
+    // the two looks, which is a build that is still being written.
+    fail(`the engine left ${BUILD_BIN} while it was being compared`);
+  }
   if (plan.kind === 'not-installed') {
     say('not installed on this machine, so there is nothing to update');
     return;
@@ -111,7 +116,7 @@ const sync = () => {
   }
 
   // The helper reporting success is not the same as the files matching.
-  const stillDiffering = differingFiles(BUILD_BIN, INSTALL_DIR);
+  const stillDiffering = await differingFiles(BUILD_BIN, INSTALL_DIR);
   if (stillDiffering.length > 0) {
     fail(
       `install reported success but ${stillDiffering.join(
@@ -122,4 +127,10 @@ const sync = () => {
   say('installed this build, and Windows audio restarted onto it');
 };
 
-sync();
+sync().catch((error: unknown) =>
+  fail(
+    `the engines could not be compared: ${
+      error instanceof Error ? error.message : String(error)
+    }`,
+  ),
+);

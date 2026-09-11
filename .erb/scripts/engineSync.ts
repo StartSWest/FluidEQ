@@ -5,60 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What `sync-dev-engine` decides, apart from the doing of it, so the decision
- * can be tested against two scratch folders. The doing needs a UAC prompt and
- * an audio restart, and neither belongs anywhere near a test run.
+ * What `sync-dev-engine` reads off the helper, apart from the running of it,
+ * so it can be tested without a UAC prompt or an audio restart anywhere near
+ * a test run. Whether to reinstall at all is the app's own question, asked
+ * the same way: `planEngineUpdate` in `src/main/engineUpdate.ts`.
  */
-import { createHash } from 'crypto';
-import { existsSync, readdirSync, readFileSync } from 'fs';
-import path from 'path';
-
-export const ENGINE_DLL = 'FluidEQ-Engine.dll';
-
-export type TEngineSyncPlan =
-  | { kind: 'not-installed' }
-  | { kind: 'current' }
-  | { kind: 'stale'; files: string[] };
-
-const sha256 = (file: string): string =>
-  createHash('sha256').update(readFileSync(file)).digest('hex');
-
-/**
- * Every DLL the helper's `install` would copy — all of them beside it, the
- * runtime included, because an engine linked against a newer toolset than the
- * installed `msvcp140.dll` fails to load inside audiodg.exe with nothing to
- * say why — whose installed copy is missing or holds other bytes.
- */
-export const differingFiles = (
-  buildBin: string,
-  installDir: string,
-): string[] =>
-  readdirSync(buildBin)
-    .filter((name) => name.toLowerCase().endsWith('.dll'))
-    .filter((name) => {
-      const installed = path.join(installDir, name);
-      return (
-        !existsSync(installed) ||
-        sha256(installed) !== sha256(path.join(buildBin, name))
-      );
-    })
-    .sort();
-
-/**
- * Nothing to do unless the engine is installed at all: installing it is a
- * choice made in the app or the installer, never a side effect of starting
- * development.
- */
-export const planEngineSync = (
-  buildBin: string,
-  installDir: string,
-): TEngineSyncPlan => {
-  if (!existsSync(path.join(installDir, ENGINE_DLL))) {
-    return { kind: 'not-installed' };
-  }
-  const files = differingFiles(buildBin, installDir);
-  return files.length === 0 ? { kind: 'current' } : { kind: 'stale', files };
-};
 
 /** The helper's `error`, when its stdout is the result document it writes. */
 export const helperError = (stdout: string): string | undefined => {

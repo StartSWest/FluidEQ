@@ -36,11 +36,13 @@ export const FLUID_ENGINE_CLSID = '{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}';
 export const FLUID_ENGINE_DSP_FILENAME = 'fluideq-dsp.txt';
 
 /**
- * What "Restart Windows audio" came back with. Facts only, no sentences: the
- * main process has no dictionary, and its English sentence under a
- * translated headline read "could not be restarted" twice, once in each
- * language. `detail` is the helper's own diagnosis, shown as-is under the
- * translated line, the way the engine dialog shows its failures.
+ * What a run that ends in restarting Windows audio came back with — "Restart
+ * Windows audio" itself, and the engine update, which restarts audio onto the
+ * new engine. Facts only, no sentences: the main process has no dictionary,
+ * and its English sentence under a translated headline read "could not be
+ * restarted" twice, once in each language. `detail` is the helper's own
+ * diagnosis, shown as-is under the translated line, the way the engine dialog
+ * shows its failures.
  */
 export interface IAudioRestartOutcome {
   ok: boolean;
@@ -88,6 +90,12 @@ export interface IAudioEngineStatus {
   apo: { installed: boolean };
   fluid: IFluidEngineStatus;
   fluidSupported: boolean;
+  /**
+   * The FluidEQ Engine on this PC is not the one this app carries, compared
+   * by content (`src/main/engineUpdate.ts`), and this app has the files to
+   * put its own in place. False whenever that cannot be established.
+   */
+  fluidUpdateReady: boolean;
 }
 
 /**

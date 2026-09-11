@@ -13,11 +13,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { ErrorCode } from 'common/errors';
+import ChannelEnum from 'common/channels';
 import {
   attachFluidEngine,
   detachFluidEngine,
   installFluidEngine,
   isAwaitingApoInstall,
+  updateFluidEngine,
 } from 'renderer/utils/audioEngineApi';
 import { getMainPreAmp } from 'renderer/utils/equalizerApi';
 
@@ -71,6 +73,42 @@ describe.each([
     expect(result.ok).toBe(false);
     expect(result.declined).toBe(false);
     expect(result.endpoints).toEqual([]);
+  });
+});
+
+// The update waits on the same prompt, and answers the way "Restart Windows
+// audio" does, because that is how it ends.
+describe('the engine update', () => {
+  it('asks main on its own channel', () => {
+    updateFluidEngine();
+    expect(window.electron.ipcRenderer.sendMessage).toHaveBeenCalledWith(
+      ChannelEnum.UPDATE_FLUID_ENGINE,
+      [],
+    );
+  });
+
+  it('outlasts a permission prompt left open for minutes', async () => {
+    const pending = updateFluidEngine();
+    const settled = jest.fn();
+    pending.then(settled, settled);
+
+    jest.advanceTimersByTime(5 * 60 * 1000);
+    await Promise.resolve();
+    expect(settled).not.toHaveBeenCalled();
+    expect(unsubscribe).not.toHaveBeenCalled();
+
+    listener?.({ result: { ok: true, declined: false } });
+    await expect(pending).resolves.toEqual({ ok: true, declined: false });
+  });
+
+  it('answers a failure with a failed outcome and its reason, never a rejection', async () => {
+    const pending = updateFluidEngine();
+    listener?.({ errorCode: ErrorCode.FAILURE, detail: 'the helper crashed' });
+    await expect(pending).resolves.toEqual({
+      ok: false,
+      declined: false,
+      detail: 'the helper crashed',
+    });
   });
 });
 

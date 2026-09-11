@@ -167,6 +167,10 @@ enum ChannelEnum {
   // to be neutralised first, or both of them process the same output.
   SET_AUDIO_ENGINE = 'setAudioEngine',
   INSTALL_FLUID_ENGINE = 'installFluidEngine',
+  // This app's engine in place of the one installed, which an app update
+  // never replaces. Keeps every output as it is; answered like "Restart
+  // Windows audio", because that is how it ends.
+  UPDATE_FLUID_ENGINE = 'updateFluidEngine',
   // One output on or off the engine, by endpoint GUID. Attaching is what the
   // "not enabled for this output" notice offers under the FluidEQ Engine, in
   // place of Equalizer APO's Device Selector.

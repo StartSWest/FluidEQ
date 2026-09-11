@@ -17,9 +17,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { EventEmitter } from 'events';
+import path from 'path';
 
 const isEqualizerAPOInstalledSpy = jest.fn().mockResolvedValue(false);
 const noteFluidEngineRegisteredSpy = jest.fn();
+const planEngineUpdateSpy = jest.fn();
+
+/**
+ * The comparison reads the real Program Files otherwise, which would make
+ * this suite's answer depend on the machine it runs on. What it decides is
+ * pinned in `engineUpdate.test.ts`; here it is only what the status carries.
+ */
+jest.mock('main/engineUpdate', () => ({
+  planEngineUpdate: (...args: unknown[]) => planEngineUpdateSpy(...args),
+}));
 
 jest.mock('main/registry', () => ({
   isEqualizerAPOInstalled: (...args: unknown[]) =>
@@ -56,8 +67,12 @@ import {
   readAudioEngineStatus,
 } from 'main/engineStatus';
 
+const ENGINE_DLL = 'FluidEQ-Engine.dll';
+
 beforeEach(() => {
   isEqualizerAPOInstalledSpy.mockClear();
+  planEngineUpdateSpy.mockReset();
+  planEngineUpdateSpy.mockResolvedValue({ kind: 'current' });
   fakeChild = new FakeChildProcess();
 });
 
@@ -255,6 +270,60 @@ describe('reading the combined audio engine status', () => {
     await promise;
 
     expect(isEqualizerAPOInstalledSpy).toHaveBeenCalledTimes(1);
+  });
+
+  describe('whether an engine update is ready', () => {
+    const DLL = path.resolve('Program Files', 'FluidEQ Engine', ENGINE_DLL);
+
+    const answer = (document: object) => {
+      fakeChild.stdout.emit('data', JSON.stringify(document));
+      fakeChild.emit('close', 0);
+    };
+
+    it('says so when the installed engine is not the one this app carries', async () => {
+      planEngineUpdateSpy.mockResolvedValue({
+        kind: 'stale',
+        files: [ENGINE_DLL],
+      });
+
+      const promise = readAudioEngineStatus('C:\\userData', 'fluid');
+      answer({ installed: true, dllPath: DLL, endpoints: [] });
+      const status = await promise;
+
+      expect(status.fluidUpdateReady).toBe(true);
+      // Against the folder Windows loads the engine from, which is the one
+      // the helper read off the registration.
+      expect(planEngineUpdateSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        path.dirname(DLL),
+      );
+    });
+
+    it('says no once the installed engine is this build', async () => {
+      const promise = readAudioEngineStatus('C:\\userData', 'fluid');
+      answer({ installed: true, dllPath: DLL, endpoints: [] });
+
+      expect((await promise).fluidUpdateReady).toBe(false);
+    });
+
+    it('never compares anything on a machine without the engine', async () => {
+      const promise = readAudioEngineStatus('C:\\userData', 'fluid');
+      answer({ installed: false, dllPath: DLL, endpoints: [] });
+
+      expect((await promise).fluidUpdateReady).toBe(false);
+      expect(planEngineUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('says no, rather than failing the whole status, when the comparison throws', async () => {
+      planEngineUpdateSpy.mockRejectedValue(new Error('EACCES'));
+
+      const promise = readAudioEngineStatus('C:\\userData', 'fluid');
+      answer({ installed: true, dllPath: DLL, endpoints: [] });
+      const status = await promise;
+
+      expect(status.fluidUpdateReady).toBe(false);
+      expect(status.fluid.installed).toBe(true);
+    });
   });
 
   it('resolves apo.installed:false instead of rejecting when the registry probe fails', async () => {

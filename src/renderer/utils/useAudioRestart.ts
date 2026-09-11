@@ -7,7 +7,8 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 /**
- * One "Restart Windows audio", owned outside the card that shows it.
+ * One run that ends in restarting Windows audio — "Restart Windows audio", or
+ * the engine update — owned outside the card that shows it.
  *
  * The card used to own the restart, so closing it abandoned the answer, and
  * it could not be closed while Windows worked — a vendor service that hung

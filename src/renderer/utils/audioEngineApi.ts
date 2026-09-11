@@ -20,13 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * The window's half of the engine channels.
  *
  * Its own file rather than more of `equalizerApi.ts`, which is already sixty
- * calls long: nothing here is about the EQ. These six are about which piece
+ * calls long: nothing here is about the EQ. These seven are about which piece
  * of software is processing the audio at all.
  */
 
 import ChannelEnum from 'common/channels';
 import type {
   IAudioEngineStatus,
+  IAudioRestartOutcome,
   TAudioEngine,
   TSystemDspChainResult,
 } from 'common/audioEngine';
@@ -70,38 +71,46 @@ export const setAudioEngine = (engine: TAudioEngine): Promise<void> => {
 };
 
 /**
- * One engine setup command, settled with what happened — never rejected.
+ * One call behind a Windows permission prompt, settled with what happened —
+ * never rejected.
  *
- * Every one of these waits on a person first: the setup helper raises a
- * Windows permission prompt, and main cannot answer until somebody does. The
- * transport's ten-second deadline used to reject the call while the prompt was
- * still on screen, and the rejection reached callers that — reasonably, for a
- * call that returns a result — did not catch it: the whole window was replaced
- * by the crash screen, over an engine install nobody had even answered yet.
+ * Every one of these waits on a person first: the setup helper raises the
+ * prompt, and main cannot answer until somebody does. The transport's
+ * ten-second deadline used to reject the call while the prompt was still on
+ * screen, and the rejection reached callers that — reasonably, for a call
+ * that returns a result — did not catch it: the whole window was replaced by
+ * the crash screen, over an engine install nobody had even answered yet.
  *
  * So no deadline (main replies to every one of these, and `runEngineSetup`
  * never rejects either), and anything the transport does throw comes back as
  * a failed result, which every caller already knows how to show. The engine
  * must never be able to take FluidEQ down; this is its door into the window.
  */
+const promptedCall = <Type extends IEngineSetupResult | IAudioRestartOutcome>(
+  channel: ChannelEnum,
+  args: unknown[],
+  failed: (reason: string) => Type,
+): Promise<Type> => {
+  window.electron.ipcRenderer.sendMessage(channel, args);
+  return promisifyResult<Type>(
+    buildResponseHandler<Type>((result, resolve) => resolve(result)),
+    channel,
+    null,
+  ).catch((error: unknown) =>
+    failed(error instanceof Error ? error.message : String(error)),
+  );
+};
+
 const engineSetupCall = (
   channel: ChannelEnum,
   args: unknown[],
-): Promise<IEngineSetupResult> => {
-  window.electron.ipcRenderer.sendMessage(channel, args);
-  return promisifyResult<IEngineSetupResult>(
-    buildResponseHandler<IEngineSetupResult>((result, resolve) =>
-      resolve(result),
-    ),
-    channel,
-    null,
-  ).catch((error: unknown) => ({
+): Promise<IEngineSetupResult> =>
+  promptedCall<IEngineSetupResult>(channel, args, (error) => ({
     ok: false,
     declined: false,
-    error: error instanceof Error ? error.message : String(error),
+    error,
     endpoints: [],
   }));
-};
 
 /**
  * Install the FluidEQ Engine, attaching every output.
@@ -112,6 +121,18 @@ const engineSetupCall = (
  */
 export const installFluidEngine = (): Promise<IEngineSetupResult> =>
   engineSetupCall(ChannelEnum.INSTALL_FLUID_ENGINE, []);
+
+/**
+ * Put this app's engine in place of the one installed — the one an app update
+ * leaves behind — and restart Windows audio onto it. `ok` only once the
+ * engine installed is this app's; `declined` is the prompt answered no.
+ */
+export const updateFluidEngine = (): Promise<IAudioRestartOutcome> =>
+  promptedCall<IAudioRestartOutcome>(
+    ChannelEnum.UPDATE_FLUID_ENGINE,
+    [],
+    (detail) => ({ ok: false, declined: false, detail }),
+  );
 
 /** Put one output through the engine. Refused unless `guid` is one. */
 export const attachFluidEngine = (guid: string): Promise<IEngineSetupResult> =>

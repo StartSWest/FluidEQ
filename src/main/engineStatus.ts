@@ -30,6 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { execFile } from 'child_process';
 import os from 'os';
+import path from 'path';
 import log from 'electron-log';
 import {
   IAudioEngineStatus,
@@ -39,6 +40,7 @@ import {
 } from '../common/audioEngine';
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
+import { planEngineUpdate } from './engineUpdate';
 
 /**
  * Windows 10 build 17134 (version 1803, "April 2018 Update") is the first to
@@ -302,6 +304,44 @@ const probeApoInstalled = async (): Promise<boolean> => {
 };
 
 /**
+ * Whether to offer this app's engine in place of the one installed.
+ *
+ * The installed set is the folder of `dllPath`, which the helper reads off the
+ * engine's own registration — where Windows actually loads it from, with no
+ * guess at where Program Files is. This app's set is the folder the helper
+ * copies from, its own, which `bundleDir` defaults to.
+ *
+ * Anything that cannot be read is "no": the notice this feeds asks for a
+ * Windows prompt, and has to be sure there is something to install first.
+ */
+export const readFluidEngineUpdateReady = async (
+  fluid: IFluidEngineStatus,
+  bundleDir: string = path.dirname(getEngineSetupPath()),
+): Promise<boolean> => {
+  if (!fluid.installed || !fluid.dllPath) {
+    return false;
+  }
+  try {
+    const plan = await planEngineUpdate(bundleDir, path.dirname(fluid.dllPath));
+    if (plan.kind !== 'stale') {
+      return false;
+    }
+    log.info(
+      `The installed FluidEQ Engine is not this build's: ${plan.files.join(
+        ', ',
+      )} differ.`,
+    );
+    return true;
+  } catch (error) {
+    log.error(
+      'The installed FluidEQ Engine could not be compared with this build',
+      error,
+    );
+    return false;
+  }
+};
+
+/**
  * The one status read the app needs before it can decide what to show: the
  * engine dialog, a blocking install banner, or nothing.
  *
@@ -334,5 +374,6 @@ export const readAudioEngineStatus = async (
     apo: { installed: apoInstalled },
     fluid,
     fluidSupported: isFluidEngineSupported(),
+    fluidUpdateReady: await readFluidEngineUpdateReady(fluid),
   };
 };

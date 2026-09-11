@@ -743,6 +743,7 @@ describe('prereqBannerEngine', () => {
     apo: { installed: true },
     fluid: { installed: true, endpoints: [] },
     fluidSupported: true,
+    fluidUpdateReady: false,
   });
 
   it('always shows the FluidEQ Engine when it is the one reported missing', () => {
@@ -789,6 +790,7 @@ describe('engineInstallsNeeded', () => {
     apo: { installed: apo },
     fluid: { installed: fluid, endpoints: [] },
     fluidSupported: true,
+    fluidUpdateReady: false,
   });
 
   it('installs nothing when the chosen engine is already installed', () => {

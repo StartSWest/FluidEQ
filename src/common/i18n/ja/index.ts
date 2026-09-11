@@ -38,6 +38,7 @@ import studio from './studio';
 import plus from './plus';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
+import engineUpdate from './engineUpdate';
 
 const ja: Partial<Dictionary> = {
   ...karaoke,
@@ -60,6 +61,7 @@ const ja: Partial<Dictionary> = {
   ...plus,
   ...termsNotice,
   ...engineHealth,
+  ...engineUpdate,
 };
 
 export default ja;
