@@ -240,7 +240,35 @@ inline void remove_temp_root(const std::wstring& root) {
   DeleteFileW((root + L"\\config\\config.txt").c_str());
   RemoveDirectoryW((root + L"\\config").c_str());
   DeleteFileW((root + L"\\engine.log").c_str());
+  // The status file the effect writes for each output it locks for.
+  WIN32_FIND_DATAW found = {};
+  const HANDLE search =
+      FindFirstFileW((root + L"\\status-*.json").c_str(), &found);
+  if (search != INVALID_HANDLE_VALUE) {
+    do {
+      DeleteFileW((root + L"\\" + found.cFileName).c_str());
+    } while (FindNextFileW(search, &found) != 0);
+    FindClose(search);
+  }
   RemoveDirectoryW(root.c_str());
+}
+
+/** A whole text file, or empty when it cannot be read. */
+inline std::string read_text_file(const std::wstring& path) {
+  const HANDLE file = CreateFileW(
+      path.c_str(), GENERIC_READ,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (file == INVALID_HANDLE_VALUE) {
+    return std::string();
+  }
+  std::string text(64 * 1024, '\0');
+  DWORD read = 0;
+  const BOOL ok = ReadFile(file, text.data(), static_cast<DWORD>(text.size()),
+                           &read, nullptr);
+  CloseHandle(file);
+  text.resize(ok != 0 ? read : 0);
+  return text;
 }
 
 inline bool write_text_file(const std::wstring& path, const char* text) {

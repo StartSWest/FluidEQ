@@ -96,6 +96,7 @@ void convolution_applies_kernel() {
   // linear-phase FIR carries.
   CHECK(graph.latency_frames() == feq_convolver_latency());
   CHECK(graph.warnings().empty());
+  CHECK(graph.problems().empty());
 
   std::vector<std::vector<float>> channels(1, std::vector<float>(2048, 0.0f));
   channels[0][0] = 1.0f;
@@ -393,6 +394,9 @@ void unreadable_impulse_response_is_survived() {
   CHECK(graph.latency_frames() == 0);
   CHECK(mentions(graph.warnings(), "could not be read"));
   CHECK(mentions(graph.warnings(), "fluideq-engine-absent.wav"));
+  // And the one word the app turns into a sentence: the convolution the
+  // user chose is not playing.
+  CHECK(graph.problems() == std::vector<std::string>{"convolution"});
 
   // The rest of the chain still runs. One unreadable file silencing a device
   // would be a far worse failure than the convolution simply not happening.

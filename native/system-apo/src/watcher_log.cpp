@@ -4,9 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// What the watcher tells `engine.log` about each graph it publishes. Its own
-// file because `watcher.cpp` is about threads and handovers, and this is only
-// ever about words.
+// What the watcher tells others about the graphs it publishes: `engine.log`,
+// and the status file the app reads. Its own file because `watcher.cpp` is
+// about threads and handovers, and this is only ever about saying so.
 
 #include "watcher.h"
 
@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "paths.h"
+#include "status_file.h"
 
 namespace fluideq_engine {
 
@@ -105,6 +106,35 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph,
     } else {
       log_.write("processing this endpoint");
     }
+  }
+}
+
+void Watcher::report_status(bool locked) noexcept {
+  try {
+    bool written = true;
+    if (!locked) {
+      written = status_.leave();
+    } else if (!endpoint_.guid.empty()) {  // Else nothing to match it to.
+      EngineStatus status;
+      status.endpoint = endpoint_.guid;
+      status.locked = true;
+      status.processing = last_processing_;
+      status.reason = passthrough_reason_;
+      status.problems = graph_problems_;
+      if (reload_failed_) {
+        status.problems.push_back("reload-failed");
+      }
+      if (unwatched_) {
+        status.problems.push_back("unwatched");
+      }
+      written = status_.publish(status);
+    }
+    if (!written && !status_failure_logged_) {
+      status_failure_logged_ = true;
+      log_.write("could not write this output's status for the app");
+    }
+  } catch (...) {
+    // A status the app never sees costs its notice, not the audio.
   }
 }
 

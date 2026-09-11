@@ -23,6 +23,7 @@ using fluideq_engine_test::float_format;
 using fluideq_engine_test::kEngineClsid;
 using fluideq_engine_test::kFrames;
 using fluideq_engine_test::load_engine;
+using fluideq_engine_test::read_text_file;
 using fluideq_engine_test::run_dll_test;
 using fluideq_engine_test::unload_engine;
 using fluideq_engine_test::write_text_file;
@@ -74,6 +75,13 @@ void check_identity(IUnknown* exposed, Host& host) {
   }
   CHECK(exposed->AddRef() == before + 1);
   CHECK(exposed->Release() == before);
+}
+
+// The root the run is pointed at, for the status file the effect writes.
+std::wstring g_root;
+
+std::wstring status_path() {
+  return g_root + L"\\status-{947B0242-A1CF-4483-A44E-B72DA462C901}.json";
 }
 
 void check_audio(IAudioProcessingObject* apo,
@@ -128,6 +136,13 @@ void check_audio(IAudioProcessingObject* apo,
                    std::abs(samples[at] - 0.25f * 0.501187f) < 1.0e-5f;
   }
   CHECK(correct_gain);
+
+  // What the app will read about this output while it plays: locked, and
+  // processing, since the -6 dB block names it.
+  const std::string status = read_text_file(status_path());
+  CHECK(status.find("\"locked\":true") != std::string::npos);
+  CHECK(status.find("\"processing\":true") != std::string::npos);
+  CHECK(status.find("\"problems\":[]") != std::string::npos);
 }
 
 void check_aggregated(IClassFactory* factory, const EngineModule& module,
@@ -214,6 +229,7 @@ void check_layout(IClassFactory* factory, const EngineModule& module,
 }
 
 void run(const wchar_t* dll_path, const std::wstring& root) {
+  g_root = root;
   CHECK(CreateDirectoryW((root + L"\\config").c_str(), nullptr) != 0);
   CHECK(write_text_file(root + L"\\config\\config.txt",
                         "Device: all\nPreamp: -3 dB\n"
@@ -249,6 +265,12 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
   check_layout<APOInitSystemEffects>(factory, module, properties);
   check_layout<APOInitSystemEffects2>(factory, module, properties);
   check_layout<APOInitSystemEffects3>(factory, module, properties);
+
+  // Every lock above has been let go, and the file says so: an app reading
+  // a "locked" left behind would think the engine was still running this
+  // output after Windows had stopped using it.
+  const std::string status = read_text_file(status_path());
+  CHECK(status.find("\"locked\":false") != std::string::npos);
 }
 
 }  // namespace

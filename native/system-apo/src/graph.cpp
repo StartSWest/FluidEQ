@@ -95,6 +95,9 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
+  if (!chain.dsp_values.empty() && rack_ == nullptr) {
+    problems_.push_back("dsp-rack");
+  }
 
   // An endpoint the config never named gets no EQ at all, not even a
   // preamp of 0 dB: `matched` is the difference between "this config has
@@ -162,6 +165,16 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");
       }
     }
+  }
+
+  // Asked for and not running, whichever of the several ways it failed —
+  // the warnings above say which, for the log; these say only what, for the
+  // app to put in front of the user.
+  if (!chain.convolution_path.empty() && impulse_.empty()) {
+    problems_.push_back("convolution");
+  }
+  if (!chain.graphic_curves.empty() && graphic_.empty()) {
+    problems_.push_back("graphic-eq");
   }
 
   passthrough_ = rack_ == nullptr && coefficients_.empty() &&
@@ -317,6 +330,10 @@ uint32_t Graph::latency_frames() const noexcept { return latency_frames_; }
 
 const std::vector<std::string>& Graph::warnings() const noexcept {
   return warnings_;
+}
+
+const std::vector<std::string>& Graph::problems() const noexcept {
+  return problems_;
 }
 
 }  // namespace fluideq_engine

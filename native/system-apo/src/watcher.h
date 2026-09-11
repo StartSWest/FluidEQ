@@ -36,6 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/graph.h"
 #include "log.h"
 #include "owner_link.h"
+#include "status_file.h"
 
 namespace fluideq_engine {
 
@@ -225,6 +226,12 @@ class Watcher {
   void log_chain(const Chain& chain, const Graph& graph, bool owner_present);
   /** No link means the link could not run: then FluidEQ counts as present. */
   bool owner_present() const noexcept;
+  /**
+   * Tell the app what this output is doing — `status_file.h`. `locked` is
+   * false only from `stop()`. Never throws; a file that cannot be written
+   * is logged once and otherwise changes nothing about the audio.
+   */
+  void report_status(bool locked) noexcept;
 
   GraphSlot& slot_;
   Log& log_;
@@ -244,6 +251,17 @@ class Watcher {
   // False until the first chain is logged, so the first one always says
   // which of the two states it is in rather than only saying so on a change.
   bool have_passthrough_reason_ = false;
+
+  // What the last published graph does, for the status file.
+  bool last_processing_ = false;
+  std::vector<std::string> graph_problems_;
+  // The watcher's own problems: a reload that threw (the previous graph
+  // keeps running) until one works again, and a directory it cannot watch.
+  bool reload_failed_ = false;
+  bool unwatched_ = false;
+  // This instance's place among the output's in the status file.
+  StatusShare status_;
+  bool status_failure_logged_ = false;
 
   HANDLE stop_event_ = nullptr;
   // Auto-reset: one wake per request, and a request that arrives while a

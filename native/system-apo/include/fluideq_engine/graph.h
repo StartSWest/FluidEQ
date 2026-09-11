@@ -196,6 +196,18 @@ class Graph {
   const std::vector<std::string>& warnings() const noexcept;
 
   /**
+   * What the configuration asked for that this graph is not running, one
+   * short stable code each: "convolution", "graphic-eq", "dsp-rack".
+   *
+   * Beside `warnings`, not instead of them. A warning is a sentence for the
+   * log and says which of several things went wrong; this says only what
+   * the user is not hearing, in a form the app can translate — it is what
+   * the status file hands to `engineHealth.ts`. A resampled or truncated
+   * impulse response is a warning and not a problem: it is still running.
+   */
+  const std::vector<std::string>& problems() const noexcept;
+
+  /**
    * Blocks this graph had to silence because they came out with a sample
    * that was not a real number — see the end of `process`. Any thread; the
    * watcher reads it once the graph is being replaced, for the log.
@@ -275,6 +287,7 @@ class Graph {
   std::vector<float*> rack_planes_;
 
   std::vector<std::string> warnings_;
+  std::vector<std::string> problems_;
 };
 
 }  // namespace fluideq_engine
