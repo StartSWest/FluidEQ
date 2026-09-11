@@ -315,4 +315,21 @@ describe('the member’s own published scenes', () => {
     });
     expect(calls).toEqual([]);
   });
+
+  it('preserves the official namespace for server authorization', async () => {
+    setup();
+    answer = fakeResponse(200, {});
+    expect(await invoke('plus-gallery-unpublish', 'premium:alpine')).toEqual({
+      ok: true,
+    });
+    expect(calls[0]?.body).toEqual({
+      action: 'unpublish',
+      sceneId: 'premium:alpine',
+    });
+    expect(await invoke('plus-gallery-unpublish', 'premium:../../x')).toEqual({
+      ok: false,
+      reason: 'signed-out',
+    });
+    expect(calls).toHaveLength(1);
+  });
 });

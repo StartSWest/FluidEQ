@@ -88,6 +88,8 @@ export interface IGalleryScene {
 }
 
 export interface IPublishedScene {
+  /** Server-authorized FluidEQ publication, separate from this account's member scenes. */
+  official?: boolean;
   sceneId: string;
   version: number;
   category: TPlusCategory;
@@ -259,6 +261,7 @@ export const parsePublishedRow = (
     publishedAt,
     updatedAt,
     blocked: value.blocked === true,
+    ...(value.official === true ? { official: true } : {}),
   };
 };
 

@@ -283,7 +283,6 @@ export const registerPlusGalleryIpc = ({
       if (
         !ref ||
         !signedIn() ||
-        ref.authorId === FLUIDEQ_CREATOR_ID ||
         typeof version !== 'number' ||
         !Number.isInteger(version) ||
         version < 1

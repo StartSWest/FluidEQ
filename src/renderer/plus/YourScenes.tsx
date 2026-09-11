@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { memberLookId } from 'common/memberScenes';
-import type { IPublishedScene } from 'common/plusGallery';
-import { resolveSceneName } from 'common/scenePacks';
+import { FLUIDEQ_CREATOR_ID, type IPublishedScene } from 'common/plusGallery';
+import { premiumLookId, resolveSceneName } from 'common/scenePacks';
 import type { TMineOutcome } from 'main/ipc/plusPublishing';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -27,6 +27,9 @@ type TMine =
 interface IYourScenesProps {
   me: string | undefined;
 }
+
+const publicationId = (scene: IPublishedScene) =>
+  scene.official ? premiumLookId(scene.sceneId) : scene.sceneId;
 
 /**
  * The scenes this member has published: how each is doing, and the way to
@@ -65,10 +68,10 @@ export default function YourScenes({ me }: IYourScenesProps) {
   useEffect(load, [load]);
 
   const unpublish = (scene: IPublishedScene, name: string) => {
-    setWorking(scene.sceneId);
+    setWorking(publicationId(scene));
     setNotice(undefined);
     window.electron?.ipcRenderer
-      ?.unpublishScene?.(scene.sceneId)
+      ?.unpublishScene?.(publicationId(scene))
       .then((outcome) => {
         setWorking(undefined);
         setConfirming(undefined);
@@ -82,7 +85,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
             ? {
                 state: 'ready',
                 scenes: current.scenes.filter(
-                  (entry) => entry.sceneId !== scene.sceneId,
+                  (entry) => publicationId(entry) !== publicationId(scene),
                 ),
               }
             : current,
@@ -152,17 +155,19 @@ export default function YourScenes({ me }: IYourScenesProps) {
         <ul className="gallery-rows">
           {mine.scenes.map((scene) => {
             const name = resolveSceneName(scene, locale);
-            const busy = working === scene.sceneId;
+            const busy = working === publicationId(scene);
             return (
               <li
-                key={scene.sceneId}
+                key={publicationId(scene)}
                 className={`gallery-row${scene.blocked ? ' is-blocked' : ''}`}
               >
                 <ScenePicture
                   className="gallery-row__picture"
                   scene={{
-                    lookId: memberLookId(me ?? '', scene.sceneId),
-                    authorId: me ?? '',
+                    lookId: scene.official
+                      ? premiumLookId(scene.sceneId)
+                      : memberLookId(me ?? '', scene.sceneId),
+                    authorId: scene.official ? FLUIDEQ_CREATOR_ID : (me ?? ''),
                     sceneId: scene.sceneId,
                     version: scene.version,
                     updatedAt: scene.updatedAt,
@@ -188,18 +193,22 @@ export default function YourScenes({ me }: IYourScenesProps) {
                     </span>
                   )}
                 </span>
-                <dl className="gallery-row__numbers">
-                  <div>
-                    <dt>{t('plus.scene.likes')}</dt>
-                    <dd>{numbers.format(scene.likes)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('plus.scene.adds')}</dt>
-                    <dd>{numbers.format(scene.adds)}</dd>
-                  </div>
-                </dl>
+                {scene.official ? (
+                  <span className="gallery-fine">FluidEQ</span>
+                ) : (
+                  <dl className="gallery-row__numbers">
+                    <div>
+                      <dt>{t('plus.scene.likes')}</dt>
+                      <dd>{numbers.format(scene.likes)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('plus.scene.adds')}</dt>
+                      <dd>{numbers.format(scene.adds)}</dd>
+                    </div>
+                  </dl>
+                )}
                 <span className="gallery-row__actions">
-                  {confirming === scene.sceneId ? (
+                  {confirming === publicationId(scene) ? (
                     <>
                       <span className="gallery-row__confirm">
                         {t('plus.mine.confirm')}
@@ -229,7 +238,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
                     <button
                       type="button"
                       className="button small subtle"
-                      onClick={() => setConfirming(scene.sceneId)}
+                      onClick={() => setConfirming(publicationId(scene))}
                     >
                       {t('plus.mine.unpublish')}
                     </button>

@@ -568,41 +568,47 @@ describe('a scene’s page', () => {
 });
 
 describe('the member’s own published scenes', () => {
-  it('lists them and takes one down after asking', async () => {
-    bridge.myPublishedScenes.mockResolvedValue({
-      ok: true,
-      scenes: [
-        {
-          sceneId: 'neon-city',
-          version: 2,
-          category: 'cities',
-          names: { en: 'Neon City' },
-          swatch: ['#050a1a', '#00e5cf'],
-          likes: 7,
-          adds: 3,
-          publishedAt: '2026-09-01T00:00:00Z',
-          updatedAt: '2026-09-10T00:00:00Z',
-          blocked: false,
-        },
-      ],
-    });
-    bridge.unpublishScene.mockResolvedValue({ ok: true });
-    renderGallery();
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'plus.gallery.mine' }),
-    );
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'plus.mine.unpublish' }),
-    );
-    expect(bridge.unpublishScene).not.toHaveBeenCalled();
-    expect(screen.getByText('plus.mine.confirm')).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'plus.mine.confirmYes' }),
-    );
-    expect(bridge.unpublishScene).toHaveBeenCalledWith('neon-city');
-    expect(
-      await screen.findByText('plus.mine.unpublished:Neon City'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('plus.mine.empty')).toBeInTheDocument();
-  });
+  it.each([false, true])(
+    'lists a publication (official=%s) and takes it down in its own namespace',
+    async (official) => {
+      bridge.myPublishedScenes.mockResolvedValue({
+        ok: true,
+        scenes: [
+          {
+            sceneId: 'neon-city',
+            official,
+            version: 2,
+            category: 'cities',
+            names: { en: 'Neon City' },
+            swatch: ['#050a1a', '#00e5cf'],
+            likes: 7,
+            adds: 3,
+            publishedAt: '2026-09-01T00:00:00Z',
+            updatedAt: '2026-09-10T00:00:00Z',
+            blocked: false,
+          },
+        ],
+      });
+      bridge.unpublishScene.mockResolvedValue({ ok: true });
+      renderGallery();
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'plus.gallery.mine' }),
+      );
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'plus.mine.unpublish' }),
+      );
+      expect(bridge.unpublishScene).not.toHaveBeenCalled();
+      expect(screen.getByText('plus.mine.confirm')).toBeInTheDocument();
+      await userEvent.click(
+        screen.getByRole('button', { name: 'plus.mine.confirmYes' }),
+      );
+      expect(bridge.unpublishScene).toHaveBeenCalledWith(
+        official ? 'premium:neon-city' : 'neon-city',
+      );
+      expect(
+        await screen.findByText('plus.mine.unpublished:Neon City'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('plus.mine.empty')).toBeInTheDocument();
+    },
+  );
 });

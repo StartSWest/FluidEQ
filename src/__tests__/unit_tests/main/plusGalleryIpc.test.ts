@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
 /* eslint-disable import/first -- the electron mock must be installed first */
 import type { IAccountConfig } from '../../../common/accountConfig';
 import { memberLookId } from '../../../common/memberScenes';
+import { FLUIDEQ_CREATOR_ID } from '../../../common/plusGallery';
 import {
   registerPlusGalleryIpc,
   type TGalleryAddOutcome,
@@ -361,6 +362,13 @@ describe('adding', () => {
 });
 
 describe('pictures', () => {
+  it('loads the actual Studio cover for an official publication', async () => {
+    setup();
+    bucket.set(`${FLUIDEQ_CREATOR_ID}/alpine/picture.webp`, webpBytes());
+    expect(
+      await invoke('plus-gallery-picture', FLUIDEQ_CREATOR_ID, 'alpine', 47),
+    ).toMatch(/^data:image\/webp;base64,/);
+  });
   it('hands the page a WebP as a data URL, once fetched', async () => {
     setup();
     bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());

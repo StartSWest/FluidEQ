@@ -85,12 +85,20 @@ export const registerPlusPublishingIpc = ({
     'plus-gallery-unpublish',
     async (_event, sceneId: unknown): Promise<TUnpublishOutcome> => {
       const me = access.accountId();
-      const ref = me ? sceneRefOf(me, sceneId) : undefined;
+      const official =
+        typeof sceneId === 'string' && sceneId.startsWith('premium:');
+      const id = official ? (sceneId as string).slice(8) : sceneId;
+      const ref = me ? sceneRefOf(me, id) : undefined;
       const auth = ref ? await access.auth() : undefined;
       if (!ref || !auth || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
-      return unpublishScene(auth, ref.packId);
+      // The prefix selects a namespace, never grants permission. The server
+      // checks the caller's official publishing capability before deletion.
+      return unpublishScene(
+        auth,
+        official ? `premium:${ref.packId}` : ref.packId,
+      );
     },
   );
 
