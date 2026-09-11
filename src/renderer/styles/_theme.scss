@@ -456,6 +456,17 @@ $transition-control:
   font-weight: $weight-bold;
 }
 
+// Where a field shows it has the caret: the edge and the ring.
+@mixin field-focus {
+  &:focus-visible,
+  &:focus-within {
+    border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+// A control you press that is dressed as a field — a select, a pick, a chip:
+// it lifts under the pointer like the quiet button it sits beside.
 @mixin field-interactive {
   @include field-surface;
 
@@ -464,31 +475,20 @@ $transition-control:
     background: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 
-  &:focus-visible,
-  &:focus-within {
-    border-color: $border-field-focus;
-    @include focus-ring;
-  }
+  @include field-focus;
 }
 
-// A field you type into: the fill NEVER moves, only the edge.
+// A field you type into: NOTHING changes under the pointer — not the fill,
+// not the edge. Only focus lights it, because focus is where the typing goes.
 //
-// A box holding text the eye is reading — a pasted EQ export, a line of the
-// config — must not change colour under the pointer. The lift belongs to
-// controls you press, and on a text box it reads as the text being selected.
-// The number inputs have always behaved this way because their wrapper owns
-// the surface; every bare `<input>` and `<textarea>` needs it stated.
-//
-// The two `:not()`s are not decoration. The global control base carries them,
-// so a rule written without them is one pseudo-class short and loses — which
-// is exactly how these boxes kept lighting up after being "fixed" twice.
+// Ivan has asked for this more than once ("quita el hover en todos mis
+// inputs"): a box of text the eye is reading must not change colour when the
+// pointer crosses it, and the lift belongs to controls you press. The global
+// control base in App.scss gives every <input> and <textarea> no hover at
+// all, so a text field needs no hover rule of its own — and must not grow
+// one, in a mixin or in a component.
 @mixin field-static {
   @include field-surface;
-
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
-  }
 
   &:focus,
   &:focus-visible {

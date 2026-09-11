@@ -267,10 +267,13 @@ button {
 // wrapper owns the surface and the inner <input> must stay transparent —
 // could not turn it off without an `!important`.
 
+// Boxes you type into take no hover at all — see `field-static` in
+// _theme.scss for why, and why nothing may add one back.
 input:where(:not([type='range'], [type='checkbox'], [type='radio'])),
 textarea,
 select {
-  @include field-interactive;
+  @include field-surface;
+  @include field-focus;
   padding: 8px $field-padding-inline;
 
   &::placeholder {
@@ -282,11 +285,16 @@ select {
   }
 }
 
-// A native select names a choice, so it is labelled like the quiet button
-// rather than like a box you type into.
+// A native select names a choice and is pressed like a button, so it is
+// labelled like the quiet button and lifts under the pointer like one.
 select {
   color: $secondary-light;
   font-weight: $weight-bold;
+
+  &:hover:not(:disabled) {
+    border-color: $border-field-hover;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+  }
 }
 
 select option {

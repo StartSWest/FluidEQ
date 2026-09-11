@@ -42,10 +42,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: flex-start;
     overflow: hidden;
 
-    &:hover:not([aria-disabled='true']) {
-      border-color: $border-field-hover;
-    }
-
+    // No hover: a number is typed into, and a field you type into does not
+    // change under the pointer (see `field-static`).
     &:focus-within {
       border-color: $border-field-focus;
       @include focus-ring;
@@ -78,13 +76,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     // Never a fill of its own, in any state.
     //
-    // The global control base hands every `input` the interactive field face,
-    // hover fill included, and here that fill landed ON TOP of the wrapper's
-    // own: a second, brighter rectangle that stopped short of the stepper
-    // arrows and carried the wrapper's rounded corner into the middle of the
-    // control. The wrapper is the visible field; the text area inside it is
-    // glass.
-    &:hover,
+    // The global control base hands every `input` the field face and its
+    // focus ring, and here that face landed ON TOP of the wrapper's own: a
+    // second, brighter rectangle that stopped short of the stepper arrows and
+    // carried the wrapper's rounded corner into the middle of the control.
+    // The wrapper is the visible field; the text area inside it is glass.
     &:focus,
     &:focus-visible,
     &:disabled {
