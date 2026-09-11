@@ -56,6 +56,15 @@ describe('EngineUpdateNotice', () => {
     expect(screen.getByRole('dialog')).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByText(en['engineUpdate.running'])).toBeInTheDocument();
     expect(button(en['engineUpdate.action'])).toHaveClass('is-running');
+    expect(button(en['engineUpdate.action'])).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(button(en['engineUpdate.action'])).toHaveAttribute('tabindex', '-1');
+    fireEvent.click(button(en['engineUpdate.action']));
+    fireEvent.keyDown(button(en['engineUpdate.action']), { code: 'Enter' });
+    fireEvent.keyDown(button(en['engineUpdate.action']), { code: 'Space' });
+    expect(update.run).not.toHaveBeenCalled();
 
     // Closing hides the card; the update is not the card's to stop.
     fireEvent.click(button(en['restart.close']));
@@ -112,6 +121,10 @@ describe('EngineUpdateNotice', () => {
       ),
     ).toBeInTheDocument();
     fireEvent.click(button(en['restart.tryAgain']));
+    expect(button(en['restart.tryAgain'])).toHaveAttribute(
+      'aria-disabled',
+      'false',
+    );
     expect(update.run).toHaveBeenCalledTimes(1);
   });
 

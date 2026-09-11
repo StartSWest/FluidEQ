@@ -44,12 +44,14 @@ interface IDeviceProfilesProps {
    * thing to keep in step with a switch made in the engine dialog.
    */
   engine: TAudioEngine | null;
+  isNoticeHidden?: boolean;
   onConfigureApo: () => Promise<boolean>;
   onAttachFluidEngine: (guid: string) => Promise<IEngineSetupResult>;
 }
 
 const DeviceProfiles = ({
   engine,
+  isNoticeHidden = false,
   onConfigureApo,
   onAttachFluidEngine,
 }: IDeviceProfilesProps) => {
@@ -162,7 +164,9 @@ const DeviceProfiles = ({
   const engineState = outputEngineState(selectedDevice, engine);
   const cannotHostEffects = engineState === 'no-effects';
   const showEngineNotice =
-    isOutputOff(engineState) && dismissedApoDeviceId !== selectedDevice?.id;
+    !isNoticeHidden &&
+    isOutputOff(engineState) &&
+    dismissedApoDeviceId !== selectedDevice?.id;
 
   useEffect(() => {
     setDismissedApoDeviceId('');

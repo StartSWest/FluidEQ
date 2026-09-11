@@ -185,8 +185,7 @@ import AudioEngineDialog, {
   type TApoAction,
 } from './components/AudioEngineDialog';
 import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
-import { useAudioRestart } from './utils/useAudioRestart';
-import { useEngineUpdate } from './utils/useEngineUpdate';
+import { useEngineMaintenance } from './utils/useEngineMaintenance';
 import { AudioEngineContext } from './utils/audioEngineContext';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
 import {
@@ -1929,11 +1928,6 @@ const AppContent = () => {
       return outcome;
     };
 
-  const audioRestart = useAudioRestart(performWindowsAudioRestart);
-
-  /** The menu item, the notice bar and the troubleshooter all open the card. */
-  const handleRestartWindowsAudio = audioRestart.open;
-
   /**
    * This app's engine in place of the one installed, run by the update
    * notice's own button through `useEngineUpdate`, which owns it so it
@@ -1947,17 +1941,22 @@ const AppContent = () => {
   const performEngineUpdate = async (): Promise<IAudioRestartOutcome> => {
     const outcome = await updateFluidEngine();
     if (outcome.ok) {
+      localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
+      setShowAudioRestartRecommendation(false);
       window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
-      performHealthCheck();
+      await refreshState();
     }
     await refreshEngineStatus();
     return outcome;
   };
 
-  const engineUpdate = useEngineUpdate(
-    engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
-    performEngineUpdate,
-  );
+  const { audioRestart, engineUpdate, suppressAudioNotices } =
+    useEngineMaintenance(
+      engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
+      performWindowsAudioRestart,
+      performEngineUpdate,
+    );
+  const handleRestartWindowsAudio = audioRestart.open;
 
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
@@ -2465,7 +2464,7 @@ const AppContent = () => {
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
         }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}`}
       >
-        {showAudioRestartRecommendation && (
+        {showAudioRestartRecommendation && !suppressAudioNotices && (
           <aside className="audio-restart-notice" role="status">
             <span>{t('notice.apoReconfigured')}</span>
             <div className="audio-restart-notice__actions">
@@ -2483,7 +2482,7 @@ const AppContent = () => {
             transient reasons — a device changing mid-start, a prompt
             dismissed — and a second attempt very often works, so there is
             something better to offer than an apology. */}
-        {captureError && !isCaptureNoticeHidden && (
+        {captureError && !isCaptureNoticeHidden && !suppressAudioNotices && (
           <aside className="audio-restart-notice" role="status">
             <span>
               The live meter and the output curve could not start. Everything
@@ -2892,6 +2891,7 @@ const AppContent = () => {
             />
             <DeviceProfiles
               engine={engineStatus?.engine ?? null}
+              isNoticeHidden={suppressAudioNotices}
               onConfigureApo={handleConfigureEqualizerApo}
               onAttachFluidEngine={handleAttachFluidEngine}
             />
@@ -2980,7 +2980,7 @@ const AppContent = () => {
             onApoAction={handleApoAction}
           />
         )}
-        {audioRestart.isOpen && (
+        {audioRestart.isOpen && !suppressAudioNotices && (
           <RestartAudioDialog
             phase={audioRestart.phase}
             outcome={audioRestart.outcome}
@@ -2994,6 +2994,7 @@ const AppContent = () => {
         <EngineTroubleNotice
           trouble={engineTrouble}
           isHidden={
+            suppressAudioNotices ||
             audioRestart.isOpen ||
             showEngineDialog ||
             isEngineUnchosen ||

@@ -134,12 +134,9 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
             </Button>
           ) : (
             <>
-              {/* Not disabled while it works — `is-running` is how this app
-                  shows a button doing something — and the update's owner
-                  refuses a second go. */}
               <Button
                 ariaLabel={primaryLabel}
-                isDisabled={false}
+                isDisabled={isRunning}
                 className={`small${isRunning ? ' is-running' : ''}`}
                 handleChange={run}
               >

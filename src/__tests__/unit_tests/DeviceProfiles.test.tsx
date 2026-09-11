@@ -62,6 +62,31 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
     jest.clearAllMocks();
   });
 
+  it('defers its notice without dismissing it while maintenance owns the spot', async () => {
+    (getAudioDevices as jest.Mock).mockResolvedValue([missingApoDevice]);
+    (getDeviceProfileSettings as jest.Mock).mockResolvedValue({
+      version: 1,
+      assignments: {},
+    });
+    const profiles = (isNoticeHidden: boolean) => (
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
+        <DeviceProfiles
+          engine="apo"
+          isNoticeHidden={isNoticeHidden}
+          onConfigureApo={jest.fn()}
+          onAttachFluidEngine={jest.fn()}
+        />
+      </FluidEqProviderWrapper>
+    );
+    const { rerender } = render(profiles(false));
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    rerender(profiles(true));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    rerender(profiles(false));
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+
   it('keeps the missing badge but lets Not now dismiss the device notice', async () => {
     renderProfiles();
 

@@ -16,6 +16,9 @@ import Button from '../widgets/Button';
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineTroubleNotice.scss';
 
+const OTHER_NOTICE =
+  '.device-apo-notice:not(.engine-trouble-notice):not(.engine-update-notice)';
+
 const PROBLEM_TEXT: Record<TEngineProblem, TranslationKey> = {
   convolution: 'engineHealth.problem.convolution',
   'graphic-eq': 'engineHealth.problem.graphic-eq',
@@ -77,12 +80,17 @@ const EngineTroubleNotice = ({
       return undefined;
     }
     const dismissOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setDismissedKey(key);
+      if (
+        event.key !== 'Escape' ||
+        event.defaultPrevented ||
+        document.querySelector(OTHER_NOTICE) !== null
+      ) {
+        return;
       }
+      setDismissedKey(key);
     };
-    document.addEventListener('keydown', dismissOnEscape);
-    return () => document.removeEventListener('keydown', dismissOnEscape);
+    window.addEventListener('keydown', dismissOnEscape);
+    return () => window.removeEventListener('keydown', dismissOnEscape);
   }, [isShown, key]);
 
   if (!isShown || !trouble) {

@@ -138,6 +138,48 @@ describe('EngineTroubleNotice', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
+  it('keeps an unseen notice when Escape belongs to the output notice', () => {
+    const inFront = document.createElement('aside');
+    inFront.className = 'device-apo-notice';
+    document.body.appendChild(inFront);
+    renderNotice({ trouble: off });
+    try {
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    } finally {
+      inFront.remove();
+    }
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('leaves the notice alone when a later dialog handles Escape', () => {
+    renderNotice({ trouble: off });
+    const dialogAnswers = (event: KeyboardEvent) => event.preventDefault();
+    document.addEventListener('keydown', dialogAnswers);
+    try {
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    } finally {
+      document.removeEventListener('keydown', dialogAnswers);
+    }
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('still answers Escape when only the lower-priority update notice is present', () => {
+    const update = document.createElement('aside');
+    update.className = 'device-apo-notice engine-update-notice';
+    document.body.appendChild(update);
+    renderNotice({ trouble: off });
+    try {
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    } finally {
+      update.remove();
+    }
+  });
+
   it('steps aside while a dialog is open, and comes back after it', () => {
     const { rerender } = renderNotice({ trouble: off, isHidden: true });
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
