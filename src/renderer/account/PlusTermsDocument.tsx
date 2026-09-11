@@ -7,6 +7,7 @@ import {
   DAILY_LISTENING_CAP_HOURS,
   LISTENING_UPLOAD_INTERVAL_HOURS,
   LISTENING_WINDOW_DAYS,
+  PART_POINTS,
 } from 'common/leaderboardScore';
 import {
   PLUS_ACCOUNT_DELETION_DAYS,
@@ -43,6 +44,7 @@ const termsValues = (monthly: string): Record<string, string | number> => ({
   capHours: DAILY_LISTENING_CAP_HOURS,
   windowDays: LISTENING_WINDOW_DAYS,
   uploadHours: LISTENING_UPLOAD_INTERVAL_HOURS,
+  likePoints: PART_POINTS.likes,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
 });
 

@@ -17,8 +17,13 @@
 /**
  * 2: the minimum age went from 16 to 18. Version 1 never reached a release,
  * but an agreement on record has to name one text, not two.
+ *
+ * 3: scenes members make in the Studio — they stay the member's own, sharing
+ * one by file lets other members play it, a like is points for its author.
+ * Exporting a scene also records an agreement to this version, so nobody
+ * shares under a text they were not shown.
  */
-export const PLUS_TERMS_VERSION = 2;
+export const PLUS_TERMS_VERSION = 3;
 
 /** The day this version took effect, as a calendar date. */
 export const PLUS_TERMS_EFFECTIVE = '2026-09-10';

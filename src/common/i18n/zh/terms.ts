@@ -14,19 +14,19 @@ const terms = {
   'terms.short.free.body': 'FluidEQ 依然可以离线、无需账户地使用，一如既往。',
   'terms.short.choice.title': '分享什么由你决定',
   'terms.short.choice.body':
-    '除非你加入，否则排行榜是关闭的；发什么内容也由你决定。',
+    '除非你加入，否则排行榜是关闭的；发什么内容、分享哪些自己的场景，也由你决定。',
   'terms.short.music.title': '绝不涉及你的音乐',
   'terms.short.music.body': '曲目名称、文件、音频和设备永远不会离开你的电脑。',
 
   'terms.membership.title': '会员',
   'terms.membership.p1':
-    'Plus 为 FluidEQ 增加高级可视化效果、在社区发言和排行榜。价格为 {price}，每月自动续订，直到你取消。',
+    'Plus 为 FluidEQ 增加高级可视化效果、用来创作自己的场景并与其他会员分享的工作室、在社区发言和排行榜。价格为 {price}，每月自动续订，直到你取消。',
   'terms.membership.p2':
     '付款由 Buy Me a Coffee 按其自身条款处理。FluidEQ 从不接触你的银行卡或银行信息。你可以随时在 Buy Me a Coffee 上取消：Plus 会保持到已付费月份结束，之后不再扣费。',
   'terms.membership.p3':
     '如果某次扣款是误操作，或者 Plus 不适合你，请在该次扣款后 {refundDays} 天内提出，将全额退款，不问原因。',
   'terms.membership.p4':
-    '会员结束后，Plus 样式会重新锁定，FluidEQ 回到免费样式。应用最后一次确认你的会员后，Plus 可以离线继续使用最多 {graceDays} 天。免费的一切永远不受影响。',
+    '会员结束后，Plus 样式和会员创作的场景会重新锁定，FluidEQ 回到免费样式；你创作的内容不会被删除。应用最后一次确认你的会员后，Plus 可以离线继续使用最多 {graceDays} 天。免费的一切永远不受影响。',
 
   'terms.account.title': '你的账户',
   'terms.account.p1':
@@ -53,7 +53,8 @@ const terms = {
   'terms.sent.payment.who':
     '作者，用于把付款对应到你的账户。请使用登录所用的邮箱付款。',
   'terms.sent.looks.what': '你的登录令牌',
-  'terms.sent.looks.when': '下载或更新 Plus 样式时',
+  'terms.sent.looks.when':
+    '下载或更新 Plus 样式时，以及应用检查哪些分享的场景已被下架时',
   'terms.sent.looks.who':
     '不保存任何内容。每个样式都带有签名，你的电脑会在播放前校验签名。',
   'terms.sent.catalogue.what': '不含任何关于你的信息',
@@ -71,12 +72,22 @@ const terms = {
     '仅在你加入排行榜后：你回到电脑前时（最多每 {uploadHours} 小时一次），以及打开排行榜时',
   'terms.sent.board.who':
     '你的用户名、显示名称、积分及其构成：所有已登录的会员。',
+  'terms.sent.sceneExport.what': '你导出的场景，附带你的显示名称和账户 ID',
+  'terms.sent.sceneExport.when': '在工作室中点击“导出”时',
+  'terms.sent.sceneExport.who':
+    '场景本身不会被保存。作者会保留一条记录：你导出了哪个场景、哪个版本、何时导出，以及一个指纹，用来识别被封禁的场景。收到文件的人会看到你的显示名称和账户 ID。',
+  'terms.sent.sceneLike.what': '屏幕上正在显示哪位会员的场景，以及你对它的赞',
+  'terms.sent.sceneLike.when':
+    '播放会员的场景时（用于显示点赞数），以及你点击爱心或取消点赞时',
+  'terms.sent.sceneLike.who':
+    '屏幕上显示的内容不会被保存。会员能看到一个场景有多少个赞，但看不到是谁点的。',
 
   'terms.never.title': '永远不会离开你电脑的内容',
   'terms.never.p1':
     '你的音频，以及关于你所听内容的一切：曲目名称、艺人、文件、文件夹和播放列表。',
   'terms.never.p2': '你的 EQ 设置、预设和配置文件。',
   'terms.never.p3': '你的音频设备及其名称，以及你电脑上的其他应用。',
+  'terms.never.p4': '你创作的场景和你的工作室文件夹，除非你导出某个场景。',
 
   'terms.protect.title': '如何保护',
   'terms.protect.p1': '每个请求在传输中都经过加密。',
@@ -95,6 +106,8 @@ const terms = {
     '收听时长由你电脑上的应用统计，服务器无法亲眼看到。因此它会核查每个数字：每天不超过 {capHours} 小时，不接受尚未开始的日期，不接受超过 {windowDays} 天的旧数据，任何一天的增长都不能快过时钟。消息和提及在服务器上根据实际发布的内容统计。',
   'terms.fair.p2':
     '每个人获得积分的方式都一样，作者也不例外。篡改应用或其发送的数据、自动化收听或发帖、或用多个账户刷榜，都会被移出排行榜，也可能被移出社区。',
+  'terms.fair.p3':
+    '你的场景每获得一个赞，就得 {likePoints} 分。每位会员对每个场景只计一次，只计 Plus 会员的赞，且永远不计你自己账户的赞。用你自己的第二个账户点赞，视同用多个账户刷榜。',
 
   'terms.community.title': '社区规则',
   'terms.community.p1':
@@ -110,12 +123,32 @@ const terms = {
     '会员：你的付款邮箱和状态会被保存，用于把付款对应到你的账户，并随账户一起删除。',
   'terms.keep.p4':
     '你的账户：申请删除后，它会在 {deletionDays} 天内连同你的个人资料、消息、排行榜记录和会员记录一起删除。',
+  'terms.keep.p5':
+    '场景：你的导出记录、你点过的赞以及你的场景收到的赞，都会随账户一起删除。因违反本条款而被封禁的场景只保留其指纹，不含你的名字，以便继续封禁。',
 
   'terms.looks.title': 'Plus 样式',
   'terms.looks.p1':
     'Plus 样式是作者本人的作品，在你作为会员期间授权你个人使用。请不要复制、分享或转售。',
   'terms.looks.p2':
     'FluidEQ 本身仍是基于 GPL 的自由软件。这里的任何内容都不会改变 GPL 赋予你的权利。',
+
+  'terms.scenes.title': '你创作的场景',
+  'terms.scenes.p1':
+    '你在工作室中创作的场景归你所有。FluidEQ 不拥有它，适用于 FluidEQ 的 GPL 也不适用于它。',
+  'terms.scenes.p2':
+    '在你选择导出之前，它只保存在你的电脑上。你不分享，你创作的任何内容就不会被分享。',
+  'terms.scenes.p3':
+    '导出场景时，你允许 FluidEQ 检查它、移除其着色器中的注释，并以你的名字为它签名，让其他 Plus 会员可以播放它，并看到它是你创作的。这就是全部的许可。未经你事先同意，作者不会出售你的场景、将其用于广告，或把它变成 Plus 样式之一；你对自己的作品做其他任何事情也不受限制。',
+  'terms.scenes.p4':
+    '分享是 Plus 的一部分，而不是一份工作：没有人因场景获得报酬，也没有人为场景付费。你得到的回报，是其他会员分享的所有场景。',
+  'terms.scenes.p5':
+    '如果你加入了排行榜，喜欢你场景的会员会让你获得积分。点赞由服务器统计；参见“排行榜的公平规则”。',
+  'terms.scenes.p6':
+    '只分享你有权分享的作品：你自己的照片和绘画，或其所有者允许使用的作品。社区规则对场景与对消息同样适用。如果某个场景违反本条款或侵犯他人权利，作者可以阻止它被打开。',
+  'terms.scenes.p7':
+    '其他会员分享的场景是他们的作品，在你是会员期间授权你个人使用。你可以播放它、为它点赞，并把文件原样转给其他 Plus 会员。请不要修改它、把它当作你的作品、在其他地方发布或出售它。',
+  'terms.scenes.p8':
+    '你发出的文件会留在拥有它的人手中。如果你希望某个场景在所有地方都无法打开，请联系作者，他可以像封禁违规场景一样封禁它。',
 
   'terms.changes.title': '变更与细则',
   'terms.changes.p1':
@@ -124,7 +157,8 @@ const terms = {
     '在法律允许的范围内，FluidEQ 和 Plus 按现状提供，不附带任何保证。作者承担的责任不超过你过去十二个月为 Plus 支付的金额。这里的任何内容都不会剥夺法律赋予你作为消费者的权利。',
 
   'terms.contact.title': '联系方式',
-  'terms.contact.p1': '问题、退款或删除账户：{contact}。',
+  'terms.contact.p1':
+    '问题、退款、删除账户，或举报使用了你作品的场景：{contact}。',
 
   'terms.agree.check': '我已阅读这些条款（包括应用会发送的内容），并同意。',
   'terms.agree.continue': '同意并前往付款',

@@ -750,3 +750,24 @@ distribute a name and an icon of your own — the branding is centralised in
 change. Section 7 also lets you remove this term from material you convey. The
 full policy, and what it deliberately does not cover, is in
 [TRADEMARK.md](TRADEMARK.md).
+
+### Additional permission under GPL-3.0 section 7 — scenes
+
+FluidEQ runs small visualizer programs, called scenes, that its users write for
+it in the Studio. So that a person's own scene stays theirs to license as they
+choose, this program is distributed with one additional permission:
+
+> **Additional permission under GNU GPL version 3 section 7 — scenes.**
+> A _scene_ is a program in the OpenGL ES Shading Language written to be run by
+> FluidEQ through its scene contract: the declarations, entry point and
+> wrapper FluidEQ supplies around a function named `sceneColour`, together with
+> any artwork and metadata distributed with it. As a special exception, the
+> combination of a scene with that contract, when run by FluidEQ, does not
+> require the scene to be licensed under this License; you may license your
+> scene under terms of your choice. This permission does not apply to FluidEQ
+> itself or to any other part of it, and does not permit you to distribute
+> FluidEQ, or a modified version of it, under any licence other than this one.
+
+The scene contract is [`src/common/sceneUniformContract.ts`](src/common/sceneUniformContract.ts).
+A modified version of FluidEQ may keep or remove this permission, as section 7
+allows.

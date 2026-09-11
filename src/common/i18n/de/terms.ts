@@ -15,20 +15,20 @@ const terms = {
     'FluidEQ funktioniert weiter offline und ohne Konto, wie schon immer.',
   'terms.short.choice.title': 'Sie entscheiden, was geteilt wird',
   'terms.short.choice.body':
-    'Die Rangliste ist aus, solange Sie nicht beitreten, und was Sie posten, bestimmen Sie.',
+    'Die Rangliste ist aus, solange Sie nicht beitreten, und was Sie posten und welche Ihrer Szenen Sie teilen, bestimmen Sie.',
   'terms.short.music.title': 'Niemals Ihre Musik',
   'terms.short.music.body':
     'Keine Titel, Dateien, Audiodaten oder Geräte verlassen jemals Ihren Computer.',
 
   'terms.membership.title': 'Die Mitgliedschaft',
   'terms.membership.p1':
-    'Plus erweitert FluidEQ um Premium-Visualisierungen, das Schreiben in der Community und die Rangliste. Es kostet {price} und verlängert sich jeden Monat, bis Sie kündigen.',
+    'Plus erweitert FluidEQ um Premium-Visualisierungen, das Studio zum Erstellen eigener Szenen und zum Teilen mit anderen Mitgliedern, das Schreiben in der Community und die Rangliste. Es kostet {price} und verlängert sich jeden Monat, bis Sie kündigen.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Monats aktiv, und danach wird nichts mehr abgebucht.',
   'terms.membership.p3':
     'War eine Abbuchung ein Versehen, oder ist Plus nichts für Sie, melden Sie sich innerhalb von {refundDays} Tagen nach dieser Abbuchung, und sie wird ohne Rückfragen vollständig erstattet.',
   'terms.membership.p4':
-    'Endet eine Mitgliedschaft, werden die Plus-Looks wieder gesperrt und FluidEQ kehrt zu seinen kostenlosen Looks zurück. Plus funktioniert offline bis zu {graceDays} Tage nach der letzten Bestätigung Ihrer Mitgliedschaft durch die App. Nichts Kostenloses ist jemals betroffen.',
+    'Endet eine Mitgliedschaft, werden die Plus-Looks und die Szenen der Mitglieder wieder gesperrt und FluidEQ kehrt zu seinen kostenlosen Looks zurück; nichts, was Sie erstellt haben, wird gelöscht. Plus funktioniert offline bis zu {graceDays} Tage nach der letzten Bestätigung Ihrer Mitgliedschaft durch die App. Nichts Kostenloses ist jemals betroffen.',
 
   'terms.account.title': 'Ihr Konto',
   'terms.account.p1':
@@ -60,7 +60,7 @@ const terms = {
     'Der Macher, um die Zahlung Ihrem Konto zuzuordnen. Zahlen Sie mit der E-Mail, mit der Sie sich anmelden.',
   'terms.sent.looks.what': 'Ihr Anmelde-Token',
   'terms.sent.looks.when':
-    'Wenn Plus-Looks heruntergeladen oder aktualisiert werden',
+    'Wenn Plus-Looks heruntergeladen oder aktualisiert werden, und wenn die App prüft, welche geteilten Szenen entfernt wurden',
   'terms.sent.looks.who':
     'Nichts wird gespeichert. Jeder Look ist signiert, und Ihr Computer prüft die Signatur, bevor er ihn abspielt.',
   'terms.sent.catalogue.what': 'Nichts über Sie',
@@ -80,6 +80,17 @@ const terms = {
     'Nur wenn Sie der Rangliste beitreten: wenn Sie an den Computer zurückkehren, höchstens alle {uploadHours} Stunden, und wenn Sie die Rangliste öffnen',
   'terms.sent.board.who':
     'Ihr Handle, Ihr Anzeigename, Ihre Punkte und woraus sie bestehen: alle angemeldeten Mitglieder.',
+  'terms.sent.sceneExport.what':
+    'Eine Szene, die Sie exportieren, mit Ihrem Anzeigenamen und der ID Ihres Kontos',
+  'terms.sent.sceneExport.when': 'Wenn Sie im Studio auf Exportieren klicken',
+  'terms.sent.sceneExport.who':
+    'Von der Szene wird nichts gespeichert. Der Macher speichert, welche Szene in welcher Version Sie wann exportiert haben, und einen Fingerabdruck, damit eine gesperrte Szene erkannt wird. Wer die Datei bekommt, sieht Ihren Anzeigenamen und die ID Ihres Kontos.',
+  'terms.sent.sceneLike.what':
+    'Welche Szene eines Mitglieds gerade läuft, und Ihr „Gefällt mir“ dafür',
+  'terms.sent.sceneLike.when':
+    'Wenn die Szene eines Mitglieds läuft, um ihre „Gefällt mir“ anzuzeigen, und wenn Sie auf das Herz klicken oder ein „Gefällt mir“ zurücknehmen',
+  'terms.sent.sceneLike.who':
+    'Was gerade läuft, wird nicht gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem.',
 
   'terms.never.title': 'Was Ihren Computer nie verlässt',
   'terms.never.p1':
@@ -87,6 +98,8 @@ const terms = {
   'terms.never.p2': 'Ihre EQ-Einstellungen, Presets und Profile.',
   'terms.never.p3':
     'Ihre Audiogeräte und deren Namen sowie die anderen Apps auf Ihrem Computer.',
+  'terms.never.p4':
+    'Die Szenen, die Sie erstellen, und Ihre Studio-Ordner, solange Sie keine Szene exportieren.',
 
   'terms.protect.title': 'Wie es geschützt ist',
   'terms.protect.p1': 'Jede Anfrage wird verschlüsselt übertragen.',
@@ -106,6 +119,8 @@ const terms = {
     'Die Hörzeit zählt die App auf Ihrem Computer, der Server kann also nicht zusehen. Stattdessen prüft er jede Zahl: nicht mehr als {capHours} Stunden am Tag, kein Tag, der noch nicht begonnen hat, nichts, was älter als {windowDays} Tage ist, und kein Tag, der schneller wächst als die Uhr. Nachrichten und Erwähnungen zählt der Server, anhand dessen, was tatsächlich gepostet wurde.',
   'terms.fair.p2':
     'Alle verdienen Punkte auf dieselbe Weise, auch der Macher. Wer die App oder ihre Daten verändert, Hören oder Posten automatisiert oder mit mehreren Konten aufsteigt, fliegt aus der Rangliste und kann aus der Community ausgeschlossen werden.',
+  'terms.fair.p3':
+    'Jedes „Gefällt mir“ für Ihre Szenen bringt {likePoints} Punkte. Es zählt einmal pro Mitglied und Szene, nur von Plus-Mitgliedern und nie von Ihrem eigenen Konto. „Gefällt mir“ von einem zweiten eigenen Konto gilt als Aufsteigen mit mehreren Konten.',
 
   'terms.community.title': 'Community-Regeln',
   'terms.community.p1':
@@ -122,12 +137,32 @@ const terms = {
     'Mitgliedschaft: Ihre Zahlungs-E-Mail und der Status werden gespeichert, um Zahlungen Ihrem Konto zuzuordnen, und mit ihm gelöscht.',
   'terms.keep.p4':
     'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen weg, zusammen mit Profil, Nachrichten, Ranglistentagen und Mitgliedschaftsdaten.',
+  'terms.keep.p5':
+    'Szenen: Die Aufzeichnung Ihrer Exporte, die „Gefällt mir“, die Sie vergeben haben, und die, die Ihre Szenen bekommen haben, werden mit Ihrem Konto gelöscht. Eine wegen Verstoßes gegen diese Bedingungen gesperrte Szene behält nur ihren Fingerabdruck, ohne Ihren Namen, damit sie gesperrt bleibt.',
 
   'terms.looks.title': 'Die Plus-Looks',
   'terms.looks.p1':
     'Die Plus-Looks sind das eigene Werk des Machers, lizenziert für Ihren persönlichen Gebrauch, solange Sie Mitglied sind. Bitte kopieren, teilen oder verkaufen Sie sie nicht weiter.',
   'terms.looks.p2':
     'FluidEQ selbst bleibt freie Software unter der GPL. Nichts hiervon ändert ein Recht, das Ihnen die GPL gibt.',
+
+  'terms.scenes.title': 'Ihre eigenen Szenen',
+  'terms.scenes.p1':
+    'Eine Szene, die Sie im Studio erstellen, gehört Ihnen. FluidEQ besitzt sie nicht, und die GPL, unter der FluidEQ steht, gilt nicht für sie.',
+  'terms.scenes.p2':
+    'Sie bleibt auf Ihrem Computer, bis Sie sich entscheiden, sie zu exportieren. Nichts, was Sie erstellen, wird geteilt, solange Sie es nicht teilen.',
+  'terms.scenes.p3':
+    'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen, die Kommentare aus ihrem Shader zu entfernen und sie mit Ihrem Namen zu signieren, damit andere Plus-Mitglieder sie abspielen und sehen können, dass sie von Ihnen ist. Das ist die ganze Erlaubnis. Der Macher wird Ihre Szene nicht verkaufen, nicht für Werbung nutzen und nicht ohne Ihre Zustimmung zu einem der Plus-Looks machen, und nichts davon hindert Sie daran, mit Ihrer eigenen Arbeit sonst etwas zu tun.',
+  'terms.scenes.p4':
+    'Teilen gehört zu Plus und ist keine Arbeit: Niemand wird für eine Szene bezahlt, und niemand bezahlt für eine. Was Sie zurückbekommen, sind alle Szenen, die die anderen Mitglieder teilen.',
+  'terms.scenes.p5':
+    'Mitglieder, denen Ihre Szene gefällt, geben Ihnen Punkte in der Rangliste, wenn Sie ihr beigetreten sind. „Gefällt mir“ zählt der Server; siehe Fairness in der Rangliste.',
+  'terms.scenes.p6':
+    'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos und Zeichnungen oder solche, deren Urheber es erlaubt. Die Community-Regeln gelten für Szenen wie für Nachrichten. Der Macher kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
+  'terms.scenes.p7':
+    'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und Ihnen für die persönliche Nutzung überlassen, solange Sie Mitglied sind. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert an andere Plus-Mitglieder weitergeben. Bitte verändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nicht anderswo und verkaufen Sie sie nicht.',
+  'terms.scenes.p8':
+    'Eine Datei, die Sie verschickt haben, bleibt bei denen, die sie haben. Wenn sich eine Szene nirgends mehr öffnen soll, bitten Sie den Macher darum, der sie wie eine regelwidrige Szene sperren kann.',
 
   'terms.changes.title': 'Änderungen, und das Kleingedruckte',
   'terms.changes.p1':
@@ -137,7 +172,7 @@ const terms = {
 
   'terms.contact.title': 'Kontakt',
   'terms.contact.p1':
-    'Fragen, Erstattungen oder das Löschen Ihres Kontos: {contact}.',
+    'Fragen, Erstattungen, das Löschen Ihres Kontos oder die Meldung einer Szene, die Ihr Werk verwendet: {contact}.',
 
   'terms.agree.check':
     'Ich habe diese Bedingungen gelesen, einschließlich dessen, was die App sendet, und stimme ihnen zu.',

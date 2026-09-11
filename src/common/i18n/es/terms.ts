@@ -15,20 +15,20 @@ const terms = {
     'FluidEQ sigue funcionando sin conexión y sin cuenta, como siempre.',
   'terms.short.choice.title': 'Tú eliges qué se comparte',
   'terms.short.choice.body':
-    'La clasificación está desactivada salvo que te unas, y tú decides qué publicas.',
+    'La clasificación está desactivada salvo que te unas, y tú decides qué publicas y cuáles de tus escenas compartes.',
   'terms.short.music.title': 'Nunca tu música',
   'terms.short.music.body':
     'Ni nombres de canciones, ni archivos, ni audio, ni dispositivos salen nunca de tu ordenador.',
 
   'terms.membership.title': 'La membresía',
   'terms.membership.p1':
-    'Plus añade a FluidEQ visualizadores premium, publicar en la comunidad y la clasificación. Cuesta {price} y se renueva cada mes hasta que la canceles.',
+    'Plus añade a FluidEQ visualizadores premium, el Estudio para crear los tuyos y compartirlos con otros miembros, publicar en la comunidad y la clasificación. Cuesta {price} y se renueva cada mes hasta que la canceles.',
   'terms.membership.p2':
     'El pago lo gestiona Buy Me a Coffee, con sus propias condiciones. FluidEQ nunca ve tu tarjeta ni tus datos bancarios. Puedes cancelar cuando quieras en Buy Me a Coffee: Plus sigue activo hasta el final del mes que pagaste y no se cobra nada más.',
   'terms.membership.p3':
     'Si un cobro fue un error, o Plus no es para ti, pídelo dentro de los {refundDays} días siguientes a ese cobro y se te devuelve íntegro, sin preguntas.',
   'terms.membership.p4':
-    'Cuando termina una membresía, los looks Plus vuelven a bloquearse y FluidEQ vuelve a sus looks gratuitos. Plus sigue funcionando sin conexión hasta {graceDays} días después de la última vez que la aplicación confirmó tu membresía. Nada de lo gratuito se ve afectado, nunca.',
+    'Cuando termina una membresía, los looks Plus y las escenas de los miembros vuelven a bloquearse y FluidEQ vuelve a sus looks gratuitos; nada de lo que creaste se borra. Plus sigue funcionando sin conexión hasta {graceDays} días después de la última vez que la aplicación confirmó tu membresía. Nada de lo gratuito se ve afectado, nunca.',
 
   'terms.account.title': 'Tu cuenta',
   'terms.account.p1':
@@ -59,7 +59,8 @@ const terms = {
   'terms.sent.payment.who':
     'El creador, para asociar el pago a tu cuenta. Paga con el mismo correo con el que inicias sesión.',
   'terms.sent.looks.what': 'Tu token de sesión',
-  'terms.sent.looks.when': 'Al descargar o actualizar looks Plus',
+  'terms.sent.looks.when':
+    'Al descargar o actualizar looks Plus, y cuando la aplicación comprueba qué escenas compartidas se han retirado',
   'terms.sent.looks.who':
     'No se guarda nada. Cada look va firmado, y tu ordenador comprueba la firma antes de reproducirlo.',
   'terms.sent.catalogue.what': 'Nada sobre ti',
@@ -79,6 +80,17 @@ const terms = {
     'Solo si te unes a la clasificación: al volver al ordenador, como mucho cada {uploadHours} horas, y al abrir la clasificación',
   'terms.sent.board.who':
     'Tu nombre de usuario, tu nombre visible, tus puntos y de qué están hechos: todos los miembros con sesión iniciada.',
+  'terms.sent.sceneExport.what':
+    'Una escena que exportas, con tu nombre visible y el id de tu cuenta',
+  'terms.sent.sceneExport.when': 'Cuando pulsas Exportar en el Estudio',
+  'terms.sent.sceneExport.who':
+    'No se guarda nada de la escena. El creador guarda un registro de qué escena y versión exportaste, cuándo, y una huella, para poder reconocer una escena bloqueada. Quien reciba el archivo ve tu nombre visible y el id de tu cuenta.',
+  'terms.sent.sceneLike.what':
+    'Qué escena de un miembro está en pantalla, y tu me gusta en ella',
+  'terms.sent.sceneLike.when':
+    'Cuando se reproduce la escena de un miembro, para mostrar sus me gusta, y cuando pulsas el corazón o retiras un me gusta',
+  'terms.sent.sceneLike.who':
+    'No se guarda nada de lo que está en pantalla. Los miembros ven cuántos me gusta tiene una escena, nunca quién los dio.',
 
   'terms.never.title': 'Lo que nunca sale de tu ordenador',
   'terms.never.p1':
@@ -86,6 +98,8 @@ const terms = {
   'terms.never.p2': 'Tus ajustes de ecualizador, tus presets y tus perfiles.',
   'terms.never.p3':
     'Tus dispositivos de audio y sus nombres, y las demás aplicaciones de tu ordenador.',
+  'terms.never.p4':
+    'Las escenas que creas y tus carpetas del Estudio, salvo que exportes una escena.',
 
   'terms.protect.title': 'Cómo se protege',
   'terms.protect.p1': 'Cada petición viaja cifrada.',
@@ -105,6 +119,8 @@ const terms = {
     'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los mensajes y las menciones se cuentan en el servidor, a partir de lo que de verdad se publicó.',
   'terms.fair.p2':
     'Todo el mundo gana puntos igual, el creador también. Modificar la aplicación o lo que envía, automatizar la escucha o las publicaciones, o escalar con más de una cuenta te saca de la clasificación, y puede sacarte de la comunidad.',
+  'terms.fair.p3':
+    'Cada me gusta en tus escenas vale {likePoints} puntos. Un me gusta cuenta una vez por miembro y escena, solo de miembros de Plus y nunca de tu propia cuenta. Los me gusta desde una segunda cuenta tuya cuentan como escalar con más de una cuenta.',
 
   'terms.community.title': 'Normas de la comunidad',
   'terms.community.p1':
@@ -120,12 +136,32 @@ const terms = {
     'Membresía: tu correo de pago y su estado se guardan para asociar los pagos a tu cuenta, y se borran con ella.',
   'terms.keep.p4':
     'Tu cuenta: pide que se borre y desaparece en {deletionDays} días, junto con tu perfil, tus mensajes, tus días en la clasificación y el registro de tu membresía.',
+  'terms.keep.p5':
+    'Escenas: el registro de lo que exportaste, los me gusta que diste y los que recibieron tus escenas se borran con tu cuenta. Una escena bloqueada por incumplir estas condiciones conserva solo su huella, sin tu nombre, para que siga bloqueada.',
 
   'terms.looks.title': 'Los looks Plus',
   'terms.looks.p1':
     'Los looks Plus son obra del propio creador, con licencia para tu uso personal mientras seas miembro. Por favor, no los copies, compartas ni revendas.',
   'terms.looks.p2':
     'FluidEQ sigue siendo software libre bajo la GPL. Nada de esto cambia ningún derecho que te da la GPL.',
+
+  'terms.scenes.title': 'Las escenas que creas',
+  'terms.scenes.p1':
+    'Una escena que creas en el Estudio es tuya. FluidEQ no es su dueño, y la GPL que cubre a FluidEQ no la cubre.',
+  'terms.scenes.p2':
+    'Se queda en tu ordenador hasta que decidas exportarla. Nada de lo que creas se comparte salvo que tú lo compartas.',
+  'terms.scenes.p3':
+    'Al exportar una escena, permites que FluidEQ la revise, quite los comentarios de su shader y la firme con tu nombre, para que otros miembros de Plus puedan reproducirla y ver que la hiciste tú. Ese es todo el permiso. El creador no venderá tu escena, no la usará en publicidad ni la convertirá en uno de los looks Plus sin preguntarte antes, y no te impide hacer nada más con tu propio trabajo.',
+  'terms.scenes.p4':
+    'Compartir es parte de Plus, no un trabajo: nadie cobra por una escena y nadie paga por una. Lo que recibes a cambio son todas las escenas que comparten los demás miembros.',
+  'terms.scenes.p5':
+    'Los miembros a los que les gusta tu escena te dan puntos en la clasificación, si te has unido a ella. Los me gusta se cuentan en el servidor; consulta Juego limpio.',
+  'terms.scenes.p6':
+    'Comparte solo trabajo que tengas derecho a compartir: tus propias fotos y dibujos, o los de alguien que lo permita. Las normas de la comunidad se aplican a las escenas igual que a los mensajes. El creador puede impedir que una escena se abra si incumple estas condiciones o los derechos de otra persona.',
+  'terms.scenes.p7':
+    'Una escena que comparte otro miembro es obra suya, con licencia para tu uso personal mientras seas miembro. Puedes reproducirla, darle me gusta y pasar el archivo sin cambios a otros miembros de Plus. Por favor, no la modifiques, no la presentes como tuya, no la publiques en otro sitio ni la vendas.',
+  'terms.scenes.p8':
+    'Un archivo que has enviado se queda con quien lo tenga. Si quieres que una escena deje de abrirse en todas partes, pídeselo al creador, que puede bloquearla igual que una escena que incumple las normas.',
 
   'terms.changes.title': 'Cambios, y la letra pequeña',
   'terms.changes.p1':
@@ -134,7 +170,8 @@ const terms = {
     'FluidEQ y Plus se ofrecen tal cual, sin garantías, en la medida en que la ley lo permita. El creador no responde por más de lo que pagaste por Plus en los últimos doce meses. Nada de esto te quita los derechos que la ley te da como consumidor.',
 
   'terms.contact.title': 'Contacto',
-  'terms.contact.p1': 'Preguntas, reembolsos o borrar tu cuenta: {contact}.',
+  'terms.contact.p1':
+    'Preguntas, reembolsos, borrar tu cuenta o denunciar una escena que usa tu trabajo: {contact}.',
 
   'terms.agree.check':
     'He leído estas condiciones, incluido lo que envía la aplicación, y las acepto.',

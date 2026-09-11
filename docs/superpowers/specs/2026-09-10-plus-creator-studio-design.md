@@ -40,22 +40,22 @@ Everything here builds on it; nothing here replaces it.
   public key; the private repository carries the scenes, the signing key and
   the server. That is the pattern this design extends to members.
 - **Free custom looks** export and import as `.fluideq-look.json` for everyone.
-  That stays exactly as it is. Only member *scenes* are Plus.
+  That stays exactly as it is. Only member _scenes_ are Plus.
 
 ## 2. Decisions
 
-| Decision | Why |
-|---|---|
-| Member scenes use the existing engine and the existing pack format. | One engine. A member scene that is good enough can be adopted officially without rewriting it. |
-| Building, running, importing and exporting member scenes needs an active Plus membership. | Ivan's rule. §8 explains which of these gates are enforceable and where. |
-| Export is signed by the server. | The only way "only Plus members can export" holds against a modified build: without a Plus account there is no signature, and the official app imports only signed member files. |
-| Member files are signed with a **separate key** from official packs. | A member scene can never be adopted as an official Plus look, whatever it claims about itself. The key is the trust class. |
-| Stricter source rules for member scenes than for official ones. | Official scenes are reviewed by a person before publishing; member scenes are not. A survey of the 30 official scenes found nothing the stricter rules would refuse, and a test will hold that true (§6). |
-| Artwork is allowed, WebP only, through the existing checks. | Masked photographs driven by separate channels — Alpine's boats, whale and birds, or somebody's cat — are the most compelling thing the engine does. |
-| Imported scenes run, but cannot be edited or re-exported by anyone but their author. | Re-export would launder authorship; editing someone else's scene is making a derivative of their work. It is also the property the store will need. |
-| When Plus lapses, member scenes are kept, shown locked, and never deleted. | Same behaviour as official scenes. The project folder was always on the member's own disk. |
-| Comments are stripped from a scene when it is signed for export. | It removes the only free-text channel a shared scene has (§7.8). The author's folder keeps them. |
-| The AI prompt is English; every Studio control is translated into all ten locales. | The prompt is read by a model, not by the member. The member reads the buttons. |
+| Decision                                                                                  | Why                                                                                                                                                                                                       |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Member scenes use the existing engine and the existing pack format.                       | One engine. A member scene that is good enough can be adopted officially without rewriting it.                                                                                                            |
+| Building, running, importing and exporting member scenes needs an active Plus membership. | Ivan's rule. §8 explains which of these gates are enforceable and where.                                                                                                                                  |
+| Export is signed by the server.                                                           | The only way "only Plus members can export" holds against a modified build: without a Plus account there is no signature, and the official app imports only signed member files.                          |
+| Member files are signed with a **separate key** from official packs.                      | A member scene can never be adopted as an official Plus look, whatever it claims about itself. The key is the trust class.                                                                                |
+| Stricter source rules for member scenes than for official ones.                           | Official scenes are reviewed by a person before publishing; member scenes are not. A survey of the 30 official scenes found nothing the stricter rules would refuse, and a test will hold that true (§6). |
+| Artwork is allowed, WebP only, through the existing checks.                               | Masked photographs driven by separate channels — Alpine's boats, whale and birds, or somebody's cat — are the most compelling thing the engine does.                                                      |
+| Imported scenes run, but cannot be edited or re-exported by anyone but their author.      | Re-export would launder authorship; editing someone else's scene is making a derivative of their work. It is also the property the store will need.                                                       |
+| When Plus lapses, member scenes are kept, shown locked, and never deleted.                | Same behaviour as official scenes. The project folder was always on the member's own disk.                                                                                                                |
+| Comments are stripped from a scene when it is signed for export.                          | It removes the only free-text channel a shared scene has (§7.8). The author's folder keeps them.                                                                                                          |
+| The AI prompt is English; every Studio control is translated into all ten locales.        | The prompt is read by a model, not by the member. The member reads the buttons.                                                                                                                           |
 
 ## 3. The Studio
 
@@ -85,7 +85,7 @@ needed to judge it around it.
   version running** and shows the error beside it, line number pointing into
   `scene.frag` — the stage never goes black mid-edit.
 - **Signal meters.** Level, beat, bass, mid, treble, the musical accent and the
-  spectrum, exactly as the scene receives them, so a creator can see *why*
+  spectrum, exactly as the scene receives them, so a creator can see _why_
   something moved.
 - **Test signals.** Live music, Silence, Bass, Mids, Treble, Beat, Accent.
   Synthetic values that drive only the stage's uniforms — never the audio — so
@@ -128,7 +128,13 @@ my-cat/
   "artworkWidth": 2048,
   "artworkHeight": 1024,
   "params": [
-    { "id": "glow", "names": { "en": "Glow" }, "min": 0, "max": 1, "value": 0.5 }
+    {
+      "id": "glow",
+      "names": { "en": "Glow" },
+      "min": 0,
+      "max": 1,
+      "value": 0.5
+    }
   ]
 }
 ```
@@ -143,17 +149,17 @@ write its own.
 
 The prompt in Appendix A is the authoritative, member-facing version. In short:
 
-| Channel | What it is | Good for |
-|---|---|---|
-| `uLevel` | overall loudness, eased | breathing, overall glow |
-| `uBeat` | 1 at a beat, falling to 0 | punches, ear twitches, flashes of a *part* |
-| `uBands.x / .y / .z` | bass, mid, treble | three independent movements |
-| `uSpectrum` | 16 Hz–25 kHz, log-spaced, fast | per-frequency detail, bars, contours |
-| `uSpectrumSlow` | the same, eased 180 ms up / 420 ms down | calm light, glows that do not flicker |
-| `uMusicAccent` | a rare, qualified accent: envelope and event number | lightning, a comet, one big moment every few seconds |
-| `uWaveform` | the recent waveform envelope | strings, water surfaces, oscilloscopes |
-| `uTime` | seconds, advancing only while music plays, wraps at 3600 | motion that stops when the music does |
-| `uArtwork` | the atlas | photographs, sprites, masks |
+| Channel              | What it is                                               | Good for                                             |
+| -------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
+| `uLevel`             | overall loudness, eased                                  | breathing, overall glow                              |
+| `uBeat`              | 1 at a beat, falling to 0                                | punches, ear twitches, flashes of a _part_           |
+| `uBands.x / .y / .z` | bass, mid, treble                                        | three independent movements                          |
+| `uSpectrum`          | 16 Hz–25 kHz, log-spaced, fast                           | per-frequency detail, bars, contours                 |
+| `uSpectrumSlow`      | the same, eased 180 ms up / 420 ms down                  | calm light, glows that do not flicker                |
+| `uMusicAccent`       | a rare, qualified accent: envelope and event number      | lightning, a comet, one big moment every few seconds |
+| `uWaveform`          | the recent waveform envelope                             | strings, water surfaces, oscilloscopes               |
+| `uTime`              | seconds, advancing only while music plays, wraps at 3600 | motion that stops when the music does                |
+| `uArtwork`           | the atlas                                                | photographs, sprites, masks                          |
 
 **Masks** are how a photograph comes alive: the atlas carries the picture in
 one region and hand-painted masks in another, one mask per moving part, and
@@ -215,7 +221,7 @@ shader galleries safe to browse for over a decade. The window's page itself
 has no Node access, and Chromium runs the GPU work in its own sandboxed
 process.
 
-What a shader *can* do is waste the GPU, hang it, flash, or reach a bug in a
+What a shader _can_ do is waste the GPU, hang it, flash, or reach a bug in a
 graphics driver. The first three are closed below; the fourth is reduced to
 what every web page already carries (§7.10).
 
@@ -349,12 +355,12 @@ FAQ decide what "only Plus members" can mean:
 
 What follows from that:
 
-| Rule | Where it holds |
-|---|---|
-| Only Plus members can **export** | **Enforced by the server.** No Plus account, no signature; no signature, no import in the official app. A modified app cannot mint one. |
-| Only Plus members can **import** and **run** member scenes | Enforced in the official app. A modified build could skip it — but that build can already run any shader its owner types, so nothing of anyone else's is exposed that was not already in the file. |
-| Only Plus members can **see** member scenes in a gallery (later) | **Enforced by the server**, with the same row-level policy `scene_packs` uses today. |
-| A file sent outside Plus cannot be read | **Not possible, and not attempted.** The shader is text and must be readable by the GPL app to run. Encrypting it would put the key in public source. The protection a creator has here is copyright, as with any file they share. |
+| Rule                                                             | Where it holds                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Only Plus members can **export**                                 | **Enforced by the server.** No Plus account, no signature; no signature, no import in the official app. A modified app cannot mint one.                                                                                            |
+| Only Plus members can **import** and **run** member scenes       | Enforced in the official app. A modified build could skip it — but that build can already run any shader its owner types, so nothing of anyone else's is exposed that was not already in the file.                                 |
+| Only Plus members can **see** member scenes in a gallery (later) | **Enforced by the server**, with the same row-level policy `scene_packs` uses today.                                                                                                                                               |
+| A file sent outside Plus cannot be read                          | **Not possible, and not attempted.** The shader is text and must be readable by the GPL app to run. Encrypting it would put the key in public source. The protection a creator has here is copyright, as with any file they share. |
 
 **One licence question remains, and it is the one thing needed before the store
 can exist.** The FSF's position is that a program merely interpreted by a GPL
@@ -408,7 +414,8 @@ in all ten languages; the full draft is Appendix D. It covers:
   export record deleted with the account, and a contact for rights holders
   who are not members.
 
-The first Export waits for the member to accept version 2, through the flow
+The first Export waits for the member to accept version 3 (version 2 became
+the minimum-age change, which shipped first), through the flow
 that already shows the terms before paying. The terms page itself gains a
 section, a paragraph in three others and two table rows, and is checked on
 screen at its narrowest and in its longest translation like any other change.
@@ -451,27 +458,31 @@ assumed.
 ### 9.1 Likes, and credit on the leaderboard
 
 The exchange only works if making something good is noticed. So a member can
-**like a scene right where it plays**: while a scene from Made by members is
-the graph's look, a small credit appears with the rest of the graph's controls
-when the pointer asks for them — the scene's name, its author, and a heart with
-the count. One press likes it; another takes it back. A member's own scenes
-show the count without a heart.
+**like a scene right where it plays**: while a member's scene is the graph's
+look, the graph's option bar — the same row in the normal view and in full
+screen, fading with it — carries a heart with the count, in the place of the
+design button a scene has no use for, so the row is no wider. Hovering it
+names the scene and its author; the picker names the author on every row. One
+press likes it; another takes it back. A member's own scene shows its count
+and cannot be pressed. (As built: an earlier draft put a credit chip in the
+plot's corner; Ivan asked for the heart in the option bar, and the chip was
+dropped rather than show two hearts.)
 
 On the server:
 
 - **A `scene_likes` table** — liker, author, scene id, time — one row per
   member per scene, so a like counts once however many versions follow.
 - **Liking goes through a function, never a raw insert.** The app sends the
-  fingerprint of the signed payload it is playing; the function looks the
-  scene up in the export ledger and takes the author and scene id **from the
-  ledger**, never from the request — so nobody can send likes to an author for
-  a scene that was never exported. It refuses an account that is not paying,
-  refuses a like on the caller's own scene, and ignores a second like.
+  author and scene id of the scene it is playing; `like_scene` refuses both
+  unless the export ledger holds that scene — so nobody can send likes to an
+  author for a scene that was never exported — and refuses an account that is
+  not paying or is banned, a like on the caller's own scene, and a blocked
+  scene. A second like is ignored.
 - **Nobody sees who liked what.** A member reads only their own likes (to draw
   their heart filled) and a scene's count. The author sees counts, not names.
 - **On the board, likes are one more line in the score**: 5 points per like
-  received in the period — the same as a message — shown as "{count} likes on
-  your scenes" beside hours, messages and mentions. Likes from accounts that
+  received in the period — the same as a message — shown as "Scene likes"
+  beside hours, messages and mentions. Likes from accounts that
   are banned or off the board do not count, and a blocked scene's likes stop
   counting. The existing rule against climbing with several accounts covers
   liking yourself from a second one, and each of those accounts costs a
@@ -556,8 +567,12 @@ scenes in this repository. To stay out of each other's way:
    limiting, Export, Import, the Made by members section, likes on the playing
    scene and their points on the leaderboard (§9.1), and the block list
    (§9.2). The section 7 permission
-   and version 2 of the Plus terms (§8.1, Appendix D) land with this stage.
-3. **Later:** the community gallery, then the store.
+   and version 3 of the Plus terms (§8.1, Appendix D) land with this stage.
+3. **Next:** the Visualizers gallery — Ivan, 2026-09-11: a member publishes a
+   scene when they decide to; a new Visualizers tab lets Plus members browse
+   by category or author, download any, and like it there or on the graph;
+   likes count for the creator. Its terms additions become version 4. Then
+   the store.
 
 ## 13. Testing
 
@@ -606,7 +621,7 @@ scenes in this repository. To stay out of each other's way:
 What **Copy AI prompt** puts on the clipboard. The member pastes it and writes
 their idea after the last line.
 
-````text
+```text
 You are writing a visualizer for FluidEQ Plus, a music app. The visualizer is a
 GLSL ES 3.00 fragment-shader body that FluidEQ runs on the listener's GPU while
 music plays. Reply with the complete contents of each file and nothing else:
@@ -707,27 +722,27 @@ picture goes, and what each mask must cover. WebP, not animated, at most 4096
 pixels wide and 4096 x 2048 in total, at most 6 MB.
 
 MY IDEA:
-````
+```
 
 ## Appendix B — ideas to append
 
 Offered under the button as one-tap starters the member can edit:
 
-1. *My cat's photo. Ears twitch on every beat, the tail sways with the bass,
+1. _My cat's photo. Ears twitch on every beat, the tail sways with the bass,
    the eyes glow with the treble, and the background shimmers with the slow
-   spectrum.* (Uses masks.)
-2. *A neon city at night. Each building is a band of the spectrum, windows
+   spectrum._ (Uses masks.)
+2. _A neon city at night. Each building is a band of the spectrum, windows
    light with the mids, and a train crosses the skyline on each musical
-   accent.*
-3. *Deep sea. Jellyfish pulse with the bass, plankton sparkle with the treble,
-   and light rays sway with the overall level.*
-4. *A spinning vinyl record seen from above. The grooves glow from the
-   waveform and the needle throws sparks on beats.*
-5. *A campfire under stars. The flames are the spectrum, embers fly up on
-   hi-hats, the stars twinkle with the treble.*
-6. *Northern lights over a lake. The curtains follow the slow spectrum, their
+   accent._
+3. _Deep sea. Jellyfish pulse with the bass, plankton sparkle with the treble,
+   and light rays sway with the overall level._
+4. _A spinning vinyl record seen from above. The grooves glow from the
+   waveform and the needle throws sparks on beats._
+5. _A campfire under stars. The flames are the spectrum, embers fly up on
+   hi-hats, the stars twinkle with the treble._
+6. _Northern lights over a lake. The curtains follow the slow spectrum, their
    reflection ripples with the waveform, a shooting star crosses on each
-   accent.*
+   accent._
 
 ## Appendix C — section 7 permission
 
@@ -735,7 +750,7 @@ For the README's licence section and the header of the scene contract. Granted
 by Ivan on 2026-09-10 (§8); to be read by a lawyer before the store opens.
 
 > **Additional permission under GNU GPL version 3 section 7 — scenes.**
-> A *scene* is a program in the OpenGL ES Shading Language written to be run by
+> A _scene_ is a program in the OpenGL ES Shading Language written to be run by
 > FluidEQ through its scene contract: the declarations, entry point and
 > wrapper FluidEQ supplies around a function named `sceneColour`, together with
 > any artwork and metadata distributed with it. As a special exception, the
@@ -745,11 +760,11 @@ by Ivan on 2026-09-10 (§8); to be read by a lawyer before the store opens.
 > itself or to any other part of it, and does not permit you to distribute
 > FluidEQ, or a modified version of it, under any licence other than this one.
 
-## Appendix D — Plus terms, version 2 (draft, English)
+## Appendix D — Plus terms, version 3 (draft, English; shipped as version 3)
 
 In the voice of the existing terms, and describing only what ships with stage
 2 — sharing by file, and likes. Terms say what the app does today; the gallery
-gets its own additions (below) when it ships, as version 3. Translated into
+gets its own additions (below) when it ships, as version 4. Translated into
 all ten locales in the same commit. No selling: nothing here pays anybody or
 lets anybody charge.
 
@@ -758,12 +773,12 @@ get everything the members share — that is part of what Plus is.
 
 ### Changed: the short version
 
-- *You choose what is shared* — "The leaderboard is off unless you join, and
+- _You choose what is shared_ — "The leaderboard is off unless you join, and
   you decide what you post and which of your scenes you share."
 
 ### Changed: the membership
 
-- *p1* — "Plus adds premium visualizers, the Studio for making your own and
+- _p1_ — "Plus adds premium visualizers, the Studio for making your own and
   sharing them with other members, posting in the community and the
   leaderboard to FluidEQ. It costs {price} and renews every month until you
   cancel."
@@ -797,36 +812,36 @@ get everything the members share — that is part of what Plus is.
 
 ### Changed: fair play on the leaderboard
 
-- *New p3* — "Likes on your scenes earn {likePoints} points each. A like
+- _New p3_ — "Likes on your scenes earn {likePoints} points each. A like
   counts once per member per scene, only from Plus members, and never from
   your own account. Likes from a second account of your own count as climbing
   with more than one account."
 
 ### New rows: what the app sends, and when
 
-| What | When | Who can see it |
-|---|---|---|
-| The scene you export, and your display name inside the file | When you press Export | Nothing of the scene is kept. The maker keeps a record that you exported it: which scene and version, when, and a fingerprint, so a blocked scene can be recognised. Whoever you send the file to sees your display name. |
-| Your like on a member's scene | When you press the heart, and when you take it back | The author and the board see how many likes a scene has, never who gave them. |
+| What                                                        | When                                                | Who can see it                                                                                                                                                                                                            |
+| ----------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The scene you export, and your display name inside the file | When you press Export                               | Nothing of the scene is kept. The maker keeps a record that you exported it: which scene and version, when, and a fingerprint, so a blocked scene can be recognised. Whoever you send the file to sees your display name. |
+| Your like on a member's scene                               | When you press the heart, and when you take it back | The author and the board see how many likes a scene has, never who gave them.                                                                                                                                             |
 
 ### Changed: what never leaves your computer
 
-- *New line* — "Scenes you make and your project folders, unless you export
+- _New line_ — "Scenes you make and your project folders, unless you export
   one."
 
 ### Changed: what is kept, and how to delete it
 
-- *New p5* — "Scenes: the record of what you exported, and the likes you gave,
+- _New p5_ — "Scenes: the record of what you exported, and the likes you gave,
   are deleted with your account. A scene blocked for breaking these terms
   keeps only its fingerprint, without your name, so it stays blocked."
 
 ### Changed: contact
 
-- *p1* — "Questions, refunds, deleting your account, or reporting a scene that
+- _p1_ — "Questions, refunds, deleting your account, or reporting a scene that
   uses your work: {contact}." Rights holders who are not members need a way in
   too; this is it.
 
-### Ready for version 3, with the Community gallery
+### Ready for version 4, with the Visualizers gallery
 
 - "If you share a scene in Community, you also let FluidEQ keep it there and
   show it to Plus members until you remove it. You can remove it at any time,

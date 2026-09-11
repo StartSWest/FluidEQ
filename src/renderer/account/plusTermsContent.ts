@@ -100,6 +100,20 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     when: 'terms.sent.board.when',
     who: 'terms.sent.board.who',
   },
+  {
+    id: 'scene-export',
+    glyph: 'studio',
+    what: 'terms.sent.sceneExport.what',
+    when: 'terms.sent.sceneExport.when',
+    who: 'terms.sent.sceneExport.who',
+  },
+  {
+    id: 'scene-like',
+    glyph: 'heart',
+    what: 'terms.sent.sceneLike.what',
+    when: 'terms.sent.sceneLike.when',
+    who: 'terms.sent.sceneLike.who',
+  },
 ];
 
 export interface ITermsSection {
@@ -146,7 +160,12 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'monitor',
     title: 'terms.never.title',
     body: 'points',
-    lines: ['terms.never.p1', 'terms.never.p2', 'terms.never.p3'],
+    lines: [
+      'terms.never.p1',
+      'terms.never.p2',
+      'terms.never.p3',
+      'terms.never.p4',
+    ],
   },
   {
     id: 'protect',
@@ -167,7 +186,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'shield',
     title: 'terms.fair.title',
     body: 'paragraphs',
-    lines: ['terms.fair.p1', 'terms.fair.p2'],
+    lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3'],
   },
   {
     id: 'community',
@@ -181,7 +200,13 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'delete',
     title: 'terms.keep.title',
     body: 'points',
-    lines: ['terms.keep.p1', 'terms.keep.p2', 'terms.keep.p3', 'terms.keep.p4'],
+    lines: [
+      'terms.keep.p1',
+      'terms.keep.p2',
+      'terms.keep.p3',
+      'terms.keep.p4',
+      'terms.keep.p5',
+    ],
   },
   {
     id: 'looks',
@@ -189,6 +214,25 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     title: 'terms.looks.title',
     body: 'paragraphs',
     lines: ['terms.looks.p1', 'terms.looks.p2'],
+  },
+  {
+    // The member's own work, and the one permission sharing it gives. Beside
+    // the Plus looks, because the two are the same question asked from each
+    // side: whose is it, and what may the other side do with it.
+    id: 'scenes',
+    glyph: 'studio',
+    title: 'terms.scenes.title',
+    body: 'points',
+    lines: [
+      'terms.scenes.p1',
+      'terms.scenes.p2',
+      'terms.scenes.p3',
+      'terms.scenes.p4',
+      'terms.scenes.p5',
+      'terms.scenes.p6',
+      'terms.scenes.p7',
+      'terms.scenes.p8',
+    ],
   },
   {
     id: 'changes',

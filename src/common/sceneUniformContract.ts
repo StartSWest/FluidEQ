@@ -13,6 +13,17 @@ import type { IScenePack } from './scenePacks';
  * the alpha clamp, cannot bypass the fade the app applies to what it returns —
  * and the line-number offset for a compile error is a constant to subtract
  * before logging, rather than something to work out per pack.
+ *
+ * Additional permission under GNU GPL version 3 section 7 — scenes.
+ * A scene is a program in the OpenGL ES Shading Language written to be run by
+ * FluidEQ through its scene contract: the declarations, entry point and
+ * wrapper FluidEQ supplies around a function named `sceneColour`, together
+ * with any artwork and metadata distributed with it. As a special exception,
+ * the combination of a scene with that contract, when run by FluidEQ, does not
+ * require the scene to be licensed under this License; you may license your
+ * scene under terms of your choice. This permission does not apply to FluidEQ
+ * itself or to any other part of it, and does not permit you to distribute
+ * FluidEQ, or a modified version of it, under any licence other than this one.
  */
 
 /** Bumped when a uniform is added, removed or changes meaning. */

@@ -26,20 +26,20 @@ const terms = {
     'FluidEQ keeps working offline and without an account, as it always has.',
   'terms.short.choice.title': 'You choose what is shared',
   'terms.short.choice.body':
-    'The leaderboard is off unless you join, and you decide what you post.',
+    'The leaderboard is off unless you join, and you decide what you post and which of your scenes you share.',
   'terms.short.music.title': 'Never your music',
   'terms.short.music.body':
     'No track names, files, audio or devices ever leave your computer.',
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'Plus adds premium visualizers, posting in the community and the leaderboard to FluidEQ. It costs {price} and renews every month until you cancel.',
+    'Plus adds premium visualizers, the Studio for making your own and sharing them with other members, posting in the community and the leaderboard to FluidEQ. It costs {price} and renews every month until you cancel.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the month you paid for, and nothing more is charged.',
   'terms.membership.p3':
     'If a charge was a mistake, or Plus is not for you, ask within {refundDays} days of that charge and it is refunded in full, no questions asked.',
   'terms.membership.p4':
-    'When a membership ends, the Plus looks lock again and FluidEQ goes back to its free looks. Plus keeps working offline for up to {graceDays} days after the app last confirmed your membership. Nothing that is free is ever affected.',
+    'When a membership ends, the Plus looks and the scenes members made lock again and FluidEQ goes back to its free looks; nothing you made is deleted. Plus keeps working offline for up to {graceDays} days after the app last confirmed your membership. Nothing that is free is ever affected.',
 
   'terms.account.title': 'Your account',
   'terms.account.p1':
@@ -70,7 +70,8 @@ const terms = {
   'terms.sent.payment.who':
     'The maker, to match the payment to your account. Pay with the email you sign in with.',
   'terms.sent.looks.what': 'Your sign-in token',
-  'terms.sent.looks.when': 'When Plus looks are downloaded or updated',
+  'terms.sent.looks.when':
+    'When Plus looks are downloaded or updated, and when the app checks which shared scenes were taken down',
   'terms.sent.looks.who':
     'Nothing is kept. Every look is signed, and your computer checks the signature before playing it.',
   'terms.sent.catalogue.what': 'Nothing about you',
@@ -90,6 +91,17 @@ const terms = {
     'Only if you join the leaderboard: when you come back to the computer, at most every {uploadHours} hours, and when you open the board',
   'terms.sent.board.who':
     'Your handle, display name, points and what they are made of: every signed-in member.',
+  'terms.sent.sceneExport.what':
+    'A scene you export, with your display name and your account id',
+  'terms.sent.sceneExport.when': 'When you press Export in the Studio',
+  'terms.sent.sceneExport.who':
+    'Nothing of the scene is kept. The maker keeps a record of which scene and version you exported, when, and a fingerprint, so a blocked scene can be recognised. Whoever you send the file to sees your display name and account id.',
+  'terms.sent.sceneLike.what':
+    'Which member’s scene is on screen, and your like on it',
+  'terms.sent.sceneLike.when':
+    'When a member’s scene plays, to show its likes, and when you press the heart or take a like back',
+  'terms.sent.sceneLike.who':
+    'Nothing about what is on screen is kept. Members see how many likes a scene has, never who gave them.',
 
   'terms.never.title': 'What never leaves your computer',
   'terms.never.p1':
@@ -97,6 +109,8 @@ const terms = {
   'terms.never.p2': 'Your EQ settings, presets and profiles.',
   'terms.never.p3':
     'Your audio devices and their names, and the other apps on your computer.',
+  'terms.never.p4':
+    'The scenes you make and your Studio folders, unless you export a scene.',
 
   'terms.protect.title': 'How it is protected',
   'terms.protect.p1': 'Every request is encrypted on its way.',
@@ -116,6 +130,8 @@ const terms = {
     'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Messages and mentions are counted on the server, from what was actually posted.',
   'terms.fair.p2':
     'Everyone earns points the same way, the maker included. Changing the app or what it sends, automating listening or posting, or climbing with more than one account takes you off the board, and can take you out of the community.',
+  'terms.fair.p3':
+    'Likes on your scenes earn {likePoints} points each. A like counts once per member per scene, only from Plus members, and never from your own account. Likes from a second account of your own count as climbing with more than one account.',
 
   'terms.community.title': 'Community rules',
   'terms.community.p1':
@@ -131,12 +147,32 @@ const terms = {
     'Membership: your payment email and status are kept to match payments to your account, and are deleted with it.',
   'terms.keep.p4':
     'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, messages, leaderboard days and membership record.',
+  'terms.keep.p5':
+    'Scenes: the record of what you exported, the likes you gave and the likes your scenes received are deleted with your account. A scene blocked for breaking these terms keeps only its fingerprint, without your name, so it stays blocked.',
 
   'terms.looks.title': 'The Plus looks',
   'terms.looks.p1':
     'The Plus looks are the maker’s own work, licensed to you for personal use while you are a member. Please do not copy, share or resell them.',
   'terms.looks.p2':
     'FluidEQ itself stays free software under the GPL. Nothing here changes a right the GPL gives you.',
+
+  'terms.scenes.title': 'Scenes you make',
+  'terms.scenes.p1':
+    'A scene you make in the Studio is yours. FluidEQ does not own it, and the GPL that covers FluidEQ does not cover it.',
+  'terms.scenes.p2':
+    'It stays on your computer until you choose to export it. Nothing you make is shared unless you share it.',
+  'terms.scenes.p3':
+    'When you export a scene, you let FluidEQ check it, remove the comments from its shader and sign it with your name, so other Plus members can play it and see that you made it. That is the whole permission. The maker will not sell your scene, use it in advertising, or make it one of the Plus looks without asking you first, and it does not stop you doing anything else with your own work.',
+  'terms.scenes.p4':
+    'Sharing is part of Plus, not a job: nobody is paid for a scene and nobody pays for one. What you get back is every scene the other members share.',
+  'terms.scenes.p5':
+    'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
+  'terms.scenes.p6':
+    'Only share work you have the right to share: your own photos and drawings, or ones whose owner allows it. The community rules apply to scenes as they do to messages. The maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
+  'terms.scenes.p7':
+    'A scene another member shares is their work, licensed to you for personal use while you are a member. You can play it, like it, and pass the file on unchanged to other Plus members. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
+  'terms.scenes.p8':
+    'A file you have sent stays with whoever has it. If you want a scene to stop opening everywhere, ask the maker, who can block it the same way as a scene that breaks the rules.',
 
   'terms.changes.title': 'Changes, and the fine print',
   'terms.changes.p1':
@@ -146,7 +182,7 @@ const terms = {
 
   'terms.contact.title': 'Contact',
   'terms.contact.p1':
-    'Questions, refunds, or deleting your account: {contact}.',
+    'Questions, refunds, deleting your account, or reporting a scene that uses your work: {contact}.',
 
   'terms.agree.check':
     'I have read these terms, including what the app sends, and I agree to them.',

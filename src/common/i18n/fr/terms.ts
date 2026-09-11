@@ -15,20 +15,20 @@ const terms = {
     'FluidEQ continue de fonctionner hors ligne et sans compte, comme toujours.',
   'terms.short.choice.title': 'Vous choisissez ce qui est partagé',
   'terms.short.choice.body':
-    'Le classement est désactivé tant que vous ne le rejoignez pas, et vous décidez de ce que vous publiez.',
+    'Le classement est désactivé tant que vous ne le rejoignez pas, et vous décidez de ce que vous publiez et des scènes que vous partagez.',
   'terms.short.music.title': 'Jamais votre musique',
   'terms.short.music.body':
     'Aucun titre, fichier, son ou appareil ne quitte jamais votre ordinateur.',
 
   'terms.membership.title': 'L’abonnement',
   'terms.membership.p1':
-    'Plus ajoute à FluidEQ des visualiseurs premium, la publication dans la communauté et le classement. Il coûte {price} et se renouvelle chaque mois jusqu’à ce que vous le résiliiez.',
+    'Plus ajoute à FluidEQ des visualiseurs premium, le Studio pour créer les vôtres et les partager avec d’autres membres, la publication dans la communauté et le classement. Il coûte {price} et se renouvelle chaque mois jusqu’à ce que vous le résiliiez.',
   'terms.membership.p2':
     'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin du mois payé, et rien d’autre n’est prélevé.',
   'terms.membership.p3':
     'Si un prélèvement était une erreur, ou si Plus n’est pas pour vous, demandez-le dans les {refundDays} jours qui suivent ce prélèvement et il est remboursé intégralement, sans question.',
   'terms.membership.p4':
-    'Quand un abonnement prend fin, les styles Plus se verrouillent à nouveau et FluidEQ revient à ses styles gratuits. Plus continue de fonctionner hors ligne jusqu’à {graceDays} jours après la dernière confirmation de votre abonnement par l’application. Rien de gratuit n’est jamais touché.',
+    'Quand un abonnement prend fin, les styles Plus et les scènes des membres se verrouillent à nouveau et FluidEQ revient à ses styles gratuits ; rien de ce que vous avez créé n’est supprimé. Plus continue de fonctionner hors ligne jusqu’à {graceDays} jours après la dernière confirmation de votre abonnement par l’application. Rien de gratuit n’est jamais touché.',
 
   'terms.account.title': 'Votre compte',
   'terms.account.p1':
@@ -60,7 +60,7 @@ const terms = {
     'Le créateur, pour relier le paiement à votre compte. Payez avec l’e-mail de votre connexion.',
   'terms.sent.looks.what': 'Votre jeton de connexion',
   'terms.sent.looks.when':
-    'Quand des styles Plus sont téléchargés ou mis à jour',
+    'Quand des styles Plus sont téléchargés ou mis à jour, et quand l’application vérifie quelles scènes partagées ont été retirées',
   'terms.sent.looks.who':
     'Rien n’est conservé. Chaque style est signé, et votre ordinateur vérifie la signature avant de le lire.',
   'terms.sent.catalogue.what': 'Rien sur vous',
@@ -80,6 +80,18 @@ const terms = {
     'Seulement si vous rejoignez le classement : quand vous revenez à l’ordinateur, au plus toutes les {uploadHours} heures, et quand vous ouvrez le classement',
   'terms.sent.board.who':
     'Votre identifiant, votre nom d’affichage, vos points et leur composition : tous les membres connectés.',
+  'terms.sent.sceneExport.what':
+    'Une scène que vous exportez, avec votre nom d’affichage et l’identifiant de votre compte',
+  'terms.sent.sceneExport.when':
+    'Quand vous cliquez sur Exporter dans le Studio',
+  'terms.sent.sceneExport.who':
+    'Rien de la scène n’est conservé. Le créateur garde une trace de la scène et de la version exportées, de la date et d’une empreinte, pour reconnaître une scène bloquée. La personne qui reçoit le fichier voit votre nom d’affichage et l’identifiant de votre compte.',
+  'terms.sent.sceneLike.what':
+    'Quelle scène d’un membre est à l’écran, et votre J’aime sur elle',
+  'terms.sent.sceneLike.when':
+    'Quand la scène d’un membre est jouée, pour afficher ses J’aime, et quand vous cliquez sur le cœur ou retirez un J’aime',
+  'terms.sent.sceneLike.who':
+    'Rien de ce qui est à l’écran n’est conservé. Les membres voient combien de J’aime a une scène, jamais qui les a donnés.',
 
   'terms.never.title': 'Ce qui ne quitte jamais votre ordinateur',
   'terms.never.p1':
@@ -87,6 +99,8 @@ const terms = {
   'terms.never.p2': 'Vos réglages d’égaliseur, vos presets et vos profils.',
   'terms.never.p3':
     'Vos périphériques audio et leurs noms, et les autres applications de votre ordinateur.',
+  'terms.never.p4':
+    'Les scènes que vous créez et vos dossiers du Studio, sauf si vous exportez une scène.',
 
   'terms.protect.title': 'Comment c’est protégé',
   'terms.protect.p1': 'Chaque requête voyage chiffrée.',
@@ -106,6 +120,8 @@ const terms = {
     'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les messages et les mentions sont comptés sur le serveur, à partir de ce qui a vraiment été publié.',
   'terms.fair.p2':
     'Tout le monde gagne ses points de la même façon, le créateur compris. Modifier l’application ou ce qu’elle envoie, automatiser l’écoute ou les messages, ou grimper avec plusieurs comptes vous retire du classement, et peut vous exclure de la communauté.',
+  'terms.fair.p3':
+    'Chaque J’aime sur vos scènes rapporte {likePoints} points. Un J’aime compte une fois par membre et par scène, seulement de la part de membres Plus, et jamais de votre propre compte. Des J’aime venant d’un second compte à vous comptent comme grimper avec plusieurs comptes.',
 
   'terms.community.title': 'Règles de la communauté',
   'terms.community.p1':
@@ -122,12 +138,32 @@ const terms = {
     'Abonnement : votre e-mail de paiement et son état sont conservés pour relier les paiements à votre compte, et sont effacés avec lui.',
   'terms.keep.p4':
     'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos messages, vos jours au classement et la trace de votre abonnement.',
+  'terms.keep.p5':
+    'Scènes : la trace de ce que vous avez exporté, les J’aime que vous avez donnés et ceux que vos scènes ont reçus sont supprimés avec votre compte. Une scène bloquée pour non-respect de ces conditions ne garde que son empreinte, sans votre nom, pour rester bloquée.',
 
   'terms.looks.title': 'Les styles Plus',
   'terms.looks.p1':
     'Les styles Plus sont l’œuvre du créateur, concédés pour votre usage personnel tant que vous êtes membre. Merci de ne pas les copier, les partager ni les revendre.',
   'terms.looks.p2':
     'FluidEQ reste un logiciel libre sous licence GPL. Rien ici ne change un droit que la GPL vous accorde.',
+
+  'terms.scenes.title': 'Les scènes que vous créez',
+  'terms.scenes.p1':
+    'Une scène que vous créez dans le Studio est à vous. FluidEQ n’en est pas propriétaire, et la GPL qui couvre FluidEQ ne la couvre pas.',
+  'terms.scenes.p2':
+    'Elle reste sur votre ordinateur jusqu’à ce que vous choisissiez de l’exporter. Rien de ce que vous créez n’est partagé si vous ne le partagez pas.',
+  'terms.scenes.p3':
+    'En exportant une scène, vous laissez FluidEQ la vérifier, retirer les commentaires de son shader et la signer de votre nom, pour que d’autres membres Plus puissent la jouer et voir que vous l’avez faite. C’est toute la permission. Le créateur ne vendra pas votre scène, ne l’utilisera pas dans de la publicité et n’en fera pas l’un des styles Plus sans vous le demander d’abord, et cela ne vous empêche de rien faire d’autre avec votre propre travail.',
+  'terms.scenes.p4':
+    'Partager fait partie de Plus, ce n’est pas un travail : personne n’est payé pour une scène et personne n’en paie une. Ce que vous recevez en retour, ce sont toutes les scènes que les autres membres partagent.',
+  'terms.scenes.p5':
+    'Les membres qui aiment votre scène vous donnent des points au classement, si vous l’avez rejoint. Les J’aime sont comptés par le serveur ; voir Fair-play.',
+  'terms.scenes.p6':
+    'Ne partagez que ce que vous avez le droit de partager : vos propres photos et dessins, ou ceux dont le propriétaire l’autorise. Les règles de la communauté s’appliquent aux scènes comme aux messages. Le créateur peut empêcher une scène de s’ouvrir si elle enfreint ces conditions ou les droits de quelqu’un d’autre.',
+  'terms.scenes.p7':
+    'Une scène qu’un autre membre partage est son œuvre, concédée pour votre usage personnel tant que vous êtes membre. Vous pouvez la jouer, l’aimer et transmettre le fichier sans le modifier à d’autres membres Plus. Merci de ne pas la modifier, la présenter comme la vôtre, la publier ailleurs ou la vendre.',
+  'terms.scenes.p8':
+    'Un fichier que vous avez envoyé reste chez ceux qui l’ont. Si vous voulez qu’une scène cesse de s’ouvrir partout, demandez-le au créateur, qui peut la bloquer comme une scène qui enfreint les règles.',
 
   'terms.changes.title': 'Changements, et les petits caractères',
   'terms.changes.p1':
@@ -137,7 +173,7 @@ const terms = {
 
   'terms.contact.title': 'Contact',
   'terms.contact.p1':
-    'Questions, remboursements ou suppression de votre compte : {contact}.',
+    'Questions, remboursements, suppression de votre compte ou signalement d’une scène qui utilise votre travail : {contact}.',
 
   'terms.agree.check':
     'J’ai lu ces conditions, y compris ce que l’application envoie, et je les accepte.',
