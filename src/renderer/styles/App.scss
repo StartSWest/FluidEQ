@@ -2550,29 +2550,16 @@ $tab-bar-inset: 8px;
   }
 }
 
-// The community fills the card and does not scroll as a whole: its thread
-// scrolls, its composer stays at the foot. Flex so the panel's child can take
-// the height and no more. The forum is built the same way: its list and its
-// thread each scroll inside themselves.
+// The Plus tab fills the card and does not scroll as a whole: the gallery,
+// the board and the Studio each scroll inside themselves, beside a rail that
+// stays put. Flex so the panel's child can take the height and no more. The
+// forum is built the same way: its list and its thread each scroll inside
+// themselves.
 .workspace-tab-panel--community,
 .workspace-tab-panel--forum {
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-}
-
-// A dot on a tab for unread @mentions. Small and in the accent: it marks a
-// request for this person's attention, not general activity, and it is gone
-// the moment the tab is opened.
-.workspace-tab__badge {
-  position: absolute;
-  top: 5px;
-  right: 6px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: $secondary-default;
-  box-shadow: 0 0 0 2px $surface-base;
 }
 
 // Sections that fill a workspace card sit directly on it instead of painting

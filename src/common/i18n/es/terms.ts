@@ -15,14 +15,14 @@ const terms = {
     'FluidEQ sigue funcionando sin conexión y sin cuenta, como siempre.',
   'terms.short.choice.title': 'Tú eliges qué se comparte',
   'terms.short.choice.body':
-    'La clasificación está desactivada salvo que te unas, y tú decides qué publicas y cuáles de tus escenas compartes.',
+    'La clasificación está desactivada salvo que te unas, y tú decides cuáles de tus escenas compartes.',
   'terms.short.music.title': 'Nunca tu música',
   'terms.short.music.body':
     'Ni nombres de canciones, ni archivos, ni audio, ni dispositivos salen nunca de tu ordenador.',
 
   'terms.membership.title': 'La membresía',
   'terms.membership.p1':
-    'Plus añade a FluidEQ visualizadores premium, el Estudio para crear los tuyos y compartirlos con otros miembros, publicar en la comunidad y la clasificación. Cuesta {price} y se renueva al final de cada periodo pagado hasta que la canceles.',
+    'Plus añade a FluidEQ visualizadores premium, el Estudio para crear los tuyos y compartirlos con otros miembros, y la clasificación. Cuesta {price} y se renueva al final de cada periodo pagado hasta que la canceles.',
   'terms.membership.p2':
     'El pago lo gestiona Buy Me a Coffee, con sus propias condiciones. FluidEQ nunca ve tu tarjeta ni tus datos bancarios. Puedes cancelar cuando quieras en Buy Me a Coffee: Plus sigue activo hasta el final del periodo que pagaste y no se cobra nada más.',
   'terms.membership.p3':
@@ -34,7 +34,7 @@ const terms = {
   'terms.account.p1':
     'Una cuenta es una dirección de correo y una contraseña, y necesitas tener al menos {age} años para crearla. La contraseña viaja cifrada al servicio de inicio de sesión y allí solo se guarda como un hash de un solo sentido, que nadie puede leer, tampoco el creador.',
   'terms.account.p2':
-    'Tu correo recibe los códigos que confirman tu dirección y restablecen tu contraseña. Nunca se muestra a otros miembros: en la comunidad apareces con el nombre de usuario y el nombre visible que elijas.',
+    'Tu correo recibe los códigos que confirman tu dirección y restablecen tu contraseña. Nunca se muestra a otros miembros: en la clasificación y en Visualizadores apareces con el nombre de usuario y el nombre visible que elijas.',
   'terms.account.p3':
     'En tu ordenador, la aplicación guarda tu sesión cifrada por el sistema operativo. Las cuentas son personales: no compartas tu contraseña.',
   'terms.account.p4':
@@ -42,7 +42,7 @@ const terms = {
 
   'terms.sent.title': 'Qué envía la aplicación, y cuándo',
   'terms.sent.intro':
-    'Solo para las funciones que usas, y siempre por una conexión cifrada. Sin cuenta, la única petición es la de la lista pública de looks Plus, y no lleva nada sobre ti.',
+    'Solo para las funciones que usas, y siempre por una conexión cifrada. Sin cuenta, las únicas peticiones son la de la lista pública de looks Plus y la de los temas públicos de la pestaña Foro, y no llevan nada sobre ti.',
   'terms.sent.when': 'Cuándo',
   'terms.sent.who': 'Quién puede verlo',
   'terms.sent.signIn.what': 'Tu correo y tu contraseña',
@@ -70,12 +70,10 @@ const terms = {
     'Cuando el selector de looks muestra qué looks Plus existen, con o sin cuenta',
   'terms.sent.catalogue.who':
     'No se guarda nada. La petición solo descarga la lista pública de looks.',
-  'terms.sent.community.what':
-    'Tu nombre de usuario y nombre visible, tus mensajes y sus @menciones, los reportes que envías y las personas que bloqueas',
-  'terms.sent.community.when':
-    'Al crear tu perfil, publicar, reportar o bloquear',
-  'terms.sent.community.who':
-    'Mensajes, nombres de usuario y nombres visibles: todos los miembros con sesión iniciada. Reportes: el creador. Bloqueos: solo tú.',
+  'terms.sent.profile.what': 'Tu nombre de usuario y tu nombre visible',
+  'terms.sent.profile.when': 'Cuando los eliges en la clasificación',
+  'terms.sent.profile.who':
+    'Todos los miembros con sesión iniciada, junto a tu puesto en la clasificación y en las escenas que publicas.',
   'terms.sent.board.what':
     'Un número por día desde cada uno de tus ordenadores: los minutos enteros de música que sonó, hasta {capHours} horas, con su fecha y un número al azar que distingue tus ordenadores',
   'terms.sent.board.when':
@@ -104,6 +102,12 @@ const terms = {
     'Cuando exploras Visualizadores, pulsas Añadir o envías una denuncia',
   'terms.sent.gallery.who':
     'Las búsquedas y lo que abres no se guardan. Los miembros ven cuántos añadieron una escena, nunca quién. Denuncias: solo el creador.',
+  'terms.sent.forum.what':
+    'En la pestaña Foro: lo que publicas, editas o eliminas y tus reacciones, con tu sesión de GitHub',
+  'terms.sent.forum.when':
+    'Abrir el foro descarga sus temas públicos, lo que no lleva nada sobre ti; el resto, solo después de que inicies sesión con GitHub y publiques',
+  'terms.sent.forum.who':
+    'GitHub, con sus propias condiciones. Las publicaciones son públicas en el GitHub Discussions del proyecto; el servidor de FluidEQ nunca las recibe.',
 
   'terms.never.title': 'Lo que nunca sale de tu ordenador',
   'terms.never.p1':
@@ -119,9 +123,9 @@ const terms = {
   'terms.protect.p2':
     'Las reglas viven en el servidor, no en la aplicación: cada cuenta solo puede cambiar sus propios datos, y una copia modificada de FluidEQ recibe exactamente las mismas respuestas.',
   'terms.protect.p3':
-    'La clasificación y el chat muestran nombres de usuario, nunca correos ni identificadores de cuenta.',
+    'La clasificación y Visualizadores muestran nombres de usuario y nombres visibles, nunca correos ni identificadores de cuenta.',
   'terms.protect.p4':
-    'El creador administra el servidor y puede ver lo que guarda, para mantenerlo en marcha y moderar la comunidad. Nada se vende, se comparte ni se usa para publicidad, y no hay rastreo ni analíticas.',
+    'El creador administra el servidor y puede ver lo que guarda, para mantenerlo en marcha y moderar lo que publican los miembros. Nada se vende, se comparte ni se usa para publicidad, y no hay rastreo ni analíticas.',
   'terms.protect.p5':
     'El servicio funciona sobre Supabase (inicio de sesión, base de datos y archivos) y envía los correos a través de Resend; los pagos pasan por Buy Me a Coffee. Cada uno recibe solo lo que su parte necesita.',
   'terms.protect.p6':
@@ -129,26 +133,27 @@ const terms = {
 
   'terms.fair.title': 'Juego limpio en la clasificación',
   'terms.fair.p1':
-    'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los números de tus ordenadores se suman en un solo día, que tampoco crece más rápido que el reloj, así que varios sonando a la vez no pueden sumar más tiempo del que ha pasado. Los mensajes y las menciones se cuentan en el servidor, a partir de lo que de verdad se publicó.',
+    'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los números de tus ordenadores se suman en un solo día, que tampoco crece más rápido que el reloj, así que varios sonando a la vez no pueden sumar más tiempo del que ha pasado.',
   'terms.fair.p2':
-    'Todo el mundo gana puntos igual, el creador también. Modificar la aplicación o lo que envía, automatizar la escucha o las publicaciones, o escalar con más de una cuenta te saca de la clasificación, y puede sacarte de la comunidad.',
+    'Todo el mundo gana puntos igual, el creador también. Modificar la aplicación o lo que envía, automatizar la escucha o escalar con más de una cuenta te saca de la clasificación, y puede impedir que la cuenta publique escenas o les dé me gusta.',
   'terms.fair.p3':
     'Cada me gusta en tus escenas vale {likePoints} puntos. Un me gusta cuenta una vez por miembro y escena, solo de miembros de Plus y nunca de tu propia cuenta. Los me gusta desde una segunda cuenta tuya cuentan como escalar con más de una cuenta.',
 
-  'terms.community.title': 'Normas de la comunidad',
-  'terms.community.p1':
-    'Sé amable. Nada de acoso, odio, amenazas, spam, contenido ilegal ni datos personales de nadie. Todos los miembros pueden leer lo que publicas, así que comparte solo lo que no te importe que se lea.',
-  'terms.community.p2':
-    'Puedes borrar tus propios mensajes cuando quieras. El creador puede eliminar mensajes y suspender cuentas que incumplan estas normas. Reporta un mensaje para señalarlo; solo el creador ve los reportes.',
+  'terms.rules.title': 'Normas para lo que publicas',
+  'terms.rules.p1':
+    'Sé amable. Nada de acoso, odio, amenazas, spam, contenido ilegal ni datos personales de nadie, ya sea en una escena, en su nombre o en su imagen. Cualquiera con sesión iniciada puede ver lo que publicas, así que comparte solo lo que no te importe que se vea.',
+  'terms.rules.p2':
+    'Puedes retirar tus propias escenas cuando quieras. El creador puede retirar escenas y suspender cuentas que incumplan estas normas. Denuncia una escena para señalarla; solo el creador ve las denuncias.',
 
   'terms.keep.title': 'Qué se guarda, y cómo borrarlo',
   'terms.keep.p1':
     'Clasificación: «Eliminar todos mis datos» en el panel de Cuenta borra de una vez cada día que hayas enviado. Tu ordenador solo guarda los totales de los últimos {windowDays} días.',
-  'terms.keep.p2': 'Mensajes: se quedan hasta que tú o el creador los borréis.',
+  'terms.keep.p2':
+    'Tu nombre de usuario y tu nombre visible: se guardan mientras tengas una cuenta, y se borran con ella.',
   'terms.keep.p3':
     'Membresía: tu correo de pago y su estado se guardan para asociar los pagos a tu cuenta, y se borran con ella.',
   'terms.keep.p4':
-    'Tu cuenta: pide que se borre y desaparece en {deletionDays} días, junto con tu perfil, tus mensajes, tus días en la clasificación y el registro de tu membresía.',
+    'Tu cuenta: pide que se borre y desaparece en {deletionDays} días, junto con tu perfil, tus días en la clasificación y el registro de tu membresía.',
   'terms.keep.p5':
     'Escenas: una escena que publicas sigue en Visualizadores hasta que la retiras, y retirarla la quita al instante junto con su imagen. Lo que publicaste, el registro de lo que exportaste, las escenas que añadiste, los me gusta que diste y los que recibieron tus escenas se borran con tu cuenta. Una escena bloqueada por incumplir estas condiciones conserva solo su huella, sin tu nombre, para que siga bloqueada.',
 
@@ -170,7 +175,7 @@ const terms = {
   'terms.scenes.p5':
     'Los miembros a los que les gusta tu escena te dan puntos en la clasificación, si te has unido a ella. Los me gusta se cuentan en el servidor; consulta Juego limpio.',
   'terms.scenes.p6':
-    'Comparte solo trabajo que tengas derecho a compartir: tus propias fotos y dibujos, o los de alguien que lo permita. Las normas de la comunidad se aplican a las escenas igual que a los mensajes. El creador puede impedir que una escena se abra si incumple estas condiciones o los derechos de otra persona.',
+    'Comparte solo trabajo que tengas derecho a compartir: tus propias fotos y dibujos, o los de alguien que lo permita. Las normas para lo que publicas se aplican a cada escena que compartes. El creador puede impedir que una escena se abra si incumple estas condiciones o los derechos de otra persona.',
   'terms.scenes.p7':
     'Una escena que comparte otro miembro es obra suya, con licencia para tu uso personal mientras seas miembro. Puedes reproducirla, darle me gusta y pasar el archivo sin cambios a otros miembros de Plus. Por favor, no la modifiques, no la presentes como tuya, no la publiques en otro sitio ni la vendas.',
   'terms.scenes.p8':

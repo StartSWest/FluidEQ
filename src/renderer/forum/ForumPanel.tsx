@@ -31,7 +31,7 @@ import '../styles/ForumComposer.scss';
  * sign-in, which happens in the system browser and comes back here — no
  * FluidEQ account, no Plus, and no password typed into this window.
  *
- * Laid out on the Community tab's own grid and rail so the two neighbours in
+ * Laid out on the Plus tab's own grid and rail so the two neighbours in
  * the titlebar are recognisably one family.
  */
 export default function ForumPanel() {

@@ -125,10 +125,10 @@ const PATHS: Record<string, string> = {
   album:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
-  // A spark with a small plus beside it: the Plus tab, where the channels,
-  // the members' visualizers, the leaderboard and the Studio live. The same
-  // spark the Plus card inside it wears. It was a speech bubble while the tab
-  // was only the community's chat.
+  // A spark with a small plus beside it: the Plus tab, where the members'
+  // visualizers, the leaderboard and the Studio live. The same spark the Plus
+  // card inside it wears. It was a speech bubble while the tab was only the
+  // community's chat, which has since given way to the Forum tab.
   plusTab:
     'M10.5 3.5Q11.4 9.6 17.5 10.5 11.4 11.4 10.5 17.5 9.6 11.4 3.5 10.5 9.6 9.6 10.5 3.5zM18.5 15.5v6M15.5 18.5h6',
   // The forum: a bubble with a second behind it, GitHub's own picture for

@@ -304,9 +304,9 @@ export default function AccountDialog({
                   </li>
                   <li>
                     <span className="account__perk-mark" aria-hidden="true">
-                      <Glyph name="general" />
+                      <Glyph name="studio" />
                     </span>
-                    {t('account.perk.community')}
+                    {t('account.perk.visualizers')}
                   </li>
                   <li>
                     <span className="account__perk-mark" aria-hidden="true">

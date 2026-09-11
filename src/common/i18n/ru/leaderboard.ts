@@ -27,8 +27,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Вы лидируете.',
   'leaderboard.part.hours': 'Прослушивание',
   'leaderboard.part.days': 'Активные дни',
-  'leaderboard.part.messages': 'Сообщения',
-  'leaderboard.part.mentions': 'Упоминания',
   'leaderboard.part.likes': 'Отметки «Нравится»',
   'leaderboard.guide.title': 'Как заработать очки',
   'leaderboard.guide.lead': 'Все зарабатывают одинаково, автор тоже.',
@@ -36,22 +34,37 @@ const leaderboard = {
     'Каждый час играющей музыки, до {limit} часов в день.',
   'leaderboard.guide.days':
     'Каждый день, когда вы слушаете {limit} минут или больше.',
-  'leaderboard.guide.messages': 'Каждое ваше сообщение, до {limit} в день.',
-  'leaderboard.guide.mentions':
-    'Каждый человек, который @упоминает вас, — один раз в день.',
   'leaderboard.guide.likes':
     'Каждая отметка «Нравится», которую другой участник ставит вашей сцене.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Откуда берутся цифры',
   'leaderboard.guide.fair':
-    'Ваш компьютер считает минуты музыки и отправляет одну сумму за день, только после того как вы присоединились, и никогда — что вы слушаете. Сообщения, упоминания и отметки «Нравится» считает сервер. Там проверяется каждое число, а за подделку убирают из таблицы лидеров.',
+    'Ваш компьютер считает минуты музыки и отправляет одну сумму за день, только после того как вы присоединились, и никогда — что вы слушаете. Отметки «Нравится» считает сервер. Там проверяется каждое число, а за подделку убирают из таблицы лидеров.',
   'leaderboard.guide.terms': 'Всё, что отправляет приложение',
   'leaderboard.stat.hours': '{hours} часов прослушивания',
-  'leaderboard.stat.messages': '{count} сообщений',
-  'leaderboard.stat.mentions': 'Упоминаний от других: {count}',
+  'leaderboard.stat.days': 'Активных дней: {count}',
   'leaderboard.stat.likes': 'Отметок «Нравится» на сценах: {count}',
   'leaderboard.scoring':
-    'Очки: {hours} за час прослушивания, {days} за активный день, {messages} за сообщение, {mentions} за каждого, кто упомянул вас за день, {likes} за каждую отметку «Нравится» на вашей сцене. Автор получает их так же.',
+    'Очки: {hours} за час прослушивания, {days} за активный день, {likes} за каждую отметку «Нравится» на вашей сцене. Автор получает их так же.',
+  'leaderboard.rail.blurb': 'Кто слушает больше всех',
+  'leaderboard.role.admin': 'Создатель',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Выберите, как вас покажет таблица лидеров',
+  'leaderboard.name.body':
+    'Ник и имя. Под ними вы значитесь в таблице лидеров, а в галерее «Визуализаторы» ими подписаны ваши сцены. Их видят все, кто вошёл в аккаунт; вашу почту не видит никто.',
+  'leaderboard.name.handle': 'Ник',
+  'leaderboard.name.handleHint': 'От 3 до 20 букв, цифр или _',
+  'leaderboard.name.name': 'Отображаемое имя',
+  'leaderboard.name.previewName': 'Ваше имя',
+  'leaderboard.name.save': 'Сохранить',
+  'leaderboard.name.choose': 'Выбрать имя',
+  'leaderboard.name.error.handleTaken': 'Этот ник занят. Попробуйте другой.',
+  'leaderboard.name.error.signedOut': 'Вы вышли из аккаунта. Войдите снова.',
+  'leaderboard.name.error.network':
+    'Не удалось связаться с сервером. Проверьте подключение и попробуйте снова.',
+  'leaderboard.name.error.rejected':
+    'Сервер отклонил это имя. Попробуйте другое.',
   'leaderboard.empty': 'Пока никого нет.',
   'leaderboard.notJoined':
     'Вас нет в таблице. Присоединитесь в панели аккаунта.',

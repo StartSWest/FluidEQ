@@ -172,7 +172,7 @@ import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { createSampleGallery } from './plus/sampleGallery';
-import { registerCommunityIpc } from './ipc/community';
+import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
@@ -2910,10 +2910,12 @@ const developmentPacksDir =
 // watch the subscription switch on and off. Nothing to configure: the server
 // holds the secret and admits admins only. See `membershipSimulator.ts`.
 const developmentSimulator = !app.isPackaged;
-// A cast of sample people laid over the community and the leaderboard, so the
-// panels can be looked at full before there is anyone in them. Nothing is
-// written anywhere; see `sampleCommunity.ts`.
-const developmentSampleCommunity =
+// A cast of sample people ranked into the leaderboard and credited with
+// scenes in the gallery, so both can be looked at full before there is anyone
+// in them. Nothing is written anywhere; see `samplePeople.ts`. The variable
+// keeps the name it had when the cast also filled the community's channels,
+// so a `.env` that already turns it on keeps working.
+const developmentSamplePeople =
   !app.isPackaged && process.env.FLUIDEQ_DEV_COMMUNITY_SAMPLE === '1';
 
 const accountIpc = registerAccountIpc({
@@ -2960,9 +2962,9 @@ const memberScenesIpc = registerMemberScenesIpc({
   logger: log,
 });
 
-// With the sample community on, the gallery gets sample scenes too: the Plus
+// With the sample people on, the gallery gets sample scenes too: the Plus
 // looks this account has, credited to the cast. See `sampleGallery.ts`.
-const developmentSampleGallery = developmentSampleCommunity
+const developmentSampleGallery = developmentSamplePeople
   ? createSampleGallery({
       packs: () => scenePacksIpc.store.list(),
       load: (id) => scenePacksIpc.store.load(id),
@@ -3009,15 +3011,11 @@ const plusPublishingIpc = registerPlusPublishingIpc({
   onTermsAgreed: plusTermsNoticeIpc.agreed,
 });
 
-// The community's REST calls and its live feed. Registering opens nothing:
-// the feed connects when the Community tab is on screen and closes when it
-// leaves, because a chat nobody is looking at does not need a socket.
-const communityIpc = registerCommunityIpc({
-  getMainWindow: () => mainWindow,
+// The member's name on the board and in the gallery. Registering contacts
+// nothing; the Plus tab asks for it when it opens.
+const plusProfileIpc = registerPlusProfileIpc({
   config: ACCOUNT_CONFIG,
   session: accountIpc.session,
-  logger: log,
-  sampleContent: developmentSampleCommunity,
 });
 
 // Listening minutes. Counted always, kept on this machine, and uploaded only
@@ -3029,7 +3027,7 @@ const leaderboardIpc = registerLeaderboardIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
-  sampleContent: developmentSampleCommunity,
+  sampleContent: developmentSamplePeople,
 });
 
 // The forum: the project's GitHub Discussions. Independent of the FluidEQ
@@ -3325,7 +3323,7 @@ app.on('before-quit', (event) => {
   plusGalleryIpc.dispose();
   memberSharingIpc.dispose();
   memberScenesIpc.dispose();
-  communityIpc.dispose();
+  plusProfileIpc.dispose();
   leaderboardIpc.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();

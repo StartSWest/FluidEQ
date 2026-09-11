@@ -11,15 +11,11 @@ import type { TCommunityGlyph } from './Glyph';
 export const PART_KEYS: Readonly<Record<TScorePart, TranslationKey>> = {
   hours: 'leaderboard.part.hours',
   days: 'leaderboard.part.days',
-  messages: 'leaderboard.part.messages',
-  mentions: 'leaderboard.part.mentions',
   likes: 'leaderboard.part.likes',
 };
 
 export const PART_GLYPHS: Readonly<Record<TScorePart, TCommunityGlyph>> = {
   hours: 'headphones',
   days: 'calendar',
-  messages: 'general',
-  mentions: 'mention',
   likes: 'heart',
 };

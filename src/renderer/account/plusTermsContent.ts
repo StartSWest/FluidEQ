@@ -87,11 +87,11 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.catalogue.who',
   },
   {
-    id: 'community',
-    glyph: 'general',
-    what: 'terms.sent.community.what',
-    when: 'terms.sent.community.when',
-    who: 'terms.sent.community.who',
+    id: 'profile',
+    glyph: 'mention',
+    what: 'terms.sent.profile.what',
+    when: 'terms.sent.profile.when',
+    who: 'terms.sent.profile.who',
   },
   {
     id: 'board',
@@ -127,6 +127,16 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     what: 'terms.sent.gallery.what',
     when: 'terms.sent.gallery.when',
     who: 'terms.sent.gallery.who',
+  },
+  {
+    // Not Plus, and not this server: the Forum tab talks to GitHub directly.
+    // Listed all the same, because the table promises everything the app
+    // sends and the forum is part of the app.
+    id: 'forum',
+    glyph: 'general',
+    what: 'terms.sent.forum.what',
+    when: 'terms.sent.forum.when',
+    who: 'terms.sent.forum.who',
   },
 ];
 
@@ -208,11 +218,13 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3'],
   },
   {
-    id: 'community',
-    glyph: 'general',
-    title: 'terms.community.title',
+    // What may be published, now that a scene is the only thing a member
+    // puts in front of the others: the forum is GitHub's, under its rules.
+    id: 'rules',
+    glyph: 'report',
+    title: 'terms.rules.title',
     body: 'paragraphs',
-    lines: ['terms.community.p1', 'terms.community.p2'],
+    lines: ['terms.rules.p1', 'terms.rules.p2'],
   },
   {
     id: 'keep',

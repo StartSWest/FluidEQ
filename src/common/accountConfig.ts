@@ -4,7 +4,8 @@
  * Signing in is not part of FluidEQ's job. The equaliser, the library, the
  * visualizers and everything else work with no account and no network, and
  * that is the arrangement for anybody who never signs in. What an account adds
- * is a layer on top: the extra visualizers, the community and the leaderboard.
+ * is a layer on top: the extra visualizers, the members' gallery, the Studio's
+ * sharing and the leaderboard.
  *
  * Like the contribution destinations in `support.ts`, all of it comes from
  * build-time environment variables rather than committed literals, and for the

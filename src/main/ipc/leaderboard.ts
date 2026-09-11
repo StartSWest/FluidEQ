@@ -13,7 +13,7 @@ import {
 } from '../usage/leaderboardApi';
 import { createUsageLedger, type IUsageLedger } from '../usage/usageLedger';
 import readComputerId from '../usage/computerId';
-import { sampleBoard } from '../community/sampleCommunity';
+import { sampleBoard } from '../plus/samplePeople';
 
 /**
  * Listening minutes and the board, as the renderer sees them.
@@ -39,7 +39,7 @@ export interface ILeaderboardIpcDeps {
   fetchImpl?: typeof fetch;
   /**
    * DEVELOPMENT ONLY: rank a cast of sample people into the real board so
-   * the podium and the rows can be looked at full. See `sampleCommunity.ts`.
+   * the podium and the rows can be looked at full. See `samplePeople.ts`.
    */
   sampleContent?: boolean;
 }

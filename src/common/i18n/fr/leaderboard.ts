@@ -29,8 +29,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Vous êtes en tête.',
   'leaderboard.part.hours': 'Écoute',
   'leaderboard.part.days': 'Jours actifs',
-  'leaderboard.part.messages': 'Messages',
-  'leaderboard.part.mentions': 'Mentions',
   'leaderboard.part.likes': 'J’aime sur les scènes',
   'leaderboard.guide.title': 'Comment gagner des points',
   'leaderboard.guide.lead':
@@ -39,23 +37,39 @@ const leaderboard = {
     'Chaque heure de musique jouée, jusqu’à {limit} heures par jour.',
   'leaderboard.guide.days':
     'Chaque jour où vous écoutez {limit} minutes ou plus.',
-  'leaderboard.guide.messages':
-    'Chaque message publié, jusqu’à {limit} par jour.',
-  'leaderboard.guide.mentions':
-    'Chaque personne qui vous @mentionne, une fois par jour chacune.',
   'leaderboard.guide.likes':
     'Chaque J’aime qu’un autre membre donne à une scène que vous avez créée.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'D’où viennent les chiffres',
   'leaderboard.guide.fair':
-    'Votre ordinateur compte les minutes de musique et envoie un total par jour, seulement après que vous avez rejoint, jamais ce que vous écoutez. Les messages, les mentions et les J’aime sont comptés sur le serveur. Chaque nombre y est vérifié, et la triche retire du classement.',
+    'Votre ordinateur compte les minutes de musique et envoie un total par jour, seulement après que vous avez rejoint, jamais ce que vous écoutez. Les J’aime sont comptés sur le serveur. Chaque nombre y est vérifié, et la triche retire du classement.',
   'leaderboard.guide.terms': 'Tout ce que l’application envoie',
   'leaderboard.stat.hours': '{hours} heures d’écoute',
-  'leaderboard.stat.messages': '{count} messages publiés',
-  'leaderboard.stat.mentions': '{count} mentions par d’autres',
+  'leaderboard.stat.days': '{count} jours actifs',
   'leaderboard.stat.likes': 'J’aime sur ses scènes : {count}',
   'leaderboard.scoring':
-    'Points : {hours} par heure écoutée, {days} par jour actif, {messages} par message, {mentions} pour chaque personne qui vous mentionne dans la journée, {likes} pour chaque J’aime sur une scène que vous avez créée. Le créateur les gagne de la même façon.',
+    'Points : {hours} par heure écoutée, {days} par jour actif, {likes} pour chaque J’aime sur une scène que vous avez créée. Le créateur les gagne de la même façon.',
+  'leaderboard.rail.blurb': 'Qui écoute le plus',
+  'leaderboard.role.admin': 'Créateur',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Choisissez comment le classement vous affiche',
+  'leaderboard.name.body':
+    'Un pseudo et un nom. Le classement vous affiche sous ces noms, et la galerie Visualiseurs les indique comme auteur de vos scènes. Toute personne connectée les voit ; personne ne voit votre e-mail.',
+  'leaderboard.name.handle': 'Pseudo',
+  'leaderboard.name.handleHint': 'De 3 à 20 lettres, chiffres ou _',
+  'leaderboard.name.name': 'Nom affiché',
+  'leaderboard.name.previewName': 'Votre nom',
+  'leaderboard.name.save': 'Enregistrer',
+  'leaderboard.name.choose': 'Choisissez votre nom',
+  'leaderboard.name.error.handleTaken':
+    'Ce pseudo est déjà pris. Essayez-en un autre.',
+  'leaderboard.name.error.signedOut':
+    'Vous avez été déconnecté. Reconnectez-vous.',
+  'leaderboard.name.error.network':
+    'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.',
+  'leaderboard.name.error.rejected':
+    'Le serveur a refusé ce nom. Essayez-en un autre.',
   'leaderboard.empty': 'Personne n’est encore classé.',
   'leaderboard.notJoined':
     'Vous n’êtes pas au classement. Rejoignez-le depuis le panneau Compte.',

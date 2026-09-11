@@ -61,7 +61,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    '别处没有的可视化效果、在社区发言、排行榜、直接提出功能需求的通道——以及从现在起的每一项新功能，会员优先。今天免费的一切依然免费。',
+    '别处没有的高级可视化效果、创作你自己场景的工作室、排行榜——以及从现在起的每一项新功能，会员优先。今天免费的一切依然免费。',
   'account.plus.upgrade': '升级到 Plus',
   'account.plus.opening': '正在打开…',
   'account.plus.checkoutHint':
@@ -86,7 +86,7 @@ const account = {
   'account.dev.working': '发送中…',
 
   'account.perk.looks': '由显卡绘制的 Plus 样式。',
-  'account.perk.community': '人人可读、会员可发言的社区。',
+  'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
   'account.perk.board': '谁听得最多的排行榜。',
 } as const;
 

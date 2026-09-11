@@ -7,9 +7,9 @@ import type {
 } from 'common/plusGallery';
 
 /**
- * Where the member is inside the Plus tab: which place in its rail — a
- * channel, the Visualizers gallery, the leaderboard or the Studio — and in
- * the gallery, which page.
+ * Where the member is inside the Plus tab: which place in its rail — the
+ * Visualizers gallery, the leaderboard or the Studio — and in the gallery,
+ * which page.
  *
  * Kept outside the components so it outlives them. The tab unmounts whenever
  * another one is chosen in the title bar, and coming back should find the
@@ -17,7 +17,7 @@ import type {
  * too so a gallery page can send the member to the Studio.
  */
 
-export type TPlusPlace = 'channel' | 'visualizers' | 'board' | 'studio';
+export type TPlusPlace = 'visualizers' | 'board' | 'studio';
 
 export interface IMakerRef {
   authorId: string;
@@ -65,7 +65,7 @@ interface IPlusNavigation {
 }
 
 const INITIAL: IPlusNavigation = {
-  place: 'channel',
+  place: 'visualizers',
   page: { kind: 'browse' },
   filters: { sort: 'liked', text: '' },
 };

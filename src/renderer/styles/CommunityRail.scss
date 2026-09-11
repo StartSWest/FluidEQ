@@ -11,8 +11,9 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The whole tab: a rail of channels and the conversation beside it. Fills the
-// card and never grows past it — the thread scrolls, the panel does not.
+// The whole Plus tab: a rail of its places and the one open beside it. Fills
+// the card and never grows past it — each place scrolls, the panel does not.
+// The Forum tab borrows the rail, its rows and the people below.
 //
 // Every person in here wears a colour of their own, carried on the element as
 // `--identity-hue` (see `identity.ts`). The avatar, the name and the podium
@@ -25,7 +26,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 0;
   gap: $spacing-s;
 
-  // Narrow: the rail becomes a strip of pills above the conversation.
+  // Narrow: the rail becomes a strip of pills above the place that is open.
   @container eq-panel (max-width: 600px) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
@@ -34,8 +35,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- welcome
 
+// One column: the tab's two-column grid would otherwise seat the welcome in
+// the rail's narrow track and leave the rest of the card empty.
 .community--signed-out {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
 }
 
@@ -79,14 +83,13 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
-.community__welcome-body,
-.community__gate-body {
+.community__welcome-body {
   color: $text-muted;
   font-size: $text-body;
   line-height: 1.6;
 }
 
-// Three things the room is for, as chips under the pitch.
+// The three places the tab holds, as chips under the pitch.
 .community__perks {
   display: flex;
   flex-wrap: wrap;
@@ -128,8 +131,8 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-y: auto;
   @include slim-scrollbar;
 
-  // Narrow: one wrapping strip, the channels and the leaderboard in it
-  // together, the head on its own line above them.
+  // Narrow: one wrapping strip of the places, the head on its own line
+  // above them.
   @container eq-panel (max-width: 600px) {
     flex-direction: row;
     flex-wrap: wrap;
@@ -151,34 +154,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Whether the feed is live. A dot, not a word, is what says it at a glance;
-// the word is there for whoever wants to read it.
-.community__live {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: $text-faint;
-  font-size: $text-micro;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.community__live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: $text-dim;
-}
-
-.community__live--live .community__live-dot {
-  background: $secondary-default;
-  box-shadow: 0 0 6px color-mix(in srgb, $secondary-default 70%, transparent);
-}
-
-.community__live--connecting .community__live-dot {
-  background: $amber;
-}
-
 .community__channels {
   display: flex;
   flex-direction: column;
@@ -189,8 +164,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// A channel row: its picture in a small tile, its name, and what it is for in
-// a line underneath. The tile is what lights when the row is the one open.
+// A row of the rail: its picture in a small tile, its name, and what it is
+// for in a line underneath. The tile is what lights when the row is the one
+// open.
 .community__channel {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
@@ -214,8 +190,8 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $white 5%, transparent);
   }
 
-  // The open channel: a tinted row with a short accent bar down its left edge,
-  // the same mark the sidebar uses for the section that is on.
+  // The open row: tinted, with a short accent bar down its left edge, the
+  // same mark the sidebar uses for the section that is on.
   &.is-active {
     position: relative;
     color: $text-primary;
@@ -300,51 +276,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Unread @mentions: a count in the accent, because it is a request for this
-// person's attention specifically, not just activity.
-.community__unread {
-  flex: 0 0 auto;
-  min-width: 18px;
-  padding: 0 5px;
-  color: $surface-base;
-  border-radius: $radius-pill;
-  background: $secondary-default;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  line-height: 18px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-// The places — Visualizers, the leaderboard, the Studio — sit apart from the
-// channels under a rule of their own, drawn above the first of them. The rule
-// is drawn above the row rather than as its top border: as a border it
-// squared off the row's top corners, and the open place showed a flat-topped
-// tint under a line while every channel above it was rounded all round.
-.community__channel--places {
-  position: relative;
-  margin-top: 13px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -7px;
-    right: 6px;
-    left: 6px;
-    height: 1px;
-    background: $border-subtle;
-    pointer-events: none;
-  }
-
-  @container eq-panel (max-width: 600px) {
-    margin: 0;
-
-    &::after {
-      display: none;
-    }
-  }
-}
-
 // Who you are in here, at the foot of the rail.
 .community__me {
   display: grid;
@@ -368,19 +299,10 @@ it under the terms of the GNU General Public License version 3 or later.
   .community__handle {
     @include truncate;
   }
-}
 
-.community__blocked {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-xs;
-  padding: 2px 8px 4px;
-  color: $text-faint;
-  font-size: $text-small;
-
-  @container eq-panel (max-width: 600px) {
-    display: none;
+  .community__link {
+    justify-self: start;
+    text-align: start;
   }
 }
 
@@ -444,8 +366,8 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// The maker and the star contributors carry a small mark; it is the one place
-// hierarchy shows, and it is a tag on the name, not a colour on the message.
+// The maker and a Plus member carry a small mark; it is the one place
+// hierarchy shows, and it is a tag on the name, not a colour on the row.
 .community__role {
   padding: 0 6px;
   color: $secondary-light;

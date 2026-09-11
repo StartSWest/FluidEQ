@@ -62,7 +62,6 @@ import {
 import CommunityPanel from './community/CommunityPanel';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
-import { useCommunity } from './community/communityStore';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -678,7 +677,6 @@ const AppContent = () => {
   const isShareTab = activeWorkspaceTab === 'share';
   const isCommunityTab = activeWorkspaceTab === 'community';
   const isForumTab = activeWorkspaceTab === 'forum';
-  const unreadMentions = useCommunity().unreadMentions.length;
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
   // A loaded silent player keeps only its controller/media shell for five
@@ -820,8 +818,8 @@ const AppContent = () => {
         <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
       </button>
       {/* Only in a build with a backend — every fork and every checkout
-          without a .env has no community to show, and a tab that opens an
-          empty room is worse than no tab. */}
+          without a .env has no gallery, board or Studio sharing to show, and
+          a tab that opens an empty room is worse than no tab. */}
       {isAccountConfigured() && (
         <button
           type="button"
@@ -833,19 +831,11 @@ const AppContent = () => {
         >
           <MenuIcon name="plusTab" />
           <span className="workspace-tab__label">{t('tabs.plus')}</span>
-          {unreadMentions > 0 && !isCommunityTab && (
-            <span
-              className="workspace-tab__badge"
-              aria-label={t('community.mentions.unread', {
-                count: unreadMentions,
-              })}
-            />
-          )}
         </button>
       )}
       {/* In every build, unlike Plus: the forum is the project's GitHub
           Discussions, readable with no backend and no account at all, so a
-          fork shows it too — and last, beside the channels it complements. */}
+          fork shows it too — and last, the one place members talk. */}
       <button
         type="button"
         role="tab"
@@ -2638,8 +2628,8 @@ const AppContent = () => {
               </div>
             )}
             {activeWorkspaceTab === 'community' && (
-              // No `__scroll` wrapper: the conversation scrolls inside its own
-              // thread and the composer stays put at the foot of the card.
+              // No `__scroll` wrapper: the gallery, the board and the Studio
+              // each scroll inside themselves beside a rail that stays put.
               <div
                 key={activeWorkspaceTab}
                 className="workspace-tab-panel workspace-tab-panel--community"
@@ -2651,7 +2641,7 @@ const AppContent = () => {
               </div>
             )}
             {activeWorkspaceTab === 'forum' && (
-              // Like Community: the list and the thread scroll inside
+              // Like Plus: the list and the thread scroll inside
               // themselves, so the panel does not.
               <div
                 key={activeWorkspaceTab}

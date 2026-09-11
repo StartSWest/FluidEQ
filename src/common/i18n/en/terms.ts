@@ -26,14 +26,14 @@ const terms = {
     'FluidEQ keeps working offline and without an account, as it always has.',
   'terms.short.choice.title': 'You choose what is shared',
   'terms.short.choice.body':
-    'The leaderboard is off unless you join, and you decide what you post and which of your scenes you share.',
+    'The leaderboard is off unless you join, and you decide which of your scenes you share.',
   'terms.short.music.title': 'Never your music',
   'terms.short.music.body':
     'No track names, files, audio or devices ever leave your computer.',
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'Plus adds premium visualizers, the Studio for making your own and sharing them with other members, posting in the community and the leaderboard to FluidEQ. It costs {price}, and renews at the end of each period you paid for until you cancel.',
+    'Plus adds premium visualizers, the Studio for making your own and sharing them with other members, and the leaderboard to FluidEQ. It costs {price}, and renews at the end of each period you paid for until you cancel.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p3':
@@ -45,7 +45,7 @@ const terms = {
   'terms.account.p1':
     'An account is an email address and a password, and you need to be at least {age} to create one. The password travels encrypted to the sign-in service and is stored there only as a one-way hash, which nobody can read back, the maker included.',
   'terms.account.p2':
-    'Your email receives the codes that confirm your address and reset your password. It is never shown to other members: in the community you appear by the handle and display name you choose.',
+    'Your email receives the codes that confirm your address and reset your password. It is never shown to other members: on the leaderboard and in Visualizers you appear by the handle and display name you choose.',
   'terms.account.p3':
     'On your computer, the app keeps your session encrypted by the operating system. Accounts are personal, so keep your password to yourself.',
   'terms.account.p4':
@@ -53,7 +53,7 @@ const terms = {
 
   'terms.sent.title': 'What the app sends, and when',
   'terms.sent.intro':
-    'Only for the features you use, and always over an encrypted connection. Without an account, the only request is for the public list of Plus looks, and it carries nothing about you.',
+    'Only for the features you use, and always over an encrypted connection. Without an account, the only requests are for the public list of Plus looks and the public topics of the Forum tab, and they carry nothing about you.',
   'terms.sent.when': 'When',
   'terms.sent.who': 'Who can see it',
   'terms.sent.signIn.what': 'Your email and password',
@@ -81,12 +81,10 @@ const terms = {
     'When the look picker shows which Plus looks exist, with or without an account',
   'terms.sent.catalogue.who':
     'Nothing is kept. The request only fetches the public list of looks.',
-  'terms.sent.community.what':
-    'Your handle and display name, your messages and their @mentions, the reports you file and the people you block',
-  'terms.sent.community.when':
-    'When you set up your profile, post, report or block',
-  'terms.sent.community.who':
-    'Messages, handles and display names: every signed-in member. Reports: the maker. Blocks: only you.',
+  'terms.sent.profile.what': 'Your handle and display name',
+  'terms.sent.profile.when': 'When you choose them on the leaderboard',
+  'terms.sent.profile.who':
+    'Every signed-in member, beside your place on the board and on the scenes you publish.',
   'terms.sent.board.what':
     'One number per day from each of your computers: the whole minutes of music that played, up to {capHours} hours, with its date and a random number that tells your computers apart',
   'terms.sent.board.when':
@@ -115,6 +113,12 @@ const terms = {
     'When you browse Visualizers, press Add, or send a report',
   'terms.sent.gallery.who':
     'Searches and what you open are not kept. Members see how many added a scene, never who. Reports: only the maker.',
+  'terms.sent.forum.what':
+    'In the Forum tab: what you post, edit, react to or delete, with your GitHub sign-in',
+  'terms.sent.forum.when':
+    'Opening the forum downloads its public topics, which carries nothing about you; the rest only after you sign in with GitHub and post',
+  'terms.sent.forum.who':
+    'GitHub, under its own terms. Posts are public in the project’s GitHub Discussions; FluidEQ’s server never receives them.',
 
   'terms.never.title': 'What never leaves your computer',
   'terms.never.p1':
@@ -130,9 +134,9 @@ const terms = {
   'terms.protect.p2':
     'The rules live on the server, not in the app: each account can change only its own data, and a modified copy of FluidEQ gets exactly the same answers.',
   'terms.protect.p3':
-    'The board and the chat show handles, never email addresses or account ids.',
+    'The board and Visualizers show handles and display names, never email addresses or account ids.',
   'terms.protect.p4':
-    'The maker runs the server and can see what it stores, to keep it working and to moderate the community. Nothing is sold, shared or used for advertising, and there is no tracking or analytics.',
+    'The maker runs the server and can see what it stores, to keep it working and to moderate what members publish. Nothing is sold, shared or used for advertising, and there is no tracking or analytics.',
   'terms.protect.p5':
     'The service runs on Supabase (sign-in, database and files) and sends email through Resend; payments go through Buy Me a Coffee. Each receives only what its part needs.',
   'terms.protect.p6':
@@ -140,26 +144,27 @@ const terms = {
 
   'terms.fair.title': 'Fair play on the leaderboard',
   'terms.fair.p1':
-    'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed. Messages and mentions are counted on the server, from what was actually posted.',
+    'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed.',
   'terms.fair.p2':
-    'Everyone earns points the same way, the maker included. Changing the app or what it sends, automating listening or posting, or climbing with more than one account takes you off the board, and can take you out of the community.',
+    'Everyone earns points the same way, the maker included. Changing the app or what it sends, automating listening, or climbing with more than one account takes you off the board, and can stop the account from publishing and liking scenes.',
   'terms.fair.p3':
     'Likes on your scenes earn {likePoints} points each. A like counts once per member per scene, only from Plus members, and never from your own account. Likes from a second account of your own count as climbing with more than one account.',
 
-  'terms.community.title': 'Community rules',
-  'terms.community.p1':
-    'Be kind. No harassment, hate, threats, spam, illegal content, or anyone’s personal information. Every member can read what you post, so share only what you are happy to have read.',
-  'terms.community.p2':
-    'You can delete your own messages at any time. The maker can remove messages and suspend accounts that break these rules. Report a message to flag it; only the maker sees reports.',
+  'terms.rules.title': 'Rules for what you publish',
+  'terms.rules.p1':
+    'Be kind. No harassment, hate, threats, spam, illegal content, or anyone’s personal information — in a scene, its name or its picture. Everyone signed in can see what you publish, so share only what you are happy to have seen.',
+  'terms.rules.p2':
+    'You can unpublish your own scenes at any time. The maker can take down scenes and suspend accounts that break these rules. Report a scene to flag it; only the maker sees reports.',
 
   'terms.keep.title': 'What is kept, and how to delete it',
   'terms.keep.p1':
     'Leaderboard: “Remove all my data” in the Account panel deletes every day you ever sent, at once. Your computer keeps only the last {windowDays} days of totals.',
-  'terms.keep.p2': 'Messages: they stay until you or the maker delete them.',
+  'terms.keep.p2':
+    'Your handle and display name: kept while you have an account, and deleted with it.',
   'terms.keep.p3':
     'Membership: your payment email and status are kept to match payments to your account, and are deleted with it.',
   'terms.keep.p4':
-    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, messages, leaderboard days and membership record.',
+    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, leaderboard days and membership record.',
   'terms.keep.p5':
     'Scenes: a scene you publish stays in Visualizers until you unpublish it, which removes it and its picture at once. What you published, the record of what you exported, the scenes you added, the likes you gave and the likes your scenes received are deleted with your account. A scene blocked for breaking these terms keeps only its fingerprint, without your name, so it stays blocked.',
 
@@ -181,7 +186,7 @@ const terms = {
   'terms.scenes.p5':
     'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
   'terms.scenes.p6':
-    'Only share work you have the right to share: your own photos and drawings, or ones whose owner allows it. The community rules apply to scenes as they do to messages. The maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
+    'Only share work you have the right to share: your own photos and drawings, or ones whose owner allows it. The rules for what you publish apply to every scene you share. The maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
   'terms.scenes.p7':
     'A scene another member shares is their work, licensed to you for personal use while you are a member. You can play it, like it, and pass the file on unchanged to other Plus members. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
   'terms.scenes.p8':

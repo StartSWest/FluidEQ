@@ -11,18 +11,19 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The leaderboard inside the Community tab. People's colours come from
-// `--identity-hue` exactly as the chat's do (see CommunityRail.scss); the five
-// parts of a score each have a colour of their own, below, used by the guide,
-// the stats under every name and the standing bar alike. The Account panel's
-// card is in LeaderboardCard.scss, the standing card in
-// LeaderboardStanding.scss, the guide in LeaderboardGuide.scss.
+// The leaderboard inside the Plus tab. People's colours come from
+// `--identity-hue` (see CommunityRail.scss); the three parts of a score each
+// have a colour of their own, below, used by the guide, the stats under every
+// name and the standing bar alike. The Account panel's card is in
+// LeaderboardCard.scss, the standing card in LeaderboardStanding.scss, the
+// guide in LeaderboardGuide.scss, the card that asks for a name in
+// LeaderboardName.scss.
 
 // ---------------------------------------------------------------- parts
 
 // One colour per part of a score, set as `--part` so any element can wear it.
 // Listening in the theme's own accent; the others from the shared palette,
-// chosen so the five are told apart at a glance on the dark ground.
+// chosen so the three are told apart at a glance on the dark ground.
 .leaderboard-part--hours {
   --part: #{$secondary-default};
 }
@@ -31,18 +32,18 @@ it under the terms of the GNU General Public License version 3 or later.
   --part: #{$analogous-2};
 }
 
-.leaderboard-part--messages {
-  --part: #{$amber};
-}
-
-.leaderboard-part--mentions {
-  --part: #{$complementary};
-}
-
 // The same pink the heart wears on a member's scene, so a like reads as the
 // same thing on the graph and on the board.
 .leaderboard-part--likes {
   --part: #{$analogous-1};
+}
+
+// A refusal from the server, in the words that say what to do about it.
+.leaderboard__error {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.5;
 }
 
 // ---------------------------------------------------------------- board
@@ -50,8 +51,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // The scroll container spans the pane; the content does not. On a wide window
 // a row stretched to two thousand pixels is a bar with a name at one end and a
 // number at the other, which no eye can join up. The board's own width, not
-// the window's, decides whether the guide stands beside it: the Community tab
-// shares the pane with its channel rail.
+// the window's, decides whether the guide stands beside it: the Plus tab
+// shares the pane with its rail.
 .leaderboard {
   display: flex;
   flex: 1 1 auto;

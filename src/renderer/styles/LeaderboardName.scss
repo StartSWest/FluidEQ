@@ -1,0 +1,203 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The card at the top of the board that asks a member without a name for
+// one. On the left, the member as the board will show them — their disc, the
+// name, the @handle — in the colour their handle hashes to, which the whole
+// card takes up as a glow from that side; on the right, what the name is for
+// and the two fields. `--identity-hue` is set on the card from the handle
+// being typed, so the colour moves as the member types.
+
+.leaderboard-name {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-m;
+  padding: $spacing-m $spacing-m $spacing-m $spacing-s;
+  border: 1px solid hsl(var(--identity-hue, 170deg) 70% 55% / 34%);
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      circle at 74px 50%,
+      hsl(var(--identity-hue, 170deg) 60% 50% / 16%),
+      transparent 190px
+    ),
+    $block-lift;
+  box-shadow: 0 0 26px hsl(var(--identity-hue, 170deg) 60% 50% / 10%);
+  transition:
+    border-color $motion-base $ease-out,
+    box-shadow $motion-base $ease-out;
+  @include animate(fade-in, $motion-base, $ease-out);
+
+  // Narrow: the preview becomes one line over the fields, the disc beside the
+  // name instead of above it.
+  @container leaderboard (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: $spacing-m;
+    background:
+      radial-gradient(
+        circle at 36px 34px,
+        hsl(var(--identity-hue, 170deg) 60% 50% / 16%),
+        transparent 150px
+      ),
+      $block-lift;
+  }
+}
+
+.leaderboard-name__preview {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+
+  .community__avatar {
+    margin-bottom: 6px;
+    transition:
+      background $motion-base $ease-out,
+      color $motion-base $ease-out,
+      box-shadow $motion-base $ease-out;
+  }
+
+  .community__handle {
+    max-width: 100%;
+    @include truncate;
+  }
+
+  @container leaderboard (max-width: 560px) {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    justify-items: start;
+    column-gap: 12px;
+    row-gap: 0;
+    text-align: start;
+
+    .community__avatar {
+      grid-row: 1 / span 2;
+      margin: 0;
+    }
+  }
+}
+
+.leaderboard-name__preview-name {
+  max-width: 100%;
+  font-size: $text-lead;
+  @include truncate;
+}
+
+.leaderboard-name__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.leaderboard-name__title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.leaderboard-name__lead {
+  max-width: 62ch;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.55;
+}
+
+// The two fields and the button on one line while they fit, the button at
+// the end of it and level with the boxes rather than with the labels.
+.leaderboard-name__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $spacing-s;
+  margin-top: $spacing-s;
+}
+
+.leaderboard-name__field {
+  display: grid;
+  flex: 1 1 170px;
+  gap: 5px;
+  min-width: 0;
+}
+
+.leaderboard-name__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.leaderboard-name__hint {
+  color: $text-faint;
+  font-size: $text-micro;
+  opacity: 0.85;
+}
+
+// A typed box: nothing changes under the pointer, only focus lights it (see
+// `field-static`).
+input.leaderboard-name__input {
+  @include field-static;
+  width: 100%;
+  min-height: $control-height-sm;
+  padding: 0 $field-padding-inline;
+  font-size: $text-body;
+}
+
+// The handle's box owns the surface so the @ sits inside it, where it reads
+// as the first character of the handle rather than a label beside the box.
+// Like every box typed into, no hover: only focus lights it.
+.leaderboard-name__at {
+  @include field-surface;
+  display: flex;
+  align-items: center;
+  min-height: $control-height-sm;
+  padding-inline-start: $field-padding-inline;
+  color: $text-faint;
+
+  &:focus-within {
+    border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+// The box inside the box takes nothing the global control base gives an
+// input — face, hover, focus ring: the wrapper is the visible field. The
+// hover selector carries the base's two `:not()`s so it still wins wherever
+// the base gives inputs a hover of their own.
+input.leaderboard-name__handle {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 $field-padding-inline 0 2px;
+  color: $text-primary;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: $text-body;
+
+  &:hover:not(:disabled):not([aria-disabled='true']),
+  &:focus,
+  &:focus-visible {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+  }
+}
+
+.leaderboard-name__save {
+  flex: 0 0 auto;
+}

@@ -1,5 +1,6 @@
 import type { IAccountConfig } from 'common/accountConfig';
 import jwtSubject from '../account/jwtSubject';
+import type { TPlusRole } from '../../common/plusProfile';
 import type { IPendingDay } from './usageLedger';
 
 /**
@@ -18,16 +19,13 @@ export type TLeaderboardPeriod = 'all' | 'month';
 
 /**
  * What a place on the board is made of. The server scores it — ten points an
- * hour, twenty an active day, five a message, ten for each person who
- * mentions you on a day, five a like on a scene you made — and hands back the
- * parts so a row can say why.
+ * hour, twenty an active day, five a like on a scene you made — and hands
+ * back the parts so a row can say why.
  */
 export interface ILeaderboardScore {
   points: number;
   minutes: number;
   activeDays: number;
-  messages: number;
-  mentions: number;
   likes: number;
 }
 
@@ -35,7 +33,7 @@ export interface ILeaderboardRow extends ILeaderboardScore {
   rank: number;
   handle: string;
   displayName: string;
-  role: 'member' | 'contributor' | 'admin';
+  role: TPlusRole;
 }
 
 export interface IMyRank extends ILeaderboardScore {
@@ -70,7 +68,9 @@ const readInteger = (value: unknown): number | undefined => {
 /**
  * The score's parts, with the minutes mandatory and everything else zero
  * when absent — a server still on the hours-only board answers rows with
- * minutes alone, and those must keep reading.
+ * minutes alone, and those must keep reading. A server that has not dropped
+ * the channels yet still sends messages and mentions; they are not read, and
+ * its points still count them, which only lasts until migration 0014 runs.
  */
 const readScore = (
   value: Record<string, unknown>,
@@ -83,8 +83,6 @@ const readScore = (
   return {
     minutes,
     activeDays: optional(value.active_days),
-    messages: optional(value.messages),
-    mentions: optional(value.mentions),
     likes: optional(value.likes),
     // An old server has no points; hours alone are the score it ranked by.
     points: readInteger(value.points) ?? Math.floor(minutes / 6),
@@ -106,10 +104,7 @@ export const readRow = (value: unknown): ILeaderboardRow | undefined => {
     handle,
     displayName:
       typeof value.display_name === 'string' ? value.display_name : handle,
-    role:
-      value.role === 'admin' || value.role === 'contributor'
-        ? value.role
-        : 'member',
+    role: value.role === 'admin' ? 'admin' : 'member',
     ...score,
   };
 };

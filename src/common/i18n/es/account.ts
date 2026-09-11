@@ -72,7 +72,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'Visualizadores que no existen en ningún otro sitio, publicar en la comunidad, la clasificación, una línea directa para pedir funciones — y cada función nueva a partir de ahora, primero para los miembros. Todo lo que hoy es gratis sigue siendo gratis.',
+    'Visualizadores premium que no existen en ningún otro sitio, el Estudio para crear los tuyos, la clasificación — y cada función nueva a partir de ahora, primero para los miembros. Todo lo que hoy es gratis sigue siendo gratis.',
   'account.plus.upgrade': 'Pasar a Plus',
   'account.plus.opening': 'Abriendo…',
   'account.plus.checkoutHint':
@@ -98,8 +98,8 @@ const account = {
   'account.dev.working': 'Enviando…',
 
   'account.perk.looks': 'Looks Plus, dibujados en la tarjeta gráfica.',
-  'account.perk.community':
-    'Una comunidad que todos pueden leer y donde los miembros publican.',
+  'account.perk.visualizers':
+    'Visualizadores: las escenas que crean los miembros, abiertas a todas las cuentas.',
   'account.perk.board': 'Una clasificación de quién escucha más.',
 } as const;
 

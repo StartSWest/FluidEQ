@@ -37,8 +37,8 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The one box in each view that scrolls, under the same soft edges as the
-// Community thread.
+// The one box in each view that scrolls, under a soft edge at the top and
+// the bottom rather than guillotined by what is above and below it.
 .forum__scroll {
   display: flex;
   flex: 1 1 auto;

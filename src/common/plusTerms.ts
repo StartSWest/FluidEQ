@@ -38,7 +38,11 @@
  * file is unchanged and keeps accepting 3. And Plus runs on up to five
  * computers at a time, with each computer's listening reported under a random
  * id and added into one day that cannot outrun the clock — still version 5,
- * because version 5 has not reached a release.
+ * because version 5 has not reached a release. So is the next change: the
+ * community's channels are gone, so nothing about messages, mentions, reports
+ * or blocks is sent or kept, the board scores listening and likes only, the
+ * rules are about what a member publishes, and the Forum tab — which talks to
+ * GitHub, not to this server — has its row in the table of what is sent.
  */
 export const PLUS_TERMS_VERSION = 5;
 

@@ -37,8 +37,6 @@ describe('reading the board', () => {
         points: '2310',
         minutes: '540',
         active_days: '9',
-        messages: '12',
-        mentions: '4',
         likes: '7',
       }),
     ).toEqual({
@@ -49,8 +47,6 @@ describe('reading the board', () => {
       points: 2310,
       minutes: 540,
       activeDays: 9,
-      messages: 12,
-      mentions: 4,
       likes: 7,
     });
     expect(readRow({ rank: 2, handle: 'bob', minutes: 10 })).toMatchObject({
@@ -59,13 +55,45 @@ describe('reading the board', () => {
     });
   });
 
+  /**
+   * A server that has not run migration 0014 yet still sends the channels'
+   * two parts and the contributor role. Neither reaches the board: the parts
+   * are not read, and a contributor is a member.
+   */
+  it('reads a row from a server that still has the channels', () => {
+    const row = readRow({
+      rank: 3,
+      handle: 'lena',
+      role: 'contributor',
+      points: 900,
+      minutes: 3_000,
+      active_days: 12,
+      messages: 40,
+      mentions: 9,
+      likes: 0,
+    });
+    expect(row).toEqual({
+      rank: 3,
+      handle: 'lena',
+      displayName: 'lena',
+      role: 'member',
+      points: 900,
+      minutes: 3_000,
+      activeDays: 12,
+      likes: 0,
+    });
+  });
+
   /** A server still on the hours-only board scores by hours; the row must read. */
   it('scores an old server’s hours-only row by its hours', () => {
-    expect(readRow({ rank: 1, handle: 'ada', minutes: 600 })).toMatchObject({
+    expect(readRow({ rank: 1, handle: 'ada', minutes: 600 })).toEqual({
+      rank: 1,
+      handle: 'ada',
+      displayName: 'ada',
+      role: 'member',
       points: 100,
+      minutes: 600,
       activeDays: 0,
-      messages: 0,
-      mentions: 0,
       likes: 0,
     });
   });
@@ -83,8 +111,6 @@ describe('reading the board', () => {
       points: 260,
       minutes: 120,
       activeDays: 0,
-      messages: 0,
-      mentions: 0,
       likes: 0,
       players: 42,
     });

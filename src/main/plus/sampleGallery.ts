@@ -1,4 +1,4 @@
-import { SAMPLE_PEOPLE } from '../community/sampleCommunity';
+import { SAMPLE_PEOPLE } from './samplePeople';
 import { memberLookId, parseMemberLookId } from '../../common/memberScenes';
 import {
   GALLERY_PAGE_SIZE,
@@ -15,12 +15,12 @@ import type { IScenePackSummary } from '../scenePackStore';
  *
  * The gallery's server half is deployed separately, and an empty grid shows
  * none of what the design is for — pictures side by side, a maker's page,
- * likes moving. So with the sample community switched on, the Plus looks
- * this account already has are laid into the gallery as if members of the
- * sample cast had published them, and each one's page plays the real scene.
+ * likes moving. So with the sample people switched on, the Plus looks this
+ * account already has are laid into the gallery as if members of the sample
+ * cast had published them, and each one's page plays the real scene.
  *
- * DEVELOPMENT ONLY, switched on with the sample community (see
- * `sampleCommunity.ts`) and never in a packaged build. Sample makers carry
+ * DEVELOPMENT ONLY, switched on with the sample people (see
+ * `samplePeople.ts`) and never in a packaged build. Sample makers carry
  * ids from one reserved block no account is ever given, so nothing else can
  * mistake them for a person; their likes live in memory and are never sent;
  * they cannot be added to anyone's looks, because they were never signed.

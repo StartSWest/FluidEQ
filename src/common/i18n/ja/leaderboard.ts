@@ -28,30 +28,45 @@ const leaderboard = {
   'leaderboard.hero.leading': '首位です。',
   'leaderboard.part.hours': '視聴',
   'leaderboard.part.days': 'アクティブな日',
-  'leaderboard.part.messages': '投稿',
-  'leaderboard.part.mentions': 'メンション',
   'leaderboard.part.likes': 'シーンへのいいね',
   'leaderboard.guide.title': 'ポイントの獲得方法',
   'leaderboard.guide.lead':
     '誰でも同じ方法でポイントを獲得します。制作者も同じです。',
   'leaderboard.guide.hours': '音楽が再生された1時間ごと。1日{limit}時間まで。',
   'leaderboard.guide.days': '{limit}分以上聴いた日ごと。',
-  'leaderboard.guide.messages': '投稿したメッセージ1件ごと。1日{limit}件まで。',
-  'leaderboard.guide.mentions':
-    'あなたを @メンションした人ごと。1人につき1日1回。',
   'leaderboard.guide.likes':
     'あなたが作成したシーンに他のメンバーがつけたいいね1件ごと。',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': '数字の出どころ',
   'leaderboard.guide.fair':
-    '音楽の分数はあなたのパソコンが数え、参加後にだけ1日ひとつの合計を送ります。何を聴いたかは送りません。メッセージ、メンション、いいねはサーバーで数えます。すべての数字はサーバーで確認され、不正をするとランキングから外されます。',
+    '音楽の分数はあなたのパソコンが数え、参加後にだけ1日ひとつの合計を送ります。何を聴いたかは送りません。いいねはサーバーで数えます。すべての数字はサーバーで確認され、不正をするとランキングから外されます。',
   'leaderboard.guide.terms': 'アプリが送るすべての情報',
   'leaderboard.stat.hours': '{hours} 時間視聴',
-  'leaderboard.stat.messages': '{count} 件投稿',
-  'leaderboard.stat.mentions': '他の人からのメンション {count} 件',
+  'leaderboard.stat.days': 'アクティブな日 {count} 日',
   'leaderboard.stat.likes': 'シーンへのいいね {count} 件',
   'leaderboard.scoring':
-    'ポイント：視聴1時間ごとに{hours}、アクティブな日ごとに{days}、投稿1件ごとに{messages}、1日にあなたをメンションした人1人ごとに{mentions}、作成したシーンへのいいね1件ごとに{likes}。制作者も同じ方法で獲得します。',
+    'ポイント：視聴1時間ごとに{hours}、アクティブな日ごとに{days}、作成したシーンへのいいね1件ごとに{likes}。制作者も同じ方法で獲得します。',
+  'leaderboard.rail.blurb': '誰が一番聴いているか',
+  'leaderboard.role.admin': '作者',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'ランキングでの表示を決める',
+  'leaderboard.name.body':
+    'ハンドルと名前です。ランキングではこの名前であなたの順位が表示され、ビジュアライザーのギャラリーではあなたのシーンの作者として表示されます。サインインしている人なら誰でも見られますが、メールアドレスは誰にも見えません。',
+  'leaderboard.name.handle': 'ハンドル',
+  'leaderboard.name.handleHint': '半角英数字と _ で 3〜20 文字',
+  'leaderboard.name.name': '表示名',
+  'leaderboard.name.previewName': 'あなたの名前',
+  'leaderboard.name.save': '保存',
+  'leaderboard.name.choose': '名前を決める',
+  'leaderboard.name.error.handleTaken':
+    'そのハンドルは使われています。別のものをお試しください。',
+  'leaderboard.name.error.signedOut':
+    'サインアウトされました。もう一度サインインしてください。',
+  'leaderboard.name.error.network':
+    'サーバーに接続できません。接続を確認してもう一度お試しください。',
+  'leaderboard.name.error.rejected':
+    'サーバーがその名前を拒否しました。別の名前をお試しください。',
   'leaderboard.empty': 'まだ誰もいません。',
   'leaderboard.notJoined':
     'ランキングに載っていません。アカウントパネルから参加できます。',

@@ -15,14 +15,14 @@ const terms = {
     'FluidEQ continue de fonctionner hors ligne et sans compte, comme toujours.',
   'terms.short.choice.title': 'Vous choisissez ce qui est partagé',
   'terms.short.choice.body':
-    'Le classement est désactivé tant que vous ne le rejoignez pas, et vous décidez de ce que vous publiez et des scènes que vous partagez.',
+    'Le classement est désactivé tant que vous ne le rejoignez pas, et vous décidez des scènes que vous partagez.',
   'terms.short.music.title': 'Jamais votre musique',
   'terms.short.music.body':
     'Aucun titre, fichier, son ou appareil ne quitte jamais votre ordinateur.',
 
   'terms.membership.title': 'L’abonnement',
   'terms.membership.p1':
-    'Plus ajoute à FluidEQ des visualiseurs premium, le Studio pour créer les vôtres et les partager avec d’autres membres, la publication dans la communauté et le classement. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez.',
+    'Plus ajoute à FluidEQ des visualiseurs premium, le Studio pour créer les vôtres et les partager avec d’autres membres, et le classement. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez.',
   'terms.membership.p2':
     'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin de la période payée, et rien d’autre n’est prélevé.',
   'terms.membership.p3':
@@ -34,7 +34,7 @@ const terms = {
   'terms.account.p1':
     'Un compte, c’est une adresse e-mail et un mot de passe, et il faut avoir au moins {age} ans pour en créer un. Le mot de passe voyage chiffré jusqu’au service de connexion, qui ne le conserve que sous forme d’empreinte à sens unique, illisible pour quiconque, créateur compris.',
   'terms.account.p2':
-    'Votre e-mail reçoit les codes qui confirment votre adresse et réinitialisent votre mot de passe. Il n’est jamais montré aux autres membres : dans la communauté, vous apparaissez sous l’identifiant et le nom d’affichage que vous choisissez.',
+    'Votre e-mail reçoit les codes qui confirment votre adresse et réinitialisent votre mot de passe. Il n’est jamais montré aux autres membres : au classement et dans Visualiseurs, vous apparaissez sous l’identifiant et le nom d’affichage que vous choisissez.',
   'terms.account.p3':
     'Sur votre ordinateur, l’application conserve votre session chiffrée par le système d’exploitation. Les comptes sont personnels : gardez votre mot de passe pour vous.',
   'terms.account.p4':
@@ -42,7 +42,7 @@ const terms = {
 
   'terms.sent.title': 'Ce que l’application envoie, et quand',
   'terms.sent.intro':
-    'Uniquement pour les fonctions que vous utilisez, et toujours par une connexion chiffrée. Sans compte, la seule requête est celle de la liste publique des styles Plus, et elle ne contient rien sur vous.',
+    'Uniquement pour les fonctions que vous utilisez, et toujours par une connexion chiffrée. Sans compte, les seules requêtes sont celles de la liste publique des styles Plus et des sujets publics de l’onglet Forum, et elles ne contiennent rien sur vous.',
   'terms.sent.when': 'Quand',
   'terms.sent.who': 'Qui peut le voir',
   'terms.sent.signIn.what': 'Votre e-mail et votre mot de passe',
@@ -70,12 +70,10 @@ const terms = {
     'Quand le sélecteur de styles montre les styles Plus existants, avec ou sans compte',
   'terms.sent.catalogue.who':
     'Rien n’est conservé. La requête récupère seulement la liste publique des styles.',
-  'terms.sent.community.what':
-    'Votre identifiant et votre nom d’affichage, vos messages et leurs @mentions, les signalements que vous faites et les personnes que vous bloquez',
-  'terms.sent.community.when':
-    'Quand vous créez votre profil, publiez, signalez ou bloquez',
-  'terms.sent.community.who':
-    'Messages, identifiants et noms d’affichage : tous les membres connectés. Signalements : le créateur. Blocages : vous seul.',
+  'terms.sent.profile.what': 'Votre identifiant et votre nom d’affichage',
+  'terms.sent.profile.when': 'Quand vous les choisissez dans le classement',
+  'terms.sent.profile.who':
+    'Tous les membres connectés, à côté de votre place au classement et sur les scènes que vous publiez.',
   'terms.sent.board.what':
     'Un nombre par jour depuis chacun de vos ordinateurs : les minutes entières de musique jouée, jusqu’à {capHours} heures, avec sa date et un nombre aléatoire qui distingue vos ordinateurs',
   'terms.sent.board.when':
@@ -106,6 +104,12 @@ const terms = {
     'Quand vous parcourez Visualiseurs, cliquez sur Ajouter ou envoyez un signalement',
   'terms.sent.gallery.who':
     'Les recherches et ce que vous ouvrez ne sont pas conservés. Les membres voient combien ont ajouté une scène, jamais qui. Signalements : le créateur seulement.',
+  'terms.sent.forum.what':
+    'Dans l’onglet Forum : ce que vous publiez, modifiez ou supprimez, et vos réactions, avec votre connexion GitHub',
+  'terms.sent.forum.when':
+    'Ouvrir le forum télécharge ses sujets publics, sans rien sur vous ; le reste seulement une fois que vous vous connectez avec GitHub et publiez',
+  'terms.sent.forum.who':
+    'GitHub, selon ses propres conditions. Les publications sont publiques dans les GitHub Discussions du projet ; le serveur de FluidEQ ne les reçoit jamais.',
 
   'terms.never.title': 'Ce qui ne quitte jamais votre ordinateur',
   'terms.never.p1':
@@ -121,9 +125,9 @@ const terms = {
   'terms.protect.p2':
     'Les règles vivent sur le serveur, pas dans l’application : chaque compte ne peut modifier que ses propres données, et une copie modifiée de FluidEQ reçoit exactement les mêmes réponses.',
   'terms.protect.p3':
-    'Le classement et le chat affichent des identifiants, jamais d’adresses e-mail ni d’identifiants de compte.',
+    'Le classement et Visualiseurs affichent des identifiants et des noms d’affichage, jamais d’adresses e-mail ni d’identifiants de compte.',
   'terms.protect.p4':
-    'Le créateur administre le serveur et peut voir ce qu’il conserve, pour le faire fonctionner et modérer la communauté. Rien n’est vendu, partagé ni utilisé pour la publicité, et il n’y a ni pistage ni statistiques d’usage.',
+    'Le créateur administre le serveur et peut voir ce qu’il conserve, pour le faire fonctionner et modérer ce que publient les membres. Rien n’est vendu, partagé ni utilisé pour la publicité, et il n’y a ni pistage ni statistiques d’usage.',
   'terms.protect.p5':
     'Le service repose sur Supabase (connexion, base de données et fichiers) et envoie les e-mails via Resend ; les paiements passent par Buy Me a Coffee. Chacun ne reçoit que ce dont sa partie a besoin.',
   'terms.protect.p6':
@@ -131,27 +135,27 @@ const terms = {
 
   'terms.fair.title': 'Fair-play au classement',
   'terms.fair.p1':
-    'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les nombres de vos ordinateurs s’additionnent en un seul jour, qui n’augmente pas non plus plus vite que l’horloge : plusieurs ordinateurs qui jouent en même temps ne peuvent donc pas totaliser plus de temps qu’il ne s’en est écoulé. Les messages et les mentions sont comptés sur le serveur, à partir de ce qui a vraiment été publié.',
+    'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les nombres de vos ordinateurs s’additionnent en un seul jour, qui n’augmente pas non plus plus vite que l’horloge : plusieurs ordinateurs qui jouent en même temps ne peuvent donc pas totaliser plus de temps qu’il ne s’en est écoulé.',
   'terms.fair.p2':
-    'Tout le monde gagne ses points de la même façon, le créateur compris. Modifier l’application ou ce qu’elle envoie, automatiser l’écoute ou les messages, ou grimper avec plusieurs comptes vous retire du classement, et peut vous exclure de la communauté.',
+    'Tout le monde gagne ses points de la même façon, le créateur compris. Modifier l’application ou ce qu’elle envoie, automatiser l’écoute ou grimper avec plusieurs comptes vous retire du classement, et peut empêcher le compte de publier et d’aimer des scènes.',
   'terms.fair.p3':
     'Chaque J’aime sur vos scènes rapporte {likePoints} points. Un J’aime compte une fois par membre et par scène, seulement de la part de membres Plus, et jamais de votre propre compte. Des J’aime venant d’un second compte à vous comptent comme grimper avec plusieurs comptes.',
 
-  'terms.community.title': 'Règles de la communauté',
-  'terms.community.p1':
-    'Soyez bienveillant. Pas de harcèlement, de haine, de menaces, de spam, de contenu illégal ni d’informations personnelles sur qui que ce soit. Tous les membres peuvent lire ce que vous publiez : ne partagez que ce que vous acceptez de voir lu.',
-  'terms.community.p2':
-    'Vous pouvez supprimer vos propres messages à tout moment. Le créateur peut retirer des messages et suspendre les comptes qui enfreignent ces règles. Signalez un message pour l’indiquer ; seul le créateur voit les signalements.',
+  'terms.rules.title': 'Règles pour ce que vous publiez',
+  'terms.rules.p1':
+    'Soyez bienveillant. Pas de harcèlement, de haine, de menaces, de spam, de contenu illégal ni d’informations personnelles sur qui que ce soit — dans une scène, son nom ou son image. Toute personne connectée peut voir ce que vous publiez : ne partagez que ce que vous acceptez qu’on voie.',
+  'terms.rules.p2':
+    'Vous pouvez dépublier vos propres scènes à tout moment. Le créateur peut retirer des scènes et suspendre les comptes qui enfreignent ces règles. Signalez une scène pour l’indiquer ; seul le créateur voit les signalements.',
 
   'terms.keep.title': 'Ce qui est conservé, et comment l’effacer',
   'terms.keep.p1':
     'Classement : « Supprimer toutes mes données » dans le panneau Compte efface d’un coup chaque jour que vous avez envoyé. Votre ordinateur ne garde que les totaux des {windowDays} derniers jours.',
   'terms.keep.p2':
-    'Messages : ils restent jusqu’à ce que vous ou le créateur les supprimiez.',
+    'Votre identifiant et votre nom d’affichage : conservés tant que vous avez un compte, et effacés avec lui.',
   'terms.keep.p3':
     'Abonnement : votre e-mail de paiement et son état sont conservés pour relier les paiements à votre compte, et sont effacés avec lui.',
   'terms.keep.p4':
-    'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos messages, vos jours au classement et la trace de votre abonnement.',
+    'Votre compte : demandez sa suppression et il disparaît sous {deletionDays} jours, avec votre profil, vos jours au classement et la trace de votre abonnement.',
   'terms.keep.p5':
     'Scènes : une scène publiée reste dans Visualiseurs jusqu’à ce que vous la dépubliiez, ce qui la retire aussitôt avec son image. Ce que vous avez publié, la trace de ce que vous avez exporté, les scènes que vous avez ajoutées, les J’aime que vous avez donnés et ceux que vos scènes ont reçus sont supprimés avec votre compte. Une scène bloquée pour non-respect de ces conditions ne garde que son empreinte, sans votre nom, pour rester bloquée.',
 
@@ -173,7 +177,7 @@ const terms = {
   'terms.scenes.p5':
     'Les membres qui aiment votre scène vous donnent des points au classement, si vous l’avez rejoint. Les J’aime sont comptés par le serveur ; voir Fair-play.',
   'terms.scenes.p6':
-    'Ne partagez que ce que vous avez le droit de partager : vos propres photos et dessins, ou ceux dont le propriétaire l’autorise. Les règles de la communauté s’appliquent aux scènes comme aux messages. Le créateur peut empêcher une scène de s’ouvrir si elle enfreint ces conditions ou les droits de quelqu’un d’autre.',
+    'Ne partagez que ce que vous avez le droit de partager : vos propres photos et dessins, ou ceux dont le propriétaire l’autorise. Les règles pour ce que vous publiez s’appliquent à chaque scène que vous partagez. Le créateur peut empêcher une scène de s’ouvrir si elle enfreint ces conditions ou les droits de quelqu’un d’autre.',
   'terms.scenes.p7':
     'Une scène qu’un autre membre partage est son œuvre, concédée pour votre usage personnel tant que vous êtes membre. Vous pouvez la jouer, l’aimer et transmettre le fichier sans le modifier à d’autres membres Plus. Merci de ne pas la modifier, la présenter comme la vôtre, la publier ailleurs ou la vendre.',
   'terms.scenes.p8':

@@ -9,7 +9,7 @@ interface IForumAvatarProps {
 }
 
 /**
- * A GitHub person's picture, and the community's two-letter disc when there
+ * A GitHub person's picture, and the Plus tab's two-letter disc when there
  * is none or it will not load — a deleted account, or no network. The disc
  * wears the same colour the login always gets, so the fallback still tells
  * two people apart.

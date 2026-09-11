@@ -3,8 +3,8 @@ import type { CSSProperties } from 'react';
 /**
  * One colour per person, everywhere they appear.
  *
- * A chat in which every avatar is the same teal disc is a chat in which nobody
- * can tell who said what without reading every name. The handle is hashed to
+ * A board on which every avatar is the same teal disc is a board on which
+ * nobody can be told apart without reading every name. The handle is hashed to
  * a hue, and the hue rides on the element as a custom property so the
  * stylesheet can build the avatar, the name and the podium ring from one
  * number with no colour ever written down in TSX.

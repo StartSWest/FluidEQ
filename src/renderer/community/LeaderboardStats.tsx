@@ -10,12 +10,11 @@ interface ILeaderboardStatsProps {
 }
 
 /**
- * Where a score came from, as a row of small figures under the name: the
- * hours, the messages, and — only when there are any, because they are the
- * rarer things — the people who mentioned them and the likes on the scenes
- * they made. Each picture is painted in its
- * part's colour, the same one the guide beside the board and the standing bar
- * use.
+ * Where a score came from, as a row of small figures under the name — the
+ * same three things the points are made of: the hours, the active days, and,
+ * only when there are any because most members make no scenes, the likes on
+ * the scenes they made. Each picture is painted in its part's colour, the
+ * same one the guide beside the board and the standing bar use.
  */
 export default function LeaderboardStats({
   score,
@@ -32,21 +31,12 @@ export default function LeaderboardStats({
         {t('leaderboard.hours', { hours })}
       </span>
       <span
-        className="leaderboard__stat leaderboard-part--messages"
-        title={t('leaderboard.stat.messages', { count: score.messages })}
+        className="leaderboard__stat leaderboard-part--days"
+        title={t('leaderboard.stat.days', { count: score.activeDays })}
       >
-        <Glyph name={PART_GLYPHS.messages} />
-        {score.messages}
+        <Glyph name={PART_GLYPHS.days} />
+        {score.activeDays}
       </span>
-      {score.mentions > 0 && (
-        <span
-          className="leaderboard__stat leaderboard-part--mentions"
-          title={t('leaderboard.stat.mentions', { count: score.mentions })}
-        >
-          <Glyph name={PART_GLYPHS.mentions} />
-          {score.mentions}
-        </span>
-      )}
       {score.likes > 0 && (
         <span
           className="leaderboard__stat leaderboard-part--likes"

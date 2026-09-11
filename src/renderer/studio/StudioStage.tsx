@@ -44,7 +44,7 @@ interface IStudioStageProps {
  * included, because this is where a scene nobody has watched is watched first.
  *
  * It holds the live capture open while it is on screen, as the graph does:
- * the Community tab is a whole view of its own, and a stage that listened to
+ * the Plus tab is a whole view of its own, and a stage that listened to
  * nothing would show the silence test whatever was playing.
  */
 export default function StudioStage({

@@ -2,7 +2,6 @@ import type { TranslationKey } from 'common/i18n/en';
 import {
   ACTIVE_DAY_MINUTES,
   DAILY_LISTENING_CAP_HOURS,
-  DAILY_MESSAGE_CAP,
   PART_POINTS,
   SCORE_PARTS,
   type TScorePart,
@@ -19,8 +18,6 @@ const RULES: Readonly<
 > = {
   hours: { key: 'leaderboard.guide.hours', limit: DAILY_LISTENING_CAP_HOURS },
   days: { key: 'leaderboard.guide.days', limit: ACTIVE_DAY_MINUTES },
-  messages: { key: 'leaderboard.guide.messages', limit: DAILY_MESSAGE_CAP },
-  mentions: { key: 'leaderboard.guide.mentions' },
   likes: { key: 'leaderboard.guide.likes' },
 };
 

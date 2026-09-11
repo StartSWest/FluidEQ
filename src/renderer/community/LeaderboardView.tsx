@@ -6,11 +6,14 @@ import type {
   TLeaderboardPeriod,
 } from 'main/usage/leaderboardApi';
 import { requestAccountPanel } from '../account/accountPanel';
+import { useEntitlement } from '../account/entitlementStore';
+import { useProfile } from '../plus/profileStore';
 import { useTranslation } from '../utils/I18nContext';
 import { loadLeaderboard, useLeaderboard } from '../usage/leaderboardStore';
 import Avatar from './Avatar';
 import Glyph from './Glyph';
 import LeaderboardGuide from './LeaderboardGuide';
+import LeaderboardName from './LeaderboardName';
 import LeaderboardStanding from './LeaderboardStanding';
 import LeaderboardStats from './LeaderboardStats';
 import { identityStyle } from './identity';
@@ -43,7 +46,13 @@ const SKELETON_ROWS = 6;
 export default function LeaderboardView() {
   const { t, locale } = useTranslation();
   const { board, loading, error, status } = useLeaderboard();
+  const entitlement = useEntitlement();
+  const profile = useProfile();
   const [period, setPeriod] = useState<TLeaderboardPeriod>('all');
+  // The board is Plus's, and it counts a member only under a name: a member
+  // without one is asked for it here, where the reason is on screen.
+  const needsName =
+    entitlement.state !== 'none' && profile.loaded && !profile.profile;
 
   useEffect(() => {
     loadLeaderboard(period).catch(() => undefined);
@@ -68,23 +77,12 @@ export default function LeaderboardView() {
   const isMe = (row: ILeaderboardRow) =>
     me !== undefined && row.rank === me.rank && row.points === me.points;
 
-  const roleTag = (row: ILeaderboardRow) => {
-    if (row.role === 'admin') {
-      return (
-        <span className="community__role community__role--admin">
-          {t('community.role.admin')}
-        </span>
-      );
-    }
-    if (row.role === 'contributor') {
-      return (
-        <span className="community__role">
-          {t('community.role.contributor')}
-        </span>
-      );
-    }
-    return null;
-  };
+  const roleTag = (row: ILeaderboardRow) =>
+    row.role === 'admin' && (
+      <span className="community__role community__role--admin">
+        {t('leaderboard.role.admin')}
+      </span>
+    );
 
   const youTag = (row: ILeaderboardRow) =>
     isMe(row) && (
@@ -123,9 +121,17 @@ export default function LeaderboardView() {
 
         <div className="leaderboard__main">
           {error && (
-            <p className="community__error" role="alert">
+            <p className="leaderboard__error" role="alert">
               {t(ERROR_KEYS[error])}
             </p>
+          )}
+
+          {needsName && (
+            <LeaderboardName
+              onSaved={() => {
+                loadLeaderboard(period).catch(() => undefined);
+              }}
+            />
           )}
 
           {me && <LeaderboardStanding me={me} rows={rows} />}

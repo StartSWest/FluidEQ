@@ -28,8 +28,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'आप सबसे आगे हैं।',
   'leaderboard.part.hours': 'सुनना',
   'leaderboard.part.days': 'सक्रिय दिन',
-  'leaderboard.part.messages': 'संदेश',
-  'leaderboard.part.mentions': 'मेंशन',
   'leaderboard.part.likes': 'सीन पसंद',
   'leaderboard.guide.title': 'अंक कैसे कमाएँ',
   'leaderboard.guide.lead': 'सब एक ही तरह अंक कमाते हैं, निर्माता भी।',
@@ -37,21 +35,38 @@ const leaderboard = {
     'बजने वाले संगीत का हर घंटा, दिन में अधिकतम {limit} घंटे।',
   'leaderboard.guide.days':
     'हर वह दिन जब आप {limit} मिनट या उससे ज़्यादा सुनते हैं।',
-  'leaderboard.guide.messages': 'आपका हर संदेश, दिन में अधिकतम {limit}।',
-  'leaderboard.guide.mentions':
-    'हर व्यक्ति जो आपको @मेंशन करता है, हर व्यक्ति दिन में एक बार।',
   'leaderboard.guide.likes': 'आपके बनाए सीन को किसी दूसरे सदस्य की हर पसंद।',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'संख्याएँ कैसे पता चलती हैं',
   'leaderboard.guide.fair':
-    'संगीत के मिनट आपका कंप्यूटर गिनता है और शामिल होने के बाद ही हर दिन का एक कुल भेजता है, कभी नहीं कि आप क्या सुनते हैं। संदेश, मेंशन और पसंद सर्वर पर गिने जाते हैं। वहाँ हर संख्या जाँची जाती है, और छेड़छाड़ करने वाले को बोर्ड से हटा दिया जाता है।',
+    'संगीत के मिनट आपका कंप्यूटर गिनता है और शामिल होने के बाद ही हर दिन का एक कुल भेजता है, कभी नहीं कि आप क्या सुनते हैं। पसंद सर्वर पर गिनी जाती है। वहाँ हर संख्या जाँची जाती है, और छेड़छाड़ करने वाले को बोर्ड से हटा दिया जाता है।',
   'leaderboard.guide.terms': 'ऐप जो कुछ भी भेजता है',
   'leaderboard.stat.hours': '{hours} घंटे सुना',
-  'leaderboard.stat.messages': '{count} संदेश पोस्ट किए',
-  'leaderboard.stat.mentions': 'दूसरों के {count} मेंशन',
+  'leaderboard.stat.days': '{count} सक्रिय दिन',
   'leaderboard.stat.likes': 'सीन पर पसंद: {count}',
   'leaderboard.scoring':
-    'अंक: सुनने के हर घंटे पर {hours}, हर सक्रिय दिन पर {days}, हर संदेश पर {messages}, किसी दिन आपको मेंशन करने वाले हर व्यक्ति पर {mentions}, आपके बनाए सीन की हर पसंद पर {likes}। निर्माता भी इन्हें इसी तरह कमाता है।',
+    'अंक: सुनने के हर घंटे पर {hours}, हर सक्रिय दिन पर {days}, आपके बनाए सीन की हर पसंद पर {likes}। निर्माता भी इन्हें इसी तरह कमाता है।',
+  'leaderboard.rail.blurb': 'कौन सबसे ज़्यादा सुनता है',
+  'leaderboard.role.admin': 'निर्माता',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'चुनें कि बोर्ड पर आप कैसे दिखें',
+  'leaderboard.name.body':
+    'एक हैंडल और एक नाम। बोर्ड इन्हीं के साथ आपकी रैंक दिखाता है, और विज़ुअलाइज़र गैलरी आपके सीन का श्रेय इन्हीं से देती है। साइन इन किया हर व्यक्ति इन्हें देखता है; आपका ईमेल कोई नहीं देखता।',
+  'leaderboard.name.handle': 'हैंडल',
+  'leaderboard.name.handleHint': '3 से 20 अंग्रेज़ी अक्षर, अंक या _',
+  'leaderboard.name.name': 'दिखने वाला नाम',
+  'leaderboard.name.previewName': 'आपका नाम',
+  'leaderboard.name.save': 'सहेजें',
+  'leaderboard.name.choose': 'अपना नाम चुनें',
+  'leaderboard.name.error.handleTaken':
+    'वह हैंडल लिया जा चुका है। दूसरा आज़माएँ।',
+  'leaderboard.name.error.signedOut':
+    'आप साइन आउट हो गए हैं। फिर साइन इन करें।',
+  'leaderboard.name.error.network':
+    'सर्वर तक नहीं पहुँच सके। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  'leaderboard.name.error.rejected':
+    'सर्वर ने वह नाम अस्वीकार कर दिया। कोई दूसरा आज़माएँ।',
   'leaderboard.empty': 'अभी कोई रैंक में नहीं है।',
   'leaderboard.notJoined': 'आप लीडरबोर्ड पर नहीं हैं। खाता पैनल से शामिल हों।',
   'leaderboard.loading': 'लोड हो रहा है…',

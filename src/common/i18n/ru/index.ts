@@ -31,7 +31,6 @@ import tour from './tour';
 import help from './help';
 import about from './about';
 import account from './account';
-import community from './community';
 import forum from './forum';
 import leaderboard from './leaderboard';
 import terms from './terms';
@@ -53,7 +52,6 @@ const ru: Partial<Dictionary> = {
   ...help,
   ...about,
   ...account,
-  ...community,
   ...forum,
   ...leaderboard,
   ...terms,

@@ -5,8 +5,8 @@
  * slicing bytes — `slice(0, 1)` on an emoji or an astral-plane character cuts a
  * surrogate pair in half and renders the replacement glyph.
  *
- * Shared by the Account panel and every message row in the community, so the
- * same person gets the same two letters everywhere.
+ * Shared by the Account panel, the Plus tab and the forum, so the same person
+ * gets the same two letters everywhere.
  */
 const initialsOf = (
   name: string | undefined,

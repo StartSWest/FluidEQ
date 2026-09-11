@@ -17,8 +17,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // ---------------------------------------------------------------- editor
 
 // One control: the bar of modes and marks, the box, the line of hints. The
-// frame lights on focus, not the box inside, the way the Community's message
-// bar does — the whole thing is what is being typed into.
+// frame lights on focus, not the box inside — the whole thing is what is
+// being typed into.
 .forum-editor {
   display: grid;
   min-width: 0;

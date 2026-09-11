@@ -34,30 +34,44 @@ const leaderboard = {
   'leaderboard.hero.leading': 'You lead the board.',
   'leaderboard.part.hours': 'Listening',
   'leaderboard.part.days': 'Active days',
-  'leaderboard.part.messages': 'Messages',
-  'leaderboard.part.mentions': 'Mentions',
   'leaderboard.part.likes': 'Scene likes',
   'leaderboard.guide.title': 'How to earn points',
   'leaderboard.guide.lead': 'Everyone earns the same way, the maker included.',
   'leaderboard.guide.hours':
     'Every hour of music that plays, up to {limit} hours a day.',
   'leaderboard.guide.days': 'Every day you listen for {limit} minutes or more.',
-  'leaderboard.guide.messages': 'Every message you post, up to {limit} a day.',
-  'leaderboard.guide.mentions':
-    'Every person who @mentions you, once a day each.',
   'leaderboard.guide.likes':
     'Every like another member gives a scene you made.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'How the numbers are known',
   'leaderboard.guide.fair':
-    'Your computer counts the minutes of music and sends one total per day, only after you join, never what you play. Messages, mentions and likes are counted on the server. Every number is checked there, and tampering takes you off the board.',
+    'Your computer counts the minutes of music and sends one total per day, only after you join, never what you play. Likes are counted on the server. Every number is checked there, and tampering takes you off the board.',
   'leaderboard.guide.terms': 'Everything the app sends',
   'leaderboard.stat.hours': '{hours} hours listened',
-  'leaderboard.stat.messages': '{count} messages posted',
-  'leaderboard.stat.mentions': '{count} mentions from others',
+  'leaderboard.stat.days': '{count} active days',
   'leaderboard.stat.likes': 'Likes on their scenes: {count}',
   'leaderboard.scoring':
-    'Points: {hours} per hour listened, {days} per active day, {messages} per message, {mentions} for each person who mentions you in a day, {likes} for each like on a scene you made. The maker earns them the same way.',
+    'Points: {hours} per hour listened, {days} per active day, {likes} for each like on a scene you made. The maker earns them the same way.',
+  'leaderboard.rail.blurb': 'Who listens most',
+  'leaderboard.role.admin': 'Maker',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Choose how the board shows you',
+  'leaderboard.name.body':
+    'A handle and a name. The board ranks you by them, and the Visualizers gallery credits your scenes with them. Everyone signed in sees them; nobody sees your email.',
+  'leaderboard.name.handle': 'Handle',
+  'leaderboard.name.handleHint': '3 to 20 letters, numbers or _',
+  'leaderboard.name.name': 'Display name',
+  'leaderboard.name.previewName': 'Your name',
+  'leaderboard.name.save': 'Save',
+  'leaderboard.name.choose': 'Choose your name',
+  'leaderboard.name.error.handleTaken': 'That handle is taken. Try another.',
+  'leaderboard.name.error.signedOut':
+    'You have been signed out. Sign in again.',
+  'leaderboard.name.error.network':
+    'Could not reach the server. Check your connection and try again.',
+  'leaderboard.name.error.rejected':
+    'The server refused that name. Try a different one.',
   'leaderboard.empty': 'Nobody is ranked yet.',
   'leaderboard.notJoined':
     'You are not on the board. Join from the Account panel.',

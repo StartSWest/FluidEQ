@@ -50,7 +50,7 @@ const useMakerRank = (maker: IMakerRef, own: boolean) => {
 
 /**
  * Everything one member has published, and what it earned. Only the name and
- * handle they already show in Community: never an email, never an account id.
+ * handle they already show on the board: never an email, never an account id.
  */
 export default function MakerPage({ maker, me }: IMakerPageProps) {
   const { t, locale } = useTranslation();

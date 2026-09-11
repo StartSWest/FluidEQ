@@ -9,8 +9,13 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PART_POINTS, SCORE_PARTS } from '../../../common/leaderboardScore';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
+import { resetEntitlementStore } from '../../../renderer/account/entitlementStore';
 import LeaderboardCard from '../../../renderer/account/LeaderboardCard';
 import LeaderboardView from '../../../renderer/community/LeaderboardView';
+import {
+  loadProfile,
+  resetProfileStore,
+} from '../../../renderer/plus/profileStore';
 import { resetLeaderboardStore } from '../../../renderer/usage/leaderboardStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -28,11 +33,27 @@ const bridge = {
   leaderboardBoard: jest.fn(),
   leaderboardRemoveMe: jest.fn(),
   onLeaderboardStatus: jest.fn(() => () => {}),
+  getEntitlementStatus: jest.fn(),
+  onEntitlementChanged: jest.fn(() => () => {}),
+  plusProfile: jest.fn(),
+  plusCreateProfile: jest.fn(),
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   resetLeaderboardStore();
+  resetEntitlementStore();
+  resetProfileStore();
+  bridge.getEntitlementStatus.mockResolvedValue({ state: 'active' });
+  bridge.plusProfile.mockResolvedValue({
+    ok: true,
+    value: {
+      userId: 'me',
+      handle: 'me_here',
+      displayName: 'Me',
+      role: 'member',
+    },
+  });
   bridge.leaderboardStatus.mockResolvedValue(status);
   bridge.leaderboardOptIn.mockImplementation((value: boolean) =>
     Promise.resolve({ ...status, optedIn: value, todayMinutes: 90 }),
@@ -51,8 +72,6 @@ beforeEach(() => {
           points: 1240,
           minutes: 600,
           activeDays: 9,
-          messages: 12,
-          mentions: 5,
           likes: 3,
         },
         {
@@ -63,8 +82,6 @@ beforeEach(() => {
           points: 55,
           minutes: 90,
           activeDays: 2,
-          messages: 0,
-          mentions: 0,
           likes: 0,
         },
       ],
@@ -73,8 +90,6 @@ beforeEach(() => {
         points: 25,
         minutes: 30,
         activeDays: 1,
-        messages: 0,
-        mentions: 0,
         likes: 0,
         players: 120,
       },
@@ -174,12 +189,18 @@ describe('the leaderboard view', () => {
       screen.getByText('leaderboard.hero.toPass:31,Bob'),
     ).toBeInTheDocument();
 
-    // Likes on scenes someone made show under their name, and only when
-    // there are any: Ada has three, Bob none.
+    // Under every name, the three things the points are made of: hours,
+    // active days, and — only when there are any — likes on scenes someone
+    // made. Ada has three likes, Bob none. Nothing about messages remains.
+    expect(screen.getByTitle('leaderboard.stat.days:9')).toHaveTextContent('9');
+    expect(screen.getByTitle('leaderboard.stat.days:2')).toHaveTextContent('2');
     expect(screen.getAllByTitle(/^leaderboard\.stat\.likes:/)).toHaveLength(1);
     expect(screen.getByTitle('leaderboard.stat.likes:3')).toHaveTextContent(
       '3',
     );
+    expect(screen.queryByTitle(/messages|mentions/)).toBeNull();
+    // The maker wears the one role mark there is.
+    expect(screen.getAllByText('leaderboard.role.admin')).toHaveLength(1);
 
     await userEvent.click(
       screen.getByRole('tab', { name: 'leaderboard.thisMonth' }),
@@ -199,6 +220,8 @@ describe('the leaderboard view', () => {
       name: 'leaderboard.guide.title',
     });
     expect(guide).toHaveTextContent('leaderboard.guide.lead');
+    // Listening, active days and likes: nothing the channels used to feed.
+    expect(SCORE_PARTS).toEqual(['hours', 'days', 'likes']);
     SCORE_PARTS.forEach((part) => {
       expect(guide).toHaveTextContent(
         `leaderboard.guide.value:${PART_POINTS[part]}`,
@@ -206,8 +229,9 @@ describe('the leaderboard view', () => {
     });
     // The limits come from the scoring's own numbers.
     expect(guide).toHaveTextContent('leaderboard.guide.hours:16');
-    expect(guide).toHaveTextContent('leaderboard.guide.messages:20');
+    expect(guide).toHaveTextContent('leaderboard.guide.days:30');
     expect(guide).toHaveTextContent('leaderboard.guide.likes');
+    expect(guide).not.toHaveTextContent(/messages|mentions/);
 
     await userEvent.click(
       screen.getByRole('button', { name: 'leaderboard.guide.terms' }),
@@ -232,5 +256,92 @@ describe('the leaderboard view', () => {
     render(<LeaderboardView />);
     await act(async () => {});
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+});
+
+describe('choosing the name the board shows', () => {
+  const noName = () =>
+    bridge.plusProfile.mockResolvedValue({ ok: true, value: null });
+
+  /**
+   * The server counts a member's listening only under a name, and the chat
+   * that used to ask for one is gone: the board asks, and ranks them once it
+   * is saved.
+   */
+  it('asks a Plus member without a name for one, and asks the board again once it is saved', async () => {
+    noName();
+    bridge.plusCreateProfile.mockResolvedValue({
+      ok: true,
+      value: {
+        userId: 'me',
+        handle: 'ivan_c',
+        displayName: 'Ivan C',
+        role: 'member',
+      },
+    });
+    await loadProfile('me');
+    render(<LeaderboardView />);
+    const handle = await screen.findByLabelText(/leaderboard\.name\.handle/);
+    const name = screen.getByLabelText('leaderboard.name.name');
+    const save = screen.getByRole('button', { name: 'leaderboard.name.save' });
+    // The loud button, and only once there is something to save.
+    expect(save).toHaveClass('button', 'small');
+    expect(save).not.toHaveClass('subtle');
+    expect(save).toBeDisabled();
+
+    // Only what the server accepts can be typed: lower case, a-z, 0-9, _.
+    await userEvent.type(handle, 'Ivan C!');
+    expect(handle).toHaveValue('ivanc');
+    await userEvent.clear(handle);
+    await userEvent.type(handle, 'ivan_c');
+    expect(save).toBeDisabled();
+    await userEvent.type(name, '  Ivan C  ');
+    expect(save).toBeEnabled();
+
+    const asked = bridge.leaderboardBoard.mock.calls.length;
+    await userEvent.click(save);
+    expect(bridge.plusCreateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan C');
+    expect(bridge.leaderboardBoard.mock.calls.length).toBe(asked + 1);
+    expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
+  });
+
+  it('says so when the handle is taken, and keeps what was typed', async () => {
+    noName();
+    bridge.plusCreateProfile.mockResolvedValue({
+      ok: false,
+      failure: 'handle_taken',
+    });
+    await loadProfile('me');
+    render(<LeaderboardView />);
+    await userEvent.type(
+      await screen.findByLabelText(/leaderboard\.name\.handle/),
+      'ada',
+    );
+    await userEvent.type(screen.getByLabelText('leaderboard.name.name'), 'Ada');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'leaderboard.name.save' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'leaderboard.name.error.handleTaken',
+    );
+    expect(screen.getByLabelText(/leaderboard\.name\.handle/)).toHaveValue(
+      'ada',
+    );
+  });
+
+  it('does not ask a member who already has a name', async () => {
+    await loadProfile('me');
+    render(<LeaderboardView />);
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(screen.queryByText('leaderboard.name.title')).toBeNull();
+  });
+
+  it('does not ask an account without Plus, which the board does not rank', async () => {
+    noName();
+    bridge.getEntitlementStatus.mockResolvedValue({ state: 'none' });
+    await loadProfile('me');
+    render(<LeaderboardView />);
+    await act(async () => {});
+    expect(screen.queryByText('leaderboard.name.title')).toBeNull();
   });
 });

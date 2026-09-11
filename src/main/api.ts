@@ -59,14 +59,8 @@ import type {
   TReportReason,
 } from '../common/plusGallery';
 import type { ILikeStatus } from './memberScenes/social';
-import type { TCommunityResult } from './ipc/community';
-import type {
-  ICommunityChannel,
-  ICommunityMention,
-  ICommunityMessage,
-  ICommunityProfile,
-} from './community/communityApi';
-import type { ILiveEvent, TLiveStatus } from './community/communityLive';
+import type { TPlusProfileResult } from './ipc/plusProfile';
+import type { IPlusProfile } from '../common/plusProfile';
 import type {
   ILeaderboardBoard,
   ILeaderboardStatus,
@@ -965,79 +959,16 @@ const unpublishScene = (sceneId: string) =>
     sceneId,
   ) as Promise<TUnpublishOutcome>;
 
-// The community. Every call answers a result rather than throwing, so the one
-// word the server used for a refusal survives the bridge.
-const communityProfile = () =>
-  ipcRenderer.invoke('community-profile') as Promise<
-    TCommunityResult<ICommunityProfile | undefined>
+// The member's name on the board and in the gallery: read it, or choose it.
+// A result rather than a throw, so "that handle is taken" survives the bridge.
+const plusProfile = () =>
+  ipcRenderer.invoke('plus-profile') as Promise<
+    TPlusProfileResult<IPlusProfile | null>
   >;
-const communityCreateProfile = (handle: string, displayName: string) =>
-  ipcRenderer.invoke(
-    'community-create-profile',
-    handle,
-    displayName,
-  ) as Promise<TCommunityResult<ICommunityProfile>>;
-const communityAcceptConduct = () =>
-  ipcRenderer.invoke('community-accept-conduct') as Promise<
-    TCommunityResult<void>
+const plusCreateProfile = (handle: string, displayName: string) =>
+  ipcRenderer.invoke('plus-create-profile', handle, displayName) as Promise<
+    TPlusProfileResult<IPlusProfile>
   >;
-const communityChannels = () =>
-  ipcRenderer.invoke('community-channels') as Promise<
-    TCommunityResult<ICommunityChannel[]>
-  >;
-const communityMessages = (channelId: string, beforeId?: number) =>
-  ipcRenderer.invoke('community-messages', channelId, beforeId) as Promise<
-    TCommunityResult<ICommunityMessage[]>
-  >;
-const communitySend = (channelId: string, body: string) =>
-  ipcRenderer.invoke('community-send', channelId, body) as Promise<
-    TCommunityResult<ICommunityMessage>
-  >;
-const communityDelete = (id: number) =>
-  ipcRenderer.invoke('community-delete', id) as Promise<TCommunityResult<void>>;
-const communityReport = (id: number, reason: string) =>
-  ipcRenderer.invoke('community-report', id, reason) as Promise<
-    TCommunityResult<void>
-  >;
-const communityBlocks = () =>
-  ipcRenderer.invoke('community-blocks') as Promise<TCommunityResult<string[]>>;
-const communityBlock = (userId: string) =>
-  ipcRenderer.invoke('community-block', userId) as Promise<
-    TCommunityResult<void>
-  >;
-const communityUnblock = (userId: string) =>
-  ipcRenderer.invoke('community-unblock', userId) as Promise<
-    TCommunityResult<void>
-  >;
-const communityMentions = () =>
-  ipcRenderer.invoke('community-mentions') as Promise<
-    TCommunityResult<ICommunityMention[]>
-  >;
-const communityMentionsRead = (ids: readonly number[]) =>
-  ipcRenderer.invoke('community-mentions-read', ids) as Promise<
-    TCommunityResult<void>
-  >;
-/** Open the live feed while the tab is on screen; close it when it leaves. */
-const communityOpen = () =>
-  ipcRenderer.invoke('community-open') as Promise<TLiveStatus>;
-const communityClose = () =>
-  ipcRenderer.invoke('community-close') as Promise<void>;
-const onCommunityEvent = (listener: (event: ILiveEvent) => void) => {
-  const wrapped = (_event: IpcRendererEvent, event: ILiveEvent) =>
-    listener(event);
-  ipcRenderer.on('community-event', wrapped);
-  return () => {
-    ipcRenderer.removeListener('community-event', wrapped);
-  };
-};
-const onCommunityLiveStatus = (listener: (status: TLiveStatus) => void) => {
-  const wrapped = (_event: IpcRendererEvent, status: TLiveStatus) =>
-    listener(status);
-  ipcRenderer.on('community-live-status', wrapped);
-  return () => {
-    ipcRenderer.removeListener('community-live-status', wrapped);
-  };
-};
 
 // Listening minutes and the leaderboard. Seconds go up as they are observed;
 // whether any of it leaves the machine is the person's choice, kept by main.
@@ -1268,23 +1199,8 @@ export default {
     importMemberScene,
     memberSceneLikeStatus,
     likeMemberScene,
-    communityProfile,
-    communityCreateProfile,
-    communityAcceptConduct,
-    communityChannels,
-    communityMessages,
-    communitySend,
-    communityDelete,
-    communityReport,
-    communityBlocks,
-    communityBlock,
-    communityUnblock,
-    communityMentions,
-    communityMentionsRead,
-    communityOpen,
-    communityClose,
-    onCommunityEvent,
-    onCommunityLiveStatus,
+    plusProfile,
+    plusCreateProfile,
     usageAccrue,
     leaderboardStatus,
     leaderboardOptIn,

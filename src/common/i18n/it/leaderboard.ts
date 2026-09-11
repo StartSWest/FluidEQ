@@ -27,8 +27,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Sei in testa.',
   'leaderboard.part.hours': 'Ascolto',
   'leaderboard.part.days': 'Giorni attivi',
-  'leaderboard.part.messages': 'Messaggi',
-  'leaderboard.part.mentions': 'Menzioni',
   'leaderboard.part.likes': 'Mi piace alle scene',
   'leaderboard.guide.title': 'Come guadagnare punti',
   'leaderboard.guide.lead':
@@ -36,23 +34,38 @@ const leaderboard = {
   'leaderboard.guide.hours':
     'Ogni ora di musica che suona, fino a {limit} ore al giorno.',
   'leaderboard.guide.days': 'Ogni giorno in cui ascolti {limit} minuti o più.',
-  'leaderboard.guide.messages':
-    'Ogni messaggio che pubblichi, fino a {limit} al giorno.',
-  'leaderboard.guide.mentions':
-    'Ogni persona che ti @menziona, una volta al giorno ciascuna.',
   'leaderboard.guide.likes':
     'Ogni mi piace che un altro membro mette a una scena che hai creato.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Da dove vengono i numeri',
   'leaderboard.guide.fair':
-    'Il tuo computer conta i minuti di musica e invia un totale al giorno, solo dopo che hai partecipato, mai cosa ascolti. Messaggi, menzioni e mi piace si contano sul server. Lì ogni numero viene controllato, e chi bara esce dalla classifica.',
+    'Il tuo computer conta i minuti di musica e invia un totale al giorno, solo dopo che hai partecipato, mai cosa ascolti. I mi piace si contano sul server. Lì ogni numero viene controllato, e chi bara esce dalla classifica.',
   'leaderboard.guide.terms': 'Tutto ciò che l’app invia',
   'leaderboard.stat.hours': '{hours} ore di ascolto',
-  'leaderboard.stat.messages': '{count} messaggi pubblicati',
-  'leaderboard.stat.mentions': '{count} menzioni da altri',
+  'leaderboard.stat.days': '{count} giorni attivi',
   'leaderboard.stat.likes': 'Mi piace alle sue scene: {count}',
   'leaderboard.scoring':
-    'Punti: {hours} per ora di ascolto, {days} per giorno attivo, {messages} per messaggio, {mentions} per ogni persona che ti menziona in un giorno, {likes} per ogni mi piace a una scena che hai creato. Il creatore li guadagna allo stesso modo.',
+    'Punti: {hours} per ora di ascolto, {days} per giorno attivo, {likes} per ogni mi piace a una scena che hai creato. Il creatore li guadagna allo stesso modo.',
+  'leaderboard.rail.blurb': 'Chi ascolta di più',
+  'leaderboard.role.admin': 'Creatore',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Scegli come comparire in classifica',
+  'leaderboard.name.body':
+    'Un nickname e un nome. In classifica compari con questi, e nella galleria Visualizzatori firmano le tue scene. Li vede chiunque abbia effettuato l’accesso; nessuno vede la tua email.',
+  'leaderboard.name.handle': 'Nickname',
+  'leaderboard.name.handleHint': 'Da 3 a 20 lettere, numeri o _',
+  'leaderboard.name.name': 'Nome visualizzato',
+  'leaderboard.name.previewName': 'Il tuo nome',
+  'leaderboard.name.save': 'Salva',
+  'leaderboard.name.choose': 'Scegli il tuo nome',
+  'leaderboard.name.error.handleTaken':
+    'Quel nickname è già in uso. Provane un altro.',
+  'leaderboard.name.error.signedOut': 'Sei stato disconnesso. Accedi di nuovo.',
+  'leaderboard.name.error.network':
+    'Impossibile raggiungere il server. Controlla la connessione e riprova.',
+  'leaderboard.name.error.rejected':
+    'Il server ha rifiutato quel nome. Provane uno diverso.',
   'leaderboard.empty': 'Nessuno in classifica, per ora.',
   'leaderboard.notJoined':
     'Non sei in classifica. Partecipa dal pannello Account.',

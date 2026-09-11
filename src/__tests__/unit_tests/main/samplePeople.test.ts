@@ -6,41 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @jest-environment node
 */
 
-import {
-  isSampleMessageId,
-  isSampleUserId,
-  SAMPLE_PEOPLE,
-  sampleBoard,
-  sampleMessages,
-} from '../../../main/community/sampleCommunity';
+import { SAMPLE_PEOPLE, sampleBoard } from '../../../main/plus/samplePeople';
 import { scoreOf } from '../../../common/leaderboardScore';
 
-describe('the sample community, development only', () => {
-  it('writes the reader into the one line that names them, and marks every row as a sample', () => {
-    const lines = sampleMessages('general', 'ivan', 1_000_000_000_000);
-    expect(lines.length).toBeGreaterThan(3);
-    expect(lines.some((line) => line.body.includes('@ivan'))).toBe(true);
-    lines.forEach((line) => {
-      expect(isSampleMessageId(line.id)).toBe(true);
-      expect(isSampleUserId(line.userId)).toBe(true);
-      expect(line.createdAt).toBeLessThan(1_000_000_000_000);
-    });
-    // Ids are stable across calls and distinct within a channel.
-    expect(new Set(lines.map((line) => line.id)).size).toBe(lines.length);
-    expect(sampleMessages('general', 'ivan')[0].id).toBe(lines[0].id);
-  });
-
-  it('answers nothing for a channel it has no lines for', () => {
-    expect(sampleMessages('announcements', 'ivan')).toEqual([]);
-  });
-
+describe('the sample people, development only', () => {
   it('ranks the cast into the real board by points and moves the reader down accordingly', () => {
-    const nobody = {
-      activeDays: 1,
-      messages: 0,
-      mentions: 0,
-      likes: 0,
-    };
+    const nobody = { activeDays: 1, likes: 0 };
     const real = [
       {
         rank: 1,
@@ -65,14 +36,12 @@ describe('the sample community, development only', () => {
     );
     expect(rows[0].handle).toBe('ada');
     expect(rows[rows.length - 1].handle).toBe('ivan');
-    // The cast is scored the way the server scores.
+    // The cast is scored the way the server scores: listening and likes.
     const ada = SAMPLE_PEOPLE.find((entry) => entry.handle === 'ada');
     expect(rows[0].points).toBe(
       scoreOf({
         minutes: ada?.allTime ?? 0,
         activeDays: ada?.activeDays ?? 0,
-        messages: ada?.messages ?? 0,
-        mentions: ada?.mentions ?? 0,
         likes: ada?.likes ?? 0,
       }),
     );
@@ -81,8 +50,6 @@ describe('the sample community, development only', () => {
     const yukiWithoutLikes = scoreOf({
       minutes: yuki?.minutes ?? 0,
       activeDays: yuki?.activeDays ?? 0,
-      messages: yuki?.messages ?? 0,
-      mentions: yuki?.mentions ?? 0,
       likes: 0,
     });
     expect(yuki?.likes).toBeGreaterThan(0);
@@ -96,10 +63,19 @@ describe('the sample community, development only', () => {
     });
   });
 
-  it('uses this month’s minutes and a matching slice of activity for the monthly board', () => {
+  it('never puts the maker’s mark on anybody in the cast', () => {
+    const { rows } = sampleBoard('all', [], undefined);
+    expect(rows.length).toBe(SAMPLE_PEOPLE.length);
+    rows.forEach((row) => expect(row.role).toBe('member'));
+  });
+
+  it('uses this month’s minutes and a matching slice of likes for the monthly board', () => {
     const { rows } = sampleBoard('month', [], undefined);
     const ada = SAMPLE_PEOPLE.find((entry) => entry.handle === 'ada');
     expect(rows[0].minutes).toBe(ada?.month);
-    expect(rows[0].messages).toBeLessThan(ada?.messages ?? 0);
+    const mei = SAMPLE_PEOPLE.find((entry) => entry.handle === 'mei');
+    const meiRow = rows.find((row) => row.handle === 'mei');
+    expect(meiRow?.likes).toBeGreaterThan(0);
+    expect(meiRow?.likes).toBeLessThan(mei?.likes ?? 0);
   });
 });

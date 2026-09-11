@@ -8,33 +8,27 @@
  * development sample cast. A change here without the migration beside it is a
  * board whose explanation disagrees with its order.
  *
- * Everyone earns the same way. A mention counts once per person per day,
- * whoever makes it, the maker included: an earlier version paid fifty points
- * for a reply from the maker, which made the board a measure of being noticed
- * by one person instead of a measure of taking part.
+ * Two things score: listening, and the likes a member's scenes receive.
+ * Everyone earns them the same way, the maker included. Messages and mentions
+ * in the community's channels scored too until the channels were removed in
+ * favour of the Forum tab (migration 0014); an earlier version paid fifty
+ * points for a reply from the maker, which made the board a measure of being
+ * noticed by one person instead of a measure of taking part.
  *
- * A like on a scene a member made is worth the same five points as a message:
- * one per member per scene, never on the author's own, so a like cannot be
- * farmed by clicking and a scene that many people enjoy is a real contribution.
+ * A like is worth five points: one per member per scene, never on the
+ * author's own, so it cannot be farmed by clicking and a scene that many
+ * people enjoy is a real contribution.
  */
 
-export type TScorePart = 'hours' | 'days' | 'messages' | 'mentions' | 'likes';
+export type TScorePart = 'hours' | 'days' | 'likes';
 
 /** In the order the parts are listed and drawn: the steady ones first. */
-export const SCORE_PARTS: readonly TScorePart[] = [
-  'hours',
-  'days',
-  'messages',
-  'mentions',
-  'likes',
-];
+export const SCORE_PARTS: readonly TScorePart[] = ['hours', 'days', 'likes'];
 
 /** Points per unit of each part. */
 export const PART_POINTS: Readonly<Record<TScorePart, number>> = {
   hours: 10,
   days: 20,
-  messages: 5,
-  mentions: 10,
   likes: 5,
 };
 
@@ -43,9 +37,6 @@ export const DAILY_LISTENING_CAP_HOURS = 16;
 
 /** A day with at least this much listening counts as an active day. */
 export const ACTIVE_DAY_MINUTES = 30;
-
-/** Messages past this many in one day earn nothing more. */
-export const DAILY_MESSAGE_CAP = 20;
 
 /**
  * How far back a day of listening is still accepted. The server drops older
@@ -64,9 +55,6 @@ export const LISTENING_UPLOAD_INTERVAL_HOURS = 4;
 export interface IScoreInputs {
   minutes: number;
   activeDays: number;
-  messages: number;
-  /** People who @mentioned this person, each counted once a day. */
-  mentions: number;
   /** Likes other members gave the scenes this person made. */
   likes: number;
 }
@@ -81,8 +69,6 @@ export const scoreParts = (
 ): Readonly<Record<TScorePart, number>> => ({
   hours: Math.floor((score.minutes * PART_POINTS.hours) / 60),
   days: score.activeDays * PART_POINTS.days,
-  messages: score.messages * PART_POINTS.messages,
-  mentions: score.mentions * PART_POINTS.mentions,
   likes: score.likes * PART_POINTS.likes,
 });
 

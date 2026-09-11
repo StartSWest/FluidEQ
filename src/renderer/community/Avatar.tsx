@@ -10,7 +10,7 @@ interface IAvatarProps {
 
 /**
  * Two letters in the person's own colour. The same component everywhere a
- * person appears — the thread, the rail, the podium — so the same handle is
+ * person appears — a board row, the rail, the podium — so the same handle is
  * the same disc in all three, at three sizes.
  */
 export default function Avatar({

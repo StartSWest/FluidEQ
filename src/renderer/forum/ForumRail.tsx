@@ -18,7 +18,7 @@ interface IForumRailProps {
 /**
  * The boards down the left, and at their foot who is writing.
  *
- * Drawn with the Community rail's own rows, so the two tabs beside each other
+ * Drawn with the Plus rail's own rows, so the two tabs beside each other
  * in the titlebar read as one family: a picture in a tile, the name, what it
  * is for underneath, and a count where the count is known.
  */

@@ -1,31 +1,17 @@
 import { useEffect } from 'react';
-import { isCheckoutConfigured } from 'common/accountConfig';
-import { requestAccountPanel } from '../account/accountPanel';
+import type { TranslationKey } from 'common/i18n/en';
 import { useAccount } from '../account/accountStore';
 import { useEntitlement } from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
-import { channelDescription, channelName } from './channelNames';
-import {
-  acceptConduct,
-  blockUser,
-  clearCommunityError,
-  closeCommunity,
-  createProfile,
-  deleteMessage,
-  loadOlder,
-  openCommunity,
-  reportMessage,
-  selectChannel,
-  sendMessage,
-  unblockUser,
-  useCommunity,
-} from './communityStore';
 import Avatar from './Avatar';
-import Composer from './Composer';
-import Glyph, { channelGlyph } from './Glyph';
+import Glyph, { type TCommunityGlyph } from './Glyph';
 import LeaderboardView from './LeaderboardView';
-import MessageThread from './MessageThread';
-import { openPlusPlace, usePlusNavigation } from '../plus/plusNavigation';
+import {
+  openPlusPlace,
+  usePlusNavigation,
+  type TPlusPlace,
+} from '../plus/plusNavigation';
+import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
 import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
@@ -39,25 +25,45 @@ interface ICommunityPanelProps {
   onShowGraph: () => void;
 }
 
+interface IPlace {
+  place: TPlusPlace;
+  glyph: TCommunityGlyph;
+  name: TranslationKey;
+  blurb: TranslationKey;
+}
+
+/** The rail, top to bottom: the gallery first, because it is open to all. */
+const PLACES: readonly IPlace[] = [
+  {
+    place: 'visualizers',
+    glyph: 'looks',
+    name: 'plus.visualizers.title',
+    blurb: 'plus.visualizers.blurb',
+  },
+  {
+    place: 'board',
+    glyph: 'board',
+    name: 'leaderboard.title',
+    blurb: 'leaderboard.rail.blurb',
+  },
+  {
+    place: 'studio',
+    glyph: 'studio',
+    name: 'studio.title',
+    blurb: 'studio.rail.blurb',
+  },
+];
+
 /**
- * The Plus tab: the community's channels, and every place Plus has — the
- * Visualizers gallery of scenes members publish, the leaderboard and the
- * Studio. It was called Community until it held all of Plus.
+ * The Plus tab: the Visualizers gallery of scenes members publish, the
+ * leaderboard and the Studio. It was called Community while it also held
+ * chat channels; those went when the Forum tab arrived, because two places
+ * to talk were two things to keep.
  *
  * A place you go and stay, which is why it is a tab and the Account is a
- * dialog. Channels down the left with a picture each, then the places, the
- * one open in the middle — for a channel, with whatever stands between this
- * person and posting at the bottom, see `Composer`. The rail ends with the
- * person themself, because a chat should say who you are in it before you
- * say anything.
- *
- * Reading is free for anyone signed in; posting is for Plus. Neither rule is
- * decided here. The database decides, and this panel only shows the sentence
- * that goes with its answer.
- *
- * The live feed is open exactly as long as this tab is mounted: the free tier
- * allows two hundred listeners at once, and a chat nobody is looking at does
- * not need one.
+ * dialog. The places down the left with a picture each, the one open beside
+ * them, and at the foot of the rail the member as the board and the gallery
+ * show them — or, until they have chosen one, the way to choose a name.
  */
 export default function CommunityPanel({
   onSignIn,
@@ -66,190 +72,85 @@ export default function CommunityPanel({
   const { t } = useTranslation();
   const account = useAccount();
   const entitlement = useEntitlement();
-  const community = useCommunity();
+  const { profile, loaded } = useProfile();
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
-  // Which of the rail's places fills the main area: a channel's conversation,
-  // the Visualizers gallery, the leaderboard or the Studio.
   const { place: view } = usePlusNavigation();
-  const setView = openPlusPlace;
+  const accountId = signedIn ? account.identity?.id : undefined;
 
   useEffect(() => {
-    if (!signedIn) {
-      return undefined;
+    if (accountId) {
+      loadProfile(accountId).catch(() => undefined);
+    } else {
+      forgetProfile();
     }
-    openCommunity().catch(() => undefined);
-    return () => closeCommunity();
-  }, [signedIn]);
+  }, [accountId]);
 
   if (!signedIn) {
     return (
       <div className="community community--signed-out">
         <div className="community__welcome">
           <span className="community__welcome-mark" aria-hidden="true">
-            <Glyph name="general" />
+            <Glyph name="plus" />
           </span>
           <span className="community__welcome-title">
-            {t('community.signIn.title')}
+            {t('account.plus.eyebrow')}
           </span>
           <span className="community__welcome-body">
-            {t('community.signIn.body')}
+            {t('account.plus.pitch')}
           </span>
           <ul className="community__perks">
-            <li>
-              <Glyph name="channel" />
-              {t('community.hero.read')}
-            </li>
-            <li>
-              <Glyph name="mention" />
-              {t('community.hero.post')}
-            </li>
-            <li>
-              <Glyph name="board" />
-              {t('community.hero.board')}
-            </li>
+            {PLACES.map((entry) => (
+              <li key={entry.place}>
+                <Glyph name={entry.glyph} />
+                {t(entry.name)}
+              </li>
+            ))}
           </ul>
           <button type="button" className="button small" onClick={onSignIn}>
-            {t('community.signIn.button')}
+            {t('account.signIn')}
           </button>
         </div>
       </div>
     );
   }
 
-  const active =
-    community.channels.find(
-      (channel) => channel.id === community.activeChannelId,
-    ) ?? community.channels[0];
-  const messages = active ? (community.messagesByChannel[active.id] ?? []) : [];
-  const unreadIn = (channelId: string) =>
-    community.unreadMentions.filter(
-      (mention) => mention.channelId === channelId,
-    ).length;
-
-  const liveLabel = {
-    live: t('community.live'),
-    connecting: t('community.connecting'),
-    error: t('community.offline'),
-    closed: t('community.offline'),
-  }[community.live];
-
-  const { profile } = community;
   const ownName = profile?.displayName || account.identity?.name || '';
   const ownHandle = profile?.handle ?? account.identity?.email ?? '';
 
   return (
     <div className="community">
-      <nav className="community__rail" aria-label={t('community.title')}>
+      <nav className="community__rail" aria-label={t('tabs.plus')}>
         <div className="community__rail-head">
-          <span className="eyebrow">{t('community.title')}</span>
-          <span
-            className={`community__live community__live--${community.live}`}
-            title={liveLabel}
-          >
-            <span className="community__live-dot" aria-hidden="true" />
-            <span className="community__live-word">{liveLabel}</span>
-          </span>
+          <span className="eyebrow">{t('tabs.plus')}</span>
         </div>
 
         <div className="community__channels">
-          {community.channels.map((channel) => {
-            const isActive = view === 'channel' && channel.id === active?.id;
-            const unread = unreadIn(channel.id);
+          {PLACES.map((entry) => {
+            const isActive = view === entry.place;
             return (
               <button
-                key={channel.id}
+                key={entry.place}
                 type="button"
                 className={`community__channel${isActive ? ' is-active' : ''}`}
                 aria-current={isActive ? 'true' : undefined}
-                title={channelDescription(channel, t)}
-                onClick={() => {
-                  setView('channel');
-                  selectChannel(channel.id).catch(() => undefined);
-                }}
+                onClick={() => openPlusPlace(entry.place)}
               >
                 <span className="community__channel-mark">
-                  <Glyph name={channelGlyph(channel.id)} />
+                  <Glyph name={entry.glyph} />
                 </span>
                 <span className="community__channel-text">
                   <span className="community__channel-name">
-                    {channelName(channel, t)}
+                    {t(entry.name)}
                   </span>
                   <span className="community__channel-blurb">
-                    {channelDescription(channel, t)}
+                    {t(entry.blurb)}
                   </span>
                 </span>
-                {unread > 0 && (
-                  <span
-                    className="community__unread"
-                    aria-label={t('community.mentions.unread', {
-                      count: unread,
-                    })}
-                  >
-                    {unread}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
-
-        {/* Places in the rail rather than channels: they are gone to, not
-            followed. The gallery of members' scenes first, under a rule of
-            its own that parts the places from the conversations. */}
-        <button
-          type="button"
-          className={`community__channel community__channel--places${view === 'visualizers' ? ' is-active' : ''}`}
-          aria-current={view === 'visualizers' ? 'true' : undefined}
-          onClick={() => setView('visualizers')}
-        >
-          <span className="community__channel-mark">
-            <Glyph name="looks" />
-          </span>
-          <span className="community__channel-text">
-            <span className="community__channel-name">
-              {t('plus.visualizers.title')}
-            </span>
-            <span className="community__channel-blurb">
-              {t('plus.visualizers.blurb')}
-            </span>
-          </span>
-        </button>
-
-        {/* The leaderboard belongs with the people it ranks. */}
-        <button
-          type="button"
-          className={`community__channel${view === 'board' ? ' is-active' : ''}`}
-          aria-current={view === 'board' ? 'true' : undefined}
-          onClick={() => setView('board')}
-        >
-          <span className="community__channel-mark">
-            <Glyph name="board" />
-          </span>
-          <span className="community__channel-text">
-            <span className="community__channel-name">
-              {t('leaderboard.title')}
-            </span>
-          </span>
-        </button>
-
-        {/* The Studio: where members make the scenes the gallery shows. */}
-        <button
-          type="button"
-          className={`community__channel${view === 'studio' ? ' is-active' : ''}`}
-          aria-current={view === 'studio' ? 'true' : undefined}
-          onClick={() => setView('studio')}
-        >
-          <span className="community__channel-mark">
-            <Glyph name="studio" />
-          </span>
-          <span className="community__channel-text">
-            <span className="community__channel-name">{t('studio.title')}</span>
-            <span className="community__channel-blurb">
-              {t('studio.rail.blurb')}
-            </span>
-          </span>
-        </button>
 
         <div className="community__me">
           <Avatar handle={ownHandle} displayName={ownName} size="rail" />
@@ -258,39 +159,27 @@ export default function CommunityPanel({
             {profile && (
               <span className="community__handle">@{profile.handle}</span>
             )}
+            {/* The name the board ranks is chosen on the board; this is the
+                way there from anywhere in the tab. */}
+            {!profile && loaded && entitled && (
+              <button
+                type="button"
+                className="community__link"
+                onClick={() => openPlusPlace('board')}
+              >
+                {t('leaderboard.name.choose')}
+              </button>
+            )}
           </span>
           {profile?.role === 'admin' && (
             <span className="community__role community__role--admin">
-              {t('community.role.admin')}
+              {t('leaderboard.role.admin')}
             </span>
           )}
-          {profile?.role === 'contributor' && (
-            <span className="community__role">
-              {t('community.role.contributor')}
-            </span>
-          )}
-          {profile?.role === 'member' && entitled && (
+          {profile?.role !== 'admin' && entitled && (
             <span className="community__role">{t('graph.scene.badge')}</span>
           )}
         </div>
-        {community.blocks.length > 0 && (
-          <div className="community__blocked">
-            <span>
-              {t('community.blocked.count', { count: community.blocks.length })}
-            </span>
-            <button
-              type="button"
-              className="community__link"
-              onClick={() => {
-                community.blocks.forEach((userId) => {
-                  unblockUser(userId).catch(() => undefined);
-                });
-              }}
-            >
-              {t('community.blocked.unblockAll')}
-            </button>
-          </div>
-        )}
       </nav>
 
       <section className="community__main">
@@ -310,62 +199,6 @@ export default function CommunityPanel({
             </header>
             <LeaderboardView />
           </>
-        )}
-        {view === 'channel' && active && (
-          <header className="community__head">
-            <span className="community__head-mark">
-              <Glyph name={channelGlyph(active.id)} />
-            </span>
-            <span className="community__head-text">
-              <span className="community__head-name">
-                {channelName(active, t)}
-              </span>
-              <span className="community__head-description">
-                {channelDescription(active, t)}
-              </span>
-            </span>
-          </header>
-        )}
-
-        {view === 'channel' && (
-          <MessageThread
-            messages={messages}
-            me={profile}
-            emptyHint={active ? channelDescription(active, t) : ''}
-            hasMore={
-              active ? (community.hasMoreByChannel[active.id] ?? false) : false
-            }
-            loading={community.loadingChannel === active?.id}
-            reported={community.reported}
-            onLoadOlder={() => {
-              loadOlder().catch(() => undefined);
-            }}
-            onReport={(id) => {
-              reportMessage(id, 'reported from the app').catch(() => undefined);
-            }}
-            onBlock={(userId) => {
-              blockUser(userId).catch(() => undefined);
-            }}
-            onDelete={(id) => {
-              deleteMessage(id).catch(() => undefined);
-            }}
-          />
-        )}
-
-        {view === 'channel' && active && (
-          <Composer
-            channel={active}
-            profile={profile}
-            profileLoaded={community.profileLoaded}
-            entitled={entitled}
-            checkoutAvailable={isCheckoutConfigured()}
-            error={community.error}
-            onSend={sendMessage}
-            onCreateProfile={createProfile}
-            onAcceptConduct={acceptConduct}
-            onUpgrade={() => requestAccountPanel('subscribe')}
-            onClearError={clearCommunityError}
-          />
         )}
       </section>
     </div>

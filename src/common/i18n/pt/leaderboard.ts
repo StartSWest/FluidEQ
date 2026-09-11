@@ -27,8 +27,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Estás na liderança.',
   'leaderboard.part.hours': 'Escuta',
   'leaderboard.part.days': 'Dias ativos',
-  'leaderboard.part.messages': 'Mensagens',
-  'leaderboard.part.mentions': 'Menções',
   'leaderboard.part.likes': 'Curtidas em cenas',
   'leaderboard.guide.title': 'Como ganhar pontos',
   'leaderboard.guide.lead':
@@ -36,23 +34,39 @@ const leaderboard = {
   'leaderboard.guide.hours':
     'Cada hora de música que toca, até {limit} horas por dia.',
   'leaderboard.guide.days': 'Cada dia em que ouves {limit} minutos ou mais.',
-  'leaderboard.guide.messages':
-    'Cada mensagem que publicas, até {limit} por dia.',
-  'leaderboard.guide.mentions':
-    'Cada pessoa que te @menciona, uma vez por dia cada uma.',
   'leaderboard.guide.likes':
     'Cada curtida que outro membro dá a uma cena criada por ti.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Como se sabem os números',
   'leaderboard.guide.fair':
-    'O teu computador conta os minutos de música e envia um total por dia, só depois de te juntares, nunca o que ouves. As mensagens, as menções e as curtidas são contadas no servidor. Cada número é verificado lá, e quem faz batota sai da classificação.',
+    'O teu computador conta os minutos de música e envia um total por dia, só depois de te juntares, nunca o que ouves. As curtidas são contadas no servidor. Cada número é verificado lá, e quem faz batota sai da classificação.',
   'leaderboard.guide.terms': 'Tudo o que a aplicação envia',
   'leaderboard.stat.hours': '{hours} horas ouvidas',
-  'leaderboard.stat.messages': '{count} mensagens publicadas',
-  'leaderboard.stat.mentions': '{count} menções de outras pessoas',
+  'leaderboard.stat.days': '{count} dias ativos',
   'leaderboard.stat.likes': 'Curtidas nas suas cenas: {count}',
   'leaderboard.scoring':
-    'Pontos: {hours} por hora ouvida, {days} por dia ativo, {messages} por mensagem, {mentions} por cada pessoa que te menciona num dia, {likes} por cada curtida numa cena criada por ti. O criador ganha-os da mesma forma.',
+    'Pontos: {hours} por hora ouvida, {days} por dia ativo, {likes} por cada curtida numa cena criada por ti. O criador ganha-os da mesma forma.',
+  'leaderboard.rail.blurb': 'Quem ouve mais',
+  'leaderboard.role.admin': 'Criador',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Escolhe como a classificação te mostra',
+  'leaderboard.name.body':
+    'Um nome de utilizador e um nome visível. É com eles que apareces na classificação, e a galeria de Visualizadores mostra-os como autor das tuas cenas. Ficam visíveis para quem tem sessão iniciada; ninguém vê o teu email.',
+  'leaderboard.name.handle': 'Nome de utilizador',
+  'leaderboard.name.handleHint': 'De 3 a 20 letras, números ou _',
+  'leaderboard.name.name': 'Nome visível',
+  'leaderboard.name.previewName': 'O teu nome',
+  'leaderboard.name.save': 'Guardar',
+  'leaderboard.name.choose': 'Escolhe o teu nome',
+  'leaderboard.name.error.handleTaken':
+    'Esse nome de utilizador já está em uso. Tenta outro.',
+  'leaderboard.name.error.signedOut':
+    'A tua sessão terminou. Inicia sessão de novo.',
+  'leaderboard.name.error.network':
+    'Não foi possível contactar o servidor. Verifica a tua ligação e tenta de novo.',
+  'leaderboard.name.error.rejected':
+    'O servidor recusou esse nome. Tenta outro.',
   'leaderboard.empty': 'Ainda não há ninguém classificado.',
   'leaderboard.notJoined':
     'Não estás na classificação. Entra a partir do painel Conta.',

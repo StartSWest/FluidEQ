@@ -12,7 +12,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The Forum tab: the rail's forum-only parts, the head and the toolbar. It
-// stands on the Community tab's grid and rail — `.community`,
+// stands on the Plus tab's grid and rail — `.community`,
 // `.community__rail`, `.community__channel` — so the two neighbouring tabs
 // are one family. The list and the shared chips are in ForumList.scss, the
 // thread in ForumThread.scss and ForumPost.scss, the words in ForumProse.scss
@@ -45,8 +45,8 @@ it under the terms of the GNU General Public License version 3 or later.
   @include truncate;
 }
 
-// A board's topic count: a quiet number, not the accent pill Community uses
-// for mentions — a count of topics is not a request for attention.
+// A board's topic count: a quiet number, not an accent pill — a count of
+// topics is not a request for attention.
 .forum__count {
   flex: 0 0 auto;
   min-width: 20px;
@@ -67,7 +67,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Who is writing, or how to start: the rail's foot, above a rule like the
-// Community's own card.
+// Plus tab's own.
 .forum__identity {
   display: grid;
   gap: 6px;
@@ -268,8 +268,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The search box: the field's face on the form, the glyph and the input
-// inside it carrying none of their own — the same arrangement as the
-// Community's message bar.
+// inside it carrying none of their own.
 .forum__search {
   display: flex;
   flex: 1 1 220px;

@@ -14,10 +14,10 @@ interface ILeaderboardStandingProps {
 /**
  * Where you stand, at the top of the board.
  *
- * The rank large, the points beside it, and a bar split into the four things
- * the points came from — listening, active days, messages, people who
- * mentioned you — each in the colour the guide beside the board uses, so the
- * bar reads as "this is how I got here" without a key being learned.
+ * The rank large, the points beside it, and a bar split into the three
+ * things the points came from — listening, active days, likes on your
+ * scenes — each in the colour the guide beside the board uses, so the bar
+ * reads as "this is how I got here" without a key being learned.
  * Under it, the one sentence that makes a board worth opening twice: how far
  * the next person up is. Ties need one point more, which is what "pass" means.
  */

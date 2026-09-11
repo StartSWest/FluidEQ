@@ -72,7 +72,7 @@ const account = {
 
   'account.plus.eyebrow': 'FluidEQ Plus',
   'account.plus.pitch':
-    'ここにしかないビジュアライザー、コミュニティへの投稿、ランキング、機能リクエストの直通窓口。そしてこれから追加されるすべての新機能は、メンバーが最初に使えます。今日無料のものはずっと無料のままです。',
+    'ここにしかないプレミアムなビジュアライザー、自分のシーンを作れるスタジオ、ランキング。そしてこれから追加されるすべての新機能は、メンバーが最初に使えます。今日無料のものはずっと無料のままです。',
   'account.plus.upgrade': 'Plus にアップグレード',
   'account.plus.opening': '開いています…',
   'account.plus.checkoutHint':
@@ -98,7 +98,8 @@ const account = {
   'account.dev.working': '送信中…',
 
   'account.perk.looks': 'グラフィックカードで描かれる Plus のルック。',
-  'account.perk.community': '誰でも読めて、メンバーが投稿できるコミュニティ。',
+  'account.perk.visualizers':
+    'ビジュアライザー：メンバーが作ったシーンを、すべてのアカウントに公開。',
   'account.perk.board': '最もよく聴く人のランキング。',
 } as const;
 

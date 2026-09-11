@@ -33,10 +33,10 @@ interface IForumGlyphProps {
 }
 
 /**
- * The forum's small pictures, in the community's drawing language: a
+ * The forum's small pictures, in the Plus tab's drawing language: a
  * 20-unit grid, stroked in `currentColor`, so each takes its row's state.
- * The ones the Community tab already draws — its bubbles, its bulb, its
- * lock, bin and arrows — are the Community's own, not redrawn here.
+ * The ones that set already draws — its bubbles, its bulb, its lock, bin
+ * and arrows — are borrowed from it, not redrawn here.
  */
 export default function ForumGlyph({ name, className }: IForumGlyphProps) {
   switch (name) {

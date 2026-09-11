@@ -1,13 +1,10 @@
 export type TCommunityGlyph =
   | 'general'
   | 'looks'
-  | 'help'
   | 'feature-requests'
-  | 'channel'
   | 'board'
   | 'send'
   | 'report'
-  | 'block'
   | 'delete'
   | 'lock'
   | 'mention'
@@ -36,14 +33,11 @@ interface IGlyphProps {
 }
 
 /**
- * The community's small pictures: one per channel the server ships with, the
- * trophy for the leaderboard, the four actions, one per part of a score, and
- * the few the Plus terms need for their sections. Hand-drawn on a 20-unit
- * grid, stroked in `currentColor`, so each one takes the row's own state —
- * dim at rest, lit when active — the way the look picker's icons do.
- *
- * A channel added on the server later has no picture of its own and gets the
- * plain hash; that is the one case `channel` exists for.
+ * The Plus tab's small pictures, shared by the forum and the Account panel:
+ * the places in the rail, one per part of a score, the actions, and the few
+ * the Plus terms need for their sections. Hand-drawn on a 20-unit grid,
+ * stroked in `currentColor`, so each one takes the row's own state — dim at
+ * rest, lit when active — the way the look picker's icons do.
  */
 export default function Glyph({ name, className }: IGlyphProps) {
   const path = (() => {
@@ -73,15 +67,6 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M2 8.5c3-3 5.5-3 8-1s5 1.5 8-2" opacity="0.6" />
           </>
         );
-      case 'help':
-        // A life ring.
-        return (
-          <>
-            <circle cx="10" cy="10" r="7.5" />
-            <circle cx="10" cy="10" r="3" />
-            <path d="M4.7 4.7l3.2 3.2M12.1 12.1l3.2 3.2M15.3 4.7l-3.2 3.2M7.9 12.1l-3.2 3.2" />
-          </>
-        );
       case 'feature-requests':
         // A lit bulb.
         return (
@@ -105,14 +90,6 @@ export default function Glyph({ name, className }: IGlyphProps) {
       case 'report':
         // A flag.
         return <path d="M5 17V3.5h9l-2 3.5 2 3.5H5" />;
-      case 'block':
-        // A struck circle.
-        return (
-          <>
-            <circle cx="10" cy="10" r="7" />
-            <path d="M5.2 5.2l9.6 9.6" />
-          </>
-        );
       case 'delete':
         return <path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6" />;
       case 'lock':
@@ -245,9 +222,8 @@ export default function Glyph({ name, className }: IGlyphProps) {
         );
       case 'close':
         return <path d="M5 5l10 10M15 5 5 15" />;
-      case 'channel':
       default:
-        return <path d="M8 3 6.5 17M13.5 3 12 17M3.5 7.5h14M2.5 12.5h14" />;
+        return null;
     }
   })();
   return (
@@ -268,16 +244,3 @@ export default function Glyph({ name, className }: IGlyphProps) {
     </svg>
   );
 }
-
-/** Which picture a channel gets, by the id the server ships it with. */
-export const channelGlyph = (channelId: string): TCommunityGlyph => {
-  switch (channelId) {
-    case 'general':
-    case 'looks':
-    case 'help':
-    case 'feature-requests':
-      return channelId;
-    default:
-      return 'channel';
-  }
-};

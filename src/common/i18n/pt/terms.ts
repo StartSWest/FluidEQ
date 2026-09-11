@@ -15,14 +15,14 @@ const terms = {
     'O FluidEQ continua a funcionar offline e sem conta, como sempre.',
   'terms.short.choice.title': 'Tu escolhes o que é partilhado',
   'terms.short.choice.body':
-    'A classificação está desligada a menos que te juntes, e tu decides o que publicas e quais das tuas cenas partilhas.',
+    'A classificação está desligada a menos que te juntes, e tu decides quais das tuas cenas partilhas.',
   'terms.short.music.title': 'Nunca a tua música',
   'terms.short.music.body':
     'Nenhum nome de faixa, ficheiro, áudio ou dispositivo sai alguma vez do teu computador.',
 
   'terms.membership.title': 'A subscrição',
   'terms.membership.p1':
-    'O Plus acrescenta ao FluidEQ visualizadores premium, o Estúdio para criares os teus e os partilhares com outros membros, publicar na comunidade e a classificação. Custa {price} e renova-se no fim de cada período pago até cancelares.',
+    'O Plus acrescenta ao FluidEQ visualizadores premium, o Estúdio para criares os teus e os partilhares com outros membros, e a classificação. Custa {price} e renova-se no fim de cada período pago até cancelares.',
   'terms.membership.p2':
     'O pagamento é tratado pelo Buy Me a Coffee, segundo os seus próprios termos. O FluidEQ nunca vê o teu cartão nem os teus dados bancários. Podes cancelar a qualquer momento no Buy Me a Coffee: o Plus fica ativo até ao fim do período que pagaste e não é cobrado mais nada.',
   'terms.membership.p3':
@@ -34,7 +34,7 @@ const terms = {
   'terms.account.p1':
     'Uma conta é um endereço de email e uma palavra-passe, e precisas de ter pelo menos {age} anos para a criar. A palavra-passe viaja cifrada até ao serviço de início de sessão e só lá é guardada como um hash de sentido único, que ninguém consegue ler, nem o criador.',
   'terms.account.p2':
-    'O teu email recebe os códigos que confirmam o teu endereço e repõem a tua palavra-passe. Nunca é mostrado a outros membros: na comunidade apareces com o nome de utilizador e o nome visível que escolheres.',
+    'O teu email recebe os códigos que confirmam o teu endereço e repõem a tua palavra-passe. Nunca é mostrado a outros membros: na classificação e em Visualizadores apareces com o nome de utilizador e o nome visível que escolheres.',
   'terms.account.p3':
     'No teu computador, a aplicação guarda a tua sessão cifrada pelo sistema operativo. As contas são pessoais: não partilhes a tua palavra-passe.',
   'terms.account.p4':
@@ -42,7 +42,7 @@ const terms = {
 
   'terms.sent.title': 'O que a aplicação envia, e quando',
   'terms.sent.intro':
-    'Só para as funcionalidades que usas, e sempre por uma ligação cifrada. Sem conta, o único pedido é o da lista pública de looks Plus, e não leva nada sobre ti.',
+    'Só para as funcionalidades que usas, e sempre por uma ligação cifrada. Sem conta, os únicos pedidos são o da lista pública de looks Plus e o dos tópicos públicos do separador Fórum, e não levam nada sobre ti.',
   'terms.sent.when': 'Quando',
   'terms.sent.who': 'Quem pode ver',
   'terms.sent.signIn.what': 'O teu email e a tua palavra-passe',
@@ -70,12 +70,10 @@ const terms = {
     'Quando o seletor de looks mostra que looks Plus existem, com ou sem conta',
   'terms.sent.catalogue.who':
     'Nada é guardado. O pedido só descarrega a lista pública de looks.',
-  'terms.sent.community.what':
-    'O teu nome de utilizador e nome visível, as tuas mensagens e as suas @menções, as denúncias que fazes e as pessoas que bloqueias',
-  'terms.sent.community.when':
-    'Quando crias o teu perfil, publicas, denuncias ou bloqueias',
-  'terms.sent.community.who':
-    'Mensagens, nomes de utilizador e nomes visíveis: todos os membros com sessão iniciada. Denúncias: o criador. Bloqueios: só tu.',
+  'terms.sent.profile.what': 'O teu nome de utilizador e o teu nome visível',
+  'terms.sent.profile.when': 'Quando os escolhes na classificação',
+  'terms.sent.profile.who':
+    'Todos os membros com sessão iniciada, junto à tua posição na classificação e nas cenas que publicas.',
   'terms.sent.board.what':
     'Um número por dia de cada um dos teus computadores: os minutos inteiros de música que tocou, até {capHours} horas, com a sua data e um número aleatório que distingue os teus computadores',
   'terms.sent.board.when':
@@ -104,6 +102,12 @@ const terms = {
     'Quando exploras Visualizadores, carregas em Adicionar ou envias uma denúncia',
   'terms.sent.gallery.who':
     'As pesquisas e o que abres não são guardados. Os membros veem quantos adicionaram uma cena, nunca quem. Denúncias: só o criador.',
+  'terms.sent.forum.what':
+    'No separador Fórum: o que publicas, editas ou eliminas e as tuas reações, com a tua sessão do GitHub',
+  'terms.sent.forum.when':
+    'Abrir o fórum descarrega os seus tópicos públicos, o que não leva nada sobre ti; o resto só depois de iniciares sessão com o GitHub e publicares',
+  'terms.sent.forum.who':
+    'O GitHub, segundo os seus próprios termos. As publicações são públicas no GitHub Discussions do projeto; o servidor do FluidEQ nunca as recebe.',
 
   'terms.never.title': 'O que nunca sai do teu computador',
   'terms.never.p1':
@@ -119,9 +123,9 @@ const terms = {
   'terms.protect.p2':
     'As regras vivem no servidor, não na aplicação: cada conta só pode alterar os seus próprios dados, e uma cópia modificada do FluidEQ recebe exatamente as mesmas respostas.',
   'terms.protect.p3':
-    'A classificação e o chat mostram nomes de utilizador, nunca emails nem identificadores de conta.',
+    'A classificação e Visualizadores mostram nomes de utilizador e nomes visíveis, nunca emails nem identificadores de conta.',
   'terms.protect.p4':
-    'O criador gere o servidor e pode ver o que ele guarda, para o manter a funcionar e moderar a comunidade. Nada é vendido, partilhado ou usado para publicidade, e não há rastreio nem análises.',
+    'O criador gere o servidor e pode ver o que ele guarda, para o manter a funcionar e moderar o que os membros publicam. Nada é vendido, partilhado ou usado para publicidade, e não há rastreio nem análises.',
   'terms.protect.p5':
     'O serviço funciona no Supabase (início de sessão, base de dados e ficheiros) e envia emails através do Resend; os pagamentos passam pelo Buy Me a Coffee. Cada um recebe só o que a sua parte precisa.',
   'terms.protect.p6':
@@ -129,26 +133,27 @@ const terms = {
 
   'terms.fair.title': 'Jogo limpo na classificação',
   'terms.fair.p1':
-    'O tempo de escuta é contado pela aplicação no teu computador, por isso o servidor não o pode ver acontecer. Em vez disso, verifica cada número: não mais de {capHours} horas por dia, nenhum dia que ainda não tenha começado, nada com mais de {windowDays} dias, e nenhum dia que cresça mais depressa do que o relógio. Os números dos teus computadores somam-se num só dia, que também não cresce mais depressa do que o relógio, por isso vários a tocar ao mesmo tempo não podem somar mais tempo do que o que passou. As mensagens e as menções são contadas no servidor, a partir do que foi realmente publicado.',
+    'O tempo de escuta é contado pela aplicação no teu computador, por isso o servidor não o pode ver acontecer. Em vez disso, verifica cada número: não mais de {capHours} horas por dia, nenhum dia que ainda não tenha começado, nada com mais de {windowDays} dias, e nenhum dia que cresça mais depressa do que o relógio. Os números dos teus computadores somam-se num só dia, que também não cresce mais depressa do que o relógio, por isso vários a tocar ao mesmo tempo não podem somar mais tempo do que o que passou.',
   'terms.fair.p2':
-    'Todos ganham pontos da mesma forma, o criador incluído. Alterar a aplicação ou o que ela envia, automatizar a escuta ou as publicações, ou subir com mais de uma conta tira-te da classificação, e pode tirar-te da comunidade.',
+    'Todos ganham pontos da mesma forma, o criador incluído. Alterar a aplicação ou o que ela envia, automatizar a escuta ou subir com mais de uma conta tira-te da classificação, e pode impedir a conta de publicar e curtir cenas.',
   'terms.fair.p3':
     'Cada curtida nas tuas cenas vale {likePoints} pontos. Uma curtida conta uma vez por membro e por cena, só de membros Plus e nunca da tua própria conta. Curtidas de uma segunda conta tua contam como subir com mais de uma conta.',
 
-  'terms.community.title': 'Regras da comunidade',
-  'terms.community.p1':
-    'Sê simpático. Nada de assédio, ódio, ameaças, spam, conteúdo ilegal ou dados pessoais de quem quer que seja. Todos os membros podem ler o que publicas, por isso partilha só o que não te importas que seja lido.',
-  'terms.community.p2':
-    'Podes apagar as tuas próprias mensagens a qualquer momento. O criador pode remover mensagens e suspender contas que violem estas regras. Denuncia uma mensagem para a assinalar; só o criador vê as denúncias.',
+  'terms.rules.title': 'Regras para o que publicas',
+  'terms.rules.p1':
+    'Sê simpático. Nada de assédio, ódio, ameaças, spam, conteúdo ilegal ou dados pessoais de quem quer que seja — numa cena, no seu nome ou na sua imagem. Qualquer pessoa com sessão iniciada pode ver o que publicas, por isso partilha só o que não te importas que seja visto.',
+  'terms.rules.p2':
+    'Podes despublicar as tuas próprias cenas a qualquer momento. O criador pode retirar cenas e suspender contas que violem estas regras. Denuncia uma cena para a assinalar; só o criador vê as denúncias.',
 
   'terms.keep.title': 'O que é guardado, e como apagar',
   'terms.keep.p1':
     'Classificação: «Remover todos os meus dados» no painel Conta apaga de uma vez cada dia que alguma vez enviaste. O teu computador só guarda os totais dos últimos {windowDays} dias.',
-  'terms.keep.p2': 'Mensagens: ficam até tu ou o criador as apagarem.',
+  'terms.keep.p2':
+    'O teu nome de utilizador e o teu nome visível: guardados enquanto tiveres conta, e apagados com ela.',
   'terms.keep.p3':
     'Subscrição: o teu email de pagamento e o estado são guardados para associar os pagamentos à tua conta, e são apagados com ela.',
   'terms.keep.p4':
-    'A tua conta: pede que seja apagada e desaparece em {deletionDays} dias, com o teu perfil, as tuas mensagens, os teus dias na classificação e o registo da subscrição.',
+    'A tua conta: pede que seja apagada e desaparece em {deletionDays} dias, com o teu perfil, os teus dias na classificação e o registo da subscrição.',
   'terms.keep.p5':
     'Cenas: uma cena que publicas fica em Visualizadores até a despublicares, o que a remove de imediato com a sua imagem. O que publicaste, o registo do que exportaste, as cenas que adicionaste, as curtidas que deste e as que as tuas cenas receberam são apagados com a tua conta. Uma cena bloqueada por violar estes termos guarda só a sua impressão digital, sem o teu nome, para continuar bloqueada.',
 
@@ -170,7 +175,7 @@ const terms = {
   'terms.scenes.p5':
     'Os membros que curtem a tua cena dão-te pontos na classificação, se te juntaste a ela. As curtidas são contadas no servidor; vê Jogo limpo.',
   'terms.scenes.p6':
-    'Partilha só trabalho que tens o direito de partilhar: as tuas próprias fotos e desenhos, ou os de alguém que o permita. As regras da comunidade aplicam-se às cenas tal como às mensagens. O criador pode impedir que uma cena abra se ela violar estes termos ou os direitos de outra pessoa.',
+    'Partilha só trabalho que tens o direito de partilhar: as tuas próprias fotos e desenhos, ou os de alguém que o permita. As regras para o que publicas aplicam-se a cada cena que partilhas. O criador pode impedir que uma cena abra se ela violar estes termos ou os direitos de outra pessoa.',
   'terms.scenes.p7':
     'Uma cena que outro membro partilha é trabalho dele, licenciado para teu uso pessoal enquanto fores membro. Podes reproduzi-la, curti-la e passar o ficheiro sem alterações a outros membros Plus. Por favor, não a alteres, não a apresentes como tua, não a publiques noutro lado nem a vendas.',
   'terms.scenes.p8':

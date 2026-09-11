@@ -29,8 +29,6 @@ const leaderboard = {
   'leaderboard.hero.leading': 'Sie führen die Rangliste an.',
   'leaderboard.part.hours': 'Hören',
   'leaderboard.part.days': 'Aktive Tage',
-  'leaderboard.part.messages': 'Nachrichten',
-  'leaderboard.part.mentions': 'Erwähnungen',
   'leaderboard.part.likes': '„Gefällt mir“ für Szenen',
   'leaderboard.guide.title': 'So gibt es Punkte',
   'leaderboard.guide.lead':
@@ -39,23 +37,39 @@ const leaderboard = {
     'Jede Stunde Musik, die läuft, bis zu {limit} Stunden am Tag.',
   'leaderboard.guide.days':
     'Jeder Tag, an dem Sie {limit} Minuten oder mehr hören.',
-  'leaderboard.guide.messages':
-    'Jede Nachricht, die Sie schreiben, bis zu {limit} am Tag.',
-  'leaderboard.guide.mentions':
-    'Jede Person, die Sie @erwähnt, einmal pro Tag.',
   'leaderboard.guide.likes':
     'Jedes „Gefällt mir“, das ein anderes Mitglied einer Ihrer Szenen gibt.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Woher die Zahlen kommen',
   'leaderboard.guide.fair':
-    'Ihr Computer zählt die Minuten Musik und sendet eine Summe pro Tag, erst nachdem Sie beigetreten sind, und nie, was Sie hören. Nachrichten, Erwähnungen und „Gefällt mir“ zählt der Server. Dort wird jede Zahl geprüft, und wer manipuliert, fliegt aus der Rangliste.',
+    'Ihr Computer zählt die Minuten Musik und sendet eine Summe pro Tag, erst nachdem Sie beigetreten sind, und nie, was Sie hören. „Gefällt mir“ zählt der Server. Dort wird jede Zahl geprüft, und wer manipuliert, fliegt aus der Rangliste.',
   'leaderboard.guide.terms': 'Alles, was die App sendet',
   'leaderboard.stat.hours': '{hours} Stunden gehört',
-  'leaderboard.stat.messages': '{count} Nachrichten geschrieben',
-  'leaderboard.stat.mentions': '{count} Erwähnungen durch andere',
+  'leaderboard.stat.days': '{count} aktive Tage',
   'leaderboard.stat.likes': '„Gefällt mir“ für eigene Szenen: {count}',
   'leaderboard.scoring':
-    'Punkte: {hours} pro gehörter Stunde, {days} pro aktivem Tag, {messages} pro Nachricht, {mentions} für jede Person, die Sie an einem Tag erwähnt, {likes} für jedes „Gefällt mir“ für eine Ihrer Szenen. Der Macher verdient sie genauso.',
+    'Punkte: {hours} pro gehörter Stunde, {days} pro aktivem Tag, {likes} für jedes „Gefällt mir“ für eine Ihrer Szenen. Der Macher verdient sie genauso.',
+  'leaderboard.rail.blurb': 'Wer am meisten hört',
+  'leaderboard.role.admin': 'Macher',
+
+  // The name the board ranks, chosen once on the board itself.
+  'leaderboard.name.title': 'Wählen Sie, wie Sie in der Rangliste erscheinen',
+  'leaderboard.name.body':
+    'Ein Kürzel und ein Name. Unter ihnen erscheinen Sie in der Rangliste, und die Galerie „Visualizer“ nennt sie bei Ihren Szenen. Alle Angemeldeten sehen sie; Ihre E-Mail sieht niemand.',
+  'leaderboard.name.handle': 'Kürzel',
+  'leaderboard.name.handleHint': '3 bis 20 Buchstaben, Ziffern oder _',
+  'leaderboard.name.name': 'Anzeigename',
+  'leaderboard.name.previewName': 'Ihr Name',
+  'leaderboard.name.save': 'Speichern',
+  'leaderboard.name.choose': 'Namen wählen',
+  'leaderboard.name.error.handleTaken':
+    'Dieses Kürzel ist vergeben. Versuchen Sie ein anderes.',
+  'leaderboard.name.error.signedOut':
+    'Sie wurden abgemeldet. Melden Sie sich erneut an.',
+  'leaderboard.name.error.network':
+    'Der Server war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+  'leaderboard.name.error.rejected':
+    'Der Server hat diesen Namen abgelehnt. Versuchen Sie einen anderen.',
   'leaderboard.empty': 'Noch niemand gelistet.',
   'leaderboard.notJoined':
     'Sie stehen nicht auf der Rangliste. Treten Sie im Konto-Panel bei.',
