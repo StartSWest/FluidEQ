@@ -95,7 +95,7 @@ const terms = {
     'Uma cena que publicas, a sua imagem, a categoria que escolheste, o teu nome visível e o id da tua conta',
   'terms.sent.scenePublish.when': 'Quando carregas em Publicar no Estúdio',
   'terms.sent.scenePublish.who':
-    'Todos os membros Plus, em Visualizadores, até a despublicares: a cena, a sua imagem, a categoria e o teu nome visível. O criador guarda o registo de que a publicaste, como numa exportação.',
+    'Em Visualizadores, até a despublicares: qualquer pessoa com sessão iniciada no FluidEQ vê a sua imagem, o nome, a categoria e o teu nome visível, e os membros Plus podem também reproduzi-la e adicioná-la. O criador guarda o registo de que a publicaste, como numa exportação.',
   'terms.sent.gallery.what':
     'Em Visualizadores: o que procuras, que cenas abres e adicionas, e qualquer cena que denuncies com o motivo',
   'terms.sent.gallery.when':
@@ -174,7 +174,7 @@ const terms = {
   'terms.scenes.p8':
     'Um ficheiro que enviaste fica com quem o tiver. Se quiseres que uma cena deixe de abrir em todo o lado, pede ao criador, que a pode bloquear da mesma forma que uma cena que viola as regras.',
   'terms.scenes.p9':
-    'Se publicares uma cena em Visualizadores, também permites que o FluidEQ a guarde lá e a mostre — com a sua imagem, a categoria e o teu nome visível — aos membros Plus até a despublicares. Podes despublicá-la quando quiseres, com ou sem Plus. Quem já a adicionou mantém a sua cópia, nas mesmas condições de um ficheiro que lhe enviaste.',
+    'Se publicares uma cena em Visualizadores, também permites que o FluidEQ a guarde lá até a despublicares, que mostre a sua imagem, o nome, a categoria e o teu nome visível a qualquer pessoa com sessão iniciada no FluidEQ, e que ofereça a própria cena aos membros Plus, que a podem reproduzir e adicionar. Podes despublicá-la quando quiseres, com ou sem Plus. Quem já a adicionou mantém a sua cópia, nas mesmas condições de um ficheiro que lhe enviaste.',
   'terms.scenes.p10':
     'Publicar é opcional e diferente de exportar um ficheiro. Qualquer membro pode denunciar uma cena publicada; só o criador lê as denúncias e pode retirar uma cena que viole estes termos ou os direitos de outra pessoa.',
 

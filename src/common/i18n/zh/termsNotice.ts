@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     '全新图库“可视化”：你在那里发布的场景会展示给 Plus 会员，直到你取消发布；条款也列出了浏览、添加和举报时会发送的内容。',
   'termsNotice.change.5':
-    'Plus 现在除了按月付费，也可以按年付费；会员资格会在你所付费周期结束时续订。',
+    'Plus 现在除了按月付费，也可以按年付费；会员资格会在你所付费周期结束时续订。你在“可视化”中发布的场景，现在所有已登录的人都能看到；只有 Plus 会员可以播放和添加。',
 } as const;
 
 export default termsNotice;

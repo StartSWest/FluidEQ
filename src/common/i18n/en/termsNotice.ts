@@ -21,7 +21,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizers, the new gallery: a scene you publish there is shown to Plus members until you unpublish it, and the terms list what browsing, adding and reporting sends.',
   'termsNotice.change.5':
-    'Plus can now be paid yearly as well as monthly, and a membership renews at the end of whichever period you paid for.',
+    'Plus can now be paid yearly as well as monthly, and a membership renews at the end of whichever period you paid for. A scene you publish in Visualizers is now seen by anyone signed in; only Plus members play and add it.',
 } as const;
 
 export default termsNotice;

@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizadores, a nova galeria: uma cena que publiques lá é mostrada aos membros Plus até a despublicares, e os termos detalham o que se envia ao explorar, adicionar e denunciar.',
   'termsNotice.change.5':
-    'O Plus agora pode ser pago por ano além de por mês, e a assinatura renova-se no fim do período que pagaste.',
+    'O Plus agora pode ser pago por ano além de por mês, e a assinatura renova-se no fim do período que pagaste. Uma cena que publicas em Visualizadores passa a ser vista por qualquer pessoa com sessão iniciada; só os membros Plus a reproduzem e adicionam.',
 } as const;
 
 export default termsNotice;

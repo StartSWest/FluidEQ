@@ -95,7 +95,7 @@ const terms = {
     'Una escena que publicas, su imagen, la categoría que elegiste, tu nombre visible y el id de tu cuenta',
   'terms.sent.scenePublish.when': 'Cuando pulsas Publicar en el Estudio',
   'terms.sent.scenePublish.who':
-    'Todos los miembros Plus, en Visualizadores, hasta que la retires: la escena, su imagen, su categoría y tu nombre visible. El creador guarda el registro de que la publicaste, como con una exportación.',
+    'En Visualizadores, hasta que la retires: cualquiera con sesión iniciada en FluidEQ ve su imagen, su nombre, su categoría y tu nombre visible, y los miembros Plus además pueden reproducirla y añadirla. El creador guarda el registro de que la publicaste, como con una exportación.',
   'terms.sent.gallery.what':
     'En Visualizadores: lo que buscas, qué escenas abres y añades, y cualquier escena que denuncies con su motivo',
   'terms.sent.gallery.when':
@@ -174,7 +174,7 @@ const terms = {
   'terms.scenes.p8':
     'Un archivo que has enviado se queda con quien lo tenga. Si quieres que una escena deje de abrirse en todas partes, pídeselo al creador, que puede bloquearla igual que una escena que incumple las normas.',
   'terms.scenes.p9':
-    'Si publicas una escena en Visualizadores, también permites que FluidEQ la guarde ahí y la muestre —con su imagen, su categoría y tu nombre visible— a los miembros Plus hasta que la retires. Puedes retirarla cuando quieras, tengas Plus o no. Quien ya la añadió conserva su copia, en las mismas condiciones que un archivo que le enviaste.',
+    'Si publicas una escena en Visualizadores, también permites que FluidEQ la guarde ahí hasta que la retires, que muestre su imagen, su nombre, su categoría y tu nombre visible a cualquiera con sesión iniciada en FluidEQ, y que ofrezca la escena en sí a los miembros Plus, que pueden reproducirla y añadirla. Puedes retirarla cuando quieras, tengas Plus o no. Quien ya la añadió conserva su copia, en las mismas condiciones que un archivo que le enviaste.',
   'terms.scenes.p10':
     'Publicar es opcional y distinto de exportar un archivo. Cualquier miembro puede denunciar una escena publicada; solo el creador lee las denuncias, y puede retirar una escena que incumpla estas condiciones o los derechos de otra persona.',
 

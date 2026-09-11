@@ -11,7 +11,7 @@ const termsNotice = {
   'termsNotice.change.4':
     'Visualizer, die neue Galerie: Eine Szene, die Sie dort veröffentlichen, sehen Plus-Mitglieder, bis Sie sie zurückziehen, und die Bedingungen nennen, was Stöbern, Hinzufügen und Melden sendet.',
   'termsNotice.change.5':
-    'Plus lässt sich jetzt monatlich oder jährlich bezahlen, und eine Mitgliedschaft verlängert sich am Ende des Zeitraums, den Sie bezahlt haben.',
+    'Plus lässt sich jetzt monatlich oder jährlich bezahlen, und eine Mitgliedschaft verlängert sich am Ende des Zeitraums, den Sie bezahlt haben. Eine Szene, die Sie unter „Visualizer“ veröffentlichen, sehen jetzt alle Angemeldeten; nur Plus-Mitglieder spielen sie ab und fügen sie hinzu.',
 } as const;
 
 export default termsNotice;

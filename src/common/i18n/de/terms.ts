@@ -96,7 +96,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
   'terms.sent.scenePublish.who':
-    'Alle Plus-Mitglieder, unter „Visualizer“, bis Sie sie zurückziehen: die Szene, ihr Bild, ihre Kategorie und Ihr Anzeigename. Der Macher bewahrt die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+    'Unter „Visualizer“, bis Sie sie zurückziehen: Alle, die bei FluidEQ angemeldet sind, sehen ihr Bild, ihren Namen, ihre Kategorie und Ihren Anzeigenamen; Plus-Mitglieder können sie außerdem abspielen und hinzufügen. Der Macher bewahrt die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
   'terms.sent.gallery.what':
     'Unter „Visualizer“: wonach Sie suchen, welche Szenen Sie öffnen und hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
   'terms.sent.gallery.when':
@@ -176,7 +176,7 @@ const terms = {
   'terms.scenes.p8':
     'Eine Datei, die Sie verschickt haben, bleibt bei denen, die sie haben. Wenn sich eine Szene nirgends mehr öffnen soll, bitten Sie den Macher darum, der sie wie eine regelwidrige Szene sperren kann.',
   'terms.scenes.p9':
-    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie FluidEQ außerdem, sie dort zu speichern und Plus-Mitgliedern zu zeigen – mit ihrem Bild, ihrer Kategorie und Ihrem Anzeigenamen –, bis Sie sie zurückziehen. Sie können sie jederzeit zurückziehen, mit oder ohne Plus. Wer sie schon hinzugefügt hat, behält seine Kopie, zu denselben Bedingungen wie eine Datei, die Sie ihm geschickt haben.',
+    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie FluidEQ außerdem, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorie und Ihren Anzeigenamen allen bei FluidEQ Angemeldeten zu zeigen und die Szene selbst Plus-Mitgliedern anzubieten, die sie abspielen und hinzufügen können. Sie können sie jederzeit zurückziehen, mit oder ohne Plus. Wer sie schon hinzugefügt hat, behält seine Kopie, zu denselben Bedingungen wie eine Datei, die Sie ihm geschickt haben.',
   'terms.scenes.p10':
     'Veröffentlichen ist freiwillig und etwas anderes, als eine Datei zu exportieren. Jedes Mitglied kann eine veröffentlichte Szene melden; nur der Macher liest Meldungen und kann eine Szene entfernen, die gegen diese Bedingungen oder die Rechte anderer verstößt.',
 

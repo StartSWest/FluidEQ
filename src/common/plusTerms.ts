@@ -30,9 +30,11 @@
  * one; exporting a file still accepts 3, because nothing about it changed.
  *
  * 5: a yearly plan beside the monthly one — the price quotes both, and a
- * membership renews at the end of whichever period was paid for. Only the
- * checkout refuses an older version: publishing and exporting are unchanged
- * and keep accepting 4 and 3.
+ * membership renews at the end of whichever period was paid for. And a
+ * published scene's picture, name, category and maker are shown to anyone
+ * signed in, not only to Plus members, who alone can play and add it; so
+ * publishing refuses an older version too, as the checkout does. Exporting a
+ * file is unchanged and keeps accepting 3.
  */
 export const PLUS_TERMS_VERSION = 5;
 
