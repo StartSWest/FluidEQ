@@ -4,13 +4,18 @@ import { SPECTRUM_TEXELS } from 'common/sceneUniformContract';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStageDrawn } from './StudioStage';
 
-const METERS: ReadonlyArray<{ key: string; label: TranslationKey }> = [
-  { key: 'level', label: 'studio.meter.level' },
-  { key: 'beat', label: 'studio.meter.beat' },
-  { key: 'bass', label: 'studio.meter.bass' },
-  { key: 'mid', label: 'studio.meter.mid' },
-  { key: 'treble', label: 'studio.meter.treble' },
-  { key: 'accent', label: 'studio.meter.accent' },
+/** Each meter, and the line saying what that part of the music is. */
+const METERS: ReadonlyArray<{
+  key: string;
+  label: TranslationKey;
+  hint: TranslationKey;
+}> = [
+  { key: 'level', label: 'studio.meter.level', hint: 'studio.hears.level' },
+  { key: 'beat', label: 'studio.meter.beat', hint: 'studio.hears.beat' },
+  { key: 'bass', label: 'studio.meter.bass', hint: 'studio.hears.bass' },
+  { key: 'mid', label: 'studio.meter.mid', hint: 'studio.hears.mid' },
+  { key: 'treble', label: 'studio.meter.treble', hint: 'studio.hears.treble' },
+  { key: 'accent', label: 'studio.meter.accent', hint: 'studio.hears.accent' },
 ];
 
 /** Bars in the spectrum strip: enough to read its shape, few enough to draw. */
@@ -80,11 +85,12 @@ export default function StudioMeters({ feed, onScale }: IStudioMetersProps) {
   return (
     <div className="studio-card studio-meters" aria-live="off">
       <span className="studio-card__eyebrow">{t('studio.meters.title')}</span>
-      {METERS.map(({ key, label }) => (
+      {METERS.map(({ key, label, hint }) => (
         <div
           key={key}
           className={`studio-meter studio-meter--${key}`}
           role="presentation"
+          title={t(hint)}
         >
           <span className="studio-meter__label">{t(label)}</span>
           <span className="studio-meter__track">
@@ -105,7 +111,11 @@ export default function StudioMeters({ feed, onScale }: IStudioMetersProps) {
           </span>
         </div>
       ))}
-      <div className="studio-meters__spectrum" aria-hidden="true">
+      <div
+        className="studio-meters__spectrum"
+        aria-hidden="true"
+        title={t('studio.hears.spectrum')}
+      >
         {Array.from({ length: SPECTRUM_BARS }, (_, index) => (
           <i
             // The bars are positions on a fixed axis, never reordered.

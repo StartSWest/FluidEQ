@@ -5,20 +5,24 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import {
-  createStudioStarter,
+  forgetStudioProject,
   linkStudioFolder,
   selectStudioProject,
 } from './studioStore';
 
 interface IStudioProjectsProps {
   state: IStudioState;
-  /** The starter could not be written: the chosen folder already has a scene. */
-  onStarterExists: () => void;
+  /** Starts a new project; the Studio reports how that went. */
+  onNewProject: () => void;
+  /** Opens a scene file another member exported. */
+  onOpenFile: () => void;
 }
 
 /**
- * Which project is on the bench, and every other one a member has worked on,
- * with the two ways to start another under the list.
+ * Which project is on the bench, and everything else about projects — every
+ * other one a member has worked on, starting or bringing another, and taking
+ * the open one off the list — in the one menu, so none of it is a row of
+ * buttons beside the stage.
  *
  * Each is named by what its scene is called, with its folder under it, so two
  * projects both called "scene" in different places can be told apart. Picking
@@ -26,7 +30,8 @@ interface IStudioProjectsProps {
  */
 export default function StudioProjects({
   state,
-  onStarterExists,
+  onNewProject,
+  onOpenFile,
 }: IStudioProjectsProps) {
   const { t, locale } = useTranslation();
 
@@ -54,12 +59,14 @@ export default function StudioProjects({
       onPick={(id) => {
         selectStudioProject(id).catch(() => undefined);
       }}
-      placeholder={t('studio.project.none')}
+      placeholder={t(
+        entries.length > 0 ? 'studio.project.none' : 'studio.project.empty',
+      )}
       triggerAriaLabel={t('studio.project.label')}
       triggerTitle={active?.hint ?? t('studio.project.label')}
       placeholderIcon={<Glyph name="folder" className="rich-pick__glyph" />}
       triggerExtra={
-        <span className="studio-projects__live" aria-hidden="true" />
+        active && <span className="studio-projects__live" aria-hidden="true" />
       }
       renderFooter={(close) => (
         <>
@@ -68,14 +75,7 @@ export default function StudioProjects({
             className="rich-pick__action"
             onClick={() => {
               close();
-              createStudioStarter()
-                .then((outcome) => {
-                  if (outcome === 'exists') {
-                    onStarterExists();
-                  }
-                  return undefined;
-                })
-                .catch(() => undefined);
+              onNewProject();
             }}
           >
             <Glyph name="studio" />
@@ -92,6 +92,31 @@ export default function StudioProjects({
             <Glyph name="folder" />
             {t('studio.project.add')}
           </button>
+          <button
+            type="button"
+            className="rich-pick__action"
+            onClick={() => {
+              close();
+              onOpenFile();
+            }}
+          >
+            <Glyph name="download" />
+            {t('studio.action.import')}
+          </button>
+          {active && (
+            <button
+              type="button"
+              className="rich-pick__action studio-projects__forget"
+              title={t('studio.project.forgetHint')}
+              onClick={() => {
+                close();
+                forgetStudioProject(active.id).catch(() => undefined);
+              }}
+            >
+              <Glyph name="close" />
+              {t('studio.project.forget', { name: active.name })}
+            </button>
+          )}
         </>
       )}
     />

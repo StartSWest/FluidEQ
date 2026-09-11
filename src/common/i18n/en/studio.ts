@@ -17,18 +17,28 @@ const studio = {
     'The Studio is part of FluidEQ Plus. Describe a scene to your AI and watch it come alive on your music while it writes it.',
   'studio.gate.cta': 'See Plus',
 
-  'studio.start.title': 'Make a scene with your AI',
-  'studio.start.step1.title': 'Copy the prompt',
-  'studio.start.step1.body': 'It tells your AI how FluidEQ scenes are built.',
-  'studio.start.step2.title': 'Add your idea',
-  'studio.start.step2.body': 'At the very end, in your own words.',
-  'studio.start.step3.title': 'Link the folder',
-  'studio.start.step3.body':
-    'Save the files it gives you into a folder and link it. It plays here as you change it.',
+  'studio.maker.title': 'Make it with your AI',
+  'studio.maker.describe': 'Describe your scene',
+  'studio.maker.placeholder':
+    'What it shows, and what moves with the beat, the bass or the treble. A photo of yours can come alive too.',
+  'studio.maker.examples': 'Or start from one:',
+  'studio.maker.openTitle': 'Open the project folder in your AI assistant',
+  'studio.maker.openBody':
+    'Any assistant that works on files: Claude, Cursor, Codex, Copilot. With a chat instead, save the files it gives you in this folder.',
+  'studio.maker.openNoProject':
+    'Start a project first: its folder is what your AI works in.',
+  'studio.maker.copyPath': 'Copy path',
+  'studio.maker.pathCopied': 'Path copied',
+  'studio.maker.pathCopyFailed':
+    'The clipboard is not available. The path is selected; press Ctrl+C.',
+  'studio.maker.pasteTitle': 'Paste this prompt into it',
+  'studio.maker.pasteBody':
+    'It tells your AI how FluidEQ scenes are made, with your idea at the end. Every file it saves plays on the stage right away.',
+  'studio.maker.copied': 'Copied',
+  'studio.maker.showPrompt': 'See the prompt',
+  'studio.maker.hidePrompt': 'Hide the prompt',
 
   'studio.action.copyPrompt': 'Copy AI prompt',
-  'studio.action.createStarter': 'Create starter project…',
-  'studio.action.linkFolder': 'Link folder…',
   'studio.action.showFolder': 'Show folder',
   'studio.action.addToLooks': 'Add to my looks',
   'studio.action.export': 'Export…',
@@ -38,11 +48,29 @@ const studio = {
   'studio.project.label': 'Project',
   'studio.project.group': 'Your projects',
   'studio.project.none': 'Choose a project',
+  'studio.project.empty': 'No project yet',
+  'studio.project.add': 'Open a folder…',
+  'studio.project.forget': 'Remove {name} from the list',
   'studio.project.new': 'New project…',
-  'studio.project.add': 'Add a folder…',
-  'studio.project.forget': 'Remove from list',
   'studio.project.forgetHint':
     'The folder and its files stay on your computer.',
+
+  'studio.new.title': 'New project',
+  'studio.new.lead':
+    'Give it a name. FluidEQ makes its folder, with a scene that already moves.',
+  'studio.new.name': 'Name',
+  'studio.new.placeholder': 'Northern lights',
+  'studio.new.where': 'It goes in',
+  'studio.new.change': 'Change…',
+  'studio.new.create': 'Create project',
+  'studio.new.creating': 'Creating…',
+  'studio.new.cancel': 'Cancel',
+  'studio.new.exists':
+    'There is already a folder called {name} there. Choose another name.',
+  'studio.new.invalid':
+    'That name cannot be a folder name. Try letters and numbers.',
+  'studio.new.failed':
+    'The folder could not be made there. Choose another place with Change.',
 
   // Publishing to the Plus gallery. Asked with the terms' own points the
   // first time, then only the category and the picture.
@@ -51,11 +79,13 @@ const studio = {
   'studio.publish.version': 'Version {version}',
   'studio.publish.pictureAlt': '{name}, as the gallery will show it',
   'studio.publish.pictureHint':
-    'Taken from the stage just now. This is how it shows in the gallery.',
+    'Your scene on the stage just now, playing to a busy test chorus. This is how it shows in the gallery.',
+  'studio.publish.retake': 'Take another',
+  'studio.publish.taking': 'Taking the picture…',
   'studio.publish.category': 'Category',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.point1':
-    'Every Plus member can find it in Visualizers, add it to their looks and like it.',
+    'Anyone signed in can see it in Visualizers. Plus members can play it, add it to their looks and like it.',
   'studio.publish.point2': 'Each like earns you points on the leaderboard.',
   'studio.publish.point3':
     'You can unpublish it at any time. Members who already added it keep their copy.',
@@ -79,14 +109,8 @@ const studio = {
   'studio.publish.outdated':
     'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
 
-  'studio.notice.copied':
-    'Copied. Paste it into your AI and write your idea at the end.',
-  'studio.notice.copiedIdea':
-    'Copied with that idea at the end. Paste it into your AI.',
   'studio.notice.copyFailed':
     'The clipboard is not available. The prompt is selected below; press Ctrl+C.',
-  'studio.notice.starterExists':
-    'That folder already has a scene. Choose an empty folder, or link that one instead.',
   'studio.notice.added': '{name} is in your looks, under Made by you.',
   'studio.notice.addFailed': 'This version can be added once it plays.',
   'studio.notice.exported':
@@ -127,7 +151,6 @@ const studio = {
     'That file was changed after it was exported, so FluidEQ will not play it.',
   'studio.import.blocked': 'That scene has been taken down.',
 
-  'studio.ideas.title': 'Ideas to start from — adds the idea to the prompt',
   'studio.idea.pet.label': 'My pet, alive',
   'studio.idea.pet.text':
     "My pet's photo. Ears twitch on every beat, the tail sways with the bass, the eyes glow with the treble, and the background shimmers with the slow spectrum.",
@@ -150,31 +173,22 @@ const studio = {
   'studio.prompt.label': 'The AI prompt',
   'studio.prompt.ideaHere': '← your idea goes here',
 
-  'studio.hears.title': 'What your scene hears',
-  'studio.hears.level.name': 'Level',
-  'studio.hears.level.body': 'overall loudness',
-  'studio.hears.beat.name': 'Beat',
-  'studio.hears.beat.body': 'a pulse on every beat',
-  'studio.hears.bass.name': 'Bass',
-  'studio.hears.bass.body': 'the low end, on its own',
-  'studio.hears.mid.name': 'Mids',
-  'studio.hears.mid.body': 'voices and chords',
-  'studio.hears.treble.name': 'Treble',
-  'studio.hears.treble.body': 'hi-hats and air',
-  'studio.hears.spectrum.name': 'Spectrum',
-  'studio.hears.spectrum.body': 'every frequency, fast or smooth',
-  'studio.hears.accent.name': 'Accent',
-  'studio.hears.accent.body': 'a rare big moment, every few seconds',
-  'studio.hears.waveform.name': 'Waveform',
-  'studio.hears.waveform.body': 'the shape of the sound',
-  'studio.hears.picture.name': 'Picture',
-  'studio.hears.picture.body': 'your own image, with a mask for each part',
+  'studio.hears.level': 'overall loudness',
+  'studio.hears.beat': 'a pulse on every beat',
+  'studio.hears.bass': 'the low end, on its own',
+  'studio.hears.mid': 'voices and chords',
+  'studio.hears.treble': 'hi-hats and air',
+  'studio.hears.spectrum': 'every frequency, fast or smooth',
+  'studio.hears.accent': 'a rare big moment, every few seconds',
 
   'studio.status.live': 'Updated from your last save',
   'studio.status.problem': 'The last working version is still playing',
   'studio.status.waiting': 'Waiting for a version that plays',
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
+  'studio.stage.startTitle': 'Your scene plays here',
+  'studio.stage.startBody':
+    'Start a project and FluidEQ makes its folder, with a scene that already moves. Your AI changes it from there.',
 
   'studio.meters.title': 'What it hears now',
   'studio.meter.level': 'Level',

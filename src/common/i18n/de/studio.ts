@@ -9,19 +9,29 @@ const studio = {
     'Das Studio gehört zu FluidEQ Plus. Beschreiben Sie Ihrer KI eine Szene und sehen Sie zu, wie sie zu Ihrer Musik lebendig wird, während die KI sie schreibt.',
   'studio.gate.cta': 'Plus ansehen',
 
-  'studio.start.title': 'Bauen Sie eine Szene mit Ihrer KI',
-  'studio.start.step1.title': 'Prompt kopieren',
-  'studio.start.step1.body':
-    'Er erklärt Ihrer KI, wie FluidEQ-Szenen aufgebaut sind.',
-  'studio.start.step2.title': 'Ihre Idee ergänzen',
-  'studio.start.step2.body': 'Ganz am Ende, in Ihren eigenen Worten.',
-  'studio.start.step3.title': 'Ordner verknüpfen',
-  'studio.start.step3.body':
-    'Speichern Sie die Dateien der KI in einem Ordner und verknüpfen Sie ihn. Die Szene spielt hier, während Sie sie ändern.',
+  'studio.maker.title': 'Mit Ihrer KI erstellen',
+  'studio.maker.describe': 'Beschreiben Sie Ihre Szene',
+  'studio.maker.placeholder':
+    'Was sie zeigt und was sich mit dem Beat, dem Bass oder den Höhen bewegt. Auch ein Foto von Ihnen kann lebendig werden.',
+  'studio.maker.examples': 'Oder mit einer Idee beginnen:',
+  'studio.maker.openTitle':
+    'Öffnen Sie den Projektordner in Ihrem KI-Assistenten',
+  'studio.maker.openBody':
+    'Jeder Assistent, der mit Dateien arbeitet: Claude, Cursor, Codex, Copilot. Mit einem Chat speichern Sie die Dateien, die er Ihnen gibt, in diesem Ordner.',
+  'studio.maker.openNoProject':
+    'Legen Sie zuerst ein Projekt an: In seinem Ordner arbeitet Ihre KI.',
+  'studio.maker.copyPath': 'Pfad kopieren',
+  'studio.maker.pathCopied': 'Pfad kopiert',
+  'studio.maker.pathCopyFailed':
+    'Die Zwischenablage ist nicht verfügbar. Der Pfad ist markiert; drücken Sie Strg+C.',
+  'studio.maker.pasteTitle': 'Fügen Sie dort diesen Prompt ein',
+  'studio.maker.pasteBody':
+    'Er erklärt Ihrer KI, wie FluidEQ-Szenen gebaut sind – mit Ihrer Idee am Ende. Jede Datei, die sie speichert, erscheint sofort auf der Bühne.',
+  'studio.maker.copied': 'Kopiert',
+  'studio.maker.showPrompt': 'Prompt ansehen',
+  'studio.maker.hidePrompt': 'Prompt ausblenden',
 
   'studio.action.copyPrompt': 'KI-Prompt kopieren',
-  'studio.action.createStarter': 'Startprojekt anlegen…',
-  'studio.action.linkFolder': 'Ordner verknüpfen…',
   'studio.action.showFolder': 'Ordner anzeigen',
   'studio.action.addToLooks': 'Zu meinen Darstellungen',
   'studio.action.export': 'Exportieren…',
@@ -31,22 +41,42 @@ const studio = {
   'studio.project.label': 'Projekt',
   'studio.project.group': 'Ihre Projekte',
   'studio.project.none': 'Projekt wählen',
+  'studio.project.empty': 'Noch kein Projekt',
+  'studio.project.add': 'Ordner öffnen…',
+  'studio.project.forget': '{name} aus der Liste entfernen',
   'studio.project.new': 'Neues Projekt…',
-  'studio.project.add': 'Ordner hinzufügen…',
-  'studio.project.forget': 'Aus der Liste entfernen',
   'studio.project.forgetHint':
     'Der Ordner und seine Dateien bleiben auf Ihrem Computer.',
+
+  'studio.new.title': 'Neues Projekt',
+  'studio.new.lead':
+    'Geben Sie ihm einen Namen. FluidEQ legt seinen Ordner an, mit einer Szene, die sich schon bewegt.',
+  'studio.new.name': 'Name',
+  'studio.new.placeholder': 'Nordlichter',
+  'studio.new.where': 'Es kommt nach',
+  'studio.new.change': 'Ändern…',
+  'studio.new.create': 'Projekt anlegen',
+  'studio.new.creating': 'Wird angelegt…',
+  'studio.new.cancel': 'Abbrechen',
+  'studio.new.exists':
+    'Dort gibt es schon einen Ordner namens {name}. Wählen Sie einen anderen Namen.',
+  'studio.new.invalid':
+    'Dieser Name kann kein Ordnername sein. Versuchen Sie Buchstaben und Ziffern.',
+  'studio.new.failed':
+    'Der Ordner konnte dort nicht angelegt werden. Wählen Sie mit „Ändern“ einen anderen Ort.',
 
   'studio.publish.title': '{name} veröffentlichen',
   'studio.publish.titleUpdate': '{name} in der Galerie aktualisieren',
   'studio.publish.version': 'Version {version}',
   'studio.publish.pictureAlt': '{name}, wie die Galerie es zeigt',
   'studio.publish.pictureHint':
-    'Gerade von der Bühne aufgenommen. So erscheint es in der Galerie.',
+    'Ihre Szene gerade eben auf der Bühne, zu einem lebhaften Test-Refrain. So erscheint sie in der Galerie.',
+  'studio.publish.retake': 'Neu aufnehmen',
+  'studio.publish.taking': 'Bild wird aufgenommen…',
   'studio.publish.category': 'Kategorie',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
   'studio.publish.point1':
-    'Jedes Plus-Mitglied findet sie unter „Visualizer“, kann sie zu seinen Darstellungen hinzufügen und liken.',
+    'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und liken.',
   'studio.publish.point2': 'Jedes Like bringt Ihnen Punkte in der Rangliste.',
   'studio.publish.point3':
     'Sie können sie jederzeit zurückziehen. Wer sie schon hinzugefügt hat, behält seine Kopie.',
@@ -73,14 +103,8 @@ const studio = {
   'studio.publish.outdated':
     'Die Plus-Bedingungen haben eine neuere Version. Aktualisieren Sie FluidEQ, um sie zu lesen und zu veröffentlichen.',
 
-  'studio.notice.copied':
-    'Kopiert. Fügen Sie ihn in Ihre KI ein und schreiben Sie Ihre Idee ans Ende.',
-  'studio.notice.copiedIdea':
-    'Mit dieser Idee am Ende kopiert. Fügen Sie ihn in Ihre KI ein.',
   'studio.notice.copyFailed':
     'Die Zwischenablage ist nicht verfügbar. Der Prompt ist unten markiert; drücken Sie Strg+C.',
-  'studio.notice.starterExists':
-    'Dieser Ordner enthält schon eine Szene. Wählen Sie einen leeren Ordner oder verknüpfen Sie stattdessen diesen.',
   'studio.notice.added':
     '{name} ist in Ihren Darstellungen, unter „Von Ihnen erstellt“.',
   'studio.notice.addFailed':
@@ -126,7 +150,6 @@ const studio = {
     'Diese Datei wurde nach dem Export verändert, daher spielt FluidEQ sie nicht ab.',
   'studio.import.blocked': 'Diese Szene wurde entfernt.',
 
-  'studio.ideas.title': 'Ideen für den Anfang – fügt die Idee an den Prompt an',
   'studio.idea.pet.label': 'Mein Haustier, lebendig',
   'studio.idea.pet.text':
     'Das Foto meines Haustiers. Die Ohren zucken bei jedem Schlag, der Schwanz wiegt sich mit dem Bass, die Augen leuchten mit den Höhen und der Hintergrund schimmert mit dem langsamen Spektrum.',
@@ -149,31 +172,22 @@ const studio = {
   'studio.prompt.label': 'Der KI-Prompt',
   'studio.prompt.ideaHere': '← hier kommt Ihre Idee hin',
 
-  'studio.hears.title': 'Was Ihre Szene hört',
-  'studio.hears.level.name': 'Pegel',
-  'studio.hears.level.body': 'die Gesamtlautstärke',
-  'studio.hears.beat.name': 'Schlag',
-  'studio.hears.beat.body': 'ein Puls bei jedem Schlag',
-  'studio.hears.bass.name': 'Bass',
-  'studio.hears.bass.body': 'das untere Ende, für sich',
-  'studio.hears.mid.name': 'Mitten',
-  'studio.hears.mid.body': 'Stimmen und Akkorde',
-  'studio.hears.treble.name': 'Höhen',
-  'studio.hears.treble.body': 'Becken und Luft',
-  'studio.hears.spectrum.name': 'Spektrum',
-  'studio.hears.spectrum.body': 'jede Frequenz, schnell oder geglättet',
-  'studio.hears.accent.name': 'Akzent',
-  'studio.hears.accent.body': 'ein großer Moment, alle paar Sekunden',
-  'studio.hears.waveform.name': 'Wellenform',
-  'studio.hears.waveform.body': 'die Form des Klangs',
-  'studio.hears.picture.name': 'Bild',
-  'studio.hears.picture.body': 'Ihr eigenes Bild, mit einer Maske pro Teil',
+  'studio.hears.level': 'die Gesamtlautstärke',
+  'studio.hears.beat': 'ein Puls bei jedem Schlag',
+  'studio.hears.bass': 'das untere Ende, für sich',
+  'studio.hears.mid': 'Stimmen und Akkorde',
+  'studio.hears.treble': 'Becken und Luft',
+  'studio.hears.spectrum': 'jede Frequenz, schnell oder geglättet',
+  'studio.hears.accent': 'ein großer Moment, alle paar Sekunden',
 
   'studio.status.live': 'Aktualisiert nach Ihrem letzten Speichern',
   'studio.status.problem': 'Die letzte funktionierende Version läuft weiter',
   'studio.status.waiting': 'Wartet auf eine Version, die spielt',
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
+  'studio.stage.startTitle': 'Hier läuft Ihre Szene',
+  'studio.stage.startBody':
+    'Legen Sie ein Projekt an, und FluidEQ richtet seinen Ordner mit einer Szene ein, die sich schon bewegt. Ihre KI ändert sie von dort aus.',
 
   'studio.meters.title': 'Was sie gerade hört',
   'studio.meter.level': 'Pegel',

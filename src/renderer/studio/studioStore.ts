@@ -3,7 +3,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type {
   IStudioState,
   TAddOutcome,
-  TStarterOutcome,
+  TNewProjectResult,
 } from 'main/ipc/memberScenes';
 import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
 import type { TPublishOutcome } from 'main/ipc/plusPublishing';
@@ -25,6 +25,13 @@ import type { TProjectBuild } from 'main/memberScenes/project';
  */
 
 export interface IStudioView {
+  /**
+   * The main process has answered at least once. Until then nothing is known
+   * — not even whether this account has Plus — and the Studio shows nothing
+   * rather than a guess: guessing "no Plus" flashed the Plus offer at every
+   * member who had it.
+   */
+  loaded: boolean;
   state: IStudioState;
   /** The newest build that became a pack. */
   pack?: IScenePack;
@@ -35,7 +42,8 @@ export interface IStudioView {
 }
 
 const INITIAL: IStudioView = {
-  state: { entitled: false, projects: [] },
+  loaded: false,
+  state: { entitled: false, projectsRoot: '', projects: [] },
   serial: 0,
 };
 
@@ -54,11 +62,17 @@ const adopt = (state: IStudioState) => {
   if (build?.ok) {
     // The main process never sends the same build twice, so each one that
     // arrives is a new version to put on the stage.
-    publish({ state, pack: build.pack, serial: view.serial + 1 });
+    publish({
+      loaded: true,
+      state,
+      pack: build.pack,
+      serial: view.serial + 1,
+    });
     return;
   }
   const sameProject = state.activeId === view.state.activeId;
   publish({
+    loaded: true,
     state,
     // Another project on the bench leaves nothing of this one worth keeping
     // on stage: the next build of the new one is what plays.
@@ -72,12 +86,14 @@ const adopt = (state: IStudioState) => {
 export const openStudioSession = (): (() => void) => {
   const api = bridge();
   const stop = api?.onStudioChanged?.(adopt) ?? (() => {});
-  api
-    ?.openStudio?.()
-    .then(adopt)
-    .catch(() => {
-      // No backend: the Studio shows its locked state, which is right.
-    });
+  // No backend: the Studio shows its locked state, which is right.
+  const locked = () => publish({ ...view, loaded: true });
+  const opened = api?.openStudio?.();
+  if (opened) {
+    opened.then(adopt).catch(locked);
+  } else {
+    locked();
+  }
   return () => {
     stop();
     api?.closeStudio?.().catch(() => undefined);
@@ -131,8 +147,22 @@ export const publishStudioScene = async (
     reason: 'offline',
   };
 
-export const createStudioStarter = async (): Promise<TStarterOutcome> =>
-  (await bridge()?.createStudioStarter?.()) ?? 'refused';
+/**
+ * Makes a project called `name` in the projects folder and opens it; the
+ * new state arrives the way every change does, through the session.
+ */
+export const createStudioProject = async (
+  name: string,
+): Promise<TNewProjectResult> =>
+  (await bridge()?.createStudioProject?.(name)) ?? 'refused';
+
+/** Asks, in the system dialog, where new projects should go from now on. */
+export const chooseStudioProjectsRoot = async () => {
+  const state = await bridge()?.chooseStudioProjectsRoot?.();
+  if (state) {
+    adopt(state);
+  }
+};
 
 export const addStudioSceneToLooks = async (): Promise<TAddOutcome> =>
   (await bridge()?.addStudioSceneToLooks?.()) ?? {

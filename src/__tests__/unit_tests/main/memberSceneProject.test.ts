@@ -132,14 +132,24 @@ describe('reading a project folder', () => {
 
 describe('the starter project', () => {
   it('writes a scene that passes every rule', async () => {
-    expect(await writeStarterProject(project)).toBe('written');
+    expect(
+      await writeStarterProject(project, {
+        name: 'My First Scene',
+        id: 'my-first-scene',
+      }),
+    ).toBe('written');
     const build = await readProject(project);
     expect(build.ok).toBe(true);
   });
 
   it('never writes over a project that is already there', async () => {
     write('pack.json', '{"mine": true}');
-    expect(await writeStarterProject(project)).toBe('exists');
+    expect(
+      await writeStarterProject(project, {
+        name: 'My First Scene',
+        id: 'my-first-scene',
+      }),
+    ).toBe('exists');
     expect(fs.readFileSync(path.join(project, 'pack.json'), 'utf8')).toBe(
       '{"mine": true}',
     );

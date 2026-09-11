@@ -152,7 +152,12 @@ describe('watching a project folder', () => {
   it('rebuilds when a file really changes on disk', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-watch-'));
     try {
-      expect(await writeStarterProject(root)).toBe('written');
+      expect(
+        await writeStarterProject(root, {
+          name: 'My First Scene',
+          id: 'my-first-scene',
+        }),
+      ).toBe('written');
       const versions: number[] = [];
       let waiting: ((version: number) => void) | undefined;
       const watcher = watchProject(root, (build) => {

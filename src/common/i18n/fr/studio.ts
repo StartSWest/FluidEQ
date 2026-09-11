@@ -10,19 +10,29 @@ const studio = {
     'Le Studio fait partie de FluidEQ Plus. Décrivez une scène à votre IA et regardez-la prendre vie sur votre musique pendant qu’elle l’écrit.',
   'studio.gate.cta': 'Découvrir Plus',
 
-  'studio.start.title': 'Créez une scène avec votre IA',
-  'studio.start.step1.title': 'Copiez le prompt',
-  'studio.start.step1.body':
-    'Il explique à votre IA comment les scènes de FluidEQ sont construites.',
-  'studio.start.step2.title': 'Ajoutez votre idée',
-  'studio.start.step2.body': 'Tout à la fin, avec vos propres mots.',
-  'studio.start.step3.title': 'Liez le dossier',
-  'studio.start.step3.body':
-    'Enregistrez dans un dossier les fichiers qu’elle vous donne et liez-le. La scène joue ici pendant que vous la modifiez.',
+  'studio.maker.title': 'Créez-la avec votre IA',
+  'studio.maker.describe': 'Décrivez votre scène',
+  'studio.maker.placeholder':
+    'Ce qu’elle montre, et ce qui bouge avec le rythme, les basses ou les aigus. Une de vos photos peut aussi prendre vie.',
+  'studio.maker.examples': 'Ou partez d’une idée :',
+  'studio.maker.openTitle':
+    'Ouvrez le dossier du projet dans votre assistant IA',
+  'studio.maker.openBody':
+    'Tout assistant qui travaille sur des fichiers : Claude, Cursor, Codex, Copilot. Avec un chat, enregistrez dans ce dossier les fichiers qu’il vous donne.',
+  'studio.maker.openNoProject':
+    'Créez d’abord un projet : son dossier est l’endroit où travaille votre IA.',
+  'studio.maker.copyPath': 'Copier le chemin',
+  'studio.maker.pathCopied': 'Chemin copié',
+  'studio.maker.pathCopyFailed':
+    'Le presse-papiers n’est pas disponible. Le chemin est sélectionné ; appuyez sur Ctrl+C.',
+  'studio.maker.pasteTitle': 'Collez-y ce prompt',
+  'studio.maker.pasteBody':
+    'Il explique à votre IA comment sont faites les scènes FluidEQ, avec votre idée à la fin. Chaque fichier qu’elle enregistre s’affiche aussitôt ici.',
+  'studio.maker.copied': 'Copié',
+  'studio.maker.showPrompt': 'Voir le prompt',
+  'studio.maker.hidePrompt': 'Masquer le prompt',
 
   'studio.action.copyPrompt': 'Copier le prompt IA',
-  'studio.action.createStarter': 'Créer un projet de départ…',
-  'studio.action.linkFolder': 'Lier un dossier…',
   'studio.action.showFolder': 'Afficher le dossier',
   'studio.action.addToLooks': 'Ajouter à mes styles',
   'studio.action.export': 'Exporter…',
@@ -32,22 +42,42 @@ const studio = {
   'studio.project.label': 'Projet',
   'studio.project.group': 'Vos projets',
   'studio.project.none': 'Choisir un projet',
+  'studio.project.empty': 'Aucun projet pour l’instant',
+  'studio.project.add': 'Ouvrir un dossier…',
+  'studio.project.forget': 'Retirer {name} de la liste',
   'studio.project.new': 'Nouveau projet…',
-  'studio.project.add': 'Ajouter un dossier…',
-  'studio.project.forget': 'Retirer de la liste',
   'studio.project.forgetHint':
     'Le dossier et ses fichiers restent sur votre ordinateur.',
+
+  'studio.new.title': 'Nouveau projet',
+  'studio.new.lead':
+    'Donnez-lui un nom. FluidEQ crée son dossier, avec une scène qui bouge déjà.',
+  'studio.new.name': 'Nom',
+  'studio.new.placeholder': 'Aurores boréales',
+  'studio.new.where': 'Il sera dans',
+  'studio.new.change': 'Changer…',
+  'studio.new.create': 'Créer le projet',
+  'studio.new.creating': 'Création…',
+  'studio.new.cancel': 'Annuler',
+  'studio.new.exists':
+    'Il y a déjà un dossier nommé {name} à cet endroit. Choisissez un autre nom.',
+  'studio.new.invalid':
+    'Ce nom ne peut pas être un nom de dossier. Essayez des lettres et des chiffres.',
+  'studio.new.failed':
+    'Le dossier n’a pas pu être créé à cet endroit. Choisissez-en un autre avec Changer.',
 
   'studio.publish.title': 'Publier {name}',
   'studio.publish.titleUpdate': 'Mettre à jour {name} dans la galerie',
   'studio.publish.version': 'Version {version}',
   'studio.publish.pictureAlt': '{name}, tel que la galerie l’affichera',
   'studio.publish.pictureHint':
-    'Prise sur la scène à l’instant. C’est ainsi qu’elle apparaîtra dans la galerie.',
+    'Votre scène à l’instant dans le Studio, sur un refrain de test animé. C’est ainsi qu’elle apparaîtra dans la galerie.',
+  'studio.publish.retake': 'En prendre une autre',
+  'studio.publish.taking': 'Prise de l’image…',
   'studio.publish.category': 'Catégorie',
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.point1':
-    'Tout membre Plus pourra la trouver dans Visualiseurs, l’ajouter à ses styles et l’aimer.',
+    'Toute personne connectée la verra dans Visualiseurs. Les membres Plus pourront la lancer, l’ajouter à leurs styles et l’aimer.',
   'studio.publish.point2':
     'Chaque « j’aime » vous rapporte des points au classement.',
   'studio.publish.point3':
@@ -73,14 +103,8 @@ const studio = {
   'studio.publish.outdated':
     'Les conditions Plus ont une version plus récente. Mettez FluidEQ à jour pour la lire et publier.',
 
-  'studio.notice.copied':
-    'Copié. Collez-le dans votre IA et écrivez votre idée à la fin.',
-  'studio.notice.copiedIdea':
-    'Copié avec cette idée à la fin. Collez-le dans votre IA.',
   'studio.notice.copyFailed':
     'Le presse-papiers n’est pas disponible. Le prompt est sélectionné ci-dessous ; appuyez sur Ctrl+C.',
-  'studio.notice.starterExists':
-    'Ce dossier contient déjà une scène. Choisissez un dossier vide, ou liez plutôt celui-ci.',
   'studio.notice.added': '{name} est dans vos styles, sous Créés par vous.',
   'studio.notice.addFailed':
     'Cette version pourra être ajoutée une fois qu’elle jouera.',
@@ -122,7 +146,6 @@ const studio = {
     'Ce fichier a été modifié après son exportation, FluidEQ ne le jouera donc pas.',
   'studio.import.blocked': 'Cette scène a été retirée.',
 
-  'studio.ideas.title': 'Idées pour commencer — ajoute l’idée au prompt',
   'studio.idea.pet.label': 'Mon animal, vivant',
   'studio.idea.pet.text':
     'La photo de mon animal. Les oreilles frémissent à chaque temps, la queue se balance avec les basses, les yeux brillent avec les aigus et le fond scintille avec le spectre lent.',
@@ -145,31 +168,22 @@ const studio = {
   'studio.prompt.label': 'Le prompt IA',
   'studio.prompt.ideaHere': '← votre idée ici',
 
-  'studio.hears.title': 'Ce que votre scène entend',
-  'studio.hears.level.name': 'Niveau',
-  'studio.hears.level.body': 'le volume général',
-  'studio.hears.beat.name': 'Temps',
-  'studio.hears.beat.body': 'une pulsation à chaque temps',
-  'studio.hears.bass.name': 'Basses',
-  'studio.hears.bass.body': 'le bas du spectre, à part',
-  'studio.hears.mid.name': 'Médiums',
-  'studio.hears.mid.body': 'voix et accords',
-  'studio.hears.treble.name': 'Aigus',
-  'studio.hears.treble.body': 'cymbales et air',
-  'studio.hears.spectrum.name': 'Spectre',
-  'studio.hears.spectrum.body': 'chaque fréquence, rapide ou lissée',
-  'studio.hears.accent.name': 'Accent',
-  'studio.hears.accent.body': 'un grand moment, toutes les quelques secondes',
-  'studio.hears.waveform.name': 'Forme d’onde',
-  'studio.hears.waveform.body': 'la forme du son',
-  'studio.hears.picture.name': 'Image',
-  'studio.hears.picture.body': 'votre propre image, avec un masque par partie',
+  'studio.hears.level': 'le volume général',
+  'studio.hears.beat': 'une pulsation à chaque temps',
+  'studio.hears.bass': 'le bas du spectre, à part',
+  'studio.hears.mid': 'voix et accords',
+  'studio.hears.treble': 'cymbales et air',
+  'studio.hears.spectrum': 'chaque fréquence, rapide ou lissée',
+  'studio.hears.accent': 'un grand moment, toutes les quelques secondes',
 
   'studio.status.live': 'Mis à jour depuis votre dernier enregistrement',
   'studio.status.problem': 'La dernière version qui fonctionne joue toujours',
   'studio.status.waiting': 'En attente d’une version qui joue',
   'studio.empty': 'Rien à montrer pour l’instant',
   'studio.stage.label': '{name}, en direct',
+  'studio.stage.startTitle': 'Votre scène s’affiche ici',
+  'studio.stage.startBody':
+    'Créez un projet : FluidEQ prépare son dossier avec une scène qui bouge déjà. Votre IA la modifie à partir de là.',
 
   'studio.meters.title': 'Ce qu’elle entend maintenant',
   'studio.meter.level': 'Niveau',

@@ -62,6 +62,7 @@ const setup = () => {
   return registerMemberScenesIpc({
     getMainWindow: () => window,
     userDataDir: path.join(root, 'userData'),
+    documentsDir: path.join(root, 'Documents'),
     session: {
       state: () => ({ status: 'signed-in', identity: { id: ME } }),
     } as never,
@@ -98,7 +99,10 @@ afterEach(() => {
 const project = async () => {
   const folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
-  await writeStarterProject(folder);
+  await writeStarterProject(folder, {
+    name: 'My First Scene',
+    id: 'my-first-scene',
+  });
   return folder;
 };
 
@@ -141,7 +145,7 @@ describe('member scenes over IPC', () => {
     status = { state: 'none' };
     listeners.forEach((listener) => listener(status));
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
-    expect(await invoke('studio-create-starter')).toBe('refused');
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('refused');
     expect(await invoke('studio-add-to-looks')).toEqual({
       ok: false,
       reason: 'not-entitled',
@@ -164,13 +168,55 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('never writes a starter over an existing scene', async () => {
+  it('makes a named project in the projects folder, and opens it', async () => {
     const registration = setup();
-    chosen = await project();
-    expect(await invoke('studio-create-starter')).toBe('exists');
-    chosen = undefined;
-    expect(await invoke('studio-create-starter')).toBe('cancelled');
+    const opened = await invoke<Promise<IStudioState>>('studio-open');
+    const documents = path.join(root, 'Documents');
+    expect(opened.projectsRoot).toBe(path.join(documents, 'FluidEQ Studio'));
+
+    expect(await invoke('studio-create-project', 'Northern Lights')).toBe(
+      'written',
+    );
+    const folder = path.join(documents, 'FluidEQ Studio', 'Northern Lights');
+    expect(
+      JSON.parse(fs.readFileSync(path.join(folder, 'pack.json'), 'utf8')),
+    ).toMatchObject({
+      id: 'northern-lights',
+      names: { en: 'Northern Lights' },
+    });
+    const state = await invoke<Promise<IStudioState>>('studio-open');
+    const active = state.projects.find((entry) => entry.id === state.activeId);
+    expect(active?.path).toBe(folder);
     registration.dispose();
+  });
+
+  it('never writes a project over a folder that is there, or from a path', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    expect(await invoke('studio-create-project', 'Deep Sea')).toBe('written');
+    expect(await invoke('studio-create-project', 'Deep Sea')).toBe('exists');
+    expect(await invoke('studio-create-project', '..')).toBe('invalid');
+    expect(await invoke('studio-create-project', { path: 'C:\\' })).toBe(
+      'invalid',
+    );
+    registration.dispose();
+  });
+
+  it('remembers where new projects go once the member chooses', async () => {
+    const registration = setup();
+    chosen = path.join(root, 'My scenes');
+    fs.mkdirSync(chosen);
+    const state = await invoke<Promise<IStudioState>>('studio-choose-root');
+    expect(state.projectsRoot).toBe(chosen);
+    expect(await invoke('studio-create-project', 'Vinyl')).toBe('written');
+    expect(fs.existsSync(path.join(chosen, 'Vinyl', 'pack.json'))).toBe(true);
+    registration.dispose();
+    // And after a restart.
+    const again = setup();
+    expect(
+      (await invoke<Promise<IStudioState>>('studio-open')).projectsRoot,
+    ).toBe(chosen);
+    again.dispose();
   });
 
   it('keeps many projects, and works on the one that is open', async () => {
@@ -178,7 +224,10 @@ describe('member scenes over IPC', () => {
     const city = await project();
     const sea = path.join(root, 'sea');
     fs.mkdirSync(sea);
-    await writeStarterProject(sea);
+    await writeStarterProject(sea, {
+      name: 'My First Scene',
+      id: 'my-first-scene',
+    });
     fs.writeFileSync(
       path.join(sea, 'pack.json'),
       fs

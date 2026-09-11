@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import StudioBench from './StudioBench';
-import StudioStart from './StudioStart';
 import { openStudioSession, useStudio } from './studioStore';
 import '../styles/Studio.scss';
+import '../styles/StudioStage.scss';
+import '../styles/StudioMaker.scss';
 
 /**
  * The Studio, as the main area of the Plus tab.
@@ -22,8 +23,11 @@ export default function StudioPanel() {
   useEffect(() => openStudioSession(), []);
 
   const { state } = view;
-  let body = <StudioStart />;
-  if (!state.entitled) {
+  let body: ReactNode = <StudioBench view={view} />;
+  if (!view.loaded) {
+    // A moment, the first time only: the store keeps what it last heard.
+    body = null;
+  } else if (!state.entitled) {
     body = (
       <div className="studio-gate">
         <span className="studio-gate__mark" aria-hidden="true">
@@ -43,8 +47,6 @@ export default function StudioPanel() {
         </button>
       </div>
     );
-  } else if (state.activeId) {
-    body = <StudioBench view={view} />;
   }
 
   return (

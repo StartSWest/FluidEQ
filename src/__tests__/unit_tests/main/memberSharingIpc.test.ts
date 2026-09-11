@@ -155,7 +155,10 @@ beforeEach(async () => {
   switchDuringToken = false;
   folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
-  await writeStarterProject(folder);
+  await writeStarterProject(folder, {
+    name: 'My First Scene',
+    id: 'my-first-scene',
+  });
 });
 
 afterEach(() => {

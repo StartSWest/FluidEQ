@@ -1,7 +1,7 @@
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 
 /**
- * What "Create starter project" writes: a scene that already moves with the
+ * What "New project" writes: a scene that already moves with the
  * music, so the stage has something alive on it before anybody has asked an
  * AI for anything — and a working example of every channel for the AI to
  * build on. Aurora curtains follow the slow spectrum, stars answer the treble,
@@ -14,20 +14,22 @@ import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
  * with a constant bound, nothing outside plain ASCII. A test holds it to them.
  */
 
-export const STARTER_MANIFEST = `${JSON.stringify(
-  {
-    id: 'my-first-scene',
-    version: 1,
-    contract: SCENE_CONTRACT_VERSION,
-    names: { en: 'My First Scene' },
-    fallbackStyle: 'ridge',
-    swatch: ['#030414', '#19f2b3', '#8c4dff'],
-    sourceFile: 'scene.frag',
-    params: [],
-  },
-  null,
-  2,
-)}\n`;
+/** The starter's `pack.json`, named for the project it starts. */
+export const starterManifest = (name: string, id: string) =>
+  `${JSON.stringify(
+    {
+      id,
+      version: 1,
+      contract: SCENE_CONTRACT_VERSION,
+      names: { en: name },
+      fallbackStyle: 'ridge',
+      swatch: ['#030414', '#19f2b3', '#8c4dff'],
+      sourceFile: 'scene.frag',
+      params: [],
+    },
+    null,
+    2,
+  )}\n`;
 
 export const STARTER_SOURCE = `// My first FluidEQ scene. Ask your AI to change anything in it.
 // uv runs 0..1 across the panel, origin bottom-left. Return premultiplied

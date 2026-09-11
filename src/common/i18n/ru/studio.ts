@@ -9,19 +9,28 @@ const studio = {
     'Студия входит в FluidEQ Plus. Опишите сцену своему ИИ и смотрите, как она оживает под вашу музыку, пока ИИ её пишет.',
   'studio.gate.cta': 'Узнать о Plus',
 
-  'studio.start.title': 'Создайте сцену с вашим ИИ',
-  'studio.start.step1.title': 'Скопируйте промпт',
-  'studio.start.step1.body':
-    'Он объясняет вашему ИИ, как устроены сцены FluidEQ.',
-  'studio.start.step2.title': 'Добавьте свою идею',
-  'studio.start.step2.body': 'В самом конце, своими словами.',
-  'studio.start.step3.title': 'Подключите папку',
-  'studio.start.step3.body':
-    'Сохраните файлы, которые он выдаст, в папку и подключите её. Сцена играет здесь, пока вы её меняете.',
+  'studio.maker.title': 'Создайте её с вашим ИИ',
+  'studio.maker.describe': 'Опишите сцену',
+  'studio.maker.placeholder':
+    'Что на ней видно и что движется в такт ударам, басам или верхам. Ожить может и ваше фото.',
+  'studio.maker.examples': 'Или начните с готовой:',
+  'studio.maker.openTitle': 'Откройте папку проекта в вашем ИИ-ассистенте',
+  'studio.maker.openBody':
+    'Подойдёт любой ассистент, который работает с файлами: Claude, Cursor, Codex, Copilot. Если это чат, сохраните в эту папку файлы, которые он даст.',
+  'studio.maker.openNoProject':
+    'Сначала создайте проект: в его папке и работает ваш ИИ.',
+  'studio.maker.copyPath': 'Скопировать путь',
+  'studio.maker.pathCopied': 'Путь скопирован',
+  'studio.maker.pathCopyFailed':
+    'Буфер обмена недоступен. Путь выделен; нажмите Ctrl+C.',
+  'studio.maker.pasteTitle': 'Вставьте в него этот промпт',
+  'studio.maker.pasteBody':
+    'Он объясняет ИИ, как устроены сцены FluidEQ, а в конце — ваша идея. Каждый сохранённый им файл сразу видно здесь.',
+  'studio.maker.copied': 'Скопировано',
+  'studio.maker.showPrompt': 'Показать промпт',
+  'studio.maker.hidePrompt': 'Скрыть промпт',
 
   'studio.action.copyPrompt': 'Скопировать промпт для ИИ',
-  'studio.action.createStarter': 'Создать стартовый проект…',
-  'studio.action.linkFolder': 'Подключить папку…',
   'studio.action.showFolder': 'Показать папку',
   'studio.action.addToLooks': 'Добавить в мои оформления',
   'studio.action.export': 'Экспортировать…',
@@ -31,22 +40,41 @@ const studio = {
   'studio.project.label': 'Проект',
   'studio.project.group': 'Ваши проекты',
   'studio.project.none': 'Выберите проект',
+  'studio.project.empty': 'Проектов пока нет',
+  'studio.project.add': 'Открыть папку…',
+  'studio.project.forget': 'Убрать {name} из списка',
   'studio.project.new': 'Новый проект…',
-  'studio.project.add': 'Добавить папку…',
-  'studio.project.forget': 'Убрать из списка',
   'studio.project.forgetHint':
     'Папка и её файлы останутся на вашем компьютере.',
+
+  'studio.new.title': 'Новый проект',
+  'studio.new.lead':
+    'Дайте ему название. FluidEQ создаст его папку со сценой, которая уже движется.',
+  'studio.new.name': 'Название',
+  'studio.new.placeholder': 'Северное сияние',
+  'studio.new.where': 'Будет в папке',
+  'studio.new.change': 'Изменить…',
+  'studio.new.create': 'Создать проект',
+  'studio.new.creating': 'Создаётся…',
+  'studio.new.cancel': 'Отмена',
+  'studio.new.exists': 'Там уже есть папка {name}. Выберите другое название.',
+  'studio.new.invalid':
+    'Такое название не может быть именем папки. Используйте буквы и цифры.',
+  'studio.new.failed':
+    'Не удалось создать там папку. Выберите другое место кнопкой «Изменить».',
 
   'studio.publish.title': 'Опубликовать «{name}»',
   'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
   'studio.publish.version': 'Версия {version}',
   'studio.publish.pictureAlt': '«{name}» так, как её покажет галерея',
   'studio.publish.pictureHint':
-    'Снято со сцены только что. Так она будет выглядеть в галерее.',
+    'Ваша сцена только что в Студии, под бодрый тестовый припев. Так она будет выглядеть в галерее.',
+  'studio.publish.retake': 'Снять ещё раз',
+  'studio.publish.taking': 'Снимаем картинку…',
   'studio.publish.category': 'Категория',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
   'studio.publish.point1':
-    'Любой участник Plus найдёт её в разделе «Визуализаторы», добавит в свои оформления и сможет лайкнуть.',
+    'Её увидит в «Визуализаторах» любой, кто вошёл в FluidEQ. Участники Plus смогут запускать её, добавлять в свои оформления и лайкать.',
   'studio.publish.point2': 'Каждый лайк приносит вам очки в таблице лидеров.',
   'studio.publish.point3':
     'Вы можете снять её с публикации в любой момент. Кто уже добавил её, сохранит свою копию.',
@@ -71,14 +99,8 @@ const studio = {
   'studio.publish.outdated':
     'У условий Plus есть новая версия. Обновите FluidEQ, чтобы прочитать её и опубликовать.',
 
-  'studio.notice.copied':
-    'Скопировано. Вставьте в свой ИИ и допишите идею в конце.',
-  'studio.notice.copiedIdea':
-    'Скопировано вместе с этой идеей в конце. Вставьте в свой ИИ.',
   'studio.notice.copyFailed':
     'Буфер обмена недоступен. Промпт выделен ниже; нажмите Ctrl+C.',
-  'studio.notice.starterExists':
-    'В этой папке уже есть сцена. Выберите пустую папку или подключите эту.',
   'studio.notice.added':
     '{name} — в ваших оформлениях, в разделе «Созданы вами».',
   'studio.notice.addFailed':
@@ -122,7 +144,6 @@ const studio = {
     'Этот файл изменили после экспорта, поэтому FluidEQ не будет его воспроизводить.',
   'studio.import.blocked': 'Эта сцена удалена.',
 
-  'studio.ideas.title': 'Идеи для начала — добавляют идею в промпт',
   'studio.idea.pet.label': 'Мой питомец, живой',
   'studio.idea.pet.text':
     'Фото моего питомца. Уши дёргаются на каждый удар, хвост покачивается с басами, глаза светятся с высокими, а фон мерцает с медленным спектром.',
@@ -145,31 +166,22 @@ const studio = {
   'studio.prompt.label': 'Промпт для ИИ',
   'studio.prompt.ideaHere': '← здесь ваша идея',
 
-  'studio.hears.title': 'Что слышит ваша сцена',
-  'studio.hears.level.name': 'Уровень',
-  'studio.hears.level.body': 'общая громкость',
-  'studio.hears.beat.name': 'Удар',
-  'studio.hears.beat.body': 'импульс на каждом ударе',
-  'studio.hears.bass.name': 'Басы',
-  'studio.hears.bass.body': 'нижние частоты отдельно',
-  'studio.hears.mid.name': 'Средние',
-  'studio.hears.mid.body': 'голоса и аккорды',
-  'studio.hears.treble.name': 'Высокие',
-  'studio.hears.treble.body': 'тарелки и воздух',
-  'studio.hears.spectrum.name': 'Спектр',
-  'studio.hears.spectrum.body': 'каждая частота, быстро или плавно',
-  'studio.hears.accent.name': 'Акцент',
-  'studio.hears.accent.body': 'яркий момент раз в несколько секунд',
-  'studio.hears.waveform.name': 'Форма волны',
-  'studio.hears.waveform.body': 'форма звука',
-  'studio.hears.picture.name': 'Изображение',
-  'studio.hears.picture.body': 'ваша картинка, с маской для каждой части',
+  'studio.hears.level': 'общая громкость',
+  'studio.hears.beat': 'импульс на каждом ударе',
+  'studio.hears.bass': 'нижние частоты отдельно',
+  'studio.hears.mid': 'голоса и аккорды',
+  'studio.hears.treble': 'тарелки и воздух',
+  'studio.hears.spectrum': 'каждая частота, быстро или плавно',
+  'studio.hears.accent': 'яркий момент раз в несколько секунд',
 
   'studio.status.live': 'Обновлено после последнего сохранения',
   'studio.status.problem': 'Последняя рабочая версия продолжает играть',
   'studio.status.waiting': 'Ждём версию, которая заиграет',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
+  'studio.stage.startTitle': 'Здесь будет ваша сцена',
+  'studio.stage.startBody':
+    'Создайте проект, и FluidEQ подготовит его папку со сценой, которая уже движется. Дальше её меняет ваш ИИ.',
 
   'studio.meters.title': 'Что она слышит сейчас',
   'studio.meter.level': 'Уровень',

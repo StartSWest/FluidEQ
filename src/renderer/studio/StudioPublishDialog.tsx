@@ -14,14 +14,18 @@ interface IStudioPublishDialogProps {
   version: number;
   draft: IPublishDraft;
   running: boolean;
+  /** Another picture is being taken from the stage. */
+  retaking: boolean;
+  onRetake: () => void;
   onPublish: (category: TPlusCategory) => void;
   onCancel: () => void;
 }
 
 /**
- * Publishing a scene to the gallery: the picture it will show with — taken
- * from the stage a moment ago — a category from the fixed list, and the three
- * sentences that matter about what publishing means.
+ * Publishing a scene to the gallery: the picture it will show with — the real
+ * scene, taken from the stage a moment ago while it played the showcase, and
+ * taken again from a later moment on request — a category from the fixed
+ * list, and the three sentences that matter about what publishing means.
  *
  * The category is chosen, never typed: nothing reaches the gallery that a
  * member wrote except the scene's own name, which the app already checked.
@@ -33,6 +37,8 @@ export default function StudioPublishDialog({
   version,
   draft,
   running,
+  retaking,
+  onRetake,
   onPublish,
   onCancel,
 }: IStudioPublishDialogProps) {
@@ -81,11 +87,19 @@ export default function StudioPublishDialog({
         </div>
 
         <div className="studio-publish__scene">
-          <img
-            className="studio-publish__picture"
-            src={draft.pictureUrl}
-            alt={t('studio.publish.pictureAlt', { name })}
-          />
+          <span className="studio-publish__frame" aria-busy={retaking}>
+            <img
+              className="studio-publish__picture"
+              src={draft.pictureUrl}
+              alt={t('studio.publish.pictureAlt', { name })}
+            />
+            {retaking && (
+              <span className="studio-publish__taking" role="status">
+                <span className="gallery-preview__spinner" aria-hidden="true" />
+                {t('studio.publish.taking')}
+              </span>
+            )}
+          </span>
           <span className="studio-publish__about">
             <strong>{name}</strong>
             <span>
@@ -94,6 +108,15 @@ export default function StudioPublishDialog({
             <span className="studio-publish__hint">
               {t('studio.publish.pictureHint')}
             </span>
+            <button
+              type="button"
+              className="button small subtle studio-publish__retake"
+              disabled={running || retaking}
+              onClick={onRetake}
+            >
+              <Glyph name="refresh" />
+              {t('studio.publish.retake')}
+            </button>
           </span>
         </div>
 

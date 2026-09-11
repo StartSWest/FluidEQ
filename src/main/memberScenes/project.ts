@@ -16,7 +16,7 @@ import {
   type IScenePack,
   type TLocalizedName,
 } from '../../common/scenePacks';
-import { STARTER_MANIFEST, STARTER_SOURCE } from './starterScene';
+import { STARTER_SOURCE, starterManifest } from './starterScene';
 
 /**
  * A member's project folder, turned into a scene pack — the job
@@ -249,7 +249,8 @@ const exists = async (target: string) => {
 };
 
 /**
- * Writes the starter project into `folder`, or reports that one is there.
+ * Writes the starter project into `folder`, its scene named for the project
+ * (see `projectFolders.ts`), or reports that one is there.
  *
  * Both files are created exclusively (`wx`), so even a file that appears
  * between the check and the write is never overwritten: somebody's work is
@@ -257,15 +258,17 @@ const exists = async (target: string) => {
  */
 export const writeStarterProject = async (
   folder: string,
+  named: { name: string; id: string },
 ): Promise<'written' | 'exists'> => {
   const manifestPath = path.join(folder, MANIFEST_FILE);
   const sourcePath = path.join(folder, DEFAULT_SOURCE_FILE);
   if ((await exists(manifestPath)) || (await exists(sourcePath))) {
     return 'exists';
   }
+  const manifest = starterManifest(named.name, named.id);
   try {
     await fs.promises.writeFile(sourcePath, STARTER_SOURCE, { flag: 'wx' });
-    await fs.promises.writeFile(manifestPath, STARTER_MANIFEST, { flag: 'wx' });
+    await fs.promises.writeFile(manifestPath, manifest, { flag: 'wx' });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
       return 'exists';

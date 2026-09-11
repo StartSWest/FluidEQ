@@ -24,7 +24,11 @@ export type TCommunityGlyph =
   | 'studio'
   | 'heart'
   | 'plus'
-  | 'folder';
+  | 'folder'
+  | 'copy'
+  | 'check'
+  | 'download'
+  | 'close';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -221,6 +225,26 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M16.2 3.2v3.3h-3.3" />
           </>
         );
+      case 'copy':
+        // Two sheets: the one you have, and the copy of it.
+        return (
+          <>
+            <rect x="7" y="7" width="10" height="10" rx="1.8" />
+            <path d="M13 4.5A1.5 1.5 0 0 0 11.5 3H4.5A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13" />
+          </>
+        );
+      case 'check':
+        return <path d="M4 10.5 8 14.5 16 6" />;
+      case 'download':
+        // An arrow into a tray: what comes in.
+        return (
+          <>
+            <path d="M10 3.5V13M5.8 8.9 10 13l4.2-4.1" />
+            <path d="M3.5 12.5v2.5A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-2.5" />
+          </>
+        );
+      case 'close':
+        return <path d="M5 5l10 10M15 5 5 15" />;
       case 'channel':
       default:
         return <path d="M8 3 6.5 17M13.5 3 12 17M3.5 7.5h14M2.5 12.5h14" />;

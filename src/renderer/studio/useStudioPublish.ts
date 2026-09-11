@@ -1,23 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IPublishedScene, TPlusCategory } from 'common/plusGallery';
 import { PLUS_TERMS_VERSION } from 'common/plusTerms';
 import { requestAccountPanel } from '../account/accountPanel';
+import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
 import { markGalleryStale } from '../plus/galleryStore';
-import type { TStillTaker } from './StudioStage';
 import {
   publishStudioScene,
   studioTermsAgreed,
   type IStudioView,
 } from './studioStore';
 import type { ISharingNotice } from './useStudioSharing';
-
-/** The gallery's picture: the size the server accepts, and the size it shows. */
-const STILL_WIDTH = 480;
-const STILL_HEIGHT = 270;
-/** The server refuses a picture over 256KB; this leaves a wide margin. */
-const STILL_QUALITIES = [0.86, 0.7, 0.5] as const;
-const MAX_STILL_BYTES = 240 * 1024;
 
 const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   terms: 'studio.publish.outdated',
@@ -42,102 +35,45 @@ export interface IPublishDraft {
   agreed: boolean;
 }
 
-const encode = (canvas: HTMLCanvasElement, quality: number) =>
-  new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, 'image/webp', quality);
-  });
-
-const asDataUrl = (blob: Blob) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-
-/**
- * The stage's frame, cropped to fill 16:9 and scaled to the gallery's size.
- * Drawn onto a 2D canvas at once — the WebGL frame is gone after this task —
- * and encoded from there at leisure.
- */
-const cropStill = (
-  source: HTMLCanvasElement,
-): HTMLCanvasElement | undefined => {
-  const still = document.createElement('canvas');
-  still.width = STILL_WIDTH;
-  still.height = STILL_HEIGHT;
-  const context = still.getContext('2d');
-  if (!context || source.width < 2 || source.height < 2) {
-    return undefined;
-  }
-  const scale = Math.max(
-    STILL_WIDTH / source.width,
-    STILL_HEIGHT / source.height,
-  );
-  const width = STILL_WIDTH / scale;
-  const height = STILL_HEIGHT / scale;
-  context.drawImage(
-    source,
-    (source.width - width) / 2,
-    (source.height - height) / 2,
-    width,
-    height,
-    0,
-    0,
-    STILL_WIDTH,
-    STILL_HEIGHT,
-  );
-  return still;
-};
-
-/** The first quality whose WebP fits, tried in order; each only if the last was too big. */
-const encodeStill = async (
-  still: HTMLCanvasElement,
-  qualities: readonly number[] = STILL_QUALITIES,
-): Promise<Blob | undefined> => {
-  const [quality, ...rest] = qualities;
-  if (quality === undefined) {
-    return undefined;
-  }
-  const blob = await encode(still, quality);
-  return blob && blob.type === 'image/webp' && blob.size <= MAX_STILL_BYTES
-    ? blob
-    : encodeStill(still, rest);
-};
-
-/** The still, as the bytes sent and the picture the dialog shows. */
+/** The picture, as the bytes sent and the image the dialog shows. */
 const readStill = async (blob: Blob) => ({
   picture: new Uint8Array(await blob.arrayBuffer()),
-  pictureUrl: await asDataUrl(blob),
+  pictureUrl: await blobAsDataUrl(blob),
 });
 
 /**
- * Publish, from the Studio: a still of the stage, the dialog, and everything
- * the server can say back.
+ * Publish, from the Studio: a picture of the scene, the dialog, and
+ * everything the server can say back.
  *
- * The still is taken from the frame the stage draws next — an event, not a
- * guess at when one will be ready — and if the stage stops before it draws
- * one, the request is dropped and said so.
+ * The picture is the real scene — this version of the project's own pack,
+ * drawn on the showcase signal, a busy chorus over moving noise, so it is
+ * caught reacting whatever the member was testing with. It is drawn off the
+ * stage and at the gallery's full quality (see `sceneStill.ts`): the stage
+ * may be running at a fraction of its size on this machine, and the picture
+ * is what every other member judges the scene by. "Take another" draws the
+ * next moment of the same run.
  */
 export default function useStudioPublish(
   view: IStudioView,
   playing: boolean,
   name: string,
 ) {
-  const stillRef = useRef<TStillTaker | undefined>(undefined);
   const [capturing, setCapturing] = useState(false);
   const [draft, setDraft] = useState<IPublishDraft>();
   const [publishing, setPublishing] = useState(false);
   const [notice, setNotice] = useState<ISharingNotice>();
-  const packId = view.pack?.id;
+  /** Which moment the next picture is of; each retake moves it on. */
+  const moment = useRef(0);
+  const { pack } = view;
+  const packId = pack?.id;
 
-  useEffect(() => {
-    if (capturing && !playing) {
-      stillRef.current = undefined;
-      setCapturing(false);
-      setNotice({ ok: false, key: 'studio.publish.noPicture' });
+  const takePicture = useCallback(async () => {
+    if (!pack) {
+      return undefined;
     }
-  }, [capturing, playing]);
+    const blob = await renderSceneStill(pack, { moment: moment.current });
+    return blob ? readStill(blob) : undefined;
+  }, [pack]);
 
   const begin = useCallback(() => {
     if (capturing || !playing) {
@@ -145,9 +81,7 @@ export default function useStudioPublish(
     }
     setNotice(undefined);
     setCapturing(true);
-    const taken = new Promise<HTMLCanvasElement | undefined>((resolve) => {
-      stillRef.current = (canvas) => resolve(cropStill(canvas));
-    });
+    moment.current = 0;
     const published = window.electron?.ipcRenderer
       ?.myPublishedScenes?.()
       .then((outcome) =>
@@ -156,10 +90,8 @@ export default function useStudioPublish(
           : undefined,
       )
       .catch(() => undefined);
-    Promise.all([taken, published, studioTermsAgreed()])
-      .then(async ([still, alreadyPublished, agreed]) => {
-        const blob = still ? await encodeStill(still) : undefined;
-        const read = blob ? await readStill(blob) : undefined;
+    Promise.all([takePicture(), published, studioTermsAgreed()])
+      .then(([read, alreadyPublished, agreed]) => {
         setCapturing(false);
         if (!read) {
           setNotice({ ok: false, key: 'studio.publish.noPicture' });
@@ -176,7 +108,25 @@ export default function useStudioPublish(
         setCapturing(false);
         setNotice({ ok: false, key: 'studio.publish.noPicture' });
       });
-  }, [capturing, playing, packId]);
+  }, [capturing, playing, packId, takePicture]);
+
+  /** Another picture for the open dialog, from a later moment. */
+  const retake = useCallback(() => {
+    if (capturing || !playing || !draft) {
+      return;
+    }
+    setCapturing(true);
+    moment.current += 1;
+    takePicture()
+      .then((read) => {
+        setCapturing(false);
+        if (read) {
+          setDraft((current) => (current ? { ...current, ...read } : current));
+        }
+        return undefined;
+      })
+      .catch(() => setCapturing(false));
+  }, [capturing, playing, draft, takePicture]);
 
   const publish = useCallback(
     (category: TPlusCategory) => {
@@ -218,12 +168,12 @@ export default function useStudioPublish(
   );
 
   return {
-    stillRef,
     capturing,
     draft,
     publishing,
     notice,
     begin,
+    retake,
     publish,
     cancel: () => setDraft(undefined),
   };

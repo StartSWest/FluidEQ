@@ -9,19 +9,29 @@ const studio = {
     'Lo Studio fa parte di FluidEQ Plus. Descrivi una scena alla tua IA e guardala prendere vita sulla tua musica mentre la scrive.',
   'studio.gate.cta': 'Scopri Plus',
 
-  'studio.start.title': 'Crea una scena con la tua IA',
-  'studio.start.step1.title': 'Copia il prompt',
-  'studio.start.step1.body':
-    'Spiega alla tua IA come sono fatte le scene di FluidEQ.',
-  'studio.start.step2.title': 'Aggiungi la tua idea',
-  'studio.start.step2.body': 'Proprio alla fine, con parole tue.',
-  'studio.start.step3.title': 'Collega la cartella',
-  'studio.start.step3.body':
-    'Salva in una cartella i file che ti dà e collegala. La scena si riproduce qui mentre la modifichi.',
+  'studio.maker.title': 'Creala con la tua IA',
+  'studio.maker.describe': 'Descrivi la tua scena',
+  'studio.maker.placeholder':
+    'Cosa mostra, e cosa si muove con il battito, i bassi o gli acuti. Anche una tua foto può prendere vita.',
+  'studio.maker.examples': 'Oppure parti da una:',
+  'studio.maker.openTitle':
+    'Apri la cartella del progetto nel tuo assistente IA',
+  'studio.maker.openBody':
+    'Qualsiasi assistente che lavora sui file: Claude, Cursor, Codex, Copilot. Con una chat, salva in questa cartella i file che ti dà.',
+  'studio.maker.openNoProject':
+    'Prima crea un progetto: la sua cartella è dove lavora la tua IA.',
+  'studio.maker.copyPath': 'Copia percorso',
+  'studio.maker.pathCopied': 'Percorso copiato',
+  'studio.maker.pathCopyFailed':
+    'Gli appunti non sono disponibili. Il percorso è selezionato; premi Ctrl+C.',
+  'studio.maker.pasteTitle': 'Incollaci questo prompt',
+  'studio.maker.pasteBody':
+    'Spiega alla tua IA come sono fatte le scene di FluidEQ, con la tua idea alla fine. Ogni file che salva si vede subito sul palco.',
+  'studio.maker.copied': 'Copiato',
+  'studio.maker.showPrompt': 'Vedi il prompt',
+  'studio.maker.hidePrompt': 'Nascondi il prompt',
 
   'studio.action.copyPrompt': 'Copia prompt per IA',
-  'studio.action.createStarter': 'Crea progetto iniziale…',
-  'studio.action.linkFolder': 'Collega cartella…',
   'studio.action.showFolder': 'Mostra cartella',
   'studio.action.addToLooks': 'Aggiungi ai miei aspetti',
   'studio.action.export': 'Esporta…',
@@ -31,22 +41,42 @@ const studio = {
   'studio.project.label': 'Progetto',
   'studio.project.group': 'I tuoi progetti',
   'studio.project.none': 'Scegli un progetto',
+  'studio.project.empty': 'Ancora nessun progetto',
+  'studio.project.add': 'Apri una cartella…',
+  'studio.project.forget': 'Togli {name} dall’elenco',
   'studio.project.new': 'Nuovo progetto…',
-  'studio.project.add': 'Aggiungi una cartella…',
-  'studio.project.forget': 'Togli dall’elenco',
   'studio.project.forgetHint':
     'La cartella e i suoi file restano sul tuo computer.',
+
+  'studio.new.title': 'Nuovo progetto',
+  'studio.new.lead':
+    'Dagli un nome. FluidEQ crea la sua cartella, con una scena che si muove già.',
+  'studio.new.name': 'Nome',
+  'studio.new.placeholder': 'Aurora boreale',
+  'studio.new.where': 'Va in',
+  'studio.new.change': 'Cambia…',
+  'studio.new.create': 'Crea progetto',
+  'studio.new.creating': 'Creazione…',
+  'studio.new.cancel': 'Annulla',
+  'studio.new.exists':
+    'Lì c’è già una cartella chiamata {name}. Scegli un altro nome.',
+  'studio.new.invalid':
+    'Questo nome non può essere il nome di una cartella. Prova con lettere e numeri.',
+  'studio.new.failed':
+    'Non è stato possibile creare la cartella lì. Scegli un altro posto con Cambia.',
 
   'studio.publish.title': 'Pubblica {name}',
   'studio.publish.titleUpdate': 'Aggiorna {name} nella galleria',
   'studio.publish.version': 'Versione {version}',
   'studio.publish.pictureAlt': '{name}, come apparirà nella galleria',
   'studio.publish.pictureHint':
-    'Presa dal palco proprio ora. È così che apparirà nella galleria.',
+    'La tua scena sul palco proprio ora, su un ritornello di prova vivace. È così che apparirà nella galleria.',
+  'studio.publish.retake': 'Scattane un’altra',
+  'studio.publish.taking': 'Scatto dell’immagine…',
   'studio.publish.category': 'Categoria',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.point1':
-    'Ogni membro Plus potrà trovarla in Visualizzatori, aggiungerla ai suoi aspetti e metterle mi piace.',
+    'Chiunque abbia effettuato l’accesso la vedrà in Visualizzatori. I membri Plus potranno riprodurla, aggiungerla ai loro aspetti e metterle mi piace.',
   'studio.publish.point2':
     'Ogni mi piace ti fa guadagnare punti in classifica.',
   'studio.publish.point3':
@@ -73,14 +103,8 @@ const studio = {
   'studio.publish.outdated':
     'Le condizioni di Plus hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
 
-  'studio.notice.copied':
-    'Copiato. Incollalo nella tua IA e scrivi la tua idea alla fine.',
-  'studio.notice.copiedIdea':
-    'Copiato con quell’idea alla fine. Incollalo nella tua IA.',
   'studio.notice.copyFailed':
     'Gli appunti non sono disponibili. Il prompt è selezionato qui sotto; premi Ctrl+C.',
-  'studio.notice.starterExists':
-    'Quella cartella contiene già una scena. Scegli una cartella vuota, oppure collega quella.',
   'studio.notice.added': '{name} è nei tuoi aspetti, in Creati da te.',
   'studio.notice.addFailed':
     'Questa versione si potrà aggiungere quando si riproduce.',
@@ -122,7 +146,6 @@ const studio = {
     'Quel file è stato modificato dopo l’esportazione, quindi FluidEQ non lo riprodurrà.',
   'studio.import.blocked': 'Quella scena è stata rimossa.',
 
-  'studio.ideas.title': 'Idee per iniziare — aggiunge l’idea al prompt',
   'studio.idea.pet.label': 'Il mio animale, vivo',
   'studio.idea.pet.text':
     'La foto del mio animale. Le orecchie fremono a ogni battito, la coda ondeggia con i bassi, gli occhi brillano con gli acuti e lo sfondo luccica con lo spettro lento.',
@@ -145,25 +168,13 @@ const studio = {
   'studio.prompt.label': 'Il prompt per IA',
   'studio.prompt.ideaHere': '← qui va la tua idea',
 
-  'studio.hears.title': 'Cosa sente la tua scena',
-  'studio.hears.level.name': 'Livello',
-  'studio.hears.level.body': 'il volume complessivo',
-  'studio.hears.beat.name': 'Battito',
-  'studio.hears.beat.body': 'un impulso a ogni battito',
-  'studio.hears.bass.name': 'Bassi',
-  'studio.hears.bass.body': 'la parte bassa, da sola',
-  'studio.hears.mid.name': 'Medi',
-  'studio.hears.mid.body': 'voci e accordi',
-  'studio.hears.treble.name': 'Acuti',
-  'studio.hears.treble.body': 'piatti e aria',
-  'studio.hears.spectrum.name': 'Spettro',
-  'studio.hears.spectrum.body': 'ogni frequenza, veloce o morbida',
-  'studio.hears.accent.name': 'Accento',
-  'studio.hears.accent.body': 'un grande momento, ogni pochi secondi',
-  'studio.hears.waveform.name': 'Forma d’onda',
-  'studio.hears.waveform.body': 'la forma del suono',
-  'studio.hears.picture.name': 'Immagine',
-  'studio.hears.picture.body': 'la tua immagine, con una maschera per parte',
+  'studio.hears.level': 'il volume complessivo',
+  'studio.hears.beat': 'un impulso a ogni battito',
+  'studio.hears.bass': 'la parte bassa, da sola',
+  'studio.hears.mid': 'voci e accordi',
+  'studio.hears.treble': 'piatti e aria',
+  'studio.hears.spectrum': 'ogni frequenza, veloce o morbida',
+  'studio.hears.accent': 'un grande momento, ogni pochi secondi',
 
   'studio.status.live': 'Aggiornato dal tuo ultimo salvataggio',
   'studio.status.problem':
@@ -171,6 +182,9 @@ const studio = {
   'studio.status.waiting': 'In attesa di una versione che si riproduca',
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
+  'studio.stage.startTitle': 'La tua scena si vede qui',
+  'studio.stage.startBody':
+    'Crea un progetto e FluidEQ prepara la sua cartella con una scena che si muove già. La tua IA la cambia da lì.',
 
   'studio.meters.title': 'Cosa sente adesso',
   'studio.meter.level': 'Livello',

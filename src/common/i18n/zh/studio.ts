@@ -8,18 +8,27 @@ const studio = {
     '工作室是 FluidEQ Plus 的一部分。向你的 AI 描述一个场景，看着它在 AI 编写时随你的音乐活起来。',
   'studio.gate.cta': '了解 Plus',
 
-  'studio.start.title': '用你的 AI 创作一个场景',
-  'studio.start.step1.title': '复制提示词',
-  'studio.start.step1.body': '它会告诉你的 AI，FluidEQ 场景是怎样构成的。',
-  'studio.start.step2.title': '写下你的想法',
-  'studio.start.step2.body': '写在最后，用你自己的话。',
-  'studio.start.step3.title': '关联文件夹',
-  'studio.start.step3.body':
-    '把 AI 给你的文件保存到一个文件夹并关联它。你每次修改，这里都会实时播放。',
+  'studio.maker.title': '用你的 AI 来做',
+  'studio.maker.describe': '描述你的场景',
+  'studio.maker.placeholder':
+    '画面里有什么，哪些部分随鼓点、低音或高音而动。你的照片也能动起来。',
+  'studio.maker.examples': '或者从一个开始：',
+  'studio.maker.openTitle': '在你的 AI 助手中打开项目文件夹',
+  'studio.maker.openBody':
+    '任何能处理文件的助手都可以：Claude、Cursor、Codex、Copilot。如果用的是聊天，就把它给你的文件保存到这个文件夹。',
+  'studio.maker.openNoProject':
+    '先新建一个项目：你的 AI 就在它的文件夹里工作。',
+  'studio.maker.copyPath': '复制路径',
+  'studio.maker.pathCopied': '已复制路径',
+  'studio.maker.pathCopyFailed': '剪贴板不可用。已选中路径，请按 Ctrl+C。',
+  'studio.maker.pasteTitle': '把这段提示词粘贴进去',
+  'studio.maker.pasteBody':
+    '它会告诉你的 AI FluidEQ 场景是怎么做的，你的想法放在最后。它保存的每个文件都会立刻在舞台上显示。',
+  'studio.maker.copied': '已复制',
+  'studio.maker.showPrompt': '查看提示词',
+  'studio.maker.hidePrompt': '隐藏提示词',
 
   'studio.action.copyPrompt': '复制 AI 提示词',
-  'studio.action.createStarter': '创建入门项目…',
-  'studio.action.linkFolder': '关联文件夹…',
   'studio.action.showFolder': '打开文件夹',
   'studio.action.addToLooks': '添加到我的外观',
   'studio.action.export': '导出…',
@@ -29,20 +38,38 @@ const studio = {
   'studio.project.label': '项目',
   'studio.project.group': '你的项目',
   'studio.project.none': '选择一个项目',
+  'studio.project.empty': '还没有项目',
+  'studio.project.add': '打开文件夹…',
+  'studio.project.forget': '从列表中移除 {name}',
   'studio.project.new': '新建项目…',
-  'studio.project.add': '添加文件夹…',
-  'studio.project.forget': '从列表中移除',
   'studio.project.forgetHint': '文件夹及其中的文件会保留在你的电脑上。',
+
+  'studio.new.title': '新建项目',
+  'studio.new.lead':
+    '给它起个名字。FluidEQ 会创建它的文件夹，里面已有一个会动的场景。',
+  'studio.new.name': '名称',
+  'studio.new.placeholder': '北极光',
+  'studio.new.where': '保存在',
+  'studio.new.change': '更改…',
+  'studio.new.create': '创建项目',
+  'studio.new.creating': '正在创建…',
+  'studio.new.cancel': '取消',
+  'studio.new.exists': '那里已经有一个名为 {name} 的文件夹。请换一个名字。',
+  'studio.new.invalid': '这个名字不能用作文件夹名。请使用字母和数字。',
+  'studio.new.failed': '无法在那里创建文件夹。请用“更改”选择其他位置。',
 
   'studio.publish.title': '发布 {name}',
   'studio.publish.titleUpdate': '在图库中更新 {name}',
   'studio.publish.version': '版本 {version}',
   'studio.publish.pictureAlt': '{name} 在图库中的样子',
-  'studio.publish.pictureHint': '刚刚从舞台上截取。它在图库中就是这样显示的。',
+  'studio.publish.pictureHint':
+    '这是你的场景刚刚在舞台上随一段热闹的测试副歌播放的样子。它在图库中就是这样显示的。',
+  'studio.publish.retake': '再拍一张',
+  'studio.publish.taking': '正在拍摄画面…',
   'studio.publish.category': '分类',
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.point1':
-    '每位 Plus 会员都能在“可视化”里找到它，把它添加到外观并点赞。',
+    '所有已登录的人都能在“可视化”里看到它。Plus 会员可以播放它、把它添加到外观并点赞。',
   'studio.publish.point2': '每个赞都会为你在排行榜上加分。',
   'studio.publish.point3': '你可以随时取消发布。已添加的会员会保留自己的副本。',
   'studio.publish.point3Update':
@@ -62,12 +89,7 @@ const studio = {
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.outdated': 'Plus 条款有新版本。请更新 FluidEQ 阅读后再发布。',
 
-  'studio.notice.copied': '已复制。粘贴到你的 AI 中，并在末尾写下你的想法。',
-  'studio.notice.copiedIdea':
-    '已复制，并在末尾附上了这个想法。粘贴到你的 AI 中。',
   'studio.notice.copyFailed': '剪贴板不可用。下方已选中提示词，请按 Ctrl+C。',
-  'studio.notice.starterExists':
-    '该文件夹里已经有一个场景。请选择一个空文件夹，或直接关联它。',
   'studio.notice.added': '{name} 已加入你的外观，位于“你创作的”下。',
   'studio.notice.addFailed': '这个版本能播放之后才能添加。',
 
@@ -101,7 +123,6 @@ const studio = {
   'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
   'studio.import.blocked': '这个场景已被下架。',
 
-  'studio.ideas.title': '入门灵感 — 会把想法加到提示词里',
   'studio.idea.pet.label': '我的宠物，活起来',
   'studio.idea.pet.text':
     '我的宠物照片。耳朵随每个节拍抖动，尾巴随低音摇摆，眼睛随高音发光，背景随慢速频谱闪烁。',
@@ -124,31 +145,22 @@ const studio = {
   'studio.prompt.label': 'AI 提示词',
   'studio.prompt.ideaHere': '← 在这里写你的想法',
 
-  'studio.hears.title': '你的场景能听到什么',
-  'studio.hears.level.name': '音量',
-  'studio.hears.level.body': '整体响度',
-  'studio.hears.beat.name': '节拍',
-  'studio.hears.beat.body': '每个节拍一次脉冲',
-  'studio.hears.bass.name': '低音',
-  'studio.hears.bass.body': '单独的低频部分',
-  'studio.hears.mid.name': '中音',
-  'studio.hears.mid.body': '人声与和弦',
-  'studio.hears.treble.name': '高音',
-  'studio.hears.treble.body': '镲片与空气感',
-  'studio.hears.spectrum.name': '频谱',
-  'studio.hears.spectrum.body': '每个频率，快速或平滑',
-  'studio.hears.accent.name': '重音',
-  'studio.hears.accent.body': '每隔几秒一次的高光时刻',
-  'studio.hears.waveform.name': '波形',
-  'studio.hears.waveform.body': '声音的形状',
-  'studio.hears.picture.name': '图片',
-  'studio.hears.picture.body': '你自己的图片，每个部分一张遮罩',
+  'studio.hears.level': '整体响度',
+  'studio.hears.beat': '每个节拍一次脉冲',
+  'studio.hears.bass': '单独的低频部分',
+  'studio.hears.mid': '人声与和弦',
+  'studio.hears.treble': '镲片与空气感',
+  'studio.hears.spectrum': '每个频率，快速或平滑',
+  'studio.hears.accent': '每隔几秒一次的高光时刻',
 
   'studio.status.live': '已按你最近一次保存更新',
   'studio.status.problem': '上一个可用版本仍在播放',
   'studio.status.waiting': '正在等待一个能播放的版本',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
+  'studio.stage.startTitle': '你的场景在这里播放',
+  'studio.stage.startBody':
+    '新建一个项目，FluidEQ 会为它准备好文件夹，里面已有一个会动的场景。之后由你的 AI 来修改它。',
 
   'studio.meters.title': '它此刻听到的',
   'studio.meter.level': '音量',

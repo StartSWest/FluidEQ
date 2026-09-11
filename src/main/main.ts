@@ -2923,6 +2923,7 @@ const scenePacksIpc = registerScenePacksIpc({
 const memberScenesIpc = registerMemberScenesIpc({
   getMainWindow: () => mainWindow,
   userDataDir,
+  documentsDir: app.getPath('documents'),
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,

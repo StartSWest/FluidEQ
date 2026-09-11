@@ -1,12 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MutableRefObject,
-  type RefObject,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
@@ -33,13 +25,6 @@ export type TStageDrawn = (
   musicAccent: number,
 ) => void;
 
-/**
- * Handed the stage's canvas right after the next frame is drawn, once. A WebGL
- * canvas is only readable in that moment, before the frame is composited, so
- * a still is taken from inside the frame rather than whenever it is asked.
- */
-export type TStillTaker = (canvas: HTMLCanvasElement) => void;
-
 interface IStudioStageProps {
   /** The folder being worked on: a new one starts the scene from the top. */
   identity: string;
@@ -51,8 +36,6 @@ interface IStudioStageProps {
   onTrouble: (trouble: TStageTrouble) => void;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
-  /** Set to ask for a still of the next frame; cleared once it is taken. */
-  stillRef?: MutableRefObject<TStillTaker | undefined>;
 }
 
 /**
@@ -73,7 +56,6 @@ export default function StudioStage({
   onTrouble,
   onDrawn,
   onExitFullscreen,
-  stillRef,
 }: IStudioStageProps) {
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -156,22 +138,11 @@ export default function StudioStage({
     [buffers],
   );
 
-  // The runner's canvas, kept where the frame callback below can reach it:
-  // the callback has to exist before the runner that hands the canvas back.
-  const canvasHolder = useRef<RefObject<HTMLCanvasElement | null> | null>(null);
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
   const onFrame = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent) => {
-      drawnRef.current(frame, drawnScale, accent);
-      const take = stillRef?.current;
-      const canvas = canvasHolder.current?.current;
-      if (take && canvas && stillRef) {
-        stillRef.current = undefined;
-        take(canvas);
-      }
-    },
-    [stillRef],
+    (frame, drawnScale, accent) => drawnRef.current(frame, drawnScale, accent),
+    [],
   );
 
   const canvasRef = useSceneRunner({
@@ -182,7 +153,6 @@ export default function StudioStage({
     shapeFrame,
     onDrawn: onFrame,
   });
-  canvasHolder.current = canvasRef;
 
   return (
     <div className="studio-stage__well">

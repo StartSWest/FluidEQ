@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import '../styles/StudioDialogs.scss';
 
 interface IStudioShareDialogProps {
   /** Exporting right now: the agree button shows it is working. */

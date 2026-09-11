@@ -26,6 +26,8 @@ export interface IStoredProject {
 export interface IProjectList {
   projects: IStoredProject[];
   active?: string;
+  /** Where "New project" makes its folders, once the member has chosen. */
+  root?: string;
 }
 
 /** More than anyone keeps going at once; the least recent fall off. */
@@ -86,7 +88,15 @@ export const readProjectList = (file: string): IProjectList => {
     projects.some((project) => project.id === parsed.active)
       ? parsed.active
       : undefined;
-  return active ? { projects, active } : { projects };
+  const root =
+    typeof parsed.root === 'string' && path.isAbsolute(parsed.root)
+      ? parsed.root
+      : undefined;
+  return {
+    projects,
+    ...(active ? { active } : {}),
+    ...(root ? { root } : {}),
+  };
 };
 
 export const writeProjectList = (file: string, list: IProjectList) =>
@@ -115,7 +125,7 @@ export const withFolder = (
   const projects = byRecent({
     projects: [...list.projects, { id, folder, openedAt: now }],
   }).slice(0, MAX_STUDIO_PROJECTS);
-  return { projects, active: id };
+  return { ...list, projects, active: id };
 };
 
 /** The list with `id` open, or unchanged when there is no such project. */
@@ -126,6 +136,7 @@ export const withActive = (
 ): IProjectList =>
   list.projects.some((project) => project.id === id)
     ? {
+        ...list,
         projects: list.projects.map((project) =>
           project.id === id ? { ...project, openedAt: now } : project,
         ),
@@ -144,5 +155,15 @@ export const without = (list: IProjectList, id: string): IProjectList => {
     return { ...list, projects };
   }
   const [next] = byRecent({ projects });
-  return next ? { projects, active: next.id } : { projects };
+  const kept: IProjectList = {
+    projects,
+    ...(list.root ? { root: list.root } : {}),
+  };
+  return next ? { ...kept, active: next.id } : kept;
 };
+
+/** The list with its projects folder set to `root`. */
+export const withRoot = (list: IProjectList, root: string): IProjectList => ({
+  ...list,
+  root,
+});

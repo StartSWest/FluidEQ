@@ -4,6 +4,10 @@ import type { TranslationKey } from 'common/i18n';
 /**
  * What "Copy AI prompt" puts on the clipboard.
  *
+ * Written for both kinds of AI a member has: an assistant opened in the
+ * project's folder, which edits the files there and needs no copying back,
+ * and a chat, which answers with the files for the member to save.
+ *
  * English on purpose, in every language the app speaks: it is read by a
  * model, not by the member, and every current model follows English
  * instructions best. The member writes their idea after the last line in any
@@ -16,10 +20,16 @@ import type { TranslationKey } from 'common/i18n';
  */
 export const AI_PROMPT = `You are writing a visualizer for FluidEQ Plus, a music app. The visualizer is a
 GLSL ES 3.00 fragment-shader body that FluidEQ runs on the listener's GPU while
-music plays. Reply with the complete contents of each file and nothing else:
-first pack.json, then scene.frag. If my idea needs a picture, also describe
-exactly how I should lay out artwork.webp (see ARTWORK). Do not explain unless
-I ask.
+music plays.
+
+If you can edit files, you are working in my FluidEQ project folder. It
+already holds a working pack.json and scene.frag: rewrite both for my idea,
+keep the file names, and save them there. FluidEQ plays every save at once,
+and if it shows me a problem I will paste it to you; fix exactly that. If you
+cannot edit files, reply with the complete contents of each file and nothing
+else: first pack.json, then scene.frag. If my idea needs a picture, also
+describe exactly how I should lay out artwork.webp (see ARTWORK). Do not
+explain unless I ask.
 
 FILES
   pack.json     metadata (format below)

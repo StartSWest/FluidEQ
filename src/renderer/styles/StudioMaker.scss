@@ -1,0 +1,254 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// How a scene gets made, under the stage: three steps down one line, the
+// idea field first because it is the member's own part of the prompt.
+
+.studio-maker {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 16px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  // The light comes from where the steps start.
+  background:
+    radial-gradient(
+      110% 80% at 0% 0%,
+      color-mix(in srgb, $secondary-default 9%, transparent),
+      transparent 55%
+    ),
+    $block-lift;
+}
+
+.studio-maker__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: $secondary-light;
+  }
+}
+
+.studio-maker__steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-maker__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 12px;
+  padding-bottom: 18px;
+
+  // The line from one number down to the next: the steps are a path, and
+  // the line is what says so without a word.
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: 30px;
+    bottom: 6px;
+    left: 11.5px;
+    width: 1px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-light 42%, transparent),
+      color-mix(in srgb, $secondary-light 8%, transparent)
+    );
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.studio-maker__number {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-maker__body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 3px;
+}
+
+.studio-maker__step-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-maker__step-text {
+  margin-top: -3px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// The project's folder as an AI assistant wants it: the whole path, in the
+// mono face. When it does not fit, the start gives way — the end of a path
+// is the part that says which project it is.
+.studio-maker__path {
+  display: inline-flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  background: $surface-well;
+  font-family: $font-mono;
+  font-size: $text-small;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+}
+
+// Right to left only so the ellipsis lands at the start; the path itself is
+// isolated in a <bdi> and reads left to right as written.
+.studio-maker__path-text {
+  min-width: 0;
+  direction: rtl;
+  text-align: left;
+  @include truncate;
+}
+
+.studio-maker__idea {
+  width: 100%;
+  min-height: 68px;
+  max-height: 220px;
+  padding: 9px 11px;
+  resize: vertical;
+  @include field-static;
+  font: inherit;
+  font-size: $text-body;
+  line-height: 1.5;
+  @include slim-scrollbar;
+
+  &::placeholder {
+    color: $text-dim;
+  }
+}
+
+.studio-maker__examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.studio-maker__examples-label {
+  margin-inline-end: 2px;
+  color: $text-dim;
+  font-size: $text-small;
+}
+
+// An example: pressing it puts its words in the field above, where they can
+// be changed; it stays lit while the field still says exactly that.
+.studio-idea {
+  padding: 5px 11px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+  }
+
+  &[aria-pressed='true'] {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.studio-maker__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// The prompt, when asked for: a member should be able to read what they are
+// about to paste. Code, so it keeps its own lines and scrolls sideways rather
+// than rewrapping into something unreadable.
+.studio-prompt {
+  max-height: 230px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $surface-well;
+  font-family: $font-mono;
+  font-size: $text-micro;
+  line-height: 1.55;
+  white-space: pre;
+  @include slim-scrollbar;
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.studio-prompt__idea {
+  padding: 0 3px;
+  color: $secondary-light;
+  border-radius: 3px;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  white-space: pre-wrap;
+}

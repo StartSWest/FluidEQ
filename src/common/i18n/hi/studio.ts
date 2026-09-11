@@ -8,19 +8,28 @@ const studio = {
     'स्टूडियो FluidEQ Plus का हिस्सा है। अपने AI को एक दृश्य बताइए और देखिए कि वह लिखते-लिखते आपके संगीत पर कैसे जीवंत हो उठता है।',
   'studio.gate.cta': 'Plus देखें',
 
-  'studio.start.title': 'अपने AI के साथ एक दृश्य बनाएँ',
-  'studio.start.step1.title': 'प्रॉम्प्ट कॉपी करें',
-  'studio.start.step1.body':
-    'यह आपके AI को बताता है कि FluidEQ के दृश्य कैसे बनते हैं।',
-  'studio.start.step2.title': 'अपना विचार जोड़ें',
-  'studio.start.step2.body': 'बिल्कुल आखिर में, अपने शब्दों में।',
-  'studio.start.step3.title': 'फ़ोल्डर जोड़ें',
-  'studio.start.step3.body':
-    'AI से मिली फ़ाइलें एक फ़ोल्डर में सहेजें और उसे जोड़ें। आप जैसे-जैसे बदलेंगे, दृश्य यहाँ चलता रहेगा।',
+  'studio.maker.title': 'अपने AI के साथ बनाइए',
+  'studio.maker.describe': 'अपना सीन बताइए',
+  'studio.maker.placeholder':
+    'उसमें क्या दिखता है, और बीट, बेस या ट्रेबल के साथ क्या हिलता है। आपकी कोई फ़ोटो भी जीवंत हो सकती है।',
+  'studio.maker.examples': 'या किसी एक से शुरू करें:',
+  'studio.maker.openTitle': 'प्रोजेक्ट फ़ोल्डर अपने AI असिस्टेंट में खोलें',
+  'studio.maker.openBody':
+    'फ़ाइलों पर काम करने वाला कोई भी असिस्टेंट: Claude, Cursor, Codex, Copilot। चैट इस्तेमाल कर रहे हैं तो वह जो फ़ाइलें दे, उन्हें इस फ़ोल्डर में सेव करें।',
+  'studio.maker.openNoProject':
+    'पहले एक प्रोजेक्ट बनाइए: आपका AI उसी के फ़ोल्डर में काम करता है।',
+  'studio.maker.copyPath': 'पाथ कॉपी करें',
+  'studio.maker.pathCopied': 'पाथ कॉपी हो गया',
+  'studio.maker.pathCopyFailed':
+    'क्लिपबोर्ड उपलब्ध नहीं है। पाथ चुना हुआ है; Ctrl+C दबाएँ।',
+  'studio.maker.pasteTitle': 'उसमें यह प्रॉम्प्ट पेस्ट करें',
+  'studio.maker.pasteBody':
+    'यह आपके AI को बताता है कि FluidEQ सीन कैसे बनते हैं, और आख़िर में आपका आइडिया होता है। वह जो भी फ़ाइल सेव करे, तुरंत स्टेज पर दिखती है।',
+  'studio.maker.copied': 'कॉपी हो गया',
+  'studio.maker.showPrompt': 'प्रॉम्प्ट देखें',
+  'studio.maker.hidePrompt': 'प्रॉम्प्ट छिपाएँ',
 
   'studio.action.copyPrompt': 'AI प्रॉम्प्ट कॉपी करें',
-  'studio.action.createStarter': 'शुरुआती प्रोजेक्ट बनाएँ…',
-  'studio.action.linkFolder': 'फ़ोल्डर जोड़ें…',
   'studio.action.showFolder': 'फ़ोल्डर दिखाएँ',
   'studio.action.addToLooks': 'मेरे रूपों में जोड़ें',
   'studio.action.export': 'एक्सपोर्ट करें…',
@@ -30,22 +39,41 @@ const studio = {
   'studio.project.label': 'प्रोजेक्ट',
   'studio.project.group': 'आपके प्रोजेक्ट',
   'studio.project.none': 'प्रोजेक्ट चुनें',
+  'studio.project.empty': 'अभी कोई प्रोजेक्ट नहीं',
+  'studio.project.add': 'फ़ोल्डर खोलें…',
+  'studio.project.forget': '{name} को सूची से हटाएँ',
   'studio.project.new': 'नया प्रोजेक्ट…',
-  'studio.project.add': 'फ़ोल्डर जोड़ें…',
-  'studio.project.forget': 'सूची से हटाएँ',
   'studio.project.forgetHint':
     'फ़ोल्डर और उसकी फ़ाइलें आपके कंप्यूटर पर ही रहेंगी।',
+
+  'studio.new.title': 'नया प्रोजेक्ट',
+  'studio.new.lead':
+    'इसे एक नाम दीजिए। FluidEQ इसका फ़ोल्डर एक ऐसे सीन के साथ बनाता है जो पहले से चलता है।',
+  'studio.new.name': 'नाम',
+  'studio.new.placeholder': 'उत्तरी रोशनी',
+  'studio.new.where': 'यहाँ जाएगा',
+  'studio.new.change': 'बदलें…',
+  'studio.new.create': 'प्रोजेक्ट बनाएँ',
+  'studio.new.creating': 'बन रहा है…',
+  'studio.new.cancel': 'रद्द करें',
+  'studio.new.exists':
+    'वहाँ {name} नाम का फ़ोल्डर पहले से है। कोई और नाम चुनें।',
+  'studio.new.invalid':
+    'यह नाम फ़ोल्डर का नाम नहीं हो सकता। अक्षर और अंक आज़माएँ।',
+  'studio.new.failed': 'वहाँ फ़ोल्डर नहीं बन सका। "बदलें" से कोई और जगह चुनें।',
 
   'studio.publish.title': '{name} प्रकाशित करें',
   'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
   'studio.publish.version': 'संस्करण {version}',
   'studio.publish.pictureAlt': '{name}, जैसा गैलरी में दिखेगा',
   'studio.publish.pictureHint':
-    'अभी-अभी स्टेज से ली गई। गैलरी में यह ऐसा ही दिखेगा।',
+    'अभी-अभी स्टेज पर आपका सीन, एक जोशीली टेस्ट धुन पर चलता हुआ। गैलरी में यह ऐसा ही दिखेगा।',
+  'studio.publish.retake': 'दूसरी लें',
+  'studio.publish.taking': 'तस्वीर ली जा रही है…',
   'studio.publish.category': 'श्रेणी',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.point1':
-    'हर Plus सदस्य इसे विज़ुअलाइज़र में ढूँढ सकेगा, अपने रूपों में जोड़ सकेगा और पसंद कर सकेगा।',
+    'साइन-इन किया हर व्यक्ति इसे विज़ुअलाइज़र में देख सकेगा। Plus सदस्य इसे चला, अपने रूपों में जोड़ और पसंद कर सकेंगे।',
   'studio.publish.point2': 'हर पसंद से आपको लीडरबोर्ड पर पॉइंट मिलते हैं।',
   'studio.publish.point3':
     'आप इसे कभी भी हटा सकते हैं। जिन्होंने इसे पहले ही जोड़ लिया है, उनकी कॉपी उनके पास रहेगी।',
@@ -70,14 +98,8 @@ const studio = {
   'studio.publish.outdated':
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
 
-  'studio.notice.copied':
-    'कॉपी हो गया। इसे अपने AI में चिपकाएँ और आखिर में अपना विचार लिखें।',
-  'studio.notice.copiedIdea':
-    'उस विचार के साथ कॉपी हो गया। इसे अपने AI में चिपकाएँ।',
   'studio.notice.copyFailed':
     'क्लिपबोर्ड उपलब्ध नहीं है। नीचे प्रॉम्प्ट चुना हुआ है; Ctrl+C दबाएँ।',
-  'studio.notice.starterExists':
-    'उस फ़ोल्डर में पहले से एक दृश्य है। कोई खाली फ़ोल्डर चुनें, या उसी को जोड़ें।',
   'studio.notice.added': '{name} आपके रूपों में, "आपके बनाए" के नीचे है।',
   'studio.notice.addFailed': 'यह संस्करण चलने लगे, तब इसे जोड़ा जा सकेगा।',
 
@@ -118,8 +140,6 @@ const studio = {
     'यह फ़ाइल एक्सपोर्ट के बाद बदली गई है, इसलिए FluidEQ इसे नहीं चलाएगा।',
   'studio.import.blocked': 'यह सीन हटा दिया गया है।',
 
-  'studio.ideas.title':
-    'शुरुआत के लिए विचार — विचार को प्रॉम्प्ट में जोड़ते हैं',
   'studio.idea.pet.label': 'मेरा पालतू, जीवंत',
   'studio.idea.pet.text':
     'मेरे पालतू की तस्वीर। हर बीट पर कान फड़कें, बेस के साथ पूँछ झूले, ट्रेबल के साथ आँखें चमकें, और धीमे स्पेक्ट्रम के साथ पृष्ठभूमि झिलमिलाए।',
@@ -142,31 +162,22 @@ const studio = {
   'studio.prompt.label': 'AI प्रॉम्प्ट',
   'studio.prompt.ideaHere': '← अपना विचार यहाँ लिखें',
 
-  'studio.hears.title': 'आपका दृश्य क्या सुनता है',
-  'studio.hears.level.name': 'लेवल',
-  'studio.hears.level.body': 'कुल आवाज़',
-  'studio.hears.beat.name': 'बीट',
-  'studio.hears.beat.body': 'हर बीट पर एक धड़कन',
-  'studio.hears.bass.name': 'बेस',
-  'studio.hears.bass.body': 'निचला हिस्सा, अलग से',
-  'studio.hears.mid.name': 'मिड्स',
-  'studio.hears.mid.body': 'आवाज़ें और कॉर्ड',
-  'studio.hears.treble.name': 'ट्रेबल',
-  'studio.hears.treble.body': 'झाँझ और हवा',
-  'studio.hears.spectrum.name': 'स्पेक्ट्रम',
-  'studio.hears.spectrum.body': 'हर आवृत्ति, तेज़ या सहज',
-  'studio.hears.accent.name': 'उभार',
-  'studio.hears.accent.body': 'हर कुछ सेकंड में एक बड़ा पल',
-  'studio.hears.waveform.name': 'वेवफ़ॉर्म',
-  'studio.hears.waveform.body': 'ध्वनि का आकार',
-  'studio.hears.picture.name': 'चित्र',
-  'studio.hears.picture.body': 'आपकी अपनी तस्वीर, हर हिस्से का अपना मास्क',
+  'studio.hears.level': 'कुल आवाज़',
+  'studio.hears.beat': 'हर बीट पर एक धड़कन',
+  'studio.hears.bass': 'निचला हिस्सा, अलग से',
+  'studio.hears.mid': 'आवाज़ें और कॉर्ड',
+  'studio.hears.treble': 'झाँझ और हवा',
+  'studio.hears.spectrum': 'हर आवृत्ति, तेज़ या सहज',
+  'studio.hears.accent': 'हर कुछ सेकंड में एक बड़ा पल',
 
   'studio.status.live': 'आपके पिछले सेव से अपडेट हुआ',
   'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
   'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
+  'studio.stage.startTitle': 'आपका सीन यहाँ चलेगा',
+  'studio.stage.startBody':
+    'प्रोजेक्ट बनाइए, और FluidEQ उसका फ़ोल्डर एक ऐसे सीन के साथ तैयार कर देगा जो पहले से चलता है। वहाँ से आपका AI उसे बदलता है।',
 
   'studio.meters.title': 'यह अभी क्या सुन रहा है',
   'studio.meter.level': 'लेवल',

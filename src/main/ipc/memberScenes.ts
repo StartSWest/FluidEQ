@@ -7,9 +7,12 @@ import type { IAccountSession } from '../account/session';
 import {
   readProject,
   readProjectNames,
-  writeStarterProject,
   type TProjectBuild,
 } from '../memberScenes/project';
+import {
+  createProjectFolder,
+  defaultProjectsRoot,
+} from '../memberScenes/projectFolders';
 import {
   watchProject,
   type IProjectWatcher,
@@ -25,6 +28,7 @@ import {
   withActive,
   withFolder,
   without,
+  withRoot,
   writeProjectList,
   type IProjectList,
 } from '../memberScenes/studioProjects';
@@ -39,7 +43,9 @@ import type { TSceneFailure } from '../scenePackStore';
  * membership ended can still take their work out of the app.
  *
  * NO PATH EVER COMES FROM THE PAGE. Folders are chosen in the system dialog
- * here and named to the page by an id made here; "Add to my looks" saves the
+ * here and named to the page by an id made here; a new project's name is the
+ * one thing the page sends, and it becomes a single folder name inside the
+ * projects folder (see `projectFolders.ts`). "Add to my looks" saves the
  * build this process made from the open project's folder — never a pack the
  * renderer hands back. The renderer is told each folder's path so the member
  * can see which is which; it cannot send one.
@@ -72,6 +78,8 @@ export interface IStudioProject {
 
 export interface IStudioState {
   entitled: boolean;
+  /** Where "New project" makes its folders, for display only. */
+  projectsRoot: string;
   /** Most recently opened first. */
   projects: IStudioProject[];
   /** The project on the bench: the only one watched, the only one playing. */
@@ -80,7 +88,14 @@ export interface IStudioState {
   build?: TProjectBuild;
 }
 
-export type TStarterOutcome = 'written' | 'exists' | 'cancelled' | 'refused';
+export type TNewProjectResult =
+  | 'written'
+  /** The projects folder already has a folder of that name. */
+  | 'exists'
+  /** Nothing of the name is usable as a folder name. */
+  | 'invalid'
+  | 'failed'
+  | 'refused';
 
 export type TAddOutcome =
   | { ok: true; scene: IMemberSceneSummary }
@@ -93,6 +108,8 @@ interface IDialogLike {
 export interface IMemberScenesIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** The member's Documents folder, where projects go until they choose. */
+  documentsDir: string;
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
@@ -119,7 +136,8 @@ const CHANNELS = [
   'studio-link-folder',
   'studio-select-project',
   'studio-forget-project',
-  'studio-create-starter',
+  'studio-choose-root',
+  'studio-create-project',
   'studio-add-to-looks',
   'studio-show-folder',
 ] as const;
@@ -129,6 +147,7 @@ const STUDIO_FILE = path.join('member-scenes', 'studio.json');
 export const registerMemberScenesIpc = ({
   getMainWindow,
   userDataDir,
+  documentsDir,
   session,
   entitlement,
   logger,
@@ -175,8 +194,11 @@ export const registerMemberScenesIpc = ({
       (scene) => scene.authorId === authorId && scene.packId === packId,
     );
 
+  const projectsRoot = () => projects.root ?? defaultProjectsRoot(documentsDir);
+
   const studioState = (): IStudioState => ({
     entitled: entitled(),
+    projectsRoot: projectsRoot(),
     projects: byRecent(projects).map((project) => {
       const names = projectNames.get(project.id);
       return {
@@ -245,9 +267,10 @@ export const registerMemberScenesIpc = ({
 
   const chooseFolder = async (
     properties: Array<'openDirectory' | 'createDirectory'>,
+    defaultPath?: string,
   ): Promise<string | undefined> => {
     const window = getMainWindow();
-    const options = { properties };
+    const options = { properties, ...(defaultPath ? { defaultPath } : {}) };
     const result = window
       ? await dialogImpl.showOpenDialog(window, options)
       : await dialogImpl.showOpenDialog(options);
@@ -339,22 +362,44 @@ export const registerMemberScenesIpc = ({
     return studioState();
   });
 
+  // Where new projects go: chosen once, in the system dialog, opening on
+  // the folder in use now.
+  ipcMain.handle('studio-choose-root', async () => {
+    if (!entitled()) {
+      return studioState();
+    }
+    const root = await chooseFolder(
+      ['openDirectory', 'createDirectory'],
+      projectsRoot(),
+    );
+    if (root) {
+      projects = withRoot(projects, root);
+      writeProjectList(studioPath, projects);
+    }
+    return studioState();
+  });
+
   ipcMain.handle(
-    'studio-create-starter',
-    async (): Promise<TStarterOutcome> => {
+    'studio-create-project',
+    async (_event, name: unknown): Promise<TNewProjectResult> => {
       if (!entitled()) {
         return 'refused';
       }
-      const folder = await chooseFolder(['openDirectory', 'createDirectory']);
-      if (!folder) {
-        return 'cancelled';
+      if (typeof name !== 'string') {
+        return 'invalid';
       }
-      const outcome = await writeStarterProject(folder);
-      if (outcome === 'written') {
-        adopt(withFolder(projects, folder, Date.now()));
-        await refreshNames();
+      const made = await createProjectFolder(projectsRoot(), name).catch(
+        (error: unknown) => {
+          logger?.warn(`A new Studio project failed: ${String(error)}`);
+          return { ok: false, reason: 'failed' } as const;
+        },
+      );
+      if (!made.ok) {
+        return made.reason;
       }
-      return outcome;
+      adopt(withFolder(projects, made.folder, Date.now()));
+      await refreshNames();
+      return 'written';
     },
   );
 

@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IStudioState } from '../../../main/ipc/memberScenes';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
@@ -25,6 +25,7 @@ const SEA = '22222222-2222-4222-8222-222222222222';
 
 const state: IStudioState = {
   entitled: true,
+  projectsRoot: 'D:\\scenes',
   activeId: CITY,
   projects: [
     {
@@ -56,7 +57,13 @@ beforeEach(() => {
 describe('the Studio’s projects', () => {
   // The control: the open project is named, the others are a click away.
   it('names the open project and opens another by its id', async () => {
-    render(<StudioProjects state={state} onStarterExists={jest.fn()} />);
+    render(
+      <StudioProjects
+        state={state}
+        onNewProject={jest.fn()}
+        onOpenFile={jest.fn()}
+      />,
+    );
     const trigger = screen.getByRole('button', {
       name: 'studio.project.label',
     });
@@ -69,17 +76,21 @@ describe('the Studio’s projects', () => {
   });
 
   it('starts a new project or adds a folder from under the list', async () => {
-    const onStarterExists = jest.fn();
-    bridge.createStudioStarter.mockResolvedValue('exists');
-    render(<StudioProjects state={state} onStarterExists={onStarterExists} />);
+    const onNewProject = jest.fn();
+    render(
+      <StudioProjects
+        state={state}
+        onNewProject={onNewProject}
+        onOpenFile={jest.fn()}
+      />,
+    );
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.project.label' }),
     );
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.project.new' }),
     );
-    expect(bridge.createStudioStarter).toHaveBeenCalled();
-    await waitFor(() => expect(onStarterExists).toHaveBeenCalled());
+    expect(onNewProject).toHaveBeenCalled();
     // The menu closed as the action began.
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
@@ -94,6 +105,8 @@ describe('the Studio’s projects', () => {
 });
 
 describe('the publish dialog', () => {
+  const onRetake = jest.fn();
+
   const draft = (over: Partial<IPublishDraft> = {}): IPublishDraft => ({
     picture: new Uint8Array(8),
     pictureUrl: 'data:image/webp;base64,UklGRg==',
@@ -109,6 +122,8 @@ describe('the publish dialog', () => {
         version={3}
         draft={draft()}
         running={false}
+        retaking={false}
+        onRetake={onRetake}
         onPublish={onPublish}
         onCancel={jest.fn()}
       />,
@@ -121,6 +136,43 @@ describe('the publish dialog', () => {
     expect(go).toBeEnabled();
     await userEvent.click(go);
     expect(onPublish).toHaveBeenCalledWith('space');
+  });
+
+  it('takes another picture on request, and says so while it does', async () => {
+    const { rerender } = render(
+      <StudioPublishDialog
+        name="Neon City"
+        version={3}
+        draft={draft()}
+        running={false}
+        retaking={false}
+        onRetake={onRetake}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.retake' }),
+    );
+    expect(onRetake).toHaveBeenCalled();
+    rerender(
+      <StudioPublishDialog
+        name="Neon City"
+        version={3}
+        draft={draft()}
+        running={false}
+        retaking
+        onRetake={onRetake}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'studio.publish.taking',
+    );
+    expect(
+      screen.getByRole('button', { name: 'studio.publish.retake' }),
+    ).toBeDisabled();
   });
 
   it('asks for the agreement the first time, and starts an update on its category', () => {
@@ -144,6 +196,8 @@ describe('the publish dialog', () => {
           },
         })}
         running={false}
+        retaking={false}
+        onRetake={onRetake}
         onPublish={jest.fn()}
         onCancel={jest.fn()}
       />,

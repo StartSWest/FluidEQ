@@ -40,7 +40,7 @@ import type {
   IMemberScenesListing,
   IStudioState,
   TAddOutcome,
-  TStarterOutcome,
+  TNewProjectResult,
 } from './ipc/memberScenes';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
 import type {
@@ -839,8 +839,15 @@ const selectStudioProject = (id: string) =>
 const forgetStudioProject = (id: string) =>
   ipcRenderer.invoke('studio-forget-project', id) as Promise<IStudioState>;
 
-const createStudioStarter = () =>
-  ipcRenderer.invoke('studio-create-starter') as Promise<TStarterOutcome>;
+/** Only the name goes: the folder is made from it in the main process. */
+const createStudioProject = (name: string) =>
+  ipcRenderer.invoke(
+    'studio-create-project',
+    name,
+  ) as Promise<TNewProjectResult>;
+
+const chooseStudioProjectsRoot = () =>
+  ipcRenderer.invoke('studio-choose-root') as Promise<IStudioState>;
 
 const addStudioSceneToLooks = () =>
   ipcRenderer.invoke('studio-add-to-looks') as Promise<TAddOutcome>;
@@ -1180,7 +1187,8 @@ export default {
     reportGalleryScene,
     myPublishedScenes,
     unpublishScene,
-    createStudioStarter,
+    createStudioProject,
+    chooseStudioProjectsRoot,
     addStudioSceneToLooks,
     showStudioFolder,
     onStudioChanged,

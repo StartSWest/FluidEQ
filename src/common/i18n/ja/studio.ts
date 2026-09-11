@@ -8,18 +8,28 @@ const studio = {
     'スタジオは FluidEQ Plus の機能です。AI にシーンを説明すると、AI が書いている間にもあなたの音楽に合わせて動き出します。',
   'studio.gate.cta': 'Plus を見る',
 
-  'studio.start.title': 'AI でシーンを作る',
-  'studio.start.step1.title': 'プロンプトをコピー',
-  'studio.start.step1.body': 'FluidEQ のシーンの作り方を AI に伝えます。',
-  'studio.start.step2.title': 'アイデアを書き足す',
-  'studio.start.step2.body': 'いちばん最後に、あなたの言葉で。',
-  'studio.start.step3.title': 'フォルダーをリンク',
-  'studio.start.step3.body':
-    'AI が出したファイルをフォルダーに保存してリンクします。変更するたびにここで再生されます。',
+  'studio.maker.title': 'AI と作る',
+  'studio.maker.describe': 'シーンを説明する',
+  'studio.maker.placeholder':
+    '何が映っていて、何がビートや低音、高音に合わせて動くか。あなたの写真を動かすこともできます。',
+  'studio.maker.examples': 'または例から始める：',
+  'studio.maker.openTitle': 'プロジェクトのフォルダーを AI アシスタントで開く',
+  'studio.maker.openBody':
+    'ファイルを扱えるアシスタントなら何でも使えます：Claude、Cursor、Codex、Copilot。チャットの場合は、もらったファイルをこのフォルダーに保存してください。',
+  'studio.maker.openNoProject':
+    'まずプロジェクトを作りましょう。そのフォルダーで AI が作業します。',
+  'studio.maker.copyPath': 'パスをコピー',
+  'studio.maker.pathCopied': 'パスをコピーしました',
+  'studio.maker.pathCopyFailed':
+    'クリップボードを使えません。パスを選択したので Ctrl+C を押してください。',
+  'studio.maker.pasteTitle': 'このプロンプトを貼り付ける',
+  'studio.maker.pasteBody':
+    'FluidEQ のシーンの作り方を AI に伝えます。最後にあなたのアイデアが入ります。AI が保存したファイルは、すぐにステージに映ります。',
+  'studio.maker.copied': 'コピーしました',
+  'studio.maker.showPrompt': 'プロンプトを見る',
+  'studio.maker.hidePrompt': 'プロンプトを隠す',
 
   'studio.action.copyPrompt': 'AI プロンプトをコピー',
-  'studio.action.createStarter': 'スタータープロジェクトを作成…',
-  'studio.action.linkFolder': 'フォルダーをリンク…',
   'studio.action.showFolder': 'フォルダーを開く',
   'studio.action.addToLooks': 'マイ表示に追加',
   'studio.action.export': 'エクスポート…',
@@ -29,22 +39,42 @@ const studio = {
   'studio.project.label': 'プロジェクト',
   'studio.project.group': 'あなたのプロジェクト',
   'studio.project.none': 'プロジェクトを選択',
+  'studio.project.empty': 'まだプロジェクトがありません',
+  'studio.project.add': 'フォルダーを開く…',
+  'studio.project.forget': '{name} を一覧から外す',
   'studio.project.new': '新しいプロジェクト…',
-  'studio.project.add': 'フォルダーを追加…',
-  'studio.project.forget': '一覧から外す',
   'studio.project.forgetHint':
     'フォルダーとファイルはコンピューターにそのまま残ります。',
+
+  'studio.new.title': '新しいプロジェクト',
+  'studio.new.lead':
+    '名前を付けてください。FluidEQ が、すでに動くシーン入りのフォルダーを作ります。',
+  'studio.new.name': '名前',
+  'studio.new.placeholder': 'オーロラ',
+  'studio.new.where': '保存先',
+  'studio.new.change': '変更…',
+  'studio.new.create': 'プロジェクトを作成',
+  'studio.new.creating': '作成中…',
+  'studio.new.cancel': 'キャンセル',
+  'studio.new.exists':
+    'そこにはすでに {name} というフォルダーがあります。別の名前にしてください。',
+  'studio.new.invalid':
+    'その名前はフォルダー名にできません。英数字を使ってみてください。',
+  'studio.new.failed':
+    'そこにフォルダーを作れませんでした。「変更」で別の場所を選んでください。',
 
   'studio.publish.title': '{name} を公開',
   'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
   'studio.publish.version': 'バージョン {version}',
   'studio.publish.pictureAlt': 'ギャラリーでの {name} の表示',
   'studio.publish.pictureHint':
-    'たった今ステージから撮影しました。ギャラリーではこのように表示されます。',
+    'にぎやかなテスト用のサビで動く、たった今のステージ上のシーンです。ギャラリーではこのように表示されます。',
+  'studio.publish.retake': '撮り直す',
+  'studio.publish.taking': '撮影しています…',
   'studio.publish.category': 'カテゴリ',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.point1':
-    'すべての Plus メンバーがビジュアライザーで見つけ、マイ表示に追加して、いいねできます。',
+    'サインインしている人は誰でもビジュアライザーで見られます。Plus メンバーは再生、マイ表示への追加、いいねができます。',
   'studio.publish.point2': 'いいねのたびにランキングのポイントが入ります。',
   'studio.publish.point3':
     'いつでも公開を停止できます。追加済みのメンバーは自分のコピーを使い続けられます。',
@@ -71,14 +101,8 @@ const studio = {
   'studio.publish.outdated':
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
 
-  'studio.notice.copied':
-    'コピーしました。AI に貼り付けて、最後にアイデアを書いてください。',
-  'studio.notice.copiedIdea':
-    'そのアイデアを末尾に付けてコピーしました。AI に貼り付けてください。',
   'studio.notice.copyFailed':
     'クリップボードを使えません。下のプロンプトを選択したので Ctrl+C を押してください。',
-  'studio.notice.starterExists':
-    'そのフォルダーにはすでにシーンがあります。空のフォルダーを選ぶか、そのフォルダーをリンクしてください。',
   'studio.notice.added': '{name} を「あなたが作成」に追加しました。',
   'studio.notice.addFailed':
     'このバージョンは再生できるようになれば追加できます。',
@@ -122,7 +146,6 @@ const studio = {
     'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',
   'studio.import.blocked': 'このシーンは公開停止になっています。',
 
-  'studio.ideas.title': 'はじめのアイデア — プロンプトに書き足します',
   'studio.idea.pet.label': 'うちのペットを動かす',
   'studio.idea.pet.text':
     'うちのペットの写真。耳はビートのたびにぴくっと動き、しっぽは低音で揺れ、目は高音で光り、背景はゆっくりしたスペクトラムできらめく。',
@@ -145,31 +168,22 @@ const studio = {
   'studio.prompt.label': 'AI プロンプト',
   'studio.prompt.ideaHere': '← ここにアイデアを書く',
 
-  'studio.hears.title': 'シーンが聞いているもの',
-  'studio.hears.level.name': 'レベル',
-  'studio.hears.level.body': '全体の音量',
-  'studio.hears.beat.name': 'ビート',
-  'studio.hears.beat.body': 'ビートごとのパルス',
-  'studio.hears.bass.name': '低音',
-  'studio.hears.bass.body': '低域だけ',
-  'studio.hears.mid.name': '中音',
-  'studio.hears.mid.body': '声とコード',
-  'studio.hears.treble.name': '高音',
-  'studio.hears.treble.body': 'シンバルと空気感',
-  'studio.hears.spectrum.name': 'スペクトラム',
-  'studio.hears.spectrum.body': 'すべての周波数、速くもなめらかにも',
-  'studio.hears.accent.name': 'アクセント',
-  'studio.hears.accent.body': '数秒おきの大きな山場',
-  'studio.hears.waveform.name': '波形',
-  'studio.hears.waveform.body': '音のかたち',
-  'studio.hears.picture.name': '画像',
-  'studio.hears.picture.body': '自分の画像。パーツごとにマスク付き',
+  'studio.hears.level': '全体の音量',
+  'studio.hears.beat': 'ビートごとのパルス',
+  'studio.hears.bass': '低域だけ',
+  'studio.hears.mid': '声とコード',
+  'studio.hears.treble': 'シンバルと空気感',
+  'studio.hears.spectrum': 'すべての周波数、速くもなめらかにも',
+  'studio.hears.accent': '数秒おきの大きな山場',
 
   'studio.status.live': '最後の保存で更新されました',
   'studio.status.problem': '最後に動いたバージョンを再生中です',
   'studio.status.waiting': '再生できるバージョンを待っています',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
+  'studio.stage.startTitle': 'ここにシーンが映ります',
+  'studio.stage.startBody':
+    'プロジェクトを作ると、FluidEQ がすでに動くシーン入りのフォルダーを用意します。そこから先は AI が変えていきます。',
 
   'studio.meters.title': 'いま聞いているもの',
   'studio.meter.level': 'レベル',

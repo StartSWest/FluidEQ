@@ -1,0 +1,329 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's stage and everything beside it that reads or drives it: the
+// meters, the test signals and sizes, and what the scene costs to draw.
+
+// ---------------------------------------------------------------- stage
+
+// As tall as the stage it holds and no taller: a floor here left a narrow
+// stage floating in a black box twice its height.
+.studio-stage__well {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      80% 60% at 50% 100%,
+      color-mix(in srgb, $secondary-default 7%, transparent),
+      transparent 70%
+    ),
+    $surface-well;
+}
+
+.studio-stage__well--empty {
+  aspect-ratio: 2.35 / 1;
+}
+
+.studio-stage__empty {
+  color: $text-dim;
+  font-size: $text-body;
+}
+
+// Before the first project: the stage itself says how to put something on
+// it. The shape of the stage it will be — the graph's own 2.35:1 — so the
+// page does not change size when the first scene arrives; taller only when
+// a narrow panel needs the room for the words.
+.studio-stage__well--start {
+  aspect-ratio: 2.35 / 1;
+  align-content: center;
+  gap: 7px;
+  padding: $spacing-l $spacing-m;
+  text-align: center;
+  // A floor for the scene to stand on: the accent pooled low, and the faint
+  // lines of a stage receding under it.
+  background:
+    radial-gradient(
+      70% 55% at 50% 108%,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 72%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 47px,
+      color-mix(in srgb, $secondary-light 5%, transparent) 47px 48px
+    ),
+    $surface-well;
+  background-size:
+    auto,
+    100% 42%,
+    auto;
+  background-position:
+    center,
+    center bottom,
+    center;
+  background-repeat: no-repeat;
+}
+
+.studio-stage__start-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      color-mix(in srgb, $secondary-default 28%, transparent),
+      transparent 72%
+    ),
+    color-mix(in srgb, $secondary-default 8%, transparent);
+  box-shadow: 0 0 30px color-mix(in srgb, $secondary-default 22%, transparent);
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.studio-stage__start-title {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+  text-wrap: balance;
+}
+
+.studio-stage__start-body {
+  max-width: 46ch;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.studio-stage__start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $spacing-s;
+  margin-top: 8px;
+}
+
+.studio-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: $radius-s;
+  background: $black;
+  box-shadow:
+    0 10px 30px rgba($black, 0.45),
+    inset 0 0 0 1px color-mix(in srgb, $white 6%, transparent);
+  transition:
+    max-width $motion-fast $ease-out,
+    aspect-ratio $motion-fast $ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.studio-stage--graph,
+.studio-stage--full {
+  aspect-ratio: 2.35 / 1;
+}
+
+// The narrow panel a phone-width window gives the graph.
+.studio-stage--narrow {
+  max-width: 260px;
+  aspect-ratio: 2 / 3;
+}
+
+.studio-stage--wide {
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+}
+
+.studio-stage:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.studio-stage__canvas {
+  display: block;
+}
+
+.studio-stage__exit {
+  position: absolute;
+  top: $spacing-m;
+  right: $spacing-m;
+}
+
+// ---------------------------------------------------------------- meters
+
+.studio-meter {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.studio-meter__label {
+  color: $text-faint;
+  font-size: $text-small;
+  @include truncate;
+}
+
+.studio-meter__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 7%, transparent);
+}
+
+// Moved every frame by transform, never by width: a transform is composited,
+// a width is laid out, and six meters laid out sixty times a second is work
+// the scene beside them needs more.
+.studio-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.studio-meter--beat .studio-meter__fill,
+.studio-meter--accent .studio-meter__fill {
+  background: linear-gradient(90deg, $analogous-1, $neon-pink);
+}
+
+.studio-meter__value {
+  color: $text-dim;
+  font-size: $text-micro;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-meters__spectrum {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 30px;
+  margin-top: 2px;
+
+  i {
+    flex: 1 1 0;
+    height: 100%;
+    border-radius: 1px;
+    background: linear-gradient(
+      0deg,
+      color-mix(in srgb, $secondary-default 30%, transparent),
+      $secondary-light
+    );
+    transform: scaleY(0.03);
+    transform-origin: center bottom;
+  }
+}
+
+// ---------------------------------------------------------------- controls
+
+.studio-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.studio-segment {
+  padding: 4px 9px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  font-size: $text-small;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+
+  &[aria-pressed='true'] {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  // Waiting for a scene, not broken: the choice still shows, unlit.
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.studio-test__hint {
+  margin-top: -3px;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+// How well it keeps up, under the controls that test it: a hairline above,
+// and a light that is green, amber or red before the words are read.
+.studio-cost {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-s;
+  margin-top: 2px;
+  padding-top: 9px;
+  color: $text-primary;
+  border-top: 1px solid $border-subtle;
+  font-size: $text-small;
+}
+
+.studio-cost__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $analogous-2;
+  box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 70%, transparent);
+}
+
+.studio-cost--scaled .studio-cost__dot {
+  background: $amber;
+  box-shadow: 0 0 8px color-mix(in srgb, $amber 70%, transparent);
+}
+
+.studio-cost--heavy .studio-cost__dot,
+.studio-cost--unavailable .studio-cost__dot {
+  background: $red;
+  box-shadow: 0 0 8px color-mix(in srgb, $red 70%, transparent);
+}
