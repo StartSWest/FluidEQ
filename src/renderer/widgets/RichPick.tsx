@@ -47,6 +47,9 @@ interface IRichPickProps {
   disabled?: boolean;
   /** Extra classes on the root, for a caller with styling of its own. */
   className?: string;
+  /** Scope a caller's sizing to this portalled menu only. */
+  menuClassName?: string;
+  menuMaxHeight?: number;
   /** Extra classes on the trigger — a bypassed state, for instance. */
   triggerClassName?: string;
   /** Rendered inside the trigger's label, after the name. */
@@ -103,6 +106,8 @@ const RichPick = ({
   placeholderIcon,
   disabled,
   className,
+  menuClassName,
+  menuMaxHeight,
   triggerClassName,
   triggerExtra,
   children,
@@ -238,7 +243,8 @@ const RichPick = ({
       <AnchoredMenu
         anchor={rootRef.current}
         isOpen={isOpen}
-        className="rich-pick__menu"
+        className={`rich-pick__menu${menuClassName ? ` ${menuClassName}` : ''}`}
+        maxHeight={menuMaxHeight}
       >
         <div className="rich-pick__search">
           <svg viewBox="0 0 16 16" aria-hidden>

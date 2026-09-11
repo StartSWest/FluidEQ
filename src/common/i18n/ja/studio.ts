@@ -1,4 +1,6 @@
 const studio = {
+  'studio.project.previous': '前のプロジェクト',
+  'studio.project.next': '次のプロジェクト',
   'studio.title': 'スタジオ',
   'studio.description': 'AI でシーンを作り、ライブで確かめる',
   'studio.rail.blurb': '自分だけのシーンを作る',

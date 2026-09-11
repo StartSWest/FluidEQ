@@ -1,4 +1,6 @@
 const studio = {
+  'studio.project.previous': 'Vorheriges Projekt',
+  'studio.project.next': 'Nächstes Projekt',
   'studio.title': 'Studio',
   'studio.description': 'Szenen mit Ihrer KI bauen und live ansehen',
   'studio.rail.blurb': 'Eigene Szenen bauen',

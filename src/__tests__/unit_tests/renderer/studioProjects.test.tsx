@@ -59,6 +59,83 @@ beforeEach(() => {
 });
 
 describe('the Studio’s projects', () => {
+  it('cycles the complete list in stable order even when recent projects move', async () => {
+    const forest = {
+      id: '33333333-3333-4333-8333-333333333333',
+      folderName: 'forest',
+      path: 'D:\\scenes\\forest',
+    };
+    const props = { onNewProject: jest.fn(), onOpenFile: jest.fn() };
+    const { rerender } = render(
+      <StudioProjects
+        onNewProject={props.onNewProject}
+        onOpenFile={props.onOpenFile}
+        state={{ ...state, projects: [...state.projects, forest] }}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.project.next' }),
+    );
+    expect(bridge.selectStudioProject).toHaveBeenLastCalledWith(forest.id);
+    rerender(
+      <StudioProjects
+        onNewProject={props.onNewProject}
+        onOpenFile={props.onOpenFile}
+        state={{
+          ...state,
+          activeId: forest.id,
+          projects: [forest, ...state.projects],
+        }}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.project.next' }),
+    );
+    expect(bridge.selectStudioProject).toHaveBeenLastCalledWith(SEA);
+    rerender(
+      <StudioProjects
+        onNewProject={props.onNewProject}
+        onOpenFile={props.onOpenFile}
+        state={{
+          ...state,
+          activeId: SEA,
+          projects: [state.projects[1], forest, state.projects[0]],
+        }}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.project.next' }),
+    );
+    expect(bridge.selectStudioProject).toHaveBeenLastCalledWith(CITY);
+    rerender(
+      <StudioProjects
+        onNewProject={props.onNewProject}
+        onOpenFile={props.onOpenFile}
+        state={{ ...state, projects: [...state.projects, forest] }}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.project.previous' }),
+    );
+    expect(bridge.selectStudioProject).toHaveBeenLastCalledWith(SEA);
+  });
+
+  it.each([0, 1])('does not cycle a list of %s projects', (length) => {
+    render(
+      <StudioProjects
+        state={{ ...state, projects: state.projects.slice(0, length) }}
+        onNewProject={jest.fn()}
+        onOpenFile={jest.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'studio.project.previous' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'studio.project.next' }),
+    ).toBeDisabled();
+  });
+
   // The control: the open project is named, the others are a click away.
   it('names the open project and opens another by its id', async () => {
     render(

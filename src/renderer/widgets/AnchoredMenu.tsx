@@ -64,7 +64,12 @@ const OFFSET = 6;
 /** Clearance kept from the window edge, so it never looks pinned to it. */
 const MARGIN = 8;
 
-const positionFrom = (rect: DOMRect, menuHeight: number, menuWidth: number) => {
+const positionFrom = (
+  rect: DOMRect,
+  menuHeight: number,
+  menuWidth: number,
+  heightLimit = Infinity,
+) => {
   const roomAbove = rect.top - OFFSET - MARGIN;
   // The now-playing bar is not room. Without this the menu opened downward
   // into space the bar is standing in and its last rows sat behind the
@@ -75,7 +80,8 @@ const positionFrom = (rect: DOMRect, menuHeight: number, menuWidth: number) => {
   // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
   // preferred side and the measured pass corrects it before the frame is
   // painted.
-  const openUpward = menuHeight > roomBelow && roomAbove > roomBelow;
+  const openUpward =
+    Math.min(menuHeight, heightLimit) > roomBelow && roomAbove > roomBelow;
   return {
     position: 'fixed' as const,
     // Anchored by the edge nearest the trigger in both directions, so the menu
@@ -83,7 +89,10 @@ const positionFrom = (rect: DOMRect, menuHeight: number, menuWidth: number) => {
     ...(openUpward
       ? { bottom: window.innerHeight - rect.top + OFFSET }
       : { top: rect.bottom + OFFSET }),
-    maxHeight: Math.max(0, openUpward ? roomAbove : roomBelow),
+    maxHeight: Math.max(
+      0,
+      Math.min(heightLimit, openUpward ? roomAbove : roomBelow),
+    ),
     // Right-aligned to the trigger, like every other menu here, and held
     // inside the window at BOTH edges.
     //
@@ -105,6 +114,7 @@ const AnchoredMenu = ({
   className,
   role = 'menu',
   ariaLabel,
+  maxHeight,
   children,
 }: {
   /** The control it hangs off. Its position on screen is the whole input. */
@@ -113,6 +123,8 @@ const AnchoredMenu = ({
   className: string;
   role?: 'menu' | 'dialog';
   ariaLabel?: string;
+  /** Optional caller cap, still constrained by the available window space. */
+  maxHeight?: number;
   children: ReactNode;
 }) => {
   const [style, setStyle] = useState<React.CSSProperties>();
@@ -137,6 +149,7 @@ const AnchoredMenu = ({
           // what has to be kept inside the window. Zero on the first pass, so
           // the clamp is inert until the measured pass corrects it.
           menu?.offsetWidth ?? 0,
+          maxHeight,
         ),
       );
     place();
@@ -150,7 +163,7 @@ const AnchoredMenu = ({
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
-  }, [anchor, isOpen, menu]);
+  }, [anchor, isOpen, menu, maxHeight]);
 
   if (!isOpen || !style || typeof document === 'undefined') {
     return null;

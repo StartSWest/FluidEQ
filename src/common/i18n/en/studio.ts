@@ -7,6 +7,8 @@
  * reaches the member as the thing to change, with the line to change it on.
  */
 const studio = {
+  'studio.project.previous': 'Previous project',
+  'studio.project.next': 'Next project',
   'studio.title': 'Studio',
   'studio.description': 'Make scenes with your AI and watch them live',
   'studio.rail.blurb': 'Build your own scenes',

@@ -1,4 +1,6 @@
 const studio = {
+  'studio.project.previous': '上一个项目',
+  'studio.project.next': '下一个项目',
   'studio.title': '工作室',
   'studio.description': '用你的 AI 创作场景，并实时观看',
   'studio.rail.blurb': '创作你自己的场景',

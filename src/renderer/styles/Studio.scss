@@ -255,11 +255,55 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The project picker: the open project's name, with the pulsing dot that says
 // its folder is being watched, over the list of every other one.
-.studio-projects {
+.studio-projects-nav {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 400px;
+  max-width: 100%;
   min-width: 0;
-  max-width: min(360px, 100%);
+}
+
+.studio-projects-menu.rich-pick__menu {
+  width: 350px;
+  max-width: calc(100vw - 16px);
+
+  .rich-pick__item {
+    padding-block: 6px;
+  }
+}
+
+.studio-projects-step.button.small {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.studio-projects-step--previous .chevron {
+  transform: rotate(90deg);
+}
+.studio-projects-step--next .chevron {
+  transform: rotate(-90deg);
+}
+
+.studio-projects {
+  flex: 1 1 auto;
+  min-width: 0;
 
   .rich-pick__trigger {
+    width: 100%;
+    min-height: 30px;
+    padding-block: 5px;
     max-width: 100%;
 
     > span {

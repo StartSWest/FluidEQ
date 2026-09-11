@@ -1,4 +1,6 @@
 const studio = {
+  'studio.project.previous': 'Projet précédent',
+  'studio.project.next': 'Projet suivant',
   'studio.title': 'Studio',
   'studio.description':
     'Créez des scènes avec votre IA et regardez-les en direct',
