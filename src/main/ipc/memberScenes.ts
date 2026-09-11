@@ -8,11 +8,7 @@ import type { IAccountSession } from '../account/session';
 import {
   readProject,
   readProjectNames,
-  readProjectSource,
-  writeProjectSource,
-  type IProjectSource,
   type TProjectBuild,
-  type TSourceWrite,
 } from '../memberScenes/project';
 import {
   createProjectFolder,
@@ -145,7 +141,6 @@ const CHANNELS = [
   'studio-create-project',
   'studio-add-to-looks',
   'studio-show-folder',
-  'studio-write-source',
 ] as const;
 
 const STUDIO_FILE = path.join('member-scenes', 'studio.json');
@@ -227,7 +222,6 @@ export const registerMemberScenesIpc = ({
     watcher?.close();
     watcher = undefined;
     lastBuild = undefined;
-    lastSource = undefined;
   };
 
   const startWatching = () => {
@@ -237,42 +231,15 @@ export const registerMemberScenesIpc = ({
     if (!folder || !active || !studioOpen || !entitled()) {
       return;
     }
-    const current = watchProject(
-      folder,
-      (build) => {
-        lastBuild = build;
-        // Held by the id this watcher started with, so a build that lands as
-        // the member switches projects cannot rename the one they switched to.
-        if (build.ok) {
-          projectNames.set(active, build.pack.names);
-        }
-        announceStudio();
-      },
-      {
-        // The code pane's text is read on every save, not only on the ones
-        // that change the build: a comment edited in a scene that does not
-        // compile yet changes no build, and the pane must still show it.
-        read: async (dir) => {
-          const [build, source] = await Promise.all([
-            readProject(dir),
-            readProjectSource(dir),
-          ]);
-          if (
-            watcher === current &&
-            (source?.text !== lastSource?.text ||
-              source?.file !== lastSource?.file)
-          ) {
-            lastSource = source;
-            getMainWindow()?.webContents.send(
-              'studio-source-changed',
-              source ?? null,
-            );
-          }
-          return build;
-        },
-      },
-    );
-    watcher = current;
+    watcher = watchProject(folder, (build) => {
+      lastBuild = build;
+      // Held by the id this watcher started with, so a build that lands as
+      // the member switches projects cannot rename the one they switched to.
+      if (build.ok) {
+        projectNames.set(active, build.pack.names);
+      }
+      announceStudio();
+    });
   };
 
   /** Every project's name, read afresh: they are edited outside the app. */
