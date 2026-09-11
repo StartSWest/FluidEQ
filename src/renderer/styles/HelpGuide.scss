@@ -8,6 +8,14 @@
   width: auto;
   min-width: 48px;
   font-weight: $weight-semibold;
+
+  // The Forum is open. It has no tab of its own, so the menu it opens from
+  // says where it is, lit in the accent a selected tab wears.
+  &.is-active {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, $block-lift);
+  }
 }
 
 .help-menu__items.workspace-header__menu {

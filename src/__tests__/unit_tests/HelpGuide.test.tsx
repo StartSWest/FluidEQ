@@ -75,17 +75,20 @@ afterAll(() => {
   });
 });
 
-const showMenu = () => {
+const showMenu = (forumOpen = false) => {
   const onAbout = jest.fn();
+  const onForum = jest.fn();
   render(
     <HelpMenu
       onAbout={onAbout}
       onTour={jest.fn()}
       onReport={jest.fn()}
       onTroubleshoot={jest.fn()}
+      onForum={onForum}
+      forumOpen={forumOpen}
     />,
   );
-  return { onAbout };
+  return { onAbout, onForum };
 };
 
 const openGuide = () => {
@@ -125,6 +128,28 @@ it('routes the keyboard-selected menu action and dismisses the menu', () => {
   fireEvent.click(about);
   expect(onAbout).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+});
+
+/**
+ * The Forum has no tab in the titlebar: it opens from here, just before
+ * About, and while it is open the Help button is what says where it is.
+ */
+it('opens the Forum from the Help menu, and lights Help while it is open', () => {
+  const { onForum } = showMenu();
+  const trigger = screen.getByRole('button', { name: 'Help' });
+  expect(trigger).not.toHaveClass('is-active');
+  fireEvent.click(trigger);
+  const items = screen.getAllByRole('menuitem');
+  const forum = screen.getByRole('menuitem', { name: 'Forum' });
+  expect(items.indexOf(forum)).toBe(items.length - 2);
+  fireEvent.click(forum);
+  expect(onForum).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+});
+
+it('wears the selected look on the Help button while the Forum is open', () => {
+  showMenu(true);
+  expect(screen.getByRole('button', { name: 'Help' })).toHaveClass('is-active');
 });
 
 it('filters chapters, clears an empty result, and marks only the current chapter', () => {

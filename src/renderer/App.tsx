@@ -834,20 +834,8 @@ const AppContent = () => {
           <span className="workspace-tab__label">{t('tabs.plus')}</span>
         </button>
       )}
-      {/* In every build, unlike Plus: the forum is the project's GitHub
-          Discussions, readable with no backend and no account at all, so a
-          fork shows it too — and last, the one place members talk. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isForumTab}
-        aria-label={t('tabs.forum')}
-        className={`workspace-tab${isForumTab ? ' is-active' : ''}`}
-        onClick={() => selectTopWorkspaceTab('forum')}
-      >
-        <MenuIcon name="forum" />
-        <span className="workspace-tab__label">{t('tabs.forum')}</span>
-      </button>
+      {/* No Forum tab: the forum opens from the Help menu, beside the other
+          ways to get help, and still fills the workspace like a tab. */}
     </WorkspaceTabStrip>
   );
 
@@ -2086,7 +2074,9 @@ const AppContent = () => {
             onTour={() => setShowFeatureTour(true)}
             onTroubleshoot={() => setShowTroubleshooter(true)}
             onReport={() => setShowBugReport(true)}
+            onForum={() => selectTopWorkspaceTab('forum')}
             onAbout={() => setShowAbout(true)}
+            forumOpen={isForumTab}
           />
           <div className="workspace-header__tools">
             <button

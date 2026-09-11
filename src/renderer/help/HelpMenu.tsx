@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
-import MenuIcon from '../icons/MenuIcon';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import HelpGuide from './HelpGuide';
 import '../styles/HelpGuide.scss';
 
@@ -11,14 +11,23 @@ interface IHelpMenuProps {
   onTour: () => void;
   onTroubleshoot: () => void;
   onReport: () => void;
+  /** Shows the Forum — the project's GitHub Discussions — in the workspace. */
+  onForum: () => void;
   onAbout: () => void;
+  /**
+   * The Forum is what the workspace shows. It has no tab of its own in the
+   * titlebar, so the menu it opens from is what says where it is.
+   */
+  forumOpen: boolean;
 }
 
 export default function HelpMenu({
   onTour,
   onTroubleshoot,
   onReport,
+  onForum,
   onAbout,
+  forumOpen,
 }: IHelpMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -61,12 +70,20 @@ export default function HelpMenu({
     return () => document.removeEventListener('pointerdown', dismiss);
   }, [open]);
 
-  const actions = [
-    { label: t('help.title'), run: () => setShowGuide(true) },
-    { label: t('app.menu.whatsNew'), run: onTour },
-    { label: t('app.menu.fixAudio'), run: onTroubleshoot },
-    { label: t('app.menu.reportProblem'), run: onReport },
-    { label: t('app.menu.about', { product: PRODUCT_NAME }), run: onAbout },
+  // The Forum sits with the other ways to get help, after reporting a
+  // problem: the place to ask people rather than the app. It wears its own
+  // picture because, unlike the rest, it opens a place and not a dialog.
+  const actions: { label: string; run: () => void; icon: MenuIconName }[] = [
+    { label: t('help.title'), run: () => setShowGuide(true), icon: 'info' },
+    { label: t('app.menu.whatsNew'), run: onTour, icon: 'info' },
+    { label: t('app.menu.fixAudio'), run: onTroubleshoot, icon: 'info' },
+    { label: t('app.menu.reportProblem'), run: onReport, icon: 'info' },
+    { label: t('tabs.forum'), run: onForum, icon: 'forum' },
+    {
+      label: t('app.menu.about', { product: PRODUCT_NAME }),
+      run: onAbout,
+      icon: 'info',
+    },
   ];
 
   return (
@@ -74,7 +91,7 @@ export default function HelpMenu({
       <button
         ref={trigger}
         type="button"
-        className="workspace-header__tools-trigger help-menu__trigger"
+        className={`workspace-header__tools-trigger help-menu__trigger${forumOpen ? ' is-active' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? 'help-menu' : undefined}
@@ -145,7 +162,7 @@ export default function HelpMenu({
                 action.run();
               }}
             >
-              <MenuIcon name="info" />
+              <MenuIcon name={action.icon} />
               <span className="help-menu__label">
                 {action.label}
                 {index === 0 && <kbd>F1</kbd>}
