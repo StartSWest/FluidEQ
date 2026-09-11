@@ -24,16 +24,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace fluideq_engine::setup {
 
 /**
- * Stops `Audiosrv` then `AudioEndpointBuilder`, and starts them back the
- * other way round.
- *
- * The order is forced by the dependency: `Audiosrv` depends on the builder,
- * so stopping the builder first fails outright rather than doing anything.
+ * Stops what depends on `Audiosrv`, then `Audiosrv`, then
+ * `AudioEndpointBuilder`, and starts everything back the other way round —
+ * including after a failure, so a restart that failed half way leaves the
+ * sound as it was. See `restart_services` for the order and what is put back.
  *
  * Every wait is an alertable sleep woken by the service control manager's own
  * notification. There is no polling and no deadline: how long a machine takes
  * to stop its audio service is not something this program can know, and a
- * timeout would only turn a slow machine into a reported failure.
+ * timeout would only turn a slow machine into a reported failure. A service
+ * that fails instead of finishing ends its wait with the failure.
  */
 bool restart_audio(std::wstring& error);
 

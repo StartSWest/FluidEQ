@@ -125,8 +125,19 @@ add_test(NAME engine-dll-aggregation
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
-  setup/attach_outcome.cpp setup/com_paths.cpp)
+  setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+# What an audio restart puts back when one of its steps fails. A fake stands
+# in for the service control manager: the failure this guards against is a
+# machine left with no sound until a reboot, which is not something to
+# reproduce on real services.
+add_executable(fluideq-engine-service-restart-test
+  tests/service_restart_test.cpp)
+target_link_libraries(fluideq-engine-service-restart-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-service-restart
+  COMMAND fluideq-engine-service-restart-test)
 
 # The two registry paths the effect is found by. Pinned in a test because a
 # wrong one fails with no message anywhere: the install succeeds, the effect

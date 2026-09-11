@@ -70,6 +70,7 @@ using fluideq_engine::setup::Slot;
 using fluideq_engine::setup::backup_exists;
 using fluideq_engine::setup::borrow_caller_console;
 using fluideq_engine::setup::config_dir;
+using fluideq_engine::setup::engine_root;
 using fluideq_engine::setup::ensure_engine_tree;
 using fluideq_engine::setup::installed_dll_path;
 using fluideq_engine::setup::apo_record_present;
@@ -251,12 +252,22 @@ int run_elevated(const Options& options) {
   // user asked to be rid of, so that run reports through its exit code alone
   // and the unelevated half fills in the rest.
   const bool purged = options.command == L"uninstall" && options.purge;
+  // `restart-audio` is also what "Restart Windows audio" runs on a machine
+  // that only uses Equalizer APO. Creating the tree there leaves a folder
+  // with a Users-modify permission and an empty config.txt for an engine that
+  // was never installed, so this one writes its result only into a tree that
+  // already exists and otherwise reports through its exit code, like a purge.
+  const bool leaves_tree_alone = options.command == L"restart-audio";
   if (!purged) {
     // The tree may not exist yet — `attach` can be the first command ever run
     // on a machine — and the result has to have somewhere to go regardless.
-    std::wstring ignored;
-    ensure_engine_tree(ignored);
-    write_utf8(result_path(), json);
+    if (!leaves_tree_alone) {
+      std::wstring ignored;
+      ensure_engine_tree(ignored);
+    }
+    if (!leaves_tree_alone || path_exists(engine_root())) {
+      write_utf8(result_path(), json);
+    }
   }
   print_json(json);
   return result.ok ? 0 : 3;
