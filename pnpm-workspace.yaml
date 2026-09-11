@@ -27,6 +27,20 @@ overrides:
 
 storeDir: .pnpm-store
 confirmModulesPurge: false
+# ESLint 8 resolves plugins from the project root, and eslint-config-erb brings
+# its plugins (prettier, airbnb, @typescript-eslint, ...) as its own
+# dependencies. pnpm 10 stopped hoisting them to the root by default, so a
+# bare `eslint` -- the editor's integration, or node_modules/eslint/bin run
+# directly -- failed with "couldn't find the plugin eslint-plugin-prettier".
+# `pnpm lint` and the pre-commit hook kept working only because pnpm puts its
+# private hoist folder on NODE_PATH for anything it launches. This is the old
+# default back, which is exactly what those pnpm-launched runs resolve.
+# Editing this list makes the next install delete and rebuild node_modules.
+# Close `pnpm dev` first: a running electron.exe cannot be deleted, and the
+# purge stalls on it after everything else is already gone.
+publicHoistPattern:
+  - '*eslint*'
+  - '*prettier*'
 patchedDependencies:
   '@huggingface/transformers@3.7.6': patches/@huggingface__transformers@3.7.6.patch
   music-metadata@11.14.0: patches/music-metadata@11.14.0.patch
