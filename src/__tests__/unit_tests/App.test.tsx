@@ -357,6 +357,78 @@ describe('App', () => {
     );
   });
 
+  it('stays in full screen when Escape closes a dialog in front of the graph', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).toHaveClass(
+        'is-graph-full',
+      ),
+    );
+    setWindowFullScreen.mockClear();
+
+    // A dialog that closes on the document, as the app's dialogs do. In the
+    // running app its close lands before the window hears the key; a scripted
+    // key runs every listener first, so this one leaves on the spot instead.
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    document.body.append(dialog);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        dialog.remove();
+      }
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    try {
+      fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
+      expect(dialog).not.toBeInTheDocument();
+      expect(container.querySelector('.center-workspace')).toHaveClass(
+        'is-graph-full',
+      );
+      expect(setWindowFullScreen).not.toHaveBeenCalled();
+
+      // With nothing in front, the same key leaves.
+      fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
+      await waitFor(() =>
+        expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+      );
+      expect(container.querySelector('.center-workspace')).not.toHaveClass(
+        'is-graph-full',
+      );
+    } finally {
+      document.removeEventListener('keydown', closeOnEscape);
+    }
+  });
+
+  it('closes the top bar menu, not full screen, on Escape', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).toHaveClass(
+        'is-graph-full',
+      ),
+    );
+    setWindowFullScreen.mockClear();
+
+    fireEvent.click(screen.getByRole('button', { name: 'FluidEQ actions' }));
+    expect(
+      container.querySelector('.workspace-header__menu'),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { key: 'Escape', code: 'Escape' });
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.workspace-header__menu'),
+      ).not.toBeInTheDocument(),
+    );
+    expect(container.querySelector('.center-workspace')).toHaveClass(
+      'is-graph-full',
+    );
+    expect(setWindowFullScreen).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['karaoke', 'Karaoke', '.karaoke-workspace'],
     ['library', 'Library', '.library-workspace'],

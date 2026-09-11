@@ -505,6 +505,16 @@ interface IFrequencyResponseChartProps {
   isVisible?: boolean;
 }
 
+/**
+ * What stood in front of the graph when an Escape went down, per key press.
+ *
+ * Outside the component because the listener that reads it can be a newer
+ * one than the listener that wrote it: whatever Escape closed may re-render
+ * the chart between the two, and the effect then subscribes afresh in the
+ * middle of the same key press.
+ */
+const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
+
 const FrequencyResponseChart = ({
   isVisible,
 }: IFrequencyResponseChartProps) => {
@@ -1358,23 +1368,41 @@ const FrequencyResponseChart = ({
     if (!isGraphViewOn) {
       return undefined;
     }
+    // What was in front of the graph when Escape went down.
+    //
+    // Escape means "close the nearest thing", and the nearest thing is
+    // whatever is over the top — Report a problem, the Account panel, the view
+    // menu itself. Asking the page at the moment this handler runs gave the
+    // wrong answer in the running app: the dialogs close on a listener on the
+    // document, which hears the key before the window does, and the close is
+    // committed in between, so by the time the graph looked the dialog was
+    // already gone and the graph dropped out of full screen behind it. A test
+    // cannot see that, because a scripted key runs every listener before the
+    // close lands. Only the window's capture phase runs before all of them.
+    //
+    // Matched on the elements that only exist while something is open, not
+    // on `[role="menu"]`: the style picker puts that role on its *trigger*,
+    // which is on screen the whole time, so testing for it blocked Escape
+    // permanently and full screen became a mode with no way out. The top
+    // bar's menus stay reachable in full screen and are among them.
+    const noteWhatIsInFront = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+      if (
+        document.querySelector(
+          '.graph-view-menu__list, .graph-legend-menu__list, .workspace-header__menu, .dropdown--open',
+        )
+      ) {
+        escapeInFront.set(event, 'menu');
+      } else if (document.querySelector('[role="dialog"]')) {
+        escapeInFront.set(event, 'dialog');
+      }
+    };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        // Not while something is open in front of it.
-        //
-        // These are window-level handlers, so an Escape meant for the dialog on
-        // screen — Report a problem, Fix audio problems, the view menu itself —
-        // reached this as well and did both things at once: the dialog closed
-        // and the graph dropped out of full screen behind it. Escape means
-        // "close the nearest thing", and the nearest thing is whatever is over
-        // the top.
-        //
-        // Matched on the elements that only exist while something is open, not
-        // on `[role="menu"]`: the style picker puts that role on its *trigger*,
-        // which is on screen the whole time, so testing for it blocked Escape
-        // permanently and full screen became a mode with no way out.
         if (
-          document.querySelector('.graph-view-menu__list, .dropdown--open') ||
+          escapeInFront.get(event) === 'menu' ||
           // Every one of these also has its own key handling, and a text field
           // in particular treats Escape as "cancel this edit".
           (event.target as HTMLElement | null)?.closest?.(
@@ -1392,7 +1420,7 @@ const FrequencyResponseChart = ({
           closeDesigner();
           return;
         }
-        if (document.querySelector('[role="dialog"]')) {
+        if (escapeInFront.get(event) === 'dialog') {
           return;
         }
         exitGraphFullScreen();
@@ -1482,8 +1510,12 @@ const FrequencyResponseChart = ({
       event.preventDefault();
       cycleGraphLook(event.ctrlKey || event.metaKey || event.shiftKey ? -1 : 1);
     };
+    window.addEventListener('keydown', noteWhatIsInFront, true);
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', noteWhatIsInFront, true);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, [
     isGraphViewOn,
     isDesignerOpen,
