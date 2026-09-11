@@ -168,7 +168,7 @@ const BOLT_SPEED = 1.3;
  * a second and a half a bass-heavy track put a volley in the air more
  * often than the ship could get out from under one.
  */
-const VOLLEY_COOLDOWN = 3;
+export const VOLLEY_COOLDOWN = 3;
 /** How long the screen shakes after the ship is hit, in clock seconds. */
 export const SHAKE_LIFE = 0.35;
 /** The new ship blinks in for this long, behind its bubble. */

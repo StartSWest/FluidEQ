@@ -74,10 +74,11 @@ export const LEVEL_BINS = 3;
  * a busy sky and costs a third less.
  */
 const ROCKET_LIMIT = 5;
-/** Stars over the bridge: seeded, twinkling, flaring on the beat. */
-// Over the plot and a plot's width past each end: the scene is allowed to
-// overflow, and the sky and the sea reach whatever panel margins there are.
 /**
+ * Stars over the bridge: seeded, twinkling, flaring on the beat, over the
+ * plot and a plot's width past each end, so the sky reaches whatever panel
+ * margins there are.
+ *
  * The sky is the window now, not the top of the plot, so the same count
  * spread over three or four times the area and read as an empty night.
  * They are small arcs in two fills and cost nothing measurable.
@@ -92,17 +93,27 @@ const STARS = 340;
  * frame budget on a 1440p screen while the profile showed the script
  * idle. Nine rows read as the same water and cost a third of it.
  */
-const SEA_ROWS = 9;
+export const SEA_ROWS = 9;
 const SEA_STEPS = 22;
 /**
- * How far past the plot the water goes, as a fraction of its width.
+ * How far the deck and its truss carry on past the plot, as a fraction of
+ * its width.
  *
- * The rest of the scene overflows by a full plot width each way; the sea
- * does not need to, because it is a flat body and nobody can tell where
- * it stops beyond the panel's own margin — and every pixel of it is
- * blended.
+ * A full plot width each way tripled the length of every member, and
+ * stroking that truss was five milliseconds a frame on a full screen — for
+ * structure that lives outside the panel and nobody sees. A third still
+ * clears any margin the panel has at any window size.
  */
-const SEA_REACH = 0.35;
+export const DECK_REACH = 0.35;
+/**
+ * How far past the plot the water goes: as far as the deck, so the bridge
+ * never runs out over nothing.
+ *
+ * Only the stars go further. The sea has no reason to, because it is a
+ * flat body and nobody can tell where it stops beyond the panel's own
+ * margin — and every pixel of it is blended.
+ */
+const SEA_REACH = DECK_REACH;
 /** Where the horizon sits, as a fraction of the plot's depth from the top. */
 const SEA_HORIZON = 0.6;
 /** One crossing of the deck takes this long, in seconds of bridge clock. */
@@ -330,18 +341,10 @@ export const createTrussBridgePaths = (
     (state.deck[index] ?? baseline) + bounce,
   ]);
   // The scene is allowed to overflow the plot, and the panel round it has
-  // margins: the deck and the truss carry on level past both ends, a
-  // plot's width each way, at the road's own pitch so the joints keep
-  // their spacing. The cables and the anchors stay on the span.
-  /**
-   * How far the deck and its truss carry on past the plot.
-   *
-   * A full plot width each way tripled the length of every member, and
-   * stroking that truss was five milliseconds a frame on a full screen —
-   * for structure that lives outside the panel and nobody sees. A third
-   * still clears any margin the panel has at any window size.
-   */
-  const reach = width * 0.35;
+  // margins: the deck and the truss carry on level past both ends at the
+  // road's own pitch, so the joints keep their spacing. The cables and the
+  // anchors stay on the span.
+  const reach = width * DECK_REACH;
   const pitch = span.length >= 2 ? Math.max(1, span[1][0] - span[0][0]) : 1;
   const approach = Math.ceil(reach / pitch);
   const road: Projected[] = [

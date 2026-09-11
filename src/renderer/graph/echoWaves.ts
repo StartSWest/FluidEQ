@@ -22,7 +22,7 @@ import { ECHO_SQUEEZE, projectEchoWave } from 'common/graphEcho';
  * same rows without deciding them twice.
  */
 
-/** Waves are let go every 100ms of clock and reach the horizon in 2.6s. */
+/** Waves are let go every 260ms of clock and reach the horizon in 2.6s. */
 export const EMIT_EVERY = 0.26;
 export const WAVE_LIFE = 2.6;
 /**
@@ -88,7 +88,6 @@ export const createEchoWaves = () => ({
   beatLevel: 0,
   /** The bass, eased, for the horizon's bloom. */
   bass: 0,
-  trebleLevel: 0,
   trackedAt: -1,
   /** The beat strength waiting for the next wave to carry it. */
   pending: 0,
@@ -110,20 +109,15 @@ export const advanceEchoWaves = (
     (wave) => seconds - wave.at <= WAVE_LIFE && seconds >= wave.at,
   );
   const depth = Math.max(1, bottom - top);
-  const mean =
-    points.reduce(
-      (sum, [, y]) => sum + Math.max(0, Math.min(1, (bottom - y) / depth)),
-      0,
-    ) / Math.max(1, points.length);
   const levels = points.map(([, y]) =>
     Math.max(0, Math.min(1, (bottom - y) / depth)),
   );
+  const sum = (values: readonly number[]) =>
+    values.reduce((total, value) => total + value, 0);
+  const mean = sum(levels) / Math.max(1, levels.length);
+  // The lowest third of the spectrum, for the horizon's bloom.
   const bassTo = Math.max(1, Math.floor(levels.length * 0.3));
-  const bass = levels.slice(0, bassTo).reduce((s, v) => s + v, 0) / bassTo;
-  const trebleFrom = Math.floor(levels.length * 0.6);
-  const treble =
-    levels.slice(trebleFrom).reduce((s, v) => s + v, 0) /
-    Math.max(1, levels.length - trebleFrom);
+  const bass = sum(levels.slice(0, bassTo)) / bassTo;
   const jump = mean - state.beatLevel;
   if (jump >= 0.05) {
     state.pending = Math.max(state.pending, Math.min(1, jump / 0.2));
@@ -137,10 +131,6 @@ export const advanceEchoWaves = (
     state.beatLevel * (1 - getEaseFactor(elapsedMs, 110)),
   );
   state.bass += (bass - state.bass) * getEaseFactor(elapsedMs, 25);
-  state.trebleLevel = Math.max(
-    treble,
-    state.trebleLevel * (1 - getEaseFactor(elapsedMs, 110)),
-  );
   const newest = state.waves[0];
   if (!newest || seconds - newest.at >= EMIT_EVERY) {
     state.waves.unshift({

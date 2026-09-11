@@ -10,8 +10,10 @@ import {
   createTrussBridge,
   createTrussBridgePaths,
   DECK_HALF_LIFE_MS,
+  DECK_REACH,
   deckTarget,
   lampBlink,
+  SEA_ROWS,
 } from 'renderer/graph/trussBridge';
 
 /** Twenty-four columns across a 240px plot, a spike every sixth. */
@@ -101,16 +103,23 @@ describe('the scene', () => {
     Object.assign(globalThis, { Path2D: undefined });
   });
 
-  it('runs the deck, the truss and the sea a plot past both ends', () => {
+  it('carries the deck, the truss and the sea past both ends of the plot', () => {
     const state = createTrussBridge();
     advanceTrussBridge(state, columns, columns, 20, 160, 1, true);
     const paths = createTrussBridgePaths(state, columns, 160, 20, 1, 140);
-    // The panel round the plot has margins; a scene may overflow them.
-    const footing = paths.footing as unknown as { moveTo: jest.Mock };
-    expect(footing.moveTo).toHaveBeenCalledWith(20 - 230, 160);
+    // The panel round the plot has margins; a scene may overflow them, by
+    // a third of the 230px plot rather than all of it — the rest was
+    // stroking nobody could see.
+    const footing = paths.footing as unknown as {
+      moveTo: jest.Mock;
+      lineTo: jest.Mock;
+    };
+    expect(footing.moveTo).toHaveBeenCalledWith(20 - 230 * DECK_REACH, 160);
+    expect(footing.lineTo).toHaveBeenCalledWith(250 + 230 * DECK_REACH, 160);
     const deck = paths.shape as unknown as { moveTo: jest.Mock };
     expect(deck.moveTo.mock.calls[0][0]).toBeLessThan(20);
-    expect(paths.sea).toHaveLength(14);
+    // One strip of water per row of swell.
+    expect(paths.sea).toHaveLength(SEA_ROWS);
     expect(paths.horizon).toBeCloseTo(20 + 140 * 0.6);
     expect(paths.cars).toHaveLength(4);
     paths.cars.forEach((car) => {

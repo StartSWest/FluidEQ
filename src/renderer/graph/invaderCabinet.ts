@@ -199,9 +199,15 @@ export const strikeBunker = (
   if (struck < 0) {
     return false;
   }
+  // Only cells the shelter has. The blast also covers the empty air under
+  // the arch, and counting that as lost brought a new shelter while two
+  // thirds of the old one still stood.
   for (let row = 0; row < BUNKER_TALL; row += 1) {
     for (let col = 0; col < BUNKER_WIDE; col += 1) {
-      if (Math.hypot(col - column, row - struck) <= BLAST) {
+      if (
+        BUNKER_MAP[row][col] === 'X' &&
+        Math.hypot(col - column, row - struck) <= BLAST
+      ) {
         bunker.gone.add(row * BUNKER_WIDE + col);
       }
     }

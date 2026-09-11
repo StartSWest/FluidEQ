@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   DISCRETE_STYLES,
   GraphStyle,
+  MAX_GRAPH_COLUMNS,
   Projected,
   clampGraphColumns,
   getColumnCount,
@@ -288,6 +289,12 @@ export interface IGraphPiece {
 }
 
 /**
+ * The most LED cells the whole meter may hold, lit or not, however tall and
+ * dense it is: forty-eight to a column at the densest setting.
+ */
+export const LED_CELL_BUDGET = 48 * MAX_GRAPH_COLUMNS;
+
+/**
  * How each form draws ONE of its pieces.
  *
  * The single-path cases below build their figure by calling these in a loop,
@@ -306,6 +313,8 @@ const PIECE_BUILDERS: Partial<
       ceiling: number,
       /** Which piece this is, so a form can vary them and not flicker. */
       index: number,
+      /** How many pieces there are, for a form that shares a budget. */
+      count: number,
     ) => string
   >
 > = {
@@ -313,7 +322,7 @@ const PIECE_BUILDERS: Partial<
     rect(x - width / 2, y, width, Math.max(0, baseline - y)),
   pillars: (x, y, baseline, width) =>
     rect(x - width / 2, y, width, Math.max(0, baseline - y)),
-  blocks: (x, y, baseline, width, ceiling) => {
+  blocks: (x, y, baseline, width, ceiling, _index, count) => {
     /**
      * A CELL IS A CELL, whatever the height slider says.
      *
@@ -324,8 +333,21 @@ const PIECE_BUILDERS: Partial<
      * instead, the LED keeps its landscape shape at every height and it
      * is the COUNT that answers the slider — fewer cells in a shorter
      * meter, which is what a real meter does.
+     *
+     * Within one budget for the whole meter, which only the dense end of
+     * the slider reaches. The count grows with the square of the density,
+     * and uncapped, 160 columns on a full screen lit about 15,000 cells —
+     * six milliseconds a frame to build the shapes before a pixel was
+     * filled, where the old fixed rows never drew more than 4,500. Past
+     * `LED_CELL_BUDGET` the cells grow taller instead of multiplying: the
+     * densest setting holds forty-eight to a column, and up to about eighty
+     * columns a full screen keeps the landscape cell.
      */
-    const segment = Math.max(6, width * 0.6);
+    const segment = Math.max(
+      6,
+      width * 0.6,
+      (Math.max(0, baseline - ceiling) * count) / LED_CELL_BUDGET,
+    );
     const separation = Math.max(2, segment * 0.22);
     const lit = Math.floor(
       Math.min(Math.max(0, baseline - ceiling), Math.max(0, baseline - y)) /
@@ -432,7 +454,7 @@ export const createGraphPieces = (
   );
   const depth = Math.max(1, baseline - ceiling);
   return figure.map(([x, y], index) => ({
-    d: build(x, y, baseline, width, ceiling, index),
+    d: build(x, y, baseline, width, ceiling, index, figure.length),
     across: figure.length > 1 ? index / (figure.length - 1) : 0,
     energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
   }));

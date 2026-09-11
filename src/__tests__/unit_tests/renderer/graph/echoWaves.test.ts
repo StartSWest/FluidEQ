@@ -73,24 +73,30 @@ describe('the waves rolling away', () => {
   it('marks the next wave with a beat and carries it only once', () => {
     const state = createEchoWaves();
     advanceEchoWaves(state, quiet, 20, 160, 1, true);
-    advanceEchoWaves(state, loud, 20, 160, 1.05, true);
+    advanceEchoWaves(state, loud, 20, 160, 1 + EMIT_EVERY / 5, true);
     // The beat landed between emits: it waits for the next wave.
+    expect(state.waves).toHaveLength(1);
     expect(state.pending).toBe(1);
-    advanceEchoWaves(state, loud, 20, 160, 1.1, true);
+    advanceEchoWaves(state, loud, 20, 160, 1 + EMIT_EVERY * 1.1, true);
+    expect(state.waves).toHaveLength(2);
     expect(state.waves[0].strength).toBe(1);
     expect(state.pending).toBe(0);
-    advanceEchoWaves(state, loud, 20, 160, 1.25, true);
+    // Held loud is not another beat: the wave after carries nothing.
+    advanceEchoWaves(state, loud, 20, 160, 1 + EMIT_EVERY * 2.2, true);
+    expect(state.waves).toHaveLength(3);
     expect(state.waves[0].strength).toBe(0);
   });
 
   it('paints back to front, builds bodies only when filled, and idles paused', () => {
     const state = createEchoWaves();
+    const second = 1 + EMIT_EVERY * 1.1;
+    const now = second + 0.1;
     advanceEchoWaves(state, loud, 20, 160, 1, true);
-    advanceEchoWaves(state, loud, 20, 160, 1.2, true);
-    const stroked = createEchoWavePaths(state, loud, 20, 160, 1.3, false);
+    advanceEchoWaves(state, loud, 20, 160, second, true);
+    const stroked = createEchoWavePaths(state, loud, 20, 160, now, false);
     expect(stroked.waves).toHaveLength(2);
-    expect(stroked.waves[0].depth).toBeCloseTo(0.3 / WAVE_LIFE);
-    expect(stroked.waves[1].depth).toBeCloseTo(0.1 / WAVE_LIFE);
+    expect(stroked.waves[0].depth).toBeCloseTo((now - 1) / WAVE_LIFE);
+    expect(stroked.waves[1].depth).toBeCloseTo((now - second) / WAVE_LIFE);
     expect(stroked.waves.every((wave) => wave.body === undefined)).toBe(true);
     const filled = createEchoWavePaths(state, loud, 20, 160, 1.3, true);
     expect(filled.waves.every((wave) => wave.body !== undefined)).toBe(true);

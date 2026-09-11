@@ -45,6 +45,7 @@ import {
   createGraphShape,
   createGraphPieces,
   getDefaultAccentStyle,
+  LED_CELL_BUDGET,
 } from 'common/graphShapes';
 
 const BASELINE = 300;
@@ -140,28 +141,78 @@ describe('connected spectrum beads', () => {
 });
 
 describe('readable LED columns', () => {
-  it.each([300, 1440, 2880])(
-    'bounds the lit rows at a %i pixel depth',
+  /** Every column at full level, `columns` of them across `span` pixels. */
+  const fullMeter = (depth: number, columns: number, span: number) => {
+    const top = 50;
+    return createGraphPieces(
+      Array.from(
+        { length: columns },
+        (_value, index) =>
+          [(index * span) / Math.max(1, columns - 1), top] as Projected,
+      ),
+      'blocks',
+      top + depth,
+      columns,
+      0.26,
+      top,
+    );
+  };
+  const cellHeights = (d: string) =>
+    Array.from(d.matchAll(/ v ([\d.]+) /g), (match) => Number(match[1]));
+
+  /**
+   * A cell is a cell: its shape comes from the column's width, so a taller
+   * meter shows more of the same cells rather than stretched ones.
+   */
+  it.each([300, 900, 1440])(
+    'keeps the cell the same landscape shape at a %i pixel depth',
     (depth) => {
-      const top = 50;
-      const baseline = top + depth;
-      const pieces = createGraphPieces(
-        [
-          [0, top],
-          [100, top],
-        ],
-        'blocks',
-        baseline,
-        2,
-        0.26,
-        top,
-      );
+      const pieces = fullMeter(depth, 2, 100);
+      const reference = cellHeights(fullMeter(300, 2, 100)[0].d)[0];
+      // Two columns a hundred pixels apart, less the form's 26% gap.
+      const columnWidth = 100 * (1 - 0.26);
       pieces.forEach((piece) => {
-        expect(piece.d.match(/M /g)).toHaveLength(28);
+        const heights = cellHeights(piece.d);
+        expect(heights.length).toBeGreaterThan(0);
+        heights.forEach((height) => expect(height).toBe(reference));
+        // Wider than tall, which is what reads as an LED segment.
+        expect(reference).toBeLessThan(columnWidth);
         expect(piece.energy).toBe(1);
       });
     },
   );
+
+  it('answers a taller meter with more cells, not bigger ones', () => {
+    const count = (depth: number) =>
+      cellHeights(fullMeter(depth, 2, 100)[0].d).length;
+    expect(count(900)).toBeGreaterThan(count(300));
+    expect(count(1440)).toBeGreaterThan(count(900));
+  });
+
+  /**
+   * The count grows with the square of the density: uncapped, the densest
+   * setting on a full screen lit about 15,000 cells, six milliseconds a
+   * frame just to build. Past the budget the cells grow instead.
+   */
+  it('keeps the whole meter within its budget at the densest setting', () => {
+    const pieces = fullMeter(1900, MAX_GRAPH_COLUMNS, 3700);
+    expect(pieces).toHaveLength(MAX_GRAPH_COLUMNS);
+    const cells = pieces.reduce(
+      (sum, piece) => sum + cellHeights(piece.d).length,
+      0,
+    );
+    expect(cells).toBeLessThanOrEqual(LED_CELL_BUDGET);
+    expect(cells).toBeGreaterThan(LED_CELL_BUDGET / 2);
+  });
+
+  it('keeps the landscape cell on a full screen well into the dense settings', () => {
+    const columns = 64;
+    const pieces = fullMeter(1900, columns, 3700);
+    const columnWidth = (3700 / (columns - 1)) * (1 - 0.26);
+    const heights = cellHeights(pieces[0].d);
+    expect(heights.length).toBeGreaterThan(40);
+    heights.forEach((height) => expect(height).toBeLessThan(columnWidth));
+  });
 
   it('shares the same LED geometry across whole-figure and per-column palettes', () => {
     const top = 40;
@@ -355,11 +406,31 @@ describe('createGraphShape', () => {
     expect(path).not.toContain(BASELINE.toFixed(1));
   });
 
-  it('punches the skyline windows the other way round', () => {
-    // A window wound the same way as its building is painted over it rather
-    // than cut out of it, and the towers come out solid. The counter-wound
-    // subpath starts with a vertical, which the tower never does.
-    expect(shapeOf('skyline')).toMatch(/M [\d.-]+,[\d.-]+ v [\d.]+ h/);
+  /**
+   * The towers are solid silhouettes and the city scene paints the lit
+   * windows onto them; punched-out windows took the colour of whatever was
+   * behind the graph. A punched window is a counter-wound subpath, which
+   * starts with a vertical — a tower never does.
+   */
+  it('stands the skyline towers solid, and keeps each roof from frame to frame', () => {
+    expect(shapeOf('skyline')).not.toMatch(/M [\d.-]+,[\d.-]+ v /);
+
+    // The same city at two levels, every tower well above the mast line.
+    const city = (lift: number) =>
+      createGraphPieces(
+        points.map(([x]) => [x, 40 + lift] as Projected),
+        'skyline',
+        BASELINE,
+        26,
+        0.12,
+        20,
+      );
+    const parts = (d: string) => (d.match(/M /g) ?? []).length;
+    const roofs = city(0).map((piece) => parts(piece.d));
+    // A building keeps its roof as the music moves it...
+    expect(city(30).map((piece) => parts(piece.d))).toEqual(roofs);
+    // ...and the city has more than one kind of roof.
+    expect(new Set(roofs).size).toBeGreaterThan(1);
   });
 
   it('draws contours at levels, not at points', () => {

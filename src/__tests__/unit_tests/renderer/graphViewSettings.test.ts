@@ -166,23 +166,28 @@ describe('one set of view settings per mode', () => {
     expect(stored(GRID_STEM)).toBeNull();
   });
 
-  it('keeps the wave height per mode', () => {
+  /**
+   * Wave height describes the wave, not the frame around it: the two big
+   * modes share one value, so what is set in one is what the other draws.
+   * The pane is a measurement that uses the whole plot, offers no control,
+   * and reads full height whatever the big modes are set to.
+   */
+  it('shares one wave height between the big modes and keeps the pane at full height', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
     style.setGraphWaveHeight(0.65);
     style.setGraphView('fullscreen');
-    style.setGraphWaveHeight(0.5);
-
-    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.65');
-    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
-
-    style.setGraphView('expanded');
     expect(style.getGraphWaveHeight()).toBe(0.65);
-    style.setGraphView('fullscreen');
+
+    style.setGraphWaveHeight(0.5);
+    // Written for both, so each survives a restart on its own key.
+    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.5');
+    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
+    style.setGraphView('expanded');
     expect(style.getGraphWaveHeight()).toBe(0.5);
 
-    // Untouched, so still the full height the pane's graph starts at.
+    // The pane ignores both, and setting from it changes nothing it draws.
     style.setGraphView('normal');
     expect(style.getGraphWaveHeight()).toBe(1);
   });
@@ -655,8 +660,9 @@ describe('carrying an older install across', () => {
     // restart would look identical to a value that was remembered, which is
     // exactly the bug this test exists to catch.
     expect(second.getGraphGridHidden()).toBe(false);
-    // And the height set in the other mode did not leak into this one:
-    // full screen is still at the three quarters it starts at.
-    expect(second.getGraphWaveHeight()).toBe(0.75);
+    // The wave height is the one value both big modes share, so full screen
+    // reopens at what was set in expanded rather than at its starting three
+    // quarters — while the grid above stays each mode's own.
+    expect(second.getGraphWaveHeight()).toBe(0.4);
   });
 });
