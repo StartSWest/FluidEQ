@@ -443,6 +443,16 @@ Everything worth knowing about them is available through commands:
   `sync-dev-engine` asks the same question of the engine it just compiled.
   A DLL added beside the helper joins the comparison by itself, because
   `install` copies every DLL there.
+- **The engine build has to be reproducible, or every release nags.** The
+  comparison above is by bytes, and the MSVC linker stamps the time of the
+  link into every file unless told not to: two builds of an unchanged tree
+  hashed differently, so each release — built afresh — would have offered an
+  engine update nobody needed. `/Brepro` in `native/CMakeLists.txt` puts a
+  content hash there instead, and three builds from two folders and two
+  copies of the tree then came out identical. Nothing that varies per build —
+  `__DATE__`, `__TIME__`, a git revision, an absolute path — may reach the
+  engine or the DSP core it links; `FEQ_BUILD_REVISION` goes into the host
+  alone. `engineUpdate.test.ts` holds both.
 - **The setup helper is a windowed program, not a console one.** Run it from
   an interactive shell without piping or capturing its output and the shell
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |

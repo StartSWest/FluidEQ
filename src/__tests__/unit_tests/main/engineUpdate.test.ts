@@ -15,7 +15,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the real ones are where a test run has no business looking.
  */
 
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import {
+  mkdtempSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'fs';
 import os from 'os';
 import path from 'path';
 import type { IFluidEngineStatus } from '../../../common/audioEngine';
@@ -206,5 +213,64 @@ describe('readFluidEngineUpdateReady', () => {
     await expect(readFluidEngineUpdateReady(status(), bundle)).resolves.toBe(
       false,
     );
+  });
+});
+
+/**
+ * The comparison is by bytes, so it is only as good as the build that makes
+ * them: two builds of the same sources have to come out identical, or every
+ * release — each built afresh — offers the update for an engine that did not
+ * change. The MSVC linker stamped the time of the link into the file until
+ * `/Brepro` (native/CMakeLists.txt); measured, three builds from two folders
+ * and two copies of the tree now hash the same, and two without it did not.
+ */
+describe('the engine this tree builds', () => {
+  const NATIVE = path.join(__dirname, '../../../../native');
+
+  const sources = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        return sources(full);
+      }
+      return /\.(c|cc|cpp|h|hpp|rc|txt)$/i.test(entry.name) ? [full] : [];
+    });
+
+  /** Whatever in `dirs` would make one build of it differ from the next. */
+  const varyingStamps = (dirs: string[]): string[] =>
+    dirs
+      .flatMap((dir) => sources(path.join(NATIVE, dir)))
+      .filter((file) =>
+        /__DATE__|__TIME__|__TIMESTAMP__|FEQ_BUILD_REVISION/.test(
+          readFileSync(file, 'utf8'),
+        ),
+      )
+      .map((file) => path.relative(NATIVE, file));
+
+  it('is linked and compiled to be the same file every time', () => {
+    const cmake = readFileSync(path.join(NATIVE, 'CMakeLists.txt'), 'utf8');
+    expect(cmake).toMatch(/add_link_options\(\/Brepro\)/);
+    expect(cmake).toMatch(
+      /add_compile_options\(\$<\$<COMPILE_LANGUAGE:CXX>:\/Brepro>\)/,
+    );
+  });
+
+  // Everything the engine DLL is built from: its own sources and the DSP core
+  // it links. The tests beside them are not in it, and neither is the host.
+  it('carries no date, time or revision that would differ from build to build', () => {
+    expect(
+      varyingStamps([
+        'system-apo/src',
+        'system-apo/include',
+        'dsp-core/src',
+        'dsp-core/include',
+      ]),
+    ).toEqual([]);
+  });
+
+  // Positive control for the one above: the host does carry the revision, and
+  // the same scan finds it there.
+  it('would find a revision stamp where there is one', () => {
+    expect(varyingStamps(['dsp-host'])).not.toEqual([]);
   });
 });

@@ -16,6 +16,23 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 endif()
 
+# The same sources make the same bytes.
+#
+# The MSVC linker stamps the time of the link into every file it writes, so
+# two builds of an unchanged tree never matched: measured, two builds of the
+# FluidEQ Engine a minute apart hashed 7A481FEB… and 244A6539…. The app
+# offers the installed engine's replacement whenever its bytes differ from the
+# one the app carries (src/main/engineUpdate.ts), so with the stamp every
+# release — each built afresh — offered a Windows prompt and an audio restart
+# for an engine that had not changed. /Brepro puts a hash of the content where
+# the time was. Anything else that varies from one build to the next (a date,
+# a git revision, an absolute path) must stay out of the engine for the same
+# reason: FEQ_BUILD_REVISION goes into the DSP host alone.
+if(MSVC)
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Brepro>)
+  add_link_options(/Brepro)
+endif()
+
 # Stamped into the handshake so a support report can name the host that ran.
 # Once the host can be rebuilt independently of the app, the app's own version
 # stops being an answer to "which engine was this".
