@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
+import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import { useEntitlement } from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
+import { identityStyle } from './identity';
 import LeaderboardView from './LeaderboardView';
 import {
   openPlusPlace,
@@ -152,32 +154,52 @@ export default function CommunityPanel({
           })}
         </div>
 
-        <div className="community__me">
-          <Avatar handle={ownHandle} displayName={ownName} size="rail" />
-          <span className="community__me-text">
-            <span className="community__name">{ownName || ownHandle}</span>
-            {profile && (
-              <span className="community__handle">@{profile.handle}</span>
-            )}
-            {/* The name the board ranks is chosen on the board; this is the
-                way there from anywhere in the tab. */}
-            {!profile && loaded && entitled && (
-              <button
-                type="button"
-                className="community__link"
-                onClick={() => openPlusPlace('board')}
-              >
-                {t('leaderboard.name.choose')}
-              </button>
-            )}
-          </span>
-          {profile?.role === 'admin' && (
-            <span className="community__role community__role--admin">
-              {t('leaderboard.role.admin')}
+        <div className="community__foot">
+          {/* The member as the board and the gallery show them, in their own
+              colour; the whole card is the way to their account. */}
+          <button
+            type="button"
+            className="community__account"
+            style={identityStyle(ownHandle)}
+            title={t('account.menu')}
+            onClick={() => requestAccountPanel()}
+          >
+            <Avatar handle={ownHandle} displayName={ownName} size="rail" />
+            <span className="community__account-text">
+              <span className="community__name community__name--hued">
+                {ownName || ownHandle}
+              </span>
+              {/* The mark beside the handle, not beside the name: in a rail
+                  this narrow, a name that has to share its line is cut. */}
+              <span className="community__account-line">
+                <span className="community__handle">
+                  {profile ? `@${profile.handle}` : t('account.menu')}
+                </span>
+                {profile?.role === 'admin' && (
+                  <span className="community__role community__role--admin">
+                    {t('leaderboard.role.admin')}
+                  </span>
+                )}
+                {profile?.role !== 'admin' && entitled && (
+                  <span className="community__role">
+                    {t('graph.scene.badge')}
+                  </span>
+                )}
+              </span>
             </span>
-          )}
-          {profile?.role !== 'admin' && entitled && (
-            <span className="community__role">{t('graph.scene.badge')}</span>
+            <span className="community__account-chevron" aria-hidden="true" />
+          </button>
+          {/* The name the board ranks is chosen on the board; this is the
+              way there from anywhere in the tab. */}
+          {!profile && loaded && entitled && (
+            <button
+              type="button"
+              className="community__link community__choose"
+              onClick={() => openPlusPlace('board')}
+            >
+              <Glyph name="mention" />
+              {t('leaderboard.name.choose')}
+            </button>
           )}
         </div>
       </nav>

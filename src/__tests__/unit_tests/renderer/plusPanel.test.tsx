@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import { resetAccountStore } from '../../../renderer/account/accountStore';
 import { resetEntitlementStore } from '../../../renderer/account/entitlementStore';
 import CommunityPanel from '../../../renderer/community/CommunityPanel';
@@ -131,6 +132,16 @@ describe('the Plus tab', () => {
     expect(
       screen.queryByRole('button', { name: 'leaderboard.name.choose' }),
     ).toBeNull();
+  });
+
+  /** The member's own card at the foot of the rail is the way to the account. */
+  it('opens the account when the member’s own card is clicked', async () => {
+    const requests = jest.fn();
+    const unsubscribe = subscribeAccountPanelRequests(requests);
+    await renderPanel();
+    await userEvent.click(screen.getByTitle('account.menu'));
+    expect(requests).toHaveBeenCalledTimes(1);
+    unsubscribe();
   });
 
   it('offers no name to an account without Plus, which the board does not rank', async () => {

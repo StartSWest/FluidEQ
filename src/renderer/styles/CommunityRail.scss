@@ -276,7 +276,123 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Who you are in here, at the foot of the rail.
+// The Plus tab's foot: the member's own card, which opens their account, and
+// under it — until they have one — the way to choose the name the board
+// ranks. The card wears the member's colour as a wash from the left, the
+// same arrangement as the band at the top of the Account panel it opens.
+.community__foot {
+  display: grid;
+  gap: 2px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid $border-subtle;
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+.community__account {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 10px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 7px 10px 7px 7px;
+  color: inherit;
+  border: 1px solid hsl(var(--identity-hue, 170deg) 70% 60% / 16%);
+  border-radius: $radius-s;
+  background: linear-gradient(
+    100deg,
+    hsl(var(--identity-hue, 170deg) 60% 50% / 16%),
+    hsl(var(--identity-hue, 170deg) 60% 50% / 3%) 70%
+  );
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  .community__avatar {
+    box-shadow:
+      0 0 0 2px $block-lift,
+      0 0 0 3px hsl(var(--identity-hue, 170deg) 70% 55% / 55%);
+  }
+
+  &:hover {
+    border-color: hsl(var(--identity-hue, 170deg) 70% 60% / 38%);
+    background: linear-gradient(
+      100deg,
+      hsl(var(--identity-hue, 170deg) 60% 50% / 26%),
+      hsl(var(--identity-hue, 170deg) 60% 50% / 7%) 75%
+    );
+    box-shadow: 0 0 16px hsl(var(--identity-hue, 170deg) 60% 50% / 16%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 2px;
+  }
+}
+
+.community__account-text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  .community__name,
+  .community__handle {
+    @include truncate;
+  }
+}
+
+.community__account-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  .community__role {
+    flex: 0 0 auto;
+  }
+}
+
+// A small chevron: the card goes somewhere. It steps right under the pointer.
+.community__account-chevron {
+  justify-self: end;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid $text-faint;
+  border-right: 1.5px solid $text-faint;
+  transform: rotate(45deg);
+  transition:
+    transform $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  .community__account:hover & {
+    border-color: $text-primary;
+    transform: translateX(2px) rotate(45deg);
+  }
+}
+
+.community__choose {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  padding: 4px 8px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Who you are in the forum, at the foot of its rail.
 .community__me {
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) auto;
@@ -298,11 +414,6 @@ it under the terms of the GNU General Public License version 3 or later.
   .community__name,
   .community__handle {
     @include truncate;
-  }
-
-  .community__link {
-    justify-self: start;
-    text-align: start;
   }
 }
 
