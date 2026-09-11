@@ -51,6 +51,8 @@ let root: string;
 let status: IEntitlementStatus;
 let listeners: Array<(value: IEntitlementStatus) => void>;
 let chosen: string | undefined;
+/** Where the last folder dialog opened. */
+let dialogOpenedAt: string | undefined;
 let sent: Array<[string, unknown]>;
 
 const setup = () => {
@@ -74,10 +76,12 @@ const setup = () => {
       },
     } as never,
     dialogImpl: {
-      showOpenDialog: (async () =>
-        chosen
+      showOpenDialog: (async (_window: unknown, options: unknown) => {
+        dialogOpenedAt = (options as { defaultPath?: string }).defaultPath;
+        return chosen
           ? { canceled: false, filePaths: [chosen] }
-          : { canceled: true, filePaths: [] }) as never,
+          : { canceled: true, filePaths: [] };
+      }) as never,
     },
     openPath: async () => '',
   });
@@ -89,6 +93,7 @@ beforeEach(() => {
   status = { state: 'active' };
   listeners = [];
   chosen = undefined;
+  dialogOpenedAt = undefined;
   sent = [];
 });
 
@@ -199,6 +204,22 @@ describe('member scenes over IPC', () => {
     expect(await invoke('studio-create-project', { path: 'C:\\' })).toBe(
       'invalid',
     );
+    registration.dispose();
+  });
+
+  it('opens "Open a folder" on the projects folder, made if it is not there', async () => {
+    const registration = setup();
+    const studioFolder = path.join(root, 'Documents', 'FluidEQ Studio');
+    await invoke<Promise<IStudioState>>('studio-link-folder');
+    expect(dialogOpenedAt).toBe(studioFolder);
+    expect(fs.existsSync(studioFolder)).toBe(true);
+    // Once the member has chosen another, that is where it opens.
+    chosen = path.join(root, 'My scenes');
+    fs.mkdirSync(chosen);
+    await invoke<Promise<IStudioState>>('studio-choose-root');
+    chosen = undefined;
+    await invoke<Promise<IStudioState>>('studio-link-folder');
+    expect(dialogOpenedAt).toBe(path.join(root, 'My scenes'));
     registration.dispose();
   });
 

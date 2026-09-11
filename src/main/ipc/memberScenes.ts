@@ -1,4 +1,5 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
+import fs from 'fs';
 import path from 'path';
 import { parseMemberLookId } from '../../common/memberScenes';
 import type { TLocalizedName } from '../../common/scenePacks';
@@ -7,7 +8,11 @@ import type { IAccountSession } from '../account/session';
 import {
   readProject,
   readProjectNames,
+  readProjectSource,
+  writeProjectSource,
+  type IProjectSource,
   type TProjectBuild,
+  type TSourceWrite,
 } from '../memberScenes/project';
 import {
   createProjectFolder,
@@ -140,6 +145,7 @@ const CHANNELS = [
   'studio-create-project',
   'studio-add-to-looks',
   'studio-show-folder',
+  'studio-write-source',
 ] as const;
 
 const STUDIO_FILE = path.join('member-scenes', 'studio.json');
@@ -221,6 +227,7 @@ export const registerMemberScenesIpc = ({
     watcher?.close();
     watcher = undefined;
     lastBuild = undefined;
+    lastSource = undefined;
   };
 
   const startWatching = () => {
@@ -230,15 +237,42 @@ export const registerMemberScenesIpc = ({
     if (!folder || !active || !studioOpen || !entitled()) {
       return;
     }
-    watcher = watchProject(folder, (build) => {
-      lastBuild = build;
-      // Held by the id this watcher started with, so a build that lands as
-      // the member switches projects cannot rename the one they switched to.
-      if (build.ok) {
-        projectNames.set(active, build.pack.names);
-      }
-      announceStudio();
-    });
+    const current = watchProject(
+      folder,
+      (build) => {
+        lastBuild = build;
+        // Held by the id this watcher started with, so a build that lands as
+        // the member switches projects cannot rename the one they switched to.
+        if (build.ok) {
+          projectNames.set(active, build.pack.names);
+        }
+        announceStudio();
+      },
+      {
+        // The code pane's text is read on every save, not only on the ones
+        // that change the build: a comment edited in a scene that does not
+        // compile yet changes no build, and the pane must still show it.
+        read: async (dir) => {
+          const [build, source] = await Promise.all([
+            readProject(dir),
+            readProjectSource(dir),
+          ]);
+          if (
+            watcher === current &&
+            (source?.text !== lastSource?.text ||
+              source?.file !== lastSource?.file)
+          ) {
+            lastSource = source;
+            getMainWindow()?.webContents.send(
+              'studio-source-changed',
+              source ?? null,
+            );
+          }
+          return build;
+        },
+      },
+    );
+    watcher = current;
   };
 
   /** Every project's name, read afresh: they are edited outside the app. */
@@ -265,11 +299,22 @@ export const registerMemberScenesIpc = ({
     }
   };
 
+  /**
+   * The system folder dialog, opened on the projects folder: that is where
+   * the member keeps their projects, so "Open a folder" and "Change" both
+   * start there, never wherever the app's last dialog happened to be. The
+   * folder is made first if it is not there yet, because a dialog pointed at
+   * a folder that does not exist opens somewhere else instead.
+   */
   const chooseFolder = async (
     properties: Array<'openDirectory' | 'createDirectory'>,
-    defaultPath?: string,
   ): Promise<string | undefined> => {
     const window = getMainWindow();
+    const root = projectsRoot();
+    const defaultPath = await fs.promises.mkdir(root, { recursive: true }).then(
+      () => root,
+      () => undefined,
+    );
     const options = { properties, ...(defaultPath ? { defaultPath } : {}) };
     const result = window
       ? await dialogImpl.showOpenDialog(window, options)
@@ -368,10 +413,7 @@ export const registerMemberScenesIpc = ({
     if (!entitled()) {
       return studioState();
     }
-    const root = await chooseFolder(
-      ['openDirectory', 'createDirectory'],
-      projectsRoot(),
-    );
+    const root = await chooseFolder(['openDirectory', 'createDirectory']);
     if (root) {
       projects = withRoot(projects, root);
       writeProjectList(studioPath, projects);
