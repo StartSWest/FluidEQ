@@ -53,9 +53,16 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'विज़ुअलाइज़र अपने आप बदलें',
   'graph.autoSwitch.off': 'ऑटो: बंद',
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
+  'graph.member.mine': 'आपके बनाए',
+  'graph.member.theirs': 'सदस्यों के बनाए',
+  'graph.member.by': '{name} द्वारा',
+  'graph.member.anonymous': 'एक सदस्य',
+  'graph.member.like': '{name} को पसंद करें',
+  'graph.member.unlike': 'अपनी पसंद वापस लें',
+  'graph.member.likes': 'पसंद: {count}',
+  'graph.member.likeOffline': 'पसंद करने के लिए इंटरनेट कनेक्शन चाहिए',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.member.mine': 'आपके बनाए',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'FluidEQ Plus का हिस्सा। इसे चुनकर देखें कि इसे कैसे खोलें।',

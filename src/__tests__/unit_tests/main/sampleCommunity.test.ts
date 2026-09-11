@@ -39,6 +39,7 @@ describe('the sample community, development only', () => {
       activeDays: 1,
       messages: 0,
       mentions: 0,
+      likes: 0,
     };
     const real = [
       {
@@ -72,8 +73,20 @@ describe('the sample community, development only', () => {
         activeDays: ada?.activeDays ?? 0,
         messages: ada?.messages ?? 0,
         mentions: ada?.mentions ?? 0,
+        likes: ada?.likes ?? 0,
       }),
     );
+    // Likes on the scenes somebody made count toward their place, five each.
+    const yuki = rows.find((row) => row.handle === 'yuki');
+    const yukiWithoutLikes = scoreOf({
+      minutes: yuki?.minutes ?? 0,
+      activeDays: yuki?.activeDays ?? 0,
+      messages: yuki?.messages ?? 0,
+      mentions: yuki?.mentions ?? 0,
+      likes: 0,
+    });
+    expect(yuki?.likes).toBeGreaterThan(0);
+    expect(yuki?.points).toBe(yukiWithoutLikes + (yuki?.likes ?? 0) * 5);
     expect(me).toEqual({
       rank: SAMPLE_PEOPLE.length + 1,
       points: 31,

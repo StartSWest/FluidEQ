@@ -41,7 +41,10 @@ import type { TSceneFailure } from '../scenePackStore';
 
 export interface IMemberScenesListing {
   entitled: boolean;
-  /** The member's own scenes, when they may be drawn. */
+  /**
+   * The member's own scenes and the ones other members sent them, when they
+   * may be drawn.
+   */
   scenes: IMemberSceneSummary[];
   /** The same scenes while Plus is off: shown locked, never deleted. */
   locked: IMemberSceneSummary[];
@@ -77,6 +80,10 @@ export interface IMemberScenesIpcDeps {
 
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
+  /** The Studio's linked folder, for sharing's export. */
+  linkedFolder(): string | undefined;
+  /** Tell the renderer the list of member scenes changed. */
+  announce(): void;
   dispose(): void;
 }
 
@@ -130,15 +137,28 @@ export const registerMemberScenesIpc = ({
   const entitled = () =>
     entitlement.status().state !== 'none' && accountId() !== undefined;
 
-  const listing = (): IMemberScenesListing => {
+  /**
+   * This account's scenes and the ones other members sent it. Scenes another
+   * account on this computer made are theirs, and not listed here.
+   */
+  const visible = () => {
     const me = accountId();
-    const mine = me
-      ? store.list().filter((scene) => scene.authorId === me)
+    return me
+      ? store.list().filter((scene) => !scene.own || scene.authorId === me)
       : [];
-    return entitled()
-      ? { entitled: true, scenes: mine, locked: [] }
-      : { entitled: false, scenes: [], locked: mine };
   };
+
+  const listing = (): IMemberScenesListing => {
+    const scenes = visible();
+    return entitled()
+      ? { entitled: true, scenes, locked: [] }
+      : { entitled: false, scenes: [], locked: scenes };
+  };
+
+  const isVisible = (authorId: string, packId: string) =>
+    visible().some(
+      (scene) => scene.authorId === authorId && scene.packId === packId,
+    );
 
   const studioState = (): IStudioState => ({
     entitled: entitled(),
@@ -200,7 +220,7 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('member-scenes-load', (_event, lookId: unknown) => {
     const ref =
       typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-    if (!ref || !entitled() || ref.authorId !== accountId()) {
+    if (!ref || !entitled() || !isVisible(ref.authorId, ref.packId)) {
       return undefined;
     }
     return store.load(ref.authorId, ref.packId);
@@ -209,7 +229,7 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('member-scenes-remove', (_event, lookId: unknown) => {
     const ref =
       typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-    if (!ref || ref.authorId !== accountId()) {
+    if (!ref || !isVisible(ref.authorId, ref.packId)) {
       return false;
     }
     const removed = store.remove(ref.authorId, ref.packId);
@@ -308,6 +328,8 @@ export const registerMemberScenesIpc = ({
 
   return {
     store,
+    linkedFolder: () => linkedFolder,
+    announce: announceScenes,
     dispose: () => {
       unsubscribe();
       stopWatching();

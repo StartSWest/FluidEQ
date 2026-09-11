@@ -21,7 +21,8 @@ export type TCommunityGlyph =
   | 'monitor'
   | 'mail'
   | 'refresh'
-  | 'studio';
+  | 'studio'
+  | 'heart';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -192,6 +193,11 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
             <path d="M3.2 5.6 10 11l6.8-5.4" />
           </>
+        );
+      case 'heart':
+        // A like on a member's scene.
+        return (
+          <path d="M10 16.8S3.2 12.6 3.2 7.6a3.5 3.5 0 0 1 6.8-1.2 3.5 3.5 0 0 1 6.8 1.2c0 5-6.8 9.2-6.8 9.2Z" />
         );
       case 'refresh':
         return (

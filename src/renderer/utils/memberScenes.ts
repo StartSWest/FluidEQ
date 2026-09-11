@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { lockedLookId, type IScenePack } from 'common/scenePacks';
 import type { IMemberScenesListing } from 'main/ipc/memberScenes';
+import type { ILikeStatus } from 'main/memberScenes/social';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
 import type { TSceneFailure } from 'main/scenePackStore';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
@@ -26,14 +27,22 @@ export interface IUsableMemberScene {
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
   own: boolean;
+  /** Who sent it, for a scene another member made. */
+  authorName?: string | null;
 }
 
-/** A scene the member made, while their membership is off. Never a selection. */
+/**
+ * A member scene on this computer while the membership is off: one the member
+ * made, or one another member sent them. Never a selection.
+ */
 export interface ILockedMemberScene {
   lookId: string;
   names: IMemberSceneSummary['names'];
   fallbackStyle: IMemberSceneSummary['fallbackStyle'];
   swatch: string[];
+  own: boolean;
+  /** Who sent it, for a scene another member made. */
+  authorName?: string | null;
 }
 
 const EMPTY: IMemberScenesListing = { entitled: false, scenes: [], locked: [] };
@@ -64,6 +73,7 @@ const recompute = () => {
             fallbackStyle: scene.fallbackStyle,
             swatch: scene.swatch,
             own: scene.own,
+            ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
             ...(scene.spectrumRange
               ? { spectrumRange: scene.spectrumRange }
               : {}),
@@ -78,6 +88,8 @@ const recompute = () => {
           names: scene.names,
           fallbackStyle: scene.fallbackStyle,
           swatch: scene.swatch,
+          own: scene.own,
+          ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
         }))
       : [];
 };
@@ -180,6 +192,19 @@ export const blockMemberScene = (lookId: string) => {
     publish();
   }
 };
+
+/** How many members like a scene, and whether this one does. */
+export const fetchMemberSceneLikes = async (
+  lookId: string,
+): Promise<ILikeStatus | undefined> =>
+  bridge()?.memberSceneLikeStatus?.(lookId);
+
+/** Likes or takes a like back; answers the new count, or undefined offline. */
+export const likeMemberSceneLook = async (
+  lookId: string,
+  liked: boolean,
+): Promise<ILikeStatus | undefined> =>
+  bridge()?.likeMemberScene?.(lookId, liked);
 
 /** For tests: a clean module between runs. */
 export const resetMemberSceneStore = () => {

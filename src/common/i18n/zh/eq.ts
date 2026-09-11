@@ -52,9 +52,16 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': '自动切换可视化效果',
   'graph.autoSwitch.off': '自动：关',
   'graph.autoSwitch.every': '自动：{seconds}秒',
+  'graph.member.mine': '你创作的',
+  'graph.member.theirs': '会员创作',
+  'graph.member.by': '作者：{name}',
+  'graph.member.anonymous': '一位会员',
+  'graph.member.like': '为 {name} 点赞',
+  'graph.member.unlike': '取消点赞',
+  'graph.member.likes': '点赞：{count}',
+  'graph.member.likeOffline': '点赞需要联网',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.member.mine': '你创作的',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked': 'FluidEQ Plus 专属。选择它即可了解如何解锁。',
   'graph.style.next': '下一个样式',

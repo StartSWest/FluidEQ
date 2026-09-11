@@ -23,6 +23,8 @@ const studio = {
   'studio.action.showFolder': 'フォルダーを開く',
   'studio.action.unlink': 'リンクを解除',
   'studio.action.addToLooks': 'マイ表示に追加',
+  'studio.action.export': 'エクスポート…',
+  'studio.action.import': 'シーンファイルを開く…',
 
   'studio.notice.copied':
     'コピーしました。AI に貼り付けて、最後にアイデアを書いてください。',
@@ -35,6 +37,45 @@ const studio = {
   'studio.notice.added': '{name} を「あなたが作成」に追加しました。',
   'studio.notice.addFailed':
     'このバージョンは再生できるようになれば追加できます。',
+
+  'studio.notice.exported':
+    '{file} の準備ができました。Plus メンバーなら誰でもスタジオで開けます。',
+
+  'studio.share.title': '作成したシーンを共有する',
+  'studio.share.lead':
+    'シーンはあなたのものです。エクスポートすると他の Plus メンバーが再生できるようになります。これも Plus の一部です。',
+  'studio.share.point1':
+    'ファイルを受け取った人は、Plus を利用している間は再生できます。販売はできません。',
+  'studio.share.point2':
+    '他のメンバーからのいいねごとに、ランキングのポイントが入ります。',
+  'studio.share.point3':
+    'シェーダー内のコメントは削除され、表示名がシーンと一緒に送られます。',
+  'studio.share.read': '利用規約を読む',
+  'studio.share.cancel': '今はしない',
+  'studio.share.agree': '同意してエクスポート',
+  'studio.share.running': 'エクスポート中…',
+
+  'studio.export.offline':
+    'エクスポートにはインターネット接続が必要です。オンラインでもう一度お試しください。',
+  'studio.export.rateLimited':
+    '1 時間のエクスポート回数が多すぎます。しばらくしてからお試しください。',
+  'studio.export.refused':
+    'このバージョンは受け付けられませんでした。表示された箇所を直して保存してください。',
+  'studio.export.signedOut':
+    'シーンをエクスポートするにはサインインしてください。',
+  'studio.export.failed':
+    'シーンをエクスポートできませんでした。もう一度お試しください。',
+  'studio.export.banned': 'このアカウントではシーンを共有できなくなりました。',
+  'studio.export.outdated':
+    'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、エクスポートしてください。',
+
+  'studio.import.done': '{author} さんの {name} を表示に追加しました。',
+  'studio.import.doneAnonymous': '{name} を表示に追加しました。',
+  'studio.import.own': '{name} はあなたのシーンです。表示に戻しました。',
+  'studio.import.unreadable': 'このファイルは FluidEQ のシーンではありません。',
+  'studio.import.changed':
+    'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',
+  'studio.import.blocked': 'このシーンは公開停止になっています。',
 
   'studio.ideas.title': 'はじめのアイデア — プロンプトに書き足します',
   'studio.idea.pet.label': 'うちのペットを動かす',

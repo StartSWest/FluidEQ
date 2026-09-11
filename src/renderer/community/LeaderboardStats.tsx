@@ -12,7 +12,8 @@ interface ILeaderboardStatsProps {
 /**
  * Where a score came from, as a row of small figures under the name: the
  * hours, the messages, and — only when there are any, because they are the
- * rarer thing — the people who mentioned them. Each picture is painted in its
+ * rarer things — the people who mentioned them and the likes on the scenes
+ * they made. Each picture is painted in its
  * part's colour, the same one the guide beside the board and the standing bar
  * use.
  */
@@ -44,6 +45,15 @@ export default function LeaderboardStats({
         >
           <Glyph name={PART_GLYPHS.mentions} />
           {score.mentions}
+        </span>
+      )}
+      {score.likes > 0 && (
+        <span
+          className="leaderboard__stat leaderboard-part--likes"
+          title={t('leaderboard.stat.likes', { count: score.likes })}
+        >
+          <Glyph name={PART_GLYPHS.likes} />
+          {score.likes}
         </span>
       )}
     </span>

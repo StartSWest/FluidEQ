@@ -164,6 +164,7 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
+import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerCommunityIpc } from './ipc/community';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
@@ -595,6 +596,7 @@ const watchForUpdateOpportunities = () => {
     accountIpc.entitlement
       .checkIfDue(reason)
       .then(() => scenePacksIpc.refreshIfDue(reason))
+      .then(() => memberSharingIpc.refreshIfDue(reason))
       .then(() => leaderboardIpc.uploadIfDue(reason))
       .catch(() => undefined);
   };
@@ -2904,6 +2906,20 @@ const memberScenesIpc = registerMemberScenesIpc({
   logger: log,
 });
 
+// Sharing them between members: export signed by the server, import verified
+// against the member key, likes, and the block list.
+const memberSharingIpc = registerMemberSharingIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  store: memberScenesIpc.store,
+  linkedFolder: memberScenesIpc.linkedFolder,
+  announce: memberScenesIpc.announce,
+  logger: log,
+});
+
 // The community's REST calls and its live feed. Registering opens nothing:
 // the feed connects when the Community tab is on screen and closes when it
 // leaves, because a chat nobody is looking at does not need a socket.
@@ -3179,6 +3195,7 @@ app.on('before-quit', (event) => {
   // the old listener is still holding a port nobody is going to answer on.
   accountIpc.dispose();
   scenePacksIpc.dispose();
+  memberSharingIpc.dispose();
   memberScenesIpc.dispose();
   communityIpc.dispose();
   leaderboardIpc.dispose();

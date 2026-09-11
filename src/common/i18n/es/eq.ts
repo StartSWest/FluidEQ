@@ -54,9 +54,16 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Cambio automático de visualizadores',
   'graph.autoSwitch.off': 'Auto: No',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  'graph.member.mine': 'Hechos por ti',
+  'graph.member.theirs': 'Hechos por miembros',
+  'graph.member.by': 'por {name}',
+  'graph.member.anonymous': 'un miembro',
+  'graph.member.like': 'Dar me gusta a {name}',
+  'graph.member.unlike': 'Quitar tu me gusta',
+  'graph.member.likes': 'Me gusta: {count}',
+  'graph.member.likeOffline': 'Los me gusta necesitan conexión',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.member.mine': 'Hechos por ti',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'Parte de FluidEQ Plus. Elígelo para ver cómo desbloquearlo.',

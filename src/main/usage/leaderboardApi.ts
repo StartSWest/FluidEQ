@@ -19,7 +19,8 @@ export type TLeaderboardPeriod = 'all' | 'month';
 /**
  * What a place on the board is made of. The server scores it — ten points an
  * hour, twenty an active day, five a message, ten for each person who
- * mentions you on a day — and hands back the parts so a row can say why.
+ * mentions you on a day, five a like on a scene you made — and hands back the
+ * parts so a row can say why.
  */
 export interface ILeaderboardScore {
   points: number;
@@ -27,6 +28,7 @@ export interface ILeaderboardScore {
   activeDays: number;
   messages: number;
   mentions: number;
+  likes: number;
 }
 
 export interface ILeaderboardRow extends ILeaderboardScore {
@@ -83,6 +85,7 @@ const readScore = (
     activeDays: optional(value.active_days),
     messages: optional(value.messages),
     mentions: optional(value.mentions),
+    likes: optional(value.likes),
     // An old server has no points; hours alone are the score it ranked by.
     points: readInteger(value.points) ?? Math.floor(minutes / 6),
   };

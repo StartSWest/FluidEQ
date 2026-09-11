@@ -23,6 +23,8 @@ const studio = {
   'studio.action.showFolder': '打开文件夹',
   'studio.action.unlink': '取消关联',
   'studio.action.addToLooks': '添加到我的外观',
+  'studio.action.export': '导出…',
+  'studio.action.import': '打开场景文件…',
 
   'studio.notice.copied': '已复制。粘贴到你的 AI 中，并在末尾写下你的想法。',
   'studio.notice.copiedIdea':
@@ -32,6 +34,36 @@ const studio = {
     '该文件夹里已经有一个场景。请选择一个空文件夹，或直接关联它。',
   'studio.notice.added': '{name} 已加入你的外观，位于“你创作的”下。',
   'studio.notice.addFailed': '这个版本能播放之后才能添加。',
+
+  'studio.notice.exported':
+    '{file} 已就绪。任何 Plus 会员都能在工作室中打开它。',
+
+  'studio.share.title': '分享你创作的场景',
+  'studio.share.lead':
+    '你的场景始终属于你。导出后，其他 Plus 会员就能播放它，这正是 Plus 的一部分。',
+  'studio.share.point1': '收到文件的人在拥有 Plus 期间可以播放它，但不能出售。',
+  'studio.share.point2': '其他会员的每一个赞，都会为你在排行榜上赢得积分。',
+  'studio.share.point3': '着色器中的注释会被移除，你的显示名会随场景一起发送。',
+  'studio.share.read': '阅读条款',
+  'studio.share.cancel': '以后再说',
+  'studio.share.agree': '同意并导出',
+  'studio.share.running': '正在导出…',
+
+  'studio.export.offline': '导出需要联网。请联网后再试。',
+  'studio.export.rateLimited': '一小时内导出次数过多。请稍后再试。',
+  'studio.export.refused': 'FluidEQ 无法接受这个版本。请修正提示的问题并保存。',
+  'studio.export.signedOut': '请登录后再导出场景。',
+  'studio.export.failed': '场景未能导出。请重试。',
+  'studio.export.banned': '此账户已无法分享场景。',
+  'studio.export.outdated':
+    'Plus 条款有了新版本。请更新 FluidEQ 以阅读并导出。',
+
+  'studio.import.done': '{author} 创作的 {name} 已加入你的外观。',
+  'studio.import.doneAnonymous': '{name} 已加入你的外观。',
+  'studio.import.own': '{name} 是你的作品，已回到你的外观中。',
+  'studio.import.unreadable': '这个文件不是 FluidEQ 场景。',
+  'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
+  'studio.import.blocked': '这个场景已被下架。',
 
   'studio.ideas.title': '入门灵感 — 会把想法加到提示词里',
   'studio.idea.pet.label': '我的宠物，活起来',

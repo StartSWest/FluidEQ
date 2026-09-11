@@ -3,6 +3,7 @@ import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { AI_IDEAS, AI_PROMPT, promptWithIdea } from './aiPrompt';
 import { createStudioStarter, linkStudioFolder } from './studioStore';
+import useStudioSharing from './useStudioSharing';
 
 const HEARS: ReadonlyArray<{ name: TranslationKey; body: TranslationKey }> = [
   { name: 'studio.hears.level.name', body: 'studio.hears.level.body' },
@@ -36,6 +37,7 @@ const NOTICE_KEYS: Record<Exclude<TNotice, undefined>, TranslationKey> = {
 export default function StudioStart() {
   const { t } = useTranslation();
   const [notice, setNotice] = useState<TNotice>();
+  const sharing = useStudioSharing();
   const [idea, setIdea] = useState('');
   const promptRef = useRef<HTMLPreElement>(null);
 
@@ -118,7 +120,24 @@ export default function StudioStart() {
           >
             {t('studio.action.linkFolder')}
           </button>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={sharing.openFile}
+          >
+            {t('studio.action.import')}
+          </button>
         </div>
+        {sharing.notice && (
+          <p
+            className={`studio-notice${
+              sharing.notice.ok ? ' studio-notice--ok' : ''
+            }`}
+            role="status"
+          >
+            {t(sharing.notice.key, sharing.notice.vars)}
+          </p>
+        )}
         {notice && (
           <p
             className={`studio-notice${

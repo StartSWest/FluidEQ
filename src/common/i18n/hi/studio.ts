@@ -24,6 +24,8 @@ const studio = {
   'studio.action.showFolder': 'फ़ोल्डर दिखाएँ',
   'studio.action.unlink': 'जुड़ाव हटाएँ',
   'studio.action.addToLooks': 'मेरे रूपों में जोड़ें',
+  'studio.action.export': 'एक्सपोर्ट करें…',
+  'studio.action.import': 'सीन फ़ाइल खोलें…',
 
   'studio.notice.copied':
     'कॉपी हो गया। इसे अपने AI में चिपकाएँ और आखिर में अपना विचार लिखें।',
@@ -35,6 +37,43 @@ const studio = {
     'उस फ़ोल्डर में पहले से एक दृश्य है। कोई खाली फ़ोल्डर चुनें, या उसी को जोड़ें।',
   'studio.notice.added': '{name} आपके रूपों में, "आपके बनाए" के नीचे है।',
   'studio.notice.addFailed': 'यह संस्करण चलने लगे, तब इसे जोड़ा जा सकेगा।',
+
+  'studio.notice.exported':
+    '{file} तैयार है। कोई भी Plus सदस्य इसे अपने स्टूडियो में खोल सकता है।',
+
+  'studio.share.title': 'अपने बनाए सीन साझा करें',
+  'studio.share.lead':
+    'आपके सीन आपके ही रहते हैं। एक्सपोर्ट करने पर दूसरे Plus सदस्य उसे चला सकते हैं, और यह Plus का हिस्सा है।',
+  'studio.share.point1':
+    'जिसे आप फ़ाइल देंगे, वह Plus रहने तक उसे चला सकता है। वह उसे बेच नहीं सकता।',
+  'studio.share.point2':
+    'दूसरे सदस्य की हर पसंद से आपको लीडरबोर्ड पर अंक मिलते हैं।',
+  'studio.share.point3':
+    'शेडर की टिप्पणियाँ हटा दी जाती हैं, और आपका दिखने वाला नाम सीन के साथ जाता है।',
+  'studio.share.read': 'शर्तें पढ़ें',
+  'studio.share.cancel': 'अभी नहीं',
+  'studio.share.agree': 'सहमत हों और एक्सपोर्ट करें',
+  'studio.share.running': 'एक्सपोर्ट हो रहा है…',
+
+  'studio.export.offline':
+    'एक्सपोर्ट के लिए इंटरनेट कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
+  'studio.export.rateLimited':
+    'एक घंटे में बहुत सारे एक्सपोर्ट हो गए। थोड़ी देर बाद कोशिश करें।',
+  'studio.export.refused':
+    'FluidEQ यह संस्करण स्वीकार नहीं कर सका। जो दिखाया गया है उसे ठीक करके सेव करें।',
+  'studio.export.signedOut': 'अपना सीन एक्सपोर्ट करने के लिए साइन इन करें।',
+  'studio.export.failed': 'सीन एक्सपोर्ट नहीं हो सका। फिर कोशिश करें।',
+  'studio.export.banned': 'यह खाता अब सीन साझा नहीं कर सकता।',
+  'studio.export.outdated':
+    'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और एक्सपोर्ट करने के लिए FluidEQ अपडेट करें।',
+
+  'studio.import.done': '{author} का {name} आपके रूपों में है।',
+  'studio.import.doneAnonymous': '{name} आपके रूपों में है।',
+  'studio.import.own': '{name} आपका है। यह फिर से आपके रूपों में है।',
+  'studio.import.unreadable': 'यह फ़ाइल FluidEQ सीन नहीं है।',
+  'studio.import.changed':
+    'यह फ़ाइल एक्सपोर्ट के बाद बदली गई है, इसलिए FluidEQ इसे नहीं चलाएगा।',
+  'studio.import.blocked': 'यह सीन हटा दिया गया है।',
 
   'studio.ideas.title':
     'शुरुआत के लिए विचार — विचार को प्रॉम्प्ट में जोड़ते हैं',

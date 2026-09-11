@@ -96,6 +96,40 @@ describe("a member's scenes in the look store", () => {
     expect(graphStyle.getGraphLookId()).toBe(LOOK_ID);
   });
 
+  it('keeps who sent a scene, whether it can be drawn or is locked', () => {
+    const SENT: IMemberSceneSummary = {
+      ...NEON,
+      lookId: 'member:9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d:harbour',
+      authorId: '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d',
+      packId: 'harbour',
+      own: false,
+      authorName: 'Mei Tanaka',
+    };
+    const { members } = load();
+    members.adoptMemberSceneListingForTesting(listing(true, [NEON, SENT]));
+    expect(
+      members.getUsableMemberScenes().map(({ own, authorName }) => ({
+        own,
+        authorName,
+      })),
+    ).toEqual([
+      { own: true, authorName: undefined },
+      { own: false, authorName: 'Mei Tanaka' },
+    ]);
+    // Without Plus both are locked, and the one sent by somebody still says
+    // so — it must not be listed as the member's own.
+    members.adoptMemberSceneListingForTesting(listing(false, [NEON, SENT]));
+    expect(
+      members.getLockedMemberScenes().map(({ own, authorName }) => ({
+        own,
+        authorName,
+      })),
+    ).toEqual([
+      { own: true, authorName: undefined },
+      { own: false, authorName: 'Mei Tanaka' },
+    ]);
+  });
+
   it('stops offering a scene that failed here', () => {
     const { graphStyle, members } = load();
     members.adoptMemberSceneListingForTesting(listing(true));

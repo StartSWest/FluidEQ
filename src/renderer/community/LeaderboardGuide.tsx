@@ -21,6 +21,7 @@ const RULES: Readonly<
   days: { key: 'leaderboard.guide.days', limit: ACTIVE_DAY_MINUTES },
   messages: { key: 'leaderboard.guide.messages', limit: DAILY_MESSAGE_CAP },
   mentions: { key: 'leaderboard.guide.mentions' },
+  likes: { key: 'leaderboard.guide.likes' },
 };
 
 /**

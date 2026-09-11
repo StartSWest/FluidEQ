@@ -52,10 +52,22 @@ const eq = {
   'graph.autoSwitch.label': 'Automatic visualizer switching',
   'graph.autoSwitch.off': 'Auto: Off',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  // The picker's headings over the scenes members made in the Studio: this
+  // member's own, and the ones other members sent them.
+  'graph.member.mine': 'Made by you',
+  'graph.member.theirs': 'Made by members',
+  'graph.member.by': 'by {name}',
+  // A member who sent a scene without a display name on their account.
+  'graph.member.anonymous': 'a member',
+  // The heart on a member's scene while it plays. A like is a point for the
+  // author on the leaderboard, so the wording is about them, not the scene.
+  'graph.member.like': 'Like {name}',
+  'graph.member.unlike': 'Take your like back',
+  // A label and a number, so no language needs a plural form for it.
+  'graph.member.likes': 'Likes: {count}',
+  'graph.member.likeOffline': 'Likes need a connection',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  // The picker's heading over the scenes a member made in the Studio.
-  'graph.member.mine': 'Made by you',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'Part of FluidEQ Plus. Choose it to see how to unlock it.',

@@ -136,6 +136,7 @@ import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
 import GraphAutoCycle from './GraphAutoCycle';
+import SceneLikeButton from './SceneLikeButton';
 import GraphViewMenu from './GraphViewMenu';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
@@ -543,6 +544,11 @@ const FrequencyResponseChart = ({
   // heading, and the same ones locked while Plus is off — kept, never hidden.
   const memberScenes = useUsableMemberScenes();
   const lockedMemberScenes = useLockedMemberScenes();
+  // The member's scene on the plot, if one is: the option bar carries its
+  // heart in the design button's place.
+  const selectedMemberScene = isMemberLookId(selectedLookId)
+    ? memberScenes.find((scene) => scene.lookId === selectedLookId)
+    : undefined;
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   /**
    * Closing, but not yet gone.
@@ -650,12 +656,18 @@ const FrequencyResponseChart = ({
           : undefined;
         if (memberScene) {
           // Its own name, in the languages its maker gave it, under the
-          // heading that says whose it is. No badge: the heading is enough.
+          // heading that says whose it is: the member's own, or sent by
+          // another member — then with that member's name beside it.
           const memberName = resolveSceneName(memberScene, locale);
+          const author = memberScene.own
+            ? undefined
+            : memberScene.authorName || t('graph.member.anonymous');
           return {
             value: look.id,
             label: memberName,
-            group: t('graph.member.mine'),
+            group: memberScene.own
+              ? t('graph.member.mine')
+              : t('graph.member.theirs'),
             display: (
               <span className="graph-look-option">
                 <SceneLookIcon
@@ -663,6 +675,11 @@ const FrequencyResponseChart = ({
                   swatch={memberScene.swatch}
                 />
                 <span className="graph-look-name">{memberName}</span>
+                {author && (
+                  <span className="graph-look-by">
+                    {t('graph.member.by', { name: author })}
+                  </span>
+                )}
               </span>
             ),
           };
@@ -771,15 +788,19 @@ const FrequencyResponseChart = ({
           ),
         };
       }),
-      // A member's own scenes while their membership is off: still theirs,
-      // still listed under their heading, locked like the Plus rows. Choosing
-      // one opens the Plus card, exactly as a locked Plus look does.
+      // Member scenes while the membership is off: still on this computer,
+      // still under the heading that says whose they are, locked like the Plus
+      // rows. Choosing one opens the Plus card, exactly as a locked Plus look
+      // does.
       ...lockedMemberScenes.map((scene) => {
         const name = resolveSceneName(scene, locale);
+        const author = scene.own
+          ? undefined
+          : scene.authorName || t('graph.member.anonymous');
         return {
           value: scene.lookId,
           label: name,
-          group: t('graph.member.mine'),
+          group: scene.own ? t('graph.member.mine') : t('graph.member.theirs'),
           display: (
             <span
               className="graph-look-option graph-look-option--locked"
@@ -790,6 +811,11 @@ const FrequencyResponseChart = ({
                 swatch={scene.swatch}
               />
               <span className="graph-look-name">{name}</span>
+              {author && (
+                <span className="graph-look-by">
+                  {t('graph.member.by', { name: author })}
+                </span>
+              )}
               <span className="graph-look-badge graph-look-badge--locked">
                 <svg
                   className="graph-look-badge__lock"
@@ -1960,6 +1986,16 @@ const FrequencyResponseChart = ({
                     : t('graph.design.new');
                 })()}
               </button>
+            )}
+            {/* A scene has nothing to design, and a member's scene has
+                somebody to thank: the heart stands where the design button
+                does for a look, so the row keeps its width. Keyed on the
+                scene so the count never carries over from the last one. */}
+            {selectedMemberScene && (
+              <SceneLikeButton
+                key={selectedMemberScene.lookId}
+                scene={selectedMemberScene}
+              />
             )}
             {/* Solo — the wave with every curve dropped — had a button here and
               no longer does. It is the last stop of Ctrl+W, and as a control

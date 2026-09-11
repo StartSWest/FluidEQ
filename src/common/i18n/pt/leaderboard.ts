@@ -29,6 +29,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Dias ativos',
   'leaderboard.part.messages': 'Mensagens',
   'leaderboard.part.mentions': 'Menções',
+  'leaderboard.part.likes': 'Curtidas em cenas',
   'leaderboard.guide.title': 'Como ganhar pontos',
   'leaderboard.guide.lead':
     'Todos ganham pontos da mesma forma, o criador incluído.',
@@ -39,16 +40,19 @@ const leaderboard = {
     'Cada mensagem que publicas, até {limit} por dia.',
   'leaderboard.guide.mentions':
     'Cada pessoa que te @menciona, uma vez por dia cada uma.',
+  'leaderboard.guide.likes':
+    'Cada curtida que outro membro dá a uma cena criada por ti.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Como se sabem os números',
   'leaderboard.guide.fair':
-    'O teu computador conta os minutos de música e envia um total por dia, só depois de te juntares, nunca o que ouves. As mensagens e as menções são contadas no servidor. Cada número é verificado lá, e quem faz batota sai da classificação.',
+    'O teu computador conta os minutos de música e envia um total por dia, só depois de te juntares, nunca o que ouves. As mensagens, as menções e as curtidas são contadas no servidor. Cada número é verificado lá, e quem faz batota sai da classificação.',
   'leaderboard.guide.terms': 'Tudo o que a aplicação envia',
   'leaderboard.stat.hours': '{hours} horas ouvidas',
   'leaderboard.stat.messages': '{count} mensagens publicadas',
   'leaderboard.stat.mentions': '{count} menções de outras pessoas',
+  'leaderboard.stat.likes': 'Curtidas nas suas cenas: {count}',
   'leaderboard.scoring':
-    'Pontos: {hours} por hora ouvida, {days} por dia ativo, {messages} por mensagem, {mentions} por cada pessoa que te menciona num dia. O criador ganha-os da mesma forma.',
+    'Pontos: {hours} por hora ouvida, {days} por dia ativo, {messages} por mensagem, {mentions} por cada pessoa que te menciona num dia, {likes} por cada curtida numa cena criada por ti. O criador ganha-os da mesma forma.',
   'leaderboard.empty': 'Ainda não há ninguém classificado.',
   'leaderboard.notJoined':
     'Não estás na classificação. Entra a partir do painel Conta.',

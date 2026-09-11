@@ -29,6 +29,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Giorni attivi',
   'leaderboard.part.messages': 'Messaggi',
   'leaderboard.part.mentions': 'Menzioni',
+  'leaderboard.part.likes': 'Mi piace alle scene',
   'leaderboard.guide.title': 'Come guadagnare punti',
   'leaderboard.guide.lead':
     'Tutti guadagnano allo stesso modo, il creatore compreso.',
@@ -39,16 +40,19 @@ const leaderboard = {
     'Ogni messaggio che pubblichi, fino a {limit} al giorno.',
   'leaderboard.guide.mentions':
     'Ogni persona che ti @menziona, una volta al giorno ciascuna.',
+  'leaderboard.guide.likes':
+    'Ogni mi piace che un altro membro mette a una scena che hai creato.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Da dove vengono i numeri',
   'leaderboard.guide.fair':
-    'Il tuo computer conta i minuti di musica e invia un totale al giorno, solo dopo che hai partecipato, mai cosa ascolti. Messaggi e menzioni si contano sul server. Lì ogni numero viene controllato, e chi bara esce dalla classifica.',
+    'Il tuo computer conta i minuti di musica e invia un totale al giorno, solo dopo che hai partecipato, mai cosa ascolti. Messaggi, menzioni e mi piace si contano sul server. Lì ogni numero viene controllato, e chi bara esce dalla classifica.',
   'leaderboard.guide.terms': 'Tutto ciò che l’app invia',
   'leaderboard.stat.hours': '{hours} ore di ascolto',
   'leaderboard.stat.messages': '{count} messaggi pubblicati',
   'leaderboard.stat.mentions': '{count} menzioni da altri',
+  'leaderboard.stat.likes': 'Mi piace alle sue scene: {count}',
   'leaderboard.scoring':
-    'Punti: {hours} per ora di ascolto, {days} per giorno attivo, {messages} per messaggio, {mentions} per ogni persona che ti menziona in un giorno. Il creatore li guadagna allo stesso modo.',
+    'Punti: {hours} per ora di ascolto, {days} per giorno attivo, {messages} per messaggio, {mentions} per ogni persona che ti menziona in un giorno, {likes} per ogni mi piace a una scena che hai creato. Il creatore li guadagna allo stesso modo.',
   'leaderboard.empty': 'Nessuno in classifica, per ora.',
   'leaderboard.notJoined':
     'Non sei in classifica. Partecipa dal pannello Account.',

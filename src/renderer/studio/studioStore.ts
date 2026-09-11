@@ -5,6 +5,7 @@ import type {
   TAddOutcome,
   TStarterOutcome,
 } from 'main/ipc/memberScenes';
+import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
 import type { TProjectBuild } from 'main/memberScenes/project';
 
 /**
@@ -116,6 +117,24 @@ export const addStudioSceneToLooks = async (): Promise<TAddOutcome> =>
 export const showStudioFolder = async () => {
   await bridge()?.showStudioFolder?.();
 };
+
+/** The terms version this computer last shared a scene under; 0 for never. */
+export const studioTermsAgreed = async (): Promise<number> =>
+  (await bridge()?.studioTermsAgreed?.()) ?? 0;
+
+export const exportStudioScene = async (
+  termsVersion: number,
+): Promise<TExportOutcome> =>
+  (await bridge()?.exportStudioScene?.(termsVersion)) ?? {
+    ok: false,
+    reason: 'offline',
+  };
+
+export const importMemberScene = async (): Promise<TImportOutcome> =>
+  (await bridge()?.importMemberScene?.()) ?? {
+    ok: false,
+    reason: 'cancelled',
+  };
 
 /** For tests: a clean module between runs. */
 export const resetStudioStore = () => {

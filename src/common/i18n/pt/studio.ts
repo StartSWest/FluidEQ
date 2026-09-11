@@ -25,6 +25,8 @@ const studio = {
   'studio.action.showFolder': 'Mostrar pasta',
   'studio.action.unlink': 'Desvincular',
   'studio.action.addToLooks': 'Adicionar aos meus visuais',
+  'studio.action.export': 'Exportar…',
+  'studio.action.import': 'Abrir um arquivo de cena…',
 
   'studio.notice.copied':
     'Copiado. Cole na sua IA e escreva sua ideia no final.',
@@ -36,6 +38,43 @@ const studio = {
     'Essa pasta já tem uma cena. Escolha uma pasta vazia ou vincule essa.',
   'studio.notice.added': '{name} está nos seus visuais, em Feitos por você.',
   'studio.notice.addFailed': 'Esta versão poderá ser adicionada quando tocar.',
+
+  'studio.notice.exported':
+    '{file} está pronto. Qualquer membro Plus pode abri-lo no Estúdio.',
+
+  'studio.share.title': 'Compartilhe as cenas que você cria',
+  'studio.share.lead':
+    'Suas cenas continuam sendo suas. Exportar uma permite que outros membros Plus a reproduzam, e isso faz parte do Plus.',
+  'studio.share.point1':
+    'Quem receber o arquivo pode reproduzi-lo enquanto tiver o Plus. Não pode vendê-lo.',
+  'studio.share.point2':
+    'Cada curtida de outro membro rende pontos para você na classificação.',
+  'studio.share.point3':
+    'Os comentários do shader são removidos, e seu nome visível vai junto com a cena.',
+  'studio.share.read': 'Ler os termos',
+  'studio.share.cancel': 'Agora não',
+  'studio.share.agree': 'Aceitar e exportar',
+  'studio.share.running': 'Exportando…',
+
+  'studio.export.offline':
+    'Exportar precisa de conexão. Tente de novo quando estiver online.',
+  'studio.export.rateLimited':
+    'São muitas exportações em uma hora. Tente mais tarde.',
+  'studio.export.refused':
+    'O FluidEQ não pôde aceitar esta versão. Corrija o que ele mostra e salve.',
+  'studio.export.signedOut': 'Entre na sua conta para exportar sua cena.',
+  'studio.export.failed': 'Não foi possível exportar a cena. Tente de novo.',
+  'studio.export.banned': 'Esta conta não pode mais compartilhar cenas.',
+  'studio.export.outdated':
+    'Os termos do Plus têm uma versão nova. Atualize o FluidEQ para lê-la e exportar.',
+
+  'studio.import.done': '{name}, de {author}, está nos seus visuais.',
+  'studio.import.doneAnonymous': '{name} está nos seus visuais.',
+  'studio.import.own': '{name} é sua. Voltou para os seus visuais.',
+  'studio.import.unreadable': 'Esse arquivo não é uma cena do FluidEQ.',
+  'studio.import.changed':
+    'Esse arquivo foi alterado depois de exportado, então o FluidEQ não vai reproduzi-lo.',
+  'studio.import.blocked': 'Essa cena foi retirada.',
 
   'studio.ideas.title': 'Ideias para começar — acrescenta a ideia ao prompt',
   'studio.idea.pet.label': 'Meu pet, vivo',

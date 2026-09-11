@@ -32,6 +32,8 @@ const studio = {
   'studio.action.showFolder': 'Show folder',
   'studio.action.unlink': 'Unlink',
   'studio.action.addToLooks': 'Add to my looks',
+  'studio.action.export': 'Export…',
+  'studio.action.import': 'Open a scene file…',
 
   'studio.notice.copied':
     'Copied. Paste it into your AI and write your idea at the end.',
@@ -43,6 +45,43 @@ const studio = {
     'That folder already has a scene. Choose an empty folder, or link that one instead.',
   'studio.notice.added': '{name} is in your looks, under Made by you.',
   'studio.notice.addFailed': 'This version can be added once it plays.',
+  'studio.notice.exported':
+    '{file} is ready. Any Plus member can open it in their Studio.',
+
+  // Asked once, before the first export: the scene is the member's, and
+  // sending it lets other members play it. The full text is in the Plus terms.
+  'studio.share.title': 'Share scenes you make',
+  'studio.share.lead':
+    'Your scenes stay yours. Exporting one lets other Plus members play it, and that is part of what Plus is.',
+  'studio.share.point1':
+    'Anyone you give the file to can play it while they have Plus. They cannot sell it.',
+  'studio.share.point2':
+    'Every like from another member earns you points on the leaderboard.',
+  'studio.share.point3':
+    'Comments are removed from the shader, and your display name goes with the scene.',
+  'studio.share.read': 'Read the terms',
+  'studio.share.cancel': 'Not now',
+  'studio.share.agree': 'Agree and export',
+  'studio.share.running': 'Exporting…',
+
+  'studio.export.offline': 'Exporting needs a connection. Try again online.',
+  'studio.export.rateLimited':
+    'That is a lot of exports for one hour. Try again later.',
+  'studio.export.refused':
+    'FluidEQ could not accept this version. Fix what it shows and save.',
+  'studio.export.signedOut': 'Sign in to export your scene.',
+  'studio.export.failed': 'The scene could not be exported. Try again.',
+  'studio.export.banned': 'This account can no longer share scenes.',
+  'studio.export.outdated':
+    'The Plus terms have a newer version. Update FluidEQ to read it and export.',
+
+  'studio.import.done': '{name} by {author} is in your looks.',
+  'studio.import.doneAnonymous': '{name} is in your looks.',
+  'studio.import.own': '{name} is yours. It is back in your looks.',
+  'studio.import.unreadable': 'That file is not a FluidEQ scene.',
+  'studio.import.changed':
+    'That file was changed after it was exported, so FluidEQ will not play it.',
+  'studio.import.blocked': 'That scene has been taken down.',
 
   'studio.ideas.title': 'Ideas to start from — adds the idea to the prompt',
   'studio.idea.pet.label': 'My pet, alive',

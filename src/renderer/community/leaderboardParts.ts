@@ -13,6 +13,7 @@ export const PART_KEYS: Readonly<Record<TScorePart, TranslationKey>> = {
   days: 'leaderboard.part.days',
   messages: 'leaderboard.part.messages',
   mentions: 'leaderboard.part.mentions',
+  likes: 'leaderboard.part.likes',
 };
 
 export const PART_GLYPHS: Readonly<Record<TScorePart, TCommunityGlyph>> = {
@@ -20,4 +21,5 @@ export const PART_GLYPHS: Readonly<Record<TScorePart, TCommunityGlyph>> = {
   days: 'calendar',
   messages: 'general',
   mentions: 'mention',
+  likes: 'heart',
 };

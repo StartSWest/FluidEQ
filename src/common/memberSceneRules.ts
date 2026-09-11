@@ -93,6 +93,27 @@ export const blankGlslComments = (source: string): string | null => {
   return out.join('');
 };
 
+/**
+ * The source with every comment gone, as a shared scene carries it.
+ *
+ * Comments are the only free text a scene has, and a shared scene is read by
+ * other people's AIs as often as by their GPUs; stripping them when a scene
+ * is signed leaves nothing a paragraph of instructions could hide in. The
+ * author's own folder keeps them. `null` when a block comment never closes.
+ */
+export const stripGlslComments = (source: string): string | null => {
+  const blanked = blankGlslComments(source);
+  if (blanked === null) {
+    return null;
+  }
+  return `${blanked
+    .split('\n')
+    .map((line) => line.replace(/\s+$/, ''))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()}\n`;
+};
+
 const lineAt = (text: string, index: number): number => {
   let line = 1;
   for (let k = 0; k < index; k += 1) {

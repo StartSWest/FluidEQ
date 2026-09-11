@@ -41,6 +41,8 @@ import type {
   TAddOutcome,
   TStarterOutcome,
 } from './ipc/memberScenes';
+import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
+import type { ILikeStatus } from './memberScenes/social';
 import type { TCommunityResult } from './ipc/community';
 import type {
   ICommunityChannel,
@@ -826,6 +828,26 @@ const addStudioSceneToLooks = () =>
 const showStudioFolder = () =>
   ipcRenderer.invoke('studio-show-folder') as Promise<void>;
 
+/** The terms version this computer last shared a scene under; 0 for never. */
+const studioTermsAgreed = () =>
+  ipcRenderer.invoke('studio-terms-agreed') as Promise<number>;
+
+const exportStudioScene = (termsVersion: number) =>
+  ipcRenderer.invoke('studio-export', termsVersion) as Promise<TExportOutcome>;
+
+const importMemberScene = () =>
+  ipcRenderer.invoke('member-scenes-import') as Promise<TImportOutcome>;
+
+const memberSceneLikeStatus = (lookId: string) =>
+  ipcRenderer.invoke('member-scenes-like-status', lookId) as Promise<
+    ILikeStatus | undefined
+  >;
+
+const likeMemberScene = (lookId: string, liked: boolean) =>
+  ipcRenderer.invoke('member-scenes-like', lookId, liked) as Promise<
+    ILikeStatus | undefined
+  >;
+
 const onStudioChanged = (listener: (state: IStudioState) => void) => {
   const wrapped = (_event: IpcRendererEvent, state: IStudioState) =>
     listener(state);
@@ -1061,6 +1083,11 @@ export default {
     addStudioSceneToLooks,
     showStudioFolder,
     onStudioChanged,
+    studioTermsAgreed,
+    exportStudioScene,
+    importMemberScene,
+    memberSceneLikeStatus,
+    likeMemberScene,
     communityProfile,
     communityCreateProfile,
     communityAcceptConduct,

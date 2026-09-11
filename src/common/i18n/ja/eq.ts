@@ -53,9 +53,16 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'ビジュアライザーの自動切り替え',
   'graph.autoSwitch.off': '自動: オフ',
   'graph.autoSwitch.every': '自動: {seconds}秒',
+  'graph.member.mine': 'あなたが作成',
+  'graph.member.theirs': 'メンバーが作成',
+  'graph.member.by': '作者: {name}',
+  'graph.member.anonymous': 'メンバー',
+  'graph.member.like': '{name} にいいね',
+  'graph.member.unlike': 'いいねを取り消す',
+  'graph.member.likes': 'いいね: {count}',
+  'graph.member.likeOffline': 'いいねにはインターネット接続が必要です',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.member.mine': 'あなたが作成',
   'graph.scene.badge': 'Plus',
   'graph.scene.locked':
     'FluidEQ Plus の一部です。選ぶと解除する方法が表示されます。',

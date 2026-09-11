@@ -8,6 +8,8 @@ import { resolveSceneName } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import { promptWithIdea } from './aiPrompt';
 import StudioMeters from './StudioMeters';
+import StudioShareDialog from './StudioShareDialog';
+import useStudioSharing from './useStudioSharing';
 import StudioStage, {
   type TStageDrawn,
   type TStageTrouble,
@@ -82,6 +84,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [scale, setScale] = useState(1);
   const [addNotice, setAddNotice] = useState<TAddNotice>();
   const feed = useRef<TStageDrawn | undefined>(undefined);
+  const sharing = useStudioSharing();
 
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
@@ -144,6 +147,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </span>
         <span className="studio-bench__status">{t(status)}</span>
         <span className="studio-bench__top-actions">
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={sharing.openFile}
+          >
+            {t('studio.action.import')}
+          </button>
           <button
             type="button"
             className="button small subtle"
@@ -280,6 +290,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </div>
       )}
 
+      {sharing.notice && (
+        <p
+          className={`studio-notice${sharing.notice.ok ? ' studio-notice--ok' : ''}`}
+          role="status"
+        >
+          {t(sharing.notice.key, sharing.notice.vars)}
+        </p>
+      )}
+
       <div className="studio-actions studio-actions--end">
         {addNotice && (
           <span
@@ -303,6 +322,19 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </button>
         <button
           type="button"
+          className={`button small subtle${sharing.exporting ? ' is-running' : ''}`}
+          aria-busy={sharing.exporting}
+          onClick={() => {
+            if (!sharing.exporting) {
+              sharing.startExport();
+            }
+          }}
+          disabled={!pack || Boolean(problems) || trouble !== undefined}
+        >
+          {t('studio.action.export')}
+        </button>
+        <button
+          type="button"
           className="button small"
           onClick={add}
           disabled={!pack || Boolean(problems) || trouble !== undefined}
@@ -310,6 +342,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           {t('studio.action.addToLooks')}
         </button>
       </div>
+
+      {sharing.askTerms && (
+        <StudioShareDialog
+          running={sharing.exporting}
+          onAgree={sharing.agreeAndExport}
+          onCancel={sharing.cancelTerms}
+        />
+      )}
     </div>
   );
 }

@@ -12,9 +12,13 @@
  * whoever makes it, the maker included: an earlier version paid fifty points
  * for a reply from the maker, which made the board a measure of being noticed
  * by one person instead of a measure of taking part.
+ *
+ * A like on a scene a member made is worth the same five points as a message:
+ * one per member per scene, never on the author's own, so a like cannot be
+ * farmed by clicking and a scene that many people enjoy is a real contribution.
  */
 
-export type TScorePart = 'hours' | 'days' | 'messages' | 'mentions';
+export type TScorePart = 'hours' | 'days' | 'messages' | 'mentions' | 'likes';
 
 /** In the order the parts are listed and drawn: the steady ones first. */
 export const SCORE_PARTS: readonly TScorePart[] = [
@@ -22,6 +26,7 @@ export const SCORE_PARTS: readonly TScorePart[] = [
   'days',
   'messages',
   'mentions',
+  'likes',
 ];
 
 /** Points per unit of each part. */
@@ -30,6 +35,7 @@ export const PART_POINTS: Readonly<Record<TScorePart, number>> = {
   days: 20,
   messages: 5,
   mentions: 10,
+  likes: 5,
 };
 
 /** Listening past this in a day is a machine left playing, not a person. */
@@ -61,6 +67,8 @@ export interface IScoreInputs {
   messages: number;
   /** People who @mentioned this person, each counted once a day. */
   mentions: number;
+  /** Likes other members gave the scenes this person made. */
+  likes: number;
 }
 
 /**
@@ -75,6 +83,7 @@ export const scoreParts = (
   days: score.activeDays * PART_POINTS.days,
   messages: score.messages * PART_POINTS.messages,
   mentions: score.mentions * PART_POINTS.mentions,
+  likes: score.likes * PART_POINTS.likes,
 });
 
 export const scoreOf = (score: IScoreInputs): number => {

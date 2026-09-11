@@ -65,8 +65,14 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Under the board the width is there to use: two by two, never three and
   // an orphan, and one column only where two would squeeze the sentences.
+  // With an odd number of rules the last one takes the whole row, so the grid
+  // never ends on half a row of empty space.
   @container leaderboard (max-width: 959.98px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > :last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
   }
 
   @container leaderboard (max-width: 560px) {
@@ -138,7 +144,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // How the numbers are known. Set apart by a dashed edge rather than a colour:
-// it is not a fifth way to earn, it is the terms under all four.
+// it is not another way to earn, it is the terms under all of them.
 .leaderboard-guide__fair {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);

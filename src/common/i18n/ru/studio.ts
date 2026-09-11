@@ -25,6 +25,8 @@ const studio = {
   'studio.action.showFolder': 'Показать папку',
   'studio.action.unlink': 'Отключить',
   'studio.action.addToLooks': 'Добавить в мои оформления',
+  'studio.action.export': 'Экспортировать…',
+  'studio.action.import': 'Открыть файл сцены…',
 
   'studio.notice.copied':
     'Скопировано. Вставьте в свой ИИ и допишите идею в конце.',
@@ -38,6 +40,44 @@ const studio = {
     '{name} — в ваших оформлениях, в разделе «Созданы вами».',
   'studio.notice.addFailed':
     'Эту версию можно будет добавить, когда она заиграет.',
+
+  'studio.notice.exported':
+    '{file} готов. Любой участник Plus может открыть его в своей Студии.',
+
+  'studio.share.title': 'Делитесь сценами, которые создаёте',
+  'studio.share.lead':
+    'Ваши сцены остаются вашими. Экспорт позволяет другим участникам Plus воспроизводить сцену — это часть Plus.',
+  'studio.share.point1':
+    'Тот, кому вы дадите файл, может воспроизводить его, пока у него есть Plus. Продавать его нельзя.',
+  'studio.share.point2':
+    'Каждая отметка «Нравится» от другого участника приносит вам очки в таблице лидеров.',
+  'studio.share.point3':
+    'Комментарии в шейдере удаляются, а ваше отображаемое имя передаётся вместе со сценой.',
+  'studio.share.read': 'Прочитать условия',
+  'studio.share.cancel': 'Не сейчас',
+  'studio.share.agree': 'Принять и экспортировать',
+  'studio.share.running': 'Экспорт…',
+
+  'studio.export.offline':
+    'Для экспорта нужно подключение к сети. Повторите попытку онлайн.',
+  'studio.export.rateLimited':
+    'Слишком много экспортов за час. Повторите попытку позже.',
+  'studio.export.refused':
+    'FluidEQ не может принять эту версию. Исправьте то, что указано, и сохраните.',
+  'studio.export.signedOut': 'Войдите, чтобы экспортировать сцену.',
+  'studio.export.failed':
+    'Не удалось экспортировать сцену. Попробуйте ещё раз.',
+  'studio.export.banned': 'Этот аккаунт больше не может делиться сценами.',
+  'studio.export.outdated':
+    'У условий Plus есть новая версия. Обновите FluidEQ, чтобы прочитать её и экспортировать.',
+
+  'studio.import.done': '{name} (автор: {author}) — в ваших оформлениях.',
+  'studio.import.doneAnonymous': '{name} — в ваших оформлениях.',
+  'studio.import.own': '{name} — ваша сцена. Она снова в ваших оформлениях.',
+  'studio.import.unreadable': 'Этот файл — не сцена FluidEQ.',
+  'studio.import.changed':
+    'Этот файл изменили после экспорта, поэтому FluidEQ не будет его воспроизводить.',
+  'studio.import.blocked': 'Эта сцена удалена.',
 
   'studio.ideas.title': 'Идеи для начала — добавляют идею в промпт',
   'studio.idea.pet.label': 'Мой питомец, живой',

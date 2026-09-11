@@ -30,6 +30,7 @@ const leaderboard = {
   'leaderboard.part.days': 'アクティブな日',
   'leaderboard.part.messages': '投稿',
   'leaderboard.part.mentions': 'メンション',
+  'leaderboard.part.likes': 'シーンへのいいね',
   'leaderboard.guide.title': 'ポイントの獲得方法',
   'leaderboard.guide.lead':
     '誰でも同じ方法でポイントを獲得します。制作者も同じです。',
@@ -38,16 +39,19 @@ const leaderboard = {
   'leaderboard.guide.messages': '投稿したメッセージ1件ごと。1日{limit}件まで。',
   'leaderboard.guide.mentions':
     'あなたを @メンションした人ごと。1人につき1日1回。',
+  'leaderboard.guide.likes':
+    'あなたが作成したシーンに他のメンバーがつけたいいね1件ごと。',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': '数字の出どころ',
   'leaderboard.guide.fair':
-    '音楽の分数はあなたのパソコンが数え、参加後にだけ1日ひとつの合計を送ります。何を聴いたかは送りません。メッセージとメンションはサーバーで数えます。すべての数字はサーバーで確認され、不正をするとランキングから外されます。',
+    '音楽の分数はあなたのパソコンが数え、参加後にだけ1日ひとつの合計を送ります。何を聴いたかは送りません。メッセージ、メンション、いいねはサーバーで数えます。すべての数字はサーバーで確認され、不正をするとランキングから外されます。',
   'leaderboard.guide.terms': 'アプリが送るすべての情報',
   'leaderboard.stat.hours': '{hours} 時間視聴',
   'leaderboard.stat.messages': '{count} 件投稿',
   'leaderboard.stat.mentions': '他の人からのメンション {count} 件',
+  'leaderboard.stat.likes': 'シーンへのいいね {count} 件',
   'leaderboard.scoring':
-    'ポイント：視聴1時間ごとに{hours}、アクティブな日ごとに{days}、投稿1件ごとに{messages}、1日にあなたをメンションした人1人ごとに{mentions}。制作者も同じ方法で獲得します。',
+    'ポイント：視聴1時間ごとに{hours}、アクティブな日ごとに{days}、投稿1件ごとに{messages}、1日にあなたをメンションした人1人ごとに{mentions}、作成したシーンへのいいね1件ごとに{likes}。制作者も同じ方法で獲得します。',
   'leaderboard.empty': 'まだ誰もいません。',
   'leaderboard.notJoined':
     'ランキングに載っていません。アカウントパネルから参加できます。',

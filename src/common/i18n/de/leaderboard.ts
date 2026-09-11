@@ -31,6 +31,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Aktive Tage',
   'leaderboard.part.messages': 'Nachrichten',
   'leaderboard.part.mentions': 'Erwähnungen',
+  'leaderboard.part.likes': '„Gefällt mir“ für Szenen',
   'leaderboard.guide.title': 'So gibt es Punkte',
   'leaderboard.guide.lead':
     'Alle verdienen Punkte auf dieselbe Weise, auch der Macher.',
@@ -42,16 +43,19 @@ const leaderboard = {
     'Jede Nachricht, die Sie schreiben, bis zu {limit} am Tag.',
   'leaderboard.guide.mentions':
     'Jede Person, die Sie @erwähnt, einmal pro Tag.',
+  'leaderboard.guide.likes':
+    'Jedes „Gefällt mir“, das ein anderes Mitglied einer Ihrer Szenen gibt.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Woher die Zahlen kommen',
   'leaderboard.guide.fair':
-    'Ihr Computer zählt die Minuten Musik und sendet eine Summe pro Tag, erst nachdem Sie beigetreten sind, und nie, was Sie hören. Nachrichten und Erwähnungen zählt der Server. Dort wird jede Zahl geprüft, und wer manipuliert, fliegt aus der Rangliste.',
+    'Ihr Computer zählt die Minuten Musik und sendet eine Summe pro Tag, erst nachdem Sie beigetreten sind, und nie, was Sie hören. Nachrichten, Erwähnungen und „Gefällt mir“ zählt der Server. Dort wird jede Zahl geprüft, und wer manipuliert, fliegt aus der Rangliste.',
   'leaderboard.guide.terms': 'Alles, was die App sendet',
   'leaderboard.stat.hours': '{hours} Stunden gehört',
   'leaderboard.stat.messages': '{count} Nachrichten geschrieben',
   'leaderboard.stat.mentions': '{count} Erwähnungen durch andere',
+  'leaderboard.stat.likes': '„Gefällt mir“ für eigene Szenen: {count}',
   'leaderboard.scoring':
-    'Punkte: {hours} pro gehörter Stunde, {days} pro aktivem Tag, {messages} pro Nachricht, {mentions} für jede Person, die Sie an einem Tag erwähnt. Der Macher verdient sie genauso.',
+    'Punkte: {hours} pro gehörter Stunde, {days} pro aktivem Tag, {messages} pro Nachricht, {mentions} für jede Person, die Sie an einem Tag erwähnt, {likes} für jedes „Gefällt mir“ für eine Ihrer Szenen. Der Macher verdient sie genauso.',
   'leaderboard.empty': 'Noch niemand gelistet.',
   'leaderboard.notJoined':
     'Sie stehen nicht auf der Rangliste. Treten Sie im Konto-Panel bei.',

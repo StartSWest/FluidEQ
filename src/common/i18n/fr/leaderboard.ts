@@ -31,6 +31,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Jours actifs',
   'leaderboard.part.messages': 'Messages',
   'leaderboard.part.mentions': 'Mentions',
+  'leaderboard.part.likes': 'J’aime sur les scènes',
   'leaderboard.guide.title': 'Comment gagner des points',
   'leaderboard.guide.lead':
     'Tout le monde gagne de la même façon, le créateur compris.',
@@ -42,16 +43,19 @@ const leaderboard = {
     'Chaque message publié, jusqu’à {limit} par jour.',
   'leaderboard.guide.mentions':
     'Chaque personne qui vous @mentionne, une fois par jour chacune.',
+  'leaderboard.guide.likes':
+    'Chaque J’aime qu’un autre membre donne à une scène que vous avez créée.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'D’où viennent les chiffres',
   'leaderboard.guide.fair':
-    'Votre ordinateur compte les minutes de musique et envoie un total par jour, seulement après que vous avez rejoint, jamais ce que vous écoutez. Les messages et les mentions sont comptés sur le serveur. Chaque nombre y est vérifié, et la triche retire du classement.',
+    'Votre ordinateur compte les minutes de musique et envoie un total par jour, seulement après que vous avez rejoint, jamais ce que vous écoutez. Les messages, les mentions et les J’aime sont comptés sur le serveur. Chaque nombre y est vérifié, et la triche retire du classement.',
   'leaderboard.guide.terms': 'Tout ce que l’application envoie',
   'leaderboard.stat.hours': '{hours} heures d’écoute',
   'leaderboard.stat.messages': '{count} messages publiés',
   'leaderboard.stat.mentions': '{count} mentions par d’autres',
+  'leaderboard.stat.likes': 'J’aime sur ses scènes : {count}',
   'leaderboard.scoring':
-    'Points : {hours} par heure écoutée, {days} par jour actif, {messages} par message, {mentions} pour chaque personne qui vous mentionne dans la journée. Le créateur les gagne de la même façon.',
+    'Points : {hours} par heure écoutée, {days} par jour actif, {messages} par message, {mentions} pour chaque personne qui vous mentionne dans la journée, {likes} pour chaque J’aime sur une scène que vous avez créée. Le créateur les gagne de la même façon.',
   'leaderboard.empty': 'Personne n’est encore classé.',
   'leaderboard.notJoined':
     'Vous n’êtes pas au classement. Rejoignez-le depuis le panneau Compte.',

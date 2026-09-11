@@ -8,6 +8,7 @@ import {
   blankGlslComments,
   checkMemberSceneSource,
   MAX_MEMBER_SOURCE_BYTES,
+  stripGlslComments,
 } from '../../../common/memberSceneRules';
 
 // Every rule below is only meaningful beside this: a realistic scene, with
@@ -36,6 +37,15 @@ const codes = (source: string) =>
 describe('member scene rules', () => {
   it('accepts a realistic scene, whatever its comments say', () => {
     expect(checkMemberSceneSource(GOOD)).toEqual([]);
+  });
+
+  it('strips every comment for sharing, and what is left still passes', () => {
+    const stripped = stripGlslComments(GOOD);
+    expect(stripped).not.toBeNull();
+    expect(stripped).not.toMatch(/\/\/|\/\*|moiré|#define/);
+    expect(stripped).toContain('vec4 sceneColour(vec2 uv) {');
+    expect(checkMemberSceneSource(stripped ?? '')).toEqual([]);
+    expect(stripGlslComments('/* never closed')).toBeNull();
   });
 
   it('blanks comments without moving any line', () => {

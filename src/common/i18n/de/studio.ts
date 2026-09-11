@@ -25,6 +25,8 @@ const studio = {
   'studio.action.showFolder': 'Ordner anzeigen',
   'studio.action.unlink': 'Verknüpfung lösen',
   'studio.action.addToLooks': 'Zu meinen Darstellungen',
+  'studio.action.export': 'Exportieren…',
+  'studio.action.import': 'Szenendatei öffnen…',
 
   'studio.notice.copied':
     'Kopiert. Fügen Sie ihn in Ihre KI ein und schreiben Sie Ihre Idee ans Ende.',
@@ -38,6 +40,46 @@ const studio = {
     '{name} ist in Ihren Darstellungen, unter „Von Ihnen erstellt“.',
   'studio.notice.addFailed':
     'Diese Version kann hinzugefügt werden, sobald sie spielt.',
+
+  'studio.notice.exported':
+    '{file} ist fertig. Jedes Plus-Mitglied kann die Datei in seinem Studio öffnen.',
+
+  'studio.share.title': 'Ihre Szenen teilen',
+  'studio.share.lead':
+    'Ihre Szenen bleiben Ihre. Wenn Sie eine exportieren, können andere Plus-Mitglieder sie abspielen – das gehört zu Plus dazu.',
+  'studio.share.point1':
+    'Wer die Datei von Ihnen bekommt, kann sie abspielen, solange er Plus hat. Verkaufen darf er sie nicht.',
+  'studio.share.point2':
+    'Jedes „Gefällt mir“ eines anderen Mitglieds bringt Ihnen Punkte in der Rangliste.',
+  'studio.share.point3':
+    'Kommentare im Shader werden entfernt, und Ihr Anzeigename geht mit der Szene mit.',
+  'studio.share.read': 'Bedingungen lesen',
+  'studio.share.cancel': 'Nicht jetzt',
+  'studio.share.agree': 'Zustimmen und exportieren',
+  'studio.share.running': 'Wird exportiert…',
+
+  'studio.export.offline':
+    'Zum Exportieren ist eine Verbindung nötig. Versuchen Sie es online erneut.',
+  'studio.export.rateLimited':
+    'Das sind viele Exporte in einer Stunde. Versuchen Sie es später erneut.',
+  'studio.export.refused':
+    'FluidEQ konnte diese Version nicht annehmen. Beheben Sie, was angezeigt wird, und speichern Sie.',
+  'studio.export.signedOut':
+    'Melden Sie sich an, um Ihre Szene zu exportieren.',
+  'studio.export.failed':
+    'Die Szene konnte nicht exportiert werden. Versuchen Sie es erneut.',
+  'studio.export.banned': 'Dieses Konto kann keine Szenen mehr teilen.',
+  'studio.export.outdated':
+    'Für die Plus-Bedingungen gibt es eine neue Version. Aktualisieren Sie FluidEQ, um sie zu lesen und zu exportieren.',
+
+  'studio.import.done': '{name} von {author} ist in Ihren Darstellungen.',
+  'studio.import.doneAnonymous': '{name} ist in Ihren Darstellungen.',
+  'studio.import.own':
+    '{name} ist Ihre Szene. Sie ist wieder in Ihren Darstellungen.',
+  'studio.import.unreadable': 'Diese Datei ist keine FluidEQ-Szene.',
+  'studio.import.changed':
+    'Diese Datei wurde nach dem Export verändert, daher spielt FluidEQ sie nicht ab.',
+  'studio.import.blocked': 'Diese Szene wurde entfernt.',
 
   'studio.ideas.title': 'Ideen für den Anfang – fügt die Idee an den Prompt an',
   'studio.idea.pet.label': 'Mein Haustier, lebendig',

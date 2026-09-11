@@ -662,6 +662,14 @@ it under the terms of the GNU General Public License version 3 or later.
       height: 14px;
     }
 
+    // The author is the list's second fact and the pill's none: the closed
+    // trigger names the look, and the chip on the scene itself says who made
+    // it. Left in, it would widen the pill past the floor above and shuffle
+    // the legends beside it, which is what that floor exists to prevent.
+    .graph-look-by {
+      display: none;
+    }
+
     svg.arrow {
       width: 8px;
       margin-left: auto;
@@ -1387,6 +1395,22 @@ it under the terms of the GNU General Public License version 3 or later.
   vertical-align: middle;
 }
 
+// Who made a scene another member sent: after the name, a step quieter, and
+// the first thing to give way when the row is narrow — the name must stay
+// readable, the author is the second fact.
+.graph-look-by {
+  // Shrinks a hundred times faster than the name, so a long name stays on
+  // one line and the author is what gets cut.
+  flex: 0 100 auto;
+  min-width: 0;
+  margin-inline-start: 6px;
+  overflow: hidden;
+  color: $text-dim;
+  font-size: $text-micro;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 // A Plus look the account cannot draw yet.
 //
 // The same row as an unlocked one, with two differences that say "not yet
@@ -1460,6 +1484,45 @@ it under the terms of the GNU General Public License version 3 or later.
     border-color: $secondary-light;
     background: color-mix(in srgb, $secondary-light 16%, transparent);
     color: $white;
+  }
+}
+
+// The heart on a member's scene, in the design button's pill (see
+// SceneLikeButton). Lit in the pink the likes wear on the leaderboard, so a
+// like reads as the same thing in both places. Qualified by the strip because
+// its `button` rule, hover included, outranks a lone class.
+.live-output-controls .graph-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+
+  .graph-like__heart {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+
+  &.is-on,
+  &.is-on:hover:not(:disabled) {
+    border-color: color-mix(in srgb, $analogous-1 70%, transparent);
+    background: color-mix(in srgb, $analogous-1 16%, transparent);
+    color: $white;
+
+    .graph-like__heart {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+
+  // The member's own scene: its count, not a button to press. Disabled so it
+  // cannot be, and not dimmed, because nothing about it is unavailable.
+  &.is-count:disabled {
+    cursor: default;
+    opacity: 1;
   }
 }
 

@@ -53,6 +53,7 @@ beforeEach(() => {
           activeDays: 9,
           messages: 12,
           mentions: 5,
+          likes: 3,
         },
         {
           rank: 2,
@@ -64,6 +65,7 @@ beforeEach(() => {
           activeDays: 2,
           messages: 0,
           mentions: 0,
+          likes: 0,
         },
       ],
       me: {
@@ -73,6 +75,7 @@ beforeEach(() => {
         activeDays: 1,
         messages: 0,
         mentions: 0,
+        likes: 0,
         players: 120,
       },
     },
@@ -171,6 +174,13 @@ describe('the leaderboard view', () => {
       screen.getByText('leaderboard.hero.toPass:31,Bob'),
     ).toBeInTheDocument();
 
+    // Likes on scenes someone made show under their name, and only when
+    // there are any: Ada has three, Bob none.
+    expect(screen.getAllByTitle(/^leaderboard\.stat\.likes:/)).toHaveLength(1);
+    expect(screen.getByTitle('leaderboard.stat.likes:3')).toHaveTextContent(
+      '3',
+    );
+
     await userEvent.click(
       screen.getByRole('tab', { name: 'leaderboard.thisMonth' }),
     );
@@ -197,6 +207,7 @@ describe('the leaderboard view', () => {
     // The limits come from the scoring's own numbers.
     expect(guide).toHaveTextContent('leaderboard.guide.hours:16');
     expect(guide).toHaveTextContent('leaderboard.guide.messages:20');
+    expect(guide).toHaveTextContent('leaderboard.guide.likes');
 
     await userEvent.click(
       screen.getByRole('button', { name: 'leaderboard.guide.terms' }),

@@ -30,6 +30,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Días activos',
   'leaderboard.part.messages': 'Mensajes',
   'leaderboard.part.mentions': 'Menciones',
+  'leaderboard.part.likes': 'Me gusta en escenas',
   'leaderboard.guide.title': 'Cómo ganar puntos',
   'leaderboard.guide.lead':
     'Todo el mundo gana puntos igual, el creador también.',
@@ -40,16 +41,19 @@ const leaderboard = {
     'Cada mensaje que publicas, hasta {limit} al día.',
   'leaderboard.guide.mentions':
     'Cada persona que te @menciona, una vez al día cada una.',
+  'leaderboard.guide.likes':
+    'Cada me gusta que otro miembro da a una escena que creaste.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'Cómo se saben los números',
   'leaderboard.guide.fair':
-    'Tu ordenador cuenta los minutos de música y envía un total por día, solo después de unirte, nunca qué escuchas. Los mensajes y las menciones se cuentan en el servidor. Allí se comprueba cada número, y quien hace trampas sale de la clasificación.',
+    'Tu ordenador cuenta los minutos de música y envía un total por día, solo después de unirte, nunca qué escuchas. Los mensajes, las menciones y los me gusta se cuentan en el servidor. Allí se comprueba cada número, y quien hace trampas sale de la clasificación.',
   'leaderboard.guide.terms': 'Todo lo que envía la aplicación',
   'leaderboard.stat.hours': '{hours} horas escuchadas',
   'leaderboard.stat.messages': '{count} mensajes publicados',
   'leaderboard.stat.mentions': '{count} menciones de otras personas',
+  'leaderboard.stat.likes': 'Me gusta en sus escenas: {count}',
   'leaderboard.scoring':
-    'Puntos: {hours} por hora escuchada, {days} por día activo, {messages} por mensaje, {mentions} por cada persona que te menciona en un día. El creador los gana igual.',
+    'Puntos: {hours} por hora escuchada, {days} por día activo, {messages} por mensaje, {mentions} por cada persona que te menciona en un día, {likes} por cada me gusta en una escena tuya. El creador los gana igual.',
   'leaderboard.empty': 'Aún no hay nadie clasificado.',
   'leaderboard.notJoined':
     'No estás en la clasificación. Únete desde el panel Cuenta.',

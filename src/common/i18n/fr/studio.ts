@@ -26,6 +26,8 @@ const studio = {
   'studio.action.showFolder': 'Afficher le dossier',
   'studio.action.unlink': 'Délier',
   'studio.action.addToLooks': 'Ajouter à mes styles',
+  'studio.action.export': 'Exporter…',
+  'studio.action.import': 'Ouvrir un fichier de scène…',
 
   'studio.notice.copied':
     'Copié. Collez-le dans votre IA et écrivez votre idée à la fin.',
@@ -38,6 +40,43 @@ const studio = {
   'studio.notice.added': '{name} est dans vos styles, sous Créés par vous.',
   'studio.notice.addFailed':
     'Cette version pourra être ajoutée une fois qu’elle jouera.',
+
+  'studio.notice.exported':
+    '{file} est prêt. Tout membre Plus peut l’ouvrir dans son Studio.',
+
+  'studio.share.title': 'Partagez les scènes que vous créez',
+  'studio.share.lead':
+    'Vos scènes restent les vôtres. En exporter une permet aux autres membres Plus de la jouer, et cela fait partie de Plus.',
+  'studio.share.point1':
+    'Toute personne à qui vous donnez le fichier peut le jouer tant qu’elle a Plus. Elle ne peut pas le vendre.',
+  'studio.share.point2':
+    'Chaque J’aime d’un autre membre vous rapporte des points au classement.',
+  'studio.share.point3':
+    'Les commentaires du shader sont retirés, et votre nom affiché accompagne la scène.',
+  'studio.share.read': 'Lire les conditions',
+  'studio.share.cancel': 'Pas maintenant',
+  'studio.share.agree': 'Accepter et exporter',
+  'studio.share.running': 'Exportation…',
+
+  'studio.export.offline':
+    'L’exportation demande une connexion. Réessayez une fois en ligne.',
+  'studio.export.rateLimited':
+    'Cela fait beaucoup d’exportations en une heure. Réessayez plus tard.',
+  'studio.export.refused':
+    'FluidEQ n’a pas pu accepter cette version. Corrigez ce qui est indiqué et enregistrez.',
+  'studio.export.signedOut': 'Connectez-vous pour exporter votre scène.',
+  'studio.export.failed': 'La scène n’a pas pu être exportée. Réessayez.',
+  'studio.export.banned': 'Ce compte ne peut plus partager de scènes.',
+  'studio.export.outdated':
+    'Les conditions de Plus ont une nouvelle version. Mettez FluidEQ à jour pour la lire et exporter.',
+
+  'studio.import.done': '{name}, par {author}, est dans vos styles.',
+  'studio.import.doneAnonymous': '{name} est dans vos styles.',
+  'studio.import.own': '{name} est à vous. Elle est de retour dans vos styles.',
+  'studio.import.unreadable': 'Ce fichier n’est pas une scène FluidEQ.',
+  'studio.import.changed':
+    'Ce fichier a été modifié après son exportation, FluidEQ ne le jouera donc pas.',
+  'studio.import.blocked': 'Cette scène a été retirée.',
 
   'studio.ideas.title': 'Idées pour commencer — ajoute l’idée au prompt',
   'studio.idea.pet.label': 'Mon animal, vivant',

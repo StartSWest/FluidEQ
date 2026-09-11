@@ -36,6 +36,7 @@ const leaderboard = {
   'leaderboard.part.days': 'Active days',
   'leaderboard.part.messages': 'Messages',
   'leaderboard.part.mentions': 'Mentions',
+  'leaderboard.part.likes': 'Scene likes',
   'leaderboard.guide.title': 'How to earn points',
   'leaderboard.guide.lead': 'Everyone earns the same way, the maker included.',
   'leaderboard.guide.hours':
@@ -44,16 +45,19 @@ const leaderboard = {
   'leaderboard.guide.messages': 'Every message you post, up to {limit} a day.',
   'leaderboard.guide.mentions':
     'Every person who @mentions you, once a day each.',
+  'leaderboard.guide.likes':
+    'Every like another member gives a scene you made.',
   'leaderboard.guide.value': '+{points}',
   'leaderboard.guide.fairTitle': 'How the numbers are known',
   'leaderboard.guide.fair':
-    'Your computer counts the minutes of music and sends one total per day, only after you join, never what you play. Messages and mentions are counted on the server. Every number is checked there, and tampering takes you off the board.',
+    'Your computer counts the minutes of music and sends one total per day, only after you join, never what you play. Messages, mentions and likes are counted on the server. Every number is checked there, and tampering takes you off the board.',
   'leaderboard.guide.terms': 'Everything the app sends',
   'leaderboard.stat.hours': '{hours} hours listened',
   'leaderboard.stat.messages': '{count} messages posted',
   'leaderboard.stat.mentions': '{count} mentions from others',
+  'leaderboard.stat.likes': 'Likes on their scenes: {count}',
   'leaderboard.scoring':
-    'Points: {hours} per hour listened, {days} per active day, {messages} per message, {mentions} for each person who mentions you in a day. The maker earns them the same way.',
+    'Points: {hours} per hour listened, {days} per active day, {messages} per message, {mentions} for each person who mentions you in a day, {likes} for each like on a scene you made. The maker earns them the same way.',
   'leaderboard.empty': 'Nobody is ranked yet.',
   'leaderboard.notJoined':
     'You are not on the board. Join from the Account panel.',

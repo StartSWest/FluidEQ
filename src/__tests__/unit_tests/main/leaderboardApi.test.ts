@@ -38,6 +38,7 @@ describe('reading the board', () => {
         active_days: '9',
         messages: '12',
         mentions: '4',
+        likes: '7',
       }),
     ).toEqual({
       rank: 1,
@@ -49,6 +50,7 @@ describe('reading the board', () => {
       activeDays: 9,
       messages: 12,
       mentions: 4,
+      likes: 7,
     });
     expect(readRow({ rank: 2, handle: 'bob', minutes: 10 })).toMatchObject({
       displayName: 'bob',
@@ -63,6 +65,7 @@ describe('reading the board', () => {
       activeDays: 0,
       messages: 0,
       mentions: 0,
+      likes: 0,
     });
   });
 
@@ -81,6 +84,7 @@ describe('reading the board', () => {
       activeDays: 0,
       messages: 0,
       mentions: 0,
+      likes: 0,
       players: 42,
     });
     expect(readMyRank([])).toBeUndefined();

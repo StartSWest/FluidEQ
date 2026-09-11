@@ -12,7 +12,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The leaderboard inside the Community tab. People's colours come from
-// `--identity-hue` exactly as the chat's do (see CommunityRail.scss); the four
+// `--identity-hue` exactly as the chat's do (see CommunityRail.scss); the five
 // parts of a score each have a colour of their own, below, used by the guide,
 // the stats under every name and the standing bar alike. The Account panel's
 // card is in LeaderboardCard.scss, the standing card in
@@ -22,7 +22,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // One colour per part of a score, set as `--part` so any element can wear it.
 // Listening in the theme's own accent; the others from the shared palette,
-// chosen so the four are told apart at a glance on the dark ground.
+// chosen so the five are told apart at a glance on the dark ground.
 .leaderboard-part--hours {
   --part: #{$secondary-default};
 }
@@ -37,6 +37,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .leaderboard-part--mentions {
   --part: #{$complementary};
+}
+
+// The same pink the heart wears on a member's scene, so a like reads as the
+// same thing on the graph and on the board.
+.leaderboard-part--likes {
+  --part: #{$analogous-1};
 }
 
 // ---------------------------------------------------------------- board
