@@ -50,6 +50,7 @@ const renderNotice = (isHidden = false) => {
   const view = render(
     <EngineTroubleNotice
       engine="fluid"
+      fluid={undefined}
       isHidden={isHidden}
       onRestartAudio={onRestartAudio}
       onUseApo={onUseApo}
@@ -59,6 +60,7 @@ const renderNotice = (isHidden = false) => {
     view.rerender(
       <EngineTroubleNotice
         engine="fluid"
+        fluid={undefined}
         isHidden={hidden}
         onRestartAudio={onRestartAudio}
         onUseApo={onUseApo}

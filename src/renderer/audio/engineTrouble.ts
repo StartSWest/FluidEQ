@@ -50,6 +50,11 @@ export interface IEngineTroubleFacts {
    * that changes it, so hearing sound never has to list the devices again.
    */
   fluidEndpoints: readonly IFluidEngineEndpoint[];
+  /**
+   * The installed engine writes a status for every output it runs
+   * (`engineReportsStatus`). Only then does a missing one mean anything.
+   */
+  reportsStatus: boolean;
   health: IEngineHealth;
   /**
    * The output sound was heard on, since the capture hearing it started —
@@ -73,6 +78,7 @@ export const engineTrouble = ({
   engine,
   devices,
   fluidEndpoints,
+  reportsStatus,
   health,
   heardGuid,
 }: IEngineTroubleFacts): TEngineTrouble | undefined => {
@@ -88,7 +94,9 @@ export const engineTrouble = ({
       (endpoint) => endpoint.attached && sameEndpoint(endpoint.guid, guid),
     );
 
-  if (heardGuid !== undefined) {
+  // An engine from before status files is running every output it is on
+  // without ever saying so, and was reported as off on all of them.
+  if (heardGuid !== undefined && reportsStatus) {
     const device = deviceOf(heardGuid);
     const status = statusOf(heardGuid);
     // Attached, and able to host effects at all: an output the engine was

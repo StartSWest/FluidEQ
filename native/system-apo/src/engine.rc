@@ -15,8 +15,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * whose it is.
  *
  * FEQ_CORE_VERSION is a marketing string ("0.1.0-identity"), not four
- * numbers, so the binary version fields stay at 1.0.0.0 and the string goes
- * where a string belongs.
+ * numbers, so the string goes where a string belongs and the binary fields
+ * carry something else: which of the app's expectations this engine meets.
+ * The setup helper reports FILEVERSION of the installed DLL as `dllVersion`,
+ * and the app reads it before it relies on anything a later engine does.
+ *
+ *   1.0  processes audio.
+ *   1.1  also writes status-{GUID}.json for every output it runs. Before it,
+ *        a missing status was every engine's normal; after it, a missing
+ *        status while sound plays means the engine is not there.
+ *
+ * Raise the minor when the app starts depending on something new, and move
+ * ENGINE_STATUS_SINCE in `src/common/engineHealth.ts` with it —
+ * `engineVersion.test.ts` reads this file to hold the two together.
  */
 
 #include <winver.h>
@@ -26,8 +37,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 0, 0, 0
-PRODUCTVERSION 1, 0, 0, 0
+FILEVERSION 1, 1, 0, 0
+PRODUCTVERSION 1, 1, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

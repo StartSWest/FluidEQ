@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { IFluidEngineEndpoint, TAudioEngine } from 'common/audioEngine';
+import type { IFluidEngineStatus, TAudioEngine } from 'common/audioEngine';
 import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
 import useEngineTrouble from '../audio/useEngineTrouble';
@@ -36,13 +36,13 @@ const problemLines = (problems: readonly string[]): TranslationKey[] => [
   ),
 ];
 
-/** One empty list for every render that has none, so nothing recomputes. */
-const NO_ENDPOINTS: readonly IFluidEngineEndpoint[] = [];
-
 interface IEngineTroubleNoticeProps {
   engine: TAudioEngine | null;
-  /** The engine's outputs, from the engine status the window already holds. */
-  fluidEndpoints?: readonly IFluidEngineEndpoint[];
+  /**
+   * What the setup helper last said about the engine — which outputs it is
+   * on and which version is installed — from the status the window holds.
+   */
+  fluid: IFluidEngineStatus | undefined;
   /** A dialog this notice's own buttons open is up: step aside for it. */
   isHidden: boolean;
   onRestartAudio: () => void;
@@ -60,13 +60,13 @@ interface IEngineTroubleNoticeProps {
  */
 const EngineTroubleNotice = ({
   engine,
-  fluidEndpoints = NO_ENDPOINTS,
+  fluid,
   isHidden,
   onRestartAudio,
   onUseApo,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
-  const trouble = useEngineTrouble(engine, fluidEndpoints);
+  const trouble = useEngineTrouble(engine, fluid);
   // Put away for as long as this trouble lasts: one that ends and comes back
   // later is a new one, and is worth saying again.
   const [dismissedKey, setDismissedKey] = useState<string | undefined>();

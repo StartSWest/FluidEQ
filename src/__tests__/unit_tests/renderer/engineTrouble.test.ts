@@ -47,6 +47,7 @@ const facts = (fields: Partial<IEngineTroubleFacts>): IEngineTroubleFacts => ({
     { guid: '{AAAA}', attached: true, backupExists: true },
     { guid: '{BBBB}', attached: true, backupExists: true },
   ],
+  reportsStatus: true,
   health: { outputs: [] },
   heardGuid: undefined,
   ...fields,
@@ -59,6 +60,15 @@ describe('engineTrouble', () => {
       device: speakers,
       key: 'off:{AAAA}',
     });
+  });
+
+  it('says nothing about an engine too old to report what it is doing', () => {
+    // The case above, through an engine from before status files: it runs
+    // every output it is on and never writes a word, and was reported as
+    // off while the EQ it applied was plainly audible.
+    expect(
+      engineTrouble(facts({ heardGuid: '{AAAA}', reportsStatus: false })),
+    ).toBeUndefined();
   });
 
   it('says nothing about sound the engine is running', () => {

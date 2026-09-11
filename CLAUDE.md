@@ -414,7 +414,16 @@ Everything worth knowing about them is available through commands:
   extend both in the same commit. The notice built on it
   (`EngineTroubleNotice`) calls the engine off only once the live capture
   has heard sound, and only from a read made after that sound — not running
-  is the normal state of every output nothing is playing on.
+  is the normal state of every output nothing is playing on. And only when
+  the installed engine is one that writes statuses at all: the binary
+  version in `engine.rc` (1.1 and up; everything before was 1.0.0.0) is what
+  the setup helper reports as `dllVersion`, and `engineReportsStatus` checks
+  it. A `pnpm dev` started before an engine change keeps the old DLL
+  installed while the window takes the new code, and without that check the
+  notice called an audibly working engine off. Raise the minor whenever the
+  app starts depending on something new from the engine, and move
+  `ENGINE_STATUS_SINCE` only with it (`engineVersion.test.ts` holds them
+  together).
 - **The setup helper is a windowed program, not a console one.** Run it from
   an interactive shell without piping or capturing its output and the shell
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |

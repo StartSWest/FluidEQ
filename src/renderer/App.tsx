@@ -2944,7 +2944,7 @@ const AppContent = () => {
             until they are answered, and it is still true afterwards. */}
         <EngineTroubleNotice
           engine={engineStatus?.engine ?? null}
-          fluidEndpoints={engineStatus?.fluid.endpoints}
+          fluid={engineStatus?.fluid}
           isHidden={
             audioRestart.isOpen ||
             showEngineDialog ||

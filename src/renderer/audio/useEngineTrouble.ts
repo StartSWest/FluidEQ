@@ -5,15 +5,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { IFluidEngineEndpoint, TAudioEngine } from 'common/audioEngine';
+import type {
+  IFluidEngineEndpoint,
+  IFluidEngineStatus,
+  TAudioEngine,
+} from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
-import { NO_ENGINE_HEALTH, type IEngineHealth } from 'common/engineHealth';
+import {
+  NO_ENGINE_HEALTH,
+  engineReportsStatus,
+  type IEngineHealth,
+} from 'common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
 import { engineTrouble, type TEngineTrouble } from './engineTrouble';
 import { useLiveAudioControl } from './LiveAudioContext';
 import { OUTPUT_SIGNAL_EVENT, type IOutputSignalDetail } from './outputSignal';
 
 const bridge = () => window.electron?.ipcRenderer;
+
+/** One empty list for every render that has none, so nothing recomputes. */
+const NO_ENDPOINTS: readonly IFluidEngineEndpoint[] = [];
 
 /** The capture that is running, and the output it is a loopback of. */
 interface ICaptureBinding {
@@ -39,8 +50,9 @@ interface ICaptureBinding {
  * Sound starting costs that one read and nothing else. Listing the devices
  * starts a PowerShell, and music with gaps in it starts sound over and over;
  * so the list is taken when a capture starts and when the output changes,
- * and which outputs the engine is on comes from `fluidEndpoints`, which every
- * action that changes it already re-reads.
+ * and which outputs the engine is on — and which version of it is installed —
+ * comes from the setup helper's answer the window already holds, which every
+ * action that changes either re-reads.
  *
  * The capture is a loopback of whichever output was the default when it
  * started, and stays bound to it — which is why the output it heard is looked
@@ -48,10 +60,12 @@ interface ICaptureBinding {
  */
 const useEngineTrouble = (
   engine: TAudioEngine | null,
-  fluidEndpoints: readonly IFluidEngineEndpoint[],
+  fluid: IFluidEngineStatus | undefined,
 ): TEngineTrouble | undefined => {
   const { capture } = useLiveAudioControl();
   const isFluid = engine === 'fluid';
+  const fluidEndpoints = fluid?.endpoints ?? NO_ENDPOINTS;
+  const reportsStatus = engineReportsStatus(fluid?.dllVersion);
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [health, setHealth] = useState<IEngineHealth>(NO_ENGINE_HEALTH);
   const [heardGuid, setHeardGuid] = useState<string | undefined>();
@@ -173,8 +187,16 @@ const useEngineTrouble = (
   }, [bindTo, isFluid]);
 
   return useMemo(
-    () => engineTrouble({ engine, devices, fluidEndpoints, health, heardGuid }),
-    [engine, devices, fluidEndpoints, health, heardGuid],
+    () =>
+      engineTrouble({
+        engine,
+        devices,
+        fluidEndpoints,
+        reportsStatus,
+        health,
+        heardGuid,
+      }),
+    [engine, devices, fluidEndpoints, reportsStatus, health, heardGuid],
   );
 };
 
