@@ -81,67 +81,69 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
   };
 
   return (
-    <div className="dsp-eq-bar dsp-master-bar">
-      <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">
-          {t('dsp.masterPreset.label')}
-        </span>
-        <RichPick
-          entries={entries}
-          groupLabel={(group) =>
-            group ? t(`dsp.masterPresetGroup.${group}` as TranslationKey) : ''
-          }
-          activeId={master.presetId}
-          onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('dsp.masterPreset.label')}
-          triggerTitle={t('dsp.masterPreset.label')}
-        />
-        {/* The same plain directional controls the other pickers carry, for the
+    <>
+      <div className="dsp-eq-bar dsp-master-bar">
+        <div className="dsp-eq-preset dsp-eq-preset-first">
+          <span className="dsp-eq-preset-label">
+            {t('dsp.masterPreset.label')}
+          </span>
+          <RichPick
+            entries={entries}
+            groupLabel={(group) =>
+              group ? t(`dsp.masterPresetGroup.${group}` as TranslationKey) : ''
+            }
+            activeId={master.presetId}
+            onPick={applyPreset}
+            placeholder={t('dsp.eqPreset.custom')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('dsp.masterPreset.label')}
+            triggerTitle={t('dsp.masterPreset.label')}
+          />
+          {/* The same plain directional controls the other pickers carry, for the
             same reason: comparing two destinations is the thing done here
             repeatedly, and a menu makes that open-aim-click every time. */}
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.previous')}
-          title={t('dsp.eqPreset.previous')}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M10 3 5 8l5 5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.next')}
-          title={t('dsp.eqPreset.next')}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="m6 3 5 5-5 5" />
-          </svg>
-        </button>
-      </div>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.previous')}
+            title={t('dsp.eqPreset.previous')}
+            onClick={() => step(-1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.next')}
+            title={t('dsp.eqPreset.next')}
+            onClick={() => step(1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </div>
 
-      {/* The way back from an experiment, in the place the Maximizer's page
+        {/* The way back from an experiment, in the place the Maximizer's page
           puts it. Reset applies the Default destination rather than switching
           the stage off: those are different intentions, and the toggle in the
           card header already does the second one. */}
-      <div className="dsp-eq-transfer dsp-eq-reset">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => applyPreset('default', false)}
-        >
-          <DspBarIcon name="reset" />
-          {t('dsp.eqPreset.reset')}
-        </button>
+        <div className="dsp-eq-transfer">
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => applyPreset('default', false)}
+          >
+            <DspBarIcon name="reset" />
+            {t('dsp.eqPreset.reset')}
+          </button>
+        </div>
       </div>
 
       <p className="dsp-maximizer-note">{t('dsp.master.description')}</p>
-    </div>
+    </>
   );
 };
 

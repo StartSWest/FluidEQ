@@ -109,71 +109,75 @@ const DspExciterBar = ({
   };
 
   return (
-    <div className="dsp-eq-bar dsp-exciter-bar">
-      <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
-        <RichPick
-          entries={entries}
-          groupLabel={(group) =>
-            group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
-          }
-          activeId={exciter.presetId}
-          onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('dsp.eqPreset.label')}
-          triggerTitle={t('dsp.eqPreset.label')}
-        />
-        {/* Same plain directional controls as the EQ preset picker. */}
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.previous')}
-          title={t('dsp.eqPreset.previous')}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M10 3 5 8l5 5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.next')}
-          title={t('dsp.eqPreset.next')}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="m6 3 5 5-5 5" />
-          </svg>
-        </button>
-      </div>
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
-        <SegmentedControl
-          name={t('dsp.eqStereo.label')}
-          value={exciter.stereo}
-          options={EQ_STEREO_MODES.map((mode) => ({
-            value: mode,
-            label: t(`dsp.eqStereo.${mode}` as TranslationKey),
-          }))}
-          onChange={(next: string) => {
-            onChange({
-              ...exciter,
-              stereo: next as TEqStereo,
-              presetId: '',
-            });
-            onCommit();
-          }}
-        />
+    <>
+      <div className="dsp-eq-bar dsp-exciter-bar">
+        <div className="dsp-eq-preset dsp-eq-preset-first">
+          <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+          <RichPick
+            entries={entries}
+            groupLabel={(group) =>
+              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+            }
+            activeId={exciter.presetId}
+            onPick={applyPreset}
+            placeholder={t('dsp.eqPreset.custom')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('dsp.eqPreset.label')}
+            triggerTitle={t('dsp.eqPreset.label')}
+          />
+          {/* Same plain directional controls as the EQ preset picker. */}
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.previous')}
+            title={t('dsp.eqPreset.previous')}
+            onClick={() => step(-1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.next')}
+            title={t('dsp.eqPreset.next')}
+            onClick={() => step(1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </div>
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
+          <SegmentedControl
+            name={t('dsp.eqStereo.label')}
+            value={exciter.stereo}
+            options={EQ_STEREO_MODES.map((mode) => ({
+              value: mode,
+              label: t(`dsp.eqStereo.${mode}` as TranslationKey),
+            }))}
+            onChange={(next: string) => {
+              onChange({
+                ...exciter,
+                stereo: next as TEqStereo,
+                presetId: '',
+              });
+              onCommit();
+            }}
+          />
+        </div>
       </div>
 
-      {/* What the processor is, as the bar's own last line rather than as the
-          card's description. As a description it was 441px of prose holding the
-          position the EQ gives its preset picker, and it left this bar's two
-          controls wrapping onto a second row in the space that was left. */}
+      {/* What the processor is, on a full line of the header under the
+          controls rather than as the card's description. As a description it
+          was 441px of prose holding the position the EQ gives its preset
+          picker, and it left this bar's two controls wrapping onto a second
+          row in the space that was left. A sibling of the bar, not its last
+          child, so the line spans the space under the bypass cluster too. */}
       <p className="dsp-exciter-note">{t('dsp.exciter.description')}</p>
-    </div>
+    </>
   );
 };
 

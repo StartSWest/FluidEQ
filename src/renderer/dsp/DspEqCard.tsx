@@ -349,78 +349,85 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             />
           </div>
 
-          <LabelledKnob
-            label={t('dsp.eq.frequency')}
-            value={band.frequency}
-            min={20}
-            max={20_000}
-            step={1}
-            unit="Hz"
-            defaultValue={fallback.frequency}
-            isDisabled={active < 0 || !band.enabled}
-            onChange={(frequency) => patchBand(active, { frequency })}
-            onCommit={onCommit}
-          />
-          <LabelledKnob
-            label={t('dsp.eq.gain')}
-            value={band.gainDb}
-            min={-24}
-            max={24}
-            step={0.1}
-            unit="dB"
-            defaultValue={0}
-            // Shown and inert rather than removed for a notch or a pass: a strip
-            // whose controls appear and vanish as the shape changes is one that
-            // jumps under the hand.
-            isDisabled={!band.enabled || isFlat}
-            onChange={(gainDb) => patchBand(active, { gainDb })}
-            onCommit={onCommit}
-          />
-          <LabelledKnob
-            label={t('dsp.eq.quality')}
-            value={band.quality}
-            min={0.1}
-            max={18}
-            step={0.01}
-            unit="Q"
-            defaultValue={fallback.quality}
-            isDisabled={active < 0 || !band.enabled}
-            onChange={(quality) => patchBand(active, { quality })}
-            onCommit={onCommit}
-          />
-
-          <div className="dsp-eq-insert">
-            <button
-              type="button"
-              className="button small subtle"
-              disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
-              title={t('dsp.eq.addLeft')}
-              onClick={() => addBand('left')}
-            >
-              + ◀
-            </button>
-            <button
-              type="button"
-              className="button small subtle"
-              disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
-              title={t('dsp.eq.addRight')}
-              onClick={() => addBand('right')}
-            >
-              ▶ +
-            </button>
+          {/* The filter's three numbers wrap as one group, and so do the
+              insert pair with the band's own switch: a narrow card breaks the
+              strip between groups, never leaving a lone button on a line. */}
+          <div className="dsp-eq-strip-dials">
+            <LabelledKnob
+              label={t('dsp.eq.frequency')}
+              value={band.frequency}
+              min={20}
+              max={20_000}
+              step={1}
+              unit="Hz"
+              defaultValue={fallback.frequency}
+              isDisabled={active < 0 || !band.enabled}
+              onChange={(frequency) => patchBand(active, { frequency })}
+              onCommit={onCommit}
+            />
+            <LabelledKnob
+              label={t('dsp.eq.gain')}
+              value={band.gainDb}
+              min={-24}
+              max={24}
+              step={0.1}
+              unit="dB"
+              defaultValue={0}
+              // Shown and inert rather than removed for a notch or a pass: a
+              // strip whose controls appear and vanish as the shape changes is
+              // one that jumps under the hand.
+              isDisabled={!band.enabled || isFlat}
+              onChange={(gainDb) => patchBand(active, { gainDb })}
+              onCommit={onCommit}
+            />
+            <LabelledKnob
+              label={t('dsp.eq.quality')}
+              value={band.quality}
+              min={0.1}
+              max={18}
+              step={0.01}
+              unit="Q"
+              defaultValue={fallback.quality}
+              isDisabled={active < 0 || !band.enabled}
+              onChange={(quality) => patchBand(active, { quality })}
+              onCommit={onCommit}
+            />
           </div>
 
-          <button
-            type="button"
-            className={`button small${band.enabled ? '' : ' subtle'}`}
-            aria-pressed={band.enabled}
-            onClick={() => {
-              patchBand(active, { enabled: !band.enabled });
-              onCommit();
-            }}
-          >
-            {band.enabled ? t('dsp.enabled') : t('dsp.eq.bandOff')}
-          </button>
+          <div className="dsp-eq-strip-actions">
+            <div className="dsp-eq-insert">
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
+                title={t('dsp.eq.addLeft')}
+                onClick={() => addBand('left')}
+              >
+                + ◀
+              </button>
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
+                title={t('dsp.eq.addRight')}
+                onClick={() => addBand('right')}
+              >
+                ▶ +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className={`button small${band.enabled ? '' : ' subtle'}`}
+              aria-pressed={band.enabled}
+              onClick={() => {
+                patchBand(active, { enabled: !band.enabled });
+                onCommit();
+              }}
+            >
+              {band.enabled ? t('dsp.enabled') : t('dsp.eq.bandOff')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

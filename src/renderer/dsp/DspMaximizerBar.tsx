@@ -93,64 +93,66 @@ const DspMaximizerBar = ({
   };
 
   return (
-    <div className="dsp-eq-bar dsp-maximizer-bar">
-      <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
-        <RichPick
-          entries={entries}
-          groupLabel={(group) =>
-            group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
-          }
-          activeId={maximizer.presetId}
-          onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('dsp.eqPreset.label')}
-          triggerTitle={t('dsp.eqPreset.label')}
-        />
-        {/* Same plain directional controls as the other two pickers, and for
+    <>
+      <div className="dsp-eq-bar dsp-maximizer-bar">
+        <div className="dsp-eq-preset dsp-eq-preset-first">
+          <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+          <RichPick
+            entries={entries}
+            groupLabel={(group) =>
+              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+            }
+            activeId={maximizer.presetId}
+            onPick={applyPreset}
+            placeholder={t('dsp.eqPreset.custom')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('dsp.eqPreset.label')}
+            triggerTitle={t('dsp.eqPreset.label')}
+          />
+          {/* Same plain directional controls as the other two pickers, and for
             the same reason: auditioning profiles is the one thing anybody does
             here repeatedly, and a menu makes that open-aim-click every time. */}
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.previous')}
-          title={t('dsp.eqPreset.previous')}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M10 3 5 8l5 5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.next')}
-          title={t('dsp.eqPreset.next')}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="m6 3 5 5-5 5" />
-          </svg>
-        </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.previous')}
+            title={t('dsp.eqPreset.previous')}
+            onClick={() => step(-1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.next')}
+            title={t('dsp.eqPreset.next')}
+            onClick={() => step(1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="dsp-eq-transfer">
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => applyPreset('safety', false)}
+          >
+            <DspBarIcon name="reset" />
+            {t('dsp.eqPreset.reset')}
+          </button>
+        </div>
       </div>
 
-      <div className="dsp-eq-transfer dsp-eq-reset">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => applyPreset('safety', false)}
-        >
-          <DspBarIcon name="reset" />
-          {t('dsp.eqPreset.reset')}
-        </button>
-      </div>
-
-      {/* What the processor is, as the bar's own last line rather than as the
-          card's description — the same arrangement the Exciter's bar uses, so
-          the two headers read alike. */}
+      {/* What the processor is, on a full line under the controls rather than
+          as the card's description — the same arrangement the Exciter's bar
+          uses, so the two headers read alike. */}
       <p className="dsp-maximizer-note">{t('dsp.maximizer.description')}</p>
-    </div>
+    </>
   );
 };
 

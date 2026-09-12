@@ -265,7 +265,7 @@ const DspChainPresetBar = ({
         </button>
       </div>
 
-      <div className="dsp-eq-transfer dsp-eq-reset dsp-chain-transfer">
+      <div className="dsp-eq-transfer dsp-chain-transfer">
         <button
           type="button"
           className="button small subtle"

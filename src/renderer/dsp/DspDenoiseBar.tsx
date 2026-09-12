@@ -119,7 +119,7 @@ const DspDenoiseBar = ({
           </svg>
         </button>
       </div>
-      <div className="dsp-eq-transfer dsp-eq-reset">
+      <div className="dsp-eq-transfer">
         <button
           type="button"
           className="button small subtle"

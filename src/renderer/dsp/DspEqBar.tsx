@@ -331,171 +331,178 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         (a, b) => Number(a) - Number(b),
       );
 
+  // Siblings in the card header rather than one wrapper: the preset actions
+  // share their line with the bypass cluster, and the settings row and the
+  // notice take full lines under both. Inside one wrapper the settings row was
+  // held to the width left beside the cluster and broke its five controls
+  // onto two lines on a card with room for all of them.
   return (
-    <div className="dsp-eq-bar">
-      {/* First in the row, because it is what the rest of the row is a
+    <>
+      <div className="dsp-eq-bar">
+        {/* First in the row, because it is what the rest of the row is a
           consequence of: every entry sets the character, the topology and the
           protective filters as well as the curve. */}
-      <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
-        {/* The same menu the Band tab's voicing pick opens, because it is the
+        <div className="dsp-eq-preset dsp-eq-preset-first">
+          <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+          {/* The same menu the Band tab's voicing pick opens, because it is the
             same errand: a long list where every entry needs a glyph, a name
             and a line saying what it does, searched by typing rather than
             scanned. What each side DOES with the chosen id is its own. */}
-        <RichPick
-          entries={entries}
-          groupLabel={(group) => eqPresetGroupLabel(group, t)}
-          activeId={eq.presetId}
-          onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('dsp.eqPreset.label')}
-          triggerTitle={t('dsp.eqPreset.label')}
-        />
-        {/* Either side of the field, pointing the way they move through the
+          <RichPick
+            entries={entries}
+            groupLabel={(group) => eqPresetGroupLabel(group, t)}
+            activeId={eq.presetId}
+            onPick={applyPreset}
+            placeholder={t('dsp.eqPreset.custom')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('dsp.eqPreset.label')}
+            triggerTitle={t('dsp.eqPreset.label')}
+          />
+          {/* Either side of the field, pointing the way they move through the
             list, so auditioning is one click rather than open-aim-click. */}
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.previous')}
-          title={t('dsp.eqPreset.previous')}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M10 3 5 8l5 5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.next')}
-          title={t('dsp.eqPreset.next')}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="m6 3 5 5-5 5" />
-          </svg>
-        </button>
-      </div>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.previous')}
+            title={t('dsp.eqPreset.previous')}
+            onClick={() => step(-1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.next')}
+            title={t('dsp.eqPreset.next')}
+            onClick={() => step(1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </div>
 
-      {/* Everything that acts on the preset itself, in one group beside the
+        {/* Everything that acts on the preset itself, in one group beside the
           picker. Reset is the same control — "Default" chosen without opening
           the list — and save, share, import and delete all answer "what about
           this one". */}
-      <div className="dsp-eq-transfer dsp-eq-reset">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID, false)}
-        >
-          <DspBarIcon name="reset" />
-          {t('dsp.eqPreset.reset')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          title={t('dsp.eqSave.hint')}
-          onClick={() => setIsNaming(true)}
-        >
-          <DspBarIcon name="save" />
-          {t('dsp.eqSave.save')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle dsp-eq-share"
-          title={t('dsp.eqShare.hint')}
-          onClick={handleShare}
-          disabled={isSharing}
-        >
-          <DspBarIcon name="share" />
-          {t('dsp.eqShare.share')}
-        </button>
-        {/* The other half of the same door as the button above it: one takes
-            a rack out as a file and this brings one in, and it reads either a
-            shared preset or a published APO curve. */}
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => {
-            setNotice('');
-            setIsImporting(true);
-          }}
-        >
-          <DspBarIcon name="import" />
-          {t('dsp.eqPreset.import')}
-        </button>
-        {/* Only for a saved one: there is nothing to delete about a factory
-            curve, and a button that is present but refuses is worse than one
-            that is not there. */}
-        {eq.presetId.startsWith(USER_PRESET_PREFIX) && (
+        <div className="dsp-eq-transfer">
           <button
             type="button"
             className="button small subtle"
-            onClick={handleDeletePreset}
+            onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID, false)}
           >
-            <DspBarIcon name="delete" />
-            {t('dsp.eqSave.delete')}
+            <DspBarIcon name="reset" />
+            {t('dsp.eqPreset.reset')}
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            className="button small subtle"
+            title={t('dsp.eqSave.hint')}
+            onClick={() => setIsNaming(true)}
+          >
+            <DspBarIcon name="save" />
+            {t('dsp.eqSave.save')}
+          </button>
+          <button
+            type="button"
+            className="button small subtle dsp-eq-share"
+            title={t('dsp.eqShare.hint')}
+            onClick={handleShare}
+            disabled={isSharing}
+          >
+            <DspBarIcon name="share" />
+            {t('dsp.eqShare.share')}
+          </button>
+          {/* The other half of the same door as the button above it: one takes
+            a rack out as a file and this brings one in, and it reads either a
+            shared preset or a published APO curve. */}
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => {
+              setNotice('');
+              setIsImporting(true);
+            }}
+          >
+            <DspBarIcon name="import" />
+            {t('dsp.eqPreset.import')}
+          </button>
+          {/* Only for a saved one: there is nothing to delete about a factory
+            curve, and a button that is present but refuses is worse than one
+            that is not there. */}
+          {eq.presetId.startsWith(USER_PRESET_PREFIX) && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={handleDeletePreset}
+            >
+              <DspBarIcon name="delete" />
+              {t('dsp.eqSave.delete')}
+            </button>
+          )}
+        </div>
 
-      {/* The Bands page already solved this exact question: one quiet split
+        {/* The Bands page already solved this exact question: one quiet split
           picker that names the active layout and puts every alternative in an
           anchored menu. Reusing its classes keeps the same control looking and
           behaving the same in both equalizers. */}
-      <span
-        className={`dsp-eq-rack eq-mode is-subtle quick-layouts${
-          isRackMenuOpen ? ' is-open' : ''
-        }`}
-        ref={rackMenuHolder}
-      >
-        <button
-          type="button"
-          className="button small subtle eq-mode__main"
-          aria-label={t('dsp.eq.rack')}
-          aria-expanded={isRackMenuOpen}
-          aria-haspopup="menu"
-          onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
+        <span
+          className={`dsp-eq-rack eq-mode is-subtle quick-layouts${
+            isRackMenuOpen ? ' is-open' : ''
+          }`}
+          ref={rackMenuHolder}
         >
-          <MenuIcon name="layout" className="eq-toolbar__icon" />
-          {t('eq.bandCount', { count: eq.bands.length })}
-        </button>
-        <button
-          type="button"
-          className="eq-mode__caret"
-          aria-label={t('dsp.eq.rack')}
-          aria-expanded={isRackMenuOpen}
-          onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M4 6.5l4 4 4-4" />
-          </svg>
-        </button>
-        <AnchoredMenu
-          anchor={rackMenuHolder.current}
-          isOpen={isRackMenuOpen}
-          className="eq-mode__menu quick-layouts__menu"
-          ariaLabel={t('dsp.eq.rack')}
-        >
-          {rackOptions
-            .filter((size) => Number(size) !== eq.bands.length)
-            .map((size) => (
-              <button
-                key={`${size}-band`}
-                type="button"
-                onClick={() => {
-                  applyRack(size);
-                  setIsRackMenuOpen(false);
-                }}
-              >
-                <MenuIcon name="layout" className="eq-toolbar__icon" />
-                <span className="eq-mode__menu-name">
-                  {t('eq.bandCount', { count: Number(size) })}
-                </span>
-              </button>
-            ))}
-        </AnchoredMenu>
-      </span>
+          <button
+            type="button"
+            className="button small subtle eq-mode__main"
+            aria-label={t('dsp.eq.rack')}
+            aria-expanded={isRackMenuOpen}
+            aria-haspopup="menu"
+            onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
+          >
+            <MenuIcon name="layout" className="eq-toolbar__icon" />
+            {t('eq.bandCount', { count: eq.bands.length })}
+          </button>
+          <button
+            type="button"
+            className="eq-mode__caret"
+            aria-label={t('dsp.eq.rack')}
+            aria-expanded={isRackMenuOpen}
+            onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4 6.5l4 4 4-4" />
+            </svg>
+          </button>
+          <AnchoredMenu
+            anchor={rackMenuHolder.current}
+            isOpen={isRackMenuOpen}
+            className="eq-mode__menu quick-layouts__menu"
+            ariaLabel={t('dsp.eq.rack')}
+          >
+            {rackOptions
+              .filter((size) => Number(size) !== eq.bands.length)
+              .map((size) => (
+                <button
+                  key={`${size}-band`}
+                  type="button"
+                  onClick={() => {
+                    applyRack(size);
+                    setIsRackMenuOpen(false);
+                  }}
+                >
+                  <MenuIcon name="layout" className="eq-toolbar__icon" />
+                  <span className="eq-mode__menu-name">
+                    {t('eq.bandCount', { count: Number(size) })}
+                  </span>
+                </button>
+              ))}
+          </AnchoredMenu>
+        </span>
+      </div>
 
       {/* One centred settings row, separate from the preset actions above. A
           wrapper makes the alignment explicit and prevents one setting from
@@ -640,7 +647,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           onClose={() => setIsNaming(false)}
         />
       )}
-    </div>
+    </>
   );
 };
 

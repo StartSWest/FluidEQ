@@ -17,16 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
 
 // Does not scroll itself: the workspace panel around it does, the same as
 // `.voicing-panel`. A scroller here would nest inside that one and leave the
 // content floating clear of the panel's own padding.
+//
+// A container, because whether the rail can stand beside the stage is a
+// question about this panel's width and not the window's: the shell's
+// columns change shape at their own breakpoints, so the same window width
+// left the processor card anywhere from 488px to 1118px wide.
 .dsp-panel {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  container: dsp-panel / inline-size;
 }
 
 // THE PAGE ARRIVES IN THE ORDER IT HAS TO BE READ IN: what the rack is and
@@ -83,12 +90,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Title and presets share a row: the presets are the fastest way to change
 // everything below, so they belong at eye level rather than under a heading
 // that pushes them down a line for nothing.
+//
+// Pinned to the first row, for the reason the processor headers are: once the
+// presets wrap their actions under the picker, a centred title and switch
+// float level with neither row.
 .dsp-header-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
   flex-wrap: wrap;
+
+  // The title keeps its baseline alignment with the rate beside it; a line
+  // box one control tall is what centres both on the row.
+  > .dsp-title {
+    line-height: $control-height;
+  }
+
+  > .dsp-global-power {
+    min-height: $control-height;
+  }
 }
 
 .dsp-title {
@@ -216,24 +237,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.4;
 }
 
-.dsp-presets {
+// Scoped to the header line so it outranks `.dsp-eq-bar`, which the same
+// element carries and which is written later in this file.
+.dsp-header-line > .dsp-presets {
   // It is the same preset control as every filter bar, at the rack level. The
   // shared classes keep the arrows, field and label literally identical.
-  flex: 0 1 auto;
+  //
+  // Sized from its widest group, as the processor headers' toolbars are: from
+  // its whole width it wrapped under the title on a narrow panel and pushed
+  // the rack's switch onto a third line of its own, stranded at the left.
+  flex: 1 1 min-content;
   margin-right: auto;
   // The same rule the power group on the right already carried, so the header
   // reads as three groups with two matching separators rather than one
   // divided end and one crowded one. The title and the presets were butted
   // together on a bare 16px gap, which made two unrelated things -- a heading
   // and a control -- look like one run of chrome.
+  //
+  // Drawn one control tall rather than as a border, which ran the full height
+  // of the presets once their actions wrapped under the picker.
+  position: relative;
   padding-left: 18px;
-  border-left: 1px solid rgba($white, 0.1);
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: $control-height;
+    background: rgba($white, 0.1);
+    content: '';
+  }
 }
 
 .dsp-global-power {
   display: flex;
   align-items: center;
   gap: 9px;
+  margin-left: auto;
   padding-left: 14px;
   border-left: 1px solid rgba($white, 0.1);
 }
@@ -313,12 +354,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-variant-numeric: tabular-nums;
 }
 
+// The control surface and the analysis side by side while both fit, stacked
+// when they do not. The surface's floor is its own content — the mode switch
+// is three unbreakable labels — so no locale's labels can be laid out past the
+// card's edge the way a 280px track put Spanish's "Nivelación en directo"
+// 53px outside it.
 .dsp-normalizer-dashboard {
-  display: grid;
+  display: flex;
   width: 100%;
-  grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.4fr);
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 10px;
+}
+
+.dsp-normalizer-control-surface {
+  flex: 4 1 max-content;
+}
+
+.dsp-normalizer-analysis {
+  flex: 7 1 420px;
 }
 
 .dsp-normalizer-control-surface,
@@ -352,9 +406,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
 }
 
+// The scan actions drop under the reading when the two cannot share a line,
+// rather than at a card width measured for one locale.
 .dsp-denoise-analysis-head {
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 12px;
 }
 
 .dsp-denoise-analysis-label {
@@ -456,21 +513,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Hiss and Hum need room for four and three dials. Clicks needs enough for its
+// pair to remain horizontal; Voice only needs one. Equal shares made Clicks
+// stack vertically, and that one extra dial row set the height of all four
+// cards, so each module grows in proportion to the controls it owns.
+//
+// A wrapping row rather than a grid of tracks: all four share a line once the
+// card holds their floors, and below that they fall into two balanced pairs
+// on their own. The floors are what the dials and Hum's switch need; a module
+// squeezed toward its floor narrows its dials rather than overflowing them.
 .dsp-denoise-modules {
-  display: grid;
+  display: flex;
   width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 10px;
 }
 
 .dsp-denoise-module {
-  height: 100%;
   gap: 8px;
+}
+
+.dsp-denoise-module.is-hiss {
+  flex: 34 1 300px;
+}
+
+.dsp-denoise-module.is-hum {
+  flex: 30 1 290px;
+}
+
+.dsp-denoise-module.is-clicks {
+  flex: 20 1 170px;
+}
+
+.dsp-denoise-module.is-voice {
+  flex: 16 1 150px;
 }
 
 .dsp-denoise-module .dsp-band-dials {
   width: 100%;
-  justify-content: center;
 }
 
 .dsp-denoise-module.is-hum > .segmented {
@@ -478,122 +559,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: center;
 }
 
-.dsp-denoise-live {
+// Every reading row in a card body is laid on the same three columns, so the
+// lone live noise floor under the graph lines up with the readings under the
+// modules instead of floating at a width of its own.
+.dsp-card-body > .dsp-normalizer-stats {
   width: 100%;
-}
-
-// Hiss and Hum need room for four and three dials. Clicks needs enough for its
-// pair to remain horizontal; Voice only needs one. Equal or nearly equal
-// tracks made Clicks stack vertically, and that one extra dial row set the
-// height of all four cards. These tracks follow the controls each module owns.
-@container dsp-card (min-width: 1000px) {
-  // Denoise has only a preset and Reset before its description. Treating the
-  // toolbar as an independent wrapping flex box dropped Reset onto a second
-  // header line even though the complete header fits comfortably at Full HD.
-  #dsp-denoise .dsp-card-header.has-toolbar {
-    display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-  }
-
-  #dsp-denoise .dsp-denoise-bar {
-    display: contents;
-  }
-
-  #dsp-denoise .dsp-eq-preset-first {
-    grid-column: 1;
-  }
-
-  #dsp-denoise .dsp-eq-transfer {
-    grid-column: 2;
-  }
-
-  #dsp-denoise .dsp-card-titles {
-    grid-column: 3;
-  }
-
-  #dsp-denoise .dsp-card-power {
-    grid-column: 4;
-  }
-
-  #dsp-denoise .dsp-eq-reset {
-    margin-right: 0;
-    padding-right: 0;
-    border-right: 0;
-  }
-
-  .dsp-denoise-modules {
-    grid-template-columns:
-      minmax(300px, 34fr) minmax(250px, 30fr) minmax(170px, 20fr)
-      minmax(130px, 16fr);
-  }
-
-  .dsp-denoise-module .dsp-band-dials {
-    flex-wrap: nowrap;
-  }
-}
-
-// Below 1000px only the description has to give way, so it takes the second
-// line and the toolbar keeps the first one to itself.
-//
-// The toolbar stays ONE flex box here. Flattening it with `display: contents`
-// gave Reset a grid cell of its own, and a cell placed on row two puts Reset
-// on row two unconditionally — which is what dropped it under the picker with
-// 400px of that row still empty. As a flex child it sits beside the next arrow
-// and wraps only when the picker and Reset genuinely cannot share the line.
-@container dsp-card (max-width: 999px) {
-  #dsp-denoise .dsp-card-header.has-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px 12px;
-  }
-
-  #dsp-denoise .dsp-denoise-bar {
-    grid-row: 1;
-    grid-column: 1;
-  }
-
-  #dsp-denoise .dsp-eq-preset-first {
-    min-width: 0;
-  }
-
-  #dsp-denoise .dsp-card-power {
-    grid-row: 1;
-    grid-column: 2;
-  }
-
-  #dsp-denoise .dsp-card-titles {
-    grid-row: 2;
-    grid-column: 1 / -1;
-  }
-
-  // Reset is the last control in the toolbar now, so the rule after it would
-  // separate the picker from nothing.
-  #dsp-denoise .dsp-eq-reset {
-    margin-right: 0;
-    padding-right: 0;
-    border-right: 0;
-  }
-}
-
-@container dsp-card (max-width: 620px) {
-  .dsp-denoise-analysis-head {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .dsp-denoise-analysis-actions {
-    align-self: flex-start;
-  }
 }
 
 // Full HD needs the same deliberate vertical density as the EQ. The graph sits
 // at its measured 150px legibility floor, dials keep enough pointer travel,
 // and both readout rows still fit their two text lines. Overflow continues to
 // scroll below these rules on windows that are shorter or narrower.
-@media (max-height: 1100px) {
+@media (max-height: $bp-full-hd-height) {
+  #dsp-denoise {
+    --dsp-knob: 68px;
+  }
+
   #dsp-denoise .dsp-card-body {
     gap: 8px;
   }
@@ -605,16 +586,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-denoise-analysis {
     gap: 6px;
     padding: 8px 12px;
-  }
-
-  #dsp-denoise .knob {
-    width: 68px;
-    height: 68px;
-    flex-basis: 68px;
-  }
-
-  #dsp-denoise .labelled-knob {
-    width: 68px;
   }
 
   .dsp-denoise-analysis .dsp-normalizer-stats,
@@ -632,14 +603,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   padding: 9px 12px 7px;
 
+  // At least as wide as its labels. A fixed 366px in equal thirds left the
+  // longest label wider than its third.
   .segmented {
-    width: min(100%, 366px);
+    min-width: min(100%, 366px);
+    max-width: 100%;
     margin-right: auto;
     margin-left: auto;
   }
 
   .segmented__option {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     justify-content: center;
     text-align: center;
   }
@@ -729,8 +703,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   dt,
   dd {
-    overflow: hidden;
     margin: 0;
+  }
+
+  // The reading stays one line; its name wraps. An ellipsis cut "short-term
+  // loudness" to "short-term lo…" in a cell with a second line to spare.
+  dd {
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -778,37 +757,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-variant-numeric: tabular-nums;
 }
 
+// Preview and controls share a line while both keep their floors (300 and
+// 360) and stack when they cannot, with no width written down for the switch.
 .dsp-crossfade-layout {
-  display: grid;
+  display: flex;
   width: 100%;
-  grid-template-columns: minmax(300px, 1.1fr) minmax(360px, 0.9fr);
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 10px;
+}
+
+.dsp-crossfade-preview {
+  flex: 11 1 300px;
+  min-width: 0;
+}
+
+// Keeps the automatic minimum, so it is never narrower than its curve switch,
+// whose labels do not wrap. Allowed below it, the column shared a line it
+// could not hold and drew its last label past its own edge.
+.dsp-crossfade-controls {
+  flex: 9 1 360px;
 }
 
 // A floor rather than a fixed height. The controls column grows by one row
 // when Custom is picked and the shape library joins it (see
 // `.dsp-crossfade-library` below), and at a fixed height that row was drawn
-// outside the card. The grid stretches the preview to match, and the preview
+// outside the card. The row stretches the preview to match, and the preview
 // is an SVG that scales, so the pair still ends level.
 .dsp-crossfade-preview,
 .dsp-crossfade-controls {
-  min-width: 0;
   min-height: 150px;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
   background: $surface-plot;
 }
 
+// The plot fills the box and never sizes it. In the flow, the SVG took its
+// height from its own aspect ratio: 318px beside a 110px column of controls on
+// a Full HD card, and 370px once the two stacked on a narrow one. Out of the
+// flow the box is its floor, or as tall as the controls beside it.
 .dsp-crossfade-preview {
   position: relative;
   overflow: hidden;
-  padding: 18px 16px 20px;
+  min-height: 220px;
 
   svg {
+    position: absolute;
+    inset: 18px 16px 20px;
     display: block;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 32px);
+    height: calc(100% - 38px);
   }
 }
 
@@ -1102,12 +1100,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 8px;
 
+  // At least as wide as its labels. Equal quarters of 360px were narrower
+  // than "Benutzerdefiniert", which then ran out of its own switch.
   .segmented {
-    width: min(100%, 360px);
+    min-width: min(100%, 360px);
+    max-width: 100%;
   }
 
   .segmented__option {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     justify-content: center;
     text-align: center;
   }
@@ -1117,28 +1118,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   min-height: 16px;
   text-align: center;
-}
-
-// 670 is the two columns' own arithmetic — 300 + 360 + the 10px gap — so the
-// stack happens on the last width at which they both still fit rather than at
-// a viewport figure that has the sidebar and the processor rack baked into
-// it. See `.dsp-card-body` for why a viewport query cannot answer this.
-@container dsp-card (max-width: 670px) {
-  .dsp-crossfade-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@container dsp-card (max-width: 620px) {
-  .dsp-crossfade-preview,
-  .dsp-crossfade-controls {
-    min-height: 136px;
-  }
-
-  .dsp-crossfade-controls {
-    gap: 10px;
-    padding: 8px 10px;
-  }
 }
 
 .dsp-normalizer-meter {
@@ -1180,44 +1159,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-family: $font-mono;
   font-variant-numeric: tabular-nums;
   text-align: right;
-}
-
-// 710 is 280 + 420 + the 10px gap: the last width at which the control
-// surface and the analysis pane both fit beside each other. The viewport
-// query this replaces fired at 981, and at a 985px window the box they sit in
-// was 540px wide — so the analysis pane was laid out 153px past the right
-// edge of the window with "INTEGRATED LOUDNESS" and its reading cut off.
-@container dsp-card (max-width: 710px) {
-  .dsp-normalizer-dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .dsp-normalizer-control-surface,
-  .dsp-normalizer-analysis {
-    min-height: 128px;
-  }
-}
-
-@container dsp-card (max-width: 620px) {
-  .dsp-normalizer-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .dsp-normalizer-analysis {
-    min-height: 282px;
-  }
-
-  .dsp-normalizer-status {
-    width: 150px;
-  }
-
-  // The last track stays 72px, which is `.dsp-normalizer-meter-value`'s own
-  // `min-width` — a reading in a tabular mono face that has to hold
-  // "-120.0 dBFS". Narrowed to 66 it did not narrow the reading with it, so
-  // the number simply hung 6px out of its cell and over the card's edge.
-  .dsp-normalizer-meter-pair {
-    grid-template-columns: 42px minmax(90px, 1fr) 72px;
-  }
 }
 
 .dsp-normalizer-meter-track {
@@ -1294,11 +1235,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // surface and made that one card set a needlessly tall row at Full HD.
 // Siblings keep the dependency clear in reading order without spending a
 // second row of height. They wrap as complete surfaces on narrow cards.
-#dsp-master .dsp-crossovers {
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 #dsp-master .dsp-band {
   flex-basis: 280px;
 }
@@ -1327,8 +1263,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 1;
   display: flex;
   justify-content: center;
-  gap: 5px;
-  flex-wrap: nowrap;
+  gap: 3px 5px;
+  // A second row over the plot's top band, rather than chips drawn past the
+  // card's edge, when a narrow card and a long locale cannot fit four.
+  flex-wrap: wrap;
   pointer-events: none;
 
   span {
@@ -1415,7 +1353,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@container dsp-card (max-width: 900px) {
+@container dsp-card (max-width: #{$bp-lg}) {
   .dsp-master-status {
     right: 18px;
     left: 18px;
@@ -1466,6 +1404,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // already. No fixed descendant is left to resolve against this element the
 // way the library's full-screen stage did.
 .dsp-card {
+  // The dial size every knob on a processor page is laid out from. A page
+  // that has to fit a Full HD window sets its own, once, in the height rule
+  // that makes it denser; dial rows narrow from here when they run short.
+  --dsp-knob: 78px;
+
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1488,11 +1431,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 6px 18px -12px color-mix(in srgb, $secondary-default 55%, transparent);
 }
 
+// THE HEADER WRAPS; IT IS NEVER REARRANGED.
+//
+// Every processor's header is the same two things, a toolbar of groups and the
+// bypass cluster, and these rules lay out all eight. The toolbar takes the line
+// and the cluster keeps its right end; the cluster drops to a line of its own
+// only once not even the toolbar's widest group can stand beside it, and inside
+// the toolbar each group wraps whole. Descriptions and notes take a full line
+// underneath.
+//
+// It replaced a grid per page per card width — the EQ, the Exciter and Denoise
+// had two or three each, all measured in one locale. At a 1920 window the EQ's
+// grid pinned the preset's next arrow under Reset, and at a 1024 window three
+// pages drew that arrow over the Isolate label.
 .dsp-card-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
 }
 
 // A description is a paragraph and hangs from the top; a toolbar is a line of
@@ -1504,20 +1461,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // so it lines up with the first row rather than hanging from its ceiling.
 // $control-height is what the row is built from, so this follows it rather
 // than guessing at it.
-.dsp-card-header.has-toolbar {
-  align-items: flex-start;
-  gap: 12px;
+//
+// The rule before the cluster is the cluster's own border and not a gap rule
+// like the toolbar's. A gap rule runs the height of its flex line, and when
+// the toolbar wraps its line is every row it wrapped into: the rule stood
+// three rows tall beside a switch one row tall. The toolbar grows to meet the
+// cluster, so the border always lands beside the switch it introduces.
+.dsp-card-header.has-toolbar .dsp-card-power {
+  min-height: $control-height;
+  padding-left: 16px;
+  border-left: 1px solid rgba($white, 0.1);
+}
 
-  .dsp-card-power {
-    min-height: $control-height;
-  }
+// `min-content` is the toolbar's widest single group — the preset picker and
+// its arrows, or the EQ's file actions — which is exactly the room it needs
+// before the cluster has to give up the line.
+.dsp-card-header > .dsp-eq-bar {
+  flex: 1 1 min-content;
 }
 
 .dsp-card-titles {
   display: flex;
+  flex: 1 1 320px;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+}
+
+// Under the controls, after the cluster, like every other processor's note.
+.dsp-card-header.has-toolbar > .dsp-card-titles {
+  flex: 1 0 100%;
+  order: 1;
 }
 
 .dsp-card-title {
@@ -1549,6 +1523,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the first band's group would read as settings of that band.
 .dsp-crossovers {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   width: 100%;
   padding-bottom: 10px;
@@ -1671,55 +1647,124 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.dsp-band-dials {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
+// Every knob on a processor page is `--dsp-knob` across.
+.dsp-card .labelled-knob {
+  width: var(--dsp-knob);
+}
+
+.dsp-card .knob {
+  width: var(--dsp-knob);
+  height: var(--dsp-knob);
+  flex-basis: var(--dsp-knob);
+}
+
+// A DIAL ROW: every dial on one line, each `--dsp-knob` wide while the row has
+// the room, and all of them narrower together when it has not.
+//
+// Tracks rather than a wrapping row. Wrapping broke five dials four over one;
+// refusing to wrap overflowed the band instead, which is how the Exciter's
+// dials came to be drawn over each other and over the next band's. The knob
+// keeps its circle through `aspect-ratio`, and it reads pointer travel from its
+// measured box, so a narrower dial is exactly as accurate as a full one.
+.dsp-band-dials,
+.dsp-eq-global-controls,
+.dsp-eq-strip-dials {
+  display: grid;
+  grid-auto-columns: minmax(0, var(--dsp-knob));
+  grid-auto-flow: column;
+  justify-content: center;
+  gap: 4px 2px;
+}
+
+:is(.dsp-band-dials, .dsp-eq-global-controls, .dsp-eq-strip-dials) {
+  > .labelled-knob {
+    width: 100%;
+  }
+
+  .knob {
+    width: 100%;
+    height: auto;
+    flex: none;
+    aspect-ratio: 1;
+  }
 }
 
 // Exciter has two scopes under its display: Align and Organic affect the whole
-// processor, while the three generator cards affect one band each. At 2K both
-// scopes fit on one horizontal line with the global pair first. Shorter
-// windows split that line and deliberately put the band controls first; the
-// responsive rules below make that switch instead of relying on flex wrapping.
+// processor, while the three generator cards affect one band each. On a line
+// of their own the global pair leads; split, the bands lead and the pair sits
+// under them.
+//
+// `wrap-reverse` is that switch with no width written down. The pair is first
+// in the flex order, so it opens the line while everything fits, and its line
+// is the one sent to the bottom once the row splits. The band row's basis is
+// three bands at full dial size, so the split comes exactly when one line
+// would start narrowing their dials. It used to be decided by the window's
+// HEIGHT, which on a tall window left three bands 290px wide holding five
+// 78px dials each, drawn over one another.
 .dsp-exciter-controls {
-  display: grid;
+  display: flex;
   flex: 1 1 100%;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: minmax(430px, 5fr) minmax(0, 14fr);
+  flex-wrap: wrap-reverse;
   align-items: stretch;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .dsp-exciter-band-row,
 .dsp-exciter-global-row {
-  display: grid;
+  display: flex;
   min-width: 0;
   align-items: stretch;
   gap: 10px;
 }
 
+// Always three abreast. Five dials, their 2px gaps, the band's padding and
+// border make one band `5 × knob + 30px`.
 .dsp-exciter-band-row {
-  grid-row: 1;
-  grid-column: 2;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 3 1 calc(3 * (5 * var(--dsp-knob) + 30px) + 20px);
 }
 
 .dsp-exciter-global-row {
-  grid-row: 1;
-  grid-column: 1;
-  grid-template-columns: minmax(140px, 1fr) minmax(270px, 2fr);
+  flex: 1 1 420px;
+  order: -1;
 }
 
-.dsp-exciter-controls .dsp-band {
-  flex: none;
-  height: 100%;
+.dsp-exciter-band-row > .dsp-band {
+  flex: 1 1 0;
 }
 
-.dsp-exciter-controls .dsp-band-dials {
-  justify-content: center;
-  flex-wrap: nowrap;
+// From their own floors — one dial beside three — and growing alike, so the
+// two sentences wrap to about the same height when the pair has a line to
+// itself.
+.dsp-exciter-global-row > .dsp-band-align {
+  flex: 1 1 140px;
+}
+
+.dsp-exciter-global-row > .dsp-band-organic {
+  flex: 1 1 270px;
+}
+
+// Below the large breakpoint a band is too narrow for five dials abreast at a
+// usable size, so they stand three over two, the two centred under the three.
+// Six half-width tracks are what centre them: each dial spans two, and the
+// fourth starts one track in.
+@container dsp-card (max-width: #{$bp-lg}) {
+  .dsp-exciter-band-row .dsp-band-dials {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(
+      6,
+      minmax(0, calc((var(--dsp-knob) - 2px) / 2))
+    );
+
+    > .labelled-knob {
+      grid-column: span 2;
+    }
+
+    > .labelled-knob:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+  }
 }
 
 // One processor gets the page; the rail down the side chooses which.
@@ -2168,11 +2213,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 0 0 1px rgba($black, 0.55);
 }
 
-// At 2K all three groups fit in one row. Full HD switches this container to the
-// aligned two-row layout in the height query below.
+// The global controls with the phase meter, and the selected band's strip: one
+// line when a card holds both, and otherwise the strip on top, where it sits
+// against the band picker that chooses what it edits. `wrap-reverse` is that
+// switch, exactly as on the Exciter — the global row opens the line and its
+// line is the one that goes to the bottom.
+//
+// The window's height used to make this choice, so a Full HD window stacked
+// the two on a card with room for both, and a tall narrow one crammed them
+// side by side on a card with room for neither.
 .dsp-eq-bottom {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap-reverse;
   align-self: stretch;
   align-items: stretch;
   justify-content: center;
@@ -2181,28 +2234,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 100%;
 }
 
+// The four tone dials and the phase meter never part: together they are 612px
+// at full dial size, less than the narrowest card. The basis is written out
+// because the row's own max-content measures the meter by its canvas, 256px,
+// and not by the 260px the meter is given: 4px short, the meter wrapped under
+// the dials on a card with room for both.
 .dsp-eq-global-row {
   display: flex;
-  flex: 0 1 818px;
+  flex: 0 1 calc(4 * var(--dsp-knob) + 32px + 8px + 260px);
   min-width: 0;
   align-items: stretch;
   justify-content: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .dsp-eq-global-controls {
-  display: flex;
-  // Capped so a 2K card gives its spare width to the selected-band strip.
-  // Before this, the first block grew to about 746px and made the strip wrap.
-  // 440px holds the four tonal controls while leaving enough room for every
-  // band control, including its power button, to remain on one line.
-  flex: 0 1 440px;
+  // A dial row: see `.dsp-band-dials`. Its basis is the four dials at full
+  // size, which is what it gives up first when the phase meter needs the line.
+  flex: 1 1 calc(4 * var(--dsp-knob) + 32px);
   min-width: 0;
-  margin-right: auto;
-  margin-left: auto;
-  align-items: center;
-  justify-content: center;
+  align-content: center;
   padding: 10px 12px;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
@@ -2211,6 +2262,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // One row, centred: the selected band's controls and nothing else. Centring
 // is the point — the strip belongs to the graph above it, not to an edge.
+//
+// Four groups that wrap whole — dynamics, shape, the three dials, then the
+// insert pair with the band's own switch — so a narrow card breaks it between
+// two groups and never leaves one button alone on a line.
 .dsp-eq-strip {
   display: flex;
   flex: 1 1 860px;
@@ -2220,12 +2275,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // lining their bottom edges up makes the short ones read as having sunk.
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 14px 18px;
   padding: 10px 14px;
   border: 1px solid rgba($white, 0.06);
   border-radius: $radius-s;
   background: $surface-plot;
   flex-wrap: wrap;
+}
+
+.dsp-eq-strip-dials {
+  flex: 0 1 calc(3 * var(--dsp-knob) + 4px);
+  min-width: 0;
+}
+
+.dsp-eq-strip-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 18px;
 }
 
 // The label sits above the select and OUTSIDE the box's height.
@@ -2327,11 +2394,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Lives in the card header now, so it takes the row and leaves the bypass
 // switch its place at the end. `center` rather than `flex-end`: everything in
 // here is one control tall since the label moved beside its field.
+//
+// Its groups are separated by gap rules rather than borders: preset | reset |
+// stereo, each rule painted only between two groups on the same line. The
+// borders they replace belonged to one group each, so a group that wrapped to
+// the start of a line took its divider with it and the rule after Reset stood
+// at the end of a line with nothing beyond it.
 .dsp-eq-bar {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px 24px;
+  column-rule: 1px solid rgba($white, 0.1);
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -2365,7 +2439,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // prevents the last setting from dropping onto a third line.
 .dsp-eq-settings {
   display: flex;
-  flex: 1 0 100%;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -2379,11 +2452,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
-// Preset and stereo are separate decisions. The divider lets the compact
-// Exciter header keep them on one row without reading as one long control.
-.dsp-exciter-bar > .dsp-eq-preset + .dsp-eq-preset {
-  padding-left: 12px;
-  border-left: 1px solid rgba($white, 0.1);
+// A setting's name goes above its switch when the two cannot share the width
+// they are given, instead of the switch running past it. Not the preset
+// group: its arrows have to stay against the picker they step.
+.dsp-eq-preset:not(.dsp-eq-preset-first) {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 // The Exciter's sentence, on a line of its own beneath its controls — the same
@@ -2395,12 +2469,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-maximizer-note,
 .dsp-bass-forge-note,
 .dsp-bass-punch-note {
-  flex: 1 0 100%;
-  max-width: 620px;
   margin: 0;
   color: $text-faint;
   font-size: $text-body;
   line-height: 1.4;
+}
+
+// Full lines under the toolbar and the bypass cluster, all of them siblings
+// of the toolbar in the header: a processor's note, and the EQ's settings row
+// and notice. Later in the flex order than the cluster, so a wide card never
+// seats one beside the switch.
+//
+// The note's measure is a right padding and not a `max-width`. A max-width
+// clamps the size a flex line is broken on, so a 620px note fitted on a 2K
+// card's first line after the switch and ran on from there.
+.dsp-card-header
+  > :is(
+    .dsp-exciter-note,
+    .dsp-maximizer-note,
+    .dsp-bass-forge-note,
+    .dsp-bass-punch-note,
+    .dsp-dimension-note,
+    .dsp-eq-settings,
+    .dsp-eq-notice
+  ) {
+  flex: 1 0 100%;
+  order: 1;
+}
+
+.dsp-card-header
+  > :is(
+    .dsp-exciter-note,
+    .dsp-maximizer-note,
+    .dsp-bass-forge-note,
+    .dsp-bass-punch-note,
+    .dsp-dimension-note
+  ) {
+  padding-right: max(0px, calc(100% - 620px));
 }
 
 // Beside the field rather than stacked over it. Above it, the pair stood two
@@ -2430,15 +2535,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-eq-preset-first .dropdown,
 .dsp-eq-preset-first .rich-pick__trigger {
   min-width: 210px;
-}
-
-// A rule after the picker and its reset, because the row is otherwise eight
-// controls of equal weight and the one that sets the other seven has to read
-// as the head of it rather than as the first of eight.
-.dsp-eq-reset {
-  margin-right: 4px;
-  padding-right: 12px;
-  border-right: 1px solid rgba($white, 0.1);
 }
 
 // Step buttons either side of the preset field. Sized to the field rather than
@@ -2664,16 +2760,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
 }
 
+// Wraps inside itself, so the EQ's four file actions are never the reason its
+// bypass cluster is pushed off the header's first line.
 .dsp-eq-transfer {
   display: flex;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 // Takes the whole row so the message never squeezes the picker beside it, and
 // so a long one wraps downward rather than pushing the buttons off the edge.
+// The row is claimed in the header's rule for full lines.
 .dsp-eq-notice {
-  flex: 1 0 100%;
   margin: 0;
   color: $text-muted;
   font-size: $text-body;
@@ -2699,15 +2798,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: auto;
 }
 
-// Exciter's monitoring action belongs beside its power switch, but it is not
-// the switch. A divider on each side preserves all four header groups:
-// preset | stereo | isolate | power.
-#dsp-exciter .dsp-card-power,
-#dsp-eq .dsp-card-power {
-  padding-left: 12px;
-  border-left: 1px solid rgba($white, 0.1);
-}
-
+// A processor's monitoring action belongs beside its power switch, but it is
+// not the switch, so a divider stands between them. The one before the whole
+// cluster is the cluster's own: see `.dsp-card-header.has-toolbar`.
 .dsp-card-before-power {
   display: flex;
   align-items: center;
@@ -2763,10 +2856,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-default;
 }
 
-// A 200px rail beside a graph is most of a narrow window. Below this the chain
+// A 200px rail beside a graph is most of a narrow panel. Below this the chain
 // reads left to right across the top instead, which costs one row and gives the
-// graph back the width it needs to still be an EQ curve rather than a stripe.
-@media (max-width: 900px) {
+// processor back the width it needs to still be an EQ curve rather than a
+// stripe.
+//
+// The panel's width and not the window's. Keyed to a 900px window, a 960px one
+// kept the rail and left the processor card 488px wide — narrower than at the
+// 720px minimum, where the rail had already folded away.
+@container dsp-panel (max-width: #{$bp-lg}) {
   .dsp-body {
     flex-direction: column;
   }
@@ -2861,65 +2959,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // Icons alone. Ten names plus ten lamps do not fit one row without each
+  // becoming an ellipsis, and an ellipsis names nothing — the glyph does. The
+  // name stays on the button's `title`, so it is still announced and still
+  // appears on hover.
   .dsp-rail-name {
     display: none;
-  }
-
-  .dsp-eq-bar {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .dsp-eq-strip {
-    gap: 12px;
-    padding: 10px;
-  }
-
-  .dsp-eq-shape {
-    min-width: 140px;
-  }
-}
-
-// Icons alone. Four names plus four lamps do not fit a phone-width row without
-// each becoming an ellipsis, and an ellipsis names nothing — the glyph does.
-// The name stays on the button's `title` so it is still announced and still
-// appears on hover.
-// The rail is a column of the page, not a thing inside a card, so this half
-// stays on the window.
-@media (max-width: 620px) {
-  .dsp-rail-tab {
-    gap: 6px;
-    padding: 8px 6px;
-  }
-}
-
-// The other half is card contents and was reading the wrong ruler; see
-// `.dsp-card`.
-@container dsp-card (max-width: 620px) {
-  .dsp-eq-shape,
-  .dsp-eq-preset {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .dsp-eq-strip {
-    gap: 10px;
-  }
-
-  .dsp-band-dials,
-  .dsp-crossovers {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  // Side by side, the preamp block leaves the band strip too little to hold
-  // three dials and a dropdown without each one wrapping onto its own line.
-  .dsp-eq-bottom {
-    flex-direction: column;
-  }
-
-  .dsp-eq-global-controls {
-    padding: 8px 12px;
   }
 }
 
@@ -3033,8 +3078,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Viewport units rather than a flex chain reaching the window, because
 // `.dsp-panel` is deliberately content-height: the workspace around it is what
 // scrolls, so nothing above here has a height to divide up.
+//
+// And never taller than 60% of the card is wide: on a tall narrow window 52vh
+// alone drew a plot over 600px tall above a 700px-wide card, a portrait of an
+// EQ curve. Still definite — both units come from the viewport and the card.
 .dsp-eq .dsp-eq-graph {
-  height: clamp(260px, 52vh, 620px);
+  height: clamp(260px, min(52vh, 60cqi), 620px);
 }
 
 // On a Full HD display the chrome around the graph becomes denser so the whole
@@ -3044,24 +3093,54 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // 900px breakpoint therefore never fired: 52vh made the graph 537px tall and
 // pushed 297px of the controls underneath it past the tab's viewport. The
 // toolbar also wrapped its five settings onto two lines after its deliberate
-// break. Narrowing only that toolbar's spacing keeps all five on one line;
+// break. Narrowing only the settings' spacing keeps all five on one line;
 // scaling only this page's dials then removes dead height from both lower
 // panels. A 2K window stays on the tall rules above.
 //
+// Density only. Which blocks share a line is the card's width to decide, and
+// the header and `.dsp-eq-bottom` decide it by wrapping.
+//
 // This remains a definite canvas height; see the feedback-loop constraint
 // above.
-@media (max-height: 1100px) {
-  .dsp-eq-bar {
-    column-gap: 8px;
-    row-gap: 8px;
+@media (max-height: $bp-full-hd-height) {
+  #dsp-eq {
+    // Pointer travel is read from the measured dial box, so the control
+    // remains accurate at the smaller rendered size.
+    --dsp-knob: 64px;
   }
 
   .dsp-eq-settings {
     gap: 4px;
   }
 
+  // Measured at a maximised 1080p window, where the EQ card's header is
+  // 1092px: preset 303, file actions 394, rack 114 and the bypass cluster 235,
+  // which at the tall spacing broke the rack onto a line of its own and pushed
+  // the phase meter under the fold. These are every header's spacings at this
+  // density, not the EQ's alone, so the processors still read alike.
+  .dsp-eq-bar {
+    column-gap: 16px;
+  }
+
   .dsp-eq-bar .dsp-eq-preset {
     gap: 3px;
+  }
+
+  .dsp-eq-preset-first .rich-pick__trigger {
+    min-width: 190px;
+  }
+
+  .dsp-eq-transfer {
+    gap: 6px;
+  }
+
+  .dsp-card-header.has-toolbar .dsp-card-power {
+    gap: 6px;
+    padding-left: 12px;
+  }
+
+  .dsp-card-before-power {
+    padding-right: 8px;
   }
 
   .dsp-eq-bar .segmented__option {
@@ -3069,45 +3148,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-left: 5px;
   }
 
-  // Fixed within this viewport mode: pointer travel is read from the measured
-  // dial box, so the control remains accurate at the smaller rendered size.
-  .dsp-eq .knob {
-    width: 64px;
-    height: 64px;
-    flex-basis: 64px;
-  }
-
-  .dsp-eq .labelled-knob {
-    width: 64px;
-  }
-
   .dsp-eq-bottom {
-    --dsp-eq-row-width: 800px;
-
-    flex-direction: column;
-    align-self: center;
     gap: 6px;
-    width: min(100%, var(--dsp-eq-row-width));
-  }
-
-  .dsp-eq-global-row {
-    flex: 0 1 auto;
-    width: 100%;
-    justify-content: flex-start;
-    padding-right: 12px;
-    padding-left: 12px;
   }
 
   .dsp-eq-global-controls {
-    flex-basis: 500px;
     padding: 6px 10px;
   }
 
   .dsp-eq-strip {
-    flex: 0 1 auto;
-    order: -1;
-    width: 100%;
-    gap: 14px;
+    gap: 8px 14px;
     padding: 6px 12px;
   }
 
@@ -3129,289 +3179,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The toolbar and power cluster are siblings, so a flex header makes the
-// settings inherit the first line's reduced width. Flatten only the toolbar
-// wrapper into this grid: the action groups stay on row one while settings own
-// the complete second row beneath the power controls.
-//
-// 980 is what row one costs, measured: preset 276, transfer 319, rack 103,
-// power 252, and four 8px gaps. None of those four can shrink — `auto` tracks
-// hold their min-content and `.dsp-eq-transfer` is `flex: 0 0 auto` — so this
-// arrangement is either afforded or it overflows, and there is nothing in
-// between. Below it the base flex header takes over and wraps, which is what
-// it was built to do.
-//
-// The height test stays on the window: it asks whether the card can spare a
-// tall header, which is a question about the screen and not about the card.
-@media (max-height: 1100px) {
-  @container dsp-card (min-width: 980px) {
-    #dsp-eq .dsp-card-header.has-toolbar {
-      display: grid;
-      grid-template-columns: auto auto auto minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #dsp-eq .dsp-eq-bar {
-      display: contents;
-    }
-
-    #dsp-eq .dsp-eq-preset-first {
-      grid-row: 1;
-      grid-column: 1;
-    }
-
-    #dsp-eq .dsp-eq-transfer {
-      grid-row: 1;
-      grid-column: 2;
-    }
-
-    #dsp-eq .dsp-eq-rack {
-      grid-row: 1;
-      grid-column: 3;
-    }
-
-    #dsp-eq .dsp-eq-settings {
-      grid-row: 2;
-      grid-column: 1 / -1;
-      width: auto;
-      margin-right: 0;
-    }
-
-    #dsp-eq .dsp-card-power {
-      grid-row: 1;
-      grid-column: 5;
-    }
-
-    #dsp-eq .dsp-eq-notice {
-      grid-column: 1 / -1;
-    }
-  }
-}
-
-// A narrow CARD, which is not the same thing as a narrow window and is much
-// more common than one: at a 951px window this card measures 465px. Give each
-// section an intentional compact layout instead of letting the desktop flex
-// rows wrap wherever they run out.
-@container dsp-card (max-width: 900px) {
-  #dsp-eq {
-    gap: 8px;
-    padding: 10px;
-  }
-
-  // `display: contents` lets the toolbar's groups and the power controls share
-  // one grid. Preset and power keep the first row; every wider group then gets
-  // the full card width below it.
-  #dsp-eq .dsp-card-header.has-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px 12px;
-  }
-
-  #dsp-eq .dsp-eq-bar {
-    display: contents;
-  }
-
-  #dsp-eq .dsp-eq-preset-first {
-    grid-column: 1;
-    min-width: 0;
-  }
-
-  #dsp-eq .dsp-card-power {
-    grid-row: 1;
-    grid-column: 2;
-  }
-
-  #dsp-eq .dsp-eq-transfer,
-  #dsp-eq .dsp-eq-settings,
-  #dsp-eq .dsp-eq-notice {
-    grid-column: 1 / -1;
-  }
-
-  #dsp-eq .dsp-eq-transfer {
-    grid-row: 2;
-    grid-column: 1;
-    justify-self: start;
-  }
-
-  #dsp-eq .dsp-eq-rack {
-    grid-row: 2;
-    grid-column: 2;
-    justify-self: end;
-  }
-
-  #dsp-eq .dsp-eq-reset {
-    margin-right: 0;
-    padding-right: 0;
-    border-right: 0;
-  }
-
-  #dsp-eq .dsp-eq-transfer {
-    flex-wrap: wrap;
-  }
-
-  // Five settings become three compact rows instead of five label/control
-  // rows with a desktop-sized gap between them.
-  #dsp-eq .dsp-eq-settings {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  #dsp-eq .dsp-eq-settings > .dsp-eq-preset {
-    min-width: 0;
-    justify-content: center;
-  }
-
-  // Width, not viewport height, owns the graph on a tall narrow window. A
-  // portrait display previously took 52vh and made the plot over 600px tall.
-  #dsp-eq .dsp-eq-graph {
-    height: clamp(230px, 50vw, 340px);
-  }
-
-  #dsp-eq .dsp-eq-legend {
-    width: max-content;
-    max-width: calc(100% - 24px);
-    gap: 10px;
-    flex-wrap: nowrap;
-    padding-right: 8px;
-    padding-left: 8px;
-  }
-
-  #dsp-eq .knob {
-    width: 64px;
-    height: 64px;
-    flex-basis: 64px;
-  }
-
-  #dsp-eq .labelled-knob {
-    width: 64px;
-  }
-
-  // Global controls and band controls are separate full-width rows on mobile.
-  // The global cards may wrap, but each wrapped card centres independently.
-  #dsp-eq .dsp-eq-bottom {
-    flex-direction: column;
-    align-self: stretch;
-    gap: 8px;
-    width: 100%;
-  }
-
-  #dsp-eq .dsp-eq-global-row {
-    display: grid;
-    flex: 0 1 auto;
-    width: 100%;
-    grid-template-columns: minmax(330px, 2fr) minmax(190px, 1fr);
-    justify-content: center;
-    padding: 0;
-  }
-
-  #dsp-eq .dsp-eq-global-controls {
-    width: 100%;
-    margin: 0;
-    padding: 6px 10px;
-  }
-
-  #dsp-eq .dsp-eq-phase {
-    width: 100%;
-    padding: 6px 10px 3px;
-  }
-
-  #dsp-eq .dsp-eq-phase-canvas {
-    height: 72px;
-  }
-
-  // Three explicit band rows: Dynamics + Shape, the three filter dials, then
-  // insertion + power. This keeps every relationship visible at phone width.
-  #dsp-eq .dsp-eq-strip {
-    display: grid;
-    order: -1;
-    width: 100%;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    align-items: center;
-    gap: 10px 8px;
-    padding: 8px 10px;
-  }
-
-  #dsp-eq .dsp-eq-dynamic {
-    width: 100%;
-    grid-column: 1 / span 3;
-    justify-self: stretch;
-    justify-content: center;
-    gap: 8px;
-    padding: 4px 8px;
-  }
-
-  #dsp-eq .dsp-eq-shape {
-    width: 100%;
-    grid-column: 4 / span 3;
-    justify-self: stretch;
-  }
-
-  #dsp-eq .dsp-eq-strip > .labelled-knob {
-    grid-column: span 2;
-    justify-self: center;
-  }
-
-  #dsp-eq .dsp-eq-insert {
-    grid-column: 1 / span 3;
-    justify-self: center;
-  }
-
-  #dsp-eq .dsp-eq-strip > .button.small {
-    grid-column: 4 / span 3;
-    justify-self: center;
-  }
-}
-
-@container dsp-card (max-width: 520px) {
-  #dsp-eq .dsp-card-header.has-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  #dsp-eq .dsp-eq-preset-first {
-    grid-row: 1;
-    grid-column: 1;
-  }
-
-  #dsp-eq .dsp-card-power {
-    grid-row: 1;
-    grid-column: 2;
-    justify-self: end;
-  }
-
-  #dsp-eq .dsp-eq-transfer {
-    grid-row: 2;
-    grid-column: 1 / -1;
-    justify-self: center;
-  }
-
-  #dsp-eq .dsp-eq-rack {
-    grid-row: 3;
-    grid-column: 1 / -1;
-    justify-self: center;
-  }
-
-  #dsp-eq .dsp-eq-settings {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #dsp-eq .dsp-eq-global-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #dsp-eq .dsp-eq-global-controls {
-    flex-wrap: wrap;
-  }
-
-  #dsp-eq .dsp-eq-legend-scale {
-    display: none;
-  }
-}
-
 // The alignment block, in its own colour because it is the only stage on this
 // page that adds nothing at all — no harmonics, no level, no signal. It changes
 // when each part of the sound arrives and nothing else, so it must not read as
@@ -3421,154 +3188,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: rgba(132, 168, 255, 0.05);
 }
 
-// Full HD: one dense row of three band cards, then one aligned global row.
-// The band row leads only in the split layout; the 2K rule above keeps the
-// global controls first while all five cards fit across the page.
-@media (max-height: 1100px) {
-  #dsp-exciter .dsp-exciter-controls {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+// Full HD: the same arrangement, denser. Which of the two scopes leads is the
+// card's width to decide, in `.dsp-exciter-controls`.
+@media (max-height: $bp-full-hd-height) {
+  #dsp-exciter {
+    --dsp-knob: 64px;
   }
 
-  #dsp-exciter .dsp-exciter-band-row {
-    grid-row: 1;
-    grid-column: 1;
-  }
-
+  #dsp-exciter .dsp-exciter-controls,
+  #dsp-exciter .dsp-exciter-band-row,
   #dsp-exciter .dsp-exciter-global-row {
-    grid-row: 2;
-    grid-column: 1;
-    grid-template-columns: minmax(180px, 1fr) minmax(360px, 2fr);
+    gap: 8px;
   }
 
   #dsp-exciter .dsp-band {
     gap: 4px;
     padding: 6px 8px 3px;
-  }
-
-  #dsp-exciter .knob {
-    width: 64px;
-    height: 64px;
-    flex-basis: 64px;
-  }
-
-  #dsp-exciter .labelled-knob {
-    width: 64px;
-  }
-}
-
-// A narrow card uses the same scope order as Full HD, but each band gets a
-// complete row so its five dials never wrap into an accidental second tier.
-// Measured against the card and not the window, for the reason set out at
-// `.dsp-card`: this header carries the same four groups the EQ's does.
-@container dsp-card (max-width: 900px) {
-  #dsp-exciter {
-    gap: 8px;
-    padding: 10px;
-  }
-
-  #dsp-exciter .dsp-card-header.has-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px 12px;
-  }
-
-  #dsp-exciter .dsp-exciter-bar {
-    display: contents;
-  }
-
-  #dsp-exciter .dsp-eq-preset-first {
-    grid-row: 1;
-    grid-column: 1;
-    min-width: 0;
-  }
-
-  #dsp-exciter .dsp-card-power {
-    grid-row: 1;
-    grid-column: 2;
-  }
-
-  // The stereo group, addressed by its position rather than by being last:
-  // the bar's last child is the note, and `:last-child` silently stopped
-  // matching the moment one was added.
-  #dsp-exciter .dsp-exciter-bar > .dsp-eq-preset + .dsp-eq-preset {
-    grid-row: 2;
-    grid-column: 1 / -1;
-    justify-self: center;
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  #dsp-exciter .dsp-exciter-note {
-    grid-row: 3;
-    grid-column: 1 / -1;
-    max-width: none;
-  }
-
-  #dsp-exciter .dsp-exciter-canvas {
-    height: clamp(104px, 28vw, 132px);
-  }
-
-  #dsp-exciter .dsp-exciter-band-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #dsp-exciter .dsp-exciter-global-row {
-    grid-template-columns: minmax(150px, 1fr) minmax(280px, 2fr);
-  }
-}
-
-@container dsp-card (max-width: 520px) {
-  #dsp-exciter .dsp-card-header.has-toolbar {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #dsp-exciter .dsp-eq-preset-first {
-    display: grid;
-    grid-row: 1;
-    grid-column: 1;
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  #dsp-exciter .dsp-eq-preset-first .dsp-eq-preset-label {
-    grid-column: 1 / -1;
-  }
-
-  #dsp-exciter .dsp-card-power {
-    grid-row: 2;
-    grid-column: 1;
-    justify-self: end;
-  }
-
-  #dsp-exciter .dsp-exciter-bar > .dsp-eq-preset + .dsp-eq-preset {
-    grid-row: 3;
-    grid-column: 1;
-  }
-
-  #dsp-exciter .dsp-exciter-note {
-    grid-row: 4;
-    grid-column: 1;
-  }
-
-  #dsp-exciter .dsp-exciter-global-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #dsp-exciter .knob {
-    width: 56px;
-    height: 56px;
-    flex-basis: 56px;
-  }
-
-  #dsp-exciter .labelled-knob {
-    width: 56px;
-  }
-
-  #dsp-exciter .dsp-exciter-legend {
-    grid-template-columns: repeat(2, 1fr);
-    row-gap: 2px;
   }
 }
 
@@ -3635,31 +3270,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Two decisions, side by side: how much louder, and how the limiter gets
 // there. Equal columns because neither is the secondary one — a profile is a
-// point on both at once.
+// point on both at once. One basis for both keeps them equal on a shared line,
+// and they stack only when a card cannot give each its 280.
 .dsp-maximizer-controls {
-  display: grid;
+  display: flex;
   flex: 1 1 100%;
+  flex-wrap: wrap;
   width: 100%;
   min-width: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   gap: 10px;
 }
 
 .dsp-maximizer-controls .dsp-band {
-  flex: none;
-  height: 100%;
-}
-
-.dsp-maximizer-controls .dsp-band-dials {
-  justify-content: center;
-  flex-wrap: nowrap;
-}
-
-@container dsp-card (max-width: 640px) {
-  .dsp-maximizer-controls {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  flex: 1 1 280px;
 }
 
 // Dimension's mono guard, on the card beside the width dials it throttles.
@@ -3785,18 +3409,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 6px;
   min-width: 0;
-}
-
-@container dsp-card (max-width: 620px) {
-  .dsp-dimension-graph {
-    grid-template-columns: 1fr;
-  }
-
-  .dsp-dimension-field {
-    width: 100%;
-    max-width: 220px;
-    justify-self: center;
-  }
 }
 
 // The history strip under the curve, on the same width so the two share a

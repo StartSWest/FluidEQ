@@ -51,6 +51,22 @@ $bp-two-column: 940px;
 // under 200px is not a meter. Below a full-HD window the tabs are glyphs.
 $bp-desktop: 1920px;
 
+// The standard breakpoint for a layout that changes shape inside a panel: the
+// classic 1024.
+//
+// The DSP page grew fourteen container queries at measured widths — 520, 620,
+// 640, 670, 710, 900, 980, 999, 1000 — each right for the one layout it was
+// measured against and wrong for the next locale or the next control added to
+// a row. A row that wraps and a dial that shrinks need no breakpoint at all;
+// what is left is a real change of arrangement, and it happens on a standard
+// width. Add the next step of the same scale (768, 1280) when one is needed,
+// never a figure measured off a screenshot.
+$bp-lg: 1024px;
+
+// Full HD's height. What a maximised 1080p window has to fit a page into,
+// against a 1440p one: the density tier, never an arrangement.
+$bp-full-hd-height: 1080px;
+
 // The left column's width, docked and floating alike.
 //
 // Two figures because the layout narrows it once on the way down, and one
