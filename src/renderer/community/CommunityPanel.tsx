@@ -35,19 +35,19 @@ interface IPlace {
   blurb: TranslationKey;
 }
 
-/** The rail, top to bottom: the gallery first, because it is open to all. */
+/** The rail, top to bottom: leaderboard, visualizers, then Studio. */
 const PLACES: readonly IPlace[] = [
-  {
-    place: 'visualizers',
-    glyph: 'looks',
-    name: 'plus.visualizers.title',
-    blurb: 'plus.visualizers.blurb',
-  },
   {
     place: 'board',
     glyph: 'board',
     name: 'leaderboard.title',
     blurb: 'leaderboard.rail.blurb',
+  },
+  {
+    place: 'visualizers',
+    glyph: 'looks',
+    name: 'plus.visualizers.title',
+    blurb: 'plus.visualizers.blurb',
   },
   {
     place: 'studio',
