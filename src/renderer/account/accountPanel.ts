@@ -18,7 +18,7 @@
  * build with no account backend.
  */
 
-export type TAccountPanelPage = 'home' | 'terms' | 'subscribe';
+export type TAccountPanelPage = 'home' | 'signUp' | 'terms' | 'subscribe';
 
 type TAccountPanelListener = (page: TAccountPanelPage) => void;
 

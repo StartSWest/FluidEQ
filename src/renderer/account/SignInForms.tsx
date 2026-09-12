@@ -16,6 +16,7 @@ import {
 
 interface ISignInFormsProps {
   account: IAccountState;
+  initialMode?: 'signIn' | 'signUp';
 }
 
 /**
@@ -41,10 +42,14 @@ type TFormMode = 'signIn' | 'signUp' | 'forgot';
  * will fix a digit, not retype six. Every other failure leaves the fields as
  * they were for the same reason.
  */
-export default function SignInForms({ account }: ISignInFormsProps) {
+export default function SignInForms({
+  account,
+  initialMode = 'signIn',
+}: ISignInFormsProps) {
   const { t } = useTranslation();
   const ids = useId();
-  const [mode, setMode] = useState<TFormMode>('signIn');
+  const [mode, setMode] = useState<TFormMode>(initialMode);
+  useEffect(() => setMode(initialMode), [initialMode]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');

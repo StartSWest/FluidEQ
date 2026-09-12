@@ -156,6 +156,11 @@ const plus = {
   'plus.welcome.studio': 'Eigene im Studio mit Ihrer KI bauen',
   'plus.welcome.board':
     'Mit den Likes Ihrer Szenen in der Rangliste aufsteigen',
+  'plus.welcome.account.label': 'Konto',
+  'plus.welcome.account.access': 'Galerie erkunden und kurze Demos ansehen.',
+  'plus.welcome.paid.label': 'Kostenpflichtiges Plus',
+  'plus.welcome.paid.access':
+    'Szenen herunterladen und behalten, vollständig abspielen und eigene erstellen.',
   'plus.welcome.fine': 'Konto erstellen',
   'plus.welcome.scene.neonHorizon': 'Neon-Horizont',
   'plus.welcome.scene.nebulaHeart': 'Nebelherz',

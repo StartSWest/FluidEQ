@@ -144,6 +144,11 @@ const plus = {
     'Toque-as com a sua música e adicione-as aos seus visuais',
   'plus.welcome.studio': 'Crie as suas no Estúdio com a sua IA',
   'plus.welcome.board': 'Suba na classificação com as curtidas das suas cenas',
+  'plus.welcome.account.label': 'Conta',
+  'plus.welcome.account.access': 'Explora a galeria e vê demonstrações breves.',
+  'plus.welcome.paid.label': 'Plus pago',
+  'plus.welcome.paid.access':
+    'Descarrega e guarda cenas, reproduz as cenas completas e cria as tuas.',
   'plus.welcome.fine': 'Criar uma conta',
   'plus.welcome.scene.neonHorizon': 'Horizonte de néon',
   'plus.welcome.scene.nebulaHeart': 'Coração de nebulosa',

@@ -123,7 +123,7 @@ export default function AccountDialog({
     }
     return page;
   })();
-  const onTerms = shown !== 'home';
+  const onTerms = shown === 'terms' || shown === 'subscribe';
 
   // The forms take the caret themselves; the close button gets it only when
   // there is nothing to type into. The terms take it on their own page, so
@@ -318,7 +318,10 @@ export default function AccountDialog({
                 {termsLink}
               </aside>
               <div className="account__form-column">
-                <SignInForms account={account} />
+                <SignInForms
+                  account={account}
+                  initialMode={page === 'signUp' ? 'signUp' : 'signIn'}
+                />
                 {errorLine}
               </div>
             </div>

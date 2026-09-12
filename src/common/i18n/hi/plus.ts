@@ -142,6 +142,11 @@ const plus = {
   'plus.welcome.play': 'इन्हें अपने संगीत पर चलाएँ और अपने रूपों में जोड़ें',
   'plus.welcome.studio': 'स्टूडियो में अपने AI के साथ अपने सीन बनाएँ',
   'plus.welcome.board': 'अपने सीन को मिली पसंद से लीडरबोर्ड पर ऊपर चढ़ें',
+  'plus.welcome.account.label': 'खाता',
+  'plus.welcome.account.access': 'गैलरी देखें और छोटे डेमो चलाएँ।',
+  'plus.welcome.paid.label': 'सशुल्क Plus सदस्यता',
+  'plus.welcome.paid.access':
+    'दृश्य डाउनलोड करके रखें, पूरे चलाएँ और अपने दृश्य बनाएँ।',
   'plus.welcome.fine': 'खाता बनाएँ',
   'plus.welcome.scene.neonHorizon': 'नियॉन क्षितिज',
   'plus.welcome.scene.nebulaHeart': 'नीहारिका का हृदय',

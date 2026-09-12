@@ -52,6 +52,19 @@ describe('the account panel', () => {
     jest.clearAllMocks();
   });
 
+  it('opens the existing registration form when requested from the welcome', () => {
+    mockAccountState = { status: 'signed-out' };
+    render(<AccountDialog onClose={jest.fn()} initialPage="signUp" />);
+    expect(screen.getByRole('tab', { name: 'account.signUp' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(
+      screen.getByRole('button', { name: 'account.signUp' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'terms.title' })).toBeNull();
+  });
+
   it('says signing in is optional before it offers to do it', () => {
     const { container } = renderDialog({ status: 'signed-out' });
     const body = container.querySelector('.account__body');

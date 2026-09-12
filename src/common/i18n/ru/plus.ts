@@ -144,6 +144,12 @@ const plus = {
     'Включайте их под свою музыку и добавляйте в свои оформления',
   'plus.welcome.studio': 'Создавайте свои в Студии со своим ИИ',
   'plus.welcome.board': 'Поднимайтесь в рейтинге благодаря лайкам ваших сцен',
+  'plus.welcome.account.label': 'Аккаунт',
+  'plus.welcome.account.access':
+    'Просматривайте галерею и короткие демонстрации.',
+  'plus.welcome.paid.label': 'Платная подписка Plus',
+  'plus.welcome.paid.access':
+    'Скачивайте и сохраняйте сцены, воспроизводите их полностью и создавайте свои.',
   'plus.welcome.fine': 'Создать аккаунт',
   'plus.welcome.scene.neonHorizon': 'Неоновый горизонт',
   'plus.welcome.scene.nebulaHeart': 'Сердце туманности',

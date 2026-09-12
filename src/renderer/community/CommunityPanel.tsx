@@ -13,6 +13,7 @@ import {
   usePlusNavigation,
   type TPlusPlace,
 } from '../plus/plusNavigation';
+import PlusWelcome from '../plus/PlusWelcome';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
 import StudioPanel from '../studio/StudioPanel';
@@ -89,32 +90,7 @@ export default function CommunityPanel({
   }, [accountId]);
 
   if (!signedIn) {
-    return (
-      <div className="community community--signed-out">
-        <div className="community__welcome">
-          <span className="community__welcome-mark" aria-hidden="true">
-            <Glyph name="plus" />
-          </span>
-          <span className="community__welcome-title">
-            {t('account.plus.eyebrow')}
-          </span>
-          <span className="community__welcome-body">
-            {t('account.plus.pitch')}
-          </span>
-          <ul className="community__perks">
-            {PLACES.map((entry) => (
-              <li key={entry.place}>
-                <Glyph name={entry.glyph} />
-                {t(entry.name)}
-              </li>
-            ))}
-          </ul>
-          <button type="button" className="button small" onClick={onSignIn}>
-            {t('account.signIn')}
-          </button>
-        </div>
-      </div>
-    );
+    return <PlusWelcome onSignIn={onSignIn} />;
   }
 
   const ownName = profile?.displayName || account.identity?.name || '';

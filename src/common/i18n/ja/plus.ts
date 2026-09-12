@@ -146,6 +146,11 @@ const plus = {
   'plus.welcome.play': 'あなたの音楽で再生し、マイ表示に追加できます',
   'plus.welcome.studio': 'スタジオで AI と一緒に自分のシーンを作れます',
   'plus.welcome.board': 'シーンへのいいねでランキングを上がれます',
+  'plus.welcome.account.label': 'アカウント',
+  'plus.welcome.account.access': 'ギャラリーの閲覧と短いデモの視聴。',
+  'plus.welcome.paid.label': '有料のPlus',
+  'plus.welcome.paid.access':
+    'シーンのダウンロードと保存、全編再生、自分のシーンの作成。',
   'plus.welcome.fine': 'アカウントを作成',
   'plus.welcome.scene.neonHorizon': 'ネオンの地平線',
   'plus.welcome.scene.nebulaHeart': '星雲の心臓',

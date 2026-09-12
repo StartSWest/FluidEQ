@@ -1,0 +1,241 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Plus tab before signing in: the scenes on one side, what signing in
+// opens and the way in on the other; stacked when the pane is narrow. The
+// page scrolls when the pane is too short for it and is centred when not.
+.plus-welcome {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: $spacing-l $spacing-m;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container: plus-welcome / inline-size;
+  @include slim-scrollbar;
+}
+
+// `margin: auto` rather than centring the content: it centres while the page
+// fits and never pushes its top out of reach when it does not.
+.plus-welcome__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  align-items: center;
+  gap: $spacing-xl;
+  width: 100%;
+  max-width: 1360px;
+  margin: auto;
+
+  @container plus-welcome (max-width: 820px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-l;
+    max-width: 640px;
+  }
+}
+
+// A wall of scenes: the first large, the rest around it, every one 16:9.
+.plus-welcome__scenes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  isolation: isolate;
+  @include animate(fade-in, $motion-slow);
+}
+
+// The lead scene's colours thrown on the wall behind the wall of pictures.
+// A picture rather than a painted gradient, so the light is the scene's own
+// and still right on either theme's ground.
+.plus-welcome__glow {
+  position: absolute;
+  z-index: -1;
+  top: -16%;
+  left: -10%;
+  width: 120%;
+  height: 132%;
+  object-fit: cover;
+  filter: blur(70px) saturate(1.4);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.plus-welcome__scene {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-m;
+  background: $surface-plot;
+  box-shadow: 0 12px 32px rgba($black, 0.38);
+
+  &:first-of-type {
+    grid-row: span 2;
+    grid-column: span 2;
+    aspect-ratio: auto;
+  }
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  // The lead picture drifts, slowly enough to read as a scene breathing
+  // rather than as movement asking to be watched.
+  &:first-of-type img {
+    animation: plus-welcome-drift 28s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 22px 10px 7px;
+    color: $white;
+    background: linear-gradient(0deg, rgba($black, 0.7), transparent);
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+    text-shadow: 0 1px 3px rgba($black, 0.6);
+    @include truncate;
+  }
+
+  &:first-of-type figcaption {
+    padding: 40px 14px 12px;
+    font-size: $text-lead;
+  }
+}
+
+@keyframes plus-welcome-drift {
+  from {
+    transform: scale(1.02);
+  }
+
+  to {
+    transform: scale(1.09) translate(-1.5%, 1%);
+  }
+}
+
+// Positioned so it paints over the glow, which spills past the pictures and
+// would otherwise, as part of a positioned box, be drawn over plain text.
+.plus-welcome__text {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+// Whose page this is: the Plus mark in the theme's accent and the name.
+.plus-welcome__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: $spacing-xs;
+  color: $secondary-light;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.plus-welcome__brand-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: $surface-base;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $secondary-light, $secondary-default);
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 40%, transparent);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.plus-welcome__title {
+  margin: 0;
+  color: $white;
+  font-size: clamp(1.1rem, 2.6cqi, 1.55rem);
+  font-weight: $weight-bold;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.plus-welcome__perks {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: $spacing-xs 0 $spacing-s;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: $text-primary;
+    font-size: $text-body;
+  }
+}
+
+.plus-welcome__perk-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.plus-welcome__button {
+  min-width: 180px;
+}
+
+.plus-welcome__access {
+  display: grid;
+  gap: $spacing-s;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 $spacing-xs;
+  padding: $spacing-s;
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-body;
+  line-height: 1.5;
+
+  dt {
+    color: $secondary-light;
+    font-weight: $weight-semibold;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+  }
+}
