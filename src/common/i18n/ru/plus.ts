@@ -130,6 +130,22 @@ const plus = {
   'plus.report.sending': 'Отправка…',
   'plus.report.cancel': 'Отмена',
   'plus.report.failed': 'Не удалось отправить жалобу. Попробуйте ещё раз.',
+
+  'plus.welcome.title': 'Войдите и посмотрите, что создают участники',
+  'plus.welcome.body':
+    'Аккаунт позволяет просматривать галерею и короткие демонстрации. Для скачивания и хранения сцен, полного воспроизведения, добавления в свои стили и создания сцен в Студии нужен Plus.',
+  'plus.welcome.browse': 'Смотрите все сцены, которые публикуют участники',
+  'plus.welcome.play':
+    'Включайте их под свою музыку и добавляйте в свои оформления',
+  'plus.welcome.studio': 'Создавайте свои в Студии со своим ИИ',
+  'plus.welcome.board': 'Поднимайтесь в рейтинге благодаря лайкам ваших сцен',
+  'plus.welcome.fine': 'Создать аккаунт',
+  'plus.welcome.scene.neonHorizon': 'Неоновый горизонт',
+  'plus.welcome.scene.nebulaHeart': 'Сердце туманности',
+  'plus.welcome.scene.hyperdrive': 'Гипердрайв',
+  'plus.welcome.scene.reefLight': 'Свет рифа',
+  'plus.welcome.scene.lanternLake': 'Озеро фонариков',
+  'plus.welcome.scene.prismBloom': 'Цветок-призма',
 } as const;
 
 export default plus;

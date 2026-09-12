@@ -129,6 +129,21 @@ const plus = {
   'plus.report.sending': 'भेजी जा रही है…',
   'plus.report.cancel': 'रद्द करें',
   'plus.report.failed': 'रिपोर्ट भेजी नहीं जा सकी। फिर कोशिश करें।',
+
+  'plus.welcome.title': 'साइन इन करें और देखें सदस्य क्या बनाते हैं',
+  'plus.welcome.body':
+    'खाते से आप गैलरी देख सकते हैं और छोटे डेमो चला सकते हैं। दृश्य डाउनलोड करके रखने, पूरे चलाने, अपने स्टाइल में जोड़ने और स्टूडियो में बनाने के लिए Plus आवश्यक है।',
+  'plus.welcome.browse': 'सदस्यों के प्रकाशित हर सीन को देखें',
+  'plus.welcome.play': 'इन्हें अपने संगीत पर चलाएँ और अपने रूपों में जोड़ें',
+  'plus.welcome.studio': 'स्टूडियो में अपने AI के साथ अपने सीन बनाएँ',
+  'plus.welcome.board': 'अपने सीन को मिली पसंद से लीडरबोर्ड पर ऊपर चढ़ें',
+  'plus.welcome.fine': 'खाता बनाएँ',
+  'plus.welcome.scene.neonHorizon': 'नियॉन क्षितिज',
+  'plus.welcome.scene.nebulaHeart': 'नीहारिका का हृदय',
+  'plus.welcome.scene.hyperdrive': 'हाइपरड्राइव',
+  'plus.welcome.scene.reefLight': 'रीफ़ की रोशनी',
+  'plus.welcome.scene.lanternLake': 'लालटेनों की झील',
+  'plus.welcome.scene.prismBloom': 'प्रिज़्म का फूल',
 } as const;
 
 export default plus;

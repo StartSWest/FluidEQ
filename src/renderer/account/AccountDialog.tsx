@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
-import { PLUS_TERMS_VERSION } from 'common/plusTerms';
+import { PLUS_TERMS_EDITION } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from '../components/DialogHeader';
 import Glyph from '../community/Glyph';
@@ -172,7 +172,7 @@ export default function AccountDialog({
           eyebrow={onTerms ? t('terms.eyebrow') : t('account.eyebrow')}
           title={onTerms ? t('terms.title') : t('account.title')}
           titleId="account-title"
-          version={onTerms ? String(PLUS_TERMS_VERSION) : undefined}
+          version={onTerms ? String(PLUS_TERMS_EDITION) : undefined}
           closeLabel={t('account.close')}
           onClose={onClose}
           closeRef={closeRef}

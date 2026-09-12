@@ -120,6 +120,21 @@ const plus = {
   'plus.report.sending': '正在发送…',
   'plus.report.cancel': '取消',
   'plus.report.failed': '无法发送举报。请重试。',
+
+  'plus.welcome.title': '登录，看看会员们创作了什么',
+  'plus.welcome.body':
+    '有账户即可浏览图库并观看简短演示。下载并保留场景、完整播放、添加到样式和在工作室中创建自己的场景都需要Plus。',
+  'plus.welcome.browse': '浏览会员发布的每一个场景',
+  'plus.welcome.play': '用你的音乐播放它们，并添加到你的外观',
+  'plus.welcome.studio': '用你的 AI 在工作室里创作自己的场景',
+  'plus.welcome.board': '凭借场景获得的点赞登上排行榜',
+  'plus.welcome.fine': '创建账户',
+  'plus.welcome.scene.neonHorizon': '霓虹地平线',
+  'plus.welcome.scene.nebulaHeart': '星云之心',
+  'plus.welcome.scene.hyperdrive': '超空间跃迁',
+  'plus.welcome.scene.reefLight': '珊瑚礁之光',
+  'plus.welcome.scene.lanternLake': '天灯湖',
+  'plus.welcome.scene.prismBloom': '棱镜之花',
 } as const;
 
 export default plus;

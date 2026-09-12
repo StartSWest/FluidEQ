@@ -138,6 +138,25 @@ const plus = {
   'plus.report.cancel': 'Abbrechen',
   'plus.report.failed':
     'Die Meldung konnte nicht gesendet werden. Versuchen Sie es erneut.',
+
+  'plus.welcome.title':
+    'Melden Sie sich an und sehen Sie, was Mitglieder bauen',
+  'plus.welcome.body':
+    'Mit einem Konto kannst du die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu deinen Looks hinzuzufügen und eigene im Studio zu erstellen.',
+  'plus.welcome.browse':
+    'Alle Szenen durchstöbern, die Mitglieder veröffentlichen',
+  'plus.welcome.play':
+    'Sie zu Ihrer Musik abspielen und zu Ihren Darstellungen hinzufügen',
+  'plus.welcome.studio': 'Eigene im Studio mit Ihrer KI bauen',
+  'plus.welcome.board':
+    'Mit den Likes Ihrer Szenen in der Rangliste aufsteigen',
+  'plus.welcome.fine': 'Konto erstellen',
+  'plus.welcome.scene.neonHorizon': 'Neon-Horizont',
+  'plus.welcome.scene.nebulaHeart': 'Nebelherz',
+  'plus.welcome.scene.hyperdrive': 'Hyperantrieb',
+  'plus.welcome.scene.reefLight': 'Rifflicht',
+  'plus.welcome.scene.lanternLake': 'Laternensee',
+  'plus.welcome.scene.prismBloom': 'Prismenblüte',
 } as const;
 
 export default plus;

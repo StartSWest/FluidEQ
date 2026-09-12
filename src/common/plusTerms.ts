@@ -44,7 +44,14 @@
  * rules are about what a member publishes, and the Forum tab — which talks to
  * GitHub, not to this server — has its row in the table of what is sent.
  */
+/** Internal acceptance revision used by checkout, publishing and saved agreements.
+ * Do not reset it: pre-release revisions may already be recorded by the server.
+ */
 export const PLUS_TERMS_VERSION = 5;
+
+/** First published edition. Pre-release acceptance revisions are not editions. */
+export const PLUS_TERMS_EDITION = 1;
+export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 5;
 
 /** The day this version took effect, as a calendar date. */
 export const PLUS_TERMS_EFFECTIVE = '2026-09-11';

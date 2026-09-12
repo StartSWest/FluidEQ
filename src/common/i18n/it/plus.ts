@@ -133,6 +133,22 @@ const plus = {
   'plus.report.cancel': 'Annulla',
   'plus.report.failed':
     'Non è stato possibile inviare la segnalazione. Riprova.',
+
+  'plus.welcome.title': 'Accedi e guarda cosa creano i membri',
+  'plus.welcome.body':
+    'Con un account puoi esplorare la galleria e vedere brevi dimostrazioni. Serve Plus per scaricare e conservare le scene, riprodurle per intero, aggiungerle ai tuoi stili e crearne di nuove nello Studio.',
+  'plus.welcome.browse': 'Sfoglia tutte le scene che i membri pubblicano',
+  'plus.welcome.play':
+    'Riproducile con la tua musica e aggiungile ai tuoi aspetti',
+  'plus.welcome.studio': 'Crea le tue nello Studio con la tua IA',
+  'plus.welcome.board': 'Scala la classifica con i mi piace delle tue scene',
+  'plus.welcome.fine': 'Crea un account',
+  'plus.welcome.scene.neonHorizon': 'Orizzonte al neon',
+  'plus.welcome.scene.nebulaHeart': 'Cuore di nebulosa',
+  'plus.welcome.scene.hyperdrive': 'Iperguida',
+  'plus.welcome.scene.reefLight': 'Luce della barriera',
+  'plus.welcome.scene.lanternLake': 'Lago delle lanterne',
+  'plus.welcome.scene.prismBloom': 'Fiore di prisma',
 } as const;
 
 export default plus;

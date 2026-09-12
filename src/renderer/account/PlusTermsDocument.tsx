@@ -13,7 +13,7 @@ import {
   PLUS_MINIMUM_AGE,
   PLUS_OFFLINE_GRACE_DAYS,
   PLUS_REFUND_DAYS,
-  PLUS_TERMS_VERSION,
+  PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
 import Glyph from '../community/Glyph';
@@ -78,7 +78,7 @@ export default function PlusTermsDocument() {
     <article className="plus-terms">
       <header className="plus-terms__lede">
         <span className="plus-terms__meta">
-          {t('terms.meta', { version: PLUS_TERMS_VERSION, date: effective })}
+          {t('terms.meta', { version: PLUS_TERMS_EDITION, date: effective })}
         </span>
         <p className="plus-terms__intro">{t('terms.intro')}</p>
       </header>

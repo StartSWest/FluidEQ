@@ -98,6 +98,9 @@ describe('the Plus terms', () => {
     expect(
       screen.getByRole('heading', { name: 'terms.title' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('v1')).toBeInTheDocument();
+    expect(screen.getByText(/^terms\.meta:1,/)).toBeInTheDocument();
+    expect(screen.queryByText('v5')).not.toBeInTheDocument();
     expect(mockOpenCheckout).not.toHaveBeenCalled();
     expect(agreeButton()).toBeDisabled();
     expect(agreeButton()).not.toHaveClass('subtle');

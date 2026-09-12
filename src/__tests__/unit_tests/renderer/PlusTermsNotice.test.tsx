@@ -7,7 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PLUS_TERMS_VERSION } from '../../../common/plusTerms';
+import {
+  PLUS_TERMS_VERSION,
+  PLUS_TERMS_EDITION,
+} from '../../../common/plusTerms';
 import type { TPlusTermsNoticeState } from '../../../main/ipc/plusTermsNotice';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
 import { resetPlusTermsNoticeStore } from '../../../renderer/account/plusTermsNoticeStore';
@@ -62,7 +65,7 @@ describe('the Plus terms notice', () => {
     });
     expect(notice).toHaveTextContent(`termsNotice.change.${CURRENT}`);
     expect(
-      screen.getByText(new RegExp(`^terms\\.meta:${CURRENT},`)),
+      screen.getByText(new RegExp(`^terms\\.meta:${PLUS_TERMS_EDITION},`)),
     ).toBeInTheDocument();
     // The recommendation is the loud button, the decline the quiet one.
     expect(
@@ -76,13 +79,13 @@ describe('the Plus terms notice', () => {
     ).toHaveClass('button', 'small', 'subtle');
   });
 
-  it('lists each missed version under its own number, newest first', async () => {
-    await showing({ version: CURRENT, changes: [CURRENT, CURRENT - 1] });
-    const items = await screen.findAllByRole('listitem');
-    expect(items).toHaveLength(2);
-    expect(items[0]).toHaveTextContent(`termsNotice.version:${CURRENT}`);
-    expect(items[0]).toHaveTextContent(`termsNotice.change.${CURRENT}`);
-    expect(items[1]).toHaveTextContent(`termsNotice.version:${CURRENT - 1}`);
+  it('does not present pre-release revisions as published editions', async () => {
+    await showing({ version: CURRENT, changes: [CURRENT, 4, 3, 2] });
+    const notice = await screen.findByRole('dialog');
+    expect(notice).toHaveTextContent('termsNotice.change.5');
+    expect(notice).not.toHaveTextContent('termsNotice.change.4');
+    expect(notice).not.toHaveTextContent('termsNotice.version:5');
+    expect(screen.getByText(/^terms\.meta:1,/)).toBeInTheDocument();
   });
 
   it('draws nothing when there is nothing to tell', async () => {

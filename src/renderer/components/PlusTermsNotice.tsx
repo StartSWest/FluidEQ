@@ -5,7 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useMemo, type ReactNode } from 'react';
-import { PLUS_TERMS_VERSION, termsEffectiveDate } from 'common/plusTerms';
+import {
+  PLUS_TERMS_VERSION,
+  PLUS_TERMS_EDITION,
+  PLUS_TERMS_FIRST_PUBLIC_REVISION,
+  termsEffectiveDate,
+} from 'common/plusTerms';
 import { PLUS_TERMS_CHANGES } from 'common/plusTermsNotice';
 import { requestAccountPanel } from '../account/accountPanel';
 import {
@@ -57,12 +62,15 @@ const PlusTermsNotice = () => {
   }
 
   const changes = notice.changes.flatMap((version) => {
+    if (version < PLUS_TERMS_FIRST_PUBLIC_REVISION) {
+      return [];
+    }
     const key = PLUS_TERMS_CHANGES[version];
     return key ? [{ version, key }] : [];
   });
 
-  // One version missed is one sentence. More are the short history they are,
-  // newest first, each under the version that made it.
+  // Only published changes belong in the notice; internal pre-release
+  // revision numbers are not public editions.
   let described: ReactNode = null;
   if (changes.length === 1) {
     described = (
@@ -75,9 +83,6 @@ const PlusTermsNotice = () => {
       <ul id={CHANGES_ID} className="plus-terms-notice__changes">
         {changes.map(({ version, key }) => (
           <li key={version}>
-            <span className="plus-terms-notice__version">
-              {t('termsNotice.version', { version })}
-            </span>
             <span className="plus-terms-notice__change">{t(key)}</span>
           </li>
         ))}
@@ -101,7 +106,7 @@ const PlusTermsNotice = () => {
         <div className="plus-terms-notice__text">
           <strong id="plus-terms-notice-title">{t('termsNotice.title')}</strong>
           <span className="plus-terms-notice__meta">
-            {t('terms.meta', { version: notice.version, date: effective })}
+            {t('terms.meta', { version: PLUS_TERMS_EDITION, date: effective })}
           </span>
           {described}
         </div>

@@ -134,6 +134,21 @@ const plus = {
   'plus.report.sending': 'Sending…',
   'plus.report.cancel': 'Cancel',
   'plus.report.failed': 'The report could not be sent. Try again.',
+
+  'plus.welcome.title': 'Sign in to see what members make',
+  'plus.welcome.body':
+    'With an account you can browse the gallery and watch brief demos. Plus is required to download scenes to keep, play them in full, add them to your looks and create your own in the Studio.',
+  'plus.welcome.browse': 'Browse every scene members publish',
+  'plus.welcome.play': 'Play them on your music and add them to your looks',
+  'plus.welcome.studio': 'Make your own in the Studio with your AI',
+  'plus.welcome.board': 'Climb the leaderboard with the likes your scenes earn',
+  'plus.welcome.fine': 'Create an account',
+  'plus.welcome.scene.neonHorizon': 'Neon Horizon',
+  'plus.welcome.scene.nebulaHeart': 'Nebula Heart',
+  'plus.welcome.scene.hyperdrive': 'Hyperdrive',
+  'plus.welcome.scene.reefLight': 'Reef Light',
+  'plus.welcome.scene.lanternLake': 'Lantern Lake',
+  'plus.welcome.scene.prismBloom': 'Prism Bloom',
 } as const;
 
 export default plus;

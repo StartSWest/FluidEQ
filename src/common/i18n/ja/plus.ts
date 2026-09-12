@@ -132,6 +132,21 @@ const plus = {
   'plus.report.sending': '送信中…',
   'plus.report.cancel': 'キャンセル',
   'plus.report.failed': '報告を送信できませんでした。もう一度お試しください。',
+
+  'plus.welcome.title': 'サインインして、メンバーの作品を見てみましょう',
+  'plus.welcome.body':
+    'アカウントがあればギャラリーの閲覧と短いデモの視聴ができます。シーンのダウンロードと保存、全編再生、スタイルへの追加、スタジオでの作成にはPlusが必要です。',
+  'plus.welcome.browse': 'メンバーが公開したシーンをすべて見られます',
+  'plus.welcome.play': 'あなたの音楽で再生し、マイ表示に追加できます',
+  'plus.welcome.studio': 'スタジオで AI と一緒に自分のシーンを作れます',
+  'plus.welcome.board': 'シーンへのいいねでランキングを上がれます',
+  'plus.welcome.fine': 'アカウントを作成',
+  'plus.welcome.scene.neonHorizon': 'ネオンの地平線',
+  'plus.welcome.scene.nebulaHeart': '星雲の心臓',
+  'plus.welcome.scene.hyperdrive': 'ハイパードライブ',
+  'plus.welcome.scene.reefLight': 'リーフの光',
+  'plus.welcome.scene.lanternLake': 'ランタンの湖',
+  'plus.welcome.scene.prismBloom': 'プリズムの花',
 } as const;
 
 export default plus;

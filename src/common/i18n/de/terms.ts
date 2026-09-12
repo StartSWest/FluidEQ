@@ -1,10 +1,10 @@
 const terms = {
   'terms.eyebrow': 'FluidEQ Plus',
-  'terms.title': 'Bedingungen, und was die App sendet',
+  'terms.title': 'Bedingungen und Datenschutz für Plus',
   'terms.meta': 'Version {version} · Gültig seit {date}',
   'terms.intro':
-    'Alles in klaren Worten. Dem stimmen Sie mit dem Abo zu, und hier steht jede Information, die die App sendet, wann sie gesendet wird und wer sie sehen kann.',
-  'terms.link': 'Plus-Bedingungen und was die App sendet',
+    'Diese Bedingungen betreffen dein FluidEQ-Konto und Plus: Zugang, Zahlungen, geteilte Szenen und die Daten, die dieser Dienst erhält. Andere Funktionen wie Audiofreigabe, Fehlerberichte oder ein externer KI-Assistent können bei ihrer Nutzung Daten senden und sind nicht Teil dieser Liste.',
+  'terms.link': 'Bedingungen und Datenschutz für Plus',
 
   'terms.short.title': 'Die Kurzfassung',
   'terms.short.price.title': '{price}, jederzeit kündbar',
@@ -18,11 +18,11 @@ const terms = {
     'Die Rangliste ist aus, solange Sie nicht beitreten, und welche Ihrer Szenen Sie teilen, bestimmen Sie.',
   'terms.short.music.title': 'Niemals Ihre Musik',
   'terms.short.music.body':
-    'Keine Titel, Dateien, Audiodaten oder Geräte verlassen jemals Ihren Computer.',
+    'Der Plus-Dienst erhält weder deine Musik noch Titelnamen.',
 
   'terms.membership.title': 'Die Mitgliedschaft',
   'terms.membership.p1':
-    'Plus erweitert FluidEQ um Premium-Visualisierungen, das Studio zum Erstellen eigener Szenen und zum Teilen mit anderen Mitgliedern sowie die Rangliste. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen.',
+    'Mit einem Konto kannst du die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu deinen Looks hinzuzufügen und eigene im Studio zu erstellen. Plus erweitert FluidEQ um Premium-Visualisierungen, das Studio zum Erstellen eigener Szenen und zum Teilen mit anderen Mitgliedern sowie die Rangliste. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und danach wird nichts mehr abgebucht.',
   'terms.membership.p3':
@@ -42,7 +42,7 @@ const terms = {
 
   'terms.sent.title': 'Was die App sendet, und wann',
   'terms.sent.intro':
-    'Nur für die Funktionen, die Sie nutzen, und immer über eine verschlüsselte Verbindung. Ohne Konto sind die einzigen Anfragen die nach der öffentlichen Liste der Plus-Looks und nach den öffentlichen Themen des Forum-Tabs, und sie enthalten nichts über Sie.',
+    'Diese Liste beschreibt Konto- und Plus-Anfragen über verschlüsselte Verbindungen. Der öffentliche Katalog benötigt kein Konto. Hostinganbieter können Anfragedaten einschließlich IP-Adressen protokollieren. Das Forum nutzt GitHub separat, wie unten beschrieben.',
   'terms.sent.when': 'Wann',
   'terms.sent.who': 'Wer es sehen kann',
   'terms.sent.signIn.what': 'Ihre E-Mail und Ihr Passwort',
@@ -54,7 +54,7 @@ const terms = {
   'terms.sent.membership.when':
     'Beim Start der App, wenn Sie an den Computer zurückkehren und wenn Sie eine Plus-Funktion öffnen',
   'terms.sent.membership.who':
-    'Nichts wird gespeichert. Der Server antwortet nur, ob Ihre Mitgliedschaft aktiv ist.',
+    'Der Dienst prüft deine Mitgliedschaft und verwaltet Gerätesitzungen, um das Limit von 5 Computern durchzusetzen.',
   'terms.sent.payment.what':
     'Ihre Zahlungs-E-Mail und der Status der Mitgliedschaft, gesendet von Buy Me a Coffee',
   'terms.sent.payment.when': 'Wenn Sie bezahlen, verlängern oder kündigen',
@@ -64,12 +64,13 @@ const terms = {
   'terms.sent.looks.when':
     'Wenn Plus-Looks heruntergeladen oder aktualisiert werden, und wenn die App prüft, welche geteilten Szenen entfernt wurden',
   'terms.sent.looks.who':
-    'Nichts wird gespeichert. Jeder Look ist signiert, und Ihr Computer prüft die Signatur, bevor er ihn abspielt.',
-  'terms.sent.catalogue.what': 'Nichts über Sie',
+    'Jeder Look ist signiert, und Ihr Computer prüft die Signatur, bevor er ihn abspielt.',
+  'terms.sent.catalogue.what':
+    'Anfrage für den öffentlichen Katalog (ohne Konto)',
   'terms.sent.catalogue.when':
     'Wenn die Look-Auswahl zeigt, welche Plus-Looks es gibt, mit oder ohne Konto',
   'terms.sent.catalogue.who':
-    'Nichts wird gespeichert. Die Anfrage holt nur die öffentliche Liste der Looks.',
+    'Die Anfrage holt nur die öffentliche Liste der Looks.',
   'terms.sent.profile.what': 'Ihr Handle und Anzeigename',
   'terms.sent.profile.when': 'Wenn Sie sie in der Rangliste wählen',
   'terms.sent.profile.who':
@@ -110,14 +111,14 @@ const terms = {
   'terms.sent.forum.who':
     'GitHub, nach seinen eigenen Bedingungen. Beiträge sind in den GitHub Discussions des Projekts öffentlich; der Server von FluidEQ erhält sie nie.',
 
-  'terms.never.title': 'Was Ihren Computer nie verlässt',
+  'terms.never.title': 'Was der Plus-Dienst nicht erfasst',
   'terms.never.p1':
     'Ihr Audio und alles darüber, was Sie hören: Titel, Interpreten, Dateien, Ordner und Playlists.',
   'terms.never.p2': 'Ihre EQ-Einstellungen, Presets und Profile.',
   'terms.never.p3':
     'Ihre Audiogeräte und deren Namen sowie die anderen Apps auf Ihrem Computer.',
   'terms.never.p4':
-    'Die Szenen, die Sie erstellen, und Ihre Studio-Ordner, solange Sie keine Szene exportieren oder veröffentlichen.',
+    'Deine Studio-Szenen bleiben auf deinem Computer, sofern du sie nicht exportierst, veröffentlichst oder mit einem anderen Werkzeug wie deinem KI-Assistenten teilst.',
 
   'terms.protect.title': 'Wie es geschützt ist',
   'terms.protect.p1': 'Jede Anfrage wird verschlüsselt übertragen.',
@@ -126,7 +127,7 @@ const terms = {
   'terms.protect.p3':
     'Rangliste und „Visualizer“ zeigen Handles und Anzeigenamen, niemals E-Mail-Adressen oder Konto-IDs.',
   'terms.protect.p4':
-    'Der Macher betreibt den Server und kann sehen, was er speichert, um ihn am Laufen zu halten und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft, weitergegeben oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
+    'Der Macher betreibt den Server und kann sehen, was er speichert, um ihn am Laufen zu halten und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
   'terms.protect.p5':
     'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Zahlungen laufen über Buy Me a Coffee. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p6':
@@ -168,7 +169,7 @@ const terms = {
   'terms.scenes.p1':
     'Eine Szene, die Sie im Studio erstellen, gehört Ihnen. FluidEQ besitzt sie nicht, und die GPL, unter der FluidEQ steht, gilt nicht für sie.',
   'terms.scenes.p2':
-    'Sie bleibt auf Ihrem Computer, bis Sie sich entscheiden, sie zu exportieren. Nichts, was Sie erstellen, wird geteilt, solange Sie es nicht teilen.',
+    'Deine Studio-Szenen bleiben auf deinem Computer, sofern du sie nicht exportierst, veröffentlichst oder mit einem anderen Werkzeug wie deinem KI-Assistenten teilst.',
   'terms.scenes.p3':
     'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen, die Kommentare aus ihrem Shader zu entfernen und sie mit Ihrem Namen zu signieren, damit andere Plus-Mitglieder sie abspielen und sehen können, dass sie von Ihnen ist. Das ist die ganze Erlaubnis. Der Macher wird Ihre Szene nicht verkaufen, nicht für Werbung nutzen und nicht ohne Ihre Zustimmung zu einem der Plus-Looks machen, und nichts davon hindert Sie daran, mit Ihrer eigenen Arbeit sonst etwas zu tun.',
   'terms.scenes.p4':

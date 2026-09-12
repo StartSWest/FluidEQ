@@ -1,10 +1,10 @@
 const terms = {
   'terms.eyebrow': 'FluidEQ Plus',
-  'terms.title': '条款，以及应用会发送什么',
+  'terms.title': 'Plus条款与隐私',
   'terms.meta': '第 {version} 版 · 自 {date} 起生效',
   'terms.intro':
-    '全部用直白的话写成。这是你订阅时同意的内容，并逐项列出应用发送的每一条信息、何时发送、谁能看到。',
-  'terms.link': 'Plus 条款，以及应用会发送什么',
+    '这些条款涵盖FluidEQ账户和Plus：访问权限、付款、共享场景及本服务收到的数据。音频共享、发送错误报告或使用外部AI助手等其他功能可能在使用时发送数据，不在此列表范围内。',
+  'terms.link': 'Plus条款与隐私',
 
   'terms.short.title': '简要版本',
   'terms.short.price.title': '{price}，随时可取消',
@@ -16,11 +16,11 @@ const terms = {
   'terms.short.choice.body':
     '除非你加入，否则排行榜是关闭的；分享哪些自己的场景，也由你决定。',
   'terms.short.music.title': '绝不涉及你的音乐',
-  'terms.short.music.body': '曲目名称、文件、音频和设备永远不会离开你的电脑。',
+  'terms.short.music.body': 'Plus服务不会接收你的音乐或歌曲名称。',
 
   'terms.membership.title': '会员',
   'terms.membership.p1':
-    'Plus 为 FluidEQ 增加高级可视化效果、用来创作自己的场景并与其他会员分享的工作室，以及排行榜。价格为 {price}，在每个已付费周期结束时自动续订，直到你取消。',
+    '有账户即可浏览图库并观看简短演示。下载并保留场景、完整播放、添加到样式和在工作室中创建自己的场景都需要Plus。 Plus 为 FluidEQ 增加高级可视化效果、用来创作自己的场景并与其他会员分享的工作室，以及排行榜。价格为 {price}，在每个已付费周期结束时自动续订，直到你取消。',
   'terms.membership.p2':
     '付款由 Buy Me a Coffee 按其自身条款处理。FluidEQ 从不接触你的银行卡或银行信息。你可以随时在 Buy Me a Coffee 上取消：Plus 会保持到已付费周期结束，之后不再扣费。',
   'terms.membership.p3':
@@ -40,7 +40,7 @@ const terms = {
 
   'terms.sent.title': '应用会发送什么，以及何时发送',
   'terms.sent.intro':
-    '只为你使用的功能发送，并且始终通过加密连接。没有账户时，仅有的请求是获取公开的 Plus 样式列表和“论坛”标签页的公开话题，其中不含任何关于你的信息。',
+    '以下列出了账户和Plus通过加密连接发送的请求。公共目录无需账户。托管服务商可能记录请求元数据，包括IP地址。论坛单独使用GitHub，详情如下。',
   'terms.sent.when': '何时',
   'terms.sent.who': '谁能看到',
   'terms.sent.signIn.what': '你的邮箱和密码',
@@ -49,7 +49,8 @@ const terms = {
   'terms.sent.membership.what': '你的登录令牌',
   'terms.sent.membership.when':
     '应用启动时、你回到电脑前时，以及打开 Plus 功能时',
-  'terms.sent.membership.who': '不保存任何内容。服务器只回答你的会员是否有效。',
+  'terms.sent.membership.who':
+    '服务会验证会员资格并维护设备会话，以执行最多5台电脑的限制。',
   'terms.sent.payment.what': '你的付款邮箱和会员状态，由 Buy Me a Coffee 发送',
   'terms.sent.payment.when': '你付款、续订或取消时',
   'terms.sent.payment.who':
@@ -57,12 +58,11 @@ const terms = {
   'terms.sent.looks.what': '你的登录令牌',
   'terms.sent.looks.when':
     '下载或更新 Plus 样式时，以及应用检查哪些分享的场景已被下架时',
-  'terms.sent.looks.who':
-    '不保存任何内容。每个样式都带有签名，你的电脑会在播放前校验签名。',
-  'terms.sent.catalogue.what': '不含任何关于你的信息',
+  'terms.sent.looks.who': '每个样式都带有签名，你的电脑会在播放前校验签名。',
+  'terms.sent.catalogue.what': '公共目录请求（无需账户）',
   'terms.sent.catalogue.when':
     '样式选择器显示有哪些 Plus 样式时，无论是否有账户',
-  'terms.sent.catalogue.who': '不保存任何内容。该请求只获取公开的样式列表。',
+  'terms.sent.catalogue.who': '该请求只获取公开的样式列表。',
   'terms.sent.profile.what': '你的用户名和显示名称',
   'terms.sent.profile.when': '你在排行榜上选择它们时',
   'terms.sent.profile.who':
@@ -99,13 +99,13 @@ const terms = {
   'terms.sent.forum.who':
     'GitHub，按其自身条款处理。帖子在本项目的 GitHub Discussions 中公开；FluidEQ 的服务器从不接收它们。',
 
-  'terms.never.title': '永远不会离开你电脑的内容',
+  'terms.never.title': 'Plus服务不收集哪些数据',
   'terms.never.p1':
     '你的音频，以及关于你所听内容的一切：曲目名称、艺人、文件、文件夹和播放列表。',
   'terms.never.p2': '你的 EQ 设置、预设和配置文件。',
   'terms.never.p3': '你的音频设备及其名称，以及你电脑上的其他应用。',
   'terms.never.p4':
-    '你创作的场景和你的工作室文件夹，除非你导出或发布某个场景。',
+    '工作室场景保存在你的电脑上，除非你选择导出、发布或与AI助手等其他工具共享。',
 
   'terms.protect.title': '如何保护',
   'terms.protect.p1': '每个请求在传输中都经过加密。',
@@ -114,7 +114,7 @@ const terms = {
   'terms.protect.p3':
     '排行榜和“可视化”只显示用户名和显示名称，从不显示邮箱或账户 ID。',
   'terms.protect.p4':
-    '服务器由作者运营，作者可以看到其中保存的内容，用于维持运行和管理会员发布的内容。任何内容都不会被出售、分享或用于广告，也没有跟踪或统计分析。',
+    '服务器由作者运营，作者可以看到其中保存的内容，用于维持运行和管理会员发布的内容。任何内容都不会被出售或用于广告，也没有跟踪或统计分析。',
   'terms.protect.p5':
     '服务运行在 Supabase 上（登录、数据库和文件），邮件通过 Resend 发送；付款经由 Buy Me a Coffee。每一方只获得其环节所需的信息。',
   'terms.protect.p6':
@@ -156,7 +156,7 @@ const terms = {
   'terms.scenes.p1':
     '你在工作室中创作的场景归你所有。FluidEQ 不拥有它，适用于 FluidEQ 的 GPL 也不适用于它。',
   'terms.scenes.p2':
-    '在你选择导出之前，它只保存在你的电脑上。你不分享，你创作的任何内容就不会被分享。',
+    '工作室场景保存在你的电脑上，除非你选择导出、发布或与AI助手等其他工具共享。',
   'terms.scenes.p3':
     '导出场景时，你允许 FluidEQ 检查它、移除其着色器中的注释，并以你的名字为它签名，让其他 Plus 会员可以播放它，并看到它是你创作的。这就是全部的许可。未经你事先同意，作者不会出售你的场景、将其用于广告，或把它变成 Plus 样式之一；你对自己的作品做其他任何事情也不受限制。',
   'terms.scenes.p4':
