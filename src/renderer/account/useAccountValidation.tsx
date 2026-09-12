@@ -60,14 +60,17 @@ export default function useAccountValidation(
   const message = (name: TField) => {
     const error = errors[name];
     return (
-      <span
-        className="account__error account-field__error"
-        id={`${ids}-${name}-error`}
-        aria-live="polite"
-      >
-        {touched[name] && error
-          ? t(error, { count: MIN_PASSWORD_LENGTH })
-          : null}
+      <span className="account__error account-field__error">
+        <span
+          className="account-field__error-size"
+          aria-hidden="true"
+          data-message={error ? t(error, { count: MIN_PASSWORD_LENGTH }) : ''}
+        />
+        <span id={`${ids}-${name}-error`} aria-live="polite">
+          {touched[name] && error
+            ? t(error, { count: MIN_PASSWORD_LENGTH })
+            : null}
+        </span>
       </span>
     );
   };

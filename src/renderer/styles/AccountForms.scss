@@ -97,9 +97,22 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Blur feedback must not move the submit button between pointer-down and click.
+// Measure the actual translated error before blur, rather than reserving two
+// empty lines per field. Revealing it must not move the submit button.
 .account-field__error {
-  min-height: 3.1em;
+  display: grid;
+
+  > span {
+    grid-area: 1 / 1;
+  }
+}
+
+.account-field__error-size {
+  visibility: hidden;
+
+  &::before {
+    content: attr(data-message);
+  }
 }
 
 .account-field__label {
