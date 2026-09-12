@@ -26,6 +26,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
+import * as accountConfig from '../../common/accountConfig';
 import {
   DISCLAIMER_ACCEPTED_KEY,
   buildAcceptance,
@@ -42,13 +43,29 @@ import {
   engineInstallsNeeded,
   prereqBannerEngine,
 } from '../../renderer/utils/audioEngineApi';
-import { setGraphView } from '../../renderer/utils/graphStyle';
+import {
+  getGraphWaveHidden,
+  setGraphContents,
+  setGraphView,
+} from '../../renderer/utils/graphStyle';
+
+jest.mock('../../renderer/community/CommunityPanel', () => ({
+  __esModule: true,
+  default: function Gallery({ onShowGraph }: { onShowGraph: () => void }) {
+    return (
+      <button type="button" onClick={onShowGraph}>
+        Play gallery scene
+      </button>
+    );
+  },
+}));
 
 describe('App', () => {
   afterEach(async () => {
     await act(async () => {
       cleanup();
     });
+    jest.restoreAllMocks();
   });
   const setWindowFullScreen = jest.fn(async (next: boolean) => next);
   /** What the window says on start-up, and the way to make it say more. */
@@ -294,6 +311,42 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
     await act(async () => Promise.resolve());
+  });
+
+  it('opens EQ Bands and enables its closed visualizer when the gallery requests playback', async () => {
+    jest.spyOn(accountConfig, 'isAccountConfigured').mockReturnValue(true);
+    window.localStorage.setItem('fluideq.workspaceTab', 'presets');
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ eq: false, presets: false, community: false }),
+    );
+    setGraphContents('curves');
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Plus' }));
+    expect(container.querySelector('.graph-wrapper')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Play gallery scene' }));
+    expect(screen.getByRole('tab', { name: 'EQ' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(
+      container.querySelector('.workspace-tab-panel--eq'),
+    ).toBeInTheDocument();
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    expect(getGraphWaveHidden()).toBe(false);
+    await waitFor(() => {
+      expect(window.localStorage.getItem('fluideq.workspaceTab')).toBe('eq');
+      expect(
+        JSON.parse(
+          window.localStorage.getItem('fluideq.graphVisibilityByTab')!,
+        ),
+      ).toEqual({
+        eq: true,
+        presets: false,
+        community: false,
+      });
+    });
   });
 
   it('uses the media surface for its control and graph fullscreen for Ctrl+F', async () => {

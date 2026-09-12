@@ -9,6 +9,7 @@ import {
   memberSceneFingerprint,
 } from '../../../main/memberScenes/store';
 import { createScenePackStore } from '../../../main/scenePackStore';
+import { writeSceneCache } from '../../../main/sceneCacheFile';
 import { trustScenePackKeyForTesting } from '../../../main/scenePackVerify';
 import {
   memberPack,
@@ -41,6 +42,8 @@ const ownFile = () =>
 const importedFile = () =>
   path.join(root, 'member-scenes', 'imported', SOMEONE, 'neon-city.json');
 const officialFile = () =>
+  path.join(root, 'scene-packs', 'packs', 'neon-city.pack.enc');
+const legacyOfficialFile = () =>
   path.join(root, 'scene-packs', 'packs', 'neon-city.pack.json');
 const seed = (file: string, value: unknown) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -87,9 +90,10 @@ it('encrypts official, imported and own graph copies and reloads them offline af
 it('migrates all three existing cache types without changing scene identity or losing withdrawn copies', () => {
   seed(ownFile(), { schema: 1, authorId: ME, pack: memberPack() });
   seed(importedFile(), signedEnvelope(memberPayload()));
-  seed(officialFile(), officialEnvelope());
+  seed(legacyOfficialFile(), officialEnvelope());
   expect(createMemberSceneStore({ userDataDir: root }).list()).toHaveLength(2);
   expect(createScenePackStore({ userDataDir: root }).list()).toHaveLength(1);
+  expect(fs.existsSync(legacyOfficialFile())).toBe(false);
   [ownFile(), importedFile(), officialFile()].forEach((file) => {
     expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toHaveProperty(
       'encrypted',
@@ -238,4 +242,71 @@ it('refuses the Linux plaintext key-store fallback', () => {
   } finally {
     Object.defineProperty(process, 'platform', original);
   }
+});
+
+it('moves the first encrypted format out of the namespace old readers delete', () => {
+  writeSceneCache(
+    legacyOfficialFile(),
+    'official/neon-city',
+    officialEnvelope(),
+  );
+  const store = createScenePackStore({ userDataDir: root });
+  expect(store.load('neon-city')).toEqual(memberPack());
+  expect(fs.existsSync(legacyOfficialFile())).toBe(false);
+  expect(fs.existsSync(officialFile())).toBe(true);
+  // The old reader enumerates only *.pack.json, so it cannot see ciphertext.
+  expect(
+    fs
+      .readdirSync(path.dirname(officialFile()))
+      .filter((name) => name.endsWith('.pack.json')),
+  ).toEqual([]);
+  expect(createScenePackStore({ userDataDir: root }).load('neon-city')).toEqual(
+    memberPack(),
+  );
+});
+
+it('preserves a legacy official copy when relocation fails and retries offline', () => {
+  seed(legacyOfficialFile(), officialEnvelope());
+  const before = fs.readFileSync(legacyOfficialFile());
+  const rename = jest.spyOn(fs, 'renameSync').mockImplementation(() => {
+    throw new Error('disk full');
+  });
+  expect(
+    createScenePackStore({ userDataDir: root }).load('neon-city'),
+  ).toBeUndefined();
+  expect(fs.readFileSync(legacyOfficialFile())).toEqual(before);
+  expect(fs.existsSync(officialFile())).toBe(false);
+  rename.mockRestore();
+  expect(createScenePackStore({ userDataDir: root }).load('neon-city')).toEqual(
+    memberPack(),
+  );
+  expect(fs.existsSync(legacyOfficialFile())).toBe(false);
+});
+
+it('never falls back to a stale legacy copy when protected ciphertext is locked', () => {
+  const store = createScenePackStore({ userDataDir: root });
+  store.adopt(
+    [{ id: 'neon-city', version: 1, envelope: officialEnvelope() }],
+    true,
+  );
+  seed(legacyOfficialFile(), officialEnvelope());
+  jest.spyOn(safeStorage, 'decryptString').mockImplementation(() => {
+    throw new Error('locked');
+  });
+  expect(store.load('neon-city')).toBeUndefined();
+  expect(fs.existsSync(officialFile())).toBe(true);
+});
+
+it('removes both names so a legacy copy cannot resurrect an explicitly removed scene', () => {
+  const store = createScenePackStore({ userDataDir: root });
+  store.adopt(
+    [{ id: 'neon-city', version: 1, envelope: officialEnvelope() }],
+    true,
+  );
+  seed(legacyOfficialFile(), officialEnvelope());
+  expect(store.list()).toHaveLength(1);
+  expect(store.remove('neon-city')).toBe(true);
+  expect(fs.existsSync(officialFile())).toBe(false);
+  expect(fs.existsSync(legacyOfficialFile())).toBe(false);
+  expect(createScenePackStore({ userDataDir: root }).list()).toEqual([]);
 });

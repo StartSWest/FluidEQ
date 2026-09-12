@@ -60,6 +60,7 @@ import {
   type TAccountPanelPage,
 } from './account/accountPanel';
 import CommunityPanel from './community/CommunityPanel';
+import showGalleryGraph from './plus/showGalleryGraph';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import ProcessesDialog from './components/ProcessesDialog';
@@ -2675,7 +2676,15 @@ const AppContent = () => {
               >
                 <CommunityPanel
                   onSignIn={() => setAccountDialogPage('home')}
-                  onShowGraph={() => selectTopWorkspaceTab('eq')}
+                  onShowGraph={() =>
+                    showGalleryGraph(() => {
+                      setGraphVisibilityByTab((current) => ({
+                        ...current,
+                        eq: true,
+                      }));
+                      selectTopWorkspaceTab('eq');
+                    })
+                  }
                 />
               </div>
             )}

@@ -236,7 +236,7 @@ describe('the scene pack store', () => {
       directory,
       'scene-packs',
       'packs',
-      'aurora.pack.json',
+      'aurora.pack.enc',
     );
     const envelope = seal(payloadFor('aurora'));
     const forged = Buffer.from(

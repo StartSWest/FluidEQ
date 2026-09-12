@@ -717,6 +717,12 @@ export const toggleGraphWave = () => {
  */
 export const getGraphWaveHidden = () => waveSetting.get();
 
+/** An explicit play action must enable, never toggle off, the visualizer. */
+export const showGraphWave = () => {
+  setWaveHidden(false);
+  cleanSetting.set(false);
+};
+
 const subscribeWave = (listener: () => void) => {
   waveListeners.add(listener);
   return () => {

@@ -25,6 +25,16 @@ Existing Plus entitlement rules still apply. Unpublishing does not erase the
 copies already added. Losing the OS profile/key store can make a cache unreadable;
 an encrypted cache is not a portable project backup.
 
+Official encrypted files use `.pack.enc`; `.pack.json` is only a migration
+source. Older versions enumerate and delete unrecognized `.pack.json` files,
+so storing ciphertext at that old name would destroy offline copies after a
+downgrade. Both plaintext and the first encrypted format migrate into the new
+name, with the source removed only after an atomic encrypted write succeeds.
+An existing protected copy takes precedence, even when its key is locked;
+there is no fallback to a stale legacy file. Explicit removal removes both
+names. Member readers already retain unrecognized files, so their encrypted
+own/imported paths do not need this change.
+
 ## Security boundary
 
 This is **encryption at rest, not an anti-copy guarantee**. There is no universal
@@ -37,5 +47,28 @@ source in memory. A user controlling that process can extract it. See
 This change does not alter Supabase storage policies, the signed network package,
 the preview API, or the rights granted by publication terms. In particular, it
 does not prevent an authorized API caller from obtaining the currently served
-package. Server-side access hardening and previews that do not deliver shaders
-are separate work; neither should be represented as solved by local encryption.
+package. Live previews remain client-rendered by product decision: no video,
+extra remote-rendering service or duplicate preview files. Signed-in non-Plus
+accounts can therefore obtain a published preview's shader as well. The ten
+seconds and Add-to-graph restriction are app behavior, not a server-enforced
+anti-copy boundary. Requiring Plus for the same payload would remove those
+live previews; obscuring URLs or rewrapping the payload does not fix that.
+
+## Access and storage review (2026-09-12)
+
+Reviewed the repository policies and publishing handlers, not a fresh live
+database dump. Anonymous preview access is revoked; the member bucket is
+private. Member reads require a published row and exclude blocked scenes and
+banned authors. Official publishing requires a server-managed publisher
+capability. Publishing/signing requires paid entitlement, accepted terms,
+member-source validation and an account that is not banned. The app rechecks
+the account and entitlement before installing a downloaded scene, and verifies
+the signed author and scene ID. None of these checks make a bearer token
+exclusive to the unmodified app.
+
+Existing publication limits remain: 64 KiB shader, 6 MiB embedded WebP artwork
+(bounded dimensions), 512 KiB gallery cover, and 10 MiB total publishing request.
+Images are WebP; updates overwrite the same object paths instead of storing a
+new full scene per version. No video objects or new storage requirements are
+introduced by the cache/navigation fix. The encrypted offline copies live on
+the user's computer, not as additional Supabase objects.

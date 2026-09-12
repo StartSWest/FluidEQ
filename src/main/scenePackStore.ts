@@ -131,7 +131,11 @@ export const createScenePackStore = ({
   /** Pack id → why the renderer could not run it. */
   let quarantine = readJsonRecord(quarantinePath);
 
-  const packPath = (id: string) => path.join(packsDir, `${id}.pack.json`);
+  // Older builds delete anything they cannot parse at *.pack.json. Keep new
+  // ciphertext outside that namespace, including when upgrading the first
+  // encrypted-cache build which still wrote to the old name.
+  const packPath = (id: string) => path.join(packsDir, `${id}.pack.enc`);
+  const legacyPath = (id: string) => path.join(packsDir, `${id}.pack.json`);
 
   /**
    * Read, decrypt and verify one cached envelope. Invalid signed content is
@@ -139,36 +143,56 @@ export const createScenePackStore = ({
    * Newer contracts are encrypted too, but withheld by list/load below.
    */
   const readVerified = (id: string): IScenePack | undefined => {
-    return readSceneCache(packPath(id), `official/${id}`, (raw) => {
-      if (!isScenePackEnvelope(raw)) {
-        fs.rmSync(packPath(id), { force: true });
-        return undefined;
+    const file = fs.existsSync(packPath(id)) ? packPath(id) : legacyPath(id);
+    const verified = readSceneCache(
+      file,
+      `official/${id}`,
+      (raw) => {
+        if (!isScenePackEnvelope(raw)) {
+          fs.rmSync(file, { force: true });
+          return undefined;
+        }
+        const payload = verifyScenePackEnvelope(raw);
+        if (!payload) {
+          logger?.warn(`Scene pack ${id} failed verification and was removed.`);
+          fs.rmSync(file, { force: true });
+          return undefined;
+        }
+        const pack = parseScenePackPayload(payload);
+        if (!pack || pack.id !== id) {
+          fs.rmSync(file, { force: true });
+          return undefined;
+        }
+        // A pack written for a newer uniform contract would compile against
+        // uniforms this build does not declare. Hold it rather than offer it; the
+        // next app update will speak its contract.
+        return pack;
+      },
+      packPath(id),
+    );
+    if (verified && file === packPath(id) && fs.existsSync(legacyPath(id))) {
+      // Retry cleanup after an interrupted migration. Never use an older copy
+      // to bypass a locked or damaged protected file.
+      try {
+        fs.rmSync(legacyPath(id));
+      } catch {
+        logger?.warn(`Scene pack ${id}: legacy cache cleanup will be retried.`);
       }
-      const payload = verifyScenePackEnvelope(raw);
-      if (!payload) {
-        logger?.warn(`Scene pack ${id} failed verification and was removed.`);
-        fs.rmSync(packPath(id), { force: true });
-        return undefined;
-      }
-      const pack = parseScenePackPayload(payload);
-      if (!pack || pack.id !== id) {
-        fs.rmSync(packPath(id), { force: true });
-        return undefined;
-      }
-      // A pack written for a newer uniform contract would compile against
-      // uniforms this build does not declare. Hold it rather than offer it; the
-      // next app update will speak its contract.
-      return pack;
-    });
+    }
+    return verified;
   };
 
   const heldIds = (): string[] => {
     try {
-      return fs
-        .readdirSync(packsDir)
-        .filter((name) => name.endsWith('.pack.json'))
-        .map((name) => name.slice(0, -'.pack.json'.length))
-        .filter((id) => ID.test(id));
+      return Array.from(
+        new Set(
+          fs
+            .readdirSync(packsDir)
+            .filter((name) => /\.pack\.(json|enc)$/.test(name))
+            .map((name) => name.replace(/\.pack\.(json|enc)$/, ''))
+            .filter((id) => ID.test(id)),
+        ),
+      );
     } catch {
       return [];
     }
@@ -299,6 +323,7 @@ export const createScenePackStore = ({
       writeAtomically(removedPath, JSON.stringify(next));
       removed = next;
       fs.rmSync(packPath(id), { force: true });
+      fs.rmSync(legacyPath(id), { force: true });
       return true;
     },
 

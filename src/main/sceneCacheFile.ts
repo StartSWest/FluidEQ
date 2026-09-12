@@ -70,6 +70,7 @@ export const readSceneCache = <T>(
   file: string,
   scope: string,
   decode: (value: unknown) => T | undefined,
+  destination = file,
 ): T | undefined => {
   try {
     if (!secureEncryptionAvailable()) {
@@ -98,13 +99,21 @@ export const readSceneCache = <T>(
       if (!isRecord(clear) || clear.scope !== scope) {
         return undefined;
       }
-      return decode(clear.value);
+      const decoded = decode(clear.value);
+      if (decoded !== undefined && destination !== file) {
+        writeSceneCache(destination, scope, clear.value);
+        fs.rmSync(file);
+      }
+      return decoded;
     }
     const decoded = decode(stored);
     if (decoded === undefined) {
       return undefined;
     }
-    writeSceneCache(file, scope, stored);
+    writeSceneCache(destination, scope, stored);
+    if (destination !== file) {
+      fs.rmSync(file);
+    }
     return decoded;
   } catch {
     return undefined;
