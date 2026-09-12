@@ -20,6 +20,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'Layouts incluídos',
+  'eq.layouts.saved': 'Meus designs',
+  'eq.layouts.empty':
+    'Salve as frequências e Q das bandas, não os ganhos nem o modo EQ.',
+  'eq.layouts.loading': 'Carregando designs…',
+  'eq.layouts.name': 'Nome do design',
+  'eq.layouts.duplicate': 'Esse nome já está em uso. Escolha outro.',
+  'eq.layouts.update': 'Atualizar salvo',
+  'eq.layouts.saveNew': 'Salvar design…',
+  'eq.layouts.error':
+    'Não foi possível atualizar seus designs. Tente novamente.',
+  'eq.layouts.clearTitle': 'Limpar EQ?',
+  'eq.layouts.clearWarning':
+    'Definir o ganho de cada banda em 0 dB. Manter a quantidade de bandas, frequências, Q, modo EQ e pré-amplificador atuais.',
+  'eq.layouts.deleteNamed': 'Excluir “{name}”',
+  'eq.layouts.deleteWarning':
+    'Excluir “{name}” dos designs salvos? Seu EQ atual permanece igual.',
+  'eq.layouts.delete': 'Excluir design',
+  'eq.band.resetGainHint': 'Ctrl/⌘-clique em um controle para zerar seu ganho.',
   'eq.mode.phase': 'Fase',
   'eq.mode.minimumPhase': 'Mínima',
   'eq.mode.linearPhase': 'Linear',

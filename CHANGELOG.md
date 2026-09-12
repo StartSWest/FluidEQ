@@ -15,6 +15,13 @@ controls and a consistent look for dialogs and menus.
 
 ### New
 
+- **Your own band designs.** Save, update and delete named frequency/Q layouts
+  in the band menu. Designs do not store gains or EQ mode; loading one starts
+  with flat gains. The EQ badge shows the selected design.
+- **Safer EQ clearing and finer tuning.** Clear EQ asks first and only flattens
+  gains, keeping the current band count, frequencies, Q and preamp. Ctrl-click
+  (Command-click on macOS) resets one slider. Frequency knobs move more gently,
+  and the band menu no longer briefly shrinks when reopened.
 - **An optional account.** **Account** in the actions menu opens a small
   panel: sign in with your email and password, or create an account and type
   the six-digit code that arrives by email. Forgot the password? A code goes

@@ -37,8 +37,11 @@ import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
+import { useTranslation } from '../utils/I18nContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
+
+type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
 interface IFrequencyBandProps {
   filter: IFilter;
@@ -80,6 +83,7 @@ const FrequencyBand = forwardRef(
     // audible as steps while a band was dragged with music playing.
     const INTERVAL = 50;
     const { setGlobalError, dispatchFilter } = useFluidEqContext();
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
@@ -112,7 +116,8 @@ const FrequencyBand = forwardRef(
     }, [isDeleteArmed]);
     // *** Define functions for updating filter values and obtain throttled versions of them  ***
     const normalSetGain = useCallback(
-      async (newValue: number) => {
+      async (action: TGainAction) => {
+        const newValue = action.kind === 'reset' ? 0 : action.value;
         /*
       Always dispatch first so that we don't see jitter in the sliders.
       This is because dispatch will trigger the ui rerender and ensure user inputs do not get
@@ -125,7 +130,7 @@ const FrequencyBand = forwardRef(
       2nd setGain finishes and we dispatch again. Another jitter occurs.
       Note that the final UI state is correct, but the ui changes are strange.
     */
-        if (onGainChange) {
+        if (action.kind === 'set' && onGainChange) {
           await onGainChange(filter.id, newValue);
           return;
         }
@@ -148,7 +153,7 @@ const FrequencyBand = forwardRef(
     const handleGainSubmit = useCallback(
       async (newValue: number) => {
         try {
-          await throttleSetGain(newValue);
+          await throttleSetGain({ kind: 'set', value: newValue });
         } catch (e) {
           setGlobalError(e as ErrorDescription);
         }
@@ -161,6 +166,14 @@ const FrequencyBand = forwardRef(
         NO_GAIN_FILTER_TYPES.some((filterType) => filterType === filter.type),
       [filter.type],
     );
+
+    const resetGain = async () => {
+      try {
+        await throttleSetGain({ kind: 'reset' });
+      } catch (error) {
+        setGlobalError(error as ErrorDescription);
+      }
+    };
 
     const onRemoveEqualizerSlider = async () => {
       if (isRemoveDisabled) {
@@ -186,7 +199,22 @@ const FrequencyBand = forwardRef(
         ref={ref}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
-        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}${isBandEnabled(filter) ? '' : ' · off'}`}
+        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}${isBandEnabled(filter) ? '' : ' · off'} · ${t('eq.band.resetGainHint')}`}
+        onPointerDownCapture={(event) => {
+          const { target } = event;
+          if (
+            event.button !== 0 ||
+            (!event.ctrlKey && !event.metaKey) ||
+            !(target instanceof HTMLInputElement) ||
+            target.type !== 'range' ||
+            target.disabled
+          ) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          resetGain();
+        }}
         // Select before the browser starts a slider drag so any interaction
         // with this band's controls updates the selected-band editor.
         onPointerDown={(event) => {

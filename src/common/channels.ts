@@ -63,6 +63,10 @@ enum ChannelEnum {
    */
   TOGGLE_MEMORY_TRACE = 'toggleMemoryTrace',
   GET_FILTER_COUNT = 'getFilterCount',
+  GET_BAND_DESIGNS = 'getBandDesigns',
+  SAVE_BAND_DESIGN = 'saveBandDesign',
+  APPLY_BAND_DESIGN = 'applyBandDesign',
+  DELETE_BAND_DESIGN = 'deleteBandDesign',
   ADD_FILTER = 'addFilter',
   REMOVE_FILTER = 'removeFilter',
   LOAD_PRESET = 'loadPreset',

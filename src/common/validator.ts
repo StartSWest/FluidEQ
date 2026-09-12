@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Heavily modified from the validator generated from @rkesters/typescript-json-validator
 import { FilterTypeEnum } from './constants';
+import { BAND_DESIGN_SCHEMA } from './bandDesigns';
 
 const Ajv = require('ajv');
 
@@ -117,6 +118,7 @@ const IStateSchema = {
       type: 'boolean',
     },
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
@@ -292,6 +294,7 @@ const IPresetSchemaV2 = {
       type: 'boolean',
     },
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],

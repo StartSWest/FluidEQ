@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { serializePreset, serializeState } from './apoRender';
+import { normalizeBandDesign } from '../common/bandDesigns';
 import {
   forgetPath,
   peekScheduled,
@@ -322,6 +323,7 @@ export const fetchSettings = (settingsDir: string) => {
           ? input.isAutoPreAmpOn
           : fallbackState.isAutoPreAmpOn,
       isEqDoubleOn: input.isEqDoubleOn === true,
+      eqBandDesign: normalizeBandDesign(input.eqBandDesign),
       ...(input.curveEqMode === 'normal' ||
       input.curveEqMode === 'double' ||
       input.curveEqMode === 'studio'

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { OPRA_SOURCE_ID, TApoLayer } from 'common/constants';
+import { AutoEqFormat, OPRA_SOURCE_ID, TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqCorrection } from 'common/smartEq';
@@ -63,6 +63,9 @@ const ActiveLayers = () => {
   const strengthTimers = useRef<Record<string, number>>({});
   const {
     filters,
+    eqBandDesign,
+    eqFormat,
+    graphicEq,
     convolution,
     voicing,
     driver,
@@ -72,7 +75,6 @@ const ActiveLayers = () => {
     customFx,
     headset,
     headsetSource,
-    isFlat,
     isEnabled,
     isBlockingError,
     bypassed,
@@ -81,7 +83,6 @@ const ActiveLayers = () => {
     setVoicing,
     setDriver,
     setSmartEq,
-    setPreAmp,
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
@@ -129,8 +130,9 @@ const ActiveLayers = () => {
   const bandCount = Object.keys(filters).length;
   // Flat means no layer, however many bands are sitting there at zero.
   const hasShapedBands =
-    isFlat === false ||
-    Object.values(filters).some((f) => Math.abs(f.gain) > 0.01);
+    eqFormat === AutoEqFormat.GRAPHIC
+      ? graphicEq?.some((point) => point.gain !== 0)
+      : Object.values(filters).some((filter) => filter.gain !== 0);
   /*
    * The "(modified)" mark is gone with the attribution it qualified.
    *
@@ -410,7 +412,9 @@ const ActiveLayers = () => {
       key: 'eq',
       icon: 'model',
       label: t('eq.layers.eq'),
-      name: t('eq.layers.eq.bands', { count: String(bandCount) }),
+      name:
+        eqBandDesign?.name ??
+        t('eq.layers.eq.bands', { count: String(bandCount) }),
       /*
        * Clears the bands, like every other chip in this row clears its layer —
        * AND NOTHING ELSE, WHICH IS THE FIX.
@@ -428,7 +432,6 @@ const ActiveLayers = () => {
       clearHint: t('eq.layers.clearBands'),
       onClear: async () => {
         await clearGains();
-        setPreAmp(0);
         await refreshState();
       },
       // The purest A/B in the app: the whole tuning out, the whole tuning back.

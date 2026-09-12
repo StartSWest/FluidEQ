@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /** ----- Application Constants ----- */
 
 import { uid } from 'uid';
+import type { IBandDesign } from './bandDesigns';
 
 export const MAX_GAIN = 20;
 export const MIN_GAIN = -20;
@@ -409,6 +410,7 @@ export interface IEqImportReference {
 }
 
 export interface IState {
+  eqBandDesign?: IBandDesign;
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
   isEqDoubleOn?: boolean;
@@ -720,6 +722,7 @@ export interface IPresetV1 {
 }
 
 export interface IPresetV2 {
+  eqBandDesign?: IBandDesign;
   preAmp: number;
   filters: IFiltersMap;
   isEqDoubleOn?: boolean;

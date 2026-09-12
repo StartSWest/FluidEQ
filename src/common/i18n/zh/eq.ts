@@ -20,6 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': '内置布局',
+  'eq.layouts.saved': '我的布局',
+  'eq.layouts.empty': '仅保存频段的频率和 Q 值，不保存增益或 EQ 模式。',
+  'eq.layouts.loading': '正在加载布局…',
+  'eq.layouts.name': '布局名称',
+  'eq.layouts.duplicate': '此名称已被使用，请选择其他名称。',
+  'eq.layouts.update': '更新已保存布局',
+  'eq.layouts.saveNew': '保存布局…',
+  'eq.layouts.error': '无法更新布局，请重试。',
+  'eq.layouts.clearTitle': '清空 EQ？',
+  'eq.layouts.clearWarning':
+    '将每个频段的增益设为 0 dB。保留当前的频段数、频率、Q 值、EQ 模式和前置放大器。',
+  'eq.layouts.deleteNamed': '删除“{name}”',
+  'eq.layouts.deleteWarning':
+    '从已保存的布局中删除“{name}”？当前的 EQ 不会改变。',
+  'eq.layouts.delete': '删除布局',
+  'eq.band.resetGainHint': '按住 Ctrl/⌘ 点击滑块，将其增益重置为 0 dB。',
   'eq.mode.phase': '相位',
   'eq.mode.minimumPhase': '最小',
   'eq.mode.linearPhase': '线性',

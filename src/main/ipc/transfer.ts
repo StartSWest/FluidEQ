@@ -22,6 +22,7 @@ import path from 'path';
 import { BrowserWindow, dialog, ipcMain } from 'electron';
 import log from 'electron-log';
 import { getEqMode, getCurveEqMode } from '../../common/eqMode';
+import { normalizeBandDesign } from '../../common/bandDesigns';
 import {
   IAudioDevice,
   IDeviceProfileSettings,
@@ -292,6 +293,7 @@ export const registerTransferIpc = ({
       state.eqBandQ = imported.eqBandQ;
       state.curveBandQ = imported.curveBandQ;
       state.curveSmoothing = imported.curveSmoothing;
+      state.eqBandDesign = normalizeBandDesign(imported.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
       applyingLayer('eq');
       // These bands came from a file, so whatever the last import was named,
@@ -398,6 +400,7 @@ export const registerTransferIpc = ({
         state.eqBandQ = undefined;
         state.curveBandQ = undefined;
         state.curveSmoothing = undefined;
+        state.eqBandDesign = undefined;
         state.isFlat = false;
         state.eqImport = reference;
         applyingLayer('eq');
@@ -672,6 +675,7 @@ export const registerTransferIpc = ({
       state.eqBandQ = bundle.preset.eqBandQ;
       state.curveBandQ = bundle.preset.curveBandQ;
       state.curveSmoothing = bundle.preset.curveSmoothing;
+      state.eqBandDesign = normalizeBandDesign(bundle.preset.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = bundle.preset.voicing;
       state.driver = bundle.preset.driver;

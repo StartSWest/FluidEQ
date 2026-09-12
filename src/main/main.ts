@@ -145,6 +145,7 @@ import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
+import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
@@ -1323,6 +1324,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   eqBandQ: state.eqBandQ,
   curveBandQ: state.curveBandQ,
   curveSmoothing: state.curveSmoothing,
+  eqBandDesign: state.eqBandDesign,
   isEqDoubleOn: getEqMode(state) === 'double',
   // Without these the device-profile block is rendered from a preset that has
   // no idea they exist, and every one of the layers vanishes from the config
@@ -1462,6 +1464,7 @@ const resetEqToDefaults = () => {
   state.eqBandQ = undefined;
   state.curveBandQ = undefined;
   state.curveSmoothing = undefined;
+  state.eqBandDesign = undefined;
   /*
    * THE REFERENCE IS NOT CLEARED HERE, BECAUSE THESE ARE NOT ITS BANDS.
    *
@@ -2613,6 +2616,15 @@ registerKaraokePitch();
 // What each list names is what that half of the chain is able to reach. The
 // bands need the layout machinery because changing the band count has to
 // remember where the old ones were; the layers do not, and now cannot.
+registerBandDesignsIpc({
+  state,
+  userDataDir,
+  handleUpdateHelper,
+  handleError,
+  switchToParametricEditing,
+  captureCurrentLayout,
+});
+
 registerFiltersIpc({
   state,
   handleUpdate,
@@ -2621,7 +2633,6 @@ registerFiltersIpc({
   doesFilterIdExist,
   captureCurrentLayout,
   getStoredLayout,
-  resetEqToDefaults,
   switchToParametricEditing,
 });
 

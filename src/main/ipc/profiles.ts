@@ -21,6 +21,7 @@ import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
 import { getEqMode, getCurveEqMode } from '../../common/eqMode';
+import { normalizeBandDesign } from '../../common/bandDesigns';
 import {
   IAudioDevice,
   IDeviceProfileAssignment,
@@ -220,6 +221,7 @@ export const registerProfilesIpc = ({
       state.eqBandQ = presetSettings.eqBandQ;
       state.curveBandQ = presetSettings.curveBandQ;
       state.curveSmoothing = presetSettings.curveSmoothing;
+      state.eqBandDesign = normalizeBandDesign(presetSettings.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = presetSettings.voicing;
       state.driver = presetSettings.driver;
@@ -273,6 +275,7 @@ export const registerProfilesIpc = ({
       state.eqBandQ = baseline.eqBandQ;
       state.curveBandQ = baseline.curveBandQ;
       state.curveSmoothing = baseline.curveSmoothing;
+      state.eqBandDesign = normalizeBandDesign(baseline.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = baseline.voicing;
       state.driver = baseline.driver;

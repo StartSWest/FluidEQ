@@ -29,8 +29,6 @@ import {
 import {
   FilterTypeEnum,
   FilterTypeToLabelMap,
-  FixedBandSizeEnum,
-  FIXED_BAND_SIZES,
   IFilter,
   IFilterEdit,
   isBandEnabled,
@@ -59,10 +57,8 @@ import OverflowArrow from './components/OverflowArrow';
 import { useOverflowScroll } from './utils/useOverflowScroll';
 import {
   addEqualizerSlider,
-  clearGains,
   removeEqualizerSlider,
   setFilterValues,
-  setFixedBand,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
 import Knob from './widgets/Knob';
@@ -86,8 +82,9 @@ import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
+import BandLayoutMenu from './components/BandLayoutMenu';
+import ClearEqButton from './components/ClearEqButton';
 import FluidEngineLabel from './components/FluidEngineLabel';
-import Chevron from './icons/Chevron';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
 import ConfirmIcon from './icons/ConfirmIcon';
@@ -114,7 +111,6 @@ const MainContent = () => {
     isBlockingError,
     dispatchFilter,
     setGlobalError,
-    setPreAmp,
     selectedFilterId,
     setSelectedFilterId,
     selectedFilterIds,
@@ -143,8 +139,6 @@ const MainContent = () => {
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuHolder = useRef<HTMLSpanElement>(null);
-  const [isLayoutMenuOpen, setIsLayoutMenuOpen] = useState(false);
-  const layoutMenuHolder = useRef<HTMLSpanElement>(null);
   /**
    * On, chosen, and not held up by a switch on the other side of the screen.
    *
@@ -235,31 +229,6 @@ const MainContent = () => {
     };
   }, [isModeMenuOpen]);
 
-  // The same for the layout picker beside it.
-  useEffect(() => {
-    if (!isLayoutMenuOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (
-        !layoutMenuHolder.current?.contains(event.target as Node) &&
-        !isInsideAnchoredMenu(event.target)
-      ) {
-        setIsLayoutMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsLayoutMenuOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isLayoutMenuOpen]);
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
     [filters],
@@ -686,23 +655,6 @@ const MainContent = () => {
     }
   };
 
-  // Clearing restores the default ten-band layout with every band neutral, so
-  // the main process owns the new filter set and hands it back.
-  const clearFilterGains = async () => {
-    try {
-      const newFilters = await clearGains();
-      setPreAmp(0);
-      setSelectedFilterIds([]);
-      dispatchFilter({
-        type: FilterActionEnum.INIT,
-        filters: newFilters,
-      });
-      window.dispatchEvent(new Event('fluideq-clear-autoeq-selection'));
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  };
-
   // Absolute rather than relative, unlike the sliders above: "back to zero"
   // means the same thing for every band in the selection, and nudging a group
   // by the primary's distance from zero would leave the rest somewhere else.
@@ -736,29 +688,6 @@ const MainContent = () => {
     dispatchFilter({ type: FilterActionEnum.EDITS, edits });
     try {
       await setFilterValues(edits);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  };
-
-  /**
-   * The band counts the quick picker offers, and which one is in force.
-   *
-   * `undefined` while the EQ is on a count none of them makes -- a preset with
-   * seven bands, or a band added to a ten-band layout. The picker then names
-   * itself rather than claiming a layout that is not the one on screen.
-   */
-  const activeBandLayout = FIXED_BAND_SIZES.find(
-    (size) => Number(size) === frequencySortedFilters.length,
-  );
-
-  const handleFixedBand = (size: FixedBandSizeEnum) => async () => {
-    try {
-      const newFilters = await setFixedBand(size);
-      dispatchFilter({
-        type: FilterActionEnum.INIT,
-        filters: newFilters,
-      });
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -1162,15 +1091,7 @@ const MainContent = () => {
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
           {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-          <Button
-            ariaLabel={t('eq.clear')}
-            isDisabled={false}
-            className="small subtle"
-            handleChange={clearFilterGains}
-          >
-            <MenuIcon name="reset" className="eq-toolbar__icon" />
-            {t('eq.clear')}
-          </Button>
+          <ClearEqButton />
           <EqModeSelect />
           <Button
             ariaLabel={t('eq.addBandAria')}
@@ -1181,66 +1102,7 @@ const MainContent = () => {
             <MenuIcon name="plus" className="eq-toolbar__icon" />
             {t('eq.addBand')}
           </Button>
-          {/* One control, not five, and the same control the Smart EQ button
-              beside it is: a main half that applies what it names and a caret
-              that lists the rest. A track holding a label and four band counts
-              was the widest thing in this row by a distance and the first to
-              be sent to a second line — under about a thousand pixels the
-              toolbar broke into three ragged rows, and at 300% zoom into six.
-              It borrows `eq-mode`'s own classes rather than restating them, so
-              the two cannot drift into looking like different kinds of thing. */}
-          <span
-            className={`eq-mode is-subtle quick-layouts${
-              isLayoutMenuOpen ? ' is-open' : ''
-            }`}
-            ref={layoutMenuHolder}
-          >
-            {/* One piece, like the Voicing pick beside it: the whole face opens
-                the list and nothing on it applies anything. Re-applying the
-                layout it names is a rebuild of every band — gains, widths and
-                all — and a control whose label is the thing you are already
-                on must not be the one that throws it away. The layouts in the
-                list are the only thing that acts. Smart EQ next to it keeps
-                its divider because there the two halves do two things. */}
-            <button
-              type="button"
-              className="button small subtle eq-mode__main quick-layouts__trigger"
-              aria-label={t('eq.quickLayouts')}
-              aria-expanded={isLayoutMenuOpen}
-              onClick={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
-            >
-              <MenuIcon name="layout" className="eq-toolbar__icon" />
-              {activeBandLayout
-                ? t('eq.bandCount', { count: activeBandLayout })
-                : t('eq.quickLayouts')}
-              <Chevron />
-            </button>
-            {/* Only the layouts this button is not, the same way the mode menu
-                leaves out the mode you are already in. */}
-            <AnchoredMenu
-              anchor={layoutMenuHolder.current}
-              isOpen={isLayoutMenuOpen}
-              className="eq-mode__menu quick-layouts__menu"
-            >
-              {FIXED_BAND_SIZES.filter((size) => size !== activeBandLayout).map(
-                (size) => (
-                  <button
-                    key={`${size}-band`}
-                    type="button"
-                    onClick={() => {
-                      handleFixedBand(size)();
-                      setIsLayoutMenuOpen(false);
-                    }}
-                  >
-                    <MenuIcon name="layout" className="eq-toolbar__icon" />
-                    <span className="eq-mode__menu-name">
-                      {t('eq.bandCount', { count: size })}
-                    </span>
-                  </button>
-                ),
-              )}
-            </AnchoredMenu>
-          </span>
+          <BandLayoutMenu />
         </div>
         {/* Its own full-width row under the title and the toolbar. The bands
             below are not the whole chain, and anything else that is live is
@@ -1399,6 +1261,7 @@ const MainContent = () => {
                 value={selectedFilter.frequency}
                 min={MIN_FREQUENCY}
                 max={MAX_FREQUENCY}
+                sensitivity={0.2}
                 isDisabled={isGroupEdit}
                 // Whole hertz: what a band is stored as and what Equalizer APO
                 // is written in.

@@ -1,0 +1,122 @@
+@use 'theme' as *;
+@use 'color' as *;
+
+.band-designs__menu {
+  @include menu-surface;
+  z-index: 1000;
+  width: min(330px, calc(100vw - 16px));
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.band-designs__current {
+  overflow: hidden;
+  max-width: 140px;
+  text-overflow: ellipsis;
+}
+
+.band-designs__content {
+  display: grid;
+  gap: 10px;
+
+  h3 {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+  }
+
+  > h3:not(:first-child) {
+    margin-top: 4px;
+  }
+
+  .button {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.band-designs__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.band-designs__saved {
+  display: grid;
+  gap: 6px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.band-designs__entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.band-designs__delete {
+  align-self: center;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.band-designs__row {
+  justify-content: flex-start;
+  text-align: left;
+
+  > span {
+    min-width: 0;
+    flex: 1;
+  }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    font-size: $text-micro;
+    font-weight: $weight-regular;
+  }
+
+  > svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+}
+
+.band-designs__form {
+  display: grid;
+  gap: 8px;
+  font-size: $text-small;
+
+  input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+.band-designs__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.band-designs__hint,
+.band-designs__error {
+  margin: 0;
+  font-size: $text-small;
+  line-height: 1.5;
+  color: $text-muted;
+}
+
+.band-designs__error {
+  color: $red;
+}

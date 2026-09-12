@@ -38,6 +38,7 @@ import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
 import type { ICurveComparisonStatus } from 'common/curveComparison';
+import type { IBandDesign } from 'common/bandDesigns';
 import type {
   IAudioEngineStatus,
   IAudioRestartOutcome,
@@ -201,6 +202,8 @@ export const buildResponseHandler = <
     | ISongEqEntry
     | IAudioEngineStatus
     | ICurveComparisonStatus
+    | IBandDesign
+    | IBandDesign[]
     | IAudioRestartOutcome
     | IEngineSetupResult,
 >(

@@ -20,6 +20,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'Disposizioni integrate',
+  'eq.layouts.saved': 'Le mie disposizioni',
+  'eq.layouts.empty':
+    'Salva solo frequenze e Q delle bande, non i guadagni né la modalità EQ.',
+  'eq.layouts.loading': 'Caricamento disposizioni…',
+  'eq.layouts.name': 'Nome della disposizione',
+  'eq.layouts.duplicate': 'Questo nome è già in uso. Scegline un altro.',
+  'eq.layouts.update': 'Aggiorna salvata',
+  'eq.layouts.saveNew': 'Salva disposizione…',
+  'eq.layouts.error': 'Impossibile aggiornare le disposizioni. Riprova.',
+  'eq.layouts.clearTitle': 'Svuotare l’EQ?',
+  'eq.layouts.clearWarning':
+    'Imposta il guadagno di ogni banda a 0 dB. Mantieni numero di bande, frequenze, Q, modalità EQ e preamplificatore attuali.',
+  'eq.layouts.deleteNamed': 'Elimina «{name}»',
+  'eq.layouts.deleteWarning':
+    'Eliminare «{name}» dalle disposizioni salvate? L’EQ attuale non cambia.',
+  'eq.layouts.delete': 'Elimina',
+  'eq.band.resetGainHint':
+    'Ctrl/⌘-clic su un cursore ne riporta il guadagno a 0 dB.',
   'eq.mode.phase': 'Fase',
   'eq.mode.minimumPhase': 'Minima',
   'eq.mode.linearPhase': 'Lineare',

@@ -413,6 +413,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [isEnabled, setIsEnabled] = useState<boolean>(DEFAULT_STATE.isEnabled);
   const [isEqDoubleOn, setIsEqDoubleOn] = useState(false);
   const [eqMode, setEqMode] = useState<IState['eqMode']>();
+  const [eqBandDesign, setEqBandDesign] = useState<IState['eqBandDesign']>();
   const [curveEqMode, setCurveEqMode] = useState<IState['curveEqMode']>();
   const [eqBandQ, setEqBandQ] = useState<IState['eqBandQ']>();
   const [curveBandQ, setCurveBandQ] = useState<IState['curveBandQ']>();
@@ -601,6 +602,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setAutoPreAmpOn(state.isAutoPreAmpOn);
         setIsEqDoubleOn(state.isEqDoubleOn === true);
         setEqMode(state.eqMode);
+        setEqBandDesign(state.eqBandDesign);
         setCurveEqMode(state.curveEqMode);
         setEqBandQ(state.eqBandQ);
         setCurveBandQ(state.curveBandQ);
@@ -800,6 +802,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         bypassed,
         isEqDoubleOn,
         eqMode,
+        eqBandDesign,
         curveEqMode,
         eqBandQ,
         curveBandQ,

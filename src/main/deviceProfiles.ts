@@ -11,6 +11,7 @@ import path from 'path';
 import { createHash } from 'crypto';
 import log from 'electron-log';
 import { getEqMode, getCurveEqMode } from '../common/eqMode';
+import { normalizeBandDesign } from '../common/bandDesigns';
 import {
   APO_FEATURES,
   ICustomFxSettings,
@@ -737,6 +738,7 @@ export const getStateForAudioDevice = (
     eqBandQ: (preset ?? {}).eqBandQ,
     curveBandQ: (preset ?? {}).curveBandQ,
     curveSmoothing: (preset ?? {}).curveSmoothing,
+    eqBandDesign: normalizeBandDesign(preset?.eqBandDesign),
     isEqDoubleOn: getEqMode(preset ?? {}) === 'double',
     voicing: preset?.voicing,
     driver: preset?.driver,

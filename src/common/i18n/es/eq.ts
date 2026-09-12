@@ -20,6 +20,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'Diseños incluidos',
+  'eq.layouts.saved': 'Mis diseños',
+  'eq.layouts.empty':
+    'Guarda aquí las frecuencias y Q de las bandas, no las ganancias ni el modo EQ.',
+  'eq.layouts.loading': 'Cargando diseños…',
+  'eq.layouts.name': 'Nombre del diseño',
+  'eq.layouts.duplicate': 'Ese nombre ya está en uso. Elige otro.',
+  'eq.layouts.update': 'Actualizar guardado',
+  'eq.layouts.saveNew': 'Guardar diseño…',
+  'eq.layouts.error':
+    'No se pudieron actualizar tus diseños. Inténtalo de nuevo.',
+  'eq.layouts.clearTitle': '¿Vaciar EQ?',
+  'eq.layouts.clearWarning':
+    'Poner la ganancia de cada banda a 0 dB. Se conservan el número de bandas, frecuencias, Q, modo EQ y preamplificador actuales.',
+  'eq.layouts.deleteNamed': 'Eliminar «{name}»',
+  'eq.layouts.deleteWarning':
+    '¿Eliminar «{name}» de tus diseños guardados? Tu EQ actual no cambia.',
+  'eq.layouts.delete': 'Eliminar diseño',
+  'eq.band.resetGainHint':
+    'Ctrl/⌘-clic en un deslizador restablece su ganancia a 0 dB.',
   'eq.mode.phase': 'Fase',
   'eq.mode.minimumPhase': 'Mínima',
   'eq.mode.linearPhase': 'Lineal',

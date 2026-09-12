@@ -37,6 +37,7 @@ interface IKnobProps {
   min: number;
   max: number;
   step: number;
+  sensitivity?: number;
   isDisabled: boolean;
   /** The caption under the number, and what assistive tech hears before it —
    * `Q` for a filter's width, `dB` for the preamp. */
@@ -73,6 +74,7 @@ const Knob = ({
   min,
   max,
   step,
+  sensitivity = 1,
   isDisabled,
   unit,
   defaultValue,
@@ -203,13 +205,15 @@ const Knob = ({
     if (isProportional) {
       // A notch is worth ~4% of the current value, so it stays usable at Q 0.3
       // and at Q 20 alike. Shift gives a finer ~1%.
-      const factor = event.shiftKey ? 1.01 : 1.04;
-      updateValue(event.deltaY < 0 ? value * factor : value / factor);
+      const factor = (event.shiftKey ? 1.01 : 1.04) ** sensitivity;
+      const proposed = event.deltaY < 0 ? value * factor : value / factor;
+      const movement = Math.max(step, Math.abs(proposed - value));
+      updateValue(value + (event.deltaY < 0 ? movement : -movement));
       return;
     }
     // An even range gets an even notch. Multiplying would be meaningless here
     // and, at a value of zero, would be nothing at all: no factor moves it.
-    const notch = (max - min) / (event.shiftKey ? 200 : 50);
+    const notch = ((max - min) / (event.shiftKey ? 200 : 50)) * sensitivity;
     updateValue(event.deltaY < 0 ? value + notch : value - notch);
   };
 
@@ -255,7 +259,8 @@ const Knob = ({
       return;
     }
     const travel = DRAG_TRAVEL_PX * (event.shiftKey ? FINE_DRAG_FACTOR : 1);
-    const next = gesture.position + (gesture.y - event.clientY) / travel;
+    const next =
+      gesture.position + ((gesture.y - event.clientY) / travel) * sensitivity;
     updateValue(toValue(Math.min(1, Math.max(0, next))));
   };
 

@@ -20,6 +20,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': '標準レイアウト',
+  'eq.layouts.saved': 'マイレイアウト',
+  'eq.layouts.empty':
+    'バンドの周波数とQのみ保存します。ゲインとEQモードは保存しません。',
+  'eq.layouts.loading': 'レイアウトを読み込み中…',
+  'eq.layouts.name': 'レイアウト名',
+  'eq.layouts.duplicate':
+    'この名前は既に使用されています。別の名前にしてください。',
+  'eq.layouts.update': '保存内容を更新',
+  'eq.layouts.saveNew': 'レイアウトを保存…',
+  'eq.layouts.error':
+    'レイアウトを更新できませんでした。もう一度お試しください。',
+  'eq.layouts.clearTitle': 'EQをクリアしますか？',
+  'eq.layouts.clearWarning':
+    '各バンドのゲインを0 dBにします。現在のバンド数、周波数、Q、EQモード、プリアンプは維持されます。',
+  'eq.layouts.deleteNamed': '「{name}」を削除',
+  'eq.layouts.deleteWarning':
+    '保存済みレイアウトから「{name}」を削除しますか？現在のEQは変わりません。',
+  'eq.layouts.delete': 'レイアウトを削除',
+  'eq.band.resetGainHint':
+    'スライダーをCtrl/⌘-クリックするとゲインを0 dBに戻します。',
   'eq.mode.phase': '位相',
   'eq.mode.minimumPhase': '最小',
   'eq.mode.linearPhase': 'リニア',

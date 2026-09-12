@@ -89,7 +89,6 @@ export interface IFiltersIpcDeps {
   /** Remember where the current bands sit, before the count changes. */
   captureCurrentLayout: () => void;
   getStoredLayout: (size: FixedBandSizeEnum) => ILayoutSnapshot | undefined;
-  resetEqToDefaults: () => void;
   switchToParametricEditing: () => void;
 }
 
@@ -107,7 +106,6 @@ export const registerFiltersIpc = ({
   doesFilterIdExist,
   captureCurrentLayout,
   getStoredLayout,
-  resetEqToDefaults,
   switchToParametricEditing,
 }: IFiltersIpcDeps) => {
   ipcMain.on(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
@@ -397,7 +395,12 @@ export const registerFiltersIpc = ({
   ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
     const channel = ChannelEnum.CLEAR_GAINS;
 
-    resetEqToDefaults();
+    Object.values(state.filters).forEach((filter) => {
+      filter.gain = 0;
+    });
+    state.graphicEq = state.graphicEq?.map((point) => ({ ...point, gain: 0 }));
+    state.isFlat = false;
+    state.eqImport = undefined;
 
     // EQ reset is independent from convolution. Persist the resulting state
     // (including any active convolution) to the device profile so APO keeps the
@@ -442,6 +445,7 @@ export const registerFiltersIpc = ({
         filter.type = savedBand.type;
       });
     state.filters = nextFilters;
+    state.eqBandDesign = undefined;
     state.isFlat = false;
 
     await handleUpdateHelper<IFiltersMap>(

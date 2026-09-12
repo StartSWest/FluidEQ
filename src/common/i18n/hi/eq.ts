@@ -20,6 +20,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'पहले से मौजूद लेआउट',
+  'eq.layouts.saved': 'मेरे डिज़ाइन',
+  'eq.layouts.empty':
+    'केवल बैंड की फ़्रीक्वेंसी और Q सहेजें, गेन या EQ मोड नहीं।',
+  'eq.layouts.loading': 'डिज़ाइन लोड हो रहे हैं…',
+  'eq.layouts.name': 'डिज़ाइन का नाम',
+  'eq.layouts.duplicate':
+    'यह नाम पहले से इस्तेमाल में है। कोई दूसरा नाम चुनें।',
+  'eq.layouts.update': 'सहेजा हुआ अपडेट करें',
+  'eq.layouts.saveNew': 'डिज़ाइन सहेजें…',
+  'eq.layouts.error': 'आपके डिज़ाइन अपडेट नहीं हो सके। फिर कोशिश करें।',
+  'eq.layouts.clearTitle': 'EQ खाली करें?',
+  'eq.layouts.clearWarning':
+    'हर बैंड का गेन 0 dB करें। मौजूदा बैंड संख्या, फ़्रीक्वेंसी, Q, EQ मोड और प्रीएम्प बने रहेंगे।',
+  'eq.layouts.deleteNamed': '“{name}” हटाएँ',
+  'eq.layouts.deleteWarning':
+    'सहेजे हुए डिज़ाइन से “{name}” हटाएँ? आपका मौजूदा EQ नहीं बदलेगा।',
+  'eq.layouts.delete': 'डिज़ाइन हटाएँ',
+  'eq.band.resetGainHint':
+    'स्लाइडर पर Ctrl/⌘-क्लिक करके उसका गेन 0 dB पर रीसेट करें।',
   'eq.mode.phase': 'फेज़',
   'eq.mode.minimumPhase': 'मिनिमम',
   'eq.mode.linearPhase': 'लीनियर',

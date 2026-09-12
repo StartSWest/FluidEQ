@@ -18,6 +18,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.layouts.builtIn': 'Built-in layouts',
+  'eq.layouts.saved': 'My designs',
+  'eq.layouts.empty': 'Save band frequencies and Q here—not gains or EQ mode.',
+  'eq.layouts.loading': 'Loading designs…',
+  'eq.layouts.name': 'Design name',
+  'eq.layouts.duplicate': 'That name is already in use. Choose another.',
+  'eq.layouts.update': 'Update saved',
+  'eq.layouts.saveNew': 'Save design…',
+  'eq.layouts.error': 'Could not update your designs. Please try again.',
+  'eq.layouts.clearTitle': 'Empty EQ?',
+  'eq.layouts.clearWarning':
+    'Set every band gain to 0 dB. Keep the current band count, frequencies, Q, EQ mode and preamp.',
+  'eq.layouts.deleteNamed': 'Delete “{name}”',
+  'eq.layouts.deleteWarning':
+    'Delete “{name}” from your saved designs? Your current EQ stays unchanged.',
+  'eq.layouts.delete': 'Delete design',
+  'eq.band.resetGainHint': 'Ctrl/⌘-click a slider to reset its gain to 0 dB.',
   'eq.mode.phase': 'Phase',
   'eq.mode.minimumPhase': 'Minimum',
   'eq.mode.linearPhase': 'Linear',

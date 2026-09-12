@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * something to recognise before reading it.
  */
 const PATHS: Record<string, string> = {
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7',
   // Circular arrow around a dot: restart the thing that is running.
   restart: 'M20 12a8 8 0 1 1-2.3-5.6M20 3v4h-4',
   // The same arrow with a second one closing the loop the other way: not

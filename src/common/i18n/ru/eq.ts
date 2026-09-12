@@ -20,6 +20,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'Стандартные схемы',
+  'eq.layouts.saved': 'Мои схемы',
+  'eq.layouts.empty':
+    'Сохраняются только частоты и Q полос, без усиления и режима EQ.',
+  'eq.layouts.loading': 'Загрузка схем…',
+  'eq.layouts.name': 'Название схемы',
+  'eq.layouts.duplicate': 'Это название уже используется. Выберите другое.',
+  'eq.layouts.update': 'Обновить сохранённую',
+  'eq.layouts.saveNew': 'Сохранить схему…',
+  'eq.layouts.error': 'Не удалось обновить схемы. Попробуйте ещё раз.',
+  'eq.layouts.clearTitle': 'Очистить EQ?',
+  'eq.layouts.clearWarning':
+    'Установить усиление каждой полосы на 0 дБ. Текущие число полос, частоты, Q, режим EQ и предусилитель сохранятся.',
+  'eq.layouts.deleteNamed': 'Удалить «{name}»',
+  'eq.layouts.deleteWarning':
+    'Удалить «{name}» из сохранённых схем? Текущий EQ не изменится.',
+  'eq.layouts.delete': 'Удалить схему',
+  'eq.band.resetGainHint':
+    'Ctrl/⌘-щелчок по ползунку сбрасывает его усиление на 0 дБ.',
   'eq.mode.phase': 'Фаза',
   'eq.mode.minimumPhase': 'Минимальная',
   'eq.mode.linearPhase': 'Линейная',

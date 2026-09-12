@@ -20,6 +20,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.builtIn': 'Vorgegebene Layouts',
+  'eq.layouts.saved': 'Meine Designs',
+  'eq.layouts.empty':
+    'Hier nur Bandfrequenzen und Q speichern, keine Verstärkungen oder EQ-Modi.',
+  'eq.layouts.loading': 'Designs werden geladen…',
+  'eq.layouts.name': 'Designname',
+  'eq.layouts.duplicate':
+    'Dieser Name wird bereits verwendet. Wähle einen anderen.',
+  'eq.layouts.update': 'Gespeichertes aktualisieren',
+  'eq.layouts.saveNew': 'Design speichern…',
+  'eq.layouts.error':
+    'Deine Designs konnten nicht aktualisiert werden. Versuche es erneut.',
+  'eq.layouts.clearTitle': 'EQ leeren?',
+  'eq.layouts.clearWarning':
+    'Jede Bandverstärkung auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, EQ-Modus und Vorverstärker bleiben erhalten.',
+  'eq.layouts.deleteNamed': '„{name}“ löschen',
+  'eq.layouts.deleteWarning':
+    '„{name}“ aus deinen gespeicherten Designs löschen? Dein aktueller EQ bleibt unverändert.',
+  'eq.layouts.delete': 'Design löschen',
+  'eq.band.resetGainHint':
+    'Strg/⌘-Klick auf einen Regler setzt dessen Verstärkung auf 0 dB.',
   'eq.mode.phase': 'Phase',
   'eq.mode.minimumPhase': 'Minimal',
   'eq.mode.linearPhase': 'Linear',

@@ -30,6 +30,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { getEqMode, getCurveEqMode } from '../common/eqMode';
+import { normalizeBandDesign } from '../common/bandDesigns';
 import {
   AutoEqFormat,
   clampGain,
@@ -72,6 +73,7 @@ export interface IImportedEq {
   eqBandQ?: IPresetV2['eqBandQ'];
   curveBandQ?: IPresetV2['curveBandQ'];
   curveSmoothing?: IPresetV2['curveSmoothing'];
+  eqBandDesign?: IPresetV2['eqBandDesign'];
   eqFormat: AutoEqFormat;
   graphicEq?: IGraphicEqPoint[];
   /** What the file was recognised as, for the confirmation message. */
@@ -230,6 +232,7 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       eqBandQ: preset.eqBandQ,
       curveBandQ: preset.curveBandQ,
       curveSmoothing: preset.curveSmoothing,
+      eqBandDesign: normalizeBandDesign(preset.eqBandDesign),
       isEqDoubleOn: getEqMode(preset) === 'double',
       sourceLabel: `${PRODUCT_NAME} profile`,
       unsupported: 0,
