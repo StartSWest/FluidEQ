@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'Die Projektbeschreibung konnte nicht gespeichert werden. Versuchen Sie es erneut.',
   'studio.stage.loading': 'Szene wird geladen…',
   'studio.picture.download': 'Bild speichern',
   'studio.picture.downloaded': 'Bild gespeichert',
@@ -103,7 +105,7 @@ const studio = {
     'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und liken.',
   'studio.publish.point2': 'Jedes Like bringt Ihnen Punkte in der Rangliste.',
   'studio.publish.point3':
-    'Sie können sie jederzeit zurückziehen. Wer sie schon hinzugefügt hat, behält seine Kopie.',
+    'Sie können die Szene zurückziehen, um neue Downloads zu verhindern. Bereits heruntergeladene Kopien bleiben mit Plus verfügbar.',
   'studio.publish.point3Update':
     'Wer sie hinzugefügt hat, sieht „Aktualisieren“ und behält die alte Version, bis er darauf klickt.',
   'studio.publish.read': 'Bedingungen lesen',

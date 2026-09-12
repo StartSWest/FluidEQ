@@ -98,7 +98,6 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border-color: color-mix(in srgb, $secondary-light 28%, transparent);
     background: color-mix(in srgb, $secondary-default 6%, transparent);
-    translate: 0 -1px;
   }
 
   &:focus-visible {

@@ -159,7 +159,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
             return (
               <li
                 key={publicationId(scene)}
-                className={`gallery-row${scene.blocked ? ' is-blocked' : ''}`}
+                className={`gallery-row${scene.blocked ? ' is-blocked' : ''}${confirming === publicationId(scene) ? ' is-confirming' : ''}`}
               >
                 <ScenePicture
                   className="gallery-row__picture"
@@ -187,15 +187,19 @@ export default function YourScenes({ me }: IYourScenesProps) {
                           date: dates.format(new Date(scene.updatedAt)),
                         })}
                   </span>
+                  {scene.official && (
+                    <span className="gallery-pill gallery-row__official">
+                      <Glyph name="plus" />
+                      {t('plus.official.author')}
+                    </span>
+                  )}
                   {scene.blocked && (
                     <span className="gallery-row__blocked">
                       {t('plus.mine.blocked')}
                     </span>
                   )}
                 </span>
-                {scene.official ? (
-                  <span className="gallery-fine">FluidEQ</span>
-                ) : (
+                {!scene.official && (
                   <dl className="gallery-row__numbers">
                     <div>
                       <dt>{t('plus.scene.likes')}</dt>

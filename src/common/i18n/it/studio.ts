@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'Impossibile salvare la descrizione del progetto. Riprova.',
   'studio.stage.loading': 'Caricamento della scena…',
   'studio.picture.download': 'Salva immagine',
   'studio.picture.downloaded': 'Immagine salvata',
@@ -104,7 +106,7 @@ const studio = {
   'studio.publish.point2':
     'Ogni mi piace ti fa guadagnare punti in classifica.',
   'studio.publish.point3':
-    'Puoi ritirarla quando vuoi. Chi l’ha già aggiunta conserva la sua copia.',
+    'Puoi ritirarla per impedire nuovi download. Le copie già scaricate restano disponibili con Plus.',
   'studio.publish.point3Update':
     'Chi l’ha aggiunta vedrà Aggiorna e terrà la versione precedente finché non lo preme.',
   'studio.publish.read': 'Leggi le condizioni',

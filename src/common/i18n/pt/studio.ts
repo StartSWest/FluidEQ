@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'Não foi possível salvar a descrição do projeto. Tente novamente.',
   'studio.stage.loading': 'Carregando cena…',
   'studio.picture.download': 'Salvar imagem',
   'studio.picture.downloaded': 'Imagem salva',
@@ -101,7 +103,7 @@ const studio = {
     'Qualquer pessoa conectada poderá vê-la em Visualizadores. Membros Plus poderão reproduzi-la, adicioná-la aos visuais e curtir.',
   'studio.publish.point2': 'Cada curtida vale pontos na classificação.',
   'studio.publish.point3':
-    'Você pode despublicar quando quiser. Quem já adicionou mantém a própria cópia.',
+    'Você pode retirar a cena para impedir novos downloads. As cópias já baixadas continuam disponíveis com Plus.',
   'studio.publish.point3Update':
     'Quem adicionou verá Atualizar e mantém a versão antiga até clicar.',
   'studio.publish.read': 'Ler os termos',

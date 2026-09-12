@@ -1,4 +1,9 @@
 const plus = {
+  'plus.remove.confirm': 'Удалить из ваших оформлений?',
+  'plus.remove.failed': 'Не удалось удалить {name}. Попробуйте ещё раз.',
+  'plus.remove.done': '{name} удалено из ваших оформлений.',
+  'plus.card.remove': 'Убрать',
+  'plus.official.author': 'FluidEQ · Официально',
   'plus.official.included': 'Входит в Plus',
   'plus.visualizers.title': 'Визуализаторы',
   'plus.visualizers.description':
@@ -112,7 +117,7 @@ const plus = {
   'plus.mine.blocked': 'Удалена FluidEQ',
   'plus.mine.unpublish': 'Снять с публикации',
   'plus.mine.confirm':
-    'Убрать из галереи? Участники, которые её добавили, сохранят свою копию.',
+    'Убрать сцену из галереи и прекратить новые загрузки? Те, кто уже скачал сцену, сохранят свою копию.',
   'plus.mine.confirmYes': 'Снять',
   'plus.mine.confirmNo': 'Оставить',
   'plus.mine.unpublished': '«{name}» больше нет в галерее.',

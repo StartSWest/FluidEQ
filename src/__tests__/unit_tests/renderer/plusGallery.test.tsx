@@ -13,7 +13,9 @@ import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
 import { resetScenePictures } from '../../../renderer/plus/scenePictures';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
+import GalleryCard from '../../../renderer/plus/GalleryCard';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
+import { resetScenePackStore } from '../../../renderer/utils/scenePacks';
 
 const SOMEONE = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 
@@ -108,6 +110,9 @@ const bridge = {
   myPublishedScenes: jest.fn(),
   unpublishScene: jest.fn(),
   listMemberScenes: jest.fn(),
+  removeMemberScene: jest.fn(),
+  removeScenePack: jest.fn(),
+  listScenePacks: jest.fn(),
   onMemberScenesChanged: jest.fn(() => () => undefined),
   leaderboardBoard: jest.fn(),
 };
@@ -119,6 +124,12 @@ beforeEach(() => {
   resetGalleryStore();
   resetGalleryActions();
   resetMemberSceneStore();
+  resetScenePackStore();
+  bridge.listScenePacks.mockResolvedValue({
+    entitled: true,
+    packs: [],
+    locked: [],
+  });
   resetScenePictures();
   mockRenderSceneStill.mockResolvedValue(undefined);
   bridge.listGallery.mockResolvedValue({
@@ -388,6 +399,56 @@ describe('Visualizers', () => {
 });
 
 describe('a scene’s page', () => {
+  it('verifies the current publication before putting an installed scene on the graph', async () => {
+    const onShowGraph = jest.fn();
+    const saved = scene();
+    bridge.listMemberScenes.mockResolvedValue({
+      entitled: true,
+      locked: [],
+      scenes: [
+        {
+          lookId: saved.lookId,
+          authorId: SOMEONE,
+          packId: saved.sceneId,
+          version: 1,
+          names: saved.names,
+          swatch: saved.swatch,
+          fallbackStyle: 'skyline',
+          own: false,
+        },
+      ],
+    });
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: true,
+      own: false,
+      pack: { id: saved.sceneId, version: 1, names: saved.names },
+    });
+    let finish: (value: unknown) => void = () => undefined;
+    bridge.addGalleryScene.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    render(<VisualizersView onShowGraph={onShowGraph} />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Neon City' }),
+    );
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'plus.scene.play' }),
+    );
+    expect(bridge.addGalleryScene).toHaveBeenCalledWith(
+      SOMEONE,
+      saved.sceneId,
+      1,
+      saved.updatedAt,
+    );
+    expect(onShowGraph).not.toHaveBeenCalled();
+    await act(async () => {
+      finish({ ok: true, lookId: saved.lookId });
+    });
+    expect(onShowGraph).toHaveBeenCalledTimes(1);
+  });
+
   const openNeonCity = async () => {
     renderGallery();
     await userEvent.click(
@@ -443,6 +504,7 @@ describe('a scene’s page', () => {
       SOMEONE,
       'neon-city',
       1,
+      '2026-09-10T12:00:00Z',
     );
     expect(
       await screen.findByText('plus.add.done:Neon City'),
@@ -569,6 +631,38 @@ describe('a scene’s page', () => {
 
 describe('the member’s own published scenes', () => {
   it.each([false, true])(
+    'removes a local copy without unpublishing (official=%s)',
+    async (official) => {
+      const saved = scene({ official });
+      bridge.removeMemberScene.mockResolvedValue(true);
+      bridge.removeScenePack.mockResolvedValue(true);
+      bridge.listMemberScenes.mockResolvedValue({ entitled: true, scenes: [] });
+      bridge.listScenePacks.mockResolvedValue({
+        entitled: true,
+        packs: [],
+        locked: [],
+      });
+      const onOpen = jest.fn();
+      render(
+        <GalleryCard
+          scene={saved}
+          local={{ version: 1 }}
+          me={undefined}
+          onOpen={onOpen}
+        />,
+      );
+      await userEvent.click(
+        screen.getByRole('button', { name: 'plus.card.remove' }),
+      );
+      expect(
+        official ? bridge.removeScenePack : bridge.removeMemberScene,
+      ).toHaveBeenCalledWith(official ? saved.sceneId : saved.lookId);
+      expect(bridge.unpublishScene).not.toHaveBeenCalled();
+      expect(onOpen).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([false, true])(
     'lists a publication (official=%s) and takes it down in its own namespace',
     async (official) => {
       bridge.myPublishedScenes.mockResolvedValue({
@@ -599,6 +693,9 @@ describe('the member’s own published scenes', () => {
       );
       expect(bridge.unpublishScene).not.toHaveBeenCalled();
       expect(screen.getByText('plus.mine.confirm')).toBeInTheDocument();
+      expect(screen.queryAllByText('plus.official.author')).toHaveLength(
+        official ? 1 : 0,
+      );
       await userEvent.click(
         screen.getByRole('button', { name: 'plus.mine.confirmYes' }),
       );

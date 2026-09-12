@@ -1,4 +1,10 @@
 const plus = {
+  'plus.remove.confirm': 'Aus Ihren Darstellungen entfernen?',
+  'plus.remove.failed':
+    '{name} konnte nicht entfernt werden. Versuchen Sie es erneut.',
+  'plus.remove.done': '{name} wurde aus Ihren Darstellungen entfernt.',
+  'plus.card.remove': 'Entfernen',
+  'plus.official.author': 'FluidEQ · Offiziell',
   'plus.official.included': 'In Plus enthalten',
   'plus.visualizers.title': 'Visualizer',
   'plus.visualizers.description':
@@ -118,7 +124,7 @@ const plus = {
   'plus.mine.blocked': 'Von FluidEQ entfernt',
   'plus.mine.unpublish': 'Zurückziehen',
   'plus.mine.confirm':
-    'Aus der Galerie nehmen? Mitglieder, die sie hinzugefügt haben, behalten ihre Kopie.',
+    'Aus der Galerie entfernen und neue Downloads verhindern? Mitglieder behalten bereits heruntergeladene Kopien.',
   'plus.mine.confirmYes': 'Zurückziehen',
   'plus.mine.confirmNo': 'Behalten',
   'plus.mine.unpublished': '{name} ist nicht mehr in der Galerie.',

@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'Impossible d’enregistrer la description du projet. Réessayez.',
   'studio.stage.loading': 'Chargement de la scène…',
   'studio.picture.download': 'Enregistrer l’image',
   'studio.picture.downloaded': 'Image enregistrée',
@@ -104,7 +106,7 @@ const studio = {
   'studio.publish.point2':
     'Chaque « j’aime » vous rapporte des points au classement.',
   'studio.publish.point3':
-    'Vous pouvez la dépublier à tout moment. Ceux qui l’ont déjà ajoutée gardent leur copie.',
+    'Vous pouvez la retirer pour empêcher de nouveaux téléchargements. Les copies déjà téléchargées restent disponibles avec Plus.',
   'studio.publish.point3Update':
     'Ceux qui l’ont ajoutée verront « Mettre à jour » et gardent l’ancienne version jusqu’à ce qu’ils cliquent.',
   'studio.publish.read': 'Lire les conditions',

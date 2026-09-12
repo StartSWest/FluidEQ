@@ -23,6 +23,7 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 export interface IUsableScene {
   id: string;
   version: number;
+  revision?: string;
   lookId: string;
   names: IScenePackSummary['names'];
   fallbackStyle: IScenePackSummary['fallbackStyle'];
@@ -74,6 +75,7 @@ const recompute = () => {
           .map((pack) => ({
             id: pack.id,
             version: pack.version,
+            revision: pack.revision,
             lookId: premiumLookId(pack.id),
             names: pack.names,
             fallbackStyle: pack.fallbackStyle,
@@ -197,8 +199,10 @@ export const unblockScene = (packId: string) => {
   }
 };
 
-export const refreshScenePacks = async () => {
-  const next = await bridge()?.refreshScenePacks?.();
+export const refreshScenePacks = async (localOnly = false) => {
+  const next = localOnly
+    ? await bridge()?.listScenePacks?.()
+    : await bridge()?.refreshScenePacks?.();
   if (next) {
     adopt(next);
   }

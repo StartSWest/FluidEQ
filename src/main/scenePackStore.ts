@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { createHash } from 'crypto';
 import path from 'path';
 import {
   isScenePackEnvelope,
@@ -34,12 +35,14 @@ const DIRECTORY = 'scene-packs';
 const PACKS_DIRECTORY = 'packs';
 const REJECTED_FILE = 'rejected.json';
 const QUARANTINE_FILE = 'quarantine.json';
+const REMOVED_FILE = 'removed.json';
 
 export type TSceneFailure = 'compile' | 'context-lost';
 
 export interface IScenePackSummary {
   id: string;
   version: number;
+  revision?: string;
   names: IScenePack['names'];
   fallbackStyle: IScenePack['fallbackStyle'];
   swatch: string[];
@@ -61,7 +64,9 @@ export interface IScenePackStore {
   /** The whole pack, verified afresh, or nothing if it is not fit to run. */
   load(id: string): IScenePack | undefined;
   /** Take in listings from the server; returns how many changed. */
-  adopt(listings: readonly IScenePackListing[]): number;
+  adopt(listings: readonly IScenePackListing[], explicit?: boolean): number;
+  /** Remove locally and keep background refreshes from adding it again. */
+  remove(id: string): boolean;
   /** The renderer found this one cannot run here. Stop offering it. */
   quarantine(id: string, reason: TSceneFailure): void;
   /** Forget a quarantine — a new version of the pack may have fixed it. */
@@ -117,8 +122,10 @@ export const createScenePackStore = ({
   const packsDir = path.join(root, PACKS_DIRECTORY);
   const rejectedPath = path.join(root, REJECTED_FILE);
   const quarantinePath = path.join(root, QUARANTINE_FILE);
+  const removedPath = path.join(root, REMOVED_FILE);
+  let removed = readJsonRecord(removedPath);
 
-  /** Pack id → the version that failed to verify, so it is not refetched. */
+  /** Pack id → rejected bytes; a corrected republication can use the same version. */
   let rejected = readJsonRecord(rejectedPath);
   /** Pack id → why the renderer could not run it. */
   let quarantine = readJsonRecord(quarantinePath);
@@ -200,11 +207,15 @@ export const createScenePackStore = ({
   return {
     list: () =>
       heldIds()
+        .filter((id) => !removed[id])
         .map((id) => readVerified(id))
         .filter((pack): pack is IScenePack => pack !== undefined)
         .map((pack) => ({
           id: pack.id,
           version: pack.version,
+          revision: createHash('sha256')
+            .update(JSON.stringify(pack))
+            .digest('hex'),
           names: pack.names,
           fallbackStyle: pack.fallbackStyle,
           swatch: pack.swatch,
@@ -213,25 +224,29 @@ export const createScenePackStore = ({
         })),
 
     load: (id) => {
-      if (!ID.test(id) || quarantineOf(id)) {
+      if (!ID.test(id) || removed[id] || quarantineOf(id)) {
         return undefined;
       }
       return readVerified(id);
     },
 
-    adopt: (listings) => {
+    adopt: (listings, explicit = false) => {
       let changed = 0;
       listings.forEach((listing) => {
         if (!ID.test(listing.id) || !isScenePackEnvelope(listing.envelope)) {
           return;
         }
-        // Already rejected at this exact version: the same bytes will fail the
-        // same way, and refetching them every launch would be a loop.
-        if (rejected[listing.id] === String(listing.version)) {
+        if (removed[listing.id] && !explicit) {
+          return;
+        }
+        const fingerprint = createHash('sha256')
+          .update(JSON.stringify(listing))
+          .digest('hex');
+        if (rejected[listing.id] === fingerprint) {
           return;
         }
         const current = readVerified(listing.id);
-        if (current && current.version >= listing.version) {
+        if (current && current.version > listing.version) {
           return;
         }
         const payload = verifyScenePackEnvelope(listing.envelope);
@@ -244,11 +259,22 @@ export const createScenePackStore = ({
           logger?.warn(
             `Scene pack ${listing.id} v${listing.version} did not verify; not stored.`,
           );
-          rejected = { ...rejected, [listing.id]: String(listing.version) };
+          rejected = { ...rejected, [listing.id]: fingerprint };
           saveRejected();
           return;
         }
+        if (
+          !removed[pack.id] &&
+          JSON.stringify(current) === JSON.stringify(pack)
+        ) {
+          return;
+        }
         writeAtomically(packPath(pack.id), JSON.stringify(listing.envelope));
+        if (removed[pack.id]) {
+          const { [pack.id]: _removed, ...rest } = removed;
+          writeAtomically(removedPath, JSON.stringify(rest));
+          removed = rest;
+        }
         // A new version may well have fixed whatever made the old one fail
         // here, so it gets one more chance.
         if (quarantine[pack.id]) {
@@ -260,6 +286,17 @@ export const createScenePackStore = ({
         logger?.info(`Scene pack ${pack.id} v${pack.version} stored.`);
       });
       return changed;
+    },
+
+    remove: (id) => {
+      if (!ID.test(id)) {
+        return false;
+      }
+      const next = { ...removed, [id]: 'removed' };
+      writeAtomically(removedPath, JSON.stringify(next));
+      removed = next;
+      fs.rmSync(packPath(id), { force: true });
+      return true;
     },
 
     quarantine: (id, reason) => {

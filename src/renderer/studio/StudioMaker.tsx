@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import type { IStudioProject } from 'main/ipc/memberScenes';
+import useProjectIdea from './useProjectIdea';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { AI_IDEAS, AI_PROMPT, promptWithIdea } from './aiPrompt';
+import { AI_IDEAS } from './aiPrompt';
 import { showStudioFolder } from './studioStore';
-import { MAX_IDEA_LENGTH, setStudioIdea, useStudioIdea } from './studioIdea';
+import { MAX_IDEA_LENGTH } from './studioIdea';
 
 interface IStudioMakerProps {
   /** The open project; none before the first one. */
@@ -64,11 +65,12 @@ const useCopy = (text: string, fallback: RefObject<HTMLElement | null>) => {
 export default function StudioMaker({ project }: IStudioMakerProps) {
   const { t } = useTranslation();
   const ideaId = useId();
-  const idea = useStudioIdea();
+  const notes = useProjectIdea(project);
+  const { idea } = notes;
   const [promptShown, setPromptShown] = useState(false);
   const promptRef = useRef<HTMLPreElement>(null);
   const pathRef = useRef<HTMLSpanElement>(null);
-  const prompt = useCopy(promptWithIdea(idea), promptRef);
+  const prompt = useCopy(notes.prompt, promptRef);
   const path = useCopy(project?.path ?? '', pathRef);
 
   // A refused copy of the prompt opens it, so there is something to select.
@@ -89,6 +91,7 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
         <Glyph name="studio" />
         {t('studio.maker.title')}
       </h3>
+      {notes.failed && <p role="alert">{t('studio.notes.failed')}</p>}
       <ol className="studio-maker__steps">
         <li className="studio-maker__step">
           <span className="studio-maker__number" aria-hidden="true">
@@ -105,7 +108,9 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
               maxLength={MAX_IDEA_LENGTH}
               value={idea}
               placeholder={t('studio.maker.placeholder')}
-              onChange={(event) => setStudioIdea(event.target.value)}
+              disabled={notes.loading}
+              onBlur={notes.save}
+              onChange={(event) => notes.update(event.target.value)}
             />
             <div
               className="studio-maker__examples"
@@ -125,7 +130,7 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
                     className="studio-idea"
                     aria-pressed={chosen}
                     title={text}
-                    onClick={() => setStudioIdea(chosen ? '' : text)}
+                    onClick={() => notes.update(chosen ? '' : text)}
                   >
                     {t(entry.label)}
                   </button>
@@ -202,7 +207,10 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
               <button
                 type="button"
                 className="button small studio-maker__copy"
-                onClick={prompt.copy}
+                onClick={() => {
+                  notes.save();
+                  prompt.copy();
+                }}
               >
                 <Glyph name={prompt.done ? 'check' : 'copy'} />
                 {t(
@@ -241,10 +249,7 @@ export default function StudioMaker({ project }: IStudioMakerProps) {
                 tabIndex={0}
                 aria-label={t('studio.prompt.label')}
               >
-                {AI_PROMPT}{' '}
-                <mark className="studio-prompt__idea">
-                  {idea.trim() || t('studio.prompt.ideaHere')}
-                </mark>
+                {notes.prompt}
               </pre>
             )}
           </div>

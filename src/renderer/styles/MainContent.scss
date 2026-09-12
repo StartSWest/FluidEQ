@@ -163,21 +163,7 @@ $eq-caret-width: 24px;
   position: relative;
   display: inline-flex;
   align-items: stretch;
-  transition: transform 150ms ease;
-
-  // The pair rises together, or not at all.
-  //
-  // The lift is written on `.button`, so hovering the main half raised it and
-  // left the caret sitting where it was — one control coming apart in the
-  // middle. It moves up here instead, where it applies to the whole thing, and
-  // the half that was doing it is told not to.
-  &:hover:not(.is-disabled) {
-    transform: translateY(-1px);
-  }
-
-  .button.eq-mode__main:hover:not([aria-disabled='true']) {
-    transform: none;
-  }
+  // Keep both halves stationary, so hovering an edge cannot toggle hit testing.
 
   // And either half lights both, for the same reason: hovering one end of a
   // control should not make the other end look like a separate one that is not

@@ -232,7 +232,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   } else if (pack && playing) {
     stage = (
       <StudioStage
-        key={state.activeId}
+        key={`stage:${state.activeId}`}
         identity={state.activeId ?? ''}
         pack={pack}
         serial={serial}
@@ -413,7 +413,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </div>
 
         <div className="studio-bench__maker">
-          <StudioMaker project={project} />
+          <StudioMaker key={project?.id ?? 'draft'} project={project} />
         </div>
       </div>
 

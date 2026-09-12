@@ -181,7 +181,7 @@ const terms = {
   'terms.scenes.p7':
     'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und Ihnen für die persönliche Nutzung überlassen, solange Sie Mitglied sind. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert an andere Plus-Mitglieder weitergeben. Bitte verändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nicht anderswo und verkaufen Sie sie nicht.',
   'terms.scenes.p8':
-    'Eine Datei, die Sie verschickt haben, bleibt bei denen, die sie haben. Wenn sich eine Szene nirgends mehr öffnen soll, bitten Sie den Macher darum, der sie wie eine regelwidrige Szene sperren kann.',
+    'Das Zurückziehen einer Szene verhindert neue Downloads aus der Galerie. Bereits heruntergeladene Kopien werden weder gelöscht noch wird ihre Lizenz widerrufen; sie bleiben mit Plus zur persönlichen Nutzung lizenziert. FluidEQ kann Szenen sperren, die gegen diese Bedingungen oder die Rechte anderer verstoßen.',
   'terms.scenes.p9':
     'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie FluidEQ außerdem, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorie und Ihren Anzeigenamen allen bei FluidEQ Angemeldeten zu zeigen, sie ihnen einige Sekunden lang vorzuspielen und die Szene selbst Plus-Mitgliedern anzubieten, die sie vollständig abspielen und hinzufügen können. Sie können sie jederzeit zurückziehen, mit oder ohne Plus. Wer sie schon hinzugefügt hat, behält seine Kopie, zu denselben Bedingungen wie eine Datei, die Sie ihm geschickt haben.',
   'terms.scenes.p10':

@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
+import type { IStudioNotes } from '../common/studioNotes';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
 import type { ISystemMediaSnapshot } from './systemMedia';
@@ -792,6 +793,9 @@ const loadScenePack = (id: string) =>
 const refreshScenePacks = () =>
   ipcRenderer.invoke('scene-packs-refresh') as Promise<IScenePacksListing>;
 
+const removeScenePack = (id: string) =>
+  ipcRenderer.invoke('scene-packs-remove', id) as Promise<boolean>;
+
 const reportScenePackFailure = (id: string, reason: TSceneFailure) =>
   ipcRenderer.invoke('scene-packs-report-failure', id, reason) as Promise<void>;
 
@@ -911,6 +915,13 @@ const saveStudioPicture = (picture: Uint8Array, keep?: IPictureKeepRequest) =>
   ) as Promise<TArtworkWrite>;
 
 /** The terms version this computer last shared a scene under; 0 for never. */
+const readStudioNotes = (id: string) =>
+  ipcRenderer.invoke('studio-notes-read', id) as Promise<
+    IStudioNotes | undefined
+  >;
+const saveStudioNotes = (id: string, notes: IStudioNotes) =>
+  ipcRenderer.invoke('studio-notes-save', id, notes) as Promise<boolean>;
+
 const studioTermsAgreed = () =>
   ipcRenderer.invoke('studio-terms-agreed') as Promise<number>;
 
@@ -990,12 +1001,18 @@ const previewGalleryScene = (
     revision,
   ) as Promise<TGalleryPreviewOutcome>;
 
-const addGalleryScene = (authorId: string, sceneId: string, version: number) =>
+const addGalleryScene = (
+  authorId: string,
+  sceneId: string,
+  version: number,
+  revision?: string,
+) =>
   ipcRenderer.invoke(
     'plus-gallery-add',
     authorId,
     sceneId,
     version,
+    revision,
   ) as Promise<TGalleryAddOutcome>;
 
 const reportGalleryScene = (
@@ -1229,6 +1246,7 @@ export default {
     listScenePacks,
     loadScenePack,
     refreshScenePacks,
+    removeScenePack,
     reportScenePackFailure,
     onScenePacksChanged,
     listMemberScenes,
@@ -1260,6 +1278,8 @@ export default {
     chooseStudioPicture,
     saveStudioPicture,
     onStudioChanged,
+    readStudioNotes,
+    saveStudioNotes,
     studioTermsAgreed,
     exportStudioScene,
     importMemberScene,

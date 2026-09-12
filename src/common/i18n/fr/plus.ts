@@ -1,4 +1,9 @@
 const plus = {
+  'plus.remove.confirm': 'Retirer de vos styles ?',
+  'plus.remove.failed': 'Impossible de retirer {name}. Réessayez.',
+  'plus.remove.done': '{name} a été retiré de vos styles.',
+  'plus.card.remove': 'Enlever',
+  'plus.official.author': 'FluidEQ · Officiel',
   'plus.official.included': 'Inclus avec Plus',
   'plus.visualizers.title': 'Visualiseurs',
   'plus.visualizers.description':
@@ -116,7 +121,7 @@ const plus = {
   'plus.mine.blocked': 'Retirée par FluidEQ',
   'plus.mine.unpublish': 'Dépublier',
   'plus.mine.confirm':
-    'La retirer de la galerie ? Les membres qui l’ont ajoutée gardent leur copie.',
+    'La retirer de la galerie et empêcher de nouveaux téléchargements ? Les membres qui l’ont déjà téléchargée conservent leur copie.',
   'plus.mine.confirmYes': 'Dépublier',
   'plus.mine.confirmNo': 'La garder',
   'plus.mine.unpublished': '{name} n’est plus dans la galerie.',

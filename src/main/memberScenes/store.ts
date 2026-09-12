@@ -49,6 +49,7 @@ export interface IMemberSceneSummary {
   authorId: string;
   packId: string;
   version: number;
+  revision?: string;
   names: TLocalizedName;
   fallbackStyle: GraphStyle;
   swatch: string[];
@@ -214,6 +215,7 @@ export const createMemberSceneStore = ({
       authorId,
       packId: pack.id,
       version: pack.version,
+      revision: createHash('sha256').update(JSON.stringify(pack)).digest('hex'),
       names: pack.names,
       fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,

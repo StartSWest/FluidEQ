@@ -1,4 +1,9 @@
 const plus = {
+  'plus.remove.confirm': '从你的外观中移除？',
+  'plus.remove.failed': '无法移除 {name}，请重试。',
+  'plus.remove.done': '已从你的外观中移除 {name}。',
+  'plus.card.remove': '移除',
+  'plus.official.author': 'FluidEQ · 官方',
   'plus.official.included': 'Plus 已包含',
   'plus.visualizers.title': '可视化',
   'plus.visualizers.description':
@@ -104,7 +109,8 @@ const plus = {
   'plus.mine.version': '版本 {version}',
   'plus.mine.blocked': '已被 FluidEQ 下架',
   'plus.mine.unpublish': '取消发布',
-  'plus.mine.confirm': '要从图库中移除吗？已添加它的会员会保留自己的副本。',
+  'plus.mine.confirm':
+    '要从图库下架并停止新下载吗？已下载的用户会保留自己的副本。',
   'plus.mine.confirmYes': '取消发布',
   'plus.mine.confirmNo': '保留',
   'plus.mine.unpublished': '{name} 已不在图库中。',

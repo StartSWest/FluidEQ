@@ -2,7 +2,11 @@ import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import type { IUsableMemberScene } from '../utils/memberScenes';
-import { addGalleryScene, useAddingScenes } from './galleryActions';
+import {
+  addGalleryScene,
+  removeGalleryScene,
+  useAddingScenes,
+} from './galleryActions';
 import {
   categoryKey,
   SceneHeart,
@@ -114,12 +118,20 @@ export default function GalleryCard({
               type="button"
               className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
               aria-busy={adding}
-              disabled={addState !== '' || adding}
+              disabled={adding}
+              aria-label={addState ? t('plus.card.remove') : undefined}
+              title={addState ? t('plus.card.remove') : undefined}
               onClick={() => {
-                addGalleryScene(scene, name).catch(() => undefined);
+                const action = addState ? removeGalleryScene : addGalleryScene;
+                action(scene, name).catch(() => undefined);
               }}
             >
-              {addLabel}
+              <span className="gallery-card__add-label">{addLabel}</span>
+              {addState && (
+                <span className="gallery-card__remove-label" aria-hidden="true">
+                  {t('plus.card.remove')}
+                </span>
+              )}
             </button>
           )}
         </div>

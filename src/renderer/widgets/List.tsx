@@ -44,6 +44,7 @@ export interface IOptionEntry {
   display: ReactNode | (() => ReactNode);
   /** Optional non-interactive section heading displayed above this option. */
   group?: string;
+  action?: ReactNode;
 }
 
 /** Resolves an entry's content, whether it was given as a node or a thunk. */
@@ -156,7 +157,7 @@ const List = ({
 
   const handleItemKeyPress = useCallback(
     (entry: IOptionEntry, index: number) => (e: KeyboardEvent) => {
-      if (isDisabled) {
+      if (isDisabled || e.target !== e.currentTarget) {
         return;
       }
       if (e.code === 'Enter') {
@@ -209,6 +210,7 @@ const List = ({
                 tabIndex={0}
               >
                 {renderOptionDisplay(entry)}
+                {entry.action}
               </li>
             </Fragment>
           );

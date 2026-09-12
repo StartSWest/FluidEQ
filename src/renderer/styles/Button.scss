@@ -39,8 +39,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.15;
   white-space: nowrap;
   cursor: pointer;
+  // Keep the hit target still: lifting it on hover makes its lower edge
+  // repeatedly enter/leave hover beneath a stationary pointer.
   transition:
-    transform 150ms ease,
     filter 150ms ease,
     box-shadow 150ms ease,
     background 150ms ease,
@@ -70,14 +71,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       0 11px 28px color-mix(in srgb, $secondary-default 20%, transparent),
       0 0 24px color-mix(in srgb, $secondary-default 18%, transparent),
       inset 0 1px 0 rgba($white, 0.42);
-    transform: translateY(-1px);
     filter: brightness(1.06);
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
     color: $surface-base;
     background: $secondary-dark;
-    transform: translateY(0);
   }
 
   &.small {

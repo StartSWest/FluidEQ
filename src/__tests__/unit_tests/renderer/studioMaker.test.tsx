@@ -12,12 +12,22 @@ import { promptWithIdea } from '../../../renderer/studio/aiPrompt';
 import StudioMaker from '../../../renderer/studio/StudioMaker';
 import StudioNewProjectDialog from '../../../renderer/studio/StudioNewProjectDialog';
 import StudioPanel from '../../../renderer/studio/StudioPanel';
+import StudioBench from '../../../renderer/studio/StudioBench';
+import type { IStudioView } from '../../../renderer/studio/studioStore';
+import { memberPack } from '../../utils/memberSceneFixtures';
 import { resetStudioIdea } from '../../../renderer/studio/studioIdea';
 import { resetStudioStore } from '../../../renderer/studio/studioStore';
 
 // The empty Studio does not request audio; capture is owned by the app shell.
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
+}));
+
+jest.mock('../../../renderer/studio/StudioStage', () => ({
+  __esModule: true,
+  default: ({ identity }: { identity: string }) => (
+    <canvas data-testid="active-studio-stage" aria-label={identity} />
+  ),
 }));
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -67,6 +77,81 @@ beforeEach(() => {
 });
 
 describe('making a scene with your AI', () => {
+  it('loads each project description and saves edits only to that project', async () => {
+    const read = jest.fn(async (id: string) => ({
+      description: id === project.id ? 'A mountain lake' : 'A neon city',
+      prompt: `Saved editing prompt for ${id}`,
+    }));
+    const save = jest.fn(async () => true);
+    Object.assign(window.electron.ipcRenderer, {
+      readStudioNotes: read,
+      saveStudioNotes: save,
+    });
+    const view = render(<StudioMaker key={project.id} project={project} />);
+    const field = await screen.findByRole('textbox', {
+      name: 'studio.maker.describe',
+    });
+    await waitFor(() => expect(field).toHaveValue('A mountain lake'));
+    await userEvent.type(field, ' at night');
+    await userEvent.tab();
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(project.id, {
+        description: 'A mountain lake at night',
+        prompt: promptWithIdea('A mountain lake at night'),
+      }),
+    );
+    view.rerender(
+      <StudioMaker key="second" project={{ ...project, id: 'second' }} />,
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', { name: 'studio.maker.describe' }),
+      ).toHaveValue('A neon city'),
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
+    );
+    expect(clipboard).toBe('Saved editing prompt for second');
+    expect(save).not.toHaveBeenCalledWith('second', expect.anything());
+  });
+
+  it('keeps exactly one stage when cycling through projects', () => {
+    const other = { ...project, id: '22222222-2222-4222-8222-222222222222' };
+    const view: IStudioView = {
+      loaded: true,
+      serial: 1,
+      pack: memberPack(),
+      state: {
+        entitled: true,
+        projectsRoot: 'D:\\Studio',
+        projects: [project, other],
+        activeId: project.id,
+      },
+    };
+    const errors = jest.spyOn(console, 'error');
+    const { rerender, unmount } = render(<StudioBench view={view} />);
+    [other.id, project.id, other.id, project.id].forEach((activeId, index) => {
+      rerender(
+        <StudioBench
+          view={{
+            ...view,
+            serial: index + 2,
+            state: { ...view.state, activeId },
+          }}
+        />,
+      );
+      expect(screen.getAllByTestId('active-studio-stage')).toHaveLength(1);
+      expect(screen.getByTestId('active-studio-stage')).toHaveAttribute(
+        'aria-label',
+        activeId,
+      );
+    });
+    unmount();
+    expect(screen.queryByTestId('active-studio-stage')).not.toBeInTheDocument();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
   it('copies the prompt with the idea on the end, and keeps the idea', async () => {
     render(<StudioMaker project={project} />);
     await userEvent.click(
@@ -101,7 +186,7 @@ describe('making a scene with your AI', () => {
       'A cat on a piano',
     );
     unmount();
-    render(<StudioMaker project={project} />);
+    render(<StudioMaker />);
     expect(
       screen.getByRole('textbox', { name: 'studio.maker.describe' }),
     ).toHaveValue('A cat on a piano');

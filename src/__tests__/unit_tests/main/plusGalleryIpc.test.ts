@@ -157,6 +157,38 @@ afterEach(() => {
 });
 
 describe('listing', () => {
+  it('syncs a signed republication into an installed copy and retains it after withdrawal', async () => {
+    setup();
+    store.saveImported(signedEnvelope(memberPayload()));
+    const oldRevision = store.list()[0].revision;
+    const next = memberPack({
+      source: 'vec4 sceneColour(vec2 uv) { return vec4(0.5); }',
+    });
+    publishScene(SOMEONE, next);
+    await invoke('plus-gallery-list', {});
+    expect(store.load(SOMEONE, next.id)?.source).toBe(next.source);
+    expect(store.list()[0].revision).not.toBe(oldRevision);
+    rows = [];
+    bucket.clear();
+    await invoke('plus-gallery-list', {});
+    expect(store.load(SOMEONE, next.id)?.source).toBe(next.source);
+  });
+
+  it('never installs an unseen scene or a forged update while browsing', async () => {
+    setup();
+    publishScene(SOMEONE);
+    await invoke('plus-gallery-list', {});
+    expect(store.list()).toEqual([]);
+    store.saveImported(signedEnvelope(memberPayload()));
+    const before = store.list()[0].revision;
+    bucket.set(
+      `${SOMEONE}/neon-city/scene.json`,
+      signedEnvelope(memberPayload({ author: ME })),
+    );
+    await invoke('plus-gallery-list', {});
+    expect(store.list()[0].revision).toBe(before);
+  });
+
   it('lists the gallery for anyone signed in, Plus or not', async () => {
     setup();
     const listed = await invoke<Promise<TGalleryListOutcome>>(

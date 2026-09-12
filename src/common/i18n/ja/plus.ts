@@ -1,4 +1,10 @@
 const plus = {
+  'plus.remove.confirm': '表示から削除しますか？',
+  'plus.remove.failed':
+    '「{name}」を削除できませんでした。もう一度お試しください。',
+  'plus.remove.done': '表示から「{name}」を削除しました。',
+  'plus.card.remove': '削除',
+  'plus.official.author': 'FluidEQ · 公式',
   'plus.official.included': 'Plus に含まれます',
   'plus.visualizers.title': 'ビジュアライザー',
   'plus.visualizers.description':
@@ -115,7 +121,7 @@ const plus = {
   'plus.mine.blocked': 'FluidEQ により削除',
   'plus.mine.unpublish': '公開を停止',
   'plus.mine.confirm':
-    'ギャラリーから外しますか？ 追加済みのメンバーは自分のコピーを使い続けられます。',
+    'ギャラリーから非公開にして、新しいダウンロードを停止しますか？ダウンロード済みのメンバーはコピーを保持します。',
   'plus.mine.confirmYes': '公開を停止',
   'plus.mine.confirmNo': 'そのままにする',
   'plus.mine.unpublished': '{name} はギャラリーから外れました。',

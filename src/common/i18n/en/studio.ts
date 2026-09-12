@@ -7,6 +7,7 @@
  * reaches the member as the thing to change, with the line to change it on.
  */
 const studio = {
+  'studio.notes.failed': 'Could not save the project description. Try again.',
   'studio.stage.loading': 'Loading scene…',
   'studio.picture.download': 'Save image',
   'studio.picture.downloaded': 'Image saved',
@@ -110,7 +111,7 @@ const studio = {
     'Anyone signed in can see it in Visualizers. Plus members can play it, add it to their looks and like it.',
   'studio.publish.point2': 'Each like earns you points on the leaderboard.',
   'studio.publish.point3':
-    'You can unpublish it at any time. Members who already added it keep their copy.',
+    'You can unpublish it to stop new downloads. Copies already downloaded remain available with Plus.',
   'studio.publish.point3Update':
     'Members who added it see Update, and keep the old version until they press it.',
   'studio.publish.read': 'Read the terms',

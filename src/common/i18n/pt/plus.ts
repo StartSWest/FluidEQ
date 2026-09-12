@@ -1,4 +1,9 @@
 const plus = {
+  'plus.remove.confirm': 'Remover dos seus visuais?',
+  'plus.remove.failed': 'Não foi possível remover {name}. Tente novamente.',
+  'plus.remove.done': '{name} foi removido dos seus visuais.',
+  'plus.card.remove': 'Remover',
+  'plus.official.author': 'FluidEQ · Oficial',
   'plus.official.included': 'Incluído no Plus',
   'plus.visualizers.title': 'Visualizadores',
   'plus.visualizers.description':
@@ -112,7 +117,7 @@ const plus = {
   'plus.mine.blocked': 'Removida pelo FluidEQ',
   'plus.mine.unpublish': 'Despublicar',
   'plus.mine.confirm':
-    'Tirar da galeria? Os membros que adicionaram mantêm a cópia deles.',
+    'Retirar da galeria e impedir novos downloads? Quem já baixou a cena mantém sua cópia.',
   'plus.mine.confirmYes': 'Despublicar',
   'plus.mine.confirmNo': 'Manter',
   'plus.mine.unpublished': '{name} não está mais na galeria.',

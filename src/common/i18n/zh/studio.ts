@@ -1,4 +1,5 @@
 const studio = {
+  'studio.notes.failed': '无法保存项目描述，请重试。',
   'studio.stage.loading': '正在加载场景…',
   'studio.picture.download': '保存图片',
   'studio.picture.downloaded': '图片已保存',
@@ -93,7 +94,8 @@ const studio = {
   'studio.publish.point1':
     '所有已登录的人都能在“可视化”里看到它。Plus 会员可以播放它、把它添加到外观并点赞。',
   'studio.publish.point2': '每个赞都会为你在排行榜上加分。',
-  'studio.publish.point3': '你可以随时取消发布。已添加的会员会保留自己的副本。',
+  'studio.publish.point3':
+    '你可以下架场景以停止新下载。已下载的副本仍可通过 Plus 使用。',
   'studio.publish.point3Update':
     '已添加的会员会看到“更新”，在点击之前保留旧版本。',
   'studio.publish.read': '阅读条款',

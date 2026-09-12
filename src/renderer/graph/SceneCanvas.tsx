@@ -56,7 +56,7 @@ export default function SceneCanvas({
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
   const key = member ? scene.lookId : scene.id;
-  const { version } = scene;
+  const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
   const source = useMemo<ISceneSource>(
     () =>

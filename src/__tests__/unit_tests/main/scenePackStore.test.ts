@@ -116,6 +116,70 @@ describe('the scene pack store', () => {
     expect(build().list()).toEqual([]);
   });
 
+  it('removes a copy across restarts and background refreshes, then allows an explicit add', () => {
+    const row = {
+      id: 'aurora',
+      version: 1,
+      envelope: seal(payloadFor('aurora')),
+    };
+    const store = build();
+    store.adopt([row]);
+    expect(store.remove('aurora')).toBe(true);
+    const restarted = build();
+    expect(restarted.adopt([row])).toBe(0);
+    expect(restarted.list()).toEqual([]);
+    expect(restarted.load('aurora')).toBeUndefined();
+    expect(restarted.adopt([row], true)).toBe(1);
+    expect(restarted.load('aurora')?.source).toBe(SOURCE);
+    expect(restarted.remove('../outside')).toBe(false);
+  });
+
+  it('replaces a verified republication at the same version and changes its render revision', () => {
+    const store = build();
+    store.adopt([
+      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
+    ]);
+    const before = store.list()[0].revision;
+    const source = 'vec4 sceneColour(vec2 uv) { return vec4(1.0); }';
+    const updated = {
+      id: 'aurora',
+      version: 1,
+      envelope: seal(payloadFor('aurora', 1, { source })),
+    };
+    expect(store.adopt([updated], true)).toBe(1);
+    expect(store.load('aurora')?.source).toBe(source);
+    expect(store.list()[0].revision).not.toBe(before);
+    expect(store.adopt([updated], true)).toBe(0);
+    expect(
+      store.adopt(
+        [
+          {
+            ...updated,
+            envelope: { ...updated.envelope, signature: 'invalid' },
+          },
+        ],
+        true,
+      ),
+    ).toBe(0);
+    expect(store.load('aurora')?.source).toBe(source);
+    const repaired = {
+      ...updated,
+      envelope: seal(payloadFor('aurora', 1, { source: SOURCE })),
+    };
+    expect(store.adopt([repaired], true)).toBe(1);
+    expect(store.load('aurora')?.source).toBe(SOURCE);
+  });
+
+  it('keeps an already downloaded copy when its publication disappears', () => {
+    const store = build();
+    store.adopt([
+      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
+    ]);
+    expect(store.adopt([])).toBe(0);
+    expect(store.load('aurora')?.source).toBe(SOURCE);
+    expect(build().load('aurora')?.source).toBe(SOURCE);
+  });
+
   it('adopts a genuine pack and lists it without its source', () => {
     const store = build();
     expect(

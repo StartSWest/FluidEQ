@@ -1621,7 +1621,6 @@ $library-row-height: 46px;
   &:focus-visible {
     border-color: color-mix(in srgb, $secondary-light 40%, transparent);
     background: color-mix(in srgb, $secondary-default 8%, transparent);
-    transform: translateY(-1px);
     outline: none;
   }
 

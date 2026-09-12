@@ -2929,10 +2929,6 @@ const developmentEntitlement =
   !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
     ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
     : undefined;
-const developmentPacksDir =
-  !app.isPackaged && process.env.FLUIDEQ_DEV_SCENE_PACKS_DIR
-    ? process.env.FLUIDEQ_DEV_SCENE_PACKS_DIR
-    : undefined;
 // The merchant has no test mode, so in development the Account panel can ask
 // the server to send the merchant's own signed events for this account and
 // watch the subscription switch on and off. Nothing to configure: the server
@@ -2976,7 +2972,6 @@ const scenePacksIpc = registerScenePacksIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
-  developmentPacksDir,
 });
 
 // Scenes members make in the Studio. Registering watches nothing: the open
@@ -3028,6 +3023,13 @@ const plusPublishingIpc = registerPlusPublishingIpc({
   userDataDir,
   activeFolder: memberScenesIpc.activeFolder,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
+  onPublished: () => {
+    plusGalleryIpc
+      .refreshIfDue(true)
+      .catch((error) =>
+        log.warn('Gallery refresh after publication failed', error),
+      );
+  },
 });
 
 // The member's name on the board and in the gallery. Registering contacts

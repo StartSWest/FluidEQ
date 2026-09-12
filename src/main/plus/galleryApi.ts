@@ -173,7 +173,7 @@ const download = async (
   try {
     const response = await (auth.fetchImpl ?? fetch)(
       objectUrl(auth.config, path),
-      { headers: headers(auth) },
+      { headers: headers(auth), cache: 'no-store' },
     );
     if (!response.ok) {
       return undefined;

@@ -181,7 +181,7 @@ const terms = {
   'terms.scenes.p7':
     'Une scène qu’un autre membre partage est son œuvre, concédée pour votre usage personnel tant que vous êtes membre. Vous pouvez la jouer, l’aimer et transmettre le fichier sans le modifier à d’autres membres Plus. Merci de ne pas la modifier, la présenter comme la vôtre, la publier ailleurs ou la vendre.',
   'terms.scenes.p8':
-    'Un fichier que vous avez envoyé reste chez ceux qui l’ont. Si vous voulez qu’une scène cesse de s’ouvrir partout, demandez-le au créateur, qui peut la bloquer comme une scène qui enfreint les règles.',
+    'Retirer une scène de la galerie empêche tout nouveau téléchargement depuis celle-ci. Cela ne supprime ni ne révoque les copies déjà téléchargées, qui restent autorisées pour un usage personnel avec Plus. FluidEQ peut bloquer les scènes qui enfreignent ces conditions ou les droits d’autrui.',
   'terms.scenes.p9':
     'Si vous publiez une scène dans Visualiseurs, vous permettez aussi à FluidEQ de l’y garder jusqu’à ce que vous la dépubliiez, de montrer son image, son nom, sa catégorie et votre nom d’affichage à toute personne connectée à FluidEQ, de la lui faire jouer quelques secondes, et de proposer la scène elle-même aux membres Plus, qui peuvent la lire en entier et l’ajouter. Vous pouvez la dépublier à tout moment, avec ou sans Plus. Ceux qui l’ont déjà ajoutée gardent leur copie, aux mêmes conditions qu’un fichier que vous leur auriez envoyé.',
   'terms.scenes.p10':

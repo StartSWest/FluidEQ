@@ -29,6 +29,8 @@ import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
 import { createPictureCache } from '../plus/pictureCache';
 import { fetchOfficialScene } from '../plus/officialGallery';
 import type { IScenePackStore } from '../scenePackStore';
+import { createGallerySceneSync } from '../plus/syncGalleryScenes';
+import { createGalleryRefresh } from '../plus/galleryRefresh';
 
 /**
  * The Plus gallery, over IPC: listing it, its pictures, a scene's page, Add
@@ -84,6 +86,7 @@ export interface IPlusGalleryIpcDeps {
 }
 
 export interface IPlusGalleryRegistration {
+  refreshIfDue(force?: boolean): Promise<void>;
   dispose(): void;
 }
 
@@ -157,6 +160,14 @@ export const registerPlusGalleryIpc = ({
   announceOfficial,
   logger,
 }: IPlusGalleryIpcDeps): IPlusGalleryRegistration => {
+  const syncInstalled = createGallerySceneSync({
+    access,
+    store,
+    officialStore,
+    announce,
+    announceOfficial,
+    logger,
+  });
   const pictures = createPictureCache(PICTURE_CACHE_BYTES);
   const picturesInFlight = new Map<string, Promise<string | undefined>>();
   const previews = new Map<string, IFetchedScene>();
@@ -258,6 +269,10 @@ export const registerPlusGalleryIpc = ({
       if (!listed.ok) {
         return listed;
       }
+      if (access.entitled()) {
+        await refreshBlocked();
+      }
+      await syncInstalled(listed.scenes);
       // The server leaves blocked scenes out already; the list this computer
       // holds is asked as well, so the two can never disagree on screen.
       return {
@@ -319,6 +334,7 @@ export const registerPlusGalleryIpc = ({
       // long as they like, without it for the taste the page gives. What
       // stays Plus is keeping it — Add, below.
       const ref = sceneRefOf(authorId, sceneId);
+      const previewAccount = access.accountId();
       if (!ref || !signedIn()) {
         return { ok: false, reason: 'not-entitled' };
       }
@@ -345,6 +361,9 @@ export const registerPlusGalleryIpc = ({
       if (typeof fetched === 'string') {
         return { ok: false, reason: fetched };
       }
+      if (access.accountId() !== previewAccount || !signedIn()) {
+        return { ok: false, reason: 'not-entitled' };
+      }
       return {
         ok: true,
         pack: fetched.payload.pack,
@@ -360,6 +379,7 @@ export const registerPlusGalleryIpc = ({
       authorId: unknown,
       sceneId: unknown,
       version: unknown,
+      rawRevision: unknown,
     ): Promise<TGalleryAddOutcome> => {
       const ref = sceneRefOf(authorId, sceneId);
       const me = access.accountId();
@@ -378,13 +398,16 @@ export const registerPlusGalleryIpc = ({
           return { ok: false, reason: 'unavailable' };
         }
         try {
-          officialStore.adopt([
-            {
-              id: fetched.pack.id,
-              version: fetched.pack.version,
-              envelope: fetched.envelope,
-            },
-          ]);
+          officialStore.adopt(
+            [
+              {
+                id: fetched.pack.id,
+                version: fetched.pack.version,
+                envelope: fetched.envelope,
+              },
+            ],
+            true,
+          );
           if (!officialStore.load(ref.packId)) {
             return { ok: false, reason: 'refused' };
           }
@@ -406,9 +429,16 @@ export const registerPlusGalleryIpc = ({
         ref.authorId,
         ref.packId,
         typeof version === 'number' ? version : undefined,
+        readRevision(rawRevision),
       );
       if (typeof fetched === 'string') {
         return { ok: false, reason: fetched };
+      }
+      if (!access.entitled() || access.accountId() !== me) {
+        return { ok: false, reason: 'not-entitled' };
+      }
+      if (store.isBlocked(ref.authorId, ref.packId)) {
+        return { ok: false, reason: 'blocked' };
       }
       try {
         // The member's own scene comes back as their own — editable, and
@@ -463,6 +493,7 @@ export const registerPlusGalleryIpc = ({
   });
 
   return {
+    refreshIfDue: createGalleryRefresh(access, syncInstalled),
     dispose: () => {
       unsubscribe();
       forgetEverything();

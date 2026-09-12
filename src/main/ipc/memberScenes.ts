@@ -1,6 +1,7 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import { registerStudioNotesIpc } from './studioNotes';
 import { parseMemberLookId } from '../../common/memberScenes';
 import type { TLocalizedName } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
@@ -447,6 +448,11 @@ export const registerMemberScenesIpc = ({
   });
 
   // The Pictures card, and the scene's settings.
+  const disposeNotes = registerStudioNotesIpc({
+    entitled,
+    folderFor: (id) =>
+      projects.projects.find((project) => project.id === id)?.folder,
+  });
   const disposePictures = registerStudioPicturesIpc({
     getMainWindow,
     entitled,
@@ -470,6 +476,7 @@ export const registerMemberScenesIpc = ({
     dispose: () => {
       unsubscribe();
       stopWatching();
+      disposeNotes();
       disposePictures();
       disposeSettings();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));

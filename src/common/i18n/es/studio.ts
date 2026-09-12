@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'No se pudo guardar la descripción del proyecto. Inténtalo de nuevo.',
   'studio.stage.loading': 'Cargando escena…',
   'studio.picture.download': 'Guardar imagen',
   'studio.picture.downloaded': 'Imagen guardada',
@@ -103,7 +105,7 @@ const studio = {
     'Cualquiera con sesión iniciada la verá en Visualizadores. Los miembros Plus podrán reproducirla, añadirla a sus estilos y darle me gusta.',
   'studio.publish.point2': 'Cada me gusta te da puntos en la clasificación.',
   'studio.publish.point3':
-    'Puedes retirarla cuando quieras. Quien ya la añadió conserva su copia.',
+    'Puedes retirarla para impedir nuevas descargas. Las copias ya descargadas siguen disponibles con Plus.',
   'studio.publish.point3Update':
     'Quien la añadió verá Actualizar y conserva la versión anterior hasta que lo pulse.',
   'studio.publish.read': 'Leer las condiciones',

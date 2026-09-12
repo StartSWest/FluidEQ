@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { BrowserWindow, ipcMain } from 'electron';
 import type { IAccountConfig } from '../../common/accountConfig';
 import {
@@ -40,14 +38,6 @@ export interface IScenePacksIpcDeps {
   logger?: { info(message: string): void; warn(message: string): void };
   now?: () => number;
   fetchImpl?: typeof fetch;
-  /**
-   * DEVELOPMENT ONLY. A directory of `*.envelope.json` files — the signing
-   * tool's output — adopted at startup as if the server had sent them. Every
-   * envelope still has to verify against the compiled-in key; this shortens
-   * the path to the cache, it does not bypass the gate on it. `main.ts` sets
-   * it solely when the app is not packaged.
-   */
-  developmentPacksDir?: string;
 }
 
 export interface IScenePacksListing {
@@ -75,6 +65,7 @@ export const SCENE_PACKS_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
 const CHANNELS = [
   'scene-packs-list',
   'scene-packs-load',
+  'scene-packs-remove',
   'scene-packs-refresh',
   'scene-packs-report-failure',
 ] as const;
@@ -105,46 +96,6 @@ const readListings = (body: unknown): IScenePackListing[] => {
   return listings;
 };
 
-/**
- * Signed envelopes from a local directory, shaped like server rows. The id and
- * version come from the verified payload later; here the file only has to be
- * an envelope at all. Anything else in the directory is ignored.
- */
-const readDevelopmentEnvelopes = (directory: string): IScenePackListing[] => {
-  let names: string[];
-  try {
-    names = fs.readdirSync(directory);
-  } catch {
-    return [];
-  }
-  const listings: IScenePackListing[] = [];
-  names
-    .filter((name) => name.endsWith('.envelope.json'))
-    .forEach((name) => {
-      try {
-        const envelope: unknown = JSON.parse(
-          fs.readFileSync(path.join(directory, name), 'utf8'),
-        );
-        if (!isScenePackEnvelope(envelope)) {
-          return;
-        }
-        const payload: unknown = JSON.parse(
-          Buffer.from(envelope.payload, 'base64').toString('utf8'),
-        );
-        if (
-          isRecord(payload) &&
-          typeof payload.id === 'string' &&
-          typeof payload.version === 'number'
-        ) {
-          listings.push({ id: payload.id, version: payload.version, envelope });
-        }
-      } catch {
-        // A half-written file from the tool mid-run. Skipped, not fatal.
-      }
-    });
-  return listings;
-};
-
 export const registerScenePacksIpc = ({
   getMainWindow,
   userDataDir,
@@ -154,7 +105,6 @@ export const registerScenePacksIpc = ({
   logger,
   now = Date.now,
   fetchImpl = fetch,
-  developmentPacksDir,
 }: IScenePacksIpcDeps): IScenePacksIpcRegistration => {
   const store = createScenePackStore({ userDataDir, logger });
   const catalogue = createScenePackCatalogue({
@@ -164,20 +114,6 @@ export const registerScenePacksIpc = ({
     logger,
   });
 
-  const adoptDevelopmentPacks = () => {
-    if (!developmentPacksDir) {
-      return;
-    }
-    const envelopes = readDevelopmentEnvelopes(developmentPacksDir);
-    const adopted = store.adopt(envelopes);
-    // A pack being iterated on gets a fresh chance on launch or an explicit
-    // refresh. The normal signature checks still precede every cache write.
-    envelopes.forEach((listing) => store.release(listing.id));
-    logger?.info(
-      `Development scene packs: ${adopted} adopted from ${developmentPacksDir}.`,
-    );
-  };
-  adoptDevelopmentPacks();
   let lastFetchedAt = 0;
   let catalogueFetchedAt = 0;
   let inFlight: Promise<void> | undefined;
@@ -251,7 +187,15 @@ export const registerScenePacksIpc = ({
     } catch {
       return;
     }
-    if (store.adopt(readListings(body)) > 0) {
+    // Refresh only installed scenes. New scenes enter through an explicit Add.
+    const installed = new Set(store.list().map((pack) => pack.id));
+    if (!entitled()) {
+      return;
+    }
+    if (
+      store.adopt(readListings(body).filter((pack) => installed.has(pack.id))) >
+      0
+    ) {
       announce();
     }
   };
@@ -303,15 +247,23 @@ export const registerScenePacksIpc = ({
   });
 
   ipcMain.handle('scene-packs-refresh', async () => {
-    // Private packs are authored outside the app tree, so renderer hot reload
-    // cannot see a new signed build. Refresh adopts that build through the
-    // same verifier as downloads; packaged apps never receive this directory.
-    if (developmentPacksDir) {
-      adoptDevelopmentPacks();
-      announce();
-    }
     await refreshNow();
     return listing();
+  });
+
+  ipcMain.handle('scene-packs-remove', (_event, id: unknown) => {
+    if (typeof id !== 'string') {
+      return false;
+    }
+    try {
+      const removed = store.remove(id);
+      if (removed) {
+        announce();
+      }
+      return removed;
+    } catch {
+      return false;
+    }
   });
 
   ipcMain.handle(

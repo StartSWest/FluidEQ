@@ -42,6 +42,7 @@ export interface IPlusPublishingIpcDeps {
   activeFolder: () => string | undefined;
   /** A publication recorded an agreement to this version of the Plus terms. */
   onTermsAgreed?: (version: number) => void;
+  onPublished?: () => void;
 }
 
 const CHANNELS = [
@@ -68,6 +69,7 @@ export const registerPlusPublishingIpc = ({
   userDataDir,
   activeFolder,
   onTermsAgreed,
+  onPublished,
 }: IPlusPublishingIpcDeps) => {
   ipcMain.handle('plus-gallery-mine', async (): Promise<TMineOutcome> => {
     const me = access.accountId();
@@ -161,6 +163,7 @@ export const registerPlusPublishingIpc = ({
         // not adopt its agreement through the current-account callback.
         if (access.accountId() === me) {
           onTermsAgreed?.(termsVersion);
+          onPublished?.();
         }
       }
       return published;

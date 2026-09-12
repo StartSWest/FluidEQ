@@ -3,8 +3,11 @@ import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene, TReportReason } from 'common/plusGallery';
 import type { TGalleryAddOutcome } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
-import { likeMemberSceneLook } from '../utils/memberScenes';
-import { getUsableScenes, refreshScenePacks } from '../utils/scenePacks';
+import {
+  likeMemberSceneLook,
+  refreshMemberScenes,
+} from '../utils/memberScenes';
+import { refreshScenePacks } from '../utils/scenePacks';
 import { patchGalleryScene } from './galleryStore';
 
 /**
@@ -87,17 +90,15 @@ export const addGalleryScene = async (
       scene.authorId,
       scene.sceneId,
       scene.version,
+      scene.updatedAt,
     )) ?? { ok: false, reason: 'unavailable' };
     // Add may answer before the official pack announcement arrives. Refresh
     // its real store so the card and Play agree with the premium look picker.
-    if (outcome.ok && scene.official) {
-      const { lookId } = outcome;
-      if (
-        !getUsableScenes().some(
-          (local) => local.lookId === lookId && local.version >= scene.version,
-        )
-      ) {
-        await refreshScenePacks();
+    if (outcome.ok) {
+      if (scene.official) {
+        await refreshScenePacks(true);
+      } else {
+        await refreshMemberScenes();
       }
     }
   } catch {
@@ -151,6 +152,47 @@ export const toggleGalleryLike = async (scene: IGalleryScene) => {
   }
   patchGalleryScene(scene.lookId, { liked: scene.liked, likes: scene.likes });
   setGalleryNotice({ ok: false, key: 'plus.like.offline' });
+};
+
+/** Removes only this computer's copy; the publication and creator's files stay. */
+export const removeGalleryScene = async (
+  scene: IGalleryScene,
+  name: string,
+) => {
+  if (adding.has(scene.lookId)) {
+    return false;
+  }
+  adding.add(scene.lookId);
+  addingSnapshot = new Set(adding);
+  notice = undefined;
+  notify();
+  let removed = false;
+  try {
+    removed =
+      (scene.official
+        ? await bridge()?.removeScenePack?.(scene.sceneId)
+        : await bridge()?.removeMemberScene?.(scene.lookId)) ?? false;
+    if (removed) {
+      if (scene.official) {
+        await refreshScenePacks(true);
+      } else {
+        await refreshMemberScenes();
+      }
+    }
+  } catch {
+    removed = false;
+  }
+  adding.delete(scene.lookId);
+  addingSnapshot = new Set(adding);
+  if (removed) {
+    patchGalleryScene(scene.lookId, { added: false });
+  }
+  setGalleryNotice({
+    ok: removed,
+    key: removed ? 'plus.remove.done' : 'plus.remove.failed',
+    vars: { name },
+  });
+  return removed;
 };
 
 export const reportGalleryScene = async (

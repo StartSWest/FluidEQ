@@ -190,7 +190,7 @@ const terms = {
   'terms.scenes.p7':
     'A scene another member shares is their work, licensed to you for personal use while you are a member. You can play it, like it, and pass the file on unchanged to other Plus members. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
   'terms.scenes.p8':
-    'A file you have sent stays with whoever has it. If you want a scene to stop opening everywhere, ask the maker, who can block it the same way as a scene that breaks the rules.',
+    "Unpublishing stops new downloads from the gallery. It does not delete or revoke copies already downloaded; those remain licensed for personal use with Plus. FluidEQ may block scenes that violate these terms or someone else's rights.",
   'terms.scenes.p9':
     'If you publish a scene to Visualizers, you also let FluidEQ keep it there until you unpublish it, show its picture, its name, its category and your display name to anyone signed in to FluidEQ, play it for them for a few seconds, and offer the scene itself to Plus members, who can play it in full and add it. You can unpublish it at any time, with or without Plus. Members who already added it keep their copy, under the same terms as a file you sent them.',
   'terms.scenes.p10':

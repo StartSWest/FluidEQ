@@ -240,6 +240,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-card {
+  position: relative;
   @include animate(rise-in, $motion-base, $ease-out);
   display: grid;
   grid-template-rows: auto 1fr;
@@ -256,7 +257,6 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border-color: color-mix(in srgb, $secondary-default 42%, transparent);
     box-shadow: 0 10px 28px rgba($black, 0.32);
-    transform: translateY(-2px);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -328,12 +328,21 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-body;
   font-weight: $weight-semibold;
 
+  &::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    content: '';
+  }
+
   &:hover {
     color: $secondary-light;
   }
 }
 
 .gallery-card__by {
+  justify-self: start;
+  max-width: 100%;
   color: $text-faint;
   font-size: $text-small;
 
@@ -371,6 +380,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-card__add {
   flex: 0 0 auto;
+  display: grid;
+
+  > span {
+    grid-area: 1 / 1;
+  }
+
+  .gallery-card__remove-label {
+    visibility: hidden;
+  }
+
+  &.is-done:hover,
+  &.is-done:focus-visible {
+    .gallery-card__add-label {
+      visibility: hidden;
+    }
+    .gallery-card__remove-label {
+      visibility: visible;
+    }
+  }
 
   &.is-done {
     color: $analogous-2;
@@ -378,6 +406,14 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $analogous-2 8%, transparent);
     opacity: 1;
   }
+}
+
+// The name's stretched target covers gaps; these controls retain their actions.
+.gallery-card__by:not(.gallery-card__by--plain),
+.gallery-card .gallery-like,
+.gallery-card__add {
+  position: relative;
+  z-index: 2;
 }
 
 .gallery-card--skeleton {
@@ -1108,6 +1144,10 @@ it under the terms of the GNU General Public License version 3 or later.
     .gallery-row__actions {
       justify-content: flex-start;
     }
+
+    .gallery-row__confirm {
+      flex-basis: 100%;
+    }
   }
 }
 
@@ -1164,7 +1204,24 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
+.gallery-row__official {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 5px;
+  margin-top: 3px;
+  color: $secondary-light;
+  font-weight: $weight-semibold;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
 .gallery-row__numbers {
+  grid-column: 3;
   display: grid;
   grid-template-columns: repeat(2, minmax(64px, auto));
   gap: $spacing-s;
@@ -1189,6 +1246,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-row__actions {
+  grid-column: 4;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1197,10 +1255,16 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .gallery-row__confirm {
-  flex: 1 1 100%;
+  flex: 1 1 240px;
   color: $text-muted;
   font-size: $text-small;
-  text-align: end;
+  text-align: start;
+}
+
+.gallery-row.is-confirming .gallery-row__actions {
+  grid-column: 1 / -1;
+  padding-top: $spacing-s;
+  border-top: 1px solid $border-subtle;
 }
 
 .gallery-danger.button {

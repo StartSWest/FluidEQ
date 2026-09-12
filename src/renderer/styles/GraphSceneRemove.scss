@@ -1,0 +1,85 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+.graph-look-menu .row:has(.graph-scene-remove) {
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .graph-look-option {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.graph-scene-remove {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+
+  &.is-confirming {
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding: 9px;
+    border: 1px solid color-mix(in srgb, $red 24%, transparent);
+    border-radius: $radius-s;
+    background: color-mix(in srgb, $red 5%, $surface-base);
+  }
+
+  &__question {
+    flex: 1 0 100%;
+    color: $text-faint;
+  }
+
+  .button {
+    min-height: 28px;
+    gap: 5px;
+    padding: 4px 8px;
+    font-size: $text-small;
+    svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 1.4;
+    }
+  }
+
+  &__confirm.button {
+    color: $white;
+    background: color-mix(in srgb, $red 62%, $surface-base);
+    border-color: color-mix(in srgb, $red 70%, transparent);
+    box-shadow: none;
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, $red 78%, $surface-base);
+      color: $white;
+    }
+  }
+
+  &__open {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 3px;
+    color: $text-faint;
+    border: 0;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      color: $text-primary;
+    }
+    &:focus-visible {
+      @include focus-ring;
+    }
+    svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.3;
+    }
+  }
+}

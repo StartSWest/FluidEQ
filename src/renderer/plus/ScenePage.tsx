@@ -205,9 +205,18 @@ export default function ScenePage({
       <button
         type="button"
         className="button small"
+        disabled={adding || preview.state !== 'ready'}
+        aria-busy={adding}
         onClick={() => {
-          setGraphLook(local.lookId);
-          onShowGraph();
+          addGalleryScene(scene, name)
+            .then((ok) => {
+              if (ok) {
+                setGraphLook(local.lookId);
+                onShowGraph();
+              }
+              return undefined;
+            })
+            .catch(() => undefined);
         }}
       >
         {t('plus.scene.play')}

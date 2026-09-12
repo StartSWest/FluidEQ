@@ -460,7 +460,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-visible {
     border-color: color-mix(in srgb, $secondary-light 62%, transparent);
     background: color-mix(in srgb, $surface-field-end 82%, transparent);
-    translate: 0 -2px;
     outline: none;
   }
 

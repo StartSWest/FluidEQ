@@ -22,6 +22,7 @@ export interface IUsableMemberScene {
   authorId: string;
   packId: string;
   version: number;
+  revision?: string;
   names: IMemberSceneSummary['names'];
   fallbackStyle: IMemberSceneSummary['fallbackStyle'];
   swatch: string[];
@@ -69,6 +70,7 @@ const recompute = () => {
             authorId: scene.authorId,
             packId: scene.packId,
             version: scene.version,
+            revision: scene.revision,
             names: scene.names,
             fallbackStyle: scene.fallbackStyle,
             swatch: scene.swatch,
@@ -172,6 +174,15 @@ export const useLockedMemberScenes = (): readonly ILockedMemberScene[] =>
 export const loadMemberScene = async (
   lookId: string,
 ): Promise<IScenePack | undefined> => bridge()?.loadMemberScene?.(lookId);
+
+export const refreshMemberScenes = async () => {
+  const next = await bridge()?.listMemberScenes?.();
+  if (next) {
+    adopt(next);
+  }
+};
+
+export const getMemberSceneListing = () => listing;
 
 /** The scene itself failed here: stop offering it now, and remember why. */
 export const reportMemberSceneFailure = async (

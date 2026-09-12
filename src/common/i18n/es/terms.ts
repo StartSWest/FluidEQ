@@ -179,7 +179,7 @@ const terms = {
   'terms.scenes.p7':
     'Una escena que comparte otro miembro es obra suya, con licencia para tu uso personal mientras seas miembro. Puedes reproducirla, darle me gusta y pasar el archivo sin cambios a otros miembros de Plus. Por favor, no la modifiques, no la presentes como tuya, no la publiques en otro sitio ni la vendas.',
   'terms.scenes.p8':
-    'Un archivo que has enviado se queda con quien lo tenga. Si quieres que una escena deje de abrirse en todas partes, pídeselo al creador, que puede bloquearla igual que una escena que incumple las normas.',
+    'Retirar una escena de la galería impide nuevas descargas desde ella. No borra ni revoca las copias ya descargadas, que siguen autorizadas para uso personal con Plus. FluidEQ puede bloquear escenas que incumplan estas condiciones o los derechos de otra persona.',
   'terms.scenes.p9':
     'Si publicas una escena en Visualizadores, también permites que FluidEQ la guarde ahí hasta que la retires, que muestre su imagen, su nombre, su categoría y tu nombre visible a cualquiera con sesión iniciada en FluidEQ, que se la reproduzca unos segundos, y que ofrezca la escena en sí a los miembros Plus, que pueden reproducirla completa y añadirla. Puedes retirarla cuando quieras, tengas Plus o no. Quien ya la añadió conserva su copia, en las mismas condiciones que un archivo que le enviaste.',
   'terms.scenes.p10':

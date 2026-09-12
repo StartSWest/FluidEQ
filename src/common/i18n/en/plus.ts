@@ -4,6 +4,11 @@
  * report dialog. The Studio's side of publishing is in `studio.ts`.
  */
 const plus = {
+  'plus.remove.confirm': 'Remove from your looks?',
+  'plus.remove.failed': 'Could not remove {name}. Try again.',
+  'plus.remove.done': '{name} removed from your looks.',
+  'plus.card.remove': 'Remove',
+  'plus.official.author': 'FluidEQ · Official',
   'plus.official.included': 'Included with Plus',
   'plus.visualizers.title': 'Visualizers',
   'plus.visualizers.description':
@@ -116,7 +121,7 @@ const plus = {
   'plus.mine.blocked': 'Taken down by FluidEQ',
   'plus.mine.unpublish': 'Unpublish',
   'plus.mine.confirm':
-    'Take it out of the gallery? Members who added it keep their copy.',
+    'Remove it from the gallery and stop new downloads? Members who already downloaded it keep their copy.',
   'plus.mine.confirmYes': 'Unpublish',
   'plus.mine.confirmNo': 'Keep it',
   'plus.mine.unpublished': '{name} is no longer in the gallery.',

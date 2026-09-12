@@ -1,4 +1,6 @@
 const studio = {
+  'studio.notes.failed':
+    'プロジェクトの説明を保存できませんでした。もう一度お試しください。',
   'studio.stage.loading': 'シーンを読み込み中…',
   'studio.picture.download': '画像を保存',
   'studio.picture.downloaded': '画像を保存しました',
@@ -101,7 +103,7 @@ const studio = {
     'サインインしている人は誰でもビジュアライザーで見られます。Plus メンバーは再生、マイ表示への追加、いいねができます。',
   'studio.publish.point2': 'いいねのたびにランキングのポイントが入ります。',
   'studio.publish.point3':
-    'いつでも公開を停止できます。追加済みのメンバーは自分のコピーを使い続けられます。',
+    '非公開にすると新しいダウンロードを停止できます。ダウンロード済みのコピーは引き続きPlusで利用できます。',
   'studio.publish.point3Update':
     '追加済みのメンバーには「更新」が表示され、押すまでは以前のバージョンのままです。',
   'studio.publish.read': '利用規約を読む',

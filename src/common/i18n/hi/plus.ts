@@ -1,4 +1,9 @@
 const plus = {
+  'plus.remove.confirm': 'अपने रूपों से हटाएँ?',
+  'plus.remove.failed': '{name} को हटा नहीं सके। फिर से कोशिश करें।',
+  'plus.remove.done': '{name} को आपके रूपों से हटा दिया गया।',
+  'plus.card.remove': 'हटाएँ',
+  'plus.official.author': 'FluidEQ · आधिकारिक',
   'plus.official.included': 'Plus में शामिल',
   'plus.visualizers.title': 'विज़ुअलाइज़र',
   'plus.visualizers.description':
@@ -111,7 +116,7 @@ const plus = {
   'plus.mine.blocked': 'FluidEQ ने हटाया',
   'plus.mine.unpublish': 'प्रकाशन हटाएँ',
   'plus.mine.confirm':
-    'गैलरी से हटाएँ? जिन सदस्यों ने इसे जोड़ा है, उनकी कॉपी उनके पास रहेगी।',
+    'गैलरी से हटाकर नए डाउनलोड रोकें? जो सदस्य इसे डाउनलोड कर चुके हैं, उनकी प्रति बनी रहेगी।',
   'plus.mine.confirmYes': 'प्रकाशन हटाएँ',
   'plus.mine.confirmNo': 'रहने दें',
   'plus.mine.unpublished': '{name} अब गैलरी में नहीं है।',
