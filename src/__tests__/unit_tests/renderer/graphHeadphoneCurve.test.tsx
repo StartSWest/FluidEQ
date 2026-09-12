@@ -51,6 +51,7 @@ import {
   getGraphicEqLineData,
 } from 'renderer/graph/utils';
 import { getStudioEqFilters, TEqMode } from 'common/eqMode';
+import { AudioEngineContext } from 'renderer/utils/audioEngineContext';
 import { IChartCurveData } from 'renderer/graph/ChartController';
 
 /* --- the world the chart reads ------------------------------------------ */
@@ -184,7 +185,7 @@ const CORRECTION: IHeadphoneSettings = {
   intensity: 1,
 };
 
-const draw = (world: Partial<IWorld>) => {
+const draw = (world: Partial<IWorld>, engine: 'apo' | 'fluid' = 'apo') => {
   Object.assign(mockWorld, {
     isEqDoubleOn: false,
     eqMode: undefined,
@@ -204,7 +205,11 @@ const draw = (world: Partial<IWorld>) => {
   mockChart.data = [];
   mockDisplayedPreAmps.length = 0;
   mockSetMainPreAmp.mockClear();
-  return render(<FrequencyResponseChart />);
+  return render(
+    <AudioEngineContext.Provider value={engine}>
+      <FrequencyResponseChart />
+    </AudioEngineContext.Provider>,
+  );
 };
 
 const curve = (id: string) => mockChart.data.find((entry) => entry.id === id);
@@ -348,6 +353,13 @@ describe('the headphone layer on the frequency response graph', () => {
     // Still never writes back. The renderer mirrors this number; it does not
     // own it, and a write from here would be a second author for one value.
     expect(mockSetMainPreAmp).not.toHaveBeenCalled();
+  });
+
+  it('never feeds a curve estimate into Fluid manual preamp state', () => {
+    draw({ headphone: CORRECTION, isAutoPreAmpOn: true }, 'fluid');
+    expect(mockDisplayedPreAmps).toEqual([]);
+    expect(mockSetMainPreAmp).not.toHaveBeenCalled();
+    expect(gainAt('Headphone Correction', 1000)).toBeCloseTo(6, 1);
   });
 
   it('takes the curve and the chip away when it is bypassed', () => {

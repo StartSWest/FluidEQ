@@ -17,7 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ErrorDescription } from 'common/errors';
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { useCurrentEngine } from '../utils/audioEngineContext';
 import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
@@ -39,38 +40,40 @@ export default function AutoPreAmpEnablerSwitch({
     setAutoPreAmpOn,
     setPreAmp,
   } = useFluidEqContext();
+  const engine = useCurrentEngine();
+  const pending = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   const handleToggle = useCallback(async () => {
+    if (pending.current) {
+      return;
+    }
+    pending.current = true;
+    setBusy(true);
+    const enabled = !isAutoPreAmpOn;
+    setAutoPreAmpOn(enabled);
     try {
-      // Both directions answer with the value main derived from the chain it
-      // just wrote, and the switch shows that and nothing else.
-      //
-      // Turning it off used to put back a preamp remembered from the last time
-      // a slider was moved. That is gone: nothing records a "user value" any
-      // more, so switching off keeps the level auto-normalize had arrived at
-      // and hands control of it over. Restoring an older number meant the one
-      // click most likely to be made by somebody who thinks it is too quiet
-      // could also make it clip.
-      //
-      // Do not depend on the response graph to compute the displayed value: the
-      // graph is not mounted in every workspace, and where it is missing — the
-      // Karaoke tab — nothing corrects a wrong number afterwards.
       const applied = isAutoPreAmpOn
         ? await disableAutoPreAmp()
         : await enableAutoPreAmp();
-      setPreAmp(applied);
-      setAutoPreAmpOn(!isAutoPreAmpOn);
+      if (enabled && engine === 'apo') {
+        setPreAmp(applied);
+      }
     } catch (e) {
+      setAutoPreAmpOn(isAutoPreAmpOn);
       setGlobalError(e as ErrorDescription);
+    } finally {
+      pending.current = false;
+      setBusy(false);
     }
-  }, [isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn, setPreAmp]);
+  }, [engine, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn, setPreAmp]);
 
   return (
     <Switch
       id={id}
       isOn={isAutoPreAmpOn}
       handleToggle={handleToggle}
-      isDisabled={isBlockingError}
+      isDisabled={isBlockingError || busy}
     />
   );
 }

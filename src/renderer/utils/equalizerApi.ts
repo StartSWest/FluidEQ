@@ -536,20 +536,34 @@ export const disableAutoPreAmp = (): Promise<number> => {
 /**
  * Report what the capture has heard to the process that owns the preamp.
  *
- * Fire and forget on purpose. This runs on a slow timer for as long as somebody
- * is listening, and awaiting a reply per report would put a promise, a listener
- * and a timeout on every one of them for a value nothing here reads — the
- * derived preamp comes back through the ordinary state update like every other
- * number the writer owns.
+ * Only one report is in flight. A correlated reply confirms the config write;
+ * cancellation removes the listener when the capture or engine changes.
  */
 export const sendSmartHeadroomMeasurement = (
   programme: Array<{ frequency: number; gain: number }>,
   trimDb: number,
-): void => {
+  onApplied: (applied: boolean) => void,
+): (() => void) => {
+  const requestId = crypto.randomUUID();
+  const unsubscribe = window.electron.ipcRenderer.on(
+    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+    (reply: unknown) => {
+      if (!reply || typeof reply !== 'object' || !('result' in reply)) {
+        return;
+      }
+      const result = reply.result as { requestId?: unknown; applied?: unknown };
+      if (!result || result.requestId !== requestId) {
+        return;
+      }
+      unsubscribe();
+      onApplied(result.applied === true);
+    },
+  );
   window.electron.ipcRenderer.sendMessage(
     ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-    [programme, trimDb],
+    [programme, trimDb, requestId],
   );
+  return unsubscribe;
 };
 
 /**

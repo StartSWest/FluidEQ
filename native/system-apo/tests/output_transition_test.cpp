@@ -66,6 +66,10 @@ void guard_follows_final_samples() {
   CHECK(std::abs(next.auto_preamp_gain_db() - held) < 1e-6);
   std::vector<std::vector<float>> quiet(2, tone(1000, 0.005, kRate * 8, kRate));
   run_blocks(next, quiet, 480);
+  CHECK(next.auto_preamp_gain_db() > held);
+  CHECK(next.auto_preamp_gain_db() < held + 0.6);
+  std::vector<std::vector<float>> recovery(2, tone(1000, 0.005, kRate * 160, 0));
+  run_blocks(next, recovery, 480);
   CHECK(next.auto_preamp_gain_db() > -0.1);
   const auto manual = chain_from("Preamp: -7 dB\n# FluidEQAutoPreamp: OFF\n");
   CHECK(manual.output_guard && !manual.auto_preamp && manual.preamp_db == -7);
@@ -92,9 +96,44 @@ void guard_follows_impulse_response() {
   CHECK(protected_audio[0] == protected_audio[1]);
   std::filesystem::remove(path);
 }
+
+void actual_eq_edits_reassess_quickly() {
+  for (const bool curve : {false, true}) {
+    for (const bool changed : {false, true}) {
+      const std::string prefix = "Preamp: 0 dB\n# FluidEQAutoPreamp: ON\n";
+      const std::string raised = curve ? "GraphicEQ: 20 20; 20000 20\n"
+          : "Filter: ON PK Fc 60 Hz Gain 20 dB Q 2\n";
+      const std::string fixed = curve ? "GraphicEQ: 20 0; 20000 0\n"
+          : "Filter: ON PK Fc 60 Hz Gain 0 dB Q 2\n";
+      Graph previous(chain_from(prefix + raised), kRate, 2, 480);
+      std::vector<std::vector<float>> loud(2, tone(60, 0.4, kRate * 3, 0));
+      run_blocks(previous, loud, 480);
+      const double held = previous.auto_preamp_gain_db();
+      CHECK(held < -10);
+      Graph next(chain_from(prefix + (changed ? fixed : raised)), kRate, 2, 480);
+      next.request_state_transfer();
+      next.adopt_state(&previous);
+      CHECK(std::abs(next.auto_preamp_gain_db() - held) < 1e-6);
+      std::vector<std::vector<float>> audio(2, tone(60, changed ? 0.4 : 0.01, kRate * 2, kRate * 3));
+      run_blocks(next, audio, 480);
+      if (changed) {
+        CHECK(next.auto_preamp_gain_db() > held + 1.0);
+        CHECK(next.auto_preamp_gain_db() < held + 2.2);
+        std::vector<std::vector<float>> recovered(2, tone(60, 0.4, kRate * 22, 0));
+        run_blocks(next, recovered, 480);
+        CHECK(next.auto_preamp_gain_db() > -0.1);
+        CHECK(rms_db(recovered[0], kRate * 21, kRate * 22) > -12);
+      } else {
+        CHECK(std::abs(next.auto_preamp_gain_db() - held) < 0.1);
+      }
+      CHECK(*std::max_element(audio[0].begin(), audio[0].end()) < 0.94f);
+    }
+  }
+}
 int main() {
   smoothing_keeps_history();
   guard_follows_final_samples();
   guard_follows_impulse_response();
+  actual_eq_edits_reassess_quickly();
   return report();
 }

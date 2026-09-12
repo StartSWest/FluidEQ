@@ -1788,7 +1788,7 @@ const handleUpdateHelperCore = async <T>(
     // the same automatic value. The writer derives this independently as its
     // final safety check; synchronizing here prevents the stored manual preamp
     // from surviving underneath an enabled Auto normalize switch.
-    if (state.isAutoPreAmpOn) {
+    if (state.isAutoPreAmpOn && session.audioEngine !== 'fluid') {
       state.preAmp = getResolvedPreAmp(state);
     }
     const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
@@ -2587,6 +2587,9 @@ ipcMain.on(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
 
 registerPreampIpc({
   state,
+  canMeasureHeadroom: () =>
+    session.audioEngine === 'apo' && !session.engineSwitching,
+  usesNativeHeadroom: () => session.audioEngine === 'fluid',
   handleUpdate,
   handleUpdateHelper,
   handleError,

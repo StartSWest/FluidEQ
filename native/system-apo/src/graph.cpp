@@ -296,7 +296,20 @@ void Graph::adopt_state(Graph* previous) noexcept {
     return;
   }
   inherit_state(*previous);
-  if (output_guard_ && previous->output_guard_) output_guard_.swap(previous->output_guard_);
+  if (output_guard_ && previous->output_guard_) {
+    output_guard_.swap(previous->output_guard_);
+    const bool same_bands = coefficients_.size() == previous->coefficients_.size() &&
+        std::equal(coefficients_.begin(), coefficients_.end(), previous->coefficients_.begin(),
+          [](const FeqBiquadCoefficients& current, const FeqBiquadCoefficients& before) {
+            return current.b0 == before.b0 && current.b1 == before.b1 && current.b2 == before.b2 &&
+                current.a1 == before.a1 && current.a2 == before.a2;
+          });
+    if (auto_preamp_ && (!same_bands || preamp_linear_ != previous->preamp_linear_ ||
+        graphic_identity_ != previous->graphic_identity_ ||
+        impulse_identity_ != previous->impulse_identity_ || impulse_.size() != previous->impulse_.size())) {
+      output_guard_->reassess(std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20);
+    }
+  }
   if (impulse_identity_ != nullptr && impulse_identity_ == previous->impulse_identity_ &&
       impulse_.size() == previous->impulse_.size()) {
     impulse_kernel_.swap(previous->impulse_kernel_);

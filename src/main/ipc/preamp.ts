@@ -25,6 +25,8 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
 
 export interface IPreampIpcDeps {
   state: IState;
+  canMeasureHeadroom: () => boolean;
+  usesNativeHeadroom: () => boolean;
   handleUpdate: (
     event: Electron.IpcMainEvent,
     channel: ChannelEnum | string,
@@ -58,37 +60,18 @@ export interface IPreampIpcDeps {
  */
 export const registerPreampIpc = ({
   state,
+  canMeasureHeadroom,
+  usesNativeHeadroom,
   handleUpdate,
   handleUpdateHelper,
   handleError,
 }: IPreampIpcDeps) => {
   ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
-    // Whichever way the switch moves, the number that comes out of it is the one
-    // auto-normalize computes for the chain as it stands. On, it goes on deriving
-    // it; off, that same value becomes the manual one to adjust from. The switch
-    // changes who is in charge of the level, never the level itself.
-    //
-    // Which is why the resolver is asked with the flag forced on rather than with
-    // whatever it is about to become. `resolvePreAmp` branches on that flag and
-    // returns the stored manual value when it is off, so reading it around the
-    // assignment gets one of the two directions wrong every time:
-    //
-    //  - Read before the flip, switching OFF is right (it captures the automatic
-    //    reserve) and switching ON is wrong — it answers with the manual value,
-    //    which is then published as though it were the newly computed one. That
-    //    is the bug where enabling Auto normalize left the old number on screen.
-    //    It only looked correct on tabs that mount the response graph, because
-    //    the graph recomputed and overwrote the display a moment later; on the
-    //    Karaoke tab, which mounts no graph, the stale number simply stayed.
-    //  - Read after the flip, switching ON is right and switching OFF drops back
-    //    to the stored manual value — 0 on a profile that never set one by hand,
-    //    so a chain reserving 11 dB got 11 dB louder from the click of a switch
-    //    whose whole job is to stop it clipping.
-    //
-    // Forcing it on answers the question actually being asked, in both
-    // directions. The copy is shallow and read-only; nothing here mutates state.
     const isAutoPreAmpOn = Boolean(arg[0]);
-    const automatic = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
+    const automatic =
+      isAutoPreAmpOn && !usesNativeHeadroom()
+        ? getResolvedPreAmp({ ...state, isAutoPreAmpOn: true })
+        : state.preAmp;
     state.isAutoPreAmpOn = isAutoPreAmpOn;
     state.preAmp = automatic;
     // Switching off drops what was measured. Nothing updates it while the mode
@@ -116,7 +99,11 @@ export const registerPreampIpc = ({
     // Ignored while the user owns the level. Auto normalize off means the preamp
     // is theirs, and a measurement arriving then would sit in state waiting to
     // move it the instant the switch came back on.
-    if (!state.isAutoPreAmpOn) {
+    const requestId: unknown = arg[2];
+    if (!state.isAutoPreAmpOn || !state.isEnabled || !canMeasureHeadroom()) {
+      event.reply(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, {
+        result: { requestId, applied: false },
+      });
       return;
     }
     const points = Array.isArray(arg[0]) ? arg[0] : [];
@@ -135,7 +122,9 @@ export const registerPreampIpc = ({
     // Never positive. The supervisor exists to take level away; a trim above
     // zero arriving over IPC would be it adding some, and the renderer is not
     // trusted to be the only thing that checks.
-    state.smartHeadroomTrimDb = Number.isFinite(trim) ? Math.min(0, trim) : 0;
+    state.smartHeadroomTrimDb = Number.isFinite(trim)
+      ? Math.max(-20, Math.min(0, trim))
+      : 0;
     state.preAmp = getResolvedPreAmp(state);
     /**
      * A measurement is evidence, and evidence is never written to a profile.
@@ -159,10 +148,10 @@ export const registerPreampIpc = ({
      * active-session path renders them straight off live state. Both routes
      * already have this measurement; neither needs a file.
      */
-    await handleUpdateHelper<number>(
+    await handleUpdateHelper(
       event,
       ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-      state.preAmp,
+      { requestId, applied: true },
       false,
       false,
     );

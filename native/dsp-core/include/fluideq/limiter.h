@@ -76,6 +76,7 @@ typedef struct FeqLimiterOptions {
   double release_snap_ratio;
   /** The processing rate, which the linked form needs for its slew. */
   double sample_rate;
+  double maximum_gain;
 } FeqLimiterOptions;
 
 /**

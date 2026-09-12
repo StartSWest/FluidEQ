@@ -1,4 +1,3 @@
-import { smoothEqCurve, filterSmoothingCorrection } from 'common/eqShape';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -17,417 +16,166 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { getDriverFilters, getDriverGraphicEq } from 'common/driver';
-import {
-  getEqMode,
-  getCurveEqMode,
-  eqModeGainScale,
-  convolutionCorrection,
-  getBandQ,
-  getAppliedEqFilters,
-  getStudioEqGraphic,
-} from 'common/eqMode';
-import { getHeadphoneFilters, getHeadphoneGraphicEq } from 'common/headphone';
-import { getSmartEqFilters, getSmartEqGraphicEq } from 'common/smartEq';
-import { getVoicingFilters, getVoicingGraphicEq } from 'common/voicing';
-import { useCurrentEngine } from './utils/audioEngineContext';
-import { IGraphicEqPoint, TApoLayer } from '../common/constants';
-import {
-  getResponseGainAtFrequencies,
-  ICombinedResponse,
-} from '../common/response';
-import { IProgrammePoint } from '../common/smartHeadroom';
+import { useEffect, useRef } from 'react';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from './audio/LiveAudioContext';
-import {
-  createAxisCells,
-  IAxisCell,
-  readAbsoluteLevels,
-} from './utils/autoBalanceCapture';
-import { sendSmartHeadroomMeasurement } from './utils/equalizerApi';
+import meterUrl from './audio/headroom-meter.worklet';
+import { useCurrentEngine } from './utils/audioEngineContext';
 import { useFluidEqContext } from './utils/FluidEqContext';
-import {
-  accumulateHeadroomFrame,
-  advanceSupervisorTrimDb,
-  createHeadroomCaptureState,
-  headroomConfidence,
-  readHeadroomProgramme,
-  shouldPushMeasurement,
-} from './utils/headroomCapture';
-import { createFrequencyAxis, FFT_SIZE } from './graph/liveSpectrumFrames';
-
-/**
- * Listening, so that auto-normalize can reserve what the music needs.
- *
- * Headless. It measures and reports; it never sets a preamp. The config writer
- * in the main process owns that number and derives it from the chain it is
- * about to write, which is what keeps a single writer for a value that decides
- * whether somebody's music distorts. What travels over IPC from here is
- * evidence — a spectrum and a trim — and never a conclusion.
- *
- * Its own analyser rather than the display pump's, for two reasons. The trace
- * is smoothed for the eye and this wants the frame as measured; and the peak
- * has to be read per channel, because down-mixing stereo to mono averages the
- * two and under-reads the true peak, which is the one number here that must
- * never read low.
- */
-
-/** Analyser cadence. The same order as the display pump, and for the same
- * reason: fast enough that a transient is not missed between frames. */
-const FRAME_INTERVAL_MS = 45;
+import { sendSmartHeadroomMeasurement } from './utils/equalizerApi';
+import ApoHeadroomSupervisor from './utils/apoHeadroomSupervisor';
 
 const SmartHeadroomEngine = () => {
-  const isFluid = useCurrentEngine() === 'fluid';
-  const {
-    bypassed,
-    convolution,
-    customFx,
-    driver,
-    filters,
-    graphicEq,
-    headphone,
-    isAutoPreAmpOn,
-    isEqDoubleOn,
-    eqMode,
-    curveEqMode,
-    eqBandQ,
-    curveBandQ,
-    curveSmoothing,
-
-    preAmp,
-    smartEq,
-    voicing,
-  } = useFluidEqContext();
-  const { capture, isActive } = useLiveAudioControl();
-  // Auto Pre-Amp sets the preamp from what the output is actually doing, and
-  // what the output is doing does not stop when the window is put away — the
-  // music playing through it is somebody else's app. So this holds the endpoint
-  // open while the feature is on, and a machine that wants a truly idle device
-  // is a machine with Auto Pre-Amp switched off.
-  useLiveAudioCapture(isAutoPreAmpOn && !isFluid, 'work');
-
-  /**
-   * The whole applied chain, as a response the shared evaluator understands.
-   *
-   * EVERY layer, and the preamp with them. Smart EQ's version of this
-   * deliberately leaves its own layer in so that its loop can hear its own
-   * correction; this one takes everything out, because the question is not "how
-   * far is the sound from where it should be" but "what was on the record
-   * before any of this touched it". The preamp is part of what touched it — the
-   * loopback is post-APO, proven by a 1 kHz tone sent at -26.02 dBFS coming
-   * back at -32.37 against a -9.5 dB preamp — so leaving it in would have the
-   * measurement chase the very number it is trying to set.
-   *
-   * A bypassed layer is not in the config, so nothing of it is in what the
-   * analyser hears and there is nothing to remove.
-   */
-  const buildResponse = useCallback((): ICombinedResponse => {
-    const mode = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
-    const userMode = getEqMode({ eqMode, isEqDoubleOn });
-    const off = (layer: TApoLayer) => (bypassed ?? []).includes(layer);
-    const shapeState = {
-      eqMode,
-      curveEqMode,
-      isEqDoubleOn,
-      eqBandQ,
-      curveBandQ,
-    };
-    const curves: Array<IGraphicEqPoint[] | undefined> = [
-      off('driver') ? [] : getDriverGraphicEq(driver),
-      off('headphone') ? [] : getHeadphoneGraphicEq(headphone),
-      off('voicing') ? [] : getVoicingGraphicEq(voicing),
-      off('smart') ? [] : getSmartEqGraphicEq(smartEq),
-    ];
-    if (!off('eq') && graphicEq?.length) {
-      curves.push(graphicEq);
-    }
-    if (!off('custom') && customFx?.graphicEq?.length) {
-      curves.push(customFx.graphicEq);
-    }
-    if (
-      !off('convolution') &&
-      convolution?.fileName &&
-      convolution.response?.length
-    ) {
-      curves.push(convolution.response);
-    }
-    const curveFilters = [
-      ...(off('driver') ? [] : getDriverFilters(driver)),
-      ...(off('headphone') ? [] : getHeadphoneFilters(headphone)),
-      ...(off('voicing') ? [] : getVoicingFilters(voicing)),
-      ...(off('smart') ? [] : getSmartEqFilters(smartEq)),
-      ...(off('custom') || !customFx ? [] : Object.values(customFx.filters)),
-    ];
-    const convolutionFilters =
-      off('convolution') || !convolution || convolution.fileName
-        ? []
-        : Object.values(convolution.filters || {});
-    return {
-      filters: [
-        ...getAppliedEqFilters(
-          off('eq') || graphicEq?.length ? [] : Object.values(filters),
-          userMode,
-          getBandQ(shapeState, 'eq'),
-        ),
-        ...getAppliedEqFilters(
-          curveFilters,
-          mode,
-          getBandQ(shapeState, 'curves'),
-        ),
-        ...convolutionFilters,
-        ...(mode === 'double' ? convolutionFilters : []),
-      ],
-      curves: [
-        filterSmoothingCorrection(
-          getAppliedEqFilters(
-            curveFilters,
-            mode,
-            getBandQ(shapeState, 'curves'),
-          ),
-          curveSmoothing,
-        ),
-        ...curves.map((curve) => {
-          if (!curve) {
-            return curve;
-          }
-          if (curve === convolution?.response) {
-            return mode === 'double'
-              ? curve.map((point) => ({ ...point, gain: 2 * point.gain }))
-              : curve;
-          }
-          const curveMode = curve === graphicEq ? userMode : mode;
-          const shaped = smoothEqCurve(
-            curve,
-            curve === graphicEq ? 'off' : curveSmoothing,
-          );
-          return curveMode === 'studio'
-            ? getStudioEqGraphic(shaped)
-            : shaped.map((point) => ({
-                ...point,
-                gain: eqModeGainScale(curveMode) * point.gain,
-              }));
-        }),
-        ...(!off('convolution') && convolution
-          ? [
-              convolutionCorrection(
-                convolution,
-                mode,
-                getBandQ(shapeState, 'curves'),
-                curveSmoothing,
-              ),
-            ]
-          : []),
-      ],
-      constantGain: preAmp + (off('custom') ? 0 : (customFx?.preAmp ?? 0)),
-    };
-  }, [
-    bypassed,
-    convolution,
-    customFx,
-    driver,
-    filters,
-    graphicEq,
-    headphone,
-    isEqDoubleOn,
-    eqMode,
-    curveEqMode,
-    eqBandQ,
-    curveBandQ,
-    curveSmoothing,
-    preAmp,
-    smartEq,
-    voicing,
+  const engine = useCurrentEngine();
+  const chain = useFluidEqContext();
+  const revision = JSON.stringify([
+    chain.filters,
+    chain.graphicEq,
+    chain.eqMode,
+    chain.curveEqMode,
+    chain.eqBandQ,
+    chain.curveBandQ,
+    chain.curveSmoothing,
+    chain.isEqDoubleOn,
+    chain.driver,
+    chain.headphone,
+    chain.voicing,
+    chain.smartEq,
+    chain.convolution,
+    chain.customFx,
+    chain.bypassed,
   ]);
-
-  const isOn = isAutoPreAmpOn && !isFluid;
-
-  /**
-   * The probe grid, and the chain sampled on it — both computed when they
-   * change, which is not what the analyser does.
-   *
-   * This was inside `tick`, so twenty-two times a second the whole chain was
-   * rebuilt (every layer's filters derived from its profile and intensity) and
-   * evaluated across 320 frequencies: biquad coefficients allocated per filter,
-   * every graphic curve — the EQ import, the custom layer, a convolution's
-   * measured response — filtered, copied and re-sorted, and a fresh 320-element
-   * array returned. All of it a pure function of a chain that only changes when
-   * somebody edits it.
-   *
-   * On a machine listening with Auto normalize on, that ran for the whole
-   * session, on the renderer's main thread, next to the graphs it was starving.
-   * The window did not stutter, it stopped: nothing painted because the thread
-   * had nothing left, and the allocation rate alone kept the collector busy.
-   *
-   * It is memoized rather than throttled. Nothing is deferred and nothing is
-   * scheduled — an edit still reaches the very next frame, because the edit is
-   * what invalidates it.
-   */
-  const axis = useMemo(
-    () =>
-      capture ? createFrequencyAxis(capture.context.sampleRate) : undefined,
-    [capture],
+  const previousRevision = useRef(revision);
+  const runningSupervisor = useRef<ApoHeadroomSupervisor | undefined>(
+    undefined,
   );
-
-  const chainGainDb = useMemo(
-    () =>
-      axis ? getResponseGainAtFrequencies(buildResponse(), axis) : undefined,
-    [axis, buildResponse],
-  );
-
-  const chainGainRef = useRef(chainGainDb);
-  chainGainRef.current = chainGainDb;
+  const {
+    isAutoPreAmpOn,
+    isEnabled,
+    smartHeadroomTrimDb,
+    smartHeadroomProgramme,
+  } = chain;
+  const { capture, isActive } = useLiveAudioControl();
+  const initial = useRef({
+    trim: smartHeadroomTrimDb,
+    programme: smartHeadroomProgramme,
+  });
+  initial.current = {
+    trim: smartHeadroomTrimDb,
+    programme: smartHeadroomProgramme,
+  };
+  const enabled = engine === 'apo' && isAutoPreAmpOn && isEnabled;
+  useLiveAudioCapture(enabled, 'work');
 
   useEffect(() => {
-    if (!isOn || !isActive || !capture || !axis) {
+    if (
+      !enabled ||
+      !isActive ||
+      !capture ||
+      capture.context.state === 'closed'
+    ) {
       return undefined;
     }
-    const { context, source } = capture;
-
-    /**
-     * Nothing may be built on a context that has been closed.
-     *
-     * A closed `AudioContext` accepts `createAnalyser` and `connect` and does
-     * nothing with either — Chromium logs "not useful when context is closed"
-     * for each one and carries on. So the failure is a supervisor that appears
-     * to be running, reads silence for ever, and never says why.
-     *
-     * It happens whenever the engine is torn down while this is still mounted:
-     * a hot reload in development, and an engine restart in a shipped build.
-     * `capture` still holds the old context at that moment, because it is the
-     * capture that is stale rather than this effect.
-     */
-    if (context.state === 'closed') {
-      return undefined;
-    }
-
-    const analyser = context.createAnalyser();
-    analyser.fftSize = FFT_SIZE;
-    analyser.minDecibels = -100;
-    analyser.maxDecibels = 0;
-    // Unsmoothed, unlike the trace. Smoothing is for the eye; a maximum built
-    // out of smoothed frames is a maximum of something that never happened.
-    analyser.smoothingTimeConstant = 0;
-    source.connect(analyser);
-
-    // Per channel, because the supervisor's peak must not be the average of
-    // two channels. A splitter with one analyser per channel is what the level
-    // meter does, and for exactly this reason.
-    const channelCount = Math.max(1, source.channelCount);
-    const splitter = context.createChannelSplitter(channelCount);
-    source.connect(splitter);
-    const peakAnalysers: AnalyserNode[] = [];
-    // Typed against a plain ArrayBuffer rather than the default, which the DOM
-    // types widen to include SharedArrayBuffer — a buffer `getFloatTimeDomainData`
-    // will not accept.
-    const peakSamples: Float32Array<ArrayBuffer>[] = [];
-    for (let channel = 0; channel < channelCount; channel += 1) {
-      const peakAnalyser = context.createAnalyser();
-      peakAnalyser.fftSize = 2048;
-      splitter.connect(peakAnalyser, channel);
-      peakAnalysers.push(peakAnalyser);
-      peakSamples.push(
-        new Float32Array(new ArrayBuffer(peakAnalyser.fftSize * 4)),
-      );
-    }
-
-    const cells: IAxisCell[] = createAxisCells(
-      axis,
-      context.sampleRate,
-      FFT_SIZE,
-    );
-    const frequencyData = new Float32Array(analyser.frequencyBinCount);
-    const levels = new Float64Array(axis.length);
-    const state = createHeadroomCaptureState(axis);
-
-    let trimDb = 0;
-    let lastPushMs = 0;
-    let lastPushedTrim = 0;
-    let lastPushedProgramme: IProgrammePoint[] = [];
-    let lastTickMs = performance.now();
-
-    const changedEnough = (next: IProgrammePoint[]): number => {
-      if (next.length !== lastPushedProgramme.length) {
-        return Number.POSITIVE_INFINITY;
+    const { context } = capture;
+    let acknowledgedAt = context.currentTime;
+    const { trim: initialTrim = 0, programme } = initial.current;
+    const clearProgramme = Boolean(programme?.length);
+    const supervisor = new ApoHeadroomSupervisor(initialTrim, clearProgramme);
+    runningSupervisor.current = supervisor;
+    let disposed = false;
+    let source: MediaStreamAudioSourceNode | undefined;
+    let meter: AudioWorkletNode | undefined;
+    let mute: GainNode | undefined;
+    let cancelRequest: (() => void) | undefined;
+    const start = async () => {
+      await context.audioWorklet.addModule(meterUrl);
+      if (disposed || context.state === 'closed') {
+        return;
       }
-      return next.reduce(
-        (worst, point, index) =>
-          Math.max(
-            worst,
-            Math.abs(point.gain - lastPushedProgramme[index].gain),
-          ),
-        0,
-      );
-    };
-
-    const tick = () => {
-      const nowMs = performance.now();
-      const deltaMs = nowMs - lastTickMs;
-      lastTickMs = nowMs;
-
-      analyser.getFloatFrequencyData(frequencyData);
-      readAbsoluteLevels(frequencyData, cells, levels);
-      state.chainGainDb = chainGainRef.current;
-      accumulateHeadroomFrame(state, { levels, timestampMs: nowMs });
-
-      let peakDbfs = Number.NEGATIVE_INFINITY;
-      peakAnalysers.forEach((peakAnalyser, channel) => {
-        const samples = peakSamples[channel];
-        peakAnalyser.getFloatTimeDomainData(samples);
-        for (let index = 0; index < samples.length; index += 1) {
-          const amplitude = Math.abs(samples[index]);
-          if (amplitude > 0) {
-            const db = 20 * Math.log10(amplitude);
-            if (db > peakDbfs) {
-              peakDbfs = db;
-            }
-          }
-        }
+      source = context.createMediaStreamSource(capture.source.mediaStream);
+      meter = new AudioWorkletNode(context, 'fluideq-headroom-meter', {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+        channelCountMode: 'max',
       });
-      // `lastPushedTrim` is what the output actually reflects: the trim only
-      // reaches APO when the throttle below lets it through. Handing it over is
-      // what stops the loop counting one overshoot dozens of times while its
-      // own correction is still in flight. See `advanceSupervisorTrimDb`.
-      trimDb = advanceSupervisorTrimDb(
-        trimDb,
-        peakDbfs,
-        deltaMs,
-        lastPushedTrim,
+      meter.port.onmessage = ({ data }: MessageEvent<unknown>) => {
+        if (disposed || !data || typeof data !== 'object') {
+          return;
+        }
+        const frame = data as {
+          peakDbfs?: unknown;
+          durationMs?: unknown;
+          startedAt?: unknown;
+        };
+        if (
+          typeof frame.peakDbfs !== 'number' ||
+          typeof frame.durationMs !== 'number' ||
+          typeof frame.startedAt !== 'number' ||
+          !Number.isFinite(frame.startedAt) ||
+          frame.startedAt < acknowledgedAt
+        ) {
+          return;
+        }
+        const trim = supervisor.observe(frame.peakDbfs, frame.durationMs);
+        if (trim === undefined) {
+          return;
+        }
+        cancelRequest = sendSmartHeadroomMeasurement([], trim, (applied) => {
+          if (!disposed && applied) {
+            acknowledgedAt = context.currentTime;
+            supervisor.acknowledge(trim);
+          }
+        });
+      };
+      mute = context.createGain();
+      mute.gain.value = 0;
+      if (clearProgramme) {
+        cancelRequest = sendSmartHeadroomMeasurement(
+          [],
+          initialTrim,
+          (applied) => {
+            if (!disposed && applied) {
+              acknowledgedAt = context.currentTime;
+              supervisor.acknowledge(initialTrim);
+            }
+          },
+        );
+      }
+      source.connect(meter);
+      meter.connect(mute);
+      mute.connect(context.destination);
+    };
+    start().catch((error: unknown) => {
+      console.error(
+        'APO headroom measurement unavailable; static reserve remains active',
+        error,
       );
-
-      const programme = readHeadroomProgramme(state);
-      if (programme.length === 0) {
-        return;
-      }
-      if (
-        !shouldPushMeasurement({
-          sincePushMs: nowMs - lastPushMs,
-          trimDb,
-          lastPushedTrimDb: lastPushedTrim,
-          programmeDeltaDb: changedEnough(programme),
-          // While confidence is still growing the estimate is walking the level
-          // somewhere, and the report cadence is that walk's step size.
-          isSettling: headroomConfidence(state) < 1,
-        })
-      ) {
-        return;
-      }
-      lastPushMs = nowMs;
-      lastPushedTrim = trimDb;
-      lastPushedProgramme = programme;
-      sendSmartHeadroomMeasurement(programme, trimDb);
-    };
-
-    const timer = window.setInterval(tick, FRAME_INTERVAL_MS);
+    });
     return () => {
-      window.clearInterval(timer);
-      analyser.disconnect();
-      splitter.disconnect();
-      peakAnalysers.forEach((peakAnalyser) => peakAnalyser.disconnect());
+      disposed = true;
+      if (runningSupervisor.current === supervisor) {
+        runningSupervisor.current = undefined;
+      }
+      cancelRequest?.();
+      source?.disconnect();
+      mute?.disconnect();
+      if (meter) {
+        meter.port.onmessage = null;
+        meter.port.close();
+        meter.disconnect();
+      }
     };
-  }, [axis, capture, isActive, isOn]);
+  }, [capture, enabled, isActive]);
+
+  useEffect(() => {
+    if (previousRevision.current !== revision) {
+      runningSupervisor.current?.notifyEdit();
+    }
+    previousRevision.current = revision;
+  }, [revision]);
 
   return null;
 };

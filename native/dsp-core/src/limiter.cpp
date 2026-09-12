@@ -256,11 +256,14 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
       state->block_peak = incoming_magnitude;
     }
 
-    const double required =
+    const double peak_required =
         incoming_magnitude >= options->activation_threshold
             ? feq_limiter_required_gain(incoming_magnitude, options->ceiling,
                                         options->knee_db)
             : 1.0;
+    const double maximum_gain = options->maximum_gain > 0.0 && options->maximum_gain < 1.0
+        ? options->maximum_gain : 1.0;
+    const double required = peak_required < maximum_gain ? peak_required : maximum_gain;
 
     const int64_t write_at = slot(position, capacity);
     // `position - look_ahead`, which is `position + 1` only when the look-ahead

@@ -916,9 +916,10 @@ const FrequencyResponseChart = ({
   } = useFluidEqContext();
   const livePreamp = useEnginePreamp();
   const currentEngine = useCurrentEngine();
+  const automaticPreamp = livePreamp?.enabled ? livePreamp.gainDb : 0;
   const preAmp =
-    currentEngine === 'fluid' && isAutoPreAmpOn && livePreamp?.enabled
-      ? livePreamp.gainDb
+    currentEngine === 'fluid' && isAutoPreAmpOn
+      ? automaticPreamp
       : configuredPreAmp;
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
   // Clean takes the drawing off the paper, not the paper: the grid stays
@@ -1361,10 +1362,22 @@ const FrequencyResponseChart = ({
     // slider and the final-output curve. It must not feed an automatic result
     // back into the state that produced it. When automatic mode is disabled the
     // user's manual preamp remains untouched.
-    if (isAutoPreAmpOn && !isLoading && !globalError) {
+    if (
+      currentEngine === 'apo' &&
+      isAutoPreAmpOn &&
+      !isLoading &&
+      !globalError
+    ) {
       setPreAmp(autoPreAmpValue);
     }
-  }, [autoPreAmpValue, globalError, isAutoPreAmpOn, isLoading, setPreAmp]);
+  }, [
+    autoPreAmpValue,
+    currentEngine,
+    globalError,
+    isAutoPreAmpOn,
+    isLoading,
+    setPreAmp,
+  ]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);

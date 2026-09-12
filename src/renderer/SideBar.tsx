@@ -60,10 +60,8 @@ const SideBar = ({
   const isFluid = useCurrentEngine() === 'fluid';
   useEnginePreampReader(isFluid && isAutoPreAmpOn);
   const livePreamp = useEnginePreamp();
-  const displayedPreamp =
-    isFluid && isAutoPreAmpOn && livePreamp?.enabled
-      ? livePreamp.gainDb
-      : preAmp;
+  const automaticPreamp = livePreamp?.enabled ? livePreamp.gainDb : 0;
+  const displayedPreamp = isFluid && isAutoPreAmpOn ? automaticPreamp : preAmp;
 
   const setGain = useCallback(
     async (newValue: number) => {

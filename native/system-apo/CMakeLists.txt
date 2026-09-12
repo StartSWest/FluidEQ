@@ -53,6 +53,9 @@ add_test(NAME engine-graph COMMAND fluideq-engine-graph-test)
 add_executable(fluideq-engine-output-transition-test tests/output_transition_test.cpp)
 target_link_libraries(fluideq-engine-output-transition-test PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-output-transition COMMAND fluideq-engine-output-transition-test)
+add_executable(fluideq-engine-output-guard-test tests/output_guard_test.cpp)
+target_link_libraries(fluideq-engine-output-guard-test PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-output-guard COMMAND fluideq-engine-output-guard-test)
 
 add_executable(fluideq-engine-graph-slot-test tests/graph_slot_test.cpp)
 target_link_libraries(fluideq-engine-graph-slot-test
