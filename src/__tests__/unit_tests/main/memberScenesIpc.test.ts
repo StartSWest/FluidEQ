@@ -15,6 +15,8 @@ import type { BrowserWindow } from 'electron';
 
 const handlers = new Map<string, (...args: unknown[]) => unknown>();
 jest.mock('electron', () => ({
+  safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
+    .sceneStorageCipher,
   ipcMain: {
     handle: (channel: string, fn: (...args: unknown[]) => unknown) =>
       handlers.set(channel, fn),

@@ -10,6 +10,7 @@ import {
 import { SCENE_CONTRACT_VERSION } from '../common/sceneUniformContract';
 import { PRODUCT_VERSION } from '../common/branding';
 import { verifyScenePackEnvelope } from './scenePackVerify';
+import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 
 /**
  * Premium looks on disk, and how they get there.
@@ -20,10 +21,10 @@ import { verifyScenePackEnvelope } from './scenePackVerify';
  * check is tens of microseconds; per pack per launch it is free, and it makes
  * the cache a convenience rather than a trust boundary.
  *
- * NOT `safeStorage`, on purpose. `remoteAudioCredentials` and the account use
- * the OS cipher because they hold secrets. A pack is the same bytes every
- * subscriber receives and the signature already proves who wrote it;
- * encrypting it would only make the cache unportable across an OS reinstall.
+ * The signed envelope is encrypted with the OS key store before reaching disk.
+ * Legacy copies are verified and migrated atomically on read. This protects
+ * files at rest, not source used by the WebGL renderer in memory. An OS reinstall
+ * can require downloading again; unavailable keys never delete an offline copy.
  *
  * OFFLINE KEEPS WORKING. A network failure leaves every cached pack in place
  * and playable; nothing here deletes on a failed fetch. What a lapsed
@@ -133,36 +134,32 @@ export const createScenePackStore = ({
   const packPath = (id: string) => path.join(packsDir, `${id}.pack.json`);
 
   /**
-   * Read, verify and parse one cached envelope. Anything wrong with it — a bad
-   * signature, an unparseable payload, a newer contract than this build speaks
-   * — deletes the file and answers nothing.
+   * Read, decrypt and verify one cached envelope. Invalid signed content is
+   * removed as before; an unavailable OS key never deletes the offline copy.
+   * Newer contracts are encrypted too, but withheld by list/load below.
    */
   const readVerified = (id: string): IScenePack | undefined => {
-    let raw: unknown;
-    try {
-      raw = JSON.parse(fs.readFileSync(packPath(id), 'utf8'));
-    } catch {
-      return undefined;
-    }
-    if (!isScenePackEnvelope(raw)) {
-      fs.rmSync(packPath(id), { force: true });
-      return undefined;
-    }
-    const payload = verifyScenePackEnvelope(raw);
-    if (!payload) {
-      logger?.warn(`Scene pack ${id} failed verification and was removed.`);
-      fs.rmSync(packPath(id), { force: true });
-      return undefined;
-    }
-    const pack = parseScenePackPayload(payload);
-    if (!pack || pack.id !== id) {
-      fs.rmSync(packPath(id), { force: true });
-      return undefined;
-    }
-    // A pack written for a newer uniform contract would compile against
-    // uniforms this build does not declare. Hold it rather than offer it; the
-    // next app update will speak its contract.
-    return pack.contract <= SCENE_CONTRACT_VERSION ? pack : undefined;
+    return readSceneCache(packPath(id), `official/${id}`, (raw) => {
+      if (!isScenePackEnvelope(raw)) {
+        fs.rmSync(packPath(id), { force: true });
+        return undefined;
+      }
+      const payload = verifyScenePackEnvelope(raw);
+      if (!payload) {
+        logger?.warn(`Scene pack ${id} failed verification and was removed.`);
+        fs.rmSync(packPath(id), { force: true });
+        return undefined;
+      }
+      const pack = parseScenePackPayload(payload);
+      if (!pack || pack.id !== id) {
+        fs.rmSync(packPath(id), { force: true });
+        return undefined;
+      }
+      // A pack written for a newer uniform contract would compile against
+      // uniforms this build does not declare. Hold it rather than offer it; the
+      // next app update will speak its contract.
+      return pack;
+    });
   };
 
   const heldIds = (): string[] => {
@@ -210,6 +207,7 @@ export const createScenePackStore = ({
         .filter((id) => !removed[id])
         .map((id) => readVerified(id))
         .filter((pack): pack is IScenePack => pack !== undefined)
+        .filter((pack) => pack.contract <= SCENE_CONTRACT_VERSION)
         .map((pack) => ({
           id: pack.id,
           version: pack.version,
@@ -227,7 +225,8 @@ export const createScenePackStore = ({
       if (!ID.test(id) || removed[id] || quarantineOf(id)) {
         return undefined;
       }
-      return readVerified(id);
+      const pack = readVerified(id);
+      return pack && pack.contract <= SCENE_CONTRACT_VERSION ? pack : undefined;
     },
 
     adopt: (listings, explicit = false) => {
@@ -269,7 +268,11 @@ export const createScenePackStore = ({
         ) {
           return;
         }
-        writeAtomically(packPath(pack.id), JSON.stringify(listing.envelope));
+        writeSceneCache(
+          packPath(pack.id),
+          `official/${pack.id}`,
+          listing.envelope,
+        );
         if (removed[pack.id]) {
           const { [pack.id]: _removed, ...rest } = removed;
           writeAtomically(removedPath, JSON.stringify(rest));

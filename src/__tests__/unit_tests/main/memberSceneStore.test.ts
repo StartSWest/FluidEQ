@@ -12,6 +12,7 @@ import { createHash } from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { safeStorage } from 'electron';
 import {
   createMemberSceneStore,
   memberSceneFingerprint,
@@ -26,6 +27,10 @@ import {
 } from '../../utils/memberSceneFixtures';
 
 const ME = '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30';
+jest.mock('electron', () => ({
+  safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
+    .sceneStorageCipher,
+}));
 const SOURCE = `vec4 sceneColour(vec2 uv) {
   return vec4(uAccent * texture(uSpectrumSlow, vec2(uv.x, 0.5)).r, 1.0);
 }
@@ -93,9 +98,15 @@ describe('the member scene store', () => {
   it('checks a scene again on every load, and keeps the file', () => {
     const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
     store.save(ME, pack());
-    const record = JSON.parse(fs.readFileSync(sceneFile('neon-city'), 'utf8'));
-    record.pack.source = `#define X 1\n${SOURCE}`;
-    fs.writeFileSync(sceneFile('neon-city'), JSON.stringify(record));
+    const stored = JSON.parse(fs.readFileSync(sceneFile('neon-city'), 'utf8'));
+    const record = JSON.parse(
+      safeStorage.decryptString(Buffer.from(stored.encrypted, 'base64')),
+    );
+    record.value.pack.source = `#define X 1\n${SOURCE}`;
+    stored.encrypted = safeStorage
+      .encryptString(JSON.stringify(record))
+      .toString('base64');
+    fs.writeFileSync(sceneFile('neon-city'), JSON.stringify(stored));
     expect(store.load(ME, 'neon-city')).toBeUndefined();
     expect(store.list()).toEqual([]);
     // A member's own work is never deleted behind their back.
@@ -148,12 +159,18 @@ describe('the member scene store', () => {
       SOMEONE,
       'neon-city.json',
     );
-    const envelope = JSON.parse(fs.readFileSync(file, 'utf8'));
-    envelope.payload = Buffer.from(
+    const stored = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const record = JSON.parse(
+      safeStorage.decryptString(Buffer.from(stored.encrypted, 'base64')),
+    );
+    record.value.payload = Buffer.from(
       memberPayload({ name: 'Somebody Else' }),
       'utf8',
     ).toString('base64');
-    fs.writeFileSync(file, JSON.stringify(envelope));
+    stored.encrypted = safeStorage
+      .encryptString(JSON.stringify(record))
+      .toString('base64');
+    fs.writeFileSync(file, JSON.stringify(stored));
     expect(store.load(SOMEONE, 'neon-city')).toBeUndefined();
     expect(store.list()).toEqual([]);
     expect(fs.existsSync(file)).toBe(true);

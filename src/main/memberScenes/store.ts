@@ -18,6 +18,7 @@ import {
 import writeFileAtomically from '../atomicWrite';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import type { TSceneFailure } from '../scenePackStore';
+import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
 
 /**
  * Members' scenes, as they sit on this computer.
@@ -32,6 +33,8 @@ import type { TSceneFailure } from '../scenePackStore';
  *   the signed envelope another member exported. Verified against the MEMBER
  *   key on every load, then held to every rule again, exactly as the Plus
  *   looks' cache is — the folder is a convenience, not a trust boundary.
+ * Both playback copies are OS-encrypted at rest. Legacy files migrate on read;
+ * the source projects in Studio are separate and remain editable by their maker.
  *
  * A scene the maker has blocked is neither listed nor loaded, whichever kind
  * it is. Nothing is deleted for failing a check: a member's own work has no
@@ -170,37 +173,51 @@ export const createMemberSceneStore = ({
     authorId: string,
     packId: string,
   ): IScenePack | undefined => {
-    const record = readJson(ownFile(authorId, packId));
-    if (!isRecord(record) || record.authorId !== authorId) {
-      return undefined;
-    }
-    const checked = checkMemberScene(record.pack);
-    if (!checked.ok || checked.pack.id !== packId) {
-      logger?.warn(
-        `Member scene ${packId} no longer passes the member rules and is not offered.`,
-      );
-      return undefined;
-    }
-    return checked.pack;
+    return readSceneCache(
+      ownFile(authorId, packId),
+      `own/${authorId}/${packId}`,
+      (record) => {
+        if (!isRecord(record) || record.authorId !== authorId) {
+          return undefined;
+        }
+        const checked = checkMemberScene(record.pack);
+        if (!checked.ok || checked.pack.id !== packId) {
+          logger?.warn(
+            `Member scene ${packId} no longer passes the member rules and is not offered.`,
+          );
+          return undefined;
+        }
+        return checked.pack;
+      },
+    );
   };
 
   const readImported = (
     authorId: string,
     packId: string,
   ): { pack: IScenePack; authorName: string | null } | undefined => {
-    const envelope = readJson(importedFile(authorId, packId));
-    if (!isScenePackEnvelope(envelope)) {
-      return undefined;
-    }
-    const payload = verifyMemberSceneEnvelope(envelope);
-    const parsed = payload ? parseMemberScenePayload(payload) : null;
-    if (!parsed || parsed.author.id !== authorId || parsed.pack.id !== packId) {
-      logger?.warn(
-        `Imported scene ${packId} no longer verifies and is not offered.`,
-      );
-      return undefined;
-    }
-    return { pack: parsed.pack, authorName: parsed.author.name };
+    return readSceneCache(
+      importedFile(authorId, packId),
+      `imported/${authorId}/${packId}`,
+      (envelope) => {
+        if (!isScenePackEnvelope(envelope)) {
+          return undefined;
+        }
+        const payload = verifyMemberSceneEnvelope(envelope);
+        const parsed = payload ? parseMemberScenePayload(payload) : null;
+        if (
+          !parsed ||
+          parsed.author.id !== authorId ||
+          parsed.pack.id !== packId
+        ) {
+          logger?.warn(
+            `Imported scene ${packId} no longer verifies and is not offered.`,
+          );
+          return undefined;
+        }
+        return { pack: parsed.pack, authorName: parsed.author.name };
+      },
+    );
   };
 
   const summarise = (
@@ -246,16 +263,14 @@ export const createMemberSceneStore = ({
   return {
     list: () => {
       const own = held(ownRoot).flatMap(({ authorId, packId }) => {
-        const pack = isBlocked(authorId, packId)
-          ? undefined
-          : readOwn(authorId, packId);
-        return pack ? [summarise(authorId, pack)] : [];
+        const pack = readOwn(authorId, packId);
+        return pack && !isBlocked(authorId, packId)
+          ? [summarise(authorId, pack)]
+          : [];
       });
       const imported = held(importedRoot).flatMap(({ authorId, packId }) => {
-        const found = isBlocked(authorId, packId)
-          ? undefined
-          : readImported(authorId, packId);
-        return found
+        const found = readImported(authorId, packId);
+        return found && !isBlocked(authorId, packId)
           ? [summarise(authorId, found.pack, { authorName: found.authorName })]
           : [];
       });
@@ -283,14 +298,15 @@ export const createMemberSceneStore = ({
             .join(', ')}`,
         );
       }
-      writeFileAtomically(
+      writeSceneCache(
         ownFile(authorId, pack.id),
-        JSON.stringify({
+        `own/${authorId}/${pack.id}`,
+        {
           schema: RECORD_SCHEMA,
           authorId,
           savedAt: new Date().toISOString(),
           pack: checked.pack,
-        }),
+        },
       );
       // A new save is a new chance: it may be the fix for what failed.
       release(authorId, pack.id);
@@ -306,9 +322,10 @@ export const createMemberSceneStore = ({
       if (!validRef(author.id, pack.id)) {
         throw new Error('Not a member scene id.');
       }
-      writeFileAtomically(
+      writeSceneCache(
         importedFile(author.id, pack.id),
-        JSON.stringify(envelope),
+        `imported/${author.id}/${pack.id}`,
+        envelope,
       );
       release(author.id, pack.id);
       return summarise(author.id, pack, { authorName: author.name });

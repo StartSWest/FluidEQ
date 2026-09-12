@@ -20,6 +20,11 @@ import {
 } from '../../../main/scenePackVerify';
 import { createScenePackStore } from '../../../main/scenePackStore';
 
+jest.mock('electron', () => ({
+  safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
+    .sceneStorageCipher,
+}));
+
 const KEY_ID = 'test-key';
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
 trustScenePackKeyForTesting(KEY_ID, publicKey);
@@ -233,9 +238,7 @@ describe('the scene pack store', () => {
       'packs',
       'aurora.pack.json',
     );
-    const envelope = JSON.parse(
-      fs.readFileSync(file, 'utf8'),
-    ) as IScenePackEnvelope;
+    const envelope = seal(payloadFor('aurora'));
     const forged = Buffer.from(
       payloadFor('aurora', 1, {
         source: 'vec4 sceneColour(vec2 uv){return vec4(1.0);}',
