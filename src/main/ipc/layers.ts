@@ -70,6 +70,16 @@ export const registerLayersIpc = ({
   handleError,
   applyingLayer,
 }: ILayersIpcDeps) => {
+  ipcMain.on(ChannelEnum.RESET_EQ_MODE, async (event) => {
+    state.eqMode = 'normal';
+    state.curveEqMode = 'normal';
+    state.isEqDoubleOn = false;
+    state.eqBandQ = 'off';
+    state.curveBandQ = 'off';
+    state.curveSmoothing = 'off';
+    await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
+  });
+
   ipcMain.on(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_DOUBLE;
     const enabled: unknown = arg?.[0];

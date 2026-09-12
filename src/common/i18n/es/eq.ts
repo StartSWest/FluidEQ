@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.reset': 'Restablecer',
   'eq.mode.customized': 'Personalizado',
   'eq.mode.strength': 'Intensidad',
   'eq.mode.q': 'Q de bandas',

@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.mode.reset': 'Reset',
   'eq.mode.customized': 'Custom',
   'eq.mode.strength': 'Strength',
   'eq.mode.q': 'Band Q',

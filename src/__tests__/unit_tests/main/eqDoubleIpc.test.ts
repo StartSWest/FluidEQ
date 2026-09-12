@@ -31,6 +31,40 @@ const fire = async (channel: ChannelEnum, args?: unknown) => {
 };
 
 describe('Main EQ x2 IPC', () => {
+  it('resets both groups in one update without changing source audio settings', async () => {
+    const state = getDefaultState();
+    state.eqMode = 'double';
+    state.curveEqMode = 'studio';
+    state.isEqDoubleOn = true;
+    state.eqBandQ = 'asymmetric';
+    state.curveBandQ = 'proportional';
+    state.curveSmoothing = 'third';
+    const expected = {
+      ...state,
+      eqMode: 'normal',
+      curveEqMode: 'normal',
+      isEqDoubleOn: false,
+      eqBandQ: 'off',
+      curveBandQ: 'off',
+      curveSmoothing: 'off',
+    };
+    const update = jest.fn().mockResolvedValue(undefined);
+    registerLayersIpc({
+      state,
+      handleUpdate: update,
+      handleError: jest.fn(),
+      applyingLayer: jest.fn(),
+    });
+    await fire(ChannelEnum.RESET_EQ_MODE, []);
+    expect(state).toEqual(expected);
+    expect(update).toHaveBeenCalledTimes(1);
+    expect(update).toHaveBeenCalledWith(
+      expect.anything(),
+      ChannelEnum.RESET_EQ_MODE,
+      false,
+      true,
+    );
+  });
   it('freezes the legacy sibling choice before changing either group', async () => {
     const state = { ...getDefaultState(), eqMode: 'studio' as TEqMode };
     const error = jest.fn();

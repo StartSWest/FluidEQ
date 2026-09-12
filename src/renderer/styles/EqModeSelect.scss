@@ -74,14 +74,22 @@
 }
 .eq-mode-menu__heading {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: $spacing-s;
   font-weight: $weight-bold;
-  > :last-child {
+  > span {
     color: $text-faint;
     font-size: $text-small;
     font-weight: $weight-regular;
+  }
+}
+.eq-mode-menu__reset {
+  margin-left: auto;
+  svg {
+    width: 14px;
+    height: 14px;
   }
 }
 .eq-mode-menu__group-title {

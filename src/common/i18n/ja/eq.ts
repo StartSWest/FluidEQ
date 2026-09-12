@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.reset': 'リセット',
   'eq.mode.customized': 'カスタム',
   'eq.mode.strength': '強度',
   'eq.mode.q': 'バンドQ',

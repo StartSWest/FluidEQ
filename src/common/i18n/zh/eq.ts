@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.reset': '重置',
   'eq.mode.customized': '自定义',
   'eq.mode.strength': '强度',
   'eq.mode.q': '频段 Q',

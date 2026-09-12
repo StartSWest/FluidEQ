@@ -9,6 +9,7 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockError = jest.fn();
 const mockSetShape = jest.fn().mockResolvedValue(undefined);
 const mockSetMode = jest.fn().mockResolvedValue(undefined);
+const mockReset = jest.fn().mockResolvedValue(undefined);
 const mockWorld: {
   eqMode?: TEqMode;
   curveEqMode?: TEqMode;
@@ -30,6 +31,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
   }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
+  resetEqMode: () => mockReset(),
   setEqMode: (...args: unknown[]) => mockSetMode(...args),
   setEqShape: (...args: unknown[]) => mockSetShape(...args),
 }));
@@ -44,6 +46,53 @@ beforeEach(() => {
   mockWorld.isEqDoubleOn = false;
   mockWorld.isBlockingError = false;
   mockSetMode.mockResolvedValue(undefined);
+  mockReset.mockResolvedValue(undefined);
+});
+
+it('resets all mode settings once and keeps the menu open', async () => {
+  mockWorld.eqMode = 'double';
+  render(<EqModeSelect />);
+  fireEvent.click(menu());
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' })),
+  );
+  expect(mockReset).toHaveBeenCalledTimes(1);
+  expect(mockSetMode).not.toHaveBeenCalled();
+  expect(mockSetShape).not.toHaveBeenCalled();
+  expect(mockRefresh).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+});
+
+it('replaces queued choices with reset after the active write completes', async () => {
+  let finish!: () => void;
+  mockSetMode.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  render(<EqModeSelect />);
+  await pick('×2');
+  await pick(`${en['eq.mode.studio']} · ×1.5`);
+  fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+  expect(mockReset).not.toHaveBeenCalled();
+  await act(async () => finish());
+  expect(mockReset).toHaveBeenCalledTimes(1);
+  expect(mockSetMode).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+});
+
+it('reports reset failures without closing the menu', async () => {
+  const error = new Error('reset failed');
+  mockReset.mockRejectedValueOnce(error);
+  render(<EqModeSelect />);
+  fireEvent.click(menu());
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' })),
+  );
+  expect(mockError).toHaveBeenCalledWith(error);
+  expect(mockRefresh).not.toHaveBeenCalled();
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
 });
 
 const menu = () => screen.getByRole('button', { name: en['eq.mode'] });

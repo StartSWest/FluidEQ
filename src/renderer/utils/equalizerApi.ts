@@ -866,6 +866,12 @@ export const forgetSongEq = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
+export const resetEqMode = (): Promise<void> => {
+  const channel = ChannelEnum.RESET_EQ_MODE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const setEqShape = (
   scope: 'eq' | 'curves',
   kind: 'q' | 'smoothing',

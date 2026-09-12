@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TBandQ, TCurveSmoothing } from '../../common/eqShape';
 import EqModeIcon from '../icons/EqModeIcon';
 import ConfirmIcon from '../icons/ConfirmIcon';
+import ProfileActionIcon from '../icons/ProfileActionIcon';
 import {
   getEqMode,
   getBandQ,
@@ -12,7 +13,7 @@ import {
 import { ErrorDescription } from '../../common/errors';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { setEqMode, setEqShape } from '../utils/equalizerApi';
+import { resetEqMode, setEqMode, setEqShape } from '../utils/equalizerApi';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
 import '../styles/EqModeSelect.scss';
@@ -20,7 +21,7 @@ import '../styles/EqModeSelect.scss';
 const MODES: TEqMode[] = ['normal', 'studio', 'double'];
 const SCOPES: TEqModeScope[] = ['eq', 'curves'];
 const qName = (value: TBandQ) => (value === 'off' ? 'constant' : value);
-type ChoiceKind = 'strength' | 'q' | 'smoothing';
+type ChoiceKind = 'strength' | 'q' | 'smoothing' | 'reset';
 interface IPendingChoice {
   scope: TEqModeScope;
   value: TEqMode | TBandQ | TCurveSmoothing;
@@ -102,11 +103,14 @@ export default function EqModeSelect() {
   const select = async (
     scope: TEqModeScope,
     value: TEqMode | TBandQ | TCurveSmoothing,
-    kind: 'strength' | 'q' | 'smoothing' = 'strength',
+    kind: ChoiceKind = 'strength',
   ) => {
-    const current = currentChoice(scope, kind);
+    const current = kind === 'reset' ? undefined : currentChoice(scope, kind);
     if (state.isBlockingError || (!saving.current && current === value)) {
       return;
+    }
+    if (kind === 'reset') {
+      queued.current.clear();
     }
     queued.current.set(`${scope}-${kind}`, { scope, value, kind });
     if (saving.current) {
@@ -123,7 +127,9 @@ export default function EqModeSelect() {
       queued.current.delete(key);
       setPending(`${choice.scope}-${choice.kind}-${choice.value}`);
       try {
-        if (choice.kind === 'strength') {
+        if (choice.kind === 'reset') {
+          await resetEqMode();
+        } else if (choice.kind === 'strength') {
           await setEqMode(choice.value as TEqMode, choice.scope);
         } else {
           await setEqShape(
@@ -236,6 +242,16 @@ export default function EqModeSelect() {
         <div ref={content} className="eq-mode-menu__content">
           <div className="eq-mode-menu__heading">
             <span>{t('eq.mode')}</span>
+            <button
+              type="button"
+              className="button small subtle eq-mode-menu__reset"
+              disabled={disabled}
+              aria-busy={pending === 'eq-reset-normal'}
+              onClick={() => select('eq', 'normal', 'reset')}
+            >
+              <ProfileActionIcon action="restore" />
+              {t('eq.mode.reset')}
+            </button>
           </div>
           {SCOPES.map((scope) => (
             <section className="eq-mode-menu__group" key={scope}>
