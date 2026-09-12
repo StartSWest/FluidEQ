@@ -55,6 +55,7 @@ import {
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
+import coalesceRequests from './coalescedRequest';
 
 // Re-exported: TSuccess and TError are the reply shapes the main process
 // builds, and every IPC module imports them from here.
@@ -292,11 +293,15 @@ export const importDeviceChain = (): Promise<IChainImport> => {
   return promisifyResult(simpleResponseHandler<IChainImport>(), channel);
 };
 
-export const getAudioDevices = (): Promise<IAudioDevice[]> => {
+/**
+ * Coalesced: every panel that names an output re-reads this list on the same
+ * output change, and each read is a PowerShell enumeration in main.
+ */
+export const getAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(simpleResponseHandler<IAudioDevice[]>(), channel);
-};
+});
 
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
