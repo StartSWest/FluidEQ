@@ -59,6 +59,18 @@ const title = (key: 'engineHealth.offTitle' | 'engineHealth.problemsTitle') =>
   en[key].replace('{device}', speakers.name);
 
 describe('EngineTroubleNotice', () => {
+  it('explains a refused linear filter without claiming the original EQ stopped', () => {
+    renderNotice({ trouble: problems(['eq-phase'], false) });
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      en['engineHealth.problem.eq-phase'],
+    );
+    expect(
+      screen.queryByRole('button', { name: en['app.menu.restartAudio'] }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en['output.gotIt'] }),
+    ).toBeVisible();
+  });
   it('shows nothing while the engine is fine', () => {
     renderNotice({ trouble: undefined });
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();

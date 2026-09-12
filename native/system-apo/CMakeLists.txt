@@ -21,8 +21,8 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # a graphic-EQ FIR from a resolved `Chain`, and the per-output processing
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
-  src/wav.cpp src/graphic_eq.cpp src/dsp_chain.cpp src/graph.cpp
-  src/graph_stages.cpp src/output_guard.cpp)
+  src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
+  src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -41,6 +41,10 @@ add_executable(fluideq-engine-graphic-eq-test tests/graphic_eq_test.cpp)
 target_link_libraries(fluideq-engine-graphic-eq-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graphic-eq COMMAND fluideq-engine-graphic-eq-test)
+
+add_executable(fluideq-engine-phase-test tests/phase_test.cpp src/chain_signature.cpp src/paths.cpp src/log.cpp)
+target_link_libraries(fluideq-engine-phase-test PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-phase COMMAND fluideq-engine-phase-test)
 
 # The graph's biquads, preamp and state carry-over. Split from the
 # convolution checks below: one file holding both was past the 500-line limit,

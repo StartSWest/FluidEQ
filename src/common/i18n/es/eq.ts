@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': 'Fase',
+  'eq.mode.minimumPhase': 'Mínima',
+  'eq.mode.linearPhase': 'Lineal',
+  'eq.mode.phaseHint':
+    'Mínima es la opción predeterminada. Conserva la afinación; Lineal puede añadir retardo y resonancia previa.',
+  'eq.mode.phaseUpdate': 'Actualiza el motor FluidEQ para cambiar la fase.',
+  'eq.mode.eqPhaseHint':
+    'Mínima es la opción predeterminada. Lineal conserva ganancia y Q, pero añade retardo y puede resonar antes de golpes secos.',
   'eq.mode.reset': 'Restablecer',
   'eq.mode.customized': 'Personalizado',
   'eq.mode.strength': 'Intensidad',

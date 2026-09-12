@@ -14,6 +14,8 @@ const engineHealth = {
   'engineHealth.problemsTitle': 'Part of your sound isn’t reaching {device}',
   'engineHealth.problem.convolution':
     'Convolution is off: the engine couldn’t load the impulse response. Try a different file.',
+  'engineHealth.problem.eq-phase':
+    'Linear-phase EQ could not start; the original filters remain active.',
   'engineHealth.problem.graphic-eq':
     'The graphic EQ is off: the engine couldn’t build its curve.',
   'engineHealth.problem.dsp-rack':

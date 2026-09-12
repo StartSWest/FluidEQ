@@ -93,6 +93,11 @@ const mockSetSmartEqApi = jest.fn(
   async (_settings?: ISmartEqSettings) => undefined,
 );
 
+jest.mock('renderer/utils/useCurvePhase', () => ({
+  __esModule: true,
+  default: () => ({ status: undefined, select: jest.fn() }),
+}));
+
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({

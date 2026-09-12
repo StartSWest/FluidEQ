@@ -152,6 +152,11 @@ describe('device profile configuration', () => {
       .filter((line) => !line.endsWith('custom.txt'))
       .forEach((line) => {
         const contents = files.get(line.replace('Include: ', '')) ?? '';
+        expect(contents).toContain(
+          line.endsWith('eq.txt')
+            ? '# FluidEQEqLayer: ON'
+            : '# FluidEQCurveLayer: ON',
+        );
         expect(contents).toContain('Filter 1:');
         expect(contents).not.toContain('Preamp:');
         expect(contents).not.toContain('Device:');
@@ -164,6 +169,8 @@ describe('device profile configuration', () => {
     );
     expect(eq).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
     expect(eq).not.toContain('Fc 3000 Hz');
+    expect(deviceFile).not.toContain('FluidEQEqLayer');
+    expect(deviceFile).not.toContain('FluidEQCurveLayer');
   });
 
   // The peak of a sum is not the sum of the peaks, so the reserve cannot be

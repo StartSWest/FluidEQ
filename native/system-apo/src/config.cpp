@@ -199,6 +199,8 @@ struct Frame {
   // `Device:` line only takes effect for the lines that follow it in its own
   // file — exactly Equalizer APO's own scoping.
   bool matching = true;
+  bool curve_layer = false;
+  bool eq_layer = false;
 };
 
 }  // namespace
@@ -218,6 +220,21 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
                     const FileProvider& read) {
   Chain chain;
   constexpr size_t kMaxDepth = 8;
+  if (const auto comparison = read(config_dir + L"\\fluideq-curve-phase.txt")) {
+    const size_t first = comparison->find_first_not_of(" \t\r\n");
+    if (first != std::string::npos &&
+        ((*comparison)[first] == 'A' || (*comparison)[first] == 'B') &&
+        comparison->find_first_not_of(" \t\r\n", first + 1) == std::string::npos) {
+      chain.minimum_curve_phase = (*comparison)[first] == 'B';
+    }
+  }
+
+  if (const auto phase = read(config_dir + L"\\fluideq-eq-phase.txt")) {
+    const size_t first = phase->find_first_not_of(" \t\r\n");
+    chain.minimum_eq_phase = !(first != std::string::npos &&
+        (*phase)[first] == 'A' &&
+        phase->find_first_not_of(" \t\r\n", first + 1) == std::string::npos);
+  }
 
   // Before the config tree, and outside it. `SET_SYSTEM_DSP_CHAIN` writes
   // this file whether or not the user has ever configured the EQ, and the
@@ -285,7 +302,9 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       }
       opened.insert(*resolved);
       chain.files_read.push_back(*resolved);
-      stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching});
+      const bool curve_layer = stack.back().curve_layer;
+      const bool eq_layer = stack.back().eq_layer;
+      stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching, curve_layer, eq_layer});
       continue;
     }
 
@@ -316,6 +335,16 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       chain.stable_graphic = line.body == "ON";
       continue;
     }
+    if (detail::iequals(line.command, "FluidEQCurveLayer")) {
+      stack.back().curve_layer = line.body == "ON";
+      if (stack.back().curve_layer) stack.back().eq_layer = false;
+      continue;
+    }
+    if (detail::iequals(line.command, "FluidEQEqLayer")) {
+      stack.back().eq_layer = line.body == "ON";
+      if (stack.back().eq_layer) stack.back().curve_layer = false;
+      continue;
+    }
     if (detail::iequals(line.command, "Preamp")) {
       if (const std::optional<double> value = parse_preamp(line.body)) {
         chain.preamp_db = *value;
@@ -327,6 +356,8 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     if (detail::iequals(line.command, "Filter")) {
       if (const std::optional<Band> band = parse_filter(line.body)) {
         chain.bands.push_back(*band);
+        chain.bands.back().user_eq = stack.back().eq_layer;
+        chain.bands.back().curve_layer = stack.back().curve_layer;
         chain.matched = true;
       }
       continue;
@@ -335,6 +366,12 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     if (detail::iequals(line.command, "GraphicEQ")) {
       std::vector<GraphicPoint> points = parse_graphic(line.body);
       if (!points.empty()) {
+        if (stack.back().curve_layer) {
+          chain.comparison_curves.push_back(points);
+        }
+        if (stack.back().eq_layer) {
+          chain.eq_graphic_curves.push_back(points);
+        }
         chain.graphic_curves.push_back(std::move(points));
         chain.matched = true;
       }

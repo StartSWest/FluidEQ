@@ -54,6 +54,12 @@ afterEach(() => {
 });
 
 describe('parseEngineStatus', () => {
+  it('reads the phase fallback written by the native engine', () => {
+    expect(
+      parseEngineStatus(status({ problems: ['eq-phase'] }))?.problems,
+    ).toEqual(['eq-phase']);
+    expect(parseEngineStatus(status({ problems: [] }))?.problems).toEqual([]);
+  });
   it('reads the text the engine writes', () => {
     expect(parseEngineStatus(ENGINE_TEXT)).toEqual({
       endpoint: '{947B0242-A1CF-4483-A44E-B72DA462C901}',

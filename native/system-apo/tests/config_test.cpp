@@ -284,6 +284,48 @@ void engine_comments_keep_manual_and_custom_preamp_semantics() {
   CHECK(!chain.output_guard && chain.preamp_db == -7);
 }
 
+void phase_scopes_follow_includes_without_leaking() {
+  Files files;
+  files[L"C:\\cfg\\config.txt"] =
+      "Device: {AAAA}\nInclude: eq.txt\nInclude: curve.txt\n"
+      "Filter: ON PK Fc 700 Hz Gain 2 dB Q 2\n"
+      "Device: {BBBB}\nInclude: excluded.txt\n";
+  files[L"C:\\cfg\\eq.txt"] = "# FluidEQEqLayer: ON\nInclude: nested.txt\n";
+  files[L"C:\\cfg\\nested.txt"] =
+      "Filter: ON PK Fc 1000 Hz Gain 6 dB Q 2\nGraphicEQ: 20 2; 20000 -1\n";
+  files[L"C:\\cfg\\curve.txt"] =
+      "# FluidEQCurveLayer: ON\nFilter: ON PK Fc 4000 Hz Gain -5 dB Q 4\n"
+      "GraphicEQ: 20 -1; 20000 3\n";
+  files[L"C:\\cfg\\excluded.txt"] =
+      "# FluidEQEqLayer: ON\nFilter: ON PK Fc 300 Hz Gain 20 dB Q 2\n";
+  const auto chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.bands.size() == 3);
+  CHECK(chain.bands[0].user_eq && !chain.bands[0].curve_layer);
+  CHECK(chain.bands[1].curve_layer && !chain.bands[1].user_eq);
+  CHECK(!chain.bands[2].user_eq && !chain.bands[2].curve_layer);
+  CHECK(chain.graphic_curves.size() == 2);
+  CHECK(chain.eq_graphic_curves.size() == 1 && chain.eq_graphic_curves[0][0].gain_db == 2);
+  CHECK(chain.comparison_curves.size() == 1 && chain.comparison_curves[0][0].gain_db == -1);
+  CHECK(chain.minimum_curve_phase && chain.minimum_eq_phase);
+}
+
+void official_phase_files_are_independent_and_default_to_minimum() {
+  Files files;
+  files[L"C:\\cfg\\config.txt"] = "Preamp: -2 dB\n";
+  files[L"C:\\cfg\\fluideq-curve-comparison.txt"] = "A\n";
+  const auto read = [&files]() {
+    return resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  };
+  CHECK(read().minimum_curve_phase && read().minimum_eq_phase);
+  files[L"C:\\cfg\\fluideq-curve-phase.txt"] = "A\r\n";
+  CHECK(!read().minimum_curve_phase && read().minimum_eq_phase);
+  files[L"C:\\cfg\\fluideq-curve-phase.txt"] = "B\n";
+  files[L"C:\\cfg\\fluideq-eq-phase.txt"] = "A\n";
+  CHECK(read().minimum_curve_phase && !read().minimum_eq_phase);
+  files[L"C:\\cfg\\fluideq-eq-phase.txt"] = "invalid\n";
+  CHECK(read().minimum_curve_phase && read().minimum_eq_phase);
+}
+
 }  // namespace
 
 int main() {
@@ -301,6 +343,8 @@ int main() {
   graphic_and_preamp_grammar();
   utf16_with_bom_is_read();
   engine_comments_keep_manual_and_custom_preamp_semantics();
+  phase_scopes_follow_includes_without_leaking();
+  official_phase_files_are_independent_and_default_to_minimum();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

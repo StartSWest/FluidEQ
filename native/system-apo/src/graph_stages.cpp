@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "graph_stages.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <optional>
@@ -14,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/resampler.h"
 #include "graphic_eq.h"
+#include "curve_phase.h"
 #include "wav.h"
 
 namespace fluideq_engine {
@@ -197,8 +199,8 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
   return kernel;
 }
 
-std::vector<float> design_graphic(
-    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+GraphicDesign design_graphic(
+    const Chain& chain, uint32_t sample_rate,
     std::vector<std::string>& warnings) {
   const double scaled = static_cast<double>(kGraphicTapsAt48k) *
                         static_cast<double>(sample_rate) /
@@ -218,7 +220,25 @@ std::vector<float> design_graphic(
   } else {
     taps = static_cast<uint32_t>(std::lround(scaled)) | 1u;
   }
-  return design_graphic_kernel(curves, sample_rate, taps);
+  auto reference = design_graphic_kernel(chain.graphic_curves, sample_rate, taps);
+  GraphicDesign result;
+  result.delay_frames = taps / 2;
+  std::vector<std::vector<GraphicPoint>> minimum_curves;
+  if (chain.minimum_curve_phase) minimum_curves = chain.comparison_curves;
+  if (chain.minimum_eq_phase) {
+    minimum_curves.insert(minimum_curves.end(), chain.eq_graphic_curves.begin(),
+                          chain.eq_graphic_curves.end());
+  }
+  if (!minimum_curves.empty()) {
+    const auto curves = design_graphic_kernel(minimum_curves, sample_rate, taps);
+    result.samples = apply_minimum_curve_phase(reference, curves);
+  } else {
+    reference.resize(static_cast<size_t>(taps) * 2, 0.0f);
+    result.samples = std::move(reference);
+  }
+  result.samples.resize(std::min(result.samples.size(),
+                                 static_cast<size_t>(kMaxKernelTaps)));
+  return result;
 }
 
 bool build_convolvers(const FeqConvolverKernel* kernel, uint32_t channels,

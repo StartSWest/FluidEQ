@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': '相位',
+  'eq.mode.minimumPhase': '最小',
+  'eq.mode.linearPhase': '线性',
+  'eq.mode.phaseHint':
+    '默认为最小相位，保留原有校正调音。线性相位可能增加延迟和前振铃。',
+  'eq.mode.phaseUpdate': '请更新 FluidEQ 引擎以更改相位。',
+  'eq.mode.eqPhaseHint':
+    '默认为最小相位。线性相位保留增益和 Q，但会增加延迟，并可能在瞬态前产生振铃。',
   'eq.mode.reset': '重置',
   'eq.mode.customized': '自定义',
   'eq.mode.strength': '强度',

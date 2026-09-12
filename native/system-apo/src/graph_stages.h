@@ -33,9 +33,14 @@ std::shared_ptr<const std::vector<float>> kernel_identity(std::vector<float> sam
 std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
                                 std::vector<std::string>& warnings);
 
-/** Every `GraphicEQ:` curve as one linear-phase FIR at the stream's rate. */
-std::vector<float> design_graphic(
-    const std::vector<std::vector<GraphicPoint>>& curves, uint32_t sample_rate,
+struct GraphicDesign {
+  std::vector<float> samples;
+  uint32_t delay_frames = 0;
+};
+
+/** Every `GraphicEQ:` curve as one FIR at the stream's rate. */
+GraphicDesign design_graphic(
+    const Chain& chain, uint32_t sample_rate,
     std::vector<std::string>& warnings);
 
 /**

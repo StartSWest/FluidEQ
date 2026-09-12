@@ -7,6 +7,8 @@ const engineHealth = {
     'आपकी आवाज़ का कुछ हिस्सा {device} तक नहीं पहुँच रहा',
   'engineHealth.problem.convolution':
     'कन्वोल्यूशन बंद है: इंजन इम्पल्स रिस्पॉन्स लोड नहीं कर सका। कोई दूसरी फ़ाइल आज़माएँ।',
+  'engineHealth.problem.eq-phase':
+    'लीनियर-फेज़ EQ शुरू नहीं हो सका; मूल फ़िल्टर सक्रिय हैं।',
   'engineHealth.problem.graphic-eq':
     'ग्राफ़िक EQ बंद है: इंजन उसका कर्व नहीं बना सका।',
   'engineHealth.problem.dsp-rack':

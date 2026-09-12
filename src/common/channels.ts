@@ -136,6 +136,8 @@ enum ChannelEnum {
   SET_LAYER_BYPASS = 'setLayerBypass',
   SET_EQ_DOUBLE = 'setEqDouble',
   SET_EQ_MODE = 'setEqMode',
+  GET_CURVE_COMPARISON = 'getCurveComparison',
+  SET_CURVE_COMPARISON = 'setCurveComparison',
   SET_EQ_SHAPE = 'setEqShape',
   RESET_EQ_MODE = 'resetEqMode',
   // Clearing a reference clears the bands it wrote, because applying one wrote

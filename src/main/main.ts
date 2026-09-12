@@ -153,6 +153,7 @@ import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
+import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
 import {
@@ -2338,6 +2339,14 @@ registerProfilesIpc({
   captureCurrentLayout,
   notifyOutputStateChanged,
   retryHelper,
+});
+
+registerCurveComparisonIpc({
+  state,
+  getEngine: () => session.audioEngine,
+  getStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
+  getConfigPath: () => getConfigPath('fluid'),
+  isSwitching: () => session.engineSwitching,
 });
 
 registerAudioEngineIpc({

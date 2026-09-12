@@ -6,6 +6,8 @@ const engineHealth = {
   'engineHealth.problemsTitle': 'サウンドの一部が {device} に届いていません',
   'engineHealth.problem.convolution':
     'コンボリューションはオフです：エンジンがインパルス応答を読み込めませんでした。別のファイルを試してください。',
+  'engineHealth.problem.eq-phase':
+    'リニアフェーズEQを開始できませんでした。元のフィルターは引き続き動作しています。',
   'engineHealth.problem.graphic-eq':
     'グラフィック EQ はオフです：エンジンがカーブを作成できませんでした。',
   'engineHealth.problem.dsp-rack':

@@ -7,6 +7,8 @@ const engineHealth = {
     'Une partie de votre son n’atteint pas {device}',
   'engineHealth.problem.convolution':
     'La convolution est désactivée : le moteur n’a pas pu charger la réponse impulsionnelle. Essayez un autre fichier.',
+  'engineHealth.problem.eq-phase':
+    'L’EQ à phase linéaire n’a pas pu démarrer ; les filtres d’origine restent actifs.',
   'engineHealth.problem.graphic-eq':
     'L’EQ graphique est désactivé : le moteur n’a pas pu construire sa courbe.',
   'engineHealth.problem.dsp-rack':

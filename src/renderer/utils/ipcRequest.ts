@@ -37,6 +37,7 @@ import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
+import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type {
   IAudioEngineStatus,
   IAudioRestartOutcome,
@@ -199,6 +200,7 @@ export const buildResponseHandler = <
     | IChainImport
     | ISongEqEntry
     | IAudioEngineStatus
+    | ICurveComparisonStatus
     | IAudioRestartOutcome
     | IEngineSetupResult,
 >(
@@ -250,6 +252,7 @@ export const simpleResponseHandler = <
     | IChainImport
     | ISongEqEntry
     | IAudioEngineStatus
+    | ICurveComparisonStatus
     | IAudioRestartOutcome
     | IEngineSetupResult,
 >() =>

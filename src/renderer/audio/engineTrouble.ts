@@ -69,7 +69,11 @@ export interface IEngineTroubleFacts {
  * could not build. A restart reads them again and fails the same way; the
  * rest are the engine's own state, which a restart starts over.
  */
-const CONTENT_PROBLEMS: readonly string[] = ['convolution', 'graphic-eq'];
+const CONTENT_PROBLEMS: readonly string[] = [
+  'convolution',
+  'graphic-eq',
+  'eq-phase',
+];
 
 const sameEndpoint = (a: string, b: string) =>
   normaliseEndpointGuid(a) === normaliseEndpointGuid(b);

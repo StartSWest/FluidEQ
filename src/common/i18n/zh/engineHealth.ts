@@ -6,6 +6,7 @@ const engineHealth = {
   'engineHealth.problemsTitle': '你的部分声音未到达 {device}',
   'engineHealth.problem.convolution':
     '卷积已关闭：引擎无法加载脉冲响应。请换一个文件试试。',
+  'engineHealth.problem.eq-phase': '线性相位 EQ 无法启动；原有滤波器仍在运行。',
   'engineHealth.problem.graphic-eq': '图形 EQ 已关闭：引擎无法生成它的曲线。',
   'engineHealth.problem.dsp-rack': 'DSP 效果已关闭：引擎无法启动它们。',
   'engineHealth.problem.reload-failed':

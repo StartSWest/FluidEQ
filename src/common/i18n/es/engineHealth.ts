@@ -6,6 +6,8 @@ const engineHealth = {
   'engineHealth.problemsTitle': 'Parte de tu sonido no llega a {device}',
   'engineHealth.problem.convolution':
     'La convolución está desactivada: el motor no pudo cargar la respuesta al impulso. Prueba con otro archivo.',
+  'engineHealth.problem.eq-phase':
+    'No se pudo iniciar el EQ de fase lineal; los filtros originales siguen activos.',
   'engineHealth.problem.graphic-eq':
     'El EQ gráfico está desactivado: el motor no pudo construir su curva.',
   'engineHealth.problem.dsp-rack':

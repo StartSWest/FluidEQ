@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': 'Фаза',
+  'eq.mode.minimumPhase': 'Минимальная',
+  'eq.mode.linearPhase': 'Линейная',
+  'eq.mode.phaseHint':
+    'Минимальная — по умолчанию. Настройка коррекции сохраняется; линейная может добавить задержку и предзвон.',
+  'eq.mode.phaseUpdate': 'Обновите движок FluidEQ, чтобы изменить фазу.',
+  'eq.mode.eqPhaseHint':
+    'Минимальная — по умолчанию. Линейная сохраняет усиление и Q, но добавляет задержку и может звенеть перед резкими звуками.',
   'eq.mode.reset': 'Сбросить',
   'eq.mode.customized': 'Свой',
   'eq.mode.strength': 'Интенсивность',

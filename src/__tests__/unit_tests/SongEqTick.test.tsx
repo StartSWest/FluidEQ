@@ -59,6 +59,11 @@ const mockSetSmartEq = jest.fn((next?: ISmartEqSettings) => {
   mockLive.smartEq = next;
 });
 
+jest.mock('renderer/utils/useCurvePhase', () => ({
+  __esModule: true,
+  default: () => ({ status: undefined, select: jest.fn() }),
+}));
+
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({

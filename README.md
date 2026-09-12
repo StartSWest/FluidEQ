@@ -408,6 +408,21 @@ Two limits still apply: Denoise still only measures and repairs Library
 tracks, and switching the parametric Equaliser to linear phase adds about
 171 ms of delay, shown right on the DSP page.
 
+**EQ mode → Phase** offers independent **Minimum** and **Linear** processing
+for **Your EQ** and **Curves** with FluidEQ Engine 1.6 or later. Minimum is
+the default and keeps the original parametric filters. Linear preserves their
+tuning within a checked tolerance, but adds about 350 ms per active parametric
+group at 48/96 kHz and can ring before sharp transients. If a correction is too
+narrow for the bounded linear filter, the original filters stay active and the
+app reports it rather than silently reshaping the correction. Smoothing remains
+independent. These phase choices apply across the FluidEQ Engine's outputs;
+they do not change the DSP rack, imported convolution impulses or Equalizer APO.
+Changing parametric phase while audio plays changes its delay: entering Linear
+can briefly repeat part of the sound; returning to Minimum can skip ahead.
+The engine crossfades the handover, but does not time-stretch the music or add
+permanent delay to Minimum just to hide that change. Switch during a pause
+when an uninterrupted passage matters.
+
 Your EQ applies only while FluidEQ is running. Closing the window keeps
 FluidEQ running in the tray, and the EQ with it; **Quit** from the tray icon
 turns every output back to flat — the DSP rack included — and the next launch

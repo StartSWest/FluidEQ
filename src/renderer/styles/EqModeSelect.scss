@@ -65,6 +65,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: $spacing-xs;
 
+    &--phase {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     [aria-pressed='true'] {
       color: $surface-base;
       background: $secondary-default;

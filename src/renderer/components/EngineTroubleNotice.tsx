@@ -22,6 +22,7 @@ const OTHER_NOTICE =
 const PROBLEM_TEXT: Record<TEngineProblem, TranslationKey> = {
   convolution: 'engineHealth.problem.convolution',
   'graphic-eq': 'engineHealth.problem.graphic-eq',
+  'eq-phase': 'engineHealth.problem.eq-phase',
   'dsp-rack': 'engineHealth.problem.dsp-rack',
   'reload-failed': 'engineHealth.problem.reload-failed',
   unwatched: 'engineHealth.problem.unwatched',

@@ -58,6 +58,8 @@ struct ChainDeleter {
 
 }  // namespace detail
 
+class EqPhaseStage;
+
 class Graph {
  public:
   /**
@@ -256,6 +258,8 @@ class Graph {
   std::vector<FeqBiquadCoefficients> coefficients_;
   // `channels_ * coefficients_.size()`, channel-major.
   std::vector<FeqBiquadState> states_;
+  std::unique_ptr<EqPhaseStage> eq_phase_;
+  std::unique_ptr<EqPhaseStage> curve_phase_;
 
   // The kernels outlive every convolver built from them, and each is shared
   // by all channels; only the per-channel `FeqConvolver` carries history.

@@ -6,6 +6,8 @@ const engineHealth = {
   'engineHealth.problemsTitle': 'Часть вашего звука не доходит до {device}',
   'engineHealth.problem.convolution':
     'Свёртка выключена: движок не смог загрузить импульсную характеристику. Попробуйте другой файл.',
+  'engineHealth.problem.eq-phase':
+    'Не удалось запустить линейно-фазовый EQ; исходные фильтры остаются активными.',
   'engineHealth.problem.graphic-eq':
     'Графический эквалайзер выключен: движок не смог построить его кривую.',
   'engineHealth.problem.dsp-rack':

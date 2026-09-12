@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { TBandQ, TCurveSmoothing } from '../../common/eqShape';
+import {
+  DEFAULT_CURVE_COMPARISON,
+  TCurveComparison,
+} from '../../common/curveComparison';
 import EqModeIcon from '../icons/EqModeIcon';
 import ConfirmIcon from '../icons/ConfirmIcon';
 import ProfileActionIcon from '../icons/ProfileActionIcon';
@@ -17,20 +21,23 @@ import { resetEqMode, setEqMode, setEqShape } from '../utils/equalizerApi';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
 import '../styles/EqModeSelect.scss';
+import useCurvePhase from '../utils/useCurvePhase';
 
 const MODES: TEqMode[] = ['normal', 'studio', 'double'];
 const SCOPES: TEqModeScope[] = ['eq', 'curves'];
 const qName = (value: TBandQ) => (value === 'off' ? 'constant' : value);
-type ChoiceKind = 'strength' | 'q' | 'smoothing' | 'reset';
+type ChoiceKind = 'strength' | 'q' | 'smoothing' | 'phase' | 'reset';
+type ChoiceValue = TEqMode | TBandQ | TCurveSmoothing | TCurveComparison;
 interface IPendingChoice {
   scope: TEqModeScope;
-  value: TEqMode | TBandQ | TCurveSmoothing;
+  value: ChoiceValue;
   kind: ChoiceKind;
 }
 
 export default function EqModeSelect() {
   const { t } = useTranslation();
   const state = useFluidEqContext();
+  const phase = useCurvePhase();
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const saving = useRef(false);
@@ -44,7 +51,10 @@ export default function EqModeSelect() {
       (scope) =>
         selected[scope] !== 'normal' || getBandQ(state, scope) !== 'off',
     ) ||
-    (state.curveSmoothing !== undefined && state.curveSmoothing !== 'off');
+    (state.curveSmoothing !== undefined && state.curveSmoothing !== 'off') ||
+    (phase.status?.active &&
+      (phase.status.variant !== DEFAULT_CURVE_COMPARISON ||
+        phase.status.eqVariant !== DEFAULT_CURVE_COMPARISON));
   const summary = t(customized ? 'eq.mode.customized' : 'eq.mode.normal');
   const disabled = state.isBlockingError;
   const label = (mode: TEqMode) => {
@@ -89,7 +99,7 @@ export default function EqModeSelect() {
 
   const currentChoice = (
     scope: TEqModeScope,
-    kind: 'strength' | 'q' | 'smoothing',
+    kind: Exclude<ChoiceKind, 'reset'>,
   ) => {
     if (kind === 'strength') {
       return selected[scope];
@@ -97,12 +107,15 @@ export default function EqModeSelect() {
     if (kind === 'q') {
       return getBandQ(state, scope);
     }
+    if (kind === 'phase') {
+      return scope === 'eq' ? phase.status?.eqVariant : phase.status?.variant;
+    }
     return state.curveSmoothing ?? 'off';
   };
 
   const select = async (
     scope: TEqModeScope,
-    value: TEqMode | TBandQ | TCurveSmoothing,
+    value: ChoiceValue,
     kind: ChoiceKind = 'strength',
   ) => {
     const current = kind === 'reset' ? undefined : currentChoice(scope, kind);
@@ -129,6 +142,14 @@ export default function EqModeSelect() {
       try {
         if (choice.kind === 'reset') {
           await resetEqMode();
+          if (phase.status?.active && phase.status.supported) {
+            await phase.select(DEFAULT_CURVE_COMPARISON, 'curves');
+          }
+          if (phase.status?.active && phase.status.eqSupported) {
+            await phase.select(DEFAULT_CURVE_COMPARISON, 'eq');
+          }
+        } else if (choice.kind === 'phase') {
+          await phase.select(choice.value as TCurveComparison, choice.scope);
         } else if (choice.kind === 'strength') {
           await setEqMode(choice.value as TEqMode, choice.scope);
         } else {
@@ -153,21 +174,24 @@ export default function EqModeSelect() {
     }
   };
 
-  const choices = (
-    scope: TEqModeScope,
-    kind: 'strength' | 'q' | 'smoothing',
-  ) => {
+  const choices = (scope: TEqModeScope, kind: Exclude<ChoiceKind, 'reset'>) => {
     const values = {
       strength: MODES,
       q: ['off', 'proportional', 'asymmetric'] as const,
       smoothing: ['off', 'twelfth', 'third'] as const,
+      phase: ['B', 'A'] as const,
     }[kind];
     const current = currentChoice(scope, kind);
+    const phaseSupported =
+      scope === 'eq' ? phase.status?.eqSupported : phase.status?.supported;
+    const scopePhaseHint =
+      scope === 'eq' ? 'eq.mode.eqPhaseHint' : 'eq.mode.phaseHint';
+    const phaseHint = phaseSupported ? scopePhaseHint : 'eq.mode.phaseUpdate';
     return (
       <div className="eq-mode-menu__row">
         <span className="eq-mode-menu__row-label">{t(`eq.mode.${kind}`)}</span>
         <div
-          className="eq-mode-menu__choices"
+          className={`eq-mode-menu__choices${kind === 'phase' ? ' eq-mode-menu__choices--phase' : ''}`}
           role="group"
           aria-label={
             kind === 'strength'
@@ -177,6 +201,24 @@ export default function EqModeSelect() {
         >
           {values.map((value) => {
             const isPending = pending === `${scope}-${kind}-${value}`;
+            let icon: string = value;
+            let text: string;
+            let hint: string | undefined;
+            if (kind === 'phase') {
+              icon = value === 'B' ? 'minimumPhase' : 'linearPhase';
+              text = t(
+                value === 'B' ? 'eq.mode.minimumPhase' : 'eq.mode.linearPhase',
+              );
+              hint = t(phaseHint);
+            } else if (kind === 'q') {
+              icon = qName(value as TBandQ);
+              text = t(`eq.mode.${qName(value as TBandQ)}`);
+              hint = t(`eq.mode.${qName(value as TBandQ)}Hint`);
+            } else if (kind === 'strength') {
+              text = label(value as TEqMode);
+            } else {
+              text = t(`eq.mode.${value as TCurveSmoothing}`);
+            }
             return (
               <button
                 type="button"
@@ -184,24 +226,12 @@ export default function EqModeSelect() {
                 className="button small subtle eq-mode-choice"
                 aria-pressed={current === value}
                 aria-busy={isPending}
-                disabled={disabled}
+                disabled={disabled || (kind === 'phase' && !phaseSupported)}
                 onClick={() => select(scope, value, kind)}
-                title={
-                  kind === 'q'
-                    ? t(`eq.mode.${qName(value as TBandQ)}Hint`)
-                    : undefined
-                }
+                title={hint}
               >
-                <EqModeIcon
-                  kind={kind === 'q' ? qName(value as TBandQ) : value}
-                />
-                <span>
-                  {kind === 'strength'
-                    ? label(value as TEqMode)
-                    : t(
-                        `eq.mode.${kind === 'q' ? qName(value as TBandQ) : (value as TCurveSmoothing)}`,
-                      )}
-                </span>
+                <EqModeIcon kind={icon} />
+                <span>{text}</span>
                 <span className="eq-mode-choice__mark" aria-hidden="true">
                   {isPending && <span className="eq-mode-choice__pending" />}
                   {!isPending && current === value && (
@@ -212,6 +242,9 @@ export default function EqModeSelect() {
             );
           })}
         </div>
+        {kind === 'phase' && (
+          <p className="eq-mode-menu__note">{t(phaseHint)}</p>
+        )}
       </div>
     );
   };
@@ -262,6 +295,7 @@ export default function EqModeSelect() {
               {choices(scope, 'strength')}
               {choices(scope, 'q')}
               {scope === 'curves' && choices(scope, 'smoothing')}
+              {phase.status?.active && choices(scope, 'phase')}
             </section>
           ))}
           <p className="eq-mode-menu__note">{t('eq.mode.shapeHint')}</p>

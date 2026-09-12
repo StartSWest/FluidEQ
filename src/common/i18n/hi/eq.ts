@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': 'फेज़',
+  'eq.mode.minimumPhase': 'मिनिमम',
+  'eq.mode.linearPhase': 'लीनियर',
+  'eq.mode.phaseHint':
+    'मिनिमम डिफ़ॉल्ट है। मूल ट्यूनिंग बनी रहती है; लीनियर से देरी और ध्वनि से पहले रिंगिंग हो सकती है।',
+  'eq.mode.phaseUpdate': 'फेज़ बदलने के लिए FluidEQ इंजन अपडेट करें।',
+  'eq.mode.eqPhaseHint':
+    'मिनिमम डिफ़ॉल्ट है। लीनियर में गेन और Q बने रहते हैं, लेकिन देरी और तेज़ ध्वनि से पहले रिंगिंग हो सकती है।',
   'eq.mode.reset': 'रीसेट',
   'eq.mode.customized': 'कस्टम',
   'eq.mode.strength': 'तीव्रता',

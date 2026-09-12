@@ -43,6 +43,8 @@ struct Band {
   double frequency;
   double gain_db;
   double quality;
+  bool user_eq = false;
+  bool curve_layer = false;
 };
 
 struct GraphicPoint {
@@ -68,6 +70,10 @@ struct Chain {
    * in one FIR with one delay.
    */
   std::vector<std::vector<GraphicPoint>> graphic_curves;
+  std::vector<std::vector<GraphicPoint>> comparison_curves;
+  std::vector<std::vector<GraphicPoint>> eq_graphic_curves;
+  bool minimum_curve_phase = true;
+  bool minimum_eq_phase = true;
   std::vector<Band> bands;
   double preamp_db = 0.0;
   bool auto_preamp = false;

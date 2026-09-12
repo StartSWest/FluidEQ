@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 export const ENGINE_PROBLEMS = [
   'convolution',
   'graphic-eq',
+  'eq-phase',
   'dsp-rack',
   'reload-failed',
   'unwatched',

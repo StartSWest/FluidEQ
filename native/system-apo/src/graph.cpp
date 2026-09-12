@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "dsp_chain.h"
 #include "graph_stages.h"
 #include "output_guard.h"
+#include "eq_phase.h"
 
 namespace fluideq_engine {
 
@@ -117,7 +118,15 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
 
   layout_.reserve(chain.bands.size());
   coefficients_.reserve(chain.bands.size());
+  std::vector<FeqLinearPhaseBand> eq_bands;
+  std::vector<FeqLinearPhaseBand> curve_bands;
   for (const Band& band : chain.bands) {
+    if (band.user_eq || band.curve_layer) {
+      auto& scoped = band.user_eq ? eq_bands : curve_bands;
+      scoped.push_back({1, 0, to_core_type(band.type), band.frequency,
+                        band.gain_db, band.quality});
+      continue;
+    }
     layout_.push_back(band.type);
     coefficients_.push_back(feq_biquad_coefficients(
         to_core_type(band.type), band.frequency, band.gain_db, band.quality,
@@ -127,6 +136,18 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
                  FeqBiquadState{});
   for (FeqBiquadState& state : states_) {
     feq_biquad_reset(&state);
+  }
+  if (!eq_bands.empty()) {
+    eq_phase_ = std::make_unique<EqPhaseStage>(eq_bands, !chain.minimum_eq_phase,
+        sample_rate_, channels_, max_frames_);
+    latency_frames_ += eq_phase_->latency();
+    if (eq_phase_->failed()) problems_.push_back("eq-phase");
+  }
+  if (!curve_bands.empty()) {
+    curve_phase_ = std::make_unique<EqPhaseStage>(curve_bands, !chain.minimum_curve_phase,
+        sample_rate_, channels_, max_frames_);
+    latency_frames_ += curve_phase_->latency();
+    if (curve_phase_->failed()) problems_.push_back("eq-phase");
   }
 
   if (!chain.convolution_path.empty()) {
@@ -148,26 +169,23 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   // One stage for every curve at once, not one per curve: see
   // `Chain::graphic_curves`.
   if (!chain.graphic_curves.empty() || chain.stable_graphic) {
-    std::vector<float> kernel =
-        design_graphic(chain.graphic_curves, sample_rate_, warnings_);
+    GraphicDesign design = design_graphic(chain, sample_rate_, warnings_);
+    std::vector<float>& kernel = design.samples;
     if (!kernel.empty()) {
       graphic_kernel_.reset(feq_convolver_kernel_create(
           kernel.data(), static_cast<uint32_t>(kernel.size())));
       if (graphic_kernel_ &&
           build_convolvers(graphic_kernel_.get(), channels_, graphic_)) {
-        // Two terms, not one. The convolver's block-pipeline latency, plus
-        // the FIR's own group delay: this kernel is designed linear-phase and
-        // therefore centred, so its energy sits at tap n/2 and the signal
-        // comes out that many frames later. Reporting only the first term
-        // told Windows a smaller number than the audio was actually delayed
-        // by on every endpoint with a `GraphicEQ:` line, which is what
-        // delay compensation uses to line this output up against the others.
+        // Both comparison paths retain the original fixed FIR delay. The
+        // minimum-phase curve adds frequency-dependent phase, not a second
+        // bulk delay. Padding keeps convolver history transferable between
+        // A and B without changing either path's reported latency.
         //
         // The impulse-response stage above adds no such term on purpose: an
         // IR is causal, and whatever delay it carries is the room it is
         // reproducing rather than a filter's phase response.
         latency_frames_ += feq_convolver_latency() +
-                           static_cast<uint32_t>(kernel.size() / 2);
+                           design.delay_frames;
         graphic_identity_ = kernel_identity(std::move(kernel));
       } else {
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");
@@ -186,6 +204,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
 
   passthrough_ = output_guard_ == nullptr && rack_ == nullptr && coefficients_.empty() &&
+                 eq_phase_ == nullptr && curve_phase_ == nullptr &&
                  impulse_.empty() && graphic_.empty() &&
                  preamp_linear_ == 1.0f;
 }
@@ -230,6 +249,9 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       feq_chain_process(rack_.get(), rack_planes_.data(), frames);
     }
   }
+
+  if (eq_phase_) eq_phase_->process(planar, frames);
+  if (curve_phase_) curve_phase_->process(planar, frames);
 
   const size_t bands = coefficients_.size();
   const auto preamp = static_cast<float>(preamp_linear_);
@@ -287,6 +309,8 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       feq_biquad_reset(&state);
     }
     silenced_blocks_.fetch_add(1, std::memory_order_relaxed);
+    if (eq_phase_) eq_phase_->reset();
+    if (curve_phase_) curve_phase_->reset();
   }
 }
 
@@ -296,6 +320,15 @@ void Graph::adopt_state(Graph* previous) noexcept {
     return;
   }
   inherit_state(*previous);
+  const auto same_phase = [](const std::unique_ptr<EqPhaseStage>& current,
+                             const std::unique_ptr<EqPhaseStage>& before) {
+    return (!current && !before) ||
+        (current && before && current->same_response(*before));
+  };
+  const bool same_eq_phase = same_phase(eq_phase_, previous->eq_phase_) &&
+      same_phase(curve_phase_, previous->curve_phase_);
+  if (eq_phase_ && previous->eq_phase_) eq_phase_->adopt(*previous->eq_phase_);
+  if (curve_phase_ && previous->curve_phase_) curve_phase_->adopt(*previous->curve_phase_);
   if (output_guard_ && previous->output_guard_) {
     output_guard_.swap(previous->output_guard_);
     const bool same_bands = coefficients_.size() == previous->coefficients_.size() &&
@@ -304,7 +337,7 @@ void Graph::adopt_state(Graph* previous) noexcept {
             return current.b0 == before.b0 && current.b1 == before.b1 && current.b2 == before.b2 &&
                 current.a1 == before.a1 && current.a2 == before.a2;
           });
-    if (auto_preamp_ && (!same_bands || preamp_linear_ != previous->preamp_linear_ ||
+    if (auto_preamp_ && (!same_bands || !same_eq_phase || preamp_linear_ != previous->preamp_linear_ ||
         graphic_identity_ != previous->graphic_identity_ ||
         impulse_identity_ != previous->impulse_identity_ || impulse_.size() != previous->impulse_.size())) {
       output_guard_->reassess(std::max(latency_frames_, previous->latency_frames_) + sample_rate_ / 20);

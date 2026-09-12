@@ -20,6 +20,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': 'Phase',
+  'eq.mode.minimumPhase': 'Minimal',
+  'eq.mode.linearPhase': 'Linear',
+  'eq.mode.phaseHint':
+    'Minimal ist der Standard. Die Abstimmung bleibt erhalten; Linear kann Verzögerung und Vorschwingen hinzufügen.',
+  'eq.mode.phaseUpdate':
+    'Aktualisiere die FluidEQ Engine, um die Phase zu ändern.',
+  'eq.mode.eqPhaseHint':
+    'Minimal ist der Standard. Linear behält Gain und Q bei, fügt aber Verzögerung und mögliches Vorschwingen hinzu.',
   'eq.mode.reset': 'Zurücksetzen',
   'eq.mode.customized': 'Individuell',
   'eq.mode.strength': 'Stärke',

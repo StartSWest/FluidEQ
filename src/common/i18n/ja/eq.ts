@@ -20,6 +20,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.phase': '位相',
+  'eq.mode.minimumPhase': '最小',
+  'eq.mode.linearPhase': 'リニア',
+  'eq.mode.phaseHint':
+    '最小が既定です。補正の音色を維持します。リニアでは遅延やプリリンギングが生じることがあります。',
+  'eq.mode.phaseUpdate':
+    '位相を変更するにはFluidEQエンジンを更新してください。',
+  'eq.mode.eqPhaseHint':
+    '最小が既定です。リニアはゲインとQを保ちますが、遅延や鋭い音の前に響きが生じることがあります。',
   'eq.mode.reset': 'リセット',
   'eq.mode.customized': 'カスタム',
   'eq.mode.strength': '強度',

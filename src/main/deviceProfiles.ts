@@ -415,7 +415,11 @@ const chainToFiles = (
   const files: Array<[string, string]> = chain.features.map(
     ({ feature, lines }) => [
       featureFileName(slug, feature),
-      [`# ${feature}: ${subject}`, ...lines].join(CRLF),
+      [
+        `# ${feature}: ${subject}`,
+        feature === 'eq' ? '# FluidEQEqLayer: ON' : '# FluidEQCurveLayer: ON',
+        ...lines,
+      ].join(CRLF),
     ],
   );
 

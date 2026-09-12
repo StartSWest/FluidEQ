@@ -16,6 +16,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import { ENGINE_STATUS_SINCE, engineReportsStatus } from 'common/engineHealth';
+import {
+  supportsCurveComparison,
+  supportsEqPhase,
+} from 'common/curveComparison';
 
 const ENGINE_RC = path.join(
   __dirname,
@@ -54,6 +58,12 @@ describe('engineReportsStatus', () => {
 });
 
 describe('the engine this tree builds', () => {
+  it('supports both official phase controls, unlike the experimental engine', () => {
+    expect(supportsCurveComparison(binaryVersion('FILEVERSION'))).toBe(true);
+    expect(supportsEqPhase(binaryVersion('FILEVERSION'))).toBe(true);
+    expect(supportsCurveComparison('1.5.0.0')).toBe(false);
+    expect(supportsEqPhase('1.5.0.0')).toBe(false);
+  });
   it('carries a version the app trusts to report', () => {
     expect(engineReportsStatus(binaryVersion('FILEVERSION'))).toBe(true);
   });

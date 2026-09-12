@@ -213,6 +213,23 @@ describe('engineTrouble', () => {
     ).toEqual(expect.objectContaining({ canRestartHelp: false }));
   });
 
+  it('does not offer a restart for a bounded linear-phase design refusal', () => {
+    expect(
+      engineTrouble(
+        facts({ health: { outputs: [running({ problems: ['eq-phase'] })] } }),
+      ),
+    ).toEqual(expect.objectContaining({ canRestartHelp: false }));
+    expect(
+      engineTrouble(
+        facts({
+          health: {
+            outputs: [running({ problems: ['eq-phase', 'reload-failed'] })],
+          },
+        }),
+      ),
+    ).toEqual(expect.objectContaining({ canRestartHelp: true }));
+  });
+
   it('puts the output being listened to ahead of another', () => {
     const trouble = engineTrouble(
       facts({

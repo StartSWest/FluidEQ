@@ -7,6 +7,8 @@ const engineHealth = {
     'Ein Teil deines Klangs erreicht {device} nicht',
   'engineHealth.problem.convolution':
     'Die Faltung ist aus: Die Engine konnte die Impulsantwort nicht laden. Versuche eine andere Datei.',
+  'engineHealth.problem.eq-phase':
+    'Der linearphasige EQ konnte nicht starten; die ursprünglichen Filter bleiben aktiv.',
   'engineHealth.problem.graphic-eq':
     'Der grafische EQ ist aus: Die Engine konnte seine Kurve nicht erstellen.',
   'engineHealth.problem.dsp-rack':

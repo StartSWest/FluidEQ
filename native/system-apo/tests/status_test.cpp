@@ -79,6 +79,14 @@ void text_is_escaped() {
   CHECK(text.find("\\\"quoted\\\" \\\\ path\\u000aand") != std::string::npos);
 }
 
+void linear_phase_fallback_is_reported() {
+  EngineStatus status;
+  status.problems = {"eq-phase"};
+  CHECK(status_json(status, 7, "t").find("\"problems\":[\"eq-phase\"]") != std::string::npos);
+  status.problems.clear();
+  CHECK(status_json(status, 7, "t").find("\"problems\":[]") != std::string::npos);
+}
+
 std::string read_all(const std::wstring& path) {
   const HANDLE file = CreateFileW(path.c_str(), GENERIC_READ,
                                   FILE_SHARE_READ | FILE_SHARE_DELETE, nullptr,
@@ -159,6 +167,7 @@ int main() {
   a_processing_output();
   a_pass_through_with_problems();
   text_is_escaped();
+  linear_phase_fallback_is_reported();
   instances_share_an_output();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");

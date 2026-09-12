@@ -720,6 +720,12 @@ const convolutionModeLines = (state: IState, fileName: string): string[] => {
     : base;
 };
 
+export const hasSampledCurveLayers = (state: IState): boolean =>
+  state.isEnabled &&
+  buildLayers(state).some(
+    (layer) => layer.feature !== 'eq' && Boolean(layer.graphicPoints?.length),
+  );
+
 /** A chain as the pieces the device file is assembled from. */
 export interface IApoChainFiles {
   /** The `Convolution:` line, when this device has an impulse response. */

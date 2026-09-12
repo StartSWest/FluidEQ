@@ -18,6 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.mode.phase': 'Phase',
+  'eq.mode.minimumPhase': 'Minimum',
+  'eq.mode.linearPhase': 'Linear',
+  'eq.mode.phaseHint':
+    'Minimum is the default. Keeps the correction’s tuning; Linear can add delay and pre-ringing.',
+  'eq.mode.phaseUpdate': 'Update the FluidEQ Engine to change phase.',
+  'eq.mode.eqPhaseHint':
+    'Minimum is the default. Linear keeps gains and Q, but adds delay and can ring before sharp hits.',
   'eq.mode.reset': 'Reset',
   'eq.mode.customized': 'Custom',
   'eq.mode.strength': 'Strength',

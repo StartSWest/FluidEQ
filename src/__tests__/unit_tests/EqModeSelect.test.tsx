@@ -35,6 +35,10 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setEqMode: (...args: unknown[]) => mockSetMode(...args),
   setEqShape: (...args: unknown[]) => mockSetShape(...args),
 }));
+jest.mock('renderer/utils/useCurvePhase', () => ({
+  __esModule: true,
+  default: () => ({ status: undefined, select: jest.fn() }),
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
