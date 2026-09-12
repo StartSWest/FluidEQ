@@ -1,4 +1,9 @@
 const account = {
+  'account.validation.passwordRequired': 'Inserisci la tua password.',
+  'account.validation.passwordShort': 'Usa almeno {count} caratteri.',
+  'account.validation.passwordLong': 'Usa al massimo 128 caratteri.',
+  'account.validation.nameLong': 'Usa al massimo 80 caratteri.',
+  'account.validation.code': 'Inserisci il codice di sei cifre.',
   'account.menu': 'Account',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'Account',

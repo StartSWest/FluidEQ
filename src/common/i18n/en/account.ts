@@ -8,6 +8,11 @@
  * signed-out state as something to be fixed.
  */
 const account = {
+  'account.validation.passwordRequired': 'Enter your password.',
+  'account.validation.passwordShort': 'Use at least {count} characters.',
+  'account.validation.passwordLong': 'Use no more than 128 characters.',
+  'account.validation.nameLong': 'Use no more than 80 characters.',
+  'account.validation.code': 'Enter the six-digit code.',
   'account.menu': 'Account',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'Account',

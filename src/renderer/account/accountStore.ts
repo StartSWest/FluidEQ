@@ -75,6 +75,17 @@ export const useAccount = (): IAccountState =>
 const adopt = (next: IAccountState | undefined) => {
   if (next) {
     publish(next);
+  } else {
+    publish({ ...state, error: 'rejected' });
+  }
+};
+
+/** A missing/stale preload or rejected IPC call must never look like a no-op. */
+const request = async (run: () => Promise<IAccountState> | undefined) => {
+  try {
+    adopt(await run());
+  } catch {
+    publish({ ...state, error: 'network' });
   }
 };
 
@@ -82,26 +93,26 @@ export const signUpAccount = async (details: {
   email: string;
   password: string;
   name?: string;
-}) => adopt(await bridge()?.signUpAccount?.(details));
+}) => request(() => bridge()?.signUpAccount?.(details));
 
 export const signInAccount = async (credentials: {
   email: string;
   password: string;
-}) => adopt(await bridge()?.signInAccount?.(credentials));
+}) => request(() => bridge()?.signInAccount?.(credentials));
 
 export const confirmAccountCode = async (code: string) =>
-  adopt(await bridge()?.confirmAccountCode?.(code));
+  request(() => bridge()?.confirmAccountCode?.(code));
 
 export const resendAccountCode = async () =>
-  adopt(await bridge()?.resendAccountCode?.());
+  request(() => bridge()?.resendAccountCode?.());
 
 export const forgotAccountPassword = async (email: string) =>
-  adopt(await bridge()?.forgotAccountPassword?.(email));
+  request(() => bridge()?.forgotAccountPassword?.(email));
 
 export const resetAccountPassword = async (details: {
   code: string;
   password: string;
-}) => adopt(await bridge()?.resetAccountPassword?.(details));
+}) => request(() => bridge()?.resetAccountPassword?.(details));
 
 export const abandonAccountPending = async () =>
   adopt(await bridge()?.abandonAccountPending?.());

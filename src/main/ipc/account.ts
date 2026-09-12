@@ -29,6 +29,9 @@ import {
   EMAIL_SHAPE,
   isCode,
   MIN_PASSWORD_LENGTH,
+  MAX_EMAIL_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MAX_NAME_LENGTH,
 } from '../../common/accountRules';
 import {
   createMembershipSimulator,
@@ -96,9 +99,9 @@ const CHANNELS = [
 const ENTITLEMENT_FILE = 'entitlement.json';
 
 /** Generous bounds. The server has its own; these stop nonsense earlier. */
-const MAX_EMAIL = 254;
-const MAX_PASSWORD = 128;
-const MAX_NAME = 80;
+const MAX_EMAIL = MAX_EMAIL_LENGTH;
+const MAX_PASSWORD = MAX_PASSWORD_LENGTH;
+const MAX_NAME = MAX_NAME_LENGTH;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -109,7 +112,8 @@ const readText = (value: unknown, max: number): string | undefined =>
     : undefined;
 
 const readEmail = (value: unknown): string | undefined => {
-  const text = readText(value, MAX_EMAIL)?.trim();
+  const text =
+    typeof value === 'string' ? readText(value.trim(), MAX_EMAIL) : undefined;
   return text && EMAIL_SHAPE.test(text) ? text : undefined;
 };
 
@@ -176,18 +180,22 @@ export const registerAccountIpc = ({
   const entitled = entitlement;
 
   /**
-   * A form that sent something the checks above refuse gets the current state
-   * back and nothing happens. The form has the same checks and disables its
-   * button until they pass, so this is only reached by a caller that ignored
-   * them — and the honest answer to that is silence, not a request.
+   * Reject invalid input before contacting the service, with a visible error.
+   * Renderer validation is helpful feedback, never the security boundary.
    */
   const configured = () => isAccountConfigured();
+  const refused = (
+    error: NonNullable<IAccountState['error']> = 'rejected',
+  ): IAccountState => ({
+    ...session.state(),
+    error,
+  });
 
   ipcMain.handle('account-state', () => session.state());
 
   ipcMain.handle('account-sign-up', (_event, details: unknown) => {
     if (!configured() || !isRecord(details)) {
-      return session.state();
+      return refused();
     }
     const email = readEmail(details.email);
     const password = readPassword(details.password);
@@ -195,20 +203,33 @@ export const registerAccountIpc = ({
       details.name === undefined || details.name === ''
         ? undefined
         : readText(details.name, MAX_NAME);
-    if (!email || !password) {
-      return session.state();
+    if (!email) {
+      return refused('invalid_email');
+    }
+    if (!password) {
+      return refused('weak_password');
+    }
+    if (
+      details.name !== undefined &&
+      details.name !== '' &&
+      name === undefined
+    ) {
+      return refused();
     }
     return session.signUp({ email, password, name });
   });
 
   ipcMain.handle('account-sign-in', (_event, credentials: unknown) => {
     if (!configured() || !isRecord(credentials)) {
-      return session.state();
+      return refused();
     }
     const email = readEmail(credentials.email);
     const password = readText(credentials.password, MAX_PASSWORD);
-    if (!email || !password) {
-      return session.state();
+    if (!email) {
+      return refused('invalid_email');
+    }
+    if (!password) {
+      return refused('wrong_credentials');
     }
     return session.signIn({ email, password });
   });
@@ -217,7 +238,7 @@ export const registerAccountIpc = ({
     const digits = readCode(code);
     return configured() && digits
       ? session.confirmCode(digits)
-      : session.state();
+      : refused('bad_code');
   });
 
   ipcMain.handle('account-resend-code', () =>
@@ -233,7 +254,7 @@ export const registerAccountIpc = ({
 
   ipcMain.handle('account-reset-password', (_event, details: unknown) => {
     if (!configured() || !isRecord(details)) {
-      return session.state();
+      return refused();
     }
     const code = readCode(details.code);
     const password = readPassword(details.password);

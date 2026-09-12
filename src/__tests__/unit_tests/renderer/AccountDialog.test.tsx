@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import AccountDialog from '../../../renderer/account/AccountDialog';
@@ -73,13 +73,18 @@ describe('the account panel', () => {
   it('signs in with what was typed, trimmed, and not before it could work', async () => {
     renderDialog({ status: 'signed-out' });
     const submit = screen.getByRole('button', { name: 'account.signIn' });
-    expect(submit).toBeDisabled();
+    await userEvent.click(submit);
+    expect(mockSignIn).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('account.validation.passwordRequired:8'),
+    ).toBeInTheDocument();
 
     await userEvent.type(
       screen.getByLabelText(/^account.field.email/),
       ' ada@example.com ',
     );
-    expect(submit).toBeDisabled();
+    await userEvent.click(submit);
+    expect(mockSignIn).not.toHaveBeenCalled();
     await userEvent.type(screen.getByLabelText('account.field.password'), 'pw');
     expect(submit).toBeEnabled();
 
@@ -121,7 +126,11 @@ describe('the account panel', () => {
       screen.getByLabelText(/account\.field\.password/),
       'short',
     );
-    expect(submit).toBeDisabled();
+    await userEvent.click(submit);
+    expect(mockSignUp).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('account.validation.passwordShort:8'),
+    ).toBeInTheDocument();
     await userEvent.type(
       screen.getByLabelText(/account\.field\.password/),
       'enough',
@@ -145,7 +154,8 @@ describe('the account panel', () => {
       screen.getByText('account.code.sent:ada@example.com'),
     ).toBeInTheDocument();
     const confirm = button('account.code.confirm');
-    expect(confirm).toBeDisabled();
+    await userEvent.click(confirm);
+    expect(mockConfirm).not.toHaveBeenCalled();
 
     await userEvent.type(
       screen.getByLabelText('account.field.code'),
@@ -170,7 +180,8 @@ describe('the account panel', () => {
     });
     const submit = button('account.reset.submit');
     await userEvent.type(screen.getByLabelText('account.field.code'), '654321');
-    expect(submit).toBeDisabled();
+    await userEvent.click(submit);
+    expect(mockReset).not.toHaveBeenCalled();
     await userEvent.type(
       screen.getByLabelText(/account\.field\.password/),
       'new password!',
@@ -200,6 +211,42 @@ describe('the account panel', () => {
     renderDialog({ status: 'busy' });
     expect(screen.getByLabelText(/^account.field.email/)).toBeDisabled();
     expect(button('account.working')).toBeDisabled();
+  });
+
+  it('explains malformed email and excessive passwords without submitting', async () => {
+    renderDialog({ status: 'signed-out' });
+    const email = screen.getByLabelText(/^account.field.email/);
+    const password = screen.getByLabelText('account.field.password');
+    fireEvent.change(email, { target: { value: 'invalid address' } });
+    fireEvent.change(password, { target: { value: 'x'.repeat(129) } });
+    await userEvent.click(button('account.signIn'));
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAccessibleDescription(
+      'account.validation.passwordLong:8',
+    );
+    expect(mockSignIn).not.toHaveBeenCalled();
+    fireEvent.change(email, {
+      target: { value: `${'a'.repeat(250)}@example.com` },
+    });
+    fireEvent.change(password, { target: { value: 'valid password' } });
+    await userEvent.click(button('account.signIn'));
+    expect(mockSignIn).not.toHaveBeenCalled();
+  });
+
+  it('shows a transport failure instead of swallowing it', async () => {
+    mockSignIn.mockRejectedValueOnce(new Error('IPC failed'));
+    renderDialog({ status: 'signed-out' });
+    fireEvent.change(screen.getByLabelText(/^account.field.email/), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('account.field.password'), {
+      target: { value: 'valid password' },
+    });
+    await userEvent.click(button('account.signIn'));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'account.error.network',
+    );
+    expect(button('account.signIn')).toBeEnabled();
   });
 
   it('names who is signed in, and offers to sign out', async () => {

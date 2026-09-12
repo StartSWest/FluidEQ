@@ -1,4 +1,9 @@
 const account = {
+  'account.validation.passwordRequired': '请输入密码。',
+  'account.validation.passwordShort': '请至少使用 {count} 个字符。',
+  'account.validation.passwordLong': '请勿超过 128 个字符。',
+  'account.validation.nameLong': '请勿超过 80 个字符。',
+  'account.validation.code': '请输入六位验证码。',
   'account.menu': '账户',
   'account.eyebrow': 'FluidEQ',
   'account.title': '账户',

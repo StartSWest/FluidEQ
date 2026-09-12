@@ -1,4 +1,9 @@
 const account = {
+  'account.validation.passwordRequired': 'अपना पासवर्ड लिखें।',
+  'account.validation.passwordShort': 'कम से कम {count} अक्षर इस्तेमाल करें।',
+  'account.validation.passwordLong': '128 से ज़्यादा अक्षर न लिखें।',
+  'account.validation.nameLong': '80 से ज़्यादा अक्षर न लिखें।',
+  'account.validation.code': 'छह अंकों का कोड लिखें।',
   'account.menu': 'खाता',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'खाता',

@@ -97,6 +97,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Blur feedback must not move the submit button between pointer-down and click.
+.account-field__error {
+  min-height: 3.1em;
+}
+
 .account-field__label {
   display: flex;
   flex-wrap: wrap;

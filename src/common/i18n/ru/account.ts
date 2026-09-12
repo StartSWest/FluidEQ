@@ -1,4 +1,9 @@
 const account = {
+  'account.validation.passwordRequired': 'Введите пароль.',
+  'account.validation.passwordShort': 'Используйте не менее {count} символов.',
+  'account.validation.passwordLong': 'Используйте не более 128 символов.',
+  'account.validation.nameLong': 'Используйте не более 80 символов.',
+  'account.validation.code': 'Введите шестизначный код.',
   'account.menu': 'Аккаунт',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'Аккаунт',

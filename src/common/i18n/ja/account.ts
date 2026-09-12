@@ -1,4 +1,9 @@
 const account = {
+  'account.validation.passwordRequired': 'パスワードを入力してください。',
+  'account.validation.passwordShort': '{count}文字以上にしてください。',
+  'account.validation.passwordLong': '128文字以内にしてください。',
+  'account.validation.nameLong': '80文字以内にしてください。',
+  'account.validation.code': '6桁のコードを入力してください。',
   'account.menu': 'アカウント',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'アカウント',
