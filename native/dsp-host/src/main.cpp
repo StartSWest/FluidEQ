@@ -251,7 +251,7 @@ constexpr uint32_t kMaxPathBytes = 32u * 1024u;
  * same arithmetic at its maximum, checked before the memory is asked for.
  */
 constexpr uint32_t kMaxChainParams =
-    FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS;
+    FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + 3;
 
 /**
  * Whether a length that arrived from the pipe is one this build can hold.

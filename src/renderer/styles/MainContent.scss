@@ -55,6 +55,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
 
   > div:first-child {
+    position: relative;
     min-width: 0;
   }
 
@@ -63,6 +64,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h2 {
     margin: 1px 0 4px;
     font-size: 1.22rem;
+  }
+}
+
+.eq-engine-label {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 100%;
+  margin: 0;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  text-align: center;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    $neon-cyan,
+    sass-color.mix(white, $neon-cyan, 85%),
+    $neon-cyan,
+    sass-color.mix($neon-cyan, $neon-purple, 75%),
+    $neon-cyan
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  animation: eq-engine-flow 4s linear infinite;
+
+  .is-euphoric & {
+    background-image: linear-gradient(
+      90deg,
+      $neon-cyan,
+      $neon-lime,
+      $neon-yellow,
+      $neon-pink,
+      $neon-purple,
+      $neon-cyan
+    );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  @media (forced-colors: active) {
+    color: CanvasText;
+    background: none;
+  }
+}
+
+@keyframes eq-engine-flow {
+  to {
+    background-position: -200% 0;
   }
 }
 

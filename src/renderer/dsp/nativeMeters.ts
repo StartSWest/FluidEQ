@@ -35,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { IHostAnalysis, TAnalysisStage } from '../../common/dsp/analysisWire';
 import {
+  clearDspMeterTelemetry,
   IDspAnalyser,
   readDspAnalyser,
   setDspAnalyser,
@@ -72,6 +73,8 @@ export interface INativeMetersBridge {
 class HostAnalyser implements IDspAnalyser {
   readonly frequencyBinCount: number;
 
+  active = true;
+
   private bins: Float32Array;
 
   constructor(binCount: number) {
@@ -99,8 +102,10 @@ class HostAnalyser implements IDspAnalyser {
 
 export interface INativeMeters {
   /** Stop listening and put the Web Audio analysers back. */
-  release: () => void;
+  release: (clearTelemetry?: boolean) => void;
 }
+
+let telemetryOwner: object | undefined;
 
 /**
  * Point the panel's displays at the native engine for as long as it is audible.
@@ -114,6 +119,7 @@ export const createNativeMeters = (
   bridge: INativeMetersBridge,
   binCount: number,
 ): INativeMeters => {
+  const owner = {};
   const analysers: Partial<Record<TAnalysisStage, HostAnalyser>> = {};
   /**
    * Whatever held each slot before, so it can have it back.
@@ -132,6 +138,7 @@ export const createNativeMeters = (
     {};
 
   const unsubscribe = bridge.onDspHostAnalysis((frame) => {
+    telemetryOwner = owner;
     (Object.keys(frame.spectra) as TAnalysisStage[]).forEach((stage) => {
       const bins = frame.spectra[stage];
       if (!bins) {
@@ -256,9 +263,13 @@ export const createNativeMeters = (
   bridge.setDspHostAnalysis(true).catch(() => undefined);
 
   return {
-    release: () => {
+    release: (clearTelemetry = false) => {
       unsubscribe();
       bridge.setDspHostAnalysis(false).catch(() => undefined);
+      if (clearTelemetry && telemetryOwner === owner) {
+        telemetryOwner = undefined;
+        clearDspMeterTelemetry();
+      }
       /**
        * Given back to whatever held it, not cleared.
        *
@@ -273,7 +284,19 @@ export const createNativeMeters = (
        * frame the host sent. Restoring the previous holder does both jobs.
        */
       (Object.keys(analysers) as TAnalysisStage[]).forEach((stage) => {
-        setDspAnalyser(stage, displaced[stage]);
+        const analyser = analysers[stage];
+        if (analyser) {
+          analyser.active = false;
+        }
+        if (readDspAnalyser(stage) === analysers[stage]) {
+          const previous = displaced[stage];
+          setDspAnalyser(
+            stage,
+            previous instanceof HostAnalyser && !previous.active
+              ? undefined
+              : previous,
+          );
+        }
       });
     },
   };

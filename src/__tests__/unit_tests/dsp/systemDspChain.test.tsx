@@ -308,11 +308,19 @@ describe('what the DSP page says its scope is', () => {
     expect(screen.queryByText(/System-wide/)).not.toBeInTheDocument();
   });
 
-  it('says Denoise is Library-only only where the rest is not', async () => {
-    renderPanel();
+  it('keeps only neural Voice Library-only under the system engine', async () => {
+    renderPanel({
+      ...DSP_DEFAULTS,
+      denoise: { ...DSP_DEFAULTS.denoise, enabled: true },
+    });
     expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
-    expect(screen.getByText('Library playback only')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Neural Voice is available for Library playback only/),
+    ).toBeInTheDocument();
+    expect(document.querySelector('#dsp-denoise-voice')).toBeDisabled();
+    expect(document.querySelector('#dsp-denoise-hiss')).not.toBeDisabled();
+    expect(document.querySelector('#dsp-denoise-hum')).not.toBeDisabled();
   });
 });
 

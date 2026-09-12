@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "fluideq/chain.h"
+#include <cmath>
 
 extern "C" {
 
@@ -30,16 +31,28 @@ int feq_chain_settings_decode(const double* values,
   if (values == nullptr || out == nullptr || count < FEQ_CHAIN_PARAM_LEAD) {
     return 0;
   }
-  const auto band_count =
-      static_cast<uint32_t>(values[FEQ_CHAIN_PARAM_LEAD - 1]);
-  if (band_count > FEQ_CHAIN_MAX_EQ_BANDS) {
+  const double bands = values[FEQ_CHAIN_PARAM_LEAD - 1];
+  if (!std::isfinite(bands) || bands < 0 || bands > FEQ_CHAIN_MAX_EQ_BANDS ||
+      std::floor(bands) != bands) {
     return 0;
   }
+  const auto band_count = static_cast<uint32_t>(bands);
   // Asserted rather than assumed: a layout the two sides disagree about would
   // read a Q as a threshold and still sound plausible.
-  if (count != FEQ_CHAIN_PARAM_LEAD +
-                   static_cast<uint32_t>(band_count) * FEQ_CHAIN_BAND_PARAMS) {
+  const uint32_t legacy_count = FEQ_CHAIN_PARAM_LEAD +
+                   static_cast<uint32_t>(band_count) * FEQ_CHAIN_BAND_PARAMS;
+  // A trailer leaves every existing band offset intact. Older saved snapshots
+  // still decode with the normalizer off instead of shifting their EQ bands.
+  if (count != legacy_count && count != legacy_count + 3) {
     return 0;
+  }
+  if (count == legacy_count + 3) {
+    const double mode = values[legacy_count];
+    const double ceiling = values[legacy_count + 1];
+    const double target = values[legacy_count + 2];
+    if (!std::isfinite(mode) || mode < 0 || mode > 2 || std::floor(mode) != mode ||
+        !std::isfinite(ceiling) || ceiling < -12 || ceiling > -0.1 ||
+        !std::isfinite(target) || target < -24 || target > -5) return 0;
   }
 
   feq_chain_settings_defaults(out);
@@ -173,6 +186,14 @@ int feq_chain_settings_decode(const double* values,
     out->eq.bands[band].quality = next();
     out->eq.bands[band].dynamic = flag();
     out->eq.bands[band].threshold_db = next();
+  }
+  if (count == legacy_count + 3) {
+    const double mode = next();
+    const double ceiling = next();
+    const double target = next();
+    out->normalizer.mode = static_cast<int>(mode);
+    out->normalizer.ceiling_db = ceiling;
+    out->normalizer.target_lufs = target;
   }
   return 1;
 }

@@ -132,6 +132,8 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   *settings = FeqChainSettings{};
   settings->enabled = 1;
   settings->output_safety_enabled = 1;
+  settings->normalizer.ceiling_db = -1;
+  settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
@@ -338,10 +340,21 @@ void feq_chain_destroy(FeqChain* chain) {
   }
   feq_convolver_kernel_destroy(chain->kernel);
   feq_convolver_kernel_destroy(chain->kernel_next);
+  for (auto* convolver : chain->queued_convolvers) {
+    feq_convolver_destroy(convolver);
+  }
+  feq_convolver_kernel_destroy(chain->queued_kernel);
+  for (uint32_t retired = 0; retired < chain->retired_count; ++retired) {
+    for (auto* convolver : chain->retired_convolvers[retired]) {
+      feq_convolver_destroy(convolver);
+    }
+    feq_convolver_kernel_destroy(chain->retired_kernels[retired]);
+  }
   // Anything still in transit has no thread left to reach it, and it holds the
   // largest allocation in the chain.
   chain_release_kernel_handoff(chain);
   feq_loudness_meter_destroy(chain->loudness_meter);
+  feq_live_normalizer_destroy(chain->live_normalizer);
   feq_denoise_destroy(chain->denoise);
   chain->denoise = nullptr;
   delete chain;
@@ -449,6 +462,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     feq_biquad_reset(&state);
   }
   feq_denoise_reset(chain->denoise);
+  feq_live_normalizer_reset(chain->live_normalizer);
   feq_biquad_reset(&chain->side_highpass);
   for (auto& crossover : chain->crossovers) {
     feq_crossover_reset(&crossover);
@@ -508,6 +522,7 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   // less a hop. A stage reporting a latency it is not actually adding puts the
   // deck's crossfade out by that much on every handoff.
   latency += feq_denoise_latency_frames(chain->denoise);
+  latency += feq_live_normalizer_latency(chain->live_normalizer);
   if (chain->channels >= 2) {
     // Bass Punch keeps this alignment under bypass, so only the rack bypass
     // removes it. Account for it when aligning deck transitions.
@@ -551,6 +566,13 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * harmonics from hiss and then trying to remove the result.
    */
   feq_denoise_process(chain->denoise, channels, frames);
+  if (chain->meters != nullptr) {
+    FeqDenoiseReport report{};
+    // Read on the producer thread: the estimator's arrays are mutable audio
+    // state, so the pipe worker must consume a published copy instead.
+    feq_denoise_report(chain->denoise, &report);
+    feq_meters_publish_denoise(chain->meters, &report);
+  }
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels, frames);
 
   chain_process_exciter(chain, channels, frames);
@@ -764,6 +786,16 @@ void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {
   if (chain != nullptr) {
     chain->meters = meters;
   }
+}
+
+int feq_chain_enable_live_normalizer(FeqChain* chain) {
+  if (chain == nullptr) return 0;
+  if (chain->live_normalizer == nullptr)
+    chain->live_normalizer = feq_live_normalizer_create(chain->sample_rate, chain->channels);
+  return chain->live_normalizer != nullptr ? 1 : 0;
+}
+void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames) {
+  if (chain != nullptr) feq_live_normalizer_silence(chain->live_normalizer, frames);
 }
 
 }  // extern "C"

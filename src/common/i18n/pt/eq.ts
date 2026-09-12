@@ -20,6 +20,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Personalizado',
+  'eq.mode.strength': 'Intensidade',
+  'eq.mode.q': 'Q das bandas',
+  'eq.mode.smoothing': 'Suavização das curvas',
+  'eq.mode.constant': 'Constante',
+  'eq.mode.proportional': 'Proporcional',
+  'eq.mode.asymmetric': 'Assimétrico',
+  'eq.mode.off': 'Desativada',
+  'eq.mode.twelfth': '1/12 de oitava',
+  'eq.mode.third': '1/3 de oitava',
+  'eq.mode.shapeHint':
+    'Q altera filtros de sino. A suavização altera curvas amostradas. DSP permanece inalterado.',
+  'eq.mode.constantHint': 'Mantém a largura original de cada banda.',
+  'eq.mode.proportionalHint':
+    'Reforços e cortes mais fortes ficam mais estreitos.',
+  'eq.mode.asymmetricHint': 'Reforços mais amplos e cortes mais estreitos.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'Modo EQ',
+  'eq.mode.normal': 'Normal',
+  'eq.mode.studio': 'Estúdio',
+  'eq.mode.yourEq': 'Seu EQ',
+  'eq.mode.curves': 'Curvas',
+  'eq.studioHint':
+    'Multiplica o ganho do grupo escolhido por ×1.5 e adapta a largura dos sinos. O DSP não muda.',
+  'eq.doubleHint':
+    'Aplica o grupo EQ escolhido duas vezes. DSP e pré-amplificador não mudam.',
   'graph.resize': 'Arraste para redimensionar o gráfico',
   'graph.view.title': 'Quanto espaço da tela o gráfico ocupa',
   'graph.view.normal': 'Visualização',

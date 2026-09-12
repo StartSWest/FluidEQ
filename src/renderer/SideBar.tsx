@@ -28,6 +28,7 @@ import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { useCurrentEngine } from './utils/audioEngineContext';
+import { useEnginePreamp, useEnginePreampReader } from './utils/enginePreamp';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import OutputLevelMeter from './graph/OutputLevelMeter';
 import Spinner from './icons/Spinner';
@@ -57,6 +58,12 @@ const SideBar = ({
     useFluidEqContext();
   const { t } = useTranslation();
   const isFluid = useCurrentEngine() === 'fluid';
+  useEnginePreampReader(isFluid && isAutoPreAmpOn);
+  const livePreamp = useEnginePreamp();
+  const displayedPreamp =
+    isFluid && isAutoPreAmpOn && livePreamp?.enabled
+      ? livePreamp.gainDb
+      : preAmp;
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -113,7 +120,7 @@ const SideBar = ({
               name={t('sidebar.preampAria')}
               min={MIN_GAIN}
               max={MAX_GAIN}
-              value={preAmp}
+              value={displayedPreamp}
               step={0.01}
               unit="dB"
               // Ctrl-click returns it to unity. Without a default the reset is
@@ -133,7 +140,7 @@ const SideBar = ({
                 the column jumping. */}
             <NumberInput
               name={t('sidebar.preampAria')}
-              value={preAmp}
+              value={displayedPreamp}
               min={MIN_GAIN}
               max={MAX_GAIN}
               floatPrecision={2}

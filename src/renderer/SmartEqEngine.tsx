@@ -33,6 +33,12 @@ import {
 import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
+import {
+  getEqMode,
+  getCurveEqMode,
+  getAppliedEqFilters,
+  getBandQ,
+} from 'common/eqMode';
 import { getHeadphoneFilters } from 'common/headphone';
 import {
   describeBalanceProgress,
@@ -201,6 +207,11 @@ const SmartEqEngine = () => {
     setSmartEq,
     getBandSetGeneration,
     bypassed,
+    isEqDoubleOn,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
   } = useFluidEqContext();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudioControl();
@@ -489,6 +500,20 @@ const SmartEqEngine = () => {
   // measured set against itself and never firing, and how the voicing used to
   // be read for the target curve long after the user had switched it.
   const filtersRef = useRef(filters);
+  const curveModeRef = useRef(
+    getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode }),
+  );
+  curveModeRef.current = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
+  const eqModeRef = useRef(getEqMode({ eqMode, isEqDoubleOn }));
+  eqModeRef.current = getEqMode({ eqMode, isEqDoubleOn });
+  const shapeRef = useRef({
+    eqMode,
+    curveEqMode,
+    isEqDoubleOn,
+    eqBandQ,
+    curveBandQ,
+  });
+  shapeRef.current = { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ };
   filtersRef.current = filters;
   const voicingRef = useRef(voicing);
   voicingRef.current = voicing;
@@ -1256,27 +1281,39 @@ const SmartEqEngine = () => {
    * in the config, so nothing of theirs is in what the analyser hears and there
    * is nothing to remove.
    */
-  const chainGainDb = (axis: number[]) =>
-    buildChainGainDb(
+  const chainGainDb = (axis: number[]) => {
+    const filters = [
+      ...(bypassedRef.current.includes('driver')
+        ? []
+        : getDriverFilters(driverRef.current)),
+      // A digital loopback cannot hear the transducer this compensates.
+      // Subtracting its correction keeps both the evidence gate and the
+      // solver from treating the headphone response as part of the record.
+      ...(bypassedRef.current.includes('headphone')
+        ? []
+        : getHeadphoneFilters(headphoneRef.current)),
+      ...(bypassedRef.current.includes('voicing')
+        ? []
+        : getVoicingFilters(voicingRef.current)),
+    ];
+    return buildChainGainDb(
       [
-        ...(bypassedRef.current.includes('eq')
-          ? []
-          : Object.values(filtersRef.current)),
-        ...(bypassedRef.current.includes('driver')
-          ? []
-          : getDriverFilters(driverRef.current)),
-        // A digital loopback cannot hear the transducer this compensates.
-        // Subtracting its correction keeps both the evidence gate and the
-        // solver from treating the headphone response as part of the record.
-        ...(bypassedRef.current.includes('headphone')
-          ? []
-          : getHeadphoneFilters(headphoneRef.current)),
-        ...(bypassedRef.current.includes('voicing')
-          ? []
-          : getVoicingFilters(voicingRef.current)),
+        ...getAppliedEqFilters(
+          bypassedRef.current.includes('eq')
+            ? []
+            : Object.values(filtersRef.current),
+          eqModeRef.current,
+          getBandQ(shapeRef.current, 'eq'),
+        ),
+        ...getAppliedEqFilters(
+          filters,
+          curveModeRef.current,
+          getBandQ(shapeRef.current, 'curves'),
+        ),
       ],
       axis,
     );
+  };
   const chainGainDbRef = useRef(chainGainDb);
   chainGainDbRef.current = chainGainDb;
 

@@ -9,12 +9,16 @@ the Free Software Foundation, either version 3 of the License, or
 */
 
 import { parseEqText } from './apoText';
+import { canAdoptEqModeChange, getCurveEqMode } from './eqMode';
 import {
   AutoEqFormat,
   IApoLayerOverride,
   IFiltersMap,
   IState,
   TApoFeature,
+  clampGain,
+  clampQuality,
+  clampFrequency,
 } from './constants';
 
 const overrideFromParsed = (
@@ -49,10 +53,64 @@ const overrideSignature = (override: IApoLayerOverride) => {
 
 /** Comparable audible contents of one generated feature file. */
 export const describeApoFeatureText = (contents: string): string => {
-  const parsed = parseEqText(contents);
-  return parsed.unsupported > 0
-    ? `unsupported=${parsed.unsupported}|${contents.replace(/\s+/g, ' ').trim()}`
-    : overrideSignature(overrideFromParsed(parsed));
+  const signatures = contents.split(/\r?\n/).flatMap((rawLine) => {
+    const line = rawLine.split('#')[0].trim();
+    if (
+      !line ||
+      /^(?:Device\s*:|Channel\s*:\s*all\s*$|Preamp\s*:|Convolution\s*:)/i.test(
+        line,
+      )
+    ) {
+      return [];
+    }
+    if (!/^(?:Filter\b|GraphicEQ\s*:)/i.test(line)) {
+      return [`unsupported=${line.replace(/\s+/g, ' ')}`];
+    }
+    const parsed = parseEqText(line, { preserveValues: true });
+    return [
+      parsed.unsupported > 0
+        ? `unsupported=${line.replace(/\s+/g, ' ')}`
+        : overrideSignature(overrideFromParsed(parsed)),
+    ];
+  });
+  return signatures
+    .filter((signature) => signature !== 'bands=')
+    .sort()
+    .join('|');
+};
+
+export const parseApoEqForAdoption = (contents: string) => {
+  const parsed = parseEqText(contents, { preserveValues: true });
+  const lines = contents
+    .split(/\r?\n/)
+    .map((line) => line.split('#')[0].trim());
+  const graphics = lines.filter((line) => /^GraphicEQ\s*:/i.test(line)).length;
+  const hasFilters = lines.some((line) => /^Filter\b.*:\s*ON\b/i.test(line));
+  const unknownCommands = lines.filter(
+    (line) =>
+      line &&
+      !/^(?:Filter\b|GraphicEQ\s*:|Device\s*:|Channel\s*:\s*all\s*$|Preamp\s*:|Convolution\s*:)/i.test(
+        line,
+      ),
+  ).length;
+  const outOfRange =
+    Object.values(parsed.filters).filter(
+      (filter) =>
+        filter.frequency !== clampFrequency(filter.frequency) ||
+        filter.gain !== clampGain(filter.gain) ||
+        filter.quality !== clampQuality(filter.quality),
+    ).length +
+    (parsed.graphicEq ?? []).filter(
+      (point) => point.gain !== clampGain(point.gain),
+    ).length;
+  return {
+    ...parsed,
+    unsupported:
+      parsed.unsupported +
+      outOfRange +
+      unknownCommands +
+      (graphics > 1 || (graphics > 0 && hasFilters) ? 1 : 0),
+  };
 };
 
 export interface IApoFeatureAdoption {
@@ -80,8 +138,19 @@ export const adoptApoFeatureText = (
   state: IState,
   feature: TApoFeature,
   contents: string,
+  expectedContents?: string,
 ): IApoFeatureAdoption => {
-  const parsed = parseEqText(contents);
+  if (
+    expectedContents !== undefined &&
+    describeApoFeatureText(contents) ===
+      describeApoFeatureText(expectedContents)
+  ) {
+    return { changed: false, unsupported: 0 };
+  }
+  const parsed = parseApoEqForAdoption(contents);
+  if (!canAdoptEqModeChange(state, feature)) {
+    return { changed: false, unsupported: 1 };
+  }
   if (parsed.unsupported > 0) {
     return { changed: false, unsupported: parsed.unsupported };
   }
@@ -89,6 +158,10 @@ export const adoptApoFeatureText = (
   const hasContent = hasOverrideContent(override);
 
   if (feature === 'eq') {
+    state.curveEqMode = getCurveEqMode(state);
+    state.isEqDoubleOn = false;
+    state.eqMode = 'normal';
+    state.eqBandQ = 'constant';
     state.filters = hasContent ? override.filters : clearEqBands(state.filters);
     state.eqFormat = hasContent ? parsed.eqFormat : AutoEqFormat.PARAMETRIC;
     state.graphicEq = hasContent ? override.graphicEq : undefined;

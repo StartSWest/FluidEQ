@@ -21,6 +21,8 @@ import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type { IDspDiagnosticEvent } from '../../common/dsp/diagnostics';
 import type { IDspHostStatus } from '../ipc/dspHost';
 import type { IHostAnalysis, IHostTelemetry } from './wire';
+import { ENGINE_ANALYSIS_CHANNEL } from '../../common/dsp/engineAnalysis';
+import type { IEngineAnalysis } from '../../common/dsp/engineAnalysis';
 
 export type { IDspHostStatus };
 
@@ -254,6 +256,14 @@ const appProcesses = (): Promise<unknown[]> =>
   ipcRenderer.invoke('app-processes');
 
 export const dspHostBridge = {
+  readEnginePreamp: (
+    endpoint: string,
+  ): Promise<import('../../common/enginePreamp').IEnginePreamp | undefined> =>
+    ipcRenderer.invoke('engine-preamp', endpoint),
+  readDspEngineAnalysis: (
+    endpoint: string | null,
+  ): Promise<IEngineAnalysis | null | undefined> =>
+    ipcRenderer.invoke(ENGINE_ANALYSIS_CHANNEL, endpoint),
   appProcesses,
 
   getDspHostStatus,

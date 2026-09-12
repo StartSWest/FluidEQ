@@ -20,6 +20,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Personalizzato',
+  'eq.mode.strength': 'Intensità',
+  'eq.mode.q': 'Q delle bande',
+  'eq.mode.smoothing': 'Levigatura curve',
+  'eq.mode.constant': 'Costante',
+  'eq.mode.proportional': 'Proporzionale',
+  'eq.mode.asymmetric': 'Asimmetrico',
+  'eq.mode.off': 'Disattivata',
+  'eq.mode.twelfth': '1/12 di ottava',
+  'eq.mode.third': '1/3 di ottava',
+  'eq.mode.shapeHint':
+    'Q modifica i filtri a campana. La levigatura modifica le curve campionate. DSP invariato.',
+  'eq.mode.constantHint': 'Mantiene la larghezza originale di ogni banda.',
+  'eq.mode.proportionalHint': 'Le correzioni più forti diventano più strette.',
+  'eq.mode.asymmetricHint': 'Aumenti più ampi e tagli più stretti.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'Modalità EQ',
+  'eq.mode.normal': 'Normale',
+  'eq.mode.studio': 'Studio',
+  'eq.mode.yourEq': 'Il tuo EQ',
+  'eq.mode.curves': 'Curve',
+  'eq.studioHint':
+    'Moltiplica il guadagno del gruppo scelto per ×1.5, adattando la larghezza delle campane. DSP invariato.',
+  'eq.doubleHint':
+    'Applica due volte il gruppo EQ scelto. DSP e preamplificazione invariati.',
   'graph.resize': 'Trascina per ridimensionare il grafico',
   'graph.view.title': 'Quanto spazio dello schermo occupa il grafico',
   'graph.view.normal': 'Vista',

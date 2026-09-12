@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/biquad.h"
 #include "fluideq/denoise.h"
+#include "denoise_live_hum.h"
 
 /**
  * The analysis window, in milliseconds rather than in bins.
@@ -282,6 +283,7 @@ struct FeqDenoise {
 
   /** The notch coefficients, shared by both channels. */
   std::vector<FeqBiquadCoefficients> hum_coefficients;
+  LiveHum live_hum;
 
   /**
    * The measured profile, and whether one has ever arrived.

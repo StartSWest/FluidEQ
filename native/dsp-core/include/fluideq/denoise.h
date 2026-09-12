@@ -211,6 +211,9 @@ int feq_denoise_load_voice_model(FeqDenoise* denoise,
 
 void feq_denoise_reset(FeqDenoise* denoise);
 
+/** At a quiescent block boundary; no allocation. Refuses incompatible histories. */
+int feq_denoise_transfer_state(FeqDenoise* prepared, FeqDenoise* previous);
+
 /**
  * One block, in place. Planar, `channels` pointers.
  *

@@ -27,6 +27,11 @@ struct FeqConvolverKernel {
 
 struct FeqConvolver {
   const FeqConvolverKernel* kernel = nullptr;
+  FeqConvolverKernel transition_kernel;
+  std::vector<double> transition_overlap;
+  std::vector<double> transition_output;
+  uint32_t transition_remaining = 0;
+  uint32_t transition_total = 1;
   /** The last `partitions` input spectra, newest at `cursor`. */
   std::vector<std::vector<double>> history_real;
   std::vector<std::vector<double>> history_imaginary;
@@ -262,6 +267,11 @@ void feq_dft_in_place(FeqDft* plan,
 uint32_t feq_convolver_latency(void) { return kPartition; }
 uint32_t feq_convolver_warmup(void) { return kPartition; }
 
+uint64_t feq_convolver_kernel_warmup(const FeqConvolverKernel* kernel) {
+  return kernel == nullptr ? 0 :
+      (static_cast<uint64_t>(kernel->real.size()) + 1) * kPartition;
+}
+
 FeqConvolverKernel* feq_convolver_kernel_create(const float* kernel,
                                                 uint32_t length) {
   if (kernel == nullptr || length == 0) {
@@ -306,6 +316,10 @@ FeqConvolver* feq_convolver_create(const FeqConvolverKernel* kernel) {
   state->history_real.assign(partitions, std::vector<double>(kFftSize, 0.0));
   state->history_imaginary.assign(partitions,
                                   std::vector<double>(kFftSize, 0.0));
+  state->transition_kernel.real = state->history_real;
+  state->transition_kernel.imaginary = state->history_imaginary;
+  state->transition_overlap.assign(kPartition, 0.0);
+  state->transition_output.assign(kFftSize, 0.0);
   state->pending.assign(kPartition, 0.0);
   state->overlap.assign(kPartition, 0.0);
   // Two partitions plus a block, so a drain can never outrun a fill even when
@@ -329,6 +343,23 @@ void feq_convolver_destroy(FeqConvolver* state) { delete state; }
 
 namespace {
 
+void render_history(FeqConvolver* state, const FeqConvolverKernel* kernel) {
+  const size_t partitions = kernel->real.size();
+  std::fill(state->accumulator_real.begin(), state->accumulator_real.end(), 0.0);
+  std::fill(state->accumulator_imaginary.begin(), state->accumulator_imaginary.end(), 0.0);
+  for (size_t index = 0; index < partitions; ++index) {
+    const size_t at = static_cast<size_t>((state->cursor - static_cast<int64_t>(index) +
+        static_cast<int64_t>(partitions) * 2) % static_cast<int64_t>(partitions));
+    for (uint32_t bin = 0; bin < kFftSize; ++bin) {
+      const double real = state->history_real[at][bin];
+      const double imaginary = state->history_imaginary[at][bin];
+      state->accumulator_real[bin] += real * kernel->real[index][bin] - imaginary * kernel->imaginary[index][bin];
+      state->accumulator_imaginary[bin] += real * kernel->imaginary[index][bin] + imaginary * kernel->real[index][bin];
+    }
+  }
+  feq_fft_in_place(state->accumulator_real.data(), state->accumulator_imaginary.data(), kFftSize, 1);
+}
+
 void flush(FeqConvolver* state) {
   const size_t partitions = state->kernel->real.size();
   double* work_real = state->work_real.data();
@@ -346,34 +377,25 @@ void flush(FeqConvolver* state) {
       state->history_imaginary[static_cast<size_t>(state->cursor)].data(),
       work_imaginary, kFftSize * sizeof(double));
 
-  double* accumulator_real = state->accumulator_real.data();
-  double* accumulator_imaginary = state->accumulator_imaginary.data();
-  std::memset(accumulator_real, 0, kFftSize * sizeof(double));
-  std::memset(accumulator_imaginary, 0, kFftSize * sizeof(double));
-
-  for (size_t index = 0; index < partitions; ++index) {
-    // Oldest kernel partition against the oldest input spectrum: walking the
-    // ring backwards from the newest is what lines the two up in time.
-    const size_t at = static_cast<size_t>(
-        (state->cursor - static_cast<int64_t>(index) +
-         static_cast<int64_t>(partitions) * 2) %
-        static_cast<int64_t>(partitions));
-    const double* xr = state->history_real[at].data();
-    const double* xi = state->history_imaginary[at].data();
-    const double* hr = state->kernel->real[index].data();
-    const double* hi = state->kernel->imaginary[index].data();
-    for (uint32_t bin = 0; bin < kFftSize; ++bin) {
-      accumulator_real[bin] += xr[bin] * hr[bin] - xi[bin] * hi[bin];
-      accumulator_imaginary[bin] += xr[bin] * hi[bin] + xi[bin] * hr[bin];
-    }
+  const bool transitioning = state->transition_remaining > 0;
+  if (transitioning) {
+    render_history(state, &state->transition_kernel);
+    std::copy(state->accumulator_real.begin(), state->accumulator_real.end(), state->transition_output.begin());
   }
-
-  feq_fft_in_place(accumulator_real, accumulator_imaginary, kFftSize, 1);
+  render_history(state, state->kernel);
+  double* accumulator_real = state->accumulator_real.data();
 
   const auto ready_size = static_cast<uint32_t>(state->ready.size());
   for (uint32_t at = 0; at < kPartition; ++at) {
-    state->ready[state->write] =
-        accumulator_real[at] / kFftSize + state->overlap[at];
+    double output = accumulator_real[at] / kFftSize + state->overlap[at];
+    if (transitioning) {
+      const double previous = state->transition_output[at] / kFftSize + state->transition_overlap[at];
+      const double blend = 1.0 - static_cast<double>(state->transition_remaining) / state->transition_total;
+      output = previous + (output - previous) * blend;
+      if (state->transition_remaining > 0) --state->transition_remaining;
+      state->transition_overlap[at] = state->transition_output[kPartition + at] / kFftSize;
+    }
+    state->ready[state->write] = output;
     state->write = (state->write + 1) % ready_size;
     state->overlap[at] = accumulator_real[kPartition + at] / kFftSize;
   }
@@ -383,6 +405,40 @@ void flush(FeqConvolver* state) {
 }  // namespace
 
 extern "C" {
+
+int feq_convolver_transfer(FeqConvolver* state, const FeqConvolver* previous,
+                           uint32_t transition_frames) {
+  if (state == nullptr || previous == nullptr || state == previous ||
+      state->kernel->real.size() != previous->kernel->real.size()) return 0;
+  const double blend = 1.0 - static_cast<double>(previous->transition_remaining) / previous->transition_total;
+  for (size_t index = 0; index < state->kernel->real.size(); ++index) {
+    std::copy(previous->history_real[index].begin(), previous->history_real[index].end(), state->history_real[index].begin());
+    std::copy(previous->history_imaginary[index].begin(), previous->history_imaginary[index].end(), state->history_imaginary[index].begin());
+    for (uint32_t bin = 0; bin < kFftSize; ++bin) {
+      const double real = previous->kernel->real[index][bin];
+      const double imaginary = previous->kernel->imaginary[index][bin];
+      state->transition_kernel.real[index][bin] = previous->transition_remaining == 0 ? real :
+          previous->transition_kernel.real[index][bin] + blend * (real - previous->transition_kernel.real[index][bin]);
+      state->transition_kernel.imaginary[index][bin] = previous->transition_remaining == 0 ? imaginary :
+          previous->transition_kernel.imaginary[index][bin] + blend * (imaginary - previous->transition_kernel.imaginary[index][bin]);
+    }
+  }
+  state->cursor = previous->cursor;
+  state->filled = previous->filled;
+  state->read = previous->read;
+  state->write = previous->write;
+  std::copy(previous->pending.begin(), previous->pending.end(), state->pending.begin());
+  std::copy(previous->ready.begin(), previous->ready.end(), state->ready.begin());
+  render_history(state, state->kernel);
+  for (uint32_t at = 0; at < kPartition; ++at)
+    state->overlap[at] = state->accumulator_real[kPartition + at] / kFftSize;
+  render_history(state, &state->transition_kernel);
+  for (uint32_t at = 0; at < kPartition; ++at)
+    state->transition_overlap[at] = state->accumulator_real[kPartition + at] / kFftSize;
+  state->transition_total = std::max(1u, transition_frames);
+  state->transition_remaining = state->transition_total;
+  return 1;
+}
 
 void feq_convolve(FeqConvolver* state, float* buffer, uint32_t frames) {
   if (state == nullptr || buffer == nullptr) {

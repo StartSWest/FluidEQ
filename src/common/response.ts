@@ -109,15 +109,11 @@ export const getTFCoefficients = (
   let alpha = 0;
   let beta = 0;
 
-  let quality = userQuality;
+  const quality = userQuality;
 
   const shelfFilters = new Set([FilterTypeEnum.HSC, FilterTypeEnum.LSC]);
   if (shelfFilters.has(filterType)) {
-    quality /= 2;
-
-    alpha =
-      (Math.sin(omega) / 2) *
-      Math.sqrt((gain + 1 / gain) * (1 / quality - 1) + 2);
+    alpha = Math.sin(omega) / (2 * quality);
     beta = 2 * Math.sqrt(gain) * alpha;
 
     if (filterType === FilterTypeEnum.LSC) {

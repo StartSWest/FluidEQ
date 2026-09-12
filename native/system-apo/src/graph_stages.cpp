@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <cstddef>
 #include <optional>
+#include <mutex>
 #include <utility>
 
 #include "fluideq/resampler.h"
@@ -16,6 +17,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "wav.h"
 
 namespace fluideq_engine {
+
+std::shared_ptr<const std::vector<float>> kernel_identity(std::vector<float> samples) {
+  static std::mutex mutex;
+  static std::vector<std::weak_ptr<const std::vector<float>>> identities;
+  const std::lock_guard<std::mutex> lock(mutex);
+  for (auto entry = identities.begin(); entry != identities.end();) {
+    if (auto existing = entry->lock()) {
+      if (*existing == samples) {
+        return existing;
+      }
+      ++entry;
+    } else {
+      entry = identities.erase(entry);
+    }
+  }
+  auto identity = std::make_shared<const std::vector<float>>(std::move(samples));
+  identities.push_back(identity);
+  return identity;
+}
 
 namespace {
 

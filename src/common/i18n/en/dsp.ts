@@ -26,6 +26,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * text rather than in a tooltip.
  */
 const dsp = {
+  'dsp.normalizer.liveTitle': 'Live level control',
+  'dsp.normalizer.livePeak': 'Peak protection',
+  'dsp.normalizer.liveLeveling': 'Live leveling',
+  'dsp.normalizer.learning': 'Learning source',
+  'dsp.normalizer.holding': 'Holding gain',
+  'dsp.normalizer.liveLimited': 'Gain limited',
+  'dsp.normalizer.liveGuidance':
+    'Live leveling learns the programme level, then adjusts gradually. Quiet passages hold their gain; upward gain is limited to 6 dB and available peak headroom. The target is not guaranteed. After a seamless source change, switch Off and back to Live leveling to relearn. It cannot repair existing distortion.',
+  'dsp.denoise.liveHint':
+    'External audio uses a live adaptive noise floor. Hiss, click repair, and 50/60 Hz hum reduction run on the playing source. Auto hum waits for persistent mains harmonics.',
+  'dsp.denoise.voiceLibraryOnly':
+    'Neural Voice is available for Library playback only. Hiss, hum, and click reduction work with external audio.',
+  'dsp.normalizer.liveDescription':
+    'Measures external audio as it plays, adjusts both channels together, and protects peaks before the Exciter and EQ.',
+  'dsp.normalizer.liveAnalysis': 'Live source analysis',
+  'dsp.normalizer.shortTerm': 'Short-term loudness',
+  'dsp.normalizer.liveHonesty':
+    'Live loudness settles after three seconds and adjusts gradually. Quiet passages hold their gain; peak protection remains active. It cannot repair distortion already in the source.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',

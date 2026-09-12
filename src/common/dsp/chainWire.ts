@@ -220,12 +220,18 @@ export const encodeChainSettings = (
       band.thresholdDb,
     );
   });
+  // Append after the bands so older snapshots keep all their existing offsets.
+  values.push(
+    ['off', 'truePeak', 'loudness'].indexOf(settings.normalizer.mode),
+    settings.normalizer.truePeakDbtp,
+    settings.normalizer.targetLufs,
+  );
   return values;
 };
 
 /** What a well-formed snapshot for this many bands must be. */
 export const chainWireLength = (bandCount: number): number =>
-  CHAIN_PARAM_LEAD + bandCount * CHAIN_BAND_PARAMS;
+  CHAIN_PARAM_LEAD + bandCount * CHAIN_BAND_PARAMS + 3;
 
 /**
  * Whether a value could be one, checked at the IPC boundary.
@@ -245,5 +251,24 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     return false;
   }
   const bands = value[CHAIN_PARAM_LEAD - 1];
-  return Number.isInteger(bands) && value.length === chainWireLength(bands);
+  if (!Number.isInteger(bands) || bands < 0 || bands > 64) {
+    return false;
+  }
+  const length = chainWireLength(bands);
+  if (value.length === length - 3) {
+    return true;
+  }
+  if (value.length !== length) {
+    return false;
+  }
+  const [mode, ceiling, target] = value.slice(-3);
+  return (
+    Number.isInteger(mode) &&
+    mode >= 0 &&
+    mode <= 2 &&
+    ceiling >= -12 &&
+    ceiling <= -0.1 &&
+    target >= -24 &&
+    target <= -5
+  );
 };

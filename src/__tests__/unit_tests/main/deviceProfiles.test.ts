@@ -180,10 +180,13 @@ describe('device profile configuration', () => {
 
     const files = deviceProfilesToFiles(settings, () => presetsDir);
     const deviceFile = deviceFileFor(files, '{1234-ABCD}');
-    const lines = deviceFile.split(/\r?\n/);
+    const lines = deviceFile
+      .split(/\r?\n/)
+      .filter((line) => !line.startsWith('#'));
 
     // Last of the generated lines. Only the user's own file comes after it.
     expect(lines[lines.length - 2]).toBe('Preamp: -3.2 dB');
+    expect(deviceFile).toContain('Preamp: -3.2 dB\r\n# FluidEQAutoPreamp: ON');
     expect(lines[lines.length - 1]).toMatch(/^Include: fluideq-.*-custom.txt$/);
     expect(
       [...files.values()].filter((contents) => contents.includes('Preamp:')),

@@ -1,3 +1,9 @@
+import { getResponseGainAtFrequencies } from '../common/response';
+import {
+  shapeEqFilters,
+  smoothEqCurve,
+  filterSmoothingCorrection,
+} from '../common/eqShape';
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
@@ -30,6 +36,7 @@ import {
   isBandEnabled,
   IState,
   NO_GAIN_FILTER_TYPES,
+  MAX_GAIN,
   TApoFeature,
   TApoLayer,
 } from '../common/constants';
@@ -41,6 +48,17 @@ import {
 } from '../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../common/smartEq';
 import { getSmartPreAmpGain } from '../common/smartHeadroom';
+import {
+  getEqMode,
+  getCurveEqMode,
+  eqModeGainScale,
+  convolutionCorrection,
+  getBandQ,
+  getAppliedEqFilters,
+  getEqModeCompensation,
+  getStudioEqFilters,
+  getStudioEqGraphic,
+} from '../common/eqMode';
 
 /**
  * Turning the live state into the text Equalizer APO reads.
@@ -95,7 +113,10 @@ const resolvePreAmp = (
     return state.preAmp;
   }
 
-  const writtenFilters = layers.reduce<TChainFilter[]>(
+  const appliedLayers = layers.flatMap((layer) =>
+    Array.from({ length: layer.passes ?? 1 }, () => layer),
+  );
+  const writtenFilters = appliedLayers.reduce<TChainFilter[]>(
     (written, layer) => written.concat(layer.filters),
     [],
   );
@@ -103,7 +124,7 @@ const resolvePreAmp = (
   // Native GraphicEQ stages have to be measured alongside the biquads at the
   // same frequencies. Adding each stage's independent maximum is safe but not
   // normalized: it reserves volume for boosts that never occur together.
-  const curves = layers
+  const curves = appliedLayers
     .map((layer) => layer.graphicPoints)
     .filter((points): points is IGraphicEqPoint[] => Boolean(points?.length));
 
@@ -143,7 +164,9 @@ const resolvePreAmp = (
   ) {
     // Legacy metadata with only a peak cannot say where that peak occurs. A
     // flat curve at that value is conservative until the WAV is re-analyzed.
-    const peak = state.convolution.peakGainDb as number;
+    const peak =
+      (state.convolution.peakGainDb as number) *
+      eqModeGainScale(getCurveEqMode(state));
     curves.push([
       { frequency: 10, gain: peak },
       { frequency: 20000, gain: peak },
@@ -151,8 +174,60 @@ const resolvePreAmp = (
   }
 
   const response = {
-    filters: [...writtenFilters, ...convolutionFilters, ...customFilters],
-    curves,
+    filters: [
+      ...writtenFilters,
+      ...convolutionFilters,
+      ...(getCurveEqMode(state) === 'double' ? convolutionFilters : []),
+      ...customFilters,
+      ...getEqModeCompensation(
+        customFilters,
+        getCurveEqMode(state),
+        getBandQ(state, 'curves'),
+      ),
+    ],
+    curves: [
+      ...curves.map((curve) => {
+        if (
+          curve === customFx?.graphicEq &&
+          getCurveEqMode(state) !== 'normal'
+        ) {
+          const smoothed = smoothEqCurve(curve, state.curveSmoothing);
+          return getCurveEqMode(state) === 'studio'
+            ? getStudioEqGraphic(smoothed)
+            : smoothed.map((point) => ({ ...point, gain: 2 * point.gain }));
+        }
+        if (
+          curve === state.convolution?.response &&
+          getCurveEqMode(state) === 'double'
+        ) {
+          return curve.map((point) => ({
+            ...point,
+            gain: eqModeGainScale(getCurveEqMode(state)) * point.gain,
+          }));
+        }
+        return curve === customFx?.graphicEq
+          ? smoothEqCurve(curve, state.curveSmoothing)
+          : curve;
+      }),
+      filterSmoothingCorrection(
+        getAppliedEqFilters(
+          customFilters,
+          getCurveEqMode(state),
+          getBandQ(state, 'curves'),
+        ),
+        state.curveSmoothing,
+      ),
+      ...(hasConvolution
+        ? [
+            convolutionCorrection(
+              state.convolution,
+              getCurveEqMode(state),
+              getBandQ(state, 'curves'),
+              state.curveSmoothing,
+            ),
+          ]
+        : []),
+    ],
     constantGain: customFx?.preAmp ?? 0,
   };
 
@@ -191,6 +266,8 @@ type TChainFilter = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
 /** What one feature contributes to a device's chain. */
 interface IApoLayer {
   feature: TApoFeature;
+  passes?: 2;
+  gainLimit?: number;
   /** The filters it writes, in order. Empty for a GraphicEQ profile. */
   filters: TChainFilter[];
   /** The `GraphicEQ:` command it writes instead of filters, if any. */
@@ -255,13 +332,19 @@ const buildLayers = (state: IState): IApoLayer[] => {
    * Order matters — APO interpolates between neighbouring points, so sorting
    * them would be redrawing the curve rather than tidying it.
    */
-  const graphicEqCommand = (points: IGraphicEqPoint[]): string | undefined => {
+  const graphicEqCommand = (
+    points: IGraphicEqPoint[],
+    gainLimit = MAX_GAIN,
+  ): string | undefined => {
     const written = points
       .filter(
         ({ frequency, gain }) =>
           Number.isFinite(frequency) && Number.isFinite(gain),
       )
-      .map(({ frequency, gain }) => `${frequency} ${clampGain(gain)}`)
+      .map(
+        ({ frequency, gain }) =>
+          `${frequency} ${Math.max(-gainLimit, Math.min(gainLimit, gain))}`,
+      )
       .join('; ');
     return written ? `GraphicEQ: ${written}` : undefined;
   };
@@ -306,16 +389,20 @@ const buildLayers = (state: IState): IApoLayer[] => {
 
   if (!state.isFlat && !isBypassed('eq')) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
-      const eqCurve = graphicEqCommand(state.graphicEq);
+      const points = state.graphicEq;
+      const eqCurve = graphicEqCommand(points);
       if (eqCurve) {
         layers.push({
           feature: 'eq',
           filters: [],
           graphicEq: eqCurve,
-          graphicPoints: state.graphicEq,
+          graphicPoints: points,
         });
       }
     } else {
+      const filters = Object.values(state.filters)
+        .filter(isBandEnabled)
+        .filter(isRenderableFilter);
       addLayer(
         'eq',
         // A band switched off is dropped here rather than written as an APO
@@ -323,7 +410,7 @@ const buildLayers = (state: IState): IApoLayer[] => {
         // normalize reserves headroom by measuring the filters that were
         // actually written, so a band left in the chain in any form would go
         // on reserving room for a boost nobody can hear.
-        layerFilters(Object.values(state.filters).filter(isBandEnabled)).filter(
+        layerFilters(filters).filter(
           // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in
           // APO after the user presses Reset gains.
           ({ gain, type }) =>
@@ -367,7 +454,44 @@ const buildLayers = (state: IState): IApoLayer[] => {
     addLayer('smart', layerFilters(getSmartEqFilters(state.smartEq)));
   }
 
-  return layers;
+  return layers.map((layer) => {
+    const scope = layer.feature === 'eq' ? 'eq' : 'curves';
+    const mode = scope === 'eq' ? getEqMode(state) : getCurveEqMode(state);
+    const shape = getBandQ(state, scope);
+    const source = layer.graphicPoints
+      ? smoothEqCurve(
+          layer.graphicPoints,
+          scope === 'curves' ? state.curveSmoothing : 'off',
+        )
+      : undefined;
+    const filters =
+      mode === 'studio'
+        ? getStudioEqFilters(layer.filters, shape)
+        : shapeEqFilters(layer.filters, shape);
+    const correction =
+      scope === 'curves'
+        ? filterSmoothingCorrection(filters, state.curveSmoothing)
+        : [];
+    let points = correction.length ? correction : undefined;
+    if (source) {
+      points = mode === 'studio' ? getStudioEqGraphic(source) : source;
+    }
+    return {
+      ...layer,
+      filters,
+      ...(mode === 'double' ? { passes: 2 as const } : {}),
+      gainLimit: mode === 'studio' ? MAX_GAIN * 1.5 : MAX_GAIN,
+      ...(points
+        ? {
+            graphicPoints: points,
+            graphicEq: graphicEqCommand(
+              points,
+              source ? MAX_GAIN * 1.5 : Number.MAX_VALUE,
+            ),
+          }
+        : {}),
+    };
+  });
 };
 
 /**
@@ -386,7 +510,64 @@ const buildLayers = (state: IState): IApoLayer[] => {
  */
 const configNumber = (value: number) => Math.round(value * 100) / 100;
 
-const renderFilter = (filter: TChainFilter, index: number) => {
+const customEqCompensation = (state: IState): string[] => {
+  const mode = getCurveEqMode(state);
+  if (
+    (mode === 'normal' &&
+      getBandQ(state, 'curves') === 'off' &&
+      (!state.curveSmoothing || state.curveSmoothing === 'off')) ||
+    !state.customFx ||
+    state.bypassed?.includes('custom')
+  ) {
+    return [];
+  }
+  const filters = getEqModeCompensation(
+    Object.values(state.customFx.filters),
+    mode,
+    getBandQ(state, 'curves'),
+  );
+  const lines = filters.map((filter, index) =>
+    renderFilter(filter, index + 1, Number.MAX_VALUE),
+  );
+  const smoothingCorrection = filterSmoothingCorrection(
+    getAppliedEqFilters(
+      Object.values(state.customFx.filters),
+      mode,
+      getBandQ(state, 'curves'),
+    ),
+    state.curveSmoothing,
+  );
+  if (smoothingCorrection.length) {
+    lines.push(
+      `GraphicEQ: ${smoothingCorrection.map((point) => `${point.frequency} ${point.gain}`).join('; ')}`,
+    );
+  }
+  const points = state.customFx.graphicEq;
+  if (points?.length) {
+    const smoothed = smoothEqCurve(points, state.curveSmoothing);
+    const desired =
+      mode === 'studio'
+        ? getStudioEqGraphic(smoothed)
+        : smoothed.map((point) => ({
+            ...point,
+            gain: eqModeGainScale(mode) * point.gain,
+          }));
+    const original = getResponseGainAtFrequencies(
+      { curves: [points] },
+      desired.map((point) => point.frequency),
+    );
+    lines.push(
+      `GraphicEQ: ${desired.map((point, index) => `${point.frequency} ${configNumber(point.gain - original[index])}`).join('; ')}`,
+    );
+  }
+  return lines;
+};
+
+const renderFilter = (
+  filter: TChainFilter,
+  index: number,
+  gainLimit = MAX_GAIN,
+) => {
   const head = `Filter ${index}: ON ${filter.type} Fc ${clampFrequency(
     filter.frequency,
   )} Hz`;
@@ -397,7 +578,7 @@ const renderFilter = (filter: TChainFilter, index: number) => {
   // line, so the band silently did nothing.
   return NO_GAIN_FILTER_TYPES.includes(filter.type)
     ? `${head} Q ${quality}`
-    : `${head} Gain ${configNumber(clampGain(filter.gain))} dB Q ${quality}`;
+    : `${head} Gain ${configNumber(Math.max(-gainLimit, Math.min(gainLimit, filter.gain)))} dB Q ${quality}`;
 };
 
 /**
@@ -416,11 +597,16 @@ const renderFilter = (filter: TChainFilter, index: number) => {
  * feature file independent of every other feature — the point of splitting them.
  */
 const renderLayer = (layer: IApoLayer, startIndex = 0): string[] =>
-  layer.graphicEq
-    ? [layer.graphicEq]
-    : layer.filters.map((filter, offset) =>
-        renderFilter(filter, startIndex + offset + 1),
-      );
+  Array.from({ length: layer.passes ?? 1 }, (_unused, pass) => [
+    ...layer.filters.map((filter, offset) =>
+      renderFilter(
+        filter,
+        startIndex + pass * layer.filters.length + offset + 1,
+        layer.gainLimit,
+      ),
+    ),
+    ...(layer.graphicEq ? [layer.graphicEq] : []),
+  ]).flat();
 
 /**
  * The one `Preamp:` line for a chain.
@@ -501,19 +687,37 @@ export const stateToString = (
   const layers = buildLayers(state);
   const output = [`Device: ${devicePattern}`, 'Channel: all'];
 
-  if (hasConvolution) {
-    output.push(`Convolution: ${convolutionFileName}`);
+  if (hasConvolution && convolutionFileName) {
+    output.push(...convolutionModeLines(state, convolutionFileName));
   }
 
   let filterIndex = 0;
   layers.forEach((layer) => {
     output.push(...renderLayer(layer, filterIndex));
-    filterIndex += layer.filters.length;
+    filterIndex += layer.filters.length * (layer.passes ?? 1);
   });
 
   output.push(preAmpLine(state, layers, hasConvolution));
 
   return output.join('\n\r');
+};
+
+const convolutionModeLines = (state: IState, fileName: string): string[] => {
+  const line = `Convolution: ${fileName}`;
+  const mode = getCurveEqMode(state);
+  const base = mode === 'double' ? [line, line] : [line];
+  const correction = convolutionCorrection(
+    state.convolution,
+    mode,
+    getBandQ(state, 'curves'),
+    state.curveSmoothing,
+  );
+  return correction.length
+    ? [
+        ...base,
+        `GraphicEQ: ${correction.map((point) => `${point.frequency} ${point.gain}`).join('; ')}`,
+      ]
+    : base;
 };
 
 /** A chain as the pieces the device file is assembled from. */
@@ -524,8 +728,10 @@ export interface IApoChainFiles {
   features: Array<{ feature: TApoFeature; lines: string[] }>;
   /** The `Preamp:` line, sized over every filter of every feature above. */
   preAmp: string;
+  engineDirectives?: string[];
   /** Whether the user-owned custom file should remain in the chain. */
   custom?: boolean;
+  customEqCompensation?: string[];
 }
 
 /**
@@ -553,18 +759,32 @@ export const stateToApoFiles = (
   const layers = buildLayers(state);
 
   return {
-    ...(hasConvolution
-      ? { convolution: `Convolution: ${convolutionFileName}` }
+    ...(hasConvolution && convolutionFileName
+      ? {
+          convolution: convolutionModeLines(state, convolutionFileName).join(
+            '\r\n',
+          ),
+        }
       : {}),
     features: layers.map((layer) => ({
       feature: layer.feature,
       lines: renderLayer(layer),
     })),
     preAmp: preAmpLine(state, layers, hasConvolution),
+    engineDirectives: [
+      `# FluidEQAutoPreamp: ${state.isAutoPreAmpOn ? 'ON' : 'OFF'}`,
+      ...(layers.some((layer) => layer.feature !== 'eq') ||
+      hasConvolution ||
+      Object.keys(state.customFx?.filters ?? {}).length > 0 ||
+      (state.customFx?.graphicEq?.length ?? 0) > 0
+        ? ['# FluidEQCurveStage: ON']
+        : []),
+    ],
     // The custom file is deliberately not part of `layers`: FluidEQ cannot
     // inspect arbitrary Plugin/Copy/Delay commands when reserving headroom.
     // It can still switch its Include line for an A/B comparison.
     custom: !(state.bypassed ?? []).includes('custom'),
+    customEqCompensation: customEqCompensation(state),
   };
 };
 

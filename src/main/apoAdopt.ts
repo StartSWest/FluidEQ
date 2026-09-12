@@ -30,6 +30,11 @@ import {
 } from '../common/constants';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import { parseEqText } from '../common/apoText';
+import { canAdoptEqModeChange, getCurveEqMode } from '../common/eqMode';
+import {
+  describeApoFeatureText,
+  parseApoEqForAdoption,
+} from '../common/apoFeatureSync';
 import { parseCustomFx } from '../common/customFx';
 import { hasSmartEqLayer, smartEqFromFilters } from '../common/smartEq';
 import { save, stateToApoFiles, stateToString } from './flush';
@@ -198,9 +203,9 @@ export const createApoAdoption = ({
     return true;
   };
 
-  const adoptExistingApoConfig = () => {
+  const adoptExistingApoConfig = (): boolean => {
     if (hasAdoptedExistingConfig || !session.configPath) {
-      return;
+      return true;
     }
 
     // Nothing to read until it is known which output this is about.
@@ -214,7 +219,7 @@ export const createApoAdoption = ({
     const devicePattern =
       session.activeAudioDevice?.guid || session.activeAudioDevice?.name;
     if (!devicePattern) {
-      return;
+      return true;
     }
     hasAdoptedExistingConfig = true;
 
@@ -224,7 +229,7 @@ export const createApoAdoption = ({
       syncCustomFxFromConfig();
       const chain = readApoDeviceChain(session.configPath, devicePattern);
       if (!chain) {
-        return;
+        return true;
       }
 
       // With the features in files of their own, the bands are read on their own:
@@ -270,7 +275,7 @@ export const createApoAdoption = ({
           : chain.text,
       });
       if (!adopted) {
-        return;
+        return true;
       }
 
       // Two things make a block unsafe to adopt, and both were found the hard way
@@ -302,7 +307,7 @@ export const createApoAdoption = ({
           hasSmartEqLayer(state.smartEq));
 
       if (!hasBands || hasIndistinguishableLayers) {
-        return;
+        return true;
       }
 
       const expected = features
@@ -315,23 +320,47 @@ export const createApoAdoption = ({
       if (!hasChainDrifted(expected, adopted)) {
         // The file says what we would have written. Nothing happened while we
         // were away.
-        return;
+        return true;
+      }
+
+      const actualEqText = features ? (features.eq ?? '') : chain.text;
+      const eqChanged =
+        describeApoFeatureText(actualEqText) !==
+        describeApoFeatureText(expected);
+      if (
+        eqChanged &&
+        (!canAdoptEqModeChange(state, 'eq') ||
+          parseApoEqForAdoption(actualEqText).unsupported > 0)
+      ) {
+        hasAdoptedExistingConfig = false;
+        log.warn(
+          'Not adopting the external EQ: its stages cannot be represented without changing the audible chain.',
+        );
+        return false;
       }
 
       log.info(
         `Adopting the Equalizer APO config for ${chain.devicePattern}: it no longer matches the stored state.`,
       );
       state.preAmp = adopted.preAmp;
-      state.filters = adopted.filters;
-      state.eqFormat = adopted.eqFormat;
-      state.graphicEq = adopted.graphicEq;
+      if (eqChanged) {
+        state.filters = adopted.filters;
+        state.eqFormat = adopted.eqFormat;
+        state.graphicEq = adopted.graphicEq;
+        state.curveEqMode = getCurveEqMode(state);
+        state.isEqDoubleOn = false;
+        state.eqMode = 'normal';
+        state.eqBandQ = 'constant';
+      }
       // Bands exist, so the chain is not flat whatever the stored flag said.
-      state.isFlat = Object.keys(adopted.filters).length === 0;
-      // The attribution described bands that are no longer these bands.
-      state.headset = undefined;
-      state.headsetTarget = undefined;
-      state.headsetSource = undefined;
-      state.eqImport = undefined;
+      if (eqChanged) {
+        state.isFlat = Object.keys(adopted.filters).length === 0;
+        // The attribution described bands that are no longer these bands.
+        state.headset = undefined;
+        state.headsetTarget = undefined;
+        state.headsetSource = undefined;
+        state.eqImport = undefined;
+      }
 
       if (adopted.convolutionFileName) {
         // The WAV is still next to the config and still what APO is applying, so
@@ -367,6 +396,7 @@ export const createApoAdoption = ({
       // simply write its own over the top, which is the old behaviour.
       log.warn('Unable to read the existing Equalizer APO config', error);
     }
+    return true;
   };
 
   return {

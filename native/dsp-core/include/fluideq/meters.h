@@ -51,6 +51,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <stdint.h>
 
 #include "fluideq/loudness_meter.h"
+#include "fluideq/denoise.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -394,6 +395,14 @@ uint32_t feq_meters_read_bands(FeqMeters* meters,
                                float* out_levels,
                                uint32_t capacity);
 
+/* Live source measurements, separate from the output loudness meter. */
+void feq_meters_publish_live_input(FeqMeters* meters, double peak_db, double lufs,
+                                 double reference_lufs, int level_state);
+void feq_meters_read_live_input(FeqMeters* meters, float* values);
+
+/** Audio-thread publication; the display reader never follows a retired chain. */
+void feq_meters_publish_denoise(FeqMeters* meters, const FeqDenoiseReport* report);
+void feq_meters_read_denoise(const FeqMeters* meters, FeqDenoiseReport* report);
 #ifdef __cplusplus
 }
 #endif

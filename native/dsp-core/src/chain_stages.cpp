@@ -82,6 +82,17 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
    */
   double input_peaks[2] = {0.0, 0.0};
   peak_pair(channels, chain->channels, frames, input_peaks);
+  if (chain->live_normalizer != nullptr) {
+    const auto reading = feq_live_normalizer_process(chain->live_normalizer,
+        channels, frames, &chain->settings.normalizer);
+    double output_peaks[2]{};
+    peak_pair(channels, chain->channels, frames, output_peaks);
+    feq_meters_publish_normalizer(chain->meters, input_peaks, output_peaks,
+        reading.applied_gain_db, frames, chain->sample_rate);
+    feq_meters_publish_live_input(chain->meters, reading.input_true_peak_db,
+                                  reading.input_lufs, reading.reference_lufs, reading.level_state);
+    return;
+  }
   const bool has_programme =
       input_peaks[0] > 1e-8 || input_peaks[1] > 1e-8;
   if (!has_programme) {

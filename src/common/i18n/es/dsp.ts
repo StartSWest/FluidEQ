@@ -17,6 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 const dsp = {
+  'dsp.normalizer.liveTitle': 'Control de nivel en directo',
+  'dsp.normalizer.livePeak': 'Protección de picos',
+  'dsp.normalizer.liveLeveling': 'Nivelación en directo',
+  'dsp.normalizer.learning': 'Analizando la fuente',
+  'dsp.normalizer.holding': 'Ganancia mantenida',
+  'dsp.normalizer.liveLimited': 'Ganancia limitada',
+  'dsp.normalizer.liveGuidance':
+    'La nivelación en directo aprende el nivel del programa y ajusta gradualmente. Los pasajes suaves mantienen la ganancia; el aumento se limita a 6 dB y al margen de picos disponible. El objetivo no está garantizado. Tras cambiar de fuente sin pausa, desactiva y vuelve a activar la nivelación para analizarla de nuevo. No repara la distorsión existente.',
+  'dsp.denoise.liveHint':
+    'El audio externo usa un nivel de ruido adaptativo en directo. La reducción de siseo, clics y zumbido de 50/60 Hz actúa sobre la fuente en reproducción. El modo automático espera armónicos persistentes de la red eléctrica.',
+  'dsp.denoise.voiceLibraryOnly':
+    'Voz neuronal solo está disponible en la Biblioteca. La reducción de siseo, zumbido y clics funciona con audio externo.',
+  'dsp.normalizer.liveDescription':
+    'Mide el audio externo mientras se reproduce, ajusta ambos canales a la vez y protege los picos antes del excitador y el ecualizador.',
+  'dsp.normalizer.liveAnalysis': 'Análisis de la fuente en directo',
+  'dsp.normalizer.shortTerm': 'Sonoridad a corto plazo',
+  'dsp.normalizer.liveHonesty':
+    'La sonoridad en directo se estabiliza tras tres segundos y se ajusta gradualmente. Los pasajes suaves mantienen su ganancia; la protección de picos sigue activa. No repara la distorsión ya presente.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',

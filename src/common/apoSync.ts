@@ -45,6 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { parseEqText } from './apoText';
+import { describeApoFeatureText } from './apoFeatureSync';
 import { AutoEqFormat, IFiltersMap, IGraphicEqPoint } from './constants';
 
 /** One `Device:`-scoped section of a generated config. */
@@ -180,6 +181,7 @@ export const describeAudibleChain = (input: {
 };
 
 export interface IAdoptedChain {
+  eqSignature?: string;
   preAmp: number;
   filters: IFiltersMap;
   eqFormat: AutoEqFormat;
@@ -198,11 +200,12 @@ export interface IAdoptedChain {
  * everything".
  */
 export const adoptBlock = (block: IApoBlock): IAdoptedChain | undefined => {
-  const parsed = parseEqText(block.text);
+  const parsed = parseEqText(block.text, { preserveValues: true });
   if (parsed.isEmpty) {
     return undefined;
   }
   return {
+    eqSignature: describeApoFeatureText(block.text),
     preAmp: parsed.preAmp,
     filters: parsed.filters,
     eqFormat: parsed.eqFormat,
@@ -246,5 +249,9 @@ export const hasChainDrifted = (
     // difference — and the file wins, which is the point.
     return true;
   }
-  return describeAdopted(expected) !== describeAdopted(adopted);
+  return (
+    describeAdopted(expected) !== describeAdopted(adopted) ||
+    (adopted.eqSignature !== undefined &&
+      expected.eqSignature !== adopted.eqSignature)
+  );
 };

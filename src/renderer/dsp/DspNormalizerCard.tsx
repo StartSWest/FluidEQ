@@ -13,6 +13,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
 import { normalizerGainBreakdown, TNormalizerLimit } from './inputNormalizer';
 import { IDspInputAnalysisState, useDspNormalizerMeter } from './store';
+import { useRackGate } from './rackPlacement';
 
 interface IDspNormalizerCardProps {
   normalizer: IInputNormalizerSettings;
@@ -45,6 +46,20 @@ const LIMIT_LABELS = {
   gate: 'dsp.normalizer.limitedByGate',
 } as const satisfies Record<Exclude<TNormalizerLimit, 'none'>, string>;
 
+const LIVE_MODES = {
+  off: 'dsp.normalizer.off',
+  truePeak: 'dsp.normalizer.livePeak',
+  loudness: 'dsp.normalizer.liveLeveling',
+} as const;
+const LIVE_STATES = [
+  'dsp.normalizer.off',
+  'dsp.normalizer.livePeak',
+  'dsp.normalizer.learning',
+  'dsp.normalizer.holding',
+  'dsp.normalizer.liveLeveling',
+  'dsp.normalizer.liveLimited',
+] as const;
+
 /** Signed, because the whole point is that the sign was not what was asked for. */
 const signedDb = (value: number) =>
   `${value > 0 ? '+' : ''}${value.toFixed(1)} dB`;
@@ -57,6 +72,8 @@ const DspNormalizerCard = ({
 }: IDspNormalizerCardProps) => {
   const { t } = useTranslation();
   const { analysis } = analysisState;
+  const gate = useRackGate();
+  const isLive = gate.engine === 'fluid' && !gate.libraryAudible;
   const liveMeter = useDspNormalizerMeter();
   const gain = normalizerGainBreakdown(normalizer, analysis);
   const enabled = normalizer.mode !== 'off';
@@ -75,8 +92,10 @@ const DspNormalizerCard = ({
   return (
     <ProcessorCard
       id="dsp-normalizer"
-      titleKey="dsp.normalizer.title"
-      descriptionKey="dsp.normalizer.description"
+      titleKey={isLive ? 'dsp.normalizer.liveTitle' : 'dsp.normalizer.title'}
+      descriptionKey={
+        isLive ? 'dsp.normalizer.liveDescription' : 'dsp.normalizer.description'
+      }
       isEnabled={enabled}
       onToggle={() => selectMode(enabled ? 'off' : 'truePeak')}
     >
@@ -98,7 +117,7 @@ const DspNormalizerCard = ({
                 aria-pressed={normalizer.mode === mode}
                 onClick={() => selectMode(mode)}
               >
-                {t(label)}
+                {t(isLive ? LIVE_MODES[mode] : label)}
               </button>
             ))}
           </div>
@@ -135,51 +154,77 @@ const DspNormalizerCard = ({
         <section className="dsp-normalizer-analysis" aria-live="polite">
           <div className="dsp-band-head">
             <span className="dsp-band-title">
-              {t('dsp.normalizer.analysis')}
+              {t(
+                isLive
+                  ? 'dsp.normalizer.liveAnalysis'
+                  : 'dsp.normalizer.analysis',
+              )}
             </span>
             <span
               className={`dsp-normalizer-status is-${analysisState.status}`}
             >
-              {analysisState.status === 'analyzing'
+              {isLive && liveMeter.levelState !== undefined
+                ? t(
+                    LIVE_STATES[liveMeter.levelState] ??
+                      'dsp.normalizer.learning',
+                  )
+                : undefined}
+              {!isLive && analysisState.status === 'analyzing'
                 ? t('dsp.normalizer.analyzing', {
                     progress: Math.round(analysisState.fraction * 100),
                   })
                 : undefined}
-              {analysisState.status === 'unavailable'
+              {!isLive && analysisState.status === 'unavailable'
                 ? t('dsp.normalizer.unavailable')
                 : undefined}
-              {analysisState.status === 'idle' && !analysis
+              {!isLive && analysisState.status === 'idle' && !analysis
                 ? t('dsp.normalizer.waiting')
                 : undefined}
-              {analysisState.status === 'ready'
+              {!isLive && analysisState.status === 'ready'
                 ? t('dsp.normalizer.analysis')
                 : undefined}
             </span>
           </div>
-          <div
-            className="dsp-normalizer-progress"
-            role="progressbar"
-            aria-label={t('dsp.normalizer.analysis')}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(analysisState.fraction * 100)}
-          >
-            <span style={{ width: `${analysisState.fraction * 100}%` }} />
-          </div>
+          {!isLive && (
+            <div
+              className="dsp-normalizer-progress"
+              role="progressbar"
+              aria-label={t('dsp.normalizer.analysis')}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(analysisState.fraction * 100)}
+            >
+              <span style={{ width: `${analysisState.fraction * 100}%` }} />
+            </div>
+          )}
           <dl className="dsp-normalizer-stats">
             <div>
               <dt>{t('dsp.normalizer.measuredPeak')}</dt>
-              <dd>{analysisValue(analysis?.truePeakDbtp, 'dBTP')}</dd>
+              <dd>
+                {analysisValue(
+                  isLive ? liveMeter.inputTruePeakDb : analysis?.truePeakDbtp,
+                  'dBTP',
+                )}
+              </dd>
             </div>
             <div>
-              <dt>{t('dsp.normalizer.measuredLoudness')}</dt>
-              <dd>{analysisValue(analysis?.integratedLufs, 'LUFS')}</dd>
+              <dt>
+                {t(
+                  isLive
+                    ? 'dsp.normalizer.shortTerm'
+                    : 'dsp.normalizer.measuredLoudness',
+                )}
+              </dt>
+              <dd>
+                {analysisValue(
+                  isLive ? liveMeter.inputLufs : analysis?.integratedLufs,
+                  'LUFS',
+                )}
+              </dd>
             </div>
             <div>
               <dt>{t('dsp.normalizer.appliedGain')}</dt>
-              <dd>
-                {analysisValue(analysis ? gain.appliedDb : undefined, 'dB')}
-              </dd>
+              <dd>{analysisValue(liveMeter.appliedGainDb, 'dB')}</dd>
             </div>
           </dl>
           {/* Under all three numbers, because it is the sentence that
@@ -187,7 +232,7 @@ const DspNormalizerCard = ({
               already at the rails is answered with attenuation, and both dials
               beside it still read as obeyed — so the control that actually won
               is named rather than left to be inferred. */}
-          {analysis && gain.limitedBy !== 'none' ? (
+          {!isLive && analysis && gain.limitedBy !== 'none' ? (
             <p className="dsp-band-hint dsp-normalizer-limit">
               {t(LIMIT_LABELS[gain.limitedBy], {
                 requested: signedDb(gain.requestedDb),
@@ -256,7 +301,7 @@ const DspNormalizerCard = ({
         <p className="dsp-band-hint">{t('dsp.normalizer.liveMeterHint')}</p>
       </section>
       <p className="dsp-band-hint dsp-normalizer-honesty">
-        {t('dsp.normalizer.honesty')}
+        {t(isLive ? 'dsp.normalizer.liveGuidance' : 'dsp.normalizer.honesty')}
       </p>
     </ProcessorCard>
   );

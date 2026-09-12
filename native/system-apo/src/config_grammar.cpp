@@ -185,6 +185,11 @@ std::vector<Line> tokenize(std::string_view text) {
     std::string_view raw(decoded.data() + pos, line_end - pos);
     pos = last ? decoded.size() + 1 : newline + 1;
 
+    raw = trim(raw);
+    if (raw.find("# FluidEQAutoPreamp: ") == 0 ||
+        raw.find("# FluidEQCurveStage: ") == 0) {
+      raw.remove_prefix(2);
+    }
     const size_t hash = raw.find('#');
     if (hash != std::string_view::npos) {
       raw = raw.substr(0, hash);

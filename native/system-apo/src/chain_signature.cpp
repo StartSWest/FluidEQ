@@ -56,8 +56,12 @@ std::string signature_of(const Chain& chain) {
   std::string out;
   out += chain.matched ? "m1" : "m0";
   out += "|c=" + to_utf8(chain.convolution_path);
+  out += "|cp=" + std::to_string(chain.convolution_passes);
   out += "|s=" + stamp_of(chain.convolution_path);
   out += "|p=" + number(chain.preamp_db);
+  out += chain.output_guard ? "|og1" : "|og0";
+  out += chain.auto_preamp ? "|ap1" : "|ap0";
+  out += chain.stable_graphic ? "|sg1" : "|sg0";
   out += "|b=";
   for (const Band& band : chain.bands) {
     out += std::to_string(static_cast<int>(band.type));

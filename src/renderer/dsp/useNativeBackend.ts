@@ -14,7 +14,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
-import { playerRunsRack, rackFor, useRackGate } from './rackPlacement';
+import {
+  playerRunsRack,
+  rackFor,
+  rackSuspension,
+  useRackGate,
+} from './rackPlacement';
+import useSystemMeters from './useSystemMeters';
 import {
   INativeBackendController,
   createNativeBackendController,
@@ -40,6 +46,7 @@ import {
   setDspRackGate,
   useDspNativeState,
   useDspOutputSafetyEnabled,
+  useDspSettings,
 } from './store';
 
 /**
@@ -348,8 +355,14 @@ export const useNativeTransport = (
  */
 export const useNativeMeters = (): void => {
   const nativeState = useDspNativeState();
+  const gate = useRackGate();
+  const settings = useDspSettings();
+  const systemOwnsMeters = gate.engine === 'fluid' && !gate.libraryAudible;
+  useSystemMeters(
+    systemOwnsMeters && settings.enabled && rackSuspension(gate) === undefined,
+  );
   useEffect(() => {
-    if (nativeState !== 'engaged') {
+    if (nativeState !== 'engaged' || systemOwnsMeters) {
       return undefined;
     }
     const bridge = bridgeOf() as unknown as INativeMetersBridge | undefined;
@@ -358,7 +371,7 @@ export const useNativeMeters = (): void => {
     }
     const meters = createNativeMeters(bridge, ANALYSIS_BINS);
     return () => meters.release();
-  }, [nativeState]);
+  }, [nativeState, systemOwnsMeters]);
 };
 
 /**

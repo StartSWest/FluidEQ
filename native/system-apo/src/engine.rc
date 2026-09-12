@@ -25,9 +25,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        a missing status was every engine's normal; after it, a missing
  *        status while sound plays means the engine is not there.
  *
- * Raise the minor when the app starts depending on something new, and move
- * ENGINE_STATUS_SINCE in `src/common/engineHealth.ts` with it —
- * `engineVersion.test.ts` reads this file to hold the two together.
+ *   1.2  also serves the system DSP's stage measurements to the DSP page.
+ * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
+ * their health even when the new display connection is unavailable.
  */
 
 #include <winver.h>
@@ -37,8 +37,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 1, 0, 0
-PRODUCTVERSION 1, 1, 0, 0
+FILEVERSION 1, 4, 0, 0
+PRODUCTVERSION 1, 4, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

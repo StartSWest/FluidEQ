@@ -17,6 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 const dsp = {
+  'dsp.normalizer.liveTitle': 'Live-Pegelregelung',
+  'dsp.normalizer.livePeak': 'Spitzenschutz',
+  'dsp.normalizer.liveLeveling': 'Live-Pegelausgleich',
+  'dsp.normalizer.learning': 'Quelle wird erfasst',
+  'dsp.normalizer.holding': 'Verstärkung gehalten',
+  'dsp.normalizer.liveLimited': 'Verstärkung begrenzt',
+  'dsp.normalizer.liveGuidance':
+    'Der Live-Pegelausgleich ermittelt den Programmpegel und passt ihn langsam an. Leise Passagen behalten ihre Verstärkung; Anhebungen sind auf 6 dB und den verfügbaren Spitzenpegelspielraum begrenzt. Der Zielwert ist nicht garantiert. Nach einem nahtlosen Quellenwechsel aus- und wieder einschalten, um neu einzumessen. Vorhandene Verzerrung kann nicht behoben werden.',
+  'dsp.denoise.liveHint':
+    'Externes Audio nutzt einen laufend ermittelten adaptiven Rauschpegel. Rausch-, Klick- und 50/60-Hz-Brummreduzierung bearbeiten die laufende Quelle. Die Brummautomatik wartet auf anhaltende Netzoberwellen.',
+  'dsp.denoise.voiceLibraryOnly':
+    'Die neuronale Sprachverarbeitung ist nur bei der Bibliothekswiedergabe verfügbar. Rausch-, Brumm- und Klickreduzierung funktionieren mit externem Audio.',
+  'dsp.normalizer.liveDescription':
+    'Misst externes Audio während der Wiedergabe, regelt beide Kanäle gemeinsam und schützt Spitzen vor Exciter und EQ.',
+  'dsp.normalizer.liveAnalysis': 'Live-Analyse der Quelle',
+  'dsp.normalizer.shortTerm': 'Kurzzeitlautheit',
+  'dsp.normalizer.liveHonesty':
+    'Die Live-Lautheit stabilisiert sich nach drei Sekunden und wird allmählich angepasst. Leise Passagen behalten ihre Verstärkung; der Spitzenschutz bleibt aktiv. Vorhandene Verzerrungen werden nicht repariert.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP verarbeitet nur Audiotitel aus der Bibliothek. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',

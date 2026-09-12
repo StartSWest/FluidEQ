@@ -20,6 +20,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Personnalisé',
+  'eq.mode.strength': 'Intensité',
+  'eq.mode.q': 'Q des bandes',
+  'eq.mode.smoothing': 'Lissage des courbes',
+  'eq.mode.constant': 'Constant',
+  'eq.mode.proportional': 'Proportionnel',
+  'eq.mode.asymmetric': 'Asymétrique',
+  'eq.mode.off': 'Désactivé',
+  'eq.mode.twelfth': '1/12 d’octave',
+  'eq.mode.third': '1/3 d’octave',
+  'eq.mode.shapeHint':
+    'Q modifie les filtres en cloche. Le lissage modifie les courbes échantillonnées. DSP inchangé.',
+  'eq.mode.constantHint': 'Conserve la largeur d’origine de chaque bande.',
+  'eq.mode.proportionalHint':
+    'Les corrections fortes deviennent plus étroites.',
+  'eq.mode.asymmetricHint':
+    'Amplifications plus larges et atténuations plus étroites.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'Mode EQ',
+  'eq.mode.normal': 'Normal',
+  'eq.mode.studio': 'Studio',
+  'eq.mode.yourEq': 'Votre EQ',
+  'eq.mode.curves': 'Courbes',
+  'eq.studioHint':
+    'Multiplie le gain du groupe choisi par ×1.5 et adapte la largeur des cloches. Le DSP reste inchangé.',
+  'eq.doubleHint':
+    'Applique deux fois le groupe EQ choisi. DSP et préampli restent inchangés.',
   'graph.resize': 'Faites glisser pour redimensionner le graphique',
   'graph.view.title': 'Part de l’écran occupée par le graphique',
   'graph.view.normal': 'Affichage',

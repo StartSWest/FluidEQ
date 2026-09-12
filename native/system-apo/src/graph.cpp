@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "dsp_chain.h"
 #include "graph_stages.h"
+#include "output_guard.h"
 
 namespace fluideq_engine {
 
@@ -95,7 +96,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
-  if (!chain.dsp_values.empty() && rack_ == nullptr) {
+  if (rack.failed) {
     problems_.push_back("dsp-rack");
   }
 
@@ -108,6 +109,11 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
 
   preamp_linear_ = std::pow(10.0, chain.preamp_db / 20.0);
+  auto_preamp_ = chain.auto_preamp;
+  if (chain.output_guard) {
+    output_guard_ = std::make_unique<OutputGuard>(sample_rate_, channels_);
+    latency_frames_ += output_guard_->latency();
+  }
 
   layout_.reserve(chain.bands.size());
   coefficients_.reserve(chain.bands.size());
@@ -124,14 +130,15 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
 
   if (!chain.convolution_path.empty()) {
-    const std::vector<float> kernel =
+    std::vector<float> kernel =
         load_impulse(chain.convolution_path, sample_rate_, warnings_);
     if (!kernel.empty()) {
       impulse_kernel_.reset(feq_convolver_kernel_create(
           kernel.data(), static_cast<uint32_t>(kernel.size())));
       if (impulse_kernel_ &&
-          build_convolvers(impulse_kernel_.get(), channels_, impulse_)) {
-        latency_frames_ += feq_convolver_latency();
+          build_convolvers(impulse_kernel_.get(), channels_ * chain.convolution_passes, impulse_)) {
+        latency_frames_ += feq_convolver_latency() * chain.convolution_passes;
+        impulse_identity_ = kernel_identity(std::move(kernel));
       } else {
         warnings_.push_back("Convolution could not be prepared; skipped.");
       }
@@ -140,8 +147,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
 
   // One stage for every curve at once, not one per curve: see
   // `Chain::graphic_curves`.
-  if (!chain.graphic_curves.empty()) {
-    const std::vector<float> kernel =
+  if (!chain.graphic_curves.empty() || chain.stable_graphic) {
+    std::vector<float> kernel =
         design_graphic(chain.graphic_curves, sample_rate_, warnings_);
     if (!kernel.empty()) {
       graphic_kernel_.reset(feq_convolver_kernel_create(
@@ -161,6 +168,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         // reproducing rather than a filter's phase response.
         latency_frames_ += feq_convolver_latency() +
                            static_cast<uint32_t>(kernel.size() / 2);
+        graphic_identity_ = kernel_identity(std::move(kernel));
       } else {
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");
       }
@@ -177,7 +185,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     problems_.push_back("graphic-eq");
   }
 
-  passthrough_ = rack_ == nullptr && coefficients_.empty() &&
+  passthrough_ = output_guard_ == nullptr && rack_ == nullptr && coefficients_.empty() &&
                  impulse_.empty() && graphic_.empty() &&
                  preamp_linear_ == 1.0f;
 }
@@ -231,8 +239,8 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       continue;
     }
 
-    if (!impulse_.empty()) {
-      feq_convolve(impulse_[channel].get(), buffer, frames);
+    for (size_t stage = channel; stage < impulse_.size(); stage += channels_) {
+      feq_convolve(impulse_[stage].get(), buffer, frames);
     }
     if (!graphic_.empty()) {
       feq_convolve(graphic_[channel].get(), buffer, frames);
@@ -255,6 +263,10 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     }
   }
 
+  if (output_guard_) output_guard_->process(planar, frames, auto_preamp_);
+  if (output_gain_) output_gain_->store(static_cast<float>(auto_preamp_gain_db()), std::memory_order_relaxed);
+  if (output_enabled_) output_enabled_->store(auto_preamp_, std::memory_order_relaxed);
+
   // The last thing on the way out: nothing but real numbers leaves this
   // engine. A NaN or an infinity — from a program upstream that wrote one, or
   // any stage here that produced one — is played by Windows as silence or as
@@ -275,6 +287,31 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       feq_biquad_reset(&state);
     }
     silenced_blocks_.fetch_add(1, std::memory_order_relaxed);
+  }
+}
+
+void Graph::adopt_state(Graph* previous) noexcept {
+  if (!transfer_state_ || previous == nullptr || sample_rate_ != previous->sample_rate_ ||
+      channels_ != previous->channels_ || max_frames_ != previous->max_frames_) {
+    return;
+  }
+  inherit_state(*previous);
+  if (output_guard_ && previous->output_guard_) output_guard_.swap(previous->output_guard_);
+  if (impulse_identity_ != nullptr && impulse_identity_ == previous->impulse_identity_ &&
+      impulse_.size() == previous->impulse_.size()) {
+    impulse_kernel_.swap(previous->impulse_kernel_);
+    impulse_.swap(previous->impulse_);
+  }
+  if (graphic_identity_ != nullptr && graphic_identity_ == previous->graphic_identity_) {
+    graphic_kernel_.swap(previous->graphic_kernel_);
+    graphic_.swap(previous->graphic_);
+  } else if (graphic_.size() == previous->graphic_.size()) {
+    for (size_t channel = 0; channel < graphic_.size(); ++channel) {
+      feq_convolver_transfer(graphic_[channel].get(), previous->graphic_[channel].get(), sample_rate_ / 20);
+    }
+  }
+  if (rack_ != nullptr && previous->rack_ != nullptr && rack_ != previous->rack_) {
+    feq_chain_transfer_state(rack_.get(), previous->rack_.get());
   }
 }
 
@@ -327,6 +364,9 @@ bool Graph::has_same_band_layout(const Graph& other) const noexcept {
 bool Graph::is_passthrough() const noexcept { return passthrough_; }
 
 uint32_t Graph::latency_frames() const noexcept { return latency_frames_; }
+double Graph::auto_preamp_gain_db() const noexcept {
+  return output_guard_ ? output_guard_->gain_db() : 0.0;
+}
 
 const std::vector<std::string>& Graph::warnings() const noexcept {
   return warnings_;

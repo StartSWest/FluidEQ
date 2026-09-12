@@ -76,6 +76,7 @@ import { neutraliseEngine } from './engineNeutralise';
 import { writeSystemDspChain } from './systemDspChain';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
 import { startEngineOwnerPipe } from './engineOwnerPipe';
+import startEngineAnalysisPipe from './engineAnalysisPipe';
 import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
@@ -138,6 +139,7 @@ import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
 import { installMainFailureRecovery, recordFailure } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
+import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
@@ -601,6 +603,7 @@ const watchForUpdateOpportunities = () => {
       .checkIfDue(reason)
       .then(() => scenePacksIpc.refreshIfDue(reason))
       .then(() => memberSharingIpc.refreshIfDue(reason))
+      .then(() => plusGalleryIpc.refreshIfDue())
       .then(() => plusTermsNoticeIpc.checkIfDue(reason))
       .then(() => leaderboardIpc.uploadIfDue(reason))
       .catch(() => undefined);
@@ -1314,6 +1317,12 @@ const getCurrentPreset = (): IPresetV2 => ({
   graphicEq: state.graphicEq,
   convolution: state.convolution,
   isFlat: state.isFlat,
+  eqMode: getEqMode(state),
+  curveEqMode: getCurveEqMode(state),
+  eqBandQ: state.eqBandQ,
+  curveBandQ: state.curveBandQ,
+  curveSmoothing: state.curveSmoothing,
+  isEqDoubleOn: getEqMode(state) === 'double',
   // Without these the device-profile block is rendered from a preset that has
   // no idea they exist, and every one of the layers vanishes from the config
   // the moment a profile is attached — which is always, since every output is
@@ -1446,6 +1455,12 @@ const resetEqToDefaults = () => {
   state.filters = getDefaultFilters();
   state.preAmp = 0;
   state.isFlat = true;
+  state.isEqDoubleOn = false;
+  state.eqMode = 'normal';
+  state.curveEqMode = 'normal';
+  state.eqBandQ = undefined;
+  state.curveBandQ = undefined;
+  state.curveSmoothing = undefined;
   /*
    * THE REFERENCE IS NOT CLEARED HERE, BECAUSE THESE ARE NOT ITS BANDS.
    *
@@ -2096,7 +2111,12 @@ const syncActiveApoFilesFromDisk = async () => {
       ) {
         return;
       }
-      const adoption = adoptApoFeatureText(state, feature, actual);
+      const adoption = adoptApoFeatureText(
+        state,
+        feature,
+        actual,
+        expectedText,
+      );
       if (adoption.unsupported) {
         containsUnsupportedCommands = true;
         log.warn(
@@ -2271,7 +2291,15 @@ ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
   try {
     const res = await updateConfigPath(event, channel);
     if (res) {
-      adoptExistingApoConfig();
+      if (adoptExistingApoConfig() === false) {
+        handleError(
+          event,
+          channel,
+          ErrorCode.FAILURE,
+          'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
+        );
+        return;
+      }
       await handleUpdate(event, channel);
     }
   } catch (error) {
@@ -3472,6 +3500,7 @@ const onAppReady = async () => {
   // FluidEQ Engine only applies one while this process holds its pipe open,
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.
   // See `engineOwnerPipe.ts`. Never rejects.
+  await startEngineAnalysisPipe(() => mainWindow);
   await startEngineOwnerPipe();
   try {
     await createMainWindow();

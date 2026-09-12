@@ -113,6 +113,20 @@ const IStateSchema = {
     isAutoPreAmpOn: {
       type: 'boolean',
     },
+    isEqDoubleOn: {
+      type: 'boolean',
+    },
+    eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    eqBandQ: {
+      enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
+      type: 'string',
+    },
+    curveBandQ: {
+      enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
+      type: 'string',
+    },
+    curveSmoothing: { enum: ['off', 'twelfth', 'third'], type: 'string' },
     isEnabled: {
       type: 'boolean',
     },
@@ -274,6 +288,20 @@ const IPresetSchemaV2 = {
     filters: {
       $ref: '#/definitions/Filters',
     },
+    isEqDoubleOn: {
+      type: 'boolean',
+    },
+    eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    eqBandQ: {
+      enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
+      type: 'string',
+    },
+    curveBandQ: {
+      enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
+      type: 'string',
+    },
+    curveSmoothing: { enum: ['off', 'twelfth', 'third'], type: 'string' },
     preAmp: {
       type: 'number',
     },

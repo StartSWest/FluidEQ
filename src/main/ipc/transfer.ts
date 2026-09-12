@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { BrowserWindow, dialog, ipcMain } from 'electron';
 import log from 'electron-log';
+import { getEqMode, getCurveEqMode } from '../../common/eqMode';
 import {
   IAudioDevice,
   IDeviceProfileSettings,
@@ -286,6 +287,12 @@ export const registerTransferIpc = ({
       state.filters = shieldReferenceBands(imported.filters);
       state.eqFormat = imported.eqFormat;
       state.graphicEq = imported.graphicEq;
+      state.eqMode = getEqMode(imported);
+      state.curveEqMode = getCurveEqMode(imported);
+      state.eqBandQ = imported.eqBandQ;
+      state.curveBandQ = imported.curveBandQ;
+      state.curveSmoothing = imported.curveSmoothing;
+      state.isEqDoubleOn = state.eqMode === 'double';
       applyingLayer('eq');
       // These bands came from a file, so whatever the last import was named,
       // that is not where they came from. The headphone correction is a
@@ -385,6 +392,12 @@ export const registerTransferIpc = ({
         state.filters = shieldReferenceBands(parsed.filters);
         state.eqFormat = parsed.eqFormat;
         state.graphicEq = parsed.graphicEq;
+        state.isEqDoubleOn = false;
+        state.eqMode = 'normal';
+        state.curveEqMode = 'normal';
+        state.eqBandQ = undefined;
+        state.curveBandQ = undefined;
+        state.curveSmoothing = undefined;
         state.isFlat = false;
         state.eqImport = reference;
         applyingLayer('eq');
@@ -654,6 +667,12 @@ export const registerTransferIpc = ({
       state.convolution = bundle.preset.convolution;
       hydrateActiveConvolution();
       state.isFlat = bundle.preset.isFlat;
+      state.eqMode = getEqMode(bundle.preset);
+      state.curveEqMode = getCurveEqMode(bundle.preset);
+      state.eqBandQ = bundle.preset.eqBandQ;
+      state.curveBandQ = bundle.preset.curveBandQ;
+      state.curveSmoothing = bundle.preset.curveSmoothing;
+      state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = bundle.preset.voicing;
       state.driver = bundle.preset.driver;
       state.smartEq = bundle.preset.smartEq;

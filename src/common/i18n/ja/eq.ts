@@ -20,6 +20,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'カスタム',
+  'eq.mode.strength': '強度',
+  'eq.mode.q': 'バンドQ',
+  'eq.mode.smoothing': 'カーブの平滑化',
+  'eq.mode.constant': '固定',
+  'eq.mode.proportional': '比例',
+  'eq.mode.asymmetric': '非対称',
+  'eq.mode.off': 'オフ',
+  'eq.mode.twelfth': '1/12オクターブ',
+  'eq.mode.third': '1/3オクターブ',
+  'eq.mode.shapeHint':
+    'Qはベル型バンドを変更します。平滑化はサンプルされたカーブを変更します。DSPは変わりません。',
+  'eq.mode.constantHint': '各バンドの元の幅を維持します。',
+  'eq.mode.proportionalHint': '強いブーストやカットほど幅が狭くなります。',
+  'eq.mode.asymmetricHint': '幅広いブーストと狭いカット。',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'EQモード',
+  'eq.mode.normal': '通常',
+  'eq.mode.studio': 'スタジオ',
+  'eq.mode.yourEq': 'ユーザーEQ',
+  'eq.mode.curves': 'カーブ',
+  'eq.studioHint':
+    '選択グループのゲインを×1.5にし、ベルの幅をゲインに応じて調整します。DSPは変更しません。',
+  'eq.doubleHint':
+    '選択したEQグループを2回適用します。DSPとプリアンプは変更しません。',
   'graph.resize': 'ドラッグしてグラフの大きさを変更',
   'graph.view.title': 'グラフが使用する画面領域',
   'graph.view.normal': '表示',

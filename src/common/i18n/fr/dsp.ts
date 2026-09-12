@@ -17,6 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 const dsp = {
+  'dsp.normalizer.liveTitle': 'Contrôle du niveau en direct',
+  'dsp.normalizer.livePeak': 'Protection des crêtes',
+  'dsp.normalizer.liveLeveling': 'Nivellement en direct',
+  'dsp.normalizer.learning': 'Analyse de la source',
+  'dsp.normalizer.holding': 'Gain maintenu',
+  'dsp.normalizer.liveLimited': 'Gain limité',
+  'dsp.normalizer.liveGuidance':
+    'Le nivellement en direct apprend le niveau du programme, puis l’ajuste progressivement. Les passages calmes conservent leur gain ; l’augmentation est limitée à 6 dB et à la marge disponible pour les crêtes. La cible n’est pas garantie. Après un changement de source sans pause, désactivez puis réactivez le nivellement pour relancer l’analyse. Il ne répare pas la distorsion existante.',
+  'dsp.denoise.liveHint':
+    'L’audio externe utilise un niveau de bruit adaptatif mesuré en direct. La réduction du souffle, des clics et du ronflement à 50/60 Hz agit sur la source en lecture. Le mode automatique attend des harmoniques secteur persistantes.',
+  'dsp.denoise.voiceLibraryOnly':
+    'Le traitement neuronal de la voix est réservé à la lecture de la Bibliothèque. La réduction du souffle, du ronflement et des clics fonctionne avec l’audio externe.',
+  'dsp.normalizer.liveDescription':
+    'Mesure l’audio externe pendant la lecture, ajuste les deux canaux ensemble et protège les crêtes avant l’exciteur et l’égaliseur.',
+  'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
+  'dsp.normalizer.shortTerm': 'Sonie à court terme',
+  'dsp.normalizer.liveHonesty':
+    'La sonie se stabilise après trois secondes et s’ajuste progressivement. Les passages calmes conservent leur gain ; la protection des crêtes reste active. Les distorsions déjà présentes ne sont pas réparées.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Le DSP traite uniquement les pistes audio lues depuis la Bibliothèque. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',

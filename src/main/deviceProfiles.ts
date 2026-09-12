@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import log from 'electron-log';
+import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import {
   APO_FEATURES,
   ICustomFxSettings,
@@ -431,6 +432,7 @@ const chainToFiles = (
       // After the includes: it is the peak of everything they add up to, so it
       // cannot be decided until they have all had their say.
       chain.preAmp,
+      ...(chain.engineDirectives ?? []),
       // And the user's own file after even that.
       //
       // Everything above is generated and rewritten on the next edit, so it is
@@ -444,6 +446,7 @@ const chainToFiles = (
       // makes the ownership plain: this is the generated chain, and then this
       // is yours.
       ...(chain.custom === false ? [] : [`Include: ${customFileName(slug)}`]),
+      ...(chain.customEqCompensation ?? []),
     ].join(CRLF),
   ]);
 
@@ -725,6 +728,12 @@ export const getStateForAudioDevice = (
     graphicEq: preset?.graphicEq,
     convolution: preset?.convolution,
     isFlat: preset?.isFlat,
+    eqMode: getEqMode(preset ?? {}),
+    curveEqMode: getCurveEqMode(preset ?? {}),
+    eqBandQ: (preset ?? {}).eqBandQ,
+    curveBandQ: (preset ?? {}).curveBandQ,
+    curveSmoothing: (preset ?? {}).curveSmoothing,
+    isEqDoubleOn: getEqMode(preset ?? {}) === 'double',
     voicing: preset?.voicing,
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was

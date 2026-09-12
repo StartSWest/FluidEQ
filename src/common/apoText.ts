@@ -146,7 +146,10 @@ export interface IParsedEqText {
  * which the caller turns into a message. Refusing at this level would mean
  * deciding on the caller's behalf that a half-recognised file is worthless.
  */
-export const parseEqText = (text: string): IParsedEqText => {
+export const parseEqText = (
+  text: string,
+  options: { preserveValues?: boolean } = {},
+): IParsedEqText => {
   const filters: IFiltersMap = {};
   const graphicEq: IGraphicEqPoint[] = [];
   let preAmp = 0;
@@ -168,7 +171,7 @@ export const parseEqText = (text: string): IParsedEqText => {
       if (Number.isFinite(parsed)) {
         // Last one wins. A FluidEQ config carries one preamp per device block,
         // and the active block is written last.
-        preAmp = clampGain(parsed);
+        preAmp = options.preserveValues ? parsed : clampGain(parsed);
         hasPreAmp = true;
       }
       return;
@@ -195,7 +198,10 @@ export const parseEqText = (text: string): IParsedEqText => {
           frequency >= MIN_FREQUENCY &&
           frequency <= MAX_FREQUENCY
         ) {
-          graphicEq.push({ frequency, gain: clampGain(gain) });
+          graphicEq.push({
+            frequency,
+            gain: options.preserveValues ? gain : clampGain(gain),
+          });
         }
       });
       return;
@@ -228,12 +234,17 @@ export const parseEqText = (text: string): IParsedEqText => {
 
     const filter = getDefaultFilterWithId();
     filter.type = type;
-    filter.frequency = clampFrequency(frequency);
-    filter.gain = clampGain(Number(filterMatch[4] ?? 0));
+    filter.frequency = options.preserveValues
+      ? frequency
+      : clampFrequency(frequency);
+    const gain = Number(filterMatch[4] ?? 0);
+    filter.gain = options.preserveValues ? gain : clampGain(gain);
     if (filterMatch[5] !== undefined) {
-      filter.quality = clampQuality(Number(filterMatch[5]));
+      const quality = Number(filterMatch[5]);
+      filter.quality = options.preserveValues ? quality : clampQuality(quality);
     } else if (filterMatch[6] !== undefined) {
-      filter.quality = clampQuality(bandwidthToQ(Number(filterMatch[6])));
+      const quality = bandwidthToQ(Number(filterMatch[6]));
+      filter.quality = options.preserveValues ? quality : clampQuality(quality);
     } else {
       filter.quality = clampQuality(1);
     }

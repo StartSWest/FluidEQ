@@ -32,6 +32,9 @@ import {
   readDspBassForgeBands,
   readDspBassPunchActivity,
   readDspNormalizerMeter,
+  readDspDenoiseMeter,
+  readDspChannelPeaks,
+  readDspScatter,
   readDspOutputSafetyMeter,
   setDspAnalyser,
   setDspBassForgeBands,
@@ -142,6 +145,50 @@ const fakeBridge = () => {
 };
 
 const STAGES: readonly TAnalysisStage[] = ['exciter', 'eq', 'master'];
+
+it('clears external measurements when their source stops', () => {
+  const source = fakeBridge();
+  const meters = createNativeMeters(source.bridge, ANALYSIS_BINS);
+  const frame = analysisFrame(STAGES);
+  frame.normalizer = {
+    inputPeaks: [0.5, 0.4],
+    outputPeaks: [0.25, 0.2],
+    appliedGainDb: -6,
+  };
+  frame.denoise.reductionDb = -8;
+  source.send(frame);
+  expect(readDspNormalizerMeter().inputPeaks[0]).toBe(0.5);
+  meters.release(true);
+  expect(readDspNormalizerMeter()).toEqual({
+    inputPeaks: [0, 0],
+    outputPeaks: [0, 0],
+    appliedGainDb: 0,
+  });
+  expect(readDspDenoiseMeter().reductionDb).toBe(0);
+  expect(readDspChannelPeaks()).toEqual([0, 0]);
+  expect(readDspScatter()).toHaveLength(0);
+});
+
+it('a released external source cannot erase fresh Library measurements', () => {
+  const external = fakeBridge();
+  const library = fakeBridge();
+  const oldMeters = createNativeMeters(external.bridge, ANALYSIS_BINS);
+  const currentMeters = createNativeMeters(library.bridge, ANALYSIS_BINS);
+  external.send(analysisFrame(STAGES));
+  const fresh = analysisFrame(STAGES, -12);
+  fresh.normalizer = {
+    inputPeaks: [0.7, 0.6],
+    outputPeaks: [0.35, 0.3],
+    appliedGainDb: -6,
+  };
+  library.send(fresh);
+  const currentAnalyser = readDspAnalyser('master');
+  oldMeters.release(true);
+  expect(readDspNormalizerMeter()).toEqual(fresh.normalizer);
+  expect(readDspAnalyser('master')).toBe(currentAnalyser);
+  currentMeters.release(true);
+  expect(readDspAnalyser('master')).toBeUndefined();
+});
 
 describe('handing the graphs to the native engine', () => {
   beforeEach(() => {

@@ -411,6 +411,12 @@ export interface IEqImportReference {
 export interface IState {
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
+  isEqDoubleOn?: boolean;
+  eqMode?: 'normal' | 'double' | 'studio';
+  curveEqMode?: 'normal' | 'double' | 'studio';
+  eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  curveSmoothing?: 'off' | 'twelfth' | 'third';
   /**
    * What the music itself measures, per frequency region. SESSION ONLY.
    *
@@ -716,6 +722,12 @@ export interface IPresetV1 {
 export interface IPresetV2 {
   preAmp: number;
   filters: IFiltersMap;
+  isEqDoubleOn?: boolean;
+  eqMode?: 'normal' | 'double' | 'studio';
+  curveEqMode?: 'normal' | 'double' | 'studio';
+  eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  curveSmoothing?: 'off' | 'twelfth' | 'third';
   eqFormat?: AutoEqFormat;
   graphicEq?: IGraphicEqPoint[];
   isFlat?: boolean;

@@ -218,6 +218,15 @@ std::vector<double> blackman_window() {
 }  // namespace
 
 struct FeqMeters {
+  std::atomic<float> live_input_peak{-120};
+  std::atomic<float> live_input_lufs{-120};
+  std::atomic<float> live_reference_lufs{-120};
+  std::atomic<int> live_level_state{0};
+  std::atomic<double> denoise_reduction{0}, denoise_floor{-120};
+  std::atomic<uint32_t> denoise_clicks{0}, denoise_underruns{0};
+  std::atomic<int> denoise_profile{0}, denoise_voice{0};
+  std::atomic<double> denoise_bands[FEQ_DENOISE_PROFILE_BANDS]{};
+  std::atomic<double> denoise_gains[FEQ_DENOISE_PROFILE_BANDS]{};
   uint32_t channels = 2;
   std::atomic<int> enabled{0};
   StageWindow stages[FEQ_METER_STAGE_COUNT];
@@ -889,4 +898,46 @@ int feq_meters_read_scope(FeqMeters* meters,
   return 0;
 }
 
+void feq_meters_publish_denoise(FeqMeters* meters, const FeqDenoiseReport* report) {
+  if (meters == nullptr || report == nullptr) return;
+  meters->denoise_reduction.store(report->reduction_db, std::memory_order_relaxed);
+  meters->denoise_floor.store(report->noise_floor_db, std::memory_order_relaxed);
+  meters->denoise_clicks.store(report->clicks_repaired, std::memory_order_relaxed);
+  meters->denoise_underruns.store(report->voice_underruns, std::memory_order_relaxed);
+  meters->denoise_profile.store(report->profile_ready, std::memory_order_relaxed);
+  meters->denoise_voice.store(report->voice_model_loaded, std::memory_order_relaxed);
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; ++band) {
+    meters->denoise_bands[band].store(report->floor_bands_db[band], std::memory_order_relaxed);
+    meters->denoise_gains[band].store(report->hiss_reduction_bands_db[band], std::memory_order_relaxed);
+  }
+}
+void feq_meters_read_denoise(const FeqMeters* meters, FeqDenoiseReport* report) {
+  if (meters == nullptr || report == nullptr) return;
+  report->reduction_db = meters->denoise_reduction.load(std::memory_order_relaxed);
+  report->noise_floor_db = meters->denoise_floor.load(std::memory_order_relaxed);
+  report->clicks_repaired = meters->denoise_clicks.load(std::memory_order_relaxed);
+  report->voice_underruns = meters->denoise_underruns.load(std::memory_order_relaxed);
+  report->profile_ready = meters->denoise_profile.load(std::memory_order_relaxed);
+  report->voice_model_loaded = meters->denoise_voice.load(std::memory_order_relaxed);
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; ++band) {
+    report->floor_bands_db[band] = meters->denoise_bands[band].load(std::memory_order_relaxed);
+    report->hiss_reduction_bands_db[band] = meters->denoise_gains[band].load(std::memory_order_relaxed);
+  }
+}
+
+void feq_meters_publish_live_input(FeqMeters* meters, double peak_db, double lufs,
+                                 double reference_lufs, int level_state) {
+  if (meters == nullptr) return;
+  meters->live_input_peak.store(static_cast<float>(peak_db), std::memory_order_relaxed);
+  meters->live_input_lufs.store(static_cast<float>(lufs), std::memory_order_relaxed);
+  meters->live_reference_lufs.store(static_cast<float>(reference_lufs), std::memory_order_relaxed);
+  meters->live_level_state.store(level_state, std::memory_order_relaxed);
+}
+void feq_meters_read_live_input(FeqMeters* meters, float* values) {
+  if (meters == nullptr || values == nullptr) return;
+  values[0] = meters->live_input_peak.load(std::memory_order_relaxed);
+  values[1] = meters->live_input_lufs.load(std::memory_order_relaxed);
+  values[2] = meters->live_reference_lufs.load(std::memory_order_relaxed);
+  values[3] = static_cast<float>(meters->live_level_state.load(std::memory_order_relaxed));
+}
 }  // extern "C"

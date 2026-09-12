@@ -17,6 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 const dsp = {
+  'dsp.normalizer.liveTitle': 'Controllo del livello dal vivo',
+  'dsp.normalizer.livePeak': 'Protezione dei picchi',
+  'dsp.normalizer.liveLeveling': 'Livellamento dal vivo',
+  'dsp.normalizer.learning': 'Analisi della sorgente',
+  'dsp.normalizer.holding': 'Guadagno mantenuto',
+  'dsp.normalizer.liveLimited': 'Guadagno limitato',
+  'dsp.normalizer.liveGuidance':
+    'Il livellamento dal vivo apprende il livello del programma e lo regola gradualmente. I passaggi quieti mantengono il guadagno; l’aumento è limitato a 6 dB e al margine disponibile sui picchi. Il valore obiettivo non è garantito. Dopo un cambio di sorgente senza pausa, disattiva e riattiva il livellamento per una nuova analisi. Non ripara la distorsione esistente.',
+  'dsp.denoise.liveHint':
+    'L’audio esterno usa un livello di rumore adattivo misurato in tempo reale. La riduzione di fruscio, clic e ronzio a 50/60 Hz agisce sulla sorgente in riproduzione. La modalità automatica attende armoniche di rete persistenti.',
+  'dsp.denoise.voiceLibraryOnly':
+    'La voce neurale è disponibile solo per la riproduzione dalla Libreria. La riduzione di fruscio, ronzio e clic funziona con l’audio esterno.',
+  'dsp.normalizer.liveDescription':
+    'Misura l’audio esterno durante la riproduzione, regola insieme i due canali e protegge i picchi prima di Exciter ed EQ.',
+  'dsp.normalizer.liveAnalysis': 'Analisi della sorgente dal vivo',
+  'dsp.normalizer.shortTerm': 'Loudness a breve termine',
+  'dsp.normalizer.liveHonesty':
+    'Il loudness si stabilizza dopo tre secondi e si regola gradualmente. I passaggi silenziosi mantengono il guadagno; la protezione dei picchi resta attiva. Non ripara distorsioni già presenti.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Il DSP elabora solo le tracce audio riprodotte dalla Libreria. Audio condiviso ricevuto, karaoke, video e altre app non vengono elaborati.',

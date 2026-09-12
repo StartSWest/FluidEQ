@@ -49,7 +49,8 @@ describe('the chain wire layout', () => {
   it('puts exactly the documented number of scalars before the bands', () => {
     const encoded = encodeChainSettings(withBands(0));
 
-    expect(encoded).toHaveLength(CHAIN_PARAM_LEAD);
+    expect(encoded.slice(0, -3)).toHaveLength(CHAIN_PARAM_LEAD);
+    expect(encoded.slice(-3)).toEqual([1, -1, -14]);
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(0);
   });
 
@@ -78,7 +79,7 @@ describe('the chain wire layout', () => {
     const encoded = encodeChainSettings(withBands(5));
 
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(5);
-    expect(encoded).toHaveLength(CHAIN_PARAM_LEAD + 5 * CHAIN_BAND_PARAMS);
+    expect(encoded).toHaveLength(CHAIN_PARAM_LEAD + 5 * CHAIN_BAND_PARAMS + 3);
     expect(encoded).toHaveLength(chainWireLength(5));
   });
 
@@ -115,7 +116,7 @@ describe('the chain wire layout', () => {
     });
 
     expect(encoded).toHaveLength(
-      CHAIN_PARAM_LEAD + DSP_DEFAULTS.eq.bands.length * CHAIN_BAND_PARAMS,
+      CHAIN_PARAM_LEAD + DSP_DEFAULTS.eq.bands.length * CHAIN_BAND_PARAMS + 3,
     );
     // A length check alone passes whether or not the seventeen scalars are on
     // the wire at all, so read them where the decoder reads them: the last
@@ -138,6 +139,36 @@ describe('the chain wire layout', () => {
 
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(64);
     expect(isChainWirePayload(encoded)).toBe(true);
+  });
+
+  it.each([0, 1, 64])(
+    'accepts legacy snapshots without relocating %i bands',
+    (count) => {
+      const encoded = encodeChainSettings(withBands(count));
+      expect(isChainWirePayload(encoded.slice(0, -3))).toBe(true);
+      expect(encoded.slice(CHAIN_PARAM_LEAD, -3)).toHaveLength(
+        count * CHAIN_BAND_PARAMS,
+      );
+    },
+  );
+
+  it('carries live controls after the final band', () => {
+    const encoded = encodeChainSettings({
+      ...withBands(2),
+      normalizer: { mode: 'loudness', truePeakDbtp: -2, targetLufs: -18 },
+    });
+    expect(encoded.slice(-3)).toEqual([2, -2, -18]);
+    expect(isChainWirePayload(encoded)).toBe(true);
+    [
+      [3, -2, -18],
+      [1.5, -2, -18],
+      [2, 0, -18],
+      [2, -2, -30],
+    ].forEach((trailer) => {
+      expect(isChainWirePayload([...encoded.slice(0, -3), ...trailer])).toBe(
+        false,
+      );
+    });
   });
 
   describe('what the IPC boundary refuses', () => {

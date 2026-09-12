@@ -1,3 +1,8 @@
+import {
+  shapeEqFilters,
+  smoothEqCurve,
+  filterSmoothingCorrection,
+} from 'common/eqShape';
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
@@ -19,9 +24,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { MutableRefObject } from 'react';
 import {
+  getEqMode,
+  getBandQ,
+  convolutionResponse,
+  getCurveEqMode,
+  eqModeGainScale,
+  getStudioEqFilters,
+  getStudioEqGraphic,
+} from 'common/eqMode';
+import {
   AutoEqFormat,
   IFilter,
   IFiltersMap,
+  IGraphicEqPoint,
   isBandEnabled,
   IState,
   TApoLayer,
@@ -75,6 +90,12 @@ export interface IBuildChartDataParams extends Pick<
   | 'graphicEq'
   | 'headphone'
   | 'isAutoPreAmpOn'
+  | 'isEqDoubleOn'
+  | 'eqMode'
+  | 'curveEqMode'
+  | 'eqBandQ'
+  | 'curveBandQ'
+  | 'curveSmoothing'
   | 'preAmp'
   | 'smartEq'
   | 'voicing'
@@ -148,6 +169,12 @@ export const buildChartData = ({
   hasConvolution,
   headphone,
   isEqQuiet,
+  isEqDoubleOn,
+  eqMode,
+  curveEqMode,
+  eqBandQ,
+  curveBandQ,
+  curveSmoothing,
   preAmp,
   prevFilterLines,
   prevFilters,
@@ -155,6 +182,38 @@ export const buildChartData = ({
   t,
   voicing,
 }: IBuildChartDataParams): IGraphData => {
+  const strength = getEqMode({ eqMode, isEqDoubleOn });
+  const curveStrength = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
+  const shapeState = { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ };
+  const mainShape = getBandQ(shapeState, 'eq');
+  const curveShape = getBandQ(shapeState, 'curves');
+  const appliedFilterLine = (filter: IFilter) => {
+    const effective =
+      curveStrength === 'studio'
+        ? getStudioEqFilters([filter], curveShape)[0]
+        : shapeEqFilters([filter], curveShape)[0];
+    const original = getFilterLineData(effective);
+    const correction = filterSmoothingCorrection([effective], curveSmoothing);
+    const points = correction.length
+      ? getCombinedLineData(0, {
+          original,
+          correction: getGraphicEqLineData(correction),
+        })
+      : original;
+    return curveStrength === 'double'
+      ? getCombinedLineData(0, { first: points, second: points })
+      : points;
+  };
+  const appliedGraphicLine = (curve: IGraphicEqPoint[]) => {
+    const points = getGraphicEqLineData(
+      curveStrength === 'studio'
+        ? getStudioEqGraphic(smoothEqCurve(curve, curveSmoothing))
+        : smoothEqCurve(curve, curveSmoothing),
+    );
+    return curveStrength === 'double'
+      ? getCombinedLineData(0, { first: points, second: points })
+      : points;
+  };
   const updatedFilterLines: IChartLineDataPointsById = {};
 
   // Update filter lines that have changed
@@ -197,8 +256,7 @@ export const buildChartData = ({
     ? []
     : getVoicingGraphicEq(voicing);
   if (voicingGraphic.length) {
-    voicingFilterLines['voicing-graphic'] =
-      getGraphicEqLineData(voicingGraphic);
+    voicingFilterLines['voicing-graphic'] = appliedGraphicLine(voicingGraphic);
   }
   // Nothing is drawn for a layer that is switched off.
   //
@@ -211,7 +269,7 @@ export const buildChartData = ({
     : getVoicingFilters(voicing)
   ).forEach((filter, index) => {
     const id = `voicing-${index}`;
-    voicingFilterLines[id] = getFilterLineData({
+    voicingFilterLines[id] = appliedFilterLine({
       id,
       frequency: filter.frequency,
       gain: filter.gain,
@@ -229,14 +287,14 @@ export const buildChartData = ({
     ? []
     : getDriverGraphicEq(driver);
   if (driverGraphic.length) {
-    driverFilterLines['driver-graphic'] = getGraphicEqLineData(driverGraphic);
+    driverFilterLines['driver-graphic'] = appliedGraphicLine(driverGraphic);
   }
   (bypassed.includes('driver') || driverGraphic.length
     ? []
     : getDriverFilters(driver)
   ).forEach((filter, index) => {
     const id = `driver-${index}`;
-    driverFilterLines[id] = getFilterLineData({
+    driverFilterLines[id] = appliedFilterLine({
       id,
       frequency: filter.frequency,
       gain: filter.gain,
@@ -268,14 +326,14 @@ export const buildChartData = ({
     : getHeadphoneGraphicEq(headphone);
   if (headphoneGraphic.length) {
     headphoneFilterLines['headphone-graphic'] =
-      getGraphicEqLineData(headphoneGraphic);
+      appliedGraphicLine(headphoneGraphic);
   }
   (bypassed.includes('headphone') || headphoneGraphic.length
     ? []
     : getHeadphoneFilters(headphone)
   ).forEach((filter, index) => {
     const id = `headphone-${index}`;
-    headphoneFilterLines[id] = getFilterLineData({
+    headphoneFilterLines[id] = appliedFilterLine({
       id,
       frequency: filter.frequency,
       gain: filter.gain,
@@ -293,14 +351,14 @@ export const buildChartData = ({
     ? []
     : getSmartEqGraphicEq(smartEq);
   if (smartGraphic.length) {
-    smartFilterLines['smart-graphic'] = getGraphicEqLineData(smartGraphic);
+    smartFilterLines['smart-graphic'] = appliedGraphicLine(smartGraphic);
   }
   (bypassed.includes('smart') || smartGraphic.length
     ? []
     : getSmartEqFilters(smartEq)
   ).forEach((filter, index) => {
     const id = `smart-eq-${index}`;
-    smartFilterLines[id] = getFilterLineData({
+    smartFilterLines[id] = appliedFilterLine({
       id,
       frequency: filter.frequency,
       gain: filter.gain,
@@ -315,14 +373,17 @@ export const buildChartData = ({
   // that disagrees with what you hear is worse than one that shows less.
   const convolutionFilterLines: IChartLineDataPointsById = {};
   if (!bypassed.includes('convolution')) {
-    if (convolution?.response?.length) {
+    const response = smoothEqCurve(
+      convolutionResponse(convolution, curveShape),
+      curveSmoothing,
+    );
+    if (response.length) {
       convolutionFilterLines['convolution-response'] = getGraphicEqLineData(
-        convolution.response,
+        response.map((point) => ({
+          ...point,
+          gain: point.gain * eqModeGainScale(curveStrength),
+        })),
       );
-    } else {
-      Object.values(convolution?.filters || {}).forEach((filter) => {
-        convolutionFilterLines[filter.id] = getFilterLineData(filter);
-      });
     }
   }
 
@@ -356,6 +417,39 @@ export const buildChartData = ({
   // carries it. That is the honest place for it: it is the level the chain
   // comes out at, not a property of any one band.
   const eqCurveData = getCombinedLineData(0, eqLineData);
+  let appliedEqLines = eqLineData;
+  if (hasEq) {
+    const shaped = shapeEqFilters(
+      Object.values(filters).filter(isBandEnabled),
+      mainShape,
+    );
+    const shapedLines = nativeEqGraphic
+      ? eqLineData
+      : Object.fromEntries(
+          shaped.map((filter) => [filter.id, getFilterLineData(filter)]),
+        );
+    if (strength === 'double') {
+      appliedEqLines = {
+        ...shapedLines,
+        'eq-second-pass': getCombinedLineData(0, shapedLines),
+      };
+    } else if (strength === 'studio') {
+      appliedEqLines = nativeEqGraphic
+        ? {
+            'eq-studio-graphic': getGraphicEqLineData(
+              getStudioEqGraphic(nativeEqGraphic),
+            ),
+          }
+        : Object.fromEntries(
+            getStudioEqFilters(
+              Object.values(filters).filter(isBandEnabled),
+              mainShape,
+            ).map((filter) => [filter.id, getFilterLineData(filter)]),
+          );
+    } else {
+      appliedEqLines = shapedLines;
+    }
+  }
   const voicingCurveData = hasVoicing
     ? getCombinedLineData(0, voicingFilterLines)
     : [];
@@ -375,13 +469,13 @@ export const buildChartData = ({
   const customGraphicLines: IChartLineDataPointsById = {};
   if (!bypassed.includes('custom') && customFx) {
     if (customFx.graphicEq?.length) {
-      const graphic = getGraphicEqLineData(customFx.graphicEq);
+      const graphic = appliedGraphicLine(customFx.graphicEq);
       if (graphic.length > 0) {
         customGraphicLines['custom-graphic'] = graphic;
       }
     }
     Object.values(customFx.filters).forEach((filter) => {
-      customFilterLines[filter.id] = getFilterLineData(filter);
+      customFilterLines[filter.id] = appliedFilterLine(filter);
     });
   }
   const customLines = { ...customFilterLines, ...customGraphicLines };
@@ -415,6 +509,7 @@ export const buildChartData = ({
   // unnoticed. At 0 dB it would be the EQ curve traced twice, so it is not
   // drawn.
   const hasExtraLayers = Boolean(
+    ((strength !== 'normal' || mainShape !== 'off') && hasEq) ||
     convolution ||
     Math.abs(preAmp) > 0.01 ||
     getVoicingFilters(voicing).length ||
@@ -432,7 +527,7 @@ export const buildChartData = ({
         preAmp +
           (bypassed.includes('custom') || !customFx ? 0 : customFx.preAmp),
         {
-          ...eqLineData,
+          ...appliedEqLines,
           ...convolutionFilterLines,
           ...voicingFilterLines,
           ...driverFilterLines,
@@ -574,8 +669,12 @@ export const buildChartData = ({
               name: totalCurveName,
               line: {
                 color: ColorEnum.TOTAL,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
+                strokeWidth:
+                  strength === 'normal' && curveStrength === 'normal' ? 2 : 3,
+                opacity:
+                  strength === 'normal' && curveStrength === 'normal'
+                    ? SUPPORTING_CURVE_OPACITY
+                    : 1,
                 points: totalCurveData,
               },
             } as IChartCurveData,

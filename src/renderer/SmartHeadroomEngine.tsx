@@ -1,3 +1,4 @@
+import { smoothEqCurve, filterSmoothingCorrection } from 'common/eqShape';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -17,10 +18,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { getDriverFilters } from 'common/driver';
-import { getHeadphoneFilters } from 'common/headphone';
-import { getSmartEqFilters } from 'common/smartEq';
-import { getVoicingFilters } from 'common/voicing';
+import { getDriverFilters, getDriverGraphicEq } from 'common/driver';
+import {
+  getEqMode,
+  getCurveEqMode,
+  eqModeGainScale,
+  convolutionCorrection,
+  getBandQ,
+  getAppliedEqFilters,
+  getStudioEqGraphic,
+} from 'common/eqMode';
+import { getHeadphoneFilters, getHeadphoneGraphicEq } from 'common/headphone';
+import { getSmartEqFilters, getSmartEqGraphicEq } from 'common/smartEq';
+import { getVoicingFilters, getVoicingGraphicEq } from 'common/voicing';
+import { useCurrentEngine } from './utils/audioEngineContext';
 import { IGraphicEqPoint, TApoLayer } from '../common/constants';
 import {
   getResponseGainAtFrequencies,
@@ -69,6 +80,7 @@ import { createFrequencyAxis, FFT_SIZE } from './graph/liveSpectrumFrames';
 const FRAME_INTERVAL_MS = 45;
 
 const SmartHeadroomEngine = () => {
+  const isFluid = useCurrentEngine() === 'fluid';
   const {
     bypassed,
     convolution,
@@ -78,6 +90,12 @@ const SmartHeadroomEngine = () => {
     graphicEq,
     headphone,
     isAutoPreAmpOn,
+    isEqDoubleOn,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
 
     preAmp,
     smartEq,
@@ -89,7 +107,7 @@ const SmartHeadroomEngine = () => {
   // music playing through it is somebody else's app. So this holds the endpoint
   // open while the feature is on, and a machine that wants a truly idle device
   // is a machine with Auto Pre-Amp switched off.
-  useLiveAudioCapture(isAutoPreAmpOn, 'work');
+  useLiveAudioCapture(isAutoPreAmpOn && !isFluid, 'work');
 
   /**
    * The whole applied chain, as a response the shared evaluator understands.
@@ -107,8 +125,22 @@ const SmartHeadroomEngine = () => {
    * analyser hears and there is nothing to remove.
    */
   const buildResponse = useCallback((): ICombinedResponse => {
+    const mode = getCurveEqMode({ eqMode, isEqDoubleOn, curveEqMode });
+    const userMode = getEqMode({ eqMode, isEqDoubleOn });
     const off = (layer: TApoLayer) => (bypassed ?? []).includes(layer);
-    const curves: Array<IGraphicEqPoint[] | undefined> = [];
+    const shapeState = {
+      eqMode,
+      curveEqMode,
+      isEqDoubleOn,
+      eqBandQ,
+      curveBandQ,
+    };
+    const curves: Array<IGraphicEqPoint[] | undefined> = [
+      off('driver') ? [] : getDriverGraphicEq(driver),
+      off('headphone') ? [] : getHeadphoneGraphicEq(headphone),
+      off('voicing') ? [] : getVoicingGraphicEq(voicing),
+      off('smart') ? [] : getSmartEqGraphicEq(smartEq),
+    ];
     if (!off('eq') && graphicEq?.length) {
       curves.push(graphicEq);
     }
@@ -122,19 +154,73 @@ const SmartHeadroomEngine = () => {
     ) {
       curves.push(convolution.response);
     }
+    const curveFilters = [
+      ...(off('driver') ? [] : getDriverFilters(driver)),
+      ...(off('headphone') ? [] : getHeadphoneFilters(headphone)),
+      ...(off('voicing') ? [] : getVoicingFilters(voicing)),
+      ...(off('smart') ? [] : getSmartEqFilters(smartEq)),
+      ...(off('custom') || !customFx ? [] : Object.values(customFx.filters)),
+    ];
+    const convolutionFilters =
+      off('convolution') || !convolution || convolution.fileName
+        ? []
+        : Object.values(convolution.filters || {});
     return {
       filters: [
-        ...(off('eq') || graphicEq?.length ? [] : Object.values(filters)),
-        ...(off('driver') ? [] : getDriverFilters(driver)),
-        ...(off('headphone') ? [] : getHeadphoneFilters(headphone)),
-        ...(off('voicing') ? [] : getVoicingFilters(voicing)),
-        ...(off('smart') ? [] : getSmartEqFilters(smartEq)),
-        ...(off('custom') || !customFx ? [] : Object.values(customFx.filters)),
-        ...(off('convolution') || !convolution || convolution.fileName
-          ? []
-          : Object.values(convolution.filters || {})),
+        ...getAppliedEqFilters(
+          off('eq') || graphicEq?.length ? [] : Object.values(filters),
+          userMode,
+          getBandQ(shapeState, 'eq'),
+        ),
+        ...getAppliedEqFilters(
+          curveFilters,
+          mode,
+          getBandQ(shapeState, 'curves'),
+        ),
+        ...convolutionFilters,
+        ...(mode === 'double' ? convolutionFilters : []),
       ],
-      curves,
+      curves: [
+        filterSmoothingCorrection(
+          getAppliedEqFilters(
+            curveFilters,
+            mode,
+            getBandQ(shapeState, 'curves'),
+          ),
+          curveSmoothing,
+        ),
+        ...curves.map((curve) => {
+          if (!curve) {
+            return curve;
+          }
+          if (curve === convolution?.response) {
+            return mode === 'double'
+              ? curve.map((point) => ({ ...point, gain: 2 * point.gain }))
+              : curve;
+          }
+          const curveMode = curve === graphicEq ? userMode : mode;
+          const shaped = smoothEqCurve(
+            curve,
+            curve === graphicEq ? 'off' : curveSmoothing,
+          );
+          return curveMode === 'studio'
+            ? getStudioEqGraphic(shaped)
+            : shaped.map((point) => ({
+                ...point,
+                gain: eqModeGainScale(curveMode) * point.gain,
+              }));
+        }),
+        ...(!off('convolution') && convolution
+          ? [
+              convolutionCorrection(
+                convolution,
+                mode,
+                getBandQ(shapeState, 'curves'),
+                curveSmoothing,
+              ),
+            ]
+          : []),
+      ],
       constantGain: preAmp + (off('custom') ? 0 : (customFx?.preAmp ?? 0)),
     };
   }, [
@@ -145,12 +231,18 @@ const SmartHeadroomEngine = () => {
     filters,
     graphicEq,
     headphone,
+    isEqDoubleOn,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
     preAmp,
     smartEq,
     voicing,
   ]);
 
-  const isOn = isAutoPreAmpOn;
+  const isOn = isAutoPreAmpOn && !isFluid;
 
   /**
    * The probe grid, and the chain sampled on it — both computed when they

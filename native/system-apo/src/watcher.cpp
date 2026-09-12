@@ -92,6 +92,12 @@ Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
 Watcher::~Watcher() { stop(); }
 
 void Watcher::load_initial() {
+  // A separate display connection cannot affect the engine's owner signal.
+  try {
+    analysis_ = std::make_unique<AnalysisLink>(endpoint_.guid, sample_rate_, channels_);
+  } catch (...) {
+    log_.write("DSP displays unavailable; audio processing continues");
+  }
   if (endpoint_.guid.empty()) {
     // Windows handed this instance no device collection, so there is no way
     // to tell which `Device:` blocks apply. Everything unguarded still does.
@@ -209,6 +215,7 @@ void Watcher::stop() noexcept {
     delete retired.graph;
   }
   owned_.clear();
+  analysis_.reset();
 }
 
 unsigned __stdcall Watcher::thread_entry(void* self) {
@@ -343,6 +350,7 @@ void Watcher::request_reset() noexcept {
 }
 
 void Watcher::reload(Carry carry) {
+  if (analysis_) analysis_->retry();
   try {
     const FileProvider provider = [](const std::wstring& path) {
       return read_config_file(path);
@@ -378,19 +386,8 @@ void Watcher::reload(Carry carry) {
       // it, so an abandoned rebuild cannot be mistaken for a loaded one.
       return;
     }
-    // Histories are mutable audio-thread state. Copy them at adoption, never
-    // concurrently with processing. The rack's shared ownership can be
-    // prepared here because its handle and configuration remain immutable.
     if (carry == Carry::State) {
       graph->request_state_transfer();
-      if (Graph* previous = slot_.active()) {
-        // The rack, when the new graph asks for exactly the same one. Under
-        // linear phase a fresh `FeqChain` re-converges over about 171 ms, so
-        // an EQ-only edit — a band dragged — used to mute and rebuild the
-        // maximizer, the bass engine and the delay on every frame of the
-        // drag. See `Graph::inherit_rack`.
-        graph->inherit_rack(*previous);
-      }
     }
     // Said once, as the graph that did it is replaced: a count that only
     // ever lived on the audio thread, where nothing may write a log line.
@@ -424,6 +421,8 @@ void Watcher::reload(Carry carry) {
 }
 
 void Watcher::publish(std::unique_ptr<Graph> graph) {
+  if (analysis_) graph->set_meters(analysis_->meters(), analysis_->activity());
+  if (analysis_) graph->set_output_meters(&analysis_->output_gain, &analysis_->output_enabled, &analysis_->output_active);
   // Ownership is recorded before the graph becomes reachable: if this
   // allocation throws, the unique_ptr still holds the only reference and
   // frees it, and the audio thread never saw it.

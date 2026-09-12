@@ -26,6 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <cstring>
 #include <new>
+#include <utility>
 
 #include "denoise_internal.h"
 #include "fluideq/denoise.h"
@@ -298,9 +299,23 @@ void feq_denoise_process(FeqDenoise* denoise,
   const bool adaptive =
       denoise->settings.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE ||
       !denoise->profile_ready;
-  denoise->reported_floor_db.store(
-      adaptive ? kDenoiseSilenceDb : denoise->profile.floor_dbfs,
-      std::memory_order_relaxed);
+  double floor_power = 0;
+  if (adaptive && denoise->settings.hiss.enabled != 0) {
+    // Bands are a density per Hz, not independent full-band levels. Integrate
+    // their logarithmic widths to report the actual broadband live floor.
+    const double width = octaves_per_band();
+    for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; ++band) {
+      const double low = kProfileLowHz * std::pow(2.0, band * width);
+      const double high = std::min(denoise->sample_rate * 0.5,
+          kProfileLowHz * std::pow(2.0, (band + 1) * width));
+      if (high > low && denoise->live_floor_db[band] > kDenoiseSilenceDb) {
+        floor_power += std::pow(10.0, denoise->live_floor_db[band] / 10) * (high - low);
+      }
+    }
+  }
+  const double live_floor = floor_power > 1e-12 ? 10 * std::log10(floor_power) : kDenoiseSilenceDb;
+  denoise->reported_floor_db.store(adaptive ? live_floor : denoise->profile.floor_dbfs,
+                                  std::memory_order_relaxed);
 }
 
 uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise) {

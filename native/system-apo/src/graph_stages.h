@@ -27,6 +27,8 @@ namespace fluideq_engine {
 
 using ConvolverPtr = std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>;
 
+std::shared_ptr<const std::vector<float>> kernel_identity(std::vector<float> samples);
+
 /** The `Convolution:` file, at the stream's rate. Empty when unusable. */
 std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
                                 std::vector<std::string>& warnings);

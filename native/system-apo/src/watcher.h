@@ -37,6 +37,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "log.h"
 #include "owner_link.h"
 #include "status_file.h"
+#include "analysis_link.h"
 
 namespace fluideq_engine {
 
@@ -240,6 +241,7 @@ class Watcher {
   const uint32_t sample_rate_;
   const uint32_t channels_;
   const uint32_t max_frames_;
+  std::unique_ptr<AnalysisLink> analysis_;
 
   // Watcher-thread state (plus `load_initial`, which runs before the thread
   // exists — never both at once).

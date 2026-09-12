@@ -1,3 +1,14 @@
+import { shapeEqFilters, smoothEqCurve } from 'common/eqShape';
+import {
+  IState,
+  AutoEqFormat,
+  FilterTypeEnum,
+  IDriverSettings,
+  IFiltersMap,
+  IHeadphoneSettings,
+  IGraphicEqPoint,
+  TApoLayer,
+} from 'common/constants';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -35,18 +46,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import {
-  FilterTypeEnum,
-  IDriverSettings,
-  IFiltersMap,
-  IHeadphoneSettings,
-  TApoLayer,
-} from 'common/constants';
-import { getLineGainAtFrequency } from 'renderer/graph/utils';
+  getLineGainAtFrequency,
+  getFilterLineData,
+  getGraphicEqLineData,
+} from 'renderer/graph/utils';
+import { getStudioEqFilters, TEqMode } from 'common/eqMode';
 import { IChartCurveData } from 'renderer/graph/ChartController';
 
 /* --- the world the chart reads ------------------------------------------ */
 
 interface IWorld {
+  isEqDoubleOn?: boolean;
+  eqMode?: TEqMode;
+  curveEqMode?: TEqMode;
+  eqBandQ?: IState['eqBandQ'];
+  curveBandQ?: IState['curveBandQ'];
+  curveSmoothing?: IState['curveSmoothing'];
+  eqFormat?: AutoEqFormat;
+  graphicEq?: IGraphicEqPoint[];
   filters: IFiltersMap;
   headphone?: IHeadphoneSettings;
   driver?: IDriverSettings;
@@ -72,6 +89,14 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({
     filters: mockWorld.filters,
+    isEqDoubleOn: mockWorld.isEqDoubleOn,
+    eqMode: mockWorld.eqMode,
+    curveEqMode: mockWorld.curveEqMode,
+    eqBandQ: mockWorld.eqBandQ,
+    curveBandQ: mockWorld.curveBandQ,
+    curveSmoothing: mockWorld.curveSmoothing,
+    eqFormat: mockWorld.eqFormat,
+    graphicEq: mockWorld.graphicEq,
     headphone: mockWorld.headphone,
     bypassed: mockWorld.bypassed,
     isAutoPreAmpOn: mockWorld.isAutoPreAmpOn,
@@ -161,6 +186,14 @@ const CORRECTION: IHeadphoneSettings = {
 
 const draw = (world: Partial<IWorld>) => {
   Object.assign(mockWorld, {
+    isEqDoubleOn: false,
+    eqMode: undefined,
+    curveEqMode: undefined,
+    eqBandQ: undefined,
+    curveBandQ: undefined,
+    curveSmoothing: undefined,
+    eqFormat: undefined,
+    graphicEq: undefined,
     filters: EQ_BANDS,
     headphone: undefined,
     driver: undefined,
@@ -189,6 +222,65 @@ const gainAt = (id: string, frequency: number) => {
 };
 
 describe('the headphone layer on the frequency response graph', () => {
+  it('draws Studio from the effective filter shape while preserving the original editor curve', () => {
+    draw({ eqMode: 'studio', headphone: CORRECTION });
+    const [effective] = getStudioEqFilters(Object.values(EQ_BANDS));
+    expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
+    expect(gainAt('Total Response', 150)).toBeCloseTo(
+      getLineGainAtFrequency(getFilterLineData(effective), 150) +
+        gainAt('Headphone Correction', 150),
+      1,
+    );
+    expect(gainAt('Total Response', 100)).toBeCloseTo(
+      4.5 + gainAt('Headphone Correction', 100),
+      1,
+    );
+  });
+
+  it('lets the selected normal mode override legacy x2 state', () => {
+    draw({ eqMode: 'normal', isEqDoubleOn: true, headphone: CORRECTION });
+    expect(gainAt('Total Response', 100)).toBeCloseTo(
+      3 + gainAt('Headphone Correction', 100),
+      1,
+    );
+  });
+  it('shows doubled main EQ and headphone correction without moving editing handles', () => {
+    draw({ headphone: CORRECTION, isEqDoubleOn: true });
+    expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
+    expect(gainAt('Headphone Correction', 1000)).toBeCloseTo(12, 1);
+    expect(gainAt('Total Response', 100)).toBeCloseTo(
+      2 * gainAt('EQ Response', 100) + gainAt('Headphone Correction', 100),
+      1,
+    );
+  });
+
+  it('shows the doubled output even without other layers or preamp', () => {
+    draw({ isEqDoubleOn: true });
+    expect(gainAt('Total Response', 100)).toBeCloseTo(6, 1);
+    expect(screen.getByRole('button', { name: 'Final output' })).toBeVisible();
+  });
+
+  it('doubles the native graphic curve rather than its editable band approximation', () => {
+    draw({
+      isEqDoubleOn: true,
+      eqFormat: AutoEqFormat.GRAPHIC,
+      graphicEq: [
+        { frequency: 20, gain: 4 },
+        { frequency: 20000, gain: 4 },
+      ],
+    });
+    expect(gainAt('EQ Response', 1000)).toBeCloseTo(4, 1);
+    expect(gainAt('Total Response', 1000)).toBeCloseTo(8, 1);
+  });
+
+  it('does not double a bypassed EQ while keeping other layers audible', () => {
+    draw({ headphone: CORRECTION, isEqDoubleOn: true, bypassed: ['eq'] });
+    expect(gainAt('Total Response', 1000)).toBeCloseTo(12, 1);
+    expect(gainAt('Total Response', 100)).toBeCloseTo(
+      gainAt('Headphone Correction', 100),
+      1,
+    );
+  });
   it('draws the published correction as a curve of its own', () => {
     draw({ headphone: CORRECTION });
 
@@ -294,4 +386,45 @@ describe('the headphone layer on the frequency response graph', () => {
       1,
     );
   });
+});
+it('plots Q-shaped final output while preserving independent correction Q', () => {
+  draw({
+    eqMode: 'normal',
+    curveEqMode: 'normal',
+    eqBandQ: 'asymmetric',
+    curveBandQ: 'proportional',
+    headphone: CORRECTION,
+  });
+  const own = shapeEqFilters(Object.values(EQ_BANDS), 'asymmetric')[0];
+  const correction = shapeEqFilters(
+    Object.values(CORRECTION.filters),
+    'proportional',
+  )[0];
+  expect(gainAt('Total Response', 150)).toBeCloseTo(
+    getLineGainAtFrequency(getFilterLineData(own), 150) +
+      getLineGainAtFrequency(getFilterLineData(correction), 150),
+    1,
+  );
+  expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
+});
+
+it('plots the smoothed correction used by audio, not the original curve', () => {
+  const points = [
+    { frequency: 900, gain: 0 },
+    { frequency: 1000, gain: 12 },
+    { frequency: 1100, gain: 0 },
+  ];
+  draw({
+    filters: {},
+    curveSmoothing: 'third',
+    headphone: { filters: {}, graphicEq: points, intensity: 1 },
+  });
+  expect(gainAt('Headphone Correction', 1000)).toBeCloseTo(
+    getLineGainAtFrequency(
+      getGraphicEqLineData(smoothEqCurve(points, 'third')),
+      1000,
+    ),
+    6,
+  );
+  expect(gainAt('Headphone Correction', 1000)).toBeLessThan(12);
 });

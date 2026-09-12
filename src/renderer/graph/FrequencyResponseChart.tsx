@@ -30,6 +30,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
+import { getEqMode, getBandQ } from 'common/eqMode';
 import { ErrorDescription } from 'common/errors';
 import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
@@ -64,6 +65,8 @@ import {
 } from 'renderer/utils/FluidEqContext';
 import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
+import { useCurrentEngine } from '../utils/audioEngineContext';
+import { useEnginePreamp } from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
 import {
   IChartLineDataPointsById,
@@ -878,9 +881,15 @@ const FrequencyResponseChart = ({
     isLoading,
     globalError,
     isAutoPreAmpOn,
+    isEqDoubleOn,
+    eqMode,
+    curveEqMode,
+    eqBandQ,
+    curveBandQ,
+    curveSmoothing,
 
     convolution,
-    preAmp,
+    preAmp: configuredPreAmp,
     eqFormat,
     graphicEq,
     setGlobalError,
@@ -898,6 +907,12 @@ const FrequencyResponseChart = ({
     bypassed,
     customFx,
   } = useFluidEqContext();
+  const livePreamp = useEnginePreamp();
+  const currentEngine = useCurrentEngine();
+  const preAmp =
+    currentEngine === 'fluid' && isAutoPreAmpOn && livePreamp?.enabled
+      ? livePreamp.gainDb
+      : configuredPreAmp;
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
   // Clean takes the drawing off the paper, not the paper: the grid stays
   // unless the user has hidden it themselves. It used to go with the
@@ -985,6 +1000,12 @@ const FrequencyResponseChart = ({
     // follows that rule rather than the others, or the line would be on the
     // plot with nothing naming it.
     if (
+      ((getEqMode({ eqMode, isEqDoubleOn }) !== 'normal' ||
+        getBandQ(
+          { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ },
+          'eq',
+        ) !== 'off') &&
+        !isEqQuiet) ||
       convolution ||
       Math.abs(preAmp) > 0.01 ||
       voicing?.profileId ||
@@ -1265,6 +1286,12 @@ const FrequencyResponseChart = ({
         hasConvolution,
         headphone,
         isAutoPreAmpOn,
+        isEqDoubleOn,
+        eqMode,
+        curveEqMode,
+        eqBandQ,
+        curveBandQ,
+        curveSmoothing,
 
         isEqQuiet,
         preAmp,
@@ -1285,6 +1312,12 @@ const FrequencyResponseChart = ({
       hasConvolution,
       headphone,
       isAutoPreAmpOn,
+      isEqDoubleOn,
+      eqMode,
+      curveEqMode,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
 
       isEqQuiet,
       preAmp,

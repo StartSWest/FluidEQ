@@ -20,6 +20,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'कस्टम',
+  'eq.mode.strength': 'तीव्रता',
+  'eq.mode.q': 'बैंड Q',
+  'eq.mode.smoothing': 'कर्व स्मूदिंग',
+  'eq.mode.constant': 'स्थिर',
+  'eq.mode.proportional': 'आनुपातिक',
+  'eq.mode.asymmetric': 'असममित',
+  'eq.mode.off': 'बंद',
+  'eq.mode.twelfth': '1/12 ऑक्टेव',
+  'eq.mode.third': '1/3 ऑक्टेव',
+  'eq.mode.shapeHint':
+    'Q बेल बैंड बदलता है। स्मूदिंग सैंपल किए गए कर्व बदलती है। DSP अपरिवर्तित रहता है।',
+  'eq.mode.constantHint': 'हर बैंड की मूल चौड़ाई रखता है।',
+  'eq.mode.proportionalHint': 'अधिक बूस्ट और कट संकरे होते हैं।',
+  'eq.mode.asymmetricHint': 'चौड़े बूस्ट और संकरे कट।',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'EQ मोड',
+  'eq.mode.normal': 'सामान्य',
+  'eq.mode.studio': 'स्टूडियो',
+  'eq.mode.yourEq': 'आपका EQ',
+  'eq.mode.curves': 'कर्व',
+  'eq.studioHint':
+    'चुने गए समूह का गेन ×1.5 करता है और बेल की चौड़ाई गेन के अनुसार बदलता है। DSP नहीं बदलता।',
+  'eq.doubleHint':
+    'चुने गए EQ समूह को दो बार लागू करता है। DSP और प्रीएम्प नहीं बदलते।',
   'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',
   'graph.view.title': 'ग्राफ़ को मिलने वाली स्क्रीन की जगह',
   'graph.view.normal': 'दृश्य',

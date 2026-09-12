@@ -35,10 +35,10 @@ namespace fluideq_engine {
  *
  * What this removes from what the app sent, and why:
  *
- * - **Denoise.** Its voice module loads an ONNX runtime from disk, and
+ * - **Neural Voice only.** It loads an ONNX runtime from disk, and
  *   audiodg.exe is a protected process that will not have it: the load fails
  *   silently inside somebody else's process with nowhere to report it. The
- *   whole stage stays off rather than half of it running.
+ *   other restoration modules run locally with adaptive live analysis.
  *
  * Nothing else is stripped. Crossfade, the track-level gains, the noise
  * profile and the voice model are all set through their own calls, never
@@ -51,6 +51,7 @@ bool decode_dsp_chain(const std::vector<double>& values,
 /** What `build_rack` hands back: the chain, its width, and its delay. */
 struct RackBuild {
   std::unique_ptr<FeqChain, detail::ChainDeleter> chain;
+  bool failed = false;
   uint32_t channels = 0;
   uint32_t latency = 0;
 };

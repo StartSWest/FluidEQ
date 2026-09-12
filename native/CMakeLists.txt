@@ -82,6 +82,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/compressor.cpp
   dsp-core/src/output_safety.cpp
   dsp-core/src/post_filter_normalizer.cpp
+  dsp-core/src/live_normalizer.cpp
   dsp-core/src/analog_diode.cpp
   dsp-core/src/harmonics.cpp
   dsp-core/src/phase_align.cpp
@@ -101,8 +102,10 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/bass_punch_band.cpp
   dsp-core/src/bass_punch_bloom.cpp
   dsp-core/src/denoise.cpp
+  dsp-core/src/denoise_transfer.cpp
   dsp-core/src/denoise_spectral.cpp
   dsp-core/src/denoise_hum.cpp
+  dsp-core/src/denoise_live_hum.cpp
   dsp-core/src/denoise_click.cpp
   dsp-core/src/denoise_voice.cpp
   dsp-core/src/meters.cpp
@@ -111,6 +114,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_exciter.cpp
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
+  dsp-core/src/chain_transfer.cpp
   dsp-core/src/chain_decode.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
@@ -125,6 +129,9 @@ target_compile_definitions(fluideq-dsp-core
   PUBLIC FEQ_CORE_VERSION="${FEQ_CORE_VERSION}")
 
 enable_testing()
+add_executable(fluideq-live-normalizer-test dsp-core/tests/live_normalizer_test.cpp)
+target_link_libraries(fluideq-live-normalizer-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME live-normalizer COMMAND fluideq-live-normalizer-test)
 
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
@@ -168,6 +175,10 @@ add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise COMMAND fluideq-denoise-test)
 
+add_executable(fluideq-denoise-live-test dsp-core/tests/denoise_live_test.cpp)
+target_link_libraries(fluideq-denoise-live-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME denoise-live COMMAND fluideq-denoise-live-test)
+
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)
@@ -179,6 +190,10 @@ add_test(NAME meters COMMAND fluideq-meters-test)
 add_executable(fluideq-chain-meters-test dsp-core/tests/chain_meters_test.cpp)
 target_link_libraries(fluideq-chain-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-meters COMMAND fluideq-chain-meters-test)
+
+add_executable(fluideq-chain-transfer-test dsp-core/tests/chain_transfer_test.cpp)
+target_link_libraries(fluideq-chain-transfer-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 
 add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
 target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)

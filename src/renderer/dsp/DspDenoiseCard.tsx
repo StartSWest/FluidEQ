@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
 import DspDenoiseBar from './DspDenoiseBar';
 import DspDenoiseGraph from './DspDenoiseGraph';
+import { useRackGate } from './rackPlacement';
 import {
   IDspInputAnalysisState,
   useDspDenoiseMeter,
@@ -31,15 +32,7 @@ export interface IDspVoiceModelState {
 
 interface IDspDenoiseCardProps {
   denoise: IDenoiseSettings;
-  /**
-   * Whether the rest of this page is running on everything, not only the
-   * Library — because this one stage is not.
-   *
-   * The system-wide engine lives inside audiodg.exe, a protected process that
-   * will not load the ONNX runtime the voice module needs, so Denoise is the
-   * one card on the page whose scope pill at the top does not apply to it.
-   * Silence about that reads as the stage being broken.
-   */
+  /** The selected playback engine; Library still owns its own restoration. */
   isSystemWide: boolean;
   analysisState: IDspInputAnalysisState;
   model: IDspVoiceModelState;
@@ -76,7 +69,11 @@ const DspDenoiseCard = ({
   const { t } = useTranslation();
   const meter = useDspDenoiseMeter();
   const nativeState = useDspNativeState();
-  const profile = analysisState.analysis?.noise;
+  const gate = useRackGate();
+  const isLive = isSystemWide && !gate.libraryAudible;
+  // A paused Library track is not a measurement of the external source.
+  const profile = isLive ? undefined : analysisState.analysis?.noise;
+  const profileSource = isLive ? 'adaptive' : denoise.profileSource;
 
   /**
    * The whole card goes inert when the native engine is not carrying audio.
@@ -88,7 +85,7 @@ const DspDenoiseCard = ({
    * that reports itself enabled while nothing runs is the lie the panel's
    * dimming cannot reach.
    */
-  const isBypassedByEngine = nativeState === 'failed';
+  const isBypassedByEngine = !isLive && nativeState === 'failed';
   const isEnabled = denoise.enabled && !isBypassedByEngine;
 
   const patch = (next: Partial<IDenoiseSettings>) => {
@@ -128,6 +125,9 @@ const DspDenoiseCard = ({
   }
   if (meter.voiceModelLoaded) {
     voiceHint = t('dsp.denoise.voiceHint');
+  }
+  if (isLive) {
+    voiceHint = t('dsp.denoise.voiceLibraryOnly');
   }
 
   return (
@@ -183,11 +183,8 @@ const DspDenoiseCard = ({
         </div>
       }
     >
-      {/* First thing in the card, above the graph, because it qualifies
-          everything below it: the page's own pill says system-wide and this
-          stage is the exception to it. */}
-      {isSystemWide ? (
-        <p className="dsp-band-hint">{t('dsp.denoise.libraryOnly')}</p>
+      {isLive ? (
+        <p className="dsp-band-hint">{t('dsp.denoise.liveHint')}</p>
       ) : undefined}
 
       {/* Above the numbers, because it is the reading that makes them mean
@@ -196,103 +193,118 @@ const DspDenoiseCard = ({
           taking hiss or taking the vocal. */}
       <DspDenoiseGraph
         profile={profile}
-        profileSource={denoise.profileSource}
+        profileSource={profileSource}
         hiss={denoise.hiss}
         hum={denoise.hum}
         click={denoise.click}
         isEnabled={isEnabled}
       />
 
-      <section className="dsp-denoise-analysis" aria-live="polite">
-        {/* The source mode describes this analysis, so a separate full-width
-            card for the same decision spent a complete row without adding a
-            second task. Keeping them together removes that dead height. */}
-        <div className="dsp-denoise-analysis-head">
-          <div className="dsp-denoise-analysis-label">
-            <span className="dsp-band-title">{t('dsp.denoise.analysis')}</span>
-            <span
-              className={`dsp-normalizer-status is-${analysisState.status}`}
-            >
-              {analysisState.status === 'analyzing'
-                ? t('dsp.denoise.analyzing', {
-                    progress: Math.round(analysisState.fraction * 100),
-                  })
-                : undefined}
-              {analysisState.status === 'idle' && !profile
-                ? t('dsp.denoise.waiting')
-                : undefined}
-            </span>
-          </div>
-          <div className="dsp-denoise-analysis-actions">
-            <div
-              className="segmented"
-              role="group"
-              aria-label={t('dsp.denoise.profileSource')}
-            >
-              {PROFILE_SOURCES.map(({ source, label }) => (
-                <button
-                  key={source}
-                  type="button"
-                  className={`segmented__option${
-                    denoise.profileSource === source ? ' is-selected' : ''
-                  }`}
-                  aria-pressed={denoise.profileSource === source}
-                  disabled={!isEnabled}
-                  onClick={() => commitPatch({ profileSource: source })}
-                >
-                  {t(label)}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="button small"
-              disabled={
-                !isEnabled ||
-                denoise.profileSource !== 'scanned' ||
-                isScanning ||
-                !analysisState.trackId
-              }
-              onClick={onRescan}
-            >
-              {t('dsp.denoise.rescan')}
-            </button>
-          </div>
-        </div>
-        {isEnabled && isWaitingForScan ? (
-          <p className="dsp-band-hint">{t('dsp.denoise.scanRequired')}</p>
-        ) : null}
-        <div
-          className="dsp-normalizer-progress"
-          role="progressbar"
-          aria-label={t('dsp.denoise.analysis')}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(analysisState.fraction * 100)}
-        >
-          <span style={{ width: `${analysisState.fraction * 100}%` }} />
-        </div>
-        <dl className="dsp-normalizer-stats">
+      {isLive ? (
+        <dl className="dsp-normalizer-stats" aria-live="polite">
           <div>
             <dt>{t('dsp.denoise.measuredFloor')}</dt>
-            <dd>{value(profile?.floorDbfs, 'dBFS')}</dd>
-          </div>
-          <div>
-            <dt>{t('dsp.denoise.measuredHum')}</dt>
-            <dd>{humReading}</dd>
-          </div>
-          <div>
-            <dt>{t('dsp.denoise.measuredClicks')}</dt>
             <dd>
-              {profile === undefined
-                ? '—'
-                : t('dsp.denoise.perMinute', {
-                    count: profile.clicksPerMinute.toFixed(1),
-                  })}
+              {isEnabled && meter.noiseFloorDb > -120
+                ? value(meter.noiseFloorDb, 'dBFS')
+                : '—'}
             </dd>
           </div>
         </dl>
-      </section>
+      ) : (
+        <section className="dsp-denoise-analysis" aria-live="polite">
+          {/* The source mode describes this analysis, so a separate full-width
+            card for the same decision spent a complete row without adding a
+            second task. Keeping them together removes that dead height. */}
+          <div className="dsp-denoise-analysis-head">
+            <div className="dsp-denoise-analysis-label">
+              <span className="dsp-band-title">
+                {t('dsp.denoise.analysis')}
+              </span>
+              <span
+                className={`dsp-normalizer-status is-${analysisState.status}`}
+              >
+                {analysisState.status === 'analyzing'
+                  ? t('dsp.denoise.analyzing', {
+                      progress: Math.round(analysisState.fraction * 100),
+                    })
+                  : undefined}
+                {analysisState.status === 'idle' && !profile
+                  ? t('dsp.denoise.waiting')
+                  : undefined}
+              </span>
+            </div>
+            <div className="dsp-denoise-analysis-actions">
+              <div
+                className="segmented"
+                role="group"
+                aria-label={t('dsp.denoise.profileSource')}
+              >
+                {PROFILE_SOURCES.map(({ source, label }) => (
+                  <button
+                    key={source}
+                    type="button"
+                    className={`segmented__option${
+                      denoise.profileSource === source ? ' is-selected' : ''
+                    }`}
+                    aria-pressed={denoise.profileSource === source}
+                    disabled={!isEnabled}
+                    onClick={() => commitPatch({ profileSource: source })}
+                  >
+                    {t(label)}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="button small"
+                disabled={
+                  !isEnabled ||
+                  denoise.profileSource !== 'scanned' ||
+                  isScanning ||
+                  !analysisState.trackId
+                }
+                onClick={onRescan}
+              >
+                {t('dsp.denoise.rescan')}
+              </button>
+            </div>
+          </div>
+          {isEnabled && isWaitingForScan ? (
+            <p className="dsp-band-hint">{t('dsp.denoise.scanRequired')}</p>
+          ) : null}
+          <div
+            className="dsp-normalizer-progress"
+            role="progressbar"
+            aria-label={t('dsp.denoise.analysis')}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(analysisState.fraction * 100)}
+          >
+            <span style={{ width: `${analysisState.fraction * 100}%` }} />
+          </div>
+          <dl className="dsp-normalizer-stats">
+            <div>
+              <dt>{t('dsp.denoise.measuredFloor')}</dt>
+              <dd>{value(profile?.floorDbfs, 'dBFS')}</dd>
+            </div>
+            <div>
+              <dt>{t('dsp.denoise.measuredHum')}</dt>
+              <dd>{humReading}</dd>
+            </div>
+            <div>
+              <dt>{t('dsp.denoise.measuredClicks')}</dt>
+              <dd>
+                {profile === undefined
+                  ? '—'
+                  : t('dsp.denoise.perMinute', {
+                      count: profile.clicksPerMinute.toFixed(1),
+                    })}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      )}
 
       <div className="dsp-denoise-modules">
         <div className="dsp-band dsp-denoise-module is-hiss">
@@ -517,8 +529,8 @@ const DspDenoiseCard = ({
             <span className="dsp-band-title">{t('dsp.denoise.voice')}</span>
             <Switch
               id="dsp-denoise-voice"
-              isOn={denoise.voice.enabled}
-              isDisabled={!isEnabled || !meter.voiceModelLoaded}
+              isOn={!isLive && denoise.voice.enabled}
+              isDisabled={isLive || !isEnabled || !meter.voiceModelLoaded}
               handleToggle={() =>
                 commitPatch({
                   voice: { ...denoise.voice, enabled: !denoise.voice.enabled },
@@ -537,7 +549,10 @@ const DspDenoiseCard = ({
               unit=""
               step={0.01}
               isDisabled={
-                !isEnabled || !denoise.voice.enabled || !meter.voiceModelLoaded
+                isLive ||
+                !isEnabled ||
+                !denoise.voice.enabled ||
+                !meter.voiceModelLoaded
               }
               onCommit={onCommit}
               onChange={(amount) =>
@@ -549,7 +564,7 @@ const DspDenoiseCard = ({
               control that turns on and changes nothing is worse than one that
               says why it cannot. */}
           <p className="dsp-band-hint">{voiceHint}</p>
-          {model.state !== 'ready' && !meter.voiceModelLoaded ? (
+          {!isLive && model.state !== 'ready' && !meter.voiceModelLoaded ? (
             <div className="dsp-denoise-model">
               <button
                 type="button"

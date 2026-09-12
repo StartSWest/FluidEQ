@@ -57,6 +57,7 @@ double fundamental_for(const FeqDenoise* denoise) {
 }  // namespace
 
 void denoise_hum_configure(FeqDenoise* denoise) {
+  denoise_live_hum_configure(denoise->live_hum, denoise->sample_rate, denoise->settings);
   denoise->hum_coefficients.clear();
 
   const auto& settings = denoise->settings.hum;
@@ -140,6 +141,7 @@ void denoise_hum_configure(FeqDenoise* denoise) {
 }
 
 void denoise_hum_reset(FeqDenoise* denoise) {
+  denoise_live_hum_reset(denoise->live_hum);
   for (auto& channel : denoise->hum) {
     for (auto& state : channel.states) {
       feq_biquad_reset(&state);
@@ -150,6 +152,13 @@ void denoise_hum_reset(FeqDenoise* denoise) {
 void denoise_hum_process(FeqDenoise* denoise,
                          float* const* channels,
                          uint32_t frames) {
+  if (denoise->settings.hum.enabled != 0 &&
+      denoise->settings.hum.mode == FEQ_DENOISE_HUM_AUTO &&
+      denoise->settings.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE &&
+      !denoise->profile_ready) {
+    denoise_live_hum_process(denoise->live_hum, channels, denoise->channels, frames);
+    return;
+  }
   if (denoise->settings.hum.enabled == 0 ||
       denoise->hum_coefficients.empty()) {
     return;

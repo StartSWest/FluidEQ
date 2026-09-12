@@ -85,6 +85,8 @@ import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
+import EqModeSelect from './components/EqModeSelect';
+import FluidEngineLabel from './components/FluidEngineLabel';
 import Chevron from './icons/Chevron';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
@@ -1018,6 +1020,7 @@ const MainContent = () => {
         <div>
           <span className="eyebrow">{t('eq.eyebrow')}</span>
           <h2>{t('eq.title')}</h2>
+          <FluidEngineLabel />
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />
@@ -1168,6 +1171,7 @@ const MainContent = () => {
             <MenuIcon name="reset" className="eq-toolbar__icon" />
             {t('eq.clear')}
           </Button>
+          <EqModeSelect />
           <Button
             ariaLabel={t('eq.addBandAria')}
             isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}

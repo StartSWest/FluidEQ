@@ -247,6 +247,12 @@ struct FeqChain {
   double convolver_blend[FEQ_CHAIN_CHANNELS] = {0.0, 0.0};
   int64_t convolver_warmup = 0;
   int64_t convolver_priming = 0;
+  bool defer_convolver_retirement = false;
+  FeqConvolverKernel* queued_kernel = nullptr;
+  FeqConvolver* queued_convolvers[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+  FeqConvolverKernel* retired_kernels[2] = {nullptr, nullptr};
+  FeqConvolver* retired_convolvers[2][FEQ_CHAIN_CHANNELS] = {};
+  uint32_t retired_count = 0;
 
   /**
    * A prepared kernel and its convolvers, in transit from control to audio.
@@ -375,6 +381,7 @@ struct FeqChain {
 
   /* ------------------------------------------------------- track level -- */
   double input_gain_now = 1.0;
+  FeqLiveNormalizer* live_normalizer = nullptr;
   double input_gain_target_db = 0.0;
   double input_gain_start_db = 0.0;
   double master_loudness_now_db = 0.0;

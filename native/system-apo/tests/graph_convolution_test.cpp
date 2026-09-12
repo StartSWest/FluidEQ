@@ -145,6 +145,27 @@ void convolution_at_other_rate_is_resampled() {
   std::filesystem::remove(path, ignored);
 }
 
+void repeated_convolution_really_runs_twice() {
+  const auto path = std::filesystem::temp_directory_path() / "fluideq-engine-ir-double.wav";
+  const Chain chain = convolution_chain(path, kRate, two_tap_impulse_response(),
+                                       "Convolution: " + path.string() + "\r\n");
+  CHECK(chain.convolution_passes == 2);
+  Graph graph(chain, kRate, 2, 512);
+  CHECK(graph.latency_frames() == 2 * feq_convolver_latency());
+  CHECK(graph.problems().empty());
+  std::vector<std::vector<float>> channels(2, std::vector<float>(2048, 0.0f));
+  channels[0][0] = 1.0f;
+  channels[1][0] = 0.5f;
+  run_blocks(graph, channels, 512);
+  const size_t latency = graph.latency_frames();
+  CHECK(std::fabs(channels[0][latency] - 1.0f) < 1e-4);
+  CHECK(std::fabs(channels[0][latency + 48] - 1.0f) < 1e-4);
+  CHECK(std::fabs(channels[0][latency + 96] - 0.25f) < 1e-4);
+  CHECK(std::fabs(channels[1][latency + 48] - 0.5f) < 1e-4);
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
+}
+
 void convolution_and_graphic_eq_combine() {
   std::printf("a convolution file and a flat graphic curve run in series\n");
   const std::filesystem::path path =
@@ -421,11 +442,53 @@ void absurd_sample_rate_caps_the_graphic_fir() {
         feq_convolver_latency() + kCappedGraphicTaps / 2);
 }
 
+void unchanged_convolution_survives_other_edits() {
+  const auto path = std::filesystem::temp_directory_path() /
+                    "fluideq-engine-ir-edit-transfer.wav";
+  for (const bool graphic : {false, true}) {
+    Chain before = graphic ? chain_from("GraphicEQ: 20 0; 1000 -3; 20000 0\r\n") :
+        convolution_chain(path, kRate, two_tap_impulse_response());
+    Graph running(before, kRate, 2, 128);
+    std::vector<std::vector<float>> warm(2, tone(1000.0, 0.2, kRate, 0));
+    run_blocks(running, warm, 128);
+    Chain edited = before;
+    edited.preamp_db = -3.0;
+    Graph next(edited, kRate, 2, 128);
+    Graph cold(edited, kRate, 2, 128);
+    next.request_state_transfer();
+    next.adopt_state(&running);
+    std::vector<std::vector<float>> continued(2, tone(1000.0, 0.2, 128, kRate));
+    auto control = continued;
+    run_blocks(next, continued, 128);
+    run_blocks(cold, control, 128);
+    CHECK(rms_db(continued[0], 0, 128) > -30.0);
+    CHECK(rms_db(control[0], 0, 128) < -60.0);
+    if (!graphic) {
+      auto replacement = two_tap_impulse_response();
+      for (float& sample : replacement) {
+        sample *= 0.25f;
+      }
+      const Chain replaced = convolution_chain(path, kRate, replacement);
+      Graph changed(replaced, kRate, 2, 128);
+      changed.request_state_transfer();
+      changed.adopt_state(&next);
+      auto changed_audio = control;
+      changed_audio.assign(2, tone(1000.0, 0.2, kRate, 0));
+      run_blocks(changed, changed_audio, 128);
+      CHECK(std::fabs(rms_db(changed_audio[0], kRate / 2, kRate) -
+                      rms_db(warm[0], kRate / 2, kRate) + 12.0412) < 0.01);
+    }
+  }
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
+}
+
 }  // namespace
 
 int main() {
   std::printf("fluideq engine convolution and graphic EQ\n");
   convolution_applies_kernel();
+  repeated_convolution_really_runs_twice();
   convolution_at_other_rate_is_resampled();
   convolution_and_graphic_eq_combine();
   stereo_convolvers_do_not_share_history();
@@ -435,5 +498,6 @@ int main() {
   everything_on_one_output_applies();
   unreadable_impulse_response_is_survived();
   absurd_sample_rate_caps_the_graphic_fir();
+  unchanged_convolution_survives_other_edits();
   return report();
 }

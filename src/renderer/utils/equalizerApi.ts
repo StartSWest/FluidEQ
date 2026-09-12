@@ -866,6 +866,25 @@ export const forgetSongEq = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
+export const setEqShape = (
+  scope: 'eq' | 'curves',
+  kind: 'q' | 'smoothing',
+  value: NonNullable<IState['eqBandQ'] | IState['curveSmoothing']>,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_EQ_SHAPE;
+  window.electron.ipcRenderer.sendMessage(channel, [scope, kind, value]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+export const setEqMode = (
+  mode: NonNullable<IState['eqMode']>,
+  scope: 'eq' | 'curves' = 'eq',
+): Promise<void> => {
+  const channel = ChannelEnum.SET_EQ_MODE;
+  window.electron.ipcRenderer.sendMessage(channel, [mode, scope]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 /**
  * Switch a layer out of the Equalizer APO config, or back into it.
  *

@@ -18,6 +18,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.mode.customized': 'Custom',
+  'eq.mode.strength': 'Strength',
+  'eq.mode.q': 'Band Q',
+  'eq.mode.smoothing': 'Curve smoothing',
+  'eq.mode.constant': 'Constant',
+  'eq.mode.proportional': 'Proportional',
+  'eq.mode.asymmetric': 'Asymmetric',
+  'eq.mode.off': 'Off',
+  'eq.mode.twelfth': '1/12 octave',
+  'eq.mode.third': '1/3 octave',
+  'eq.mode.shapeHint':
+    'Q changes bell bands. Smoothing changes sampled curves. DSP stays unchanged.',
+  'eq.mode.constantHint':
+    "Preserves every band's original Q without overriding it.",
+  'eq.mode.proportionalHint': 'Stronger boosts and cuts become narrower.',
+  'eq.mode.asymmetricHint': 'Broader boosts and narrower cuts.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'EQ mode',
+  'eq.mode.normal': 'Normal',
+  'eq.mode.studio': 'Studio',
+  'eq.mode.yourEq': 'Your EQ',
+  'eq.mode.curves': 'Curves',
+  'eq.studioHint':
+    'Boosts or cuts the selected group by ×1.5, with gain-dependent bell width. DSP is unchanged.',
+  'eq.doubleHint':
+    'Applies the selected EQ group twice. DSP and preamp are unchanged.',
   'graph.resize': 'Drag to resize the graph',
   'graph.view.title': 'How much of the screen the graph gets',
   'graph.view.normal': 'View',

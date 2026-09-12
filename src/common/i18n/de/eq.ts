@@ -20,6 +20,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Individuell',
+  'eq.mode.strength': 'Stärke',
+  'eq.mode.q': 'Band-Q',
+  'eq.mode.smoothing': 'Kurvenglättung',
+  'eq.mode.constant': 'Konstant',
+  'eq.mode.proportional': 'Proportional',
+  'eq.mode.asymmetric': 'Asymmetrisch',
+  'eq.mode.off': 'Aus',
+  'eq.mode.twelfth': '1/12 Oktave',
+  'eq.mode.third': '1/3 Oktave',
+  'eq.mode.shapeHint':
+    'Q verändert Glockenfilter. Glättung verändert abgetastete Kurven. DSP bleibt unverändert.',
+  'eq.mode.constantHint': 'Behält die ursprüngliche Breite jedes Bands bei.',
+  'eq.mode.proportionalHint':
+    'Stärkere Anhebungen und Absenkungen werden schmaler.',
+  'eq.mode.asymmetricHint': 'Breitere Anhebungen und schmalere Absenkungen.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'EQ-Modus',
+  'eq.mode.normal': 'Normal',
+  'eq.mode.studio': 'Studio',
+  'eq.mode.yourEq': 'Dein EQ',
+  'eq.mode.curves': 'Kurven',
+  'eq.studioHint':
+    'Verstärkt die gewählte Gruppe um ×1.5 mit pegelabhängiger Glockenbreite. DSP bleibt unverändert.',
+  'eq.doubleHint':
+    'Wendet die gewählte EQ-Gruppe zweimal an. DSP und Vorverstärkung bleiben unverändert.',
   'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',
   'graph.view.title': 'Wie viel Bildschirmfläche das Diagramm erhält',
   'graph.view.normal': 'Ansicht',

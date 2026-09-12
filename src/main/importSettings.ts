@@ -29,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
+import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import {
   AutoEqFormat,
   clampGain,
@@ -65,6 +66,12 @@ const SUPPORTED_SAMPLE_RATES = [
 export interface IImportedEq {
   preAmp: number;
   filters: IFiltersMap;
+  isEqDoubleOn?: boolean;
+  eqMode?: IPresetV2['eqMode'];
+  curveEqMode?: IPresetV2['curveEqMode'];
+  eqBandQ?: IPresetV2['eqBandQ'];
+  curveBandQ?: IPresetV2['curveBandQ'];
+  curveSmoothing?: IPresetV2['curveSmoothing'];
   eqFormat: AutoEqFormat;
   graphicEq?: IGraphicEqPoint[];
   /** What the file was recognised as, for the confirmation message. */
@@ -218,6 +225,12 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       filters: preset.filters,
       eqFormat: preset.eqFormat ?? AutoEqFormat.PARAMETRIC,
       graphicEq: preset.graphicEq,
+      eqMode: getEqMode(preset),
+      curveEqMode: getCurveEqMode(preset),
+      eqBandQ: preset.eqBandQ,
+      curveBandQ: preset.curveBandQ,
+      curveSmoothing: preset.curveSmoothing,
+      isEqDoubleOn: getEqMode(preset) === 'double',
       sourceLabel: `${PRODUCT_NAME} profile`,
       unsupported: 0,
     };

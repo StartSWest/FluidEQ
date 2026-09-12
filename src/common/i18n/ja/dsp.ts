@@ -17,6 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 const dsp = {
+  'dsp.normalizer.liveTitle': 'ライブレベル制御',
+  'dsp.normalizer.livePeak': 'ピーク保護',
+  'dsp.normalizer.liveLeveling': 'ライブ音量調整',
+  'dsp.normalizer.learning': '音源を学習中',
+  'dsp.normalizer.holding': 'ゲインを保持',
+  'dsp.normalizer.liveLimited': 'ゲイン制限中',
+  'dsp.normalizer.liveGuidance':
+    'ライブ音量調整は番組の音量を学習してから徐々に調整します。静かな部分ではゲインを保持し、増幅は6 dBと利用可能なピーク余裕の範囲に制限します。目標値への到達は保証されません。無音を挟まず音源を切り替えた場合は、一度オフにして再び有効にすると再学習します。既存の歪みは修復できません。',
+  'dsp.denoise.liveHint':
+    '外部音声ではノイズフロアをリアルタイムで適応的に測定します。ヒスノイズ、クリック、50/60 Hzのハムを再生中の音源から低減します。ハムの自動検出は持続する電源高調波を待ちます。',
+  'dsp.denoise.voiceLibraryOnly':
+    'ニューラル音声処理はライブラリ再生のみで利用できます。ヒスノイズ、ハム、クリックの低減は外部音声でも動作します。',
+  'dsp.normalizer.liveDescription':
+    '再生中の外部音声を測定し、両チャンネルを同時に調整して、エキサイターとEQの前でピークを保護します。',
+  'dsp.normalizer.liveAnalysis': '入力音声のリアルタイム解析',
+  'dsp.normalizer.shortTerm': '短時間ラウドネス',
+  'dsp.normalizer.liveHonesty':
+    'ラウドネスは3秒後に安定し、緩やかに調整されます。静かな部分ではゲインを維持し、ピーク保護は有効のままです。元の音声に含まれる歪みは修復できません。',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP はライブラリから再生する音声トラックのみを処理します。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',

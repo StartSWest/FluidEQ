@@ -55,6 +55,7 @@ struct Chain {
   // Empty when no `Convolution:` line applied. Absolute: a relative one on
   // disk has already been joined to the config directory.
   std::wstring convolution_path;
+  uint32_t convolution_passes = 1;
   /**
    * Every `GraphicEQ:` line that applied, one curve each, in file order.
    *
@@ -69,6 +70,9 @@ struct Chain {
   std::vector<std::vector<GraphicPoint>> graphic_curves;
   std::vector<Band> bands;
   double preamp_db = 0.0;
+  bool auto_preamp = false;
+  bool output_guard = false;
+  bool stable_graphic = false;
   /**
    * The DSP rack, exactly as `encodeChainSettings` wrote it.
    *

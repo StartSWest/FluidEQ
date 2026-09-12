@@ -20,6 +20,7 @@ import { ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
+import { getEqMode, getCurveEqMode } from '../../common/eqMode';
 import {
   IAudioDevice,
   IDeviceProfileAssignment,
@@ -154,7 +155,7 @@ export interface IProfilesIpcDeps {
   availableProfileNameForActiveDevice: (presetName: string) => string;
   resetStateToDefaults: () => void;
   /** Re-read APO's config after this process wrote it, so the two agree. */
-  adoptExistingApoConfig: () => void;
+  adoptExistingApoConfig: () => boolean | void;
   /** Adopt a device's stored chain into the live state, minus app-wide flags. */
   applyDeviceState: (next: IState) => void;
   captureCurrentLayout: () => void;
@@ -214,6 +215,12 @@ export const registerProfilesIpc = ({
       state.graphicEq = presetSettings.graphicEq;
       state.convolution = presetSettings.convolution;
       state.isFlat = presetSettings.isFlat;
+      state.eqMode = getEqMode(presetSettings);
+      state.curveEqMode = getCurveEqMode(presetSettings);
+      state.eqBandQ = presetSettings.eqBandQ;
+      state.curveBandQ = presetSettings.curveBandQ;
+      state.curveSmoothing = presetSettings.curveSmoothing;
+      state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = presetSettings.voicing;
       state.driver = presetSettings.driver;
       state.smartEq = presetSettings.smartEq;
@@ -261,6 +268,12 @@ export const registerProfilesIpc = ({
       state.graphicEq = baseline.graphicEq;
       state.convolution = baseline.convolution;
       state.isFlat = baseline.isFlat;
+      state.eqMode = getEqMode(baseline);
+      state.curveEqMode = getCurveEqMode(baseline);
+      state.eqBandQ = baseline.eqBandQ;
+      state.curveBandQ = baseline.curveBandQ;
+      state.curveSmoothing = baseline.curveSmoothing;
+      state.isEqDoubleOn = state.eqMode === 'double';
       state.voicing = baseline.voicing;
       state.driver = baseline.driver;
       state.smartEq = baseline.smartEq;
@@ -539,7 +552,16 @@ export const registerProfilesIpc = ({
         // to look up, and the state beside it is that endpoint's. It has to
         // happen before the save and the flush below, both of which write this
         // state over whatever the file was saying.
-        adoptExistingApoConfig();
+        if (adoptExistingApoConfig() === false) {
+          notifyOutputStateChanged();
+          handleError(
+            event,
+            channel,
+            ErrorCode.FAILURE,
+            'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
+          );
+          return;
+        }
         save(state, userDataDir);
         captureCurrentLayout();
 

@@ -20,6 +20,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Свой',
+  'eq.mode.strength': 'Интенсивность',
+  'eq.mode.q': 'Добротность полос',
+  'eq.mode.smoothing': 'Сглаживание кривых',
+  'eq.mode.constant': 'Постоянная',
+  'eq.mode.proportional': 'Пропорциональная',
+  'eq.mode.asymmetric': 'Асимметричная',
+  'eq.mode.off': 'Выкл.',
+  'eq.mode.twelfth': '1/12 октавы',
+  'eq.mode.third': '1/3 октавы',
+  'eq.mode.shapeHint':
+    'Q меняет колоколообразные полосы. Сглаживание меняет дискретные кривые. DSP не меняется.',
+  'eq.mode.constantHint': 'Сохраняет исходную ширину каждой полосы.',
+  'eq.mode.proportionalHint':
+    'Более сильные усиления и ослабления становятся уже.',
+  'eq.mode.asymmetricHint': 'Более широкие усиления и более узкие ослабления.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'Режим EQ',
+  'eq.mode.normal': 'Обычный',
+  'eq.mode.studio': 'Студийный',
+  'eq.mode.yourEq': 'Ваш EQ',
+  'eq.mode.curves': 'Кривые',
+  'eq.studioHint':
+    'Умножает усиление выбранной группы на ×1.5 и меняет ширину колоколов. DSP не меняется.',
+  'eq.doubleHint':
+    'Применяет выбранную группу EQ дважды. DSP и предусиление не меняются.',
   'graph.resize': 'Потяните, чтобы изменить размер графика',
   'graph.view.title': 'Размер графика на экране',
   'graph.view.normal': 'Вид',

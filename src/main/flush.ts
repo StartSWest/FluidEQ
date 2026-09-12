@@ -321,6 +321,36 @@ export const fetchSettings = (settingsDir: string) => {
         typeof input.isAutoPreAmpOn === 'boolean'
           ? input.isAutoPreAmpOn
           : fallbackState.isAutoPreAmpOn,
+      isEqDoubleOn: input.isEqDoubleOn === true,
+      ...(input.curveEqMode === 'normal' ||
+      input.curveEqMode === 'double' ||
+      input.curveEqMode === 'studio'
+        ? { curveEqMode: input.curveEqMode }
+        : {}),
+      ...(input.eqBandQ === 'off' ||
+      input.eqBandQ === 'fixed' ||
+      input.eqBandQ === 'constant' ||
+      input.eqBandQ === 'proportional' ||
+      input.eqBandQ === 'asymmetric'
+        ? { eqBandQ: input.eqBandQ }
+        : {}),
+      ...(input.curveBandQ === 'off' ||
+      input.curveBandQ === 'fixed' ||
+      input.curveBandQ === 'constant' ||
+      input.curveBandQ === 'proportional' ||
+      input.curveBandQ === 'asymmetric'
+        ? { curveBandQ: input.curveBandQ }
+        : {}),
+      ...(input.curveSmoothing === 'off' ||
+      input.curveSmoothing === 'twelfth' ||
+      input.curveSmoothing === 'third'
+        ? { curveSmoothing: input.curveSmoothing }
+        : {}),
+      ...(input.eqMode === 'normal' ||
+      input.eqMode === 'double' ||
+      input.eqMode === 'studio'
+        ? { eqMode: input.eqMode }
+        : {}),
       isGraphViewOn:
         typeof input.isGraphViewOn === 'boolean'
           ? input.isGraphViewOn

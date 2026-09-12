@@ -27,7 +27,11 @@ bool decode_dsp_chain(const std::vector<double>& values,
   }
   // Into a local first, so a refusal above leaves the caller's struct alone —
   // the same contract `feq_chain_settings_decode` keeps for its own `out`.
-  decoded.denoise.enabled = 0;
+  // Only the neural runtime is unavailable in audiodg. Disabling the whole
+  // restoration stage also discarded the self-contained hiss/hum/click DSP.
+  // External streams have no Library scan; learn their floor from live audio.
+  decoded.denoise.voice.enabled = 0;
+  decoded.denoise.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
   *out = decoded;
   return true;
 }
@@ -42,6 +46,7 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
 
   FeqChainSettings settings = {};
   if (!decode_dsp_chain(values, &settings)) {
+    built.failed = true;
     warnings.push_back("DSP rack file could not be read (" +
                        std::to_string(values.size()) +
                        " values); the rack is bypassed.");
@@ -62,11 +67,18 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   built.chain.reset(
       feq_chain_create(static_cast<double>(sample_rate), wanted, max_frames));
   if (!built.chain) {
+    built.failed = true;
     warnings.push_back("DSP rack could not be prepared; the rack is bypassed.");
     return built;
   }
   built.channels = wanted;
   feq_chain_configure(built.chain.get(), &settings);
+  if (feq_chain_enable_live_normalizer(built.chain.get()) == 0) {
+    built.failed = true;
+    built.chain.reset();
+    warnings.push_back("Live input normalization could not be prepared.");
+    return built;
+  }
 
   /**
    * One block of silence, here rather than on the audio thread.

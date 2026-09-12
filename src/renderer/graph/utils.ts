@@ -79,24 +79,11 @@ const getTFCoefficients = (filter: IFilter) => {
   let alpha = 0;
   let beta = 0;
 
-  let quality = userQuality;
+  const quality = userQuality;
 
   const shelfFilters = new Set([FilterTypeEnum.HSC, FilterTypeEnum.LSC]);
   if (shelfFilters.has(filterType)) {
-    // A fixed-slope shelf would pin its Q here rather than reading the knob.
-    // None are enabled; see FilterTypeEnum for the full list held back.
-    if (
-      filterType === FilterTypeEnum.LSC ||
-      filterType === FilterTypeEnum.HSC
-    ) {
-      quality /= 2;
-      // } else if ( filterType in {'low-shelf-db', 'high-shelf-db'}){
-      //     quality = 1 / (((1/(quality**2))-2)/(gain+1/gain)+1)
-    }
-
-    alpha =
-      (Math.sin(omega) / 2) *
-      Math.sqrt((gain + 1 / gain) * (1 / quality - 1) + 2);
+    alpha = Math.sin(omega) / (2 * quality);
     beta = 2 * Math.sqrt(gain) * alpha;
 
     // If filter is a low shelf {'low-shelf-fixed', 'low-shelf-q', 'low-shelf-db'}

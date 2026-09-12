@@ -614,6 +614,10 @@ export const useDspDenoiseMeter = (): IDspDenoiseMeter =>
   );
 
 export interface IDspNormalizerMeter {
+  inputTruePeakDb?: number;
+  inputLufs?: number;
+  referenceLufs?: number;
+  levelState?: number;
   inputPeaks: readonly [number, number];
   outputPeaks: readonly [number, number];
   appliedGainDb: number;
@@ -651,7 +655,11 @@ export const setDspNormalizerMeter = (next: IDspNormalizerMeter): void => {
   normalizerMeter =
     nextHasProgramme || !heldHasProgramme
       ? next
-      : { ...normalizerMeter, appliedGainDb: next.appliedGainDb };
+      : {
+          ...next,
+          inputPeaks: normalizerMeter.inputPeaks,
+          outputPeaks: normalizerMeter.outputPeaks,
+        };
   normalizerMeterListeners.forEach((listener) => listener());
 };
 
@@ -1012,6 +1020,43 @@ export const setDspScatter = (next: Float32Array): void => {
 };
 
 export const readDspScatter = (): Float32Array => scatter;
+
+/** A stopped source has no current measurements; do not retain its last bars. */
+export const clearDspMeterTelemetry = (): void => {
+  normalizerMeter = {
+    inputPeaks: [0, 0],
+    outputPeaks: [0, 0],
+    appliedGainDb: 0,
+  };
+  normalizerMeterListeners.forEach((listener) => listener());
+  setDspDenoiseMeter(DENOISE_METER_IDLE);
+  setDspOutputSafetyMeter({
+    ...outputSafetyMeter,
+    postFilterNormalizer: { gainReductionDb: 0, inputTruePeakDb: -120 },
+    gainReductionDb: 0,
+    inputTruePeakDb: -120,
+    dcCorrectionDb: -120,
+    repairedSamples: 0,
+  });
+  setDspPeak(0);
+  setDspChannelPeaks([0, 0]);
+  setDspCorrelation(1);
+  setDspScatter(new Float32Array(0));
+  setDspBandAmounts([]);
+  setDspBandLevels([]);
+  setDspExciterActivity([0, 0, 0], 0);
+  setDspMaximizerReduction(0);
+  setDspDimensionGuard(1);
+  const floor = new Array<number>(ANALYSIS_BASS_FORGE_BANDS).fill(-120);
+  setDspBassForgeBands(floor, floor);
+  setDspBassPunchActivity(0, 0, 0);
+  setDspLoudness({
+    momentaryLufs: -120,
+    shortTermLufs: -120,
+    integratedLufs: -120,
+    rangeLu: 0,
+  });
+};
 
 /**
  * Which of the phase block’s three views is showing, if any.

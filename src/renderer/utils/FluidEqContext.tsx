@@ -411,6 +411,13 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const DEFAULT_STATE = getDefaultState();
 
   const [isEnabled, setIsEnabled] = useState<boolean>(DEFAULT_STATE.isEnabled);
+  const [isEqDoubleOn, setIsEqDoubleOn] = useState(false);
+  const [eqMode, setEqMode] = useState<IState['eqMode']>();
+  const [curveEqMode, setCurveEqMode] = useState<IState['curveEqMode']>();
+  const [eqBandQ, setEqBandQ] = useState<IState['eqBandQ']>();
+  const [curveBandQ, setCurveBandQ] = useState<IState['curveBandQ']>();
+  const [curveSmoothing, setCurveSmoothing] =
+    useState<IState['curveSmoothing']>();
   const [isAutoPreAmpOn, setAutoPreAmpOn] = useState<boolean>(
     DEFAULT_STATE.isAutoPreAmpOn,
   );
@@ -592,6 +599,12 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         // Keep the persisted preference so Auto normalize can be disabled for
         // users who want to set the APO preamp manually.
         setAutoPreAmpOn(state.isAutoPreAmpOn);
+        setIsEqDoubleOn(state.isEqDoubleOn === true);
+        setEqMode(state.eqMode);
+        setCurveEqMode(state.curveEqMode);
+        setEqBandQ(state.eqBandQ);
+        setCurveBandQ(state.curveBandQ);
+        setCurveSmoothing(state.curveSmoothing);
         setGraphViewOn(state.isGraphViewOn);
         setPreAmp(state.preAmp);
         setIsFlat(state.isFlat);
@@ -785,6 +798,12 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         customFx,
         setHeadphone,
         bypassed,
+        isEqDoubleOn,
+        eqMode,
+        curveEqMode,
+        eqBandQ,
+        curveBandQ,
+        curveSmoothing,
         setDriver,
         setVoicing,
         setSmartEq,

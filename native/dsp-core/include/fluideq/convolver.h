@@ -64,6 +64,7 @@ void feq_dft_in_place(FeqDft* plan,
 
 uint32_t feq_convolver_latency(void);
 uint32_t feq_convolver_warmup(void);
+uint64_t feq_convolver_kernel_warmup(const FeqConvolverKernel* kernel);
 
 /**
  * Transform a kernel into partitioned spectra. Allocates; never on the audio
@@ -79,6 +80,15 @@ void feq_convolver_destroy(FeqConvolver* state);
 
 /** Real-time safe: every buffer it touches was allocated by `create`. */
 void feq_convolve(FeqConvolver* state, float* buffer, uint32_t frames);
+/**
+ * Copies input history and queued output into preallocated equal-size storage.
+ * A cold 4097-tap graphic FIR muted the next 53 ms on every smoothing edit.
+ * Both kernels now share that input history and crossfade sample by sample;
+ * an interrupted fade starts from its current response. No previous pointer
+ * survives this call, so retiring the previous graph cannot free live state.
+ */
+int feq_convolver_transfer(FeqConvolver* state, const FeqConvolver* previous,
+                           uint32_t transition_frames);
 
 /**
  * Cross-fade from one kernel to another while both run.

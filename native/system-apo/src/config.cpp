@@ -296,12 +296,26 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
               ? std::optional<std::wstring>(wide_body)
               : resolve_relative(config_dir, wide_body);
       if (resolved) {
+        chain.convolution_passes = chain.convolution_path == *resolved
+            ? std::min(chain.convolution_passes + 1u, 8u) : 1u;
         chain.convolution_path = *resolved;
         chain.matched = true;
       }
       continue;
     }
 
+    if (detail::iequals(line.command, "FluidEQAutoPreamp")) {
+      if (line.body == "ON" || line.body == "OFF") {
+        chain.output_guard = true;
+        chain.auto_preamp = line.body == "ON";
+        if (chain.auto_preamp) chain.preamp_db = 0.0;
+      }
+      continue;
+    }
+    if (detail::iequals(line.command, "FluidEQCurveStage")) {
+      chain.stable_graphic = line.body == "ON";
+      continue;
+    }
     if (detail::iequals(line.command, "Preamp")) {
       if (const std::optional<double> value = parse_preamp(line.body)) {
         chain.preamp_db = *value;

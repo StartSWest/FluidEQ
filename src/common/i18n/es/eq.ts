@@ -20,6 +20,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.customized': 'Personalizado',
+  'eq.mode.strength': 'Intensidad',
+  'eq.mode.q': 'Q de bandas',
+  'eq.mode.smoothing': 'Suavizado de curvas',
+  'eq.mode.constant': 'Constante',
+  'eq.mode.proportional': 'Proporcional',
+  'eq.mode.asymmetric': 'Asimétrica',
+  'eq.mode.off': 'Desactivado',
+  'eq.mode.twelfth': '1/12 de octava',
+  'eq.mode.third': '1/3 de octava',
+  'eq.mode.shapeHint':
+    'Q modifica las bandas de campana. El suavizado modifica las curvas muestreadas. DSP no cambia.',
+  'eq.mode.constantHint': 'Conserva el ancho original de cada banda.',
+  'eq.mode.proportionalHint': 'Los realces y recortes fuertes se estrechan.',
+  'eq.mode.asymmetricHint': 'Realces más amplios y recortes más estrechos.',
+  'eq.double': 'EQ ×2',
+  'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.mode': 'Modo EQ',
+  'eq.mode.normal': 'Normal',
+  'eq.mode.studio': 'Estudio',
+  'eq.mode.yourEq': 'Tu EQ',
+  'eq.mode.curves': 'Curvas',
+  'eq.studioHint':
+    'Multiplica por ×1.5 la ganancia del grupo elegido y adapta el ancho de las campanas. No cambia el DSP.',
+  'eq.doubleHint':
+    'Aplica dos veces el grupo de EQ elegido. No cambia el DSP ni el preamplificador.',
   'graph.resize': 'Arrastra para cambiar el tamaño de la gráfica',
   'graph.view.title': 'Cuánto espacio ocupa la gráfica',
   'graph.view.normal': 'Vista',

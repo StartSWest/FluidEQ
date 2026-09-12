@@ -38,6 +38,7 @@ import log from 'electron-log';
 import { forgetPath } from '../../../main/asyncWriter';
 import { ErrorCode } from '../../../common/errors';
 import ChannelEnum from '../../../common/channels';
+import { getEqMode, TEqMode } from '../../../common/eqMode';
 import {
   FilterTypeEnum,
   IDeviceProfileSettings,
@@ -202,6 +203,48 @@ describe('renaming and deleting a profile through IPC', () => {
     fs.rmSync(root, { recursive: true, force: true });
     fs.rmSync(configDir, { recursive: true, force: true });
   });
+
+  it.each<TEqMode>(['normal', 'double', 'studio'])(
+    'loads and restores explicit %s mode without leaking the previous profile',
+    async (eqMode) => {
+      const preset = {
+        ...presetWith(3),
+        eqMode,
+        isEqDoubleOn: eqMode !== 'double',
+      };
+      await savePreset(SHARED, preset, presetDirFor(HEADPHONES));
+      savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
+      state.eqMode = 'studio';
+      await fire(ChannelEnum.LOAD_PRESET, [SHARED]);
+      expect(errors).toEqual([]);
+      expect(getEqMode(state)).toBe(eqMode);
+      expect(state.isEqDoubleOn).toBe(eqMode === 'double');
+      state.eqMode = 'normal';
+      await fire(ChannelEnum.RESTORE_PRESET_BASELINE, [SHARED]);
+      expect(errors).toEqual([]);
+      expect(getEqMode(state)).toBe(eqMode);
+      expect(state.filters.a.gain).toBe(3);
+    },
+  );
+
+  it.each([true, false, undefined])(
+    'loads and restores the saved EQ double switch %s rather than retaining the previous profile',
+    async (isEqDoubleOn) => {
+      const preset = { ...presetWith(3), isEqDoubleOn };
+      await savePreset(SHARED, preset, presetDirFor(HEADPHONES));
+      savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
+      state.isEqDoubleOn = isEqDoubleOn !== true;
+      await fire(ChannelEnum.LOAD_PRESET, [SHARED]);
+      expect(errors).toEqual([]);
+      expect(state.isEqDoubleOn).toBe(isEqDoubleOn ?? false);
+      expect(state.filters.a.gain).toBe(3);
+      state.isEqDoubleOn = isEqDoubleOn !== true;
+      await fire(ChannelEnum.RESTORE_PRESET_BASELINE, [SHARED]);
+      expect(errors).toEqual([]);
+      expect(state.isEqDoubleOn).toBe(isEqDoubleOn ?? false);
+      expect(state.filters.a.gain).toBe(3);
+    },
+  );
 
   it.each([ChannelEnum.SAVE_PRESET, ChannelEnum.CREATE_PRESET])(
     '%s reports a failed write without replacing the saved restore point',

@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/denoise.h"
 #include "fluideq/eq.h"
 #include "fluideq/meters.h"
+#include "fluideq/live_normalizer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,6 +118,7 @@ typedef struct FeqChainEqSettings {
 
 typedef struct FeqChainSettings {
   int enabled;
+  FeqNormalizerSettings normalizer;
   /**
    * Restoration, below the input gain and above every creative stage.
    *
@@ -264,6 +266,8 @@ void feq_chain_settings_defaults(FeqChainSettings* settings);
  */
 void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings);
 
+int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
+
 /**
  * Hand over a linear-phase kernel, or null to leave linear phase.
  *
@@ -345,6 +349,10 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain);
  * when the panel is closed, which is most of the time.
  */
 void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters);
+/* Before playback: external streams have no whole-file analysis to apply. */
+int feq_chain_enable_live_normalizer(FeqChain* chain);
+/** Audio-thread notification for host silence flags; no sample buffer is read. */
+void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames);
 
 #ifdef __cplusplus
 }

@@ -54,7 +54,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * both sides, so this number is what stands between them and a stale binary.
  * Move it, or the next person debugging silence starts where we started.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 6
+#define FEQ_WIRE_PROTOCOL_VERSION 7
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */

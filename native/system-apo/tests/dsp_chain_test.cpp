@@ -71,7 +71,7 @@ const char* const kReferenceLine =
     "125 0 1.4 0 -24 1 0 200 0 1.4 0 -24 1 0 315 0 1.4 0 -24 1 0 500 0 1.4 0 "
     "-24 1 0 800 0 1.4 0 -24 1 0 1250 0 1.4 0 -24 1 0 2000 0 1.4 0 -24 1 0 "
     "3150 0 1.4 0 -24 1 0 5000 0 1.4 0 -24 1 0 8000 0 1.4 0 -24 1 0 12500 0 "
-    "1.4 0 -24 1 3 16000 0 0.7 0 -24";
+    "1.4 0 -24 1 3 16000 0 0.7 0 -24 1 -1 -14";
 
 // Positions in that array, counted off `encodeChainSettings`. Named rather
 // than spelled inline because every one of them is a place a reader has to be
@@ -161,7 +161,7 @@ void the_encoder_s_own_line_decodes() {
   std::printf("the line the app writes decodes into the rack\n");
   const std::vector<double> values = reference_values();
   CHECK(values.size() ==
-        FEQ_CHAIN_PARAM_LEAD + 15u * FEQ_CHAIN_BAND_PARAMS);
+        FEQ_CHAIN_PARAM_LEAD + 15u * FEQ_CHAIN_BAND_PARAMS + 3);
   CHECK(values[kBandCount] == 15.0);
 
   const Chain chain = chain_with(values);
@@ -171,6 +171,14 @@ void the_encoder_s_own_line_decodes() {
   CHECK(decode_dsp_chain(chain.dsp_values, &settings));
   CHECK(settings.enabled == 1);
   CHECK(settings.exciter.enabled == 1);
+  CHECK(settings.eq.band_count == 15);
+  CHECK(settings.normalizer.mode == 1);
+  CHECK(settings.normalizer.ceiling_db == -1);
+  CHECK(settings.normalizer.target_lufs == -14);
+  auto legacy = values;
+  legacy.resize(legacy.size() - 3);
+  CHECK(decode_dsp_chain(legacy, &settings));
+  CHECK(settings.normalizer.mode == 0);
   CHECK(settings.eq.band_count == 15);
 }
 
@@ -183,18 +191,21 @@ void a_header_only_or_broken_file_is_no_rack() {
   CHECK(parse_dsp_values(dsp_file("1 2 3 4")).size() == 4);
 }
 
-void denoise_is_forced_off() {
-  std::printf("denoise is off even when the file asks for it\n");
+void denoise_runs_without_the_neural_runtime() {
+  std::printf("live restoration stays enabled; only neural Voice is unavailable\n");
   std::vector<double> values = reference_values();
   values[kDenoiseEnabled] = 1.0;
+  values[kDenoiseEnabled + 16] = 1.0;
 
   FeqChainSettings settings = {};
   CHECK(decode_dsp_chain(values, &settings));
-  // The neural runtime cannot be loaded into audiodg.exe, so the whole stage
-  // stays out of the system-wide rack whatever the file says.
-  CHECK(settings.denoise.enabled == 0);
-  // The positive control: this is the stage being forced off, not the decode
-  // having failed and left a zeroed struct behind.
+  CHECK(settings.denoise.enabled == 1);
+  CHECK(settings.denoise.voice.enabled == 0);
+  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE);
+  // The Library decoder retains the user's scanned-profile and Voice settings.
+  CHECK(feq_chain_settings_decode(values.data(), static_cast<uint32_t>(values.size()), &settings));
+  CHECK(settings.denoise.voice.enabled == 1);
+  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_SCANNED);
   CHECK(settings.exciter.enabled == 1);
 }
 
@@ -209,12 +220,36 @@ void a_wrong_band_count_is_refused_and_the_eq_still_runs() {
   const Chain chain = chain_with(values, "Preamp: -6 dB\r\n");
   Graph graph(chain, kRate, 2, 480);
   CHECK(mentions(graph.warnings(), "DSP rack"));
+  CHECK(mentions(graph.problems(), "dsp-rack"));
   CHECK(!graph.is_passthrough());
   // The EQ half of the same chain is untouched: -6 dB of preamp on a
   // -6 dBFS tone is -12 dBFS, with no rack in front of it.
   std::vector<std::vector<float>> channels(2, tone(1000.0, 0.5, 4800, 0));
   run_blocks(graph, channels, 480);
   CHECK(std::fabs(peak_db(channels[0], 2400, 4800) + 12.0) < 0.1);
+}
+
+void switching_the_rack_off_is_not_a_failure() {
+  std::printf("disabled and absent racks are healthy, malformed racks fail\n");
+  std::vector<double> values = reference_values();
+  values[0] = 0.0;
+  Graph disabled(chain_with(values), kRate, 2, 480);
+  CHECK(disabled.problems().empty());
+  CHECK(disabled.warnings().empty());
+  CHECK(disabled.is_passthrough());
+
+  Graph absent(chain_with({}), kRate, 2, 480);
+  CHECK(absent.problems().empty());
+  CHECK(absent.is_passthrough());
+
+  values[0] = 1.0;
+  Graph enabled(chain_with(values), kRate, 2, 480);
+  CHECK(enabled.problems().empty());
+  CHECK(!enabled.is_passthrough());
+
+  values[kBandCount] = 14.0;
+  Graph malformed(chain_with(values), kRate, 2, 480);
+  CHECK(mentions(malformed.problems(), "dsp-rack"));
 }
 
 void the_maximizer_holds_its_ceiling() {
@@ -254,6 +289,7 @@ void latency_includes_the_rack() {
   FeqChain* reference = feq_chain_create(static_cast<double>(kRate), 2, 480);
   CHECK(reference != nullptr);
   feq_chain_configure(reference, &settings);
+  CHECK(feq_chain_enable_live_normalizer(reference) == 1);
   const uint32_t rack = feq_chain_latency_frames(reference);
   feq_chain_destroy(reference);
   // A null test needs a positive control: the rack's own latency has to be a
@@ -263,6 +299,22 @@ void latency_includes_the_rack() {
   const Chain chain = chain_with(values);
   Graph graph(chain, kRate, 2, 480);
   CHECK(graph.latency_frames() == rack);
+}
+
+void final_guard_follows_the_rack_and_eq() {
+  auto values = reference_values();
+  values[kExciterEnabled] = 0.0;
+  values[kMaximizerEnabled] = 1.0;
+  values[kMaximizerDriveDb] = 0.0;
+  values[kMaximizerCeilingDb] = -6.0;
+  const auto chain = chain_with(values,
+      "Filter: ON PK Fc 1000 Hz Gain 18 dB Q 2\n"
+      "Preamp: 0 dB\n# FluidEQAutoPreamp: ON\n");
+  auto raw = chain;
+  raw.output_guard = false;
+  CHECK(limited_peak_db(raw) > 1.0);
+  const double protected_peak = limited_peak_db(chain);
+  CHECK(protected_peak > -2.0 && protected_peak < -0.7);
 }
 
 void linear_phase_latency_is_known_before_the_first_block() {
@@ -353,6 +405,40 @@ void an_eq_only_edit_keeps_the_rack_running() {
   CHECK(fresh_peak < -60.0);
 }
 
+void dsp_edits_keep_audio_in_flight() {
+  std::printf("DSP edits keep delayed audio instead of starting with silence\n");
+  for (const double phase : {0.0, 1.0}) {
+    std::vector<double> values = reference_values();
+    values[kExciterEnabled] = 0.0;
+    values[kEqEnabled] = 1.0;
+    values[kEqPhase] = phase;
+    values[kMaximizerEnabled] = 1.0;
+    values[kMaximizerDriveDb] = 0.0;
+    values[kMaximizerCeilingDb] = -3.0;
+    auto running = std::make_unique<Graph>(chain_with(values), kRate, 2, 128);
+    std::vector<std::vector<float>> warm(2, tone(1000.0, 0.5, kRate, 0));
+    run_blocks(*running, warm, 128);
+    for (uint32_t edit = 0; edit < 12; ++edit) {
+      values[kMaximizerCeilingDb] = edit % 2 == 0 ? -6.0 : -3.0;
+      auto next = std::make_unique<Graph>(chain_with(values), kRate, 2, 128);
+      next->request_state_transfer();
+      next->inherit_rack(*running);
+      next->adopt_state(running.get());
+      std::vector<std::vector<float>> block(
+          2, tone(1000.0, 0.5, 128, kRate + edit * 128));
+      run_blocks(*next, block, 128);
+      const double peak = peak_db(block[0], 0, 128);
+      std::printf("       phase %.0f edit %u: %.1f dBFS\n", phase, edit, peak);
+      CHECK(peak > -30.0);
+      running = std::move(next);
+    }
+    Graph cold(chain_with(values), kRate, 2, 128);
+    std::vector<std::vector<float>> control(2, tone(1000.0, 0.5, 128, 0));
+    run_blocks(cold, control, 128);
+    CHECK(peak_db(control[0], 0, 128) < -60.0);
+  }
+}
+
 void a_changed_rack_is_never_shared() {
   std::printf("a rack whose values changed is built fresh\n");
   std::vector<double> values = reference_values();
@@ -387,15 +473,18 @@ int main() {
   std::printf("fluideq engine system-wide DSP rack\n");
   the_encoder_s_own_line_decodes();
   a_header_only_or_broken_file_is_no_rack();
-  denoise_is_forced_off();
+  denoise_runs_without_the_neural_runtime();
   a_wrong_band_count_is_refused_and_the_eq_still_runs();
+  switching_the_rack_off_is_not_a_failure();
   the_maximizer_holds_its_ceiling();
   the_rack_runs_before_the_eq();
   latency_includes_the_rack();
+  final_guard_follows_the_rack_and_eq();
   linear_phase_latency_is_known_before_the_first_block();
   channels_beyond_two_pass_the_rack_by();
   a_rack_alone_is_not_a_pass_through();
   an_eq_only_edit_keeps_the_rack_running();
   a_changed_rack_is_never_shared();
+  dsp_edits_keep_audio_in_flight();
   return report();
 }

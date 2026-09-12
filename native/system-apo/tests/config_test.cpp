@@ -262,6 +262,28 @@ void utf16_with_bom_is_read() {
   CHECK(lines.size() == 1 && lines[0].body == "-1 dB");
 }
 
+void engine_comments_keep_manual_and_custom_preamp_semantics() {
+  Files files;
+  files[L"C:\\cfg\\config.txt"] =
+      "Device: {AAAA}\nPreamp: -12 dB\n# FluidEQAutoPreamp: ON\n"
+      "# FluidEQCurveStage: ON\n";
+  auto chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.matched && chain.output_guard && chain.auto_preamp);
+  CHECK(chain.preamp_db == 0 && chain.stable_graphic);
+  auto other = resolve_chain(L"C:\\cfg", {L"{BBBB}", L"Other"}, provider(files));
+  CHECK(!other.matched && !other.output_guard && !other.stable_graphic);
+  files[L"C:\\cfg\\config.txt"] += "Include: custom.txt\n";
+  files[L"C:\\cfg\\custom.txt"] = "Preamp: -3 dB\n";
+  chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.auto_preamp && chain.preamp_db == -3);
+  files[L"C:\\cfg\\config.txt"] = "Preamp: -7 dB\n# FluidEQAutoPreamp: OFF\n";
+  chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.output_guard && !chain.auto_preamp && chain.preamp_db == -7);
+  files[L"C:\\cfg\\config.txt"] = "Preamp: -7 dB\n# ordinary comment FluidEQAutoPreamp: ON\n";
+  chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(!chain.output_guard && chain.preamp_db == -7);
+}
+
 }  // namespace
 
 int main() {
@@ -278,6 +300,7 @@ int main() {
   numbers_that_are_not_finite_are_refused();
   graphic_and_preamp_grammar();
   utf16_with_bom_is_read();
+  engine_comments_keep_manual_and_custom_preamp_semantics();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

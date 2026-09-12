@@ -35,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 
 namespace fluideq_engine {
+class OutputGuard;
 
 namespace detail {
 
@@ -83,17 +84,28 @@ class Graph {
    */
   void process(float* const* planar, uint32_t frames) noexcept;
 
+  // Before publication; the endpoint owns the meters across graph rebuilds.
+  void set_meters(FeqMeters* meters, std::atomic<bool>* activity) noexcept {
+    if (rack_) feq_chain_set_meters(rack_.get(), meters);
+    meter_activity_ = activity;
+  }
+  void report_meter_activity(bool active) noexcept {
+    if (output_active_) output_active_->store(active, std::memory_order_relaxed);
+    if (meter_activity_ != nullptr)
+      meter_activity_->store(active && rack_ != nullptr, std::memory_order_release);
+  }
+  void report_input_silence(uint32_t frames) noexcept {
+    feq_chain_notify_input_silence(rack_.get(), frames);
+  }
+
   /**
    * Copy `previous`'s biquad histories into this graph.
    *
    * Only when band layout, channel count and sample rate agree; anything else
    * would feed a filter the tail of a differently shaped one, which rings.
-   * The convolvers are deliberately NOT carried: their history is a spectrum
-   * partitioned against one specific kernel and means nothing to another.
-   *
-   * Neither is the DSP rack: its state lives behind an opaque handle with no
-   * way to copy it. When the rack has not changed at all, `inherit_rack`
-   * takes the whole handle instead of copying anything out of it. Call only
+   * Convolver and DSP rack handovers are handled separately by `adopt_state`.
+   * When the rack has not changed at all, `inherit_rack` takes the whole handle.
+   * Call only
    * while both graphs' filter histories are idle, at an audio block boundary.
    */
   void inherit_state(const Graph& previous) noexcept;
@@ -102,11 +114,7 @@ class Graph {
   void request_state_transfer() noexcept { transfer_state_ = true; }
 
   /** Audio thread, between blocks, while the previous histories are idle. */
-  void adopt_state(const Graph* previous) noexcept {
-    if (transfer_state_ && previous != nullptr) {
-      inherit_state(*previous);
-    }
-  }
+  void adopt_state(Graph* previous) noexcept;
 
   /**
    * Keep running `previous`'s rack instead of this graph's own.
@@ -184,6 +192,13 @@ class Graph {
    * `GetLatency`.
    */
   uint32_t latency_frames() const noexcept;
+  double auto_preamp_gain_db() const noexcept;
+  void set_output_meters(std::atomic<float>* gain, std::atomic<bool>* enabled,
+                         std::atomic<bool>* active) noexcept {
+    output_gain_ = gain;
+    output_enabled_ = enabled;
+    output_active_ = active;
+  }
 
   /**
    * What went wrong that was survivable, in English, for the log.
@@ -217,8 +232,14 @@ class Graph {
   }
 
  private:
+  std::atomic<bool>* meter_activity_ = nullptr;
   std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;
+  bool auto_preamp_ = false;
+  std::unique_ptr<OutputGuard> output_guard_;
+  std::atomic<float>* output_gain_ = nullptr;
+  std::atomic<bool>* output_enabled_ = nullptr;
+  std::atomic<bool>* output_active_ = nullptr;
   uint32_t sample_rate_;
   uint32_t channels_;
   uint32_t max_frames_;
@@ -250,6 +271,8 @@ class Graph {
       impulse_kernel_;
   std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
       graphic_kernel_;
+  std::shared_ptr<const std::vector<float>> impulse_identity_;
+  std::shared_ptr<const std::vector<float>> graphic_identity_;
   std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
       impulse_;
   std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>

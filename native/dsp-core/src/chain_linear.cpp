@@ -69,19 +69,44 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
     chain->convolver_warmup -= static_cast<int64_t>(frames);
     return;
   }
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    if (chain->channels == 2 &&
+        ((chain->settings.eq.stereo == FEQ_STEREO_MID && channel == 1) ||
+         (chain->settings.eq.stereo == FEQ_STEREO_SIDE && channel == 0))) {
+      continue;
+    }
     if (chain->convolver_blend[channel] < 1.0) {
       return;
     }
   }
   for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
-    feq_convolver_destroy(chain->convolvers[channel]);
+    if (chain->defer_convolver_retirement) {
+      chain->retired_convolvers[chain->retired_count][channel] =
+          chain->convolvers[channel];
+    } else {
+      feq_convolver_destroy(chain->convolvers[channel]);
+    }
     chain->convolvers[channel] = chain->convolvers_next[channel];
     chain->convolvers_next[channel] = nullptr;
   }
-  feq_convolver_kernel_destroy(chain->kernel);
+  if (chain->defer_convolver_retirement) {
+    chain->retired_kernels[chain->retired_count++] = chain->kernel;
+  } else {
+    feq_convolver_kernel_destroy(chain->kernel);
+  }
   chain->kernel = chain->kernel_next;
   chain->kernel_next = nullptr;
+  if (chain->queued_kernel != nullptr) {
+    chain->kernel_next = chain->queued_kernel;
+    chain->queued_kernel = nullptr;
+    for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+      chain->convolvers_next[channel] = chain->queued_convolvers[channel];
+      chain->queued_convolvers[channel] = nullptr;
+      chain->convolver_blend[channel] = 0.0;
+    }
+    chain->convolver_warmup = static_cast<int64_t>(
+        feq_convolver_kernel_warmup(chain->kernel_next));
+  }
 }
 
 namespace {
@@ -196,7 +221,8 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
     chain->convolver_blend[channel] = 0.0;
   }
   chain->kernel_next = taken->kernel;
-  chain->convolver_warmup = feq_convolver_warmup();
+  chain->convolver_warmup = static_cast<int64_t>(
+      feq_convolver_kernel_warmup(chain->kernel_next));
   delete taken;
 }
 

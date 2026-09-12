@@ -213,6 +213,13 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
   Graph* const graph = slot_.adopt();
 
   const uint32_t frames = in.u32ValidFrameCount;
+  // Silence flags bypass the graph. Report that boundary as well, otherwise
+  // the DSP page freezes on the last music window when Windows sends silence.
+  if (graph != nullptr) {
+    graph->report_meter_activity(in.u32BufferFlags == BUFFER_VALID &&
+        frames > 0 && frames <= max_frames_ && in.pBuffer != 0 &&
+        out.pBuffer != 0 && !graph->is_passthrough());
+  }
   if (frames > max_frames_ || in.pBuffer == 0 || out.pBuffer == 0) {
     // Refused rather than clamped. A short block is a gap the user hears
     // once; a block written past the end of somebody else's buffer is a
@@ -220,6 +227,9 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     out.u32ValidFrameCount = 0;
     out.u32BufferFlags = BUFFER_SILENT;
   } else if (in.u32BufferFlags != BUFFER_VALID) {
+    if (graph != nullptr && in.u32BufferFlags == BUFFER_SILENT) {
+      graph->report_input_silence(frames);
+    }
     // Silence in, silence out, and no work: the flag means the buffer's
     // contents are not to be read at all, whatever bytes happen to be there.
     out.u32ValidFrameCount = frames;

@@ -22,7 +22,7 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/dsp_chain.cpp src/graph.cpp
-  src/graph_stages.cpp)
+  src/graph_stages.cpp src/output_guard.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -50,6 +50,9 @@ add_executable(fluideq-engine-graph-test tests/graph_test.cpp)
 target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graph COMMAND fluideq-engine-graph-test)
+add_executable(fluideq-engine-output-transition-test tests/output_transition_test.cpp)
+target_link_libraries(fluideq-engine-output-transition-test PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-output-transition COMMAND fluideq-engine-output-transition-test)
 
 add_executable(fluideq-engine-graph-slot-test tests/graph_slot_test.cpp)
 target_link_libraries(fluideq-engine-graph-slot-test
@@ -80,7 +83,7 @@ add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/watcher_log.cpp src/owner_link.cpp src/config_file.cpp
-  src/status_file.cpp src/status_json.cpp
+  src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose
   # this is.

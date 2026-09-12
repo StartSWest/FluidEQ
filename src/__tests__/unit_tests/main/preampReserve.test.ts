@@ -240,7 +240,8 @@ describe('preamp headroom', () => {
       },
     };
 
-    expect(preampValue(state)).toBeGreaterThan(1);
+    expect(getChainPeakGain(Object.values(state.filters))).toBe(-0.53);
+    expect(preampValue(state)).toBe(0.33);
   });
 
   it('reserves nothing when the EQ is cleared and no layer is active', () => {
@@ -430,8 +431,8 @@ describe('preamp headroom', () => {
     };
 
     const peak = getChainPeakGain(Object.values(state.headphone.filters));
-    expect(peak).toBe(6.23);
-    expect(preampValue(state)).toBe(-6.43);
+    expect(peak).toBe(6.35);
+    expect(preampValue(state)).toBe(-6.55);
   });
 
   it('reserves headroom for the measurable part of the custom FX file', () => {

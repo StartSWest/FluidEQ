@@ -269,6 +269,10 @@ export interface IHostAnalysisMaster {
 
 /** The Normalizer's before and after bars, and the gain between them. */
 export interface IHostAnalysisNormalizer {
+  inputTruePeakDb?: number;
+  inputLufs?: number;
+  referenceLufs?: number;
+  levelState?: number;
   /** Linear amplitude, peak with a 350 ms release, per channel. */
   inputPeaks: readonly [number, number];
   outputPeaks: readonly [number, number];

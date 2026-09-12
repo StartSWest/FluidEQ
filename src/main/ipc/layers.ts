@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcMain } from 'electron';
+import { getCurveEqMode, getBandQ } from '../../common/eqMode';
 import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
@@ -69,6 +70,68 @@ export const registerLayersIpc = ({
   handleError,
   applyingLayer,
 }: ILayersIpcDeps) => {
+  ipcMain.on(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {
+    const channel = ChannelEnum.SET_EQ_DOUBLE;
+    const enabled: unknown = arg?.[0];
+    if (typeof enabled !== 'boolean') {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    state.eqBandQ = getBandQ(state, 'eq');
+    state.curveBandQ = getBandQ(state, 'curves');
+    state.curveEqMode = getCurveEqMode(state);
+    state.isEqDoubleOn = enabled;
+    state.eqMode = enabled ? 'double' : 'normal';
+    await handleUpdate(event, channel, false, true);
+  });
+
+  ipcMain.on(ChannelEnum.SET_EQ_MODE, async (event, arg) => {
+    const channel = ChannelEnum.SET_EQ_MODE;
+    const mode: unknown = arg?.[0];
+    const scope: unknown = arg?.[1] ?? 'eq';
+    if (scope !== 'eq' && scope !== 'curves') {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    if (mode !== 'normal' && mode !== 'double' && mode !== 'studio') {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    state.eqBandQ = getBandQ(state, 'eq');
+    state.curveBandQ = getBandQ(state, 'curves');
+    state.curveEqMode = getCurveEqMode(state);
+    if (scope === 'curves') {
+      state.curveEqMode = mode;
+    } else {
+      state.eqMode = mode;
+      state.isEqDoubleOn = mode === 'double';
+    }
+    await handleUpdate(event, channel, false, true);
+  });
+
+  ipcMain.on(ChannelEnum.SET_EQ_SHAPE, async (event, arg) => {
+    const channel = ChannelEnum.SET_EQ_SHAPE;
+    const [scope, kind, value] = Array.isArray(arg) ? arg : [];
+    const validQ = ['off', 'proportional', 'asymmetric'].includes(value);
+    const validSmoothing = ['off', 'twelfth', 'third'].includes(value);
+    if (
+      (scope !== 'eq' && scope !== 'curves') ||
+      (kind !== 'q' && kind !== 'smoothing') ||
+      (kind === 'q' ? !validQ : scope !== 'curves' || !validSmoothing)
+    ) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+    if (kind === 'smoothing') {
+      state.curveSmoothing = value;
+    } else if (scope === 'eq') {
+      state.eqBandQ = value;
+    } else {
+      state.curveBandQ = value;
+    }
+    await handleUpdate(event, channel, false, true);
+  });
+
   ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
     const channel = ChannelEnum.SET_VOICING;
     const profileId: string = arg[0];
