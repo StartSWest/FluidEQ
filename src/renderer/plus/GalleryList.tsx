@@ -1,8 +1,10 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import useExitAnimation from '../utils/useExitAnimation';
 import GalleryListNotice from './GalleryListNotice';
+import GallerySkeleton from './GallerySkeleton';
 import type { IGalleryList, TGalleryListFailure } from './galleryStore';
 
 const ERROR_KEYS: Record<TGalleryListFailure, TranslationKey> = {
@@ -10,9 +12,6 @@ const ERROR_KEYS: Record<TGalleryListFailure, TranslationKey> = {
   'signed-out': 'plus.gallery.error.signedOut',
   server: 'plus.gallery.error.server',
 };
-
-/** Placeholder cards while the first answer is on its way. */
-const SKELETON_CARDS = 6;
 
 interface IGalleryListProps {
   list: IGalleryList;
@@ -37,6 +36,14 @@ export default function GalleryList({
 }: IGalleryListProps) {
   const { t } = useTranslation();
   const firstLoad = list.loading && list.scenes.length === 0;
+  const skeletonRef = useRef<HTMLDivElement>(null);
+  // The placeholders stay while they fade out over the cards that replace
+  // them (`GallerySkeleton`).
+  const skeleton = useExitAnimation(
+    firstLoad,
+    'gallery-skeleton-out',
+    skeletonRef,
+  );
 
   return (
     <>
@@ -49,27 +56,23 @@ export default function GalleryList({
         <GalleryListNotice text={t(ERROR_KEYS[list.error])} onRetry={onRetry} />
       )}
 
-      {firstLoad && (
-        <div
-          className="gallery-grid"
-          role="status"
-          aria-label={t('plus.gallery.loading')}
-        >
-          {Array.from({ length: SKELETON_CARDS }, (_, index) => (
-            <span
-              key={index}
-              className="gallery-card gallery-card--skeleton"
-              aria-hidden="true"
-            >
-              <span className="gallery-card__ghost-picture" />
-              <span className="gallery-card__ghost-line" />
-              <span className="gallery-card__ghost-line gallery-card__ghost-line--short" />
-            </span>
-          ))}
+      {/* One box for the placeholders and the cards, so the placeholders can
+          leave from exactly where they stood, over the cards arriving there,
+          instead of holding their row and pushing the cards down under them. */}
+      {(skeleton.present || list.scenes.length > 0) && (
+        <div className="gallery-list-body">
+          {skeleton.present && (
+            <GallerySkeleton
+              ref={skeletonRef}
+              closing={skeleton.closing}
+              onAnimationEnd={skeleton.onAnimationEnd}
+            />
+          )}
+          {list.scenes.length > 0 && (
+            <div className="gallery-grid">{children}</div>
+          )}
         </div>
       )}
-
-      {list.scenes.length > 0 && <div className="gallery-grid">{children}</div>}
 
       {list.loaded &&
         !list.loading &&

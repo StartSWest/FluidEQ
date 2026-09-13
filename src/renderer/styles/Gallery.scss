@@ -491,8 +491,50 @@ $gallery-card-lead: 120ms;
   z-index: 2;
 }
 
+// The box the placeholders and the cards share (`GalleryList`): the frame a
+// leaving placeholder grid is laid over the arriving cards in.
+.gallery-list-body {
+  position: relative;
+  min-width: 0;
+}
+
+// Placeholders fill the view to the scroller's foot (`GallerySkeleton` sets
+// the height); the last row is cut there, not scrolled to.
+.gallery-grid--skeleton {
+  overflow: hidden;
+
+  // Leaving, over the cards that replace them: out of the flow, so the cards
+  // take the same place at once, and faded rather than removed, so there is
+  // no empty frame between the two. It holds until the cards begin to rise
+  // (`$gallery-card-lead`) and fades while they do; fading from the first
+  // frame left a beat where neither was there. `useExitAnimation` removes it
+  // at the end.
+  &[data-closing] {
+    position: absolute;
+    inset: 0 0 auto;
+    pointer-events: none;
+    @include animate(
+      gallery-skeleton-out,
+      $motion-slow,
+      ease-in-out,
+      $gallery-card-lead,
+      forwards
+    );
+  }
+}
+
+@keyframes gallery-skeleton-out {
+  to {
+    opacity: 0;
+  }
+}
+
+// Placeholders fade in rather than appearing in one frame, in the cards' own
+// reading-order sweep (the delays of `.gallery-card` above), so a first load
+// fills the page the way the cards will. A fade and no rise: they are
+// standing in for the page, not arriving on it.
 .gallery-card--skeleton {
-  animation: none;
+  @include animate(fade-in, $motion-slow, ease-out);
   pointer-events: none;
 }
 
@@ -1444,7 +1486,14 @@ $gallery-card-lead: 120ms;
     color-mix(in srgb, $white 3%, transparent) 100%
   );
   background-size: 200% 100%;
-  animation: gallery-shimmer 1.6s linear infinite;
+  // Faded in, the second a beat after the first, while the shimmer runs.
+  animation:
+    fade-in $motion-slow ease-out backwards,
+    gallery-shimmer 1.6s linear infinite;
+
+  & + & {
+    animation-delay: 60ms, 0ms;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
