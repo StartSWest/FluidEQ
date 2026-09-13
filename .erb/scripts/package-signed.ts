@@ -65,6 +65,7 @@ import fs from 'fs';
 import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
 import { SUBJECT_VARIABLE } from './lighting-identity';
 import { readMandatoryUpdateArgs } from './mandatory-update';
+import { signReleaseFeed } from './sign-update-feed';
 
 interface ISigningSettings {
   endpoint: string;
@@ -360,7 +361,7 @@ if (require.main === module) {
         `Verified: updates come from ${release.updateUrl} and must be signed ` +
           `by "${release.signing.publisherName}".`,
       );
-      process.exit(0);
+      process.exit(signReleaseFeed() ? 0 : 1);
     });
   })();
 }

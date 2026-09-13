@@ -22,6 +22,7 @@ import {
   setUpReleaseAutoUpdates,
   verifyAuthenticodePublisher,
 } from '../../../main/signedAutoUpdates';
+import * as updateFeed from '../../../main/updateFeedSignature';
 
 const CURRENT_EXE = 'C:\\Program Files\\FluidEQ\\FluidEQ.exe';
 const OFFICIAL_PUBLISHER = 'Ivan Carmenates Garcia';
@@ -358,6 +359,44 @@ describe('checking without a timer, and on demand', () => {
     );
     expect(beforeQuit).not.toHaveBeenCalled();
     expect(harness.updater.quitAndInstall).not.toHaveBeenCalled();
+  });
+});
+
+describe('the update feed signature', () => {
+  // Whoever can publish a release must not be able to ship an installer of
+  // their own: a download whose feed the maker's key does not verify is never
+  // authorized, however its Authenticode check went.
+  it('never authorizes a download whose feed is not signed by a trusted key', async () => {
+    const verifyFeed = jest
+      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
+      .mockReturnValue({
+        valid: false,
+        reason: 'the update feed is not signed',
+      });
+    try {
+      const harness = makeHarness();
+      const controller = await setUpReleaseAutoUpdates(harness.options);
+      if (!controller) {
+        throw new Error('setUpReleaseAutoUpdates returned no controller');
+      }
+      harness.listeners.get('update-downloaded')?.({
+        downloadedFile: 'C:/Temp/FluidEQ-Setup.exe',
+        version: '1.3.2',
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(verifyFeed).toHaveBeenCalled();
+      expect(harness.logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('the update feed is not signed'),
+      );
+      expect(() => controller.quitAndInstall(false, true)).toThrow(
+        /release-channel verification/,
+      );
+      expect(harness.updater.quitAndInstall).not.toHaveBeenCalled();
+    } finally {
+      verifyFeed.mockRestore();
+    }
   });
 });
 

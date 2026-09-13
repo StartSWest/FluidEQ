@@ -22,6 +22,7 @@ import type { NsisUpdater } from 'electron-updater';
 import type { IAppUpdateStatus } from '../common/constants';
 import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { POWERSHELL_PATH } from './powershell';
+import { verifyUpdateFeedSignature } from './updateFeedSignature';
 
 /**
  * How stale a check has to be before another one is worth making.
@@ -566,6 +567,15 @@ export const setUpReleaseAutoUpdates = async (
           rejectDownload(
             verification.reason || 'Authenticode verification failed',
           );
+          return;
+        }
+        // The feed that named this installer's SHA-512 — which the download
+        // has already been checked against — must carry the maker's own
+        // signature, so whoever controls where releases are published cannot
+        // hand out an installer of their own.
+        const feed = verifyUpdateFeedSignature(info);
+        if (!feed.valid) {
+          rejectDownload(feed.reason || 'the update feed is not trusted');
           return;
         }
 

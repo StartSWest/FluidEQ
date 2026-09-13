@@ -573,6 +573,14 @@ for checking a change end to end on a real machine.
 unless its whole configuration is present, so it cannot quietly produce an
 unsigned one.
 
+`pnpm package:release` is `pnpm package` for a release: it also signs
+`release/build/latest.yml` with the update feed key in `.env`, and every
+installed copy refuses an update whose feed is not signed with a key it trusts
+(`src/main/updateFeedSignature.ts`). `pnpm package:signed` signs the feed too.
+The key pair is made once with `pnpm update-feed-keys`, which writes the public
+half into the source and the private half into `.env` — back that file up;
+without the key, no installed copy can be updated.
+
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.
 
