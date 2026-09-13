@@ -6,6 +6,7 @@ import type {
   TPlusCategory,
 } from 'common/plusGallery';
 import type { IReportedScene } from 'common/plusModeration';
+import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
@@ -16,9 +17,32 @@ import type { IReportedScene } from 'common/plusModeration';
  * another one is chosen in the title bar, and coming back should find the
  * scene or the maker that was open, not the top of the gallery. Kept here
  * too so a gallery page can send the member to the Studio.
+ *
+ * The place is also remembered across a reload and a restart. The window
+ * already reopens on the Plus tab it was left on, and it then always showed
+ * the Visualizers, so somebody working in the Studio or on the lighting was
+ * sent away from it every time the window reloaded.
  */
 
-export type TPlusPlace = 'visualizers' | 'board' | 'studio' | 'lighting';
+export const PLUS_PLACES = [
+  'visualizers',
+  'board',
+  'studio',
+  'lighting',
+] as const;
+export type TPlusPlace = (typeof PLUS_PLACES)[number];
+
+const PLACE_KEY = 'fluideq.plusPlace';
+
+const isPlusPlace = (value: unknown): value is TPlusPlace =>
+  typeof value === 'string' &&
+  (PLUS_PLACES as readonly string[]).includes(value);
+
+/** The place last opened, or the gallery when none was or it is not a place. */
+const storedPlace = (): TPlusPlace => {
+  const stored = readStored(PLACE_KEY);
+  return isPlusPlace(stored) ? stored : 'visualizers';
+};
 
 export interface IMakerRef {
   authorId: string;
@@ -75,10 +99,13 @@ const INITIAL: IPlusNavigation = {
   filters: { sort: 'liked', text: '' },
 };
 
-let navigation = INITIAL;
+let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
 const listeners = new Set<() => void>();
 
 const publish = (next: IPlusNavigation) => {
+  if (next.place !== navigation.place) {
+    writeStored(PLACE_KEY, next.place);
+  }
   navigation = next;
   listeners.forEach((listener) => listener());
 };
@@ -137,6 +164,7 @@ export const goBackInGallery = () =>
 
 /** For tests: a clean module between runs. */
 export const resetPlusNavigation = () => {
+  removeStored(PLACE_KEY);
   navigation = INITIAL;
   listeners.clear();
   scrolled.clear();
