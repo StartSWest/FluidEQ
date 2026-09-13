@@ -56,6 +56,53 @@ describe('useEngineUpdate', () => {
     expect(result.current.isOpen).toBe(true);
   });
 
+  // Switching to Equalizer APO, or the installed engine becoming this app's
+  // some other way, left an offer on screen that could only restart audio
+  // for nothing.
+  it('withdraws an offer nobody answered once there is nothing to install', () => {
+    const { result, rerender } = mount(true);
+    expect(result.current.isOpen).toBe(true);
+
+    rerender({ ready: false });
+    expect(result.current.isOpen).toBe(false);
+  });
+
+  it('keeps a finished update on screen when the answer turns to no', async () => {
+    const perform = jest.fn(async () => outcome(true));
+    const { result, rerender } = mount(true, perform);
+    await act(() => result.current.run());
+
+    rerender({ ready: false });
+    expect(result.current.isOpen).toBe(true);
+    expect(result.current.phase).toBe('done');
+  });
+
+  // The update reads the status again before it resolves, so "no" arrives
+  // while it is still running; the failure it then reports must stay.
+  it('keeps a failure that arrives after the answer turned to no', async () => {
+    let finish: (value: IAudioRestartOutcome) => void = () => undefined;
+    const perform = jest.fn(
+      () =>
+        new Promise<IAudioRestartOutcome>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const { result, rerender } = mount(true, perform);
+    let running: Promise<void> = Promise.resolve();
+    act(() => {
+      running = result.current.run();
+    });
+
+    rerender({ ready: false });
+    expect(result.current.isOpen).toBe(true);
+    await act(async () => {
+      finish(outcome(false));
+      await running;
+    });
+    expect(result.current.isOpen).toBe(true);
+    expect(result.current.phase).toBe('failed');
+  });
+
   it('runs the update and says it is done', async () => {
     const perform = jest.fn(async () => outcome(true));
     const { result } = mount(true, perform);

@@ -55,16 +55,15 @@ describe('EngineUpdateNotice', () => {
 
     expect(screen.getByRole('dialog')).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByText(en['engineUpdate.running'])).toBeInTheDocument();
+    // Lit and breathing, as every working button in the app is: disabled, it
+    // painted as an action that is unavailable. `useEngineMaintenance` is
+    // what refuses a second update.
     expect(button(en['engineUpdate.action'])).toHaveClass('is-running');
     expect(button(en['engineUpdate.action'])).toHaveAttribute(
       'aria-disabled',
-      'true',
+      'false',
     );
-    expect(button(en['engineUpdate.action'])).toHaveAttribute('tabindex', '-1');
-    fireEvent.click(button(en['engineUpdate.action']));
-    fireEvent.keyDown(button(en['engineUpdate.action']), { code: 'Enter' });
-    fireEvent.keyDown(button(en['engineUpdate.action']), { code: 'Space' });
-    expect(update.run).not.toHaveBeenCalled();
+    expect(button(en['engineUpdate.action'])).toHaveAttribute('tabindex', '0');
 
     // Closing hides the card; the update is not the card's to stop.
     fireEvent.click(button(en['restart.close']));

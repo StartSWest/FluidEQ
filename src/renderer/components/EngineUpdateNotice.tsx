@@ -134,9 +134,15 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
             </Button>
           ) : (
             <>
+              {/* Not disabled while it works, as in the restart card and the
+                  engine dialog: a disabled `Button` paints the dim outline of
+                  an unavailable action and drops the `is-running` breath, so
+                  the one control saying the update is under way read as dead.
+                  A second press is refused by the update's owner
+                  (`useEngineMaintenance`), not by the look of the button. */}
               <Button
                 ariaLabel={primaryLabel}
-                isDisabled={isRunning}
+                isDisabled={false}
                 className={`small${isRunning ? ' is-running' : ''}`}
                 handleChange={run}
               >

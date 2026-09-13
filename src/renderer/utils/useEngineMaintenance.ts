@@ -1,3 +1,16 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * "Restart Windows audio" and the engine update, which ends in the same
+ * restart: one owner at a time, so two service restarts never fight over
+ * Audiosrv, and the notices about the sound wait while the update is running
+ * or its result is on screen.
+ */
+
 import { useRef } from 'react';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import { useAudioRestart } from './useAudioRestart';
