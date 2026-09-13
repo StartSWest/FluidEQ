@@ -502,6 +502,10 @@ $gallery-card-lead: 120ms;
 // the height); the last row is cut there, not scrolled to.
 .gallery-grid--skeleton {
   overflow: hidden;
+  // All of them at once, in one fade. A sweep card by card read as a second
+  // animation before the cards' own sweep, and a loading page is one thing
+  // arriving, not a list.
+  @include animate(fade-in, $motion-slow, ease-out);
 
   // Leaving, over the cards that replace them: out of the flow, so the cards
   // take the same place at once, and faded rather than removed, so there is
@@ -529,12 +533,11 @@ $gallery-card-lead: 120ms;
   }
 }
 
-// Placeholders fade in rather than appearing in one frame, in the cards' own
-// reading-order sweep (the delays of `.gallery-card` above), so a first load
-// fills the page the way the cards will. A fade and no rise: they are
-// standing in for the page, not arriving on it.
+// The cards inside the grid do not animate themselves: the grid fades in as
+// one (`.gallery-grid--skeleton`), and without this each placeholder would
+// also take the cards' reading-order sweep.
 .gallery-card--skeleton {
-  @include animate(fade-in, $motion-slow, ease-out);
+  animation: none;
   pointer-events: none;
 }
 

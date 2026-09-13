@@ -105,10 +105,11 @@ describe('how the placeholders come and go', () => {
       .map((rule) => rule.declarations.get(property))
       .pop();
 
-  it('fades them in instead of showing them in one frame', () => {
-    expect(declared('.gallery-card--skeleton', 'animation')).toMatch(
+  it('fades them all in together, as one, instead of card by card', () => {
+    expect(declared('.gallery-grid--skeleton', 'animation')).toMatch(
       /^fade-in /,
     );
+    expect(declared('.gallery-card--skeleton', 'animation')).toBe('none');
   });
 
   it('lays the leaving ones over the arriving cards and fades them once the cards begin', () => {
