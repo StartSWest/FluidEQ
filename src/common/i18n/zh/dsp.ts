@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': '保持增益',
   'dsp.normalizer.liveLimited': '增益受限',
   'dsp.normalizer.liveGuidance':
-    '实时响度调节先学习节目电平，再逐渐调整。安静片段保持增益；提升幅度不超过 6 dB 及可用峰值余量。不保证达到目标值。无间隔切换音源后，可先关闭再启用实时响度调节以重新学习。无法修复已有失真。',
+    '实时响度调节跟随 Windows 报告的歌曲。响亮段落会降低本曲余下部分的增益；下一首保持该电平，除非明显更安静。听过的歌曲从第一秒起调整。增益最多提升 6\u00a0dB 且不超出峰值余量；不保证达到目标值。关闭后再启用可重新学习。无法修复已有失真。',
   'dsp.denoise.liveHint':
     '外部音频使用实时自适应噪声底。嘶声、咔嗒声及 50/60 Hz 电源嗡声消减作用于正在播放的音源。自动嗡声检测会等待持续的电源谐波。',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': '实时音源分析',
   'dsp.normalizer.shortTerm': '短时响度',
   'dsp.normalizer.liveHonesty':
-    '实时响度在三秒后稳定，并逐渐调整。安静片段保持当前增益，峰值保护始终有效。无法修复音源中已有的失真。',
+    '实时响度在三秒后稳定。响亮段落决定歌曲其余部分的电平，峰值保护始终有效。无法修复音源中已有的失真。',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP 仅处理从音乐库播放的音轨，不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',

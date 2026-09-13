@@ -38,6 +38,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "owner_link.h"
 #include "status_file.h"
 #include "analysis_link.h"
+#include "leveling_board.h"
 
 namespace fluideq_engine {
 
@@ -233,6 +234,12 @@ class Watcher {
    * is logged once and otherwise changes nothing about the audio.
    */
   void report_status(bool locked) noexcept;
+  /**
+   * Tell the output's leveling which song is playing — `programme.h`. True
+   * when that finished a named song, which the status file then carries for
+   * the app to remember. Never throws.
+   */
+  bool follow_programme() noexcept;
 
   GraphSlot& slot_;
   Log& log_;
@@ -242,6 +249,10 @@ class Watcher {
   const uint32_t channels_;
   const uint32_t max_frames_;
   std::unique_ptr<AnalysisLink> analysis_;
+  // The output's, shared with every instance locked on it and kept across
+  // locks (`leveling_board.h`). Null only if it could not be allocated, and
+  // then leveling forgets with each chain, as it always used to.
+  std::shared_ptr<Leveling> leveling_;
 
   // Watcher-thread state (plus `load_initial`, which runs before the thread
   // exists — never both at once).

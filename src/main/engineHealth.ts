@@ -21,6 +21,7 @@ import path from 'path';
 import {
   IEngineHealth,
   IEngineOutputHealth,
+  IFinishedSong,
   normaliseEndpointGuid,
 } from '../common/engineHealth';
 
@@ -35,6 +36,31 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isString = (value: unknown): value is string => typeof value === 'string';
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/**
+ * The finished song an engine that levels by song reports, or undefined. A
+ * malformed one is dropped on its own rather than taking the whole status
+ * with it: the notice about the engine running matters more than one song.
+ */
+const parseFinishedSong = (value: unknown): IFinishedSong | undefined => {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  const { id, level, peak, seconds } = value;
+  if (
+    typeof id !== 'string' ||
+    !/^[0-9a-f]{16}$/.test(id) ||
+    !isFiniteNumber(level) ||
+    !isFiniteNumber(peak) ||
+    !isFiniteNumber(seconds)
+  ) {
+    return undefined;
+  }
+  return { id, levelLufs: level, peakDb: peak, seconds };
+};
 
 /**
  * A status file's text, or undefined for anything that is not a version-1
@@ -69,6 +95,7 @@ export const parseEngineStatus = (
   ) {
     return undefined;
   }
+  const lastSong = parseFinishedSong(value.lastSong);
   return {
     endpoint: normaliseEndpointGuid(endpoint),
     pid,
@@ -76,6 +103,7 @@ export const parseEngineStatus = (
     processing,
     owner,
     problems: problems.filter(isString),
+    ...(lastSong ? { lastSong } : {}),
   };
 };
 

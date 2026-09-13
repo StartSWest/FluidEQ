@@ -68,10 +68,14 @@ struct RackBuild {
  * page, or a chain the core refused to allocate. Every one of those leaves
  * the EQ running, which is the whole point of the rack being a separate file
  * from the configuration tree.
+ *
+ * `leveling` is attached to the chain's live leveling once priming is over,
+ * so the silent priming block neither adopts nor publishes anything.
  */
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
-                     std::vector<std::string>& warnings);
+                     std::vector<std::string>& warnings,
+                     FeqLevelingMemory* leveling = nullptr);
 
 }  // namespace fluideq_engine
 

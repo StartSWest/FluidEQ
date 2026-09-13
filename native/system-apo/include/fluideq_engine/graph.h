@@ -69,9 +69,14 @@ class Graph {
    * `max_frames` is the largest block `process` will accept. A larger one is
    * refused rather than handled, because handling it would mean either
    * allocating or writing past something the caller owns.
+   *
+   * `leveling` is the output's leveling memory (`leveling_board.h`), handed
+   * to the rack's live leveling so what it learned outlives this graph. Null
+   * runs leveling that forgets with the chain, which is what a test wants.
    */
   Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
-        uint32_t max_frames);
+        uint32_t max_frames,
+        std::shared_ptr<FeqLevelingMemory> leveling = nullptr);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;
@@ -296,6 +301,9 @@ class Graph {
    * new one — see `inherit_rack` for why that is safe, and for the 171 ms it
    * saves on every band drag.
    */
+  // Declared before `rack_` so it is destroyed after it: the rack's leveling
+  // holds a borrowed pointer into this memory.
+  std::shared_ptr<FeqLevelingMemory> leveling_;
   std::shared_ptr<FeqChain> rack_;
   /**
    * The array the rack was built from, kept so `inherit_rack` can tell "the

@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_STATUS_FILE_H
 #define FLUIDEQ_ENGINE_STATUS_FILE_H
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -49,6 +50,21 @@ struct EngineStatus {
    * plus the watcher's own: "reload-failed", "unwatched".
    */
   std::vector<std::string> problems;
+  /**
+   * The last named song live leveling finished on this output: sixteen hex
+   * digits of the app's own hash, the loudest settled level and peak it
+   * heard, and how many seconds of music that was learned from. A string id
+   * because a JSON number cannot carry 64 bits into JavaScript intact. The app
+   * remembers the level, so the song is levelled from its first second the
+   * next time it plays.
+   */
+  struct FinishedSong {
+    std::string id;
+    double level_lufs = -120;
+    double peak_db = -120;
+    double seconds = 0;
+  };
+  std::optional<FinishedSong> last_song;
 };
 
 /**

@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Ganancia mantenida',
   'dsp.normalizer.liveLimited': 'Ganancia limitada',
   'dsp.normalizer.liveGuidance':
-    'La nivelación en directo aprende el nivel del programa y ajusta gradualmente. Los pasajes suaves mantienen la ganancia; el aumento se limita a 6 dB y al margen de picos disponible. El objetivo no está garantizado. Tras cambiar de fuente sin pausa, desactiva y vuelve a activar la nivelación para analizarla de nuevo. No repara la distorsión existente.',
+    'La nivelación en directo sigue la canción que indica Windows. Un pasaje fuerte baja la ganancia para el resto de la canción; la siguiente mantiene ese nivel salvo que sea mucho más suave. Las canciones ya escuchadas se nivelan desde el primer segundo. La ganancia sube como máximo 6\u00a0dB dentro del margen de picos; el objetivo no está garantizado. Desactívala y actívala para analizar de nuevo. No repara la distorsión existente.',
   'dsp.denoise.liveHint':
     'El audio externo usa un nivel de ruido adaptativo en directo. La reducción de siseo, clics y zumbido de 50/60 Hz actúa sobre la fuente en reproducción. El modo automático espera armónicos persistentes de la red eléctrica.',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Análisis de la fuente en directo',
   'dsp.normalizer.shortTerm': 'Sonoridad a corto plazo',
   'dsp.normalizer.liveHonesty':
-    'La sonoridad en directo se estabiliza tras tres segundos y se ajusta gradualmente. Los pasajes suaves mantienen su ganancia; la protección de picos sigue activa. No repara la distorsión ya presente.',
+    'La sonoridad en directo se estabiliza tras tres segundos. Un pasaje fuerte fija el nivel para el resto de la canción y la protección de picos sigue activa. No repara la distorsión ya presente.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',

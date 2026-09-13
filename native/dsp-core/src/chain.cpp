@@ -794,6 +794,9 @@ int feq_chain_enable_live_normalizer(FeqChain* chain) {
     chain->live_normalizer = feq_live_normalizer_create(chain->sample_rate, chain->channels);
   return chain->live_normalizer != nullptr ? 1 : 0;
 }
+void feq_chain_attach_leveling_memory(FeqChain* chain, FeqLevelingMemory* memory) {
+  if (chain != nullptr) feq_live_normalizer_attach_memory(chain->live_normalizer, memory);
+}
 void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames) {
   if (chain != nullptr) feq_live_normalizer_silence(chain->live_normalizer, frames);
 }

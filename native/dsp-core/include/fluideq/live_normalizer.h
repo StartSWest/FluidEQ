@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_LIVE_NORMALIZER_H
 #define FLUIDEQ_LIVE_NORMALIZER_H
 #include <stdint.h>
+#include "fluideq/leveling_memory.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +28,9 @@ void feq_live_normalizer_destroy(FeqLiveNormalizer* state);
 void feq_live_normalizer_reset(FeqLiveNormalizer* state);
 /* Audio-thread notification when a host flags silence without sample data. */
 void feq_live_normalizer_silence(FeqLiveNormalizer* state, uint32_t frames);
+/* Before processing, from the thread that owns the chain. Borrowed: the memory
+   must outlive every normalizer attached to it. Null detaches. */
+void feq_live_normalizer_attach_memory(FeqLiveNormalizer* state, FeqLevelingMemory* memory);
 uint32_t feq_live_normalizer_latency(const FeqLiveNormalizer* state);
 /* Audio thread only, including the returned reading. No allocation or locks. */
 FeqLiveNormalizerReading feq_live_normalizer_process(FeqLiveNormalizer* state,

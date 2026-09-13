@@ -38,7 +38,8 @@ bool decode_dsp_chain(const std::vector<double>& values,
 
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
-                     std::vector<std::string>& warnings) {
+                     std::vector<std::string>& warnings,
+                     FeqLevelingMemory* leveling) {
   RackBuild built;
   if (values.empty()) {
     return built;  // No rack file, which is the ordinary state under APO.
@@ -104,6 +105,7 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   feq_chain_process(built.chain.get(), planes.data(), max_frames);
   feq_chain_reset(built.chain.get(), FEQ_CHAIN_RESET_STREAM_START);
   built.latency = feq_chain_latency_frames(built.chain.get());
+  feq_chain_attach_leveling_memory(built.chain.get(), leveling);
 
   if (channels > wanted) {
     warnings.push_back(

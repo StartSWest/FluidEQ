@@ -30,23 +30,35 @@ export interface IEngineHealthIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   /** `%ProgramData%\FluidEQ\engine`, where the engine writes its statuses. */
   root?: string;
+  /** Every change, for main's own listeners — `songProgramme.ts`. */
+  onHealth?: (health: IEngineHealth) => void;
+}
+
+export interface IEngineHealthIpc {
+  /**
+   * A fresh read from main's side, which also starts the watch. For a caller
+   * that needs to hear the engine's next status without the window asking.
+   */
+  read: () => Promise<IEngineHealth>;
 }
 
 export const registerEngineHealthIpc = ({
   getMainWindow,
   root = path.dirname(getFluidEngineConfigDir()),
-}: IEngineHealthIpcDeps): void => {
+  onHealth,
+}: IEngineHealthIpcDeps): IEngineHealthIpc => {
   // Lives as long as the process: the window can ask again after any reload.
   let monitor: IEngineHealthMonitor | undefined;
 
   const push = (health: IEngineHealth) => {
+    onHealth?.(health);
     const window = getMainWindow();
     if (window && !window.isDestroyed()) {
       window.webContents.send(ENGINE_HEALTH_CHANGED_CHANNEL, health);
     }
   };
 
-  ipcMain.handle(ENGINE_HEALTH_CHANNEL, async (): Promise<IEngineHealth> => {
+  const read = async (): Promise<IEngineHealth> => {
     if (process.platform !== 'win32') {
       return NO_ENGINE_HEALTH;
     }
@@ -54,5 +66,8 @@ export const registerEngineHealthIpc = ({
     // Never rejects — see `readEngineHealth` — but a handler that throws is
     // a rejection in the window, and the window asks from an event handler.
     return monitor.read().catch(() => NO_ENGINE_HEALTH);
-  });
+  };
+
+  ipcMain.handle(ENGINE_HEALTH_CHANNEL, read);
+  return { read };
 };

@@ -32,7 +32,10 @@ it under the terms of the GNU General Public License version 3 or later.
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
-import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
+import {
+  FLUID_ENGINE_DSP_FILENAME,
+  FLUID_ENGINE_PROGRAMME_FILENAME,
+} from '../common/audioEngine';
 import { flushPendingWrites, sealDirectory, writeFileNow } from './asyncWriter';
 import { DISABLED_ROOT_TEXT } from './deviceProfiles';
 import { FLUIDEQ_CONFIG_FILENAME } from './flush';
@@ -50,6 +53,14 @@ const rootPath = (configDirPath: string) =>
  */
 const rackPath = (configDirPath: string) =>
   path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME);
+
+/**
+ * Which song was playing. The engine ignores it without FluidEQ running, so
+ * this is tidiness rather than safety: a song identity from a closed app has
+ * nothing left to describe.
+ */
+const programmePath = (configDirPath: string) =>
+  path.join(configDirPath, FLUID_ENGINE_PROGRAMME_FILENAME);
 
 /**
  * For a quit from inside the app: the tray's Quit, an update restarting it.
@@ -83,6 +94,15 @@ export const resetEngineForQuit = async (
       )}`,
     );
   }
+  try {
+    await fs.promises.rm(programmePath(configDirPath), { force: true });
+  } catch (error) {
+    log.error(
+      `Could not remove the playing song from ${configDirPath} on quit: ${describe(
+        error,
+      )}`,
+    );
+  }
 };
 
 /**
@@ -106,6 +126,15 @@ export const resetEngineAtSessionEnd = (configDirPath: string): void => {
   } catch (error) {
     log.error(
       `Could not remove the DSP rack from ${configDirPath} at session end: ${describe(
+        error,
+      )}`,
+    );
+  }
+  try {
+    fs.rmSync(programmePath(configDirPath), { force: true });
+  } catch (error) {
+    log.error(
+      `Could not remove the playing song from ${configDirPath} at session end: ${describe(
         error,
       )}`,
     );

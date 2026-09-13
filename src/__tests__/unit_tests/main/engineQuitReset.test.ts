@@ -37,6 +37,7 @@ describe('resetting the engine as FluidEQ goes', () => {
   let directory: string;
   const root = () => path.join(directory, 'fluideq.txt');
   const rack = () => path.join(directory, 'fluideq-dsp.txt');
+  const programme = () => path.join(directory, 'fluideq-programme.txt');
 
   beforeEach(() => {
     directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-quit-'));
@@ -46,6 +47,7 @@ describe('resetting the engine as FluidEQ goes', () => {
       DEVICE_FILE,
     );
     fs.writeFileSync(rack(), 'rack 1 2 3');
+    fs.writeFileSync(programme(), 'song=00000000000a11ce');
   });
 
   afterEach(async () => {
@@ -61,6 +63,7 @@ describe('resetting the engine as FluidEQ goes', () => {
 
     expect(fs.readFileSync(root(), 'utf8')).toBe(DISABLED_ROOT_TEXT);
     expect(fs.existsSync(rack())).toBe(false);
+    expect(fs.existsSync(programme())).toBe(false);
   });
 
   it('leaves nothing the next launch could adopt over the saved EQ', async () => {
@@ -80,12 +83,14 @@ describe('resetting the engine as FluidEQ goes', () => {
 
     await scheduleWrite(root(), LIVE_ROOT);
     await scheduleWrite(rack(), 'rack 4 5 6');
+    await scheduleWrite(programme(), 'song=00000000000b0b00');
     const work = jest.fn(async () => undefined);
     await scheduleWriteOperation(directory, work);
     await flushPendingWrites();
 
     expect(fs.readFileSync(root(), 'utf8')).toBe(DISABLED_ROOT_TEXT);
     expect(fs.existsSync(rack())).toBe(false);
+    expect(fs.existsSync(programme())).toBe(false);
     expect(work).not.toHaveBeenCalled();
   });
 
@@ -94,6 +99,7 @@ describe('resetting the engine as FluidEQ goes', () => {
 
     expect(fs.readFileSync(root(), 'utf8')).toBe(DISABLED_ROOT_TEXT);
     expect(fs.existsSync(rack())).toBe(false);
+    expect(fs.existsSync(programme())).toBe(false);
     expect(readApoDeviceChain(directory, DEVICE)).toBeUndefined();
   });
 

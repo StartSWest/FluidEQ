@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Guadagno mantenuto',
   'dsp.normalizer.liveLimited': 'Guadagno limitato',
   'dsp.normalizer.liveGuidance':
-    'Il livellamento dal vivo apprende il livello del programma e lo regola gradualmente. I passaggi quieti mantengono il guadagno; l’aumento è limitato a 6 dB e al margine disponibile sui picchi. Il valore obiettivo non è garantito. Dopo un cambio di sorgente senza pausa, disattiva e riattiva il livellamento per una nuova analisi. Non ripara la distorsione esistente.',
+    'Il livellamento dal vivo segue il brano indicato da Windows. Un passaggio forte abbassa il guadagno per il resto del brano; il successivo mantiene quel livello, a meno che non sia molto più quieto. I brani già ascoltati sono livellati dal primo secondo. Il guadagno sale al massimo di 6\u00a0dB entro il margine sui picchi; l’obiettivo non è garantito. Disattiva e riattiva per una nuova analisi. Non ripara la distorsione esistente.',
   'dsp.denoise.liveHint':
     'L’audio esterno usa un livello di rumore adattivo misurato in tempo reale. La riduzione di fruscio, clic e ronzio a 50/60 Hz agisce sulla sorgente in riproduzione. La modalità automatica attende armoniche di rete persistenti.',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Analisi della sorgente dal vivo',
   'dsp.normalizer.shortTerm': 'Loudness a breve termine',
   'dsp.normalizer.liveHonesty':
-    'Il loudness si stabilizza dopo tre secondi e si regola gradualmente. I passaggi silenziosi mantengono il guadagno; la protezione dei picchi resta attiva. Non ripara distorsioni già presenti.',
+    'Il loudness si stabilizza dopo tre secondi. Un passaggio forte fissa il livello per il resto del brano; la protezione dei picchi resta attiva. Non ripara distorsioni già presenti.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Il DSP elabora solo le tracce audio riprodotte dalla Libreria. Audio condiviso ricevuto, karaoke, video e altre app non vengono elaborati.',

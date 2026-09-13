@@ -11,10 +11,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "watcher.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "config_file.h"
 #include "paths.h"
+#include "programme.h"
 #include "status_file.h"
 
 namespace fluideq_engine {
@@ -128,6 +132,13 @@ void Watcher::report_status(bool locked) noexcept {
       if (unwatched_) {
         status.problems.push_back("unwatched");
       }
+      if (const auto song = leveling_ ? leveling_->last_song() : std::nullopt) {
+        char id[17] = {};
+        std::snprintf(id, sizeof(id), "%016llx",
+                      static_cast<unsigned long long>(song->song_id));
+        status.last_song = EngineStatus::FinishedSong{
+            id, song->level_lufs, song->peak_db, song->seconds};
+      }
       written = status_.publish(status);
     }
     if (!written && !status_failure_logged_) {
@@ -136,6 +147,21 @@ void Watcher::report_status(bool locked) noexcept {
     }
   } catch (...) {
     // A status the app never sees costs its notice, not the audio.
+  }
+}
+
+bool Watcher::follow_programme() noexcept {
+  if (!leveling_) {
+    return false;
+  }
+  try {
+    const std::optional<std::string> text =
+        read_config_file(config_dir_ + L"\\" + kProgrammeFileName);
+    // No file is no song: the app deletes it on quit and writes nothing under
+    // Equalizer APO, and silence is then what ends a programme.
+    return leveling_->announce(text ? parse_programme(*text) : Programme{});
+  } catch (...) {
+    return false;  // A song not followed levels like a source with no title.
   }
 }
 

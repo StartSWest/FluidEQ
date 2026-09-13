@@ -98,6 +98,11 @@ void Watcher::load_initial() {
   } catch (...) {
     log_.write("DSP displays unavailable; audio processing continues");
   }
+  try {
+    leveling_ = leveling_for(endpoint_.guid);
+  } catch (...) {
+    log_.write("song leveling memory unavailable; leveling relearns per stream");
+  }
   if (endpoint_.guid.empty()) {
     // Windows handed this instance no device collection, so there is no way
     // to tell which `Device:` blocks apply. Everything unguarded still does.
@@ -371,15 +376,22 @@ void Watcher::reload(Carry carry) {
     // FluidEQ's presence is part of what was loaded: the same files with and
     // without it build different graphs.
     std::string next = signature_of(chain) + (owner ? "|o=1" : "|o=0");
+    // Before the comparison and outside the signature: a new song is a
+    // change worth reading on every wake, and never one worth a new chain.
+    const bool finished_song = owner && follow_programme();
     // A reset rebuilds even when the configuration is byte-for-byte what it
     // already was: the whole point of the rebuild is the state, not the
     // chain.
     if (carry == Carry::State && have_signature_ && next == signature_) {
+      if (finished_song) {
+        report_status(true);
+      }
       return;
     }
 
-    auto graph = std::make_unique<Graph>(chain, sample_rate_, channels_,
-                                         max_frames_);
+    auto graph = std::make_unique<Graph>(
+        chain, sample_rate_, channels_, max_frames_,
+        leveling_ ? leveling_->memory() : nullptr);
     if (stop_requested()) {
       // The half-built graph dies with the `unique_ptr`, having never been
       // reachable from the slot. Recording the signature is left undone with

@@ -71,13 +71,14 @@ bool all_finite(float* const* planar, uint32_t channels,
 }  // namespace
 
 Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
-             uint32_t max_frames)
+             uint32_t max_frames, std::shared_ptr<FeqLevelingMemory> leveling)
     : sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
       passthrough_(true),
       preamp_linear_(1.0),
-      latency_frames_(0) {
+      latency_frames_(0),
+      leveling_(std::move(leveling)) {
   if (sample_rate_ == 0 || channels_ == 0 || max_frames_ == 0) {
     return;
   }
@@ -91,7 +92,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    * every output on a fresh install.
    */
   RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
-                              max_frames_, warnings_);
+                              max_frames_, warnings_, leveling_.get());
   rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
   dsp_values_ = chain.dsp_values;
   rack_channels_ = rack.channels;

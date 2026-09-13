@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Gain maintenu',
   'dsp.normalizer.liveLimited': 'Gain limité',
   'dsp.normalizer.liveGuidance':
-    'Le nivellement en direct apprend le niveau du programme, puis l’ajuste progressivement. Les passages calmes conservent leur gain ; l’augmentation est limitée à 6 dB et à la marge disponible pour les crêtes. La cible n’est pas garantie. Après un changement de source sans pause, désactivez puis réactivez le nivellement pour relancer l’analyse. Il ne répare pas la distorsion existante.',
+    'Le nivellement en direct suit le morceau indiqué par Windows. Un passage fort baisse le gain pour le reste du morceau ; le suivant garde ce niveau sauf s’il est nettement plus calme. Les morceaux déjà entendus sont nivelés dès la première seconde. Le gain monte d’au plus 6\u00a0dB dans la marge des crêtes ; la cible n’est pas garantie. Désactivez puis réactivez pour relancer l’analyse. Il ne répare pas la distorsion existante.',
   'dsp.denoise.liveHint':
     'L’audio externe utilise un niveau de bruit adaptatif mesuré en direct. La réduction du souffle, des clics et du ronflement à 50/60 Hz agit sur la source en lecture. Le mode automatique attend des harmoniques secteur persistantes.',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Analyse de la source en direct',
   'dsp.normalizer.shortTerm': 'Sonie à court terme',
   'dsp.normalizer.liveHonesty':
-    'La sonie se stabilise après trois secondes et s’ajuste progressivement. Les passages calmes conservent leur gain ; la protection des crêtes reste active. Les distorsions déjà présentes ne sont pas réparées.',
+    'La sonie se stabilise après trois secondes. Un passage fort fixe le niveau pour le reste du morceau ; la protection des crêtes reste active. Les distorsions déjà présentes ne sont pas réparées.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Le DSP traite uniquement les pistes audio lues depuis la Bibliothèque. Le son partagé reçu, le karaoké, les vidéos et les autres applications ne sont pas traités.',

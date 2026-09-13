@@ -33,7 +33,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Holding gain',
   'dsp.normalizer.liveLimited': 'Gain limited',
   'dsp.normalizer.liveGuidance':
-    'Live leveling learns the programme level, then adjusts gradually. Quiet passages hold their gain; upward gain is limited to 6 dB and available peak headroom. The target is not guaranteed. After a seamless source change, switch Off and back to Live leveling to relearn. It cannot repair existing distortion.',
+    'Live leveling follows the song Windows reports. A loud passage lowers the gain for the rest of the song; the next song keeps that level unless it is much quieter. Songs heard before are leveled from the first second. Gain rises at most 6\u00a0dB, within peak headroom; the target is not guaranteed. Switch Off and on to relearn. It cannot repair existing distortion.',
   'dsp.denoise.liveHint':
     'External audio uses a live adaptive noise floor. Hiss, click repair, and 50/60 Hz hum reduction run on the playing source. Auto hum waits for persistent mains harmonics.',
   'dsp.denoise.voiceLibraryOnly':
@@ -43,7 +43,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Live source analysis',
   'dsp.normalizer.shortTerm': 'Short-term loudness',
   'dsp.normalizer.liveHonesty':
-    'Live loudness settles after three seconds and adjusts gradually. Quiet passages hold their gain; peak protection remains active. It cannot repair distortion already in the source.',
+    'Live loudness settles after three seconds. A loud passage sets the level for the rest of the song, and peak protection remains active. It cannot repair distortion already in the source.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',

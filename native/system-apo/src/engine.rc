@@ -26,6 +26,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        status while sound plays means the engine is not there.
  *
  *   1.2  also serves the system DSP's stage measurements to the DSP page.
+ *   1.7  also levels by song: reads fluideq-programme.txt, keeps what live
+ *        leveling learned across locks, and reports each finished song as
+ *        `lastSong` in its status. An older engine ignores the file.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -37,8 +40,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 6, 0, 0
-PRODUCTVERSION 1, 6, 0, 0
+FILEVERSION 1, 7, 0, 0
+PRODUCTVERSION 1, 7, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

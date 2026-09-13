@@ -405,6 +405,22 @@ Everything worth knowing about them is available through commands:
   Bumping `FEQ_CHAIN_PARAM_LEAD` moves every index after it, so regenerate
   that reference line in the same commit or the test compares one stale
   layout against another and proves nothing.
+- **Live leveling in the engine knows which song is playing, and outlives
+  its chain.** Windows re-locks an output's effect every time a stream starts,
+  stops or changes format — eight times in thirteen minutes of ordinary
+  listening — and each lock builds a new chain, so a leveler that lived in its
+  chain went back to unity mid-song. The learned state now lives in a
+  per-output `FeqLevelingMemory` (`leveling_memory.h`, kept for the life of
+  audiodg by `leveling_board.h`) that every chain adopts and publishes to, on
+  blocks that carry sound only — an idle stream on the same output publishing
+  its copy would overwrite what the playing one learned. The app names the song
+  in `fluideq-programme.txt` (`songProgramme.ts`: a hash of player, title and
+  artist, never the title), outside the chain signature so a new song never
+  rebuilds the rack; the engine reports each finished song as `lastSong` in its
+  status, and `songLevels.ts` remembers it so the next play is levelled from
+  its first second. Within a song the gain only goes down; the next song keeps
+  it unless it is much quieter. The programme text is pinned on both sides
+  (`leveling_board_test.cpp`, `songProgramme.test.ts`), like the status.
 - **Under the FluidEQ Engine the rack runs in exactly one place.** The
   Library player's host while the Library plays, the engine the rest of the
   time, and nowhere while FluidEQ is switched off or the engine is off

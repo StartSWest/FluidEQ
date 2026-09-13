@@ -9,7 +9,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 # only, and deliberately split from the DSP host: the host is a process FluidEQ
 # owns, the effect is code running inside somebody else's.
 
-add_library(fluideq-engine-config STATIC src/config.cpp src/config_grammar.cpp)
+add_library(fluideq-engine-config STATIC src/config.cpp src/config_grammar.cpp
+  src/programme.cpp)
 target_include_directories(fluideq-engine-config PUBLIC include)
 target_link_libraries(fluideq-engine-config PRIVATE feq_strict)
 
@@ -22,7 +23,8 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
-  src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp)
+  src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
+  src/leveling_board.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -81,6 +83,13 @@ add_executable(fluideq-engine-dsp-chain-test tests/dsp_chain_test.cpp)
 target_link_libraries(fluideq-engine-dsp-chain-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
+
+# Song leveling on the engine side: the programme file the app writes, the
+# memory an output keeps across locks, and the song each announcement ends.
+add_executable(fluideq-engine-leveling-test tests/leveling_board_test.cpp)
+target_link_libraries(fluideq-engine-leveling-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 
 # The effect itself: the DLL Windows loads into audiodg.exe once per output it
 # is attached to. `FluidEQ-Engine` rather than the target's name because this

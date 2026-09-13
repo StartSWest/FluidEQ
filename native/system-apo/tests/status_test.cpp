@@ -69,6 +69,25 @@ void a_pass_through_with_problems() {
         std::string::npos);
 }
 
+void a_finished_song() {
+  std::printf("the last song leveling finished, in the exact shape the app parses\n");
+  EngineStatus status;
+  status.endpoint = L"{AAAA}";
+  status.locked = true;
+  status.processing = true;
+  status.last_song =
+      EngineStatus::FinishedSong{"00000000000a11ce", -11.844, -0.6251, 184.25};
+  CHECK(status_json(status, 7, "t") ==
+        "{\"version\":1,\"endpoint\":\"{AAAA}\",\"pid\":7,\"locked\":true,"
+        "\"processing\":true,\"owner\":true,\"reason\":\"\",\"problems\":[],"
+        "\"lastSong\":{\"id\":\"00000000000a11ce\",\"level\":-11.84,"
+        "\"peak\":-0.63,\"seconds\":184.25},\"at\":\"t\"}\r\n");
+  // Positive control for the field being optional: without a song the text
+  // is exactly what every earlier engine wrote.
+  status.last_song.reset();
+  CHECK(status_json(status, 7, "t").find("lastSong") == std::string::npos);
+}
+
 void text_is_escaped() {
   std::printf("quotes, backslashes and control characters are escaped\n");
   EngineStatus status;
@@ -166,6 +185,7 @@ int main() {
   std::printf("fluideq engine status file\n");
   a_processing_output();
   a_pass_through_with_problems();
+  a_finished_song();
   text_is_escaped();
   linear_phase_fallback_is_reported();
   instances_share_an_output();

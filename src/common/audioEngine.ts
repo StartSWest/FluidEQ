@@ -35,6 +35,9 @@ export const FLUID_ENGINE_CLSID = '{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}';
 /** The system-wide DSP rack's settings file, written beside the engine's config. */
 export const FLUID_ENGINE_DSP_FILENAME = 'fluideq-dsp.txt';
 
+/** Which song is playing, for the engine's live leveling — `songProgramme.ts`. */
+export const FLUID_ENGINE_PROGRAMME_FILENAME = 'fluideq-programme.txt';
+
 /**
  * What a run that ends in restarting Windows audio came back with — "Restart
  * Windows audio" itself, and the engine update, which restarts audio onto the

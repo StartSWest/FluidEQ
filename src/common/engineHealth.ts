@@ -53,6 +53,23 @@ export interface IEngineOutputHealth {
   owner: boolean;
   /** `TEngineProblem` codes, or codes from an engine newer than this app. */
   problems: string[];
+  /**
+   * The last named song live leveling finished on this output, from an
+   * engine new enough to level by song. Absent otherwise.
+   */
+  lastSong?: IFinishedSong;
+}
+
+/** What live leveling learned about one song — see `songLevels.ts`. */
+export interface IFinishedSong {
+  /** The app's own sixteen-hex-digit identity for the song. */
+  id: string;
+  /** The loudest settled short-term loudness heard, in LUFS. */
+  levelLufs: number;
+  /** The loudest true peak heard, in dBTP. */
+  peakDb: number;
+  /** Seconds of music the level was learned from. */
+  seconds: number;
 }
 
 export interface IEngineHealth {

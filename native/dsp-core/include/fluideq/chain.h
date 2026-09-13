@@ -351,6 +351,12 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain);
 void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters);
 /* Before playback: external streams have no whole-file analysis to apply. */
 int feq_chain_enable_live_normalizer(FeqChain* chain);
+/**
+ * Give live leveling somewhere to keep what it learns beyond this chain, and to
+ * hear which song is playing. After `feq_chain_enable_live_normalizer` and
+ * before the chain is published; borrowed, and it must outlive the chain.
+ */
+void feq_chain_attach_leveling_memory(FeqChain* chain, FeqLevelingMemory* memory);
 /** Audio-thread notification for host silence flags; no sample buffer is read. */
 void feq_chain_notify_input_silence(FeqChain* chain, uint32_t frames);
 

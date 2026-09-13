@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Ganho mantido',
   'dsp.normalizer.liveLimited': 'Ganho limitado',
   'dsp.normalizer.liveGuidance':
-    'O nivelamento ao vivo aprende o nível do programa e ajusta gradualmente. Trechos suaves mantêm o ganho; o aumento é limitado a 6 dB e à margem de pico disponível. O alvo não é garantido. Após mudar de fonte sem pausa, desative e reative o nivelamento para analisar novamente. Não corrige distorção existente.',
+    'O nivelamento ao vivo acompanha a música indicada pelo Windows. Um trecho forte reduz o ganho para o resto da música; a próxima mantém esse nível, a menos que seja muito mais suave. Músicas já ouvidas são niveladas desde o primeiro segundo. O ganho sobe no máximo 6\u00a0dB dentro da margem de pico; o alvo não é garantido. Desative e reative para analisar novamente. Não corrige distorção existente.',
   'dsp.denoise.liveHint':
     'O áudio externo usa um nível de ruído adaptativo medido em tempo real. A redução de chiado, cliques e zumbido de 50/60 Hz atua na fonte em reprodução. O modo automático aguarda harmônicos persistentes da rede elétrica.',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Análise da fonte ao vivo',
   'dsp.normalizer.shortTerm': 'Sonoridade de curto prazo',
   'dsp.normalizer.liveHonesty':
-    'A sonoridade estabiliza após três segundos e se ajusta gradualmente. Trechos suaves mantêm o ganho; a proteção de picos permanece ativa. Não corrige distorção já presente na fonte.',
+    'A sonoridade estabiliza após três segundos. Um trecho forte define o nível para o resto da música, e a proteção de picos permanece ativa. Não corrige distorção já presente na fonte.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'O DSP processa apenas faixas de áudio reproduzidas da Biblioteca. Áudio compartilhado recebido, karaokê, vídeos e outros aplicativos não são processados.',

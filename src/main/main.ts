@@ -60,13 +60,21 @@ import {
   PRESET_BASELINES_DIR,
   repairUnusedPreamps,
 } from './flush';
-import { flushPendingWrites, hasUnsettledWrites } from './asyncWriter';
+import {
+  flushPendingWrites,
+  hasUnsettledWrites,
+  scheduleWrite,
+} from './asyncWriter';
 import {
   getConfigPath,
   isEngineInstalled,
   isEqualizerAPOInstalled,
 } from './registry';
-import { IAudioRestartOutcome, TAudioEngine } from '../common/audioEngine';
+import {
+  FLUID_ENGINE_PROGRAMME_FILENAME,
+  IAudioRestartOutcome,
+  TAudioEngine,
+} from '../common/audioEngine';
 import {
   loadAudioEnginePreference,
   migrateAudioEnginePreference,
@@ -74,6 +82,8 @@ import {
 } from './audioEngineStore';
 import { neutraliseEngine } from './engineNeutralise';
 import { writeSystemDspChain } from './systemDspChain';
+import { createSongLevelStore } from './songLevels';
+import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
 import { startEngineOwnerPipe } from './engineOwnerPipe';
 import startEngineAnalysisPipe from './engineAnalysisPipe';
@@ -2865,12 +2875,34 @@ ipcMain.handle('media-transport', async (_event, action: unknown) => {
  * watcher is a PowerShell child — see `systemMedia` for why — and one that is
  * not needed is one that should not be running.
  */
+/**
+ * Which song the machine is playing, for the FluidEQ Engine's live leveling
+ * — see `songProgramme.ts`. Fed by the same media watcher as the bar, and
+ * by the engine's statuses for the songs it finished learning.
+ */
+const songProgramme = createSongProgramme({
+  store: createSongLevelStore(userDataDir),
+  fileName: FLUID_ENGINE_PROGRAMME_FILENAME,
+  write: scheduleWrite,
+  // The rack write's refusals (`ipc/audioEngine.ts`): not this engine, or
+  // mid-switch. And installed before the path is asked for, because asking
+  // creates the directory.
+  resolveConfigDir: async () =>
+    session.audioEngine === 'fluid' &&
+    !session.engineSwitching &&
+    (await isEngineInstalled('fluid'))
+      ? getConfigPath('fluid')
+      : undefined,
+  watchEngine: () => engineHealth.read(),
+});
+
 ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
   if (enabled !== true) {
     stopWatchingSystemMedia();
     return;
   }
   watchSystemMedia((snapshot) => {
+    songProgramme.onMedia(snapshot).catch(() => undefined);
     if (!event.sender.isDestroyed()) {
       event.sender.send('system-media-changed', snapshot);
     }
@@ -3115,8 +3147,12 @@ registerLibraryPlaylistsIpc({
 });
 
 // What the FluidEQ Engine says about each output, for the notice that says
-// when it is failing. Watches nothing until the window first asks.
-registerEngineHealthIpc({ getMainWindow: () => mainWindow });
+// when it is failing and for the songs it finished levelling. Watches nothing
+// until the window first asks or a song is announced to the engine.
+const engineHealth = registerEngineHealthIpc({
+  getMainWindow: () => mainWindow,
+  onHealth: songProgramme.onHealth,
+});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

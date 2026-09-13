@@ -71,6 +71,46 @@ describe('parseEngineStatus', () => {
     });
   });
 
+  it('reads the finished song the engine writes', () => {
+    // `a_finished_song` in status_test.cpp, byte for byte.
+    const text =
+      '{"version":1,"endpoint":"{AAAA}","pid":7,"locked":true,' +
+      '"processing":true,"owner":true,"reason":"","problems":[],' +
+      '"lastSong":{"id":"00000000000a11ce","level":-11.84,' +
+      '"peak":-0.63,"seconds":184.25},"at":"t"}\r\n';
+    expect(parseEngineStatus(text)?.lastSong).toEqual({
+      id: '00000000000a11ce',
+      levelLufs: -11.84,
+      peakDb: -0.63,
+      seconds: 184.25,
+    });
+    // Positive control for the field being optional.
+    expect(parseEngineStatus(ENGINE_TEXT)).not.toHaveProperty('lastSong');
+  });
+
+  it.each([
+    [
+      'an id that is not sixteen hex digits',
+      { id: 'a11ce', level: -12, peak: -1, seconds: 60 },
+    ],
+    [
+      'an upper-case id the engine never writes',
+      { id: '00000000000A11CE', level: -12, peak: -1, seconds: 60 },
+    ],
+    [
+      'a level that is not a number',
+      { id: '00000000000a11ce', level: '-12', peak: -1, seconds: 60 },
+    ],
+    ['no seconds', { id: '00000000000a11ce', level: -12, peak: -1 }],
+  ])(
+    'drops a finished song with %s, and keeps the status',
+    (_label, lastSong) => {
+      const parsed = parseEngineStatus(status({ lastSong }));
+      expect(parsed?.locked).toBe(true);
+      expect(parsed).not.toHaveProperty('lastSong');
+    },
+  );
+
   it('keeps problem codes it does not know, for an engine newer than the app', () => {
     expect(
       parseEngineStatus(

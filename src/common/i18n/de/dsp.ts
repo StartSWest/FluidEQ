@@ -24,7 +24,7 @@ const dsp = {
   'dsp.normalizer.holding': 'Verstärkung gehalten',
   'dsp.normalizer.liveLimited': 'Verstärkung begrenzt',
   'dsp.normalizer.liveGuidance':
-    'Der Live-Pegelausgleich ermittelt den Programmpegel und passt ihn langsam an. Leise Passagen behalten ihre Verstärkung; Anhebungen sind auf 6 dB und den verfügbaren Spitzenpegelspielraum begrenzt. Der Zielwert ist nicht garantiert. Nach einem nahtlosen Quellenwechsel aus- und wieder einschalten, um neu einzumessen. Vorhandene Verzerrung kann nicht behoben werden.',
+    'Der Live-Pegelausgleich folgt dem Titel, den Windows meldet. Eine laute Passage senkt die Verstärkung für den Rest des Titels; der nächste Titel behält diesen Pegel, außer er ist deutlich leiser. Bereits gehörte Titel werden ab der ersten Sekunde ausgeglichen. Anhebung höchstens 6\u00a0dB innerhalb des Spitzenpegelspielraums; der Zielwert ist nicht garantiert. Zum Neueinmessen aus- und einschalten. Vorhandene Verzerrung wird nicht behoben.',
   'dsp.denoise.liveHint':
     'Externes Audio nutzt einen laufend ermittelten adaptiven Rauschpegel. Rausch-, Klick- und 50/60-Hz-Brummreduzierung bearbeiten die laufende Quelle. Die Brummautomatik wartet auf anhaltende Netzoberwellen.',
   'dsp.denoise.voiceLibraryOnly':
@@ -34,7 +34,7 @@ const dsp = {
   'dsp.normalizer.liveAnalysis': 'Live-Analyse der Quelle',
   'dsp.normalizer.shortTerm': 'Kurzzeitlautheit',
   'dsp.normalizer.liveHonesty':
-    'Die Live-Lautheit stabilisiert sich nach drei Sekunden und wird allmählich angepasst. Leise Passagen behalten ihre Verstärkung; der Spitzenschutz bleibt aktiv. Vorhandene Verzerrungen werden nicht repariert.',
+    'Die Live-Lautheit stabilisiert sich nach drei Sekunden. Eine laute Passage legt den Pegel für den Rest des Titels fest; der Spitzenschutz bleibt aktiv. Vorhandene Verzerrungen werden nicht repariert.',
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'DSP verarbeitet nur Audiotitel aus der Bibliothek. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',

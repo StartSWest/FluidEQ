@@ -83,6 +83,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/output_safety.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/live_normalizer.cpp
+  dsp-core/src/leveling_memory.cpp
   dsp-core/src/analog_diode.cpp
   dsp-core/src/harmonics.cpp
   dsp-core/src/phase_align.cpp
@@ -132,6 +133,9 @@ enable_testing()
 add_executable(fluideq-live-normalizer-test dsp-core/tests/live_normalizer_test.cpp)
 target_link_libraries(fluideq-live-normalizer-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME live-normalizer COMMAND fluideq-live-normalizer-test)
+add_executable(fluideq-song-leveling-test dsp-core/tests/song_leveling_test.cpp)
+target_link_libraries(fluideq-song-leveling-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME song-leveling COMMAND fluideq-song-leveling-test)
 
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
