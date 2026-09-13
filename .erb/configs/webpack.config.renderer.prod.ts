@@ -16,6 +16,7 @@ import { dspWorkletConfig } from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
 import PUBLIC_ENV_DEFAULTS from './public-env';
+import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
 
 checkNodeEnv('production');
 deleteSourceMaps();
@@ -193,6 +194,9 @@ const configuration: webpack.Configuration = {
       isBrowser: false,
       isDevelopment: process.env.NODE_ENV !== 'production',
       chunks: ['renderer'],
+      // The window's policy, as the meta tag: a packaged build loads over
+      // file://, where the header mainWindow.ts sets is never applied.
+      csp: contentSecurityPolicy(process.env.DEBUG_PROD === 'true'),
     }),
   ],
 };

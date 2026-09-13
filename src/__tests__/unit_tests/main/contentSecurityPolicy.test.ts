@@ -62,6 +62,11 @@ describe('the app window content security policy', () => {
     expect(directives(true)['script-src']).not.toContain("'unsafe-inline'");
   });
 
+  it('compiles WebAssembly in either build, which is not eval', () => {
+    expect(directives(false)['script-src']).toContain("'wasm-unsafe-eval'");
+    expect(directives(true)['script-src']).toContain("'wasm-unsafe-eval'");
+  });
+
   it('allows eval only while developing', () => {
     // Webpack's hot reload compiles modules with eval. A packaged build has no
     // dev server, so it has no reason to permit it — and this is the assertion

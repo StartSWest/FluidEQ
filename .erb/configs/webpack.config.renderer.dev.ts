@@ -17,6 +17,7 @@ import webpackPaths from './webpack.paths';
 import { dspWorkletConfig } from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
+import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -214,6 +215,9 @@ const configuration: webpack.Configuration = {
       isDevelopment: process.env.NODE_ENV !== 'production',
       nodeModules: webpackPaths.appNodeModulesPath,
       chunks: ['renderer'],
+      // The same policy the header carries, so development runs the rules a
+      // packaged build does (see contentSecurityPolicy.ts).
+      csp: contentSecurityPolicy(true),
     }),
   ],
 

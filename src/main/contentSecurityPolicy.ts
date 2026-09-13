@@ -71,8 +71,19 @@ const GITHUB_IMAGE_HOSTS = 'https://github.com https://*.githubusercontent.com';
  *  - script-src without `'unsafe-inline'` — an injected `<script>` tag does not
  *    run.
  *
+ * Delivered twice, and both are needed. The header set in `mainWindow.ts`
+ * reaches documents served over HTTP — the development server — but Electron
+ * never calls `onHeadersReceived` for `file://`, which is how a packaged
+ * build loads its window, so there the meta tag in `index.ejs` is the only
+ * policy; the renderer's webpack configs write this same string into it.
+ * Until 2026-09-13 that tag carried a hand-written policy with inline script
+ * allowed and nothing limiting images, connections, plugins or `<base>`, so
+ * every packaged build ran without the rules this file tests.
+ *
  * What it allows, and why:
  *
+ *  - `'wasm-unsafe-eval'` — WebAssembly compiled in the window, which the
+ *    old meta tag always allowed; it permits compiling a module, not eval.
  *  - `'unsafe-eval'` in development only. Webpack's hot reload compiles modules
  *    with eval; a packaged build has no dev server and no reason to permit it.
  *  - `style-src 'unsafe-inline'` — React style props are inline styles, and a
@@ -98,7 +109,9 @@ const GITHUB_IMAGE_HOSTS = 'https://github.com https://*.githubusercontent.com';
 const contentSecurityPolicy = (isDebug: boolean): string =>
   [
     "default-src 'self'",
-    isDebug ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
+    isDebug
+      ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'"
+      : "script-src 'self' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: fluideq-media: ${GITHUB_IMAGE_HOSTS}`,
     "media-src 'self' blob: data: file: fluideq-media:",
