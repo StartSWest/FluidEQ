@@ -1,5 +1,7 @@
 const leaderboard = {
   'leaderboard.title': 'Classifica',
+  'leaderboard.description':
+    'I membri Plus in ordine di ascolto, giorni attivi e Mi piace alle scene',
   'leaderboard.card.title': 'Classifica',
   'leaderboard.card.body':
     'Chi ascolta di più, tra i membri Plus. Disattivata finché non partecipi. Se lo fai, l’app invia un solo numero per ogni giorno — minuti interi di musica riprodotta, con un tetto di sedici ore — con la sua data, e lo aggiorna quando torni al computer o apri la classifica. Mai cosa hai ascoltato, né da dove.',

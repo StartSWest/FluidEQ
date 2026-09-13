@@ -16,7 +16,6 @@ import LeaderboardGuide from './LeaderboardGuide';
 import LeaderboardName from './LeaderboardName';
 import LeaderboardStanding from './LeaderboardStanding';
 import LeaderboardStats from './LeaderboardStats';
-import { identityStyle } from './identity';
 
 const ERROR_KEYS: Record<TLeaderboardFailure, TranslationKey> = {
   plus_required: 'leaderboard.error.plusRequired',
@@ -35,11 +34,13 @@ const SKELETON_ROWS = 6;
  * Who is here most.
  *
  * Your standing first, when you are on the board: the rank, the points and
- * what they are made of, and how far the next person is. Then the top three on
- * a podium — first in the middle, a step higher and crowned, the way every
- * podium is read, with gold, silver and bronze on the ranks — and everyone
- * else as a row whose own background fills to their share of the leader's
- * points, so the shape of the board is visible before a number is read. How
+ * what they are made of, and how far the next person is. Then the top three as
+ * cards on a podium — first in the middle, a step higher and crowned, the way
+ * every podium is read, with gold, silver and bronze on the ranks — and
+ * everyone else as a row with a short track beside their points showing their
+ * share of the leader's, so the shape of the board is visible before a number
+ * is read. The same cards, borders and hover as the Visualizers gallery: a
+ * person's colour is on their avatar, not painted across the board. How
  * points are earned stands beside it on a wide pane and under it on a narrow
  * one, each part in the colour it wears everywhere else.
  */
@@ -142,24 +143,25 @@ export default function LeaderboardView() {
                 <li
                   key={`${row.rank}-${row.handle}`}
                   className={`leaderboard__place leaderboard__place--${row.rank}${isMe(row) ? ' is-me' : ''}`}
-                  style={identityStyle(row.handle)}
                 >
-                  {row.rank === 1 && (
-                    <span className="leaderboard__crown" aria-hidden="true">
-                      <Glyph name="crown" />
+                  <span className="leaderboard__place-top">
+                    <span
+                      className={`leaderboard__medal leaderboard__medal--${row.rank}`}
+                    >
+                      {row.rank}
                     </span>
-                  )}
-                  <span
-                    className={`leaderboard__medal leaderboard__medal--${row.rank}`}
-                  >
-                    {row.rank}
+                    {row.rank === 1 && (
+                      <span className="leaderboard__crown" aria-hidden="true">
+                        <Glyph name="crown" />
+                      </span>
+                    )}
                   </span>
                   <Avatar
                     handle={row.handle}
                     displayName={row.displayName}
                     size="podium"
                   />
-                  <span className="leaderboard__place-name community__name community__name--hued">
+                  <span className="leaderboard__place-name community__name">
                     {row.displayName || row.handle}
                   </span>
                   <span className="community__handle">@{row.handle}</span>
@@ -171,7 +173,6 @@ export default function LeaderboardView() {
                     {pointsOf(row.points)}
                   </span>
                   <LeaderboardStats score={row} hours={hoursOf(row.minutes)} />
-                  <span className="leaderboard__pedestal" aria-hidden="true" />
                 </li>
               ))}
             </ol>
@@ -184,10 +185,7 @@ export default function LeaderboardView() {
                   key={`${row.rank}-${row.handle}`}
                   className={`leaderboard__row${isMe(row) ? ' leaderboard__row--me' : ''}`}
                   style={
-                    {
-                      ...identityStyle(row.handle),
-                      '--share': `${shareOf(row.points)}%`,
-                    } as CSSProperties
+                    { '--share': `${shareOf(row.points)}%` } as CSSProperties
                   }
                 >
                   <span className="leaderboard__rank">{row.rank}</span>
@@ -206,8 +204,15 @@ export default function LeaderboardView() {
                       hours={hoursOf(row.minutes)}
                     />
                   </span>
-                  <span className="leaderboard__points">
-                    {pointsOf(row.points)}
+                  <span className="leaderboard__score">
+                    {/* Their share of the leader's points, as a short track
+                        beside the number rather than a tint across the row. */}
+                    <span className="leaderboard__share" aria-hidden="true">
+                      <span />
+                    </span>
+                    <span className="leaderboard__points">
+                      {pointsOf(row.points)}
+                    </span>
                   </span>
                 </li>
               ))}

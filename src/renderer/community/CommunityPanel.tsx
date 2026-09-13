@@ -220,12 +220,19 @@ export default function CommunityPanel({
         {view === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
         {view === 'board' && (
           <>
+            {/* The same head the Visualizers place has: the name, and a
+                line saying what the place is. */}
             <header className="community__head">
-              <span className="community__head-mark">
+              <span className="community__head-mark" aria-hidden="true">
                 <Glyph name="board" />
               </span>
-              <span className="community__head-name">
-                {t('leaderboard.title')}
+              <span className="community__head-text">
+                <span className="community__head-name">
+                  {t('leaderboard.title')}
+                </span>
+                <span className="community__head-description">
+                  {t('leaderboard.description')}
+                </span>
               </span>
             </header>
             <LeaderboardView />

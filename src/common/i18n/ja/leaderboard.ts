@@ -1,5 +1,7 @@
 const leaderboard = {
   'leaderboard.title': 'ランキング',
+  'leaderboard.description':
+    '視聴、アクティブな日、シーンへのいいねで並ぶ Plus メンバー',
   'leaderboard.card.title': 'ランキング',
   'leaderboard.card.body':
     'Plus メンバーの中で誰が一番聴いているか。参加しない限りオフです。参加すると、アプリは一日ごとにひとつの数字だけを送ります — 実際に再生された音楽の分数（上限16時間）とその日付。パソコンに戻ったときやランキングを開いたときに更新します。何を聴いたか、どこから聴いたかは決して送りません。',

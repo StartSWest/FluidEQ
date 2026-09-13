@@ -13,23 +13,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Where you stand, at the top of the board: the rank large on the left, the
 // points and what they are made of on the right. The parts' colours come from
-// `--part`, set in Leaderboard.scss.
+// `--part`, set in Leaderboard.scss. The Plus pages' intro strip (the gifts
+// page, the reported scenes): a card in the accent's edge with its light
+// fading across from the start, no glow.
 .leaderboard-standing {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: $spacing-l;
-  padding: $spacing-m $spacing-l;
-  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
-  border-radius: $radius-l;
+  padding: 14px $spacing-l;
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
+  border-radius: $radius-m;
   background:
-    radial-gradient(
-      90% 160% at 0% 0%,
-      color-mix(in srgb, $secondary-default 16%, transparent),
-      transparent 60%
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 10%, transparent),
+      color-mix(in srgb, $secondary-default 2%, transparent) 70%
     ),
     $block-lift;
-  @include animate(rise-in);
+  @include animate(rise-in, $motion-base, $ease-out, 60ms);
 
   @container eq-panel (max-width: 600px) {
     grid-template-columns: minmax(0, 1fr);
@@ -58,11 +60,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // ceiling at every size in this app, and at this one it is plenty.
 .leaderboard-standing__number {
   color: $secondary-light;
-  font-size: 2.3rem;
+  font-size: 2.1rem;
   font-weight: $weight-bold;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 22px color-mix(in srgb, $secondary-default 40%, transparent);
 }
 
 .leaderboard-standing__hash {
@@ -113,21 +114,16 @@ it under the terms of the GNU General Public License version 3 or later.
 .leaderboard-standing__bar {
   display: flex;
   gap: 2px;
-  height: 10px;
+  height: 6px;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $white 6%, transparent);
+  background: color-mix(in srgb, $white 7%, transparent);
 }
 
 .leaderboard-standing__segment {
   flex-basis: 0;
   min-width: 4px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--part) 92%, $white),
-    var(--part)
-  );
-  box-shadow: 0 0 10px color-mix(in srgb, var(--part) 50%, transparent);
+  background: var(--part);
   transform-origin: left center;
   @include animate(leaderboard-standing-grow, 640ms, $ease-out, 120ms);
 }
@@ -171,7 +167,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .leaderboard-standing__next {
   margin: 0;
-  color: $secondary-light;
+  color: $text-muted;
   font-size: $text-body;
   font-weight: $weight-medium;
 }

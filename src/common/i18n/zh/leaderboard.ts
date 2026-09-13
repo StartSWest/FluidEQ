@@ -1,5 +1,6 @@
 const leaderboard = {
   'leaderboard.title': '排行榜',
+  'leaderboard.description': '按收听、活跃天数和场景获赞排名的 Plus 会员',
   'leaderboard.card.title': '排行榜',
   'leaderboard.card.body':
     'Plus 会员中谁听得最多。除非你加入，否则关闭。加入后，应用每天只发送一个数字——实际播放音乐的整分钟数，上限十六小时——及其日期，并在你回到电脑前或打开排行榜时更新它。永远不会发送你听了什么，或从哪里听的。',

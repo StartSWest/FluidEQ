@@ -7,6 +7,8 @@
  */
 const leaderboard = {
   'leaderboard.title': 'Leaderboard',
+  'leaderboard.description':
+    'Plus members ranked by listening, active days and scene likes',
   'leaderboard.card.title': 'Leaderboard',
   'leaderboard.card.body':
     'Who listens most, among Plus members. Off unless you join. If you do, the app sends one number for each day — whole minutes of music that played, capped at sixteen hours — with its date, and updates it when you come back to the computer or open the board. Never what you played, never where from.',

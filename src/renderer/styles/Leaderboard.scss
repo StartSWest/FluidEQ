@@ -11,13 +11,14 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The leaderboard inside the Plus tab. People's colours come from
-// `--identity-hue` (see CommunityRail.scss); the three parts of a score each
-// have a colour of their own, below, used by the guide, the stats under every
-// name and the standing bar alike. The Account panel's card is in
-// LeaderboardCard.scss, the standing card in LeaderboardStanding.scss, the
-// guide in LeaderboardGuide.scss, the card that asks for a name in
-// LeaderboardName.scss.
+// The leaderboard inside the Plus tab, built from the Visualizers gallery's
+// furniture — the same page padding, toolbar, `$block-lift` cards with a
+// subtle edge that takes the accent under the pointer — so the two places
+// read as one app. A person's colour stays on their avatar; the board itself
+// is painted in the accent, the three medals and the three parts of a score.
+// The Account panel's card is in LeaderboardCard.scss, the standing card in
+// LeaderboardStanding.scss, the guide in LeaderboardGuide.scss, the card that
+// asks for a name in LeaderboardName.scss.
 
 // ---------------------------------------------------------------- parts
 
@@ -48,37 +49,33 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- board
 
-// The scroll container spans the pane; the content does not. On a wide window
-// a row stretched to two thousand pixels is a bar with a name at one end and a
-// number at the other, which no eye can join up. The board's own width, not
-// the window's, decides whether the guide stands beside it: the Plus tab
-// shares the pane with its rail.
+// The gallery's own scroller measurements (`.gallery-visualizers`), so the
+// board's edges line up with the head above it exactly as the gallery's do.
 .leaderboard {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  padding: $spacing-s 4px $spacing-m;
+  padding: $spacing-m 4px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   container: leaderboard / inline-size;
   @include slim-scrollbar;
 }
 
 // One column, the guide under the board; from 960px the guide becomes a
-// column of its own and the whole grows wider so the board keeps its room.
+// column of its own. Full width like the gallery's grid: the rows no longer
+// run a tint across their whole length, so a wide row is a card with its
+// name and its number in plain view, not a bar no eye can join up.
 .leaderboard__inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: $spacing-m;
   width: 100%;
-  max-width: 1040px;
-  margin: 0 auto;
 
   @container leaderboard (min-width: 960px) {
-    grid-template-columns: minmax(0, 1fr) 272px;
-    gap: $spacing-m $spacing-l;
-    max-width: 1340px;
+    grid-template-columns: minmax(0, 1fr) 300px;
   }
 }
 
@@ -89,70 +86,109 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
+// The gallery's toolbar row: the choice at its start, the count at its end.
 .leaderboard__head {
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-xs $spacing-s;
+  gap: $spacing-s;
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
 }
 
 .leaderboard__players {
-  color: $text-faint;
+  display: inline-flex;
+  align-items: center;
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
 }
 
 // ---------------------------------------------------------------- podium
 
-// A stage: a soft light from below the winner and a floor line under all
-// three. First in the middle and a step higher, the way every podium is read.
-// Flex rather than a three-column grid so a board with one or two people
-// stands in the middle instead of leaving empty thirds beside it.
+// Three cards, first in the middle and a step higher, the way every podium is
+// read: the cards stand on one line and the winner's is taller. Flex rather
+// than a three-column grid so a board with one or two people stands in the
+// middle instead of leaving empty thirds beside it.
 .leaderboard__podium {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: $spacing-m;
+  gap: $spacing-s;
   margin: 0;
-  padding: $spacing-l 0 0;
-  border-bottom: 1px solid $border-subtle;
-  background: radial-gradient(
-    46% 80% at 50% 100%,
-    color-mix(in srgb, $secondary-default 12%, transparent),
-    transparent 72%
-  );
+  padding: $spacing-s 0 0;
   list-style: none;
 }
 
+// Gold, silver and bronze: the one place on the board where the colour is the
+// metal and not the accent, because everyone already knows what it means.
+// Set as `--medal` so the card's edge, its light and its rank all wear it.
 .leaderboard__place {
+  --medal: #d9a53a;
+
   position: relative;
   display: grid;
   flex: 1 1 0;
   justify-items: center;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
-  max-width: 250px;
-  padding: 14px 10px 0;
-  border-radius: $radius-l $radius-l 0 0;
-  background: linear-gradient(
-    180deg,
-    hsl(var(--identity-hue, 170deg) 60% 45% / 4%),
-    hsl(var(--identity-hue, 170deg) 60% 45% / 14%)
-  );
+  max-width: 320px;
+  padding: $spacing-m 12px 14px;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--medal) 13%, transparent),
+      transparent 58%
+    ),
+    $block-lift;
   text-align: center;
-  @include stagger-in(3, 60ms);
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+  @include stagger-in(3, 60ms, 80ms);
+
+  // The medal's edge along the top, brightest in the middle.
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 16%;
+    left: 16%;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: linear-gradient(90deg, transparent, var(--medal), transparent);
+    content: '';
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 42%, transparent);
+    box-shadow: 0 10px 28px rgba($black, 0.32);
+  }
 
   &--1 {
+    --medal: #f2bd3d;
+
     order: 2;
+    padding-top: $spacing-l;
+    padding-bottom: $spacing-m;
   }
 
   &--2 {
+    --medal: #aebbca;
+
     order: 1;
   }
 
   &--3 {
+    --medal: #c98249;
+
     order: 3;
   }
 
@@ -165,62 +201,60 @@ it under the terms of the GNU General Public License version 3 or later.
     @include truncate;
   }
 
+  // Yours: the edge the gallery gives a hovered card, kept.
   &.is-me {
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, $secondary-default 45%, transparent);
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 
-// The crown rides over the winner, lit from within.
+// The rank and, for the winner, the crown beside it: one line above the
+// avatar, so nothing hangs over the card's edge.
+.leaderboard__place-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
 .leaderboard__crown {
-  position: absolute;
-  top: -14px;
-  left: 50%;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  color: #ffd766;
-  translate: -50% 0;
-  filter: drop-shadow(0 0 8px rgb(255 205 80 / 55%));
+  color: var(--medal);
 
   svg {
-    width: 24px;
-    height: 24px;
-    fill: rgb(255 215 102 / 22%);
+    width: 20px;
+    height: 20px;
+    fill: color-mix(in srgb, var(--medal) 24%, transparent);
   }
 }
 
-// Gold, silver and bronze on the ranks: the one place on the board where the
-// colour is the metal and not the person, because everyone already knows what
-// it means.
 .leaderboard__medal {
   display: grid;
   place-items: center;
   width: 24px;
   height: 24px;
-  margin-bottom: 2px;
-  color: #1d1606;
+  color: color-mix(in srgb, var(--medal) 18%, $black);
   border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--medal) 55%, $white),
+    var(--medal)
+  );
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%);
   font-size: $text-small;
   font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%);
+}
 
-  &--1 {
-    background: linear-gradient(145deg, #ffe89a, #e7a81c);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 55%),
-      0 0 14px rgb(255 196 64 / 45%);
-  }
-
-  &--2 {
-    background: linear-gradient(145deg, #f4f7fa, #9eabb9);
-  }
-
-  &--3 {
-    background: linear-gradient(145deg, #f5c496, #b66a2f);
-  }
+.leaderboard__place .community__avatar--podium {
+  margin-bottom: 4px;
+  box-shadow:
+    0 0 0 2px $block-lift,
+    0 0 0 3px color-mix(in srgb, var(--medal) 70%, transparent);
 }
 
 .leaderboard__place--1 .community__avatar--podium {
@@ -241,7 +275,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .leaderboard__place-points {
-  margin-top: 4px;
+  margin: 6px 0 2px;
   color: $text-primary;
   font-size: $text-lead;
   font-weight: $weight-semibold;
@@ -249,29 +283,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   .leaderboard__place--1 & {
     font-size: $text-title;
-  }
-}
-
-// The step each place stands on: three heights, in the person's colour, so
-// the podium reads as a podium even before the numbers are compared.
-.leaderboard__pedestal {
-  display: block;
-  width: calc(100% + 20px);
-  height: 14px;
-  margin-top: 8px;
-  border-top: 2px solid hsl(var(--identity-hue, 170deg) 70% 58% / 85%);
-  background: linear-gradient(
-    180deg,
-    hsl(var(--identity-hue, 170deg) 60% 45% / 34%),
-    hsl(var(--identity-hue, 170deg) 60% 45% / 8%)
-  );
-
-  .leaderboard__place--1 & {
-    height: 40px;
-  }
-
-  .leaderboard__place--2 & {
-    height: 26px;
   }
 }
 
@@ -334,78 +345,51 @@ it under the terms of the GNU General Public License version 3 or later.
   list-style: none;
 }
 
-// Everyone from fourth on. The row's own background tints to their share of
-// the leader's points and a line along its bottom edge runs the same length,
-// so the board reads as a chart before a number is read. The line is on the
-// bottom edge, not at the end of the tint: a hard edge at a small share cut
-// straight through the rank, the avatar or the name. Both grow in on arrival.
+// Everyone from fourth on, as the gallery draws a card: the rank, the avatar,
+// the name with its figures, and at the end the points with a short track
+// showing their share of the leader's — the board still reads as a chart down
+// its right-hand side, without a tint cutting through names.
 .leaderboard__row {
-  position: relative;
-  isolation: isolate;
   display: grid;
   grid-template-columns: 30px 32px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 54px;
-  padding: 8px 16px 8px 8px;
+  padding: 8px 14px 8px 8px;
   border: 1px solid $border-subtle;
   border-radius: $radius-m;
   background: $block-lift;
-  overflow: hidden;
-  transition: border-color $motion-fast $ease-out;
-  @include stagger-in(14, 24ms, 120ms);
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    width: var(--share, 0%);
-    transform-origin: left center;
-    @include animate(leaderboard-grow, 640ms, $ease-out, 160ms);
-  }
-
-  // The tint: strongest just before its end, then fading, so it has no edge.
-  &::before {
-    top: 0;
-    bottom: 0;
-    z-index: -1;
-    background: linear-gradient(
-      90deg,
-      hsl(var(--identity-hue, 170deg) 60% 50% / 3%),
-      hsl(var(--identity-hue, 170deg) 60% 50% / 15%) 82%,
-      hsl(var(--identity-hue, 170deg) 60% 50% / 0%)
-    );
-  }
-
-  // The line along the bottom edge, lit at its tip.
-  &::after {
-    bottom: 0;
-    height: 2px;
-    border-radius: 0 2px 2px 0;
-    background: linear-gradient(
-      90deg,
-      hsl(var(--identity-hue, 170deg) 70% 58% / 25%),
-      hsl(var(--identity-hue, 170deg) 78% 64%)
-    );
-    box-shadow: 0 0 8px hsl(var(--identity-hue, 170deg) 78% 60% / 55%);
-  }
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+  @include stagger-in(14, 24ms, 140ms);
 
   &:hover {
-    border-color: color-mix(in srgb, $white 18%, transparent);
+    border-color: color-mix(in srgb, $secondary-default 42%, transparent);
+    box-shadow: 0 8px 22px rgba($black, 0.28);
   }
 
-  // Your own row, wherever it lands: outlined and lit in the accent.
+  // Your own row, wherever it lands.
   &--me {
-    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
-    box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 14%, transparent);
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, $secondary-default 10%, transparent),
+        color-mix(in srgb, $secondary-default 2%, transparent) 70%
+      ),
+      $block-lift;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 
 .leaderboard__rank {
   color: $text-faint;
   font-size: $text-lead;
-  font-weight: $weight-bold;
+  font-weight: $weight-semibold;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -424,10 +408,49 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
+.leaderboard__score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// The share of the leader's points. It gives its room up before the number
+// does: on a narrow board the name needs it more. Stepped widths rather than
+// container units, which re-resolve inside every layout (see
+// StudioPictures.scss for what that cost the Studio).
+.leaderboard__share {
+  display: block;
+  width: 140px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 7%, transparent);
+
+  > span {
+    display: block;
+    width: var(--share, 0%);
+    height: 100%;
+    border-radius: inherit;
+    background: $secondary-default;
+    transform-origin: left center;
+    @include animate(leaderboard-grow, 640ms, $ease-out, 200ms);
+  }
+
+  @container leaderboard (max-width: 720px) {
+    width: 72px;
+  }
+
+  @container leaderboard (max-width: 520px) {
+    display: none;
+  }
+}
+
 .leaderboard__points {
+  min-width: 5.5em;
   color: $text-primary;
-  font-size: $text-lead;
+  font-size: $text-body;
   font-weight: $weight-semibold;
+  text-align: end;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -467,11 +490,13 @@ it under the terms of the GNU General Public License version 3 or later.
 .leaderboard__skeleton {
   display: grid;
   gap: 6px;
+  @include animate(fade-in, $motion-slow, ease-out);
 }
 
 .leaderboard__skeleton-row {
   display: block;
   height: 54px;
+  border: 1px solid $border-subtle;
   border-radius: $radius-m;
   background: linear-gradient(
     90deg,
@@ -481,6 +506,10 @@ it under the terms of the GNU General Public License version 3 or later.
   );
   background-size: 400px 100%;
   animation: leaderboard-shimmer 1.4s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 .leaderboard__sr {
