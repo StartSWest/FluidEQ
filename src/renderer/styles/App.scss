@@ -401,6 +401,17 @@ select option {
   text-shadow: 0 0 16px color-mix(in srgb, $secondary-default 35%, transparent);
 }
 
+// Bands uses an inline eyebrow. These paragraph eyebrows inherited browser
+// margins, leaving a larger gap above their titles than the Bands heading.
+.autoeq-panel__intro,
+.voicing-panel__intro,
+.convolution-panel__intro,
+.remote-audio__header {
+  .eyebrow {
+    display: inline;
+    margin: 0;
+  }
+}
 .section-heading {
   display: flex;
   min-width: 0;
