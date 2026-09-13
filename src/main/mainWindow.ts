@@ -36,6 +36,7 @@ import { applyWindowBackdrop } from './windowBackdrop';
 import { installWindowRecovery } from './crashRecovery';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
+import installTaskbarTransport from './taskbarTransport';
 
 /**
  * The desktop, blurred, behind the app's own floor.
@@ -242,6 +243,7 @@ export const createMainWindowFactory = ({
       },
     });
     setMainWindow(created);
+    installTaskbarTransport(created, RESOURCES_PATH);
     // The material the theme last asked for, from the first frame.
     applyWindowBackdrop(created);
 

@@ -24,6 +24,12 @@ import type { IStudioNotes } from '../common/studioNotes';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
 import type { ISystemMediaSnapshot } from './systemMedia';
+import {
+  ITaskbarTransportState,
+  TASKBAR_TRANSPORT_ACTION,
+  TASKBAR_TRANSPORT_STATE,
+  TTaskbarTransportAction,
+} from '../common/taskbarTransport';
 import type {
   IKaraokeRestoredFileBytes,
   IKaraokeRestoredSession,
@@ -269,6 +275,23 @@ const setWindowFullScreen = (next: boolean) =>
  */
 const sendMediaTransport = (action: TMediaTransportAction) =>
   ipcRenderer.invoke('media-transport', action) as Promise<void>;
+
+const setTaskbarTransport = (state: ITaskbarTransportState) =>
+  ipcRenderer.invoke(TASKBAR_TRANSPORT_STATE, state) as Promise<void>;
+
+const onTaskbarTransport = (
+  listener: (action: TTaskbarTransportAction) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, action: unknown) => {
+    if (action === 'previous' || action === 'toggle' || action === 'next') {
+      listener(action);
+    }
+  };
+  ipcRenderer.on(TASKBAR_TRANSPORT_ACTION, wrapped);
+  return () => {
+    ipcRenderer.removeListener(TASKBAR_TRANSPORT_ACTION, wrapped);
+  };
+};
 
 /**
  * Ask main to report what the rest of the machine is playing, or to stop.
@@ -1247,6 +1270,8 @@ export default {
     getWindowState,
     setWindowFullScreen,
     sendMediaTransport,
+    setTaskbarTransport,
+    onTaskbarTransport,
     watchSystemMedia,
     sendSystemMediaCommand,
     onSystemMedia,

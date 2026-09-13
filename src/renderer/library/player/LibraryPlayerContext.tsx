@@ -510,6 +510,8 @@ export const LibraryPlayerProvider = ({
     publishedPositionMs,
     publishedDurationMs,
     toggle,
+    skip,
+    isUnplayable,
     seek,
     setVolume: setAppVolume,
   });

@@ -62,6 +62,8 @@ export interface ITransportSource {
   positionMs: number;
   durationMs: number;
   toggle: () => void;
+  /** False for a loaded item the player cannot play. Defaults to available. */
+  canToggle?: boolean;
   /** Stop and return to the beginning without withdrawing the loaded source. */
   stop?: () => void;
   /** Absent where the source cannot seek — a page we can only ask to play or
@@ -89,6 +91,8 @@ export interface ITransportSource {
    */
   next?: () => void;
   previous?: () => void;
+  /** Karaoke's matching arrows go to this song's start/end. */
+  navigation?: 'boundaries';
   /**
    * Apply the app's fader to this source. Absent where it cannot be applied.
    *

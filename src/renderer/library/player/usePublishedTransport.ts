@@ -33,6 +33,8 @@ const usePublishedTransport = (options: {
   publishedPositionMs: number;
   publishedDurationMs: number;
   toggle: () => void;
+  skip: (direction: 1 | -1) => void;
+  isUnplayable: boolean;
   seek: (positionMs: number) => void;
   setVolume: (value: number) => void;
 }): void => {
@@ -43,6 +45,8 @@ const usePublishedTransport = (options: {
     publishedPositionMs,
     publishedDurationMs,
     toggle,
+    skip,
+    isUnplayable,
     seek,
     setVolume,
   } = options;
@@ -70,6 +74,9 @@ const usePublishedTransport = (options: {
       positionMs: publishedPositionMs,
       durationMs: publishedDurationMs,
       toggle,
+      canToggle: !isUnplayable,
+      previous: () => skip(-1),
+      next: () => skip(1),
       seek,
       setVolume,
       identity: buildSongIdentity(
@@ -86,6 +93,8 @@ const usePublishedTransport = (options: {
     publishedPositionMs,
     publishedDurationMs,
     toggle,
+    skip,
+    isUnplayable,
     seek,
     setVolume,
   ]);

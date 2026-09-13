@@ -1673,6 +1673,14 @@ const KaraokeWorkspace = ({
       positionMs: session.playheadMs,
       durationMs: session.durationMs,
       toggle: handleTogglePlayback,
+      canToggle: !['empty', 'loading'].includes(status),
+      navigation: 'boundaries',
+      previous: !['empty', 'loading'].includes(status)
+        ? () => handleSeek(0)
+        : undefined,
+      next: !['empty', 'loading'].includes(status)
+        ? () => handleSeek(session.durationMs)
+        : undefined,
       seek: handleSeek,
       // The exact KaraokeTransport instance remains in this slot while the
       // workspace is hidden. Replacing it with the generic source controls is

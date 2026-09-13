@@ -114,6 +114,7 @@ import {
   useTransportSources,
 } from './audio/transportSource';
 import pickTransportOwner from './audio/transportRouting';
+import TaskbarTransport from './audio/TaskbarTransport';
 import { useIdlePlayerMount } from './audio/useIdlePlayerMount';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
@@ -2707,6 +2708,7 @@ const AppContent = () => {
                 still for a moment, and back on the next movement — the same
                 two seconds the graph's own toolbar waits, from the same
                 store, so the two cannot disagree about when to go. */}
+            <TaskbarTransport tabOwner={TAB_TRANSPORT[activeWorkspaceTab]} />
             <IdleTransportBarSlot
               activeTab={activeWorkspaceTab}
               isFullScreen={isAppFullScreen}
