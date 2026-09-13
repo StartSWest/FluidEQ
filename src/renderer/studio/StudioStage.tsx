@@ -44,6 +44,8 @@ interface IStudioStageProps {
   onTrouble: (trouble: TStageTrouble) => void;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
+  /** Double-clicking the stage: full screen, or back from it. */
+  onToggleFullscreen: () => void;
 }
 
 /**
@@ -65,6 +67,7 @@ export default function StudioStage({
   onTrouble,
   onDrawn,
   onExitFullscreen,
+  onToggleFullscreen,
 }: IStudioStageProps) {
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -182,6 +185,14 @@ export default function StudioStage({
         className={`studio-stage studio-stage--${size}`}
         data-testid="studio-stage"
         aria-busy={!settled}
+        // The graph's gesture for the same thing, and the same full screen as
+        // the size choice beside the stage. Not on the exit button, whose
+        // first click has already brought the stage back.
+        onDoubleClick={({ target }) => {
+          if (!(target instanceof Element && target.closest('button'))) {
+            onToggleFullscreen();
+          }
+        }}
       >
         <canvas
           ref={canvasRef}

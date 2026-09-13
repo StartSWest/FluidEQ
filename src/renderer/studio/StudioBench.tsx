@@ -23,10 +23,10 @@ import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
+import useStudioSize from './useStudioSize';
 import StudioStage, {
   type TStageDrawn,
   type TStageTrouble,
-  type TStudioSize,
 } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
@@ -95,7 +95,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
-  const [size, setSize] = useState<TStudioSize>('graph');
+  const { size, choose, exitFullscreen, toggleFullscreen } = useStudioSize();
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
     serial: number;
@@ -131,7 +131,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     },
     [],
   );
-  const onExitFullscreen = useCallback(() => setSize('graph'), []);
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
   const folderName = project?.folderName;
@@ -242,7 +241,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         tuning={tuner.tuning}
         onTrouble={setTrouble}
         onDrawn={onDrawn}
-        onExitFullscreen={onExitFullscreen}
+        onExitFullscreen={exitFullscreen}
+        onToggleFullscreen={toggleFullscreen}
       />
     );
   }
@@ -347,7 +347,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             signal={signal}
             onSignal={setSignal}
             size={size}
-            onSize={setSize}
+            onSize={choose}
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}

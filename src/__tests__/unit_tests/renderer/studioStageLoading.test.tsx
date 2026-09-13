@@ -25,6 +25,7 @@ const props = {
   onTrouble: jest.fn(),
   onDrawn: jest.fn(),
   onExitFullscreen: jest.fn(),
+  onToggleFullscreen: jest.fn(),
 };
 const current = () => runner.mock.calls[runner.mock.calls.length - 1][0];
 const frame = (fade: number) =>
@@ -43,6 +44,7 @@ it('keeps loading through the black opening frame, then reveals the first visibl
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
+      onToggleFullscreen={props.onToggleFullscreen}
     />,
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
@@ -70,6 +72,7 @@ it('starts loading again when the selected project changes', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
+      onToggleFullscreen={props.onToggleFullscreen}
     />,
   );
   act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
@@ -83,6 +86,7 @@ it('starts loading again when the selected project changes', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
+      onToggleFullscreen={props.onToggleFullscreen}
       identity="two"
     />,
   );
@@ -99,6 +103,7 @@ it('ends the loader and reports an actual compile error', () => {
       onTrouble={props.onTrouble}
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
+      onToggleFullscreen={props.onToggleFullscreen}
     />,
   );
   act(() => current().source.reportFailure('compile', 'Bad shader'));
