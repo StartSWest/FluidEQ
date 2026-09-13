@@ -341,6 +341,11 @@ const studio = {
   'studio.size.wide': 'Breit',
   'studio.size.full': 'Vollbild',
   'studio.size.exit': 'Vollbild beenden',
+  'studio.wave.title': 'Welle im Diagramm',
+  'studio.wave.hint':
+    'Wer die Szene nutzt, kann beides unter Ansicht im Diagramm ändern. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
+  'studio.wave.fixed':
+    'Diese Szene reserviert ihren eigenen Bereich für das Spektrum, daher ändern diese beiden sie nicht.',
 
   'studio.cost.full': 'Läuft flüssig',
   'studio.cost.scaled': 'In {percent} % Größe gezeichnet',

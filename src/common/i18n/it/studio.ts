@@ -337,6 +337,11 @@ const studio = {
   'studio.size.wide': 'Largo',
   'studio.size.full': 'Schermo intero',
   'studio.size.exit': 'Esci da schermo intero',
+  'studio.wave.title': 'Onda sul grafico',
+  'studio.wave.hint':
+    'Chi usa la scena può cambiarle in Vista, sul grafico. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
+  'studio.wave.fixed':
+    'Questa scena riserva una propria fascia allo spettro, quindi queste due impostazioni non la cambiano.',
 
   'studio.cost.full': 'Gira in modo fluido',
   'studio.cost.scaled': 'Disegnata al {percent}% della dimensione',

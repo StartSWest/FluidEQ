@@ -40,6 +40,7 @@ const stage = (size: TStudioSize, onToggleFullscreen: () => void) => (
     serial={1}
     signal="live"
     size={size}
+    wave={{ height: 1, position: 0 }}
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}

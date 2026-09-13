@@ -331,6 +331,11 @@ const studio = {
   'studio.size.wide': 'Largo',
   'studio.size.full': 'Tela cheia',
   'studio.size.exit': 'Sair da tela cheia',
+  'studio.wave.title': 'Onda no gráfico',
+  'studio.wave.hint':
+    'Quem usar a cena pode alterá-las em Visualização, no gráfico. Teste os extremos: uma onda baixa ou elevada até o centro.',
+  'studio.wave.fixed':
+    'Esta cena reserva a própria faixa para o espectro, então estes dois ajustes não a alteram.',
 
   'studio.cost.full': 'Roda com fluidez',
   'studio.cost.scaled': 'Desenhado a {percent}% do tamanho',

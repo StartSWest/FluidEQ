@@ -41,15 +41,16 @@ interface ISliderProps {
   position: number;
   disabled: boolean;
   onPosition: (position: number) => void;
-  onCommit: () => void;
+  /** Letting go; absent for a setting that is only tried, never saved. */
+  onCommit?: () => void;
 }
 
 /**
  * One setting: its name and value on a line, the slider under them. Moving
  * it moves the stage; letting go — the pointer, or the key that moved it —
- * saves.
+ * saves, for the settings that are saved into the scene.
  */
-function Setting({
+export function Setting({
   label,
   hint,
   value,

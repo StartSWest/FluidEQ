@@ -26,6 +26,7 @@ const props = {
   onDrawn: jest.fn(),
   onExitFullscreen: jest.fn(),
   onToggleFullscreen: jest.fn(),
+  wave: { height: 1, position: 0 },
 };
 const current = () => runner.mock.calls[runner.mock.calls.length - 1][0];
 const frame = (fade: number) =>
@@ -45,6 +46,7 @@ it('keeps loading through the black opening frame, then reveals the first visibl
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
+      wave={props.wave}
     />,
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
@@ -73,6 +75,7 @@ it('starts loading again when the selected project changes', () => {
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
+      wave={props.wave}
     />,
   );
   act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
@@ -87,6 +90,7 @@ it('starts loading again when the selected project changes', () => {
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
+      wave={props.wave}
       identity="two"
     />,
   );
@@ -104,6 +108,7 @@ it('ends the loader and reports an actual compile error', () => {
       onDrawn={props.onDrawn}
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
+      wave={props.wave}
     />,
   );
   act(() => current().source.reportFailure('compile', 'Bad shader'));

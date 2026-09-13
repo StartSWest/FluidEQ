@@ -10,6 +10,7 @@ import useSceneRunner, {
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
 import StudioStageLoading from './StudioStageLoading';
+import { studioSpectrumRect, type IStudioWave } from './studioWave';
 import {
   createStudioSignalBuffers,
   shapeStudioFrame,
@@ -39,6 +40,8 @@ interface IStudioStageProps {
   serial: number;
   signal: TStudioSignal;
   size: TStudioSize;
+  /** The graph's wave height and position, tried on the scene. */
+  wave: IStudioWave;
   /** The member's settings, live, over the pack's. */
   tuning?: ISceneTuning;
   onTrouble: (trouble: TStageTrouble) => void;
@@ -63,6 +66,7 @@ export default function StudioStage({
   serial,
   signal,
   size,
+  wave,
   tuning,
   onTrouble,
   onDrawn,
@@ -168,11 +172,19 @@ export default function StudioStage({
     [],
   );
 
+  const { spectrumRange } = pack;
+  // One array per band, not per render: the runner redraws whenever the band
+  // it is handed changes identity.
+  const band = useMemo(
+    () => studioSpectrumRect({ spectrumRange }, wave),
+    [spectrumRange, wave],
+  );
+
   const canvasRef = useSceneRunner({
     source,
     width: box.width,
     height: box.height,
-    spectrumRect: [0, 1, 0, 1],
+    spectrumRect: band,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: onFrame,

@@ -341,6 +341,11 @@ const studio = {
   'studio.size.wide': 'Wide',
   'studio.size.full': 'Fullscreen',
   'studio.size.exit': 'Exit fullscreen',
+  'studio.wave.title': 'Wave on the graph',
+  'studio.wave.hint':
+    'Anyone using the scene can change these under View on the graph. Try the extremes: a low wave, or one lifted to the middle.',
+  'studio.wave.fixed':
+    'This scene reserves its own band for the spectrum, so these two do not change it.',
 
   'studio.cost.full': 'Runs smoothly',
   'studio.cost.scaled': 'Drawn at {percent}% size',

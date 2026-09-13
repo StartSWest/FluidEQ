@@ -335,6 +335,11 @@ const studio = {
   'studio.size.wide': 'Large',
   'studio.size.full': 'Plein écran',
   'studio.size.exit': 'Quitter le plein écran',
+  'studio.wave.title': 'Onde sur le graphique',
+  'studio.wave.hint':
+    'Qui utilise la scène peut les changer dans Vue, sur le graphique. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
+  'studio.wave.fixed':
+    'Cette scène réserve sa propre bande au spectre, ces deux réglages ne la changent donc pas.',
 
   'studio.cost.full': 'Tourne de façon fluide',
   'studio.cost.scaled': 'Dessinée à {percent} % de sa taille',

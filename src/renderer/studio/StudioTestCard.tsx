@@ -2,6 +2,8 @@ import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStudioSize } from './StudioStage';
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
+import StudioWaveControls from './StudioWaveControls';
+import type { IStudioWave } from './studioWave';
 
 const SIZES: readonly TStudioSize[] = ['graph', 'narrow', 'wide', 'full'];
 
@@ -10,6 +12,10 @@ interface IStudioTestCardProps {
   onSignal: (signal: TStudioSignal) => void;
   size: TStudioSize;
   onSize: (size: TStudioSize) => void;
+  wave: IStudioWave;
+  onWave: (wave: IStudioWave) => void;
+  /** The scene reserves its own band for the spectrum. */
+  isWaveFixed: boolean;
   /** Nothing is on the stage: the controls stay where they will be, unlit. */
   idle: boolean;
   /** How the scene is running, when it is. */
@@ -18,14 +24,17 @@ interface IStudioTestCardProps {
 }
 
 /**
- * What to play the scene with and at which size, and how well it keeps up —
- * everything that judges the scene rather than changes it.
+ * What to play the scene with, at which size and under which wave, and how
+ * well it keeps up — everything that judges the scene rather than changes it.
  */
 export default function StudioTestCard({
   signal,
   onSignal,
   size,
   onSize,
+  wave,
+  onWave,
+  isWaveFixed,
   idle,
   cost,
   percent,
@@ -73,6 +82,12 @@ export default function StudioTestCard({
           </button>
         ))}
       </div>
+      <StudioWaveControls
+        wave={wave}
+        onWave={onWave}
+        isFixedByScene={isWaveFixed}
+        idle={idle}
+      />
       {cost && (
         <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
           <span className="studio-cost__dot" aria-hidden="true" />

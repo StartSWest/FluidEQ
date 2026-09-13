@@ -424,6 +424,25 @@ $stage-edge: $border-menu;
   line-height: 1.45;
 }
 
+// The graph's wave height and position, tried on the stage: a section of the
+// card with its title and reset on one line and the two sliders the scene's
+// settings use under it.
+.studio-wave {
+  display: grid;
+  gap: 9px;
+}
+
+.studio-wave__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+}
+
+.studio-wave__hint {
+  margin-top: -2px;
+}
+
 // How well it keeps up, under the controls that test it: a hairline above,
 // and a light that is green, amber or red before the words are read.
 .studio-cost {

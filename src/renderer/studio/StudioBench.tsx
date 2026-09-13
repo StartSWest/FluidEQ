@@ -23,6 +23,7 @@ import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
+import { DEFAULT_STUDIO_WAVE, type IStudioWave } from './studioWave';
 import useStudioSize from './useStudioSize';
 import StudioStage, {
   type TStageDrawn,
@@ -96,6 +97,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
   const { size, choose, exitFullscreen, toggleFullscreen } = useStudioSize();
+  const [wave, setWave] = useState<IStudioWave>(DEFAULT_STUDIO_WAVE);
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
     serial: number;
@@ -238,6 +240,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         serial={serial}
         signal={signal}
         size={size}
+        wave={wave}
         tuning={tuner.tuning}
         onTrouble={setTrouble}
         onDrawn={onDrawn}
@@ -348,6 +351,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onSignal={setSignal}
             size={size}
             onSize={choose}
+            wave={wave}
+            onWave={setWave}
+            isWaveFixed={Boolean(pack?.spectrumRange)}
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}

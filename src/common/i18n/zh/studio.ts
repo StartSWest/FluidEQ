@@ -294,6 +294,10 @@ const studio = {
   'studio.size.wide': '宽',
   'studio.size.full': '全屏',
   'studio.size.exit': '退出全屏',
+  'studio.wave.title': '图表上的波形',
+  'studio.wave.hint':
+    '使用此场景的人可以在图表的“视图”中更改这两项。试试极端情况：很低的波形，或抬高到中间的波形。',
+  'studio.wave.fixed': '此场景为频谱预留了自己的区域，因此这两项不会改变它。',
 
   'studio.cost.full': '运行流畅',
   'studio.cost.scaled': '以 {percent}% 尺寸绘制',

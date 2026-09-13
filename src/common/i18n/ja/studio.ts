@@ -334,6 +334,11 @@ const studio = {
   'studio.size.wide': 'ワイド',
   'studio.size.full': '全画面',
   'studio.size.exit': '全画面を終了',
+  'studio.wave.title': 'グラフ上の波形',
+  'studio.wave.hint':
+    'シーンを使う人はグラフの「表示」でこれらを変更できます。極端な設定を試してください：低い波形や、中央まで持ち上げた波形。',
+  'studio.wave.fixed':
+    'このシーンはスペクトル用の帯を自分で確保しているため、この2つでは変わりません。',
 
   'studio.cost.full': 'なめらかに動作中',
   'studio.cost.scaled': '{percent}% のサイズで描画中',
