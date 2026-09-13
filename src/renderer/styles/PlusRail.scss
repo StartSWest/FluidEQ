@@ -42,13 +42,23 @@ $rail-reveal-delay: 110ms;
 
 // What only the open rail shows.
 @mixin rail-words {
-  .community__rail-head .eyebrow,
+  .community__rail-title,
   .community__channel-text,
   .community__account-text,
   .community__account-chevron,
   .community__choose {
     @content;
   }
+}
+
+// The rail's name, at the size and weight the place heads beside it use for
+// theirs. It was the uppercase eyebrow, 9px of spaced capitals next to a 28px
+// button, and read as a stray label rather than the name of the tab.
+.community__rail-title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  line-height: 28px;
 }
 
 .community__rail-pin {
@@ -150,7 +160,7 @@ $rail-reveal-delay: 110ms;
     gap: 9px;
     padding: 4px 8px 8px 6px;
 
-    .eyebrow {
+    .community__rail-title {
       @include truncate;
     }
   }

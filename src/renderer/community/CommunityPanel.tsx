@@ -131,7 +131,7 @@ export default function CommunityPanel({
             >
               <Glyph name={pinned ? 'rail-collapse' : 'pin'} />
             </button>
-            <span className="eyebrow">{t('tabs.plus')}</span>
+            <span className="community__rail-title">{t('tabs.plus')}</span>
           </div>
 
           <div className="community__channels">
