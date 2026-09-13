@@ -7,6 +7,7 @@ import type {
   TStudioPictures,
 } from 'main/ipc/studioPictures';
 import { decodePicture, keptPhoto, layPicture } from './scenePicture';
+import sameStudioPictures from './sameStudioPictures';
 
 type TPictureOutcome =
   'saved' | 'no-slot' | 'bad-slot' | 'too-large' | 'unreadable' | 'failed';
@@ -157,6 +158,7 @@ export default function useScenePictures(
   const [notice, setNotice] = useState<IPictureNotice>();
   const [reads, setReads] = useState(0);
   const generation = useRef(0);
+  const loaded = useRef<TStudioPictures | undefined>(undefined);
   // The previews on screen, let go only once new ones replace them, so a
   // re-read never shows a broken picture in between.
   const shown = useRef<Record<string, IPicturePreview>>({});
@@ -184,6 +186,9 @@ export default function useScenePictures(
         if (mine !== generation.current) {
           return undefined;
         }
+        if (sameStudioPictures(loaded.current, next)) {
+          return undefined;
+        }
         const made =
           next.kind === 'atlas'
             ? await previewsOf(next.image, next.pictures)
@@ -194,12 +199,14 @@ export default function useScenePictures(
         }
         revokeAll(shown.current);
         shown.current = made;
+        loaded.current = next;
         setPictures(next);
         setPreviews(made);
         return undefined;
       })
       .catch(() => {
         if (mine === generation.current) {
+          loaded.current = undefined;
           setPictures({ kind: 'none' });
         }
       });

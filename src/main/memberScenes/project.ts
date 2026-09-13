@@ -17,6 +17,7 @@ import {
   type TLocalizedName,
 } from '../../common/scenePacks';
 import { STARTER_SOURCE, starterManifest } from './starterScene';
+import { waitForSettingsWrites } from './settingsWrites';
 
 /**
  * A member's project folder, turned into a scene pack — the job
@@ -197,6 +198,7 @@ const buildRawPack = async (folder: string) => {
 /** The folder as a pack, or every reason it is not one yet. Never throws. */
 export const readProject = async (folder: string): Promise<TProjectBuild> => {
   try {
+    await waitForSettingsWrites(folder);
     const { raw, artworkHash } = await buildRawPack(folder);
     const checked = checkMemberScene(raw);
     if (!checked.ok) {

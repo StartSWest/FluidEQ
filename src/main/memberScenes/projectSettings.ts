@@ -7,6 +7,7 @@ import {
   type ISceneResponse,
 } from '../../common/sceneResponse';
 import { MANIFEST_FILE, readManifest } from './project';
+import { queueSettingsWrite } from './settingsWrites';
 
 /**
  * A member's own tuning, written into their scene: the values of its
@@ -35,7 +36,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 /** Values as a slider shows them: three decimals, enough for any range here. */
 const tidy = (value: number) => Math.round(value * 1000) / 1000;
 
-export const writeProjectSettings = async (
+const writeSettings = async (
   folder: string,
   settings: IProjectSettings,
 ): Promise<TSettingsWrite> => {
@@ -94,3 +95,9 @@ export const writeProjectSettings = async (
     return 'failed';
   }
 };
+
+export const writeProjectSettings = (
+  folder: string,
+  settings: IProjectSettings,
+): Promise<TSettingsWrite> =>
+  queueSettingsWrite(folder, () => writeSettings(folder, settings));
