@@ -91,9 +91,11 @@ describe('the Plus tab', () => {
     const places = within(rail)
       .getAllByRole('button')
       .filter((button) => button.classList.contains('community__channel'));
+    // Top to bottom as the rail lists them since cc071bfae; it still opens on
+    // Visualizers, the middle one.
     expect(places.map((button) => button.textContent)).toEqual([
-      'plus.visualizers.titleplus.visualizers.blurb',
       'leaderboard.titleleaderboard.rail.blurb',
+      'plus.visualizers.titleplus.visualizers.blurb',
       'studio.titlestudio.rail.blurb',
     ]);
     expect(screen.getByText('visualizers view')).toBeInTheDocument();
@@ -152,16 +154,23 @@ describe('the Plus tab', () => {
     ).toBeNull();
   });
 
-  it('asks a visitor to sign in, naming the three places and nothing else', async () => {
+  it('asks a visitor to sign in, naming what an account opens and what takes Plus', async () => {
     bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
     await renderPanel();
-    expect(screen.getByRole('button', { name: 'account.signIn' })).toHaveClass(
-      'button',
-      'small',
-    );
-    expect(screen.getByRole('list')).toHaveTextContent(
-      'plus.visualizers.titleleaderboard.titlestudio.title',
-    );
+    // The page's one call to action, in the full-size filled style (6295944d4),
+    // not the small one of a toolbar.
+    const signIn = screen.getByRole('button', { name: 'account.signIn' });
+    expect(signIn).toHaveClass('button', 'plus-welcome__button');
+    expect(signIn).not.toHaveClass('subtle');
+    // Browsing is free; playing, the Studio and the board each carry the Plus
+    // badge.
+    const perks = within(screen.getByRole('list')).getAllByRole('listitem');
+    expect(perks.map((perk) => perk.textContent)).toEqual([
+      'plus.welcome.browse',
+      'plus.welcome.playgraph.scene.badge',
+      'plus.welcome.studiograph.scene.badge',
+      'plus.welcome.boardgraph.scene.badge',
+    ]);
     expect(bridge.plusProfile).not.toHaveBeenCalled();
   });
 });

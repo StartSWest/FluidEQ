@@ -123,9 +123,11 @@ beforeEach(() => {
     }),
   );
   bridge.previewGalleryScene.mockResolvedValue({ ok: true, own: false, pack });
-  bridge.addGalleryScene.mockResolvedValue({
-    ok: true,
-    lookId: official.lookId,
+  // As main answers it: an Add installs the pack before it returns, so this
+  // computer's own list holds it from then on.
+  bridge.addGalleryScene.mockImplementation(async () => {
+    bridge.listScenePacks.mockResolvedValue(listing);
+    return { ok: true, lookId: official.lookId };
   });
   bridge.listMemberScenes.mockResolvedValue({
     entitled: true,
@@ -155,6 +157,17 @@ const officialCard = () => {
     throw new Error('Official gallery card missing');
   }
   return within(card);
+};
+/**
+ * A card whose scene is in the member's looks: it reads Added, and pressing it
+ * removes this computer's copy (92d74a7fd), so its accessible name is Remove.
+ */
+const expectAdded = () => {
+  const button = officialCard().getByRole('button', {
+    name: 'plus.card.remove',
+  });
+  expect(button).toHaveTextContent('plus.card.added');
+  expect(button).toBeEnabled();
 };
 const renderGallery = () => {
   const onShowGraph = jest.fn();
@@ -188,23 +201,23 @@ it('lists official scenes by FluidEQ without social counts or hearts alongside m
   ).toHaveAttribute('aria-pressed', 'true');
 });
 
-it('refreshes the official store after card Add and plays the premium look from its details', async () => {
+it('reads this computer’s packs again after card Add and plays the premium look from its details', async () => {
   const { onShowGraph } = renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
+  const listedBefore = bridge.listScenePacks.mock.calls.length;
   await userEvent.click(
     officialCard().getByRole('button', { name: 'plus.card.add' }),
   );
-  await waitFor(() =>
-    expect(
-      officialCard().getByRole('button', { name: 'plus.card.added' }),
-    ).toBeDisabled(),
-  );
+  await waitFor(expectAdded);
   expect(bridge.addGalleryScene).toHaveBeenCalledWith(
     FLUIDEQ_CREATOR_ID,
     'aurora',
     2,
+    official.updatedAt,
   );
-  expect(bridge.refreshScenePacks).toHaveBeenCalledTimes(1);
+  // The local list, not the server's: Add has already installed the pack.
+  expect(bridge.listScenePacks.mock.calls.length).toBeGreaterThan(listedBefore);
+  expect(bridge.refreshScenePacks).not.toHaveBeenCalled();
   expect(findGalleryScene(official.lookId)).toMatchObject({
     added: true,
     adds: 0,
@@ -236,9 +249,7 @@ it('uses official pack versions for Added and Update on the list and maker page'
     officialCard().getByRole('button', { name: 'plus.card.update' }),
   ).toBeEnabled();
   await act(async () => adoptScenePackListingForTesting(listing));
-  expect(
-    officialCard().getByRole('button', { name: 'plus.card.added' }),
-  ).toBeDisabled();
+  expectAdded();
 });
 
 it('shows official details and maker without reports, social stats, or leaderboard rank', async () => {
@@ -286,12 +297,14 @@ it('adds from official details and switches to Play when the pack is usable', as
     FLUIDEQ_CREATOR_ID,
     'aurora',
     2,
+    official.updatedAt,
   );
 });
 
-it('does not refresh again when the official change announcement already supplied the returned look', async () => {
+it('never asks the server for the pack list again when the change announcement already supplied the look', async () => {
   bridge.addGalleryScene.mockImplementation(async () => {
     adoptScenePackListingForTesting(listing);
+    bridge.listScenePacks.mockResolvedValue(listing);
     return { ok: true, lookId: official.lookId };
   });
   renderGallery();
@@ -299,9 +312,7 @@ it('does not refresh again when the official change announcement already supplie
   await userEvent.click(
     officialCard().getByRole('button', { name: 'plus.card.add' }),
   );
-  expect(
-    officialCard().getByRole('button', { name: 'plus.card.added' }),
-  ).toBeDisabled();
+  expectAdded();
   expect(bridge.refreshScenePacks).not.toHaveBeenCalled();
 });
 
