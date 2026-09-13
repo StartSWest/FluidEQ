@@ -147,7 +147,7 @@ describe('the Plus rail', () => {
     // Folded is still the whole rail: every place and the account are there
     // to open it over the place.
     expect(screen.getByTitle('account.menu')).toBeInTheDocument();
-    expect(container.querySelectorAll('.community__channel')).toHaveLength(3);
+    expect(container.querySelectorAll('.community__channel')).toHaveLength(4);
   });
 });
 

@@ -85,6 +85,9 @@ const app = {
   'app.processes.name.page': 'Web page',
   'app.processes.what.page':
     'A page open in the Video tab. It runs in its own process, apart from the interface.',
+  'app.processes.name.lighting': 'Dynamic lighting',
+  'app.processes.what.lighting':
+    "Hands the scene's colours to devices that work with Windows Dynamic Lighting. Runs only while lighting is on or its page is open.",
   'app.processes.name.helper': 'Helper',
   'app.processes.what.helper':
     'A Chromium service started on demand. FluidEQ never asks for this one by name.',

@@ -63,6 +63,7 @@ import CommunityPanel from './community/CommunityPanel';
 import showGalleryGraph from './plus/showGalleryGraph';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
+import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -3142,6 +3143,9 @@ export default function App() {
             {/* Counts listening while music plays. Renders nothing, sends
                 nothing anywhere unless the person joined the leaderboard. */}
             <UsageMeter />
+            {/* Dynamic lighting's loop: renders nothing, and lights nothing
+                unless a Plus member switched it on. */}
+            <DynamicLightingLoop />
             <Router>
               <Routes>
                 <Route path="/" element={<AppContent />} />

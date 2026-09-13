@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+
+The `msix` element is what gives this executable its package identity once the
+identity package is registered (see identity.h). Windows matches all three
+values against the registered package, character for character, and a
+mismatch fails silently: the helper runs, and Windows lights devices only
+while FluidEQ is the window in front.
+
+`publisher` is the signing certificate's full subject, in the certificate's
+own order. It is set when the native tree is configured, from
+FLUIDEQ_SIGN_SUBJECT in a signed release (.erb/scripts/package-signed.ts
+requires it), and is a development name otherwise. The identity package
+written at packaging time (.erb/scripts/lighting-identity.ts) takes the same
+value, and that step refuses the release when this element, the package and
+the helper's signature do not all agree.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity type="win32" name="FluidEQ.Lighting"
+                    version="1.0.0.0" processorArchitecture="amd64"/>
+  <description>FluidEQ Dynamic Lighting</description>
+  <msix xmlns="urn:schemas-microsoft-com:msix.v1"
+        publisher="@FEQ_LIGHTING_PUBLISHER_XML@"
+        packageName="@FEQ_LIGHTING_PACKAGE_NAME@"
+        applicationId="@FEQ_LIGHTING_APPLICATION_ID@"/>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+    </application>
+  </compatibility>
+</assembly>

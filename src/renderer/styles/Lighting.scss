@@ -1,0 +1,440 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Dynamic lighting's place in the Plus tab. Built from the Studio's pieces —
+// its gate, its cards, its slider and setting rows — so the four places of
+// the tab are one family; what is its own here is the desk, the device rows
+// and the notices.
+//
+// No width query anywhere: the two cards wrap under each other when there is
+// no room for both, a device row lets its route and lamps drop to a second
+// line, and the desk keeps its proportions at any width.
+
+$razer: #44d62c;
+$windows-blue: #8ec5ff;
+
+.lighting {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  min-height: 0;
+  padding: $spacing-m 4px $spacing-s;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
+}
+
+// ---------------------------------------------------------------- hero
+
+.lighting-hero {
+  @include animate(rise-in);
+  display: grid;
+  gap: 10px;
+}
+
+.lighting-hero__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+}
+
+.lighting-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 4px;
+    flex: 0 0 auto;
+  }
+}
+
+.lighting-switch__label {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+}
+
+// The desk: its own dark ground edge to edge, the drawing centred in it at a
+// width that keeps it from towering on a wide window.
+.lighting-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background: radial-gradient(120% 100% at 50% 70%, #0f1c28, #060c12 70%);
+  box-shadow: inset 0 1px 0 rgba($white, 0.04);
+}
+
+// The drawing's proportions until it would tower, then the panel's full width
+// at a fixed height — the painter centres the desk and runs the surface out
+// to both edges.
+.lighting-stage__desk {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1000 / 440;
+  max-height: 390px;
+}
+
+// At the end of the switch's bar; on a narrow window it drops under the
+// switch and truncates rather than widening the page.
+.lighting-status {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+  padding: 4px 10px 4px 8px;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-pill;
+  background: rgba(#060c12, 0.45);
+  font-size: $text-small;
+
+  &::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $text-dim;
+  }
+}
+
+// The text, not the pill, is what truncates: a flex container's own text
+// never gets an ellipsis.
+.lighting-status__text {
+  @include truncate;
+}
+
+.lighting-status--live {
+  color: $text-primary;
+  border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+
+  &::before {
+    background: $secondary-default;
+    box-shadow: 0 0 8px $secondary-default;
+  }
+}
+
+.lighting-status--waiting::before {
+  background: $amber;
+  box-shadow: 0 0 6px color-mix(in srgb, $amber 70%, transparent);
+}
+
+.lighting-stage__prompt {
+  position: absolute;
+  inset: auto 0 14px;
+  display: flex;
+  justify-content: center;
+  padding: 0 $spacing-s;
+}
+
+.lighting-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $spacing-s;
+  padding: 8px;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-m;
+  background: rgba(#060c12, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+// ---------------------------------------------------------------- notices
+
+.lighting-notices {
+  display: grid;
+  gap: $spacing-s;
+}
+
+.lighting-notice {
+  @include animate(rise-in);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $amber 8%, transparent);
+}
+
+.lighting-notice--windows {
+  border-color: color-mix(in srgb, $windows-blue 34%, transparent);
+  background: color-mix(in srgb, $windows-blue 7%, transparent);
+}
+
+.lighting-notice__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: $amber;
+  border-radius: 50%;
+  background: color-mix(in srgb, $amber 18%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-bold;
+
+  .lighting-notice--windows & {
+    color: $windows-blue;
+    background: color-mix(in srgb, $windows-blue 16%, transparent);
+  }
+}
+
+.lighting-notice__text {
+  display: grid;
+  flex: 1 1 260px;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lighting-notice__title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.lighting-notice__body {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.lighting-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  margin-left: auto;
+}
+
+// ---------------------------------------------------------------- cards
+
+.lighting-columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: $spacing-m;
+
+  > .lighting-devices {
+    flex: 3 1 440px;
+  }
+
+  > .studio-card:not(.lighting-devices) {
+    flex: 1 1 260px;
+  }
+}
+
+.lighting-devices {
+  @include animate(rise-in, $motion-base, $ease-out, 60ms);
+  min-width: 0;
+}
+
+.lighting-devices__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lighting-device {
+  @include stagger-in($count: 8, $step: 30ms, $offset: 80ms);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: rgba($white, 0.03);
+  transition: opacity $motion-fast $ease-out;
+
+  &.is-muted {
+    opacity: 0.55;
+  }
+}
+
+.lighting-device__glyph {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.lighting-device__text {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 1px;
+  min-width: 0;
+}
+
+.lighting-device__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  @include truncate;
+}
+
+.lighting-device__kind {
+  color: $text-dim;
+  font-size: $text-micro;
+}
+
+.lighting-route {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  color: $text-dim;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.lighting-route--synapse {
+  color: color-mix(in srgb, $razer 80%, $white);
+  border-color: color-mix(in srgb, $razer 30%, transparent);
+  background: color-mix(in srgb, $razer 9%, transparent);
+
+  &::before {
+    box-shadow: 0 0 6px currentColor;
+  }
+}
+
+.lighting-route--windows {
+  color: $windows-blue;
+  border-color: color-mix(in srgb, $windows-blue 30%, transparent);
+  background: color-mix(in srgb, $windows-blue 8%, transparent);
+
+  &::before {
+    box-shadow: 0 0 6px currentColor;
+  }
+}
+
+// The lamps and the switch travel together: when a row has no room for them
+// beside the name they drop to a second line as one piece, still at the
+// right, so a device's switch never ends up under its glyph and every row's
+// lamps stay in one column.
+.lighting-device__output {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.lighting-device__lamps {
+  display: block;
+  flex: 0 0 auto;
+  width: 104px;
+  height: 14px;
+}
+
+// Always the switch's width, present or not, so the rows' lamps line up.
+.lighting-device__control {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  width: 38px;
+
+  .switch {
+    --switch-width: 34px;
+    --switch-height: 20px;
+    --switch-thumb: 12px;
+    --switch-inset: 4px;
+  }
+}
+
+.lighting-devices__searching,
+.lighting-devices__fine,
+.lighting-tuning__hint {
+  margin: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.5;
+}
+
+.lighting-devices__none {
+  display: grid;
+  gap: 4px;
+  padding: 10px 2px;
+}
+
+.lighting-devices__none-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.lighting-devices__none-body {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.lighting-tuning {
+  display: grid;
+  gap: 14px;
+}
+
+.lighting-tuning__pulse {
+  display: grid;
+  gap: 6px;
+
+  .segmented {
+    justify-self: start;
+  }
+}
+
+// ---------------------------------------------------------------- graph
+
+// The graph's lamp toggle while the desk is actually lit: the icon glows in
+// the accent, so the row says the devices are following without a word.
+.graph-look-step.graph-lighting.is-live[aria-pressed='true'] svg {
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, $secondary-default 80%, transparent)
+  );
+}

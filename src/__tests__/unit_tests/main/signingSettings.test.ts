@@ -28,6 +28,8 @@ const COMPLETE = {
   FLUIDEQ_SIGN_ACCOUNT: 'fluideq-signing',
   FLUIDEQ_SIGN_PROFILE: 'fluideq-profile',
   FLUIDEQ_SIGN_PUBLISHER: 'Ivan Carmenates Garcia',
+  FLUIDEQ_SIGN_SUBJECT:
+    'CN=Ivan Carmenates Garcia, O=Ivan Carmenates Garcia, L=Miami, S=Florida, C=US',
   FLUIDEQ_UPDATE_URL: 'https://updates.example.com/fluideq/',
   AZURE_TENANT_ID: 'tenant',
   AZURE_CLIENT_ID: 'client',
@@ -69,6 +71,31 @@ describe('reading the signing configuration', () => {
     expect(() =>
       readSigningSettings({ FLUIDEQ_SIGN_ENDPOINT: 'https://x' }),
     ).toThrow(/AZURE_CLIENT_SECRET/);
+  });
+
+  it.each([
+    // A publisher name instead of the full subject.
+    'Ivan Carmenates Garcia',
+    // Another certificate's subject.
+    'CN=Ivan Carmenates, O=Ivan Carmenates, C=US',
+  ])('refuses the certificate subject %s', (subject) => {
+    // The subject is compiled into the Dynamic Lighting helper before anything
+    // is signed; a wrong one would only fail at the end of the build.
+    expect(() =>
+      readSigningSettings({ ...COMPLETE, FLUIDEQ_SIGN_SUBJECT: subject }),
+    ).toThrow(/full subject/);
+  });
+
+  it('accepts a quoted common name in the subject', () => {
+    // How Windows writes a name with a comma in it.
+    const publisher = 'Carmenates, Inc.';
+    expect(() =>
+      readSigningSettings({
+        ...COMPLETE,
+        FLUIDEQ_SIGN_PUBLISHER: publisher,
+        FLUIDEQ_SIGN_SUBJECT: `CN="${publisher}", O="${publisher}", C=US`,
+      }),
+    ).not.toThrow();
   });
 
   it.each([

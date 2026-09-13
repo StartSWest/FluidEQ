@@ -447,6 +447,26 @@ at any time from the button inside the app."
   ${IfNot} ${isUpdated}
     !insertmacro NeutraliseEngineConfigs
 
+    ; Dynamic Lighting's package identity, which the app registered for this
+    ; Windows account the first time lighting was switched on. It names the
+    ; helper in this install folder, so left behind it would keep FluidEQ
+    ; listed under Background light control in Windows' settings, pointing at
+    ; a file that is about to be deleted. Per user and without elevation, so a
+    ; plain ExecWait, as this user. Not on an update: the new version's app
+    ; replaces the registration with its own on first use.
+    ;
+    ; Exit codes are the helper's own: 0 removed (or nothing was registered),
+    ; 1 bad command line, 3 Windows refused.
+    ${If} ${FileExists} "$INSTDIR\resources\native\FluidEQ-Lighting.exe"
+      ClearErrors
+      ExecWait '"$INSTDIR\resources\native\FluidEQ-Lighting.exe" identity remove FluidEQ.DynamicLighting' $0
+      ${If} ${Errors}
+        !insertmacro InstallLog "Dynamic lighting helper could not be started to remove its identity."
+      ${Else}
+        !insertmacro InstallLog "Dynamic lighting identity removal exited with code $0."
+      ${EndIf}
+    ${EndIf}
+
     ; Ours goes first, and without a question. The engine is a FluidEQ
     ; component that nothing else uses, and `uninstall` puts every output's
     ; effect list back to the backup it took before attaching — so leaving it

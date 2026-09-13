@@ -87,6 +87,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': '网页',
   'app.processes.what.page':
     '在视频标签页中打开的网页。它运行在自己的进程里，与界面分开。',
+  'app.processes.name.lighting': '动态灯效',
+  'app.processes.what.lighting':
+    '把场景的颜色传给支持 Windows Dynamic Lighting 的设备。仅在灯效开启或其页面打开时运行。',
   'app.processes.name.helper': '辅助服务',
   'app.processes.what.helper':
     '按需启动的 Chromium 服务。FluidEQ 从不按名称请求它。',

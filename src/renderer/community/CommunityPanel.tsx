@@ -17,6 +17,7 @@ import { setPlusRailPinned, usePlusRailPinned } from '../plus/plusRail';
 import PlusWelcome from '../plus/PlusWelcome';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
+import LightingPanel from '../plus/lighting/LightingPanel';
 import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
@@ -37,7 +38,11 @@ interface IPlace {
   blurb: TranslationKey;
 }
 
-/** The rail, top to bottom: leaderboard, visualizers, then Studio. */
+/**
+ * The rail, top to bottom: leaderboard, visualizers, Studio, then dynamic
+ * lighting — the places that make scenes before the one that takes them off
+ * the screen.
+ */
 const PLACES: readonly IPlace[] = [
   {
     place: 'board',
@@ -56,6 +61,12 @@ const PLACES: readonly IPlace[] = [
     glyph: 'studio',
     name: 'studio.title',
     blurb: 'studio.rail.blurb',
+  },
+  {
+    place: 'lighting',
+    glyph: 'lighting',
+    name: 'lighting.title',
+    blurb: 'lighting.rail.blurb',
   },
 ];
 
@@ -206,6 +217,7 @@ export default function CommunityPanel({
           <VisualizersView onShowGraph={onShowGraph} />
         )}
         {view === 'studio' && <StudioPanel />}
+        {view === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
         {view === 'board' && (
           <>
             <header className="community__head">

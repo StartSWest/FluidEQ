@@ -337,3 +337,70 @@ if(WIN32)
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
   )
 endif()
+
+# The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
+# executable in the tree with Windows package identity (see
+# lighting-host/src/identity.h for why it needs one and how it gets it).
+#
+# C++/WinRT, from the Windows SDK itself — the headers ship in the SDK's
+# `cppwinrt` folder and link against WindowsApp.lib, so there is nothing to
+# vendor. The SDK's headers are compiled as external (warning level 0): the
+# project's /W4 /WX holds for this code, not for Microsoft's generated
+# projection.
+if(WIN32)
+  # The signing certificate's full subject, which the embedded `msix` element
+  # must repeat exactly. Read from the environment rather than passed as a
+  # -D argument: a subject is commas, spaces and sometimes quotes
+  # (O="Example, Inc."), and the build script hands its arguments to cmd.exe.
+  # Read on every configure and never cached, so an unsigned build after a
+  # signed one does not keep the release's publisher. A development name when
+  # no release is being signed.
+  if(NOT "$ENV{FLUIDEQ_SIGN_SUBJECT}" STREQUAL "")
+    set(FEQ_LIGHTING_PUBLISHER "$ENV{FLUIDEQ_SIGN_SUBJECT}")
+  else()
+    set(FEQ_LIGHTING_PUBLISHER "CN=FluidEQ Development")
+  endif()
+  set(FEQ_LIGHTING_PACKAGE_NAME "FluidEQ.DynamicLighting")
+  set(FEQ_LIGHTING_APPLICATION_ID "FluidEQLighting")
+  set(FEQ_LIGHTING_PUBLISHER_XML "${FEQ_LIGHTING_PUBLISHER}")
+  string(REPLACE "&" "&amp;" FEQ_LIGHTING_PUBLISHER_XML "${FEQ_LIGHTING_PUBLISHER_XML}")
+  string(REPLACE "<" "&lt;" FEQ_LIGHTING_PUBLISHER_XML "${FEQ_LIGHTING_PUBLISHER_XML}")
+  string(REPLACE ">" "&gt;" FEQ_LIGHTING_PUBLISHER_XML "${FEQ_LIGHTING_PUBLISHER_XML}")
+  string(REPLACE "\"" "&quot;" FEQ_LIGHTING_PUBLISHER_XML "${FEQ_LIGHTING_PUBLISHER_XML}")
+  configure_file(lighting-host/src/lighting-host.manifest.in
+    "${CMAKE_BINARY_DIR}/lighting-host.manifest" @ONLY)
+
+  add_executable(fluideq-lighting-host WIN32
+    lighting-host/src/main.cpp
+    lighting-host/src/lamp_arrays.cpp
+    lighting-host/src/razer_devices.cpp
+    lighting-host/src/identity.cpp
+    lighting-host/src/lighting-host.rc)
+  target_link_libraries(fluideq-lighting-host PRIVATE feq_strict WindowsApp shell32)
+  target_compile_options(fluideq-lighting-host PRIVATE
+    /external:anglebrackets /external:W0 /bigobj)
+  set_source_files_properties(lighting-host/src/lighting-host.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_LIGHTING_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  # Embedded, not beside the exe: Windows ignores a manifest file next to an
+  # executable that already carries one, and reads package identity only from
+  # the embedded manifest.
+  target_link_options(fluideq-lighting-host PRIVATE
+    "/MANIFEST:EMBED"
+    "/MANIFESTINPUT:${CMAKE_BINARY_DIR}/lighting-host.manifest"
+    "/ENTRY:wWinMainCRTStartup")
+  set_target_properties(fluideq-lighting-host PROPERTIES
+    # The linker is not told the manifest is an input, so without this a
+    # publisher that changed between builds would leave the old one embedded
+    # in an exe Ninja considers up to date.
+    LINK_DEPENDS "${CMAKE_BINARY_DIR}/lighting-host.manifest"
+    OUTPUT_NAME "FluidEQ-Lighting"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+
+  add_executable(fluideq-lighting-wire-test lighting-host/tests/wire_test.cpp)
+  target_link_libraries(fluideq-lighting-wire-test PRIVATE feq_strict)
+  add_test(NAME lighting-wire COMMAND fluideq-lighting-wire-test)
+endif()

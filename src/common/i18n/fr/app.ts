@@ -88,6 +88,9 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': 'Page web',
   'app.processes.what.page':
     "Une page ouverte dans l'onglet Vidéo. Elle tourne dans son propre processus, à l'écart de l'interface.",
+  'app.processes.name.lighting': 'Éclairage dynamique',
+  'app.processes.what.lighting':
+    'Transmet les couleurs de la scène aux appareils compatibles avec Windows Dynamic Lighting. Ne tourne que lorsque l’éclairage est activé ou que sa page est ouverte.',
   'app.processes.name.helper': 'Service auxiliaire',
   'app.processes.what.helper':
     'Un service Chromium démarré à la demande. FluidEQ ne le réclame jamais par son nom.',

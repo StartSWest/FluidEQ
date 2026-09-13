@@ -40,6 +40,7 @@ import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
 import engineUpdate from './engineUpdate';
+import lighting from './lighting';
 
 const it: Partial<Dictionary> = {
   ...karaoke,
@@ -64,6 +65,7 @@ const it: Partial<Dictionary> = {
   ...engineHealth,
   ...dspOff,
   ...engineUpdate,
+  ...lighting,
 };
 
 export default it;

@@ -448,6 +448,10 @@ if (isWindows) {
   if (!existsSync(engineSetupPath)) {
     fail(`the engine setup helper was not produced at ${engineSetupPath}`);
   }
+  const lightingPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Lighting.exe');
+  if (!existsSync(lightingPath)) {
+    fail(`the Dynamic Lighting helper was not produced at ${lightingPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

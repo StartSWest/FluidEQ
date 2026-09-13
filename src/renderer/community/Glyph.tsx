@@ -36,7 +36,8 @@ export type TCommunityGlyph =
   | 'zoom-out'
   | 'fit'
   | 'pin'
-  | 'rail-collapse';
+  | 'rail-collapse'
+  | 'lighting';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -296,6 +297,18 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <rect x="3" y="3.5" width="14" height="13" rx="2.5" />
             <path d="M8 3.5v13M13.4 8 11.4 10l2 2" />
+          </>
+        );
+      case 'lighting':
+        // A key cap giving off light: dynamic lighting.
+        return (
+          <>
+            <rect x="3.5" y="9.5" width="13" height="8" rx="2" />
+            <path d="M7.5 13.5h5" />
+            <path
+              d="M10 2.5v3M4.3 4.3l1.9 1.9M15.7 4.3l-1.9 1.9"
+              opacity="0.7"
+            />
           </>
         );
       default:

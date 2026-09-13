@@ -76,6 +76,13 @@ export const dspWorkletConfig = (
       webpackPaths.srcRendererPath,
       'dsp/worklets/dspProcessor.worklet.ts',
     ),
+    // Dynamic lighting's scene, drawn small for the lamps in its own thread.
+    // A worker, like the sender spectrum above, so this compiler's rules for a
+    // scope without the window's globals apply to it too.
+    'lighting-scene': path.join(
+      webpackPaths.srcRendererPath,
+      'lighting/lightingScene.worker.ts',
+    ),
   },
 
   output: {

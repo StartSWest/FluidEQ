@@ -84,8 +84,11 @@ const renderPanel = async () => {
 };
 
 describe('the Plus tab', () => {
-  /** The channels went to the Forum tab; three places stay, nothing else. */
-  it('holds Visualizers, the leaderboard and the Studio, and opens on Visualizers', async () => {
+  /**
+   * The channels went to the Forum tab; three places stayed, and Dynamic
+   * lighting came in under the Studio.
+   */
+  it('holds Visualizers, the leaderboard, the Studio and Dynamic lighting, and opens on Visualizers', async () => {
     await renderPanel();
     const rail = screen.getByRole('navigation', { name: 'tabs.plus' });
     const places = within(rail)
@@ -97,6 +100,7 @@ describe('the Plus tab', () => {
       'leaderboard.titleleaderboard.rail.blurb',
       'plus.visualizers.titleplus.visualizers.blurb',
       'studio.titlestudio.rail.blurb',
+      'lighting.titlelighting.rail.blurb',
     ]);
     expect(screen.getByText('visualizers view')).toBeInTheDocument();
     expect(rail).not.toHaveTextContent(/community|channel/);

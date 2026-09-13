@@ -206,7 +206,7 @@
       "node_modules",
       "package.json"
     ],
-    "afterSign": ".erb/scripts/notarize.js",
+    "afterSign": ".erb/scripts/after-sign.cjs",
     "mac": {
       "target": {
         "target": "default",
@@ -286,9 +286,19 @@
           "FluidEQ-DSP*",
           "FluidEQ-LAN-Capture*",
           "FluidEQ-Engine*",
+          "FluidEQ-Lighting.exe",
           "msvcp140.dll",
           "vcruntime140.dll",
           "vcruntime140_1.dll"
+        ]
+      },
+      {
+        "from": "assets/icons",
+        "to": "native/lighting-assets",
+        "filter": [
+          "48x48.png",
+          "64x64.png",
+          "256x256.png"
         ]
       },
       {

@@ -18,7 +18,7 @@ import type { IReportedScene } from 'common/plusModeration';
  * too so a gallery page can send the member to the Studio.
  */
 
-export type TPlusPlace = 'visualizers' | 'board' | 'studio';
+export type TPlusPlace = 'visualizers' | 'board' | 'studio' | 'lighting';
 
 export interface IMakerRef {
   authorId: string;

@@ -76,6 +76,8 @@ export type TProcessRole =
   | 'devices'
   /** Our own DSP host: a separate executable, not one of Electron's. */
   | 'engine'
+  /** Dynamic lighting's helper, which reaches Windows Dynamic Lighting. */
+  | 'lighting'
   /** Something Chromium started that we have no app-level sentence for. */
   | 'helper';
 
@@ -125,6 +127,8 @@ export interface IProcessIpcDeps {
    * and a test can hand it a number without starting one.
    */
   getNativeHostStats: () => IHostStats | undefined;
+  /** Dynamic lighting's helper, only while it runs. */
+  getLightingHelperPid?: () => number | undefined;
 }
 
 /**
@@ -193,6 +197,7 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'window',
   'core',
   'engine',
+  'lighting',
   'graphics',
   'models',
   'libraryScan',
@@ -269,6 +274,13 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
             ? undefined
             : Math.round(stats.cpuPercent * 10) / 10,
       });
+    }
+
+    // Also ours rather than Electron's, and it does not measure itself: a dash
+    // for its memory is honest, and it is a few megabytes of device watching.
+    const lightingPid = deps.getLightingHelperPid?.();
+    if (lightingPid !== undefined) {
+      rows.push({ pid: lightingPid, role: 'lighting' });
     }
 
     return rows.sort(

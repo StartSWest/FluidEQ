@@ -177,6 +177,7 @@ import {
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerEngineHealthIpc } from './ipc/engineHealth';
+import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
@@ -3152,6 +3153,19 @@ registerKaraokeIpc({
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
 registerDspHostIpc({ getMainWindow: () => mainWindow });
+// Dynamic lighting (Plus): keyboards, mice and headsets in the colours of the
+// scene on the graph. Starts nothing until the window sends a frame or opens
+// the page — the helper, Razer's service and the identity registration all
+// wait for a member to switch it on.
+const lighting = registerLightingIpc({
+  userDataDir,
+  appVersion: app.getVersion(),
+  getMainWindow: () => mainWindow,
+  entitled: () => accountIpc.entitlement.status().state !== 'none',
+});
+// The helper's exit hands every Windows lamp back; Razer's session is ended
+// rather than left to lapse.
+app.on('will-quit', () => lighting.dispose());
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.
@@ -3159,6 +3173,7 @@ registerProcessIpc({
   getMainWindow: () => mainWindow,
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
+  getLightingHelperPid: () => lighting.helperPid(),
 });
 
 registerLibraryIpc({

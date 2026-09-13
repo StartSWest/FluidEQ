@@ -1,0 +1,45 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/*
+ * The version resource, which is what Task Manager's Name column reads: this
+ * process says "FluidEQ Dynamic Lighting" there rather than the file name.
+ */
+
+#include <winver.h>
+
+#ifndef FEQ_LIGHTING_VERSION_STRING
+#define FEQ_LIGHTING_VERSION_STRING "0.0.0"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Ivan Carmenates Garcia"
+      VALUE "FileDescription", "FluidEQ Dynamic Lighting"
+      VALUE "FileVersion", FEQ_LIGHTING_VERSION_STRING
+      VALUE "InternalName", "FluidEQ-Lighting"
+      VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
+      VALUE "OriginalFilename", "FluidEQ-Lighting.exe"
+      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductVersion", FEQ_LIGHTING_VERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

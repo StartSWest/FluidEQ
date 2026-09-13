@@ -119,6 +119,7 @@ import type {
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
 import { engineHealthBridge } from './engineHealthBridge';
+import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 
@@ -1383,5 +1384,6 @@ export default {
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
     ...engineHealthBridge,
+    ...lightingBridge,
   },
 };

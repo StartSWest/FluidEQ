@@ -30,14 +30,22 @@
  *
  * ## Configuration
  *
- * Eight environment variables: four that name the signing account, one that
- * says where the signed build fetches its updates from, and three that are
- * credentials. Their names are in SETTINGS, UPDATE_URL and CREDENTIALS below,
- * which is the only place this file needs them written down.
+ * Nine environment variables: four that name the signing account, one that
+ * repeats its certificate's full subject, one that says where the signed build
+ * fetches its updates from, and three that are credentials. Their names are in
+ * SETTINGS, SUBJECT_VARIABLE, UPDATE_URL and CREDENTIALS below, which is the
+ * only place this file needs them written down.
  *
- * All eight or none. There is no useful half of this: a signed build without a
+ * All nine or none. There is no useful half of this: a signed build without a
  * feed cannot update, and a feed without signing is deliberately not an
  * updater-capable build at all.
+ *
+ * The full subject (`CN=…, O=…, L=…, S=…, C=…`, exactly as Windows shows it
+ * for the certificate) is separate from the publisher name because Windows
+ * needs all of it in two places before anything is signed: compiled into the
+ * Dynamic Lighting helper, and written into that helper's identity package.
+ * lighting-identity.ts checks it against the signature the build produced and
+ * refuses the release when they differ.
  *
  * Which provider issues them, what an account costs and how to obtain one are
  * deliberately not here. This repository is public and that is the recipe for
@@ -55,6 +63,7 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 
 import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
+import { SUBJECT_VARIABLE } from './lighting-identity';
 import { readMandatoryUpdateArgs } from './mandatory-update';
 
 interface ISigningSettings {
@@ -90,7 +99,7 @@ export interface IReleaseSettings {
   updateUrl: string;
 }
 
-const REQUIRED = [...Object.values(SETTINGS), UPDATE_URL];
+const REQUIRED = [...Object.values(SETTINGS), SUBJECT_VARIABLE, UPDATE_URL];
 
 const CREDENTIALS = [
   'AZURE_TENANT_ID',
@@ -129,6 +138,23 @@ export const readSigningSettings = (
   ) {
     throw new Error(
       `${UPDATE_URL} must be an HTTPS URL with no embedded credentials.`,
+    );
+  }
+
+  // The same certificate described twice: its subject has to open with the
+  // publisher name, bare or quoted. Caught here, before ten minutes of build,
+  // rather than by the identity check at the end of it.
+  const subject = env[SUBJECT_VARIABLE] as string;
+  const publisher = env[SETTINGS.publisherName] as string;
+  const commonName = subject.match(/^CN=("(?:[^"]|"")*"|[^,]*)(?:,|$)/)?.[1];
+  const unquoted = commonName?.startsWith('"')
+    ? commonName.slice(1, -1).replace(/""/g, '"')
+    : commonName?.trim();
+  if (unquoted !== publisher) {
+    throw new Error(
+      `${SUBJECT_VARIABLE} must be the certificate's full subject, starting ` +
+        `with CN=${publisher} (from ${SETTINGS.publisherName}), for example ` +
+        `"CN=${publisher}, O=${publisher}, L=City, S=State, C=US".`,
     );
   }
 
@@ -268,6 +294,9 @@ if (require.main === module) {
     }
 
     console.log(`Signing as: ${release.signing.publisherName}`);
+    console.log(
+      `Dynamic Lighting identity publisher: ${process.env[SUBJECT_VARIABLE]}`,
+    );
     console.log(`Updates will be fetched from: ${release.updateUrl}`);
     console.log(`Publish this alongside the installer: ${apoSource}`);
     if (mandatoryArgs.length > 0) {
