@@ -1501,7 +1501,6 @@ select option {
   // Two columns of items now, so it is wider than a single stack needed.
   width: 440px;
   padding: 10px;
-  border-color: color-mix(in srgb, $secondary-light 18%, transparent);
   // The menu surface's own colour. This had a diagonal ramp of its own that
   // ran off to rgb(8,23,37) in the bottom corner — darker than the shell — so
   // the widest menu in the app was also the only one with a black corner.
