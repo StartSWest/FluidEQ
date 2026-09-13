@@ -83,17 +83,20 @@ it under the terms of the GNU General Public License version 3 or later.
 // Every tile the same shape whatever the picture's, the picture whole inside
 // it on the scene's own dark, so a wide strip and a square sit in one row.
 //
-// A size container, so the picture can be fitted in container units. A
-// percentage height in the frame's own auto-sized row resolves against the
-// picture, not the frame, and cropped a square pet to the frame's width
-// instead of showing it whole.
+// NOT a size container. The picture was once fitted in container units, and
+// an element sized in those has its style resolved again inside every
+// layout: any forced style recalculation on the page — a canvas reading its
+// colours once a frame — marked all twenty-eight tiles changed, that forced
+// a layout of the whole Studio (ten thousand elements in the code pane), the
+// layout re-resolved the units and marked them changed again. Sixteen
+// thousand invalidations in two seconds, and the stage at eight frames a
+// second. The picture is fitted by its own maximum size now; see it below.
 .studio-picture__frame {
   position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  container-type: size;
   border: 1px solid rgba($white, 0.1);
   border-radius: $radius-s;
   background: $black;
@@ -121,16 +124,23 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The picture at its own shape, as large as the frame allows — `--aspect` is
-// its width over its height. Sized to the picture rather than to the frame so
-// the transparency grid sits behind exactly the picture: an opaque one covers
-// it, a cut-out shows it through, and the bands beside a wide one stay the
-// tile's plain dark.
+// The picture at its own shape, as large as the frame allows. Sized to the
+// picture rather than to the frame so the transparency grid sits behind
+// exactly the picture: an opaque one covers it, a cut-out shows it through,
+// and the bands beside a wide one stay the tile's plain dark.
+//
+// A replaced element under both maximums keeps its own ratio, so this is
+// "contain" with the box the size of the picture. Its natural size has to be
+// at least the frame's for it to fill the frame: the previews are drawn 360px
+// on their longest side and the pieces carry their own pixel size, both past
+// any tile in the grid. The frame's `aspect-ratio` makes its height definite
+// for the percentage.
 .studio-picture__art {
   display: block;
-  width: min(100cqw, 100cqh * var(--aspect, 1));
+  width: auto;
   height: auto;
-  aspect-ratio: var(--aspect, 1);
+  max-width: 100%;
+  max-height: 100%;
   @include transparency-grid(6px);
   transition: scale $motion-base $ease-out;
   @include animate(fade-in, $motion-base);

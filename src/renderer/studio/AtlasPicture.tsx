@@ -46,6 +46,11 @@ export default function AtlasPicture({
     <svg
       className={className}
       viewBox={`0 0 ${upright.width} ${upright.height}`}
+      // Its own pixel size, so a stylesheet can fit it by maximum width and
+      // height alone (see `.studio-picture__art`): an SVG with only a viewBox
+      // has no natural size and takes the default 300x150 box instead.
+      width={upright.width}
+      height={upright.height}
       style={{ '--aspect': upright.width / upright.height } as CSSProperties}
       role={label ? 'img' : undefined}
       aria-label={label}
