@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { IGalleryScene } from 'common/plusGallery';
+import { FLUIDEQ_CREATOR_ID, type IGalleryScene } from 'common/plusGallery';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
 
@@ -7,11 +7,18 @@ import { blobAsDataUrl, renderSceneStill } from '../graph/sceneStill';
  * Every picture in the gallery is the real scene.
  *
  * A published scene carries the picture its maker took in the Studio, and
- * that is what a card shows. A scene without one, or whose picture would not
- * download, gets a frame drawn here from the scene
+ * that is what a card shows. One of FluidEQ's own scenes without one, or
+ * whose picture would not download, gets a frame drawn here from the scene
  * itself, under the same showcase signal the Studio uses, so the gallery
  * never shows a drawing standing in for a scene. Those are drawn one at a
  * time, on one shared context, and only for cards near the screen.
+ *
+ * A member's scene is never drawn for its card. Nobody reads it before it
+ * runs, and a card is drawn by scrolling past it: a picture that failed to
+ * download — or was made to fail — would otherwise compile somebody's
+ * shader on the machine of everybody browsing, which is where a scene built
+ * to reset the graphics driver does the most harm. Its card shows the
+ * placeholder instead; its page plays it on request.
  */
 
 export type TScenePicture =
@@ -95,7 +102,10 @@ const pictureOf = (scene: TSceneRef) => {
         scene.updatedAt,
       )
       .catch(() => undefined);
-    return published ?? drawFrame(scene);
+    if (published !== undefined) {
+      return published;
+    }
+    return scene.authorId === FLUIDEQ_CREATOR_ID ? drawFrame(scene) : null;
   })().then((result) => {
     inFlight.delete(key);
     if (result !== undefined) {

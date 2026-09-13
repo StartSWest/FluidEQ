@@ -339,7 +339,9 @@ describe('Visualizers', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows a real frame of the scene, never a drawing, when it has no picture', async () => {
+  // A member's scene runs nowhere its viewer did not ask it to: a card whose
+  // picture did not arrive shows the placeholder, and nothing is compiled.
+  it('never draws a member scene for its card, even when its picture is missing', async () => {
     const pack = { id: 'neon-city', version: 1, names: { en: 'Neon City' } };
     bridge.previewGalleryScene.mockResolvedValue({
       ok: true,
@@ -360,12 +362,11 @@ describe('Visualizers', () => {
     );
     await waitFor(() =>
       expect(
-        container.querySelector('.gallery-picture__image'),
-      ).toHaveAttribute('src', 'data:image/webp;base64,ZHJhd24='),
+        container.querySelectorAll('.gallery-picture__none').length,
+      ).toBeGreaterThan(0),
     );
-    expect(mockRenderSceneStill).toHaveBeenCalledWith(pack);
-    // Both cards were drawn, one after the other, from their own scenes.
-    await waitFor(() => expect(mockRenderSceneStill).toHaveBeenCalledTimes(2));
+    expect(bridge.previewGalleryScene).not.toHaveBeenCalled();
+    expect(mockRenderSceneStill).not.toHaveBeenCalled();
   });
 
   it('shows a published picture as it is, and draws nothing', async () => {
