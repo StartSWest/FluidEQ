@@ -84,10 +84,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // Six is a ceiling for both arrangements. The drop overlay is excluded because
 // it is absolutely positioned feedback that appears mid-drag, and sliding it
-// into place would answer a drag that has already happened.
+// into place would answer a drag that has already happened. The playlist's
+// restore pill likewise answers the fold, and arrives on the fold's own timing
+// (`.karaoke-playlist__expand`).
 .karaoke-workspace:not(.is-hidden)
   .karaoke-workspace__stage
-  > *:not(.karaoke-workspace__drop-overlay):not(.karaoke-stage-media) {
+  > *:not(.karaoke-workspace__drop-overlay):not(.karaoke-stage-media):not(
+    .karaoke-playlist__expand
+  ) {
   @include stagger-in($count: 6, $step: 45ms, $offset: 90ms);
 }
 
@@ -625,18 +629,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: minmax(0, 1fr);
   gap: $spacing-m;
 
+  // THE PLAYLIST FOLDS THE WAY THE PLUS TAB'S RAIL DOES (`PlusRail.scss`):
+  // the column closes and opens on the same length and curve, the list's
+  // contents leave before it narrows and come back once there is room for
+  // them. No pin and no opening on hover: here the fold is only ever the
+  // button's.
+  //
+  // It is the grid that moves, not the list. Folded keeps three tracks,
+  // zero-wide, so the columns interpolate track by track; a folded grid of one
+  // column, as it used to be, has nothing to interpolate with and jumped.
+  // Chromium interpolates `grid-template-columns` whenever both sides have the
+  // same number of tracks of the same kind.
+  //
+  // How long the fold takes. Reduced motion shortens it rather than removing
+  // it, as the rail does: a stage that jumps a quarter of the window sideways
+  // reads as the layout breaking, not as calm.
+  --playlist-move: #{$motion-slow};
+  --playlist-settle: #{$motion-base};
+
+  @media (prefers-reduced-motion: reduce) {
+    --playlist-move: 150ms;
+    --playlist-settle: 110ms;
+  }
+
   &.has-playlist {
     grid-template-columns:
       minmax(160px, var(--karaoke-playlist-size, 27%)) 18px
       minmax(0, 1fr);
     gap: 0;
+    transition: grid-template-columns var(--playlist-move) $ease-out;
 
     > .karaoke-playlist {
       grid-column: 1;
+      // Its contents are squeezed while the column is narrower than they
+      // are, and never drawn outside it.
+      overflow: hidden;
+      transition:
+        opacity var(--playlist-settle) ease-out,
+        padding var(--playlist-move) $ease-out,
+        margin-bottom $motion-base $ease-out;
+
+      // A quarter of the way in, the column is already three quarters open
+      // on this curve: room enough, and not a stretch of empty card.
+      > * {
+        transition: opacity var(--playlist-settle) ease-out
+          calc(var(--playlist-move) * 0.25);
+      }
     }
 
     > .karaoke-pane-splitter {
       grid-column: 2;
+      transition: visibility 0s linear var(--playlist-move);
     }
 
     > .karaoke-workspace__stage {
@@ -644,11 +687,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  &.has-playlist.is-playlist-collapsed {
-    grid-template-columns: minmax(0, 1fr);
+  // Dragging the splitter moves the column under the pointer. A transition
+  // there would trail every movement by the length of a fold.
+  &.has-playlist:has(> .karaoke-pane-splitter .is-dragging) {
+    transition: none;
+  }
 
-    > .karaoke-workspace__stage {
-      grid-column: 1;
+  &.has-playlist.is-playlist-collapsed {
+    grid-template-columns: minmax(0px, 0%) 0px minmax(0, 1fr);
+
+    // The words go first, quickly, so nothing is seen being squeezed; the card
+    // follows them out while the column closes, its padding closing with it so
+    // no sliver of it is left standing at the edge (or, stacked above the
+    // stage in a narrow panel, along the top), and it is hidden once shut so
+    // no part of it can be reached or hovered.
+    > .karaoke-playlist {
+      padding: 0;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity calc(var(--playlist-move) * 0.5) ease-out
+          calc(var(--playlist-move) * 0.2),
+        padding var(--playlist-move) $ease-out,
+        visibility 0s linear var(--playlist-move),
+        margin-bottom $motion-base $ease-out;
+
+      > * {
+        opacity: 0;
+        transition: opacity 90ms ease-out;
+      }
+    }
+
+    > .karaoke-pane-splitter {
+      visibility: hidden;
+      transition: none;
     }
   }
 }
@@ -964,6 +1036,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 26px;
   padding: 0;
   border-radius: $radius-xs;
+}
+
+// Out of the fold it just closed: the pill stands on the stage's left edge, so
+// it rides that edge across while the column shuts and arrives, from the
+// side the list went, as the fold ends. The reduced-motion fold is shorter,
+// and so is the wait. Keyed off the tab showing, like the stage's cascade, so
+// it arrives again with the rest of the tab on the way back to it.
+@keyframes karaoke-playlist-pill-in {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__expand {
+  animation: karaoke-playlist-pill-in var(--playlist-settle) $ease-out
+    calc(var(--playlist-move) * 0.6) backwards;
 }
 
 .karaoke-playlist__expand {
@@ -1321,6 +1410,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // moves: applying this to the whole heading also pushed the unrelated chord
   // tools down by 34px whenever the playlist was collapsed.
   padding-top: 44px;
+}
+
+// The title makes room for the pill, and gives it back, as the fold moves
+// rather than a frame before it.
+.karaoke-workspace__stage.has-song .karaoke-song__heading > div:first-child {
+  transition: padding-top var(--playlist-move) $ease-out;
 }
 
 // Chords are estimated from the backing audio, not guessed from the lead
@@ -3060,10 +3155,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // At this width a persistent side-by-side library takes the useful width
   // away from lyrics and pitch. Keep the library available as a compact row,
   // then give the actual performance surface the full panel width.
-  .karaoke-workspace__player.has-playlist:not(.is-playlist-collapsed) {
+  //
+  // Folded, the row closes instead of the column, on the same fold: both
+  // states keep two rows so they interpolate.
+  .karaoke-workspace__player.has-playlist {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(76px, 0.2fr) minmax(360px, 1fr);
     gap: 8px;
+    transition:
+      grid-template-rows var(--playlist-move) $ease-out,
+      row-gap var(--playlist-move) $ease-out;
 
     > .karaoke-playlist {
       max-height: 112px;
@@ -3078,6 +3179,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > .karaoke-workspace__stage {
       grid-row: 2;
       grid-column: 1;
+    }
+
+    &.is-playlist-collapsed {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0px, 0fr) minmax(360px, 1fr);
+      gap: 0;
     }
   }
 
@@ -3312,6 +3419,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       > .karaoke-playlist {
         max-height: 88px;
       }
+    }
+
+    // The same two rows folded, so this short layout folds as smoothly.
+    .karaoke-workspace__player.has-playlist.is-playlist-collapsed {
+      grid-template-rows: minmax(0px, 0fr) minmax(0, 1fr);
     }
   }
 }

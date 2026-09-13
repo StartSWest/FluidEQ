@@ -1296,6 +1296,11 @@ describe('KaraokeWorkspace', () => {
     expect(
       screen.getByRole('button', { name: 'Expand playlist' }),
     ).toBeVisible();
+    // Folded, not gone, so the column can close around it; and nothing in it
+    // can be reached while it cannot be seen.
+    expect(
+      screen.getByRole('complementary', { name: 'Playlist' }),
+    ).toHaveAttribute('inert');
 
     rerender(<KaraokeWorkspace isHidden={false} isFullScreen />);
 

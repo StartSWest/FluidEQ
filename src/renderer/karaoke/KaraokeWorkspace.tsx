@@ -1941,7 +1941,10 @@ const KaraokeWorkspace = ({
         }`}
         style={playerStyle}
       >
-        {playlist.length > 0 && !layout.playlistCollapsed && (
+        {/* Mounted while folded as well, so the column can close and open
+            around the list (`Karaoke.scss`) instead of the list vanishing in
+            one frame. */}
+        {playlist.length > 0 && (
           <KaraokePlaylist
             items={playlist}
             selectedId={selectedPlaylistId}
@@ -1958,9 +1961,10 @@ const KaraokeWorkspace = ({
             onMove={movePlaylistItem}
             onRemove={removePlaylistItem}
             onCollapse={() => updateLayout({ playlistCollapsed: true }, true)}
+            isCollapsed={layout.playlistCollapsed}
           />
         )}
-        {playlist.length > 0 && !layout.playlistCollapsed && (
+        {playlist.length > 0 && (
           <KaraokePaneSplitter
             orientation="vertical"
             ariaLabel={t('karaoke.playlist.resize')}

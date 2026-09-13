@@ -35,6 +35,12 @@ interface IKaraokePlaylistProps {
   onMove: (id: string, targetId: string) => void;
   onRemove: (id: string) => void;
   onCollapse: () => void;
+  /**
+   * Folded away beside the stage. Still mounted, so folding and opening again
+   * can move instead of blinking, and inert meanwhile, so nothing in it can
+   * be reached while it cannot be seen.
+   */
+  isCollapsed?: boolean;
 }
 
 export const KARAOKE_PLAYLIST_DRAG_MIME = 'application/x-fluideq-karaoke-song';
@@ -113,6 +119,7 @@ const KaraokePlaylist = ({
   onMove,
   onRemove,
   onCollapse,
+  isCollapsed = false,
 }: IKaraokePlaylistProps) => {
   const { t } = useTranslation();
   const tree = groupByFolder ? buildKaraokePlaylistFolderTree(items) : [];
@@ -216,6 +223,7 @@ const KaraokePlaylist = ({
     <aside
       className="karaoke-playlist"
       aria-labelledby="karaoke-playlist-title"
+      inert={isCollapsed}
     >
       <div className="karaoke-playlist__heading">
         <h3 id="karaoke-playlist-title">{t('karaoke.playlist.title')}</h3>
