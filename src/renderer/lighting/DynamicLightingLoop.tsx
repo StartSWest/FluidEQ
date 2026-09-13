@@ -98,7 +98,11 @@ export default function DynamicLightingLoop() {
 
   useEffect(() => {
     const release = () => {
-      window.electron?.ipcRenderer.releaseLighting();
+      // Optional like every other bridge call here: a window whose preload
+      // predates the lighting bridge, or a test's partial one, has no such
+      // method, and calling it anyway threw out of this effect and took the
+      // whole app's first render with it.
+      window.electron?.ipcRenderer?.releaseLighting?.();
       publishLightingPreview(undefined);
     };
     if (!wanted) {
@@ -139,7 +143,7 @@ export default function DynamicLightingLoop() {
   useEffect(() => {
     const api = window.electron?.ipcRenderer;
     if (!wanted || !capture || !loadedScene || !api?.sendLightingFrame) {
-      api?.releaseLighting();
+      api?.releaseLighting?.();
       publishLightingPreview(undefined);
       return undefined;
     }
@@ -241,7 +245,7 @@ export default function DynamicLightingLoop() {
         if (closed) {
           return;
         }
-        api.releaseLighting();
+        api.releaseLighting?.();
         publishLightingPreview(undefined);
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.error(
