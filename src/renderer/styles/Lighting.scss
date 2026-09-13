@@ -78,7 +78,7 @@ $windows-blue: #8ec5ff;
   overflow: hidden;
   border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  background: radial-gradient(120% 100% at 50% 70%, #293c56, #121b30 90%);
+  background: $surface-base;
   box-shadow: inset 0 1px 0 rgba($white, 0.04);
 }
 

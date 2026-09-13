@@ -664,9 +664,8 @@ export const paintDesk = (canvas: HTMLCanvasElement, paint: IDeskPaint) => {
   if (!c) {
     return;
   }
-  // The desk is drawn at its own proportions, centred; the surface under it
-  // runs the canvas's whole width, so a wide panel shows a wider desk rather
-  // than the drawing floating between two bands.
+  // The desk stays centred over the panel's theme surface. Keeping the ground
+  // in CSS makes theme changes repaint even when no lighting frames arrive.
   const scale = Math.min(
     canvas.width / DESK_WIDTH,
     canvas.height / DESK_HEIGHT,
@@ -674,19 +673,7 @@ export const paintDesk = (canvas: HTMLCanvasElement, paint: IDeskPaint) => {
   const offsetX = (canvas.width - DESK_WIDTH * scale) / 2;
   const offsetY = (canvas.height - DESK_HEIGHT * scale) / 2;
   c.setTransform(1, 0, 0, 1, 0, 0);
-  const surface = c.createRadialGradient(
-    canvas.width / 2,
-    canvas.height * 0.7,
-    40 * scale,
-    canvas.width / 2,
-    canvas.height * 0.6,
-    Math.max(canvas.width, DESK_WIDTH * scale) * 0.7,
-  );
-  surface.addColorStop(0, '#293c56');
-  surface.addColorStop(0.55, '#1d2a43');
-  surface.addColorStop(1, '#121b30');
-  c.fillStyle = surface;
-  c.fillRect(0, 0, canvas.width, canvas.height);
+  c.clearRect(0, 0, canvas.width, canvas.height);
   c.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 
   paintMonitor(
