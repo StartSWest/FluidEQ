@@ -340,6 +340,9 @@ const studio = {
     'Qui utilise la scène peut les changer dans Vue, sur le graphique. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.wave.fixed':
     'Cette scène réserve sa propre bande au spectre, ces deux réglages ne la changent donc pas.',
+  'studio.grid.label': 'Afficher la grille du graphique',
+  'studio.grid.hint':
+    'Ses lignes de fréquence et de niveau sur la scène, avec la place qu’elles prennent sur le graphique, pour mesurer où tombent l’onde et chaque partie de la scène.',
 
   'studio.cost.full': 'Tourne de façon fluide',
   'studio.cost.scaled': 'Dessinée à {percent} % de sa taille',

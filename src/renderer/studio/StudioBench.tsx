@@ -24,6 +24,7 @@ import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import { DEFAULT_STUDIO_WAVE, type IStudioWave } from './studioWave';
+import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import StudioStage, {
   type TStageDrawn,
@@ -98,6 +99,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const [signal, setSignal] = useState<TStudioSignal>('live');
   const { size, choose, exitFullscreen, toggleFullscreen } = useStudioSize();
   const [wave, setWave] = useState<IStudioWave>(DEFAULT_STUDIO_WAVE);
+  const isGridShown = useStudioGridShown();
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
     serial: number;
@@ -241,6 +243,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         signal={signal}
         size={size}
         wave={wave}
+        isGridShown={isGridShown}
         tuning={tuner.tuning}
         onTrouble={setTrouble}
         onDrawn={onDrawn}

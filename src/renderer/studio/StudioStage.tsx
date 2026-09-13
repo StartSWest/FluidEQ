@@ -9,7 +9,9 @@ import useSceneRunner, {
   type ISceneTuning,
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
+import StudioGraphPaper from './StudioGraphPaper';
 import StudioStageLoading from './StudioStageLoading';
+import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
 import {
   createStudioSignalBuffers,
@@ -42,6 +44,11 @@ interface IStudioStageProps {
   size: TStudioSize;
   /** The graph's wave height and position, tried on the scene. */
   wave: IStudioWave;
+  /**
+   * The graph's grid over the scene. The band the spectrum is drawn in moves
+   * into the grid's gutters with it, as it does on the graph.
+   */
+  isGridShown: boolean;
   /** The member's settings, live, over the pack's. */
   tuning?: ISceneTuning;
   onTrouble: (trouble: TStageTrouble) => void;
@@ -67,6 +74,7 @@ export default function StudioStage({
   signal,
   size,
   wave,
+  isGridShown,
   tuning,
   onTrouble,
   onDrawn,
@@ -173,9 +181,16 @@ export default function StudioStage({
   );
 
   const { spectrumRange } = pack;
+  const paper = useMemo(
+    () =>
+      isGridShown
+        ? studioPaper(box.width, box.height, { spectrumRange }, wave)
+        : undefined,
+    [isGridShown, box.width, box.height, spectrumRange, wave],
+  );
   // One array per band, not per render: the runner redraws whenever the band
   // it is handed changes identity.
-  const band = useMemo(
+  const gridless = useMemo(
     () => studioSpectrumRect({ spectrumRange }, wave),
     [spectrumRange, wave],
   );
@@ -184,7 +199,7 @@ export default function StudioStage({
     source,
     width: box.width,
     height: box.height,
-    spectrumRect: band,
+    spectrumRect: paper?.spectrumRect ?? gridless,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: onFrame,
@@ -212,6 +227,7 @@ export default function StudioStage({
           aria-label={t('studio.stage.label', { name: pack.names.en })}
           style={{ width: box.width, height: box.height }}
         />
+        {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
         {!settled && <StudioStageLoading name={pack.names.en} />}
         {size === 'full' && (
           <button

@@ -346,6 +346,9 @@ const studio = {
     'Anyone using the scene can change these under View on the graph. Try the extremes: a low wave, or one lifted to the middle.',
   'studio.wave.fixed':
     'This scene reserves its own band for the spectrum, so these two do not change it.',
+  'studio.grid.label': 'Show the graph grid',
+  'studio.grid.hint':
+    'Its frequency and level lines over the scene, with the room they take on the graph, so you can measure where the wave and each part of the scene land.',
 
   'studio.cost.full': 'Runs smoothly',
   'studio.cost.scaled': 'Drawn at {percent}% size',

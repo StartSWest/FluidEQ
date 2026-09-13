@@ -85,6 +85,7 @@ describe('the stage', () => {
       signal="live"
       size="graph"
       wave={wave}
+      isGridShown={false}
       onTrouble={jest.fn()}
       onDrawn={jest.fn()}
       onExitFullscreen={jest.fn()}

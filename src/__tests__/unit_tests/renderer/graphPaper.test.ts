@@ -30,6 +30,8 @@ import {
   liveLevelTicksFor,
   sceneSpectrumRectFor,
 } from '../../../renderer/graph/graphPaper';
+import { studioPaper } from '../../../renderer/studio/studioPaper';
+import { studioSpectrumRect } from '../../../renderer/studio/studioWave';
 
 const FULL_WAVE = { heightScale: 1, verticalPosition: 0 };
 
@@ -131,5 +133,61 @@ describe("a scene's band on the graph", () => {
     expect(right).toBeCloseTo((30 + drawnWidth - 48) / 1200);
     expect(bottom).toBeCloseTo(1 - (54 + drawnHeight - 30) / 480);
     expect(top).toBeCloseTo(1 - (54 + 14) / 480);
+  });
+});
+
+describe("the Studio's grid", () => {
+  const wave = { height: 1, position: 0 };
+
+  it('hands the scene the band the graph would at the same size', () => {
+    const paper = studioPaper(1200, 480, {}, wave);
+    const frequency = frequencyScale(
+      paper.width,
+      paper.padding.left,
+      paper.padding.right,
+    );
+    const gain = gainScale(
+      paper.height,
+      paper.padding.top,
+      paper.padding.bottom,
+    );
+    const graphRect = sceneSpectrumRectFor({
+      frequency,
+      level: liveLevelScaleFor({
+        gain,
+        liveCurve: FULL_WAVE,
+        height: 480,
+        marginTop: paper.margins.top,
+      }),
+      margins: paper.margins,
+      width: 1200,
+      height: 480,
+    });
+    expect(paper.spectrumRect).toEqual(graphRect);
+  });
+
+  it('moves the band into the gutters, unlike the stage without the grid', () => {
+    const gridded = studioPaper(1200, 480, {}, wave).spectrumRect;
+    const bare = studioSpectrumRect({}, wave);
+    // The control: without the grid the band is the whole width.
+    expect(bare[0]).toBe(0);
+    expect(bare[1]).toBe(1);
+    expect(gridded[0]).toBeGreaterThan(0);
+    expect(gridded[1]).toBeLessThan(1);
+    expect(gridded[3]).toBeLessThan(1);
+  });
+
+  it('keeps the headroom of a one-row controls strip, which the graph measures', () => {
+    expect(studioPaper(1200, 480, {}, wave).margins.top).toBe(54);
+  });
+
+  it('follows a scene that reserves its own band', () => {
+    const reserved = studioPaper(
+      1200,
+      480,
+      { spectrumRange: [0.55, 0.94] },
+      wave,
+    ).spectrumRect;
+    expect(reserved[2]).toBeCloseTo(0.55);
   });
 });

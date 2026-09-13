@@ -298,6 +298,9 @@ const studio = {
   'studio.wave.hint':
     '使用此场景的人可以在图表的“视图”中更改这两项。试试极端情况：很低的波形，或抬高到中间的波形。',
   'studio.wave.fixed': '此场景为频谱预留了自己的区域，因此这两项不会改变它。',
+  'studio.grid.label': '显示图表网格',
+  'studio.grid.hint':
+    '在场景上叠加图表的频率线和电平线，并保留它们在图表上占用的边距，方便测量波形和场景各部分的位置。',
 
   'studio.cost.full': '运行流畅',
   'studio.cost.scaled': '以 {percent}% 尺寸绘制',

@@ -185,6 +185,16 @@ $stage-edge: $border-menu;
   display: block;
 }
 
+// The graph's grid over the scene (`StudioGraphPaper.tsx`), placed at the
+// graph's own margins inside the stage. The accent is its `color` because the
+// 0 dB rule is stroked in `currentColor`, as `.graph-plot` gives the chart.
+// It takes no pointer: the stage's double click is under it.
+.studio-paper {
+  position: absolute;
+  color: $secondary-default;
+  pointer-events: none;
+}
+
 .studio-stage__loading {
   position: absolute;
   inset: 0;
@@ -441,6 +451,53 @@ $stage-edge: $border-menu;
 
 .studio-wave__hint {
   margin-top: -2px;
+}
+
+// The grid over the stage: a section of its own under a hairline, its name
+// with the grid's glyph and a switch on one line, and what it is for under
+// them. The switch is the look designer's small one: at its default 50x28 it
+// was taller than the words beside it and the heaviest thing in a card made
+// of 10px labels.
+.studio-grid-switch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px $spacing-s;
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px solid $border-subtle;
+
+  .switch {
+    --switch-width: 30px;
+    --switch-height: 16px;
+    --switch-thumb: 10px;
+    --switch-inset: 2px;
+  }
+}
+
+.studio-grid-switch__label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: $text-primary;
+  font-size: $text-small;
+  cursor: pointer;
+}
+
+.studio-grid-switch__glyph {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: $text-faint;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+}
+
+.studio-grid-switch__hint {
+  grid-column: 1 / -1;
+  margin-top: 0;
 }
 
 // How well it keeps up, under the controls that test it: a hairline above,

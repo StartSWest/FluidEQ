@@ -47,6 +47,7 @@ it('keeps loading through the black opening frame, then reveals the first visibl
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
+      isGridShown={false}
     />,
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
@@ -76,6 +77,7 @@ it('starts loading again when the selected project changes', () => {
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
+      isGridShown={false}
     />,
   );
   act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
@@ -91,6 +93,7 @@ it('starts loading again when the selected project changes', () => {
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
+      isGridShown={false}
       identity="two"
     />,
   );
@@ -109,6 +112,7 @@ it('ends the loader and reports an actual compile error', () => {
       onExitFullscreen={props.onExitFullscreen}
       onToggleFullscreen={props.onToggleFullscreen}
       wave={props.wave}
+      isGridShown={false}
     />,
   );
   act(() => current().source.reportFailure('compile', 'Bad shader'));

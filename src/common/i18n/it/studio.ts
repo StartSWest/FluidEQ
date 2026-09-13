@@ -342,6 +342,9 @@ const studio = {
     'Chi usa la scena può cambiarle in Vista, sul grafico. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
   'studio.wave.fixed':
     'Questa scena riserva una propria fascia allo spettro, quindi queste due impostazioni non la cambiano.',
+  'studio.grid.label': 'Mostra la griglia del grafico',
+  'studio.grid.hint':
+    'Le sue linee di frequenza e di livello sopra la scena, con lo spazio che occupano sul grafico, per misurare dove cadono l’onda e ogni parte della scena.',
 
   'studio.cost.full': 'Gira in modo fluido',
   'studio.cost.scaled': 'Disegnata al {percent}% della dimensione',

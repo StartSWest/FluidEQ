@@ -2,6 +2,7 @@ import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import type { TStudioSize } from './StudioStage';
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
+import StudioGridSwitch from './StudioGridSwitch';
 import StudioWaveControls from './StudioWaveControls';
 import type { IStudioWave } from './studioWave';
 
@@ -88,6 +89,7 @@ export default function StudioTestCard({
         isFixedByScene={isWaveFixed}
         idle={idle}
       />
+      <StudioGridSwitch />
       {cost && (
         <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
           <span className="studio-cost__dot" aria-hidden="true" />

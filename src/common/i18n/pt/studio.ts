@@ -336,6 +336,9 @@ const studio = {
     'Quem usar a cena pode alterá-las em Visualização, no gráfico. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.wave.fixed':
     'Esta cena reserva a própria faixa para o espectro, então estes dois ajustes não a alteram.',
+  'studio.grid.label': 'Mostrar a grade do gráfico',
+  'studio.grid.hint':
+    'As linhas de frequência e de nível do gráfico sobre a cena, com o espaço que ocupam nele, para medir onde a onda e cada parte da cena ficam.',
 
   'studio.cost.full': 'Roda com fluidez',
   'studio.cost.scaled': 'Desenhado a {percent}% do tamanho',

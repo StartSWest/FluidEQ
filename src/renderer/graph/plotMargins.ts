@@ -37,6 +37,14 @@ export const CONTROLS_CLEARANCE = 6;
 export const MINIMUM_TOP_MARGIN = 30;
 
 /**
+ * The strip's height on one row, measured in the running window (2026-09-12,
+ * 40px, giving a 54px headroom). For a plot with no strip of its own that must
+ * sit where the graph's plot sits — the Studio's grid — since the graph's own
+ * figure is only ever measured while the graph is on screen.
+ */
+export const ONE_ROW_CONTROLS_HEIGHT = 40;
+
+/**
  * Air either side of a ruled plot, so a curve running off the edge of the
  * plot is not cut flush against the card. A gridless plot has none.
  */
