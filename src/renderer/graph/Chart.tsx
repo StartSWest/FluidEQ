@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MIN_GAIN } from 'common/constants';
 import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
@@ -63,8 +63,21 @@ import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import SceneCanvas from './SceneCanvas';
-import { LIVE_FULL_SCALE_DB } from './liveSpectrumFrames';
-import { getWaveTransform } from './liveTracePaint';
+import {
+  FREQUENCY_MAJOR_TICKS,
+  FREQUENCY_MINOR_TICKS,
+  frequencyLabelTicksFor,
+  GAIN_AXIS_TICKS,
+  GAIN_GRID_TICKS,
+  getAxisPadding,
+  levelTickFormat,
+  liveLevelScaleFor,
+  liveLevelTicksFor,
+  MINOR_RULE_INK,
+  sceneSpectrumRectFor,
+  UNITY_RULE_INK,
+  UNITY_TICKS,
+} from './graphPaper';
 
 export interface ChartDimensions {
   height: number;
@@ -81,93 +94,6 @@ export interface ChartDimensions {
  * is invisible and much taller.
  */
 const PRESENCE_GRAB_PX = 9;
-
-/**
- * The gutters the scales live in, inside the chart's own box.
- *
- * Fifty pixels down the left for the decibel labels and thirty along the bottom
- * for the frequency marks; the ten at the top is half a line of headroom, since
- * axis labels are centred on their tick and the topmost one (+20 dB) would
- * otherwise be cut in half by the viewport.
- *
- * Named and exported because they are the plot's real edges, and the level
- * meter has to stand on the same ones — it hangs off the card rather than off
- * the chart, so without this it would be a second copy of these four numbers
- * drifting quietly out of step with the first.
- */
-// A band's handle is a 12px circle when it is selected, drawn centred on
-// the curve, and the plot clips at its edge: a band at +20 dB with less
-// than that above it lost the top of its handle, and at -20 dB with no
-// gutter under it, the bottom. So the vertical inset is never less than the
-// handle's radius, in both layouts.
-// The halo is 12px across plus its stroke, so 14 keeps every pixel of it.
-const HANDLE_INSET = 14;
-
-const GRID_AXIS_PADDING: IMarginLike = {
-  left: 50,
-  top: HANDLE_INSET,
-  /**
-   * The level scale's gutter, and it was 0 while this plot had only one axis.
-   *
-   * Two quantities were sharing the left-hand numbers: the EQ response is dB
-   * of GAIN, while the live output area behind it is a LEVEL, and nothing on
-   * screen said so. A band of the trace sitting on the 0 dB line was being
-   * read as "0 dB" when it is really 20 dB below the programme's own peak.
-   * Wide enough for "-40 dB" at 0.75rem.
-   */
-  right: 48,
-  bottom: 30,
-};
-
-/**
- * With the grid off there is nothing in any of the gutters, so the wave runs
- * edge to edge instead.
- */
-// Gridless is edge to edge sideways; up and down it still keeps the handles
-// whole.
-const NO_AXIS_PADDING: IMarginLike = {
-  left: 0,
-  top: HANDLE_INSET,
-  right: 0,
-  bottom: HANDLE_INSET,
-};
-
-/**
- * The vertical inset exists for one thing: a band handle sitting at +20 or
- * -20 dB is centred on the edge of the plot, and half of it would be cut off.
- * With no handles drawn there is nothing to keep clear, and the inset is a
- * band of empty page along the bottom of a drawing that is meant to reach the
- * edge — most visible in the largest view, where the plot is the window.
- */
-export const getAxisPadding = (
-  isGridHidden: boolean,
-  hasHandles = true,
-): IMarginLike => {
-  if (!isGridHidden) {
-    return GRID_AXIS_PADDING;
-  }
-  return hasHandles
-    ? NO_AXIS_PADDING
-    : { left: 0, top: 0, right: 0, bottom: 0 };
-};
-
-/**
- * The right-hand scale: dB below the programme's own peak, not dBFS.
- *
- * The difference is the entire reason this is a second axis rather than more
- * numbers on the first. The live trace is peak-referenced — see
- * `writeFrequencyPoints`, which plots `level - trackPeak + LIVE_FULL_SCALE_DB`
- * — so the top gridline IS the loudest bin the track has reached and every
- * value under it is real dB beneath that peak. Referencing it that way is what
- * stops the Windows volume slider from flattening the shape; it is equally
- * what makes an absolute dBFS label on this plot untrue.
- *
- * Module scope, and not a `useMemo`, because `Axis` lists `tickFormat` in its
- * effect dependencies: a function rebuilt each render would restart the axis
- * transition on every frame the graph moves.
- */
-const levelTickFormat = (domainValue: NumberValue) =>
-  `${Number(domainValue) - LIVE_FULL_SCALE_DB} dB`;
 
 /**
  * Red at nothing earned, green at everything, blended in between.
@@ -987,97 +913,41 @@ const Chart = ({
     padding,
   });
 
-  const yAxisTickValues = useMemo(() => {
-    return [MIN_GAIN, -10, 0, 10, MAX_GAIN];
-  }, []);
   const scene = useSceneLook();
-  // The live trace is projected through yScaleGain and then transformed on the
-  // canvas. Apply that same transform to its right-hand dB axis so the labels
-  // continue to describe the visible trace when its height or position changes.
-  const liveLevelScale = useMemo(() => {
-    if (scene?.spectrumRange) {
-      // A scene may reserve sky for its spectrum. Move the ruler and the
-      // measured contour together, retaining the same decibel domain.
-      const [bottom, top] = scene.spectrumRange;
-      // A compact panel still needs its toolbar gutter. The authored sky
-      // range cannot put 0 dB underneath the controls or crush the ruler.
-      const topY = Math.max(
-        (1 - top) * height - margins.top,
-        Math.min(...yScaleGain.range().map(Number)),
-      );
-      const bottomY = Math.max(
-        (1 - bottom) * height - margins.top,
-        topY + height * 0.24,
-      );
-      const scale = yScaleGain.copy();
-      return scale.range(
-        scale
-          .domain()
-          .map(
-            (value) =>
-              bottomY +
-              ((Number(value) - MIN_GAIN) / (MAX_GAIN - MIN_GAIN)) *
-                (topY - bottomY),
-          ),
-      );
-    }
-    const primaryLiveCurve = liveCurves[liveCurves.length - 1];
-    if (!primaryLiveCurve) {
-      return yScaleGain;
-    }
+  const liveLevelScale = useMemo(
+    () =>
+      liveLevelScaleFor({
+        gain: yScaleGain,
+        spectrumRange: scene?.spectrumRange,
+        liveCurve: liveCurves[liveCurves.length - 1],
+        height,
+        marginTop: margins.top,
+      }),
+    [liveCurves, yScaleGain, scene?.spectrumRange, height, margins.top],
+  );
 
-    const range = yScaleGain.range().map(Number);
-    const plotTop = Math.min(...range);
-    const plotBottom = Math.max(...range);
-    const { translateY, scaleY } = getWaveTransform(
-      primaryLiveCurve,
-      plotBottom,
-      plotTop,
-    );
+  // On the margins' numbers, not the object: the chart is handed a new one
+  // every render, and a new band every render restarts the scene's frame loop.
+  const sceneSpectrumRect = useMemo(
+    () =>
+      sceneSpectrumRectFor({
+        frequency: xScaleFreq,
+        level: liveLevelScale,
+        margins: { left: margins.left, top: margins.top },
+        width,
+        height,
+      }),
+    [xScaleFreq, liveLevelScale, margins.left, margins.top, width, height],
+  );
 
-    return yScaleGain
-      .copy()
-      .range(range.map((value) => translateY + scaleY * value));
-  }, [liveCurves, yScaleGain, scene?.spectrumRange, height, margins.top]);
-
-  // The scene fills the panel, while the right-hand scale lives inside the
-  // SVG gutters. Share that scale's actual endpoints rather than estimating
-  // a second dB mapping from the full canvas height.
-  const sceneSpectrumRect = useMemo<
-    readonly [number, number, number, number]
-  >(() => {
-    const range = xScaleFreq.range().map(Number);
-    return [
-      (margins.left + range[0]) / Math.max(1, width),
-      (margins.left + range[1]) / Math.max(1, width),
-      1 -
-        (margins.top + Number(liveLevelScale(MIN_GAIN))) / Math.max(1, height),
-      1 -
-        (margins.top + Number(liveLevelScale(MAX_GAIN))) / Math.max(1, height),
-    ];
-  }, [xScaleFreq, liveLevelScale, margins.left, margins.top, width, height]);
-
-  // Near-flat waves cannot carry five legible labels. Thin the same scale
-  // rather than letting labels overlap; the remaining marks stay exact.
-  const liveLevelTickValues = useMemo(() => {
-    const span = Math.abs(
-      Number(liveLevelScale(MAX_GAIN)) - Number(liveLevelScale(MIN_GAIN)),
-    );
-
-    if (span < 22) {
-      return [MAX_GAIN];
-    }
-    if (span < 44) {
-      return [MIN_GAIN, MAX_GAIN];
-    }
-    if (span < 88) {
-      return [MIN_GAIN, 0, MAX_GAIN];
-    }
-    return yAxisTickValues;
-  }, [liveLevelScale, yAxisTickValues]);
-  const yGridTickValues = useMemo(() => {
-    return [MIN_GAIN, -10, 10, MAX_GAIN];
-  }, []);
+  const liveLevelTickValues = useMemo(
+    () => liveLevelTicksFor(liveLevelScale),
+    [liveLevelScale],
+  );
+  const frequencyLabelTicks = useMemo(
+    () => frequencyLabelTicksFor(xScaleFreq),
+    [xScaleFreq],
+  );
   const eqGradientStops: IChartGradientStop[] =
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
 
@@ -1315,41 +1185,31 @@ const Chart = ({
           <GridLine
             type="vertical"
             scale={xScaleFreq}
-            tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+            tickValues={FREQUENCY_MAJOR_TICKS}
             size={svgHeight - padding.bottom}
             transform={`translate(0, ${svgHeight - padding.bottom})`}
           />
           <GridLine
             type="vertical"
             scale={xScaleFreq}
-            tickValues={[
-              40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600,
-              1800, 4000, 6000, 8000, 12000, 14000, 16000, 18000,
-            ]}
+            tickValues={FREQUENCY_MINOR_TICKS}
             size={svgHeight - padding.bottom - 20}
             transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
-            // The minor lines, at half the ink of the decades: the EQ face's
-            // ±10 ticks against its ±20.
-            color="rgba(214, 233, 247, 0.06)"
+            color={MINOR_RULE_INK}
           />
           <GridLine
             type="horizontal"
             scale={yScaleGain}
-            tickValues={yGridTickValues}
+            tickValues={GAIN_GRID_TICKS}
             size={plotWidth}
             transform={`translate(${padding.left}, 0)`}
           />
           <GridLine
             type="horizontal"
             scale={yScaleGain}
-            tickValues={[0]}
+            tickValues={UNITY_TICKS}
             size={plotWidth}
-            // Unity gain is a reference, not a measurement, so it reads as a
-            // brighter grid line rather than as another coloured curve. It was
-            // pink, which put a fourth near-identical magenta on a chart that
-            // already had three. The same pale accent, at the same alpha, as
-            // the 0 dB rule under the EQ bands.
-            color="color-mix(in srgb, currentColor 30%, transparent)"
+            color={UNITY_RULE_INK}
             transform={`translate(${padding.left}, 0)`}
           />
         </g>
@@ -1417,7 +1277,7 @@ const Chart = ({
             type="left"
             scale={yScaleGain}
             transform={`translate(${padding.left}, 0)`}
-            tickValues={yAxisTickValues}
+            tickValues={GAIN_AXIS_TICKS}
             tickFormat={yTickFormat}
           />
           {/* Same transformed pixels as the live wave it describes. */}
@@ -1433,7 +1293,7 @@ const Chart = ({
             type="bottom"
             scale={xScaleFreq}
             transform={`translate(0, ${svgHeight - padding.bottom})`}
-            tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+            tickValues={frequencyLabelTicks}
             tickFormat={xTickFormat}
           />
         </g>

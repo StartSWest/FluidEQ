@@ -37,6 +37,15 @@ export const CONTROLS_CLEARANCE = 6;
 export const MINIMUM_TOP_MARGIN = 30;
 
 /**
+ * Air either side of a ruled plot, so a curve running off the edge of the
+ * plot is not cut flush against the card. A gridless plot has none.
+ */
+export const GRID_SIDE_MARGIN = 30;
+
+/** Under a ruled plot, where its frequency labels live. */
+export const GRID_BOTTOM_MARGIN = 10;
+
+/**
  * Headroom above the plot, in pixels.
  *
  * `controlsHeight` is measured from the live element rather than derived from

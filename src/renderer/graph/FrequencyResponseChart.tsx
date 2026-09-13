@@ -76,7 +76,11 @@ import {
   ILiveCurveData,
 } from './ChartController';
 import { getLineGainAtFrequency } from './utils';
-import { plotTopMargin } from './plotMargins';
+import {
+  GRID_BOTTOM_MARGIN,
+  GRID_SIDE_MARGIN,
+  plotTopMargin,
+} from './plotMargins';
 import { ColorEnum } from '../styles/color';
 import { useInternalClipping } from '../audio/internalClipping';
 import {
@@ -1623,11 +1627,11 @@ const FrequencyResponseChart = ({
       // Air at the sides, so a curve running off the edge of the plot is not
       // cut flush against the card. With the grid hidden there is nothing to
       // read at the edges and the wave is better for having them.
-      right: isGridHidden ? 0 : 30,
+      right: isGridHidden ? 0 : GRID_SIDE_MARGIN,
       // The frequency labels live down here, and with the grid hidden there is
       // nothing to leave room for.
-      bottom: isDisplayedGridHidden ? 0 : 10,
-      left: isGridHidden ? 0 : 30,
+      bottom: isDisplayedGridHidden ? 0 : GRID_BOTTOM_MARGIN,
+      left: isGridHidden ? 0 : GRID_SIDE_MARGIN,
     },
   };
 

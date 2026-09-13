@@ -192,6 +192,37 @@ interface IChartControllerProps {
   padding: IMarginLike;
 }
 
+/** The plot's frequency axis across a box `width` wide, inside its gutters. */
+export const frequencyScale = (width: number, left: number, right: number) =>
+  d3
+    .scaleLog()
+    .domain([GRAPH_START, GRAPH_END])
+    .range([left, width - right]);
+
+/**
+ * The plot's gain axis down a box `height` tall. Never narrower than ±20 dB,
+ * wider when a curve in `yMin`..`yMax` needs it.
+ */
+export const gainScale = (
+  height: number,
+  top: number,
+  bottom: number,
+  yMin: number = MIN_GAIN,
+  yMax: number = MAX_GAIN,
+) =>
+  d3
+    .scaleLinear()
+    .domain([Math.min(MIN_GAIN, yMin), Math.max(MAX_GAIN, yMax)])
+    .range([height - bottom, top]);
+
+// Module scope, so an axis handed one of these keeps the same function from
+// render to render and does not restart its transition every time.
+export const frequencyTickFormat = (domainValue: d3.NumberValue) =>
+  `${d3.format('~s')(domainValue)} Hz`;
+
+export const gainTickFormat = (domainValue: d3.NumberValue) =>
+  `${Number(domainValue) > 0 ? '+' : ''}${d3.format('.2')(domainValue)} dB`;
+
 const useController = ({
   scaleData,
   width,
@@ -199,11 +230,7 @@ const useController = ({
   padding,
 }: IChartControllerProps) => {
   const xScaleFreq = useMemo(
-    () =>
-      d3
-        .scaleLog()
-        .domain([GRAPH_START, GRAPH_END])
-        .range([padding.left, width - padding.right]),
+    () => frequencyScale(width, padding.left, padding.right),
     [padding.left, padding.right, width],
   );
 
@@ -220,26 +247,13 @@ const useController = ({
   );
 
   const yScaleGain = useMemo(
-    () =>
-      d3
-        .scaleLinear()
-        .domain([
-          Math.min(MIN_GAIN, yMin === undefined ? MIN_GAIN : yMin),
-          Math.max(MAX_GAIN, yMax === undefined ? MAX_GAIN : yMax),
-        ])
-        .range([height - padding.bottom, padding.top]),
+    () => gainScale(height, padding.top, padding.bottom, yMin, yMax),
     [height, padding.bottom, padding.top, yMin, yMax],
   );
 
-  const xTickFormat = (domainValue: d3.NumberValue) =>
-    `${d3.format('~s')(domainValue)} Hz`;
-
-  const yTickFormat = (domainValue: d3.NumberValue) =>
-    `${Number(domainValue) > 0 ? '+' : ''}${d3.format('.2')(domainValue)} dB`;
-
   return {
-    xTickFormat,
-    yTickFormat,
+    xTickFormat: frequencyTickFormat,
+    yTickFormat: gainTickFormat,
     xScaleFreq,
     yScaleGain,
   };
