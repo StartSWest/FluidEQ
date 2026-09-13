@@ -27,48 +27,37 @@ $motion-base: 220ms;
 $motion-slow: 300ms;
 
 /**
- * Unrolls downward from its own top edge, like a sheet of paper being let go.
+ * A menu arriving from the control it hangs off, and going back into it.
  *
- * A rotation about the X axis rather than a vertical scale. A scale squashes
- * the text along with the box, which reads as a stretch; a rotation swings the
- * whole sheet down about its hinge, so the type stays the right shape and only
- * the perspective changes. The overshoot at 70% is the paper settling.
+ * It comes a few pixels out of the control's side while it fades in and grows
+ * the last few percent from that same edge — the menu reads as unfolding from
+ * the button, and a list of forty rows stays a list the whole way, which is
+ * what the two effects it replaces did not manage. A paper fold (a rotation in
+ * perspective, with an overshoot) looked like a card flipping over on a tall
+ * menu, and `pop-in` — a springy scale from the middle — bulged a long list out
+ * from its centre, away from the button that opened it.
  *
- * Both properties here are compositor-only — the browser never re-lays-out a
- * frame of this.
+ * `--menu-travel` is which way is "out of the control": negative for a menu
+ * below it, positive for one above. `transform-origin` names the same edge,
+ * and both are set by whatever places the menu (`AnchoredMenu`, the dropdown).
+ * Leaving travels back the same way, shorter and quicker: what matters on the
+ * way out is that the space is free again.
+ *
+ * Opacity, `translate` and `scale` only, so the compositor draws every frame.
  */
-@keyframes fold-down {
+@keyframes menu-in {
   from {
     opacity: 0;
-    transform: perspective(900px) rotateX(-16deg);
-  }
-
-  70% {
-    opacity: 1;
-    transform: perspective(900px) rotateX(2.5deg);
-  }
-
-  to {
-    opacity: 1;
-    transform: perspective(900px) rotateX(0deg);
+    translate: 0 var(--menu-travel, -6px);
+    scale: 0.97;
   }
 }
 
-/** The same sheet, hinged at the bottom, for a menu that opens upward. */
-@keyframes fold-up {
-  from {
-    opacity: 0;
-    transform: perspective(900px) rotateX(16deg);
-  }
-
-  70% {
-    opacity: 1;
-    transform: perspective(900px) rotateX(-2.5deg);
-  }
-
+@keyframes menu-out {
   to {
-    opacity: 1;
-    transform: perspective(900px) rotateX(0deg);
+    opacity: 0;
+    translate: 0 calc(var(--menu-travel, -6px) * 0.5);
+    scale: 0.985;
   }
 }
 
@@ -231,22 +220,20 @@ $motion-slow: 300ms;
 }
 
 /**
- * A paper-fold entrance, hinged on the edge it grows out of.
+ * How a menu arrives, and — once it is marked `data-closing` by
+ * `useExitAnimation` — how it leaves. The exit holds its last frame because
+ * the element is still mounted for the instant between the animation ending
+ * and React removing it.
  *
- * Sets the origin as well as the animation, because the two are one decision:
- * a downward fold hinged at the bottom looks like the sheet is being pulled up
- * through the trigger rather than unrolled from it.
+ * Reduced motion switches both off; `useExitAnimation` sees that nothing is
+ * playing and removes a closing menu at once.
  */
-@mixin fold($direction: down, $duration: $motion-fast) {
-  @if $direction == up {
-    @include animate(fold-up, $duration);
-    transform-origin: bottom center;
-  } @else {
-    @include animate(fold-down, $duration);
-    transform-origin: top center;
+@mixin menu-motion {
+  transform-origin: var(--menu-origin, top center);
+  @include animate(menu-in, $motion-fast, $ease-out);
+
+  &[data-closing] {
+    @include animate(menu-out, 110ms, ease-in, 0ms, forwards);
+    pointer-events: none;
   }
-  // Without this the rotated sheet renders with no depth and the fold reads as
-  // a squash.
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
 }

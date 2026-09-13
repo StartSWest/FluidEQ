@@ -570,14 +570,14 @@ $transition-control:
   // failure the cap exists to prevent, moved one step along.
   overflow-y: auto;
   overscroll-behavior: contain;
-  // Every menu built on this surface arrives the same way.
+  // Every menu built on this surface arrives the same way, out of the control
+  // it hangs off, and leaves back into it (`menu-motion`).
   //
   // Emitted here rather than per component for the same reason the euphoria
-  // rule below is: a dropdown added later cannot forget to do it. Short and
-  // slightly springy — a menu is a response to a click that has already
-  // happened, so it should feel like it was waiting rather than like it is
-  // being fetched.
-  @include animate(pop-in, $motion-fast, $ease-spring);
+  // rule below is: a dropdown added later cannot forget to do it. Short — a
+  // menu is a response to a click that has already happened, so it should
+  // feel like it was waiting rather than like it is being fetched.
+  @include menu-motion;
   // Top rung of the ladder, same hue as everything under it. This ran from
   // #18293e to #141f31 — hue 218° to 225° — so an open menu was the bluest
   // thing in a window that is slate everywhere else.

@@ -40,6 +40,7 @@ import List, { renderOptionDisplay } from './List';
 import TextInput from './TextInput';
 import { useTranslation } from '../utils/I18nContext';
 import bottomInset from '../utils/shellInset';
+import useExitAnimation from '../utils/useExitAnimation';
 
 interface IOptionEntry {
   value: string;
@@ -172,6 +173,9 @@ const Dropdown = ({
   // click on an option would read as a click elsewhere and close the menu
   // before the option's own handler ran.
   const menuRef = useRef<HTMLDivElement>(null);
+  // Still drawn while the list leaves, so it goes back into the trigger
+  // instead of blinking out (`menu-out`, Dropdown.scss).
+  const exit = useExitAnimation(isOpen, 'menu-out', menuRef);
   const filterInputRef = useRef<HTMLInputElement>(null);
 
   const [searchString, setSearchString] = useState<string>('');
@@ -517,12 +521,16 @@ const Dropdown = ({
       // placed at a guess, so nothing is seen in the wrong position.
       { visibility: 'hidden' };
 
-  const menu = isOpen ? (
+  const menu = exit.present ? (
     <div
       ref={menuRef}
       className={`dropdown-menu-layer dropdown--${menuPlacement}${
         isFilterable ? ' dropdown--filterable' : ''
       }${menuClassName ? ` ${menuClassName}` : ''}`}
+      // Leaving: nothing in it can be reached while it plays.
+      data-closing={exit.closing ? '' : undefined}
+      inert={exit.closing}
+      onAnimationEnd={exit.onAnimationEnd}
       style={
         {
           '--dropdown-trigger-width': `${menuFrame?.width ?? 0}px`,

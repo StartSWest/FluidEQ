@@ -16,9 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useLayoutEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import bottomInset from '../utils/shellInset';
+import useExitAnimation from '../utils/useExitAnimation';
 
 /**
  * A menu that opens over everything, from a control that is inside a box which
@@ -89,6 +90,10 @@ const positionFrom = (
     ...(openUpward
       ? { bottom: window.innerHeight - rect.top + OFFSET }
       : { top: rect.bottom + OFFSET }),
+    // And it comes out of that same edge (`menu-motion` in _motion.scss): the
+    // corner nearest the trigger, since the menu is right-aligned to it.
+    '--menu-origin': openUpward ? 'bottom right' : 'top right',
+    '--menu-travel': openUpward ? '6px' : '-6px',
     maxHeight: Math.max(
       0,
       Math.min(heightLimit, openUpward ? roomAbove : roomBelow),
@@ -145,11 +150,14 @@ const AnchoredMenu = ({
   maxHeight?: number;
   children: ReactNode;
 }) => {
-  const [style, setStyle] = useState<React.CSSProperties>();
+  const [style, setStyle] = useState<CSSProperties>();
   // The menu element itself, as state rather than a ref, because placing it
   // depends on its measured height and a ref would not re-run the effect when
   // it arrives.
   const [menu, setMenu] = useState<HTMLDivElement | null>(null);
+  // Still drawn while it leaves, so it goes back into its control instead of
+  // blinking out.
+  const exit = useExitAnimation(isOpen, 'menu-out', menu);
 
   useLayoutEffect(() => {
     if (!isOpen || !anchor) {
@@ -182,7 +190,7 @@ const AnchoredMenu = ({
     };
   }, [anchor, isOpen, menu, maxHeight]);
 
-  if (!isOpen || !style || typeof document === 'undefined') {
+  if (!exit.present || !style || typeof document === 'undefined') {
     return null;
   }
 
@@ -194,6 +202,11 @@ const AnchoredMenu = ({
       role={role}
       aria-label={ariaLabel}
       data-anchored-menu
+      // Leaving: out of reach and out of the accessibility tree while it
+      // plays, so nothing can be pressed on a menu that is already gone.
+      data-closing={exit.closing ? '' : undefined}
+      inert={exit.closing}
+      onAnimationEnd={exit.onAnimationEnd}
     >
       {children}
     </div>,

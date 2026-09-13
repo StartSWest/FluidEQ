@@ -94,16 +94,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
 }
 
-// Unfolds from the trigger it is attached to. The transform origin is the edge
-// it grows out of, so an upward menu does not appear to grow downward and then
-// jump.
+// Comes out of the trigger it is attached to (`menu-motion`, from the list's
+// own surface). The origin is the edge it grows out of, so an upward menu does
+// not appear to grow downward and then jump.
 //
 // Every offset is inline, from the measurement in Dropdown.tsx: `position:
 // fixed` resolves percentages against the window, so the old
 // `calc(100% + 5px)` would now mean the whole viewport rather than the
 // trigger's height.
 .dropdown-menu-layer .list-wrapper {
-  @include fold(down);
+  --menu-origin: top center;
+  --menu-travel: -6px;
   position: fixed;
   z-index: 1001;
   width: var(--dropdown-trigger-width);
@@ -255,5 +256,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Direction only. Where it goes is inline; this is which edge it unfolds from.
 
 .dropdown-menu-layer.dropdown--up .list-wrapper {
-  @include fold(up);
+  --menu-origin: bottom center;
+  --menu-travel: 6px;
+}
+
+// Beside the trigger rather than under or over it: out of that side, with no
+// vertical travel.
+.dropdown-menu-layer.dropdown--left .list-wrapper {
+  --menu-origin: center right;
+  --menu-travel: 0px;
+}
+
+.dropdown-menu-layer.dropdown--right .list-wrapper {
+  --menu-origin: center left;
+  --menu-travel: 0px;
+}
+
+// Leaving: the layer is what `useExitAnimation` marks, and the surface inside
+// it is what plays. Said here because the layer is not a surface itself.
+.dropdown-menu-layer[data-closing] .list-wrapper {
+  @include animate(menu-out, 110ms, ease-in, 0ms, forwards);
+  pointer-events: none;
 }

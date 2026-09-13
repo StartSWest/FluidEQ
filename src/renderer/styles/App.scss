@@ -1486,13 +1486,12 @@ select option {
   }
 }
 
-// Unfolds from under the button that opened it, so it reads as belonging to
-// that button rather than as a panel that appeared over the titlebar.
+// Comes out from under the button that opened it, so it reads as belonging
+// to that button rather than as a panel that appeared over the titlebar.
 .workspace-header__menu {
   @include menu-surface;
-  @include fold(down);
-  // Hinged at the corner it hangs from, not the centre.
-  transform-origin: top right;
+  // Out of the corner it hangs from, not the centre.
+  --menu-origin: top right;
   position: absolute;
   z-index: 120;
   top: calc(100% + 10px);
