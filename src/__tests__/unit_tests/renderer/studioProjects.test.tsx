@@ -234,11 +234,51 @@ describe('the publish dialog', () => {
     const go = screen.getByRole('button', { name: 'studio.publish.go' });
     expect(go).toBeDisabled();
     await userEvent.click(
-      screen.getByRole('radio', { name: 'plus.category.space' }),
+      screen.getByRole('button', { name: 'plus.category.space' }),
     );
     expect(go).toBeEnabled();
     await userEvent.click(go);
-    expect(onPublish).toHaveBeenCalledWith('space');
+    expect(onPublish).toHaveBeenCalledWith('space', undefined);
+  });
+
+  it('files a scene under up to two categories, the first staying first', async () => {
+    const onPublish = jest.fn();
+    render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft()}
+        running={false}
+        onPublish={onPublish}
+        onCancel={jest.fn()}
+      />,
+    );
+    // The order number is hidden from the name: a screen reader hears the
+    // chosen state, and the category, not a stray digit.
+    const chip = (name: string) =>
+      screen.getByRole('button', { name: `plus.category.${name}` });
+    await userEvent.click(chip('cities'));
+    await userEvent.click(chip('water'));
+    expect(chip('cities')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('water')).toHaveAttribute('aria-pressed', 'true');
+    // A third takes the second's place.
+    await userEvent.click(chip('space'));
+    expect(chip('water')).toHaveAttribute('aria-pressed', 'false');
+    expect(chip('space')).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.go' }),
+    );
+    expect(onPublish).toHaveBeenLastCalledWith('cities', 'space');
+    // Unpicking the first moves the second up.
+    await userEvent.click(chip('cities'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.go' }),
+    );
+    expect(onPublish).toHaveBeenLastCalledWith('space', undefined);
   });
 
   it('selects completed covers and identifies captures still being drawn', async () => {
@@ -300,6 +340,7 @@ describe('the publish dialog', () => {
             sceneId: 'neon-city',
             version: 2,
             category: 'water',
+            category2: 'cities',
             names: { en: 'Neon City' },
             swatch: ['#050a1a', '#00e5cf'],
             likes: 1,
@@ -320,8 +361,11 @@ describe('the publish dialog', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('radio', { name: 'plus.category.water' }),
-    ).toHaveAttribute('aria-checked', 'true');
+      screen.getByRole('button', { name: 'plus.category.water' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('button', { name: 'plus.category.cities' }),
+    ).toHaveAttribute('aria-pressed', 'true');
     expect(
       screen.getByRole('button', { name: 'studio.publish.agree' }),
     ).toBeEnabled();

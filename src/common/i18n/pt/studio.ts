@@ -108,7 +108,8 @@ const studio = {
     'A cena é pesada demais para tocar aqui. As capas abaixo continuam valendo.',
   'studio.publish.stageUnavailable':
     'A cena não pode tocar aqui agora. As capas abaixo continuam valendo.',
-  'studio.publish.category': 'Categoria',
+  'studio.publish.category': 'Categorias',
+  'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
   'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
   'studio.publish.point1':
     'Qualquer pessoa conectada poderá vê-la em Visualizadores. Membros Plus poderão reproduzi-la, adicioná-la aos visuais e curtir.',

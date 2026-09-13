@@ -326,7 +326,7 @@ export default function useStudioPublish(
   );
 
   const publish = useCallback(
-    (category: TPlusCategory) => {
+    (category: TPlusCategory, category2?: TPlusCategory) => {
       const mine = currentDraft.current;
       const cover = mine?.shots.find((shot) => shot.id === mine.chosen);
       if (
@@ -356,7 +356,12 @@ export default function useStudioPublish(
         setPublishing(false);
         setNotice({ ok: false, key });
       };
-      publishStudioScene(PLUS_TERMS_VERSION, category, cover.picture.bytes)
+      publishStudioScene(
+        PLUS_TERMS_VERSION,
+        category,
+        cover.picture.bytes,
+        category2,
+      )
         .then((outcome) => {
           // Even a publication whose dialog has gone away changed the gallery.
           if (outcome.ok) {

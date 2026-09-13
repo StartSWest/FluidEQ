@@ -106,7 +106,8 @@ const studio = {
     'यह सीन यहाँ चलने के लिए बहुत भारी है। नीचे के कवर अब भी काम करते हैं।',
   'studio.publish.stageUnavailable':
     'यह सीन अभी यहाँ नहीं चल सकता। नीचे के कवर अब भी काम करते हैं।',
-  'studio.publish.category': 'श्रेणी',
+  'studio.publish.category': 'श्रेणियाँ',
+  'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.point1':
     'साइन-इन किया हर व्यक्ति इसे विज़ुअलाइज़र में देख सकेगा। Plus सदस्य इसे चला, अपने रूपों में जोड़ और पसंद कर सकेंगे।',

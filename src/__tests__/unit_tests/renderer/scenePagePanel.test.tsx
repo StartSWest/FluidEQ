@@ -212,6 +212,19 @@ describe('the panel beside the stage', () => {
       panel.getByRole('button', { name: 'plus.scene.report' }),
     ).toBeEnabled();
   });
+
+  it('names both of a scene’s categories over its name', async () => {
+    const both: IGalleryScene = { ...member, category2: 'water' };
+    bridge.listGallery.mockResolvedValue({
+      ok: true,
+      scenes: [official, both],
+      more: false,
+    });
+    const { panel } = await openScene(both);
+    expect(
+      panel.getByText('plus.category.cities · plus.category.water'),
+    ).toHaveClass('eyebrow');
+  });
 });
 
 describe('the Official tag on cards', () => {

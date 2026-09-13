@@ -165,8 +165,16 @@ export const publishStudioScene = async (
   termsVersion: number,
   category: TPlusCategory,
   picture: Uint8Array,
+  category2?: TPlusCategory,
 ): Promise<TPublishOutcome> =>
-  (await bridge()?.publishStudioScene?.(termsVersion, category, picture)) ?? {
+  // The second category only when there is one, so a publish under one
+  // category is the same call it always was.
+  (await bridge()?.publishStudioScene?.(
+    termsVersion,
+    category,
+    picture,
+    ...(category2 ? [category2] : []),
+  )) ?? {
     ok: false,
     reason: 'offline',
   };

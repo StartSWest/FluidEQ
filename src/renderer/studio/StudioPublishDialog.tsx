@@ -26,7 +26,8 @@ interface IStudioPublishDialogProps {
   tuning: ISceneTuning;
   onCapture: (frames: ISceneFrame[]) => void;
   onChoose: (id: number) => void;
-  onPublish: (category: TPlusCategory) => void;
+  /** The first category, the one a card names, and an optional second. */
+  onPublish: (category: TPlusCategory, category2?: TPlusCategory) => void;
   onCancel: () => void;
 }
 
@@ -36,10 +37,13 @@ interface IStudioPublishDialogProps {
  * capture joins it to choose between — then a category from the fixed list
  * and the three sentences that matter about what publishing means.
  *
- * The category is chosen, never typed: nothing reaches the gallery that a
+ * The categories are chosen, never typed: nothing reaches the gallery that a
  * member wrote except the scene's own name, which the app already checked.
- * Publish is disabled until a category is picked; an update starts on the one
- * the scene already has.
+ * Up to two, because one made a maker choose between what a scene shows and
+ * what it is — a skyline on a lake is Cities and Water. The first picked is
+ * the one its card names, and the chips number themselves once there are two.
+ * A third pick takes the second's place, so the first stays put. Publish is
+ * disabled until one is picked; an update starts on the ones the scene has.
  */
 export default function StudioPublishDialog({
   identity,
@@ -56,9 +60,19 @@ export default function StudioPublishDialog({
   const { t } = useTranslation();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
-  const [category, setCategory] = useState<TPlusCategory | undefined>(
-    draft.published?.category,
+  const [categories, setCategories] = useState<TPlusCategory[]>(() =>
+    [draft.published?.category, draft.published?.category2].flatMap((entry) =>
+      entry ? [entry] : [],
+    ),
   );
+  const [category, category2] = categories;
+  const pick = (entry: TPlusCategory) =>
+    setCategories((current) => {
+      if (current.includes(entry)) {
+        return current.filter((chosen) => chosen !== entry);
+      }
+      return current.length < 2 ? [...current, entry] : [current[0], entry];
+    });
   const cancel = useCallback(() => onCancel(), [onCancel]);
   useModalKeys(surfaceRef, firstRef, { busy: running, onCancel: cancel });
 
@@ -127,9 +141,12 @@ export default function StudioPublishDialog({
             >
               {t('studio.publish.category')}
             </span>
+            <span className="studio-publish__category-hint">
+              {t('studio.publish.categoryHint')}
+            </span>
             <div
               className="gallery-chips"
-              role="radiogroup"
+              role="group"
               aria-labelledby="studio-publish-category"
             >
               {PLUS_CATEGORIES.map((entry, index) => (
@@ -137,13 +154,17 @@ export default function StudioPublishDialog({
                   key={entry}
                   ref={index === 0 ? firstRef : undefined}
                   type="button"
-                  role="radio"
-                  aria-checked={category === entry}
+                  aria-pressed={categories.includes(entry)}
                   className="gallery-chip"
                   disabled={running}
-                  onClick={() => setCategory(entry)}
+                  onClick={() => pick(entry)}
                 >
                   {t(categoryKey(entry))}
+                  {categories.length === 2 && categories.includes(entry) && (
+                    <span className="studio-publish__order" aria-hidden="true">
+                      {categories.indexOf(entry) + 1}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -190,7 +211,7 @@ export default function StudioPublishDialog({
             title={category ? undefined : t('studio.publish.pickCategory')}
             onClick={() => {
               if (category && !running) {
-                onPublish(category);
+                onPublish(category, category2);
               }
             }}
           >

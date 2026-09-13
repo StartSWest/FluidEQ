@@ -110,7 +110,8 @@ const studio = {
     'La scène est trop lourde pour jouer ici. Les couvertures ci-dessous restent valables.',
   'studio.publish.stageUnavailable':
     'La scène ne peut pas jouer ici pour l’instant. Les couvertures ci-dessous restent valables.',
-  'studio.publish.category': 'Catégorie',
+  'studio.publish.category': 'Catégories',
+  'studio.publish.categoryHint': 'Jusqu’à deux. Sa carte affiche la première.',
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.point1':
     'Toute personne connectée la verra dans Visualiseurs. Les membres Plus pourront la lancer, l’ajouter à leurs styles et l’aimer.',

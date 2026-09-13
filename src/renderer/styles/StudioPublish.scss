@@ -109,6 +109,32 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
 }
 
+// Under the label, before the chips: that there may be two, and which one the
+// card shows.
+.studio-publish__category-hint {
+  margin-top: -4px;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.4;
+}
+
+// Which of two chosen chips is first: a small number in the chip's own ink,
+// so the order reads without a second row of controls.
+.studio-publish__order {
+  display: inline-grid;
+  place-items: center;
+  min-width: 15px;
+  height: 15px;
+  margin-inline-start: 6px;
+  padding: 0 4px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 42%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .studio-publish__points {
   grid-area: points;
 }

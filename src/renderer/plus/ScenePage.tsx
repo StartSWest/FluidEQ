@@ -16,7 +16,7 @@ import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import { addGalleryScene, useAddingScenes } from './galleryActions';
 import {
-  categoryKey,
+  categoriesLabel,
   OfficialBadge,
   SceneHeart,
   ScenePicture,
@@ -356,7 +356,7 @@ export default function ScenePage({
       <aside className="gallery-scene__info">
         <header className="gallery-scene__head">
           <span className="eyebrow gallery-scene__kicker">
-            {t(categoryKey(scene.category))}
+            {categoriesLabel(t, scene)}
           </span>
           <h3 className="gallery-scene__name">{name}</h3>
           <div className="gallery-scene__byline">

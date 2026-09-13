@@ -110,7 +110,8 @@ const studio = {
     'La escena es demasiado pesada para reproducirse aquí. Las portadas de abajo siguen sirviendo.',
   'studio.publish.stageUnavailable':
     'La escena no se puede reproducir aquí ahora. Las portadas de abajo siguen sirviendo.',
-  'studio.publish.category': 'Categoría',
+  'studio.publish.category': 'Categorías',
+  'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
   'studio.publish.point1':
     'Cualquiera con sesión iniciada la verá en Visualizadores. Los miembros Plus podrán reproducirla, añadirla a sus estilos y darle me gusta.',

@@ -11,6 +11,18 @@ export const categoryKey = (category: TPlusCategory): TranslationKey =>
   `plus.category.${category}` as TranslationKey;
 
 /**
+ * Every category a scene is filed under, named, first first: "Cities · Water".
+ * For the places with room to say both; a card's tag names the first alone.
+ */
+export const categoriesLabel = (
+  t: (key: TranslationKey) => string,
+  scene: { category: TPlusCategory; category2?: TPlusCategory },
+) =>
+  [scene.category, scene.category2]
+    .flatMap((category) => (category ? [t(categoryKey(category))] : []))
+    .join(' · ');
+
+/**
  * Whether this member has Plus. Anybody signed in browses the gallery; what
  * downloads a scene — playing it on its page, Add — and liking are Plus.
  */

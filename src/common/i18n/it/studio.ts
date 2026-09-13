@@ -110,7 +110,8 @@ const studio = {
     'La scena è troppo pesante per essere riprodotta qui. Le copertine qui sotto restano valide.',
   'studio.publish.stageUnavailable':
     'La scena non può essere riprodotta qui adesso. Le copertine qui sotto restano valide.',
-  'studio.publish.category': 'Categoria',
+  'studio.publish.category': 'Categorie',
+  'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.point1':
     'Chiunque abbia effettuato l’accesso la vedrà in Visualizzatori. I membri Plus potranno riprodurla, aggiungerla ai loro aspetti e metterle mi piace.',

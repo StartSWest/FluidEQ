@@ -75,6 +75,12 @@ export interface IGalleryScene {
   authorHandle: string | null;
   version: number;
   category: TPlusCategory;
+  /**
+   * A second category the scene is filed under, never the first again
+   * (fluideq-premium 0018). The gallery finds it under either; a card names
+   * the first.
+   */
+  category2?: TPlusCategory;
   names: TLocalizedName;
   swatch: string[];
   hasPhoto: boolean;
@@ -93,6 +99,7 @@ export interface IPublishedScene {
   sceneId: string;
   version: number;
   category: TPlusCategory;
+  category2?: TPlusCategory;
   names: TLocalizedName;
   swatch: string[];
   likes: number;
@@ -154,6 +161,17 @@ const readSwatch = (value: unknown): string[] | undefined =>
     ? value.map((colour: string) => colour.toLowerCase())
     : undefined;
 
+/**
+ * The second category a row carries, or nothing: a server older than 0018
+ * sends none, and one that is not a category or repeats the first is not a
+ * second category, so the row keeps its first alone rather than being lost.
+ */
+const readSecondCategory = (
+  value: unknown,
+  first: TPlusCategory,
+): { category2?: TPlusCategory } =>
+  isPlusCategory(value) && value !== first ? { category2: value } : {};
+
 export const readDate = (value: unknown): string | undefined =>
   typeof value === 'string' && !Number.isNaN(Date.parse(value))
     ? value
@@ -210,6 +228,7 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
     authorHandle: official ? 'fluideq' : authorHandle,
     version,
     category: value.category,
+    ...readSecondCategory(value.category2, value.category),
     names,
     swatch,
     hasPhoto: value.has_photo === true,
@@ -254,6 +273,7 @@ export const parsePublishedRow = (
     sceneId,
     version,
     category: value.category,
+    ...readSecondCategory(value.category2, value.category),
     names,
     swatch,
     likes,

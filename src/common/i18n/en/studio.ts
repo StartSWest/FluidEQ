@@ -117,7 +117,8 @@ const studio = {
     'The scene is too heavy to play here. The covers below still work.',
   'studio.publish.stageUnavailable':
     'The scene cannot play here right now. The covers below still work.',
-  'studio.publish.category': 'Category',
+  'studio.publish.category': 'Categories',
+  'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.pickCategory': 'Choose a category first',
   'studio.publish.point1':
     'Anyone signed in can see it in Visualizers. Plus members can play it, add it to their looks and like it.',

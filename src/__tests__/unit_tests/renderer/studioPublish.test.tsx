@@ -236,6 +236,23 @@ it('publishes the selected bytes once and refreshes the gallery only after succe
   expect(result.current.notice?.key).toBe('studio.publish.done');
 });
 
+it('publishes under both categories the member chose', async () => {
+  bridge.publishStudioScene.mockResolvedValue({ ok: true });
+  const { result } = setup();
+  await act(async () => {
+    result.current.begin();
+  });
+  await act(async () => {
+    result.current.publish('cities', 'water');
+  });
+  expect(bridge.publishStudioScene).toHaveBeenCalledWith(
+    expect.any(Number),
+    'cities',
+    new Uint8Array([1]),
+    'water',
+  );
+});
+
 it.each(['project', 'build', 'invalid build', 'entitlement'])(
   'discards preparation after a change of %s',
   async (change) => {

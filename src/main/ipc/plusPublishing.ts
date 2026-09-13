@@ -117,6 +117,7 @@ export const registerPlusPublishingIpc = ({
       termsVersion: unknown,
       category: unknown,
       rawPicture: unknown,
+      category2?: unknown,
     ): Promise<TPublishOutcome> => {
       if (!access.entitled()) {
         return { ok: false, reason: 'not-entitled' };
@@ -129,7 +130,10 @@ export const registerPlusPublishingIpc = ({
         !folder ||
         typeof termsVersion !== 'number' ||
         !Number.isInteger(termsVersion) ||
-        !isPlusCategory(category)
+        !isPlusCategory(category) ||
+        // Optional, and never the first again — as the server checks too.
+        (category2 !== undefined &&
+          (!isPlusCategory(category2) || category2 === category))
       ) {
         return { ok: false, reason: 'no-build' };
       }
@@ -161,6 +165,7 @@ export const registerPlusPublishingIpc = ({
       const published = await publishScene(auth, {
         termsVersion,
         category,
+        ...(category2 !== undefined ? { category2 } : {}),
         pack: build.pack,
         picture: Buffer.from(picture).toString('base64'),
       });

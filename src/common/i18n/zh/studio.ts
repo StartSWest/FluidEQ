@@ -101,6 +101,7 @@ const studio = {
   'studio.publish.stageUnavailable':
     '这个场景现在无法在这里播放。下面的封面仍然可用。',
   'studio.publish.category': '分类',
+  'studio.publish.categoryHint': '最多两个。卡片上显示第一个。',
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.point1':
     '所有已登录的人都能在“可视化”里看到它。Plus 会员可以播放它、把它添加到外观并点赞。',

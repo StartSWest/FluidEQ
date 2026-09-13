@@ -994,12 +994,14 @@ const publishStudioScene = (
   termsVersion: number,
   category: TPlusCategory,
   picture: Uint8Array,
+  category2?: TPlusCategory,
 ) =>
   ipcRenderer.invoke(
     'studio-publish',
     termsVersion,
     category,
     picture,
+    category2,
   ) as Promise<TPublishOutcome>;
 
 // The Plus gallery. Scenes are named by author and scene id, never by a path.

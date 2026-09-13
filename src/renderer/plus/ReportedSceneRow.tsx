@@ -4,7 +4,7 @@ import type { IReportedScene, TModerationAction } from 'common/plusModeration';
 import { resolveSceneName } from 'common/scenePacks';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { categoryKey, ScenePicture } from './GalleryParts';
+import { categoriesLabel, ScenePicture } from './GalleryParts';
 
 export const REASON_LABELS: Record<TReportReason, TranslationKey> = {
   rights: 'plus.moderation.reason.rights',
@@ -65,8 +65,7 @@ export default function ReportedSceneRow({
       <span className="gallery-row__text">
         <span className="gallery-row__name">{name}</span>
         <span className="gallery-row__meta">
-          {t('plus.card.by', { name: maker })} ·{' '}
-          {t(categoryKey(scene.category))} ·{' '}
+          {t('plus.card.by', { name: maker })} · {categoriesLabel(t, scene)} ·{' '}
           {t('plus.mine.version', { version: String(scene.version) })}
         </span>
         {reasons.length > 0 && (

@@ -235,6 +235,28 @@ describe('publishing', () => {
     });
   });
 
+  it('sends a second category only when the member chose one', async () => {
+    const fetchImpl = answering(fakeResponse(200, {}));
+    await publishScene(authWith(fetchImpl), {
+      termsVersion: 4,
+      category: 'cities',
+      category2: 'water',
+      pack: memberPack(),
+      picture: 'UklGRg==',
+    });
+    await publishScene(authWith(fetchImpl), {
+      termsVersion: 4,
+      category: 'cities',
+      pack: memberPack(),
+      picture: 'UklGRg==',
+    });
+    const bodies = (
+      fetchImpl.mock.calls as unknown as Array<[string, RequestInit]>
+    ).map(([, init]) => JSON.parse(String(init.body)));
+    expect(bodies[0]).toMatchObject({ category: 'cities', category2: 'water' });
+    expect(bodies[1]).not.toHaveProperty('category2');
+  });
+
   it('takes a scene down by its id alone', async () => {
     const fetchImpl = answering(fakeResponse(200, {}));
     expect(await unpublishScene(authWith(fetchImpl), 'neon-city')).toEqual({

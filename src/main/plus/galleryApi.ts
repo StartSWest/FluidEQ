@@ -320,11 +320,14 @@ export const publishScene = async (
   {
     termsVersion,
     category,
+    category2,
     pack,
     picture,
   }: {
     termsVersion: number;
     category: TPlusCategory;
+    /** A second category, never the first (fluideq-premium 0018). */
+    category2?: TPlusCategory;
     pack: IScenePack;
     /** The WebP, base64. */
     picture: string;
@@ -334,6 +337,7 @@ export const publishScene = async (
     action: 'publish',
     termsVersion,
     category,
+    ...(category2 ? { category2 } : {}),
     pack,
     picture,
   });

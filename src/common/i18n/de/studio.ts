@@ -110,7 +110,8 @@ const studio = {
     'Die Szene ist zu aufwendig, um hier zu laufen. Die Titelbilder darunter gelten weiter.',
   'studio.publish.stageUnavailable':
     'Die Szene kann hier gerade nicht laufen. Die Titelbilder darunter gelten weiter.',
-  'studio.publish.category': 'Kategorie',
+  'studio.publish.category': 'Kategorien',
+  'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
   'studio.publish.point1':
     'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und liken.',

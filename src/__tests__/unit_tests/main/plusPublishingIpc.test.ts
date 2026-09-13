@@ -255,6 +255,25 @@ describe('publishing from the Studio', () => {
     expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
   });
 
+  it('publishes under a second category, and sends nothing with one that repeats the first or is not on the list', async () => {
+    setup();
+    expect(
+      await invoke('studio-publish', 4, 'cities', webpBytes(), 'water'),
+    ).toEqual({ ok: true });
+    expect(calls[0]?.body).toMatchObject({
+      category: 'cities',
+      category2: 'water',
+    });
+    calls = [];
+    const refused = await Promise.all(
+      ['cities', 'weapons', 7].map((second) =>
+        invoke('studio-publish', 4, 'cities', webpBytes(), second),
+      ),
+    );
+    expect(refused).toEqual(Array(3).fill({ ok: false, reason: 'no-build' }));
+    expect(calls).toEqual([]);
+  });
+
   it('sends nothing without Plus, without a project, or with a category not on the list', async () => {
     setup();
     entitled = false;

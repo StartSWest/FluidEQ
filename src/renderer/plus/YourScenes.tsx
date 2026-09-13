@@ -9,7 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { setGalleryNotice } from './galleryActions';
 import GalleryListNotice from './GalleryListNotice';
 import { markGalleryStale } from './galleryStore';
-import { categoryKey, ScenePicture } from './GalleryParts';
+import { categoriesLabel, ScenePicture } from './GalleryParts';
 import { openPlusPlace } from './plusNavigation';
 
 type TMineFailure = Extract<TMineOutcome, { ok: false }>['reason'];
@@ -174,7 +174,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
                 <span className="gallery-row__text">
                   <span className="gallery-row__name">{name}</span>
                   <span className="gallery-row__meta">
-                    {t(categoryKey(scene.category))} ·{' '}
+                    {categoriesLabel(t, scene)} ·{' '}
                     {t('plus.mine.version', { version: String(scene.version) })}{' '}
                     ·{' '}
                     {scene.updatedAt === scene.publishedAt

@@ -109,6 +109,7 @@ const studio = {
   'studio.publish.stageUnavailable':
     '今はここでシーンを再生できません。下のカバーはそのまま使えます。',
   'studio.publish.category': 'カテゴリ',
+  'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.point1':
     'サインインしている人は誰でもビジュアライザーで見られます。Plus メンバーは再生、マイ表示への追加、いいねができます。',
