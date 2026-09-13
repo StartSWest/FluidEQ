@@ -119,6 +119,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- rail
 
+// THE TAB ARRIVES IN READING ORDER, the way the EQ and DSP pages do: the rail
+// and its places, then the open place's head, then what the place shows.
+// Everything on the tab used to stand complete in its first frame except the
+// gallery's cards, so opening Plus read as the window jumping to a finished
+// page with one late card on it.
+//
+// The rail is mounted with the tab and outlives every change of place, so its
+// entrance plays when the tab opens and never on a rail click. Its own surface
+// only fades — the places inside it do the travelling, and a surface that
+// rose as well would move them twice as far. `fade-to-rest`, so a rail the
+// window dims arrives dimmed rather than flashing to full.
 .community__rail {
   display: flex;
   flex-direction: column;
@@ -130,6 +141,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: $block-lift;
   overflow-y: auto;
   @include slim-scrollbar;
+  @include animate(fade-to-rest);
 
   // Narrow: one wrapping strip of the places, the head on its own line
   // above them.
@@ -142,6 +154,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .community__rail-head {
+  @include animate(rise-in);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -167,7 +180,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // A row of the rail: its picture in a small tile, its name, and what it is
 // for in a line underneath. The tile is what lights when the row is the one
 // open.
+//
+// One beat each, after the rail's head. Eight covers Plus's three places and
+// the forum's boards, which share this rail; a board past the eighth lands
+// with the eighth rather than ahead of the ones above it.
 .community__channel {
+  @include stagger-in($count: 8, $step: 30ms, $offset: 40ms);
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
@@ -280,7 +298,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // under it — until they have one — the way to choose the name the board
 // ranks. The card wears the member's colour as a wash from the left, the
 // same arrangement as the band at the top of the Account panel it opens.
+// After the last place, so the member arrives beneath where they can go.
+//
+// A fade, not the rise the places above it make. This card sits on the rail's
+// floor (`margin-top: auto`), and the rail scrolls: eight pixels of rise put
+// it below the floor, and the rail flashed a scrollbar down its edge for the
+// length of the entrance.
 .community__foot {
+  @include animate(fade-in, $motion-base, $ease-out, 160ms);
   display: grid;
   gap: 2px;
   margin-top: auto;

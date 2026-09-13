@@ -22,7 +22,11 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
+// Each place draws its own head, so this plays when the tab opens and again
+// when another place is chosen — the head is the first thing that says the
+// click landed.
 .community__head {
+  @include animate(rise-in);
   display: flex;
   align-items: center;
   gap: 10px;

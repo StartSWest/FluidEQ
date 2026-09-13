@@ -112,7 +112,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- toolbar
 
+// Under the place's head, which arrives first (`Community.scss`): the search
+// and sorts, then the categories, then the cards.
 .gallery-toolbar {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -176,6 +179,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Categories, and the category a scene is published under: pills, because
 // they are chosen from a fixed list and never typed.
+// On the gallery's front page only: the Studio's publish dialog uses the same
+// pills, and a row rising inside a dialog that is itself arriving would move
+// twice.
+.gallery-gallery > .gallery-chips {
+  @include animate(rise-in, $motion-base, $ease-out, 80ms);
+}
+
 .gallery-chips {
   display: flex;
   flex-wrap: wrap;
@@ -220,15 +230,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // As many columns as fit at 196px or more. The cards size the rows; a lone
 // card in the last row keeps its width instead of stretching across it.
+//
+// No dimming while a list refreshes. Opening the tab refreshes every list the
+// window kept, and the grid used to drop to 72% for the length of that answer
+// and come back — a pulse through a page that had just finished arriving,
+// every time Plus was opened, over results that almost never change. The
+// list on screen is the one the member was last shown; it stays as it is, and
+// the answer replaces it when it lands (`galleryStore`).
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
   gap: $spacing-s;
-  transition: opacity $motion-fast $ease-out;
-
-  &.is-refreshing {
-    opacity: 0.72;
-  }
 }
 
 .gallery-grid--row {
@@ -239,9 +251,30 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The cards sweep in after the toolbar and the categories, in reading order,
+// the way the EQ's bands do — they used to rise all at once, one slab of
+// pictures.
+//
+// Counted within a page of results rather than down the whole list, so the
+// page "More" brings sweeps in from its own first card instead of every new
+// card waiting out the tail of a cascade that finished long ago — the list
+// grows sixty at a time (`GALLERY_PAGE_SIZE` in `common/plusGallery.ts`). The
+// sweep stops growing at two dozen, about what one screen of the grid holds,
+// and a card past that lands on the last beat rather than ahead of the cards
+// above it.
+$gallery-page-size: 60;
+$gallery-card-beats: 24;
+$gallery-card-step: 16ms;
+$gallery-card-lead: 120ms;
+
 .gallery-card {
   position: relative;
-  @include animate(rise-in, $motion-base, $ease-out);
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $gallery-card-lead + ($gallery-card-beats - 1) * $gallery-card-step
+  );
   display: grid;
   grid-template-rows: auto 1fr;
   min-width: 0;
@@ -257,6 +290,12 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border-color: color-mix(in srgb, $secondary-default 42%, transparent);
     box-shadow: 0 10px 28px rgba($black, 0.32);
+  }
+
+  @for $beat from 1 through $gallery-card-beats {
+    &:nth-child(#{$gallery-page-size}n + #{$beat}) {
+      animation-delay: $gallery-card-lead + ($beat - 1) * $gallery-card-step;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1283,7 +1322,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // Over the gallery for a member without Plus: one line of what Plus does
 // with these scenes, and the way in. A strip rather than a card in front of
 // the grid — the scenes under it are the argument.
+// On the same beat as the toolbar it sits above.
 .gallery-plusbar {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

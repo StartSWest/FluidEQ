@@ -64,11 +64,7 @@ export default function GalleryList({
         </div>
       )}
 
-      {list.scenes.length > 0 && (
-        <div className={`gallery-grid${list.loading ? ' is-refreshing' : ''}`}>
-          {children}
-        </div>
-      )}
+      {list.scenes.length > 0 && <div className="gallery-grid">{children}</div>}
 
       {list.loaded &&
         !list.loading &&
