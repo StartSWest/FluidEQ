@@ -10,6 +10,8 @@ const plus = {
   'plus.visualizers.description':
     'FluidEQ と Plus コミュニティのシーンを、あなたの音楽とともに',
   'plus.visualizers.blurb': 'メンバーのシーン',
+  'plus.rail.pin': 'サイドバーを固定',
+  'plus.rail.collapse': 'サイドバーを折りたたむ',
 
   'plus.gate.cta': 'Plus を見る',
   'plus.browse.text':

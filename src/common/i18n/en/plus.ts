@@ -14,6 +14,8 @@ const plus = {
   'plus.visualizers.description':
     'Scenes by FluidEQ and the Plus community, ready for your music',
   'plus.visualizers.blurb': 'Scenes members made',
+  'plus.rail.pin': 'Pin the sidebar',
+  'plus.rail.collapse': 'Collapse the sidebar',
 
   'plus.gate.cta': 'See Plus',
   'plus.browse.text':

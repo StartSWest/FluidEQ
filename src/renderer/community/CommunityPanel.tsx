@@ -13,6 +13,7 @@ import {
   usePlusNavigation,
   type TPlusPlace,
 } from '../plus/plusNavigation';
+import { setPlusRailPinned, usePlusRailPinned } from '../plus/plusRail';
 import PlusWelcome from '../plus/PlusWelcome';
 import { forgetProfile, loadProfile, useProfile } from '../plus/profileStore';
 import VisualizersView from '../plus/VisualizersView';
@@ -20,6 +21,7 @@ import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 import '../styles/Leaderboard.scss';
+import '../styles/PlusRail.scss';
 
 interface ICommunityPanelProps {
   /** Opens the Account panel; sign-in lives there, not here. */
@@ -79,6 +81,7 @@ export default function CommunityPanel({
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
   const { place: view } = usePlusNavigation();
+  const pinned = usePlusRailPinned();
   const accountId = signedIn ? account.identity?.id : undefined;
 
   useEffect(() => {
@@ -96,89 +99,107 @@ export default function CommunityPanel({
   const ownName = profile?.displayName || account.identity?.name || '';
   const ownHandle = profile?.handle ?? account.identity?.email ?? '';
 
+  const pinLabel = t(pinned ? 'plus.rail.collapse' : 'plus.rail.pin');
+
   return (
-    <div className="community">
-      <nav className="community__rail" aria-label={t('tabs.plus')}>
-        <div className="community__rail-head">
-          <span className="eyebrow">{t('tabs.plus')}</span>
-        </div>
-
-        <div className="community__channels">
-          {PLACES.map((entry) => {
-            const isActive = view === entry.place;
-            return (
-              <button
-                key={entry.place}
-                type="button"
-                className={`community__channel${isActive ? ' is-active' : ''}`}
-                aria-current={isActive ? 'true' : undefined}
-                onClick={() => openPlusPlace(entry.place)}
-              >
-                <span className="community__channel-mark">
-                  <Glyph name={entry.glyph} />
-                </span>
-                <span className="community__channel-text">
-                  <span className="community__channel-name">
-                    {t(entry.name)}
-                  </span>
-                  <span className="community__channel-blurb">
-                    {t(entry.blurb)}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="community__foot">
-          {/* The member as the board and the gallery show them, in their own
-              colour; the whole card is the way to their account. */}
-          <button
-            type="button"
-            className="community__account"
-            style={identityStyle(ownHandle)}
-            title={t('account.menu')}
-            onClick={() => requestAccountPanel()}
-          >
-            <Avatar handle={ownHandle} displayName={ownName} size="rail" />
-            <span className="community__account-text">
-              <span className="community__name community__name--hued">
-                {ownName || ownHandle}
-              </span>
-              {/* The mark beside the handle, not beside the name: in a rail
-                  this narrow, a name that has to share its line is cut. */}
-              <span className="community__account-line">
-                <span className="community__handle">
-                  {profile ? `@${profile.handle}` : t('account.menu')}
-                </span>
-                {profile?.role === 'admin' && (
-                  <span className="community__role community__role--admin">
-                    {t('leaderboard.role.admin')}
-                  </span>
-                )}
-                {profile?.role !== 'admin' && entitled && (
-                  <span className="community__role">
-                    {t('graph.scene.badge')}
-                  </span>
-                )}
-              </span>
-            </span>
-            <span className="community__account-chevron" aria-hidden="true" />
-          </button>
-          {/* The name the board ranks is chosen on the board; this is the
-              way there from anywhere in the tab. */}
-          {!profile && loaded && entitled && (
+    <div
+      className={`community community--plus${pinned ? '' : ' community--rail-folded'}`}
+    >
+      {/* The slot keeps the rail's room in the grid; the rail stands in it,
+          and when folded opens over the place instead of pushing it. */}
+      <div className="community__rail-slot">
+        <nav className="community__rail" aria-label={t('tabs.plus')}>
+          <div className="community__rail-head">
             <button
               type="button"
-              className="community__link community__choose"
-              onClick={() => openPlusPlace('board')}
+              className="community__rail-pin"
+              aria-pressed={pinned}
+              aria-label={pinLabel}
+              title={pinLabel}
+              onClick={() => setPlusRailPinned(!pinned)}
             >
-              <Glyph name="mention" />
-              {t('leaderboard.name.choose')}
+              <Glyph name={pinned ? 'rail-collapse' : 'pin'} />
             </button>
-          )}
-        </div>
-      </nav>
+            <span className="eyebrow">{t('tabs.plus')}</span>
+          </div>
+
+          <div className="community__channels">
+            {PLACES.map((entry) => {
+              const isActive = view === entry.place;
+              return (
+                <button
+                  key={entry.place}
+                  type="button"
+                  className={`community__channel${isActive ? ' is-active' : ''}`}
+                  aria-current={isActive ? 'true' : undefined}
+                  onClick={() => openPlusPlace(entry.place)}
+                >
+                  <span className="community__channel-mark">
+                    <Glyph name={entry.glyph} />
+                  </span>
+                  <span className="community__channel-text">
+                    <span className="community__channel-name">
+                      {t(entry.name)}
+                    </span>
+                    <span className="community__channel-blurb">
+                      {t(entry.blurb)}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="community__foot">
+            {/* The member as the board and the gallery show them, in their own
+                colour; the whole card is the way to their account. */}
+            <button
+              type="button"
+              className="community__account"
+              style={identityStyle(ownHandle)}
+              title={t('account.menu')}
+              onClick={() => requestAccountPanel()}
+            >
+              <Avatar handle={ownHandle} displayName={ownName} size="rail" />
+              <span className="community__account-text">
+                <span className="community__name community__name--hued">
+                  {ownName || ownHandle}
+                </span>
+                {/* The mark beside the handle, not beside the name: in a rail
+                    this narrow, a name that has to share its line is cut. */}
+                <span className="community__account-line">
+                  <span className="community__handle">
+                    {profile ? `@${profile.handle}` : t('account.menu')}
+                  </span>
+                  {profile?.role === 'admin' && (
+                    <span className="community__role community__role--admin">
+                      {t('leaderboard.role.admin')}
+                    </span>
+                  )}
+                  {profile?.role !== 'admin' && entitled && (
+                    <span className="community__role">
+                      {t('graph.scene.badge')}
+                    </span>
+                  )}
+                </span>
+              </span>
+              <span className="community__account-chevron" aria-hidden="true" />
+            </button>
+            {/* The name the board ranks is chosen on the board; this is the
+                way there from anywhere in the tab. */}
+            {!profile && loaded && entitled && (
+              <button
+                type="button"
+                className="community__link community__choose"
+                onClick={() => openPlusPlace('board')}
+              >
+                <Glyph name="mention" />
+                {t('leaderboard.name.choose')}
+              </button>
+            )}
+          </div>
+        </nav>
+      </div>
 
       <section className="community__main">
         {view === 'visualizers' && (

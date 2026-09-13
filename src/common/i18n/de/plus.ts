@@ -10,6 +10,8 @@ const plus = {
   'plus.visualizers.description':
     'Szenen von FluidEQ und der Plus-Community, bereit für Ihre Musik',
   'plus.visualizers.blurb': 'Szenen von Mitgliedern',
+  'plus.rail.pin': 'Seitenleiste anheften',
+  'plus.rail.collapse': 'Seitenleiste einklappen',
 
   'plus.gate.cta': 'Plus ansehen',
   'plus.browse.text':

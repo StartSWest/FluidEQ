@@ -9,6 +9,8 @@ const plus = {
   'plus.visualizers.description':
     'Scene di FluidEQ e della community Plus, pronte per la tua musica',
   'plus.visualizers.blurb': 'Scene dei membri',
+  'plus.rail.pin': 'Fissa la barra laterale',
+  'plus.rail.collapse': 'Comprimi la barra laterale',
 
   'plus.gate.cta': 'Scopri Plus',
   'plus.browse.text':

@@ -34,7 +34,9 @@ export type TCommunityGlyph =
   | 'next'
   | 'zoom-in'
   | 'zoom-out'
-  | 'fit';
+  | 'fit'
+  | 'pin'
+  | 'rail-collapse';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -279,6 +281,22 @@ export default function Glyph({ name, className }: IGlyphProps) {
         // Four corners of a frame: all of it, in view.
         return (
           <path d="M3.5 7.5v-4h4M12.5 3.5h4v4M16.5 12.5v4h-4M7.5 16.5h-4v-4" />
+        );
+      case 'pin':
+        // A push pin, head up and a little tilted: keep this where it is.
+        return (
+          <>
+            <path d="M12.2 2.8 17.2 7.8M13.4 4 9.6 7.8l-3.3.6-1.1 1.1 5.3 5.3 1.1-1.1.6-3.3L16 6.6" />
+            <path d="M7.9 12.1 3.3 16.7" />
+          </>
+        );
+      case 'rail-collapse':
+        // A panel with its side column, and a chevron folding it away.
+        return (
+          <>
+            <rect x="3" y="3.5" width="14" height="13" rx="2.5" />
+            <path d="M8 3.5v13M13.4 8 11.4 10l2 2" />
+          </>
         );
       default:
         return null;

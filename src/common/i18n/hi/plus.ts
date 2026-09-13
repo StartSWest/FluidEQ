@@ -9,6 +9,8 @@ const plus = {
   'plus.visualizers.description':
     'FluidEQ और Plus समुदाय के दृश्य, आपके संगीत के लिए तैयार',
   'plus.visualizers.blurb': 'सदस्यों के सीन',
+  'plus.rail.pin': 'साइडबार पिन करें',
+  'plus.rail.collapse': 'साइडबार छोटा करें',
 
   'plus.gate.cta': 'Plus देखें',
   'plus.browse.text':

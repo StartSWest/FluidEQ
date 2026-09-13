@@ -9,6 +9,8 @@ const plus = {
   'plus.visualizers.description':
     'FluidEQ 和 Plus 社区创作的场景，随你的音乐律动',
   'plus.visualizers.blurb': '会员的场景',
+  'plus.rail.pin': '固定侧边栏',
+  'plus.rail.collapse': '收起侧边栏',
 
   'plus.gate.cta': '了解 Plus',
   'plus.browse.text':

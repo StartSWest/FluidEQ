@@ -1,0 +1,205 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Plus tab's rail, pinned or folded (`plusRail.ts`). Only the Plus tab:
+// the Forum borrows the rail's rows (`CommunityRail.scss`) and keeps them as
+// they are.
+//
+// PINNED, the rail is the column it has always been. FOLDED, the column
+// narrows to the rail's pictures and the place gets the rest; the pointer on
+// the rail opens it again OVER the place, with a shadow, and taking the
+// pointer away folds it. Pinning from there only widens the column under a
+// rail that is already open, so nothing jumps.
+//
+// THE RAIL IS NEVER THE WIDTH OF ITS SLOT. It stands in the slot at its own
+// width — the full rail, or the folded column — and the slot only decides how
+// much room the grid gives it. Had the rail filled the slot, pinning an open
+// rail would first shrink it to the slot's folded width and grow it again.
+//
+// Waiting on the pointer is the transition's own delay: a pass across the rail
+// on the way to the place is shorter than it and opens nothing. No script
+// decides when.
+//
+// All of it is for a panel wide enough to have a rail. At 600px and under the
+// rail is a strip of pills over the place (`CommunityRail.scss`), with nothing
+// to fold, and none of this applies.
+
+$rail-open: 228px;
+// The column of pictures, centred: the rail's edge and padding, the row's
+// padding either side of its 28px tile.
+$rail-folded: 2 * (1px + $spacing-xs + 6px) + 28px;
+$rail-reveal-delay: 110ms;
+
+// What only the open rail shows.
+@mixin rail-words {
+  .community__rail-head .eyebrow,
+  .community__channel-text,
+  .community__account-text,
+  .community__account-chevron,
+  .community__choose {
+    @content;
+  }
+}
+
+.community__rail-pin {
+  display: none;
+}
+
+@container eq-panel (min-width: 601px) {
+  .community--plus {
+    // How long the rail takes to move and to settle. Windows with its
+    // animation effects off asks for reduced motion; the rail then still
+    // slides, at half the length, because a width that jumps under the
+    // pointer reads as the layout breaking rather than as calm.
+    --rail-move: #{$motion-slow};
+    --rail-settle: #{$motion-base};
+
+    grid-template-columns: auto minmax(0, 1fr);
+
+    @media (prefers-reduced-motion: reduce) {
+      --rail-move: 150ms;
+      --rail-settle: 110ms;
+    }
+  }
+
+  .community__rail-slot {
+    position: relative;
+    // Over the place's own raised controls, which go as high as 3.
+    z-index: 6;
+    width: $rail-open;
+    min-height: 0;
+    transition: width var(--rail-move) $ease-out;
+  }
+
+  .community--rail-folded .community__rail-slot {
+    width: $rail-folded;
+  }
+
+  .community--plus .community__rail {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: $rail-open;
+    overflow-x: hidden;
+    transition:
+      width var(--rail-settle) $ease-out 60ms,
+      box-shadow var(--rail-settle) $ease-out,
+      border-color var(--rail-settle) $ease-out;
+
+    @include rail-words {
+      transition: opacity var(--rail-settle) ease-out;
+    }
+  }
+
+  // Folded and at rest. `:has(:focus-visible)` rather than `:focus-within`,
+  // so a keyboard reaching the rail opens it, while a click on a place —
+  // which leaves that button focused — lets it fold once the pointer goes.
+  .community--rail-folded
+    .community__rail:not(:hover):not(:has(:focus-visible)) {
+    width: $rail-folded;
+
+    @include rail-words {
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 90ms ease-out,
+        visibility 0s linear 90ms;
+    }
+
+    .community__account {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+
+  // Folded, and open over the place.
+  .community--rail-folded .community__rail:is(:hover, :has(:focus-visible)) {
+    border-color: color-mix(in srgb, $secondary-light 18%, transparent);
+    box-shadow:
+      18px 0 42px rgba($black, 0.5),
+      0 0 0 1px rgba($black, 0.2);
+    transition:
+      width var(--rail-move) $ease-out $rail-reveal-delay,
+      box-shadow var(--rail-move) $ease-out $rail-reveal-delay,
+      border-color var(--rail-settle) $ease-out $rail-reveal-delay;
+
+    @include rail-words {
+      transition:
+        opacity var(--rail-settle) ease-out
+          calc(#{$rail-reveal-delay} + var(--rail-move) * 0.4),
+        visibility 0s linear $rail-reveal-delay;
+    }
+  }
+
+  // The rail's head: the pin in the column of pictures, the name after it,
+  // so the one control that is always there sits where the folded rail is.
+  .community--plus .community__rail-head {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    justify-content: start;
+    gap: 9px;
+    padding: 4px 8px 8px 6px;
+
+    .eyebrow {
+      @include truncate;
+    }
+  }
+
+  .community--plus .community__rail-pin {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: $text-faint;
+    border: 0;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color $motion-fast $ease-out,
+      background $motion-fast $ease-out;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      color: $text-primary;
+      background: color-mix(in srgb, $white 7%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid $secondary-light;
+      outline-offset: -2px;
+    }
+  }
+
+  // Folded, the pin is the way back to a rail that stays: it wears the
+  // accent while the rail is open over the place, because that is when it is
+  // the thing to press.
+  .community--rail-folded .community__rail:hover .community__rail-pin {
+    color: $secondary-light;
+  }
+
+  // The member's card lines its picture up with the places' pictures above
+  // it, so the folded column is one straight line of them.
+  .community--plus .community__account {
+    padding-inline-start: 4px;
+    transition:
+      border-color $motion-base $ease-out,
+      background $motion-base $ease-out,
+      box-shadow $motion-fast $ease-out;
+  }
+}
