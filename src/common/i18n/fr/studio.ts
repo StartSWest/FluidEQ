@@ -254,17 +254,17 @@ const studio = {
   'studio.meter.treble': 'Aigus',
   'studio.meter.accent': 'Accent',
 
-  'studio.signals.title': 'Tester avec',
+  'studio.signals.title': 'Audio de l’aperçu',
   'studio.signals.hint':
-    'Les signaux de test ne font bouger que la scène. Votre musique n’est jamais modifiée.',
-  'studio.signal.live': 'Musique en direct',
+    'La scène réagit toujours à la musique de chaque utilisateur. Les signaux de test animent seulement cet aperçu : ils ne sont ni enregistrés ni publiés et ne modifient jamais votre audio.',
+  'studio.signal.live': 'Votre musique',
   'studio.signal.silence': 'Silence',
   'studio.signal.bass': 'Basses',
   'studio.signal.mid': 'Médiums',
   'studio.signal.treble': 'Aigus',
   'studio.signal.beat': 'Temps',
   'studio.signal.accent': 'Accent',
-  'studio.signal.showcase': 'Tout à la fois',
+  'studio.signal.showcase': 'Mix simulé',
   'studio.signalHint.live':
     'Ce qui joue sur cet ordinateur, tel que la scène l’entendra sur le graphique.',
   'studio.signalHint.silence':
@@ -340,6 +340,9 @@ const studio = {
     'Qui utilise la scène peut les changer dans Vue, sur le graphique. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.wave.fixed':
     'Cette scène réserve sa propre bande au spectre, ces deux réglages ne la changent donc pas.',
+  'studio.tint.label': 'FluidEQ avec cette scène',
+  'studio.tint.hint':
+    'Pendant que vous travaillez ici, toute l’application peut prendre les couleurs de la scène, ou briller doucement autour d’elle avec la musique, pour la voir et la sentir en thème.',
   'studio.grid.label': 'Afficher la grille du graphique',
   'studio.grid.hint':
     'Ses lignes de fréquence et de niveau sur la scène, avec la place qu’elles prennent sur le graphique, pour mesurer où tombent l’onde et chaque partie de la scène.',

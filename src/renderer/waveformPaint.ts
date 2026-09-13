@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import { GraphPalette, IGraphBallistics } from 'common/graphStyles';
 import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
+import type { IRampRole } from './utils/sceneAccentRamp';
 
 /**
  * How the titlebar waveform is drawn, and the numbers behind it.
@@ -539,6 +540,24 @@ export const TRACE_CYAN_STOPS = [
   { offset: 0.52, colour: '#c8fff8' }, // ice white
   { offset: 0.76, colour: '#00e5cf' }, // sea green
   { offset: 1, colour: '#005b7f' }, // deeper teal
+];
+
+/**
+ * What each resting stop becomes while a Plus scene tints the window
+ * (`sceneAccentRamp.ts`): the same walk from dark through bright and back,
+ * in the scene's accents.
+ */
+export const TRACE_TINT_ROLES: readonly IRampRole[] = [
+  { role: 'dark' },
+  { role: 'accent' },
+  { role: 'light' },
+  { role: 'accent' },
+  { role: 'darker' },
+];
+export const BODY_TINT_ROLES: readonly IRampRole[] = [
+  { role: 'light', alpha: 0.18 },
+  { role: 'accent', alpha: 0.42 },
+  { role: 'dark', alpha: 0.18 },
 ];
 
 /**

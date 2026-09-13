@@ -106,6 +106,16 @@ const eq = {
   'graph.autoSwitch.label': 'Automatic visualizer switching',
   'graph.autoSwitch.off': 'Auto: Off',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  // The switch beside a Plus visualizer that puts the whole window in the
+  // colour of its sky. Named for what pressing it will do, like Show/Hide.
+  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Click for {next}',
+  'graph.sceneTint.mode.off': 'the app theme',
+  'graph.sceneTint.mode.tint': "the visualizer's colours",
+  'graph.sceneTint.mode.pulse':
+    "the visualizer's colours, with its light glowing around it",
+  'graph.sceneTint.short.off': 'Theme',
+  'graph.sceneTint.short.tint': 'Colours',
+  'graph.sceneTint.short.pulse': 'Ambient',
   // The picker's headings over the scenes members made in the Studio: this
   // member's own, and the ones other members sent them.
   'graph.member.mine': 'Made by you',
@@ -123,6 +133,7 @@ const eq = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': 'Loading visualizer…',
   'graph.scene.attack': 'Attack',
   'graph.scene.attackHint':
     'How fast this visualizer rises to the music. Short is punchy, long swells.',

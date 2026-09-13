@@ -24,6 +24,7 @@ import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
+import useStudioTint from './useStudioTint';
 import { DEFAULT_STUDIO_WAVE, type IStudioWave } from './studioWave';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
@@ -151,6 +152,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // this the capture would close and reopen, and the dialog's scene would
   // start on a gap in the music.
   useLiveAudioCapture(playing);
+  useStudioTint(pack, state.activeId, serial, playing);
 
   let status: TranslationKey = 'studio.status.waiting';
   if (pack && (problems || trouble?.kind === 'compile')) {

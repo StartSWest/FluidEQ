@@ -427,6 +427,134 @@ $stage-edge: $border-menu;
   }
 }
 
+// The test card's choices: tiles in four equal columns, a drawing of the
+// choice over its name (see `studioTestIcons.tsx` and the card for why they
+// stopped being wrapping pills).
+// Every row as tall as the tallest: a name that takes two lines in one row
+// would otherwise leave the rows two different heights.
+.studio-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 3px;
+}
+
+.studio-tile {
+  display: grid;
+  grid-template-rows: 16px auto;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  min-width: 0;
+  // Two lines of name and the glyph: every tile in a row the same height
+  // whether its name took one line or two.
+  min-height: 52px;
+  // Two pixels at the sides and three between tiles are what let the longest
+  // single word in the ten languages, 44.4px, sit on one line of a tile down
+  // to a 212px card.
+  padding: 7px 2px 6px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $white 2%, transparent);
+  font: inherit;
+  font-size: $text-micro;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: color $motion-fast $ease-out;
+  }
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    border-color: $border-panel;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  // The chosen tile is the accent held, with its drawing lit in the accent's
+  // light shade so the choice reads from the glyph alone at a glance.
+  &[aria-pressed='true'] {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    box-shadow: inset 0 1px 0
+      color-mix(in srgb, $secondary-light 18%, transparent);
+
+    svg {
+      color: $secondary-light;
+    }
+  }
+
+  // Waiting for a scene, not broken: the choice still shows, unlit.
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+// At most two lines, broken between words; a word longer than the tile is
+// cut with an ellipsis rather than broken mid-word or spilling out.
+.studio-tile__name {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+}
+
+// A size is one word or two short ones in every language; the row is lower.
+.studio-tiles--sizes .studio-tile {
+  min-height: 48px;
+}
+
+// The card answers to its own width, not the Studio's: the side column it
+// stands in is 220 to 248 pixels whatever the window does.
+.studio-test {
+  container: studio-test / inline-size;
+}
+
+// The narrowest column leaves a tile 40 pixels for its name, and the longest
+// words in the ten languages — "Diagramm", "Graphique", "Fullscreen" —
+// measured 42 to 44.4. Rather than cut them, below the width where they fit
+// the tiles keep only their drawings; each still carries its name for a
+// screen reader and in its tooltip, and the readout below names the signal
+// that is playing.
+@container studio-test (max-width: 211px) {
+  .studio-tile {
+    grid-template-rows: 16px;
+    min-height: 34px;
+    padding-block: 8px;
+  }
+
+  .studio-tile__name {
+    display: none;
+  }
+
+  .studio-tiles--sizes .studio-tile {
+    min-height: 34px;
+  }
+}
+
 .studio-test__hint {
   margin-top: -3px;
   color: $text-dim;
@@ -500,6 +628,86 @@ $stage-edge: $border-menu;
   margin-top: 0;
 }
 
+// What is playing, read first: its name, and what it is, on a bar of the
+// accent like a readout, above the dimmer note on what test signals can and
+// cannot do.
+.studio-test__now {
+  display: grid;
+  gap: 1px;
+  padding: 1px 0 1px 8px;
+  color: $text-muted;
+  border-left: 2px solid color-mix(in srgb, $secondary-default 60%, transparent);
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+.studio-test__now-name {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// What the scene does to the window, as three tiles under a hairline: the
+// same tiles as the test signals', so it reads as one more choice about how
+// the scene is judged rather than a setting from somewhere else.
+.studio-tint {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px solid $border-subtle;
+}
+
+.studio-tiles--tint {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  .studio-tile {
+    min-height: 48px;
+  }
+}
+
+// The glyph's ring is the tile's ink; its half is the colour being lent once
+// there is one, and a quieter shade of the ink until then. The beat's wave is
+// fainter still, so the three glyphs read as one family.
+.studio-tint__glyph {
+  .tint-icon__half {
+    fill: currentcolor;
+    stroke: none;
+    opacity: 0.45;
+    transition: opacity $motion-base $ease-out;
+  }
+
+  .tint-icon__wave {
+    opacity: 0.5;
+  }
+}
+
+.studio-tint.is-lit .studio-tile[aria-pressed='true'] .tint-icon__half {
+  fill: var(--scene-tint-swatch, currentcolor);
+  opacity: 1;
+}
+
+.studio-tint__hint {
+  margin-top: 0;
+}
+
+// Three to a row, the tiles keep their names where the four-wide rows above
+// fall back to drawings: the narrowest column leaves each 58 pixels, and the
+// longest of these names in the ten languages, "Pulsation", measured 39.
+@container studio-test (max-width: 211px) {
+  .studio-tiles--tint {
+    .studio-tile {
+      grid-template-rows: 16px auto;
+      min-height: 48px;
+      padding-block: 7px 6px;
+    }
+
+    .studio-tile__name {
+      display: -webkit-box;
+    }
+  }
+}
+
 // How well it keeps up, under the controls that test it: a hairline above,
 // and a light that is green, amber or red before the words are read.
 .studio-cost {
@@ -518,8 +726,8 @@ $stage-edge: $border-menu;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: $analogous-2;
-  box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 70%, transparent);
+  background: $active;
+  box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
 }
 
 .studio-cost--scaled .studio-cost__dot {

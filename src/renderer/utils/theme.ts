@@ -89,7 +89,7 @@ const subscribe = (listener: () => void) => {
 export const useTheme = (): TTheme =>
   useSyncExternalStore(subscribe, getTheme, () => DEFAULT_THEME);
 
-type TSurfaceName =
+export type TSurfaceName =
   | '--surface-base'
   | '--surface-panel'
   | '--surface-block'
@@ -97,6 +97,14 @@ type TSurfaceName =
   | '--track-well'
   | '--accent'
   | '--accent-light'
+  | '--accent-dark'
+  | '--accent-darker'
+  | '--dsp-base-curve'
+  | '--dsp-output'
+  | '--dsp-applied'
+  | '--dsp-sky'
+  | '--dsp-field'
+  | '--dsp-spectrum'
   | '--text-primary'
   | '--text-muted'
   | '--text-faint'

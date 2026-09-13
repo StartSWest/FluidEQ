@@ -516,7 +516,7 @@ $dsp-rail-offset: 110ms;
   }
 
   &.is-spectrum::before {
-    background: rgba($white, 0.35);
+    background: color-mix(in srgb, var(--dsp-output) 35%, transparent);
   }
 
   &.is-floor::before {
@@ -524,7 +524,7 @@ $dsp-rail-offset: 110ms;
   }
 
   &.is-hiss-action::before {
-    background: rgba(197, 138, 249, 0.95);
+    background: color-mix(in srgb, var(--dsp-applied) 95%, transparent);
   }
 
   &.is-hum::before {
@@ -861,7 +861,7 @@ $dsp-rail-offset: 110ms;
   touch-action: none;
 
   &.is-outgoing {
-    stroke: $amber;
+    stroke: var(--dsp-contrast);
   }
 
   &.is-incoming {
@@ -1023,7 +1023,7 @@ $dsp-rail-offset: 110ms;
   vector-effect: non-scaling-stroke;
 
   &.is-outgoing {
-    fill: $amber;
+    fill: var(--dsp-contrast);
   }
 
   &.is-incoming {
@@ -1041,7 +1041,7 @@ $dsp-rail-offset: 110ms;
   stroke-linecap: round;
 
   &.is-outgoing {
-    stroke: $amber;
+    stroke: var(--dsp-contrast);
   }
 
   &.is-incoming {
@@ -1077,7 +1077,7 @@ $dsp-rail-offset: 110ms;
   }
 
   .is-outgoing {
-    color: $amber;
+    color: var(--dsp-contrast);
   }
 
   .is-incoming {
@@ -1090,7 +1090,7 @@ $dsp-rail-offset: 110ms;
 
   &.is-outgoing {
     left: 14px;
-    color: rgba(255, 176, 89, 0.82);
+    color: color-mix(in srgb, var(--dsp-contrast) 82%, transparent);
   }
 
   &.is-incoming {
@@ -1201,7 +1201,7 @@ $dsp-rail-offset: 110ms;
   transition: width 70ms linear;
 
   &.is-before {
-    background: rgba(255, 176, 89, 0.46);
+    background: color-mix(in srgb, var(--dsp-contrast) 46%, transparent);
   }
 
   &.is-after {
@@ -1989,10 +1989,13 @@ $dsp-rail-offset: 110ms;
     box-shadow 140ms ease;
 }
 
+// A lamp says a processor is on, so it wears the app's "on" colour, not the
+// accent: beside the accent the selected tab and the switches already wear,
+// all of the rail was one colour.
 .dsp-rail-tab.is-on .dsp-rail-lamp {
-  border-color: color-mix(in srgb, $secondary-default 58%, transparent);
-  background: $secondary-default;
-  box-shadow: 0 0 6px color-mix(in srgb, $secondary-default 75%, transparent);
+  border-color: color-mix(in srgb, $active 58%, transparent);
+  background: $active;
+  box-shadow: 0 0 6px color-mix(in srgb, $active 75%, transparent);
 }
 
 .dsp-stage {
@@ -3399,13 +3402,13 @@ $dsp-pane-columns: 6;
   }
 
   .is-sustain {
-    border-color: rgba(64, 214, 200, 0.3);
-    color: rgba(64, 214, 200, 0.92);
+    border-color: color-mix(in srgb, var(--dsp-base-curve) 30%, transparent);
+    color: color-mix(in srgb, var(--dsp-base-curve) 92%, transparent);
   }
 
   .is-duck {
-    border-color: rgba(84, 200, 255, 0.3);
-    color: rgba(84, 200, 255, 0.92);
+    border-color: color-mix(in srgb, var(--dsp-sky) 30%, transparent);
+    color: color-mix(in srgb, var(--dsp-sky) 92%, transparent);
   }
 
   b {

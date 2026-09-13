@@ -24,6 +24,7 @@ import {
   readDspSampleRate,
 } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { baseCurveInk, skyInk } from './dspInks';
 
 /**
  * Where each band works and what it is doing, over the spectrum it is doing it
@@ -68,7 +69,9 @@ const RISE = 0.3;
 const FALL = 0.1;
 
 /** The band colours, low to high, and the organic stage's own. */
-const BAND_INK = ['84, 200, 255', '64, 214, 200', '150, 226, 128'];
+/** Low and mid in the tokens a scene recolours (`dspInks.ts`); high stays green. */
+const bandInk = (index: number) =>
+  [skyInk(), baseCurveInk(), '150, 226, 128'][index] ?? '150, 226, 128';
 const ORGANIC_INK = '255, 176, 89';
 
 /** Forgiving enough to grab a one-pixel edge without hiding the region body. */
@@ -475,7 +478,7 @@ const DspExciterGraph = ({
         );
         const x0 = toX(lowHz);
         const x1 = toX(highHz);
-        const ink = BAND_INK[index];
+        const ink = bandInk(index);
         const isOn = current.enabled && band.enabled;
 
         // The region, always drawn. A band that is switched off still has a
@@ -512,7 +515,7 @@ const DspExciterGraph = ({
           band.range,
         );
         context.setLineDash(isOn ? [] : [2, 3]);
-        context.strokeStyle = `rgba(${BAND_INK[index]}, ${isOn ? 0.55 : 0.2})`;
+        context.strokeStyle = `rgba(${bandInk(index)}, ${isOn ? 0.55 : 0.2})`;
         [lowHz, highHz].forEach((hz) => {
           const x = Math.round(toX(hz)) + 0.5;
           context.beginPath();
@@ -581,7 +584,7 @@ const DspExciterGraph = ({
           );
           const x0 = toX(lowHz);
           const x1 = toX(highHz);
-          const ink = BAND_INK[focusedBand];
+          const ink = bandInk(focusedBand);
           context.fillStyle = `rgba(${ink}, 0.12)`;
           context.fillRect(x0, PAD_T, Math.max(1, x1 - x0), plotH);
           context.lineWidth = 2;
@@ -629,7 +632,7 @@ const DspExciterGraph = ({
         if (!current.enabled || !band.enabled) {
           return;
         }
-        context.fillStyle = `rgb(${BAND_INK[index]})`;
+        context.fillStyle = `rgb(${bandInk(index)})`;
         const { lowHz, highHz } = exciterBandEdgesForIndex(
           index,
           band.freqHz,

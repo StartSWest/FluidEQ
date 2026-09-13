@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState, type RefObject } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import {
   reportOwnResponse,
@@ -17,9 +17,12 @@ import {
   type IUsableMemberScene,
 } from '../utils/memberScenes';
 import { createFlashGuard } from './sceneFlashGuard';
+import type { ISceneFrame } from './sceneGl';
+import SceneLoading from './SceneLoading';
 import { createCostLadder } from './sceneHealth';
 import { createWarmupLadder } from './sceneWarmup';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
+import { reportSceneBeat } from '../utils/scenePulse';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -96,6 +99,28 @@ export default function SceneCanvas({
     [member, key, version, name],
   );
 
+  // Which scene has drawn its first frame. Kept by identity, because the
+  // chart hands this same canvas the next scene when the look changes, and
+  // that one starts from nothing again; a new version of the same scene is
+  // swapped in place and stays settled.
+  const [drawnIdentity, setDrawnIdentity] = useState<string>();
+  const drawnRef = useRef<string | undefined>(undefined);
+  // The element the scene draws in, once the runner has made it: where the
+  // window's pulse starts from.
+  const hostRef = useRef<RefObject<Element | null>>(undefined);
+  const onDrawn = useCallback(
+    (frame: ISceneFrame) => {
+      if (frame.fade > 0 && drawnRef.current !== key) {
+        drawnRef.current = key;
+        setDrawnIdentity(key);
+      }
+      // The window beats on the beats this scene is drawing, when the
+      // graph's mode asks it to (`ScenePulse.tsx`).
+      reportSceneBeat('graph', frame, hostRef.current?.current);
+    },
+    [key],
+  );
+
   // The listener's own attack and release for this visualizer, from the
   // graph's menu, over the timing its pack came with.
   const { lookId } = scene;
@@ -109,21 +134,32 @@ export default function SceneCanvas({
     [lookId],
   );
 
-  const canvasRef = useSceneRunner({
+  const sceneRef = useSceneRunner({
     source,
     width,
     height,
     spectrumRect,
     tuning,
+    onDrawn,
     onLoaded,
   });
+  hostRef.current = sceneRef;
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="chart-scene-canvas"
-      aria-hidden="true"
-      style={{ width, height }}
-    />
+    <>
+      <SceneLoading
+        lookId={lookId}
+        swatch={scene.swatch}
+        settled={drawnIdentity === key}
+        width={width}
+        height={height}
+      />
+      <canvas
+        ref={sceneRef}
+        className="chart-scene-canvas"
+        aria-hidden="true"
+        style={{ width, height }}
+      />
+    </>
   );
 }

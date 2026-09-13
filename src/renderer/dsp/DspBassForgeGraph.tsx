@@ -11,6 +11,7 @@ import { IBassForgeSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassForgeBands } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { BASE_CURVE_CSS, baseCurveInk, SKY_CSS, skyInk } from './dspInks';
 
 /**
  * The low band going in, the low band coming out, and the difference.
@@ -107,9 +108,7 @@ const GRAPH_FONT =
  * organic stage. Named for the SIDE of the corner each one paints and not for
  * a generator: the meter cannot tell the two generators apart. See the header.
  */
-const LOW_SIDE_INK = '84, 200, 255';
 const HIGH_SIDE_INK = '255, 176, 89';
-const OUTPUT_INK = '64, 214, 200';
 const DRY_INK = '255, 255, 255';
 
 /** Smoothstep, so eight measured points read as a curve and not as a chain. */
@@ -281,7 +280,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
 
         const cornerX = toX(splitHz);
         [
-          { ink: LOW_SIDE_INK, from: PAD_L, to: cornerX },
+          { ink: skyInk(), from: PAD_L, to: cornerX },
           { ink: HIGH_SIDE_INK, from: cornerX, to: width - PAD_R },
         ].forEach(({ ink, from, to }) => {
           if (to - from < 0.5) {
@@ -322,7 +321,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
           }
           context.stroke();
 
-          context.strokeStyle = `rgba(${OUTPUT_INK},0.92)`;
+          context.strokeStyle = `rgba(${baseCurveInk()},0.92)`;
           context.lineWidth = 1.6;
           context.beginPath();
           for (let column = 0; column <= columns; column += 1) {
@@ -401,14 +400,14 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark"
-            style={{ color: `rgb(${OUTPUT_INK})` }}
+            style={{ color: BASE_CURVE_CSS }}
           />
           {t('dsp.eq.legend.spectrum')}
         </li>
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgb(${LOW_SIDE_INK})` }}
+            style={{ color: SKY_CSS }}
           />
           {t('dsp.bassForge.graph.belowSplit')}
         </li>

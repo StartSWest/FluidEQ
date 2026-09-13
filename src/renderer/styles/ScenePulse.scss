@@ -1,0 +1,78 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+
+// The lightest a glow's colour may be, in OKLCH lightness.
+$glow-lightness: 0.6;
+
+// The window glowing with a scene (`ScenePulse.tsx`). Over the whole window
+// and under every dialog, toast and menu (those start at 1190), taking no
+// pointer. Every layer rests at opacity 0 and only ever animates transform
+// and opacity, so a swell is the compositor's work and nothing is repainted.
+//
+// `will-change` keeps each on a layer of its own between swells. Without it
+// Chromium promoted a layer as its animation started and dropped it as it
+// finished, and every one of those repainted the whole document: three full
+// paints a pulse, measured in a trace, where there should be none.
+//
+// Light, not paint: the layers are screened over the window, so they can only
+// lift what is under them towards the scene's colour. Laid over normally, the
+// same colours greyed every pane and dimmed the text — a fog passing, not a
+// glow. Screened, the dark panels take the colour and text stays as it is.
+.scene-pulse {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  mix-blend-mode: screen;
+}
+
+// One soft pool of light per colour, placed and sized by each swell's
+// transform: centred on the scene it comes from and reaching the window's
+// far corners. The layer's clip cuts the scene's own box out of it
+// (`ScenePulse.tsx`), so the light is strongest at the scene's edge and fades
+// across the rest of the app. Very faint on purpose — a wave twice this strong was
+// sent back as far too much; this is ambient light, not an effect.
+.scene-pulse__glow {
+  --glow-colour: var(--accent);
+  // No lighter than a mid-tone. Screened over the window, a pale colour lifts
+  // every channel alike — on a scene whose colours are pastel, like
+  // Floración's, the glow was a grey-white haze; held to a mid-tone it stays
+  // the scene's colour and lifts the dark panels by that colour only.
+  --glow: oklch(from var(--glow-colour) min(l, #{$glow-lightness}) c h);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vmax;
+  height: 100vmax;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--glow) 11%, transparent) 0%,
+    color-mix(in srgb, var(--glow) 8%, transparent) 35%,
+    color-mix(in srgb, var(--glow) 5%, transparent) 70%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  will-change: transform, opacity;
+}
+
+// The bass carries the scene's main colour, the treble its "on" colour, and
+// the mids the colour between them.
+.scene-pulse__glow--mid {
+  --glow-colour: color-mix(in oklab, var(--accent), var(--active));
+}
+
+.scene-pulse__glow--treble {
+  --glow-colour: var(--active);
+}

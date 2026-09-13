@@ -197,12 +197,12 @@ $name-column: 34ch;
   }
 
   &--on {
-    background: rgba($neon-lime, 0.1);
-    color: $neon-lime;
+    background: color-mix(in srgb, $active 10%, transparent);
+    color: $active;
 
     &::before {
-      background: $neon-lime;
-      box-shadow: 0 0 8px rgba($neon-lime, 0.8);
+      background: $active;
+      box-shadow: 0 0 8px color-mix(in srgb, $active 80%, transparent);
     }
   }
 
@@ -259,7 +259,7 @@ $name-column: 34ch;
   // came here about. Marked as well as sorted first, because "first" stops
   // meaning anything the moment they click another card.
   &.is-current {
-    box-shadow: inset 2px 0 0 $neon-lime;
+    box-shadow: inset 2px 0 0 $active;
   }
 }
 
@@ -287,8 +287,8 @@ $name-column: 34ch;
   padding: 1px 7px;
   border-radius: $radius-pill;
   margin-top: 3px;
-  background: rgba($neon-lime, 0.1);
-  color: $neon-lime;
+  background: color-mix(in srgb, $active 10%, transparent);
+  color: $active;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.1em);

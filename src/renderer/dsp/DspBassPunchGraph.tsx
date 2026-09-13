@@ -10,6 +10,7 @@ import { IBassPunchSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassPunchActivity } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { BASE_CURVE_CSS, baseCurveInk, SKY_CSS, skyInk } from './dspInks';
 
 /**
  * The last three seconds of what Punch did, on a time axis.
@@ -102,8 +103,6 @@ const GRAPH_FONT =
 
 /** The rack's existing inks. Amber is the event, teal the state, blue the cut. */
 const TRANSIENT_INK = '255, 176, 89';
-const SUSTAIN_INK = '64, 214, 200';
-const DUCK_INK = '84, 200, 255';
 
 /**
  * The larger of two signed gains, by magnitude.
@@ -354,10 +353,10 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         });
       };
 
-      trace(DUCK_INK, duckTopY, (index) =>
+      trace(skyInk(), duckTopY, (index) =>
         duckY(ducks.current[sampleAt(index)]),
       );
-      trace(SUSTAIN_INK, lowCentreY, (index) =>
+      trace(baseCurveInk(), lowCentreY, (index) =>
         lowY(sustains.current[sampleAt(index)]),
       );
 
@@ -496,7 +495,9 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgba(${SUSTAIN_INK},0.7)` }}
+            style={{
+              color: `color-mix(in srgb, ${BASE_CURVE_CSS} 70%, transparent)`,
+            }}
           />
           {t('dsp.bassPunch.sustain')}
           <span className="dsp-eq-legend-scale">
@@ -506,7 +507,9 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgba(${DUCK_INK},0.7)` }}
+            style={{
+              color: `color-mix(in srgb, ${SKY_CSS} 70%, transparent)`,
+            }}
           />
           {t('dsp.bassPunch.duck')}
           <span className="dsp-eq-legend-scale">

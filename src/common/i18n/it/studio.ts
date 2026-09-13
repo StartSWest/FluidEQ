@@ -256,17 +256,17 @@ const studio = {
   'studio.meter.treble': 'Acuti',
   'studio.meter.accent': 'Accento',
 
-  'studio.signals.title': 'Prova con',
+  'studio.signals.title': 'Audio dell’anteprima',
   'studio.signals.hint':
-    'I segnali di prova muovono solo il palco. La tua musica non viene mai modificata.',
-  'studio.signal.live': 'Musica dal vivo',
+    'La scena reagisce sempre alla musica di ogni utente. I segnali di prova animano solo questa anteprima: non vengono salvati né pubblicati e non modificano mai il tuo audio.',
+  'studio.signal.live': 'La tua musica',
   'studio.signal.silence': 'Silenzio',
   'studio.signal.bass': 'Bassi',
   'studio.signal.mid': 'Medi',
   'studio.signal.treble': 'Acuti',
   'studio.signal.beat': 'Battito',
   'studio.signal.accent': 'Accento',
-  'studio.signal.showcase': 'Tutto insieme',
+  'studio.signal.showcase': 'Mix simulato',
   'studio.signalHint.live':
     'Ciò che suona su questo computer, come la scena lo sentirà nel grafico.',
   'studio.signalHint.silence':
@@ -342,6 +342,9 @@ const studio = {
     'Chi usa la scena può cambiarle in Vista, sul grafico. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
   'studio.wave.fixed':
     'Questa scena riserva una propria fascia allo spettro, quindi queste due impostazioni non la cambiano.',
+  'studio.tint.label': 'FluidEQ con questa scena',
+  'studio.tint.hint':
+    'Mentre lavori qui, tutta l’app può prendere i colori della scena, o illuminarsi piano intorno a lei con la musica, così la vedi e la senti come tema.',
   'studio.grid.label': 'Mostra la griglia del grafico',
   'studio.grid.hint':
     'Le sue linee di frequenza e di livello sopra la scena, con lo spazio che occupano sul grafico, per misurare dove cadono l’onda e ogni parte della scena.',

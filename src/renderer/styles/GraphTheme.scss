@@ -891,6 +891,28 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The tint switch's glyph is the theme's own, a circle half filled, and the
+// filled half is where it says what it does: the ink of the ring while off,
+// and the colour the window is taking while on. `--scene-tint-swatch` is set
+// on the button from the measured sky, lifted to a lightness that reads at
+// this size; before a sky is known the half stays in the ring's ink.
+.live-output-controls .graph-scene-tint {
+  .tint-icon__half {
+    fill: currentcolor;
+    stroke: none;
+    opacity: 0.45;
+  }
+
+  .tint-icon__wave {
+    opacity: 0.55;
+  }
+
+  &[aria-pressed='true'] .tint-icon__half {
+    fill: var(--scene-tint-swatch, currentcolor);
+    opacity: 1;
+  }
+}
+
 /**
  * The look's name, in the bottom corner while it is changing.
  *
@@ -1285,6 +1307,95 @@ it under the terms of the GNU General Public License version 3 or later.
   inset: 0;
   z-index: 0;
   pointer-events: none;
+}
+
+// A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
+// is about to be, then out of the way once it has faded in over it. Black for
+// a scene whose colour has not been measured, because that is what every
+// scene is drawn against. Under the canvas and the chart's drawing both, so
+// the grid and the curves stay readable over it.
+.chart-scene-backdrop,
+.chart-scene-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Arrives at once and leaves slowly. Switching from one scene to the next
+// removes the old scene's canvas the moment the new one starts, and a
+// backdrop that faded in over that moment let the chart's own lighter card
+// show through it: a flash between every two visualizers.
+.chart-scene-backdrop {
+  background: var(--scene-sky, #{$black});
+
+  // After the scene's own fade-in, never before it: the scene takes a quarter
+  // second to reach full strength, and the colour behind it has to be the
+  // scene's own for all of that time.
+  &.is-settled {
+    opacity: 0;
+    transition: opacity $motion-slow $ease-out $motion-slow;
+  }
+}
+
+.chart-scene-loading {
+  display: grid;
+  place-items: center;
+  animation: fade-in $motion-base $ease-out both;
+}
+
+.chart-scene-loading__status {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+// The Studio stage's loading ring, lit in a light shade of the scene's own
+// colour rather than the app's accent, around the scene's picker icon.
+.chart-scene-loading__ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    border: 2px solid
+      color-mix(
+        in srgb,
+        var(--scene-ring, #{$secondary-light}) 16%,
+        transparent
+      );
+    border-top-color: var(--scene-ring, #{$secondary-light});
+    border-radius: 50%;
+    animation: chart-scene-loading-turn 1.1s linear infinite;
+    content: '';
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation: none;
+    }
+  }
+}
+
+.chart-scene-loading__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.chart-scene-loading__label {
+  color: $text-faint;
+  font-size: $text-small;
+  @include tracking(0.02em);
+}
+
+@keyframes chart-scene-loading-turn {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // *** Output level meter *****************************************************

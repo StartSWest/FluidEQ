@@ -146,6 +146,7 @@ import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
+import SceneTintToggle from './SceneTintToggle';
 import GraphViewMenu from './GraphViewMenu';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
@@ -1987,29 +1988,36 @@ const FrequencyResponseChart = ({
 
                 Disabled on a look somebody built, which carries the palette it
                 was designed with — a control that quietly did nothing when it
-                was pressed would be worse than one that says it cannot. */}
-            <button
-              type="button"
-              className="graph-look-step graph-look-step--toggle"
-              aria-pressed={graphPalette !== 'signal'}
-              aria-label={`${t('look.palette.cycle')}: ${t(
-                PALETTE_LABEL_KEYS[graphPalette],
-              )}`}
-              title={`${t('look.palette.cycle')}: ${t(
-                PALETTE_LABEL_KEYS[graphPalette],
-              )}`}
-              disabled={isDisplayedWaveHidden || !isPaletteSelectable}
-              onClick={() =>
-                setGraphPalette(
-                  GRAPH_PALETTES[
-                    (GRAPH_PALETTES.indexOf(graphPalette) + 1) %
-                      GRAPH_PALETTES.length
-                  ],
-                )
-              }
-            >
-              <PaletteIcon palette={graphPalette} />
-            </button>
+                was pressed would be worse than one that says it cannot.
+
+                A Plus visualizer brings its own colours, so on one the slot
+                holds the switch that lends those colours to the window. */}
+            {isPremiumSceneSelected ? (
+              <SceneTintToggle />
+            ) : (
+              <button
+                type="button"
+                className="graph-look-step graph-look-step--toggle"
+                aria-pressed={graphPalette !== 'signal'}
+                aria-label={`${t('look.palette.cycle')}: ${t(
+                  PALETTE_LABEL_KEYS[graphPalette],
+                )}`}
+                title={`${t('look.palette.cycle')}: ${t(
+                  PALETTE_LABEL_KEYS[graphPalette],
+                )}`}
+                disabled={isDisplayedWaveHidden || !isPaletteSelectable}
+                onClick={() =>
+                  setGraphPalette(
+                    GRAPH_PALETTES[
+                      (GRAPH_PALETTES.indexOf(graphPalette) + 1) %
+                        GRAPH_PALETTES.length
+                    ],
+                  )
+                }
+              >
+                <PaletteIcon palette={graphPalette} />
+              </button>
+            )}
             {/* Make one of your own.
 
                 Next to the picker because it is the same decision carried one

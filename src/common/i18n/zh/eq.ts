@@ -103,6 +103,13 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': '自动切换可视化效果',
   'graph.autoSwitch.off': '自动：关',
   'graph.autoSwitch.every': '自动：{seconds}秒',
+  'graph.sceneTint.cycle': 'FluidEQ：{mode}。点击切换为{next}',
+  'graph.sceneTint.mode.off': '应用主题',
+  'graph.sceneTint.mode.tint': '可视化效果的颜色',
+  'graph.sceneTint.mode.pulse': '可视化效果的颜色，以及它周围的光',
+  'graph.sceneTint.short.off': '主题',
+  'graph.sceneTint.short.tint': '颜色',
+  'graph.sceneTint.short.pulse': '氛围',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',
   'graph.member.by': '作者：{name}',
@@ -114,6 +121,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': '正在加载可视化效果…',
   'graph.scene.attack': '起音',
   'graph.scene.attackHint':
     '此可视化效果随音乐上升的速度。短则干脆，长则渐强。',

@@ -67,6 +67,7 @@ import {
   readAccentLightChannels,
   readSurface,
 } from '../utils/theme';
+import { tintedStops, type IRampRole } from '../utils/sceneAccentRamp';
 
 /**
  * The gas, as five shades of the theme's light accent.
@@ -185,6 +186,26 @@ const CYAN_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
   { offset: 0, colour: '#005b7f' },
   { offset: 0.5, colour: '#00c5ff' },
   { offset: 1, colour: '#c8fff8' },
+];
+/**
+ * The same ramp in a Plus scene's colours while it tints the window: dark
+ * foot, the colour, light crest (`sceneAccentRamp.ts`).
+ */
+const RAMP_ROLES: readonly IRampRole[] = [
+  { role: 'darker' },
+  { role: 'accent' },
+  { role: 'light' },
+];
+/** The ladder's lamps: every one lit, so no dark foot even under a tint. */
+const LADDER_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
+  { offset: 0, colour: '#39d7ff' },
+  { offset: 0.5, colour: '#00c5ff' },
+  { offset: 1, colour: '#c8fff8' },
+];
+const LADDER_ROLES: readonly IRampRole[] = [
+  { role: 'accent' },
+  { role: 'accent' },
+  { role: 'light' },
 ];
 const RAINBOW_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
   { offset: 0, colour: '#00e5ff' },
@@ -323,7 +344,7 @@ const MIRRORED_RAINBOW_STOPS: ReadonlyArray<{
  */
 /** The mode's fixed palette, for every style that does not build its own. */
 const modeStops = (isEuphoric: boolean) =>
-  isEuphoric ? RAINBOW_STOPS : CYAN_STOPS;
+  isEuphoric ? RAINBOW_STOPS : tintedStops(CYAN_STOPS, RAMP_ROLES);
 
 const cyclingStops = (
   nowMs: number,
@@ -667,13 +688,7 @@ const drawChannel = (
         context.fillStyle = paintLevel(
           context,
           rect,
-          isEuphoric
-            ? RAINBOW_STOPS
-            : [
-                { offset: 0, colour: '#39d7ff' },
-                { offset: 0.5, colour: '#00c5ff' },
-                { offset: 1, colour: '#c8fff8' },
-              ],
+          isEuphoric ? RAINBOW_STOPS : tintedStops(LADDER_STOPS, LADDER_ROLES),
         );
         for (let i = 0; i < litDots; i += 1) {
           bead(i);
@@ -1568,7 +1583,9 @@ const drawChannel = (
         context,
         { x: 0, y: rect.y },
         { x: 0, y: rect.y + rect.height },
-        isEuphoric ? MIRRORED_RAINBOW_STOPS : MIRRORED_CYAN_STOPS,
+        isEuphoric
+          ? MIRRORED_RAINBOW_STOPS
+          : tintedStops(MIRRORED_CYAN_STOPS, RAMP_ROLES),
       );
 
       ghost(() => {

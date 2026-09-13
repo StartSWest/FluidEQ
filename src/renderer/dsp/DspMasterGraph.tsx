@@ -15,6 +15,7 @@ import {
 } from './masterLoudnessPlot';
 import { readDspLoudness, readDspPeak, useDspOutputSafetyMeter } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { BASE_CURVE_CSS } from './dspInks';
 
 /** Below this, the slow DC estimate is beneath a useful reporting floor. */
 const DC_REPORT_THRESHOLD_DB = -60;
@@ -464,7 +465,10 @@ const DspMasterGraph = ({
           {t('dsp.master.graph.momentary')}
         </li>
         <li className="dsp-eq-legend-item">
-          <span className="dsp-eq-legend-mark" style={{ color: '#40d6c8' }} />
+          <span
+            className="dsp-eq-legend-mark"
+            style={{ color: BASE_CURVE_CSS }}
+          />
           {t('dsp.master.graph.shortTerm')}
         </li>
         <li className="dsp-eq-legend-item">

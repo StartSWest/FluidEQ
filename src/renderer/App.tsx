@@ -168,6 +168,8 @@ import {
 import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
 import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
+import ScenePulse from './components/ScenePulse';
+import SceneTint from './components/SceneTint';
 import {
   createPreset,
   deletePreset,
@@ -3130,6 +3132,13 @@ export default function App() {
                 meant to reach the whole window. It renders nothing; it puts the
                 streak on the document root where every stylesheet can see it. */}
             <EuphoriaGlow />
+            {/* The window in the chosen Plus visualizer's colour, when that
+                is switched on. Here for the same reason: the colour outlives
+                the graph being on screen. Renders nothing. */}
+            <SceneTint />
+            {/* The window beating with that visualizer, when its mode asks
+                for it; nothing in the page otherwise. */}
+            <ScenePulse />
             {/* Counts listening while music plays. Renders nothing, sends
                 nothing anywhere unless the person joined the leaderboard. */}
             <UsageMeter />

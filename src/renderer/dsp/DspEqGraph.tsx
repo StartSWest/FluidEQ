@@ -21,6 +21,7 @@ import {
   readAccentLight,
   readSurfaceAlpha,
 } from '../utils/theme';
+import { spectrumInk } from './dspInks';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -401,9 +402,10 @@ const DspEqGraph = ({
         }
         context.lineTo(PAD_L + plotW(W), floorY);
         context.closePath();
-        context.fillStyle = readAccent(0.1, 'rgba(0,229,207,0.10)');
+        const spectrum = spectrumInk();
+        context.fillStyle = `rgba(${spectrum}, 0.1)`;
         context.fill();
-        context.strokeStyle = readAccent(0.22, 'rgba(0,229,207,0.22)');
+        context.strokeStyle = `rgba(${spectrum}, 0.22)`;
         context.lineWidth = 1;
         context.stroke();
       }

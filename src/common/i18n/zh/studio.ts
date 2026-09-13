@@ -225,16 +225,17 @@ const studio = {
   'studio.meter.treble': '高音',
   'studio.meter.accent': '重音',
 
-  'studio.signals.title': '测试信号',
-  'studio.signals.hint': '测试信号只驱动舞台，绝不会改动你的音乐。',
-  'studio.signal.live': '实时音乐',
+  'studio.signals.title': '预览音频',
+  'studio.signals.hint':
+    '场景始终随每位用户自己的音乐变化。测试信号仅用于当前预览，不会保存或发布，也不会改变你的音频。',
+  'studio.signal.live': '你的音乐',
   'studio.signal.silence': '静音',
   'studio.signal.bass': '低音',
   'studio.signal.mid': '中音',
   'studio.signal.treble': '高音',
   'studio.signal.beat': '节拍',
   'studio.signal.accent': '重音',
-  'studio.signal.showcase': '全部一起',
+  'studio.signal.showcase': '模拟混音',
   'studio.signalHint.live':
     '这台电脑上正在播放的声音，和场景在图表上听到的一样。',
   'studio.signalHint.silence': '什么都没有。好的场景在这里休息，只缓慢漂移。',
@@ -298,6 +299,9 @@ const studio = {
   'studio.wave.hint':
     '使用此场景的人可以在图表的“视图”中更改这两项。试试极端情况：很低的波形，或抬高到中间的波形。',
   'studio.wave.fixed': '此场景为频谱预留了自己的区域，因此这两项不会改变它。',
+  'studio.tint.label': '搭配此场景的 FluidEQ',
+  'studio.tint.hint':
+    '在这里创作时，整个应用可以采用场景的颜色，或随音乐在它周围柔和发光，方便你看看并感受它作为主题的效果。',
   'studio.grid.label': '显示图表网格',
   'studio.grid.hint':
     '在场景上叠加图表的频率线和电平线，并保留它们在图表上占用的边距，方便测量波形和场景各部分的位置。',

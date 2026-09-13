@@ -250,17 +250,17 @@ const studio = {
   'studio.meter.treble': 'Agudos',
   'studio.meter.accent': 'Acento',
 
-  'studio.signals.title': 'Testar com',
+  'studio.signals.title': 'Áudio da prévia',
   'studio.signals.hint':
-    'Os sinais de teste só movem o palco. Sua música nunca é alterada.',
-  'studio.signal.live': 'Música ao vivo',
+    'Os usuários sempre veem a cena reagir à própria música. Os sinais de teste só movem esta prévia: não são salvos nem publicados e nunca alteram seu áudio.',
+  'studio.signal.live': 'Sua música',
   'studio.signal.silence': 'Silêncio',
   'studio.signal.bass': 'Graves',
   'studio.signal.mid': 'Médios',
   'studio.signal.treble': 'Agudos',
   'studio.signal.beat': 'Batida',
   'studio.signal.accent': 'Acento',
-  'studio.signal.showcase': 'Tudo junto',
+  'studio.signal.showcase': 'Mistura simulada',
   'studio.signalHint.live':
     'O que toca neste computador, como a cena vai ouvir no gráfico.',
   'studio.signalHint.silence':
@@ -336,6 +336,9 @@ const studio = {
     'Quem usar a cena pode alterá-las em Visualização, no gráfico. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.wave.fixed':
     'Esta cena reserva a própria faixa para o espectro, então estes dois ajustes não a alteram.',
+  'studio.tint.label': 'O FluidEQ com esta cena',
+  'studio.tint.hint':
+    'Enquanto você trabalha aqui, todo o app pode assumir as cores da cena, ou brilhar suavemente ao redor dela com a música, para ver e sentir como fica como tema.',
   'studio.grid.label': 'Mostrar a grade do gráfico',
   'studio.grid.hint':
     'As linhas de frequência e de nível do gráfico sobre a cena, com o espaço que ocupam nele, para medir onde a onda e cada parte da cena ficam.',

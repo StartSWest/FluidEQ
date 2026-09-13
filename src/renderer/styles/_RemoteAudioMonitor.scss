@@ -227,7 +227,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: $analogous-2;
+  color: $active;
   font-weight: $weight-semibold;
 
   &::before {
@@ -235,8 +235,8 @@
     height: 5px;
     flex: 0 0 auto;
     border-radius: 50%;
-    background: $analogous-2;
-    box-shadow: 0 0 7px rgba($analogous-2, 0.58);
+    background: $active;
+    box-shadow: 0 0 7px color-mix(in srgb, $active 58%, transparent);
     content: '';
   }
 

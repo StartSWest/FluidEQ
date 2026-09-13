@@ -15,6 +15,7 @@ import {
   readDspScatter,
 } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { fieldInk } from './dspInks';
 
 /**
  * The stereo field itself, beside the shape the dials are asking for.
@@ -195,7 +196,7 @@ const DspDimensionGraph = ({
       if (!enabled || pairs.length < 2) {
         return;
       }
-      context.fillStyle = 'rgba(150, 205, 255, 0.55)';
+      context.fillStyle = `rgba(${fieldInk()}, 0.55)`;
       for (let at = 0; at + 1 < pairs.length; at += 2) {
         const left = pairs[at];
         const right = pairs[at + 1];
@@ -253,7 +254,7 @@ const DspDimensionGraph = ({
       }
       context.lineTo(width, height);
       context.closePath();
-      context.fillStyle = 'rgba(150, 205, 255, 0.30)';
+      context.fillStyle = `rgba(${fieldInk()}, 0.30)`;
       context.fill();
 
       // Mid as a line above it, so the two are read as a ratio rather than as
@@ -346,7 +347,7 @@ const DspDimensionGraph = ({
       context.lineTo(points[points.length - 1].x, unityY);
       context.closePath();
       context.fillStyle = enabled
-        ? 'rgba(120, 190, 255, 0.16)'
+        ? `rgba(${fieldInk()}, 0.16)`
         : 'rgba(255, 255, 255, 0.05)';
       context.fill();
 
@@ -357,7 +358,7 @@ const DspDimensionGraph = ({
           : context.lineTo(point.x, point.y),
       );
       context.strokeStyle = enabled
-        ? 'rgba(150, 205, 255, 0.92)'
+        ? `rgba(${fieldInk()}, 0.92)`
         : 'rgba(255, 255, 255, 0.24)';
       context.lineWidth = 2;
       context.stroke();

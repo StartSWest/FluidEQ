@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
@@ -10,6 +17,7 @@ import useSceneRunner, {
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
 import StudioGraphPaper from './StudioGraphPaper';
+import { reportSceneBeat } from '../utils/scenePulse';
 import StudioStageLoading from './StudioStageLoading';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
@@ -169,12 +177,18 @@ export default function StudioStage({
 
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
+  // The element the scene draws in, once the runner has made it: where the
+  // window's pulse starts from.
+  const hostRef = useRef<RefObject<Element | null>>(undefined);
   const onFrame = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard) => {
       if (!firstFrame.current && frame.fade > 0) {
         firstFrame.current = true;
         setSettled(true);
       }
+      // The window beats on the beats this stage is drawing, when the
+      // Studio's mode asks it to (`ScenePulse.tsx`).
+      reportSceneBeat('studio', frame, hostRef.current?.current);
       drawnRef.current(frame, drawnScale, accent, heard);
     },
     [],
@@ -195,7 +209,7 @@ export default function StudioStage({
     [spectrumRange, wave],
   );
 
-  const canvasRef = useSceneRunner({
+  const sceneRef = useSceneRunner({
     source,
     width: box.width,
     height: box.height,
@@ -204,6 +218,7 @@ export default function StudioStage({
     ...(tuning ? { tuning } : {}),
     onDrawn: onFrame,
   });
+  hostRef.current = sceneRef;
 
   return (
     <div className="studio-stage__well">
@@ -222,7 +237,7 @@ export default function StudioStage({
         }}
       >
         <canvas
-          ref={canvasRef}
+          ref={sceneRef}
           className="studio-stage__canvas"
           aria-label={t('studio.stage.label', { name: pack.names.en })}
           style={{ width: box.width, height: box.height }}

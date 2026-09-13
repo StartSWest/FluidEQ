@@ -259,17 +259,17 @@ const studio = {
   'studio.meter.treble': 'Treble',
   'studio.meter.accent': 'Accent',
 
-  'studio.signals.title': 'Test with',
+  'studio.signals.title': 'Preview audio',
   'studio.signals.hint':
-    'Test signals only drive the stage. Your music is never touched.',
-  'studio.signal.live': 'Live music',
+    'Listeners always see the scene react to their own music. Test signals only drive this preview: they are not saved or published and never change your audio.',
+  'studio.signal.live': 'Your music',
   'studio.signal.silence': 'Silence',
   'studio.signal.bass': 'Bass',
   'studio.signal.mid': 'Mids',
   'studio.signal.treble': 'Treble',
   'studio.signal.beat': 'Beat',
   'studio.signal.accent': 'Accent',
-  'studio.signal.showcase': 'Everything',
+  'studio.signal.showcase': 'Simulated mix',
   'studio.signalHint.live':
     'What is playing on this computer, as the scene will hear it on the graph.',
   'studio.signalHint.silence':
@@ -346,6 +346,12 @@ const studio = {
     'Anyone using the scene can change these under View on the graph. Try the extremes: a low wave, or one lifted to the middle.',
   'studio.wave.fixed':
     'This scene reserves its own band for the spectrum, so these two do not change it.',
+
+  // A switch under the size: the whole app in the colour of the scene on the
+  // stage, for judging it as a theme without leaving the Studio.
+  'studio.tint.label': 'FluidEQ with this scene',
+  'studio.tint.hint':
+    'While you work here, the whole app can take the scene’s colours, or glow softly around it with the music, so you can see and feel it as a theme.',
   'studio.grid.label': 'Show the graph grid',
   'studio.grid.hint':
     'Its frequency and level lines over the scene, with the room they take on the graph, so you can measure where the wave and each part of the scene land.',

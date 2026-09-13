@@ -42,6 +42,56 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: stroke-dashoffset 120ms ease;
   }
 
+  // The body's and the face's gradients (`Knob.tsx`), by class rather than by
+  // attribute so a scene's tint can reach them. At rest they are the slate
+  // they were chosen as, one rung over the field; under a Plus scene's tint
+  // (`data-scene-tint` on the root, `sceneTintStore.ts`) the same rungs are
+  // built from the scene's field and lit with its light accent, so the knob is
+  // not the one blue disc left in a window the scene has recoloured.
+  &__stop--body-top {
+    stop-color: #33637e;
+  }
+
+  &__stop--body-mid,
+  &__stop--face-top {
+    stop-color: #27526b;
+  }
+
+  &__stop--body-edge {
+    stop-color: #224a61;
+  }
+
+  &__stop--face-edge {
+    stop-color: #21475d;
+  }
+
+  &__stop--mist {
+    stop-color: #d6e9f7;
+  }
+
+  :root[data-scene-tint] & {
+    &__stop--body-top {
+      stop-color: color-mix(in oklab, $surface-field, $secondary-light 22%);
+    }
+
+    &__stop--body-mid,
+    &__stop--face-top {
+      stop-color: color-mix(in oklab, $surface-field, $secondary-light 13%);
+    }
+
+    &__stop--body-edge {
+      stop-color: color-mix(in oklab, $surface-field, $secondary-light 8%);
+    }
+
+    &__stop--face-edge {
+      stop-color: color-mix(in oklab, $surface-field, $secondary-light 6%);
+    }
+
+    &__stop--mist {
+      stop-color: color-mix(in oklab, $secondary-light, $white 45%);
+    }
+  }
+
   // What the body casts onto the panel. Offset downward only — one light, from
   // above, which is the same light the body's own gradient is lit by.
   &__shadow {

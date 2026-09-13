@@ -10,6 +10,7 @@ import { IMaximizerSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspMaximizerReduction, readDspPeak } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { BASE_CURVE_CSS, baseCurveInk } from './dspInks';
 
 /**
  * What the Maximizer did to the last six seconds of the record.
@@ -86,7 +87,6 @@ const GR_TICKS_DB = [0, 3, 6, 12];
 const GRAPH_FONT =
   '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
 
-const OUTPUT_INK = '64, 214, 200';
 const HELD_INK = '255, 176, 89';
 const IDLE_INK = '255, 255, 255';
 
@@ -298,7 +298,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
 
       // The wave itself, mirrored about the axis. One path for both halves:
       // out along the top and back along the bottom.
-      const ink = enabled ? OUTPUT_INK : IDLE_INK;
+      const ink = enabled ? baseCurveInk() : IDLE_INK;
       context.beginPath();
       for (let index = 0; index < HISTORY; index += 1) {
         const at = (writeAt.current + index) % HISTORY;
@@ -373,7 +373,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
           0,
           PAD_T + plotHeight,
         );
-        meterInk.addColorStop(0, `rgba(${OUTPUT_INK},0.85)`);
+        meterInk.addColorStop(0, `rgba(${baseCurveInk()},0.85)`);
         meterInk.addColorStop(1, `rgba(${HELD_INK},0.95)`);
         context.fillStyle = meterInk;
         context.fillRect(meterX, PAD_T, meterWidth, depthHeight);
@@ -462,7 +462,9 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgba(${OUTPUT_INK},0.6)` }}
+            style={{
+              color: `color-mix(in srgb, ${BASE_CURVE_CSS} 60%, transparent)`,
+            }}
           />
           {t('dsp.maximizer.graph.output')}
           <span className="dsp-eq-legend-scale">dBFS</span>

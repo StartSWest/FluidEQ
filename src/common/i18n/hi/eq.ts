@@ -109,6 +109,14 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'विज़ुअलाइज़र अपने आप बदलें',
   'graph.autoSwitch.off': 'ऑटो: बंद',
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
+  'graph.sceneTint.cycle': 'FluidEQ: {mode}। {next} के लिए क्लिक करें',
+  'graph.sceneTint.mode.off': 'ऐप की थीम',
+  'graph.sceneTint.mode.tint': 'विज़ुअलाइज़र के रंग',
+  'graph.sceneTint.mode.pulse':
+    'विज़ुअलाइज़र के रंग, उसके आसपास उसकी रोशनी के साथ',
+  'graph.sceneTint.short.off': 'थीम',
+  'graph.sceneTint.short.tint': 'रंग',
+  'graph.sceneTint.short.pulse': 'माहौल',
   'graph.member.mine': 'आपके बनाए',
   'graph.member.theirs': 'सदस्यों के बनाए',
   'graph.member.by': '{name} द्वारा',
@@ -120,6 +128,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': 'विज़ुअलाइज़र लोड हो रहा है…',
   'graph.scene.attack': 'अटैक',
   'graph.scene.attackHint':
     'यह विज़ुअलाइज़र संगीत के साथ कितनी तेज़ी से उठता है। छोटा हो तो तीखा, लंबा हो तो धीरे-धीरे बढ़ता है।',

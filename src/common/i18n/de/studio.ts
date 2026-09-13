@@ -259,17 +259,17 @@ const studio = {
   'studio.meter.treble': 'Höhen',
   'studio.meter.accent': 'Akzent',
 
-  'studio.signals.title': 'Testen mit',
+  'studio.signals.title': 'Audio für die Vorschau',
   'studio.signals.hint':
-    'Testsignale bewegen nur die Bühne. Ihre Musik wird nie verändert.',
-  'studio.signal.live': 'Live-Musik',
+    'Die Szene reagiert bei allen Nutzern auf deren eigene Musik. Testsignale steuern nur diese Vorschau: Sie werden weder gespeichert noch veröffentlicht und verändern Ihren Ton nicht.',
+  'studio.signal.live': 'Ihre Musik',
   'studio.signal.silence': 'Stille',
   'studio.signal.bass': 'Bass',
   'studio.signal.mid': 'Mitten',
   'studio.signal.treble': 'Höhen',
   'studio.signal.beat': 'Schlag',
   'studio.signal.accent': 'Akzent',
-  'studio.signal.showcase': 'Alles zugleich',
+  'studio.signal.showcase': 'Testmix',
   'studio.signalHint.live':
     'Was auf diesem Computer läuft, so wie die Szene es im Diagramm hört.',
   'studio.signalHint.silence':
@@ -346,6 +346,9 @@ const studio = {
     'Wer die Szene nutzt, kann beides unter Ansicht im Diagramm ändern. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
   'studio.wave.fixed':
     'Diese Szene reserviert ihren eigenen Bereich für das Spektrum, daher ändern diese beiden sie nicht.',
+  'studio.tint.label': 'FluidEQ mit dieser Szene',
+  'studio.tint.hint':
+    'Solange Sie hier arbeiten, kann die ganze App die Farben der Szene annehmen oder mit der Musik sanft um sie herum leuchten – so sehen und spüren Sie sie als Design.',
   'studio.grid.label': 'Raster des Diagramms zeigen',
   'studio.grid.hint':
     'Seine Frequenz- und Pegellinien über der Szene, mit dem Platz, den sie im Diagramm einnehmen – so messen Sie, wo die Welle und jeder Teil der Szene liegen.',

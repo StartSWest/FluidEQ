@@ -111,6 +111,13 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'ビジュアライザーの自動切り替え',
   'graph.autoSwitch.off': '自動: オフ',
   'graph.autoSwitch.every': '自動: {seconds}秒',
+  'graph.sceneTint.cycle': 'FluidEQ：{mode}。クリックで{next}',
+  'graph.sceneTint.mode.off': 'アプリのテーマ',
+  'graph.sceneTint.mode.tint': 'ビジュアライザーの色',
+  'graph.sceneTint.mode.pulse': 'ビジュアライザーの色と、周りに広がる光',
+  'graph.sceneTint.short.off': 'テーマ',
+  'graph.sceneTint.short.tint': '色',
+  'graph.sceneTint.short.pulse': '環境光',
   'graph.member.mine': 'あなたが作成',
   'graph.member.theirs': 'メンバーが作成',
   'graph.member.by': '作者: {name}',
@@ -122,6 +129,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': 'ビジュアライザーを読み込み中…',
   'graph.scene.attack': 'アタック',
   'graph.scene.attackHint':
     'このビジュアライザーが音楽にどれだけ速く反応して上がるか。短いと鋭く、長いとふくらみます。',

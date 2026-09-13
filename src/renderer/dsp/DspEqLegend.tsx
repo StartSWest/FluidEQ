@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { readAccent } from '../utils/theme';
+import { SPECTRUM_CSS } from './dspInks';
 
 interface IDspEqLegendProps {
   /** Any band set to react, so the at-rest twin is on screen. */
@@ -55,7 +56,7 @@ const DspEqLegend = ({
     },
     {
       key: 'dsp.eq.legend.spectrum',
-      colour: readAccent(0.5, 'rgba(0,229,207,0.5)'),
+      colour: `color-mix(in srgb, ${SPECTRUM_CSS} 50%, transparent)`,
       isDashed: false,
       isFilled: true,
       scale: 'level',

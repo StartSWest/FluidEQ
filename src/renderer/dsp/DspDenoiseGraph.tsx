@@ -23,6 +23,7 @@ import {
   readDspSampleRate,
 } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
+import { appliedInk, outputInk } from './dspInks';
 
 /**
  * The spectrum leaving the stage, with everything acting on it drawn on top.
@@ -133,8 +134,6 @@ const GRID_DB = [-30, -60, -90, -120];
 const SPECTRUM_INK = '255, 255, 255';
 /** Warm, matching the amber this app already uses for "pay attention". */
 const FLOOR_INK = '255, 176, 89';
-/** Violet is reserved here for the floor after the actual hiss gain. */
-const HISS_ACTION_INK = '197, 138, 249';
 const HUM_INK = '84, 200, 255';
 /** Green, because this lane reports activity rather than a level. */
 const CLICK_INK = '150, 222, 143';
@@ -364,9 +363,10 @@ const DspDenoiseGraph = ({
         }
         context.lineTo(PAD_L + plotW, floorY);
         context.closePath();
-        context.fillStyle = `rgba(${SPECTRUM_INK}, 0.08)`;
+        const output = outputInk();
+        context.fillStyle = `rgba(${output}, 0.08)`;
         context.fill();
-        context.strokeStyle = `rgba(${SPECTRUM_INK}, 0.22)`;
+        context.strokeStyle = `rgba(${output}, 0.22)`;
         context.stroke();
       }
 
@@ -454,7 +454,9 @@ const DspDenoiseGraph = ({
               context.lineTo(PAD_L + x, y);
             }
           }
-          context.strokeStyle = `rgba(${HISS_ACTION_INK}, 0.95)`;
+          // Violet, or the scene's "on" colour (`dspInks.ts`): reserved here
+          // for the floor after the actual hiss gain.
+          context.strokeStyle = `rgba(${appliedInk()}, 0.95)`;
           context.lineWidth = 1.75;
           context.stroke();
         }

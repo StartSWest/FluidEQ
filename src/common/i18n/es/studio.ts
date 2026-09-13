@@ -254,17 +254,17 @@ const studio = {
   'studio.meter.treble': 'Agudos',
   'studio.meter.accent': 'Acento',
 
-  'studio.signals.title': 'Probar con',
+  'studio.signals.title': 'Audio de la vista previa',
   'studio.signals.hint':
-    'Las señales de prueba solo mueven el escenario. Tu música no se modifica nunca.',
-  'studio.signal.live': 'Música en vivo',
+    'Los usuarios siempre ven la escena reaccionar a su propia música. Las señales de prueba solo mueven esta vista previa: no se guardan ni se publican y nunca cambian tu audio.',
+  'studio.signal.live': 'Tu música',
   'studio.signal.silence': 'Silencio',
   'studio.signal.bass': 'Graves',
   'studio.signal.mid': 'Medios',
   'studio.signal.treble': 'Agudos',
   'studio.signal.beat': 'Golpe',
   'studio.signal.accent': 'Acento',
-  'studio.signal.showcase': 'Todo junto',
+  'studio.signal.showcase': 'Mezcla simulada',
   'studio.signalHint.live':
     'Lo que suena en este equipo, tal como lo oirá la escena en la gráfica.',
   'studio.signalHint.silence':
@@ -340,6 +340,9 @@ const studio = {
     'Quien use la escena puede cambiarlas en Vista, en la gráfica. Prueba los extremos: una onda baja o subida hasta el centro.',
   'studio.wave.fixed':
     'Esta escena reserva su propia franja para el espectro, así que estos dos ajustes no la cambian.',
+  'studio.tint.label': 'FluidEQ con esta escena',
+  'studio.tint.hint':
+    'Mientras trabajas aquí, toda la app puede tomar los colores de la escena, o brillar suavemente a su alrededor con la música, para que la veas y la sientas como tema.',
   'studio.grid.label': 'Mostrar la cuadrícula de la gráfica',
   'studio.grid.hint':
     'Sus líneas de frecuencia y nivel sobre la escena, con el espacio que ocupan en la gráfica, para medir dónde caen la onda y cada parte de la escena.',

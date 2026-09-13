@@ -110,6 +110,14 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Cambio automático de visualizadores',
   'graph.autoSwitch.off': 'Auto: No',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
+  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Pulsa para {next}',
+  'graph.sceneTint.mode.off': 'el tema de la app',
+  'graph.sceneTint.mode.tint': 'los colores del visualizador',
+  'graph.sceneTint.mode.pulse':
+    'los colores del visualizador, con su luz alrededor',
+  'graph.sceneTint.short.off': 'Tema',
+  'graph.sceneTint.short.tint': 'Colores',
+  'graph.sceneTint.short.pulse': 'Ambiente',
   'graph.member.mine': 'Hechos por ti',
   'graph.member.theirs': 'Hechos por miembros',
   'graph.member.by': 'por {name}',
@@ -121,6 +129,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': 'Cargando visualizador…',
   'graph.scene.attack': 'Ataque',
   'graph.scene.attackHint':
     'Qué tan rápido sube este visualizador con la música. Corto es contundente; largo, crece despacio.',

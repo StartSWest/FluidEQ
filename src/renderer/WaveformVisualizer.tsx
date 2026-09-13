@@ -63,6 +63,7 @@ import {
   BASELINE_DASH,
   BASELINE_STROKE,
   BODY_STOPS,
+  BODY_TINT_ROLES,
   CLIP_LAYERS,
   EUPHORIA_GLOW_ALPHA,
   FFT_WAVEFORM_STYLES,
@@ -85,6 +86,7 @@ import {
   SOFT_GLOW_WAVEFORM_STYLES,
   TRACE_CYAN_STOPS,
   TRACE_RAINBOW_STOPS,
+  TRACE_TINT_ROLES,
   WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_BLEED,
   WAVEFORM_HEIGHT,
@@ -112,6 +114,7 @@ import {
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import { readAccentLight } from './utils/theme';
+import { tintedSpectrumHue, tintedStops } from './utils/sceneAccentRamp';
 import './styles/WaveformVisualizer.scss';
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
@@ -523,7 +526,7 @@ const WaveformVisualizer = () => {
         },
         buffer,
         isEuphoricRef.current,
-        SPECTRUM_HUE_FLAT,
+        tintedSpectrumHue(SPECTRUM_HUE_FLAT),
         // No look to tune here — the pane is what it is, so this is always
         // the spacing the form was drawn at.
         0,
@@ -540,7 +543,7 @@ const WaveformVisualizer = () => {
     // together, and the mode carries the difference, not the shape.
     const traceStops = isEuphoricRef.current
       ? TRACE_RAINBOW_STOPS
-      : TRACE_CYAN_STOPS;
+      : tintedStops(TRACE_CYAN_STOPS, TRACE_TINT_ROLES);
     const traceRamp = context.createLinearGradient(
       WAVEFORM_BLEED,
       0,
@@ -603,7 +606,7 @@ const WaveformVisualizer = () => {
           WAVEFORM_BLEED + boxWidth,
           0,
         );
-        BODY_STOPS.forEach((stop) => {
+        tintedStops(BODY_STOPS, BODY_TINT_ROLES).forEach((stop) => {
           bodyRamp.addColorStop(stop.offset, stop.colour);
         });
         ramp = bodyRamp;

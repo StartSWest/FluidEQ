@@ -1,4 +1,5 @@
 import { readTextInk, readAccent } from '../utils/theme';
+import { baseCurveInk } from './dspInks';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -113,7 +114,6 @@ export interface IMasterLoudnessPlot {
 }
 
 const tealFill = () => readAccent(0.14, 'rgba(0,229,207,0.14)');
-const TEAL_LINE = 'rgba(64,214,200,0.96)';
 const AMBER = 'rgba(255,176,89,0.85)';
 const AMBER_FILL = 'rgba(255,176,89,0.16)';
 const RED = 'rgba(255,88,112,0.92)';
@@ -256,7 +256,7 @@ export const paintMasterLoudness = (
         context.lineTo(columnX(age), y);
       }
     }
-    context.strokeStyle = TEAL_LINE;
+    context.strokeStyle = `rgba(${baseCurveInk()},0.96)`;
     context.lineWidth = 2;
     context.stroke();
   }

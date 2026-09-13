@@ -1822,9 +1822,27 @@ textarea,
   // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
   // drawn in, which stays `$analogous-2` and its neighbours.
   --active: #{$analogous-2};
+  // The DSP page's second and third drawing colours, beside the accent: the
+  // teal a stage's output curve is drawn in, and the amber that stands for
+  // "the other side" of a pair — the crossfade's outgoing track, the
+  // normalizer's level before it. Under a Plus scene both become its "on"
+  // colour (below), so a tinted DSP page draws in two of the scene's colours
+  // and not one; the series a legend names in a colour of its own keep it.
+  --dsp-base-curve: #40d6c8;
+  --dsp-contrast: #{$amber};
+  // The spectrum a stage passes on, and what it actually did to the sound.
+  --dsp-output: #ffffff;
+  --dsp-applied: #c58af9;
+  // A stage's second series, and the Dimension page's stereo field.
+  --dsp-sky: #54c8ff;
+  --dsp-field: #96cdff;
+  // The EQ page's live spectrum under its curve.
+  --dsp-spectrum: var(--accent);
   // Smart EQ's listening bands: the columns over the plot and the confidence
-  // bar under each. Ocean paints them in its accent, as it always has.
-  --coverage-band: #00e5cf;
+  // bar under each. Ocean paints them in its accent, as it always has — by
+  // reference, so a Plus scene lending the window its accent recolours these
+  // with it rather than leaving cyan columns under a pink curve.
+  --coverage-band: var(--accent);
 }
 
 // Black: near-black, cool, and quiet — not a high-contrast theme.
@@ -1869,6 +1887,45 @@ textarea,
   // shading on the floor, and leaves the accent to the things that are
   // chosen or live.
   --coverage-band: #7a8594;
+}
+
+// While a Plus scene lends the window its colours the root is marked
+// (`sceneTintStore.ts`), and the colours kept for contrast take the scene's
+// "on" colour, which is chosen well away from the accent and from red and
+// amber.
+:root[data-scene-tint] {
+  --dsp-base-curve: var(--active);
+  --dsp-contrast: var(--active);
+  // As the EQ page: the spectrum under the curve in the second colour, the
+  // line that says what the stage did in the accent.
+  --dsp-output: var(--active);
+  --dsp-applied: var(--accent);
+  --dsp-sky: var(--accent-light);
+  --dsp-field: var(--active);
+  --dsp-spectrum: var(--active);
+}
+
+// A Plus visualizer lending the window its colour (`sceneTintStore.ts`)
+// arrives as one captured frame fading into the live window.
+//
+// Slower than any other motion in the app, and deliberately: nothing moves,
+// the light in the room changes, and at the 300ms a panel opens in the whole
+// window blinks instead. It follows the auto-cycle too, so it happens while
+// nobody is looking for it.
+//
+// The overlay the fade is drawn in would take every click for its length;
+// with the change arriving on its own, in the middle of somebody dragging a
+// band, the pointer has to reach the window underneath.
+:root:active-view-transition-type(scene-tint) {
+  &::view-transition {
+    pointer-events: none;
+  }
+
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    animation-duration: 520ms;
+    animation-timing-function: $ease-out;
+  }
 }
 
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,

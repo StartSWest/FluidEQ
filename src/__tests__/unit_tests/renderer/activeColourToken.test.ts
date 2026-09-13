@@ -54,12 +54,39 @@ describe('the "on" colour', () => {
     expect(values).not.toContain(LIME);
   });
 
-  it('leaves a traffic light green: the Studio says a scene runs smoothly in green, not in a scene’s colour', () => {
-    const values = valuesFor(
-      compileStylesheet('StudioStage.scss'),
-      '.studio-cost__dot',
-      'background',
-    );
-    expect(values[0]).toBe(LIME);
+  // A healthy light says "on" too, and takes the scene's colour with the
+  // rest; its warnings stay amber and red, which the scene's "on" colour is
+  // chosen far enough from never to be mistaken for (`sceneTint.ts`).
+  it.each([
+    ['StudioStage.scss', '.studio-cost', 'background'],
+    ['_RemoteAudioMonitor.scss', '.remote-audio__network-health', 'background'],
+  ])(
+    '%s lights a healthy %s in the token and its warnings in their own colours',
+    (file, block, property) => {
+      const rules = styleRules(compileStylesheet(file)).filter(
+        ({ selectors, declarations }) =>
+          selectors.some((selector) => selector.startsWith(block)) &&
+          declarations.has(property),
+      );
+      const values = rules.map(({ declarations }) =>
+        declarations.get(property),
+      );
+      expect(values[0]).toBe('var(--active)');
+      expect(values.slice(1).length).toBeGreaterThan(0);
+      values.slice(1).forEach((value) => {
+        expect(value).not.toBe('var(--active)');
+        expect(value).not.toBe(LIME);
+      });
+    },
+  );
+
+  it('marks Equalizer APO’s configuration as applied, and the output playing, with the token', () => {
+    const css = compileStylesheet('ConfigInspector.scss');
+    expect(valuesFor(css, '.config-card__badge', 'color')).toEqual([
+      'var(--active)',
+    ]);
+    expect(
+      valuesFor(css, '.config-card.is-current', 'box-shadow').join(),
+    ).toContain('var(--active)');
   });
 });

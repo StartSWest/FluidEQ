@@ -255,17 +255,17 @@ const studio = {
   'studio.meter.treble': '高音',
   'studio.meter.accent': 'アクセント',
 
-  'studio.signals.title': 'テスト信号',
+  'studio.signals.title': 'プレビューの音声',
   'studio.signals.hint':
-    'テスト信号が動かすのはステージだけです。音楽そのものには一切触れません。',
-  'studio.signal.live': 'ライブ音楽',
+    'シーンは各ユーザー自身の音楽に反応します。テスト信号はこのプレビュー専用で、保存・公開されず、再生中の音声も変えません。',
+  'studio.signal.live': 'あなたの音楽',
   'studio.signal.silence': '無音',
   'studio.signal.bass': '低音',
   'studio.signal.mid': '中音',
   'studio.signal.treble': '高音',
   'studio.signal.beat': 'ビート',
   'studio.signal.accent': 'アクセント',
-  'studio.signal.showcase': 'すべて同時',
+  'studio.signal.showcase': '模擬ミックス',
   'studio.signalHint.live':
     'このコンピューターで再生中の音。シーンがグラフで聴くのと同じです。',
   'studio.signalHint.silence':
@@ -339,6 +339,9 @@ const studio = {
     'シーンを使う人はグラフの「表示」でこれらを変更できます。極端な設定を試してください：低い波形や、中央まで持ち上げた波形。',
   'studio.wave.fixed':
     'このシーンはスペクトル用の帯を自分で確保しているため、この2つでは変わりません。',
+  'studio.tint.label': 'このシーンと FluidEQ',
+  'studio.tint.hint':
+    'ここで作業している間、アプリ全体をシーンの色にしたり、音楽に合わせてその周りをやわらかく光らせたりでき、テーマとしての見え方と感じ方を確かめられます。',
   'studio.grid.label': 'グラフのグリッドを表示',
   'studio.grid.hint':
     'グラフと同じ余白で、周波数とレベルの線をシーンに重ねます。波形やシーンの各部分がどこに来るかを測れます。',

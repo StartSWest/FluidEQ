@@ -110,6 +110,13 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Автосмена визуализаторов',
   'graph.autoSwitch.off': 'Авто: Выкл.',
   'graph.autoSwitch.every': 'Авто: {seconds}с',
+  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Нажмите — {next}',
+  'graph.sceneTint.mode.off': 'тема приложения',
+  'graph.sceneTint.mode.tint': 'цвета визуализатора',
+  'graph.sceneTint.mode.pulse': 'цвета визуализатора и его свет вокруг',
+  'graph.sceneTint.short.off': 'Тема',
+  'graph.sceneTint.short.tint': 'Цвета',
+  'graph.sceneTint.short.pulse': 'Атмосфера',
   'graph.member.mine': 'Созданы вами',
   'graph.member.theirs': 'Созданы участниками',
   'graph.member.by': 'автор: {name}',
@@ -121,6 +128,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.loading': 'Загрузка визуализатора…',
   'graph.scene.attack': 'Атака',
   'graph.scene.attackHint':
     'Как быстро этот визуализатор поднимается под музыку. Коротко — резко, долго — нарастает.',
