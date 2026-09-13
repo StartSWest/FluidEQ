@@ -1,0 +1,238 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// What an action in the Plus tab said back (`PlusToastStack.tsx`).
+//
+// Hung from the right of whatever pinned bar holds it and never part of the
+// page's flow, so arriving and leaving move nothing under it. The stack itself
+// lets the pointer through; only the cards take it.
+
+// How long something that went well stays up while nobody is on it. Read at a
+// glance: the longest of these sentences is about fifteen words.
+$toast-life: 7s;
+
+.plus-toasts {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  // Clipped sideways, never up or down. A card slides in from 16px to the
+  // right of the bar and leaves 14px to the right of it; the bar sits 4px
+  // from the edge of the Studio's scroll area, so for the length of either
+  // animation the card poked past it and a horizontal scrollbar appeared
+  // under the whole page. Clipped at this box, the card slides in from the
+  // stack's own edge and nothing outside it is asked to scroll. The room on
+  // the left is for the card's shadow, which the clip would otherwise cut.
+  padding-left: 40px;
+  overflow-x: clip;
+  pointer-events: none;
+}
+
+// Carries the gap below each card, so a card leaving takes its gap with it and
+// the ones under it close up rather than jump.
+.plus-toast-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  padding-bottom: 8px;
+}
+
+// The tone is the accent itself, not its light step: at the alphas an edge and
+// a glow take, the light step went to a grey that said nothing about success.
+// The ink — the mark and the line — is the light step, which is what reads on
+// the dark card.
+.plus-toast {
+  --plus-toast-tone: #{$secondary-default};
+  --plus-toast-ink: #{$secondary-light};
+  @include animate(slide-in-right, $motion-base);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 0;
+  padding: 9px 8px 9px 9px;
+  pointer-events: auto;
+  border: 1px solid color-mix(in srgb, var(--plus-toast-tone) 36%, transparent);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      130% 170% at 0% 50%,
+      color-mix(in srgb, var(--plus-toast-tone) 14%, transparent),
+      transparent 58%
+    ),
+    color-mix(in srgb, $surface-menu-top 97%, transparent);
+  box-shadow:
+    0 18px 38px -12px rgba($black, 0.65),
+    0 0 28px -8px color-mix(in srgb, var(--plus-toast-tone) 30%, transparent),
+    inset 0 1px rgba($white, 0.06);
+}
+
+.plus-toast--problem {
+  --plus-toast-tone: #{$amber};
+  --plus-toast-ink: #{$amber};
+}
+
+// The mark draws itself once the card has arrived: a tick being made reads as
+// the thing having just happened, where a static one reads as a state.
+.plus-toast__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--plus-toast-ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      color-mix(in srgb, var(--plus-toast-tone) 32%, transparent),
+      transparent 72%
+    ),
+    color-mix(in srgb, var(--plus-toast-tone) 9%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--plus-toast-tone) 38%, transparent),
+    0 0 16px color-mix(in srgb, var(--plus-toast-tone) 24%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+  }
+
+  // Longer than the tick (17.3 units on the glyph's grid) and than the
+  // exclamation's stroke, so one dash covers the whole path at rest.
+  path {
+    stroke-dasharray: 18;
+    @include animate(plus-toast-draw, $motion-slow, $ease-out, 110ms);
+  }
+}
+
+@keyframes plus-toast-draw {
+  from {
+    stroke-dashoffset: 18;
+  }
+}
+
+.plus-toast__text {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.45;
+  text-wrap: pretty;
+  // An exported scene's file name is one unbroken word, and it can be long.
+  overflow-wrap: anywhere;
+}
+
+.plus-toast__close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: $text-faint;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    border-color: $border-subtle;
+    background: color-mix(in srgb, $white 6%, transparent);
+    outline: none;
+  }
+}
+
+// Laid along the card's bottom border, clear of its rounded corners. Its end
+// is what sends the card out, so it is the one animation here reduced motion
+// keeps: a hairline shortening is not the movement that setting asks to spare.
+.plus-toast__life {
+  position: absolute;
+  right: 14px;
+  bottom: -1px;
+  left: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--plus-toast-tone) 30%, transparent),
+    var(--plus-toast-ink)
+  );
+  transform-origin: left center;
+  animation: plus-toast-life $toast-life linear forwards;
+}
+
+.plus-toast:hover .plus-toast__life,
+.plus-toast:focus-within .plus-toast__life {
+  animation-play-state: paused;
+}
+
+@keyframes plus-toast-life {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+// The way out: the card fades off to the right, then its place closes. The
+// place's own end is what removes it, so under reduced motion the card only
+// fades — something has to end for the toast to go.
+.plus-toast-slot.is-leaving {
+  animation: plus-toast-collapse $motion-base $ease-out 90ms forwards;
+
+  .plus-toast {
+    overflow: hidden;
+    pointer-events: none;
+    animation: plus-toast-out $motion-fast $ease-out forwards;
+  }
+}
+
+@keyframes plus-toast-collapse {
+  to {
+    grid-template-rows: 0fr;
+    padding-bottom: 0;
+  }
+}
+
+@keyframes plus-toast-out {
+  to {
+    opacity: 0;
+    translate: 14px 0;
+  }
+}
+
+@keyframes plus-toast-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plus-toast-slot.is-leaving .plus-toast {
+    animation-name: plus-toast-fade;
+  }
+}

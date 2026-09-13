@@ -27,6 +27,7 @@ export type TCommunityGlyph =
   | 'download'
   | 'close'
   | 'camera'
+  | 'alert'
   | 'image'
   | 'expand'
   | 'previous'
@@ -238,6 +239,9 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <circle cx="10" cy="11" r="3.2" />
           </>
         );
+      case 'alert':
+        // An exclamation mark, for something that did not go through.
+        return <path d="M10 4.5v7M10 15.2v.3" />;
       case 'image':
         // A framed picture: a sun over a hill.
         return (

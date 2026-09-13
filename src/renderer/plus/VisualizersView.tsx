@@ -4,11 +4,16 @@ import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { setGalleryNotice, useGalleryNotice } from './galleryActions';
+import {
+  setGalleryNotice,
+  useGalleryNotice,
+  type IGalleryNotice,
+} from './galleryActions';
 import { usePlusEntitled } from './GalleryParts';
 import { markGalleryStale } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
+import PlusToastStack from './PlusToastStack';
 import {
   galleryPageKey,
   galleryScrollOf,
@@ -135,7 +140,7 @@ export default function VisualizersView({
 
   return (
     <>
-      <header className="community__head">
+      <header className="community__head gallery-head">
         <span className="community__head-mark" aria-hidden="true">
           <Glyph name="looks" />
         </span>
@@ -147,6 +152,12 @@ export default function VisualizersView({
             {t('plus.visualizers.description')}
           </span>
         </span>
+        {/* Under the head, which stays put: Add and the heart are pressed
+            on cards far down the list, where a line at its top is not. */}
+        <PlusToastStack<IGalleryNotice>
+          sources={{ gallery: notice }}
+          text={(entry) => t(entry.key, entry.vars)}
+        />
       </header>
       <div
         ref={scrollRef}
@@ -157,14 +168,6 @@ export default function VisualizersView({
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
         {!entitled && page.kind !== 'mine' && <PlusBar />}
-        {notice && (
-          <p
-            className={`studio-notice gallery-notice${notice.ok ? ' studio-notice--ok' : ''}`}
-            role="status"
-          >
-            {t(notice.key, notice.vars)}
-          </p>
-        )}
         {content}
       </div>
     </>

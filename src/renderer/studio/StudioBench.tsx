@@ -7,6 +7,7 @@ import type {
 import { resolveSceneName } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import Glyph from '../community/Glyph';
+import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
 import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
@@ -21,7 +22,7 @@ import StudioSettings from './StudioSettings';
 import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
-import useStudioSharing from './useStudioSharing';
+import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import StudioStage, {
   type TStageDrawn,
   type TStageTrouble,
@@ -39,13 +40,6 @@ const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
   'pack.json': 'studio.file.pack',
   source: 'studio.file.source',
   artwork: 'studio.file.artwork',
-};
-
-type TBenchNotice = 'added' | 'addFailed' | undefined;
-
-const NOTICE_KEYS: Record<Exclude<TBenchNotice, undefined>, TranslationKey> = {
-  added: 'studio.notice.added',
-  addFailed: 'studio.notice.addFailed',
 };
 
 /** The first driver error line, which is the one worth reading. */
@@ -117,7 +111,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     [state.activeId, serial],
   );
   const [scale, setScale] = useState(1);
-  const [notice, setNotice] = useState<TBenchNotice>();
+  const [notice, setNotice] = useState<ISharingNotice>();
   const [naming, setNaming] = useState(false);
   const feed = useRef<TStageDrawn | undefined>(undefined);
   const sharing = useStudioSharing();
@@ -174,12 +168,19 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const closeNaming = useCallback(() => setNaming(false), []);
 
   const add = () => {
+    // A new object on every press, so adding again shows the toast again.
+    const failed = () =>
+      setNotice({ ok: false, key: 'studio.notice.addFailed' });
     addStudioSceneToLooks()
       .then((outcome) => {
-        setNotice(outcome.ok ? 'added' : 'addFailed');
+        if (outcome.ok) {
+          setNotice({ ok: true, key: 'studio.notice.added', vars: { name } });
+        } else {
+          failed();
+        }
         return undefined;
       })
-      .catch(() => setNotice('addFailed'));
+      .catch(failed);
   };
 
   let stage = (
@@ -246,25 +247,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     );
   }
 
-  const notices = [
-    picture.notice && {
-      ok: picture.notice.ok,
-      text: t(picture.notice.key),
-    },
-    sharing.notice && {
-      ok: sharing.notice.ok,
-      text: t(sharing.notice.key, sharing.notice.vars),
-    },
-    publishing.notice && {
-      ok: publishing.notice.ok,
-      text: t(publishing.notice.key, publishing.notice.vars),
-    },
-    notice && {
-      ok: notice === 'added',
-      text: t(NOTICE_KEYS[notice], { name }),
-    },
-  ].filter((entry): entry is { ok: boolean; text: string } => Boolean(entry));
-
   return (
     <div className="studio-bench">
       <div className="studio-bench__top">
@@ -274,17 +256,18 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           onOpenFile={sharing.openFile}
         />
         {project && <span className="studio-bench__status">{t(status)}</span>}
+        {/* In the pinned bar, so what an action says is in view wherever the
+            page was scrolled to when it was pressed. */}
+        <PlusToastStack<ISharingNotice>
+          sources={{
+            picture: picture.notice,
+            sharing: sharing.notice,
+            publishing: publishing.notice,
+            bench: notice,
+          }}
+          text={(entry) => t(entry.key, entry.vars)}
+        />
       </div>
-
-      {notices.map((entry) => (
-        <p
-          key={entry.text}
-          className={`studio-notice${entry.ok ? ' studio-notice--ok' : ''}`}
-          role="status"
-        >
-          {entry.text}
-        </p>
-      ))}
 
       <div className={`studio-bench__grid studio-bench__grid--${size}`}>
         <div className="studio-bench__stage">

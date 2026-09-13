@@ -6,6 +6,7 @@ import { premiumLookId, resolveSceneName } from 'common/scenePacks';
 import type { TMineOutcome } from 'main/ipc/plusPublishing';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import { setGalleryNotice } from './galleryActions';
 import GalleryListNotice from './GalleryListNotice';
 import { markGalleryStale } from './galleryStore';
 import { categoryKey, ScenePicture } from './GalleryParts';
@@ -44,7 +45,6 @@ export default function YourScenes({ me }: IYourScenesProps) {
   const [mine, setMine] = useState<TMine>({ state: 'loading' });
   const [confirming, setConfirming] = useState<string>();
   const [working, setWorking] = useState<string>();
-  const [notice, setNotice] = useState<{ ok: boolean; text: string }>();
   const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   const numbers = new Intl.NumberFormat(locale);
 
@@ -67,19 +67,26 @@ export default function YourScenes({ me }: IYourScenesProps) {
 
   useEffect(load, [load]);
 
+  // Said through the gallery's own line, which is shown under the gallery's
+  // head: a scene taken down from far down this list answered at the top of
+  // the list, out of sight.
   const unpublish = (scene: IPublishedScene, name: string) => {
     setWorking(publicationId(scene));
-    setNotice(undefined);
+    setGalleryNotice(undefined);
     window.electron?.ipcRenderer
       ?.unpublishScene?.(publicationId(scene))
       .then((outcome) => {
         setWorking(undefined);
         setConfirming(undefined);
         if (!outcome.ok) {
-          setNotice({ ok: false, text: t('plus.mine.failed') });
+          setGalleryNotice({ ok: false, key: 'plus.mine.failed' });
           return undefined;
         }
-        setNotice({ ok: true, text: t('plus.mine.unpublished', { name }) });
+        setGalleryNotice({
+          ok: true,
+          key: 'plus.mine.unpublished',
+          vars: { name },
+        });
         setMine((current) =>
           current.state === 'ready'
             ? {
@@ -95,7 +102,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
       })
       .catch(() => {
         setWorking(undefined);
-        setNotice({ ok: false, text: t('plus.mine.failed') });
+        setGalleryNotice({ ok: false, key: 'plus.mine.failed' });
       });
   };
 
@@ -112,15 +119,6 @@ export default function YourScenes({ me }: IYourScenesProps) {
           {t('plus.mine.openStudio')}
         </button>
       </div>
-
-      {notice && (
-        <p
-          className={`studio-notice${notice.ok ? ' studio-notice--ok' : ''}`}
-          role="status"
-        >
-          {notice.text}
-        </p>
-      )}
 
       {mine.state === 'failed' && (
         <GalleryListNotice text={t(mine.key)} onRetry={load} />

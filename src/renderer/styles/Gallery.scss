@@ -43,8 +43,11 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
-.gallery-notice {
-  @include animate(fade-in, $motion-fast);
+// Holds what the gallery says back (`PlusToastStack`), hanging below it over
+// the list. Above the cards' own raised controls, which sit at 2.
+.gallery-head {
+  position: relative;
+  z-index: 3;
 }
 
 .gallery-fine {
