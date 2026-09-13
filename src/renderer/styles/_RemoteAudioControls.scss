@@ -224,8 +224,8 @@
   }
 
   &.is-active > span {
-    background: $analogous-2;
-    box-shadow: 0 0 7px rgba($analogous-2, 0.58);
+    background: $active;
+    box-shadow: 0 0 7px color-mix(in srgb, $active 58%, transparent);
   }
 
   &.is-error {

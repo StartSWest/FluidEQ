@@ -34,9 +34,9 @@ body:has(.device-apo-notice:not(.engine-update-notice)) .engine-update-notice {
 
 // Done wears the app's "on" colour, the one the default-output badge wears.
 .device-apo-notice.engine-update-notice--done .apo-badge {
-  color: $analogous-2;
-  border-color: rgba($analogous-2, 0.4);
-  background: rgba($analogous-2, 0.1);
+  color: $active;
+  border-color: color-mix(in srgb, $active 40%, transparent);
+  background: color-mix(in srgb, $active 10%, transparent);
 }
 
 // The line saying it is working on the left and the buttons on the right, as

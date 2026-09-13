@@ -105,8 +105,8 @@ $code-pad-inline: 12px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: $analogous-2;
-  box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 70%, transparent);
+  background: $active;
+  box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
 
   .is-dirty & {
     background: $amber;

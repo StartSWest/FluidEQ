@@ -45,6 +45,11 @@ $triadic-2: #ff4fd8;
 $analogous-1: #ff4f9a;
 $analogous-2: #54ff8a;
 
+// "On", as the interface says it — `--active` on the root, the lime above
+// until a Plus scene lends the window a colour of its own for it. A custom
+// property, so `rgba()` cannot take it: mix it with `color-mix()`.
+$active: var(--active);
+
 // Rainbow glow accents
 $neon-cyan: #00e5ff;
 $neon-lime: #b6ff4a;

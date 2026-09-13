@@ -443,9 +443,9 @@ $gallery-card-lead: 120ms;
   }
 
   &.is-done {
-    color: $analogous-2;
-    border-color: color-mix(in srgb, $analogous-2 38%, transparent);
-    background: color-mix(in srgb, $analogous-2 8%, transparent);
+    color: $active;
+    border-color: color-mix(in srgb, $active 38%, transparent);
+    background: color-mix(in srgb, $active 8%, transparent);
     opacity: 1;
   }
 }
@@ -721,8 +721,8 @@ $gallery-card-lead: 120ms;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: $analogous-2;
-  box-shadow: 0 0 8px $analogous-2;
+  background: $active;
+  box-shadow: 0 0 8px $active;
   animation: gallery-live 2.4s $ease-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
@@ -1016,7 +1016,7 @@ $gallery-card-lead: 120ms;
   align-items: center;
   gap: 6px;
   margin: 0;
-  color: $analogous-2;
+  color: $active;
   font-size: $text-small;
 
   svg {
@@ -1052,7 +1052,7 @@ $gallery-card-lead: 120ms;
 
   &:disabled {
     cursor: default;
-    color: $analogous-2;
+    color: $active;
   }
 
   &:focus-visible {

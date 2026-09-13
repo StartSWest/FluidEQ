@@ -1817,6 +1817,11 @@ textarea,
   --accent-light: #9cfff4;
   --accent-dark: #00a9d6;
   --accent-darker: #007f95;
+  // What says a thing is on: the attached profile, the live output, a project
+  // that saves as it goes. Shared by both themes, and turned to a scene's own
+  // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
+  // drawn in, which stays `$analogous-2` and its neighbours.
+  --active: #{$analogous-2};
   // Smart EQ's listening bands: the columns over the plot and the confidence
   // bar under each. Ocean paints them in its accent, as it always has.
   --coverage-band: #00e5cf;

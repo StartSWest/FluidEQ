@@ -140,7 +140,7 @@
   text-transform: uppercase;
 
   .is-playing > & {
-    color: $analogous-2;
+    color: $active;
   }
 }
 
@@ -152,8 +152,8 @@
   background: $text-faint;
 
   &.is-active {
-    background: $analogous-2;
-    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
+    background: $active;
+    box-shadow: 0 0 8px color-mix(in srgb, $active 68%, transparent);
   }
 }
 
@@ -191,8 +191,8 @@
   background: $text-faint;
 
   &.is-active {
-    background: $analogous-2;
-    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
+    background: $active;
+    box-shadow: 0 0 8px color-mix(in srgb, $active 68%, transparent);
   }
 }
 

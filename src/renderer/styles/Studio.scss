@@ -467,8 +467,8 @@ $studio-scrollbar: 8px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: $analogous-2;
-  box-shadow: 0 0 8px $analogous-2;
+  background: $active;
+  box-shadow: 0 0 8px $active;
   animation: studio-watching 2.4s $ease-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
