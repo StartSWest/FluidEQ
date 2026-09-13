@@ -118,10 +118,14 @@ html
   border-radius: $radius-m;
 }
 
+// Not the Karaoke Maker. It is a dialog by role, for what a screen reader says,
+// but on screen it is the whole pane a song is edited in, and a rainbow round
+// its edge read as a frame drawn round the workspace rather than as a window
+// opened over it.
 html.is-euphoric
   body
   :is(
-    [role='dialog'],
+    [role='dialog']:not(.karaoke-maker),
     [role='alertdialog'],
     dialog,
     [data-anchored-menu],
