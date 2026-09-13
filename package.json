@@ -198,6 +198,12 @@
     "productName": "FluidEQ",
     "appId": "com.gigabytz.fluideq",
     "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true
+    },
     "asarUnpack": [
       "**/*.{node,dll,dylib}",
       "**/*.so*"

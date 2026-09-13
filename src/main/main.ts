@@ -3253,6 +3253,24 @@ if (process.env.NODE_ENV === 'development') {
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
 }
 
+/**
+ * A packaged build will not run with a DevTools port somebody else asked for.
+ * `--remote-debugging-port` or `--remote-debugging-pipe` on the command line
+ * opens the same remote control of the window — and through it the whole
+ * preload bridge, signed in as the member — to anything on the machine that
+ * can start FluidEQ with arguments. Chromium reads those switches itself, so
+ * no fuse turns them off; the Node inspector's own flags are off by fuse
+ * (`electronFuses` in package.json). Refused before the app is ready, while
+ * no window exists.
+ */
+if (
+  app.isPackaged &&
+  (app.commandLine.hasSwitch('remote-debugging-port') ||
+    app.commandLine.hasSwitch('remote-debugging-pipe'))
+) {
+  app.exit(1);
+}
+
 /*
  * WINDOWS' OWN DRM WAS TRIED HERE AND DOES NOT WORK. DO NOT TRY IT AGAIN.
  *
