@@ -36,10 +36,12 @@ export interface IDeskPaint {
 
 type TContext = CanvasRenderingContext2D;
 
-const BODY = '#29364b';
-const BODY_EDGE = 'rgba(214, 233, 247, 0.24)';
-const BODY_HIGHLIGHT = 'rgba(214, 233, 247, 0.12)';
-const UNLIT: [number, number, number] = [44, 60, 74];
+// Device discovery does not report the housing finish. Use neutral charcoal
+// silhouettes; thin edges give them definition without implying white hardware.
+const BODY = '#151719';
+const BODY_EDGE = 'rgba(230, 232, 235, 0.22)';
+const BODY_HIGHLIGHT = 'rgba(230, 232, 235, 0.045)';
+const UNLIT: [number, number, number] = [43, 45, 48];
 
 const colourAt = (
   rgb: Uint8Array | undefined,
@@ -52,7 +54,7 @@ const colourAt = (
 const css = ([r, g, b]: [number, number, number], alpha = 1) =>
   `rgba(${r}, ${g}, ${b}, ${alpha})`;
 
-const BODY_RGB: [number, number, number] = [27, 37, 54];
+const BODY_RGB: [number, number, number] = [18, 19, 21];
 
 /** Ambient light on the keycap remains visible even when its LED is black. */
 const mixWithBody = (colour: [number, number, number], amount: number) =>
@@ -161,7 +163,7 @@ const body = (
   c.stroke();
   const shine = c.createLinearGradient(0, y, 0, y + h * 0.4);
   shine.addColorStop(0, BODY_HIGHLIGHT);
-  shine.addColorStop(1, 'rgba(214, 233, 247, 0)');
+  shine.addColorStop(1, 'rgba(230, 232, 235, 0)');
   roundRect(c, x + 1, y + 1, w - 2, h * 0.4, r);
   c.fillStyle = shine;
   c.fill();
@@ -326,7 +328,7 @@ const paintMousepad = (
   rgb: Uint8Array | undefined,
 ) => {
   roundRect(c, e.x, e.y, e.width, e.height, 10);
-  c.fillStyle = '#1a263b';
+  c.fillStyle = '#101214';
   c.fill();
   // The cloth: a faint weave, so the surface reads as a pad and not a hole.
   c.strokeStyle = 'rgba(214, 233, 247, 0.025)';
@@ -383,7 +385,7 @@ const paintHeadset = (
   const cupWidth = e.width * 0.24;
   const cupHeight = e.height * 0.52;
   const cupsY = e.y + e.height * 0.4;
-  c.strokeStyle = '#3b4960';
+  c.strokeStyle = '#282b2e';
   c.lineWidth = Math.max(6, e.width * 0.07);
   c.lineCap = 'round';
   c.beginPath();
@@ -455,9 +457,9 @@ const paintStand = (
     cx + e.width * 0.05,
     0,
   );
-  metal.addColorStop(0, '#253247');
-  metal.addColorStop(0.45, '#4a5a73');
-  metal.addColorStop(1, '#29364b');
+  metal.addColorStop(0, '#17191b');
+  metal.addColorStop(0.45, '#36383a');
+  metal.addColorStop(1, '#1b1d1f');
   c.fillStyle = metal;
   c.fill();
   roundRect(
@@ -502,7 +504,7 @@ const paintSpeaker = (
     const radius = e.width * (cone === 0 ? 0.24 : 0.32);
     c.beginPath();
     c.arc(e.x + e.width / 2, e.y + e.height * at, radius, 0, Math.PI * 2);
-    c.fillStyle = '#0a1117';
+    c.fillStyle = '#090a0c';
     c.fill();
     c.strokeStyle = BODY_EDGE;
     c.stroke();
@@ -584,9 +586,8 @@ const LAYER: Record<keyof typeof PAINTERS, number> = {
 let screenSource: { canvas: OffscreenCanvas; image: ImageData } | undefined;
 
 /**
- * The monitor, showing the scene as the lamps see it. Its screen throws light
- * down onto the desk in the scene's own colour, which is what ties the picture
- * to the devices in front of it.
+ * The monitor shows the scene as the lamps see it. Keep the picture inside
+ * its bezel; an outer glow forms a visible cutoff at the preview boundary.
  */
 const paintMonitor = (
   c: TContext,
@@ -597,7 +598,7 @@ const paintMonitor = (
   const { x, y, width, height } = monitor;
   const bezel = 6;
   // Neck and foot.
-  c.fillStyle = '#35425a';
+  c.fillStyle = '#26292c';
   roundRect(c, x + width / 2 - 10, y + height, 20, 26, 3);
   c.fill();
   roundRect(c, x + width / 2 - 52, y + height + 24, 104, 8, 4);
@@ -620,39 +621,14 @@ const paintMonitor = (
     };
   }
   const { canvas, image } = screenSource;
-  let r = 0;
-  let g = 0;
-  let b = 0;
   const cells = grid.width * grid.height;
   for (let cell = 0; cell < cells; cell += 1) {
     image.data[cell * 4] = grid.rgb[cell * 3];
     image.data[cell * 4 + 1] = grid.rgb[cell * 3 + 1];
     image.data[cell * 4 + 2] = grid.rgb[cell * 3 + 2];
     image.data[cell * 4 + 3] = 255;
-    r += grid.rgb[cell * 3];
-    g += grid.rgb[cell * 3 + 1];
-    b += grid.rgb[cell * 3 + 2];
   }
   canvas.getContext('2d')?.putImageData(image, 0, 0);
-
-  // The screen's light on the desk, under everything else.
-  const tone = `${Math.round(r / cells)}, ${Math.round(g / cells)}, ${Math.round(b / cells)}`;
-  const cx = x + width / 2;
-  const glow = c.createRadialGradient(
-    cx,
-    y + height,
-    10,
-    cx,
-    y + height + 90,
-    width * 1.3,
-  );
-  glow.addColorStop(0, `rgba(${tone}, 0.35)`);
-  glow.addColorStop(1, `rgba(${tone}, 0)`);
-  c.save();
-  c.globalCompositeOperation = 'lighter';
-  c.fillStyle = glow;
-  c.fillRect(x - width, y, width * 3, DESK_HEIGHT - y);
-  c.restore();
 
   c.imageSmoothingEnabled = true;
   c.imageSmoothingQuality = 'high';
