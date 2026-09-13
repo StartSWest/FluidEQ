@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fs.h"
+#include "retry.h"
 #include "service_restart.h"
 
 namespace fluideq_engine::setup {
@@ -296,6 +297,42 @@ class ScmControl final : public ServiceControl {
 };
 
 }  // namespace
+
+bool wait_audio_settled(std::wstring& error) {
+  const ServiceHandle manager(
+      OpenSCManagerW(nullptr, nullptr, SC_MANAGER_CONNECT));
+  if (!manager.valid()) {
+    error = L"could not reach the service control manager: " +
+            describe_error(GetLastError());
+    return false;
+  }
+  // The builder first: Windows Audio depends on it, so it settles first too.
+  for (const wchar_t* name : {kBuilderService, kAudioService}) {
+    const ServiceHandle service(
+        OpenServiceW(manager.get(), name, SERVICE_QUERY_STATUS));
+    if (!service.valid()) {
+      error = std::wstring(L"could not open the ") + name + L" service: " +
+              describe_error(GetLastError());
+      return false;
+    }
+    for (;;) {
+      DWORD state = 0;
+      if (!query_state(service.get(), name, state, error)) {
+        return false;
+      }
+      if (!is_service_settling(state)) {
+        break;
+      }
+      if (!wait_for_change(service.get(), name,
+                           SERVICE_NOTIFY_RUNNING | SERVICE_NOTIFY_STOPPED |
+                               SERVICE_NOTIFY_PAUSED,
+                           error)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 bool restart_audio(std::wstring& error) {
   const ServiceHandle manager(

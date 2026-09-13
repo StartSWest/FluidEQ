@@ -53,6 +53,9 @@ export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
     buildResponseHandler<IAudioEngineStatus>((result, resolve) =>
       resolve(result),
     ),
+    // No deadline: the helper asks Windows up to three times, waiting for its
+    // audio services to settle between, and main answers every request.
+    { timeout: null },
   );
 };
 
@@ -62,11 +65,16 @@ export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
  * Resolves once the engine being left has been neutralised, the choice has
  * been recorded and the chain has been written into the new engine — so the
  * dialog can close on it, and the sound has already changed by the time it
- * does.
+ * does. Rejects only once main has tried the switch three times, waiting for
+ * Windows audio between tries (`engineRetry.ts`), so no deadline: the old
+ * ten seconds cut off a switch still waiting on Windows and showed a failure
+ * for one that went through.
  */
 export const setAudioEngine = (engine: TAudioEngine): Promise<void> => {
   const channel = ChannelEnum.SET_AUDIO_ENGINE;
-  return sendRequest(channel, [engine], setterResponseHandler);
+  return sendRequest(channel, [engine], setterResponseHandler, {
+    timeout: null,
+  });
 };
 
 /**

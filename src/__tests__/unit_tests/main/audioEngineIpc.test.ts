@@ -245,6 +245,98 @@ describe('the audio engine channels', () => {
     expect(replied(reply)).toEqual(error);
   });
 
+  describe('a switch that fails', () => {
+    const notInstalled = { errorCode: ErrorCode.FLUID_ENGINE_NOT_INSTALLED };
+
+    // Windows audio still restarting after the install is the usual reason,
+    // and the same switch a moment later works.
+    it('waits for Windows and tries again, replying only how it ended', async () => {
+      reflush
+        .mockImplementationOnce(async () => {
+          order.push('reflush');
+          return { ok: false, error: notInstalled };
+        })
+        .mockImplementationOnce(async () => {
+          order.push('reflush');
+          return { ok: true };
+        });
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(order).toEqual([
+        'neutralise:apo',
+        'set:fluid',
+        'reflush',
+        'status',
+        'neutralise:apo',
+        'set:fluid',
+        'reflush',
+      ]);
+      expect(runEngineSetup).toHaveBeenCalledWith('settle', []);
+      expect(reply).toHaveBeenCalledTimes(1);
+      expect(replied(reply)).toEqual({ result: undefined });
+    });
+
+    it('replies the failure after the third try, and not before', async () => {
+      reflush.mockResolvedValue({ ok: false, error: notInstalled });
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(reflush).toHaveBeenCalledTimes(3);
+      expect(
+        runEngineSetup.mock.calls.filter(([command]) => command === 'settle'),
+      ).toHaveLength(2);
+      expect(reply).toHaveBeenCalledTimes(1);
+      expect(replied(reply)).toEqual(notInstalled);
+      expect(switching).toBe(false);
+    });
+
+    it('stops trying once Windows has settled and the engine is still missing', async () => {
+      reflush.mockResolvedValue({ ok: false, error: notInstalled });
+      isEngineInstalled.mockResolvedValue(false);
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(reflush).toHaveBeenCalledTimes(1);
+      expect(replied(reply)).toEqual(notInstalled);
+    });
+
+    it('stops trying when Windows audio could not be waited for', async () => {
+      reflush.mockResolvedValue({ ok: false, error: notInstalled });
+      runEngineSetup.mockResolvedValue({ ...OK, ok: false });
+
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(reflush).toHaveBeenCalledTimes(1);
+    });
+
+    it('answers a missing Equalizer APO at once, so its installer can start', async () => {
+      engine = 'fluid';
+      const missing = { errorCode: ErrorCode.EQUALIZER_APO_NOT_INSTALLED };
+      reflush.mockResolvedValue({ ok: false, error: missing });
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['apo']);
+
+      expect(reflush).toHaveBeenCalledTimes(1);
+      expect(runEngineSetup).not.toHaveBeenCalled();
+      expect(replied(reply)).toEqual(missing);
+    });
+
+    it('tries a switch whose neutralise threw again too', async () => {
+      neutraliseEngine
+        .mockRejectedValueOnce(new Error('locked'))
+        .mockImplementation(async (other: TAudioEngine) => {
+          order.push(`neutralise:${other}`);
+          return 'written' as const;
+        });
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(replied(reply)).toEqual({ result: undefined });
+      expect(switching).toBe(false);
+    });
+  });
+
   it('reflushes after the engine installs', async () => {
     const reply = await fire(ChannelEnum.INSTALL_FLUID_ENGINE, []);
 

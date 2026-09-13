@@ -59,6 +59,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fx_list.h"
 #include "json.h"
 #include "registry.h"
+#include "retry.h"
+#include "services.h"
 
 namespace {
 
@@ -78,6 +80,7 @@ using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::is_elevated;
 using fluideq_engine::setup::is_valid_endpoint_guid;
 using fluideq_engine::setup::json_escape;
+using fluideq_engine::setup::kCommandTries;
 using fluideq_engine::setup::kEngineClsid;
 using fluideq_engine::setup::list_render_endpoints;
 using fluideq_engine::setup::path_exists;
@@ -88,7 +91,9 @@ using fluideq_engine::setup::relaunch_elevated;
 using fluideq_engine::setup::result_json;
 using fluideq_engine::setup::result_path;
 using fluideq_engine::setup::run_command;
+using fluideq_engine::setup::run_with_retries;
 using fluideq_engine::setup::utf8_from_wide;
+using fluideq_engine::setup::wait_audio_settled;
 using fluideq_engine::setup::write_utf8;
 
 const char kUsage[] =
@@ -100,10 +105,13 @@ const char kUsage[] =
     "  uninstall [--purge]\n"
     "  restart-audio\n"
     "  status\n"
+    "  settle\n"
     "\n"
     "An output id looks like {00000000-0000-0000-0000-000000000000} and is\n"
-    "listed by the status command, which is the only one that never asks for\n"
-    "administrator rights.\n"
+    "listed by the status command. status and settle (which waits until\n"
+    "Windows audio has finished starting or stopping) never ask for\n"
+    "administrator rights. Every other command is tried up to three times,\n"
+    "waiting for Windows audio to settle between tries.\n"
     "\n"
     "From an interactive shell, pipe or capture the output (the helper is a\n"
     "windowed program and the shell will not wait for it otherwise).\n"
@@ -127,7 +135,8 @@ bool parse(int argc, wchar_t** argv, Options& options) {
       options.command == L"attach" || options.command == L"detach";
   if (options.command != L"install" && !takes_guids &&
       options.command != L"uninstall" &&
-      options.command != L"restart-audio" && options.command != L"status") {
+      options.command != L"restart-audio" && options.command != L"status" &&
+      options.command != L"settle") {
     return false;
   }
   for (int at = 2; at < argc; ++at) {
@@ -137,7 +146,8 @@ bool parse(int argc, wchar_t** argv, Options& options) {
     } else if (argument == L"--restart-audio" &&
                options.command != L"uninstall" &&
                options.command != L"restart-audio" &&
-               options.command != L"status") {
+               options.command != L"status" &&
+               options.command != L"settle") {
       options.restart_audio = true;
     } else if (argument == L"--purge" && options.command == L"uninstall") {
       options.purge = true;
@@ -196,13 +206,24 @@ std::wstring dll_version(const std::wstring& path) {
  */
 int print_status() {
   std::vector<Endpoint> endpoints;
-  std::wstring unreachable;
   // Enumerated before anything is printed. An empty output list and an audio
   // stack that could not be asked look identical once they are both `[]`, and
   // the app reads that as "this machine has no outputs" rather than "ask
   // again" — so the failure gets its own document and its own exit code.
-  if (!list_render_endpoints(endpoints, unreachable)) {
-    print_json(L"{\"error\":\"" + json_escape(unreachable) + L"\"}");
+  //
+  // Asked up to three times, with Windows audio settled between: the stack is
+  // unreachable exactly while it restarts, and "could not ask" taken in the
+  // middle of a switch read as the engine that had just been installed being
+  // missing.
+  const CommandResult listed = run_with_retries(
+      kCommandTries,
+      [&endpoints](CommandResult& attempt) {
+        endpoints.clear();
+        attempt.ok = list_render_endpoints(endpoints, attempt.error);
+      },
+      wait_audio_settled);
+  if (!listed.ok) {
+    print_json(L"{\"error\":\"" + json_escape(listed.error) + L"\"}");
     return 3;
   }
 
@@ -242,10 +263,29 @@ int print_status() {
   return 0;
 }
 
-/** Runs the command here, having already established it may. */
-int run_elevated(const Options& options) {
+/**
+ * Waits until Windows audio has finished starting or stopping, and says so.
+ *
+ * For the app's own retries, which cannot see the service control manager:
+ * never elevates, never writes. Returns 0, or 3 when the services could not
+ * be watched.
+ */
+int print_settled() {
   CommandResult result;
-  run_command(options, result);
+  result.ok = wait_audio_settled(result.error);
+  print_json(result_json(L"settle", result));
+  return result.ok ? 0 : 3;
+}
+
+/**
+ * Runs the command here, having already established it may — up to three
+ * times, in this one elevated process (`retry.h`).
+ */
+int run_elevated(const Options& options) {
+  const CommandResult result = run_with_retries(
+      kCommandTries,
+      [&options](CommandResult& attempt) { run_command(options, attempt); },
+      wait_audio_settled);
   const std::wstring json = result_json(options.command, result);
   // `uninstall --purge` has just deleted this tree on purpose. Recreating it
   // to drop a result file in would leave behind exactly the directory the
@@ -328,6 +368,8 @@ int run_main(int argc, wchar_t** argv) {
   int code = 0;
   if (options.command == L"status") {
     code = print_status();
+  } else if (options.command == L"settle") {
+    code = print_settled();
   } else if (is_elevated()) {
     code = run_elevated(options);
   } else {

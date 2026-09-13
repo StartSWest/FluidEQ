@@ -164,8 +164,16 @@ add_test(NAME engine-dll-aggregation
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
-  setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp)
+  setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
+  setup/retry.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+# How often a failed engine command is tried, and that each try after the
+# first waits for Windows audio to settle rather than for a clock.
+add_executable(fluideq-engine-retry-test tests/retry_test.cpp)
+target_link_libraries(fluideq-engine-retry-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-retry COMMAND fluideq-engine-retry-test)
 
 # What an audio restart puts back when one of its steps fails. A fake stands
 # in for the service control manager: the failure this guards against is a

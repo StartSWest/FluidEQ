@@ -474,6 +474,19 @@ Everything worth knowing about them is available through commands:
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |
 Out-String` (or any other capture) is what actually waits for it and shows
   the answer.
+- **An engine command is tried three times before anyone is told it failed,
+  and Windows — not a clock — decides when the next try runs.** Switching
+  engines failed mostly while Windows audio was still restarting from the
+  install, and the same step a moment later works. Every elevated helper
+  command retries inside its one run (`setup/retry.h`) — retrying from the app
+  would put the permission prompt up again — and `status` retries its endpoint
+  read the same way. The switch itself retries in main (`engineRetry.ts`).
+  Between tries both wait on `settle`, which returns once `Audiosrv` and
+  `AudioEndpointBuilder` are no longer pending, as the service control
+  manager reports; a stopped service counts as settled, or a disabled one
+  would hang the wait. Only the last failure reaches the window, so the
+  switch and status requests carry no deadline. Ivan chose this over a fixed
+  pause on 2026-09-13; do not add one.
 
 ## Equalizer APO is bundled
 

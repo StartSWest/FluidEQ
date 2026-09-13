@@ -37,6 +37,18 @@ namespace fluideq_engine::setup {
  */
 bool restart_audio(std::wstring& error);
 
+/**
+ * Returns once neither `Audiosrv` nor `AudioEndpointBuilder` is part way
+ * through starting, stopping, pausing or continuing — at once when neither is.
+ *
+ * What an engine command waits on before it is tried again (`retry.h`). Woken
+ * by the service control manager like every other wait here. A service that
+ * is simply stopped is settled: waiting for it to start would never end on a
+ * machine where it is disabled, and the command's own restart starts it.
+ * Needs only the right to read a service's state, so it runs unelevated too.
+ */
+bool wait_audio_settled(std::wstring& error);
+
 }  // namespace fluideq_engine::setup
 
 #endif  // FLUIDEQ_ENGINE_SETUP_SERVICES_H

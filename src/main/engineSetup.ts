@@ -34,8 +34,13 @@ import path from 'path';
 import log from 'electron-log';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
 
+/**
+ * `settle` is the one that never elevates: it waits until Windows audio has
+ * finished starting or stopping, for the app's own retries (`engineRetry.ts`).
+ * Every other command is tried up to three times inside its elevated run.
+ */
 export type TEngineSetupCommand =
-  'install' | 'uninstall' | 'attach' | 'detach' | 'restart-audio';
+  'install' | 'uninstall' | 'attach' | 'detach' | 'restart-audio' | 'settle';
 
 export interface IEngineSetupResult {
   ok: boolean;

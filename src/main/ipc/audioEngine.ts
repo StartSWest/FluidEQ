@@ -44,6 +44,7 @@ import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 import { saveAudioEnginePreference } from '../audioEngineStore';
 import { IEngineSetupResult, TEngineSetupCommand } from '../engineSetup';
+import { TEngineStepOutcome, retryEngineStep } from '../engineRetry';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -65,7 +66,7 @@ const ENDPOINT_GUID = /^\{[0-9A-Fa-f-]{36}\}$/;
  * across unchanged so the handler that asked for the reflush can send exactly
  * that instead of inventing a second wording for the same failure.
  */
-export type TReflushResult = { ok: true } | { ok: false; error: TError };
+export type TReflushResult = TEngineStepOutcome;
 
 export interface IAudioEngineIpcDeps {
   /** `%APPDATA%\FluidEQ` — where `audio-engine.json` is kept. */
@@ -217,29 +218,50 @@ export const registerAudioEngineIpc = ({
       return;
     }
 
-    try {
-      // Cleared in `finally` and not after `setEngine`: a neutralise that
-      // throws must not leave the flag raised, or every EQ edit for the rest
-      // of the session would be silently swallowed by the update path.
-      setSwitching(true);
+    const switchOnce = async (): Promise<TEngineStepOutcome> => {
       try {
-        if (current !== null) {
-          await neutraliseEngine(current);
+        // Cleared in `finally` and not after `setEngine`: a neutralise that
+        // throws must not leave the flag raised, or every EQ edit for the rest
+        // of the session would be silently swallowed by the update path.
+        setSwitching(true);
+        try {
+          if (current !== null) {
+            await neutraliseEngine(current);
+          }
+          saveAudioEnginePreference(userDataDir, next);
+          setEngine(next);
+        } finally {
+          setSwitching(false);
         }
-        saveAudioEnginePreference(userDataDir, next);
-        setEngine(next);
-      } finally {
-        setSwitching(false);
+        return await reflush();
+      } catch (error) {
+        log.error(`Could not switch the audio engine to ${next}`, error);
+        return { ok: false, error: { errorCode: ErrorCode.FAILURE } };
       }
-      const outcome = await reflush();
-      if (outcome.ok) {
-        succeed(event, channel, undefined);
-      } else {
-        replyError(event, channel, outcome.error);
-      }
-    } catch (error) {
-      log.error(`Could not switch the audio engine to ${next}`, error);
-      refuse(event, channel, ErrorCode.FAILURE);
+    };
+
+    // Every step of a switch can be repeated: neutralising writes the same
+    // neutral root again, and the reflush writes the same chain. So a failed
+    // switch is tried again whole, and only the last failure is replied —
+    // the dialog keeps saying "applying" until then (`engineRetry.ts`).
+    const outcome = await retryEngineStep(switchOnce, {
+      step: `Switching the audio engine to ${next}`,
+      // Equalizer APO's "not installed" is a live registry read, not a cached
+      // answer that could be out of date: the dialog runs its installer next.
+      isFinal: ({ errorCode }) =>
+        errorCode === ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
+      settle: async () => (await runEngineSetup('settle', [])).ok,
+      worthAnotherTry: async () => {
+        // Fresh, so the flush gate's cached "installed" is not the answer
+        // from before Windows settled.
+        await readAudioEngineStatus(userDataDir, getEngine());
+        return isEngineInstalled(next).catch(() => false);
+      },
+    });
+    if (outcome.ok) {
+      succeed(event, channel, undefined);
+    } else {
+      replyError(event, channel, outcome.error);
     }
   });
 
