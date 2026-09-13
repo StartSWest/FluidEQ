@@ -201,6 +201,8 @@ const studio = {
   'studio.import.done': '{name}, di {author}, è nei tuoi aspetti.',
   'studio.import.doneAnonymous': '{name} è nei tuoi aspetti.',
   'studio.import.own': '{name} è tua. È di nuovo nei tuoi aspetti.',
+  'studio.import.ownRestored':
+    '{name} è tua. È di nuovo nei tuoi aspetti e aperta qui per continuare a lavorarci.',
   'studio.import.unreadable': 'Quel file non è una scena di FluidEQ.',
   'studio.import.changed':
     'Quel file è stato modificato dopo l’esportazione, quindi FluidEQ non lo riprodurrà.',

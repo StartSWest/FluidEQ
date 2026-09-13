@@ -199,6 +199,8 @@ const studio = {
   'studio.import.done': '{name} (автор: {author}) — в ваших оформлениях.',
   'studio.import.doneAnonymous': '{name} — в ваших оформлениях.',
   'studio.import.own': '{name} — ваша сцена. Она снова в ваших оформлениях.',
+  'studio.import.ownRestored':
+    '{name} — ваша сцена. Она снова в ваших оформлениях и открыта здесь, чтобы продолжить работу над ней.',
   'studio.import.unreadable': 'Этот файл — не сцена FluidEQ.',
   'studio.import.changed':
     'Этот файл изменили после экспорта, поэтому FluidEQ не будет его воспроизводить.',

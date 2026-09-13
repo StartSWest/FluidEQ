@@ -200,6 +200,8 @@ const studio = {
   'studio.import.done': '{name}, par {author}, est dans vos styles.',
   'studio.import.doneAnonymous': '{name} est dans vos styles.',
   'studio.import.own': '{name} est à vous. Elle est de retour dans vos styles.',
+  'studio.import.ownRestored':
+    '{name} est à vous. Elle est de retour dans vos styles et ouverte ici pour continuer à y travailler.',
   'studio.import.unreadable': 'Ce fichier n’est pas une scène FluidEQ.',
   'studio.import.changed':
     'Ce fichier a été modifié après son exportation, FluidEQ ne le jouera donc pas.',

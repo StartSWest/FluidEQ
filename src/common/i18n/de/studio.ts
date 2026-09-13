@@ -205,6 +205,8 @@ const studio = {
   'studio.import.doneAnonymous': '{name} ist in Ihren Darstellungen.',
   'studio.import.own':
     '{name} ist Ihre Szene. Sie ist wieder in Ihren Darstellungen.',
+  'studio.import.ownRestored':
+    '{name} ist Ihre Szene. Sie ist wieder in Ihren Darstellungen und hier geöffnet, damit Sie weiter daran arbeiten können.',
   'studio.import.unreadable': 'Diese Datei ist keine FluidEQ-Szene.',
   'studio.import.changed':
     'Diese Datei wurde nach dem Export verändert, daher spielt FluidEQ sie nicht ab.',

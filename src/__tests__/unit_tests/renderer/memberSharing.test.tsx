@@ -214,6 +214,33 @@ describe('sharing from the Studio', () => {
     );
   });
 
+  // Only a scene that came back as a project may say it can be edited again;
+  // one that came back as a look alone says only that.
+  it.each([
+    [true, 'studio.import.ownRestored'],
+    [false, 'studio.import.own'],
+  ] as const)(
+    'tells a member their own scene is back, restored as a project: %s',
+    async (restored, key) => {
+      bridge.importMemberScene.mockResolvedValue({
+        ok: true,
+        names: { en: 'Neon City', es: 'Ciudad de neón' },
+        authorName: 'Ivan',
+        own: true,
+        restored,
+      });
+      const { result } = renderHook(() => useStudioSharing());
+      await act(async () => result.current.openFile());
+      await waitFor(() =>
+        expect(result.current.notice).toEqual({
+          ok: true,
+          key,
+          vars: { name: 'Neon City' },
+        }),
+      );
+    },
+  );
+
   it('names what went wrong with a file', async () => {
     bridge.importMemberScene.mockResolvedValue({
       ok: false,

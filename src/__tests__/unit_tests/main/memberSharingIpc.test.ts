@@ -29,6 +29,7 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import {
   registerMemberSharingIpc,
+  type IMemberSharingIpcDeps,
   type TExportOutcome,
   type TImportOutcome,
 } from '../../../main/ipc/memberSharing';
@@ -79,6 +80,10 @@ let folder: string | undefined;
 let signedInAs: string;
 /** Somebody else signs in while the token is being fetched. */
 let switchDuringToken: boolean;
+type TRestoreOwnProject = IMemberSharingIpcDeps['restoreOwnProject'];
+/** The Studio's answer to an own scene arriving: made a project, or not. */
+let restoreOwnProject: jest.MockedFunction<TRestoreOwnProject>;
+let warnings: string[];
 
 /** The server: signs whatever pack arrives, as the author it is told. */
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
@@ -125,8 +130,14 @@ const setup = () => {
     } as never,
     store,
     activeFolder: () => folder,
+    restoreOwnProject,
     announce: () => {
       announced += 1;
+    },
+    logger: {
+      warn: (message) => {
+        warnings.push(message);
+      },
     },
     dialogImpl: {
       showSaveDialog: (async () => {
@@ -155,6 +166,10 @@ beforeEach(async () => {
   announced = 0;
   signedInAs = ME;
   switchDuringToken = false;
+  restoreOwnProject = jest
+    .fn<ReturnType<TRestoreOwnProject>, Parameters<TRestoreOwnProject>>()
+    .mockResolvedValue('present');
+  warnings = [];
   folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
   await writeStarterProject(folder, {
@@ -278,6 +293,8 @@ describe('opening a scene file', () => {
       names: memberPack().names,
       authorName: 'Mei Tanaka',
       own: false,
+      // Only a member's own scene is rebuilt into a Studio project.
+      restored: false,
     });
     expect(store.list()).toMatchObject([
       { authorId: SOMEONE, own: false, authorName: 'Mei Tanaka' },
@@ -294,6 +311,79 @@ describe('opening a scene file', () => {
     );
     expect(outcome).toMatchObject({ ok: true, own: true });
     expect(store.list()).toMatchObject([{ authorId: ME, own: true }]);
+    registration.dispose();
+  });
+
+  // The Studio edits, publishes and exports only a project folder: an own
+  // scene that came back as a look alone could never be changed again.
+  it('makes a member’s own scene a Studio project again, and says so', async () => {
+    const registration = setup();
+    restoreOwnProject.mockResolvedValue('restored');
+    openTarget = sent(ME, 'Ivan');
+    const outcome = await invoke<Promise<TImportOutcome>>(
+      'member-scenes-import',
+    );
+    expect(outcome).toEqual({
+      ok: true,
+      names: memberPack().names,
+      authorName: 'Ivan',
+      own: true,
+      restored: true,
+    });
+    // The pack from the file, not one the page holds.
+    expect(restoreOwnProject).toHaveBeenCalledTimes(1);
+    expect(restoreOwnProject).toHaveBeenCalledWith(memberPack());
+    expect(store.list()).toMatchObject([{ authorId: ME, own: true }]);
+    registration.dispose();
+  });
+
+  // A project already holding the scene is the member's working copy, and a
+  // name no folder can take leaves nothing to open: the look alone arrives.
+  it.each(['present', 'invalid', 'taken'] as const)(
+    'reports no project made when the Studio answers %s',
+    async (answer) => {
+      const registration = setup();
+      restoreOwnProject.mockResolvedValue(answer);
+      openTarget = sent(ME, 'Ivan');
+      const outcome = await invoke<Promise<TImportOutcome>>(
+        'member-scenes-import',
+      );
+      expect(outcome).toMatchObject({ ok: true, own: true, restored: false });
+      expect(restoreOwnProject).toHaveBeenCalledTimes(1);
+      expect(store.list()).toMatchObject([{ authorId: ME, own: true }]);
+      registration.dispose();
+    },
+  );
+
+  it('still brings the look in when the project cannot be written', async () => {
+    const registration = setup();
+    restoreOwnProject.mockRejectedValue(new Error('disk full'));
+    openTarget = sent(ME, 'Ivan');
+    const outcome = await invoke<Promise<TImportOutcome>>(
+      'member-scenes-import',
+    );
+    expect(outcome).toEqual({
+      ok: true,
+      names: memberPack().names,
+      authorName: 'Ivan',
+      own: true,
+      restored: false,
+    });
+    expect(store.list()).toMatchObject([{ authorId: ME, own: true }]);
+    expect(announced).toBeGreaterThan(0);
+    expect(warnings).toEqual([expect.stringContaining('disk full')]);
+    registration.dispose();
+  });
+
+  it("never makes a project of another member's scene", async () => {
+    const registration = setup();
+    restoreOwnProject.mockResolvedValue('restored');
+    openTarget = sent(SOMEONE);
+    const outcome = await invoke<Promise<TImportOutcome>>(
+      'member-scenes-import',
+    );
+    expect(outcome).toMatchObject({ ok: true, own: false, restored: false });
+    expect(restoreOwnProject).not.toHaveBeenCalled();
     registration.dispose();
   });
 

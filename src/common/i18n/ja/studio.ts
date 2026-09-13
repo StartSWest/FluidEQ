@@ -201,6 +201,8 @@ const studio = {
   'studio.import.done': '{author} さんの {name} を表示に追加しました。',
   'studio.import.doneAnonymous': '{name} を表示に追加しました。',
   'studio.import.own': '{name} はあなたのシーンです。表示に戻しました。',
+  'studio.import.ownRestored':
+    '{name} はあなたのシーンです。表示に戻し、続きを作れるようにここで開きました。',
   'studio.import.unreadable': 'このファイルは FluidEQ のシーンではありません。',
   'studio.import.changed':
     'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',

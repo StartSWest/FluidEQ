@@ -92,7 +92,13 @@ export default function useStudioSharing() {
     if (outcome.ok) {
       const name = resolveSceneName(outcome, locale);
       if (outcome.own) {
-        setNotice({ ok: true, key: 'studio.import.own', vars: { name } });
+        setNotice({
+          ok: true,
+          key: outcome.restored
+            ? 'studio.import.ownRestored'
+            : 'studio.import.own',
+          vars: { name },
+        });
       } else if (outcome.authorName) {
         setNotice({
           ok: true,

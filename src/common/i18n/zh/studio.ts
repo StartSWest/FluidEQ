@@ -172,6 +172,8 @@ const studio = {
   'studio.import.done': '{author} 创作的 {name} 已加入你的外观。',
   'studio.import.doneAnonymous': '{name} 已加入你的外观。',
   'studio.import.own': '{name} 是你的作品，已回到你的外观中。',
+  'studio.import.ownRestored':
+    '{name} 是你的作品，已回到你的外观中，并在这里打开，方便你继续创作。',
   'studio.import.unreadable': '这个文件不是 FluidEQ 场景。',
   'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
   'studio.import.blocked': '这个场景已被下架。',

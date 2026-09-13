@@ -205,6 +205,8 @@ const studio = {
   'studio.import.done': '{name} by {author} is in your looks.',
   'studio.import.doneAnonymous': '{name} is in your looks.',
   'studio.import.own': '{name} is yours. It is back in your looks.',
+  'studio.import.ownRestored':
+    '{name} is yours. It is back in your looks, and open here to keep working on.',
   'studio.import.unreadable': 'That file is not a FluidEQ scene.',
   'studio.import.changed':
     'That file was changed after it was exported, so FluidEQ will not play it.',

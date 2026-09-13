@@ -3051,6 +3051,7 @@ const memberSharingIpc = registerMemberSharingIpc({
   entitlement: accountIpc.entitlement,
   store: memberScenesIpc.store,
   activeFolder: memberScenesIpc.activeFolder,
+  restoreOwnProject: memberScenesIpc.restoreOwnProject,
   announce: memberScenesIpc.announce,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
   logger: log,

@@ -193,6 +193,8 @@ const studio = {
   'studio.import.done': '{author} का {name} आपके रूपों में है।',
   'studio.import.doneAnonymous': '{name} आपके रूपों में है।',
   'studio.import.own': '{name} आपका है। यह फिर से आपके रूपों में है।',
+  'studio.import.ownRestored':
+    '{name} आपका है। यह फिर से आपके रूपों में है, और आगे काम करने के लिए यहाँ खुला है।',
   'studio.import.unreadable': 'यह फ़ाइल FluidEQ सीन नहीं है।',
   'studio.import.changed':
     'यह फ़ाइल एक्सपोर्ट के बाद बदली गई है, इसलिए FluidEQ इसे नहीं चलाएगा।',

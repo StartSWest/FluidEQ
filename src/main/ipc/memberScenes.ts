@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { registerStudioNotesIpc } from './studioNotes';
 import { parseMemberLookId } from '../../common/memberScenes';
-import type { TLocalizedName } from '../../common/scenePacks';
+import type { IScenePack, TLocalizedName } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import {
@@ -15,6 +15,10 @@ import {
   createProjectFolder,
   defaultProjectsRoot,
 } from '../memberScenes/projectFolders';
+import {
+  folderHoldingScene,
+  writeRestoredProject,
+} from '../memberScenes/projectRestore';
 import {
   watchProject,
   type IProjectWatcher,
@@ -121,10 +125,19 @@ export interface IMemberScenesIpcDeps {
   openPath?: (target: string) => Promise<string>;
 }
 
+/**
+ * What importing one's own scene did to the Studio's list: made a project of
+ * it, found one already holding it, or could make none — no name left to
+ * give its folder, or every numbered variant of that name taken.
+ */
+export type TProjectRestore = 'restored' | 'present' | 'invalid' | 'taken';
+
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
+  /** The member's own imported scene, back on the Studio's list. */
+  restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
   /** Tell the renderer the list of member scenes changed. */
   announce(): void;
   dispose(): void;
@@ -267,6 +280,29 @@ export const registerMemberScenesIpc = ({
     if (switched || !watcher) {
       startWatching();
     }
+  };
+
+  // An imported scene of the member's own, made a project in the projects
+  // folder and opened. A project on the list that already holds the scene is
+  // the member's working copy, newer than any file, and is left alone.
+  const restoreOwnProject = async (
+    pack: IScenePack,
+  ): Promise<TProjectRestore> => {
+    const folders = projects.projects.map((project) => project.folder);
+    if (await folderHoldingScene(folders, pack.id)) {
+      return 'present';
+    }
+    const made = await writeRestoredProject(
+      projectsRoot(),
+      pack.names.en,
+      pack,
+    );
+    if (!made.ok) {
+      return made.reason;
+    }
+    adopt(withFolder(projects, made.folder, Date.now()));
+    await refreshNames();
+    return 'restored';
   };
 
   /**
@@ -472,6 +508,7 @@ export const registerMemberScenesIpc = ({
   return {
     store,
     activeFolder,
+    restoreOwnProject,
     announce: announceScenes,
     dispose: () => {
       unsubscribe();

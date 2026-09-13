@@ -11,6 +11,7 @@ import type { IScenePack } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import writeFileAtomically from '../atomicWrite';
+import type { TProjectRestore } from './memberScenes';
 import { readProject } from '../memberScenes/project';
 import {
   readMemberSceneFile,
@@ -50,6 +51,8 @@ export type TImportOutcome =
       names: IScenePack['names'];
       authorName: string | null;
       own: boolean;
+      /** One's own scene was made a Studio project again, and opened. */
+      restored: boolean;
     }
   | {
       ok: false;
@@ -70,6 +73,8 @@ export interface IMemberSharingIpcDeps {
   store: IMemberSceneStore;
   /** The Studio's open project's folder, from its own registration. */
   activeFolder: () => string | undefined;
+  /** The member's own imported scene, made a Studio project again. */
+  restoreOwnProject: (pack: IScenePack) => Promise<TProjectRestore>;
   /** Tell the renderer the list of member scenes changed. */
   announce: () => void;
   /** An export recorded an agreement to this version of the Plus terms. */
@@ -123,6 +128,7 @@ export const registerMemberSharingIpc = ({
   entitlement,
   store,
   activeFolder,
+  restoreOwnProject,
   announce,
   onTermsAgreed,
   logger,
@@ -273,10 +279,11 @@ export const registerMemberSharingIpc = ({
     if (store.isBlocked(author.id, pack.id)) {
       return { ok: false, reason: 'blocked' };
     }
+    const own = author.id === me;
     try {
       // Somebody moving their own work to a new computer gets it back as
-      // their own: editable in the Studio and theirs to export again.
-      if (author.id === me) {
+      // their own: a look of theirs, and below, a project again.
+      if (own) {
         store.save(me, pack);
       } else {
         store.saveImported(read.envelope);
@@ -286,11 +293,25 @@ export const registerMemberSharingIpc = ({
       return { ok: false, reason: 'changed' };
     }
     announce();
+    // The Studio edits, publishes and exports only a project folder, so a
+    // look alone could be played on the new computer and never changed or
+    // shared again. The look is saved whatever happens here.
+    let restored = false;
+    if (own) {
+      try {
+        restored = (await restoreOwnProject(pack)) === 'restored';
+      } catch (error) {
+        logger?.warn(
+          `Making a Studio project of an imported scene failed: ${String(error)}`,
+        );
+      }
+    }
     return {
       ok: true,
       names: pack.names,
       authorName: author.name,
-      own: author.id === me,
+      own,
+      restored,
     };
   });
 
