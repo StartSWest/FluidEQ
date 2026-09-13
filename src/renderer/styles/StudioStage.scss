@@ -16,14 +16,27 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- stage
 
-// As tall as the stage it holds and no taller: a floor here left a narrow
-// stage floating in a black box twice its height.
+// The stage's edge: one pixel of the theme's own light rule, the one menus are
+// drawn with. A token rather than a colour, so it follows the theme and the
+// tint a scene gives the window. The panel's colour darkened disappeared into
+// the dark edges most scenes have; the old padded near-black well read as a
+// black band.
+$stage-edge: $border-menu;
+
+// Only places the stage: as tall as the stage it holds and no taller, and
+// nothing drawn around it.
 .studio-stage__well {
   display: grid;
   place-items: center;
-  padding: 10px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-l;
+}
+
+// With nothing playing, the well stands where the stage will: the stage's
+// own shape, corners and edge, so nothing moves when a scene arrives. The
+// edge is a ring outside the box, as the stage's is, not a border inside it.
+.studio-stage__well--empty,
+.studio-stage__well--start {
+  border-radius: $radius-m;
+  box-shadow: 0 0 0 1px $stage-edge;
   background:
     radial-gradient(
       80% 60% at 50% 100%,
@@ -124,15 +137,16 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: 8px;
 }
 
+// The cards' corners, now that it stands among them. The edge is a ring, not
+// a border, so the canvas keeps every pixel of the stage's measured box; no
+// drop shadow, which on the panel was a dark smudge under the scene.
 .studio-stage {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-radius: $radius-s;
+  border-radius: $radius-m;
   background: $black;
-  box-shadow:
-    0 10px 30px rgba($black, 0.45),
-    inset 0 0 0 1px color-mix(in srgb, $white 6%, transparent);
+  box-shadow: 0 0 0 1px $stage-edge;
   transition:
     max-width $motion-fast $ease-out,
     aspect-ratio $motion-fast $ease-out;
@@ -164,6 +178,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: none;
   aspect-ratio: auto;
   border-radius: 0;
+  box-shadow: none;
 }
 
 .studio-stage__canvas {
