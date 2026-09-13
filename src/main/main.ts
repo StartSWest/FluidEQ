@@ -188,6 +188,7 @@ import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
+import { registerPlusGiftsIpc } from './ipc/plusGifts';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
@@ -3125,6 +3126,10 @@ const plusModerationIpc = registerPlusModerationIpc({
   logger: log,
 });
 
+// The admin's Plus gifts: addresses that count as paying without paying.
+// The server decides who the admin is (premium migration 0021).
+const plusGiftsIpc = registerPlusGiftsIpc({ access: galleryAccess });
+
 // The member's name on the board and in the gallery. Registering contacts
 // nothing; the Plus tab asks for it when it opens.
 const plusProfileIpc = registerPlusProfileIpc({
@@ -3464,6 +3469,7 @@ app.on('before-quit', (event) => {
   plusTermsNoticeIpc.dispose();
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
+  plusGiftsIpc.dispose();
   disposeStudioInspect();
   plusPublishingIpc.dispose();
   plusGalleryIpc.dispose();

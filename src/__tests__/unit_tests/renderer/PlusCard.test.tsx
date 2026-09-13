@@ -160,6 +160,43 @@ describe('the Plus card', () => {
     expect(mockOpenPortal).toHaveBeenCalled();
   });
 
+  it('calls a gift a gift: no renewal, no merchant page, and an end only when one was given', () => {
+    const { rerender } = render(
+      <PlusCard
+        entitlement={{
+          state: 'active',
+          plan: 'gift',
+          renewing: true,
+          // The server's stand-in for "until taken back" (premium 0021).
+          periodEndsAt: Date.UTC(2999, 11, 31),
+        }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
+    expect(screen.getByText('account.plus.gift')).toBeInTheDocument();
+    expect(screen.queryByText(/account.plus.renews/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'account.plus.manage' }),
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <PlusCard
+        entitlement={{
+          state: 'active',
+          plan: 'gift',
+          renewing: true,
+          periodEndsAt: JUNE_FIRST,
+        }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
+    expect(
+      screen.getByText(/account.plus.giftUntil:.*2027/),
+    ).toBeInTheDocument();
+  });
+
   it('says a cancelled subscription ends rather than renews', () => {
     render(
       <PlusCard

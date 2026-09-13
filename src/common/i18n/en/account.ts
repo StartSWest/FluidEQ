@@ -95,6 +95,8 @@ const account = {
   'account.plus.active': 'Active',
   'account.plus.renews': 'Renews {date}',
   'account.plus.ends': 'Ends {date}',
+  'account.plus.gift': 'A gift from FluidEQ',
+  'account.plus.giftUntil': 'A gift from FluidEQ, until {date}',
   'account.plus.manage': 'Manage subscription',
   'account.plus.grace':
     'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',

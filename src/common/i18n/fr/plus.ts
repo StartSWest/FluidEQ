@@ -175,6 +175,38 @@ const plus = {
   'plus.moderation.failed': 'Cela n’a pas abouti. Réessayez.',
   'plus.moderation.forbidden':
     'Seul l’administrateur de FluidEQ peut examiner les signalements.',
+  'plus.gallery.gifts': 'Plus offert',
+  'plus.gifts.title': 'Plus offert',
+  'plus.gifts.hint':
+    'Offrez Plus à qui vous voulez avec son adresse e-mail. La personne a tout Plus sans payer dès qu’un compte confirme cette adresse, jusqu’à ce que vous le repreniez ou à la date choisie.',
+  'plus.gifts.field.email': 'Adresse e-mail',
+  'plus.gifts.field.note': 'Note',
+  'plus.gifts.field.notePlaceholder': 'Qui c’est, facultatif',
+  'plus.gifts.field.until': 'Se termine',
+  'plus.gifts.field.untilHint':
+    'Laissez la fin vide pour qu’il dure jusqu’à ce que vous le repreniez.',
+  'plus.gifts.give': 'Offrir Plus',
+  'plus.gifts.save': 'Enregistrer le cadeau',
+  'plus.gifts.empty': 'Personne n’a encore Plus en cadeau',
+  'plus.gifts.emptyHint':
+    'Les adresses à qui vous offrez Plus apparaissent ici.',
+  'plus.gifts.status.active': 'A Plus',
+  'plus.gifts.status.waiting': 'En attente d’un compte',
+  'plus.gifts.status.ended': 'Terminé',
+  'plus.gifts.untilDate': 'Jusqu’au {date}',
+  'plus.gifts.forever': 'Jusqu’à ce qu’il soit repris',
+  'plus.gifts.since': 'Offert le {date}',
+  'plus.gifts.edit': 'Modifier',
+  'plus.gifts.takeBack': 'Reprendre',
+  'plus.gifts.keep': 'Garder',
+  'plus.gifts.confirmTakeBack': 'Reprendre Plus à {email} ?',
+  'plus.gifts.done.given': 'Plus offert à {email}',
+  'plus.gifts.done.updated': 'Cadeau pour {email} enregistré',
+  'plus.gifts.done.takenBack': 'Plus repris à {email}',
+  'plus.gifts.error.invalid':
+    'Vérifiez l’adresse et que la date de fin est à venir.',
+  'plus.gifts.error.forbidden': 'Seul l’admin de FluidEQ peut offrir Plus.',
+  'plus.gifts.error.failed': 'Cela n’a pas abouti. Réessayez.',
 
   'plus.report.title': 'Signaler {name}',
   'plus.report.lead':

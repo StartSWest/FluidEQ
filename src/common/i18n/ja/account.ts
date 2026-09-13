@@ -85,6 +85,8 @@ const account = {
   'account.plus.active': '有効',
   'account.plus.renews': '{date} に更新',
   'account.plus.ends': '{date} に終了',
+  'account.plus.gift': 'FluidEQ からのギフト',
+  'account.plus.giftUntil': 'FluidEQ からのギフト（{date} まで）',
   'account.plus.manage': 'サブスクリプションを管理',
   'account.plus.grace':
     'サブスクリプションを確認できませんでした。{date} まで有効です。それまでにインターネットに接続すると維持されます。',

@@ -85,6 +85,8 @@ const account = {
   'account.plus.active': 'सक्रिय',
   'account.plus.renews': '{date} को नवीनीकरण',
   'account.plus.ends': '{date} को समाप्त',
+  'account.plus.gift': 'FluidEQ की ओर से उपहार',
+  'account.plus.giftUntil': 'FluidEQ की ओर से उपहार, {date} तक',
   'account.plus.manage': 'सदस्यता प्रबंधित करें',
   'account.plus.grace':
     'आपकी सदस्यता की पुष्टि नहीं हो सकी। यह {date} तक चालू रहेगी — इसे बनाए रखने के लिए उससे पहले इंटरनेट से जुड़ें।',

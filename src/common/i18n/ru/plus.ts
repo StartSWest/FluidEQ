@@ -171,6 +171,38 @@ const plus = {
   'plus.moderation.failed': 'Не получилось. Попробуйте ещё раз.',
   'plus.moderation.forbidden':
     'Проверять жалобы может только администратор FluidEQ.',
+  'plus.gallery.gifts': 'Plus в подарок',
+  'plus.gifts.title': 'Plus в подарок',
+  'plus.gifts.hint':
+    'Дарите Plus кому угодно по адресу почты. Всё, что есть в Plus, человек получит без оплаты, как только учётная запись подтвердит этот адрес, — пока вы не отзовёте подарок или не наступит выбранная дата.',
+  'plus.gifts.field.email': 'Адрес почты',
+  'plus.gifts.field.note': 'Заметка',
+  'plus.gifts.field.notePlaceholder': 'Кто это, необязательно',
+  'plus.gifts.field.until': 'До',
+  'plus.gifts.field.untilHint':
+    'Оставьте дату пустой, чтобы подарок действовал, пока вы его не отзовёте.',
+  'plus.gifts.give': 'Подарить Plus',
+  'plus.gifts.save': 'Сохранить подарок',
+  'plus.gifts.empty': 'Пока никому не подарен Plus',
+  'plus.gifts.emptyHint': 'Здесь появятся адреса, которым вы подарили Plus.',
+  'plus.gifts.status.active': 'Plus активен',
+  'plus.gifts.status.waiting': 'Ждёт учётную запись',
+  'plus.gifts.status.ended': 'Закончился',
+  'plus.gifts.untilDate': 'До {date}',
+  'plus.gifts.forever': 'Пока не отозван',
+  'plus.gifts.since': 'Подарен {date}',
+  'plus.gifts.edit': 'Изменить',
+  'plus.gifts.takeBack': 'Отозвать',
+  'plus.gifts.keep': 'Оставить',
+  'plus.gifts.confirmTakeBack': 'Отозвать Plus у {email}?',
+  'plus.gifts.done.given': 'Plus подарен {email}',
+  'plus.gifts.done.updated': 'Подарок для {email} сохранён',
+  'plus.gifts.done.takenBack': 'Plus отозван у {email}',
+  'plus.gifts.error.invalid':
+    'Проверьте адрес и то, что дата окончания ещё не наступила.',
+  'plus.gifts.error.forbidden':
+    'Дарить Plus может только администратор FluidEQ.',
+  'plus.gifts.error.failed': 'Не получилось. Попробуйте ещё раз.',
 
   'plus.report.title': 'Пожаловаться на «{name}»',
   'plus.report.lead':

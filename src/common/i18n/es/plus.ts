@@ -173,6 +173,37 @@ const plus = {
   'plus.moderation.failed': 'No se pudo completar. Vuelve a intentarlo.',
   'plus.moderation.forbidden':
     'Solo el administrador de FluidEQ puede revisar denuncias.',
+  'plus.gallery.gifts': 'Plus regalado',
+  'plus.gifts.title': 'Plus regalado',
+  'plus.gifts.hint':
+    'Regala Plus a quien quieras con su correo. Tendrá todo lo de Plus sin pagar desde que una cuenta confirme ese correo, hasta que se lo quites o llegue la fecha que pongas.',
+  'plus.gifts.field.email': 'Correo',
+  'plus.gifts.field.note': 'Nota',
+  'plus.gifts.field.notePlaceholder': 'Quién es, opcional',
+  'plus.gifts.field.until': 'Termina',
+  'plus.gifts.field.untilHint':
+    'Deja la fecha vacía para que dure hasta que lo quites.',
+  'plus.gifts.give': 'Regalar Plus',
+  'plus.gifts.save': 'Guardar regalo',
+  'plus.gifts.empty': 'Todavía nadie tiene Plus regalado',
+  'plus.gifts.emptyHint': 'Aquí aparecen los correos a los que regales Plus.',
+  'plus.gifts.status.active': 'Tiene Plus',
+  'plus.gifts.status.waiting': 'Esperando una cuenta',
+  'plus.gifts.status.ended': 'Terminado',
+  'plus.gifts.untilDate': 'Hasta el {date}',
+  'plus.gifts.forever': 'Hasta que lo quites',
+  'plus.gifts.since': 'Regalado el {date}',
+  'plus.gifts.edit': 'Editar',
+  'plus.gifts.takeBack': 'Quitar',
+  'plus.gifts.keep': 'Mantener',
+  'plus.gifts.confirmTakeBack': '¿Quitarle Plus a {email}?',
+  'plus.gifts.done.given': 'Plus regalado a {email}',
+  'plus.gifts.done.updated': 'Regalo de {email} guardado',
+  'plus.gifts.done.takenBack': 'Plus quitado a {email}',
+  'plus.gifts.error.invalid':
+    'Revisa el correo y que la fecha de fin no haya pasado.',
+  'plus.gifts.error.forbidden': 'Solo el admin de FluidEQ puede regalar Plus.',
+  'plus.gifts.error.failed': 'No se pudo completar. Vuelve a intentarlo.',
 
   'plus.report.title': 'Denunciar {name}',
   'plus.report.lead':

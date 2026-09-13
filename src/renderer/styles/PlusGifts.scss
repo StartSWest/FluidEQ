@@ -1,0 +1,256 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The admin's Plus gifts (`PlusGifts.tsx`): the same page furniture as the
+// reported scenes — an intro strip, then the rows — in the "on" colour
+// instead of the report's amber, because a gift is something switched on.
+
+.plus-gifts__intro {
+  display: flex;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $active 26%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $active 9%, transparent),
+    color-mix(in srgb, $active 2%, transparent) 70%
+  );
+
+  .gallery-fine {
+    flex: 1 1 260px;
+    color: $text-muted;
+  }
+}
+
+.plus-gifts__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: $active;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $active 16%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// One line on a wide page — address, note, end, the button — and wrapping
+// field by field as it narrows, the address keeping the most room.
+.plus-gifts__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $spacing-s $spacing-m;
+  padding: 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+}
+
+.plus-gifts__field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+
+  // One height for all three and the button beside them: the date field's
+  // own picker made it two pixels taller than the text fields, and the text
+  // fields' 16px type taller than the small button, so the row's feet did
+  // not line up.
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: $control-height-sm;
+    padding-block: 0;
+    font-size: $text-body;
+  }
+}
+
+.plus-gifts__field--email {
+  flex: 2 1 220px;
+}
+
+.plus-gifts__field--note {
+  flex: 2 1 180px;
+}
+
+.plus-gifts__field--until {
+  flex: 0 1 160px;
+}
+
+.plus-gifts__label {
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+.plus-gifts__give {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  height: $control-height-sm;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.plus-gifts__form-hint {
+  flex: 1 1 100%;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.plus-gifts__refused {
+  color: color-mix(in srgb, $red 70%, $white);
+}
+
+// ---------------------------------------------------------------- rows
+
+.plus-gifts__row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+  transition: border-color $motion-fast $ease-out;
+
+  &.is-active {
+    border-color: color-mix(in srgb, $active 22%, transparent);
+  }
+
+  // The actions under the address when the page is too narrow for four
+  // columns: an address is long, and it is the thing to read.
+  @container plus (max-width: 640px) {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+
+    .plus-gifts__actions {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+  }
+}
+
+.plus-gifts__row--skeleton {
+  display: block;
+  height: 58px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent) 0%,
+    color-mix(in srgb, $white 7%, transparent) 50%,
+    color-mix(in srgb, $white 3%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation:
+    fade-in $motion-slow ease-out backwards,
+    gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.plus-gifts__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: $active;
+  border-radius: 50%;
+  background: color-mix(in srgb, $active 14%, transparent);
+  font-size: $text-body;
+  font-weight: $weight-bold;
+
+  .is-ended & {
+    color: $text-faint;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+}
+
+.plus-gifts__who {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.plus-gifts__email {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.plus-gifts__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.plus-gifts__note {
+  color: $text-muted;
+}
+
+.plus-gifts__status {
+  padding: 3px 9px;
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.is-active {
+    color: $active;
+    background: color-mix(in srgb, $active 14%, transparent);
+  }
+
+  &.is-waiting {
+    color: color-mix(in srgb, $amber 80%, $white);
+    background: color-mix(in srgb, $amber 13%, transparent);
+  }
+
+  &.is-ended {
+    color: $text-faint;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+}
+
+.plus-gifts__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.plus-gifts__confirm {
+  color: $text-muted;
+  font-size: $text-small;
+}

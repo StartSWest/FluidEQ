@@ -84,6 +84,8 @@ const account = {
   'account.plus.active': 'Attivo',
   'account.plus.renews': 'Si rinnova il {date}',
   'account.plus.ends': 'Termina il {date}',
+  'account.plus.gift': 'Un regalo di FluidEQ',
+  'account.plus.giftUntil': 'Un regalo di FluidEQ, fino al {date}',
   'account.plus.manage': 'Gestisci abbonamento',
   'account.plus.grace':
     'Non è stato possibile confermare l’abbonamento. Resta attivo fino al {date}: connettiti a internet prima di allora per conservarlo.',

@@ -74,6 +74,8 @@ const account = {
   'account.plus.active': '已激活',
   'account.plus.renews': '{date} 续订',
   'account.plus.ends': '{date} 到期',
+  'account.plus.gift': '来自 FluidEQ 的赠礼',
+  'account.plus.giftUntil': '来自 FluidEQ 的赠礼，至 {date}',
   'account.plus.manage': '管理订阅',
   'account.plus.grace':
     '无法确认你的订阅。它将保持有效至 {date}——请在此之前连接网络以保留。',

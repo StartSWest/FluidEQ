@@ -180,6 +180,37 @@ const plus = {
   'plus.moderation.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
   'plus.moderation.forbidden':
     'Nur der FluidEQ-Administrator kann Meldungen prüfen.',
+  'plus.gallery.gifts': 'Plus-Geschenke',
+  'plus.gifts.title': 'Plus-Geschenke',
+  'plus.gifts.hint':
+    'Verschenken Sie Plus an eine beliebige E-Mail-Adresse. Die Person erhält alles, was Plus bietet, ohne zu zahlen – sobald ein Konto diese Adresse bestätigt, bis Sie es zurücknehmen oder das gewählte Datum erreicht ist.',
+  'plus.gifts.field.email': 'E-Mail-Adresse',
+  'plus.gifts.field.note': 'Notiz',
+  'plus.gifts.field.notePlaceholder': 'Wer es ist, optional',
+  'plus.gifts.field.until': 'Endet',
+  'plus.gifts.field.untilHint':
+    'Lassen Sie das Ende leer, damit es gilt, bis Sie es zurücknehmen.',
+  'plus.gifts.give': 'Plus verschenken',
+  'plus.gifts.save': 'Geschenk speichern',
+  'plus.gifts.empty': 'Noch hat niemand Plus geschenkt bekommen',
+  'plus.gifts.emptyHint': 'Adressen, denen Sie Plus schenken, erscheinen hier.',
+  'plus.gifts.status.active': 'Hat Plus',
+  'plus.gifts.status.waiting': 'Wartet auf ein Konto',
+  'plus.gifts.status.ended': 'Beendet',
+  'plus.gifts.untilDate': 'Bis {date}',
+  'plus.gifts.forever': 'Bis zur Rücknahme',
+  'plus.gifts.since': 'Geschenkt am {date}',
+  'plus.gifts.edit': 'Bearbeiten',
+  'plus.gifts.takeBack': 'Zurücknehmen',
+  'plus.gifts.keep': 'Behalten',
+  'plus.gifts.confirmTakeBack': 'Plus von {email} zurücknehmen?',
+  'plus.gifts.done.given': 'Plus an {email} verschenkt',
+  'plus.gifts.done.updated': 'Geschenk für {email} gespeichert',
+  'plus.gifts.done.takenBack': 'Plus von {email} zurückgenommen',
+  'plus.gifts.error.invalid':
+    'Prüfen Sie die Adresse und dass das Enddatum noch in der Zukunft liegt.',
+  'plus.gifts.error.forbidden': 'Nur der FluidEQ-Admin kann Plus verschenken.',
+  'plus.gifts.error.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
 
   'plus.report.title': '{name} melden',
   'plus.report.lead':

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { IEntitlementStatus } from 'main/account/entitlement';
 import type { TBillingFailure } from 'main/account/billingClient';
+import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { useTranslation } from '../utils/I18nContext';
@@ -165,17 +166,33 @@ export default function PlusCard({
         <>
           {/* The development override carries no period; a "Renews" with
               nothing after it read as a broken card. */}
-          {entitlement.periodEndsAt !== undefined && (
+          {/* A gift is not a membership: nothing renews, and there is no
+              merchant page to manage it on. An open-ended gift carries a
+              far-off date (premium 0021) that is not worth showing. */}
+          {entitlement.plan === GIFT_PLAN ? (
             <p className="plus-card__line">
-              {t(
-                entitlement.renewing
-                  ? 'account.plus.renews'
-                  : 'account.plus.ends',
-                { date: format(entitlement.periodEndsAt) },
-              )}
+              {entitlement.periodEndsAt !== undefined &&
+              entitlement.periodEndsAt < GIFT_FOREVER_AFTER
+                ? t('account.plus.giftUntil', {
+                    date: format(entitlement.periodEndsAt),
+                  })
+                : t('account.plus.gift')}
             </p>
+          ) : (
+            <>
+              {entitlement.periodEndsAt !== undefined && (
+                <p className="plus-card__line">
+                  {t(
+                    entitlement.renewing
+                      ? 'account.plus.renews'
+                      : 'account.plus.ends',
+                    { date: format(entitlement.periodEndsAt) },
+                  )}
+                </p>
+              )}
+              <div className="plus-card__actions">{manage}</div>
+            </>
           )}
-          <div className="plus-card__actions">{manage}</div>
         </>
       )}
 

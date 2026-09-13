@@ -83,6 +83,10 @@ import type {
   TModerationStatusOutcome,
 } from './ipc/plusModeration';
 import type {
+  TPlusGiftActOutcome,
+  TPlusGiftsListOutcome,
+} from './ipc/plusGifts';
+import type {
   TModerationAction,
   TModerationList,
 } from '../common/plusModeration';
@@ -1136,6 +1140,19 @@ const moderateScene = (
     sceneId,
   ) as Promise<TModerationActOutcome>;
 
+// The admin's Plus gifts. The server decides who the admin is.
+const listPlusGifts = () =>
+  ipcRenderer.invoke('plus-gifts-list') as Promise<TPlusGiftsListOutcome>;
+
+const givePlus = (gift: { email: string; note?: string; until?: number }) =>
+  ipcRenderer.invoke('plus-gifts-give', gift) as Promise<TPlusGiftActOutcome>;
+
+const takeBackPlus = (email: string) =>
+  ipcRenderer.invoke(
+    'plus-gifts-take-back',
+    email,
+  ) as Promise<TPlusGiftActOutcome>;
+
 // The member's name on the board and in the gallery: read it, or choose it.
 // A result rather than a throw, so "that handle is taken" survives the bridge.
 const plusProfile = () =>
@@ -1373,6 +1390,9 @@ export default {
     moderationStatus,
     listReportedScenes,
     moderateScene,
+    listPlusGifts,
+    givePlus,
+    takeBackPlus,
     createStudioProject,
     chooseStudioProjectsRoot,
     addStudioSceneToLooks,

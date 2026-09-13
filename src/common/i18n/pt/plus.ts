@@ -172,6 +172,37 @@ const plus = {
   'plus.moderation.failed': 'Não deu certo. Tente de novo.',
   'plus.moderation.forbidden':
     'Só o administrador do FluidEQ pode revisar denúncias.',
+  'plus.gallery.gifts': 'Plus de presente',
+  'plus.gifts.title': 'Plus de presente',
+  'plus.gifts.hint':
+    'Dê Plus a quem quiser pelo e-mail. A pessoa tem tudo do Plus sem pagar a partir do momento em que uma conta confirma esse endereço, até você retirar ou chegar a data definida.',
+  'plus.gifts.field.email': 'E-mail',
+  'plus.gifts.field.note': 'Nota',
+  'plus.gifts.field.notePlaceholder': 'Quem é, opcional',
+  'plus.gifts.field.until': 'Termina',
+  'plus.gifts.field.untilHint':
+    'Deixe o fim vazio para durar até você retirar.',
+  'plus.gifts.give': 'Dar Plus',
+  'plus.gifts.save': 'Salvar presente',
+  'plus.gifts.empty': 'Ninguém tem Plus de presente ainda',
+  'plus.gifts.emptyHint': 'Os endereços a quem você der Plus aparecem aqui.',
+  'plus.gifts.status.active': 'Tem Plus',
+  'plus.gifts.status.waiting': 'Aguardando uma conta',
+  'plus.gifts.status.ended': 'Terminado',
+  'plus.gifts.untilDate': 'Até {date}',
+  'plus.gifts.forever': 'Até ser retirado',
+  'plus.gifts.since': 'Dado em {date}',
+  'plus.gifts.edit': 'Editar',
+  'plus.gifts.takeBack': 'Retirar',
+  'plus.gifts.keep': 'Manter',
+  'plus.gifts.confirmTakeBack': 'Retirar o Plus de {email}?',
+  'plus.gifts.done.given': 'Plus dado a {email}',
+  'plus.gifts.done.updated': 'Presente de {email} salvo',
+  'plus.gifts.done.takenBack': 'Plus retirado de {email}',
+  'plus.gifts.error.invalid':
+    'Confira o endereço e se a data de fim ainda não passou.',
+  'plus.gifts.error.forbidden': 'Só o admin do FluidEQ pode dar Plus.',
+  'plus.gifts.error.failed': 'Não deu certo. Tente de novo.',
 
   'plus.report.title': 'Denunciar {name}',
   'plus.report.lead':

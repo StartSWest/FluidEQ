@@ -66,7 +66,9 @@ export type TGalleryPage =
   | { kind: 'maker'; maker: IMakerRef }
   | { kind: 'mine' }
   /** The admin's queue of reported scenes. */
-  | { kind: 'reported' };
+  | { kind: 'reported' }
+  /** The admin's Plus gifts: addresses that count as paying. */
+  | { kind: 'gifts' };
 
 /** A page's own name, for what is remembered about it. */
 export const galleryPageKey = (page: TGalleryPage) => {

@@ -37,7 +37,8 @@ export type TCommunityGlyph =
   | 'fit'
   | 'pin'
   | 'rail-collapse'
-  | 'lighting';
+  | 'lighting'
+  | 'gift';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -308,6 +309,19 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path
               d="M10 2.5v3M4.3 4.3l1.9 1.9M15.7 4.3l-1.9 1.9"
               opacity="0.7"
+            />
+          </>
+        );
+      case 'gift':
+        // A wrapped box with its bow: Plus given, not bought.
+        return (
+          <>
+            <rect x="3" y="7.5" width="14" height="3.5" rx="1" />
+            <path d="M4.5 11v5.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V11" />
+            <path d="M10 7.5v10" />
+            <path
+              d="M10 7.5C8.8 4.6 6 4 5.8 5.6 5.6 7 8 7.5 10 7.5c2 0 4.4-.5 4.2-1.9C14 4 11.2 4.6 10 7.5Z"
+              opacity="0.8"
             />
           </>
         );

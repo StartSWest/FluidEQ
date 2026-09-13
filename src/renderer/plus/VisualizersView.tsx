@@ -24,6 +24,7 @@ import {
 } from './plusNavigation';
 import { refreshModeration } from './moderationStore';
 import ReportedScenes from './ReportedScenes';
+import PlusGifts from './PlusGifts';
 import ScenePage from './ScenePage';
 import YourScenes from './YourScenes';
 import '../styles/Gallery.scss';
@@ -67,6 +68,8 @@ function PageBar({
   let title = t('plus.mine.title');
   if (page.kind === 'reported') {
     title = t('plus.moderation.title');
+  } else if (page.kind === 'gifts') {
+    title = t('plus.gifts.title');
   } else if (page.kind === 'scene') {
     title = resolveSceneName(page.scene, locale);
   } else if (page.kind === 'maker') {
@@ -149,6 +152,8 @@ export default function VisualizersView({
     content = <YourScenes me={me} />;
   } else if (page.kind === 'reported') {
     content = <ReportedScenes me={me} />;
+  } else if (page.kind === 'gifts') {
+    content = <PlusGifts />;
   }
 
   return (
@@ -180,9 +185,10 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {!entitled && page.kind !== 'mine' && page.kind !== 'reported' && (
-          <PlusBar />
-        )}
+        {!entitled &&
+          page.kind !== 'mine' &&
+          page.kind !== 'reported' &&
+          page.kind !== 'gifts' && <PlusBar />}
         {content}
       </div>
     </>
