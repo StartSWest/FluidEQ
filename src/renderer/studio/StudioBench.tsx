@@ -270,63 +270,71 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       </div>
 
       <div className={`studio-bench__grid studio-bench__grid--${size}`}>
-        <div className="studio-bench__stage">
-          {stage}
-          {(problems ||
-            trouble?.kind === 'compile' ||
-            trouble?.kind === 'heavy') && (
-            <div className="studio-problems" role="alert">
-              {problems && (
-                <>
-                  <span className="studio-problems__title">
-                    {t('studio.problem.heading')}
-                  </span>
-                  <ul className="studio-problems__list">
-                    {problems.map((problem) => (
-                      <Problem
-                        key={`${problem.code}:${problem.file}:${problem.line ?? 0}`}
-                        problem={problem}
-                      />
-                    ))}
-                  </ul>
-                  {problems.some(isPictureProblem) && (
-                    <span className="studio-problems__hint">
-                      {t('studio.picture.hint')}
+        {/* The stage's pane, scrolled apart from the side column so tuning
+            down that column keeps the scene in view. */}
+        <div className="studio-bench__main">
+          <div className="studio-bench__stage">
+            {stage}
+            {(problems ||
+              trouble?.kind === 'compile' ||
+              trouble?.kind === 'heavy') && (
+              <div className="studio-problems" role="alert">
+                {problems && (
+                  <>
+                    <span className="studio-problems__title">
+                      {t('studio.problem.heading')}
                     </span>
-                  )}
-                </>
-              )}
-              {trouble?.kind === 'compile' && (
-                <>
-                  <span className="studio-problems__title">
-                    {t('studio.compile.heading')}
-                  </span>
-                  <code className="studio-problems__log">
-                    {firstError(trouble.log)}
-                  </code>
+                    <ul className="studio-problems__list">
+                      {problems.map((problem) => (
+                        <Problem
+                          key={`${problem.code}:${problem.file}:${problem.line ?? 0}`}
+                          problem={problem}
+                        />
+                      ))}
+                    </ul>
+                    {problems.some(isPictureProblem) && (
+                      <span className="studio-problems__hint">
+                        {t('studio.picture.hint')}
+                      </span>
+                    )}
+                  </>
+                )}
+                {trouble?.kind === 'compile' && (
+                  <>
+                    <span className="studio-problems__title">
+                      {t('studio.compile.heading')}
+                    </span>
+                    <code className="studio-problems__log">
+                      {firstError(trouble.log)}
+                    </code>
+                    <span className="studio-problems__hint">
+                      {t('studio.compile.hint')}
+                    </span>
+                  </>
+                )}
+                {trouble?.kind === 'heavy' && (
                   <span className="studio-problems__hint">
-                    {t('studio.compile.hint')}
+                    {t('studio.heavy.body')}
                   </span>
-                </>
-              )}
-              {trouble?.kind === 'heavy' && (
-                <span className="studio-problems__hint">
-                  {t('studio.heavy.body')}
-                </span>
-              )}
-            </div>
-          )}
-          {project && (
-            <StudioPictures
-              pictures={picture.pictures}
-              previews={picture.previews}
-              busy={
-                picture.opening ??
-                (picture.saving ? picture.session?.picture.id : undefined)
-              }
-              onOpen={picture.open}
-            />
-          )}
+                )}
+              </div>
+            )}
+            {project && (
+              <StudioPictures
+                pictures={picture.pictures}
+                previews={picture.previews}
+                busy={
+                  picture.opening ??
+                  (picture.saving ? picture.session?.picture.id : undefined)
+                }
+                onOpen={picture.open}
+              />
+            )}
+          </div>
+
+          <div className="studio-bench__maker">
+            <StudioMaker key={project?.id ?? 'draft'} project={project} />
+          </div>
         </div>
 
         <div className="studio-bench__side">
@@ -393,10 +401,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               {t('studio.action.export')}
             </button>
           </div>
-        </div>
-
-        <div className="studio-bench__maker">
-          <StudioMaker key={project?.id ?? 'draft'} project={project} />
         </div>
       </div>
 

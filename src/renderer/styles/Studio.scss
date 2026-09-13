@@ -151,10 +151,24 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- bench
 
+// Two panes side by side, each scrolling on its own under the project bar:
+// the stage, its pictures, code and making on the left, what tests and
+// tunes it on the right. One scroll for the whole page meant going down the
+// column to a slider took the scene being tuned off the top of the screen.
+// The bench fills the Studio's height so the Studio itself never scrolls;
+// folded into one column, it is one page again and the Studio scrolls it.
 .studio-bench {
   display: grid;
+  flex: 1 1 auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: $spacing-m;
   min-width: 0;
+  min-height: 0;
+
+  @container studio (max-width: 760px) {
+    flex: none;
+    grid-template-rows: none;
+  }
 }
 
 // Pinned to the top of the Studio while it scrolls. Which project is open, and
@@ -206,42 +220,139 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// Two rows beside one column: the controls run down beside the stage and
-// the making card both, so neither leaves a hole under the other. The
-// second row takes what is left, which keeps the stage's row the stage's
-// own height however tall the column grows.
+// What a pane keeps clear inside its scroll edge, and gives back with its
+// margins so nothing moves: a scroller clips at its own box, and the stage's
+// ring and a focused control's glow both reach a few pixels past theirs.
+$studio-pane-bleed: 4px;
+
+// The side column's cards are 248px, the width their tiles and sliders were
+// laid out at; the column is that and the scrollbar it always keeps.
+$studio-side-cards: 248px;
+$studio-scrollbar: 8px;
+
 .studio-bench__grid {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 248px);
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    'stage side'
-    'maker side';
-  align-items: start;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(220px, $studio-side-cards + $studio-scrollbar);
+  grid-template-areas: 'main side';
   gap: $spacing-m;
+  min-height: 0;
+  // Both panes' scroll positions, for the edges drawn over their tops.
+  timeline-scope: --studio-main, --studio-side;
 
   @container studio (max-width: 760px) {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
     grid-template-areas:
       'stage'
       'side'
       'maker';
+    align-items: start;
+  }
+
+  // An edge along the top of a pane once something has scrolled under it: a
+  // hairline and a soft shade that arrive over its first few pixels of
+  // scrolling, the project bar's own look. Placed by grid area, so each spans
+  // exactly its pane whatever the columns come to. A pane that has nothing
+  // to scroll has no active timeline and keeps the resting opacity, unseen.
+  &::before,
+  &::after {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 14px;
+    content: '';
+    pointer-events: none;
+    border-top: 1px solid $border-subtle;
+    background: linear-gradient(rgba($black, 0.45), transparent);
+    opacity: 0;
+    animation: studio-pane-edge linear both;
+    animation-range: 0 $spacing-l;
+
+    @container studio (max-width: 760px) {
+      display: none;
+    }
+  }
+
+  &::before {
+    grid-area: main;
+    animation-timeline: --studio-main;
+  }
+
+  &::after {
+    grid-area: side;
+    animation-timeline: --studio-side;
+  }
+}
+
+@keyframes studio-pane-edge {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// Shared by both panes. The scrollbar's room is kept whether or not there is
+// anything to scroll: a pane that grew a scrollbar when its pictures arrived
+// would narrow the stage under a playing scene and redraw it at a new size.
+@mixin studio-pane {
+  min-height: 0;
+  margin: 0 (-$studio-pane-bleed);
+  padding: $studio-pane-bleed;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  @include slim-scrollbar;
+
+  @container studio (max-width: 760px) {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+}
+
+.studio-bench__main {
+  display: flex;
+  flex-direction: column;
+  grid-area: main;
+  gap: $spacing-m;
+  min-width: 0;
+  scroll-timeline: --studio-main block;
+  @include studio-pane;
+
+  // Folded, its two parts are laid out by the grid again, with the side
+  // column between them in the order the Studio is used.
+  @container studio (max-width: 760px) {
+    display: contents;
   }
 }
 
 .studio-bench__stage {
   display: grid;
-  grid-area: stage;
+  flex: none;
   gap: $spacing-s;
   min-width: 0;
+
+  @container studio (max-width: 760px) {
+    grid-area: stage;
+  }
 }
 
 .studio-bench__side {
   display: grid;
   grid-area: side;
+  align-content: start;
   gap: $spacing-s;
   min-width: 0;
+  scroll-timeline: --studio-side block;
+  @include studio-pane;
 
   // Folded under the stage, a column of cards the width of the panel is a
   // long scroll of short rows: side by side they fill it.
@@ -255,8 +366,12 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .studio-bench__maker {
-  grid-area: maker;
+  flex: none;
   min-width: 0;
+
+  @container studio (max-width: 760px) {
+    grid-area: maker;
+  }
 }
 
 // What to do with the scene once it plays: keep it, publish it, send it.
