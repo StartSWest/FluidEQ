@@ -171,13 +171,37 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 1 auto;
 }
 
-.gallery-toolbar__mine {
+// The member's own pages at the toolbar's end: their scenes, and for the
+// admin the reported ones before it. One group, so a wrap takes both to the
+// next line together instead of splitting them.
+.gallery-toolbar__own {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
   margin-inline-start: auto;
 
-  svg {
+  .button svg {
     width: 15px;
     height: 15px;
   }
+}
+
+// How many reported scenes wait. Red, the one colour here that asks for
+// attention; zero shows nothing.
+.gallery-toolbar__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  margin-inline-start: 2px;
+  padding: 0 5px;
+  color: $white;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $red 78%, $surface-base);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 // Categories, and the category a scene is published under: pills, because

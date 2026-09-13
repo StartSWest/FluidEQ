@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
+import type { IReportedScene } from 'common/plusModeration';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
@@ -26,8 +27,10 @@ import {
   useGalleryScene,
   type TListQuery,
 } from './galleryStore';
+import { useModeration } from './moderationStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
+import SceneModerationCard from './SceneModerationCard';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
@@ -62,6 +65,8 @@ interface IScenePageProps {
   scene: IGalleryScene;
   /** The list it was opened from, for stepping to the next one. */
   from?: TListQuery;
+  /** Opened by the admin from the queue of reported scenes. */
+  report?: IReportedScene;
   me: string | undefined;
   onShowGraph: () => void;
 }
@@ -81,10 +86,12 @@ interface IScenePageProps {
 export default function ScenePage({
   scene: opened,
   from: openedFrom,
+  report,
   me,
   onShowGraph,
 }: IScenePageProps) {
   const { t, locale } = useTranslation();
+  const moderation = useModeration();
   const entitled = usePlusEntitled();
   const scene = useGalleryScene(opened);
   const adding = useAddingScenes().has(scene.lookId);
@@ -371,6 +378,10 @@ export default function ScenePage({
           </div>
         </header>
 
+        {report && moderation.admin && (
+          <SceneModerationCard entry={report} name={name} />
+        )}
+
         {scene.official ? (
           <p className="gallery-included">
             <Glyph name="plus" />
@@ -412,7 +423,8 @@ export default function ScenePage({
           <p className="gallery-fine">
             {t(scene.official ? 'plus.official.fine' : 'plus.scene.fine')}
           </p>
-          {!own && !scene.official && (
+          {/* Not for the admin reviewing it: the reports are already theirs. */}
+          {!own && !scene.official && !(report && moderation.admin) && (
             <button
               type="button"
               className="gallery-scene__report"

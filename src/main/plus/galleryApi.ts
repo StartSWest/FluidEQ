@@ -65,7 +65,7 @@ const headers = ({ config, accessToken }: IAuthorised) => ({
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const rpc = async (
+export const rpc = async (
   auth: IAuthorised,
   name: string,
   body: Record<string, unknown>,

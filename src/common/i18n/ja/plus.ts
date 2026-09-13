@@ -134,6 +134,40 @@ const plus = {
   'plus.mine.unpublished': '{name} はギャラリーから外れました。',
   'plus.mine.failed': '公開を停止できませんでした。もう一度お試しください。',
 
+  'plus.gallery.reported': '報告済み',
+  'plus.gallery.reportedOpen': '確認待ち {count} 件',
+  'plus.moderation.title': '報告されたシーン',
+  'plus.moderation.hint':
+    'メンバーが報告したシーンです。このページはあなただけに表示され、誰が報告したかは誰にも伝えられません。シーンを取り下げると、ギャラリーと、それを追加した全員のマイ表示から消えます。',
+  'plus.moderation.list.open': '確認待ち',
+  'plus.moderation.list.takenDown': '取り下げ済み',
+  'plus.moderation.reason.rights': '無断使用',
+  'plus.moderation.reason.flashing': '点滅',
+  'plus.moderation.reason.offensive': '不快',
+  'plus.moderation.reason.broken': '再生されない',
+  'plus.moderation.reports': '報告',
+  'plus.moderation.cardTitle': 'このシーンへの報告',
+  'plus.moderation.lastReport': '最新の報告 {date}',
+  'plus.moderation.takenDownOn': '取り下げ {date}',
+  'plus.moderation.makerBanned': '作成者は利用停止中',
+  'plus.moderation.view': '表示',
+  'plus.moderation.dismiss': '却下',
+  'plus.moderation.takeDown': '取り下げ',
+  'plus.moderation.confirm':
+    '全員に対して取り下げますか？ギャラリーと、追加した全員のマイ表示から消えます。',
+  'plus.moderation.confirmNo': '残す',
+  'plus.moderation.restore': '復元',
+  'plus.moderation.empty.open': '確認するものはありません',
+  'plus.moderation.empty.openHint':
+    'メンバーがシーンを報告すると、あなたが対応するまでここに表示されます。',
+  'plus.moderation.empty.takenDown': '取り下げたシーンはありません。',
+  'plus.moderation.done.takenDown': '{name} を取り下げました。',
+  'plus.moderation.done.dismissed': '{name} への報告を却下しました。',
+  'plus.moderation.done.restored': '{name} をギャラリーに戻しました。',
+  'plus.moderation.failed': '完了できませんでした。もう一度お試しください。',
+  'plus.moderation.forbidden':
+    '報告を確認できるのは FluidEQ の管理者だけです。',
+
   'plus.report.title': '{name} を報告',
   'plus.report.lead':
     '何が問題ですか？ 報告を読むのは FluidEQ の作者だけです。',

@@ -132,6 +132,41 @@ const plus = {
   'plus.mine.unpublished': '{name} non è più nella galleria.',
   'plus.mine.failed': 'Non è stato possibile ritirarla. Riprova.',
 
+  'plus.gallery.reported': 'Segnalate',
+  'plus.gallery.reportedOpen': '{count} da esaminare',
+  'plus.moderation.title': 'Scene segnalate',
+  'plus.moderation.hint':
+    'Le scene segnalate dai membri. Solo tu vedi questa pagina e nessuno sa chi ha segnalato. Ritirare una scena la toglie dalla galleria e dagli aspetti di tutti quelli che l’hanno aggiunta.',
+  'plus.moderation.list.open': 'Da esaminare',
+  'plus.moderation.list.takenDown': 'Ritirate',
+  'plus.moderation.reason.rights': 'Senza permesso',
+  'plus.moderation.reason.flashing': 'Lampeggia',
+  'plus.moderation.reason.offensive': 'Offensiva',
+  'plus.moderation.reason.broken': 'Non si avvia',
+  'plus.moderation.reports': 'Segnalazioni',
+  'plus.moderation.cardTitle': 'Segnalazioni su questa scena',
+  'plus.moderation.lastReport': 'Ultima segnalazione {date}',
+  'plus.moderation.takenDownOn': 'Ritirata {date}',
+  'plus.moderation.makerBanned': 'Autore bloccato',
+  'plus.moderation.view': 'Vedi',
+  'plus.moderation.dismiss': 'Archivia',
+  'plus.moderation.takeDown': 'Ritira',
+  'plus.moderation.confirm':
+    'Ritirarla per tutti? Esce dalla galleria e dagli aspetti di tutti quelli che l’hanno aggiunta.',
+  'plus.moderation.confirmNo': 'Tienila',
+  'plus.moderation.restore': 'Ripristina',
+  'plus.moderation.empty.open': 'Niente da esaminare',
+  'plus.moderation.empty.openHint':
+    'Quando un membro segnala una scena, resta qui finché non rispondi.',
+  'plus.moderation.empty.takenDown': 'Nessuna scena ritirata.',
+  'plus.moderation.done.takenDown': '{name} è stata ritirata.',
+  'plus.moderation.done.dismissed':
+    'Le segnalazioni su {name} sono archiviate.',
+  'plus.moderation.done.restored': '{name} è di nuovo nella galleria.',
+  'plus.moderation.failed': 'Non è andato a buon fine. Riprova.',
+  'plus.moderation.forbidden':
+    'Solo l’amministratore di FluidEQ può esaminare le segnalazioni.',
+
   'plus.report.title': 'Segnala {name}',
   'plus.report.lead':
     'Qual è il problema? Solo l’autore di FluidEQ legge le segnalazioni.',

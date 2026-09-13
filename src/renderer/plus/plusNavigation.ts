@@ -5,6 +5,7 @@ import type {
   TGallerySort,
   TPlusCategory,
 } from 'common/plusGallery';
+import type { IReportedScene } from 'common/plusModeration';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
@@ -35,9 +36,13 @@ export type TGalleryPage =
        * before and after it without going back to that list.
        */
       from?: Omit<IGalleryQuery, 'offset'>;
+      /** Opened from the admin's queue: what it was reported for. */
+      report?: IReportedScene;
     }
   | { kind: 'maker'; maker: IMakerRef }
-  | { kind: 'mine' };
+  | { kind: 'mine' }
+  /** The admin's queue of reported scenes. */
+  | { kind: 'reported' };
 
 /** A page's own name, for what is remembered about it. */
 export const galleryPageKey = (page: TGalleryPage) => {

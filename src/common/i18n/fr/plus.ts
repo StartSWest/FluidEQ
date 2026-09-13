@@ -134,6 +134,41 @@ const plus = {
   'plus.mine.unpublished': '{name} n’est plus dans la galerie.',
   'plus.mine.failed': 'Elle n’a pas pu être dépubliée. Réessayez.',
 
+  'plus.gallery.reported': 'Signalées',
+  'plus.gallery.reportedOpen': '{count} à examiner',
+  'plus.moderation.title': 'Scènes signalées',
+  'plus.moderation.hint':
+    'Les scènes signalées par les membres. Vous seul voyez cette page, et personne ne sait qui a signalé. Retirer une scène l’enlève de la galerie et des styles de tous ceux qui l’ont ajoutée.',
+  'plus.moderation.list.open': 'À examiner',
+  'plus.moderation.list.takenDown': 'Retirées',
+  'plus.moderation.reason.rights': 'Sans autorisation',
+  'plus.moderation.reason.flashing': 'Clignotements',
+  'plus.moderation.reason.offensive': 'Offensante',
+  'plus.moderation.reason.broken': 'Ne se lance pas',
+  'plus.moderation.reports': 'Signalements',
+  'plus.moderation.cardTitle': 'Signalements de cette scène',
+  'plus.moderation.lastReport': 'Dernier signalement {date}',
+  'plus.moderation.takenDownOn': 'Retirée {date}',
+  'plus.moderation.makerBanned': 'Créateur banni',
+  'plus.moderation.view': 'Voir',
+  'plus.moderation.dismiss': 'Classer',
+  'plus.moderation.takeDown': 'Retirer',
+  'plus.moderation.confirm':
+    'La retirer pour tout le monde ? Elle quitte la galerie et les styles de tous ceux qui l’ont ajoutée.',
+  'plus.moderation.confirmNo': 'La garder',
+  'plus.moderation.restore': 'Rétablir',
+  'plus.moderation.empty.open': 'Rien à examiner',
+  'plus.moderation.empty.openHint':
+    'Quand un membre signale une scène, elle attend ici votre réponse.',
+  'plus.moderation.empty.takenDown': 'Aucune scène retirée.',
+  'plus.moderation.done.takenDown': '{name} a été retirée.',
+  'plus.moderation.done.dismissed':
+    'Les signalements de {name} ont été classés.',
+  'plus.moderation.done.restored': '{name} est de retour dans la galerie.',
+  'plus.moderation.failed': 'Cela n’a pas abouti. Réessayez.',
+  'plus.moderation.forbidden':
+    'Seul l’administrateur de FluidEQ peut examiner les signalements.',
+
   'plus.report.title': 'Signaler {name}',
   'plus.report.lead':
     'Quel est le problème ? Seul le créateur de FluidEQ lit les signalements.',

@@ -1,0 +1,233 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The admin's queue of reported scenes (`ReportedScenes.tsx`). It stands on
+// the rows the member's own published scenes use (`.gallery-row` in
+// Gallery.scss) and adds what a report is: why, how often, and when.
+
+.gallery-moderation__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $amber 26%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $amber 9%, transparent),
+    color-mix(in srgb, $amber 2%, transparent) 70%
+  );
+
+  .gallery-fine {
+    flex: 1 1 260px;
+    color: $text-muted;
+  }
+}
+
+.gallery-moderation__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: color-mix(in srgb, $amber 80%, $white);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 16%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.gallery-moderation__lists {
+  flex: 0 0 auto;
+}
+
+// The open list's count inside its own segment, the toolbar badge's red.
+.gallery-moderation__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  margin-inline-start: 6px;
+  padding: 0 4px;
+  color: $white;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $red 78%, $surface-base);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.gallery-report__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+// One reason and how many said it. Each in its own colour, so a row full of
+// flashing reads differently from a row about rights at a glance.
+.gallery-report__reason {
+  --reason: #{$amber};
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 3px 1px 8px;
+  color: color-mix(in srgb, var(--reason) 55%, $white);
+  border: 1px solid color-mix(in srgb, var(--reason) 42%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, var(--reason) 10%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+
+  &--rights {
+    --reason: #{$triadic-1};
+  }
+
+  &--flashing {
+    --reason: #{$amber};
+  }
+
+  &--offensive {
+    --reason: #{$red};
+  }
+
+  &--broken {
+    --reason: #{$text-faint};
+  }
+}
+
+.gallery-report__times {
+  display: inline-grid;
+  place-items: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, var(--reason) 80%, $white);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.gallery-report__when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: $text-dim;
+  font-size: $text-micro;
+
+  .gallery-row__blocked {
+    justify-self: auto;
+  }
+}
+
+// Folded under the picture on a narrow pane, the two figures stay together at
+// the start instead of spreading to either edge of the row.
+.gallery-report .gallery-row__numbers {
+  justify-content: start;
+  column-gap: $spacing-l;
+}
+
+// The count is what the list is sorted by, so it is the figure that leads.
+.gallery-report .gallery-report__count dd {
+  color: color-mix(in srgb, $amber 70%, $white);
+}
+
+// On a scene's page, for the admin who opened it from the queue: a band of
+// its own in the side card, the queue's amber, above the member's actions.
+.gallery-scene-moderation {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border: 1px solid color-mix(in srgb, $amber 32%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, $amber 11%, transparent),
+    color-mix(in srgb, $amber 3%, transparent) 70%
+  );
+
+  .gallery-report__reasons,
+  .gallery-report__when {
+    margin: 0;
+  }
+
+  .gallery-moderation__mark {
+    width: 26px;
+    height: 26px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.gallery-scene-moderation__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gallery-scene-moderation__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.gallery-scene-moderation__total {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, $amber 70%, $white);
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-scene-moderation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .button {
+    flex: 1 1 auto;
+  }
+}
+
+.gallery-scene-moderation__confirm {
+  display: grid;
+  gap: 8px;
+
+  .gallery-fine {
+    color: $text-muted;
+  }
+}
+
+// Quiet until the pointer is on it: the red belongs to the confirmation.
+.gallery-report__take-down.button.subtle:hover:not(:disabled) {
+  color: $white;
+  border-color: color-mix(in srgb, $red 60%, transparent);
+  background: color-mix(in srgb, $red 18%, transparent);
+  box-shadow: none;
+}

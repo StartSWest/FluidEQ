@@ -185,6 +185,7 @@ import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
+import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
@@ -3089,6 +3090,17 @@ const plusPublishingIpc = registerPlusPublishingIpc({
   },
 });
 
+// The admin's queue of reported scenes. A takedown or a restore changes the
+// block list, which this computer holds a copy of and the gallery reads.
+const plusModerationIpc = registerPlusModerationIpc({
+  access: galleryAccess,
+  onBlockListChanged: async () => {
+    await memberSharingIpc.refreshBlocked();
+    await plusGalleryIpc.refreshIfDue(true);
+  },
+  logger: log,
+});
+
 // The member's name on the board and in the gallery. Registering contacts
 // nothing; the Plus tab asks for it when it opens.
 const plusProfileIpc = registerPlusProfileIpc({
@@ -3405,6 +3417,7 @@ app.on('before-quit', (event) => {
   accountIpc.dispose();
   plusTermsNoticeIpc.dispose();
   scenePacksIpc.dispose();
+  plusModerationIpc.dispose();
   plusPublishingIpc.dispose();
   plusGalleryIpc.dispose();
   memberSharingIpc.dispose();

@@ -129,6 +129,40 @@ const plus = {
   'plus.mine.unpublished': '{name} अब गैलरी में नहीं है।',
   'plus.mine.failed': 'प्रकाशन हटाया नहीं जा सका। फिर कोशिश करें।',
 
+  'plus.gallery.reported': 'रिपोर्ट किए गए',
+  'plus.gallery.reportedOpen': '{count} समीक्षा के लिए',
+  'plus.moderation.title': 'रिपोर्ट किए गए सीन',
+  'plus.moderation.hint':
+    'वे सीन जिन्हें सदस्यों ने रिपोर्ट किया। यह पेज सिर्फ़ आप देखते हैं, और किसी को नहीं बताया जाता कि रिपोर्ट किसने की। किसी सीन को हटाने पर वह गैलरी से और उसे जोड़ने वाले सभी लोगों के रूपों से हट जाता है।',
+  'plus.moderation.list.open': 'समीक्षा बाकी',
+  'plus.moderation.list.takenDown': 'हटाए गए',
+  'plus.moderation.reason.rights': 'बिना अनुमति',
+  'plus.moderation.reason.flashing': 'चमक',
+  'plus.moderation.reason.offensive': 'आपत्तिजनक',
+  'plus.moderation.reason.broken': 'नहीं चलता',
+  'plus.moderation.reports': 'रिपोर्ट',
+  'plus.moderation.cardTitle': 'इस सीन की रिपोर्ट',
+  'plus.moderation.lastReport': 'आख़िरी रिपोर्ट {date}',
+  'plus.moderation.takenDownOn': 'हटाया गया {date}',
+  'plus.moderation.makerBanned': 'निर्माता प्रतिबंधित',
+  'plus.moderation.view': 'देखें',
+  'plus.moderation.dismiss': 'खारिज करें',
+  'plus.moderation.takeDown': 'हटाएँ',
+  'plus.moderation.confirm':
+    'सबके लिए हटाएँ? यह गैलरी से और इसे जोड़ने वाले सभी लोगों के रूपों से हट जाएगा।',
+  'plus.moderation.confirmNo': 'रहने दें',
+  'plus.moderation.restore': 'वापस लाएँ',
+  'plus.moderation.empty.open': 'समीक्षा के लिए कुछ नहीं',
+  'plus.moderation.empty.openHint':
+    'जब कोई सदस्य किसी सीन की रिपोर्ट करेगा, वह आपके जवाब तक यहाँ रहेगा।',
+  'plus.moderation.empty.takenDown': 'कोई सीन हटाया नहीं गया है।',
+  'plus.moderation.done.takenDown': '{name} हटा दिया गया।',
+  'plus.moderation.done.dismissed': '{name} की रिपोर्ट खारिज कर दी गईं।',
+  'plus.moderation.done.restored': '{name} फिर से गैलरी में है।',
+  'plus.moderation.failed': 'यह नहीं हो पाया। फिर कोशिश करें।',
+  'plus.moderation.forbidden':
+    'सिर्फ़ FluidEQ के एडमिन ही रिपोर्ट की समीक्षा कर सकते हैं।',
+
   'plus.report.title': '{name} की रिपोर्ट करें',
   'plus.report.lead':
     'इसमें क्या गलत है? रिपोर्ट सिर्फ़ FluidEQ के निर्माता पढ़ते हैं।',

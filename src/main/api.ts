@@ -68,6 +68,15 @@ import type {
   TPlusCategory,
   TReportReason,
 } from '../common/plusGallery';
+import type {
+  TModerationActOutcome,
+  TModerationListOutcome,
+  TModerationStatusOutcome,
+} from './ipc/plusModeration';
+import type {
+  TModerationAction,
+  TModerationList,
+} from '../common/plusModeration';
 import type { ILikeStatus } from './memberScenes/social';
 import type { TPlusProfileResult } from './ipc/plusProfile';
 import type { IPlusProfile } from '../common/plusProfile';
@@ -1051,6 +1060,30 @@ const unpublishScene = (sceneId: string) =>
     sceneId,
   ) as Promise<TUnpublishOutcome>;
 
+// The admin's queue of reported scenes. The server decides who the admin is.
+const moderationStatus = () =>
+  ipcRenderer.invoke(
+    'plus-moderation-status',
+  ) as Promise<TModerationStatusOutcome>;
+
+const listReportedScenes = (list: TModerationList) =>
+  ipcRenderer.invoke(
+    'plus-moderation-list',
+    list,
+  ) as Promise<TModerationListOutcome>;
+
+const moderateScene = (
+  action: TModerationAction,
+  authorId: string,
+  sceneId: string,
+) =>
+  ipcRenderer.invoke(
+    'plus-moderation-act',
+    action,
+    authorId,
+    sceneId,
+  ) as Promise<TModerationActOutcome>;
+
 // The member's name on the board and in the gallery: read it, or choose it.
 // A result rather than a throw, so "that handle is taken" survives the bridge.
 const plusProfile = () =>
@@ -1281,6 +1314,9 @@ export default {
     reportGalleryScene,
     myPublishedScenes,
     unpublishScene,
+    moderationStatus,
+    listReportedScenes,
+    moderateScene,
     createStudioProject,
     chooseStudioProjectsRoot,
     addStudioSceneToLooks,

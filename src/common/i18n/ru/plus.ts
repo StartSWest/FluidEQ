@@ -130,6 +130,40 @@ const plus = {
   'plus.mine.unpublished': '«{name}» больше нет в галерее.',
   'plus.mine.failed': 'Не удалось снять с публикации. Попробуйте ещё раз.',
 
+  'plus.gallery.reported': 'Жалобы',
+  'plus.gallery.reportedOpen': 'На проверке: {count}',
+  'plus.moderation.title': 'Сцены с жалобами',
+  'plus.moderation.hint':
+    'Сцены, на которые пожаловались участники. Эту страницу видите только вы, и никто не узнает, кто пожаловался. Снятая сцена исчезает из галереи и из оформлений всех, кто её добавил.',
+  'plus.moderation.list.open': 'На проверке',
+  'plus.moderation.list.takenDown': 'Сняты',
+  'plus.moderation.reason.rights': 'Без разрешения',
+  'plus.moderation.reason.flashing': 'Мерцание',
+  'plus.moderation.reason.offensive': 'Оскорбительна',
+  'plus.moderation.reason.broken': 'Не запускается',
+  'plus.moderation.reports': 'Жалобы',
+  'plus.moderation.cardTitle': 'Жалобы на эту сцену',
+  'plus.moderation.lastReport': 'Последняя жалоба {date}',
+  'plus.moderation.takenDownOn': 'Снята {date}',
+  'plus.moderation.makerBanned': 'Автор заблокирован',
+  'plus.moderation.view': 'Открыть',
+  'plus.moderation.dismiss': 'Отклонить',
+  'plus.moderation.takeDown': 'Снять',
+  'plus.moderation.confirm':
+    'Снять для всех? Сцена исчезнет из галереи и из оформлений всех, кто её добавил.',
+  'plus.moderation.confirmNo': 'Оставить',
+  'plus.moderation.restore': 'Вернуть',
+  'plus.moderation.empty.open': 'Проверять нечего',
+  'plus.moderation.empty.openHint':
+    'Когда участник пожалуется на сцену, она будет ждать здесь вашего решения.',
+  'plus.moderation.empty.takenDown': 'Снятых сцен нет.',
+  'plus.moderation.done.takenDown': '{name} снята.',
+  'plus.moderation.done.dismissed': 'Жалобы на {name} отклонены.',
+  'plus.moderation.done.restored': '{name} снова в галерее.',
+  'plus.moderation.failed': 'Не получилось. Попробуйте ещё раз.',
+  'plus.moderation.forbidden':
+    'Проверять жалобы может только администратор FluidEQ.',
+
   'plus.report.title': 'Пожаловаться на «{name}»',
   'plus.report.lead':
     'Что с ней не так? Жалобы читает только создатель FluidEQ.',

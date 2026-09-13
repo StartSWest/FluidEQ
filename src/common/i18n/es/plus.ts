@@ -132,6 +132,40 @@ const plus = {
   'plus.mine.unpublished': '{name} ya no está en la galería.',
   'plus.mine.failed': 'No se pudo retirar. Vuelve a intentarlo.',
 
+  'plus.gallery.reported': 'Denunciadas',
+  'plus.gallery.reportedOpen': '{count} por revisar',
+  'plus.moderation.title': 'Escenas denunciadas',
+  'plus.moderation.hint':
+    'Escenas que los miembros denunciaron. Solo tú ves esta página y nadie sabe quién denunció. Retirar una escena la quita de la galería y de los estilos de todos los que la añadieron.',
+  'plus.moderation.list.open': 'Por revisar',
+  'plus.moderation.list.takenDown': 'Retiradas',
+  'plus.moderation.reason.rights': 'Sin permiso',
+  'plus.moderation.reason.flashing': 'Parpadeo',
+  'plus.moderation.reason.offensive': 'Ofensiva',
+  'plus.moderation.reason.broken': 'No se reproduce',
+  'plus.moderation.reports': 'Denuncias',
+  'plus.moderation.cardTitle': 'Denuncias de esta escena',
+  'plus.moderation.lastReport': 'Última denuncia {date}',
+  'plus.moderation.takenDownOn': 'Retirada {date}',
+  'plus.moderation.makerBanned': 'Creador bloqueado',
+  'plus.moderation.view': 'Ver',
+  'plus.moderation.dismiss': 'Descartar',
+  'plus.moderation.takeDown': 'Retirar',
+  'plus.moderation.confirm':
+    '¿Retirarla para todos? Sale de la galería y de los estilos de todos los que la añadieron.',
+  'plus.moderation.confirmNo': 'Mantener',
+  'plus.moderation.restore': 'Restaurar',
+  'plus.moderation.empty.open': 'Nada por revisar',
+  'plus.moderation.empty.openHint':
+    'Cuando un miembro denuncie una escena, esperará aquí hasta que respondas.',
+  'plus.moderation.empty.takenDown': 'No hay escenas retiradas.',
+  'plus.moderation.done.takenDown': '{name} se retiró.',
+  'plus.moderation.done.dismissed': 'Se descartaron las denuncias de {name}.',
+  'plus.moderation.done.restored': '{name} vuelve a estar en la galería.',
+  'plus.moderation.failed': 'No se pudo completar. Vuelve a intentarlo.',
+  'plus.moderation.forbidden':
+    'Solo el administrador de FluidEQ puede revisar denuncias.',
+
   'plus.report.title': 'Denunciar {name}',
   'plus.report.lead':
     '¿Qué le pasa? Solo el creador de FluidEQ lee las denuncias.',

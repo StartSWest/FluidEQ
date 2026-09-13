@@ -22,6 +22,8 @@ import {
   usePlusNavigation,
   type TGalleryPage,
 } from './plusNavigation';
+import { refreshModeration } from './moderationStore';
+import ReportedScenes from './ReportedScenes';
 import ScenePage from './ScenePage';
 import YourScenes from './YourScenes';
 import '../styles/Gallery.scss';
@@ -63,7 +65,9 @@ function PageBar({
 }) {
   const { t, locale } = useTranslation();
   let title = t('plus.mine.title');
-  if (page.kind === 'scene') {
+  if (page.kind === 'reported') {
+    title = t('plus.moderation.title');
+  } else if (page.kind === 'scene') {
     title = resolveSceneName(page.scene, locale);
   } else if (page.kind === 'maker') {
     title = page.maker.name ?? page.maker.handle ?? t('plus.card.anonymous');
@@ -109,6 +113,12 @@ export default function VisualizersView({
     return () => setGalleryNotice(undefined);
   }, []);
 
+  // Whether to offer the reported scenes, asked on the same occasion and
+  // again whenever a different account signs in.
+  useEffect(() => {
+    refreshModeration(me).catch(() => undefined);
+  }, [me]);
+
   // Each page opens where it was left — the gallery at the card that was
   // opened, a page never seen at its top. Before paint, so it never shows
   // at the wrong place first. The lists are kept, so the height is there.
@@ -125,6 +135,7 @@ export default function VisualizersView({
         key={page.scene.lookId}
         scene={page.scene}
         from={page.from}
+        report={page.report}
         me={me}
         onShowGraph={onShowGraph}
       />
@@ -136,6 +147,8 @@ export default function VisualizersView({
   } else if (page.kind === 'mine') {
     // Taking one's own scene down needs no Plus.
     content = <YourScenes me={me} />;
+  } else if (page.kind === 'reported') {
+    content = <ReportedScenes me={me} />;
   }
 
   return (
@@ -167,7 +180,9 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {!entitled && page.kind !== 'mine' && <PlusBar />}
+        {!entitled && page.kind !== 'mine' && page.kind !== 'reported' && (
+          <PlusBar />
+        )}
         {content}
       </div>
     </>

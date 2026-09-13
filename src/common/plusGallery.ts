@@ -125,7 +125,7 @@ const LOCALE = /^[a-z]{2}$/;
 const MAX_AUTHOR_NAME = 60;
 
 /** PostgREST hands a `bigint` back as a string; both read as a count. */
-const count = (value: unknown): number | undefined => {
+export const readCount = (value: unknown): number | undefined => {
   const number = typeof value === 'string' ? Number(value) : value;
   return typeof number === 'number' && Number.isInteger(number) && number >= 0
     ? number
@@ -154,7 +154,7 @@ const readSwatch = (value: unknown): string[] | undefined =>
     ? value.map((colour: string) => colour.toLowerCase())
     : undefined;
 
-const readDate = (value: unknown): string | undefined =>
+export const readDate = (value: unknown): string | undefined =>
   typeof value === 'string' && !Number.isNaN(Date.parse(value))
     ? value
     : undefined;
@@ -177,10 +177,10 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   }
   const names = readNames(value.names);
   const swatch = readSwatch(value.swatch);
-  const version = count(value.version);
-  const likes = count(value.likes);
-  const likesWeek = count(value.likes_week);
-  const adds = count(value.adds);
+  const version = readCount(value.version);
+  const likes = readCount(value.likes);
+  const likesWeek = readCount(value.likes_week);
+  const adds = readCount(value.adds);
   const updatedAt = readDate(value.updated_at);
   if (
     !names ||
@@ -232,9 +232,9 @@ export const parsePublishedRow = (
   const sceneId = typeof value.scene_id === 'string' ? value.scene_id : '';
   const names = readNames(value.names);
   const swatch = readSwatch(value.swatch);
-  const version = count(value.version);
-  const likes = count(value.likes);
-  const adds = count(value.adds);
+  const version = readCount(value.version);
+  const likes = readCount(value.likes);
+  const adds = readCount(value.adds);
   const publishedAt = readDate(value.published_at);
   const updatedAt = readDate(value.updated_at);
   if (

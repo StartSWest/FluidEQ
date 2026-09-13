@@ -138,6 +138,40 @@ const plus = {
   'plus.mine.failed':
     'Sie konnte nicht zurückgezogen werden. Versuchen Sie es erneut.',
 
+  'plus.gallery.reported': 'Gemeldet',
+  'plus.gallery.reportedOpen': '{count} zu prüfen',
+  'plus.moderation.title': 'Gemeldete Szenen',
+  'plus.moderation.hint':
+    'Szenen, die Mitglieder gemeldet haben. Nur Sie sehen diese Seite, und niemand erfährt, wer gemeldet hat. Eine entfernte Szene verschwindet aus der Galerie und aus den Darstellungen aller, die sie hinzugefügt haben.',
+  'plus.moderation.list.open': 'Zu prüfen',
+  'plus.moderation.list.takenDown': 'Entfernt',
+  'plus.moderation.reason.rights': 'Ohne Erlaubnis',
+  'plus.moderation.reason.flashing': 'Flackern',
+  'plus.moderation.reason.offensive': 'Anstößig',
+  'plus.moderation.reason.broken': 'Läuft nicht',
+  'plus.moderation.reports': 'Meldungen',
+  'plus.moderation.cardTitle': 'Meldungen zu dieser Szene',
+  'plus.moderation.lastReport': 'Letzte Meldung {date}',
+  'plus.moderation.takenDownOn': 'Entfernt {date}',
+  'plus.moderation.makerBanned': 'Ersteller gesperrt',
+  'plus.moderation.view': 'Ansehen',
+  'plus.moderation.dismiss': 'Verwerfen',
+  'plus.moderation.takeDown': 'Entfernen',
+  'plus.moderation.confirm':
+    'Für alle entfernen? Sie verschwindet aus der Galerie und aus den Darstellungen aller, die sie hinzugefügt haben.',
+  'plus.moderation.confirmNo': 'Behalten',
+  'plus.moderation.restore': 'Wiederherstellen',
+  'plus.moderation.empty.open': 'Nichts zu prüfen',
+  'plus.moderation.empty.openHint':
+    'Meldet ein Mitglied eine Szene, wartet sie hier, bis Sie antworten.',
+  'plus.moderation.empty.takenDown': 'Keine Szene ist entfernt.',
+  'plus.moderation.done.takenDown': '{name} wurde entfernt.',
+  'plus.moderation.done.dismissed': 'Die Meldungen zu {name} wurden verworfen.',
+  'plus.moderation.done.restored': '{name} ist wieder in der Galerie.',
+  'plus.moderation.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
+  'plus.moderation.forbidden':
+    'Nur der FluidEQ-Administrator kann Meldungen prüfen.',
+
   'plus.report.title': '{name} melden',
   'plus.report.lead':
     'Was stimmt damit nicht? Nur der Entwickler von FluidEQ liest Meldungen.',
