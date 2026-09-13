@@ -51,10 +51,13 @@ export type TSceneCompileResult =
   { ok: true; program: ISceneProgram } | { ok: false; log: string };
 
 export const createSceneContext = (
-  canvas: HTMLCanvasElement,
+  canvas: HTMLCanvasElement | OffscreenCanvas,
 ): WebGL2RenderingContext | null => {
   try {
-    return canvas.getContext('webgl2', SCENE_CONTEXT_ATTRIBUTES);
+    return canvas.getContext(
+      'webgl2',
+      SCENE_CONTEXT_ATTRIBUTES,
+    ) as WebGL2RenderingContext | null;
   } catch {
     return null;
   }

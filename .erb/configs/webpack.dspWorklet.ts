@@ -64,6 +64,10 @@ export const dspWorkletConfig = (
   devtool: false,
 
   entry: {
+    'scene-still': path.join(
+      webpackPaths.srcRendererPath,
+      'graph/sceneStill.worker.ts',
+    ),
     'sender-spectrum': path.join(
       webpackPaths.srcRendererPath,
       'remoteAudio/senderSpectrum.worker.ts',
