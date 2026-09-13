@@ -396,8 +396,13 @@ const LibraryWorkspace = ({
     return () => observer.disconnect();
   }, []);
 
-  const isUpNextFloating =
-    isCardNarrow && !isUpNextOverVideo && !isUpNextCollapsed;
+  /**
+   * Whether the queue stands over the shelf as a drawer rather than beside
+   * it. Not whether it is open: the drawer keeps its look while it folds away
+   * (`Library.scss`), or its shadow would drop off the first frame of closing.
+   */
+  const isUpNextDrawer = isCardNarrow && !isUpNextOverVideo;
+  const isUpNextFloating = isUpNextDrawer && !isUpNextCollapsed;
 
   /**
    * A press anywhere else puts the drawer away.
@@ -1288,7 +1293,7 @@ const LibraryWorkspace = ({
         // left over.
         !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
-        isUpNextFloating ? ' has-up-next-floating' : ''
+        isUpNextDrawer ? ' has-up-next-floating' : ''
       }`}
       ref={cardRef}
       aria-label={t('tabs.library')}
@@ -1648,13 +1653,13 @@ const LibraryWorkspace = ({
           rather than to whichever shelf is drawing it. On a shelf it stands
           in the strip `has-up-next` reserves; over a video it floats on the
           picture, full screen included — `has-video` is what moves it. */}
-          {!isUpNextCollapsed && (
-            <LibraryUpNext
-              isCollapsed={isUpNextCollapsed}
-              onCollapsedChange={setIsUpNextCollapsed}
-              restTotal={upNextRestTotal}
-            />
-          )}
+          {/* Mounted folded as well, so it can close and open on the Plus
+          rail's motion (`Library.scss`) instead of vanishing in one frame. */}
+          <LibraryUpNext
+            isCollapsed={isUpNextCollapsed}
+            onCollapsedChange={setIsUpNextCollapsed}
+            restTotal={upNextRestTotal}
+          />
           {/* OVER A VIDEO ONLY. The picture takes the whole tab and the toolbar
           row that holds the chip everywhere else is not drawn, so here it
           floats — a little below the top, clear of the picture's own Back and

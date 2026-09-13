@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {
   ILibraryIndex,
@@ -293,7 +293,20 @@ describe('the folded queue chip', () => {
 
     // By pattern, not by exact name: the chip carries its count inside the
     // button, so its accessible name is the label and the number together.
-    const chip = await screen.findByRole('button', { name: /Up next/ });
+    //
+    // The folded panel is mounted too, so it can fold and open on the move,
+    // and its header shares the name — but it is inert, which no reader and
+    // no keyboard can reach. The chip is the one that can be.
+    const chip = await waitFor(() => {
+      const reachable = screen
+        .getAllByRole('button', { name: /Up next/ })
+        .filter((button) => !button.closest('[inert]'));
+      expect(reachable).toHaveLength(1);
+      return reachable[0];
+    });
+    expect(
+      screen.getByRole('complementary', { name: 'Up next' }),
+    ).toHaveAttribute('inert');
     expect(chip.closest('.library-toolbar__tail')).not.toBeNull();
     // Folded, and the chip is what says so — it is drawn in both states, so
     // opening the queue cannot re-lay the cluster out around it.

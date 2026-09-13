@@ -234,6 +234,10 @@ const LibraryUpNext = ({
 
   // The scrollport's own height, watched rather than read once: this panel
   // folds and is resized by its edge, and the window is not a fixed size.
+  // Keyed on the list being there at all: the panel stays mounted through a
+  // fold, so the scrollport now appears when the queue gets its first entry
+  // rather than when the panel does.
+  const hasEntries = upNext.length > 0;
   useLayoutEffect(() => {
     const pane = listRef.current;
     if (!pane) {
@@ -244,7 +248,7 @@ const LibraryUpNext = ({
     const observer = new ResizeObserver(measure);
     observer.observe(pane);
     return () => observer.disconnect();
-  }, [isCollapsed]);
+  }, [hasEntries]);
 
   /**
    * Back to the top when the playhead moves.
@@ -395,6 +399,8 @@ const LibraryUpNext = ({
     <aside
       className={`library-up-next${isCollapsed ? ' is-collapsed' : ''}`}
       aria-label={t('library.upNext')}
+      // Folded it stays mounted, so the fold can move, and out of reach.
+      inert={isCollapsed}
     >
       {/* The header is the fold, and says which way it will go by which way
           the chevron points. */}
@@ -423,31 +429,29 @@ const LibraryUpNext = ({
           and a switch buried in settings is found only by somebody who
           already suspects it exists. Outside the fold button rather than
           inside it — a control cannot be nested in another control. */}
-      {!isCollapsed && (
-        <span className="library-up-next__keep">
-          <Switch
-            id="library-up-next-keep-playing"
-            isOn={isContinuationOn}
-            isDisabled={false}
-            handleToggle={() => setIsContinuationOn(!isContinuationOn)}
-            ariaLabel={t('library.upNext.keepPlaying')}
-          />
-          {/* A label pointed at the same checkbox, for the reason
-              `SongEqSaveSwitch` gives: without it only the switch itself
-              answers a press and the words beside it are dead. */}
-          <label
-            className="library-up-next__keep-label"
-            htmlFor="library-up-next-keep-playing"
-            title={t('library.upNext.keepPlayingHint')}
-          >
-            {t('library.upNext.keepPlaying')}
-          </label>
-        </span>
-      )}
-      {!isCollapsed && trackCount === 0 && (
+      <span className="library-up-next__keep">
+        <Switch
+          id="library-up-next-keep-playing"
+          isOn={isContinuationOn}
+          isDisabled={false}
+          handleToggle={() => setIsContinuationOn(!isContinuationOn)}
+          ariaLabel={t('library.upNext.keepPlaying')}
+        />
+        {/* A label pointed at the same checkbox, for the reason
+            `SongEqSaveSwitch` gives: without it only the switch itself
+            answers a press and the words beside it are dead. */}
+        <label
+          className="library-up-next__keep-label"
+          htmlFor="library-up-next-keep-playing"
+          title={t('library.upNext.keepPlayingHint')}
+        >
+          {t('library.upNext.keepPlaying')}
+        </label>
+      </span>
+      {trackCount === 0 && (
         <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
       )}
-      {!isCollapsed && trackCount > 0 && (
+      {trackCount > 0 && (
         <div
           ref={listRef}
           className="library-up-next__list"

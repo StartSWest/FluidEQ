@@ -2735,6 +2735,58 @@ $library-wave-step: 4ms;
 // section entirely and the shelf has the whole width back. The chip in the
 // folder row is the way in.
 
+// *** The fold ****************************************************************
+//
+// THE QUEUE FOLDS THE WAY THE PLUS TAB'S RAIL DOES (`PlusRail.scss`), and the
+// way karaoke's playlist does beside its stage: the panel closes towards the
+// edge it stands against on the same length and curve, its contents leave
+// before it narrows and come back once there is room, and the shelf gives up
+// its strip — and takes it back — in the same movement. No pin and no
+// opening on hover; the fold is only ever the chip's or the header's.
+//
+// It used to be unmounted, and only its arrival was animated, because the
+// strip came back the instant it was folded and a panel sliding away over a
+// shelf already laid out underneath it would have disagreed with it. Both
+// move together now, so the panel stays mounted, inert while folded
+// (`LibraryUpNext`).
+//
+// Reduced motion shortens it rather than removing it, as the rail does: a
+// shelf that jumps a quarter of the card sideways reads as the layout
+// breaking. `--up-next-chrome` is the full-screen slide out of the picture's
+// way (below), which reduced motion does remove.
+.library-workspace {
+  --up-next-move: #{$motion-slow};
+  --up-next-settle: #{$motion-base};
+  --up-next-chrome: #{$motion-base};
+
+  @media (prefers-reduced-motion: reduce) {
+    --up-next-move: 150ms;
+    --up-next-settle: 110ms;
+    --up-next-chrome: 0ms;
+  }
+}
+
+// The shelf, the video and every other view give the strip up and take it
+// back as the panel moves. None of them has a transition of its own to be
+// replaced by this; the toolbar row and the queue's own pieces are left out.
+//
+// Not while the panel's edge is dragged, which moves the shelf under the
+// pointer: a transition there would trail every movement by the length of a
+// fold. Said in this selector rather than overridden by another one, which
+// this many `:not()`s would outrank.
+.library-workspace:not(:has(.library-up-next__splitter .is-dragging))
+  > *:not(.library-up-next):not(.library-up-next__splitter):not(
+    .library-toolbar-row
+  ):not(.library-up-next__chip--over-video) {
+  transition: margin-right var(--up-next-move) $ease-out;
+}
+
+// And the panel's own width follows the same drag.
+.library-workspace:has(.library-up-next__splitter .is-dragging)
+  .library-up-next {
+  transition: none;
+}
+
 .library-up-next {
   @include panel-surface;
   // An inner pane, not a card: `panel-surface` is the top-level card recipe
@@ -2771,6 +2823,46 @@ $library-wave-step: 4ms;
   flex-direction: column;
   padding: 6px 4px 8px 10px;
   gap: 4px;
+  // Its contents are squeezed while it is narrower than they are, and never
+  // drawn outside it. The focus ring its header draws is inset far enough to
+  // stay inside.
+  overflow: hidden;
+  // Opening: the surface comes in at once and widens; the contents follow a
+  // quarter of the way in, when the panel is already most of the way open on
+  // this curve. `transform` is the full-screen slide out of the picture's way.
+  transition:
+    width var(--up-next-move) $ease-out,
+    padding var(--up-next-move) $ease-out,
+    opacity var(--up-next-settle) ease-out,
+    transform var(--up-next-chrome) $ease-out;
+
+  > * {
+    transition: opacity var(--up-next-settle) ease-out
+      calc(var(--up-next-move) * 0.25);
+  }
+
+  // Folding: the contents go first, quickly, so nothing is seen being
+  // squeezed; the surface follows them out while it closes, its padding
+  // closing with it so no sliver is left standing at the edge, and it is
+  // hidden once shut so nothing in it can be hovered.
+  &.is-collapsed {
+    width: 0;
+    padding-inline: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      width var(--up-next-move) $ease-out,
+      padding var(--up-next-move) $ease-out,
+      opacity calc(var(--up-next-move) * 0.5) ease-out
+        calc(var(--up-next-move) * 0.2),
+      visibility 0s linear var(--up-next-move),
+      transform var(--up-next-chrome) $ease-out;
+
+    > * {
+      opacity: 0;
+      transition: opacity 90ms ease-out;
+    }
+  }
   // OPAQUE, overriding `panel-surface`'s translucent one, and the CARD
   // colour — the same one the right rail's sections and every other block
   // in the window stand on.
@@ -2935,9 +3027,12 @@ $library-wave-step: 4ms;
 // picture. `pointer-events` goes with them so nothing invisible can swallow a
 // press meant for the video, and the movement that would bring them back has
 // already happened by the time a press could land.
+//
+// The queue panel itself is not in this list: it already moves for its fold,
+// and a list here would replace that one. Its own transitions carry the
+// slide out as well (`.library-up-next`, `--up-next-chrome`).
 .library-workspace:has(.library-video-stage.is-fullscreen) {
   .library-video-stage__back,
-  .library-up-next,
   .library-up-next__splitter,
   .library-up-next__chip--over-video {
     transition:
@@ -2968,7 +3063,6 @@ $library-wave-step: 4ms;
 @media (prefers-reduced-motion: reduce) {
   .library-workspace:has(.library-video-stage.is-fullscreen) {
     .library-video-stage__back,
-    .library-up-next,
     .library-up-next__splitter,
     .library-up-next__chip--over-video {
       transition: none;
@@ -3103,35 +3197,33 @@ $library-wave-step: 4ms;
   }
 }
 
-// It slides in from the edge it lives on rather than appearing there.
-//
-// Only the entrance is animated. A panel that also animated out would have to
-// stay mounted while it went, and the strip the shelf gives up comes back the
-// instant it is folded — so the two would disagree for the length of the
-// animation and the list would be seen sliding away over content already
-// laid out underneath it.
-@keyframes up-next-in {
+// The panel's edge and the chip that stands in for it over a video arrive as
+// the fold ends, not with its first frame: the edge is placed where the open
+// panel's left side will be, and shown at once it would hang in the shelf
+// while the panel was still on its way there. The chip comes in from the side
+// the queue went. `translate` rather than `transform`, which the full-screen
+// slide out of the picture's way already owns.
+@keyframes up-next-edge-in {
   from {
     opacity: 0;
-    transform: translateX(24px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
   }
 }
 
-.library-up-next,
+@keyframes up-next-chip-in {
+  from {
+    opacity: 0;
+    translate: 8px 0;
+  }
+}
+
 .library-up-next__splitter {
-  animation: up-next-in $motion-base $ease-out backwards;
+  animation: up-next-edge-in var(--up-next-settle) ease-out
+    calc(var(--up-next-move) * 0.6) backwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .library-up-next,
-  .library-up-next__splitter {
-    animation: none;
-  }
+.library-up-next__chip--over-video {
+  animation: up-next-chip-in var(--up-next-settle) $ease-out
+    calc(var(--up-next-move) * 0.6) backwards;
 }
 
 .library-up-next__empty {
@@ -3202,24 +3294,18 @@ $library-wave-step: 4ms;
   transition: transform $motion-fast $ease-out;
 }
 
-// Folded, the caret points at what opening it would give back, and the count
-// stays on screen so the tab still says how much is waiting.
+// Folded, the caret points at what opening it would give back, so opening
+// turns it down as the header fades in. The header's own folded look — a
+// pill with its count — went when folded stopped being something on screen:
+// the chip in the toolbar says how much is waiting, and a header re-laid out
+// as a pill would only have been seen changing shape on its way out.
 .library-up-next.is-collapsed .library-up-next__caret {
   transform: rotate(-90deg);
 }
 
-.library-up-next.is-collapsed .library-up-next__head {
-  padding: 6px 12px;
-  border: 0;
-  border-radius: $radius-pill;
-}
-
-.library-up-next.is-collapsed .library-up-next__count {
-  margin-left: 0;
-}
-
+// The caret only. The fold itself still moves under reduced motion, shorter
+// (`--up-next-move`).
 @media (prefers-reduced-motion: reduce) {
-  .library-up-next,
   .library-up-next__caret {
     transition: none;
   }
