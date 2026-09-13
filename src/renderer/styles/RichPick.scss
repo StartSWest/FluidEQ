@@ -199,7 +199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.09em;
+  @include tracking(0.09em);
   text-transform: uppercase;
 }
 

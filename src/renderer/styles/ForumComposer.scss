@@ -198,7 +198,7 @@ textarea.forum-editor__input {
   color: $text-faint;
   font-size: $text-small;
   font-weight: $weight-semibold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 // The boards as a row of choices with their pictures: all visible at once,

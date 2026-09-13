@@ -35,7 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-s;
   background: transparent;
   font-size: $text-micro;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   cursor: pointer;
   // The titlebar is a drag region; a control inside one has to opt out or it
   // moves the window instead of being pressed.

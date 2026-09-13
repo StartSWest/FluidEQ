@@ -909,3 +909,33 @@ $transition-control:
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+// Letter-spacing, for text that can be in any of the app's ten languages.
+//
+// Tracking is a Latin typesetting habit. On Devanagari it pulls a word's vowel
+// signs and conjuncts apart — the Hindi card label "आपके डिवाइस" read as a row
+// of loose letters — and Japanese and Chinese are already set on an even grid
+// that spacing only breaks up. So every positive letter-spacing goes through
+// here, and `--latin-tracking` turns it off for the scripts in
+// `$untracked-languages` (see `untracked-languages`, included once in
+// App.scss). `check-styles.ts` rejects a raw positive value anywhere else.
+//
+// A custom property rather than a `:lang()` rule per call: it reaches
+// pseudo-elements, which cannot take `:lang()` after them, it cannot lose on
+// specificity to the rule it switches off, and the list of languages lives in
+// one place instead of in 176 selectors.
+@mixin tracking($amount) {
+  letter-spacing: calc($amount * var(--latin-tracking, 1));
+}
+
+// The locales whose script tracking damages; `html[lang]` is the active
+// locale (I18nContext), and any element marked with its own `lang` counts too.
+$untracked-languages: hi, ja, zh;
+
+@mixin untracked-languages {
+  @each $language in $untracked-languages {
+    :lang(#{$language}) {
+      --latin-tracking: 0;
+    }
+  }
+}

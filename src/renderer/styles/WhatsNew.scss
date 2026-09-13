@@ -106,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: rgba($white, 0.9);
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.12em;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 

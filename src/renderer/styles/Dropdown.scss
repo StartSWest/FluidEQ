@@ -171,7 +171,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 
   // Neither half may run into the other.

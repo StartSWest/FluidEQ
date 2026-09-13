@@ -120,7 +120,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-accent;
   font-size: 12px;
   font-weight: $weight-semibold;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
 }
 .about-brand__identity {
   min-width: 0;
@@ -209,7 +209,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $secondary-light;
     font-size: $text-small;
     font-weight: $weight-bold;
-    letter-spacing: 0.12em;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 }

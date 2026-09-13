@@ -152,7 +152,7 @@ $dsp-rail-offset: 110ms;
   font-family: $font-mono;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 }
 
 // The scope notice, and it is not a footnote.
@@ -221,7 +221,7 @@ $dsp-rail-offset: 110ms;
   color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-semibold;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   // A device name is arbitrary and can be very long ("Speakers (2- High
   // Definition Audio Device)"), and the panel it sits in is resizable down to
   // a narrow column. One line that ends in an ellipsis keeps the pill a pill;
@@ -238,7 +238,7 @@ $dsp-rail-offset: 110ms;
   font-family: $font-mono;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   white-space: nowrap;
 }
 
@@ -305,7 +305,7 @@ $dsp-rail-offset: 110ms;
 .dsp-global-power-state {
   color: $text-faint;
   font-size: $text-small;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
   // The same fade the per-processor label has carried all along. Two words
   // doing one job on one page, one of them stepping and one of them fading,
@@ -363,7 +363,7 @@ $dsp-rail-offset: 110ms;
   color: $text-faint;
   font-size: $text-eyebrow;
   line-height: 1.2;
-  letter-spacing: 0.025em;
+  @include tracking(0.025em);
   text-transform: uppercase;
 }
 
@@ -505,7 +505,7 @@ $dsp-rail-offset: 110ms;
   color: $text-faint;
   font-size: $text-micro;
   gap: 5px;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 
   &::before {
@@ -740,7 +740,7 @@ $dsp-rail-offset: 110ms;
   dt {
     color: $text-faint;
     font-size: $text-micro;
-    letter-spacing: 0.06em;
+    @include tracking(0.06em);
     text-transform: uppercase;
   }
 
@@ -1054,7 +1054,7 @@ $dsp-rail-offset: 110ms;
   position: absolute;
   color: $text-faint;
   font-size: $text-micro;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 
@@ -1068,7 +1068,7 @@ $dsp-rail-offset: 110ms;
   font-family: $font-mono;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.03em;
+  @include tracking(0.03em);
   opacity: 0;
   transition: opacity 120ms ease;
 
@@ -1226,7 +1226,7 @@ $dsp-rail-offset: 110ms;
 .dsp-dev-safety-label,
 .dsp-dev-safety-state {
   font-size: $text-small;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 
@@ -1299,7 +1299,7 @@ $dsp-rail-offset: 110ms;
     background: $surface-plot;
     color: $text-faint;
     font-size: $text-eyebrow;
-    letter-spacing: 0.035em;
+    @include tracking(0.035em);
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -1358,7 +1358,7 @@ $dsp-rail-offset: 110ms;
       font-size: $text-eyebrow;
       font-style: normal;
       font-weight: $weight-medium;
-      letter-spacing: 0.04em;
+      @include tracking(0.04em);
       text-transform: uppercase;
     }
 
@@ -1520,7 +1520,7 @@ $dsp-rail-offset: 110ms;
 .dsp-card-title {
   margin: 0;
   font-size: $text-title;
-  letter-spacing: 0.01em;
+  @include tracking(0.01em);
 }
 
 .dsp-card-description {
@@ -1570,7 +1570,7 @@ $dsp-rail-offset: 110ms;
   color: $text-faint;
   font-size: $text-small;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  @include tracking(0.09em);
 }
 
 // The band's name and its own switch share a line, so a band that is off says
@@ -1664,7 +1664,7 @@ $dsp-rail-offset: 110ms;
   li {
     color: $text-faint;
     font-size: $text-micro;
-    letter-spacing: 0.06em;
+    @include tracking(0.06em);
     text-align: center;
     text-transform: uppercase;
   }
@@ -1828,7 +1828,7 @@ $dsp-rail-offset: 110ms;
   padding: 0 11px 2px;
   color: $text-faint;
   font-size: $text-eyebrow;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
@@ -2477,7 +2477,7 @@ $dsp-pane-columns: 6;
   color: $text-faint;
   font-size: $text-micro;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  @include tracking(0.07em);
 }
 
 // The shape drawn beside its name: for anyone who has used an EQ the picture
@@ -2535,7 +2535,7 @@ $dsp-pane-columns: 6;
   gap: 8px;
   color: $text-faint;
   font-size: $text-small;
-  letter-spacing: 0.07em;
+  @include tracking(0.07em);
   text-transform: uppercase;
 }
 
@@ -2666,7 +2666,7 @@ $dsp-pane-columns: 6;
   color: $text-faint;
   font-size: $text-micro;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  @include tracking(0.07em);
 }
 
 .dsp-eq-preset .dropdown {
@@ -2973,7 +2973,7 @@ $dsp-pane-columns: 6;
 .dsp-exciter-isolate-label {
   color: $text-faint;
   font-size: $text-small;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
   transition: color 140ms ease;
 
@@ -2985,7 +2985,7 @@ $dsp-pane-columns: 6;
 .dsp-monitor-isolate-label {
   color: $text-faint;
   font-size: $text-small;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
   transition: color 140ms ease;
 
@@ -2998,7 +2998,7 @@ $dsp-pane-columns: 6;
   color: $text-faint;
   font-size: $text-small;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   transition: color 140ms ease;
 }
 
@@ -3525,7 +3525,7 @@ $dsp-pane-columns: 6;
 .dsp-dimension-group-name {
   color: $text-faint;
   font-size: $text-micro;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 

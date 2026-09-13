@@ -109,7 +109,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   line-height: 1.6;
   text-transform: uppercase;
 }

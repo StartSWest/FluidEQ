@@ -433,7 +433,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px 8px 5px;
   color: $text-faint;
   font-size: $text-eyebrow;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 

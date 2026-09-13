@@ -984,7 +984,7 @@ $eq-bubble-applied-face: color-mix(
     color: $text-muted;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.08em;
+    @include tracking(0.08em);
     line-height: 14px;
     text-transform: uppercase;
   }

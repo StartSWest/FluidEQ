@@ -155,7 +155,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $secondary-light;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.09em;
+  @include tracking(0.09em);
   text-transform: uppercase;
   white-space: nowrap;
 }

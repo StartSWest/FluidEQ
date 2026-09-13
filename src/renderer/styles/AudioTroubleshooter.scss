@@ -134,7 +134,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .troubleshoot__tried {
   color: $secondary-light;
   font-size: $text-micro;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 

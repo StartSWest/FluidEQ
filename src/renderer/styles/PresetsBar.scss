@@ -254,7 +254,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: $analogous-2;
     font-size: $text-micro;
     font-weight: $weight-bold;
-    letter-spacing: 0.04em;
+    @include tracking(0.04em);
   }
 
   // Revealed on hover/focus so the row stays calm at rest. `visibility`

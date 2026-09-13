@@ -87,7 +87,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $white;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.02em;
+    @include tracking(0.02em);
   }
 }
 
@@ -169,7 +169,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: #ffcc4d;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.09em;
+  @include tracking(0.09em);
   text-transform: uppercase;
 }
 
@@ -190,7 +190,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-semibold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 // The number, not the thumb.

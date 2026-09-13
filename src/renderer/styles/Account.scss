@@ -98,7 +98,7 @@ it under the terms of the GNU General Public License version 3 or later.
     0 0 0 4px hsl(var(--identity-hue, 170deg) 70% 55% / 60%);
   font-size: $text-title;
   font-weight: $weight-semibold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 .account__who {
@@ -139,7 +139,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 
   svg {
@@ -379,7 +379,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-accent;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   text-transform: uppercase;
 }
 
@@ -390,7 +390,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: $secondary-default;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 
@@ -450,7 +450,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 

@@ -297,7 +297,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $secondary-light;
   font-size: calc(var(--tour-unit) * 0.8);
   font-weight: $weight-bold;
-  letter-spacing: 0.18em;
+  @include tracking(0.18em);
   text-transform: uppercase;
 }
 
@@ -367,7 +367,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.9);
   font-size: calc(var(--tour-unit) * 0.78);
   font-weight: $weight-bold;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
   text-transform: uppercase;
 }
 
@@ -558,7 +558,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: calc(var(--tour-unit) * 0.7);
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   text-transform: uppercase;
 }
 
@@ -570,6 +570,6 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   background: $secondary-light;
   font-size: calc(var(--tour-unit) * 0.62);
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
   vertical-align: 2px;
 }

@@ -98,7 +98,7 @@ it under the terms of the GNU General Public License version 3 or later.
     fill: $text-muted;
     font-size: 7.5px;
     font-weight: $weight-bold;
-    letter-spacing: 0.08em;
+    @include tracking(0.08em);
   }
 
   // Kept for focus and the arrow keys only. A range input maps its own width

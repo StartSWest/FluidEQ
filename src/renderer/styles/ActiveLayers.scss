@@ -75,7 +75,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   text-transform: uppercase;
 }
 

@@ -211,7 +211,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: transparent;
   font-size: $text-body;
   font-weight: $weight-bold;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   cursor: pointer;
   transition: $transition-control;
 

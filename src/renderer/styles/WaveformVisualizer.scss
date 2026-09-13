@@ -167,7 +167,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   pointer-events: none;
 }
 
@@ -204,7 +204,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: color-mix(in srgb, $secondary-light 86%, transparent);
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   text-align: right;
 }
 
@@ -219,7 +219,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 4px;
   background: rgba($red, 0.14);
   font-size: $text-eyebrow;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
 }
 
 // Explicitly below the euphoria pill, which sits over the pane's top
@@ -242,7 +242,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $panel-bottom 72%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   text-transform: uppercase;
   white-space: nowrap;
   opacity: 0;
@@ -332,7 +332,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .waveform-visualizer__meta {
     gap: 4px;
     font-size: $text-eyebrow;
-    letter-spacing: 0.1em;
+    @include tracking(0.1em);
   }
 
   .waveform-visualizer__signal {

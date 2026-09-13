@@ -100,7 +100,7 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 .dialog-header__close {

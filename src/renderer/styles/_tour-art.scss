@@ -77,7 +77,7 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: $text-faint;
   font-size: 11px;
   font-weight: $weight-semibold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
 }
 
 .tour-share__headset {
@@ -99,7 +99,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .tour-share__caption-label {
   fill: $secondary-light;
   font-weight: $weight-bold;
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
 }
 
 .tour-art {

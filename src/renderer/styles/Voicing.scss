@@ -97,7 +97,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-small;
   font-weight: $weight-bold;
   grid-column: 1 / -1;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
   text-transform: uppercase;
 
   &::after {
@@ -128,7 +128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     color: rgba($white, 0.94);
     font-size: $text-title;
-    letter-spacing: 0.01em;
+    @include tracking(0.01em);
   }
 
   small {

@@ -138,7 +138,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0;
   color: $text-muted;
   font-size: $text-micro;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 }
 
 // The same sentence with nothing underneath it, which is a different job.
@@ -165,7 +165,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: color-mix(in srgb, $surface-field 62%, transparent);
   font-size: $text-title;
   line-height: 1.4;
-  letter-spacing: 0.01em;
+  @include tracking(0.01em);
 }
 
 .karaoke-workspace:not(.is-hidden) .karaoke-transport {
@@ -851,7 +851,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.025em;
+    @include tracking(0.025em);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -869,7 +869,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin: 0;
     color: $text-primary;
     font-size: $text-body;
-    letter-spacing: 0.04em;
+    @include tracking(0.04em);
     text-transform: uppercase;
   }
 
@@ -979,7 +979,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     font-size: $text-micro;
     font-weight: $weight-bold;
-    letter-spacing: 0.035em;
+    @include tracking(0.035em);
     text-transform: uppercase;
   }
 }
@@ -1027,7 +1027,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-faint;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.06em;
+    @include tracking(0.06em);
     text-transform: uppercase;
   }
 }
@@ -1153,7 +1153,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: color-mix(in srgb, $surface-base 90%, transparent);
   font-size: $text-title;
   font-weight: $weight-bold;
-  letter-spacing: 0.03em;
+  @include tracking(0.03em);
   pointer-events: none;
 }
 
@@ -1305,7 +1305,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: color-mix(in srgb, $secondary-default 7%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.035em;
+  @include tracking(0.035em);
   line-height: 1.2;
   text-align: center;
   text-overflow: ellipsis;
@@ -1397,7 +1397,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-faint;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.055em;
+    @include tracking(0.055em);
     line-height: 1.1;
     text-transform: uppercase;
     white-space: nowrap;
@@ -2186,7 +2186,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-primary;
   font-size: $text-body;
   font-weight: $weight-bold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 .karaoke-transport__mix-levels {
@@ -2541,7 +2541,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $text-faint;
       font-size: $text-eyebrow;
       font-weight: $weight-bold;
-      letter-spacing: 0.08em;
+      @include tracking(0.08em);
       text-transform: uppercase;
     }
   }
@@ -2588,7 +2588,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 
   strong {
     color: $secondary-light;
@@ -2850,7 +2850,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: color-mix(in srgb, $secondary-default 6.5%, transparent);
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.04em;
+    @include tracking(0.04em);
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
@@ -2872,7 +2872,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     color: $neon-yellow;
     font-size: $text-title;
-    letter-spacing: 0.02em;
+    @include tracking(0.02em);
     text-shadow: 0 0 12px rgba($neon-yellow, 0.22);
   }
 }
@@ -3025,7 +3025,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: $radius-pill;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
-    letter-spacing: 0.08em;
+    @include tracking(0.08em);
     text-transform: uppercase;
 
     &.is-live {
@@ -3703,7 +3703,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-default;
   font-size: $text-body;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
 }
 
 .karaoke-maker__title-input {
@@ -4396,7 +4396,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: $text-body;
   font-weight: $weight-bold;
-  letter-spacing: 0.05em;
+  @include tracking(0.05em);
   text-transform: uppercase;
 }
 
@@ -4829,7 +4829,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-faint;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.11em;
+    @include tracking(0.11em);
     text-transform: uppercase;
   }
 
@@ -5033,7 +5033,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-muted;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    letter-spacing: 0.04em;
+    @include tracking(0.04em);
     text-transform: uppercase;
 
     > div,
@@ -5349,7 +5349,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-family: inherit;
     font-size: 12px;
     font-weight: $weight-bold;
-    letter-spacing: 0.02em;
+    @include tracking(0.02em);
     background: $secondary-default;
     border: 1px solid rgba($white, 0.82);
     border-radius: $radius-m;
@@ -5378,7 +5378,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-accent;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.1em;
+    @include tracking(0.1em);
     text-transform: uppercase;
   }
 
@@ -5424,7 +5424,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-faint;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.07em;
+    @include tracking(0.07em);
     background: color-mix(in srgb, $surface-well 68%, transparent);
     border: 1px solid color-mix(in srgb, $secondary-light 13%, transparent);
     border-radius: $radius-pill;
@@ -5560,7 +5560,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-accent;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.12em;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 
@@ -5652,7 +5652,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-muted;
     font-size: 12px;
     font-weight: $weight-bold;
-    letter-spacing: 0.04em;
+    @include tracking(0.04em);
   }
 }
 
@@ -5969,7 +5969,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-accent;
     font-size: $text-body;
     font-weight: $weight-bold;
-    letter-spacing: 0.12em;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 
@@ -6262,7 +6262,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-accent;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    letter-spacing: 0.12em;
+    @include tracking(0.12em);
     text-transform: uppercase;
   }
 
@@ -6525,7 +6525,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-faint;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    letter-spacing: 0.07em;
+    @include tracking(0.07em);
     background: color-mix(in srgb, $surface-well 68%, transparent);
     border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
     border-radius: $radius-pill;
@@ -6819,7 +6819,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $text-accent;
       font-size: $text-body;
       font-weight: $weight-bold;
-      letter-spacing: 0.08em;
+      @include tracking(0.08em);
       text-transform: uppercase;
     }
 
@@ -6864,7 +6864,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $text-accent;
       font-size: $text-body;
       font-weight: $weight-bold;
-      letter-spacing: 0.05em;
+      @include tracking(0.05em);
       text-transform: uppercase;
     }
   }
@@ -7103,7 +7103,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: $text-lead;
   font-weight: $weight-bold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 
@@ -8202,7 +8202,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     color: $text-muted;
     font-size: $text-lead;
-    letter-spacing: 0.035em;
+    @include tracking(0.035em);
     text-transform: uppercase;
   }
 
@@ -8377,7 +8377,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    letter-spacing: 0.08em;
+    @include tracking(0.08em);
     text-transform: uppercase;
   }
 }
@@ -8447,7 +8447,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $text-accent;
       font-size: $text-lead;
       font-weight: $weight-bold;
-      letter-spacing: 0.07em;
+      @include tracking(0.07em);
       text-transform: uppercase;
     }
 
@@ -9048,7 +9048,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $text-accent;
       font-size: $text-body;
       font-weight: $weight-bold;
-      letter-spacing: 0.05em;
+      @include tracking(0.05em);
       text-transform: uppercase;
     }
 

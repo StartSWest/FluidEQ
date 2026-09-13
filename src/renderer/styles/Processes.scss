@@ -105,7 +105,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $surface-menu-top 96%, transparent);
     font-size: $text-small;
     font-weight: $weight-bold;
-    letter-spacing: 0.08em;
+    @include tracking(0.08em);
     text-align: left;
     text-transform: uppercase;
   }
@@ -187,5 +187,5 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-micro;
   font-weight: $weight-medium;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 }

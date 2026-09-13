@@ -282,7 +282,7 @@
   color: $secondary-light;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 
   i {

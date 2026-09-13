@@ -291,7 +291,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   font-size: $text-small;
   font-weight: $weight-bold;
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
   text-align: center;
   text-transform: uppercase;
 }
@@ -303,7 +303,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $neon-lime;
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
   animation: rhythm-multiplier-flare 520ms ease-out;
   text-shadow:
     0 0 8px rgba($neon-lime, 0.9),
@@ -352,7 +352,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $text-faint;
     animation: none;
     font-weight: $weight-regular;
-    letter-spacing: 0.06em;
+    @include tracking(0.06em);
     text-transform: none;
   }
 }

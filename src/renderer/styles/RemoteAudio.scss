@@ -101,7 +101,7 @@ $role-surface: $surface-panel;
   color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-bold;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
   text-transform: uppercase;
 
   &::after {

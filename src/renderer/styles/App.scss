@@ -46,6 +46,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-sizing: border-box;
 }
 
+// Letter-spacing switched off for the scripts it breaks apart: Hindi, Japanese
+// and Chinese (`tracking` in _theme.scss).
+@include untracked-languages;
+
 html {
   width: 100%;
   height: 100%;
@@ -393,7 +397,7 @@ select option {
   color: $secondary-light;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.16em;
+  @include tracking(0.16em);
   text-shadow: 0 0 16px color-mix(in srgb, $secondary-default 35%, transparent);
 }
 
@@ -906,7 +910,7 @@ select option {
   min-height: 38px;
   padding: 9px 20px 10px;
   font-size: $text-lead;
-  letter-spacing: 0.012em;
+  @include tracking(0.012em);
 }
 
 // The bar, up here where the row is taller and the glow has further to carry.
@@ -1330,7 +1334,7 @@ select option {
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 .workspace-header__tagline {
@@ -1607,7 +1611,7 @@ select option {
   border-radius: $radius-pill;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   white-space: nowrap;
 }
 
@@ -2270,7 +2274,7 @@ $tab-bar-inset: 8px;
   // for the tabs alone, not a heavier number against a family that has no
   // heavier text cut to give.
   font-weight: $weight-bold;
-  letter-spacing: 0.01em;
+  @include tracking(0.01em);
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
@@ -3248,7 +3252,7 @@ button.graph-legend {
   flex: 0 1 auto;
   color: $text-muted;
   font-size: $text-micro;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 // Only appears when the output is actually railing, so it is allowed to be
@@ -3261,7 +3265,7 @@ button.graph-legend {
   background: rgba($red, 0.22);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   white-space: nowrap;
   animation: clip-pulse 900ms ease-in-out infinite;
 }
@@ -3832,7 +3836,7 @@ button.graph-legend {
   color: $text-faint;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
   text-transform: uppercase;
 }
 
@@ -3968,7 +3972,7 @@ button.graph-legend {
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;

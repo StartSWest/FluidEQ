@@ -28,7 +28,7 @@
 
   strong {
     color: $text-muted;
-    letter-spacing: 0.05em;
+    @include tracking(0.05em);
     text-transform: uppercase;
   }
 }
@@ -136,7 +136,7 @@
   flex: 0 0 auto;
   color: $text-faint;
   font-size: $text-micro;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   text-transform: uppercase;
 
   .is-playing > & {
@@ -172,7 +172,7 @@
 
   strong {
     color: $text-muted;
-    letter-spacing: 0.05em;
+    @include tracking(0.05em);
     text-transform: uppercase;
   }
 

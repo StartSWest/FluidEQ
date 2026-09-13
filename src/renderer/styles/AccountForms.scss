@@ -123,7 +123,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-muted;
   font-size: $text-small;
   font-weight: $weight-medium;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 .account-field__hint {
@@ -138,7 +138,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 11ch;
   font-size: $text-title;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3em;
+  @include tracking(0.3em);
   text-align: center;
 }
 

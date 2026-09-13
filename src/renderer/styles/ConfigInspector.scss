@@ -153,7 +153,7 @@ $name-column: 34ch;
   font-size: $text-small;
   font-weight: $weight-bold;
   gap: 6px;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   transition: $transition-control;
   white-space: nowrap;
 
@@ -279,7 +279,7 @@ $name-column: 34ch;
 .config-card__facts {
   color: $secondary-light;
   font-size: $text-micro;
-  letter-spacing: 0.05em;
+  @include tracking(0.05em);
 }
 
 .config-card__badge {
@@ -291,7 +291,7 @@ $name-column: 34ch;
   color: $neon-lime;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.1em;
+  @include tracking(0.1em);
   text-transform: uppercase;
 }
 
@@ -333,7 +333,7 @@ $name-column: 34ch;
   color: $secondary-light;
   font-size: $text-small;
   gap: $spacing-s;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 }
 
 // The layers of an output that has no tree to hang them on.
@@ -396,7 +396,7 @@ $name-column: 34ch;
   font-size: $text-micro;
   font-weight: $weight-bold;
   gap: 5px;
-  letter-spacing: 0.05em;
+  @include tracking(0.05em);
 
   // Dimmed and struck through rather than hidden or merely greyed. The layer
   // is still there and still yours; it is simply not in the chain, and that is

@@ -870,7 +870,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   color: $text-primary;
   font-weight: $weight-bold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 
   .library-cover-art--row & {
     font-size: $text-eyebrow;
@@ -1058,7 +1058,7 @@ $library-row-height: 46px;
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
@@ -1456,7 +1456,7 @@ $library-row-height: 46px;
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
@@ -1794,7 +1794,7 @@ $library-row-height: 46px;
   border-bottom: 1px solid rgba($edge-tint, 0.09);
   color: $text-primary;
   font-size: $text-body;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
   text-transform: uppercase;
 }
 
@@ -2173,7 +2173,7 @@ $library-row-height: 46px;
   color: $text-faint;
   font-size: $text-small;
   font-weight: $weight-bold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 
   > span {
@@ -2223,7 +2223,7 @@ $library-row-height: 46px;
   padding: $spacing-m 0 $spacing-l;
   color: $text-faint;
   font-size: $text-small;
-  letter-spacing: 0.04em;
+  @include tracking(0.04em);
 }
 
 // Rows and tiles rise in a wave, wherever in the list the reader happens to
@@ -2384,7 +2384,7 @@ $library-wave-step: 4ms;
   padding: 3px 8px 5px;
   color: $text-faint;
   font-size: $text-eyebrow;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
@@ -3229,7 +3229,7 @@ $library-wave-step: 4ms;
   color: $text-muted;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
   text-transform: uppercase;
 }
 
@@ -3309,7 +3309,7 @@ $library-wave-step: 4ms;
   color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-bold;
-  letter-spacing: 0.08em;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
@@ -3483,7 +3483,7 @@ $library-wave-step: 4ms;
   color: $text-faint;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.14em;
+  @include tracking(0.14em);
   text-transform: uppercase;
 }
 

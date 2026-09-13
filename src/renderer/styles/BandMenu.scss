@@ -67,7 +67,7 @@ $band-menu-width: 200px;
   color: $text-accent;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.12em;
+  @include tracking(0.12em);
   text-transform: uppercase;
 }
 

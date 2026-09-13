@@ -91,4 +91,34 @@ if (weightOffenders.length > 0) {
   process.exit(1);
 }
 
-console.log(`All stylesheets compile, and every font-weight uses the scale.`);
+// A raw positive letter-spacing is the other one. Tracking is a Latin habit:
+// on Devanagari it pulls a word's vowel signs and conjuncts apart, and the
+// Hindi card labels read as rows of loose letters while every test passed.
+// `@include tracking()` in `_theme.scss` applies it only in the languages
+// whose script takes it, so that is the one way to write it. Zero, `normal`,
+// `inherit` and negative values stay allowed: none of them spreads a word.
+const trackingOffenders: string[] = [];
+
+readdirSync(STYLES_DIR)
+  .filter((name) => name.endsWith('.scss') && name !== '_theme.scss')
+  .forEach((name) => {
+    readFileSync(path.join(STYLES_DIR, name), 'utf8')
+      .split('\n')
+      .forEach((line, index) => {
+        const match = /letter-spacing:\s*(\d*\.?\d+)(em|rem|px)\b/.exec(line);
+        if (match && Number.parseFloat(match[1]) > 0) {
+          trackingOffenders.push(`${name}:${index + 1}  ${line.trim()}`);
+        }
+      });
+  });
+
+if (trackingOffenders.length > 0) {
+  console.error(
+    `\n${trackingOffenders.length} raw positive letter-spacing value(s) — use @include tracking() from _theme.scss:\n\n${trackingOffenders.join('\n')}\n`,
+  );
+  process.exit(1);
+}
+
+console.log(
+  `All stylesheets compile, every font-weight uses the scale, and every letter-spacing goes through tracking().`,
+);

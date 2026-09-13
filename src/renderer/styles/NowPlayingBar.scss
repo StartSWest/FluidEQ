@@ -369,7 +369,7 @@ $now-playing-bar-height: 64px;
   @include truncate;
   color: $text-faint;
   font-size: $text-eyebrow;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 }
 
 // The bitrate and the sample rate, which are the only two things on this line
@@ -390,7 +390,7 @@ $now-playing-bar-height: 64px;
 .now-playing-bar__context {
   color: color-mix(in srgb, $secondary-light 92%, transparent);
   font-weight: $weight-semibold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   text-transform: uppercase;
 }
 

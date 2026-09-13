@@ -470,7 +470,7 @@ it under the terms of the GNU General Public License version 3 or later.
   box-shadow: inset 0 0 0 1px hsl(var(--identity-hue, 170deg) 70% 55% / 38%);
   font-size: $text-small;
   font-weight: $weight-semibold;
-  letter-spacing: 0.02em;
+  @include tracking(0.02em);
 
   &--rail {
     width: 30px;
@@ -511,7 +511,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
-  letter-spacing: 0.06em;
+  @include tracking(0.06em);
   line-height: 1.6;
   text-transform: uppercase;
   white-space: nowrap;
