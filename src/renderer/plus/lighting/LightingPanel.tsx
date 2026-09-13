@@ -10,6 +10,10 @@ import {
   type ILightingDevice,
 } from 'common/lighting/lightingModel';
 import { resolveSceneName } from 'common/scenePacks';
+import {
+  deviceLightingGroup,
+  lightingProfile,
+} from 'common/lighting/lightingProfiles';
 import { requestAccountPanel } from '../../account/accountPanel';
 import Glyph from '../../community/Glyph';
 import { setLightingSettings, useLighting } from '../../lighting/lightingStore';
@@ -22,7 +26,8 @@ import { createDeskColourFeed, type IDeskColourFeed } from './deskColours';
 import LightingDevices from './LightingDevices';
 import LightingNotices from './LightingNotices';
 import LightingStage from './LightingStage';
-import LightingTuning from './LightingTuning';
+import LightingProfileTuning from './LightingProfileTuning';
+import LightingSlider from './LightingSlider';
 import '../../styles/Studio.scss';
 import '../../styles/StudioControls.scss';
 import '../../styles/Lighting.scss';
@@ -48,6 +53,7 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
   const scene = useSceneLook();
   const switchId = useId();
   const [feed, setFeed] = useState<IDeskColourFeed | undefined>();
+  const [selectedDeviceKey, setSelectedDeviceKey] = useState<string>();
 
   // Made and closed with the page, in one effect, so a remount — React does
   // one in development — gets a feed of its own rather than a closed one.
@@ -153,7 +159,10 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
   } else if (lightsAnyDevice(state)) {
     status = {
       tone: 'live',
-      text: t('lighting.status.live', { scene: sceneName }),
+      text: t(
+        state.ambient ? 'lighting.status.ambient' : 'lighting.status.live',
+        { scene: sceneName },
+      ),
     };
   } else if (state.live) {
     // The scene is playing and nothing takes it: the notices and the device
@@ -169,6 +178,18 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
         ? [...state.settings.muted, device.key]
         : state.settings.muted.filter((key) => key !== device.key),
     });
+
+  const selectedDevice = state.devices.find(
+    (device) => device.key === selectedDeviceKey,
+  );
+  const selectedGroup = selectedDevice
+    ? deviceLightingGroup(selectedDevice)
+    : 'all';
+  const selectedDevices = state.devices.filter(
+    (device) => deviceLightingGroup(device) === selectedGroup,
+  );
+  const target = selectedDevices.length ? selectedGroup : 'all';
+  const targetName = selectedDevice?.name ?? t('lighting.target.all');
 
   return (
     <>
@@ -200,6 +221,32 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
               <span className="lighting-status__text">{status.text}</span>
             </span>
           </div>
+          <div className="lighting-scene-bar">
+            <div className="lighting-scene-bar__identity">
+              <span
+                className="lighting-scene-bar__swatch"
+                aria-hidden="true"
+                style={{
+                  background: `linear-gradient(135deg, ${(scene?.swatch?.length ? scene.swatch : ['#477da1', '#8b6caf']).join(',')})`,
+                }}
+              />
+              <span>
+                <strong>
+                  {sceneName
+                    ? t('lighting.scene.title', { scene: sceneName })
+                    : t('lighting.status.noScene')}
+                </strong>
+                <small>{t('lighting.scene.saved')}</small>
+              </span>
+            </div>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => openPlusPlace('visualizers')}
+            >
+              {t('lighting.pickScene')}
+            </button>
+          </div>
           <LightingNotices state={state} />
           <LightingStage
             devices={state.devices}
@@ -229,18 +276,49 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
 
         <div className="lighting-columns">
           <section className="studio-card lighting-devices">
-            <span className="studio-card__eyebrow">
-              {t('lighting.devices.title')}
-            </span>
+            <div className="lighting-devices__head">
+              <span className="studio-card__eyebrow">
+                {t('lighting.devices.title')}
+              </span>
+              <button
+                type="button"
+                className={`button small${target === 'all' ? '' : ' subtle'}`}
+                aria-pressed={target === 'all'}
+                onClick={() => setSelectedDeviceKey(undefined)}
+              >
+                {t('lighting.target.all')}
+              </button>
+            </div>
             <LightingDevices
               devices={state.devices}
               searching={state.searching}
               feed={feed}
               onMute={mute}
+              onSelect={(device) => setSelectedDeviceKey(device.key)}
+              selectedGroup={target}
+              profile={lightingProfile(state.settings.profiles, scene?.lookId)}
             />
+            <div className="lighting-master">
+              <LightingSlider
+                label={t('lighting.tuning.master')}
+                value={state.settings.brightness}
+                min={0.1}
+                onCommit={(brightness) => setLightingSettings({ brightness })}
+              />
+            </div>
           </section>
-          <section className="studio-card">
-            <LightingTuning settings={state.settings} />
+          <section className="studio-card lighting-editor">
+            <LightingProfileTuning
+              settings={state.settings}
+              sceneId={scene?.lookId}
+              target={target}
+              targetName={targetName}
+              shared={
+                selectedDevices.length > 1
+                  ? selectedDevices.map((device) => device.name).join(', ')
+                  : undefined
+              }
+            />
           </section>
         </div>
       </div>

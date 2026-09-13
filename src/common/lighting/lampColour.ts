@@ -5,6 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { getEaseFactor } from '../smoothing';
+import {
+  DEFAULT_DEVICE_TUNING,
+  type IDeviceLightingTuning,
+  type TLightingIdle,
+} from './lightingProfiles';
 import type {
   ILamp,
   ILightingFrame,
@@ -19,15 +24,9 @@ import type {
  * draws the same devices lit the same way — one function, so what the page
  * shows is what the desk shows.
  *
- * A lamp is not a pixel, and treating it as one gave the obvious wrong answer
- * in the mockup: most of a night scene is near-black sky, so most keys came
- * out off, and the neon that made the scene worth watching was one pixel in
- * nine. So each lamp takes its light from a patch of the picture weighted by
- * how bright each part of the patch is, a patch with no light of its own
- * borrows the scene's overall colour instead of showing the hue of noise, and
- * the colour is then driven at full strength with the music deciding how
- * bright — an LED is a light, not a screen, and a dim colour on an LED reads
- * as a fault.
+ * Scene preserves the actual picture: dark background and bright foreground,
+ * without replacing shadows with the dominant hue. The other styles borrow
+ * the scene's palette and drive it with their own musical movement.
  */
 
 const SRGB_TO_LINEAR = (() => {
@@ -130,6 +129,7 @@ const sampleLamp = (
   frame: ILightingFrame,
   lamp: ILamp,
   into: ISample,
+  faithful = false,
 ): ISample => {
   const { width, height, rgb } = frame;
   // Square cells: the grid keeps the picture's aspect, so one radius in
@@ -157,7 +157,7 @@ const sampleLamp = (
       const lg = SRGB_TO_LINEAR[rgb[at + 1]];
       const lb = SRGB_TO_LINEAR[rgb[at + 2]];
       const cellY = luminance(lr, lg, lb);
-      const weight = falloff * lightWeight(lr, lg, lb);
+      const weight = faithful ? falloff : falloff * lightWeight(lr, lg, lb);
       r += lr * weight;
       g += lg * weight;
       b += lb * weight;
@@ -221,6 +221,7 @@ const KICK_RELEASE_HALF_LIFE_MS = 110;
 
 /** One device's lamps between frames. */
 export interface ILampMemory {
+  seconds: number;
   /** sRGB 0..255 as floats, three per lamp: what was last sent. */
   current: Float32Array;
   kick: number;
@@ -230,6 +231,7 @@ export interface ILampMemory {
 }
 
 export const createLampMemory = (lampCount: number): ILampMemory => ({
+  seconds: 0,
   current: new Float32Array(lampCount * 3),
   kick: 0,
   sinceKickMs: MIN_KICK_GAP_MS,
@@ -241,6 +243,9 @@ export interface ILampShaping {
   kind: TLightingKind;
   brightness: number;
   pulse: TLightingPulse;
+  tuning?: IDeviceLightingTuning;
+  idleBrightness?: number;
+  idle?: TLightingIdle;
 }
 
 /**
@@ -257,12 +262,19 @@ export const lightLamps = (
   out: Uint8Array,
 ): void => {
   const drive = DRIVE_BY_KIND[shaping.kind];
+  const tuning = shaping.tuning ?? DEFAULT_DEVICE_TUNING;
+  memory.seconds += frame.deltaMs / 1000;
+  const time = frame.timeSeconds ?? memory.seconds;
+  const activity = frame.activity ?? 1;
+  const focused = tuning.focus === 'balanced' ? undefined : frame[tuning.focus];
   const music = Math.min(
     1,
-    drive.level * frame.level +
-      drive.bass * frame.bass +
-      drive.mid * frame.mid +
-      drive.treble * frame.treble,
+    tuning.sensitivity *
+      (focused ??
+        drive.level * frame.level +
+          drive.bass * frame.bass +
+          drive.mid * frame.mid +
+          drive.treble * frame.treble),
   );
 
   // A kick starts on a rising beat, and only when the last one is far
@@ -279,8 +291,14 @@ export const lightLamps = (
   const kick = PULSE_DEPTH[shaping.pulse] * memory.kick;
 
   const moodPeak = Math.max(mood.r, mood.g, mood.b, 1e-6);
-  const attack = getEaseFactor(frame.deltaMs, ATTACK_HALF_LIFE_MS);
-  const release = getEaseFactor(frame.deltaMs, RELEASE_HALF_LIFE_MS);
+  const attack = getEaseFactor(
+    frame.deltaMs,
+    ATTACK_HALF_LIFE_MS * (0.35 + tuning.smoothing * 1.3),
+  );
+  const release = getEaseFactor(
+    frame.deltaMs,
+    RELEASE_HALF_LIFE_MS * (0.35 + tuning.smoothing * 1.3),
+  );
   const { primed } = memory;
   const ease = (at: number, target: number) => {
     const previous = memory.current[at];
@@ -292,8 +310,76 @@ export const lightLamps = (
   };
 
   const sample: ISample = { r: 0, g: 0, b: 0, y: 0 };
+  const travellingSample: ISample = { r: 0, g: 0, b: 0, y: 0 };
   lamps.forEach((lamp, index) => {
-    sampleLamp(frame, lamp, sample);
+    const direction = tuning.reverse ? -1 : 1;
+    const position = shaping.kind === 'mouse' ? lamp.v : lamp.u;
+    const phase =
+      time * tuning.speed * direction * 0.7 -
+      position * Math.PI * 2 * (0.25 + tuning.spread);
+    const faithful = tuning.effect === 'scene';
+    const travelMix = faithful
+      ? 0
+      : (tuning.effect === 'flow' ? activity : 0) +
+        (shaping.idle === 'flow' ? 1 - activity : 0);
+    const drift = time * tuning.speed * direction * 0.055;
+    const shifted = (((lamp.u + drift) % 1) + 1) % 1;
+    sampleLamp(frame, lamp, sample, faithful);
+    if (travelMix > 0) {
+      sampleLamp(frame, { ...lamp, u: shifted }, travellingSample);
+      // Crossfade two stable samples. Scaling accumulated phase by activity
+      // would race through many colour cycles when a long song stops.
+      sample.r += (travellingSample.r - sample.r) * travelMix;
+      sample.g += (travellingSample.g - sample.g) * travelMix;
+      sample.b += (travellingSample.b - sample.b) * travelMix;
+      sample.y += (travellingSample.y - sample.y) * travelMix;
+    }
+    if (faithful) {
+      // The scene already responds to the music and keeps moving while idle.
+      // Adding another beat envelope or filling its shadows changes its design.
+      const idlePulse =
+        shaping.idle === 'breathe'
+          ? 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(time * 0.55))
+          : 1;
+      const strength =
+        shaping.brightness *
+        tuning.brightness *
+        (activity +
+          (1 - activity) * (shaping.idleBrightness ?? 0.38) * idlePulse);
+      const neutral = luminance(sample.r, sample.g, sample.b);
+      // Lift shadows without washing out foreground detail. At 100% this
+      // is the exact source colour; only the member asks for extra light.
+      const shadow =
+        1 -
+        smoothstep(
+          moodPeak * 0.04,
+          moodPeak * 0.45,
+          Math.max(sample.r, sample.g, sample.b),
+        );
+      const requestedGain =
+        tuning.backgroundBrightness * shadow +
+        tuning.foregroundBrightness * (1 - shadow);
+      const red = linearToSrgb(
+        neutral + (sample.r - neutral) * tuning.saturation,
+      );
+      const green = linearToSrgb(
+        neutral + (sample.g - neutral) * tuning.saturation,
+      );
+      const blue = linearToSrgb(
+        neutral + (sample.b - neutral) * tuning.saturation,
+      );
+      // Boost all three channels together. Clipping each separately would
+      // turn a vivid petal pale when the foreground reaches the LED ceiling.
+      const gain = Math.min(
+        requestedGain,
+        1 / Math.max(red, green, blue, 1e-6),
+      );
+      const at = index * 3;
+      ease(at, red * gain * 255 * strength);
+      ease(at + 1, green * gain * 255 * strength);
+      ease(at + 2, blue * gain * 255 * strength);
+      return;
+    }
     const presence = smoothstep(PRESENCE_FLOOR, PRESENCE_FULL, sample.y);
     const samplePeak = Math.max(sample.r, sample.g, sample.b, 1e-6);
     // Hue and saturation only, normalised to full strength: from the patch
@@ -309,10 +395,45 @@ export const lightLamps = (
     // The picture's own light and dark, kept: a bright window is a brighter
     // key than the sky beside it, so the skyline is still a skyline.
     const structure = 0.72 + 0.28 * linearToSrgb(sample.y * 4);
+    const wave = 0.5 + 0.5 * Math.sin(phase);
+    const bandPosition = (tuning.reverse ? 1 - position : position) * 2;
+    const bands = [frame.bass, frame.mid, frame.treble];
+    const firstBand = Math.min(1, Math.floor(bandPosition));
+    const band =
+      bands[firstBand] +
+      (bands[firstBand + 1] - bands[firstBand]) * (bandPosition - firstBand);
+    const meter = smoothstep(
+      1 - lamp.v - 0.2,
+      1 - lamp.v + 0.2,
+      Math.min(1, band * tuning.sensitivity),
+    );
+    const ripple = Math.exp(
+      -((Math.abs(position - 0.5) - memory.sinceKickMs * 0.0015) ** 2) /
+        (0.006 + tuning.spread * 0.07),
+    );
+    let movement = 0.9 + wave * music * tuning.spread * 0.1;
+    if (tuning.effect === 'flow') {
+      movement = 0.65 + wave * 0.35;
+    } else if (tuning.effect === 'spectrum') {
+      movement = 0.2 + meter * 0.8;
+    } else if (tuning.effect === 'pulse') {
+      movement = 0.45 + ripple * memory.kick * 0.55;
+    }
+    const liveIntensity =
+      (structure * (INTENSITY_FLOOR + (1 - INTENSITY_FLOOR) * music) + kick) *
+      movement;
+    let idleWave = 0.7 + wave * 0.3;
+    if (shaping.idle === 'hold') {
+      idleWave = 1;
+    } else if (shaping.idle === 'breathe') {
+      idleWave = 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(time * 0.55));
+    }
     const intensity = Math.min(
       1,
       shaping.brightness *
-        (structure * (INTENSITY_FLOOR + (1 - INTENSITY_FLOOR) * music) + kick),
+        tuning.brightness *
+        (activity * liveIntensity +
+          (1 - activity) * (shaping.idleBrightness ?? 0.38) * idleWave),
     );
 
     // Colour encoded for the eye, strength applied to the duty cycle: an LED's
@@ -320,9 +441,10 @@ export const lightLamps = (
     // lands at the depth it was measured at instead of being flattened by the
     // encoding.
     const at = index * 3;
-    ease(at, linearToSrgb((r / peak) ** SATURATE) * 255 * intensity);
-    ease(at + 1, linearToSrgb((g / peak) ** SATURATE) * 255 * intensity);
-    ease(at + 2, linearToSrgb((b / peak) ** SATURATE) * 255 * intensity);
+    const saturation = SATURATE * tuning.saturation;
+    ease(at, linearToSrgb((r / peak) ** saturation) * 255 * intensity);
+    ease(at + 1, linearToSrgb((g / peak) ** saturation) * 255 * intensity);
+    ease(at + 2, linearToSrgb((b / peak) ** saturation) * 255 * intensity);
   });
   memory.primed = true;
 };

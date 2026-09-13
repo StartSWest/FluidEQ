@@ -30,7 +30,7 @@ export const DESK_HEIGHT = 440;
  * — the one picture every device below takes its colours from. 16:9, like
  * the grid it shows.
  */
-export const MONITOR = { x: 368, y: 14, width: 264, height: 148.5 };
+export const MONITOR = { x: 320, y: 10, width: 360, height: 202.5 };
 
 export interface IPlacedDevice {
   device: ILightingDevice;

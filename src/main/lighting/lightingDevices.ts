@@ -97,13 +97,24 @@ export const razerCandidates = (
     .filter((entry) => isRazerLightingCandidate(entry.name))
     .sort((a, b) => a.name.localeCompare(b.name));
 
+const synapseLights = (synapse: TSynapseState): boolean =>
+  synapse === 'running' || synapse === 'unknown';
+
+/** The same physical device must have exactly one colour sender. */
+export const lightsThroughWindows = (
+  device: IWindowsDevice,
+  razer: ReadonlyMap<string, IRazerEvent>,
+  synapse: TSynapseState,
+): boolean =>
+  rowKeyOfWindowsDevice(device, razer) === windowsKey(device.event) ||
+  !synapseLights(synapse);
+
 export const buildDeviceList = (
   windows: ReadonlyMap<number, IWindowsDevice>,
   razer: ReadonlyMap<string, IRazerEvent>,
   settings: ILightingSettings,
   synapse: TSynapseState,
 ): ILightingDevice[] => {
-  const synapseLights = synapse === 'running' || synapse === 'unknown';
   const rows: ILightingDevice[] = [];
 
   razerCandidates(razer).forEach((entry) => {
@@ -113,7 +124,7 @@ export const buildDeviceList = (
     );
     const kind = windowsTwin?.kind ?? razerKindOf(entry.name);
     let route: ILightingDevice['route'] = 'none';
-    if (synapseLights) {
+    if (synapseLights(synapse)) {
       route = 'synapse';
     } else if (windowsTwin) {
       route = 'windows';

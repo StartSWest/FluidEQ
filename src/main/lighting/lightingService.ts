@@ -6,6 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import path from 'path';
 import {
+  deviceTuning,
+  lightingProfile,
+} from '../../common/lighting/lightingProfiles';
+import {
   createLampMemory,
   lightLamps,
   measureMood,
@@ -29,6 +33,7 @@ import {
 import { createChromaClient, type IChromaClient } from './chromaClient';
 import {
   buildDeviceList,
+  lightsThroughWindows,
   razerCandidates,
   rowKeyOfWindowsDevice,
   toWindowsDevice,
@@ -51,7 +56,7 @@ import type { IRazerEvent, THelperEvent } from './lightingWire';
  * frame mapped onto every lamp and sent.
  *
  * The window decides WHEN — it sends frames only while a Plus scene is on the
- * graph and music is playing, and says `release` the moment either stops.
+ * graph, including its idle movement, and releases when that producer stops.
  * This decides WHERE and WHETHER: the member's entitlement is asked again on
  * every frame, so a lapsed membership or a modified window lights nothing.
  *
@@ -122,6 +127,7 @@ export const createLightingService = (
   let settings: ILightingSettings = loadLightingSettings(deps.userDataDir);
   let watchers = 0;
   let live = false;
+  let ambient = false;
   let host: ILightingHost | undefined;
   let hostIdentity = false;
   let helperFailures = 0;
@@ -131,10 +137,11 @@ export const createLightingService = (
   // Kept beside the map rather than counted per frame.
   let hasRazer = false;
   const outputs = new Map<string, IOutput>();
+  const heldWindows = new Set<number>();
   let lastPushed = '';
   // A helper just started has not listed anything yet. Until both of its
   // watchers finish their first pass, the page keeps the list the previous
-  // helper had — every pause in the music restarts the helper, and a list
+  // helper had — an ownership handoff can restart the helper, and a list
   // that emptied and refilled each time would blink under the member's eyes.
   const pending = { lamparray: false, razer: false };
   let snapshot: ILightingDevice[] | undefined;
@@ -146,7 +153,12 @@ export const createLightingService = (
   const heldByWindows = (): string[] =>
     live
       ? [...windows.values()]
-          .filter((device) => device.available === false)
+          .filter(
+            (device) =>
+              device.available === false &&
+              lightsThroughWindows(device, razer, chroma.state()) &&
+              !settings.muted.includes(rowKeyOfWindowsDevice(device, razer)),
+          )
           .map((device) => {
             const rowKey = rowKeyOfWindowsDevice(device, razer);
             return rowKey.startsWith('razer:')
@@ -178,6 +190,7 @@ export const createLightingService = (
       heldByWindows: heldByWindows(),
       canOpenRazerChroma: deps.canOpenRazerChroma?.() ?? false,
       live,
+      ambient,
     };
   };
 
@@ -249,6 +262,8 @@ export const createLightingService = (
   };
 
   const forgetDevices = () => {
+    heldWindows.forEach((index) => outputs.delete(`windows:${index}`));
+    heldWindows.clear();
     if (windows.size > 0 || razer.size > 0) {
       snapshot = buildDeviceList(windows, razer, settings, chroma.state());
     }
@@ -339,6 +354,7 @@ export const createLightingService = (
       return;
     }
     live = false;
+    ambient = false;
     chroma.release();
     stopHelper();
     // Faded in again from dark next time, not from where the last song left.
@@ -389,23 +405,32 @@ export const createLightingService = (
         // Ended by itself mid-song; within its failure budget it comes back.
         startHelper();
       }
+      if (ambient !== (frame.ambient ?? false)) {
+        ambient = frame.ambient ?? false;
+        publish();
+      }
       const mood = measureMood(frame);
-      const shaping = (kind: TLightingKind) => ({
+      const profile = lightingProfile(settings.profiles, frame.sceneId);
+      const shaping = (kind: TLightingKind, group: string) => ({
         kind,
         brightness: settings.brightness,
         pulse: settings.pulse,
+        tuning: deviceTuning(profile, group),
+        idle: profile.idle,
+        idleBrightness: profile.idleBrightness,
       });
       const light = (
         key: string,
         lamps: readonly ILamp[],
         kind: TLightingKind,
+        group = key,
       ) => {
         const output = outputFor(key, lamps.length);
         lightLamps(
           frame,
           mood,
           lamps,
-          shaping(kind),
+          shaping(kind, group),
           output.memory,
           output.rgb,
         );
@@ -429,16 +454,44 @@ export const createLightingService = (
         });
       }
 
+      // Stopping sends does not relinquish a LampArray. Close the owning
+      // process when a held device moves to Chroma or the member mutes it.
+      // A fresh helper enumerates without acquiring any lamps.
+      if (
+        [...heldWindows].some((index) => {
+          const device = windows.get(index);
+          return (
+            device &&
+            (!lightsThroughWindows(device, razer, chroma.state()) ||
+              settings.muted.includes(rowKeyOfWindowsDevice(device, razer)))
+          );
+        })
+      ) {
+        stopHelper();
+        startHelper();
+      }
       const running = host;
-      if (running) {
+      // Razer and Windows enumerate independently. Wait for classification
+      // before acquiring a Windows twin, or each fresh helper can acquire it
+      // just before the Razer row arrives and trigger another restart.
+      if (running && !pending.razer) {
         windows.forEach((device, index) => {
-          if (settings.muted.includes(rowKeyOfWindowsDevice(device, razer))) {
+          if (
+            !lightsThroughWindows(device, razer, chroma.state()) ||
+            settings.muted.includes(rowKeyOfWindowsDevice(device, razer))
+          ) {
             return;
           }
           running.send(
             index,
-            light(`windows:${index}`, device.lamps, device.kind),
+            light(
+              `windows:${index}`,
+              device.lamps,
+              device.kind,
+              rowKeyOfWindowsDevice(device, razer),
+            ),
           );
+          heldWindows.add(index);
         });
       }
       // No publish here: nothing the page lists changes with a frame. What

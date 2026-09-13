@@ -10,6 +10,12 @@ import type {
   ILightingDevice,
   TLightingKind,
 } from 'common/lighting/lightingModel';
+import {
+  deviceLightingGroup,
+  deviceTuning,
+  type ILightingProfile,
+  type TLightingEffect,
+} from 'common/lighting/lightingProfiles';
 import { useTranslation } from '../../utils/I18nContext';
 import Switch from '../../widgets/Switch';
 import type { IDeskColourFeed } from './deskColours';
@@ -71,9 +77,19 @@ interface IRowProps {
   device: ILightingDevice;
   feed: IDeskColourFeed | undefined;
   onMute?: (device: ILightingDevice, muted: boolean) => void;
+  onSelect?: (device: ILightingDevice) => void;
+  selected?: boolean;
+  effect?: TLightingEffect;
 }
 
-function LightingDeviceRow({ device, feed, onMute }: IRowProps) {
+function LightingDeviceRow({
+  device,
+  feed,
+  onMute,
+  onSelect,
+  selected,
+  effect,
+}: IRowProps) {
   const { t } = useTranslation();
   const switchId = useId();
   const lampsRef = useRef<HTMLCanvasElement>(null);
@@ -97,18 +113,43 @@ function LightingDeviceRow({ device, feed, onMute }: IRowProps) {
   const switchable = device.route === 'windows' && onMute !== undefined;
 
   return (
-    <li className={`lighting-device${device.muted ? ' is-muted' : ''}`}>
-      <span className="lighting-device__glyph">
-        <LightingKindGlyph kind={device.kind} />
-      </span>
-      <span className="lighting-device__text">
-        <span className="lighting-device__name" title={device.name}>
-          {device.name}
+    <li
+      className={`lighting-device${device.muted ? ' is-muted' : ''}${selected ? ' is-selected' : ''}`}
+    >
+      <button
+        type="button"
+        className="lighting-device__pick"
+        onClick={() => onSelect?.(device)}
+        disabled={!onSelect || device.route === 'none'}
+        aria-pressed={selected}
+        aria-label={t('lighting.device.edit', { name: device.name })}
+      >
+        <span className="lighting-device__glyph">
+          <LightingKindGlyph kind={device.kind} />
         </span>
-        <span className="lighting-device__kind">
-          {t(KIND_KEYS[device.kind])}
+        <span className="lighting-device__text">
+          <span className="lighting-device__name" title={device.name}>
+            {device.name}
+          </span>
+          <span className="lighting-device__kind">
+            {t(KIND_KEYS[device.kind])}
+            {effect && (
+              <span className="lighting-device__effect">
+                {t(`lighting.effect.${effect}`)}
+              </span>
+            )}
+          </span>
         </span>
-      </span>
+        {onSelect && (
+          <svg
+            className="lighting-device__chevron"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+          >
+            <path d="m6 3 5 5-5 5" />
+          </svg>
+        )}
+      </button>
       <span className={`lighting-route lighting-route--${device.route}`}>
         {t(ROUTE_KEYS[device.route])}
       </span>
@@ -139,6 +180,9 @@ interface IListProps {
   searching: boolean;
   feed?: IDeskColourFeed;
   onMute?: (device: ILightingDevice, muted: boolean) => void;
+  onSelect?: (device: ILightingDevice) => void;
+  selectedGroup?: string;
+  profile?: ILightingProfile;
 }
 
 export default function LightingDevices({
@@ -146,6 +190,9 @@ export default function LightingDevices({
   searching,
   feed,
   onMute,
+  onSelect,
+  selectedGroup,
+  profile,
 }: IListProps) {
   const { t } = useTranslation();
   if (searching) {
@@ -178,6 +225,13 @@ export default function LightingDevices({
             device={device}
             feed={feed}
             onMute={onMute}
+            onSelect={onSelect}
+            selected={selectedGroup === deviceLightingGroup(device)}
+            effect={
+              profile
+                ? deviceTuning(profile, deviceLightingGroup(device)).effect
+                : undefined
+            }
           />
         ))}
       </ul>

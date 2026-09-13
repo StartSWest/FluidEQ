@@ -49,6 +49,7 @@ export default function LightingStage({
         faint,
         colours: latest.colours,
         grid: latest.frame,
+        image: latest.image,
       });
     const resize = new ResizeObserver(() => {
       const ratio = Math.min(2, window.devicePixelRatio || 1);

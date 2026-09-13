@@ -72,7 +72,12 @@ export const registerLightingIpc = (
     canOpenRazerChroma: () => razerAppEngine() !== undefined,
     push: (state) => {
       const window = deps.getMainWindow();
-      if (window && !window.isDestroyed()) {
+      // Renderer teardown can publish release before its window is destroyed.
+      if (
+        window &&
+        !window.isDestroyed() &&
+        !window.webContents.isDestroyed()
+      ) {
         window.webContents.send(LIGHTING_STATE_CHANGED_CHANNEL, state);
       }
     },

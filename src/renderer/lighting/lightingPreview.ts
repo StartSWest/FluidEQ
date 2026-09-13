@@ -12,20 +12,32 @@ import type { ILightingFrame } from 'common/lighting/lightingModel';
  * React: it changes thirty times a second, and only a canvas draws it.
  */
 
-type TPreviewListener = (frame: ILightingFrame | undefined) => void;
+type TPreviewListener = (
+  frame: ILightingFrame | undefined,
+  image: ImageBitmap | undefined,
+) => void;
 
 let latest: ILightingFrame | undefined;
+let latestImage: ImageBitmap | undefined;
 const listeners = new Set<TPreviewListener>();
 
-export const publishLightingPreview = (frame: ILightingFrame | undefined) => {
+export const publishLightingPreview = (
+  frame: ILightingFrame | undefined,
+  image?: ImageBitmap,
+) => {
+  const previousImage = latestImage;
   latest = frame;
-  listeners.forEach((listener) => listener(frame));
+  latestImage = image;
+  listeners.forEach((listener) => listener(frame, image));
+  if (previousImage !== image) {
+    previousImage?.close();
+  }
 };
 
 /** Called at once with the frame there is, then with every one after it. */
 export const subscribeLightingPreview = (listener: TPreviewListener) => {
   listeners.add(listener);
-  listener(latest);
+  listener(latest, latestImage);
   return () => {
     listeners.delete(listener);
   };

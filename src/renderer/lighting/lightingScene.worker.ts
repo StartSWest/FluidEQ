@@ -40,7 +40,7 @@ import {
 
 const scope = globalThis as unknown as {
   onmessage: ((event: MessageEvent<TLightingWorkerRequest>) => void) | null;
-  postMessage(value: TLightingWorkerReply): void;
+  postMessage(value: TLightingWorkerReply, transfer?: Transferable[]): void;
 };
 
 const canvas = new OffscreenCanvas(
@@ -143,7 +143,7 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   );
   program.draw(frame, LIGHTING_RENDER_WIDTH, LIGHTING_RENDER_HEIGHT);
   // Synchronous, and on purpose: this thread has nothing else to do, the
-  // buffer is a sixth of a megabyte, and the next draw would clear it.
+  // buffer is 1.3 MB, and the next draw would clear it.
   gl.readPixels(
     0,
     0,
@@ -161,18 +161,25 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
     LIGHTING_GRID_HEIGHT,
     new Uint8Array(LIGHTING_GRID_WIDTH * LIGHTING_GRID_HEIGHT * 3),
   );
-  scope.postMessage({
-    kind: 'grid',
-    rgb,
-    // What the scene answered to, after its own response — the lamps move
-    // with the music the picture moved with.
-    level: frame.level,
-    beat: frame.beat,
-    bass: frame.bands[0],
-    mid: frame.bands[1],
-    treble: frame.bands[2],
-    deltaMs: request.frame.deltaMs,
-  });
+  const preview = canvas.transferToImageBitmap();
+  scope.postMessage(
+    {
+      kind: 'grid',
+      rgb,
+      preview,
+      // What the scene answered to, after its own response — the lamps move
+      // with the music the picture moved with.
+      level: frame.level,
+      beat: frame.beat,
+      bass: frame.bands[0],
+      mid: frame.bands[1],
+      treble: frame.bands[2],
+      deltaMs: request.frame.deltaMs,
+      timeSeconds: request.frame.timeSeconds,
+      activity: request.frame.activity ?? 1,
+    },
+    [preview, rgb.buffer],
+  );
 };
 
 scope.onmessage = ({ data }) => {

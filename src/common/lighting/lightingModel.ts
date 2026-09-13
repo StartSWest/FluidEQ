@@ -4,6 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import {
+  readLightingProfiles,
+  type ILightingProfile,
+} from './lightingProfiles';
+
 /**
  * Dynamic lighting: a Plus member's keyboard, mouse, mousepad, headset and
  * stand take the colours of the scene on the graph and move with its music.
@@ -61,6 +66,7 @@ export interface ILightingSettings {
   pulse: TLightingPulse;
   /** Device keys the member switched off; they keep their own lighting. */
   muted: readonly string[];
+  profiles: Readonly<Record<string, ILightingProfile>>;
 }
 
 export const MIN_LIGHTING_BRIGHTNESS = 0.1;
@@ -70,6 +76,7 @@ export const DEFAULT_LIGHTING_SETTINGS: ILightingSettings = {
   brightness: 0.85,
   pulse: 'full',
   muted: [],
+  profiles: {},
 };
 
 /**
@@ -131,6 +138,7 @@ export interface ILightingState {
    * `lightsAnyDevice`.
    */
   live: boolean;
+  ambient?: boolean;
 }
 
 /**
@@ -160,6 +168,10 @@ export interface ILightingFrame {
   treble: number;
   /** Audio time since the previous frame, in milliseconds. */
   deltaMs: number;
+  sceneId?: string;
+  timeSeconds?: number;
+  ambient?: boolean;
+  activity?: number;
 }
 
 /** The grid a scene is reduced to before it reaches the main process. */
@@ -218,6 +230,8 @@ export const readLightingSettings = (
         : base.brightness,
     pulse: isPulse(raw.pulse) ? raw.pulse : base.pulse,
     muted: [...new Set(muted)].slice(0, 64),
+    profiles:
+      'profiles' in raw ? readLightingProfiles(raw.profiles) : base.profiles,
   };
 };
 
@@ -265,5 +279,15 @@ export const readLightingFrame = (raw: unknown): ILightingFrame | undefined => {
     mid,
     treble,
     deltaMs: Math.min(250, Math.max(0, deltaMs)),
+    sceneId:
+      typeof raw.sceneId === 'string' && raw.sceneId.length < 256
+        ? raw.sceneId
+        : undefined,
+    timeSeconds:
+      typeof raw.timeSeconds === 'number' && Number.isFinite(raw.timeSeconds)
+        ? Math.max(0, raw.timeSeconds)
+        : undefined,
+    ambient: raw.ambient === true,
+    activity: unit(raw.activity),
   };
 };

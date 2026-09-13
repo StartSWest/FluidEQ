@@ -63,11 +63,21 @@ export const startLightingListener = async (
   accent: [number, number, number],
   isPaused: () => boolean,
   onHeard: (heard: IHeardFrame) => void,
+  signal?: AbortSignal,
 ): Promise<ILightingListener> => {
   const { context, source } = capture;
+  const assertCurrent = () => {
+    signal?.throwIfAborted();
+    if (context.state === 'closed') {
+      throw new DOMException('The lighting capture was closed', 'AbortError');
+    }
+  };
+  assertCurrent();
   // Loaded into the capture's own context. A context that already has the
   // bundle (the output mirror uses it) resolves at once.
   await context.audioWorklet.addModule(workletUrl().href);
+  // A capture or scene can be replaced while its worklet module is loading.
+  assertCurrent();
 
   const analyser = context.createAnalyser();
   analyser.fftSize = FFT_SIZE;
@@ -75,7 +85,6 @@ export const startLightingListener = async (
   analyser.maxDecibels = 0;
   // The graph's own value, and for the same reason: see useLiveOutputSpectrum.
   analyser.smoothingTimeConstant = 0.2;
-  source.connect(analyser);
 
   const clock = new AudioWorkletNode(context, LIGHTING_CLOCK_PROCESSOR, {
     numberOfInputs: 1,
@@ -87,6 +96,7 @@ export const startLightingListener = async (
   // and an unprocessed clock never ticks.
   const mute = context.createGain();
   mute.gain.value = 0;
+  source.connect(analyser);
   source.connect(clock);
   clock.connect(mute).connect(context.destination);
 
@@ -190,6 +200,7 @@ export const startLightingListener = async (
     close: () => {
       closed = true;
       clock.port.onmessage = null;
+      clock.port.close();
       disconnect(source, analyser);
       disconnect(source, clock);
       disconnect(clock);

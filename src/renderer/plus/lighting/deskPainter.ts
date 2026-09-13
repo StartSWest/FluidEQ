@@ -30,6 +30,7 @@ export interface IDeskPaint {
   colours: ReadonlyMap<string, Uint8Array>;
   /** The scene as the lamps see it, or undefined while nothing plays. */
   grid: { width: number; height: number; rgb: Uint8Array } | undefined;
+  image?: ImageBitmap;
 }
 
 type TContext = CanvasRenderingContext2D;
@@ -574,7 +575,11 @@ let screenSource: { canvas: OffscreenCanvas; image: ImageData } | undefined;
  * down onto the desk in the scene's own colour, which is what ties the picture
  * to the devices in front of it.
  */
-const paintMonitor = (c: TContext, grid: IDeskPaint['grid']) => {
+const paintMonitor = (
+  c: TContext,
+  grid: IDeskPaint['grid'],
+  preview?: ImageBitmap,
+) => {
   const { x, y, width, height } = MONITOR;
   const bezel = 6;
   // Neck and foot.
@@ -637,7 +642,7 @@ const paintMonitor = (c: TContext, grid: IDeskPaint['grid']) => {
 
   c.imageSmoothingEnabled = true;
   c.imageSmoothingQuality = 'high';
-  c.drawImage(canvas, x, y, width, height);
+  c.drawImage(preview ?? canvas, x, y, width, height);
 };
 
 export const paintDesk = (canvas: HTMLCanvasElement, paint: IDeskPaint) => {
@@ -669,7 +674,7 @@ export const paintDesk = (canvas: HTMLCanvasElement, paint: IDeskPaint) => {
   c.fillRect(0, 0, canvas.width, canvas.height);
   c.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 
-  paintMonitor(c, paint.grid);
+  paintMonitor(c, paint.grid, paint.image);
 
   const byLayer = (entries: readonly IPlacedDevice[]) =>
     [...entries].sort((a, b) => LAYER[a.device.kind] - LAYER[b.device.kind]);

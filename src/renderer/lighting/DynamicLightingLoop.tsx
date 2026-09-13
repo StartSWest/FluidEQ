@@ -11,6 +11,7 @@ import {
   type ILightingFrame,
 } from 'common/lighting/lightingModel';
 import type { IScenePack } from 'common/scenePacks';
+import { lightingProfile } from 'common/lighting/lightingProfiles';
 import {
   useLiveAudioCapture,
   useLiveAudioControl,
@@ -32,13 +33,7 @@ import { publishLightingPreview } from './lightingPreview';
 import { createLightingScene } from './lightingSceneClient';
 import { useLighting } from './lightingStore';
 import { fillSwatchGrid, swatchColours } from './swatchGrid';
-
-/**
- * About two seconds of silence, counted in audio, before the devices are
- * given back. Shorter, and the gap between two tracks hands the desk to
- * Synapse's own effect and takes it again a moment later.
- */
-const SILENCE_RELEASE_MS = 2000;
+import { createLightingAtmosphere } from './lightingAtmosphere';
 
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
   'kind' in scene && scene.kind === 'member';
@@ -64,9 +59,8 @@ const loadDrawable = (
  * hiding the window must not take the music away from the lamps.
  *
  * Every way out gives the devices back: the scene becoming a free look, the
- * membership lapsing, the switch going off, two seconds of silence, the window
- * closing. Each one is `release`, and the main process ends Razer's session
- * and the Windows helper on it.
+ * membership lapsing, the switch going off, a failed producer, or the window
+ * closing. Silence keeps the scene flowing at the member's idle settings.
  */
 export default function DynamicLightingLoop() {
   const { state, loaded } = useLighting();
@@ -87,14 +81,35 @@ export default function DynamicLightingLoop() {
   const identity = scene
     ? `${sceneKey(scene)}@${scene.revision ?? scene.version}`
     : '';
-  const [pack, setPack] = useState<IScenePack | undefined>();
+  const [loadedScene, setLoadedScene] = useState<{
+    pack: IScenePack;
+    sceneId: string;
+  }>();
   const swatch = scene?.swatch;
   const swatchRef = useRef(swatch);
   swatchRef.current = swatch;
+  const profileRef = useRef(
+    lightingProfile(state.settings.profiles, loadedScene?.sceneId),
+  );
+  profileRef.current = lightingProfile(
+    state.settings.profiles,
+    loadedScene?.sceneId,
+  );
+
+  useEffect(() => {
+    const release = () => {
+      window.electron?.ipcRenderer.releaseLighting();
+      publishLightingPreview(undefined);
+    };
+    if (!wanted) {
+      release();
+    }
+    return release;
+  }, [wanted]);
 
   useEffect(() => {
     if (!wanted || !scene) {
-      setPack(undefined);
+      setLoadedScene(undefined);
       return undefined;
     }
     let cancelled = false;
@@ -107,7 +122,9 @@ export default function DynamicLightingLoop() {
         loadedPack = undefined;
       }
       if (!cancelled) {
-        setPack(loadedPack);
+        setLoadedScene(
+          loadedPack ? { pack: loadedPack, sceneId: scene.lookId } : undefined,
+        );
       }
     };
     load().catch(() => undefined);
@@ -121,48 +138,50 @@ export default function DynamicLightingLoop() {
 
   useEffect(() => {
     const api = window.electron?.ipcRenderer;
-    if (!wanted || !capture || !pack || !api?.sendLightingFrame) {
+    if (!wanted || !capture || !loadedScene || !api?.sendLightingFrame) {
+      api?.releaseLighting();
+      publishLightingPreview(undefined);
       return undefined;
     }
     let closed = false;
+    const abort = new AbortController();
     let listener: ILightingListener | undefined;
     let failed = false;
-    let silentMs = 0;
-    let lit = false;
+    const atmosphere = createLightingAtmosphere();
+    const { sceneId, pack } = loadedScene;
     const colours = swatchColours(swatchRef.current ?? []);
     const fallback = new Uint8Array(
       LIGHTING_GRID_WIDTH * LIGHTING_GRID_HEIGHT * 3,
     );
 
-    const send = (frame: ILightingFrame) => {
-      lit = true;
+    const send = (frame: ILightingFrame, image?: ImageBitmap) => {
       api.sendLightingFrame(frame);
-      publishLightingPreview(frame);
+      publishLightingPreview(frame, image);
     };
-    const giveBack = () => {
-      if (lit) {
-        lit = false;
-        api.releaseLighting();
-        publishLightingPreview(undefined);
-      }
-    };
-
     const player = createLightingScene(
       (grid) => {
         if (closed) {
+          grid.preview.close();
           return;
         }
-        send({
-          width: LIGHTING_GRID_WIDTH,
-          height: LIGHTING_GRID_HEIGHT,
-          rgb: grid.rgb,
-          level: grid.level,
-          beat: grid.beat,
-          bass: grid.bass,
-          mid: grid.mid,
-          treble: grid.treble,
-          deltaMs: grid.deltaMs,
-        });
+        send(
+          {
+            width: LIGHTING_GRID_WIDTH,
+            height: LIGHTING_GRID_HEIGHT,
+            rgb: grid.rgb,
+            level: grid.level,
+            beat: grid.beat,
+            bass: grid.bass,
+            mid: grid.mid,
+            treble: grid.treble,
+            deltaMs: grid.deltaMs,
+            sceneId,
+            timeSeconds: grid.timeSeconds,
+            activity: grid.activity,
+            ambient: grid.activity < 0.05,
+          },
+          grid.preview,
+        );
       },
       () => {
         failed = true;
@@ -177,18 +196,11 @@ export default function DynamicLightingLoop() {
       capture,
       accent,
       () => pausedRef.current,
-      ({ frame, silent }) => {
+      (heard) => {
         if (closed) {
           return;
         }
-        if (silent) {
-          silentMs += frame.deltaMs;
-          if (silentMs >= SILENCE_RELEASE_MS) {
-            giveBack();
-          }
-          return;
-        }
-        silentMs = 0;
+        const frame = atmosphere(heard, profileRef.current);
         if (!failed) {
           player.draw(frame);
           return;
@@ -209,8 +221,13 @@ export default function DynamicLightingLoop() {
           mid: frame.bands[1],
           treble: frame.bands[2],
           deltaMs: frame.deltaMs,
+          sceneId,
+          timeSeconds: frame.timeSeconds,
+          activity: frame.activity,
+          ambient: (frame.activity ?? 1) < 0.05,
         });
       },
+      abort.signal,
     )
       .then((started) => {
         if (closed) {
@@ -221,19 +238,26 @@ export default function DynamicLightingLoop() {
         return undefined;
       })
       .catch((error: unknown) => {
-        console.error(
-          'Dynamic lighting could not listen to the output:',
-          error,
-        );
+        if (closed) {
+          return;
+        }
+        api.releaseLighting();
+        publishLightingPreview(undefined);
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error(
+            'Dynamic lighting could not listen to the output:',
+            error,
+          );
+        }
       });
 
     return () => {
       closed = true;
+      abort.abort();
       listener?.close();
       player.close();
-      giveBack();
     };
-  }, [wanted, capture, pack]);
+  }, [wanted, capture, loadedScene]);
 
   return null;
 }

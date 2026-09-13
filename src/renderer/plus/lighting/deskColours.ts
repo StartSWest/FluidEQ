@@ -15,6 +15,11 @@ import type {
   ILightingFrame,
   ILightingSettings,
 } from 'common/lighting/lightingModel';
+import {
+  deviceLightingGroup,
+  deviceTuning,
+  lightingProfile,
+} from 'common/lighting/lightingProfiles';
 import { subscribeLightingPreview } from '../../lighting/lightingPreview';
 
 /**
@@ -29,6 +34,7 @@ import { subscribeLightingPreview } from '../../lighting/lightingPreview';
 
 export interface IDeskColours {
   frame: ILightingFrame | undefined;
+  image?: ImageBitmap;
   colours: ReadonlyMap<string, Uint8Array>;
 }
 
@@ -51,11 +57,15 @@ export const createDeskColourFeed = (): IDeskColourFeed => {
   const listeners = new Set<TListener>();
   let latest: IDeskColours = { frame: undefined, colours: new Map() };
 
-  const compute = (frame: ILightingFrame | undefined) => {
+  const compute = (
+    frame: ILightingFrame | undefined,
+    image: ImageBitmap | undefined,
+  ) => {
     const colours = new Map<string, Uint8Array>();
     const current = settings;
     if (frame && current) {
       const mood = measureMood(frame);
+      const profile = lightingProfile(current.profiles, frame.sceneId);
       devices.forEach((device) => {
         if (device.muted || device.route === 'none') {
           return;
@@ -73,9 +83,15 @@ export const createDeskColourFeed = (): IDeskColourFeed => {
           mood,
           device.lamps,
           {
-            kind: device.kind,
+            kind:
+              deviceLightingGroup(device) === 'chroma:mousepad'
+                ? 'mousepad'
+                : device.kind,
             brightness: current.brightness,
             pulse: current.pulse,
+            tuning: deviceTuning(profile, deviceLightingGroup(device)),
+            idle: profile.idle,
+            idleBrightness: profile.idleBrightness,
           },
           entry.memory,
           entry.rgb,
@@ -83,10 +99,10 @@ export const createDeskColourFeed = (): IDeskColourFeed => {
         colours.set(device.key, entry.rgb);
       });
     } else {
-      // Nothing playing: the next song fades in from dark, as the desk does.
+      // The producer released the desk; discard its easing history too.
       memories.clear();
     }
-    latest = { frame, colours };
+    latest = { frame, image, colours };
     listeners.forEach((listener) => listener(latest));
   };
 

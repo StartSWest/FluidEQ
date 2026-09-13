@@ -21,11 +21,11 @@ export const LIGHTING_TICKS_PER_SECOND = 30;
 /**
  * The size a scene is drawn at for the lamps. Small enough to cost nothing
  * beside the graph; large enough that a lit window in a skyline is still a
- * few pixels and not averaged away. Exactly four times the lamp grid, so
- * every grid cell is a whole block of pixels.
+ * few pixels and not averaged away. Sixteen times the lamp grid also gives the
+ * desk's monitor a sharp image instead of enlarging the 48-pixel LED grid.
  */
-export const LIGHTING_RENDER_WIDTH = 192;
-export const LIGHTING_RENDER_HEIGHT = 108;
+export const LIGHTING_RENDER_WIDTH = 768;
+export const LIGHTING_RENDER_HEIGHT = 432;
 
 export interface ILightingSceneFrame {
   timeSeconds: number;
@@ -37,6 +37,7 @@ export interface ILightingSceneFrame {
   fade: number;
   spectrum: Uint8Array;
   waveform: Uint8Array;
+  activity?: number;
 }
 
 export type TLightingWorkerRequest =
@@ -51,10 +52,13 @@ export type TLightingWorkerReply =
   | {
       kind: 'grid';
       rgb: Uint8Array;
+      preview: ImageBitmap;
       level: number;
       beat: number;
       bass: number;
       mid: number;
       treble: number;
       deltaMs: number;
+      timeSeconds: number;
+      activity: number;
     };
