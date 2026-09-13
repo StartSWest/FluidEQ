@@ -42,6 +42,8 @@ let buttons: ThumbarButton[];
 let updates: number;
 let delivered: unknown[][];
 let accept: boolean;
+let visible: boolean;
+let minimized: boolean;
 let window: BrowserWindow;
 const state: ITaskbarTransportState = {
   canToggle: true,
@@ -67,6 +69,8 @@ beforeEach(() => {
   updates = 0;
   delivered = [];
   accept = true;
+  visible = true;
+  minimized = false;
   theme.shouldUseDarkColorsForSystemIntegratedUI = true;
   const contents = Object.assign(new EventEmitter(), {
     mainFrame: {},
@@ -76,7 +80,25 @@ beforeEach(() => {
   window = Object.assign(new EventEmitter(), {
     webContents: contents,
     isDestroyed: () => false,
+    isVisible: () => visible,
+    isMinimized: () => minimized,
     setThumbarButtons: (next: ThumbarButton[]) => {
+      // Electron 43's GetThumbarButtonFlags accepts these strings only.
+      // Its TypeScript "enabled" option silently rejects the whole toolbar.
+      const supportedFlags = [
+        'disabled',
+        'dismissonclick',
+        'nobackground',
+        'hidden',
+        'noninteractive',
+      ];
+      if (
+        next.some((button) =>
+          button.flags?.some((flag) => !supportedFlags.includes(flag)),
+        )
+      ) {
+        return false;
+      }
       buttons = next;
       updates += 1;
       return accept;
@@ -133,6 +155,52 @@ it('rejects other frames and malformed state without changing the toolbar', () =
   ].forEach((invalid) => publish(invalid));
   expect(updates).toBe(1);
   expect(buttons[1].tooltip).toBe('Play');
+});
+
+it('registers enabled controls using flags accepted by the Electron native parser', () => {
+  publish();
+  expect(updates).toBe(1);
+  expect(buttons).toHaveLength(3);
+  expect(buttons.every((button) => button.flags?.length === 0)).toBe(true);
+});
+
+it('waits for a taskbar entry and reinstalls unchanged controls after hiding to tray', () => {
+  visible = false;
+  publish();
+  window.emit('ready-to-show');
+  expect(updates).toBe(0);
+  visible = true;
+  window.emit('show');
+  expect(updates).toBe(1);
+  visible = false;
+  window.emit('hide');
+  buttons = []; // Windows removes the toolbar when the window is hidden.
+  publish({ ...state, isPlaying: true });
+  expect(updates).toBe(1);
+  visible = true;
+  window.emit('show');
+  expect(buttons).toHaveLength(3);
+  expect(buttons[1].tooltip).toBe('Pause');
+  expect(updates).toBe(2);
+  visible = false;
+  window.emit('hide');
+  buttons = [];
+  visible = true;
+  window.emit('show');
+  expect(buttons).toHaveLength(3);
+  expect(updates).toBe(3);
+});
+
+it('registers controls when starting minimized and keeps playback state current', () => {
+  visible = false;
+  publish();
+  expect(updates).toBe(0);
+  minimized = true;
+  window.emit('minimize');
+  expect(updates).toBe(1);
+  publish({ ...state, isPlaying: true });
+  expect(buttons[1].tooltip).toBe('Pause');
+  expect(updates).toBe(2);
 });
 
 it('deduplicates state, changes glyph contrast with Windows, and localizes karaoke arrows', () => {

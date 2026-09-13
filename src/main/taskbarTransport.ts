@@ -63,7 +63,10 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     }
   };
   const update = () => {
-    if (window.isDestroyed()) {
+    if (
+      window.isDestroyed() ||
+      (!window.isVisible() && !window.isMinimized())
+    ) {
       return;
     }
     const dark = nativeTheme.shouldUseDarkColorsForSystemIntegratedUI;
@@ -105,12 +108,17 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     ].map(({ action, icon, tooltip }) => ({
       icon: iconFor(icon, dark),
       tooltip,
-      flags: enabled(action) ? ['enabled'] : ['disabled'],
+      // Electron 43's native parser rejects "enabled" despite its typings.
+      // No flags is the native enabled state (THBF_ENABLED = 0).
+      flags: enabled(action) ? [] : ['disabled'],
       click: () => send(action),
     }));
     // Electron can refuse before the shell has created this window's taskbar
     // entry. Only cache successful writes; ready-to-show/show retry by event.
     if (window.setThumbarButtons(buttons)) {
+      if (!applied) {
+        log.info('Taskbar playback controls registered');
+      }
       applied = signature;
     } else {
       log.warn('Windows did not accept the taskbar playback controls');
@@ -141,7 +149,13 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
     update();
   });
   window.on('ready-to-show', update);
-  window.on('show', update);
+  window.on('show', () => {
+    // hide() removes the shell toolbar; unchanged playback state still needs
+    // to be registered again when the window comes back from the tray.
+    applied = undefined;
+    update();
+  });
+  window.on('minimize', update);
   nativeTheme.on('updated', update);
   window.webContents.on('render-process-gone', clear);
   window.webContents.on('did-start-navigation', (event) => {
