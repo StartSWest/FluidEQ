@@ -95,7 +95,6 @@ describe('switching Smart EQ mode', () => {
         ipcRenderer: {
           sendMessage: () => {},
           on: () => () => {},
-          once: () => {},
           removeListener: () => {},
         },
       }),

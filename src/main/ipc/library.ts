@@ -46,6 +46,7 @@ import {
   trackPathById,
 } from '../library/libraryIndex';
 import scanLibraryRootOffThread from '../library/scanHost';
+import onWindowMessage from './windowMessages';
 
 /**
  * The largest file the renderer is handed whole for playback.
@@ -593,7 +594,7 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
     );
   });
 
-  ipcMain.on('library-scan-cancel', () => {
+  onWindowMessage('library-scan-cancel', () => {
     cancelRequested = true;
   });
 

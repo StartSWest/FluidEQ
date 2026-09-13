@@ -16,12 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import { IState, MAX_GAIN, MIN_GAIN } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { getResolvedPreAmp } from '../flush';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
+import onWindowMessage from './windowMessages';
 
 export interface IPreampIpcDeps {
   state: IState;
@@ -66,7 +66,7 @@ export const registerPreampIpc = ({
   handleUpdateHelper,
   handleError,
 }: IPreampIpcDeps) => {
-  ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
     const isAutoPreAmpOn = Boolean(arg[0]);
     const automatic =
       isAutoPreAmpOn && !usesNativeHeadroom()
@@ -95,74 +95,78 @@ export const registerPreampIpc = ({
     );
   });
 
-  ipcMain.on(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, async (event, arg) => {
-    // Ignored while the user owns the level. Auto normalize off means the preamp
-    // is theirs, and a measurement arriving then would sit in state waiting to
-    // move it the instant the switch came back on.
-    const requestId: unknown = arg[2];
-    if (!state.isAutoPreAmpOn || !state.isEnabled || !canMeasureHeadroom()) {
-      event.reply(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, {
-        result: { requestId, applied: false },
-      });
-      return;
-    }
-    const points = Array.isArray(arg[0]) ? arg[0] : [];
-    const programme = points
-      .filter(
-        (point: unknown): point is { frequency: number; gain: number } =>
-          typeof point === 'object' &&
-          point !== null &&
-          Number.isFinite((point as { frequency: unknown }).frequency) &&
-          Number.isFinite((point as { gain: unknown }).gain),
-      )
-      .map(({ frequency, gain }) => ({ frequency, gain }));
-    const trim = Number.parseFloat(String(arg[1]));
+  onWindowMessage(
+    ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+    async (event, arg) => {
+      // Ignored while the user owns the level. Auto normalize off means the preamp
+      // is theirs, and a measurement arriving then would sit in state waiting to
+      // move it the instant the switch came back on.
+      const requestId: unknown = arg[2];
+      if (!state.isAutoPreAmpOn || !state.isEnabled || !canMeasureHeadroom()) {
+        event.reply(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, {
+          result: { requestId, applied: false },
+        });
+        return;
+      }
+      const points = Array.isArray(arg[0]) ? arg[0] : [];
+      const programme = points
+        .filter(
+          (point: unknown): point is { frequency: number; gain: number } =>
+            typeof point === 'object' &&
+            point !== null &&
+            Number.isFinite((point as { frequency: unknown }).frequency) &&
+            Number.isFinite((point as { gain: unknown }).gain),
+        )
+        .map(({ frequency, gain }) => ({ frequency, gain }));
+      const trim = Number.parseFloat(String(arg[1]));
 
-    state.smartHeadroomProgramme = programme.length > 0 ? programme : undefined;
-    // Never positive. The supervisor exists to take level away; a trim above
-    // zero arriving over IPC would be it adding some, and the renderer is not
-    // trusted to be the only thing that checks.
-    state.smartHeadroomTrimDb = Number.isFinite(trim)
-      ? Math.max(-20, Math.min(0, trim))
-      : 0;
-    state.preAmp = getResolvedPreAmp(state);
-    /**
-     * A measurement is evidence, and evidence is never written to a profile.
-     *
-     * `useActiveSessionOverride` was true here, which makes
-     * `shouldPersistProfile` true in `handleUpdateHelperCore` — so every push
-     * wrote the attached profile. While the estimate is still converging the
-     * floor between pushes is two seconds, so a listening session spent its
-     * first two minutes writing the user's profile every two seconds, on the
-     * main process, with `fs.writeFileSync`. That is the "Wrote preset for:
-     * <profile>" line repeating with nobody touching the app.
-     *
-     * It also committed whatever was live at the time into the saved profile
-     * and cleared `hasActiveSessionOverride` — so a measurement quietly saved
-     * edits the user had not saved.
-     *
-     * Nothing is lost by not writing it. The config writer never reads the
-     * preamp out of a profile when Auto normalize is on: `flushDeviceProfiles`
-     * takes the programme and the trim as `sessionHeadroom` and derives the
-     * number itself, for the one output they were heard on, and the
-     * active-session path renders them straight off live state. Both routes
-     * already have this measurement; neither needs a file.
-     */
-    await handleUpdateHelper(
-      event,
-      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
-      { requestId, applied: true },
-      false,
-      false,
-    );
-  });
+      state.smartHeadroomProgramme =
+        programme.length > 0 ? programme : undefined;
+      // Never positive. The supervisor exists to take level away; a trim above
+      // zero arriving over IPC would be it adding some, and the renderer is not
+      // trusted to be the only thing that checks.
+      state.smartHeadroomTrimDb = Number.isFinite(trim)
+        ? Math.max(-20, Math.min(0, trim))
+        : 0;
+      state.preAmp = getResolvedPreAmp(state);
+      /**
+       * A measurement is evidence, and evidence is never written to a profile.
+       *
+       * `useActiveSessionOverride` was true here, which makes
+       * `shouldPersistProfile` true in `handleUpdateHelperCore` — so every push
+       * wrote the attached profile. While the estimate is still converging the
+       * floor between pushes is two seconds, so a listening session spent its
+       * first two minutes writing the user's profile every two seconds, on the
+       * main process, with `fs.writeFileSync`. That is the "Wrote preset for:
+       * <profile>" line repeating with nobody touching the app.
+       *
+       * It also committed whatever was live at the time into the saved profile
+       * and cleared `hasActiveSessionOverride` — so a measurement quietly saved
+       * edits the user had not saved.
+       *
+       * Nothing is lost by not writing it. The config writer never reads the
+       * preamp out of a profile when Auto normalize is on: `flushDeviceProfiles`
+       * takes the programme and the trim as `sessionHeadroom` and derives the
+       * number itself, for the one output they were heard on, and the
+       * active-session path renders them straight off live state. Both routes
+       * already have this measurement; neither needs a file.
+       */
+      await handleUpdateHelper(
+        event,
+        ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+        { requestId, applied: true },
+        false,
+        false,
+      );
+    },
+  );
 
-  ipcMain.on(ChannelEnum.GET_PREAMP, async (event) => {
+  onWindowMessage(ChannelEnum.GET_PREAMP, async (event) => {
     const reply: TSuccess<number> = { result: state.preAmp || 0 };
     event.reply(ChannelEnum.GET_PREAMP, reply);
   });
 
-  ipcMain.on(ChannelEnum.SET_PREAMP, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_PREAMP, async (event, arg) => {
     const channel = ChannelEnum.SET_PREAMP;
     const gain = parseFloat(arg[0]) || 0;
 

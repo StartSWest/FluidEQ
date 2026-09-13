@@ -36,7 +36,7 @@ import type { Translate } from 'common/i18n';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import {
   buildResponseHandler,
-  promisifyResult,
+  sendRequest,
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
@@ -47,12 +47,12 @@ import {
  */
 export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
   const channel = ChannelEnum.GET_AUDIO_ENGINE_STATUS;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult<IAudioEngineStatus>(
+  return sendRequest<IAudioEngineStatus>(
+    channel,
+    [],
     buildResponseHandler<IAudioEngineStatus>((result, resolve) =>
       resolve(result),
     ),
-    channel,
   );
 };
 
@@ -66,8 +66,7 @@ export const getAudioEngineStatus = (): Promise<IAudioEngineStatus> => {
  */
 export const setAudioEngine = (engine: TAudioEngine): Promise<void> => {
   const channel = ChannelEnum.SET_AUDIO_ENGINE;
-  window.electron.ipcRenderer.sendMessage(channel, [engine]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [engine], setterResponseHandler);
 };
 
 /**
@@ -91,11 +90,11 @@ const promptedCall = <Type extends IEngineSetupResult | IAudioRestartOutcome>(
   args: unknown[],
   failed: (reason: string) => Type,
 ): Promise<Type> => {
-  window.electron.ipcRenderer.sendMessage(channel, args);
-  return promisifyResult<Type>(
-    buildResponseHandler<Type>((result, resolve) => resolve(result)),
+  return sendRequest<Type>(
     channel,
-    null,
+    args,
+    buildResponseHandler<Type>((result, resolve) => resolve(result)),
+    { timeout: null },
   ).catch((error: unknown) =>
     failed(error instanceof Error ? error.message : String(error)),
   );
@@ -175,10 +174,10 @@ export const setSystemDspChain = (
   values: number[],
 ): Promise<TSystemDspChainResult> => {
   const channel = ChannelEnum.SET_SYSTEM_DSP_CHAIN;
-  window.electron.ipcRenderer.sendMessage(channel, [values]);
-  return promisifyResult<TSystemDspChainResult>(
-    simpleResponseHandler<TSystemDspChainResult>(),
+  return sendRequest<TSystemDspChainResult>(
     channel,
+    [values],
+    simpleResponseHandler<TSystemDspChainResult>(),
   );
 };
 

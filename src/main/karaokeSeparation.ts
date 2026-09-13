@@ -23,6 +23,7 @@ import {
   separationPackedRow,
   separationStft,
 } from '../common/karaoke/separationDsp';
+import onWindowMessage from './ipc/windowMessages';
 
 /**
  * Vocal separation, with native ONNX calls isolated in a utility process.
@@ -335,7 +336,7 @@ export const registerKaraokeSeparation = () => {
       }
     }),
   );
-  ipcMain.on('karaoke-separate-cancel', () => {
+  onWindowMessage('karaoke-separate-cancel', () => {
     cancelRequested = true;
   });
   // The model holds GPU memory worth reclaiming once the user has moved on.
@@ -379,7 +380,7 @@ export const registerKaraokeSeparation = () => {
       instrumental: fs.readFileSync(instrumentalPath),
     };
   });
-  ipcMain.on('karaoke-separate-release', () => {
+  onWindowMessage('karaoke-separate-release', () => {
     if (running || !session) {
       return;
     }

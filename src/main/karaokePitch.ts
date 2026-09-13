@@ -12,6 +12,7 @@ import ort, { onInferenceInvalidated } from './nativeInference';
 import withRendererOperation from './rendererOperation';
 import { separationFft } from '../common/karaoke/separationDsp';
 import { isSeparationLoaded, separationWeightBytes } from './karaokeSeparation';
+import onWindowMessage from './ipc/windowMessages';
 
 /**
  * Vocal pitch detection with isolated native inference: RMVPE first, SwiftF0 always.
@@ -407,7 +408,7 @@ export const registerKaraokePitch = () => {
       downloadedBytes: fileBytes(rmvpePath()),
     },
   }));
-  ipcMain.on('karaoke-pitch-release', () => {
+  onWindowMessage('karaoke-pitch-release', () => {
     if (running) {
       return;
     }

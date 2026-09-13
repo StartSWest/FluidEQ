@@ -16,27 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import ChannelEnum from 'common/channels';
 import { getMainPreAmp } from 'renderer/utils/equalizerApi';
+import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 
 /** Replies the test fires by hand, so the timing is entirely ours. */
-let listener: ((arg: unknown) => void) | undefined;
-const unsubscribe = jest.fn();
-const sendMessage = jest.fn();
+let bridge: ReturnType<typeof installFakeIpcRenderer>;
 
-const installBridge = () => {
-  listener = undefined;
-  unsubscribe.mockClear();
-  sendMessage.mockClear();
-  window.electron = {
-    ipcRenderer: {
-      sendMessage,
-      once: (_channel: string, handler: (arg: unknown) => void) => {
-        listener = handler;
-        return unsubscribe;
-      },
-    },
-  } as unknown as typeof window.electron;
-};
+const isStillListening = () => bridge.listenerCount(ChannelEnum.GET_PREAMP) > 0;
 
 /**
  * The renderer waits ten seconds for the main process to answer, and measures
@@ -51,7 +38,7 @@ const installBridge = () => {
 describe('waiting for the main process across a sleep', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    installBridge();
+    bridge = installFakeIpcRenderer();
   });
 
   afterEach(() => {
@@ -85,10 +72,10 @@ describe('waiting for the main process across a sleep', () => {
     await Promise.resolve();
 
     expect(rejected).not.toHaveBeenCalled();
-    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(isStillListening()).toBe(true);
 
     // And the reply that was always coming still resolves it.
-    listener?.({ result: -6 });
+    bridge.answer(bridge.sentOn(ChannelEnum.GET_PREAMP)[0], { result: -6 });
     await expect(pending).resolves.toBe(-6);
   });
 
@@ -112,6 +99,6 @@ describe('waiting for the main process across a sleep', () => {
 
     expect(rejected).toHaveBeenCalled();
     expect(String(rejected.mock.calls[0][0])).toContain('Timeout');
-    expect(unsubscribe).toHaveBeenCalled();
+    expect(isStillListening()).toBe(false);
   });
 });

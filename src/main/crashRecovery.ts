@@ -1,11 +1,12 @@
 /* FluidEQ — GPL-3.0-or-later */
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 import log from 'electron-log';
 import ChannelEnum from '../common/channels';
 import { translate } from '../common/i18n';
 import { PRODUCT_NAME } from '../common/branding';
 import { flushPendingWrites } from './asyncWriter';
 import { getTrayLocale, isAppQuitting } from './tray';
+import onWindowMessage from './ipc/windowMessages';
 
 // Kept outside the page: a counter in React or sessionStorage can disappear
 // with the very native renderer crash it is supposed to contain. Successful
@@ -234,7 +235,10 @@ export const installWindowRecovery = (
     }
     recover(args[0] === 'automatic').catch(log.error);
   };
-  ipcMain.on(ChannelEnum.RECOVER_WINDOW, request);
+  const stopRecoverRequests = onWindowMessage(
+    ChannelEnum.RECOVER_WINDOW,
+    request,
+  );
   contents.on('render-process-gone', (_event, details) => {
     if (details.reason !== 'clean-exit') {
       log.error('Renderer process gone', details);
@@ -251,7 +255,7 @@ export const installWindowRecovery = (
     recover(true).catch(log.error);
   });
   contents.once('destroyed', () => {
-    ipcMain.removeListener(ChannelEnum.RECOVER_WINDOW, request);
+    stopRecoverRequests();
     app.removeListener('before-quit', onQuit);
   });
   return () => recover(true);

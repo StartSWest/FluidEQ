@@ -215,6 +215,7 @@ import {
   IAuthorizedAutoUpdater,
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
+import onWindowMessage from './ipc/windowMessages';
 
 /**
  * Declares the `fluideq-media:` scheme's privileges before the app is ready.
@@ -451,7 +452,7 @@ const startMemoryTrace = async () => {
 // A renderer is the wrong place to enforce anything: the button not being
 // rendered is a matter of what the user sees, and this is a matter of what the
 // main process will do when asked.
-ipcMain.on(ChannelEnum.TOGGLE_MEMORY_TRACE, () => {
+onWindowMessage(ChannelEnum.TOGGLE_MEMORY_TRACE, () => {
   if (process.env.NODE_ENV !== 'development') {
     return;
   }
@@ -2233,7 +2234,7 @@ function startApoConfigWatcher() {
   }
 }
 
-ipcMain.on(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
+onWindowMessage(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
   const channel = ChannelEnum.GATHER_BUG_REPORT;
   try {
     const facts = await gatherBugReportFacts(session.audioEngine);
@@ -2257,7 +2258,7 @@ ipcMain.on(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
  */
 const REDACT_AS = os.userInfo().username;
 
-ipcMain.on(ChannelEnum.LOG_ERROR, (_event, args) => {
+onWindowMessage(ChannelEnum.LOG_ERROR, (_event, args) => {
   const [context, detail] = (args as string[]) ?? [];
   const safeContext = `[renderer] ${redact(String(context ?? ''), REDACT_AS)}`;
   const safeDetail = redact(String(detail ?? ''), REDACT_AS);
@@ -2267,12 +2268,12 @@ ipcMain.on(ChannelEnum.LOG_ERROR, (_event, args) => {
   recordFailure(safeContext, safeDetail);
 });
 
-ipcMain.on(ChannelEnum.LOG_INFO, (_event, args) => {
+onWindowMessage(ChannelEnum.LOG_INFO, (_event, args) => {
   const [message] = (args as string[]) ?? [];
   log.info(`[renderer] ${redact(String(message ?? ''), REDACT_AS)}`);
 });
 
-ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
+onWindowMessage(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
   const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
   try {
     // Awaited. Elevation is asked for asynchronously, so a synchronous call
@@ -2287,7 +2288,7 @@ ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
+onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
   const channel = ChannelEnum.HEALTH_CHECK;
   // Guarded end to end: this is an `ipcMain` listener, so a throw anywhere in
   // it is an unhandled rejection in main, which the crash handler answers by
@@ -2391,7 +2392,7 @@ registerAudioEngineIpc({
  * makes the edit audible at once. What FluidEQ generates it will generate again
  * on the next change, and the panel says as much beside the file.
  */
-ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
+onWindowMessage(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
   const channel = ChannelEnum.WRITE_APO_CONFIG_FILE;
   const fileName = arg?.[0];
   const contents = arg?.[1];
@@ -2493,7 +2494,7 @@ const describeDeviceLayers = (
   ];
 };
 
-ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
+onWindowMessage(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
   try {
     if (!session.configPath) {
@@ -2553,7 +2554,7 @@ registerTransferIpc({
   state,
 });
 
-ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
+onWindowMessage(ChannelEnum.GET_STATE, async (event) => {
   const channel = ChannelEnum.GET_STATE;
   // Guarded for the same reason as the health check above: this is the real
   // one, the request every launch and every Retry makes.
@@ -2580,18 +2581,18 @@ ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.GET_ENABLE, async (event) => {
+onWindowMessage(ChannelEnum.GET_ENABLE, async (event) => {
   const reply: TSuccess<boolean> = { result: !!state.isEnabled };
   event.reply(ChannelEnum.GET_ENABLE, reply);
 });
 
-ipcMain.on(ChannelEnum.SET_ENABLE, async (event, arg) => {
+onWindowMessage(ChannelEnum.SET_ENABLE, async (event, arg) => {
   // eslint-disable-next-line prefer-destructuring
   state.isEnabled = arg[0];
   await handleUpdate(event, ChannelEnum.SET_ENABLE);
 });
 
-ipcMain.on(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
+onWindowMessage(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
   // eslint-disable-next-line prefer-destructuring
   state.isGraphViewOn = arg[0];
   await handleUpdate(event, ChannelEnum.SET_GRAPH_VIEW);
@@ -2645,7 +2646,7 @@ registerLayersIpc({
 
 registerSongEqHandlers(userDataDir);
 
-ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
+onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
   setWindowDimension(arg[0]);
 
@@ -2653,7 +2654,7 @@ ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   event.reply(channel, reply);
 });
 
-ipcMain.on('quit-app', () => {
+onWindowMessage('quit-app', () => {
   // Declining the disclaimer means the app should not run, so this is one of
   // the paths that genuinely ends the process rather than hiding the window.
   beginQuit();

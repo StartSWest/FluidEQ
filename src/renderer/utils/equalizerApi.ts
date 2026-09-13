@@ -51,7 +51,7 @@ import type { ISongIdentity } from 'common/songIdentity';
 
 import {
   buildResponseHandler,
-  promisifyResult,
+  sendRequest,
   setterResponseHandler,
   simpleResponseHandler,
 } from './ipcRequest';
@@ -68,8 +68,7 @@ export * from './ipcRequest';
  */
 export const healthCheck = (): Promise<void> => {
   const channel = ChannelEnum.HEALTH_CHECK;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [], setterResponseHandler);
 };
 
 /**
@@ -88,8 +87,7 @@ export const healthCheck = (): Promise<void> => {
  */
 export const installEqualizerApo = (): Promise<void> => {
   const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [], setterResponseHandler);
 };
 
 /**
@@ -103,10 +101,10 @@ export const installEqualizerApo = (): Promise<void> => {
  */
 export const gatherBugReport = (): Promise<IGatheredFacts> => {
   const channel = ChannelEnum.GATHER_BUG_REPORT;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult<IGatheredFacts>(
-    buildResponseHandler<IGatheredFacts>((result, resolve) => resolve(result)),
+  return sendRequest<IGatheredFacts>(
     channel,
+    [],
+    buildResponseHandler<IGatheredFacts>((result, resolve) => resolve(result)),
   );
 };
 
@@ -117,8 +115,7 @@ export const gatherBugReport = (): Promise<IGatheredFacts> => {
  */
 export const loadPreset = (presetName: string): Promise<void> => {
   const channel = ChannelEnum.LOAD_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [presetName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [presetName], setterResponseHandler);
 };
 
 /**
@@ -130,8 +127,7 @@ export const loadPreset = (presetName: string): Promise<void> => {
  */
 export const savePreset = (presetName: string): Promise<void> => {
   const channel = ChannelEnum.SAVE_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [presetName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [presetName], setterResponseHandler);
 };
 
 /**
@@ -142,8 +138,7 @@ export const savePreset = (presetName: string): Promise<void> => {
  */
 export const createPreset = (requestedName: string): Promise<string> => {
   const channel = ChannelEnum.CREATE_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [requestedName]);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return sendRequest(channel, [requestedName], simpleResponseHandler<string>());
 };
 
 /**
@@ -153,8 +148,7 @@ export const createPreset = (requestedName: string): Promise<string> => {
  */
 export const deletePreset = (presetName: string): Promise<void> => {
   const channel = ChannelEnum.DELETE_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [presetName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [presetName], setterResponseHandler);
 };
 
 /**
@@ -168,8 +162,7 @@ export const renamePreset = (
   newName: string,
 ): Promise<void> => {
   const channel = ChannelEnum.RENAME_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [oldName, newName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [oldName, newName], setterResponseHandler);
 };
 
 /**
@@ -178,8 +171,7 @@ export const renamePreset = (
  */
 export const getPresetListFromFiles = (): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_FILE_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<string[]>());
 };
 
 /**
@@ -190,8 +182,7 @@ export const getPresetListFromFiles = (): Promise<string[]> => {
  */
 export const restorePresetBaseline = (presetName: string): Promise<void> => {
   const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
-  window.electron.ipcRenderer.sendMessage(channel, [presetName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [presetName], setterResponseHandler);
 };
 
 /**
@@ -200,8 +191,7 @@ export const restorePresetBaseline = (presetName: string): Promise<void> => {
  */
 export const getPresetBaselineNames = (): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<string[]>());
 };
 
 /**
@@ -213,8 +203,7 @@ export const getPresetBaselineNames = (): Promise<string[]> => {
  */
 export const getApoConfigTree = (): Promise<IApoConfigTree> => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IApoConfigTree>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IApoConfigTree>());
 };
 
 /**
@@ -231,8 +220,7 @@ export const writeApoConfigFile = (
   contents: string,
 ): Promise<void> => {
   const channel = ChannelEnum.WRITE_APO_CONFIG_FILE;
-  window.electron.ipcRenderer.sendMessage(channel, [fileName, contents]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [fileName, contents], setterResponseHandler);
 };
 
 /**
@@ -246,8 +234,11 @@ export const exportEqPreset = (
   contents: string,
 ): Promise<boolean> => {
   const channel = ChannelEnum.EXPORT_EQ_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [suggestedName, contents]);
-  return promisifyResult(simpleResponseHandler<boolean>(), channel);
+  return sendRequest(
+    channel,
+    [suggestedName, contents],
+    simpleResponseHandler<boolean>(),
+  );
 };
 
 /** Show the desktop Save As dialog for a complete DSP filter chain. */
@@ -256,8 +247,11 @@ export const exportDspChainPreset = (
   contents: string,
 ): Promise<boolean> => {
   const channel = ChannelEnum.EXPORT_DSP_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [suggestedName, contents]);
-  return promisifyResult(simpleResponseHandler<boolean>(), channel);
+  return sendRequest(
+    channel,
+    [suggestedName, contents],
+    simpleResponseHandler<boolean>(),
+  );
 };
 
 /**
@@ -272,8 +266,7 @@ export const exportDspChainPreset = (
  */
 export const exportDeviceChain = (devicePattern: string): Promise<string> => {
   const channel = ChannelEnum.EXPORT_DEVICE_CHAIN;
-  window.electron.ipcRenderer.sendMessage(channel, [devicePattern]);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return sendRequest(channel, [devicePattern], simpleResponseHandler<string>());
 };
 
 /**
@@ -289,8 +282,7 @@ export const exportDeviceChain = (devicePattern: string): Promise<string> => {
  */
 export const importDeviceChain = (): Promise<IChainImport> => {
   const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IChainImport>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IChainImport>());
 };
 
 /**
@@ -299,28 +291,25 @@ export const importDeviceChain = (): Promise<IChainImport> => {
  */
 export const getAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IAudioDevice[]>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IAudioDevice[]>());
 });
 
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [deviceId], setterResponseHandler);
 };
 
 export const activateAudioDeviceProfile = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [deviceId], setterResponseHandler);
 };
 
 export const getDeviceProfileSettings = (): Promise<IDeviceProfileSettings> => {
   const channel = ChannelEnum.GET_DEVICE_PROFILE_SETTINGS;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(
-    simpleResponseHandler<IDeviceProfileSettings>(),
+  return sendRequest(
     channel,
+    [],
+    simpleResponseHandler<IDeviceProfileSettings>(),
   );
 };
 
@@ -329,17 +318,16 @@ export const assignDeviceProfile = (
   secondOutputOnly = false,
 ): Promise<void> => {
   const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
-  window.electron.ipcRenderer.sendMessage(
+  return sendRequest(
     channel,
     secondOutputOnly ? [assignment, true] : [assignment],
+    setterResponseHandler,
   );
-  return promisifyResult(setterResponseHandler, channel);
 };
 
 export const removeDeviceProfile = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [deviceId], setterResponseHandler);
 };
 
 /**
@@ -348,8 +336,7 @@ export const removeDeviceProfile = (deviceId: string): Promise<void> => {
  */
 export const getOpraProductList = (): Promise<IOpraProduct[]> => {
   const channel = ChannelEnum.GET_OPRA_PRODUCT_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IOpraProduct[]>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IOpraProduct[]>());
 };
 
 /**
@@ -363,8 +350,11 @@ export const getOpraLabel = (
   curveId?: string,
 ): Promise<string> => {
   const channel = ChannelEnum.GET_OPRA_LABEL;
-  window.electron.ipcRenderer.sendMessage(channel, [productId, curveId]);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return sendRequest(
+    channel,
+    [productId, curveId],
+    simpleResponseHandler<string>(),
+  );
 };
 
 /**
@@ -379,30 +369,30 @@ export const loadOpraPreset = (
   profileName?: string,
 ): Promise<void> => {
   const channel = ChannelEnum.LOAD_OPRA_PRESET;
-  window.electron.ipcRenderer.sendMessage(channel, [
-    productId,
-    curveId,
-    profileName,
-  ]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(
+    channel,
+    [productId, curveId, profileName],
+    setterResponseHandler,
+  );
 };
 
 export const getConvolutionCatalog = (
   query = '',
 ): Promise<IConvolutionCatalogEntry[]> => {
   const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
-  window.electron.ipcRenderer.sendMessage(channel, [query]);
-  return promisifyResult(
-    simpleResponseHandler<IConvolutionCatalogEntry[]>(),
+  return sendRequest(
     channel,
-    60 * 1000,
+    [query],
+    simpleResponseHandler<IConvolutionCatalogEntry[]>(),
+    { timeout: 60 * 1000 },
   );
 };
 
 export const downloadConvolution = (entryId: string): Promise<void> => {
   const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
-  window.electron.ipcRenderer.sendMessage(channel, [entryId]);
-  return promisifyResult(setterResponseHandler, channel, 5 * 60 * 1000);
+  return sendRequest(channel, [entryId], setterResponseHandler, {
+    timeout: 5 * 60 * 1000,
+  });
 };
 
 /**
@@ -414,14 +404,12 @@ export const downloadConvolution = (entryId: string): Promise<void> => {
  */
 export const clearHeadset = (): Promise<IFiltersMap> => {
   const channel = ChannelEnum.CLEAR_HEADSET;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IFiltersMap>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IFiltersMap>());
 };
 
 export const clearConvolution = (): Promise<void> => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [], setterResponseHandler);
 };
 
 /**
@@ -441,12 +429,9 @@ const FILE_PICKER_TIMEOUT = 10 * 60 * 1000;
  */
 export const importEqFile = (): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_FILE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(
-    simpleResponseHandler<string>(),
-    channel,
-    FILE_PICKER_TIMEOUT,
-  );
+  return sendRequest(channel, [], simpleResponseHandler<string>(), {
+    timeout: FILE_PICKER_TIMEOUT,
+  });
 };
 
 /** Apply EQ text pasted or read by the Squiglink import panel. */
@@ -456,35 +441,31 @@ export const importEqText = (
   destination: 'eq' | 'curve' = 'eq',
 ): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_TEXT;
-  window.electron.ipcRenderer.sendMessage(channel, [text, label, destination]);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return sendRequest(
+    channel,
+    [text, label, destination],
+    simpleResponseHandler<string>(),
+  );
 };
 
 /** Import a WAV impulse response the user picks. Same contract as above. */
 export const importConvolutionFile = (): Promise<string> => {
   const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(
-    simpleResponseHandler<string>(),
-    channel,
-    FILE_PICKER_TIMEOUT,
-  );
+  return sendRequest(channel, [], simpleResponseHandler<string>(), {
+    timeout: FILE_PICKER_TIMEOUT,
+  });
 };
 
 export const checkOpraUpdate = (): Promise<IOpraUpdateStatus> => {
   const channel = ChannelEnum.CHECK_OPRA_UPDATE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IOpraUpdateStatus>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IOpraUpdateStatus>());
 };
 
 export const updateOpraDatabase = (): Promise<IOpraUpdateStatus> => {
   const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(
-    simpleResponseHandler<IOpraUpdateStatus>(),
-    channel,
-    5 * 60 * 1000,
-  );
+  return sendRequest(channel, [], simpleResponseHandler<IOpraUpdateStatus>(), {
+    timeout: 5 * 60 * 1000,
+  });
 };
 
 /**
@@ -493,9 +474,8 @@ export const updateOpraDatabase = (): Promise<IOpraUpdateStatus> => {
  */
 export const getEqualizerState = (): Promise<IState> => {
   const channel = ChannelEnum.GET_STATE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
 
-  return promisifyResult(simpleResponseHandler<IState>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<IState>());
 };
 
 /**
@@ -504,8 +484,7 @@ export const getEqualizerState = (): Promise<IState> => {
  */
 export const enableEqualizer = (): Promise<void> => {
   const channel = ChannelEnum.SET_ENABLE;
-  window.electron.ipcRenderer.sendMessage(channel, [true]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [true], setterResponseHandler);
 };
 
 /**
@@ -514,8 +493,7 @@ export const enableEqualizer = (): Promise<void> => {
  */
 export const disableEqualizer = (): Promise<void> => {
   const channel = ChannelEnum.SET_ENABLE;
-  window.electron.ipcRenderer.sendMessage(channel, [false]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [false], setterResponseHandler);
 };
 
 /**
@@ -524,8 +502,7 @@ export const disableEqualizer = (): Promise<void> => {
  */
 export const enableAutoPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.SET_AUTO_PREAMP;
-  window.electron.ipcRenderer.sendMessage(channel, [true]);
-  return promisifyResult(simpleResponseHandler<number>(), channel);
+  return sendRequest(channel, [true], simpleResponseHandler<number>());
 };
 
 /**
@@ -534,8 +511,7 @@ export const enableAutoPreAmp = (): Promise<number> => {
  */
 export const disableAutoPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.SET_AUTO_PREAMP;
-  window.electron.ipcRenderer.sendMessage(channel, [false]);
-  return promisifyResult(simpleResponseHandler<number>(), channel);
+  return sendRequest(channel, [false], simpleResponseHandler<number>());
 };
 
 /**
@@ -577,8 +553,7 @@ export const sendSmartHeadroomMeasurement = (
  */
 export const enableGraphView = (): Promise<void> => {
   const channel = ChannelEnum.SET_GRAPH_VIEW;
-  window.electron.ipcRenderer.sendMessage(channel, [true]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [true], setterResponseHandler);
 };
 
 /**
@@ -587,8 +562,7 @@ export const enableGraphView = (): Promise<void> => {
  */
 export const disableGraphView = (): Promise<void> => {
   const channel = ChannelEnum.SET_GRAPH_VIEW;
-  window.electron.ipcRenderer.sendMessage(channel, [false]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [false], setterResponseHandler);
 };
 
 /**
@@ -598,8 +572,7 @@ export const disableGraphView = (): Promise<void> => {
  */
 export const getMainPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.GET_PREAMP;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<number>(), channel);
+  return sendRequest(channel, [], simpleResponseHandler<number>());
 };
 
 /**
@@ -625,8 +598,7 @@ export const getMainPreAmp = (): Promise<number> => {
  */
 export const setMainPreAmp = (gain: number) => {
   const channel = ChannelEnum.SET_PREAMP;
-  window.electron.ipcRenderer.sendMessage(channel, [clampGain(gain)]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [clampGain(gain)], setterResponseHandler);
 };
 
 /**
@@ -640,8 +612,12 @@ export const setMainPreAmp = (gain: number) => {
  */
 export const setGain = (filterId: string, gain: number) => {
   const channel = ChannelEnum.SET_FILTER_GAIN;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId, clampGain(gain)]);
-  return promisifyResult(setterResponseHandler, channel + filterId);
+  return sendRequest(
+    channel,
+    [filterId, clampGain(gain)],
+    setterResponseHandler,
+    { replyChannel: channel + filterId },
+  );
 };
 
 /**
@@ -656,8 +632,9 @@ export const setFrequency = (filterId: string, frequency: number) => {
       `Invalid gain value - outside of range (${MIN_FREQUENCY}, ${MAX_FREQUENCY}]`,
     );
   }
-  window.electron.ipcRenderer.sendMessage(channel, [filterId, frequency]);
-  return promisifyResult(setterResponseHandler, channel + filterId);
+  return sendRequest(channel, [filterId, frequency], setterResponseHandler, {
+    replyChannel: channel + filterId,
+  });
 };
 
 /**
@@ -672,8 +649,9 @@ export const setQuality = (filterId: string, quality: number) => {
       `Invalid quality value - outside of range [${MIN_QUALITY}, ${MAX_QUALITY}]`,
     );
   }
-  window.electron.ipcRenderer.sendMessage(channel, [filterId, quality]);
-  return promisifyResult(setterResponseHandler, channel + filterId);
+  return sendRequest(channel, [filterId, quality], setterResponseHandler, {
+    replyChannel: channel + filterId,
+  });
 };
 
 /**
@@ -684,10 +662,11 @@ export const setQuality = (filterId: string, quality: number) => {
  */
 export const getType = (filterId: string): Promise<FilterTypeEnum> => {
   const channel = ChannelEnum.GET_FILTER_TYPE;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId]);
-  return promisifyResult<FilterTypeEnum>(
+  return sendRequest<FilterTypeEnum>(
+    channel,
+    [filterId],
     simpleResponseHandler<FilterTypeEnum>(),
-    channel + filterId,
+    { replyChannel: channel + filterId },
   );
 };
 
@@ -698,8 +677,9 @@ export const getType = (filterId: string): Promise<FilterTypeEnum> => {
  */
 export const setType = (filterId: string, filterType: string) => {
   const channel = ChannelEnum.SET_FILTER_TYPE;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId, filterType]);
-  return promisifyResult(setterResponseHandler, channel + filterId);
+  return sendRequest(channel, [filterId, filterType], setterResponseHandler, {
+    replyChannel: channel + filterId,
+  });
 };
 
 /**
@@ -713,8 +693,7 @@ export const setFilterValues = (edits: IFilterEdit[]) => {
   // the batch has no single band to name. One group edit may therefore be in
   // flight at a time — which is what the caller wants anyway: two overlapping
   // batches over the same selection would race to write the same config.
-  window.electron.ipcRenderer.sendMessage(channel, [edits]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [edits], setterResponseHandler);
 };
 
 /**
@@ -724,8 +703,7 @@ export const setFilterValues = (edits: IFilterEdit[]) => {
  */
 export const addEqualizerSlider = (frequency: number): Promise<string> => {
   const channel = ChannelEnum.ADD_FILTER;
-  window.electron.ipcRenderer.sendMessage(channel, [frequency]);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return sendRequest(channel, [frequency], simpleResponseHandler<string>());
 };
 
 /**
@@ -735,8 +713,7 @@ export const addEqualizerSlider = (frequency: number): Promise<string> => {
  */
 export const removeEqualizerSlider = (filterId: string): Promise<void> => {
   const channel = ChannelEnum.REMOVE_FILTER;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [filterId], setterResponseHandler);
 };
 
 /**
@@ -745,10 +722,10 @@ export const removeEqualizerSlider = (filterId: string): Promise<void> => {
  */
 export const clearGains = (): Promise<IFiltersMap> => {
   const channel = ChannelEnum.CLEAR_GAINS;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult<IFiltersMap>(
-    simpleResponseHandler<IFiltersMap>(),
+  return sendRequest<IFiltersMap>(
     channel,
+    [],
+    simpleResponseHandler<IFiltersMap>(),
   );
 };
 
@@ -763,8 +740,7 @@ export const setVoicing = (
   intensity: number,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_VOICING;
-  window.electron.ipcRenderer.sendMessage(channel, [profileId, intensity]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [profileId, intensity], setterResponseHandler);
 };
 
 /**
@@ -781,8 +757,7 @@ export const setVoicing = (
  */
 export const setHeadphone = (intensity?: number): Promise<void> => {
   const channel = ChannelEnum.SET_HEADPHONE;
-  window.electron.ipcRenderer.sendMessage(channel, [intensity]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [intensity], setterResponseHandler);
 };
 
 export const setDriver = (
@@ -790,8 +765,7 @@ export const setDriver = (
   intensity: number,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_DRIVER;
-  window.electron.ipcRenderer.sendMessage(channel, [profileId, intensity]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [profileId, intensity], setterResponseHandler);
 };
 
 /**
@@ -804,8 +778,7 @@ export const setDriver = (
  */
 export const setSmartEq = (settings?: ISmartEqSettings): Promise<void> => {
   const channel = ChannelEnum.SET_SMART_EQ;
-  window.electron.ipcRenderer.sendMessage(channel, [settings]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [settings], setterResponseHandler);
 };
 
 // These four deliberately share names with the pure functions of the same
@@ -825,10 +798,10 @@ export const lookupSongEq = (
   identity: ISongIdentity,
 ): Promise<ISongEqEntry | undefined> => {
   const channel = ChannelEnum.LOOKUP_SONG_EQ;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity]);
-  return promisifyResult(
-    simpleResponseHandler<ISongEqEntry | undefined>(),
+  return sendRequest(
     channel,
+    [deviceId, identity],
+    simpleResponseHandler<ISongEqEntry | undefined>(),
   );
 };
 
@@ -845,8 +818,11 @@ export const checkpointSongEq = (
   layer: ISmartEqSettings,
 ): Promise<void> => {
   const channel = ChannelEnum.CHECKPOINT_SONG_EQ;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity, layer]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(
+    channel,
+    [deviceId, identity, layer],
+    setterResponseHandler,
+  );
 };
 
 /**
@@ -862,8 +838,11 @@ export const commitSongEq = (
   layer: ISmartEqSettings,
 ): Promise<void> => {
   const channel = ChannelEnum.COMMIT_SONG_EQ;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity, layer]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(
+    channel,
+    [deviceId, identity, layer],
+    setterResponseHandler,
+  );
 };
 
 /**
@@ -881,14 +860,12 @@ export const forgetSongEq = (
   identity: ISongIdentity,
 ): Promise<void> => {
   const channel = ChannelEnum.FORGET_SONG_EQ;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [deviceId, identity], setterResponseHandler);
 };
 
 export const resetEqMode = (): Promise<void> => {
   const channel = ChannelEnum.RESET_EQ_MODE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [], setterResponseHandler);
 };
 
 export const setEqShape = (
@@ -897,8 +874,7 @@ export const setEqShape = (
   value: NonNullable<IState['eqBandQ'] | IState['curveSmoothing']>,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_EQ_SHAPE;
-  window.electron.ipcRenderer.sendMessage(channel, [scope, kind, value]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [scope, kind, value], setterResponseHandler);
 };
 
 export const setEqMode = (
@@ -906,8 +882,7 @@ export const setEqMode = (
   scope: 'eq' | 'curves' = 'eq',
 ): Promise<void> => {
   const channel = ChannelEnum.SET_EQ_MODE;
-  window.electron.ipcRenderer.sendMessage(channel, [mode, scope]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [mode, scope], setterResponseHandler);
 };
 
 /**
@@ -927,8 +902,7 @@ export const setLayerBypass = (
   isBypassed: boolean,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_LAYER_BYPASS;
-  window.electron.ipcRenderer.sendMessage(channel, [feature, isBypassed]);
-  return promisifyResult(setterResponseHandler, channel);
+  return sendRequest(channel, [feature, isBypassed], setterResponseHandler);
 };
 
 /**
@@ -938,9 +912,9 @@ export const setLayerBypass = (
  */
 export const setFixedBand = (size: FixedBandSizeEnum): Promise<IFiltersMap> => {
   const channel = ChannelEnum.SET_FIXED_BAND;
-  window.electron.ipcRenderer.sendMessage(channel, [size]);
-  return promisifyResult<IFiltersMap>(
-    simpleResponseHandler<IFiltersMap>(),
+  return sendRequest<IFiltersMap>(
     channel,
+    [size],
+    simpleResponseHandler<IFiltersMap>(),
   );
 };

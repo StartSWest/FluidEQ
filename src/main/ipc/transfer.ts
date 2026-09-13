@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import path from 'path';
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+import { BrowserWindow, dialog } from 'electron';
 import log from 'electron-log';
 import { getEqMode, getCurveEqMode } from '../../common/eqMode';
 import { normalizeBandDesign } from '../../common/bandDesigns';
@@ -52,6 +52,7 @@ import { getConfigPath } from '../registry';
 import { TAudioEngine } from '../../common/audioEngine';
 import { importConvolutionFile, importEqFile } from '../importSettings';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
+import onWindowMessage from './windowMessages';
 
 /**
  * Everything that crosses the boundary as a file the user chose or keeps.
@@ -169,7 +170,7 @@ export const registerTransferIpc = ({
    * preserves the bridge's existing rule: renderers may supply contents, but
    * they never receive or choose filesystem paths themselves.
    */
-  ipcMain.on(ChannelEnum.EXPORT_EQ_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.EXPORT_EQ_PRESET, async (event, arg) => {
     const channel = ChannelEnum.EXPORT_EQ_PRESET;
     try {
       const suggestedName = arg?.[0];
@@ -217,7 +218,7 @@ export const registerTransferIpc = ({
   });
 
   /** The same guarded Save As path, for every audible DSP stage at once. */
-  ipcMain.on(ChannelEnum.EXPORT_DSP_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.EXPORT_DSP_PRESET, async (event, arg) => {
     const channel = ChannelEnum.EXPORT_DSP_PRESET;
     try {
       const suggestedName = arg?.[0];
@@ -269,7 +270,7 @@ export const registerTransferIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
+  onWindowMessage(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     const channel = ChannelEnum.IMPORT_EQ_FILE;
     try {
       const sourcePath = await showImportDialog('Import EQ settings', [
@@ -323,7 +324,7 @@ export const registerTransferIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
+  onWindowMessage(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
     const channel = ChannelEnum.IMPORT_EQ_TEXT;
     try {
       const text = arg?.[0];
@@ -436,7 +437,7 @@ export const registerTransferIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
+  onWindowMessage(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
     const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
     try {
       const sourcePath = await showImportDialog('Import an impulse response', [
@@ -484,7 +485,7 @@ export const registerTransferIpc = ({
    * line carries is a GUID or a name, never the id Windows uses internally. Same
    * match the tree handler makes.
    */
-  ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
+  onWindowMessage(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
     const channel = ChannelEnum.EXPORT_DEVICE_CHAIN;
     const devicePattern = arg?.[0];
     if (typeof devicePattern !== 'string' || !devicePattern) {
@@ -577,7 +578,7 @@ export const registerTransferIpc = ({
    * The bundle's own `exportedFrom` is never consulted for this: a chain exported
    * from one person's headphones is meant to be usable on another's.
    */
-  ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
+  onWindowMessage(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
     try {
       if (!session.activeAudioDeviceId) {

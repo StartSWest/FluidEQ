@@ -4,7 +4,7 @@ import {
   TCurveComparison,
   TPhaseScope,
 } from '../../common/curveComparison';
-import { buildResponseHandler, promisifyResult } from './ipcRequest';
+import { buildResponseHandler, sendRequest } from './ipcRequest';
 
 let revision = 0;
 let reading:
@@ -13,17 +13,15 @@ let reading:
 const request = (
   channel: ChannelEnum,
   args: (TCurveComparison | TPhaseScope)[] = [],
-): Promise<ICurveComparisonStatus> => {
-  const response = promisifyResult<ICurveComparisonStatus>(
+): Promise<ICurveComparisonStatus> =>
+  sendRequest<ICurveComparisonStatus>(
+    channel,
+    args,
     buildResponseHandler<ICurveComparisonStatus>((result, resolve) =>
       resolve(result),
     ),
-    channel,
-    null,
+    { timeout: null },
   );
-  window.electron.ipcRenderer.sendMessage(channel, args);
-  return response;
-};
 
 export const getCurveComparison = (): Promise<ICurveComparisonStatus> => {
   if (reading?.revision === revision) {

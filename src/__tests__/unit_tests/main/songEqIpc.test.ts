@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Always replying is the point of several of these. `songEqStore.ts` carries a
  * comment about it: a throw inside an `ipcMain` handler that has already
- * committed to replying sends no reply at all, and `promisifyResult` on the
+ * committed to replying sends no reply at all, and `sendRequest` on the
  * renderer side then waits forever on a promise nothing will ever settle.
  * Every test below asserts a reply, not merely an absence of exceptions.
  *
@@ -97,7 +97,7 @@ const register = (userDataDir: string): void => {
  * "Single" is asserted here rather than in each test: a handler that replies
  * none of the times it should is the failure mode this whole suite is about,
  * and one that replies twice would resolve a promise with the wrong answer.
- * The channel it names is checked too — `promisifyResult` listens on the
+ * The channel it names is checked too — `sendRequest` listens on the
  * channel it sent, so a reply on any other is a reply nobody hears.
  */
 const fire = (channel: ChannelEnum, arg: unknown): unknown => {
@@ -152,7 +152,7 @@ describe('the song memory channels', () => {
 
   it('refuses a payload that is not what the channel takes, and still answers', () => {
     // The reply is the assertion. A handler that returned without one — or
-    // threw its way out — leaves `promisifyResult` waiting on a promise
+    // threw its way out — leaves `sendRequest` waiting on a promise
     // nothing will ever settle, which is a renderer that has silently stopped
     // remembering songs rather than one that reported a problem.
     const dir = tempDir();

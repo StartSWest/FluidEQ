@@ -22,23 +22,22 @@ import {
   updateFluidEngine,
 } from 'renderer/utils/audioEngineApi';
 import { getMainPreAmp } from 'renderer/utils/equalizerApi';
+import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 
-let listener: ((arg: unknown) => void) | undefined;
-const unsubscribe = jest.fn();
+let bridge: ReturnType<typeof installFakeIpcRenderer>;
+
+/** Main answering the most recent request, on that request's own channel. */
+const answerLatest = (payload: unknown) => {
+  bridge.answer(bridge.sent[bridge.sent.length - 1], payload);
+};
+
+/** Whether the most recent request is still being listened for. */
+const isLatestAwaited = () =>
+  bridge.listenerCount(bridge.sent[bridge.sent.length - 1].channel) > 0;
 
 beforeEach(() => {
   jest.useFakeTimers();
-  listener = undefined;
-  unsubscribe.mockClear();
-  window.electron = {
-    ipcRenderer: {
-      sendMessage: jest.fn(),
-      once: (_channel: string, handler: (arg: unknown) => void) => {
-        listener = handler;
-        return unsubscribe;
-      },
-    },
-  } as unknown as typeof window.electron;
+  bridge = installFakeIpcRenderer();
 });
 
 afterEach(() => {
@@ -60,15 +59,15 @@ describe.each([
     jest.advanceTimersByTime(5 * 60 * 1000);
     await Promise.resolve();
     expect(settled).not.toHaveBeenCalled();
-    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(isLatestAwaited()).toBe(true);
 
-    listener?.({ result: done });
+    answerLatest({ result: done });
     await expect(pending).resolves.toEqual(done);
   });
 
   it('answers a failure with a failed result, never a rejection', async () => {
     const pending = call();
-    listener?.({ errorCode: ErrorCode.FAILURE });
+    answerLatest({ errorCode: ErrorCode.FAILURE });
     const result = await pending;
     expect(result.ok).toBe(false);
     expect(result.declined).toBe(false);
@@ -79,12 +78,15 @@ describe.each([
 // The update waits on the same prompt, and answers the way "Restart Windows
 // audio" does, because that is how it ends.
 describe('the engine update', () => {
-  it('asks main on its own channel', () => {
-    updateFluidEngine();
-    expect(window.electron.ipcRenderer.sendMessage).toHaveBeenCalledWith(
-      ChannelEnum.UPDATE_FLUID_ENGINE,
-      [],
-    );
+  it('asks main on its own channel', async () => {
+    const pending = updateFluidEngine();
+    expect(bridge.sentOn(ChannelEnum.UPDATE_FLUID_ENGINE)).toEqual([
+      expect.objectContaining({ args: [] }),
+    ]);
+    // Answered, because a request with no deadline left waiting would still
+    // be listening on the bridge this case installed when the next case asks.
+    answerLatest({ result: { ok: true, declined: false } });
+    await pending;
   });
 
   it('outlasts a permission prompt left open for minutes', async () => {
@@ -95,15 +97,18 @@ describe('the engine update', () => {
     jest.advanceTimersByTime(5 * 60 * 1000);
     await Promise.resolve();
     expect(settled).not.toHaveBeenCalled();
-    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(isLatestAwaited()).toBe(true);
 
-    listener?.({ result: { ok: true, declined: false } });
+    answerLatest({ result: { ok: true, declined: false } });
     await expect(pending).resolves.toEqual({ ok: true, declined: false });
   });
 
   it('answers a failure with a failed outcome and its reason, never a rejection', async () => {
     const pending = updateFluidEngine();
-    listener?.({ errorCode: ErrorCode.FAILURE, detail: 'the helper crashed' });
+    answerLatest({
+      errorCode: ErrorCode.FAILURE,
+      detail: 'the helper crashed',
+    });
     await expect(pending).resolves.toEqual({
       ok: false,
       declined: false,

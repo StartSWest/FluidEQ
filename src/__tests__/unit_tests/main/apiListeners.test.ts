@@ -40,16 +40,16 @@ const register = (channel: string, fn: (...args: unknown[]) => void) => {
 
 const registeredCount = (channel: string) => listeners.get(channel)?.size ?? 0;
 
+const send = jest.fn();
+
 jest.mock('electron', () => ({
   ipcRenderer: {
     on: (channel: string, fn: (...args: unknown[]) => void) =>
       register(channel, fn),
-    once: (channel: string, fn: (...args: unknown[]) => void) =>
-      register(channel, fn),
     removeListener: (channel: string, fn: (...args: unknown[]) => void) => {
       listeners.get(channel)?.delete(fn);
     },
-    send: () => undefined,
+    send: (...args: unknown[]) => send(...args),
     invoke: () => Promise.resolve(''),
   },
   contextBridge: { exposeInMainWorld: () => undefined },
@@ -59,7 +59,10 @@ jest.mock('electron', () => ({
 import api from 'main/api';
 
 describe('the ipc bridge', () => {
-  beforeEach(() => listeners.clear());
+  beforeEach(() => {
+    listeners.clear();
+    send.mockClear();
+  });
 
   it('removes the listener `on` actually registered', () => {
     const unsubscribe = api.ipcRenderer.on('a-channel', () => undefined);
@@ -68,22 +71,32 @@ describe('the ipc bridge', () => {
     expect(registeredCount('a-channel')).toBe(0);
   });
 
-  it('removes the listener `once` actually registered', () => {
-    // The case that leaked. `once` cleans up when a message arrives — but a
-    // request that times out never gets one, so the caller has to be able to
-    // take the listener back.
-    const unsubscribe = api.ipcRenderer.once('b-channel', () => undefined);
-    expect(registeredCount('b-channel')).toBe(1);
-    unsubscribe();
-    expect(registeredCount('b-channel')).toBe(0);
-  });
-
   it('does not accumulate across many subscribe/unsubscribe cycles', () => {
     // What the broken remover produced: a count that only ever went up.
     for (let round = 0; round < 50; round += 1) {
-      api.ipcRenderer.once('c-channel', () => undefined)();
+      api.ipcRenderer.on('c-channel', () => undefined)();
     }
     expect(registeredCount('c-channel')).toBe(0);
+  });
+
+  // Main hands the id back beside its reply, which is the only thing that
+  // tells one waiting request's answer from another's on the same channel.
+  it('sends a request id after the arguments when the window waits on a reply', () => {
+    api.ipcRenderer.sendMessage('f-channel', ['value'], 17);
+    expect(send).toHaveBeenCalledWith('f-channel', ['value'], 17);
+  });
+
+  it('sends a message nobody answers exactly as before', () => {
+    api.ipcRenderer.sendMessage('g-channel', ['value']);
+    expect(send.mock.calls).toEqual([['g-channel', ['value']]]);
+  });
+
+  it('delivers the id a reply hands back after its payload', () => {
+    const seen: unknown[] = [];
+    api.ipcRenderer.on('h-channel', (...args) => seen.push(...args));
+    const [registered] = [...(listeners.get('h-channel') ?? [])];
+    registered({} as never, { result: 3 }, 17);
+    expect(seen).toEqual([{ result: 3 }, 17]);
   });
 
   it('unsubscribes one listener without disturbing its siblings', () => {

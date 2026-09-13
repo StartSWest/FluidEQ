@@ -6,36 +6,26 @@ import {
   getBandDesigns,
   saveBandDesign,
 } from 'renderer/utils/bandDesignApi';
+import installFakeIpcRenderer, {
+  type ISentMessage,
+} from '../../utils/fakeIpcRenderer';
 
-const listeners = new Map<string, (result: unknown) => void>();
-const sent: { channel: string; args: unknown }[] = [];
-const bridge = {
-  once: (channel: string, listener: (result: unknown) => void) => {
-    listeners.set(channel, listener);
-    return () => listeners.delete(channel);
-  },
-  sendMessage: (channel: string, args: unknown) => {
-    expect(listeners.has(channel)).toBe(true);
-    sent.push({ channel, args });
-  },
-};
+let bridge: ReturnType<typeof installFakeIpcRenderer>;
+let sent: ISentMessage[];
+
+/** Main answering the one request on a channel still waiting for it. */
 const reply = (channel: string, result: unknown) => {
-  const listener = listeners.get(channel);
-  if (!listener) {
+  const waiting = bridge.sentOn(channel);
+  if (waiting.length === 0 || bridge.listenerCount(channel) === 0) {
     throw new Error('Missing reply listener');
   }
-  listeners.delete(channel);
-  listener(result);
+  bridge.answer(waiting[waiting.length - 1], result);
 };
 const previous = Object.getOwnPropertyDescriptor(window, 'electron');
 
 beforeEach(() => {
-  listeners.clear();
-  sent.length = 0;
-  Object.defineProperty(window, 'electron', {
-    configurable: true,
-    value: { ipcRenderer: bridge },
-  });
+  bridge = installFakeIpcRenderer();
+  sent = bridge.sent;
 });
 afterEach(() => {
   if (previous) {
@@ -71,7 +61,7 @@ it('keeps queued commands working after a rejected save', async () => {
   const apply = applyBandDesign('id');
   const remove = deleteBandDesign('id');
   await Promise.resolve();
-  expect(sent[0]).toEqual({
+  expect(sent[0]).toMatchObject({
     channel: ChannelEnum.SAVE_BAND_DESIGN,
     args: ['Renamed', 'id'],
   });
@@ -91,5 +81,9 @@ it('keeps queued commands working after a rejected save', async () => {
     ChannelEnum.APPLY_BAND_DESIGN,
     ChannelEnum.DELETE_BAND_DESIGN,
   ]);
-  expect(listeners.size).toBe(0);
+  [
+    ChannelEnum.SAVE_BAND_DESIGN,
+    ChannelEnum.APPLY_BAND_DESIGN,
+    ChannelEnum.DELETE_BAND_DESIGN,
+  ].forEach((channel) => expect(bridge.listenerCount(channel)).toBe(0));
 });

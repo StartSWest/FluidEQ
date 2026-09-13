@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import log from 'electron-log';
 import ChannelEnum from '../../common/channels';
 import {
@@ -24,6 +23,7 @@ import {
   openVideoLinkExternally,
   setVideoAdBlockEnabled,
 } from '../videoBrowser';
+import onWindowMessage from './windowMessages';
 
 /**
  * The Remote Media tab's three switches.
@@ -33,11 +33,11 @@ import {
  * do things. Which is the shape every one of these modules is aiming at.
  */
 const registerVideoIpc = () => {
-  ipcMain.on(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
+  onWindowMessage(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
     setVideoAdBlockEnabled(Boolean(arg[0]));
   });
 
-  ipcMain.on(ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY, (_event, arg) => {
+  onWindowMessage(ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY, (_event, arg) => {
     openVideoLinkExternally(String(arg[0] ?? ''));
   });
 
@@ -49,7 +49,7 @@ const registerVideoIpc = () => {
    * signed out of five accounts when they had not. The reply carries whether it
    * worked, and the renderer says which.
    */
-  ipcMain.on(ChannelEnum.CLEAR_VIDEO_SESSION, async (event) => {
+  onWindowMessage(ChannelEnum.CLEAR_VIDEO_SESSION, async (event) => {
     try {
       await clearVideoSession();
       event.reply(ChannelEnum.CLEAR_VIDEO_SESSION, { result: true });

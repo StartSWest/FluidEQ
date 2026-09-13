@@ -113,8 +113,22 @@ import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 
 export type Channels = string;
 
-const sendMessage = (channel: Channels, args: unknown[]) => {
-  ipcRenderer.send(channel, args);
+/**
+ * `requestId` is sent when the window waits on a reply: main hands it back
+ * beside the reply, which is how the reply finds that request among every
+ * other one waiting on the same channel. A message nobody answers carries
+ * none, and reaches main exactly as it always did.
+ */
+const sendMessage = (
+  channel: Channels,
+  args: unknown[],
+  requestId?: number,
+) => {
+  if (requestId === undefined) {
+    ipcRenderer.send(channel, args);
+    return;
+  }
+  ipcRenderer.send(channel, args, requestId);
 };
 
 const on = (channel: Channels, func: (...args: unknown[]) => void) => {
@@ -125,35 +139,19 @@ const on = (channel: Channels, func: (...args: unknown[]) => void) => {
   return () => ipcRenderer.removeListener(channel, subscription);
 };
 
-/**
- * Listen for one message, and hand back the way to stop listening.
- *
- * The unsubscribe matters even though the listener removes itself on delivery,
- * because the message might never come. A request that times out has to take
- * its listener with it or the listener stays registered forever — and worse,
- * it is still first in line, so it will swallow the response to somebody
- * else's request later and every reply after that answers the wrong question.
- *
- * It closes over `subscription` for the same reason `on` does: only the exact
- * function that was registered can be removed, and the wrapper is not the
- * function the caller passed in.
- */
-const once = (channel: Channels, func: (...args: unknown[]) => void) => {
-  const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
-    func(...args);
-  ipcRenderer.once(channel, subscription);
-
-  return () => ipcRenderer.removeListener(channel, subscription);
-};
-
-// There is no `removeListener` here on purpose.
+// There is no `removeListener` here on purpose, and no `once` either.
 //
-// There was, and it could not work: it built a brand new arrow function and
-// asked Electron to remove that, which never matches anything registered, so
-// it silently removed nothing at all. Every caller that believed it had
-// cleaned up had not. Removal belongs to whoever subscribed, through the
-// function `on` and `once` return, because that is the only place the real
-// subscription reference exists.
+// There was a `removeListener`, and it could not work: it built a brand new
+// arrow function and asked Electron to remove that, which never matches
+// anything registered, so it silently removed nothing at all. Every caller
+// that believed it had cleaned up had not. Removal belongs to whoever
+// subscribed, through the function `on` returns, because that is the only
+// place the real subscription reference exists.
+//
+// `once` served requests, one listener each, and a one-shot listener takes
+// whichever message reaches its channel first — somebody else's reply
+// included. Requests now wait through `sendRequest`, which matches each reply
+// to its request by id over a single `on` per channel.
 
 const closeApp = () => {
   ipcRenderer.send('quit-app', []);
@@ -1151,7 +1149,6 @@ export default {
   ipcRenderer: {
     sendMessage,
     on,
-    once,
     closeApp,
     openEqualizerApoConfigurator,
     openEqualizerApoSettings,

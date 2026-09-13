@@ -22,6 +22,7 @@ import startRemoteAudioHostSession from '../remoteAudioHostSession';
 import createRemoteAudioLan from '../remoteAudioLan';
 import { decodePairingCode } from '../remoteAudioLanProtocol';
 import createRemoteAudioPorts from '../remoteAudioPorts';
+import onWindowMessage from './windowMessages';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
@@ -259,7 +260,7 @@ export const registerRemoteAudioIpc = ({
     }
     lan.sendSignal(signal);
   });
-  ipcMain.on('remote-audio-lan-audio-send', (_event, chunk: unknown) => {
+  onWindowMessage('remote-audio-lan-audio-send', (_event, chunk: unknown) => {
     try {
       lan.sendAudio(chunk);
     } catch {

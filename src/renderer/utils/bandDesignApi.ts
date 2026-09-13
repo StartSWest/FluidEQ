@@ -1,6 +1,6 @@
 import ChannelEnum from '../../common/channels';
 import type { IBandDesign } from '../../common/bandDesigns';
-import { buildResponseHandler, promisifyResult } from './ipcRequest';
+import { buildResponseHandler, sendRequest } from './ipcRequest';
 
 let pending: Promise<unknown> = Promise.resolve();
 
@@ -8,15 +8,13 @@ const request = <Result extends IBandDesign | IBandDesign[] | boolean>(
   channel: ChannelEnum,
   args: (string | undefined)[] = [],
 ): Promise<Result> => {
-  const send = () => {
-    const response = promisifyResult<Result>(
-      buildResponseHandler<Result>((result, resolve) => resolve(result)),
+  const send = () =>
+    sendRequest<Result>(
       channel,
-      null,
+      args,
+      buildResponseHandler<Result>((result, resolve) => resolve(result)),
+      { timeout: null },
     );
-    window.electron.ipcRenderer.sendMessage(channel, args);
-    return response;
-  };
   const response = pending.then(send, send);
   pending = response.then(
     () => undefined,

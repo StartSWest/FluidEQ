@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import log from 'electron-log';
 import {
   IAudioDevice,
@@ -41,6 +40,7 @@ import {
 import { getConfigPath } from '../registry';
 import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
+import onWindowMessage from './windowMessages';
 
 /**
  * Reference data: measurements and impulse responses, fetched and applied.
@@ -98,7 +98,7 @@ export const registerReferencesIpc = ({
   shieldReferenceBands,
   state,
 }: IReferencesIpcDeps) => {
-  ipcMain.on(ChannelEnum.GET_OPRA_PRODUCT_LIST, async (event) => {
+  onWindowMessage(ChannelEnum.GET_OPRA_PRODUCT_LIST, async (event) => {
     const channel = ChannelEnum.GET_OPRA_PRODUCT_LIST;
     log.info(`Getting OPRA product list`);
 
@@ -114,7 +114,7 @@ export const registerReferencesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.GET_OPRA_LABEL, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_OPRA_LABEL, async (event, arg) => {
     const channel = ChannelEnum.GET_OPRA_LABEL;
     const [productId, curveId] = arg as [string, string?];
 
@@ -133,7 +133,7 @@ export const registerReferencesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_OPRA_PRESET;
     const [productId, curveId] = arg as [string, string, string?];
 
@@ -205,7 +205,7 @@ export const registerReferencesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
     const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
     try {
       const query = typeof arg?.[0] === 'string' ? arg[0] : '';
@@ -220,7 +220,7 @@ export const registerReferencesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
+  onWindowMessage(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
     const entryId = arg?.[0];
     if (typeof entryId !== 'string' || !entryId) {
@@ -257,7 +257,7 @@ export const registerReferencesIpc = ({
    * driver correction, the measured Smart EQ curve and the convolution alone —
    * those were arrived at separately and the reference never spoke for them.
    */
-  ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
+  onWindowMessage(ChannelEnum.CLEAR_HEADSET, async (event) => {
     const channel = ChannelEnum.CLEAR_HEADSET;
     /*
      * CLEARS THE CORRECTION, NOT THE PERSON'S BANDS.
@@ -291,14 +291,14 @@ export const registerReferencesIpc = ({
     );
   });
 
-  ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
+  onWindowMessage(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
     const channel = ChannelEnum.CLEAR_CONVOLUTION;
     applyingLayer('convolution');
     state.convolution = undefined;
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.CHECK_OPRA_UPDATE, async (event) => {
+  onWindowMessage(ChannelEnum.CHECK_OPRA_UPDATE, async (event) => {
     const channel = ChannelEnum.CHECK_OPRA_UPDATE;
     try {
       const reply: TSuccess<IOpraUpdateStatus> = {
@@ -311,7 +311,7 @@ export const registerReferencesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.UPDATE_OPRA_DATABASE, async (event) => {
+  onWindowMessage(ChannelEnum.UPDATE_OPRA_DATABASE, async (event) => {
     const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
     try {
       const reply: TSuccess<IOpraUpdateStatus> = {

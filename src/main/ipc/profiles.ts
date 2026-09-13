@@ -63,6 +63,7 @@ import { getConfigPath } from '../registry';
 import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
+import onWindowMessage from './windowMessages';
 
 /**
  * Everything the profile handlers may touch, stated rather than implied.
@@ -199,7 +200,7 @@ export const registerProfilesIpc = ({
   notifyOutputStateChanged,
   retryHelper,
 }: IProfilesIpcDeps) => {
-  ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_PRESET;
     const presetName = arg[0];
     log.info(`Loading preset: ${presetName}`);
@@ -254,7 +255,7 @@ export const registerProfilesIpc = ({
    * That is what the baseline is: an explicit save is the only thing that writes
    * it, so it always represents a state the user deliberately chose to keep.
    */
-  ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
     const presetName = arg[0] as string;
     try {
@@ -319,7 +320,7 @@ export const registerProfilesIpc = ({
    * A folder that is not there is an output nobody has pressed Save on, which
    * is an empty list rather than an error.
    */
-  ipcMain.on(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
+  onWindowMessage(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
     const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
     try {
       const dir = activeBaselineDir();
@@ -347,7 +348,7 @@ export const registerProfilesIpc = ({
    *
    * Queued with the other profile mutations — see `runProfileMutation`.
    */
-  ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SAVE_PRESET, async (event, arg) => {
     const channel = ChannelEnum.SAVE_PRESET;
     const presetName = arg[0];
 
@@ -380,7 +381,7 @@ export const registerProfilesIpc = ({
    * can be a moment behind and a create that lands on an existing profile
    * destroys tuning the user never offered up.
    */
-  ipcMain.on(ChannelEnum.CREATE_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.CREATE_PRESET, async (event, arg) => {
     const channel = ChannelEnum.CREATE_PRESET;
     const requestedName = arg[0];
 
@@ -410,7 +411,7 @@ export const registerProfilesIpc = ({
 
   // Queued, because deleting several quickly is exactly what people do and this
   // is the longest of the profile mutations. See `runProfileMutation`.
-  ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.DELETE_PRESET, async (event, arg) => {
     const channel = ChannelEnum.DELETE_PRESET;
     const presetName = arg[0];
     await runProfileMutation(async () => {
@@ -453,7 +454,7 @@ export const registerProfilesIpc = ({
   // Queued with the others: it decides a name from what exists on disk and then
   // rewrites the assignments, so a save or a delete landing between those two
   // steps is a rename applied to a catalogue that has since moved.
-  ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
+  onWindowMessage(ChannelEnum.RENAME_PRESET, async (event, arg) => {
     const channel = ChannelEnum.RENAME_PRESET;
     const [oldName, newName]: string[] = arg;
 
@@ -508,7 +509,7 @@ export const registerProfilesIpc = ({
     });
   });
 
-  ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
+  onWindowMessage(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
     const channel = ChannelEnum.GET_PRESET_FILE_LIST;
 
     try {
@@ -525,7 +526,7 @@ export const registerProfilesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
+  onWindowMessage(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     const channel = ChannelEnum.GET_AUDIO_DEVICES;
     try {
       const devices = await discoverAudioDevices();
@@ -606,7 +607,7 @@ export const registerProfilesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
     const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
     try {
       // Finish teardown before B becomes primary; a queued start from the old
@@ -622,25 +623,28 @@ export const registerProfilesIpc = ({
     }
   });
 
-  ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
-    const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
-    const nextState = getStateForAudioDevice(
-      deviceProfileSettings,
-      arg[0] as string,
-      presetDirForDevice,
-    );
-    session.activeAudioDeviceId = arg[0] as string;
-    clearCurrentLayoutSettings();
-    session.hasActiveSessionOverride = false;
-    applyDeviceState(nextState);
-    if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
-      createEmptyProfileForActiveDevice();
-    }
-    await handleUpdate(event, channel);
-    notifyOutputStateChanged();
-  });
+  onWindowMessage(
+    ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE,
+    async (event, arg) => {
+      const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
+      const nextState = getStateForAudioDevice(
+        deviceProfileSettings,
+        arg[0] as string,
+        presetDirForDevice,
+      );
+      session.activeAudioDeviceId = arg[0] as string;
+      clearCurrentLayoutSettings();
+      session.hasActiveSessionOverride = false;
+      applyDeviceState(nextState);
+      if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
+        createEmptyProfileForActiveDevice();
+      }
+      await handleUpdate(event, channel);
+      notifyOutputStateChanged();
+    },
+  );
 
-  ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {
+  onWindowMessage(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {
     const reply: TSuccess<IDeviceProfileSettings> = {
       result: deviceProfileSettings,
     };
@@ -671,7 +675,7 @@ export const registerProfilesIpc = ({
     };
   });
 
-  ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
     const assignment = arg[0] as IDeviceProfileAssignment;
     await runProfileMutation(async () => {
@@ -715,7 +719,7 @@ export const registerProfilesIpc = ({
    * is the one place allowed to act on it, and it does so by name rather than
    * by leaving it to a sweep that would also catch the wrong case.
    */
-  ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
     const deviceId = arg[0] as string;
     removeDeviceProfile(deviceProfileSettings, deviceId);

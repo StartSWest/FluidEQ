@@ -1,4 +1,3 @@
-import { ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs/promises';
 import path from 'path';
@@ -18,6 +17,7 @@ import {
 import { ErrorCode } from '../../common/errors';
 import { hasSampledCurveLayers } from '../apoRender';
 import { scheduleWrite } from '../asyncWriter';
+import onWindowMessage from './windowMessages';
 
 export interface ICurveComparisonDeps {
   state: IState;
@@ -75,7 +75,7 @@ export const registerCurveComparisonIpc = ({
       active,
     };
   };
-  ipcMain.on(ChannelEnum.GET_CURVE_COMPARISON, async (event) => {
+  onWindowMessage(ChannelEnum.GET_CURVE_COMPARISON, async (event) => {
     try {
       event.reply(ChannelEnum.GET_CURVE_COMPARISON, {
         result: await readStatus(),
@@ -87,7 +87,7 @@ export const registerCurveComparisonIpc = ({
       });
     }
   });
-  ipcMain.on(ChannelEnum.SET_CURVE_COMPARISON, async (event, args) => {
+  onWindowMessage(ChannelEnum.SET_CURVE_COMPARISON, async (event, args) => {
     const channel = ChannelEnum.SET_CURVE_COMPARISON;
     const variant: unknown = Array.isArray(args) ? args[0] : undefined;
     const scope: unknown = Array.isArray(args)

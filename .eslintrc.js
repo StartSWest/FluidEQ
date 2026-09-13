@@ -1,3 +1,8 @@
+const airbnbRestrictedProperties =
+  require('eslint-config-airbnb-base/rules/best-practices').rules[
+    'no-restricted-properties'
+  ];
+
 module.exports = {
   // Stop here. This is the project root, and there is no configuration above
   // it that should ever apply — but a git worktree lives inside the checkout,
@@ -84,6 +89,30 @@ module.exports = {
               },
             ],
           },
+        ],
+      },
+    },
+    {
+      // A handler registered with `ipcMain.on` directly replies without the
+      // request id its window sent, and the window drops a reply that names no
+      // request it is waiting on. This replaces the inherited rule's options
+      // rather than adding to them, so airbnb's own entries are carried over.
+      files: ['src/main/**'],
+      rules: {
+        'no-restricted-properties': [
+          ...airbnbRestrictedProperties,
+          {
+            object: 'ipcMain',
+            property: 'on',
+            message:
+              'Register through onWindowMessage (src/main/ipc/windowMessages.ts): it hands the request id back with every reply, and without it the window drops the reply and times out.',
+          },
+          ...['removeListener', 'off'].map((property) => ({
+            object: 'ipcMain',
+            property,
+            message:
+              'Stop listening through the function onWindowMessage returned: Electron holds its wrapper, not your handler, so removing the handler removes nothing.',
+          })),
         ],
       },
     },

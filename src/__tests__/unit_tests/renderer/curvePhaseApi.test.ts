@@ -4,6 +4,7 @@ import {
   getCurveComparison,
   setCurveComparison,
 } from 'renderer/utils/curveComparisonApi';
+import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 
 const base: ICurveComparisonStatus = {
   variant: 'B',
@@ -13,50 +14,50 @@ const base: ICurveComparisonStatus = {
   active: true,
   hasSampledCurves: false,
 };
-const listeners = new Map<string, Array<(value: unknown) => void>>();
-const once = jest.fn((channel: string, handler: (value: unknown) => void) => {
-  listeners.set(channel, [...(listeners.get(channel) ?? []), handler]);
-  return () => {};
-});
-const sendMessage = jest.fn();
-const reply = (channel: ChannelEnum, result: ICurveComparisonStatus) => {
-  const pending = listeners.get(channel) ?? [];
-  listeners.delete(channel);
-  pending.forEach((handler) => handler({ result }));
+
+let bridge: ReturnType<typeof installFakeIpcRenderer>;
+
+/** Main answering the request on `channel` sent `index`-th. */
+const reply = (
+  channel: ChannelEnum,
+  index: number,
+  result: ICurveComparisonStatus,
+) => {
+  bridge.answer(bridge.sentOn(channel)[index], { result });
 };
 
 beforeEach(() => {
-  jest.clearAllMocks();
-  listeners.clear();
-  Object.assign(window, { electron: { ipcRenderer: { once, sendMessage } } });
+  bridge = installFakeIpcRenderer();
 });
 
-it('registers before sending and coalesces duplicate status reads', async () => {
-  sendMessage.mockImplementationOnce(() =>
-    reply(ChannelEnum.GET_CURVE_COMPARISON, base),
-  );
+it('coalesces duplicate status reads into one request', async () => {
   const first = getCurveComparison();
   const second = getCurveComparison();
   expect(first).toBe(second);
+  expect(bridge.sentOn(ChannelEnum.GET_CURVE_COMPARISON)).toHaveLength(1);
+
+  reply(ChannelEnum.GET_CURVE_COMPARISON, 0, base);
+
   expect(await first).toEqual(base);
-  expect(sendMessage).toHaveBeenCalledTimes(1);
 });
 
 it('does not reuse a pre-write read as the confirmation of a newer phase', async () => {
   const earlier = getCurveComparison();
   const writing = setCurveComparison('A', 'eq');
-  expect(sendMessage).toHaveBeenLastCalledWith(
-    ChannelEnum.SET_CURVE_COMPARISON,
-    ['A', 'eq'],
-  );
+  expect(bridge.sentOn(ChannelEnum.SET_CURVE_COMPARISON)).toEqual([
+    expect.objectContaining({ args: ['A', 'eq'] }),
+  ]);
   const updated = { ...base, eqVariant: 'A' as const };
-  reply(ChannelEnum.SET_CURVE_COMPARISON, updated);
+  reply(ChannelEnum.SET_CURVE_COMPARISON, 0, updated);
   await writing;
   const refreshed = getCurveComparison();
   expect(refreshed).not.toBe(earlier);
-  reply(ChannelEnum.GET_CURVE_COMPARISON, base);
+  reply(ChannelEnum.GET_CURVE_COMPARISON, 0, base);
   expect(await earlier).toEqual(base);
   await Promise.resolve();
-  reply(ChannelEnum.GET_CURVE_COMPARISON, updated);
+  // The newer read goes out only after the older one settled, and is answered
+  // with the phase the write confirmed.
+  expect(bridge.sentOn(ChannelEnum.GET_CURVE_COMPARISON)).toHaveLength(2);
+  reply(ChannelEnum.GET_CURVE_COMPARISON, 1, updated);
   expect(await refreshed).toEqual(updated);
 });

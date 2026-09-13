@@ -75,7 +75,6 @@ describe('OpraPicker', () => {
         ipcRenderer: {
           sendMessage: () => {},
           on: () => () => {},
-          once: () => {},
           removeListener: () => {},
         },
       }),

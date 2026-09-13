@@ -8,6 +8,7 @@ import ChannelEnum from 'common/channels';
 import type { IAudioDevice } from 'common/constants';
 import coalesceRequests from 'renderer/utils/coalescedRequest';
 import { getAudioDevices, getMainPreAmp } from 'renderer/utils/equalizerApi';
+import installFakeIpcRenderer from '../../utils/fakeIpcRenderer';
 
 interface IDeferred<Type> {
   promise: Promise<Type>;
@@ -45,46 +46,6 @@ const controlledRequest = () => {
   return { request, sent, refuseNextSends };
 };
 
-/**
- * The preload bridge as Electron's emitter behaves: every one-shot listener on
- * a channel stays registered until a reply arrives, and one reply reaches
- * every listener waiting on that channel. The most listeners ever waiting at
- * once is what Node counts toward MaxListenersExceededWarning.
- */
-const installBridge = () => {
-  const listeners = new Map<string, Set<(arg: unknown) => void>>();
-  const peak = new Map<string, number>();
-  const sendMessage = jest.fn();
-  window.electron = {
-    ipcRenderer: {
-      sendMessage,
-      once: (channel: string, handler: (arg: unknown) => void) => {
-        const waiting = listeners.get(channel) ?? new Set();
-        listeners.set(channel, waiting);
-        const listener = (arg: unknown) => {
-          waiting.delete(listener);
-          handler(arg);
-        };
-        waiting.add(listener);
-        peak.set(channel, Math.max(peak.get(channel) ?? 0, waiting.size));
-        return () => {
-          waiting.delete(listener);
-        };
-      },
-    },
-  } as unknown as typeof window.electron;
-  const reply = (channel: string, arg: unknown) => {
-    [...(listeners.get(channel) ?? [])].forEach((listener) => listener(arg));
-  };
-  const sends = (channel: string) =>
-    sendMessage.mock.calls.filter(([sentOn]) => sentOn === channel).length;
-  return {
-    reply,
-    sends,
-    peakListeners: (channel: string) => peak.get(channel),
-  };
-};
-
 const SPEAKERS: IAudioDevice = {
   id: 'speakers',
   name: 'Speakers',
@@ -94,36 +55,36 @@ const SPEAKERS: IAudioDevice = {
 };
 
 /**
- * One output change made eleven panels ask for the device list in the same
- * dispatch. Each ask was its own request and its own one-shot listener on the
- * shared reply channel, so the eleventh raised MaxListenersExceededWarning in
- * the window and main ran eleven PowerShell enumerations for one answer.
+ * One output change makes eleven panels ask for the device list in the same
+ * dispatch, and main runs a PowerShell enumeration for every request it is
+ * sent, so each ask being its own request cost eleven enumerations for one
+ * answer.
  */
 describe('the device list asked for by many panels at once', () => {
-  it('sends one request and waits on one listener for eleven asks', async () => {
-    const bridge = installBridge();
+  it('sends one request for eleven asks', async () => {
+    const bridge = installFakeIpcRenderer();
 
     const asks = Array.from({ length: 11 }, () => getAudioDevices());
 
-    expect(bridge.sends(ChannelEnum.GET_AUDIO_DEVICES)).toBe(1);
-    expect(bridge.peakListeners(ChannelEnum.GET_AUDIO_DEVICES)).toBe(1);
-    bridge.reply(ChannelEnum.GET_AUDIO_DEVICES, { result: [SPEAKERS] });
+    const sent = bridge.sentOn(ChannelEnum.GET_AUDIO_DEVICES);
+    expect(sent).toHaveLength(1);
+    bridge.answer(sent[0], { result: [SPEAKERS] });
     await expect(Promise.all(asks)).resolves.toEqual(
       Array.from({ length: 11 }, () => [SPEAKERS]),
     );
   });
 
-  // The positive control for the counts above: on the same bridge, a request
-  // that is not coalesced shows one send and one listener per ask, so a count
-  // of one is the coalescing and not a bridge that counts nothing.
+  // The positive control for the count above: on the same bridge, a request
+  // that is not coalesced shows one send per ask, so a count of one is the
+  // coalescing and not a bridge that counts nothing.
   it('is measured on a bridge that does count every uncoalesced ask', async () => {
-    const bridge = installBridge();
+    const bridge = installFakeIpcRenderer();
 
     const asks = Array.from({ length: 11 }, () => getMainPreAmp());
 
-    expect(bridge.sends(ChannelEnum.GET_PREAMP)).toBe(11);
-    expect(bridge.peakListeners(ChannelEnum.GET_PREAMP)).toBe(11);
-    bridge.reply(ChannelEnum.GET_PREAMP, { result: -3 });
+    const sent = bridge.sentOn(ChannelEnum.GET_PREAMP);
+    expect(sent).toHaveLength(11);
+    sent.forEach((message) => bridge.answer(message, { result: -3 }));
     await expect(Promise.all(asks)).resolves.toEqual(
       Array.from({ length: 11 }, () => -3),
     );

@@ -85,12 +85,11 @@ const APO_STATUS: IAudioEngineStatus = {
 /**
  * The preload bridge, answering the three channels this page asks about.
  *
- * Every call in `equalizerApi.ts` sends first and subscribes second, so the
- * answer is computed in `sendMessage` and handed over in `once` — a mock that
- * only replied to handlers already registered would answer nothing at all.
- * The reply lands on the next microtask rather than inside `once` itself,
- * because a synchronous reply would resolve the promise before the caller had
- * one and hide any ordering bug rather than expose it.
+ * Every request sends first and starts listening second, so the answer is
+ * computed in `sendMessage` and delivered, with the request's id, to whatever
+ * listens on the channel a microtask later — by which point the request is
+ * listening. A synchronous reply would resolve the promise before the caller
+ * had one and hide any ordering bug rather than expose it.
  */
 const installBridge = () => {
   const answers: Record<string, TChannelHandler> = {
@@ -116,24 +115,28 @@ const installBridge = () => {
       return undefined;
     },
   };
-  const results = new Map<string, unknown>();
+  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
 
   window.electron = {
     ipcRenderer: {
-      sendMessage: (channel: string, values: unknown[]) => {
+      sendMessage: (channel: string, values: unknown[], requestId?: number) => {
         const answer = answers[channel];
-        if (answer) {
-          results.set(channel, answer(values));
+        if (!answer) {
+          return;
         }
+        const result = answer(values);
+        Promise.resolve().then(() =>
+          [...(listeners.get(channel) ?? [])].forEach((listener) =>
+            listener({ result }, requestId),
+          ),
+        );
       },
-      once: (channel: string, handler: (arg: unknown) => void) => {
-        if (results.has(channel)) {
-          const result = results.get(channel);
-          Promise.resolve().then(() => handler({ result }));
-        }
-        return () => undefined;
+      on: (channel: string, listener: (...args: unknown[]) => void) => {
+        const onChannel = listeners.get(channel) ?? new Set();
+        onChannel.add(listener);
+        listeners.set(channel, onChannel);
+        return () => onChannel.delete(listener);
       },
-      on: () => () => undefined,
     },
   } as unknown as typeof window.electron;
 };
@@ -143,7 +146,7 @@ const installBridge = () => {
  *
  * `sendSystemDspChain` is fire-and-forget: its `.then` runs two microtask
  * ticks after `installBridge`'s answer is pushed into `chainsSent` (one for
- * the mock's own `Promise.resolve().then(...)`, one for `promisifyResult`'s
+ * the mock's own `Promise.resolve().then(...)`, one for `sendRequest`'s
  * `resolve` to reach the caller's `.then`). A case that checks the cache was
  * actually forgotten on a refusal has to wait past that, or it can call
  * `sendSystemDspChain` again before the refusal has been processed at all.

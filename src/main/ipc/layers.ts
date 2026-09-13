@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import { getCurveEqMode, getBandQ } from '../../common/eqMode';
 import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
@@ -24,6 +23,7 @@ import ChannelEnum from '../../common/channels';
 import { getVoicingProfile } from '../../common/voicing';
 import { getDriverProfile } from '../../common/driver';
 import { sanitizeSmartEqSettings } from '../../common/smartEq';
+import onWindowMessage from './windowMessages';
 
 /**
  * A smaller reach than the bands have, and that is worth seeing.
@@ -70,7 +70,7 @@ export const registerLayersIpc = ({
   handleError,
   applyingLayer,
 }: ILayersIpcDeps) => {
-  ipcMain.on(ChannelEnum.RESET_EQ_MODE, async (event) => {
+  onWindowMessage(ChannelEnum.RESET_EQ_MODE, async (event) => {
     state.eqMode = 'normal';
     state.curveEqMode = 'normal';
     state.isEqDoubleOn = false;
@@ -80,7 +80,7 @@ export const registerLayersIpc = ({
     await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
   });
 
-  ipcMain.on(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_DOUBLE;
     const enabled: unknown = arg?.[0];
     if (typeof enabled !== 'boolean') {
@@ -95,7 +95,7 @@ export const registerLayersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.SET_EQ_MODE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_EQ_MODE, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_MODE;
     const mode: unknown = arg?.[0];
     const scope: unknown = arg?.[1] ?? 'eq';
@@ -119,7 +119,7 @@ export const registerLayersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.SET_EQ_SHAPE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_EQ_SHAPE, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_SHAPE;
     const [scope, kind, value] = Array.isArray(arg) ? arg : [];
     const validQ = ['off', 'proportional', 'asymmetric'].includes(value);
@@ -142,7 +142,7 @@ export const registerLayersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_VOICING, async (event, arg) => {
     const channel = ChannelEnum.SET_VOICING;
     const profileId: string = arg[0];
     const intensity: number = arg[1];
@@ -182,7 +182,7 @@ export const registerLayersIpc = ({
    * rewrite. Undefined clears the layer outright, which is what the chip's X
    * means — and unlike the old behaviour it takes nothing of the user's with it.
    */
-  ipcMain.on(ChannelEnum.SET_HEADPHONE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_HEADPHONE, async (event, arg) => {
     const channel = ChannelEnum.SET_HEADPHONE;
     const intensity: unknown = arg?.[0];
 
@@ -215,7 +215,7 @@ export const registerLayersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_DRIVER, async (event, arg) => {
     const channel = ChannelEnum.SET_DRIVER;
     const profileId: string = arg[0];
     const intensity: number = arg[1];
@@ -262,7 +262,7 @@ export const registerLayersIpc = ({
    * An empty or unusable payload removes the layer, which is how the "Also
    * applied" chip clears it.
    */
-  ipcMain.on(ChannelEnum.SET_SMART_EQ, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_SMART_EQ, async (event, arg) => {
     const channel = ChannelEnum.SET_SMART_EQ;
     const settings = arg?.[0];
 
@@ -292,7 +292,7 @@ export const registerLayersIpc = ({
    * The preamp follows for free: it is measured over what was actually written,
    * so switching a boosting layer off gives its headroom straight back.
    */
-  ipcMain.on(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
     const channel = ChannelEnum.SET_LAYER_BYPASS;
     const feature = arg?.[0];
     const isBypassed = arg?.[1];

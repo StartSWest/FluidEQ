@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IGatheredFacts } from 'common/bugReport';
+import isRequestId from 'common/ipcRequestId';
 import {
   ErrorCode,
   ErrorDescription,
@@ -50,10 +51,10 @@ import type { IEngineSetupResult } from 'main/engineSetup';
 /**
  * One request to the main process, and how it is allowed to fail.
  *
- * Two hundred and thirty lines that every one of the sixty-three calls in
- * equalizerApi.ts goes through: the channel is subscribed to, the message is
- * sent, and the reply either resolves or is turned into an error the UI can
- * show. None of it knows what any particular call means.
+ * What every request the window makes of main goes through: the message is
+ * sent with a request id, the reply carrying that id is waited for, and it
+ * either resolves or is turned into an error the UI can show. None of it
+ * knows what any particular call means.
  *
  * Separated so the transport can be read on its own. The timeout in particular
  * is subtle — it survives the machine sleeping, because a laptop that wakes
@@ -106,38 +107,117 @@ export const toError = (
 ): Error & ErrorDescription =>
   Object.assign(new Error(description.shortError), description);
 
+type TResponseHandler<Type> = (
+  arg: TResult<Type>,
+  resolve: (value: Type | PromiseLike<Type>) => void,
+  reject: (reason?: ErrorDescription) => void,
+) => void;
+
+interface IReplyChannel {
+  /** What to do with the reply to each request still waiting, by its id. */
+  waiting: Map<number, (payload: unknown) => void>;
+  stopListening: () => void;
+}
+
 /**
- * `timeout` null is no deadline at all: the reply is waited for however long
- * it takes. For requests that wait on a person before main can answer — a
- * Windows permission prompt — where any number of seconds is a guess at how
- * long somebody takes to read one, and main answers every one of them.
+ * One listener per reply channel, serving every request waiting on it.
+ *
+ * Replies used to be matched to requests by channel alone, each request with a
+ * one-shot listener of its own. Every listener on a channel hears every reply,
+ * so the first reply answered them all: two overlapping writes were both told
+ * whichever outcome main finished first, and a request that had timed out left
+ * its late reply to be taken by the next request on the channel. Main now
+ * hands back the id each request was sent with (`onWindowMessage`), and only
+ * the request holding that id hears the reply. One listener rather than one per
+ * request, too, because eleven waiting at once is Node's leak warning.
  */
-export const promisifyResult = <Type>(
-  responseHandler: (
-    arg: TResult<Type>,
-    resolve: (value: Type | PromiseLike<Type>) => void,
-    reject: (reason?: ErrorDescription) => void,
-  ) => void,
-  channel: string,
-  timeout: number | null = TIMEOUT,
+const replyChannels = new Map<string, IReplyChannel>();
+
+const stopWaiting = (replyChannel: string, requestId: number) => {
+  const served = replyChannels.get(replyChannel);
+  if (!served?.waiting.delete(requestId) || served.waiting.size > 0) {
+    return;
+  }
+  replyChannels.delete(replyChannel);
+  served.stopListening();
+};
+
+const waitForReply = (
+  replyChannel: string,
+  requestId: number,
+  onReply: (payload: unknown) => void,
 ) => {
+  const served = replyChannels.get(replyChannel);
+  if (served) {
+    served.waiting.set(requestId, onReply);
+    return;
+  }
+  const waiting = new Map([[requestId, onReply]]);
+  const stopListening = window.electron.ipcRenderer.on(
+    replyChannel,
+    (payload: unknown, repliedTo: unknown) => {
+      // A reply naming no request still waiting is one whose request gave up,
+      // or one sent to nobody in particular; neither is anybody's answer.
+      if (!isRequestId(repliedTo)) {
+        return;
+      }
+      const answer = waiting.get(repliedTo);
+      if (!answer) {
+        return;
+      }
+      stopWaiting(replyChannel, repliedTo);
+      answer(payload);
+    },
+  );
+  replyChannels.set(replyChannel, { waiting, stopListening });
+};
+
+/**
+ * Starts at a random point so that two copies of this module — a hot reload
+ * in development leaves the old one serving whatever still holds it — never
+ * hand out the same id for requests waiting on the same channel.
+ */
+let lastRequestId = Math.floor(Math.random() * 2 ** 32);
+
+export interface IRequestOptions {
+  /**
+   * Where main answers, when that is not the channel the request was sent on:
+   * a band's writes are answered on a channel named after the band.
+   */
+  replyChannel?: string;
+  /**
+   * `null` is no deadline at all: the reply is waited for however long it
+   * takes. For requests that wait on a person before main can answer — a
+   * Windows permission prompt — where any number of seconds is a guess at how
+   * long somebody takes to read one, and main answers every one of them.
+   */
+  timeout?: number | null;
+}
+
+/**
+ * Send a request to main and settle with the reply to that request.
+ *
+ * Sent before anything listens, on purpose: no reply can arrive within this
+ * call, and a bridge that refuses to send throws right here, synchronously, as
+ * it always has — with nothing left subscribed behind it.
+ */
+export const sendRequest = <Type>(
+  channel: string,
+  args: unknown[],
+  responseHandler: TResponseHandler<Type>,
+  { replyChannel = channel, timeout = TIMEOUT }: IRequestOptions = {},
+): Promise<Type> => {
+  lastRequestId += 1;
+  const requestId = lastRequestId;
+  window.electron.ipcRenderer.sendMessage(channel, args, requestId);
+
   return new Promise<Type>((resolve, reject) => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const handler = (arg: unknown) => {
-      responseHandler(arg as TResult<Type>, resolve, reject);
+    waitForReply(replyChannel, requestId, (payload) => {
       clearTimeout(timer);
-    };
-
-    // The unsubscribe the bridge hands back, and it has to be this one.
-    //
-    // Cleanup used to go through a `removeListener` that took the handler and
-    // rebuilt the wrapper around it — a different function every call, so it
-    // matched nothing and removed nothing. Every request that timed out left
-    // its listener registered for the life of the window, still first in the
-    // queue, ready to swallow the reply to a later request on the same
-    // channel and answer it with the wrong result.
-    const unsubscribe = window.electron.ipcRenderer.once(channel, handler);
+      responseHandler(payload as TResult<Type>, resolve, reject);
+    });
 
     /**
      * A timeout has to survive the machine going to sleep.
@@ -171,7 +251,7 @@ export const promisifyResult = <Type>(
           arm();
           return;
         }
-        unsubscribe();
+        stopWaiting(replyChannel, requestId);
         reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
       }, timeout);
     };

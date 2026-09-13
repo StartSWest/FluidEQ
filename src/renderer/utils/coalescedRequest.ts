@@ -7,13 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * One request on the wire at a time, however many callers want its answer.
  *
- * `promisifyResult` matches a reply to its request by channel alone, so
- * concurrent calls on one channel are not separate conversations: each adds
- * its own one-shot listener, and the first reply to arrive answers every
- * listener still waiting. One output change used to make eleven panels ask for
- * the device list at once — eleven listeners, the eleventh of which is Node's
- * MaxListenersExceededWarning, and eleven PowerShell enumerations in main,
- * ten of whose replies reached nobody.
+ * For a request whose every answer costs main real work. One output change
+ * makes eleven panels ask for the device list at once, and each ask used to be
+ * its own request — eleven PowerShell enumerations in main for one answer, and
+ * eleven listeners in the window, the eleventh of which was Node's
+ * MaxListenersExceededWarning. Replies now find their requests by id over one
+ * listener per channel (`sendRequest`), so the listeners are no longer the
+ * cost; the enumerations still are.
  *
  * Callers in the turn that sent the request share it. That is the burst
  * itself — every panel is called from the one dispatch of the output change —

@@ -53,6 +53,7 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
+import { sendRequest, simpleResponseHandler } from '../utils/ipcRequest';
 import VideoSearch from './VideoSearch';
 import {
   claimPlayback,
@@ -1558,19 +1559,23 @@ const VideoBrowser = ({
    * name from cache is exactly the failure this button exists to avoid, and it
    * is fixed on the side that knows when the store is actually empty.
    *
-   * `once` rather than a standing listener: a reply belongs to the press that
-   * asked for it, and a listener that outlived the press would answer a later
-   * one with an earlier result.
+   * A request rather than a standing listener: the reply belongs to the press
+   * that asked for it, and a listener that outlived the press would answer a
+   * later one with an earlier result. No deadline, because main answers every
+   * press, however long the store takes to empty.
    */
   const handleSignOut = useCallback(() => {
     setSignOutState('clearing');
-    window.electron.ipcRenderer.once(ChannelEnum.CLEAR_VIDEO_SESSION, (arg) => {
-      const reply = arg as { result?: boolean };
-      setSignOutState(reply?.result ? 'done' : 'failed');
-    });
-    window.electron.ipcRenderer.sendMessage(
+    sendRequest(
       ChannelEnum.CLEAR_VIDEO_SESSION,
       [],
+      simpleResponseHandler<boolean>(),
+      {
+        timeout: null,
+      },
+    ).then(
+      (cleared) => setSignOutState(cleared ? 'done' : 'failed'),
+      () => setSignOutState('failed'),
     );
   }, []);
 

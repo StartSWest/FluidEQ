@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import {
   FilterTypeEnum,
   FixedBandSizeEnum,
@@ -45,6 +44,7 @@ import {
 } from '../../common/layouts';
 import { isFixedBandSizeEnumValue } from '../../common/utils';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
+import onWindowMessage from './windowMessages';
 
 /**
  * Everything these handlers may touch, stated rather than implied.
@@ -108,7 +108,7 @@ export const registerFiltersIpc = ({
   getStoredLayout,
   switchToParametricEditing,
 }: IFiltersIpcDeps) => {
-  ipcMain.on(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
     const channel = ChannelEnum.GET_FILTER_GAIN;
     const filterId = arg[0];
 
@@ -123,7 +123,7 @@ export const registerFiltersIpc = ({
     event.reply(channel + filterId, reply);
   });
 
-  ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
     const channel = ChannelEnum.SET_FILTER_GAIN;
     const filterId = arg[0];
     const gain = parseFloat(arg[1]) || 0;
@@ -144,7 +144,7 @@ export const registerFiltersIpc = ({
     await handleUpdate(event, channel + filterId, false, true);
   });
 
-  ipcMain.on(ChannelEnum.GET_FILTER_FREQUENCY, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_FILTER_FREQUENCY, async (event, arg) => {
     const channel = ChannelEnum.GET_FILTER_FREQUENCY;
     const filterId = arg[0];
 
@@ -159,7 +159,7 @@ export const registerFiltersIpc = ({
     event.reply(channel + filterId, reply);
   });
 
-  ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
     const channel = ChannelEnum.SET_FILTER_FREQUENCY;
     const filterId = arg[0];
     const frequency = parseInt(arg[1], 10) || 0;
@@ -180,7 +180,7 @@ export const registerFiltersIpc = ({
     await handleUpdate(event, channel + filterId, false, true);
   });
 
-  ipcMain.on(ChannelEnum.GET_FILTER_QUALITY, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_FILTER_QUALITY, async (event, arg) => {
     const channel = ChannelEnum.GET_FILTER_QUALITY;
     const filterId = arg[0];
 
@@ -195,7 +195,7 @@ export const registerFiltersIpc = ({
     event.reply(channel + filterId, reply);
   });
 
-  ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
     const channel = ChannelEnum.SET_FILTER_QUALITY;
     const filterId = arg[0];
     const quality = parseFloat(arg[1]) || 0;
@@ -216,7 +216,7 @@ export const registerFiltersIpc = ({
     await handleUpdate(event, channel + filterId, false, true);
   });
 
-  ipcMain.on(ChannelEnum.GET_FILTER_TYPE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.GET_FILTER_TYPE, async (event, arg) => {
     const channel = ChannelEnum.GET_FILTER_TYPE;
     const filterId = arg[0];
 
@@ -231,7 +231,7 @@ export const registerFiltersIpc = ({
     event.reply(channel + filterId, reply);
   });
 
-  ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
     const channel = ChannelEnum.SET_FILTER_TYPE;
     const filterId = arg[0];
     const filterType = arg[1];
@@ -266,7 +266,7 @@ export const registerFiltersIpc = ({
    * window disagreeing about what is playing, with nothing to say which bands
    * made it.
    */
-  ipcMain.on(ChannelEnum.SET_FILTER_VALUES, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FILTER_VALUES, async (event, arg) => {
     const channel = ChannelEnum.SET_FILTER_VALUES;
     const edits: IFilterEdit[] = Array.isArray(arg?.[0]) ? arg[0] : [];
 
@@ -319,14 +319,14 @@ export const registerFiltersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.GET_FILTER_COUNT, async (event) => {
+  onWindowMessage(ChannelEnum.GET_FILTER_COUNT, async (event) => {
     const reply: TSuccess<number> = {
       result: Object.keys(state.filters).length,
     };
     event.reply(ChannelEnum.GET_FILTER_COUNT, reply);
   });
 
-  ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
+  onWindowMessage(ChannelEnum.ADD_FILTER, async (event, arg) => {
     const channel = ChannelEnum.ADD_FILTER;
     const frequency: number = arg[0];
 
@@ -362,7 +362,7 @@ export const registerFiltersIpc = ({
     await handleUpdateHelper(event, channel, newFilter.id, false, true);
   });
 
-  ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
+  onWindowMessage(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
     const channel = ChannelEnum.REMOVE_FILTER;
     const filterId: string = arg[0];
 
@@ -392,7 +392,7 @@ export const registerFiltersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
+  onWindowMessage(ChannelEnum.CLEAR_GAINS, async (event) => {
     const channel = ChannelEnum.CLEAR_GAINS;
 
     Object.values(state.filters).forEach((filter) => {
@@ -414,7 +414,7 @@ export const registerFiltersIpc = ({
     );
   });
 
-  ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
     const channel = ChannelEnum.SET_FIXED_BAND;
     const size: FixedBandSizeEnum = arg[0];
     if (!isFixedBandSizeEnumValue(size)) {

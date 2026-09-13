@@ -30,7 +30,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * not also be the module that knows how to spawn it.
  */
 
-import { ipcMain } from 'electron';
 import log from 'electron-log';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
@@ -45,6 +44,7 @@ import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 import { saveAudioEnginePreference } from '../audioEngineStore';
 import { IEngineSetupResult, TEngineSetupCommand } from '../engineSetup';
+import onWindowMessage from './windowMessages';
 
 /**
  * An audio endpoint GUID as Windows spells it: braces, and nothing inside
@@ -172,7 +172,7 @@ export const registerAudioEngineIpc = ({
     event.reply(channel, reply);
   };
 
-  ipcMain.on(ChannelEnum.GET_AUDIO_ENGINE_STATUS, async (event) => {
+  onWindowMessage(ChannelEnum.GET_AUDIO_ENGINE_STATUS, async (event) => {
     const channel = ChannelEnum.GET_AUDIO_ENGINE_STATUS;
     try {
       succeed(
@@ -203,7 +203,7 @@ export const registerAudioEngineIpc = ({
    * "I switched and nothing happened" becomes a silent bug rather than the
    * banner that says which engine is missing.
    */
-  ipcMain.on(ChannelEnum.SET_AUDIO_ENGINE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_AUDIO_ENGINE, async (event, arg) => {
     const channel = ChannelEnum.SET_AUDIO_ENGINE;
     const next: unknown = Array.isArray(arg) ? arg[0] : undefined;
     if (!isAudioEngine(next)) {
@@ -280,7 +280,7 @@ export const registerAudioEngineIpc = ({
     }
   };
 
-  ipcMain.on(ChannelEnum.INSTALL_FLUID_ENGINE, async (event) => {
+  onWindowMessage(ChannelEnum.INSTALL_FLUID_ENGINE, async (event) => {
     // Attach every endpoint and restart the audio service: an install that
     // attaches nothing looks exactly like an install that did not work.
     await runAndReflush(event, ChannelEnum.INSTALL_FLUID_ENGINE, 'install', [
@@ -306,7 +306,7 @@ export const registerAudioEngineIpc = ({
    * which offers no update either — leaves the helper's word standing; the
    * next launch compares again.
    */
-  ipcMain.on(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
+  onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
     const channel = ChannelEnum.UPDATE_FLUID_ENGINE;
     try {
       const result = await runEngineSetup('install', ['--restart-audio']);
@@ -352,7 +352,7 @@ export const registerAudioEngineIpc = ({
     await runAndReflush(event, channel, command, [guid, '--restart-audio']);
   };
 
-  ipcMain.on(ChannelEnum.ATTACH_FLUID_ENGINE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.ATTACH_FLUID_ENGINE, async (event, arg) => {
     await endpointCommand(
       event,
       ChannelEnum.ATTACH_FLUID_ENGINE,
@@ -361,7 +361,7 @@ export const registerAudioEngineIpc = ({
     );
   });
 
-  ipcMain.on(ChannelEnum.DETACH_FLUID_ENGINE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.DETACH_FLUID_ENGINE, async (event, arg) => {
     await endpointCommand(
       event,
       ChannelEnum.DETACH_FLUID_ENGINE,
@@ -391,7 +391,7 @@ export const registerAudioEngineIpc = ({
    * `NaN` and `Infinity` (it requires every entry to be `Number.isFinite`) as
    * well as any array whose length disagrees with the band count it carries.
    */
-  ipcMain.on(ChannelEnum.SET_SYSTEM_DSP_CHAIN, async (event, arg) => {
+  onWindowMessage(ChannelEnum.SET_SYSTEM_DSP_CHAIN, async (event, arg) => {
     const channel = ChannelEnum.SET_SYSTEM_DSP_CHAIN;
     const values: unknown = Array.isArray(arg) ? arg[0] : undefined;
     if (!isChainWirePayload(values)) {

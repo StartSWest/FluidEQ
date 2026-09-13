@@ -124,7 +124,6 @@ describe('App', () => {
             }
             return () => {};
           },
-          once: (_channel: Channels, _func: (...args: unknown[]) => void) => {},
           removeListener: (
             _channel: Channels,
             _func: (...args: unknown[]) => void,
@@ -783,7 +782,7 @@ describe('App', () => {
  *
  * Exercised as a pure function rather than through a full `<App />` render:
  * every one of these three IPC round trips in the test harness never
- * resolves (the mocked `once` above is a no-op), so `engineStatus` and
+ * resolves (the mocked bridge above never replies), so `engineStatus` and
  * `globalError` never populate in that environment — there is nothing this
  * derivation could observe by mounting the whole tree that it cannot observe
  * by being called directly with the status it would have received.

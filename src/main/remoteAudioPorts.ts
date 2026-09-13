@@ -1,7 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import {
-  ipcMain,
   type BrowserWindow,
   type IpcMainEvent,
   type MessagePortMain,
@@ -16,6 +15,7 @@ import {
   REMOTE_AUDIO_PORT_CHANNEL,
   type TRemoteAudioPortKind,
 } from '../common/remoteAudioPorts';
+import onWindowMessage from './ipc/windowMessages';
 
 /** Audio goes directly to its worklet/worker after this one-time handoff. */
 const createRemoteAudioPorts = (
@@ -68,7 +68,10 @@ const createRemoteAudioPorts = (
       );
     }
   };
-  ipcMain.on(REMOTE_AUDIO_PORT_CHANNEL, receivePort);
+  const stopReceivingPorts = onWindowMessage(
+    REMOTE_AUDIO_PORT_CHANNEL,
+    receivePort,
+  );
   return {
     audio: (chunk: ILanRemoteAudioChunk) => {
       post('playback', { kind: 'push', ...chunk });
@@ -96,7 +99,7 @@ const createRemoteAudioPorts = (
       ports.forEach((_port, kind) => post(kind, { kind: 'reset' }));
     },
     close: () => {
-      ipcMain.removeListener(REMOTE_AUDIO_PORT_CHANNEL, receivePort);
+      stopReceivingPorts();
       ports.forEach((port) => port.close());
       ports.clear();
     },

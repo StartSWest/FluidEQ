@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
 import {
@@ -30,6 +29,7 @@ import {
 import { ISongIdentity } from '../../common/songIdentity';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 import { loadSongEqSettings, saveSongEqSettings } from '../songEqStore';
+import onWindowMessage from './windowMessages';
 
 /**
  * Held in memory between writes.
@@ -67,7 +67,7 @@ const replyInvalidParameter = (
  * every handler here is validation plus a call across that boundary.
  */
 const registerSongEqHandlers = (userDataDir: string): void => {
-  ipcMain.on(ChannelEnum.LOOKUP_SONG_EQ, (event, arg) => {
+  onWindowMessage(ChannelEnum.LOOKUP_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.LOOKUP_SONG_EQ;
     const deviceId = arg?.[0];
     const identity = arg?.[1];
@@ -85,7 +85,7 @@ const registerSongEqHandlers = (userDataDir: string): void => {
     channel: ChannelEnum,
     apply: typeof checkpointSongEq,
   ): void => {
-    ipcMain.on(channel, (event, arg) => {
+    onWindowMessage(channel, (event, arg) => {
       const deviceId = arg?.[0];
       const identity = arg?.[1];
       const layer = arg?.[2];
@@ -114,7 +114,7 @@ const registerSongEqHandlers = (userDataDir: string): void => {
   write(ChannelEnum.CHECKPOINT_SONG_EQ, checkpointSongEq);
   write(ChannelEnum.COMMIT_SONG_EQ, commitSongEq);
 
-  ipcMain.on(ChannelEnum.FORGET_SONG_EQ, (event, arg) => {
+  onWindowMessage(ChannelEnum.FORGET_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.FORGET_SONG_EQ;
     const deviceId = arg?.[0];
     const identity = arg?.[1];
