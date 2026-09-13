@@ -89,6 +89,8 @@ export interface ILamp {
   u: number;
   v: number;
   reach: number;
+  /** Logical key-overlay slot when Razer's physical key positions are known. */
+  chromaIndex?: number;
 }
 
 export interface ILightingDevice {

@@ -111,7 +111,7 @@ export const lampArrayLamps = (
   }));
 };
 
-/** What Razer Synapse's local service lights: a kind of device, never one. */
+/** The category endpoints used by FluidEQ's current Razer connection. */
 export type TChromaChannel =
   'keyboard' | 'mouse' | 'mousepad' | 'headset' | 'keypad' | 'chromalink';
 

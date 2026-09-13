@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'दृश्य का संरेखण',
+  'lighting.alignment.hint':
+    'इस डिवाइस पर दृश्य को खिसकाएँ या उसका आकार बदलें। स्थिति चौड़ाई या ऊँचाई का प्रतिशत है।',
+  'lighting.alignment.keyboardFit':
+    'पहचानी गई कुंजियों की स्थिति के अनुसार समायोजित। यहाँ दृश्य को और सटीक करें।',
+  'lighting.alignment.size': 'दृश्य का आकार',
+  'lighting.alignment.horizontal': 'क्षैतिज स्थिति (%)',
+  'lighting.alignment.vertical': 'ऊर्ध्वाधर स्थिति (%)',
+  'lighting.alignment.reset': 'बीच में लाएँ और फ़िट करें',
   'lighting.tuning.foregroundBrightness': 'अग्रभूमि की चमक',
   'lighting.tuning.backgroundBrightness': 'पृष्ठभूमि की चमक',
   'lighting.status.ambient': 'हल्का प्रवाह · {scene}',

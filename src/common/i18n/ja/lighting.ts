@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'シーンの位置調整',
+  'lighting.alignment.hint':
+    'このデバイス上のシーンを移動・拡大縮小します。位置は幅または高さに対する割合です。',
+  'lighting.alignment.keyboardFit':
+    '検出されたキーの配置に合わせています。ここでシーンを微調整できます。',
+  'lighting.alignment.size': 'シーンの大きさ',
+  'lighting.alignment.horizontal': '横位置 (%)',
+  'lighting.alignment.vertical': '縦位置 (%)',
+  'lighting.alignment.reset': '中央に合わせる',
   'lighting.tuning.foregroundBrightness': '前景の明るさ',
   'lighting.tuning.backgroundBrightness': '背景の明るさ',
   'lighting.status.ambient': '穏やかに流れる · {scene}',

@@ -33,12 +33,14 @@ export default function LightingProfileTuning({
   target,
   targetName,
   shared,
+  keyboardFit,
 }: {
   settings: ILightingSettings;
   sceneId?: string;
   target: string;
   targetName: string;
   shared?: string;
+  keyboardFit?: boolean;
 }) {
   const { t } = useTranslation();
   const reverseId = useId();
@@ -81,6 +83,9 @@ export default function LightingProfileTuning({
       | 'brightness'
       | 'backgroundBrightness'
       | 'foregroundBrightness'
+      | 'sceneScale'
+      | 'sceneOffsetX'
+      | 'sceneOffsetY'
       | 'sensitivity'
       | 'speed'
       | 'saturation'
@@ -161,6 +166,37 @@ export default function LightingProfileTuning({
           )}
         {tuning.effect !== 'scene' &&
           slider('sensitivity', 'lighting.tuning.sensitivity', 0.25, 2)}
+        {tuning.effect === 'scene' && (
+          <details className="lighting-fine lighting-alignment">
+            <summary>{t('lighting.alignment.title')}</summary>
+            <div>
+              <p className="lighting-editor__shared">
+                {t(
+                  keyboardFit
+                    ? 'lighting.alignment.keyboardFit'
+                    : 'lighting.alignment.hint',
+                )}
+              </p>
+              {slider('sceneScale', 'lighting.alignment.size', 0.5, 2)}
+              {slider(
+                'sceneOffsetX',
+                'lighting.alignment.horizontal',
+                -0.5,
+                0.5,
+              )}
+              {slider('sceneOffsetY', 'lighting.alignment.vertical', -0.5, 0.5)}
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() =>
+                  tune({ sceneScale: 1, sceneOffsetX: 0, sceneOffsetY: 0 })
+                }
+              >
+                {t('lighting.alignment.reset')}
+              </button>
+            </div>
+          </details>
+        )}
         {tuning.effect === 'flow' &&
           slider('speed', 'lighting.tuning.speed', 0.1, 2)}
         {(tuning.effect === 'pulse' || tuning.effect === 'spectrum') && (

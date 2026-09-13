@@ -101,6 +101,78 @@ it('raises background brightness without changing the bright foreground colours'
   ]);
 });
 
+it('uses one backdrop behind the foreground even when the scene has dark patches', () => {
+  const frame = picture();
+  for (let y = 0; y < frame.height; y += 1) {
+    for (let x = 0; x < 12; x += 1) {
+      frame.rgb.set(
+        x < 6 ? [0, 0, 0] : [18, 12, 24],
+        (y * frame.width + x) * 3,
+      );
+    }
+  }
+  const points = [
+    { u: 0.04, v: 0.4, reach: 0.001 },
+    { u: 0.18, v: 0.4, reach: 0.001 },
+    { u: 0.9, v: 0.4, reach: 0.001 },
+    lamps[2],
+  ];
+  const output = render(frame, { backgroundBrightness: 3 }, points);
+  expect(output.slice(0, 3)).toEqual(output.slice(3, 6));
+  expect(output.slice(0, 3)).toEqual(output.slice(6, 9));
+  expect(Math.max(...output.slice(0, 3))).toBeGreaterThan(30);
+  expect(output.slice(9)).toEqual([40, 200, 150]);
+});
+
+it('can dim a light low-contrast background without dimming its distinct foreground', () => {
+  const frame = picture();
+  for (let index = 0; index < frame.rgb.length; index += 3) {
+    frame.rgb.set([180, 190, 200], index);
+  }
+  for (let y = 7; y < 20; y += 1) {
+    for (let x = 16; x < 32; x += 1) {
+      frame.rgb.set([210, 175, 190], (y * frame.width + x) * 3);
+    }
+  }
+  const normal = render(frame);
+  const dimmed = render(frame, { backgroundBrightness: 0.5 });
+  expect(dimmed.slice(0, 3)).toEqual([90, 95, 100]);
+  expect(dimmed.slice(3)).toEqual(normal.slice(3));
+});
+
+it('moves and scales the scene independently of the keyboard geometry', () => {
+  const centre = [lamps[2]];
+  const shifted = render(picture(), { sceneOffsetX: 0.4 }, centre);
+  expect(shifted).toEqual([12, 8, 20]);
+  const petal = [{ u: 0.625, v: 0.5, reach: 0.001 }];
+  expect(render(picture(), {}, petal)).toEqual([190, 60, 145]);
+  expect(render(picture(), { sceneScale: 0.5 }, petal)).toEqual([12, 8, 20]);
+});
+
+it('preserves a gray foreground against white instead of treating it as background variation', () => {
+  const frame = picture();
+  frame.rgb.fill(255);
+  for (let y = 7; y < 20; y += 1) {
+    for (let x = 16; x < 32; x += 1) {
+      frame.rgb.set([224, 224, 224], (y * frame.width + x) * 3);
+    }
+  }
+  expect(render(frame, { backgroundBrightness: 0 })).toEqual([
+    0, 0, 0, 224, 224, 224, 224, 224, 224,
+  ]);
+  expect(
+    render(frame, { backgroundBrightness: 0, foregroundBrightness: 0.5 }).slice(
+      3,
+    ),
+  ).toEqual([112, 112, 112, 112, 112, 112]);
+  expect(measureMood({ ...frame, rgb: new Uint8Array() })).toEqual({
+    r: 0,
+    g: 0,
+    b: 0,
+    background: { r: 0, g: 0, b: 0, noise: 0 },
+  });
+});
+
 it('a tiny idle contribution does not enable a full colour wave during playback', () => {
   const playing = render(picture(), { effect: 'spectrum' });
   const almostPlaying = render(

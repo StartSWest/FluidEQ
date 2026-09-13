@@ -86,6 +86,7 @@ export interface IMood {
   r: number;
   g: number;
   b: number;
+  background?: { r: number; g: number; b: number; noise: number };
 }
 
 /**
@@ -95,10 +96,17 @@ export interface IMood {
  */
 export const measureMood = (frame: ILightingFrame): IMood => {
   const { rgb } = frame;
+  if (rgb.length === 0) {
+    return { r: 0, g: 0, b: 0, background: { r: 0, g: 0, b: 0, noise: 0 } };
+  }
   let r = 0;
   let g = 0;
   let b = 0;
   let total = 0;
+  const clusters = new Map<
+    number,
+    { count: number; r: number; g: number; b: number; squares: number }
+  >();
   for (let index = 0; index < rgb.length; index += 3) {
     const lr = SRGB_TO_LINEAR[rgb[index]];
     const lg = SRGB_TO_LINEAR[rgb[index + 1]];
@@ -108,8 +116,46 @@ export const measureMood = (frame: ILightingFrame): IMood => {
     g += lg * weight;
     b += lb * weight;
     total += weight;
+    // A narrow colour family finds light backdrops too, without counting a
+    // distinct foreground in the same broad bucket as background noise.
+    const bin =
+      Math.floor(rgb[index] / 8) * 1024 +
+      Math.floor(rgb[index + 1] / 8) * 32 +
+      Math.floor(rgb[index + 2] / 8);
+    const cluster = clusters.get(bin) ?? {
+      count: 0,
+      r: 0,
+      g: 0,
+      b: 0,
+      squares: 0,
+    };
+    cluster.count += 1;
+    cluster.r += lr;
+    cluster.g += lg;
+    cluster.b += lb;
+    cluster.squares += lr * lr + lg * lg + lb * lb;
+    clusters.set(bin, cluster);
   }
-  return { r: r / total, g: g / total, b: b / total };
+  const mood = { r: r / total, g: g / total, b: b / total };
+  const dominant = [...clusters.values()].reduce((best, cluster) =>
+    cluster.count > best.count ? cluster : best,
+  );
+  const background = {
+    r: dominant.r / dominant.count,
+    g: dominant.g / dominant.count,
+    b: dominant.b / dominant.count,
+    noise: 0,
+  };
+  background.noise = Math.sqrt(
+    Math.max(
+      0,
+      dominant.squares / dominant.count -
+        background.r ** 2 -
+        background.g ** 2 -
+        background.b ** 2,
+    ),
+  );
+  return { ...mood, background };
 };
 
 interface ISample {
@@ -311,6 +357,26 @@ export const lightLamps = (
 
   const sample: ISample = { r: 0, g: 0, b: 0, y: 0 };
   const travellingSample: ISample = { r: 0, g: 0, b: 0, y: 0 };
+  // One backdrop colour for the entire device. Raising it must not amplify
+  // the picture's vignette, shadows and bokeh into patchy background keys.
+  const background = mood.background ?? { r: 0, g: 0, b: 0, noise: 0 };
+  const contrast = Math.max(
+    Math.abs(mood.r - background.r),
+    Math.abs(mood.g - background.g),
+    Math.abs(mood.b - background.b),
+    0.015,
+  );
+  const backgroundEdge = Math.max(background.noise * 2, contrast * 0.04, 1e-5);
+  const backgroundNeutral = luminance(background.r, background.g, background.b);
+  const back = [background.r, background.g, background.b].map((colour) =>
+    linearToSrgb(
+      backgroundNeutral + (colour - backgroundNeutral) * tuning.saturation,
+    ),
+  );
+  const backGain = Math.min(
+    tuning.backgroundBrightness,
+    1 / Math.max(...back, 1e-6),
+  );
   lamps.forEach((lamp, index) => {
     const direction = tuning.reverse ? -1 : 1;
     const position = shaping.kind === 'mouse' ? lamp.v : lamp.u;
@@ -324,7 +390,27 @@ export const lightLamps = (
         (shaping.idle === 'flow' ? 1 - activity : 0);
     const drift = time * tuning.speed * direction * 0.055;
     const shifted = (((lamp.u + drift) % 1) + 1) % 1;
-    sampleLamp(frame, lamp, sample, faithful);
+    const sceneLamp = faithful
+      ? {
+          ...lamp,
+          u: Math.min(
+            1,
+            Math.max(
+              0,
+              (lamp.u - 0.5 - tuning.sceneOffsetX) / tuning.sceneScale + 0.5,
+            ),
+          ),
+          v: Math.min(
+            1,
+            Math.max(
+              0,
+              (lamp.v - 0.5 - tuning.sceneOffsetY) / tuning.sceneScale + 0.5,
+            ),
+          ),
+          reach: lamp.reach / tuning.sceneScale,
+        }
+      : lamp;
+    sampleLamp(frame, sceneLamp, sample, faithful);
     if (travelMix > 0) {
       sampleLamp(frame, { ...lamp, u: shifted }, travellingSample);
       // Crossfade two stable samples. Scaling accumulated phase by activity
@@ -336,7 +422,7 @@ export const lightLamps = (
     }
     if (faithful) {
       // The scene already responds to the music and keeps moving while idle.
-      // Adding another beat envelope or filling its shadows changes its design.
+      // Its foreground keeps that movement above a uniform scene-coloured base.
       const idlePulse =
         shaping.idle === 'breathe'
           ? 0.65 + 0.35 * (0.5 + 0.5 * Math.sin(time * 0.55))
@@ -347,18 +433,18 @@ export const lightLamps = (
         (activity +
           (1 - activity) * (shaping.idleBrightness ?? 0.38) * idlePulse);
       const neutral = luminance(sample.r, sample.g, sample.b);
-      // Lift shadows without washing out foreground detail. At 100% this
-      // is the exact source colour; only the member asks for extra light.
+      // Keep the actual foreground colours; only the background is flattened.
       const shadow =
         1 -
         smoothstep(
-          moodPeak * 0.04,
-          moodPeak * 0.45,
-          Math.max(sample.r, sample.g, sample.b),
+          backgroundEdge,
+          Math.max(backgroundEdge + 0.01, contrast * 0.45),
+          Math.max(
+            Math.abs(sample.r - background.r),
+            Math.abs(sample.g - background.g),
+            Math.abs(sample.b - background.b),
+          ),
         );
-      const requestedGain =
-        tuning.backgroundBrightness * shadow +
-        tuning.foregroundBrightness * (1 - shadow);
       const red = linearToSrgb(
         neutral + (sample.r - neutral) * tuning.saturation,
       );
@@ -371,13 +457,28 @@ export const lightLamps = (
       // Boost all three channels together. Clipping each separately would
       // turn a vivid petal pale when the foreground reaches the LED ceiling.
       const gain = Math.min(
-        requestedGain,
+        tuning.foregroundBrightness,
         1 / Math.max(red, green, blue, 1e-6),
       );
       const at = index * 3;
-      ease(at, red * gain * 255 * strength);
-      ease(at + 1, green * gain * 255 * strength);
-      ease(at + 2, blue * gain * 255 * strength);
+      ease(
+        at,
+        (back[0] * backGain * shadow + red * gain * (1 - shadow)) *
+          255 *
+          strength,
+      );
+      ease(
+        at + 1,
+        (back[1] * backGain * shadow + green * gain * (1 - shadow)) *
+          255 *
+          strength,
+      );
+      ease(
+        at + 2,
+        (back[2] * backGain * shadow + blue * gain * (1 - shadow)) *
+          255 *
+          strength,
+      );
       return;
     }
     const presence = smoothstep(PRESENCE_FLOOR, PRESENCE_FULL, sample.y);

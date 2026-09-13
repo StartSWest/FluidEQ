@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import path from 'path';
+import { razerKindOf } from '../../common/lighting/razerDevices';
 import {
   deviceTuning,
   lightingProfile,
@@ -31,11 +32,13 @@ import {
   type TSynapseState,
 } from '../../common/lighting/lightingModel';
 import { createChromaClient, type IChromaClient } from './chromaClient';
+import { loadChromaKeyboard } from './chromaKeyboard';
 import {
   buildDeviceList,
   lightsThroughWindows,
   razerCandidates,
   rowKeyOfWindowsDevice,
+  singleChromaKeyboard,
   toWindowsDevice,
   type IWindowsDevice,
 } from './lightingDevices';
@@ -79,6 +82,7 @@ export interface ILightingServiceDeps {
   startHost?: typeof startLightingHost;
   createChroma?: (onState: (state: TSynapseState) => void) => IChromaClient;
   ensureIdentity?: (folder: string | undefined) => Promise<TIdentityOutcome>;
+  loadKeyboard?: typeof loadChromaKeyboard;
 }
 
 export interface ILightingService {
@@ -134,6 +138,8 @@ export const createLightingService = (
   let identity: TIdentityOutcome | 'pending' | undefined;
   const windows = new Map<number, IWindowsDevice>();
   const razer = new Map<string, IRazerEvent>();
+  const keyboards = new Map<string, readonly ILamp[]>();
+  const keyboardKeys = new Uint32Array(6 * 22);
   // Kept beside the map rather than counted per frame.
   let hasRazer = false;
   const outputs = new Map<string, IOutput>();
@@ -177,7 +183,7 @@ export const createLightingService = (
             muted:
               device.route !== 'synapse' && settings.muted.includes(device.key),
           }))
-        : buildDeviceList(windows, razer, settings, chroma.state());
+        : buildDeviceList(windows, razer, settings, chroma.state(), keyboards);
     return {
       supported: deps.supported,
       searching: listing && !snapshot,
@@ -234,6 +240,17 @@ export const createLightingService = (
       case 'razer': {
         const first = !hasRazer;
         razer.set(event.container, event);
+        if (razerKindOf(event.name) === 'keyboard') {
+          (deps.loadKeyboard ?? loadChromaKeyboard)(event.container)
+            .then((lamps) => {
+              if (lamps && razer.get(event.container) === event) {
+                keyboards.set(event.container, lamps);
+                publish();
+              }
+              return undefined;
+            })
+            .catch(() => undefined);
+        }
         hasRazer = razerCandidates(razer).length > 0;
         if (first && hasRazer) {
           chroma.probe();
@@ -242,6 +259,7 @@ export const createLightingService = (
       }
       case 'razer-removed':
         razer.delete(event.container);
+        keyboards.delete(event.container);
         hasRazer = razerCandidates(razer).length > 0;
         break;
       case 'enumerated':
@@ -265,12 +283,19 @@ export const createLightingService = (
     heldWindows.forEach((index) => outputs.delete(`windows:${index}`));
     heldWindows.clear();
     if (windows.size > 0 || razer.size > 0) {
-      snapshot = buildDeviceList(windows, razer, settings, chroma.state());
+      snapshot = buildDeviceList(
+        windows,
+        razer,
+        settings,
+        chroma.state(),
+        keyboards,
+      );
     }
     pending.lamparray = false;
     pending.razer = false;
     windows.clear();
     razer.clear();
+    keyboards.clear();
     hasRazer = false;
   };
 
@@ -443,6 +468,34 @@ export const createLightingService = (
       if (hasRazer) {
         chroma.frame();
         CHROMA_CHANNELS.forEach((channel) => {
+          const keyboard =
+            channel === 'keyboard'
+              ? singleChromaKeyboard(razer, keyboards)
+              : undefined;
+          if (keyboard) {
+            const rgb = light('chroma:keyboard', keyboard, 'keyboard');
+            keyboardKeys.fill(0);
+            keyboard.forEach((lamp, index) => {
+              if (lamp.chromaIndex !== undefined) {
+                keyboardKeys[lamp.chromaIndex] =
+                  0x01000000 +
+                  rgb[index * 3] +
+                  rgb[index * 3 + 1] * 256 +
+                  rgb[index * 3 + 2] * 65536;
+              }
+            });
+            chroma.send(
+              channel,
+              light(
+                'chroma:keyboard:canvas',
+                CHROMA_CHANNEL_LAMPS.keyboard,
+                'keyboard',
+                'chroma:keyboard',
+              ),
+              keyboardKeys,
+            );
+            return;
+          }
           chroma.send(
             channel,
             light(

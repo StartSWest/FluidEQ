@@ -18,7 +18,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // no room for both, a device row lets its route and lamps drop to a second
 // line, and the desk keeps its proportions at any width.
 
-$razer: #44d62c;
 $windows-blue: #8ec5ff;
 
 .lighting {
@@ -78,8 +77,8 @@ $windows-blue: #8ec5ff;
   place-items: center;
   overflow: hidden;
   border: 1px solid $border-subtle;
-  border-radius: $radius-l;
-  background: radial-gradient(120% 100% at 50% 70%, #0f1c28, #060c12 70%);
+  border-radius: $radius-xs;
+  background: radial-gradient(120% 100% at 50% 70%, #293c56, #121b30 90%);
   box-shadow: inset 0 1px 0 rgba($white, 0.04);
 }
 
@@ -89,8 +88,8 @@ $windows-blue: #8ec5ff;
 .lighting-stage__desk {
   display: block;
   width: 100%;
-  aspect-ratio: 1000 / 440;
-  max-height: 390px;
+  aspect-ratio: 1000 / 500;
+  max-height: 430px;
 }
 
 // At the end of the switch's bar; on a narrow window it drops under the
@@ -319,7 +318,7 @@ $windows-blue: #8ec5ff;
 .lighting-scene-bar {
   padding: 12px 14px;
   border: 1px solid $border-subtle;
-  border-radius: $radius-m;
+  border-radius: $radius-xs;
   background: rgba($white, 0.025);
 }
 
@@ -349,10 +348,10 @@ $windows-blue: #8ec5ff;
 
 .lighting-scene-bar__swatch {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: 1px solid rgba($white, 0.18);
-  border-radius: $radius-s;
+  border-radius: $radius-xs;
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
@@ -572,9 +571,9 @@ $windows-blue: #8ec5ff;
 }
 
 .lighting-route--synapse {
-  color: color-mix(in srgb, $razer 80%, $white);
-  border-color: color-mix(in srgb, $razer 30%, transparent);
-  background: color-mix(in srgb, $razer 9%, transparent);
+  color: color-mix(in srgb, $active 80%, $white);
+  border-color: color-mix(in srgb, $active 30%, transparent);
+  background: color-mix(in srgb, $active 9%, transparent);
 
   &::before {
     box-shadow: 0 0 6px currentColor;
@@ -606,8 +605,8 @@ $windows-blue: #8ec5ff;
 .lighting-device__lamps {
   display: block;
   flex: 0 0 auto;
-  width: 104px;
-  height: 14px;
+  width: 128px;
+  height: 18px;
 }
 
 // Always the switch's width, present or not, so the rows' lamps line up.
@@ -655,6 +654,42 @@ $windows-blue: #8ec5ff;
 .lighting-tuning {
   display: grid;
   gap: 14px;
+}
+
+.lighting-slider__marks {
+  position: relative;
+  height: 17px;
+  margin-top: 4px;
+  color: $text-dim;
+  font-size: $text-micro;
+  pointer-events: none;
+}
+.lighting-slider__mark {
+  position: absolute;
+  padding-top: 7px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 4px;
+    background: $border-field;
+    content: '';
+  }
+  &.is-first {
+    transform: none;
+    &::before {
+      left: 0;
+    }
+  }
+  &.is-last {
+    transform: translateX(-100%);
+    &::before {
+      left: 100%;
+    }
+  }
 }
 
 .lighting-tuning__pulse {

@@ -137,7 +137,7 @@ const uriOf = (text: string): string | undefined => {
 export interface IChromaClient {
   /** Once per lighting frame, before that frame's `send`s. */
   frame(): void;
-  send(channel: TChromaChannel, rgb: Uint8Array): void;
+  send(channel: TChromaChannel, rgb: Uint8Array, keys?: Uint32Array): void;
   /** Hand the devices back: end the session now rather than letting it lapse. */
   release(): void;
   /** Whether the service answers, without starting a session. */
@@ -147,7 +147,7 @@ export interface IChromaClient {
 
 interface ILane {
   inFlight: boolean;
-  waiting: Uint8Array | undefined;
+  waiting: { rgb: Uint8Array; keys?: Uint32Array } | undefined;
   absentFrames: number;
 }
 
@@ -229,7 +229,7 @@ export const createChromaClient = (
     if (!lane || !current || lane.inFlight || !lane.waiting) {
       return;
     }
-    const rgb = lane.waiting;
+    const { rgb, keys } = lane.waiting;
     lane.waiting = undefined;
     lane.inFlight = true;
     const mine = generation;
@@ -238,7 +238,7 @@ export const createChromaClient = (
       ({ body } = await request(
         'PUT',
         `${current.uri}/${channel}`,
-        chromaEffectBody(channel, rgb),
+        chromaEffectBody(channel, rgb, keys),
         current.abort.signal,
       ));
     } catch {
@@ -287,13 +287,13 @@ export const createChromaClient = (
         start().catch(() => undefined);
       }
     },
-    send: (channel, rgb) => {
+    send: (channel, rgb, keys) => {
       const lane = lanes.get(channel);
       if (!session || !lane || lane.absentFrames > 0) {
         return;
       }
       // Copied: the caller reuses its buffer for the next frame.
-      lane.waiting = rgb.slice();
+      lane.waiting = { rgb: rgb.slice(), keys: keys?.slice() };
       pump(channel).catch(() => undefined);
     },
     release: () => {

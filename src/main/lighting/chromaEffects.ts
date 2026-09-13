@@ -15,7 +15,7 @@ import type { TChromaChannel } from '../../common/lighting/lampLayouts';
  * `CHROMA_CUSTOM2`, and its keyboard `CHROMA_CUSTOM2` example has the wrong
  * number of rows. A body the service refuses comes back as result 87 and
  * lights nothing, silently, so the shapes are pinned by
- * `chromaEffects.test.ts`.
+ * `chromaKeyboard.test.ts`.
  */
 
 /** Razer's colour: 0x00BBGGRR. */
@@ -46,7 +46,19 @@ const SHAPES: Record<
 export const chromaEffectBody = (
   channel: TChromaChannel,
   rgb: Uint8Array,
+  keys?: Uint32Array,
 ): string => {
+  if (channel === 'keyboard' && keys) {
+    return JSON.stringify({
+      effect: 'CHROMA_CUSTOM_KEY',
+      param: {
+        color: grid(rgb, 6, 22),
+        key: Array.from({ length: 6 }, (_, row) =>
+          Array.from(keys.subarray(row * 22, row * 22 + 22)),
+        ),
+      },
+    });
+  }
   const shape = SHAPES[channel];
   return JSON.stringify({ effect: shape.effect, param: shape.param(rgb) });
 };

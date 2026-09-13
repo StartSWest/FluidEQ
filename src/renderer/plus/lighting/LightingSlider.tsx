@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 const STEP = 0.25;
+const SNAP_DISTANCE = 0.025;
 
 export default function LightingSlider({
   label,
@@ -25,24 +26,30 @@ export default function LightingSlider({
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
   const clamp = (next: number) => Math.min(max, Math.max(min, next));
-  // Native steps start at min: a 10% minimum would give 35%, 60%…
-  // Snap against zero instead and keep the exact endpoints accessible.
+  // Drag freely; only the small neighbourhood around a quarter is magnetic.
+  // Keyboard nudges stay precise so every intermediate value remains reachable.
   const snap = (next: number) => {
-    if (next >= max) {
-      return max;
-    }
-    return clamp(Math.round(next / STEP) * STEP);
+    const nearest = Math.round(next / STEP) * STEP;
+    return clamp(
+      Math.abs(next - nearest) <= SNAP_DISTANCE + 1e-8
+        ? nearest
+        : Math.round(next * 100) / 100,
+    );
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     let next: number;
     switch (event.key) {
       case 'ArrowRight':
       case 'ArrowUp':
+        next = Math.round((draft + 0.01) * 100) / 100;
+        break;
       case 'PageUp':
         next = (Math.floor(draft / STEP + 1e-8) + 1) * STEP;
         break;
       case 'ArrowLeft':
       case 'ArrowDown':
+        next = Math.round((draft - 0.01) * 100) / 100;
+        break;
       case 'PageDown':
         next = (Math.ceil(draft / STEP - 1e-8) - 1) * STEP;
         break;
@@ -63,8 +70,19 @@ export default function LightingSlider({
       onCommit(draft);
     }
   };
+  const marks = [
+    ...new Set([
+      min,
+      ...Array.from(
+        { length: Math.floor(max / STEP) - Math.ceil(min / STEP) + 1 },
+        (_, index) => (Math.ceil(min / STEP) + index) * STEP,
+      ),
+      max,
+    ]),
+  ];
+  const labelStep = max - min > 2 ? 0.5 : 0.25;
   return (
-    <div className="studio-setting">
+    <div className="studio-setting lighting-slider">
       <div className="studio-setting__head">
         <label className="studio-setting__label" htmlFor={id}>
           {label}
@@ -93,6 +111,23 @@ export default function LightingSlider({
         onKeyUp={commit}
         onBlur={commit}
       />
+      <div className="lighting-slider__marks" aria-hidden="true">
+        {marks.map((mark) => (
+          <span
+            key={mark}
+            className={`lighting-slider__mark${mark === min ? ' is-first' : ''}${mark === max ? ' is-last' : ''}`}
+            style={{ left: `${((mark - min) / (max - min)) * 100}%` }}
+          >
+            {(mark === min ||
+              mark === max ||
+              (mark - min >= labelStep * 0.5 &&
+                max - mark >= labelStep * 0.5 &&
+                Math.abs(mark / labelStep - Math.round(mark / labelStep)) <
+                  1e-8)) &&
+              `${Math.round(mark * 100)}%`}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

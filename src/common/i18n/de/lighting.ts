@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'Szene ausrichten',
+  'lighting.alignment.hint':
+    'Verschiebe oder skaliere die Szene auf diesem Gerät. Die Position ist ein Prozentwert der Breite oder Höhe.',
+  'lighting.alignment.keyboardFit':
+    'An die erkannten Tastenpositionen angepasst. Hier kannst du die Szene fein abstimmen.',
+  'lighting.alignment.size': 'Szenengröße',
+  'lighting.alignment.horizontal': 'Horizontale Position (%)',
+  'lighting.alignment.vertical': 'Vertikale Position (%)',
+  'lighting.alignment.reset': 'Zentrieren und einpassen',
   'lighting.tuning.foregroundBrightness': 'Vordergrundhelligkeit',
   'lighting.tuning.backgroundBrightness': 'Hintergrundhelligkeit',
   'lighting.status.ambient': 'Sanfter Fluss · {scene}',

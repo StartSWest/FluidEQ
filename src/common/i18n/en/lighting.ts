@@ -11,6 +11,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Lighting" are product names and stay as they are in every language.
  */
 const lighting = {
+  'lighting.alignment.title': 'Scene alignment',
+  'lighting.alignment.hint':
+    'Move or resize the scene on this device. Position is a percentage of its width or height.',
+  'lighting.alignment.keyboardFit':
+    'Fitted to the detected key positions. Fine-tune the scene here.',
+  'lighting.alignment.size': 'Scene size',
+  'lighting.alignment.horizontal': 'Horizontal position (%)',
+  'lighting.alignment.vertical': 'Vertical position (%)',
+  'lighting.alignment.reset': 'Centre and fit',
   'lighting.tuning.foregroundBrightness': 'Foreground brightness',
   'lighting.tuning.backgroundBrightness': 'Background brightness',
   'lighting.status.ambient': 'Flowing quietly · {scene}',

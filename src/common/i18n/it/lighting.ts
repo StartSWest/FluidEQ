@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'Allineamento della scena',
+  'lighting.alignment.hint':
+    'Sposta o ridimensiona la scena su questo dispositivo. La posizione è una percentuale della larghezza o altezza.',
+  'lighting.alignment.keyboardFit':
+    'Adattata alle posizioni dei tasti rilevate. Regola la scena qui.',
+  'lighting.alignment.size': 'Dimensione della scena',
+  'lighting.alignment.horizontal': 'Posizione orizzontale (%)',
+  'lighting.alignment.vertical': 'Posizione verticale (%)',
+  'lighting.alignment.reset': 'Centra e adatta',
   'lighting.tuning.foregroundBrightness': 'Luminosità del primo piano',
   'lighting.tuning.backgroundBrightness': 'Luminosità dello sfondo',
   'lighting.status.ambient': 'Movimento delicato · {scene}',

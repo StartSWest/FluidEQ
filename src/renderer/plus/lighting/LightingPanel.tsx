@@ -28,6 +28,7 @@ import LightingNotices from './LightingNotices';
 import LightingStage from './LightingStage';
 import LightingProfileTuning from './LightingProfileTuning';
 import LightingSlider from './LightingSlider';
+import LightingSceneSwatch from './LightingSceneSwatch';
 import '../../styles/Studio.scss';
 import '../../styles/StudioControls.scss';
 import '../../styles/Lighting.scss';
@@ -223,13 +224,7 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
           </div>
           <div className="lighting-scene-bar">
             <div className="lighting-scene-bar__identity">
-              <span
-                className="lighting-scene-bar__swatch"
-                aria-hidden="true"
-                style={{
-                  background: `linear-gradient(135deg, ${(scene?.swatch?.length ? scene.swatch : ['#477da1', '#8b6caf']).join(',')})`,
-                }}
-              />
+              <LightingSceneSwatch feed={feed} />
               <span>
                 <strong>
                   {sceneName
@@ -313,6 +308,12 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
               sceneId={scene?.lookId}
               target={target}
               targetName={targetName}
+              keyboardFit={
+                selectedDevice?.kind === 'keyboard' &&
+                selectedDevice.lamps.some(
+                  (lamp) => lamp.chromaIndex !== undefined,
+                )
+              }
               shared={
                 selectedDevices.length > 1
                   ? selectedDevices.map((device) => device.name).join(', ')

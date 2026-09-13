@@ -18,6 +18,9 @@ export interface IDeviceLightingTuning {
   brightness: number;
   backgroundBrightness: number;
   foregroundBrightness: number;
+  sceneScale: number;
+  sceneOffsetX: number;
+  sceneOffsetY: number;
   sensitivity: number;
   speed: number;
   saturation: number;
@@ -40,6 +43,9 @@ export const DEFAULT_DEVICE_TUNING: IDeviceLightingTuning = {
   brightness: 1,
   backgroundBrightness: 1,
   foregroundBrightness: 1,
+  sceneScale: 1,
+  sceneOffsetX: 0,
+  sceneOffsetY: 0,
   sensitivity: 1,
   speed: 0.7,
   saturation: 1,
@@ -86,6 +92,9 @@ export const readDeviceTuning = (
   return {
     effect: choice(raw.effect, LIGHTING_EFFECTS, base.effect),
     brightness: unit(raw.brightness, base.brightness),
+    sceneScale: unit(raw.sceneScale, base.sceneScale, 0.5, 2),
+    sceneOffsetX: unit(raw.sceneOffsetX, base.sceneOffsetX, -0.5, 0.5),
+    sceneOffsetY: unit(raw.sceneOffsetY, base.sceneOffsetY, -0.5, 0.5),
     backgroundBrightness: unit(
       raw.backgroundBrightness,
       base.backgroundBrightness,

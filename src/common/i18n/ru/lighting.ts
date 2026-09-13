@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'Выравнивание сцены',
+  'lighting.alignment.hint':
+    'Перемещайте сцену или меняйте её размер на устройстве. Позиция задаётся в процентах от ширины или высоты.',
+  'lighting.alignment.keyboardFit':
+    'Сцена подогнана под расположение обнаруженных клавиш. Здесь можно настроить её точнее.',
+  'lighting.alignment.size': 'Размер сцены',
+  'lighting.alignment.horizontal': 'По горизонтали (%)',
+  'lighting.alignment.vertical': 'По вертикали (%)',
+  'lighting.alignment.reset': 'По центру и размеру',
   'lighting.tuning.foregroundBrightness': 'Яркость переднего плана',
   'lighting.tuning.backgroundBrightness': 'Яркость фона',
   'lighting.status.ambient': 'Плавное движение · {scene}',

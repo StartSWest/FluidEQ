@@ -5,6 +5,7 @@ import type { ILightingHost } from 'main/lighting/lightingHost';
 import type { ILampArrayEvent, THelperEvent } from 'main/lighting/lightingWire';
 import {
   DEFAULT_LIGHTING_SETTINGS,
+  type ILamp,
   type TSynapseState,
 } from 'common/lighting/lightingModel';
 
@@ -44,7 +45,10 @@ const frame = {
   deltaMs: 33,
 };
 
-function setup(synapse: TSynapseState) {
+function setup(
+  synapse: TSynapseState,
+  loadKeyboard: () => Promise<ILamp[] | undefined> = async () => undefined,
+) {
   let synapseState = synapse;
   let receive: (event: THelperEvent) => void = () => {
     throw new Error('Host not started');
@@ -67,6 +71,7 @@ function setup(synapse: TSynapseState) {
     findFolder: () => 'helper',
     ensureIdentity: async () => 'no-package',
     createChroma: () => chroma,
+    loadKeyboard,
     startHost: (_path, onEvent) => {
       receive = onEvent;
       const next =
@@ -99,6 +104,73 @@ function setup(synapse: TSynapseState) {
     },
   };
 }
+
+it('sends fitted keys and their fallback canvas together, reverting to the common grid for two keyboards', async () => {
+  const lamps = [{ u: 0.5, v: 0.5, reach: 0.01, chromaIndex: 117 }];
+  const { service, receive, chroma } = setup('running', async () => lamps);
+  service.setSettings({ brightness: 1 });
+  receive({
+    type: 'razer',
+    container: 'keyboard-one',
+    name: 'Razer DeathStalker V2 Pro Tenkeyless',
+    productId: 0x02b1,
+  });
+  await Promise.resolve();
+  service.frame(frame);
+  const send = jest.mocked(chroma.send);
+  const call = send.mock.calls.find(([channel]) => channel === 'keyboard');
+  expect(call?.[1]).toHaveLength(6 * 22 * 3);
+  expect(call?.[2]?.[117]).toBe(0x01b4b4b4);
+  expect(call?.[2]?.[0]).toBe(0);
+  expect(
+    service.state().devices.find((device) => device.kind === 'keyboard')?.lamps,
+  ).toEqual(lamps);
+  send.mockClear();
+  receive({
+    type: 'razer',
+    container: 'keyboard-two',
+    name: 'Razer BlackWidow V4',
+    productId: 0x0287,
+  });
+  await Promise.resolve();
+  service.frame(frame);
+  expect(
+    send.mock.calls.find(([channel]) => channel === 'keyboard'),
+  ).toHaveLength(2);
+  expect(
+    service
+      .state()
+      .devices.filter((device) => device.kind === 'keyboard')
+      .every((device) => device.lamps.length === 132),
+  ).toBe(true);
+  service.dispose();
+});
+
+it('ignores a keyboard descriptor that resolves after its device was removed', async () => {
+  let finish: (lamps: ILamp[]) => void = () => {
+    throw Error('Descriptor not requested');
+  };
+  const { service, receive } = setup(
+    'running',
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  receive({
+    type: 'razer',
+    container: 'keyboard-one',
+    name: 'Razer DeathStalker V2 Pro Tenkeyless',
+    productId: 0x02b1,
+  });
+  receive({ type: 'razer-removed', container: 'keyboard-one' });
+  finish([{ u: 0.5, v: 0.5, reach: 0.01, chromaIndex: 117 }]);
+  await Promise.resolve();
+  expect(
+    service.state().devices.some((device) => device.kind === 'keyboard'),
+  ).toBe(false);
+  service.dispose();
+});
 
 it.each<TSynapseState>(['running', 'unknown'])(
   'sends a shared Razer device through Chroma only when %s',

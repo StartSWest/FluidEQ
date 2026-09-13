@@ -38,7 +38,7 @@ const ROUTE_KEYS: Record<ILightingDevice['route'], TranslationKey> = {
   none: 'lighting.route.none',
 };
 
-/** Each lamp of the device as one lit cell, in its own order. */
+/** Readable colour groups in lamp order, outlined even when their LEDs are dark. */
 const paintLamps = (
   canvas: HTMLCanvasElement,
   rgb: Uint8Array | undefined,
@@ -50,26 +50,39 @@ const paintLamps = (
   }
   const { width, height } = canvas;
   context.clearRect(0, 0, width, height);
-  // At most forty cells: a keyboard's hundred and thirty keys are sampled
-  // evenly, so the strip reads as the keyboard's colours, not as noise.
-  const cells = Math.min(40, Math.max(1, count));
-  const gap = Math.max(1, Math.round(height * 0.12));
+  // Sixteen wide swatches remain legible on a compact row. Average each group
+  // so a narrow bright region does not disappear between sampled lamps.
+  const cells = Math.min(16, Math.max(1, count));
+  const edge = height / 18;
+  const gap = edge * 2;
   const cellWidth = (width - gap * (cells - 1)) / cells;
   for (let cell = 0; cell < cells; cell += 1) {
-    const lamp = Math.floor((cell / cells) * count);
-    const lit = rgb && rgb.length >= (lamp + 1) * 3;
+    const first = Math.floor((cell / cells) * count);
+    const last = Math.floor(((cell + 1) / cells) * count);
+    const lit = rgb && rgb.length >= last * 3 && last > first;
+    const colour = [0, 0, 0];
+    if (lit) {
+      for (let lamp = first; lamp < last; lamp += 1) {
+        for (let channel = 0; channel < 3; channel += 1) {
+          colour[channel] += rgb[lamp * 3 + channel] / (last - first);
+        }
+      }
+    }
     context.fillStyle = lit
-      ? `rgb(${rgb[lamp * 3]}, ${rgb[lamp * 3 + 1]}, ${rgb[lamp * 3 + 2]})`
+      ? `rgb(${colour.join(', ')})`
       : 'rgba(214, 233, 247, 0.08)';
     context.beginPath();
     context.roundRect(
-      cell * (cellWidth + gap),
-      0,
-      cellWidth,
-      height,
+      cell * (cellWidth + gap) + edge / 2,
+      edge / 2,
+      cellWidth - edge,
+      height - edge,
       Math.min(3, cellWidth / 2),
     );
     context.fill();
+    context.lineWidth = edge;
+    context.strokeStyle = 'rgba(214, 233, 247, 0.35)';
+    context.stroke();
   }
 };
 
@@ -108,8 +121,8 @@ function LightingDeviceRow({
     );
   }, [feed, device.key, device.lamps.length]);
 
-  // A device lit through Windows is its own; through Razer Chroma the whole
-  // Razer desk is one channel, so there is no switch that could honour one.
+  // Windows can release one device. Our current Chroma connection uses
+  // shared category channels, so it cannot honour a separate device switch.
   const switchable = device.route === 'windows' && onMute !== undefined;
 
   return (
@@ -123,6 +136,7 @@ function LightingDeviceRow({
         disabled={!onSelect || device.route === 'none'}
         aria-pressed={selected}
         aria-label={t('lighting.device.edit', { name: device.name })}
+        title={t('lighting.device.edit', { name: device.name })}
       >
         <span className="lighting-device__glyph">
           <LightingKindGlyph kind={device.kind} />
@@ -146,7 +160,7 @@ function LightingDeviceRow({
             viewBox="0 0 16 16"
             aria-hidden="true"
           >
-            <path d="m6 3 5 5-5 5" />
+            <path d="M2 4h12M2 8h12M2 12h12M5 2v4M11 6v4M7 10v4" />
           </svg>
         )}
       </button>

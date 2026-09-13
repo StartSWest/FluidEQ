@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'Alineación de la escena',
+  'lighting.alignment.hint':
+    'Mueve o cambia el tamaño de la escena en este dispositivo. La posición es un porcentaje de su ancho o alto.',
+  'lighting.alignment.keyboardFit':
+    'Ajustada a las posiciones de las teclas detectadas. Afina la escena aquí.',
+  'lighting.alignment.size': 'Tamaño de la escena',
+  'lighting.alignment.horizontal': 'Posición horizontal (%)',
+  'lighting.alignment.vertical': 'Posición vertical (%)',
+  'lighting.alignment.reset': 'Centrar y ajustar',
   'lighting.tuning.foregroundBrightness': 'Brillo del primer plano',
   'lighting.tuning.backgroundBrightness': 'Brillo del fondo',
   'lighting.status.ambient': 'Flujo suave · {scene}',

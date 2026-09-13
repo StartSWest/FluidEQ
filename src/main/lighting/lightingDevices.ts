@@ -100,6 +100,19 @@ export const razerCandidates = (
 const synapseLights = (synapse: TSynapseState): boolean =>
   synapse === 'running' || synapse === 'unknown';
 
+/** A shared SDK grid cannot be fitted to two different physical keyboards. */
+export const singleChromaKeyboard = (
+  razer: ReadonlyMap<string, IRazerEvent>,
+  keyboards: ReadonlyMap<string, readonly ILamp[]>,
+): readonly ILamp[] | undefined => {
+  const candidates = razerCandidates(razer).filter(
+    (device) => razerKindOf(device.name) === 'keyboard',
+  );
+  return candidates.length === 1
+    ? keyboards.get(candidates[0].container)
+    : undefined;
+};
+
 /** The same physical device must have exactly one colour sender. */
 export const lightsThroughWindows = (
   device: IWindowsDevice,
@@ -114,8 +127,10 @@ export const buildDeviceList = (
   razer: ReadonlyMap<string, IRazerEvent>,
   settings: ILightingSettings,
   synapse: TSynapseState,
+  keyboards: ReadonlyMap<string, readonly ILamp[]> = new Map(),
 ): ILightingDevice[] => {
   const rows: ILightingDevice[] = [];
+  const keyboard = singleChromaKeyboard(razer, keyboards);
 
   razerCandidates(razer).forEach((entry) => {
     const key = razerKey(entry.container);
@@ -134,7 +149,10 @@ export const buildDeviceList = (
       name: entry.name,
       kind,
       route,
-      lamps: windowsTwin?.lamps ?? KIND_PREVIEW_LAMPS[kind],
+      lamps:
+        route === 'synapse' && kind === 'keyboard'
+          ? (keyboard ?? KIND_PREVIEW_LAMPS.keyboard)
+          : (windowsTwin?.lamps ?? KIND_PREVIEW_LAMPS[kind]),
       // Synapse lights by kind of device, so every Razer device it reaches is
       // one channel; through Windows each is its own.
       channel: route === 'synapse' ? 'synapse' : key,

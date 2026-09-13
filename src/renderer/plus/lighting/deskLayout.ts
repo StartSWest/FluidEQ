@@ -23,7 +23,7 @@ import type {
  */
 
 export const DESK_WIDTH = 1000;
-export const DESK_HEIGHT = 440;
+export const DESK_HEIGHT = 500;
 
 /**
  * The monitor at the back of the desk, showing the scene as the lamps see it
@@ -41,6 +41,25 @@ export interface IPlacedDevice {
   /** A headset drawn hanging on a stand, rather than standing on the desk. */
   onStand: boolean;
 }
+
+/** The screen belongs above the keyboard, not the centre of the whole desk. */
+export const monitorForDesk = (placed: readonly IPlacedDevice[]) => {
+  const keyboard = placed.find((entry) => entry.device.kind === 'keyboard');
+  if (!keyboard) {
+    return { ...MONITOR, y: 24 };
+  }
+  return {
+    ...MONITOR,
+    x: Math.max(
+      16,
+      Math.min(
+        DESK_WIDTH - MONITOR.width - 16,
+        keyboard.x + keyboard.width / 2 - MONITOR.width / 2,
+      ),
+    ),
+    y: Math.max(16, keyboard.y - MONITOR.height - 42),
+  };
+};
 
 const SIZE: Record<TLightingKind, { width: number; height: number }> = {
   keyboard: { width: 440, height: 176 },
@@ -136,7 +155,7 @@ export const layoutDesk = (
   );
   const roomAbove = BASELINE - MONITOR.y - 16;
   const scale = Math.min(
-    1.25,
+    1,
     rowWidth > 0 ? available / rowWidth : 1,
     tallest > 0 ? roomAbove / tallest : 1,
   );
@@ -179,6 +198,7 @@ export const layoutDesk = (
     });
 
   if (hasAnchor) {
+    const monitor = monitorForDesk(placed);
     const stands = placed.filter((entry) => entry.device.kind === 'stand');
     const keyboard = placed.find((entry) => entry.device.kind === 'keyboard');
     headsets.forEach((device, index) => {
@@ -208,12 +228,12 @@ export const layoutDesk = (
       const offset = step * (width + GAP);
       const x =
         side < 0
-          ? MONITOR.x - GAP - width - offset
-          : MONITOR.x + MONITOR.width + GAP + offset;
+          ? monitor.x - GAP - width - offset
+          : monitor.x + monitor.width + GAP + offset;
       placed.push({
         device,
         x: Math.min(DESK_WIDTH - width - 8, Math.max(8, x)),
-        y: MONITOR.y + MONITOR.height * 0.3,
+        y: monitor.y + monitor.height * 0.3,
         width,
         height,
         onStand: false,

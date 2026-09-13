@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': 'Alinhamento da cena',
+  'lighting.alignment.hint':
+    'Mova ou redimensione a cena neste dispositivo. A posição é uma porcentagem da largura ou altura.',
+  'lighting.alignment.keyboardFit':
+    'Ajustada às posições das teclas detectadas. Refine a cena aqui.',
+  'lighting.alignment.size': 'Tamanho da cena',
+  'lighting.alignment.horizontal': 'Posição horizontal (%)',
+  'lighting.alignment.vertical': 'Posição vertical (%)',
+  'lighting.alignment.reset': 'Centralizar e ajustar',
   'lighting.tuning.foregroundBrightness': 'Brilho do primeiro plano',
   'lighting.tuning.backgroundBrightness': 'Brilho do fundo',
   'lighting.status.ambient': 'Movimento suave · {scene}',

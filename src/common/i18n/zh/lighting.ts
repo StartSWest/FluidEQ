@@ -1,4 +1,13 @@
 const lighting = {
+  'lighting.alignment.title': '场景对齐',
+  'lighting.alignment.hint':
+    '移动或缩放此设备上的场景。位置以宽度或高度的百分比表示。',
+  'lighting.alignment.keyboardFit':
+    '已根据检测到的按键位置适配。可在此微调场景。',
+  'lighting.alignment.size': '场景大小',
+  'lighting.alignment.horizontal': '水平位置 (%)',
+  'lighting.alignment.vertical': '垂直位置 (%)',
+  'lighting.alignment.reset': '居中并适配',
   'lighting.tuning.foregroundBrightness': '前景亮度',
   'lighting.tuning.backgroundBrightness': '背景亮度',
   'lighting.status.ambient': '轻柔流动 · {scene}',

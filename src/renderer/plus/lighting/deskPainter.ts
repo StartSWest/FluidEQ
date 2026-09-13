@@ -9,11 +9,12 @@ import {
   DESK_HEIGHT,
   MONITOR,
   DESK_WIDTH,
+  monitorForDesk,
   type IPlacedDevice,
 } from './deskLayout';
 
 /**
- * The desk, drawn: each device as a dark object on a dark surface, its lamps
+ * The desk, drawn: each device as a softly lit object on a satin surface, its lamps
  * lit in the colours actually sent to it, and that light falling on the desk
  * around it. The devices are solid shapes with a highlight along the top edge
  * and a shadow under them, because a lamp only reads as light against
@@ -35,9 +36,9 @@ export interface IDeskPaint {
 
 type TContext = CanvasRenderingContext2D;
 
-const BODY = '#101a24';
-const BODY_EDGE = 'rgba(214, 233, 247, 0.10)';
-const BODY_HIGHLIGHT = 'rgba(214, 233, 247, 0.07)';
+const BODY = '#29364b';
+const BODY_EDGE = 'rgba(214, 233, 247, 0.24)';
+const BODY_HIGHLIGHT = 'rgba(214, 233, 247, 0.12)';
 const UNLIT: [number, number, number] = [44, 60, 74];
 
 const colourAt = (
@@ -51,13 +52,13 @@ const colourAt = (
 const css = ([r, g, b]: [number, number, number], alpha = 1) =>
   `rgba(${r}, ${g}, ${b}, ${alpha})`;
 
-const BODY_RGB: [number, number, number] = [16, 26, 36];
+const BODY_RGB: [number, number, number] = [27, 37, 54];
 
-/** A device's dark plastic, tinted by the light behind it. */
+/** Ambient light on the keycap remains visible even when its LED is black. */
 const mixWithBody = (colour: [number, number, number], amount: number) =>
   `rgb(${colour
     .map((channel, index) =>
-      Math.round(BODY_RGB[index] * (1 - amount) + channel * amount),
+      Math.round(Math.min(255, BODY_RGB[index] + channel * amount)),
     )
     .join(', ')})`;
 
@@ -147,9 +148,9 @@ const body = (
   r: number,
 ) => {
   c.save();
-  c.shadowColor = 'rgba(0, 0, 0, 0.55)';
-  c.shadowBlur = 18;
-  c.shadowOffsetY = 8;
+  c.shadowColor = 'rgba(2, 6, 18, 0.42)';
+  c.shadowBlur = 14;
+  c.shadowOffsetY = 6;
   roundRect(c, x, y, w, h, r);
   c.fillStyle = BODY;
   c.fill();
@@ -247,6 +248,9 @@ const keys = (
     );
     c.fillStyle = mixWithBody(colour, lit ? 0.45 : 0.12);
     c.fill();
+    c.strokeStyle = 'rgba(214, 233, 247, 0.12)';
+    c.lineWidth = 0.6;
+    c.stroke();
     roundRect(
       c,
       kx + cap * 0.16,
@@ -322,7 +326,7 @@ const paintMousepad = (
   rgb: Uint8Array | undefined,
 ) => {
   roundRect(c, e.x, e.y, e.width, e.height, 10);
-  c.fillStyle = '#0b131b';
+  c.fillStyle = '#1a263b';
   c.fill();
   // The cloth: a faint weave, so the surface reads as a pad and not a hole.
   c.strokeStyle = 'rgba(214, 233, 247, 0.025)';
@@ -379,7 +383,7 @@ const paintHeadset = (
   const cupWidth = e.width * 0.24;
   const cupHeight = e.height * 0.52;
   const cupsY = e.y + e.height * 0.4;
-  c.strokeStyle = '#1b2733';
+  c.strokeStyle = '#3b4960';
   c.lineWidth = Math.max(6, e.width * 0.07);
   c.lineCap = 'round';
   c.beginPath();
@@ -445,7 +449,16 @@ const paintStand = (
     e.height * 0.82,
     4,
   );
-  c.fillStyle = '#16212c';
+  const metal = c.createLinearGradient(
+    cx - e.width * 0.05,
+    0,
+    cx + e.width * 0.05,
+    0,
+  );
+  metal.addColorStop(0, '#253247');
+  metal.addColorStop(0.45, '#4a5a73');
+  metal.addColorStop(1, '#29364b');
+  c.fillStyle = metal;
   c.fill();
   roundRect(
     c,
@@ -578,12 +591,13 @@ let screenSource: { canvas: OffscreenCanvas; image: ImageData } | undefined;
 const paintMonitor = (
   c: TContext,
   grid: IDeskPaint['grid'],
+  monitor: typeof MONITOR,
   preview?: ImageBitmap,
 ) => {
-  const { x, y, width, height } = MONITOR;
+  const { x, y, width, height } = monitor;
   const bezel = 6;
   // Neck and foot.
-  c.fillStyle = '#131d27';
+  c.fillStyle = '#35425a';
   roundRect(c, x + width / 2 - 10, y + height, 20, 26, 3);
   c.fill();
   roundRect(c, x + width / 2 - 52, y + height + 24, 104, 8, 4);
@@ -668,13 +682,19 @@ export const paintDesk = (canvas: HTMLCanvasElement, paint: IDeskPaint) => {
     canvas.height * 0.6,
     Math.max(canvas.width, DESK_WIDTH * scale) * 0.7,
   );
-  surface.addColorStop(0, '#122130');
-  surface.addColorStop(1, '#060c12');
+  surface.addColorStop(0, '#293c56');
+  surface.addColorStop(0.55, '#1d2a43');
+  surface.addColorStop(1, '#121b30');
   c.fillStyle = surface;
   c.fillRect(0, 0, canvas.width, canvas.height);
   c.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 
-  paintMonitor(c, paint.grid, paint.image);
+  paintMonitor(
+    c,
+    paint.grid,
+    monitorForDesk(paint.placed.length ? paint.placed : paint.faint),
+    paint.image,
+  );
 
   const byLayer = (entries: readonly IPlacedDevice[]) =>
     [...entries].sort((a, b) => LAYER[a.device.kind] - LAYER[b.device.kind]);
