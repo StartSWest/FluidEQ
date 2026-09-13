@@ -388,6 +388,8 @@ const studio = {
   'studio.problem.loop-bound': 'Une boucle fait plus de 128 tours.',
   'studio.problem.loop-assign':
     'Une boucle modifie son propre compteur à l’intérieur.',
+  'studio.problem.loop-budget':
+    'Les boucles imbriquées et les fonctions qu’elles appellent tournent trop de fois par pixel. Imbriquez moins ou réduisez les tours.',
   'studio.problem.entry-point':
     'Il n’y a pas de fonction vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Ce n’est pas une scène que FluidEQ sait lire.',

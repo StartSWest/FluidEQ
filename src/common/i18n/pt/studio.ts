@@ -383,6 +383,8 @@ const studio = {
   'studio.problem.loop-bound': 'Um laço se repete mais de 128 vezes.',
   'studio.problem.loop-assign':
     'Um laço altera o próprio contador dentro dele.',
+  'studio.problem.loop-budget':
+    'Laços dentro de laços, e as funções que eles chamam, rodam vezes demais por pixel. Aninhe menos ou use menos voltas.',
   'studio.problem.entry-point': 'Não há uma função vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Isto não é uma cena que o FluidEQ consiga ler.',
   'studio.problem.bad-id':

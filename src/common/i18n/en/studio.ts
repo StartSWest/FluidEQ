@@ -393,6 +393,8 @@ const studio = {
     'A loop must count from one fixed number to another.',
   'studio.problem.loop-bound': 'A loop runs more than 128 times.',
   'studio.problem.loop-assign': 'A loop changes its own counter inside it.',
+  'studio.problem.loop-budget':
+    'Loops inside loops, and the functions they call, run too many times per pixel. Nest less or use fewer turns.',
   'studio.problem.entry-point':
     'There is no vec4 sceneColour(vec2 uv) function.',
   'studio.problem.not-a-pack': 'This is not a scene FluidEQ can read.',

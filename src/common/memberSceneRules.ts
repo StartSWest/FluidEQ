@@ -26,15 +26,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * replace the wrapper the app puts around every scene — and with it the fade
  * and every guard in it — so no `#` may appear outside a comment. A loop could
  * run long enough to reset the graphics driver, so the only loop is a `for`
- * with constant bounds, at most 128 turns, whose counter the body never
- * touches. Every one of the thirty official scenes already keeps these rules.
+ * with constant bounds, at most 128 turns, whose counter the body can never
+ * change, and all the loops and calls one pixel runs stay inside a budget.
+ * Every one of the thirty official scenes already keeps these rules.
+ *
+ * GLSL ES 3.00 allows a loop to change its own counter and to run to a
+ * variable, so these rules are the only thing that ends a member's loop: a
+ * scene that slips past them holds the GPU until Windows resets the driver,
+ * for every program on the machine, and five resets in a minute stop Windows.
+ * Each rule is written against the way around it that was found.
  *
  * NO IMPORTS, on purpose: the signing function vendors this file into Deno
- * as it is, and the checks must be the same bytes on both sides.
+ * as it is, and the checks must be the same bytes on both sides. That is also
+ * why it is one file past the usual length: a second file would be an import.
  */
 
 export const MAX_MEMBER_SOURCE_BYTES = 64 * 1024;
 export const MAX_MEMBER_LOOP_ITERATIONS = 128;
+/**
+ * The work one pixel may do: every loop turn, and every call of the scene's
+ * own functions, counted from `sceneColour` down — nested loops multiply, and
+ * a helper called in a loop costs its own work on every turn.
+ *
+ * A cap on each loop alone let three nested 128-turn loops run two million
+ * turns a pixel, two trillion on a 1920x1080 picture: minutes of GPU time,
+ * where Windows resets the driver after two seconds. Measured on an RTX 4080
+ * at about 1.3 ms per billion units of scene-like work, and an integrated GPU
+ * at twenty to forty times that, this budget keeps a whole 1920x1080 frame
+ * under two seconds on the slowest of them.
+ *
+ * A unit is about one noise turn: a turn and every call cost one, and each
+ * span's own arithmetic, tests and built-in calls one per
+ * OPERATIONS_PER_UNIT besides. Counted that way on 2026-09-13, the heaviest
+ * of the 77 official scenes and Studio projects on this machine (Coral as a
+ * member gets it in the Studio, with its helpers) does 8579, and every one
+ * of them passes.
+ */
+export const MAX_MEMBER_PIXEL_WORK = 16384;
 
 export type TMemberRuleCode =
   | 'too-large'
@@ -47,6 +75,7 @@ export type TMemberRuleCode =
   | 'loop-shape'
   | 'loop-bound'
   | 'loop-assign'
+  | 'loop-budget'
   | 'entry-point';
 
 export interface IMemberRuleViolation {
@@ -57,9 +86,19 @@ export interface IMemberRuleViolation {
 
 const ENTRY_POINT = /\bvec4\s+sceneColour\s*\(\s*vec2\s+\w+\s*\)/;
 const IDENTIFIER = /[A-Za-z_][A-Za-z0-9_]*/g;
-const CONST_INT = /\bconst\s+int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)\s*;/g;
-const FOR_HEADER =
-  /^\s*int\s+([A-Za-z_]\w*)\s*=\s*(-?\w+)\s*;\s*([A-Za-z_]\w*)\s*(<=|<|>=|>)\s*(-?\w+)\s*;\s*(.*?)\s*$/s;
+/**
+ * A decimal integer as GLSL reads it. A leading zero makes a literal octal
+ * there: `01000000000` is 134217728 turns to the compiler and, read with
+ * `Number`, a billion here. Hex and `u` suffixes are not constants at all.
+ */
+const DECIMAL = /^-?(?:0|[1-9]\d*)$/;
+const CONST_INT =
+  /\bconst\s+int\s+([A-Za-z_]\w*)\s*=\s*(-?(?:0|[1-9]\d*))\s*;/g;
+/** The range of a GLSL `int`; a counter that leaves it wraps and never ends. */
+const INT_MIN = -2147483648;
+const INT_MAX = 2147483647;
+const isInt = (value: number) =>
+  Number.isSafeInteger(value) && value >= INT_MIN && value <= INT_MAX;
 
 /**
  * Comments replaced by spaces, newlines kept — so a line number found in the
@@ -72,7 +111,10 @@ export const blankGlslComments = (source: string): string | null => {
   while (at < source.length) {
     const pair = source.slice(at, at + 2);
     if (pair === '//') {
-      while (at < source.length && source[at] !== '\n') {
+      // A carriage return ends a line comment for the compiler too: ended
+      // only at a newline, `// x` + CR + `while (true) {}` hid a loop from
+      // every rule below while the compiler read it.
+      while (at < source.length && source[at] !== '\n' && source[at] !== '\r') {
         out.push(' ');
         at += 1;
       }
@@ -114,44 +156,165 @@ export const stripGlslComments = (source: string): string | null => {
     .trim()}\n`;
 };
 
-const lineAt = (text: string, index: number): number => {
-  let line = 1;
-  for (let k = 0; k < index; k += 1) {
+/** Where each line starts, so finding a line is a search, not a rescan. */
+const lineStarts = (text: string): number[] => {
+  const starts = [0];
+  for (let k = 0; k < text.length; k += 1) {
     if (text.charCodeAt(k) === 10) {
-      line += 1;
+      starts.push(k + 1);
     }
   }
-  return line;
+  return starts;
 };
 
-/** The index of the bracket that closes the one at `open`, or -1. */
-const matching = (text: string, open: number, left: string, right: string) => {
-  let depth = 0;
-  for (let k = open; k < text.length; k += 1) {
+const lineOf = (starts: readonly number[], index: number): number => {
+  let low = 0;
+  let high = starts.length - 1;
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (starts[middle] <= index) {
+      low = middle;
+    } else {
+      high = middle - 1;
+    }
+  }
+  return low + 1;
+};
+
+/**
+ * Every bracket of one kind paired with its partner, -1 for one with none,
+ * in a single pass. Found by scanning forward from each opening instead, a
+ * source of twelve thousand unclosed `for (` held the main process for a
+ * second before it was refused.
+ */
+const bracketPartners = (
+  text: string,
+  left: string,
+  right: string,
+): Int32Array => {
+  const partners = new Int32Array(text.length).fill(-1);
+  const open: number[] = [];
+  for (let k = 0; k < text.length; k += 1) {
     if (text[k] === left) {
-      depth += 1;
+      open.push(k);
     } else if (text[k] === right) {
-      depth -= 1;
-      if (depth === 0) {
-        return k;
+      const start = open.pop();
+      if (start !== undefined) {
+        partners[start] = k;
+        partners[k] = start;
       }
     }
   }
-  return -1;
+  return partners;
 };
 
-const readInt = (token: string, constants: Map<string, number>) => {
-  if (/^-?\d+$/.test(token)) {
-    return Number(token);
+interface ISourceIndex {
+  /** The source with its comments blanked. */
+  code: string;
+  parens: Int32Array;
+  braces: Int32Array;
+  /** Each `const int` literal's values, by name. */
+  constants: Map<string, number[]>;
+  /** How many declarations of any kind make each name an `int`. */
+  ints: Map<string, number>;
+}
+
+const WORD = /[A-Za-z_]\w*/y;
+
+const wordAt = (code: string, at: number): string | undefined => {
+  WORD.lastIndex = at;
+  return WORD.exec(code)?.[0];
+};
+
+const skipSpace = (code: string, from: number): number => {
+  let at = from;
+  while (at < code.length && /\s/.test(code[at])) {
+    at += 1;
   }
-  return constants.get(token);
+  return at;
+};
+
+/** Whether an `int` keyword that declares — not an `int(...)` conversion — starts at `at`. */
+const declaringIntAt = (code: string, at: number): boolean =>
+  code.startsWith('int', at) &&
+  !/\w/.test(code[at - 1] ?? '') &&
+  !/\w/.test(code[at + 3] ?? '') &&
+  code[skipSpace(code, at + 3)] !== '(';
+
+/**
+ * Every name an `int` declaration introduces — variables, constants,
+ * parameters, each name in a list — counted. One walk per `int`, over its
+ * declarators only; `int(` is a conversion and declares nothing.
+ *
+ * A walk also ends at the next declaring `int`, which no declarator can
+ * contain outside brackets: sixteen thousand `int ` with nothing between
+ * walked every one to the end of the file, and held the main process for six
+ * seconds. An `int(` conversion inside a declarator does not end it, or
+ * `int a = int(x), N = 1000000000;` would hide the second `N`.
+ */
+const intDeclarations = (code: string, parens: Int32Array) => {
+  const counts = new Map<string, number>();
+  const count = (from: number, to: number) => {
+    const name = code.slice(from, to).match(/[A-Za-z_]\w*/)?.[0];
+    if (name) {
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+  };
+  const keyword = /\bint\b/g;
+  let found = keyword.exec(code);
+  while (found) {
+    let k = skipSpace(code, found.index + 3);
+    // A walk ends where the declaration does, or where the next `int` in a
+    // parameter list starts its own: each `int` is walked once.
+    let part = code[k] === '(' ? -1 : k;
+    while (part >= 0 && k < code.length && !';){}'.includes(code[k])) {
+      if (k > part && code[k] === 'i' && declaringIntAt(code, k)) {
+        break;
+      }
+      if (code[k] === '(') {
+        k = parens[k] < 0 ? code.length : parens[k] + 1;
+      } else if (code[k] === ',') {
+        count(part, k);
+        part = wordAt(code, skipSpace(code, k + 1)) === 'int' ? -1 : k + 1;
+        k += 1;
+      } else {
+        k += 1;
+      }
+    }
+    if (part >= 0) {
+      count(part, k);
+    }
+    found = keyword.exec(code);
+  }
+  return counts;
+};
+
+/**
+ * A loop bound's value, when the name can only mean one constant: declared
+ * as an `int` once in the whole source, and that once a `const int` literal.
+ * Read as whichever `const int` came last, a `const int N = 1` in one
+ * function hid the hundred million a loop in another actually ran to; and a
+ * runtime `int N`, or a parameter named `N`, is not a constant at all.
+ */
+const constantValue = (source: ISourceIndex, name: string) => {
+  const values = source.constants.get(name) ?? [];
+  return values.length === 1 && source.ints.get(name) === 1
+    ? values[0]
+    : undefined;
+};
+
+const readInt = (source: ISourceIndex, token: string) => {
+  const value = DECIMAL.test(token)
+    ? Number(token)
+    : constantValue(source, token);
+  return value !== undefined && isInt(value) ? value : undefined;
 };
 
 /** How far one turn moves the counter, or undefined for anything else. */
 const readStep = (
+  source: ISourceIndex,
   step: string,
   counter: string,
-  constants: Map<string, number>,
 ): number | undefined => {
   const compact = step.replace(/\s+/g, '');
   if (compact === `${counter}++` || compact === `++${counter}`) {
@@ -164,7 +327,7 @@ const readStep = (
   if (!by || by[1] !== counter) {
     return undefined;
   }
-  const size = readInt(by[3], constants);
+  const size = readInt(source, by[3]);
   if (size === undefined) {
     return undefined;
   }
@@ -184,36 +347,101 @@ const turns = (start: number, end: number, test: string, step: number) => {
   return start >= end ? Math.floor((start - end) / -step) + 1 : 0;
 };
 
-/** Where a loop's body ends: its closing brace, or the end of one statement. */
-const bodyEnd = (code: string, from: number): number => {
-  let at = from;
-  while (at < code.length && /\s/.test(code[at])) {
-    at += 1;
-  }
-  if (code[at] === '{') {
-    return matching(code, at, '{', '}');
-  }
-  let depth = 0;
-  for (let k = at; k < code.length; k += 1) {
-    if (code[k] === '(') {
-      depth += 1;
-    } else if (code[k] === ')') {
-      depth -= 1;
-    } else if (code[k] === ';' && depth === 0) {
+/** The semicolon ending a statement with no body of its own, or -1. */
+const simpleEnd = (source: ISourceIndex, from: number): number => {
+  const { code, parens } = source;
+  let k = from;
+  while (k < code.length) {
+    const char = code[k];
+    if (char === ';') {
       return k;
+    }
+    if (char === '(') {
+      if (parens[k] < 0) {
+        return -1;
+      }
+      k = parens[k] + 1;
+    } else if (char === ')' || char === '{' || char === '}') {
+      return -1;
+    } else {
+      k += 1;
     }
   }
   return -1;
 };
 
-type TLoopFinding = TMemberRuleCode | undefined;
+/** Deeper than any scene is written; past it a statement is not read. */
+const MAX_STATEMENT_NESTING = 256;
 
-const checkLoop = (
-  code: string,
-  open: number,
-  constants: Map<string, number>,
-): TLoopFinding => {
-  const close = matching(code, open, '(', ')');
+/**
+ * The index of the last character of the statement starting at `from`, or
+ * -1. Follows the statement's own shape: a block, an `if` and its `else`, a
+ * `for`, `while` or `switch` and what they govern. Ended at its first
+ * semicolon, `for (...) if (hit) a; else { i = 0; }` had a body of `if (hit)
+ * a;`, and the `else` that reset the counter was never read as the loop's.
+ */
+const statementEnd = (source: ISourceIndex, from: number): number => {
+  const { code, parens, braces } = source;
+  const governing: boolean[] = [];
+  let at = from;
+  for (let step = 0; step < MAX_STATEMENT_NESTING; step += 1) {
+    at = skipSpace(code, at);
+    const word = wordAt(code, at);
+    if (
+      word === 'if' ||
+      word === 'for' ||
+      word === 'while' ||
+      word === 'switch'
+    ) {
+      const paren = skipSpace(code, at + word.length);
+      const close = code[paren] === '(' ? parens[paren] : -1;
+      if (close < 0) {
+        return -1;
+      }
+      governing.push(word === 'if');
+      at = close + 1;
+    } else {
+      const end = code[at] === '{' ? braces[at] : simpleEnd(source, at);
+      if (end < 0) {
+        return -1;
+      }
+      let resume = -1;
+      while (governing.length > 0 && resume < 0) {
+        if (governing.pop()) {
+          const after = skipSpace(code, end + 1);
+          if (wordAt(code, after) === 'else') {
+            resume = after + 4;
+          }
+        }
+      }
+      if (resume < 0) {
+        return end;
+      }
+      at = resume;
+    }
+  }
+  return -1;
+};
+
+interface ILoop {
+  counter: string;
+  turns: number;
+  /** Where its body starts, and one past where it ends. */
+  from: number;
+  to: number;
+}
+
+const FOR_HEADER =
+  /^\s*int\s+([A-Za-z_]\w*)\s*=\s*(-?\w+)\s*;\s*([A-Za-z_]\w*)\s*(<=|<|>=|>)\s*(-?\w+)\s*;\s*(.*?)\s*$/s;
+
+/** The loop whose `for` is at `at`, or the rule its header breaks. */
+const readLoop = (
+  source: ISourceIndex,
+  at: number,
+): ILoop | TMemberRuleCode => {
+  const { code, parens } = source;
+  const open = skipSpace(code, at + 3);
+  const close = code[open] === '(' ? parens[open] : -1;
   if (close < 0) {
     return 'loop-shape';
   }
@@ -222,9 +450,9 @@ const checkLoop = (
     return 'loop-shape';
   }
   const [, counter, from, tested, test, to, stepText] = header;
-  const start = readInt(from, constants);
-  const end = readInt(to, constants);
-  const step = readStep(stepText, counter, constants);
+  const start = readInt(source, from);
+  const end = readInt(source, to);
+  const step = readStep(source, stepText, counter);
   if (
     tested !== counter ||
     start === undefined ||
@@ -236,85 +464,368 @@ const checkLoop = (
   ) {
     return 'loop-shape';
   }
-  if (turns(start, end, test, step) > MAX_MEMBER_LOOP_ITERATIONS) {
+  const count = turns(start, end, test, step);
+  if (count > MAX_MEMBER_LOOP_ITERATIONS) {
     return 'loop-bound';
   }
-  const last = bodyEnd(code, close + 1);
+  // Where the counter stands once the test fails must still be an `int`:
+  // from 2147483640 while `i <= 2147483647`, eight turns on paper, the ninth
+  // wraps to the most negative int and the test never fails again.
+  if (!isInt(start + count * step)) {
+    return 'loop-bound';
+  }
+  const last = statementEnd(source, close + 1);
   if (last < 0) {
     return 'loop-shape';
   }
-  const body = code.slice(close + 1, last + 1);
-  const assigned = new RegExp(
-    `\\b${counter}\\s*(?:[-+*/%]?=(?!=)|\\+\\+|--)|(?:\\+\\+|--)\\s*${counter}\\b`,
-  );
-  return assigned.test(body) ? 'loop-assign' : undefined;
+  return { counter, turns: count, from: close + 1, to: last + 1 };
 };
+
+/** A call's arguments, split at the commas that belong to it. */
+const splitArguments = (text: string): string[] => {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let k = 0; k < text.length; k += 1) {
+    const char = text[k];
+    if (char === '(' || char === '[') {
+      depth += 1;
+    } else if (char === ')' || char === ']') {
+      depth -= 1;
+    } else if (char === ',' && depth === 0) {
+      parts.push(text.slice(start, k));
+      start = k + 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts;
+};
+
+const WRITES_BACK = /\b(?:out|inout)\b/;
+
+/**
+ * Functions with a parameter they write back to their caller: every name
+ * followed by a bracket whose partner closes a list naming `out` or `inout`.
+ * Found by a pattern that stopped at the first bracket inside the list,
+ * `void reset(inout int c, float q[(2)])` was not a writer, and handing it
+ * the counter reset the loop unnoticed — and on a long enough name the
+ * pattern held the main process for a second besides.
+ */
+const writersIn = (code: string, parens: Int32Array): Set<string> => {
+  const writers = new Set<string>();
+  const word = /[A-Za-z_]\w*/g;
+  let found = word.exec(code);
+  while (found) {
+    const open = skipSpace(code, found.index + found[0].length);
+    const close = code[open] === '(' ? parens[open] : -1;
+    if (close > open && WRITES_BACK.test(code.slice(open + 1, close))) {
+      writers.add(found[0]);
+    }
+    found = word.exec(code);
+  }
+  return writers;
+};
+
+/**
+ * Whether the body can change the loop's counter, and so run it forever.
+ * Every assignment counts — `&=`, `|=`, `^=`, `<<=` and `>>=` too, and
+ * through parentheses, `(i) = 0` — and so does handing the counter to a
+ * function that writes back through an `out` or `inout` parameter.
+ */
+const changesCounter = (
+  source: ISourceIndex,
+  loop: ILoop,
+  writers: ReadonlySet<string>,
+): boolean => {
+  const { code, parens } = source;
+  const body = code.slice(loop.from, loop.to);
+  const name = loop.counter;
+  const written = new RegExp(
+    `\\b${name}(?:\\s*\\))*\\s*(?:(?:[-+*/%&|^]|<<|>>)?=(?!=)|\\+\\+|--)|(?:\\+\\+|--)(?:\\s*\\()*\\s*${name}\\b`,
+  );
+  if (written.test(body)) {
+    return true;
+  }
+  const call = /[A-Za-z_]\w*/g;
+  let found = call.exec(body);
+  while (found) {
+    const paren = loop.from + skipSpace(body, found.index + found[0].length);
+    if (writers.has(found[0]) && code[paren] === '(') {
+      const close = parens[paren];
+      if (
+        close < 0 ||
+        splitArguments(code.slice(paren + 1, close)).some(
+          (argument) => argument.replace(/[\s()]/g, '') === name,
+        )
+      ) {
+        return true;
+      }
+    }
+    found = call.exec(body);
+  }
+  return false;
+};
+
+/** A top-level `{`'s function name, when it opens a function's body. */
+const functionNameBefore = (
+  source: ISourceIndex,
+  brace: number,
+): string | undefined => {
+  const { code, parens } = source;
+  let at = brace - 1;
+  while (at >= 0 && /\s/.test(code[at])) {
+    at -= 1;
+  }
+  if (code[at] !== ')' || parens[at] < 0) {
+    return undefined;
+  }
+  at = parens[at] - 1;
+  while (at >= 0 && /\s/.test(code[at])) {
+    at -= 1;
+  }
+  const end = at + 1;
+  while (at >= 0 && /\w/.test(code[at])) {
+    at -= 1;
+  }
+  const name = code.slice(at + 1, end);
+  return /^[A-Za-z_]\w*$/.test(name) ? name : undefined;
+};
+
+/** Each function's bodies, as `[from, to)`; overloads keep one each. */
+const functionBodies = (source: ISourceIndex) => {
+  const { code, braces } = source;
+  const bodies = new Map<string, Array<[number, number]>>();
+  let at = code.indexOf('{');
+  while (at >= 0 && braces[at] > at) {
+    const name = functionNameBefore(source, at);
+    if (name) {
+      bodies.set(name, [...(bodies.get(name) ?? []), [at + 1, braces[at]]]);
+    }
+    at = code.indexOf('{', braces[at] + 1);
+  }
+  return bodies;
+};
+
+/** Deeper than any scene calls and nests; past it a pixel is over budget. */
+const MAX_WORK_DEPTH = 64;
+
+/** What a turn's own arithmetic, tests and calls are counted by. */
+const OPERATION_MARKS = '+-*/%<>=!&|^?(';
+
+/**
+ * Operations worth one unit of work. Counted by turns and calls alone, a
+ * loop of 128 by 127 turns with fifteen hundred statements in each turn
+ * passed the budget at seventy million operations a pixel; weighing each
+ * turn by what it does closes that without moving any scene written to be
+ * looked at — see the measurement at MAX_MEMBER_PIXEL_WORK.
+ */
+const OPERATIONS_PER_UNIT = 32;
+
+/**
+ * Where the work one pixel can do first goes past the budget, or undefined
+ * when it never does.
+ *
+ * Counted from `sceneColour` down: a loop costs its turns times one more
+ * than its body, a call one more than the function it calls, and every span
+ * its own operations over OPERATIONS_PER_UNIT besides — a nested loop's
+ * operations are its own, counted once per turn inside it. Sums stop just
+ * past the budget, so a loop that never turns cannot multiply a body past
+ * any number into NaN and hide the work around it.
+ */
+const overBudget = (
+  source: ISourceIndex,
+  loops: ReadonlyMap<number, ILoop>,
+): number | undefined => {
+  const { code } = source;
+  const bodies = functionBodies(source);
+  const ceiling = MAX_MEMBER_PIXEL_WORK + 1;
+  const known = new Map<string, number>();
+  const operationsBefore = new Uint32Array(code.length + 1);
+  for (let k = 0; k < code.length; k += 1) {
+    operationsBefore[k + 1] =
+      operationsBefore[k] + (OPERATION_MARKS.includes(code[k]) ? 1 : 0);
+  }
+  const operationsIn = (from: number, to: number) =>
+    operationsBefore[to] - operationsBefore[from];
+  let over: number | undefined;
+  const add = (work: number, more: number, at: number) => {
+    const sum = Math.min(work + more, ceiling);
+    if (sum >= ceiling && over === undefined) {
+      over = at;
+    }
+    return sum;
+  };
+
+  const workOf = (from: number, to: number, depth: number): number => {
+    if (depth > MAX_WORK_DEPTH) {
+      return add(0, ceiling, from);
+    }
+    let work = 0;
+    let operations = operationsIn(from, to);
+    const word = /[A-Za-z_]\w*/g;
+    word.lastIndex = from;
+    let found = word.exec(code);
+    while (found && found.index < to) {
+      const name = found[0];
+      const loop = name === 'for' ? loops.get(found.index) : undefined;
+      if (loop) {
+        const body = workOf(loop.from, loop.to, depth + 1);
+        work = add(
+          work,
+          Math.min(loop.turns * (1 + body), ceiling),
+          found.index,
+        );
+        operations -= operationsIn(loop.from, loop.to);
+        word.lastIndex = loop.to;
+      } else if (
+        bodies.has(name) &&
+        code[skipSpace(code, found.index + name.length)] === '('
+      ) {
+        let called = known.get(name);
+        if (called === undefined) {
+          // Recursion is a compile error; counted as nothing, it ends here.
+          known.set(name, 0);
+          called = Math.max(
+            0,
+            ...(bodies.get(name) ?? []).map(([start, end]) =>
+              workOf(start, end, depth + 1),
+            ),
+          );
+          known.set(name, called);
+        }
+        work = add(work, 1 + called, found.index);
+      }
+      found = word.exec(code);
+    }
+    return add(work, operations / OPERATIONS_PER_UNIT, from);
+  };
+
+  const total = Math.max(
+    0,
+    ...(bodies.get('sceneColour') ?? []).map(([start, end]) =>
+      workOf(start, end, 0),
+    ),
+  );
+  return total >= ceiling ? (over ?? 0) : undefined;
+};
+
+/**
+ * More loops than any scene has — the most in the 77 official scenes and
+ * Studio projects measured on 2026-09-13 is 11 — and each one is more for
+ * the compiler to link, which holds every other scene in the window while it
+ * does. Past it the source is not read further.
+ */
+const MAX_MEMBER_LOOPS = 64;
 
 /**
  * Every rule the source breaks, at most once each, in the order they appear.
  * Empty means the source may be handed to the compiler.
+ *
+ * One pass over the source, whatever is in it: every check that scanned
+ * again from a match, or from the top of the file for its line, let a source
+ * of the right twenty thousand tokens hold the main process for a second.
  */
 export const checkMemberSceneSource = (
   source: string,
 ): IMemberRuleViolation[] => {
   const found = new Map<TMemberRuleCode, number>();
-  const note = (code: TMemberRuleCode, line: number) => {
-    if (!found.has(code)) {
-      found.set(code, line);
-    }
-  };
 
   if (new TextEncoder().encode(source).byteLength > MAX_MEMBER_SOURCE_BYTES) {
-    note('too-large', 1);
+    // Refused whatever else it holds, so nothing else is read: every other
+    // check is paced to a source of this size, not to what was sent.
+    return [{ code: 'too-large', line: 1 }];
   }
   const code = blankGlslComments(source);
   if (code === null) {
-    note('unterminated-comment', lineAt(source, source.lastIndexOf('/*')));
+    found.set(
+      'unterminated-comment',
+      lineOf(lineStarts(source), source.lastIndexOf('/*')),
+    );
     return [...found].map(([rule, line]) => ({ code: rule, line }));
   }
+  const starts = lineStarts(code);
+  const note = (rule: TMemberRuleCode, index: number) => {
+    if (!found.has(rule)) {
+      found.set(rule, lineOf(starts, index));
+    }
+  };
 
   for (let k = 0; k < code.length; k += 1) {
     const unit = code.charCodeAt(k);
     const printable = unit >= 32 && unit <= 126;
     if (!printable && unit !== 9 && unit !== 10 && unit !== 13) {
-      note('non-ascii', lineAt(code, k));
+      note('non-ascii', k);
       break;
     }
   }
   const hash = code.indexOf('#');
   if (hash >= 0) {
-    note('preprocessor', lineAt(code, hash));
+    note('preprocessor', hash);
+  }
+  // A backslash before a newline joins two lines before the compiler reads
+  // either: `whi` + backslash + newline + `le (true) {}` is a loop no rule
+  // saw, because every rule read two words. No scene needs one outside a
+  // comment, so none is allowed there.
+  const backslash = code.indexOf('\\');
+  if (backslash >= 0) {
+    note('preprocessor', backslash);
   }
 
-  const constants = new Map<string, number>();
+  const parens = bracketPartners(code, '(', ')');
+  const index: ISourceIndex = {
+    code,
+    parens,
+    braces: bracketPartners(code, '{', '}'),
+    constants: new Map(),
+    ints: intDeclarations(code, parens),
+  };
   Array.from(code.matchAll(CONST_INT)).forEach(([, name, value]) => {
-    constants.set(name, Number(value));
+    index.constants.set(name, [
+      ...(index.constants.get(name) ?? []),
+      Number(value),
+    ]);
   });
+  const writers = writersIn(code, parens);
+  const loops = new Map<number, ILoop>();
+  let loopCount = 0;
+  let loopsBroken = false;
 
   Array.from(code.matchAll(IDENTIFIER)).forEach((token) => {
     const word = token[0];
-    const index = token.index ?? 0;
+    const at = token.index ?? 0;
     if (word === 'while') {
-      note('while', lineAt(code, index));
+      note('while', at);
     } else if (word === 'do') {
-      note('do', lineAt(code, index));
-    } else if (word === 'main' && /^\s*\(/.test(code.slice(index + 4))) {
-      note('main', lineAt(code, index));
+      note('do', at);
+    } else if (word === 'main' && code[skipSpace(code, at + 4)] === '(') {
+      note('main', at);
     } else if (word === 'for') {
-      const open = code.indexOf('(', index);
-      const between = code.slice(index + 3, open);
-      const finding =
-        open < 0 || between.trim() !== ''
-          ? 'loop-shape'
-          : checkLoop(code, open, constants);
-      if (finding) {
-        note(finding, lineAt(code, index));
+      loopCount += 1;
+      if (loopCount > MAX_MEMBER_LOOPS) {
+        note('loop-budget', at);
+        loopsBroken = true;
+        return;
+      }
+      const loop = readLoop(index, at);
+      if (typeof loop === 'string') {
+        note(loop, at);
+        loopsBroken = true;
+      } else if (changesCounter(index, loop, writers)) {
+        note('loop-assign', at);
+        loopsBroken = true;
+      } else {
+        loops.set(at, loop);
       }
     }
   });
 
   if (!ENTRY_POINT.test(code)) {
-    note('entry-point', 1);
+    note('entry-point', 0);
+  } else if (!loopsBroken) {
+    const over = overBudget(index, loops);
+    if (over !== undefined) {
+      note('loop-budget', over);
+    }
   }
 
   return [...found]

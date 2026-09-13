@@ -339,6 +339,8 @@ const studio = {
   'studio.problem.loop-shape': '循环必须从一个固定数字数到另一个固定数字。',
   'studio.problem.loop-bound': '有一个循环超过 128 次。',
   'studio.problem.loop-assign': '有一个循环在内部修改了自己的计数器。',
+  'studio.problem.loop-budget':
+    '嵌套的循环及其调用的函数在每个像素上运行次数过多。请减少嵌套或循环次数。',
   'studio.problem.entry-point': '缺少 vec4 sceneColour(vec2 uv) 函数。',
   'studio.problem.not-a-pack': '这不是 FluidEQ 能读取的场景。',
   'studio.problem.bad-id': 'id 必须是 2 到 48 个小写字母、数字和连字符。',

@@ -376,6 +376,8 @@ const studio = {
     'लूप को एक तय संख्या से दूसरी तय संख्या तक गिनना चाहिए।',
   'studio.problem.loop-bound': 'एक लूप 128 से ज़्यादा बार चलता है।',
   'studio.problem.loop-assign': 'एक लूप अपने अंदर अपना ही काउंटर बदलता है।',
+  'studio.problem.loop-budget':
+    'लूप के अंदर लूप, और उनसे बुलाए गए फ़ंक्शन, हर पिक्सेल पर बहुत बार चलते हैं। नेस्टिंग या दोहराव कम करें।',
   'studio.problem.entry-point': 'vec4 sceneColour(vec2 uv) फ़ंक्शन नहीं है।',
   'studio.problem.not-a-pack': 'यह ऐसा दृश्य नहीं है जिसे FluidEQ पढ़ सके।',
   'studio.problem.bad-id':

@@ -384,6 +384,8 @@ const studio = {
   'studio.problem.loop-bound': '128 回を超えて回るループがあります。',
   'studio.problem.loop-assign':
     'ループの中で自分のカウンターを書き換えています。',
+  'studio.problem.loop-budget':
+    'ループの入れ子と、そこから呼ぶ関数が 1 ピクセルあたりに回る回数が多すぎます。入れ子か回数を減らしてください。',
   'studio.problem.entry-point': 'vec4 sceneColour(vec2 uv) 関数がありません。',
   'studio.problem.not-a-pack': 'FluidEQ が読めるシーンではありません。',
   'studio.problem.bad-id':

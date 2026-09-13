@@ -389,6 +389,8 @@ const studio = {
   'studio.problem.loop-bound': 'Un ciclo si ripete più di 128 volte.',
   'studio.problem.loop-assign':
     'Un ciclo modifica il proprio contatore al suo interno.',
+  'studio.problem.loop-budget':
+    'I cicli annidati e le funzioni che chiamano girano troppe volte per pixel. Annida meno o usa meno giri.',
   'studio.problem.entry-point': 'Manca la funzione vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Questa non è una scena che FluidEQ sa leggere.',
   'studio.problem.bad-id':

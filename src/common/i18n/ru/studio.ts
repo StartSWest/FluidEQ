@@ -383,6 +383,8 @@ const studio = {
     'Цикл должен считать от одного фиксированного числа до другого.',
   'studio.problem.loop-bound': 'Цикл выполняется больше 128 раз.',
   'studio.problem.loop-assign': 'Цикл меняет собственный счётчик внутри себя.',
+  'studio.problem.loop-budget':
+    'Вложенные циклы и вызываемые из них функции выполняются слишком много раз на пиксель. Уменьшите вложенность или число повторов.',
   'studio.problem.entry-point': 'Нет функции vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Это не сцена, которую FluidEQ может прочитать.',
   'studio.problem.bad-id':

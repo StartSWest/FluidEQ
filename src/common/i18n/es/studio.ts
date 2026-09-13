@@ -385,6 +385,8 @@ const studio = {
   'studio.problem.loop-bound': 'Un bucle se repite más de 128 veces.',
   'studio.problem.loop-assign':
     'Un bucle cambia su propio contador dentro de él.',
+  'studio.problem.loop-budget':
+    'Los bucles anidados y las funciones que llaman se ejecutan demasiadas veces por píxel. Anida menos o usa menos vueltas.',
   'studio.problem.entry-point': 'No hay una función vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Esto no es una escena que FluidEQ pueda leer.',
   'studio.problem.bad-id':

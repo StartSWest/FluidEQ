@@ -394,6 +394,8 @@ const studio = {
   'studio.problem.loop-bound': 'Eine Schleife läuft mehr als 128-mal.',
   'studio.problem.loop-assign':
     'Eine Schleife ändert ihren eigenen Zähler in sich selbst.',
+  'studio.problem.loop-budget':
+    'Verschachtelte Schleifen und die Funktionen, die sie aufrufen, laufen pro Pixel zu oft. Weniger verschachteln oder weniger Durchläufe verwenden.',
   'studio.problem.entry-point':
     'Es gibt keine Funktion vec4 sceneColour(vec2 uv).',
   'studio.problem.not-a-pack': 'Das ist keine Szene, die FluidEQ lesen kann.',
