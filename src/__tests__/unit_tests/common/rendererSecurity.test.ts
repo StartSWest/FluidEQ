@@ -2,14 +2,22 @@
 
 import fs from 'fs';
 import path from 'path';
+import contentSecurityPolicy from '../../../main/contentSecurityPolicy';
 
 describe('renderer Content Security Policy', () => {
-  it('allows WebAssembly compilation without enabling JavaScript eval', () => {
+  // The meta tag is the only policy a packaged window loaded over file://
+  // gets, so it must be the one contentSecurityPolicy() builds, written in by
+  // the renderer's webpack configs — not a second, hand-written policy.
+  it('takes the window policy from the build, not from a string of its own', () => {
     const template = fs.readFileSync(
       path.join(process.cwd(), 'src', 'renderer', 'index.ejs'),
       'utf8',
     );
-    const content = template.match(/content="([^"]+)"/)?.[1] ?? '';
+    expect(template).toContain('htmlWebpackPlugin.options.csp');
+  });
+
+  it('allows WebAssembly compilation without enabling JavaScript eval', () => {
+    const content = contentSecurityPolicy(false);
     const scriptSource = content
       .split(';')
       .find((directive) => directive.trim().startsWith('script-src'));
