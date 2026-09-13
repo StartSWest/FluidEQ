@@ -1,0 +1,28 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'theme' as *;
+
+// What shows through a picture's clear pixels: the standard transparency
+// grid, in the window's own dark instead of grey and white. On plain black a
+// whale cut out of a scene's image could not be told from one painted on
+// black; a light grid would be the brightest thing in a dark card.
+//
+// Behind the picture's own box and nowhere else. Laid across a whole tile it
+// would call the bands either side of a wide picture see-through, when they
+// are only the tile.
+//
+// Both colours come from the theme, so the grid sits in Ocean's navy and in
+// Black's near-black alike: the well mixed a little towards the card it is
+// cut into, and a whisper of the edge tint on every other square.
+@mixin transparency-grid($cell) {
+  background:
+    repeating-conic-gradient(rgba($edge-tint, 0.055) 0 25%, transparent 0 50%) 0
+      0 / #{$cell * 2} #{$cell * 2},
+    color-mix(in srgb, $surface-well 70%, $surface-block);
+}

@@ -26,7 +26,14 @@ export type TCommunityGlyph =
   | 'check'
   | 'download'
   | 'close'
-  | 'camera';
+  | 'camera'
+  | 'image'
+  | 'expand'
+  | 'previous'
+  | 'next'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'fit';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -230,6 +237,44 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M2.5 7.3A1.8 1.8 0 0 1 4.3 5.5h2.2l1.3-2h4.4l1.3 2h2.2a1.8 1.8 0 0 1 1.8 1.8v7.4a1.8 1.8 0 0 1-1.8 1.8H4.3a1.8 1.8 0 0 1-1.8-1.8Z" />
             <circle cx="10" cy="11" r="3.2" />
           </>
+        );
+      case 'image':
+        // A framed picture: a sun over a hill.
+        return (
+          <>
+            <rect x="2.5" y="3.5" width="15" height="13" rx="2" />
+            <circle cx="7.2" cy="8" r="1.5" />
+            <path d="M3 15.5l4.6-4.6 2.9 2.9 2-2 4.5 4.2" />
+          </>
+        );
+      case 'expand':
+        // Two corners pulled apart: this opens larger.
+        return (
+          <path d="M11.5 3.5h5v5M16.5 3.5 11 9M8.5 16.5h-5v-5M3.5 16.5 9 11" />
+        );
+      case 'previous':
+        return <path d="M12.5 4.5 7 10l5.5 5.5" />;
+      case 'next':
+        return <path d="M7.5 4.5 13 10l-5.5 5.5" />;
+      case 'zoom-in':
+        // A lens with a plus: closer.
+        return (
+          <>
+            <circle cx="8.5" cy="8.5" r="5.5" />
+            <path d="m12.6 12.6 4.4 4.4M6 8.5h5M8.5 6v5" />
+          </>
+        );
+      case 'zoom-out':
+        return (
+          <>
+            <circle cx="8.5" cy="8.5" r="5.5" />
+            <path d="m12.6 12.6 4.4 4.4M6 8.5h5" />
+          </>
+        );
+      case 'fit':
+        // Four corners of a frame: all of it, in view.
+        return (
+          <path d="M3.5 7.5v-4h4M12.5 3.5h4v4M16.5 12.5v4h-4M7.5 16.5h-4v-4" />
         );
       default:
         return null;

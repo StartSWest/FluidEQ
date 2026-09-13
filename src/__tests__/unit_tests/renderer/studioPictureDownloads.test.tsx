@@ -1,10 +1,29 @@
 import '@testing-library/jest-dom';
+import type { ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudioPictureDownloads, {
   copyRegion,
 } from '../../../renderer/studio/StudioPictureDownloads';
+import useAtlasImage from '../../../renderer/studio/useAtlasImage';
 import { decodePicture } from '../../../renderer/studio/scenePicture';
+
+/** The card's pairing: the downloads saved through the card's one hook. */
+function Downloads({
+  atlas,
+}: Pick<ComponentProps<typeof StudioPictureDownloads>, 'atlas'>) {
+  const image = useAtlasImage(atlas.image);
+  return (
+    <StudioPictureDownloads
+      atlas={atlas}
+      url={image.url}
+      busy={image.busy}
+      notice={image.notice}
+      onSave={image.save}
+      onView={() => undefined}
+    />
+  );
+}
 
 jest.mock('../../../renderer/studio/scenePicture', () => ({
   decodePicture: jest.fn(),
@@ -38,7 +57,7 @@ beforeEach(() => {
 });
 it('saves the full original image without re-encoding it', async () => {
   render(
-    <StudioPictureDownloads
+    <Downloads
       atlas={{
         kind: 'atlas',
         width: 200,

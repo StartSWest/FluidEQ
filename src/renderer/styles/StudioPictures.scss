@@ -6,6 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+@use 'checkerboard' as *;
 @use 'color' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
@@ -38,10 +39,6 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 .studio-picture-regions .studio-pictures__list {
   margin-top: 12px;
-}
-.studio-picture__frame > svg {
-  width: 100%;
-  height: 100%;
 }
 
 .studio-pictures__head {
@@ -85,34 +82,99 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Every tile the same shape whatever the picture's, the picture whole inside
 // it on the scene's own dark, so a wide strip and a square sit in one row.
+//
+// A size container, so the picture can be fitted in container units. A
+// percentage height in the frame's own auto-sized row resolves against the
+// picture, not the frame, and cropped a square pet to the frame's width
+// instead of showing it whole.
 .studio-picture__frame {
   position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 10;
   overflow: hidden;
+  container-type: size;
   border: 1px solid rgba($white, 0.1);
   border-radius: $radius-s;
   background: $black;
-
-  // Laid over the frame rather than in its grid: a percentage height in the
-  // frame's own auto-sized row resolves against the picture, not the frame,
-  // and cropped a square pet to the frame's width instead of showing it whole.
-  img {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    @include animate(fade-in, $motion-base);
-  }
+  transition: border-color $motion-fast $ease-out;
 
   // Nothing in it yet: a place for a photo, not a broken picture.
   &.is-empty {
     border-style: dashed;
     border-color: color-mix(in srgb, $secondary-light 30%, transparent);
     background: color-mix(in srgb, $secondary-default 5%, transparent);
+  }
+
+  &:has(> .studio-picture__view:hover),
+  &:has(> .studio-picture__view:focus-visible) {
+    border-color: $border-field-hover;
+
+    .studio-picture__art {
+      scale: 1.04;
+    }
+
+    .studio-picture__zoom {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+}
+
+// The picture at its own shape, as large as the frame allows — `--aspect` is
+// its width over its height. Sized to the picture rather than to the frame so
+// the transparency grid sits behind exactly the picture: an opaque one covers
+// it, a cut-out shows it through, and the bands beside a wide one stay the
+// tile's plain dark.
+.studio-picture__art {
+  display: block;
+  width: min(100cqw, 100cqh * var(--aspect, 1));
+  height: auto;
+  aspect-ratio: var(--aspect, 1);
+  @include transparency-grid(6px);
+  transition: scale $motion-base $ease-out;
+  @include animate(fade-in, $motion-base);
+}
+
+// The whole frame opens the picture large; the button lies over it, so the
+// tile's layout is the picture's and not a button's.
+.studio-picture__view {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: start end;
+  padding: 6px;
+  color: $text-primary;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The enlarge mark, shown only while the tile is pointed at or focused: a
+// hint on the tile being looked at, not a badge on all twenty-eight.
+.studio-picture__zoom {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba($edge-tint, 0.18);
+  border-radius: 50%;
+  background: color-mix(in srgb, $surface-menu-top 82%, transparent);
+  box-shadow: 0 4px 14px rgba($black, 0.5);
+  opacity: 0;
+  scale: 0.8;
+  transition:
+    opacity $motion-fast $ease-out,
+    scale $motion-fast $ease-out;
+
+  svg {
+    width: 14px;
+    height: 14px;
   }
 }
 

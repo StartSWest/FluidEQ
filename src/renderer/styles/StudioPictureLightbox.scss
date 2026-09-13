@@ -1,0 +1,336 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'checkerboard' as *;
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The picture viewer: the gallery's dialog, stretched to the window less the
+// backdrop's own margin. The head names the picture, the stage shows it on a
+// dark well with the arrows either side, and a strip of the set sits at the
+// foot.
+//
+// The same size whatever it shows, on purpose — a viewer that shrank to each
+// picture would move its arrows and its close button every step.
+.gallery-dialog.studio-lightbox {
+  // The backdrop's grid area, which is the window less its padding: a
+  // percentage here needs no copy of the backdrop's padding, and follows it
+  // when the backdrop narrows its margin on a small window.
+  width: min(1680px, 100%);
+  height: 100%;
+  max-height: none;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+
+  .button {
+    gap: 6px;
+
+    svg {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+.studio-lightbox__head {
+  flex-wrap: wrap;
+  gap: 10px $spacing-m;
+  min-width: 0;
+  padding: 12px 12px 12px $spacing-m;
+  border-bottom: 1px solid $border-subtle;
+}
+
+// The name, then its size and where it is in the set, on one line while they
+// fit and under the name when they do not.
+.studio-lightbox__heading {
+  display: flex;
+  flex: 1 1 260px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
+.studio-lightbox__size {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.studio-lightbox__count {
+  padding: 2px 8px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: $lift-rest;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.studio-lightbox__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  margin-inline-start: auto;
+}
+
+.studio-lightbox__notice {
+  color: $text-muted;
+  font-size: $text-small;
+  @include animate(fade-in, $motion-fast);
+}
+
+// A well, lit from the middle, so the picture reads as laid out on a light
+// table rather than pasted onto the dialog. The arrows either side of the
+// picture, the zoom bar in a row of its own under it: nothing is ever drawn
+// over the picture but the picture.
+.studio-lightbox__stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px $spacing-m;
+  min-height: 0;
+  padding: $spacing-l $spacing-m 12px;
+  background:
+    radial-gradient(
+      ellipse 62% 58% at 50% 50%,
+      color-mix(in srgb, $surface-block 75%, transparent),
+      transparent
+    ),
+    $surface-well;
+}
+
+// The picture's space. Its size is the grid's and never its content's, so a
+// picture zoomed to thousands of pixels cannot push the dialog open; what
+// usePictureZoom.ts measures here is what the picture is fitted to.
+.studio-lightbox__place {
+  position: relative;
+  grid-row: 1;
+  grid-column: 2;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  contain: size layout;
+  touch-action: none;
+  user-select: none;
+
+  // Fitted, the picture's shadow may reach past the space; zoomed, the
+  // picture itself would, over the arrows.
+  &.is-zoomed {
+    overflow: hidden;
+  }
+
+  &.is-pannable {
+    cursor: grab;
+  }
+
+  &.is-dragging {
+    cursor: grabbing;
+  }
+}
+
+// The picture at the size and place the zoom gives it, in layout pixels
+// rather than a scale transform, so the transparency grid behind it keeps
+// its squares the same size on screen at every zoom — the way an editor's
+// canvas does — instead of growing into tiles at 800%.
+.studio-lightbox__frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 2px;
+  @include transparency-grid(10px);
+  box-shadow:
+    0 0 0 1px rgba($edge-tint, 0.08),
+    0 28px 80px rgba($black, 0.6);
+  @include animate(fade-in, $motion-fast);
+
+  // A step of the bar, a key or a double-click glides; the wheel, a pinch
+  // and a drag follow the hand exactly. Size and position share one curve,
+  // so the point zoomed about stays still the whole way.
+  &.is-eased {
+    transition:
+      width $motion-base $ease-out,
+      height $motion-base $ease-out,
+      transform $motion-base $ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  // See CRISP_FROM in pictureZoom.ts.
+  &.is-crisp {
+    image-rendering: pixelated;
+  }
+}
+
+.studio-lightbox__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// The zoom bar: the quiet buttons on a small glass pill, the way the
+// titlebar's transport sits on its bar.
+.studio-lightbox__zoom {
+  display: flex;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  justify-self: center;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-field-end 72%, transparent);
+  box-shadow:
+    0 10px 28px rgba($black, 0.4),
+    inset 0 1px 0 rgba($white, 0.06);
+}
+
+.gallery-dialog.studio-lightbox .studio-lightbox__zoom-step {
+  width: $control-height-sm;
+  padding: 0;
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.studio-lightbox__percent {
+  min-width: 6ch;
+  color: $text-muted;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-semibold;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.studio-lightbox__fit {
+  margin-inline-start: 4px;
+}
+
+.studio-lightbox__step {
+  display: grid;
+  grid-row: 1;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid rgba($edge-tint, 0.12);
+  border-radius: 50%;
+  background: color-mix(in srgb, $surface-menu-top 86%, transparent);
+  box-shadow: 0 10px 30px rgba($black, 0.45);
+  cursor: pointer;
+  transition:
+    $transition-control,
+    scale $motion-fast $ease-out;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    transition: translate $motion-fast $ease-out;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, $surface-menu-top);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active {
+    scale: 0.94;
+  }
+}
+
+.studio-lightbox__step--previous {
+  grid-column: 1;
+
+  &:hover svg {
+    translate: -2px 0;
+  }
+}
+
+.studio-lightbox__step--next {
+  grid-column: 3;
+
+  &:hover svg {
+    translate: 2px 0;
+  }
+}
+
+// The set, small, the one on the stage lit. Scrolls sideways on its own when
+// the set is longer than the window is wide; the dialog never does.
+.studio-lightbox__strip {
+  display: flex;
+  gap: 6px;
+  padding: 10px $spacing-m 12px;
+  overflow-x: auto;
+  border-top: 1px solid $border-subtle;
+  scroll-padding-inline: $spacing-m;
+  @include slim-scrollbar;
+}
+
+.studio-lightbox__thumb {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 64px;
+  height: 44px;
+  padding: 4px;
+  container-type: size;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xs;
+  background: $black;
+  opacity: 0.55;
+  cursor: pointer;
+  transition:
+    $transition-control,
+    opacity $motion-fast $ease-out;
+
+  &:hover {
+    border-color: $border-field-hover;
+    opacity: 1;
+  }
+
+  &[aria-current='true'] {
+    border-color: $secondary-default;
+    box-shadow:
+      inset 0 0 0 1px $secondary-default,
+      0 0 14px color-mix(in srgb, $secondary-default 30%, transparent);
+    opacity: 1;
+  }
+}
+
+.studio-lightbox__thumb-art {
+  display: block;
+  width: min(100cqw, 100cqh * var(--aspect, 1));
+  height: auto;
+  aspect-ratio: var(--aspect, 1);
+  @include transparency-grid(4px);
+}

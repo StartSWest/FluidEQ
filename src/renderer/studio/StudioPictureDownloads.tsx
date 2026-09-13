@@ -1,12 +1,19 @@
-import { useEffect, useId, useState } from 'react';
 import type { TStudioPictures } from 'main/ipc/studioPictures';
 import type { IArtworkRegion } from 'main/memberScenes/artworkRegions';
 import type { TPictureCopyOutcome } from 'main/ipc/studioPictureCopy';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import AtlasPicture from './AtlasPicture';
 import { decodePicture } from './scenePicture';
+import StudioPictureViewButton from './StudioPictureViewButton';
 
 type TAtlas = Extract<TStudioPictures, { kind: 'atlas' }>;
+
+/** The save key of the whole image, saved as it is. */
+export const WHOLE_IMAGE = 'image';
+
+/** The save key of one separate piece. */
+export const regionKey = (region: IArtworkRegion) => `region:${region.id}`;
 
 /** Lossless copy of one atlas region, including undoing packing rotation. */
 export const copyRegion = async (image: Uint8Array, region: IArtworkRegion) => {
@@ -46,56 +53,33 @@ export const copyRegion = async (image: Uint8Array, region: IArtworkRegion) => {
   }
 };
 
-export default function StudioPictureDownloads({ atlas }: { atlas: TAtlas }) {
+interface IStudioPictureDownloadsProps {
+  atlas: TAtlas;
+  /** The whole image the pieces are drawn from; absent while it is made. */
+  url: string | undefined;
+  /** The save running now, if any. */
+  busy: string | undefined;
+  notice: TPictureCopyOutcome | undefined;
+  onSave: (key: string, region?: IArtworkRegion) => void;
+  onView: (region: IArtworkRegion) => void;
+}
+
+export default function StudioPictureDownloads({
+  atlas,
+  url,
+  busy,
+  notice,
+  onSave,
+  onView,
+}: IStudioPictureDownloadsProps) {
   const { t } = useTranslation();
-  const clipId = useId();
-  const [busy, setBusy] = useState<string>();
-  const [notice, setNotice] = useState<TPictureCopyOutcome>();
-  const [preview, setPreview] = useState<{ image: Uint8Array; url: string }>();
-  useEffect(() => {
-    if (!atlas.image) {
-      setPreview(undefined);
-      return undefined;
-    }
-    const url = URL.createObjectURL(
-      new Blob([new Uint8Array(atlas.image)], { type: 'image/webp' }),
-    );
-    setPreview({ image: atlas.image, url });
-    setNotice(undefined);
-    return () => URL.revokeObjectURL(url);
-  }, [atlas.image]);
-  const url = preview?.image === atlas.image ? preview?.url : undefined;
-  const save = async (region?: IArtworkRegion) => {
-    if (!atlas.image || busy) {
-      return;
-    }
-    setBusy(region?.id ?? 'atlas');
-    setNotice(undefined);
-    try {
-      const bytes = region
-        ? await copyRegion(atlas.image, region)
-        : atlas.image;
-      setNotice(
-        bytes
-          ? ((await window.electron?.ipcRenderer?.copyStudioPicture?.(
-              bytes,
-              region?.id ?? 'scene-artwork',
-            )) ?? 'failed')
-          : 'failed',
-      );
-    } catch {
-      setNotice('failed');
-    } finally {
-      setBusy(undefined);
-    }
-  };
   return (
     <div className="studio-picture-downloads">
       <button
         type="button"
         className="button small subtle"
         disabled={!atlas.image || busy !== undefined}
-        onClick={() => save()}
+        onClick={() => onSave(WHOLE_IMAGE)}
       >
         <Glyph name="download" />
         {t('studio.picture.download')}
@@ -122,27 +106,19 @@ export default function StudioPictureDownloads({ atlas }: { atlas: TAtlas }) {
               <li className="studio-picture" key={region.id}>
                 <span className="studio-picture__frame">
                   {url && (
-                    <svg
-                      viewBox={`${region.x} ${region.y} ${region.width} ${region.height}`}
-                      aria-hidden="true"
-                    >
-                      <defs>
-                        <clipPath id={`${clipId}-${region.id}`}>
-                          <rect
-                            x={region.x}
-                            y={region.y}
-                            width={region.width}
-                            height={region.height}
-                          />
-                        </clipPath>
-                      </defs>
-                      <image
-                        href={url}
-                        width={atlas.width}
-                        height={atlas.height}
-                        clipPath={`url(#${clipId}-${region.id})`}
+                    <>
+                      <AtlasPicture
+                        className="studio-picture__art"
+                        url={url}
+                        atlasWidth={atlas.width}
+                        atlasHeight={atlas.height}
+                        region={region}
                       />
-                    </svg>
+                      <StudioPictureViewButton
+                        label={t('studio.picture.view', { name: region.id })}
+                        onClick={() => onView(region)}
+                      />
+                    </>
                   )}
                 </span>
                 <span className="studio-picture__name">{region.id}</span>
@@ -151,7 +127,7 @@ export default function StudioPictureDownloads({ atlas }: { atlas: TAtlas }) {
                   className="button small subtle"
                   disabled={!atlas.image || busy !== undefined}
                   aria-label={`${t('studio.picture.download')} ${region.id}`}
-                  onClick={() => save(region)}
+                  onClick={() => onSave(regionKey(region), region)}
                 >
                   <Glyph name="download" />
                   {t('studio.picture.download')}

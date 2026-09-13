@@ -15,6 +15,16 @@ const studio = {
   'studio.picture.separate': 'Separate images ({count})',
   'studio.picture.separateHint':
     'These are parts of one image. Saving them leaves the scene unchanged.',
+  // Any picture on the card, opened large over the app.
+  'studio.picture.view': 'View {name} larger',
+  'studio.picture.previous': 'Previous image',
+  'studio.picture.next': 'Next image',
+  'studio.picture.position': '{index} of {count}',
+  'studio.picture.all': 'All images',
+  'studio.picture.close': 'Close',
+  'studio.picture.zoomIn': 'Zoom in',
+  'studio.picture.zoomOut': 'Zoom out',
+  'studio.picture.fit': 'Fit',
   'studio.project.previous': 'Previous project',
   'studio.project.next': 'Next project',
   'studio.title': 'Studio',

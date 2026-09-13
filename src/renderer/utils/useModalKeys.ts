@@ -40,10 +40,11 @@ export default function useModalKeys(
       // A radio group is one stop, at its checked choice; arrows move within
       // it, as they do everywhere else. Anything else made focusable on
       // purpose — the framing editor's photo, moved with the arrows — is a
-      // stop too.
+      // stop too, and a button taken out of the order on purpose — the
+      // picture viewer's thumbnails, walked with the arrows — is not.
       const targets = Array.from(
         surfaceRef.current?.querySelectorAll<HTMLElement>(
-          'button:not(:disabled), input:not([type="radio"]):not(:disabled), input[type="radio"]:checked, [tabindex="0"]',
+          'button:not(:disabled):not([tabindex="-1"]), input:not([type="radio"]):not(:disabled), input[type="radio"]:checked, [tabindex="0"]',
         ) ?? [],
       );
       if (!targets.length) {
