@@ -120,6 +120,13 @@ describe('the player’s copy of the rack', () => {
 });
 
 describe('the player saying it is the sound', () => {
+  const hostThatOpens = (opens: boolean) =>
+    ({
+      transport: {
+        ...controller.transport,
+        load: () => Promise.resolve(opens),
+      },
+    }) as unknown as INativeBackendController;
   const controller = {
     transport: {
       load: () => Promise.resolve(true),
@@ -142,20 +149,42 @@ describe('the player saying it is the sound', () => {
     volume: 1,
   });
 
-  it('while it plays through its own engine, and not after', () => {
+  it('while it plays through its own engine, and not after', async () => {
     const { rerender, unmount } = renderHook(
       ({ playing }: { playing: boolean }) =>
-        useNativeMirror(controller, [], state(playing)),
+        useNativeMirror(hostThatOpens(true), [], state(playing)),
       { initialProps: { playing: true } },
     );
-    expect(readRackGate().libraryAudible).toBe(true);
+    // Once the host has the track: until its load lands, the elements do.
+    await waitFor(() => expect(readRackGate().libraryAudible).toBe(true));
 
     rerender({ playing: false });
-    expect(readRackGate().libraryAudible).toBe(false);
+    await waitFor(() => expect(readRackGate().libraryAudible).toBe(false));
 
     rerender({ playing: true });
-    expect(readRackGate().libraryAudible).toBe(true);
+    await waitFor(() => expect(readRackGate().libraryAudible).toBe(true));
     unmount();
+    expect(readRackGate().libraryAudible).toBe(false);
+  });
+
+  it('not while a file its engine could not open plays on the elements', async () => {
+    const loads: boolean[] = [];
+    const refusing = {
+      transport: {
+        ...hostThatOpens(false).transport,
+        load: () => {
+          loads.push(false);
+          return Promise.resolve(false);
+        },
+      },
+    } as unknown as INativeBackendController;
+    renderHook(() => useNativeMirror(refusing, [], state(true)));
+    // The host was asked and said no; the elements carry the sound with no
+    // rack of their own, so the engine has to keep its copy.
+    await waitFor(() => expect(loads).toHaveLength(1));
+    await act(async () => {
+      await Promise.resolve();
+    });
     expect(readRackGate().libraryAudible).toBe(false);
   });
 

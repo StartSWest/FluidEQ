@@ -26,6 +26,7 @@ import {
 const gate = (fields: Partial<IRackGate>): IRackGate => ({
   ...OPEN_GATE,
   engine: 'fluid',
+  eqLoaded: true,
   ...fields,
 });
 
@@ -73,11 +74,24 @@ describe('where the rack runs under Equalizer APO', () => {
     expect(rackSuspension(apo)).toBeUndefined();
     expect(playerRunsRack(apo)).toBe(true);
   });
+});
 
-  it('sends what it always sent before an engine is known', () => {
-    // Main writes the engine's file only under the FluidEQ Engine; a gate
-    // not yet told the engine must not switch that file's rack off.
-    expect(engineRunsRack(OPEN_GATE)).toBe(true);
+describe('where the rack runs before the window knows enough', () => {
+  it('sends the engine no rack before FluidEQ’s switch has been read', () => {
+    // The default says on; a launch that believed it played the rack for a
+    // moment on a machine whose FluidEQ was saved off.
+    expect(engineRunsRack(OPEN_GATE)).toBe(false);
+    // Positive control: the same gate once the saved switch is in.
+    expect(engineRunsRack({ ...OPEN_GATE, eqLoaded: true })).toBe(true);
+  });
+
+  it('honours FluidEQ’s switch even when the engine never became known', () => {
+    // Main writes the rack only under the FluidEQ Engine, so under Equalizer
+    // APO this copy goes nowhere; with the status read failed it must still
+    // not send a rack FluidEQ is switched off for.
+    expect(
+      engineRunsRack({ ...OPEN_GATE, eqLoaded: true, eqEnabled: false }),
+    ).toBe(false);
   });
 });
 
@@ -108,5 +122,7 @@ describe('the gate', () => {
     expect(updateRackGate({ libraryAudible: true })).toBe(true);
     expect(updateRackGate({ libraryAudible: true })).toBe(false);
     expect(readRackGate().libraryAudible).toBe(true);
+    expect(updateRackGate({ eqLoaded: true })).toBe(true);
+    expect(updateRackGate({ eqLoaded: true })).toBe(false);
   });
 });

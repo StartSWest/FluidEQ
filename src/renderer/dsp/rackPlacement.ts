@@ -41,6 +41,13 @@ export interface IRackGate {
   /** FluidEQ's own on/off switch. */
   eqEnabled: boolean;
   /**
+   * FluidEQ's switch has been read from what was saved. Until then
+   * `eqEnabled` is only the default, and a launch that sent the engine a
+   * rack on that default played the rack for a moment on a machine whose
+   * FluidEQ was saved off.
+   */
+  eqLoaded: boolean;
+  /**
    * The FluidEQ Engine is not running on the output being listened to —
    * what the red "isn't running" notice says (`engineTrouble`).
    */
@@ -52,6 +59,7 @@ export interface IRackGate {
 export const OPEN_GATE: IRackGate = {
   engine: null,
   eqEnabled: true,
+  eqLoaded: false,
   engineOff: false,
   libraryAudible: false,
 };
@@ -74,13 +82,15 @@ export const rackSuspension = (
 /**
  * Whether the FluidEQ Engine's copy of the rack should run.
  *
- * Not conditioned on the engine being the FluidEQ Engine: main only writes
- * the rack file under it and answers `'not-fluid'` otherwise, and a gate not
- * yet told which engine runs must send what it always sent rather than a rack
- * switched off for no reason.
+ * FluidEQ's switch counts here whichever engine the window believes runs.
+ * Main writes the engine's file only under the FluidEQ Engine and answers
+ * `'not-fluid'` otherwise, so under Equalizer APO this copy goes nowhere —
+ * but a window whose engine status never arrived must not take that as
+ * leave to send a rack FluidEQ is switched off for. And nothing runs before
+ * the switch has been read at all.
  */
 export const engineRunsRack = (gate: IRackGate): boolean =>
-  rackSuspension(gate) === undefined && !gate.libraryAudible;
+  gate.eqLoaded && gate.eqEnabled && !gate.engineOff && !gate.libraryAudible;
 
 /** Whether the Library player's copy of the rack should run. */
 export const playerRunsRack = (gate: IRackGate): boolean =>
@@ -106,6 +116,7 @@ export const updateRackGate = (patch: Partial<IRackGate>): boolean => {
   if (
     next.engine === gate.engine &&
     next.eqEnabled === gate.eqEnabled &&
+    next.eqLoaded === gate.eqLoaded &&
     next.engineOff === gate.engineOff &&
     next.libraryAudible === gate.libraryAudible
   ) {
@@ -126,8 +137,11 @@ const subscribe = (listener: () => void) => {
 export const useRackGate = (): IRackGate =>
   useSyncExternalStore(subscribe, readRackGate, readRackGate);
 
-/** For a test that wants a clean module between cases. */
-export const resetRackGate = (): void => {
-  gate = OPEN_GATE;
+/**
+ * For a test that wants a clean module between cases, optionally from a state
+ * the rest of the app would already have reached — FluidEQ's switch read.
+ */
+export const resetRackGate = (initial: Partial<IRackGate> = {}): void => {
+  gate = { ...OPEN_GATE, ...initial };
   listeners.clear();
 };

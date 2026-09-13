@@ -140,6 +140,13 @@ const SEEK_THRESHOLD_MS = 500;
 export const createNativeMirror = (
   controller: INativeBackendController,
   elements: readonly HTMLMediaElement[],
+  /**
+   * Told whenever the host takes the track or hands it back. The rack follows
+   * it (`rackPlacement.ts`): a file the host could not open plays on the
+   * elements, with no rack of their own, and the FluidEQ Engine has to keep
+   * its copy for them — which it cannot know from `isPlaying` alone.
+   */
+  onOwnership?: (hostOwnsTransport: boolean) => void,
 ): INativeMirror => {
   /**
    * Muted at first, and paused as soon as the host has the track.
@@ -166,6 +173,12 @@ export const createNativeMirror = (
   let playing = false;
   /** True once a native deck has loaded and the elements have stood down. */
   let hostOwnsTransport = false;
+  const own = (owns: boolean) => {
+    if (owns !== hostOwnsTransport) {
+      hostOwnsTransport = owns;
+      onOwnership?.(owns);
+    }
+  };
   /**
    * Which deck is audible. Not always zero, once a crossfade has happened.
    *
@@ -312,7 +325,7 @@ export const createNativeMirror = (
        * native engine is the worst of the three options; handing the sound
        * back — unmuted and running again — is the honest one.
        */
-      hostOwnsTransport = false;
+      own(false);
       // The listener's intent, not the mirror's record: this is a cue that
       // never played, so `playing` may not have caught up yet.
       handBack(isPlaying);
@@ -349,7 +362,7 @@ export const createNativeMirror = (
       await controller.transport.pause();
     }
     playing = isPlaying;
-    hostOwnsTransport = true;
+    own(true);
     // The host has the track and is the one playing it. Last, so nothing is
     // stood down for a deck that turned out not to load.
     standDownElements(positionMs / 1_000);
@@ -387,7 +400,7 @@ export const createNativeMirror = (
       // element fade — which is already running — carry the handoff.
       loadedPath = previousPath;
       activeDeck = previousDeck;
-      hostOwnsTransport = false;
+      own(false);
       // Mid-fade, so the element fade already running is what carries the
       // handoff — it only carries it if the elements are actually running.
       handBack(playing);
@@ -452,7 +465,7 @@ export const createNativeMirror = (
         toldPositionMs = positionMs;
         toldAt = performance.now();
         if (!mediaPath) {
-          hostOwnsTransport = false;
+          own(false);
           controller.transport.unload(activeDeck).catch(() => undefined);
           // An emptied deck is not playing, and the flag has to say so or the
           // next track that arrives already playing agrees with it and is
@@ -609,7 +622,7 @@ export const createNativeMirror = (
       handBack(resume);
       loadedPath = undefined;
       playing = false;
-      hostOwnsTransport = false;
+      own(false);
       controller.transport.pause().catch(() => undefined);
       // Both decks, because a crossfade leaves the previous track loaded on the
       // other one and an unload of only the active deck would leave a whole

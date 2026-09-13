@@ -179,8 +179,9 @@ beforeEach(() => {
   statusFetches = 0;
   switchedTo = [];
   // Where the rack may run is module state too; every case starts with the
-  // gate the window has before anything has told it otherwise.
-  resetRackGate();
+  // gate the window has once FluidEQ's saved switch is in, and before
+  // anything else has told it otherwise.
+  resetRackGate({ eqLoaded: true });
   // So is which engine runs: the window keeps one answer for every holder.
   // Kept across cases, the Equalizer APO cases opened on the previous case's
   // FluidEQ Engine and sent it a rack before their own answer landed.
@@ -450,6 +451,30 @@ describe('where the rack runs, from the engine’s side', () => {
     chainsSent = [];
   };
 
+  it('sends no rack at launch until FluidEQ’s saved switch is read', async () => {
+    // The window as it starts: FluidEQ's switch still at its default.
+    resetRackGate();
+    act(() => {
+      setDspRackGate({ engine: 'fluid' });
+      applyDspSettings(edited);
+    });
+    await waitFor(() => expect(chainsSent.length).toBeGreaterThan(0));
+    // The root switch is the first value on the wire. Every rack sent before
+    // the saved switch arrived was off, whatever the default said.
+    chainsSent.forEach((chain) => expect(chain[0]).toBe(0));
+    chainsSent = [];
+
+    // Saved off: nothing new goes out, so the rack never ran at all.
+    act(() => setDspRackGate({ eqLoaded: true, eqEnabled: false }));
+    await flushBridge();
+    expect(chainsSent).toHaveLength(0);
+
+    // Positive control: switched on, the page's rack goes to the engine.
+    act(() => setDspRackGate({ eqEnabled: true }));
+    await waitFor(() => expect(chainsSent).toHaveLength(1));
+    expect(chainsSent[0]).toEqual(encoded(edited));
+  });
+
   it('stands aside while the Library plays, and takes it back after', async () => {
     await engineHoldsTheRack();
     // The Library player runs the rack on what it plays; the engine running
@@ -575,5 +600,23 @@ describe('the module-level nudge a future engine dialog will use', () => {
     // Not two, and not left at `before`: exactly the one fetch this
     // notification is for.
     expect(statusFetches).toBe(before + 1);
+  });
+});
+
+describe('the Library player’s own engine failing', () => {
+  it('says every stage is off under Equalizer APO, where the rack was its', async () => {
+    engineStatus = APO_STATUS;
+    act(() => setDspNativeState('failed'));
+    renderPanel();
+    expect(await screen.findByText(en['dsp.engineDown'])).toBeInTheDocument();
+  });
+
+  it('says nothing of the kind under the FluidEQ Engine, whose rack runs on', async () => {
+    act(() => setDspNativeState('failed'));
+    renderPanel();
+    // The engine status has landed, or the check below proves nothing.
+    await screen.findByText(/System-wide · Speakers \(Realtek\)/);
+    expect(screen.queryByText(en['dsp.engineDown'])).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeDisabled();
   });
 });

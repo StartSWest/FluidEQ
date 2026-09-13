@@ -54,6 +54,7 @@ import ChannelEnum from '../../common/channels';
 import { cloneFilters } from '../../common/utils';
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
+import { setDspRackGate } from '../dsp/store';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 
 export enum FilterActionEnum {
@@ -597,6 +598,12 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       try {
         const state = await getEqualizerState();
         setIsEnabled(state.isEnabled);
+        // The rack's gate hears the saved switch here, with the news that it
+        // is the saved one, in one step. The shell follows every later change
+        // from the state above, but only a render later — and a gate opened
+        // on the default before that render sent the engine a rack for
+        // FluidEQ saved off (`rackPlacement.ts`).
+        setDspRackGate({ eqLoaded: true, eqEnabled: state.isEnabled });
         // Keep the persisted preference so Auto normalize can be disabled for
         // users who want to set the APO preamp manually.
         setAutoPreAmpOn(state.isAutoPreAmpOn);

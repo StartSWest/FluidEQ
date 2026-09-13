@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the chain arrived — is a real defect with a real symptom, and it belongs
  * somewhere a test can reach without a renderer.
  */
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
 import {
   playerRunsRack,
@@ -390,6 +390,9 @@ export const useNativeMirror = (
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
+  // Whether the host has the track rather than the media elements, as the
+  // mirror reports it. See `isAudible` below.
+  const [hostOwns, setHostOwns] = useState(false);
   /**
    * Rebuilt when the host moves to a different endpoint.
    *
@@ -405,7 +408,7 @@ export const useNativeMirror = (
     if (!controller) {
       return undefined;
     }
-    const mirror = createNativeMirror(controller, elements);
+    const mirror = createNativeMirror(controller, elements, setHostOwns);
     mirrorRef.current = mirror;
     // Immediately, not on the next tick: the switch can be flipped mid-track
     // and the host should pick up where the element already is.
@@ -438,11 +441,14 @@ export const useNativeMirror = (
    * Whether the Library player is the sound right now — its own engine
    * engaged and the track playing. While it is, the FluidEQ Engine's copy of
    * the rack stands aside, or every track the Library plays would go through
-   * the rack twice (`rackPlacement.ts`). A player whose host failed plays
-   * through its media elements with no rack of its own, so the engine keeps
-   * its copy and the Library still gets one.
+   * the rack twice (`rackPlacement.ts`). A player whose host failed — or
+   * could not open this one file, and handed it back to the media elements —
+   * plays with no rack of its own, so the engine keeps its copy and the
+   * Library still gets one. Asked of the mirror rather than inferred from
+   * the controller existing: a host that is up but refused a file still
+   * existed, and the track played with no rack anywhere.
    */
-  const isAudible = controller !== undefined && state.isPlaying;
+  const isAudible = hostOwns && state.isPlaying;
   useEffect(() => {
     if (!isAudible) {
       return undefined;

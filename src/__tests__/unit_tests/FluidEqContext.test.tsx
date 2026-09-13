@@ -25,6 +25,7 @@ import {
   IState,
 } from 'common/constants';
 import { getEqualizerState } from 'renderer/utils/equalizerApi';
+import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
 import {
   FilterActionEnum,
   FluidEqProvider,
@@ -408,5 +409,51 @@ describe('FluidEqProvider empty band sets', () => {
     });
 
     expect(gainsById(context().filters)).toEqual(gainsById(tuned()));
+  });
+});
+
+describe('FluidEqProvider and the DSP rack', () => {
+  beforeEach(() => {
+    latest = undefined;
+    mockedGetEqualizerState.mockReset();
+    resetRackGate();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      get: () => ({
+        ipcRenderer: {
+          on: () => () => {},
+          sendMessage: () => undefined,
+        },
+      }),
+    });
+  });
+
+  it('tells the rack the saved switch, and that it is the saved one', async () => {
+    await mount();
+    resetRackGate();
+    mockedGetEqualizerState.mockResolvedValue({
+      ...stateWith(flat()),
+      isEnabled: false,
+    });
+
+    await act(async () => {
+      await context().refreshState();
+    });
+
+    // In one step: a gate told "loaded" a render before "off" sent the
+    // engine the rack for a FluidEQ saved off.
+    expect(readRackGate()).toMatchObject({ eqLoaded: true, eqEnabled: false });
+  });
+
+  it('leaves the rack held when the saved state could not be read', async () => {
+    await mount();
+    resetRackGate();
+    mockedGetEqualizerState.mockRejectedValue(new Error('no state'));
+
+    await act(async () => {
+      await context().refreshState();
+    });
+
+    expect(readRackGate().eqLoaded).toBe(false);
   });
 });

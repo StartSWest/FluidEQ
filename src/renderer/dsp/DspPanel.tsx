@@ -461,8 +461,16 @@ const DspPanel = ({
 
             Suppressed when the browser audio graph has failed too, because
             then `dsp.unavailable` directly above says the same thing and two
-            red paragraphs saying it twice is worse than one saying it once. */}
-        {nativeState === 'failed' && engineState !== 'failed' ? (
+            red paragraphs saying it twice is worse than one saying it once.
+
+            And not under the FluidEQ Engine. There the rack runs in the engine
+            and its controls stay live; a Library player whose own engine failed
+            plays through its media elements while the engine keeps the rack
+            running on that sound (see `rackPlacement.ts`). A line saying every
+            stage is off and the controls are disabled was false twice over. */}
+        {nativeState === 'failed' &&
+        engineState !== 'failed' &&
+        !isSystemWide ? (
           <p className="dsp-engine-down" role="alert">
             {t('dsp.engineDown')}
           </p>
