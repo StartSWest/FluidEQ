@@ -6,6 +6,9 @@ const plus = {
   'plus.card.remove': '削除',
   'plus.official.author': 'FluidEQ · 公式',
   'plus.official.included': 'Plus に含まれます',
+  'plus.official.badge': '公式',
+  'plus.official.fine':
+    'FluidEQ コレクションの一部です。Plus の間、マイ表示から再生できます。',
   'plus.visualizers.title': 'ビジュアライザー',
   'plus.visualizers.description':
     'FluidEQ と Plus コミュニティのシーンを、あなたの音楽とともに',
@@ -78,6 +81,7 @@ const plus = {
   'plus.scene.previous': '前のシーン：{name}',
   'plus.scene.next': '次のシーン：{name}',
   'plus.scene.loading': 'シーンをダウンロード中…',
+  'plus.scene.starting': 'シーンを開始しています…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
   'plus.scene.plusPlays':
     'Plus なら、このシーンがここであなたの音楽に合わせて動きます',
@@ -100,6 +104,7 @@ const plus = {
   'plus.scene.play': 'グラフで再生',
   'plus.scene.inLooks': 'マイ表示の「メンバーが作成」にあります',
   'plus.scene.inLooksOwn': 'マイ表示の「あなたが作成」にあります',
+  'plus.scene.inLooksPlus': 'マイ表示の「FluidEQ Plus」にあります',
   'plus.scene.fine':
     '追加したシーンは Plus の間、マイ表示から再生できます。誰も販売することはできません。',
   'plus.scene.report': 'このシーンを報告',

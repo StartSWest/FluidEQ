@@ -5,8 +5,10 @@ import useGalleryLocalScenes from './useGalleryLocalScenes';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
 import { identityStyle } from '../community/identity';
+import BrandMark from '../icons/BrandMark';
 import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
+import { OfficialBadge } from './GalleryParts';
 import { useGalleryList } from './galleryStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 
@@ -80,11 +82,15 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
   return (
     <div className="gallery-page gallery-maker">
       <header className="gallery-maker__head" style={identityStyle(handle)}>
-        <Avatar
-          handle={handle}
-          displayName={maker.name ?? undefined}
-          size="podium"
-        />
+        {official ? (
+          <BrandMark className="gallery-maker__brand" />
+        ) : (
+          <Avatar
+            handle={handle}
+            displayName={maker.name ?? undefined}
+            size="podium"
+          />
+        )}
         <span className="gallery-maker__who">
           <h3 className="gallery-maker__name community__name--hued">
             {displayName}
@@ -93,7 +99,13 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
             <span className="community__handle">@{maker.handle}</span>
           )}
           {official && (
-            <span className="gallery-pill">{t('plus.official.included')}</span>
+            <span className="gallery-maker__official">
+              <OfficialBadge />
+              <span className="gallery-included">
+                <Glyph name="plus" />
+                {t('plus.official.included')}
+              </span>
+            </span>
           )}
         </span>
         <dl className="gallery-figures gallery-maker__figures">

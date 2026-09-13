@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': 'Enlever',
   'plus.official.author': 'FluidEQ · Officiel',
   'plus.official.included': 'Inclus avec Plus',
+  'plus.official.badge': 'Officiel',
+  'plus.official.fine':
+    'Fait partie de la collection FluidEQ : se lance depuis vos styles tant que vous avez Plus.',
   'plus.visualizers.title': 'Visualiseurs',
   'plus.visualizers.description':
     'Des scènes de FluidEQ et de la communauté Plus, prêtes pour votre musique',
@@ -76,6 +79,7 @@ const plus = {
   'plus.scene.previous': 'Scène précédente : {name}',
   'plus.scene.next': 'Scène suivante : {name}',
   'plus.scene.loading': 'Téléchargement de la scène…',
+  'plus.scene.starting': 'Démarrage de la scène…',
   'plus.scene.playing': 'En direct sur votre musique',
   'plus.scene.plusPlays':
     'Avec Plus, cette scène s’anime ici sur votre musique',
@@ -100,6 +104,7 @@ const plus = {
   'plus.scene.play': 'Lancer sur le graphique',
   'plus.scene.inLooks': 'Dans vos styles, sous « Créés par des membres »',
   'plus.scene.inLooksOwn': 'Dans vos styles, sous « Créés par vous »',
+  'plus.scene.inLooksPlus': 'Dans vos styles, sous « FluidEQ Plus »',
   'plus.scene.fine':
     'Les scènes ajoutées se lancent depuis vos styles tant que vous avez Plus. Personne ne peut les vendre.',
   'plus.scene.report': 'Signaler cette scène',

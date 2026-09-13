@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': 'Remover',
   'plus.official.author': 'FluidEQ · Oficial',
   'plus.official.included': 'Incluído no Plus',
+  'plus.official.badge': 'Oficial',
+  'plus.official.fine':
+    'Parte da coleção FluidEQ: toca nos seus visuais enquanto você tiver o Plus.',
   'plus.visualizers.title': 'Visualizadores',
   'plus.visualizers.description':
     'Cenas do FluidEQ e da comunidade Plus, prontas para sua música',
@@ -75,6 +78,7 @@ const plus = {
   'plus.scene.previous': 'Cena anterior: {name}',
   'plus.scene.next': 'Próxima cena: {name}',
   'plus.scene.loading': 'Baixando a cena…',
+  'plus.scene.starting': 'Iniciando a cena…',
   'plus.scene.playing': 'Ao vivo com a sua música',
   'plus.scene.plusPlays': 'Com o Plus, esta cena toca aqui com a sua música',
   'plus.scene.taste': 'Prévia · {seconds} s',
@@ -96,6 +100,7 @@ const plus = {
   'plus.scene.play': 'Reproduzir no gráfico',
   'plus.scene.inLooks': 'Nos seus visuais, em Feitos por membros',
   'plus.scene.inLooksOwn': 'Nos seus visuais, em Feitos por você',
+  'plus.scene.inLooksPlus': 'Nos seus visuais, em FluidEQ Plus',
   'plus.scene.fine':
     'Cenas adicionadas tocam nos seus visuais enquanto você tiver o Plus. Ninguém pode vendê-las.',
   'plus.scene.report': 'Denunciar esta cena',

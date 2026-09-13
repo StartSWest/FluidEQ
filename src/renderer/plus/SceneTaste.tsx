@@ -11,6 +11,8 @@ interface ISceneTasteProps {
   identity: string;
   pack: IScenePack;
   onTrouble: (trouble: TPreviewTrouble) => void;
+  /** After every frame drawn, with the frame — for the page's own picture. */
+  onDrawn?: (frame: ISceneFrame) => void;
   /** The taste is over: the page shows the picture and the way into Plus. */
   onOver: () => void;
 }
@@ -27,6 +29,7 @@ export default function SceneTaste({
   identity,
   pack,
   onTrouble,
+  onDrawn: onDrawnOutside,
   onOver,
 }: ISceneTasteProps) {
   const { t } = useTranslation();
@@ -35,10 +38,13 @@ export default function SceneTaste({
   const fill = useRef<HTMLSpanElement>(null);
   const overRef = useRef(onOver);
   overRef.current = onOver;
+  const outsideRef = useRef(onDrawnOutside);
+  outsideRef.current = onDrawnOutside;
 
   // Written straight to the bar, not through state: a component that
   // re-rendered sixty times a second would cost the scene beside it.
   const onDrawn = useCallback((frame: ISceneFrame) => {
+    outsideRef.current?.(frame);
     started.current = started.current ?? frame.timeSeconds;
     const elapsed = frame.timeSeconds - started.current;
     const share = Math.min(1, Math.max(0, elapsed / TASTE_SECONDS));

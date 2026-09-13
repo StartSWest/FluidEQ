@@ -9,6 +9,7 @@ import {
 } from './galleryActions';
 import {
   categoryKey,
+  OfficialBadge,
   SceneHeart,
   ScenePicture,
   usePlusEntitled,
@@ -85,27 +86,35 @@ export default function GalleryCard({
         >
           {name}
         </button>
-        {onMaker ? (
-          <button
-            type="button"
-            className="gallery-card__by"
-            onClick={() =>
-              onMaker({
-                authorId: scene.authorId,
-                name: scene.authorName,
-                handle: scene.authorHandle,
-              })
-            }
-          >
-            {own
-              ? t('plus.card.byYou')
-              : t('plus.card.by', { name: maker ?? t('plus.card.anonymous') })}
-          </button>
-        ) : (
-          <span className="gallery-card__by gallery-card__by--plain">
-            {t(categoryKey(scene.category))}
-          </span>
-        )}
+        <span className="gallery-card__byline">
+          {onMaker ? (
+            <button
+              type="button"
+              className="gallery-card__by"
+              onClick={() =>
+                onMaker({
+                  authorId: scene.authorId,
+                  name: scene.authorName,
+                  handle: scene.authorHandle,
+                })
+              }
+            >
+              {own
+                ? t('plus.card.byYou')
+                : t('plus.card.by', {
+                    name: maker ?? t('plus.card.anonymous'),
+                  })}
+            </button>
+          ) : (
+            <span className="gallery-card__by gallery-card__by--plain">
+              {t(categoryKey(scene.category))}
+            </span>
+          )}
+          {/* Beside the maker's name only. Where a card shows its category
+              instead — the maker's own page, "More by" — the page around it
+              already says whose these are. */}
+          {scene.official && onMaker && <OfficialBadge />}
+        </span>
         <div className="gallery-card__foot">
           <span className="gallery-card__adds">
             {scene.official

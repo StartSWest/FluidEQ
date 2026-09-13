@@ -382,8 +382,17 @@ $gallery-card-lead: 120ms;
   }
 }
 
+// The maker's name and, for FluidEQ's own, the Official tag after it. The name
+// gives way first: the tag is short and says the more useful thing.
+.gallery-card__byline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .gallery-card__by {
-  justify-self: start;
+  flex: 0 1 auto;
   max-width: 100%;
   color: $text-faint;
   font-size: $text-small;
@@ -665,8 +674,11 @@ $gallery-card-lead: 120ms;
 
 // The stage takes the width; who made it and what to do with it stand in a
 // column beside it, and fold under it when the pane is narrow.
+// The column is 40px wider than the loose lines it held before, which is the
+// card's own padding: at the old width German put the heart on a line of its
+// own under "Zu meinen Darstellungen".
 .gallery-scene {
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
   align-items: start;
 
   @container plus (max-width: 720px) {
@@ -750,6 +762,45 @@ $gallery-card-lead: 120ms;
   font-size: $text-body;
   text-align: center;
   backdrop-filter: blur(3px);
+}
+
+// The picture under a scene that has started drawing: gone once the scene is
+// at full strength — it fades in over its first quarter second — so a scene
+// that leaves some of its canvas transparent never shows a still through it.
+.gallery-preview__still.is-behind {
+  opacity: 0;
+  transition: opacity $motion-slow $ease-out $motion-slow;
+}
+
+// The scene is here and is being prepared for the screen: said in a small
+// glass line over its picture, not with a veil over it, because the picture
+// is the thing to look at meanwhile.
+.gallery-preview__starting {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  padding: 5px 12px 5px 7px;
+  color: $text-primary;
+  border: 1px solid rgba($white, 0.12);
+  border-radius: $radius-pill;
+  background: rgba($black, 0.55);
+  font-size: $text-small;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  @include animate(fade-in, $motion-base, $ease-out);
+
+  .gallery-preview__spinner {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
 }
 
 .gallery-preview__veil--failed {
@@ -900,11 +951,31 @@ $gallery-card-lead: 120ms;
   }
 }
 
+// One card beside the stage, in three bands: what it is and whose, what to
+// do with it, and the small print. It used to be loose lines on the page —
+// a category pill beside the maker, a status pill a grid had stretched into
+// something that looked like an empty field — with nothing saying where the
+// panel started or which line mattered.
 .gallery-scene__info {
   display: grid;
   align-content: start;
-  gap: $spacing-s;
+  gap: 14px;
   min-width: 0;
+  padding: 14px 16px 16px;
+  @include inset-surface;
+}
+
+.gallery-scene__head {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+// The category, as the kicker over the name: every panel in the app names its
+// subject this way, and as a pill it competed with the maker for the same row.
+.gallery-scene__kicker {
+  text-transform: uppercase;
+  @include truncate;
 }
 
 .gallery-scene__name {
@@ -921,7 +992,9 @@ $gallery-card-lead: 120ms;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: $spacing-s;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 6px;
 }
 
 .gallery-scene__maker {
@@ -929,6 +1002,10 @@ $gallery-card-lead: 120ms;
   align-items: center;
   gap: 8px;
   min-width: 0;
+  // The pill keeps a transparent edge at rest so its hover can draw one; it is
+  // pulled back by that edge and its padding so the avatar lines up with the
+  // name above it instead of sitting a few pixels in.
+  margin-inline-start: -3px;
   padding: 2px 10px 2px 2px;
   color: $text-primary;
   border: 1px solid transparent;
@@ -945,10 +1022,6 @@ $gallery-card-lead: 120ms;
     font-size: $text-micro;
   }
 
-  span:last-child {
-    @include truncate;
-  }
-
   &:hover {
     border-color: $border-field;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
@@ -957,6 +1030,105 @@ $gallery-card-lead: 120ms;
   &:focus-visible {
     @include focus-ring;
   }
+}
+
+.gallery-scene__maker-name {
+  min-width: 0;
+  @include truncate;
+}
+
+// FluidEQ's own mark where a member's initials would be, at the avatar's
+// size: a letter "F" in a green disc read as a member who happened to be
+// called F.
+.gallery-scene__maker .gallery-scene__brand {
+  width: 26px;
+  height: 26px;
+  border-radius: $radius-s;
+  box-shadow: none;
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+// A fact about the scene, said as a line with its mark rather than as a pill:
+// nothing here is pressed, and a pill in a grid row stretches to its width.
+.gallery-included {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 7px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $text-accent;
+  }
+}
+
+// Three figures side by side in a column this narrow cut their labels to
+// "Diese Wo…" and "Hinzugef…". Here a label may take a second line, and the
+// numbers sit on the floor of their boxes so they still read as one row.
+.gallery-scene__info .gallery-figures {
+  div {
+    align-content: space-between;
+  }
+
+  dt {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+.gallery-scene__foot {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+}
+
+// The board's role tag (`.community__role`), with a tick in front.
+.gallery-official {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  padding-inline-start: 4px;
+
+  svg {
+    width: 9px;
+    height: 9px;
+    stroke-width: 2.6;
+  }
+}
+
+// FluidEQ's page wears the logo at the size a member's podium disc has.
+.gallery-maker__head .gallery-maker__brand {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-m;
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.gallery-maker__official {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 4px;
 }
 
 .gallery-pill {

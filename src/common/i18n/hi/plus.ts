@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': 'हटाएँ',
   'plus.official.author': 'FluidEQ · आधिकारिक',
   'plus.official.included': 'Plus में शामिल',
+  'plus.official.badge': 'आधिकारिक',
+  'plus.official.fine':
+    'FluidEQ संग्रह का हिस्सा: जब तक आपके पास Plus है, यह आपके रूपों से चलता है।',
   'plus.visualizers.title': 'विज़ुअलाइज़र',
   'plus.visualizers.description':
     'FluidEQ और Plus समुदाय के दृश्य, आपके संगीत के लिए तैयार',
@@ -74,6 +77,7 @@ const plus = {
   'plus.scene.previous': 'पिछला सीन: {name}',
   'plus.scene.next': 'अगला सीन: {name}',
   'plus.scene.loading': 'सीन डाउनलोड हो रहा है…',
+  'plus.scene.starting': 'सीन शुरू हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
   'plus.scene.plusPlays': 'Plus के साथ यह सीन यहीं आपके संगीत पर चलता है',
   'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
@@ -95,6 +99,7 @@ const plus = {
   'plus.scene.play': 'ग्राफ़ पर चलाएँ',
   'plus.scene.inLooks': 'आपके रूपों में, “सदस्यों के बनाए” के अंदर',
   'plus.scene.inLooksOwn': 'आपके रूपों में, “आपके बनाए” के अंदर',
+  'plus.scene.inLooksPlus': 'आपके रूपों में, “FluidEQ Plus” के अंदर',
   'plus.scene.fine':
     'जोड़े गए सीन आपके रूपों से तब तक चलते हैं जब तक आपके पास Plus है। कोई उन्हें बेच नहीं सकता।',
   'plus.scene.report': 'इस सीन की रिपोर्ट करें',

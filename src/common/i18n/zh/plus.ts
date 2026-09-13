@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': '移除',
   'plus.official.author': 'FluidEQ · 官方',
   'plus.official.included': 'Plus 已包含',
+  'plus.official.badge': '官方',
+  'plus.official.fine':
+    'FluidEQ 合集的一部分：在你拥有 Plus 期间可从外观中播放。',
   'plus.visualizers.title': '可视化',
   'plus.visualizers.description':
     'FluidEQ 和 Plus 社区创作的场景，随你的音乐律动',
@@ -70,6 +73,7 @@ const plus = {
   'plus.scene.previous': '上一个场景：{name}',
   'plus.scene.next': '下一个场景：{name}',
   'plus.scene.loading': '正在下载场景…',
+  'plus.scene.starting': '正在启动场景…',
   'plus.scene.playing': '随你的音乐实时播放',
   'plus.scene.plusPlays': '有了 Plus，这个场景会在这里随你的音乐播放',
   'plus.scene.taste': '预览 · {seconds} 秒',
@@ -90,6 +94,7 @@ const plus = {
   'plus.scene.play': '在图表上播放',
   'plus.scene.inLooks': '已在你的外观中，位于“会员创作”',
   'plus.scene.inLooksOwn': '已在你的外观中，位于“你创作的”',
+  'plus.scene.inLooksPlus': '已在你的外观中，位于“FluidEQ Plus”',
   'plus.scene.fine':
     '添加的场景在你拥有 Plus 期间可从外观中播放。任何人都不能出售它们。',
   'plus.scene.report': '举报这个场景',

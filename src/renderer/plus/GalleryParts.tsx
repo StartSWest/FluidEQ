@@ -16,6 +16,21 @@ export const categoryKey = (category: TPlusCategory): TranslationKey =>
  */
 export const usePlusEntitled = () => useEntitlement().state !== 'none';
 
+/**
+ * The tag that says a scene, or a maker's page, is FluidEQ's own. The same
+ * small mark the board gives a role, so hierarchy shows the same way in both
+ * places: as a tag on the name, never as a colour on the whole row.
+ */
+export function OfficialBadge() {
+  const { t } = useTranslation();
+  return (
+    <span className="community__role gallery-official">
+      <Glyph name="check" />
+      {t('plus.official.badge')}
+    </span>
+  );
+}
+
 interface IScenePictureProps {
   scene: Pick<IGalleryScene, 'lookId' | 'authorId' | 'sceneId' | 'version'> &
     Partial<Pick<IGalleryScene, 'updatedAt'>>;

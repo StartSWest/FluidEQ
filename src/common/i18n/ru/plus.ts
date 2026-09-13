@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': 'Убрать',
   'plus.official.author': 'FluidEQ · Официально',
   'plus.official.included': 'Входит в Plus',
+  'plus.official.badge': 'Официально',
+  'plus.official.fine':
+    'Часть коллекции FluidEQ: запускается из ваших оформлений, пока у вас есть Plus.',
   'plus.visualizers.title': 'Визуализаторы',
   'plus.visualizers.description':
     'Сцены от FluidEQ и сообщества Plus для вашей музыки',
@@ -75,6 +78,7 @@ const plus = {
   'plus.scene.previous': 'Предыдущая сцена: {name}',
   'plus.scene.next': 'Следующая сцена: {name}',
   'plus.scene.loading': 'Сцена скачивается…',
+  'plus.scene.starting': 'Сцена запускается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
   'plus.scene.plusPlays': 'С Plus эта сцена оживает здесь под вашу музыку',
   'plus.scene.taste': 'Превью · {seconds} с',
@@ -96,6 +100,7 @@ const plus = {
   'plus.scene.play': 'Запустить на графике',
   'plus.scene.inLooks': 'В ваших оформлениях, в разделе «Созданы участниками»',
   'plus.scene.inLooksOwn': 'В ваших оформлениях, в разделе «Созданы вами»',
+  'plus.scene.inLooksPlus': 'В ваших оформлениях, в разделе «FluidEQ Plus»',
   'plus.scene.fine':
     'Добавленные сцены запускаются из ваших оформлений, пока у вас есть Plus. Продавать их никто не может.',
   'plus.scene.report': 'Пожаловаться на сцену',

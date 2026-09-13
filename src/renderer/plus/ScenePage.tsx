@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
@@ -6,7 +6,9 @@ import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
+import type { ISceneFrame } from '../graph/sceneGl';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
+import BrandMark from '../icons/BrandMark';
 import { useTranslation } from '../utils/I18nContext';
 import { setGraphLook } from '../utils/graphStyle';
 import useGalleryLocalScenes from './useGalleryLocalScenes';
@@ -14,6 +16,7 @@ import GalleryCard from './GalleryCard';
 import { addGalleryScene, useAddingScenes } from './galleryActions';
 import {
   categoryKey,
+  OfficialBadge,
   SceneHeart,
   ScenePicture,
   usePlusEntitled,
@@ -159,6 +162,27 @@ export default function ScenePage({
     entitled,
   ]);
 
+  // The scene playing on the stage, by version, and whether it has drawn a
+  // frame yet. Kept by identity so stepping to the next scene starts from its
+  // picture again instead of inheriting this one's "live".
+  const playing =
+    preview.state === 'ready' || preview.state === 'taste'
+      ? `${scene.lookId}@${preview.pack.version}`
+      : undefined;
+  const [liveIdentity, setLiveIdentity] = useState<string>();
+  const liveRef = useRef<string | undefined>(undefined);
+  const live = playing !== undefined && liveIdentity === playing;
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
+  // Called on every frame; state changes once, on the first that shows.
+  const markLive = useCallback((frame: ISceneFrame) => {
+    const identity = playingRef.current;
+    if (frame.fade > 0 && identity && liveRef.current !== identity) {
+      liveRef.current = identity;
+      setLiveIdentity(identity);
+    }
+  }, []);
+
   const makerQuery = useMemo(
     () => ({ sort: 'liked', authorId: scene.authorId }) as const,
     [scene.authorId],
@@ -176,6 +200,14 @@ export default function ScenePage({
   );
 
   const current = local !== undefined && local.version >= scene.version;
+  // The heading it sits under in the look picker. FluidEQ's own scenes are
+  // Plus looks, not member scenes, and were being sent to "Made by members".
+  let inLooksKey: TranslationKey = 'plus.scene.inLooks';
+  if (scene.official) {
+    inLooksKey = 'plus.scene.inLooksPlus';
+  } else if (own) {
+    inLooksKey = 'plus.scene.inLooksOwn';
+  }
   let primary = (
     <button
       type="button"
@@ -228,30 +260,45 @@ export default function ScenePage({
     <div className="gallery-page gallery-scene">
       <div className="gallery-scene__main">
         <div className="gallery-preview">
+          {/* Always under the scene, and first in the stage so the scene's
+              canvas stands over it: the scene's picture is on screen the
+              moment the page opens, stays through the download AND through
+              the first compile — which for a large scene seen for the first
+              time on this computer takes seconds, and used to be seconds of
+              black — and the live scene fades in over it. */}
+          <ScenePicture
+            scene={scene}
+            className={`gallery-preview__still${live ? ' is-behind' : ''}`}
+          />
           {preview.state === 'ready' && (
             <ScenePreview
-              identity={`${scene.lookId}@${preview.pack.version}`}
+              identity={playing ?? ''}
               pack={preview.pack}
               label={t('plus.scene.playing')}
               onTrouble={(trouble) =>
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
+              onDrawn={markLive}
             />
           )}
           {preview.state === 'taste' && (
             <SceneTaste
-              identity={`${scene.lookId}@${preview.pack.version}`}
+              identity={playing ?? ''}
               pack={preview.pack}
               onTrouble={(trouble) =>
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
+              onDrawn={markLive}
               onOver={() => setPreview({ state: 'plus', tasted: true })}
             />
           )}
-          {preview.state !== 'ready' && preview.state !== 'taste' && (
-            <ScenePicture scene={scene} className="gallery-preview__still" />
+          {playing !== undefined && !live && (
+            <span className="gallery-preview__starting" role="status">
+              <span className="gallery-preview__spinner" aria-hidden="true" />
+              {t('plus.scene.starting')}
+            </span>
           )}
-          {preview.state === 'ready' && (
+          {preview.state === 'ready' && live && (
             <span className="gallery-preview__tag">
               <span className="gallery-preview__live" aria-hidden="true" />
               {t('plus.scene.playing')}
@@ -299,24 +346,36 @@ export default function ScenePage({
       </div>
 
       <aside className="gallery-scene__info">
-        <h3 className="gallery-scene__name">{name}</h3>
-        <div className="gallery-scene__byline">
-          <button
-            type="button"
-            className="gallery-scene__maker"
-            onClick={() => openGalleryPage({ kind: 'maker', maker })}
-          >
-            <Avatar
-              handle={scene.authorHandle ?? scene.authorId}
-              displayName={scene.authorName ?? undefined}
-            />
-            <span>{makerName}</span>
-          </button>
-          <span className="gallery-pill">{t(categoryKey(scene.category))}</span>
-        </div>
+        <header className="gallery-scene__head">
+          <span className="eyebrow gallery-scene__kicker">
+            {t(categoryKey(scene.category))}
+          </span>
+          <h3 className="gallery-scene__name">{name}</h3>
+          <div className="gallery-scene__byline">
+            <button
+              type="button"
+              className="gallery-scene__maker"
+              onClick={() => openGalleryPage({ kind: 'maker', maker })}
+            >
+              {scene.official ? (
+                <BrandMark className="gallery-scene__brand" />
+              ) : (
+                <Avatar
+                  handle={scene.authorHandle ?? scene.authorId}
+                  displayName={scene.authorName ?? undefined}
+                />
+              )}
+              <span className="gallery-scene__maker-name">{makerName}</span>
+            </button>
+            {scene.official && <OfficialBadge />}
+          </div>
+        </header>
 
         {scene.official ? (
-          <p className="gallery-pill">{t('plus.official.included')}</p>
+          <p className="gallery-included">
+            <Glyph name="plus" />
+            {t('plus.official.included')}
+          </p>
         ) : (
           <dl className="gallery-figures">
             <div>
@@ -346,21 +405,25 @@ export default function ScenePage({
         {current && (
           <p className="gallery-scene__have">
             <Glyph name="shield" />
-            {own ? t('plus.scene.inLooksOwn') : t('plus.scene.inLooks')}
+            {t(inLooksKey)}
           </p>
         )}
-        <p className="gallery-fine">{t('plus.scene.fine')}</p>
-        {!own && !scene.official && (
-          <button
-            type="button"
-            className="gallery-scene__report"
-            disabled={reported}
-            onClick={() => setReporting(true)}
-          >
-            <Glyph name="report" />
-            {reported ? t('plus.scene.reported') : t('plus.scene.report')}
-          </button>
-        )}
+        <footer className="gallery-scene__foot">
+          <p className="gallery-fine">
+            {t(scene.official ? 'plus.official.fine' : 'plus.scene.fine')}
+          </p>
+          {!own && !scene.official && (
+            <button
+              type="button"
+              className="gallery-scene__report"
+              disabled={reported}
+              onClick={() => setReporting(true)}
+            >
+              <Glyph name="report" />
+              {reported ? t('plus.scene.reported') : t('plus.scene.report')}
+            </button>
+          )}
+        </footer>
       </aside>
 
       {others.length > 0 && (

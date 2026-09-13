@@ -5,6 +5,9 @@ const plus = {
   'plus.card.remove': 'Quitar',
   'plus.official.author': 'FluidEQ · Oficial',
   'plus.official.included': 'Incluido con Plus',
+  'plus.official.badge': 'Oficial',
+  'plus.official.fine':
+    'Parte de la colección de FluidEQ: se reproduce desde tus estilos mientras tengas Plus.',
   'plus.visualizers.title': 'Visualizadores',
   'plus.visualizers.description':
     'Escenas de FluidEQ y la comunidad Plus, listas para tu música',
@@ -77,6 +80,7 @@ const plus = {
   'plus.scene.previous': 'Escena anterior: {name}',
   'plus.scene.next': 'Escena siguiente: {name}',
   'plus.scene.loading': 'Descargando la escena…',
+  'plus.scene.starting': 'Iniciando la escena…',
   'plus.scene.playing': 'En vivo con tu música',
   'plus.scene.plusPlays': 'Con Plus, esta escena se mueve aquí con tu música',
   'plus.scene.taste': 'Vista previa · {seconds} s',
@@ -98,6 +102,7 @@ const plus = {
   'plus.scene.play': 'Poner en el gráfico',
   'plus.scene.inLooks': 'En tus estilos, en Hechos por miembros',
   'plus.scene.inLooksOwn': 'En tus estilos, en Hechos por ti',
+  'plus.scene.inLooksPlus': 'En tus estilos, en FluidEQ Plus',
   'plus.scene.fine':
     'Las escenas añadidas se reproducen desde tus estilos mientras tengas Plus. Nadie puede venderlas.',
   'plus.scene.report': 'Denunciar esta escena',
