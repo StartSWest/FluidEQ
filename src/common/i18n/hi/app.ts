@@ -333,6 +333,10 @@ const app: Partial<Dictionary> = {
   'language.title': 'भाषा',
   'language.aria': 'इंटरफ़ेस की भाषा',
   'theme.aria': 'थीम',
+  'motion.aria': 'एनिमेशन',
+  'motion.full': 'एनिमेशन चालू',
+  'motion.reduced': 'कम गति',
+  'motion.restart': 'लागू करने के लिए FluidEQ फिर से शुरू करें',
   'theme.ocean': 'महासागर',
   'theme.black': 'काला',
 };

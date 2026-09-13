@@ -191,6 +191,8 @@ import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
+import { registerMotionPreferenceIpc } from './ipc/motionPreference';
+import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
@@ -970,6 +972,12 @@ const setWindowDimension = (isExpanded: boolean) => {
 
 // Load initial state from local state file
 const userDataDir = app.getPath('userData');
+
+// Animated or reduced as chosen in the app, never as Windows' "Animation
+// effects" happens to be set (`motionPreference.ts`): with that off, every
+// motion in the app stood down and came back only when the setting did.
+const motionAtLaunch = readMotionPreference(userDataDir);
+app.commandLine.appendSwitch(MOTION_SWITCHES[motionAtLaunch]);
 
 /** Where the "I restarted myself" note lives; see unattendedUpdate.ts. */
 const UNATTENDED_RESTART_MARKER_PATH = path.join(
@@ -3133,6 +3141,14 @@ const leaderboardIpc = registerLeaderboardIpc({
   sampleContent: developmentSamplePeople,
 });
 
+// The tools menu's animations row: the saved choice, and the one this launch
+// was started with, so the row can say when a restart is still owed.
+const motionPreferenceIpc = registerMotionPreferenceIpc({
+  userDataDir,
+  atLaunch: motionAtLaunch,
+  logger: log,
+});
+
 // The forum: the project's GitHub Discussions. Independent of the FluidEQ
 // account — reading needs nothing and writing needs a GitHub sign-in — and
 // registering contacts nothing until the Forum tab asks.
@@ -3454,6 +3470,7 @@ app.on('before-quit', (event) => {
   leaderboardIpc.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();
+  motionPreferenceIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows

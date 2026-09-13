@@ -328,6 +328,10 @@ const app = {
   'language.title': 'Language',
   'language.aria': 'Interface language',
   'theme.aria': 'Theme',
+  'motion.aria': 'Animations',
+  'motion.full': 'Animations on',
+  'motion.reduced': 'Reduced motion',
+  'motion.restart': 'Restart FluidEQ to apply',
   'theme.ocean': 'Ocean',
   'theme.black': 'Black',
 } as const;

@@ -337,6 +337,10 @@ const app: Partial<Dictionary> = {
   'language.title': 'Язык',
   'language.aria': 'Язык интерфейса',
   'theme.aria': 'Тема',
+  'motion.aria': 'Анимация',
+  'motion.full': 'Анимация включена',
+  'motion.reduced': 'Меньше движения',
+  'motion.restart': 'Перезапустите FluidEQ, чтобы применить',
   'theme.ocean': 'Океан',
   'theme.black': 'Чёрная',
 };

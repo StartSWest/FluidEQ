@@ -67,6 +67,16 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Under the motion choice, while it differs from the running window: the
+// switch is how the window launches, so a new choice needs a restart.
+.motion-picker__restart {
+  grid-column: 2;
+  margin-top: -4px;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.35;
+}
+
 // The list is sized for the menu, not for the catalogues the Dropdown was built
 // for. Those hold tens of thousands of entries and earn their roomy rows; this
 // holds ten short words, and at the default size it came out taller than the

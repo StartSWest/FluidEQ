@@ -341,6 +341,10 @@ const app: Partial<Dictionary> = {
   'language.title': 'Sprache',
   'language.aria': 'Sprache der Oberfläche',
   'theme.aria': 'Design',
+  'motion.aria': 'Animationen',
+  'motion.full': 'Animationen an',
+  'motion.reduced': 'Weniger Bewegung',
+  'motion.restart': 'Starten Sie FluidEQ neu, um es anzuwenden',
   'theme.ocean': 'Ozean',
   'theme.black': 'Schwarz',
 };

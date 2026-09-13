@@ -339,6 +339,10 @@ const app: Partial<Dictionary> = {
   'language.title': '言語',
   'language.aria': '表示言語',
   'theme.aria': 'テーマ',
+  'motion.aria': 'アニメーション',
+  'motion.full': 'アニメーションあり',
+  'motion.reduced': '動きを減らす',
+  'motion.restart': 'FluidEQ を再起動すると反映されます',
   'theme.ocean': 'オーシャン',
   'theme.black': 'ブラック',
 };

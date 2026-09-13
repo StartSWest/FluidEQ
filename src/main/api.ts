@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
+import type { IMotionPreferenceState } from './ipc/motionPreference';
+import type { TMotionPreference } from './motionPreference';
 import type { IStudioNotes } from '../common/studioNotes';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
@@ -211,6 +213,18 @@ const setAppLocale = (locale: string) =>
  */
 const setWindowBackdrop = (wanted: boolean) =>
   ipcRenderer.invoke('window-set-backdrop', wanted) as Promise<void>;
+
+/** Animated or reduced, as chosen in the tools menu; applies from the next start. */
+const motionPreference = () =>
+  ipcRenderer.invoke(
+    'motion-preference-get',
+  ) as Promise<IMotionPreferenceState>;
+
+const setMotionPreference = (motion: TMotionPreference) =>
+  ipcRenderer.invoke(
+    'motion-preference-set',
+    motion,
+  ) as Promise<IMotionPreferenceState>;
 
 /**
  * The release notes that shipped with this build.
@@ -1225,6 +1239,8 @@ export default {
     closeWindow,
     setAppLocale,
     setWindowBackdrop,
+    motionPreference,
+    setMotionPreference,
     getChangelog,
     installUpdate,
     isWindowMaximized,

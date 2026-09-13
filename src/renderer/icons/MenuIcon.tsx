@@ -72,6 +72,10 @@ const PATHS: Record<string, string> = {
   // from the circled-i `info` glyph so "still being read" never looks like
   // "something went wrong reading it".
   pending: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7.5V12l3 2',
+  // A ball with two fading echoes trailing it: the window's motion. Spans
+  // 2.5-21.5 so it weighs the same as the theme and globe rows around it.
+  motion:
+    'M15.5 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM9 6.8a6 6 0 0 0 0 10.4M5.5 6.8a6 6 0 0 0 0 10.4',
   // A circle half filled: light and dark in one glyph. The theme row.
   theme: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 4v16a8 8 0 0 0 0-16z',
   // A globe: meridians and one parallel. Enough at 16px to read as 'world'.

@@ -317,6 +317,10 @@ const app: Partial<Dictionary> = {
   'language.title': '语言',
   'language.aria': '界面语言',
   'theme.aria': '主题',
+  'motion.aria': '动画',
+  'motion.full': '开启动画',
+  'motion.reduced': '减少动态效果',
+  'motion.restart': '重新启动 FluidEQ 后生效',
   'theme.ocean': '海洋',
   'theme.black': '黑色',
 };
