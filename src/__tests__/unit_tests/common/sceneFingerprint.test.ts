@@ -215,21 +215,45 @@ describe("a scene's tokens", () => {
       '$',
       '=',
       'texture',
-      '(',
       'uSpectrum',
       ',',
       '$',
       '.',
       'xy',
-      ')',
-      '*',
-      '0',
       ';',
     ]);
-    // The control: a different operation is a different token.
-    expect(sceneTokens('vec4 c = texture(uSpectrum, p.xy) + 2.0;')).not.toEqual(
+    // The control: a different built-in, contract input or test is a
+    // different token.
+    expect(
+      sceneTokens('vec4 c = textureLod(uSpectrum, p.xy) * 2.0;'),
+    ).not.toEqual(tokens);
+    expect(sceneTokens('vec4 c = texture(uLevel, p.xy) * 2.0;')).not.toEqual(
       tokens,
     );
+    expect(sceneTokens('bool c = a < b;')).not.toEqual(
+      sceneTokens('bool c = a > b;'),
+    );
+  });
+
+  // Each of these took a copy of an official scene from all of it to 3 or 4%
+  // until 2026-09-13: noise a copy can add around every number without
+  // changing a pixel.
+  it.each([
+    ['bracketed', (n: string) => `(${n})`],
+    ['times one', (n: string) => `(${n} * 1.0)`],
+    ['plus zero', (n: string) => `(${n} + 0.0)`],
+    ['cast', (n: string) => `float(${n})`],
+  ])('are the same with every number %s', (_name, wrap) => {
+    const line = 'col = mix(col, uAccent, 0.35) + vec3(0.02, 0.5, 0.75);';
+    const disguised = line.replace(/\d+\.\d+/g, (n) => wrap(n));
+    expect(sceneTokens(disguised)).toEqual(sceneTokens(line));
+  });
+
+  it('keep a conversion word that declares, and drop one that converts', () => {
+    expect(sceneTokens('float x = float(y);')).toEqual(
+      sceneTokens('float x = y;'),
+    );
+    expect(sceneTokens('float x = y;')).toContain('float');
   });
 });
 

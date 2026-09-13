@@ -19,6 +19,8 @@ import '../styles/LeaderboardName.scss';
 /** Exhaustive by type: a new failure does not compile until it has a sentence. */
 const ERROR_KEYS: Record<TProfileFailure, TranslationKey> = {
   handle_taken: 'leaderboard.name.error.handleTaken',
+  name_reserved: 'leaderboard.name.error.reserved',
+  name_unreadable: 'leaderboard.name.error.unreadable',
   signed_out: 'leaderboard.name.error.signedOut',
   network: 'leaderboard.name.error.network',
   rejected: 'leaderboard.name.error.rejected',

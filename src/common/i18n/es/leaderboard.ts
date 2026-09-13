@@ -64,6 +64,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'Elige tu nombre',
   'leaderboard.name.error.handleTaken':
     'Ese alias ya está en uso. Prueba otro.',
+  'leaderboard.name.error.reserved':
+    'Ese nombre está reservado para FluidEQ. Elige otro.',
+  'leaderboard.name.error.unreadable':
+    'Ese nombre tiene caracteres invisibles. Escríbelo de nuevo.',
   'leaderboard.name.error.signedOut': 'Se cerró tu sesión. Vuelve a iniciarla.',
   'leaderboard.name.error.network':
     'No se pudo contactar con el servidor. Comprueba tu conexión y vuelve a intentarlo.',

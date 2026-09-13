@@ -1067,6 +1067,10 @@ const galleryPicture = (
     revision,
   ) as Promise<string | undefined>;
 
+/** The official scenes an account without Plus can taste live. */
+const listGalleryTasteSamples = () =>
+  ipcRenderer.invoke('plus-gallery-samples') as Promise<string[]>;
+
 const previewGalleryScene = (
   authorId: string,
   sceneId: string,
@@ -1383,6 +1387,7 @@ export default {
     listGallery,
     galleryPicture,
     previewGalleryScene,
+    listGalleryTasteSamples,
     addGalleryScene,
     reportGalleryScene,
     myPublishedScenes,

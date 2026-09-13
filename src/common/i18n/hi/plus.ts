@@ -5,6 +5,7 @@ const plus = {
   'plus.card.remove': 'हटाएँ',
   'plus.official.author': 'FluidEQ · आधिकारिक',
   'plus.official.included': 'Plus में शामिल',
+  'plus.official.sample': 'मुफ़्त में आज़माएँ',
   'plus.official.badge': 'आधिकारिक',
   'plus.official.fine':
     'FluidEQ संग्रह का हिस्सा: जब तक आपके पास Plus है, यह आपके रूपों से चलता है।',

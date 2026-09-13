@@ -63,6 +63,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'Scegli il tuo nome',
   'leaderboard.name.error.handleTaken':
     'Quel nickname è già in uso. Provane un altro.',
+  'leaderboard.name.error.reserved':
+    'Questo nome è riservato a FluidEQ. Scegline un altro.',
+  'leaderboard.name.error.unreadable':
+    'Il nome contiene caratteri invisibili. Riscrivilo.',
   'leaderboard.name.error.signedOut': 'Sei stato disconnesso. Accedi di nuovo.',
   'leaderboard.name.error.network':
     'Impossibile raggiungere il server. Controlla la connessione e riprova.',

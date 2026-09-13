@@ -66,7 +66,8 @@ export const createGallerySceneSync = ({
       !!load() &&
       !store.isBlocked(scene.authorId, scene.sceneId);
     if (official) {
-      const next = await fetchOfficialScene(auth, scene.sceneId);
+      const fetched = await fetchOfficialScene(auth, scene.sceneId);
+      const next = typeof fetched === 'object' ? fetched : undefined;
       if (!next || !stillEligible() || next.pack.version < current.version) {
         return;
       }

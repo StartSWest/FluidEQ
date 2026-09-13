@@ -15,6 +15,7 @@ import {
   usePlusEntitled,
 } from './GalleryParts';
 import type { IMakerRef } from './plusNavigation';
+import { useTasteSamples } from './tasteSamples';
 
 interface IGalleryCardProps {
   scene: IGalleryScene;
@@ -47,6 +48,8 @@ export default function GalleryCard({
 }: IGalleryCardProps) {
   const { t, locale } = useTranslation();
   const entitled = usePlusEntitled();
+  const samples = useTasteSamples();
+  const freeTaste = !entitled && scene.official && samples.has(scene.sceneId);
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
@@ -118,7 +121,7 @@ export default function GalleryCard({
         <div className="gallery-card__foot">
           <span className="gallery-card__adds">
             {scene.official
-              ? t('plus.official.included')
+              ? t(freeTaste ? 'plus.official.sample' : 'plus.official.included')
               : t('plus.card.adds', { count: adds })}
           </span>
           <SceneHeart scene={scene} name={name} own={own} />

@@ -110,6 +110,15 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   if (url.endsWith('/rpc/gallery_scenes')) {
     return fakeResponse(200, rows);
   }
+  // Only the free samples taste live without Plus (server migration 0023).
+  if (url.endsWith('/rpc/official_scene_preview')) {
+    return entitled
+      ? fakeResponse(503, {})
+      : fakeResponse(403, { code: '42501', message: 'plus_required' });
+  }
+  if (url.endsWith('/rpc/official_sample_scenes')) {
+    return fakeResponse(200, ['neon-city', 'Not An Id', 7]);
+  }
   return fakeResponse(200, null);
 }) as unknown as typeof fetch;
 
@@ -433,7 +442,7 @@ describe('pictures', () => {
     ).toBeUndefined();
   });
 
-  it('shows and plays a scene without Plus, but keeps nothing', async () => {
+  it('shows a member scene’s picture without Plus, and neither plays nor keeps the scene', async () => {
     setup();
     entitled = false;
     bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());
@@ -446,7 +455,8 @@ describe('pictures', () => {
         1,
       ),
     ).toMatch(/^data:image\/webp;base64,/);
-    // Its page may play it — verified exactly as with Plus — for the taste.
+    // The scene file is Plus's (server migration 0023): its page offers Plus
+    // and never asks for the file.
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
         'plus-gallery-preview',
@@ -454,7 +464,8 @@ describe('pictures', () => {
         'neon-city',
         1,
       ),
-    ).toMatchObject({ ok: true, pack: { id: 'neon-city' } });
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    expect(calls.some((call) => call.url.endsWith('scene.json'))).toBe(false);
     // Keeping it is Plus.
     expect(
       await invoke<Promise<TGalleryAddOutcome>>(
@@ -466,6 +477,32 @@ describe('pictures', () => {
     ).toEqual({ ok: false, reason: 'not-entitled' });
     expect(store.list()).toEqual([]);
     expect(announced).toBe(0);
+  });
+
+  it('offers Plus on an official scene the server keeps for Plus, and lists the free samples', async () => {
+    setup();
+    entitled = false;
+    expect(
+      await invoke<Promise<TGalleryPreviewOutcome>>(
+        'plus-gallery-preview',
+        FLUIDEQ_CREATOR_ID,
+        'alpine',
+        47,
+      ),
+    ).toEqual({ ok: false, reason: 'not-entitled' });
+    // With Plus, a server that cannot answer is unavailable, not an offer.
+    entitled = true;
+    expect(
+      await invoke<Promise<TGalleryPreviewOutcome>>(
+        'plus-gallery-preview',
+        FLUIDEQ_CREATOR_ID,
+        'alpine',
+        47,
+      ),
+    ).toEqual({ ok: false, reason: 'unavailable' });
+    expect(await invoke<Promise<string[]>>('plus-gallery-samples')).toEqual([
+      'neon-city',
+    ]);
   });
 
   it('plays nothing to somebody signed out', async () => {

@@ -35,9 +35,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * other and members' own scenes at most 6% of any of them. Longer runs lost
  * copies faster than they gained margin; shorter ones began to find the same
  * short idioms in unrelated scenes.
+ *
+ * Since numbers, brackets, `+ - * /` and conversions stopped counting
+ * (2026-09-13): copies with every number bracketed, times one, plus zero or
+ * cast all carry 100% of their original, where they had carried 3 to 4%; no
+ * official scene carries more than 14% of any other; Studio projects that
+ * are not copies at most 5%.
  */
 export const SHINGLE_TOKENS = 12;
 export const WINNOW_WINDOW = 6;
+
+/**
+ * Which way of reading a scene made a fingerprint. A fingerprint kept from an
+ * older way is made again rather than compared, since the same scene read two
+ * ways shares nothing: the server keeps official scenes' fingerprints on their
+ * rows, and this goes beside each one.
+ */
+export const FINGERPRINT_ALGORITHM = 2;
 
 /**
  * Words kept as themselves: the GLSL ES 3.00 keywords, types, qualifiers and
@@ -57,10 +71,19 @@ const SWIZZLE = /^[xyzw]{1,4}$|^[rgba]{1,4}$|^[stpq]{1,4}$/;
 const TOKEN =
   /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|(\d+\.?\d*(?:[eE][+-]?\d+)?[uUfF]?|\.\d+(?:[eE][+-]?\d+)?[fF]?)|([A-Za-z_]\w*)|(<<=|>>=|\+\+|--|<=|>=|==|!=|&&|\|\||\^\^|\+=|-=|\*=|\/=|%=|<<|>>|[^\s\w])/g;
 
+/**
+ * Tokens a copy can add around its numbers without changing a pixel:
+ * brackets, `+ 0.0`, `* 1.0`, and `float(...)`. Kept, wrapping every number
+ * of an official scene in brackets took its coverage from all of it to 4%.
+ */
+const NOISE_SYMBOLS = new Set(['(', ')', '+', '-', '*', '/']);
+const CONVERSIONS = new Set(['float', 'int', 'uint', 'bool']);
+
 /** The scene's code as the tokens renaming and retuning leave alone. */
 export const sceneTokens = (source: string): string[] => {
   const tokens: string[] = [];
   let previous = '';
+  let pending: string | undefined;
   source.replace(
     TOKEN,
     (
@@ -70,24 +93,38 @@ export const sceneTokens = (source: string): string[] => {
       symbol: string | undefined,
     ) => {
       let token: string | undefined;
-      if (number !== undefined) {
-        token = '0';
-      } else if (word !== undefined) {
+      if (word !== undefined) {
         const kept =
           LANGUAGE_WORDS.has(word) ||
           CONTRACT_UNIFORM.test(word) ||
           (previous === '.' && SWIZZLE.test(word));
         token = kept ? word : '$';
-      } else if (symbol !== undefined) {
+      } else if (symbol !== undefined && !NOISE_SYMBOLS.has(symbol)) {
         token = symbol;
       }
-      if (token !== undefined) {
-        tokens.push(token);
-        previous = token;
+      // A conversion word counts only when a bracket does not follow it:
+      // `float(0.5)` is a number in disguise, `float x` a declaration.
+      if (pending !== undefined) {
+        if (symbol !== '(') {
+          tokens.push(pending);
+          previous = pending;
+        }
+        pending = undefined;
+      }
+      if (number === undefined && token !== undefined) {
+        if (CONVERSIONS.has(token)) {
+          pending = token;
+        } else {
+          tokens.push(token);
+          previous = token;
+        }
       }
       return match;
     },
   );
+  if (pending !== undefined) {
+    tokens.push(pending);
+  }
   return tokens;
 };
 

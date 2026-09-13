@@ -5,6 +5,7 @@ const plus = {
   'plus.card.remove': 'Quitar',
   'plus.official.author': 'FluidEQ · Oficial',
   'plus.official.included': 'Incluido con Plus',
+  'plus.official.sample': 'Pruébala gratis',
   'plus.official.badge': 'Oficial',
   'plus.official.fine':
     'Parte de la colección de FluidEQ: se reproduce desde tus estilos mientras tengas Plus.',

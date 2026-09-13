@@ -6,6 +6,7 @@ const plus = {
   'plus.card.remove': '削除',
   'plus.official.author': 'FluidEQ · 公式',
   'plus.official.included': 'Plus に含まれます',
+  'plus.official.sample': '無料で試せます',
   'plus.official.badge': '公式',
   'plus.official.fine':
     'FluidEQ コレクションの一部です。Plus の間、マイ表示から再生できます。',

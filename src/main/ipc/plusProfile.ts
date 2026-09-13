@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import type { IAccountConfig } from '../../common/accountConfig';
+import { hasInvisibleCharacters } from '../../common/memberScenes';
 import {
   HANDLE_PATTERN,
   MAX_DISPLAY_NAME,
@@ -72,6 +73,14 @@ export const registerPlusProfileIpc = ({
             : '';
         if (!HANDLE_PATTERN.test(wanted) || name.length === 0) {
           throw new ProfileError('rejected', 'Handle or name malformed.');
+        }
+        // The set the server refuses too (server migration 0022), checked
+        // here so the form can say so without a round trip.
+        if (hasInvisibleCharacters(name)) {
+          throw new ProfileError(
+            'name_unreadable',
+            'Name has invisible characters.',
+          );
         }
         return api.create(wanted, name);
       }),

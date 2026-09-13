@@ -19,7 +19,14 @@ export interface IPlusProfile {
 
 /** Exhaustive, so each has a sentence in every language. */
 export type TProfileFailure =
-  'handle_taken' | 'signed_out' | 'network' | 'rejected';
+  | 'handle_taken'
+  /** A handle or name that reads as FluidEQ speaking; the server's list. */
+  | 'name_reserved'
+  /** A name carrying characters that cannot be seen. */
+  | 'name_unreadable'
+  | 'signed_out'
+  | 'network'
+  | 'rejected';
 
 /** Letters, numbers and underscores, 3 to 20. */
 export const HANDLE_PATTERN = /^[a-z0-9_]{3,20}$/;

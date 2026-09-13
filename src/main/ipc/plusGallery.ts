@@ -32,6 +32,7 @@ import {
   type IPictureDiskCache,
 } from '../plus/pictureDiskCache';
 import { fetchOfficialScene } from '../plus/officialGallery';
+import { fetchTasteSamples } from '../plus/tasteSamples';
 import type { IScenePackStore } from '../scenePackStore';
 import { createGallerySceneSync } from '../plus/syncGalleryScenes';
 import { createGalleryRefresh } from '../plus/galleryRefresh';
@@ -113,6 +114,7 @@ const CHANNELS = [
   'plus-gallery-preview',
   'plus-gallery-add',
   'plus-gallery-report',
+  'plus-gallery-samples',
 ] as const;
 
 /**
@@ -357,6 +359,13 @@ export const registerPlusGalleryIpc = ({
     };
   };
 
+  // The official scenes a free account can taste live; empty when the list
+  // could not be asked.
+  ipcMain.handle('plus-gallery-samples', async (): Promise<string[]> => {
+    const auth = await access.auth();
+    return (auth && (await fetchTasteSamples(auth))) || [];
+  });
+
   ipcMain.handle(
     'plus-gallery-list',
     (_event, rawQuery: unknown): Promise<TGalleryListOutcome> => {
@@ -421,9 +430,11 @@ export const registerPlusGalleryIpc = ({
       version: unknown,
       rawRevision: unknown,
     ): Promise<TGalleryPreviewOutcome> => {
-      // Anyone signed in may watch a scene on its page: with Plus for as
-      // long as they like, without it for the taste the page gives. What
-      // stays Plus is keeping it — Add, below.
+      // Anyone signed in may open a scene's page. With Plus it plays for as
+      // long as they like; without, only the scenes chosen as free samples
+      // play, for the taste the page gives, and the rest show their picture.
+      // The server decides which (0023): the whole scene reaches the machine
+      // that plays it, and a rebuilt app keeps whatever it is given.
       const ref = sceneRefOf(authorId, sceneId);
       const previewAccount = access.accountId();
       if (!ref || !signedIn()) {
@@ -435,10 +446,18 @@ export const registerPlusGalleryIpc = ({
         const fetched = auth
           ? await fetchOfficialScene(auth, ref.packId)
           : undefined;
+        if (fetched === 'plus-required') {
+          return { ok: false, reason: 'not-entitled' };
+        }
         const pack = fetched?.pack;
         return pack && me === access.accountId()
           ? { ok: true, pack, own: false }
           : { ok: false, reason: 'unavailable' };
+      }
+      // A member's scene file is Plus's and its author's (server migration
+      // 0023); asking for it without either is a refusal already known.
+      if (!access.entitled() && ref.authorId !== previewAccount) {
+        return { ok: false, reason: 'not-entitled' };
       }
       if (store.isBlocked(ref.authorId, ref.packId)) {
         return { ok: false, reason: 'blocked' };
@@ -485,7 +504,7 @@ export const registerPlusGalleryIpc = ({
         if (!access.entitled() || access.accountId() !== me) {
           return { ok: false, reason: 'not-entitled' };
         }
-        if (!fetched || !officialStore) {
+        if (typeof fetched !== 'object' || !officialStore) {
           return { ok: false, reason: 'unavailable' };
         }
         try {

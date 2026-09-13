@@ -10,6 +10,7 @@ const plus = {
   'plus.card.remove': 'Remove',
   'plus.official.author': 'FluidEQ · Official',
   'plus.official.included': 'Included with Plus',
+  'plus.official.sample': 'Free to try',
   'plus.official.badge': 'Official',
   'plus.official.fine':
     'Part of the FluidEQ collection: it plays from your looks for as long as you have Plus.',

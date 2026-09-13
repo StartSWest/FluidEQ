@@ -68,6 +68,10 @@ const leaderboard = {
   'leaderboard.name.save': 'Save',
   'leaderboard.name.choose': 'Choose your name',
   'leaderboard.name.error.handleTaken': 'That handle is taken. Try another.',
+  'leaderboard.name.error.reserved':
+    'That name is reserved for FluidEQ. Choose another.',
+  'leaderboard.name.error.unreadable':
+    'That name has characters that can’t be seen. Type it again.',
   'leaderboard.name.error.signedOut':
     'You have been signed out. Sign in again.',
   'leaderboard.name.error.network':

@@ -1,6 +1,8 @@
 import {
   isScenePackEnvelope,
   parseScenePackPayload,
+  type IScenePack,
+  type IScenePackEnvelope,
 } from '../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../common/sceneUniformContract';
 import { verifyScenePackEnvelope } from '../scenePackVerify';
@@ -9,11 +11,21 @@ import type { IGalleryAuth } from './galleryAccess';
 /** Same bounded envelope as the official pack download, including artwork. */
 const MAX_ENVELOPE_BYTES = 12 * 1024 * 1024;
 
-/** Official previews keep their original signature; member signatures never qualify. */
+export interface IFetchedOfficialScene {
+  pack: IScenePack;
+  envelope: IScenePackEnvelope;
+}
+
+/**
+ * Official previews keep their original signature; member signatures never
+ * qualify. `'plus-required'` when the server keeps the scene for Plus: only
+ * the scenes chosen as free samples taste live without it (server migration
+ * 0023), and the page shows the rest's picture and the way to Plus instead.
+ */
 export const fetchOfficialScene = async (
   auth: IGalleryAuth,
   sceneId: string,
-) => {
+): Promise<IFetchedOfficialScene | 'plus-required' | undefined> => {
   try {
     const response = await (auth.fetchImpl ?? fetch)(
       new URL(
@@ -30,6 +42,9 @@ export const fetchOfficialScene = async (
         body: JSON.stringify({ p_scene: sceneId }),
       },
     );
+    if (response.status === 403) {
+      return 'plus-required';
+    }
     if (
       !response.ok ||
       Number(response.headers.get('content-length')) > MAX_ENVELOPE_BYTES

@@ -66,6 +66,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'Choisissez votre nom',
   'leaderboard.name.error.handleTaken':
     'Ce pseudo est déjà pris. Essayez-en un autre.',
+  'leaderboard.name.error.reserved':
+    'Ce nom est réservé à FluidEQ. Choisissez-en un autre.',
+  'leaderboard.name.error.unreadable':
+    'Ce nom contient des caractères invisibles. Saisissez-le à nouveau.',
   'leaderboard.name.error.signedOut':
     'Vous avez été déconnecté. Reconnectez-vous.',
   'leaderboard.name.error.network':

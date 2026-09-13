@@ -61,6 +61,19 @@ export const readProfile = (value: unknown): IPlusProfile | undefined => {
 /** What is asked for, never `*`: a column added later is not sent by default. */
 const COLUMNS = 'user_id,handle,display_name,role';
 
+const failureOf = (code: unknown, word: unknown): TProfileFailure => {
+  if (code === '23505') {
+    return 'handle_taken';
+  }
+  if (code === '22023' && word === 'reserved_name') {
+    return 'name_reserved';
+  }
+  if (code === '22023' && word === 'bad_display_name') {
+    return 'name_unreadable';
+  }
+  return 'rejected';
+};
+
 export interface IProfileApiOptions {
   config: IAccountConfig;
   /** A usable access token, or a rejection when nobody is signed in. */
@@ -117,16 +130,19 @@ export const createProfileApi = ({
       throw new ProfileError('signed_out', 'Token refused.');
     }
     if (!response.ok) {
-      // A unique-key collision on the handle is PostgREST's code 23505.
+      // A unique-key collision on the handle is PostgREST's code 23505; the
+      // name rules (server migration 0022) raise 22023 with their word.
       let code: unknown;
+      let word: unknown;
       try {
         const parsed: unknown = await response.json();
         code = isRecord(parsed) ? parsed.code : undefined;
+        word = isRecord(parsed) ? parsed.message : undefined;
       } catch {
         code = undefined;
       }
       throw new ProfileError(
-        code === '23505' ? 'handle_taken' : 'rejected',
+        failureOf(code, word),
         `Answered ${response.status}`,
       );
     }

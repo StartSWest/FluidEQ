@@ -68,22 +68,52 @@ export const parseMemberLookId = (id: string): IMemberLookRef | undefined => {
  * isolates, the byte-order mark and the soft hyphen — everything that can make
  * a name display as something other than what it is. Built from code points so
  * this file carries none of them itself.
+ *
+ * The same set the server refuses in a display name (server migration 0022).
+ * The review of 2026-09-13 added the ones that still let a name look blank or
+ * pad a look-alike: the combining grapheme joiner, the Arabic letter mark,
+ * the Hangul and Khmer fillers, the Mongolian variation selectors and vowel
+ * separator, the blank Braille pattern and the variation selectors. The tag
+ * characters beyond the basic plane are stripped by `withoutTags` below.
  */
 const hex = (code: number) => code.toString(16).padStart(4, '0');
-const INVISIBLE = new RegExp(
-  `[${[
-    [0x00, 0x1f],
-    [0x7f, 0x9f],
-    [0xad, 0xad],
-    [0x200b, 0x200f],
-    [0x2028, 0x202e],
-    [0x2060, 0x206f],
-    [0xfeff, 0xfeff],
-  ]
-    .map(([from, to]) => `\\u${hex(from)}-\\u${hex(to)}`)
-    .join('')}]`,
-  'g',
-);
+const INVISIBLE_RANGES: ReadonlyArray<readonly [number, number]> = [
+  [0x00, 0x1f],
+  [0x7f, 0x9f],
+  [0xad, 0xad],
+  [0x34f, 0x34f],
+  [0x61c, 0x61c],
+  [0x115f, 0x1160],
+  [0x17b4, 0x17b5],
+  [0x180b, 0x180f],
+  [0x200b, 0x200f],
+  [0x2028, 0x202e],
+  [0x2060, 0x206f],
+  [0x2800, 0x2800],
+  [0x3164, 0x3164],
+  [0xfe00, 0xfe0f],
+  [0xfeff, 0xfeff],
+  [0xffa0, 0xffa0],
+];
+const INVISIBLE_CLASS = `[${INVISIBLE_RANGES.map(
+  ([from, to]) => `\\u${hex(from)}-\\u${hex(to)}`,
+).join('')}]`;
+const INVISIBLE = new RegExp(INVISIBLE_CLASS, 'g');
+const HAS_INVISIBLE = new RegExp(INVISIBLE_CLASS);
+
+/** Unicode tag characters, U+E0000 to U+E007F: invisible, and astral. */
+const isTag = (character: string) => {
+  const code = character.codePointAt(0) ?? 0;
+  return code >= 0xe0000 && code <= 0xe007f;
+};
+const withoutTags = (text: string) =>
+  Array.from(text)
+    .filter((character) => !isTag(character))
+    .join('');
+
+/** Whether `text` carries any character the set above names. */
+export const hasInvisibleCharacters = (text: string): boolean =>
+  HAS_INVISIBLE.test(text) || Array.from(text).some(isTag);
 
 /**
  * Text a person will read, made safe to show: normalised, cleared of the
@@ -95,9 +125,7 @@ export const sanitizeDisplayText = (value: unknown): string | undefined => {
   if (typeof value !== 'string') {
     return undefined;
   }
-  const cleaned = value
-    .normalize('NFC')
-    .replace(INVISIBLE, '')
+  const cleaned = withoutTags(value.normalize('NFC').replace(INVISIBLE, ''))
     .replace(/\s+/g, ' ')
     .trim();
   return cleaned || undefined;

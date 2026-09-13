@@ -63,6 +63,10 @@ const leaderboard = {
   'leaderboard.name.choose': '名前を決める',
   'leaderboard.name.error.handleTaken':
     'そのハンドルは使われています。別のものをお試しください。',
+  'leaderboard.name.error.reserved':
+    'その名前は FluidEQ 用に予約されています。別の名前を選んでください。',
+  'leaderboard.name.error.unreadable':
+    'その名前には見えない文字が含まれています。もう一度入力してください。',
   'leaderboard.name.error.signedOut':
     'サインアウトされました。もう一度サインインしてください。',
   'leaderboard.name.error.network':

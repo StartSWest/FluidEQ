@@ -103,6 +103,25 @@ describe('the member’s name, in the main process', () => {
     await expect(api().create('ada', 'Ada')).rejects.toMatchObject({
       failure: 'handle_taken',
     });
+    // The name rules raise 22023 with a word each; any other 22023 is refused.
+    fetchImpl.mockResolvedValueOnce(
+      json({ code: '22023', message: 'reserved_name' }, 400),
+    );
+    await expect(api().create('fluideq', 'Ada')).rejects.toMatchObject({
+      failure: 'name_reserved',
+    });
+    fetchImpl.mockResolvedValueOnce(
+      json({ code: '22023', message: 'bad_display_name' }, 400),
+    );
+    await expect(api().create('ada', 'Ada')).rejects.toMatchObject({
+      failure: 'name_unreadable',
+    });
+    fetchImpl.mockResolvedValueOnce(
+      json({ code: '22023', message: 'something_else' }, 400),
+    );
+    await expect(api().create('ada', 'Ada')).rejects.toMatchObject({
+      failure: 'rejected',
+    });
     fetchImpl.mockResolvedValueOnce(json({ code: '42501' }, 403));
     await expect(api().create('ada', 'Ada')).rejects.toMatchObject({
       failure: 'rejected',
@@ -149,6 +168,15 @@ describe('the member’s name, in the main process', () => {
       await expect(
         invoke('plus-create-profile', 'fine_one', '   '),
       ).resolves.toEqual({ ok: false, failure: 'rejected' });
+      // Characters nobody can see, which reorder or blank out a name.
+      const unseen = ['Ada\u202E', '\u200B\u200B', 'A\u3164', 'Ada\u{E0041}'];
+      await Promise.all(
+        unseen.map((name) =>
+          expect(
+            invoke('plus-create-profile', 'fine_one', name),
+          ).resolves.toEqual({ ok: false, failure: 'name_unreadable' }),
+        ),
+      );
       expect(fetchImpl).not.toHaveBeenCalled();
     });
 

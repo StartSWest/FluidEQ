@@ -63,6 +63,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'Escolhe o teu nome',
   'leaderboard.name.error.handleTaken':
     'Esse nome de utilizador já está em uso. Tenta outro.',
+  'leaderboard.name.error.reserved':
+    'Esse nome está reservado ao FluidEQ. Escolhe outro.',
+  'leaderboard.name.error.unreadable':
+    'Esse nome tem caracteres invisíveis. Escreve-o de novo.',
   'leaderboard.name.error.signedOut':
     'A tua sessão terminou. Inicia sessão de novo.',
   'leaderboard.name.error.network':

@@ -62,6 +62,10 @@ const leaderboard = {
   'leaderboard.name.save': 'Сохранить',
   'leaderboard.name.choose': 'Выбрать имя',
   'leaderboard.name.error.handleTaken': 'Этот ник занят. Попробуйте другой.',
+  'leaderboard.name.error.reserved':
+    'Это имя зарезервировано за FluidEQ. Выберите другое.',
+  'leaderboard.name.error.unreadable':
+    'В имени есть невидимые символы. Введите его заново.',
   'leaderboard.name.error.signedOut': 'Вы вышли из аккаунта. Войдите снова.',
   'leaderboard.name.error.network':
     'Не удалось связаться с сервером. Проверьте подключение и попробуйте снова.',

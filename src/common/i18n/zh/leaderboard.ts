@@ -58,6 +58,8 @@ const leaderboard = {
   'leaderboard.name.save': '保存',
   'leaderboard.name.choose': '选择你的名字',
   'leaderboard.name.error.handleTaken': '该用户名已被使用，请换一个。',
+  'leaderboard.name.error.reserved': '该名称为 FluidEQ 保留，请换一个。',
+  'leaderboard.name.error.unreadable': '该名称包含不可见字符，请重新输入。',
   'leaderboard.name.error.signedOut': '你已退出登录，请重新登录。',
   'leaderboard.name.error.network': '无法连接服务器。请检查网络连接后重试。',
   'leaderboard.name.error.rejected': '服务器拒绝了这个名字。请换一个。',

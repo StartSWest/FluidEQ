@@ -5,6 +5,7 @@ const plus = {
   'plus.card.remove': '移除',
   'plus.official.author': 'FluidEQ · 官方',
   'plus.official.included': 'Plus 已包含',
+  'plus.official.sample': '可免费试用',
   'plus.official.badge': '官方',
   'plus.official.fine':
     'FluidEQ 合集的一部分：在你拥有 Plus 期间可从外观中播放。',

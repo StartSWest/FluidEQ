@@ -66,6 +66,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'Namen wählen',
   'leaderboard.name.error.handleTaken':
     'Dieses Kürzel ist vergeben. Versuchen Sie ein anderes.',
+  'leaderboard.name.error.reserved':
+    'Dieser Name ist für FluidEQ reserviert. Wählen Sie einen anderen.',
+  'leaderboard.name.error.unreadable':
+    'Der Name enthält unsichtbare Zeichen. Geben Sie ihn neu ein.',
   'leaderboard.name.error.signedOut':
     'Sie wurden abgemeldet. Melden Sie sich erneut an.',
   'leaderboard.name.error.network':

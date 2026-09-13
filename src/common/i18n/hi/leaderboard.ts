@@ -63,6 +63,10 @@ const leaderboard = {
   'leaderboard.name.choose': 'अपना नाम चुनें',
   'leaderboard.name.error.handleTaken':
     'वह हैंडल लिया जा चुका है। दूसरा आज़माएँ।',
+  'leaderboard.name.error.reserved':
+    'यह नाम FluidEQ के लिए आरक्षित है। कोई दूसरा चुनें।',
+  'leaderboard.name.error.unreadable':
+    'इस नाम में अदृश्य अक्षर हैं। इसे फिर से लिखें।',
   'leaderboard.name.error.signedOut':
     'आप साइन आउट हो गए हैं। फिर साइन इन करें।',
   'leaderboard.name.error.network':

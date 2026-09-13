@@ -61,9 +61,10 @@ export const registerStudioInspectIpc = ({
       let pack = officialStore.load(ref.packId);
       if (!pack) {
         const auth = await access.auth();
-        pack = auth
-          ? (await fetchOfficialScene(auth, ref.packId))?.pack
+        const fetched = auth
+          ? await fetchOfficialScene(auth, ref.packId)
           : undefined;
+        pack = typeof fetched === 'object' ? fetched.pack : undefined;
       }
       // The account that asked is still the one signed in, still with Plus.
       if (!access.entitled() || access.accountId() !== me) {
