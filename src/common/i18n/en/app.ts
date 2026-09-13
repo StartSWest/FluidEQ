@@ -57,7 +57,7 @@ const app = {
   'app.processes.unmeasured': 'A dash is a figure nothing has measured yet.',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound.',
+    'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound. The Plus visualizers run inside it on a thread of their own, so a heavy scene does not hold up the controls.',
   'app.processes.name.core': 'App core',
   'app.processes.what.core':
     'The part with no window. Keeps your settings, talks to the audio devices and the system equalizer, checks for updates, and starts everything else in this list.',
@@ -66,16 +66,22 @@ const app = {
     "FluidEQ's own engine. Decodes what you play and applies the equalizer as it goes. A separate program from the rest, which is why Windows files it away from them.",
   'app.processes.name.graphics': 'Graphics',
   'app.processes.what.graphics':
-    'Draws the window on the graphics card: the spectrum, the curve, every animation. Busy whenever anything on screen moves — it runs no karaoke or noise models.',
+    "Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the Plus visualizers' scenes. Busy whenever anything moves; it runs no models.",
+  'app.processes.name.models': 'Karaoke models',
+  'app.processes.what.models':
+    "Separates the voice from the music and follows the singer's pitch when a song is prepared for karaoke. Starts the first time it is needed and runs apart, so a model that fails cannot take the app down with it.",
+  'app.processes.name.libraryScan': 'Library scan',
+  'app.processes.what.libraryScan':
+    'Reads your music folders while the library scans them: tags, lengths and cover art. Starts for a scan and closes when it ends.',
   'app.processes.name.sound': 'Browser sound',
   'app.processes.what.sound':
     "Chromium's own audio, for the Video tab and for sounds a page plays. Your music does not go through it.",
   'app.processes.name.network': 'Network',
   'app.processes.what.network':
     'Update checks, cover art, and everything the Video tab loads. Nothing else here reaches the network.',
-  'app.processes.name.camera': 'Camera service',
-  'app.processes.what.camera':
-    'Started by Chromium when the app asks Windows for the list of audio devices, because the same call also lists cameras. It holds no camera open.',
+  'app.processes.name.devices': 'Device list',
+  'app.processes.what.devices':
+    'Started by Chromium when the app asks Windows which audio devices there are; the same request also lists video devices. It opens no camera and records nothing.',
   'app.processes.name.page': 'Web page',
   'app.processes.what.page':
     'A page open in the Video tab. It runs in its own process, apart from the interface.',

@@ -60,7 +60,7 @@ const app: Partial<Dictionary> = {
     'Un trattino indica un valore che nessuno ha ancora misurato.',
   'app.processes.name.window': 'Interfaccia',
   'app.processes.what.window':
-    'La finestra che stai guardando: la curva, la libreria, il lettore, tutti i controlli. Un processo per finestra, così un ridisegno pesante non rallenta il suono.',
+    'La finestra che stai guardando: la curva, la libreria, il lettore, tutti i controlli. Un processo per finestra, così un ridisegno pesante non rallenta il suono. I visualizzatori Plus girano qui dentro su un thread tutto loro, così una scena pesante non blocca i controlli.',
   'app.processes.name.core': "Nucleo dell'app",
   'app.processes.what.core':
     "La parte senza finestra. Conserva le tue impostazioni, parla con i dispositivi audio e con l'equalizzatore di sistema, cerca gli aggiornamenti e avvia tutto il resto di questo elenco.",
@@ -69,16 +69,22 @@ const app: Partial<Dictionary> = {
     "Il motore proprio di FluidEQ. Decodifica ciò che ascolti e applica l'equalizzatore strada facendo. È un programma a sé, per questo Windows lo colloca lontano dagli altri.",
   'app.processes.name.graphics': 'Grafica',
   'app.processes.what.graphics':
-    'Disegna la finestra sulla scheda grafica: lo spettro, la curva, ogni animazione. Lavora ogni volta che qualcosa si muove sullo schermo; qui non gira alcun modello di karaoke o di rumore.',
+    'Disegna tutto ciò che è sullo schermo sulla scheda grafica: lo spettro, la curva, ogni animazione e le scene dei visualizzatori Plus. Lavora ogni volta che qualcosa si muove; qui non gira alcun modello.',
+  'app.processes.name.models': 'Modelli karaoke',
+  'app.processes.what.models':
+    "Separa la voce dalla musica e segue l'intonazione di chi canta quando un brano viene preparato per il karaoke. Parte la prima volta che serve e gira a parte, così un modello che si guasta non trascina con sé l'app.",
+  'app.processes.name.libraryScan': 'Scansione della libreria',
+  'app.processes.what.libraryScan':
+    'Legge le tue cartelle musicali mentre la libreria le scansiona: tag, durate e copertine. Parte per una scansione e si chiude quando finisce.',
   'app.processes.name.sound': 'Audio del browser',
   'app.processes.what.sound':
     'Il suono proprio di Chromium, per la scheda Video e per i suoni di una pagina. La tua musica non passa di qui.',
   'app.processes.name.network': 'Rete',
   'app.processes.what.network':
     "Controllo aggiornamenti, copertine e tutto ciò che carica la scheda Video. Nient'altro qui tocca la rete.",
-  'app.processes.name.camera': 'Servizio fotocamera',
-  'app.processes.what.camera':
-    "Avviato da Chromium quando l'app chiede a Windows l'elenco dei dispositivi audio, perché la stessa chiamata elenca anche le fotocamere. Non tiene aperta alcuna fotocamera.",
+  'app.processes.name.devices': 'Elenco dispositivi',
+  'app.processes.what.devices':
+    "Avviato da Chromium quando l'app chiede a Windows quali dispositivi audio ci sono; la stessa richiesta elenca anche quelli video. Non apre alcuna fotocamera e non registra nulla.",
   'app.processes.name.page': 'Pagina web',
   'app.processes.what.page':
     'Una pagina aperta nella scheda Video. Gira in un processo tutto suo, separato dall’interfaccia.',

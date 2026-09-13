@@ -59,7 +59,7 @@ const app: Partial<Dictionary> = {
   'app.processes.unmeasured': '短横线表示该数值尚未被测量。',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
-    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。',
+    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。Plus 可视化在其中的独立线程上运行，因此繁重的场景不会卡住控件。',
   'app.processes.name.core': '应用核心',
   'app.processes.what.core':
     '没有窗口的那一部分。保存你的设置，与音频设备和系统均衡器通信，检查更新，并启动此列表中的其他一切。',
@@ -68,16 +68,22 @@ const app: Partial<Dictionary> = {
     'FluidEQ 自己的引擎。解码你播放的内容，并顺带应用均衡器。它是独立的程序，所以 Windows 把它与其余进程分开归类。',
   'app.processes.name.graphics': '图形',
   'app.processes.what.graphics':
-    '在显卡上绘制窗口：频谱、曲线和每一个动画。只要屏幕上有东西在动它就忙碌；这里不运行任何卡拉OK或降噪模型。',
+    '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
+  'app.processes.name.models': '卡拉OK模型',
+  'app.processes.what.models':
+    '为卡拉OK准备歌曲时，把人声从音乐中分离，并跟踪演唱的音高。第一次需要时启动，并单独运行，因此模型出错也不会拖垮应用。',
+  'app.processes.name.libraryScan': '媒体库扫描',
+  'app.processes.what.libraryScan':
+    '媒体库扫描你的音乐文件夹时，读取其中的标签、时长和封面。每次扫描时启动，扫描结束后关闭。',
   'app.processes.name.sound': '浏览器声音',
   'app.processes.what.sound':
     'Chromium 自己的音频，用于视频标签页和网页发出的声音。你的音乐不经过它。',
   'app.processes.name.network': '网络',
   'app.processes.what.network':
     '检查更新、封面图片，以及视频标签页加载的一切。此列表中的其他进程都不联网。',
-  'app.processes.name.camera': '摄像头服务',
-  'app.processes.what.camera':
-    '当应用向 Windows 索取音频设备列表时由 Chromium 启动，因为同一个调用也会枚举摄像头。它没有打开任何摄像头。',
+  'app.processes.name.devices': '设备列表',
+  'app.processes.what.devices':
+    '当应用向 Windows 询问有哪些音频设备时由 Chromium 启动；同一个请求也会列出视频设备。它不会打开任何摄像头，也不会录制任何内容。',
   'app.processes.name.page': '网页',
   'app.processes.what.page':
     '在视频标签页中打开的网页。它运行在自己的进程里，与界面分开。',

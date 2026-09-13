@@ -59,7 +59,7 @@ const app: Partial<Dictionary> = {
   'app.processes.unmeasured': 'Ein Strich ist ein noch nicht gemessener Wert.',
   'app.processes.name.window': 'Oberfläche',
   'app.processes.what.window':
-    'Das Fenster, das Sie gerade sehen: die Kurve, die Bibliothek, der Player, alle Regler. Ein Prozess pro Fenster, damit ein aufwendiges Neuzeichnen den Ton nicht ausbremst.',
+    'Das Fenster, das Sie gerade sehen: die Kurve, die Bibliothek, der Player, alle Regler. Ein Prozess pro Fenster, damit ein aufwendiges Neuzeichnen den Ton nicht ausbremst. Die Plus-Visualizer laufen darin in einem eigenen Thread, damit eine aufwendige Szene die Regler nicht aufhält.',
   'app.processes.name.core': 'App-Kern',
   'app.processes.what.core':
     'Der Teil ohne eigenes Fenster. Verwaltet Ihre Einstellungen, spricht mit den Audiogeräten und dem System-Equalizer, sucht nach Updates und startet alles andere in dieser Liste.',
@@ -68,16 +68,22 @@ const app: Partial<Dictionary> = {
     'Die eigene Engine von FluidEQ. Dekodiert, was Sie abspielen, und wendet dabei den Equalizer an. Ein eigenständiges Programm, weshalb Windows es getrennt von den übrigen einsortiert.',
   'app.processes.name.graphics': 'Grafik',
   'app.processes.what.graphics':
-    'Zeichnet das Fenster auf der Grafikkarte: Spektrum, Kurve, jede Animation. Beschäftigt, sobald sich auf dem Bildschirm etwas bewegt — Karaoke- oder Rauschmodelle laufen hier nicht.',
+    'Zeichnet alles auf dem Bildschirm auf der Grafikkarte: Spektrum, Kurve, jede Animation und die Szenen der Plus-Visualizer. Beschäftigt, sobald sich etwas bewegt; hier laufen keine Modelle.',
+  'app.processes.name.models': 'Karaoke-Modelle',
+  'app.processes.what.models':
+    'Trennt die Stimme von der Musik und folgt der Tonhöhe des Gesangs, wenn ein Song für Karaoke vorbereitet wird. Startet beim ersten Bedarf und läuft getrennt, damit ein fehlerhaftes Modell die App nicht mitreißt.',
+  'app.processes.name.libraryScan': 'Bibliotheks-Scan',
+  'app.processes.what.libraryScan':
+    'Liest Ihre Musikordner, während die Bibliothek sie durchsucht: Tags, Längen und Cover. Startet für einen Scan und beendet sich danach.',
   'app.processes.name.sound': 'Browser-Ton',
   'app.processes.what.sound':
     'Chromiums eigenes Audio, für den Video-Tab und für Töne, die eine Seite abspielt. Ihre Musik läuft nicht darüber.',
   'app.processes.name.network': 'Netzwerk',
   'app.processes.what.network':
     'Update-Prüfungen, Cover-Bilder und alles, was der Video-Tab lädt. Sonst geht hier nichts ins Netz.',
-  'app.processes.name.camera': 'Kameradienst',
-  'app.processes.what.camera':
-    'Wird von Chromium gestartet, wenn die App Windows nach der Liste der Audiogeräte fragt, weil derselbe Aufruf auch Kameras auflistet. Es wird keine Kamera geöffnet.',
+  'app.processes.name.devices': 'Geräteliste',
+  'app.processes.what.devices':
+    'Wird von Chromium gestartet, wenn die App Windows fragt, welche Audiogeräte es gibt; dieselbe Abfrage listet auch Videogeräte auf. Es öffnet keine Kamera und nimmt nichts auf.',
   'app.processes.name.page': 'Webseite',
   'app.processes.what.page':
     'Eine im Video-Tab geöffnete Seite. Sie läuft in einem eigenen Prozess, getrennt von der Oberfläche.',

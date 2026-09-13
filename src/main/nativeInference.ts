@@ -8,6 +8,7 @@ import {
   TInferenceCommand,
   TInferenceResponse,
 } from './inferenceProtocol';
+import { MODEL_PROCESS_NAME } from './utilityProcessNames';
 
 interface IWorker {
   child: UtilityProcess;
@@ -52,7 +53,7 @@ const startWorker = (): IWorker => {
     throw new Error('Native inference worker bundle is missing');
   }
   const child = utilityProcess.fork(entry, [], {
-    serviceName: 'FluidEQ Native Inference',
+    serviceName: MODEL_PROCESS_NAME,
   });
   const pending: IWorker['pending'] = new Map();
   const exited = new Promise<void>((resolve) => {

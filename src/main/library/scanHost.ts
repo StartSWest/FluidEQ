@@ -34,6 +34,7 @@ import { app, utilityProcess } from 'electron';
 import { IScanOptions, IScanResult, scanLibraryRoot } from './libraryScanner';
 import { storeArtwork as cacheArtwork } from './libraryArtwork';
 import { IScanWorkerRequest, IScanWorkerResponse } from './scanWorkerProtocol';
+import { LIBRARY_SCAN_PROCESS_NAME } from '../utilityProcessNames';
 
 /**
  * Where the worker bundle lands in each build.
@@ -108,7 +109,7 @@ const scanLibraryRootOffThread = (
        * itself: see `OUTPUT_NAME` in `native/CMakeLists.txt`.
        */
       child = utilityProcess.fork(entry, [], {
-        serviceName: 'FluidEQ Library Scan',
+        serviceName: LIBRARY_SCAN_PROCESS_NAME,
       });
     } catch (error) {
       workerUnavailable = true;

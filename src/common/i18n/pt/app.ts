@@ -59,7 +59,7 @@ const app: Partial<Dictionary> = {
   'app.processes.unmeasured': 'Um traço é um valor que ainda ninguém mediu.',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'A janela que está a ver: a curva, a biblioteca, o leitor, todos os controlos. Um processo por janela, para que um redesenho pesado não atrase o som.',
+    'A janela que está a ver: a curva, a biblioteca, o leitor, todos os controlos. Um processo por janela, para que um redesenho pesado não atrase o som. Os visualizadores Plus correm aqui dentro num fio de execução próprio, para que uma cena pesada não prenda os controlos.',
   'app.processes.name.core': 'Núcleo da app',
   'app.processes.what.core':
     'A parte sem janela. Guarda as suas definições, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e arranca tudo o resto desta lista.',
@@ -68,16 +68,22 @@ const app: Partial<Dictionary> = {
     'O motor próprio do FluidEQ. Descodifica o que reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows arruma-o longe dos restantes.',
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
-    'Desenha a janela na placa gráfica: o espetro, a curva, cada animação. Trabalha sempre que algo se move no ecrã; aqui não corre nenhum modelo de karaoke ou de ruído.',
+    'Desenha tudo o que está no ecrã na placa gráfica: o espetro, a curva, cada animação e as cenas dos visualizadores Plus. Trabalha sempre que algo se move; aqui não corre nenhum modelo.',
+  'app.processes.name.models': 'Modelos de karaoke',
+  'app.processes.what.models':
+    'Separa a voz da música e segue a afinação de quem canta quando uma música é preparada para karaoke. Arranca da primeira vez que é precisa e corre à parte, para que um modelo que falhe não arraste a app consigo.',
+  'app.processes.name.libraryScan': 'Análise da biblioteca',
+  'app.processes.what.libraryScan':
+    'Lê as suas pastas de música enquanto a biblioteca as analisa: etiquetas, durações e capas. Arranca para uma análise e fecha quando termina.',
   'app.processes.name.sound': 'Som do navegador',
   'app.processes.what.sound':
     'O áudio próprio do Chromium, para o separador Vídeo e para os sons de uma página. A sua música não passa por aqui.',
   'app.processes.name.network': 'Rede',
   'app.processes.what.network':
     'Verificação de atualizações, capas e tudo o que o separador Vídeo carrega. Mais nada nesta lista vai à rede.',
-  'app.processes.name.camera': 'Serviço de câmara',
-  'app.processes.what.camera':
-    'Iniciado pelo Chromium quando a app pede ao Windows a lista de dispositivos de áudio, porque a mesma chamada enumera também as câmaras. Não mantém nenhuma câmara aberta.',
+  'app.processes.name.devices': 'Lista de dispositivos',
+  'app.processes.what.devices':
+    'Iniciado pelo Chromium quando a app pergunta ao Windows que dispositivos de áudio existem; o mesmo pedido enumera também os de vídeo. Não abre nenhuma câmara nem grava nada.',
   'app.processes.name.page': 'Página web',
   'app.processes.what.page':
     'Uma página aberta no separador Vídeo. Corre no seu próprio processo, à parte da interface.',

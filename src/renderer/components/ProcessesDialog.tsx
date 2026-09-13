@@ -4,11 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import type { TranslationKey } from 'common/i18n/en';
 import type { IAppProcess, TProcessRole } from '../../main/ipc/processes';
 import { useTranslation } from '../utils/I18nContext';
+import { createProcessReadings } from '../utils/processReadings';
 import DialogHeader from './DialogHeader';
 import '../styles/Processes.scss';
 
@@ -22,9 +23,11 @@ const NAME_KEYS: Record<TProcessRole, TranslationKey> = {
   core: 'app.processes.name.core',
   engine: 'app.processes.name.engine',
   graphics: 'app.processes.name.graphics',
+  models: 'app.processes.name.models',
+  libraryScan: 'app.processes.name.libraryScan',
   sound: 'app.processes.name.sound',
   network: 'app.processes.name.network',
-  camera: 'app.processes.name.camera',
+  devices: 'app.processes.name.devices',
   page: 'app.processes.name.page',
   helper: 'app.processes.name.helper',
 };
@@ -35,9 +38,11 @@ const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
   core: 'app.processes.what.core',
   engine: 'app.processes.what.engine',
   graphics: 'app.processes.what.graphics',
+  models: 'app.processes.what.models',
+  libraryScan: 'app.processes.what.libraryScan',
   sound: 'app.processes.what.sound',
   network: 'app.processes.what.network',
-  camera: 'app.processes.what.camera',
+  devices: 'app.processes.what.devices',
   page: 'app.processes.what.page',
   helper: 'app.processes.what.helper',
 };
@@ -56,11 +61,15 @@ const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
  * process is `Utility: video_capture.mojom.VideoCaptureService` answers a
  * question nobody asked. The list is opened to find out what part of FluidEQ
  * is holding the memory, so every row says what it does for FluidEQ and why it
- * is running at all. Two of them exist only because somebody would otherwise
- * assume the worst about them: the graphics process, which is busy whenever
- * anything on screen moves and has nothing to do with the karaoke models, and
- * the camera service, which Windows starts when the app asks for the list of
- * audio devices and which holds no camera open.
+ * is running at all. Two of them are worded so nobody assumes the worst about
+ * them: the graphics process, which is busy whenever anything on screen moves
+ * and has nothing to do with the karaoke models, and Chromium's video-capture
+ * service, which starts when the app asks for the list of audio devices, holds
+ * no camera open, and is therefore not called a camera service here.
+ *
+ * The Plus visualizers have no row of their own because they are not a
+ * process: they are a worker thread inside the window, whose WebGL executes in
+ * the graphics process. Both of those rows say so.
  *
  * The DSP engine is listed alongside even though it is not Electron's, because
  * somebody looking at this list is asking about FluidEQ rather than about
@@ -73,40 +82,68 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [rows, setRows] = useState<IAppProcess[]>([]);
 
-  const refresh = useCallback(() => {
-    const bridge = window.electron?.ipcRenderer as
-      { appProcesses?: () => Promise<IAppProcess[]> } | undefined;
-    bridge
-      ?.appProcesses?.()
-      // Main orders them, and it orders them the same way every time. Sorting
-      // by size here is what used to make rows swap places under the cursor
-      // while they were being read.
-      .then((next) => {
-        setRows(next);
-        return next;
-      })
-      .catch(() => undefined);
-  }, []);
-
   useEffect(() => {
     closeRef.current?.focus();
-    refresh();
-    /**
-     * Once a second: slow enough to read a number off, fast enough to watch
-     * a leak move. Four times a second is a table nobody can read.
-     */
-    const timer = setInterval(refresh, 1_000);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
       }
     };
     document.addEventListener('keydown', onKeyDown);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
+  /**
+   * Asks again as soon as the previous answer has reached a frame.
+   *
+   * One request in flight, the next sent from `requestAnimationFrame` — so the
+   * list follows the screen: it keeps up while it is being looked at and stops
+   * by itself when the window is minimised or hidden, where Chromium runs no
+   * frames. What keeps sixty answers a second readable is `processReadings`,
+   * which averages CPU and holds a figure until it has genuinely moved; the
+   * table re-renders only when one did.
+   *
+   * A failed answer chains the next request just the same. The handler only
+   * throws while the window is going away, and a list that stopped on one
+   * failure would freeze its figures with nothing on screen saying so.
+   */
+  useEffect(() => {
+    const bridge = window.electron?.ipcRenderer as
+      { appProcesses?: () => Promise<IAppProcess[]> } | undefined;
+    const ask = bridge?.appProcesses;
+    if (!ask) {
+      return undefined;
+    }
+    const readings = createProcessReadings();
+    let closed = false;
+    let frame = 0;
+    const request = () => {
+      ask()
+        // Main orders them, and it orders them the same way every time.
+        // Sorting by size here is what used to make rows swap places under
+        // the cursor while they were being read.
+        .then((next) => {
+          const shown = closed
+            ? undefined
+            : readings.take(next, performance.now());
+          if (shown) {
+            setRows(shown);
+          }
+          return undefined;
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!closed) {
+            frame = requestAnimationFrame(request);
+          }
+        });
     };
-  }, [onClose, refresh]);
+    request();
+    return () => {
+      closed = true;
+      cancelAnimationFrame(frame);
+    };
+  }, []);
 
   /**
    * The app's name for a process, and the sentence that makes it make sense.

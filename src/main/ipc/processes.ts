@@ -33,6 +33,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { BrowserWindow, app, ipcMain } from 'electron';
 import type { IHostStats } from '../dspHost/wire';
+import {
+  LIBRARY_SCAN_PROCESS_NAME,
+  MODEL_PROCESS_NAME,
+} from '../utilityProcessNames';
 
 /**
  * What a process does for FluidEQ, which is the only thing worth showing.
@@ -49,14 +53,27 @@ export type TProcessRole =
   | 'window'
   /** Another renderer: a web page inside the Video tab, not our interface. */
   | 'page'
-  /** Chromium's compositor. Draws every window; runs no models. */
+  /**
+   * Chromium's GPU process. Draws every window, and is where the Plus
+   * visualizers' WebGL actually executes; runs no models.
+   */
   | 'graphics'
+  /** Our karaoke models (voice separation, pitch), forked on first use. */
+  | 'models'
+  /** Our library scan, forked for one scan and closed when it finishes. */
+  | 'libraryScan'
   /** Chromium's audio service, which is what the browser-side player uses. */
   | 'sound'
   /** Update checks, artwork, the Video tab. */
   | 'network'
-  /** The camera and screen-capture service. */
-  | 'camera'
+  /**
+   * Chromium's video-capture service, started by device enumeration.
+   *
+   * Not called the camera service in the window: it is running because the
+   * app listed audio devices, it holds no camera, and a row named "camera"
+   * read as the app watching somebody.
+   */
+  | 'devices'
   /** Our own DSP host: a separate executable, not one of Electron's. */
   | 'engine'
   /** Something Chromium started that we have no app-level sentence for. */
@@ -78,7 +95,22 @@ export interface IAppProcess {
    * process that costs nothing rather than one nobody has asked.
    */
   memoryMb?: number;
+  /**
+   * Share of one core since the previous look, as Chromium or the host counts
+   * it. For an Electron row that window is whatever elapsed since anybody last
+   * called `getAppMetrics`, which is why the list prefers `cpuSeconds` below.
+   */
   cpuPercent?: number;
+  /**
+   * CPU time used since the process started, in seconds.
+   *
+   * The list asks once per painted frame, and a percentage over sixteen
+   * milliseconds is quantised by the Windows scheduler tick into 0 or 100. A
+   * running total lets the window average over whatever span it chooses, and
+   * no other caller of `getAppMetrics` can shorten that span. Absent for the
+   * DSP host, which reports only its own half-second percentage.
+   */
+  cpuSeconds?: number;
 }
 
 export interface IProcessIpcDeps {
@@ -105,12 +137,26 @@ export interface IProcessIpcDeps {
 const UTILITY_ROLES: Record<string, TProcessRole> = {
   'audio.mojom.AudioService': 'sound',
   'network.mojom.NetworkService': 'network',
-  'video_capture.mojom.VideoCaptureService': 'camera',
+  'video_capture.mojom.VideoCaptureService': 'devices',
+};
+
+/**
+ * The utility processes this app forks itself, by the name it gave them.
+ *
+ * Matched on `name` rather than `serviceName`: every `utilityProcess.fork`
+ * reports the same service, `node.mojom.NodeService`, and the `serviceName`
+ * option passed to the fork lands in `name`. Matching on the service is what
+ * listed the karaoke models and a library scan as two identical helpers.
+ */
+const OWN_UTILITY_ROLES: Record<string, TProcessRole> = {
+  [MODEL_PROCESS_NAME]: 'models',
+  [LIBRARY_SCAN_PROCESS_NAME]: 'libraryScan',
 };
 
 const roleFor = (
   type: string,
   service: string | undefined,
+  name: string | undefined,
   isAppWindow: boolean,
 ): TProcessRole => {
   if (type === 'Browser') {
@@ -122,10 +168,14 @@ const roleFor = (
   if (type === 'GPU') {
     return 'graphics';
   }
-  if (type === 'Utility' && service) {
-    return UTILITY_ROLES[service] ?? 'helper';
+  if (type !== 'Utility') {
+    return 'helper';
   }
-  return 'helper';
+  const own = name === undefined ? undefined : OWN_UTILITY_ROLES[name];
+  if (own) {
+    return own;
+  }
+  return (service && UTILITY_ROLES[service]) || 'helper';
 };
 
 /**
@@ -134,8 +184,8 @@ const roleFor = (
  * This table used to sort by memory, which reordered itself under the cursor:
  * the GPU process and the window trade places whenever a spectrum redraws, so
  * a row being read moves as it is read and the column somebody is comparing
- * against is a different process a second later. The list is nine rows at
- * most and the total is on the last line, so nothing is gained by ranking
+ * against is a different process a second later. The list is a dozen rows
+ * at most and the total is on the last line, so nothing is gained by ranking
  * them; what is gained by a fixed order is that the row found once is in the
  * same place next time.
  */
@@ -144,9 +194,11 @@ const ROLE_ORDER: readonly TProcessRole[] = [
   'core',
   'engine',
   'graphics',
+  'models',
+  'libraryScan',
   'sound',
   'network',
-  'camera',
+  'devices',
   'page',
   'helper',
 ];
@@ -170,15 +222,25 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
 
     const rows: IAppProcess[] = app.getAppMetrics().map((metric) => {
       const isAppWindow = metric.pid === appWindowPid;
-      const role = roleFor(metric.type, metric.serviceName, isAppWindow);
+      const role = roleFor(
+        metric.type,
+        metric.serviceName,
+        metric.name,
+        isAppWindow,
+      );
       return {
         pid: metric.pid,
         role,
-        detail: role === 'helper' ? metric.serviceName : undefined,
+        // Chromium's display name ("Storage Service") before its interface
+        // name, which for any forked Node child is the uninformative
+        // `node.mojom.NodeService`.
+        detail:
+          role === 'helper' ? (metric.name ?? metric.serviceName) : undefined,
         // `workingSetSize` is in kilobytes, which is the units mistake that
         // makes a 900 MB renderer look like 900 KB and get ignored.
         memoryMb: Math.round(metric.memory.workingSetSize / 1024),
         cpuPercent: Math.round(metric.cpu.percentCPUUsage * 10) / 10,
+        cpuSeconds: metric.cpu.cumulativeCPUUsage,
       };
     });
 

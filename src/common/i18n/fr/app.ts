@@ -60,7 +60,7 @@ const app: Partial<Dictionary> = {
     "Un tiret signale une valeur que rien n'a encore mesurée.",
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    "La fenêtre que vous regardez : la courbe, la bibliothèque, le lecteur, toutes les commandes. Un processus par fenêtre, pour qu'un redessin lourd ne freine pas le son.",
+    "La fenêtre que vous regardez : la courbe, la bibliothèque, le lecteur, toutes les commandes. Un processus par fenêtre, pour qu'un redessin lourd ne freine pas le son. Les visualiseurs Plus y tournent dans un fil d'exécution à part, pour qu'une scène lourde ne bloque pas les commandes.",
   'app.processes.name.core': "Cœur de l'application",
   'app.processes.what.core':
     "La partie sans fenêtre. Conserve vos réglages, dialogue avec les périphériques audio et l'égaliseur du système, cherche les mises à jour et démarre tout le reste de cette liste.",
@@ -69,16 +69,22 @@ const app: Partial<Dictionary> = {
     "Le moteur propre à FluidEQ. Décode ce que vous écoutez et applique l'égaliseur au passage. C'est un programme distinct, d'où son classement à part par Windows.",
   'app.processes.name.graphics': 'Graphismes',
   'app.processes.what.graphics':
-    "Dessine la fenêtre sur la carte graphique : le spectre, la courbe, chaque animation. Occupé dès que quelque chose bouge à l'écran ; aucun modèle de karaoké ou de bruit ne tourne ici.",
+    "Dessine tout ce qui est à l'écran sur la carte graphique : le spectre, la courbe, chaque animation et les scènes des visualiseurs Plus. Occupé dès que quelque chose bouge ; aucun modèle ne tourne ici.",
+  'app.processes.name.models': 'Modèles karaoké',
+  'app.processes.what.models':
+    "Sépare la voix de la musique et suit la justesse du chanteur quand un morceau est préparé pour le karaoké. Démarre la première fois qu'il sert et tourne à part, pour qu'un modèle défaillant n'emporte pas l'application.",
+  'app.processes.name.libraryScan': 'Analyse de la bibliothèque',
+  'app.processes.what.libraryScan':
+    'Lit vos dossiers de musique pendant que la bibliothèque les analyse : tags, durées et pochettes. Démarre pour une analyse et se ferme à la fin.',
   'app.processes.name.sound': 'Son du navigateur',
   'app.processes.what.sound':
     "L'audio propre à Chromium, pour l'onglet Vidéo et les sons joués par une page. Votre musique ne passe pas par là.",
   'app.processes.name.network': 'Réseau',
   'app.processes.what.network':
     "Recherche de mises à jour, pochettes et tout ce que charge l'onglet Vidéo. Rien d'autre ici ne touche au réseau.",
-  'app.processes.name.camera': 'Service de caméra',
-  'app.processes.what.camera':
-    "Démarré par Chromium quand l'application demande à Windows la liste des périphériques audio, car le même appel énumère aussi les caméras. Aucune caméra n'est ouverte.",
+  'app.processes.name.devices': 'Liste des périphériques',
+  'app.processes.what.devices':
+    "Démarré par Chromium quand l'application demande à Windows quels périphériques audio sont présents ; la même requête énumère aussi les périphériques vidéo. Il n'ouvre aucune caméra et n'enregistre rien.",
   'app.processes.name.page': 'Page web',
   'app.processes.what.page':
     "Une page ouverte dans l'onglet Vidéo. Elle tourne dans son propre processus, à l'écart de l'interface.",

@@ -59,7 +59,7 @@ const app: Partial<Dictionary> = {
   'app.processes.unmeasured': 'ダッシュはまだ計測されていない値です。',
   'app.processes.name.window': '画面',
   'app.processes.what.window':
-    'いま見ているウィンドウです。カーブ、ライブラリ、プレーヤー、すべての操作部。ウィンドウごとに 1 プロセスなので、重い再描画が音を止めることはありません。',
+    'いま見ているウィンドウです。カーブ、ライブラリ、プレーヤー、すべての操作部。ウィンドウごとに 1 プロセスなので、重い再描画が音を止めることはありません。Plus のビジュアライザーはこの中の専用スレッドで動くので、重いシーンでも操作部は止まりません。',
   'app.processes.name.core': 'アプリ本体',
   'app.processes.what.core':
     'ウィンドウを持たない部分です。設定を保持し、オーディオデバイスとシステムのイコライザーとやり取りし、更新を確認し、この一覧のほかのプロセスを起動します。',
@@ -68,16 +68,22 @@ const app: Partial<Dictionary> = {
     'FluidEQ 自前のエンジンです。再生するものをデコードし、そのままイコライザーを適用します。別のプログラムなので、Windows はほかとは離れた場所に表示します。',
   'app.processes.name.graphics': 'グラフィックス',
   'app.processes.what.graphics':
-    'ウィンドウをグラフィックスカードで描きます。スペクトラム、カーブ、あらゆるアニメーション。画面で何かが動いていれば動作します。カラオケやノイズのモデルはここでは動きません。',
+    '画面上のすべてをグラフィックスカードで描きます。スペクトラム、カーブ、あらゆるアニメーション、そして Plus のビジュアライザーのシーン。何かが動いていれば動作します。ここではモデルは動きません。',
+  'app.processes.name.models': 'カラオケモデル',
+  'app.processes.what.models':
+    '曲をカラオケ用に準備するとき、声を音楽から分離し、歌の音程を追います。初めて必要になったときに起動し、別に動くので、モデルが失敗してもアプリは巻き込まれません。',
+  'app.processes.name.libraryScan': 'ライブラリのスキャン',
+  'app.processes.what.libraryScan':
+    'ライブラリが音楽フォルダーをスキャンする間、タグ、長さ、カバーアートを読み取ります。スキャンのたびに起動し、終わると閉じます。',
   'app.processes.name.sound': 'ブラウザーの音',
   'app.processes.what.sound':
     'Chromium 自身の音声で、動画タブやページが鳴らす音に使われます。あなたの音楽はここを通りません。',
   'app.processes.name.network': 'ネットワーク',
   'app.processes.what.network':
     '更新の確認、ジャケット画像、動画タブが読み込むすべて。この一覧のほかのプロセスはネットワークに触れません。',
-  'app.processes.name.camera': 'カメラサービス',
-  'app.processes.what.camera':
-    'アプリが Windows にオーディオデバイスの一覧を求めると Chromium が起動します。同じ呼び出しがカメラも列挙するためで、カメラは開いていません。',
+  'app.processes.name.devices': 'デバイス一覧',
+  'app.processes.what.devices':
+    'アプリが Windows にオーディオデバイスの一覧を求めると Chromium が起動します。同じ問い合わせがビデオデバイスも列挙するためです。カメラを開くことも、何かを録画することもありません。',
   'app.processes.name.page': 'ウェブページ',
   'app.processes.what.page':
     '動画タブで開いているページです。画面とは別の、独自のプロセスで動きます。',
