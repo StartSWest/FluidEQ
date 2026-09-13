@@ -63,6 +63,26 @@ const sceneFile = (packId: string) =>
   path.join(userDataDir, 'member-scenes', 'own', ME, `${packId}.json`);
 
 describe('the member scene store', () => {
+  it('keeps creator tuning in both own and downloaded copies after reopening the store', () => {
+    const tuned = pack({
+      params: [
+        { id: 'speed', names: { en: 'Speed' }, min: 0, max: 5, value: 3 },
+      ],
+      response: { sensitivity: 1.5, threshold: 0.2, attack: 40, release: 100 },
+    });
+    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    store.save(ME, tuned);
+    store.saveImported(
+      signedEnvelope(memberPayload({ pack: tuned, author: SOMEONE })),
+    );
+    const reopened = createMemberSceneStore({
+      userDataDir,
+      appVersion: '1.0.0',
+    });
+    expect(reopened.load(ME, tuned.id)).toEqual(tuned);
+    expect(reopened.load(SOMEONE, tuned.id)).toEqual(tuned);
+  });
+
   // The control: everything below is a departure from this round trip.
   it('keeps a saved scene and gives it back whole', () => {
     const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });

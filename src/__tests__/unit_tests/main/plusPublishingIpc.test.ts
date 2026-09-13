@@ -29,6 +29,7 @@ import {
 } from '../../../main/ipc/plusPublishing';
 import { writeStarterProject } from '../../../main/memberScenes/project';
 import * as projects from '../../../main/memberScenes/project';
+import { writeProjectSettings } from '../../../main/memberScenes/projectSettings';
 import { readAgreedTerms } from '../../../main/memberScenes/termsAgreement';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
@@ -122,6 +123,40 @@ afterEach(() => {
 });
 
 describe('publishing from the Studio', () => {
+  it('publishes the last settings even when publishing starts before their save finishes', async () => {
+    const project = folder as string;
+    const manifestFile = path.join(project, 'pack.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+    manifest.params = [
+      { id: 'speed', names: { en: 'Speed' }, min: 0, max: 5, value: 1 },
+    ];
+    fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+    setup();
+    const response = {
+      sensitivity: 1.5,
+      threshold: 0.2,
+      attack: 40,
+      release: 100,
+    };
+    const saving = writeProjectSettings(project, {
+      params: { speed: 3 },
+      response,
+    });
+    const publishing = invoke<Promise<TPublishOutcome>>(
+      'studio-publish',
+      5,
+      'space',
+      webpBytes(),
+    );
+    await expect(publishing).resolves.toEqual({ ok: true });
+    await expect(saving).resolves.toBe('written');
+    expect(calls[0].body.pack).toMatchObject({
+      response,
+      params: [{ id: 'speed', value: 3 }],
+    });
+    expect(calls[0].body.pack).not.toHaveProperty('signal');
+  });
+
   it('keeps the initiating account across the asynchronous project read', async () => {
     const read = projects.readProject;
     jest
