@@ -27,6 +27,10 @@ import {
 } from '../plus/galleryApi';
 import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
 import { createPictureCache } from '../plus/pictureCache';
+import {
+  createPictureDiskCache,
+  type IPictureDiskCache,
+} from '../plus/pictureDiskCache';
 import { fetchOfficialScene } from '../plus/officialGallery';
 import type { IScenePackStore } from '../scenePackStore';
 import { createGallerySceneSync } from '../plus/syncGalleryScenes';
@@ -83,10 +87,23 @@ export interface IPlusGalleryIpcDeps {
   officialStore?: IScenePackStore;
   announceOfficial?: () => void;
   logger?: { warn(message: string): void };
+  /** The clock the list's block-list check reads; replaced in tests. */
+  now?: () => number;
+  /**
+   * Where gallery pictures are kept between sessions (`pictureDiskCache.ts`).
+   * Without one, pictures are kept for the session only.
+   */
+  pictureDir?: string;
 }
 
 export interface IPlusGalleryRegistration {
   refreshIfDue(force?: boolean): Promise<void>;
+  /**
+   * Settles once the installed copies the lists asked about are up to date.
+   * A list answers before that sync ends (`plus-gallery-list`), so this is
+   * the one way to know it has.
+   */
+  whenSynced(): Promise<void>;
   dispose(): void;
 }
 
@@ -105,10 +122,25 @@ const CHANNELS = [
 const PICTURE_CACHE_BYTES = 48 * 1024 * 1024;
 
 /**
+ * Pictures kept on disk, by the bytes they take: at 100-400KB each, several
+ * hundred cards — more than a member browses between two releases of the
+ * gallery's scenes.
+ */
+export const PICTURE_DISK_BYTES = 128 * 1024 * 1024;
+
+/**
  * Scene files kept from the scene's page for its Add button, so pressing it
  * does not download the same file twice. Only the last few pages opened.
  */
 const PREVIEW_CACHE_SCENES = 4;
+
+/**
+ * How old the block list may be for a gallery page to lean on it. A page only
+ * filters what the server has already filtered; adding or importing a scene
+ * still asks for the list every time, and the bucket refuses a blocked
+ * scene's files to a preview whatever this computer's copy says.
+ */
+export const BLOCKED_FOR_LIST_MS = 10 * 60 * 1000;
 
 /** Deeper than anyone scrolls; past it the query is not the gallery's. */
 const MAX_OFFSET = 6000;
@@ -159,6 +191,8 @@ export const registerPlusGalleryIpc = ({
   officialStore,
   announceOfficial,
   logger,
+  now = Date.now,
+  pictureDir,
 }: IPlusGalleryIpcDeps): IPlusGalleryRegistration => {
   const syncInstalled = createGallerySceneSync({
     access,
@@ -169,7 +203,13 @@ export const registerPlusGalleryIpc = ({
     logger,
   });
   const pictures = createPictureCache(PICTURE_CACHE_BYTES);
+  const kept: IPictureDiskCache | undefined = pictureDir
+    ? createPictureDiskCache({ dir: pictureDir, maxBytes: PICTURE_DISK_BYTES })
+    : undefined;
   const picturesInFlight = new Map<string, Promise<string | undefined>>();
+  const listsInFlight = new Map<string, Promise<TGalleryListOutcome>>();
+  // Never, so the first page of a session asks.
+  let lastBlockedForList = -Infinity;
   const previews = new Map<string, IFetchedScene>();
 
   const picture = async (
@@ -183,14 +223,32 @@ export const registerPlusGalleryIpc = ({
     if (cached) {
       return cached;
     }
-    const auth = await access.auth();
-    const bytes = auth
-      ? await fetchPicture(auth, authorId, sceneId)
-      : undefined;
+    // From disk only with a revision to name it by — without one the file
+    // could be an older picture of the same version — and never for a scene
+    // blocked since it was kept: the bucket would refuse it, so this does too.
+    const fromDisk =
+      revision && !store.isBlocked(authorId, sceneId)
+        ? await kept?.read(key)
+        : undefined;
+    const auth = fromDisk ? undefined : await access.auth();
+    const bytes =
+      fromDisk ??
+      (auth ? await fetchPicture(auth, authorId, sceneId) : undefined);
     if (!bytes) {
       // A failure is not remembered: the next time the card is on screen is
       // the next chance.
       return undefined;
+    }
+    if (!fromDisk && revision) {
+      // Kept for the next session, before the picture is handed over: a few
+      // milliseconds after a download, and nothing is left writing once the
+      // card shows. A disk that will not take it costs only that — the
+      // picture is still shown.
+      await kept
+        ?.write(key, bytes)
+        .catch((error) =>
+          logger?.warn(`Could not keep a gallery picture: ${String(error)}`),
+        );
     }
     // A data URL is what the page's content policy lets an <img> show, and it
     // is only ever built from bytes that are a WebP by their own header.
@@ -255,33 +313,66 @@ export const registerPlusGalleryIpc = ({
   /** Anybody signed in may browse; the server answers nobody else. */
   const signedIn = () => access.accountId() !== undefined;
 
+  /**
+   * One page of the gallery. The server's gallery query is the most expensive
+   * thing this app asks it, so each is asked once: a page already on its way
+   * for the same account is shared rather than asked again, and nothing else
+   * holds the answer up.
+   */
+  const listPage = async (
+    query: IGalleryQuery,
+  ): Promise<TGalleryListOutcome> => {
+    const auth = await access.auth();
+    const listed = auth
+      ? await listGallery(auth, query)
+      : ({ ok: false, reason: 'signed-out' } as const);
+    if (!listed.ok) {
+      return listed;
+    }
+    // The block list, when it is older than a list page may trust. The server
+    // leaves blocked scenes out of this answer already, so a page does not
+    // need the newest copy — only one recent enough that the local filter
+    // below agrees with it; it used to be fetched again for every page.
+    if (
+      access.entitled() &&
+      now() - lastBlockedForList >= BLOCKED_FOR_LIST_MS
+    ) {
+      lastBlockedForList = now();
+      await refreshBlocked();
+    }
+    // Installed copies of these scenes are brought up to date behind the
+    // answer, not before it: the sync announces what it changes, and a page
+    // used to wait on a newer version of a 12MB official scene downloading.
+    syncInstalled(listed.scenes).catch((error) =>
+      logger?.warn(`Could not update installed scenes: ${String(error)}`),
+    );
+    // The server leaves blocked scenes out already; the list this computer
+    // holds is asked as well, so the two can never disagree on screen.
+    return {
+      ok: true,
+      scenes: listed.scenes.filter(
+        (scene) => !store.isBlocked(scene.authorId, scene.sceneId),
+      ),
+      more: listed.more,
+    };
+  };
+
   ipcMain.handle(
     'plus-gallery-list',
-    async (_event, rawQuery: unknown): Promise<TGalleryListOutcome> => {
-      if (!signedIn()) {
-        return { ok: false, reason: 'signed-out' };
+    (_event, rawQuery: unknown): Promise<TGalleryListOutcome> => {
+      const me = access.accountId();
+      if (me === undefined) {
+        return Promise.resolve({ ok: false, reason: 'signed-out' });
       }
       const query = readQuery(rawQuery);
-      const auth = await access.auth();
-      const listed = auth
-        ? await listGallery(auth, query)
-        : ({ ok: false, reason: 'signed-out' } as const);
-      if (!listed.ok) {
-        return listed;
+      const key = `${me}:${JSON.stringify(query)}`;
+      const inFlight = listsInFlight.get(key);
+      if (inFlight) {
+        return inFlight;
       }
-      if (access.entitled()) {
-        await refreshBlocked();
-      }
-      await syncInstalled(listed.scenes);
-      // The server leaves blocked scenes out already; the list this computer
-      // holds is asked as well, so the two can never disagree on screen.
-      return {
-        ok: true,
-        scenes: listed.scenes.filter(
-          (scene) => !store.isBlocked(scene.authorId, scene.sceneId),
-        ),
-        more: listed.more,
-      };
+      const request = listPage(query).finally(() => listsInFlight.delete(key));
+      listsInFlight.set(key, request);
+      return request;
     },
   );
 
@@ -494,6 +585,8 @@ export const registerPlusGalleryIpc = ({
 
   return {
     refreshIfDue: createGalleryRefresh(access, syncInstalled),
+    // Nothing added to the queue: settles after everything already in it.
+    whenSynced: () => syncInstalled([]),
     dispose: () => {
       unsubscribe();
       forgetEverything();

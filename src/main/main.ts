@@ -3086,6 +3086,9 @@ const plusGalleryIpc = registerPlusGalleryIpc({
   officialStore: scenePacksIpc.store,
   announceOfficial: scenePacksIpc.announce,
   logger: log,
+  // Gallery pictures kept between sessions, so a card seen before is not
+  // downloaded again (`plus/pictureDiskCache.ts`).
+  pictureDir: path.join(userDataDir, 'gallery-pictures'),
 });
 const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,

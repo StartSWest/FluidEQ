@@ -690,8 +690,20 @@ $gallery-card-lead: 120ms;
 
 .gallery-more {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: $spacing-xs $spacing-s;
   padding-top: $spacing-xs;
+}
+
+// Why the next page is not there, beside the button that asks again. Quiet:
+// the pages above it are fine, and this is not the gallery failing.
+.gallery-more__error {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: center;
 }
 
 // ---------------------------------------------------------------- scene

@@ -39,6 +39,7 @@ const plus = {
     'गैलरी के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
   'plus.gallery.error.signedOut': 'गैलरी देखने के लिए फिर से साइन इन करें।',
   'plus.gallery.error.server': 'गैलरी लोड नहीं हो सकी। फिर कोशिश करें।',
+  'plus.gallery.moreError': 'और दृश्य लोड नहीं हो सके। फिर कोशिश करें।',
   'plus.gallery.retry': 'फिर कोशिश करें',
 
   'plus.category.nature': 'प्रकृति',

@@ -42,6 +42,8 @@ const plus = {
     'ギャラリーを見るには、もう一度サインインしてください。',
   'plus.gallery.error.server':
     'ギャラリーを読み込めませんでした。もう一度お試しください。',
+  'plus.gallery.moreError':
+    'これ以上のシーンを読み込めませんでした。もう一度お試しください。',
   'plus.gallery.retry': '再試行',
 
   'plus.category.nature': '自然',

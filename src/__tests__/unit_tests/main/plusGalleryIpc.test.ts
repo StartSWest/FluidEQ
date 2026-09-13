@@ -28,6 +28,7 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import { memberLookId } from '../../../common/memberScenes';
 import { FLUIDEQ_CREATOR_ID } from '../../../common/plusGallery';
 import {
+  BLOCKED_FOR_LIST_MS,
   registerPlusGalleryIpc,
   type TGalleryAddOutcome,
   type TGalleryListOutcome,
@@ -160,7 +161,7 @@ afterEach(() => {
 
 describe('listing', () => {
   it('syncs a signed republication into an installed copy and retains it after withdrawal', async () => {
-    setup();
+    const gallery = setup();
     store.saveImported(signedEnvelope(memberPayload()));
     const oldRevision = store.list()[0].revision;
     const next = memberPack({
@@ -168,18 +169,22 @@ describe('listing', () => {
     });
     publishScene(SOMEONE, next);
     await invoke('plus-gallery-list', {});
+    // Behind the answer, not before it.
+    await gallery.whenSynced();
     expect(store.load(SOMEONE, next.id)?.source).toBe(next.source);
     expect(store.list()[0].revision).not.toBe(oldRevision);
     rows = [];
     bucket.clear();
     await invoke('plus-gallery-list', {});
+    await gallery.whenSynced();
     expect(store.load(SOMEONE, next.id)?.source).toBe(next.source);
   });
 
   it('never installs an unseen scene or a forged update while browsing', async () => {
-    setup();
+    const gallery = setup();
     publishScene(SOMEONE);
     await invoke('plus-gallery-list', {});
+    await gallery.whenSynced();
     expect(store.list()).toEqual([]);
     store.saveImported(signedEnvelope(memberPayload()));
     const before = store.list()[0].revision;
@@ -188,6 +193,7 @@ describe('listing', () => {
       signedEnvelope(memberPayload({ author: ME })),
     );
     await invoke('plus-gallery-list', {});
+    await gallery.whenSynced();
     expect(store.list()[0].revision).toBe(before);
   });
 
@@ -500,5 +506,123 @@ it('lists only server publications, without fabricated creators or scenes', asyn
     ok: true,
     scenes: [],
     more: false,
+  });
+});
+
+describe('asking the server as little as a page needs', () => {
+  const galleryCalls = () =>
+    calls.filter((call) => call.url.endsWith('/rpc/gallery_scenes')).length;
+
+  it('asks once for the same page asked twice at once, and again once the first has answered', async () => {
+    setup();
+    const [first, second] = await Promise.all([
+      invoke<Promise<TGalleryListOutcome>>('plus-gallery-list', {
+        sort: 'new',
+      }),
+      invoke<Promise<TGalleryListOutcome>>('plus-gallery-list', {
+        sort: 'new',
+      }),
+    ]);
+    expect(galleryCalls()).toBe(1);
+    expect(second).toBe(first);
+    // A different question is its own request.
+    await invoke('plus-gallery-list', { sort: 'liked' });
+    expect(galleryCalls()).toBe(2);
+    // And the same one, later, is asked again: nothing is held once answered.
+    await invoke('plus-gallery-list', { sort: 'new' });
+    expect(galleryCalls()).toBe(3);
+  });
+
+  it('checks the block list for a page at most every ten minutes, not for every page', async () => {
+    let clock = 1_000_000;
+    registerPlusGalleryIpc({
+      access: access(),
+      store: createMemberSceneStore({
+        userDataDir: path.join(root, 'userData'),
+        appVersion: '1.0.0',
+      }),
+      refreshBlocked: async () => {
+        refreshed += 1;
+      },
+      announce: () => undefined,
+      onEntitlementChange: () => () => undefined,
+      now: () => clock,
+    });
+    await invoke('plus-gallery-list', { sort: 'new' });
+    await invoke('plus-gallery-list', { sort: 'liked' });
+    await invoke('plus-gallery-list', { sort: 'week' });
+    expect(refreshed).toBe(1);
+    clock += BLOCKED_FOR_LIST_MS;
+    await invoke('plus-gallery-list', { sort: 'new' });
+    expect(refreshed).toBe(2);
+  });
+});
+
+describe('pictures kept between sessions', () => {
+  const pictureCalls = () =>
+    calls.filter((call) => call.url.endsWith('/picture.webp')).length;
+
+  const session = () => {
+    handlers.clear();
+    store = createMemberSceneStore({
+      userDataDir: path.join(root, 'userData'),
+      appVersion: '1.0.0',
+    });
+    return registerPlusGalleryIpc({
+      access: access(),
+      store,
+      refreshBlocked: async () => undefined,
+      announce: () => undefined,
+      onEntitlementChange: () => () => undefined,
+      pictureDir: path.join(root, 'userData', 'gallery-pictures'),
+    });
+  };
+  const revision = '2026-09-10T12:00:00Z';
+
+  it('shows a picture seen in an earlier session without downloading it again', async () => {
+    const first = session();
+    bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes(96));
+    const shown = await invoke<Promise<string>>(
+      'plus-gallery-picture',
+      SOMEONE,
+      'neon-city',
+      1,
+      revision,
+    );
+    expect(pictureCalls()).toBe(1);
+    first.dispose();
+
+    session();
+    expect(
+      await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1, revision),
+    ).toBe(shown);
+    expect(pictureCalls()).toBe(1);
+    // A republished picture is a new one, and is downloaded.
+    await invoke(
+      'plus-gallery-picture',
+      SOMEONE,
+      'neon-city',
+      1,
+      '2026-09-12T08:00:00Z',
+    );
+    expect(pictureCalls()).toBe(2);
+  });
+
+  it('does not show a kept picture of a scene blocked since, and keeps nothing it cannot name by revision', async () => {
+    const first = session();
+    bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes(96));
+    await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1, revision);
+    await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1);
+    first.dispose();
+    expect(
+      fs.readdirSync(path.join(root, 'userData', 'gallery-pictures')),
+    ).toHaveLength(1);
+
+    session();
+    store.setBlocked([memberSceneFingerprint(SOMEONE, 'neon-city')]);
+    bucket.clear();
+    expect(
+      await invoke('plus-gallery-picture', SOMEONE, 'neon-city', 1, revision),
+    ).toBeUndefined();
   });
 });

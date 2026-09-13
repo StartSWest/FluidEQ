@@ -40,6 +40,7 @@ const plus = {
     'La galerie a besoin d’une connexion. Réessayez en ligne.',
   'plus.gallery.error.signedOut': 'Reconnectez-vous pour voir la galerie.',
   'plus.gallery.error.server': 'La galerie n’a pas pu être chargée. Réessayez.',
+  'plus.gallery.moreError': 'Impossible de charger plus de scènes. Réessayez.',
   'plus.gallery.retry': 'Réessayer',
 
   'plus.category.nature': 'Nature',

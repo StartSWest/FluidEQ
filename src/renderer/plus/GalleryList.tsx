@@ -40,7 +40,12 @@ export default function GalleryList({
 
   return (
     <>
-      {list.error && (
+      {/* Only over a list with nothing to show. A refresh that failed over
+          scenes already on screen leaves them there, as they were a moment
+          ago, and is asked again the next time the tab opens; a notice saying
+          the gallery could not be loaded, over the gallery, was the wrong
+          thing to say. */}
+      {list.error && list.scenes.length === 0 && (
         <GalleryListNotice text={t(ERROR_KEYS[list.error])} onRetry={onRetry} />
       )}
 
@@ -80,6 +85,15 @@ export default function GalleryList({
 
       {list.more && list.scenes.length > 0 && (
         <div className="gallery-more">
+          {/* Where the next page would have been, and the button beside it
+              asks again. */}
+          {list.moreError && !list.loading && (
+            <p className="gallery-more__error" role="status">
+              {list.moreError === 'offline'
+                ? t(ERROR_KEYS.offline)
+                : t('plus.gallery.moreError')}
+            </p>
+          )}
           <button
             type="button"
             className={`button small subtle${list.loading ? ' is-running' : ''}`}

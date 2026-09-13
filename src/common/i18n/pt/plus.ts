@@ -40,6 +40,8 @@ const plus = {
   'plus.gallery.error.signedOut': 'Entre de novo para ver a galeria.',
   'plus.gallery.error.server':
     'Não foi possível carregar a galeria. Tente de novo.',
+  'plus.gallery.moreError':
+    'Não foi possível carregar mais cenas. Tente de novo.',
   'plus.gallery.retry': 'Tentar de novo',
 
   'plus.category.nature': 'Natureza',

@@ -41,6 +41,8 @@ const plus = {
     'Vuelve a iniciar sesión para ver la galería.',
   'plus.gallery.error.server':
     'No se pudo cargar la galería. Vuelve a intentarlo.',
+  'plus.gallery.moreError':
+    'No se pudieron cargar más escenas. Vuelve a intentarlo.',
   'plus.gallery.retry': 'Reintentar',
 
   'plus.category.nature': 'Naturaleza',

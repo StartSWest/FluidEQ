@@ -122,6 +122,45 @@ describe('listing the gallery', () => {
       ),
     ).toEqual({ ok: false, reason: 'offline' });
   });
+
+  it('asks once more at once when the connection dropped, and never when the server answered', async () => {
+    // A kept-open connection reset after the computer slept: the second ask,
+    // on a new one, is answered.
+    const dropped = jest
+      .fn()
+      .mockImplementationOnce(async () => {
+        throw new Error('ECONNRESET');
+      })
+      .mockImplementation(async () => fakeResponse(200, [row]));
+    expect(
+      await listGallery(authWith(dropped), { sort: 'liked' }),
+    ).toMatchObject({ ok: true });
+    expect(dropped).toHaveBeenCalledTimes(2);
+
+    // Gone for good: two asks, then offline — not a third.
+    const offline = jest.fn(async () => {
+      throw new Error('ECONNREFUSED');
+    });
+    expect(await listGallery(authWith(offline), { sort: 'liked' })).toEqual({
+      ok: false,
+      reason: 'offline',
+    });
+    expect(offline).toHaveBeenCalledTimes(2);
+
+    // The query ran out of time: asking again straight away is more of the
+    // same load, so it is not asked again.
+    const timedOut = jest.fn(async () =>
+      fakeResponse(500, {
+        code: '57014',
+        message: 'canceling statement due to statement timeout',
+      }),
+    );
+    expect(await listGallery(authWith(timedOut), { sort: 'liked' })).toEqual({
+      ok: false,
+      reason: 'server',
+    });
+    expect(timedOut).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('a scene’s files', () => {

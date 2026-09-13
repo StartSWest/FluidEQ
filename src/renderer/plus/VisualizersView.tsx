@@ -10,7 +10,7 @@ import {
   type IGalleryNotice,
 } from './galleryActions';
 import { usePlusEntitled } from './GalleryParts';
-import { markGalleryStale } from './galleryStore';
+import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
@@ -106,10 +106,10 @@ export default function VisualizersView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageKey = galleryPageKey(page);
 
-  // Coming here is when the gallery is worth asking again; what was on
-  // screen stays there while it does.
+  // Coming here is when the gallery is worth asking again, once what it
+  // shows is a minute old; what was on screen stays there while it does.
   useEffect(() => {
-    markGalleryStale();
+    refreshGalleryOnShow();
     return () => setGalleryNotice(undefined);
   }, []);
 

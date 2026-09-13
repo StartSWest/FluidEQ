@@ -80,12 +80,16 @@ export const rpc = async (
 const failureOf = (status: number): TGalleryFailure =>
   status === 401 ? 'signed-out' : 'server';
 
-export const listGallery = async (
+type TListOutcome =
+  | { ok: true; scenes: IGalleryScene[]; more: boolean }
+  | { ok: false; reason: TGalleryFailure };
+
+/** One ask, and whether a failure was the connection rather than the server. */
+const listOnce = async (
   auth: IAuthorised,
   query: IGalleryQuery,
 ): Promise<
-  | { ok: true; scenes: IGalleryScene[]; more: boolean }
-  | { ok: false; reason: TGalleryFailure }
+  TListOutcome | { ok: false; reason: TGalleryFailure; dropped: true }
 > => {
   let response: Response;
   try {
@@ -98,29 +102,53 @@ export const listGallery = async (
       p_offset: Math.max(0, Math.floor(query.offset ?? 0)),
     });
   } catch {
-    return { ok: false, reason: 'offline' };
+    return { ok: false, reason: 'offline', dropped: true };
   }
   if (!response.ok) {
     return { ok: false, reason: failureOf(response.status) };
   }
+  let rows: unknown;
   try {
-    const rows: unknown = await response.json();
-    if (!Array.isArray(rows)) {
-      return { ok: false, reason: 'server' };
-    }
-    return {
-      ok: true,
-      scenes: rows.flatMap((row) => {
-        const scene = parseGalleryRow(row);
-        return scene ? [scene] : [];
-      }),
-      // Counted before parsing: a full page with a row dropped still has
-      // another page behind it.
-      more: rows.length >= GALLERY_PAGE_SIZE,
-    };
+    rows = await response.json();
   } catch {
+    // The body stopped arriving, or was not JSON; the first is by far the
+    // likelier from PostgREST, and is the connection's doing.
+    return { ok: false, reason: 'server', dropped: true };
+  }
+  if (!Array.isArray(rows)) {
     return { ok: false, reason: 'server' };
   }
+  return {
+    ok: true,
+    scenes: rows.flatMap((row) => {
+      const scene = parseGalleryRow(row);
+      return scene ? [scene] : [];
+    }),
+    // Counted before parsing: a full page with a row dropped still has
+    // another page behind it.
+    more: rows.length >= GALLERY_PAGE_SIZE,
+  };
+};
+
+/**
+ * One page of the gallery.
+ *
+ * ASKED A SECOND TIME, AT ONCE, ONLY WHEN THE CONNECTION DROPPED. A connection
+ * kept open from an earlier request is the one that fails after the computer
+ * slept or sat idle — reset by the network or the server's proxy — and a new
+ * one on the second ask goes through; that was a gallery saying "could not
+ * load" to somebody whose next click worked. A server that answered is not
+ * asked again: a 500 from this query is it running out of time, and asking
+ * the same thing again straight away is more of what made it run out.
+ */
+export const listGallery = async (
+  auth: IAuthorised,
+  query: IGalleryQuery,
+): Promise<TListOutcome> => {
+  const first = await listOnce(auth, query);
+  const outcome =
+    !first.ok && 'dropped' in first ? await listOnce(auth, query) : first;
+  return outcome.ok ? outcome : { ok: false, reason: outcome.reason };
 };
 
 export const listPublished = async (

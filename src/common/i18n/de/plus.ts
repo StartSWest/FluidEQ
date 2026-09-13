@@ -43,6 +43,8 @@ const plus = {
     'Melden Sie sich erneut an, um die Galerie zu sehen.',
   'plus.gallery.error.server':
     'Die Galerie konnte nicht geladen werden. Versuchen Sie es erneut.',
+  'plus.gallery.moreError':
+    'Weitere Szenen konnten nicht geladen werden. Versuchen Sie es erneut.',
   'plus.gallery.retry': 'Erneut versuchen',
 
   'plus.category.nature': 'Natur',

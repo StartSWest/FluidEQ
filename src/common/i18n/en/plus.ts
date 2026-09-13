@@ -44,6 +44,7 @@ const plus = {
     'The gallery needs a connection. Try again online.',
   'plus.gallery.error.signedOut': 'Sign in again to see the gallery.',
   'plus.gallery.error.server': 'The gallery could not be loaded. Try again.',
+  'plus.gallery.moreError': 'Couldn’t load more scenes. Try again.',
   'plus.gallery.retry': 'Try again',
 
   'plus.category.nature': 'Nature',
