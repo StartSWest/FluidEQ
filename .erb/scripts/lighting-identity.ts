@@ -25,13 +25,18 @@
  *
  * Runs from electron-builder's afterSign hook, after the helper has been
  * signed and before the installer is assembled around the app folder, so the
- * package it writes beside the helper ships. An unsigned build writes none: a
- * package nobody can register is worse than no package, and without one the
- * helper lights devices while FluidEQ is the window in front.
+ * package it writes beside the helper ships. An unsigned build writes no
+ * package — one nobody can register is worse than none — and falls back on the
+ * bare manifest every native build leaves beside the helper
+ * (`writeDevelopmentIdentity`), which Windows registers only with Developer
+ * Mode on. Without either the helper lights nothing through Windows, not even
+ * with FluidEQ in front: Windows gives an app in front's lamps to the process
+ * owning that window, and the helper owns none.
  */
 
 import { spawnSync } from 'child_process';
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -86,7 +91,10 @@ export interface IIdentityManifest {
  *   why they point into the assets folder shipped beside the helper.
  * - `com.microsoft.windows.lighting` is what lists FluidEQ under Background
  *   light control in Windows' Dynamic Lighting settings, where the member
- *   allows it; `PublicFolder` is required by the schema and holds nothing.
+ *   drags it to the top; `PublicFolder` is optional in the schema, kept
+ *   because every Microsoft sample and Razer's own package carry it.
+ * - Windows 11 22H2 (22621) at least: background lighting does not exist
+ *   before it, and registering on Windows 10 would promise it.
  */
 export const identityManifest = ({
   publisher,
@@ -112,7 +120,7 @@ export const identityManifest = ({
     <Resource Language="en-us" />
   </Resources>
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.22621.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
@@ -130,6 +138,35 @@ export const identityManifest = ({
   </Applications>
 </Package>
 `;
+};
+
+/** The publisher native/CMakeLists.txt embeds when no release is being signed. */
+export const DEVELOPMENT_PUBLISHER = 'CN=FluidEQ Development';
+
+/**
+ * The bare identity manifest beside a freshly built helper, for copies with
+ * no signed package: `identity register-dev` registers it from its own folder
+ * with Developer Mode on, the external location being the helper's folder.
+ * Its publisher is whatever the helper was compiled with — FLUIDEQ_SIGN_SUBJECT
+ * in a release build, the development name otherwise — so the two always
+ * match. The pictures Windows shows go beside it, as in an installed copy.
+ */
+export const writeDevelopmentIdentity = (
+  helperFolder: string,
+  appVersion: string,
+  iconsFolder: string,
+  publisher: string = process.env[SUBJECT_VARIABLE] || DEVELOPMENT_PUBLISHER,
+): string => {
+  const manifestFolder = path.join(helperFolder, 'lighting-identity');
+  mkdirSync(manifestFolder, { recursive: true });
+  const manifest = path.join(manifestFolder, 'AppxManifest.xml');
+  writeFileSync(manifest, identityManifest({ publisher, appVersion }), 'utf8');
+  const assets = path.join(helperFolder, LIGHTING_ASSETS_FOLDER);
+  mkdirSync(assets, { recursive: true });
+  ['48x48.png', '64x64.png', '256x256.png'].forEach((name) =>
+    copyFileSync(path.join(iconsFolder, name), path.join(assets, name)),
+  );
+  return manifest;
 };
 
 export interface IEmbeddedIdentity {

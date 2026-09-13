@@ -89,14 +89,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': 'पहुँच से बाहर',
 
-  'lighting.kind.keyboard': 'कीबोर्ड',
-  'lighting.kind.mouse': 'माउस',
-  'lighting.kind.mousepad': 'माउसपैड',
-  'lighting.kind.headset': 'हेडसेट',
-  'lighting.kind.keypad': 'कीपैड',
-  'lighting.kind.stand': 'स्टैंड',
-  'lighting.kind.speaker': 'स्पीकर',
-  'lighting.kind.accessory': 'एक्सेसरी',
+  'lighting.form.keyboard-full': 'कीबोर्ड',
+  'lighting.form.keyboard-tkl': 'टेनकीलेस कीबोर्ड',
+  'lighting.form.keyboard-compact': 'कॉम्पैक्ट कीबोर्ड',
+  'lighting.form.laptop': 'लैपटॉप',
+  'lighting.form.keypad': 'कीपैड',
+  'lighting.form.mouse': 'माउस',
+  'lighting.form.mouse-dock': 'माउस डॉक',
+  'lighting.form.charging-pad': 'चार्जिंग पैड',
+  'lighting.form.mouse-bungee': 'माउस बंजी',
+  'lighting.form.mousepad': 'माउसपैड',
+  'lighting.form.desk-mat': 'डेस्क मैट',
+  'lighting.form.headset': 'हेडसेट',
+  'lighting.form.headset-stand': 'हेडसेट स्टैंड',
+  'lighting.form.speakers': 'स्पीकर',
+  'lighting.form.soundbar': 'साउंडबार',
+  'lighting.form.microphone': 'माइक्रोफ़ोन',
+  'lighting.form.laptop-stand': 'लैपटॉप स्टैंड',
+  'lighting.form.monitor-stand': 'मॉनिटर स्टैंड',
+  'lighting.form.dock': 'डॉक',
+  'lighting.form.light-strip': 'लाइट स्ट्रिप',
+  'lighting.form.light-bar': 'मॉनिटर लाइट बार',
+  'lighting.form.lamp': 'लैंप',
+  'lighting.form.controller': 'कंट्रोलर',
+  'lighting.form.tower': 'पीसी केस',
+  'lighting.form.mixer': 'ऑडियो मिक्सर',
+  'lighting.form.monitor': 'मॉनिटर',
+  'lighting.form.chair': 'कुर्सी',
+  'lighting.form.accessory': 'एक्सेसरी',
 
   'lighting.device.toggle': '{name} जगमगाएँ',
 
@@ -105,6 +125,45 @@ const lighting = {
   'lighting.notice.windows.body':
     'FluidEQ के दूसरी विंडो के पीछे होने पर भी इन्हें जगमगाता रखने के लिए, Windows की डायनेमिक लाइटिंग सेटिंग में FluidEQ को बैकग्राउंड में लाइट नियंत्रित करने की अनुमति दें।',
   'lighting.notice.windows.action': 'लाइटिंग सेटिंग खोलें',
+  'lighting.windows.controller': 'Windows का बैकग्राउंड लाइट नियंत्रण',
+  'lighting.windows.notFirst.title':
+    'Windows {devices} पहले किसी दूसरे ऐप को दे रहा है।',
+  'lighting.windows.off.title': 'Windows में डायनेमिक लाइटिंग बंद है।',
+  'lighting.windows.waiting.title':
+    'Windows {devices} को FluidEQ को सौंप रहा है।',
+  'lighting.windows.waiting.body': 'इसमें एक मिनट तक लग सकता है।',
+  'lighting.windows.developerMode.title':
+    'FluidEQ की इस कॉपी को {devices} जगमगाने के लिए डेवलपर मोड चाहिए।',
+  'lighting.windows.developerMode.body':
+    'Windows अपनी लाइटें सिर्फ़ उन ऐप को देता है जिन्हें वह पहचान सके। FluidEQ की डेवलपमेंट कॉपी डेवलपर मोड चालू होने पर पहचानी जाती है; रिलीज़ किया गया ऐप पहले से पहचाना जाता है।',
+  'lighting.windows.unavailable.title':
+    'Windows FluidEQ की इस कॉपी को {devices} जगमगाने नहीं दे रहा।',
+  'lighting.windows.unavailable.body':
+    'Windows अपनी लाइटें सिर्फ़ उन ऐप को देता है जिन्हें वह पहचान सके, और यह कॉपी पहचानी नहीं जा सकी। FluidEQ को दोबारा इंस्टॉल करने से यह आम तौर पर ठीक हो जाता है।',
+  'lighting.windows.step.open': 'डायनेमिक लाइटिंग सेटिंग खोलें।',
+  'lighting.windows.step.list': 'बैकग्राउंड लाइट नियंत्रण खोलें।',
+  'lighting.windows.step.reset':
+    'बैकग्राउंड लाइट नियंत्रण में सभी डिवाइस रीसेट करें।',
+  'lighting.windows.step.drag': 'FluidEQ को सूची में सबसे ऊपर खींचें।',
+  'lighting.windows.step.dragAbove':
+    'FluidEQ को सूची में सबसे ऊपर, {above} के ऊपर खींचें।',
+  'lighting.windows.step.wait': 'लगभग एक मिनट में लाइटें बदल जाती हैं।',
+  'lighting.windows.step.turnOn': 'अपने डिवाइस पर डायनेमिक लाइटिंग चालू करें।',
+  'lighting.windows.step.deviceOn':
+    'अगर कोई डिवाइस बुझा रहे, तो उसका कार्ड खोलें और उस डिवाइस पर डायनेमिक लाइटिंग चालू करें।',
+  'lighting.windows.step.foreground':
+    'जब तक कोई गेम या दूसरा लाइटिंग ऐप सामने है, लाइटें उसी के पास रहती हैं। FluidEQ के पास रखने के लिए वह विकल्प बंद करें जिससे सामने वाले संगत ऐप हमेशा लाइटिंग नियंत्रित करते हैं।',
+  'lighting.windows.step.openDevelopers': 'Windows की डेवलपर सेटिंग खोलें।',
+  'lighting.windows.step.developerMode': 'डेवलपर मोड चालू करें।',
+  'lighting.windows.step.comeBack':
+    'FluidEQ पर लौट आएँ; यह पेज बदलाव अपने आप पकड़ लेता है।',
+  'lighting.windows.action.developers': 'डेवलपर सेटिंग खोलें',
+  'lighting.windows.vendor.razer':
+    'Razer डिवाइस के लिए Razer Synapse की सेटिंग में डिवाइस लाइटिंग के तहत Windows डायनेमिक लाइटिंग भी चुननी होती है।',
+  'lighting.windows.vendor.logitech':
+    'जब Windows किसी Logitech डिवाइस को जगमगा रहा हो, तब G HUB उसकी लाइटिंग नहीं बदल सकता।',
+  'lighting.windows.vendor.asus':
+    'Armoury Crate में डिवाइस को Aura Sync और Windows डायनेमिक लाइटिंग पर सेट करें।',
   'lighting.notice.chroma.title': 'Razer Chroma जवाब नहीं दे रहा।',
   'lighting.notice.chroma.body':
     'आपके Razer डिवाइस अपने रंग Razer Chroma के ज़रिए पाते हैं। इसे शुरू कीजिए, वे भी साथ जुड़ जाएँगे।',

@@ -32,6 +32,21 @@ using winrt::Windows::Foundation::Uri;
 using winrt::Windows::Management::Deployment::AddPackageOptions;
 using winrt::Windows::Management::Deployment::DeploymentResult;
 using winrt::Windows::Management::Deployment::PackageManager;
+using winrt::Windows::Management::Deployment::RegisterPackageOptions;
+
+// Settings > System > For developers > Developer Mode. The only way Windows
+// registers an identity package that nobody signed, which is what a
+// development or unsigned copy of FluidEQ has.
+bool developer_mode_on() {
+  DWORD value = 0;
+  DWORD size = sizeof(value);
+  return RegGetValueW(
+             HKEY_LOCAL_MACHINE,
+             L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock",
+             L"AllowDevelopmentWithoutDevLicense", RRF_RT_REG_DWORD, nullptr,
+             &value, &size) == ERROR_SUCCESS &&
+         value != 0;
+}
 
 std::string version_text(const Package& package) {
   const auto version = package.Id().Version();
@@ -78,12 +93,18 @@ int status(EventSink& sink, const wchar_t* name) {
       sink.write(JsonLine("identity")
                      .boolean("registered", true)
                      .text("fullName", winrt::to_string(package.Id().FullName()))
+                     .text("familyName",
+                           winrt::to_string(package.Id().FamilyName()))
                      .text("version", version_text(package))
                      .text("location", external_path(package))
+                     .boolean("developerMode", developer_mode_on())
                      .finish());
       return kExitOk;
     }
-    sink.write(JsonLine("identity").boolean("registered", false).finish());
+    sink.write(JsonLine("identity")
+                   .boolean("registered", false)
+                   .boolean("developerMode", developer_mode_on())
+                   .finish());
     return kExitOk;
   } catch (const winrt::hresult_error& error) {
     report_failure(sink, "status", error);
@@ -113,6 +134,39 @@ int register_package(EventSink& sink, const wchar_t* msix,
     return kExitOk;
   } catch (const winrt::hresult_error& error) {
     report_failure(sink, "register", error);
+    return kExitFailed;
+  }
+}
+
+// A development or unsigned copy: the identity manifest registered straight
+// from its folder, as Windows allows only with Developer Mode on — the route
+// Microsoft's own `winapp create-debug-identity` takes. The same identity as
+// the signed package, so the helper's embedded manifest matches either.
+int register_development(EventSink& sink, const wchar_t* manifest,
+                         const wchar_t* folder) {
+  if (!developer_mode_on()) {
+    sink.write(JsonLine("identity-failed")
+                   .text("step", "register-dev")
+                   .text("detail", "Developer Mode is off")
+                   .finish());
+    return kExitFailed;
+  }
+  try {
+    RegisterPackageOptions options;
+    options.ExternalLocationUri(Uri(folder));
+    options.DeveloperMode(true);
+    options.ForceUpdateFromAnyVersion(true);
+    options.ForceTargetAppShutdown(true);
+    const DeploymentResult result =
+        PackageManager().RegisterPackageByUriAsync(Uri(manifest), options).get();
+    if (FAILED(result.ExtendedErrorCode().value)) {
+      report_failure(sink, "register-dev", result);
+      return kExitFailed;
+    }
+    sink.write(JsonLine("identity-registered").finish());
+    return kExitOk;
+  } catch (const winrt::hresult_error& error) {
+    report_failure(sink, "register-dev", error);
     return kExitFailed;
   }
 }
@@ -151,6 +205,22 @@ bool has_package_identity() {
          ERROR_INSUFFICIENT_BUFFER;
 }
 
+std::string package_family_name() {
+  UINT32 length = 0;
+  if (GetCurrentPackageFamilyName(&length, nullptr) !=
+          ERROR_INSUFFICIENT_BUFFER ||
+      length == 0) {
+    return {};
+  }
+  std::wstring name(length, L'\0');
+  if (GetCurrentPackageFamilyName(&length, name.data()) != ERROR_SUCCESS) {
+    return {};
+  }
+  // The length counts the terminating null.
+  name.resize(length > 0 ? length - 1 : 0);
+  return winrt::to_string(name);
+}
+
 int identity_command(int argc, wchar_t** argv) {
   EventSink sink;
   if (argc == 2 && std::wcscmp(argv[0], L"status") == 0) {
@@ -158,6 +228,9 @@ int identity_command(int argc, wchar_t** argv) {
   }
   if (argc == 3 && std::wcscmp(argv[0], L"register") == 0) {
     return register_package(sink, argv[1], argv[2]);
+  }
+  if (argc == 3 && std::wcscmp(argv[0], L"register-dev") == 0) {
+    return register_development(sink, argv[1], argv[2]);
   }
   if (argc == 2 && std::wcscmp(argv[0], L"remove") == 0) {
     return remove_package(sink, argv[1]);

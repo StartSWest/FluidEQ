@@ -17,6 +17,7 @@ import type {
 } from 'common/lighting/lightingModel';
 import {
   deviceLightingGroup,
+  deviceLightingKind,
   deviceTuning,
   lightingProfile,
 } from 'common/lighting/lightingProfiles';
@@ -83,10 +84,7 @@ export const createDeskColourFeed = (): IDeskColourFeed => {
           mood,
           device.lamps,
           {
-            kind:
-              deviceLightingGroup(device) === 'chroma:mousepad'
-                ? 'mousepad'
-                : device.kind,
+            kind: deviceLightingKind(device),
             brightness: current.brightness,
             pulse: current.pulse,
             tuning: deviceTuning(profile, deviceLightingGroup(device)),

@@ -90,14 +90,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': 'Недоступно',
 
-  'lighting.kind.keyboard': 'Клавиатура',
-  'lighting.kind.mouse': 'Мышь',
-  'lighting.kind.mousepad': 'Коврик для мыши',
-  'lighting.kind.headset': 'Гарнитура',
-  'lighting.kind.keypad': 'Кейпад',
-  'lighting.kind.stand': 'Подставка',
-  'lighting.kind.speaker': 'Колонка',
-  'lighting.kind.accessory': 'Аксессуар',
+  'lighting.form.keyboard-full': 'Клавиатура',
+  'lighting.form.keyboard-tkl': 'Клавиатура TKL',
+  'lighting.form.keyboard-compact': 'Компактная клавиатура',
+  'lighting.form.laptop': 'Ноутбук',
+  'lighting.form.keypad': 'Кейпад',
+  'lighting.form.mouse': 'Мышь',
+  'lighting.form.mouse-dock': 'Док-станция для мыши',
+  'lighting.form.charging-pad': 'Зарядная площадка',
+  'lighting.form.mouse-bungee': 'Держатель провода мыши',
+  'lighting.form.mousepad': 'Коврик для мыши',
+  'lighting.form.desk-mat': 'Коврик для стола',
+  'lighting.form.headset': 'Гарнитура',
+  'lighting.form.headset-stand': 'Подставка для гарнитуры',
+  'lighting.form.speakers': 'Колонки',
+  'lighting.form.soundbar': 'Саундбар',
+  'lighting.form.microphone': 'Микрофон',
+  'lighting.form.laptop-stand': 'Подставка для ноутбука',
+  'lighting.form.monitor-stand': 'Подставка для монитора',
+  'lighting.form.dock': 'Док-станция',
+  'lighting.form.light-strip': 'Светодиодная лента',
+  'lighting.form.light-bar': 'Подсветка для монитора',
+  'lighting.form.lamp': 'Лампа',
+  'lighting.form.controller': 'Геймпад',
+  'lighting.form.tower': 'Корпус ПК',
+  'lighting.form.mixer': 'Аудиомикшер',
+  'lighting.form.monitor': 'Монитор',
+  'lighting.form.chair': 'Кресло',
+  'lighting.form.accessory': 'Аксессуар',
 
   'lighting.device.toggle': 'Подсвечивать {name}',
 
@@ -106,6 +126,46 @@ const lighting = {
   'lighting.notice.windows.body':
     'Чтобы подсветка не гасла, когда FluidEQ за другими окнами, разрешите FluidEQ управлять подсветкой в фоне в параметрах динамической подсветки Windows.',
   'lighting.notice.windows.action': 'Открыть параметры подсветки',
+  'lighting.windows.controller': 'Фоновое управление подсветкой Windows',
+  'lighting.windows.notFirst.title':
+    'Windows сначала отдаёт {devices} другому приложению.',
+  'lighting.windows.off.title': 'Динамическое освещение в Windows выключено.',
+  'lighting.windows.waiting.title': 'Windows передаёт {devices} в FluidEQ.',
+  'lighting.windows.waiting.body': 'Это может занять до минуты.',
+  'lighting.windows.developerMode.title':
+    'Этой копии FluidEQ нужен режим разработчика, чтобы подсвечивать {devices}.',
+  'lighting.windows.developerMode.body':
+    'Windows доверяет подсветку только приложениям, которые может опознать. Копия FluidEQ для разработки опознаётся при включённом режиме разработчика; у выпущенного приложения это уже есть.',
+  'lighting.windows.unavailable.title':
+    'Windows не даёт этой копии FluidEQ подсвечивать {devices}.',
+  'lighting.windows.unavailable.body':
+    'Windows доверяет подсветку только приложениям, которые может опознать, а эту копию опознать не удалось. Обычно помогает переустановка FluidEQ.',
+  'lighting.windows.step.open': 'Откройте параметры динамического освещения.',
+  'lighting.windows.step.list': 'Откройте фоновое управление освещением.',
+  'lighting.windows.step.reset':
+    'В фоновом управлении освещением сбросьте настройки для всех устройств.',
+  'lighting.windows.step.drag': 'Перетащите FluidEQ в начало списка.',
+  'lighting.windows.step.dragAbove':
+    'Перетащите FluidEQ в начало списка, выше {above}.',
+  'lighting.windows.step.wait': 'Подсветка переключится примерно через минуту.',
+  'lighting.windows.step.turnOn':
+    'Включите динамическое освещение на своих устройствах.',
+  'lighting.windows.step.deviceOn':
+    'Если устройство так и не светится, откройте его карточку и включите динамическое освещение для этого устройства.',
+  'lighting.windows.step.foreground':
+    'Пока впереди игра или другое приложение подсветки, подсветка остаётся у него. Чтобы она оставалась у FluidEQ, выключите параметр, при котором совместимые приложения на переднем плане всегда управляют освещением.',
+  'lighting.windows.step.openDevelopers':
+    'Откройте параметры Windows для разработчиков.',
+  'lighting.windows.step.developerMode': 'Включите режим разработчика.',
+  'lighting.windows.step.comeBack':
+    'Вернитесь в FluidEQ — эта страница сама заметит изменение.',
+  'lighting.windows.action.developers': 'Открыть параметры для разработчиков',
+  'lighting.windows.vendor.razer':
+    'Для устройств Razer в настройках Razer Synapse также нужно выбрать динамическое освещение Windows в разделе подсветки устройств.',
+  'lighting.windows.vendor.logitech':
+    'Пока Windows подсвечивает устройство Logitech, G HUB не может менять его подсветку.',
+  'lighting.windows.vendor.asus':
+    'В Armoury Crate переключите устройство на Aura Sync и динамическое освещение Windows.',
   'lighting.notice.chroma.title': 'Razer Chroma не отвечает.',
   'lighting.notice.chroma.body':
     'Устройства Razer получают цвета через Razer Chroma. Запустите его, и они подключатся.',

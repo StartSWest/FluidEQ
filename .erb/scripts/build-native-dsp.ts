@@ -31,6 +31,7 @@ import {
 } from 'fs';
 import path from 'path';
 import { brotliDecompressSync } from 'zlib';
+import { writeDevelopmentIdentity } from './lighting-identity';
 import { newestVersionDir } from './versionDirs';
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -452,6 +453,16 @@ if (isWindows) {
   if (!existsSync(lightingPath)) {
     fail(`the Dynamic Lighting helper was not produced at ${lightingPath}`);
   }
+  // The helper's identity manifest, so a development or unsigned copy can get
+  // Windows' lamps through Developer Mode (lighting-identity.ts).
+  const { version } = JSON.parse(
+    readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+  ) as { version: string };
+  writeDevelopmentIdentity(
+    path.dirname(lightingPath),
+    version,
+    path.join(ROOT, 'assets', 'icons'),
+  );
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

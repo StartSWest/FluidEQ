@@ -44,8 +44,11 @@ export const lightingBridge = {
   releaseLighting: () => ipcRenderer.send(LIGHTING_RELEASE_CHANNEL),
   watchLighting: (open: boolean) =>
     ipcRenderer.send(LIGHTING_WATCH_CHANNEL, open),
-  openWindowsLightingSettings: (): Promise<void> =>
-    ipcRenderer.invoke(LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL),
+  /** `developers` opens Windows' developer page instead of Dynamic Lighting. */
+  openWindowsLightingSettings: (
+    page: 'lighting' | 'developers' = 'lighting',
+  ): Promise<void> =>
+    ipcRenderer.invoke(LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL, page),
   openRazerChroma: (): Promise<boolean> =>
     ipcRenderer.invoke(LIGHTING_OPEN_RAZER_CHROMA_CHANNEL),
 };

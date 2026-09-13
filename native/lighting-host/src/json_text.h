@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace fluideq_lighting {
 
@@ -102,12 +103,70 @@ class JsonLine final {
     return *this;
   }
 
+  JsonLine& integers(std::string_view key,
+                     const std::vector<std::int64_t>& values) {
+    field(key);
+    text_.push_back('[');
+    for (std::size_t index = 0; index < values.size(); ++index) {
+      if (index > 0) {
+        text_.push_back(',');
+      }
+      char digits[24];
+      const auto result =
+          std::to_chars(digits, digits + sizeof(digits), values[index]);
+      text_.append(digits, result.ptr);
+    }
+    text_.push_back(']');
+    return *this;
+  }
+
+  JsonLine& texts(std::string_view key,
+                  const std::vector<std::string>& values) {
+    field(key);
+    text_.push_back('[');
+    for (std::size_t index = 0; index < values.size(); ++index) {
+      if (index > 0) {
+        text_.push_back(',');
+      }
+      append_quoted(text_, values[index]);
+    }
+    text_.push_back(']');
+    return *this;
+  }
+
+  // An array of objects already written as JSON by `object()`.
+  JsonLine& objects(std::string_view key,
+                    const std::vector<std::string>& values) {
+    field(key);
+    text_.push_back('[');
+    for (std::size_t index = 0; index < values.size(); ++index) {
+      if (index > 0) {
+        text_.push_back(',');
+      }
+      text_ += values[index];
+    }
+    text_.push_back(']');
+    return *this;
+  }
+
   // The finished line, with its newline.
   [[nodiscard]] std::string finish() const { return text_ + "}\n"; }
 
+  // The same fields as a bare object with no type and no newline, for nesting
+  // in `objects()`. Built from a JsonLine made with `JsonLine::nested()`.
+  [[nodiscard]] std::string object() const { return "{" + text_ + "}"; }
+
+  static JsonLine nested() { return JsonLine(); }
+
  private:
+  JsonLine() = default;
+
   void field(std::string_view key) {
-    text_.push_back(',');
+    // A line always opens with its type; only a nested object starts empty,
+    // and its first field has no comma before it.
+    if (!text_.empty()) {
+      text_.push_back(',');
+    }
     append_quoted(text_, key);
     text_.push_back(':');
   }

@@ -84,14 +84,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': '无法连接',
 
-  'lighting.kind.keyboard': '键盘',
-  'lighting.kind.mouse': '鼠标',
-  'lighting.kind.mousepad': '鼠标垫',
-  'lighting.kind.headset': '耳机',
-  'lighting.kind.keypad': '小键盘',
-  'lighting.kind.stand': '支架',
-  'lighting.kind.speaker': '音箱',
-  'lighting.kind.accessory': '配件',
+  'lighting.form.keyboard-full': '键盘',
+  'lighting.form.keyboard-tkl': '无数字键盘',
+  'lighting.form.keyboard-compact': '紧凑键盘',
+  'lighting.form.laptop': '笔记本电脑',
+  'lighting.form.keypad': '小键盘',
+  'lighting.form.mouse': '鼠标',
+  'lighting.form.mouse-dock': '鼠标底座',
+  'lighting.form.charging-pad': '充电垫',
+  'lighting.form.mouse-bungee': '鼠标理线器',
+  'lighting.form.mousepad': '鼠标垫',
+  'lighting.form.desk-mat': '桌垫',
+  'lighting.form.headset': '耳机',
+  'lighting.form.headset-stand': '耳机架',
+  'lighting.form.speakers': '音箱',
+  'lighting.form.soundbar': '条形音箱',
+  'lighting.form.microphone': '麦克风',
+  'lighting.form.laptop-stand': '笔记本支架',
+  'lighting.form.monitor-stand': '显示器支架',
+  'lighting.form.dock': '扩展坞',
+  'lighting.form.light-strip': '灯带',
+  'lighting.form.light-bar': '显示器挂灯',
+  'lighting.form.lamp': '台灯',
+  'lighting.form.controller': '手柄',
+  'lighting.form.tower': '机箱',
+  'lighting.form.mixer': '音频混音器',
+  'lighting.form.monitor': '显示器',
+  'lighting.form.chair': '椅子',
+  'lighting.form.accessory': '配件',
 
   'lighting.device.toggle': '点亮 {name}',
 
@@ -99,6 +119,42 @@ const lighting = {
   'lighting.notice.windows.body':
     '若要在 FluidEQ 位于其他窗口后面时也保持点亮，请在 Windows 的动态灯效设置中允许 FluidEQ 在后台控制灯光。',
   'lighting.notice.windows.action': '打开灯效设置',
+  'lighting.windows.controller': 'Windows 后台灯光控制',
+  'lighting.windows.notFirst.title':
+    'Windows 正优先把 {devices} 交给另一个应用。',
+  'lighting.windows.off.title': 'Windows 中的动态灯效已关闭。',
+  'lighting.windows.waiting.title': 'Windows 正在把 {devices} 交给 FluidEQ。',
+  'lighting.windows.waiting.body': '最多可能需要一分钟。',
+  'lighting.windows.developerMode.title':
+    '这个 FluidEQ 副本需要开发人员模式才能点亮 {devices}。',
+  'lighting.windows.developerMode.body':
+    'Windows 只把灯光交给它能识别的应用。开发版 FluidEQ 在开启开发人员模式后即可被识别；正式发布的应用本身就能被识别。',
+  'lighting.windows.unavailable.title':
+    'Windows 不允许这个 FluidEQ 副本点亮 {devices}。',
+  'lighting.windows.unavailable.body':
+    'Windows 只把灯光交给它能识别的应用，而这个副本无法被识别。重新安装 FluidEQ 通常可以解决。',
+  'lighting.windows.step.open': '打开动态灯效设置。',
+  'lighting.windows.step.list': '打开后台灯光控制。',
+  'lighting.windows.step.reset': '在后台灯光控制中，重置所有设备。',
+  'lighting.windows.step.drag': '把 FluidEQ 拖到列表最上方。',
+  'lighting.windows.step.dragAbove':
+    '把 FluidEQ 拖到列表最上方，位于 {above} 之上。',
+  'lighting.windows.step.wait': '灯光大约一分钟内就会切换。',
+  'lighting.windows.step.turnOn': '开启在你的设备上使用动态灯效。',
+  'lighting.windows.step.deviceOn':
+    '如果某个设备仍然不亮，打开它的卡片，开启在此设备上使用动态灯效。',
+  'lighting.windows.step.foreground':
+    '游戏或其他灯效应用在前台时，灯光由它控制。若要让 FluidEQ 保持控制，请关闭“前台兼容应用始终控制灯光”这一选项。',
+  'lighting.windows.step.openDevelopers': '打开 Windows 的开发者设置。',
+  'lighting.windows.step.developerMode': '开启开发人员模式。',
+  'lighting.windows.step.comeBack': '回到 FluidEQ；此页面会自动识别这一更改。',
+  'lighting.windows.action.developers': '打开开发者设置',
+  'lighting.windows.vendor.razer':
+    'Razer 设备还需要在 Razer Synapse 设置的设备灯效中选择 Windows 动态灯效。',
+  'lighting.windows.vendor.logitech':
+    '当 Windows 正在点亮 Logitech 设备时，G HUB 无法更改它的灯效。',
+  'lighting.windows.vendor.asus':
+    '在 Armoury Crate 中，把设备设置为 Aura Sync 与 Windows 动态灯效。',
   'lighting.notice.chroma.title': 'Razer Chroma 没有响应。',
   'lighting.notice.chroma.body':
     '你的 Razer 设备通过 Razer Chroma 获取颜色。启动它，设备就会加入。',

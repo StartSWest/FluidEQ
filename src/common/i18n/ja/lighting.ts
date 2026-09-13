@@ -91,14 +91,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': '接続できません',
 
-  'lighting.kind.keyboard': 'キーボード',
-  'lighting.kind.mouse': 'マウス',
-  'lighting.kind.mousepad': 'マウスパッド',
-  'lighting.kind.headset': 'ヘッドセット',
-  'lighting.kind.keypad': 'キーパッド',
-  'lighting.kind.stand': 'スタンド',
-  'lighting.kind.speaker': 'スピーカー',
-  'lighting.kind.accessory': 'アクセサリー',
+  'lighting.form.keyboard-full': 'キーボード',
+  'lighting.form.keyboard-tkl': 'テンキーレス キーボード',
+  'lighting.form.keyboard-compact': 'コンパクト キーボード',
+  'lighting.form.laptop': 'ノート PC',
+  'lighting.form.keypad': 'キーパッド',
+  'lighting.form.mouse': 'マウス',
+  'lighting.form.mouse-dock': 'マウスドック',
+  'lighting.form.charging-pad': '充電パッド',
+  'lighting.form.mouse-bungee': 'マウスバンジー',
+  'lighting.form.mousepad': 'マウスパッド',
+  'lighting.form.desk-mat': 'デスクマット',
+  'lighting.form.headset': 'ヘッドセット',
+  'lighting.form.headset-stand': 'ヘッドセットスタンド',
+  'lighting.form.speakers': 'スピーカー',
+  'lighting.form.soundbar': 'サウンドバー',
+  'lighting.form.microphone': 'マイク',
+  'lighting.form.laptop-stand': 'ノート PC スタンド',
+  'lighting.form.monitor-stand': 'モニタースタンド',
+  'lighting.form.dock': 'ドック',
+  'lighting.form.light-strip': 'ライトストリップ',
+  'lighting.form.light-bar': 'モニターライトバー',
+  'lighting.form.lamp': 'ランプ',
+  'lighting.form.controller': 'コントローラー',
+  'lighting.form.tower': 'PC ケース',
+  'lighting.form.mixer': 'オーディオミキサー',
+  'lighting.form.monitor': 'モニター',
+  'lighting.form.chair': 'チェア',
+  'lighting.form.accessory': 'アクセサリー',
 
   'lighting.device.toggle': '{name} を光らせる',
 
@@ -107,6 +127,48 @@ const lighting = {
   'lighting.notice.windows.body':
     'FluidEQ がほかのウィンドウの後ろにあるときも光らせるには、Windows のダイナミック ライティングの設定で、FluidEQ がバックグラウンドでライトを制御できるようにしてください。',
   'lighting.notice.windows.action': 'ライティングの設定を開く',
+  'lighting.windows.controller': 'Windows のバックグラウンド ライト制御',
+  'lighting.windows.notFirst.title':
+    'Windows は {devices} をほかのアプリに優先して渡しています。',
+  'lighting.windows.off.title':
+    'Windows でダイナミック ライティングがオフになっています。',
+  'lighting.windows.waiting.title':
+    'Windows が {devices} を FluidEQ に引き渡しています。',
+  'lighting.windows.waiting.body': '最大で 1 分ほどかかることがあります。',
+  'lighting.windows.developerMode.title':
+    'この FluidEQ で {devices} を光らせるには開発者モードが必要です。',
+  'lighting.windows.developerMode.body':
+    'Windows は識別できるアプリにだけライトを任せます。開発用の FluidEQ は開発者モードをオンにすると識別され、リリース版のアプリは最初から識別されます。',
+  'lighting.windows.unavailable.title':
+    'Windows がこの FluidEQ に {devices} を光らせることを許可していません。',
+  'lighting.windows.unavailable.body':
+    'Windows は識別できるアプリにだけライトを任せますが、この FluidEQ は識別できませんでした。通常は FluidEQ を再インストールすると解決します。',
+  'lighting.windows.step.open': 'ダイナミック ライティングの設定を開きます。',
+  'lighting.windows.step.list': 'バックグラウンドのライト制御を開きます。',
+  'lighting.windows.step.reset':
+    'バックグラウンドのライト制御で、すべてのデバイスをリセットします。',
+  'lighting.windows.step.drag': 'FluidEQ を一覧のいちばん上にドラッグします。',
+  'lighting.windows.step.dragAbove':
+    'FluidEQ を一覧のいちばん上、{above} より上にドラッグします。',
+  'lighting.windows.step.wait': '1 分ほどでライトが切り替わります。',
+  'lighting.windows.step.turnOn':
+    'デバイスでダイナミック ライティングを使う設定をオンにします。',
+  'lighting.windows.step.deviceOn':
+    '光らないデバイスがあれば、そのデバイスのカードを開き、そのデバイスでダイナミック ライティングを使う設定をオンにします。',
+  'lighting.windows.step.foreground':
+    'ゲームやほかのライティング アプリが前面にある間は、そのアプリがライトを使います。FluidEQ に任せたままにするには、前面の対応アプリが常にライティングを制御する設定をオフにします。',
+  'lighting.windows.step.openDevelopers':
+    'Windows の開発者向け設定を開きます。',
+  'lighting.windows.step.developerMode': '開発者モードをオンにします。',
+  'lighting.windows.step.comeBack':
+    'FluidEQ に戻ります。このページは変更を自動で反映します。',
+  'lighting.windows.action.developers': '開発者向け設定を開く',
+  'lighting.windows.vendor.razer':
+    'Razer のデバイスでは、Razer Synapse の設定のデバイス ライティングで Windows のダイナミック ライティングを選ぶ必要もあります。',
+  'lighting.windows.vendor.logitech':
+    'Windows が Logitech のデバイスを光らせている間は、G HUB でそのライティングを変更できません。',
+  'lighting.windows.vendor.asus':
+    'Armoury Crate で、デバイスを Aura Sync と Windows のダイナミック ライティングに設定します。',
   'lighting.notice.chroma.title': 'Razer Chroma が応答しません。',
   'lighting.notice.chroma.body':
     'Razer のデバイスは Razer Chroma を通して色を受け取ります。起動すると連動します。',

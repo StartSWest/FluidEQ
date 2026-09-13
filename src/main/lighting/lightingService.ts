@@ -5,22 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import path from 'path';
-import { razerKindOf } from '../../common/lighting/razerDevices';
-import {
-  deviceTuning,
-  lightingProfile,
-} from '../../common/lighting/lightingProfiles';
-import {
-  createLampMemory,
-  lightLamps,
-  measureMood,
-  type ILampMemory,
-} from '../../common/lighting/lampColour';
-import {
-  CHROMA_CHANNEL_LAMPS,
-  CHROMA_CHANNELS,
-  type TChromaChannel,
-} from '../../common/lighting/lampLayouts';
+import { describeRazer } from '../../common/lighting/razerDevices';
 import {
   readLightingFrame,
   readLightingSettings,
@@ -28,7 +13,6 @@ import {
   type ILightingDevice,
   type ILightingSettings,
   type ILightingState,
-  type TLightingKind,
   type TSynapseState,
 } from '../../common/lighting/lightingModel';
 import { createChromaClient, type IChromaClient } from './chromaClient';
@@ -38,10 +22,10 @@ import {
   lightsThroughWindows,
   razerCandidates,
   rowKeyOfWindowsDevice,
-  singleChromaKeyboard,
   toWindowsDevice,
   type IWindowsDevice,
 } from './lightingDevices';
+import { createFrameRouter } from './lightingFrameRouter';
 import { startLightingHost, type ILightingHost } from './lightingHost';
 import {
   ensureLightingIdentity,
@@ -52,7 +36,16 @@ import {
   loadLightingSettings,
   saveLightingSettings,
 } from './lightingSettingsStore';
-import type { IRazerEvent, THelperEvent } from './lightingWire';
+import type {
+  ILightingSettingsEvent,
+  IRazerEvent,
+  THelperEvent,
+} from './lightingWire';
+import {
+  describeWindowsHold,
+  windowsBackgroundOf,
+  type IHeldDevice,
+} from './windowsControl';
 
 /**
  * Dynamic lighting in the main process: the settings, the devices, and every
@@ -94,29 +87,17 @@ export interface ILightingService {
   release(): void;
   /** The window reloaded or went away without saying so. */
   windowGone(): void;
-  /** Something that may have started Razer Chroma happened — the window regained focus. */
-  recheckSynapse(): void;
+  /**
+   * The member came back to the window, where whatever they changed outside
+   * it — Razer Chroma started, Developer Mode turned on — should show.
+   */
+  windowFocused(): void;
   helperPid(): number | undefined;
   dispose(): void;
 }
 
-/** Which part of the music each Razer channel follows. */
-const CHANNEL_KIND: Record<TChromaChannel, TLightingKind> = {
-  keyboard: 'keyboard',
-  mouse: 'mouse',
-  mousepad: 'mousepad',
-  headset: 'headset',
-  keypad: 'keypad',
-  chromalink: 'accessory',
-};
-
 /** A helper that dies this often in one session is not restarted again. */
 const MAX_HELPER_FAILURES = 3;
-
-interface IOutput {
-  memory: ILampMemory;
-  rgb: Uint8Array;
-}
 
 export const createLightingService = (
   deps: ILightingServiceDeps,
@@ -134,15 +115,18 @@ export const createLightingService = (
   let ambient = false;
   let host: ILightingHost | undefined;
   let hostIdentity = false;
+  // What the running helper reported: FluidEQ's package family name while it
+  // has identity, and the member's Dynamic Lighting settings.
+  let familyName: string | undefined;
+  let windowsSettings: ILightingSettingsEvent | undefined;
   let helperFailures = 0;
   let identity: TIdentityOutcome | 'pending' | undefined;
   const windows = new Map<number, IWindowsDevice>();
   const razer = new Map<string, IRazerEvent>();
   const keyboards = new Map<string, readonly ILamp[]>();
-  const keyboardKeys = new Uint32Array(6 * 22);
   // Kept beside the map rather than counted per frame.
   let hasRazer = false;
-  const outputs = new Map<string, IOutput>();
+  const router = createFrameRouter();
   const heldWindows = new Set<number>();
   let lastPushed = '';
   // A helper just started has not listed anything yet. Until both of its
@@ -156,7 +140,7 @@ export const createLightingService = (
     publish(),
   );
 
-  const heldByWindows = (): string[] =>
+  const heldDevices = (): IHeldDevice[] =>
     live
       ? [...windows.values()]
           .filter(
@@ -167,12 +151,19 @@ export const createLightingService = (
           )
           .map((device) => {
             const rowKey = rowKeyOfWindowsDevice(device, razer);
-            return rowKey.startsWith('razer:')
-              ? (razer.get(rowKey.slice('razer:'.length))?.name ??
-                  device.event.name)
-              : device.event.name;
+            const twin = rowKey.startsWith('razer:')
+              ? razer.get(rowKey.slice('razer:'.length))
+              : undefined;
+            return {
+              name: twin ? describeRazer(twin).name : device.event.name,
+              id: device.event.id,
+              vendorId: device.event.vendorId,
+            };
           })
       : [];
+
+  const heldByWindows = (): string[] =>
+    heldDevices().map((device) => device.name);
 
   const state = (): ILightingState => {
     const listing = pending.lamparray || pending.razer;
@@ -195,6 +186,13 @@ export const createLightingService = (
       ),
       heldByWindows: heldByWindows(),
       canOpenRazerChroma: deps.canOpenRazerChroma?.() ?? false,
+      windowsBackground: windowsBackgroundOf(identity),
+      windowsHold: describeWindowsHold(
+        heldDevices(),
+        windowsBackgroundOf(identity),
+        windowsSettings,
+        familyName,
+      ),
       live,
       ambient,
     };
@@ -223,6 +221,10 @@ export const createLightingService = (
     switch (event.type) {
       case 'ready':
         hostIdentity = event.identity;
+        familyName = event.familyName;
+        break;
+      case 'lighting-settings':
+        windowsSettings = event;
         break;
       case 'lamparray':
         windows.set(event.index, toWindowsDevice(event));
@@ -240,7 +242,7 @@ export const createLightingService = (
       case 'razer': {
         const first = !hasRazer;
         razer.set(event.container, event);
-        if (razerKindOf(event.name) === 'keyboard') {
+        if (describeRazer(event).kind === 'keyboard') {
           (deps.loadKeyboard ?? loadChromaKeyboard)(event.container)
             .then((lamps) => {
               if (lamps && razer.get(event.container) === event) {
@@ -280,7 +282,7 @@ export const createLightingService = (
   };
 
   const forgetDevices = () => {
-    heldWindows.forEach((index) => outputs.delete(`windows:${index}`));
+    heldWindows.forEach(router.forgetWindows);
     heldWindows.clear();
     if (windows.size > 0 || razer.size > 0) {
       snapshot = buildDeviceList(
@@ -341,7 +343,14 @@ export const createLightingService = (
 
   /** Once per launch, the first time lighting is on. */
   const checkIdentity = () => {
-    if (!deps.supported || !settings.enabled || identity !== undefined) {
+    // Asked again after "Developer Mode is off": the member may have turned
+    // it on since, and opening the page or the switch is when they expect it
+    // to have worked.
+    if (
+      !deps.supported ||
+      !settings.enabled ||
+      (identity !== undefined && identity !== 'developer-mode-off')
+    ) {
       return;
     }
     identity = 'pending';
@@ -350,8 +359,11 @@ export const createLightingService = (
         identity = await ensureIdentity(findFolder());
       } catch {
         identity = 'failed';
+        publish();
         return;
       }
+      // What the page may tell the member about Windows' settings changed.
+      publish();
       // A helper started before the registration has no identity; the next
       // one does. Restarting drops nothing but the lamps it held.
       if (identity === 'registered' && host && !hostIdentity) {
@@ -362,18 +374,6 @@ export const createLightingService = (
     register().catch(() => undefined);
   };
 
-  const outputFor = (key: string, lampCount: number): IOutput => {
-    let output = outputs.get(key);
-    if (!output || output.rgb.length !== lampCount * 3) {
-      output = {
-        memory: createLampMemory(lampCount),
-        rgb: new Uint8Array(lampCount * 3),
-      };
-      outputs.set(key, output);
-    }
-    return output;
-  };
-
   const release = () => {
     if (!live) {
       return;
@@ -382,8 +382,7 @@ export const createLightingService = (
     ambient = false;
     chroma.release();
     stopHelper();
-    // Faded in again from dark next time, not from where the last song left.
-    outputs.clear();
+    router.clear();
     startHelper();
     publish();
   };
@@ -409,6 +408,7 @@ export const createLightingService = (
     watch: (open) => {
       watchers = Math.max(0, watchers + (open ? 1 : -1));
       if (open) {
+        checkIdentity();
         startHelper();
         chroma.probe();
       } else if (!wantsHelper()) {
@@ -434,119 +434,21 @@ export const createLightingService = (
         ambient = frame.ambient ?? false;
         publish();
       }
-      const mood = measureMood(frame);
-      const profile = lightingProfile(settings.profiles, frame.sceneId);
-      const shaping = (kind: TLightingKind, group: string) => ({
-        kind,
-        brightness: settings.brightness,
-        pulse: settings.pulse,
-        tuning: deviceTuning(profile, group),
-        idle: profile.idle,
-        idleBrightness: profile.idleBrightness,
+      router.route(frame, {
+        settings,
+        chroma,
+        razer,
+        hasRazer,
+        keyboards,
+        windows,
+        heldWindows,
+        razerPending: pending.razer,
+        host: () => host,
+        restartHelper: () => {
+          stopHelper();
+          startHelper();
+        },
       });
-      const light = (
-        key: string,
-        lamps: readonly ILamp[],
-        kind: TLightingKind,
-        group = key,
-      ) => {
-        const output = outputFor(key, lamps.length);
-        lightLamps(
-          frame,
-          mood,
-          lamps,
-          shaping(kind, group),
-          output.memory,
-          output.rgb,
-        );
-        return output.rgb;
-      };
-
-      // Razer's service only on a machine with Razer devices: every session
-      // registers an app in Razer Chroma, and a desk without Razer has no
-      // reason to have one.
-      if (hasRazer) {
-        chroma.frame();
-        CHROMA_CHANNELS.forEach((channel) => {
-          const keyboard =
-            channel === 'keyboard'
-              ? singleChromaKeyboard(razer, keyboards)
-              : undefined;
-          if (keyboard) {
-            const rgb = light('chroma:keyboard', keyboard, 'keyboard');
-            keyboardKeys.fill(0);
-            keyboard.forEach((lamp, index) => {
-              if (lamp.chromaIndex !== undefined) {
-                keyboardKeys[lamp.chromaIndex] =
-                  0x01000000 +
-                  rgb[index * 3] +
-                  rgb[index * 3 + 1] * 256 +
-                  rgb[index * 3 + 2] * 65536;
-              }
-            });
-            chroma.send(
-              channel,
-              light(
-                'chroma:keyboard:canvas',
-                CHROMA_CHANNEL_LAMPS.keyboard,
-                'keyboard',
-                'chroma:keyboard',
-              ),
-              keyboardKeys,
-            );
-            return;
-          }
-          chroma.send(
-            channel,
-            light(
-              `chroma:${channel}`,
-              CHROMA_CHANNEL_LAMPS[channel],
-              CHANNEL_KIND[channel],
-            ),
-          );
-        });
-      }
-
-      // Stopping sends does not relinquish a LampArray. Close the owning
-      // process when a held device moves to Chroma or the member mutes it.
-      // A fresh helper enumerates without acquiring any lamps.
-      if (
-        [...heldWindows].some((index) => {
-          const device = windows.get(index);
-          return (
-            device &&
-            (!lightsThroughWindows(device, razer, chroma.state()) ||
-              settings.muted.includes(rowKeyOfWindowsDevice(device, razer)))
-          );
-        })
-      ) {
-        stopHelper();
-        startHelper();
-      }
-      const running = host;
-      // Razer and Windows enumerate independently. Wait for classification
-      // before acquiring a Windows twin, or each fresh helper can acquire it
-      // just before the Razer row arrives and trigger another restart.
-      if (running && !pending.razer) {
-        windows.forEach((device, index) => {
-          if (
-            !lightsThroughWindows(device, razer, chroma.state()) ||
-            settings.muted.includes(rowKeyOfWindowsDevice(device, razer))
-          ) {
-            return;
-          }
-          running.send(
-            index,
-            light(
-              `windows:${index}`,
-              device.lamps,
-              device.kind,
-              rowKeyOfWindowsDevice(device, razer),
-            ),
-          );
-          heldWindows.add(index);
-        });
-      }
       // No publish here: nothing the page lists changes with a frame. What
       // does — a device held back, Razer's answer — arrives as its own event.
     },
@@ -559,7 +461,12 @@ export const createLightingService = (
       }
       publish();
     },
-    recheckSynapse: () => {
+    windowFocused: () => {
+      // Back from Windows' developer settings, Developer Mode may be on now;
+      // the page is where that shows, and opening it asks again anyway.
+      if (watchers > 0) {
+        checkIdentity();
+      }
       if (watchers > 0 || razerCandidates(razer).length > 0) {
         chroma.probe();
       }

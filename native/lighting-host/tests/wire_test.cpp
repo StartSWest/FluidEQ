@@ -133,6 +133,15 @@ void json_lines_escape_what_they_must() {
   const std::string numbers =
       JsonLine("lamparray").numbers("positions", positions, 3).finish();
   CHECK(numbers == "{\"type\":\"lamparray\",\"positions\":[0.021,0.006,0]}\n");
+  // Every product id a device carries (lightingHelperEvents.test.ts reads
+  // the same shape).
+  const std::string ids = JsonLine("razer")
+                              .integer("productId", 3872)
+                              .integers("productIds", {3872, 18672})
+                              .integers("none", {})
+                              .finish();
+  CHECK(ids == "{\"type\":\"razer\",\"productId\":3872,"
+               "\"productIds\":[3872,18672],\"none\":[]}\n");
 }
 
 }  // namespace

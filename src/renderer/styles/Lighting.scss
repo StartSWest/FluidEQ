@@ -221,6 +221,22 @@ $windows-blue: #8ec5ff;
   line-height: 1.5;
 }
 
+// The Windows settings to change, in the order Windows asks for them.
+.lighting-notice__steps {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 2px;
+  padding-left: 1.4em;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  li::marker {
+    color: $windows-blue;
+    font-weight: $weight-semibold;
+  }
+}
+
 .lighting-notice__actions {
   display: flex;
   flex-wrap: wrap;

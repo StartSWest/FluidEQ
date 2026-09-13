@@ -7,7 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { ILightingDevice } from 'common/lighting/lightingModel';
 import type { IDeskColourFeed, IDeskColours } from './deskColours';
-import { layoutDesk, PLACEHOLDER_DESK } from './deskLayout';
+import { PLACEHOLDER_DESK } from './deskGeometry';
+import layoutDesk from './deskLayout';
 import { paintDesk } from './deskPainter';
 
 interface ILightingStageProps {

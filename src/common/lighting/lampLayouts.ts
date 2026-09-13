@@ -125,6 +125,21 @@ export const CHROMA_CHANNELS: readonly TChromaChannel[] = [
 ];
 
 /**
+ * Which part of the music each Razer channel follows. Every device on a
+ * channel shows that channel's colours, whatever the device is.
+ */
+export const CHROMA_CHANNEL_KIND: Readonly<
+  Record<TChromaChannel, TLightingKind>
+> = {
+  keyboard: 'keyboard',
+  mouse: 'mouse',
+  mousepad: 'mousepad',
+  headset: 'headset',
+  keypad: 'keypad',
+  chromalink: 'accessory',
+};
+
+/**
  * The mousepad channel's twenty zones, in Razer's order: down the right side
  * from the top (0–4), right to left along the bottom (5–9), up the left side
  * (10–14), then left to right along the top (15–19). Measured against Razer

@@ -375,6 +375,7 @@ if(WIN32)
     lighting-host/src/lamp_arrays.cpp
     lighting-host/src/razer_devices.cpp
     lighting-host/src/identity.cpp
+    lighting-host/src/lighting_settings.cpp
     lighting-host/src/lighting-host.rc)
   target_link_libraries(fluideq-lighting-host PRIVATE feq_strict WindowsApp shell32)
   target_compile_options(fluideq-lighting-host PRIVATE

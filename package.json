@@ -294,6 +294,7 @@
           "FluidEQ-LAN-Capture*",
           "FluidEQ-Engine*",
           "FluidEQ-Lighting.exe",
+          "lighting-identity/**",
           "msvcp140.dll",
           "vcruntime140.dll",
           "vcruntime140_1.dll"

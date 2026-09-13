@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <mutex>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "json_text.h"
 
@@ -62,6 +63,12 @@ struct RazerDevices::State : std::enable_shared_from_this<RazerDevices::State> {
   struct Container {
     std::set<std::wstring> interfaces;
     std::int64_t product = 0;
+    // Every product id among its interfaces. One product can carry several —
+    // a Base Station V2 Chroma is 0F20 for its lights and 48F0 for its media
+    // keys — and whichever Windows lists first says nothing about which is
+    // the lit one.
+    std::set<std::int64_t> products;
+    std::size_t reported_products = 0;
     // What Windows calls the container, and the best product name any of its
     // device nodes carries. The two differ more than expected: a DeathStalker
     // V2 Pro's container is "DSV2Pro TKL", while Razer's driver names one of
@@ -81,20 +88,26 @@ struct RazerDevices::State : std::enable_shared_from_this<RazerDevices::State> {
   std::map<std::wstring, Container> containers;
 
   // Called with the lock held. Reports the container again whenever its best
-  // name improves; the main process treats every report as an upsert.
+  // name improves or another of its product ids arrives; the main process
+  // treats every report as an upsert.
   void report(const std::wstring& id, Container& container) {
     std::string name = container.device_name;
     if (name.empty() || (!is_razer_name(name) && is_razer_name(container.container_name))) {
       name = container.container_name;
     }
-    if (name.empty() || name == container.reported) {
+    if (name.empty() || (name == container.reported &&
+                         container.products.size() == container.reported_products)) {
       return;
     }
     container.reported = name;
+    container.reported_products = container.products.size();
     sink.write(JsonLine("razer")
                    .text("container", winrt::to_string(id))
                    .text("name", name)
                    .integer("productId", container.product)
+                   .integers("productIds",
+                             std::vector<std::int64_t>(container.products.begin(),
+                                                       container.products.end()))
                    .finish());
   }
 
@@ -167,6 +180,10 @@ struct RazerDevices::State : std::enable_shared_from_this<RazerDevices::State> {
       container.interfaces.insert(std::wstring(info.Id()));
       if (container.product == 0) {
         container.product = product;
+      }
+      if (product != 0 && container.products.insert(product).second &&
+          !container.reported.empty()) {
+        report(container_id, container);
       }
     }
     try {

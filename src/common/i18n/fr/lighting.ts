@@ -91,14 +91,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': 'Injoignable',
 
-  'lighting.kind.keyboard': 'Clavier',
-  'lighting.kind.mouse': 'Souris',
-  'lighting.kind.mousepad': 'Tapis de souris',
-  'lighting.kind.headset': 'Casque',
-  'lighting.kind.keypad': 'Pavé',
-  'lighting.kind.stand': 'Support',
-  'lighting.kind.speaker': 'Enceinte',
-  'lighting.kind.accessory': 'Accessoire',
+  'lighting.form.keyboard-full': 'Clavier',
+  'lighting.form.keyboard-tkl': 'Clavier TKL',
+  'lighting.form.keyboard-compact': 'Clavier compact',
+  'lighting.form.laptop': 'Ordinateur portable',
+  'lighting.form.keypad': 'Pavé',
+  'lighting.form.mouse': 'Souris',
+  'lighting.form.mouse-dock': 'Station pour souris',
+  'lighting.form.charging-pad': 'Socle de charge',
+  'lighting.form.mouse-bungee': 'Bungee pour souris',
+  'lighting.form.mousepad': 'Tapis de souris',
+  'lighting.form.desk-mat': 'Tapis de bureau',
+  'lighting.form.headset': 'Casque',
+  'lighting.form.headset-stand': 'Support de casque',
+  'lighting.form.speakers': 'Enceintes',
+  'lighting.form.soundbar': 'Barre de son',
+  'lighting.form.microphone': 'Microphone',
+  'lighting.form.laptop-stand': 'Support pour portable',
+  'lighting.form.monitor-stand': 'Support d’écran',
+  'lighting.form.dock': 'Station d’accueil',
+  'lighting.form.light-strip': 'Bande lumineuse',
+  'lighting.form.light-bar': 'Barre lumineuse d’écran',
+  'lighting.form.lamp': 'Lampe',
+  'lighting.form.controller': 'Manette',
+  'lighting.form.tower': 'Boîtier PC',
+  'lighting.form.mixer': 'Mélangeur audio',
+  'lighting.form.monitor': 'Écran',
+  'lighting.form.chair': 'Chaise',
+  'lighting.form.accessory': 'Accessoire',
 
   'lighting.device.toggle': 'Éclairer {name}',
 
@@ -107,6 +127,50 @@ const lighting = {
   'lighting.notice.windows.body':
     'Pour qu’ils restent éclairés quand FluidEQ est derrière d’autres fenêtres, autorisez FluidEQ à contrôler l’éclairage en arrière-plan dans les paramètres d’éclairage dynamique de Windows.',
   'lighting.notice.windows.action': 'Ouvrir les paramètres d’éclairage',
+  'lighting.windows.controller':
+    'Contrôle de l’éclairage en arrière-plan de Windows',
+  'lighting.windows.notFirst.title':
+    'Windows donne d’abord {devices} à une autre application.',
+  'lighting.windows.off.title':
+    'L’éclairage dynamique est désactivé dans Windows.',
+  'lighting.windows.waiting.title': 'Windows transmet {devices} à FluidEQ.',
+  'lighting.windows.waiting.body': 'Cela peut prendre jusqu’à une minute.',
+  'lighting.windows.developerMode.title':
+    'Cette copie de FluidEQ a besoin du mode développeur pour éclairer {devices}.',
+  'lighting.windows.developerMode.body':
+    'Windows ne confie ses éclairages qu’aux applications qu’il peut identifier. Une copie de développement de FluidEQ l’est une fois le mode développeur activé ; l’application publiée l’est déjà.',
+  'lighting.windows.unavailable.title':
+    'Windows ne laisse pas cette copie de FluidEQ éclairer {devices}.',
+  'lighting.windows.unavailable.body':
+    'Windows ne confie ses éclairages qu’aux applications qu’il peut identifier, et cette copie n’a pas pu l’être. Réinstaller FluidEQ règle généralement le problème.',
+  'lighting.windows.step.open': 'Ouvrez les paramètres d’éclairage dynamique.',
+  'lighting.windows.step.list':
+    'Ouvrez le contrôle de l’éclairage en arrière-plan.',
+  'lighting.windows.step.reset':
+    'Dans le contrôle de l’éclairage en arrière-plan, réinitialisez tous les appareils.',
+  'lighting.windows.step.drag': 'Faites glisser FluidEQ en haut de la liste.',
+  'lighting.windows.step.dragAbove':
+    'Faites glisser FluidEQ en haut de la liste, au-dessus de {above}.',
+  'lighting.windows.step.wait':
+    'Les éclairages basculent en une minute environ.',
+  'lighting.windows.step.turnOn':
+    'Activez l’éclairage dynamique sur vos appareils.',
+  'lighting.windows.step.deviceOn':
+    'Si un appareil reste éteint, ouvrez sa fiche et activez l’éclairage dynamique sur cet appareil.',
+  'lighting.windows.step.foreground':
+    'Tant qu’un jeu ou une autre application d’éclairage est au premier plan, il garde les éclairages. Pour que FluidEQ les garde, désactivez l’option qui laisse toujours les applications compatibles au premier plan contrôler l’éclairage.',
+  'lighting.windows.step.openDevelopers':
+    'Ouvrez les paramètres pour les développeurs de Windows.',
+  'lighting.windows.step.developerMode': 'Activez le mode développeur.',
+  'lighting.windows.step.comeBack':
+    'Revenez dans FluidEQ ; cette page prend le changement en compte d’elle-même.',
+  'lighting.windows.action.developers': 'Ouvrir les paramètres développeur',
+  'lighting.windows.vendor.razer':
+    'Les appareils Razer demandent aussi de choisir l’éclairage dynamique de Windows dans l’éclairage des appareils, dans les paramètres de Razer Synapse.',
+  'lighting.windows.vendor.logitech':
+    'Tant que Windows éclaire un appareil Logitech, G HUB ne peut pas modifier son éclairage.',
+  'lighting.windows.vendor.asus':
+    'Dans Armoury Crate, réglez l’appareil sur Aura Sync et l’éclairage dynamique de Windows.',
   'lighting.notice.chroma.title': 'Razer Chroma ne répond pas.',
   'lighting.notice.chroma.body':
     'Vos appareils Razer reçoivent leurs couleurs via Razer Chroma. Lancez-le et ils suivront.',

@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TDeviceForm } from './deviceForms';
+import type { TChromaChannel } from './lampLayouts';
 import {
   readLightingProfiles,
   type ILightingProfile,
@@ -99,6 +101,11 @@ export interface ILightingDevice {
   /** As Windows or the maker names it — never translated. */
   name: string;
   kind: TLightingKind;
+  /**
+   * What it looks like on the drawn desk (`deviceForms.ts`). Optional so a
+   * window that predates it still reads the list; drawn from `kind` then.
+   */
+  form?: TDeviceForm;
   /** The route this device is lit through right now, or none reaches it. */
   route: TLightingRoute | 'none';
   lamps: readonly ILamp[];
@@ -107,6 +114,14 @@ export interface ILightingDevice {
    * two Razer headsets are one channel, and switching one off switches both.
    */
   channel: string;
+  /**
+   * The Razer Chroma channel whose colours it shows, while Razer Chroma
+   * lights it. Razer files products under channels their names would not
+   * suggest — a Mouse Dock Pro and a Kraken V4 Pro follow the mousepad's — so
+   * the page needs it to draw what the device really shows. Optional so a
+   * window that predates it still reads the list.
+   */
+  chromaChannel?: TChromaChannel;
   muted: boolean;
 }
 
@@ -116,6 +131,81 @@ export interface ILightingDevice {
  * service answers and refuses to light anything for an app.
  */
 export type TSynapseState = 'unknown' | 'running' | 'not-running' | 'apps-off';
+
+/**
+ * See `ILightingState.windowsBackground`. `needs-developer-mode` is a copy of
+ * FluidEQ with no signed identity package (a development or unsigned build)
+ * on a machine where Developer Mode is off, the one thing that would let it
+ * register; `unavailable` is every other copy Windows will not identify.
+ */
+export type TWindowsBackground =
+  'checking' | 'possible' | 'needs-developer-mode' | 'unavailable';
+
+/**
+ * Why Windows is not giving FluidEQ a device's lamps, most actionable first:
+ * - `unavailable`: this copy cannot be listed in Windows' settings at all.
+ * - `needs-developer-mode`: it can, once Developer Mode is on.
+ * - `dynamic-lighting-off`: "Use Dynamic Lighting" is off, for all devices or
+ *   on this device's own page.
+ * - `not-first`: another controller is above FluidEQ in Background light
+ *   control.
+ * - `waiting`: FluidEQ is first and Windows has not handed the device over
+ *   yet — it takes up to about a minute — or a lighting-aware app in front has
+ *   it while "Compatible apps in the foreground always control lighting" is
+ *   on.
+ */
+export type TWindowsHoldReason =
+  | 'unavailable'
+  | 'needs-developer-mode'
+  | 'dynamic-lighting-off'
+  | 'not-first'
+  | 'waiting';
+
+/** Makers whose own app also has to hand a device to Windows. */
+export type TLightingVendor = 'razer' | 'logitech' | 'asus';
+
+export interface IWindowsHold {
+  reason: TWindowsHoldReason;
+  /** The devices it applies to, by name. */
+  devices: readonly string[];
+  /**
+   * Controllers listed above FluidEQ where it decides, top first, as Windows
+   * stores them: package family names, "WindowsLighting" for Windows' own.
+   * See `lightingProviderLabel`.
+   */
+  above: readonly string[];
+  /**
+   * The devices' lists differ, so Settings shows "Reset for all devices" where
+   * the Background light control list would be.
+   */
+  resetNeeded: boolean;
+  foregroundFirst: boolean;
+  vendors: readonly TLightingVendor[];
+}
+
+/**
+ * How Settings names a controller: Windows' own gets the page's own label
+ * (translated by the caller), a known maker's its product name, anything else
+ * the package name up to its publisher hash.
+ */
+export const lightingProviderLabel = (
+  provider: string,
+): { windows: true } | { name: string } => {
+  if (provider.toLowerCase() === 'windowslighting') {
+    return { windows: true };
+  }
+  const name = provider.split('_')[0];
+  if (/^RazerDynamicLighting$/i.test(name)) {
+    return { name: 'Razer Chroma' };
+  }
+  if (/^AacAmbientLighting$/i.test(name)) {
+    return { name: 'Armoury Crate' };
+  }
+  if (/signalrgb/i.test(name)) {
+    return { name: 'SignalRGB' };
+  }
+  return { name };
+};
 
 export interface ILightingState {
   /** Only Windows has either route. */
@@ -134,6 +224,22 @@ export interface ILightingState {
   heldByWindows: readonly string[];
   /** Razer Chroma's launcher is installed, so the page can offer to open it. */
   canOpenRazerChroma: boolean;
+  /**
+   * Whether Windows can be asked to let FluidEQ light devices from behind
+   * other windows. Only an install whose identity package is registered can
+   * be listed under Background light control; without one (a development or
+   * unsigned build, or a registration Windows refused) a Windows device lights
+   * only while FluidEQ is the window in front, and telling the member to
+   * allow it in Settings would send them looking for an entry that is not
+   * there. Optional so a window that predates it still reads the state.
+   */
+  windowsBackground?: TWindowsBackground;
+  /**
+   * Why the devices Windows is holding are held, read from the member's own
+   * Dynamic Lighting settings; undefined while none is held. Optional so a
+   * window that predates it still reads the state.
+   */
+  windowsHold?: IWindowsHold;
   /**
    * The window is sending the scene's frames: lighting is on and a Plus scene
    * is playing. Not by itself proof that anything lights — see

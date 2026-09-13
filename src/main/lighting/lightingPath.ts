@@ -23,6 +23,16 @@ export const LIGHTING_EXECUTABLE =
 /** Written beside the helper at packaging time, in signed builds only. */
 export const LIGHTING_IDENTITY_PACKAGE = 'FluidEQ-Lighting.msix';
 
+/**
+ * The same identity, unsigned: the manifest in a folder of its own beside the
+ * helper, written by every native build. Windows registers it only with
+ * Developer Mode on (`identity register-dev`).
+ */
+export const LIGHTING_IDENTITY_MANIFEST = path.join(
+  'lighting-identity',
+  'AppxManifest.xml',
+);
+
 /** Must match the helper's embedded manifest (native/CMakeLists.txt). */
 export const LIGHTING_PACKAGE_NAME = 'FluidEQ.DynamicLighting';
 

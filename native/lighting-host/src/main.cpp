@@ -37,6 +37,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "identity.h"
 #include "json_text.h"
 #include "lamp_arrays.h"
+#include "lighting_settings.h"
 #include "razer_devices.h"
 #include "wire.h"
 
@@ -47,6 +48,7 @@ using fluideq_lighting::EventSink;
 using fluideq_lighting::FrameReader;
 using fluideq_lighting::JsonLine;
 using fluideq_lighting::LampArrays;
+using fluideq_lighting::LightingSettings;
 using fluideq_lighting::RazerDevices;
 using fluideq_lighting::ReadResult;
 
@@ -54,11 +56,19 @@ int serve() {
   EventSink sink;
   LampArrays lamp_arrays(sink);
   RazerDevices razer(sink);
+  LightingSettings settings(sink);
 
-  sink.write(JsonLine("ready")
-                 .integer("protocol", fluideq_lighting::kProtocolVersion)
-                 .boolean("identity", fluideq_lighting::has_package_identity())
-                 .finish());
+  // The family name is what Windows lists under Background light control, so
+  // the app can tell where FluidEQ stands in the member's order.
+  JsonLine ready("ready");
+  ready.integer("protocol", fluideq_lighting::kProtocolVersion)
+      .boolean("identity", fluideq_lighting::has_package_identity());
+  const std::string family = fluideq_lighting::package_family_name();
+  if (!family.empty()) {
+    ready.text("familyName", family);
+  }
+  sink.write(ready.finish());
+  settings.start();
 
   try {
     lamp_arrays.start();
@@ -106,6 +116,7 @@ int serve() {
     }
   }
 
+  settings.stop();
   razer.stop();
   lamp_arrays.stop();
   return 0;

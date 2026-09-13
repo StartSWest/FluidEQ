@@ -7,8 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { execFile } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import {
   LIGHTING_EXECUTABLE,
+  LIGHTING_IDENTITY_MANIFEST,
   LIGHTING_IDENTITY_PACKAGE,
   LIGHTING_PACKAGE_NAME,
 } from './lightingPath';
@@ -24,13 +26,16 @@ import {
  * administrator instead of the person at the desk. No elevation is needed,
  * and a version or install folder that changed is registered again.
  *
- * A build with no identity package (development, or unsigned) skips all of
- * it: Windows then lights devices while FluidEQ is the window in front, and
- * Razer devices through Synapse are unaffected either way.
+ * Without identity the helper lights nothing through Windows — not even while
+ * FluidEQ is in front, since Windows gives an app in front's lamps to the
+ * process owning that window and the helper owns none. A release registers
+ * its signed package; a development or unsigned copy registers the bare
+ * manifest beside the helper, which Windows allows only with Developer Mode
+ * on. Razer devices through Razer Chroma are unaffected either way.
  */
 
 export type TIdentityOutcome =
-  'registered' | 'no-package' | 'failed' | 'unsupported';
+  'registered' | 'no-package' | 'developer-mode-off' | 'failed' | 'unsupported';
 
 interface IRun {
   code: number;
@@ -87,9 +92,14 @@ export const isRegistrationCurrent = (
   typeof status.location === 'string' &&
   sameFolder(status.location, folder);
 
-const readStatus = (
-  stdout: string,
-): { registered: boolean; version?: string; location?: string } | undefined => {
+interface IIdentityStatus {
+  registered: boolean;
+  version?: string;
+  location?: string;
+  developerMode?: boolean;
+}
+
+const readStatus = (stdout: string): IIdentityStatus | undefined => {
   const line = stdout
     .split('\n')
     .find((candidate) => candidate.startsWith('{"type":"identity",'));
@@ -101,7 +111,10 @@ const readStatus = (
     if (typeof parsed !== 'object' || parsed === null) {
       return undefined;
     }
-    const { registered, version, location } = parsed as Record<string, unknown>;
+    const { registered, version, location, developerMode } = parsed as Record<
+      string,
+      unknown
+    >;
     if (typeof registered !== 'boolean') {
       return undefined;
     }
@@ -109,22 +122,42 @@ const readStatus = (
       registered,
       version: typeof version === 'string' ? version : undefined,
       location: typeof location === 'string' ? location : undefined,
+      developerMode:
+        typeof developerMode === 'boolean' ? developerMode : undefined,
     };
   } catch {
     return undefined;
   }
 };
 
+/**
+ * What registering can use here: the signed package a release ships, else the
+ * bare manifest every build writes beside the helper, which Windows registers
+ * only with Developer Mode on.
+ */
+export const identitySourceOf = (
+  folder: string,
+  exists: (file: string) => boolean = existsSync,
+): { kind: 'signed' | 'development'; file: string } | undefined => {
+  const signed = path.join(folder, LIGHTING_IDENTITY_PACKAGE);
+  if (exists(signed)) {
+    return { kind: 'signed', file: signed };
+  }
+  const manifest = path.join(folder, LIGHTING_IDENTITY_MANIFEST);
+  return exists(manifest) ? { kind: 'development', file: manifest } : undefined;
+};
+
 export const ensureLightingIdentity = async (
   folder: string | undefined,
   appVersion: string,
   run: TRunHelper = runHelper,
+  exists: (file: string) => boolean = existsSync,
 ): Promise<TIdentityOutcome> => {
   if (!folder || !LIGHTING_EXECUTABLE) {
     return 'unsupported';
   }
-  const packagePath = path.join(folder, LIGHTING_IDENTITY_PACKAGE);
-  if (!existsSync(packagePath)) {
+  const source = identitySourceOf(folder, exists);
+  if (!source) {
     return 'no-package';
   }
   const executable = path.join(folder, LIGHTING_EXECUTABLE);
@@ -136,6 +169,11 @@ export const ensureLightingIdentity = async (
   const current = status.code === 0 ? readStatus(status.stdout) : undefined;
   if (current && isRegistrationCurrent(current, appVersion, folder)) {
     return 'registered';
+  }
+  if (source.kind === 'development' && current?.developerMode !== true) {
+    // Nothing to register with until the member turns Developer Mode on; the
+    // page says so, and the next time lighting is switched on asks again.
+    return 'developer-mode-off';
   }
   if (current?.registered) {
     // Windows refuses a version that is already registered, even from a
@@ -154,11 +192,12 @@ export const ensureLightingIdentity = async (
       return 'failed';
     }
   }
+  // URIs, not paths: Windows' Uri type does not take a bare `D:\…` path.
   const registered = await run(executable, [
     'identity',
-    'register',
-    packagePath,
-    folder,
+    source.kind === 'signed' ? 'register' : 'register-dev',
+    pathToFileURL(source.file).href,
+    pathToFileURL(folder).href,
   ]);
   if (registered.code !== 0) {
     console.error(

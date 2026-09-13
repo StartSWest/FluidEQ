@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  CHROMA_CHANNEL_LAMPS,
   KIND_PREVIEW_LAMPS,
   lampArrayLamps,
 } from '../../common/lighting/lampLayouts';
@@ -15,10 +16,8 @@ import type {
   TLightingKind,
   TSynapseState,
 } from '../../common/lighting/lightingModel';
-import {
-  isRazerLightingCandidate,
-  razerKindOf,
-} from '../../common/lighting/razerDevices';
+import { lampArrayFormOf } from '../../common/lighting/deviceForms';
+import { describeRazer } from '../../common/lighting/razerDevices';
 import {
   LAMP_ARRAY_KIND,
   type ILampArrayEvent,
@@ -57,9 +56,9 @@ export const kindOfLampArray = (event: ILampArrayEvent): TLightingKind => {
       return 'speaker';
     default:
       // "Peripheral" covers mousepads, stands, webcams and microphones alike;
-      // the name is the better guess where it says which.
+      // the product says which.
       if (event.vendorId === RAZER_VENDOR_ID) {
-        return razerKindOf(event.name);
+        return describeRazer(event).kind;
       }
       return /\bpad\b|mat\b/i.test(event.name) ? 'mousepad' : 'accessory';
   }
@@ -84,7 +83,7 @@ export const rowKeyOfWindowsDevice = (
   razer: ReadonlyMap<string, IRazerEvent>,
 ): string => {
   const shared = device.event.container && razer.get(device.event.container);
-  return shared && isRazerLightingCandidate(shared.name)
+  return shared && describeRazer(shared).lit
     ? razerKey(shared.container)
     : windowsKey(device.event);
 };
@@ -94,19 +93,23 @@ export const razerCandidates = (
   razer: ReadonlyMap<string, IRazerEvent>,
 ): IRazerEvent[] =>
   [...razer.values()]
-    .filter((entry) => isRazerLightingCandidate(entry.name))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .filter((entry) => describeRazer(entry).lit)
+    .sort((a, b) => describeRazer(a).name.localeCompare(describeRazer(b).name));
 
 const synapseLights = (synapse: TSynapseState): boolean =>
   synapse === 'running' || synapse === 'unknown';
 
-/** A shared SDK grid cannot be fitted to two different physical keyboards. */
+/**
+ * A shared SDK grid cannot be fitted to two different physical keyboards.
+ * Only keyboards on the keyboard channel count: an Ornata V3 takes its
+ * colours from Chroma Link and never shows that grid.
+ */
 export const singleChromaKeyboard = (
   razer: ReadonlyMap<string, IRazerEvent>,
   keyboards: ReadonlyMap<string, readonly ILamp[]>,
 ): readonly ILamp[] | undefined => {
   const candidates = razerCandidates(razer).filter(
-    (device) => razerKindOf(device.name) === 'keyboard',
+    (device) => describeRazer(device).channel === 'keyboard',
   );
   return candidates.length === 1
     ? keyboards.get(candidates[0].container)
@@ -134,28 +137,52 @@ export const buildDeviceList = (
 
   razerCandidates(razer).forEach((entry) => {
     const key = razerKey(entry.container);
+    const razerDevice = describeRazer(entry);
     const windowsTwin = [...windows.values()].find(
       (device) => device.event.container === entry.container,
     );
-    const kind = windowsTwin?.kind ?? razerKindOf(entry.name);
+    const kind = windowsTwin?.kind ?? razerDevice.kind;
     let route: ILightingDevice['route'] = 'none';
     if (synapseLights(synapse)) {
       route = 'synapse';
     } else if (windowsTwin) {
       route = 'windows';
     }
+    // Where Razer's product says nothing about its shape, what Windows
+    // reports about the same device still does.
+    const form =
+      razerDevice.form === 'accessory' && windowsTwin
+        ? lampArrayFormOf(
+            windowsTwin.event.kind,
+            razerDevice.name,
+            windowsTwin.event.width,
+          )
+        : razerDevice.form;
+    let lamps = windowsTwin?.lamps ?? KIND_PREVIEW_LAMPS[kind];
+    if (route === 'synapse' && kind === 'keyboard') {
+      lamps = keyboard ?? KIND_PREVIEW_LAMPS.keyboard;
+    } else if (
+      route === 'synapse' &&
+      razerDevice.channel === 'mousepad' &&
+      razerDevice.zones
+    ) {
+      // Each LED shows one of the mousepad channel's zones, so it is drawn
+      // there and lit with that zone's colour.
+      lamps = razerDevice.zones.map(
+        (zone) => CHROMA_CHANNEL_LAMPS.mousepad[zone],
+      );
+    }
     rows.push({
       key,
-      name: entry.name,
+      name: razerDevice.name,
       kind,
+      form,
       route,
-      lamps:
-        route === 'synapse' && kind === 'keyboard'
-          ? (keyboard ?? KIND_PREVIEW_LAMPS.keyboard)
-          : (windowsTwin?.lamps ?? KIND_PREVIEW_LAMPS[kind]),
+      lamps,
       // Synapse lights by kind of device, so every Razer device it reaches is
       // one channel; through Windows each is its own.
       channel: route === 'synapse' ? 'synapse' : key,
+      ...(route === 'synapse' ? { chromaChannel: razerDevice.channel } : {}),
       muted: route !== 'synapse' && settings.muted.includes(key),
     });
   });
@@ -172,6 +199,11 @@ export const buildDeviceList = (
         key,
         name: device.event.name,
         kind: device.kind,
+        form: lampArrayFormOf(
+          device.event.kind,
+          device.event.name,
+          device.event.width,
+        ),
         route: 'windows',
         lamps: device.lamps,
         channel: key,

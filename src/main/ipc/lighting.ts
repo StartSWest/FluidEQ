@@ -132,21 +132,30 @@ export const registerLightingIpc = (
       service.watch(open);
     }
   });
-  // Razer Chroma started or stopped while FluidEQ was behind it: the member
-  // coming back to the window is when the notice about it should be right.
+  // Razer Chroma started or stopped, or Developer Mode turned on, while FluidEQ
+  // was behind: the member coming back to the window is when the notice about
+  // it should be right.
   app.on('browser-window-focus', (_event, window) => {
     if (window === deps.getMainWindow()) {
-      service.recheckSynapse();
+      service.windowFocused();
     }
   });
   ipcMain.handle(LIGHTING_STATE_CHANNEL, () => service.state());
   ipcMain.handle(LIGHTING_SETTINGS_CHANNEL, (_event, raw: unknown) =>
     service.setSettings(raw),
   );
-  // A fixed address, never one the window sends: Windows' own Dynamic
-  // Lighting page, where FluidEQ is listed under background light control.
-  ipcMain.handle(LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL, () =>
-    shell.openExternal('ms-settings:personalization-lighting'),
+  // Fixed addresses, never one the window sends: Windows' own Dynamic
+  // Lighting page, where FluidEQ is listed under background light control, or
+  // its developer page, where Developer Mode lets an unsigned copy be listed.
+  // Anything else the window names opens the lighting page.
+  ipcMain.handle(
+    LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL,
+    (_event, page: unknown) =>
+      shell.openExternal(
+        page === 'developers'
+          ? 'ms-settings:developers'
+          : 'ms-settings:personalization-lighting',
+      ),
   );
   ipcMain.handle(LIGHTING_OPEN_RAZER_CHROMA_CHANNEL, () => {
     const launcher = razerAppEngine();

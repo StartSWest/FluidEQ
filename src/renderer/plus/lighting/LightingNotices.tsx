@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useState } from 'react';
 import type { ILightingState } from 'common/lighting/lightingModel';
 import { useTranslation } from '../../utils/I18nContext';
+import LightingWindowsNotice from './LightingWindowsNotice';
 
 type TNotice = 'windows' | 'chroma' | 'apps-off';
 
@@ -44,61 +45,69 @@ export default function LightingNotices({ state }: { state: ILightingState }) {
 
   return (
     <div className="lighting-notices">
-      {shown.map((notice) => (
-        <div
-          key={notice}
-          className={`lighting-notice lighting-notice--${notice}`}
-          role="status"
-        >
-          <span className="lighting-notice__mark" aria-hidden="true">
-            {notice === 'windows' ? 'i' : '!'}
-          </span>
-          <span className="lighting-notice__text">
-            <span className="lighting-notice__title">
-              {notice === 'windows' &&
-                t('lighting.notice.windows.title', { devices })}
-              {notice === 'chroma' && t('lighting.notice.chroma.title')}
-              {notice === 'apps-off' && t('lighting.notice.appsOff.title')}
+      {shown.map((notice) =>
+        notice === 'windows' && state.windowsHold ? (
+          <LightingWindowsNotice
+            key={notice}
+            hold={state.windowsHold}
+            onLater={() => later(notice)}
+          />
+        ) : (
+          <div
+            key={notice}
+            className={`lighting-notice lighting-notice--${notice}`}
+            role="status"
+          >
+            <span className="lighting-notice__mark" aria-hidden="true">
+              {notice === 'windows' ? 'i' : '!'}
             </span>
-            <span className="lighting-notice__body">
-              {notice === 'windows' && t('lighting.notice.windows.body')}
-              {notice === 'chroma' && t('lighting.notice.chroma.body')}
-              {notice === 'apps-off' && t('lighting.notice.appsOff.body')}
+            <span className="lighting-notice__text">
+              <span className="lighting-notice__title">
+                {notice === 'windows' &&
+                  t('lighting.notice.windows.title', { devices })}
+                {notice === 'chroma' && t('lighting.notice.chroma.title')}
+                {notice === 'apps-off' && t('lighting.notice.appsOff.title')}
+              </span>
+              <span className="lighting-notice__body">
+                {notice === 'windows' && t('lighting.notice.windows.body')}
+                {notice === 'chroma' && t('lighting.notice.chroma.body')}
+                {notice === 'apps-off' && t('lighting.notice.appsOff.body')}
+              </span>
             </span>
-          </span>
-          <span className="lighting-notice__actions">
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => later(notice)}
-            >
-              {t('output.notNow')}
-            </button>
-            {notice === 'windows' && (
+            <span className="lighting-notice__actions">
               <button
                 type="button"
-                className="button small"
-                onClick={() => {
-                  api?.openWindowsLightingSettings().catch(() => undefined);
-                }}
+                className="button small subtle"
+                onClick={() => later(notice)}
               >
-                {t('lighting.notice.windows.action')}
+                {t('output.notNow')}
               </button>
-            )}
-            {notice !== 'windows' && state.canOpenRazerChroma && (
-              <button
-                type="button"
-                className="button small"
-                onClick={() => {
-                  api?.openRazerChroma().catch(() => undefined);
-                }}
-              >
-                {t('lighting.notice.chroma.action')}
-              </button>
-            )}
-          </span>
-        </div>
-      ))}
+              {notice === 'windows' && (
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={() => {
+                    api?.openWindowsLightingSettings().catch(() => undefined);
+                  }}
+                >
+                  {t('lighting.notice.windows.action')}
+                </button>
+              )}
+              {notice !== 'windows' && state.canOpenRazerChroma && (
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={() => {
+                    api?.openRazerChroma().catch(() => undefined);
+                  }}
+                >
+                  {t('lighting.notice.chroma.action')}
+                </button>
+              )}
+            </span>
+          </div>
+        ),
+      )}
     </div>
   );
 }

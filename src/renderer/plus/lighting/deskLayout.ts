@@ -4,90 +4,35 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { KIND_PREVIEW_LAMPS } from 'common/lighting/lampLayouts';
-import type {
-  ILightingDevice,
-  TLightingKind,
-} from 'common/lighting/lightingModel';
+import type { TDeviceForm } from 'common/lighting/deviceForms';
+import type { ILightingDevice } from 'common/lighting/lightingModel';
+import placeAroundMonitor from './deskBackRow';
+import {
+  DESK_HEIGHT,
+  DESK_WIDTH,
+  formOfDevice,
+  isKeyboardForm,
+  MIN_MONITOR_HEIGHT,
+  MONITOR_TOP,
+  monitorForDesk,
+  SIZE,
+  underMonitor,
+  type IPlacedDevice,
+} from './deskGeometry';
 
 /**
- * Where each found device stands on the drawn desk.
+ * Where each found device stands on the drawn desk, by what it is.
  *
- * A desk, not a list: the keyboard in the middle, a mousepad to its right
- * with the mouse on it, a stand to the left with a headset hung on it, other
- * headsets above the keyboard, speakers at the two ends. Only what was found
- * is placed, and the row is scaled to fit, so one keyboard is a big keyboard
- * and a full Razer desk still fits the width.
- *
- * In a fixed drawing space of `DESK_WIDTH × DESK_HEIGHT`; the canvas scales it.
+ * A desk, not a list. Along the front, left to right: headset stands, keypads
+ * and controllers, the keyboard (or laptop, on its stand if there is one), the
+ * mouse area — its pad with the mouse on it and a dock or charging pad at the
+ * back — then mixers, docks and towers. A desk-length mat lies under the
+ * keyboard and the mouse. The monitor stands behind the keyboard; speakers
+ * flank it, a soundbar sits under it, a light bar on it and a light strip
+ * along the wall behind; microphones and lamps take the back corners. Only
+ * what was found is placed, and the front row is scaled to fit, so one
+ * keyboard is a big keyboard and a full desk still fits.
  */
-
-export const DESK_WIDTH = 1000;
-export const DESK_HEIGHT = 500;
-
-/**
- * The monitor at the back of the desk, showing the scene as the lamps see it
- * — the one picture every device below takes its colours from. 16:9, like
- * the grid it shows.
- */
-export const MONITOR = { x: 320, y: 10, width: 360, height: 202.5 };
-
-export interface IPlacedDevice {
-  device: ILightingDevice;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  /** A headset drawn hanging on a stand, rather than standing on the desk. */
-  onStand: boolean;
-}
-
-/** The screen belongs above the keyboard, not the centre of the whole desk. */
-export const monitorForDesk = (placed: readonly IPlacedDevice[]) => {
-  const keyboard = placed.find((entry) => entry.device.kind === 'keyboard');
-  if (!keyboard) {
-    return { ...MONITOR, y: 24 };
-  }
-  return {
-    ...MONITOR,
-    x: Math.max(
-      16,
-      Math.min(
-        DESK_WIDTH - MONITOR.width - 16,
-        keyboard.x + keyboard.width / 2 - MONITOR.width / 2,
-      ),
-    ),
-    y: Math.max(16, keyboard.y - MONITOR.height - 42),
-  };
-};
-
-const SIZE: Record<TLightingKind, { width: number; height: number }> = {
-  keyboard: { width: 440, height: 176 },
-  keypad: { width: 120, height: 168 },
-  mousepad: { width: 290, height: 300 },
-  mouse: { width: 88, height: 148 },
-  headset: { width: 180, height: 116 },
-  stand: { width: 130, height: 290 },
-  speaker: { width: 82, height: 210 },
-  accessory: { width: 96, height: 96 },
-};
-
-/**
- * The desk drawn faintly while nothing has been found: a keyboard, a mousepad
- * with its mouse and a headset on its stand, so the stage shows where the
- * member's devices will be rather than a monitor alone in an empty room.
- */
-export const PLACEHOLDER_DESK: readonly ILightingDevice[] = (
-  ['stand', 'headset', 'keyboard', 'mousepad', 'mouse'] as const
-).map((kind) => ({
-  key: `placeholder:${kind}`,
-  name: '',
-  kind,
-  route: 'none',
-  lamps: KIND_PREVIEW_LAMPS[kind],
-  channel: '',
-  muted: false,
-}));
 
 const GAP = 28;
 const MARGIN = 24;
@@ -95,156 +40,341 @@ const BASELINE = DESK_HEIGHT - 26;
 /** A headset hung on a stand is this much wider than the stand's pole. */
 const HUNG_WIDTH = 1.3;
 
-/** Row order, left to right; headsets and a mouse on a pad are placed apart. */
-const ROW_ORDER: readonly TLightingKind[] = [
-  'stand',
+/** The front row's order, left to right; the mouse area is one slot. */
+const LEFT_OF_KEYBOARD: readonly TDeviceForm[] = [
+  'headset-stand',
   'keypad',
-  'keyboard',
+  'controller',
+];
+const RIGHT_OF_MOUSE: readonly TDeviceForm[] = [
+  'mixer',
+  'dock',
+  'accessory',
+  'tower',
+  'chair',
+];
+const MOUSE_AREA: readonly TDeviceForm[] = [
   'mousepad',
   'mouse',
-  'accessory',
+  'mouse-dock',
+  'charging-pad',
+  'mouse-bungee',
 ];
 
-export const layoutDesk = (
-  devices: readonly ILightingDevice[],
-): IPlacedDevice[] => {
-  const byKind = (kind: TLightingKind) =>
-    devices.filter((device) => device.kind === kind);
-  const speakers = byKind('speaker');
-  const headsets = byKind('headset');
-  const pads = byKind('mousepad');
-  const mice = byKind('mouse');
+interface ISlot {
+  width: number;
+  height: number;
+  place: (x: number, scale: number) => IPlacedDevice[];
+}
 
-  // A mouse sits on a mousepad when there is one, so it takes no row space.
-  const rowDevices: ILightingDevice[] = [];
-  if (speakers[0]) {
-    rowDevices.push(speakers[0]);
-  }
-  ROW_ORDER.forEach((kind) => {
-    if (kind === 'mouse' && pads.length > 0) {
-      rowDevices.push(...mice.slice(pads.length));
-      return;
-    }
-    rowDevices.push(...byKind(kind));
-  });
-  rowDevices.push(...speakers.slice(1));
-  // With nothing to stand on, a headset is part of the row.
-  const hasAnchor =
-    rowDevices.some((device) => device.kind === 'keyboard') ||
-    rowDevices.some((device) => device.kind === 'stand');
-  if (!hasAnchor) {
-    rowDevices.push(...headsets);
-  }
+const single = (
+  device: ILightingDevice,
+  form: TDeviceForm,
+  widen = 1,
+): ISlot => ({
+  width: SIZE[form].width * widen,
+  height: SIZE[form].height,
+  place: (x, scale) => {
+    const width = SIZE[form].width * scale;
+    const height = SIZE[form].height * scale;
+    const slot = SIZE[form].width * widen * scale;
+    return [
+      {
+        device,
+        form,
+        x: x + (slot - width) / 2,
+        y: BASELINE - height,
+        width,
+        height,
+        onStand: false,
+      },
+    ];
+  },
+});
 
-  // A stand carrying a headset takes the headset's width in the row: the cups
-  // hang past the pole, and at the end of a full desk they ran off its edge.
-  const hung = new Set(
-    rowDevices
-      .filter((device) => device.kind === 'stand')
-      .slice(0, headsets.length),
+/** How far a laptop stand lifts the laptop, in the stand's own heights. */
+const LAPTOP_RISE = 0.5;
+
+/**
+ * A laptop raised on its stand: the stand's wedge under the laptop's back,
+ * its lit bottom edge showing below the deck.
+ */
+const laptopOnStand = (
+  laptop: ILightingDevice,
+  stand: ILightingDevice,
+): ISlot => {
+  const rise = SIZE['laptop-stand'].height * LAPTOP_RISE;
+  return {
+    width: SIZE.laptop.width,
+    height: SIZE.laptop.height + rise,
+    place: (x, scale) => {
+      const width = SIZE.laptop.width * scale;
+      const height = SIZE.laptop.height * scale;
+      const standWidth = width * 0.92;
+      const standHeight = SIZE['laptop-stand'].height * scale;
+      return [
+        {
+          device: stand,
+          form: 'laptop-stand',
+          x: x + (width - standWidth) / 2,
+          y: BASELINE - standHeight,
+          width: standWidth,
+          height: standHeight,
+          onStand: false,
+        },
+        {
+          device: laptop,
+          form: 'laptop',
+          x,
+          y: BASELINE - rise * scale - height,
+          width,
+          height,
+          onStand: false,
+        },
+      ];
+    },
+  };
+};
+
+/**
+ * The mouse area: a pad if there is one (or the bare desk, or a desk mat),
+ * a bungee, dock or charging pad along its back left, and the mouse to their
+ * right where a hand rests — never on top of them.
+ */
+const mouseArea = (
+  pad: ILightingDevice | undefined,
+  mice: readonly ILightingDevice[],
+  extras: readonly { device: ILightingDevice; form: TDeviceForm }[],
+): ISlot => {
+  const EXTRA_GAP = 10;
+  const MOUSE_GAP = 12;
+  // A bungee's arm reaches over the pad from the back left corner.
+  const ordered = [...extras].sort(
+    (a, b) =>
+      Number(b.form === 'mouse-bungee') - Number(a.form === 'mouse-bungee'),
   );
-  const slotWidth = (device: ILightingDevice) =>
-    SIZE[device.kind].width * (hung.has(device) ? HUNG_WIDTH : 1);
-  const rowWidth =
-    rowDevices.reduce((sum, device) => sum + slotWidth(device), 0) +
-    GAP * Math.max(0, rowDevices.length - 1);
-  const available = DESK_WIDTH - MARGIN * 2;
-  const tallest = Math.max(
+  const extrasWidth = ordered.reduce(
+    (sum, { form }) => sum + SIZE[form].width + EXTRA_GAP,
     0,
-    ...rowDevices.map((device) => SIZE[device.kind].height),
   );
-  const roomAbove = BASELINE - MONITOR.y - 16;
+  const miceWidth = mice.length * (SIZE.mouse.width + MOUSE_GAP);
+  const area = pad
+    ? SIZE.mousepad
+    : { width: Math.max(170, 32 + extrasWidth + miceWidth), height: 190 };
+  return {
+    width: area.width,
+    height: area.height,
+    place: (x, scale) => {
+      const width = area.width * scale;
+      const height = area.height * scale;
+      const y = BASELINE - height;
+      const placed: IPlacedDevice[] = [];
+      if (pad) {
+        placed.push({
+          device: pad,
+          form: 'mousepad',
+          x,
+          y,
+          width,
+          height,
+          onStand: false,
+        });
+      }
+      let cursor = x + 16 * scale;
+      ordered.forEach(({ device, form }) => {
+        const w = SIZE[form].width * scale;
+        placed.push({
+          device,
+          form,
+          x: cursor,
+          y: y + height * 0.06,
+          width: w,
+          height: SIZE[form].height * scale,
+          onStand: false,
+        });
+        cursor += w + EXTRA_GAP * scale;
+      });
+      const w = SIZE.mouse.width * scale;
+      const h = SIZE.mouse.height * scale;
+      // The mice side by side round where a hand rests, clear of the extras.
+      const spacing = w + MOUSE_GAP * scale;
+      const firstCentre = Math.max(
+        x + width * (pad ? 0.62 : 0.5) - ((mice.length - 1) * spacing) / 2,
+        cursor + w / 2 + 6 * scale,
+      );
+      mice.forEach((mouse, index) => {
+        placed.push({
+          device: mouse,
+          form: 'mouse',
+          x: firstCentre + index * spacing - w / 2,
+          y: y + height * 0.55 - h / 2,
+          width: w,
+          height: h,
+          onStand: false,
+        });
+      });
+      return placed;
+    },
+  };
+};
+
+const layoutDesk = (devices: readonly ILightingDevice[]): IPlacedDevice[] => {
+  const entries = devices.map((device) => ({
+    device,
+    form: formOfDevice(device),
+  }));
+  const of = (form: TDeviceForm) =>
+    entries.filter((entry) => entry.form === form).map((entry) => entry.device);
+  const headsets = of('headset');
+  const stands = of('headset-stand');
+
+  const slots: ISlot[] = [];
+  LEFT_OF_KEYBOARD.forEach((form) =>
+    of(form).forEach((device, index) =>
+      slots.push(
+        single(
+          device,
+          form,
+          // A stand carrying a headset takes the headset's width in the row:
+          // the cups hang past the pole, and at the end of a full desk they ran
+          // off its edge.
+          form === 'headset-stand' && index < headsets.length ? HUNG_WIDTH : 1,
+        ),
+      ),
+    ),
+  );
+  const keyboardStart = slots.length;
+  // Laptop stands carry the laptops, in order; a stand with no laptop left
+  // for it stands on its own to the right of the mouse.
+  const laptopStands = [...of('laptop-stand')];
+  entries
+    .filter((entry) => isKeyboardForm(entry.form))
+    .forEach((entry) => {
+      const stand = entry.form === 'laptop' ? laptopStands.shift() : undefined;
+      slots.push(
+        stand
+          ? laptopOnStand(entry.device, stand)
+          : single(entry.device, entry.form),
+      );
+    });
+  const keyboardEnd = slots.length;
+
+  const pads = of('mousepad');
+  const mice = of('mouse');
+  const extras = entries.filter(
+    (entry) =>
+      MOUSE_AREA.includes(entry.form) &&
+      entry.form !== 'mousepad' &&
+      entry.form !== 'mouse',
+  );
+  const hasMouseArea = pads.length > 0 || mice.length > 0 || extras.length > 0;
+  if (hasMouseArea) {
+    slots.push(mouseArea(pads[0], mice, extras));
+    // More pads than one: the rest stand on their own.
+    pads.slice(1).forEach((pad) => slots.push(single(pad, 'mousepad')));
+  }
+  const mouseEnd = slots.length;
+  laptopStands.forEach((device) => slots.push(single(device, 'laptop-stand')));
+  RIGHT_OF_MOUSE.forEach((form) =>
+    of(form).forEach((device) => slots.push(single(device, form))),
+  );
+  // With nothing to stand on or beside, a headset is part of the row.
+  const anchored = keyboardEnd > keyboardStart || stands.length > 0;
+  if (!anchored) {
+    headsets.forEach((device) => slots.push(single(device, 'headset')));
+  }
+
+  const rowWidth =
+    slots.reduce((sum, slot) => sum + slot.width, 0) +
+    GAP * Math.max(0, slots.length - 1);
+  const tallest = Math.max(0, ...slots.map((slot) => slot.height));
+  const roomAbove = BASELINE - 40;
+  // The keyboard's slot also has to leave the monitor above it its least
+  // height, with whatever stands under the monitor.
+  const keyboardTallest = Math.max(
+    0,
+    ...slots.slice(keyboardStart, keyboardEnd).map((slot) => slot.height),
+  );
+  const monitorRoom =
+    BASELINE -
+    MONITOR_TOP -
+    MIN_MONITOR_HEIGHT -
+    underMonitor(of('monitor-stand').length > 0, of('soundbar').length > 0)
+      .height;
   const scale = Math.min(
     1,
-    rowWidth > 0 ? available / rowWidth : 1,
+    rowWidth > 0 ? (DESK_WIDTH - MARGIN * 2) / rowWidth : 1,
     tallest > 0 ? roomAbove / tallest : 1,
+    keyboardTallest > 0 ? monitorRoom / keyboardTallest : 1,
   );
 
   const placed: IPlacedDevice[] = [];
+  const slotStarts: number[] = [];
   let x = (DESK_WIDTH - rowWidth * scale) / 2;
-  rowDevices.forEach((device) => {
-    const width = SIZE[device.kind].width * scale;
-    const height = SIZE[device.kind].height * scale;
-    const slot = slotWidth(device) * scale;
+  slots.forEach((slot) => {
+    slotStarts.push(x);
+    placed.push(...slot.place(x, scale));
+    x += (slot.width + GAP) * scale;
+  });
+
+  // A desk-length mat lies under the keyboard and the mouse area.
+  of('desk-mat').forEach((mat, index) => {
+    const from = slotStarts[keyboardStart] ?? slotStarts[0] ?? MARGIN;
+    const lastSlot = Math.max(keyboardStart, mouseEnd - 1);
+    const to =
+      slotStarts[lastSlot] !== undefined
+        ? slotStarts[lastSlot] + slots[lastSlot].width * scale
+        : DESK_WIDTH - MARGIN;
+    const padding = 26 * scale;
+    const width = Math.min(DESK_WIDTH - 12, to - from + padding * 2);
+    const height = Math.min(SIZE['desk-mat'].height * scale, BASELINE - 60);
     placed.push({
-      device,
-      x: x + (slot - width) / 2,
-      y: BASELINE - height,
+      device: mat,
+      form: 'desk-mat',
+      x: Math.max(6, from - padding),
+      y: BASELINE + 14 * scale - height - index * 10,
       width,
       height,
       onStand: false,
     });
-    x += slot + GAP * scale;
   });
 
-  // Mice on their pads, towards the pad's right, where a hand rests.
-  placed
-    .filter((entry) => entry.device.kind === 'mousepad')
-    .forEach((pad, index) => {
-      const mouse = mice[index];
-      if (!mouse) {
-        return;
-      }
-      const width = SIZE.mouse.width * scale;
-      const height = SIZE.mouse.height * scale;
-      placed.push({
-        device: mouse,
-        x: pad.x + pad.width * 0.62 - width / 2,
-        y: pad.y + pad.height * 0.45 - height / 2,
-        width,
-        height,
-        onStand: false,
-      });
-    });
+  const monitor = monitorForDesk(
+    placed,
+    of('monitor-stand').length > 0,
+    of('soundbar').length > 0,
+    of('speakers').length > 0,
+  );
+  const placedStands = placed.filter((entry) => entry.form === 'headset-stand');
+  placed.push(
+    ...placeAroundMonitor({
+      monitor,
+      placed,
+      of,
+      // Headsets beyond the stands lie beside the monitor; with no keyboard
+      // or stand at all they were already given a place in the front row.
+      looseHeadsets: anchored ? headsets.slice(placedStands.length) : [],
+    }),
+  );
 
-  if (hasAnchor) {
-    const monitor = monitorForDesk(placed);
-    const stands = placed.filter((entry) => entry.device.kind === 'stand');
-    const keyboard = placed.find((entry) => entry.device.kind === 'keyboard');
-    headsets.forEach((device, index) => {
-      const width = SIZE.headset.width * scale;
-      const height = SIZE.headset.height * scale;
-      const stand = stands[index];
-      if (stand) {
-        // Hung on the stand's hook, cups either side of the pole.
-        const hungWidth = stand.width * HUNG_WIDTH;
-        const hungHeight =
-          hungWidth * (SIZE.headset.height / SIZE.headset.width);
-        placed.push({
-          device,
-          x: stand.x + stand.width / 2 - hungWidth / 2,
-          y: stand.y + stand.height * 0.02,
-          width: hungWidth,
-          height: hungHeight,
-          onStand: true,
-        });
-        return;
-      }
-      // Beside the monitor, alternating sides, lying on the desk behind the
-      // keyboard.
-      const free = index - Math.min(index, stands.length);
-      const side = free % 2 === 0 ? -1 : 1;
-      const step = Math.floor(free / 2);
-      const offset = step * (width + GAP);
-      const x =
-        side < 0
-          ? monitor.x - GAP - width - offset
-          : monitor.x + monitor.width + GAP + offset;
+  // Hung on the stands' hooks, cups either side of the pole.
+  headsets
+    .slice(0, anchored ? placedStands.length : 0)
+    .forEach((device, index) => {
+      const stand = placedStands[index];
+      const hungWidth = stand.width * HUNG_WIDTH;
       placed.push({
         device,
-        x: Math.min(DESK_WIDTH - width - 8, Math.max(8, x)),
-        y: monitor.y + monitor.height * 0.3,
-        width,
-        height,
-        onStand: false,
+        form: 'headset',
+        x: stand.x + stand.width / 2 - hungWidth / 2,
+        y: stand.y + stand.height * 0.02,
+        width: hungWidth,
+        height: hungWidth * (SIZE.headset.height / SIZE.headset.width),
+        onStand: true,
       });
-      if (keyboard) {
-        // Never over the keys.
-        const last = placed[placed.length - 1];
-        last.y = Math.min(last.y, keyboard.y - height - 10);
-      }
     });
-  }
 
   return placed;
 };
+
+export default layoutDesk;

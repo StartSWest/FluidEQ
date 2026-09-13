@@ -6,10 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useId, useRef } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
-import type {
-  ILightingDevice,
-  TLightingKind,
-} from 'common/lighting/lightingModel';
+import type { ILightingDevice } from 'common/lighting/lightingModel';
 import {
   deviceLightingGroup,
   deviceTuning,
@@ -19,18 +16,8 @@ import {
 import { useTranslation } from '../../utils/I18nContext';
 import Switch from '../../widgets/Switch';
 import type { IDeskColourFeed } from './deskColours';
-import LightingKindGlyph from './LightingKindGlyph';
-
-const KIND_KEYS: Record<TLightingKind, TranslationKey> = {
-  keyboard: 'lighting.kind.keyboard',
-  mouse: 'lighting.kind.mouse',
-  mousepad: 'lighting.kind.mousepad',
-  headset: 'lighting.kind.headset',
-  keypad: 'lighting.kind.keypad',
-  stand: 'lighting.kind.stand',
-  speaker: 'lighting.kind.speaker',
-  accessory: 'lighting.kind.accessory',
-};
+import { formOfDevice } from './deskGeometry';
+import LightingFormGlyph from './LightingFormGlyph';
 
 const ROUTE_KEYS: Record<ILightingDevice['route'], TranslationKey> = {
   synapse: 'lighting.route.synapse',
@@ -106,6 +93,7 @@ function LightingDeviceRow({
   const { t } = useTranslation();
   const switchId = useId();
   const lampsRef = useRef<HTMLCanvasElement>(null);
+  const form = formOfDevice(device);
 
   useEffect(() => {
     const canvas = lampsRef.current;
@@ -139,14 +127,14 @@ function LightingDeviceRow({
         title={t('lighting.device.edit', { name: device.name })}
       >
         <span className="lighting-device__glyph">
-          <LightingKindGlyph kind={device.kind} />
+          <LightingFormGlyph form={form} />
         </span>
         <span className="lighting-device__text">
           <span className="lighting-device__name" title={device.name}>
             {device.name}
           </span>
           <span className="lighting-device__kind">
-            {t(KIND_KEYS[device.kind])}
+            {t(`lighting.form.${form}`)}
             {effect && (
               <span className="lighting-device__effect">
                 {t(`lighting.effect.${effect}`)}

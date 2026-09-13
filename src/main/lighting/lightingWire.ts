@@ -60,6 +60,32 @@ export interface IReadyEvent {
   type: 'ready';
   protocol: number;
   identity: boolean;
+  /** The package family name Windows lists under Background light control. */
+  familyName?: string;
+}
+
+/** One device's own page in Settings > Personalization > Dynamic Lighting. */
+export interface IDeviceLightingSettings {
+  /** The device interface path without `\\?\`, as Settings keys it. */
+  id: string;
+  enabled?: boolean;
+  foregroundFirst?: boolean;
+  /** Background light control order, top first, by package family name. */
+  providers?: readonly string[];
+}
+
+/**
+ * What the member chose on Windows' Dynamic Lighting page (see
+ * `native/lighting-host/src/lighting_settings.h`). Absent values were never
+ * written — Settings not yet opened — and mean Windows' defaults.
+ */
+export interface ILightingSettingsEvent {
+  type: 'lighting-settings';
+  present: boolean;
+  enabled?: boolean;
+  foregroundFirst?: boolean;
+  providers?: readonly string[];
+  devices: readonly IDeviceLightingSettings[];
 }
 
 export interface ILampArrayEvent {
@@ -96,8 +122,17 @@ export interface IRazerEvent {
   type: 'razer';
   container: string;
   name: string;
+  /** The first product id Windows listed among its interfaces. */
   productId: number;
+  /**
+   * Every product id among its interfaces: a Base Station V2 Chroma is 0F20
+   * for its lights and 48F0 for its media keys.
+   */
+  productIds?: readonly number[];
 }
+
+/** More interfaces than any Razer product has; a longer list is not one. */
+const MAX_PRODUCT_IDS = 16;
 
 export interface IRazerRemovedEvent {
   type: 'razer-removed';
@@ -117,6 +152,7 @@ export interface IHelperErrorEvent {
 
 export type THelperEvent =
   | IReadyEvent
+  | ILightingSettingsEvent
   | ILampArrayEvent
   | ILampArrayRemovedEvent
   | IAvailableEvent
@@ -184,6 +220,59 @@ const readLampArray = (
   };
 };
 
+const flag = (value: unknown): boolean | undefined =>
+  typeof value === 'boolean' ? value : undefined;
+
+/** A provider list, or undefined when absent or not a list of names. */
+const providerList = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value) || value.length > 64) {
+    return undefined;
+  }
+  const names = value.map((entry) => text(entry, 256));
+  return names.every((name): name is string => name !== undefined)
+    ? names
+    : undefined;
+};
+
+const optional = <K extends string, V>(key: K, value: V | undefined) =>
+  (value === undefined ? {} : { [key]: value }) as Partial<Record<K, V>>;
+
+const readLightingSettings = (
+  raw: Record<string, unknown>,
+): ILightingSettingsEvent | undefined => {
+  if (typeof raw.present !== 'boolean') {
+    return undefined;
+  }
+  const rawDevices = Array.isArray(raw.devices) ? raw.devices : [];
+  // Settings keeps a key per device per USB port ever plugged in; a machine
+  // with hundreds is broken, not busy, and the page needs only connected ones.
+  const devices = rawDevices.slice(0, 512).flatMap((entry) => {
+    if (!isRecord(entry)) {
+      return [];
+    }
+    const id = text(entry.id, 2048);
+    if (!id) {
+      return [];
+    }
+    return [
+      {
+        id,
+        ...optional('enabled', flag(entry.enabled)),
+        ...optional('foregroundFirst', flag(entry.foregroundFirst)),
+        ...optional('providers', providerList(entry.providers)),
+      },
+    ];
+  });
+  return {
+    type: 'lighting-settings',
+    present: raw.present,
+    ...optional('enabled', flag(raw.enabled)),
+    ...optional('foregroundFirst', flag(raw.foregroundFirst)),
+    ...optional('providers', providerList(raw.providers)),
+    devices,
+  };
+};
+
 /** One line from the helper, or undefined for anything that is not an event. */
 export const parseHelperEvent = (line: string): THelperEvent | undefined => {
   let raw: unknown;
@@ -198,8 +287,15 @@ export const parseHelperEvent = (line: string): THelperEvent | undefined => {
   switch (raw.type) {
     case 'ready':
       return isCount(raw.protocol) && typeof raw.identity === 'boolean'
-        ? { type: 'ready', protocol: raw.protocol, identity: raw.identity }
+        ? {
+            type: 'ready',
+            protocol: raw.protocol,
+            identity: raw.identity,
+            ...optional('familyName', text(raw.familyName, 256)),
+          }
         : undefined;
+    case 'lighting-settings':
+      return readLightingSettings(raw);
     case 'lamparray':
       return readLampArray(raw);
     case 'lamparray-removed':
@@ -213,9 +309,22 @@ export const parseHelperEvent = (line: string): THelperEvent | undefined => {
     case 'razer': {
       const container = text(raw.container);
       const name = text(raw.name);
-      return container && name !== undefined && isCount(raw.productId)
-        ? { type: 'razer', container, name, productId: raw.productId }
-        : undefined;
+      if (!container || name === undefined || !isCount(raw.productId)) {
+        return undefined;
+      }
+      // A helper built before it reported every id sends only the first.
+      const { productIds } = raw;
+      return {
+        type: 'razer',
+        container,
+        name,
+        productId: raw.productId,
+        ...(Array.isArray(productIds) &&
+        productIds.length <= MAX_PRODUCT_IDS &&
+        productIds.every(isCount)
+          ? { productIds }
+          : {}),
+      };
     }
     case 'razer-removed': {
       const container = text(raw.container);

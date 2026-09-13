@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { CHROMA_CHANNEL_KIND } from './lampLayouts';
 import type { ILightingDevice, TLightingKind } from './lightingModel';
 
 export const LIGHTING_EFFECTS = ['scene', 'flow', 'spectrum', 'pulse'] as const;
@@ -170,11 +171,19 @@ export const readLightingProfiles = (
       )
     : {};
 
-/** The SDK's mousepad zones also drive these products (verified on Chroma 4). */
+/**
+ * The tuning a device shares. Razer Chroma lights a channel, not a device, so
+ * every device on one channel shows the same colours and takes one tuning;
+ * any other device is tuned on its own.
+ */
 export const deviceLightingGroup = (device: ILightingDevice): string => {
   if (device.route !== 'synapse') {
     return device.key;
   }
+  if (device.chromaChannel) {
+    return `chroma:${device.chromaChannel}`;
+  }
+  // A main process from before `chromaChannel` lists devices without it.
   if (/kraken v4 pro|base station/i.test(device.name)) {
     return 'chroma:mousepad';
   }
@@ -184,6 +193,20 @@ export const deviceLightingGroup = (device: ILightingDevice): string => {
     accessory: 'chromalink',
   };
   return `chroma:${channel[device.kind] ?? device.kind}`;
+};
+
+/**
+ * Which part of the music a device's colours follow: its Chroma channel's,
+ * where Razer Chroma lights it — a Mouse Dock Pro on the mousepad channel
+ * moves like a mousepad — and its own kind everywhere else.
+ */
+export const deviceLightingKind = (device: ILightingDevice): TLightingKind => {
+  if (device.route === 'synapse' && device.chromaChannel) {
+    return CHROMA_CHANNEL_KIND[device.chromaChannel];
+  }
+  return deviceLightingGroup(device) === 'chroma:mousepad'
+    ? 'mousepad'
+    : device.kind;
 };
 
 export const lightingProfile = (

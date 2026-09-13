@@ -100,14 +100,34 @@ const lighting = {
   'lighting.route.windows': 'Windows Dynamic Lighting',
   'lighting.route.none': 'Not reachable',
 
-  'lighting.kind.keyboard': 'Keyboard',
-  'lighting.kind.mouse': 'Mouse',
-  'lighting.kind.mousepad': 'Mousepad',
-  'lighting.kind.headset': 'Headset',
-  'lighting.kind.keypad': 'Keypad',
-  'lighting.kind.stand': 'Stand',
-  'lighting.kind.speaker': 'Speaker',
-  'lighting.kind.accessory': 'Accessory',
+  'lighting.form.keyboard-full': 'Keyboard',
+  'lighting.form.keyboard-tkl': 'Tenkeyless keyboard',
+  'lighting.form.keyboard-compact': 'Compact keyboard',
+  'lighting.form.laptop': 'Laptop',
+  'lighting.form.keypad': 'Keypad',
+  'lighting.form.mouse': 'Mouse',
+  'lighting.form.mouse-dock': 'Mouse dock',
+  'lighting.form.charging-pad': 'Charging pad',
+  'lighting.form.mouse-bungee': 'Mouse bungee',
+  'lighting.form.mousepad': 'Mousepad',
+  'lighting.form.desk-mat': 'Desk mat',
+  'lighting.form.headset': 'Headset',
+  'lighting.form.headset-stand': 'Headset stand',
+  'lighting.form.speakers': 'Speakers',
+  'lighting.form.soundbar': 'Soundbar',
+  'lighting.form.microphone': 'Microphone',
+  'lighting.form.laptop-stand': 'Laptop stand',
+  'lighting.form.monitor-stand': 'Monitor stand',
+  'lighting.form.dock': 'Dock',
+  'lighting.form.light-strip': 'Light strip',
+  'lighting.form.light-bar': 'Monitor light bar',
+  'lighting.form.lamp': 'Lamp',
+  'lighting.form.controller': 'Controller',
+  'lighting.form.tower': 'PC case',
+  'lighting.form.mixer': 'Audio mixer',
+  'lighting.form.monitor': 'Monitor',
+  'lighting.form.chair': 'Chair',
+  'lighting.form.accessory': 'Accessory',
 
   'lighting.device.toggle': 'Light {name}',
 
@@ -116,6 +136,47 @@ const lighting = {
   'lighting.notice.windows.body':
     'To keep them lit while FluidEQ is behind other windows, allow FluidEQ under Background light control in Windows Settings.',
   'lighting.notice.windows.action': 'Open Windows lighting settings',
+
+  // Windows' own labels are quoted exactly as its Settings page shows them.
+  'lighting.windows.controller': 'Dynamic Lighting Background Controller',
+  'lighting.windows.notFirst.title':
+    'Windows is giving {devices} to another app first.',
+  'lighting.windows.off.title': 'Dynamic Lighting is turned off in Windows.',
+  'lighting.windows.waiting.title': 'Windows is handing {devices} to FluidEQ.',
+  'lighting.windows.waiting.body': 'This can take up to a minute.',
+  'lighting.windows.developerMode.title':
+    'This copy of FluidEQ needs Developer Mode to light {devices}.',
+  'lighting.windows.developerMode.body':
+    'Windows lends its lights only to apps it can identify. A development copy of FluidEQ gets that with Developer Mode on; the released app has it already.',
+  'lighting.windows.unavailable.title':
+    "Windows won't let this copy of FluidEQ light {devices}.",
+  'lighting.windows.unavailable.body':
+    "Windows lends its lights only to apps it can identify, and this copy couldn't be identified. Reinstalling FluidEQ normally fixes it.",
+  'lighting.windows.step.open': 'Open Dynamic Lighting settings.',
+  'lighting.windows.step.list': 'Open “Background light control”.',
+  'lighting.windows.step.reset':
+    'Under “Background light control”, press “Reset for all devices”.',
+  'lighting.windows.step.drag': 'Drag FluidEQ to the top of the list.',
+  'lighting.windows.step.dragAbove':
+    'Drag FluidEQ to the top of the list, above {above}.',
+  'lighting.windows.step.wait': 'The lights switch over within about a minute.',
+  'lighting.windows.step.turnOn':
+    'Turn on “Use Dynamic Lighting on my devices”.',
+  'lighting.windows.step.deviceOn':
+    'If a device stays dark, open its card and turn on “Use Dynamic Lighting on this device”.',
+  'lighting.windows.step.foreground':
+    'While a game or another lighting app is in front, it keeps the lights. To let FluidEQ keep them, turn off “Compatible apps in the foreground always control lighting”.',
+  'lighting.windows.step.openDevelopers': 'Open Windows’ developer settings.',
+  'lighting.windows.step.developerMode': 'Turn on “Developer Mode”.',
+  'lighting.windows.step.comeBack':
+    'Come back to FluidEQ; this page picks the change up by itself.',
+  'lighting.windows.action.developers': 'Open developer settings',
+  'lighting.windows.vendor.razer':
+    'Razer devices also need Dynamic Lighting chosen under Device Lighting in Razer Synapse’s settings.',
+  'lighting.windows.vendor.logitech':
+    'While Windows lights a Logitech device, G HUB can’t change its lighting.',
+  'lighting.windows.vendor.asus':
+    'In Armoury Crate, set the device to “Aura Sync & Windows Dynamic Lighting”.',
   'lighting.notice.chroma.title': "Razer Chroma isn't answering.",
   'lighting.notice.chroma.body':
     'Your Razer devices take their colours through Razer Chroma. Start it and they join in.',
