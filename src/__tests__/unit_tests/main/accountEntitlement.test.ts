@@ -322,6 +322,7 @@ describe('the entitlement controller', () => {
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
     expect(url).toContain('/rest/v1/entitlements?');
     expect(url).toContain('limit=1');
+    expect(new URL(url).searchParams.get('user_id')).toBe('eq.user-1');
     expect((init.headers as Record<string, string>).apikey).toBe(
       CONFIG.supabaseAnonKey,
     );

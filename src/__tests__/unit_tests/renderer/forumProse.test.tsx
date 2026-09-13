@@ -45,6 +45,7 @@ describe('a post body, rebuilt from GitHub’s rendering', () => {
         html={
           '<a href="https://github.com/StartSWest">@StartSWest</a>' +
           '<a href="javascript:alert(1)">bad</a>' +
+          '<p><a href="http://downloads.test/setup.exe">plain</a></p>' +
           '<a href="#heading"></a>'
         }
       />,
@@ -52,7 +53,11 @@ describe('a post body, rebuilt from GitHub’s rendering', () => {
     const link = screen.getByText('@StartSWest');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noreferrer noopener');
+    // Where it goes, whatever its words say.
+    expect(link).toHaveAttribute('title', 'github.com');
     expect(screen.getByText('bad').tagName).not.toBe('A');
+    // Plain http is a page anybody on the way could rewrite.
+    expect(screen.getByText('plain').closest('a')).toBeNull();
   });
 
   it('shows pictures from GitHub and only their words from anywhere else', () => {

@@ -324,6 +324,10 @@ export const createEntitlement = (
         'select',
         'status,current_period_end,plan,cancel_at_period_end',
       );
+      // Row security already answers with the caller's row alone; asking by
+      // id as well means one mistaken policy on the server can never hand
+      // this account somebody else's paid row as its own.
+      url.searchParams.set('user_id', `eq.${identity.id}`);
       url.searchParams.set('limit', '1');
       response = await fetchImpl(url.toString(), {
         headers: {

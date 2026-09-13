@@ -1,6 +1,11 @@
 import type { IAccountConfig } from 'common/accountConfig';
+import { sanitizeDisplayText } from '../../common/memberScenes';
 import jwtSubject from '../account/jwtSubject';
-import type { TPlusRole } from '../../common/plusProfile';
+import {
+  HANDLE_PATTERN,
+  MAX_DISPLAY_NAME,
+  type TPlusRole,
+} from '../../common/plusProfile';
 import type { IPendingDay } from './usageLedger';
 
 /**
@@ -95,15 +100,25 @@ export const readRow = (value: unknown): ILeaderboardRow | undefined => {
   }
   const rank = readInteger(value.rank);
   const score = readScore(value);
-  const handle = typeof value.handle === 'string' ? value.handle : undefined;
+  // Names as the gallery reads them: a handle only in its own shape, and a
+  // display name cleaned of the characters that reorder or hide text around
+  // it. Passed through raw, a right-to-left override in one member's name
+  // visually reversed the handle and tags beside it on the board.
+  const handle =
+    typeof value.handle === 'string' && HANDLE_PATTERN.test(value.handle)
+      ? value.handle
+      : undefined;
   if (rank === undefined || score === undefined || !handle) {
     return undefined;
   }
+  const displayName = sanitizeDisplayText(value.display_name);
   return {
     rank,
     handle,
     displayName:
-      typeof value.display_name === 'string' ? value.display_name : handle,
+      displayName && displayName.length <= MAX_DISPLAY_NAME
+        ? displayName
+        : handle,
     role: value.role === 'admin' ? 'admin' : 'member',
     ...score,
   };

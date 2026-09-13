@@ -499,6 +499,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// A name is somebody else's text: isolated, so right-to-left letters in it
+// cannot reorder the handle and tags laid out beside it.
+.community__name,
+.community__handle {
+  unicode-bidi: isolate;
+}
+
 .community__name {
   color: $text-primary;
   font-size: $text-body;

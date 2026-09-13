@@ -75,8 +75,11 @@ export default function LeaderboardView() {
 
   const podium = rows.slice(0, PODIUM);
   const rest = rows.slice(PODIUM);
+  // By handle: a rank and points shared with somebody tied with you put
+  // "You" on their row too.
+  const myHandle = profile.profile?.handle;
   const isMe = (row: ILeaderboardRow) =>
-    me !== undefined && row.rank === me.rank && row.points === me.points;
+    myHandle !== undefined && row.handle === myHandle;
 
   const roleTag = (row: ILeaderboardRow) =>
     row.role === 'admin' && (

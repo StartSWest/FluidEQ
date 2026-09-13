@@ -91,20 +91,25 @@ const HEADINGS: Record<string, string> = {
 
 const ALERTS = new Set(['note', 'tip', 'important', 'warning', 'caution']);
 
-/** http(s) only: a link here is handed to the system browser. */
+/**
+ * https only: a link here is handed to the system browser, and it is
+ * somebody else's. Plain http let a post send a reader to a page anybody on
+ * their network could rewrite on the way.
+ */
 const safeHref = (value: string | null): string | undefined => {
   if (!value) {
     return undefined;
   }
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' || url.protocol === 'http:'
-      ? url.toString()
-      : undefined;
+    return url.protocol === 'https:' ? url.toString() : undefined;
   } catch {
     return undefined;
   }
 };
+
+/** Where a link goes, shown on hover: its words can say anything. */
+const hostOf = (href: string) => new URL(href).host;
 
 /** GitHub's hosts, exactly the ones `img-src` in the window's policy admits. */
 export const isGithubImage = (value: string | null): boolean => {
@@ -207,6 +212,7 @@ const convert = (node: Node, key: number): ReactNode => {
       {
         key,
         href,
+        title: hostOf(href),
         target: '_blank',
         rel: 'noreferrer noopener',
         className: mention ? 'forum-prose__mention' : undefined,

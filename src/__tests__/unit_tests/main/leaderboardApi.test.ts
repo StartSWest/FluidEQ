@@ -55,6 +55,44 @@ describe('reading the board', () => {
     });
   });
 
+  // Somebody else's name is read the way the gallery reads one: cleaned of
+  // what reorders or hides text, and a handle only in its own shape.
+  it('cleans a name, and never shows a handle that is not one', () => {
+    const rlo = String.fromCodePoint(0x202e);
+    const joiner = String.fromCodePoint(0x200b);
+    expect(
+      readRow({
+        rank: 1,
+        minutes: 10,
+        handle: 'ada',
+        display_name: `Ada${rlo}${joiner}`,
+      }),
+    ).toMatchObject({ displayName: 'Ada' });
+    // Nothing left once cleaned, or too long to be a name: the handle.
+    expect(
+      readRow({
+        rank: 1,
+        minutes: 10,
+        handle: 'ada',
+        display_name: `${joiner}${joiner}`,
+      }),
+    ).toMatchObject({ displayName: 'ada' });
+    expect(
+      readRow({
+        rank: 1,
+        minutes: 10,
+        handle: 'ada',
+        display_name: 'n'.repeat(41),
+      }),
+    ).toMatchObject({ displayName: 'ada' });
+    expect(
+      readRow({ rank: 1, minutes: 10, handle: 'Ada Lovelace' }),
+    ).toBeUndefined();
+    expect(
+      readRow({ rank: 1, minutes: 10, handle: `ada${rlo}` }),
+    ).toBeUndefined();
+  });
+
   /**
    * A server that has not run migration 0014 yet still sends the channels'
    * two parts and the contributor role. Neither reaches the board: the parts
