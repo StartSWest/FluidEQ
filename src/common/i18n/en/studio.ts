@@ -67,6 +67,8 @@ const studio = {
 
   'studio.project.label': 'Project',
   'studio.project.group': 'Your projects',
+  'studio.project.groupOfficial': 'FluidEQ scenes to look inside',
+  'studio.project.inspect': 'Look inside a FluidEQ scene…',
   'studio.project.none': 'Choose a project',
   'studio.project.empty': 'No project yet',
   'studio.project.add': 'Open a folder…',
@@ -139,6 +141,8 @@ const studio = {
     'That is a lot of publishing for one hour. Try again later.',
   'studio.publish.signedOut': 'Sign in to publish your scene.',
   'studio.publish.failed': 'The scene could not be published. Try again.',
+  'studio.publish.officialCopy':
+    'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',
   'studio.publish.outdated':
     'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
 
@@ -198,6 +202,13 @@ const studio = {
     'FluidEQ could not accept this version. Fix what it shows and save.',
   'studio.export.signedOut': 'Sign in to export your scene.',
   'studio.export.failed': 'The scene could not be exported. Try again.',
+  'studio.export.officialCopy':
+    'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you export it.',
+  'studio.inspect.title': 'A FluidEQ scene, to look inside',
+  'studio.inspect.body':
+    'See how it is made and take ideas for your own scenes. Try any change here you like; it can’t be added to your looks, published or exported.',
+  'studio.inspect.locked':
+    'This is a FluidEQ scene, opened to look inside. It can’t be added to your looks, published or exported.',
   'studio.export.banned': 'This account can no longer share scenes.',
   'studio.export.outdated':
     'The Plus terms have a newer version. Update FluidEQ to read it and export.',

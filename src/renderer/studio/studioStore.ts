@@ -7,6 +7,7 @@ import type {
 } from 'main/ipc/memberScenes';
 import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
 import type { TPublishOutcome } from 'main/ipc/plusPublishing';
+import type { TInspectOutcome } from 'main/ipc/studioInspect';
 import type { TPlusCategory } from 'common/plusGallery';
 import type {
   IProjectSource,
@@ -196,6 +197,16 @@ export const addStudioSceneToLooks = async (): Promise<TAddOutcome> =>
 export const showStudioFolder = async () => {
   await bridge()?.showStudioFolder?.();
 };
+
+/**
+ * One of FluidEQ's own scenes, opened in the Studio as a project to look
+ * inside and take ideas from. It becomes the open project; the Studio shows
+ * it when it next opens.
+ */
+export const inspectOfficialScene = async (
+  sceneId: string,
+): Promise<TInspectOutcome> =>
+  (await bridge()?.inspectOfficialScene?.(sceneId)) ?? 'not-entitled';
 
 /** The terms version this computer last shared a scene under; 0 for never. */
 export const studioTermsAgreed = async (): Promise<number> =>

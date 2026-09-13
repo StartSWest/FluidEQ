@@ -397,6 +397,37 @@ $studio-scrollbar: 8px;
   }
 }
 
+// A FluidEQ scene opened to look inside: in place of the three actions, what
+// the project is for and why it cannot be kept or shared, marked with the
+// looks glyph in FluidEQ's accent as its gallery page is.
+.studio-ship--inspect {
+  display: grid;
+  gap: 5px;
+}
+
+.studio-ship__inspect-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+}
+
+.studio-ship__inspect-body {
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 // ---------------------------------------------------------------- projects
 
 // The project picker: the open project's name, with the pulsing dot that says

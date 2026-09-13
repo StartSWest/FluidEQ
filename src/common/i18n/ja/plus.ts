@@ -101,6 +101,12 @@ const plus = {
   'plus.scene.add': 'マイ表示に追加',
   'plus.scene.update': '自分のコピーを更新',
   'plus.scene.getPlus': 'Plus で追加する',
+  'plus.inspect.open': 'スタジオで開く',
+  'plus.inspect.hint':
+    'どう作られているかを見て、自分のシーンのアイデアにしてください。公開用ではなく、中を見るためのプロジェクトとして開きます。',
+  'plus.inspect.unavailable':
+    'ダウンロードできませんでした。接続を確認して、もう一度お試しください。',
+  'plus.inspect.failed': 'スタジオで開けませんでした。もう一度お試しください。',
   'plus.scene.play': 'グラフで再生',
   'plus.scene.inLooks': 'マイ表示の「メンバーが作成」にあります',
   'plus.scene.inLooksOwn': 'マイ表示の「あなたが作成」にあります',

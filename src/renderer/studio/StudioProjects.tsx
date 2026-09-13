@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
+import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioState } from 'main/ipc/memberScenes';
 import Glyph from '../community/Glyph';
 import Chevron from '../icons/Chevron';
+import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
 import {
@@ -10,6 +12,19 @@ import {
   linkStudioFolder,
   selectStudioProject,
 } from './studioStore';
+
+const GROUP_OWN = 'projects';
+const GROUP_OFFICIAL = 'official';
+
+/**
+ * FluidEQ's page in the gallery, where each of its scenes has "Open in
+ * Studio". Named as the gallery names FluidEQ on every official scene.
+ */
+const FLUIDEQ_MAKER: IMakerRef = {
+  authorId: FLUIDEQ_CREATOR_ID,
+  name: 'FluidEQ',
+  handle: 'fluideq',
+};
 
 interface IStudioProjectsProps {
   state: IStudioState;
@@ -40,17 +55,28 @@ export default function StudioProjects({
   const entries = useMemo<IRichPickEntry[]>(
     // The server returns recency order after every selection. A fixed folder
     // order lets the arrows traverse every project instead of bouncing back.
+    // FluidEQ's scenes opened to look inside file after the member's own, so
+    // a project called "Aurora" of theirs is never mistaken for FluidEQ's.
     () =>
       [...state.projects]
-        .sort((a, b) => a.path.localeCompare(b.path))
+        .sort(
+          (a, b) =>
+            Number(Boolean(a.official)) - Number(Boolean(b.official)) ||
+            a.path.localeCompare(b.path),
+        )
         .map((project) => ({
           id: project.id,
           name: project.names
             ? resolveSceneName({ names: project.names }, locale)
             : project.folderName,
           hint: project.path,
-          group: 'projects',
-          icon: <Glyph name="folder" className="rich-pick__glyph" />,
+          group: project.official ? GROUP_OFFICIAL : GROUP_OWN,
+          icon: (
+            <Glyph
+              name={project.official ? 'looks' : 'folder'}
+              className="rich-pick__glyph"
+            />
+          ),
         })),
     [state.projects, locale],
   );
@@ -83,7 +109,13 @@ export default function StudioProjects({
         menuMaxHeight={520}
         disabled={!state.entitled || switching}
         entries={entries}
-        groupLabel={() => t('studio.project.group')}
+        groupLabel={(group) =>
+          t(
+            group === GROUP_OFFICIAL
+              ? 'studio.project.groupOfficial'
+              : 'studio.project.group',
+          )
+        }
         activeId={state.activeId ?? ''}
         onPick={pick}
         placeholder={t(
@@ -131,6 +163,17 @@ export default function StudioProjects({
             >
               <Glyph name="download" />
               {t('studio.action.import')}
+            </button>
+            <button
+              type="button"
+              className="rich-pick__action"
+              onClick={() => {
+                close();
+                openGalleryPage({ kind: 'maker', maker: FLUIDEQ_MAKER });
+              }}
+            >
+              <Glyph name="looks" />
+              {t('studio.project.inspect')}
             </button>
             {active && (
               <button

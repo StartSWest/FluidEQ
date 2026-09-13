@@ -185,6 +185,7 @@ import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
+import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
@@ -3052,6 +3053,7 @@ const memberSharingIpc = registerMemberSharingIpc({
   entitlement: accountIpc.entitlement,
   store: memberScenesIpc.store,
   activeFolder: memberScenesIpc.activeFolder,
+  activeIsInspection: memberScenesIpc.activeIsInspection,
   restoreOwnProject: memberScenesIpc.restoreOwnProject,
   announce: memberScenesIpc.announce,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
@@ -3080,6 +3082,7 @@ const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,
   userDataDir,
   activeFolder: memberScenesIpc.activeFolder,
+  activeIsInspection: memberScenesIpc.activeIsInspection,
   onTermsAgreed: plusTermsNoticeIpc.agreed,
   onPublished: () => {
     plusGalleryIpc
@@ -3088,6 +3091,15 @@ const plusPublishingIpc = registerPlusPublishingIpc({
         log.warn('Gallery refresh after publication failed', error),
       );
   },
+});
+
+// "Open in Studio" for FluidEQ's own scenes: a project to look inside and
+// take ideas from, never one to add, export or publish.
+const disposeStudioInspect = registerStudioInspectIpc({
+  access: galleryAccess,
+  officialStore: scenePacksIpc.store,
+  openInspection: memberScenesIpc.openInspection,
+  logger: log,
 });
 
 // The admin's queue of reported scenes. A takedown or a restore changes the
@@ -3418,6 +3430,7 @@ app.on('before-quit', (event) => {
   plusTermsNoticeIpc.dispose();
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
+  disposeStudioInspect();
   plusPublishingIpc.dispose();
   plusGalleryIpc.dispose();
   memberSharingIpc.dispose();

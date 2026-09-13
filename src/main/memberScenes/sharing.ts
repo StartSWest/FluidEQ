@@ -30,6 +30,8 @@ export type TExportFailure =
   | 'terms'
   | 'rate-limited'
   | 'refused'
+  /** Most of the scene is one of FluidEQ's own, which is only to learn from. */
+  | 'official-copy'
   | 'server';
 
 export type TSignOutcome =
@@ -91,6 +93,9 @@ export const signMemberScene = async ({
     }
     if (response.status === 429) {
       return { ok: false, reason: 'rate-limited' };
+    }
+    if (response.status === 422 && word === 'official_copy') {
+      return { ok: false, reason: 'official-copy' };
     }
     if (response.status === 422 || response.status === 413) {
       return { ok: false, reason: 'refused' };

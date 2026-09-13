@@ -99,6 +99,12 @@ const plus = {
   'plus.scene.add': 'Añadir a mis estilos',
   'plus.scene.update': 'Actualizar mi copia',
   'plus.scene.getPlus': 'Consigue Plus para añadirla',
+  'plus.inspect.open': 'Abrir en el Estudio',
+  'plus.inspect.hint':
+    'Mira cómo está hecha y toma ideas para tus escenas. Se abre como un proyecto para verla por dentro, no para publicarla.',
+  'plus.inspect.unavailable':
+    'No se pudo descargar. Comprueba la conexión e inténtalo de nuevo.',
+  'plus.inspect.failed': 'El Estudio no pudo abrirla. Inténtalo de nuevo.',
   'plus.scene.play': 'Poner en el gráfico',
   'plus.scene.inLooks': 'En tus estilos, en Hechos por miembros',
   'plus.scene.inLooksOwn': 'En tus estilos, en Hechos por ti',

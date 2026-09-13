@@ -37,6 +37,8 @@ import {
 import { writeStarterProject } from '../../../main/memberScenes/project';
 // eslint-disable-next-line import/first -- as above
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
+// eslint-disable-next-line import/first -- as above
+import { memberPack } from '../../utils/memberSceneFixtures';
 
 const ME = '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30';
 const SOMEONE = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
@@ -371,6 +373,59 @@ describe('member scenes over IPC', () => {
       'failed',
     );
     expect(fs.readFileSync(file, 'utf8')).toBe('// from the pane');
+    registration.dispose();
+  });
+
+  it('opens a FluidEQ scene as a project marked to look inside, and never adds it to looks', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    const aurora = memberPack({ id: 'aurora', names: { en: 'Aurora' } });
+
+    expect(await registration.openInspection(aurora)).toBe('opened');
+    const projectsRoot = path.join(root, 'Documents', 'FluidEQ Studio');
+    const folder = path.join(projectsRoot, 'Aurora (FluidEQ)');
+    expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
+      aurora.source,
+    );
+    expect(registration.activeIsInspection()).toBe(true);
+    expect(registration.activeFolder()).toBe(folder);
+    const listed = await invoke<Promise<IStudioState>>('studio-open');
+    expect(listed.projects[0]).toMatchObject({
+      folderName: 'Aurora (FluidEQ)',
+      official: true,
+    });
+
+    expect(await invoke('studio-add-to-looks')).toEqual({
+      ok: false,
+      reason: 'inspect-only',
+    });
+    expect(invoke<IMemberScenesListing>('member-scenes-list').scenes).toEqual(
+      [],
+    );
+
+    // Asked again, the project already made is opened, not a second copy.
+    expect(await registration.openInspection(aurora)).toBe('present');
+    expect(fs.readdirSync(projectsRoot)).toEqual(['Aurora (FluidEQ)']);
+
+    // The control: the member's own project beside it is added as ever.
+    chosen = await project();
+    await invoke<Promise<IStudioState>>('studio-link-folder');
+    expect(registration.activeIsInspection()).toBe(false);
+    expect(await invoke('studio-add-to-looks')).toMatchObject({ ok: true });
+    registration.dispose();
+  });
+
+  it('makes a fresh project when the one it made has gone from its folder', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    const aurora = memberPack({ id: 'aurora', names: { en: 'Aurora' } });
+    await registration.openInspection(aurora);
+    const projectsRoot = path.join(root, 'Documents', 'FluidEQ Studio');
+    fs.rmSync(path.join(projectsRoot, 'Aurora (FluidEQ)'), {
+      recursive: true,
+    });
+    expect(await registration.openInspection(aurora)).toBe('opened');
+    expect(registration.activeIsInspection()).toBe(true);
     registration.dispose();
   });
 

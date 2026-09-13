@@ -60,6 +60,8 @@ const studio = {
 
   'studio.project.label': 'Projekt',
   'studio.project.group': 'Ihre Projekte',
+  'studio.project.groupOfficial': 'FluidEQ-Szenen zum Hineinschauen',
+  'studio.project.inspect': 'In eine FluidEQ-Szene hineinschauen…',
   'studio.project.none': 'Projekt wählen',
   'studio.project.empty': 'Noch kein Projekt',
   'studio.project.add': 'Ordner öffnen…',
@@ -135,6 +137,8 @@ const studio = {
     'Melden Sie sich an, um Ihre Szene zu veröffentlichen.',
   'studio.publish.failed':
     'Die Szene konnte nicht veröffentlicht werden. Versuchen Sie es erneut.',
+  'studio.publish.officialCopy':
+    'Diese Szene ist größtenteils eine von FluidEQ. Holen Sie sich gern Ideen daraus, aber machen Sie die Szene zu Ihrer eigenen, bevor Sie sie veröffentlichen.',
   'studio.publish.outdated':
     'Die Plus-Bedingungen haben eine neuere Version. Aktualisieren Sie FluidEQ, um sie zu lesen und zu veröffentlichen.',
 
@@ -197,6 +201,13 @@ const studio = {
     'Melden Sie sich an, um Ihre Szene zu exportieren.',
   'studio.export.failed':
     'Die Szene konnte nicht exportiert werden. Versuchen Sie es erneut.',
+  'studio.export.officialCopy':
+    'Diese Szene ist größtenteils eine von FluidEQ. Holen Sie sich gern Ideen daraus, aber machen Sie die Szene zu Ihrer eigenen, bevor Sie sie exportieren.',
+  'studio.inspect.title': 'Eine FluidEQ-Szene zum Hineinschauen',
+  'studio.inspect.body':
+    'Sehen Sie, wie sie gemacht ist, und holen Sie sich Ideen für Ihre eigenen Szenen. Probieren Sie hier jede Änderung aus; sie kann nicht zu Ihren Darstellungen hinzugefügt, veröffentlicht oder exportiert werden.',
+  'studio.inspect.locked':
+    'Dies ist eine FluidEQ-Szene, geöffnet zum Hineinschauen. Sie kann nicht zu Ihren Darstellungen hinzugefügt, veröffentlicht oder exportiert werden.',
   'studio.export.banned': 'Dieses Konto kann keine Szenen mehr teilen.',
   'studio.export.outdated':
     'Für die Plus-Bedingungen gibt es eine neue Version. Aktualisieren Sie FluidEQ, um sie zu lesen und zu exportieren.',

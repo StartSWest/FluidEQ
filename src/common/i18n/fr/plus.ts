@@ -101,6 +101,12 @@ const plus = {
   'plus.scene.add': 'Ajouter à mes styles',
   'plus.scene.update': 'Mettre à jour ma copie',
   'plus.scene.getPlus': 'Passez à Plus pour l’ajouter',
+  'plus.inspect.open': 'Ouvrir dans le Studio',
+  'plus.inspect.hint':
+    'Voyez comment elle est faite et prenez des idées pour vos propres scènes. Elle s’ouvre comme un projet à explorer, pas à publier.',
+  'plus.inspect.unavailable':
+    'Elle n’a pas pu être téléchargée. Vérifiez la connexion et réessayez.',
+  'plus.inspect.failed': 'Le Studio n’a pas pu l’ouvrir. Réessayez.',
   'plus.scene.play': 'Lancer sur le graphique',
   'plus.scene.inLooks': 'Dans vos styles, sous « Créés par des membres »',
   'plus.scene.inLooksOwn': 'Dans vos styles, sous « Créés par vous »',

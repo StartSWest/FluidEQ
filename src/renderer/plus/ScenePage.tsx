@@ -30,6 +30,7 @@ import {
 import { useModeration } from './moderationStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
+import SceneInspectButton from './SceneInspectButton';
 import SceneModerationCard from './SceneModerationCard';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
@@ -418,6 +419,9 @@ export default function ScenePage({
             <Glyph name="shield" />
             {t(inLooksKey)}
           </p>
+        )}
+        {scene.official && entitled && (
+          <SceneInspectButton sceneId={scene.sceneId} />
         )}
         <footer className="gallery-scene__foot">
           <p className="gallery-fine">

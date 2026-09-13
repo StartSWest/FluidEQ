@@ -27,6 +27,8 @@ const EXPORT_FAILURES: Record<string, TranslationKey> = {
   refused: 'studio.export.refused',
   'signed-out': 'studio.export.signedOut',
   'no-build': 'studio.export.refused',
+  'official-copy': 'studio.export.officialCopy',
+  'inspect-only': 'studio.inspect.locked',
   server: 'studio.export.failed',
 };
 

@@ -99,6 +99,12 @@ const plus = {
   'plus.scene.add': 'Aggiungi ai miei aspetti',
   'plus.scene.update': 'Aggiorna la mia copia',
   'plus.scene.getPlus': 'Passa a Plus per aggiungerla',
+  'plus.inspect.open': 'Apri nello Studio',
+  'plus.inspect.hint':
+    'Scopri come è fatta e prendi idee per le tue scene. Si apre come un progetto da guardare dentro, non da pubblicare.',
+  'plus.inspect.unavailable':
+    'Non è stato possibile scaricarla. Controlla la connessione e riprova.',
+  'plus.inspect.failed': 'Lo Studio non è riuscito ad aprirla. Riprova.',
   'plus.scene.play': 'Riproduci sul grafico',
   'plus.scene.inLooks': 'Nei tuoi aspetti, in Creati dai membri',
   'plus.scene.inLooksOwn': 'Nei tuoi aspetti, in Creati da te',

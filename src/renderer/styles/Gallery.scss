@@ -1222,6 +1222,36 @@ $gallery-card-lead: 120ms;
   }
 }
 
+// "Open in Studio" on FluidEQ's own scenes (`SceneInspectButton.tsx`): a way
+// of learning from the scene rather than keeping it, so it stands apart from
+// the actions under a hairline, with what the project it makes is for under
+// the button.
+.gallery-scene__inspect {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+
+  // The Studio's glyph, at the size and spacing its buttons give it there.
+  .button {
+    gap: 6px;
+
+    svg {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+.gallery-scene__inspect-hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 .gallery-scene__report {
   display: inline-flex;
   align-items: center;

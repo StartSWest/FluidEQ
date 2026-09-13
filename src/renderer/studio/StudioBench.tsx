@@ -181,6 +181,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       .then((outcome) => {
         if (outcome.ok) {
           setNotice({ ok: true, key: 'studio.notice.added', vars: { name } });
+        } else if (outcome.reason === 'inspect-only') {
+          setNotice({ ok: false, key: 'studio.inspect.locked' });
         } else {
           failed();
         }
@@ -388,41 +390,55 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onResetParams={tuner.resetParams}
             onResetResponse={tuner.resetResponse}
           />
-          <div className="studio-card studio-ship">
-            <button
-              type="button"
-              className="button small studio-ship__add"
-              onClick={add}
-              disabled={unfit}
-            >
-              <Glyph name="looks" />
-              {t('studio.action.addToLooks')}
-            </button>
-            <button
-              type="button"
-              className={`button small subtle${publishing.preparing ? ' is-running' : ''}`}
-              aria-busy={publishing.preparing}
-              onClick={publishing.begin}
-              disabled={unfit}
-            >
-              <Glyph name="upload" />
-              {t('studio.action.publish')}
-            </button>
-            <button
-              type="button"
-              className={`button small subtle${sharing.exporting ? ' is-running' : ''}`}
-              aria-busy={sharing.exporting}
-              onClick={() => {
-                if (!sharing.exporting) {
-                  sharing.startExport();
-                }
-              }}
-              disabled={unfit}
-            >
-              <Glyph name="send" />
-              {t('studio.action.export')}
-            </button>
-          </div>
+          {project?.official ? (
+            // Where keeping, publishing and sending would be: what this
+            // project is instead, so the missing buttons are explained.
+            <div className="studio-card studio-ship studio-ship--inspect">
+              <span className="studio-ship__inspect-title">
+                <Glyph name="looks" />
+                {t('studio.inspect.title')}
+              </span>
+              <span className="studio-ship__inspect-body">
+                {t('studio.inspect.body')}
+              </span>
+            </div>
+          ) : (
+            <div className="studio-card studio-ship">
+              <button
+                type="button"
+                className="button small studio-ship__add"
+                onClick={add}
+                disabled={unfit}
+              >
+                <Glyph name="looks" />
+                {t('studio.action.addToLooks')}
+              </button>
+              <button
+                type="button"
+                className={`button small subtle${publishing.preparing ? ' is-running' : ''}`}
+                aria-busy={publishing.preparing}
+                onClick={publishing.begin}
+                disabled={unfit}
+              >
+                <Glyph name="upload" />
+                {t('studio.action.publish')}
+              </button>
+              <button
+                type="button"
+                className={`button small subtle${sharing.exporting ? ' is-running' : ''}`}
+                aria-busy={sharing.exporting}
+                onClick={() => {
+                  if (!sharing.exporting) {
+                    sharing.startExport();
+                  }
+                }}
+                disabled={unfit}
+              >
+                <Glyph name="send" />
+                {t('studio.action.export')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

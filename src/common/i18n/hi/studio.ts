@@ -58,6 +58,8 @@ const studio = {
 
   'studio.project.label': 'प्रोजेक्ट',
   'studio.project.group': 'आपके प्रोजेक्ट',
+  'studio.project.groupOfficial': 'अंदर देखने के लिए FluidEQ सीन',
+  'studio.project.inspect': 'किसी FluidEQ सीन के अंदर देखें…',
   'studio.project.none': 'प्रोजेक्ट चुनें',
   'studio.project.empty': 'अभी कोई प्रोजेक्ट नहीं',
   'studio.project.add': 'फ़ोल्डर खोलें…',
@@ -129,6 +131,8 @@ const studio = {
     'एक घंटे में यह बहुत ज़्यादा प्रकाशन है। बाद में कोशिश करें।',
   'studio.publish.signedOut': 'अपना सीन प्रकाशित करने के लिए साइन इन करें।',
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
+  'studio.publish.officialCopy':
+    'यह सीन ज़्यादातर FluidEQ के एक सीन जैसा ही है। उनसे आइडिया लें, लेकिन प्रकाशित करने से पहले सीन को अपना बनाएँ।',
   'studio.publish.outdated':
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
 
@@ -186,6 +190,13 @@ const studio = {
     'FluidEQ यह संस्करण स्वीकार नहीं कर सका। जो दिखाया गया है उसे ठीक करके सेव करें।',
   'studio.export.signedOut': 'अपना सीन एक्सपोर्ट करने के लिए साइन इन करें।',
   'studio.export.failed': 'सीन एक्सपोर्ट नहीं हो सका। फिर कोशिश करें।',
+  'studio.export.officialCopy':
+    'यह सीन ज़्यादातर FluidEQ के एक सीन जैसा ही है। उनसे आइडिया लें, लेकिन एक्सपोर्ट करने से पहले सीन को अपना बनाएँ।',
+  'studio.inspect.title': 'अंदर देखने के लिए एक FluidEQ सीन',
+  'studio.inspect.body':
+    'देखें कि यह कैसे बना है और अपने सीन के लिए आइडिया लें। यहाँ जो चाहें बदलकर देखें; इसे आपके रूपों में जोड़ा, प्रकाशित या एक्सपोर्ट नहीं किया जा सकता।',
+  'studio.inspect.locked':
+    'यह अंदर देखने के लिए खोला गया FluidEQ सीन है। इसे आपके रूपों में जोड़ा, प्रकाशित या एक्सपोर्ट नहीं किया जा सकता।',
   'studio.export.banned': 'यह खाता अब सीन साझा नहीं कर सकता।',
   'studio.export.outdated':
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और एक्सपोर्ट करने के लिए FluidEQ अपडेट करें।',

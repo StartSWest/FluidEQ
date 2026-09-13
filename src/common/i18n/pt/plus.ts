@@ -97,6 +97,12 @@ const plus = {
   'plus.scene.add': 'Adicionar aos meus visuais',
   'plus.scene.update': 'Atualizar minha cópia',
   'plus.scene.getPlus': 'Assine o Plus para adicionar',
+  'plus.inspect.open': 'Abrir no Estúdio',
+  'plus.inspect.hint':
+    'Veja como ela é feita e tire ideias para suas próprias cenas. Ela abre como um projeto para ver por dentro, não para publicar.',
+  'plus.inspect.unavailable':
+    'Não foi possível baixá-la. Verifique a conexão e tente de novo.',
+  'plus.inspect.failed': 'O Estúdio não conseguiu abri-la. Tente de novo.',
   'plus.scene.play': 'Reproduzir no gráfico',
   'plus.scene.inLooks': 'Nos seus visuais, em Feitos por membros',
   'plus.scene.inLooksOwn': 'Nos seus visuais, em Feitos por você',

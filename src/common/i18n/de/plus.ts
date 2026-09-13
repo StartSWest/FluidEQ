@@ -103,6 +103,13 @@ const plus = {
   'plus.scene.add': 'Zu meinen Darstellungen',
   'plus.scene.update': 'Meine Kopie aktualisieren',
   'plus.scene.getPlus': 'Mit Plus hinzufügen',
+  'plus.inspect.open': 'Im Studio öffnen',
+  'plus.inspect.hint':
+    'Sehen Sie, wie sie gemacht ist, und holen Sie sich Ideen für Ihre eigenen Szenen. Sie öffnet sich als Projekt zum Hineinschauen, nicht zum Veröffentlichen.',
+  'plus.inspect.unavailable':
+    'Sie konnte nicht heruntergeladen werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.',
+  'plus.inspect.failed':
+    'Das Studio konnte sie nicht öffnen. Versuchen Sie es erneut.',
   'plus.scene.play': 'Im Diagramm abspielen',
   'plus.scene.inLooks':
     'In Ihren Darstellungen, unter „Von Mitgliedern erstellt“',

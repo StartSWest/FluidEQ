@@ -43,7 +43,10 @@ import {
 
 export type TExportOutcome =
   | { ok: true; fileName: string }
-  | { ok: false; reason: TExportFailure | 'no-build' | 'cancelled' };
+  | {
+      ok: false;
+      reason: TExportFailure | 'no-build' | 'cancelled' | 'inspect-only';
+    };
 
 export type TImportOutcome =
   | {
@@ -73,6 +76,8 @@ export interface IMemberSharingIpcDeps {
   store: IMemberSceneStore;
   /** The Studio's open project's folder, from its own registration. */
   activeFolder: () => string | undefined;
+  /** Whether that project is a FluidEQ scene, opened only to look inside. */
+  activeIsInspection: () => boolean;
   /** The member's own imported scene, made a Studio project again. */
   restoreOwnProject: (pack: IScenePack) => Promise<TProjectRestore>;
   /** Tell the renderer the list of member scenes changed. */
@@ -128,6 +133,7 @@ export const registerMemberSharingIpc = ({
   entitlement,
   store,
   activeFolder,
+  activeIsInspection,
   restoreOwnProject,
   announce,
   onTermsAgreed,
@@ -197,6 +203,9 @@ export const registerMemberSharingIpc = ({
       const folder = activeFolder();
       if (!folder || typeof termsVersion !== 'number') {
         return { ok: false, reason: 'no-build' };
+      }
+      if (activeIsInspection()) {
+        return { ok: false, reason: 'inspect-only' };
       }
       const build = await readProject(folder);
       if (!build.ok) {

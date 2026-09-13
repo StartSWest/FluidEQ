@@ -56,6 +56,8 @@ const studio = {
 
   'studio.project.label': '项目',
   'studio.project.group': '你的项目',
+  'studio.project.groupOfficial': '可查看内部的 FluidEQ 场景',
+  'studio.project.inspect': '查看 FluidEQ 场景的内部…',
   'studio.project.none': '选择一个项目',
   'studio.project.empty': '还没有项目',
   'studio.project.add': '打开文件夹…',
@@ -120,6 +122,8 @@ const studio = {
   'studio.publish.rateLimited': '一小时内发布次数太多。请稍后再试。',
   'studio.publish.signedOut': '请登录后发布你的场景。',
   'studio.publish.failed': '无法发布场景。请重试。',
+  'studio.publish.officialCopy':
+    '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',
   'studio.publish.outdated': 'Plus 条款有新版本。请更新 FluidEQ 阅读后再发布。',
 
   'studio.picture.files': '图片',
@@ -165,6 +169,13 @@ const studio = {
   'studio.export.refused': 'FluidEQ 无法接受这个版本。请修正提示的问题并保存。',
   'studio.export.signedOut': '请登录后再导出场景。',
   'studio.export.failed': '场景未能导出。请重试。',
+  'studio.export.officialCopy':
+    '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再导出。',
+  'studio.inspect.title': '用于查看内部的 FluidEQ 场景',
+  'studio.inspect.body':
+    '看看它是怎么做的，为你自己的场景汲取灵感。你可以在这里随意尝试修改，但它不能添加到你的外观、发布或导出。',
+  'studio.inspect.locked':
+    '这是为查看内部而打开的 FluidEQ 场景，不能添加到你的外观、发布或导出。',
   'studio.export.banned': '此账户已无法分享场景。',
   'studio.export.outdated':
     'Plus 条款有了新版本。请更新 FluidEQ 以阅读并导出。',

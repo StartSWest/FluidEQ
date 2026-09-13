@@ -101,6 +101,12 @@ const plus = {
   'plus.scene.add': 'Add to my looks',
   'plus.scene.update': 'Update my copy',
   'plus.scene.getPlus': 'Get Plus to add it',
+  'plus.inspect.open': 'Open in Studio',
+  'plus.inspect.hint':
+    'See how it is made and take ideas for your own scenes. It opens as a project to look inside, not one to publish.',
+  'plus.inspect.unavailable':
+    'It could not be downloaded. Check your connection and try again.',
+  'plus.inspect.failed': 'The Studio could not open it. Try again.',
   'plus.scene.play': 'Play on the graph',
   'plus.scene.inLooks': 'In your looks, under Made by members',
   'plus.scene.inLooksOwn': 'In your looks, under Made by you',

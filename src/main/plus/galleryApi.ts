@@ -47,6 +47,8 @@ export type TPublishFailure =
   | 'terms'
   | 'rate-limited'
   | 'refused'
+  /** Most of the scene is one of FluidEQ's own, which is only to learn from. */
+  | 'official-copy'
   | 'server';
 
 interface IAuthorised {
@@ -289,6 +291,9 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
   }
   if (response.status === 429) {
     return 'rate-limited';
+  }
+  if (response.status === 422 && word === 'official_copy') {
+    return 'official-copy';
   }
   if (response.status === 422 || response.status === 413) {
     return 'refused';

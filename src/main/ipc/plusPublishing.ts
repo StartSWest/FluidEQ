@@ -30,7 +30,10 @@ export type TMineOutcome =
 
 export type TPublishOutcome =
   | { ok: true }
-  | { ok: false; reason: TPublishFailure | 'no-build' | 'no-picture' };
+  | {
+      ok: false;
+      reason: TPublishFailure | 'no-build' | 'no-picture' | 'inspect-only';
+    };
 
 export type TUnpublishOutcome =
   { ok: true } | { ok: false; reason: TPublishFailure };
@@ -40,6 +43,8 @@ export interface IPlusPublishingIpcDeps {
   userDataDir: string;
   /** The Studio's open project's folder, from its own registration. */
   activeFolder: () => string | undefined;
+  /** Whether that project is a FluidEQ scene, opened only to look inside. */
+  activeIsInspection: () => boolean;
   /** A publication recorded an agreement to this version of the Plus terms. */
   onTermsAgreed?: (version: number) => void;
   onPublished?: () => void;
@@ -68,6 +73,7 @@ export const registerPlusPublishingIpc = ({
   access,
   userDataDir,
   activeFolder,
+  activeIsInspection,
   onTermsAgreed,
   onPublished,
 }: IPlusPublishingIpcDeps) => {
@@ -126,6 +132,9 @@ export const registerPlusPublishingIpc = ({
         !isPlusCategory(category)
       ) {
         return { ok: false, reason: 'no-build' };
+      }
+      if (activeIsInspection()) {
+        return { ok: false, reason: 'inspect-only' };
       }
       const picture = pictureBytes(rawPicture);
       if (!picture) {

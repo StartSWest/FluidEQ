@@ -90,11 +90,15 @@ const access = (): IGalleryAccess => ({
 
 const userDataDir = () => path.join(root, 'userData');
 
+/** The open project is a FluidEQ scene, opened only to look inside. */
+let inspecting: boolean;
+
 const setup = (onTermsAgreed?: (version: number) => void) =>
   registerPlusPublishingIpc({
     access: access(),
     userDataDir: userDataDir(),
     activeFolder: () => folder,
+    activeIsInspection: () => inspecting,
     onTermsAgreed,
   });
 
@@ -115,6 +119,7 @@ beforeEach(async () => {
   duringFetch = undefined;
   answer = fakeResponse(200, { published: {} });
   calls = [];
+  inspecting = false;
 });
 
 afterEach(() => {
@@ -294,6 +299,37 @@ describe('publishing from the Studio', () => {
       reason: 'terms',
     });
     expect(readAgreedTerms(userDataDir(), ME)).toBe(0);
+  });
+
+  it('never publishes a FluidEQ scene opened to look inside', async () => {
+    setup();
+    inspecting = true;
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'inspect-only',
+    });
+    expect(calls).toEqual([]);
+    // The control: the same folder, not marked, is sent.
+    inspecting = false;
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(calls).toHaveLength(1);
+  });
+
+  it("says so when the server finds the scene is mostly one of FluidEQ's", async () => {
+    setup();
+    answer = fakeResponse(422, { error: 'official_copy' });
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'official-copy',
+    });
+    // Any other refusal is still just refused.
+    answer = fakeResponse(422, { error: 'refused', reason: 'while' });
+    expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'refused',
+    });
   });
 });
 

@@ -58,6 +58,8 @@ const studio = {
 
   'studio.project.label': 'プロジェクト',
   'studio.project.group': 'あなたのプロジェクト',
+  'studio.project.groupOfficial': '中を見られる FluidEQ のシーン',
+  'studio.project.inspect': 'FluidEQ のシーンの中を見る…',
   'studio.project.none': 'プロジェクトを選択',
   'studio.project.empty': 'まだプロジェクトがありません',
   'studio.project.add': 'フォルダーを開く…',
@@ -133,6 +135,8 @@ const studio = {
   'studio.publish.signedOut': 'シーンを公開するにはサインインしてください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
+  'studio.publish.officialCopy':
+    'このシーンの大部分は FluidEQ のシーンのひとつと同じです。アイデアは自由に取り入れて、自分のシーンにしてから公開してください。',
   'studio.publish.outdated':
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
 
@@ -194,6 +198,13 @@ const studio = {
     'シーンをエクスポートするにはサインインしてください。',
   'studio.export.failed':
     'シーンをエクスポートできませんでした。もう一度お試しください。',
+  'studio.export.officialCopy':
+    'このシーンの大部分は FluidEQ のシーンのひとつと同じです。アイデアは自由に取り入れて、自分のシーンにしてからエクスポートしてください。',
+  'studio.inspect.title': '中を見るための FluidEQ のシーン',
+  'studio.inspect.body':
+    'どう作られているかを見て、自分のシーンのアイデアにしてください。ここでは自由に変更を試せますが、マイ表示への追加、公開、エクスポートはできません。',
+  'studio.inspect.locked':
+    '中を見るために開いた FluidEQ のシーンです。マイ表示への追加、公開、エクスポートはできません。',
   'studio.export.banned': 'このアカウントではシーンを共有できなくなりました。',
   'studio.export.outdated':
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、エクスポートしてください。',

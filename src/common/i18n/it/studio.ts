@@ -60,6 +60,8 @@ const studio = {
 
   'studio.project.label': 'Progetto',
   'studio.project.group': 'I tuoi progetti',
+  'studio.project.groupOfficial': 'Scene di FluidEQ da guardare dentro',
+  'studio.project.inspect': 'Guarda dentro una scena di FluidEQ…',
   'studio.project.none': 'Scegli un progetto',
   'studio.project.empty': 'Ancora nessun progetto',
   'studio.project.add': 'Apri una cartella…',
@@ -135,6 +137,8 @@ const studio = {
   'studio.publish.signedOut': 'Accedi per pubblicare la tua scena.',
   'studio.publish.failed':
     'Non è stato possibile pubblicare la scena. Riprova.',
+  'studio.publish.officialCopy':
+    'Questa scena è in gran parte una di quelle di FluidEQ. Prendi pure idee, ma rendi la scena tua prima di pubblicarla.',
   'studio.publish.outdated':
     'Le condizioni di Plus hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
 
@@ -194,6 +198,13 @@ const studio = {
     'FluidEQ non ha potuto accettare questa versione. Correggi ciò che indica e salva.',
   'studio.export.signedOut': 'Accedi per esportare la tua scena.',
   'studio.export.failed': 'Non è stato possibile esportare la scena. Riprova.',
+  'studio.export.officialCopy':
+    'Questa scena è in gran parte una di quelle di FluidEQ. Prendi pure idee, ma rendi la scena tua prima di esportarla.',
+  'studio.inspect.title': 'Una scena di FluidEQ, da guardare dentro',
+  'studio.inspect.body':
+    'Scopri come è fatta e prendi idee per le tue scene. Prova qui tutte le modifiche che vuoi; non si può aggiungere ai tuoi aspetti, pubblicare o esportare.',
+  'studio.inspect.locked':
+    'Questa è una scena di FluidEQ, aperta per guardarci dentro. Non si può aggiungere ai tuoi aspetti, pubblicare o esportare.',
   'studio.export.banned': 'Questo account non può più condividere scene.',
   'studio.export.outdated':
     'Le condizioni di Plus hanno una nuova versione. Aggiorna FluidEQ per leggerla ed esportare.',

@@ -53,6 +53,7 @@ import type { IStudioSettingsOutcome } from './ipc/studioSettings';
 import type { ISceneResponse } from '../common/sceneResponse';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
 import type { IProjectSource, TSourceWrite } from './memberScenes/project';
+import type { TInspectOutcome } from './ipc/studioInspect';
 import type {
   TGalleryAddOutcome,
   TGalleryListOutcome,
@@ -975,6 +976,17 @@ const writeStudioSource = (text: string) =>
   ipcRenderer.invoke('studio-write-source', text) as Promise<TSourceWrite>;
 
 /**
+ * One of FluidEQ's own scenes, opened in the Studio to look inside. Only the
+ * scene's id crosses; the main process finds the scene and checks it is
+ * FluidEQ's.
+ */
+const inspectOfficialScene = (sceneId: string) =>
+  ipcRenderer.invoke(
+    'studio-inspect-official',
+    sceneId,
+  ) as Promise<TInspectOutcome>;
+
+/**
  * Publishes the Studio's open project, read from disk in the main process;
  * the picture is the only thing sent from here, and it must be a small WebP.
  */
@@ -1330,6 +1342,7 @@ export default {
     onStudioChanged,
     onStudioSourceChanged,
     writeStudioSource,
+    inspectOfficialScene,
     readStudioNotes,
     saveStudioNotes,
     studioTermsAgreed,

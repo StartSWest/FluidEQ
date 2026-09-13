@@ -85,6 +85,11 @@ export interface IStudioProject {
   path: string;
   /** What its scene is called, when its `pack.json` could be read. */
   names?: TLocalizedName;
+  /**
+   * A FluidEQ scene, opened to look inside and take ideas from: never added
+   * to looks, exported or published.
+   */
+  official?: true;
 }
 
 export interface IStudioState {
@@ -110,7 +115,10 @@ export type TNewProjectResult =
 
 export type TAddOutcome =
   | { ok: true; scene: IMemberSceneSummary }
-  | { ok: false; reason: 'not-entitled' | 'no-build' | 'refused' };
+  | {
+      ok: false;
+      reason: 'not-entitled' | 'no-build' | 'refused' | 'inspect-only';
+    };
 
 interface IDialogLike {
   showOpenDialog: typeof dialog.showOpenDialog;
@@ -135,12 +143,25 @@ export interface IMemberScenesIpcDeps {
  */
 export type TProjectRestore = 'restored' | 'present' | 'invalid' | 'taken';
 
+/**
+ * What opening a FluidEQ scene in the Studio did: made a project of it, went
+ * back to the one already made, or could make none.
+ */
+export type TInspection = 'opened' | 'present' | 'invalid' | 'taken';
+
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
+  /** Whether the open project is a FluidEQ scene, opened only to look inside. */
+  activeIsInspection(): boolean;
   /** The member's own imported scene, back on the Studio's list. */
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
+  /**
+   * A FluidEQ scene, verified as FluidEQ's by the caller, opened as a project
+   * to look inside and take ideas from.
+   */
+  openInspection(pack: IScenePack): Promise<TInspection>;
   /** Tell the renderer the list of member scenes changed. */
   announce(): void;
   dispose(): void;
@@ -188,8 +209,10 @@ export const registerMemberScenesIpc = ({
     getMainWindow()?.webContents.send('studio-source-changed', source),
   );
 
-  const activeFolder = () =>
-    projects.projects.find((project) => project.id === projects.active)?.folder;
+  const activeProject = () =>
+    projects.projects.find((project) => project.id === projects.active);
+  const activeFolder = () => activeProject()?.folder;
+  const activeIsInspection = () => activeProject()?.official !== undefined;
 
   const accountId = () => session.state().identity?.id;
   const entitled = () =>
@@ -230,6 +253,7 @@ export const registerMemberScenesIpc = ({
         folderName: path.basename(project.folder),
         path: project.folder,
         ...(names ? { names } : {}),
+        ...(project.official ? { official: true as const } : {}),
       };
     }),
     ...(projects.active ? { activeId: projects.active } : {}),
@@ -315,6 +339,31 @@ export const registerMemberScenesIpc = ({
     adopt(withFolder(projects, made.folder, Date.now()));
     await refreshNames();
     return 'restored';
+  };
+
+  // A FluidEQ scene written out as a project of its own, marked so it is
+  // never added, exported or published, and opened. Asked again, the project
+  // already made is opened instead, with whatever the member tried in it.
+  const openInspection = async (pack: IScenePack): Promise<TInspection> => {
+    const kept = projects.projects.find(
+      (project) => project.official === pack.id,
+    );
+    if (kept && (await folderHoldingScene([kept.folder], pack.id))) {
+      adopt(withActive(projects, kept.id, Date.now()));
+      await refreshNames();
+      return 'present';
+    }
+    const made = await writeRestoredProject(
+      projectsRoot(),
+      `${pack.names.en} (FluidEQ)`,
+      pack,
+    );
+    if (!made.ok) {
+      return made.reason;
+    }
+    adopt(withFolder(projects, made.folder, Date.now(), pack.id));
+    await refreshNames();
+    return 'opened';
   };
 
   /**
@@ -472,6 +521,9 @@ export const registerMemberScenesIpc = ({
     if (!folder) {
       return { ok: false, reason: 'no-build' };
     }
+    if (activeIsInspection()) {
+      return { ok: false, reason: 'inspect-only' };
+    }
     // Read the folder again rather than trusting the last watched build: the
     // press may land between a save and the watcher's rebuild.
     const build = await readProject(folder);
@@ -533,7 +585,9 @@ export const registerMemberScenesIpc = ({
   return {
     store,
     activeFolder,
+    activeIsInspection,
     restoreOwnProject,
+    openInspection,
     announce: announceScenes,
     dispose: () => {
       unsubscribe();

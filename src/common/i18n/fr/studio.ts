@@ -61,6 +61,8 @@ const studio = {
 
   'studio.project.label': 'Projet',
   'studio.project.group': 'Vos projets',
+  'studio.project.groupOfficial': 'Scènes FluidEQ à explorer',
+  'studio.project.inspect': 'Explorer une scène FluidEQ…',
   'studio.project.none': 'Choisir un projet',
   'studio.project.empty': 'Aucun projet pour l’instant',
   'studio.project.add': 'Ouvrir un dossier…',
@@ -134,6 +136,8 @@ const studio = {
     'Cela fait beaucoup de publications en une heure. Réessayez plus tard.',
   'studio.publish.signedOut': 'Connectez-vous pour publier votre scène.',
   'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
+  'studio.publish.officialCopy':
+    'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de la publier.',
   'studio.publish.outdated':
     'Les conditions Plus ont une version plus récente. Mettez FluidEQ à jour pour la lire et publier.',
 
@@ -193,6 +197,13 @@ const studio = {
     'FluidEQ n’a pas pu accepter cette version. Corrigez ce qui est indiqué et enregistrez.',
   'studio.export.signedOut': 'Connectez-vous pour exporter votre scène.',
   'studio.export.failed': 'La scène n’a pas pu être exportée. Réessayez.',
+  'studio.export.officialCopy':
+    'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de l’exporter.',
+  'studio.inspect.title': 'Une scène FluidEQ, à explorer',
+  'studio.inspect.body':
+    'Voyez comment elle est faite et prenez des idées pour vos propres scènes. Essayez ici toutes les modifications que vous voulez ; elle ne peut pas être ajoutée à vos styles, publiée ni exportée.',
+  'studio.inspect.locked':
+    'C’est une scène FluidEQ, ouverte pour l’explorer. Elle ne peut pas être ajoutée à vos styles, publiée ni exportée.',
   'studio.export.banned': 'Ce compte ne peut plus partager de scènes.',
   'studio.export.outdated':
     'Les conditions de Plus ont une nouvelle version. Mettez FluidEQ à jour pour la lire et exporter.',

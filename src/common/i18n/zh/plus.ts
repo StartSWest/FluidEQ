@@ -91,6 +91,11 @@ const plus = {
   'plus.scene.add': '添加到我的外观',
   'plus.scene.update': '更新我的副本',
   'plus.scene.getPlus': '开通 Plus 即可添加',
+  'plus.inspect.open': '在工作室中打开',
+  'plus.inspect.hint':
+    '看看它是怎么做的，为你自己的场景汲取灵感。它会作为查看内部的项目打开，而不是用来发布。',
+  'plus.inspect.unavailable': '无法下载。请检查网络连接后重试。',
+  'plus.inspect.failed': '工作室无法打开它。请重试。',
   'plus.scene.play': '在图表上播放',
   'plus.scene.inLooks': '已在你的外观中，位于“会员创作”',
   'plus.scene.inLooksOwn': '已在你的外观中，位于“你创作的”',

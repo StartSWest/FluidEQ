@@ -84,11 +84,18 @@ type TRestoreOwnProject = IMemberSharingIpcDeps['restoreOwnProject'];
 /** The Studio's answer to an own scene arriving: made a project, or not. */
 let restoreOwnProject: jest.MockedFunction<TRestoreOwnProject>;
 let warnings: string[];
+/** The open project is a FluidEQ scene, opened only to look inside. */
+let inspecting: boolean;
+/** The server finds most of the scene is one of FluidEQ's own. */
+let officialCopy: boolean;
 
 /** The server: signs whatever pack arrives, as the author it is told. */
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   const url = String(input);
   calls.push(url.replace(/\?.*$/, ''));
+  if (url.endsWith('/sign-member-scene') && officialCopy) {
+    return json({ error: 'official_copy' }, 422);
+  }
   if (url.endsWith('/sign-member-scene')) {
     const { pack } = JSON.parse(String(init?.body));
     return json({
@@ -130,6 +137,7 @@ const setup = () => {
     } as never,
     store,
     activeFolder: () => folder,
+    activeIsInspection: () => inspecting,
     restoreOwnProject,
     announce: () => {
       announced += 1;
@@ -170,6 +178,8 @@ beforeEach(async () => {
     .fn<ReturnType<TRestoreOwnProject>, Parameters<TRestoreOwnProject>>()
     .mockResolvedValue('present');
   warnings = [];
+  inspecting = false;
+  officialCopy = false;
   folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
   await writeStarterProject(folder, {
@@ -267,6 +277,33 @@ describe('exporting a scene', () => {
       reason: 'no-build',
     });
     expect(calls).not.toContain('save-dialog');
+    registration.dispose();
+  });
+
+  it('never exports a FluidEQ scene opened to look inside, and asks nothing first', async () => {
+    const registration = setup();
+    saveTarget = path.join(root, 'x.json');
+    inspecting = true;
+    expect(await invoke('studio-export', 3)).toEqual({
+      ok: false,
+      reason: 'inspect-only',
+    });
+    expect(calls).toEqual([]);
+    // The control: the same folder, not marked, is exported.
+    inspecting = false;
+    expect(await invoke('studio-export', 3)).toMatchObject({ ok: true });
+    registration.dispose();
+  });
+
+  it("says so when the server finds the scene is mostly one of FluidEQ's", async () => {
+    const registration = setup();
+    saveTarget = path.join(root, 'x.json');
+    officialCopy = true;
+    expect(await invoke('studio-export', 3)).toEqual({
+      ok: false,
+      reason: 'official-copy',
+    });
+    expect(fs.existsSync(path.join(root, 'x.fluideq-scene.json'))).toBe(false);
     registration.dispose();
   });
 });

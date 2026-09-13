@@ -129,6 +129,60 @@ describe('the Studio’s projects', () => {
   });
 });
 
+describe('a FluidEQ scene opened to look inside', () => {
+  it('stays marked as FluidEQ’s through saving, reopening and switching', () => {
+    let list = withFolder({ projects: [] }, folderAt('mine'), 1);
+    list = withFolder(list, folderAt('Aurora (FluidEQ)'), 2, 'aurora');
+    list = withActive(list, list.projects[0]?.id ?? '', 3);
+    writeProjectList(file(), list);
+    const read = readProjectList(file());
+    const marks = Object.fromEntries(
+      read.projects.map((project) => [
+        path.basename(project.folder),
+        project.official,
+      ]),
+    );
+    // The control: the member's own project carries no mark.
+    expect(marks).toEqual({ mine: undefined, 'Aurora (FluidEQ)': 'aurora' });
+  });
+
+  it('never loses its mark, even to a folder opened again without one', () => {
+    const marked = withFolder(
+      { projects: [] },
+      folderAt('Aurora'),
+      1,
+      'aurora',
+    );
+    const reopened = withFolder(marked, folderAt('Aurora'), 2);
+    expect(reopened.projects).toHaveLength(1);
+    expect(reopened.projects[0]?.official).toBe('aurora');
+    // And a listed folder of the member's that is opened as FluidEQ's is
+    // marked from then on.
+    const mine = withFolder({ projects: [] }, folderAt('sea'), 1);
+    expect(
+      withFolder(mine, folderAt('sea'), 2, 'ocean').projects[0]?.official,
+    ).toBe('ocean');
+  });
+
+  it('keeps a mark it cannot read as a mark, never as an ordinary project', () => {
+    fs.mkdirSync(path.dirname(file()), { recursive: true });
+    fs.writeFileSync(
+      file(),
+      JSON.stringify({
+        projects: [
+          {
+            id: '00000000-0000-4000-8000-000000000001',
+            folder: folderAt('odd'),
+            openedAt: 1,
+            official: 42,
+          },
+        ],
+      }),
+    );
+    expect(readProjectList(file()).projects[0]?.official).toBe('unknown');
+  });
+});
+
 describe('the picture cache', () => {
   it('forgets the oldest first, and remembers what was seen again', () => {
     const cache = createPictureCache(10);
