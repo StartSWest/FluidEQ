@@ -108,6 +108,24 @@ const positionFrom = (
   };
 };
 
+/**
+ * How tall the menu would be with no cap, which is what choosing a side needs.
+ *
+ * `scrollHeight` answers that for a menu that scrolls as a whole. A menu that
+ * holds a search row and actions still and scrolls only the list between them
+ * is never taller than its cap — the list is what overflows — so it marks that
+ * list, and what the list is hiding is added back. Without that it would
+ * measure as a perfect fit at any cap and never open towards the side with
+ * room.
+ */
+const wantedHeight = (menu: HTMLElement) =>
+  Array.from(
+    menu.querySelectorAll<HTMLElement>('[data-anchored-menu-scroll]'),
+  ).reduce(
+    (height, list) => height + list.scrollHeight - list.clientHeight,
+    menu.scrollHeight,
+  );
+
 const AnchoredMenu = ({
   anchor,
   isOpen,
@@ -141,10 +159,9 @@ const AnchoredMenu = ({
       setStyle(
         positionFrom(
           anchor.getBoundingClientRect(),
-          // `scrollHeight`, so a menu already capped and scrolling still
-          // reports how tall it wants to be. `offsetHeight` would report the
-          // cap, which would then look like a perfect fit and never flip back.
-          menu?.scrollHeight ?? 0,
+          // Not `offsetHeight`, which would report the cap, which would then
+          // look like a perfect fit and never flip back. See `wantedHeight`.
+          menu ? wantedHeight(menu) : 0,
           // Width is the opposite case: `offsetWidth` is what it occupies, and
           // what has to be kept inside the window. Zero on the first pass, so
           // the clamp is inert until the measured pass corrects it.

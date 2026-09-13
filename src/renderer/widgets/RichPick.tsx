@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   Fragment,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -59,7 +60,8 @@ interface IRichPickProps {
   /**
    * Actions under the list — "New project…" rather than another project.
    * Handed the menu's own close, so an action can shut it before it opens a
-   * dialog of its own.
+   * dialog of its own. They stay at the foot of the menu while the list
+   * scrolls above them.
    */
   renderFooter?: (close: () => void) => ReactNode;
 }
@@ -79,6 +81,47 @@ const foldForSearch = (text: string) =>
     // marks, which look like a typo and get "tidied" into one.
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+
+/**
+ * Up and down walk an open menu, through the search, every row it left and
+ * then the caller's actions, and wrap at either end.
+ *
+ * Tab reaches the same places, but "New project" past forty rows is forty
+ * presses away; and in the field the arrows would only move the caret.
+ */
+const walkMenu = (event: KeyboardEvent, menu: Element) => {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+    return;
+  }
+  const stops = Array.from(
+    menu.querySelectorAll<HTMLElement>(
+      '.rich-pick__search input, .rich-pick__item, .rich-pick__footer button:not(:disabled)',
+    ),
+  );
+  if (stops.length === 0) {
+    return;
+  }
+  event.preventDefault();
+  const at = stops.findIndex((stop) => stop === document.activeElement);
+  const down = event.key === 'ArrowDown';
+  const from = at === -1 && !down ? 0 : at;
+  const next = stops[(from + (down ? 1 : -1) + stops.length) % stops.length];
+  // Nearest, not the centre `focus()` scrolls to: stepping a row past the edge
+  // should move the list by a row, not jump it by half its height. The heading
+  // over the first row of a group comes into view with it, or arriving at the
+  // top of the list left "Your projects" scrolled away.
+  next.focus({ preventScroll: true });
+  // jsdom has no scrollIntoView, and the tests that open this menu are not
+  // about scrolling.
+  if (typeof next.scrollIntoView !== 'function') {
+    return;
+  }
+  const heading = next.previousElementSibling;
+  if (heading?.classList.contains('rich-pick__group')) {
+    heading.scrollIntoView({ block: 'nearest' });
+  }
+  next.scrollIntoView({ block: 'nearest' });
+};
 
 /**
  * A pill that names what is chosen, over a searchable list of what else there
@@ -122,6 +165,7 @@ const RichPick = ({
   }
   const [query, setQuery] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -152,16 +196,28 @@ const RichPick = ({
         setIsOpen(false);
       }
     };
-    const closeOnEscape = (event: KeyboardEvent) => {
+    const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // The menu unmounts with the caret inside it, which leaves focus on
+        // the body and the next Tab starting from the top of the window.
+        if (isInsideAnchoredMenu(document.activeElement)) {
+          triggerRef.current?.focus();
+        }
         setIsOpen(false);
+        return;
+      }
+      // Only while focus is inside this menu: the arrows belong to whatever
+      // else has focus, a slider or a number field, the rest of the time.
+      const menu = searchRef.current?.closest('[data-anchored-menu]');
+      if (menu?.contains(document.activeElement)) {
+        walkMenu(event, menu);
       }
     };
     document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', closeOnEscape);
+    document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener('keydown', onKey);
     };
   }, [isOpen]);
 
@@ -177,6 +233,24 @@ const RichPick = ({
   useEffect(() => {
     if (!isOpen) {
       setQuery('');
+    }
+  }, [isOpen]);
+
+  /**
+   * The other half — the caret in the search and the chosen row in view — is
+   * done when the list arrives, not when `isOpen` changes.
+   *
+   * AnchoredMenu draws nothing until it has placed the menu, which it does in
+   * a layout effect of its own, so on the render that opens it neither the
+   * field nor the row exists yet. An effect on `isOpen` ran against empty
+   * refs: the field never took the caret, typing straight after opening went
+   * nowhere, and the keyboard could not get into the menu at all. React
+   * attaches this ref after the search row before the list and after every
+   * row inside it, so both are there by then. Stable, so it runs once per
+   * opening rather than on every render.
+   */
+  const arrive = useCallback((list: HTMLDivElement | null) => {
+    if (!list) {
       return;
     }
     // jsdom implements neither, and the tests that open this menu are not about
@@ -185,7 +259,7 @@ const RichPick = ({
       activeRef.current.scrollIntoView({ block: 'center' });
     }
     searchRef.current?.focus();
-  }, [isOpen]);
+  }, []);
 
   const matches = useMemo(() => {
     const needle = foldForSearch(query.trim());
@@ -213,6 +287,7 @@ const RichPick = ({
       ref={rootRef}
     >
       <button
+        ref={triggerRef}
         type="button"
         className={`rich-pick__trigger${active ? ' is-active' : ''}${
           triggerClassName ? ` ${triggerClassName}` : ''
@@ -289,43 +364,51 @@ const RichPick = ({
           )}
         </div>
 
-        {matches.length === 0 && (
-          <p className="rich-pick__empty">{t('common.noMatches')}</p>
-        )}
+        {/* The only part that scrolls. The search above and the actions below
+            stay where they are, so neither has to be scrolled back to — which
+            with forty projects was most of the way down a list to reach "New
+            project…". Marked so AnchoredMenu can still measure how tall the
+            menu wants to be, which the menu itself no longer overflows to
+            report. */}
+        <div className="rich-pick__list" ref={arrive} data-anchored-menu-scroll>
+          {matches.length === 0 && (
+            <p className="rich-pick__empty">{t('common.noMatches')}</p>
+          )}
 
-        {matches.map((entry, index) => {
-          const heading = groupLabel(entry.group);
-          return (
-            <Fragment key={entry.id}>
-              {/* A heading at each change of group, rather than a fixed set of
-                  sections, so adding an entry to any of them cannot leave it
-                  filed under the wrong header — and so a filtered list shows
-                  headings only for the groups that still have something in
-                  them. */}
-              {heading && entry.group !== matches[index - 1]?.group && (
-                <span className="rich-pick__group" role="presentation">
-                  {heading}
-                </span>
-              )}
-              <button
-                ref={entry.id === activeId ? activeRef : undefined}
-                type="button"
-                role="menuitemradio"
-                aria-checked={entry.id === activeId}
-                className={`rich-pick__item${
-                  entry.id === activeId ? ' is-active' : ''
-                }`}
-                onClick={() => pick(entry.id)}
-              >
-                {entry.icon}
-                <span>
-                  <strong>{entry.name}</strong>
-                  <small>{entry.hint}</small>
-                </span>
-              </button>
-            </Fragment>
-          );
-        })}
+          {matches.map((entry, index) => {
+            const heading = groupLabel(entry.group);
+            return (
+              <Fragment key={entry.id}>
+                {/* A heading at each change of group, rather than a fixed set
+                    of sections, so adding an entry to any of them cannot leave
+                    it filed under the wrong header — and so a filtered list
+                    shows headings only for the groups that still have
+                    something in them. */}
+                {heading && entry.group !== matches[index - 1]?.group && (
+                  <span className="rich-pick__group" role="presentation">
+                    {heading}
+                  </span>
+                )}
+                <button
+                  ref={entry.id === activeId ? activeRef : undefined}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={entry.id === activeId}
+                  className={`rich-pick__item${
+                    entry.id === activeId ? ' is-active' : ''
+                  }`}
+                  onClick={() => pick(entry.id)}
+                >
+                  {entry.icon}
+                  <span>
+                    <strong>{entry.name}</strong>
+                    <small>{entry.hint}</small>
+                  </span>
+                </button>
+              </Fragment>
+            );
+          })}
+        </div>
 
         {renderFooter && (
           <div className="rich-pick__footer">

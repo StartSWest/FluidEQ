@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'sass:color' as sass-color;
 @use 'color' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
 // The trigger-and-menu pattern the EQ toolbar established, under a name that
@@ -98,55 +99,82 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // The toolbar has no room for six cards, so the names live in here instead.
+//
+// Three stacked parts: the search, the list, and a caller's actions. Only the
+// list scrolls. The search and the actions keep their places at the two ends,
+// and when the window is too short for everything it is the list that gives
+// up height — down to the minimum below — never the actions at the foot.
 .rich-pick__menu {
   @include menu-surface;
   // Positioned by AnchoredMenu, which renders it into the body so the panel
   // it lives in cannot clip it.
   z-index: 1000;
-  // Keep the sticky search row in a local stacking context. Without this,
-  // scrolling rows can be composited above it while the menu animates.
+  // The two ends lift over the list they cast their edges onto; this keeps
+  // that stacking inside the menu while it animates in.
   isolation: isolate;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   // Wide enough for a name and the line under it to sit on one row each.
   // At 236 most descriptions were truncated after four words, which is a
   // subtitle that costs a row and says nothing.
   width: 300px;
-  // The search row owns the top edge. Leaving menu padding above a sticky row
-  // creates a strip where scrolled entries can remain visible.
-  padding: 0 6px 6px;
-  gap: 2px;
+  // The list's scroll position, readable by the search row and the actions
+  // beside it rather than only by what is inside it.
+  timeline-scope: --rich-pick-list;
 }
 
-// Sticky, so it never scrolls away from the list it is filtering.
+// Never scrolls away from the list it is filtering.
 //
 // A search field that leaves the viewport as soon as you scroll is one you have
 // to scroll back up to correct, and correcting it is most of what it is for —
 // a list of forty-six gets searched by typing, looking, and typing something
 // else.
-//
-// Opaque rather than transparent: the surface it sits on is a gradient over a
-// blurred backdrop, and rows passing underneath a translucent bar read as a
-// rendering fault rather than as scrolling.
 .rich-pick__search {
   @include menu-search;
-  position: sticky;
-  z-index: 2;
-  top: 0;
-  // Out to the menu's own padding, so the hairline spans the full width. The
-  // strip the rows scroll under is painted by `::before`, in the menu's own
-  // colour.
-  margin: 0 -6px 4px;
-  padding: 0 12px;
+  z-index: 1;
+  flex: none;
+  // An edge only once rows are under it, as the Studio's own top bar does: a
+  // soft shadow that arrives over the first few pixels of scrolling and is
+  // gone at the top, where there is nothing to lift off.
+  animation: rich-pick-search-edge linear both;
+  animation-timeline: --rich-pick-list;
+  animation-range: 0 $spacing-l;
+}
 
-  &::before {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    // The menu's own colour, so the strip is invisible until rows scroll
-    // under it; a tone of its own here read as a header the menu did not
-    // have.
-    background: $surface-menu-face;
-    content: '';
+// Shrinks before anything else does when the menu is capped, but not to a
+// sliver: two rows, or the whole list when it is shorter than that — a
+// filtered list of one keeps its own height rather than being padded out into
+// a gap above the actions. Below that the menu scrolls as a whole. The floor
+// sits under what the Studio's project list gets at the app's minimum window
+// height with the now-playing bar up, about 128px, so that case never scrolls
+// the actions away.
+.rich-pick__list {
+  display: grid;
+  align-content: start;
+  flex: 0 1 auto;
+  gap: 2px;
+  min-height: calc-size(max-content, min(size, 96px));
+  // The 6px above is the gap the search row used to keep below itself, inside
+  // the scroller now so rows travel right up to the hairline.
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  // A row the arrows bring into view keeps the gap it has at rest, instead of
+  // landing flush against the hairline.
+  scroll-padding-block: 6px;
+  scroll-timeline: --rich-pick-list block;
+}
+
+// Not the Studio top bar's `0 14px 18px -16px`: a spread of -16px shrinks a
+// 32px search row to a shape with no height, and side by side at 2x the edge
+// barely registered over the rows. -10px leaves a shape to blur.
+@keyframes rich-pick-search-edge {
+  from {
+    box-shadow: 0 10px 14px -10px transparent;
+  }
+
+  to {
+    box-shadow: 0 10px 14px -10px rgba($black, 0.7);
   }
 }
 
@@ -164,16 +192,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // it separates the list without competing with the names in it.
 .rich-pick__group {
   margin: 8px 0 2px;
+  // Its own top margin, so arrowing back to the first row scrolls the list to
+  // exactly where it opened rather than 8px short of it.
+  scroll-margin-top: 8px;
   padding: 0 8px;
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-
-  &:first-child {
-    margin-top: 2px;
-  }
 }
 
 .rich-pick__item {
@@ -231,12 +258,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Actions under the list, apart from it: they make or bring a new entry
 // rather than choose one, so a hairline separates them and they sit in the
 // quiet accent instead of the rows' white.
+//
+// Held at the foot of the menu however long the list is. They sat after the
+// last row, so with forty projects every one of them was a scroll away.
 .rich-pick__footer {
+  position: relative;
+  z-index: 1;
   display: grid;
+  flex: none;
   gap: 2px;
-  margin: 4px -6px 0;
-  padding: 6px 6px 0;
+  padding: 6px;
   border-top: 1px solid $border-subtle;
+  // The search row's edge, turned over: present while rows are hidden under
+  // the actions, fading over the last few pixels of the list, gone at its end.
+  animation: rich-pick-footer-edge linear both;
+  animation-timeline: --rich-pick-list;
+  animation-range: calc(100% - #{$spacing-l}) 100%;
+}
+
+@keyframes rich-pick-footer-edge {
+  from {
+    box-shadow: 0 -10px 14px -10px rgba($black, 0.7);
+  }
+
+  to {
+    box-shadow: 0 -10px 14px -10px transparent;
+  }
 }
 
 .rich-pick__action {
