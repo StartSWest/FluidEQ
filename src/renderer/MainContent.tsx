@@ -84,7 +84,6 @@ import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
 import BandLayoutMenu from './components/BandLayoutMenu';
 import ClearEqButton from './components/ClearEqButton';
-import FluidEngineLabel from './components/FluidEngineLabel';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
 import ConfirmIcon from './icons/ConfirmIcon';
@@ -949,7 +948,6 @@ const MainContent = () => {
         <div>
           <span className="eyebrow">{t('eq.eyebrow')}</span>
           <h2>{t('eq.title')}</h2>
-          <FluidEngineLabel />
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />

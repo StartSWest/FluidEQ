@@ -65,6 +65,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.proportionalHint': 'अधिक बूस्ट और कट संकरे होते हैं।',
   'eq.mode.asymmetricHint': 'चौड़े बूस्ट और संकरे कट।',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'EQ मोड',
   'eq.mode.normal': 'सामान्य',

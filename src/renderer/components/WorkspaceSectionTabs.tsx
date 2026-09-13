@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import { useSlidingIndicator } from '../utils/useSlidingIndicator';
 
 export type TSectionTab = { id: string; label: string };
@@ -38,42 +38,49 @@ const WorkspaceSectionTabs = ({
   tabs,
   activeId,
   onSelect,
+  children,
 }: {
   label: string;
   tabs: readonly TSectionTab[];
   activeId: string;
   onSelect: (id: string) => void;
+  children?: ReactNode;
 }) => {
   const { ref, box } = useSlidingIndicator<HTMLDivElement>();
 
   return (
-    <div
-      ref={ref}
-      className="workspace-tab-group"
-      role="tablist"
-      aria-label={label}
-      style={
-        box
-          ? ({
-              '--section-bar-x': `${box.x}px`,
-              '--section-bar-width': `${box.width}px`,
-            } as CSSProperties)
-          : undefined
-      }
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          role="tab"
-          aria-selected={activeId === tab.id}
-          className={`workspace-pill${activeId === tab.id ? ' is-active' : ''}`}
-          onClick={() => onSelect(tab.id)}
-        >
-          {tab.label}
-        </button>
-      ))}
-      {box && <span className="workspace-tab-group__bar" aria-hidden="true" />}
+    <div className="workspace-section-header">
+      <div
+        ref={ref}
+        className="workspace-tab-group"
+        role="tablist"
+        aria-label={label}
+        style={
+          box
+            ? ({
+                '--section-bar-x': `${box.x}px`,
+                '--section-bar-width': `${box.width}px`,
+              } as CSSProperties)
+            : undefined
+        }
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeId === tab.id}
+            className={`workspace-pill${activeId === tab.id ? ' is-active' : ''}`}
+            onClick={() => onSelect(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+        {box && (
+          <span className="workspace-tab-group__bar" aria-hidden="true" />
+        )}
+      </div>
+      {children}
     </div>
   );
 };

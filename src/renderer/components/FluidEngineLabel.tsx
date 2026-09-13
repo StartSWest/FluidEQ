@@ -6,6 +6,13 @@ export default function FluidEngineLabel() {
   const { status } = useAudioEngineStatus();
   const { isEngineUsable } = useFluidEqContext();
   const { t } = useTranslation();
+  if (status?.engine === 'apo' && status.apo.installed && isEngineUsable) {
+    return (
+      <p className="eq-engine-label eq-engine-label--apo">
+        {t('eq.apoEngine')}
+      </p>
+    );
+  }
   if (
     status?.engine !== 'fluid' ||
     !status.fluid.installed ||

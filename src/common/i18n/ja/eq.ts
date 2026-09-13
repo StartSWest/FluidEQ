@@ -67,6 +67,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.proportionalHint': '強いブーストやカットほど幅が狭くなります。',
   'eq.mode.asymmetricHint': '幅広いブーストと狭いカット。',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'EQモード',
   'eq.mode.normal': '通常',

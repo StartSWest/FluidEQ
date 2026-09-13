@@ -64,6 +64,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.proportionalHint': 'Le correzioni più forti diventano più strette.',
   'eq.mode.asymmetricHint': 'Aumenti più ampi e tagli più stretti.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'Modalità EQ',
   'eq.mode.normal': 'Normale',

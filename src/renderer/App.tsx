@@ -118,6 +118,7 @@ import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
 import WorkspaceSectionTabs from './components/WorkspaceSectionTabs';
+import FluidEngineLabel from './components/FluidEngineLabel';
 import {
   clampToWindow,
   commitPaneSizes,
@@ -674,7 +675,9 @@ const AppContent = () => {
           selectTopWorkspaceTab(next);
         }
       }}
-    />
+    >
+      <FluidEngineLabel />
+    </WorkspaceSectionTabs>
   );
   const isVideoTab = activeWorkspaceTab === 'video';
   const isMediaTabOneWord = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
@@ -2572,67 +2575,31 @@ const AppContent = () => {
           >
             {/* The six places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
-            {activeWorkspaceTab === 'eq' && (
+            {isEqGroupTab(activeWorkspaceTab) && (
+              // The shared header must outlive section changes: remounting the
+              // engine label briefly hid it while status loaded and restarted
+              // its rainbow animation. Only the scroll content is keyed.
               <div
-                // Remounts on every tab change so the panel entrance animation
-                // replays. Voicing and convolution share this element, so
-                // without a key switching between them changed the contents
-                // with no transition at all.
-                key={activeWorkspaceTab}
-                // Inert when the equaliser is switched off, and equally inert
-                // when Equalizer APO is not installed — in both cases there is
-                // nothing behind these sliders and moving one changes nothing
-                // you can hear. The app is still worth looking at, which is
-                // why it is dimmed rather than replaced by an error screen.
-                className={`workspace-tab-panel workspace-tab-panel--eq${
-                  !isEngineUsable ? ' is-engine-disabled' : ''
-                }`}
-                aria-disabled={!isEngineUsable}
+                key="eq-workspace"
+                className={`workspace-tab-panel workspace-tab-panel--${
+                  activeWorkspaceTab === 'voicing'
+                    ? 'convolution'
+                    : activeWorkspaceTab
+                }${!isEngineUsable ? ' is-engine-disabled' : ''}`}
+                aria-disabled={
+                  activeWorkspaceTab === 'config' ? undefined : !isEngineUsable
+                }
               >
                 {eqGroupPills}
-                <div className="workspace-tab-panel__scroll">
-                  <MainContent />
-                </div>
-              </div>
-            )}
-            {/* Its own page rather than a strip above the bands, which is
-                where it used to live. It was the first thing on the EQ tab and
-                the one thing there that is not a band, so it took a row of the
-                editor's height from everybody — including everybody who does
-                not own a measured headphone. */}
-            {activeWorkspaceTab === 'presets' && (
-              <div
-                key={activeWorkspaceTab}
-                className={`workspace-tab-panel workspace-tab-panel--presets${
-                  !isEngineUsable ? ' is-engine-disabled' : ''
-                }`}
-                aria-disabled={!isEngineUsable}
-              >
-                {eqGroupPills}
-                <div className="workspace-tab-panel__scroll">
-                  <EqPresetsPanel />
-                </div>
-              </div>
-            )}
-            {(activeWorkspaceTab === 'voicing' ||
-              activeWorkspaceTab === 'convolution') && (
-              // Voicing and convolution are both written into the same APO
-              // config as the EQ, so with the engine off they are just as inert
-              // and read the same way.
-              <div
-                key={activeWorkspaceTab}
-                className={`workspace-tab-panel workspace-tab-panel--convolution${
-                  !isEngineUsable ? ' is-engine-disabled' : ''
-                }`}
-                aria-disabled={!isEngineUsable}
-              >
-                {eqGroupPills}
-                <div className="workspace-tab-panel__scroll">
-                  {activeWorkspaceTab === 'voicing' ? (
-                    <VoicingPanel />
-                  ) : (
-                    <ConvolutionPanel />
-                  )}
+                <div
+                  key={activeWorkspaceTab}
+                  className="workspace-tab-panel__scroll"
+                >
+                  {activeWorkspaceTab === 'eq' && <MainContent />}
+                  {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
+                  {activeWorkspaceTab === 'voicing' && <VoicingPanel />}
+                  {activeWorkspaceTab === 'convolution' && <ConvolutionPanel />}
+                  {activeWorkspaceTab === 'config' && <ConfigInspector />}
                 </div>
               </div>
             )}
@@ -2696,27 +2663,6 @@ const AppContent = () => {
                 className="workspace-tab-panel workspace-tab-panel--forum"
               >
                 <ForumPanel />
-              </div>
-            )}
-            {/* Dimmed with the rest of the group, and still readable.
-                It used to be the one EQ page that stayed at full strength with
-                the engine off, on the argument that a config viewer is at its
-                most useful precisely then. What that produced was one page in
-                a row of five that did not react to the switch at all, so the
-                group read as three quarters disabled. It carries the same dim
-                now; nothing here is a control, so nothing is taken away by
-                it. */}
-            {activeWorkspaceTab === 'config' && (
-              <div
-                key={activeWorkspaceTab}
-                className={`workspace-tab-panel workspace-tab-panel--config${
-                  !isEngineUsable ? ' is-engine-disabled' : ''
-                }`}
-              >
-                {eqGroupPills}
-                <div className="workspace-tab-panel__scroll">
-                  <ConfigInspector />
-                </div>
               </div>
             )}
             {/* A loaded guest gets a five-second silent lease through a tab

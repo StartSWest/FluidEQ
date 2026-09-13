@@ -65,6 +65,7 @@ const eq: Partial<Dictionary> = {
     'Более сильные усиления и ослабления становятся уже.',
   'eq.mode.asymmetricHint': 'Более широкие усиления и более узкие ослабления.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'Режим EQ',
   'eq.mode.normal': 'Обычный',

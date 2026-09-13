@@ -67,6 +67,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.asymmetricHint':
     'Amplifications plus larges et atténuations plus étroites.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'Mode EQ',
   'eq.mode.normal': 'Normal',

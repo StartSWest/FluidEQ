@@ -61,6 +61,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.proportionalHint': '增强和衰减越大，带宽越窄。',
   'eq.mode.asymmetricHint': '更宽的增强，更窄的衰减。',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'EQ 模式',
   'eq.mode.normal': '普通',

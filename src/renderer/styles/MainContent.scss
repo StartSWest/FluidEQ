@@ -67,11 +67,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Placed at the end of the EQ group's section row by
+// `.workspace-section-header > .eq-engine-label` in App.scss.
 .eq-engine-label {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 0 0 auto;
   max-width: 100%;
   margin: 0;
   font-size: $text-title;
@@ -109,6 +108,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @media (forced-colors: active) {
     color: CanvasText;
     background: none;
+  }
+
+  // APO names the selected engine without borrowing FluidEQ's rainbow identity.
+  &.eq-engine-label--apo {
+    color: $text-primary;
+    background: none;
+    animation: none;
   }
 }
 

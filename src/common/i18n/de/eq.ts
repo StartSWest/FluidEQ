@@ -68,6 +68,7 @@ const eq: Partial<Dictionary> = {
     'Stärkere Anhebungen und Absenkungen werden schmaler.',
   'eq.mode.asymmetricHint': 'Breitere Anhebungen und schmalere Absenkungen.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'EQ-Modus',
   'eq.mode.normal': 'Normal',

@@ -61,6 +61,7 @@ const eq = {
   'eq.mode.proportionalHint': 'Stronger boosts and cuts become narrower.',
   'eq.mode.asymmetricHint': 'Broader boosts and narrower cuts.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'EQ mode',
   'eq.mode.normal': 'Normal',

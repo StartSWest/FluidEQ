@@ -65,6 +65,7 @@ const eq: Partial<Dictionary> = {
   'eq.mode.proportionalHint': 'Los realces y recortes fuertes se estrechan.',
   'eq.mode.asymmetricHint': 'Realces más amplios y recortes más estrechos.',
   'eq.double': 'EQ ×2',
+  'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
   'eq.mode': 'Modo EQ',
   'eq.mode.normal': 'Normal',
