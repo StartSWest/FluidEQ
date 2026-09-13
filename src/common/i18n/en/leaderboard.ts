@@ -11,7 +11,7 @@ const leaderboard = {
     'Plus members ranked by listening, active days and scene likes',
   'leaderboard.card.title': 'Leaderboard',
   'leaderboard.card.body':
-    'Who listens most, among Plus members. Off unless you join. If you do, the app sends one number for each day — whole minutes of music that played, capped at sixteen hours — with its date, and updates it when you come back to the computer or open the board. Never what you played, never where from.',
+    'Who listens most, among Plus members. Off unless you join. If you do, the app sends one number for each day — whole minutes of music that played, capped at sixteen hours — with its date and a random id for this computer, and updates it when you come back to the computer or open the board. Your name and totals are shown to anyone signed in. Never what you played, never where from.',
   'leaderboard.card.today': 'Today so far: {hours} h',
   'leaderboard.card.join': 'Join the leaderboard',
   'leaderboard.card.leave': 'Leave the leaderboard',

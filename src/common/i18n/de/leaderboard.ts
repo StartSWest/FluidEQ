@@ -4,7 +4,7 @@ const leaderboard = {
     'Plus-Mitglieder nach Hören, aktiven Tagen und „Gefällt mir“ für Szenen',
   'leaderboard.card.title': 'Rangliste',
   'leaderboard.card.body':
-    'Wer am meisten hört, unter den Plus-Mitgliedern. Aus, solange Sie nicht beitreten. Wenn Sie es tun, sendet die App eine einzige Zahl pro Tag – ganze Minuten gespielter Musik, gedeckelt bei sechzehn Stunden – mit ihrem Datum und aktualisiert sie, wenn Sie an den Computer zurückkehren oder die Rangliste öffnen. Niemals, was Sie gehört haben, und niemals, woher.',
+    'Wer am meisten hört, unter den Plus-Mitgliedern. Aus, solange Sie nicht beitreten. Wenn Sie es tun, sendet die App eine einzige Zahl pro Tag – ganze Minuten gespielter Musik, gedeckelt bei sechzehn Stunden – mit ihrem Datum und einer zufälligen Kennung dieses Computers und aktualisiert sie, wenn Sie an den Computer zurückkehren oder die Rangliste öffnen. Ihr Name und Ihre Summen sind für alle Angemeldeten sichtbar. Niemals, was Sie gehört haben, und niemals, woher.',
   'leaderboard.card.today': 'Heute bisher: {hours} h',
   'leaderboard.card.join': 'Der Rangliste beitreten',
   'leaderboard.card.leave': 'Rangliste verlassen',
