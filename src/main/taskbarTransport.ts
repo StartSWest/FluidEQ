@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import path from 'path';
 import { BrowserWindow, ipcMain, nativeImage, nativeTheme } from 'electron';
 import log from 'electron-log';
+import allowTaskbarMessages from './taskbarMessages';
 import { resolveLocale, translate } from '../common/i18n';
 import {
   ITaskbarTransportState,
@@ -29,6 +30,12 @@ const EMPTY: ITaskbarTransportState = {
 const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
   if (process.platform !== 'win32') {
     return;
+  }
+  try {
+    allowTaskbarMessages(window.getNativeWindowHandle());
+    log.info('Taskbar command delivery ready');
+  } catch (error) {
+    log.error('Could not enable taskbar command delivery', error);
   }
   let state = EMPTY;
   let applied: string | undefined;
@@ -59,6 +66,7 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
       !window.webContents.isDestroyed() &&
       enabled(action)
     ) {
+      log.info('Taskbar playback command', action);
       window.webContents.send(TASKBAR_TRANSPORT_ACTION, action);
     }
   };

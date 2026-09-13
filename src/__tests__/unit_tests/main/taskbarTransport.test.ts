@@ -18,6 +18,7 @@ const handlers = new Map<string, (event: unknown, state: unknown) => void>();
 const theme = Object.assign(new EventEmitter(), {
   shouldUseDarkColorsForSystemIntegratedUI: true,
 });
+jest.mock('../../../main/taskbarMessages', () => jest.fn());
 jest.mock('electron', () => ({
   ipcMain: {
     handle: (
@@ -82,6 +83,7 @@ beforeEach(() => {
     isDestroyed: () => false,
     isVisible: () => visible,
     isMinimized: () => minimized,
+    getNativeWindowHandle: () => Buffer.alloc(8),
     setThumbarButtons: (next: ThumbarButton[]) => {
       // Electron 43's GetThumbarButtonFlags accepts these strings only.
       // Its TypeScript "enabled" option silently rejects the whole toolbar.

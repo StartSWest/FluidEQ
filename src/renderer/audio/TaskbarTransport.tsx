@@ -32,6 +32,7 @@ const TaskbarTransport = ({ tabOwner }: { tabOwner?: TPlaybackOwner }) => {
       // Read the current bar at click time. Holding the source from the first
       // render would keep controlling its old queue after a player handoff.
       const { current } = sourceRef;
+      log.info('Taskbar command received', { action, owner: current?.owner });
       if (action === 'toggle' && current?.canToggle !== false) {
         current?.toggle();
       }

@@ -13,6 +13,7 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {
+    "koffi": "3.2.1",
     "onnxruntime-node": "1.27.0"
   }
 }

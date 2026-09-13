@@ -11,6 +11,7 @@ allowBuilds:
   electron-chromedriver: true
   electron-winstaller: true
   geckodriver: true
+  koffi: true
   lzma-native: true
   onnxruntime-node: false
   protobufjs: true
