@@ -122,6 +122,16 @@ const eq = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.attack': 'Attack',
+  'graph.scene.attackHint':
+    'How fast this visualizer rises to the music. Short is punchy, long swells.',
+  'graph.scene.release': 'Release',
+  'graph.scene.releaseHint':
+    'How slowly it falls back after each hit. Long leaves a glow.',
+  'graph.scene.ms': '{ms} ms',
+  'graph.scene.ownTiming': 'Use its own timing',
+  'graph.scene.ownTimingHint':
+    'Back to the attack and release this visualizer came with',
   'graph.scene.locked':
     'Part of FluidEQ Plus. Choose it to see how to unlock it.',
   'graph.style.next': 'Next style',

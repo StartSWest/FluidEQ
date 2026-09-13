@@ -113,6 +113,14 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.attack': '起音',
+  'graph.scene.attackHint':
+    '此可视化效果随音乐上升的速度。短则干脆，长则渐强。',
+  'graph.scene.release': '释放',
+  'graph.scene.releaseHint': '每次击打后回落的速度有多慢。长则留下余辉。',
+  'graph.scene.ms': '{ms} 毫秒',
+  'graph.scene.ownTiming': '使用其原始节奏',
+  'graph.scene.ownTimingHint': '恢复此可视化效果自带的起音和释放',
   'graph.scene.locked': 'FluidEQ Plus 专属。选择它即可了解如何解锁。',
   'graph.style.next': '下一个样式',
   'graph.style.previous': '上一个样式',

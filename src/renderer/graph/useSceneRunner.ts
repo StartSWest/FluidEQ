@@ -56,6 +56,7 @@ export default function useSceneRunner({
   shapeFrame,
   tuning,
   onDrawn,
+  onLoaded,
 }: ISceneRunnerOptions): RefObject<HTMLCanvasElement | null> {
   const { points, waveform } = useLiveAudioFrame();
   const { isPaused } = useLiveAudioControl();
@@ -92,6 +93,8 @@ export default function useSceneRunner({
   const tunerRef = useRef(createSceneTuner());
   const drawnRef = useRef(onDrawn);
   drawnRef.current = onDrawn;
+  const loadedRef = useRef(onLoaded);
+  loadedRef.current = onLoaded;
   const pointsRef = useRef(points);
   pointsRef.current = isPaused ? NO_POINTS : points;
   const waveformSamplesRef = useRef(waveform);
@@ -336,6 +339,7 @@ export default function useSceneRunner({
           pack.params.map((param) => [param.id, param.value]),
         );
         ladderRef.current = sourceRef.current.createLadder();
+        loadedRef.current?.(pack);
         kick();
       } catch (error) {
         if (!lostRef.current && generation === generationRef.current) {

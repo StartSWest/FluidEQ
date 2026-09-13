@@ -124,6 +124,7 @@ import {
   useGraphLook,
   useGraphPalette,
   useIsPaletteSelectable,
+  useSceneLook,
   useSelectedLookId,
 } from '../utils/graphStyle';
 import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
@@ -531,6 +532,9 @@ const FrequencyResponseChart = ({
   // A Plus look or a member's scene: either has no tuning for the designer.
   const isPremiumSceneSelected =
     isPremiumLookId(selectedLookId) || isMemberLookId(selectedLookId);
+  // The Plus visualizer actually on the plot, for the View menu's attack and
+  // release: null while it falls back or the designer's draft is showing.
+  const drawnScene = useSceneLook();
   const graphPalette: GraphPalette = useGraphPalette();
   const isPaletteSelectable = useIsPaletteSelectable();
   const customLooks = useCustomLooks();
@@ -2148,6 +2152,7 @@ const FrequencyResponseChart = ({
               maxOverlayBlur={MAX_OVERLAY_BLUR}
               hasTopBar={hasTopBar}
               onToggleTopBar={toggleFullScreenTopBar}
+              sceneLookId={drawnScene?.lookId}
             />
           </span>
           {/* No way out here any more. Full screen keeps the app's own top

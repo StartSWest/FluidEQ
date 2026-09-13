@@ -33,6 +33,7 @@ import {
   TGraphView,
   TWaveOrientation,
 } from '../utils/graphStyle';
+import SceneResponseMenu from './SceneResponseMenu';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -102,6 +103,11 @@ interface IGraphViewMenuProps {
   /** Whether full screen keeps FluidEQ's own top bar. Full screen only. */
   hasTopBar: boolean;
   onToggleTopBar: () => void;
+  /**
+   * The Plus visualizer on the plot, if one is: the menu then carries its
+   * attack and release.
+   */
+  sceneLookId?: string;
 }
 
 /** Names the state the next press moves to, since three states cycle. */
@@ -221,6 +227,7 @@ const GraphViewMenu = ({
   maxOverlayBlur,
   hasTopBar,
   onToggleTopBar,
+  sceneLookId,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -685,6 +692,11 @@ const GraphViewMenu = ({
             <span>{t('graph.style.previous')}</span>
             <kbd>Ctrl+Space</kbd>
           </button>
+
+          {/* Beside the style rows, because they belong to the visualizer
+              being looked at rather than to the graph: in every view mode,
+              and kept for that visualizer. */}
+          {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
 
           {/* Two sliders, in the menu rather than in the strip beside it.
 

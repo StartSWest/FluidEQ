@@ -18,7 +18,11 @@ import { createSpectrumTexels, createWaveformTexels } from './sceneUniforms';
 export interface ISceneTuning {
   /** By param id; one the scene does not have is ignored, each is clamped. */
   params?: Readonly<Record<string, number>>;
-  response?: ISceneResponse;
+  /**
+   * Over the pack's response, key by key: the Studio sends all four, the
+   * graph's menu only the attack and release a listener moved.
+   */
+  response?: Readonly<Partial<ISceneResponse>>;
 }
 
 export interface ISceneTuner {
@@ -76,9 +80,31 @@ export const createSceneTuner = (): ISceneTuner => {
     return params;
   };
 
+  let heardThrough: {
+    own: ISceneResponse | undefined;
+    chosen: Readonly<Partial<ISceneResponse>> | undefined;
+    response: ISceneResponse;
+  } = { own: undefined, chosen: undefined, response: NEUTRAL_RESPONSE };
+
+  /** Made again only when the pack's response or the chosen one changes. */
+  const responseOf = (
+    pack: IScenePack | null,
+    chosen: Readonly<Partial<ISceneResponse>> | undefined,
+  ) => {
+    const own = pack?.response;
+    if (heardThrough.own !== own || heardThrough.chosen !== chosen) {
+      heardThrough = {
+        own,
+        chosen,
+        response: { ...(own ?? NEUTRAL_RESPONSE), ...chosen },
+      };
+    }
+    return heardThrough.response;
+  };
+
   return {
     apply: (shaped, deltaMs, pack, base, tuning) => {
-      const response = tuning?.response ?? pack?.response ?? NEUTRAL_RESPONSE;
+      const response = responseOf(pack, tuning?.response);
       const heard = isNeutralResponse(response)
         ? shaped
         : {

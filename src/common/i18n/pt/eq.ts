@@ -120,6 +120,16 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.attack': 'Ataque',
+  'graph.scene.attackHint':
+    'Com que rapidez este visualizador sobe com a música. Curto é marcante; longo cresce devagar.',
+  'graph.scene.release': 'Liberação',
+  'graph.scene.releaseHint':
+    'Com que lentidão volta a cair depois de cada batida. Longo deixa um brilho.',
+  'graph.scene.ms': '{ms} ms',
+  'graph.scene.ownTiming': 'Usar o ritmo original',
+  'graph.scene.ownTimingHint':
+    'Volta ao ataque e à liberação com que este visualizador veio',
   'graph.scene.locked':
     'Faz parte do FluidEQ Plus. Escolha-o para ver como desbloqueá-lo.',
   'graph.style.next': 'Próximo estilo',

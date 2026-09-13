@@ -1,45 +1,15 @@
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
-import {
-  RESPONSE_KEYS,
-  RESPONSE_LIMITS,
-  type ISceneResponse,
-} from 'common/sceneResponse';
+import { RESPONSE_KEYS, type ISceneResponse } from 'common/sceneResponse';
 import { useTranslation } from '../utils/I18nContext';
+import {
+  RESPONSE_SLIDER_STEPS as STEPS,
+  responseFromPosition as fromPosition,
+  responseToPosition as toPosition,
+} from '../utils/responseSlider';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
-
-/** Slider positions: fine enough that no control jumps between two. */
-const STEPS = 1000;
-
-/**
- * Where a response value sits on its slider, and back. Sensitivity is
- * logarithmic, so neutral (100%) is the middle and halving and doubling are
- * the same distance either side; the two times are squared, so the short
- * ones a snappy scene wants get most of the travel.
- */
-const toPosition = (key: keyof ISceneResponse, value: number) => {
-  const [min, max] = RESPONSE_LIMITS[key];
-  if (key === 'sensitivity') {
-    return Math.log(value / min) / Math.log(max / min);
-  }
-  if (key === 'attack' || key === 'release') {
-    return Math.sqrt((value - min) / (max - min));
-  }
-  return (value - min) / (max - min);
-};
-
-const fromPosition = (key: keyof ISceneResponse, position: number) => {
-  const [min, max] = RESPONSE_LIMITS[key];
-  if (key === 'sensitivity') {
-    return min * (max / min) ** position;
-  }
-  if (key === 'attack' || key === 'release') {
-    return Math.round(min + (max - min) * position * position);
-  }
-  return min + (max - min) * position;
-};
 
 const RESPONSE_TEXT: Record<
   keyof ISceneResponse,

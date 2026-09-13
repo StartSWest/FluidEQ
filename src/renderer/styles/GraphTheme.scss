@@ -1150,6 +1150,23 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
+// A Plus visualizer's attack and release (`SceneResponseMenu.tsx`): the same
+// slider as the rest of the menu, with its value beside it — a timing is read
+// as a number, where a height is judged by eye — and a mark on the track where
+// the visualizer's own value sits, which the thumb falls onto.
+.graph-view-menu__slider > .graph-view-menu__value {
+  min-width: 6ch;
+  flex: 0 0 auto;
+  color: $text-faint;
+  text-align: right;
+}
+
+.graph-view-menu__snap--own {
+  width: 2px;
+  height: 7px;
+  background: rgba($secondary-light, 0.55);
+}
+
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;

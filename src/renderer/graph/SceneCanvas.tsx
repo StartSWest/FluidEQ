@@ -1,4 +1,9 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { IScenePack } from 'common/scenePacks';
+import {
+  reportOwnResponse,
+  useListenerResponse,
+} from '../utils/sceneResponseStore';
 import {
   blockScene,
   loadScenePack,
@@ -91,7 +96,27 @@ export default function SceneCanvas({
     [member, key, version, name],
   );
 
-  const canvasRef = useSceneRunner({ source, width, height, spectrumRect });
+  // The listener's own attack and release for this visualizer, from the
+  // graph's menu, over the timing its pack came with.
+  const { lookId } = scene;
+  const chosen = useListenerResponse(lookId);
+  const tuning = useMemo(
+    () => (chosen ? { response: chosen } : undefined),
+    [chosen],
+  );
+  const onLoaded = useCallback(
+    (pack: IScenePack) => reportOwnResponse(lookId, pack.response),
+    [lookId],
+  );
+
+  const canvasRef = useSceneRunner({
+    source,
+    width,
+    height,
+    spectrumRect,
+    tuning,
+    onLoaded,
+  });
 
   return (
     <canvas

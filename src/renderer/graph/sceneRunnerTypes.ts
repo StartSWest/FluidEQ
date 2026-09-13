@@ -41,6 +41,11 @@ export interface ISceneRunnerOptions {
   /** Read every frame, so moving a slider moves the scene at once. */
   tuning?: ISceneTuning;
   /**
+   * The pack each time a version of it becomes the one being drawn — the
+   * graph's menu starts its attack and release from what the scene came with.
+   */
+  onLoaded?: (pack: IScenePack) => void;
+  /**
    * After every drawn frame: what the scene got, the ladder's scale, the
    * musical accent's envelope the scene was given, and what it heard before
    * its response bent it — the Studio's meters show both.
