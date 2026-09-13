@@ -9,21 +9,14 @@ import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterBar from './DspMasterBar';
+import DspMasterDevSafety from './DspMasterDevSafety';
 import DspMasterGraph from './DspMasterGraph';
 import { IMasterLoudnessBreakdown } from './inputNormalizer';
-import { IDspOutputSafetyMeter } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
-const meterDb = (value: number): string =>
-  value <= -119.5 ? '≤−120 dB' : `${value.toFixed(1)} dB`;
-
-const meterDbfs = (value: number): string =>
-  value <= -119.5 ? '≤−120 dBFS' : `${value.toFixed(1)} dBFS`;
-
 interface IDspMasterCardProps {
   master: IMasterSettings;
-  meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
   /**
    * The makeup AND why it is that number.
@@ -41,7 +34,6 @@ interface IDspMasterCardProps {
 /** The transparent output boundary, deliberately last in the visible chain. */
 const DspMasterCard = ({
   master,
-  meter,
   safetyEnabled,
   loudness,
   onSafetyToggle,
@@ -49,6 +41,9 @@ const DspMasterCard = ({
   onCommit,
 }: IDspMasterCardProps) => {
   const { t } = useTranslation();
+  // No output-safety meter on this component: it changes with every host
+  // frame, so the graph and the development readout each read it themselves
+  // and this page's dials are not redrawn a hundred times a second.
   const loudnessGainDb = loudness.appliedDb;
   /**
    * Any change to a delivery number makes the result Custom; the rest do not.
@@ -60,20 +55,6 @@ const DspMasterCard = ({
    */
   const patchDelivery = (next: Partial<IMasterSettings>) =>
     onPatch({ ...master, ...next, presetId: '' });
-  const usesSelectedHeadroom = master.loudnessMaximize;
-  const autoGainReductionDb = meter.postFilterNormalizer.gainReductionDb;
-  const safetyGainReductionDb = safetyEnabled ? meter.gainReductionDb : 0;
-  const totalGainReductionDb = autoGainReductionDb + safetyGainReductionDb;
-  const projectedHeadroomInputDb =
-    meter.postFilterNormalizer.inputTruePeakDb <= -119.5
-      ? -120
-      : meter.postFilterNormalizer.inputTruePeakDb +
-        master.outputTrimDb +
-        loudnessGainDb;
-  const displayedTruePeakDb = Math.max(
-    master.enabled && usesSelectedHeadroom ? projectedHeadroomInputDb : -120,
-    safetyEnabled ? meter.inputTruePeakDb : -120,
-  );
 
   return (
     <ProcessorCard
@@ -90,7 +71,6 @@ const DspMasterCard = ({
     >
       <DspMasterGraph
         master={master}
-        meter={meter}
         safetyEnabled={safetyEnabled}
         loudnessGainDb={loudnessGainDb}
       />
@@ -234,51 +214,12 @@ const DspMasterCard = ({
       </div>
 
       {IS_DEV ? (
-        <div
-          className={`dsp-band dsp-dev-safety${
-            safetyEnabled ? ' is-on' : ' is-off'
-          }${totalGainReductionDb < -0.05 ? ' is-reducing' : ''}`}
-        >
-          <div className="dsp-band-head">
-            <div className="dsp-dev-safety-control">
-              <span className="dsp-band-title">
-                {t('dsp.master.devSafety')}
-              </span>
-              <span className="dsp-dev-safety-state">
-                {safetyEnabled ? t('dsp.enabled') : t('dsp.bypassed')}
-              </span>
-            </div>
-            <Switch
-              id="dsp-dev-output-safety"
-              isOn={safetyEnabled}
-              isDisabled={false}
-              handleToggle={onSafetyToggle}
-              ariaLabel={t('dsp.master.devSafety')}
-            />
-          </div>
-          <p className="dsp-band-hint">{t('dsp.master.devSafetyHint')}</p>
-          <span className="dsp-dev-safety-spec">
-            {t('dsp.master.devSafetySpec')}
-          </span>
-          <span className="dsp-level-meters" aria-live="polite">
-            <span>
-              {t('dsp.master.truePeak')} {meterDb(displayedTruePeakDb)}
-            </span>
-            <span>
-              {t('dsp.master.autoHeadroom')} {meterDb(autoGainReductionDb)}
-            </span>
-            <span>
-              {t('dsp.master.graph.safetyActive')}{' '}
-              {meterDb(safetyGainReductionDb)}
-            </span>
-            <span>
-              {t('dsp.master.dcCorrection')} {meterDbfs(meter.dcCorrectionDb)}
-            </span>
-            <span>
-              {t('dsp.master.faults')} {meter.repairedSamples}
-            </span>
-          </span>
-        </div>
+        <DspMasterDevSafety
+          master={master}
+          safetyEnabled={safetyEnabled}
+          loudnessGainDb={loudnessGainDb}
+          onSafetyToggle={onSafetyToggle}
+        />
       ) : undefined}
     </ProcessorCard>
   );

@@ -13,11 +13,16 @@ import {
   LOUDNESS_SAMPLE_MS,
   paintMasterLoudness,
 } from './masterLoudnessPlot';
-import { IDspOutputSafetyMeter, readDspLoudness, readDspPeak } from './store';
+import { readDspLoudness, readDspPeak, useDspOutputSafetyMeter } from './store';
 import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /** Below this, the slow DC estimate is beneath a useful reporting floor. */
 const DC_REPORT_THRESHOLD_DB = -60;
+/**
+ * How long a status chip keeps reporting an event after the last frame that
+ * showed it — long enough to be read, since a limiter catching one transient
+ * is over within a few milliseconds.
+ */
 const PEAK_EVENT_HOLD_MS = 2_500;
 const DC_EVENT_HOLD_MS = 2_500;
 /** The floor every reading in this display treats as "nothing measured yet". */
@@ -53,7 +58,6 @@ const signedDb = (value: number): string =>
 
 interface IDspMasterGraphProps {
   master: IMasterSettings;
-  meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
   loudnessGainDb: number;
 }
@@ -70,16 +74,31 @@ interface IDspMasterGraphProps {
  */
 const DspMasterGraph = ({
   master,
-  meter,
   safetyEnabled,
   loudnessGainDb,
 }: IDspMasterGraphProps) => {
   const { t } = useTranslation();
+  // Read here, where the status line that shows it lives. Handed down from the
+  // card, every host frame re-rendered the card's five dials and three
+  // switches along with it.
+  const meter = useDspOutputSafetyMeter();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   /** The running loop's way in, for a render that has to reach the canvas. */
   const redraw = useRef<(() => void) | undefined>(undefined);
-  const peakEventTimerRef = useRef<number | undefined>(undefined);
-  const dcEventTimerRef = useRef<number | undefined>(undefined);
+  /**
+   * When each chip's event was last seen, on the `performance.now()` clock.
+   *
+   * The chips hold their event for a while after it ends, and that hold is
+   * measured, not scheduled: every host frame re-renders this component and
+   * stamps the time if the event is still in it, and the frame loop below
+   * releases a hold once that stamp is old enough. It was a `setTimeout`
+   * restarted on each change, which this project does not allow — a callback
+   * guessing when to look again, left to fire on a component that may have
+   * moved on — and which restarted only when a reading CHANGED, so an event
+   * holding one steady value was released while it was still happening.
+   */
+  const peakSeenAtRef = useRef(0);
+  const dcSeenAtRef = useRef(0);
   /**
    * The history rings, owned outside React on purpose.
    *
@@ -146,6 +165,24 @@ const DspMasterGraph = ({
   } else if (overCeiling && !safetyReducing) {
     currentPeakEvent = { kind: 'warning', amount: observedPeakDb };
   }
+  const dcActive = meter.dcCorrectionDb > DC_REPORT_THRESHOLD_DB;
+  /**
+   * What the frame loop needs to decide a release, read there rather than
+   * closed over: the loop outlives many renders, and rebuilding it for every
+   * change to these would cancel frames instead of drawing them.
+   */
+  const holdRef = useRef({
+    peakActive: false,
+    peakHeld: false,
+    dcActive: false,
+    dcHeld: false,
+  });
+  holdRef.current = {
+    peakActive: currentPeakEvent !== undefined,
+    peakHeld: heldPeakEvent !== undefined,
+    dcActive,
+    dcHeld: dcFixed,
+  };
 
   useEffect(() => {
     if (!autoReducing && (!overCeiling || safetyReducing)) {
@@ -169,13 +206,6 @@ const DspMasterGraph = ({
         ? nextPeakEvent
         : previous;
     });
-    if (peakEventTimerRef.current !== undefined) {
-      window.clearTimeout(peakEventTimerRef.current);
-    }
-    peakEventTimerRef.current = window.setTimeout(() => {
-      setHeldPeakEvent(undefined);
-      peakEventTimerRef.current = undefined;
-    }, PEAK_EVENT_HOLD_MS);
   }, [
     autoGainReductionDb,
     autoReducing,
@@ -184,18 +214,6 @@ const DspMasterGraph = ({
     safetyReducing,
   ]);
 
-  useEffect(
-    () => () => {
-      if (peakEventTimerRef.current !== undefined) {
-        window.clearTimeout(peakEventTimerRef.current);
-      }
-      if (dcEventTimerRef.current !== undefined) {
-        window.clearTimeout(dcEventTimerRef.current);
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     if (meter.dcCorrectionDb <= DC_REPORT_THRESHOLD_DB) {
       return;
@@ -203,13 +221,6 @@ const DspMasterGraph = ({
     setHeldDcCorrectionDb((previous) =>
       Math.max(previous, meter.dcCorrectionDb),
     );
-    if (dcEventTimerRef.current !== undefined) {
-      window.clearTimeout(dcEventTimerRef.current);
-    }
-    dcEventTimerRef.current = window.setTimeout(() => {
-      setHeldDcCorrectionDb(-120);
-      dcEventTimerRef.current = undefined;
-    }, DC_EVENT_HOLD_MS);
   }, [meter.dcCorrectionDb]);
 
   const displayedPeakEvent = heldPeakEvent ?? currentPeakEvent;
@@ -241,7 +252,37 @@ const DspMasterGraph = ({
   const reductionLabel = t('dsp.master.graph.reductionShort');
 
   useEffect(() => {
+    /**
+     * Releases a chip whose event has not been seen for its hold.
+     *
+     * Checked on animation frames rather than on host frames, because an
+     * engine that stops takes its host frames with it and the chip still has
+     * to clear. While a hold is counting down this asks for the next frame
+     * itself, the same as waiting on a canvas to be laid out, so the release
+     * lands on time whether or not the engine is still publishing — and the
+     * loop goes quiet again once nothing is held.
+     */
+    const releaseHolds = (schedule: () => void) => {
+      const hold = holdRef.current;
+      const now = performance.now();
+      if (hold.peakHeld && !hold.peakActive) {
+        if (now - peakSeenAtRef.current >= PEAK_EVENT_HOLD_MS) {
+          setHeldPeakEvent(undefined);
+        } else {
+          schedule();
+        }
+      }
+      if (hold.dcHeld && !hold.dcActive) {
+        if (now - dcSeenAtRef.current >= DC_EVENT_HOLD_MS) {
+          setHeldDcCorrectionDb(-120);
+        } else {
+          schedule();
+        }
+      }
+    };
+
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      releaseHolds(schedule);
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
@@ -353,7 +394,18 @@ const DspMasterGraph = ({
   // Repaint when anything drawn changes. The loop only turns while the engine
   // is publishing, so the target line and the ceiling reach the canvas through
   // here while nothing is playing.
+  //
+  // Every render is a host frame or a settings change, so this is also where
+  // an event still in the readings is stamped as seen: the last frame that
+  // carried it is the evidence the hold counts from.
   useEffect(() => {
+    const now = performance.now();
+    if (holdRef.current.peakActive) {
+      peakSeenAtRef.current = now;
+    }
+    if (holdRef.current.dcActive) {
+      dcSeenAtRef.current = now;
+    }
     redraw.current?.();
   });
 

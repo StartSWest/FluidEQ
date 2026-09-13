@@ -83,6 +83,15 @@ $motion-slow: 300ms;
   }
 }
 
+// The same fade for a surface that may rest below full opacity — a dimmed,
+// unavailable panel. With no `to`, it ends on the element's own opacity;
+// `fade-in` would brighten it to 1 and then drop it back when it finished.
+@keyframes fade-to-rest {
+  from {
+    opacity: 0;
+  }
+}
+
 // The plain arrival: a small rise and a fade. For content that replaces other
 // content in place, such as a workspace tab panel.
 @keyframes rise-in {

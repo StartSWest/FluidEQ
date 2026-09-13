@@ -45,6 +45,7 @@ import {
   sendSystemDspChain,
 } from '../../../renderer/dsp/systemChain';
 import { notifyAudioEngineChanged } from '../../../renderer/utils/audioEngineEvents';
+import { resetAudioEngineStatus } from '../../../renderer/utils/useAudioEngineStatus';
 import {
   claimPlayback,
   stopAllPlayback,
@@ -180,6 +181,10 @@ beforeEach(() => {
   // Where the rack may run is module state too; every case starts with the
   // gate the window has before anything has told it otherwise.
   resetRackGate();
+  // So is which engine runs: the window keeps one answer for every holder.
+  // Kept across cases, the Equalizer APO cases opened on the previous case's
+  // FluidEQ Engine and sent it a rack before their own answer landed.
+  resetAudioEngineStatus();
   installBridge();
   // The store is a module singleton, so a case that leaves an edited rack
   // behind decides what the next one sends. Put it back to the defaults, then

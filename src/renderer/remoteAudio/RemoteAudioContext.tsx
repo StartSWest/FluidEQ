@@ -32,7 +32,9 @@ import type {
   TRemoteAudioPhase,
   TRemoteAudioRole,
 } from './remoteAudioState';
-import RemoteAudioContext from './remoteAudioValueContext';
+import RemoteAudioContext, {
+  RemoteAudioRoleContext,
+} from './remoteAudioValueContext';
 import restoreRemoteAudioSession from './restoreRemoteAudioSession';
 import routeRemoteAudioChunk from './routeRemoteAudioChunk';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
@@ -520,7 +522,9 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <RemoteAudioContext.Provider value={value}>
-      {children}
+      <RemoteAudioRoleContext.Provider value={role}>
+        {children}
+      </RemoteAudioRoleContext.Provider>
     </RemoteAudioContext.Provider>
   );
 };

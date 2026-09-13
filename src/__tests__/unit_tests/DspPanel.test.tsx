@@ -15,8 +15,13 @@ import {
   claimPlayback,
   stopAllPlayback,
 } from '../../renderer/audio/playbackOwner';
-import RemoteAudioContext from '../../renderer/remoteAudio/remoteAudioValueContext';
+import RemoteAudioContext, {
+  RemoteAudioRoleContext,
+} from '../../renderer/remoteAudio/remoteAudioValueContext';
 import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
+import type { IAudioEngineStatus } from '../../common/audioEngine';
+import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
+import { resetAudioEngineStatus } from '../../renderer/utils/useAudioEngineStatus';
 import {
   TDspEngineState,
   readDspOutputSafetyEnabled,
@@ -24,6 +29,27 @@ import {
   setDspOutputSafetyEnabled,
   setDspSampleRate,
 } from '../../renderer/dsp/store';
+
+/**
+ * Main's answer about the engine, as Equalizer APO: the configuration this
+ * page's Library-only scope belongs to.
+ *
+ * The scope line says nothing until main has answered — guessing "Library
+ * only" for the frames before the reply is the flash it used to show under a
+ * system-wide rack — so every case that reads that line needs an answer.
+ */
+jest.mock('../../renderer/utils/audioEngineApi', () => ({
+  ...jest.requireActual('../../renderer/utils/audioEngineApi'),
+  getAudioEngineStatus: jest.fn(),
+}));
+
+const APO_STATUS: IAudioEngineStatus = {
+  engine: 'apo',
+  apo: { installed: true },
+  fluid: { installed: false, endpoints: [] },
+  fluidSupported: true,
+  fluidUpdateReady: false,
+};
 
 /**
  * Wrapped in the FluidEQ provider because the faders are the equaliser's own
@@ -37,30 +63,36 @@ const renderPanel = (
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
+  // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
+  // role alone, from its own context.
   const view = render(
     <RemoteAudioContext.Provider value={remoteAudio}>
-      <FluidEqProviderWrapper
-        value={{ ...defaultFluidEqContext, isEnabled: true }}
-      >
-        <DspPanel
-          settings={settings}
-          onChange={onChange}
-          onCommit={onCommit}
-          engineState={engineState}
-        />
-      </FluidEqProviderWrapper>
+      <RemoteAudioRoleContext.Provider value={remoteAudio?.role}>
+        <FluidEqProviderWrapper
+          value={{ ...defaultFluidEqContext, isEnabled: true }}
+        >
+          <DspPanel
+            settings={settings}
+            onChange={onChange}
+            onCommit={onCommit}
+            engineState={engineState}
+          />
+        </FluidEqProviderWrapper>
+      </RemoteAudioRoleContext.Provider>
     </RemoteAudioContext.Provider>,
   );
   return { ...view, onChange, onCommit };
 };
 
 describe('DspPanel', () => {
-  beforeEach(() =>
+  beforeEach(() => {
+    resetAudioEngineStatus();
+    jest.mocked(getAudioEngineStatus).mockResolvedValue(APO_STATUS);
     act(() => {
       claimPlayback('library');
       setDspNativeState('engaged');
-    }),
-  );
+    });
+  });
 
   afterEach(() =>
     act(() => {
@@ -78,10 +110,12 @@ describe('DspPanel', () => {
    * body text rather than a tooltip — and this asserts it is actually rendered
    * rather than merely written into the dictionary.
    */
-  it('states its scope in visible text', () => {
+  it('states its scope in visible text', async () => {
     renderPanel();
     expect(
-      screen.getByText(/DSP processes audio tracks played from Library only/i),
+      await screen.findByText(
+        /DSP processes audio tracks played from Library only/i,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -769,12 +803,12 @@ describe('DspPanel', () => {
    * unstarted — and the two-state version reported that as a failure, telling
    * people audio processing could not start on a machine that was fine.
    */
-  it('does NOT claim a failure when the engine has simply not started', () => {
+  it('does NOT claim a failure when the engine has simply not started', async () => {
     act(() => setDspNativeState('idle'));
     const { container, onChange } = renderPanel(DSP_DEFAULTS, 'idle');
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText(/Play an audio track from Library to use DSP/i),
+      await screen.findByText(/Play an audio track from Library to use DSP/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Play an audio track from Library to use DSP/i),

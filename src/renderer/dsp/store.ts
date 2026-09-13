@@ -613,6 +613,21 @@ export const useDspDenoiseMeter = (): IDspDenoiseMeter =>
     readDspDenoiseMeter,
   );
 
+/**
+ * One flag from the Denoise meter, re-rendering only when that flag flips.
+ *
+ * The meter is a new object with every host frame, so a component that reads
+ * it whole redraws a hundred times a second. The Denoise page needs two of its
+ * fields to decide what its controls allow, and those change once in a
+ * session; the numbers that move every frame are read by the readouts alone.
+ */
+export const useDspDenoiseMeterFlag = (
+  flag: 'profileReady' | 'voiceModelLoaded',
+): boolean => {
+  const read = () => denoiseMeter[flag];
+  return useSyncExternalStore(subscribeDenoiseMeter, read, read);
+};
+
 export interface IDspNormalizerMeter {
   inputTruePeakDb?: number;
   inputLufs?: number;

@@ -11,8 +11,13 @@ import {
 } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
+import {
+  DspNormalizerLiveMeter,
+  DspNormalizerLiveState,
+  DspNormalizerStats,
+} from './DspNormalizerReadouts';
 import { normalizerGainBreakdown, TNormalizerLimit } from './inputNormalizer';
-import { IDspInputAnalysisState, useDspNormalizerMeter } from './store';
+import { IDspInputAnalysisState } from './store';
 import { useRackGate } from './rackPlacement';
 
 interface IDspNormalizerCardProps {
@@ -51,14 +56,6 @@ const LIVE_MODES = {
   truePeak: 'dsp.normalizer.livePeak',
   loudness: 'dsp.normalizer.liveLeveling',
 } as const;
-const LIVE_STATES = [
-  'dsp.normalizer.off',
-  'dsp.normalizer.livePeak',
-  'dsp.normalizer.learning',
-  'dsp.normalizer.holding',
-  'dsp.normalizer.liveLeveling',
-  'dsp.normalizer.liveLimited',
-] as const;
 
 /** Signed, because the whole point is that the sign was not what was asked for. */
 const signedDb = (value: number) =>
@@ -74,15 +71,9 @@ const DspNormalizerCard = ({
   const { analysis } = analysisState;
   const gate = useRackGate();
   const isLive = gate.engine === 'fluid' && !gate.libraryAudible;
-  const liveMeter = useDspNormalizerMeter();
+  // The live meter is not read here: see `DspNormalizerReadouts`.
   const gain = normalizerGainBreakdown(normalizer, analysis);
   const enabled = normalizer.mode !== 'off';
-  const peakDb = (value: number) =>
-    value > 0.000001 ? 20 * Math.log10(value) : -120;
-  const meterWidth = (value: number) =>
-    `${Math.max(0, Math.min(100, ((peakDb(value) + 60) / 66) * 100))}%`;
-  const analysisValue = (value: number | undefined, unit: string) =>
-    value === undefined ? '—' : `${value.toFixed(1)} ${unit}`;
 
   const selectMode = (mode: TNormalizerMode) => {
     onPatch({ ...normalizer, mode });
@@ -163,12 +154,7 @@ const DspNormalizerCard = ({
             <span
               className={`dsp-normalizer-status is-${analysisState.status}`}
             >
-              {isLive && liveMeter.levelState !== undefined
-                ? t(
-                    LIVE_STATES[liveMeter.levelState] ??
-                      'dsp.normalizer.learning',
-                  )
-                : undefined}
+              {isLive ? <DspNormalizerLiveState /> : undefined}
               {!isLive && analysisState.status === 'analyzing'
                 ? t('dsp.normalizer.analyzing', {
                     progress: Math.round(analysisState.fraction * 100),
@@ -197,36 +183,7 @@ const DspNormalizerCard = ({
               <span style={{ width: `${analysisState.fraction * 100}%` }} />
             </div>
           )}
-          <dl className="dsp-normalizer-stats">
-            <div>
-              <dt>{t('dsp.normalizer.measuredPeak')}</dt>
-              <dd>
-                {analysisValue(
-                  isLive ? liveMeter.inputTruePeakDb : analysis?.truePeakDbtp,
-                  'dBTP',
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt>
-                {t(
-                  isLive
-                    ? 'dsp.normalizer.shortTerm'
-                    : 'dsp.normalizer.measuredLoudness',
-                )}
-              </dt>
-              <dd>
-                {analysisValue(
-                  isLive ? liveMeter.inputLufs : analysis?.integratedLufs,
-                  'LUFS',
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt>{t('dsp.normalizer.appliedGain')}</dt>
-              <dd>{analysisValue(liveMeter.appliedGainDb, 'dB')}</dd>
-            </div>
-          </dl>
+          <DspNormalizerStats isLive={isLive} analysis={analysis} />
           {/* Under all three numbers, because it is the sentence that
               reconciles them. A loudness target asking for a boost on a track
               already at the rails is answered with attenuation, and both dials
@@ -242,64 +199,7 @@ const DspNormalizerCard = ({
         </section>
       </div>
 
-      <section className="dsp-normalizer-live">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">
-            {t('dsp.normalizer.liveMeter')}
-          </span>
-          <span className="dsp-dev-safety-spec">
-            {liveMeter.appliedGainDb.toFixed(1)} dB
-          </span>
-        </div>
-        <div className="dsp-normalizer-meter" aria-live="off">
-          {(['L', 'R'] as const).map((channel, channelIndex) => (
-            <div className="dsp-normalizer-meter-channel" key={channel}>
-              <span className="dsp-normalizer-meter-channel-name">
-                {channel}
-              </span>
-              <div className="dsp-normalizer-meter-pair">
-                <span className="dsp-normalizer-meter-name">
-                  {t('dsp.normalizer.before')}
-                </span>
-                <span className="dsp-normalizer-meter-track">
-                  <span
-                    className={`dsp-normalizer-meter-fill is-before${
-                      liveMeter.inputPeaks[channelIndex] > 1 ? ' is-over' : ''
-                    }`}
-                    style={{
-                      width: meterWidth(liveMeter.inputPeaks[channelIndex]),
-                    }}
-                  />
-                  <span className="dsp-normalizer-meter-zero" />
-                </span>
-                <span className="dsp-normalizer-meter-value">
-                  {peakDb(liveMeter.inputPeaks[channelIndex]).toFixed(1)} dBFS
-                </span>
-              </div>
-              <div className="dsp-normalizer-meter-pair">
-                <span className="dsp-normalizer-meter-name">
-                  {t('dsp.normalizer.after')}
-                </span>
-                <span className="dsp-normalizer-meter-track">
-                  <span
-                    className={`dsp-normalizer-meter-fill is-after${
-                      liveMeter.outputPeaks[channelIndex] > 1 ? ' is-over' : ''
-                    }`}
-                    style={{
-                      width: meterWidth(liveMeter.outputPeaks[channelIndex]),
-                    }}
-                  />
-                  <span className="dsp-normalizer-meter-zero" />
-                </span>
-                <span className="dsp-normalizer-meter-value">
-                  {peakDb(liveMeter.outputPeaks[channelIndex]).toFixed(1)} dBFS
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="dsp-band-hint">{t('dsp.normalizer.liveMeterHint')}</p>
-      </section>
+      <DspNormalizerLiveMeter />
       <p className="dsp-band-hint dsp-normalizer-honesty">
         {t(isLive ? 'dsp.normalizer.liveGuidance' : 'dsp.normalizer.honesty')}
       </p>

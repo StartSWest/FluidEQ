@@ -17,10 +17,11 @@ import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
 import DspDenoiseBar from './DspDenoiseBar';
 import DspDenoiseGraph from './DspDenoiseGraph';
+import { DspDenoiseLiveFloor, DspDenoiseLiveStats } from './DspDenoiseReadouts';
 import { useRackGate } from './rackPlacement';
 import {
   IDspInputAnalysisState,
-  useDspDenoiseMeter,
+  useDspDenoiseMeterFlag,
   useDspNativeState,
 } from './store';
 
@@ -67,7 +68,11 @@ const DspDenoiseCard = ({
   onCommit,
 }: IDspDenoiseCardProps) => {
   const { t } = useTranslation();
-  const meter = useDspDenoiseMeter();
+  // Two flags, not the meter: the meter moves every host frame and its live
+  // numbers are drawn by `DspDenoiseReadouts`, so this page redraws only when
+  // a scan lands or the Voice model loads.
+  const profileReady = useDspDenoiseMeterFlag('profileReady');
+  const voiceModelLoaded = useDspDenoiseMeterFlag('voiceModelLoaded');
   const nativeState = useDspNativeState();
   const gate = useRackGate();
   const isLive = isSystemWide && !gate.libraryAudible;
@@ -99,7 +104,7 @@ const DspDenoiseCard = ({
   /** Scanned stays transparent until the user deliberately measures a floor. */
   const isScanning = analysisState.status === 'analyzing';
   const isWaitingForScan =
-    denoise.profileSource === 'scanned' && !meter.profileReady && !isScanning;
+    denoise.profileSource === 'scanned' && !profileReady && !isScanning;
 
   const value = (input: number | undefined, unit: string, digits = 1) =>
     input === undefined ? '—' : `${input.toFixed(digits)} ${unit}`;
@@ -123,7 +128,7 @@ const DspDenoiseCard = ({
   if (model.state === 'ready') {
     voiceHint = t('dsp.denoise.voiceReady');
   }
-  if (meter.voiceModelLoaded) {
+  if (voiceModelLoaded) {
     voiceHint = t('dsp.denoise.voiceHint');
   }
   if (isLive) {
@@ -201,16 +206,7 @@ const DspDenoiseCard = ({
       />
 
       {isLive ? (
-        <dl className="dsp-normalizer-stats" aria-live="polite">
-          <div>
-            <dt>{t('dsp.denoise.measuredFloor')}</dt>
-            <dd>
-              {isEnabled && meter.noiseFloorDb > -120
-                ? value(meter.noiseFloorDb, 'dBFS')
-                : '—'}
-            </dd>
-          </div>
-        </dl>
+        <DspDenoiseLiveFloor isEnabled={isEnabled} />
       ) : (
         <section className="dsp-denoise-analysis" aria-live="polite">
           {/* The source mode describes this analysis, so a separate full-width
@@ -530,7 +526,7 @@ const DspDenoiseCard = ({
             <Switch
               id="dsp-denoise-voice"
               isOn={!isLive && denoise.voice.enabled}
-              isDisabled={isLive || !isEnabled || !meter.voiceModelLoaded}
+              isDisabled={isLive || !isEnabled || !voiceModelLoaded}
               handleToggle={() =>
                 commitPatch({
                   voice: { ...denoise.voice, enabled: !denoise.voice.enabled },
@@ -552,7 +548,7 @@ const DspDenoiseCard = ({
                 isLive ||
                 !isEnabled ||
                 !denoise.voice.enabled ||
-                !meter.voiceModelLoaded
+                !voiceModelLoaded
               }
               onCommit={onCommit}
               onChange={(amount) =>
@@ -564,7 +560,7 @@ const DspDenoiseCard = ({
               control that turns on and changes nothing is worse than one that
               says why it cannot. */}
           <p className="dsp-band-hint">{voiceHint}</p>
-          {!isLive && model.state !== 'ready' && !meter.voiceModelLoaded ? (
+          {!isLive && model.state !== 'ready' && !voiceModelLoaded ? (
             <div className="dsp-denoise-model">
               <button
                 type="button"
@@ -600,22 +596,7 @@ const DspDenoiseCard = ({
         </div>
       </div>
 
-      {/* The readings already carry their own three surfaces. A fourth card
-          around them added padding and a border but no grouping information. */}
-      <dl className="dsp-normalizer-stats dsp-denoise-live" aria-live="polite">
-        <div>
-          <dt>{t('dsp.denoise.liveReduction')}</dt>
-          <dd>{isEnabled ? value(meter.reductionDb, 'dB') : '—'}</dd>
-        </div>
-        <div>
-          <dt>{t('dsp.denoise.clicksRepaired')}</dt>
-          <dd>{isEnabled ? meter.clicksRepaired.toFixed(0) : '—'}</dd>
-        </div>
-        <div>
-          <dt>{t('dsp.denoise.voiceUnderruns')}</dt>
-          <dd>{isEnabled ? meter.voiceUnderruns.toFixed(0) : '—'}</dd>
-        </div>
-      </dl>
+      <DspDenoiseLiveStats isEnabled={isEnabled} />
     </ProcessorCard>
   );
 };

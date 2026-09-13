@@ -65,6 +65,17 @@ interface IDspScopeNoticeProps {
   onOpenEngineDialog?: () => void;
 }
 
+/**
+ * The output this page last named, kept for the next time it opens.
+ *
+ * `undefined` until a read has answered. The page used to open on the unnamed
+ * pill and swap the device name in a moment later, when the read it started
+ * on mount came back — the line under the title changing on every visit. It
+ * now opens with the name it last had, and on the first visit of a session
+ * shows the pill once the name is known rather than twice.
+ */
+let lastOutputName: string | undefined;
+
 const DspScopeNotice = ({
   status,
   suspension,
@@ -75,17 +86,20 @@ const DspScopeNotice = ({
   const { t } = useTranslation();
   const power = useEqualizerPower();
   const isSystemWide = status?.engine === 'fluid';
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState(lastOutputName);
 
   const readOutput = useCallback(async () => {
     try {
       const devices: IAudioDevice[] = await getAudioDevices();
       // The same device the EQ page calls the active output: whichever one
       // Windows is currently sending everything to.
-      setOutput(devices.find((device) => device.isDefault)?.name ?? '');
+      lastOutputName = devices.find((device) => device.isDefault)?.name ?? '';
+      setOutput(lastOutputName);
     } catch (error) {
       // The pill drops to its unnamed form rather than disappearing: the
       // scope is still system-wide whether or not the output can be named.
+      lastOutputName ??= '';
+      setOutput((shown) => shown ?? '');
       reportError(
         'the active output could not be read for the DSP page',
         error,
@@ -136,7 +150,19 @@ const DspScopeNotice = ({
     );
   }
 
+  if (status === undefined) {
+    // Nothing until main has said which engine runs. Falling through to the
+    // sentence below meant "Library only", in amber, under the title of a
+    // page whose rack was running on every output — for as long as main took
+    // to answer, which is a helper run and a hash of the engine files.
+    return null;
+  }
+
   if (isSystemWide) {
+    if (output === undefined) {
+      // The output has never been read this session; see `lastOutputName`.
+      return null;
+    }
     return (
       <div className="dsp-scope-row">
         <span className="dsp-scope-pill">

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IBandSettings,
@@ -39,7 +39,6 @@ import {
   publishSystemDspChain,
   useDspNativeState,
   useDspOutputSafetyEnabled,
-  useDspOutputSafetyMeter,
   useDspSampleRate,
   useDspInputAnalysis,
 } from './store';
@@ -48,7 +47,7 @@ import { masterLoudnessBreakdown } from './inputNormalizer';
 import { useNativeMeters } from './useNativeBackend';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
-import RemoteAudioContext from '../remoteAudio/remoteAudioValueContext';
+import { useRemoteAudioRole } from '../remoteAudio/remoteAudioValueContext';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -194,7 +193,10 @@ const DspPanel = ({
   const nativeState = useDspNativeState();
   const playingOwner = usePlaybackOwner();
   const sources = useTransportIdentitySources();
-  const remoteAudio = useContext(RemoteAudioContext);
+  // The role and not the whole Share Audio value, which changes with every
+  // network sample and redrew this entire page four times a second while a
+  // connection was up.
+  const remoteAudioRole = useRemoteAudioRole();
   /**
    * Library playback wins even while Share Audio is listening: the receiver
    * role describes a connection, not the source feeding the native rack.
@@ -210,7 +212,7 @@ const DspPanel = ({
       (sources.library?.isPlaying === true ||
         (sources.library !== undefined &&
           sources.system?.isPlaying !== true &&
-          remoteAudio?.role !== 'listener')));
+          remoteAudioRole !== 'listener')));
   /**
    * Whether the rack a listener can actually turn on and off right now.
    *
@@ -238,7 +240,11 @@ const DspPanel = ({
    * multiplying processes and doubled audio.
    */
   const areControlsUsable = isRackLive;
-  const outputSafetyMeter = useDspOutputSafetyMeter();
+  // No output-safety meter here: it is published with every host frame, a
+  // hundred times a second, and subscribing to it at this level re-rendered
+  // the header, the rail and whichever processor was open on every one of
+  // them — measured at 90–100 renders a second on every page, Master or not.
+  // The two things on the Master page that show it read it themselves.
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
     master,
@@ -752,7 +758,6 @@ const DspPanel = ({
           {section === 'master' && (
             <DspMasterCard
               master={master}
-              meter={outputSafetyMeter}
               safetyEnabled={outputSafetyEnabled}
               loudness={loudness}
               onSafetyToggle={() =>

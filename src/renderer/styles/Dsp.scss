@@ -66,18 +66,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
-// Ten beats for the ten controls across the filter and playback groups. The
-// rail is keyed by section id and never unmounts, so this runs once when the
-// tab is opened and not on section changes.
+// Nine beats for the nine filters, in signal order. The rail is keyed by
+// section id and never unmounts, so this runs once when the tab is opened and
+// not on section changes.
 //
-// The count has to be at least the number of tabs: `stagger-in` only writes
+// The count has to be at least the number of filters: `stagger-in` only writes
 // `nth-child` delays up to it, and every tab past the count inherits the LAST
 // delay — so the rail would run out of stagger partway down and finish with
 // several entries arriving together. That is exactly what happened when Bass
-// Forge and Bass Punch took the list from eight entries to ten and this stayed
-// at nine: the Maximizer and the Master flew in on the same beat.
-.dsp-rail-tab {
-  @include stagger-in($count: 10, $step: 26ms, $offset: 110ms);
+// Forge and Bass Punch took the list from eight entries to ten and the count
+// stayed at nine: the Maximizer and the Master flew in on the same beat.
+$dsp-rail-filters: 9;
+$dsp-rail-step: 26ms;
+$dsp-rail-offset: 110ms;
+
+.dsp-rail-processors > .dsp-rail-tab {
+  @include stagger-in(
+    $count: $dsp-rail-filters,
+    $step: $dsp-rail-step,
+    $offset: $dsp-rail-offset
+  );
+}
+
+// The playback group arrives as one piece, on the beat after the last filter.
+//
+// Its tab used to share the filters' cascade, and `nth-child` counts inside
+// this group, where the label is child one: the Crossfade tab came in second,
+// ahead of seven filters above it, while its label and the rule over it had no
+// entrance at all and stood on an otherwise empty rail from the first frame.
+.dsp-rail-playback {
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $dsp-rail-offset + $dsp-rail-filters * $dsp-rail-step
+  );
 }
 
 .dsp-header {
@@ -1979,24 +2002,151 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
-// The processor page itself, arriving in place of the one before it.
-//
-// This is the only entrance on the page that plays twice over: once when the
-// tab is opened, and again on every rail click, because each section is a
-// separate branch in `DspPanel` and switching builds a genuinely new node
-// rather than re-rendering the old one. That is what makes the delay here the
-// one number that cannot be taken from the arrival sequence above — a delay
-// placed to fall in behind the rail would be a dead pause after every click,
-// and a click that visibly does nothing is the bug this app has shipped
-// before. 40ms sits it just behind the heading on arrival and is below the
-// threshold where a click stops feeling immediate.
-//
-// `rise-in` moves `translate` and `opacity` only, so the EQ's canvas is
-// composited through the entrance rather than re-measured: nothing in here is
-// re-laid-out and no graph resizes mid-animation.
 .dsp-stage .dsp-card {
-  @include animate(rise-in, $motion-base, $ease-out, 40ms);
   flex: 1 1 auto;
+}
+
+// THE PROCESSOR PAGE: THE CARD HOLDS STILL AND WHAT IS ON IT ARRIVES.
+//
+// The card is the same surface in the same place for every processor, exactly
+// as the workspace panel is for every tab. It used to rise in as one block —
+// border, display and every dial together, a full-width slab moving eight
+// pixels — which read as the stage being swapped rather than as a processor
+// appearing on it, and made the GPU raster the whole card as one fresh layer
+// on every rail click. The EQ page is the model: its surface stays put and the
+// bands sweep in across it.
+//
+// So the header comes first, on the click itself — each section is a separate
+// branch in `DspPanel`, so every rail click builds these nodes afresh and
+// replays this, and a delay before anything moved would be a click that
+// visibly does nothing. Then the page's rows top to bottom, and inside a row
+// that holds several surfaces side by side — the Denoise modules, the Master's
+// dials, the Exciter's bands — those surfaces left to right, like the EQ's
+// bands.
+//
+// ONE FORMULA FOR EVERY PAGE, driven by three indices the selectors below
+// publish as custom properties: which row of the card body (`--dsp-row`),
+// which row inside the EQ's single wrapper (`--dsp-subrow`), and which column
+// inside a row (`--dsp-column`). Custom properties inherit, so a column needs
+// no arithmetic about which row it sits in — that is what lets a row that is
+// rendered conditionally, like the Denoise hint, move everything after it by
+// one beat instead of throwing the sequence out.
+//
+// Only leaves animate. A wrapper whose children cascade holds still itself:
+// two entrances on one element multiply their opacities and add their travel
+// (see `stagger-in`). And everything here is `translate` and `opacity`, so no
+// graph is re-measured and no canvas resizes mid-entrance; a canvas drawn in
+// the first frame is simply revealed, never shown blank.
+$dsp-pane-lead: 40ms;
+$dsp-pane-row-step: 40ms;
+$dsp-pane-column-step: 30ms;
+// Past these, an element takes the last beat rather than the first, so a long
+// row never finishes with its tail arriving before its head.
+$dsp-pane-rows: 6;
+$dsp-pane-columns: 6;
+
+// The card's own surface fades in once, when the tab opens, and never on a
+// rail click: the stage is mounted with the page and outlives every section
+// change, so this plays exactly when the whole page is arriving. Without it
+// the card's lit border stood complete in the first frame, ahead of the
+// heading and the rail that were still fading in around it.
+//
+// This is the one entrance here with others inside it, and it is allowed to
+// be because it only fades: nothing inside travels further for it, and the
+// rows still keep their own order. `fade-to-rest` rather than `fade-in`, so a
+// stage dimmed as unavailable arrives dimmed instead of flashing to full.
+.dsp-stage {
+  @include animate(fade-to-rest);
+}
+
+.dsp-stage .dsp-card-header {
+  @include animate(rise-in);
+}
+
+.dsp-card-body > * {
+  --dsp-row: #{$dsp-pane-rows};
+
+  @for $i from 1 through $dsp-pane-rows {
+    &:nth-child(#{$i}) {
+      --dsp-row: #{$i};
+    }
+  }
+}
+
+// The EQ puts its whole page inside one `.dsp-eq`, so its rows are one level
+// further down.
+.dsp-eq > * {
+  --dsp-subrow: #{$dsp-pane-rows - 1};
+
+  @for $i from 1 through $dsp-pane-rows {
+    &:nth-child(#{$i}) {
+      --dsp-subrow: #{$i - 1};
+    }
+  }
+}
+
+// Rows of surfaces side by side, swept left to right.
+//
+// Two groups that swap places are not in this list. The Exciter's global and
+// band groups, and the EQ's global row and band strip, share one line while
+// the card holds both and split otherwise — with `flex-wrap: wrap-reverse`, so
+// the group written second lands on top. Numbered in source order, the lower
+// of the two would arrive before the one above it. So each pair starts on its
+// row's own beat: the EQ's two arrive together, and each Exciter group sweeps
+// within itself.
+.dsp-normalizer-dashboard,
+.dsp-denoise-modules,
+.dsp-exciter-band-row,
+.dsp-exciter-global-row,
+.dsp-dimension-controls,
+.dsp-maximizer-controls,
+.dsp-crossfade-layout,
+.dsp-crossovers {
+  > * {
+    --dsp-column: #{$dsp-pane-columns - 1};
+
+    @for $i from 1 through $dsp-pane-columns {
+      &:nth-child(#{$i}) {
+        --dsp-column: #{$i - 1};
+      }
+    }
+  }
+}
+
+.dsp-card-body > *,
+.dsp-eq > *,
+.dsp-normalizer-dashboard > *,
+.dsp-denoise-modules > *,
+.dsp-exciter-band-row > *,
+.dsp-exciter-global-row > *,
+.dsp-eq-bottom > *,
+.dsp-dimension-controls > *,
+.dsp-maximizer-controls > *,
+.dsp-crossfade-layout > *,
+.dsp-crossovers > * {
+  @include animate(rise-in);
+  animation-delay: calc(
+    #{$dsp-pane-lead} + (var(--dsp-row, 1) - 1 + var(--dsp-subrow, 0)) *
+      #{$dsp-pane-row-step} + var(--dsp-column, 0) * #{$dsp-pane-column-step}
+  );
+}
+
+// The wrappers themselves: they pass their row's beat down and do not move.
+// They match the rule above as well; the extra class in each selector here is
+// what makes this one hold, whichever order the two are written in.
+.dsp-card-body
+  > :is(
+    .dsp-normalizer-dashboard,
+    .dsp-denoise-modules,
+    .dsp-exciter-controls,
+    .dsp-eq,
+    .dsp-dimension-controls,
+    .dsp-maximizer-controls,
+    .dsp-crossfade-layout,
+    .dsp-crossovers
+  ),
+.dsp-eq > .dsp-eq-bottom {
+  animation: none;
 }
 
 .dsp-eq {
