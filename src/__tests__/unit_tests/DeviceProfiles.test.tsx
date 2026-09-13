@@ -133,13 +133,16 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     isEqualizerApoAttached: undefined,
     isFluidEngineAttached: false,
   };
+  // Picked in the list but not the one Windows is playing through, so
+  // nothing is enabled until somebody asks.
+  const idleDetachedDevice = { ...detachedDevice, isDefault: false };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('asks to enable the engine rather than to open the Device Selector', async () => {
-    renderProfiles({ engine: 'fluid', device: detachedDevice });
+    renderProfiles({ engine: 'fluid', device: idleDetachedDevice });
 
     const notice = await screen.findByRole('alertdialog');
     expect(notice).toHaveTextContent(en['output.engineMissingTitle']);
@@ -160,7 +163,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
   it('attaches the output it is showing, and dismisses when it worked', async () => {
     const { onAttachFluidEngine } = renderProfiles({
       engine: 'fluid',
-      device: detachedDevice,
+      device: idleDetachedDevice,
     });
 
     fireEvent.click(
@@ -178,7 +181,7 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
   it('says so when the Windows prompt was declined, and stays open', async () => {
     renderProfiles({
       engine: 'fluid',
-      device: detachedDevice,
+      device: idleDetachedDevice,
       onAttachFluidEngine: jest.fn(async () => ({
         ok: false,
         declined: true,
@@ -192,6 +195,87 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
 
     expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+
+  // A freshly installed engine that was not put on the output in use stayed
+  // silent until somebody found the Enable button.
+  it('enables the output Windows is playing through by itself', async () => {
+    let finish: (result: typeof attached) => void = () => undefined;
+    const onAttachFluidEngine = jest.fn(
+      () =>
+        new Promise<typeof attached>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    renderProfiles({
+      engine: 'fluid',
+      device: detachedDevice,
+      onAttachFluidEngine,
+    });
+
+    await waitFor(() =>
+      expect(onAttachFluidEngine).toHaveBeenCalledWith('{SPEAKERS}'),
+    );
+    // The notice says it is being done while the Windows prompt is up.
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en['output.enable'] }),
+    ).toHaveClass('is-running');
+
+    finish(attached);
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+    );
+    expect(onAttachFluidEngine).toHaveBeenCalledTimes(1);
+  });
+
+  it('tries by itself once, and leaves a declined prompt on screen', async () => {
+    const onAttachFluidEngine = jest.fn(async () => ({
+      ok: false,
+      declined: true,
+      endpoints: [],
+    }));
+    renderProfiles({
+      engine: 'fluid',
+      device: detachedDevice,
+      onAttachFluidEngine,
+    });
+
+    expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
+    // The device list refreshes while the window is open; a prompt on every
+    // refresh would be the Windows dialog coming back every few seconds.
+    fireEvent(document, new Event('visibilitychange'));
+    await screen.findByText('USB Speakers');
+    expect(onAttachFluidEngine).toHaveBeenCalledTimes(1);
+
+    // Positive control: the listener can still ask.
+    fireEvent.click(screen.getByRole('button', { name: en['output.enable'] }));
+    await waitFor(() => expect(onAttachFluidEngine).toHaveBeenCalledTimes(2));
+  });
+
+  it('waits to enable anything while maintenance owns the spot', async () => {
+    (getAudioDevices as jest.Mock).mockResolvedValue([detachedDevice]);
+    (getDeviceProfileSettings as jest.Mock).mockResolvedValue({
+      version: 1,
+      assignments: {},
+    });
+    const onAttachFluidEngine = jest.fn(async () => attached);
+    const profiles = (isNoticeHidden: boolean) => (
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
+        <DeviceProfiles
+          engine="fluid"
+          isNoticeHidden={isNoticeHidden}
+          onConfigureApo={jest.fn()}
+          onAttachFluidEngine={onAttachFluidEngine}
+        />
+      </FluidEqProviderWrapper>
+    );
+    const { rerender } = render(profiles(true));
+    await screen.findByText('USB Speakers');
+    expect(onAttachFluidEngine).not.toHaveBeenCalled();
+
+    rerender(profiles(false));
+    await waitFor(() => expect(onAttachFluidEngine).toHaveBeenCalledTimes(1));
   });
 
   it('ignores the Equalizer APO endpoint answer entirely', async () => {
@@ -284,6 +368,13 @@ describe('DeviceProfiles on an output Windows runs no effects on', () => {
     renderProfiles({
       engine: 'fluid',
       device: { ...remoteAudio, name: 'USB Speakers', canHostEffects: null },
+      // Still working on it, so the notice is there to read.
+      onAttachFluidEngine: jest.fn(
+        () =>
+          new Promise(() => {
+            // Never settles: the Windows prompt is still up.
+          }),
+      ),
     });
 
     expect(await screen.findByRole('alertdialog')).toHaveTextContent(

@@ -230,6 +230,41 @@ const DeviceProfiles = ({
     setIsAttaching(false);
   };
 
+  /**
+   * The output Windows is playing through, enabled without being asked.
+   *
+   * Under the FluidEQ Engine an output the engine is not on plays untouched,
+   * and waiting for the listener to find the Enable button is how a freshly
+   * installed engine "did not work the first time": setup had put it on the
+   * outputs that were there, and the one in use was not among them. So the
+   * app enables it itself — the Windows prompt, then audio restarted onto it
+   * — with the notice showing that it is being done.
+   *
+   * Once per output a session. A declined prompt or a failure leaves the
+   * notice and its reason in place, and asking again every time the device
+   * list refreshed would put the prompt back up every few seconds.
+   */
+  const autoEnabledRef = useRef(new Set<string>());
+  const enableEngineRef = useRef(handleEnableEngine);
+  enableEngineRef.current = handleEnableEngine;
+  const playingOutputMissing =
+    isFluid &&
+    engineState === 'engine-missing' &&
+    selectedDevice?.isDefault === true;
+  const selectedId = selectedDevice?.id;
+  useEffect(() => {
+    if (
+      !playingOutputMissing ||
+      isNoticeHidden ||
+      !selectedId ||
+      autoEnabledRef.current.has(selectedId)
+    ) {
+      return;
+    }
+    autoEnabledRef.current.add(selectedId);
+    enableEngineRef.current().catch(() => undefined);
+  }, [playingOutputMissing, isNoticeHidden, selectedId]);
+
   /** The notice's words for the output it is about. */
   const noticeCopy = (device: IAudioDevice) => {
     if (cannotHostEffects) {
@@ -359,10 +394,15 @@ const DeviceProfiles = ({
               ) : (
                 <>
                   {isFluid ? (
+                    // Not disabled while it works, as in the engine update
+                    // notice: a disabled button drops the `is-running` breath,
+                    // and this one says the enabling is under way — often
+                    // without anyone having pressed it. A second press is
+                    // refused by `handleEnableEngine` itself.
                     <Button
                       ariaLabel={t('output.enable')}
-                      isDisabled={isAttaching}
-                      className="small"
+                      isDisabled={false}
+                      className={`small${isAttaching ? ' is-running' : ''}`}
                       handleChange={handleEnableEngine}
                     >
                       {t('output.enable')}

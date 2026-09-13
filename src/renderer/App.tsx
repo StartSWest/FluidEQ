@@ -146,6 +146,7 @@ import {
   useDspSettings,
 } from './dsp/store';
 import useEngineTrouble from './audio/useEngineTrouble';
+import useRestartWhenEngineOff from './utils/useRestartWhenEngineOff';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
@@ -1966,6 +1967,7 @@ const AppContent = () => {
       performEngineUpdate,
     );
   const handleRestartWindowsAudio = audioRestart.open;
+  useRestartWhenEngineOff(engineTrouble, suppressAudioNotices, audioRestart);
 
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);

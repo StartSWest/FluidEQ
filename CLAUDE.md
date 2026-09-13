@@ -487,6 +487,15 @@ Out-String` (or any other capture) is what actually waits for it and shows
   would hang the wait. Only the last failure reaches the window, so the
   switch and status requests carry no deadline. Ivan chose this over a fixed
   pause on 2026-09-13; do not add one.
+- **Under the FluidEQ Engine the app fixes the two "not working the first
+  time" states by itself, once.** The output Windows plays through, read as
+  not attached, is enabled without a press (`DeviceProfiles`: one Windows
+  prompt, audio restarted onto it) — once per output a session. The engine on
+  the output being listened to but not running, which a restart fixes, gets
+  Windows audio restarted with its card showing (`useRestartWhenEngineOff`) —
+  once a session, never during the engine update. A declined prompt or a
+  failure leaves the notice and its reason; nothing asks again on its own,
+  or the device list's refresh would put the prompt back up every few seconds.
 
 ## Equalizer APO is bundled
 
