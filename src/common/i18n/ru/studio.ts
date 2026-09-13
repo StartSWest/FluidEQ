@@ -390,6 +390,26 @@ const studio = {
   'studio.compile.hint': 'Исправьте и сохраните или вставьте ошибку в свой ИИ.',
   'studio.heavy.body':
     'Она не сохраняла плавность даже на восьмой части размера, поэтому FluidEQ остановил её, пока она не заморозила экран. Попробуйте меньше шагов в циклах, меньше чтений текстур или меньше слоёв.',
+
+  'studio.code.title': 'Код',
+  'studio.code.label': 'Код {file}',
+  'studio.code.watching': 'Обновляется при сохранении',
+  'studio.code.unsaved': 'Не сохранено',
+  'studio.code.save': 'Сохранить',
+  'studio.code.saving': 'Сохранение…',
+  'studio.code.failed': 'Не удалось сохранить. Попробуйте ещё раз.',
+  'studio.code.tooLarge':
+    'Сцена может занимать не больше 64 КБ. Она не сохранена.',
+  'studio.code.changed': 'Файл изменился вне Студии, пока вы печатали здесь.',
+  'studio.code.load': 'Загрузить новую версию',
+  'studio.code.keep': 'Оставить мои правки',
+  'studio.code.missing':
+    'У этого проекта пока нет файла сцены, который можно показать.',
+  'studio.code.showChanges': 'Показать изменения',
+  'studio.code.showCode': 'Вернуться к коду',
+  'studio.code.updatedAt': 'Изменено извне в {time}',
+  'studio.code.unchanged': 'Без изменений строк: {count}',
+  'studio.code.delta': 'Добавлено строк: {added}, удалено: {removed}',
 } as const;
 
 export default studio;

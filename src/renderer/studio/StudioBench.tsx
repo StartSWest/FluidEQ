@@ -9,6 +9,7 @@ import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import Glyph from '../community/Glyph';
 import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
+import StudioCode, { problemLinesOf } from './StudioCode';
 import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
@@ -334,6 +335,16 @@ export default function StudioBench({ view }: IStudioBenchProps) {
                   (picture.saving ? picture.session?.picture.id : undefined)
                 }
                 onOpen={picture.open}
+              />
+            )}
+            {project && (
+              <StudioCode
+                key={project.id}
+                source={view.source}
+                problemLines={problemLinesOf(
+                  problems,
+                  trouble?.kind === 'compile' ? trouble.log : undefined,
+                )}
               />
             )}
           </div>

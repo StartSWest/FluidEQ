@@ -398,6 +398,27 @@ const studio = {
     'Correggilo e salva, oppure incolla l’errore nella tua IA.',
   'studio.heavy.body':
     'Non riusciva a mantenere un movimento fluido nemmeno a un ottavo della sua dimensione, quindi FluidEQ l’ha fermata prima che bloccasse lo schermo. Prova con meno giri nei cicli, meno letture di texture o meno livelli.',
+
+  'studio.code.title': 'Codice',
+  'studio.code.label': 'Codice di {file}',
+  'studio.code.watching': 'Si aggiorna a ogni salvataggio',
+  'studio.code.unsaved': 'Non salvato',
+  'studio.code.save': 'Salva',
+  'studio.code.saving': 'Salvataggio…',
+  'studio.code.failed': 'Non è stato possibile salvare. Riprova.',
+  'studio.code.tooLarge':
+    'Una scena può pesare al massimo 64 KB. Non è stata salvata.',
+  'studio.code.changed':
+    'Il file è cambiato fuori dallo Studio mentre scrivevi qui.',
+  'studio.code.load': 'Carica la nuova versione',
+  'studio.code.keep': 'Tieni le mie modifiche',
+  'studio.code.missing':
+    'Questo progetto non ha ancora un file di scena da mostrare.',
+  'studio.code.showChanges': 'Mostra modifiche',
+  'studio.code.showCode': 'Torna al codice',
+  'studio.code.updatedAt': 'Modificato fuori alle {time}',
+  'studio.code.unchanged': '{count} righe invariate',
+  'studio.code.delta': '{added} righe aggiunte, {removed} tolte',
 } as const;
 
 export default studio;

@@ -8,7 +8,11 @@ import type {
 import type { TExportOutcome, TImportOutcome } from 'main/ipc/memberSharing';
 import type { TPublishOutcome } from 'main/ipc/plusPublishing';
 import type { TPlusCategory } from 'common/plusGallery';
-import type { TProjectBuild } from 'main/memberScenes/project';
+import type {
+  IProjectSource,
+  TProjectBuild,
+  TSourceWrite,
+} from 'main/memberScenes/project';
 
 /**
  * The Studio, as the renderer sees it: the member's projects, the latest
@@ -39,6 +43,11 @@ export interface IStudioView {
   serial: number;
   /** The newest build, when it did not become a pack. */
   problems?: Extract<TProjectBuild, { ok: false }>['problems'];
+  /**
+   * The open project's scene source as it is on disk now, for the code pane:
+   * sent on every save, whether or not that save changed the build.
+   */
+  source?: IProjectSource;
 }
 
 const INITIAL: IStudioView = {
@@ -59,6 +68,10 @@ const publish = (next: IStudioView) => {
 
 const adopt = (state: IStudioState) => {
   const { build } = state;
+  const sameProject = state.activeId === view.state.activeId;
+  // Another project's source is not this one's: the new project's arrives
+  // from its own watcher.
+  const source = sameProject ? view.source : undefined;
   if (build?.ok) {
     // The main process never sends the same build twice, so each one that
     // arrives is a new version to put on the stage.
@@ -67,10 +80,10 @@ const adopt = (state: IStudioState) => {
       state,
       pack: build.pack,
       serial: view.serial + 1,
+      ...(source ? { source } : {}),
     });
     return;
   }
-  const sameProject = state.activeId === view.state.activeId;
   publish({
     loaded: true,
     state,
@@ -79,13 +92,18 @@ const adopt = (state: IStudioState) => {
     pack: sameProject ? view.pack : undefined,
     serial: view.serial,
     ...(build && !build.ok ? { problems: build.problems } : {}),
+    ...(source ? { source } : {}),
   });
 };
+
+const adoptSource = (source: IProjectSource | null) =>
+  publish({ ...view, source: source ?? undefined });
 
 /** Opens the Studio session; the returned function closes it. */
 export const openStudioSession = (): (() => void) => {
   const api = bridge();
   const stop = api?.onStudioChanged?.(adopt) ?? (() => {});
+  const stopSource = api?.onStudioSourceChanged?.(adoptSource) ?? (() => {});
   // No backend: the Studio shows its locked state, which is right.
   const locked = () => publish({ ...view, loaded: true });
   const opened = api?.openStudio?.();
@@ -96,9 +114,14 @@ export const openStudioSession = (): (() => void) => {
   }
   return () => {
     stop();
+    stopSource();
     api?.closeStudio?.().catch(() => undefined);
   };
 };
+
+/** Saves the code pane's text into the open project's scene file. */
+export const writeStudioSource = async (text: string): Promise<TSourceWrite> =>
+  (await bridge()?.writeStudioSource?.(text)) ?? 'failed';
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

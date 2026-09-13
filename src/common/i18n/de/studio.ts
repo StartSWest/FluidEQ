@@ -404,6 +404,27 @@ const studio = {
     'Korrigieren Sie ihn und speichern Sie, oder fügen Sie den Fehler in Ihre KI ein.',
   'studio.heavy.body':
     'Sie lief selbst in einem Achtel ihrer Größe nicht flüssig, deshalb hat FluidEQ sie angehalten, bevor sie den Bildschirm einfrieren konnte. Versuchen Sie weniger Schleifendurchläufe, weniger Texturzugriffe oder weniger Ebenen.',
+
+  'studio.code.title': 'Code',
+  'studio.code.label': 'Code von {file}',
+  'studio.code.watching': 'Aktualisiert sich beim Speichern',
+  'studio.code.unsaved': 'Nicht gespeichert',
+  'studio.code.save': 'Speichern',
+  'studio.code.saving': 'Wird gespeichert…',
+  'studio.code.failed': 'Speichern fehlgeschlagen. Versuchen Sie es erneut.',
+  'studio.code.tooLarge':
+    'Eine Szene darf höchstens 64 KB groß sein. Sie wurde nicht gespeichert.',
+  'studio.code.changed':
+    'Die Datei wurde außerhalb des Studios geändert, während Sie hier getippt haben.',
+  'studio.code.load': 'Neue Version laden',
+  'studio.code.keep': 'Meine Änderungen behalten',
+  'studio.code.missing':
+    'Dieses Projekt hat noch keine Szenendatei zum Anzeigen.',
+  'studio.code.showChanges': 'Änderungen zeigen',
+  'studio.code.showCode': 'Zurück zum Code',
+  'studio.code.updatedAt': 'Außerhalb geändert um {time}',
+  'studio.code.unchanged': '{count} unveränderte Zeilen',
+  'studio.code.delta': '{added} Zeilen hinzugefügt, {removed} entfernt',
 } as const;
 
 export default studio;

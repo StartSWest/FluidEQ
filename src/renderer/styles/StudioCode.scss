@@ -1,0 +1,415 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's code pane: a card under the stage, its head a toggle that
+// folds it to one row. The editor is a textarea over its own highlighted
+// copy, so every metric below that shapes text — family, size, line height,
+// padding, tab width — is set once, on both, from the same variables.
+
+$code-size: $text-small;
+$code-line: 1.65;
+$code-pad-block: 10px;
+$code-pad-inline: 12px;
+
+.studio-code {
+  display: grid;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.studio-code__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs $spacing-s;
+  min-width: 0;
+}
+
+.studio-code__toggle {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 4px 2px 0;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: $text-faint;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  &[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+  }
+
+  &:hover svg {
+    stroke: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-code__title {
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-code__file {
+  min-width: 0;
+  color: $text-faint;
+  font-family: $font-mono;
+  font-size: $text-small;
+  @include truncate;
+}
+
+// Saved and following the file, or holding the member's own typing.
+.studio-code__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-small;
+  white-space: nowrap;
+
+  &.is-dirty {
+    color: $amber;
+  }
+}
+
+.studio-code__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $analogous-2;
+  box-shadow: 0 0 8px color-mix(in srgb, $analogous-2 70%, transparent);
+
+  .is-dirty & {
+    background: $amber;
+    box-shadow: none;
+  }
+}
+
+// What the last outside save did, in the diff's own colours.
+.studio-code__delta {
+  display: inline-flex;
+  gap: 6px;
+  font-family: $font-mono;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-code__delta-add {
+  color: $analogous-2;
+}
+
+.studio-code__delta-remove {
+  color: $red;
+}
+
+.studio-code__body {
+  display: grid;
+  gap: $spacing-s;
+  min-width: 0;
+  @include animate(fade-in, $motion-fast);
+}
+
+.studio-code__incoming {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 8px 10px 8px 12px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 9%, transparent);
+  font-size: $text-small;
+
+  > span {
+    flex: 1 1 220px;
+  }
+}
+
+.studio-code__trouble,
+.studio-code__missing {
+  margin: 0;
+  font-size: $text-small;
+}
+
+.studio-code__trouble {
+  color: $amber;
+}
+
+.studio-code__missing {
+  color: $text-faint;
+}
+
+// ---------------------------------------------------------------- editor
+
+.studio-code__editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: clamp(220px, 46vh, 520px);
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $black 32%, $surface-block);
+
+  &:focus-within {
+    border-color: $border-field-focus;
+  }
+}
+
+// Bottom-padded by a scrollbar's height for the same reason as the copy.
+.studio-code__gutter {
+  display: flex;
+  flex-direction: column;
+  padding: $code-pad-block 10px calc(#{$code-pad-block} + 8px) 12px;
+  overflow: hidden;
+  color: $text-dim;
+  border-right: 1px solid $border-subtle;
+  font-family: $font-mono;
+  font-size: $code-size;
+  font-variant-numeric: tabular-nums;
+  line-height: $code-line;
+  text-align: end;
+  user-select: none;
+
+  span {
+    min-width: 3ch;
+    white-space: pre;
+  }
+
+  .is-added {
+    color: $analogous-2;
+  }
+
+  // The same rule as the code's, carried across the numbers.
+  .is-cut-above {
+    box-shadow: inset 0 2px 0 $red;
+  }
+
+  .is-cut-below {
+    box-shadow: inset 0 -2px 0 $red;
+  }
+
+  .is-wrong {
+    color: $red;
+    font-weight: $weight-bold;
+  }
+}
+
+.studio-code__area {
+  position: relative;
+  min-width: 0;
+}
+
+.studio-code__paint,
+.studio-code__input {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: $code-pad-block $code-pad-inline;
+  font-family: $font-mono;
+  font-size: $code-size;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  line-height: $code-line;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+// Padded by the textarea's scrollbar on the far edges: the textarea can
+// scroll that much further than a box without bars, and the copy must be
+// able to follow it all the way, or the last line drifts by a bar's width.
+.studio-code__paint {
+  padding-right: calc(#{$code-pad-inline} + 8px);
+  padding-bottom: calc(#{$code-pad-block} + 8px);
+  overflow: hidden;
+  color: $text-muted;
+  pointer-events: none;
+}
+
+// The caret and the selection are the textarea's; its own letters are clear
+// so the painted copy under them shows through, exactly aligned.
+.studio-code__input {
+  overflow: auto;
+  color: transparent;
+  border: 0;
+  background: transparent;
+  outline: none;
+  caret-color: $text-primary;
+  resize: none;
+  -webkit-text-fill-color: transparent;
+  @include slim-scrollbar;
+
+  &::selection {
+    background: color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+// A block per line, at least as wide as the pane, so a line's tint runs the
+// whole row however far the code scrolls sideways.
+.studio-code__line {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+
+  // Written by the last outside save: it arrives lit and settles to a tint
+  // that stays until the member types or the next save lands.
+  &.is-added {
+    background: color-mix(in srgb, $analogous-2 11%, transparent);
+    box-shadow: inset 2px 0 0 $analogous-2;
+    @include animate(studio-code-arrive, 1.2s, $ease-out);
+  }
+
+  // Where lines were taken out: a red rule between the lines either side,
+  // two pixels so it reads as a mark and not as a stray hairline.
+  &.is-cut-above {
+    box-shadow: inset 0 2px 0 $red;
+  }
+
+  &.is-cut-below {
+    box-shadow: inset 0 -2px 0 $red;
+  }
+
+  &.is-added.is-cut-above {
+    box-shadow:
+      inset 2px 0 0 $analogous-2,
+      inset 0 2px 0 $red;
+  }
+
+  &.is-wrong {
+    background: color-mix(in srgb, $red 14%, transparent);
+    box-shadow: inset 2px 0 0 $red;
+  }
+}
+
+@keyframes studio-code-arrive {
+  from {
+    background: color-mix(in srgb, $analogous-2 34%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------- diff
+
+// The change as it is read: two line-number columns, the sign, the line.
+.studio-code__diff {
+  height: clamp(220px, 46vh, 520px);
+  padding: 6px 0;
+  overflow: auto;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $black 32%, $surface-block);
+  font-family: $font-mono;
+  font-size: $code-size;
+  line-height: $code-line;
+  @include slim-scrollbar;
+  @include animate(fade-in, $motion-fast);
+}
+
+.studio-code__row {
+  display: grid;
+  grid-template-columns: 4ch 4ch 2ch max-content;
+  gap: 0 8px;
+  width: max-content;
+  min-width: 100%;
+  padding: 0 $code-pad-inline 0 8px;
+  color: $text-muted;
+  white-space: pre;
+
+  code {
+    font: inherit;
+  }
+
+  &--add {
+    background: color-mix(in srgb, $analogous-2 12%, transparent);
+  }
+
+  &--remove {
+    background: color-mix(in srgb, $red 13%, transparent);
+
+    code {
+      opacity: 0.8;
+    }
+  }
+}
+
+.studio-code__num {
+  color: $text-dim;
+  text-align: end;
+  user-select: none;
+}
+
+.studio-code__sign {
+  user-select: none;
+
+  .studio-code__row--add & {
+    color: $analogous-2;
+  }
+
+  .studio-code__row--remove & {
+    color: $red;
+  }
+}
+
+.studio-code__skip {
+  margin: 2px 0;
+  padding: 2px $code-pad-inline;
+  color: $text-dim;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font-family: inherit;
+  font-size: $text-micro;
+}
+
+.studio-code__glsl--comment {
+  color: $text-dim;
+}
+
+.studio-code__glsl--keyword {
+  color: color-mix(in srgb, $triadic-1 65%, $white);
+}
+
+.studio-code__glsl--number {
+  color: $amber;
+}
+
+.studio-code__glsl--uniform {
+  color: color-mix(in srgb, $complementary 70%, $white);
+}
+
+.studio-code__glsl--builtin {
+  color: $secondary-light;
+}
+
+.studio-code__glsl--call {
+  color: $text-primary;
+}

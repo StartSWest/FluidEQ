@@ -393,6 +393,27 @@ const studio = {
   'studio.compile.hint': 'Corrígelo y guarda, o pega el error en tu IA.',
   'studio.heavy.body':
     'No pudo mantener un movimiento fluido ni a un octavo de su tamaño, así que FluidEQ la detuvo antes de que congelara la pantalla. Prueba con menos pasos en los bucles, menos lecturas de textura o menos capas.',
+
+  'studio.code.title': 'Código',
+  'studio.code.label': 'Código de {file}',
+  'studio.code.watching': 'Se actualiza al guardar',
+  'studio.code.unsaved': 'Sin guardar',
+  'studio.code.save': 'Guardar',
+  'studio.code.saving': 'Guardando…',
+  'studio.code.failed': 'No se pudo guardar. Vuelve a intentarlo.',
+  'studio.code.tooLarge':
+    'Una escena puede ocupar como máximo 64 KB. No se guardó.',
+  'studio.code.changed':
+    'El archivo cambió fuera del Estudio mientras escribías aquí.',
+  'studio.code.load': 'Cargar la versión nueva',
+  'studio.code.keep': 'Conservar mis cambios',
+  'studio.code.missing':
+    'Este proyecto aún no tiene un archivo de escena que mostrar.',
+  'studio.code.showChanges': 'Ver cambios',
+  'studio.code.showCode': 'Volver al código',
+  'studio.code.updatedAt': 'Cambió por fuera a las {time}',
+  'studio.code.unchanged': '{count} líneas sin cambios',
+  'studio.code.delta': '{added} líneas añadidas, {removed} quitadas',
 } as const;
 
 export default studio;

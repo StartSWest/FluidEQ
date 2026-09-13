@@ -384,6 +384,27 @@ const studio = {
     'उसे ठीक करके सेव करें, या त्रुटि अपने AI में चिपकाएँ।',
   'studio.heavy.body':
     'अपने आकार के आठवें हिस्से पर भी यह सहज नहीं चल पाया, इसलिए स्क्रीन जमने से पहले FluidEQ ने इसे रोक दिया। लूप की गिनती, टेक्सचर पढ़ना या परतें कम करके देखें।',
+
+  'studio.code.title': 'कोड',
+  'studio.code.label': '{file} का कोड',
+  'studio.code.watching': 'सहेजते ही अपडेट होता है',
+  'studio.code.unsaved': 'सहेजा नहीं गया',
+  'studio.code.save': 'सहेजें',
+  'studio.code.saving': 'सहेजा जा रहा है…',
+  'studio.code.failed': 'सहेजा नहीं जा सका। फिर कोशिश करें।',
+  'studio.code.tooLarge':
+    'एक सीन अधिकतम 64 KB का हो सकता है। इसे सहेजा नहीं गया।',
+  'studio.code.changed':
+    'जब आप यहाँ लिख रहे थे, स्टूडियो के बाहर फ़ाइल बदल गई।',
+  'studio.code.load': 'नया संस्करण लोड करें',
+  'studio.code.keep': 'मेरे बदलाव रखें',
+  'studio.code.missing':
+    'इस प्रोजेक्ट में अभी दिखाने के लिए कोई सीन फ़ाइल नहीं है।',
+  'studio.code.showChanges': 'बदलाव दिखाएँ',
+  'studio.code.showCode': 'कोड पर लौटें',
+  'studio.code.updatedAt': '{time} पर बाहर बदला गया',
+  'studio.code.unchanged': '{count} पंक्तियाँ अपरिवर्तित',
+  'studio.code.delta': '{added} पंक्तियाँ जोड़ी गईं, {removed} हटाई गईं',
 } as const;
 
 export default studio;

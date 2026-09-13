@@ -399,6 +399,27 @@ const studio = {
     'Corrigez-le et enregistrez, ou collez l’erreur dans votre IA.',
   'studio.heavy.body':
     'Elle n’a pas pu garder un mouvement fluide, même à un huitième de sa taille, alors FluidEQ l’a arrêtée avant qu’elle ne fige l’écran. Essayez moins de tours de boucle, moins de lectures de texture ou moins de couches.',
+
+  'studio.code.title': 'Code',
+  'studio.code.label': 'Code de {file}',
+  'studio.code.watching': 'Se met à jour à chaque enregistrement',
+  'studio.code.unsaved': 'Non enregistré',
+  'studio.code.save': 'Enregistrer',
+  'studio.code.saving': 'Enregistrement…',
+  'studio.code.failed': 'L’enregistrement a échoué. Réessayez.',
+  'studio.code.tooLarge':
+    'Une scène ne peut pas dépasser 64 Ko. Elle n’a pas été enregistrée.',
+  'studio.code.changed':
+    'Le fichier a changé hors du Studio pendant que vous tapiez ici.',
+  'studio.code.load': 'Charger la nouvelle version',
+  'studio.code.keep': 'Garder mes modifications',
+  'studio.code.missing':
+    'Ce projet n’a pas encore de fichier de scène à afficher.',
+  'studio.code.showChanges': 'Voir les changements',
+  'studio.code.showCode': 'Revenir au code',
+  'studio.code.updatedAt': 'Modifié hors du Studio à {time}',
+  'studio.code.unchanged': '{count} lignes inchangées',
+  'studio.code.delta': '{added} lignes ajoutées, {removed} retirées',
 } as const;
 
 export default studio;

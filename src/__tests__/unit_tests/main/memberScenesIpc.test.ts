@@ -56,11 +56,35 @@ let chosen: string | undefined;
 /** Where the last folder dialog opened. */
 let dialogOpenedAt: string | undefined;
 let sent: Array<[string, unknown]>;
+/** Tests waiting on the next message sent to the window on a channel. */
+let awaitingSend: Array<{
+  channel: string;
+  resolve: (value: unknown) => void;
+}>;
+
+/** The first message sent on `channel`, already sent or when it is. */
+const sentOn = (channel: string) => {
+  const found = sent.find(([name]) => name === channel);
+  return found
+    ? Promise.resolve(found[1])
+    : new Promise<unknown>((resolve) => {
+        awaitingSend.push({ channel, resolve });
+      });
+};
 
 const setup = () => {
   const window = {
     webContents: {
-      send: (channel: string, value: unknown) => sent.push([channel, value]),
+      send: (channel: string, value: unknown) => {
+        sent.push([channel, value]);
+        awaitingSend = awaitingSend.filter((waiting) => {
+          if (waiting.channel !== channel) {
+            return true;
+          }
+          waiting.resolve(value);
+          return false;
+        });
+      },
     },
   } as unknown as BrowserWindow;
   return registerMemberScenesIpc({
@@ -97,6 +121,7 @@ beforeEach(() => {
   chosen = undefined;
   dialogOpenedAt = undefined;
   sent = [];
+  awaitingSend = [];
 });
 
 afterEach(() => {
@@ -315,6 +340,44 @@ describe('member scenes over IPC', () => {
       ok: false,
       reason: 'no-build',
     });
+    registration.dispose();
+  });
+
+  it("shows the open project's code, and saves the code pane's text into it", async () => {
+    const registration = setup();
+    chosen = await project();
+    const file = path.join(chosen, 'scene.frag');
+    await invoke<Promise<IStudioState>>('studio-open');
+    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await expect(sentOn('studio-source-changed')).resolves.toEqual({
+      file: 'scene.frag',
+      text: fs.readFileSync(file, 'utf8'),
+    });
+
+    expect(await invoke('studio-write-source', '// from the pane')).toBe(
+      'written',
+    );
+    expect(fs.readFileSync(file, 'utf8')).toBe('// from the pane');
+
+    // Text only: never a path or anything else the page might send.
+    expect(await invoke('studio-write-source', { file: '../x' })).toBe(
+      'failed',
+    );
+
+    // And only with Plus.
+    status = { state: 'none' };
+    listeners.forEach((listener) => listener(status));
+    expect(await invoke('studio-write-source', '// without Plus')).toBe(
+      'failed',
+    );
+    expect(fs.readFileSync(file, 'utf8')).toBe('// from the pane');
+    registration.dispose();
+  });
+
+  it('has nowhere to save the code pane into before a project is open', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    expect(await invoke('studio-write-source', '// nowhere')).toBe('failed');
     registration.dispose();
   });
 });

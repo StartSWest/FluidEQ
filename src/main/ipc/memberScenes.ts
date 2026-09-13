@@ -9,8 +9,11 @@ import type { IAccountSession } from '../account/session';
 import {
   readProject,
   readProjectNames,
+  writeProjectSource,
   type TProjectBuild,
+  type TSourceWrite,
 } from '../memberScenes/project';
+import { createSourceFeed } from '../memberScenes/sourceFeed';
 import {
   createProjectFolder,
   defaultProjectsRoot,
@@ -157,6 +160,7 @@ const CHANNELS = [
   'studio-create-project',
   'studio-add-to-looks',
   'studio-show-folder',
+  'studio-write-source',
 ] as const;
 
 const STUDIO_FILE = path.join('member-scenes', 'studio.json');
@@ -180,6 +184,9 @@ export const registerMemberScenesIpc = ({
   let studioOpen = false;
   let watcher: IProjectWatcher | undefined;
   let lastBuild: TProjectBuild | undefined;
+  const sourceFeed = createSourceFeed((source) =>
+    getMainWindow()?.webContents.send('studio-source-changed', source),
+  );
 
   const activeFolder = () =>
     projects.projects.find((project) => project.id === projects.active)?.folder;
@@ -237,6 +244,7 @@ export const registerMemberScenesIpc = ({
   const stopWatching = () => {
     watcher?.close();
     watcher = undefined;
+    sourceFeed.reset();
     lastBuild = undefined;
   };
 
@@ -247,15 +255,19 @@ export const registerMemberScenesIpc = ({
     if (!folder || !active || !studioOpen || !entitled()) {
       return;
     }
-    watcher = watchProject(folder, (build) => {
-      lastBuild = build;
-      // Held by the id this watcher started with, so a build that lands as
-      // the member switches projects cannot rename the one they switched to.
-      if (build.ok) {
-        projectNames.set(active, build.pack.names);
-      }
-      announceStudio();
-    });
+    watcher = watchProject(
+      folder,
+      (build) => {
+        lastBuild = build;
+        // Held by the id this watcher started with, so a build that lands as
+        // the member switches projects cannot rename the one they switched to.
+        if (build.ok) {
+          projectNames.set(active, build.pack.names);
+        }
+        announceStudio();
+      },
+      { read: sourceFeed.reader() },
+    );
   };
 
   /** Every project's name, read afresh: they are edited outside the app. */
@@ -482,6 +494,19 @@ export const registerMemberScenesIpc = ({
       await openPath(folder);
     }
   });
+
+  // The code pane's save: text only, into the open project's own source
+  // file. The watcher rebuilds the stage from it like any other save.
+  ipcMain.handle(
+    'studio-write-source',
+    async (_event, text: unknown): Promise<TSourceWrite> => {
+      const folder = activeFolder();
+      if (!entitled() || !folder || typeof text !== 'string') {
+        return 'failed';
+      }
+      return writeProjectSource(folder, text);
+    },
+  );
 
   // The Pictures card, and the scene's settings.
   const disposeNotes = registerStudioNotesIpc({

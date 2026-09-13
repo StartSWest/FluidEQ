@@ -58,7 +58,7 @@ class ProjectProblem extends Error {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** A manifest filename stays inside the project folder. */
+/** A name `pack.json` may give a file: plain, in this folder, never a path. */
 export const isPlainFileName = (name: string) =>
   PLAIN_NAME.test(name) && !name.includes('..');
 
@@ -136,13 +136,21 @@ export const readManifest = async (
   return parsed;
 };
 
-const buildRawPack = async (folder: string) => {
-  const manifest = await readManifest(folder);
-  const sourceName =
+/** The file the manifest names as the scene's source, and where it really is. */
+const locateSource = async (
+  folder: string,
+  manifest: Record<string, unknown>,
+) => {
+  const name =
     typeof manifest.sourceFile === 'string'
       ? manifest.sourceFile
       : DEFAULT_SOURCE_FILE;
-  const sourcePath = await resolveInside(folder, sourceName, 'source');
+  return { name, real: await resolveInside(folder, name, 'source') };
+};
+
+const buildRawPack = async (folder: string) => {
+  const manifest = await readManifest(folder);
+  const { real: sourcePath } = await locateSource(folder, manifest);
   const source = (
     await readBounded(sourcePath, MAX_MEMBER_SOURCE_BYTES, 'source')
   ).toString('utf8');
@@ -217,6 +225,57 @@ export const readProject = async (folder: string): Promise<TProjectBuild> => {
       ok: false,
       problems: [{ code: 'missing-file', file: 'pack.json' }],
     };
+  }
+};
+
+export interface IProjectSource {
+  /** The source file's name inside the folder, for display. */
+  file: string;
+  text: string;
+}
+
+/**
+ * The open project's scene source as text, for the Studio's code pane —
+ * found and bounded exactly as a build finds it, so the pane can never show
+ * a file the build would not read. Undefined when there is no such file yet.
+ */
+export const readProjectSource = async (
+  folder: string,
+): Promise<IProjectSource | undefined> => {
+  try {
+    const { name, real } = await locateSource(
+      folder,
+      await readManifest(folder),
+    );
+    const text = (
+      await readBounded(real, MAX_MEMBER_SOURCE_BYTES, 'source')
+    ).toString('utf8');
+    return { file: name, text };
+  } catch {
+    return undefined;
+  }
+};
+
+export type TSourceWrite = 'written' | 'too-large' | 'failed';
+
+/**
+ * Saves the code pane's text over the project's scene source: the same file
+ * `readProjectSource` shows, never a path the page names. The watcher on the
+ * folder then rebuilds the stage from it, as it does for any editor's save.
+ */
+export const writeProjectSource = async (
+  folder: string,
+  text: string,
+): Promise<TSourceWrite> => {
+  if (Buffer.byteLength(text, 'utf8') > MAX_MEMBER_SOURCE_BYTES) {
+    return 'too-large';
+  }
+  try {
+    const { real } = await locateSource(folder, await readManifest(folder));
+    await fs.promises.writeFile(real, text, 'utf8');
+    return 'written';
+  } catch {
+    return 'failed';
   }
 };
 

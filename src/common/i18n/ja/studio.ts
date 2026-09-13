@@ -393,6 +393,26 @@ const studio = {
   'studio.compile.hint': '直して保存するか、エラーを AI に貼り付けてください。',
   'studio.heavy.body':
     '8 分の 1 のサイズでもなめらかに動かせなかったため、画面が固まる前に FluidEQ が止めました。ループの回数、テクスチャの読み込み、レイヤーを減らしてみてください。',
+
+  'studio.code.title': 'コード',
+  'studio.code.label': '{file} のコード',
+  'studio.code.watching': '保存するたびに更新',
+  'studio.code.unsaved': '未保存',
+  'studio.code.save': '保存',
+  'studio.code.saving': '保存中…',
+  'studio.code.failed': '保存できませんでした。もう一度お試しください。',
+  'studio.code.tooLarge': 'シーンは最大 64 KB までです。保存されませんでした。',
+  'studio.code.changed':
+    'ここで入力している間に、スタジオの外でファイルが変更されました。',
+  'studio.code.load': '新しいバージョンを読み込む',
+  'studio.code.keep': '自分の変更を残す',
+  'studio.code.missing':
+    'このプロジェクトにはまだ表示できるシーンファイルがありません。',
+  'studio.code.showChanges': '変更を表示',
+  'studio.code.showCode': 'コードに戻る',
+  'studio.code.updatedAt': '{time} に外部で変更されました',
+  'studio.code.unchanged': '変更のない {count} 行',
+  'studio.code.delta': '{added} 行追加、{removed} 行削除',
 } as const;
 
 export default studio;

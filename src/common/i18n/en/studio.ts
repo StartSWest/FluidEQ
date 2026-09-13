@@ -398,6 +398,26 @@ const studio = {
   'studio.compile.hint': 'Fix it and save, or paste the error into your AI.',
   'studio.heavy.body':
     "It couldn't keep smooth motion even at an eighth of its size, so FluidEQ stopped it before it could freeze the screen. Try fewer loop steps, fewer texture reads, or fewer layers.",
+
+  // The code pane under the stage.
+  'studio.code.title': 'Code',
+  'studio.code.label': 'Code of {file}',
+  'studio.code.watching': 'Updates as it is saved',
+  'studio.code.unsaved': 'Not saved',
+  'studio.code.save': 'Save',
+  'studio.code.saving': 'Saving…',
+  'studio.code.failed': 'It could not be saved. Try again.',
+  'studio.code.tooLarge': 'A scene can be at most 64 KB. It was not saved.',
+  'studio.code.changed':
+    'The file changed outside the Studio while you were typing here.',
+  'studio.code.load': 'Load the new version',
+  'studio.code.keep': 'Keep my edits',
+  'studio.code.missing': 'This project has no scene file to show yet.',
+  'studio.code.showChanges': 'Show changes',
+  'studio.code.showCode': 'Back to the code',
+  'studio.code.updatedAt': 'Changed outside at {time}',
+  'studio.code.unchanged': '{count} unchanged lines',
+  'studio.code.delta': '{added} lines added, {removed} removed',
 } as const;
 
 export default studio;

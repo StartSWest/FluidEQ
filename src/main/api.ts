@@ -52,6 +52,7 @@ import type {
 import type { IStudioSettingsOutcome } from './ipc/studioSettings';
 import type { ISceneResponse } from '../common/sceneResponse';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
+import type { IProjectSource, TSourceWrite } from './memberScenes/project';
 import type {
   TGalleryAddOutcome,
   TGalleryListOutcome,
@@ -948,6 +949,22 @@ const onStudioChanged = (listener: (state: IStudioState) => void) => {
   };
 };
 
+/** The open project's scene source, sent again every time it changes on disk. */
+const onStudioSourceChanged = (
+  listener: (source: IProjectSource | null) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, source: IProjectSource | null) =>
+    listener(source);
+  ipcRenderer.on('studio-source-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('studio-source-changed', wrapped);
+  };
+};
+
+/** Text only: the main process writes it into the open project's own file. */
+const writeStudioSource = (text: string) =>
+  ipcRenderer.invoke('studio-write-source', text) as Promise<TSourceWrite>;
+
 /**
  * Publishes the Studio's open project, read from disk in the main process;
  * the picture is the only thing sent from here, and it must be a small WebP.
@@ -1275,6 +1292,8 @@ export default {
     chooseStudioPicture,
     saveStudioPicture,
     onStudioChanged,
+    onStudioSourceChanged,
+    writeStudioSource,
     readStudioNotes,
     saveStudioNotes,
     studioTermsAgreed,

@@ -391,6 +391,26 @@ const studio = {
   'studio.compile.hint': 'Corrija e salve, ou cole o erro na sua IA.',
   'studio.heavy.body':
     'Não conseguiu manter o movimento fluido nem a um oitavo do tamanho, então o FluidEQ a parou antes que congelasse a tela. Tente menos passos nos laços, menos leituras de textura ou menos camadas.',
+
+  'studio.code.title': 'Código',
+  'studio.code.label': 'Código de {file}',
+  'studio.code.watching': 'Atualiza ao salvar',
+  'studio.code.unsaved': 'Não salvo',
+  'studio.code.save': 'Salvar',
+  'studio.code.saving': 'Salvando…',
+  'studio.code.failed': 'Não foi possível salvar. Tente de novo.',
+  'studio.code.tooLarge': 'Uma cena pode ter no máximo 64 KB. Não foi salva.',
+  'studio.code.changed':
+    'O arquivo mudou fora do Estúdio enquanto você digitava aqui.',
+  'studio.code.load': 'Carregar a versão nova',
+  'studio.code.keep': 'Manter minhas alterações',
+  'studio.code.missing':
+    'Este projeto ainda não tem um arquivo de cena para mostrar.',
+  'studio.code.showChanges': 'Ver alterações',
+  'studio.code.showCode': 'Voltar ao código',
+  'studio.code.updatedAt': 'Alterado fora às {time}',
+  'studio.code.unchanged': '{count} linhas sem alteração',
+  'studio.code.delta': '{added} linhas adicionadas, {removed} removidas',
 } as const;
 
 export default studio;

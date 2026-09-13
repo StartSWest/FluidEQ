@@ -341,6 +341,24 @@ const studio = {
   'studio.compile.hint': '修正后保存，或把错误粘贴给你的 AI。',
   'studio.heavy.body':
     '即使缩小到八分之一尺寸，它也无法保持流畅，所以 FluidEQ 在它冻结屏幕之前停止了它。试试减少循环次数、纹理读取或图层。',
+
+  'studio.code.title': '代码',
+  'studio.code.label': '{file} 的代码',
+  'studio.code.watching': '保存时自动更新',
+  'studio.code.unsaved': '未保存',
+  'studio.code.save': '保存',
+  'studio.code.saving': '正在保存…',
+  'studio.code.failed': '无法保存。请重试。',
+  'studio.code.tooLarge': '场景最大为 64 KB，未保存。',
+  'studio.code.changed': '你在这里输入时，文件在工作室之外被修改了。',
+  'studio.code.load': '载入新版本',
+  'studio.code.keep': '保留我的修改',
+  'studio.code.missing': '这个项目还没有可显示的场景文件。',
+  'studio.code.showChanges': '查看改动',
+  'studio.code.showCode': '返回代码',
+  'studio.code.updatedAt': '{time} 在外部被修改',
+  'studio.code.unchanged': '{count} 行未改动',
+  'studio.code.delta': '新增 {added} 行，删除 {removed} 行',
 } as const;
 
 export default studio;
