@@ -75,13 +75,24 @@ describe('spectrum energy', () => {
     expect(settle(edges).energy.level).toBe(0);
   });
 
-  it('eases towards a new level rather than snapping', () => {
+  // An eased rise put a kick half its height 45 ms after the analyser heard
+  // it, the largest single delay between the music and a scene.
+  it('rises on the frame the music does', () => {
     const state = createEnergyState();
     const first = advanceEnergy(state, flat(MAX), MIN, MAX, FRAME, true);
-    expect(first.level).toBeGreaterThan(0);
-    expect(first.level).toBeLessThan(1);
-    const second = advanceEnergy(state, flat(MAX), MIN, MAX, FRAME, true);
-    expect(second.level).toBeGreaterThan(first.level);
+    expect(first.level).toBe(1);
+    expect(first.bass).toBe(1);
+    expect(first.treble).toBe(1);
+  });
+
+  // The other half: without it an instant fall would pass the test above
+  // just as well, and the analyser's steps would flicker on every drop.
+  it('falls away over its release instead of dropping', () => {
+    const { state } = settle(flat(MAX));
+    const first = advanceEnergy(state, flat(MIN), MIN, MAX, FRAME, true);
+    expect(first.level).toBeCloseTo(0.5, 5);
+    const second = advanceEnergy(state, flat(MIN), MIN, MAX, FRAME, true);
+    expect(second.level).toBeCloseTo(0.25, 5);
   });
 
   it('fires a beat on a step up, then decays it over the flash length', () => {

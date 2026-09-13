@@ -46,8 +46,28 @@ export interface IEnergyState {
 export const BEAT_THRESHOLD = 0.05;
 export const BEAT_ENVELOPE_HALF_LIFE_MS = 110;
 export const BEAT_FLASH_MS = 200;
-/** How quickly the four levels follow the measurement. */
-const LEVEL_HALF_LIFE_MS = 45;
+/**
+ * How quickly the four levels fall away. They do not rise slowly at all.
+ *
+ * This was one half-life for both directions, and a kick reached half its
+ * height 45 ms after the analyser had already heard it — the single largest
+ * delay between the music and a scene, larger than the capture, the pump and
+ * the GPU put together. It also overruled every scene's own `attack`: the
+ * response's attack of zero promises a rise that arrives at once, and it
+ * arrived eased regardless. Replaying a recorded track through the graph
+ * pipeline at 60 Hz, easing only the fall took the bass from 67 ms behind the
+ * audio to 52 ms with nothing else changed.
+ *
+ * The fall keeps its easing because that is what the easing was for: the
+ * measurement comes in steps, and a level dropping to each one would flicker.
+ * A scene that wants its rises softened says so with its response's attack.
+ */
+const LEVEL_RELEASE_HALF_LIFE_MS = 45;
+
+const followLevel = (from: number, to: number, elapsedMs: number): number =>
+  to >= from
+    ? to
+    : from + (to - from) * getEaseFactor(elapsedMs, LEVEL_RELEASE_HALF_LIFE_MS);
 
 /**
  * Band edges in Hertz.
@@ -117,11 +137,10 @@ export const advanceEnergy = (
   const treble = meanIn(points, TREBLE_HZ, minGain, maxGain);
   const mean = meanIn(points, [BASS_HZ[0], TREBLE_HZ[1]], minGain, maxGain);
 
-  const follow = getEaseFactor(elapsedMs, LEVEL_HALF_LIFE_MS);
-  state.level += (mean - state.level) * follow;
-  state.bass += (bass - state.bass) * follow;
-  state.mid += (mid - state.mid) * follow;
-  state.treble += (treble - state.treble) * follow;
+  state.level = followLevel(state.level, mean, elapsedMs);
+  state.bass = followLevel(state.bass, bass, elapsedMs);
+  state.mid = followLevel(state.mid, mid, elapsedMs);
+  state.treble = followLevel(state.treble, treble, elapsedMs);
 
   if (mean - state.beatLevel >= BEAT_THRESHOLD) {
     state.flashLeftMs = BEAT_FLASH_MS;

@@ -65,7 +65,14 @@ import {
   getPeakLevel,
   writeChannelWaveformPoints,
   writeFrequencyPoints,
+  SPECTRUM_SMOOTHING,
 } from './liveSpectrumFrames';
+import {
+  connectDrawAnalyser,
+  createLiveFrameReader,
+  type ILiveFrame,
+  type ILiveFrameReader,
+} from './liveFrameReader';
 import {
   ILevelFollower,
   IOutputLevel,
@@ -257,6 +264,8 @@ const useLiveOutputSpectrum = () => {
   // the two per-channel analysers hang off, and it is worth taking down on every
   // path rather than only on the one where the context is closed.
   const splitterNodeRef = useRef<ChannelSplitterNode | undefined>(undefined);
+  // What a drawing reads at the moment it draws — see `liveFrameReader.ts`.
+  const frameReaderRef = useRef<ILiveFrameReader | undefined>(undefined);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -298,6 +307,17 @@ const useLiveOutputSpectrum = () => {
     isPausedRef.current = next;
     setIsPaused(next);
   }, []);
+
+  /**
+   * The live frame as it is now, for a drawing to read inside its animation
+   * frame. Undefined while paused or with no capture running, and the caller
+   * then draws the frame it already holds — see `liveFrameReader.ts`.
+   */
+  const readFrame = useCallback(
+    (): ILiveFrame | undefined =>
+      isPausedRef.current ? undefined : frameReaderRef.current?.read(),
+    [],
+  );
 
   /** The only place a capture promise is settled. Idempotent. */
   const settleBalance = useCallback((outcome: IBalanceResult | Error) => {
@@ -344,6 +364,7 @@ const useLiveOutputSpectrum = () => {
     sourceNodeRef.current = undefined;
     splitterNodeRef.current?.disconnect();
     splitterNodeRef.current = undefined;
+    frameReaderRef.current = undefined;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
@@ -605,7 +626,7 @@ const useLiveOutputSpectrum = () => {
       // costs about a fifth of the delay it used to. Still not zero, because a
       // raw FFT bin jitters frame to frame and a curve made of pure noise is
       // worse than a slow one.
-      analyser.smoothingTimeConstant = 0.2;
+      analyser.smoothingTimeConstant = SPECTRUM_SMOOTHING;
       // Kept, so it can be disconnected rather than left for `close()`.
       sourceNodeRef.current =
         activeAudioContext.createMediaStreamSource(stream);
@@ -715,8 +736,18 @@ const useLiveOutputSpectrum = () => {
       const buffers = createFrameBuffers();
       let bufferSlot = 0;
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
-      let trackReferenceDb: number | undefined;
+      // Shared with the drawing's reader, which may see a new peak first.
+      const trackReference: { current: number | undefined } = {
+        current: undefined,
+      };
       const isSignalEdge = createSignalEdge();
+      frameReaderRef.current = createLiveFrameReader({
+        analyser: connectDrawAnalyser(activeAudioContext, source),
+        channelAnalysers: meterAnalysers,
+        axis,
+        cells,
+        trackReference,
+      });
 
       // One block of samples, read into again per channel per tick, and the
       // ballistics that carry each channel's two readings between ticks.
@@ -786,11 +817,14 @@ const useLiveOutputSpectrum = () => {
           // volume knob, and never lets a transient push the curve off-scale.
           // Kept running while hidden so the curve is already referenced
           // correctly the moment the window comes back.
-          trackReferenceDb =
-            trackReferenceDb === undefined
+          trackReference.current =
+            trackReference.current === undefined
               ? peak
-              : Math.max(peak, trackReferenceDb - TRACK_REFERENCE_RELEASE_DB);
-          reference = trackReferenceDb;
+              : Math.max(
+                  peak,
+                  trackReference.current - TRACK_REFERENCE_RELEASE_DB,
+                );
+          reference = trackReference.current;
         }
 
         // Everything from here to the measurement is presentation. Behind a
@@ -1314,6 +1348,7 @@ const useLiveOutputSpectrum = () => {
       error,
       isActive,
       isPaused,
+      readFrame,
       togglePaused,
       // So the notice about a failed capture can offer to try again rather
       // than only saying it went wrong. Windows refuses the loopback grab for
@@ -1336,6 +1371,7 @@ const useLiveOutputSpectrum = () => {
       error,
       isActive,
       isPaused,
+      readFrame,
       start,
       togglePaused,
     ],

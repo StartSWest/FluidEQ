@@ -99,7 +99,7 @@ export default function ScenePreview({
     [],
   );
 
-  const canvasRef = useSceneRunner({
+  const sceneRef = useSceneRunner({
     source,
     width: box.width,
     height: box.height,
@@ -111,9 +111,10 @@ export default function ScenePreview({
 
   return (
     <div ref={frameRef} className="gallery-preview__frame">
-      <canvas
-        ref={canvasRef}
+      <div
+        ref={sceneRef}
         className="gallery-preview__canvas"
+        role="img"
         aria-label={label}
         style={{ width: box.width, height: box.height }}
       />

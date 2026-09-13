@@ -2,12 +2,12 @@ import type { IScenePack } from 'common/scenePacks';
 import { getEaseFactor } from 'common/smoothing';
 import {
   assembleFragmentSource,
-  SCENE_VERTEX_SOURCE,
   SPECTRUM_TEXELS,
   uniformNameForParam,
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
+import { linkSceneProgram } from './sceneCompile';
 
 /**
  * The GL side of a scene: one program, audio textures, optional artwork, one triangle.
@@ -63,36 +63,6 @@ export const createSceneContext = (
   }
 };
 
-const compileShader = (
-  gl: WebGL2RenderingContext,
-  kind: number,
-  source: string,
-): WebGLShader | string => {
-  const shader = gl.createShader(kind);
-  if (!shader) {
-    return 'could not create shader';
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const log = gl.getShaderInfoLog(shader) ?? 'unknown compile error';
-    gl.deleteShader(shader);
-    return log;
-  }
-  return shader;
-};
-
-/**
- * Driver error lines are in the assembled program; the author wrote only the
- * middle of it. Shift every `ERROR: 0:<line>` so it points into their source.
- */
-const relocateErrorLines = (log: string, offset: number): string =>
-  log.replace(
-    /ERROR:\s*(\d+):(\d+)/g,
-    (_match, column: string, line: string) =>
-      `ERROR: ${column}:${Math.max(1, Number(line) - offset)}`,
-  );
-
 const createDataTexture = (
   gl: WebGL2RenderingContext,
   width: number,
@@ -126,43 +96,22 @@ const createDataTexture = (
   return texture;
 };
 
-export const compileScene = (
+export const compileScene = async (
   gl: WebGL2RenderingContext,
   pack: IScenePack,
   artwork?: ImageBitmap,
-): TSceneCompileResult => {
+  signal?: AbortSignal,
+): Promise<TSceneCompileResult> => {
   if (pack.artwork && !artwork) {
     return { ok: false, log: 'scene artwork was not decoded' };
   }
   const { source, sourceLineOffset } = assembleFragmentSource(pack);
 
-  const vertex = compileShader(gl, gl.VERTEX_SHADER, SCENE_VERTEX_SOURCE);
-  if (typeof vertex === 'string') {
-    return { ok: false, log: `vertex: ${vertex}` };
+  const linked = await linkSceneProgram(gl, source, sourceLineOffset, signal);
+  if (!linked.ok) {
+    return linked;
   }
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, source);
-  if (typeof fragment === 'string') {
-    gl.deleteShader(vertex);
-    return { ok: false, log: relocateErrorLines(fragment, sourceLineOffset) };
-  }
-
-  const program = gl.createProgram();
-  if (!program) {
-    gl.deleteShader(vertex);
-    gl.deleteShader(fragment);
-    return { ok: false, log: 'could not create program' };
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  // Shaders can be released once linked; the program keeps what it needs.
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const log = gl.getProgramInfoLog(program) ?? 'unknown link error';
-    gl.deleteProgram(program);
-    return { ok: false, log };
-  }
+  const { program } = linked;
 
   const spectrumTexture = createDataTexture(gl, SPECTRUM_TEXELS);
   const waveformTexture = createDataTexture(gl, WAVEFORM_TEXELS);

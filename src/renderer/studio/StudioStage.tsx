@@ -236,9 +236,10 @@ export default function StudioStage({
           }
         }}
       >
-        <canvas
+        <div
           ref={sceneRef}
           className="studio-stage__canvas"
+          role="img"
           aria-label={t('studio.stage.label', { name: pack.names.en })}
           style={{ width: box.width, height: box.height }}
         />

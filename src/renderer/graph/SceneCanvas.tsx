@@ -154,7 +154,7 @@ export default function SceneCanvas({
         width={width}
         height={height}
       />
-      <canvas
+      <div
         ref={sceneRef}
         className="chart-scene-canvas"
         aria-hidden="true"

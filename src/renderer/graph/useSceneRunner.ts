@@ -14,17 +14,15 @@ import {
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
-import {
-  compileScene,
-  createSceneContext,
-  type ISceneFrame,
-  type ISceneProgram,
-} from './sceneGl';
-import type { IFlashGuard } from './sceneFlashGuard';
+import type { ISceneFrame } from './sceneGl';
 import type { ICostLadder } from './sceneHealth';
 import { createSceneTuner } from './sceneTuner';
+import { sameSceneProgramInputs } from './sceneProgramInputs';
 import type { ISceneRunnerOptions } from './sceneRunnerTypes';
-import { decodeSceneArtwork } from './sceneArtwork';
+import {
+  createSceneWorkerClient,
+  type ISceneWorkerClient,
+} from './sceneWorkerClient';
 import {
   createSpectrumTexels,
   createWaveformTexels,
@@ -57,21 +55,20 @@ export default function useSceneRunner({
   tuning,
   onDrawn,
   onLoaded,
-}: ISceneRunnerOptions): RefObject<HTMLCanvasElement | null> {
+}: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform } = useLiveAudioFrame();
-  const { isPaused } = useLiveAudioControl();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const programRef = useRef<ISceneProgram | null>(null);
-  const guardRef = useRef<IFlashGuard | null>(null);
+  const { isPaused, readFrame } = useLiveAudioControl();
+  // What the scene is drawn inside: each worker puts a canvas of its own here.
+  const hostRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<ISceneWorkerClient | undefined>(undefined);
   const packRef = useRef<IScenePack | null>(null);
-  const glRef = useRef<WebGL2RenderingContext | null>(null);
-  const lostRef = useRef(false);
-  const lossesRef = useRef(0);
+  const drawnAtRef = useRef<number | undefined>(undefined);
   const visibleRef = useRef(true);
   const clipRef = useRef<readonly [number, number, number, number]>([
     0, 0, 1, 1,
   ]);
   const generationRef = useRef(0);
+  const buildingRef = useRef(false);
 
   const energyRef = useRef(createEnergyState());
   const spectrumRef = useRef(createSpectrumTexels());
@@ -99,6 +96,8 @@ export default function useSceneRunner({
   pointsRef.current = isPaused ? NO_POINTS : points;
   const waveformSamplesRef = useRef(waveform);
   waveformSamplesRef.current = isPaused ? NO_WAVEFORM : waveform;
+  const readFrameRef = useRef(readFrame);
+  readFrameRef.current = readFrame;
   const sizeRef = useRef({ width, height });
   sizeRef.current = { width, height };
   const spectrumRectRef = useRef(spectrumRect);
@@ -107,44 +106,44 @@ export default function useSceneRunner({
   const playing = !isPaused && points.length > 0;
 
   const dropProgram = useCallback(() => {
-    programRef.current?.dispose();
-    programRef.current = null;
+    rendererRef.current?.dispose();
+    rendererRef.current = undefined;
   }, []);
 
   const onFrame = useCallback(
-    (deltaMs: number): boolean => {
-      const canvas = canvasRef.current;
-      const gl = glRef.current;
-      const program = programRef.current;
+    (elapsedMs: number): boolean => {
+      const host = hostRef.current;
+      const renderer = rendererRef.current;
       if (
-        !canvas ||
-        !gl ||
-        !program ||
-        lostRef.current ||
+        !host ||
+        !renderer ||
+        !packRef.current ||
         !visibleRef.current ||
         document.hidden
       ) {
+        drawnAtRef.current = undefined;
         return false;
       }
-      const currentPoints = pointsRef.current;
+      if (!renderer.canDraw()) {
+        return true;
+      }
+      const now = performance.now();
+      const deltaMs =
+        drawnAtRef.current === undefined ? elapsedMs : now - drawnAtRef.current;
+      drawnAtRef.current = now;
+      // The music as it is at this frame, not at the pump's last tick, which
+      // was 16 ms stale at the median. Paused, sent from another PC or not
+      // capturing, it answers nothing and the React frame stands.
+      const fresh = readFrameRef.current();
+      const currentPoints = fresh ? fresh.points : pointsRef.current;
+      const currentWaveform = fresh
+        ? fresh.waveform
+        : waveformSamplesRef.current;
       const isPlaying = currentPoints.length > 0;
 
       const budget = document.documentElement.classList.contains('is-euphoric')
         ? EUPHORIA_FRAME_MS
         : SMOOTH_FRAME_MS;
-      if (
-        ladderRef.current.frame(deltaMs, budget, document.hidden) === 'degraded'
-      ) {
-        // Too slow even at the floor. The source decides what that means: the
-        // graph falls back FOR THIS SESSION — a slow session is a fact about
-        // the machine right now, not about the pack — and the Studio says so.
-        console.error(
-          `Scene "${sourceRef.current.name}" ran too slowly even at its smallest size; it stops until the next launch.`,
-        );
-        dropProgram();
-        sourceRef.current.tooSlow();
-        return false;
-      }
 
       // Sized inside the loop, as the 2D canvas is, because the pixel ratio is
       // not only a property of the element: dragging the window onto a display
@@ -167,10 +166,6 @@ export default function useSceneRunner({
         1,
         Math.round(cssHeight * ratio * scale * pixelCap),
       );
-      if (canvas.width !== backingWidth || canvas.height !== backingHeight) {
-        canvas.width = backingWidth;
-        canvas.height = backingHeight;
-      }
 
       const energy = advanceEnergy(
         energyRef.current,
@@ -186,7 +181,7 @@ export default function useSceneRunner({
         MIN_GAIN,
         MAX_GAIN,
       );
-      fillWaveformTexels(waveformSamplesRef.current, waveformRef.current);
+      fillWaveformTexels(currentWaveform, waveformRef.current);
 
       // Ambient travel continues through silence. Energy and beat still
       // receive actual audio; visibility stops this clock before any work.
@@ -195,21 +190,6 @@ export default function useSceneRunner({
       // The scene fades in over its first quarter second rather than popping,
       // and the same ramp is what a later crossfade will drive.
       fadeRef.current += (1 - fadeRef.current) * getEaseFactor(deltaMs, 80);
-
-      // Keep full-scene coordinates while the GPU shades only the portion
-      // inside the window. Cropping the backing buffer would distort the art.
-      const [left, top, right, bottom] = clipRef.current;
-      const clipX = Math.floor(left * backingWidth);
-      const clipTop = Math.floor(top * backingHeight);
-      const clipRight = Math.ceil(right * backingWidth);
-      const clipBottom = Math.ceil(bottom * backingHeight);
-      gl.enable(gl.SCISSOR_TEST);
-      gl.scissor(
-        clipX,
-        backingHeight - clipBottom,
-        clipRight - clipX,
-        clipBottom - clipTop,
-      );
 
       const heard: ISceneFrame = {
         timeSeconds: clockRef.current,
@@ -232,11 +212,33 @@ export default function useSceneRunner({
         paramsRef.current,
         tuningRef.current,
       );
-      const guard = guardRef.current;
-      guard?.begin(backingWidth, backingHeight);
-      program.draw(frame, backingWidth, backingHeight);
-      guard?.end(deltaMs);
-      drawnRef.current?.(frame, scale, program.musicAccent(), shaped);
+      const ladder = ladderRef.current;
+      renderer.draw(
+        frame,
+        backingWidth,
+        backingHeight,
+        clipRef.current,
+        (accent, costMs) => {
+          // Judged by what the frame cost the GPU, not by how long the page
+          // took between frames: see the worker's draw.
+          if (
+            ladder === ladderRef.current &&
+            ladder.frame(costMs, budget, document.hidden) === 'degraded'
+          ) {
+            // Too slow even at the floor. The source decides what that means:
+            // the graph falls back FOR THIS SESSION — a slow session is a fact
+            // about the machine right now, not about the pack — and the
+            // Studio says so.
+            console.error(
+              `Scene "${sourceRef.current.name}" ran too slowly even at its smallest size; it stops until the next launch.`,
+            );
+            dropProgram();
+            sourceRef.current.tooSlow();
+            return;
+          }
+          drawnRef.current?.(frame, scale, accent, shaped);
+        },
+      );
       return true;
     },
     [dropProgram],
@@ -245,13 +247,13 @@ export default function useSceneRunner({
   const kick = useSmoothFrames(onFrame, { isEnabled: true });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
+    const host = hostRef.current;
+    if (!host) {
       return undefined;
     }
     let intersects = true;
     const measure = () => {
-      const box = canvas.getBoundingClientRect();
+      const box = host.getBoundingClientRect();
       const left = Math.max(0, -box.left);
       const top = Math.max(0, -box.top);
       const right = Math.min(box.width, window.innerWidth - box.left);
@@ -266,6 +268,8 @@ export default function useSceneRunner({
           bottom / box.height,
         ];
         kick();
+      } else {
+        drawnAtRef.current = undefined;
       }
     };
     const intersection = new IntersectionObserver((entries) => {
@@ -273,8 +277,8 @@ export default function useSceneRunner({
       measure();
     });
     const resize = new ResizeObserver(measure);
-    intersection.observe(canvas);
-    resize.observe(canvas);
+    intersection.observe(host);
+    resize.observe(host);
     document.addEventListener('visibilitychange', measure);
     window.addEventListener('scroll', measure, true);
     window.addEventListener('resize', measure);
@@ -288,128 +292,119 @@ export default function useSceneRunner({
     };
   }, [width, height, kick]);
 
-  /**
-   * Compile `pack` beside whatever is running and swap it in if it compiles.
-   * The ladder starts again from its own beginning for every new program: a
-   * new version is untested at any size until it has been drawn.
-   */
+  const startRenderer = useCallback(() => {
+    const host = hostRef.current;
+    if (!host) {
+      return undefined;
+    }
+    try {
+      rendererRef.current = createSceneWorkerClient(
+        host,
+        (reason, log) => {
+          if (log) {
+            console.error(
+              `Scene "${sourceRef.current.name}" renderer failed: ${log}`,
+            );
+          }
+          dropProgram();
+          if (reason === 'context-lost') {
+            sourceRef.current.reportFailure(reason);
+          } else {
+            sourceRef.current.block();
+          }
+        },
+        () => {
+          drawnAtRef.current = undefined;
+          ladderRef.current = sourceRef.current.createLadder();
+          kick();
+        },
+      );
+    } catch (error) {
+      console.error('Scene worker could not start:', error);
+    }
+    if (!rendererRef.current) {
+      sourceRef.current.block();
+    }
+    return rendererRef.current;
+  }, [dropProgram, kick]);
+
+  /** A worker prepares the next scene while the interface remains available. */
   const build = useCallback(
     async (pack: IScenePack) => {
-      const gl = glRef.current;
-      if (!gl) {
-        return;
-      }
-      generationRef.current += 1;
-      const generation = generationRef.current;
-      // A lost context compiles nothing, and that is not the shader's doing.
-      // Reporting it as a compile failure would quarantine a good pack.
-      if (gl.isContextLost()) {
-        sourceRef.current.block();
-        return;
-      }
-      const { createGuard } = sourceRef.current;
-      if (createGuard && !guardRef.current) {
-        guardRef.current = createGuard(gl);
-        if (!guardRef.current) {
-          // Without the limiter a member's scene must not run at all.
-          sourceRef.current.block();
-          return;
-        }
-      }
-      let artwork: ImageBitmap | undefined;
-      try {
-        artwork = await decodeSceneArtwork(pack);
-        if (lostRef.current || generation !== generationRef.current) {
-          return;
-        }
-        const result = compileScene(gl, pack, artwork);
-        if (!result.ok) {
-          // The sanctioned use of console.error: context a person can act on,
-          // before the failure is flattened for the picker.
-          console.error(
-            `Scene "${pack.names.en}" (${pack.id} v${pack.version}) failed to compile:\n${result.log}`,
-          );
-          sourceRef.current.reportFailure('compile', result.log);
-          return;
-        }
-        programRef.current?.dispose();
-        programRef.current = result.program;
+      // A settings save comes back as a new pack. Keep the running program,
+      // textures, clock and limiter; do not even copy its artwork to a worker.
+      if (
+        rendererRef.current &&
+        packRef.current &&
+        !buildingRef.current &&
+        sameSceneProgramInputs(packRef.current, pack)
+      ) {
         packRef.current = pack;
         paramsRef.current = Object.fromEntries(
           pack.params.map((param) => [param.id, param.value]),
         );
-        ladderRef.current = sourceRef.current.createLadder();
         loadedRef.current?.(pack);
         kick();
-      } catch (error) {
-        if (!lostRef.current && generation === generationRef.current) {
-          console.error(
-            `Scene "${pack.names.en}" (${pack.id} v${pack.version}) artwork failed:`,
-            error,
-          );
-          sourceRef.current.reportFailure('compile', String(error));
-        }
-      } finally {
-        artwork?.close();
-      }
-    },
-    [kick],
-  );
-
-  // The context: made once per canvas, and never released — `getContext` on
-  // the same element hands back the same context, and one told to lose itself
-  // stays lost, so a remount (which React does in development) got a dead
-  // context, "failed to compile", and a good pack was quarantined for good.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return undefined;
-    }
-    const gl = createSceneContext(canvas);
-    if (!gl) {
-      // No context right now is the machine's condition, not the pack's fault.
-      sourceRef.current.block();
-      return undefined;
-    }
-    glRef.current = gl;
-    lostRef.current = false;
-    lossesRef.current = 0;
-
-    const onLost = (event: Event) => {
-      // Without this the restored event never fires. Not optional.
-      event.preventDefault();
-      lostRef.current = true;
-      generationRef.current += 1;
-      // The objects are already invalid; only the bookkeeping is ours.
-      programRef.current = null;
-      guardRef.current = null;
-      lossesRef.current += 1;
-      // Twice in one session is a scene that keeps resetting the GPU.
-      if (lossesRef.current >= 2) {
-        sourceRef.current.reportFailure('context-lost');
-      }
-    };
-    const onRestored = () => {
-      if (lossesRef.current >= 2) {
         return;
       }
-      lostRef.current = false;
-      if (packRef.current) {
-        build(packRef.current);
+      const renderer = rendererRef.current ?? startRenderer();
+      if (!renderer) {
+        return;
       }
-    };
-    canvas.addEventListener('webglcontextlost', onLost);
-    canvas.addEventListener('webglcontextrestored', onRestored);
+      generationRef.current += 1;
+      const generation = generationRef.current;
+      buildingRef.current = true;
+      let result;
+      try {
+        result = await renderer.load(
+          pack,
+          Boolean(sourceRef.current.createGuard),
+        );
+      } finally {
+        if (generation === generationRef.current) {
+          buildingRef.current = false;
+        }
+      }
+      if (
+        generation !== generationRef.current ||
+        renderer !== rendererRef.current
+      ) {
+        return;
+      }
+      drawnAtRef.current = undefined;
+      if (result.kind === 'unavailable') {
+        dropProgram();
+        sourceRef.current.block();
+      } else if (result.kind === 'compile') {
+        console.error(
+          `Scene "${pack.names.en}" (${pack.id} v${pack.version}) failed to compile:\n${result.log}`,
+        );
+        sourceRef.current.reportFailure('compile', result.log);
+      } else if (result.kind === 'ready') {
+        packRef.current = pack;
+        paramsRef.current = Object.fromEntries(
+          pack.params.map((param) => [param.id, param.value]),
+        );
+        if (result.rebuilt) {
+          ladderRef.current = sourceRef.current.createLadder();
+        }
+        loadedRef.current?.(pack);
+        kick();
+      }
+    },
+    [kick, startRenderer, dropProgram],
+  );
+
+  // A fresh worker, on a fresh canvas of its own, on every mount/project,
+  // including React's development remount — see `createSceneWorkerClient`.
+  useEffect(() => {
+    startRenderer();
     return () => {
-      canvas.removeEventListener('webglcontextlost', onLost);
-      canvas.removeEventListener('webglcontextrestored', onRestored);
+      generationRef.current += 1;
       dropProgram();
-      guardRef.current?.dispose();
-      guardRef.current = null;
       packRef.current = null;
-      glRef.current = null;
     };
-  }, [build, dropProgram]);
+  }, [source.identity, startRenderer, dropProgram]);
 
   // A different scene starts from the beginning: clock, fade, energy, and a
   // limiter only if this one asks for it.
@@ -421,11 +416,8 @@ export default function useSceneRunner({
     accentRef.current = parseAccent(
       getComputedStyle(document.documentElement).getPropertyValue('--accent'),
     );
-    dropProgram();
     packRef.current = null;
-    guardRef.current?.dispose();
-    guardRef.current = null;
-    lossesRef.current = 0;
+    drawnAtRef.current = undefined;
   }, [source.identity, dropProgram]);
 
   // Every version of it — the first included — is loaded and built beside the
@@ -470,5 +462,5 @@ export default function useSceneRunner({
     kick();
   }, [width, height, spectrumRect, kick]);
 
-  return canvasRef;
+  return hostRef;
 }

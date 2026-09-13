@@ -64,6 +64,10 @@ export const dspWorkletConfig = (
   devtool: false,
 
   entry: {
+    'scene-renderer': path.join(
+      webpackPaths.srcRendererPath,
+      'graph/sceneRenderer.worker.ts',
+    ),
     'scene-still': path.join(
       webpackPaths.srcRendererPath,
       'graph/sceneStill.worker.ts',

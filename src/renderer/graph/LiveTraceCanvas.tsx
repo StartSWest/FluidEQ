@@ -497,7 +497,9 @@ const LiveTraceCanvas = ({
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   const { points: livePoints, waveform } = useLiveAudioFrame();
-  const { isPaused } = useLiveAudioControl();
+  const { isPaused, readFrame } = useLiveAudioControl();
+  const readFrameRef = useRef(readFrame);
+  readFrameRef.current = readFrame;
   const playingRef = useRef(false);
   const motionRef = useRef(createGraphMotionState());
   const terraceJumperRef = useRef(createTerraceJumper());
@@ -633,6 +635,11 @@ const LiveTraceCanvas = ({
   // Capture frames remain raw; only this visualizer's copy is eased.
   const waveformRef = useRef<readonly number[]>(displayedWaveform);
   waveformRef.current = displayedWaveform;
+  // Whether what is drawn is the capture itself — not a look preview, not the
+  // silent floor — which is the only time the frame may read the analyser for
+  // itself instead of waiting for the next React frame.
+  const isLiveRef = useRef(false);
+  isLiveRef.current = points === livePoints;
   // Fluid eases its grouped magnitudes once with the look's ballistics.
   const fluidBarsRef = useRef<number[]>([]);
   // Shared by Wave forms and the Wave peak mark, using Edit's Attack/Release.
@@ -664,7 +671,14 @@ const LiveTraceCanvas = ({
       if (!canvas || !context || !visibleRef.current || document.hidden) {
         return false;
       }
-      const data = points;
+      // Measured at this frame when the trace is live: the pump's frame was
+      // 16 ms old at the median by the time it was drawn. The same length or
+      // it is not the same axis, and the eased buffers are sized to `points`.
+      const fresh = isLiveRef.current ? readFrameRef.current() : undefined;
+      const data =
+        fresh && fresh.points.length === points.length ? fresh.points : points;
+      const frameWaveform =
+        fresh && data === fresh.points ? fresh.waveform : waveformRef.current;
       const eased = easedRef.current;
       if (data.length < 2 || eased.length !== data.length) {
         return false;
@@ -896,7 +910,7 @@ const LiveTraceCanvas = ({
         moving =
           advanceWaveform(
             fluidWaveRef.current,
-            waveformRef.current,
+            frameWaveform,
             motionDeltaMs,
             tuning,
           ) || moving;
@@ -1177,7 +1191,7 @@ const LiveTraceCanvas = ({
             height,
             invasionPaths.unit,
             chromeRef.current,
-            waveformRef.current,
+            frameWaveform,
           )
         : undefined;
       // Hyperspace: the streaks are its figure, the sky and the rest scenery.

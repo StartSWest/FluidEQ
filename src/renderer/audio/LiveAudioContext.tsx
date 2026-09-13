@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -60,7 +61,20 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
     () => (senderFrame ? { ...frame, ...senderFrame } : frame),
     [frame, senderFrame],
   );
-  const controls = useMemo(() => ({ ...control, setSharingAudio }), [control]);
+  // A remote sender's frame replaces the local capture's everywhere, so a
+  // drawing reading the local analyser directly would show the wrong music.
+  // Undefined sends it back to the visible frame, which is the sender's.
+  const senderFrameRef = useRef(senderFrame);
+  senderFrameRef.current = senderFrame;
+  const { readFrame: readLocalFrame } = control;
+  const readFrame = useCallback(
+    () => (senderFrameRef.current ? undefined : readLocalFrame()),
+    [readLocalFrame],
+  );
+  const controls = useMemo(
+    () => ({ ...control, readFrame, setSharingAudio }),
+    [control, readFrame],
+  );
   const { isEnabled } = useFluidEqContext();
   const wasEngineEnabledRef = useRef(isEnabled);
 

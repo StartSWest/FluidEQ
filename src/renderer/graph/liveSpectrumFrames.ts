@@ -77,6 +77,12 @@ export const WAVEFORM_POINT_COUNT = 96;
  */
 export const UPDATE_INTERVAL_MS = 33;
 
+/**
+ * The spectrum analyser's averaging, per `UPDATE_INTERVAL_MS` tick. Why it is
+ * this number is written where the pump's analyser is built.
+ */
+export const SPECTRUM_SMOOTHING = 0.2;
+
 // The live trace shows real decibels referenced to THE TRACK, not to the
 // volume knob. Windows loopback carries whatever volume is set, so an absolute
 // dBFS scale would make the curve collapse the moment the user turns the

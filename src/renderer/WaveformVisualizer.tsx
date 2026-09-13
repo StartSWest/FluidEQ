@@ -150,7 +150,9 @@ const WaveformVisualizer = () => {
   // through the control context, it simply is not this button any more, and
   // the support panel it used to open in euphoria is still one click away on
   // the creature beside it.
-  const { isActive, isPaused } = useLiveAudioControl();
+  const { isActive, isPaused, readFrame } = useLiveAudioControl();
+  const readFrameRef = useRef(readFrame);
+  readFrameRef.current = readFrame;
   // Every sample eased toward the new frame instead of jumping to it.
   //
   // The analyser publishes about twenty-two times a second, which is fast
@@ -356,6 +358,15 @@ const WaveformVisualizer = () => {
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     const smoothed = smoothedRef.current;
+    // The capture as it is at this frame, not at the pump's last tick — see
+    // `liveFrameReader.ts`. Off, paused or showing another PC's audio, it
+    // answers nothing and the published frame stands.
+    const fresh = isOffRef.current ? undefined : readFrameRef.current();
+    const target =
+      fresh && fresh.waveform.length === smoothed.length
+        ? fresh.waveform
+        : targetRef.current;
+    const framePoints = fresh ? fresh.points : pointsRef.current;
     // The same in both modes. Rainbow's "smoother" look is bought with
     // FRAME RATE, not with easing: `useSmoothFrames` caps the loop at
     // thirty frames a second at rest and lets it run at the display's own
@@ -372,7 +383,7 @@ const WaveformVisualizer = () => {
     // the drawing shivers instead of moving.
     let moving = easeTowards(
       smoothed,
-      targetRef.current,
+      target,
       getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
       getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
     );
@@ -389,8 +400,8 @@ const WaveformVisualizer = () => {
     // shape function so those three styles read real frequency bands.
     let spectrumMagnitudes: number[] | undefined;
     const stylesUsingFftBars = FFT_WAVEFORM_STYLES.has(styleRef.current);
-    if (stylesUsingFftBars && pointsRef.current.length > 0) {
-      const source = pointsRef.current;
+    if (stylesUsingFftBars && framePoints.length > 0) {
+      const source = framePoints;
       const bandCount = 48;
       const bufferForShape = spectrumMagnitudesRef.current;
       if (bufferForShape.length !== bandCount) {
@@ -505,7 +516,7 @@ const WaveformVisualizer = () => {
       moving =
         advanceSpectrumBars(
           buffer,
-          pointsRef.current,
+          framePoints,
           MIN_GAIN,
           deltaMs,
           undefined,

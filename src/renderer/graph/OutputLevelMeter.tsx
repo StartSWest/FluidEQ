@@ -47,6 +47,7 @@ import { METER_STYLES, MeterStyle, METER_STYLE_KEY } from 'common/meterStyles';
 import { useTranslation } from '../utils/I18nContext';
 import {
   useLiveAudioCapture,
+  useLiveAudioControl,
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
@@ -58,6 +59,9 @@ import {
   LEVEL_FLOOR_DB,
   LEVEL_HOT_DB,
   LEVEL_OVER_DB,
+  advanceLevel,
+  amplitudeToDb,
+  createLevelFollower,
   levelFraction,
   levelZone,
 } from './outputLevel';
@@ -120,14 +124,19 @@ const channelNameKey = (index: number, isStereo: boolean): TranslationKey => {
 };
 
 /**
- * How the level and peak ease between frames — the same numbers in both
+ * How the level and peak fall between frames — the same numbers in both
  * modes. Rainbow's smoother look comes from FRAME RATE, not from easing:
  * `useSmoothFrames` caps the loop at thirty frames a second at rest and
  * lets it run at the display's own rate in euphoria. Slowing the release
  * for the mode instead made the meter lag the music, which reads as a
  * broken meter rather than as a smooth one.
+ *
+ * Nothing rises slowly. The bar eased up with a 35 ms half-life, on top of a
+ * reading the pump had taken up to 33 ms before: a kick reached half height
+ * well after it was heard. A meter that eases upward under-reads exactly the
+ * transients it exists to catch — `advanceLevel` says as much and was already
+ * instant; the drawing undid it.
  */
-const LEVEL_ATTACK_MS = 35;
 // A ten-millisecond half-life covers three quarters of the remaining
 // distance in a single 60Hz frame, which is not a release at all — the
 // bars simply teleported to the new reading and the fall was over before
@@ -1683,6 +1692,9 @@ const drawChannel = (
 
 const OutputLevelMeter = () => {
   const { isClipping, outputLevels } = useLiveAudioFrame();
+  const { readFrame } = useLiveAudioControl();
+  const readFrameRef = useRef(readFrame);
+  readFrameRef.current = readFrame;
   const { t } = useTranslation();
   const isHidden = useGraphMeterHidden();
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
@@ -1775,6 +1787,13 @@ const OutputLevelMeter = () => {
     { level: 0, peak: 0, zone: 'safe', peakZone: 'safe' },
   ]);
   const targetsRef = useRef<IChannelLevel[]>(easedRef.current);
+  /**
+   * The meter's own ballistics for readings taken at draw time, and which
+   * channels the pump last saw rail: clipping keeps its hold there, and a
+   * sample at the rail is the pump's evidence, not the drawing's.
+   */
+  const followersRef = useRef([createLevelFollower(), createLevelFollower()]);
+  const railedRef = useRef<boolean[]>([]);
 
   useEffect(() => {
     if (isOff) {
@@ -1801,7 +1820,7 @@ const OutputLevelMeter = () => {
     // ever went red.
     const internalClipping = readInternalClipping(performance.now());
     let anyInternalClipping = false;
-    targetsRef.current = channels.map((channel) => {
+    targetsRef.current = channels.map((channel, index) => {
       const level = levelFraction(channel.levelDb);
       const peak = levelFraction(channel.peakDb);
       /**
@@ -1814,6 +1833,7 @@ const OutputLevelMeter = () => {
        */
       anyInternalClipping ||= internalClipping;
       const isRailed = channel.isClipping || internalClipping;
+      railedRef.current[index] = isRailed;
       return {
         level,
         peak,
@@ -1875,10 +1895,35 @@ const OutputLevelMeter = () => {
         '#2e4f63',
       );
       const unlitColour = readSurface('--meter-unlit', '#1a3a4e');
-      const rise = getEaseFactor(deltaMs, LEVEL_ATTACK_MS);
       const fall = getEaseFactor(deltaMs, LEVEL_RELEASE_MS);
       const peakFall = getEaseFactor(deltaMs, PEAK_RELEASE_MS);
       let moving = false;
+
+      // The output as it is at this frame rather than at the pump's last
+      // tick — see `liveFrameReader.ts`. Off, paused or showing another PC's
+      // audio, it answers nothing and the published levels stand.
+      const fresh = isOff ? undefined : readFrameRef.current();
+      if (fresh && fresh.channelPeaks.length === targetsRef.current.length) {
+        targetsRef.current = fresh.channelPeaks.map((amplitude, index) => {
+          const follower = advanceLevel(
+            followersRef.current[index] ?? createLevelFollower(),
+            amplitudeToDb(amplitude),
+            deltaMs,
+          );
+          followersRef.current[index] = follower;
+          // Sound keeps the loop drawing: stopping between two readings
+          // would put the pump's cadence back in front of the next hit.
+          moving ||= follower.levelDb > LEVEL_FLOOR_DB;
+          return {
+            level: levelFraction(follower.levelDb),
+            peak: levelFraction(follower.peakDb),
+            zone: levelZone(follower.levelDb, false),
+            peakZone: railedRef.current[index]
+              ? ('clip' as const)
+              : levelZone(follower.peakDb, false),
+          };
+        });
+      }
 
       if (!isOff) {
         for (let i = 0; i < easedRef.current.length; i += 1) {
@@ -1890,7 +1935,8 @@ const OutputLevelMeter = () => {
             const eased = easedRef.current[i];
             const levelGap = target.level - eased.level;
             if (Math.abs(levelGap) > 0.002) {
-              eased.level += levelGap * (levelGap > 0 ? rise : fall);
+              eased.level =
+                levelGap > 0 ? target.level : eased.level + levelGap * fall;
               moving = true;
             } else {
               eased.level = target.level;
