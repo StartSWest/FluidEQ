@@ -89,31 +89,87 @@ const subscribe = (listener: () => void) => {
 export const useTheme = (): TTheme =>
   useSyncExternalStore(subscribe, getTheme, () => DEFAULT_THEME);
 
+type TSurfaceName =
+  | '--surface-base'
+  | '--surface-panel'
+  | '--surface-block'
+  | '--surface-well'
+  | '--track-well'
+  | '--accent'
+  | '--accent-light'
+  | '--text-primary'
+  | '--text-muted'
+  | '--text-faint'
+  | '--meter-well'
+  | '--meter-well-pulse'
+  | '--meter-unlit';
+
+/**
+ * Changes to the stylesheets themselves: one added or removed, or one
+ * rewritten in place, as development's hot reload does. Counted by an
+ * observer on the head, started with the first read.
+ */
+let sheetEdits = 0;
+let watchingSheets = false;
+
+const watchSheets = () => {
+  if (watchingSheets || typeof MutationObserver === 'undefined') {
+    return;
+  }
+  watchingSheets = true;
+  new MutationObserver(() => {
+    sheetEdits += 1;
+  }).observe(document.head, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+};
+
+/**
+ * Everything the surface properties on `:root` can change with: its theme
+ * attribute, its class, its inline style — where a scene's tint writes the
+ * surfaces — and the stylesheets that declare them. All of it is read
+ * without asking for a style.
+ */
+const rootStateOf = (root: HTMLElement) =>
+  `${root.getAttribute('data-theme') ?? ''}|${root.className}|${root.getAttribute('style') ?? ''}|${document.styleSheets.length}|${sheetEdits}`;
+
+const surfaces = new Map<TSurfaceName, string>();
+let surfacesFor = '';
+
 /**
  * A surface colour as the theme currently paints it, for the drawings.
  *
  * A canvas cannot read the stylesheet, so everything drawn rather than laid
  * out — the pitch lane, the maker's editor, the DSP's phase scope — used to
- * carry the ocean values written out, and went teal on a black theme. Read
- * once per frame from the same custom property the stylesheets use; the
+ * carry the ocean values written out, and went teal on a black theme. The
+ * value comes from the same custom property the stylesheets use; the
  * fallback is only for a test DOM with no stylesheet loaded.
+ *
+ * Asked of the style only when `:root` has changed since the last answer.
+ * The drawings ask every frame, and a computed style is only as cheap as the
+ * document is clean: with the Studio's meters writing their numbers each
+ * frame, every one of those reads made the browser recalculate the whole
+ * page's style there and then — 85 recalculations in 90 frames, over half of
+ * all the style work the Studio did — before it would have done so once, on
+ * its own, at the end of the frame.
  */
-export const readSurface = (
-  name:
-    | '--surface-base'
-    | '--surface-panel'
-    | '--surface-block'
-    | '--surface-well'
-    | '--track-well'
-    | '--accent'
-    | '--accent-light'
-    | '--text-primary'
-    | '--text-muted'
-    | '--text-faint',
-  fallback: string,
-): string =>
-  getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
-  fallback;
+export const readSurface = (name: TSurfaceName, fallback: string): string => {
+  watchSheets();
+  const root = document.documentElement;
+  const state = rootStateOf(root);
+  if (state !== surfacesFor) {
+    surfaces.clear();
+    surfacesFor = state;
+  }
+  let value = surfaces.get(name);
+  if (value === undefined) {
+    value = getComputedStyle(root).getPropertyValue(name).trim();
+    surfaces.set(name, value);
+  }
+  return value || fallback;
+};
 
 /** Canvas captions use the same opaque ink as DOM labels in both themes. */
 export const readTextInk = (): string => readSurface('--text-faint', '#bfd3e3');

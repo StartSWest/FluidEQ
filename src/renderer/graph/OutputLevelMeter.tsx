@@ -65,6 +65,7 @@ import {
   readTextInk,
   readAccent,
   readAccentLightChannels,
+  readSurface,
 } from '../utils/theme';
 
 /**
@@ -198,30 +199,6 @@ const RAINBOW_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
  * red regardless of the mode, because the warning is what the colour means
  * and the mode does not get to override it.
  */
-/**
- * The palette values this canvas paints with, read from the stylesheet.
- *
- * A canvas cannot use a Sass variable, so these were written out as hex and
- * went stale every time the palette moved — twice in one afternoon. Read from
- * the custom properties the shell publishes (see `--meter-well` in App.scss),
- * they follow the theme by construction.
- *
- * Read on demand rather than cached: it is two property lookups on a frame
- * that is already rasterising a meter, and caching would need something to
- * invalidate it the moment a theme changed, which is the bug this replaces.
- */
-const surfaceColour = (
-  element: Element | null,
-  name: string,
-  fallback: string,
-) => {
-  if (!element) {
-    return fallback;
-  }
-  const value = getComputedStyle(element).getPropertyValue(name).trim();
-  return value || fallback;
-};
-
 const ZONE_COLOURS = {
   safe: '#54ff8a',
   hot: '#ffd24a',
@@ -1871,14 +1848,16 @@ const OutputLevelMeter = () => {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       const isOff = isOffRef.current;
-      // Read once a frame from the canvas itself, so a theme change reaches
-      // the drawing without anything having to be told about it.
-      const wellColour = surfaceColour(
-        canvas,
+      // The palette values the shell publishes on `:root` (see `--meter-well`
+      // in App.scss): a canvas cannot use a Sass variable, and the hex these
+      // once were went stale every time the palette moved. `readSurface`
+      // follows a theme or tint change without forcing a style recalculation
+      // on every frame.
+      const wellColour = readSurface(
         styleRef.current === 'pulse' ? '--meter-well-pulse' : '--meter-well',
         '#2e4f63',
       );
-      const unlitColour = surfaceColour(canvas, '--meter-unlit', '#1a3a4e');
+      const unlitColour = readSurface('--meter-unlit', '#1a3a4e');
       const rise = getEaseFactor(deltaMs, LEVEL_ATTACK_MS);
       const fall = getEaseFactor(deltaMs, LEVEL_RELEASE_MS);
       const peakFall = getEaseFactor(deltaMs, PEAK_RELEASE_MS);

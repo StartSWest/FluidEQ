@@ -117,7 +117,19 @@ export default function StudioMeters({
         ghost.style.transform = `scaleX(${clamp01(heard)})`;
       }
       if (text) {
-        text.textContent = clamp01(value).toFixed(2);
+        const shown = clamp01(value).toFixed(2);
+        // The text node's data, never `textContent`: replacing the node every
+        // frame is an insertion into the document, and the page's `:has()`
+        // rules on its outermost boxes answer every insertion by restyling
+        // from the top.
+        const { firstChild } = text;
+        if (firstChild instanceof Text) {
+          if (firstChild.data !== shown) {
+            firstChild.data = shown;
+          }
+        } else {
+          text.textContent = shown;
+        }
       }
     };
     feed.current = (frame, scale, musicAccent, heard) => {
