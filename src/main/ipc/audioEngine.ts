@@ -69,7 +69,7 @@ const ENDPOINT_GUID = /^\{[0-9A-Fa-f-]{36}\}$/;
 export type TReflushResult = TEngineStepOutcome;
 
 export interface IAudioEngineIpcDeps {
-  /** `%APPDATA%\FluidEQ` — where `audio-engine.json` is kept. */
+  /** The app's data folder, where `audio-engine.json` is kept. */
   userDataDir: string;
   /**
    * Read per call, never captured.

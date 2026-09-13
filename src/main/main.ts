@@ -67,6 +67,7 @@ import {
 } from './asyncWriter';
 import {
   getConfigPath,
+  getFluidEngineDllPath,
   isEngineInstalled,
   isEqualizerAPOInstalled,
 } from './registry';
@@ -3567,21 +3568,20 @@ const onAppReady = async () => {
   //
   // The rule itself lives in `migrateAudioEnginePreference`, where it can be
   // held to all four of its cells; this is the machine it is asked about.
-  // The registry probe is only run when the file has no answer — a recorded
+  // The probes are only run when the file has no answer — a recorded
   // preference is obeyed whatever the machine looks like.
   const enginePreference = loadAudioEnginePreference(userDataDir);
   const isWindows = process.platform === 'win32';
+  const unanswered = enginePreference.engine === null && isWindows;
   const migration = migrateAudioEnginePreference(enginePreference, {
     isWindows,
-    apoInstalled:
-      enginePreference.engine === null && isWindows
-        ? await isEqualizerAPOInstalled()
-        : false,
+    apoInstalled: unanswered ? await isEqualizerAPOInstalled() : false,
+    fluidInstalled: unanswered && fs.existsSync(getFluidEngineDllPath()),
   });
   session.audioEngine = migration.engine;
-  if (migration.persist) {
+  if (migration.persist && migration.engine !== null) {
     try {
-      saveAudioEnginePreference(userDataDir, 'apo');
+      saveAudioEnginePreference(userDataDir, migration.engine);
     } catch (error) {
       // A read-only or full %APPDATA% must not take the launch down with it.
       // This write only settles the question for NEXT time; the answer for

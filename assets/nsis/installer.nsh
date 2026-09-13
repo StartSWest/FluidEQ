@@ -60,6 +60,27 @@
   Page custom EnginePageCreate EnginePageLeave
 !endif
 
+; Where the installed app keeps its data, which is where the engine choice has
+; to be written for the app to read it.
+;
+; Electron names the folder after the app's package: `release/app/package.json`
+; has a `name` and no `productName`, so the installed app lives in
+; %APPDATA%\fluideq-app — not %APPDATA%\FluidEQ, which is only where `pnpm dev`
+; lives. This file used to write to FluidEQ. The installed app never saw the
+; choice, found Equalizer APO on the machine, and settled on it — on a machine
+; where setup had just installed the FluidEQ Engine because the user picked it.
+; The same wrong folder made the page ask again on every reinstall, and the
+; uninstaller deleted a choice that was never there.
+;
+; `APP_PACKAGE_NAME` is the package name electron-builder passes in, the same
+; one its own uninstaller deletes app data by. `installerPaths.test.ts` holds
+; the package to having no `productName`, which would move the app's folder
+; without moving this one.
+!ifndef APP_PACKAGE_NAME
+  !error "APP_PACKAGE_NAME is not defined: the app's data folder cannot be named."
+!endif
+!define FLUIDEQ_DATA "$APPDATA\${APP_PACKAGE_NAME}"
+
 ; Write a line to the install log.
 ;
 ; DetailPrint is useless here: a one-click installer hides its detail pane, so
@@ -69,8 +90,8 @@
 ;
 ; Beside the app's own logs, so there is one place to ask for.
 !macro InstallLog Text
-  CreateDirectory "$APPDATA\FluidEQ\logs"
-  FileOpen $9 "$APPDATA\FluidEQ\logs\install.log" a
+  CreateDirectory "${FLUIDEQ_DATA}\logs"
+  FileOpen $9 "${FLUIDEQ_DATA}\logs\install.log" a
   FileSeek $9 0 END
   FileWrite $9 "${Text}$\r$\n"
   FileClose $9
@@ -89,9 +110,9 @@
 ; every Windows code page agrees on. Hence no BOM and no UTF-16, which is what
 ; `fs.readFileSync(path, 'utf8')` needs.
 !macro WriteEngineChoice Engine
-  CreateDirectory "$APPDATA\FluidEQ"
+  CreateDirectory "${FLUIDEQ_DATA}"
   ClearErrors
-  FileOpen $9 "$APPDATA\FluidEQ\audio-engine.json" w
+  FileOpen $9 "${FLUIDEQ_DATA}\audio-engine.json" w
   ${If} ${Errors}
     !insertmacro InstallLog "Could not write audio-engine.json; the app will ask instead."
   ${Else}
@@ -234,7 +255,7 @@
       ; The app has already answered this question — either from its own engine
       ; dialog or from a previous installation. Asking again would let a
       ; re-install silently move somebody's audio to the other engine.
-      ${If} ${FileExists} "$APPDATA\FluidEQ\audio-engine.json"
+      ${If} ${FileExists} "${FLUIDEQ_DATA}\audio-engine.json"
         Abort
       ${EndIf}
 
@@ -591,8 +612,8 @@ required. You can uninstall it from Windows Settings at any time."
     ; question, and the app would come up writing into an engine that is no
     ; longer there. Only on a real uninstall — the ${IfNot} ${isUpdated}
     ; above — so an update keeps the user's choice.
-    ${If} ${FileExists} "$APPDATA\FluidEQ\audio-engine.json"
-      Delete "$APPDATA\FluidEQ\audio-engine.json"
+    ${If} ${FileExists} "${FLUIDEQ_DATA}\audio-engine.json"
+      Delete "${FLUIDEQ_DATA}\audio-engine.json"
       !insertmacro InstallLog "Removed the recorded audio engine choice."
     ${EndIf}
   ${EndIf}

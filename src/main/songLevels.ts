@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * starts the engine is told its level up front and levels it from the first
  * second (`songProgramme.ts`).
  *
- * `%APPDATA%\FluidEQ\song-levels.json`, keyed by the app's hash of the player,
+ * `song-levels.json` in the app's data folder, keyed by the app's hash of the player,
  * title and artist — never the title itself — and capped, the least recently
  * heard songs going first.
  */

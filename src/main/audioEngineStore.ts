@@ -68,6 +68,8 @@ export const loadAudioEnginePreference = (
 export interface IAudioEngineFacts {
   isWindows: boolean;
   apoInstalled: boolean;
+  /** The FluidEQ Engine's DLL is where setup installs it. */
+  fluidInstalled: boolean;
 }
 
 /** The engine this launch uses, and whether the answer is worth recording. */
@@ -84,6 +86,11 @@ export interface IAudioEngineMigration {
  * wrong engine and there was nothing exercising it:
  *
  * - A file that names an engine is obeyed, and nothing is written back.
+ * - No file, the FluidEQ Engine installed: somebody installed it, which is
+ *   the answer, whatever else is on the machine. Before this rule a machine
+ *   that also had Equalizer APO came up on APO with the engine setup had just
+ *   installed sitting unused — which is what happened while the installer
+ *   wrote its choice into a folder the installed app never read.
  * - No file, Equalizer APO present: an install that predates the FluidEQ
  *   Engine keeps working with nothing asked and nothing changed, and the
  *   answer is written down so the question is settled once.
@@ -98,6 +105,9 @@ export const migrateAudioEnginePreference = (
 ): IAudioEngineMigration => {
   if (preference.engine !== null) {
     return { engine: preference.engine, persist: false };
+  }
+  if (facts.isWindows && facts.fluidInstalled) {
+    return { engine: 'fluid', persist: true };
   }
   if (!facts.isWindows || facts.apoInstalled) {
     return { engine: 'apo', persist: true };

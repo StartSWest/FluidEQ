@@ -515,9 +515,21 @@ APO is now one of two engines, so setup asks first: an nsDialogs page declared
 at file scope in `installer.nsh` — **not** through `customPageAfterChangeDir`,
 which electron-builder only reaches from the assisted installer and this
 one-click build never includes — offers the FluidEQ Audio Processing Engine or
-Equalizer APO, and writes the answer to `%APPDATA%\FluidEQ\audio-engine.json`
-for the app to read at startup. It is skipped, leaving both engines untouched,
-under `${Silent}`, under `${isUpdated}`, and whenever that file already exists.
+Equalizer APO, and writes the answer to `audio-engine.json` in the installed
+app's data folder for it to read at startup. It is skipped, leaving both engines
+untouched, under `${Silent}`, under `${isUpdated}`, and whenever that file
+already exists.
+
+**The installed app's data folder is `%APPDATA%\fluideq-app`, not
+`%APPDATA%\FluidEQ`** — that one is `pnpm dev`'s. Electron names it after
+`release/app/package.json`, which has a `name` and no `productName`. Setup used
+to write the choice into `FluidEQ`, so the installed app never saw it: pick the
+FluidEQ Engine on a machine with Equalizer APO, and the engine got installed
+while the app came up on APO. `installer.nsh` now builds every path from
+`FLUIDEQ_DATA` (`$APPDATA\${APP_PACKAGE_NAME}`), and `installerPaths.test.ts`
+fails if a path is spelled by hand or the package grows a `productName`. And
+if the choice is ever missing while the engine is installed, the app picks the
+FluidEQ Engine rather than APO (`migrateAudioEnginePreference`).
 `customUnInstall` removes our engine first and without asking — it is ours, and
 `FluidEQ-Engine-Setup.exe uninstall` puts every output's effect list back — and
 only then asks the "Also uninstall Equalizer APO?" question, and only when APO

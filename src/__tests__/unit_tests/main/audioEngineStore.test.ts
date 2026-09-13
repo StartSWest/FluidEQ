@@ -115,13 +115,13 @@ describe('migrating the audio engine preference at startup', () => {
     expect(
       migrateAudioEnginePreference(
         { version: 1, engine: 'fluid' },
-        { isWindows: true, apoInstalled: true },
+        { isWindows: true, apoInstalled: true, fluidInstalled: false },
       ),
     ).toEqual({ engine: 'fluid', persist: false });
     expect(
       migrateAudioEnginePreference(
         { version: 1, engine: 'apo' },
-        { isWindows: true, apoInstalled: false },
+        { isWindows: true, apoInstalled: false, fluidInstalled: true },
       ),
     ).toEqual({ engine: 'apo', persist: false });
   });
@@ -130,16 +130,34 @@ describe('migrating the audio engine preference at startup', () => {
     expect(
       migrateAudioEnginePreference(
         { version: 1, engine: null },
-        { isWindows: true, apoInstalled: true },
+        { isWindows: true, apoInstalled: true, fluidInstalled: false },
       ),
     ).toEqual({ engine: 'apo', persist: true });
+  });
+
+  // The engine setup just installed on a machine that also has Equalizer APO:
+  // installing it was the choice, and APO being there is not a reason to
+  // leave it unused.
+  it('picks the FluidEQ Engine once it is installed, even beside Equalizer APO', () => {
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: null },
+        { isWindows: true, apoInstalled: true, fluidInstalled: true },
+      ),
+    ).toEqual({ engine: 'fluid', persist: true });
+    expect(
+      migrateAudioEnginePreference(
+        { version: 1, engine: null },
+        { isWindows: true, apoInstalled: false, fluidInstalled: true },
+      ),
+    ).toEqual({ engine: 'fluid', persist: true });
   });
 
   it('leaves a fresh Windows machine unanswered for the first-run dialog', () => {
     expect(
       migrateAudioEnginePreference(
         { version: 1, engine: null },
-        { isWindows: true, apoInstalled: false },
+        { isWindows: true, apoInstalled: false, fluidInstalled: false },
       ),
     ).toEqual({ engine: null, persist: false });
   });
@@ -148,7 +166,7 @@ describe('migrating the audio engine preference at startup', () => {
     expect(
       migrateAudioEnginePreference(
         { version: 1, engine: null },
-        { isWindows: false, apoInstalled: false },
+        { isWindows: false, apoInstalled: false, fluidInstalled: false },
       ),
     ).toEqual({ engine: 'apo', persist: true });
   });

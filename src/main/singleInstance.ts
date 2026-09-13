@@ -10,10 +10,12 @@ it under the terms of the GNU General Public License version 3 or later.
  * The one-copy rule, extended across builds.
  *
  * `app.requestSingleInstanceLock` is keyed on the user data directory, and
- * development and the installed build do not share one: dev resolves its name
- * from `release/app/package.json` and lands in `%APPDATA%\fluideq-app`, while
- * the installed build is stamped with `productName` and lands in
- * `%APPDATA%\FluidEQ`. So Electron's lock stops two copies of the same build
+ * development and the installed build do not share one: the installed build
+ * resolves its name from `release/app/package.json`, which has no
+ * `productName`, and lands in `%APPDATA%\fluideq-app`, while development runs
+ * from the root package, whose `productName` puts it in `%APPDATA%\FluidEQ`.
+ * (Measured from both builds' data; this said the reverse, and setup wrote the
+ * engine choice into the wrong one.) So Electron's lock stops two copies of the same build
  * and nothing else — while the thing it exists to prevent does not care which
  * build did it. Two processes write the same Equalizer APO config, each sees
  * the other's write as somebody editing the file from outside, and they spend

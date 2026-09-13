@@ -70,7 +70,8 @@ split across `src/main/ipc/` (one file per surface: `dspHost`, `filters`,
 - File contract in `src/main/flush.ts`: APO's own `config.txt` gets a single
   `Include: fluideq.txt` line appended (existing content preserved, legacy
   `Include: aqua.txt` recognised). `fluideq.txt` is FluidEQ's root file.
-  Presets live in `%APPDATA%\FluidEQ\presets`.
+  Presets live in the app's data folder: `%APPDATA%\fluideq-app\presets` for
+  the installed app, `%APPDATA%\FluidEQ\presets` under `pnpm dev`.
 - Per-device files (`src/main/deviceProfiles.ts`): `fluideq-device-<slug>.txt`
   where the slug is a 12-hex digest of the Windows endpoint id, one
   `fluideq-<slug>-<feature>.txt` per layer, `fluideq-<slug>-custom.txt` which is

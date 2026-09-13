@@ -26,7 +26,11 @@ export type TAudioEngine = 'fluid' | 'apo';
 
 export const AUDIO_ENGINES: readonly TAudioEngine[] = ['fluid', 'apo'];
 
-/** `%APPDATA%\FluidEQ\audio-engine.json` — see `audioEngineStore.ts`. */
+/**
+ * In the app's data folder — `%APPDATA%\fluideq-app` installed, where setup
+ * writes it too, and `%APPDATA%\FluidEQ` under `pnpm dev`. See
+ * `audioEngineStore.ts`.
+ */
 export const AUDIO_ENGINE_FILENAME = 'audio-engine.json';
 
 /** The FluidEQ Engine's APO (Audio Processing Object) COM class id. */
