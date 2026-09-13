@@ -33,6 +33,18 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// ---------------------------------------------------------------- checking
+
+// Until the account is known: only a ring in the middle of the card. It
+// arrives late on purpose — the usual answer comes back within a frame or
+// two, and a ring that blinked in and out would be the flash again.
+.community--checking {
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  @include animate(fade-in, $motion-base, ease-out, 180ms);
+}
+
 // ---------------------------------------------------------------- welcome
 
 // One column: the tab's two-column grid would otherwise seat the welcome in

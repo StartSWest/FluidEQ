@@ -17,12 +17,19 @@ import type { IAccountState } from 'main/account/session';
 const SIGNED_OUT: IAccountState = { status: 'signed-out' };
 
 let state: IAccountState = SIGNED_OUT;
+// Whether the main process has answered yet. Signed out is only the starting
+// value, not an answer: the Plus tab opened before the first reply arrived
+// and showed its signed-out welcome, for a moment, to somebody signed in.
+let known = false;
 let subscribed = false;
 const listeners = new Set<() => void>();
 
+const notify = () => listeners.forEach((listener) => listener());
+
 const publish = (next: IAccountState) => {
   state = next;
-  listeners.forEach((listener) => listener());
+  known = true;
+  notify();
 };
 
 /**
@@ -41,13 +48,18 @@ const start = () => {
   // The first read, because the main process already knows the answer at
   // startup: a session restored from disk exists before the window does, and
   // waiting for a change event would show "signed out" to somebody who is not.
-  api
-    ?.getAccountState?.()
-    .then(publish)
-    .catch(() => {
-      // A build with no backend, or a handler that is not registered. Signed out
-      // is the correct reading of both, and it is already the state.
+  const first = api?.getAccountState?.();
+  if (first) {
+    first.then(publish).catch(() => {
+      // A handler that is not registered. Signed out is the correct reading,
+      // and it is already the state; it is now also the answer.
+      known = true;
+      notify();
     });
+  } else {
+    // A build with no backend: there is nobody to ask, so nothing to wait for.
+    known = true;
+  }
   return api?.onAccountState?.(publish) ?? (() => {});
 };
 
@@ -71,6 +83,16 @@ export const useAccount = (): IAccountState =>
     getAccountSnapshot,
     getAccountSnapshot,
   );
+
+const getAccountKnown = () => known;
+
+/**
+ * Whether `useAccount` is the main process's answer yet, rather than the
+ * signed-out value the store starts with. A place that looks different
+ * signed in and signed out waits on this before drawing either.
+ */
+export const useAccountKnown = (): boolean =>
+  useSyncExternalStore(subscribeAccount, getAccountKnown, getAccountKnown);
 
 const adopt = (next: IAccountState | undefined) => {
   if (next) {
@@ -128,4 +150,5 @@ export const resetAccountStore = () => {
   subscribed = false;
   listeners.clear();
   state = SIGNED_OUT;
+  known = false;
 };

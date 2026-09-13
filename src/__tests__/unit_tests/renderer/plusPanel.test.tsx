@@ -158,6 +158,42 @@ describe('the Plus tab', () => {
     ).toBeNull();
   });
 
+  /**
+   * The stores start signed out and without Plus; drawing that before the
+   * main process answered flashed the welcome at a member opening the tab.
+   */
+  it('draws neither the welcome nor the rail until the account and Plus have answered', async () => {
+    let answerAccount: (state: typeof signedIn) => void = () => {};
+    let answerPlus: (status: { state: string }) => void = () => {};
+    bridge.getAccountState.mockReturnValue(
+      new Promise((resolve) => {
+        answerAccount = resolve;
+      }),
+    );
+    bridge.getEntitlementStatus.mockReturnValue(
+      new Promise((resolve) => {
+        answerPlus = resolve;
+      }),
+    );
+    await renderPanel();
+    const waiting = screen.getByRole('status', { name: 'account.checking' });
+    expect(document.querySelector('.plus-welcome')).toBeNull();
+    expect(screen.queryByRole('navigation')).toBeNull();
+
+    await act(async () => answerAccount(signedIn));
+    // Signed in, but whether with Plus is not known yet: still waiting.
+    expect(waiting).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).toBeNull();
+
+    await act(async () => answerPlus({ state: 'active' }));
+    expect(
+      screen.queryByRole('status', { name: 'account.checking' }),
+    ).toBeNull();
+    expect(
+      screen.getByRole('navigation', { name: 'tabs.plus' }),
+    ).toBeInTheDocument();
+  });
+
   it('asks a visitor to sign in, naming what an account opens and what takes Plus', async () => {
     bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
     await renderPanel();

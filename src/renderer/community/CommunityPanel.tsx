@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
-import { useAccount } from '../account/accountStore';
-import { useEntitlement } from '../account/entitlementStore';
+import { useAccount, useAccountKnown } from '../account/accountStore';
+import {
+  useEntitlement,
+  useEntitlementKnown,
+} from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
@@ -21,6 +24,8 @@ import LightingPanel from '../plus/lighting/LightingPanel';
 import StudioPanel from '../studio/StudioPanel';
 import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
+// The ring the scene page turns while a scene downloads, used here too.
+import '../styles/Gallery.scss';
 import '../styles/Leaderboard.scss';
 import '../styles/PlusRail.scss';
 
@@ -87,7 +92,9 @@ export default function CommunityPanel({
 }: ICommunityPanelProps) {
   const { t } = useTranslation();
   const account = useAccount();
+  const accountKnown = useAccountKnown();
   const entitlement = useEntitlement();
+  const entitlementKnown = useEntitlementKnown();
   const { profile, loaded } = useProfile();
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
@@ -102,6 +109,21 @@ export default function CommunityPanel({
       forgetProfile();
     }
   }, [accountId]);
+
+  // Neither version of the tab until the main process has said which one is
+  // true: the stores start signed out and unsubscribed, and drawing that
+  // flashed the welcome, or the offer, at a member opening the tab.
+  if (!accountKnown || (signedIn && !entitlementKnown)) {
+    return (
+      <div
+        className="community community--checking"
+        role="status"
+        aria-label={t('account.checking')}
+      >
+        <span className="gallery-preview__spinner" aria-hidden="true" />
+      </div>
+    );
+  }
 
   if (!signedIn) {
     return <PlusWelcome onSignIn={onSignIn} />;

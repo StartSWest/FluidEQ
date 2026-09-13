@@ -14,12 +14,18 @@ import type { TBillingOutcome } from 'main/ipc/account';
 const NONE: IEntitlementStatus = { state: 'none' };
 
 let status: IEntitlementStatus = NONE;
+// Whether the main process has answered yet; see `accountStore`'s own. "None"
+// before the answer drew the Plus tab's offer to a member for a moment.
+let known = false;
 let subscribed = false;
 const listeners = new Set<() => void>();
 
+const notify = () => listeners.forEach((listener) => listener());
+
 const publish = (next: IEntitlementStatus) => {
   status = next;
-  listeners.forEach((listener) => listener());
+  known = true;
+  notify();
 };
 
 const bridge = () => window.electron?.ipcRenderer;
@@ -30,12 +36,17 @@ const start = () => {
   }
   subscribed = true;
   const api = bridge();
-  api
-    ?.getEntitlementStatus?.()
-    .then(publish)
-    .catch(() => {
-      // No backend, or no handler. Not subscribed is already the state.
+  const first = api?.getEntitlementStatus?.();
+  if (first) {
+    first.then(publish).catch(() => {
+      // No handler. Not subscribed is already the state, and now the answer.
+      known = true;
+      notify();
     });
+  } else {
+    // No backend: nobody to ask, nothing to wait for.
+    known = true;
+  }
   return api?.onEntitlementChanged?.(publish) ?? (() => {});
 };
 
@@ -58,6 +69,16 @@ export const useEntitlement = (): IEntitlementStatus =>
     subscribeEntitlement,
     getEntitlementSnapshot,
     getEntitlementSnapshot,
+  );
+
+const getEntitlementKnown = () => known;
+
+/** Whether `useEntitlement` is the main process's answer yet, not the start. */
+export const useEntitlementKnown = (): boolean =>
+  useSyncExternalStore(
+    subscribeEntitlement,
+    getEntitlementKnown,
+    getEntitlementKnown,
   );
 
 export const refreshEntitlement = async () => {
@@ -100,4 +121,5 @@ export const resetEntitlementStore = () => {
   subscribed = false;
   listeners.clear();
   status = NONE;
+  known = false;
 };

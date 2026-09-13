@@ -1,10 +1,11 @@
 import '@testing-library/jest-dom';
-import { act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import {
   getAccountSnapshot,
   resetAccountStore,
   signInAccount,
   signUpAccount,
+  useAccountKnown,
 } from '../../../renderer/account/accountStore';
 
 const original = window.electron;
@@ -50,4 +51,21 @@ it('reports failed registration transport without exposing the thrown text', asy
     status: 'signed-out',
     error: 'network',
   });
+});
+it('is not an answer until the main process gives one, and a window with no backend has nothing to wait for', async () => {
+  let answer: (state: { status: string }) => void = () => {};
+  bridge({
+    getAccountState: () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+  });
+  const { result } = renderHook(() => useAccountKnown());
+  expect(result.current).toBe(false);
+  await act(async () => answer({ status: 'signed-out' }));
+  expect(result.current).toBe(true);
+
+  resetAccountStore();
+  bridge({});
+  expect(renderHook(() => useAccountKnown()).result.current).toBe(true);
 });

@@ -7,6 +7,7 @@ const account = {
   'account.menu': 'खाता',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'खाता',
+  'account.checking': 'आपका खाता जांचा जा रहा है…',
   'account.close': 'बंद करें',
 
   'account.optional':

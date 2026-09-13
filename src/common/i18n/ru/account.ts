@@ -7,6 +7,7 @@ const account = {
   'account.menu': 'Аккаунт',
   'account.eyebrow': 'FluidEQ',
   'account.title': 'Аккаунт',
+  'account.checking': 'Проверяем аккаунт…',
   'account.close': 'Закрыть',
 
   'account.optional':
