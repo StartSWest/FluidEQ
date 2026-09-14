@@ -9,7 +9,7 @@ import {
 const bridge: IWallpaperSurfaceBridge = {
   bootstrap: () => ipcRenderer.invoke(WALLPAPER.bootstrap),
   drawn: (generation) => ipcRenderer.send(WALLPAPER.drawn, generation),
-  failed: () => ipcRenderer.send(WALLPAPER.failed),
+  failed: (reason) => ipcRenderer.send(WALLPAPER.failed, reason),
   requestAudio: () => ipcRenderer.invoke(WALLPAPER.requestAudio),
   onState: (listener) => {
     const receive = (_event: IpcRendererEvent, state: IWallpaperSurfaceState) =>

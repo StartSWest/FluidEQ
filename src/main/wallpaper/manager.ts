@@ -17,6 +17,7 @@ import {
   type TWallpaperError,
 } from '../../common/wallpaper';
 import type { IEntitlement } from '../account/entitlement';
+import { isSceneFailure } from '../scenePackStore';
 import {
   matchSavedScreens,
   savedMonitorOf,
@@ -28,13 +29,12 @@ import { createMonitorBackgrounds } from './backgrounds';
 import { watchDesktopConditions, type IDesktopConditions } from './conditions';
 import { toWallpaperDisplays } from './displays';
 import { wallpaperHostPath } from './nativeHost';
-import type { IDesktopSurface, IWallpaperScene } from './surface';
+import type { IWallpaperScenes } from './scenes';
+import type { IDesktopSurface } from './surface';
 
-export interface IWallpaperDeps {
+export interface IWallpaperDeps extends IWallpaperScenes {
   getMainWindow(): BrowserWindow | null;
   entitlement: IEntitlement;
-  loadScene(lookId: string): IWallpaperScene | undefined;
-  subscribeScenes(listener: () => void): () => void;
   /** Where each monitor's background is remembered between launches. */
   arrangement: IArrangementStore;
 }
@@ -147,6 +147,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     });
   };
 
+  /** Why a look does not load: kept from running here, or not there at all. */
+  const unloadable = (lookId: string): TWallpaperError =>
+    deps.isSceneRefused(lookId) ? 'refused' : 'missing-scene';
+
   /** Starts what a monitor was set to show, or says why it cannot. */
   const restore = (display: Display, choice: IWallpaperChoice) => {
     const scene = entitled() ? deps.loadScene(choice.lookId) : undefined;
@@ -156,7 +160,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       backgrounds.fail(
         display.id,
         choice,
-        entitled() ? 'missing-scene' : 'not-entitled',
+        entitled() ? unloadable(choice.lookId) : 'not-entitled',
       );
     }
   };
@@ -246,13 +250,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     const owner = ownerContents();
     const scene = entitled() ? deps.loadScene(lookId) : undefined;
     if (!supported() || !entitled() || !owner || !scene) {
-      let reason: TWallpaperError = 'missing-scene';
+      let reason: TWallpaperError;
       if (!supported()) {
         reason = 'unsupported';
       } else if (!entitled()) {
         reason = 'not-entitled';
       } else if (!owner) {
         reason = 'audio';
+      } else {
+        reason = unloadable(lookId);
       }
       displayIds.forEach((id) => backgrounds.fail(id, choice, reason));
     } else {
@@ -302,19 +308,42 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     publish();
   };
 
+  /**
+   * A desktop page that could not draw. When the scene itself failed — its
+   * code would not compile, or the GPU reset under one of its own frames —
+   * the monitor says it was refused and the failure is written down with the
+   * graph's. Kept as a renderer failure, a monitor changing shape or the next
+   * launch ran the same code again, and a scene that resets the graphics
+   * driver a few times a minute takes Windows down with it.
+   */
+  const surfaceFailed = (surface: IDesktopSurface, reason: unknown) => {
+    if (!isSceneFailure(reason)) {
+      surface.fail('renderer');
+      return;
+    }
+    surface.fail('refused');
+    deps.reportSceneFailure(surface.lookId, reason);
+  };
+
   const refreshScenes = () => {
     restoreSaved();
     if (disposed || !app.isReady()) {
       return;
     }
     // A visualizer installed again — or member scenes that finished loading
-    // after launch — brings back the monitors that were waiting for it.
+    // after launch — brings back the monitors that were waiting for it. Not a
+    // refused one: that waits for the next launch or for somebody to set it,
+    // so a scene that failed here is never started again on its own.
     let changed = retryWaiting(['missing-scene']);
     const connected = screen.getAllDisplays();
     backgrounds.surfaces().forEach((surface) => {
       const next = deps.loadScene(surface.lookId);
       if (!next) {
-        backgrounds.fail(surface.displayId, surface.choice(), 'missing-scene');
+        backgrounds.fail(
+          surface.displayId,
+          surface.choice(),
+          unloadable(surface.lookId),
+        );
         changed = true;
         return;
       }
@@ -434,6 +463,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     stop,
     restoreSaved,
     failEverywhere,
+    surfaceFailed,
     entitled,
     ownerContents,
     surfaceFor: backgrounds.surfaceFor,

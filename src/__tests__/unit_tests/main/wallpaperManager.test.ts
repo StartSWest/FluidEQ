@@ -5,206 +5,33 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type {
-  IWallpaperChoice,
-  IWallpaperStart,
-} from '../../../common/wallpaper';
+import {
+  connect,
+  displays,
+  flush,
+  mockElectron,
+  mockHandlers,
+  mockNativeHost,
+  mockScreenListeners,
+  mockSurfaceModule,
+  mockSurfaces,
+  request,
+  setDisplays,
+  setup,
+  setUpWindowsDesk,
+} from '../../utils/wallpaperManagerHarness';
 
-interface IFakeSurface {
-  displayId: number;
-  lookId: string;
-  contents: { mainFrame: object };
-  choice(): IWallpaperChoice;
-  retune: jest.Mock;
-  release: jest.Mock;
-  applyPolicy: jest.Mock;
-  fail(error: string): void;
-}
-
-const mockSurfaces: IFakeSurface[] = [];
-const mockScreenListeners = new Map<string, (...args: unknown[]) => void>();
-const mockHandlers = new Map<string, (...args: unknown[]) => unknown>();
-const mockMessages = new Map<string, (...args: unknown[]) => unknown>();
-let mockDisplays: {
-  id: number;
-  label: string;
-  bounds: { x: number; y: number; width: number; height: number };
-  size: { width: number; height: number };
-  scaleFactor: number;
-}[] = [];
-
-jest.mock('electron', () => ({
-  app: {
-    isReady: () => true,
-    whenReady: () => Promise.resolve(),
-    once: jest.fn(),
-  },
-  screen: {
-    getAllDisplays: () => mockDisplays,
-    getPrimaryDisplay: () => mockDisplays[0],
-    dipToScreenRect: (_window: unknown, rect: unknown) => rect,
-    on: (event: string, listener: (...args: unknown[]) => void) =>
-      mockScreenListeners.set(event, listener),
-    removeListener: jest.fn(),
-  },
-  powerMonitor: {
-    getSystemIdleState: () => 'active',
-    isOnBatteryPower: () => false,
-    on: jest.fn(),
-    removeListener: jest.fn(),
-  },
-  ipcMain: {
-    handle: (channel: string, handler: (...args: unknown[]) => unknown) =>
-      mockHandlers.set(channel, handler),
-    removeHandler: (channel: string) => mockHandlers.delete(channel),
-    on: (channel: string, listener: (...args: unknown[]) => unknown) =>
-      mockMessages.set(channel, listener),
-    removeListener: jest.fn(),
-  },
-}));
-jest.mock('../../../main/wallpaper/nativeHost', () => ({
-  wallpaperHostPath: () => 'FluidEQ-Wallpaper.exe',
-}));
-jest.mock('../../../main/wallpaper/surface', () => ({
-  createDesktopSurface: (options: {
-    displayId: number;
-    choice: IWallpaperChoice;
-    onFail(error: string): void;
-  }) => {
-    let { choice } = options;
-    const surface: IFakeSurface = {
-      displayId: options.displayId,
-      lookId: options.choice.lookId,
-      contents: { mainFrame: {} },
-      choice: () => choice,
-      retune: jest.fn((next: IWallpaperChoice) => {
-        choice = { ...choice, wave: next.wave, motion: next.motion };
-      }),
-      release: jest.fn(),
-      applyPolicy: jest.fn(),
-      fail: (error) => options.onFail(error),
-    };
-    Object.assign(surface, {
-      scene: { pack: { version: 1, source: 'void main() {}' } },
-      phase: () => 'running',
-      pauseReason: () => undefined,
-      owns: (contents: unknown) => contents === surface.contents,
-      surfaceState: () => ({
-        phase: 'running',
-        renderGeneration: 1,
-        ...choice,
-      }),
-      drawn: jest.fn(),
-    });
-    mockSurfaces.push(surface);
-    return surface;
-  },
-}));
+jest.mock('electron', () => mockElectron());
+jest.mock('../../../main/wallpaper/nativeHost', () => mockNativeHost());
+jest.mock('../../../main/wallpaper/surface', () => mockSurfaceModule());
 
 /* eslint-disable import/first -- install the mocks first */
-import type { IEntitlement } from '../../../main/account/entitlement';
-import type {
-  IArrangementStore,
-  IWallpaperArrangement,
-} from '../../../main/wallpaper/arrangement';
+import type { IWallpaperArrangement } from '../../../main/wallpaper/arrangement';
 import { createWallpaperManager } from '../../../main/wallpaper/manager';
 import registerWallpaperIpc from '../../../main/wallpaper/register';
 /* eslint-enable import/first */
 
-const connect = (id: number, x: number, label: string) => ({
-  id,
-  label,
-  bounds: { x, y: 0, width: 2560, height: 1440 },
-  size: { width: 2560, height: 1440 },
-  scaleFactor: 1,
-});
-
-/** Lets `app.whenReady()` settle, which is when the monitor events are heard. */
-const flush = () =>
-  new Promise<void>((resolve) => {
-    setImmediate(resolve);
-  });
-
-const setup = (stored?: IWallpaperArrangement) => {
-  let entitled = true;
-  const entitlementListeners = new Set<() => void>();
-  let file: IWallpaperArrangement = stored ?? {
-    pauseOnBattery: true,
-    screens: [],
-  };
-  const arrangement: IArrangementStore = {
-    read: () => file,
-    write: jest.fn((next: IWallpaperArrangement) => {
-      file = next;
-    }),
-  };
-  const owner = {
-    mainFrame: {},
-    isDestroyed: () => false,
-    send: jest.fn(),
-    once: jest.fn(),
-    on: jest.fn(),
-  };
-  const deps = {
-    getMainWindow: () =>
-      ({ isDestroyed: () => false, webContents: owner }) as never,
-    entitlement: {
-      status: () => ({ state: entitled ? 'active' : 'none' }),
-      subscribe: (listener: () => void) => {
-        entitlementListeners.add(listener);
-        return () => entitlementListeners.delete(listener);
-      },
-    } as unknown as IEntitlement,
-    arrangement,
-    loadScene: (lookId: string) =>
-      lookId.startsWith('premium:')
-        ? {
-            pack: { id: lookId, version: 1, source: 'void main() {}' },
-            member: false,
-          }
-        : undefined,
-    subscribeScenes: () => () => undefined,
-  } as unknown as Parameters<typeof createWallpaperManager>[0];
-  return {
-    deps,
-    owner,
-    arrangement,
-    file: () => file,
-    setEntitled: (next: boolean) => {
-      entitled = next;
-      entitlementListeners.forEach((listener) => listener());
-    },
-  };
-};
-
-const request = (over: Partial<IWallpaperStart> = {}): IWallpaperStart => ({
-  lookId: 'premium:alpine',
-  displayIds: [2],
-  pauseOnBattery: true,
-  wave: { height: 1, position: 0 },
-  motion: 'music',
-  ...over,
-});
-
-const platform = Object.getOwnPropertyDescriptor(process, 'platform');
-beforeAll(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
-afterAll(() => {
-  if (platform) {
-    Object.defineProperty(process, 'platform', platform);
-  }
-});
-
-beforeEach(() => {
-  mockSurfaces.length = 0;
-  mockScreenListeners.clear();
-  mockHandlers.clear();
-  mockMessages.clear();
-  mockDisplays = [
-    connect(1, -2560, ''),
-    connect(2, 0, 'Y27qf-30'),
-    connect(3, 2560, 'Odyssey G5'),
-  ];
-});
+setUpWindowsDesk();
 
 describe('setting a monitor’s background', () => {
   it('puts the visualizer on every monitor named and remembers each with where it stands', () => {
@@ -414,17 +241,12 @@ describe('coming back at launch', () => {
     manager.restoreSaved();
     expect(mockSurfaces).toHaveLength(1);
 
-    mockDisplays = [
-      ...mockDisplays,
-      {
-        id: 41,
-        label: 'Portable',
-        bounds: { x: 5120, y: 0, width: 1920, height: 1080 },
-        size: { width: 1920, height: 1080 },
-        scaleFactor: 1,
-      },
-    ];
-    mockScreenListeners.get('display-added')?.({}, mockDisplays[3]);
+    const portable = connect(41, 5120, 'Portable', {
+      width: 1920,
+      height: 1080,
+    });
+    setDisplays([...displays(), portable]);
+    mockScreenListeners.get('display-added')?.({}, portable);
     expect(mockSurfaces.map((surface) => surface.displayId)).toEqual([3, 41]);
     expect(mockSurfaces[1].choice().lookId).toBe('premium:alpine');
   });
@@ -434,7 +256,7 @@ describe('coming back at launch', () => {
     const manager = createWallpaperManager(deps);
     await flush();
     manager.start(request({ displayIds: [3], motion: 'calm' }));
-    mockDisplays = mockDisplays.filter((display) => display.id !== 3);
+    setDisplays(displays().filter((display) => display.id !== 3));
     mockScreenListeners.get('display-removed')?.({}, { id: 3 });
     expect(mockSurfaces[0].release).toHaveBeenCalled();
     expect(manager.state().screens).toEqual([

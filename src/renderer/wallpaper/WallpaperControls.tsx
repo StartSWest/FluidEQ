@@ -155,7 +155,11 @@ export function WallpaperStatus() {
       <span className="wallpaper-status__mark" aria-hidden="true">
         <Glyph name={tone === 'error' ? 'alert' : 'monitor'} />
       </span>
-      <span className="wallpaper-status__text">{status}</span>
+      {/* One line beside the title: a reason longer than it is cut short on
+          screen, and whole on hover. */}
+      <span className="wallpaper-status__text" title={status}>
+        {status}
+      </span>
       <button
         type="button"
         className="button small subtle"

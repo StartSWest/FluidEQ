@@ -58,6 +58,8 @@ const wallpaper = {
     'Los visualizadores de escritorio están incluidos con FluidEQ Plus.',
   'wallpaper.error.missingScene':
     'Este visualizador ya no está instalado. Añádelo de nuevo y vuelve a intentarlo.',
+  'wallpaper.error.refused':
+    'Este visualizador falló con los gráficos de este equipo, así que no se volverá a reproducir aquí.',
   'wallpaper.error.missingDisplay':
     'Ese monitor está desconectado. Su fondo vuelve cuando lo conectes de nuevo.',
   'wallpaper.error.host':

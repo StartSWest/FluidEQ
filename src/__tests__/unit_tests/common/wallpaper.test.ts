@@ -109,6 +109,23 @@ describe('what the window accepts back from main', () => {
     expect(isWallpaperState(state)).toBe(true);
   });
 
+  it('takes a monitor whose visualizer was refused, and no error it does not know', () => {
+    const [screen] = state.screens;
+    const stopped = { ...screen, phase: 'error', pauseReason: undefined };
+    expect(
+      isWallpaperState({
+        ...state,
+        screens: [{ ...stopped, error: 'refused' }],
+      }),
+    ).toBe(true);
+    expect(
+      isWallpaperState({
+        ...state,
+        screens: [{ ...stopped, error: 'haunted' }],
+      }),
+    ).toBe(false);
+  });
+
   // A main process started before a change to this shape keeps running while
   // the window reloads beside it; an unchecked read there took the window down.
   it('ignores a monitor from a main that predates the wave or the motion', () => {

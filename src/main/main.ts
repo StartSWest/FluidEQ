@@ -189,7 +189,7 @@ import { registerSceneRefusalsIpc } from './ipc/sceneRefusals';
 import { createSceneRefusals } from './sceneRefusals';
 import registerWallpaperIpc from './wallpaper/register';
 import { createArrangementStore } from './wallpaper/arrangement';
-import { isPremiumLookId, packIdOfLook } from '../common/scenePacks';
+import { createWallpaperScenes } from './wallpaper/scenes';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
@@ -3006,22 +3006,7 @@ registerWallpaperIpc({
   getMainWindow: () => mainWindow,
   entitlement: accountIpc.entitlement,
   arrangement: createArrangementStore(userDataDir, log),
-  loadScene: (lookId) => {
-    if (isPremiumLookId(lookId)) {
-      const pack = scenePacksIpc.store.load(packIdOfLook(lookId));
-      return pack ? { pack, member: false } : undefined;
-    }
-    const pack = memberScenesIpc.loadVisible(lookId);
-    return pack ? { pack, member: true } : undefined;
-  },
-  subscribeScenes: (listener) => {
-    const official = scenePacksIpc.subscribeScenes(listener);
-    const member = memberScenesIpc.subscribeScenes(listener);
-    return () => {
-      official();
-      member();
-    };
-  },
+  ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
 });
 
 // Sharing them between members: export signed by the server, import verified

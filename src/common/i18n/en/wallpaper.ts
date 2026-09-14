@@ -57,6 +57,8 @@ const wallpaper = {
     'Desktop visualizers are included with FluidEQ Plus.',
   'wallpaper.error.missingScene':
     'This visualizer is no longer installed. Add it again and retry.',
+  'wallpaper.error.refused':
+    "This visualizer failed on this computer's graphics, so it won't be played here again.",
   'wallpaper.error.missingDisplay':
     'That monitor is disconnected. Its background returns when it is plugged back in.',
   'wallpaper.error.host':

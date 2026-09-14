@@ -181,6 +181,22 @@ describe('what each monitor shows', () => {
     );
   });
 
+  // Trying again would only run the code that failed on this computer again.
+  it('tells a monitor whose visualizer was refused why, with a Stop and no retry', () => {
+    withScreens([showing(3, { phase: 'error', error: 'refused' })]);
+    render(<WallpaperManageDialog onClose={jest.fn()} />);
+    const row = screen
+      .getByText(/failed on this computer's graphics/)
+      .closest('li');
+    expect(row).not.toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Try again' }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(row as HTMLElement).getByRole('button', { name: 'Stop' }),
+    ).toBeInTheDocument();
+  });
+
   it('says Calm on the tile of a monitor playing calm', () => {
     withScreens([showing(3)]);
     render(<WallpaperManageDialog onClose={jest.fn()} />);
@@ -208,5 +224,17 @@ describe('the line beside the Visualizers title', () => {
     withScreens([showing(2, { phase: 'error', error: 'renderer' })]);
     render(<WallpaperStatus />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  // The line is cut short on screen, so the whole reason is on hover too.
+  it('says a refused visualizer will not be played here again', () => {
+    withScreens([showing(2, { phase: 'error', error: 'refused' })]);
+    render(<WallpaperStatus />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      "won't be played here again",
+    );
+    expect(
+      screen.getByTitle(/failed on this computer's graphics/),
+    ).toBeInTheDocument();
   });
 });

@@ -41,7 +41,7 @@ import {
   writeProjectList,
   type IProjectList,
 } from '../memberScenes/studioProjects';
-import { isSceneFailure } from '../scenePackStore';
+import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import type { ISceneRefusals } from '../sceneRefusals';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioSettingsIpc } from './studioSettings';
@@ -157,6 +157,14 @@ export interface IMemberScenesIpcRegistration {
   /** The same account and entitlement check as the renderer's load request. */
   loadVisible(lookId: unknown): IScenePack | undefined;
   subscribeScenes(listener: () => void): () => void;
+  /**
+   * A member's look would not run here: quarantined, its code refused
+   * wherever else it runs, and every look list told. The graph reports
+   * through its channel; a desktop background through main.
+   */
+  reportFailure(lookId: string, reason: TSceneFailure): void;
+  /** Whether a held look is kept from running, by quarantine or refusal. */
+  isRefused(lookId: string): boolean;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
@@ -435,20 +443,26 @@ export const registerMemberScenesIpc = ({
     return removed;
   });
 
+  const reportFailure = (lookId: string, reason: TSceneFailure) => {
+    const ref = parseMemberLookId(lookId);
+    if (!ref) {
+      return;
+    }
+    // Its source too, read before the quarantine hides it: the gallery's
+    // preview, the lamps and its picture run the same code elsewhere.
+    const pack = store.load(ref.authorId, ref.packId);
+    if (pack) {
+      refusals?.refuse(pack.source, reason);
+    }
+    store.quarantine(ref.authorId, ref.packId, reason);
+    announceScenes();
+  };
+
   ipcMain.handle(
     'member-scenes-report-failure',
     (_event, lookId: unknown, reason: unknown) => {
-      const ref =
-        typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-      if (ref && isSceneFailure(reason)) {
-        // Its source too, read before the quarantine hides it: the gallery's
-        // preview, the lamps and its picture run the same code elsewhere.
-        const pack = store.load(ref.authorId, ref.packId);
-        if (pack) {
-          refusals?.refuse(pack.source, reason);
-        }
-        store.quarantine(ref.authorId, ref.packId, reason);
-        announceScenes();
+      if (typeof lookId === 'string' && isSceneFailure(reason)) {
+        reportFailure(lookId, reason);
       }
     },
   );
@@ -612,6 +626,13 @@ export const registerMemberScenesIpc = ({
         sceneListeners.delete(listener);
       };
     },
+    reportFailure,
+    isRefused: (lookId) =>
+      store
+        .list()
+        .some(
+          (scene) => scene.lookId === lookId && scene.quarantined !== undefined,
+        ),
     activeFolder,
     activeIsInspection,
     restoreOwnProject,

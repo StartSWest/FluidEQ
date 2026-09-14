@@ -125,4 +125,21 @@ describe('a desktop background’s page', () => {
     expect(moved?.[3]).toBeGreaterThan(moved?.[2] ?? 1);
     expect(lastRun()?.source).toBe(source);
   });
+
+  // Main keeps a scene's code from running again only when told it was the
+  // scene; a page or a machine that could not draw is tried again later.
+  it('tells main why its scene failed, and gives no reason when the machine did', async () => {
+    const { bridge } = pageFor(running());
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    const source = lastRun()?.source;
+
+    source?.reportFailure('gpu-reset');
+    expect(bridge.failed).toHaveBeenLastCalledWith('gpu-reset');
+    source?.block();
+    expect(bridge.failed).toHaveBeenLastCalledWith();
+    source?.tooSlow();
+    expect(bridge.failed).toHaveBeenLastCalledWith();
+    expect(bridge.failed).toHaveBeenCalledTimes(3);
+  });
 });

@@ -49,6 +49,8 @@ const wallpaper = {
   'wallpaper.error.unavailable': '无法连接桌面背景。请重试。',
   'wallpaper.error.notEntitled': '桌面可视化效果包含在 FluidEQ Plus 中。',
   'wallpaper.error.missingScene': '此可视化效果已不再安装。请重新添加后再试。',
+  'wallpaper.error.refused':
+    '此可视化效果在这台电脑的图形上出错，因此不会再在这里播放。',
   'wallpaper.error.missingDisplay':
     '该显示器已断开连接。重新连接后，它的背景会自动恢复。',
   'wallpaper.error.host': 'Windows 无法将可视化效果放到桌面上。请重试。',

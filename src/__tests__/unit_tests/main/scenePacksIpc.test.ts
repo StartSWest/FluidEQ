@@ -208,7 +208,8 @@ describe('bringing installed scenes up to date', () => {
   });
 });
 
-it('keeps a failure by the scene’s code as well as by the look, and takes no made-up reason', () => {
+/** A registration whose store holds Aurora, with its refusals recorded. */
+const withAuroraHeld = () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scene-failure-'));
   const refusals = { refuse: jest.fn(() => true), refusalOf: jest.fn() };
   const registration = registerScenePacksIpc({
@@ -234,6 +235,38 @@ it('keeps a failure by the scene’s code as well as by the look, and takes no m
       typeof registration.store.load
     >);
   const quarantine = jest.spyOn(registration.store, 'quarantine');
+  return { root, refusals, registration, source, quarantine };
+};
+
+// A desktop background's page has no channel of its own to report on, so
+// main hands its scene's failure to the same record the graph's goes into.
+it('takes a failure main reports into the same record, and says which looks it keeps', () => {
+  const { root, refusals, registration, source, quarantine } = withAuroraHeld();
+  const announced = jest.fn();
+  registration.subscribeScenes(announced);
+  try {
+    registration.reportFailure('aurora', 'context-lost');
+    expect(refusals.refuse).toHaveBeenCalledWith(source, 'context-lost');
+    expect(quarantine).toHaveBeenCalledWith('aurora', 'context-lost');
+    expect(announced).toHaveBeenCalledTimes(1);
+
+    jest
+      .spyOn(registration.store, 'list')
+      .mockReturnValue([
+        { id: 'aurora', quarantined: 'context-lost' },
+        { id: 'alpine' },
+      ] as ReturnType<typeof registration.store.list>);
+    expect(registration.isRefused('aurora')).toBe(true);
+    expect(registration.isRefused('alpine')).toBe(false);
+    expect(registration.isRefused('bloom')).toBe(false);
+  } finally {
+    registration.dispose();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+it('keeps a failure by the scene’s code as well as by the look, and takes no made-up reason', () => {
+  const { root, refusals, registration, source, quarantine } = withAuroraHeld();
   try {
     handlers.get('scene-packs-report-failure')?.({}, 'aurora', 'gpu-reset');
     // Read from the store before the quarantine hides it.

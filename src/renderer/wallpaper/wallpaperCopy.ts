@@ -28,6 +28,7 @@ export const ERROR_KEYS: Record<TWallpaperError, TranslationKey> = {
   unavailable: 'wallpaper.error.unavailable',
   'not-entitled': 'wallpaper.error.notEntitled',
   'missing-scene': 'wallpaper.error.missingScene',
+  refused: 'wallpaper.error.refused',
   'missing-display': 'wallpaper.error.missingDisplay',
   host: 'wallpaper.error.host',
   renderer: 'wallpaper.error.renderer',

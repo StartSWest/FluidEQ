@@ -43,7 +43,9 @@ function Scene({
       name: bootstrap.pack.names.en,
       load: async () => bootstrap.pack,
       block: () => bridge.failed(),
-      reportFailure: () => bridge.failed(),
+      // The scene's own failure, with its reason, so main keeps that code from
+      // running again — on this monitor and wherever else it is shown.
+      reportFailure: (reason) => bridge.failed(reason),
       tooSlow: () => bridge.failed(),
       createLadder: bootstrap.member ? createWarmupLadder : createCostLadder,
       createGuard: bootstrap.member ? createFlashGuard : undefined,

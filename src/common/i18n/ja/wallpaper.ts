@@ -57,6 +57,8 @@ const wallpaper = {
     'デスクトップ ビジュアライザーは FluidEQ Plus に含まれています。',
   'wallpaper.error.missingScene':
     'このビジュアライザーはインストールされていません。もう一度追加してお試しください。',
+  'wallpaper.error.refused':
+    'このビジュアライザーはこのコンピューターのグラフィックスで問題を起こしたため、ここでは再生されません。',
   'wallpaper.error.missingDisplay':
     'そのモニターは切断されています。再接続すると背景が戻ります。',
   'wallpaper.error.host':

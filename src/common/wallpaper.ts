@@ -1,3 +1,4 @@
+import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
 import { parseMemberLookId } from './memberScenes';
@@ -59,11 +60,16 @@ export interface IWallpaperStart extends IWallpaperChoice {
   pauseOnBattery: boolean;
 }
 
+/**
+ * `refused`: the scene's own code failed on this computer's graphics — here or
+ * wherever else it ran — and is kept from running again, as the graph keeps it.
+ */
 export type TWallpaperError =
   | 'unsupported'
   | 'unavailable'
   | 'not-entitled'
   | 'missing-scene'
+  | 'refused'
   | 'missing-display'
   | 'host'
   | 'renderer'
@@ -126,7 +132,12 @@ export interface IWallpaperAudio {
 export interface IWallpaperSurfaceBridge {
   bootstrap(): Promise<IWallpaperBootstrap | undefined>;
   drawn(renderGeneration: number): void;
-  failed(): void;
+  /**
+   * The page cannot draw. With a reason, the scene itself failed — the same
+   * reasons the graph reports a look by — and main keeps its code from running
+   * again; without one, the page or the machine did.
+   */
+  failed(reason?: TSceneFailure): void;
   requestAudio(): Promise<IWallpaperAudio | undefined>;
   onState(listener: (state: IWallpaperSurfaceState) => void): () => void;
 }
@@ -143,6 +154,7 @@ const WALLPAPER_ERRORS: readonly TWallpaperError[] = [
   'unavailable',
   'not-entitled',
   'missing-scene',
+  'refused',
   'missing-display',
   'host',
   'renderer',

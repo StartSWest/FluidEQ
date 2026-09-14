@@ -16,6 +16,7 @@ import {
   type IScenePackListing,
   type IScenePackStore,
   type IScenePackSummary,
+  type TSceneFailure,
   isSceneFailure,
 } from '../scenePackStore';
 import type { ISceneRefusals } from '../sceneRefusals';
@@ -71,6 +72,14 @@ export interface IScenePacksIpcRegistration {
   store: IScenePackStore;
   subscribeScenes(listener: () => void): () => void;
   announce(): void;
+  /**
+   * A look would not run here: quarantined, its code refused wherever else it
+   * runs, and every look list told. The graph reports through its channel; a
+   * desktop background, whose page has no such channel, through main.
+   */
+  reportFailure(id: string, reason: TSceneFailure): void;
+  /** Whether a held look is kept from running, by quarantine or refusal. */
+  isRefused(id: string): boolean;
   /**
    * Announce an event. An entitled account asks which scenes changed every
    * time; the catalogue for one that is not is fetched only when stale.
@@ -339,18 +348,22 @@ export const registerScenePacksIpc = ({
     }
   });
 
+  const reportFailure = (id: string, reason: TSceneFailure) => {
+    // Its source too, read before the quarantine hides it: the gallery's
+    // preview, the lamps and its picture run the same code elsewhere.
+    const pack = store.load(id);
+    if (pack) {
+      refusals?.refuse(pack.source, reason);
+    }
+    store.quarantine(id, reason);
+    announce();
+  };
+
   ipcMain.handle(
     'scene-packs-report-failure',
     (_event, id: unknown, reason: unknown) => {
       if (typeof id === 'string' && isSceneFailure(reason)) {
-        // Its source too, read before the quarantine hides it: the gallery's
-        // preview, the lamps and its picture run the same code elsewhere.
-        const pack = store.load(id);
-        if (pack) {
-          refusals?.refuse(pack.source, reason);
-        }
-        store.quarantine(id, reason);
-        announce();
+        reportFailure(id, reason);
       }
     },
   );
@@ -364,6 +377,11 @@ export const registerScenePacksIpc = ({
       };
     },
     announce,
+    reportFailure,
+    isRefused: (id) =>
+      store
+        .list()
+        .some((pack) => pack.id === id && pack.quarantined !== undefined),
     refreshIfDue: async () => {
       // Not logged: for an entitled account this is every focus of the
       // window. A download says so when one happens.

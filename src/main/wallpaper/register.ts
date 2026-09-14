@@ -95,8 +95,11 @@ const registerWallpaperIpc = (deps: IWallpaperDeps): (() => void) => {
         manager.audioReady();
       }
     }),
-    onWindowMessage(WALLPAPER.failed, (event) => {
-      surfaceOf(event)?.fail('renderer');
+    onWindowMessage(WALLPAPER.failed, (event, reason: unknown) => {
+      const surface = surfaceOf(event);
+      if (surface) {
+        manager.surfaceFailed(surface, reason);
+      }
     }),
     onWindowMessage(WALLPAPER.drawn, (event, generation: unknown) => {
       const surface = surfaceOf(event);
