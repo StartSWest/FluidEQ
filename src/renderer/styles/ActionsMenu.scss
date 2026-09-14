@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The actions menu: the engine, the commands, then the settings tray.
@@ -8,6 +9,7 @@
 // One column, as wide as its longest label and never narrower than the tray
 // needs. It was two columns at a fixed 440px, and in French and Russian the
 // imports wrapped onto second lines inside them.
+//
 // Doubled up with the surface's own class so it outranks it rather than tying
 // with it, which would leave the padding to stylesheet order.
 .workspace-header__menu.actions-menu__panel {
@@ -207,16 +209,23 @@
   transition: $transition-control;
 }
 
-// Still asking: the badge unlit and without its light, and the sentence saying
-// what is being waited on.
+// Still asking: no light yet, and the app's one loading ring turning round the
+// pulse — the same wait the Studio stage and a scene arriving on the graph
+// show, so it reads as a wait and not as a fault.
 .actions-menu__engine.is-checking {
   border-color: rgba($edge-tint, 0.1);
   background: rgba($edge-tint, 0.03);
 
   .actions-menu__badge {
+    @include loading-ring($secondary-light, 34px);
     color: $text-faint;
-    background: rgba($edge-tint, 0.04);
-    box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.14);
+    background: none;
+    box-shadow: none;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
   }
 
   .actions-menu__engine-title {
