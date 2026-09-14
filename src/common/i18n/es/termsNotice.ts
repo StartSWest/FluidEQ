@@ -12,6 +12,8 @@ const termsNotice = {
     'Visualizadores, la nueva galería: una escena que publiques allí se muestra a los miembros Plus hasta que la retires, y las condiciones detallan qué se envía al explorar, añadir y denunciar.',
   'termsNotice.change.5':
     'Plus ahora se puede pagar por año además de por mes, y la membresía se renueva al final del periodo que hayas pagado. Una escena que publicas en Visualizadores ahora la ve cualquiera con sesión iniciada, que puede verla funcionar unos segundos; solo los miembros Plus la reproducen completa y la añaden. Plus funciona en hasta 5 ordenadores a la vez, y la clasificación suma la escucha de tus ordenadores sin dejar que un día crezca más rápido que el reloj.',
+  'termsNotice.change.6':
+    'Las condiciones ahora también cubren lo que puede probar una cuenta gratuita —las escenas de muestra de FluidEQ, no las de los miembros—, las denuncias y las retiradas, los límites para compartir, la comprobación que detecta copias de las escenas de FluidEQ, las notas de versión, los regalos de Plus y todos los demás lugares a los que se conecta FluidEQ.',
 } as const;
 
 export default termsNotice;

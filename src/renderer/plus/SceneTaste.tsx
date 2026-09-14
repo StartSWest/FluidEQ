@@ -1,11 +1,15 @@
 import { useCallback, useRef } from 'react';
+import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { useTranslation } from '../utils/I18nContext';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 
-/** How long a member without Plus watches a scene play on its page. */
-export const TASTE_SECONDS = 10;
+/**
+ * How long an account without Plus watches a free sample scene play on its
+ * page. The number lives with the terms, which quote it.
+ */
+export const TASTE_SECONDS = PLUS_TASTE_SECONDS;
 
 interface ISceneTasteProps {
   identity: string;

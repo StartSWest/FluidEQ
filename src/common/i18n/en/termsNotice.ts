@@ -22,6 +22,8 @@ const termsNotice = {
     'Visualizers, the new gallery: a scene you publish there is shown to Plus members until you unpublish it, and the terms list what browsing, adding and reporting sends.',
   'termsNotice.change.5':
     'Plus can now be paid yearly as well as monthly, and a membership renews at the end of whichever period you paid for. A scene you publish in Visualizers is now seen by anyone signed in, who can watch it play for a few seconds; only Plus members play it in full and add it. Plus runs on up to 5 computers at a time, and the leaderboard adds up your computers’ listening without letting a day grow faster than the clock.',
+  'termsNotice.change.6':
+    'The terms now also cover what a free account can try — FluidEQ’s sample scenes, not members’ scenes — reports and takedowns, sharing limits, the check against copies of FluidEQ’s scenes, version notes, gifts of Plus, and every other place FluidEQ connects to.',
 } as const;
 
 export default termsNotice;

@@ -43,18 +43,30 @@
  * or blocks is sent or kept, the board scores listening and likes only, the
  * rules are about what a member publishes, and the Forum tab — which talks to
  * GitHub, not to this server — has its row in the table of what is sent.
+ *
+ * 6: the whole text checked against what the app and the server do on
+ * 2026-09-14, and raised rather than amended because the server already held
+ * an agreement to 5. What a free account can do (browse, see pictures and
+ * details, try FluidEQ's free sample scenes — a member's scene no longer plays
+ * without Plus), version notes, reports and takedowns with their 30-day pause
+ * on sharing, sharing limits, the check that refuses copies of FluidEQ's own
+ * scenes, looking inside those scenes in the Studio, gifts of Plus, what the
+ * sign-in service itself records, the Forum's GitHub sign-in passing through
+ * the server, the offline grace measured from the end of the paid period, and
+ * every connection FluidEQ makes outside Plus. Still the first public edition:
+ * nothing before it reached a release.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  */
-export const PLUS_TERMS_VERSION = 5;
+export const PLUS_TERMS_VERSION = 6;
 
 /** First published edition. Pre-release acceptance revisions are not editions. */
 export const PLUS_TERMS_EDITION = 1;
-export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 5;
+export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 6;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-11';
+export const PLUS_TERMS_EFFECTIVE = '2026-09-14';
 
 /** Days after a charge within which it is refunded on request, in full. */
 export const PLUS_REFUND_DAYS = 14;
@@ -76,6 +88,35 @@ export const PLUS_ACCOUNT_DELETION_DAYS = 30;
  * membership the payment side would not sell.
  */
 export const PLUS_MINIMUM_AGE = 18;
+
+/**
+ * How many computers one account stays signed in on at once. Enforced by the
+ * server's access-token hook (`plus_computers_hook`), which keeps the asking
+ * session and the four used most recently.
+ */
+export const PLUS_MAX_COMPUTERS = 5;
+
+/**
+ * How long an account without Plus watches one of FluidEQ's free sample
+ * scenes play, counted in frames actually drawn. A member's scene does not
+ * play at all without Plus: the server refuses its file.
+ */
+export const PLUS_TASTE_SECONDS = 10;
+
+/**
+ * Exports and publishes together, per account per hour, refused attempts
+ * included. The server's `member_share_refusal` counts them; keep in step.
+ */
+export const PLUS_SHARES_PER_HOUR = 30;
+
+/** Scenes one account may have published at once, enforced by the server. */
+export const PLUS_MAX_PUBLISHED_SCENES = 200;
+
+/**
+ * Days an account cannot export or publish after one of its scenes is taken
+ * down, enforced by the server's `member_share_refusal`.
+ */
+export const PLUS_TAKEDOWN_PAUSE_DAYS = 30;
 
 /** A calendar date (`YYYY-MM-DD`) as a Date at noon UTC, so no zone moves it a day. */
 export const termsEffectiveDate = (): Date =>

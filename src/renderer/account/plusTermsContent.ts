@@ -73,6 +73,15 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.payment.who',
   },
   {
+    // Recorded by the checkout, the export and the publish alike, and kept
+    // whether or not a payment follows.
+    id: 'agreement',
+    glyph: 'check',
+    what: 'terms.sent.agreement.what',
+    when: 'terms.sent.agreement.when',
+    who: 'terms.sent.agreement.who',
+  },
+  {
     id: 'looks',
     glyph: 'looks',
     what: 'terms.sent.looks.what',
@@ -129,9 +138,9 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.gallery.who',
   },
   {
-    // Not Plus, and not this server: the Forum tab talks to GitHub directly.
-    // Listed all the same, because the table promises everything the app
-    // sends and the forum is part of the app.
+    // Not Plus, but not only GitHub either: reading and posting go to GitHub
+    // directly, while signing in, renewing and signing out pass through this
+    // server's `github-token` function, which holds the app's secret.
     id: 'forum',
     glyph: 'general',
     what: 'terms.sent.forum.what',
@@ -163,6 +172,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.membership.p2',
       'terms.membership.p3',
       'terms.membership.p4',
+      'terms.membership.p5',
     ],
   },
   {
@@ -194,6 +204,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.never.p2',
       'terms.never.p3',
       'terms.never.p4',
+      'terms.never.p5',
     ],
   },
   {
@@ -208,6 +219,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.protect.p4',
       'terms.protect.p5',
       'terms.protect.p6',
+      'terms.protect.p7',
     ],
   },
   {
@@ -215,7 +227,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'shield',
     title: 'terms.fair.title',
     body: 'paragraphs',
-    lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3'],
+    lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3', 'terms.fair.p4'],
   },
   {
     // What may be published, now that a scene is the only thing a member
@@ -224,7 +236,12 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'report',
     title: 'terms.rules.title',
     body: 'paragraphs',
-    lines: ['terms.rules.p1', 'terms.rules.p2'],
+    lines: [
+      'terms.rules.p1',
+      'terms.rules.p2',
+      'terms.rules.p3',
+      'terms.rules.p4',
+    ],
   },
   {
     id: 'keep',
@@ -237,6 +254,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.keep.p3',
       'terms.keep.p4',
       'terms.keep.p5',
+      'terms.keep.p6',
     ],
   },
   {
@@ -244,7 +262,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     glyph: 'looks',
     title: 'terms.looks.title',
     body: 'paragraphs',
-    lines: ['terms.looks.p1', 'terms.looks.p2'],
+    lines: ['terms.looks.p1', 'terms.looks.p2', 'terms.looks.p3'],
   },
   {
     // The member's own work, and the one permission sharing it gives. Beside
@@ -265,6 +283,25 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p8',
       'terms.scenes.p9',
       'terms.scenes.p10',
+    ],
+  },
+  {
+    // Everything FluidEQ reaches that is not its own service, so the table
+    // above can promise to be complete about the service without the rest of
+    // the app going unmentioned.
+    id: 'elsewhere',
+    glyph: 'send',
+    title: 'terms.elsewhere.title',
+    body: 'points',
+    lines: [
+      'terms.elsewhere.p1',
+      'terms.elsewhere.p2',
+      'terms.elsewhere.p3',
+      'terms.elsewhere.p4',
+      'terms.elsewhere.p5',
+      'terms.elsewhere.p6',
+      'terms.elsewhere.p7',
+      'terms.elsewhere.p8',
     ],
   },
   {

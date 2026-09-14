@@ -13,8 +13,11 @@ import {
   PLUS_MINIMUM_AGE,
   PLUS_TERMS_VERSION,
 } from '../../../common/plusTerms';
+import { LOCALES, translate } from '../../../common/i18n';
 import AccountDialog from '../../../renderer/account/AccountDialog';
+import { termsValues } from '../../../renderer/account/PlusTermsDocument';
 import {
+  TERMS_HIGHLIGHTS,
   TERMS_SECTIONS,
   TERMS_SENT_ROWS,
 } from '../../../renderer/account/plusTermsContent';
@@ -100,7 +103,9 @@ describe('the Plus terms', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('v1')).toBeInTheDocument();
     expect(screen.getByText(/^terms\.meta:1,/)).toBeInTheDocument();
-    expect(screen.queryByText('v5')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`v${PLUS_TERMS_VERSION}`),
+    ).not.toBeInTheDocument();
     expect(mockOpenCheckout).not.toHaveBeenCalled();
     expect(agreeButton()).toBeDisabled();
     expect(agreeButton()).not.toHaveClass('subtle');
@@ -193,6 +198,29 @@ describe('the Plus terms', () => {
         new RegExp(`^terms\\.account\\.p1:.*\\b${PLUS_MINIMUM_AGE}\\b`),
       ),
     ).toBeInTheDocument();
+  });
+
+  /**
+   * A placeholder the document does not fill reaches the reader as
+   * "{computers}" in the middle of a promise. Every language, every line the
+   * document says, filled from the same values the page uses.
+   */
+  it('fill every number they quote, in every language', () => {
+    const said = [
+      ...TERMS_HIGHLIGHTS.flatMap((item) => [item.title, item.body]),
+      ...TERMS_SECTIONS.flatMap((section) => section.lines),
+      ...TERMS_SENT_ROWS.flatMap((row) => [row.what, row.when, row.who]),
+    ];
+    const values = termsValues('$5 / month');
+    const unfilled = LOCALES.flatMap(({ code }) =>
+      said
+        .map((key) => `${code} ${key}: ${translate(code, key, values)}`)
+        .filter((line) => /\{\w+\}/.test(line)),
+    );
+    expect(unfilled).toEqual([]);
+    // The positive control: an unknown placeholder is left as written, so the
+    // check above can see one.
+    expect(translate('en', 'terms.account.p4', {})).toMatch(/\{computers\}/);
   });
 
   /**

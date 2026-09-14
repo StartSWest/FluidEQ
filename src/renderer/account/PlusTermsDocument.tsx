@@ -3,6 +3,7 @@ import type { TranslationKey } from 'common/i18n/en';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
 import {
+  ACTIVE_DAY_MINUTES,
   DAILY_LISTENING_CAP_HOURS,
   LISTENING_UPLOAD_INTERVAL_HOURS,
   LISTENING_WINDOW_DAYS,
@@ -10,9 +11,14 @@ import {
 } from 'common/leaderboardScore';
 import {
   PLUS_ACCOUNT_DELETION_DAYS,
+  PLUS_MAX_COMPUTERS,
+  PLUS_MAX_PUBLISHED_SCENES,
   PLUS_MINIMUM_AGE,
   PLUS_OFFLINE_GRACE_DAYS,
   PLUS_REFUND_DAYS,
+  PLUS_SHARES_PER_HOUR,
+  PLUS_TAKEDOWN_PAUSE_DAYS,
+  PLUS_TASTE_SECONDS,
   PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
@@ -36,15 +42,26 @@ import '../styles/PlusTerms.scss';
  * without one points at the site instead, so the sentence never ends in a
  * blank.
  */
-const termsValues = (price: string): Record<string, string | number> => ({
+export const termsValues = (
+  price: string,
+): Record<string, string | number> => ({
   price,
   refundDays: PLUS_REFUND_DAYS,
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
   age: PLUS_MINIMUM_AGE,
+  computers: PLUS_MAX_COMPUTERS,
+  tasteSeconds: PLUS_TASTE_SECONDS,
+  sharesPerHour: PLUS_SHARES_PER_HOUR,
+  maxPublished: PLUS_MAX_PUBLISHED_SCENES,
+  takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
   capHours: DAILY_LISTENING_CAP_HOURS,
   windowDays: LISTENING_WINDOW_DAYS,
   uploadHours: LISTENING_UPLOAD_INTERVAL_HOURS,
+  activeMinutes: ACTIVE_DAY_MINUTES,
+  // Per hour, as the server scores it (minutes / 6).
+  hourPoints: PART_POINTS.hours,
+  dayPoints: PART_POINTS.days,
   likePoints: PART_POINTS.likes,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
 });
