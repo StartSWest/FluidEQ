@@ -12,18 +12,18 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  *
  * Two limits, each for what the other cannot see:
  *
- * - Across the frame: relative luminance, and saturated red, averaged over
- *   cells about a quarter of the frame across, may move at most half of full
- *   scale per second — below the 0.6 that three flashes need. A beat still
- *   reads; a strobe of the whole picture does not. Averages cannot see a
- *   pattern: a checkerboard of squares an eighth across, inverting every
- *   frame, kept every cell's average where it was and passed untouched.
- * - Where it alternates: each pixel (at half resolution) keeps a pressure
- *   that every opposing swing of 10 % or more pushes up and time lets down,
- *   so six swings a second — three flashes — hold it at full. Where pressure
- *   is high, that pixel may change no faster than the frame limit either.
- *   Motion swings a pixel once each way as something passes, well apart; a
- *   pattern strobing at any size swings it every frame.
+ * - Across the frame: relative luminance, averaged over cells about a quarter
+ *   of the frame across, may move at most half of full scale per second —
+ *   below the 0.6 that three flashes need. A beat still reads; a strobe of
+ *   the whole picture does not. Averages cannot see a pattern: a checkerboard
+ *   of squares an eighth across, inverting every frame, kept every cell's
+ *   average where it was and passed untouched.
+ * - Where it alternates, over enough of the picture: each pixel (at half
+ *   resolution) keeps a pressure that every opposing swing of 10 % or more,
+ *   in luminance or saturated red, pushes up and time lets down, so six
+ *   swings a second — three flashes — hold it at full. Where pressure is high
+ *   AND flashing covers a share of the area around it (`FLASH_AREA_START`),
+ *   the pixel may change no faster than the frame limit.
  *
  * How: the scene draws into one of two offscreen textures, the other holding
  * its last frame. A state pass compares them and updates the pressure. The
@@ -34,8 +34,11 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  *
  * Official scenes do not go through this: they are watched before release.
  * NOT UNIT-TESTED beyond its arithmetic, for the same reason as `sceneGl.ts` —
- * jsdom has no WebGL — and measured in a browser against a whole-frame
- * strobe, an inverting checkerboard, a red-grey flash and a moving dot.
+ * jsdom has no WebGL. Measured in Chrome at the Studio's 1460x603 against a
+ * whole-frame strobe, 8-, 32- and 128-square inverting checkerboards, a
+ * red-grey flash and a quarter-frame strobe (all held), and a moving dot, a
+ * jittering edge, sparkles and a beat (all left as drawn), and on FluidEQ's
+ * Alpine, Aurora, Jellyfish and Ember, drawn as without it.
  */
 
 /** Of full relative luminance, per second. Below the 0.6 that three flashes need. */
@@ -110,6 +113,37 @@ export const flashPressure = (
 export const FLASH_PRESSURE_START = 0.7;
 export const FLASH_PRESSURE_FULL = 0.85;
 
+/**
+ * How much of the picture has to be flashing together before any of it is
+ * held: a share of a window a quarter of the frame's longer side across.
+ *
+ * WCAG 2.3.1 counts flashing by area — a quarter of any 10° field of view,
+ * about a quarter-screen window. Flame tips, a ridge riding the level and
+ * scattered sparkles all alternate at three flashes a second and more, pixel
+ * by pixel; held wherever they did, every scene in the Studio and the gallery
+ * tore into frozen shards along exactly the lines that move, while the graph
+ * drew the same scenes cleanly. A strobe, an inverting checkerboard or a red
+ * flash across a region fills the window, and is held.
+ *
+ * Starting at a fifth rather than at the quarter itself, and whole only past
+ * a third, because a fire's flames flicker in red over a quarter of a window
+ * or so without anything flashing as a whole: on FluidEQ's Ember at 1460x603,
+ * 0.12-0.25 still held a patch of flame, 0.2-0.35 left 0.6% of the picture
+ * faintly softer and nothing visible, while every strobe and checkerboard
+ * above was still held. The window is sampled from a mip of the flags, so the
+ * share rises and falls smoothly across the frame rather than cell by cell.
+ */
+export const FLASH_AREA_WINDOW = 4;
+export const FLASH_AREA_START = 0.2;
+export const FLASH_AREA_FULL = 0.35;
+
+/**
+ * The mip level of the half-size flag texture whose texels are half a window
+ * across, so four taps half a texel either side of a pixel cover one window.
+ */
+export const flashAreaLod = (width: number, height: number): number =>
+  Math.max(0, Math.log2(Math.max(width, height) / (FLASH_AREA_WINDOW * 4)));
+
 const COLOUR_FUNCTIONS = `
 float luma(vec3 colour) {
   vec3 linear = pow(max(colour, vec3(0.0)), vec3(2.2));
@@ -138,7 +172,7 @@ void main() {
   float lumaSwing = luma(now) - luma(before);
   float redSwing = redness(now) - redness(before);
   float swing = abs(redSwing) > abs(lumaSwing) ? redSwing : lumaSwing;
-  vec4 old = texture(uState, vUv);
+  vec4 old = textureLod(uState, vUv, 0.0);
   float lastSwing = old.g * 2.0 - 1.0;
   float opposing = abs(swing) >= ${FLASH_SWING.toFixed(3)}
     && abs(lastSwing) >= ${FLASH_SWING.toFixed(3)}
@@ -147,7 +181,10 @@ void main() {
     max(0.0, old.r * uDecay - ${PRESSURE_FLOOR.toFixed(6)})
     + opposing * ${FLASH_SWING_PRESSURE.toFixed(6)});
   float remembered = abs(swing) >= ${FLASH_SWING.toFixed(3)} ? swing : lastSwing * uDecay;
-  state = vec4(pressure, remembered * 0.5 + 0.5, 0.0, 1.0);
+  // Blue is whether this spot is flashing, kept apart from the pressure so
+  // its mips are the share of an area that is.
+  float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);
+  state = vec4(pressure, remembered * 0.5 + 0.5, flashing, 1.0);
 }
 `;
 
@@ -157,6 +194,7 @@ uniform sampler2D uCurrent;
 uniform sampler2D uPrevious;
 uniform sampler2D uState;
 uniform float uLod;
+uniform float uAreaLod;
 uniform float uAllowance;
 uniform float uFirst;
 in vec2 vUv;
@@ -173,13 +211,22 @@ void main() {
     return;
   }
   vec4 previous = texture(uPrevious, vUv);
-  float coarse = changeOf(textureLod(uCurrent, vUv, uLod).rgb,
-                          textureLod(uPrevious, vUv, uLod).rgb);
+  // Luminance only across the frame. Red is caught where it alternates,
+  // below; a quarter-frame average of redness also moved with every surge of
+  // a fire scene's flames, and smeared them when nothing flashed.
+  float coarse = abs(luma(textureLod(uCurrent, vUv, uLod).rgb)
+                   - luma(textureLod(uPrevious, vUv, uLod).rgb));
   float frameBlend = coarse > uAllowance ? uAllowance / coarse : 1.0;
   float pixel = changeOf(current.rgb, previous.rgb);
   float pixelBlend = pixel > uAllowance ? uAllowance / pixel : 1.0;
-  float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)},
-    texture(uState, vUv).r);
+  vec2 reach = 0.5 * pow(2.0, uAreaLod) / vec2(textureSize(uState, 0));
+  float area = 0.25 * (
+      textureLod(uState, vUv + vec2(-reach.x, -reach.y), uAreaLod).b
+    + textureLod(uState, vUv + vec2( reach.x, -reach.y), uAreaLod).b
+    + textureLod(uState, vUv + vec2(-reach.x,  reach.y), uAreaLod).b
+    + textureLod(uState, vUv + vec2( reach.x,  reach.y), uAreaLod).b);
+  float flashing = textureLod(uState, vUv, 0.0).b
+    * smoothstep(${FLASH_AREA_START.toFixed(2)}, ${FLASH_AREA_FULL.toFixed(2)}, area);
   float blend = min(frameBlend, mix(1.0, pixelBlend, flashing));
   fragColor = mix(previous, current, blend);
 }
@@ -248,6 +295,7 @@ export const createFlashGuard = (
     previous: gl.getUniformLocation(composite, 'uPrevious'),
     state: gl.getUniformLocation(composite, 'uState'),
     lod: gl.getUniformLocation(composite, 'uLod'),
+    areaLod: gl.getUniformLocation(composite, 'uAreaLod'),
     allowance: gl.getUniformLocation(composite, 'uAllowance'),
     first: gl.getUniformLocation(composite, 'uFirst'),
   };
@@ -303,9 +351,9 @@ export const createFlashGuard = (
       gl.UNSIGNED_BYTE,
       null,
     );
-    // The frames are mipmapped, because the coarse luminance is read from a
-    // high mip level. Pressure is not: a texture that asks for levels it has
-    // never been given samples as black.
+    // Mipmapped: the coarse luminance and the flashing share are read from
+    // high levels. A texture that asks for levels it has never been given
+    // samples as black, so every one is given them below and after each write.
     gl.texParameteri(
       gl.TEXTURE_2D,
       gl.TEXTURE_MIN_FILTER,
@@ -324,6 +372,9 @@ export const createFlashGuard = (
     );
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    if (mipmapped) {
+      gl.generateMipmap(gl.TEXTURE_2D);
+    }
     return { texture, framebuffer, width: targetWidth, height: targetHeight };
   };
 
@@ -376,7 +427,7 @@ export const createFlashGuard = (
     pressure = makePair(
       Math.max(1, Math.ceil(width / 2)),
       Math.max(1, Math.ceil(height / 2)),
-      false,
+      true,
     );
     // The last picture shown, the last frame and the pressure, scaled into
     // the new size, are what the next frame is limited against; only a guard
@@ -392,7 +443,7 @@ export const createFlashGuard = (
       hasFrame = false;
     }
     if (old.pressure && pressure) {
-      carry(old.pressure[old.pressureLatest], pressure[pressureLatest], false);
+      carry(old.pressure[old.pressureLatest], pressure[pressureLatest], true);
     }
     if (scissored) {
       gl.enable(gl.SCISSOR_TEST);
@@ -426,6 +477,9 @@ export const createFlashGuard = (
     gl.uniform1i(stateWhere.state, 2);
     gl.uniform1f(stateWhere.decay, flashPressureDecay(deltaMs));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // Its levels are the share of each area that is flashing.
+    gl.bindTexture(gl.TEXTURE_2D, after.texture);
+    gl.generateMipmap(gl.TEXTURE_2D);
     if (scissored) {
       gl.enable(gl.SCISSOR_TEST);
     }
@@ -477,6 +531,7 @@ export const createFlashGuard = (
       gl.uniform1i(where.previous, 1);
       gl.uniform1i(where.state, 2);
       gl.uniform1f(where.lod, flashLod(width, height));
+      gl.uniform1f(where.areaLod, flashAreaLod(width, height));
       gl.uniform1f(where.allowance, flashAllowance(deltaMs));
       gl.uniform1f(where.first, hasShown ? 0 : 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

@@ -5,11 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  FLASH_AREA_FULL,
+  FLASH_AREA_START,
+  FLASH_AREA_WINDOW,
   FLASH_LIMIT_PER_SECOND,
   FLASH_PRESSURE_FULL,
   FLASH_PRESSURE_START,
   FLASH_SWING,
   flashAllowance,
+  flashAreaLod,
   flashBlend,
   flashLod,
   flashPressure,
@@ -55,6 +59,24 @@ describe('the brightness limiter', () => {
     expect(2 ** flashLod(3840, 2160)).toBeCloseTo(3840 / 4, 6);
     expect(2 ** flashLod(400, 1200)).toBeCloseTo(1200 / 4, 6);
     expect(flashLod(2, 2)).toBe(0);
+  });
+
+  it('judges the flashing share over a window a quarter of the frame across', () => {
+    // Four taps half a texel either side, on the half-size flag texture.
+    const window = (width: number, height: number) =>
+      2 ** flashAreaLod(width, height) * 2 * 2;
+    expect(window(1460, 603)).toBeCloseTo(1460 / FLASH_AREA_WINDOW, 6);
+    expect(window(1080, 1920)).toBeCloseTo(1920 / FLASH_AREA_WINDOW, 6);
+    expect(flashAreaLod(8, 8)).toBe(0);
+  });
+
+  it('holds only once flashing covers at least a fifth of that window', () => {
+    // WCAG counts a quarter of a 10° field; flame flicker filled about that
+    // without flashing as a whole, so holding starts just below it.
+    expect(FLASH_AREA_START).toBeGreaterThanOrEqual(0.2);
+    expect(FLASH_AREA_START).toBeLessThan(0.25);
+    expect(FLASH_AREA_FULL).toBeGreaterThan(FLASH_AREA_START);
+    expect(FLASH_AREA_FULL).toBeLessThanOrEqual(0.35);
   });
 });
 
