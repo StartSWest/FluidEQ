@@ -137,7 +137,7 @@ const terms = {
 
   'terms.fair.title': '排行榜的公平规则',
   'terms.fair.p1':
-    '积分来自收听和点赞：每播放一小时音乐得 {hourPoints} 分，每个播放音乐至少 {activeMinutes} 分钟的日子得 {dayPoints} 分，你的场景每获得一个赞得 {likePoints} 分。排行榜显示前 100 名。',
+    '积分来自收听和点赞：每播放一小时音乐得 {hourPoints} 分，每个播放音乐至少 {activeMinutes} 分钟的日子得 {dayPoints} 分，你的场景每获得一个赞得 {likePoints} 分。排行榜显示前 100 名，并且只在账户拥有 Plus 期间对其排名；其天数会保留，Plus 恢复后重新计入。',
   'terms.fair.p2':
     '收听时长由你电脑上的应用统计，服务器无法亲眼看到。因此它会核查每个数字：每天不超过 {capHours} 小时，不接受尚未开始的日期，不接受超过 {windowDays} 天的旧数据，任何一天的增长都不能快过时钟。你各台电脑的数字会加总为同一天，而这一天的增长同样不能快过时钟，因此多台电脑同时播放，加起来也不会超过实际经过的时间。',
   'terms.fair.p3':
@@ -211,7 +211,7 @@ const terms = {
   'terms.elsewhere.p5':
     '“在线媒体”：YouTube、Bandcamp、Twitch 以及你在 FluidEQ 中打开的其他网站，会按其自身条款接收你在那里进行的操作。',
   'terms.elsewhere.p6':
-    '“报告问题”：在你的浏览器中打开一个 GitHub 议题，或为你复制报告，其中附有最近的日志行，你可以在发送前阅读。FluidEQ 本身不发送任何内容。',
+    '“报告问题”：在你的浏览器中打开一个公开的 GitHub 议题，或在你的邮件应用中打开一封发给 FluidEQ 作者的私密邮件，或为你复制报告，其中附有最近的日志行，你可以在发送前阅读。FluidEQ 本身不发送任何内容。',
   'terms.elsewhere.p7':
     '灯光和桌面背景：灯光只与这台电脑上的 Razer Chroma 和 Windows 通信，桌面背景从不联网。',
   'terms.elsewhere.p8':

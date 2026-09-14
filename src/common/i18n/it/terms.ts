@@ -148,7 +148,7 @@ const terms = {
 
   'terms.fair.title': 'Correttezza in classifica',
   'terms.fair.p1':
-    'I punti vengono dall’ascolto e dai mi piace: {hourPoints} per ogni ora di musica, {dayPoints} per ogni giorno con almeno {activeMinutes} minuti di musica, e {likePoints} per ogni mi piace alle tue scene. La classifica mostra i primi 100.',
+    'I punti vengono dall’ascolto e dai mi piace: {hourPoints} per ogni ora di musica, {dayPoints} per ogni giorno con almeno {activeMinutes} minuti di musica, e {likePoints} per ogni mi piace alle tue scene. La classifica mostra i primi 100 e include un account solo finché ha Plus; i suoi giorni restano e tornano a contare quando Plus ritorna.',
   'terms.fair.p2':
     'Il tempo di ascolto è contato dall’app sul tuo computer, quindi il server non può vederlo accadere. Controlla invece ogni numero: non più di {capHours} ore al giorno, nessun giorno che non sia ancora iniziato, nulla più vecchio di {windowDays} giorni, e nessun giorno che cresca più veloce dell’orologio. I numeri dei tuoi computer si sommano in un solo giorno, che a sua volta non cresce più veloce dell’orologio: più computer che suonano insieme non possono sommare più tempo di quanto ne sia passato.',
   'terms.fair.p3':
@@ -222,7 +222,7 @@ const terms = {
   'terms.elsewhere.p5':
     'Media online: YouTube, Bandcamp, Twitch e gli altri siti che apri dentro FluidEQ ricevono ciò che fai lì, secondo le loro condizioni.',
   'terms.elsewhere.p6':
-    'Segnala un problema: apre una issue di GitHub nel tuo browser, o copia la segnalazione per te, con le righe di log recenti che puoi leggere prima di inviarla. FluidEQ non invia nulla da sé.',
+    'Segnala un problema: apre una issue pubblica di GitHub nel tuo browser o un’email privata al creatore di FluidEQ nella tua app di posta, oppure copia la segnalazione per te, con le righe di log recenti che puoi leggere prima di inviarla. FluidEQ non invia nulla da sé.',
   'terms.elsewhere.p7':
     'Illuminazione e sfondi del desktop: l’illuminazione comunica solo con Razer Chroma e Windows su questo computer, e gli sfondi del desktop non vanno mai online.',
   'terms.elsewhere.p8':

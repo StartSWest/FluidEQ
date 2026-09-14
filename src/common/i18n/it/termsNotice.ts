@@ -14,6 +14,8 @@ const termsNotice = {
     'Plus ora si può pagare all’anno oltre che al mese, e l’abbonamento si rinnova alla fine del periodo che hai pagato. Una scena che pubblichi in Visualizzatori ora la vede chiunque abbia effettuato l’accesso, che può vederla in azione per qualche secondo; solo i membri Plus la riproducono per intero e la aggiungono. Plus funziona su un massimo di 5 computer alla volta, e la classifica somma l’ascolto dei tuoi computer senza lasciare che un giorno cresca più veloce dell’orologio.',
   'termsNotice.change.6':
     'Ora le condizioni coprono anche ciò che un account gratuito può provare — le scene di prova di FluidEQ, non quelle dei membri — le segnalazioni e le rimozioni, i limiti di condivisione, il controllo sulle copie delle scene di FluidEQ, le note di versione, Plus in regalo e ogni altra destinazione a cui FluidEQ si collega.',
+  'termsNotice.change.7':
+    'Ora la classifica include un account solo finché ha Plus, e Segnala un problema può anche aprire un’email privata al creatore di FluidEQ.',
 } as const;
 
 export default termsNotice;

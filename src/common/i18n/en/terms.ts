@@ -158,7 +158,7 @@ const terms = {
 
   'terms.fair.title': 'Fair play on the leaderboard',
   'terms.fair.p1':
-    'Points come from listening and likes: {hourPoints} for each hour of music, {dayPoints} for each day with at least {activeMinutes} minutes of it, and {likePoints} for each like on your scenes. The board shows the top 100.',
+    'Points come from listening and likes: {hourPoints} for each hour of music, {dayPoints} for each day with at least {activeMinutes} minutes of it, and {likePoints} for each like on your scenes. The board shows the top 100, and ranks an account only while it has Plus; its days are kept and count again when Plus returns.',
   'terms.fair.p2':
     'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed.',
   'terms.fair.p3':
@@ -232,7 +232,7 @@ const terms = {
   'terms.elsewhere.p5':
     'Online Media: YouTube, Bandcamp, Twitch and the other sites you open inside FluidEQ receive what you do there, under their own terms.',
   'terms.elsewhere.p6':
-    'Report a problem: opens a GitHub issue in your browser, or copies the report for you, with recent log lines you can read before you send it. FluidEQ sends nothing itself.',
+    'Report a problem: opens a public GitHub issue in your browser or a private email to FluidEQ’s maker in your mail app, or copies the report for you, with recent log lines you can read before you send it. FluidEQ sends nothing itself.',
   'terms.elsewhere.p7':
     'Lighting and desktop backgrounds: lighting talks only to Razer Chroma and Windows on this computer, and desktop backgrounds never go online.',
   'terms.elsewhere.p8':

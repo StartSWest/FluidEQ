@@ -148,7 +148,7 @@ const terms = {
 
   'terms.fair.title': 'Fairness in der Rangliste',
   'terms.fair.p1':
-    'Punkte gibt es für Hören und „Gefällt mir“: {hourPoints} für jede Stunde Musik, {dayPoints} für jeden Tag mit mindestens {activeMinutes} Minuten davon und {likePoints} für jedes „Gefällt mir“ für Ihre Szenen. Die Rangliste zeigt die besten 100.',
+    'Punkte gibt es für Hören und „Gefällt mir“: {hourPoints} für jede Stunde Musik, {dayPoints} für jeden Tag mit mindestens {activeMinutes} Minuten davon und {likePoints} für jedes „Gefällt mir“ für Ihre Szenen. Die Rangliste zeigt die besten 100 und führt ein Konto nur, solange es Plus hat; seine Tage bleiben erhalten und zählen wieder, sobald Plus zurückkehrt.',
   'terms.fair.p2':
     'Die Hörzeit zählt die App auf Ihrem Computer, der Server kann also nicht zusehen. Stattdessen prüft er jede Zahl: nicht mehr als {capHours} Stunden am Tag, kein Tag, der noch nicht begonnen hat, nichts, was älter als {windowDays} Tage ist, und kein Tag, der schneller wächst als die Uhr. Die Zahlen Ihrer Computer ergeben zusammen einen einzigen Tag, der ebenfalls nicht schneller wächst als die Uhr – mehrere Computer, die gleichzeitig spielen, können also nicht mehr Zeit ergeben, als vergangen ist.',
   'terms.fair.p3':
@@ -222,7 +222,7 @@ const terms = {
   'terms.elsewhere.p5':
     '„Online-Medien“: YouTube, Bandcamp, Twitch und die anderen Websites, die Sie in FluidEQ öffnen, erhalten nach ihren eigenen Bedingungen, was Sie dort tun.',
   'terms.elsewhere.p6':
-    '„Problem melden“: Öffnet ein GitHub-Issue in Ihrem Browser oder kopiert den Bericht für Sie, mit aktuellen Logzeilen, die Sie lesen können, bevor Sie ihn senden. FluidEQ selbst sendet nichts.',
+    '„Problem melden“: Öffnet ein öffentliches GitHub-Issue in Ihrem Browser oder eine private E-Mail an den Macher von FluidEQ in Ihrem E-Mail-Programm oder kopiert den Bericht für Sie, mit aktuellen Logzeilen, die Sie lesen können, bevor Sie ihn senden. FluidEQ selbst sendet nichts.',
   'terms.elsewhere.p7':
     'Beleuchtung und Desktophintergründe: Die Beleuchtung kommuniziert nur mit Razer Chroma und Windows auf diesem Computer, und Desktophintergründe gehen nie online.',
   'terms.elsewhere.p8':

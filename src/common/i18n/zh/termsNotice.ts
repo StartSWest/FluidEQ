@@ -14,6 +14,8 @@ const termsNotice = {
     'Plus 现在除了按月付费，也可以按年付费；会员资格会在你所付费周期结束时续订。你在“可视化”中发布的场景，现在所有已登录的人都能看到，并能观看它播放几秒钟；只有 Plus 会员可以完整播放和添加。Plus 最多可同时在 5 台电脑上使用；排行榜会把你各台电脑的收听时长加总，但不会让一天的增长快过时钟。',
   'termsNotice.change.6':
     '条款现在还涵盖：免费账户可以试用的内容（FluidEQ 的示例场景，而非会员的场景）、举报与下架、分享限制、针对复制 FluidEQ 场景的检查、版本说明、赠送 Plus，以及 FluidEQ 连接的所有其他地方。',
+  'termsNotice.change.7':
+    '排行榜现在只在账户拥有 Plus 期间对其排名，“报告问题”也可以打开一封发给 FluidEQ 作者的私密邮件。',
 } as const;
 
 export default termsNotice;

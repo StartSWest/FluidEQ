@@ -147,7 +147,7 @@ const terms = {
 
   'terms.fair.title': 'Jogo limpo na classificação',
   'terms.fair.p1':
-    'Os pontos vêm da escuta e das curtidas: {hourPoints} por cada hora de música, {dayPoints} por cada dia com pelo menos {activeMinutes} minutos de música, e {likePoints} por cada curtida nas tuas cenas. A classificação mostra os 100 primeiros.',
+    'Os pontos vêm da escuta e das curtidas: {hourPoints} por cada hora de música, {dayPoints} por cada dia com pelo menos {activeMinutes} minutos de música, e {likePoints} por cada curtida nas tuas cenas. A classificação mostra os 100 primeiros e só inclui uma conta enquanto ela tiver Plus; os seus dias ficam guardados e voltam a contar quando o Plus regressar.',
   'terms.fair.p2':
     'O tempo de escuta é contado pela aplicação no teu computador, por isso o servidor não o pode ver acontecer. Em vez disso, verifica cada número: não mais de {capHours} horas por dia, nenhum dia que ainda não tenha começado, nada com mais de {windowDays} dias, e nenhum dia que cresça mais depressa do que o relógio. Os números dos teus computadores somam-se num só dia, que também não cresce mais depressa do que o relógio, por isso vários a tocar ao mesmo tempo não podem somar mais tempo do que o que passou.',
   'terms.fair.p3':
@@ -221,7 +221,7 @@ const terms = {
   'terms.elsewhere.p5':
     'Mídia online: o YouTube, o Bandcamp, o Twitch e os outros sites que abres dentro do FluidEQ recebem o que lá fazes, segundo os seus próprios termos.',
   'terms.elsewhere.p6':
-    'Relatar um problema: abre uma issue do GitHub no teu navegador, ou copia o relatório para ti, com linhas recentes do registo que podes ler antes de o enviares. O próprio FluidEQ não envia nada.',
+    'Relatar um problema: abre uma issue pública do GitHub no teu navegador ou um e-mail privado para o criador do FluidEQ na tua aplicação de e-mail, ou copia o relatório para ti, com linhas recentes do registo que podes ler antes de o enviares. O próprio FluidEQ não envia nada.',
   'terms.elsewhere.p7':
     'Iluminação e fundos do ambiente de trabalho: a iluminação comunica só com o Razer Chroma e o Windows neste computador, e os fundos do ambiente de trabalho nunca vão à internet.',
   'terms.elsewhere.p8':

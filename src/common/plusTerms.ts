@@ -55,15 +55,20 @@
  * the server, the offline grace measured from the end of the paid period, and
  * every connection FluidEQ makes outside Plus. Still the first public edition:
  * nothing before it reached a release.
+ *
+ * 7: the same night the server began ranking an account only while it has
+ * Plus (its days kept), and Report a problem gained a private email to the
+ * maker. Raised again because the server already held an agreement to 6; still
+ * the first public edition, and the first public revision moves with it.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  */
-export const PLUS_TERMS_VERSION = 6;
+export const PLUS_TERMS_VERSION = 7;
 
 /** First published edition. Pre-release acceptance revisions are not editions. */
 export const PLUS_TERMS_EDITION = 1;
-export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 6;
+export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
 export const PLUS_TERMS_EFFECTIVE = '2026-09-14';

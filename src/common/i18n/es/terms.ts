@@ -148,7 +148,7 @@ const terms = {
 
   'terms.fair.title': 'Juego limpio en la clasificación',
   'terms.fair.p1':
-    'Los puntos vienen de la escucha y de los me gusta: {hourPoints} por cada hora de música, {dayPoints} por cada día con al menos {activeMinutes} minutos de música y {likePoints} por cada me gusta en tus escenas. La clasificación muestra a los 100 primeros.',
+    'Los puntos vienen de la escucha y de los me gusta: {hourPoints} por cada hora de música, {dayPoints} por cada día con al menos {activeMinutes} minutos de música y {likePoints} por cada me gusta en tus escenas. La clasificación muestra a los 100 primeros y solo incluye una cuenta mientras tiene Plus; sus días se conservan y vuelven a contar cuando vuelve Plus.',
   'terms.fair.p2':
     'El tiempo de escucha lo cuenta la aplicación en tu ordenador, así que el servidor no puede verlo ocurrir. En su lugar comprueba cada número: no más de {capHours} horas al día, ningún día que no haya empezado, nada de más de {windowDays} días atrás, y ningún día que crezca más rápido que el reloj. Los números de tus ordenadores se suman en un solo día, que tampoco crece más rápido que el reloj, así que varios sonando a la vez no pueden sumar más tiempo del que ha pasado.',
   'terms.fair.p3':
@@ -222,7 +222,7 @@ const terms = {
   'terms.elsewhere.p5':
     'Multimedia en línea: YouTube, Bandcamp, Twitch y los demás sitios que abres dentro de FluidEQ reciben lo que haces en ellos, con sus propias condiciones.',
   'terms.elsewhere.p6':
-    'Informar de un problema: abre una incidencia de GitHub en tu navegador, o te copia el informe, con líneas recientes del registro que puedes leer antes de enviarlo. FluidEQ no envía nada por su cuenta.',
+    'Informar de un problema: abre una incidencia pública de GitHub en tu navegador o un correo privado para el creador de FluidEQ en tu aplicación de correo, o te copia el informe, con líneas recientes del registro que puedes leer antes de enviarlo. FluidEQ no envía nada por su cuenta.',
   'terms.elsewhere.p7':
     'Iluminación y fondos de escritorio: la iluminación solo se comunica con Razer Chroma y con Windows en este ordenador, y los fondos de escritorio nunca salen a internet.',
   'terms.elsewhere.p8':

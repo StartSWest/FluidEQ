@@ -82,9 +82,13 @@ describe('the Plus terms notice', () => {
   it('does not present pre-release revisions as published editions', async () => {
     // A member who agreed to a pre-release text is told what the first public
     // edition is — never the internal revisions that led to it.
-    await showing({ version: CURRENT, changes: [CURRENT, 5, 4, 3, 2] });
+    await showing({
+      version: CURRENT,
+      changes: [CURRENT, CURRENT - 1, 5, 4, 3, 2],
+    });
     const notice = await screen.findByRole('dialog');
     expect(notice).toHaveTextContent(`termsNotice.change.${CURRENT}`);
+    expect(notice).not.toHaveTextContent(`termsNotice.change.${CURRENT - 1}`);
     expect(notice).not.toHaveTextContent('termsNotice.change.5');
     expect(notice).not.toHaveTextContent('termsNotice.change.4');
     expect(notice).not.toHaveTextContent(`termsNotice.version:${CURRENT}`);

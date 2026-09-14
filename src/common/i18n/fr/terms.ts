@@ -151,7 +151,7 @@ const terms = {
 
   'terms.fair.title': 'Fair-play au classement',
   'terms.fair.p1':
-    'Les points viennent de l’écoute et des J’aime : {hourPoints} pour chaque heure de musique, {dayPoints} pour chaque jour comptant au moins {activeMinutes} minutes de musique, et {likePoints} pour chaque J’aime sur vos scènes. Le classement affiche les 100 premiers.',
+    'Les points viennent de l’écoute et des J’aime : {hourPoints} pour chaque heure de musique, {dayPoints} pour chaque jour comptant au moins {activeMinutes} minutes de musique, et {likePoints} pour chaque J’aime sur vos scènes. Le classement affiche les 100 premiers et ne classe un compte que tant qu’il a Plus ; ses jours sont conservés et comptent à nouveau quand Plus revient.',
   'terms.fair.p2':
     'Le temps d’écoute est compté par l’application sur votre ordinateur, donc le serveur ne peut pas le voir se produire. Il vérifie plutôt chaque nombre : pas plus de {capHours} heures par jour, aucun jour qui n’a pas encore commencé, rien de plus ancien que {windowDays} jours, et aucun jour qui augmente plus vite que l’horloge. Les nombres de vos ordinateurs s’additionnent en un seul jour, qui n’augmente pas non plus plus vite que l’horloge : plusieurs ordinateurs qui jouent en même temps ne peuvent donc pas totaliser plus de temps qu’il ne s’en est écoulé.',
   'terms.fair.p3':
@@ -225,7 +225,7 @@ const terms = {
   'terms.elsewhere.p5':
     'Médias en ligne : YouTube, Bandcamp, Twitch et les autres sites que vous ouvrez dans FluidEQ reçoivent ce que vous y faites, selon leurs propres conditions.',
   'terms.elsewhere.p6':
-    'Signaler un problème : ouvre une issue GitHub dans votre navigateur, ou copie le rapport pour vous, avec des lignes récentes du journal que vous pouvez lire avant de l’envoyer. FluidEQ n’envoie rien lui-même.',
+    'Signaler un problème : ouvre une issue GitHub publique dans votre navigateur ou un e-mail privé au créateur de FluidEQ dans votre application de messagerie, ou copie le rapport pour vous, avec des lignes récentes du journal que vous pouvez lire avant de l’envoyer. FluidEQ n’envoie rien lui-même.',
   'terms.elsewhere.p7':
     'Éclairage et arrière-plans du Bureau : l’éclairage ne communique qu’avec Razer Chroma et Windows sur cet ordinateur, et les arrière-plans du Bureau ne passent jamais par Internet.',
   'terms.elsewhere.p8':
