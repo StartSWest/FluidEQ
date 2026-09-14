@@ -227,13 +227,19 @@ describe('checking without a timer, and on demand', () => {
     }
 
     // Simulate the download reaching authorized state so quitAndInstall does
-    // not throw the verification error.
+    // not throw the verification error. The build trusts a real feed key now,
+    // and this made-up download carries no signature; the signature has its
+    // own tests below, and this one is about the order of the quit.
+    const verifyFeed = jest
+      .spyOn(updateFeed, 'verifyUpdateFeedSignature')
+      .mockReturnValue({ valid: true });
     harness.listeners.get('update-downloaded')?.({
       downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
       version: '1.3.2',
     });
     await Promise.resolve();
     await Promise.resolve();
+    verifyFeed.mockRestore();
 
     controller.quitAndInstall(false, true);
 

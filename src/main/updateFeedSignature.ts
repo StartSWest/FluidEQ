@@ -28,7 +28,10 @@ import { createPublicKey, verify } from 'crypto';
  */
 
 /** Key id to its public key, SPKI DER in base64. Written by `pnpm update-feed-keys`. */
-export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {};
+export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {
+  'fluideq-feed-2026-09-13':
+    'MCowBQYDK2VwAyEAhUkYvwW4NuQscffcOddpIxM/08EZXrkmPvv6UEsYdm4=',
+};
 
 /** The fields `sign-update-feed.ts` adds to `latest.yml`. */
 export const FEED_SIGNATURE_FIELD = 'fluideqFeedSignature';
