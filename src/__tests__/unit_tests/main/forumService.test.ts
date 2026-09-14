@@ -29,7 +29,7 @@ const CONFIG = {
   name: 'FluidEQ',
   feedUrl: 'https://example.test/feed.json',
   clientId: 'Iv23liEXAMPLE000000',
-  clientSecret: 'a'.repeat(40),
+  tokenUrl: 'https://example.test/functions/v1/github-token',
 };
 
 const topic = (
@@ -291,25 +291,31 @@ describe('search words and the build configuration', () => {
     );
   });
 
-  it('signs in only with both halves of a well-formed GitHub App pair', () => {
+  // The client secret is not an input at all any more: the server holds it.
+  // A build signs in with a well-formed id and a server to redeem the code.
+  it('signs in only with a well-formed GitHub App id and a server', () => {
+    const api = 'https://project.supabase.co/functions/v1';
     expect(
-      buildForumConfig({
-        FLUIDEQ_GITHUB_CLIENT_ID: 'Iv23liABCDEFGHIJKLMN',
-        FLUIDEQ_GITHUB_CLIENT_SECRET: 'b'.repeat(40),
-      }).clientId,
-    ).toBe('Iv23liABCDEFGHIJKLMN');
+      buildForumConfig(
+        { FLUIDEQ_GITHUB_CLIENT_ID: 'Iv23liABCDEFGHIJKLMN' },
+        api,
+      ),
+    ).toMatchObject({
+      clientId: 'Iv23liABCDEFGHIJKLMN',
+      tokenUrl: `${api}/github-token`,
+    });
     expect(
-      buildForumConfig({ FLUIDEQ_GITHUB_CLIENT_ID: 'Iv23liABCDEFGHIJKLMN' })
-        .clientId,
-    ).toBe('');
+      buildForumConfig(
+        { FLUIDEQ_GITHUB_CLIENT_ID: 'Iv23liABCDEFGHIJKLMN' },
+        '',
+      ),
+    ).toMatchObject({ clientId: '', tokenUrl: '' });
     expect(
-      buildForumConfig({
-        FLUIDEQ_GITHUB_CLIENT_ID: 'not an id',
-        FLUIDEQ_GITHUB_CLIENT_SECRET: 'b'.repeat(40),
-      }).clientSecret,
-    ).toBe('');
-    expect(buildForumConfig({}).feedUrl).toBe(
+      buildForumConfig({ FLUIDEQ_GITHUB_CLIENT_ID: 'not an id' }, api),
+    ).toMatchObject({ clientId: '', tokenUrl: '' });
+    expect(buildForumConfig({}, api).feedUrl).toBe(
       'https://raw.githubusercontent.com/StartSWest/FluidEQ/discussions-data/discussions.json',
     );
+    expect(JSON.stringify(buildForumConfig({}, api))).not.toMatch(/secret/i);
   });
 });

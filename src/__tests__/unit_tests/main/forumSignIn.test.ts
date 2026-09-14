@@ -107,7 +107,35 @@ describe('the loopback server GitHub redirects to', () => {
 });
 
 describe('the token exchange', () => {
-  const client = { clientId: 'Iv23liEXAMPLE', clientSecret: 'a'.repeat(40) };
+  const client = {
+    clientId: 'Iv23liEXAMPLE',
+    tokenUrl: 'https://project.supabase.co/functions/v1/github-token',
+  };
+
+  // No copy of the app carries the client secret: the code goes to this
+  // project's function, which adds it, and never to GitHub's token endpoint.
+  it('redeems the code through the server, with nothing secret in the request', async () => {
+    const requests: [string, RequestInit][] = [];
+    const fetchImpl = (async (url: string, init: RequestInit) => {
+      requests.push([url, init]);
+      return new Response(JSON.stringify({ access_token: 'ghu_x' }));
+    }) as unknown as typeof fetch;
+    await exchangeCode(
+      fetchImpl,
+      client,
+      'c',
+      'http://127.0.0.1:1/callback',
+      'v',
+    );
+    const [[url, init]] = requests;
+    expect(url).toBe(client.tokenUrl);
+    expect(JSON.parse(String(init.body))).toEqual({
+      grant: 'authorization_code',
+      code: 'c',
+      redirect_uri: 'http://127.0.0.1:1/callback',
+      code_verifier: 'v',
+    });
+  });
 
   it('reads a token set with its expiries', async () => {
     const fetchImpl = (async () =>
@@ -151,7 +179,7 @@ describe('the forum session', () => {
     name: 'r',
     feedUrl: 'https://example.test/feed.json',
     clientId: 'Iv23liEXAMPLE',
-    clientSecret: 'a'.repeat(40),
+    tokenUrl: 'https://project.supabase.co/functions/v1/github-token',
   };
   const viewer = { login: 'me', avatarUrl: null, url: null };
 
@@ -173,7 +201,7 @@ describe('the forum session', () => {
 
   it('is read-only in a build with no GitHub App', () => {
     const session = createForumSession({
-      config: { ...CONFIG, clientId: '', clientSecret: '' },
+      config: { ...CONFIG, clientId: '', tokenUrl: '' },
       userDataDir: '',
       fetchViewer: () => Promise.resolve(viewer),
       onState: () => undefined,

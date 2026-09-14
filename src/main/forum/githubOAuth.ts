@@ -21,6 +21,10 @@ import ForumError from './forumError';
  * Nothing waits on a clock. The server is open until the browser comes back,
  * the person cancels, or the app quits; a sign-in abandoned in a browser tab
  * costs one idle socket on the loopback interface until then.
+ *
+ * The three requests GitHub wants the client secret for — redeeming the code,
+ * renewing, revoking — go to this project's `github-token` function, which
+ * holds the secret, so no copy of the app carries it (`forumConfig.ts`).
  */
 
 export interface IGithubTokens {
@@ -34,7 +38,8 @@ export interface IGithubTokens {
 
 export interface IGithubClient {
   clientId: string;
-  clientSecret: string;
+  /** The server function that adds the secret GitHub wants (`github-token`). */
+  tokenUrl: string;
 }
 
 export interface ISignInPages {
@@ -44,7 +49,6 @@ export interface ISignInPages {
 }
 
 const AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
-const TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const CALLBACK_PATH = '/callback';
 
 const base64url = (bytes: Buffer): string => bytes.toString('base64url');
@@ -114,13 +118,14 @@ const readTokens = (payload: unknown, now: number): IGithubTokens => {
   };
 };
 
-const postToken = async (
+/** One request to the `github-token` function; the response is GitHub's own. */
+const askServer = async (
   fetchImpl: typeof fetch,
+  client: IGithubClient,
   body: Record<string, string>,
-): Promise<IGithubTokens> => {
-  let response: Response;
+): Promise<Response> => {
   try {
-    response = await fetchImpl(TOKEN_URL, {
+    return await fetchImpl(client.tokenUrl, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -131,10 +136,18 @@ const postToken = async (
   } catch (error) {
     throw new ForumError('network', `GitHub could not be reached: ${error}`);
   }
+};
+
+const postToken = async (
+  fetchImpl: typeof fetch,
+  client: IGithubClient,
+  body: Record<string, string>,
+): Promise<IGithubTokens> => {
+  const response = await askServer(fetchImpl, client, body);
   if (!response.ok) {
     throw new ForumError(
       response.status >= 500 ? 'network' : 'rejected',
-      `GitHub's token endpoint answered ${response.status}.`,
+      `The GitHub token request was answered ${response.status}.`,
     );
   }
   return readTokens(await response.json(), Date.now());
@@ -147,9 +160,8 @@ export const exchangeCode = (
   redirectUri: string,
   verifier: string,
 ): Promise<IGithubTokens> =>
-  postToken(fetchImpl, {
-    client_id: client.clientId,
-    client_secret: client.clientSecret,
+  postToken(fetchImpl, client, {
+    grant: 'authorization_code',
     code,
     redirect_uri: redirectUri,
     code_verifier: verifier,
@@ -160,10 +172,8 @@ export const refreshTokens = (
   client: IGithubClient,
   refreshToken: string,
 ): Promise<IGithubTokens> =>
-  postToken(fetchImpl, {
-    client_id: client.clientId,
-    client_secret: client.clientSecret,
-    grant_type: 'refresh_token',
+  postToken(fetchImpl, client, {
+    grant: 'refresh_token',
     refresh_token: refreshToken,
   });
 
@@ -178,25 +188,13 @@ export const revokeToken = async (
   client: IGithubClient,
   accessToken: string,
 ): Promise<void> => {
-  const basic = Buffer.from(
-    `${client.clientId}:${client.clientSecret}`,
-  ).toString('base64');
-  const response = await fetchImpl(
-    `https://api.github.com/applications/${encodeURIComponent(client.clientId)}/token`,
-    {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Basic ${basic}`,
-        'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      body: JSON.stringify({ access_token: accessToken }),
-    },
-  );
-  // 404 is a token GitHub no longer has, which is what was wanted.
-  if (!response.ok && response.status !== 404) {
-    throw new Error(`GitHub answered ${response.status} to the revocation.`);
+  // The function treats GitHub's 404 — a token it no longer has — as done.
+  const response = await askServer(fetchImpl, client, {
+    grant: 'revoke',
+    access_token: accessToken,
+  });
+  if (!response.ok) {
+    throw new Error(`The revocation was answered ${response.status}.`);
   }
 };
 

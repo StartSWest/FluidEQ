@@ -106,7 +106,7 @@ export const createForumSession = ({
 }: IForumSessionDeps): IForumSession => {
   const client = {
     clientId: config.clientId,
-    clientSecret: config.clientSecret,
+    tokenUrl: config.tokenUrl,
   };
   let current: IStoredForumSession | undefined;
   // The cipher cannot read anything before `ready`, so the stored session is
