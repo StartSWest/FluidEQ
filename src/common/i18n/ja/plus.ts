@@ -207,6 +207,59 @@ const plus = {
   'plus.gifts.error.forbidden': 'Plus を贈れるのは FluidEQ の管理者だけです。',
   'plus.gifts.error.failed': '完了できませんでした。もう一度お試しください。',
 
+  'plus.gallery.accounts': 'アカウント',
+  'plus.accounts.title': 'アカウント',
+  'plus.accounts.hint':
+    'アカウントの削除を依頼されたら、ここでメールアドレスから探して削除します。Plus の規約が約束するすべて（プロフィール、ランキングの記録、メンバーシップ、規約への同意、いいね、追加、報告、公開したシーンとそのファイル）とともに、完全に削除されます。',
+  'plus.accounts.field.email': 'メールアドレス',
+  'plus.accounts.find': 'アカウントを探す',
+  'plus.accounts.searchHint':
+    'アカウント上で確認するまで、何も削除されません。',
+  'plus.accounts.none': '{email} のアカウントはありません',
+  'plus.accounts.noneHint': '連絡をくれたアドレスと見比べてください。',
+  'plus.accounts.noName': '名前は未設定',
+  'plus.accounts.joined': '{date} に登録',
+  'plus.accounts.unconfirmed': 'アドレス未確認',
+  'plus.accounts.plan.none': 'Plus なし',
+  'plus.accounts.plan.paid': '{date} まで Plus',
+  'plus.accounts.plan.gift': 'ギフトの Plus',
+  'plus.accounts.plan.giftUntil': '{date} までギフト',
+  'plus.accounts.goes': '一緒に削除されるもの',
+  'plus.accounts.fact.published': '公開したシーン',
+  'plus.accounts.fact.boardDays': 'ランキングの日数',
+  'plus.accounts.fact.likes': '付けたいいね',
+  'plus.accounts.fact.adds': '追加したシーン',
+  'plus.accounts.fact.reports': '送った報告',
+  'plus.accounts.note.admin':
+    'これは管理者アカウントです。管理者アカウントはここからは削除できません。',
+  'plus.accounts.note.gone':
+    'このアカウントはすでに削除されていますが、削除が完了していません。公開したファイルが残っている可能性があります。「削除を完了」で取り除きます。',
+  'plus.accounts.note.deleting':
+    'このアカウントの以前の削除が途中で止まりました。「削除を完了」で最後まで行います。',
+  'plus.accounts.note.gift':
+    '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は「Plus のギフト」で取り消してください。',
+  'plus.accounts.delete': 'アカウントを削除',
+  'plus.accounts.finish': '削除を完了',
+  'plus.accounts.confirm':
+    '{name} のアカウントを完全に削除しますか？元に戻せません。',
+  'plus.accounts.working':
+    '{name} のアカウントと関連するすべてを削除しています…',
+  'plus.accounts.confirmYes': '完全に削除',
+  'plus.accounts.keep': 'そのままにする',
+  'plus.accounts.done.title': 'アカウントを削除しました：{email}',
+  'plus.accounts.done.body':
+    'アカウントと関連するすべてが削除されました。取り除いた公開ファイル：{count}',
+  'plus.accounts.error.invalid':
+    'name@example.com のように、アドレスを最後まで入力してください。',
+  'plus.accounts.error.forbidden':
+    'アカウントを削除できるのは FluidEQ の管理者だけです。',
+  'plus.accounts.error.noAccount':
+    'そのアカウントはもう存在せず、削除するものも残っていませんでした。',
+  'plus.accounts.error.unfinished':
+    '削除が途中で止まりました。「削除を完了」を押して最後まで行ってください。',
+  'plus.accounts.error.failed':
+    '完了できませんでした。もう一度お試しください。すでに始まった削除は、最初からではなく続きから完了されます。',
+
   'plus.report.title': '{name} を報告',
   'plus.report.lead':
     '何が問題ですか？ 報告を読むのは FluidEQ の作者だけです。',

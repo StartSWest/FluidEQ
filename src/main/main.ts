@@ -192,6 +192,7 @@ import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { registerPlusGiftsIpc } from './ipc/plusGifts';
+import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
@@ -3058,6 +3059,12 @@ const plusModerationIpc = registerPlusModerationIpc({
 // The server decides who the admin is (premium migration 0021).
 const plusGiftsIpc = registerPlusGiftsIpc({ access: galleryAccess });
 
+// The admin's account deletion, as the Plus terms promise it: the account and
+// everything tied to it, published files included (premium migration 0031).
+const accountDeletionIpc = registerAccountDeletionIpc({
+  access: galleryAccess,
+});
+
 // The member's name on the board and in the gallery. Registering contacts
 // nothing; the Plus tab asks for it when it opens.
 const plusProfileIpc = registerPlusProfileIpc({
@@ -3437,6 +3444,7 @@ app.on('before-quit', (event) => {
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
   plusGiftsIpc.dispose();
+  accountDeletionIpc.dispose();
   disposeStudioInspect();
   plusPublishingIpc.dispose();
   plusGalleryIpc.dispose();

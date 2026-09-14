@@ -142,6 +142,16 @@ export default function GalleryView({ me }: IGalleryViewProps) {
           {moderation.admin && (
             <button
               type="button"
+              className="button small subtle"
+              onClick={() => openGalleryPage({ kind: 'accounts' })}
+            >
+              <Glyph name="person" />
+              {t('plus.gallery.accounts')}
+            </button>
+          )}
+          {moderation.admin && (
+            <button
+              type="button"
               className="button small subtle gallery-toolbar__reported"
               onClick={() => openGalleryPage({ kind: 'reported' })}
             >

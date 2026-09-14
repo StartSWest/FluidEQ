@@ -201,6 +201,57 @@ const plus = {
   'plus.gifts.error.forbidden': 'केवल FluidEQ एडमिन Plus दे सकता है।',
   'plus.gifts.error.failed': 'यह पूरा नहीं हुआ। फिर कोशिश करें।',
 
+  'plus.gallery.accounts': 'खाते',
+  'plus.accounts.title': 'खाते',
+  'plus.accounts.hint':
+    'जब कोई अपना खाता हटाने को कहे, तो यहाँ उसके ईमेल पते से खाता ढूँढें और हटाएँ। यह हमेशा के लिए मिट जाता है, साथ में वह सब जिसका Plus की शर्तें वादा करती हैं: प्रोफ़ाइल, लीडरबोर्ड के दिन, सदस्यता, शर्तों पर सहमतियाँ, पसंद, सीन जोड़ने के रिकॉर्ड, रिपोर्टें, और प्रकाशित सीन उनकी फ़ाइलों सहित।',
+  'plus.accounts.field.email': 'ईमेल पता',
+  'plus.accounts.find': 'खाता ढूँढें',
+  'plus.accounts.searchHint':
+    'जब तक आप खाते पर पुष्टि न करें, कुछ भी नहीं हटता।',
+  'plus.accounts.none': '{email} वाला कोई खाता नहीं है',
+  'plus.accounts.noneHint': 'इसे उस पते से मिलाएँ जिससे आपको लिखा गया था।',
+  'plus.accounts.noName': 'कोई नाम नहीं चुना',
+  'plus.accounts.joined': '{date} को जुड़े',
+  'plus.accounts.unconfirmed': 'पते की पुष्टि नहीं हुई',
+  'plus.accounts.plan.none': 'Plus नहीं',
+  'plus.accounts.plan.paid': '{date} तक Plus',
+  'plus.accounts.plan.gift': 'उपहार में Plus',
+  'plus.accounts.plan.giftUntil': '{date} तक उपहार',
+  'plus.accounts.goes': 'इसके साथ हटेगा',
+  'plus.accounts.fact.published': 'प्रकाशित सीन',
+  'plus.accounts.fact.boardDays': 'लीडरबोर्ड के दिन',
+  'plus.accounts.fact.likes': 'दी गई पसंद',
+  'plus.accounts.fact.adds': 'जोड़े गए सीन',
+  'plus.accounts.fact.reports': 'भेजी गई रिपोर्टें',
+  'plus.accounts.note.admin':
+    'यह एडमिन खाता है, और एडमिन खाते यहाँ से नहीं हटाए जाते।',
+  'plus.accounts.note.gone':
+    'यह खाता पहले ही हट चुका है, पर हटाना पूरा नहीं हुआ: प्रकाशित फ़ाइलें अभी भी रखी हो सकती हैं। “हटाना पूरा करें” उन्हें हटा देता है।',
+  'plus.accounts.note.deleting':
+    'इस खाते को हटाने की पिछली कोशिश बीच में रुक गई थी। “हटाना पूरा करें” उसे पूरा करता है।',
+  'plus.accounts.note.gift':
+    'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो “उपहार में Plus” पेज पर उसे वापस लें।',
+  'plus.accounts.delete': 'खाता हटाएँ',
+  'plus.accounts.finish': 'हटाना पूरा करें',
+  'plus.accounts.confirm':
+    '{name} का खाता हमेशा के लिए हटाएँ? इसे वापस नहीं किया जा सकता।',
+  'plus.accounts.working':
+    '{name} का खाता और उससे जुड़ा सब कुछ हटाया जा रहा है…',
+  'plus.accounts.confirmYes': 'हमेशा के लिए हटाएँ',
+  'plus.accounts.keep': 'रहने दें',
+  'plus.accounts.done.title': 'खाता हटाया गया: {email}',
+  'plus.accounts.done.body':
+    'खाता और उससे जुड़ा सब कुछ मिट गया। हटाई गई प्रकाशित फ़ाइलें: {count}।',
+  'plus.accounts.error.invalid': 'पूरा पता लिखें, जैसे name@example.com।',
+  'plus.accounts.error.forbidden': 'केवल FluidEQ एडमिन खाते हटा सकता है।',
+  'plus.accounts.error.noAccount':
+    'वह खाता अब मौजूद नहीं है, और उसका हटाने को कुछ नहीं बचा था।',
+  'plus.accounts.error.unfinished':
+    'हटाना बीच में रुक गया। इसे पूरा करने के लिए “हटाना पूरा करें” दबाएँ।',
+  'plus.accounts.error.failed':
+    'यह पूरा नहीं हुआ। फिर कोशिश करें: पहले से शुरू हुआ हटाना पूरा किया जाता है, दोबारा शुरू नहीं होता।',
+
   'plus.report.title': '{name} की रिपोर्ट करें',
   'plus.report.lead':
     'इसमें क्या गलत है? रिपोर्ट सिर्फ़ FluidEQ के निर्माता पढ़ते हैं।',

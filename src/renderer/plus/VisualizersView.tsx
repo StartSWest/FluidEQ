@@ -25,6 +25,7 @@ import {
 import { refreshModeration } from './moderationStore';
 import ReportedScenes from './ReportedScenes';
 import PlusGifts from './PlusGifts';
+import AccountDeletion from './AccountDeletion';
 import ScenePage from './ScenePage';
 import YourScenes from './YourScenes';
 import '../styles/Gallery.scss';
@@ -70,6 +71,8 @@ function PageBar({
     title = t('plus.moderation.title');
   } else if (page.kind === 'gifts') {
     title = t('plus.gifts.title');
+  } else if (page.kind === 'accounts') {
+    title = t('plus.accounts.title');
   } else if (page.kind === 'scene') {
     title = resolveSceneName(page.scene, locale);
   } else if (page.kind === 'maker') {
@@ -154,6 +157,8 @@ export default function VisualizersView({
     content = <ReportedScenes me={me} />;
   } else if (page.kind === 'gifts') {
     content = <PlusGifts />;
+  } else if (page.kind === 'accounts') {
+    content = <AccountDeletion />;
   }
 
   return (
@@ -188,7 +193,8 @@ export default function VisualizersView({
         {!entitled &&
           page.kind !== 'mine' &&
           page.kind !== 'reported' &&
-          page.kind !== 'gifts' && <PlusBar />}
+          page.kind !== 'gifts' &&
+          page.kind !== 'accounts' && <PlusBar />}
         {content}
       </div>
     </>

@@ -1,0 +1,425 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The admin's account deletion (`AccountDeletion.tsx`): the gifts page's
+// furniture — an intro strip, a one-line form — then the account the address
+// found, as a card that says who it is and what goes with it before Delete is
+// offered. Red is kept to the edges of the page and to the moment of
+// confirming, so the card itself reads as information, not as an alarm.
+
+.account-deletion__intro {
+  display: flex;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $red 24%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $red 8%, transparent),
+    color-mix(in srgb, $red 2%, transparent) 70%
+  );
+
+  .gallery-fine {
+    flex: 1 1 260px;
+    color: $text-muted;
+  }
+}
+
+.account-deletion__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: color-mix(in srgb, $red 70%, $white);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $red 15%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ---------------------------------------------------------------- search
+
+.account-deletion__search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $spacing-s $spacing-m;
+  padding: 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+}
+
+.account-deletion__field {
+  display: grid;
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 460px;
+  gap: 5px;
+
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: $control-height-sm;
+    padding-block: 0;
+    font-size: $text-body;
+  }
+}
+
+.account-deletion__label {
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+.account-deletion__find,
+.account-deletion__card .button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  height: $control-height-sm;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.account-deletion__search-hint {
+  flex: 1 1 100%;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.account-deletion__results {
+  display: grid;
+  gap: $spacing-s;
+}
+
+// ---------------------------------------------------------------- the account
+
+.account-deletion__card {
+  @include animate(rise-in, $motion-base, $ease-out);
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, $white 3%, transparent),
+      transparent 42%
+    ),
+    $block-lift;
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  // The second press is the one that deletes: the whole card says so, not
+  // only the button under the pointer.
+  &.is-confirming {
+    border-color: color-mix(in srgb, $red 52%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, $red 16%, transparent),
+      0 10px 28px -14px color-mix(in srgb, $red 45%, transparent);
+  }
+}
+
+.account-deletion__card--skeleton {
+  display: block;
+  height: 214px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent) 0%,
+    color-mix(in srgb, $white 7%, transparent) 50%,
+    color-mix(in srgb, $white 3%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation:
+    fade-in $motion-slow ease-out backwards,
+    gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.account-deletion__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  min-width: 0;
+}
+
+.account-deletion__avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 30% 22%,
+      color-mix(in srgb, $secondary-default 42%, transparent),
+      transparent 68%
+    ),
+    color-mix(in srgb, $secondary-default 12%, $surface-base);
+  box-shadow: 0 0 18px -6px
+    color-mix(in srgb, $secondary-default 55%, transparent);
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+
+  .is-admin & {
+    border-color: color-mix(in srgb, $amber 40%, transparent);
+  }
+}
+
+.account-deletion__identity {
+  display: grid;
+  flex: 1 1 220px;
+  min-width: 0;
+  gap: 3px;
+}
+
+.account-deletion__name {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.account-deletion__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+
+  > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.account-deletion__unconfirmed {
+  color: color-mix(in srgb, $amber 80%, $white);
+}
+
+.account-deletion__plan {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  color: $text-faint;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 6%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.is-plus {
+    color: $active;
+    background: color-mix(in srgb, $active 14%, transparent);
+  }
+}
+
+// What goes with it: one tile per kind of thing, sharing the card's width
+// between them, and as many to a line as fit when it narrows.
+.account-deletion__goes {
+  display: grid;
+  gap: 7px;
+}
+
+.account-deletion__eyebrow {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.account-deletion__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr));
+  gap: $spacing-s;
+  margin: 0;
+
+  > div {
+    display: grid;
+    align-content: space-between;
+    gap: 4px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-s;
+    background: color-mix(in srgb, $white 2.5%, transparent);
+  }
+
+  dt {
+    color: $text-faint;
+    font-size: $text-small;
+    overflow-wrap: anywhere;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-title;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+
+  .is-zero dd {
+    color: $text-dim;
+  }
+}
+
+.account-deletion__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  color: $text-muted;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  font-size: $text-small;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+  }
+
+  &.is-warning {
+    border-color: color-mix(in srgb, $amber 32%, transparent);
+    background: color-mix(in srgb, $amber 8%, transparent);
+
+    svg {
+      color: color-mix(in srgb, $amber 85%, $white);
+    }
+  }
+
+  &.is-gift {
+    border-color: color-mix(in srgb, $active 22%, transparent);
+    background: color-mix(in srgb, $active 6%, transparent);
+
+    svg {
+      color: $active;
+    }
+  }
+}
+
+.account-deletion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  padding-top: 12px;
+  border-top: 1px solid $border-subtle;
+}
+
+.account-deletion__answers {
+  display: flex;
+  flex: 0 0 auto;
+  gap: $spacing-s;
+  margin-inline-start: auto;
+}
+
+.account-deletion__confirm {
+  flex: 1 1 240px;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+}
+
+.account-deletion__failure {
+  flex: 1 1 240px;
+  color: color-mix(in srgb, $red 70%, $white);
+  font-size: $text-small;
+}
+
+// ---------------------------------------------------------------- deleted
+
+.account-deletion__done {
+  @include animate(rise-in, $motion-base, $ease-out);
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-m;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, $active 28%, transparent);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $active 10%, transparent),
+    color-mix(in srgb, $active 2%, transparent) 75%
+  );
+}
+
+.account-deletion__done-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: $active;
+  border-radius: 50%;
+  background: color-mix(in srgb, $active 16%, transparent);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.account-deletion__done-text {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.account-deletion__done-title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+}
+
+.account-deletion__done-body {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+}

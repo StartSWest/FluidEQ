@@ -213,6 +213,59 @@ const plus = {
   'plus.gifts.error.forbidden': 'Nur der FluidEQ-Admin kann Plus verschenken.',
   'plus.gifts.error.failed': 'Das hat nicht geklappt. Versuchen Sie es erneut.',
 
+  'plus.gallery.accounts': 'Konten',
+  'plus.accounts.title': 'Konten',
+  'plus.accounts.hint':
+    'Wenn jemand die Löschung seines Kontos beantragt, suchen Sie es hier über die E-Mail-Adresse und löschen Sie es. Es ist endgültig weg, mit allem, was die Plus-Bedingungen versprechen: Profil, Ranglistentage, Mitgliedschaft, Zustimmungen, „Gefällt mir“, Hinzufügungen, Meldungen und veröffentlichte Szenen samt ihren Dateien.',
+  'plus.accounts.field.email': 'E-Mail-Adresse',
+  'plus.accounts.find': 'Konto suchen',
+  'plus.accounts.searchHint':
+    'Gelöscht wird erst, wenn Sie es am Konto bestätigen.',
+  'plus.accounts.none': 'Kein Konto hat {email}',
+  'plus.accounts.noneHint':
+    'Vergleichen Sie sie mit der Adresse, von der aus geschrieben wurde.',
+  'plus.accounts.noName': 'Kein Name gewählt',
+  'plus.accounts.joined': 'Dabei seit {date}',
+  'plus.accounts.unconfirmed': 'Adresse nicht bestätigt',
+  'plus.accounts.plan.none': 'Kein Plus',
+  'plus.accounts.plan.paid': 'Plus bis {date}',
+  'plus.accounts.plan.gift': 'Plus als Geschenk',
+  'plus.accounts.plan.giftUntil': 'Geschenk bis {date}',
+  'plus.accounts.goes': 'Wird mitgelöscht',
+  'plus.accounts.fact.published': 'Veröffentlichte Szenen',
+  'plus.accounts.fact.boardDays': 'Ranglistentage',
+  'plus.accounts.fact.likes': 'Vergebene „Gefällt mir“',
+  'plus.accounts.fact.adds': 'Hinzugefügte Szenen',
+  'plus.accounts.fact.reports': 'Gesendete Meldungen',
+  'plus.accounts.note.admin':
+    'Dies ist ein Admin-Konto, und Admin-Konten werden hier nicht gelöscht.',
+  'plus.accounts.note.gone':
+    'Dieses Konto ist bereits gelöscht, aber die Löschung wurde nicht abgeschlossen: Veröffentlichte Dateien können noch gespeichert sein. „Löschung abschließen“ entfernt sie.',
+  'plus.accounts.note.deleting':
+    'Eine frühere Löschung dieses Kontos ist mittendrin stehen geblieben. „Löschung abschließen“ bringt sie zu Ende.',
+  'plus.accounts.note.gift':
+    'Ein Plus-Geschenk an diese Adresse bleibt bestehen, wie es die Bedingungen sagen. Nehmen Sie es unter Plus-Geschenke zurück, falls auch das gewünscht wurde.',
+  'plus.accounts.delete': 'Konto löschen',
+  'plus.accounts.finish': 'Löschung abschließen',
+  'plus.accounts.confirm':
+    'Das Konto von {name} endgültig löschen? Das lässt sich nicht rückgängig machen.',
+  'plus.accounts.working':
+    'Das Konto von {name} und alles, was dazugehört, wird gelöscht …',
+  'plus.accounts.confirmYes': 'Endgültig löschen',
+  'plus.accounts.keep': 'Behalten',
+  'plus.accounts.done.title': 'Konto gelöscht: {email}',
+  'plus.accounts.done.body':
+    'Das Konto und alles, was dazugehört, ist weg. Entfernte veröffentlichte Dateien: {count}.',
+  'plus.accounts.error.invalid':
+    'Geben Sie die vollständige Adresse ein, etwa name@beispiel.de.',
+  'plus.accounts.error.forbidden': 'Nur der FluidEQ-Admin kann Konten löschen.',
+  'plus.accounts.error.noAccount':
+    'Dieses Konto gibt es nicht mehr, und es war nichts mehr davon zu löschen.',
+  'plus.accounts.error.unfinished':
+    'Die Löschung ist mittendrin stehen geblieben. Drücken Sie „Löschung abschließen“, um sie zu Ende zu bringen.',
+  'plus.accounts.error.failed':
+    'Das hat nicht geklappt. Versuchen Sie es erneut: Eine bereits begonnene Löschung wird zu Ende gebracht, nicht neu begonnen.',
+
   'plus.report.title': '{name} melden',
   'plus.report.lead':
     'Was stimmt damit nicht? Nur der Entwickler von FluidEQ liest Meldungen.',

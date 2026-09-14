@@ -205,6 +205,58 @@ const plus = {
     'Дарить Plus может только администратор FluidEQ.',
   'plus.gifts.error.failed': 'Не получилось. Попробуйте ещё раз.',
 
+  'plus.gallery.accounts': 'Аккаунты',
+  'plus.accounts.title': 'Аккаунты',
+  'plus.accounts.hint':
+    'Когда кто-то просит удалить свой аккаунт, найдите его здесь по адресу почты и удалите. Он исчезнет навсегда вместе со всем, что обещают условия Plus: профилем, днями в таблице лидеров, подпиской, записями о согласии с условиями, лайками, добавлениями, жалобами и опубликованными сценами с их файлами.',
+  'plus.accounts.field.email': 'Адрес почты',
+  'plus.accounts.find': 'Найти аккаунт',
+  'plus.accounts.searchHint':
+    'Ничего не удаляется, пока вы не подтвердите это в карточке аккаунта.',
+  'plus.accounts.none': 'Нет аккаунта с адресом {email}',
+  'plus.accounts.noneHint': 'Сверьте его с адресом, с которого вам написали.',
+  'plus.accounts.noName': 'Имя не выбрано',
+  'plus.accounts.joined': 'Зарегистрирован {date}',
+  'plus.accounts.unconfirmed': 'Адрес не подтверждён',
+  'plus.accounts.plan.none': 'Без Plus',
+  'plus.accounts.plan.paid': 'Plus до {date}',
+  'plus.accounts.plan.gift': 'Plus в подарок',
+  'plus.accounts.plan.giftUntil': 'Подарок до {date}',
+  'plus.accounts.goes': 'Удаляется вместе с ним',
+  'plus.accounts.fact.published': 'Опубликованные сцены',
+  'plus.accounts.fact.boardDays': 'Дни в таблице лидеров',
+  'plus.accounts.fact.likes': 'Поставленные лайки',
+  'plus.accounts.fact.adds': 'Добавленные сцены',
+  'plus.accounts.fact.reports': 'Отправленные жалобы',
+  'plus.accounts.note.admin':
+    'Это аккаунт администратора, а такие аккаунты здесь не удаляются.',
+  'plus.accounts.note.gone':
+    'Этот аккаунт уже удалён, но удаление не завершилось: опубликованные файлы могут ещё храниться. «Завершить удаление» уберёт их.',
+  'plus.accounts.note.deleting':
+    'Прежнее удаление этого аккаунта остановилось на полпути. «Завершить удаление» доведёт его до конца.',
+  'plus.accounts.note.gift':
+    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок в разделе «Plus в подарок», если об этом тоже просили.',
+  'plus.accounts.delete': 'Удалить аккаунт',
+  'plus.accounts.finish': 'Завершить удаление',
+  'plus.accounts.confirm':
+    'Удалить аккаунт {name} навсегда? Отменить это нельзя.',
+  'plus.accounts.working': 'Удаляются аккаунт {name} и всё, что с ним связано…',
+  'plus.accounts.confirmYes': 'Удалить навсегда',
+  'plus.accounts.keep': 'Оставить',
+  'plus.accounts.done.title': 'Аккаунт удалён: {email}',
+  'plus.accounts.done.body':
+    'Аккаунт и всё, что с ним связано, удалены. Убрано опубликованных файлов: {count}.',
+  'plus.accounts.error.invalid':
+    'Введите адрес полностью, например name@example.com.',
+  'plus.accounts.error.forbidden':
+    'Удалять аккаунты может только администратор FluidEQ.',
+  'plus.accounts.error.noAccount':
+    'Этого аккаунта больше нет, и удалять от него было уже нечего.',
+  'plus.accounts.error.unfinished':
+    'Удаление остановилось на полпути. Нажмите «Завершить удаление», чтобы довести его до конца.',
+  'plus.accounts.error.failed':
+    'Не получилось. Попробуйте ещё раз: уже начатое удаление будет доведено до конца, а не начато заново.',
+
   'plus.report.title': 'Пожаловаться на «{name}»',
   'plus.report.lead':
     'Что с ней не так? Жалобы читает только создатель FluidEQ.',

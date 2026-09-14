@@ -205,6 +205,57 @@ const plus = {
   'plus.gifts.error.forbidden': 'Só o admin do FluidEQ pode dar Plus.',
   'plus.gifts.error.failed': 'Não deu certo. Tente de novo.',
 
+  'plus.gallery.accounts': 'Contas',
+  'plus.accounts.title': 'Contas',
+  'plus.accounts.hint':
+    'Quando alguém pedir para apagar a conta, encontre-a aqui pelo e-mail e apague. Ela some de vez, com tudo o que os termos do Plus prometem: perfil, dias na classificação, assinatura, aceitações dos termos, curtidas, adições, denúncias e cenas publicadas com seus arquivos.',
+  'plus.accounts.field.email': 'E-mail',
+  'plus.accounts.find': 'Encontrar conta',
+  'plus.accounts.searchHint': 'Nada é apagado até você confirmar na conta.',
+  'plus.accounts.none': 'Nenhuma conta tem {email}',
+  'plus.accounts.noneHint':
+    'Compare com o endereço de onde escreveram para você.',
+  'plus.accounts.noName': 'Nenhum nome escolhido',
+  'plus.accounts.joined': 'Entrou em {date}',
+  'plus.accounts.unconfirmed': 'Endereço não confirmado',
+  'plus.accounts.plan.none': 'Sem Plus',
+  'plus.accounts.plan.paid': 'Plus até {date}',
+  'plus.accounts.plan.gift': 'Plus de presente',
+  'plus.accounts.plan.giftUntil': 'Presente até {date}',
+  'plus.accounts.goes': 'Apagado junto',
+  'plus.accounts.fact.published': 'Cenas publicadas',
+  'plus.accounts.fact.boardDays': 'Dias na classificação',
+  'plus.accounts.fact.likes': 'Curtidas dadas',
+  'plus.accounts.fact.adds': 'Cenas adicionadas',
+  'plus.accounts.fact.reports': 'Denúncias enviadas',
+  'plus.accounts.note.admin':
+    'Esta é uma conta de admin, e contas de admin não são apagadas por aqui.',
+  'plus.accounts.note.gone':
+    'Esta conta já foi apagada, mas a exclusão não terminou: arquivos publicados ainda podem estar guardados. Terminar exclusão remove esses arquivos.',
+  'plus.accounts.note.deleting':
+    'Uma exclusão anterior desta conta parou no meio. Terminar exclusão conclui o processo.',
+  'plus.accounts.note.gift':
+    'O Plus de presente para este endereço continua, como dizem os termos. Retire em Plus de presente se isso também foi pedido.',
+  'plus.accounts.delete': 'Apagar conta',
+  'plus.accounts.finish': 'Terminar exclusão',
+  'plus.accounts.confirm':
+    'Apagar de vez a conta de {name}? Não dá para desfazer.',
+  'plus.accounts.working': 'Apagando a conta de {name} e tudo ligado a ela…',
+  'plus.accounts.confirmYes': 'Apagar de vez',
+  'plus.accounts.keep': 'Manter',
+  'plus.accounts.done.title': 'Conta apagada: {email}',
+  'plus.accounts.done.body':
+    'A conta e tudo ligado a ela não existem mais. Arquivos publicados removidos: {count}.',
+  'plus.accounts.error.invalid':
+    'Digite o endereço completo, como nome@exemplo.com.',
+  'plus.accounts.error.forbidden': 'Só o admin do FluidEQ pode apagar contas.',
+  'plus.accounts.error.noAccount':
+    'Essa conta não existe mais, e não restava nada dela para apagar.',
+  'plus.accounts.error.unfinished':
+    'A exclusão parou no meio. Clique em Terminar exclusão para concluir.',
+  'plus.accounts.error.failed':
+    'Não deu certo. Tente de novo: uma exclusão já começada é concluída, não recomeçada.',
+
   'plus.report.title': 'Denunciar {name}',
   'plus.report.lead':
     'O que há de errado? Só o criador do FluidEQ lê as denúncias.',

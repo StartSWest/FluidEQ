@@ -87,6 +87,10 @@ import type {
   TPlusGiftsListOutcome,
 } from './ipc/plusGifts';
 import type {
+  TDeleteAccountOutcome,
+  TFindAccountsOutcome,
+} from './ipc/accountDeletion';
+import type {
   TModerationAction,
   TModerationList,
 } from '../common/plusModeration';
@@ -1157,6 +1161,20 @@ const takeBackPlus = (email: string) =>
     email,
   ) as Promise<TPlusGiftActOutcome>;
 
+// The admin's account deletion: the account behind an address, then
+// deleting it for good. The server decides who the admin is.
+const findAccountsToDelete = (email: string) =>
+  ipcRenderer.invoke(
+    'account-deletion-find',
+    email,
+  ) as Promise<TFindAccountsOutcome>;
+
+const deleteAccount = (email: string) =>
+  ipcRenderer.invoke(
+    'account-deletion-delete',
+    email,
+  ) as Promise<TDeleteAccountOutcome>;
+
 // The member's name on the board and in the gallery: read it, or choose it.
 // A result rather than a throw, so "that handle is taken" survives the bridge.
 const plusProfile = () =>
@@ -1398,6 +1416,8 @@ export default {
     listPlusGifts,
     givePlus,
     takeBackPlus,
+    findAccountsToDelete,
+    deleteAccount,
     createStudioProject,
     chooseStudioProjectsRoot,
     addStudioSceneToLooks,

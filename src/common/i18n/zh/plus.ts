@@ -191,6 +191,52 @@ const plus = {
   'plus.gifts.error.forbidden': '只有 FluidEQ 管理员可以赠送 Plus。',
   'plus.gifts.error.failed': '未能完成，请重试。',
 
+  'plus.gallery.accounts': '账户',
+  'plus.accounts.title': '账户',
+  'plus.accounts.hint':
+    '有人申请删除账户时，在这里按电子邮件地址找到并删除。账户会被永久删除，并一并删除 Plus 条款承诺的所有内容：个人资料、排行榜上的每日记录、会员资格、同意记录、点赞、添加、举报，以及发布的场景及其文件。',
+  'plus.accounts.field.email': '电子邮件地址',
+  'plus.accounts.find': '查找账户',
+  'plus.accounts.searchHint': '在账户上确认之前，不会删除任何内容。',
+  'plus.accounts.none': '没有使用 {email} 的账户',
+  'plus.accounts.noneHint': '请与对方来信所用的地址核对。',
+  'plus.accounts.noName': '未设置名称',
+  'plus.accounts.joined': '{date} 加入',
+  'plus.accounts.unconfirmed': '地址未确认',
+  'plus.accounts.plan.none': '无 Plus',
+  'plus.accounts.plan.paid': 'Plus 至 {date}',
+  'plus.accounts.plan.gift': '赠送的 Plus',
+  'plus.accounts.plan.giftUntil': '赠送至 {date}',
+  'plus.accounts.goes': '一并删除',
+  'plus.accounts.fact.published': '已发布的场景',
+  'plus.accounts.fact.boardDays': '排行榜天数',
+  'plus.accounts.fact.likes': '点过的赞',
+  'plus.accounts.fact.adds': '添加的场景',
+  'plus.accounts.fact.reports': '发出的举报',
+  'plus.accounts.note.admin': '这是管理员账户，管理员账户不能在这里删除。',
+  'plus.accounts.note.gone':
+    '该账户已删除，但删除没有完成：发布过的文件可能仍在存储中。“完成删除”会移除它们。',
+  'plus.accounts.note.deleting':
+    '之前对该账户的删除中途停止了。“完成删除”会把它做完。',
+  'plus.accounts.note.gift':
+    '按照条款，赠送给该地址的 Plus 会保留。如果对方也要求收回，请在“赠送 Plus”中收回。',
+  'plus.accounts.delete': '删除账户',
+  'plus.accounts.finish': '完成删除',
+  'plus.accounts.confirm': '要永久删除 {name} 的账户吗？此操作无法撤销。',
+  'plus.accounts.working': '正在删除 {name} 的账户及其相关的一切…',
+  'plus.accounts.confirmYes': '永久删除',
+  'plus.accounts.keep': '保留',
+  'plus.accounts.done.title': '账户已删除：{email}',
+  'plus.accounts.done.body':
+    '该账户及其相关的一切都已删除。移除的已发布文件：{count}。',
+  'plus.accounts.error.invalid': '请输入完整地址，例如 name@example.com。',
+  'plus.accounts.error.forbidden': '只有 FluidEQ 管理员可以删除账户。',
+  'plus.accounts.error.noAccount': '该账户已不存在，也没有剩下需要删除的内容。',
+  'plus.accounts.error.unfinished':
+    '删除中途停止了。请点击“完成删除”把它做完。',
+  'plus.accounts.error.failed':
+    '未能完成，请重试：已经开始的删除会接着完成，而不会重新开始。',
+
   'plus.report.title': '举报 {name}',
   'plus.report.lead': '它有什么问题？只有 FluidEQ 的作者会阅读举报。',
   'plus.report.reason.rights': '未经许可使用了我或他人的作品',

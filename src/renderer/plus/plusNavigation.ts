@@ -68,7 +68,9 @@ export type TGalleryPage =
   /** The admin's queue of reported scenes. */
   | { kind: 'reported' }
   /** The admin's Plus gifts: addresses that count as paying. */
-  | { kind: 'gifts' };
+  | { kind: 'gifts' }
+  /** The admin's account deletion: an account found by address, deleted. */
+  | { kind: 'accounts' };
 
 /** A page's own name, for what is remembered about it. */
 export const galleryPageKey = (page: TGalleryPage) => {

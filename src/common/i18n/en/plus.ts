@@ -206,6 +206,59 @@ const plus = {
   'plus.gifts.error.forbidden': 'Only the FluidEQ admin can give Plus.',
   'plus.gifts.error.failed': 'That did not go through. Try again.',
 
+  'plus.gallery.accounts': 'Accounts',
+  'plus.accounts.title': 'Accounts',
+  'plus.accounts.hint':
+    'When somebody asks for their account to be deleted, find it here by its email address and delete it. It goes for good, with everything the Plus terms promise: profile, leaderboard days, membership, agreements, likes, adds, reports, and published scenes with their files.',
+  'plus.accounts.field.email': 'Email address',
+  'plus.accounts.find': 'Find account',
+  'plus.accounts.searchHint':
+    'Nothing is deleted until you confirm it on the account.',
+  'plus.accounts.none': 'No account has {email}',
+  'plus.accounts.noneHint': 'Check it against the address they wrote from.',
+  'plus.accounts.noName': 'No name chosen',
+  'plus.accounts.joined': 'Joined {date}',
+  'plus.accounts.unconfirmed': 'Address not confirmed',
+  'plus.accounts.plan.none': 'No Plus',
+  'plus.accounts.plan.paid': 'Plus until {date}',
+  'plus.accounts.plan.gift': 'Plus as a gift',
+  'plus.accounts.plan.giftUntil': 'Gift until {date}',
+  'plus.accounts.goes': 'Deleted with it',
+  'plus.accounts.fact.published': 'Published scenes',
+  'plus.accounts.fact.boardDays': 'Days on the board',
+  'plus.accounts.fact.likes': 'Likes given',
+  'plus.accounts.fact.adds': 'Scenes added',
+  'plus.accounts.fact.reports': 'Reports sent',
+  'plus.accounts.note.admin':
+    'This is an admin account, and admin accounts are not deleted from here.',
+  'plus.accounts.note.gone':
+    'This account is already deleted, but its deletion did not finish: files it published may still be stored. Finish deleting removes them.',
+  'plus.accounts.note.deleting':
+    'An earlier deletion of this account stopped part way. Finish deleting completes it.',
+  'plus.accounts.note.gift':
+    'A gift of Plus to this address stays, as the terms say. Take it back on Plus gifts if they asked for that too.',
+  'plus.accounts.delete': 'Delete account',
+  'plus.accounts.finish': 'Finish deleting',
+  'plus.accounts.confirm':
+    'Delete the account of {name} for good? This cannot be undone.',
+  'plus.accounts.working':
+    'Deleting the account of {name} and everything tied to it…',
+  'plus.accounts.confirmYes': 'Delete for good',
+  'plus.accounts.keep': 'Keep',
+  'plus.accounts.done.title': 'Account deleted: {email}',
+  'plus.accounts.done.body':
+    'The account and everything tied to it are gone. Published files removed: {count}.',
+  'plus.accounts.error.invalid':
+    'Type the whole address, like name@example.com.',
+  'plus.accounts.error.forbidden':
+    'Only the FluidEQ admin can delete accounts.',
+  'plus.accounts.error.noAccount':
+    'That account no longer exists, and nothing of it was left to delete.',
+  'plus.accounts.error.unfinished':
+    'Deleting stopped part way. Press Finish deleting to complete it.',
+  'plus.accounts.error.failed':
+    'That did not go through. Try again: a deletion already under way is finished, not started over.',
+
   'plus.report.title': 'Report {name}',
   'plus.report.lead':
     'What is wrong with it? Only the maker of FluidEQ reads reports.',

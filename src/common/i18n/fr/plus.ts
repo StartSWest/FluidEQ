@@ -209,6 +209,60 @@ const plus = {
   'plus.gifts.error.forbidden': 'Seul l’admin de FluidEQ peut offrir Plus.',
   'plus.gifts.error.failed': 'Cela n’a pas abouti. Réessayez.',
 
+  'plus.gallery.accounts': 'Comptes',
+  'plus.accounts.title': 'Comptes',
+  'plus.accounts.hint':
+    'Quand quelqu’un demande la suppression de son compte, retrouvez-le ici par son adresse e-mail et supprimez-le. Il disparaît pour de bon, avec tout ce que promettent les conditions de Plus : profil, jours au classement, abonnement, acceptations des conditions, J’aime, ajouts, signalements et scènes publiées avec leurs fichiers.',
+  'plus.accounts.field.email': 'Adresse e-mail',
+  'plus.accounts.find': 'Trouver le compte',
+  'plus.accounts.searchHint':
+    'Rien n’est supprimé tant que vous ne confirmez pas sur le compte.',
+  'plus.accounts.none': 'Aucun compte n’a l’adresse {email}',
+  'plus.accounts.noneHint':
+    'Comparez-la avec l’adresse depuis laquelle on vous a écrit.',
+  'plus.accounts.noName': 'Aucun nom choisi',
+  'plus.accounts.joined': 'Inscription le {date}',
+  'plus.accounts.unconfirmed': 'Adresse non confirmée',
+  'plus.accounts.plan.none': 'Sans Plus',
+  'plus.accounts.plan.paid': 'Plus jusqu’au {date}',
+  'plus.accounts.plan.gift': 'Plus offert',
+  'plus.accounts.plan.giftUntil': 'Offert jusqu’au {date}',
+  'plus.accounts.goes': 'Supprimé avec le compte',
+  'plus.accounts.fact.published': 'Scènes publiées',
+  'plus.accounts.fact.boardDays': 'Jours au classement',
+  'plus.accounts.fact.likes': 'J’aime donnés',
+  'plus.accounts.fact.adds': 'Scènes ajoutées',
+  'plus.accounts.fact.reports': 'Signalements envoyés',
+  'plus.accounts.note.admin':
+    'C’est un compte admin, et les comptes admin ne se suppriment pas d’ici.',
+  'plus.accounts.note.gone':
+    'Ce compte est déjà supprimé, mais la suppression n’est pas allée au bout : des fichiers publiés peuvent encore être stockés. Terminer la suppression les retire.',
+  'plus.accounts.note.deleting':
+    'Une suppression précédente de ce compte s’est arrêtée en route. Terminer la suppression la mène au bout.',
+  'plus.accounts.note.gift':
+    'Le Plus offert à cette adresse reste en place, comme le disent les conditions. Reprenez-le dans Plus offert si cela a aussi été demandé.',
+  'plus.accounts.delete': 'Supprimer le compte',
+  'plus.accounts.finish': 'Terminer la suppression',
+  'plus.accounts.confirm':
+    'Supprimer définitivement le compte de {name} ? C’est irréversible.',
+  'plus.accounts.working':
+    'Suppression du compte de {name} et de tout ce qui s’y rattache…',
+  'plus.accounts.confirmYes': 'Supprimer définitivement',
+  'plus.accounts.keep': 'Garder',
+  'plus.accounts.done.title': 'Compte supprimé : {email}',
+  'plus.accounts.done.body':
+    'Le compte et tout ce qui s’y rattache ont disparu. Fichiers publiés retirés : {count}.',
+  'plus.accounts.error.invalid':
+    'Saisissez l’adresse complète, comme nom@exemple.com.',
+  'plus.accounts.error.forbidden':
+    'Seul l’admin de FluidEQ peut supprimer des comptes.',
+  'plus.accounts.error.noAccount':
+    'Ce compte n’existe plus, et il ne restait rien à supprimer.',
+  'plus.accounts.error.unfinished':
+    'La suppression s’est arrêtée en route. Appuyez sur Terminer la suppression pour la mener au bout.',
+  'plus.accounts.error.failed':
+    'Cela n’a pas abouti. Réessayez : une suppression déjà commencée est menée au bout, pas recommencée.',
+
   'plus.report.title': 'Signaler {name}',
   'plus.report.lead':
     'Quel est le problème ? Seul le créateur de FluidEQ lit les signalements.',

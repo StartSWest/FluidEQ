@@ -207,6 +207,60 @@ const plus = {
   'plus.gifts.error.forbidden': 'Solo l’admin di FluidEQ può regalare Plus.',
   'plus.gifts.error.failed': 'Non è andato a buon fine. Riprova.',
 
+  'plus.gallery.accounts': 'Account',
+  'plus.accounts.title': 'Account',
+  'plus.accounts.hint':
+    'Quando qualcuno chiede di eliminare il proprio account, trovalo qui con il suo indirizzo email ed eliminalo. Sparisce per sempre, con tutto ciò che promettono le condizioni di Plus: profilo, giorni in classifica, abbonamento, accettazioni delle condizioni, mi piace, aggiunte, segnalazioni e scene pubblicate con i loro file.',
+  'plus.accounts.field.email': 'Indirizzo email',
+  'plus.accounts.find': 'Trova account',
+  'plus.accounts.searchHint':
+    'Non si elimina nulla finché non confermi sull’account.',
+  'plus.accounts.none': 'Nessun account ha {email}',
+  'plus.accounts.noneHint':
+    'Confrontalo con l’indirizzo da cui ti hanno scritto.',
+  'plus.accounts.noName': 'Nessun nome scelto',
+  'plus.accounts.joined': 'Iscrizione del {date}',
+  'plus.accounts.unconfirmed': 'Indirizzo non confermato',
+  'plus.accounts.plan.none': 'Senza Plus',
+  'plus.accounts.plan.paid': 'Plus fino al {date}',
+  'plus.accounts.plan.gift': 'Plus in regalo',
+  'plus.accounts.plan.giftUntil': 'Regalo fino al {date}',
+  'plus.accounts.goes': 'Eliminato con l’account',
+  'plus.accounts.fact.published': 'Scene pubblicate',
+  'plus.accounts.fact.boardDays': 'Giorni in classifica',
+  'plus.accounts.fact.likes': 'Mi piace dati',
+  'plus.accounts.fact.adds': 'Scene aggiunte',
+  'plus.accounts.fact.reports': 'Segnalazioni inviate',
+  'plus.accounts.note.admin':
+    'È un account admin, e gli account admin non si eliminano da qui.',
+  'plus.accounts.note.gone':
+    'Questo account è già eliminato, ma l’eliminazione non è finita: i file pubblicati potrebbero essere ancora salvati. Completa eliminazione li rimuove.',
+  'plus.accounts.note.deleting':
+    'Un’eliminazione precedente di questo account si è fermata a metà. Completa eliminazione la porta a termine.',
+  'plus.accounts.note.gift':
+    'Il Plus regalato a questo indirizzo resta, come dicono le condizioni. Ritiralo in Plus in regalo se è stato chiesto anche questo.',
+  'plus.accounts.delete': 'Elimina account',
+  'plus.accounts.finish': 'Completa eliminazione',
+  'plus.accounts.confirm':
+    'Eliminare per sempre l’account di {name}? Non si può annullare.',
+  'plus.accounts.working':
+    'Eliminazione dell’account di {name} e di tutto ciò che lo riguarda…',
+  'plus.accounts.confirmYes': 'Elimina per sempre',
+  'plus.accounts.keep': 'Mantieni',
+  'plus.accounts.done.title': 'Account eliminato: {email}',
+  'plus.accounts.done.body':
+    'L’account e tutto ciò che lo riguarda non ci sono più. File pubblicati rimossi: {count}.',
+  'plus.accounts.error.invalid':
+    'Scrivi l’indirizzo completo, come nome@esempio.com.',
+  'plus.accounts.error.forbidden':
+    'Solo l’admin di FluidEQ può eliminare gli account.',
+  'plus.accounts.error.noAccount':
+    'Quell’account non esiste più e non restava nulla da eliminare.',
+  'plus.accounts.error.unfinished':
+    'L’eliminazione si è fermata a metà. Premi Completa eliminazione per portarla a termine.',
+  'plus.accounts.error.failed':
+    'Non è andato a buon fine. Riprova: un’eliminazione già iniziata viene portata a termine, non ricominciata.',
+
   'plus.report.title': 'Segnala {name}',
   'plus.report.lead':
     'Qual è il problema? Solo l’autore di FluidEQ legge le segnalazioni.',

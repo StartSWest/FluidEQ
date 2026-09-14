@@ -206,6 +206,60 @@ const plus = {
   'plus.gifts.error.forbidden': 'Solo el admin de FluidEQ puede regalar Plus.',
   'plus.gifts.error.failed': 'No se pudo completar. Vuelve a intentarlo.',
 
+  'plus.gallery.accounts': 'Cuentas',
+  'plus.accounts.title': 'Cuentas',
+  'plus.accounts.hint':
+    'Cuando alguien pida que se borre su cuenta, búscala aquí por su correo y bórrala. Desaparece para siempre con todo lo que prometen las condiciones de Plus: perfil, días en la clasificación, membresía, aceptaciones de las condiciones, me gusta, añadidos, denuncias y escenas publicadas con sus archivos.',
+  'plus.accounts.field.email': 'Correo',
+  'plus.accounts.find': 'Buscar cuenta',
+  'plus.accounts.searchHint':
+    'No se borra nada hasta que lo confirmes en la cuenta.',
+  'plus.accounts.none': 'Ninguna cuenta tiene {email}',
+  'plus.accounts.noneHint':
+    'Compáralo con el correo desde el que te escribieron.',
+  'plus.accounts.noName': 'Sin nombre elegido',
+  'plus.accounts.joined': 'Se unió el {date}',
+  'plus.accounts.unconfirmed': 'Correo sin confirmar',
+  'plus.accounts.plan.none': 'Sin Plus',
+  'plus.accounts.plan.paid': 'Plus hasta el {date}',
+  'plus.accounts.plan.gift': 'Plus regalado',
+  'plus.accounts.plan.giftUntil': 'Regalo hasta el {date}',
+  'plus.accounts.goes': 'Se borra con ella',
+  'plus.accounts.fact.published': 'Escenas publicadas',
+  'plus.accounts.fact.boardDays': 'Días en la clasificación',
+  'plus.accounts.fact.likes': 'Me gusta dados',
+  'plus.accounts.fact.adds': 'Escenas añadidas',
+  'plus.accounts.fact.reports': 'Denuncias enviadas',
+  'plus.accounts.note.admin':
+    'Es una cuenta de admin, y las cuentas de admin no se borran desde aquí.',
+  'plus.accounts.note.gone':
+    'Esta cuenta ya está borrada, pero el borrado no terminó: puede que sigan guardados archivos que publicó. Terminar de borrar los quita.',
+  'plus.accounts.note.deleting':
+    'Un borrado anterior de esta cuenta se quedó a medias. Terminar de borrar lo completa.',
+  'plus.accounts.note.gift':
+    'El Plus regalado a este correo se mantiene, como dicen las condiciones. Quítalo en Plus regalado si también lo pidieron.',
+  'plus.accounts.delete': 'Borrar cuenta',
+  'plus.accounts.finish': 'Terminar de borrar',
+  'plus.accounts.confirm':
+    '¿Borrar para siempre la cuenta de {name}? No se puede deshacer.',
+  'plus.accounts.working':
+    'Borrando la cuenta de {name} y todo lo vinculado a ella…',
+  'plus.accounts.confirmYes': 'Borrar para siempre',
+  'plus.accounts.keep': 'Mantener',
+  'plus.accounts.done.title': 'Cuenta borrada: {email}',
+  'plus.accounts.done.body':
+    'La cuenta y todo lo vinculado a ella ya no están. Archivos publicados quitados: {count}.',
+  'plus.accounts.error.invalid':
+    'Escribe el correo completo, como nombre@ejemplo.com.',
+  'plus.accounts.error.forbidden':
+    'Solo el admin de FluidEQ puede borrar cuentas.',
+  'plus.accounts.error.noAccount':
+    'Esa cuenta ya no existe y no quedaba nada suyo por borrar.',
+  'plus.accounts.error.unfinished':
+    'El borrado se quedó a medias. Pulsa Terminar de borrar para completarlo.',
+  'plus.accounts.error.failed':
+    'No se pudo completar. Vuelve a intentarlo: un borrado ya empezado se termina, no vuelve a empezar.',
+
   'plus.report.title': 'Denunciar {name}',
   'plus.report.lead':
     '¿Qué le pasa? Solo el creador de FluidEQ lee las denuncias.',
