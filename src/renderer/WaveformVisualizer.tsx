@@ -720,7 +720,10 @@ const WaveformVisualizer = () => {
   // reach them, so pausing has to be *drawn* rather than declared. The loop
   // still costs nothing when there is nothing to do — it reports back that the
   // shape has arrived and is not queued again until something kicks it.
-  const kickFrames = useSmoothFrames(drawFrame, { isEnabled: true });
+  const kickFrames = useSmoothFrames(drawFrame, {
+    isEnabled: true,
+    target: canvasRef,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -467,6 +467,12 @@ if (isWindows) {
   if (!existsSync(wallpaperPath)) {
     fail(`the desktop visualizer helper was not produced at ${wallpaperPath}`);
   }
+  // Packaged beside the others (`extraResources` in package.json): without it
+  // the installed Processes list has nothing to measure its rows with.
+  const meterPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Meter.exe');
+  if (!existsSync(meterPath)) {
+    fail(`the Processes meter was not produced at ${meterPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

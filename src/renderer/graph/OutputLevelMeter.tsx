@@ -2263,7 +2263,10 @@ const OutputLevelMeter = () => {
     [t],
   );
 
-  const kickFrames = useSmoothFrames(drawFrame, { isEnabled: true });
+  const kickFrames = useSmoothFrames(drawFrame, {
+    isEnabled: true,
+    target: canvasRef,
+  });
 
   const attachCanvas = useCallback((canvas: HTMLCanvasElement | null) => {
     canvasRef.current = canvas;

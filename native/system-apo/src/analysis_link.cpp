@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 #include "analysis_link.h"
 #include <process.h>
+#include <psapi.h>
 #include <algorithm>
 #include <cstring>
 #include "log.h"
@@ -97,7 +98,9 @@ void AnalysisLink::run() {
     unsigned char hello[44]{};
     std::memcpy(hello, endpoint_.data(), (std::min)(endpoint_.size(), size_t{39}));
     std::memcpy(hello + 40, &rate_, sizeof(rate_));
-    hello[39] = 1;
+    // What this engine can answer, a bit each: 1 the preamp request (2), 2
+    // the process-stats request (3). The app asks nothing a bit did not offer.
+    hello[39] = 1 | 2;
     bool connected = transfer(pipe, hello, sizeof(hello), true);
     while (connected) {
       unsigned char command = 0;
@@ -111,6 +114,37 @@ void AnalysisLink::run() {
         std::memcpy(packet, &magic, 4);
         std::memcpy(packet + 4, &gain, 4);
         std::memcpy(packet + 8, &flags, 4);
+        uint32_t size = sizeof(packet);
+        connected = transfer(pipe, &size, 4, true) && transfer(pipe, packet, size, true);
+        continue;
+      }
+      if (command == 3) {
+        // What this process costs, for the app's Processes list. The engine
+        // lives inside audiodg.exe, which FluidEQ cannot open to measure, so
+        // it measures from in here — the whole audio service's working set
+        // and CPU time, since that is the only process there is to report.
+        // Answered on demand, like the frames: nothing here samples on a clock.
+        const uint32_t magic = 0x53514546;  // "FEQS"
+        PROCESS_MEMORY_COUNTERS counters{};
+        counters.cb = sizeof(counters);
+        const uint64_t working =
+            K32GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters)) != 0
+                ? static_cast<uint64_t>(counters.WorkingSetSize)
+                : 0;
+        FILETIME created{}, exited{}, kernel{}, user{};
+        const auto hundred_ns = [](const FILETIME& time) {
+          return (static_cast<uint64_t>(time.dwHighDateTime) << 32) | time.dwLowDateTime;
+        };
+        const uint64_t cpu =
+            GetProcessTimes(GetCurrentProcess(), &created, &exited, &kernel, &user) != 0
+                ? hundred_ns(kernel) + hundred_ns(user)
+                : 0;
+        const uint32_t pid = GetCurrentProcessId();
+        unsigned char packet[24]{};
+        std::memcpy(packet, &magic, 4);
+        std::memcpy(packet + 4, &pid, 4);
+        std::memcpy(packet + 8, &working, 8);
+        std::memcpy(packet + 16, &cpu, 8);
         uint32_t size = sizeof(packet);
         connected = transfer(pipe, &size, 4, true) && transfer(pipe, packet, size, true);
         continue;

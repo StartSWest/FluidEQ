@@ -55,7 +55,7 @@ const app: Partial<Dictionary> = {
   'app.processes.memory': 'Memoria',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'esta ventana',
-  'app.processes.total': '{megabytes} MB en total.',
+  'app.processes.total': '{megabytes} MB y {cpu} % de CPU en total.',
   'app.processes.unmeasured': 'Un guion es un dato que aún nadie ha medido.',
   'app.processes.name.window': 'Interfaz',
   'app.processes.what.window':
@@ -69,6 +69,18 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
     'Dibuja todo lo que hay en pantalla en la tarjeta gráfica: el espectro, la curva, cada animación y las escenas de los visualizadores de Plus. Trabaja siempre que algo se mueve; aquí no se ejecuta ningún modelo.',
+  'app.processes.name.desktop': 'Visualizador de escritorio',
+  'app.processes.what.desktop':
+    'Un visualizador de Plus dibujado como fondo de escritorio de un monitor, aparte de esta ventana: uno por cada monitor que lo muestra. Se pausa mientras una app a pantalla completa cubre ese monitor o el PC está bloqueado.',
+  'app.processes.name.desktopHost': 'Ayudante del visualizador de escritorio',
+  'app.processes.what.desktopHost':
+    'Coloca el visualizador de escritorio de ese monitor detrás de los iconos y le avisa cuando una app a pantalla completa cubre la pantalla. Uno por cada monitor que lo muestra.',
+  'app.processes.name.shareCapture': 'Captura para compartir audio',
+  'app.processes.what.shareCapture':
+    'Captura lo que suena en este PC, antes del ecualizador, para enviarlo a otro FluidEQ. Solo funciona mientras compartes tu audio.',
+  'app.processes.name.mediaWatch': 'Multimedia de otras apps',
+  'app.processes.what.mediaWatch':
+    'Lee lo que reproduce Spotify, un navegador u otro reproductor, para que la barra del reproductor lo muestre y lo controle. Se cierra cuando FluidEQ ya no lo necesita.',
   'app.processes.name.models': 'Modelos de karaoke',
   'app.processes.what.models':
     'Separa la voz de la música y sigue la afinación del cantante cuando se prepara una canción para karaoke. Arranca la primera vez que hace falta y va aparte, para que un modelo que falle no se lleve la app por delante.',
@@ -87,6 +99,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': 'Página web',
   'app.processes.what.page':
     'Una página abierta en la pestaña Vídeo. Se ejecuta en su propio proceso, aparte de la interfaz.',
+  'app.processes.name.systemEngine': 'Motor FluidEQ (audio de Windows)',
+  'app.processes.what.systemEngine':
+    'El ecualizador funcionando dentro del propio servicio de audio de Windows, que lo aplica a todo lo que oyes. Windows comparte ese servicio con los efectos de tu tarjeta de sonido, así que su memoria y su CPU se muestran pero no se suman al total.',
+  'app.processes.name.meter': 'Medidor de procesos',
+  'app.processes.what.meter':
+    'Mide las cifras de esta lista igual que el Administrador de tareas, para que cuadren al sumarlas. Solo funciona mientras esta lista está abierta.',
   'app.processes.name.lighting': 'Iluminación dinámica',
   'app.processes.what.lighting':
     'Pasa los colores de la escena a los dispositivos compatibles con Windows Dynamic Lighting. Solo se ejecuta mientras la iluminación está activada o su página está abierta.',

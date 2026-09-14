@@ -55,7 +55,7 @@ const app: Partial<Dictionary> = {
   'app.processes.memory': '内存',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': '此窗口',
-  'app.processes.total': '共 {megabytes} MB。',
+  'app.processes.total': '共 {megabytes} MB，CPU {cpu}%。',
   'app.processes.unmeasured': '短横线表示该数值尚未被测量。',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
@@ -69,6 +69,18 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': '图形',
   'app.processes.what.graphics':
     '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
+  'app.processes.name.desktop': '桌面可视化',
+  'app.processes.what.desktop':
+    '作为某个显示器桌面背景绘制的 Plus 可视化，与此窗口分开运行：每个显示它的显示器各一个。当全屏应用盖住该显示器或电脑锁定时会暂停。',
+  'app.processes.name.desktopHost': '桌面可视化助手',
+  'app.processes.what.desktopHost':
+    '把该显示器的桌面可视化放在图标后面，并在全屏应用盖住屏幕时通知它。每个显示它的显示器各一个。',
+  'app.processes.name.shareCapture': '共享音频采集',
+  'app.processes.what.shareCapture':
+    '在均衡器之前采集这台电脑播放的声音，发送给另一个 FluidEQ。只在你共享音频时运行。',
+  'app.processes.name.mediaWatch': '其他应用的媒体',
+  'app.processes.what.mediaWatch':
+    '读取 Spotify、浏览器或其他播放器正在播放的内容，让播放栏可以显示并控制它。FluidEQ 不再需要时就会关闭。',
   'app.processes.name.models': '卡拉OK模型',
   'app.processes.what.models':
     '为卡拉OK准备歌曲时，把人声从音乐中分离，并跟踪演唱的音高。第一次需要时启动，并单独运行，因此模型出错也不会拖垮应用。',
@@ -87,6 +99,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': '网页',
   'app.processes.what.page':
     '在视频标签页中打开的网页。它运行在自己的进程里，与界面分开。',
+  'app.processes.name.systemEngine': 'FluidEQ 引擎（Windows 音频）',
+  'app.processes.what.systemEngine':
+    '在 Windows 自己的音频服务中运行的均衡器，作用于你听到的一切声音。Windows 与声卡的音效共用这个服务，因此显示其内存和 CPU，但不计入总计。',
+  'app.processes.name.meter': '进程测量器',
+  'app.processes.what.meter':
+    '以与任务管理器相同的方式测量此列表中的数值，使总计准确无误。只在此列表打开时运行。',
   'app.processes.name.lighting': '动态灯效',
   'app.processes.what.lighting':
     '把场景的颜色传给支持 Windows Dynamic Lighting 的设备。仅在灯效开启或其页面打开时运行。',

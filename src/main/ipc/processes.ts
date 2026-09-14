@@ -24,96 +24,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * window. `Tab`, `Browser`, `Utility: video_capture.mojom.VideoCaptureService`
  * are true and useless: they name the machinery rather than the job, and the
  * question being asked is what part of FluidEQ this is. So every process is
- * mapped to a role the app has a sentence for, and the two that Chromium has
- * no app-level meaning for keep their service name as a detail rather than
- * being dressed up as something they are not.
+ * mapped to a role the app has a sentence for (`processRoles.ts`), and the two
+ * that Chromium has no app-level meaning for keep their service name as a
+ * detail rather than being dressed up as something they are not.
  *
  * This is also user-facing diagnostics: an installed build is where a listener
  * most needs to identify a runaway engine, renderer, or Chromium service.
  */
-import { BrowserWindow, app, ipcMain } from 'electron';
-import type { IHostStats } from '../dspHost/wire';
+import path from 'path';
 import {
-  LIBRARY_SCAN_PROCESS_NAME,
-  MODEL_PROCESS_NAME,
-} from '../utilityProcessNames';
+  BrowserWindow,
+  WebContents,
+  app,
+  ipcMain,
+  webContents as allWebContents,
+} from 'electron';
+import type { IHostStats } from '../dspHost/wire';
+import type { IEngineProcessStats } from '../engineAnalysisPipe';
+import type { IProcessMeter } from '../processMeter';
+import {
+  IAppProcess,
+  applyReadings,
+  byRole,
+  isDesktopVisualizerPage,
+  megabytes,
+  roleFor,
+  roleForExecutable,
+} from '../processRoles';
+import onWindowMessage from './windowMessages';
 
-/**
- * What a process does for FluidEQ, which is the only thing worth showing.
- *
- * A closed set on purpose: each one has a name and an explanation written for
- * it in every locale, so a role that arrives without one would render as a
- * missing string. Anything Chromium starts that is not on this list is a
- * `helper` carrying its own service name.
- */
-export type TProcessRole =
-  /** The process that owns everything: settings, devices, the system EQ. */
-  | 'core'
-  /** The app's own window — the one drawing the interface being looked at. */
-  | 'window'
-  /** Another renderer: a web page inside the Video tab, not our interface. */
-  | 'page'
-  /**
-   * Chromium's GPU process. Draws every window, and is where the Plus
-   * visualizers' WebGL actually executes; runs no models.
-   */
-  | 'graphics'
-  /** Our karaoke models (voice separation, pitch), forked on first use. */
-  | 'models'
-  /** Our library scan, forked for one scan and closed when it finishes. */
-  | 'libraryScan'
-  /** Chromium's audio service, which is what the browser-side player uses. */
-  | 'sound'
-  /** Update checks, artwork, the Video tab. */
-  | 'network'
-  /**
-   * Chromium's video-capture service, started by device enumeration.
-   *
-   * Not called the camera service in the window: it is running because the
-   * app listed audio devices, it holds no camera, and a row named "camera"
-   * read as the app watching somebody.
-   */
-  | 'devices'
-  /** Our own DSP host: a separate executable, not one of Electron's. */
-  | 'engine'
-  /** Dynamic lighting's helper, which reaches Windows Dynamic Lighting. */
-  | 'lighting'
-  /** Something Chromium started that we have no app-level sentence for. */
-  | 'helper';
-
-export interface IAppProcess {
-  pid: number;
-  role: TProcessRole;
-  /**
-   * Chromium's own words, kept only where they are the whole answer.
-   *
-   * A `helper` row is a service this app never asked for by name, and its
-   * service string is more informative than any label we could invent.
-   */
-  detail?: string;
-  /**
-   * The working set, in megabytes. Undefined when nothing has measured it —
-   * which is a dash in the window, never a zero, because a zero reads as a
-   * process that costs nothing rather than one nobody has asked.
-   */
-  memoryMb?: number;
-  /**
-   * Share of one core since the previous look, as Chromium or the host counts
-   * it. For an Electron row that window is whatever elapsed since anybody last
-   * called `getAppMetrics`, which is why the list prefers `cpuSeconds` below.
-   */
-  cpuPercent?: number;
-  /**
-   * CPU time used since the process started, in seconds.
-   *
-   * The list asks once per painted frame, and a percentage over sixteen
-   * milliseconds is quantised by the Windows scheduler tick into 0 or 100. A
-   * running total lets the window average over whatever span it chooses, and
-   * no other caller of `getAppMetrics` can shorten that span. Absent for the
-   * DSP host, which reports only its own half-second percentage.
-   */
-  cpuSeconds?: number;
-}
+export type { IAppProcess, TProcessRole } from '../processRoles';
 
 export interface IProcessIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -129,110 +69,65 @@ export interface IProcessIpcDeps {
   getNativeHostStats: () => IHostStats | undefined;
   /** Dynamic lighting's helper, only while it runs. */
   getLightingHelperPid?: () => number | undefined;
+  /** The processes the FluidEQ Engine runs in, once each, as it measured them. */
+  getSystemEngineProcesses?: () => IEngineProcessStats[];
+  /**
+   * Private memory and CPU time for every row, and the programs the app
+   * started that nothing else lists (`processMeter.ts`).
+   */
+  meter?: IProcessMeter;
 }
 
 /**
- * Chromium's utility services, in the order they answer "what is this for".
- *
- * Matched on the service name rather than on a substring of the label, so a
- * new service arrives as a `helper` with its own name showing instead of
- * silently matching a rule written for a different one.
+ * Read once per question, and quietly: `getOSProcessId` throws once a page is
+ * destroyed, and a window closing while the list is built is an ordinary race
+ * rather than an error worth reporting.
  */
-const UTILITY_ROLES: Record<string, TProcessRole> = {
-  'audio.mojom.AudioService': 'sound',
-  'network.mojom.NetworkService': 'network',
-  'video_capture.mojom.VideoCaptureService': 'devices',
+const processIdOf = (contents: WebContents | undefined): number => {
+  try {
+    return contents && !contents.isDestroyed() ? contents.getOSProcessId() : 0;
+  } catch {
+    return 0;
+  }
 };
 
-/**
- * The utility processes this app forks itself, by the name it gave them.
- *
- * Matched on `name` rather than `serviceName`: every `utilityProcess.fork`
- * reports the same service, `node.mojom.NodeService`, and the `serviceName`
- * option passed to the fork lands in `name`. Matching on the service is what
- * listed the karaoke models and a library scan as two identical helpers.
- */
-const OWN_UTILITY_ROLES: Record<string, TProcessRole> = {
-  [MODEL_PROCESS_NAME]: 'models',
-  [LIBRARY_SCAN_PROCESS_NAME]: 'libraryScan',
-};
-
-const roleFor = (
-  type: string,
-  service: string | undefined,
-  name: string | undefined,
-  isAppWindow: boolean,
-): TProcessRole => {
-  if (type === 'Browser') {
-    return 'core';
-  }
-  if (type === 'Tab') {
-    return isAppWindow ? 'window' : 'page';
-  }
-  if (type === 'GPU') {
-    return 'graphics';
-  }
-  if (type !== 'Utility') {
-    return 'helper';
-  }
-  const own = name === undefined ? undefined : OWN_UTILITY_ROLES[name];
-  if (own) {
-    return own;
-  }
-  return (service && UTILITY_ROLES[service]) || 'helper';
-};
-
-/**
- * A fixed reading order, rather than sorting by whichever row is largest.
- *
- * This table used to sort by memory, which reordered itself under the cursor:
- * the GPU process and the window trade places whenever a spectrum redraws, so
- * a row being read moves as it is read and the column somebody is comparing
- * against is a different process a second later. The list is a dozen rows
- * at most and the total is on the last line, so nothing is gained by ranking
- * them; what is gained by a fixed order is that the row found once is in the
- * same place next time.
- */
-const ROLE_ORDER: readonly TProcessRole[] = [
-  'window',
-  'core',
-  'engine',
-  'lighting',
-  'graphics',
-  'models',
-  'libraryScan',
-  'sound',
-  'network',
-  'devices',
-  'page',
-  'helper',
-];
+/** The renderers drawing desktop visualizers, one per monitor showing one. */
+const desktopVisualizerPids = (): Set<number> =>
+  new Set(
+    allWebContents
+      .getAllWebContents()
+      .filter(
+        (contents) =>
+          !contents.isDestroyed() && isDesktopVisualizerPage(contents.getURL()),
+      )
+      .map(processIdOf)
+      .filter((pid) => pid !== 0),
+  );
 
 export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
-  ipcMain.handle('app-processes', (): IAppProcess[] => {
-    const window = deps.getMainWindow();
-    /**
-     * Read once, outside the map.
-     *
-     * `getOSProcessId` throws once the web contents are destroyed, and a
-     * window closing while this list is being built is an ordinary race
-     * rather than an error worth reporting.
-     */
-    let appWindowPid = 0;
-    try {
-      appWindowPid = window ? window.webContents.getOSProcessId() : 0;
-    } catch {
-      appWindowPid = 0;
+  // The meter runs while the list is open, and only then: the list says when
+  // it closes, and a window that reloads or goes away has closed it too.
+  const stopMeter = () => deps.meter?.stop();
+  let watched: WebContents | undefined;
+  const watchWindow = (window: BrowserWindow | null) => {
+    const contents = window?.webContents;
+    if (!contents || contents === watched) {
+      return;
     }
+    watched = contents;
+    contents.on('did-start-loading', stopMeter);
+    contents.once('destroyed', stopMeter);
+  };
+
+  ipcMain.handle('app-processes', async (): Promise<IAppProcess[]> => {
+    const window = deps.getMainWindow();
+    const context = {
+      appWindowPid: processIdOf(window?.webContents),
+      desktopPids: desktopVisualizerPids(),
+    };
 
     const rows: IAppProcess[] = app.getAppMetrics().map((metric) => {
-      const isAppWindow = metric.pid === appWindowPid;
-      const role = roleFor(
-        metric.type,
-        metric.serviceName,
-        metric.name,
-        isAppWindow,
-      );
+      const role = roleFor(metric, context);
       return {
         pid: metric.pid,
         role,
@@ -254,21 +149,17 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
       /*
        * Appended rather than merged: Electron does not know about it.
        *
-       * Its memory is not in `getAppMetrics` either, and reading another
-       * process's counters from here needs a platform call this file
-       * deliberately does not make — so the host measures itself and says so
-       * on its own wire, twice a second. That is where these two numbers come
-       * from, and they are the same working set Electron reports above rather
-       * than a private commit that would not add up with it.
+       * The host measures itself and says so on its own wire, twice a second.
+       * Those two numbers are the fallback for a machine without the meter;
+       * where it runs, the meter's private working set and CPU time replace
+       * them, as they replace Electron's.
        */
       const stats = deps.getNativeHostStats();
       rows.push({
         pid: nativePid,
         role: 'engine',
         memoryMb:
-          stats === undefined
-            ? undefined
-            : Math.round(stats.workingSetBytes / (1024 * 1024)),
+          stats === undefined ? undefined : megabytes(stats.workingSetBytes),
         cpuPercent:
           stats === undefined
             ? undefined
@@ -283,8 +174,52 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
       rows.push({ pid: lightingPid, role: 'lighting' });
     }
 
-    return rows.sort(
-      (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role),
-    );
+    deps.getSystemEngineProcesses?.().forEach((engine) => {
+      rows.push({
+        pid: engine.pid,
+        role: 'systemEngine',
+        memoryMb: megabytes(engine.workingSetBytes),
+        cpuSeconds: engine.cpuSeconds,
+        isShared: true,
+      });
+    });
+
+    // One row per process, whichever source named it first. Each source knows
+    // only its own processes, and a pid listed twice would be counted twice in
+    // the total, which is exactly the number the list is opened for.
+    const listed = new Set<number>();
+    const unique = rows.filter((row) => {
+      if (listed.has(row.pid)) {
+        return false;
+      }
+      listed.add(row.pid);
+      return true;
+    });
+
+    watchWindow(window);
+    const readings = await deps.meter?.read([...listed], process.pid);
+    if (!readings) {
+      return unique.sort(byRole);
+    }
+
+    // The programs this process started that no source above knew about: each
+    // monitor's desktop visualizer helper, the audio sharing capture, the
+    // PowerShell reading other apps' media, the meter itself.
+    const appExecutable = path.basename(process.execPath);
+    readings.forEach((reading, pid) => {
+      const role = roleForExecutable(reading.executable, appExecutable);
+      if (role && !listed.has(pid)) {
+        listed.add(pid);
+        unique.push({ pid, role });
+      }
+    });
+    return applyReadings(unique, readings).sort(byRole);
   });
+
+  onWindowMessage('app-processes-closed', (event) => {
+    if (event.sender === deps.getMainWindow()?.webContents) {
+      stopMeter();
+    }
+  });
+  app.on('will-quit', stopMeter);
 };

@@ -16,12 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import {
   EUPHORIA_FRAME_MS,
   SMOOTH_FRAME_MS,
   shouldDrawFrame,
 } from 'common/smoothing';
+import observeShown from './observeShown';
 
 /**
  * How often to draw, decided per frame from the mode the shell is in.
@@ -51,10 +52,17 @@ const getFrameBudget = () =>
  * moving, and once a shape has arrived at the last measurement there is no
  * reason for a meter to keep waking up. Environmental scenes may continue
  * their ambient motion in silence. Every consumer stops while hidden.
+ *
+ * `target` is what the loop draws on. Given one, the loop also stops while
+ * nobody can see that element — the titlebar's wave faded out in full screen,
+ * the meter in a drawer parked off the side — and starts again when they can.
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
-  { isEnabled }: { isEnabled: boolean },
+  {
+    isEnabled,
+    target,
+  }: { isEnabled: boolean; target?: RefObject<Element | null> },
 ) => {
   const frameRef = useRef<number | undefined>(undefined);
   const lastDrawRef = useRef(0);
@@ -64,6 +72,11 @@ const useSmoothFrames = (
   // mid-motion, which would show as a hitch exactly when the mode changes.
   const onFrameRef = useRef(onFrame);
   onFrameRef.current = onFrame;
+  const targetRef = useRef(target);
+  targetRef.current = target;
+  const shownRef = useRef(true);
+  const watchRef = useRef<{ element: Element; dispose: () => void }>(undefined);
+  const kickRef = useRef<() => void>(() => undefined);
 
   const stop = useCallback(() => {
     if (frameRef.current !== undefined) {
@@ -72,18 +85,56 @@ const useSmoothFrames = (
     }
   }, []);
 
+  /**
+   * Whether the target can be seen, watching whichever element it is now.
+   *
+   * Resolved on every kick rather than once on mount, because a consumer can
+   * swap the element out — the meter unmounts its canvas while hidden and
+   * mounts a new one after.
+   */
+  const isTargetShown = useCallback(() => {
+    const element = targetRef.current?.current ?? null;
+    if (watchRef.current?.element !== element) {
+      watchRef.current?.dispose();
+      watchRef.current = undefined;
+      shownRef.current = true;
+      if (element) {
+        // Recorded before observing: the first report arrives synchronously
+        // and kicks, and that kick must find this element already watched
+        // rather than start watching it a second time.
+        const watch: { element: Element; dispose: () => void } = {
+          element,
+          dispose: () => undefined,
+        };
+        watchRef.current = watch;
+        watch.dispose = observeShown(element, (shown) => {
+          shownRef.current = shown;
+          if (shown) {
+            kickRef.current();
+          } else {
+            stop();
+          }
+        });
+      }
+    }
+    return shownRef.current;
+  }, [stop]);
+
   const kick = useCallback(() => {
     if (
       frameRef.current !== undefined ||
       !enabledRef.current ||
-      document.hidden
+      document.hidden ||
+      !isTargetShown() ||
+      // Watching a new element reports it at once, and a shown report kicks.
+      frameRef.current !== undefined
     ) {
       return;
     }
     lastDrawRef.current = performance.now();
 
     const tick = (now: number) => {
-      if (document.hidden || !enabledRef.current) {
+      if (document.hidden || !enabledRef.current || !shownRef.current) {
         frameRef.current = undefined;
         return;
       }
@@ -100,7 +151,8 @@ const useSmoothFrames = (
     };
 
     frameRef.current = requestAnimationFrame(tick);
-  }, []);
+  }, [isTargetShown]);
+  kickRef.current = kick;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -108,7 +160,14 @@ const useSmoothFrames = (
     }
   }, [isEnabled, stop]);
 
-  useEffect(() => stop, [stop]);
+  useEffect(
+    () => () => {
+      stop();
+      watchRef.current?.dispose();
+      watchRef.current = undefined;
+    },
+    [stop],
+  );
 
   // Minimize/hide pauses every consumer, even when new audio keeps arriving.
   // Restoring starts with a fresh delta so scenery cannot jump ahead by the

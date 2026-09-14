@@ -25,12 +25,14 @@ export const CPU_FIT_SPAN_MS = 2_000;
  * How far a figure has to move before the table shows the new one.
  *
  * Asked sixty times a second, a working set wanders by a few hundred
- * kilobytes and the fitted CPU by a tenth, and a number redrawn on every
- * wobble cannot be read — which is what the old one-second refresh was for.
- * A leak climbing, a spike, a process going quiet all move well past these.
+ * kilobytes and the fitted CPU by a tenth of a core, and a number redrawn on
+ * every wobble cannot be read — which is what the old one-second refresh was
+ * for. A leak climbing, a spike, a process going quiet all move past these.
+ * The CPU band is in the column's own unit, a share of the whole machine: on
+ * the 32 threads this was measured on, a tenth of a core is 0.003 of it.
  */
 const MEMORY_BAND_MB = 2;
-const CPU_BAND_PERCENT = 0.4;
+const CPU_BAND_PERCENT = 0.2;
 
 interface IPoint {
   at: number;
@@ -91,10 +93,19 @@ const sameRow = (a: IAppProcess, b: IAppProcess) =>
   a.pid === b.pid &&
   a.role === b.role &&
   a.detail === b.detail &&
+  a.isShared === b.isShared &&
   a.memoryMb === b.memoryMb &&
   a.cpuPercent === b.cpuPercent;
 
-export const createProcessReadings = (): IProcessReadings => {
+/**
+ * `cores` is how many logical processors the machine has. Every figure that
+ * arrives is a share of one of them, and the column shows a share of all of
+ * them — Task Manager's unit, and the only one in which the rows add up to a
+ * total that means something: a GPU process read 117% against one core,
+ * which is a true number nobody could place.
+ */
+export const createProcessReadings = (cores: number): IProcessReadings => {
+  const machine = Math.max(1, Math.round(cores));
   const series = new Map<number, IPoint[]>();
   let shown: IAppProcess[] = [];
 
@@ -130,14 +141,16 @@ export const createProcessReadings = (): IProcessReadings => {
         const last = previous.get(row.pid);
         // A row that has no running total (the DSP host reports its own
         // half-second percentage) keeps the percentage it arrived with.
-        const cpu =
+        const oneCore =
           row.cpuSeconds === undefined
             ? row.cpuPercent
             : cpuFor(row.pid, row.cpuSeconds, at);
+        const cpu = oneCore === undefined ? undefined : oneCore / machine;
         return {
           pid: row.pid,
           role: row.role,
           detail: row.detail,
+          ...(row.isShared ? { isShared: true } : {}),
           memoryMb: settle(
             last?.memoryMb,
             row.memoryMb,

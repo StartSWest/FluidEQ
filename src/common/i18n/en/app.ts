@@ -53,7 +53,7 @@ const app = {
   'app.processes.memory': 'Memory',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'this window',
-  'app.processes.total': '{megabytes} MB in total.',
+  'app.processes.total': '{megabytes} MB and {cpu}% CPU in total.',
   'app.processes.unmeasured': 'A dash is a figure nothing has measured yet.',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
@@ -67,6 +67,18 @@ const app = {
   'app.processes.name.graphics': 'Graphics',
   'app.processes.what.graphics':
     "Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the Plus visualizers' scenes. Busy whenever anything moves; it runs no models.",
+  'app.processes.name.desktop': 'Desktop visualizer',
+  'app.processes.what.desktop':
+    'A Plus visualizer drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while a full-screen app covers that monitor or the PC is locked.',
+  'app.processes.name.desktopHost': 'Desktop visualizer helper',
+  'app.processes.what.desktopHost':
+    'Puts that monitor’s desktop visualizer behind the icons and tells it when a full-screen app covers the screen. One for each monitor showing one.',
+  'app.processes.name.shareCapture': 'Audio sharing capture',
+  'app.processes.what.shareCapture':
+    'Captures what this PC plays, before the equalizer, to send it to another FluidEQ. Runs only while you share your audio.',
+  'app.processes.name.mediaWatch': 'Other apps’ media',
+  'app.processes.what.mediaWatch':
+    'Reads what Spotify, a browser or another player is playing, so the player bar can show and control it. It stops when FluidEQ no longer needs it.',
   'app.processes.name.models': 'Karaoke models',
   'app.processes.what.models':
     "Separates the voice from the music and follows the singer's pitch when a song is prepared for karaoke. Starts the first time it is needed and runs apart, so a model that fails cannot take the app down with it.",
@@ -85,6 +97,12 @@ const app = {
   'app.processes.name.page': 'Web page',
   'app.processes.what.page':
     'A page open in the Video tab. It runs in its own process, apart from the interface.',
+  'app.processes.name.systemEngine': 'FluidEQ Engine (Windows audio)',
+  'app.processes.what.systemEngine':
+    "The equalizer running inside Windows' own audio service, which applies it to everything you hear. Windows shares that service with your sound card's effects, so its memory and CPU are shown but not added to the total.",
+  'app.processes.name.meter': 'Process meter',
+  'app.processes.what.meter':
+    'Measures the figures in this list the way Task Manager does, so they add up. It runs only while this list is open.',
   'app.processes.name.lighting': 'Dynamic lighting',
   'app.processes.what.lighting':
     "Hands the scene's colours to devices that work with Windows Dynamic Lighting. Runs only while lighting is on or its page is open.",

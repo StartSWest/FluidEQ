@@ -11,8 +11,12 @@ import { parseAccent } from './sceneUniforms';
 /**
  * The page's side of the scene still worker (`sceneStill.worker.ts`).
  *
- * One worker for the session, started on the first picture or sky anyone
- * asks for. A worker that fails — its script missing, or the thread dying —
+ * One worker at a time, started on the first picture or sky anyone asks for
+ * and let go once nothing is waiting on it. It used to stay for the session,
+ * which kept a WebGL context and every program it had compiled alive through
+ * hours in which nobody opened a gallery or changed a look — pictures come in
+ * bursts, when a page opens or a look changes, and the next burst starts a
+ * worker again. A worker that fails — its script missing, or the thread dying —
  * answers everything waiting on it with nothing and is let go; the next
  * request starts a new one. Where there are no workers at all, as under Jest,
  * every answer is nothing, the same as a machine that cannot draw the scene.
@@ -37,6 +41,30 @@ const letGo = () => {
   waiting.clear();
 };
 
+/**
+ * Lets the worker go if nothing asked for more by the end of the current task.
+ *
+ * Not at the moment the queue empties: a caller that draws its pictures one
+ * after another asks for the next one in the continuation of the last reply,
+ * a few microtasks later, and letting go in between started a worker per
+ * picture. A message posted to ourselves arrives as the next task, after
+ * every one of those continuations has run.
+ */
+const releaseWhenIdle = () => {
+  if (typeof MessageChannel === 'undefined') {
+    return;
+  }
+  const idle = new MessageChannel();
+  const candidate = worker;
+  idle.port1.onmessage = () => {
+    idle.port1.close();
+    if (waiting.size === 0 && worker === candidate) {
+      letGo();
+    }
+  };
+  idle.port2.postMessage(undefined);
+};
+
 const started = (): Worker | undefined => {
   if (worker) {
     return worker;
@@ -56,6 +84,9 @@ const started = (): Worker | undefined => {
     const resolve = waiting.get(data.id);
     waiting.delete(data.id);
     resolve?.(data);
+    if (waiting.size === 0) {
+      releaseWhenIdle();
+    }
   };
   next.onerror = (event) => {
     console.error('The scene still worker failed:', event.message);

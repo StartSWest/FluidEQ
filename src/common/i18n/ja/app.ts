@@ -55,7 +55,7 @@ const app: Partial<Dictionary> = {
   'app.processes.memory': 'メモリ',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'このウィンドウ',
-  'app.processes.total': '合計 {megabytes} MB。',
+  'app.processes.total': '合計 {megabytes} MB、CPU {cpu}%。',
   'app.processes.unmeasured': 'ダッシュはまだ計測されていない値です。',
   'app.processes.name.window': '画面',
   'app.processes.what.window':
@@ -69,6 +69,18 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'グラフィックス',
   'app.processes.what.graphics':
     '画面上のすべてをグラフィックスカードで描きます。スペクトラム、カーブ、あらゆるアニメーション、そして Plus のビジュアライザーのシーン。何かが動いていれば動作します。ここではモデルは動きません。',
+  'app.processes.name.desktop': 'デスクトップ ビジュアライザー',
+  'app.processes.what.desktop':
+    'モニターのデスクトップの背景として描かれる Plus のビジュアライザーで、このウィンドウとは別に動きます。表示しているモニターごとに 1 つです。全画面のアプリがそのモニターを覆っている間や PC がロックされている間は一時停止します。',
+  'app.processes.name.desktopHost': 'デスクトップ ビジュアライザーの補助',
+  'app.processes.what.desktopHost':
+    'そのモニターのデスクトップ ビジュアライザーをアイコンの後ろに置き、全画面のアプリが画面を覆ったことを知らせます。表示しているモニターごとに 1 つです。',
+  'app.processes.name.shareCapture': '音声共有のキャプチャ',
+  'app.processes.what.shareCapture':
+    'この PC で鳴っている音をイコライザーの前でキャプチャし、別の FluidEQ に送ります。音声を共有している間だけ動作します。',
+  'app.processes.name.mediaWatch': 'ほかのアプリのメディア',
+  'app.processes.what.mediaWatch':
+    'Spotify やブラウザー、ほかのプレーヤーが再生しているものを読み取り、プレーヤー バーで表示・操作できるようにします。FluidEQ が必要としなくなると終了します。',
   'app.processes.name.models': 'カラオケモデル',
   'app.processes.what.models':
     '曲をカラオケ用に準備するとき、声を音楽から分離し、歌の音程を追います。初めて必要になったときに起動し、別に動くので、モデルが失敗してもアプリは巻き込まれません。',
@@ -87,6 +99,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': 'ウェブページ',
   'app.processes.what.page':
     '動画タブで開いているページです。画面とは別の、独自のプロセスで動きます。',
+  'app.processes.name.systemEngine': 'FluidEQ エンジン (Windows オーディオ)',
+  'app.processes.what.systemEngine':
+    'Windows 自身のオーディオサービスの中で動くイコライザーで、聞こえるすべての音に適用されます。このサービスはサウンドカードのエフェクトと共有されているため、メモリと CPU は表示しますが合計には加えません。',
+  'app.processes.name.meter': 'プロセスメーター',
+  'app.processes.what.meter':
+    'この一覧の数値をタスク マネージャーと同じ方法で計測するので、合計が正しくなります。この一覧を開いている間だけ動作します。',
   'app.processes.name.lighting': 'ダイナミック ライティング',
   'app.processes.what.lighting':
     'シーンの色を Windows Dynamic Lighting 対応デバイスに渡します。ライティングがオンのときか、そのページを開いているときだけ動作します。',

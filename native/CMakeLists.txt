@@ -343,6 +343,25 @@ if(WIN32)
   )
 endif()
 
+# The Processes list's meter: private working set and CPU time for each of the
+# app's processes, which Node cannot read (process-meter/src/main.cpp). Runs
+# only while that list is open.
+if(WIN32)
+  add_executable(fluideq-process-meter
+    process-meter/src/main.cpp
+    process-meter/src/process-meter.rc)
+  target_link_libraries(fluideq-process-meter PRIVATE feq_strict psapi)
+  set_source_files_properties(process-meter/src/process-meter.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_METER_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-process-meter PROPERTIES
+    OUTPUT_NAME "FluidEQ-Meter"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
 # The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
 # executable in the tree with Windows package identity (see
 # lighting-host/src/identity.h for why it needs one and how it gets it).

@@ -4450,7 +4450,10 @@ const LiveTraceCanvas = ({
     [curves, height, points, width, xScale, yScale],
   );
 
-  const kickFrames = useSmoothFrames(drawFrame, { isEnabled: true });
+  const kickFrames = useSmoothFrames(drawFrame, {
+    isEnabled: true,
+    target: canvasRef,
+  });
 
   /**
    * Take the context when the element arrives, and let everything go when it

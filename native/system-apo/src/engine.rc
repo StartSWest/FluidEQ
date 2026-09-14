@@ -29,6 +29,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   1.7  also levels by song: reads fluideq-programme.txt, keeps what live
  *        leveling learned across locks, and reports each finished song as
  *        `lastSong` in its status. An older engine ignores the file.
+ *   1.8  also answers the display connection's process-stats request (3)
+ *        with its host process's id, working set and CPU time, for the
+ *        Processes list, and says so in its handshake (bit 2 of byte 39). An
+ *        older engine would read the request as "meters off" and never
+ *        answer, so the app asks only a connection that set the bit.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -40,8 +45,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 7, 0, 0
-PRODUCTVERSION 1, 7, 0, 0
+FILEVERSION 1, 8, 0, 0
+PRODUCTVERSION 1, 8, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

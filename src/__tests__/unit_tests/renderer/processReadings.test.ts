@@ -69,7 +69,7 @@ const run = (
 
 describe('the CPU figure', () => {
   it('waits for a whole span of history before showing one', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     const shown = run(readings, {
       share: 0.036,
       frames: Math.floor(CPU_FIT_SPAN_MS / FRAME_MS),
@@ -80,7 +80,7 @@ describe('the CPU figure', () => {
   });
 
   it('reads a steady process steadily, where the plain difference flicked', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     const shown = run(readings, { share: 0.036, frames: 60 * 6 });
     const figures = new Set(
       shown
@@ -105,7 +105,7 @@ describe('the CPU figure', () => {
   });
 
   it('follows a process that gets busy', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     run(readings, { share: 0.02, frames: 60 * 3 });
     const busy = run(readings, {
       share: 0.5,
@@ -118,7 +118,7 @@ describe('the CPU figure', () => {
   });
 
   it('starts measuring again when a pid comes back as a different process', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     run(readings, { share: 0.5, frames: 60 * 3 });
     // The total went backwards: not the process that was measured.
     const reused = readings.take([row({ cpuSeconds: 0.01 })], 3100);
@@ -126,7 +126,7 @@ describe('the CPU figure', () => {
   });
 
   it('keeps the percentage a row brought when it has no running total', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     const shown = readings.take(
       [{ pid: 99, role: 'engine', memoryMb: 64, cpuPercent: 1.3 }],
       0,
@@ -137,7 +137,7 @@ describe('the CPU figure', () => {
 
 describe('the table', () => {
   it('holds a memory figure through a wobble, and shows a real move', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     const shown = run(readings, {
       share: 0,
       frames: 30,
@@ -152,7 +152,7 @@ describe('the table', () => {
   });
 
   it('lets a process that went idle show zero at once', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     const first = readings.take(
       [{ pid: 99, role: 'engine', memoryMb: 300, cpuPercent: 0.3 }],
       10,
@@ -174,7 +174,7 @@ describe('the table', () => {
   });
 
   it('redraws when a process comes or goes', () => {
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(1);
     readings.take([row()], 0);
     expect(readings.take([row()], 10)).toBeUndefined();
     expect(

@@ -4,15 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { EventEmitter } from 'events';
+
 const handlers = new Map<string, () => unknown>();
 const getAppMetrics = jest.fn();
 
 jest.mock('electron', () => ({
-  app: { getAppMetrics: () => getAppMetrics() },
+  app: { getAppMetrics: () => getAppMetrics(), on: jest.fn() },
   ipcMain: {
     handle: (channel: string, handler: () => unknown) =>
       handlers.set(channel, handler),
+    on: jest.fn(),
+    removeListener: jest.fn(),
   },
+  webContents: { getAllWebContents: () => [] },
 }));
 
 // eslint-disable-next-line import/first -- Electron must be mocked before import.
@@ -33,17 +38,25 @@ const metric = (over: Record<string, unknown>) => ({
   ...over,
 });
 
-const rowsFor = (metrics: unknown[]) => {
+const windowFor = (pid: number) =>
+  Object.assign(new EventEmitter(), {
+    getOSProcessId: () => pid,
+    isDestroyed: () => false,
+  });
+
+const rowsFor = async (metrics: unknown[]) => {
   getAppMetrics.mockReturnValue(metrics);
   const window = {
-    webContents: { getOSProcessId: () => 1 },
+    webContents: windowFor(1),
   } as unknown as BrowserWindow;
   registerProcessIpc({
     getMainWindow: () => window,
     getNativeHostPid: () => undefined,
     getNativeHostStats: () => undefined,
   });
-  return handlers.get('app-processes')?.() as Array<Record<string, unknown>>;
+  return (await handlers.get('app-processes')?.()) as Array<
+    Record<string, unknown>
+  >;
 };
 
 describe('process diagnostics IPC', () => {
@@ -52,7 +65,7 @@ describe('process diagnostics IPC', () => {
     getAppMetrics.mockReset();
   });
 
-  it('returns process rows in a production build', () => {
+  it('returns process rows in a production build', async () => {
     const previousEnvironment = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
     getAppMetrics.mockReturnValue([
@@ -66,7 +79,7 @@ describe('process diagnostics IPC', () => {
     ]);
 
     const window = {
-      webContents: { getOSProcessId: () => 42 },
+      webContents: windowFor(42),
     } as unknown as BrowserWindow;
     registerProcessIpc({
       getMainWindow: () => window,
@@ -78,7 +91,7 @@ describe('process diagnostics IPC', () => {
     });
 
     try {
-      expect(handlers.get('app-processes')?.()).toEqual([
+      await expect(handlers.get('app-processes')?.()).resolves.toEqual([
         {
           pid: 42,
           role: 'window',
@@ -102,8 +115,8 @@ describe('process diagnostics IPC', () => {
     }
   });
 
-  it("names the app's own forks by the name they were given, not their shared service", () => {
-    const rows = rowsFor([
+  it("names the app's own forks by the name they were given, not their shared service", async () => {
+    const rows = await rowsFor([
       metric({
         pid: 21,
         type: 'Utility',
@@ -134,8 +147,8 @@ describe('process diagnostics IPC', () => {
     ]);
   });
 
-  it('calls the video-capture service a device list, and keeps the fixed order', () => {
-    const rows = rowsFor([
+  it('calls the video-capture service a device list, and keeps the fixed order', async () => {
+    const rows = await rowsFor([
       metric({
         pid: 31,
         type: 'Utility',
@@ -164,8 +177,8 @@ describe('process diagnostics IPC', () => {
     ]);
   });
 
-  it("hands on each Electron process's running CPU total", () => {
-    const [row] = rowsFor([metric({ pid: 1, type: 'Tab' })]);
+  it("hands on each Electron process's running CPU total", async () => {
+    const [row] = await rowsFor([metric({ pid: 1, type: 'Tab' })]);
     expect(row).toMatchObject({ cpuSeconds: 1.5, memoryMb: 10 });
   });
 });

@@ -22,10 +22,16 @@ const NAME_KEYS: Record<TProcessRole, TranslationKey> = {
   window: 'app.processes.name.window',
   core: 'app.processes.name.core',
   engine: 'app.processes.name.engine',
+  systemEngine: 'app.processes.name.systemEngine',
+  meter: 'app.processes.name.meter',
   lighting: 'app.processes.name.lighting',
   graphics: 'app.processes.name.graphics',
+  desktop: 'app.processes.name.desktop',
+  desktopHost: 'app.processes.name.desktopHost',
   models: 'app.processes.name.models',
   libraryScan: 'app.processes.name.libraryScan',
+  shareCapture: 'app.processes.name.shareCapture',
+  mediaWatch: 'app.processes.name.mediaWatch',
   sound: 'app.processes.name.sound',
   network: 'app.processes.name.network',
   devices: 'app.processes.name.devices',
@@ -38,10 +44,16 @@ const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
   window: 'app.processes.what.window',
   core: 'app.processes.what.core',
   engine: 'app.processes.what.engine',
+  systemEngine: 'app.processes.what.systemEngine',
+  meter: 'app.processes.what.meter',
   lighting: 'app.processes.what.lighting',
   graphics: 'app.processes.what.graphics',
+  desktop: 'app.processes.what.desktop',
+  desktopHost: 'app.processes.what.desktopHost',
   models: 'app.processes.what.models',
   libraryScan: 'app.processes.what.libraryScan',
+  shareCapture: 'app.processes.what.shareCapture',
+  mediaWatch: 'app.processes.what.mediaWatch',
   sound: 'app.processes.what.sound',
   network: 'app.processes.what.network',
   devices: 'app.processes.what.devices',
@@ -76,8 +88,8 @@ const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
  * The DSP engine is listed alongside even though it is not Electron's, because
  * somebody looking at this list is asking about FluidEQ rather than about
  * Chromium — and it is the one process Task Manager files somewhere else
- * entirely, being a separate executable. Its memory and CPU come from the host
- * itself; Electron cannot see them.
+ * entirely, being a separate executable. Electron cannot see it; the meter
+ * measures it with every other row, so the column adds up.
  */
 export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   const { t } = useTranslation();
@@ -111,12 +123,16 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
    */
   useEffect(() => {
     const bridge = window.electron?.ipcRenderer as
-      { appProcesses?: () => Promise<IAppProcess[]> } | undefined;
+      | {
+          appProcesses?: () => Promise<IAppProcess[]>;
+          appProcessesClosed?: () => void;
+        }
+      | undefined;
     const ask = bridge?.appProcesses;
     if (!ask) {
       return undefined;
     }
-    const readings = createProcessReadings();
+    const readings = createProcessReadings(navigator.hardwareConcurrency);
     let closed = false;
     let frame = 0;
     const request = () => {
@@ -144,6 +160,8 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
     return () => {
       closed = true;
       cancelAnimationFrame(frame);
+      // Main's meter process runs only while this list is open.
+      bridge?.appProcessesClosed?.();
     };
   }, []);
 
@@ -159,7 +177,16 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   const nameFor = (row: IAppProcess): string =>
     row.role === 'helper' && row.detail ? row.detail : t(NAME_KEYS[row.role]);
 
-  const total = rows.reduce((sum, row) => sum + (row.memoryMb ?? 0), 0);
+  // What FluidEQ itself costs. Main lists each process once and measures its
+  // private memory, so nothing is counted twice; the Windows audio service the
+  // engine runs inside is shown but not added, because most of what it holds
+  // and spends is Windows' and the sound card's, not FluidEQ's.
+  const owned = rows.filter((row) => !row.isShared);
+  const total = owned.reduce((sum, row) => sum + (row.memoryMb ?? 0), 0);
+  const totalCpu =
+    Math.round(
+      owned.reduce((sum, row) => sum + (row.cpuPercent ?? 0), 0) * 10,
+    ) / 10;
   const anyUnmeasured = rows.some((row) => row.memoryMb === undefined);
 
   return (
@@ -230,8 +257,13 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
                   <td className="processes__number">{row.pid}</td>
                   <td className="processes__number">
                     {/* A dash for a figure nobody has measured yet, never a
-                        zero — a zero reads as a process that costs nothing. */}
-                    {row.memoryMb === undefined ? '—' : `${row.memoryMb} MB`}
+                        zero — a zero reads as a process that costs nothing.
+                        For the same reason a measured process under half a
+                        megabyte, like a desktop visualizer's helper, reads as
+                        under one rather than as none. */}
+                    {row.memoryMb === undefined
+                      ? '—'
+                      : `${row.memoryMb < 1 ? '<1' : row.memoryMb} MB`}
                   </td>
                   <td className="processes__number">
                     {row.cpuPercent === undefined ? '—' : `${row.cpuPercent}%`}
@@ -254,7 +286,10 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
             </span>
           ) : undefined}
           <span className="processes__total">
-            {t('app.processes.total', { megabytes: String(total) })}
+            {t('app.processes.total', {
+              megabytes: String(total),
+              cpu: String(totalCpu),
+            })}
           </span>
         </div>
       </div>

@@ -17,6 +17,18 @@ import { ENGINE_PREAMP_CHANNEL, IEnginePreamp } from '../common/enginePreamp';
 const PIPE = '\\\\.\\pipe\\FluidEQ-Engine-Analysis';
 const MAX_FRAME = 32_768;
 const GUID = /^\{?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\}?$/i;
+/** "FEQS", the process-stats reply's magic in `analysis_link.cpp`. */
+const STATS_MAGIC = 0x53514546;
+const STATS_SIZE = 24;
+
+/** What the process hosting the FluidEQ Engine costs, as it measured itself. */
+export interface IEngineProcessStats {
+  pid: number;
+  workingSetBytes: number;
+  cpuSeconds: number;
+}
+
+type TCommand = 1 | 2 | 3;
 
 interface ISource {
   socket: net.Socket;
@@ -29,22 +41,69 @@ interface ISource {
   supportsPreamp?: boolean;
   preampPending?: boolean;
   preamp?: IEnginePreamp;
-  queued?: 1 | 2;
+  /** Said by the handshake: this engine answers the process-stats request. */
+  supportsStats?: boolean;
+  statsPending?: boolean;
+  stats?: IEngineProcessStats;
+  queued?: TCommand;
 }
 
-const requestFrame = (source: ISource, command: 1 | 2) => {
+/** Every engine connection: the DSP page reads them, and `readEngineProcesses`. */
+const sources = new Set<ISource>();
+
+const requestFrame = (source: ISource, command: TCommand) => {
   if (source.pending) {
-    if (source.preampPending !== (command === 2)) {
+    let inFlight: TCommand = 1;
+    if (source.preampPending) {
+      inFlight = 2;
+    } else if (source.statsPending) {
+      inFlight = 3;
+    }
+    // Stats never displace a frame or a preamp already waiting: the DSP page
+    // reads those, and the Processes list will simply ask again.
+    if (
+      inFlight !== command &&
+      (command !== 3 || source.queued === undefined)
+    ) {
       source.queued = command;
     }
     return;
   }
   source.pending = true;
   source.preampPending = command === 2;
+  source.statsPending = command === 3;
   if (command === 1) {
     source.enabled = true;
   }
   source.socket.write(Buffer.from([command]));
+};
+
+/**
+ * The processes the FluidEQ Engine is running in, one entry per process, and
+ * a fresh measurement asked of each for next time.
+ *
+ * Every output the engine runs on holds a connection, and on an ordinary
+ * machine they all live in the one audiodg.exe — so the answers are keyed by
+ * process id, or the same audio service would be listed, and its memory
+ * added to the total, once per output. Only a connection whose handshake said
+ * it can answer is asked: an older engine reads the question as "meters off"
+ * and never replies, which would hold that connection's one request slot —
+ * the DSP page's measurements with it — for good.
+ */
+export const readEngineProcesses = (): IEngineProcessStats[] => {
+  const byPid = new Map<number, IEngineProcessStats>();
+  sources.forEach((source) => {
+    if (source.endpoint === undefined || !source.supportsStats) {
+      return;
+    }
+    const { stats } = source;
+    const known = stats ? byPid.get(stats.pid) : undefined;
+    if (stats && (!known || stats.cpuSeconds > known.cpuSeconds)) {
+      byPid.set(stats.pid, stats);
+    }
+    requestFrame(source, 3);
+  });
+  return [...byPid.values()];
 };
 
 // Pull only while the DSP surface is painting. A single outstanding request
@@ -55,7 +114,6 @@ const startEngineAnalysisPipe = (
   if (process.platform !== 'win32') {
     return Promise.resolve();
   }
-  const sources = new Set<ISource>();
   ipcMain.handle(ENGINE_PREAMP_CHANNEL, (event, endpoint: unknown) => {
     if (
       event.sender !== getWindow()?.webContents ||
@@ -173,7 +231,11 @@ const startEngineAnalysisPipe = (
           return;
         }
         source.endpoint = normaliseEndpointGuid(endpoint);
-        source.supportsPreamp = buffered[39] === 1;
+        // A bit per thing the engine can answer, in the byte after the GUID's
+        // terminator (`analysis_link.cpp`). Engines before 1.8 send exactly 1.
+        const capabilities = buffered[39];
+        source.supportsPreamp = capabilities % 2 === 1;
+        source.supportsStats = Math.floor(capabilities / 2) % 2 === 1;
         source.rate = rate;
         buffered = buffered.subarray(44);
       }
@@ -207,6 +269,26 @@ const startEngineAnalysisPipe = (
           source.preampPending = false;
           source.pending = false;
           buffered = buffered.subarray(16);
+        } else if (source.statsPending) {
+          if (size !== STATS_SIZE) {
+            socket.destroy();
+            return;
+          }
+          if (buffered.length < STATS_SIZE + 4) {
+            return;
+          }
+          const pid = buffered.readUInt32LE(8);
+          const workingSetBytes = Number(buffered.readBigUInt64LE(12));
+          // CPU time arrives in the 100 ns ticks `GetProcessTimes` counts in.
+          const cpuSeconds = Number(buffered.readBigUInt64LE(20)) / 1e7;
+          if (buffered.readUInt32LE(4) !== STATS_MAGIC || pid === 0) {
+            socket.destroy();
+            return;
+          }
+          source.stats = { pid, workingSetBytes, cpuSeconds };
+          source.statsPending = false;
+          source.pending = false;
+          buffered = buffered.subarray(STATS_SIZE + 4);
         } else if (size === 0xffffffff && source.pending) {
           source.pending = false;
           source.active = false;

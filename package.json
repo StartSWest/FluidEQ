@@ -299,6 +299,7 @@
           "FluidEQ-Lighting.exe",
           "lighting-identity/**",
           "FluidEQ-Wallpaper.exe",
+          "FluidEQ-Meter.exe",
           "msvcp140.dll",
           "vcruntime140.dll",
           "vcruntime140_1.dll"

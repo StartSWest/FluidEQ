@@ -55,7 +55,7 @@ const app: Partial<Dictionary> = {
   'app.processes.memory': 'मेमोरी',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'यह विंडो',
-  'app.processes.total': 'कुल {megabytes} MB।',
+  'app.processes.total': 'कुल {megabytes} MB और {cpu}% CPU।',
   'app.processes.unmeasured': 'डैश का मतलब है कि यह आँकड़ा अभी मापा नहीं गया।',
   'app.processes.name.window': 'इंटरफ़ेस',
   'app.processes.what.window':
@@ -69,6 +69,18 @@ const app: Partial<Dictionary> = {
   'app.processes.name.graphics': 'ग्राफ़िक्स',
   'app.processes.what.graphics':
     'स्क्रीन पर सब कुछ ग्राफ़िक्स कार्ड पर बनाता है: स्पेक्ट्रम, कर्व, हर एनिमेशन और Plus विज़ुअलाइज़र के दृश्य। कुछ भी हिलते ही यह व्यस्त हो जाता है; यहाँ कोई मॉडल नहीं चलता।',
+  'app.processes.name.desktop': 'डेस्कटॉप विज़ुअलाइज़र',
+  'app.processes.what.desktop':
+    'किसी मॉनिटर के डेस्कटॉप बैकग्राउंड के रूप में बनाया गया Plus विज़ुअलाइज़र, इस विंडो से अलग: हर उस मॉनिटर के लिए एक जो इसे दिखाता है। जब कोई फ़ुल-स्क्रीन ऐप उस मॉनिटर को ढक ले या PC लॉक हो, तब यह रुक जाता है।',
+  'app.processes.name.desktopHost': 'डेस्कटॉप विज़ुअलाइज़र सहायक',
+  'app.processes.what.desktopHost':
+    'उस मॉनिटर के डेस्कटॉप विज़ुअलाइज़र को आइकन के पीछे रखता है और बताता है कि कब कोई फ़ुल-स्क्रीन ऐप स्क्रीन को ढक रहा है। हर उस मॉनिटर के लिए एक जो इसे दिखाता है।',
+  'app.processes.name.shareCapture': 'ऑडियो साझा करने की कैप्चर',
+  'app.processes.what.shareCapture':
+    'यह PC जो बजाता है उसे इक्वलाइज़र से पहले कैप्चर करता है, ताकि उसे किसी दूसरे FluidEQ को भेजा जा सके। सिर्फ़ तभी चलता है जब आप अपना ऑडियो साझा करते हैं।',
+  'app.processes.name.mediaWatch': 'दूसरे ऐप का मीडिया',
+  'app.processes.what.mediaWatch':
+    'Spotify, कोई ब्राउज़र या दूसरा प्लेयर क्या बजा रहा है, यह पढ़ता है ताकि प्लेयर बार उसे दिखा और नियंत्रित कर सके। जब FluidEQ को इसकी ज़रूरत नहीं रहती, यह बंद हो जाता है।',
   'app.processes.name.models': 'कराओके मॉडल',
   'app.processes.what.models':
     'जब कोई गाना कराओके के लिए तैयार होता है, तब आवाज़ को संगीत से अलग करता है और गायक के सुर का पीछा करता है। पहली बार ज़रूरत पड़ने पर शुरू होता है और अलग चलता है, ताकि कोई विफल मॉडल ऐप को साथ न ले डूबे।',
@@ -87,6 +99,12 @@ const app: Partial<Dictionary> = {
   'app.processes.name.page': 'वेब पेज',
   'app.processes.what.page':
     'वीडियो टैब में खुला एक पेज। यह इंटरफ़ेस से अलग, अपनी ही प्रोसेस में चलता है।',
+  'app.processes.name.systemEngine': 'FluidEQ इंजन (Windows ऑडियो)',
+  'app.processes.what.systemEngine':
+    'Windows की अपनी ऑडियो सेवा के अंदर चलने वाला इक्वलाइज़र, जो इसे आपकी सुनी हर आवाज़ पर लगाता है। Windows यह सेवा आपके साउंड कार्ड के इफ़ेक्ट के साथ साझा करता है, इसलिए इसकी मेमोरी और CPU दिखाए जाते हैं पर कुल में नहीं जोड़े जाते।',
+  'app.processes.name.meter': 'प्रोसेस मीटर',
+  'app.processes.what.meter':
+    'इस सूची के आँकड़े Task Manager की तरह मापता है, ताकि उनका जोड़ सही बैठे। यह सिर्फ़ तभी चलता है जब यह सूची खुली हो।',
   'app.processes.name.lighting': 'डायनेमिक लाइटिंग',
   'app.processes.what.lighting':
     'दृश्य के रंग Windows Dynamic Lighting के साथ काम करने वाले डिवाइस तक पहुँचाता है। सिर्फ़ तभी चलता है जब लाइटिंग चालू हो या उसका पेज खुला हो।',
