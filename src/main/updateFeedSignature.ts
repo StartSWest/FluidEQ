@@ -17,7 +17,8 @@ import { createPublicKey, verify } from 'crypto';
  * shipped their own code to everyone, installed unattended on a mandatory
  * update. electron-updater already refuses an installer whose SHA-512 is not
  * the one `latest.yml` names; this signs that file's version and SHA-512s
- * with a key that lives only on the maker's machine (`.env`), and refuses a
+ * with a key that lives only on the maker's machine, encrypted for their
+ * Windows account (`.erb/scripts/update-feed-key-store.ts`), and refuses a
  * feed it does not verify.
  *
  * `UPDATE_FEED_KEYS` is empty until the maker generates the pair with
@@ -29,8 +30,8 @@ import { createPublicKey, verify } from 'crypto';
 
 /** Key id to its public key, SPKI DER in base64. Written by `pnpm update-feed-keys`. */
 export const UPDATE_FEED_KEYS: Readonly<Record<string, string>> = {
-  'fluideq-feed-2026-09-13':
-    'MCowBQYDK2VwAyEAhUkYvwW4NuQscffcOddpIxM/08EZXrkmPvv6UEsYdm4=',
+  'fluideq-feed-2026-09-14':
+    'MCowBQYDK2VwAyEA/I+6CGkfAGhHhGrGDDUN1h/Xe9s+Mkhe3iuYOw6c2sA=',
 };
 
 /** The fields `sign-update-feed.ts` adds to `latest.yml`. */
