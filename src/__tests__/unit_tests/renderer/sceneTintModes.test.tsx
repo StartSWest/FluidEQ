@@ -56,13 +56,19 @@ const load = (stored: Record<string, string> = {}) => {
 };
 
 describe('the modes a launch starts in', () => {
-  it('lends the graph’s scene its colours and leaves the Studio on the theme, for somebody new', () => {
+  it('starts the graph on Ambient and leaves the Studio on the theme, for somebody new', () => {
     const { store, library: fresh } = load();
     const { result } = fresh.renderHook(() => ({
       graph: store.useSceneTintMode(),
       studio: store.useStudioTintMode(),
     }));
-    expect(result.current).toEqual({ graph: 'tint', studio: 'off' });
+    expect(result.current).toEqual({ graph: 'pulse', studio: 'off' });
+  });
+
+  it('keeps a mode chosen before the default changed', () => {
+    const { store, library: fresh } = load({ 'fluideq.sceneTintMode': 'tint' });
+    const { result } = fresh.renderHook(() => store.useSceneTintMode());
+    expect(result.current).toBe('tint');
   });
 
   it.each([

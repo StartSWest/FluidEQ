@@ -101,16 +101,18 @@ const createModeSetting = (
 };
 
 /**
- * The colours from the start. Choosing a Plus visualizer is choosing how the
- * app looks, and the window taking its colour is the payoff of that choice
- * rather than a surprise; the control sits beside the picker for anyone who
- * wants the theme left alone, or wants more. The Studio's below is the
- * opposite, and says why.
+ * Ambient from the start: the colours, the light glowing around the scene and
+ * its birds, petals or stars. Choosing a Plus visualizer is choosing how the
+ * app looks, and somebody who has just become a member should see everything
+ * a scene does without first finding the control that turns it on (Ivan,
+ * 2026-09-13); it sits beside the picker for anyone who wants less. Only a
+ * profile that never chose starts here — a mode picked before, or the old
+ * on/off switch, is kept. The Studio's below is the opposite, and says why.
  */
 const setting = createModeSetting(
   'fluideq.sceneTintMode',
   'fluideq.sceneTint',
-  'tint',
+  'pulse',
 );
 
 export const setSceneTintMode = (next: TSceneTintMode) => setting.set(next);
