@@ -53,6 +53,7 @@ const configuration: webpack.Configuration = {
 
   entry: {
     renderer: path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    wallpaper: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.tsx'),
     'karaoke-whisper-worker': path.join(
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
@@ -176,13 +177,19 @@ const configuration: webpack.Configuration = {
     }),
 
     new MiniCssExtractPlugin({
-      filename: 'style.css',
+      filename: ({ chunk }) =>
+        chunk?.name === 'renderer' ? 'style.css' : '[name].css',
     }),
 
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.ANALYZE === 'true' ? 'server' : 'disabled',
     }),
 
+    new HtmlWebpackPlugin({
+      filename: 'wallpaper.html',
+      template: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.ejs'),
+      chunks: ['wallpaper'],
+    }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: path.join(webpackPaths.srcRendererPath, 'index.ejs'),

@@ -38,7 +38,9 @@ export type TCommunityGlyph =
   | 'pin'
   | 'rail-collapse'
   | 'lighting'
-  | 'gift';
+  | 'gift'
+  | 'music'
+  | 'calm';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -323,6 +325,25 @@ export default function Glyph({ name, className }: IGlyphProps) {
               d="M10 7.5C8.8 4.6 6 4 5.8 5.6 5.6 7 8 7.5 10 7.5c2 0 4.4-.5 4.2-1.9C14 4 11.2 4.6 10 7.5Z"
               opacity="0.8"
             />
+          </>
+        );
+      case 'music':
+        // A spectrum's bars at different heights: moving with the music. One
+        // path per bar, so a place that animates it can move each on its own.
+        return (
+          <>
+            <path d="M4 16v-3.5" />
+            <path d="M8 16V7" />
+            <path d="M12 16V3.5" />
+            <path d="M16 16V9.5" />
+          </>
+        );
+      case 'calm':
+        // Two slow swells: moving gently, on its own.
+        return (
+          <>
+            <path d="M2.5 8.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" />
+            <path d="M2.5 13.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" opacity="0.7" />
           </>
         );
       default:

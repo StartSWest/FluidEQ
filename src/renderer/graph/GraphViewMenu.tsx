@@ -26,6 +26,7 @@ import {
 } from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
   TGraphContents,
@@ -711,6 +712,13 @@ const GraphViewMenu = ({
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
           {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
+
+          {sceneLookId && (
+            <WallpaperMenuAction
+              lookId={sceneLookId}
+              onChoose={() => setIsOpen(false)}
+            />
+          )}
 
           {/* Two sliders, in the menu rather than in the strip beside it.
 

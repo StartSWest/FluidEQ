@@ -12,6 +12,7 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import BrandMark from '../icons/BrandMark';
 import { useTranslation } from '../utils/I18nContext';
 import { setGraphLook } from '../utils/graphStyle';
+import { WallpaperSceneAction } from '../wallpaper/WallpaperControls';
 import useGalleryLocalScenes from './useGalleryLocalScenes';
 import GalleryCard from './GalleryCard';
 import { addGalleryScene, useAddingScenes } from './galleryActions';
@@ -441,6 +442,7 @@ export default function ScenePage({
             {t(inLooksKey)}
           </p>
         )}
+        {current && local && <WallpaperSceneAction lookId={local.lookId} />}
         {scene.official && entitled && (
           <SceneInspectButton sceneId={scene.sceneId} />
         )}

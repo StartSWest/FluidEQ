@@ -31,6 +31,8 @@ import useLiveOutputSpectrum, {
 } from '../graph/useLiveOutputSpectrum';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import useSenderSpectrum from '../remoteAudio/useSenderSpectrum';
+import { SceneAudioProvider } from './SceneAudioContext';
+import type { ILiveFrame } from '../graph/liveFrameReader';
 
 type LiveAudioValue = ReturnType<typeof useLiveOutputSpectrum>;
 
@@ -49,14 +51,22 @@ const LiveAudioFrameContext = createContext<
   LiveAudioValue['frame'] | undefined
 >(undefined);
 const LiveAudioControlContext = createContext<
-  | (LiveAudioValue['control'] & { setSharingAudio(active: boolean): void })
+  | (LiveAudioValue['control'] & {
+      setSharingAudio(active: boolean): void;
+      readBackgroundFrame(): Promise<
+        Pick<ILiveFrame, 'points' | 'waveform'> | undefined
+      >;
+    })
   | undefined
 >(undefined);
 
 export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   const { control, frame } = useLiveOutputSpectrum();
   const [sharingAudio, setSharingAudio] = useState(false);
-  const senderFrame = useSenderSpectrum(sharingAudio, control.isPaused);
+  const { frame: senderFrame, readFrame: readSenderFrame } = useSenderSpectrum(
+    sharingAudio,
+    control.isPaused,
+  );
   const visibleFrame = useMemo(
     () => (senderFrame ? { ...frame, ...senderFrame } : frame),
     [frame, senderFrame],
@@ -71,9 +81,22 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
     () => (senderFrameRef.current ? undefined : readLocalFrame()),
     [readLocalFrame],
   );
+  const readBackgroundFrame = useCallback(
+    async () => (sharingAudio ? readSenderFrame() : readLocalFrame()),
+    [sharingAudio, readSenderFrame, readLocalFrame],
+  );
   const controls = useMemo(
-    () => ({ ...control, readFrame, setSharingAudio }),
-    [control, readFrame],
+    () => ({ ...control, readFrame, readBackgroundFrame, setSharingAudio }),
+    [control, readFrame, readBackgroundFrame],
+  );
+  const sceneAudio = useMemo(
+    () => ({
+      points: visibleFrame.points,
+      waveform: visibleFrame.waveform,
+      isPaused: control.isPaused,
+      readFrame,
+    }),
+    [visibleFrame.points, visibleFrame.waveform, control.isPaused, readFrame],
   );
   const { isEnabled } = useFluidEqContext();
   const wasEngineEnabledRef = useRef(isEnabled);
@@ -98,7 +121,7 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
       {/* `children` keeps its identity across the provider's own re-renders,
           so React skips the subtree and only context consumers wake up. */}
       <LiveAudioFrameContext.Provider value={visibleFrame}>
-        {children}
+        <SceneAudioProvider value={sceneAudio}>{children}</SceneAudioProvider>
       </LiveAudioFrameContext.Provider>
     </LiveAudioControlContext.Provider>
   );

@@ -1,0 +1,475 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.wallpaper-dialog-backdrop {
+  @include backdrop(4100);
+}
+
+.wallpaper-dialog {
+  @include surface(580px, 720px);
+  gap: $spacing-m;
+  padding: $spacing-l;
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.wallpaper-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wallpaper-dialog__mark,
+.wallpaper-status__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 36%, transparent);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.wallpaper-dialog__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.wallpaper-dialog__heading {
+  display: grid;
+  min-width: 0;
+}
+
+.wallpaper-dialog__title {
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+}
+
+// The visualizer being placed, in the accent: the dialog is about it.
+.wallpaper-dialog__subject {
+  color: $text-accent;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.wallpaper-dialog__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.wallpaper-dialog__monitors {
+  display: grid;
+  gap: 10px;
+}
+
+.wallpaper-dialog__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.wallpaper-dialog__section-copy {
+  display: grid;
+  flex: 1 1 240px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.wallpaper-dialog__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+// A switch dressed as the quiet button, with the box every "select all"
+// wears: empty until it is on — every monitor chosen, a monitor calm — then
+// filled and ticked.
+.wallpaper-toggle {
+  gap: 7px;
+
+  &[aria-pressed='true']:not(:disabled) {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+.wallpaper-toggle__box {
+  display: grid;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  place-items: center;
+  border: 1.5px solid color-mix(in srgb, $secondary-light 62%, transparent);
+  border-radius: 4px;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    stroke-width: 2.6;
+    opacity: 0;
+  }
+
+  [aria-pressed='true'] > & {
+    color: $surface-base;
+    border-color: $secondary-default;
+    background: $secondary-default;
+
+    svg {
+      opacity: 1;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- the motion
+
+// Two cards side by side, each one a native radio under its label, so the
+// arrows walk them and Tab stops once, at the chosen one. They stack when the
+// dialog is too narrow for two to keep their words on a line or two.
+.wallpaper-motion {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  > legend {
+    margin-bottom: 8px;
+    padding: 0;
+  }
+}
+
+.wallpaper-motion__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.wallpaper-motion__option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $block-lift;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out,
+    box-shadow $motion-base $ease-out;
+
+  // Out of sight but still the thing focus, the arrows and a screen reader
+  // land on; the card around it is what shows its state.
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+  }
+
+  &:has(input:checked) {
+    border-color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 9%, $block-lift);
+    box-shadow:
+      0 0 0 1px $secondary-light,
+      0 0 24px color-mix(in srgb, $secondary-default 20%, transparent);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid $white;
+    outline-offset: 3px;
+  }
+
+  &:has(input:disabled) {
+    cursor: default;
+    opacity: 0.6;
+  }
+}
+
+.wallpaper-motion__mark {
+  display: grid;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  place-items: center;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: 50%;
+  transition:
+    color $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    overflow: visible;
+  }
+
+  :checked ~ & {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+  }
+}
+
+.wallpaper-motion__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wallpaper-motion__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+}
+
+.wallpaper-motion__hint {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+// The chosen card's picture does what it names: the bars keep time, the
+// swells drift by. Only the chosen one, so the choice is also the motion.
+@keyframes wallpaper-motion-bar {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.45);
+  }
+}
+
+@keyframes wallpaper-motion-swell {
+  0%,
+  100% {
+    transform: translateX(-1.2px);
+  }
+
+  50% {
+    transform: translateX(1.2px);
+  }
+}
+
+// Each bar on a period of its own, so they move like a spectrum and not as
+// one block.
+.wallpaper-motion__option--music :checked ~ .wallpaper-motion__mark path {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: wallpaper-motion-bar 0.9s ease-in-out infinite;
+
+  &:nth-child(2) {
+    animation-duration: 1.15s;
+    animation-delay: -0.4s;
+  }
+
+  &:nth-child(3) {
+    animation-duration: 0.8s;
+    animation-delay: -0.2s;
+  }
+
+  &:nth-child(4) {
+    animation-duration: 1.3s;
+    animation-delay: -0.7s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.wallpaper-motion__option--calm :checked ~ .wallpaper-motion__mark path {
+  animation: wallpaper-motion-swell 3.2s ease-in-out infinite;
+
+  &:last-child {
+    animation-delay: -1.6s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallpaper-motion__option,
+  .wallpaper-motion__mark {
+    transition: none;
+  }
+}
+
+.wallpaper-dialog__battery {
+  display: flex;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 11px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $block-lift;
+
+  .switch {
+    --switch-width: 42px;
+    --switch-height: 24px;
+    --switch-thumb: 16px;
+    --switch-inset: 3px;
+
+    flex: 0 0 auto;
+  }
+}
+
+.wallpaper-dialog__battery-copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+
+  label {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  > span {
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.4;
+  }
+}
+
+.wallpaper-dialog__errors {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 9px 11px;
+  color: $amber;
+  border: 1px solid color-mix(in srgb, $amber 28%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 7%, transparent);
+  font-size: $text-small;
+  line-height: 1.45;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+  }
+}
+
+.wallpaper-dialog__error-monitor {
+  color: $white;
+  font-weight: $weight-semibold;
+}
+
+.wallpaper-dialog__empty {
+  margin: 0;
+  padding: 14px;
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: center;
+  @include section-surface;
+}
+
+.wallpaper-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+}
+
+.wallpaper-scene-action {
+  gap: 6px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// ---------------------------------------------------------------- the status
+
+// Beside the Visualizers title while any monitor has a background. The head
+// wraps it onto its own line before squeezing the title's description.
+.gallery-head:has(> .wallpaper-status) {
+  flex-wrap: wrap;
+
+  > .community__head-text {
+    flex: 1 1 220px;
+  }
+}
+
+.wallpaper-status {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+  margin-inline-start: auto;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid $border-subtle;
+}
+
+.wallpaper-status__mark {
+  width: 26px;
+  height: 26px;
+  border-radius: $radius-xs;
+}
+
+.wallpaper-status__text {
+  flex: 0 1 auto;
+  max-width: 26ch;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.25;
+  @include truncate;
+}
+
+.wallpaper-status--paused .wallpaper-status__mark,
+.wallpaper-status--error .wallpaper-status__mark {
+  color: $amber;
+  border-color: color-mix(in srgb, $amber 38%, transparent);
+  background: color-mix(in srgb, $amber 9%, transparent);
+}

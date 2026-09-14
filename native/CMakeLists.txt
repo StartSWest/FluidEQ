@@ -233,6 +233,11 @@ if(WIN32)
   add_subdirectory(system-apo)
 endif()
 
+# The desktop visualizer's helper, which puts a monitor's background window
+# behind Explorer's icons, and its test: after `enable_testing`, which a test
+# added before it is not registered by.
+add_subdirectory(wallpaper)
+
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
   dsp-host/src/decoders/pcm_decoder.cpp

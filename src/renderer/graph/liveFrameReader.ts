@@ -13,6 +13,7 @@ import {
   FFT_SIZE,
   NO_POINTS,
   SPECTRUM_SMOOTHING,
+  TRACK_REFERENCE_RELEASE_DB,
   UPDATE_INTERVAL_MS,
   createFrameBuffers,
   getPeakLevel,
@@ -71,7 +72,8 @@ export interface ILiveFrameReaderOptions {
   cells: IAxisCell[];
   /**
    * The pump's track reference, shared. A louder frame seen here first raises
-   * it, exactly as the pump would; only the pump lets it fall.
+   * it, exactly as the pump would. A background reader lets it fall while
+   * the hidden-window pump is asleep.
    */
   trackReference: { current: number | undefined };
   /**
@@ -79,6 +81,8 @@ export interface ILiveFrameReaderOptions {
    * context clock by default.
    */
   audioTimeMs?: () => number;
+  /** The hidden-window pump skips this work; a background drawing owns it. */
+  releaseReference?: () => boolean;
 }
 
 /**
@@ -115,6 +119,7 @@ export const createLiveFrameReader = ({
   cells,
   trackReference,
   audioTimeMs = () => analyser.context.currentTime * 1000,
+  releaseReference = () => false,
 }: ILiveFrameReaderOptions): ILiveFrameReader => {
   const frequencyData = new Float32Array(analyser.frequencyBinCount);
   const levels = new Float64Array(axis.length);
@@ -165,7 +170,14 @@ export const createLiveFrameReader = ({
       trackReference.current =
         trackReference.current === undefined
           ? peak
-          : Math.max(trackReference.current, peak);
+          : Math.max(
+              trackReference.current -
+                (releaseReference() && Number.isFinite(elapsedMs)
+                  ? (elapsedMs / UPDATE_INTERVAL_MS) *
+                    TRACK_REFERENCE_RELEASE_DB
+                  : 0),
+              peak,
+            );
       frame.points = writeFrequencyPoints(
         buffers.points[0],
         axis,

@@ -64,6 +64,8 @@ import { subscribePlusTabRequests } from './plus/plusTabRequest';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
+import WallpaperAudio from './wallpaper/WallpaperAudio';
+import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
 import ProcessesDialog from './components/ProcessesDialog';
 
 import SupportPet from './SupportPet';
@@ -2879,6 +2881,11 @@ export default function App() {
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}
             <DynamicLightingLoop />
+            {/* The desktop background's music, read for its monitors while
+                any plays, and its dialogs, which outlive the menus that
+                open them. */}
+            <WallpaperAudio />
+            <WallpaperDialogHost />
             <Router>
               <Routes>
                 <Route path="/" element={<AppContent />} />

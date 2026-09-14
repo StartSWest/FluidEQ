@@ -154,6 +154,9 @@ export type TInspection = 'opened' | 'present' | 'invalid' | 'taken';
 
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
+  /** The same account and entitlement check as the renderer's load request. */
+  loadVisible(lookId: unknown): IScenePack | undefined;
+  subscribeScenes(listener: () => void): () => void;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
@@ -245,6 +248,16 @@ export const registerMemberScenesIpc = ({
       (scene) => scene.authorId === authorId && scene.packId === packId,
     );
 
+  const loadVisible = (lookId: unknown): IScenePack | undefined => {
+    const ref =
+      typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
+    if (!ref || !entitled() || !isVisible(ref.authorId, ref.packId)) {
+      return undefined;
+    }
+    return store.load(ref.authorId, ref.packId);
+  };
+  const sceneListeners = new Set<() => void>();
+
   const projectsRoot = () => projects.root ?? defaultProjectsRoot(documentsDir);
 
   const studioState = (): IStudioState => ({
@@ -264,8 +277,10 @@ export const registerMemberScenesIpc = ({
     ...(studioOpen && lastBuild ? { build: lastBuild } : {}),
   });
 
-  const announceScenes = () =>
+  const announceScenes = () => {
     getMainWindow()?.webContents.send('member-scenes-changed', listing());
+    sceneListeners.forEach((listener) => listener());
+  };
   const announceStudio = () =>
     getMainWindow()?.webContents.send('studio-changed', studioState());
 
@@ -404,12 +419,7 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('member-scenes-list', () => listing());
 
   ipcMain.handle('member-scenes-load', (_event, lookId: unknown) => {
-    const ref =
-      typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-    if (!ref || !entitled() || !isVisible(ref.authorId, ref.packId)) {
-      return undefined;
-    }
-    return store.load(ref.authorId, ref.packId);
+    return loadVisible(lookId);
   });
 
   ipcMain.handle('member-scenes-remove', (_event, lookId: unknown) => {
@@ -595,6 +605,13 @@ export const registerMemberScenesIpc = ({
 
   return {
     store,
+    loadVisible,
+    subscribeScenes: (listener) => {
+      sceneListeners.add(listener);
+      return () => {
+        sceneListeners.delete(listener);
+      };
+    },
     activeFolder,
     activeIsInspection,
     restoreOwnProject,

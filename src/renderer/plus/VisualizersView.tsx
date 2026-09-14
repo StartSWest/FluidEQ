@@ -4,6 +4,7 @@ import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import { WallpaperStatus } from '../wallpaper/WallpaperControls';
 import {
   setGalleryNotice,
   useGalleryNotice,
@@ -175,6 +176,7 @@ export default function VisualizersView({
             {t('plus.visualizers.description')}
           </span>
         </span>
+        <WallpaperStatus />
         {/* Under the head, which stays put: Add and the heart are pressed
             on cards far down the list, where a line at its top is not. */}
         <PlusToastStack<IGalleryNotice>

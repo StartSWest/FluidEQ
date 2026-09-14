@@ -25,9 +25,14 @@ jest.mock('../../../renderer/graph/useLiveOutputSpectrum', () => ({
     frame: { points: [], waveform: [] },
   }),
 }));
+// The hook hands back the frame it shows and a read of the next one, which a
+// desktop background asks for while another PC is sending the music.
 jest.mock('../../../renderer/remoteAudio/useSenderSpectrum', () => ({
   __esModule: true,
-  default: () => mockSenderFrame,
+  default: () => ({
+    frame: mockSenderFrame,
+    readFrame: () => Promise.resolve(mockSenderFrame),
+  }),
 }));
 jest.mock('../../../renderer/utils/FluidEqContext', () => ({
   useFluidEqContext: () => ({ isEnabled: true }),

@@ -19,15 +19,18 @@ const configuration: webpack.Configuration = {
 
   target: 'electron-preload',
 
-  // Two preloads, and they are not interchangeable. `preload` is the app's own
-  // bridge; `video-preload` runs inside the built-in player, next to a web page
-  // we do not control, and shares none of it.
+  // Each surface has its own authority: only the app receives the full bridge.
+  // Video and wallpaper preloads expose only what their surfaces need.
   entry: {
     'inference-worker': path.join(
       webpackPaths.srcMainPath,
       'inferenceWorker.ts',
     ),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+    'wallpaper-preload': path.join(
+      webpackPaths.srcMainPath,
+      'wallpaperPreload.ts',
+    ),
     'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
     'library-scan-worker': path.join(
       webpackPaths.srcMainPath,

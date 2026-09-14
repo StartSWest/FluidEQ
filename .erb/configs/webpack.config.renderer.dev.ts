@@ -85,6 +85,7 @@ const configuration: webpack.Configuration = {
     // same renderer: one announced HMR enabled, the duplicate announced it
     // disabled, and both waited for updates for the lifetime of the window.
     renderer: path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    wallpaper: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.tsx'),
     'karaoke-whisper-worker': path.join(
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
@@ -201,6 +202,12 @@ const configuration: webpack.Configuration = {
     }),
 
     new ReactRefreshWebpackPlugin({ overlay: false }),
+
+    new HtmlWebpackPlugin({
+      filename: 'wallpaper.html',
+      template: path.join(webpackPaths.srcRendererPath, 'wallpaper/index.ejs'),
+      chunks: ['wallpaper'],
+    }),
 
     new HtmlWebpackPlugin({
       filename: path.join('index.html'),

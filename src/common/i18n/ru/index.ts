@@ -41,6 +41,7 @@ import engineHealth from './engineHealth';
 import dspOff from './dspOff';
 import engineUpdate from './engineUpdate';
 import lighting from './lighting';
+import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 
 const ru: Partial<Dictionary> = {
@@ -67,6 +68,7 @@ const ru: Partial<Dictionary> = {
   ...dspOff,
   ...engineUpdate,
   ...lighting,
+  ...wallpaper,
   ...bugReport,
 };
 

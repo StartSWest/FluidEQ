@@ -37,6 +37,10 @@ const configuration: webpack.Configuration = {
   entry: {
     main: path.join(webpackPaths.srcMainPath, 'main.ts'),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+    'wallpaper-preload': path.join(
+      webpackPaths.srcMainPath,
+      'wallpaperPreload.ts',
+    ),
     'inference-worker': path.join(
       webpackPaths.srcMainPath,
       'inferenceWorker.ts',

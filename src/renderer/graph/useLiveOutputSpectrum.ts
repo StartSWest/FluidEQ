@@ -747,6 +747,9 @@ const useLiveOutputSpectrum = () => {
         axis,
         cells,
         trackReference,
+        // The display pump skips hidden windows unless a measurement needs
+        // it. Wallpaper reads still need a reference that follows quieter music.
+        releaseReference: () => isHiddenRef.current && !sessionRef.current,
       });
 
       // One block of samples, read into again per channel per tick, and the

@@ -69,6 +69,7 @@ export interface IScenePacksListing {
 
 export interface IScenePacksIpcRegistration {
   store: IScenePackStore;
+  subscribeScenes(listener: () => void): () => void;
   announce(): void;
   /**
    * Announce an event. An entitled account asks which scenes changed every
@@ -150,8 +151,10 @@ export const registerScenePacksIpc = ({
     };
   };
 
+  const sceneListeners = new Set<() => void>();
   const announce = () => {
     getMainWindow()?.webContents.send('scene-packs-changed', listing());
+    sceneListeners.forEach((listener) => listener());
   };
 
   /**
@@ -354,6 +357,12 @@ export const registerScenePacksIpc = ({
 
   return {
     store,
+    subscribeScenes: (listener) => {
+      sceneListeners.add(listener);
+      return () => {
+        sceneListeners.delete(listener);
+      };
+    },
     announce,
     refreshIfDue: async () => {
       // Not logged: for an entitled account this is every focus of the

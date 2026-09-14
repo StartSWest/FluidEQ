@@ -463,6 +463,10 @@ if (isWindows) {
     version,
     path.join(ROOT, 'assets', 'icons'),
   );
+  const wallpaperPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Wallpaper.exe');
+  if (!existsSync(wallpaperPath)) {
+    fail(`the desktop visualizer helper was not produced at ${wallpaperPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

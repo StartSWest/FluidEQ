@@ -17,9 +17,15 @@ const mockProgram = {
 };
 const mockGl = { isContextLost: () => false };
 
-jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioFrame: () => ({ points: [], waveform: [] }),
-  useLiveAudioControl: () => ({ isPaused: false, readFrame: () => undefined }),
+// The runner hears the music through the scene audio context, which the
+// graph fills from the capture and a desktop background from its own relay.
+jest.mock('../../../renderer/audio/SceneAudioContext', () => ({
+  useSceneAudio: () => ({
+    points: [],
+    waveform: [],
+    isPaused: false,
+    readFrame: () => undefined,
+  }),
 }));
 jest.mock('../../../renderer/utils/useSmoothFrames', () => ({
   __esModule: true,

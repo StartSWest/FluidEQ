@@ -9,10 +9,7 @@ import {
 } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
-import {
-  useLiveAudioControl,
-  useLiveAudioFrame,
-} from '../audio/LiveAudioContext';
+import { useSceneAudio } from '../audio/SceneAudioContext';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
 import type { ISceneFrame } from './sceneGl';
 import type { ICostLadder } from './sceneHealth';
@@ -56,8 +53,7 @@ export default function useSceneRunner({
   onDrawn,
   onLoaded,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
-  const { points, waveform } = useLiveAudioFrame();
-  const { isPaused, readFrame } = useLiveAudioControl();
+  const { points, waveform, isPaused, readFrame } = useSceneAudio();
   // What the scene is drawn inside: each worker puts a canvas of its own here.
   const hostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<ISceneWorkerClient | undefined>(undefined);

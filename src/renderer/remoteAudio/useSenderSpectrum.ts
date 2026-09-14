@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createAxisCells,
   readAbsoluteLevels,
@@ -21,18 +21,38 @@ import { reportError } from '../utils/logger';
 import openRemoteAudioPort from './openRemoteAudioPort';
 import { SENDER_SPECTRUM_SIZE, type ISenderSpectrum } from './senderSpectrum';
 
-interface ISenderFrame {
+export interface ISenderFrame {
   points: IChartPointData[];
   waveform: number[];
   outputLevels: IOutputLevel[];
   isClipping: boolean;
 }
 
-const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
+export interface ISenderSpectrumReader {
+  frame: ISenderFrame | undefined;
+  readFrame: () => Promise<ISenderFrame | undefined>;
+}
+
+interface IPendingRead {
+  promise: Promise<ISenderFrame | undefined>;
+  resolve: (frame: ISenderFrame | undefined) => void;
+  hasExternalReader: boolean;
+}
+
+const noFrame = (): Promise<ISenderFrame | undefined> =>
+  Promise.resolve(undefined);
+
+const useSenderSpectrum = (
+  enabled: boolean,
+  paused: boolean,
+): ISenderSpectrumReader => {
   const [frame, setFrame] = useState<ISenderFrame>();
+  const requestReadRef = useRef(noFrame);
+  const readFrame = useCallback(() => requestReadRef.current(), []);
   useEffect(() => {
     if (!enabled) {
       setFrame(undefined);
+      requestReadRef.current = noFrame;
       return undefined;
     }
     const url = new URL(
@@ -45,14 +65,43 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
     const abort = new AbortController();
     let cancelled = false;
     let animation = 0;
-    let pending = false;
+    let pendingRead: IPendingRead | undefined;
     let requestedAt = 0;
     let previousFrameAt = performance.now();
     let reference: number | undefined;
     let followers: ReturnType<typeof createLevelFollower>[] = [];
+    const finishPendingRead = (nextFrame: ISenderFrame | undefined) => {
+      const pending = pendingRead;
+      pendingRead = undefined;
+      pending?.resolve(nextFrame);
+    };
+    const startRead = (hasExternalReader: boolean) => {
+      if (cancelled || paused) {
+        return noFrame();
+      }
+      if (pendingRead) {
+        pendingRead.hasExternalReader ||= hasExternalReader;
+        return pendingRead.promise;
+      }
+      let settleRead: IPendingRead['resolve'] = () => undefined;
+      const promise = new Promise<ISenderFrame | undefined>((resolve) => {
+        settleRead = resolve;
+      });
+      pendingRead = { promise, resolve: settleRead, hasExternalReader };
+      requestedAt = performance.now();
+      worker.postMessage({ kind: 'read' });
+      return promise;
+    };
+    const requestExternalRead = () => startRead(true);
+    requestReadRef.current = requestExternalRead;
     worker.onmessage = ({ data }: MessageEvent<ISenderSpectrum>) => {
-      pending = false;
-      if (cancelled || paused || document.hidden) {
+      const pending = pendingRead;
+      if (!pending || cancelled || paused) {
+        finishPendingRead(undefined);
+        return;
+      }
+      if (document.hidden && !pending.hasExternalReader) {
+        finishPendingRead(undefined);
         return;
       }
       const now = performance.now();
@@ -77,7 +126,7 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
         ...advanceLevel(followers[index], amplitudeToDb(value), delta),
         isClipping: value >= 1,
       }));
-      setFrame({
+      const nextFrame = {
         points:
           reference === undefined
             ? []
@@ -90,15 +139,24 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
         waveform: data.waveform,
         outputLevels,
         isClipping: outputLevels.some((level) => level.isClipping),
-      });
+      };
+      // Background wallpaper pulls need the transformed frame, but publishing
+      // it through React would wake the entire hidden renderer tree.
+      if (!document.hidden) {
+        setFrame(nextFrame);
+      }
+      finishPendingRead(nextFrame);
     };
     // At most one display request is outstanding. A hidden/busy window cannot
     // accumulate FFT jobs, and the worker never backpressures the audio sender.
     const paint = (now: number) => {
-      if (!document.hidden && !paused && !pending && now - requestedAt >= 33) {
-        pending = true;
-        requestedAt = now;
-        worker.postMessage({ kind: 'read' });
+      if (
+        !document.hidden &&
+        !paused &&
+        !pendingRead &&
+        now - requestedAt >= 33
+      ) {
+        startRead(false);
       }
       animation = requestAnimationFrame(paint);
     };
@@ -116,6 +174,9 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
         if (cancelled) {
           return;
         }
+        cancelled = true;
+        abort.abort();
+        finishPendingRead(undefined);
         reportError('Could not attach the outgoing audio spectrum', error);
         setFrame(undefined);
         worker.terminate();
@@ -124,6 +185,7 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
     worker.onerror = (event) => {
       cancelled = true;
       abort.abort();
+      finishPendingRead(undefined);
       reportError('Outgoing audio spectrum worker failed', event.message);
       setFrame(undefined);
       worker.terminate();
@@ -132,11 +194,15 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
     return () => {
       cancelled = true;
       abort.abort();
+      finishPendingRead(undefined);
+      if (requestReadRef.current === requestExternalRead) {
+        requestReadRef.current = noFrame;
+      }
       cancelAnimationFrame(animation);
       worker.terminate();
     };
   }, [enabled, paused]);
-  return enabled ? frame : undefined;
+  return { frame: enabled ? frame : undefined, readFrame };
 };
 
 export default useSenderSpectrum;

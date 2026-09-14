@@ -1,0 +1,401 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The monitors as they stand on the desk, each wearing the colours of what it
+// shows. A person tells "the one on the left" from "the tall one" by where
+// and how big it is, which a list of monitor names never let them do.
+
+.wallpaper-stage {
+  position: relative;
+  width: 100%;
+  // The layout's own ratio arrives inline (monitorLayout.ts places the tiles
+  // in percentages of exactly that shape); this is only its widest.
+  aspect-ratio: 3.2;
+  border: 1px solid rgba($white, 0.07);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+        circle at 1px 1px,
+        rgba($edge-tint, 0.1) 1px,
+        transparent 1.5px
+      )
+      0 0 / 14px 14px,
+    radial-gradient(
+      90% 130% at 50% 120%,
+      color-mix(in srgb, $secondary-default 10%, transparent),
+      transparent 70%
+    ),
+    $surface-well;
+  box-shadow: inset 0 2px 22px rgba($black, 0.38);
+}
+
+.wallpaper-monitor {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0;
+  color: $white;
+  border: 1px solid rgba($white, 0.16);
+  border-radius: 8px;
+  background: #04070c;
+  box-shadow:
+    0 12px 26px rgba($black, 0.42),
+    inset 0 0 0 1px rgba($black, 0.6);
+  font: inherit;
+  text-align: start;
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-base $ease-out;
+}
+
+// Inset from the frame, so the dark edge reads as a bezel round the glass.
+.wallpaper-monitor__glass {
+  --screen-a: #26344d;
+  --screen-b: #101828;
+  --screen-c: #2b4670;
+
+  position: absolute;
+  inset: 2px;
+  overflow: hidden;
+  border-radius: 6px;
+  background:
+    radial-gradient(140% 90% at 6% -12%, rgba($white, 0.26), transparent 46%),
+    radial-gradient(120% 120% at 108% 112%, var(--screen-c), transparent 62%),
+    linear-gradient(135deg, var(--screen-a) 0%, var(--screen-b) 100%);
+  transition: filter $motion-base $ease-out;
+
+  // The words sit on a shade whatever colours the visualizer brought.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 36% 0 0;
+    background: linear-gradient(
+      to top,
+      rgba(3, 6, 12, 0.84),
+      rgba(3, 6, 12, 0)
+    );
+  }
+}
+
+// A visualizer's glass carries a spectrum's silhouette under the shade, so a
+// monitor showing one reads as music at a glance and not as a colour swatch.
+.wallpaper-monitor__glass:not(.wallpaper-monitor__glass--ordinary)::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 58%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba($white, 0.3) 0 3px,
+    transparent 3px 6px
+  );
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'><path d='M0 40V31C6 27 9 17 15 19S24 34 31 29 39 7 46 10 55 33 62 26 70 3 77 8 86 30 92 25 97 22 100 24V40Z'/></svg>")
+    0 0 / 100% 100% no-repeat;
+}
+
+// A calm one carries two slow swells instead, the nearer brighter, so the
+// choice between the music and calm shows on the monitors it is made for.
+// Only ever on a visualizer's glass; two classes to outrank the bars above.
+.wallpaper-monitor__glass.wallpaper-monitor__glass--calm::before {
+  height: 60%;
+  // Each swell a faint body under a lit crest; the crests keep their width
+  // however the tile stretches the drawing.
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'><path d='M0 40V13C14 6 25 7 38 12S63 20 77 14 92 6 100 8V40Z' fill='rgba(255,255,255,0.08)'/><path d='M0 13C14 6 25 7 38 12S63 20 77 14 92 6 100 8' fill='none' stroke='rgba(255,255,255,0.45)' stroke-width='1' vector-effect='non-scaling-stroke'/><path d='M0 40V25C10 18 20 17 31 22S52 31 64 25 86 13 100 19V40Z' fill='rgba(255,255,255,0.14)'/><path d='M0 25C10 18 20 17 31 22S52 31 64 25 86 13 100 19' fill='none' stroke='rgba(255,255,255,0.8)' stroke-width='1.5' vector-effect='non-scaling-stroke'/></svg>")
+    0 0 / 100% 100% no-repeat;
+  mask: none;
+}
+
+// What Windows shows when nothing of ours is there.
+.wallpaper-monitor__glass--ordinary {
+  background:
+    radial-gradient(
+      70% 95% at 50% 118%,
+      rgba(76, 136, 255, 0.36),
+      transparent 72%
+    ),
+    radial-gradient(140% 90% at 6% -12%, rgba($white, 0.12), transparent 46%),
+    linear-gradient(160deg, #18223a 0%, #090e18 100%);
+}
+
+// Showing something now that this choice leaves where it is: still its own
+// colours, so it reads as playing, a step behind the monitors being chosen.
+.wallpaper-monitor__glass--faded {
+  filter: saturate(0.75) brightness(0.7);
+}
+
+// Number at the top, words at the bottom, and whatever does not fit in a
+// small monitor is dropped rather than drawn over the number: the column
+// wraps, each piece is as wide as the monitor, and a piece that wraps lands
+// beside it, outside the clip. The phase goes first, then the name.
+.wallpaper-monitor__content {
+  position: absolute;
+  z-index: 1;
+  inset: 7px 8px 6px;
+  display: flex;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  overflow: hidden;
+
+  > * {
+    width: 100%;
+  }
+}
+
+.wallpaper-monitor__top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: auto;
+  padding-bottom: 4px;
+}
+
+.wallpaper-monitor__number {
+  display: grid;
+  flex: 0 0 auto;
+  min-width: 19px;
+  height: 19px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  place-items: center;
+  border: 1px solid rgba($white, 0.3);
+  border-radius: 6px;
+  background: rgba(3, 6, 12, 0.5);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.wallpaper-monitor__primary {
+  min-width: 0;
+  padding: 2px 7px;
+  color: rgba($white, 0.94);
+  border-radius: $radius-pill;
+  background: rgba(3, 6, 12, 0.46);
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+  @include truncate;
+}
+
+.wallpaper-monitor__look {
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+  text-shadow: 0 1px 8px rgba($black, 0.7);
+  @include truncate;
+}
+
+.wallpaper-monitor__phase {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba($white, 0.8);
+  font-size: $text-eyebrow;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+  @include truncate;
+
+  &::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $active;
+    box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
+  }
+}
+
+.wallpaper-monitor__phase--starting::before {
+  background: $secondary-light;
+  box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 70%, transparent);
+}
+
+.wallpaper-monitor__phase--paused::before {
+  background: $amber;
+  box-shadow: none;
+}
+
+.wallpaper-monitor__phase--error::before {
+  background: $red;
+  box-shadow: 0 0 8px rgba($red, 0.6);
+}
+
+// Over the frame's corner, clear of the words inside it.
+.wallpaper-monitor__check {
+  position: absolute;
+  z-index: 2;
+  top: -9px;
+  inset-inline-end: -9px;
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow:
+    0 0 0 2px $surface-field-end,
+    0 4px 14px color-mix(in srgb, $secondary-default 45%, transparent);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity $motion-fast $ease-out,
+    transform $motion-base $ease-spring;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    stroke-width: 2.4;
+  }
+}
+
+.wallpaper-monitor--choice {
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
+    box-shadow:
+      0 0 18px color-mix(in srgb, $secondary-default 22%, transparent),
+      0 12px 26px rgba($black, 0.42);
+  }
+
+  &[aria-checked='true'] {
+    border-color: $secondary-light;
+    box-shadow:
+      0 0 0 1px $secondary-light,
+      0 0 28px color-mix(in srgb, $secondary-default 44%, transparent),
+      0 12px 26px rgba($black, 0.42);
+
+    .wallpaper-monitor__check {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  // Clear of the frame, so the ring never hides the choice it marks.
+  &:focus-visible {
+    outline: 2px solid $white;
+    outline-offset: 4px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallpaper-monitor,
+  .wallpaper-monitor__glass,
+  .wallpaper-monitor__check {
+    transition: none;
+  }
+}
+
+// ---------------------------------------------------------------- the list
+
+.wallpaper-screens {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  @include section-surface;
+}
+
+.wallpaper-screen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 12px;
+
+  & + & {
+    border-top: 1px solid $border-subtle;
+  }
+}
+
+.wallpaper-screen__number {
+  display: grid;
+  flex: 0 0 auto;
+  min-width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  place-items: center;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: 6px;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.wallpaper-screen__swatch {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 22px;
+  border-radius: 5px;
+  background: linear-gradient(
+    135deg,
+    var(--screen-a, #26344d),
+    var(--screen-b, #101828)
+  );
+  box-shadow: inset 0 0 0 1px rgba($white, 0.16);
+}
+
+.wallpaper-screen__copy {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wallpaper-screen__look {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.wallpaper-screen__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+.wallpaper-screen__monitor {
+  color: $text-muted;
+
+  &::after {
+    content: '·';
+    margin-inline-start: 6px;
+    color: $text-dim;
+  }
+}
+
+.wallpaper-screen--error .wallpaper-screen__status > :last-child {
+  color: $amber;
+}
+
+.wallpaper-screen__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-inline-start: auto;
+}

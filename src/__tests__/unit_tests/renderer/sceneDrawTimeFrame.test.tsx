@@ -25,9 +25,15 @@ let mockFresh:
 const mockDraw = jest.fn();
 let mockFrameCallback: ((elapsedMs: number) => boolean) | undefined;
 
-jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
-  useLiveAudioFrame: () => ({ points: mockReactPoints, waveform: [] }),
-  useLiveAudioControl: () => ({ isPaused: false, readFrame: () => mockFresh }),
+// The runner hears the music through the scene audio context, which the
+// graph fills from the capture and a desktop background from its own relay.
+jest.mock('../../../renderer/audio/SceneAudioContext', () => ({
+  useSceneAudio: () => ({
+    points: mockReactPoints,
+    waveform: [],
+    isPaused: false,
+    readFrame: () => mockFresh,
+  }),
 }));
 jest.mock('../../../renderer/utils/useSmoothFrames', () => ({
   __esModule: true,

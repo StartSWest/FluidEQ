@@ -136,6 +136,7 @@ import type {
   TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
+import wallpaperBridge from './wallpaperBridge';
 import { engineHealthBridge } from './engineHealthBridge';
 import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
@@ -1493,5 +1494,6 @@ export default {
     ...plusTermsNoticeBridge,
     ...engineHealthBridge,
     ...lightingBridge,
+    ...wallpaperBridge,
   },
 };

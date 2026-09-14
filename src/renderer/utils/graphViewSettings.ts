@@ -103,6 +103,8 @@ let view: TGraphView =
 export interface IPerViewSetting<T> {
   /** The value for whichever mode the graph is in right now. */
   get: () => T;
+  /** The value one mode holds, whichever mode the graph is in. */
+  getFor: (mode: TGraphView) => T;
   /** Sets it for the current mode only; the other two are left alone. */
   set: (next: T) => void;
   /** Sets it for all three modes at once — see `shareAcrossViews`. */
@@ -198,6 +200,7 @@ export const createPerViewSetting = <T>(
 
   return {
     get: () => values[view],
+    getFor: (mode: TGraphView) => values[mode],
     set: (next: T) => {
       if (next === values[view]) {
         return;
@@ -1339,6 +1342,17 @@ export const setGraphWavePosition = (next: number) => {
 };
 
 export const getGraphWavePosition = () => wavePositionSetting.get();
+
+/**
+ * The wave's height and position as somebody set them for watching — the
+ * value the big modes share — whichever view the graph is in now. A desktop
+ * background is watched the way full screen is, and takes these; the pane's
+ * fixed measuring height is nobody's choice.
+ */
+export const getWatchedGraphWave = () => ({
+  height: waveHeightSetting.getFor('fullscreen'),
+  position: wavePositionSetting.getFor('fullscreen'),
+});
 
 export const useGraphWavePosition = () =>
   useSyncExternalStore(
