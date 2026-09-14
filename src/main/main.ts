@@ -146,6 +146,7 @@ import {
   IUnattendedUpdate,
   rememberUnattendedRestart,
 } from './unattendedUpdate';
+import { accountComeBackSteps, createComeBackWatch } from './comeBackSignals';
 import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
 import { installMainFailureRecovery, recordFailure } from './crashRecovery';
@@ -579,89 +580,6 @@ const installActiveUpdate = () => {
   }
 };
 
-/**
- * Ask the updater to check, if its last check has gone stale.
- *
- * Deliberately fire-and-forget and deliberately noisy in its callers: the
- * staleness test inside the controller is what decides whether anything
- * actually happens, so wiring this to four different signals costs nothing
- * and covers the ways a person comes back to a machine.
- */
-const checkForUpdatesIfDue = (reason: string) => {
-  if (!activeAutoUpdater) {
-    return;
-  }
-  activeAutoUpdater
-    .checkIfDue()
-    .then((ran) => {
-      if (ran) {
-        log.info(`Update check ran on ${reason}`);
-      }
-      return ran;
-    })
-    .catch((error) => {
-      log.info(`Update check on ${reason} could not start`, error);
-    });
-};
-
-/**
- * The events that stand in for a timer.
- *
- * See UPDATE_CHECK_STALE_AFTER_MS in signedAutoUpdates for why there is no
- * interval. Each of these means "somebody is, or is about to be, at this
- * machine", which is both when a check is worth making and the only time a
- * notification about one can be seen. `resume` and `unlock-screen` usually
- * arrive together and the window is often shown right after; the controller
- * collapses the burst into one request.
- */
-const watchForUpdateOpportunities = () => {
-  // The subscription rides the same signals, for the same reason: each one
-  // means somebody has come back to the machine, which is when an answer is
-  // worth fetching and the only time a change in it could be noticed.
-  const checkEntitlementIfDue = (reason: string) => {
-    accountIpc.entitlement
-      .checkIfDue(reason)
-      .then(() => scenePacksIpc.refreshIfDue(reason))
-      .then(() => memberSharingIpc.refreshIfDue(reason))
-      .then(() => plusGalleryIpc.refreshIfDue())
-      .then(() => plusTermsNoticeIpc.checkIfDue(reason))
-      .then(() => leaderboardIpc.uploadIfDue(reason))
-      .catch(() => undefined);
-  };
-  powerMonitor.on('resume', () => {
-    checkForUpdatesIfDue('wake from sleep');
-    checkEntitlementIfDue('wake from sleep');
-  });
-  powerMonitor.on('unlock-screen', () => {
-    checkForUpdatesIfDue('screen unlock');
-    checkEntitlementIfDue('screen unlock');
-  });
-  // The screen locking means the machine has been left. Nothing there is
-  // watching a restart happen, and it is the longest uninterrupted stretch
-  // this app ever gets.
-  powerMonitor.on('lock-screen', () =>
-    applyUpdateIfUnattended('the screen locking'),
-  );
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.on('show', () => {
-      checkForUpdatesIfDue('window shown');
-      checkEntitlementIfDue('window shown');
-    });
-    mainWindow.on('focus', () => {
-      checkForUpdatesIfDue('window focused');
-      checkEntitlementIfDue('window focused');
-    });
-    // The other half: the window leaving the screen is the moment a pending
-    // update stops being in anybody's way. Both events, because closing to
-    // the tray and minimising to the taskbar are different signals for the
-    // same thing and only one of them fires.
-    mainWindow.on('hide', () => applyUpdateIfUnattended('the window hiding'));
-    mainWindow.on('minimize', () =>
-      applyUpdateIfUnattended('the window being minimised'),
-    );
-  }
-};
-
 const setUpAutoUpdates = async () => {
   if (hasAttemptedAutoUpdates) {
     return;
@@ -735,12 +653,9 @@ const setUpAutoUpdates = async () => {
   setTrayUpdatesEnabled(Boolean(activeAutoUpdater), {
     getMainWindow: () => mainWindow,
   });
-
-  // Only once there is a controller to drive: the wake events are the
-  // replacement for the interval, and they are useless without one.
-  if (activeAutoUpdater) {
-    watchForUpdateOpportunities();
-  }
+  // No events are wired here: the ones that check for updates are wired with
+  // the window, and ask for `activeAutoUpdater` when they fire
+  // (`comeBackSignals.ts`).
 };
 
 let mainWindow: BrowserWindow | null = null;
@@ -3371,6 +3286,24 @@ const resetActiveEngineAtSessionEnd = (): void => {
   }
 };
 
+// Somebody coming back to the computer, and the app getting out of their way.
+// The account and Plus refresh on every build; updates only while there is an
+// updater, which development, macOS and Linux never have.
+const comeBack = createComeBackWatch({
+  powerMonitor,
+  accountSteps: accountComeBackSteps({
+    entitlement: accountIpc.entitlement,
+    scenePacks: scenePacksIpc,
+    memberSharing: memberSharingIpc,
+    plusGallery: plusGalleryIpc,
+    plusTermsNotice: plusTermsNoticeIpc,
+    leaderboard: leaderboardIpc,
+  }),
+  getActiveAutoUpdater: () => activeAutoUpdater,
+  applyUpdateIfUnattended,
+  logger: log,
+});
+
 const createMainWindow = createMainWindowFactory({
   firstRunPlacement,
   isDebug,
@@ -3385,6 +3318,9 @@ const createMainWindow = createMainWindowFactory({
     // Windows shutting down or logging off reaches the app only as this
     // window event: Electron sends no `before-quit` for it on Windows.
     next?.on('session-end', resetActiveEngineAtSessionEnd);
+    if (next) {
+      comeBack.watchWindow(next);
+    }
   },
   setUpAutoUpdates,
   setUpMemoryTraceTrigger,
