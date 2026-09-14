@@ -6,8 +6,10 @@ import { useTranslation } from '../utils/I18nContext';
 import { boardDescription, boardName } from './boardNames';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph, { boardGlyph } from './ForumGlyph';
+import { ForumLoadingLayer, TopicListLoading } from './ForumLoading';
 import {
   type IForumState,
+  listKey,
   loadMoreTopics,
   openTopic,
   refreshForum,
@@ -63,6 +65,13 @@ export default function TopicList({ forum }: ITopicListProps) {
   const canWrite = forum.auth.status !== 'unconfigured';
   const heading = headingOf(forum, t);
   const loading = forum.listStatus === 'loading';
+  // The placeholder stands in for a list that is not this one yet: nothing
+  // loaded, or topics from another board, filter or search. A reload of the
+  // list already on screen keeps its rows — the turning refresh button is
+  // the whole signal, or coming back to the window would flash the page.
+  const placeholder =
+    (loading || forum.listStatus === 'idle') &&
+    (forum.topics.length === 0 || forum.listedFor !== listKey(forum));
 
   return (
     <div className="forum__list-view">
@@ -138,52 +147,57 @@ export default function TopicList({ forum }: ITopicListProps) {
 
       {!signedIn && <p className="forum__notice">{t('forum.feedNotice')}</p>}
 
-      <div className="forum__scroll">
-        {loading && forum.topics.length === 0 ? (
-          <TopicSkeleton />
-        ) : (
-          <ul className="forum__topics">
-            {forum.topics.map((topic) => (
-              <li key={topic.number}>
-                <TopicRow
-                  topic={topic}
-                  boards={forum.boards}
-                  showBoard={searching || !forum.board}
-                  locale={locale}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="forum__stage">
+        <div className="forum__scroll">
+          {!placeholder && (
+            // Keyed by the list, so another board's topics rise in as new
+            // rows instead of being painted into the old ones.
+            <ul className="forum__topics" key={forum.listedFor}>
+              {forum.topics.map((topic) => (
+                <li key={topic.number}>
+                  <TopicRow
+                    topic={topic}
+                    boards={forum.boards}
+                    showBoard={searching || !forum.board}
+                    locale={locale}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
 
-        {forum.listStatus === 'ready' && forum.topics.length === 0 && (
-          <div className="community__empty">
-            <span className="community__empty-mark" aria-hidden="true">
-              <ForumGlyph name={searching ? 'search' : 'threads'} />
-            </span>
-            <p className="community__empty-title">
-              {searching ? t('forum.empty.search') : t('forum.empty.board')}
-            </p>
-            <p className="community__empty-hint">
-              {searching
-                ? t('forum.empty.searchHint')
-                : t('forum.empty.boardHint')}
-            </p>
-          </div>
-        )}
+          {forum.listStatus === 'ready' && forum.topics.length === 0 && (
+            <div className="community__empty">
+              <span className="community__empty-mark" aria-hidden="true">
+                <ForumGlyph name={searching ? 'search' : 'threads'} />
+              </span>
+              <p className="community__empty-title">
+                {searching ? t('forum.empty.search') : t('forum.empty.board')}
+              </p>
+              <p className="community__empty-hint">
+                {searching
+                  ? t('forum.empty.searchHint')
+                  : t('forum.empty.boardHint')}
+              </p>
+            </div>
+          )}
 
-        {forum.cursor && (
-          <button
-            type="button"
-            className="button small subtle forum__more"
-            disabled={forum.listStatus === 'more'}
-            onClick={loadMoreTopics}
-          >
-            {forum.listStatus === 'more'
-              ? t('forum.loading')
-              : t('forum.loadMore')}
-          </button>
-        )}
+          {forum.cursor && !placeholder && (
+            <button
+              type="button"
+              className="button small subtle forum__more"
+              disabled={forum.listStatus === 'more'}
+              onClick={loadMoreTopics}
+            >
+              {forum.listStatus === 'more'
+                ? t('forum.loading')
+                : t('forum.loadMore')}
+            </button>
+          )}
+        </div>
+        <ForumLoadingLayer loading={placeholder}>
+          <TopicListLoading />
+        </ForumLoadingLayer>
       </div>
     </div>
   );
@@ -307,25 +321,5 @@ function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
         </span>
       </span>
     </button>
-  );
-}
-
-/** Rows in the shape of topics, while the first page is on its way. */
-function TopicSkeleton() {
-  return (
-    <ul className="forum__topics forum__topics--skeleton" aria-hidden="true">
-      {[0, 1, 2, 3, 4].map((row) => (
-        <li key={row}>
-          <span className="forum__topic forum__topic--skeleton">
-            <span className="forum__skeleton forum__skeleton--avatar" />
-            <span className="forum__topic-body">
-              <span className="forum__skeleton forum__skeleton--title" />
-              <span className="forum__skeleton forum__skeleton--line" />
-              <span className="forum__skeleton forum__skeleton--meta" />
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }

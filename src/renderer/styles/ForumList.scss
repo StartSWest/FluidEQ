@@ -12,8 +12,9 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 // The Forum tab's list of topics, and the pieces the list and the thread
-// share: the scroller, the chips, the loading rows and the error bar. The
-// rail, the head and the toolbar are in Forum.scss.
+// share: the scroller, the chips and the error bar. The rail, the head and
+// the toolbar are in Forum.scss; the loading placeholders in
+// ForumLoading.scss.
 
 // ---------------------------------------------------------------- list
 
@@ -32,7 +33,8 @@ it under the terms of the GNU General Public License version 3 or later.
   > .forum__head,
   > .forum__toolbar,
   > .forum__notice,
-  > .forum__scroll {
+  > .forum__stage > .forum__scroll,
+  > .forum__stage > .forum__loading {
     padding-inline: max(4px, calc((100% - 1080px) / 2));
   }
 }
@@ -275,63 +277,6 @@ it under the terms of the GNU General Public License version 3 or later.
       border-color: $secondary-light;
       outline: none;
     }
-  }
-}
-
-// ---------------------------------------------------------------- loading
-
-.forum__topic--skeleton {
-  cursor: default;
-  pointer-events: none;
-}
-
-.forum__skeleton {
-  display: block;
-  border-radius: 6px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $white 4%, transparent) 20%,
-    color-mix(in srgb, $white 9%, transparent) 50%,
-    color-mix(in srgb, $white 4%, transparent) 80%
-  );
-  background-size: 300% 100%;
-  animation: forum-shimmer 1.4s linear infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-
-  &--avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-  }
-
-  &--title {
-    width: 55%;
-    height: 12px;
-  }
-
-  &--line {
-    width: 85%;
-    height: 9px;
-    margin-top: 4px;
-  }
-
-  &--meta {
-    width: 30%;
-    height: 8px;
-    margin-top: 6px;
-  }
-}
-
-@keyframes forum-shimmer {
-  from {
-    background-position: 100% 0;
-  }
-
-  to {
-    background-position: 0 0;
   }
 }
 

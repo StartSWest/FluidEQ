@@ -40,6 +40,11 @@ export interface IForumState {
   /** The search that produced the list — not what is being typed. */
   search: string;
   topics: IForumTopicSummary[];
+  /**
+   * Which list `topics` is — see `listKey`. A list for another board, filter
+   * or search is not shown while its replacement loads.
+   */
+  listedFor: string;
   total: number;
   cursor?: string;
   listStatus: TLoadStatus;
@@ -59,6 +64,7 @@ const INITIAL: IForumState = {
   filter: 'all',
   search: '',
   topics: [],
+  listedFor: '',
   total: 0,
   listStatus: 'idle',
   view: { kind: 'list' },
@@ -112,10 +118,19 @@ const loadBoards = async () => {
   }
 };
 
+/** One list's identity: the board, the filter and the search that make it. */
+export const listKey = ({
+  board,
+  filter,
+  search,
+}: Pick<IForumState, 'board' | 'filter' | 'search'>) =>
+  JSON.stringify([board, filter, search]);
+
 const loadList = async (more = false) => {
   tickets.list += 1;
   const ticket = tickets.list;
   const cursor = more ? state.cursor : undefined;
+  const asked = listKey(state);
   publish({ listStatus: more ? 'more' : 'loading' });
   const result = await call(() =>
     bridge()?.forumTopics?.({
@@ -141,6 +156,7 @@ const loadList = async (more = false) => {
       ...(more ? state.topics : []),
       ...page.topics.filter((topic) => !seen.has(topic.number)),
     ],
+    listedFor: asked,
     total: page.total,
     cursor: page.cursor,
     listStatus: 'ready',

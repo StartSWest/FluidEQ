@@ -8,6 +8,7 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { boardName } from './boardNames';
 import ForumGlyph, { boardGlyph } from './ForumGlyph';
+import { ForumLoadingLayer, ThreadLoading } from './ForumLoading';
 import ForumPost from './ForumPost';
 import {
   backToList,
@@ -87,31 +88,47 @@ export default function TopicView({ forum }: ITopicViewProps) {
     </header>
   );
 
+  // The placeholder layer is the stage's second child in both branches
+  // below, so React keeps it — and its fade — while the thread replaces the
+  // wait under it.
+  const placeholder = (
+    <ForumLoadingLayer loading={!topic && forum.topicStatus !== 'error'}>
+      <ThreadLoading />
+    </ForumLoadingLayer>
+  );
+
   if (!topic) {
     const failed = forum.topicStatus === 'error';
     return (
       <div className="forum__thread-view">
         {bar}
-        <div className="community__empty">
-          <span className="community__empty-mark" aria-hidden="true">
-            <ForumGlyph name="threads" />
-          </span>
-          <p className="community__empty-title">
-            {failed ? t('forum.error.not_found') : t('forum.loading')}
-          </p>
-          {failed && forum.view.kind === 'topic' && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => {
-                if (forum.view.kind === 'topic') {
-                  openTopic(forum.view.number);
-                }
-              }}
-            >
-              {t('forum.retry')}
-            </button>
+        <div className="forum__stage">
+          {failed ? (
+            <div className="community__empty">
+              <span className="community__empty-mark" aria-hidden="true">
+                <ForumGlyph name="threads" />
+              </span>
+              <p className="community__empty-title">
+                {t('forum.error.not_found')}
+              </p>
+              {forum.view.kind === 'topic' && (
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => {
+                    if (forum.view.kind === 'topic') {
+                      openTopic(forum.view.number);
+                    }
+                  }}
+                >
+                  {t('forum.retry')}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="forum__scroll" />
           )}
+          {placeholder}
         </div>
       </div>
     );
@@ -124,163 +141,169 @@ export default function TopicView({ forum }: ITopicViewProps) {
   return (
     <div className="forum__thread-view">
       {bar}
-      <div className="forum__scroll forum__thread">
-        <div className="forum__thread-head">
-          <div className="forum__thread-chips">
-            <span className="forum__chip">
-              <ForumGlyph name={boardGlyph(topic.board)} />
-              {boardName(topic.board, forum.boards, t)}
-            </span>
-            {answer && (
-              <button
-                type="button"
-                className="forum__chip forum__chip--answer"
-                onClick={() =>
-                  document
-                    .getElementById(`forum-comment-${answer.id}`)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
-              >
-                <ForumGlyph name="answer" />
-                {t('forum.topic.answered')}
-              </button>
-            )}
-            {topic.locked && (
-              <span className="forum__chip forum__chip--quiet">
-                <Glyph name="lock" />
-                {t('forum.topic.locked')}
+      <div className="forum__stage">
+        <div className="forum__scroll forum__thread" key={topic.number}>
+          <div className="forum__thread-head">
+            <div className="forum__thread-chips">
+              <span className="forum__chip">
+                <ForumGlyph name={boardGlyph(topic.board)} />
+                {boardName(topic.board, forum.boards, t)}
               </span>
-            )}
-          </div>
-          {editingTitle ? (
-            <TitleEditor topic={topic} onDone={() => setEditingTitle(false)} />
-          ) : (
-            <h2 className="forum__thread-title">
-              {topic.title}
-              {topic.canEditTitle && (
+              {answer && (
                 <button
                   type="button"
-                  className="forum__icon-button forum__title-edit"
-                  aria-label={t('forum.thread.editTitle')}
-                  title={t('forum.thread.editTitle')}
-                  onClick={() => setEditingTitle(true)}
+                  className="forum__chip forum__chip--answer"
+                  onClick={() =>
+                    document
+                      .getElementById(`forum-comment-${answer.id}`)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
                 >
-                  <ForumGlyph name="edit" />
+                  <ForumGlyph name="answer" />
+                  {t('forum.topic.answered')}
                 </button>
               )}
-            </h2>
-          )}
-        </div>
-
-        <ForumPost
-          post={topic.post}
-          kind={topic.postKind}
-          topicAuthor={topic.author.login}
-          className="forum-post--opening"
-          onReply={
-            canReply
-              ? () => {
-                  bottom.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'end',
-                  });
-                  bottom.current?.querySelector('textarea')?.focus();
-                }
-              : undefined
-          }
-        />
-
-        <div className="forum__replies-head">
-          <span>{t('forum.thread.replies')}</span>
-          <span className="forum__count">
-            {new Intl.NumberFormat(locale).format(topic.commentTotal)}
-          </span>
-        </div>
-
-        {topic.comments.length === 0 ? (
-          <div className="forum__no-replies">
-            <p className="community__empty-title">
-              {t('forum.thread.noReplies')}
-            </p>
-            <p className="community__empty-hint">
-              {t('forum.thread.noRepliesHint')}
-            </p>
-          </div>
-        ) : (
-          <ol className="forum__comments">
-            {topic.comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
+              {topic.locked && (
+                <span className="forum__chip forum__chip--quiet">
+                  <Glyph name="lock" />
+                  {t('forum.topic.locked')}
+                </span>
+              )}
+            </div>
+            {editingTitle ? (
+              <TitleEditor
                 topic={topic}
-                comment={comment}
-                replyingTo={
-                  replyingTo?.row === comment.id ? replyingTo : undefined
-                }
-                onReply={canReply ? replyTo : undefined}
-                onCloseReply={() => setReplyingTo(undefined)}
+                onDone={() => setEditingTitle(false)}
               />
-            ))}
-          </ol>
-        )}
-
-        {topic.commentsCursor && (
-          <button
-            type="button"
-            className="button small subtle forum__more"
-            disabled={forum.topicStatus === 'more'}
-            onClick={loadMoreComments}
-          >
-            {forum.topicStatus === 'more'
-              ? t('forum.loading')
-              : t('forum.thread.loadMore')}
-          </button>
-        )}
-        {!topic.commentsCursor &&
-          topic.commentTotal > topic.comments.length && (
-            <a
-              className="forum__to-github"
-              href={topic.url}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {t('forum.thread.moreOnGithub')}
-              <ForumGlyph name="external" />
-            </a>
-          )}
-
-        <div className="forum__thread-foot" ref={bottom}>
-          {topic.locked && (
-            <p className="forum__notice forum__notice--locked">
-              <Glyph name="lock" />
-              {t('forum.thread.locked')}
-            </p>
-          )}
-          {canReply && (
-            <PostComposer
-              label={t('forum.action.reply')}
-              placeholder={t('forum.composer.replyPlaceholder')}
-              submitLabel={t('forum.composer.postReply')}
-              onSubmit={(body) => reply(topic.id, body)}
-            />
-          )}
-          {!signedIn &&
-            !topic.locked &&
-            forum.auth.status !== 'unconfigured' && (
-              <div className="forum__sign-in-prompt">
-                <span>{t('forum.thread.signInToReply')}</span>
-                <button
-                  type="button"
-                  className="button small"
-                  disabled={forum.auth.status === 'signing-in'}
-                  onClick={() => {
-                    signIn(locale).catch(() => undefined);
-                  }}
-                >
-                  {t('forum.signIn')}
-                </button>
-              </div>
+            ) : (
+              <h2 className="forum__thread-title">
+                {topic.title}
+                {topic.canEditTitle && (
+                  <button
+                    type="button"
+                    className="forum__icon-button forum__title-edit"
+                    aria-label={t('forum.thread.editTitle')}
+                    title={t('forum.thread.editTitle')}
+                    onClick={() => setEditingTitle(true)}
+                  >
+                    <ForumGlyph name="edit" />
+                  </button>
+                )}
+              </h2>
             )}
+          </div>
+
+          <ForumPost
+            post={topic.post}
+            kind={topic.postKind}
+            topicAuthor={topic.author.login}
+            className="forum-post--opening"
+            onReply={
+              canReply
+                ? () => {
+                    bottom.current?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'end',
+                    });
+                    bottom.current?.querySelector('textarea')?.focus();
+                  }
+                : undefined
+            }
+          />
+
+          <div className="forum__replies-head">
+            <span>{t('forum.thread.replies')}</span>
+            <span className="forum__count">
+              {new Intl.NumberFormat(locale).format(topic.commentTotal)}
+            </span>
+          </div>
+
+          {topic.comments.length === 0 ? (
+            <div className="forum__no-replies">
+              <p className="community__empty-title">
+                {t('forum.thread.noReplies')}
+              </p>
+              <p className="community__empty-hint">
+                {t('forum.thread.noRepliesHint')}
+              </p>
+            </div>
+          ) : (
+            <ol className="forum__comments">
+              {topic.comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  topic={topic}
+                  comment={comment}
+                  replyingTo={
+                    replyingTo?.row === comment.id ? replyingTo : undefined
+                  }
+                  onReply={canReply ? replyTo : undefined}
+                  onCloseReply={() => setReplyingTo(undefined)}
+                />
+              ))}
+            </ol>
+          )}
+
+          {topic.commentsCursor && (
+            <button
+              type="button"
+              className="button small subtle forum__more"
+              disabled={forum.topicStatus === 'more'}
+              onClick={loadMoreComments}
+            >
+              {forum.topicStatus === 'more'
+                ? t('forum.loading')
+                : t('forum.thread.loadMore')}
+            </button>
+          )}
+          {!topic.commentsCursor &&
+            topic.commentTotal > topic.comments.length && (
+              <a
+                className="forum__to-github"
+                href={topic.url}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {t('forum.thread.moreOnGithub')}
+                <ForumGlyph name="external" />
+              </a>
+            )}
+
+          <div className="forum__thread-foot" ref={bottom}>
+            {topic.locked && (
+              <p className="forum__notice forum__notice--locked">
+                <Glyph name="lock" />
+                {t('forum.thread.locked')}
+              </p>
+            )}
+            {canReply && (
+              <PostComposer
+                label={t('forum.action.reply')}
+                placeholder={t('forum.composer.replyPlaceholder')}
+                submitLabel={t('forum.composer.postReply')}
+                onSubmit={(body) => reply(topic.id, body)}
+              />
+            )}
+            {!signedIn &&
+              !topic.locked &&
+              forum.auth.status !== 'unconfigured' && (
+                <div className="forum__sign-in-prompt">
+                  <span>{t('forum.thread.signInToReply')}</span>
+                  <button
+                    type="button"
+                    className="button small"
+                    disabled={forum.auth.status === 'signing-in'}
+                    onClick={() => {
+                      signIn(locale).catch(() => undefined);
+                    }}
+                  >
+                    {t('forum.signIn')}
+                  </button>
+                </div>
+              )}
+          </div>
         </div>
+        {placeholder}
       </div>
     </div>
   );

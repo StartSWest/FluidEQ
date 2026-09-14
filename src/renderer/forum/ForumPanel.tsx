@@ -62,6 +62,9 @@ export default function ForumPanel() {
         board={forum.board}
         searching={forum.search !== ''}
         auth={forum.auth}
+        loadingBoards={
+          forum.boardsStatus === 'loading' || forum.boardsStatus === 'idle'
+        }
         onSelect={selectBoard}
       />
       <section className="community__main forum__main">

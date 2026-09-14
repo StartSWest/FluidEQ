@@ -1,0 +1,244 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Forum's loading placeholders (ForumLoading.tsx): a page's own shape,
+// drawn to the bottom of the card on a layer over the page's scroller, which
+// fades out over the content as it arrives.
+
+// The box a page's scroller and its loading layer share. The scroller keeps
+// the flex share the page gave it; the layer covers the same rectangle.
+.forum__stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+// Laid out like the scroller under it (see `.forum__scroll`), so every bone
+// sits where its real row will. Transparent, so the content rising in shows
+// through while the layer leaves: the two cross instead of swapping. It
+// fades toward the bottom edge, which is where it is cut.
+.forum__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 2px $spacing-s;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    180deg,
+    transparent,
+    black 10px,
+    black 72%,
+    transparent
+  );
+  transition: opacity 340ms $ease-out;
+  @include animate(fade-in, $motion-fast);
+
+  &.is-leaving {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.forum__loading-shape {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+// Read aloud once, never seen.
+.forum__loading-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------- bones
+
+.forum__bone {
+  display: block;
+  flex: 0 0 auto;
+  max-width: 100%;
+  border-radius: 6px;
+  background: color-mix(in srgb, $white 7.5%, transparent);
+
+  &--avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+
+  &--title {
+    height: 13px;
+    margin: 2px 0 3px;
+  }
+
+  &--line {
+    height: 9px;
+    margin-top: 4px;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+
+  &--chip {
+    width: 72px;
+    height: 16px;
+    border-radius: $radius-pill;
+  }
+
+  &--byline {
+    width: 96px;
+    height: 9px;
+  }
+
+  &--stat {
+    width: 46px;
+    height: 21px;
+    border-radius: $radius-pill;
+  }
+
+  &--post-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+
+  &--name {
+    width: 112px;
+    height: 12px;
+  }
+
+  &--time {
+    width: 58px;
+    height: 9px;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+
+  &--text {
+    height: 10px;
+    background: color-mix(in srgb, $white 5.5%, transparent);
+  }
+
+  &--heading {
+    width: 72%;
+    height: 22px;
+    border-radius: 8px;
+  }
+
+  &--heading-short {
+    width: 42%;
+  }
+
+  &--label {
+    width: 84px;
+    height: 12px;
+  }
+
+  &--mark {
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-xs;
+  }
+
+  &--board-name {
+    height: 11px;
+  }
+
+  &--board-blurb {
+    height: 8px;
+    margin-top: 5px;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+}
+
+// ---------------------------------------------------------------- shapes
+
+.forum__loading-topic {
+  cursor: default;
+}
+
+.forum__loading-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.forum__loading-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.forum__loading-lines {
+  display: grid;
+  gap: 9px;
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+
+.forum__loading-boards {
+  display: contents;
+}
+
+.forum__loading-board {
+  cursor: default;
+}
+
+// The boards the bones stood in for fade in down the rail in their turn.
+.forum__rail .community__channels > .forum__board {
+  @include stagger-in(10, 28ms, 0ms, fade-in);
+}
+
+// A slow breath running down the page, row after row — alive while it
+// waits, and only ever opacity, which the compositor animates on its own.
+@keyframes forum-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.forum__loading-topics > li > .forum__loading-topic,
+.forum__comments > li > .forum__loading-post,
+.forum__loading-thread > .forum-post,
+.forum__loading-thread > .forum__thread-head,
+.forum__loading-board {
+  animation: forum-breathe 1.8s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@for $i from 1 through 24 {
+  .forum__loading-topics > li:nth-child(#{$i}) > .forum__loading-topic,
+  .forum__comments > li:nth-child(#{$i}) > .forum__loading-post,
+  .forum__loading-board:nth-child(#{$i}) {
+    animation-delay: ($i - 1) * 110ms;
+  }
+}

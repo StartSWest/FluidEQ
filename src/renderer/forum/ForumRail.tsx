@@ -4,6 +4,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { boardDescription, boardName } from './boardNames';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph, { boardGlyph, GithubMark } from './ForumGlyph';
+import { BoardsLoading } from './ForumLoading';
 import { cancelSignIn, signIn, signOut } from './forumStore';
 
 interface IForumRailProps {
@@ -12,6 +13,8 @@ interface IForumRailProps {
   /** Searching shows every board's topics, so no single board is lit. */
   searching: boolean;
   auth: TForumAuthState;
+  /** The boards are being asked for and none are known yet. */
+  loadingBoards: boolean;
   onSelect: (board: string) => void;
 }
 
@@ -27,6 +30,7 @@ export default function ForumRail({
   board,
   searching,
   auth,
+  loadingBoards,
   onSelect,
 }: IForumRailProps) {
   const { t, locale } = useTranslation();
@@ -90,14 +94,18 @@ export default function ForumRail({
           'threads',
           total || undefined,
         )}
-        {boards.map((candidate) =>
-          row(
-            candidate.slug,
-            boardName(candidate.slug, boards, t),
-            boardDescription(candidate.slug, boards, t),
-            boardGlyph(candidate.slug),
-            candidate.topicCount,
-          ),
+        {loadingBoards && boards.length === 0 ? (
+          <BoardsLoading />
+        ) : (
+          boards.map((candidate) =>
+            row(
+              candidate.slug,
+              boardName(candidate.slug, boards, t),
+              boardDescription(candidate.slug, boards, t),
+              boardGlyph(candidate.slug),
+              candidate.topicCount,
+            ),
+          )
         )}
       </div>
 

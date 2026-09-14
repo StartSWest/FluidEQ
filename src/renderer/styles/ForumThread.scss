@@ -30,7 +30,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // of a post running 1,500px across a 2560 card is a line nobody finds the
   // start of again. The rules under the bar still span the card.
   > .forum__thread-bar,
-  > .forum__scroll {
+  > .forum__scroll,
+  > .forum__stage > .forum__scroll,
+  > .forum__stage > .forum__loading {
     padding-inline: max(4px, calc((100% - 940px) / 2));
   }
 }
@@ -103,6 +105,12 @@ it under the terms of the GNU General Public License version 3 or later.
 .forum__thread {
   gap: $spacing-s;
   padding-top: $spacing-s;
+
+  // A thread that has just arrived rises in a part at a time — title, the
+  // opening post, the replies — under the placeholder fading off it.
+  &:not(.forum__loading-thread) > * {
+    @include stagger-in(6, 45ms);
+  }
 }
 
 .forum__thread-head {
