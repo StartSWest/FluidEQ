@@ -92,8 +92,10 @@ export default function StudioStage({
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
-  const [settled, setSettled] = useState(false);
-  const firstFrame = useRef(false);
+  // Answered by the runner, which alone knows when the picture went: a first
+  // frame seen once said "settled" for good, so a stage built again after the
+  // window had been covered sat black, with no loading, for its whole compile.
+  const [waiting, setWaiting] = useState(true);
   useLiveAudioCapture(true);
 
   // The canvas takes the frame's measured size; the frame's shape comes from
@@ -141,10 +143,7 @@ export default function StudioStage({
   const packRef = useRef(pack);
   packRef.current = pack;
   const troubleRef = useRef(onTrouble);
-  troubleRef.current = (trouble) => {
-    setSettled(true);
-    onTrouble(trouble);
-  };
+  troubleRef.current = onTrouble;
 
   const source = useMemo<ISceneSource>(
     () => ({
@@ -182,10 +181,6 @@ export default function StudioStage({
   const hostRef = useRef<RefObject<Element | null>>(undefined);
   const onFrame = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard) => {
-      if (!firstFrame.current && frame.fade > 0) {
-        firstFrame.current = true;
-        setSettled(true);
-      }
       // The window beats on the beats this stage is drawing, when the
       // Studio's mode asks it to (`ScenePulse.tsx`).
       reportSceneBeat('studio', frame, hostRef.current?.current);
@@ -220,6 +215,7 @@ export default function StudioStage({
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: onFrame,
+    onWaiting: setWaiting,
   });
   hostRef.current = sceneRef;
 
@@ -229,7 +225,7 @@ export default function StudioStage({
         ref={frameRef}
         className={`studio-stage studio-stage--${size}`}
         data-testid="studio-stage"
-        aria-busy={!settled}
+        aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as
         // the size choice beside the stage. Not on the exit button, whose
         // first click has already brought the stage back.
@@ -247,7 +243,7 @@ export default function StudioStage({
           style={{ width: box.width, height: box.height }}
         />
         {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
-        {!settled && <StudioStageLoading name={pack.names.en} />}
+        {waiting && <StudioStageLoading name={pack.names.en} />}
         {size === 'full' && (
           <button
             type="button"

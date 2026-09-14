@@ -33,6 +33,15 @@ export interface ISceneSource {
   createLadder(): ICostLadder;
   /** Present only for scenes drawn through the brightness limiter. */
   createGuard?: (gl: WebGL2RenderingContext) => IFlashGuard | null;
+  /**
+   * Compile the scene's program while it is out of sight, so it is ready the
+   * moment it is shown (`warmSceneProgram`). The graph's look, which somebody
+   * opening the window expects to see at once; not a gallery of previews,
+   * which would compile every card at once. FluidEQ's own scenes only: a
+   * member's shader reaches the GPU's compiler when somebody looks at it,
+   * never at launch while the graph sits on another tab.
+   */
+  warmWhenUnseen?: boolean;
 }
 
 export interface ISceneRunnerOptions {
@@ -50,6 +59,17 @@ export interface ISceneRunnerOptions {
    * graph's menu starts its attack and release from what the scene came with.
    */
   onLoaded?: (pack: IScenePack) => void;
+  /**
+   * Whether a version is on its way that is not on the canvas yet: from the
+   * moment it is asked for — built beside a running one, built with nothing on
+   * screen, or put away until somebody can see it — until its first frame
+   * with anything in it is drawn, or until the runner gives up on it, which it
+   * says before telling the source why.
+   * Nothing else knows: a worker let go while the window was covered and built
+   * again when it came back leaves a component that only watched for its
+   * first frame believing it was drawing all along.
+   */
+  onWaiting?: (waiting: boolean) => void;
   /**
    * After every drawn frame: what the scene got, the ladder's scale, the
    * musical accent's envelope the scene was given, and what it heard before

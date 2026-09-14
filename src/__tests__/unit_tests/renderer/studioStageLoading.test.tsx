@@ -34,7 +34,9 @@ const frame = (fade: number) =>
     NonNullable<ReturnType<typeof current>['onDrawn']>
   >[0];
 beforeEach(() => jest.clearAllMocks());
-it('keeps loading through the black opening frame, then reveals the first visible frame', () => {
+// When a version is on its way is the runner's to say (`onWaiting`), frames
+// and all: `studioStageRebuild.test.tsx` drives the real one.
+it('shows loading for as long as the runner says a version is on its way', () => {
   render(
     <StudioStage
       identity={props.identity}
@@ -51,16 +53,23 @@ it('keeps loading through the black opening frame, then reveals the first visibl
     />,
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
-  act(() => current().onDrawn?.(frame(0), 1, 0, frame(0)));
+  // A frame alone decides nothing here.
+  act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
   expect(screen.getByTestId('studio-stage')).toHaveAttribute(
     'aria-busy',
     'true',
   );
-  act(() => current().onDrawn?.(frame(0.1), 1, 0, frame(0.1)));
+  act(() => current().onWaiting?.(false));
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(screen.getByTestId('studio-stage')).toHaveAttribute(
     'aria-busy',
     'false',
+  );
+  act(() => current().onWaiting?.(true));
+  expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
+  expect(screen.getByTestId('studio-stage')).toHaveAttribute(
+    'aria-busy',
+    'true',
   );
 });
 it('starts loading again when the selected project changes', () => {
@@ -80,7 +89,7 @@ it('starts loading again when the selected project changes', () => {
       isGridShown={false}
     />,
   );
-  act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
+  act(() => current().onWaiting?.(false));
   rerender(
     <StudioStage
       key="two"
@@ -99,7 +108,7 @@ it('starts loading again when the selected project changes', () => {
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
 });
-it('ends the loader and reports an actual compile error', () => {
+it('reports an actual compile error', () => {
   render(
     <StudioStage
       identity={props.identity}
@@ -116,7 +125,6 @@ it('ends the loader and reports an actual compile error', () => {
     />,
   );
   act(() => current().source.reportFailure('compile', 'Bad shader'));
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
   expect(props.onTrouble).toHaveBeenCalledWith({
     kind: 'compile',
     log: 'Bad shader',

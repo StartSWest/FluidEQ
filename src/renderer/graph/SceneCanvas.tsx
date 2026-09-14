@@ -60,9 +60,10 @@ const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
  * an error; the fallback form is the error state, and it is a working
  * visualizer.
  *
- * A member's scene differs in exactly two ways: it warms up from an eighth of
- * the size instead of starting at full, and it is drawn through the brightness
- * limiter. Nobody watched it before it reached this screen.
+ * A member's scene differs in exactly three ways: it warms up from an eighth
+ * of the size instead of starting at full, it is drawn through the brightness
+ * limiter, and it is not compiled ahead while out of sight. Nobody watched it
+ * before it reached this screen.
  */
 export default function SceneCanvas({
   scene,
@@ -103,6 +104,7 @@ export default function SceneCanvas({
             // the pack: fall back until the next launch, write nothing down.
             tooSlow: () => blockScene(key),
             createLadder: createCostLadder,
+            warmWhenUnseen: true,
           },
     [member, key, version, name],
   );

@@ -8,16 +8,19 @@ import {
   getEaseFactor,
 } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
+import observeShown from 'renderer/utils/observeShown';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
 import type { ISceneFrame } from './sceneGl';
 import type { ICostLadder } from './sceneHealth';
 import { createSceneTuner } from './sceneTuner';
+import { sceneProgramKey } from './sceneLinkTurns';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
 import type { ISceneRunnerOptions } from './sceneRunnerTypes';
 import {
   createSceneWorkerClient,
+  warmSceneProgram,
   type ISceneWorkerClient,
 } from './sceneWorkerClient';
 import {
@@ -52,6 +55,7 @@ export default function useSceneRunner({
   tuning,
   onDrawn,
   onLoaded,
+  onWaiting,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
   // What the scene is drawn inside: each worker puts a canvas of its own here.
@@ -88,6 +92,24 @@ export default function useSceneRunner({
   drawnRef.current = onDrawn;
   const loadedRef = useRef(onLoaded);
   loadedRef.current = onLoaded;
+  const waitingCallbackRef = useRef(onWaiting);
+  waitingCallbackRef.current = onWaiting;
+  const waitingRef = useRef<boolean | undefined>(undefined);
+  /**
+   * The build whose program the worker holds ready to draw. Frames are
+   * tagged with it when they are sent, so the last frame of the version being
+   * replaced, answered after its replacement was asked for, does not end the
+   * wait for the new one.
+   */
+  const readyGenerationRef = useRef<number | undefined>(undefined);
+  /**
+   * The program (`sceneProgramKey`) the size ladder has been climbing with.
+   * The same program built again — in a fresh worker, once the scene is seen
+   * again after being put away — keeps the size it had already proved it can
+   * draw; the warm-up started from an eighth again on every return to the
+   * window, for a scene that had been running whole seconds before.
+   */
+  const ladderProgramRef = useRef<string | undefined>(undefined);
   const pointsRef = useRef(points);
   pointsRef.current = isPaused ? NO_POINTS : points;
   const waveformSamplesRef = useRef(waveform);
@@ -100,6 +122,13 @@ export default function useSceneRunner({
   spectrumRectRef.current = spectrumRect;
 
   const playing = !isPaused && points.length > 0;
+
+  const setWaiting = useCallback((waiting: boolean) => {
+    if (waitingRef.current !== waiting) {
+      waitingRef.current = waiting;
+      waitingCallbackRef.current?.(waiting);
+    }
+  }, []);
 
   const dropProgram = useCallback(() => {
     rendererRef.current?.dispose();
@@ -209,6 +238,7 @@ export default function useSceneRunner({
         tuningRef.current,
       );
       const ladder = ladderRef.current;
+      const drawnGeneration = readyGenerationRef.current;
       renderer.draw(
         frame,
         backingWidth,
@@ -229,33 +259,49 @@ export default function useSceneRunner({
               `Scene "${sourceRef.current.name}" ran too slowly even at its smallest size; it stops until the next launch.`,
             );
             dropProgram();
+            setWaiting(false);
             sourceRef.current.tooSlow();
             return;
+          }
+          // Its first frame with anything in it: a fade still at zero is black.
+          if (drawnGeneration === generationRef.current && frame.fade > 0) {
+            setWaiting(false);
           }
           drawnRef.current?.(frame, scale, accent, shaped);
         },
       );
       return true;
     },
-    [dropProgram],
+    [dropProgram, setWaiting],
   );
 
   const kick = useSmoothFrames(onFrame, { isEnabled: true });
+
+  /**
+   * The pack a scene put away while nobody could see it, to build again when
+   * somebody can. See the `shown` report below.
+   */
+  const shelvedRef = useRef<IScenePack | null>(null);
+  // The newest pack asked for, which is not yet `packRef` while it compiles:
+  // hiding a scene mid-compile has to shelve this one, not nothing.
+  const wantedRef = useRef<IScenePack | null>(null);
+  const shownRef = useRef(true);
+  const buildRef = useRef<(pack: IScenePack) => Promise<void>>(() =>
+    Promise.resolve(),
+  );
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) {
       return undefined;
     }
-    let intersects = true;
     const measure = () => {
       const box = host.getBoundingClientRect();
       const left = Math.max(0, -box.left);
       const top = Math.max(0, -box.top);
       const right = Math.min(box.width, window.innerWidth - box.left);
       const bottom = Math.min(box.height, window.innerHeight - box.top);
-      visibleRef.current =
-        intersects && !document.hidden && right > left && bottom > top;
+      visibleRef.current = shownRef.current && right > left && bottom > top;
       if (visibleRef.current) {
         clipRef.current = [
           left / box.width,
@@ -268,25 +314,50 @@ export default function useSceneRunner({
         drawnAtRef.current = undefined;
       }
     };
-    const intersection = new IntersectionObserver((entries) => {
-      intersects = entries.some((entry) => entry.isIntersecting);
+    /**
+     * A scene nobody can see gives its worker back, GPU context and all.
+     *
+     * Stopping the frame loop alone was what hiding used to do, and the worker,
+     * its WebGL context, the compiled program and every texture stayed held for
+     * as long as the component stayed mounted — under the expanded graph,
+     * behind the Studio's full stage, scrolled out of a gallery, with the
+     * window minimised. The pack is kept, so coming back into view compiles
+     * it again beside nothing and fades it in.
+     */
+    const stopObserving = observeShown(host, (shown) => {
+      shownRef.current = shown;
+      if (!shown && rendererRef.current) {
+        shelvedRef.current = wantedRef.current ?? packRef.current;
+        generationRef.current += 1;
+        buildingRef.current = false;
+        dropProgram();
+        packRef.current = null;
+        // The canvas went with the worker; the next picture is a whole build
+        // away. Windows calls FluidEQ hidden whenever another window covers
+        // it, so this is where the Studio stage is while the member's AI saves
+        // from the window in front — and it sat black, saying nothing.
+        if (shelvedRef.current) {
+          setWaiting(true);
+        }
+      } else if (shown && shelvedRef.current) {
+        const pack = shelvedRef.current;
+        shelvedRef.current = null;
+        fadeRef.current = 0;
+        buildRef.current(pack).catch(() => undefined);
+      }
       measure();
     });
     const resize = new ResizeObserver(measure);
-    intersection.observe(host);
     resize.observe(host);
-    document.addEventListener('visibilitychange', measure);
     window.addEventListener('scroll', measure, true);
     window.addEventListener('resize', measure);
-    measure();
     return () => {
-      intersection.disconnect();
+      stopObserving();
       resize.disconnect();
-      document.removeEventListener('visibilitychange', measure);
       window.removeEventListener('scroll', measure, true);
       window.removeEventListener('resize', measure);
     };
-  }, [width, height, kick]);
+  }, [width, height, kick, dropProgram, setWaiting]);
 
   const startRenderer = useCallback(() => {
     const host = hostRef.current;
@@ -303,7 +374,8 @@ export default function useSceneRunner({
             );
           }
           dropProgram();
-          if (reason === 'context-lost') {
+          setWaiting(false);
+          if (reason === 'context-lost' || reason === 'gpu-reset') {
             sourceRef.current.reportFailure(reason);
           } else {
             sourceRef.current.block();
@@ -319,14 +391,25 @@ export default function useSceneRunner({
       console.error('Scene worker could not start:', error);
     }
     if (!rendererRef.current) {
+      setWaiting(false);
       sourceRef.current.block();
     }
     return rendererRef.current;
-  }, [dropProgram, kick]);
+  }, [dropProgram, kick, setWaiting]);
 
   /** A worker prepares the next scene while the interface remains available. */
   const build = useCallback(
     async (pack: IScenePack) => {
+      // Unseen, it waits to be seen before it costs a worker.
+      if (!shownRef.current) {
+        shelvedRef.current = pack;
+        setWaiting(true);
+        if (sourceRef.current.warmWhenUnseen) {
+          warmSceneProgram(pack, Boolean(sourceRef.current.createGuard));
+        }
+        return;
+      }
+      wantedRef.current = pack;
       // A settings save comes back as a new pack. Keep the running program,
       // textures, clock and limiter; do not even copy its artwork to a worker.
       if (
@@ -350,6 +433,9 @@ export default function useSceneRunner({
       generationRef.current += 1;
       const generation = generationRef.current;
       buildingRef.current = true;
+      // Beside a running picture too: that picture stops moving until the
+      // new one is built, which in a busy window is seconds.
+      setWaiting(true);
       let result;
       try {
         result = await renderer.load(
@@ -370,35 +456,53 @@ export default function useSceneRunner({
       drawnAtRef.current = undefined;
       if (result.kind === 'unavailable') {
         dropProgram();
+        setWaiting(false);
         sourceRef.current.block();
       } else if (result.kind === 'compile') {
         console.error(
           `Scene "${pack.names.en}" (${pack.id} v${pack.version}) failed to compile:\n${result.log}`,
         );
+        // The last version that compiled, if there is one, carries on — and is
+        // the one built again should the scene be put away and seen again,
+        // rather than the broken one, which left nothing on the stage.
+        if (packRef.current) {
+          wantedRef.current = packRef.current;
+        }
+        setWaiting(false);
         sourceRef.current.reportFailure('compile', result.log);
       } else if (result.kind === 'ready') {
         packRef.current = pack;
+        readyGenerationRef.current = generation;
         paramsRef.current = Object.fromEntries(
           pack.params.map((param) => [param.id, param.value]),
         );
-        if (result.rebuilt) {
+        const program = `${sourceRef.current.identity}\n${sceneProgramKey(pack)}`;
+        if (result.rebuilt && program !== ladderProgramRef.current) {
           ladderRef.current = sourceRef.current.createLadder();
+          ladderProgramRef.current = program;
         }
         loadedRef.current?.(pack);
         kick();
       }
     },
-    [kick, startRenderer, dropProgram],
+    [kick, startRenderer, dropProgram, setWaiting],
   );
+  buildRef.current = build;
 
   // A fresh worker, on a fresh canvas of its own, on every mount/project,
   // including React's development remount — see `createSceneWorkerClient`.
+  // Not for a scene mounted where nobody can see it: its first build starts
+  // one when it is shown.
   useEffect(() => {
-    startRenderer();
+    if (shownRef.current) {
+      startRenderer();
+    }
     return () => {
       generationRef.current += 1;
       dropProgram();
       packRef.current = null;
+      shelvedRef.current = null;
+      wantedRef.current = null;
     };
   }, [source.identity, startRenderer, dropProgram]);
 
@@ -430,6 +534,7 @@ export default function useSceneRunner({
         if (!pack) {
           // Entitlement lapsed between the list and the load, or the pack was
           // quarantined meanwhile. Session-only; nothing is written down.
+          setWaiting(false);
           sourceRef.current.block();
           return undefined;
         }
@@ -438,13 +543,14 @@ export default function useSceneRunner({
       .catch(() => {
         // The bridge failed, not the shader. Session-only.
         if (!cancelled) {
+          setWaiting(false);
           sourceRef.current.block();
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [source.identity, source.version, build]);
+  }, [source.identity, source.version, build, setWaiting]);
 
   // Audio can wake a ready scene, but cannot restart hidden rendering.
   useEffect(() => {
