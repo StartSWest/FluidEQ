@@ -218,7 +218,7 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   if (gl.isContextLost()) {
     if (lastCostMs > BLAMED_FRAME_MS && pack) {
       // Lost while its own frame held the GPU: the reset was the scene's,
-      // and the lamps do not take it back this session.
+      // and the window keeps that beyond this session (`sceneRefusals.ts`).
       wanted = null;
       fail(pack.id, 'gpu-reset');
     }

@@ -1,16 +1,6 @@
 @use 'color' as *;
 @use 'theme' as *;
 
-.graph-look-menu .row:has(.graph-scene-remove) {
-  flex-wrap: wrap;
-  gap: 6px;
-
-  .graph-look-option {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
 .graph-scene-remove {
   display: flex;
   align-items: center;

@@ -1,12 +1,10 @@
-import fs from 'fs';
-import path from 'path';
 import {
   isNeutralResponse,
   readResponse,
   RESPONSE_KEYS,
   type ISceneResponse,
 } from '../../common/sceneResponse';
-import { MANIFEST_FILE, readManifest } from './project';
+import { MANIFEST_FILE, readManifest, writeInside } from './project';
 import { queueSettingsWrite } from './settingsWrites';
 
 /**
@@ -24,6 +22,8 @@ import { queueSettingsWrite } from './settingsWrites';
 
 export interface IProjectSettings {
   params?: Readonly<Record<string, number>>;
+  /** Where the ambient layer's controls stand, 0..1, by id (`sceneAmbient.ts`). */
+  ambient?: Readonly<Record<string, number>>;
   /** `null` takes the scene's response out: as the engine hears it. */
   response?: ISceneResponse | null;
 }
@@ -67,6 +67,23 @@ const writeSettings = async (
     });
   }
 
+  const { ambient } = manifest;
+  if (settings.ambient && isRecord(ambient) && Array.isArray(ambient.params)) {
+    const given = settings.ambient;
+    manifest.ambient = {
+      ...ambient,
+      params: ambient.params.map((entry: unknown) => {
+        if (!isRecord(entry) || typeof entry.id !== 'string') {
+          return entry;
+        }
+        const value = given[entry.id];
+        return typeof value === 'number' && Number.isFinite(value)
+          ? { ...entry, value: tidy(Math.min(1, Math.max(0, value))) }
+          : entry;
+      }),
+    };
+  }
+
   if (settings.response !== undefined) {
     const response =
       settings.response === null ? null : readResponse(settings.response);
@@ -85,11 +102,12 @@ const writeSettings = async (
   try {
     // The same file the read took, checked the same way: directly in the
     // folder, never a link out of it.
-    const real = await fs.promises.realpath(path.join(folder, MANIFEST_FILE));
-    if (path.dirname(real) !== (await fs.promises.realpath(folder))) {
-      return 'failed';
-    }
-    await fs.promises.writeFile(real, `${JSON.stringify(manifest, null, 2)}\n`);
+    await writeInside(
+      folder,
+      MANIFEST_FILE,
+      'pack.json',
+      `${JSON.stringify(manifest, null, 2)}\n`,
+    );
     return 'written';
   } catch {
     return 'failed';
