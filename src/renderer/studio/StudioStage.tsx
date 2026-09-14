@@ -17,7 +17,7 @@ import useSceneRunner, {
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
 import StudioGraphPaper from './StudioGraphPaper';
-import { reportSceneBeat } from '../utils/scenePulse';
+import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import StudioStageLoading from './StudioStageLoading';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
@@ -193,6 +193,9 @@ export default function StudioStage({
     },
     [],
   );
+  // The window's light goes with the stage: the Studio closing, another
+  // project taking the bench, the stage stood down for a publish.
+  useEffect(() => () => reportSceneLeft('studio'), []);
 
   const { spectrumRange } = pack;
   const paper = useMemo(

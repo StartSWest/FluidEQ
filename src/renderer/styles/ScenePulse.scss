@@ -11,10 +11,16 @@ it under the terms of the GNU General Public License version 3 or later.
 // The lightest a glow's colour may be, in OKLCH lightness.
 $glow-lightness: 0.6;
 
-// The window glowing with a scene (`ScenePulse.tsx`). Over the whole window
-// and under every dialog, toast and menu (those start at 1190), taking no
-// pointer. Every layer rests at opacity 0 and only ever animates transform
-// and opacity, so a swell is the compositor's work and nothing is repainted.
+// The window glowing with a scene (`ScenePulse.tsx`). Over the panes and
+// under everything that floats in front of them, taking no pointer.
+//
+// 91, just over the ambient elements' 90 (`SceneAmbient.scss`). It was 1100,
+// on the belief that menus start at 1190; they start at 95. The titlebar is a
+// stacking context at 100 whose menus open inside it, the portalled menus sit
+// at 1000 and 1001, and the glow lit every one of them from above.
+//
+// Every layer rests at opacity 0 and only ever animates transform and
+// opacity, so a swell is the compositor's work and nothing is repainted.
 //
 // `will-change` keeps each on a layer of its own between swells. Without it
 // Chromium promoted a layer as its animation started and dropped it as it
@@ -28,7 +34,7 @@ $glow-lightness: 0.6;
 .scene-pulse {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: 91;
   overflow: hidden;
   pointer-events: none;
   contain: strict;

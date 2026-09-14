@@ -47,6 +47,8 @@ export interface IScenePulse {
 
 export type TScenePulseListener = (pulse: IScenePulse) => void;
 
+export type TSceneLeftListener = (source: TScenePulseSource) => void;
+
 /** What the pulse needs from a drawn frame. */
 export interface IScenePulseFrame {
   beat: number;
@@ -69,6 +71,7 @@ const armed: Record<TScenePulseSource, boolean> = { graph: true, studio: true };
 /** Beats counted since the last pulse; the first beat heard pulses. */
 const counted: Record<TScenePulseSource, number> = { graph: 0, studio: 0 };
 const listeners = new Set<TScenePulseListener>();
+const leftListeners = new Set<TSceneLeftListener>();
 
 /** The band that is loudest on the beat; the bass when they tie. */
 const voiceOf = (bands: readonly [number, number, number]) =>
@@ -109,9 +112,33 @@ export const subscribeScenePulse = (listener: TScenePulseListener) => {
   };
 };
 
+/**
+ * From a scene as it leaves the screen for good: unmounted with its page, or
+ * replaced by another project's. Its light has to go with it. A swell takes
+ * seconds to settle, and one still settling after the Studio was left lit the
+ * Visualizers page with the Studio stage's box still cut out of it, which
+ * read as the Studio's preview hanging on behind the page.
+ *
+ * The next scene from the same place starts its count afresh, so its first
+ * beat is answered as a new scene's is.
+ */
+export const reportSceneLeft = (source: TScenePulseSource) => {
+  armed[source] = true;
+  counted[source] = 0;
+  leftListeners.forEach((listener) => listener(source));
+};
+
+export const subscribeSceneLeft = (listener: TSceneLeftListener) => {
+  leftListeners.add(listener);
+  return () => {
+    leftListeners.delete(listener);
+  };
+};
+
 /** For tests: a clean module between runs. */
 export const resetScenePulse = () => {
   listeners.clear();
+  leftListeners.clear();
   armed.graph = true;
   armed.studio = true;
   counted.graph = 0;

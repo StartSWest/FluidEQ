@@ -1,4 +1,11 @@
-import { useCallback, useMemo, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import {
   reportOwnResponse,
@@ -22,7 +29,7 @@ import SceneLoading from './SceneLoading';
 import { createCostLadder } from './sceneHealth';
 import { createWarmupLadder } from './sceneWarmup';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
-import { reportSceneBeat } from '../utils/scenePulse';
+import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 
 export type TDrawableScene = IUsableScene | IUsableMemberScene;
 
@@ -120,6 +127,10 @@ export default function SceneCanvas({
     },
     [key],
   );
+  // The window's light goes with the graph's scene when the graph leaves the
+  // screen with its tab. Not when the look changes: the next scene is drawn
+  // in this same place and carries the light on.
+  useEffect(() => () => reportSceneLeft('graph'), []);
 
   // The listener's own attack and release for this visualizer, from the
   // graph's menu, over the timing its pack came with.

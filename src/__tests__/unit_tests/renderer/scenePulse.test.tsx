@@ -18,6 +18,7 @@ import { act, render } from '@testing-library/react';
 import {
   BEATS_PER_PULSE,
   reportSceneBeat,
+  reportSceneLeft,
   resetScenePulse,
   subscribeScenePulse,
   type IScenePulse,
@@ -47,8 +48,18 @@ const quiet = {
 } satisfies IScenePulseFrame;
 
 /** A scene of `width`×`height` at `left`,`top`. */
-const sceneAt = (left: number, top: number, width: number, height: number) => {
+const sceneAt = (
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  className?: string,
+) => {
   const element = document.createElement('div');
+  if (className) {
+    element.className = className;
+    document.body.appendChild(element);
+  }
   element.getBoundingClientRect = () =>
     ({
       left,
@@ -74,6 +85,9 @@ const beats = (count: number, frame: IScenePulseFrame, scene?: Element) => {
 
 beforeEach(() => {
   resetScenePulse();
+  document.body
+    .querySelectorAll('.graph-plot, .studio-stage, .gallery-picture')
+    .forEach((element) => element.remove());
   mockLookId = 'premium:bloom';
   setStudioTintSource(undefined);
   setSceneTintMode('pulse');
@@ -101,6 +115,16 @@ describe('which beats the window answers', () => {
     subscribeScenePulse((pulse) => heard.push(pulse));
     beats(1, beat(0.9));
     expect(heard.map((pulse) => pulse.strength)).toEqual([0.35, 1]);
+  });
+
+  it('answers the first beat of the next scene from the same place', () => {
+    const heard: IScenePulse[] = [];
+    subscribeScenePulse((pulse) => heard.push(pulse));
+    beats(2, beat());
+    expect(heard).toHaveLength(1);
+    reportSceneLeft('graph');
+    beats(1, beat());
+    expect(heard).toHaveLength(2);
   });
 
   it('takes its colour from the part of the music carrying the beat', () => {
@@ -164,7 +188,11 @@ describe('the glow in the window', () => {
     expect(layer.querySelectorAll('.scene-pulse__glow')).toHaveLength(3);
 
     act(() =>
-      beats(1, beat(0.42, [0.1, 0.2, 0.9]), sceneAt(100, 60, 400, 180)),
+      beats(
+        1,
+        beat(0.42, [0.1, 0.2, 0.9]),
+        sceneAt(100, 60, 400, 180, 'graph-plot'),
+      ),
     );
     expect(animations).toHaveLength(1);
     const [{ element, frames }] = animations;
@@ -175,6 +203,140 @@ describe('the glow in the window', () => {
     expect(layer.style.clipPath).toMatch(
       /^path\(evenodd, 'M0 0H\d+V\d+H0Z M112 60 /,
     );
+  });
+
+  it('keeps every visualizer on screen out of the light, not only the one it comes from', () => {
+    render(<ScenePulse />);
+    const layer = document.querySelector('.scene-pulse') as HTMLElement;
+    const graph = sceneAt(100, 60, 400, 180, 'graph-plot');
+    sceneAt(600, 300, 200, 120, 'gallery-picture');
+    // A picture shown inside another visualizer's box is one hole, not two:
+    // under `evenodd` a second outline would put the light back inside.
+    sceneAt(120, 80, 100, 50, 'gallery-picture');
+    act(() => beats(1, beat(), graph));
+    const holes = layer.style.clipPath.match(/ M\d/g) ?? [];
+    expect(holes).toHaveLength(2);
+    expect(layer.style.clipPath).toContain('M112 60 ');
+    expect(layer.style.clipPath).toContain('M612 300 ');
+  });
+
+  it('follows the visualizers while a swell is lit, as a page scrolls under it', async () => {
+    render(<ScenePulse />);
+    const layer = document.querySelector('.scene-pulse') as HTMLElement;
+    const picture = sceneAt(600, 300, 200, 120, 'gallery-picture');
+    act(() => beats(1, beat(), picture));
+    const glow = animations[0].element as HTMLElement;
+    glow.getAnimations = () => [{} as Animation];
+    expect(layer.style.clipPath).toContain('M612 300 ');
+
+    picture.getBoundingClientRect = sceneAt(
+      600,
+      180,
+      200,
+      120,
+    ).getBoundingClientRect;
+    await act(async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    });
+    expect(layer.style.clipPath).toContain('M612 180 ');
+
+    // Dark again: nothing is followed until the next swell.
+    glow.getAnimations = () => [];
+    await act(async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    });
+    picture.getBoundingClientRect = sceneAt(0, 0, 50, 50).getBoundingClientRect;
+    await act(async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    });
+    expect(layer.style.clipPath).toContain('M612 180 ');
+  });
+
+  it('puts its light out with the scene that made it, and the cut around where it stood', () => {
+    render(<ScenePulse />);
+    const layer = document.querySelector('.scene-pulse') as HTMLElement;
+    const stage = sceneAt(100, 60, 400, 180, 'graph-plot');
+    act(() => beats(1, beat(), stage));
+    const glow = animations[0].element as HTMLElement;
+    const cancel = jest.fn();
+    glow.getAnimations = () => [{ cancel } as unknown as Animation];
+    glow.style.opacity = '0.7';
+    glow.style.transform = 'matrix(3, 0, 0, 2, 300, 150)';
+
+    // The page with the scene on it goes.
+    stage.remove();
+    act(() => reportSceneLeft('graph'));
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    const [from, to] = animations[1].frames;
+    expect(from).toMatchObject({
+      opacity: 0.7,
+      transform: 'matrix(3, 0, 0, 2, 300, 150)',
+    });
+    expect(to.opacity).toBe(0);
+    expect(layer.style.clipPath).toBe('none');
+  });
+
+  it('leaves the light alone when some other scene leaves', () => {
+    render(<ScenePulse />);
+    act(() => beats(1, beat(), sceneAt(100, 60, 400, 180)));
+    const glow = animations[0].element as HTMLElement;
+    const cancel = jest.fn();
+    glow.getAnimations = () => [{ cancel } as unknown as Animation];
+    act(() => reportSceneLeft('studio'));
+    expect(cancel).not.toHaveBeenCalled();
+  });
+
+  it('puts the Studio’s light out when the Studio hands the window back to the graph', () => {
+    setStudioTintSource({ project: 'mine' });
+    setStudioTintMode('pulse');
+    render(<ScenePulse />);
+    act(() => {
+      reportSceneBeat('studio', beat(), sceneAt(100, 60, 400, 180));
+    });
+    const glow = animations[0].element as HTMLElement;
+    const cancel = jest.fn();
+    glow.getAnimations = () => [{ cancel } as unknown as Animation];
+    glow.style.opacity = '0.5';
+    act(() => setStudioTintSource(undefined));
+    // The graph is in Ambient too, so the layer stays; the Studio's swell
+    // does not settle over the page that replaced it.
+    expect(document.querySelector('.scene-pulse')).not.toBeNull();
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(animations[1].frames[1].opacity).toBe(0);
+  });
+
+  it('carries a swell still settling on from where its light is, never back to dark', () => {
+    render(<ScenePulse />);
+    const scene = sceneAt(100, 60, 400, 180);
+    act(() => beats(1, beat(0.42, [0.9, 0.1, 0.1]), scene));
+    const bass = animations[0].element as HTMLElement;
+    const first = animations[0].frames;
+    // From dark, the first time: nothing is lit yet.
+    expect(first[0].opacity).toBe(0);
+
+    // The next swell in the same colour arrives while that one still glows,
+    // two-thirds of the way out.
+    const cancel = jest.fn();
+    bass.getAnimations = () => [{ cancel } as unknown as Animation];
+    bass.style.opacity = '0.6';
+    bass.style.transform = 'matrix(4, 0, 0, 2, 300, 150)';
+    act(() => beats(BEATS_PER_PULSE, beat(0.2, [0.9, 0.1, 0.1]), scene));
+
+    expect(animations).toHaveLength(2);
+    const [start, peak, end] = animations[1].frames;
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(start.opacity).toBe(0.6);
+    expect(start.transform).toBe('matrix(4, 0, 0, 2, 300, 150)');
+    // A quieter beat still does not dim the light it took over on the way up.
+    expect(peak.opacity).toBe(0.6);
+    expect(end.opacity).toBe(0);
   });
 
   it('follows the Studio’s mode while a project owns the window, not the graph’s', () => {
@@ -209,6 +371,14 @@ describe('how the glow is drawn', () => {
     const layer = rule('.scene-pulse')?.declarations;
     expect(layer?.get('mix-blend-mode')).toBe('screen');
     expect(layer?.get('pointer-events')).toBe('none');
+  });
+
+  it('lights the panes from under everything that floats in front of them', () => {
+    // The titlebar is a stacking context at 100 with its menus inside it,
+    // and the floating layer starts at 95; the panes stop at 73.
+    const z = Number(rule('.scene-pulse')?.declarations.get('z-index'));
+    expect(z).toBeGreaterThan(73);
+    expect(z).toBeLessThan(95);
   });
 
   it('keeps each glow on a layer of its own between swells, so a swell repaints nothing', () => {
