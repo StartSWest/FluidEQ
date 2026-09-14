@@ -66,7 +66,7 @@ describe('the live level scale', () => {
     expect(level(MAX_GAIN)).toBeGreaterThan(gain(MAX_GAIN));
   });
 
-  it('follows a scene that reserves its own band, not the wave', () => {
+  it('follows a scene that reserves its own band', () => {
     const level = liveLevelScaleFor({
       gain,
       spectrumRange: [0.55, 0.94],
@@ -77,6 +77,23 @@ describe('the live level scale', () => {
     const topY = Math.max((1 - 0.94) * 480 - 54, Math.min(14, 370));
     expect(level(MAX_GAIN)).toBeCloseTo(topY);
     expect(level(MIN_GAIN)).toBeCloseTo((1 - 0.55) * 480 - 54);
+  });
+
+  it('moves the wave inside a reserved band, as it moves in the plot', () => {
+    const topY = Math.max((1 - 0.94) * 480 - 54, Math.min(14, 370));
+    const bottomY = (1 - 0.55) * 480 - 54;
+    const level = liveLevelScaleFor({
+      gain,
+      spectrumRange: [0.55, 0.94],
+      liveCurve: { heightScale: 0.5, verticalPosition: 1 },
+      height: 480,
+      marginTop: 54,
+    });
+    // Lifted all the way it stands on the band's middle; half height takes
+    // half of what is left above it.
+    const middle = (topY + bottomY) / 2;
+    expect(level(MIN_GAIN)).toBeCloseTo(middle);
+    expect(level(MAX_GAIN)).toBeCloseTo(middle - (middle - topY) / 2);
   });
 });
 

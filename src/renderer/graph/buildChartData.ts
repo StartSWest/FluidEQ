@@ -46,6 +46,7 @@ import {
   GRAPH_START,
   IChartCurveData,
   IChartLineDataPointsById,
+  OUTPUT_CURVE_ID,
 } from './ChartController';
 import {
   getFilterLineData,
@@ -109,6 +110,14 @@ export interface IBuildChartDataParams extends Pick<
    */
   bypassed: TApoLayer[];
   hasConvolution: boolean;
+  /**
+   * Whether a preamp is in the chain at all, which is what draws the output
+   * curve when nothing else would. Separate from `preAmp` because under the
+   * FluidEQ Engine's automatic preamp that is passed as zero: the live gain
+   * moves at display rate, and the chart applies it to the output curve
+   * itself rather than rebuilding every curve for each value.
+   */
+  hasPreAmp: boolean;
   isEqQuiet: boolean;
   t: ReturnType<typeof useTranslation>['t'];
   /**
@@ -167,6 +176,7 @@ export const buildChartData = ({
   filters,
   graphicEq,
   hasConvolution,
+  hasPreAmp,
   headphone,
   isEqQuiet,
   isEqDoubleOn,
@@ -511,7 +521,7 @@ export const buildChartData = ({
   const hasExtraLayers = Boolean(
     ((strength !== 'normal' || mainShape !== 'off') && hasEq) ||
     convolution ||
-    Math.abs(preAmp) > 0.01 ||
+    hasPreAmp ||
     getVoicingFilters(voicing).length ||
     getVoicingGraphicEq(voicing).length ||
     getDriverFilters(driver).length ||
@@ -665,7 +675,7 @@ export const buildChartData = ({
       ...(hasExtraLayers
         ? [
             {
-              id: 'Total Response',
+              id: OUTPUT_CURVE_ID,
               name: totalCurveName,
               line: {
                 color: ColorEnum.TOTAL,

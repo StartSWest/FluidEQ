@@ -12,6 +12,7 @@ jest.mock('electron-log', () => ({ warn: jest.fn() }));
 
 const endpoint = '{12345678-1234-1234-1234-123456789abc}';
 const sender = new EventEmitter();
+const sockets: EventEmitter[] = [];
 const setup = async (capable = true) => {
   const server = Object.assign(new EventEmitter(), {
     listen: (_options: unknown, ready: () => void) => ready(),
@@ -22,6 +23,7 @@ const setup = async (capable = true) => {
     write: jest.fn(),
     destroy: jest.fn(),
   });
+  sockets.push(socket);
   const accept = jest.mocked(net.createServer).mock.calls[0][0] as unknown as (
     connection: unknown,
   ) => void;
@@ -55,6 +57,9 @@ const frame = (gain = -6) => {
   return packet;
 };
 beforeEach(() => jest.clearAllMocks());
+afterEach(() => {
+  sockets.splice(0).forEach((socket) => socket.emit('close'));
+});
 
 it('reads actual reduction with DSP absent and accepts fragmented packets', async () => {
   const { read, socket } = await setup();

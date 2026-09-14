@@ -27,10 +27,13 @@ import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import useController, {
   IChartCurveData,
   IChartGradientStop,
+  IChartLiveOffset,
   IEditableChartPoint,
   ILiveCurveData,
   IMarginLike,
+  OUTPUT_CURVE_ID,
 } from './ChartController';
+import { useLiveCurveExtent, useLiveCurveGroup } from './useLiveCurveOffset';
 import {
   toggleGraphFullScreen,
   useGraphCoverageHidden,
@@ -880,6 +883,12 @@ interface IChartProps {
   /** The live output owns the plot instead of supporting response curves. */
   isLiveOutputForeground: boolean;
   onMarqueeSelect?: (ids: string[], additive: boolean) => void;
+  /**
+   * A gain the output curve is moved by after it is built: the FluidEQ
+   * Engine's automatic preamp, which moves at display rate on loud passages.
+   * Absent when the preamp is already in the curve's points.
+   */
+  outputOffset?: IChartLiveOffset;
 }
 
 const Chart = ({
@@ -890,6 +899,7 @@ const Chart = ({
   liveCurves = [],
   isLiveOutputForeground,
   onMarqueeSelect,
+  outputOffset,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
@@ -929,12 +939,15 @@ const Chart = ({
     [svgHeight, padding],
   );
 
+  const outputExtent = useLiveCurveExtent(scaleData, outputOffset);
   const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
     scaleData,
+    extent: outputExtent,
     width: svgWidth,
     height: svgHeight,
     padding,
   });
+  const attachOutputCurve = useLiveCurveGroup(outputOffset, yScaleGain);
 
   const scene = useSceneLook();
   const hasScene = Boolean(scene);
@@ -1278,9 +1291,25 @@ const Chart = ({
           The orientations — hanging, mirrored, centred — belong to the live
           trace alone and are applied on the canvas, where the geometry they
           reflect is drawn. */}
-        {data.map((e: IChartCurveData) => (
-          <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
-        ))}
+        {data.map((e: IChartCurveData) =>
+          e.id === OUTPUT_CURVE_ID && outputOffset ? (
+            // Clipped here, outside the move, as well as by the line itself:
+            // the line's own clip travels with the translation, so on its own
+            // a curve carried down would run into the frequency labels.
+            <g key={e.id} clipPath="url(#chart-clip-path)">
+              <g ref={attachOutputCurve}>
+                <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
+              </g>
+            </g>
+          ) : (
+            <Curve
+              key={e.id}
+              data={e}
+              xScale={xScaleFreq}
+              yScale={yScaleGain}
+            />
+          ),
+        )}
         {editablePoints.map((point) => (
           <EditablePoint
             key={point.id}

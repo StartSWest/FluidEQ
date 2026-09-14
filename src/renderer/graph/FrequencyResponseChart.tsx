@@ -56,7 +56,10 @@ import {
 import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import { useCurrentEngine } from '../utils/audioEngineContext';
-import { useEnginePreamp } from '../utils/enginePreamp';
+import {
+  liveEnginePreamp,
+  useEnginePreampAudible,
+} from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
 import {
   IChartLineDataPointsById,
@@ -678,19 +681,25 @@ const FrequencyResponseChart = ({
     bypassed,
     customFx,
   } = useFluidEqContext();
-  const livePreamp = useEnginePreamp();
   const currentEngine = useCurrentEngine();
-  const automaticPreamp = livePreamp?.enabled ? livePreamp.gainDb : 0;
-  const preAmp =
-    currentEngine === 'fluid' && isAutoPreAmpOn
-      ? automaticPreamp
-      : configuredPreAmp;
+  // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
+  // display rate on loud passages, so it never enters this component's state:
+  // the curves are built without it and `Chart` moves the output curve by it
+  // (`liveEnginePreamp`). All this tree hears is whether it is non-zero.
+  const isPreampLive = currentEngine === 'fluid' && isAutoPreAmpOn;
+  const isLivePreampAudible = useEnginePreampAudible();
+  const preAmp = isPreampLive ? 0 : configuredPreAmp;
+  const hasPreAmp = isPreampLive
+    ? isLivePreampAudible
+    : Math.abs(configuredPreAmp) > 0.01;
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
   // Clean takes the drawing off the paper, not the paper: the grid stays
   // unless the user has hidden it themselves. It used to go with the
   // curves, and a card with nothing on it at all read as the graph having
   // failed rather than as a stage.
   const isDisplayedGridHidden = isGridHidden;
+  // A Plus visualizer keeps the listening bands off its picture (see
+  // `CoverageOverlay`), so the switches say hidden while one is drawn.
   const isDisplayedCoverageHidden =
     isClean || isCoverageHidden || !isEngineUsable || Boolean(drawnScene);
   const canEditEqCurve =
@@ -779,7 +788,7 @@ const FrequencyResponseChart = ({
         ) !== 'off') &&
         !isEqQuiet) ||
       convolution ||
-      Math.abs(preAmp) > 0.01 ||
+      hasPreAmp ||
       voicing?.profileId ||
       driver?.profileId ||
       hasHeadphoneLayer(headphone) ||
@@ -1066,6 +1075,7 @@ const FrequencyResponseChart = ({
         curveSmoothing,
 
         isEqQuiet,
+        hasPreAmp,
         preAmp,
         prevFilterLines,
         prevFilters,
@@ -1082,6 +1092,7 @@ const FrequencyResponseChart = ({
       filters,
       graphicEq,
       hasConvolution,
+      hasPreAmp,
       headphone,
       isAutoPreAmpOn,
       isEqDoubleOn,
@@ -1984,6 +1995,7 @@ const FrequencyResponseChart = ({
             // is not in `data` at all any more, so nothing the analyser does can
             // make the y-extent memos rescan every point.
             scaleData={appliedChartData}
+            outputOffset={isPreampLive ? liveEnginePreamp : undefined}
             dimensions={dimensions}
             editablePoints={canEditEqCurve ? editablePoints : []}
             liveCurves={liveCurves}

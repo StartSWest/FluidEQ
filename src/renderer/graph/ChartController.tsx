@@ -178,6 +178,18 @@ export interface IEditableChartPoint {
   onHover: (isHovered: boolean) => void;
 }
 
+/** The curve that adds the whole chain up, preamp included. */
+export const OUTPUT_CURVE_ID = 'Total Response';
+
+/**
+ * A gain the output curve is moved by after it is built, read and watched
+ * outside React — the FluidEQ Engine's automatic preamp (`liveEnginePreamp`).
+ */
+export interface IChartLiveOffset {
+  read: () => number;
+  subscribe: (listener: () => void) => () => void;
+}
+
 interface IChartControllerProps {
   /**
    * The curves that set the y-scale. Deliberately not the curves that get
@@ -187,6 +199,12 @@ interface IChartControllerProps {
    * had not changed.
    */
   scaleData: IChartCurveData[];
+  /**
+   * Gains the scale has to reach besides `scaleData`'s: where a live offset
+   * has carried the output curve. Whole decibels, outward, so it changes only
+   * when the curve crosses one — which within ±20 dB is never.
+   */
+  extent?: readonly [number, number];
   width: number;
   height: number;
   padding: IMarginLike;
@@ -225,6 +243,7 @@ export const gainTickFormat = (domainValue: d3.NumberValue) =>
 
 const useController = ({
   scaleData,
+  extent,
   width,
   height,
   padding,
@@ -234,17 +253,20 @@ const useController = ({
     [padding.left, padding.right, width],
   );
 
-  const yMin = useMemo(
+  const dataMin = useMemo(
     () =>
       d3.min(scaleData, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
     [scaleData],
   );
 
-  const yMax = useMemo(
+  const dataMax = useMemo(
     () =>
       d3.max(scaleData, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
     [scaleData],
   );
+
+  const yMin = Math.min(dataMin, extent?.[0] ?? dataMin);
+  const yMax = Math.max(dataMax, extent?.[1] ?? dataMax);
 
   const yScaleGain = useMemo(
     () => gainScale(height, padding.top, padding.bottom, yMin, yMax),
