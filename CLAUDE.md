@@ -501,10 +501,22 @@ Out-String` (or any other capture) is what actually waits for it and shows
   output; which one a stream then goes through depends on the slot each landed
   in and the mode the stream uses, and on a user's machine Equalizer APO's
   entry ran while the FluidEQ Engine's never did — both reported attached,
-  neither reporting a fault. So switching to the engine runs `suspend-apo`,
-  which takes Equalizer APO's class ids out of the composite lists after
-  mirroring the vendor's own entries forward, recording each output exactly as
-  it was under `<engine root>\apo-off`; switching back runs `restore-apo`,
+  neither reporting a fault. So the app runs `suspend-apo` itself: at the
+  switch, and again whenever the output list (re-read every few seconds)
+  shows Equalizer APO on an output while the engine is chosen — once a
+  session, one Windows prompt, because Equalizer APO's own Device Selector
+  can be run at any time afterwards and a rule that only holds at the moment
+  of the switch is not a rule (`createApoGuard`). It takes Equalizer APO's
+  class ids out of the composite lists after mirroring the vendor's own
+  entries forward, **and out of the old single values (pids 5/6/7) and the
+  legacy pair**, which is where its "Install as SFX/MFX" troubleshooting
+  option writes it — Windows ignores those wherever a list exists, so they
+  change no sound, but they are what every "is Equalizer APO here" answer is
+  read from. `write_fx_values` still refuses every other change to those
+  slots: Equalizer APO's own id may be removed and put back, never replaced,
+  so a machine's own audio vendor (THX, Nahimic, Realtek) keeps its
+  registration byte for byte. Each output is recorded exactly as it was under
+  `<engine root>\apo-off`; switching back runs `restore-apo`,
   which writes that state again and re-applies our own attach if it is still
   there. `uninstall` restores it too — leaving somebody else's equalizer
   disabled by a program that is gone is not a thing an uninstaller may do.

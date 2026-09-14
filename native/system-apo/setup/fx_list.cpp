@@ -306,6 +306,15 @@ const wchar_t* const kEqualizerApoClsids[] = {
     L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}",
     L"{EC1CC9CE-FAED-4822-828A-82A81A6F018F}"};
 
+bool is_equalizer_apo(std::wstring_view clsid) {
+  for (int at = 0; at < kEqualizerApoClsidCount; ++at) {
+    if (equal_ci(clsid, kEqualizerApoClsids[at])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 FxPlan plan_suspend_apo(const FxValues& before) {
   FxPlan plan;
   plan.after = before;
@@ -337,14 +346,7 @@ FxPlan plan_suspend_apo(const FxValues& before) {
     const size_t was = entries.size();
     entries.erase(std::remove_if(entries.begin(), entries.end(),
                                  [](const std::wstring& entry) {
-                                   for (int id = 0;
-                                        id < kEqualizerApoClsidCount; ++id) {
-                                     if (equal_ci(entry,
-                                                  kEqualizerApoClsids[id])) {
-                                       return true;
-                                     }
-                                   }
-                                   return false;
+                                   return is_equalizer_apo(entry);
                                  }),
                   entries.end());
     if (entries.size() != was) {
@@ -352,6 +354,28 @@ FxPlan plan_suspend_apo(const FxValues& before) {
       // A list this program has edited cannot go back as the vendor's single
       // string — same rule as the attach, and what the saved state restores.
       after.composite_was_sz[at] = false;
+    }
+  }
+
+  // And out of the old single values, which is where Equalizer APO's own
+  // "Install as SFX/MFX" troubleshooting option puts it (pids 5 and 7 on the
+  // machine this was written against). Windows ignores those wherever a
+  // composite list exists, so leaving them changes no sound — but they are
+  // what every "is Equalizer APO on this output" answer in the app is read
+  // from, and an output that reports both engines while one of them cannot
+  // run is exactly the confusion this whole change exists to end. Only its
+  // own class ids are ever taken out, and only by removing the value: the
+  // vendor's own registration in those slots is never rewritten.
+  for (int at = 0; at < kSlotCount; ++at) {
+    if (after.single[at].has_value() && is_equalizer_apo(*after.single[at])) {
+      after.single[at].reset();
+      removed = true;
+    }
+  }
+  for (int at = 0; at < kLegacyCount; ++at) {
+    if (after.legacy[at].has_value() && is_equalizer_apo(*after.legacy[at])) {
+      after.legacy[at].reset();
+      removed = true;
     }
   }
 

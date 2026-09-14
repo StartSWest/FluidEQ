@@ -30,7 +30,13 @@ jest.mock('main/registry', () => ({
 }));
 
 // eslint-disable-next-line import/first
-import { isApoOnAnyOutput, isApoSwitchedOff } from 'main/apoSwitchOff';
+import {
+  createApoGuard,
+  isApoOnAnyOutput,
+  isApoSwitchedOff,
+} from 'main/apoSwitchOff';
+// eslint-disable-next-line import/first
+import type { IAudioDevice } from 'common/constants';
 
 const device = (fields: Record<string, unknown>) => ({
   id: 'x',
@@ -70,6 +76,71 @@ describe('isApoOnAnyOutput', () => {
   it('is false when the output list could not be read', async () => {
     discoverAudioDevices.mockRejectedValue(new Error('no PowerShell'));
     await expect(isApoOnAnyOutput()).resolves.toBe(false);
+  });
+});
+
+/**
+ * The app doing it, not the user: Equalizer APO's own Device Selector can be
+ * run at any moment while FluidEQ is open — which is how one machine ended up
+ * with THX, FluidEQ and Equalizer APO all registered on the same output — so
+ * the rule is enforced from the output list rather than only at the switch.
+ */
+describe('createApoGuard', () => {
+  const withApo = [
+    device({ isEqualizerApoAttached: true }),
+  ] as unknown as IAudioDevice[];
+  const withoutApo = [
+    device({ isEqualizerApoAttached: false }),
+  ] as unknown as IAudioDevice[];
+
+  const guardFor = (engine: 'fluid' | 'apo' | null) => {
+    const runEngineSetup = jest.fn(async () => ({
+      ok: true,
+      declined: false,
+    }));
+    return {
+      runEngineSetup,
+      guard: createApoGuard({ getEngine: () => engine, runEngineSetup }),
+    };
+  };
+
+  it('switches Equalizer APO off when it is on an output under the engine', async () => {
+    const { guard, runEngineSetup } = guardFor('fluid');
+    await guard.check(withApo);
+    expect(runEngineSetup).toHaveBeenCalledWith('suspend-apo', [
+      '--restart-audio',
+    ]);
+  });
+
+  it('asks Windows once a session, however often the list is read', async () => {
+    const { guard, runEngineSetup } = guardFor('fluid');
+    await guard.check(withApo);
+    await guard.check(withApo);
+    await guard.check(withApo);
+    expect(runEngineSetup).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing under Equalizer APO, which is then the engine', async () => {
+    const { guard, runEngineSetup } = guardFor('apo');
+    await guard.check(withApo);
+    expect(runEngineSetup).not.toHaveBeenCalled();
+  });
+
+  it('does nothing on a machine Equalizer APO is on no output of', async () => {
+    const { guard, runEngineSetup } = guardFor('fluid');
+    await guard.check(withoutApo);
+    expect(runEngineSetup).not.toHaveBeenCalled();
+  });
+
+  it('survives a helper that cannot be run', async () => {
+    const runEngineSetup = jest.fn(async () => {
+      throw new Error('the helper is missing');
+    });
+    const guard = createApoGuard({
+      getEngine: () => 'fluid',
+      runEngineSetup,
+    });
+    await expect(guard.check(withApo)).resolves.toBeUndefined();
   });
 });
 

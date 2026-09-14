@@ -170,7 +170,11 @@ import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
-import { isApoOnAnyOutput, isApoSwitchedOff } from './apoSwitchOff';
+import {
+  createApoGuard,
+  isApoOnAnyOutput,
+  isApoSwitchedOff,
+} from './apoSwitchOff';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
@@ -2282,6 +2286,17 @@ onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
 // anything relative to the output it is attached to, so this and the device
 // handlers are one subject with two names — which the extraction made visible
 // rather than fixed.
+/**
+ * One engine in Windows' effect lists, kept that way for the whole session —
+ * see `createApoGuard`. Fed by the device list below, which the window
+ * re-reads every few seconds, so Equalizer APO's Device Selector being run
+ * while FluidEQ is open is noticed like anything else.
+ */
+const apoGuard = createApoGuard({
+  getEngine: () => session.audioEngine,
+  runEngineSetup,
+});
+
 registerProfilesIpc({
   state,
   userDataDir,
@@ -2307,6 +2322,7 @@ registerProfilesIpc({
   captureCurrentLayout,
   notifyOutputStateChanged,
   retryHelper,
+  guardAgainstApo: apoGuard.check,
 });
 
 registerCurveComparisonIpc({

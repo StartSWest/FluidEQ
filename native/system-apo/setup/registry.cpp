@@ -139,6 +139,23 @@ LSTATUS apply_list(HKEY key, const std::wstring& name,
                         static_cast<DWORD>(block.size() * sizeof(wchar_t)));
 }
 
+/**
+ * Sets one `REG_SZ` effect value, or deletes it when absent.
+ *
+ * Only ever reached for Equalizer APO's own class id coming out of a slot or
+ * going back into it — `write_fx_values` refuses every other change to these
+ * values, because they are where a machine's own audio vendor registers its
+ * effects and none of that is ours to rewrite.
+ */
+LSTATUS apply_single(HKEY key, const std::wstring& name,
+                     const std::optional<std::wstring>& value) {
+  if (!value.has_value()) {
+    const LSTATUS deleted = RegDeleteValueW(key, name.c_str());
+    return deleted == ERROR_FILE_NOT_FOUND ? ERROR_SUCCESS : deleted;
+  }
+  return set_string(key, name.c_str(), *value);
+}
+
 std::wstring endpoint_path(const std::wstring& guid) {
   return std::wstring(kRenderPath) + L"\\" + guid;
 }
@@ -236,14 +253,39 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
   // The guarantee, checked rather than assumed. If a plan ever proposes an
   // edit to the vendor's own single or legacy values, nothing is written at
   // all — a partial write to an endpoint's effect chain is worse than none.
+  //
+  // One exception, and it is narrow in both directions: a value that holds
+  // Equalizer APO's own class id may be REMOVED, never replaced. That is the
+  // one thing the user can ask for that lives in those slots — Equalizer
+  // APO's "Install as SFX/MFX" writes itself there — and it is recorded
+  // before it goes, so restoring puts it back exactly. Writing a class id
+  // into one of these is still refused: whatever a vendor registered there
+  // is not ours to overwrite.
+  // Both directions of that one exception: Equalizer APO's class id may be
+  // taken out of a slot, and put back into a slot it was taken out of.
+  // Anything else — a different class id, a value replaced rather than
+  // removed, a vendor's own registration edited in any way — is refused, and
+  // nothing at all is written.
+  const auto apo_only = [](const std::optional<std::wstring>& was,
+                           const std::optional<std::wstring>& now) {
+    if (was.has_value() && !now.has_value()) {
+      return is_equalizer_apo(*was);
+    }
+    if (!was.has_value() && now.has_value()) {
+      return is_equalizer_apo(*now);
+    }
+    return false;
+  };
   for (int slot = 0; slot < kSlotCount; ++slot) {
-    if (before.single[slot] != after.single[slot]) {
+    if (before.single[slot] != after.single[slot] &&
+        !apo_only(before.single[slot], after.single[slot])) {
       error = L"refusing to change the single effect values of " + guid;
       return false;
     }
   }
   for (int slot = 0; slot < kLegacyCount; ++slot) {
-    if (before.legacy[slot] != after.legacy[slot]) {
+    if (before.legacy[slot] != after.legacy[slot] &&
+        !apo_only(before.legacy[slot], after.legacy[slot])) {
       error = L"refusing to change the legacy effect values of " + guid;
       return false;
     }
@@ -256,6 +298,31 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
             describe_error(static_cast<unsigned long>(opened));
     return false;
   }
+  // Equalizer APO's own entries leaving the old slots, or going back into
+  // them — the one change the guard above admits, in the one shape it admits.
+  for (int slot = 0; slot < kSlotCount; ++slot) {
+    if (before.single[slot] != after.single[slot]) {
+      const std::wstring name = value_name(kFxProperty, kSinglePid[slot]);
+      const LSTATUS written = apply_single(key.get(), name, after.single[slot]);
+      if (written != ERROR_SUCCESS) {
+        error = L"could not write " + name + L": " +
+                describe_error(static_cast<unsigned long>(written));
+        return false;
+      }
+    }
+  }
+  for (int slot = 0; slot < kLegacyCount; ++slot) {
+    if (before.legacy[slot] != after.legacy[slot]) {
+      const std::wstring name = value_name(kFxProperty, kLegacyPid[slot]);
+      const LSTATUS written = apply_single(key.get(), name, after.legacy[slot]);
+      if (written != ERROR_SUCCESS) {
+        error = L"could not write " + name + L": " +
+                describe_error(static_cast<unsigned long>(written));
+        return false;
+      }
+    }
+  }
+
   for (int slot = 0; slot < kSlotCount; ++slot) {
     // The value type is part of the value: a slot whose content is unchanged
     // but which has to go back from `REG_MULTI_SZ` to `REG_SZ` is a slot this

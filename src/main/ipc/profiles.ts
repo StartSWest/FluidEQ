@@ -165,6 +165,14 @@ export interface IProfilesIpcDeps {
   notifyOutputStateChanged: () => void;
   /** Device enumeration is racy just after a driver change; this retries it. */
   retryHelper: (attempts: number, work: () => unknown) => Promise<unknown>;
+  /**
+   * Given the outputs just read, keeps one engine in Windows' effect lists —
+   * `createApoGuard`. Here because this is the one place in the app that
+   * learns, every few seconds, what is registered on every output; the engine
+   * switch cannot be that place, since Equalizer APO's own Device Selector
+   * can be run long after it.
+   */
+  guardAgainstApo: (devices: readonly IAudioDevice[]) => Promise<void>;
 }
 
 /**
@@ -199,6 +207,7 @@ export const registerProfilesIpc = ({
   captureCurrentLayout,
   notifyOutputStateChanged,
   retryHelper,
+  guardAgainstApo,
 }: IProfilesIpcDeps) => {
   onWindowMessage(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_PRESET;
@@ -601,6 +610,11 @@ export const registerProfilesIpc = ({
       }
       const reply: TSuccess<IAudioDevice[]> = { result: devices };
       event.reply(channel, reply);
+      // After the reply, never before it: the window is waiting for this
+      // list, and switching Equalizer APO off restarts Windows audio.
+      guardAgainstApo(devices).catch((error) =>
+        log.error('The Equalizer APO guard failed', error),
+      );
     } catch (e) {
       log.error('Failed to enumerate Windows audio endpoints', e);
       handleError(event, channel, ErrorCode.FAILURE);

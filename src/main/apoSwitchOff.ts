@@ -20,6 +20,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
+import type { IAudioDevice } from '../common/constants';
+import type { TAudioEngine } from '../common/audioEngine';
 import { discoverAudioDevices } from './audioDevices';
 import { getFluidEngineConfigDir } from './registry';
 
@@ -45,6 +48,72 @@ export const isApoOnAnyOutput = async (): Promise<boolean> => {
   } catch {
     return false;
   }
+};
+
+/**
+ * Equalizer APO taken out of Windows' effect lists by the app itself, once a
+ * session, whenever the FluidEQ Engine is the engine and Equalizer APO is on
+ * an output.
+ *
+ * The switch between engines is not enough on its own: Equalizer APO's own
+ * Device Selector can be run at any moment afterwards, and it writes itself
+ * into whichever slots its troubleshooting options name — which is exactly
+ * how a machine ended up with THX in the mode effects, FluidEQ in the
+ * endpoint effects and Equalizer APO in the old single values, all at once,
+ * with no sound coming out and nothing on screen to say why. The rule is
+ * "one engine in the chain", and a rule that only holds at the moment of the
+ * switch is not a rule.
+ *
+ * Once a session, for the same reason the other two automatic repairs are:
+ * it asks Windows for administrator rights, and the device list is re-read
+ * every few seconds — asking again on every read would put that prompt back
+ * on screen forever. A refusal leaves Equalizer APO where it is, which is
+ * where every version before this left it.
+ */
+export interface IApoGuardDeps {
+  getEngine: () => TAudioEngine | null;
+  runEngineSetup: (
+    command: 'suspend-apo',
+    args: string[],
+  ) => Promise<{ ok: boolean; declined: boolean; error?: string }>;
+}
+
+export interface IApoGuard {
+  /** Given the outputs just read, switch Equalizer APO off if it must. */
+  check: (devices: readonly IAudioDevice[]) => Promise<void>;
+}
+
+export const createApoGuard = ({
+  getEngine,
+  runEngineSetup,
+}: IApoGuardDeps): IApoGuard => {
+  let tried = false;
+  return {
+    check: async (devices) => {
+      if (
+        tried ||
+        process.platform !== 'win32' ||
+        getEngine() !== 'fluid' ||
+        !devices.some((device) => device.isEqualizerApoAttached === true)
+      ) {
+        return;
+      }
+      tried = true;
+      try {
+        // Restarted in the same elevated run: Windows reads an output's
+        // effect list once and holds it, so without the restart the change
+        // is on disk and not in the sound.
+        const result = await runEngineSetup('suspend-apo', ['--restart-audio']);
+        log.info(
+          `Equalizer APO switched off so the FluidEQ Engine can run: ` +
+            `ok=${result.ok}${result.declined ? ' (consent declined)' : ''}` +
+            `${result.error ? ` error=${result.error}` : ''}`,
+        );
+      } catch (error) {
+        log.error('Equalizer APO could not be switched off', error);
+      }
+    },
+  };
 };
 
 /** Whether this app has Equalizer APO switched off on any output. */

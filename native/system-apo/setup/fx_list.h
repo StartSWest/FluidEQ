@@ -141,6 +141,9 @@ bool is_attached(const FxValues& values, std::wstring_view clsid);
 extern const wchar_t* const kEqualizerApoClsids[];
 constexpr int kEqualizerApoClsidCount = 2;
 
+/** Whether `clsid` is one of them. */
+bool is_equalizer_apo(std::wstring_view clsid);
+
 /**
  * The values `before` should become with Equalizer APO taken out of them.
  *

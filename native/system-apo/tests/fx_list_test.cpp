@@ -77,6 +77,7 @@ constexpr wchar_t kVendorMode[] = L"{9CF2A70B-F377-403B-BD6B-360863E0355C}";
 // the same reason ours is: it is the published contract with another program,
 // and a test that read it from the source it checks would prove nothing.
 constexpr wchar_t kApoMfx[] = L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}";
+constexpr wchar_t kApoEfx[] = L"{EC1CC9CE-FAED-4822-828A-82A81A6F018F}";
 
 std::vector<std::wstring> list(std::initializer_list<const wchar_t*> items) {
   std::vector<std::wstring> result;
@@ -508,7 +509,60 @@ void suspend_mirrors_singles_before_removing() {
   FxValues expected = before;
   expected.composite[kSfx] = list({kVendorSfx});
   expected.composite[kMfx] = std::vector<std::wstring>();
+  // Out of the old value as well as out of the list mirrored from it: left
+  // there, it is what makes the app report Equalizer APO as still on this
+  // output. The vendor's own single beside it is mirrored and kept.
+  expected.single[kMfx].reset();
   expect_values(plan.after, expected, "suspend from singles");
+}
+
+/**
+ * The shape Ivan's own machine was in: THX in the composite SFX and MFX
+ * lists, FluidEQ alone in EFX, and Equalizer APO in the OLD single values,
+ * where its "Install as SFX/MFX" troubleshooting option puts it.
+ *
+ * Windows ignores those while the lists exist, so removing them changes no
+ * sound — but they are what every "is Equalizer APO here" answer is read
+ * from, and the vendor's own entries beside them must come out untouched.
+ */
+void suspend_takes_apo_out_of_the_old_single_values() {
+  std::printf("suspend clears the old single values\n");
+  FxValues before;
+  before.composite[kSfx] = list({kVendorSfx});
+  before.composite[kMfx] = list({kVendorMfx});
+  before.composite[kEfx] = list({kOurs});
+  before.single[kSfx] = kApoMfx;
+  before.single[kMfx] = kVendorMfx;
+  before.single[kEfx] = kApoEfx;
+  before.legacy[0] = kLegacyLfx;
+
+  const FxPlan plan = plan_suspend_apo(before);
+  CHECK(plan.changed);
+
+  FxValues expected = before;
+  expected.single[kSfx].reset();
+  expected.single[kEfx].reset();
+  expect_values(plan.after, expected, "single values");
+  // The vendor's own single, and its legacy value, exactly as found.
+  CHECK(plan.after.single[kMfx].has_value());
+  CHECK(plan.after.legacy[0].has_value());
+}
+
+/** Everything a machine's own audio vendor registered survives the removal. */
+void suspend_never_drops_a_vendor_effect() {
+  std::printf("suspend keeps every vendor effect\n");
+  FxValues before;
+  before.composite[kSfx] = list({kVendorSfx, kApoMfx, kLegacyLfx});
+  before.composite[kMfx] = list({kApoEfx, kVendorMfx});
+  before.composite[kEfx] = list({kVendorEfx, kOurs});
+  before.modes[kSfx] = list({kVendorMode});
+
+  const FxPlan plan = plan_suspend_apo(before);
+
+  FxValues expected = before;
+  expected.composite[kSfx] = list({kVendorSfx, kLegacyLfx});
+  expected.composite[kMfx] = list({kVendorMfx});
+  expect_values(plan.after, expected, "vendor effects");
 }
 
 /** An output Equalizer APO was never on is not touched at all. */
@@ -580,6 +634,8 @@ int main() {
   json_round_trip();
   suspend_removes_apo_and_keeps_everyone_else();
   suspend_mirrors_singles_before_removing();
+  suspend_takes_apo_out_of_the_old_single_values();
+  suspend_never_drops_a_vendor_effect();
   suspend_leaves_an_output_without_apo_alone();
   restore_puts_apo_back_and_keeps_ours();
   restore_without_our_effect_is_the_saved_state();
