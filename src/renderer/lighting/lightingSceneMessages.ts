@@ -18,15 +18,6 @@ export const LIGHTING_CLOCK_PROCESSOR = 'fluideq-lighting-clock';
 /** Ticks per second of audio. Past thirty, lamps are faster than the devices. */
 export const LIGHTING_TICKS_PER_SECOND = 30;
 
-/**
- * The size a scene is drawn at for the lamps. Small enough to cost nothing
- * beside the graph; large enough that a lit window in a skyline is still a
- * few pixels and not averaged away. Sixteen times the lamp grid also gives the
- * desk's monitor a sharp image instead of enlarging the 48-pixel LED grid.
- */
-export const LIGHTING_RENDER_WIDTH = 768;
-export const LIGHTING_RENDER_HEIGHT = 432;
-
 export interface ILightingSceneFrame {
   timeSeconds: number;
   deltaMs: number;
@@ -41,14 +32,30 @@ export interface ILightingSceneFrame {
 }
 
 export type TLightingWorkerRequest =
-  | { kind: 'load'; pack: IScenePack }
+  /** `guarded`: a member's scene, drawn through the flash limiter. */
+  | { kind: 'load'; pack: IScenePack; guarded: boolean }
   | { kind: 'frame'; frame: ILightingSceneFrame }
+  /** Give up any load, free everything, then answer `retired`. */
+  | { kind: 'retire' }
   | { kind: 'unload' };
 
 export type TLightingWorkerReply =
   | { kind: 'loaded'; packId: string }
-  /** The scene cannot be drawn here; the lamps fall back to its swatch. */
+  /** Nothing is linking and nothing is held: the worker may be ended. */
+  | { kind: 'retired' }
+  /**
+   * The scene cannot be drawn here; the lamps fall back to its swatch.
+   * `gpu-reset` (its own frame held the GPU when the context was lost) and
+   * `too-heavy` (holding it even at the smallest size) are the GPU refusing
+   * it, and it is not loaded again this session.
+   */
   | { kind: 'failed'; packId: string; reason: string }
+  /**
+   * The context was lost for a reason that was not the scene's: nothing is
+   * drawn until it comes back, and then the scene is loaded again and
+   * `loaded` follows.
+   */
+  | { kind: 'lost'; packId: string }
   | {
       kind: 'grid';
       rgb: Uint8Array;

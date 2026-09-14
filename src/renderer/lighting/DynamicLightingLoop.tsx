@@ -10,6 +10,7 @@ import {
   LIGHTING_GRID_WIDTH,
   type ILightingFrame,
 } from 'common/lighting/lightingModel';
+import { isMemberLookId } from 'common/memberScenes';
 import type { IScenePack } from 'common/scenePacks';
 import { lightingProfile } from 'common/lighting/lightingProfiles';
 import {
@@ -190,8 +191,11 @@ export default function DynamicLightingLoop() {
       () => {
         failed = true;
       },
+      () => {
+        failed = false;
+      },
     );
-    player.load(pack);
+    player.load(pack, isMemberLookId(sceneId));
 
     const accent = parseAccent(
       getComputedStyle(document.documentElement).getPropertyValue('--accent'),
