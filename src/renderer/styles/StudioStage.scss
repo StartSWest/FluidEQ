@@ -46,8 +46,10 @@ $stage-edge: $border-menu;
     $surface-well;
 }
 
+// The shape the stage was dragged to (`useStudioStageRatio.ts`), so a well
+// standing in for it keeps the place it will fill.
 .studio-stage__well--empty {
-  aspect-ratio: 2.35 / 1;
+  aspect-ratio: var(--studio-stage-ratio, 2.35);
 }
 
 .studio-stage__empty {
@@ -156,7 +158,12 @@ $stage-edge: $border-menu;
   }
 }
 
-.studio-stage--graph,
+// The graph's shape, or the one its divider was dragged to. Full screen keeps
+// the graph's own until the screen is its box.
+.studio-stage--graph {
+  aspect-ratio: var(--studio-stage-ratio, 2.35);
+}
+
 .studio-stage--full {
   aspect-ratio: 2.35 / 1;
 }

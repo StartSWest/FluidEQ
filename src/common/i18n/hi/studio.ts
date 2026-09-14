@@ -247,6 +247,7 @@ const studio = {
   'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
+  'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',
   'studio.stage.startTitle': 'आपका सीन यहाँ चलेगा',
   'studio.stage.startBody':
     'प्रोजेक्ट बनाइए, और FluidEQ उसका फ़ोल्डर एक ऐसे सीन के साथ तैयार कर देगा जो पहले से चलता है। वहाँ से आपका AI उसे बदलता है।',

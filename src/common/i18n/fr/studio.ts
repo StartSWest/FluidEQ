@@ -254,6 +254,7 @@ const studio = {
   'studio.status.waiting': 'En attente d’une version qui joue',
   'studio.empty': 'Rien à montrer pour l’instant',
   'studio.stage.label': '{name}, en direct',
+  'studio.stage.resize': 'Faites glisser pour redimensionner l’aperçu',
   'studio.stage.startTitle': 'Votre scène s’affiche ici',
   'studio.stage.startBody':
     'Créez un projet : FluidEQ prépare son dossier avec une scène qui bouge déjà. Votre IA la modifie à partir de là.',

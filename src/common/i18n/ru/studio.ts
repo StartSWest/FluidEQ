@@ -253,6 +253,7 @@ const studio = {
   'studio.status.waiting': 'Ждём версию, которая заиграет',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
+  'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',
   'studio.stage.startTitle': 'Здесь будет ваша сцена',
   'studio.stage.startBody':
     'Создайте проект, и FluidEQ подготовит его папку со сценой, которая уже движется. Дальше её меняет ваш ИИ.',

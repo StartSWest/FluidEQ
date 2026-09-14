@@ -29,6 +29,8 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-m;
   min-height: 0;
   padding: $spacing-m 4px $spacing-s;
+  // Never sideways: see `studio-pane` below.
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   // The Studio's own width, which is what its layout answers to: the Plus tab
@@ -164,10 +166,15 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-m;
   min-width: 0;
   min-height: 0;
+  // Down to the Studio's bottom edge: the panes scroll, so the padding the
+  // Studio keeps under a page it scrolls as one was only a dead strip under
+  // them, read as room kept for a horizontal scrollbar.
+  margin-bottom: calc(-1 * #{$spacing-s});
 
   @container studio (max-width: 760px) {
     flex: none;
     grid-template-rows: none;
+    margin-bottom: 0;
   }
 }
 
@@ -305,6 +312,10 @@ $studio-scrollbar: 8px;
   min-height: 0;
   margin: 0 (-$studio-pane-bleed);
   padding: $studio-pane-bleed;
+  // Up and down only. A scroller that scrolls one way is made to scroll the
+  // other too, and a line a few pixels too wide then put a horizontal
+  // scrollbar along the pane's foot.
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -335,13 +346,30 @@ $studio-scrollbar: 8px;
 }
 
 .studio-bench__stage {
-  display: grid;
+  display: flex;
   flex: none;
+  flex-direction: column;
   gap: $spacing-s;
   min-width: 0;
 
   @container studio (max-width: 760px) {
     grid-area: stage;
+  }
+
+  // The divider under the stage sits in the gap to what follows, as the EQ
+  // tab's sits between its cards, rather than adding a gap of its own: a 12px
+  // seam with the grip in its middle. A column, not a grid, for this: a grid
+  // row cannot be less than nothing tall, so the margins were only half
+  // taken back, and the seam came out twice the gap with the grip against
+  // the stage.
+  > .pane-resizer {
+    margin-block: calc(-1 * #{$spacing-s});
+  }
+
+  // The stage eases when its size is picked; under a held divider that ease
+  // is a stage lagging behind the pointer.
+  &[data-resizing] .studio-stage {
+    transition: none;
   }
 }
 

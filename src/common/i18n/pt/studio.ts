@@ -250,6 +250,7 @@ const studio = {
   'studio.status.waiting': 'Aguardando uma versão que toque',
   'studio.empty': 'Nada para mostrar ainda',
   'studio.stage.label': '{name}, tocando ao vivo',
+  'studio.stage.resize': 'Arraste para redimensionar a prévia',
   'studio.stage.startTitle': 'Sua cena aparece aqui',
   'studio.stage.startBody':
     'Crie um projeto e o FluidEQ prepara a pasta dele com uma cena que já se mexe. Sua IA a muda a partir daí.',

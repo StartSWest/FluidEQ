@@ -225,6 +225,7 @@ const studio = {
   'studio.status.waiting': '正在等待一个能播放的版本',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
+  'studio.stage.resize': '拖动可调整预览大小',
   'studio.stage.startTitle': '你的场景在这里播放',
   'studio.stage.startBody':
     '新建一个项目，FluidEQ 会为它准备好文件夹，里面已有一个会动的场景。之后由你的 AI 来修改它。',

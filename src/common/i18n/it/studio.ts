@@ -256,6 +256,7 @@ const studio = {
   'studio.status.waiting': 'In attesa di una versione che si riproduca',
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
+  'studio.stage.resize': 'Trascina per ridimensionare l’anteprima',
   'studio.stage.startTitle': 'La tua scena si vede qui',
   'studio.stage.startBody':
     'Crea un progetto e FluidEQ prepara la sua cartella con una scena che si muove già. La tua IA la cambia da lì.',

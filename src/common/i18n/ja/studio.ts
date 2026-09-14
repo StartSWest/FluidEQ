@@ -255,6 +255,7 @@ const studio = {
   'studio.status.waiting': '再生できるバージョンを待っています',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
+  'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',
   'studio.stage.startTitle': 'ここにシーンが映ります',
   'studio.stage.startBody':
     'プロジェクトを作ると、FluidEQ がすでに動くシーン入りのフォルダーを用意します。そこから先は AI が変えていきます。',
