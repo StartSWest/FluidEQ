@@ -574,12 +574,18 @@ unless its whole configuration is present, so it cannot quietly produce an
 unsigned one.
 
 `pnpm package:release` is `pnpm package` for a release: it also signs
-`release/build/latest.yml` with the update feed key in `.env`, and every
-installed copy refuses an update whose feed is not signed with a key it trusts
+`release/build/latest.yml` with the update feed key, and every installed copy
+refuses an update whose feed is not signed with a key it trusts
 (`src/main/updateFeedSignature.ts`). `pnpm package:signed` signs the feed too.
 The key pair is made once with `pnpm update-feed-keys`, which writes the public
-half into the source and the private half into `.env` — back that file up;
-without the key, no installed copy can be updated.
+half into the source and keeps the private half encrypted for your Windows
+account, outside the project (`%APPDATA%/FluidEQ Release`) — never in `.env`,
+whose values are public, and signing refuses to run while `.env` holds one.
+`pnpm update-feed-key copy` puts the key on the clipboard, kept out of
+clipboard history, to store in a password manager; `pnpm update-feed-key import`
+brings it onto another machine from the clipboard; `pnpm update-feed-key check`
+says whether this machine can sign. Without the key, no installed copy can be
+updated.
 
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.

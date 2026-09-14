@@ -8,25 +8,34 @@
  * publishes nothing and holds no private key, it says so and lets the build
  * finish.
  *
- * The private key comes from `.env`, as `FLUIDEQ_UPDATE_FEED_KEY` (PKCS#8 DER
- * in base64) with `FLUIDEQ_UPDATE_FEED_KEY_ID`; `pnpm update-feed-keys` writes
- * both. The two fields are appended to the file as top-level keys, which is
- * how electron-updater hands them to the app with the rest of the update.
+ * The private key comes from the encrypted key file outside the project
+ * (`update-feed-key-store.ts`), never from `.env`: a key found there is
+ * refused, so it cannot quietly go back to where it was in plain text. The
+ * two fields are appended to the file as top-level keys, which is how
+ * electron-updater hands them to the app with the rest of the update.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { createPrivateKey, sign } from 'crypto';
-import loadDotenv from './load-dotenv';
 import {
   FEED_KEY_FIELD,
   FEED_SIGNATURE_FIELD,
   UPDATE_FEED_KEYS,
   updateFeedMessage,
 } from '../../src/main/updateFeedSignature';
+import {
+  createFeedKeyStore,
+  type IFeedKeyStore,
+  type IStoredFeedKey,
+} from './update-feed-key-store';
 
-export const FEED_KEY_ENV = 'FLUIDEQ_UPDATE_FEED_KEY';
-export const FEED_KEY_ID_ENV = 'FLUIDEQ_UPDATE_FEED_KEY_ID';
+/** The name the key had in `.env` before it moved out; refused wherever it appears. */
+export const LEGACY_FEED_KEY_ENV = 'FLUIDEQ_UPDATE_FEED_KEY';
+
+/** Whether `.env` text still holds the private key in plain text. */
+export const envHoldsFeedKey = (envText: string): boolean =>
+  new RegExp(`^\\s*${LEGACY_FEED_KEY_ENV}\\s*=`, 'm').test(envText);
 
 /** The version and every SHA-512 in a `latest.yml`, read without a YAML library. */
 export const readFeed = (yaml: string) => {
@@ -74,34 +83,60 @@ export const signFeed = (
  * build must not be shipped: this app trusts a feed key and the feed could
  * not be signed with it.
  */
-export const signReleaseFeed = (
+export const signReleaseFeed = ({
   feedPath = path.join(__dirname, '../../release/build/latest.yml'),
-): boolean => {
-  loadDotenv();
-  const keyId = process.env[FEED_KEY_ID_ENV];
-  const privateKey = process.env[FEED_KEY_ENV];
-  const required = Object.keys(UPDATE_FEED_KEYS).length > 0;
+  store = createFeedKeyStore(),
+  envPath = path.join(__dirname, '../../.env'),
+  keys = UPDATE_FEED_KEYS,
+}: {
+  feedPath?: string;
+  store?: IFeedKeyStore;
+  envPath?: string;
+  keys?: Readonly<Record<string, string>>;
+} = {}): boolean => {
+  const required = Object.keys(keys).length > 0;
 
-  if (!keyId || !privateKey) {
-    const message = `latest.yml is NOT signed: ${FEED_KEY_ENV} and ${FEED_KEY_ID_ENV} are not set.`;
+  if (
+    fs.existsSync(envPath) &&
+    envHoldsFeedKey(fs.readFileSync(envPath, 'utf8'))
+  ) {
+    console.error(
+      `${envPath} holds the update feed's private key in plain text. Keep ` +
+        'a copy in your password manager, bring it in with ' +
+        '`pnpm update-feed-key import`, and delete those lines from .env.',
+    );
+    return false;
+  }
+
+  let key: IStoredFeedKey | undefined;
+  try {
+    key = store.read();
+  } catch (error) {
+    console.error(
+      `The update feed key at ${store.filePath} could not be read: ` +
+        `${(error as Error).message}`,
+    );
+    return false;
+  }
+
+  if (!key) {
+    const message = `latest.yml is NOT signed: there is no update feed key at ${store.filePath}.`;
     if (required && !process.env.CI) {
       console.error(
         `${message}
 This app trusts update feed keys, so every installed copy ` +
-          'would refuse this update. Do not ship it: build on the machine whose ' +
-          '.env holds the key, or restore that .env from its backup.',
+          'would refuse this update. Do not ship it: bring the key onto this ' +
+          'machine from your password manager with `pnpm update-feed-key import`.',
       );
       return false;
     }
     console.warn(message);
     return true;
   }
-  if (
-    required &&
-    !Object.prototype.hasOwnProperty.call(UPDATE_FEED_KEYS, keyId)
-  ) {
+  const { keyId, privateKey } = key;
+  if (required && !Object.prototype.hasOwnProperty.call(keys, keyId)) {
     console.error(
-      `${FEED_KEY_ID_ENV} is "${keyId}", which this app does not trust. ` +
+      `The update feed key "${keyId}" is not one this app trusts. ` +
         'Every installed copy would refuse the update.',
     );
     return false;

@@ -68,6 +68,7 @@
     "typecheck:encoding": "ts-node ./.erb/scripts/check-encoding.ts",
     "package:release": "pnpm package && ts-node ./.erb/scripts/sign-update-feed.ts",
     "update-feed-keys": "ts-node ./.erb/scripts/update-feed-keys.ts",
+    "update-feed-key": "ts-node ./.erb/scripts/update-feed-key.ts",
     "package:signed": "ts-node ./.erb/scripts/package-signed.ts"
   },
   "lint-staged": {
