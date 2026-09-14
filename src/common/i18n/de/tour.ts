@@ -28,6 +28,106 @@ const tour: Partial<Dictionary> = {
   'tour.rail.always': 'AUSSERDEM IN FLUIDEQ',
   'tour.newBadge': 'NEU',
   'tour.howTitle': 'So geht es los',
+  'tour.beta': 'Beta',
+
+  'tour.engine.kicker': 'UNSERE EIGENE AUDIO-ENGINE',
+  'tour.engine.title': 'Die FluidEQ-Engine',
+  'tour.engine.subtitle': 'EQ und DSP für alles, was Sie hören',
+  'tour.engine.lead':
+    'FluidEQ hat jetzt eine eigene Audio-Engine. Sie läuft im Audiodienst von Windows, nach den Effekten Ihrer Soundkarte, und wendet Ihren EQ und das ganze DSP-Rack auf alles an, was der Computer abspielt: Spiele, Browser, Streaming-Apps – nicht nur auf die Bibliothek.',
+  'tour.engine.point1':
+    'Das DSP-Rack für das gesamte Systemaudio, ohne dass in FluidEQ etwas läuft.',
+  'tour.engine.point2':
+    'Live-Pegelausgleich, der den Song kennt, und Rauschentfernung, die den Ton beim Abspielen säubert.',
+  'tour.engine.point3':
+    'Beenden Sie FluidEQ, und Ihr Klang ist sofort wieder normal, selbst nach einem Absturz.',
+  'tour.engine.how':
+    'Wählen Sie die FluidEQ-Engine bei der Installation oder öffnen Sie das Aktionsmenü und wählen Sie sie dort. Öffnen Sie dann DSP und schalten Sie eine Stufe ein, während eine beliebige App etwas abspielt.',
+  'tour.engine.open': 'DSP öffnen',
+  'tour.engine.flow.label':
+    'Alles, was der Computer abspielt, läuft durch die FluidEQ-Engine – Ihren EQ, dann das DSP-Rack – auf dem Weg zu Ihren Kopfhörern und Lautsprechern.',
+  'tour.engine.flow.games': 'Spiele',
+  'tour.engine.flow.browser': 'Browser',
+  'tour.engine.flow.music': 'Musik-Apps',
+  'tour.engine.flow.video': 'Videos',
+  'tour.engine.flow.inside': 'Innerhalb von Windows-Audio',
+  'tour.engine.flow.eq': 'Ihr EQ',
+  'tour.engine.flow.rack': 'DSP-Rack',
+  'tour.engine.flow.headphones': 'Kopfhörer',
+  'tour.engine.flow.speakers': 'Lautsprecher',
+
+  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.title': 'Willkommen bei FluidEQ Plus',
+  'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
+  'tour.plus.lead':
+    'Eine freiwillige Mitgliedschaft, die FluidEQ weiter wachsen lässt, mit einem ganz neuen Tab dafür: auf Ihrer Grafikkarte gezeichnete Szenen, ein Studio für eigene Szenen, die Rangliste, Desktophintergründe und Dynamische Beleuchtung. Alles, was kostenlos war, bleibt kostenlos.',
+  'tour.plus.point1':
+    'Melden Sie sich im Aktionsmenü unter Konto an; bezahlt wird in Ihrem Browser, und Plus schaltet sich von selbst ein.',
+  'tour.plus.point2':
+    'Monatlich oder jährlich, mit Bedingungen in klaren Worten, bevor Sie zahlen. Die App sieht Ihre Karte nie.',
+  'tour.plus.point3':
+    'Auf bis zu fünf Computern angemeldet, mit neuen Visualizern, die nach und nach hinzukommen.',
+  'tour.plus.how':
+    'Öffnen Sie den Tab Plus: Links untereinander stehen Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
+  'tour.plus.open': 'Plus öffnen',
+  'tour.plus.imageAlt':
+    'Der Tab Plus: Rangliste, Visualizer, Studio und Dynamische Beleuchtung seitlich untereinander und die Visualizer-Galerie mit Chrom, Blüte, Aurora, Alpin und Neonstadt.',
+  'tour.scene.alpine': 'Alpin',
+  'tour.scene.aurora': 'Aurora',
+  'tour.scene.bloom': 'Blüte',
+  'tour.scene.chrome': 'Chrom',
+  'tour.scene.neonCity': 'Neonstadt',
+
+  'tour.visualizers.kicker': 'VISUALIZER',
+  'tour.visualizers.title': 'Szenen, die sich mit Ihrer Musik bewegen',
+  'tour.visualizers.subtitle': 'Auf Ihrer Grafikkarte gezeichnet',
+  'tour.visualizers.lead':
+    'Plus-Visualizer sind lebendige Szenen – Berge unter dem Sternenhimmel, Vorhänge aus Polarlicht, eine Neonstadt –, die auf Ihrer Grafikkarte unter Ihren EQ-Kurven gezeichnet werden. Bass, Beat und Höhen bewegen jeweils etwas anderes, und das Fenster um sie herum kann ihre Farben annehmen.',
+  'tour.visualizers.point1':
+    'Eine Auswahl für alles: 38 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualisierungen nach Kategorien.',
+  'tour.visualizers.point2':
+    'Stöbern Sie in der Galerie, testen Sie zehn Sekunden lang die Kostproben von FluidEQ und fügen Sie die Szenen hinzu, die Ihnen gefallen.',
+  'tour.visualizers.point3':
+    'Lassen Sie Darstellungen automatisch wechseln, schalten Sie auf Vollbild und stellen Sie unter Ansicht Attack und Release einer Szene ein.',
+  'tour.visualizers.how':
+    'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter Plus-Visualisierungen eine Szene, oder sehen Sie sich alle unter Plus → Visualizer an.',
+  'tour.visualizers.open': 'EQ öffnen',
+  'tour.visualizers.imageAlt':
+    'Alpin, ein Plus-Visualizer mit Bergen über einem See bei Nacht, läuft im Diagramm unter den EQ-Kurven, darunter vier weitere Szenen.',
+
+  'tour.desktop.kicker': 'DESKTOP-VISUALIZER',
+  'tour.desktop.title': 'Ihre Musik hinter Ihrem Desktop',
+  'tour.desktop.subtitle': 'Eine Szene auf jedem Monitor',
+  'tour.desktop.lead':
+    'Legen Sie einen Plus-Visualizer hinter Ihre Desktopsymbole. Er bewegt sich zu allem, was Sie gerade hören, oder ruhig für sich, und jeder Monitor kann eine eigene Szene zeigen.',
+  'tour.desktop.point1':
+    'Wählen Sie Monitore auf einer Karte Ihres Schreibtischs, jeden mit seinem eigenen Visualizer.',
+  'tour.desktop.point2':
+    'Er pausiert bei Vollbild-Apps, gesperrtem PC und im Akkubetrieb.',
+  'tour.desktop.point3':
+    'Beim nächsten Start von FluidEQ kommt er von selbst zurück.',
+  'tour.desktop.how':
+    'Läuft ein Plus-Visualizer im Diagramm, drücken Sie den Monitor-Knopf neben seinem Namen oder wählen Sie Ansicht → Als Desktophintergrund festlegen.',
+  'tour.desktop.open': 'EQ öffnen',
+  'tour.desktop.imageAlt':
+    'Drei Monitore, jeder mit einem Plus-Visualizer – Aurora, Alpin und Neonstadt – hinter seinen Desktopsymbolen und seiner Taskleiste.',
+
+  'tour.lighting.kicker': 'DYNAMISCHE BELEUCHTUNG',
+  'tour.lighting.title': 'Ihr Schreibtisch leuchtet mit der Szene',
+  'tour.lighting.subtitle': 'Beta · Ihre RGB-Geräte folgen dem Visualizer',
+  'tour.lighting.lead':
+    'Tastatur, Maus, Mauspad, Headset und Ständer übernehmen die Farben und den Rhythmus des Plus-Visualizers im Diagramm, über Windows Dynamic Lighting und Razer Chroma.',
+  'tour.lighting.point1':
+    'Vier Stile für jeden Visualizer: Szene, Farbwelle, Spektrum und Beat-Welle.',
+  'tour.lighting.point2':
+    'Stimmen Sie jedes Gerät einzeln ab und wählen Sie, was passiert, wenn die Musik stoppt.',
+  'tour.lighting.point3':
+    'Eine Live-Vorschau zeichnet Ihren eigenen Schreibtisch, während er leuchtet. Die Funktion ist in der Betaphase: Sagen Sie uns, wie sich Ihre Geräte verhalten.',
+  'tour.lighting.how':
+    'Öffnen Sie Plus → Dynamische Beleuchtung und schalten Sie sie ein; lassen Sie dann einen Plus-Visualizer im Diagramm laufen.',
+  'tour.lighting.open': 'Plus öffnen',
+  'tour.lighting.imageAlt':
+    'Eine Tastatur, eine Maus und ein Mauspad, beleuchtet im Pink, Violett und Cyan von Neonstadt.',
 
   'tour.theme.kicker': 'EIN NEUER LOOK',
   'tour.theme.title': 'Das Schwarz-Theme',
@@ -42,7 +142,7 @@ const tour: Partial<Dictionary> = {
     'Akzentfarbe und Regenbogenmodus bleiben erhalten. Am Klang ändert sich nichts – nur der Anstrich.',
   'tour.theme.howTitle': 'So wechseln Sie',
   'tour.theme.how':
-    'Öffnen Sie das Menü hinter dem Puls-Symbol oben rechts und wählen Sie Design → Schwarz. Ozean ist einen Klick entfernt, wenn Sie zurück wollen.',
+    'Öffnen Sie das Menü hinter dem Puls-Symbol oben rechts und wählen Sie ganz unten unter Design die Option Schwarz. Ozean ist einen Klick entfernt, wenn Sie zurück wollen.',
   'tour.theme.tryBlack': 'Jetzt zu Schwarz wechseln',
   'tour.theme.tryOcean': 'Zurück zu Ozean',
   'tour.theme.imageAlt':
@@ -64,10 +164,10 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie den Tab Audio teilen, wählen Sie „Audio auf diesem Computer wiedergeben“ und drücken Sie „Verbindungscode erstellen“. Kopieren Sie den Code für Ihr Netzwerk.',
   'tour.share.step2Title': 'An jedem anderen PC einfügen',
   'tour.share.step2':
-    'Öffnen Sie dort FluidEQ, gehen Sie zu Audio teilen, wählen Sie „Audio dieses Computers senden“, fügen Sie den Code ein und drücken Sie „Verbinden und senden“. Der Systemton beginnt zu fließen.',
-  'tour.share.step3Title': 'Priorität wählen und hören',
+    'Öffnen Sie dort FluidEQ, gehen Sie zu Audio teilen, wählen Sie „Audio dieses Computers senden“, entscheiden Sie sich für Musik oder Spiel/Video, fügen Sie den Code ein und drücken Sie „Verbinden und senden“. Der Systemton beginnt zu fließen.',
+  'tour.share.step3Title': 'Hören und Pegel einstellen',
   'tour.share.step3':
-    'Musik hält einen größeren Sicherheitspuffer für unterbrechungsfreies Hören; Spiel/Video läuft mit der geringsten Verzögerung für Lippensynchronität. Jeder Sender wird in den Ausgang des Empfängers gemischt und von dessen EQ geformt. Die Wiedergabeleiste des Empfängers zeigt den Titel jedes Senders, und ihre Tasten wirken über das Netzwerk.',
+    'Musik hält einen größeren Sicherheitspuffer für unterbrechungsfreies Hören; Spiel/Video läuft mit der geringsten Verzögerung für Lippensynchronität. Jeder Sender wird in den Ausgang des Empfängers gemischt, von dessen EQ geformt und von dessen Lautstärke geregelt. Die Wiedergabeleiste des Empfängers zeigt den Titel des zuletzt gestarteten Senders, und ihre Tasten wirken über das Netzwerk.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
@@ -95,24 +195,24 @@ const tour: Partial<Dictionary> = {
   'tour.library.point4':
     'Smart-EQ-Songgedächtnis: „Für diesen Song speichern“ während der Wiedergabe umlegen, und die Korrektur bleibt für diesen Titel gemerkt.',
   'tour.library.how':
-    'Öffnen Sie den Tab Bibliothek, drücken Sie „Ordner hinzufügen“ oder ziehen Sie einen Ordner auf die Seite und warten Sie auf „Songs hinzugefügt“. Wählen Sie Alben, Künstler, Genres, Titel, Ordner oder Baum und drücken Sie Wiedergabe.',
+    'Öffnen Sie den Tab Bibliothek, drücken Sie „Ordner hinzufügen“ oder ziehen Sie einen Ordner auf die Seite und warten Sie, bis das Einlesen fertig ist. Wählen Sie Alben, Interpreten, Genres, Songs, Ordner oder Baum und drücken Sie dann Wiedergeben.',
   'tour.library.open': 'Bibliothek öffnen',
 
   'tour.dsp.kicker': 'EIN MASTERING-RACK',
   'tour.dsp.title': 'Das DSP-Rack',
   'tour.dsp.subtitle': 'Neun Stufen, jede mit eigenem Graphen',
   'tour.dsp.lead':
-    'Alles, was die Bibliothek spielt, kann durch ein Rack aus Studiostufen laufen, in dieser Reihenfolge: Normalizer, Denoise, Exciter, Bass Forge, Equalizer, Bass Punch, Dimension, Maximizer und Master, plus ein Crossfade zwischen Titeln. Jede Stufe ist eine Karte mit Live-Graph, Presets und einem Isolieren-Knopf, um nur zu hören, was sie tut.',
+    'Ein Rack aus Studiostufen, in dieser Reihenfolge: Normalisierung, Rauschentfernung, Exciter, Bass-Schmiede, Equalizer, Bass-Punch, Dimension, Maximizer und Master, plus eine Überblendung zwischen Titeln der Bibliothek. Unter der FluidEQ-Engine wirkt es auf alles, was der Computer abspielt; unter Equalizer APO auf die Bibliothek. Jede Stufe ist eine Karte mit Live-Graph, Presets und einem Isolieren-Knopf, um nur zu hören, was sie tut.',
   'tour.dsp.point1':
-    'Denoise repariert die Aufnahme selbst: Rauschen, Brummen, Knackser und ein neuronaler Stimmreiniger, gemessen anhand eines Scans des Titels.',
+    'Rauschentfernung repariert Rauschen, Brummen und Knackser während der Wiedergabe, und ein neuronaler Stimmreiniger arbeitet an Titeln der Bibliothek.',
   'tour.dsp.point2':
-    'Bass Forge legt eine echte Oktave unter den Bass; Bass Punch formt Attack, Sustain, Bloom und Duck.',
+    'Bass-Schmiede legt eine echte Oktave unter den Bass; Bass-Punch formt Attack, Sustain und Blüte, mit einem Mix bis 200 %.',
   'tour.dsp.point3':
     'Ein parametrischer Equalizer mit fünfzehn Bändern, minimal- oder linearphasig, Mid/Side, Oversampling und Dutzenden benannten Presets.',
   'tour.dsp.point4':
     'Master mit LUFS-Lautheitsziel und True-Peak-Schutz, Liefer-Presets von Streaming bis Vinyl und einem Gain-Match, um Klang statt Lautstärke zu vergleichen.',
   'tour.dsp.how':
-    'Spielen Sie einen Titel aus der Bibliothek, öffnen Sie den Tab DSP, wählen Sie unter Presets eine Kette, klicken Sie dann in den Seitentabs auf eine Stufe und schalten Sie sie ein.',
+    'Öffnen Sie den Tab DSP, wählen Sie unter Voreinstellungen eine Kette, klicken Sie dann in den Seitentabs auf eine Stufe und schalten Sie sie auf Ein. Unter Equalizer APO spielen Sie vorher einen Titel aus der Bibliothek ab.',
   'tour.dsp.open': 'DSP öffnen',
 
   'tour.output.kicker': 'SPIELT AN ZWEI ORTEN',
@@ -137,17 +237,17 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für den Graphen',
-  'tour.looks.subtitle': 'Siebenundfünfzig Formen, Ihre Farben, Ihre Bewegung',
+  'tour.looks.subtitle': 'Achtunddreißig Formen, Ihre Farben, Ihre Bewegung',
   'tour.looks.lead':
-    'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von siebenundfünfzig Formen, von schlichten Balken und Linien bis zu Graten, Seide, Skyline und Punktmatrix; färben Sie sie flach, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen, Halos oder Kronen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
+    'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von achtunddreißig Formen, von schlichten Balken und Linien bis zu Terrassen, Skylines und einer nächtlichen Brücke mit Verkehr; färben Sie sie in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen oder Wellen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
   'tour.looks.point1':
-    'Siebenundfünfzig Formen, jede mit eigenen Reglern: Teile, Abstand, Füllung, Stärke, und ob gefüllt oder gestrichelt.',
+    'Achtunddreißig Formen, jede mit eigenen Reglern: Teile, Abstand, Füllung, Stärke und ob sie gefüllt oder als Kontur gezeichnet wird.',
   'tour.looks.point2':
-    'Farbe nach Frequenz, Pegel oder Hitze mit einer Rampe aus Ihren eigenen Farben, oder eine flache Farbe.',
+    'Färben Sie jede Form in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze mit einem Verlauf aus Ihren eigenen Farben oder in einer einheitlichen Farbe.',
   'tour.looks.point3':
-    'Attack und Release bestimmen die Bewegung; leuchtende Spitzen und achtzehn Spitzenmarken bestimmen, wie ein Schlag aussieht.',
+    'Attack und Release bestimmen die Bewegung; leuchtende Spitzen, gefüllte Spitzen und zwölf Spitzenmarken bestimmen, wie ein Schlag aussieht.',
   'tour.looks.point4':
-    'Der Regenbogenmodus legt ein Glühen auf den Beat und einen Rand, der das ganze Farbrad durchläuft. Darstellungen lassen sich als Datei exportieren und importieren.',
+    'Leuchten funktioniert in jedem Modus, und der Regenbogenmodus fügt einen Rand hinzu, der das ganze Farbrad durchläuft. Darstellungen lassen sich als Datei exportieren und importieren.',
   'tour.looks.how':
     'Drücken Sie im Tab EQ „Neue Darstellung“ in der Leiste des Graphen. Wählen Sie eine Form mit dem Wähler oder blättern Sie mit der Leertaste, stellen Sie Farben und Bewegung bei laufender Musik ein und dann Speichern.',
   'tour.looks.open': 'EQ öffnen',

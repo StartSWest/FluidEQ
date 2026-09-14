@@ -37,6 +37,108 @@ const tour = {
   'tour.rail.always': 'ALSO IN FLUIDEQ',
   'tour.newBadge': 'NEW',
   'tour.howTitle': 'How to start',
+  'tour.beta': 'Beta',
+
+  'tour.engine.kicker': 'OUR OWN AUDIO ENGINE',
+  'tour.engine.title': 'Meet the FluidEQ Engine',
+  'tour.engine.subtitle': 'EQ and DSP for everything you hear',
+  'tour.engine.lead':
+    "FluidEQ now has an audio engine of its own. It runs inside Windows' audio service, after your sound card's effects, and brings your EQ and the whole DSP rack to everything the computer plays: games, browsers, streaming apps — not only the Library.",
+  'tour.engine.point1':
+    'The DSP rack on all system audio, with nothing playing in FluidEQ.',
+  'tour.engine.point2':
+    'Live leveling that knows the song, and Denoise that cleans as it plays.',
+  'tour.engine.point3':
+    'Quit FluidEQ and your sound goes back to normal at once, even after a crash.',
+  'tour.engine.how':
+    'Choose the FluidEQ Engine when you install, or open the actions menu and choose it there. Then open DSP and switch a stage on while any app plays.',
+  'tour.engine.open': 'Open DSP',
+  'tour.engine.flow.label':
+    'Everything the computer plays passes through the FluidEQ Engine — your EQ, then the DSP rack — on its way to your headphones and speakers.',
+  'tour.engine.flow.games': 'Games',
+  'tour.engine.flow.browser': 'Browsers',
+  'tour.engine.flow.music': 'Music apps',
+  'tour.engine.flow.video': 'Videos',
+  'tour.engine.flow.inside': 'Inside Windows audio',
+  'tour.engine.flow.eq': 'Your EQ',
+  'tour.engine.flow.rack': 'DSP rack',
+  'tour.engine.flow.headphones': 'Headphones',
+  'tour.engine.flow.speakers': 'Speakers',
+
+  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.title': 'Welcome to FluidEQ Plus',
+  'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
+  'tour.plus.lead':
+    'An optional membership that keeps FluidEQ growing, with a whole new tab for it: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. Everything that was free stays free.',
+  'tour.plus.point1':
+    'Sign in from Account in the actions menu; paying happens in your browser, and Plus switches on by itself.',
+  'tour.plus.point2':
+    'Monthly or yearly, with terms in plain words before you pay. The app never sees your card.',
+  'tour.plus.point3':
+    'Signed in on up to five computers, with new visualizers added over time.',
+  'tour.plus.how':
+    'Open the Plus tab: the Leaderboard, Visualizers, the Studio and Dynamic lighting are down its left side.',
+  'tour.plus.open': 'Open Plus',
+  'tour.plus.imageAlt':
+    'The Plus tab: Leaderboard, Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
+  // The scenes the tour's pictures show, by the names they are published
+  // under in each language.
+  'tour.scene.alpine': 'Alpine',
+  'tour.scene.aurora': 'Aurora',
+  'tour.scene.bloom': 'Bloom',
+  'tour.scene.chrome': 'Chrome',
+  'tour.scene.neonCity': 'Neon City',
+
+  'tour.visualizers.kicker': 'VISUALIZERS',
+  'tour.visualizers.title': 'Scenes that move with your music',
+  'tour.visualizers.subtitle': 'Drawn on your graphics card',
+  'tour.visualizers.lead':
+    'Plus visualizers are living scenes — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
+  'tour.visualizers.point1':
+    'One picker for everything: 38 free styles to shape and colour, and Plus visualizers by category.',
+  'tour.visualizers.point2':
+    'Browse the gallery, try FluidEQ’s samples for ten seconds, and add the scenes you like.',
+  'tour.visualizers.point3':
+    'Switch looks automatically, go full screen, and set a scene’s attack and release in View.',
+  'tour.visualizers.how':
+    'Click the look’s name on the graph and choose a scene under Plus visualizers, or browse them all in Plus → Visualizers.',
+  'tour.visualizers.open': 'Open EQ',
+  'tour.visualizers.imageAlt':
+    'Alpine, a Plus visualizer of mountains over a lake at night, playing on the graph under the EQ curves, with four more scenes below it.',
+
+  'tour.desktop.kicker': 'DESKTOP VISUALIZER',
+  'tour.desktop.title': 'Your music behind your desktop',
+  'tour.desktop.subtitle': 'A scene on every monitor',
+  'tour.desktop.lead':
+    'Put a Plus visualizer behind your desktop icons. It moves with whatever you are listening to, or calmly on its own, and every monitor can show a scene of its own.',
+  'tour.desktop.point1':
+    'Pick monitors on a map of your desk, each with its own visualizer.',
+  'tour.desktop.point2':
+    'It pauses for full-screen apps, a locked PC and battery power.',
+  'tour.desktop.point3':
+    'It comes back by itself the next time FluidEQ starts.',
+  'tour.desktop.how':
+    'With a Plus visualizer on the graph, press the monitor button beside its name, or choose View → Set as desktop background.',
+  'tour.desktop.open': 'Open EQ',
+  'tour.desktop.imageAlt':
+    'Three monitors, each showing a Plus visualizer — Aurora, Alpine and Neon City — behind its desktop icons and taskbar.',
+
+  'tour.lighting.kicker': 'DYNAMIC LIGHTING',
+  'tour.lighting.title': 'Your desk lights up with the scene',
+  'tour.lighting.subtitle': 'Beta · your RGB devices follow the visualizer',
+  'tour.lighting.lead':
+    'Your keyboard, mouse, mousepad, headset and stand take the colours and the rhythm of the Plus visualizer on the graph, through Windows Dynamic Lighting and Razer Chroma.',
+  'tour.lighting.point1':
+    'Four styles for each visualizer: Scene, Colour wave, Spectrum and Beat ripple.',
+  'tour.lighting.point2':
+    'Tune every device on its own, and choose what happens when the music stops.',
+  'tour.lighting.point3':
+    'A live preview draws your own desk as it lights. It is in beta: tell us how your devices behave.',
+  'tour.lighting.how':
+    'Open Plus → Dynamic lighting and switch it on, then put a Plus visualizer on the graph.',
+  'tour.lighting.open': 'Open Plus',
+  'tour.lighting.imageAlt':
+    'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
   'tour.theme.kicker': 'A NEW LOOK',
   'tour.theme.title': 'Meet the Black theme',
@@ -51,7 +153,7 @@ const tour = {
     'Your accent colour and rainbow mode carry over. Nothing about your sound changes. It is only the paint.',
   'tour.theme.howTitle': 'How to switch',
   'tour.theme.how':
-    'Open the menu behind the pulse icon in the top-right corner, then pick Theme → Black. Ocean is one pick away if you want it back.',
+    'Open the menu behind the pulse icon in the top-right corner and pick Black under Theme, at the bottom of it. Ocean is one pick away if you want it back.',
   'tour.theme.tryBlack': 'Switch to Black now',
   'tour.theme.tryOcean': 'Back to Ocean',
   'tour.theme.imageAlt':
@@ -73,10 +175,10 @@ const tour = {
     'Open the Share Audio tab, choose "Play audio on this computer" and press "Create connection code". Copy the code shown for your network.',
   'tour.share.step2Title': 'On every other PC, paste it',
   'tour.share.step2':
-    'Open FluidEQ there, go to Share Audio, choose "Send audio from this computer", paste the code and press "Connect and send". Its system audio starts flowing.',
-  'tour.share.step3Title': 'Pick a priority and listen',
+    'Open FluidEQ there, go to Share Audio, choose "Send audio from this computer", pick Music or Game/Video, paste the code and press "Connect and send". Its system audio starts flowing.',
+  'tour.share.step3Title': 'Listen, and set the level',
   'tour.share.step3':
-    'Music keeps a bigger safety buffer for uninterrupted listening; Game/Video runs with the lowest delay for lip-sync. Every sender is mixed into the receiver’s output and shaped by its EQ. The receiver’s playback bar shows each sender’s song and its buttons work across the wire.',
+    'Music keeps a bigger safety buffer for uninterrupted listening; Game/Video runs with the lowest delay for lip-sync. Every sender is mixed into the receiver’s output, shaped by its EQ and set by its Volume. The receiver’s playback bar shows the latest sender’s song, and its buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
@@ -104,24 +206,24 @@ const tour = {
   'tour.library.point4':
     'Smart EQ song memory: flip "Save for this song" while it plays and the correction you make is remembered for that track.',
   'tour.library.how':
-    'Open the Library tab, press "Add folder" or drop a folder on the page, and wait for "Added songs". Pick Albums, Artists, Genres, Songs, Folders or Tree, then press Play.',
+    'Open the Library tab, press "Add folder" or drop a folder on the page, and let the scan finish. Pick Albums, Artists, Genres, Songs, Folders or Tree, then press Play.',
   'tour.library.open': 'Open Library',
 
   'tour.dsp.kicker': 'A MASTERING RACK',
   'tour.dsp.title': 'The DSP rack',
   'tour.dsp.subtitle': 'Nine stages, each with its own graph',
   'tour.dsp.lead':
-    'Everything the Library plays can go through a rack of studio stages, in order: Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer and Master, plus a crossfade between tracks. Each stage is a card with a live graph, presets, and an Isolate button to hear only what it is doing.',
+    'A rack of studio stages, in order: Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer and Master, plus a crossfade between Library tracks. Under the FluidEQ Engine it plays on everything the computer plays; under Equalizer APO, on the Library. Each stage is a card with a live graph, presets, and an Isolate button to hear only what it is doing.',
   'tour.dsp.point1':
-    'Denoise repairs the recording itself: hiss, hum, clicks and a neural voice cleaner, measured from a scan of the track.',
+    'Denoise repairs hiss, hum and clicks as they play, and a neural voice cleaner works on Library tracks.',
   'tour.dsp.point2':
-    'Bass Forge adds a real octave below the bass; Bass Punch shapes its attack, sustain, bloom and duck.',
+    'Bass Forge adds a real octave below the bass; Bass Punch shapes its attack, sustain and bloom, with a Mix up to 200%.',
   'tour.dsp.point3':
     'A fifteen-band parametric Equaliser with minimum or linear phase, mid/side, oversampling and dozens of named presets.',
   'tour.dsp.point4':
     'Master with a LUFS loudness target and true-peak safety, delivery presets from Streaming to Vinyl, and a Gain match to compare sound, not volume.',
   'tour.dsp.how':
-    'Play a track from the Library, open the DSP tab, pick a chain under Presets, then click a stage in the side tabs and switch it On.',
+    'Open the DSP tab, pick a chain under Presets, then click a stage in the side tabs and switch it On. Under Equalizer APO, play a track from the Library first.',
   'tour.dsp.open': 'Open DSP',
 
   'tour.output.kicker': 'PLAYS IN TWO PLACES',
@@ -146,17 +248,17 @@ const tour = {
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',
-  'tour.looks.subtitle': 'Fifty-seven forms, your colours, your motion',
+  'tour.looks.subtitle': 'Thirty-eight forms, your colours, your motion',
   'tour.looks.lead':
-    'The spectrum under the EQ can be drawn any way you like. Pick one of fifty-seven forms, from plain bars and lines to ridges, silk, skyline and dot matrix, then colour it flat, by frequency, by level or by heat, set how fast it attacks and how long a peak hangs, and mark the peaks with sparks, comets, halos or crowns. Save it as a look of your own, and share it as a file.',
+    'The spectrum under the EQ can be drawn any way you like. Pick one of thirty-eight forms, from plain bars and lines to terraces, skylines and a night bridge with traffic, then colour it in its own Auto colouring, by frequency, by level or by heat, set how fast it attacks and how long a peak hangs, and mark the peaks with sparks, comets or ripples. Save it as a look of your own, and share it as a file.',
   'tour.looks.point1':
-    'Fifty-seven forms, each with its own controls: pieces, gap, fill, weight, and whether it is filled or stroked.',
+    'Thirty-eight forms, each with its own controls: pieces, gap, fill, weight, and whether it is filled or stroked.',
   'tour.looks.point2':
-    'Colour by frequency, level or heat with a ramp of your own colours, or one flat colour.',
+    'Colour each form in its own Auto colouring, by frequency, level or heat with a ramp of your own colours, or in one flat colour.',
   'tour.looks.point3':
-    'Attack and release set the motion; lit peaks and eighteen peak marks set what a hit looks like.',
+    'Attack and release set the motion; lit peaks, filled peaks and twelve peak marks set what a hit looks like.',
   'tour.looks.point4':
-    'Rainbow mode adds a glow on the beat and a border that travels the whole colour wheel. Looks export to a file and import from one.',
+    'Glow works in every mode, and Rainbow mode adds a border that travels the whole colour wheel. Looks export to a file and import from one.',
   'tour.looks.how':
     'On the EQ tab, press "New look" in the graph\'s toolbar. Pick a form with the picker or press Space to cycle them, adjust the colours and motion while the music plays, then Save.',
   'tour.looks.open': 'Open EQ',

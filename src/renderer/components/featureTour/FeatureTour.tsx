@@ -84,6 +84,38 @@ export default function FeatureTour({
     primaryRef.current?.focus();
   }, []);
 
+  // The entry on stage stays in sight in the rail while Next and Back walk
+  // past the ones showing — fifteen entries do not fit in either the column
+  // or the row the rail becomes in a narrow window. Only the rail scrolls:
+  // `scrollIntoView` is free to scroll the panel around it as well.
+  const railRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const rail = railRef.current;
+    const item = rail?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!rail || !item) {
+      return;
+    }
+    const style = getComputedStyle(rail);
+    const inset = {
+      top: parseFloat(style.paddingTop),
+      bottom: parseFloat(style.paddingBottom),
+      left: parseFloat(style.paddingLeft),
+      right: parseFloat(style.paddingRight),
+    };
+    const outer = rail.getBoundingClientRect();
+    const box = item.getBoundingClientRect();
+    if (box.top < outer.top + inset.top) {
+      rail.scrollTop -= outer.top + inset.top - box.top;
+    } else if (box.bottom > outer.bottom - inset.bottom) {
+      rail.scrollTop += box.bottom - (outer.bottom - inset.bottom);
+    }
+    if (box.left < outer.left + inset.left) {
+      rail.scrollLeft -= outer.left + inset.left - box.left;
+    } else if (box.right > outer.right - inset.right) {
+      rail.scrollLeft += box.right - (outer.right - inset.right);
+    }
+  }, [index]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isCovered) {
@@ -146,7 +178,11 @@ export default function FeatureTour({
         </DialogHeader>
 
         <div className="feature-tour__body">
-          <nav className="feature-tour__rail" aria-label={t('tour.rail')}>
+          <nav
+            ref={railRef}
+            className="feature-tour__rail"
+            aria-label={t('tour.rail')}
+          >
             {slides.map((entry, entryIndex) => {
               // A group heading above the first entry of each kind: what
               // this version brought, then what has been here all along.

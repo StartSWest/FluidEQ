@@ -1,11 +1,12 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HELP_CHAPTERS } from 'common/helpGuide';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from '../components/DialogHeader';
+import HelpFigure from './HelpFigure';
 import screenshots from './screenshots';
 import '../styles/FeatureTour.scss';
 
@@ -22,10 +23,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   const [query, setQuery] = useState('');
   const [activeChapter, setActiveChapter] = useState<string>();
   const [capture, setCapture] = useState<{ src: string; title: string }>();
-  const chapters = HELP_CHAPTERS.map(({ id, width, height }) => ({
+  const chapters = HELP_CHAPTERS.map(({ id, group, figures }) => ({
     id,
-    width,
-    height,
+    group,
+    figures,
     title: t(`help.${id}.title`),
     intro: t(`help.${id}.intro`),
     steps: t(`help.${id}.steps`).split('\n'),
@@ -36,12 +37,29 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
     .toLocaleLowerCase(locale)
     .split(/\s+/)
     .filter(Boolean);
+  // A control's name and its line are part of what a chapter says, so a
+  // search for "grid" or "attack" lands on the chapter that explains it.
   const matches = chapters.filter((chapter) => {
-    const text = [chapter.title, chapter.intro, ...chapter.steps, chapter.tip]
+    const text = [
+      chapter.title,
+      chapter.intro,
+      ...chapter.steps,
+      chapter.tip,
+      ...chapter.figures.flatMap((figure) => [
+        ...(figure.caption ? [t(figure.caption)] : []),
+        ...(figure.controls ?? []).flatMap((control) => [
+          t(control.name),
+          t(control.text),
+        ]),
+      ]),
+    ]
       .join(' ')
       .toLocaleLowerCase(locale);
     return words.every((word) => text.includes(word));
   });
+  /** The group heading goes above the first chapter of each group shown. */
+  const startsGroup = (index: number) =>
+    index === 0 || matches[index].group !== matches[index - 1].group;
 
   useEffect(() => {
     const element = dialog.current;
@@ -156,32 +174,38 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
               {t('help.results', { count: matches.length })}
             </span>
             <nav aria-label={t('help.contents')}>
-              {matches.map((chapter) => (
-                <button
-                  className={`feature-tour__rail-item${activeChapter === `help-${chapter.id}` ? ' is-active' : ''}`}
-                  key={chapter.id}
-                  type="button"
-                  aria-current={
-                    activeChapter === `help-${chapter.id}`
-                      ? 'location'
-                      : undefined
-                  }
-                  onClick={() => {
-                    const target = document.getElementById(
-                      `help-${chapter.id}`,
-                    );
-                    target?.scrollIntoView({ block: 'start' });
-                    target?.focus({ preventScroll: true });
-                  }}
-                >
-                  <span
-                    className="feature-tour__rail-number"
-                    aria-hidden="true"
+              {matches.map((chapter, index) => (
+                <Fragment key={chapter.id}>
+                  {startsGroup(index) && (
+                    <span className="help-guide__group" aria-hidden="true">
+                      {t(`help.group.${chapter.group}`)}
+                    </span>
+                  )}
+                  <button
+                    className={`feature-tour__rail-item${activeChapter === `help-${chapter.id}` ? ' is-active' : ''}`}
+                    type="button"
+                    aria-current={
+                      activeChapter === `help-${chapter.id}`
+                        ? 'location'
+                        : undefined
+                    }
+                    onClick={() => {
+                      const target = document.getElementById(
+                        `help-${chapter.id}`,
+                      );
+                      target?.scrollIntoView({ block: 'start' });
+                      target?.focus({ preventScroll: true });
+                    }}
                   >
-                    {chapters.indexOf(chapter) + 1}
-                  </span>
-                  <span>{chapter.title}</span>
-                </button>
+                    <span
+                      className="feature-tour__rail-number"
+                      aria-hidden="true"
+                    >
+                      {chapters.indexOf(chapter) + 1}
+                    </span>
+                    <span>{chapter.title}</span>
+                  </button>
+                </Fragment>
               ))}
             </nav>
             <span className="help-guide__offline">{t('help.offline')}</span>
@@ -214,12 +238,17 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                 </button>
               </div>
             )}
-            {matches.map((chapter) => (
+            {matches.map((chapter, index) => (
               <section
                 key={chapter.id}
                 className="help-guide__chapter"
                 aria-labelledby={`help-${chapter.id}`}
               >
+                {startsGroup(index) && (
+                  <span className="eyebrow help-guide__chapter-group">
+                    {t(`help.group.${chapter.group}`)}
+                  </span>
+                )}
                 <div className="help-guide__chapter-heading">
                   <span
                     className="feature-tour__rail-number"
@@ -232,30 +261,22 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
                   </h2>
                 </div>
                 <p>{chapter.intro}</p>
-                <figure>
-                  <button
-                    type="button"
-                    className="help-guide__capture"
-                    aria-label={t('help.enlarge', { title: chapter.title })}
-                    onClick={() =>
-                      setCapture({
-                        src: screenshots[chapter.id],
-                        title: chapter.title,
-                      })
-                    }
-                  >
-                    <img
-                      src={screenshots[chapter.id]}
-                      alt={chapter.title}
-                      loading="lazy"
-                      width={chapter.width}
-                      height={chapter.height}
+                {chapter.figures.map((figure) => {
+                  const title = figure.caption
+                    ? t(figure.caption)
+                    : chapter.title;
+                  return (
+                    <HelpFigure
+                      key={figure.image}
+                      figure={figure}
+                      src={screenshots[figure.image]}
+                      title={title}
+                      onEnlarge={() =>
+                        setCapture({ src: screenshots[figure.image], title })
+                      }
                     />
-                  </button>
-                  <figcaption>
-                    {t('help.enlarge', { title: chapter.title })}
-                  </figcaption>
-                </figure>
+                  );
+                })}
                 <h3>{t('help.steps')}</h3>
                 <ol>
                   {chapter.steps.map((step) => (

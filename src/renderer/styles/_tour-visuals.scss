@@ -1,0 +1,528 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The pictures on the 1.7 headline slides: real frames and captures, set in a
+// little staging — the Plus tab in miniature, a filmstrip, a monitor and its
+// map. Each is measured in tour units, so it keeps its proportions from a
+// 1440-wide window to a 4K one, and is capped at the width where a miniature
+// stops reading as one and starts reading as a real panel.
+
+// A row of small labelled chips under a picture.
+@mixin chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.4);
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    padding: calc(var(--tour-unit) * 0.3) calc(var(--tour-unit) * 0.7);
+    color: $text-muted;
+    border: 1px solid rgba($edge-tint, 0.14);
+    border-radius: $radius-pill;
+    background: color-mix(in srgb, $surface-block 90%, transparent);
+    font-size: calc(var(--tour-unit) * 0.74);
+    font-weight: $weight-semibold;
+    line-height: 1.2;
+    gap: calc(var(--tour-unit) * 0.4);
+    white-space: nowrap;
+    @include stagger-in(6, 50ms, 160ms);
+  }
+}
+
+// A capture's frame: the edge and the shadow the tour's real screenshots wear.
+@mixin framed {
+  border: 1px solid rgba($edge-tint, 0.14);
+  box-shadow:
+    0 22px 56px rgba($black, 0.55),
+    0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
+}
+
+// ---------------------------------------------------------------------------
+// Plus: the tab in miniature, its places down the side and the gallery open.
+
+.plus-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(var(--tour-unit) * 40);
+  overflow: hidden;
+  border-radius: $radius-l;
+  background: $surface-base;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
+  @include framed;
+  @include animate(rise-in, $motion-slow);
+}
+
+.plus-visual__rail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 0.55);
+  border-right: 1px solid rgba($edge-tint, 0.08);
+  background: rgba($white, 0.025);
+  gap: calc(var(--tour-unit) * 0.3);
+}
+
+.plus-visual__title {
+  padding: 0 calc(var(--tour-unit) * 0.45) calc(var(--tour-unit) * 0.3);
+  color: $text-primary;
+  font-size: calc(var(--tour-unit) * 0.92);
+  font-weight: $weight-bold;
+  line-height: 1.2;
+}
+
+.plus-visual__places {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.25);
+  list-style: none;
+
+  // The rail's rows, as `CommunityRail.scss` draws them: the open one
+  // tinted, with the short accent bar down its left edge.
+  li {
+    position: relative;
+    display: grid;
+    align-items: center;
+    padding: calc(var(--tour-unit) * 0.4) calc(var(--tour-unit) * 0.45);
+    color: $text-muted;
+    border-radius: $radius-s;
+    gap: calc(var(--tour-unit) * 0.55);
+    grid-template-columns: calc(var(--tour-unit) * 1.9) minmax(0, 1fr);
+    @include stagger-in(4, 60ms, 120ms);
+
+    &.is-active {
+      color: $text-primary;
+      background: color-mix(in srgb, $secondary-default 13%, transparent);
+
+      &::before {
+        position: absolute;
+        top: 22%;
+        bottom: 22%;
+        left: 0;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: $secondary-default;
+        box-shadow: 0 0 8px
+          color-mix(in srgb, $secondary-default 60%, transparent);
+        content: '';
+      }
+    }
+  }
+}
+
+.plus-visual__mark {
+  display: grid;
+  width: calc(var(--tour-unit) * 1.9);
+  height: calc(var(--tour-unit) * 1.9);
+  place-items: center;
+  color: $text-faint;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $white 5%, transparent);
+
+  svg {
+    width: calc(var(--tour-unit) * 1.15);
+    height: calc(var(--tour-unit) * 1.15);
+  }
+
+  .is-active > & {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+.plus-visual__place {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+
+  strong {
+    font-size: calc(var(--tour-unit) * 0.84);
+    font-weight: $weight-semibold;
+    line-height: 1.2;
+  }
+
+  span {
+    color: $text-faint;
+    font-size: calc(var(--tour-unit) * 0.68);
+    line-height: 1.25;
+  }
+}
+
+// The foot of the rail, where the real one shows the member.
+.plus-visual__member {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding: calc(var(--tour-unit) * 0.55) calc(var(--tour-unit) * 0.45) 0;
+  color: $secondary-light;
+  border-top: 1px solid rgba($edge-tint, 0.08);
+  font-size: calc(var(--tour-unit) * 0.7);
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+  gap: calc(var(--tour-unit) * 0.45);
+}
+
+// `.brand-mark` draws its wave at a fixed 30px; at this size it has to follow
+// the tile, or it spills out of it.
+.plus-visual__brand.brand-mark {
+  flex: 0 0 auto;
+  width: calc(var(--tour-unit) * 1.7);
+  height: calc(var(--tour-unit) * 1.7);
+  border-radius: $radius-xs;
+  box-shadow: none;
+
+  svg {
+    width: 68%;
+    height: 68%;
+  }
+}
+
+.plus-visual__gallery {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 0.8);
+  gap: calc(var(--tour-unit) * 0.3);
+}
+
+// Five published covers: the newest across the top, four under it.
+.plus-visual__cards {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    display: grid;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba($edge-tint, 0.12);
+    border-radius: $radius-m;
+    background: $surface-panel;
+    @include stagger-in(5, 60ms, 200ms);
+
+    &:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+
+.plus-visual__card-text {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--tour-unit) * 0.35) calc(var(--tour-unit) * 0.5);
+  gap: calc(var(--tour-unit) * 0.4);
+
+  strong {
+    min-width: 0;
+    overflow: hidden;
+    color: $text-primary;
+    font-size: calc(var(--tour-unit) * 0.74);
+    font-weight: $weight-semibold;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The official badge, as the gallery's cards carry it.
+  span {
+    flex: 0 0 auto;
+    padding: 0 calc(var(--tour-unit) * 0.35);
+    color: $secondary-light;
+    border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+    border-radius: $radius-pill;
+    font-size: calc(var(--tour-unit) * 0.56);
+    font-weight: $weight-bold;
+    line-height: 1.5;
+    @include tracking(0.06em);
+    text-transform: uppercase;
+  }
+
+  // Too narrow on the four small cards for a name and a badge side by side.
+  li:not(:first-child) > & span {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Visualizers: Alpine under the EQ curves, and a filmstrip of more scenes.
+
+.visualizers-visual {
+  display: grid;
+  width: 100%;
+  gap: calc(var(--tour-unit) * 0.6);
+}
+
+.visualizers-visual__stage {
+  position: relative;
+  @include animate(rise-in, $motion-slow);
+
+  .tour-showcase__shot {
+    width: 100%;
+  }
+}
+
+.visualizers-visual__badge {
+  position: absolute;
+  top: calc(var(--tour-unit) * 0.8);
+  left: calc(var(--tour-unit) * 0.8);
+  padding: 2px calc(var(--tour-unit) * 0.55);
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 55%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $black 55%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: calc(var(--tour-unit) * 0.7);
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.visualizers-visual__strip {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.5);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    overflow: hidden;
+    border: 1px solid rgba($edge-tint, 0.12);
+    border-radius: $radius-m;
+    background: $black;
+    box-shadow: 0 10px 24px rgba($black, 0.4);
+    aspect-ratio: 16 / 9;
+    @include stagger-in(4, 70ms, 140ms);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The desktop: Alpine behind the icons, and the monitor map under it.
+
+.desktop-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(var(--tour-unit) * 40);
+  justify-items: center;
+  gap: calc(var(--tour-unit) * 1);
+}
+
+.desktop-visual__monitor {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  @include animate(rise-in, $motion-slow);
+}
+
+.desktop-visual__screen {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: calc(var(--tour-unit) * 0.38) solid
+    color-mix(in srgb, $black 88%, $edge-tint);
+  border-radius: $radius-m;
+  background: $black;
+  box-shadow:
+    0 0 0 1px rgba($edge-tint, 0.16),
+    0 22px 50px rgba($black, 0.55),
+    0 0 46px color-mix(in srgb, $secondary-default 16%, transparent);
+  aspect-ratio: 16 / 9;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Desktop icons down the left, the way a real desktop keeps them.
+.desktop-visual__icons {
+  position: absolute;
+  top: 6%;
+  left: 3.5%;
+  display: grid;
+  gap: calc(var(--tour-unit) * 0.6);
+
+  i {
+    display: block;
+    width: calc(var(--tour-unit) * 1.6);
+    height: calc(var(--tour-unit) * 1.6);
+    border: 1px solid rgba($white, 0.4);
+    border-radius: 4px;
+    background: linear-gradient(160deg, rgba($white, 0.34), rgba($white, 0.1));
+    box-shadow: 0 2px 6px rgba($black, 0.35);
+  }
+}
+
+// The taskbar across the bottom, FluidEQ lit among the apps on it.
+.desktop-visual__taskbar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--tour-unit) * 0.4) 0;
+  background: color-mix(in srgb, $black 62%, transparent);
+  backdrop-filter: blur(8px);
+  gap: calc(var(--tour-unit) * 0.55);
+
+  i {
+    display: block;
+    width: calc(var(--tour-unit) * 1);
+    height: calc(var(--tour-unit) * 1);
+    border-radius: 3px;
+    background: rgba($white, 0.5);
+  }
+}
+
+.desktop-visual__taskbar .desktop-visual__start {
+  background: linear-gradient(135deg, $neon-cyan, $neon-purple);
+}
+
+.desktop-visual__taskbar .desktop-visual__app {
+  background: $secondary-light;
+  box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 70%, transparent);
+}
+
+.desktop-visual__neck {
+  width: 9%;
+  height: calc(var(--tour-unit) * 1.7);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $black 80%, $edge-tint),
+    color-mix(in srgb, $black 92%, $edge-tint)
+  );
+}
+
+.desktop-visual__foot {
+  width: 34%;
+  height: calc(var(--tour-unit) * 0.55);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $black 82%, $edge-tint);
+  box-shadow: 0 8px 16px rgba($black, 0.45);
+}
+
+// The map the desktop background is set from: one screen per monitor.
+.desktop-visual__map {
+  display: grid;
+  width: 100%;
+  padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.8)
+    calc(var(--tour-unit) * 0.8);
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-block 85%, transparent);
+  gap: calc(var(--tour-unit) * 0.5);
+
+  ul {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    gap: calc(var(--tour-unit) * 0.7);
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    flex: 0 1 28%;
+    overflow: hidden;
+    border: 2px solid rgba($edge-tint, 0.2);
+    border-radius: $radius-s;
+    background: $black;
+    aspect-ratio: 16 / 9;
+    @include stagger-in(3, 60ms, 160ms);
+
+    &.is-selected {
+      flex-basis: 34%;
+      border-color: $secondary-light;
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, $secondary-light 28%, transparent),
+        0 0 18px color-mix(in srgb, $secondary-light 35%, transparent);
+    }
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.desktop-visual__map-title {
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.66);
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+}
+
+.desktop-visual__number {
+  position: absolute;
+  top: calc(var(--tour-unit) * 0.3);
+  left: calc(var(--tour-unit) * 0.3);
+  display: grid;
+  min-width: calc(var(--tour-unit) * 1.25);
+  height: calc(var(--tour-unit) * 1.25);
+  place-items: center;
+  padding: 0 calc(var(--tour-unit) * 0.25);
+  color: $text-primary;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $black 60%, transparent);
+  font-size: calc(var(--tour-unit) * 0.66);
+  font-weight: $weight-bold;
+  line-height: 1;
+
+  .is-selected > & {
+    color: $surface-base;
+    background: $secondary-light;
+  }
+}
+
+.desktop-visual__modes {
+  @include chips;
+}
+
+.desktop-visual__glyph {
+  width: calc(var(--tour-unit) * 1.05);
+  height: calc(var(--tour-unit) * 1.05);
+  color: $secondary-light;
+}

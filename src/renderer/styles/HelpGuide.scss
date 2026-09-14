@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 @use 'dialog' as dialog;
 
@@ -256,4 +257,175 @@
   .help-guide__article {
     padding: 20px;
   }
+}
+
+// The guide's parts: one small heading in the contents rail above each, and
+// the same words above the first chapter of each part in the article.
+.help-guide__group {
+  margin: 12px 0 2px;
+  padding: 0 8px;
+  color: $text-faint;
+  font-size: 11px;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.help-guide__chapter-group {
+  display: block;
+  margin-bottom: 14px;
+  color: $text-accent;
+}
+
+// A capture, and the controls it explains: beside it when the capture leaves
+// room — a menu, a panel — and under it when the capture takes the line. The
+// capture's width is its flex basis (set inline from its size), so the two
+// sit side by side or wrap by what fits, not by a breakpoint.
+.help-figure {
+  margin: 24px 0 28px;
+}
+
+.help-figure__caption {
+  margin: 30px 0 12px;
+  font-size: 16px;
+  font-weight: $weight-bold;
+}
+
+.help-figure__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px 20px;
+}
+
+.help-figure__shot {
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+// The capture's own box, so a pointed-at control can be ringed on it.
+.help-figure__frame {
+  position: relative;
+}
+
+.help-figure__ring {
+  position: absolute;
+  z-index: 1;
+  box-sizing: content-box;
+  margin: -5px 0 0 -5px;
+  padding: 3px;
+  border: 2px solid $secondary-light;
+  border-radius: $radius-s;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, $secondary-default 22%, transparent),
+    0 0 26px color-mix(in srgb, $secondary-light 55%, transparent);
+  pointer-events: none;
+  @include animate(fade-in, $motion-fast);
+}
+
+// Every control a line: its piece of the capture, its name and shortcut, and
+// what it is for. As many columns as fit at a readable measure, one on a
+// narrow window — the tracks decide it, not a breakpoint.
+.help-guide__article .help-controls {
+  display: grid;
+  flex: 1 1 300px;
+  min-width: min(100%, 300px);
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  list-style: none;
+}
+
+.help-guide__article .help-control {
+  @include dialog.section-surface;
+  display: grid;
+  align-items: center;
+  margin: 0;
+  padding: 9px 12px 9px 9px;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  transition: $transition-control;
+
+  &::marker {
+    content: none;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-light 32%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, $block-lift);
+  }
+}
+
+// No picture to repeat: the words take the whole line.
+.help-guide__article .help-control--plain {
+  padding-left: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// As wide as its own piece: one width for every line left a lone arrow
+// floating in a black box sized for the look picker's pill.
+.help-control__well {
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 4px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: $radius-s;
+  background: $surface-well;
+}
+
+.help-control__piece {
+  display: block;
+  background-repeat: no-repeat;
+}
+
+.help-control__body {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+// The shortcut goes under the name when both do not fit: squeezed onto one
+// line, "Previous look" broke into four pieces a letter or two long.
+.help-control__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 10px;
+  color: $text-primary;
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: normal;
+
+  strong {
+    font-weight: $weight-semibold;
+  }
+
+  kbd {
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    color: $text-muted;
+    border: 1px solid rgba($white, 0.14);
+    border-radius: $radius-xs;
+    background: rgba($white, 0.04);
+    font-family: $font-mono;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+}
+
+.help-control__text {
+  color: $text-muted;
+  font-size: 13px;
+  line-height: 1.45;
 }

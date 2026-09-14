@@ -10,6 +10,18 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
   The capture rectangle includes the Share Audio heading, monitor and role
   selector. The pairing area is outside the rectangle; no pairing credentials
   or network addresses are included.
+- `15` through `31` were captured from the running FluidEQ 1.7.0 development
+  window on September 14, 2026, in English, laid out at 1920 × 1080 and drawn
+  at 1.5 device pixels per CSS pixel, which is the scale the guide shows them
+  at. Buttons only an administrator sees, a personal folder path and a
+  signed-in GitHub card were hidden for the capture; the leaderboard shows the
+  development build's sample people, not members. The output list is the one
+  a Remote Desktop session has. The control boxes the guide rings were
+  measured in the same window at the same moment and live in
+  `src/common/helpGuide.ts`: a new capture of any of these files needs its
+  boxes measured again.
+- `07` and `10` are no longer in the guide; this repository's README still
+  shows them.
 
 The guide identifies screenshots as illustrations whose language, appearance
 and control positions may differ from the installed version. Settings visible

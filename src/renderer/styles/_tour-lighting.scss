@@ -1,0 +1,134 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'sass:list';
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-visuals' as visuals;
+
+// Dynamic lighting's slide: a desk washed in Neon City's pink, violet and
+// cyan, one wave of it travelling across every device.
+
+.lighting-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(var(--tour-unit) * 40);
+  justify-items: center;
+  gap: calc(var(--tour-unit) * 0.8);
+}
+
+.lighting-visual__desk {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  @include animate(rise-in, $motion-slow);
+}
+
+.lighting-visual__body {
+  fill: color-mix(in srgb, $black 90%, $edge-tint);
+  stroke: rgba($edge-tint, 0.16);
+  stroke-width: 1;
+}
+
+.lighting-visual__pad {
+  fill: color-mix(in srgb, $black 95%, $edge-tint);
+}
+
+.lighting-visual__band {
+  fill: none;
+  stroke: color-mix(in srgb, $black 90%, $edge-tint);
+  stroke-linecap: round;
+  stroke-width: 9;
+}
+
+.lighting-visual__rim {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 3;
+
+  &--soft {
+    opacity: 0.85;
+    stroke-width: 2;
+  }
+}
+
+// The mouse's two buttons and its wheel, in the shell's own dark.
+.lighting-visual__seam {
+  fill: none;
+  stroke: rgba($edge-tint, 0.14);
+  stroke-width: 1;
+}
+
+.lighting-visual__wheel {
+  fill: color-mix(in srgb, $black 70%, $edge-tint);
+}
+
+.lighting-visual__key {
+  stroke: rgba($black, 0.45);
+  stroke-width: 0.8;
+}
+
+.lighting-visual__spill {
+  opacity: 0.34;
+}
+
+// Seven stops a sixth of a cycle apart. Each rests on the colour its place in
+// the cycle has at the start, so with motion reduced the desk still shows the
+// whole wave, standing still, rather than one flat pink.
+$lighting-cycle: (
+  $neon-pink,
+  color-mix(in srgb, $neon-pink 50%, $neon-purple),
+  $neon-purple,
+  color-mix(in srgb, $neon-purple 50%, $neon-cyan),
+  $neon-cyan,
+  color-mix(in srgb, $neon-cyan 50%, $neon-pink),
+  $neon-pink
+);
+
+.lighting-visual__stop {
+  animation: lighting-visual-cycle 6s linear infinite;
+
+  @for $i from 1 through 7 {
+    &:nth-child(#{$i}) {
+      stop-color: list.nth($lighting-cycle, $i);
+      animation-delay: -1s * ($i - 1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes lighting-visual-cycle {
+  0%,
+  100% {
+    stop-color: $neon-pink;
+  }
+
+  33.333% {
+    stop-color: $neon-purple;
+  }
+
+  66.667% {
+    stop-color: $neon-cyan;
+  }
+}
+
+.lighting-visual__effects {
+  @include visuals.chips;
+}
+
+.lighting-visual__routes {
+  margin: 0;
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.72);
+  text-align: center;
+}

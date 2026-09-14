@@ -1,0 +1,374 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The feature release's own slides: one big picture of the thing and the words
+// beside it. The picture takes the larger column — these are the slides a new
+// version is announced with, and a sentence cannot show a scene moving.
+
+// Side by side while both fit, the picture on top once they do not: the text
+// comes first in the markup, and `wrap-reverse` puts the second line above
+// the first — no width is measured here, the two bases decide it.
+//
+// Two classes, because this partial is emitted ahead of FeatureTour.scss's own
+// rules, and a lone `.tour-slide--showcase` lost to `.tour-slide`'s grid.
+//
+// At least the stage's height, never exactly it. In a `wrap-reverse` box the
+// cross axis runs upwards, so content taller than a fixed height spills out
+// of the top edge, where no scrollbar reaches: on a 1440 × 852 window the
+// kicker and half the title sat under the header with no way to see them.
+// Growing instead hands the overflow to the stage, which scrolls.
+.tour-slide.tour-slide--showcase {
+  display: flex;
+  height: auto;
+  min-height: 100%;
+  flex-wrap: wrap-reverse;
+  align-items: stretch;
+
+  > .tour-slide__text {
+    flex: 1 1 calc(var(--tour-unit) * 21);
+  }
+
+  > .tour-showcase__visual {
+    flex: 1.45 1 calc(var(--tour-unit) * 30);
+  }
+}
+
+.tour-slide__tag {
+  display: inline-block;
+  margin-left: calc(var(--tour-unit) * 0.6);
+  padding: 1px calc(var(--tour-unit) * 0.5);
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: $secondary-light;
+  font-size: calc(var(--tour-unit) * 0.66);
+  @include tracking(0.08em);
+  vertical-align: 1px;
+}
+
+// A step down from the standing slides' lead: this column is the narrower of
+// the two, and at the full size the lead ran a line or two past the stage in
+// a 1440-wide window, pushing "How to start" under the fold.
+.tour-slide--showcase .tour-slide__lead {
+  font-size: calc(var(--tour-unit) * 1.05);
+  line-height: 1.5;
+}
+
+.tour-showcase__points {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.45);
+  list-style: none;
+
+  li {
+    position: relative;
+    padding-left: calc(var(--tour-unit) * 1.5);
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 1);
+    line-height: 1.45;
+
+    &::before {
+      position: absolute;
+      top: calc(var(--tour-unit) * 0.5);
+      left: 0;
+      width: calc(var(--tour-unit) * 0.55);
+      height: calc(var(--tour-unit) * 0.55);
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 55%, transparent);
+      content: '';
+    }
+  }
+}
+
+// The picture's frame: a dark well with the accent breathing faintly behind
+// whatever is in it.
+.tour-showcase__visual {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: calc(var(--tour-unit) * 1.1);
+  border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+  border-radius: $radius-xl;
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 50% 45%,
+      color-mix(in srgb, $secondary-default 13%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, $surface-well 82%, transparent);
+  box-shadow: inset 0 1px 0 rgba($white, 0.04);
+}
+
+// A real capture, held inside the frame at its own proportions.
+.tour-showcase__shot {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-l;
+  background: $black;
+  box-shadow:
+    0 22px 56px rgba($black, 0.55),
+    0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
+  object-fit: contain;
+}
+
+// ---------------------------------------------------------------------------
+// The engine's path: sources, wires, the engine, wires, outputs.
+
+.engine-flow {
+  display: grid;
+  width: 100%;
+  height: min(100%, calc(var(--tour-unit) * 28));
+  min-height: calc(var(--tour-unit) * 22);
+  align-items: stretch;
+  grid-template-columns:
+    minmax(0, 0.85fr) minmax(calc(var(--tour-unit) * 1.6), 0.26fr)
+    minmax(0, 1.6fr) minmax(calc(var(--tour-unit) * 1.6), 0.26fr)
+    minmax(0, 0.85fr);
+}
+
+.engine-flow__column {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+// Two outputs in the middle two quarters, where their wires arrive.
+.engine-flow__column--outputs {
+  li:nth-child(1) {
+    grid-row: 2;
+  }
+
+  li:nth-child(2) {
+    grid-row: 3;
+  }
+}
+
+// The icon above its name, always. Beside it, the name had the column's width
+// minus the icon's, and "Headphones" broke as "Headpho-nes" in a 1440-wide
+// window; stacked, a whole word fits in every language shipped.
+.engine-flow__node {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex-direction: column;
+  padding: calc(var(--tour-unit) * 0.55) calc(var(--tour-unit) * 0.4);
+  color: $text-primary;
+  border: 1px solid rgba($edge-tint, 0.12);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-block 88%, transparent);
+  box-shadow: 0 8px 22px rgba($black, 0.28);
+  font-size: calc(var(--tour-unit) * 0.82);
+  font-weight: $weight-semibold;
+  line-height: 1.2;
+  text-align: center;
+  gap: calc(var(--tour-unit) * 0.3);
+  @include stagger-in(6, 60ms);
+
+  span {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+}
+
+.engine-flow__glyph {
+  flex: 0 0 auto;
+  width: calc(var(--tour-unit) * 1.5);
+  height: calc(var(--tour-unit) * 1.5);
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+
+  circle[r='0.9'] {
+    fill: $secondary-light;
+    stroke: none;
+  }
+}
+
+.engine-flow__wires {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.engine-flow__wire {
+  fill: none;
+  stroke: color-mix(in srgb, $secondary-light 26%, transparent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+// Short bright dashes travelling the wires: the sound on its way.
+.engine-flow__pulse {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-dasharray: 6 48;
+  stroke-linecap: round;
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
+  animation: engine-flow-travel 2.6s linear infinite;
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, $secondary-light 70%, transparent)
+  );
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+@keyframes engine-flow-travel {
+  from {
+    stroke-dashoffset: 54;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.engine-flow__engine {
+  display: grid;
+  align-self: center;
+  padding: calc(var(--tour-unit) * 0.9);
+  border: 1px solid color-mix(in srgb, $secondary-light 48%, transparent);
+  border-radius: $radius-xl;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-default 12%, transparent),
+      transparent 42%
+    ),
+    $surface-panel;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, $secondary-default 10%, transparent),
+    0 18px 48px rgba($black, 0.5),
+    0 0 46px color-mix(in srgb, $secondary-default 20%, transparent);
+  gap: calc(var(--tour-unit) * 0.75);
+  @include animate(rise-in, $motion-slow, $ease-out, 90ms);
+}
+
+.engine-flow__head {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--tour-unit) * 0.6);
+
+  > div {
+    display: grid;
+    min-width: 0;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(var(--tour-unit) * 1.05);
+    font-weight: $weight-bold;
+    line-height: 1.2;
+  }
+
+  span {
+    color: $text-faint;
+    font-size: calc(var(--tour-unit) * 0.72);
+    line-height: 1.3;
+  }
+}
+
+// The tile at the card's scale. `.brand-mark` draws its wave at a fixed 30px,
+// which spilled out of a tile this size, so the wave follows the tile too.
+.engine-flow__mark.brand-mark {
+  flex: 0 0 auto;
+  width: calc(var(--tour-unit) * 2.2);
+  height: calc(var(--tour-unit) * 2.2);
+  border-radius: $radius-s;
+
+  svg {
+    width: 68%;
+    height: 68%;
+  }
+}
+
+.engine-flow__label {
+  display: block;
+  margin-bottom: calc(var(--tour-unit) * 0.35);
+  color: $secondary-light;
+  font-size: calc(var(--tour-unit) * 0.62);
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+}
+
+.engine-flow__eq {
+  padding: calc(var(--tour-unit) * 0.5) calc(var(--tour-unit) * 0.6);
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-s;
+  background: $surface-well;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: calc(var(--tour-unit) * 3);
+  }
+}
+
+.engine-flow__grid {
+  fill: none;
+  stroke: rgba($edge-tint, 0.1);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.engine-flow__curve {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.engine-flow__curve-fill {
+  fill: color-mix(in srgb, $secondary-default 16%, transparent);
+}
+
+.engine-flow__rack ol {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.3);
+  list-style: none;
+
+  li {
+    padding: calc(var(--tour-unit) * 0.2) calc(var(--tour-unit) * 0.5);
+    color: $text-muted;
+    border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+    border-radius: $radius-pill;
+    background: color-mix(in srgb, $secondary-default 9%, $surface-block);
+    font-size: calc(var(--tour-unit) * 0.7);
+    font-weight: $weight-semibold;
+    line-height: 1.3;
+    white-space: nowrap;
+    @include stagger-in(9, 40ms, 180ms);
+  }
+}

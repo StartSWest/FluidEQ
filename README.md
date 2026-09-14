@@ -744,8 +744,11 @@ See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 ## User guide
 
 Open **Help → User guide** in FluidEQ, or press **F1**, for the searchable
-offline handbook with 14 real interface captures and 16 practical chapters.
-Click any capture to enlarge it. The guide follows the app's selected language.
+offline handbook: 26 practical chapters in six parts, from your first five
+minutes to FluidEQ Plus, illustrated with 29 real interface captures. Beside
+each capture a legend names its controls, with the icon you will see and the
+shortcut; point at a line and the control is ringed on the capture. Click any
+capture to enlarge it. The guide follows the app's selected language.
 
 The same instructions are available as an [illustrated, print-ready document](docs/user-guide.html)
 and a [Markdown user guide](docs/USER-GUIDE.md). Keep the HTML beside the PNG

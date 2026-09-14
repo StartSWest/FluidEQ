@@ -10,6 +10,7 @@
         color-scheme: dark;
         --bg: #0b1926;
         --panel: #152b3b;
+        --well: #07121b;
         --text: #ecf5fb;
         --muted: #bed3df;
         --accent: #70ddce;
@@ -78,6 +79,13 @@
       .rail nav a:hover {
         color: var(--accent);
       }
+      .rail nav .part {
+        margin-top: 14px;
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
       main {
         min-width: 0;
         padding: 60px clamp(22px, 5vw, 80px);
@@ -90,6 +98,10 @@
         letter-spacing: 0.15em;
         font-size: 12px;
         color: var(--accent);
+      }
+      .eyebrow.part {
+        display: block;
+        margin-bottom: 14px;
       }
       h1 {
         font-size: clamp(36px, 4.5vw, 64px);
@@ -158,7 +170,7 @@
         margin: 18px 0 24px;
       }
       figure {
-        margin: 28px 0;
+        margin: 28px 0 12px;
       }
       figure img {
         display: block;
@@ -196,6 +208,81 @@
         font-size: 13px;
         color: var(--muted);
       }
+      .figure-body {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 16px 20px;
+        margin: 28px 0 12px;
+      }
+      .figure-body figure {
+        flex-grow: 0;
+        flex-shrink: 1;
+        min-width: 0;
+        margin: 0;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+        gap: 8px;
+        flex: 1 1 300px;
+        min-width: min(100%, 300px);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .controls li {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        padding: 9px 12px 9px 9px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        break-inside: avoid;
+      }
+      .controls li::marker {
+        content: none;
+      }
+      .controls li.plain {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .well {
+        display: grid;
+        place-items: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 4px;
+        border-radius: 8px;
+        background: var(--well);
+      }
+      .piece {
+        display: block;
+        background-repeat: no-repeat;
+      }
+      .name {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 2px 10px;
+        line-height: 1.35;
+      }
+      .name kbd {
+        padding: 1px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .text {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
       @media (max-width: 850px) {
         .shell {
           display: block;
@@ -220,6 +307,7 @@
           color-scheme: light;
           --bg: white;
           --panel: #f2f6f7;
+          --well: #dfe8ec;
           --text: #132b38;
           --muted: #425d6d;
           --accent: #17665e;
@@ -275,6 +363,10 @@
           color: inherit;
           text-decoration: none;
         }
+        .piece {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         @page {
           size: A4;
           margin: 16mm;
@@ -288,23 +380,39 @@
         <div class="brand">FluidEQ</div>
         <small>User guide · Offline edition</small>
         <nav aria-label="In this guide">
-          <a href="#start">01 &nbsp; Your first five minutes</a
-          ><a href="#eq">02 &nbsp; Shape your sound with EQ</a
-          ><a href="#headphones">03 &nbsp; Headphone correction &amp; imports</a
-          ><a href="#convolution">04 &nbsp; Use an impulse response</a
+          <span class="part">Get started</span
+          ><a href="#start">01 &nbsp; Your first five minutes</a
+          ><a href="#engine">02 &nbsp; The FluidEQ Engine</a
+          ><span class="part">Shape your sound</span
+          ><a href="#eq">03 &nbsp; Shape your sound with EQ</a
+          ><a href="#eqmode">04 &nbsp; EQ mode and band designs</a
+          ><a href="#headphones">05 &nbsp; Headphone correction &amp; imports</a
+          ><a href="#convolution">06 &nbsp; Use an impulse response</a
           ><a href="#profiles"
-            >05 &nbsp; Devices, profiles &amp; second output</a
-          ><a href="#config">06 &nbsp; Inspect &amp; back up a chain</a
-          ><a href="#online">07 &nbsp; Listen with Online Media</a
-          ><a href="#share">08 &nbsp; Share audio between computers</a
-          ><a href="#library">09 &nbsp; Build your local library</a
-          ><a href="#queue">10 &nbsp; Albums &amp; your play queue</a
-          ><a href="#dsp">11 &nbsp; Explore the DSP rack</a
-          ><a href="#denoise">12 &nbsp; Denoise &amp; source analysis</a
-          ><a href="#visuals">13 &nbsp; Make the player your own</a
-          ><a href="#karaoke">14 &nbsp; Sing with Karaoke</a
-          ><a href="#maker">15 &nbsp; Create in Karaoke Maker</a
-          ><a href="#trouble">16 &nbsp; When something sounds wrong</a>
+            >07 &nbsp; Devices, profiles &amp; second output</a
+          ><a href="#config">08 &nbsp; Inspect &amp; back up a chain</a
+          ><a href="#dsp">09 &nbsp; Explore the DSP rack</a
+          ><a href="#denoise">10 &nbsp; Denoise &amp; source analysis</a
+          ><span class="part">See your music</span
+          ><a href="#graph">11 &nbsp; The graph and its controls</a
+          ><a href="#looks">12 &nbsp; Styles and Plus visualizers</a
+          ><span class="part">FluidEQ Plus</span
+          ><a href="#plus">13 &nbsp; FluidEQ Plus and your account</a
+          ><a href="#gallery">14 &nbsp; The Visualizers gallery</a
+          ><a href="#leaderboard">15 &nbsp; The Leaderboard</a
+          ><a href="#studio">16 &nbsp; Make scenes in the Studio</a
+          ><a href="#desktop">17 &nbsp; The desktop visualizer</a
+          ><a href="#lighting">18 &nbsp; Dynamic lighting (beta)</a
+          ><span class="part">Listen, sing and share</span
+          ><a href="#online">19 &nbsp; Listen with Online Media</a
+          ><a href="#library">20 &nbsp; Build your local library</a
+          ><a href="#queue">21 &nbsp; Albums &amp; your play queue</a
+          ><a href="#karaoke">22 &nbsp; Sing with Karaoke</a
+          ><a href="#maker">23 &nbsp; Create in Karaoke Maker</a
+          ><a href="#share">24 &nbsp; Share audio between computers</a
+          ><span class="part">When you need help</span
+          ><a href="#trouble">25 &nbsp; When something sounds wrong</a
+          ><a href="#forum">26 &nbsp; Ask in the Forum</a>
         </nav>
       </aside>
       <main>
@@ -313,54 +421,70 @@
           <h1>Find your sound. Make yourself at home.</h1>
           <p class="lead">
             A practical guide to FluidEQ, illustrated with real app captures.
-            Start with your first listening session, then explore each workspace
-            at your own pace.
+            Start with your first listening session, then explore each part of
+            the app at your own pace.
           </p>
           <span class="badge"
-            >16 chapters · 14 real interface captures · Offline</span
+            >26 chapters · 29 real interface captures · Offline</span
           >
           <p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p>
           <button type="button" id="print">Print / Save as PDF</button>
           <p class="note">
-            Real FluidEQ captures from version 1.6.x. Colours, labels and
+            Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and
             control positions may differ in your version. Example settings are
             illustrations, not recommended presets.
           </p>
         </header>
         <section id="start">
+          <span class="eyebrow part">Get started</span>
           <header class="chapter-heading">
             <span class="number">01</span>
             <h2>Your first five minutes</h2>
           </header>
           <p>
-            Start with a familiar song and a comfortable volume. The left rail
-            controls system EQ and headroom; the centre holds your workspace;
-            the right rail follows your output and its profiles. Playback
-            controls stay at the bottom.
+            Start with a familiar song at a comfortable volume. The left rail
+            switches FluidEQ on and holds the preamp; the centre is your
+            workspace; the right rail follows your output and its profiles. The
+            bar at the foot of the window controls whatever is playing.
           </p>
-          <figure>
-            <a
-              href="03-eq-parametric-bands-and-live-response.png"
-              aria-label="Enlarge screenshot: Your first five minutes"
-              ><img
-                src="03-eq-parametric-bands-and-live-response.png"
-                width="2560"
-                height="1392"
-                alt="Your first five minutes"
-                loading="lazy"
-            /></a>
-            <figcaption>Your first five minutes · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="03-eq-parametric-bands-and-live-response.png"
+                aria-label="Enlarge screenshot: Your first five minutes"
+                ><img
+                  src="03-eq-parametric-bands-and-live-response.png"
+                  width="2560"
+                  height="1392"
+                  alt="Your first five minutes"
+                  loading="lazy"
+              /></a>
+              <figcaption>Your first five minutes · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
-              On Windows, install Equalizer APO when the FluidEQ installer
-              offers it, select the listening device in its Device Selector, and
-              restart when requested.
+              Install FluidEQ and keep the FluidEQ Engine selected when setup
+              asks how to process your sound. Windows asks for permission once,
+              with no restart.
             </li>
             <li>
-              Choose that device under Output device. Turn on System EQ and
-              leave Auto normalize enabled.
+              Choose your listening device under Output device. Turn on System
+              EQ and leave Auto normalize on.
             </li>
             <li>
               Play a song, open EQ → Bands, make a small change, and compare
@@ -370,66 +494,626 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              System-wide EQ requires Windows and Equalizer APO. The macOS and
-              Linux interfaces use demonstration endpoints; do not treat a
-              moving graph there as proof of system-wide processing.
+              System-wide EQ needs Windows and an audio engine: the FluidEQ
+              Engine or Equalizer APO. On macOS and Linux the app shows
+              demonstration outputs, so a moving graph there is not proof that
+              anything is processed.
+            </p>
+          </aside>
+        </section>
+        <section id="engine">
+          <header class="chapter-heading">
+            <span class="number">02</span>
+            <h2>The FluidEQ Engine</h2>
+          </header>
+          <p>
+            FluidEQ processes your sound with its own engine or with Equalizer
+            APO. The FluidEQ Engine runs inside Windows&#39; audio service after
+            your sound card&#39;s effects, brings your EQ and the DSP rack to
+            everything the PC plays, and steps aside the moment FluidEQ closes.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 652px, 72vh * 1.4319180087847732);
+                max-width: min(100%, 652px, 72vh * 1.4319180087847732);
+              "
+            >
+              <a
+                href="15-engine-dialog.png"
+                aria-label="Enlarge screenshot: The FluidEQ Engine"
+                ><img
+                  src="15-engine-dialog.png"
+                  width="978"
+                  height="683"
+                  alt="The FluidEQ Engine"
+                  loading="lazy"
+              /></a>
+              <figcaption>The FluidEQ Engine · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>FluidEQ Engine</strong></span
+                  ><span class="text"
+                    >Recommended. Your sound card&#39;s effects keep working,
+                    and the EQ and DSP rack reach every app.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Equalizer APO</strong></span
+                  ><span class="text"
+                    >Runs custom APO commands, Peace and VST plugins. The DSP
+                    rack stays with Library playback.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 70.88888888888889px;
+                      height: 44px;
+                      background-image: url('15-engine-dialog.png');
+                      background-size: 796.8888888888888px 556.5185185185185px;
+                      background-position: -678.7407407407406px -465.25925925925924px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Apply</strong></span
+                  ><span class="text"
+                    >Switches the engine. Windows asks once, and audio restarts
+                    for a few seconds.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open the actions menu — the pulse button at the top right — and
+              press the engine card at the top of it.
+            </li>
+            <li>
+              Choose FluidEQ Engine and press Apply. Windows asks for
+              permission, and audio pauses for a few seconds while it restarts.
+            </li>
+            <li>
+              If an output shows OFF, press Enable on its notice. If a notice
+              says the engine is not running, press Restart Windows audio.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Equalizer APO remains available for custom APO commands, Peace and
+              VST plugins. When an update brings a newer engine, a notice offers
+              Update engine. Quitting FluidEQ from the tray turns the EQ off on
+              every output.
             </p>
           </aside>
         </section>
         <section id="eq">
+          <span class="eyebrow part">Shape your sound</span>
           <header class="chapter-heading">
-            <span class="number">02</span>
+            <span class="number">03</span>
             <h2>Shape your sound with EQ</h2>
           </header>
           <p>
             Frequency chooses where a band acts, Gain sets the boost or cut, and
-            Q sets its width: higher Q is narrower. Low frequencies affect bass,
-            the middle carries much of a voice, and the high end adds
-            brightness. Begin with small changes.
+            Q sets its width: higher Q is narrower. Begin with small, broad
+            changes and compare often.
           </p>
-          <figure>
-            <a
-              href="03-eq-parametric-bands-and-live-response.png"
-              aria-label="Enlarge screenshot: Shape your sound with EQ"
-              ><img
-                src="03-eq-parametric-bands-and-live-response.png"
-                width="2560"
-                height="1392"
-                alt="Shape your sound with EQ"
-                loading="lazy"
-            /></a>
-            <figcaption>Shape your sound with EQ · FluidEQ</figcaption>
-          </figure>
+          <h3>The Bands page</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1372px, 72vh * 2.0935910478128177);
+                max-width: min(100%, 1372px, 72vh * 2.0935910478128177);
+              "
+            >
+              <a
+                href="16-eq-bands.png"
+                aria-label="Enlarge screenshot: The Bands page"
+                ><img
+                  src="16-eq-bands.png"
+                  width="2058"
+                  height="983"
+                  alt="The Bands page"
+                  loading="lazy"
+              /></a>
+              <figcaption>The Bands page · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 159.7037037037037px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1676.8888888888887px 800.9629629629629px;
+                      background-position: -412.29629629629625px -105.92592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Voicing</strong></span
+                  ><span class="text"
+                    >A quick character for the sound, such as Music or
+                    Movies.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 93.7037037037037px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1676.8888888888887px 800.9629629629629px;
+                      background-position: -579.3333333333333px -105.92592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Smart EQ</strong></span
+                  ><span class="text"
+                    >Listens to what plays and corrects it: Detail, Balance or
+                    Target.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 111.62962962962962px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1676.8888888888887px 800.9629629629629px;
+                      background-position: -709.7037037037037px -105.92592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Clear EQ</strong></span
+                  ><span class="text"
+                    >Sets every gain to 0 dB and keeps your bands. Asks
+                    first.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 143.87301587301587px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1437.3333333333333px 686.5396825396825px;
+                      background-position: -710.984126984127px -87.30158730158729px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>EQ mode</strong></span
+                  ><span class="text"
+                    >How strongly your EQ and curves apply, band Q and
+                    phase.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 120.59259259259258px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1676.8888888888887px 800.9629629629629px;
+                      background-position: -1004.6666666666666px -105.92592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Add band</strong></span
+                  ><span class="text"
+                    >Adds a band beside the selected one.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 132px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1676.8888888888887px 800.9629629629629px;
+                      background-position: -1132.5925925925926px -105.92592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Quick layouts</strong></span
+                  ><span class="text"
+                    >Band counts, and the band designs you saved.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1117.9259259259259px 533.9753086419753px;
+                      background-position: -518.2222222222222px -484.5432098765432px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Frequency</strong></span
+                  ><span class="text"
+                    >Where the selected band acts, from 1 Hz to 20 kHz.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1117.9259259259259px 533.9753086419753px;
+                      background-position: -576.8888888888888px -484.5432098765432px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Gain</strong></span
+                  ><span class="text"
+                    >How much it boosts or cuts. Ctrl-click returns it to 0
+                    dB.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1117.9259259259259px 533.9753086419753px;
+                      background-position: -635.5555555555555px -484.5432098765432px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Quality (Q)</strong></span
+                  ><span class="text"
+                    >How wide it is: higher is narrower.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 121.52380952380952px;
+                      height: 44px;
+                      background-image: url('16-eq-bands.png');
+                      background-size: 1437.3333333333333px 686.5396825396825px;
+                      background-position: -951.9365079365078px -629.2698412698412px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Delete band</strong></span
+                  ><span class="text"
+                    >Press twice to delete the band; Keep changes your
+                    mind.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>A band&#39;s right-click menu</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 234px, 72vh * 0.9);
+                max-width: min(100%, 234px, 72vh * 0.9);
+              "
+            >
+              <a
+                href="17-band-menu.png"
+                aria-label="Enlarge screenshot: A band&#39;s right-click menu"
+                ><img
+                  src="17-band-menu.png"
+                  width="351"
+                  height="390"
+                  alt="A band&#39;s right-click menu"
+                  loading="lazy"
+              /></a>
+              <figcaption>A band&#39;s right-click menu · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('17-band-menu.png');
+                      background-size: 351px 390px;
+                      background-position: -48px -142px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Reset band</strong></span
+                  ><span class="text"
+                    >Gain back to 0 dB and Q back to 2.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('17-band-menu.png');
+                      background-size: 351px 390px;
+                      background-position: -48px -194px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Disable band</strong></span
+                  ><span class="text"
+                    >Takes the band out of the sound and keeps its
+                    settings.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('17-band-menu.png');
+                      background-size: 351px 390px;
+                      background-position: -48px -262px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Add band to the left</strong></span
+                  ><span class="text"
+                    >Adds a band halfway to its lower neighbour.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('17-band-menu.png');
+                      background-size: 351px 390px;
+                      background-position: -48px -314px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Add band to the right</strong></span
+                  ><span class="text"
+                    >Adds a band halfway to its higher neighbour.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
-              Select a band in EQ → Bands. Adjust Frequency, Gain and Quality
-              (Q), or drag its point on the response graph.
+              Select a band in EQ → Bands. Turn its Frequency, Gain and Quality
+              (Q) dials, or drag its point on the graph.
             </li>
             <li>
-              Use a broad, gentle band for tonal balance. Compare before adding
-              another. The filter selector changes the shape, including peak and
-              shelves.
+              Right-click a band to reset it, switch it off, or add a band
+              beside it. Ctrl-click a slider or dial to return it to its
+              default.
             </li>
             <li>
-              Use the layer switches and strengths to compare headphone
-              correction, EQ, voicing and Smart EQ separately. Leave Auto
-              normalize on while adding boosts.
+              Press Clear EQ to set every gain to 0 dB while keeping your bands.
+              It asks first.
             </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
               The response curve describes your filters; the moving spectrum
-              describes the signal being measured. Smart EQ needs audible
-              material to measure. Detail, Balance and Target make different
-              kinds of correction; begin by comparing one mode at a time.
+              describes the sound. Switching a band off with Active keeps its
+              settings for later.
+            </p>
+          </aside>
+        </section>
+        <section id="eqmode">
+          <header class="chapter-heading">
+            <span class="number">04</span>
+            <h2>EQ mode and band designs</h2>
+          </header>
+          <p>
+            EQ mode changes how your bands and your correction curves are
+            applied, without editing them. Band designs keep the frequencies and
+            Q of a layout you like, ready for any output.
+          </p>
+          <h3>EQ mode</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 448px, 72vh * 0.448);
+                max-width: min(100%, 448px, 72vh * 0.448);
+              "
+            >
+              <a href="18-eq-mode.png" aria-label="Enlarge screenshot: EQ mode"
+                ><img
+                  src="18-eq-mode.png"
+                  width="672"
+                  height="1500"
+                  alt="EQ mode"
+                  loading="lazy"
+              /></a>
+              <figcaption>EQ mode · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Strength</strong></span
+                  ><span class="text"
+                    >Normal, Studio ×1.5 or ×2, for your EQ and your curves
+                    separately.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Band Q</strong></span
+                  ><span class="text"
+                    >Constant keeps each Q; Proportional and Asymmetric narrow
+                    bands as they grow.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Curve smoothing</strong></span
+                  ><span class="text"
+                    >Softens sampled correction curves.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Phase</strong></span
+                  ><span class="text"
+                    >Minimum or Linear. With the FluidEQ Engine only.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 80.66666666666666px;
+                      height: 44px;
+                      background-image: url('18-eq-mode.png');
+                      background-size: 492.79999999999995px 1100px;
+                      background-position: -382.06666666666666px -77.73333333333333px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Reset</strong></span
+                  ><span class="text">Everything back to Normal.</span></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Band designs</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 358px, 72vh * 1.2517482517482517);
+                max-width: min(100%, 358px, 72vh * 1.2517482517482517);
+              "
+            >
+              <a
+                href="19-band-designs.png"
+                aria-label="Enlarge screenshot: Band designs"
+                ><img
+                  src="19-band-designs.png"
+                  width="537"
+                  height="429"
+                  alt="Band designs"
+                  loading="lazy"
+              /></a>
+              <figcaption>Band designs · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Built-in layouts</strong></span
+                  ><span class="text"
+                    >Standard layouts of 6, 10, 15 or 31 bands.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 140.14814814814815px;
+                      height: 44px;
+                      background-image: url('19-band-designs.png');
+                      background-size: 437.55555555555554px 349.55555555555554px;
+                      background-position: -264px -272.14814814814815px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Save design…</strong></span
+                  ><span class="text"
+                    >Names the current frequencies and Q as a design, listed
+                    under My designs.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve
+              smoothing choice while music plays; the panel stays open.
+            </li>
+            <li>
+              Under the FluidEQ Engine, choose Minimum or Linear phase. Press
+              Reset to return everything to Normal.
+            </li>
+            <li>
+              Open the layouts button beside Add band. Pick 6, 10, 15 or 31
+              bands, or press Save design… to name the current layout.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A design stores only frequencies and Q: loading one starts every
+              band at 0 dB. Linear phase adds delay and can ring before sharp
+              hits.
             </p>
           </aside>
         </section>
         <section id="headphones">
           <header class="chapter-heading">
-            <span class="number">03</span>
+            <span class="number">05</span>
             <h2>Headphone correction &amp; imports</h2>
           </header>
           <p>
@@ -438,21 +1122,36 @@
             Check the exact model and the measurement author before applying a
             result.
           </p>
-          <figure>
-            <a
-              href="04-eq-headphone-correction-and-import.png"
-              aria-label="Enlarge screenshot: Headphone correction &amp; imports"
-              ><img
-                src="04-eq-headphone-correction-and-import.png"
-                width="2560"
-                height="1392"
-                alt="Headphone correction &amp; imports"
-                loading="lazy"
-            /></a>
-            <figcaption>
-              Headphone correction &amp; imports · FluidEQ
-            </figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="04-eq-headphone-correction-and-import.png"
+                aria-label="Enlarge screenshot: Headphone correction &amp; imports"
+                ><img
+                  src="04-eq-headphone-correction-and-import.png"
+                  width="2560"
+                  height="1392"
+                  alt="Headphone correction &amp; imports"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Headphone correction &amp; imports · FluidEQ
+              </figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -460,12 +1159,13 @@
               the available measurements and choose the matching entry.
             </li>
             <li>
-              For EQ text from another tool, use Import EQ settings in Audio
-              actions. Review the parsed bands and curve before applying.
+              For EQ text from another tool, use Import EQ settings in the
+              actions menu. Review the parsed bands and curve before applying.
             </li>
             <li>
-              For Squiglink, export the EQ text there, paste it into the import
-              panel, and press Apply imported EQ when the preview is right.
+              For Squiglink, paste its export into the import panel. Apply as EQ
+              replaces your bands; Apply as curve adds it as a headphone
+              correction with its own strength.
             </li>
           </ol>
           <aside class="tip">
@@ -479,7 +1179,7 @@
         </section>
         <section id="convolution">
           <header class="chapter-heading">
-            <span class="number">04</span>
+            <span class="number">06</span>
             <h2>Use an impulse response</h2>
           </header>
           <p>
@@ -488,68 +1188,98 @@
             your own WAV. It remains separate from the editable parametric
             bands.
           </p>
-          <figure>
-            <a
-              href="05-eq-convolution-library.png"
-              aria-label="Enlarge screenshot: Use an impulse response"
-              ><img
-                src="05-eq-convolution-library.png"
-                width="2560"
-                height="1392"
-                alt="Use an impulse response"
-                loading="lazy"
-            /></a>
-            <figcaption>Use an impulse response · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="05-eq-convolution-library.png"
+                aria-label="Enlarge screenshot: Use an impulse response"
+                ><img
+                  src="05-eq-convolution-library.png"
+                  width="2560"
+                  height="1392"
+                  alt="Use an impulse response"
+                  loading="lazy"
+              /></a>
+              <figcaption>Use an impulse response · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
               Open EQ → Convolution. Search by model or measurement author.
             </li>
             <li>
-              Check the source and sample rate, then use Download and apply; use
-              Import a WAV for a file you already have.
+              Check the source, then use Download &amp; apply; the download
+              matches your output’s rate. Use Import a WAV for a file you
+              already have.
             </li>
             <li>
-              Listen with the convolution layer enabled and disabled. Adjust its
-              strength before changing other layers.
+              Listen with the convolution layer on and off in Also applied.
             </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              The impulse sample rate must match the output for Equalizer APO.
-              Catalogue downloads need an internet connection; the guide itself
-              does not.
+              The FluidEQ Engine converts any impulse rate itself. Equalizer APO
+              needs an imported WAV at the output’s own rate. Catalogue
+              downloads need a connection; the guide does not.
             </p>
           </aside>
         </section>
         <section id="profiles">
           <header class="chapter-heading">
-            <span class="number">05</span>
+            <span class="number">07</span>
             <h2>Devices, profiles &amp; second output</h2>
           </header>
           <p>
             Your EQ follows the output device. Automatic mapping saves edits to
-            the current endpoint, while Named profiles lets you keep alternative
+            the current output, while Named profiles lets you keep alternative
             sounds. Second output mirrors playback to other devices with a
             separate level for each.
           </p>
-          <figure>
-            <a
-              href="02-online-media-multiple-outputs-one-player-at-a-time.png"
-              aria-label="Enlarge screenshot: Devices, profiles &amp; second output"
-              ><img
-                src="02-online-media-multiple-outputs-one-player-at-a-time.png"
-                width="2560"
-                height="1392"
-                alt="Devices, profiles &amp; second output"
-                loading="lazy"
-            /></a>
-            <figcaption>
-              Devices, profiles &amp; second output · FluidEQ
-            </figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="02-online-media-multiple-outputs-one-player-at-a-time.png"
+                aria-label="Enlarge screenshot: Devices, profiles &amp; second output"
+                ><img
+                  src="02-online-media-multiple-outputs-one-player-at-a-time.png"
+                  width="2560"
+                  height="1392"
+                  alt="Devices, profiles &amp; second output"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Devices, profiles &amp; second output · FluidEQ
+              </figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -559,8 +1289,7 @@
             </li>
             <li>
               Open Second output, enable a reachable device, and set its level.
-              In current versions, choose that device’s saved EQ profile
-              directly beneath it.
+              Choose that device’s saved EQ profile directly beneath it.
             </li>
             <li>
               Use Game/Video for a smaller starting buffer or Music for more
@@ -570,36 +1299,52 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              Each mirrored Windows output uses its own APO profile. Mirroring
-              runs while FluidEQ is open; switching the main output stops the
-              old mirrors. Device latency still affects synchronization.
+              Each mirrored output uses its own profile under either engine.
+              Mirroring runs while FluidEQ is open; switching the main output
+              stops the old mirrors. Device latency still affects
+              synchronization.
             </p>
           </aside>
         </section>
         <section id="config">
           <header class="chapter-heading">
-            <span class="number">06</span>
+            <span class="number">08</span>
             <h2>Inspect &amp; back up a chain</h2>
           </header>
           <p>
-            EQ → Config shows what Equalizer APO actually has on disk. The
+            EQ → Config shows what the audio engine actually has on disk. The
             output cards and include tree help you see which device and layers
             are involved. Export a chain before a large experiment or when
             moving a setup.
           </p>
-          <figure>
-            <a
-              href="06-eq-equalizer-apo-config.png"
-              aria-label="Enlarge screenshot: Inspect &amp; back up a chain"
-              ><img
-                src="06-eq-equalizer-apo-config.png"
-                width="2560"
-                height="1392"
-                alt="Inspect &amp; back up a chain"
-                loading="lazy"
-            /></a>
-            <figcaption>Inspect &amp; back up a chain · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="06-eq-equalizer-apo-config.png"
+                aria-label="Enlarge screenshot: Inspect &amp; back up a chain"
+                ><img
+                  src="06-eq-equalizer-apo-config.png"
+                  width="2560"
+                  height="1392"
+                  alt="Inspect &amp; back up a chain"
+                  loading="lazy"
+              /></a>
+              <figcaption>Inspect &amp; back up a chain · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -618,36 +1363,2063 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              Generated layer files are rewritten when their settings change.
-              For manual APO commands, use the per-output custom file that
-              FluidEQ leaves alone; do not put lasting edits in generated
-              layers.
+              Generated layer files are rewritten when their settings change;
+              put lasting manual lines in the per-output custom file. The
+              FluidEQ Engine reads its Filter, Preamp, GraphicEQ and Convolution
+              lines; other APO commands and plugins need Equalizer APO.
+            </p>
+          </aside>
+        </section>
+        <section id="dsp">
+          <header class="chapter-heading">
+            <span class="number">09</span>
+            <h2>Explore the DSP rack</h2>
+          </header>
+          <p>
+            The DSP rack is a chain of studio stages. Under the FluidEQ Engine
+            it processes everything the PC plays; under Equalizer APO it
+            processes Library audio tracks. It is off while FluidEQ is switched
+            off.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1372px, 72vh * 2.2491803278688525);
+                max-width: min(100%, 1372px, 72vh * 2.2491803278688525);
+              "
+            >
+              <a
+                href="20-dsp.png"
+                aria-label="Enlarge screenshot: Explore the DSP rack"
+                ><img
+                  src="20-dsp.png"
+                  width="2058"
+                  height="915"
+                  alt="Explore the DSP rack"
+                  loading="lazy"
+              /></a>
+              <figcaption>Explore the DSP rack · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -155.46666666666667px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Normalizer</strong></span
+                  ><span class="text"
+                    >Evens out loudness. On live audio it levels song by
+                    song.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -222.93333333333334px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Denoise</strong></span
+                  ><span class="text"
+                    >Repairs hiss, hum and clicks. The neural voice cleaner
+                    works on Library tracks.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -290.4px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Exciter</strong></span
+                  ><span class="text"
+                    >Adds harmonics for body and air.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -357.8666666666667px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Bass Forge</strong></span
+                  ><span class="text"
+                    >Adds a real octave below the bass, or its harmonics for
+                    small speakers.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -425.3333333333333px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Equaliser</strong></span
+                  ><span class="text"
+                    >Fifteen parametric bands, with minimum or linear
+                    phase.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -492.8px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Bass Punch</strong></span
+                  ><span class="text"
+                    >Shapes the attack, sustain and bloom of the bass.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -560.2666666666667px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Dimension</strong></span
+                  ><span class="text"
+                    >Widens the stereo picture without changing the mono
+                    sum.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -627.7333333333333px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Maximizer</strong></span
+                  ><span class="text"
+                    >Raises the level without letting peaks pass the
+                    ceiling.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -695.1999999999999px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Master</strong></span
+                  ><span class="text"
+                    >Final level, loudness target and peak safety.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('20-dsp.png');
+                      background-size: 2012.2666666666667px 894.6666666666666px;
+                      background-position: -35.199999999999996px -817.4222222222222px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Crossfade</strong></span
+                  ><span class="text"
+                    >Blends one Library track into the next.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 167.99999999999997px;
+                      height: 31.17525773195876px;
+                      background-image: url('20-dsp.png');
+                      background-size: 1188.123711340206px 528.2474226804123px;
+                      background-position: -113.15463917525773px -15.010309278350514px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Presets</strong></span
+                  ><span class="text"
+                    >Whole-rack chains for genres, devices and repairs.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>System-wide</strong></span
+                  ><span class="text"
+                    >Where the rack is running, and any delay linear phase
+                    adds.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open DSP. Pick a chain under Presets, or select a stage in the
+              rail and switch it On.
+            </li>
+            <li>
+              Change one control at a time and compare with the stage bypassed
+              at a similar volume. Isolate lets you hear only what a stage adds.
+            </li>
+            <li>
+              Save a rack you like, and use Export and Import to share it.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Louder often sounds better simply because it is louder, so compare
+              at matched levels. Ctrl-click a dial to return it to its default.
+            </p>
+          </aside>
+        </section>
+        <section id="denoise">
+          <header class="chapter-heading">
+            <span class="number">10</span>
+            <h2>Denoise &amp; source analysis</h2>
+          </header>
+          <p>
+            Denoise reduces hiss, mains hum and clicks. Under the FluidEQ Engine
+            it works live on anything the PC plays; the neural voice cleaner and
+            the scanned noise floor are for Library tracks. Stronger reduction
+            is not automatically better.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="13-dsp-denoise-and-source-analysis.png"
+                aria-label="Enlarge screenshot: Denoise &amp; source analysis"
+                ><img
+                  src="13-dsp-denoise-and-source-analysis.png"
+                  width="2560"
+                  height="1392"
+                  alt="Denoise &amp; source analysis"
+                  loading="lazy"
+              /></a>
+              <figcaption>Denoise &amp; source analysis · FluidEQ</figcaption>
+            </figure>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Play something with the noise you want to reduce and select
+              Denoise in DSP.
+            </li>
+            <li>
+              Switch on Hiss, Hum or Clicks with a light setting, and listen to
+              quiet passages and to musical detail.
+            </li>
+            <li>
+              Increase reduction gradually, then bypass the stage to check that
+              the improvement is worth any loss of detail.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Listen for softened detail and watery or pumping textures. This is
+              not a microphone cleanup. If you hear no change, confirm the rack
+              and the stage are both on.
+            </p>
+          </aside>
+        </section>
+        <section id="graph">
+          <span class="eyebrow part">See your music</span>
+          <header class="chapter-heading">
+            <span class="number">11</span>
+            <h2>The graph and its controls</h2>
+          </header>
+          <p>
+            The response graph draws your EQ curves over the live sound. The
+            strip above it chooses what is drawn and how, and it changes with
+            the look: a standard style or a Plus visualizer.
+          </p>
+          <h3>With a standard style</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  711.3333333333334px,
+                  72vh * 11.855555555555556
+                );
+                max-width: min(
+                  100%,
+                  711.3333333333334px,
+                  72vh * 11.855555555555556
+                );
+              "
+            >
+              <a
+                href="21-graph-strip.png"
+                aria-label="Enlarge screenshot: With a standard style"
+                ><img
+                  src="21-graph-strip.png"
+                  width="1067"
+                  height="90"
+                  alt="With a standard style"
+                  loading="lazy"
+              /></a>
+              <figcaption>With a standard style · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 116.41666666666666px;
+                      height: 44px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 978.0833333333333px 82.5px;
+                      background-position: -33px -19.25px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Live output</strong></span
+                  ><span class="text">Shows or hides the live wave.</span></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 30px;
+                      height: 33px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 1067px 90px;
+                      background-position: -172px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Previous style</strong><kbd>Ctrl+Space</kbd></span
+                  ><span class="text"
+                    >Steps back to the previous look.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 168px;
+                      height: 22.06060606060606px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 603.5555555555555px 50.90909090909091px;
+                      background-position: -119.35353535353535px -14.707070707070706px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Styles and visualizers</strong></span
+                  ><span class="text"
+                    >Opens every style and visualizer.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 30px;
+                      height: 33px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 1067px 90px;
+                      background-position: -517px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Next style</strong><kbd>Space</kbd></span
+                  ><span class="text"
+                    >Steps forward to the next look.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 132px;
+                      height: 44px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 978.0833333333333px 82.5px;
+                      background-position: -509.66666666666663px -19.25px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Auto</strong></span
+                  ><span class="text"
+                    >Changes the look every 10 seconds to 2 minutes.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 1067px 90px;
+                      background-position: -709px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Colouring</strong></span
+                  ><span class="text"
+                    >Colours the style: Auto, Flat, Frequency, Level or
+                    Heat.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 97.16666666666666px;
+                      height: 44px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 978.0833333333333px 82.5px;
+                      background-position: -688.4166666666666px -19.25px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>New look</strong></span
+                  ><span class="text"
+                    >Designs a look of your own from this style.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 1067px 90px;
+                      background-position: -866px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Listening bands</strong></span
+                  ><span class="text"
+                    >Shades the bands you hear most.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 1067px 90px;
+                      background-position: -908px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Grid</strong><kbd>Ctrl+G</kbd></span
+                  ><span class="text"
+                    >Shows or hides the grid and scales.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 81.58333333333333px;
+                      height: 44px;
+                      background-image: url('21-graph-strip.png');
+                      background-size: 978.0833333333333px 82.5px;
+                      background-position: -870.8333333333333px -19.25px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>View</strong></span
+                  ><span class="text"
+                    >Size, what is drawn, and the wave.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>With a Plus visualizer</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 662px, 72vh * 11.033333333333333);
+                max-width: min(100%, 662px, 72vh * 11.033333333333333);
+              "
+            >
+              <a
+                href="22-graph-strip-plus.png"
+                aria-label="Enlarge screenshot: With a Plus visualizer"
+                ><img
+                  src="22-graph-strip-plus.png"
+                  width="993"
+                  height="90"
+                  alt="With a Plus visualizer"
+                  loading="lazy"
+              /></a>
+              <figcaption>With a Plus visualizer · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('22-graph-strip-plus.png');
+                      background-size: 993px 90px;
+                      background-position: -709px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Window colours</strong></span
+                  ><span class="text"
+                    >The app&#39;s theme, the visualizer&#39;s colours, or its
+                    colours with light (Ambient).</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('22-graph-strip-plus.png');
+                      background-size: 993px 90px;
+                      background-position: -751px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Dynamic lighting</strong></span
+                  ><span class="text"
+                    >Lights your RGB devices with this scene.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 33px;
+                      height: 33px;
+                      background-image: url('22-graph-strip-plus.png');
+                      background-size: 993px 90px;
+                      background-position: -793px -29px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Set as desktop background</strong></span
+                  ><span class="text"
+                    >Puts this visualizer behind your desktop icons.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>The View menu</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 248px, 72vh * 0.45925925925925926);
+                max-width: min(100%, 248px, 72vh * 0.45925925925925926);
+              "
+            >
+              <a
+                href="23-graph-view-menu.png"
+                aria-label="Enlarge screenshot: The View menu"
+                ><img
+                  src="23-graph-view-menu.png"
+                  width="372"
+                  height="810"
+                  alt="The View menu"
+                  loading="lazy"
+              /></a>
+              <figcaption>The View menu · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -84px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Expand view</strong><kbd>Ctrl+S</kbd></span
+                  ><span class="text"
+                    >The graph grows over the editor.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -126px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Full screen</strong><kbd>Ctrl+F</kbd></span
+                  ><span class="text">The graph fills the screen.</span></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -183px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Showing</strong><kbd>Ctrl+W</kbd></span
+                  ><span class="text"
+                    >Steps through what the graph shows.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -225px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>The wave</strong></span
+                  ><span class="text">The live spectrum drawing.</span></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -267px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Top wave</strong></span
+                  ><span class="text"
+                    >The small wave in the title bar.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -309px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Grid</strong><kbd>Ctrl+G</kbd></span
+                  ><span class="text"
+                    >Shows or hides the grid and scales.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -352px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Listening bands</strong></span
+                  ><span class="text"
+                    >The same shading; greyed over a Plus visualizer, which
+                    never draws it.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -394px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Level meter</strong></span
+                  ><span class="text"
+                    >The output meter in the left rail.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -433px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Wave height</strong></span
+                  ><span class="text">How tall the wave is drawn.</span></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -469px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Wave position</strong></span
+                  ><span class="text"
+                    >From the bottom edge up to the middle.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -522px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Next style</strong><kbd>Space</kbd></span
+                  ><span class="text"
+                    >Steps forward to the next look.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -564px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Previous style</strong><kbd>Ctrl+Space</kbd></span
+                  ><span class="text"
+                    >Steps back to the previous look.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -617px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Attack</strong></span
+                  ><span class="text"
+                    >How fast a Plus visualizer rises to the music.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -653px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Release</strong></span
+                  ><span class="text"
+                    >How slowly it falls back after each hit.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -692px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Use its own timing</strong></span
+                  ><span class="text"
+                    >Back to the timing the visualizer came with.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 29px;
+                      height: 29px;
+                      background-image: url('23-graph-view-menu.png');
+                      background-size: 372px 810px;
+                      background-position: -34px -748px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Set as desktop background</strong></span
+                  ><span class="text"
+                    >Puts this visualizer behind your desktop icons.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Click the look’s name to choose a style or visualizer. The arrows
+              beside it, Space and Ctrl+Space step through them.
+            </li>
+            <li>
+              Open View for the graph’s size, what it shows, and the wave’s
+              height and position.
+            </li>
+            <li>
+              Double-click the plot for full screen. A single click hides or
+              shows the strip.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Everything here changes only the drawing, never your sound. Esc
+              leaves the expanded and full-screen views.
+            </p>
+          </aside>
+        </section>
+        <section id="looks">
+          <header class="chapter-heading">
+            <span class="number">12</span>
+            <h2>Styles and Plus visualizers</h2>
+          </header>
+          <p>
+            Standard styles are free drawings of the live sound that you can
+            colour and design yourself: Line and Area for a clean trace, LED
+            blocks and Spikes for punch, Truss, Skyline and Dancing flames for
+            whole scenes. Plus visualizers are scenes drawn on the graphics
+            card, such as Alpine, Aurora, Bloom and Neon City, where the bass,
+            the beat and the treble each move something different.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 800px, 72vh * 1.3793103448275863);
+                max-width: min(100%, 800px, 72vh * 1.3793103448275863);
+              "
+            >
+              <a
+                href="24-look-picker.png"
+                aria-label="Enlarge screenshot: Styles and Plus visualizers"
+                ><img
+                  src="24-look-picker.png"
+                  width="1200"
+                  height="870"
+                  alt="Styles and Plus visualizers"
+                  loading="lazy"
+              /></a>
+              <figcaption>Styles and Plus visualizers · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Search</strong></span
+                  ><span class="text"
+                    >Finds styles and visualizers by name, maker or
+                    category.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Styles</strong></span
+                  ><span class="text"
+                    >Free styles drawn by FluidEQ, and the looks you
+                    saved.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Style filters</strong></span
+                  ><span class="text"
+                    >Lines, Fills, Bars, Points, Scenes, Wave and Yours.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Plus visualizers</strong></span
+                  ><span class="text"
+                    >Scenes from FluidEQ and from members, each with a
+                    picture.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Categories</strong></span
+                  ><span class="text"
+                    >Nature, Cities, Abstract and more.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Click the look’s name on the graph. Search, or filter the styles
+              by Lines, Fills, Bars, Points, Scenes or Wave.
+            </li>
+            <li>
+              Choose a Plus visualizer on the right. Without Plus it is locked,
+              and choosing it explains how to get it.
+            </li>
+            <li>
+              On a standard style, press New look to change its colours, motion
+              and peaks, then save it; it appears under Yours.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A Plus visualizer brings its own colours: set its attack and
+              release in View. If a scene cannot run on this computer, the graph
+              draws a free style instead of a blank plot.
+            </p>
+          </aside>
+        </section>
+        <section id="plus">
+          <span class="eyebrow part">FluidEQ Plus</span>
+          <header class="chapter-heading">
+            <span class="number">13</span>
+            <h2>FluidEQ Plus and your account</h2>
+          </header>
+          <p>
+            An account is optional: everything that was free runs on this
+            computer without one. FluidEQ Plus, monthly or yearly, adds
+            Visualizers, the Studio, the Leaderboard, Dynamic lighting and the
+            desktop visualizer.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1381.3333333333333px,
+                  72vh * 3.2274143302180685
+                );
+                max-width: min(
+                  100%,
+                  1381.3333333333333px,
+                  72vh * 3.2274143302180685
+                );
+              "
+            >
+              <a
+                href="25-plus-visualizers.png"
+                aria-label="Enlarge screenshot: FluidEQ Plus and your account"
+                ><img
+                  src="25-plus-visualizers.png"
+                  width="2072"
+                  height="642"
+                  alt="FluidEQ Plus and your account"
+                  loading="lazy"
+              /></a>
+              <figcaption>FluidEQ Plus and your account · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1981.913043478261px 614.0869565217391px;
+                      background-position: -45.913043478260875px -110.95652173913044px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Leaderboard</strong></span
+                  ><span class="text"
+                    >Who listens most, among Plus members who join.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1981.913043478261px 614.0869565217391px;
+                      background-position: -45.913043478260875px -174.08695652173913px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Visualizers</strong></span
+                  ><span class="text"
+                    >Scenes by FluidEQ and members, ready for your music.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1981.913043478261px 614.0869565217391px;
+                      background-position: -45.913043478260875px -237.21739130434784px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Studio</strong></span
+                  ><span class="text"
+                    >Make your own scenes with your AI.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1981.913043478261px 614.0869565217391px;
+                      background-position: -45.913043478260875px -300.34782608695656px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Dynamic lighting</strong></span
+                  ><span class="text"
+                    >Your RGB devices follow the scene.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1899.3333333333333px 588.5px;
+                      background-position: -44px -49.5px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Collapse the sidebar</strong></span
+                  ><span class="text"
+                    >Folds the rail to its pictures; it opens again on
+                    hover.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Account in the actions menu. Sign in, or create an account
+              and type the six-digit code sent to your email.
+            </li>
+            <li>
+              Press Upgrade to Plus, read the terms, tick that you agree, and
+              pay on Buy Me a Coffee in your browser with the same email.
+            </li>
+            <li>
+              Open the Plus tab. Its rail leads to the Leaderboard, Visualizers,
+              the Studio and Dynamic lighting.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              The app never sees your card; Manage subscription changes or
+              cancels it. An account stays signed in on up to five computers,
+              and Plus keeps working offline for a while.
+            </p>
+          </aside>
+        </section>
+        <section id="gallery">
+          <header class="chapter-heading">
+            <span class="number">14</span>
+            <h2>The Visualizers gallery</h2>
+          </header>
+          <p>
+            Visualizers holds FluidEQ’s own scenes and the ones members publish.
+            Any account can browse and try FluidEQ’s free samples for ten
+            seconds; Plus plays every scene on your music and adds it to your
+            looks.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1381.3333333333333px,
+                  72vh * 3.2274143302180685
+                );
+                max-width: min(
+                  100%,
+                  1381.3333333333333px,
+                  72vh * 3.2274143302180685
+                );
+              "
+            >
+              <a
+                href="25-plus-visualizers.png"
+                aria-label="Enlarge screenshot: The Visualizers gallery"
+                ><img
+                  src="25-plus-visualizers.png"
+                  width="2072"
+                  height="642"
+                  alt="The Visualizers gallery"
+                  loading="lazy"
+              /></a>
+              <figcaption>The Visualizers gallery · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>Search scenes or makers</strong></span
+                  ><span class="text">Finds scenes and makers.</span></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Sort</strong></span
+                  ><span class="text"
+                    >Most liked, liked this week, or newest.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Categories</strong></span
+                  ><span class="text">Shows one kind of scene.</span></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 127.1111111111111px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1688.2962962962963px 523.1111111111111px;
+                      background-position: -1541.6296296296296px -107.55555555555554px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Your scenes</strong></span
+                  ><span class="text"
+                    >The scenes you published, with their likes.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>A scene</strong></span
+                  ><span class="text"
+                    >Its picture opens the scene; Add puts it in your
+                    looks.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 85.55555555555556px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1688.2962962962963px 523.1111111111111px;
+                      background-position: -1496.8148148148148px -35.85185185185185px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Manage</strong></span
+                  ><span class="text"
+                    >What each monitor shows as a desktop background.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 81.48148148148148px;
+                      height: 44px;
+                      background-image: url('25-plus-visualizers.png');
+                      background-size: 1688.2962962962963px 523.1111111111111px;
+                      background-position: -1586.4444444444443px -35.85185185185185px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Stop all</strong></span
+                  ><span class="text"
+                    >Stops every desktop background.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>A scene&#39;s page</h3>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1127.3333333333333px,
+                  72vh * 2.245683930942895
+                );
+                max-width: min(
+                  100%,
+                  1127.3333333333333px,
+                  72vh * 2.245683930942895
+                );
+              "
+            >
+              <a
+                href="26-plus-scene.png"
+                aria-label="Enlarge screenshot: A scene&#39;s page"
+                ><img
+                  src="26-plus-scene.png"
+                  width="1691"
+                  height="753"
+                  alt="A scene&#39;s page"
+                  loading="lazy"
+              /></a>
+              <figcaption>A scene&#39;s page · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 94px;
+                      height: 42px;
+                      background-image: url('26-plus-scene.png');
+                      background-size: 1691px 753px;
+                      background-position: -21px -21px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Back</strong></span
+                  ><span class="text"
+                    >Back to the gallery, where you left it.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 44px;
+                      height: 44px;
+                      background-image: url('26-plus-scene.png');
+                      background-size: 1127.3333333333333px 502px;
+                      background-position: -737.3333333333333px -244px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Previous and next</strong><kbd>← →</kbd></span
+                  ><span class="text"
+                    >Steps through the list you opened the scene from.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Play on the graph</strong></span
+                  ><span class="text"
+                    >Adds the scene to your looks, or plays it on the
+                    graph.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>Set as desktop background</strong></span
+                  ><span class="text"
+                    >Puts the scene behind your desktop icons.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Open in Studio</strong></span
+                  ><span class="text"
+                    >Opens FluidEQ’s scene in the Studio to see how it is
+                    made.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Plus → Visualizers. Search, sort by Most liked, This week or
+              Newest, or pick a category.
+            </li>
+            <li>
+              Open a scene, press Add to my looks, then Play on the graph. The
+              arrows, or ← and →, step between scenes.
+            </li>
+            <li>
+              Like members’ scenes with the heart, and report one that should
+              not be there.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Scenes in your looks update themselves, and a scene’s page says
+              what changed in each version. Open in Studio shows how FluidEQ’s
+              own scenes are made.
+            </p>
+          </aside>
+        </section>
+        <section id="leaderboard">
+          <header class="chapter-heading">
+            <span class="number">15</span>
+            <h2>The Leaderboard</h2>
+          </header>
+          <p>
+            The Leaderboard ranks the Plus members who join it, by how much they
+            listen and by the likes their scenes earn. It is off unless you
+            join.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1108px, 72vh * 1.3931265716680636);
+                max-width: min(100%, 1108px, 72vh * 1.3931265716680636);
+              "
+            >
+              <a
+                href="28-plus-leaderboard.png"
+                aria-label="Enlarge screenshot: The Leaderboard"
+                ><img
+                  src="28-plus-leaderboard.png"
+                  width="1662"
+                  height="1193"
+                  alt="The Leaderboard"
+                  loading="lazy"
+              /></a>
+              <figcaption>The Leaderboard · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>All time or This month</strong></span
+                  ><span class="text"
+                    >The whole history, or this month only.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Your standing</strong></span
+                  ><span class="text"
+                    >Your rank and points, and how far the next place is.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>How to earn points</strong></span
+                  ><span class="text"
+                    >10 points an hour, 20 for each day of 30 minutes or more, 5
+                    for each like.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>Open Account and press Join the leaderboard.</li>
+            <li>
+              Open Plus → Leaderboard. Choose the handle and name the board
+              shows, then switch between All time and This month.
+            </li>
+            <li>
+              To stop, press Leave the leaderboard. Remove all my data deletes
+              everything you sent.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              One number a day leaves your computer — the minutes of music that
+              played — and never what you play. Every number is checked on the
+              server.
+            </p>
+          </aside>
+        </section>
+        <section id="studio">
+          <header class="chapter-heading">
+            <span class="number">16</span>
+            <h2>Make scenes in the Studio</h2>
+          </header>
+          <p>
+            The Studio turns a description into a visualizer. Your own AI
+            assistant writes the scene in a project folder, and FluidEQ plays
+            each version on your music the moment it is saved.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1108px, 72vh * 1.2017353579175705);
+                max-width: min(100%, 1108px, 72vh * 1.2017353579175705);
+              "
+            >
+              <a
+                href="31-plus-studio.png"
+                aria-label="Enlarge screenshot: Make scenes in the Studio"
+                ><img
+                  src="31-plus-studio.png"
+                  width="1662"
+                  height="1383"
+                  alt="Make scenes in the Studio"
+                  loading="lazy"
+              /></a>
+              <figcaption>Make scenes in the Studio · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Project</strong></span
+                  ><span class="text"
+                    >Your projects, and FluidEQ scenes to look inside.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 89.72549019607844px;
+                      height: 44px;
+                      background-image: url('31-plus-studio.png');
+                      background-size: 1433.8823529411766px 1193.1764705882354px;
+                      background-position: -436.54901960784315px -75.05882352941177px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong>Previous and next project</strong></span
+                  ><span class="text"
+                    >Steps back or forward through your projects.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Stage</strong></span
+                  ><span class="text"
+                    >The scene, playing on your music. Double-click for full
+                    screen.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Code</strong></span
+                  ><span class="text"
+                    >The scene’s code, live, updated as your AI saves it.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 162.96296296296296px;
+                      height: 44px;
+                      background-image: url('31-plus-studio.png');
+                      background-size: 1354.2222222222222px 1126.888888888889px;
+                      background-position: -67.62962962962962px -1051.111111111111px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Copy AI prompt</strong></span
+                  ><span class="text"
+                    >Copies the prompt that tells your AI how scenes are
+                    made.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>What it hears now</strong></span
+                  ><span class="text"
+                    >What the scene receives: level, beat, bass, mids,
+                    treble.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Preview audio</strong></span
+                  ><span class="text"
+                    >Test signals that drive only this preview.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Size</strong></span
+                  ><span class="text"
+                    >Tries the scene on a graph, narrow, wide or full-screen
+                    panel.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Wave on the graph</strong></span
+                  ><span class="text"
+                    >Tries the wave height and position listeners can set.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Plus → Studio and press New project…. Give it a name; FluidEQ
+              makes its folder with a scene that already moves.
+            </li>
+            <li>
+              Describe your idea, open the folder in your AI assistant, and
+              paste the prompt from Copy AI prompt.
+            </li>
+            <li>
+              Watch the stage as files are saved and try the test signals. Then
+              Add to my looks, Publish… or Export….
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Double-click the stage for full screen. Look inside a FluidEQ
+              scene… opens one of FluidEQ’s own scenes to learn from; it cannot
+              be published. Scenes that flash hard or run too heavy are held
+              back.
+            </p>
+          </aside>
+        </section>
+        <section id="desktop">
+          <header class="chapter-heading">
+            <span class="number">17</span>
+            <h2>The desktop visualizer</h2>
+          </header>
+          <p>
+            The desktop visualizer puts a Plus visualizer behind your desktop
+            icons, on one monitor or on each of them, for as long as FluidEQ
+            runs.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 612px, 72vh * 0.9357798165137615);
+                max-width: min(100%, 612px, 72vh * 0.9357798165137615);
+              "
+            >
+              <a
+                href="27-desktop-dialog.png"
+                aria-label="Enlarge screenshot: The desktop visualizer"
+                ><img
+                  src="27-desktop-dialog.png"
+                  width="918"
+                  height="981"
+                  alt="The desktop visualizer"
+                  loading="lazy"
+              /></a>
+              <figcaption>The desktop visualizer · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Monitors</strong></span
+                  ><span class="text"
+                    >Your monitors as Windows arranges them. Press the ones to
+                    use.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>With the music</strong></span
+                  ><span class="text">Moves to whatever is playing.</span></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Calm</strong></span
+                  ><span class="text"
+                    >A slow, quiet animation that ignores the music.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>Pause on battery power</strong></span
+                  ><span class="text"
+                    >Saves power while the computer is unplugged.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 136.07407407407408px;
+                      height: 44px;
+                      background-image: url('27-desktop-dialog.png');
+                      background-size: 748px 799.3333333333333px;
+                      background-position: -564.6666666666666px -707.2592592592592px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Set background</strong></span
+                  ><span class="text"
+                    >Starts it on the monitors you chose.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Put a Plus visualizer on the graph and press the monitor button
+              beside its name, or choose View → Set as desktop background.
+            </li>
+            <li>
+              Press the monitors on the map, choose With the music or Calm, and
+              press Set background.
+            </li>
+            <li>
+              To change or stop it, open Plus → Visualizers and use Manage or
+              Stop at the top.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              It pauses for full-screen apps, a locked PC and, if you choose,
+              battery power, and returns when FluidEQ starts. Quitting FluidEQ
+              stops it. Windows only.
+            </p>
+          </aside>
+        </section>
+        <section id="lighting">
+          <header class="chapter-heading">
+            <span class="number">18</span>
+            <h2>Dynamic lighting (beta)</h2>
+          </header>
+          <p>
+            Dynamic lighting lights your keyboard, mouse, mousepad, headset and
+            stand with the Plus visualizer on the graph, through Windows Dynamic
+            Lighting and Razer Chroma. It is in beta, so tell us how your
+            devices behave.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1108px, 72vh * 1.2735632183908046);
+                max-width: min(100%, 1108px, 72vh * 1.2735632183908046);
+              "
+            >
+              <a
+                href="29-plus-lighting.png"
+                aria-label="Enlarge screenshot: Dynamic lighting (beta)"
+                ><img
+                  src="29-plus-lighting.png"
+                  width="1662"
+                  height="1305"
+                  alt="Dynamic lighting (beta)"
+                  loading="lazy"
+              /></a>
+              <figcaption>Dynamic lighting (beta) · FluidEQ</figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 72px;
+                      height: 39px;
+                      background-image: url('29-plus-lighting.png');
+                      background-size: 1662px 1305px;
+                      background-position: -3px -89px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"
+                    ><strong
+                      >Light my devices while a Plus scene plays</strong
+                    ></span
+                  ><span class="text"
+                    >Lights your devices while a Plus visualizer plays.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 152.37037037037035px;
+                      height: 44px;
+                      background-image: url('29-plus-lighting.png');
+                      background-size: 1354.2222222222222px 1063.3333333333333px;
+                      background-position: -1171.7037037037037px -133.62962962962962px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Browse visualizers</strong></span
+                  ><span class="text"
+                    >Opens the gallery to choose a visualizer.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Live desk preview</strong></span
+                  ><span class="text"
+                    >Your own desk, lit with the colours sent to it.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Your devices</strong></span
+                  ><span class="text"
+                    >Every device found. Click one to tune it alone.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 101.85185185185185px;
+                      height: 44px;
+                      background-image: url('29-plus-lighting.png');
+                      background-size: 1354.2222222222222px 1063.3333333333333px;
+                      background-position: -659.1851851851851px -767.5555555555555px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>All devices</strong></span
+                  ><span class="text"
+                    >Back to tuning every device at once.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>Lighting style</strong></span
+                  ><span class="text"
+                    >Scene, Colour wave, Spectrum or Beat ripple, kept for each
+                    visualizer.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Plus → Dynamic lighting and switch it on, or press the
+              lighting button beside a Plus visualizer on the graph.
+            </li>
+            <li>
+              Choose this visualizer’s lighting style — Scene, Colour wave,
+              Spectrum or Beat ripple — and set its brightness and what it
+              responds to.
+            </li>
+            <li>
+              Click a device under Your devices to tune it alone; All devices
+              goes back to every device.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              If Windows keeps a device for another app, the page names the
+              setting to change and opens it for you. Razer devices need Razer
+              Synapse running, with Chroma Apps allowed.
             </p>
           </aside>
         </section>
         <section id="online">
+          <span class="eyebrow part">Listen, sing and share</span>
           <header class="chapter-heading">
-            <span class="number">07</span>
+            <span class="number">19</span>
             <h2>Listen with Online Media</h2>
           </header>
           <p>
             Online Media keeps supported sites beside your EQ. Site playback and
-            sign-in still depend on the provider and your connection. The
-            transport at the foot of FluidEQ follows the active player.
+            sign-in still depend on the provider and your connection. The bar at
+            the foot of FluidEQ follows the active player, and its volume is the
+            site’s own.
           </p>
-          <figure>
-            <a
-              href="01-online-media-youtube-live-eq.png"
-              aria-label="Enlarge screenshot: Listen with Online Media"
-              ><img
-                src="01-online-media-youtube-live-eq.png"
-                width="2560"
-                height="1392"
-                alt="Listen with Online Media"
-                loading="lazy"
-            /></a>
-            <figcaption>Listen with Online Media · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="01-online-media-youtube-live-eq.png"
+                aria-label="Enlarge screenshot: Listen with Online Media"
+                ><img
+                  src="01-online-media-youtube-live-eq.png"
+                  width="2560"
+                  height="1392"
+                  alt="Listen with Online Media"
+                  loading="lazy"
+              /></a>
+              <figcaption>Listen with Online Media · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -666,113 +3438,78 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              The DSP rack processes Library audio tracks, not Online Media. On
-              Windows, system EQ can still affect the selected APO-enabled
-              output.
-            </p>
-          </aside>
-        </section>
-        <section id="share">
-          <header class="chapter-heading">
-            <span class="number">08</span>
-            <h2>Share audio between computers</h2>
-          </header>
-          <p>
-            Share Audio sends system audio between computers on the same private
-            network. The receiver is the computer connected to your headphones
-            or speakers; other computers are senders. This is separate from
-            mirroring to a second device on one computer.
-          </p>
-          <figure>
-            <a
-              href="14-share-audio-roles.png"
-              aria-label="Enlarge screenshot: Share audio between computers"
-              ><img
-                src="14-share-audio-roles.png"
-                width="1976"
-                height="410"
-                alt="Share audio between computers"
-                loading="lazy"
-            /></a>
-            <figcaption>Share audio between computers · FluidEQ</figcaption>
-          </figure>
-          <h3>Try it</h3>
-          <ol>
-            <li>
-              On the listening computer, open Share Audio, choose Play audio on
-              this computer and create a connection code. Start at a low volume.
-            </li>
-            <li>
-              On each source computer, choose Send audio from this computer,
-              paste the receiver’s code, and connect. Keep FluidEQ open on both
-              computers.
-            </li>
-            <li>
-              Check the connection monitor. Stop sending or listening when
-              finished. If connection fails, check the shared private network
-              and firewall permission.
-            </li>
-          </ol>
-          <aside class="tip">
-            <strong>Good to know</strong>
-            <p>
-              Keep the connection code private: it authorizes pairing. Several
-              senders can mix together and raise the level. Received shared
-              audio bypasses the Library DSP rack.
+              Under the FluidEQ Engine, Online Media goes through your EQ and
+              the DSP rack like every other app. Under Equalizer APO the rack
+              stays with Library tracks.
             </p>
           </aside>
         </section>
         <section id="library">
           <header class="chapter-heading">
-            <span class="number">09</span>
+            <span class="number">20</span>
             <h2>Build your local library</h2>
           </header>
           <p>
             Library brings together music and video from your drives. Browse by
-            albums, artists, songs, folders or videos. Album art and metadata
-            come from your files, so the same collection may look different
-            depending on its tags.
+            albums, artists, genres, songs, folders, a folder tree or your
+            playlists. Album art and details come from your files, so the same
+            collection may look different depending on its tags.
           </p>
-          <figure>
-            <a
-              href="08-library-artists-and-up-next.png"
-              aria-label="Enlarge screenshot: Build your local library"
-              ><img
-                src="08-library-artists-and-up-next.png"
-                width="2560"
-                height="1392"
-                alt="Build your local library"
-                loading="lazy"
-            /></a>
-            <figcaption>Build your local library · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="08-library-artists-and-up-next.png"
+                aria-label="Enlarge screenshot: Build your local library"
+                ><img
+                  src="08-library-artists-and-up-next.png"
+                  width="2560"
+                  height="1392"
+                  alt="Build your local library"
+                  loading="lazy"
+              /></a>
+              <figcaption>Build your local library · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
-              Open Library and add the folder containing your media. Let
-              indexing finish before judging what is missing.
+              Open Library and add the folder containing your media. Let the
+              scan finish before judging what is missing.
             </li>
             <li>
               Choose an artist or album, or search for a song. Start a track
               from the results.
             </li>
             <li>
-              Use the bottom transport to pause, seek, skip and adjust playback
-              volume while you work in another tab.
+              Use the bar at the foot of the window to pause, seek and skip. Its
+              volume is one level for every player.
             </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              Library needs access to the original files. If a drive is
-              disconnected or a folder moves, reconnect it or add the new
-              location.
+              Hover FluidEQ’s button on the Windows taskbar for Previous, Play
+              and Next, even while it is minimized. Library needs the original
+              files: reconnect a drive or add a moved folder again.
             </p>
           </aside>
         </section>
         <section id="queue">
           <header class="chapter-heading">
-            <span class="number">10</span>
+            <span class="number">21</span>
             <h2>Albums &amp; your play queue</h2>
           </header>
           <p>
@@ -780,19 +3517,34 @@
             music. Opening another album lets you explore without making it the
             current song. The active track and Up next help you keep your place.
           </p>
-          <figure>
-            <a
-              href="09-library-album-and-play-queue.png"
-              aria-label="Enlarge screenshot: Albums &amp; your play queue"
-              ><img
-                src="09-library-album-and-play-queue.png"
-                width="2560"
-                height="1392"
-                alt="Albums &amp; your play queue"
-                loading="lazy"
-            /></a>
-            <figcaption>Albums &amp; your play queue · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="09-library-album-and-play-queue.png"
+                aria-label="Enlarge screenshot: Albums &amp; your play queue"
+                ><img
+                  src="09-library-album-and-play-queue.png"
+                  width="2560"
+                  height="1392"
+                  alt="Albums &amp; your play queue"
+                  loading="lazy"
+              /></a>
+              <figcaption>Albums &amp; your play queue · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -800,172 +3552,26 @@
               hear.
             </li>
             <li>
-              Open the track menu for queue actions, such as playing next or
-              adding to the queue.
+              Right-click a song for Add to up next, Add to Favourites or Add to
+              playlist.
             </li>
             <li>
-              Inspect Up next, then use shuffle or repeat when you want a
-              different listening order.
+              Open Up next to see what plays after, and turn on Keep playing to
+              continue with more of the same genre.
             </li>
           </ol>
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
               Starting Library playback takes over from FluidEQ’s other players.
-              Use the current track shown in the transport to confirm which
-              source owns playback.
-            </p>
-          </aside>
-        </section>
-        <section id="dsp">
-          <header class="chapter-heading">
-            <span class="number">11</span>
-            <h2>Explore the DSP rack</h2>
-          </header>
-          <p>
-            DSP processes audio tracks played from Library only. Karaoke,
-            videos, received shared audio and other apps bypass this rack. The
-            rack includes Normalizer, Denoise, Exciter, Bass Forge, Equaliser,
-            Bass Punch, Dimension, Maximizer and Master.
-          </p>
-          <figure>
-            <a
-              href="07-dsp-maximizer-and-processing-chain.png"
-              aria-label="Enlarge screenshot: Explore the DSP rack"
-              ><img
-                src="07-dsp-maximizer-and-processing-chain.png"
-                width="2560"
-                height="1392"
-                alt="Explore the DSP rack"
-                loading="lazy"
-            /></a>
-            <figcaption>Explore the DSP rack · FluidEQ</figcaption>
-          </figure>
-          <h3>Try it</h3>
-          <ol>
-            <li>
-              Play an audio track from Library, open DSP, and enable the rack.
-              Start with a preset or one stage.
-            </li>
-            <li>
-              Select a stage, change one control, and compare with that stage
-              bypassed at a similar listening volume.
-            </li>
-            <li>
-              Watch output levels as you add processing. Save a rack you like;
-              use Export and Import to exchange complete racks.
-            </li>
-          </ol>
-          <aside class="tip">
-            <strong>Good to know</strong>
-            <p>
-              The DSP Equaliser and system EQ are separate stages and can both
-              affect Library playback on Windows. Extra loudness can sound
-              better simply because it is louder; compare at similar volumes.
-            </p>
-          </aside>
-        </section>
-        <section id="denoise">
-          <header class="chapter-heading">
-            <span class="number">12</span>
-            <h2>Denoise &amp; source analysis</h2>
-          </header>
-          <p>
-            Denoise reduces unwanted noise in Library audio. Source analysis and
-            its graph help you judge what the stage is responding to. Stronger
-            reduction is not automatically better: listen for softened detail
-            and watery or pumping textures.
-          </p>
-          <figure>
-            <a
-              href="13-dsp-denoise-and-source-analysis.png"
-              aria-label="Enlarge screenshot: Denoise &amp; source analysis"
-              ><img
-                src="13-dsp-denoise-and-source-analysis.png"
-                width="2560"
-                height="1392"
-                alt="Denoise &amp; source analysis"
-                loading="lazy"
-            /></a>
-            <figcaption>Denoise &amp; source analysis · FluidEQ</figcaption>
-          </figure>
-          <h3>Try it</h3>
-          <ol>
-            <li>
-              Play a Library audio track with the noise you want to reduce and
-              select Denoise in DSP.
-            </li>
-            <li>
-              Begin with a light setting, enable the stage, and listen to both
-              quiet passages and musical detail.
-            </li>
-            <li>
-              Increase reduction gradually, then bypass the stage to check
-              whether the improvement is worth any loss of detail.
-            </li>
-          </ol>
-          <aside class="tip">
-            <strong>Good to know</strong>
-            <p>
-              This is not a microphone cleanup switch and does not process the
-              Online Media player. If you hear no change, first confirm the
-              source is a Library audio track and both rack and stage are
-              enabled.
-            </p>
-          </aside>
-        </section>
-        <section id="visuals">
-          <header class="chapter-heading">
-            <span class="number">13</span>
-            <h2>Make the player your own</h2>
-          </header>
-          <p>
-            The response graph, live spectrum and level meter show different
-            aspects of your sound. The visualizer offers multiple forms,
-            palettes and peak looks. Appearance changes are independent of EQ
-            settings.
-          </p>
-          <figure>
-            <a
-              href="10-library-customize-visualizer.png"
-              aria-label="Enlarge screenshot: Make the player your own"
-              ><img
-                src="10-library-customize-visualizer.png"
-                width="2560"
-                height="1392"
-                alt="Make the player your own"
-                loading="lazy"
-            /></a>
-            <figcaption>Make the player your own · FluidEQ</figcaption>
-          </figure>
-          <h3>Try it</h3>
-          <ol>
-            <li>
-              Turn on Response graph in the left rail. Use View on the graph to
-              choose its size.
-            </li>
-            <li>
-              Pick a visualizer form, then open New look to adjust colour, fill,
-              glow, spacing and peaks. Save the look with a name.
-            </li>
-            <li>
-              For the whole interface, open Audio actions and choose a theme or
-              language. Use Ctrl + plus, minus or 0 to enlarge, shrink or reset
-              UI zoom.
-            </li>
-          </ol>
-          <aside class="tip">
-            <strong>Good to know</strong>
-            <p>
-              A spectrum moving on screen is not proof that an EQ change reached
-              your device. Compare what you hear and check the output status
-              when diagnosing audio.
+              Use the current track shown in the bar to confirm which source
+              owns playback.
             </p>
           </aside>
         </section>
         <section id="karaoke">
           <header class="chapter-heading">
-            <span class="number">14</span>
+            <span class="number">22</span>
             <h2>Sing with Karaoke</h2>
           </header>
           <p>
@@ -974,19 +3580,34 @@
             adds your live pitch when configured, and the stage can fill the
             screen.
           </p>
-          <figure>
-            <a
-              href="11-karaoke-player.png"
-              aria-label="Enlarge screenshot: Sing with Karaoke"
-              ><img
-                src="11-karaoke-player.png"
-                width="2560"
-                height="1392"
-                alt="Sing with Karaoke"
-                loading="lazy"
-            /></a>
-            <figcaption>Sing with Karaoke · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="11-karaoke-player.png"
+                aria-label="Enlarge screenshot: Sing with Karaoke"
+                ><img
+                  src="11-karaoke-player.png"
+                  width="2560"
+                  height="1392"
+                  alt="Sing with Karaoke"
+                  loading="lazy"
+              /></a>
+              <figcaption>Sing with Karaoke · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -1006,15 +3627,15 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              A lyric-only file does not contain target notes. Missing pitch
-              targets can mean the song has no note data; it does not by itself
-              mean your microphone has failed.
+              A lyric-only file does not contain target notes. Karaoke follows
+              the app’s Volume; the melody, backing and guide vocal levels are
+              under Mix settings.
             </p>
           </aside>
         </section>
         <section id="maker">
           <header class="chapter-heading">
-            <span class="number">15</span>
+            <span class="number">23</span>
             <h2>Create in Karaoke Maker</h2>
           </header>
           <p>
@@ -1023,19 +3644,34 @@
             results are a starting point: check words, timing and notes against
             the recording.
           </p>
-          <figure>
-            <a
-              href="12-karaoke-maker-pitch-and-lyrics.png"
-              aria-label="Enlarge screenshot: Create in Karaoke Maker"
-              ><img
-                src="12-karaoke-maker-pitch-and-lyrics.png"
-                width="2560"
-                height="1392"
-                alt="Create in Karaoke Maker"
-                loading="lazy"
-            /></a>
-            <figcaption>Create in Karaoke Maker · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="12-karaoke-maker-pitch-and-lyrics.png"
+                aria-label="Enlarge screenshot: Create in Karaoke Maker"
+                ><img
+                  src="12-karaoke-maker-pitch-and-lyrics.png"
+                  width="2560"
+                  height="1392"
+                  alt="Create in Karaoke Maker"
+                  loading="lazy"
+              /></a>
+              <figcaption>Create in Karaoke Maker · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -1060,30 +3696,112 @@
             </p>
           </aside>
         </section>
-        <section id="trouble">
+        <section id="share">
           <header class="chapter-heading">
-            <span class="number">16</span>
+            <span class="number">24</span>
+            <h2>Share audio between computers</h2>
+          </header>
+          <p>
+            Share Audio sends system audio between computers on the same private
+            network. The receiver is the computer connected to your headphones
+            or speakers; other computers are senders. This is separate from
+            mirroring to a second device on one computer.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1317.3333333333333px,
+                  72vh * 4.819512195121951
+                );
+                max-width: min(
+                  100%,
+                  1317.3333333333333px,
+                  72vh * 4.819512195121951
+                );
+              "
+            >
+              <a
+                href="14-share-audio-roles.png"
+                aria-label="Enlarge screenshot: Share audio between computers"
+                ><img
+                  src="14-share-audio-roles.png"
+                  width="1976"
+                  height="410"
+                  alt="Share audio between computers"
+                  loading="lazy"
+              /></a>
+              <figcaption>Share audio between computers · FluidEQ</figcaption>
+            </figure>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              On the listening computer, open Share Audio, choose Play audio on
+              this computer and press Create connection code. Start at a low
+              volume.
+            </li>
+            <li>
+              On each source computer, choose Send audio from this computer,
+              pick Music or Game/Video, paste the code for your network and
+              press Connect and send.
+            </li>
+            <li>
+              Watch the connection monitor. Press Stop sending or Stop listening
+              when finished; Create new code disconnects every saved pairing.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Keep the connection code private: it authorizes pairing. Several
+              senders mix together and raise the level, and the receiver’s
+              Volume sets it. Under the FluidEQ Engine, received audio also goes
+              through the DSP rack.
+            </p>
+          </aside>
+        </section>
+        <section id="trouble">
+          <span class="eyebrow part">When you need help</span>
+          <header class="chapter-heading">
+            <span class="number">25</span>
             <h2>When something sounds wrong</h2>
           </header>
           <p>
             Start with the source and output, then isolate the layer. A graph, a
             saved preset or an enabled switch alone cannot prove that sound
             reached the intended device. The Help menu also leads to audio
-            troubleshooting and problem reporting.
+            troubleshooting, problem reporting and the Forum.
           </p>
-          <figure>
-            <a
-              href="06-eq-equalizer-apo-config.png"
-              aria-label="Enlarge screenshot: When something sounds wrong"
-              ><img
-                src="06-eq-equalizer-apo-config.png"
-                width="2560"
-                height="1392"
-                alt="When something sounds wrong"
-                loading="lazy"
-            /></a>
-            <figcaption>When something sounds wrong · FluidEQ</figcaption>
-          </figure>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+                max-width: min(
+                  100%,
+                  1706.6666666666667px,
+                  72vh * 1.839080459770115
+                );
+              "
+            >
+              <a
+                href="06-eq-equalizer-apo-config.png"
+                aria-label="Enlarge screenshot: When something sounds wrong"
+                ><img
+                  src="06-eq-equalizer-apo-config.png"
+                  width="2560"
+                  height="1392"
+                  alt="When something sounds wrong"
+                  loading="lazy"
+              /></a>
+              <figcaption>When something sounds wrong · FluidEQ</figcaption>
+            </figure>
+          </div>
           <h3>Try it</h3>
           <ol>
             <li>
@@ -1092,9 +3810,9 @@
               One player at a time paused another source.
             </li>
             <li>
-              No EQ change: confirm System EQ is enabled and the Windows
-              endpoint is selected in Equalizer APO. Use Fix audio problems for
-              the guided repair sequence; restarts interrupt audio.
+              No EQ change: confirm System EQ is on and the output shows no OFF
+              badge; press Enable if it does. If a notice says the engine is not
+              running, press Restart Windows audio.
             </li>
             <li>
               Distortion or excessive bass: leave Auto normalize on, reduce
@@ -1105,10 +3823,61 @@
           <aside class="tip">
             <strong>Good to know</strong>
             <p>
-              F1 opens this guide. Escape closes an enlarged capture, then the
-              guide. If the interface is too large, Ctrl + 0 resets zoom. For
-              DSP problems, first test a Library audio track rather than video
-              or another player.
+              F1 opens this guide. Esc closes an enlarged capture, then the
+              guide. If the interface is too large, Ctrl + 0 resets zoom.
+              Processes in the actions menu shows what each part of FluidEQ is
+              doing.
+            </p>
+          </aside>
+        </section>
+        <section id="forum">
+          <header class="chapter-heading">
+            <span class="number">26</span>
+            <h2>Ask in the Forum</h2>
+          </header>
+          <p>
+            The Forum brings FluidEQ’s GitHub Discussions into the app:
+            announcements, ideas, questions and tunings people are proud of.
+            Anyone can read; posting uses your GitHub account, not a FluidEQ
+            one.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(100%, 1344px, 72vh * 1.5448275862068965);
+                max-width: min(100%, 1344px, 72vh * 1.5448275862068965);
+              "
+            >
+              <a
+                href="30-forum.png"
+                aria-label="Enlarge screenshot: Ask in the Forum"
+                ><img
+                  src="30-forum.png"
+                  width="2016"
+                  height="1305"
+                  alt="Ask in the Forum"
+                  loading="lazy"
+              /></a>
+              <figcaption>Ask in the Forum · FluidEQ</figcaption>
+            </figure>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Help → Forum and pick a board: Announcements, General, Ideas,
+              Polls, Q&amp;A or Show and tell.
+            </li>
+            <li>Search the forum, or open a topic to read the replies.</li>
+            <li>
+              Press Sign in with GitHub, finish in your browser, then post a New
+              topic or a reply.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Everything posted is public on GitHub under your GitHub name. On
+              Q&amp;A, mark the answer that worked so the next person finds it.
             </p>
           </aside>
         </section>

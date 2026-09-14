@@ -1,182 +1,190 @@
 # What's new in FluidEQ
 
-Release notes, newest first, including unreleased work. FluidEQ shows you the newest section of
-this file the first time you run a new version — the **What's new** entry in the
-actions menu opens it again any time.
+Every released version, newest first. The first time you run a new version,
+FluidEQ opens its **What's new** tour, and the tour's **Full release notes**
+link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
-## 1.6.5
+## 1.7.0
 
-**Unreleased — in development.**
+FluidEQ now has an audio engine of its own. Your EQ and the whole DSP rack
+shape everything the computer plays — games, browsers, streaming apps — not
+only the Library. FluidEQ Plus arrives with visualizers drawn on your graphics
+card, a Studio to make your own, the desktop visualizer and, in beta, Dynamic
+Lighting for the RGB devices on your desk.
 
-Choose how an imported headphone correction shapes your sound, with clearer
-controls and a consistent look for dialogs and menus.
+### Highlights
+
+- **The FluidEQ Engine.** FluidEQ's own audio engine runs inside Windows'
+  audio service, after your sound card's effects, so the maker's panel keeps
+  working. Setup asks which engine you want — the FluidEQ Engine, recommended,
+  or Equalizer APO — and the actions menu switches between them at any time:
+  one Windows permission and a few seconds of silence while audio restarts,
+  no reboot.
+- **The DSP rack for everything you hear.** Under the FluidEQ Engine, the
+  Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension,
+  Maximizer and Master work on every app, with nothing playing in the Library.
+  The Normalizer levels live audio song by song and remembers the songs it has
+  heard, so they are levelled from their first second. Denoise repairs hiss,
+  hum and clicks as they play. The DSP page says where the rack is running.
+- **FluidEQ Plus.** An optional membership, monthly or yearly, that supports
+  FluidEQ and opens the new **Plus** tab: Visualizers, the Studio, the
+  Leaderboard and Dynamic Lighting, with the desktop visualizer too. Everything
+  that was free stays free. Sign in from **Account** in the actions menu, read
+  the terms in plain words, and pay on Buy Me a Coffee in your browser with the
+  same email — the app never sees your card. An account stays signed in on up
+  to five computers.
+- **Visualizers.** Plus visualizers are living scenes drawn on your graphics
+  card, where the bass, the beat and the treble each move something different.
+  Browse them in **Plus → Visualizers**, try FluidEQ's free samples for ten
+  seconds with any account, and add the ones you like to play them on the
+  graph. The window can take a visualizer's colours or its light, and some bring
+  birds, petals or stars that drift gently around the app.
+- **The desktop visualizer.** Put a Plus visualizer behind your desktop icons —
+  a different one on each monitor, moving with the music or calmly on its own.
+  It pauses for full-screen apps, a locked PC and battery power, and comes back
+  the next time FluidEQ starts.
+- **Dynamic Lighting (beta).** Your keyboard, mouse, mousepad, headset and
+  stand light up with the visualizer on the graph, through Windows Dynamic
+  Lighting and Razer Chroma. Choose Scene, Colour wave, Spectrum or Beat ripple
+  for each visualizer, tune each device, and watch a live preview of your own
+  desk.
 
 ### New
 
-- **Your own band designs.** Save, update and delete named frequency/Q layouts
-  in the band menu. Designs do not store gains or EQ mode; loading one starts
-  with flat gains. The EQ badge shows the selected design.
-- **Safer EQ clearing and finer tuning.** Clear EQ asks first and only flattens
-  gains, keeping the current band count, frequencies, Q and preamp. Ctrl-click
-  (Command-click on macOS) resets one slider. Frequency knobs move more gently,
-  and the band menu no longer briefly shrinks when reopened.
-- **An optional account.** **Account** in the actions menu opens a small
-  panel: sign in with your email and password, or create an account and type
-  the six-digit code that arrives by email. Forgot the password? A code goes
-  to the address and you set a new one in the same place. Your password goes
-  straight to the account service and is kept nowhere in the app. Signing in
-  is optional: everything runs on this machine exactly as before, nothing is
-  tracked, and nothing that was free has been taken away. The panel says so
-  before it offers anything: signed out, that sentence and the three things
-  an account is for stand beside the form; signed in, you come first — your
-  initials in your own colour, your name, and tags for Plus and the
-  leaderboard — with the Plus and leaderboard cards side by side under it.
-- **FluidEQ Plus.** Once signed in, the Account panel offers a small monthly
-  subscription with visualizers that exist nowhere else, the community and the
-  leaderboard, with more added every month. Paying happens on FluidEQ's Buy
-  Me a Coffee page in your browser — pay with the same email as your account
-  and Plus switches on by itself; the app never sees your card. The panel shows
-  the renewal date, opens the same page to change or cancel the membership,
-  and — if the app cannot reach the server — keeps Plus on for fourteen days
-  from the last confirmation and says so.
-- **Premium looks drawn on the graphics card.** Plus looks are GPU scenes —
-  curtains of light, not lines — and appear in the look picker, the arrows,
-  Space, the click on the plot and the auto-cycle alongside every free form,
-  marked with a small **Plus** pill and their own icon. They are downloaded
-  once, verified as genuinely from FluidEQ every time they are read, and play
-  offline. Any one that cannot run on your machine falls back to a free form
-  instead of showing a blank plot. The launch set is eight: **Aurora**,
-  **Bloom**, **Chrome**, **Ember**, **Nebula**, **Prism**, **Rain** and
-  **Tunnel**.
-- **The Plus looks are in the picker before you subscribe.** They sit at the
-  end of the list under a _FluidEQ Plus_ heading, each with its own icon and a
-  locked **Plus** pill, so the free app shows what Plus is instead of hiding
-  it. Choosing one opens the Account panel, where Plus is explained and
-  bought; the look on screen stays as it was, and the arrows, Space, the plot
-  click and the auto-cycle never land on a locked row.
-- **A Community tab.** Channels for general talk, looks, help and feature
-  requests, with @mentions that light up the tab when someone names you.
-  Anyone signed in can read everything; posting comes with Plus, and the
-  feature-requests channel is the star contributors' direct line to the maker.
-  Before a first message you choose a handle and agree to a short code of
-  conduct. Every message row can be reported or its author blocked, and your
-  own messages deleted. The rules — who may post, how fast, where — are
-  enforced by the server, not the app. Every channel has its own picture and
-  a line saying what it is for, every person wears a colour of their own on
-  their avatar and name, your own messages sit on a faint tint of that
-  colour, and the rail ends with who you are in here. The message box is one
-  rounded bar with the send arrow inside it and says how Enter and
-  Shift+Enter behave; the row actions are pictures that appear on hover; an
-  empty channel greets you rather than leaving a blank pane; and on a narrow
-  window the channels become a strip above the conversation.
-- **A leaderboard of who is here most.** Off unless you join it from the
-  Account panel, where the card says exactly what leaves the machine: one
-  number for each day — whole minutes of music that actually played, capped
-  at sixteen hours — with its date, and nothing else. Never what played or
-  from where. Places are scored in points, the same way for everyone, the
-  maker included: ten per hour listened, twenty per active day, five per
-  message in the community, and ten for each person who mentions you on a
-  day — so showing up and taking part beat leaving the app running. The
-  server checks every number that arrives: nothing over sixteen hours, no day
-  that has not begun, nothing older than two weeks, and no day growing faster
-  than the clock. The board lives in the Community tab: your standing on top
-  — your rank, your points and a bar of what they are made of, and how far
-  the next person is — then the top three on a podium, first in the middle
-  and crowned, and everyone else as a row lit to their share of the leader's
-  points. How to earn points stands beside the board on a wide window and
-  under it on a narrow one, with how the numbers are known and a link to
-  everything the app sends. The Account card draws today's tally as a ring
-  filling toward the sixteen-hour cap. A button removes everything you ever
-  sent, after saying plainly that your place goes with it.
-- **Plus terms, in plain words, before you pay.** Upgrading to Plus — from
-  the Account panel or the community — first shows the terms: the four
-  things that matter most on top, then what the membership is, how your
-  account is kept, everything the app sends with when and who can see it,
-  what never leaves your computer, how it is protected, fair play, the
-  community rules, what is kept and how to delete it, and the fine print.
-  Payment opens only after you tick that you agree, and the version you
-  agreed to is recorded as the payment page opens. The same terms are one
-  click away in the Account panel and beside the leaderboard at any time.
-- **Apply a Squiglink import as EQ or as a curve.** In EQ Presets, choose
-  **Apply as EQ** to use the imported bands in the editor, or **Apply as curve**
-  to use a separate headphone correction with its own strength and switch,
-  like OPRA. Applying a curve replaces the current headphone correction.
-- **Confirm before replacing your EQ.** If an EQ is already set, a dialog
-  matching your theme offers **Replace EQ**, **Apply as curve**, or **Cancel**.
-  Switching import modes removes the previous import so the same correction
-  is not applied twice.
+- **One picker for styles and visualizers.** The look's name on the graph
+  opens a searchable panel: 38 free styles filtered by Lines, Fills, Bars,
+  Points, Scenes and Wave on one side, and Plus visualizers by category on the
+  other, each with its picture. Without Plus, the visualizers show locked and
+  explain how to get them.
+- **The Studio.** Describe a scene to your own AI assistant, paste FluidEQ's
+  prompt, and watch the scene come alive on your music as the files are saved.
+  Projects, a live code pane, test signals, pictures and scene settings share
+  one page, and the preview drags taller. The Bass, Mids and Treble signals
+  play that part of your own music. Publish to the gallery, share as a file,
+  put it on your desktop, or open one of FluidEQ's own scenes to see how it is
+  made.
+- **The Leaderboard.** Join from the Account panel and Plus members are ranked
+  by hours listened, active days and likes on the scenes they make. One number
+  a day leaves your computer — never what you play.
+- **Visualizer versions.** Each visualizer shows its version and what changed,
+  your copies update themselves, and the graph tells you when the one you are
+  watching does.
+- **A visualizer that fails on your graphics card is set aside.** If a scene
+  stops compiling, loses its drawing surface or resets the graphics driver,
+  FluidEQ stops it everywhere it is showing — the graph, the Studio and every
+  monitor behind your desktop — says why, and does not run it again on that
+  computer, so a broken scene cannot take Windows down with it.
+- **EQ mode.** A menu on the Bands toolbar sets how strongly your EQ and your
+  curves apply (Normal, Studio ×1.5 or ×2), how Q behaves as gain grows, curve
+  smoothing and, under the FluidEQ Engine, minimum or linear phase. **Reset**
+  puts everything back.
+- **Band designs.** Save the frequencies and Q of a band layout under a name,
+  and bring it back on any output from the layouts button. Designs never store
+  gains.
+- **Switch a band off without losing it.** The **Active** switch and the band's
+  right-click menu take a band out of the chain and keep its settings.
+  Frequency and Gain are dials, and Ctrl-click resets a slider or a dial.
+- **Apply a Squiglink import as EQ or as a curve.** **Apply as curve** makes it a
+  headphone correction with its own strength and switch; **Apply as EQ** asks
+  before replacing the bands you have.
+- **The Forum.** **Help → Forum** brings FluidEQ's GitHub Discussions into the
+  app. Anyone can read; sign in with GitHub to post and reply.
+- **Playback buttons on the Windows taskbar.** Hover FluidEQ's taskbar button
+  for Previous, Play/Pause and Next, even while FluidEQ is minimized.
+- **Report a problem privately.** Beside the public GitHub issue, **Report a
+  problem** can send the report to the maker by email: it opens in your mail
+  app, and if no mail app opens, the dialog says so and shows the address.
+- **Engine notices that say what to do.** An output the engine is not on yet
+  offers **Enable**, and the output you are listening on is enabled for you. An
+  engine that isn't running offers **Restart Windows audio**, a newer engine
+  that came with an update offers **Update engine**, and Remote Desktop audio
+  says plainly that no EQ can reach it.
 
 ### Improved
 
-- **Imported curves stay with their controls.** Their applied response appears
-  in the import section's graph, follows the correction strength, and stays out
-  of the OPRA graph. **Also applied** identifies the curve as a custom headphone
-  correction instead of showing the export's name.
-- **Consistent dialog and menu borders.** Popup windows, dialogs and context
-  menus share a subtle border and rounded corners. Rainbow mode adds the same
-  rainbow border across them without changing their background colour or
-  transparency; with reduced motion, the colours stay still.
-- **A matching border for the top waveform.** Rainbow mode gives the top wave
-  panel a softly glowing spectrum rim, with the same movement as the windows
-  and menus.
-- **Quieter dividers and cards.** Decorative top lines and bright header rules
-  are removed, and internal dialog cards use softer borders.
-- **Edit style follows Ocean and Black.** The graph's style editor uses the
-  selected theme's popup surface, with an opaque background that keeps graph
-  labels from showing through its controls. Rainbow border and Lit peaks use
-  the app's themed switches. In fullscreen, the control bar moves left to leave
-  room for the editor, just as it does in the normal view.
+- **Styles reworked, and the weak ones retired.** Truss is a night bridge with
+  traffic, Skyline a city at night, Terrace a valley with a hopping explorer and
+  Bubbles a storm of glass; Pulse, Sawtooth, Echo, Spikes, Dots and more were
+  redrawn. Nineteen styles left the picker, and a look that used one moves to
+  its closest replacement. Styles crossfade as they change, and the drawing
+  stays on screen when the music stops.
+- **Automatic switching.** The **Auto** menu beside the look's name moves to the
+  next look every 10 seconds to 2 minutes.
+- **One volume for every player.** Library, Karaoke, Online Media and received
+  Share Audio follow the fader at the foot of the window. Karaoke no longer
+  plays at a hidden 80%, and the Media tab's level matches the site's own
+  slider.
+- **A safer Clear EQ.** It asks first and only sets gains to 0 dB, keeping your
+  bands, Q, EQ mode and preamp. Deleting a band asks on the button itself.
+- **Auto normalize guards what you actually hear.** Under the FluidEQ Engine it
+  protects the final output with a true-peak limiter instead of a fixed cut, and
+  keeps your own preamp for when you switch it off.
+- **Driver type profiles** are twelve distinct, gentle curves that start at 50%.
+- **Convolution downloads match your output's rate**, 44.1 or 48 kHz.
+- **The actions menu leads with the audio engine.** A card at the top names
+  the engine, says whether it is working and opens its settings — or, when it
+  is not, the way to fix it. Below it the commands are grouped by purpose, each
+  with an icon of its own, and Theme, Animations and Language sit together at
+  the foot. What's new, Report a problem and About live in the Help menu, whose
+  rows have icons too.
+- **DSP pages reflow** at any window size instead of overlapping.
+- **Menus** unfold from the control they belong to, with a lit accent edge.
+- **Animations are FluidEQ's own choice.** Windows' animation effects no longer
+  switch FluidEQ's motion off; set **Animations** in the actions menu instead.
+- **Processes** names every part of FluidEQ — the karaoke models, the library
+  scan, the desktop visualizer, Dynamic Lighting, the audio shared with
+  another PC and the FluidEQ Engine running inside Windows itself — and now
+  adds up to an honest total, memory and CPU, measured the way Task Manager
+  measures it.
+- **A visualizer you cannot see stops costing anything.** The graph, the
+  Studio and a desktop visualizer each let go of their drawing worker while
+  hidden — a minimized window, a covered monitor, a background tab — and pick
+  it back up the moment they are shown again.
+- **Up next and the karaoke playlist** slide open and closed.
+- **Hindi, Japanese and Chinese** labels are no longer spaced apart.
+- **Signed updates.** From this version FluidEQ installs an update only when it
+  carries the maker's signature, and the installed app is locked down against
+  injected code.
 
 ### Fixed
 
-- **The FluidEQ Engine keeps up with the app.** Updating FluidEQ used to leave
-  the engine it had installed exactly as it was, so engine fixes never reached
-  anyone who updated. When the engine on your PC is not the one your FluidEQ
-  comes with, a notice now offers **Update engine**: one Windows permission,
-  a few seconds of silence while audio restarts, and your outputs and EQ stay
-  as they were.
-- **Wave controls remain available in EQ's larger views.** Wave height and
-  position stay in the View menu in expanded and fullscreen EQ, including when
-  only the wave is visible.
-- **Custom FX stays switched off.** Turning off its pill in **Also applied**
-  no longer turns it back on when FluidEQ reads the APO configuration.
-- **Edit a saved Share Audio code.** The sender still restores its saved code
-  after restarting, but you can clear it and type a new one without the old
-  code reappearing. Stopping a session also keeps the code you are editing.
+- **The next song starts while FluidEQ is minimized**, instead of waiting for
+  the window to come back.
+- **The graph no longer stutters while the automatic preamp is settling.**
+  Small, constant adjustments used to redraw the whole chart; now only the
+  curve itself moves.
+- **Escape closes the dialog or menu in front** and no longer leaves full
+  screen as well.
+- **Custom FX stays switched off** when FluidEQ reads the configuration.
+- **A saved Share Audio code can be edited** without the old code coming back.
+- **Text boxes** no longer change colour under the pointer.
+- **When the window has to recover from a fault**, FluidEQ's own screen stays up
+  with Reload, Quit and Copy details.
+
+### Good to know when you update
+
+- **Your engine stays as it is.** Updating keeps Equalizer APO; choose the
+  FluidEQ Engine from the actions menu when you want it.
+- **Quitting turns the EQ off.** Quitting FluidEQ from the tray takes the EQ and
+  the rack off every output; closing the window keeps them on from the tray.
+  Under the FluidEQ Engine, the sound also returns to normal if FluidEQ is ended
+  or crashes.
+- **Looks switch every two minutes** until you choose **Auto: Off**.
+- **Motion-sensitive?** If you turned off Windows' animation effects for that
+  reason, set **Animations** to reduced motion in FluidEQ's actions menu.
 
 ---
 
 ## 1.6.4
 
-FluidEQ can now run its own audio engine as well as Equalizer APO. Meet Fluid,
-find your way around, and read every detail more comfortably. This release
-brings a built-in audio processing engine, an illustrated offline user guide,
-a dedicated Help menu, a new About screen, and clearer text throughout both
-themes.
+Meet Fluid, find your way around, and read every detail more comfortably.
+This release brings an illustrated offline user guide, a dedicated Help menu,
+a new About screen, and clearer text throughout both themes.
 
 ### New
 
-- **A FluidEQ engine of its own.** Alongside Equalizer APO, FluidEQ can now
-  process your sound with its own audio engine. It sits after your sound
-  card's own effects, so the manufacturer's panel and effects keep working,
-  and turning it on needs no restart — just one Windows permission.
-- **Choose your engine on install, or change it any time.** The installer now
-  asks which engine to use, the FluidEQ Engine or Equalizer APO, each with a
-  line explaining the trade-off. **Audio engine…** in the actions menu opens
-  the same choice later.
-- **The DSP rack runs on the whole PC under the FluidEQ Engine**, not only
-  what FluidEQ itself plays — every app's sound goes through the same rack.
-  Two things stay as they were: Denoise still only measures and repairs
-  Library playback, and switching the Equaliser to linear phase adds about
-  171 ms of delay, shown right on the DSP page.
-- **An output the FluidEQ Engine has not attached to yet can be turned on
-  right where you notice it.** Its "not enabled for this output" notice has
-  its own **Enable** button — one click and a single Windows permission.
-- **Uninstalling FluidEQ takes its own engine with it.** If you chose the
-  FluidEQ Engine, removing FluidEQ removes the engine too. You are only asked
-  about Equalizer APO if it is actually installed.
 - **An illustrated guide inside FluidEQ.** Open **Help → User guide** or press
   **F1** for 16 chapters illustrated with 14 real interface captures. Learn the
   EQ, headphone corrections, convolution, device profiles, second outputs,

@@ -28,6 +28,106 @@ const tour: Partial<Dictionary> = {
   'tour.rail.always': 'ANCHE IN FLUIDEQ',
   'tour.newBadge': 'NUOVO',
   'tour.howTitle': 'Come iniziare',
+  'tour.beta': 'Beta',
+
+  'tour.engine.kicker': 'IL NOSTRO MOTORE AUDIO',
+  'tour.engine.title': 'Ecco il motore FluidEQ',
+  'tour.engine.subtitle': 'EQ e DSP per tutto ciò che ascolti',
+  'tour.engine.lead':
+    'FluidEQ ha ora un motore audio tutto suo. Gira dentro il servizio audio di Windows, dopo gli effetti della tua scheda audio, e applica il tuo EQ e l’intero rack DSP a tutto ciò che il computer riproduce: giochi, browser, app di streaming, non solo la Libreria.',
+  'tour.engine.point1':
+    'Il rack DSP su tutto l’audio di sistema, anche quando in FluidEQ non suona nulla.',
+  'tour.engine.point2':
+    'Livellamento dal vivo che riconosce il brano e Riduzione del rumore che pulisce durante l’ascolto.',
+  'tour.engine.point3':
+    'Esci da FluidEQ e il suono torna subito come prima, anche dopo un arresto anomalo.',
+  'tour.engine.how':
+    'Scegli il motore FluidEQ durante l’installazione, oppure apri il menu delle azioni e sceglilo lì. Poi apri DSP e attiva uno stadio mentre suona un’app qualsiasi.',
+  'tour.engine.open': 'Apri il DSP',
+  'tour.engine.flow.label':
+    'Tutto ciò che il computer riproduce attraversa il motore FluidEQ, prima il tuo EQ e poi il rack DSP, per arrivare alle tue cuffie e ai tuoi altoparlanti.',
+  'tour.engine.flow.games': 'Giochi',
+  'tour.engine.flow.browser': 'Browser',
+  'tour.engine.flow.music': 'App musicali',
+  'tour.engine.flow.video': 'Video',
+  'tour.engine.flow.inside': 'Dentro l’audio di Windows',
+  'tour.engine.flow.eq': 'Il tuo EQ',
+  'tour.engine.flow.rack': 'Rack DSP',
+  'tour.engine.flow.headphones': 'Cuffie',
+  'tour.engine.flow.speakers': 'Altoparlanti',
+
+  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.title': 'Benvenuto in FluidEQ Plus',
+  'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',
+  'tour.plus.lead':
+    'Un abbonamento facoltativo che sostiene la crescita di FluidEQ, con una nuova scheda tutta sua: scene disegnate dalla tua scheda grafica, uno Studio per creare le tue, la classifica, gli sfondi del desktop e l’illuminazione dinamica. Tutto ciò che era gratuito resta gratuito.',
+  'tour.plus.point1':
+    'Accedi da Account nel menu delle azioni; il pagamento avviene nel browser e Plus si attiva da solo.',
+  'tour.plus.point2':
+    'Mensile o annuale, con condizioni in parole semplici prima di pagare. L’app non vede mai la tua carta.',
+  'tour.plus.point3':
+    'Accesso su un massimo di cinque computer, con nuovi visualizzatori aggiunti col tempo.',
+  'tour.plus.how':
+    'Apri la scheda Plus: Classifica, Visualizzatori, Studio e Illuminazione dinamica sono sul lato sinistro.',
+  'tour.plus.open': 'Apri Plus',
+  'tour.plus.imageAlt':
+    'La scheda Plus: Classifica, Visualizzatori, Studio e Illuminazione dinamica sul lato, e la galleria Visualizzatori con Cromo, Fioritura, Aurora, Alpino e Città al neon.',
+  'tour.scene.alpine': 'Alpino',
+  'tour.scene.aurora': 'Aurora',
+  'tour.scene.bloom': 'Fioritura',
+  'tour.scene.chrome': 'Cromo',
+  'tour.scene.neonCity': 'Città al neon',
+
+  'tour.visualizers.kicker': 'VISUALIZZATORI',
+  'tour.visualizers.title': 'Scene che si muovono con la tua musica',
+  'tour.visualizers.subtitle': 'Disegnate dalla tua scheda grafica',
+  'tour.visualizers.lead':
+    'I visualizzatori Plus sono scene vive (montagne sotto le stelle, cortine d’aurora, una città al neon) disegnate dalla tua scheda grafica sotto le curve del tuo EQ. Bassi, battito e acuti muovono ognuno qualcosa di diverso, e la finestra intorno può prenderne i colori.',
+  'tour.visualizers.point1':
+    'Un solo selettore per tutto: 38 stili gratuiti da modellare e colorare, e i visualizzatori Plus per categoria.',
+  'tour.visualizers.point2':
+    'Sfoglia la galleria, prova per dieci secondi gli esempi di FluidEQ e aggiungi le scene che ti piacciono.',
+  'tour.visualizers.point3':
+    'Cambia aspetto in automatico, passa a schermo intero e regola attacco e rilascio di una scena in Vista.',
+  'tour.visualizers.how':
+    'Fai clic sul nome dell’aspetto sul grafico e scegli una scena in Visualizzazioni Plus, oppure sfogliale tutte in Plus → Visualizzatori.',
+  'tour.visualizers.open': 'Apri l’EQ',
+  'tour.visualizers.imageAlt':
+    'Alpino, un visualizzatore Plus con montagne su un lago di notte, in riproduzione sul grafico sotto le curve dell’EQ, con altre quattro scene più in basso.',
+
+  'tour.desktop.kicker': 'VISUALIZZATORE DEL DESKTOP',
+  'tour.desktop.title': 'La tua musica dietro il desktop',
+  'tour.desktop.subtitle': 'Una scena su ogni monitor',
+  'tour.desktop.lead':
+    'Metti un visualizzatore Plus dietro le icone del desktop. Si muove con ciò che stai ascoltando, o con calma per conto suo, e ogni monitor può mostrare una propria scena.',
+  'tour.desktop.point1':
+    'Scegli i monitor su una mappa della tua scrivania, ognuno con il suo visualizzatore.',
+  'tour.desktop.point2':
+    'Si mette in pausa con le app a schermo intero, con il PC bloccato e quando va a batteria.',
+  'tour.desktop.point3': 'Riparte da solo al prossimo avvio di FluidEQ.',
+  'tour.desktop.how':
+    'Con un visualizzatore Plus sul grafico, premi il pulsante del monitor accanto al suo nome oppure scegli Vista → Imposta come sfondo del desktop.',
+  'tour.desktop.open': 'Apri l’EQ',
+  'tour.desktop.imageAlt':
+    'Tre monitor, ognuno con un visualizzatore Plus (Aurora, Alpino e Città al neon) dietro le icone del desktop e la barra delle applicazioni.',
+
+  'tour.lighting.kicker': 'ILLUMINAZIONE DINAMICA',
+  'tour.lighting.title': 'La tua scrivania si accende con la scena',
+  'tour.lighting.subtitle':
+    'Beta · i tuoi dispositivi RGB seguono il visualizzatore',
+  'tour.lighting.lead':
+    'Tastiera, mouse, tappetino, cuffie e supporto prendono i colori e il ritmo del visualizzatore Plus sul grafico, tramite Windows Dynamic Lighting e Razer Chroma.',
+  'tour.lighting.point1':
+    'Quattro stili per ogni visualizzatore: Scena, Onda di colore, Spettro e Onda ritmica.',
+  'tour.lighting.point2':
+    'Regola ogni dispositivo singolarmente e scegli cosa succede quando la musica si ferma.',
+  'tour.lighting.point3':
+    'Un’anteprima dal vivo disegna proprio la tua scrivania mentre si illumina. È in beta: facci sapere come si comportano i tuoi dispositivi.',
+  'tour.lighting.how':
+    'Apri Plus → Illuminazione dinamica e attivala, poi metti un visualizzatore Plus sul grafico.',
+  'tour.lighting.open': 'Apri Plus',
+  'tour.lighting.imageAlt':
+    'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
   'tour.theme.kicker': 'UN NUOVO ASPETTO',
   'tour.theme.title': 'Ecco il tema Nero',
@@ -42,7 +142,7 @@ const tour: Partial<Dictionary> = {
     'Il colore d’accento e la modalità arcobaleno restano. Il suono non cambia affatto: è solo la vernice.',
   'tour.theme.howTitle': 'Come cambiarlo',
   'tour.theme.how':
-    'Apri il menu dietro l’icona a impulso in alto a destra, poi scegli Tema → Nero. Oceano è a un clic se vuoi tornare indietro.',
+    'Apri il menu dietro l’icona a impulso in alto a destra e, in fondo, scegli Nero in Tema. Oceano è a un clic se vuoi tornare indietro.',
   'tour.theme.tryBlack': 'Passa a Nero adesso',
   'tour.theme.tryOcean': 'Torna a Oceano',
   'tour.theme.imageAlt':
@@ -64,10 +164,10 @@ const tour: Partial<Dictionary> = {
     'Apri la scheda Condividi audio, scegli «Riproduci l’audio su questo computer» e premi «Crea codice di connessione». Copia il codice della tua rete.',
   'tour.share.step2Title': 'Su ogni altro PC, incollalo',
   'tour.share.step2':
-    'Apri FluidEQ lì, vai in Condividi audio, scegli «Invia l’audio di questo computer», incolla il codice e premi «Connetti e invia». L’audio di sistema inizia a scorrere.',
-  'tour.share.step3Title': 'Scegli una priorità e ascolta',
+    'Apri FluidEQ lì, vai in Condividi audio, scegli «Invia l’audio di questo computer», seleziona Musica o Gioco/Video, incolla il codice e premi «Connetti e invia». L’audio di sistema inizia a scorrere.',
+  'tour.share.step3Title': 'Ascolta e regola il livello',
   'tour.share.step3':
-    'Musica mantiene un buffer più ampio per un ascolto senza interruzioni; Gioco/Video gira con il ritardo minimo per il labiale. Ogni trasmettitore viene mixato nell’uscita del ricevitore e modellato dal suo EQ. La barra di riproduzione del ricevitore mostra il brano di ogni trasmettitore e i suoi pulsanti funzionano attraverso la rete.',
+    'Musica mantiene un buffer più ampio per un ascolto senza interruzioni; Gioco/Video gira con il ritardo minimo per il labiale. Ogni trasmettitore viene mixato nell’uscita del ricevitore, modellato dal suo EQ e regolato dal suo Volume. La barra di riproduzione del ricevitore mostra il brano del trasmettitore più recente, e i suoi pulsanti funzionano attraverso la rete.',
   'tour.share.fact1Title': 'Senza perdite',
   'tour.share.fact1':
     'PCM Float32 da un capo all’altro. Nessun codec, nessuna perdita di generazione.',
@@ -95,24 +195,24 @@ const tour: Partial<Dictionary> = {
   'tour.library.point4':
     'Memoria EQ per brano: attiva «Salva per questo brano» mentre suona e la correzione che fai resta memorizzata per quella traccia.',
   'tour.library.how':
-    'Apri la scheda Libreria, premi «Aggiungi cartella» o trascina una cartella sulla pagina e aspetta «Brani aggiunti». Scegli Album, Artisti, Generi, Brani, Cartelle o Albero, poi premi Riproduci.',
+    'Apri la scheda Libreria, premi «Aggiungi cartella» o trascina una cartella sulla pagina e lascia finire la scansione. Scegli Album, Artisti, Generi, Brani, Cartelle o Albero, poi premi Riproduci.',
   'tour.library.open': 'Apri la Libreria',
 
   'tour.dsp.kicker': 'UN RACK DA MASTERING',
   'tour.dsp.title': 'Il rack DSP',
   'tour.dsp.subtitle': 'Nove stadi, ognuno con il suo grafico',
   'tour.dsp.lead':
-    'Tutto ciò che la Libreria riproduce può attraversare un rack di stadi da studio, in ordine: Normalizzatore, Denoise, Exciter, Bass Forge, Equalizzatore, Bass Punch, Dimension, Maximizer e Master, più un crossfade tra i brani. Ogni stadio è una scheda con grafico dal vivo, preset e un pulsante Isola per sentire solo ciò che fa.',
+    'Un rack di stadi da studio, in ordine: Normalizzatore, Riduzione del rumore, Exciter, Fucina dei bassi, Equalizzatore, Punch dei bassi, Dimensione, Maximizer e Master, più una dissolvenza incrociata tra i brani della Libreria. Con il motore FluidEQ agisce su tutto ciò che il computer riproduce; con Equalizer APO, sulla Libreria. Ogni stadio è una scheda con grafico dal vivo, preset e un pulsante Isola per sentire solo ciò che fa.',
   'tour.dsp.point1':
-    'Denoise ripara la registrazione stessa: fruscio, ronzio, click e un pulitore vocale neurale, misurati da un’analisi del brano.',
+    'Riduzione del rumore ripara fruscio, ronzio e click durante la riproduzione, e un pulitore vocale neurale lavora sui brani della Libreria.',
   'tour.dsp.point2':
-    'Bass Forge aggiunge un’ottava reale sotto il basso; Bass Punch ne modella attacco, sustain, bloom e duck.',
+    'Fucina dei bassi aggiunge un’ottava reale sotto il basso; Punch dei bassi ne modella attacco, sostegno e fioritura, con un Mix fino al 200%.',
   'tour.dsp.point3':
     'Un Equalizzatore parametrico a quindici bande con fase minima o lineare, mid/side, sovracampionamento e decine di preset con nome.',
   'tour.dsp.point4':
     'Master con obiettivo di loudness LUFS e protezione true-peak, preset di consegna da Streaming a Vinile, e un Gain match per confrontare il suono, non il volume.',
   'tour.dsp.how':
-    'Riproduci un brano dalla Libreria, apri la scheda DSP, scegli una catena sotto Preset, poi clicca uno stadio nelle schede laterali e accendilo.',
+    'Apri la scheda DSP, scegli una catena in Preimpostazioni, poi clicca uno stadio nelle schede laterali e mettilo su Attivo. Con Equalizer APO, riproduci prima un brano dalla Libreria.',
   'tour.dsp.open': 'Apri il DSP',
 
   'tour.output.kicker': 'SUONA IN DUE POSTI',
@@ -136,18 +236,17 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'IL TUO VISUALIZZATORE',
   'tour.looks.title': 'Aspetti personalizzati per il grafico',
-  'tour.looks.subtitle':
-    'Cinquantasette forme, i tuoi colori, il tuo movimento',
+  'tour.looks.subtitle': 'Trentotto forme, i tuoi colori, il tuo movimento',
   'tour.looks.lead':
-    'Lo spettro sotto l’EQ si può disegnare come vuoi. Scegli una delle cinquantasette forme, dalle semplici barre e linee a creste, seta, skyline e matrice di punti; coloralo piatto, per frequenza, per livello o per calore; decidi quanto in fretta attacca e quanto resta un picco; segna i picchi con scintille, comete, aloni o corone. Salvalo come aspetto tuo e condividilo come file.',
+    'Lo spettro sotto l’EQ si può disegnare come vuoi. Scegli una delle trentotto forme, dalle semplici barre e linee a terrazze, profili urbani e un ponte notturno con il traffico; coloralo con la sua colorazione Auto, per frequenza, per livello o per calore; decidi quanto in fretta attacca e quanto resta un picco; segna i picchi con scintille, comete o increspature. Salvalo come aspetto tuo e condividilo come file.',
   'tour.looks.point1':
-    'Cinquantasette forme, ognuna con i suoi controlli: pezzi, spazio, riempimento, spessore, e se piena o tratteggiata.',
+    'Trentotto forme, ognuna con i suoi controlli: elementi, spaziatura, riempimento, spessore, e se è riempita o a contorno.',
   'tour.looks.point2':
-    'Colore per frequenza, livello o calore con una rampa dei tuoi colori, oppure un solo colore piatto.',
+    'Colora ogni forma con la sua colorazione Auto, per frequenza, livello o calore con una sfumatura dei tuoi colori, oppure con un solo colore uniforme.',
   'tour.looks.point3':
-    'Attacco e rilascio decidono il movimento; picchi accesi e diciotto segni di picco decidono come appare un colpo.',
+    'Attacco e rilascio decidono il movimento; picchi luminosi, picchi riempiti e dodici segni di picco decidono come appare un colpo.',
   'tour.looks.point4':
-    'La modalità arcobaleno aggiunge un bagliore sul battito e un bordo che percorre tutta la ruota dei colori. Gli aspetti si esportano in un file e si importano da un file.',
+    'Il bagliore funziona in ogni modalità, e la modalità arcobaleno aggiunge un bordo che percorre tutta la ruota dei colori. Gli aspetti si esportano in un file e si importano da un file.',
   'tour.looks.how':
     'Nella scheda EQ premi «Nuovo aspetto» nella barra del grafico. Scegli una forma con il selettore o premi Spazio per scorrerle, regola colori e movimento mentre la musica suona, poi Salva.',
   'tour.looks.open': 'Apri l’EQ',

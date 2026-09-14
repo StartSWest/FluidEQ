@@ -13,6 +13,9 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'tour-art';
+@use 'tour-showcase';
+@use 'tour-visuals';
+@use 'tour-lighting';
 
 // Below the changelog (1450): "full release notes" opens on top of this and
 // closes back onto it. Above the support dialog (1400) and every notice.
@@ -492,32 +495,50 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.45;
 }
 
-// Narrow windows: the rail becomes a row of chips above the stage, and each
-// slide stacks its two columns.
+// Narrow windows: the rail becomes one row of entries above the stage, and
+// each slide stacks its two columns.
 @media (max-width: 1100px) {
   .feature-tour__body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
   }
 
+  // One row that scrolls sideways, never rows that wrap: wrapped, fifteen
+  // entries took two thirds of the panel in a 1026-wide window and left the
+  // slide a strip 210px tall — 146px at the smallest window.
   .feature-tour__rail {
     flex-direction: row;
-    flex-wrap: wrap;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
     border-right: 0;
     border-bottom: 1px solid rgba($edge-tint, 0.08);
   }
 
   .feature-tour__rail-item {
-    flex: 1 1 0;
+    flex: 0 0 calc(var(--tour-unit) * 15);
+    padding: calc(var(--tour-unit) * 0.5) calc(var(--tour-unit) * 0.7);
+  }
+
+  // Two lines at most, so every entry in the row is the same height.
+  .feature-tour__rail-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: calc(var(--tour-unit) * 0.95);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .feature-tour__rail-subtitle {
     display: none;
   }
 
+  // A label standing before its group, where a line above it had been.
   .feature-tour__rail-heading {
-    width: 100%;
-    padding-bottom: 0;
+    flex: 0 0 calc(var(--tour-unit) * 7.5);
+    align-self: center;
+    padding: 0 calc(var(--tour-unit) * 0.3);
+    line-height: 1.35;
   }
 
   .tour-slide--theme,

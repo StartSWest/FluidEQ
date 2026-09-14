@@ -21,9 +21,17 @@ import {
   OnlineMediaSlide,
   SecondOutputSlide,
 } from './evergreen';
+import {
+  DesktopVisualizerSlide,
+  DynamicLightingSlide,
+  FluidEngineSlide,
+  PlusSlide,
+  VisualizersSlide,
+} from './release17';
 
-/** The workspace tabs a slide can send the user to. */
-export type TTourTab = 'eq' | 'share' | 'library' | 'dsp' | 'karaoke' | 'video';
+/** The workspace tabs a slide can send the user to. `community` is Plus. */
+export type TTourTab =
+  'eq' | 'share' | 'library' | 'dsp' | 'karaoke' | 'video' | 'community';
 
 /** What a slide can ask the app to do on the user's behalf. */
 export interface ISlideActions {
@@ -43,43 +51,93 @@ export interface ITourSlide {
 
 type TSlideEntry = Omit<ITourSlide, 'isNew'>;
 
+const SECOND_OUTPUT: TSlideEntry = {
+  id: 'second-output',
+  titleKey: 'tour.output.title',
+  subtitleKey: 'tour.output.subtitle',
+  Body: SecondOutputSlide,
+};
+
+const BLACK_THEME: TSlideEntry = {
+  id: 'black-theme',
+  titleKey: 'tour.theme.title',
+  subtitleKey: 'tour.theme.subtitle',
+  Body: BlackThemeSlide,
+};
+
+const SHARE_AUDIO: TSlideEntry = {
+  id: 'share-audio',
+  titleKey: 'tour.share.title',
+  subtitleKey: 'tour.share.subtitle',
+  Body: ShareAudioSlide,
+};
+
+const RAINBOW_MODE: TSlideEntry = {
+  id: 'rainbow-mode',
+  titleKey: 'tour.rainbow.title',
+  subtitleKey: 'tour.rainbow.subtitle',
+  Body: RainbowModeSlide,
+};
+
 /**
  * What each feature release brought, keyed by `major.minor`.
  *
- * Only the big things go here: a theme, a whole new tab. A release whose
- * changes are all fixes and small additions has no entry, and the tour opens
- * with the standing slides alone.
+ * Only the big things go here: an engine, a membership, a theme, a whole new
+ * tab. A release whose changes are all fixes and small additions has no
+ * entry, and the tour opens with the standing slides alone. The order is the
+ * order they are announced in; in 1.7 the engine comes first, because
+ * everything else plays through it.
  */
 const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
-  '1.6': [
+  '1.6': [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO],
+  '1.7': [
     {
-      id: 'second-output',
-      titleKey: 'tour.output.title',
-      subtitleKey: 'tour.output.subtitle',
-      Body: SecondOutputSlide,
+      id: 'fluideq-engine',
+      titleKey: 'tour.engine.title',
+      subtitleKey: 'tour.engine.subtitle',
+      Body: FluidEngineSlide,
     },
     {
-      id: 'black-theme',
-      titleKey: 'tour.theme.title',
-      subtitleKey: 'tour.theme.subtitle',
-      Body: BlackThemeSlide,
+      id: 'fluideq-plus',
+      titleKey: 'tour.plus.title',
+      subtitleKey: 'tour.plus.subtitle',
+      Body: PlusSlide,
     },
     {
-      id: 'share-audio',
-      titleKey: 'tour.share.title',
-      subtitleKey: 'tour.share.subtitle',
-      Body: ShareAudioSlide,
+      id: 'visualizers',
+      titleKey: 'tour.visualizers.title',
+      subtitleKey: 'tour.visualizers.subtitle',
+      Body: VisualizersSlide,
     },
+    {
+      id: 'desktop-visualizer',
+      titleKey: 'tour.desktop.title',
+      subtitleKey: 'tour.desktop.subtitle',
+      Body: DesktopVisualizerSlide,
+    },
+    {
+      id: 'dynamic-lighting',
+      titleKey: 'tour.lighting.title',
+      subtitleKey: 'tour.lighting.subtitle',
+      Body: DynamicLightingSlide,
+    },
+    RAINBOW_MODE,
   ],
 };
 
 /**
- * The standing slides: the tabs that have been here for a while, for whoever
- * has never opened them. Always after the new ones, always in this order,
- * ending on Online Media so the tour closes on the thing most people came
- * for.
+ * The standing slides: everything that has been here a while, for whoever has
+ * never opened it. A release's new slides join this list once the next
+ * release takes their place, so nothing announced once disappears from the
+ * tour. Always after the new ones, always in this order: the most recent
+ * arrivals first, then the tabs, ending on Online Media so the tour closes on
+ * the thing most people came for.
  */
 const ALWAYS: TSlideEntry[] = [
+  RAINBOW_MODE,
+  SECOND_OUTPUT,
+  BLACK_THEME,
+  SHARE_AUDIO,
   {
     id: 'library',
     titleKey: 'tour.library.title',
@@ -91,12 +149,6 @@ const ALWAYS: TSlideEntry[] = [
     titleKey: 'tour.dsp.title',
     subtitleKey: 'tour.dsp.subtitle',
     Body: DspSlide,
-  },
-  {
-    id: 'second-output',
-    titleKey: 'tour.output.title',
-    subtitleKey: 'tour.output.subtitle',
-    Body: SecondOutputSlide,
   },
   {
     id: 'custom-looks',
@@ -128,17 +180,7 @@ export const featureTourFor = (version: string): ITourSlide[] => {
   const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
   const featuredIds = new Set(featured.map((entry) => entry.id));
   return [
-    {
-      id: 'rainbow-mode',
-      titleKey: 'tour.rainbow.title',
-      subtitleKey: 'tour.rainbow.subtitle',
-      isNew: true,
-      Body: RainbowModeSlide,
-    },
-    ...featured.map((entry) => ({
-      ...entry,
-      isNew: true,
-    })),
+    ...featured.map((entry) => ({ ...entry, isNew: true })),
     ...ALWAYS.filter((entry) => !featuredIds.has(entry.id)).map((entry) => ({
       ...entry,
       isNew: false,

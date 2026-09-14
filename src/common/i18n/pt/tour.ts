@@ -28,6 +28,106 @@ const tour: Partial<Dictionary> = {
   'tour.rail.always': 'TAMBÉM NO FLUIDEQ',
   'tour.newBadge': 'NOVO',
   'tour.howTitle': 'Como começar',
+  'tour.beta': 'Beta',
+
+  'tour.engine.kicker': 'NOSSO PRÓPRIO MOTOR DE ÁUDIO',
+  'tour.engine.title': 'Conheça o Motor FluidEQ',
+  'tour.engine.subtitle': 'EQ e DSP para tudo o que você ouve',
+  'tour.engine.lead':
+    'O FluidEQ agora tem um motor de áudio próprio. Ele roda dentro do serviço de áudio do Windows, depois dos efeitos da sua placa de som, e leva seu EQ e todo o rack DSP a tudo o que o computador toca: jogos, navegadores e apps de streaming, não só a Biblioteca.',
+  'tour.engine.point1':
+    'O rack DSP em todo o áudio do sistema, sem nada tocando no FluidEQ.',
+  'tour.engine.point2':
+    'Nivelamento ao vivo que sabe qual é a música, e Redução de ruído que limpa o som enquanto ele toca.',
+  'tour.engine.point3':
+    'Saia do FluidEQ e seu som volta ao normal na hora, mesmo depois de um travamento.',
+  'tour.engine.how':
+    'Escolha o Motor FluidEQ ao instalar, ou abra o menu de ações e escolha-o lá. Depois abra a aba DSP e ligue um estágio com qualquer app tocando.',
+  'tour.engine.open': 'Abrir DSP',
+  'tour.engine.flow.label':
+    'Tudo o que o computador toca passa pelo Motor FluidEQ (primeiro seu EQ, depois o rack DSP) a caminho dos seus fones de ouvido e alto-falantes.',
+  'tour.engine.flow.games': 'Jogos',
+  'tour.engine.flow.browser': 'Navegadores',
+  'tour.engine.flow.music': 'Apps de música',
+  'tour.engine.flow.video': 'Vídeos',
+  'tour.engine.flow.inside': 'Dentro do áudio do Windows',
+  'tour.engine.flow.eq': 'Seu EQ',
+  'tour.engine.flow.rack': 'Rack DSP',
+  'tour.engine.flow.headphones': 'Fones de ouvido',
+  'tour.engine.flow.speakers': 'Alto-falantes',
+
+  'tour.plus.kicker': 'FLUIDEQ PLUS',
+  'tour.plus.title': 'Boas-vindas ao FluidEQ Plus',
+  'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
+  'tour.plus.lead':
+    'Uma assinatura opcional que mantém o FluidEQ crescendo, com uma aba nova só para ela: cenas desenhadas na sua placa gráfica, um Estúdio para criar as suas, a classificação, fundos do ambiente de trabalho e a Iluminação dinâmica. Tudo o que era grátis continua grátis.',
+  'tour.plus.point1':
+    'Inicie sessão em Conta, no menu de ações; o pagamento é feito no seu navegador e o Plus é ativado sozinho.',
+  'tour.plus.point2':
+    'Mensal ou anual, com termos em linguagem simples antes de você pagar. O app nunca vê seu cartão.',
+  'tour.plus.point3':
+    'Sessão iniciada em até cinco computadores, com novos visualizadores adicionados ao longo do tempo.',
+  'tour.plus.how':
+    'Abra a aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica ficam do lado esquerdo.',
+  'tour.plus.open': 'Abrir Plus',
+  'tour.plus.imageAlt':
+    'A aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica na lateral, e a galeria de Visualizadores com Cromo, Floração, Aurora, Alpino e Cidade de neon.',
+  'tour.scene.alpine': 'Alpino',
+  'tour.scene.aurora': 'Aurora',
+  'tour.scene.bloom': 'Floração',
+  'tour.scene.chrome': 'Cromo',
+  'tour.scene.neonCity': 'Cidade de neon',
+
+  'tour.visualizers.kicker': 'VISUALIZADORES',
+  'tour.visualizers.title': 'Cenas que se movem com sua música',
+  'tour.visualizers.subtitle': 'Desenhadas na sua placa gráfica',
+  'tour.visualizers.lead':
+    'Os visualizadores Plus são cenas vivas (montanhas sob as estrelas, cortinas de aurora, uma cidade neon) desenhadas na sua placa gráfica, por baixo das curvas do seu EQ. Os graves, a batida e os agudos movem, cada um, algo diferente, e a janela em volta pode assumir as cores delas.',
+  'tour.visualizers.point1':
+    'Um só seletor para tudo: 38 estilos gratuitos para moldar e colorir, e visualizadores Plus por categoria.',
+  'tour.visualizers.point2':
+    'Explore a galeria, experimente as amostras do FluidEQ por dez segundos e adicione as cenas de que gostar.',
+  'tour.visualizers.point3':
+    'Troque de visual automaticamente, use a tela inteira e ajuste o ataque e a liberação de uma cena em Visualização.',
+  'tour.visualizers.how':
+    'Clique no nome do visual no gráfico e escolha uma cena em Visualizadores Plus, ou veja todas em Plus → Visualizadores.',
+  'tour.visualizers.open': 'Abrir EQ',
+  'tour.visualizers.imageAlt':
+    'Alpino, um visualizador Plus de montanhas sobre um lago à noite, tocando no gráfico por baixo das curvas do EQ, com mais quatro cenas abaixo.',
+
+  'tour.desktop.kicker': 'VISUALIZADOR DO AMBIENTE DE TRABALHO',
+  'tour.desktop.title': 'Sua música no fundo do ambiente de trabalho',
+  'tour.desktop.subtitle': 'Uma cena em cada monitor',
+  'tour.desktop.lead':
+    'Coloque um visualizador Plus atrás dos ícones do ambiente de trabalho. Ele se move com o que você estiver ouvindo, ou calmamente por conta própria, e cada monitor pode mostrar uma cena própria.',
+  'tour.desktop.point1':
+    'Escolha os monitores em um mapa da sua mesa, cada um com seu próprio visualizador.',
+  'tour.desktop.point2':
+    'Fica em pausa com apps em tela inteira, com o PC bloqueado e na bateria.',
+  'tour.desktop.point3': 'Volta sozinho na próxima vez que o FluidEQ iniciar.',
+  'tour.desktop.how':
+    'Com um visualizador Plus no gráfico, pressione o botão de monitor ao lado do nome dele ou escolha Visualização → Definir como fundo do ambiente de trabalho.',
+  'tour.desktop.open': 'Abrir EQ',
+  'tour.desktop.imageAlt':
+    'Três monitores, cada um mostrando um visualizador Plus (Aurora, Alpino e Cidade de neon) atrás dos ícones do ambiente de trabalho e da barra de tarefas.',
+
+  'tour.lighting.kicker': 'ILUMINAÇÃO DINÂMICA',
+  'tour.lighting.title': 'Sua mesa acende com a cena',
+  'tour.lighting.subtitle':
+    'Beta · seus dispositivos RGB seguem o visualizador',
+  'tour.lighting.lead':
+    'Seu teclado, mouse, mousepad, headset e suporte ganham as cores e o ritmo do visualizador Plus no gráfico, pelo Windows Dynamic Lighting e pelo Razer Chroma.',
+  'tour.lighting.point1':
+    'Quatro estilos para cada visualizador: Cena, Onda de cor, Espectro e Onda rítmica.',
+  'tour.lighting.point2':
+    'Ajuste cada dispositivo separadamente e escolha o que acontece quando a música para.',
+  'tour.lighting.point3':
+    'Uma prévia ao vivo desenha sua própria mesa enquanto ela acende. Está em beta: conte para nós como seus dispositivos se comportam.',
+  'tour.lighting.how':
+    'Abra Plus → Iluminação dinâmica e ative-a; depois coloque um visualizador Plus no gráfico.',
+  'tour.lighting.open': 'Abrir Plus',
+  'tour.lighting.imageAlt':
+    'Um teclado, um mouse e um mousepad iluminados no rosa, violeta e ciano da cena Cidade de neon.',
 
   'tour.theme.kicker': 'UM NOVO VISUAL',
   'tour.theme.title': 'Conheça o tema Preto',
@@ -42,7 +142,7 @@ const tour: Partial<Dictionary> = {
     'Sua cor de destaque e o modo arco-íris continuam. Nada no seu som muda: é só a pintura.',
   'tour.theme.howTitle': 'Como trocar',
   'tour.theme.how':
-    'Abra o menu do ícone de pulso no canto superior direito e escolha Tema → Preto. O Oceano fica a um clique se quiser voltar.',
+    'Abra o menu do ícone de pulso no canto superior direito e, no fundo dele, escolha Preto em Tema. O Oceano fica a um clique se quiser voltar.',
   'tour.theme.tryBlack': 'Mudar para Preto agora',
   'tour.theme.tryOcean': 'Voltar ao Oceano',
   'tour.theme.imageAlt':
@@ -64,10 +164,10 @@ const tour: Partial<Dictionary> = {
     'Abra a aba Compartilhar áudio, escolha “Reproduzir áudio neste computador” e pressione “Criar código de conexão”. Copie o código da sua rede.',
   'tour.share.step2Title': 'Em cada outro PC, cole o código',
   'tour.share.step2':
-    'Abra o FluidEQ lá, vá em Compartilhar áudio, escolha “Enviar o áudio deste computador”, cole o código e pressione “Conectar e enviar”. O áudio do sistema começa a fluir.',
-  'tour.share.step3Title': 'Escolha uma prioridade e ouça',
+    'Abra o FluidEQ lá, vá em Compartilhar áudio, escolha “Enviar o áudio deste computador”, selecione Música ou Jogo/Vídeo, cole o código e pressione “Conectar e enviar”. O áudio do sistema começa a fluir.',
+  'tour.share.step3Title': 'Ouça e ajuste o nível',
   'tour.share.step3':
-    'Música mantém um buffer maior para ouvir sem cortes; Jogo/Vídeo roda com o menor atraso para sincronia labial. Cada emissor é mixado na saída do receptor e moldado pelo EQ dele. A barra de reprodução do receptor mostra a música de cada emissor e seus botões funcionam pela rede.',
+    'Música mantém um buffer maior para ouvir sem cortes; Jogo/Vídeo roda com o menor atraso para sincronia labial. Cada emissor é mixado na saída do receptor, moldado pelo EQ e ajustado pelo Volume dele. A barra de reprodução do receptor mostra a música do emissor mais recente, e os botões dela funcionam pela rede.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
@@ -95,24 +195,24 @@ const tour: Partial<Dictionary> = {
   'tour.library.point4':
     'Memória de EQ por música: ligue “Salvar para esta música” enquanto ela toca e a correção que você fizer fica guardada para aquela faixa.',
   'tour.library.how':
-    'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere por “Músicas adicionadas”. Escolha Álbuns, Artistas, Gêneros, Músicas, Pastas ou Árvore e pressione Play.',
+    'Abra a aba Biblioteca, pressione “Adicionar pasta” ou solte uma pasta na página e espere a leitura terminar. Escolha Álbuns, Artistas, Géneros, Músicas, Pastas ou Árvore e pressione Reproduzir.',
   'tour.library.open': 'Abrir Biblioteca',
 
   'tour.dsp.kicker': 'UM RACK DE MASTERIZAÇÃO',
   'tour.dsp.title': 'O rack DSP',
   'tour.dsp.subtitle': 'Nove estágios, cada um com seu gráfico',
   'tour.dsp.lead':
-    'Tudo o que a Biblioteca toca pode passar por um rack de estágios de estúdio, nesta ordem: Normalizador, Denoise, Exciter, Bass Forge, Equalizador, Bass Punch, Dimension, Maximizador e Master, mais um crossfade entre faixas. Cada estágio é um cartão com gráfico ao vivo, presets e um botão Isolar para ouvir só o que ele faz.',
+    'Um rack de estágios de estúdio, nesta ordem: Normalizador, Redução de ruído, Excitador, Forja de graves, Equalizador, Punch dos graves, Dimensão, Maximizador e Master, mais uma transição cruzada entre faixas da Biblioteca. Com o Motor FluidEQ, ele funciona em tudo o que o computador toca; com o Equalizer APO, na Biblioteca. Cada estágio é um cartão com gráfico ao vivo, predefinições e um botão Isolar para ouvir só o que ele faz.',
   'tour.dsp.point1':
-    'O Denoise conserta a própria gravação: chiado, zumbido, cliques e um limpador de voz neural, medidos a partir de uma varredura da faixa.',
+    'A Redução de ruído corrige chiado, zumbido e estalos durante a reprodução, e um limpador de voz neural funciona nas faixas da Biblioteca.',
   'tour.dsp.point2':
-    'O Bass Forge adiciona uma oitava real abaixo do baixo; o Bass Punch molda ataque, sustain, bloom e duck.',
+    'A Forja de graves adiciona uma oitava real abaixo do baixo; o Punch dos graves molda o ataque, a sustentação e a floração, com Mistura de até 200%.',
   'tour.dsp.point3':
     'Um Equalizador paramétrico de quinze bandas com fase mínima ou linear, mid/side, oversampling e dezenas de presets nomeados.',
   'tour.dsp.point4':
     'Master com alvo de loudness LUFS e proteção true-peak, presets de entrega de Streaming a Vinil, e um ajuste de ganho para comparar som, não volume.',
   'tour.dsp.how':
-    'Toque uma faixa da Biblioteca, abra a aba DSP, escolha uma cadeia em Presets, depois clique em um estágio nas abas laterais e ligue-o.',
+    'Abra a aba DSP, escolha uma cadeia em Predefinições, depois clique em um estágio nas abas laterais e ligue-o. Com o Equalizer APO, toque antes uma faixa da Biblioteca.',
   'tour.dsp.open': 'Abrir DSP',
 
   'tour.output.kicker': 'TOCA EM DOIS LUGARES',
@@ -137,17 +237,17 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',
-  'tour.looks.subtitle': 'Cinquenta e sete formas, suas cores, seu movimento',
+  'tour.looks.subtitle': 'Trinta e oito formas, suas cores, seu movimento',
   'tour.looks.lead':
-    'O espectro abaixo do EQ pode ser desenhado do jeito que você quiser. Escolha uma de cinquenta e sete formas, de barras e linhas simples a cristas, seda, skyline e matriz de pontos; pinte de forma chapada, por frequência, por nível ou por calor; defina a rapidez do ataque e quanto tempo um pico fica no ar; e marque os picos com faíscas, cometas, halos ou coroas. Salve como um visual seu e compartilhe como arquivo.',
+    'O espectro abaixo do EQ pode ser desenhado do jeito que você quiser. Escolha uma de trinta e oito formas, de barras e linhas simples a terraços, horizontes e uma ponte à noite com trânsito; pinte com a coloração Auto da própria forma, por frequência, por nível ou por calor; defina a rapidez do ataque e quanto tempo um pico fica no ar; e marque os picos com faíscas, cometas ou ondulações. Salve como um visual seu e compartilhe como arquivo.',
   'tour.looks.point1':
-    'Cinquenta e sete formas, cada uma com seus controles: peças, espaço, preenchimento, espessura, e se é preenchida ou traçada.',
+    'Trinta e oito formas, cada uma com seus controles: peças, espaço, preenchimento, espessura, e se é preenchida ou traçada.',
   'tour.looks.point2':
-    'Cor por frequência, nível ou calor com uma rampa das suas próprias cores, ou uma única cor chapada.',
+    'Pinte cada forma com a coloração Auto dela, por frequência, nível ou calor com uma rampa das suas próprias cores, ou com uma única cor chapada.',
   'tour.looks.point3':
-    'Ataque e release definem o movimento; picos acesos e dezoito marcas de pico definem como um golpe aparece.',
+    'Ataque e liberação definem o movimento; picos iluminados, picos preenchidos e doze marcas de pico definem como um golpe aparece.',
   'tour.looks.point4':
-    'O modo arco-íris adiciona um brilho na batida e uma borda que percorre toda a roda de cores. Visuais exportam para um arquivo e importam de um.',
+    'O Brilho funciona em todos os modos, e o modo arco-íris adiciona uma borda que percorre toda a roda de cores. Visuais exportam para um arquivo e importam de um.',
   'tour.looks.how':
     'Na aba EQ, pressione “Novo visual” na barra do gráfico. Escolha uma forma no seletor ou pressione Espaço para percorrê-las, ajuste cores e movimento com a música tocando e depois Salvar.',
   'tour.looks.open': 'Abrir EQ',

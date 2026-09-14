@@ -155,7 +155,7 @@ it('wears the selected look on the Help button while the Forum is open', () => {
 it('filters chapters, clears an empty result, and marks only the current chapter', () => {
   openGuide();
   const contents = screen.getByRole('navigation', { name: 'In this guide' });
-  expect(within(contents).getAllByRole('button')).toHaveLength(16);
+  expect(within(contents).getAllByRole('button')).toHaveLength(26);
   fireEvent.change(screen.getByRole('searchbox'), {
     target: { value: 'between computers' },
   });
@@ -172,7 +172,7 @@ it('filters chapters, clears an empty result, and marks only the current chapter
   });
   expect(within(contents).queryAllByRole('button')).toHaveLength(0);
   fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
-  expect(within(contents).getAllByRole('button')).toHaveLength(16);
+  expect(within(contents).getAllByRole('button')).toHaveLength(26);
   expect(screen.getByRole('searchbox')).toHaveFocus();
 });
 
@@ -239,7 +239,7 @@ it('follows the reading position down and up, including the final short chapter'
   expectCurrent(8);
   viewport.scrollTop = 15400;
   fireEvent.scroll(viewport);
-  expectCurrent(15);
+  expectCurrent(25);
   viewport.scrollTop = 1100;
   fireEvent.scroll(viewport);
   expectCurrent(1);
