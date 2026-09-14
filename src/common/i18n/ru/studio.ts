@@ -54,6 +54,7 @@ const studio = {
   'studio.action.showFolder': 'Показать папку',
   'studio.action.addToLooks': 'Добавить в мои оформления',
   'studio.action.export': 'Экспортировать…',
+  'studio.action.desktop': 'На рабочий стол…',
   'studio.action.import': 'Открыть файл сцены…',
   'studio.action.publish': 'Опубликовать…',
 

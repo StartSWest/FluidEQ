@@ -53,6 +53,7 @@ const studio = {
   'studio.action.showFolder': 'फ़ोल्डर दिखाएँ',
   'studio.action.addToLooks': 'मेरे रूपों में जोड़ें',
   'studio.action.export': 'एक्सपोर्ट करें…',
+  'studio.action.desktop': 'डेस्कटॉप पर लगाएँ…',
   'studio.action.import': 'सीन फ़ाइल खोलें…',
   'studio.action.publish': 'प्रकाशित करें…',
 

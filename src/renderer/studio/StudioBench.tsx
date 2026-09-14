@@ -24,6 +24,7 @@ import StudioFramingDialog from './StudioFramingDialog';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
+import useStudioKeep from './useStudioKeep';
 import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
@@ -38,11 +39,7 @@ import StudioStage, {
 } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
 import StudioStageLoading from './StudioStageLoading';
-import {
-  addStudioSceneToLooks,
-  linkStudioFolder,
-  type IStudioView,
-} from './studioStore';
+import { linkStudioFolder, type IStudioView } from './studioStore';
 
 const FILE_KEYS: Record<TMemberSceneFile, TranslationKey> = {
   'pack.json': 'studio.file.pack',
@@ -180,23 +177,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const newProject = () => setNaming(true);
   const closeNaming = useCallback(() => setNaming(false), []);
 
-  const add = () => {
-    // A new object on every press, so adding again shows the toast again.
-    const failed = () =>
-      setNotice({ ok: false, key: 'studio.notice.addFailed' });
-    addStudioSceneToLooks()
-      .then((outcome) => {
-        if (outcome.ok) {
-          setNotice({ ok: true, key: 'studio.notice.added', vars: { name } });
-        } else if (outcome.reason === 'inspect-only') {
-          setNotice({ ok: false, key: 'studio.inspect.locked' });
-        } else {
-          failed();
-        }
-        return undefined;
-      })
-      .catch(failed);
-  };
+  const keeping = useStudioKeep(name, wave, setNotice);
 
   let stage = (
     <div className="studio-stage__well studio-stage__well--empty">
@@ -415,11 +396,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <StudioShipCard
             inspecting={project?.official === true}
             unfit={unfit}
-            onAdd={add}
+            onAdd={keeping.add}
             publishing={publishing.preparing}
             onPublish={publishing.begin}
             exporting={sharing.exporting}
             onExport={sharing.startExport}
+            onSetDesktop={keeping.setDesktop}
+            settingDesktop={keeping.settingDesktop}
           />
         </div>
       </div>

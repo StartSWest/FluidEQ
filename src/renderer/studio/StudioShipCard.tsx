@@ -11,11 +11,14 @@ interface IStudioShipCardProps {
   onPublish: () => void;
   exporting: boolean;
   onExport: () => void;
+  /** Absent on a computer that cannot put a visualizer on its desktop. */
+  onSetDesktop: (() => void) | undefined;
+  settingDesktop: boolean;
 }
 
 /**
  * What to do with the scene once it plays: keep it in the member's looks,
- * publish it to the gallery, send it as a file.
+ * publish it to the gallery, send it as a file, play it on the desktop.
  *
  * For one of FluidEQ's scenes opened to look inside, the card says what that
  * project is instead, so the missing buttons are explained rather than
@@ -29,6 +32,8 @@ export default function StudioShipCard({
   onPublish,
   exporting,
   onExport,
+  onSetDesktop,
+  settingDesktop,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
   if (inspecting) {
@@ -79,6 +84,22 @@ export default function StudioShipCard({
         <Glyph name="send" />
         {t('studio.action.export')}
       </button>
+      {onSetDesktop && (
+        <button
+          type="button"
+          className={`button small subtle${settingDesktop ? ' is-running' : ''}`}
+          aria-busy={settingDesktop}
+          onClick={() => {
+            if (!settingDesktop) {
+              onSetDesktop();
+            }
+          }}
+          disabled={unfit}
+        >
+          <Glyph name="monitor" />
+          {t('studio.action.desktop')}
+        </button>
+      )}
     </div>
   );
 }

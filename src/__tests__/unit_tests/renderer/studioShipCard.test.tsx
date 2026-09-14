@@ -5,9 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the Studio offers for a scene that plays: keeping it, publishing it
- * and sending it, each as loud as it is common, and none of it for a scene
- * that does not play yet.
+ * What the Studio offers for a scene that plays: keeping it, publishing it,
+ * sending it and putting it on the desktop, each as loud as it is common, and
+ * none of it for a scene that does not play yet.
  */
 
 import '@testing-library/jest-dom';
@@ -30,6 +30,8 @@ const card = (
     onPublish: jest.fn(),
     exporting: false,
     onExport: jest.fn(),
+    onSetDesktop: jest.fn(),
+    settingDesktop: false,
     ...overrides,
   };
   render(
@@ -41,26 +43,42 @@ const card = (
       onPublish={props.onPublish}
       exporting={props.exporting}
       onExport={props.onExport}
+      onSetDesktop={props.onSetDesktop}
+      settingDesktop={props.settingDesktop}
     />,
   );
   return props;
 };
 
-it('keeps the scene with the loud button, and publishes and sends it with quiet ones', async () => {
+it('keeps the scene with the loud button, and publishes, sends and puts it on the desktop with quiet ones', async () => {
   const props = card();
   const add = screen.getByRole('button', { name: 'studio.action.addToLooks' });
   expect(add).toHaveClass('button', 'small');
   expect(add).not.toHaveClass('subtle');
-  ['studio.action.publish', 'studio.action.export'].forEach((name) =>
+  [
+    'studio.action.publish',
+    'studio.action.export',
+    'studio.action.desktop',
+  ].forEach((name) =>
     expect(screen.getByRole('button', { name })).toHaveClass('subtle'),
   );
 
   await userEvent.click(add);
   await userEvent.click(
-    screen.getByRole('button', { name: 'studio.action.export' }),
+    screen.getByRole('button', { name: 'studio.action.desktop' }),
   );
   expect(props.onAdd).toHaveBeenCalledTimes(1);
-  expect(props.onExport).toHaveBeenCalledTimes(1);
+  expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
+});
+
+it('offers no desktop on a computer that cannot put a visualizer there', () => {
+  card({ onSetDesktop: undefined });
+  expect(
+    screen.queryByRole('button', { name: 'studio.action.desktop' }),
+  ).toBeNull();
+  expect(
+    screen.getByRole('button', { name: 'studio.action.export' }),
+  ).toBeInTheDocument();
 });
 
 it('waits for a scene that plays before any of it', () => {
@@ -70,12 +88,13 @@ it('waits for a scene that plays before any of it', () => {
     .forEach((button) => expect(button).toBeDisabled());
 });
 
-it('does not start an export already under way', async () => {
-  const props = card({ exporting: true });
-  const send = screen.getByRole('button', { name: 'studio.action.export' });
-  expect(send).toHaveAttribute('aria-busy', 'true');
-  await userEvent.click(send);
-  expect(props.onExport).not.toHaveBeenCalled();
+it('shows the desktop being prepared, and does not start it twice', async () => {
+  const props = card({ settingDesktop: true });
+  const desktop = screen.getByRole('button', { name: 'studio.action.desktop' });
+  expect(desktop).toHaveAttribute('aria-busy', 'true');
+  expect(desktop).toHaveClass('is-running');
+  await userEvent.click(desktop);
+  expect(props.onSetDesktop).not.toHaveBeenCalled();
 });
 
 it('says what an inspected FluidEQ scene is for, in place of every action', () => {

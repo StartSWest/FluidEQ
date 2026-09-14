@@ -51,6 +51,7 @@ const studio = {
   'studio.action.showFolder': '打开文件夹',
   'studio.action.addToLooks': '添加到我的外观',
   'studio.action.export': '导出…',
+  'studio.action.desktop': '设为桌面背景…',
   'studio.action.import': '打开场景文件…',
   'studio.action.publish': '发布…',
 

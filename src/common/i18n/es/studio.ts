@@ -55,6 +55,7 @@ const studio = {
   'studio.action.showFolder': 'Mostrar carpeta',
   'studio.action.addToLooks': 'Añadir a mis estilos',
   'studio.action.export': 'Exportar…',
+  'studio.action.desktop': 'Poner en el escritorio…',
   'studio.action.import': 'Abrir un archivo de escena…',
   'studio.action.publish': 'Publicar…',
 

@@ -54,6 +54,7 @@ const studio = {
   'studio.action.showFolder': 'Mostrar pasta',
   'studio.action.addToLooks': 'Adicionar aos meus visuais',
   'studio.action.export': 'Exportar…',
+  'studio.action.desktop': 'Pôr na área de trabalho…',
   'studio.action.import': 'Abrir um arquivo de cena…',
   'studio.action.publish': 'Publicar…',
 

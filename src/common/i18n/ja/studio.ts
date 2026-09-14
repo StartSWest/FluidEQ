@@ -53,6 +53,7 @@ const studio = {
   'studio.action.showFolder': 'フォルダーを開く',
   'studio.action.addToLooks': 'マイ表示に追加',
   'studio.action.export': 'エクスポート…',
+  'studio.action.desktop': 'デスクトップに設定…',
   'studio.action.import': 'シーンファイルを開く…',
   'studio.action.publish': '公開…',
 
