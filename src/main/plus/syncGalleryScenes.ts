@@ -66,6 +66,15 @@ export const createGallerySceneSync = ({
       !!load() &&
       !store.isBlocked(scene.authorId, scene.sceneId);
     if (official) {
+      // Only a newer version, and never the same one again: the pack listing
+      // already brings every publication of FluidEQ's own scenes, a same-
+      // version one included (`ipc/scenePacks.ts`), and without this every
+      // gallery page seen in a session downloaded each installed one whole —
+      // 11 MB for Alpine — to find it unchanged.
+      if (scene.version <= current.version) {
+        checked.set(scene.lookId, stamp);
+        return;
+      }
       const fetched = await fetchOfficialScene(auth, scene.sceneId);
       const next = typeof fetched === 'object' ? fetched : undefined;
       if (!next || !stillEligible() || next.pack.version < current.version) {

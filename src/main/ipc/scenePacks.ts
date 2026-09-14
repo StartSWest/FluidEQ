@@ -8,6 +8,10 @@ import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
 import { createScenePackCatalogue } from '../scenePackCatalogue';
 import {
+  createScenePackPublications,
+  readPublications,
+} from '../scenePackPublications';
+import {
   createScenePackStore,
   type IScenePackListing,
   type IScenePackStore,
@@ -25,8 +29,10 @@ import {
  * startup — a subscription that lapses mid-session stops being offered at the
  * next switch, and one that starts mid-session is offered at the next look.
  *
- * THE SERVER IS ASKED AT EVENTS, on the same staleness rule as the account and
- * the update checker. Nothing here counts down.
+ * THE SERVER IS ASKED AT EVENTS — the window coming back, the looks being
+ * opened, the account changing — and nothing here counts down. For an
+ * entitled account each ask is a list of versions, and only a scene whose
+ * publication changed is downloaded (`scenePackPublications.ts`).
  */
 
 export interface IScenePacksIpcDeps {
@@ -36,6 +42,12 @@ export interface IScenePacksIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
+  /**
+   * The scenes added from the gallery, asked about when the looks are opened
+   * (`scene-packs-refresh`), so a member's republished scene arrives the same
+   * way FluidEQ's own do.
+   */
+  refreshGalleryScenes?: () => Promise<void>;
   now?: () => number;
   fetchImpl?: typeof fetch;
 }
@@ -55,7 +67,10 @@ export interface IScenePacksListing {
 export interface IScenePacksIpcRegistration {
   store: IScenePackStore;
   announce(): void;
-  /** Announce an event; a fetch follows only if the last one is stale. */
+  /**
+   * Announce an event. An entitled account asks which scenes changed every
+   * time; the catalogue for one that is not is fetched only when stale.
+   */
   refreshIfDue(reason: string): Promise<void>;
   dispose(): void;
 }
@@ -103,6 +118,7 @@ export const registerScenePacksIpc = ({
   session,
   entitlement,
   logger,
+  refreshGalleryScenes,
   now = Date.now,
   fetchImpl = fetch,
 }: IScenePacksIpcDeps): IScenePacksIpcRegistration => {
@@ -114,7 +130,8 @@ export const registerScenePacksIpc = ({
     logger,
   });
 
-  let lastFetchedAt = 0;
+  const publications = createScenePackPublications({ userDataDir, logger });
+
   let catalogueFetchedAt = 0;
   let inFlight: Promise<void> | undefined;
 
@@ -146,6 +163,47 @@ export const registerScenePacksIpc = ({
     }
   };
 
+  /** One read of the packs table, parsed; undefined when it did not answer. */
+  const readPacks = async (
+    token: string,
+    select: string,
+    ids?: readonly string[],
+  ): Promise<unknown> => {
+    const url = new URL('/rest/v1/scene_packs', config.supabaseUrl);
+    url.searchParams.set('select', select);
+    if (ids) {
+      // Every id has passed the pack id pattern, so none can reach outside
+      // the list.
+      url.searchParams.set('id', `in.(${ids.join(',')})`);
+    }
+    let response: Response;
+    try {
+      response = await fetchImpl(url.toString(), {
+        headers: {
+          apikey: config.supabaseAnonKey,
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+    } catch (error) {
+      logger?.warn(`Scene pack listing could not reach the server: ${error}`);
+      return undefined;
+    }
+    if (!response.ok) {
+      logger?.warn(`Scene pack listing was answered ${response.status}.`);
+      return undefined;
+    }
+    try {
+      // Whole body, never streamed: see CLAUDE.md on `pipeline` and Node's
+      // HTTP parser. A scene with artwork is about 11 MB; held, not piped.
+      return JSON.parse(
+        Buffer.from(await response.arrayBuffer()).toString('utf8'),
+      );
+    } catch {
+      return undefined;
+    }
+  };
+
   const fetchListings = async () => {
     if (!entitled()) {
       await fetchCatalogue();
@@ -157,45 +215,45 @@ export const registerScenePacksIpc = ({
     } catch {
       return;
     }
-    let response: Response;
-    try {
-      const url = new URL('/rest/v1/scene_packs', config.supabaseUrl);
-      url.searchParams.set('select', 'id,version,envelope');
-      response = await fetchImpl(url.toString(), {
-        headers: {
-          apikey: config.supabaseAnonKey,
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-      });
-    } catch (error) {
-      logger?.warn(`Scene pack listing could not reach the server: ${error}`);
-      return;
-    }
-    lastFetchedAt = now();
-    if (!response.ok) {
-      logger?.warn(`Scene pack listing was answered ${response.status}.`);
-      return;
-    }
-    let body: unknown;
-    try {
-      // Whole body, never streamed: see CLAUDE.md on `pipeline` and Node's
-      // HTTP parser. A few hundred kilobytes is nothing to hold in memory.
-      body = JSON.parse(
-        Buffer.from(await response.arrayBuffer()).toString('utf8'),
-      );
-    } catch {
-      return;
-    }
-    // Refresh only installed scenes. New scenes enter through an explicit Add.
-    const installed = new Set(store.list().map((pack) => pack.id));
+    // The small question first: which publication of each scene the server
+    // has. Only the installed scenes whose answer changed are downloaded —
+    // new scenes enter through an explicit Add.
+    const server = readPublications(
+      await readPacks(token, 'id,version,published_at'),
+    );
     if (!entitled()) {
       return;
     }
-    if (
-      store.adopt(readListings(body).filter((pack) => installed.has(pack.id))) >
-      0
-    ) {
+    const changed = publications.changed(
+      server,
+      new Map(store.list().map((pack) => [pack.id, pack.version])),
+    );
+    if (changed.length === 0) {
+      return;
+    }
+    const body = await readPacks(token, 'id,version,envelope', changed);
+    if (body === undefined || !entitled()) {
+      return;
+    }
+    const listings = readListings(body).filter((pack) =>
+      changed.includes(pack.id),
+    );
+    const adopted = store.adopt(listings);
+    // Taken whatever the store made of them: a pack that did not verify is
+    // not downloaded again until the server publishes it again. A listing
+    // newer than the answer it was asked from stays untaken, so the next
+    // check brings the publication it belongs to.
+    publications.took(
+      server.filter((publication) =>
+        listings.some(
+          (listing) =>
+            listing.id === publication.id &&
+            listing.version === publication.version,
+        ),
+      ),
+    );
+    if (adopted > 0) {
+      logger?.info(`Scene packs: ${adopted} brought up to date.`);
       announce();
     }
   };
@@ -210,13 +268,14 @@ export const registerScenePacksIpc = ({
   };
 
   /**
-   * The staleness rule, one for each of the two things fetched. An account
-   * that is not entitled fetches the catalogue; one that is fetches the
-   * packs, and the catalogue is not needed because nothing is locked.
+   * An account that is entitled asks at every event: the question is a list
+   * of versions, and a scene is downloaded only when its publication changed,
+   * so a scene republished reaches the listener the next time the window
+   * comes back or the looks are opened. The catalogue an account that is not
+   * entitled fetches is still rationed; it only names what Plus holds.
    */
   const isDue = () =>
-    now() - (entitled() ? lastFetchedAt : catalogueFetchedAt) >=
-    SCENE_PACKS_STALE_AFTER_MS;
+    entitled() || now() - catalogueFetchedAt >= SCENE_PACKS_STALE_AFTER_MS;
 
   // A subscription starting is the one moment "recent enough" does not apply:
   // whoever just paid wants the looks now. A subscription ending changes what
@@ -246,8 +305,15 @@ export const registerScenePacksIpc = ({
     return store.load(id);
   });
 
+  // The looks being opened: both kinds of installed scene are asked about, and
+  // the answer waits for the official ones, which the listing is made of.
   ipcMain.handle('scene-packs-refresh', async () => {
-    await refreshNow();
+    await Promise.all([
+      refreshNow(),
+      refreshGalleryScenes?.().catch((error) =>
+        logger?.warn(`Gallery scenes could not be checked: ${String(error)}`),
+      ),
+    ]);
     return listing();
   });
 
@@ -282,11 +348,12 @@ export const registerScenePacksIpc = ({
   return {
     store,
     announce,
-    refreshIfDue: async (reason) => {
+    refreshIfDue: async () => {
+      // Not logged: for an entitled account this is every focus of the
+      // window. A download says so when one happens.
       if (!isDue()) {
         return;
       }
-      logger?.info(`Refreshing scene packs after ${reason}.`);
       await refreshNow();
     },
     dispose: () => {

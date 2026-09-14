@@ -98,6 +98,11 @@ export interface IPlusGalleryIpcDeps {
 }
 
 export interface IPlusGalleryRegistration {
+  /**
+   * Asks the makers of the installed scenes for their newest, every time
+   * (`plus/galleryRefresh.ts`); `force` runs once more after a check already
+   * under way.
+   */
   refreshIfDue(force?: boolean): Promise<void>;
   /**
    * Settles once the installed copies the lists asked about are up to date.
@@ -603,7 +608,9 @@ export const registerPlusGalleryIpc = ({
   });
 
   return {
-    refreshIfDue: createGalleryRefresh(access, syncInstalled),
+    refreshIfDue: createGalleryRefresh(access, syncInstalled, () =>
+      store.list().map((scene) => scene.authorId),
+    ),
     // Nothing added to the queue: settles after everything already in it.
     whenSynced: () => syncInstalled([]),
     dispose: () => {

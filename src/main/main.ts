@@ -3041,6 +3041,9 @@ const scenePacksIpc = registerScenePacksIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
+  // Late-bound: the gallery is registered further down, and this is only
+  // called once the looks are opened.
+  refreshGalleryScenes: () => plusGalleryIpc.refreshIfDue(),
 });
 
 // Scenes members make in the Studio. Registering watches nothing: the open
