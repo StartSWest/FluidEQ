@@ -10,8 +10,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The fades, the overlap and the swap from a streamed source to an in-memory
  * blob are one subject: they all move a deck between states without the
  * listener hearing the move. They also share the state that makes that
- * possible — a single animation frame handle so two ramps cannot fight over
- * the volume property, and one record of which swap is pending so an
+ * possible — a single animation frame handle so two ramps on an element's
+ * volume cannot fight over it, and one record of which swap is pending so an
  * abandoned one cannot fire against the next track.
  *
  * Split out of `LibraryPlayerContext` because that file is a queue, a
@@ -20,10 +20,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * cannot know — how loud the listener wants it, and which track is current —
  * and hands back the operations.
  */
-import { MutableRefObject, useCallback, useRef } from 'react';
+import { MutableRefObject, useCallback, useEffect, useRef } from 'react';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import { ICrossfadeShape } from '../../../common/dsp/crossfadeShape';
 import {
+  fadeInDspDeck,
   scheduleDspDeckCrossfade,
   selectDspDeck,
 } from '../../dsp/deckCrossfade';
@@ -33,8 +34,8 @@ import { SEEK_FADE_MS, clampVolume } from './playerContract';
 export interface IDeckAudio {
   /** Ramp a deck back to the listener's level. */
   fadeIn: (element: HTMLMediaElement, durationMs?: number) => void;
-  /** Drop it for a jump, with a guarantee that it comes back. */
-  startSeekFade: (element: HTMLMediaElement) => void;
+  /** Move the playhead with the level dropped for the jump, and brought back. */
+  seekQuietly: (element: HTMLMediaElement, seconds: number) => void;
   startCrossfade: (
     outgoing: HTMLAudioElement,
     incoming: HTMLAudioElement,
@@ -61,7 +62,10 @@ export interface IDeckAudio {
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
   /** Which track already triggered its own end, so it cannot do so twice. */
   naturalCrossfadeTrackRef: MutableRefObject<string | undefined>;
-  /** The running ramp, so a cancel from outside can stop it. */
+  /**
+   * The running frame ramp, so a cancel from outside can stop it. A cancel
+   * sets it back to zero, which is how a hidden page knows none is pending.
+   */
   fadeFrameRef: MutableRefObject<number>;
 }
 
@@ -86,15 +90,44 @@ export const useDeckAudio = (options: {
    * whole buffer for the life of the window. */
   const blobUrlsRef = useRef(new Map<HTMLAudioElement, string>());
 
-  /** The running fade-in, so a second seek arriving mid-ramp cancels the
-   * first rather than fighting it for the volume property. */
+  /** The running frame ramp, so a second seek arriving mid-ramp cancels the
+   * first rather than fighting it for the volume property. Zero whenever no
+   * ramp is pending — every cancel sets it back. */
   const fadeFrameRef = useRef(0);
+  /** The element that ramp is moving, for as long as it is. */
+  const rampingElementRef = useRef<HTMLMediaElement | undefined>(undefined);
   /** Prevents one track end advancing the queue more than once. */
   const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
   const fadeIn = useCallback(
     (element: HTMLMediaElement, durationMs = SEEK_FADE_MS) => {
       cancelAnimationFrame(fadeFrameRef.current);
+      fadeFrameRef.current = 0;
+      rampingElementRef.current = undefined;
+      /**
+       * On the audio clock whenever the element is one of the two decks, which
+       * is every Library track that is not a video. See `fadeInDspDeck` for
+       * what ramping on animation frames did behind a minimised window.
+       *
+       * The envelope drops to zero before the element's level comes up, not
+       * after. Both take effect on the next render quantum, and in the other
+       * order one quantum can be heard at full level ahead of the ramp.
+       */
+      if (fadeInDspDeck(element, durationMs)) {
+        element.volume = volumeRef.current;
+        return;
+      }
+      /**
+       * No audio clock for this element — the video, or a deck whose engine
+       * never started — so the ramp is on its volume, one animation frame at a
+       * time. Frames do not run while the page is hidden, so a hidden page
+       * takes the level at once: a ramp that cannot finish would otherwise
+       * hold the element at zero until the window came back.
+       */
+      if (document.visibilityState === 'hidden') {
+        element.volume = volumeRef.current;
+        return;
+      }
       const target = volumeRef.current;
       const started = performance.now();
       const step = () => {
@@ -111,7 +144,9 @@ export const useDeckAudio = (options: {
         // frame's arithmetic produced.
         element.volume = target;
         fadeFrameRef.current = 0;
+        rampingElementRef.current = undefined;
       };
+      rampingElementRef.current = element;
       fadeFrameRef.current = requestAnimationFrame(step);
     },
     [volumeRef],
@@ -119,32 +154,58 @@ export const useDeckAudio = (options: {
   fadeInRef.current = fadeIn;
 
   /**
-   * Drops the level for a jump, and guarantees it comes back.
+   * A frame ramp still running when the page is hidden lands on the spot.
    *
-   * `seeked` is what normally brings it back — see `bindMediaEvents`. The
-   * watchdog here exists because a seek into a range the element cannot serve
-   * never fires it, and a player that silently muted itself forever would be
-   * a far worse bug than the click this is hiding.
+   * Its next frame waits for the window to come back, and until then the
+   * element would hold whatever fraction of the level the last frame gave it —
+   * the start of a ramp is close to silence.
    */
-  const startSeekFade = useCallback(
-    (element: HTMLMediaElement) => {
+  useEffect(() => {
+    const land = () => {
+      const element = rampingElementRef.current;
+      if (
+        document.visibilityState !== 'hidden' ||
+        fadeFrameRef.current === 0 ||
+        !element
+      ) {
+        return;
+      }
       cancelAnimationFrame(fadeFrameRef.current);
+      fadeFrameRef.current = 0;
+      rampingElementRef.current = undefined;
+      element.volume = volumeRef.current;
+    };
+    document.addEventListener('visibilitychange', land);
+    return () => document.removeEventListener('visibilitychange', land);
+  }, [volumeRef]);
+
+  /**
+   * Moves the playhead with the level dropped for the jump, and always brings
+   * it back.
+   *
+   * `seeked` is what brings it back — see `bindMediaEvents`. A seek the element
+   * never starts fires no `seeked`, and the element says so the moment it is
+   * asked: `seeking` is still false straight after the assignment when nothing
+   * is loaded yet or nothing is seekable. Nothing moved, so there is no seam to
+   * hide, and the level comes back on the spot.
+   *
+   * That used to be a watch on animation frames with a half-second deadline: a
+   * guess at how long a seek may take, and one that stopped guessing behind a
+   * minimised window, where no frame arrives. A Previous pressed on the taskbar
+   * there left the deck silent until the window was brought back.
+   */
+  const seekQuietly = useCallback(
+    (element: HTMLMediaElement, seconds: number) => {
+      cancelAnimationFrame(fadeFrameRef.current);
+      fadeFrameRef.current = 0;
+      rampingElementRef.current = undefined;
       element.volume = 0;
-      const deadline = performance.now() + 500;
-      const watch = () => {
-        if (element.volume > 0 || fadeFrameRef.current === 0) {
-          // Something else already restored it, or a fade is under way.
-          return;
-        }
-        if (performance.now() > deadline) {
-          fadeIn(element);
-          return;
-        }
-        fadeFrameRef.current = requestAnimationFrame(watch);
-      };
-      fadeFrameRef.current = requestAnimationFrame(watch);
+      element.currentTime = seconds;
+      if (!element.seeking) {
+        element.volume = volumeRef.current;
+      }
     },
-    [fadeIn],
+    [volumeRef],
   );
 
   /**
@@ -312,7 +373,7 @@ export const useDeckAudio = (options: {
 
   return {
     fadeIn,
-    startSeekFade,
+    seekQuietly,
     startCrossfade,
     releaseBlob,
     swapBufferToBlob,

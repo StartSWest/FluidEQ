@@ -29,7 +29,7 @@ export interface ITransportControls {
 export const useTransportControls = (options: {
   /** The video element when one is registered, the audio deck otherwise. */
   activeElement: () => HTMLMediaElement | undefined;
-  startSeekFade: (element: HTMLMediaElement) => void;
+  seekQuietly: (element: HTMLMediaElement, seconds: number) => void;
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
   /** True while a native deck holds the track, so the element is not audible. */
   hostOwnsTransportRef: MutableRefObject<boolean>;
@@ -44,7 +44,7 @@ export const useTransportControls = (options: {
 }): ITransportControls => {
   const {
     activeElement,
-    startSeekFade,
+    seekQuietly,
     finishCrossfadeRef,
     hostOwnsTransportRef,
     seekHost,
@@ -86,22 +86,16 @@ export const useTransportControls = (options: {
       // passage just left — audible however cleanly the bytes arrive,
       // because it is the decoder catching up rather than the data being
       // late. Cutting the level for the length of the jump and bringing it
-      // back over a few frames hides the seam without touching the audio.
-      startSeekFade(element);
-      element.currentTime = clamped / 1000;
+      // back over a few milliseconds hides the seam without touching the
+      // audio.
+      seekQuietly(element, clamped / 1000);
       // Read back rather than trusting the request, the way
       // `useKaraokeSession.seek` does: the element clamps to its own seekable
       // range and can refuse outright, and a bar showing a position the audio
       // never went to is worse than one that admits it did not move.
       setPositionMs(element.currentTime * 1000);
     },
-    [
-      activeElement,
-      hostOwnsTransportRef,
-      seekHost,
-      startSeekFade,
-      setPositionMs,
-    ],
+    [activeElement, hostOwnsTransportRef, seekHost, seekQuietly, setPositionMs],
   );
 
   const skip = useCallback(

@@ -255,6 +255,9 @@ const onDspHostAnalysis = (listener: (frame: IHostAnalysis) => void) => {
 const appProcesses = (): Promise<unknown[]> =>
   ipcRenderer.invoke('app-processes');
 
+/** The list closed: its meter, which runs only while it is open, can stop. */
+const appProcessesClosed = (): void => ipcRenderer.send('app-processes-closed');
+
 export const dspHostBridge = {
   readEnginePreamp: (
     endpoint: string,
@@ -265,6 +268,7 @@ export const dspHostBridge = {
   ): Promise<IEngineAnalysis | null | undefined> =>
     ipcRenderer.invoke(ENGINE_ANALYSIS_CHANNEL, endpoint),
   appProcesses,
+  appProcessesClosed,
 
   getDspHostStatus,
   startDspHost,

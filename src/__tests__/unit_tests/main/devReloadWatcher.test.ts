@@ -101,7 +101,7 @@ describe('the dev reload watcher', () => {
   // renamed in so the event the watcher receives names it.
   describeOnWindows('with an unreadable path outside its patterns', () => {
     it('survives it and keeps reporting watched files', async () => {
-      const user = process.env.USERNAME ?? '';
+      const user = execFileSync('whoami', { encoding: 'utf8' }).trim();
       const lockedDir = path.join(root, '.claude/worktrees/gone');
       const staged = path.join(root, 'staged');
       const locked = path.join(lockedDir, 'store-entry');

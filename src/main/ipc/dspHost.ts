@@ -35,7 +35,8 @@ import {
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
-import { IHostAnalysis, IHostStats, IHostTelemetry } from '../dspHost/wire';
+import { createDspHostPublisher } from '../dspHost/windowPublisher';
+import { IHostAnalysis, IHostStats } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -87,22 +88,9 @@ const isFiniteNumber = (value: unknown): value is number =>
 export const registerDspHostIpc = ({
   getMainWindow,
 }: IDspHostIpcDeps): void => {
-  /**
-   * Only while somebody can see it.
-   *
-   * The host publishes about forty telemetry frames a second and every one of
-   * them would become an IPC message, a deserialisation and a store write for
-   * a window that is not being composited. The same reasoning that stopped the
-   * AudioWorklet building meter frames behind a minimised window applies to
-   * the process one boundary further out.
-   */
-  const publish = (channel: string, payload: unknown) => {
-    const window = getMainWindow();
-    if (!window || window.isDestroyed() || window.isMinimized()) {
-      return;
-    }
-    window.webContents.send(channel, payload);
-  };
+  // Telemetry has its own rule behind a minimised window, because the Library
+  // player runs on it. See `windowPublisher`.
+  const { publish, publishTelemetry } = createDspHostPublisher(getMainWindow);
 
   const ensureSupervisor = (): DspHostSupervisor | undefined => {
     if (supervisor) {
@@ -119,8 +107,7 @@ export const registerDspHostIpc = ({
     supervisor = new DspHostSupervisor({
       executablePath,
       expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
-      onTelemetry: (telemetry: IHostTelemetry) =>
-        publish('dsp-host-telemetry', telemetry),
+      onTelemetry: publishTelemetry,
       /**
        * Forwarded raw, and only sent at all while the panel has asked for it.
        *

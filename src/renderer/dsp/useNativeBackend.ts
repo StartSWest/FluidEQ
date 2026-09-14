@@ -33,6 +33,10 @@ import {
 import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
 import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
 import {
+  INativeTransportFrame,
+  quantizeTransportPosition,
+} from '../../common/dsp/nativeTransport';
+import {
   setDspNativeNoiseProfileSink,
   setDspNativeTrackGainSink,
 } from './useDspEngine';
@@ -282,32 +286,10 @@ export const useNativeDeviceGeneration = (
  * Cleared when the engine lets go, for the reason `useNativeMeters` gives
  * about the analysers: anything else leaves the bar frozen on the last frame
  * of a transport that has stopped.
+ *
+ * The playhead is rounded to a quarter second, by the rule main also uses to
+ * decide which frames a minimised window still needs — see `nativeTransport`.
  */
-/**
- * The playhead, at the rate the interface can actually use it.
- *
- * Telemetry arrives about forty times a second, and this position is read by
- * `LibraryPlayerContext` — the provider the whole library tab hangs off. Passed
- * through raw it re-rendered that entire subtree forty times a second, for a
- * clock that displays whole seconds and a scrubber whose own step is 100 ms.
- *
- * That was a tenfold increase introduced by moving the clock to the host: the
- * element reported `timeupdate` four times a second and the player was built
- * around that cadence. Nothing on screen needs more, and the renderer cannot
- * afford it — at forty a second the allocation rate alone drove the heap to its
- * ceiling, and a garbage collector running flat out is a frozen window.
- *
- * A quarter of a second is that original cadence, restored. It is a rounding of
- * the VALUE rather than a rate limit on the frames: the store already drops an
- * update where every field matches, so quantising here is what makes it drop
- * them. Nothing waits, nothing is scheduled, and a position that genuinely
- * moves still arrives on the very next frame.
- */
-const POSITION_STEP_SECONDS = 0.25;
-
-const quantizePosition = (seconds: number): number =>
-  Math.round(seconds / POSITION_STEP_SECONDS) * POSITION_STEP_SECONDS;
-
 export const useNativeTransport = (
   controller: INativeBackendController | undefined,
 ): void => {
@@ -319,11 +301,7 @@ export const useNativeTransport = (
     const bridge = bridgeOf() as unknown as
       | {
           onDspHostTelemetry?: (
-            listener: (frame: {
-              deckState: number;
-              deckPositionSeconds: number;
-              deckDurationSeconds: number;
-            }) => void,
+            listener: (frame: INativeTransportFrame) => void,
           ) => () => void;
         }
       | undefined;
@@ -333,7 +311,7 @@ export const useNativeTransport = (
     const stop = bridge.onDspHostTelemetry((frame) => {
       setDspNativeTransport({
         hasSource: frame.deckState !== DECK_EMPTY,
-        positionSeconds: quantizePosition(frame.deckPositionSeconds),
+        positionSeconds: quantizeTransportPosition(frame.deckPositionSeconds),
         durationSeconds: frame.deckDurationSeconds,
         ended: frame.deckState === DECK_ENDED,
       });

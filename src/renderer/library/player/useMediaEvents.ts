@@ -111,7 +111,7 @@ export const useMediaEvents = (
         if (ownsPosition()) {
           setPositionMs(element.currentTime * 1000);
         }
-        // Bring the level back after the jump — see `startSeekFade`. Reached
+        // Bring the level back after the jump — see `seekQuietly`. Reached
         // through a ref because this listener is bound once for the life of
         // the element and must not take a dependency on anything defined
         // later in this component.

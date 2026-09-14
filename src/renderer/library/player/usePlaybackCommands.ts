@@ -226,7 +226,7 @@ export const usePlaybackCommands = (options: {
     const element = activeElement();
     if (element) {
       // Pause happens first. A stopped decoder can jump without emitting the
-      // click that an audible seek needs `startSeekFade` to hide.
+      // click that an audible seek needs `seekQuietly` to hide.
       element.currentTime = 0;
     }
     audioElements.forEach((deck) => {

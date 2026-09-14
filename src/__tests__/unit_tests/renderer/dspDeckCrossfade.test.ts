@@ -138,6 +138,7 @@ describe('DSP deck crossfade', () => {
       context,
       [outgoing, incoming],
       gains,
+      [],
     );
 
     expect(scheduleDspDeckCrossfade(outgoing, incoming, 2_000, 'smooth')).toBe(
@@ -182,6 +183,7 @@ describe('DSP deck crossfade', () => {
         { context, gain: first.parameter } as unknown as GainNode,
         { context, gain: second.parameter } as unknown as GainNode,
       ],
+      [],
     );
 
     expect(scheduleDspDeckCrossfade(outgoing, incoming, 2_000, 'smooth')).toBe(
@@ -256,6 +258,7 @@ describe('DSP deck crossfade', () => {
         { context, gain: first.parameter } as unknown as GainNode,
         { context, gain: second.parameter } as unknown as GainNode,
       ],
+      [],
     );
 
     scheduleDspDeckCrossfade(outgoing, incoming, 2_000, 'linear');
@@ -287,6 +290,7 @@ describe('DSP deck crossfade', () => {
         { context, gain: first.parameter } as unknown as GainNode,
         { context, gain: second.parameter } as unknown as GainNode,
       ],
+      [],
     );
 
     selectDspDeck(secondElement);

@@ -165,6 +165,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       audioElements[0] === outgoing ? audioElements[1] : audioElements[0];
     const audio = isCrossfading && alternate ? alternate : outgoing;
     cancelAnimationFrame(fadeFrameRef.current);
+    fadeFrameRef.current = 0;
     if (isCrossfading) {
       audio.pause();
       audio.volume = 0;

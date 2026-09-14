@@ -48,9 +48,10 @@ export const MIN_LEAD_IN_TRIM_MS = 250;
  * How long the level takes to come back after a seek.
  *
  * Long enough to cover the decoder's re-sync and short enough that nobody
- * reads it as a fade — about four frames. Ramped on `requestAnimationFrame`
- * rather than a timer: a timer would keep the renderer awake on a schedule of
- * its own, and this has to run in step with what is already being painted.
+ * reads it as a fade. Ramped on the audio clock, by the deck's own gain — see
+ * `fadeInDspDeck`. It was ramped on animation frames, on the reasoning that it
+ * should run in step with what is painted; a level is heard rather than
+ * painted, and frames stop behind a minimised window while the music does not.
  */
 export const SEEK_FADE_MS = 70;
 /** Pop-free source handoff; longer than a seek because the decoder is new. */

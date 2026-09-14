@@ -48,7 +48,17 @@ export interface IDspCrossfadeMeter {
 interface IDeckMixer {
   context: AudioContext;
   elements: readonly HTMLAudioElement[];
+  /** Which deck is heard, and the crossfade between them. */
   gains: readonly GainNode[];
+  /**
+   * The short fades that hide a seam — a new track's first samples, a seek —
+   * one per deck, ahead of `gains`.
+   *
+   * A node of their own because automation on one parameter replaces rather
+   * than multiplies: a fade scheduled on the crossfade's gain would cancel the
+   * crossfade it landed in.
+   */
+  envelopes: readonly GainNode[];
 }
 
 const IDLE_METER: IDspCrossfadeMeter = {
@@ -211,8 +221,9 @@ export const registerDspDeckMixer = (
   context: AudioContext,
   elements: readonly HTMLAudioElement[],
   gains: readonly GainNode[],
+  envelopes: readonly GainNode[],
 ): (() => void) => {
-  const registered = { context, elements, gains };
+  const registered = { context, elements, gains, envelopes };
   mixer = registered;
   return () => {
     if (mixer === registered) {
@@ -222,6 +233,47 @@ export const registerDspDeckMixer = (
       emitMeter(IDLE_METER);
     }
   };
+};
+
+/**
+ * Bring a deck up from silence over `durationMs`, on the audio clock.
+ *
+ * This is the fade that hides a new track's first samples and the seam of a
+ * seek, and it used to step the element's volume on animation frames. Frames
+ * stop while the window is minimised, so the ramp stopped on its first step,
+ * which is zero: every track the Library moved on to behind a minimised window
+ * played in silence until the window came back. The audio thread renders
+ * whether or not anything is painted, so a ramp it runs ends when it should.
+ *
+ * False when this element has no deck on the audio clock — the video, which
+ * never goes through Web Audio, or any element while the engine is not running
+ * — or when the browser refused the automation, in which case the envelope is
+ * left at unity so the element's own volume is the only level in play.
+ */
+export const fadeInDspDeck = (
+  element: HTMLMediaElement,
+  durationMs: number,
+): boolean => {
+  const current = mixer;
+  if (!current) {
+    return false;
+  }
+  const envelope =
+    current.envelopes[current.elements.findIndex((deck) => deck === element)];
+  if (!envelope) {
+    return false;
+  }
+  const parameter = envelope.gain;
+  const now = current.context.currentTime;
+  try {
+    cancelAutomation(parameter, now);
+    parameter.setValueAtTime(0, now);
+    parameter.linearRampToValueAtTime(1, now + Math.max(1, durationMs) / 1_000);
+  } catch {
+    setGainNow(envelope, 1);
+    return false;
+  }
+  return true;
 };
 
 /** Exactly one decoder is audible outside an active transition. */

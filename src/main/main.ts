@@ -87,7 +87,10 @@ import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
 import { startEngineOwnerPipe } from './engineOwnerPipe';
-import startEngineAnalysisPipe from './engineAnalysisPipe';
+import startEngineAnalysisPipe, {
+  readEngineProcesses,
+} from './engineAnalysisPipe';
+import { createProcessMeter } from './processMeter';
 import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
@@ -3161,6 +3164,8 @@ registerProcessIpc({
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
+  getSystemEngineProcesses: readEngineProcesses,
+  meter: createProcessMeter(),
 });
 
 registerLibraryIpc({

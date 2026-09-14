@@ -173,6 +173,7 @@ export const useDspEngine = (
   const contextRef = useRef<AudioContext | undefined>(undefined);
   const sourcesRef = useRef<MediaElementAudioSourceNode[]>([]);
   const deckGainsRef = useRef<GainNode[]>([]);
+  const deckEnvelopesRef = useRef<GainNode[]>([]);
   const mixerRef = useRef<GainNode | undefined>(undefined);
   const graphRef = useRef<IDspGraph | undefined>(undefined);
   const workletRef = useRef<AudioWorkletNode | undefined>(undefined);
@@ -197,6 +198,7 @@ export const useDspEngine = (
       if (!context || sources.length === 0) {
         return;
       }
+      deckEnvelopesRef.current.forEach((gain) => gain.disconnect());
       deckGainsRef.current.forEach((gain) => gain.disconnect());
       mixerRef.current?.disconnect();
       sources.forEach((source) => {
@@ -252,9 +254,11 @@ export const useDspEngine = (
         // captured elements leave with it, so there is no audio path to rescue;
         // every node and the context itself can be released outright.
         sourcesRef.current.forEach((source) => source.disconnect());
+        deckEnvelopesRef.current.forEach((gain) => gain.disconnect());
         deckGainsRef.current.forEach((gain) => gain.disconnect());
         mixerRef.current?.disconnect();
         sourcesRef.current = [];
+        deckEnvelopesRef.current = [];
         deckGainsRef.current = [];
         mixerRef.current = undefined;
         const context = contextRef.current;
@@ -326,18 +330,34 @@ export const useDspEngine = (
           ? deckGainsRef.current
           : sources.map(() => context.createGain());
       deckGainsRef.current = deckGains;
+      // Ahead of each deck's gain, for the fades that hide a seam — see
+      // `fadeInDspDeck`.
+      const deckEnvelopes =
+        deckEnvelopesRef.current.length === sources.length
+          ? deckEnvelopesRef.current
+          : sources.map(() => context.createGain());
+      deckEnvelopesRef.current = deckEnvelopes;
       sources.forEach((source, index) => {
+        const deckEnvelope = deckEnvelopes[index];
         const deckGain = deckGains[index];
-        if (!deckGain) {
+        if (!deckEnvelope || !deckGain) {
           return;
         }
         source.disconnect();
+        deckEnvelope.disconnect();
         deckGain.disconnect();
-        source.connect(deckGain);
+        source.connect(deckEnvelope);
+        deckEnvelope.connect(deckGain);
         deckGain.connect(mixer);
+        deckEnvelope.gain.value = 1;
         deckGain.gain.value = index === 0 ? 1 : 0;
       });
-      unregisterDeckMixer = registerDspDeckMixer(context, elements, deckGains);
+      unregisterDeckMixer = registerDspDeckMixer(
+        context,
+        elements,
+        deckGains,
+        deckEnvelopes,
+      );
       if (settingsRef.current.enabled) {
         graphRef.current = buildDspGraph(
           mixer as unknown as IAudioNodeLike,

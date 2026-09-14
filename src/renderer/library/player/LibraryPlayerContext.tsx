@@ -209,7 +209,7 @@ export const LibraryPlayerProvider = ({
    */
   const {
     fadeIn,
-    startSeekFade,
+    seekQuietly,
     startCrossfade,
     releaseBlob,
     swapBufferToBlob,
@@ -491,7 +491,7 @@ export const LibraryPlayerProvider = ({
    */
   const { skip, seek } = useTransportControls({
     activeElement,
-    startSeekFade,
+    seekQuietly,
     finishCrossfadeRef,
     hostOwnsTransportRef,
     seekHost,
