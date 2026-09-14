@@ -252,9 +252,10 @@ const studio = {
   'studio.signalHint.live':
     '这台电脑上正在播放的声音，和场景在图表上听到的一样。',
   'studio.signalHint.silence': '什么都没有。好的场景在这里休息，只缓慢漂移。',
-  'studio.signalHint.bass': '只有持续的低音。显示哪些部分随低音移动。',
-  'studio.signalHint.mid': '只有中音：人声和和弦。',
-  'studio.signalHint.treble': '只有镲片和空气感，随节奏敲击。',
+  'studio.signalHint.bass':
+    '只保留正在播放的声音里的低音。显示哪些部分随低音移动。',
+  'studio.signalHint.mid': '只保留正在播放的声音里的中音：人声和和弦。',
+  'studio.signalHint.treble': '只保留正在播放的声音里的高音：镲片和空气感。',
   'studio.signalHint.beat': '每一拍一下底鼓，118 BPM。',
   'studio.signalHint.accent': '每 7.5 秒一个重要时刻，像副歌进来。',
   'studio.signalHint.showcase': '所有通道同时忙碌，和拍封面时一样。',

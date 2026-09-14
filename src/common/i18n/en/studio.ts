@@ -288,9 +288,11 @@ const studio = {
   'studio.signalHint.silence':
     'Nothing at all. A good scene rests here, with only a slow drift.',
   'studio.signalHint.bass':
-    'Only a steady bass. Shows what moves with the low end.',
-  'studio.signalHint.mid': 'Only the mids: voices and chords.',
-  'studio.signalHint.treble': 'Only hi-hats and air, ticking.',
+    'Only the bass of what is playing. Shows what moves with the low end.',
+  'studio.signalHint.mid':
+    'Only the mids of what is playing: voices and chords.',
+  'studio.signalHint.treble':
+    'Only the treble of what is playing: hi-hats and air.',
   'studio.signalHint.beat': 'A kick on every beat, at 118 BPM.',
   'studio.signalHint.accent':
     'One big moment every 7.5 seconds, like a chorus hitting.',

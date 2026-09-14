@@ -77,9 +77,9 @@ const followLevel = (from: number, to: number, elapsedMs: number): number =>
  * ignored — the analyser reports it, but it is noise floor and roll-off, and
  * letting it into the mean made silence read as quiet music.
  */
-const BASS_HZ: readonly [number, number] = [20, 160];
-const MID_HZ: readonly [number, number] = [160, 2_000];
-const TREBLE_HZ: readonly [number, number] = [2_000, 16_000];
+export const BASS_HZ: readonly [number, number] = [20, 160];
+export const MID_HZ: readonly [number, number] = [160, 2_000];
+export const TREBLE_HZ: readonly [number, number] = [2_000, 16_000];
 
 export const createEnergyState = (): IEnergyState => ({
   level: 0,

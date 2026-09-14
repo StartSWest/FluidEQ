@@ -283,9 +283,10 @@ const studio = {
   'studio.signalHint.silence':
     'Nada en absoluto. Una buena escena descansa aquí, solo con una deriva lenta.',
   'studio.signalHint.bass':
-    'Solo un bajo constante. Muestra qué se mueve con los graves.',
-  'studio.signalHint.mid': 'Solo los medios: voces y acordes.',
-  'studio.signalHint.treble': 'Solo platillos y aire, marcando el ritmo.',
+    'Solo los graves de lo que suena. Muestra qué se mueve con los graves.',
+  'studio.signalHint.mid': 'Solo los medios de lo que suena: voces y acordes.',
+  'studio.signalHint.treble':
+    'Solo los agudos de lo que suena: platillos y aire.',
   'studio.signalHint.beat': 'Un bombo en cada golpe, a 118 BPM.',
   'studio.signalHint.accent':
     'Un gran momento cada 7,5 segundos, como un estribillo que entra.',

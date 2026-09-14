@@ -283,9 +283,11 @@ const studio = {
   'studio.signalHint.silence':
     'Rien du tout. Une bonne scène se repose ici, avec une lente dérive seulement.',
   'studio.signalHint.bass':
-    'Une basse continue seulement. Montre ce qui bouge avec le grave.',
-  'studio.signalHint.mid': 'Les médiums seulement : voix et accords.',
-  'studio.signalHint.treble': 'Seulement les cymbales et l’air, en rythme.',
+    'Seulement les graves de ce qui joue. Montre ce qui bouge avec le grave.',
+  'studio.signalHint.mid':
+    'Seulement les médiums de ce qui joue : voix et accords.',
+  'studio.signalHint.treble':
+    'Seulement les aigus de ce qui joue : cymbales et air.',
   'studio.signalHint.beat': 'Une grosse caisse à chaque temps, à 118 BPM.',
   'studio.signalHint.accent':
     'Un grand moment toutes les 7,5 secondes, comme un refrain qui arrive.',

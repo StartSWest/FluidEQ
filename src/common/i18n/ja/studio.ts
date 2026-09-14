@@ -283,9 +283,10 @@ const studio = {
     'このコンピューターで再生中の音。シーンがグラフで聴くのと同じです。',
   'studio.signalHint.silence':
     '何も鳴りません。よいシーンはここで休み、ゆっくり漂うだけです。',
-  'studio.signalHint.bass': '一定の低音だけ。低音で何が動くかがわかります。',
-  'studio.signalHint.mid': '中音だけ：声と和音。',
-  'studio.signalHint.treble': 'ハイハットと空気感だけ、リズムに乗って。',
+  'studio.signalHint.bass':
+    '再生中の音の低音だけ。低音で何が動くかがわかります。',
+  'studio.signalHint.mid': '再生中の音の中音だけ：声と和音。',
+  'studio.signalHint.treble': '再生中の音の高音だけ：ハイハットと空気感。',
   'studio.signalHint.beat': '毎拍のキック、118 BPM。',
   'studio.signalHint.accent': '7.5 秒ごとに大きな瞬間。サビが来るように。',
   'studio.signalHint.showcase':

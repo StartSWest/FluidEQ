@@ -285,9 +285,9 @@ const studio = {
   'studio.signalHint.silence':
     'Niente di niente. Una buona scena qui riposa, con una lenta deriva e basta.',
   'studio.signalHint.bass':
-    'Solo un basso costante. Mostra cosa si muove con le basse frequenze.',
-  'studio.signalHint.mid': 'Solo i medi: voci e accordi.',
-  'studio.signalHint.treble': 'Solo piatti e aria, a tempo.',
+    'Solo i bassi di ciò che suona. Mostra cosa si muove con le basse frequenze.',
+  'studio.signalHint.mid': 'Solo i medi di ciò che suona: voci e accordi.',
+  'studio.signalHint.treble': 'Solo gli acuti di ciò che suona: piatti e aria.',
   'studio.signalHint.beat': 'Una cassa su ogni battito, a 118 BPM.',
   'studio.signalHint.accent':
     'Un grande momento ogni 7,5 secondi, come un ritornello che entra.',
