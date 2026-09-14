@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IScenePack } from 'common/scenePacks';
 import { afterLinkTurns, sceneProgramKey } from '../graph/sceneLinkTurns';
+import reportRefusedSceneSource from '../graph/sceneRefusalReport';
 import type {
   ILightingSceneFrame,
   TLightingWorkerReply,
@@ -62,6 +63,8 @@ export const createLightingScene = (
   let wanted = 0;
   /** The program of the scene last sent, for a refusal to be kept by. */
   let sentKey: string | undefined;
+  /** Its source, for a reset it is blamed for to be kept beyond the session. */
+  let sentSource: string | undefined;
   const post = (request: TLightingWorkerRequest) => worker.postMessage(request);
 
   worker.onmessage = ({ data }: MessageEvent<TLightingWorkerReply>) => {
@@ -98,6 +101,12 @@ export const createLightingScene = (
       if (sentKey && GPU_REFUSALS.has(data.reason)) {
         refusedScenes.add(sentKey);
       }
+      // Only a reset the scene is blamed for goes further than this session:
+      // too heavy for the lamps is not too heavy for the graph, and a loss
+      // with nothing to blame is not the scene's.
+      if (sentSource !== undefined && data.reason === 'gpu-reset') {
+        reportRefusedSceneSource(sentSource, 'gpu-reset');
+      }
       onFailed(data.packId);
     }
   };
@@ -133,6 +142,7 @@ export const createLightingScene = (
           if (!closed && mine === wanted) {
             linking = true;
             sentKey = key;
+            sentSource = pack.source;
             post({ kind: 'load', pack, guarded });
           }
           return undefined;

@@ -710,3 +710,48 @@ describe('the member’s own published scenes', () => {
     },
   );
 });
+
+describe('a card’s version', () => {
+  it('says which version is published and when, and that it is new', () => {
+    render(
+      <GalleryCard
+        scene={scene({
+          version: 4,
+          firstVersion: 1,
+          updatedAt: new Date().toISOString(),
+        })}
+        local={undefined}
+        me={undefined}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.getByText(/^plus\.version\.line:4,/)).toBeInTheDocument();
+    expect(screen.getByText('plus.version.new')).toBeInTheDocument();
+  });
+
+  it('tells a member with an older copy which one they have, and offers the update', () => {
+    render(
+      <GalleryCard
+        scene={scene({ version: 4, firstVersion: 1 })}
+        local={{ version: 3 }}
+        me={undefined}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('plus.version.youHave:3')).toBeInTheDocument();
+    expect(screen.getByText('plus.card.updateTo:4')).toBeInTheDocument();
+  });
+
+  it('marks nothing new on a first version, or a copy already up to date', () => {
+    render(
+      <GalleryCard
+        scene={scene({ version: 1, firstVersion: 1 })}
+        local={{ version: 1 }}
+        me={undefined}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.queryByText('plus.version.new')).toBeNull();
+    expect(screen.queryByText(/plus\.version\.youHave/)).toBeNull();
+  });
+});

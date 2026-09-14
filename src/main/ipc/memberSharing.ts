@@ -297,6 +297,7 @@ export const registerMemberSharingIpc = ({
       } else {
         store.saveImported(read.envelope);
       }
+      store.release(author.id, pack.id);
     } catch (error) {
       logger?.warn(`Importing a member scene failed: ${String(error)}`);
       return { ok: false, reason: 'changed' };

@@ -23,7 +23,22 @@ export type TSceneStillRequest =
       accent: readonly [number, number, number];
     };
 
-/** Undefined `blob` or `pixels`: this machine could not draw the scene. */
+/**
+ * Why a worker gave a scene up: its context was lost right after one of its
+ * own frames held the GPU (`gpu-reset`), lost with nothing to blame
+ * (`context-lost`), or a frame took far too long (`too-heavy`).
+ */
+export type TSceneStillRefusal = 'context-lost' | 'gpu-reset' | 'too-heavy';
+
+/**
+ * Undefined `blob` or `pixels`: this machine could not draw the scene.
+ * `refused`: and it must not be asked to again this session, and why.
+ */
 export type TSceneStillReply =
-  | { kind: 'still'; id: number; blob?: Blob }
-  | { kind: 'sample'; id: number; pixels?: Uint8Array };
+  | { kind: 'still'; id: number; blob?: Blob; refused?: TSceneStillRefusal }
+  | {
+      kind: 'sample';
+      id: number;
+      pixels?: Uint8Array;
+      refused?: TSceneStillRefusal;
+    };

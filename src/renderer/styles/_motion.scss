@@ -237,3 +237,43 @@ $motion-slow: 300ms;
     pointer-events: none;
   }
 }
+
+/**
+ * The ring that turns round a loader's glyph while something is on its way —
+ * the Studio stage, a scene arriving on the graph, a scene downloading in the
+ * gallery. One ring, so the three waits read as the same wait; they had three
+ * copies of it that had already drifted to three speeds.
+ *
+ * On the element holding the glyph, which it centres. `$ink` is the lit arc,
+ * and the rest of the circle a faint trace of it. Reduced motion leaves the
+ * ring standing, arc and all, so the wait is still said without the turning.
+ */
+@mixin loading-ring($ink, $size) {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: $size;
+  height: $size;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    border: 2px solid color-mix(in srgb, $ink 16%, transparent);
+    border-top-color: $ink;
+    border-radius: 50%;
+    animation: loading-ring-turn 1.1s linear infinite;
+    content: '';
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation: none;
+    }
+  }
+}
+
+@keyframes loading-ring-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}

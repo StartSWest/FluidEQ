@@ -99,6 +99,10 @@ const studio = {
   'studio.publish.title': 'Publish {name}',
   'studio.publish.titleUpdate': 'Update {name} in the gallery',
   'studio.publish.version': 'Version {version}',
+  'studio.publish.publishedVersion': 'In the gallery now: version {version}',
+  'studio.publish.note': "What's new in this version",
+  'studio.publish.notePlaceholder':
+    'One line listeners will see, like: the peaks no longer get cut on wide panels',
   'studio.publish.hears': 'What the scene hears',
   'studio.publish.yourMusic': 'Your music',
   'studio.publish.demo': 'Demo',
@@ -309,6 +313,9 @@ const studio = {
   'studio.settings.response': 'How it answers the music',
   'studio.settings.responseLead':
     'Bend what it hears before it hears it. At 100% and zero it hears the music as it is.',
+  'studio.settings.ambient': 'Elements in the window',
+  'studio.settings.ambientLead':
+    'What this scene adds around the app in the Ambient mode.',
   'studio.settings.sensitivity': 'Sensitivity',
   'studio.settings.sensitivityHint':
     'How strongly it reacts. More for a quiet track, less when a loud one keeps it pinned.',
@@ -359,8 +366,6 @@ const studio = {
   'studio.wave.title': 'Wave on the graph',
   'studio.wave.hint':
     'Anyone using the scene can change these under View on the graph. Try the extremes: a low wave, or one lifted to the middle.',
-  'studio.wave.fixed':
-    'This scene reserves its own band for the spectrum, so these two do not change it.',
 
   // A switch under the size: the whole app in the colour of the scene on the
   // stage, for judging it as a theme without leaving the Studio.
@@ -412,6 +417,12 @@ const studio = {
     'The picture is not a WebP of the size pack.json gives.',
   'studio.problem.contract-too-new':
     'This scene was written for a newer FluidEQ. Update the app.',
+  'studio.problem.bad-param':
+    'A control in params needs an id of a-z, 0-9 and _, an English name, and a min below its max.',
+  'studio.problem.too-many-params':
+    'A scene can have at most 8 controls in params.',
+  'studio.problem.bad-ambient':
+    'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
   'studio.problem.bad-json': 'pack.json is not valid JSON.',
   'studio.problem.missing-file': 'A file the scene needs is missing.',
   'studio.problem.unsafe-path':

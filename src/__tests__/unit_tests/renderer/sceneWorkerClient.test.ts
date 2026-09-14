@@ -32,6 +32,14 @@ afterEach(() => {
   delete (HTMLCanvasElement.prototype as Partial<HTMLCanvasElement>)
     .transferControlToOffscreen;
 });
+const packOf = (id: string, source = `// ${id}`) =>
+  ({ id, params: [], source }) as unknown as IScenePack;
+/** A load is sent once any compile of the same program in the window is done. */
+const settle = async () => {
+  for (let turn = 0; turn < 4; turn += 1) {
+    await Promise.resolve();
+  }
+};
 const reply = (data: TSceneWorkerReply) =>
   worker.onmessage?.({ data } as MessageEvent<TSceneWorkerReply>);
 const start = () => {
@@ -54,8 +62,9 @@ it('hands the worker a canvas of its own before anything else', () => {
 
 it('loads in the worker and keeps one drawing in flight until it is committed', async () => {
   const { client } = start();
-  const pack = { id: 'scene' } as IScenePack;
+  const pack = packOf('scene');
   const loading = client?.load(pack, true);
+  await settle();
   expect(worker.postMessage).toHaveBeenLastCalledWith({
     kind: 'load',
     id: 1,
@@ -91,7 +100,7 @@ it('hides the canvas while its context is lost and shows it once restored', () =
   const host = document.createElement('div');
   const client = createSceneWorkerClient(host, jest.fn(), recovered);
   const canvas = host.querySelector('canvas');
-  reply({ kind: 'lost', fatal: false });
+  reply({ kind: 'lost', fatal: false, blamed: false });
   expect(canvas?.style.visibility).toBe('hidden');
   expect(client?.canDraw()).toBe(false);
   reply({ kind: 'restored' });
@@ -100,11 +109,29 @@ it('hides the canvas while its context is lost and shows it once restored', () =
   expect(client?.canDraw()).toBe(true);
 });
 
+it('names a fatal loss after its own long frame a reset, and any other a loss', () => {
+  // Sleep and a driver update lose every context too; only a loss right after
+  // the scene held the GPU is kept beyond this build (`sceneRefusals.ts`).
+  const unblamed = jest.fn();
+  createSceneWorkerClient(document.createElement('div'), unblamed, jest.fn());
+  reply({ kind: 'lost', fatal: false, blamed: false });
+  expect(unblamed).not.toHaveBeenCalled();
+  reply({ kind: 'lost', fatal: true, blamed: false });
+  expect(unblamed).toHaveBeenCalledWith('context-lost');
+
+  const blamed = jest.fn();
+  createSceneWorkerClient(document.createElement('div'), blamed, jest.fn());
+  reply({ kind: 'lost', fatal: true, blamed: true });
+  expect(blamed).toHaveBeenCalledWith('gpu-reset');
+  expect(blamed).not.toHaveBeenCalledWith('context-lost');
+});
+
 it('settles pending loads and stops drawing after a worker failure', async () => {
   const failed = jest.fn();
   const host = document.createElement('div');
   const client = createSceneWorkerClient(host, failed, jest.fn());
-  const loading = client?.load({} as IScenePack, true);
+  const loading = client?.load(packOf('scene'), true);
+  await settle();
   worker.onerror?.({ message: 'driver failed' } as ErrorEvent);
   await expect(loading).resolves.toEqual({ kind: 'cancelled' });
   expect(client?.canDraw()).toBe(false);
@@ -120,4 +147,80 @@ it('declines to start where a canvas cannot be handed to a worker', () => {
   expect(createSceneWorkerClient(host, jest.fn(), jest.fn())).toBeUndefined();
   expect(global.Worker).not.toHaveBeenCalled();
   expect(host.children).toHaveLength(0);
+});
+
+it('lets a load still linking finish before its worker goes', async () => {
+  const { host, client } = start();
+  const loading = client?.load(packOf('alpine'), true);
+  await settle();
+  client?.dispose();
+  await expect(loading).resolves.toEqual({ kind: 'cancelled' });
+  // Ended mid-link, the worker's context would stall every scene's GPU work
+  // for the rest of the compile.
+  expect(worker.postMessage).toHaveBeenLastCalledWith({ kind: 'retire' });
+  expect(worker.terminate).not.toHaveBeenCalled();
+  expect(host.querySelector('canvas')).toBeNull();
+  reply({ kind: 'retired' });
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+});
+
+it('ends a worker at once when nothing it was sent is still linking', async () => {
+  const { client } = start();
+  const loading = client?.load(packOf('aurora'), true);
+  await settle();
+  reply({ kind: 'loaded', id: 1, result: { kind: 'ready', rebuilt: true } });
+  await loading;
+  client?.dispose();
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+  expect(worker.postMessage).not.toHaveBeenCalledWith({ kind: 'retire' });
+});
+
+it('sends a second compile of the same program only once the first has linked', async () => {
+  // Two contexts in the window, each with a worker of its own.
+  const made: (typeof worker)[] = [];
+  global.Worker = jest.fn(() => {
+    const next = {
+      postMessage: jest.fn(),
+      terminate: jest.fn(),
+      onmessage: undefined as typeof worker.onmessage,
+      onerror: undefined as typeof worker.onerror,
+    };
+    made.push(next);
+    return next;
+  }) as unknown as typeof Worker;
+  const first = createSceneWorkerClient(
+    document.createElement('div'),
+    jest.fn(),
+    jest.fn(),
+  );
+  const second = createSceneWorkerClient(
+    document.createElement('div'),
+    jest.fn(),
+    jest.fn(),
+  );
+  const loadsSentBy = (index: number) =>
+    made[index].postMessage.mock.calls.filter(
+      ([request]) => (request as { kind: string }).kind === 'load',
+    );
+
+  const firstLoad = first?.load(packOf('bloom', 'same source'), true);
+  await settle();
+  const secondLoad = second?.load(packOf('bloom', 'same source'), false);
+  await settle();
+  expect(loadsSentBy(0)).toHaveLength(1);
+  expect(loadsSentBy(1)).toHaveLength(0);
+
+  made[0].onmessage?.({
+    data: { kind: 'loaded', id: 1, result: { kind: 'ready', rebuilt: true } },
+  } as MessageEvent<TSceneWorkerReply>);
+  await expect(firstLoad).resolves.toEqual({ kind: 'ready', rebuilt: true });
+  await settle();
+  expect(loadsSentBy(1)).toHaveLength(1);
+
+  made[1].onmessage?.({
+    data: { kind: 'loaded', id: 1, result: { kind: 'ready', rebuilt: false } },
+  } as MessageEvent<TSceneWorkerReply>);
+  await expect(secondLoad).resolves.toEqual({ kind: 'ready', rebuilt: false });
+  first?.dispose();
+  second?.dispose();
 });

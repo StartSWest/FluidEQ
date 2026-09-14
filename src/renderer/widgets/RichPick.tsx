@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import foldForSearch from '../utils/foldForSearch';
 import Chevron from '../icons/Chevron';
 import AnchoredMenu, { isInsideAnchoredMenu } from './AnchoredMenu';
 import '../styles/RichPick.scss';
@@ -65,22 +66,6 @@ interface IRichPickProps {
    */
   renderFooter?: (close: () => void) => ReactNode;
 }
-
-/**
- * Everything a search has to ignore to match the way a person expects.
- *
- * Case and accents both: somebody looking for "Clásica" types "clasica", and
- * somebody looking for "Lo-fi" types "lofi". Latin-1 decomposition covers every
- * language this app ships in that uses accents at all — the CJK locales do not
- * decompose and do not need to.
- */
-const foldForSearch = (text: string) =>
-  text
-    .normalize('NFD')
-    // Written as escapes because the literal range is four invisible combining
-    // marks, which look like a typo and get "tidied" into one.
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
 
 /**
  * Up and down walk an open menu, through the search, every row it left and

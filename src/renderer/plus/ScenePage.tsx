@@ -35,12 +35,15 @@ import SceneModerationCard from './SceneModerationCard';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
+import SceneVersions from './SceneVersions';
 
 /** Cards under "More by": one row on a wide pane, two on a narrow one. */
 const MORE_BY = 4;
 
 const PREVIEW_FAILURES: Record<
-  Exclude<TGallerySceneFailure, 'not-entitled'> | TPreviewTrouble,
+  | Exclude<TGallerySceneFailure, 'not-entitled'>
+  | TPreviewTrouble
+  | 'quarantined',
   TranslationKey
 > = {
   unavailable: 'plus.scene.unavailable',
@@ -48,6 +51,7 @@ const PREVIEW_FAILURES: Record<
   changed: 'plus.scene.changed',
   heavy: 'plus.scene.heavy',
   compile: 'plus.scene.broken',
+  quarantined: 'plus.scene.quarantined',
 };
 
 type TPreview =
@@ -312,10 +316,25 @@ export default function ScenePage({
               {t('plus.scene.playing')}
             </span>
           )}
+          {/* The Studio stage's loader, with the scene coming down in the
+              ring instead of the Studio's mark: the same wait, said the same
+              way, over the scene's own picture. */}
           {preview.state === 'loading' && (
-            <span className="gallery-preview__veil" role="status">
-              <span className="gallery-preview__spinner" aria-hidden="true" />
-              {t('plus.scene.loading')}
+            <span
+              className="gallery-preview__veil gallery-preview__downloading"
+              role="status"
+              aria-live="polite"
+            >
+              <span
+                className="gallery-preview__download-mark"
+                aria-hidden="true"
+              >
+                <Glyph name="download" />
+              </span>
+              <span className="gallery-preview__download-title">
+                {t('plus.scene.loading')}
+              </span>
+              <span className="gallery-preview__download-name">{name}</span>
             </span>
           )}
           {preview.state === 'failed' && (
@@ -382,6 +401,8 @@ export default function ScenePage({
         {report && moderation.admin && (
           <SceneModerationCard entry={report} name={name} />
         )}
+
+        <SceneVersions scene={scene} />
 
         {scene.official ? (
           <p className="gallery-included">

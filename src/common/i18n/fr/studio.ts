@@ -91,6 +91,11 @@ const studio = {
   'studio.publish.title': 'Publier {name}',
   'studio.publish.titleUpdate': 'Mettre à jour {name} dans la galerie',
   'studio.publish.version': 'Version {version}',
+  'studio.publish.publishedVersion':
+    'Dans la galerie en ce moment : version {version}',
+  'studio.publish.note': 'Nouveautés de cette version',
+  'studio.publish.notePlaceholder':
+    'Une ligne que les auditeurs verront, par exemple : les sommets ne sont plus coupés sur les panneaux larges',
   'studio.publish.hears': 'Ce que la scène entend',
   'studio.publish.yourMusic': 'Votre musique',
   'studio.publish.demo': 'Démo',
@@ -303,6 +308,9 @@ const studio = {
   'studio.settings.response': 'Sa réponse à la musique',
   'studio.settings.responseLead':
     'Modifiez ce qu’elle entend avant qu’elle l’entende. À 100 % et à zéro, elle entend la musique telle quelle.',
+  'studio.settings.ambient': 'Éléments dans la fenêtre',
+  'studio.settings.ambientLead':
+    'Ce que cette scène ajoute autour de l’app en mode Ambiance.',
   'studio.settings.sensitivity': 'Sensibilité',
   'studio.settings.sensitivityHint':
     'Sa force de réaction. Plus pour un morceau doux, moins quand un morceau fort la garde au maximum.',
@@ -353,8 +361,6 @@ const studio = {
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':
     'Qui utilise la scène peut les changer dans Vue, sur le graphique. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
-  'studio.wave.fixed':
-    'Cette scène réserve sa propre bande au spectre, ces deux réglages ne la changent donc pas.',
   'studio.tint.label': 'FluidEQ avec cette scène',
   'studio.tint.hint':
     'Pendant que vous travaillez ici, toute l’application peut prendre les couleurs de la scène, ou briller doucement autour d’elle avec la musique, pour la voir et la sentir en thème.',
@@ -408,6 +414,12 @@ const studio = {
     'L’image n’est pas un WebP de la taille indiquée par pack.json.',
   'studio.problem.contract-too-new':
     'Cette scène a été écrite pour un FluidEQ plus récent. Mettez l’app à jour.',
+  'studio.problem.bad-param':
+    'Un contrôle de params doit avoir un id en a-z, 0-9 et _, un nom anglais et un min inférieur à son max.',
+  'studio.problem.too-many-params':
+    'Une scène peut avoir au plus 8 contrôles dans params.',
+  'studio.problem.bad-ambient':
+    'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
   'studio.problem.bad-json': 'pack.json n’est pas un JSON valide.',
   'studio.problem.missing-file': 'Il manque un fichier dont la scène a besoin.',
   'studio.problem.unsafe-path':

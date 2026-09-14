@@ -18,8 +18,6 @@ import {
 interface IStudioWaveControlsProps {
   wave: IStudioWave;
   onWave: (wave: IStudioWave) => void;
-  /** The scene reserves its own band, so the graph's two settings do nothing. */
-  isFixedByScene: boolean;
   /** Nothing is on the stage: the sliders wait, unlit, where they will be. */
   idle: boolean;
 }
@@ -36,11 +34,10 @@ interface IStudioWaveControlsProps {
 export default function StudioWaveControls({
   wave,
   onWave,
-  isFixedByScene,
   idle,
 }: IStudioWaveControlsProps) {
   const { t } = useTranslation();
-  const disabled = idle || isFixedByScene;
+  const disabled = idle;
   const heightSpan = 1 - STUDIO_WAVE_MIN_HEIGHT;
   const isDefault =
     wave.height === DEFAULT_STUDIO_WAVE.height &&
@@ -90,7 +87,7 @@ export default function StudioWaveControls({
         }
       />
       <span className="studio-test__hint studio-wave__hint">
-        {t(isFixedByScene ? 'studio.wave.fixed' : 'studio.wave.hint')}
+        {t('studio.wave.hint')}
       </span>
     </section>
   );

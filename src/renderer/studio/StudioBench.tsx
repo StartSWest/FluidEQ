@@ -23,6 +23,7 @@ import useStudioStageRatio from './useStudioStageRatio';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
+import useStudioAmbientTuning from './useStudioAmbientTuning';
 import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
@@ -126,6 +127,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
   const tuner = useStudioTuning(pack, state.activeId);
+  const ambient = useStudioAmbientTuning(pack, state.activeId);
 
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
@@ -391,7 +393,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onSize={choose}
             wave={wave}
             onWave={setWave}
-            isWaveFixed={Boolean(pack?.spectrumRange)}
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}
@@ -409,6 +410,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onCommit={tuner.commit}
             onResetParams={tuner.resetParams}
             onResetResponse={tuner.resetResponse}
+            ambient={ambient}
           />
           <StudioShipCard
             inspecting={project?.official === true}

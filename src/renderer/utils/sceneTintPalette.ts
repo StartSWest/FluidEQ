@@ -114,9 +114,20 @@ const EDGE_CHROMA = 0.06;
 const FULL_SKY_SHARE = 0.4;
 const FULL_SKY_CHROMA = 0.08;
 
-/** How far the theme moves toward the sky's colour, 0 to 1. */
+/**
+ * A grey sky: a picture of polished metal, which lends the window its grey
+ * (`findSceneSky`). Its hue says nothing.
+ */
+export const isGreySky = (sky: ISceneSky) => sky.chroma === 0;
+
+/**
+ * How far the theme moves toward the sky's colour, 0 to 1. A grey sky's is
+ * its share alone: grey is as strong a colour to lend as any, and weighed by
+ * its chroma it would lend nothing and leave the theme's own tone round it.
+ */
 export const sceneTintStrength = (sky: ISceneSky) =>
-  clamp01(sky.share / FULL_SKY_SHARE) * clamp01(sky.chroma / FULL_SKY_CHROMA);
+  clamp01(sky.share / FULL_SKY_SHARE) *
+  (isGreySky(sky) ? 1 : clamp01(sky.chroma / FULL_SKY_CHROMA));
 
 const formatAlpha = (alpha: number) => String(Math.round(alpha * 1000) / 1000);
 
@@ -191,7 +202,7 @@ export const sceneAccentHue = (sky: ISceneSky): number | undefined => {
   if (sky.accent) {
     return sky.accent.hue;
   }
-  return sceneTintStrength(sky) >= MIN_SKY_ACCENT_STRENGTH
+  return !isGreySky(sky) && sceneTintStrength(sky) >= MIN_SKY_ACCENT_STRENGTH
     ? sky.hue
     : undefined;
 };
@@ -257,7 +268,7 @@ const activeUnder = (
   return labToHex(
     toward(
       { l: PALE_ACTIVE_LIGHTNESS, a: 0, b: 0 },
-      PALE_ACTIVE_CHROMA,
+      isGreySky(sky) ? 0 : PALE_ACTIVE_CHROMA,
       sky.hue,
       1,
     ),
@@ -278,15 +289,17 @@ export const tintThemePalette = (
   sky: ISceneSky,
 ): TSceneTintPalette => {
   const amount = sceneTintStrength(sky);
+  // Under a grey sky the surfaces and edges lose the theme's own tone
+  // instead of taking a colour.
+  const grey = isGreySky(sky);
   const palette: TSceneTintPalette = {};
   SCENE_TINT_SURFACES.forEach((token) => {
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
       const lab = rgbToLab(colour.rgb);
-      const chroma = Math.min(
-        MAX_SURFACE_CHROMA,
-        SURFACE_CHROMA_PER_LIGHTNESS * lab.l,
-      );
+      const chroma = grey
+        ? 0
+        : Math.min(MAX_SURFACE_CHROMA, SURFACE_CHROMA_PER_LIGHTNESS * lab.l);
       palette[token] = labToHex(toward(lab, chroma, sky.hue, amount));
     }
   });
@@ -294,7 +307,7 @@ export const tintThemePalette = (
     const colour = parseCssColour(base[token] ?? '');
     if (colour) {
       const tinted = intoGamut(
-        toward(rgbToLab(colour.rgb), EDGE_CHROMA, sky.hue, amount),
+        toward(rgbToLab(colour.rgb), grey ? 0 : EDGE_CHROMA, sky.hue, amount),
       ).map(toByte);
       palette[token] = `rgba(${tinted.join(', ')}, ${formatAlpha(
         colour.alpha,
@@ -374,5 +387,48 @@ const SWATCH_CHROMA = 0.13;
  */
 export const sceneTintSwatch = (sky: ISceneSky) =>
   labToHex(
-    toward({ l: SWATCH_LIGHTNESS, a: 0, b: 0 }, SWATCH_CHROMA, sky.hue, 1),
+    toward(
+      { l: SWATCH_LIGHTNESS, a: 0, b: 0 },
+      isGreySky(sky) ? 0 : SWATCH_CHROMA,
+      sky.hue,
+      1,
+    ),
   );
+
+/** `hue` at `lightness` and `chroma`, as the screen can show it. */
+const iconColour = (lightness: number, chroma: number, hue: number): string =>
+  labToHex(toward({ l: lightness, a: 0, b: 0 }, chroma, hue, 1));
+
+/**
+ * A scene's icon colours from what it was measured to look like, foot to
+ * crest: its sky dark and lit, then its second colour, then its colour for
+ * "on" - Floración's pink petals and blue-grey heart. The colours its pack
+ * declares were chosen by hand for the icon, and several no longer matched
+ * the scene they stand for: Floración's were green and teal.
+ */
+export const sceneIconSwatch = (sky: ISceneSky): string[] => {
+  const grey = isGreySky(sky);
+  // Lit up past the measured chroma: a scene's colours are spread over a
+  // dark picture, and at their own strength on a 24-pixel glyph they read as
+  // pastels beside the other rows.
+  const skyChroma = grey ? 0 : Math.max(sky.chroma * 1.7, 0.13);
+  const colours = [
+    iconColour(0.36, skyChroma * 0.75, sky.hue),
+    iconColour(0.6, skyChroma, sky.hue),
+  ];
+  if (sky.accent) {
+    colours.push(
+      iconColour(0.72, Math.max(sky.accent.chroma * 1.3, 0.14), sky.accent.hue),
+    );
+  }
+  colours.push(
+    sky.active
+      ? iconColour(
+          0.82,
+          Math.max(sky.active.chroma * 1.3, 0.12),
+          sky.active.hue,
+        )
+      : iconColour(0.9, grey ? 0 : 0.05, sky.accent?.hue ?? sky.hue),
+  );
+  return colours;
+};

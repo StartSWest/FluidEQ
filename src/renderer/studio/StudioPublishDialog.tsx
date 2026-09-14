@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
+import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -26,8 +27,15 @@ interface IStudioPublishDialogProps {
   tuning: ISceneTuning;
   onCapture: (frames: ISceneFrame[]) => void;
   onChoose: (id: number) => void;
-  /** The first category, the one a card names, and an optional second. */
-  onPublish: (category: TPlusCategory, category2?: TPlusCategory) => void;
+  /**
+   * The first category, the one a card names, an optional second, and what
+   * changed in this version, as typed.
+   */
+  onPublish: (
+    category: TPlusCategory,
+    category2?: TPlusCategory,
+    note?: string,
+  ) => void;
   onCancel: () => void;
 }
 
@@ -44,6 +52,10 @@ interface IStudioPublishDialogProps {
  * the one its card names, and the chips number themselves once there are two.
  * A third pick takes the second's place, so the first stays put. Publish is
  * disabled until one is picked; an update starts on the ones the scene has.
+ *
+ * An update also says which version is in the gallery now, and takes one line
+ * about what changed — what listeners read on the scene's page and on the
+ * notice when the look they use updates.
  */
 export default function StudioPublishDialog({
   identity,
@@ -66,6 +78,8 @@ export default function StudioPublishDialog({
     ),
   );
   const [category, category2] = categories;
+  const [note, setNote] = useState('');
+  const noteId = useId();
   const pick = (entry: TPlusCategory) =>
     setCategories((current) => {
       if (current.includes(entry)) {
@@ -112,6 +126,13 @@ export default function StudioPublishDialog({
             </h2>
             <span className="studio-publish__version">
               {t('studio.publish.version', { version: String(pack.version) })}
+              {draft.published && (
+                <span className="studio-publish__published">
+                  {t('studio.publish.publishedVersion', {
+                    version: String(draft.published.version),
+                  })}
+                </span>
+              )}
             </span>
           </span>
         </div>
@@ -170,6 +191,31 @@ export default function StudioPublishDialog({
             </div>
           </div>
 
+          {update && (
+            <div className="studio-publish__note">
+              <span className="studio-publish__note-head">
+                <label className="gallery-dialog__label" htmlFor={noteId}>
+                  {t('studio.publish.note')}
+                </label>
+                <span className="studio-publish__note-count" aria-hidden="true">
+                  {note.length} / {MAX_VERSION_NOTE}
+                </span>
+              </span>
+              <textarea
+                id={noteId}
+                value={note}
+                rows={2}
+                maxLength={MAX_VERSION_NOTE}
+                disabled={running}
+                placeholder={t('studio.publish.notePlaceholder')}
+                onChange={(event) =>
+                  // One line: what a card and a notice have room for.
+                  setNote(event.target.value.replace(/\s*\n\s*/g, ' '))
+                }
+              />
+            </div>
+          )}
+
           <ul className="gallery-points studio-publish__points">
             <li>{t('studio.publish.point1')}</li>
             <li>{t('studio.publish.point2')}</li>
@@ -211,7 +257,7 @@ export default function StudioPublishDialog({
             title={category ? undefined : t('studio.publish.pickCategory')}
             onClick={() => {
               if (category && !running) {
-                onPublish(category, category2);
+                onPublish(category, category2, update ? note : undefined);
               }
             }}
           >

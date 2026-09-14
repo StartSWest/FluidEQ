@@ -82,6 +82,10 @@ const studio = {
   'studio.publish.title': '发布 {name}',
   'studio.publish.titleUpdate': '在图库中更新 {name}',
   'studio.publish.version': '版本 {version}',
+  'studio.publish.publishedVersion': '画廊中现有：版本 {version}',
+  'studio.publish.note': '此版本的新内容',
+  'studio.publish.notePlaceholder':
+    '听众会看到的一句话，例如：宽面板上的山峰不再被裁掉',
   'studio.publish.hears': '场景听到的声音',
   'studio.publish.yourMusic': '你的音乐',
   'studio.publish.demo': '演示',
@@ -268,6 +272,8 @@ const studio = {
   'studio.settings.response': '它如何回应音乐',
   'studio.settings.responseLead':
     '在它听到之前调整它听到的声音。在 100% 和零时，它听到的就是原本的音乐。',
+  'studio.settings.ambient': '窗口中的元素',
+  'studio.settings.ambientLead': '这个场景在“氛围”模式下为应用周围添加的内容。',
   'studio.settings.sensitivity': '灵敏度',
   'studio.settings.sensitivityHint':
     '反应有多强。安静的歌调高，响亮的歌让它一直顶满时调低。',
@@ -312,7 +318,6 @@ const studio = {
   'studio.wave.title': '图表上的波形',
   'studio.wave.hint':
     '使用此场景的人可以在图表的“视图”中更改这两项。试试极端情况：很低的波形，或抬高到中间的波形。',
-  'studio.wave.fixed': '此场景为频谱预留了自己的区域，因此这两项不会改变它。',
   'studio.tint.label': '搭配此场景的 FluidEQ',
   'studio.tint.hint':
     '在这里创作时，整个应用可以采用场景的颜色，或随音乐在它周围柔和发光，方便你看看并感受它作为主题的效果。',
@@ -353,6 +358,11 @@ const studio = {
   'studio.problem.bad-artwork': '图片不是 pack.json 所写尺寸的 WebP。',
   'studio.problem.contract-too-new':
     '这个场景是为更新版本的 FluidEQ 编写的。请更新应用。',
+  'studio.problem.bad-param':
+    'params 中的控件需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及小于 max 的 min。',
+  'studio.problem.too-many-params': '一个场景的 params 最多只能有 8 个控件。',
+  'studio.problem.bad-ambient':
+    'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-json': 'pack.json 不是有效的 JSON。',
   'studio.problem.missing-file': '缺少场景需要的文件。',
   'studio.problem.unsafe-path': '文件名必须是本文件夹中文件的普通名称。',

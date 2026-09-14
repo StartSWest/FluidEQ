@@ -1,0 +1,19 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The graph's notice that its look has a new version (`GraphUpdateNotice.tsx`):
+// a zero-height anchor under the graph's controls strip, which the Plus toast
+// stack hangs from as it hangs from the gallery's head. Never in the plot's
+// flow, and it lets the pointer through everywhere but the card.
+.graph-update-notice {
+  position: absolute;
+  z-index: 6;
+  top: 52px;
+  right: 12px;
+  width: min(460px, calc(100% - 24px));
+  height: 0;
+  pointer-events: none;
+}

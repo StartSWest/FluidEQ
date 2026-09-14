@@ -203,6 +203,38 @@ const isInWakeZone = (event: PointerEvent): boolean =>
   event.clientY <= TOP_WAKE_EDGE_PX;
 
 /**
+ * How near the faded graph toolbar the pointer brings it back, in pixels.
+ * About a finger's width of approach, so reaching for a control finds the
+ * strip already there.
+ */
+const TOOLBAR_APPROACH_PX = 24;
+
+/**
+ * Whether the pointer is over where the graph's toolbar sits, wherever the
+ * graph is. The top band above only finds the strip when the graph fills the
+ * window; in its pane the strip lies halfway down, so hovering exactly where
+ * the controls had been brought nothing back — and while faded the strip is
+ * transparent to the pointer, so the target test in `isTopChrome` cannot see
+ * it either. Measured only while the chrome is away, on a move.
+ */
+const isOverFadedToolbar = (event: PointerEvent): boolean => {
+  const strip = document.querySelector('.live-output-controls');
+  if (!strip) {
+    return false;
+  }
+  return Array.from(strip.children).some((control) => {
+    const box = control.getBoundingClientRect();
+    return (
+      box.width > 0 &&
+      event.clientX >= box.left - TOOLBAR_APPROACH_PX &&
+      event.clientX <= box.right + TOOLBAR_APPROACH_PX &&
+      event.clientY >= box.top - TOOLBAR_APPROACH_PX &&
+      event.clientY <= box.bottom + TOOLBAR_APPROACH_PX
+    );
+  });
+};
+
+/**
  * Whether the pointer is at one of the window's chrome edges.
  *
  * EITHER edge, and the two bars answer it together: going to the top brings
@@ -359,7 +391,8 @@ const handleActivity = (event?: Event) => {
   if (
     isIdle &&
     event?.type === 'pointermove' &&
-    !isInWakeZone(event as PointerEvent)
+    !isInWakeZone(event as PointerEvent) &&
+    !isOverFadedToolbar(event as PointerEvent)
   ) {
     // A side edge reached while the chrome is already away is the ordinary
     // way to summon a drawer tab, and it must not bring the two bars back

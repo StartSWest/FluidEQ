@@ -157,7 +157,10 @@ export type TLiveCurveShape = Pick<
  * the canvas, so its right-hand dB axis takes the same transform and keeps
  * describing the visible trace when its height or position changes. A scene
  * that reserves its own band (`spectrumRange`) moves the ruler there instead,
- * keeping the same decibel domain. With no wave, the gain scale itself.
+ * keeping the same decibel domain, and the wave's height and position then
+ * act inside that band: Alpine's aurora grows shorter or lifts within its
+ * sky, where the sliders used to be greyed out for a scene that had nowhere
+ * else to put its spectrum. With no wave, the gain scale itself.
  */
 export const liveLevelScaleFor = ({
   gain,
@@ -186,15 +189,20 @@ export const liveLevelScaleFor = ({
       (1 - bottom) * height - marginTop,
       topY + height * 0.24,
     );
+    const band = liveCurve
+      ? getWaveTransform(liveCurve, bottomY, topY)
+      : { translateY: 0, scaleY: 1 };
     const scale = gain.copy();
     return scale.range(
       scale
         .domain()
         .map(
           (value) =>
-            bottomY +
-            ((Number(value) - MIN_GAIN) / (MAX_GAIN - MIN_GAIN)) *
-              (topY - bottomY),
+            band.translateY +
+            band.scaleY *
+              (bottomY +
+                ((Number(value) - MIN_GAIN) / (MAX_GAIN - MIN_GAIN)) *
+                  (topY - bottomY)),
         ),
     );
   }

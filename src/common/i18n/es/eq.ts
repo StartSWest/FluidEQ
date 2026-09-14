@@ -129,6 +129,15 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.version.new': 'Nuevo',
+  'graph.version.caption': 'v{version} · {note}',
+  'graph.version.captionBare': 'Actualizado a v{version}',
+  'graph.version.dot':
+    'Hay una versión nueva desde la última vez que lo pusiste',
+  'graph.version.updated': '{name} ahora está en la versión {version}',
+  'graph.version.updatedNote':
+    '{name} ahora está en la versión {version}: {note}',
+  'graph.version.see': 'Ver novedades',
   'graph.scene.loading': 'Cargando visualizador…',
   'graph.scene.attack': 'Ataque',
   'graph.scene.attackHint':
@@ -145,6 +154,20 @@ const eq: Partial<Dictionary> = {
   'graph.style.next': 'Estilo siguiente',
   'graph.style.previous': 'Estilo anterior',
   'graph.style.search': 'Buscar estilos',
+  'graph.picker.label': 'Estilos y visualizadores',
+  'graph.picker.search': 'Buscar estilos y visualizadores',
+  'graph.picker.styles': 'Estilos',
+  'graph.picker.plus': 'Visualizadores Plus',
+  'graph.picker.all': 'Todos',
+  'graph.picker.yours': 'Tuyos',
+  'graph.picker.filterStyles': 'Filtrar estilos',
+  'graph.picker.filterPlus': 'Filtrar visualizadores',
+  'graph.family.lines': 'Líneas',
+  'graph.family.fills': 'Rellenos',
+  'graph.family.bars': 'Barras',
+  'graph.family.points': 'Puntos',
+  'graph.family.scenes': 'Escenas',
+  'graph.family.wave': 'Onda',
   'graph.seeThrough': 'Transparencia',
   'graph.seeThroughHint': 'Cuánto se ve la página a través de la gráfica',
   'graph.blur': 'Desenfoque',

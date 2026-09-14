@@ -66,6 +66,7 @@ import type {
   TGalleryAddOutcome,
   TGalleryListOutcome,
   TGalleryPreviewOutcome,
+  TGalleryVersionsOutcome,
 } from './ipc/plusGallery';
 import type {
   TMineOutcome,
@@ -113,6 +114,7 @@ import type {
   TForumResult,
 } from '../common/forum/forumTypes';
 import type { TSceneFailure } from './scenePackStore';
+import type { TSceneRefusal } from './sceneRefusals';
 import type { IScenePack } from '../common/scenePacks';
 import type { TBillingOutcome } from './ipc/account';
 import type {
@@ -885,6 +887,13 @@ const reportMemberSceneFailure = (lookId: string, reason: TSceneFailure) =>
     reason,
   ) as Promise<void>;
 
+/**
+ * A scene's code would not run, wherever it ran it — the gallery's preview,
+ * the lamps, a picture. Sent as the source, which the main process hashes.
+ */
+const reportSceneSourceRefused = (source: string, reason: TSceneRefusal) =>
+  ipcRenderer.invoke('scene-source-refused', source, reason) as Promise<void>;
+
 const onMemberScenesChanged = (
   listener: (listing: IMemberScenesListing) => void,
 ) => {
@@ -945,6 +954,7 @@ const chooseStudioPicture = (label: string) =>
  */
 const writeStudioSettings = (settings: {
   params?: Record<string, number>;
+  ambient?: Record<string, number>;
   response?: ISceneResponse | null;
 }) =>
   ipcRenderer.invoke(
@@ -1041,6 +1051,7 @@ const publishStudioScene = (
   category: TPlusCategory,
   picture: Uint8Array,
   category2?: TPlusCategory,
+  note?: string,
 ) =>
   ipcRenderer.invoke(
     'studio-publish',
@@ -1048,6 +1059,7 @@ const publishStudioScene = (
     category,
     picture,
     category2,
+    note,
   ) as Promise<TPublishOutcome>;
 
 // The Plus gallery. Scenes are named by author and scene id, never by a path.
@@ -1114,6 +1126,14 @@ const reportGalleryScene = (
     sceneId,
     reason,
   ) as Promise<boolean>;
+
+/** A scene's earlier versions, newest first, with what changed in each. */
+const galleryVersions = (authorId: string, sceneId: string) =>
+  ipcRenderer.invoke(
+    'plus-gallery-versions',
+    authorId,
+    sceneId,
+  ) as Promise<TGalleryVersionsOutcome>;
 
 const myPublishedScenes = () =>
   ipcRenderer.invoke('plus-gallery-mine') as Promise<TMineOutcome>;
@@ -1395,6 +1415,7 @@ export default {
     loadMemberScene,
     removeMemberScene,
     reportMemberSceneFailure,
+    reportSceneSourceRefused,
     onMemberScenesChanged,
     openStudio,
     closeStudio,
@@ -1408,6 +1429,7 @@ export default {
     listGalleryTasteSamples,
     addGalleryScene,
     reportGalleryScene,
+    galleryVersions,
     myPublishedScenes,
     unpublishScene,
     moderationStatus,

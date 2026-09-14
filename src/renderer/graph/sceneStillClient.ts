@@ -1,5 +1,7 @@
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from './sceneGl';
+import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
+import reportRefusedSceneSource from './sceneRefusalReport';
 import type {
   TSceneStillReply,
   TSceneStillRequest,
@@ -73,9 +75,25 @@ const pageAccent = () =>
     getComputedStyle(document.documentElement).getPropertyValue('--accent'),
   );
 
+/**
+ * Scenes a worker gave up on this session: their drawing lost the GPU's
+ * context or held the GPU far too long. Kept here and not only in the worker,
+ * which is let go when idle and would come back knowing none of them — and
+ * every card that scrolls back into view asks for its picture again, each ask
+ * the same reset of the display.
+ */
+const refusedScenes = new Set<string>();
+const refusalKey = (pack: IScenePack) =>
+  `${pack.version}
+${sceneProgramKey(pack)}`;
+
 const ask = <K extends TSceneStillRequest['kind']>(
   request: Omit<Extract<TSceneStillRequest, { kind: K }>, 'id'>,
 ): Promise<TReplyOf<K> | undefined> => {
+  const key = refusalKey(request.pack);
+  if (refusedScenes.has(key)) {
+    return Promise.resolve(undefined);
+  }
   const running = started();
   if (!running) {
     return Promise.resolve(undefined);
@@ -83,11 +101,18 @@ const ask = <K extends TSceneStillRequest['kind']>(
   nextId += 1;
   const id = nextId;
   return new Promise((resolve) => {
-    waiting.set(id, (reply) =>
+    waiting.set(id, (reply) => {
+      if (reply?.refused) {
+        refusedScenes.add(key);
+        // Beyond this session as well, except a loss nothing was blamed for.
+        if (reply.refused !== 'context-lost') {
+          reportRefusedSceneSource(request.pack.source, reply.refused);
+        }
+      }
       resolve(
         reply?.kind === request.kind ? (reply as TReplyOf<K>) : undefined,
-      ),
-    );
+      );
+    });
     running.postMessage({ ...request, id });
   });
 };
@@ -96,8 +121,11 @@ const ask = <K extends TSceneStillRequest['kind']>(
 export const drawStillInWorker = async (
   pack: IScenePack,
   frames?: readonly ISceneFrame[],
-): Promise<Blob | undefined> =>
-  (
+): Promise<Blob | undefined> => {
+  // After the graph's own compile of this scene, if one is under way, so this
+  // one is the GPU process's cached copy (`sceneLinkTurns.ts`).
+  await afterLinkTurns(sceneProgramKey(pack));
+  return (
     await ask<'still'>({
       kind: 'still',
       pack,
@@ -105,9 +133,13 @@ export const drawStillInWorker = async (
       ...(frames ? { frames } : {}),
     })
   )?.blob;
+};
 
 /** `pack`'s showcase frames, drawn small and read back as RGBA. */
 export const sampleSceneInWorker = async (
   pack: IScenePack,
-): Promise<Uint8Array | undefined> =>
-  (await ask<'sample'>({ kind: 'sample', pack, accent: pageAccent() }))?.pixels;
+): Promise<Uint8Array | undefined> => {
+  await afterLinkTurns(sceneProgramKey(pack));
+  return (await ask<'sample'>({ kind: 'sample', pack, accent: pageAccent() }))
+    ?.pixels;
+};

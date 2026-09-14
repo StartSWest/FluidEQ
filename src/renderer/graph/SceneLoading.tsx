@@ -79,6 +79,7 @@ export default function SceneLoading({
               <SceneLookIcon
                 className="chart-scene-loading__icon"
                 swatch={swatch}
+                lookId={lookId}
               />
             </span>
             <span className="chart-scene-loading__label">

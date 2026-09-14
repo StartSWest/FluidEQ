@@ -124,6 +124,21 @@ const clampToPlot = (y: number, top: number, bottom: number): number => {
   return Math.max(top, Math.min(bottom, y));
 };
 
+/**
+ * The live curve a Plus visualizer's band is measured from: its height and
+ * position, standing up. A scene is built around its own band, and the
+ * wave's orientation - hanging, mirrored, centred - turned one upside down
+ * or halved it, so for a scene there is no orientation to take (and the View
+ * menu offers none).
+ */
+const orientedForScene = (
+  curve: ILiveCurveData | undefined,
+  hasScene: boolean,
+): ILiveCurveData | undefined =>
+  curve && hasScene
+    ? { ...curve, isFlipped: false, isHalfHeight: false, isFromCentre: false }
+    : curve;
+
 const presenceTint = (allowance: number): string => {
   const t = Math.max(0, Math.min(1, allowance));
   const channel = (index: number) =>
@@ -155,6 +170,7 @@ const CoverageOverlay = ({
   top,
   plotHeight,
   isResponseHidden,
+  isOverScene,
 }: {
   xScale: AxisScale<NumberValue>;
   yScale: AxisScale<NumberValue>;
@@ -162,6 +178,13 @@ const CoverageOverlay = ({
   plotHeight: number;
   /** No response layers are being presented, so their listening bands go too. */
   isResponseHidden: boolean;
+  /**
+   * A Plus visualizer owns the plot. Its picture is the thing being watched,
+   * so the shaded columns and their lines stay off it, whatever the switch
+   * says — and the switch itself is taken off the strip and greyed in the
+   * View menu while one is on, so nothing offers what would not appear.
+   */
+  isOverScene: boolean;
 }) => {
   const { balanceProgress, presenceLevels, presenceTypical } =
     useLiveAudioFrame();
@@ -172,7 +195,7 @@ const CoverageOverlay = ({
   const { t } = useTranslation();
   // The shaded columns only. The bars along the foot are drawn either way — see
   // `useGraphCoverageHidden` for why the switch stops short of them.
-  const isWashHidden = useGraphCoverageHidden();
+  const isWashHidden = useGraphCoverageHidden() || isOverScene;
   const coverage = balanceProgress?.regions;
   // Read so a drag anywhere re-renders every line, since one store holds them
   // all. The values themselves are taken through `getPresenceLine`, which knows
@@ -914,16 +937,27 @@ const Chart = ({
   });
 
   const scene = useSceneLook();
+  const hasScene = Boolean(scene);
   const liveLevelScale = useMemo(
     () =>
       liveLevelScaleFor({
         gain: yScaleGain,
         spectrumRange: scene?.spectrumRange,
-        liveCurve: liveCurves[liveCurves.length - 1],
+        liveCurve: orientedForScene(
+          liveCurves[liveCurves.length - 1],
+          hasScene,
+        ),
         height,
         marginTop: margins.top,
       }),
-    [liveCurves, yScaleGain, scene?.spectrumRange, height, margins.top],
+    [
+      liveCurves,
+      yScaleGain,
+      scene?.spectrumRange,
+      hasScene,
+      height,
+      margins.top,
+    ],
   );
 
   // On the margins' numbers, not the object: the chart is handed a new one
@@ -1228,6 +1262,7 @@ const Chart = ({
           top={padding.top}
           plotHeight={plotHeight}
           isResponseHidden={isLiveOutputForeground}
+          isOverScene={Boolean(scene)}
         />
         {selectionBox && (
           <rect

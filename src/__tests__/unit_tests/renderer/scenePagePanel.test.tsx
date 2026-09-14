@@ -275,3 +275,91 @@ describe('the picture while the scene starts', () => {
     );
   });
 });
+
+describe('the stage while the scene downloads', () => {
+  it('shows the Studio’s loader, with the download mark, the words and the scene’s name', async () => {
+    // Never answers: the download is still under way.
+    bridge.previewGalleryScene.mockReturnValue(new Promise(() => {}));
+    const { container } = render(<VisualizersView onShowGraph={jest.fn()} />);
+    act(() => openGalleryPage({ kind: 'scene', scene: official }));
+    const loader = await screen.findByText('plus.scene.loading');
+    const veil = loader.closest('.gallery-preview__downloading');
+    expect(veil).toHaveAttribute('role', 'status');
+    expect(
+      veil?.querySelector('.gallery-preview__download-mark svg'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('.gallery-preview__download-name'),
+    ).toHaveTextContent('Aurora');
+  });
+
+  it('says a scene will not play again here once its code was refused', async () => {
+    bridge.previewGalleryScene.mockResolvedValue({
+      ok: false,
+      reason: 'quarantined',
+    });
+    render(<VisualizersView onShowGraph={jest.fn()} />);
+    act(() => openGalleryPage({ kind: 'scene', scene: official }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'plus.scene.quarantined',
+    );
+  });
+});
+
+describe('the versions on a scene’s page', () => {
+  it('names this version, what is new in it, and folds the earlier ones away', async () => {
+    const galleryVersions = jest.fn().mockResolvedValue({
+      ok: true,
+      versions: [
+        {
+          version: 3,
+          note: 'Peaks stay whole',
+          publishedAt: new Date().toISOString(),
+        },
+        { version: 2, publishedAt: '2026-09-01T12:00:00Z' },
+        {
+          version: 1,
+          note: 'First light',
+          publishedAt: '2026-08-20T12:00:00Z',
+        },
+      ],
+    });
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: { ipcRenderer: { ...bridge, galleryVersions } },
+    });
+    const updated: IGalleryScene = {
+      ...official,
+      version: 3,
+      firstVersion: 1,
+      versionNote: 'Peaks stay whole',
+      updatedAt: new Date().toISOString(),
+    };
+    // The page follows the gallery's own copy of the scene, so it lists this one.
+    bridge.listGallery.mockResolvedValue({
+      ok: true,
+      scenes: [updated, member],
+      more: false,
+    });
+    const { panel, panelElement } = await openScene(updated);
+    expect(
+      panelElement.querySelector('.gallery-versions__line'),
+    ).toHaveTextContent(/^plus\.version\.pageLine:3,/);
+    expect(panel.getByText('plus.version.new')).toBeInTheDocument();
+    expect(panel.getByText('plus.version.whatsNew:3')).toBeInTheDocument();
+    expect(panel.getByText('Peaks stay whole')).toBeInTheDocument();
+    // The earlier versions only: this one is already said above.
+    expect(
+      await panel.findByText('plus.version.earlier:2'),
+    ).toBeInTheDocument();
+    expect(panel.getByText('First light')).toBeInTheDocument();
+    expect(panel.getByText('plus.version.noNote')).toBeInTheDocument();
+    expect(galleryVersions).toHaveBeenCalledWith(FLUIDEQ_CREATOR_ID, 'aurora');
+  });
+
+  it('marks nothing new on a scene’s first version', async () => {
+    const { panel } = await openScene({ ...official, firstVersion: 2 });
+    expect(panel.queryByText('plus.version.new')).toBeNull();
+    expect(panel.queryByText(/plus\.version\.earlier/)).toBeNull();
+  });
+});

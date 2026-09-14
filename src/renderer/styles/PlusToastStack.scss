@@ -124,6 +124,15 @@ $toast-life: 7s;
   }
 }
 
+// A notice that offers something to do takes one more column for it.
+.plus-toast:has(.plus-toast__action) {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.plus-toast__action {
+  white-space: nowrap;
+}
+
 .plus-toast__text {
   margin: 0;
   color: $text-primary;

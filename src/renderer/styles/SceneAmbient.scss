@@ -1,0 +1,31 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// A visualizer's elements over the window (`SceneAmbient.tsx`): over the
+// panes, just under the window's glow (`ScenePulse.scss`, 91), and under
+// everything that floats in front of the panes, taking no pointer and laying
+// nothing out.
+//
+// 90, not the 1099 it was. The panes stack at 0 to 73; what floats starts at
+// 95 — the karaoke editor's full screen, the titlebar at 100 and the menus
+// that open inside it, the portalled menus at 1000 and 1001, the now-playing
+// bar at 1100, dialogs from 1190. At 1099 a bubble drifted across the open
+// actions menu, over its rows, and every dropdown in the app lay under it.
+//
+// Screened, like the glow: a shape can only lift what is under it towards its
+// own colour, so a bird crossing a pane is the pane a shade lighter where the
+// bird is, and a word under it stays the word. Laid over normally, the same
+// shapes read as smudges on the glass.
+.scene-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  contain: strict;
+  mix-blend-mode: screen;
+}

@@ -90,6 +90,10 @@ const studio = {
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Actualizar {name} en la galería',
   'studio.publish.version': 'Versión {version}',
+  'studio.publish.publishedVersion': 'En la galería ahora: versión {version}',
+  'studio.publish.note': 'Qué hay de nuevo en esta versión',
+  'studio.publish.notePlaceholder':
+    'Una línea que verán quienes escuchan, por ejemplo: las montañas ya no se cortan en paneles anchos',
   'studio.publish.hears': 'Lo que oye la escena',
   'studio.publish.yourMusic': 'Tu música',
   'studio.publish.demo': 'Demo',
@@ -302,6 +306,9 @@ const studio = {
   'studio.settings.response': 'Cómo responde a la música',
   'studio.settings.responseLead':
     'Ajusta lo que oye antes de oírlo. Al 100% y en cero, oye la música tal cual.',
+  'studio.settings.ambient': 'Elementos en la ventana',
+  'studio.settings.ambientLead':
+    'Lo que esta escena añade alrededor de la app en el modo Ambiente.',
   'studio.settings.sensitivity': 'Sensibilidad',
   'studio.settings.sensitivityHint':
     'Cuánto reacciona. Más para una canción suave, menos si una fuerte la deja siempre al máximo.',
@@ -352,8 +359,6 @@ const studio = {
   'studio.wave.title': 'Onda en la gráfica',
   'studio.wave.hint':
     'Quien use la escena puede cambiarlas en Vista, en la gráfica. Prueba los extremos: una onda baja o subida hasta el centro.',
-  'studio.wave.fixed':
-    'Esta escena reserva su propia franja para el espectro, así que estos dos ajustes no la cambian.',
   'studio.tint.label': 'FluidEQ con esta escena',
   'studio.tint.hint':
     'Mientras trabajas aquí, toda la app puede tomar los colores de la escena, o brillar suavemente a su alrededor con la música, para que la veas y la sientas como tema.',
@@ -402,6 +407,12 @@ const studio = {
     'La imagen no es un WebP del tamaño que indica pack.json.',
   'studio.problem.contract-too-new':
     'Esta escena se escribió para un FluidEQ más nuevo. Actualiza la app.',
+  'studio.problem.bad-param':
+    'Un control de params necesita un id con a-z, 0-9 y _, un nombre en inglés y un min menor que su max.',
+  'studio.problem.too-many-params':
+    'Una escena puede tener como máximo 8 controles en params.',
+  'studio.problem.bad-ambient':
+    'Se dejaron fuera elementos o controles de ambient en pack.json. Revisa sus formas, movimientos, colores, cantidades y qué mueve cada control.',
   'studio.problem.bad-json': 'pack.json no es un JSON válido.',
   'studio.problem.missing-file': 'Falta un archivo que la escena necesita.',
   'studio.problem.unsafe-path':

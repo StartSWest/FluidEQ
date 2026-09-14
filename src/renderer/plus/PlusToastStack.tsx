@@ -17,6 +17,8 @@ interface IPlusToastStackProps<T extends IPlusToastNotice> {
   /** Each action's current notice, under a name that stays put per action. */
   sources: TPlusToastSources<T>;
   text: (notice: T) => string;
+  /** A button a notice offers, which also puts the toast away when pressed. */
+  action?: (notice: T) => { label: string; run: () => void } | undefined;
 }
 
 /** Only the element the handler sits on: every animation inside bubbles. */
@@ -39,6 +41,7 @@ const own = (event: AnimationEvent<HTMLElement>) =>
 export default function PlusToastStack<T extends IPlusToastNotice>({
   sources,
   text,
+  action,
 }: IPlusToastStackProps<T>) {
   const { t } = useTranslation();
   const [seen, setSeen] = useState(sources);
@@ -58,47 +61,62 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
 
   return (
     <div className="plus-toasts" aria-live="polite">
-      {state.toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`plus-toast-slot${toast.leaving ? ' is-leaving' : ''}`}
-          onAnimationEnd={(event) => {
-            if (own(event) && toast.leaving) {
-              setState((current) => removeToast(current, toast.id));
-            }
-          }}
-        >
+      {state.toasts.map((toast) => {
+        const offered = action?.(toast.notice);
+        return (
           <div
-            className={`plus-toast plus-toast--${toast.notice.ok ? 'done' : 'problem'}`}
-            role={toast.notice.ok ? undefined : 'alert'}
+            key={toast.id}
+            className={`plus-toast-slot${toast.leaving ? ' is-leaving' : ''}`}
+            onAnimationEnd={(event) => {
+              if (own(event) && toast.leaving) {
+                setState((current) => removeToast(current, toast.id));
+              }
+            }}
           >
-            <span className="plus-toast__mark" aria-hidden="true">
-              <Glyph name={toast.notice.ok ? 'check' : 'alert'} />
-            </span>
-            <p className="plus-toast__text">{text(toast.notice)}</p>
-            <button
-              type="button"
-              className="plus-toast__close"
-              aria-label={t('app.dismiss')}
-              title={t('app.dismiss')}
-              onClick={() => dismiss(toast.id)}
+            <div
+              className={`plus-toast plus-toast--${toast.notice.ok ? 'done' : 'problem'}`}
+              role={toast.notice.ok ? undefined : 'alert'}
             >
-              <Glyph name="close" />
-            </button>
-            {toast.notice.ok && (
-              <span
-                className="plus-toast__life"
-                aria-hidden="true"
-                onAnimationEnd={(event) => {
-                  if (own(event)) {
+              <span className="plus-toast__mark" aria-hidden="true">
+                <Glyph name={toast.notice.ok ? 'check' : 'alert'} />
+              </span>
+              <p className="plus-toast__text">{text(toast.notice)}</p>
+              {offered && (
+                <button
+                  type="button"
+                  className="button small subtle plus-toast__action"
+                  onClick={() => {
                     dismiss(toast.id);
-                  }
-                }}
-              />
-            )}
+                    offered.run();
+                  }}
+                >
+                  {offered.label}
+                </button>
+              )}
+              <button
+                type="button"
+                className="plus-toast__close"
+                aria-label={t('app.dismiss')}
+                title={t('app.dismiss')}
+                onClick={() => dismiss(toast.id)}
+              >
+                <Glyph name="close" />
+              </button>
+              {toast.notice.ok && (
+                <span
+                  className="plus-toast__life"
+                  aria-hidden="true"
+                  onAnimationEnd={(event) => {
+                    if (own(event)) {
+                      dismiss(toast.id);
+                    }
+                  }}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

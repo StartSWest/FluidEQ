@@ -5,7 +5,10 @@ import {
 } from './memberSceneRules';
 import { normalizeSceneArtwork } from './sceneArtwork';
 import {
+  MAX_PARAM_MAGNITUDE,
+  MAX_SCENE_PARAMS,
   normalizeScenePack,
+  SCENE_PARAM_ID,
   type IScenePack,
   type TLocalizedName,
 } from './scenePacks';
@@ -143,6 +146,9 @@ export type TMemberProblemCode =
   | 'bad-swatch'
   | 'bad-artwork'
   | 'contract-too-new'
+  | 'bad-param'
+  | 'too-many-params'
+  | 'bad-ambient'
   // Raised by the project folder reader, never by a pack in memory.
   | 'bad-json'
   | 'missing-file'
@@ -197,6 +203,61 @@ const cleanParams = (value: unknown) => {
     return { ...param, names: cleaned.names };
   });
   return { params, tooLong };
+};
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/** Whether one entry of `params` is a control the scene will really get. */
+const isWholeParam = (entry: unknown): boolean => {
+  if (
+    !isRecord(entry) ||
+    typeof entry.id !== 'string' ||
+    !SCENE_PARAM_ID.test(entry.id)
+  ) {
+    return false;
+  }
+  const { min, max, value } = entry;
+  return (
+    Boolean(cleanNames(entry.names).names?.en) &&
+    isFiniteNumber(min) &&
+    isFiniteNumber(max) &&
+    min < max &&
+    Math.max(Math.abs(min), Math.abs(max)) <= MAX_PARAM_MAGNITUDE &&
+    (value === undefined || isFiniteNumber(value))
+  );
+};
+
+/**
+ * What is wrong with the controls in a project's `pack.json`, for its author
+ * to fix.
+ *
+ * `normalizeScenePack` repairs what it can and drops the rest, which is right
+ * for a scene already out in the world: one that plays keeps playing. In the
+ * author's own folder it hid the mistake. A control dropped for its id or its
+ * name is a uniform never declared, so the scene failed on a compiler line
+ * about `uParam_` that points at nothing in `pack.json`; one the shader did
+ * not use simply never appeared as a slider. The Studio names it instead.
+ */
+export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    return ['bad-param'];
+  }
+  const problems: TMemberProblemCode[] = [];
+  const ids = value.map((entry: unknown) =>
+    isRecord(entry) ? entry.id : undefined,
+  );
+  const repeated = ids.some((id, index) => ids.indexOf(id) !== index);
+  if (repeated || !value.every(isWholeParam)) {
+    problems.push('bad-param');
+  }
+  if (value.length > MAX_SCENE_PARAMS) {
+    problems.push('too-many-params');
+  }
+  return problems;
 };
 
 /**

@@ -15,7 +15,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import type * as TestingLibrary from '@testing-library/react';
 import type { ReactElement } from 'react';
-import type { ISceneSky } from '../../../renderer/utils/sceneTint';
+import {
+  SCENE_SKY_MEASUREMENT,
+  type ISceneSky,
+} from '../../../renderer/utils/sceneTint';
 
 let mockLookId = 'premium:bloom';
 const mockMeasureScene = jest.fn();
@@ -35,7 +38,9 @@ jest.mock('../../../renderer/graph/sceneSky', () => ({
   measureStudioSky: (...args: unknown[]) => mockMeasureStudio(...args),
 }));
 
-const MEASUREMENT = 3;
+// The measurement the app stores now, whatever its number: written as a
+// literal it went stale the first time the measuring changed.
+const MEASUREMENT = SCENE_SKY_MEASUREMENT;
 const root = document.documentElement;
 
 const sky = (hue: number): ISceneSky => ({

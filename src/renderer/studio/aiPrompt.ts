@@ -1,3 +1,24 @@
+import {
+  MAX_MEMBER_LOOP_ITERATIONS,
+  MAX_MEMBER_PIXEL_WORK,
+} from 'common/memberSceneRules';
+import {
+  AMBIENT_AREAS,
+  AMBIENT_FIELDS,
+  AMBIENT_MUSIC,
+  AMBIENT_SHAPES,
+  MAX_AMBIENT_COLOURS,
+  MAX_AMBIENT_COUNT,
+  MAX_AMBIENT_ELEMENTS,
+  MAX_AMBIENT_FRAME_EDGE,
+  MAX_AMBIENT_FRAMES,
+  MAX_AMBIENT_PARAMS,
+  MAX_AMBIENT_PATH_LENGTH,
+  MAX_AMBIENT_SIZE,
+  MAX_AMBIENT_TOTAL,
+  MIN_AMBIENT_FRAME_EDGE,
+  MIN_AMBIENT_SIZE,
+} from 'common/sceneAmbient';
 import { SCENE_CONTRACT_VERSION } from 'common/sceneUniformContract';
 import type { TranslationKey } from 'common/i18n';
 
@@ -23,8 +44,12 @@ GLSL ES 3.00 fragment-shader body that FluidEQ runs on the listener's GPU while
 music plays.
 
 If you can edit files, you are working in my FluidEQ project folder. It
-already holds a working pack.json and scene.frag: rewrite both for my idea,
-keep the file names, and save them there. FluidEQ plays every save at once,
+already holds a working pack.json and scene.frag; read both first. If
+scene.frag starts with "// My first FluidEQ scene", it is only FluidEQ's
+starter: rewrite both for my idea. Otherwise the scene is mine: change what
+my idea asks for and keep everything else as it is - its look, its sliders
+and their values, its response and its photos. Keep the file names and save
+them there. FluidEQ plays every save at once,
 and if it shows me a problem I will paste it to you; fix exactly that. If you
 cannot edit files, reply with the complete contents of each file and nothing
 else: first pack.json, then scene.frag. If my idea is about photos of mine,
@@ -48,16 +73,27 @@ pack.json:
   "params": []
 }
 - id: 2-48 characters, a-z, 0-9 and dashes, starting with a letter.
-- version: raise it by one every time you change the scene.
+- version: raise it by one every time you change the scene. When you change a
+  scene that already existed, also give me one line of at most 140
+  characters saying what changed, as a listener would notice it ("the peaks
+  no longer get cut on wide panels"): FluidEQ shows it as the version's
+  "What's new" when I publish. If you reply with the files, put it after them.
 - names: English required; add es, pt, fr, de, it, ru, zh, ja, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.
 - fallbackStyle: drawn when a computer cannot run the scene. Use one of: bars,
   line, area, dots, spikes, ridge, skyline, flames, bubbles, rain, starfield,
   canyon.
-- params: up to 8 sliders the listener can adjust, each
+- params: the scene's own sliders, up to 8, which FluidEQ shows me by
+  itself with the names you give them. Add one for each thing my idea is
+  worth adjusting - its size, speed, density, glow, colour, how strongly a
+  part answers the music - and none that do nothing. Each is
   { "id": "glow", "names": { "en": "Glow" }, "min": 0, "max": 1, "value": 0.5 }.
-  Each becomes "uniform float uParam_<id>;" automatically. Do not declare it.
+  id: a-z, 0-9 and _, starting with a letter, at most 24 characters (no
+  dashes). min below max, value between them, names at most 40 characters.
+  Each becomes "uniform float uParam_<id>;" automatically. Do not declare it,
+  use every one, and keep the scene correct over each slider's whole range:
+  no division by zero or vanished picture at either end.
   I tune them in FluidEQ, which writes my values back as "value": when you
   rewrite pack.json, keep each existing param's "value" unless I ask.
 - response (optional): how the scene answers the music, which I also tune in
@@ -67,6 +103,11 @@ pack.json:
   milliseconds a rise and a fall take. Set it only if the idea needs it (a
   scene that should rest through quiet parts, a slow glow), and keep an
   existing "response" unless I ask.
+- spectrumRange (optional, rare): [bottom, top] in uv, top - bottom at least
+  0.2, for a scene whose spectrum must stay in one part of the picture, such
+  as a sky. My wave height and position then move r inside that band instead
+  of the whole panel, so leave it out unless the idea cannot work without.
+- ambient (optional): the scene's elements around the app (see AMBIENT).
 - With photos add: "artworkFile": "artwork.webp", "artworkWidth": W,
   "artworkHeight": H, and "pictures" naming each photo's place in it (see
   ARTWORK).
@@ -98,21 +139,74 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
                      strikes, which way a comet flies).
   sampler2D uWaveform  recent waveform envelope: texture(uWaveform, vec2(t, 0.5)).r
   vec3  uAccent      the app's theme colour, if you want to match it.
-  vec4  uSpectrumRect  where the app's live frequency axis sits:
-                       (left, right, floor, ceiling) in uv units.
+  vec4  uSpectrumRect  where my wave is drawn: .x = left and .y = right end
+                       of the frequency axis, .z = the height of the quietest
+                       level and .w = of the loudest, all in uv (see FIT THE
+                       PANEL AND MY WAVE).
   sampler2D uArtwork   my photos, if pack.json names them. Origin at the
                        bottom-left, premultiplied RGBA. Do not use it otherwise.
 
+FIT THE PANEL AND MY WAVE
+- The panel can be any shape, from a narrow column to a wide strip, and
+  changes while the scene plays. Scale by uResolution so circles stay round,
+  and keep the main subject whole at every shape: never cut it at an edge.
+- FluidEQ has two sliders for my wave, its height and its position, and I
+  can turn it upside down; the scene gets them as uSpectrumRect (r below).
+  Build the scene around that band so both sliders visibly change it: the
+  main subject (whatever my idea is about: bars, a flower, a skyline, a
+  creature, the brightest region) stands in the band, sized by
+  abs(r.w - r.z) and centred on vec2(r.x + r.y, r.z + r.w) * 0.5. r.w below
+  r.z means the wave hangs from the top. Even at 5% height the subject stays
+  visible, only smaller. Clamp its position so the whole of it stays inside
+  the panel. The background may still fill everything.
+- A wave, a ribbon or a line is the subject too, not the background: keep it
+  in the middle of the band at about half its height, over a background of
+  its own, and let it fade out before the panel's sides. Stretched from the
+  bottom of the panel to the top and from edge to edge, it hides the
+  background and looks pulled out of shape.
+- Anything drawn along the spectrum lines up with it: frequency f is at
+  uv.x = mix(r.x, r.y, f), and a reading v (0..1) at uv.y = mix(r.z, r.w, v).
+
+ANSWERING THE MUSIC
+- Answer it in more than one way: let bass, mids and treble each move or
+  light a different part, and let separate elements follow their own place
+  in the spectrum.
+- Real music is not flat. The bass reads high nearly all the time and the top
+  octaves stay low, so read each region against its own usual range (subtract
+  its floor, rescale) or bass parts never rest and treble parts never move.
+- Big areas, and anything that changes brightness, follow uSpectrumSlow or
+  uBands, never uSpectrum or uBeat directly, or they blink. Keep uBeat for
+  small, quick accents and uMusicAccent.x for the rare big moment.
+- Light that comes up with the music eases back down; nothing snaps from
+  bright to dark in one frame.
+- Give the scene a clear main colour, not grey: the colour covering most of
+  the picture tints FluidEQ's window around it, and my desk lights take their
+  colours from the scene.
+
 RULES (FluidEQ refuses the scene otherwise)
-- Loops: only for (int i = 0; i < N; i++) with N a constant of at most 128
-  (counting down is fine too). Never assign to i inside the loop. No while,
-  no do, no recursion.
+- Loops: only for (int i = 0; i < N; i++) with N a number or a const int
+  declared once in the file, at most ${MAX_MEMBER_LOOP_ITERATIONS} turns (counting down is fine too).
+  Never change i inside the loop, not even through a function's out or inout
+  parameter. No while, no do, no recursion.
+- Loops inside loops multiply, and a function called in a loop costs all of
+  its own loops on every turn: counting every turn and every call of your
+  own functions, one pixel may do at most ${MAX_MEMBER_PIXEL_WORK}.
 - Plain ASCII outside comments. At most 64 KB.
 - In silence the scene must be calm: only slow drift from uTime. Every bright,
   fast or big movement must come from the music.
-- Never flash the whole picture. Let a beat move or light a part of it.
-- It runs for every pixel, every frame, on ordinary laptops. Keep loops short,
-  sample textures sparingly, and prefer smooth maths to many layers.
+- Nothing flashes. No region bigger than a small detail may swing between
+  bright and dark, or to and from saturated red, more than three times a
+  second, and no pattern (stripes, checks, rings) may invert on the beat:
+  flashing like that can cause seizures, and FluidEQ holds any region that
+  does, which freezes and smears it on screen. Let a beat move something or
+  light a small part; let big areas follow uSpectrumSlow.
+- It runs for every pixel, every frame, on ordinary laptops, and FluidEQ
+  lowers its resolution when it is slow, which blurs it. It may also fill a
+  whole monitor as my desktop background, so it has to stay cheap at 4K. Keep
+  loops short, never nest loops that sample textures or noise, skip work
+  early for pixels it cannot touch, and prefer smooth maths to many layers.
+  A frame so heavy that the graphics driver resets gets the scene refused on
+  that computer for good.
 
 HELPERS YOU MAY COPY
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -153,6 +247,53 @@ subject usually is, and move, bend, light or tint them with the music - the
 photo breathing with uBands.x, a glow along its edges on uBeat, colours
 warming with uBands.y, particles in front with uBands.z. Keep each photo
 recognisable: light and move parts of it, never wash it out.
+
+AMBIENT (optional, in pack.json)
+The scene's own elements in the window around it, drawn faintly over the app
+when I choose the Ambient mode: birds for a mountain scene, petals for a
+flower, stars for a city. FluidEQ draws them from this description; none of it
+is code. Add them when the idea has something that belongs around it:
+  "ambient": {
+    "elements": [
+      { "id": "gulls", "shape": "bird", "colours": ["#dfe9ff"], "count": 6,
+        "size": [14, 24], "opacity": 0.7, "motion": "fly", "speed": 0.35,
+        "area": "top", "flap": 0.7, "turn": 0.3, "music": "mid", "react": 0.3 }
+    ],
+    "params": [
+      { "id": "flock", "names": { "en": "Birds" }, "value": 0.6,
+        "targets": [ { "element": "gulls", "field": "count", "min": 2, "max": 10 } ] }
+    ]
+  }
+- elements: up to ${MAX_AMBIENT_ELEMENTS}. id: a-z, 0-9 and _, starting with a letter.
+  shape: ${AMBIENT_SHAPES.join(', ')}. For path, add "path": an outline
+  in a box from -1 to 1, only the commands M L H V C S Q T Z and numbers from
+  -2 to 2, at most ${MAX_AMBIENT_PATH_LENGTH} characters.
+  For picture, the element is drawn from artwork.webp itself - the scene's
+  own bird, petal or lantern flying around the app. Add "frames": up to ${MAX_AMBIENT_FRAMES}
+  places [x, y, width, height] in the artwork's pixels from its top-left
+  (the same pixels as "pictures"), all one size, ${MIN_AMBIENT_FRAME_EDGE} to ${MAX_AMBIENT_FRAME_EDGE} pixels a side,
+  inside the image. They play in order, one cycle per wingbeat or flutter
+  (flap sets the pace), each blending into the next: the poses of one
+  wingbeat, or one frame for a still picture. Optional "rest": the index of
+  the pose it holds while gliding. "facing": "right" or "left" if the
+  picture looks that way, so it turns to face where it flies; "none"
+  otherwise. colours are not needed for it. Use places whose ground is
+  transparent: FluidEQ fades every edge, but a photo still reads as a
+  faint square. size is its longer side.
+  motion: fly (crosses the window in arcs, wings beating), drift (rides one
+  slow wind), wander (turns on a walk of its own), twinkle (stays put and
+  breathes), fall, rise, sway (bobs where it stands).
+  colours: 1 to ${MAX_AMBIENT_COLOURS} like #rrggbb, from the scene. count: 1 to ${MAX_AMBIENT_COUNT} each, ${MAX_AMBIENT_TOTAL}
+  in all. size: [smallest, largest] in pixels, ${MIN_AMBIENT_SIZE} to ${MAX_AMBIENT_SIZE}. opacity, speed, flap (wing
+  beat, flutter or twinkle), turn (how much each turns and differs) and react:
+  0 to 1. area: ${AMBIENT_AREAS.join(', ')}. music: ${AMBIENT_MUSIC.join(', ')}.
+- params: up to ${MAX_AMBIENT_PARAMS} sliders for these elements, which FluidEQ shows me.
+  Each moves its targets - a field (${AMBIENT_FIELDS.join(', ')}) of an
+  element - from its min to its max as the slider goes from 0 to 1. "value"
+  is where it stands, 0 to 1; I tune it in FluidEQ, so keep it unless I ask.
+- They are the background, never the point. FluidEQ keeps them faint and out
+  of the scene's own panel; choose soft colours, modest counts and slow speeds
+  so they read as the room the music is playing in.
 
 MY IDEA:`;
 

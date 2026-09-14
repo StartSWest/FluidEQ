@@ -65,13 +65,22 @@ describe("the band a scene is handed under the graph's wave", () => {
     expect(top).toBeCloseTo(0.75);
   });
 
-  it('is the band a scene reserves, whatever the wave', () => {
+  it('moves inside the band a scene reserves, the way it moves in the frame', () => {
     const reserved = { spectrumRange: [0.55, 0.94] as const };
-    expect(studioSpectrumRect(reserved, LOW_LIFTED)).toEqual([
-      0, 1, 0.55, 0.94,
-    ]);
-    // The control: the same wave on a scene without a band of its own moves.
-    expect(studioSpectrumRect({}, LOW_LIFTED)).not.toEqual([0, 1, 0.55, 0.94]);
+    // The default wave is exactly the band the scene asked for.
+    const [, , fullBottom, fullTop] = studioSpectrumRect(
+      reserved,
+      DEFAULT_STUDIO_WAVE,
+    );
+    expect(fullBottom).toBeCloseTo(0.55);
+    expect(fullTop).toBeCloseTo(0.94);
+    // Lifted all the way it stands on the band's middle, and half height
+    // takes half of what is left above: a quarter of the band.
+    const [left, right, bottom, top] = studioSpectrumRect(reserved, LOW_LIFTED);
+    expect(left).toBe(0);
+    expect(right).toBe(1);
+    expect(bottom).toBeCloseTo(0.55 + 0.39 / 2);
+    expect(top).toBeCloseTo(0.55 + 0.39 * 0.75);
   });
 });
 
@@ -111,17 +120,8 @@ describe('the stage', () => {
 });
 
 describe('the wave sliders', () => {
-  const controls = (
-    wave: IStudioWave,
-    onWave: (next: IStudioWave) => void,
-    isFixedByScene = false,
-  ) => (
-    <StudioWaveControls
-      wave={wave}
-      onWave={onWave}
-      isFixedByScene={isFixedByScene}
-      idle={false}
-    />
+  const controls = (wave: IStudioWave, onWave: (next: IStudioWave) => void) => (
+    <StudioWaveControls wave={wave} onWave={onWave} idle={false} />
   );
 
   it('snaps the height to the graph’s quarters and leaves other values alone', () => {
@@ -147,19 +147,5 @@ describe('the wave sliders', () => {
       screen.getByRole('button', { name: 'studio.settings.reset' }),
     );
     expect(onWave).toHaveBeenCalledWith(DEFAULT_STUDIO_WAVE);
-  });
-
-  it('says why the sliders wait on a scene that reserves its own band', () => {
-    const { rerender } = render(controls(DEFAULT_STUDIO_WAVE, jest.fn(), true));
-    expect(screen.getByText('studio.wave.fixed')).toBeInTheDocument();
-    screen
-      .getAllByRole('slider')
-      .forEach((slider) => expect(slider).toBeDisabled());
-    // The control: without a band of its own the sliders are live.
-    rerender(controls(DEFAULT_STUDIO_WAVE, jest.fn()));
-    expect(screen.getByText('studio.wave.hint')).toBeInTheDocument();
-    screen
-      .getAllByRole('slider')
-      .forEach((slider) => expect(slider).toBeEnabled());
   });
 });

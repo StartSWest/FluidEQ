@@ -88,6 +88,10 @@ const studio = {
   'studio.publish.title': 'Опубликовать «{name}»',
   'studio.publish.titleUpdate': 'Обновить «{name}» в галерее',
   'studio.publish.version': 'Версия {version}',
+  'studio.publish.publishedVersion': 'Сейчас в галерее: версия {version}',
+  'studio.publish.note': 'Что нового в этой версии',
+  'studio.publish.notePlaceholder':
+    'Одна строка для слушателей, например: вершины больше не обрезаются на широких панелях',
   'studio.publish.hears': 'Что слышит сцена',
   'studio.publish.yourMusic': 'Ваша музыка',
   'studio.publish.demo': 'Демо',
@@ -301,6 +305,9 @@ const studio = {
   'studio.settings.response': 'Как она отвечает на музыку',
   'studio.settings.responseLead':
     'Измените то, что она слышит, до того как она это услышит. При 100% и нуле она слышит музыку как есть.',
+  'studio.settings.ambient': 'Элементы в окне',
+  'studio.settings.ambientLead':
+    'Что эта сцена добавляет вокруг приложения в режиме «Атмосфера».',
   'studio.settings.sensitivity': 'Чувствительность',
   'studio.settings.sensitivityHint':
     'Насколько сильно она реагирует. Больше для тихого трека, меньше, если громкий держит её на максимуме.',
@@ -351,8 +358,6 @@ const studio = {
   'studio.wave.title': 'Волна на графике',
   'studio.wave.hint':
     'Пользователи сцены могут менять это в меню «Вид» на графике. Проверьте крайние значения: низкую волну или поднятую до середины.',
-  'studio.wave.fixed':
-    'Эта сцена сама задаёт полосу для спектра, поэтому эти два параметра её не меняют.',
   'studio.tint.label': 'FluidEQ с этой сценой',
   'studio.tint.hint':
     'Пока вы работаете здесь, всё приложение может принять цвета сцены или мягко светиться вокруг неё в такт музыке — так видно и чувствуется, как она работает в роли темы.',
@@ -401,6 +406,12 @@ const studio = {
     'Изображение — не WebP того размера, что указан в pack.json.',
   'studio.problem.contract-too-new':
     'Эта сцена написана для более новой версии FluidEQ. Обновите приложение.',
+  'studio.problem.bad-param':
+    'Элементу управления в params нужны id из a-z, 0-9 и _, английское имя и min меньше max.',
+  'studio.problem.too-many-params':
+    'В params может быть не больше 8 элементов управления.',
+  'studio.problem.bad-ambient':
+    'Часть элементов или регуляторов ambient в pack.json пропущена. Проверьте формы, движения, цвета, количество и то, чем управляет каждый регулятор.',
   'studio.problem.bad-json': 'pack.json — не корректный JSON.',
   'studio.problem.missing-file': 'Не хватает файла, нужного сцене.',
   'studio.problem.unsafe-path':

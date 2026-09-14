@@ -56,7 +56,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     // Clip the selected entry rather than letting it push the arrow out.
-    > div:first-child {
+    // First of its type, not first child: a leading glyph goes before it.
+    > div:first-of-type {
       @include truncate;
       flex: 1 1 auto;
     }

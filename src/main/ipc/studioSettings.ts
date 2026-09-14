@@ -46,14 +46,17 @@ const readSettings = (raw: unknown): IProjectSettings => {
   if (!isRecord(raw)) {
     return {};
   }
-  const params = isRecord(raw.params)
-    ? Object.fromEntries(
-        Object.entries(raw.params).filter(
-          (entry): entry is [string, number] =>
-            typeof entry[1] === 'number' && Number.isFinite(entry[1]),
-        ),
-      )
-    : undefined;
+  const numbers = (value: unknown) =>
+    isRecord(value)
+      ? Object.fromEntries(
+          Object.entries(value).filter(
+            (entry): entry is [string, number] =>
+              typeof entry[1] === 'number' && Number.isFinite(entry[1]),
+          ),
+        )
+      : undefined;
+  const params = numbers(raw.params);
+  const ambient = numbers(raw.ambient);
   let response: ISceneResponse | null | undefined;
   if (raw.response === null) {
     response = null;
@@ -62,6 +65,7 @@ const readSettings = (raw: unknown): IProjectSettings => {
   }
   return {
     ...(params ? { params } : {}),
+    ...(ambient ? { ambient } : {}),
     ...(response !== undefined ? { response } : {}),
   };
 };
@@ -103,6 +107,7 @@ export const registerStudioSettingsIpc = ({
       }
       try {
         store.save(me, build.pack);
+        store.release(me, build.pack.id);
         announceScenes();
         return { written, lookUpdated: true };
       } catch (error) {

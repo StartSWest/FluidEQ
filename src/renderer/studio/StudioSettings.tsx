@@ -8,6 +8,7 @@ import {
   responseFromPosition as fromPosition,
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
+import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
 
@@ -119,18 +120,24 @@ function Group({
   );
 }
 
-/** A control's value as its range reads best: few decimals for small ones. */
+/**
+ * A control's value as its range reads best: two significant decimals of
+ * its span, so 0..1 reads 0.25, 0..100 reads 25 and 0..0.01 reads 0.0025
+ * instead of a slider that says 0.00 the whole way along.
+ */
 const formatParam = (param: IScenePackParam, value: number) => {
-  const span = Math.abs(param.max - param.min);
-  let digits = 0;
-  if (span <= 10) {
-    digits = 1;
-  }
-  if (span <= 2) {
-    digits = 2;
-  }
+  const span = param.max - param.min;
+  const digits = Math.min(6, Math.max(0, 2 - Math.floor(Math.log10(span))));
   return value.toFixed(digits);
 };
+
+/**
+ * The controls a slider can move. A scene's AI writes these, so a range with
+ * no width is possible; it keeps its uniform, at its one value, and gets no
+ * slider that could only sit still.
+ */
+const movable = (params: readonly IScenePackParam[]) =>
+  params.filter((param) => param.max - param.min > 0);
 
 interface IStudioSettingsProps {
   params: readonly IScenePackParam[];
@@ -146,6 +153,11 @@ interface IStudioSettingsProps {
   onCommit: () => void;
   onResetParams: () => void;
   onResetResponse: () => void;
+  /**
+   * The scene's ambient controls (`useStudioAmbientTuning.ts`), when it has
+   * any: its elements in the window, shown in the Ambient mode.
+   */
+  ambient?: IStudioAmbientTuning;
 }
 
 /**
@@ -169,8 +181,10 @@ export default function StudioSettings({
   onCommit,
   onResetParams,
   onResetResponse,
+  ambient,
 }: IStudioSettingsProps) {
   const { t, locale } = useTranslation();
+  const controls = movable(params);
 
   const responseValue = (key: keyof ISceneResponse) => {
     const value = response[key];
@@ -188,22 +202,25 @@ export default function StudioSettings({
       <span className="studio-card__eyebrow">{t('studio.settings.title')}</span>
 
       <div className="studio-settings__groups">
-        {params.length > 0 && (
+        {controls.length > 0 && (
           <Group
             title={t('studio.settings.controls')}
             lead={t('studio.settings.controlsLead')}
             canReset={canResetParams && !idle}
             onReset={onResetParams}
           >
-            {params.map((param) => {
+            {controls.map((param) => {
               const value = values[param.id] ?? param.value;
-              const span = param.max - param.min || 1;
+              const span = param.max - param.min;
               return (
                 <Setting
                   key={param.id}
                   label={resolveParamName(param, locale)}
                   value={formatParam(param, value)}
-                  position={(value - param.min) / span}
+                  position={Math.min(
+                    1,
+                    Math.max(0, (value - param.min) / span),
+                  )}
                   disabled={idle}
                   onPosition={(position) =>
                     onParam(param.id, param.min + position * span)
@@ -236,6 +253,34 @@ export default function StudioSettings({
             />
           ))}
         </Group>
+
+        {ambient && ambient.params.length > 0 && (
+          <Group
+            title={t('studio.settings.ambient')}
+            lead={t('studio.settings.ambientLead')}
+            canReset={ambient.canReset && !idle}
+            onReset={ambient.reset}
+          >
+            {ambient.params.map((param) => {
+              const value = ambient.values[param.id] ?? param.value;
+              return (
+                <Setting
+                  key={param.id}
+                  label={param.names[locale] ?? param.names.en}
+                  value={t('studio.settings.percent', {
+                    percent: Math.round(value * 100),
+                  })}
+                  position={value}
+                  disabled={idle}
+                  onPosition={(position) =>
+                    ambient.setValue(param.id, position)
+                  }
+                  onCommit={ambient.commit}
+                />
+              );
+            })}
+          </Group>
+        )}
       </div>
 
       <span

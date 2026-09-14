@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom';
+import type { ComponentProps } from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import GraphViewMenu from 'renderer/graph/GraphViewMenu';
 import type { TGraphCurve } from 'renderer/utils/graphStyle';
 
-const renderMenuForSizing = () =>
+const renderMenuForSizing = (
+  overrides: Partial<ComponentProps<typeof GraphViewMenu>> = {},
+) =>
   render(
     <GraphViewMenu
       view="normal"
@@ -38,6 +41,8 @@ const renderMenuForSizing = () =>
       maxOverlayBlur={40}
       hasTopBar
       onToggleTopBar={jest.fn()}
+      // eslint-disable-next-line react/jsx-props-no-spreading -- a test's overrides of a thirty-prop component
+      {...overrides}
     />,
   );
 
@@ -195,5 +200,62 @@ describe('GraphViewMenu curve toggles', () => {
       configurable: true,
       value: originalHeight,
     });
+  });
+});
+
+describe('GraphViewMenu wave sliders', () => {
+  it('keeps the pane a measurement: no wave sliders without a Plus scene', () => {
+    renderMenuForSizing({ view: 'normal' });
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+
+    expect(screen.queryByLabelText('Wave height')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Wave position')).not.toBeInTheDocument();
+  });
+
+  it('offers both sliders in the pane while a Plus scene is on the plot', () => {
+    const onChangeWaveHeight = jest.fn();
+    const onChangeWavePosition = jest.fn();
+    renderMenuForSizing({
+      view: 'normal',
+      sceneLookId: 'premium:aurora',
+      onChangeWaveHeight,
+      onChangeWavePosition,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+
+    const height = screen.getByLabelText('Wave height');
+    const position = screen.getByLabelText('Wave position');
+    expect(height).toBeEnabled();
+    expect(position).toBeEnabled();
+
+    fireEvent.change(height, { target: { value: '50' } });
+    fireEvent.change(position, { target: { value: '40' } });
+    expect(onChangeWaveHeight).toHaveBeenCalledWith(0.5);
+    expect(onChangeWavePosition).toHaveBeenCalledWith(0.4);
+  });
+});
+
+describe('GraphViewMenu listening bands', () => {
+  it('greys the listening bands while a Plus scene is on the plot, which never draws them', () => {
+    renderMenuForSizing({
+      sceneLookId: 'premium:alpine',
+      isCoverageHidden: true,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    expect(
+      screen.getByRole('menuitemcheckbox', { name: /listening bands/ }),
+    ).toBeDisabled();
+  });
+
+  it('keeps them a switch on the graph itself', () => {
+    const onToggleCoverage = jest.fn();
+    renderMenuForSizing({ onToggleCoverage });
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    const bands = screen.getByRole('menuitemcheckbox', {
+      name: /listening bands/,
+    });
+    expect(bands).toBeEnabled();
+    fireEvent.click(bands);
+    expect(onToggleCoverage).toHaveBeenCalledTimes(1);
   });
 });

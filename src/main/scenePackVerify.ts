@@ -43,8 +43,13 @@ const createVerifier = (keys: Readonly<Record<string, string>>) => {
     if (cached) {
       return cached;
     }
-    const encoded = keys[keyId];
-    if (!encoded) {
+    // Own keys only: `constructor` passes the envelope's id pattern, and read
+    // as `keys[keyId]` it handed the Object function to the key decoder,
+    // which threw where "not a key we trust" belonged.
+    const encoded = Object.prototype.hasOwnProperty.call(keys, keyId)
+      ? keys[keyId]
+      : undefined;
+    if (typeof encoded !== 'string') {
       return undefined;
     }
     const key = createPublicKey({

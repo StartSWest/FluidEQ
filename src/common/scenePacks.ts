@@ -4,6 +4,7 @@ import {
   type GraphStyle,
 } from './graphStyles';
 import type { LocaleCode } from './i18n';
+import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
 import {
   isNeutralResponse,
@@ -52,6 +53,9 @@ export const PREMIUM_LOOK_PREFIX = 'premium:';
  */
 export const MAX_SHADER_BYTES = 64 * 1024;
 export const MAX_SCENE_PARAMS = 8;
+/** The furthest a control's range may reach either side of zero. */
+export const MAX_PARAM_MAGNITUDE = 1e6;
+export const SCENE_PARAM_ID = /^[a-z][a-z0-9_]{0,23}$/;
 export const MAX_SWATCH_COLOURS = 4;
 // Accommodate a 6 MiB lossless atlas after base64 expansion, plus the bounded
 // shader and metadata. Decoded artwork dimensions are checked separately.
@@ -99,6 +103,11 @@ export interface IScenePack {
    * tuned it. Absent means as the engine hears it.
    */
   response?: ISceneResponse;
+  /**
+   * Its elements in the window around it, drawn in Ambient mode
+   * (`sceneAmbient.ts`). Absent means none.
+   */
+  ambient?: ISceneAmbient;
 }
 
 /**
@@ -156,7 +165,6 @@ export const isLockedLookId = (id: string): boolean =>
   id.startsWith(LOCKED_LOOK_PREFIX);
 
 const PACK_ID = /^[a-z][a-z0-9-]{1,47}$/;
-const PARAM_ID = /^[a-z][a-z0-9_]{0,23}$/;
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 /** The one thing every pack must provide, at the top level of the source. */
 const SCENE_ENTRY_POINT = /\bvec4\s+sceneColour\s*\(\s*vec2\s+\w+\s*\)/;
@@ -187,15 +195,28 @@ const readParam = (value: unknown): IScenePackParam | null => {
   if (!isRecord(value) || typeof value.id !== 'string') {
     return null;
   }
-  if (!PARAM_ID.test(value.id)) {
+  if (!SCENE_PARAM_ID.test(value.id)) {
     return null;
   }
   const names = readNames(value.names);
   if (!names) {
     return null;
   }
-  const min = readNumber(value.min, 0);
-  const max = Math.max(min, readNumber(value.max, 1));
+  // A range written the wrong way round is still the author's range, and a
+  // bound past a million is no slider anyone can move: beyond it the track's
+  // span overflowed to Infinity and every position on it read as NaN.
+  const first = clamp(
+    readNumber(value.min, 0),
+    -MAX_PARAM_MAGNITUDE,
+    MAX_PARAM_MAGNITUDE,
+  );
+  const second = clamp(
+    readNumber(value.max, 1),
+    -MAX_PARAM_MAGNITUDE,
+    MAX_PARAM_MAGNITUDE,
+  );
+  const min = Math.min(first, second);
+  const max = Math.max(first, second);
   return {
     id: value.id,
     names,
@@ -303,6 +324,11 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
   // pushed past its end is still the author's meaning.
   const response =
     raw.response === undefined ? undefined : readResponse(raw.response);
+  // Dropped rather than refused, like a response: the scene plays without it.
+  const ambient =
+    raw.ambient === undefined
+      ? undefined
+      : normalizeSceneAmbient(raw.ambient, artwork);
   return {
     schema: raw.schema,
     id: raw.id,
@@ -316,6 +342,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     ...(artwork ? { artwork } : {}),
     ...(spectrumRange ? { spectrumRange } : {}),
     ...(response && !isNeutralResponse(response) ? { response } : {}),
+    ...(ambient ? { ambient } : {}),
   };
 };
 

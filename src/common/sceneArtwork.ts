@@ -41,6 +41,65 @@ const isBase64 = (text: string): boolean => {
   return true;
 };
 
+export interface IWebpSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * A still WebP's size, read from its own container before any decoder
+ * allocates for it; null for anything that is not one, animations included.
+ * A few hundred kilobytes of WebP can declare 16383 pixels a side — a
+ * gigabyte once decoded — so every WebP that arrives from outside is sized
+ * here first. `byte(at)` reads the file, `length` bytes long.
+ */
+export const readWebpSize = (
+  byte: (at: number) => number,
+  length: number,
+): IWebpSize | null => {
+  if (length < 30) {
+    return null;
+  }
+  const text = (from: number) =>
+    String.fromCharCode(
+      byte(from),
+      byte(from + 1),
+      byte(from + 2),
+      byte(from + 3),
+    );
+  const uint24 = (at: number) =>
+    byte(at) + byte(at + 1) * 256 + byte(at + 2) * 65536;
+  const uint32 = (at: number) => uint24(at) + byte(at + 3) * 16777216;
+  if (text(0) !== 'RIFF' || text(8) !== 'WEBP' || uint32(4) + 8 !== length) {
+    return null;
+  }
+  const kind = text(12);
+  let width: number;
+  let height: number;
+  if (kind === 'VP8X') {
+    // Animated containers are unnecessary for a still and add a second
+    // independent clock. Only the scene's audio clock animates these pixels.
+    if (uint32(16) !== 10 || Math.floor(byte(20) / 2) % 2 !== 0) {
+      return null;
+    }
+    width = uint24(24) + 1;
+    height = uint24(27) + 1;
+  } else if (kind === 'VP8 ') {
+    if (byte(23) !== 0x9d || byte(24) !== 0x01 || byte(25) !== 0x2a) {
+      return null;
+    }
+    width = (byte(26) + byte(27) * 256) % 16384;
+    height = (byte(28) + byte(29) * 256) % 16384;
+  } else if (kind === 'VP8L' && byte(20) === 0x2f) {
+    const bits = uint32(21);
+    width = (bits % 16384) + 1;
+    height = (Math.floor(bits / 16384) % 16384) + 1;
+  } else {
+    return null;
+  }
+  return width >= 1 && height >= 1 ? { width, height } : null;
+};
+
 /**
  * Read dimensions from the WebP container before an image decoder allocates
  * memory. Authored dimensions alone would not bound a compressed image.
@@ -64,47 +123,15 @@ export const normalizeSceneArtwork = (raw: unknown): ISceneArtwork | null => {
   } catch {
     return null;
   }
-  if (bytes.length < 30 || bytes.length > MAX_SCENE_ARTWORK_BYTES) {
+  if (bytes.length > MAX_SCENE_ARTWORK_BYTES) {
     return null;
   }
-  const byte = (at: number) => bytes.charCodeAt(at);
-  const uint24 = (at: number) =>
-    byte(at) + byte(at + 1) * 256 + byte(at + 2) * 65536;
-  const uint32 = (at: number) => uint24(at) + byte(at + 3) * 16777216;
+  const size = readWebpSize((at) => bytes.charCodeAt(at), bytes.length);
+  if (!size) {
+    return null;
+  }
+  const { width, height } = size;
   if (
-    bytes.slice(0, 4) !== 'RIFF' ||
-    bytes.slice(8, 12) !== 'WEBP' ||
-    uint32(4) + 8 !== bytes.length
-  ) {
-    return null;
-  }
-  const kind = bytes.slice(12, 16);
-  let width: number;
-  let height: number;
-  if (kind === 'VP8X') {
-    // Animated containers are unnecessary for GPU artwork and add a second
-    // independent clock. Only the scene's audio clock animates these pixels.
-    if (uint32(16) !== 10 || Math.floor(byte(20) / 2) % 2 !== 0) {
-      return null;
-    }
-    width = uint24(24) + 1;
-    height = uint24(27) + 1;
-  } else if (kind === 'VP8 ') {
-    if (byte(23) !== 0x9d || byte(24) !== 0x01 || byte(25) !== 0x2a) {
-      return null;
-    }
-    width = (byte(26) + byte(27) * 256) % 16384;
-    height = (byte(28) + byte(29) * 256) % 16384;
-  } else if (kind === 'VP8L' && byte(20) === 0x2f) {
-    const bits = uint32(21);
-    width = (bits % 16384) + 1;
-    height = (Math.floor(bits / 16384) % 16384) + 1;
-  } else {
-    return null;
-  }
-  if (
-    width < 1 ||
-    height < 1 ||
     width > MAX_SCENE_ARTWORK_EDGE ||
     height > MAX_SCENE_ARTWORK_EDGE ||
     width * height > MAX_SCENE_ARTWORK_PIXELS ||

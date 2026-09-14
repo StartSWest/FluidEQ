@@ -9,6 +9,7 @@ import {
   MAX_SCENE_ARTWORK_EDGE,
   MAX_SCENE_ARTWORK_PIXELS,
   normalizeSceneArtwork,
+  readWebpSize,
 } from '../../common/sceneArtwork';
 import type { TLocalizedName } from '../../common/scenePacks';
 import {
@@ -21,6 +22,7 @@ import {
   readBounded,
   readManifest,
   resolveInside,
+  writeInside,
 } from './project';
 
 /**
@@ -184,7 +186,7 @@ export const readPictureAtlas = async (
   }
   if (
     typeof artworkFile !== 'string' ||
-    !isPlainFileName(artworkFile) ||
+    !isPlainFileName(artworkFile, 'artwork') ||
     !isEdge(artworkWidth) ||
     !isEdge(artworkHeight) ||
     artworkWidth * artworkHeight > MAX_SCENE_ARTWORK_PIXELS
@@ -268,12 +270,8 @@ export const writePictureImage = async (
   if (!isAtlasImage(bytes, atlas.width, atlas.height)) {
     return 'bad-picture';
   }
-  const target = path.join(folder, atlas.file);
   try {
-    if (await exists(target)) {
-      await resolveInside(folder, atlas.file, 'artwork');
-    }
-    await fs.promises.writeFile(target, bytes);
+    await writeInside(folder, atlas.file, 'artwork', bytes);
     return 'written';
   } catch {
     return 'failed';
@@ -290,10 +288,19 @@ export interface IPictureKeep {
   hasPhoto: boolean;
 }
 
-const isWebp = (bytes: Uint8Array) =>
-  bytes.length > 12 &&
-  Buffer.from(bytes.subarray(0, 4)).toString('latin1') === 'RIFF' &&
-  Buffer.from(bytes.subarray(8, 12)).toString('latin1') === 'WEBP';
+/**
+ * A kept photo: a still WebP no longer than the app encodes one on either
+ * side. The folder can come from anywhere, and the Studio decodes what is in
+ * it; a small file declaring 16383 pixels a side is a gigabyte once decoded.
+ */
+const isKeptPhoto = (bytes: Uint8Array) => {
+  const size = readWebpSize((at) => bytes[at], bytes.length);
+  return (
+    size !== null &&
+    size.width <= MAX_SCENE_ARTWORK_EDGE &&
+    size.height <= MAX_SCENE_ARTWORK_EDGE
+  );
+};
 
 /**
  * The project's photos folder — made when asked to — and only when it is a
@@ -377,7 +384,7 @@ export const readPicturePhoto = async (
     return undefined;
   }
   const bytes = new Uint8Array(await fs.promises.readFile(photoFile(dir, id)));
-  return isWebp(bytes) ? bytes : undefined;
+  return isKeptPhoto(bytes) ? bytes : undefined;
 };
 
 /**
@@ -393,7 +400,7 @@ export const keepPicturePhoto = async (
   framing: unknown,
 ): Promise<boolean> => {
   const slot = atlas.pictures.find((entry) => entry.id === id);
-  if (!slot || photo.byteLength > MAX_SOURCE_BYTES || !isWebp(photo)) {
+  if (!slot || photo.byteLength > MAX_SOURCE_BYTES || !isKeptPhoto(photo)) {
     return false;
   }
   const dir = await photosDir(folder, true);

@@ -240,6 +240,12 @@ export const createMainWindowFactory = ({
         // of euphoria mode are driven by animation frames, so leaving this on is
         // what stops a window nobody is looking at from animating at full rate.
         backgroundThrottling: true,
+        // Electron's defaults, stated because the window's safety rests on
+        // them: the page has no Node, cannot reach the preload's world, and
+        // runs in Chromium's sandbox, whatever a later default becomes.
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
       },
     });
     setMainWindow(created);
@@ -495,6 +501,32 @@ export const createMainWindowFactory = ({
       openExternalIfSafe(edata.url);
       return { action: 'deny' };
     });
+    // The window never becomes anything but the app. It carries the preload's
+    // bridge — files, the audio engine, the account — and a link followed in
+    // place, from anything the window shows, would have handed all of that to
+    // whatever page it led to. A link out opens in the browser instead; the
+    // app's own document reloading itself is the only move allowed.
+    const ownDocument = (url: string) => {
+      try {
+        const next = new URL(url);
+        const own = new URL(rendererUrl);
+        return (
+          next.protocol === own.protocol &&
+          next.host === own.host &&
+          next.pathname === own.pathname
+        );
+      } catch {
+        return false;
+      }
+    };
+    const stayInApp = (event: Electron.Event, url: string) => {
+      if (!ownDocument(url)) {
+        event.preventDefault();
+        openExternalIfSafe(url);
+      }
+    };
+    created.webContents.on('will-navigate', stayInApp);
+    created.webContents.on('will-redirect', stayInApp);
     // Polling for the dev server is an optimisation, not a gate. Giving up used
     // to throw out of createMainWindow with nothing to catch it, so a slow bundle
     // produced an unhandled rejection and no window at all — while

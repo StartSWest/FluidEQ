@@ -41,7 +41,8 @@ import {
   writeProjectList,
   type IProjectList,
 } from '../memberScenes/studioProjects';
-import type { TSceneFailure } from '../scenePackStore';
+import { isSceneFailure } from '../scenePackStore';
+import type { ISceneRefusals } from '../sceneRefusals';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioSettingsIpc } from './studioSettings';
 
@@ -132,6 +133,8 @@ export interface IMemberScenesIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
+  /** Scene code refused wherever it ran (`sceneRefusals.ts`). */
+  refusals?: ISceneRefusals;
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
 }
@@ -193,10 +196,11 @@ export const registerMemberScenesIpc = ({
   session,
   entitlement,
   logger,
+  refusals,
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
-  const store = createMemberSceneStore({ userDataDir, logger });
+  const store = createMemberSceneStore({ userDataDir, logger, refusals });
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
   let projects: IProjectList = readProjectList(studioPath);
@@ -426,8 +430,14 @@ export const registerMemberScenesIpc = ({
     (_event, lookId: unknown, reason: unknown) => {
       const ref =
         typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-      if (ref && (reason === 'compile' || reason === 'context-lost')) {
-        store.quarantine(ref.authorId, ref.packId, reason as TSceneFailure);
+      if (ref && isSceneFailure(reason)) {
+        // Its source too, read before the quarantine hides it: the gallery's
+        // preview, the lamps and its picture run the same code elsewhere.
+        const pack = store.load(ref.authorId, ref.packId);
+        if (pack) {
+          refusals?.refuse(pack.source, reason);
+        }
+        store.quarantine(ref.authorId, ref.packId, reason);
         announceScenes();
       }
     },
@@ -532,6 +542,7 @@ export const registerMemberScenesIpc = ({
     }
     try {
       const scene = store.save(me, build.pack);
+      store.release(me, build.pack.id);
       announceScenes();
       return { ok: true, scene };
     } catch (error) {

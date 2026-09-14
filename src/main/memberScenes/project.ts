@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   checkMemberScene,
+  checkProjectParams,
   MAX_MEMBER_NAME_LENGTH,
   sanitizeDisplayText,
   type IMemberSceneProblem,
@@ -10,6 +11,7 @@ import {
   type TMemberSceneFile,
 } from '../../common/memberScenes';
 import { MAX_MEMBER_SOURCE_BYTES } from '../../common/memberSceneRules';
+import { isWholeSceneAmbient } from '../../common/sceneAmbient';
 import { MAX_SCENE_ARTWORK_BYTES } from '../../common/sceneArtwork';
 import {
   SCENE_PACK_SCHEMA,
@@ -58,9 +60,22 @@ class ProjectProblem extends Error {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+/**
+ * What each file `pack.json` names must be called. The Studio writes over
+ * the source from its code pane and over the artwork from its Pictures card,
+ * so a name is also a promise about what may be overwritten: a folder from
+ * anywhere once named `thesis.docx` as its artwork, and the next picture
+ * saved replaced that file with a WebP.
+ */
+const FILE_KINDS: Record<TMemberSceneFile, RegExp> = {
+  'pack.json': /^pack\.json$/,
+  source: /\.(?:frag|glsl)$/i,
+  artwork: /\.webp$/i,
+};
+
 /** A name `pack.json` may give a file: plain, in this folder, never a path. */
-export const isPlainFileName = (name: string) =>
-  PLAIN_NAME.test(name) && !name.includes('..');
+export const isPlainFileName = (name: string, file: TMemberSceneFile) =>
+  PLAIN_NAME.test(name) && !name.includes('..') && FILE_KINDS[file].test(name);
 
 /**
  * The real path of a file the manifest names, or a problem.
@@ -74,7 +89,7 @@ export const resolveInside = async (
   name: string,
   file: TMemberSceneFile,
 ): Promise<string> => {
-  if (!isPlainFileName(name)) {
+  if (!isPlainFileName(name, file)) {
     throw new ProjectProblem('unsafe-path', file);
   }
   let real: string;
@@ -97,6 +112,49 @@ export const resolveInside = async (
     throw new ProjectProblem('unsafe-path', file);
   }
   return real;
+};
+
+/**
+ * Writes a file in the project folder through one handle proven to be the
+ * file that was checked: created fresh when nothing has the name (so nothing
+ * can be followed), otherwise opened only when it is still the plain file
+ * `resolveInside` found and has no second name. Written by path after a
+ * check instead, a link swapped in between them, or a hard link to a file
+ * outside the folder, carried the write out of the folder.
+ */
+export const writeInside = async (
+  folder: string,
+  name: string,
+  file: TMemberSceneFile,
+  data: string | Uint8Array,
+): Promise<void> => {
+  let handle: fs.promises.FileHandle;
+  try {
+    handle = await fs.promises.open(path.join(folder, name), 'wx');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+      throw error;
+    }
+    const real = await resolveInside(folder, name, file);
+    const checked = await fs.promises.lstat(real, { bigint: true });
+    handle = await fs.promises.open(real, 'r+');
+    const opened = await handle.stat({ bigint: true });
+    if (
+      !checked.isFile() ||
+      opened.ino !== checked.ino ||
+      opened.dev !== checked.dev ||
+      opened.nlink !== BigInt(1)
+    ) {
+      await handle.close();
+      throw new ProjectProblem('unsafe-path', file);
+    }
+    await handle.truncate(0);
+  }
+  try {
+    await handle.writeFile(data);
+  } finally {
+    await handle.close();
+  }
 };
 
 export const readBounded = async (
@@ -198,10 +256,22 @@ const buildRawPack = async (folder: string) => {
       ...(manifest.response === undefined
         ? {}
         : { response: manifest.response }),
+      ...(manifest.ambient === undefined ? {} : { ambient: manifest.ambient }),
     },
     artworkHash,
   };
 };
+
+/**
+ * The artwork's size as pack.json declares it. The pack check holds the
+ * picture to it; the ambient check only needs to know what a pose can cut.
+ */
+const declaredSize = (artwork: Record<string, unknown> | undefined) =>
+  artwork &&
+  typeof artwork.width === 'number' &&
+  typeof artwork.height === 'number'
+    ? { width: artwork.width, height: artwork.height }
+    : undefined;
 
 /** The folder as a pack, or every reason it is not one yet. Never throws. */
 export const readProject = async (folder: string): Promise<TProjectBuild> => {
@@ -209,8 +279,17 @@ export const readProject = async (folder: string): Promise<TProjectBuild> => {
     await waitForSettingsWrites(folder);
     const { raw, artworkHash } = await buildRawPack(folder);
     const checked = checkMemberScene(raw);
-    if (!checked.ok) {
-      return checked;
+    const controls = [
+      ...checkProjectParams(raw.params),
+      ...(isWholeSceneAmbient(raw.ambient, declaredSize(raw.artwork))
+        ? []
+        : (['bad-ambient'] as const)),
+    ].map((code): IMemberSceneProblem => ({ code, file: 'pack.json' }));
+    if (!checked.ok || controls.length > 0) {
+      return {
+        ok: false,
+        problems: [...controls, ...(checked.ok ? [] : checked.problems)],
+      };
     }
     return artworkHash
       ? { ok: true, pack: checked.pack, artworkHash }
@@ -271,8 +350,8 @@ export const writeProjectSource = async (
     return 'too-large';
   }
   try {
-    const { real } = await locateSource(folder, await readManifest(folder));
-    await fs.promises.writeFile(real, text, 'utf8');
+    const { name } = await locateSource(folder, await readManifest(folder));
+    await writeInside(folder, name, 'source', text);
     return 'written';
   } catch {
     return 'failed';

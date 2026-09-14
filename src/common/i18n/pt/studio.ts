@@ -89,6 +89,10 @@ const studio = {
   'studio.publish.title': 'Publicar {name}',
   'studio.publish.titleUpdate': 'Atualizar {name} na galeria',
   'studio.publish.version': 'Versão {version}',
+  'studio.publish.publishedVersion': 'Na galeria agora: versão {version}',
+  'studio.publish.note': 'O que há de novo nesta versão',
+  'studio.publish.notePlaceholder':
+    'Uma linha que os ouvintes vão ver, por exemplo: as montanhas não são mais cortadas em painéis largos',
   'studio.publish.hears': 'O que a cena ouve',
   'studio.publish.yourMusic': 'Sua música',
   'studio.publish.demo': 'Demo',
@@ -297,6 +301,9 @@ const studio = {
   'studio.settings.response': 'Como ela responde à música',
   'studio.settings.responseLead':
     'Ajuste o que ela ouve antes de ouvir. Em 100% e zero, ouve a música como é.',
+  'studio.settings.ambient': 'Elementos na janela',
+  'studio.settings.ambientLead':
+    'O que esta cena acrescenta ao redor do app no modo Ambiente.',
   'studio.settings.sensitivity': 'Sensibilidade',
   'studio.settings.sensitivityHint':
     'O quanto reage. Mais para uma música baixa, menos quando uma alta a deixa sempre no máximo.',
@@ -347,8 +354,6 @@ const studio = {
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':
     'Quem usar a cena pode alterá-las em Visualização, no gráfico. Teste os extremos: uma onda baixa ou elevada até o centro.',
-  'studio.wave.fixed':
-    'Esta cena reserva a própria faixa para o espectro, então estes dois ajustes não a alteram.',
   'studio.tint.label': 'O FluidEQ com esta cena',
   'studio.tint.hint':
     'Enquanto você trabalha aqui, todo o app pode assumir as cores da cena, ou brilhar suavemente ao redor dela com a música, para ver e sentir como fica como tema.',
@@ -399,6 +404,12 @@ const studio = {
     'A imagem não é um WebP do tamanho que o pack.json informa.',
   'studio.problem.contract-too-new':
     'Esta cena foi feita para um FluidEQ mais novo. Atualize o app.',
+  'studio.problem.bad-param':
+    'Um controle em params precisa de um id com a-z, 0-9 e _, um nome em inglês e um min menor que o max.',
+  'studio.problem.too-many-params':
+    'Uma cena pode ter no máximo 8 controles em params.',
+  'studio.problem.bad-ambient':
+    'Alguns elementos ou controles de ambient no pack.json ficaram de fora. Confira formas, movimentos, cores, quantidades e o que cada controle move.',
   'studio.problem.bad-json': 'O pack.json não é um JSON válido.',
   'studio.problem.missing-file': 'Falta um arquivo de que a cena precisa.',
   'studio.problem.unsafe-path':

@@ -60,7 +60,16 @@ const plus = {
   'plus.card.adds': 'ajoutée {count} fois',
   'plus.card.add': 'Ajouter',
   'plus.card.added': 'Ajoutée',
-  'plus.card.update': 'Mettre à jour',
+  'plus.card.updateTo': 'Passer à la v{version}',
+  'plus.version.new': 'Nouvelle version',
+  'plus.version.line': 'v{version} · {when}',
+  'plus.version.youHave': 'vous avez la v{version}',
+  'plus.version.title': 'Versions',
+  'plus.version.pageLine': 'Version {version} · {date}',
+  'plus.version.whatsNew': 'Nouveautés de la version {version}',
+  'plus.version.earlier': 'Versions précédentes ({count})',
+  'plus.version.short': 'v{version}',
+  'plus.version.noNote': 'Sans note',
   'plus.card.open': 'Ouvrir {name}',
 
   'plus.like.label': 'Aimer {name} ({count} j’aime)',
@@ -95,6 +104,8 @@ const plus = {
     'Cette scène n’a pas passé la vérification de FluidEQ et ne sera pas lancée.',
   'plus.scene.heavy': 'Cette scène est trop lourde pour cet ordinateur.',
   'plus.scene.broken': 'Cette scène ne fonctionne pas sur cet ordinateur.',
+  'plus.scene.quarantined':
+    'Cette scène a déjà échoué avec les graphismes de cet ordinateur ; elle ne sera plus lue ici.',
   'plus.scene.cannotDraw':
     'Cet ordinateur ne peut pas dessiner de scènes pour le moment.',
   'plus.scene.likes': 'J’aime',

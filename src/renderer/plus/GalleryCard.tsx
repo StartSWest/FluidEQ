@@ -1,5 +1,7 @@
 import type { IGalleryScene } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
+import { isNewSceneVersion } from 'common/sceneVersionNote';
+import { absoluteTime, relativeTime } from '../forum/forumTime';
 import { useTranslation } from '../utils/I18nContext';
 import type { IUsableMemberScene } from '../utils/memberScenes';
 import {
@@ -64,8 +66,9 @@ export default function GalleryCard({
     addLabel = t('plus.card.added');
     addState = ' is-done';
   } else if (local) {
-    addLabel = t('plus.card.update');
+    addLabel = t('plus.card.updateTo', { version: String(scene.version) });
   }
+  const isNewVersion = isNewSceneVersion(scene, Date.now());
 
   return (
     <article className="gallery-card">
@@ -79,6 +82,9 @@ export default function GalleryCard({
         <span className="gallery-card__tag">
           {t(categoryKey(scene.category))}
         </span>
+        {isNewVersion && (
+          <span className="gallery-card__new">{t('plus.version.new')}</span>
+        )}
       </button>
       <div className="gallery-card__body">
         <button
@@ -117,6 +123,22 @@ export default function GalleryCard({
               instead — the maker's own page, "More by" — the page around it
               already says whose these are. */}
           {scene.official && onMaker && <OfficialBadge />}
+        </span>
+        {/* Which version this is and when it came, on every card in the same
+            place; a copy of it older than this one says which it is. */}
+        <span
+          className="gallery-card__version"
+          title={absoluteTime(scene.updatedAt, locale)}
+        >
+          {t('plus.version.line', {
+            version: String(scene.version),
+            when: relativeTime(scene.updatedAt, locale),
+          })}
+          {local && local.version < scene.version && (
+            <span className="gallery-card__version-yours">
+              {t('plus.version.youHave', { version: String(local.version) })}
+            </span>
+          )}
         </span>
         <div className="gallery-card__foot">
           <span className="gallery-card__adds">

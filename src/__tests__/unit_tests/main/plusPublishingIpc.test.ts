@@ -240,6 +240,41 @@ describe('publishing from the Studio', () => {
     expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
   });
 
+  it('sends what the maker wrote about this version, as one clean line', async () => {
+    setup();
+    expect(
+      await invoke(
+        'studio-publish',
+        4,
+        'space',
+        webpBytes(),
+        undefined,
+        '  The peaks stay whole\n on wide panels ',
+      ),
+    ).toEqual({ ok: true });
+    expect(calls[0]?.body.note).toBe('The peaks stay whole on wide panels');
+  });
+
+  it('refuses a note it could not keep, before sending anything', async () => {
+    setup();
+    expect(
+      await invoke(
+        'studio-publish',
+        4,
+        'space',
+        webpBytes(),
+        undefined,
+        'x'.repeat(141),
+      ),
+    ).toEqual({ ok: false, reason: 'refused' });
+    expect(calls).toEqual([]);
+    // The control: no note at all publishes, and sends none.
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: true,
+    });
+    expect(calls[0]?.body).not.toHaveProperty('note');
+  });
+
   // The server would record the agreement for whoever the token belongs to;
   // with somebody else signed in by the time it arrived, there is no telling
   // which account agreed, so nothing is sent.

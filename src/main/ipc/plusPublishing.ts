@@ -1,9 +1,10 @@
 import { ipcMain } from 'electron';
 import { isPlusCategory, type IPublishedScene } from '../../common/plusGallery';
+import { readVersionNote } from '../../common/sceneVersionNote';
 import { readProject } from '../memberScenes/project';
 import { writeAgreedTerms } from '../memberScenes/termsAgreement';
 import {
-  isWebp,
+  isCardPicture,
   listPublished,
   MAX_PICTURE_BYTES,
   publishScene,
@@ -64,7 +65,7 @@ const pictureBytes = (value: unknown): Uint8Array | undefined => {
   } else if (value instanceof ArrayBuffer) {
     bytes = new Uint8Array(value);
   }
-  return bytes && bytes.length <= MAX_PICTURE_BYTES && isWebp(bytes)
+  return bytes && bytes.length <= MAX_PICTURE_BYTES && isCardPicture(bytes)
     ? bytes
     : undefined;
 };
@@ -118,9 +119,16 @@ export const registerPlusPublishingIpc = ({
       category: unknown,
       rawPicture: unknown,
       category2?: unknown,
+      rawNote?: unknown,
     ): Promise<TPublishOutcome> => {
       if (!access.entitled()) {
         return { ok: false, reason: 'not-entitled' };
+      }
+      // Cleaned here as the server cleans it; one it would refuse is refused
+      // before a picture or a pack is sent.
+      const note = readVersionNote(rawNote);
+      if (note === undefined) {
+        return { ok: false, reason: 'refused' };
       }
       // Capture the author before any await: switching accounts during the
       // project read must not publish this member's work under the next one.
@@ -168,6 +176,7 @@ export const registerPlusPublishingIpc = ({
         ...(category2 !== undefined ? { category2 } : {}),
         pack: build.pack,
         picture: Buffer.from(picture).toString('base64'),
+        ...(note ? { note } : {}),
       });
       if (published.ok) {
         // The server recorded the agreement with the publication, for this

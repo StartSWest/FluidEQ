@@ -44,19 +44,9 @@ import {
   useState,
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
-import LookIcon from 'renderer/icons/LookIcon';
-import SceneLookIcon from 'renderer/icons/SceneLookIcon';
-import {
-  isLockedLookId,
-  isPremiumLookId,
-  resolveSceneName,
-} from 'common/scenePacks';
-import { useLockedScenes, useUsableScenes } from 'renderer/utils/scenePacks';
+import { isLockedLookId, isPremiumLookId } from 'common/scenePacks';
 import { isMemberLookId } from 'common/memberScenes';
-import {
-  useLockedMemberScenes,
-  useUsableMemberScenes,
-} from 'renderer/utils/memberScenes';
+import { useUsableMemberScenes } from 'renderer/utils/memberScenes';
 import { requestAccountPanel } from 'renderer/account/accountPanel';
 import PaletteIcon from 'renderer/icons/PaletteIcon';
 import {
@@ -65,7 +55,6 @@ import {
 } from 'renderer/utils/FluidEqContext';
 import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
-import GraphSceneRemove from './GraphSceneRemove';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { useEnginePreamp } from '../utils/enginePreamp';
 import Chart, { ChartDimensions } from './Chart';
@@ -92,7 +81,6 @@ import {
   cycleGraphLook,
   cycleWaveOrientation,
   exitGraphFullScreen,
-  getSelectableLooks,
   setGraphWaveHeight,
   setGraphWavePosition,
   setGraphLook,
@@ -143,12 +131,13 @@ import {
 import { useCustomLooks } from '../utils/customLooks';
 import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
-import Dropdown from '../widgets/Dropdown';
 import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
 import SceneTintToggle from './SceneTintToggle';
+import GraphUpdateNotice from './GraphUpdateNotice';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
+import LookPicker from './LookPicker';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
@@ -530,7 +519,7 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 const FrequencyResponseChart = ({
   isVisible,
 }: IFrequencyResponseChartProps) => {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
@@ -541,23 +530,15 @@ const FrequencyResponseChart = ({
   // The Plus visualizer actually on the plot, for the View menu's attack and
   // release: null while it falls back or the designer's draft is showing.
   const drawnScene = useSceneLook();
+  // Read by the keyboard handler, which is not re-registered per scene.
+  const hasDrawnSceneRef = useRef(false);
+  hasDrawnSceneRef.current = Boolean(drawnScene);
   const graphPalette: GraphPalette = useGraphPalette();
   const isPaletteSelectable = useIsPaletteSelectable();
   const customLooks = useCustomLooks();
-  // The premium scenes that can run right now. Subscribed here so the picker
-  // rebuilds when they arrive or a subscription lapses — the same reason the
-  // custom looks are.
-  const usableScenes = useUsableScenes();
-  // The Plus scenes this account cannot draw. Shown anyway, locked, at the end
-  // of the list: the free app says what Plus is instead of hiding it, and
-  // choosing one leads to the place where it stops being locked. Never in
-  // `getSelectableLooks` — nothing that cycles, remembers or draws a look can
-  // land on one.
-  const lockedScenes = useLockedScenes();
-  // Scenes the member made in the Studio: drawable ones under their own
-  // heading, and the same ones locked while Plus is off — kept, never hidden.
+  // Scenes the member made in the Studio, for the heart beside the one on the
+  // plot. The picker subscribes to every list it shows itself (`LookPicker`).
   const memberScenes = useUsableMemberScenes();
-  const lockedMemberScenes = useLockedMemberScenes();
   // The member's scene on the plot, if one is: the option bar carries its
   // heart in the design button's place.
   const selectedMemberScene = isMemberLookId(selectedLookId)
@@ -646,234 +627,6 @@ const FrequencyResponseChart = ({
   const waveOrientation = useWaveOrientation();
 
   /**
-   * The whole picker: what ships, then what the user made.
-   *
-   * The order comes from `getSelectableLooks` rather than being assembled here,
-   * because clicking the plot walks that same list. Two places building "the
-   * looks, in order" is two places to disagree, and the symptom would be the
-   * plot click skipping an entry the menu shows.
-   *
-   * Rebuilt only when their list changes — a save or a delete — rather than per
-   * render, which would hand the dropdown a new array twenty-two times a second
-   * while the live curve is updating.
-   */
-  const graphLookOptions = useMemo(
-    () =>
-      [
-        ...getSelectableLooks(
-          customLooks,
-          graphPalette,
-          usableScenes,
-          memberScenes,
-        ).map((look) => {
-          const memberScene = isMemberLookId(look.id)
-            ? memberScenes.find((entry) => entry.lookId === look.id)
-            : undefined;
-          if (memberScene) {
-            // Its own name, in the languages its maker gave it, under the
-            // heading that says whose it is: the member's own, or sent by
-            // another member — then with that member's name beside it.
-            const memberName = resolveSceneName(memberScene, locale);
-            const author = memberScene.own
-              ? undefined
-              : memberScene.authorName || t('graph.member.anonymous');
-            return {
-              value: look.id,
-              label: memberName,
-              group: memberScene.own
-                ? t('graph.member.mine')
-                : t('graph.member.theirs'),
-              display: (
-                <span className="graph-look-option">
-                  <SceneLookIcon
-                    className="graph-look-option__icon"
-                    swatch={memberScene.swatch}
-                  />
-                  <span className="graph-look-name">{memberName}</span>
-                  {author && (
-                    <span className="graph-look-by">
-                      {t('graph.member.by', { name: author })}
-                    </span>
-                  )}
-                </span>
-              ),
-            };
-          }
-          // The form's name and nothing else. The palette used to be appended
-          // here, back when the list held every form three times; with one row
-          // per form the suffix would be the same word on all forty-seven and
-          // the toggle beside the list already says which is on.
-          //
-          // A premium scene carries its own name, already in every language the
-          // pack was published with, and is never routed through `t()`: a
-          // runtime name is not a translation key.
-          const scene = isPremiumLookId(look.id)
-            ? usableScenes.find((entry) => entry.lookId === look.id)
-            : undefined;
-          const ownName = scene
-            ? resolveSceneName(scene, locale)
-            : look.isCustom && look.label;
-          const builtInLabel =
-            ownName || t(`graph.styleName.${look.style}` as TranslationKey);
-          return {
-            value: look.id,
-            label: builtInLabel,
-            // The name is wrapped rather than handed over as a bare string, because
-            // the dropdown renders `display` straight into the trigger — a loose
-            // text node with nothing to hang a rule on. Styling the closed control
-            // needs an element.
-            //
-            // A look the user made is marked on the row rather than in the label,
-            // so the search still matches the name they typed instead of the word
-            // "custom".
-            //
-            // The glyph goes in front of it, in both places `display` is used —
-            // every row of the open list and the closed trigger. A hundred and
-            // thirty-eight rows of "Terrace", "Crown" and "Truss" say nothing
-            // about what any of them draws, and the only way to find out was to
-            // select one and look; the icon answers the shape and the colouring at
-            // once, since it is painted by the same resolver as the trace itself.
-            display: (
-              <span className="graph-look-option">
-                {scene ? (
-                  <SceneLookIcon
-                    className="graph-look-option__icon"
-                    swatch={scene.swatch}
-                  />
-                ) : (
-                  <LookIcon
-                    className="graph-look-option__icon"
-                    style={look.style}
-                    palette={look.palette}
-                    colours={look.colours}
-                  />
-                )}
-                <span
-                  className={`graph-look-name${
-                    look.isCustom ? ' graph-look-name--custom' : ''
-                  }${scene ? ' graph-look-name--premium' : ''}`}
-                >
-                  {builtInLabel}
-                </span>
-                {scene && (
-                  <span className="graph-look-badge">
-                    {t('graph.scene.badge')}
-                  </span>
-                )}
-              </span>
-            ),
-          };
-        }),
-        // The locked rows, painted like a Plus row with the lock where the tag
-        // is, under a heading with the tier's name, so the list says "these
-        // exist and they are Plus" in one glance. The icon is the pack's real
-        // swatch at full strength — it is the whole pitch — and only the name
-        // is quieted, so the row reads as not yet yours rather than as broken.
-        ...lockedScenes.map((scene) => {
-          const name = resolveSceneName(scene, locale);
-          return {
-            value: scene.lookId,
-            label: name,
-            group: t('account.plus.eyebrow'),
-            display: (
-              <span
-                className="graph-look-option graph-look-option--locked"
-                title={t('graph.scene.locked')}
-              >
-                <SceneLookIcon
-                  className="graph-look-option__icon"
-                  swatch={scene.swatch}
-                />
-                <span className="graph-look-name graph-look-name--premium">
-                  {name}
-                </span>
-                <span className="graph-look-badge graph-look-badge--locked">
-                  <svg
-                    className="graph-look-badge__lock"
-                    viewBox="0 0 10 12"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path d="M2.5 5V3.6a2.5 2.5 0 0 1 5 0V5" />
-                    <rect x="1" y="5" width="8" height="6" rx="1.4" />
-                  </svg>
-                  {t('graph.scene.badge')}
-                </span>
-              </span>
-            ),
-          };
-        }),
-        // Member scenes while the membership is off: still on this computer,
-        // still under the heading that says whose they are, locked like the Plus
-        // rows. Choosing one opens the Plus card, exactly as a locked Plus look
-        // does.
-        ...lockedMemberScenes.map((scene) => {
-          const name = resolveSceneName(scene, locale);
-          const author = scene.own
-            ? undefined
-            : scene.authorName || t('graph.member.anonymous');
-          return {
-            value: scene.lookId,
-            label: name,
-            group: scene.own
-              ? t('graph.member.mine')
-              : t('graph.member.theirs'),
-            display: (
-              <span
-                className="graph-look-option graph-look-option--locked"
-                title={t('graph.scene.locked')}
-              >
-                <SceneLookIcon
-                  className="graph-look-option__icon"
-                  swatch={scene.swatch}
-                />
-                <span className="graph-look-name">{name}</span>
-                {author && (
-                  <span className="graph-look-by">
-                    {t('graph.member.by', { name: author })}
-                  </span>
-                )}
-                <span className="graph-look-badge graph-look-badge--locked">
-                  <svg
-                    className="graph-look-badge__lock"
-                    viewBox="0 0 10 12"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path d="M2.5 5V3.6a2.5 2.5 0 0 1 5 0V5" />
-                    <rect x="1" y="5" width="8" height="6" rx="1.4" />
-                  </svg>
-                  {t('graph.scene.badge')}
-                </span>
-              </span>
-            ),
-          };
-        }),
-      ].map((option) => ({
-        ...option,
-        action: <GraphSceneRemove lookId={option.value} name={option.label} />,
-      })),
-    // The palette is passed to the resolver rather than left for it to read,
-    // which is what makes this dependency a real one. Every row is drawn in
-    // whichever palette is on, so without it the menu froze in the previous
-    // one and its ids went stale with it — the list still held `bars` while
-    // the selection had become `bars-rainbow`, so the dropdown matched
-    // nothing and cycling walked a list nobody could see. The scenes are a
-    // dependency for the same reason: they arrive after first paint, and
-    // change when a subscription starts or lapses.
-    [
-      customLooks,
-      graphPalette,
-      usableScenes,
-      lockedScenes,
-      memberScenes,
-      lockedMemberScenes,
-      locale,
-      t,
-    ],
-  );
-
-  /**
    * A locked row is not a selection. Choosing it asks for the Account panel,
    * where Plus is explained and bought, and the look on screen stays put —
    * the dropdown closes on its own and its trigger keeps showing the current
@@ -938,7 +691,7 @@ const FrequencyResponseChart = ({
   // failed rather than as a stage.
   const isDisplayedGridHidden = isGridHidden;
   const isDisplayedCoverageHidden =
-    isClean || isCoverageHidden || !isEngineUsable;
+    isClean || isCoverageHidden || !isEngineUsable || Boolean(drawnScene);
   const canEditEqCurve =
     !isClean && !isSolo && isEngineUsable && !areHandlesHidden;
   // The live output is the subject whenever no APO response can be heard. This
@@ -1560,7 +1313,11 @@ const FrequencyResponseChart = ({
           } else if (key === 'g') {
             toggleGraphGrid();
           } else if (key === 'i') {
-            cycleWaveOrientation();
+            // Not over a Plus visualizer, which takes the wave's height and
+            // position but never its orientation.
+            if (!hasDrawnSceneRef.current) {
+              cycleWaveOrientation();
+            }
           } else if (isEngineUsable) {
             // Ctrl+W walks the five things the plot can show rather than
             // toggling one of two switches that each turn the other off. One of
@@ -1834,6 +1591,7 @@ const FrequencyResponseChart = ({
           elsewhere. Kept unconditional here rather than gated on the mode as
           well, because two things deciding the same question is how they come
           to disagree. */}
+      {drawnScene && <GraphUpdateNotice />}
       <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
         {/* One pane for the whole right-hand cluster.
 
@@ -1952,16 +1710,10 @@ const FrequencyResponseChart = ({
             {/* The selection, not the resolved look: while the designer is open
                 the chart draws an unsaved draft whose id is in no list, and a
                 picker handed that id would go blank. */}
-            <Dropdown
-              name="live-output-style"
-              menuClassName="graph-look-menu"
-              options={graphLookOptions}
+            <LookPicker
               value={selectedLookId}
-              isDisabled={isDisplayedWaveHidden}
-              isFilterable
-              filterPlaceholder={t('graph.style.search')}
-              placement="down"
-              handleChange={chooseGraphLook}
+              disabled={isDisplayedWaveHidden}
+              onChoose={chooseGraphLook}
             />
             <button
               type="button"
@@ -2094,26 +1846,31 @@ const FrequencyResponseChart = ({
               for the grid.
 
               They stay in the menu as well. This is a shortcut to the two that
-              change what the plot looks like most, not a move. */}
-            <button
-              type="button"
-              className="graph-look-step graph-look-step--toggle"
-              aria-pressed={!isDisplayedCoverageHidden}
-              aria-label={t(
-                isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
-                { item: t('graph.item.bands') },
-              )}
-              title={t(
-                isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
-                { item: t('graph.item.bands') },
-              )}
-              disabled={!isEngineUsable}
-              onClick={toggleGraphCoverage}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M3 13V8.5M6.3 13V5M9.7 13V6.8M13 13V3.5" />
-              </svg>
-            </button>
+              change what the plot looks like most, not a move.
+
+              Not over a Plus visualizer, which never draws the bands: a
+              switch there would press and change nothing. */}
+            {!drawnScene && (
+              <button
+                type="button"
+                className="graph-look-step graph-look-step--toggle"
+                aria-pressed={!isDisplayedCoverageHidden}
+                aria-label={t(
+                  isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
+                  { item: t('graph.item.bands') },
+                )}
+                title={t(
+                  isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
+                  { item: t('graph.item.bands') },
+                )}
+                disabled={!isEngineUsable}
+                onClick={toggleGraphCoverage}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden>
+                  <path d="M3 13V8.5M6.3 13V5M9.7 13V6.8M13 13V3.5" />
+                </svg>
+              </button>
+            )}
             <button
               type="button"
               className="graph-look-step graph-look-step--toggle"

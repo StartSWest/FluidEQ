@@ -3,11 +3,18 @@ import type { IStudioProject } from 'main/ipc/memberScenes';
 import { promptWithIdea } from './aiPrompt';
 import { setStudioIdea, useStudioIdea } from './studioIdea';
 
-/** Project notes travel with the folder; the unassigned draft stays separate. */
+/**
+ * Project notes travel with the folder; the unassigned draft stays separate.
+ *
+ * The prompt handed over is always this app's, with the idea the member can
+ * see in the field after it. A project folder can come from anywhere, and the
+ * prompt its notes saved went to the member's AI - which works with the
+ * member's files - from a collapsed panel nobody reads: a folder shared on a
+ * forum could have told that AI to do anything.
+ */
 export default function useProjectIdea(project?: IStudioProject) {
   const draft = useStudioIdea();
   const [idea, setIdea] = useState(project ? '' : draft);
-  const [savedPrompt, setSavedPrompt] = useState('');
   const [loading, setLoading] = useState(!!project);
   const [failed, setFailed] = useState(false);
   const pending = useRef<{ description: string; prompt: string } | undefined>(
@@ -38,7 +45,6 @@ export default function useProjectIdea(project?: IStudioProject) {
         .then((notes) => {
           if (!disposed && !pending.current) {
             setIdea(notes?.description ?? '');
-            setSavedPrompt(notes?.prompt ?? '');
             setLoading(false);
           }
           return undefined;
@@ -60,7 +66,6 @@ export default function useProjectIdea(project?: IStudioProject) {
   }, [projectId, save]);
   const update = (text: string) => {
     setIdea(text);
-    setSavedPrompt('');
     if (!project) {
       setStudioIdea(text);
     } else {
@@ -73,6 +78,6 @@ export default function useProjectIdea(project?: IStudioProject) {
     save,
     loading,
     failed,
-    prompt: savedPrompt || promptWithIdea(idea),
+    prompt: promptWithIdea(idea),
   };
 }

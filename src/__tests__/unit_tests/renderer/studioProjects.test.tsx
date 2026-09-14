@@ -238,7 +238,41 @@ describe('the publish dialog', () => {
     );
     expect(go).toBeEnabled();
     await userEvent.click(go);
-    expect(onPublish).toHaveBeenCalledWith('space', undefined);
+    expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
+  });
+
+  it('asks what is new only of an update, and sends it with the publication', async () => {
+    const onPublish = jest.fn();
+    const published = {
+      sceneId: 'neon-city',
+      version: 3,
+      category: 'cities',
+    } as IPublishDraft['published'];
+    render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ published })}
+        running={false}
+        onPublish={onPublish}
+        onCancel={jest.fn()}
+      />,
+    );
+    const note = screen.getByLabelText('studio.publish.note');
+    expect(note).toHaveAttribute('maxLength', '140');
+    await userEvent.type(note, 'The peaks stay whole');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goUpdate' }),
+    );
+    expect(onPublish).toHaveBeenLastCalledWith(
+      'cities',
+      undefined,
+      'The peaks stay whole',
+    );
   });
 
   it('files a scene under up to two categories, the first staying first', async () => {
@@ -272,13 +306,13 @@ describe('the publish dialog', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.go' }),
     );
-    expect(onPublish).toHaveBeenLastCalledWith('cities', 'space');
+    expect(onPublish).toHaveBeenLastCalledWith('cities', 'space', undefined);
     // Unpicking the first moves the second up.
     await userEvent.click(chip('cities'));
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.go' }),
     );
-    expect(onPublish).toHaveBeenLastCalledWith('space', undefined);
+    expect(onPublish).toHaveBeenLastCalledWith('space', undefined, undefined);
   });
 
   it('selects completed covers and identifies captures still being drawn', async () => {

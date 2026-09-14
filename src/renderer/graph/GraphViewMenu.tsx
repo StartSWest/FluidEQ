@@ -105,7 +105,8 @@ interface IGraphViewMenuProps {
   onToggleTopBar: () => void;
   /**
    * The Plus visualizer on the plot, if one is: the menu then carries its
-   * attack and release.
+   * attack and release, and the wave's height and position in every mode, and
+   * greys the listening bands, which are never drawn over one.
    */
   sceneLookId?: string;
 }
@@ -230,6 +231,10 @@ const GraphViewMenu = ({
   sceneLookId,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
+  // A Plus visualizer ignores the orientation, so a centred wave locks
+  // nothing there.
+  const isWavePositionLocked =
+    isWaveHidden || (!sceneLookId && waveOrientation === 'centred');
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
     isAbove: false,
@@ -522,7 +527,9 @@ const GraphViewMenu = ({
             type="button"
             role="menuitemcheckbox"
             aria-checked={isCoverageHidden}
-            disabled={!isResponseAvailable}
+            // A Plus visualizer never draws the bands, so over one this has
+            // nothing to switch.
+            disabled={!isResponseAvailable || sceneLookId !== undefined}
             onClick={choose(onToggleCoverage)}
           >
             <Icon>
@@ -563,13 +570,17 @@ const GraphViewMenu = ({
               none of its three labels a complete description of what moved.
               These stay open while dragged so the graph remains the readout.
 
-              Offered in the two big modes only. The graph in its pane shares
-              the card with the response curves, the band handles and the
-              legends: it is a measurement, it uses the whole plot, and a
-              control for making it shorter there is a control for making the
-              reading worse. Both big modes write one shared value, so what is
-              set out here is what the pane draws with. */}
-          {view !== 'normal' && (
+              Offered in the two big modes, and in the pane only while a Plus
+              visualizer is on it. The graph in its pane shares the card with
+              the response curves, the band handles and the legends: it is a
+              measurement, it uses the whole plot, and a control for making it
+              shorter there is a control for making the reading worse. A
+              visualizer is the picture rather than a reading, and where its
+              band stands is the thing being looked at. Every mode writes one
+              shared value, so what is set out here is what the pane draws
+              with. A visualizer that reserves its own band has both act
+              inside that band (`liveLevelScaleFor`). */}
+          {(view !== 'normal' || sceneLookId) && (
             <>
               <label
                 className={`graph-view-menu__slider${
@@ -618,9 +629,7 @@ const GraphViewMenu = ({
 
               <label
                 className={`graph-view-menu__slider${
-                  isWaveHidden || waveOrientation === 'centred'
-                    ? ' is-disabled'
-                    : ''
+                  isWavePositionLocked ? ' is-disabled' : ''
                 }`}
                 htmlFor="graph-wave-position"
                 title={t('graph.wavePositionHint')}
@@ -636,7 +645,7 @@ const GraphViewMenu = ({
                   max={100}
                   step={1}
                   value={Math.round(wavePosition * 100)}
-                  disabled={isWaveHidden || waveOrientation === 'centred'}
+                  disabled={isWavePositionLocked}
                   onChange={(event) =>
                     onChangeWavePosition(Number(event.target.value) / 100)
                   }
@@ -652,18 +661,23 @@ const GraphViewMenu = ({
               removed, so the row does not appear and vanish as the wave is
               switched — and so the reason it is unavailable is legible from
               the row directly above it. */}
-          <button
-            type="button"
-            role="menuitem"
-            disabled={isWaveHidden}
-            onClick={onCycleOrientation}
-          >
-            <Icon>
-              <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
-            </Icon>
-            <span>{t(ORIENTATION_LABEL[waveOrientation])}</span>
-            <kbd>Ctrl+I</kbd>
-          </button>
+          {/* Not for a Plus visualizer: it is built around its own band
+              and takes the wave's height and position, never its
+              orientation, which turned a scene upside down or halved it. */}
+          {!sceneLookId && (
+            <button
+              type="button"
+              role="menuitem"
+              disabled={isWaveHidden}
+              onClick={onCycleOrientation}
+            >
+              <Icon>
+                <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
+              </Icon>
+              <span>{t(ORIENTATION_LABEL[waveOrientation])}</span>
+              <kbd>Ctrl+I</kbd>
+            </button>
+          )}
 
           <div className="graph-view-menu__divider" />
 

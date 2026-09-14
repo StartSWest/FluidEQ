@@ -9,6 +9,7 @@ import {
   FLUIDEQ_CREATOR_ID,
   MAX_GALLERY_QUERY,
   parseGalleryRow,
+  parseVersionRow,
   parsePublishedRow,
 } from '../../../common/plusGallery';
 
@@ -132,5 +133,78 @@ describe('a search', () => {
     expect(cleanGalleryQuery('n'.repeat(200))).toHaveLength(MAX_GALLERY_QUERY);
     expect(cleanGalleryQuery('   ')).toBeUndefined();
     expect(cleanGalleryQuery(42)).toBeUndefined();
+  });
+});
+
+describe('the versions a row carries', () => {
+  it('keeps the maker’s note for this version and the scene’s first version', () => {
+    expect(
+      parseGalleryRow(
+        row({
+          version: 4,
+          version_note: '  Peaks stay whole ',
+          first_version: 1,
+        }),
+      ),
+    ).toMatchObject({
+      version: 4,
+      versionNote: 'Peaks stay whole',
+      firstVersion: 1,
+    });
+  });
+
+  it('drops a first version later than the current one, and a note it cannot keep', () => {
+    const scene = parseGalleryRow(
+      row({ version: 2, version_note: 'x'.repeat(141), first_version: 5 }),
+    );
+    expect(scene).toBeDefined();
+    expect(scene).not.toHaveProperty('versionNote');
+    expect(scene).not.toHaveProperty('firstVersion');
+  });
+
+  it('reads a server from before notes as a row without them', () => {
+    const scene = parseGalleryRow(row());
+    expect(scene).not.toHaveProperty('versionNote');
+    expect(scene).not.toHaveProperty('firstVersion');
+  });
+});
+
+describe('an earlier version', () => {
+  it('is read with its note, or without one', () => {
+    expect(
+      parseVersionRow({
+        version: 3,
+        note: 'Lake at night',
+        published_at: '2026-09-12T02:00:00Z',
+      }),
+    ).toEqual({
+      version: 3,
+      note: 'Lake at night',
+      publishedAt: '2026-09-12T02:00:00Z',
+    });
+    expect(
+      parseVersionRow({
+        version: 2,
+        note: null,
+        published_at: '2026-09-11T02:00:00Z',
+      }),
+    ).toEqual({ version: 2, publishedAt: '2026-09-11T02:00:00Z' });
+  });
+
+  it('is nothing when any part of it is wrong', () => {
+    expect(parseVersionRow(null)).toBeUndefined();
+    expect(
+      parseVersionRow({ version: 0, published_at: '2026-09-11T02:00:00Z' }),
+    ).toBeUndefined();
+    expect(
+      parseVersionRow({ version: 2, published_at: 'yesterday' }),
+    ).toBeUndefined();
+    expect(
+      parseVersionRow({
+        version: 2,
+        note: 42,
+        published_at: '2026-09-11T02:00:00Z',
+      }),
+    ).toBeUndefined();
   });
 });

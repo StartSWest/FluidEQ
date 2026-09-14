@@ -22,7 +22,19 @@ import type {
   TSceneStillRequest,
 } from '../../../renderer/graph/sceneStillMessages';
 
-const pack = { id: 'aurora', names: { en: 'Aurora' } } as IScenePack;
+const pack = {
+  id: 'aurora',
+  names: { en: 'Aurora' },
+  params: [],
+  source: 'vec4 sceneColour(vec2 uv) { return vec4(uv, 0.0, 1.0); }',
+} as unknown as IScenePack;
+
+/** Requests go out after any compile of the same scene already under way. */
+const settle = async () => {
+  for (let turn = 0; turn < 4; turn += 1) {
+    await Promise.resolve();
+  }
+};
 
 class FakeWorker {
   static made: FakeWorker[] = [];
@@ -80,6 +92,7 @@ it('answers each request with its own reply, whatever order they come in', async
   const client = load()();
   const still = client.drawStillInWorker(pack);
   const sample = client.sampleSceneInWorker(pack);
+  await settle();
   const [worker] = FakeWorker.made;
   expect(FakeWorker.made).toHaveLength(1);
   const [stillRequest, sampleRequest] = worker.sent;
@@ -93,18 +106,20 @@ it('answers each request with its own reply, whatever order they come in', async
   await expect(still).resolves.toBe(blob);
 });
 
-it("sends the page's accent, which a worker cannot read", () => {
+it("sends the page's accent, which a worker cannot read", async () => {
   const client = load()();
   client.sampleSceneInWorker(pack);
+  await settle();
   const [request] = FakeWorker.made[0].sent;
   expect(request.accent[0]).toBeCloseTo(0x52 / 255);
   expect(request.accent[1]).toBeCloseTo(0xe9 / 255);
 });
 
-it('passes a caught moment’s frames for a captured picture', () => {
+it('passes a caught moment’s frames for a captured picture', async () => {
   const client = load()();
   const frames = [{ timeSeconds: 1 }] as never;
   client.drawStillInWorker(pack, frames);
+  await settle();
   const [request] = FakeWorker.made[0].sent;
   expect(request).toMatchObject({ kind: 'still', frames });
 });
@@ -116,19 +131,74 @@ it('answers everything waiting with nothing when the worker fails, and starts af
     .mockImplementation(() => undefined);
   const first = client.drawStillInWorker(pack);
   const second = client.sampleSceneInWorker(pack);
+  await settle();
   const [broken] = FakeWorker.made;
   broken.onerror?.({ message: 'lost' } as ErrorEvent);
   await expect(first).resolves.toBeUndefined();
   await expect(second).resolves.toBeUndefined();
   expect(broken.terminated).toBe(true);
   client.sampleSceneInWorker(pack);
+  await settle();
   expect(FakeWorker.made).toHaveLength(2);
   errors.mockRestore();
 });
+
+it.each([
+  ['too-heavy', true],
+  ['gpu-reset', true],
+  ['context-lost', false],
+] as const)(
+  'tells the main process of a scene refused as %s beyond this session: %s',
+  async (reason, kept) => {
+    const reportSceneSourceRefused = jest.fn(() => Promise.resolve());
+    window.electron = {
+      ipcRenderer: { reportSceneSourceRefused },
+    } as unknown as typeof window.electron;
+    const client = load()();
+    const drawing = client.drawStillInWorker(pack);
+    await settle();
+    const [worker] = FakeWorker.made;
+    const [request] = worker.sent;
+    worker.reply({ kind: 'still', id: request.id, refused: reason });
+    await expect(drawing).resolves.toBeUndefined();
+    // A loss nothing was blamed for is not the scene's to keep.
+    expect(reportSceneSourceRefused.mock.calls).toEqual(
+      kept ? [[pack.source, reason]] : [],
+    );
+    Reflect.deleteProperty(window, 'electron');
+  },
+);
 
 it('answers nothing at once where there are no workers at all', async () => {
   Reflect.deleteProperty(window, 'Worker');
   const client = load()();
   await expect(client.drawStillInWorker(pack)).resolves.toBeUndefined();
   await expect(client.sampleSceneInWorker(pack)).resolves.toBeUndefined();
+});
+
+it('never asks again this session for a scene a worker gave up on, even from a new worker', async () => {
+  const client = load()();
+  const first = client.drawStillInWorker(pack);
+  await settle();
+  const [worker] = FakeWorker.made;
+  const [request] = worker.sent;
+  worker.reply({ kind: 'still', id: request.id, refused: 'too-heavy' });
+  await expect(first).resolves.toBeUndefined();
+
+  // The worker is let go, as it is when idle, and forgets what it refused.
+  const errors = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => undefined);
+  worker.onerror?.({ message: 'gone' } as ErrorEvent);
+  await expect(client.sampleSceneInWorker(pack)).resolves.toBeUndefined();
+  await expect(client.drawStillInWorker(pack)).resolves.toBeUndefined();
+  const asked = FakeWorker.made.flatMap((made) => made.sent).length;
+  expect(asked).toBe(1);
+
+  // The control: another scene is still drawn.
+  const other = { ...pack, source: `${pack.source}\n// another` };
+  client.drawStillInWorker(other as IScenePack);
+  await settle();
+  expect(FakeWorker.made.flatMap((made) => made.sent)).toHaveLength(2);
+  errors.mockRestore();
 });

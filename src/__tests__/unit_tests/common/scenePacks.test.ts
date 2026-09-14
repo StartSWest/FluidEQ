@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   isPremiumLookId,
   isScenePackEnvelope,
+  MAX_PARAM_MAGNITUDE,
   MAX_SCENE_PARAMS,
   MAX_SHADER_BYTES,
   normalizeScenePack,
@@ -121,6 +122,13 @@ describe('normalising a scene pack', () => {
         ],
         params: [
           { id: 'speed', names: { en: 'Speed' }, min: 5, max: 1, value: 99 },
+          {
+            id: 'reach',
+            names: { en: 'Reach' },
+            min: -1e300,
+            max: 1e300,
+            value: 2,
+          },
         ],
       }),
     );
@@ -133,8 +141,15 @@ describe('normalising a scene pack', () => {
       '#aaaaaa',
       '#bbbbbb',
     ]);
-    // max below min is lifted to min; value is clamped into the range.
-    expect(result?.params[0]).toMatchObject({ min: 5, max: 5, value: 5 });
+    // A range written backwards is put the right way round, and the value
+    // clamped into it.
+    expect(result?.params[0]).toMatchObject({ min: 1, max: 5, value: 5 });
+    // Bounds past a million are brought in, so a slider's span stays finite.
+    expect(result?.params[1]).toMatchObject({
+      min: -MAX_PARAM_MAGNITUDE,
+      max: MAX_PARAM_MAGNITUDE,
+      value: 2,
+    });
   });
 
   it('drops malformed and duplicate parameters and caps the count', () => {

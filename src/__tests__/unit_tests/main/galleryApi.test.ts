@@ -193,6 +193,25 @@ describe('a scene’s files', () => {
     ).toBeUndefined();
   });
 
+  it('refuses a picture whose header promises more than a card decodes', async () => {
+    const fetched = (bytes: Uint8Array) =>
+      fetchPicture(
+        authWith(jest.fn(async () => fakeResponse(200, bytes))),
+        SOMEONE,
+        'neon-city',
+      );
+    // A small file, and a gigabyte once decoded, in every window that shows it.
+    expect(await fetched(webpBytes(64, 16383, 16383))).toBeUndefined();
+    const animated = webpBytes(64);
+    animated.set(new TextEncoder().encode('VP8X'), 12);
+    new DataView(animated.buffer).setUint32(16, 10, true);
+    animated[20] = 0x02;
+    expect(await fetched(animated)).toBeUndefined();
+    // The size the app publishes, and anything smaller, are still pictures.
+    expect(await fetched(webpBytes(64, 1280, 720))).toBeDefined();
+    expect(await fetched(webpBytes(64, 640, 360))).toBeDefined();
+  });
+
   it('asks the private bucket with the member’s own token', async () => {
     const fetchImpl = answering(fakeResponse(200, webpBytes()));
     await fetchPicture(authWith(fetchImpl), SOMEONE, 'neon-city');

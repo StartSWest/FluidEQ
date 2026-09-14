@@ -1,8 +1,16 @@
 import type { IScenePack } from 'common/scenePacks';
 import { decodeSceneArtwork } from './sceneArtwork';
-import { compileScene, createSceneContext, type ISceneFrame } from './sceneGl';
+import {
+  compileScene,
+  createSceneContext,
+  type ISceneFrame,
+  type ISceneProgram,
+} from './sceneGl';
+import { BLAMED_FRAME_MS, createDrawWatch } from './sceneDrawWatch';
+import { sceneProgramKey } from './sceneLinkTurns';
 import { capturedRun, showcaseRun, type TFrameRun } from './sceneShowcaseRun';
 import type {
+  TSceneStillRefusal,
   TSceneStillReply,
   TSceneStillRequest,
 } from './sceneStillMessages';
@@ -64,7 +72,37 @@ const SAMPLE_HEIGHT = 54;
  */
 const SAMPLE_EVERY = 10;
 
+/**
+ * The longest one band of the kept frame is allowed to hold the GPU. Windows
+ * resets the driver when one job runs two seconds; the kept frame is split
+ * into bands small enough that none comes near it.
+ */
+const BAND_MS = 250;
+
+/** A frame estimated past this is not drawn at all: no picture, no reset. */
+const HOPELESS_STILL_MS = 30_000;
+
+/**
+ * The GPU time a pixel may take before a scene is given up on: the rate at
+ * which the kept frame would be hopeless. A postage stamp slower than its
+ * pixels at this rate is a scene whose picture would never be drawn anyway.
+ */
+const HOPELESS_MS_PER_PIXEL =
+  HOPELESS_STILL_MS / (RENDER_WIDTH * RENDER_HEIGHT);
+
 let target: { canvas: OffscreenCanvas; gl: WebGL2RenderingContext } | undefined;
+
+/**
+ * Scenes given up on while this worker lives: their drawing lost the context,
+ * or a frame took far too long. The page keeps its own list as well
+ * (`sceneStillClient.ts`), because a worker let go when idle forgets this one.
+ */
+const refused = new Map<string, TSceneStillRefusal>();
+/** The scene whose frames the context last carried. */
+let drawing: string | undefined;
+
+const sceneKey = (pack: IScenePack) =>
+  `${pack.version}\n${sceneProgramKey(pack)}`;
 
 /** The shared context, made again if the GPU took the last one away. */
 const context = () => {
@@ -72,6 +110,12 @@ const context = () => {
     return target;
   }
   const canvas = new OffscreenCanvas(RENDER_WIDTH, RENDER_HEIGHT);
+  canvas.addEventListener('webglcontextlost', () => {
+    // Blamed already, when a frame of it held the GPU (`watchDraws`).
+    if (drawing && !refused.has(drawing)) {
+      refused.set(drawing, 'context-lost');
+    }
+  });
   const gl = createSceneContext(canvas);
   target = gl ? { canvas, gl } : undefined;
   return target;
@@ -79,10 +123,14 @@ const context = () => {
 
 /** `pack`'s program on the shared context, or nothing it could not build. */
 const build = async (pack: IScenePack) => {
+  if (refused.has(sceneKey(pack))) {
+    return undefined;
+  }
   const drawn = context();
   if (!drawn) {
     return undefined;
   }
+  drawing = sceneKey(pack);
   let artwork: ImageBitmap | undefined;
   try {
     artwork = await decodeSceneArtwork(pack);
@@ -114,6 +162,101 @@ const encodeStill = async (
     : encodeStill(still, rest);
 };
 
+const pixel = new Uint8Array(4);
+
+/** The postage stamps' own warm-up is a single tiny draw before the run. */
+const STAMP_LADDER = [[16, 9]] as const;
+
+/** A watch over `pack`'s draws on the shared context (`sceneDrawWatch.ts`). */
+const watchDraws = (
+  gl: WebGL2RenderingContext,
+  program: ISceneProgram,
+  pack: IScenePack,
+) => {
+  const watch = createDrawWatch({
+    draw: (frame, width, height) => program.draw(frame, width, height),
+    finish: () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel),
+    isLost: () => gl.isContextLost(),
+    now: () => performance.now(),
+    msPerPixel: HOPELESS_MS_PER_PIXEL,
+    ladder: STAMP_LADDER,
+  });
+  return (frame: ISceneFrame, width: number, height: number) => {
+    const started = performance.now();
+    if (watch(frame, width, height)) {
+      return true;
+    }
+    // Lost while one of its own frames held the GPU: the reset was this
+    // scene's. Lost otherwise, somebody else's; and not lost, only slow.
+    let reason: TSceneStillRefusal = 'too-heavy';
+    if (gl.isContextLost()) {
+      reason =
+        performance.now() - started > BLAMED_FRAME_MS
+          ? 'gpu-reset'
+          : 'context-lost';
+    }
+    refused.set(sceneKey(pack), reason);
+    return false;
+  };
+};
+
+/**
+ * How many bands the kept frame is drawn in, or 0 when it is not to be drawn.
+ *
+ * Timed on the postage stamp at the same instant, with a pixel read back so
+ * the time is the GPU's: the fastest of three, times how many more pixels
+ * the kept frame has. Most of a stamp's time is the read itself, so this is
+ * generous for a light scene — a band or two more than it needs, which costs
+ * nothing — and right for a heavy one, which was drawn whole before: a
+ * member's scene too heavy for this GPU held it past Windows' two seconds
+ * and reset the display for every program on the machine.
+ */
+const keptFrameBands = (
+  gl: WebGL2RenderingContext,
+  program: ISceneProgram,
+  last: ISceneFrame,
+): number => {
+  const stamp = { ...last, deltaMs: 0 };
+  const times = [0, 1, 2].map(() => {
+    const started = performance.now();
+    program.draw(stamp, WARMUP_WIDTH, WARMUP_HEIGHT);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+    return performance.now() - started;
+  });
+  const estimate =
+    Math.min(...times) *
+    ((RENDER_WIDTH * RENDER_HEIGHT) / (WARMUP_WIDTH * WARMUP_HEIGHT));
+  if (gl.isContextLost() || estimate > HOPELESS_STILL_MS) {
+    return 0;
+  }
+  return Math.min(RENDER_HEIGHT, Math.max(1, Math.ceil(estimate / BAND_MS)));
+};
+
+/**
+ * The frame drawn a band at a time, each band finished on the GPU before the
+ * next is sent. The scissor keeps every band's pixels where the whole frame
+ * puts them, and the frame's zero elapsed time draws the same instant each
+ * time, so the bands meet without a seam.
+ */
+const drawInBands = (
+  gl: WebGL2RenderingContext,
+  program: ISceneProgram,
+  frame: ISceneFrame,
+  bands: number,
+) => {
+  const height = Math.ceil(RENDER_HEIGHT / bands);
+  gl.enable(gl.SCISSOR_TEST);
+  try {
+    for (let y = 0; y < RENDER_HEIGHT && !gl.isContextLost(); y += height) {
+      gl.scissor(0, y, RENDER_WIDTH, Math.min(height, RENDER_HEIGHT - y));
+      program.draw(frame, RENDER_WIDTH, RENDER_HEIGHT);
+      gl.readPixels(0, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+    }
+  } finally {
+    gl.disable(gl.SCISSOR_TEST);
+  }
+};
+
 /**
  * Plays `run` to a fresh copy of `pack` on the postage stamp and draws the
  * last frame at full quality: the picture, or nothing when this machine
@@ -137,16 +280,20 @@ const renderStill = async (
   if (!built) {
     return undefined;
   }
-  const { canvas, program } = built;
+  const { canvas, gl, program } = built;
   let still: OffscreenCanvas | undefined;
   try {
     let last: ISceneFrame | undefined;
+    const watch = watchDraws(gl, program, pack);
     for (let frame = run(); frame; frame = run()) {
-      program.draw(frame, WARMUP_WIDTH, WARMUP_HEIGHT);
+      if (!watch(frame, WARMUP_WIDTH, WARMUP_HEIGHT)) {
+        return undefined;
+      }
       last = frame;
     }
-    if (last) {
-      program.draw({ ...last, deltaMs: 0 }, RENDER_WIDTH, RENDER_HEIGHT);
+    const bands = last ? keptFrameBands(gl, program, last) : 0;
+    if (last && bands > 0) {
+      drawInBands(gl, program, { ...last, deltaMs: 0 }, bands);
       const scaled = new OffscreenCanvas(STILL_WIDTH, STILL_HEIGHT);
       const flat = scaled.getContext('2d');
       if (flat) {
@@ -176,9 +323,12 @@ const sampleFrames = async (
     const frameBytes = SAMPLE_WIDTH * SAMPLE_HEIGHT * 4;
     const frames: Uint8Array[] = [];
     const run = showcaseRun(pack, accent);
+    const watch = watchDraws(gl, program, pack);
     let index = 0;
     for (let frame = run(); frame; frame = run()) {
-      program.draw(frame, SAMPLE_WIDTH, SAMPLE_HEIGHT);
+      if (!watch(frame, SAMPLE_WIDTH, SAMPLE_HEIGHT)) {
+        return undefined;
+      }
       if (index % SAMPLE_EVERY === 0) {
         // Read in the task that drew it: without a preserved buffer the
         // frame is only guaranteed to be there until this task ends.
@@ -207,13 +357,24 @@ const sampleFrames = async (
   }
 };
 
+const refusalOf = (key: string) => {
+  const reason = refused.get(key);
+  return reason ? { refused: reason } : {};
+};
+
 const answer = async (request: TSceneStillRequest) => {
+  const key = sceneKey(request.pack);
   if (request.kind === 'sample') {
     const pixels = await sampleFrames(request.pack, request.accent).catch(
       () => undefined,
     );
     scope.postMessage(
-      { kind: 'sample', id: request.id, pixels },
+      {
+        kind: 'sample',
+        id: request.id,
+        pixels,
+        ...refusalOf(key),
+      },
       pixels ? [pixels.buffer] : [],
     );
     return;
@@ -222,7 +383,12 @@ const answer = async (request: TSceneStillRequest) => {
     ? capturedRun(request.frames)
     : showcaseRun(request.pack, request.accent);
   const blob = await renderStill(request.pack, run).catch(() => undefined);
-  scope.postMessage({ kind: 'still', id: request.id, blob });
+  scope.postMessage({
+    kind: 'still',
+    id: request.id,
+    blob,
+    ...refusalOf(key),
+  });
 };
 
 // One at a time: the requests share one context, and a picture half drawn

@@ -90,6 +90,10 @@ const studio = {
   'studio.publish.title': '{name} veröffentlichen',
   'studio.publish.titleUpdate': '{name} in der Galerie aktualisieren',
   'studio.publish.version': 'Version {version}',
+  'studio.publish.publishedVersion': 'Jetzt in der Galerie: Version {version}',
+  'studio.publish.note': 'Neu in dieser Version',
+  'studio.publish.notePlaceholder':
+    'Eine Zeile, die Hörer sehen, zum Beispiel: Die Gipfel werden auf breiten Flächen nicht mehr abgeschnitten',
   'studio.publish.hears': 'Was die Szene hört',
   'studio.publish.yourMusic': 'Ihre Musik',
   'studio.publish.demo': 'Demo',
@@ -308,6 +312,9 @@ const studio = {
   'studio.settings.response': 'Wie sie auf die Musik antwortet',
   'studio.settings.responseLead':
     'Formen Sie, was sie hört, bevor sie es hört. Bei 100 % und null hört sie die Musik, wie sie ist.',
+  'studio.settings.ambient': 'Elemente im Fenster',
+  'studio.settings.ambientLead':
+    'Was diese Szene im Modus Ambiente rund um die App ergänzt.',
   'studio.settings.sensitivity': 'Empfindlichkeit',
   'studio.settings.sensitivityHint':
     'Wie stark sie reagiert. Mehr für leise Titel, weniger, wenn ein lauter sie ständig ans Maximum drückt.',
@@ -359,8 +366,6 @@ const studio = {
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':
     'Wer die Szene nutzt, kann beides unter Ansicht im Diagramm ändern. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
-  'studio.wave.fixed':
-    'Diese Szene reserviert ihren eigenen Bereich für das Spektrum, daher ändern diese beiden sie nicht.',
   'studio.tint.label': 'FluidEQ mit dieser Szene',
   'studio.tint.hint':
     'Solange Sie hier arbeiten, kann die ganze App die Farben der Szene annehmen oder mit der Musik sanft um sie herum leuchten – so sehen und spüren Sie sie als Design.',
@@ -413,6 +418,12 @@ const studio = {
     'Das Bild ist kein WebP in der Größe, die pack.json angibt.',
   'studio.problem.contract-too-new':
     'Diese Szene wurde für ein neueres FluidEQ geschrieben. Aktualisieren Sie die App.',
+  'studio.problem.bad-param':
+    'Ein Regler in params braucht eine id aus a-z, 0-9 und _, einen englischen Namen und ein min unter seinem max.',
+  'studio.problem.too-many-params':
+    'Eine Szene kann höchstens 8 Regler in params haben.',
+  'studio.problem.bad-ambient':
+    'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
   'studio.problem.bad-json': 'pack.json ist kein gültiges JSON.',
   'studio.problem.missing-file': 'Eine Datei, die die Szene braucht, fehlt.',
   'studio.problem.unsafe-path':

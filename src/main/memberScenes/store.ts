@@ -16,6 +16,7 @@ import {
   type TLocalizedName,
 } from '../../common/scenePacks';
 import writeFileAtomically from '../atomicWrite';
+import type { ISceneRefusals, TSceneRefusal } from '../sceneRefusals';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import type { TSceneFailure } from '../scenePackStore';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
@@ -61,7 +62,8 @@ export interface IMemberSceneSummary {
   own: boolean;
   /** For an imported scene: the name on its author's profile, if they had one. */
   authorName?: string | null;
-  quarantined?: TSceneFailure;
+  /** Its own quarantine, or its source's refusal (`sceneRefusals.ts`). */
+  quarantined?: TSceneRefusal;
 }
 
 export interface IMemberSceneStore {
@@ -77,6 +79,13 @@ export interface IMemberSceneStore {
   saveImported(envelope: IScenePackEnvelope): IMemberSceneSummary;
   remove(authorId: string, packId: string): boolean;
   quarantine(authorId: string, packId: string, reason: TSceneFailure): void;
+  /**
+   * Lifts a quarantine. Only ever on something the member did - added the
+   * scene, imported it, saved their own - and never inside `save` or
+   * `saveImported`, which the gallery's quiet sync calls too: there, a
+   * version republished by its author ran again for everyone who had it,
+   * and a scene that reset the graphics driver could do it once per upload.
+   */
   release(authorId: string, packId: string): void;
   /** The maker's block list, as fingerprints; replaces the one held. */
   setBlocked(fingerprints: readonly string[]): void;
@@ -86,8 +95,10 @@ export interface IMemberSceneStore {
 export interface IMemberSceneStoreOptions {
   userDataDir: string;
   logger?: { warn(message: string): void };
-  /** The build a quarantine is scoped to. Defaults to this one. */
+  /** The build every quarantine but `gpu-reset` is kept for. Defaults to this. */
   appVersion?: string;
+  /** Scene code refused wherever it ran; a scene carrying it is not offered. */
+  refusals?: ISceneRefusals;
 }
 
 /**
@@ -126,6 +137,7 @@ export const createMemberSceneStore = ({
   userDataDir,
   logger,
   appVersion = PRODUCT_VERSION,
+  refusals,
 }: IMemberSceneStoreOptions): IMemberSceneStore => {
   const root = path.join(userDataDir, DIRECTORY);
   const ownRoot = path.join(root, OWN_DIRECTORY);
@@ -147,21 +159,39 @@ export const createMemberSceneStore = ({
     );
   }
 
-  /** Honoured only under the build that wrote it, as for official scenes. */
+  /**
+   * A driver reset the scene is blamed for is honoured under every build; a
+   * failed compile, or a loss nothing was blamed for, only under the one that
+   * wrote it — as for official scenes. Scoping the reset to the build too
+   * re-ran, after every update, each scene that had reset the graphics driver:
+   * a new build changes the program around a scene, never what the scene asks
+   * of the GPU.
+   */
   const quarantineOf = (lookId: string): TSceneFailure | undefined => {
     const entry = quarantine[lookId];
     if (!entry) {
       return undefined;
     }
     const at = entry.lastIndexOf('@');
-    if (at < 0 || entry.slice(at + 1) !== appVersion) {
+    if (at < 0) {
       return undefined;
     }
     const reason = entry.slice(0, at);
-    return reason === 'compile' || reason === 'context-lost'
+    if (reason === 'gpu-reset') {
+      return reason;
+    }
+    return (reason === 'compile' || reason === 'context-lost') &&
+      entry.slice(at + 1) === appVersion
       ? reason
       : undefined;
   };
+
+  /** Held back by its own quarantine or by its source, the first that says. */
+  const refusalOf = (
+    lookId: string,
+    pack: IScenePack,
+  ): TSceneRefusal | undefined =>
+    quarantineOf(lookId) ?? refusals?.refusalOf(pack.source);
 
   const saveQuarantine = () =>
     writeFileAtomically(quarantinePath, JSON.stringify(quarantine));
@@ -226,7 +256,7 @@ export const createMemberSceneStore = ({
     imported?: { authorName: string | null },
   ): IMemberSceneSummary => {
     const lookId = memberLookId(authorId, pack.id);
-    const quarantined = quarantineOf(lookId);
+    const quarantined = refusalOf(lookId, pack);
     return {
       lookId,
       authorId,
@@ -284,7 +314,9 @@ export const createMemberSceneStore = ({
       ) {
         return undefined;
       }
-      return readOwn(authorId, packId) ?? readImported(authorId, packId)?.pack;
+      const pack =
+        readOwn(authorId, packId) ?? readImported(authorId, packId)?.pack;
+      return pack && !refusals?.refusalOf(pack.source) ? pack : undefined;
     },
     save: (authorId, pack) => {
       if (!validRef(authorId, pack.id)) {
@@ -308,8 +340,6 @@ export const createMemberSceneStore = ({
           pack: checked.pack,
         },
       );
-      // A new save is a new chance: it may be the fix for what failed.
-      release(authorId, pack.id);
       return summarise(authorId, checked.pack);
     },
     saveImported: (envelope) => {
@@ -327,7 +357,6 @@ export const createMemberSceneStore = ({
         `imported/${author.id}/${pack.id}`,
         envelope,
       );
-      release(author.id, pack.id);
       return summarise(author.id, pack, { authorName: author.name });
     },
     remove: (authorId, packId) => {

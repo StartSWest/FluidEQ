@@ -19,6 +19,7 @@ import {
   verifyScenePackEnvelope,
 } from '../../../main/scenePackVerify';
 import { createScenePackStore } from '../../../main/scenePackStore';
+import { createSceneRefusals } from '../../../main/sceneRefusals';
 
 jest.mock('electron', () => ({
   safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
@@ -95,6 +96,20 @@ describe('verifying a signed envelope', () => {
       verifyScenePackEnvelope(seal(payloadFor('aurora'), 'somebody-else')),
     ).toBeUndefined();
   });
+
+  it.each([['constructor'], ['tostring'], ['hasownproperty']])(
+    'refuses a key id every object has, %s, without throwing',
+    (keyId) => {
+      // Lower-case, as the envelope's id pattern allows: `constructor` passes
+      // it, and read from the key list as a plain object it was a function.
+      expect(() =>
+        verifyScenePackEnvelope(seal(payloadFor('aurora'), keyId)),
+      ).not.toThrow();
+      expect(
+        verifyScenePackEnvelope(seal(payloadFor('aurora'), keyId)),
+      ).toBeUndefined();
+    },
+  );
 
   it('refuses a signature of the wrong length without trying it', () => {
     const envelope = seal(payloadFor('aurora'));
@@ -316,6 +331,73 @@ describe('the scene pack store', () => {
     });
     expect(next.load('aurora')?.id).toBe('aurora');
     expect(next.list()[0].quarantined).toBeUndefined();
+  });
+
+  /**
+   * No build changes what a scene asks of the GPU, so a reset the scene was
+   * blamed for is not forgotten at an update; a loss nothing was blamed for
+   * is, because sleep and driver updates lose every context too.
+   */
+  it('keeps a quarantine for a blamed driver reset across app versions, and only that one', () => {
+    const first = createScenePackStore({
+      userDataDir: directory,
+      appVersion: '1.6.5',
+    });
+    first.adopt([
+      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
+      { id: 'bloom', version: 1, envelope: seal(payloadFor('bloom')) },
+    ]);
+    first.quarantine('aurora', 'gpu-reset');
+    first.quarantine('bloom', 'context-lost');
+
+    const next = createScenePackStore({
+      userDataDir: directory,
+      appVersion: '1.6.6',
+    });
+    expect(next.load('aurora')).toBeUndefined();
+    expect(next.list().find((pack) => pack.id === 'aurora')?.quarantined).toBe(
+      'gpu-reset',
+    );
+    expect(next.load('bloom')?.id).toBe('bloom');
+    // A new version of the pack is still its maker's fix, and lifts it.
+    next.adopt([
+      { id: 'aurora', version: 2, envelope: seal(payloadFor('aurora', 2)) },
+    ]);
+    expect(next.load('aurora')?.version).toBe(2);
+  });
+
+  it('holds back a pack whose code was refused wherever it ran', () => {
+    const refusals = createSceneRefusals({
+      userDataDir: directory,
+      appVersion: '1.6.5',
+    });
+    const store = createScenePackStore({
+      userDataDir: directory,
+      appVersion: '1.6.5',
+      refusals,
+    });
+    store.adopt([
+      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
+      {
+        id: 'bloom',
+        version: 1,
+        envelope: seal(payloadFor('bloom', 1, { source: `${SOURCE}// bloom` })),
+      },
+    ]);
+    const aurora = store.load('aurora');
+    expect(aurora).toBeDefined();
+    refusals.refuse(aurora?.source ?? '', 'gpu-reset');
+
+    expect(store.load('aurora')).toBeUndefined();
+    const listed = store.list();
+    expect(listed.find((pack) => pack.id === 'aurora')?.quarantined).toBe(
+      'gpu-reset',
+    );
+    // The control: a pack with other code plays.
+    expect(listed.find((pack) => pack.id === 'bloom')?.quarantined).toBe(
+      undefined,
+    );
+    expect(store.load('bloom')?.id).toBe('bloom');
   });
 
   it('ignores ids that are not pack ids', () => {

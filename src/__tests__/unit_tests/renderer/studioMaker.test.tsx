@@ -111,7 +111,11 @@ describe('making a scene with your AI', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
     );
-    expect(clipboard).toBe('Saved editing prompt for second');
+    // The app's own prompt with the idea on screen, never the prompt the
+    // folder saved: a folder from anywhere could have written anything there
+    // for the member's AI to follow.
+    expect(clipboard).toBe(promptWithIdea('A neon city'));
+    expect(clipboard).not.toContain('Saved editing prompt');
     expect(save).not.toHaveBeenCalledWith('second', expect.anything());
   });
 

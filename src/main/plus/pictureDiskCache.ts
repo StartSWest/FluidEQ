@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { isWebp, MAX_PICTURE_BYTES } from './galleryApi';
+import { isCardPicture, MAX_PICTURE_BYTES } from './galleryApi';
 
 /**
  * Gallery pictures kept on disk between sessions.
@@ -75,7 +75,7 @@ export const createPictureDiskCache = ({
         // Not kept, or not readable: the network is asked, as it always was.
         return undefined;
       }
-      if (bytes.length > MAX_PICTURE_BYTES || !isWebp(bytes)) {
+      if (bytes.length > MAX_PICTURE_BYTES || !isCardPicture(bytes)) {
         await fs.promises.rm(file, { force: true });
         return undefined;
       }

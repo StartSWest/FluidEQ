@@ -3,8 +3,10 @@ import {
   GALLERY_PAGE_SIZE,
   parseGalleryRow,
   parsePublishedRow,
+  parseVersionRow,
   type IGalleryQuery,
   type IGalleryScene,
+  type IGalleryVersion,
   type IPublishedScene,
   type TPlusCategory,
   type TReportReason,
@@ -15,6 +17,7 @@ import {
   type IScenePackEnvelope,
 } from '../../common/scenePacks';
 import { MAX_MEMBER_SCENE_FILE_BYTES } from '../../common/memberSceneFile';
+import { readWebpSize } from '../../common/sceneArtwork';
 
 /**
  * The gallery's server, spoken to with the member's own token, so every rule
@@ -182,6 +185,50 @@ export const listPublished = async (
   }
 };
 
+/**
+ * A scene's versions before the one showing, newest first, with what its maker
+ * wrote about each (fluideq-premium 0026). A server before 0026 has no such
+ * question to answer, which reads as a scene with no earlier versions.
+ */
+export const listVersions = async (
+  auth: IAuthorised,
+  authorId: string,
+  sceneId: string,
+): Promise<
+  | { ok: true; versions: IGalleryVersion[] }
+  | { ok: false; reason: TGalleryFailure }
+> => {
+  let response: Response;
+  try {
+    response = await rpc(auth, 'scene_version_history', {
+      p_author: authorId,
+      p_scene: sceneId,
+    });
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
+  if (response.status === 404) {
+    return { ok: true, versions: [] };
+  }
+  if (!response.ok) {
+    return { ok: false, reason: failureOf(response.status) };
+  }
+  try {
+    const rows: unknown = await response.json();
+    return Array.isArray(rows)
+      ? {
+          ok: true,
+          versions: rows.flatMap((row) => {
+            const version = parseVersionRow(row);
+            return version ? [version] : [];
+          }),
+        }
+      : { ok: false, reason: 'server' };
+  } catch {
+    return { ok: false, reason: 'server' };
+  }
+};
+
 const objectUrl = (config: IAccountConfig, path: string) =>
   new URL(
     `/storage/v1/object/authenticated/${SCENE_BUCKET}/${path}`,
@@ -220,11 +267,23 @@ const download = async (
   }
 };
 
-/** A WebP by its own RIFF header, whatever it claims to be. */
-export const isWebp = (bytes: Uint8Array) =>
-  bytes.length > 16 &&
-  String.fromCharCode(...bytes.subarray(0, 4)) === 'RIFF' &&
-  String.fromCharCode(...bytes.subarray(8, 12)) === 'WEBP';
+/** The largest picture a card decodes; the app publishes 1280 by 720. */
+const MAX_PICTURE_WIDTH = 1920;
+const MAX_PICTURE_HEIGHT = 1080;
+
+/**
+ * A still WebP no bigger than a card's picture, by its own header, whatever
+ * it claims to be. The byte limit alone let half a megabyte declare 16383
+ * pixels a side, a gigabyte in the window of everyone who scrolled past it.
+ */
+export const isCardPicture = (bytes: Uint8Array) => {
+  const size = readWebpSize((at) => bytes[at], bytes.length);
+  return (
+    size !== null &&
+    size.width <= MAX_PICTURE_WIDTH &&
+    size.height <= MAX_PICTURE_HEIGHT
+  );
+};
 
 /** The picture a scene was published with, as bytes that are a WebP. */
 export const fetchPicture = async (
@@ -237,7 +296,7 @@ export const fetchPicture = async (
     publishedPath(authorId, sceneId, 'picture.webp'),
     MAX_PICTURE_BYTES,
   );
-  return bytes && isWebp(bytes) ? bytes : undefined;
+  return bytes && isCardPicture(bytes) ? bytes : undefined;
 };
 
 /** The published scene file, unverified: the caller checks the signature. */
@@ -351,6 +410,7 @@ export const publishScene = async (
     category2,
     pack,
     picture,
+    note,
   }: {
     termsVersion: number;
     category: TPlusCategory;
@@ -359,6 +419,8 @@ export const publishScene = async (
     pack: IScenePack;
     /** The WebP, base64. */
     picture: string;
+    /** What changed in this version, already cleaned (fluideq-premium 0026). */
+    note?: string;
   },
 ): Promise<{ ok: true } | { ok: false; reason: TPublishFailure }> => {
   const response = await callPublish(auth, {
@@ -368,6 +430,7 @@ export const publishScene = async (
     ...(category2 ? { category2 } : {}),
     pack,
     picture,
+    ...(note ? { note } : {}),
   });
   if (!response) {
     return { ok: false, reason: 'offline' };

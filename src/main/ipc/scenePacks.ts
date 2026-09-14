@@ -16,8 +16,9 @@ import {
   type IScenePackListing,
   type IScenePackStore,
   type IScenePackSummary,
-  type TSceneFailure,
+  isSceneFailure,
 } from '../scenePackStore';
+import type { ISceneRefusals } from '../sceneRefusals';
 
 /**
  * Premium looks, as the renderer sees them.
@@ -42,6 +43,8 @@ export interface IScenePacksIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
+  /** Scene code refused wherever it ran (`sceneRefusals.ts`). */
+  refusals?: ISceneRefusals;
   /**
    * The scenes added from the gallery, asked about when the looks are opened
    * (`scene-packs-refresh`), so a member's republished scene arrives the same
@@ -118,11 +121,12 @@ export const registerScenePacksIpc = ({
   session,
   entitlement,
   logger,
+  refusals,
   refreshGalleryScenes,
   now = Date.now,
   fetchImpl = fetch,
 }: IScenePacksIpcDeps): IScenePacksIpcRegistration => {
-  const store = createScenePackStore({ userDataDir, logger });
+  const store = createScenePackStore({ userDataDir, logger, refusals });
   const catalogue = createScenePackCatalogue({
     userDataDir,
     config,
@@ -335,11 +339,14 @@ export const registerScenePacksIpc = ({
   ipcMain.handle(
     'scene-packs-report-failure',
     (_event, id: unknown, reason: unknown) => {
-      if (
-        typeof id === 'string' &&
-        (reason === 'compile' || reason === 'context-lost')
-      ) {
-        store.quarantine(id, reason as TSceneFailure);
+      if (typeof id === 'string' && isSceneFailure(reason)) {
+        // Its source too, read before the quarantine hides it: the gallery's
+        // preview, the lamps and its picture run the same code elsewhere.
+        const pack = store.load(id);
+        if (pack) {
+          refusals?.refuse(pack.source, reason);
+        }
+        store.quarantine(id, reason);
         announce();
       }
     },

@@ -1,4 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
+import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
 import type { IFlashGuard } from './sceneFlashGuard';
 import type { ICostLadder } from './sceneHealth';
@@ -21,8 +22,12 @@ export interface ISceneSource {
   load(): Promise<IScenePack | undefined>;
   /** The machine or the bridge failed, not the scene: fall back this session. */
   block(): void;
-  /** The scene itself failed here. `log` is the driver's message. */
-  reportFailure(reason: 'compile' | 'context-lost', log?: string): void;
+  /**
+   * The scene itself failed here. `log` is the driver's message.
+   * `gpu-reset` is a lost context the scene's own frame is blamed for, and
+   * outlives the build; `context-lost` is two losses nothing was blamed for.
+   */
+  reportFailure(reason: TSceneFailure, log?: string): void;
   /** Too slow even at the ladder's floor. */
   tooSlow(): void;
   createLadder(): ICostLadder;

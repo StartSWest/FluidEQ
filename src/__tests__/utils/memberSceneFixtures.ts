@@ -84,11 +84,24 @@ export const fakeResponse = (status: number, body: unknown): Response => {
   } as unknown as Response;
 };
 
-/** A few bytes that are a WebP by their RIFF header, as a picture must be. */
-export const webpBytes = (size = 64): Uint8Array => {
-  const bytes = new Uint8Array(size);
+/**
+ * `size` bytes that are a still WebP of `width` by `height` by their own
+ * header — the RIFF container, a lossless chunk and its dimensions — which is
+ * everything a picture is checked for before anything decodes it.
+ */
+export const webpBytes = (
+  size = 64,
+  width = 1280,
+  height = 720,
+): Uint8Array => {
+  const bytes = new Uint8Array(Math.max(30, size));
+  const view = new DataView(bytes.buffer);
   bytes.set(new TextEncoder().encode('RIFF'), 0);
-  bytes.set(new TextEncoder().encode('WEBP'), 8);
+  view.setUint32(4, bytes.length - 8, true);
+  bytes.set(new TextEncoder().encode('WEBPVP8L'), 8);
+  view.setUint32(16, bytes.length - 20, true);
+  bytes[20] = 0x2f;
+  view.setUint32(21, width - 1 + (height - 1) * 16384, true);
   return bytes;
 };
 

@@ -87,6 +87,10 @@ const studio = {
   'studio.publish.title': '{name} प्रकाशित करें',
   'studio.publish.titleUpdate': 'गैलरी में {name} अपडेट करें',
   'studio.publish.version': 'संस्करण {version}',
+  'studio.publish.publishedVersion': 'गैलरी में अभी: संस्करण {version}',
+  'studio.publish.note': 'इस संस्करण में नया क्या है',
+  'studio.publish.notePlaceholder':
+    'एक पंक्ति जो सुनने वाले देखेंगे, जैसे: चौड़े पैनलों पर चोटियाँ अब नहीं कटतीं',
   'studio.publish.hears': 'सीन क्या सुनता है',
   'studio.publish.yourMusic': 'आपका संगीत',
   'studio.publish.demo': 'डेमो',
@@ -294,6 +298,9 @@ const studio = {
   'studio.settings.response': 'यह संगीत का जवाब कैसे देता है',
   'studio.settings.responseLead':
     'सुनने से पहले बदलें कि यह क्या सुनता है। 100% और शून्य पर यह संगीत जैसा है वैसा सुनता है।',
+  'studio.settings.ambient': 'विंडो में तत्व',
+  'studio.settings.ambientLead':
+    'माहौल मोड में यह दृश्य ऐप के आसपास क्या जोड़ता है।',
   'studio.settings.sensitivity': 'संवेदनशीलता',
   'studio.settings.sensitivityHint':
     'कितनी ज़ोर से प्रतिक्रिया देता है। धीमे गाने के लिए ज़्यादा, और जब तेज़ गाना इसे हमेशा चरम पर रखे तो कम।',
@@ -343,8 +350,6 @@ const studio = {
   'studio.wave.title': 'ग्राफ़ पर तरंग',
   'studio.wave.hint':
     'सीन इस्तेमाल करने वाले इन्हें ग्राफ़ के दृश्य मेनू में बदल सकते हैं। चरम स्थितियाँ आज़माएँ: नीची तरंग, या बीच तक उठी हुई।',
-  'studio.wave.fixed':
-    'यह सीन स्पेक्ट्रम के लिए अपनी पट्टी खुद तय करता है, इसलिए ये दोनों इसे नहीं बदलते।',
   'studio.tint.label': 'इस सीन के साथ FluidEQ',
   'studio.tint.hint':
     'जब तक आप यहाँ काम करते हैं, पूरा ऐप सीन के रंग ले सकता है, या संगीत के साथ उसके आसपास हल्की रोशनी बिखेर सकता है, ताकि आप उसे थीम के रूप में देख और महसूस कर सकें।',
@@ -393,6 +398,12 @@ const studio = {
     'चित्र उस आकार का WebP नहीं है जो pack.json में लिखा है।',
   'studio.problem.contract-too-new':
     'यह दृश्य FluidEQ के नए संस्करण के लिए लिखा गया है। ऐप अपडेट करें।',
+  'studio.problem.bad-param':
+    'params के किसी नियंत्रण को a-z, 0-9 और _ से बना id, अंग्रेज़ी नाम और max से छोटा min चाहिए।',
+  'studio.problem.too-many-params':
+    'एक दृश्य के params में अधिकतम 8 नियंत्रण हो सकते हैं।',
+  'studio.problem.bad-ambient':
+    'pack.json के कुछ ambient तत्व या नियंत्रण छोड़ दिए गए। उनके आकार, गति, रंग, संख्या और हर नियंत्रण क्या बदलता है, जाँचें।',
   'studio.problem.bad-json': 'pack.json मान्य JSON नहीं है।',
   'studio.problem.missing-file': 'दृश्य के लिए ज़रूरी एक फ़ाइल गायब है।',
   'studio.problem.unsafe-path':

@@ -73,6 +73,8 @@ export {
   SCENE_TINT_TOKENS,
   sceneAccentHue,
   sceneSkyColour,
+  isGreySky,
+  sceneIconSwatch,
   sceneTintStrength,
   sceneTintSwatch,
   tintThemePalette,
@@ -86,9 +88,9 @@ export {
  * Which way of measuring a sky the answers below come from. Raise it with any
  * change to what `findSceneSky` returns for the same frames: remembered skies
  * from another measurement are thrown away and the scenes measured again.
- * 2 added the accent, 3 the colour for "on".
+ * 2 added the accent, 3 the colour for "on", 4 grey skies.
  */
-export const SCENE_SKY_MEASUREMENT = 3;
+export const SCENE_SKY_MEASUREMENT = 4;
 
 /** Ten degrees a bin. */
 const HUE_BINS = 36;
@@ -111,6 +113,25 @@ const SURE_LIGHTNESS = 0.08;
 const HIGHLIGHT_LIGHTNESS = 0.8;
 /** A colour covering less than this much of the frame is a detail, not a sky. */
 const MIN_SKY_SHARE = 0.1;
+/**
+ * A picture of polished metal lends the window its grey rather than its one
+ * small colour: Chrome's teal ring is 14% of its frames and its silver most of
+ * the rest, and tinting the window teal round it was reported as wrong. What
+ * tells metal from a night that is only dark is the bright grey of its
+ * highlights. Measured over the 36 FluidEQ scenes on 2026-09-14, greys at
+ * lightness 0.45 and above covered 9.9% of Chrome's frames and at most 2.4%
+ * of any other scene's (Aurora's snow, Hyperdrive's streaks), while the dark
+ * greys most scenes stand on covered up to 97% of theirs.
+ */
+const SILVER_LIGHTNESS = 0.45;
+const MIN_SILVER_SHARE = 0.05;
+/**
+ * And grey has to be most of the picture, and more than twice what its
+ * busiest colour covers: a coloured scene with a few white sparks keeps its
+ * colour.
+ */
+const MIN_GREY_SKY_SHARE = 0.5;
+const GREY_OVER_COLOUR = 2;
 /**
  * How far round the wheel the accent has to sit from the sky to be a second
  * colour rather than the sky's own horizon. A sky's busiest window spans
@@ -244,7 +265,9 @@ const busiestColour = (
  * The sky in a run of RGBA frames read back from a scene: its colour, how
  * much of the picture that colour covers, and the scene's second colour.
  * Undefined when no colour covers enough of it — a black starfield, a grey
- * rain — which is a scene with nothing to lend the window.
+ * rain — which is a scene with nothing to lend the window. A picture of
+ * polished metal lends its grey instead: a sky of chroma 0, whose hue says
+ * nothing (see `MIN_SILVER_SHARE`).
  *
  * `pixels` are premultiplied, which is how a scene's canvas stores them: a
  * half-transparent pixel counts for half the area it covers, and its colour is
@@ -268,6 +291,9 @@ export const findSceneSky = (
   const accents = createHistogram();
   const details = createHistogram();
   let area = 0;
+  let grey = 0;
+  let greyLightness = 0;
+  let silver = 0;
   for (let index = 0; index + 3 < pixels.length; index += 4) {
     const alpha = pixels[index + 3] / 255;
     if (alpha > 0) {
@@ -287,6 +313,16 @@ export const findSceneSky = (
       if (skyWeight > 0) {
         addToHistogram(skies, skyWeight, lab, pixelChroma);
       }
+      const greyness = 1 - smoothstep(GREY_CHROMA, CLEAR_CHROMA, pixelChroma);
+      const greyWeight =
+        visible * greyness * (1 - smoothstep(HIGHLIGHT_LIGHTNESS, 1, lab.l));
+      grey += greyWeight;
+      greyLightness += greyWeight * lab.l;
+      // The highlights stay in: on metal they are the brightest greys of all.
+      silver +=
+        alpha *
+        greyness *
+        smoothstep(SILVER_LIGHTNESS - 0.05, SILVER_LIGHTNESS + 0.05, lab.l);
       const accentWeight =
         visible *
         smoothstep(ACCENT_GREY_CHROMA, ACCENT_CLEAR_CHROMA, pixelChroma);
@@ -304,23 +340,39 @@ export const findSceneSky = (
   if (area === 0) {
     return undefined;
   }
-  const sky = busiestColour(skies, area, MIN_SKY_SHARE, () => true);
+  const coloured = busiestColour(skies, area, MIN_SKY_SHARE, () => true);
+  const greyShare = grey / area;
+  const isMetal =
+    silver / area >= MIN_SILVER_SHARE &&
+    greyShare >= MIN_GREY_SKY_SHARE &&
+    greyShare >= GREY_OVER_COLOUR * (coloured?.share ?? 0);
+  const sky: ISceneColour | undefined = isMetal
+    ? {
+        lightness: greyLightness / grey,
+        chroma: 0,
+        hue: 0,
+        share: Math.min(1, greyShare),
+      }
+    : coloured;
   if (!sky) {
     return undefined;
   }
-  const accent = busiestColour(
-    accents,
-    area,
-    MIN_ACCENT_SHARE,
-    (centre) => hueDistance(centre, sky.hue) >= MIN_ACCENT_SEPARATION,
+  // A grey sky has no hue for a second colour to keep clear of: its busiest
+  // colour is the second one.
+  const apart = (centre: number, from: number) =>
+    isMetal || hueDistance(centre, from) >= MIN_ACCENT_SEPARATION;
+  const accent = busiestColour(accents, area, MIN_ACCENT_SHARE, (centre) =>
+    apart(centre, sky.hue),
   );
-  const buttonHue = accent?.hue ?? sky.hue;
+  const buttonHue = accent?.hue;
   const active = busiestColour(
     details,
     area,
     MIN_ACTIVE_SHARE,
     (centre) =>
-      hueDistance(centre, buttonHue) >= MIN_ACCENT_SEPARATION &&
+      (buttonHue === undefined
+        ? apart(centre, sky.hue)
+        : hueDistance(centre, buttonHue) >= MIN_ACCENT_SEPARATION) &&
       WARNING_HUES.every(
         (warning) => hueDistance(centre, warning) >= MIN_WARNING_SEPARATION,
       ),

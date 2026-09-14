@@ -238,7 +238,7 @@ it('uses official pack versions for Added and Update on the list and maker page'
   renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
   expect(
-    officialCard().getByRole('button', { name: 'plus.card.update' }),
+    officialCard().getByRole('button', { name: 'plus.card.updateTo:2' }),
   ).toBeEnabled();
   await userEvent.click(
     officialCard().getByRole('button', { name: 'plus.card.by:FluidEQ' }),
@@ -246,7 +246,7 @@ it('uses official pack versions for Added and Update on the list and maker page'
   await screen.findByRole('heading', { name: 'FluidEQ' });
   await screen.findByRole('button', { name: 'Aurora' });
   expect(
-    officialCard().getByRole('button', { name: 'plus.card.update' }),
+    officialCard().getByRole('button', { name: 'plus.card.updateTo:2' }),
   ).toBeEnabled();
   await act(async () => adoptScenePackListingForTesting(listing));
   expectAdded();

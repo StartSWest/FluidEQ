@@ -630,17 +630,19 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // Everything the pill itself is comes from the shared rule further down,
-  // which this trigger and the View button now split between them. What is left
-  // here is only what the shared shape cannot know: the field surface App.scss
-  // would otherwise give a `[role="menu"]`, and how the label and the arrow sit
-  // inside it.
-  .dropdown > [role='menu'] {
+  // which this trigger and the View button split between them. What is left
+  // here is only how the label and the arrow sit inside it.
+  .look-picker__trigger {
+    // The whole of the floor above. A button sizes to its content, so the
+    // pill stopped after a short name and left the rest of its 194px as a
+    // gap before the next-look arrow.
+    width: 100%;
     min-height: 0;
     box-shadow: none;
     justify-content: flex-start;
     overflow: visible;
 
-    &:hover:not([aria-disabled='true']) {
+    &:hover:not(:disabled) {
       border: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
       color: $white;
     }
@@ -654,20 +656,12 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     // A shade smaller in the closed pill than in the list. The pill is 22px
-    // tall and the row is 34, so the same glyph that sits comfortably in a row
-    // fills the trigger to its edges — and a control whose contents touch its
-    // border reads as overflowing rather than as full.
+    // tall, so the glyph that sits comfortably on a row's tile fills the
+    // trigger to its edges — and a control whose contents touch its border
+    // reads as overflowing rather than as full.
     .graph-look-option__icon {
       width: 14px;
       height: 14px;
-    }
-
-    // The author is the list's second fact and the pill's none: the closed
-    // trigger names the look, and the chip on the scene itself says who made
-    // it. Left in, it would widen the pill past the floor above and shuffle
-    // the legends beside it, which is what that floor exists to prevent.
-    .graph-look-by {
-      display: none;
     }
 
     svg.arrow {
@@ -677,14 +671,11 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
-  // Filled in while the list is open, exactly as the View button is while its
-  // menu is — the one place a trigger has a state worth showing.
-  .dropdown--open > [role='menu'] {
+  // Filled in while the picker is open, exactly as the View button is while
+  // its menu is — the one place a trigger has a state worth showing.
+  .dropdown--open > .look-picker__trigger {
     border-color: $secondary-light;
     background: color-mix(in srgb, $secondary-light 16%, transparent);
-  }
-
-  .dropdown--open > [role='menu'] {
     color: $white;
 
     svg.arrow {
@@ -692,33 +683,6 @@ it under the terms of the GNU General Public License version 3 or later.
       transform: rotate(180deg);
     }
   }
-}
-
-// The look picker's menu, at the top level because it is portalled to the body
-// and the strip above is no longer one of its ancestors.
-//
-// It is not tied to the width of a two-word label: names like "Mirrored ridge ·
-// Rainbow" do not fit in the space the trigger happens to occupy, and a list
-// that ellipsises every row is a list you have to guess at. It takes the width
-// it needs, clamped to the window on a narrow one; Dropdown.tsx measures the
-// result and slides it back inside the viewport, so widening it here cannot
-// push it off the right edge.
-.graph-look-menu .list-wrapper {
-  // Fixed rather than `max-content`: Dropdown.tsx writes an inline max-width
-  // when it repositions, which would override a max-width set here and let a
-  // content-sized menu grow to whatever the longest label happened to be.
-  width: 268px;
-  min-width: 268px;
-}
-
-// Enough entries that the list gets room to be scrolled rather than squinted at
-// through a slot.
-.graph-look-menu ul {
-  max-height: 320px;
-}
-
-.graph-look-menu li {
-  font-size: $text-body;
 }
 
 // A look's name with its own drawing in front of it.
@@ -979,6 +943,68 @@ it under the terms of the GNU General Public License version 3 or later.
       stroke-linecap: round;
       stroke-width: 1.6;
     }
+  }
+}
+
+// The auto-switch select, in the View button's face.
+//
+// It kept the settings-page select it is made from: 38px of field with bold
+// body text, between two 28px pills, so the strip read as two rows glued
+// together. Qualified by the strip and the dropdown twice over because the
+// field rule it replaces is `.dropdown > [role='menu']`; the values are the
+// strip's `button` rule, measured off the View button in the running window.
+.live-output-controls .dropdown.graph-auto-cycle > [role='menu'] {
+  @include ghost-button;
+  min-height: 28px;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: $radius-xs;
+  box-shadow: none;
+  @include tracking(0.03em);
+  white-space: nowrap;
+
+  .graph-auto-cycle__icon {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    opacity: 0.75;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  // The shared chevron draws its 8-unit path in a 16-unit box, so at the View
+  // arrow's width it would be half the size; the box is doubled and the empty
+  // half given back to the gap.
+  .arrow {
+    width: 13px;
+    height: 13px;
+    margin-inline: -3px -4px;
+  }
+
+  // The field's disabled face is a greyed box; in this row a control that
+  // cannot be used dims like the buttons around it.
+  &[aria-disabled='true'] {
+    border-color: $border-field;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    cursor: not-allowed;
+    opacity: $disabled-opacity;
+  }
+}
+
+// Switching on its own is a state worth seeing, like the View button off
+// Normal; and open, the way every trigger in the row shows its menu is up.
+.live-output-controls
+  .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open)
+  > [role='menu'] {
+  border-color: $secondary-light;
+  background: color-mix(in srgb, $secondary-light 16%, transparent);
+  color: $white;
+
+  .graph-auto-cycle__icon {
+    opacity: 1;
   }
 }
 
@@ -1353,32 +1379,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The Studio stage's loading ring, lit in a light shade of the scene's own
 // colour rather than the app's accent, around the scene's picker icon.
 .chart-scene-loading__ring {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    border: 2px solid
-      color-mix(
-        in srgb,
-        var(--scene-ring, #{$secondary-light}) 16%,
-        transparent
-      );
-    border-top-color: var(--scene-ring, #{$secondary-light});
-    border-radius: 50%;
-    animation: chart-scene-loading-turn 1.1s linear infinite;
-    content: '';
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    &::before {
-      animation: none;
-    }
-  }
+  @include loading-ring(var(--scene-ring, #{$secondary-light}), 46px);
 }
 
 .chart-scene-loading__icon {
@@ -1390,12 +1391,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   @include tracking(0.02em);
-}
-
-@keyframes chart-scene-loading-turn {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 // *** Output level meter *****************************************************
@@ -1523,33 +1518,8 @@ it under the terms of the GNU General Public License version 3 or later.
   vertical-align: middle;
 }
 
-// Who made a scene another member sent: after the name, a step quieter, and
-// the first thing to give way when the row is narrow — the name must stay
-// readable, the author is the second fact.
-.graph-look-by {
-  // Shrinks a hundred times faster than the name, so a long name stays on
-  // one line and the author is what gets cut.
-  flex: 0 100 auto;
-  min-width: 0;
-  margin-inline-start: 6px;
-  overflow: hidden;
-  color: $text-dim;
-  font-size: $text-micro;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-// A Plus look the account cannot draw yet.
-//
-// The same row as an unlocked one, with two differences that say "not yet
-// yours" without saying "broken": the name is quieted a step, and the tag
-// carries a lock in front of the word. The icon is deliberately left at full
-// strength — the swatch is the whole pitch, and a greyed-out picture of a
-// look nobody can see is not an invitation to anything.
-.graph-look-option--locked .graph-look-name {
-  opacity: 0.72;
-}
-
+// A Plus look the account cannot draw yet: the tag carries a lock in front of
+// the word (`LookPicker.tsx` quiets the name a step beside it).
 .graph-look-badge--locked {
   display: inline-flex;
   align-items: center;
@@ -1584,7 +1554,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // different heights: one had `height`, the other took its height from padding
 // and a line box, so they agreed at one font size and drifted at every other.
 // One declaration, one shape.
-.graph-legend--picker .dropdown > [role='menu'] {
+.graph-legend--picker .look-picker__trigger {
   display: inline-flex;
   height: 22px;
   box-sizing: border-box;

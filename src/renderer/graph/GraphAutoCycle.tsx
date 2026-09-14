@@ -14,6 +14,16 @@ interface IGraphAutoCycleProps {
   isEditing: boolean;
 }
 
+// Two arrows chasing each other round: the looks coming back one after another.
+const CYCLE_ICON = (
+  <svg className="graph-auto-cycle__icon" viewBox="0 0 16 16" aria-hidden>
+    <path d="M13.2 7.2a5.2 5.2 0 0 0-9.3-2.6" />
+    <path d="M3.4 1.9v2.9h2.9" />
+    <path d="M2.8 8.8a5.2 5.2 0 0 0 9.3 2.6" />
+    <path d="M12.6 14.1v-2.9H9.7" />
+  </svg>
+);
+
 const GraphAutoCycle = ({
   selectedLookId,
   isWaveHidden,
@@ -36,7 +46,9 @@ const GraphAutoCycle = ({
   return (
     <Dropdown
       name={t('graph.autoSwitch.label')}
+      className={`graph-auto-cycle${seconds > 0 ? ' is-on' : ''}`}
       menuClassName="graph-auto-cycle-menu"
+      leading={CYCLE_ICON}
       options={options}
       value={String(seconds)}
       isDisabled={isWaveHidden}

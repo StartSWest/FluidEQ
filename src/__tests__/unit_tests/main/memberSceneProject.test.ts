@@ -13,9 +13,11 @@ import os from 'os';
 import path from 'path';
 import {
   readProject,
+  writeProjectSource,
   writeStarterProject,
 } from '../../../main/memberScenes/project';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
+import { webpBytes } from '../../utils/memberSceneFixtures';
 
 const SOURCE = `vec4 sceneColour(vec2 uv) {
   return vec4(uAccent * texture(uSpectrumSlow, vec2(uv.x, 0.5)).r, 1.0);
@@ -95,9 +97,113 @@ describe('reading a project folder', () => {
     const outside = path.join(root, 'elsewhere');
     fs.mkdirSync(outside);
     // A junction needs no privilege on Windows and is a symlink elsewhere.
-    fs.symlinkSync(outside, path.join(project, 'linked'), 'junction');
-    write('pack.json', JSON.stringify(manifest({ sourceFile: 'linked' })));
+    fs.symlinkSync(outside, path.join(project, 'linked.frag'), 'junction');
+    write('pack.json', JSON.stringify(manifest({ sourceFile: 'linked.frag' })));
     expect(await codes()).toEqual(['unsafe-path']);
+  });
+
+  it.each([
+    ['a shader named as something else', { sourceFile: 'notes.txt' }],
+    ['the manifest as its shader', { sourceFile: 'pack.json' }],
+    ['a document as its artwork', { artworkFile: 'thesis.docx' }],
+  ])('refuses %s', async (_label, over) => {
+    // The Studio writes over both files, so a name is what may be replaced.
+    write('pack.json', JSON.stringify(manifest(over)));
+    write('scene.frag', SOURCE);
+    write('notes.txt', 'mine');
+    write('thesis.docx', 'mine');
+    expect(await codes()).toEqual(['unsafe-path']);
+  });
+
+  it('names what is wrong with its controls, and builds once they are whole', async () => {
+    const control = (id: string, over: Record<string, unknown> = {}) => ({
+      id,
+      names: { en: id },
+      min: 0,
+      max: 1,
+      value: 0.5,
+      ...over,
+    });
+    write('scene.frag', SOURCE);
+    const withParams = async (params: unknown) => {
+      write('pack.json', JSON.stringify(manifest({ params })));
+      return codes();
+    };
+    expect(await withParams([control('glow')])).toEqual([]);
+    expect(await withParams([control('glow-amount')])).toEqual(['bad-param']);
+    expect(await withParams([control('glow', { names: {} })])).toEqual([
+      'bad-param',
+    ]);
+    expect(await withParams([control('glow', { min: 1, max: 1 })])).toEqual([
+      'bad-param',
+    ]);
+    expect(await withParams([control('glow', { max: 1e9 })])).toEqual([
+      'bad-param',
+    ]);
+    expect(await withParams([control('glow'), control('glow')])).toEqual([
+      'bad-param',
+    ]);
+    expect(
+      await withParams(
+        Array.from({ length: 9 }, (_, index) => control(`c${index}`)),
+      ),
+    ).toEqual(['too-many-params']);
+  });
+
+  it('says when the window’s pictures reach outside the scene’s own artwork', async () => {
+    write('scene.frag', SOURCE);
+    write('artwork.webp', Buffer.from(webpBytes(256, 512, 256)));
+    const withFrames = async (frames: unknown) => {
+      write(
+        'pack.json',
+        JSON.stringify(
+          manifest({
+            artworkFile: 'artwork.webp',
+            artworkWidth: 512,
+            artworkHeight: 256,
+            ambient: {
+              elements: [
+                {
+                  id: 'birds',
+                  shape: 'picture',
+                  frames,
+                  facing: 'right',
+                  count: 3,
+                  size: [30, 40],
+                  motion: 'fly',
+                  area: 'top',
+                },
+              ],
+            },
+          }),
+        ),
+      );
+      const build = await readProject(project);
+      return build.ok
+        ? build.pack.ambient?.elements.map((element) => element.frames)
+        : build.problems.map((problem) => problem.code);
+    };
+    expect(await withFrames([[0, 0, 128, 128]])).toEqual([[[0, 0, 128, 128]]]);
+    expect(await withFrames([[448, 0, 128, 128]])).toEqual(['bad-ambient']);
+  });
+
+  it('writes the shader over itself, and never through a second name', async () => {
+    write('pack.json', JSON.stringify(manifest()));
+    write('scene.frag', SOURCE);
+    expect(await writeProjectSource(project, `${SOURCE}// edited\n`)).toBe(
+      'written',
+    );
+    expect(fs.readFileSync(path.join(project, 'scene.frag'), 'utf8')).toContain(
+      '// edited',
+    );
+    // A hard link is the same file under a second name, in or out of the
+    // folder: written through, it changed the file outside.
+    const outside = path.join(root, 'outside.frag');
+    fs.writeFileSync(outside, 'theirs');
+    fs.rmSync(path.join(project, 'scene.frag'));
+    fs.linkSync(outside, path.join(project, 'scene.frag'));
+    expect(await writeProjectSource(project, SOURCE)).toBe('failed');
+    expect(fs.readFileSync(outside, 'utf8')).toBe('theirs');
   });
 
   it('refuses a shader too large to read, before reading it', async () => {
@@ -140,6 +246,11 @@ describe('the starter project', () => {
     ).toBe('written');
     const build = await readProject(project);
     expect(build.ok).toBe(true);
+    // The AI prompt tells an AI the starter from a member's own scene by
+    // this first line.
+    expect(fs.readFileSync(path.join(project, 'scene.frag'), 'utf8')).toMatch(
+      /^\/\/ My first FluidEQ scene/,
+    );
   });
 
   it('never writes over a project that is already there', async () => {

@@ -207,3 +207,43 @@ describe('bringing installed scenes up to date', () => {
     }
   });
 });
+
+it('keeps a failure by the scene’s code as well as by the look, and takes no made-up reason', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scene-failure-'));
+  const refusals = { refuse: jest.fn(() => true), refusalOf: jest.fn() };
+  const registration = registerScenePacksIpc({
+    getMainWindow: () => null,
+    userDataDir: root,
+    config: {
+      supabaseUrl: 'https://project.supabase.co',
+      supabaseAnonKey: 'anon',
+    } as IScenePacksIpcDeps['config'],
+    session: {
+      accessToken: async () => 'token',
+    } as IScenePacksIpcDeps['session'],
+    entitlement: {
+      status: () => ({ state: 'active' }),
+      subscribe: () => () => {},
+    } as unknown as IScenePacksIpcDeps['entitlement'],
+    refusals,
+  });
+  const source = 'vec4 sceneColour(vec2 uv) { return vec4(1.0); }';
+  jest
+    .spyOn(registration.store, 'load')
+    .mockReturnValue({ id: 'aurora', source } as ReturnType<
+      typeof registration.store.load
+    >);
+  const quarantine = jest.spyOn(registration.store, 'quarantine');
+  try {
+    handlers.get('scene-packs-report-failure')?.({}, 'aurora', 'gpu-reset');
+    // Read from the store before the quarantine hides it.
+    expect(refusals.refuse).toHaveBeenCalledWith(source, 'gpu-reset');
+    expect(quarantine).toHaveBeenCalledWith('aurora', 'gpu-reset');
+    handlers.get('scene-packs-report-failure')?.({}, 'aurora', 'everything');
+    expect(refusals.refuse).toHaveBeenCalledTimes(1);
+    expect(quarantine).toHaveBeenCalledTimes(1);
+  } finally {
+    registration.dispose();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

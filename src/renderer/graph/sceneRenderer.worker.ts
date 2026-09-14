@@ -1,11 +1,13 @@
 import type { IScenePack } from 'common/scenePacks';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { createFlashGuard, type IFlashGuard } from './sceneFlashGuard';
+import { linksSettled } from './sceneCompile';
 import {
   compileScene,
   createSceneContext,
   type ISceneProgram,
 } from './sceneGl';
+import { BLAMED_FRAME_MS } from './sceneDrawWatch';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
 import type {
   TSceneBuildResult,
@@ -38,6 +40,16 @@ let losses = 0;
 let compilation: AbortController | undefined;
 /** The one pixel each frame reads back to wait for the GPU. */
 const probe = new Uint8Array(4);
+/** Loads still running: ending the worker waits for every one of them. */
+const running = new Set<Promise<TSceneBuildResult>>();
+/** How long the last frame took the GPU, read back with the probe. */
+let lastCostMs = 0;
+/**
+ * The source of a scene a lost context was blamed on (`BLAMED_FRAME_MS`).
+ * By source, because the canvas is handed the next scene when the look
+ * changes, and a loss blamed on one must not follow the next.
+ */
+let blamedSource: string | undefined;
 
 const load = async (
   next: IScenePack,
@@ -56,6 +68,8 @@ const load = async (
     pack = next;
     return { kind: 'ready', rebuilt: false };
   }
+  // The last scene's slowest frame is not this one's to answer for.
+  lastCostMs = 0;
   let artwork: ImageBitmap | undefined;
   try {
     artwork = await decodeSceneArtwork(next);
@@ -117,6 +131,31 @@ const load = async (
   }
 };
 
+const track = (build: Promise<TSceneBuildResult>) => {
+  running.add(build);
+  build.finally(() => running.delete(build)).catch(() => undefined);
+  return build;
+};
+
+/**
+ * Gives up whatever is loading and frees everything, and only then says the
+ * worker may be ended. Ended mid-link instead, its context took the link down
+ * with it on the GPU process's main thread, which served every other scene
+ * in the window, and froze them all until the compile finished
+ * (`sceneCompile.ts`).
+ */
+const retire = async () => {
+  generation += 1;
+  compilation?.abort();
+  await Promise.all(running);
+  await linksSettled();
+  program?.dispose();
+  program = undefined;
+  guard?.dispose();
+  guard = null;
+  scope.postMessage({ kind: 'retired' });
+};
+
 const attach = (target: OffscreenCanvas) => {
   canvas = target;
   gl = createSceneContext(target);
@@ -126,14 +165,28 @@ const attach = (target: OffscreenCanvas) => {
     compilation?.abort();
     program = undefined;
     guard = null;
-    losses += 1;
-    scope.postMessage({ kind: 'lost', fatal: losses >= 2 });
+    // A scene nobody has watched (guarded) that just held the GPU for half a
+    // second does not get the restore: reloaded, it drew the same frame and
+    // reset the driver a second time, for every program on the machine. Any
+    // other loss — sleep, a driver update, another page's crash — is not the
+    // scene's, and the scene comes back once.
+    const blamed = lastCostMs > BLAMED_FRAME_MS;
+    if (blamed && pack) {
+      blamedSource = pack.source;
+    }
+    losses += guarded && blamed ? 2 : 1;
+    scope.postMessage({
+      kind: 'lost',
+      fatal: losses >= 2,
+      // Whether the scene is refused beyond this build (`sceneRefusals.ts`).
+      blamed: pack !== null && blamedSource === pack.source,
+    });
   });
   target.addEventListener('webglcontextrestored', () => {
     if (!pack || losses >= 2) {
       return;
     }
-    load(pack, guarded).then((result) => {
+    track(load(pack, guarded)).then((result) => {
       if (result.kind === 'ready') {
         scope.postMessage({ kind: 'restored' });
       } else if (result.kind !== 'cancelled') {
@@ -152,8 +205,12 @@ scope.onmessage = ({ data }) => {
     attach(data.canvas);
     return;
   }
+  if (data.kind === 'retire') {
+    retire().catch(() => scope.postMessage({ kind: 'retired' }));
+    return;
+  }
   if (data.kind === 'load') {
-    load(data.pack, data.guarded).then((result) => {
+    track(load(data.pack, data.guarded)).then((result) => {
       scope.postMessage({ kind: 'loaded', id: data.id, result });
       return undefined;
     });
@@ -189,6 +246,7 @@ scope.onmessage = ({ data }) => {
     // drew it in a millisecond.
     gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, probe);
     const costMs = performance.now() - started;
+    lastCostMs = costMs;
     // No hand-off: the frame is committed when this task returns.
     scope.postMessage({
       kind: 'drawn',

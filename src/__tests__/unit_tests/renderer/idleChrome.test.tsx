@@ -329,4 +329,39 @@ describe('idle chrome', () => {
     act(() => advanceIdleTime(1));
     expect(nearSide.result.current).toBe(false);
   });
+
+  it('brings the graph toolbar back for a pointer over its place, wherever the graph is', () => {
+    const idle = renderHook(() => useIsChromeIdle());
+    // The graph in its pane, halfway down the window: nowhere near either band.
+    const strip = render(
+      <div className="live-output-controls">
+        <div className="graph-legend-group">controls</div>
+      </div>,
+    );
+    const cluster = strip.container.querySelector(
+      '.graph-legend-group',
+    ) as HTMLElement;
+    jest.spyOn(cluster, 'getBoundingClientRect').mockReturnValue({
+      left: 300,
+      right: 800,
+      top: 300,
+      bottom: 350,
+      width: 500,
+      height: 50,
+      x: 300,
+      y: 300,
+      toJSON: () => ({}),
+    });
+    act(() => watchChromeIdle(true));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
+
+    // The control: the plot below the strip is somebody watching.
+    movePointerAt(window, 500, 500);
+    expect(idle.result.current).toBe(true);
+
+    // Just short of the strip, within reach of its controls.
+    movePointerAt(window, 500, 290);
+    expect(idle.result.current).toBe(false);
+  });
 });

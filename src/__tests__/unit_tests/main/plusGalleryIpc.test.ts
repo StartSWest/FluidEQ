@@ -41,6 +41,10 @@ import {
 } from '../../../main/memberScenes/store';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
+  createSceneRefusals,
+  type ISceneRefusals,
+} from '../../../main/sceneRefusals';
+import {
   fakeResponse,
   ME,
   memberPack,
@@ -128,7 +132,7 @@ const access = (): IGalleryAccess => ({
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 });
 
-const setup = () => {
+const setup = (refusals?: ISceneRefusals) => {
   store = createMemberSceneStore({
     userDataDir: path.join(root, 'userData'),
     appVersion: '1.0.0',
@@ -136,6 +140,7 @@ const setup = () => {
   return registerPlusGalleryIpc({
     access: access(),
     store,
+    ...(refusals ? { refusals } : {}),
     refreshBlocked: async () => {
       refreshed += 1;
     },
@@ -302,6 +307,36 @@ describe('a scene’s page', () => {
       own: false,
       pack: { id: 'neon-city' },
     });
+  });
+
+  /**
+   * Five driver resets in a minute is a Windows bugcheck, and opening a page
+   * again is the easiest way there is to ask for the next one.
+   */
+  it('does not play a scene whose code this computer refused, whoever published it', async () => {
+    const refusals = createSceneRefusals({
+      userDataDir: path.join(root, 'userData'),
+      appVersion: '1.0.0',
+    });
+    setup(refusals);
+    publishScene(SOMEONE);
+    refusals.refuse(memberPack().source, 'gpu-reset');
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
+    ).toEqual({ ok: false, reason: 'quarantined' });
+    // Judged by what arrived, not by the name: the same code published as
+    // another scene is still refused, and other code still plays.
+    publishScene(SOMEONE, memberPack({ id: 'renamed' }));
+    expect(await invoke('plus-gallery-preview', SOMEONE, 'renamed', 1)).toEqual(
+      { ok: false, reason: 'quarantined' },
+    );
+    publishScene(
+      SOMEONE,
+      memberPack({ id: 'bloom', source: `${memberPack().source}// bloom\n` }),
+    );
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'bloom', 1),
+    ).toMatchObject({ ok: true, pack: { id: 'bloom' } });
   });
 
   it('refuses a file signed for somebody else’s row', async () => {

@@ -9,6 +9,7 @@ import {
 } from '../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../common/sceneUniformContract';
 import { PRODUCT_VERSION } from '../common/branding';
+import type { ISceneRefusals, TSceneRefusal } from './sceneRefusals';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 
@@ -38,7 +39,16 @@ const REJECTED_FILE = 'rejected.json';
 const QUARANTINE_FILE = 'quarantine.json';
 const REMOVED_FILE = 'removed.json';
 
-export type TSceneFailure = 'compile' | 'context-lost';
+/**
+ * Why the renderer could not run a look. `gpu-reset`: its own frame held the
+ * GPU right before the context was lost, so the reset was the scene's — kept
+ * across builds. `context-lost`: lost twice with nothing to blame, which
+ * sleep or a driver update does as well — kept for this build only.
+ */
+export type TSceneFailure = 'compile' | 'context-lost' | 'gpu-reset';
+
+export const isSceneFailure = (value: unknown): value is TSceneFailure =>
+  value === 'compile' || value === 'context-lost' || value === 'gpu-reset';
 
 export interface IScenePackSummary {
   id: string;
@@ -48,8 +58,11 @@ export interface IScenePackSummary {
   fallbackStyle: IScenePack['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
-  /** Set when the renderer has reported this pack cannot run on this machine. */
-  quarantined?: TSceneFailure;
+  /**
+   * Set when the renderer has reported this pack cannot run on this machine,
+   * or its source was refused wherever it ran (`sceneRefusals.ts`).
+   */
+  quarantined?: TSceneRefusal;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -77,8 +90,10 @@ export interface IScenePackStore {
 export interface IScenePackStoreOptions {
   userDataDir: string;
   logger?: { info(message: string): void; warn(message: string): void };
-  /** The build a quarantine is scoped to. Defaults to this one. */
+  /** The build every quarantine but `gpu-reset` is kept for. Defaults to this. */
   appVersion?: string;
+  /** Scene code refused wherever it ran; a pack carrying it is not offered. */
+  refusals?: ISceneRefusals;
 }
 
 const ID = /^[a-z][a-z0-9-]{1,47}$/;
@@ -118,6 +133,7 @@ export const createScenePackStore = ({
   userDataDir,
   logger,
   appVersion = PRODUCT_VERSION,
+  refusals,
 }: IScenePackStoreOptions): IScenePackStore => {
   const root = path.join(userDataDir, DIRECTORY);
   const packsDir = path.join(root, PACKS_DIRECTORY);
@@ -199,10 +215,14 @@ export const createScenePackStore = ({
   };
 
   /**
-   * A quarantine is written as `reason@appVersion` and honoured only under
-   * the version that wrote it. A shader that failed on one build's driver
-   * bundle may compile on the next, and an entry that outlived the reason for
-   * it would hide a working look forever.
+   * A quarantine is written as `reason@appVersion`. A failed compile, or a
+   * context lost with nothing to blame, is honoured only under the version
+   * that wrote it: a shader that failed on one build's program may compile on
+   * the next, and an entry that outlived the reason for it would hide a
+   * working look forever. A driver reset the scene is blamed for is honoured
+   * under every build, because no build changes what a scene asks of the GPU
+   * — scoped too, every update re-ran each scene that had reset it. A new
+   * version of the pack lifts any of them (`adopt`).
    */
   const quarantineOf = (id: string): TSceneFailure | undefined => {
     const entry = quarantine[id];
@@ -212,10 +232,11 @@ export const createScenePackStore = ({
     const at = entry.lastIndexOf('@');
     const reason = at >= 0 ? entry.slice(0, at) : entry;
     const version = at >= 0 ? entry.slice(at + 1) : '';
-    if (version !== appVersion) {
-      return undefined;
+    if (reason === 'gpu-reset') {
+      return reason;
     }
-    return reason === 'compile' || reason === 'context-lost'
+    return (reason === 'compile' || reason === 'context-lost') &&
+      version === appVersion
       ? reason
       : undefined;
   };
@@ -242,7 +263,8 @@ export const createScenePackStore = ({
           fallbackStyle: pack.fallbackStyle,
           swatch: pack.swatch,
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
-          quarantined: quarantineOf(pack.id),
+          quarantined:
+            quarantineOf(pack.id) ?? refusals?.refusalOf(pack.source),
         })),
 
     load: (id) => {
@@ -250,7 +272,11 @@ export const createScenePackStore = ({
         return undefined;
       }
       const pack = readVerified(id);
-      return pack && pack.contract <= SCENE_CONTRACT_VERSION ? pack : undefined;
+      return pack &&
+        pack.contract <= SCENE_CONTRACT_VERSION &&
+        !refusals?.refusalOf(pack.source)
+        ? pack
+        : undefined;
     },
 
     adopt: (listings, explicit = false) => {

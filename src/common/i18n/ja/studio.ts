@@ -88,6 +88,11 @@ const studio = {
   'studio.publish.title': '{name} を公開',
   'studio.publish.titleUpdate': 'ギャラリーの {name} を更新',
   'studio.publish.version': 'バージョン {version}',
+  'studio.publish.publishedVersion':
+    'ギャラリーの現在の版：バージョン {version}',
+  'studio.publish.note': 'このバージョンの新しい点',
+  'studio.publish.notePlaceholder':
+    'リスナーに表示される一行。例：横長のパネルで山頂が切れなくなりました',
   'studio.publish.hears': 'シーンが聴く音',
   'studio.publish.yourMusic': 'あなたの音楽',
   'studio.publish.demo': 'デモ',
@@ -301,6 +306,9 @@ const studio = {
   'studio.settings.response': '音楽への反応',
   'studio.settings.responseLead':
     '聴く前に、聴く音を調整します。100% とゼロなら、音楽をそのまま聴きます。',
+  'studio.settings.ambient': 'ウィンドウの中の要素',
+  'studio.settings.ambientLead':
+    '環境光モードで、このシーンがアプリの周りに加えるもの。',
   'studio.settings.sensitivity': '感度',
   'studio.settings.sensitivityHint':
     'どれだけ強く反応するか。静かな曲では上げ、大きな曲で振り切れるなら下げます。',
@@ -351,8 +359,6 @@ const studio = {
   'studio.wave.title': 'グラフ上の波形',
   'studio.wave.hint':
     'シーンを使う人はグラフの「表示」でこれらを変更できます。極端な設定を試してください：低い波形や、中央まで持ち上げた波形。',
-  'studio.wave.fixed':
-    'このシーンはスペクトル用の帯を自分で確保しているため、この2つでは変わりません。',
   'studio.tint.label': 'このシーンと FluidEQ',
   'studio.tint.hint':
     'ここで作業している間、アプリ全体をシーンの色にしたり、音楽に合わせてその周りをやわらかく光らせたりでき、テーマとしての見え方と感じ方を確かめられます。',
@@ -402,6 +408,12 @@ const studio = {
     '画像が pack.json に書かれたサイズの WebP ではありません。',
   'studio.problem.contract-too-new':
     'このシーンは新しい FluidEQ 向けに書かれています。アプリを更新してください。',
+  'studio.problem.bad-param':
+    'params のコントロールには、a-z・0-9・_ でできた id、英語の名前、max より小さい min が必要です。',
+  'studio.problem.too-many-params':
+    'params に置けるコントロールは 8 個までです。',
+  'studio.problem.bad-ambient':
+    'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
   'studio.problem.bad-json': 'pack.json が正しい JSON ではありません。',
   'studio.problem.missing-file': 'シーンに必要なファイルがありません。',
   'studio.problem.unsafe-path':

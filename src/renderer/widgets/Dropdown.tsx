@@ -76,6 +76,13 @@ interface IDropdownProps {
    * the trigger names it here and styles that name instead.
    */
   menuClassName?: string;
+  /**
+   * A glyph in front of the closed trigger's value, and nowhere in the list:
+   * it names the control, where the entries are only its choices.
+   */
+  leading?: ReactNode;
+  /** Put beside `dropdown`, for a strip whose controls share one face. */
+  className?: string;
   handleChange: (newValue: string) => void;
 }
 
@@ -155,6 +162,8 @@ const Dropdown = ({
   onClearSearchHistory,
   placement = 'down',
   menuClassName,
+  leading,
+  className,
 }: IDropdownProps) => {
   const { t } = useTranslation();
   const resolvedFilterPlaceholder = filterPlaceholder ?? t('common.search');
@@ -642,7 +651,7 @@ const Dropdown = ({
       ref={dropdownRef}
       className={`dropdown dropdown--${menuPlacement}${
         isFilterable ? ' dropdown--filterable' : ''
-      }${isOpen ? ' dropdown--open' : ''}`}
+      }${isOpen ? ' dropdown--open' : ''}${className ? ` ${className}` : ''}`}
     >
       <div
         role="menu"
@@ -653,6 +662,7 @@ const Dropdown = ({
         onKeyDown={listenForEnter}
         tabIndex={isDisabled ? -1 : 0}
       >
+        {leading}
         {options.length !== 0
           ? selectedEntry || noSelectionPlaceholder || nullElement
           : emptyOptionsPlaceholder || nullElement}

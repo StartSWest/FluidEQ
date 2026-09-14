@@ -18,6 +18,7 @@ import {
   memberSceneFingerprint,
 } from '../../../main/memberScenes/store';
 import { memberLookId } from '../../../common/memberScenes';
+import { createSceneRefusals } from '../../../main/sceneRefusals';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import {
@@ -230,7 +231,7 @@ describe('the member scene store', () => {
     expect(store.list()).toEqual([]);
   });
 
-  it('quarantines for this build only, and a new version lifts it', () => {
+  it('quarantines for this build only, and only the member lifts it', () => {
     const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
     store.save(ME, pack());
     store.quarantine(ME, 'neon-city', 'compile');
@@ -239,8 +240,55 @@ describe('the member scene store', () => {
     // Another build of the app gets a fresh chance.
     const next = createMemberSceneStore({ userDataDir, appVersion: '1.0.1' });
     expect(next.load(ME, 'neon-city')).toEqual(pack());
-    // And a saved new version lifts it under the same build.
+    // A new version arriving by itself — the gallery's quiet sync saves it
+    // exactly this way — stays quarantined: a scene that reset the driver
+    // would otherwise run again with every upload.
     store.save(ME, pack({ version: 2 }));
+    expect(store.load(ME, 'neon-city')).toBeUndefined();
+    // Something the member did lifts it.
+    store.release(ME, 'neon-city');
     expect(store.load(ME, 'neon-city')).toEqual(pack({ version: 2 }));
+  });
+
+  it('keeps a quarantine for a blamed driver reset across builds, and a plain loss for this one', () => {
+    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    store.save(ME, pack());
+    store.save(ME, pack({ id: 'bloom', source: `${SOURCE}// bloom\n` }));
+    store.quarantine(ME, 'neon-city', 'gpu-reset');
+    store.quarantine(ME, 'bloom', 'context-lost');
+    const next = createMemberSceneStore({ userDataDir, appVersion: '1.0.1' });
+    expect(next.load(ME, 'neon-city')).toBeUndefined();
+    expect(
+      next.list().find((scene) => scene.packId === 'neon-city')?.quarantined,
+    ).toBe('gpu-reset');
+    // Sleep and driver updates lose every context too: not the scene's.
+    expect(next.load(ME, 'bloom')?.id).toBe('bloom');
+  });
+
+  it('holds back a scene whose code was refused wherever it ran', () => {
+    const refusals = createSceneRefusals({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({
+      userDataDir,
+      appVersion: '1.0.0',
+      refusals,
+    });
+    // The member's own scene and the one somebody sent carry the same code.
+    store.save(ME, pack());
+    store.saveImported(signedEnvelope(memberPayload()));
+    store.save(ME, pack({ id: 'bloom', source: `${SOURCE}// bloom\n` }));
+    refusals.refuse(SOURCE, 'gpu-reset');
+
+    // Refused by what runs, so every copy of that code is held back, under
+    // whichever identity it is kept.
+    expect(store.load(SOMEONE, 'neon-city')).toBeUndefined();
+    expect(store.load(ME, 'neon-city')).toBeUndefined();
+    const quarantined = Object.fromEntries(
+      store.list().map((scene) => [scene.lookId, scene.quarantined]),
+    );
+    expect(quarantined[memberLookId(SOMEONE, 'neon-city')]).toBe('gpu-reset');
+    expect(quarantined[memberLookId(ME, 'neon-city')]).toBe('gpu-reset');
+    // The control: other code still plays.
+    expect(quarantined[memberLookId(ME, 'bloom')]).toBeUndefined();
+    expect(store.load(ME, 'bloom')?.id).toBe('bloom');
   });
 });

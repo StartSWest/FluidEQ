@@ -402,4 +402,28 @@ describe('Dropdown', () => {
     );
     expect(clearHistory).toHaveBeenCalledTimes(1);
   });
+
+  it('puts a leading glyph in the closed trigger only, and a class beside dropdown', async () => {
+    const { user } = setup(
+      <Dropdown
+        name={name}
+        value={FilterTypeEnum.PK}
+        options={FILTER_OPTIONS}
+        isDisabled={false}
+        handleChange={handleChange}
+        className="graph-auto-cycle is-on"
+        leading={<svg data-testid="leading-glyph" />}
+      />,
+    );
+    const trigger = screen.getByLabelText(name);
+    expect(trigger.firstElementChild).toBe(screen.getByTestId('leading-glyph'));
+    expect(trigger.parentElement).toHaveClass(
+      'dropdown',
+      'graph-auto-cycle',
+      'is-on',
+    );
+    await user.click(trigger);
+    // The open list names the choices; the glyph names the control, once.
+    expect(screen.getAllByTestId('leading-glyph')).toHaveLength(1);
+  });
 });

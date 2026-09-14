@@ -8,6 +8,10 @@ import { FLUIDEQ_CREATOR_ID } from '../../../common/plusGallery';
 import { registerPlusGalleryIpc } from '../../../main/ipc/plusGallery';
 import { createMemberSceneStore } from '../../../main/memberScenes/store';
 import { createScenePackStore } from '../../../main/scenePackStore';
+import {
+  createSceneRefusals,
+  type ISceneRefusals,
+} from '../../../main/sceneRefusals';
 import { trustScenePackKeyForTesting } from '../../../main/scenePackVerify';
 import {
   fakeResponse,
@@ -52,6 +56,7 @@ let body: unknown;
 let fetchImpl: jest.Mock;
 let announce: jest.Mock;
 let store: ReturnType<typeof createScenePackStore>;
+let refusals: ISceneRefusals;
 
 beforeEach(() => {
   handlers.clear();
@@ -62,6 +67,7 @@ beforeEach(() => {
   fetchImpl = jest.fn(async () => fakeResponse(200, body));
   announce = jest.fn();
   store = createScenePackStore({ userDataDir: root });
+  refusals = createSceneRefusals({ userDataDir: root });
   registerPlusGalleryIpc({
     access: {
       accountId: () => account,
@@ -71,6 +77,7 @@ beforeEach(() => {
     store: createMemberSceneStore({ userDataDir: root }),
     officialStore: store,
     announceOfficial: announce,
+    refusals,
     announce: jest.fn(),
     refreshBlocked: async () => undefined,
     onEntitlementChange: () => () => undefined,
@@ -88,6 +95,13 @@ it('previews a genuine official pack for a signed-in free account without instal
     await invoke('plus-gallery-add', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
   ).toEqual({ ok: false, reason: 'not-entitled' });
   expect(fetchImpl).toHaveBeenCalledTimes(1);
+});
+
+it('does not play an official scene whose code this computer refused', async () => {
+  refusals.refuse(memberPack().source, 'gpu-reset');
+  expect(
+    await invoke('plus-gallery-preview', FLUIDEQ_CREATOR_ID, 'neon-city', 1),
+  ).toEqual({ ok: false, reason: 'quarantined' });
 });
 
 it('installs into the verified official store and returns the actual graph look id', async () => {

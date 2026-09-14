@@ -68,9 +68,10 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-areas:
     'camera covers'
     'camera category'
+    'camera note'
     'points points';
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   align-items: start;
   gap: $spacing-m $spacing-l;
   min-width: 0;
@@ -80,6 +81,7 @@ it under the terms of the GNU General Public License version 3 or later.
       'camera'
       'covers'
       'category'
+      'note'
       'points';
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
@@ -137,6 +139,42 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-publish__points {
   grid-area: points;
+}
+
+// Beside the version it is publishing, the one listeners have now.
+.studio-publish__published::before {
+  content: '·';
+  margin-inline: 6px;
+}
+
+// One line about what changed in this version: what the scene's page and the
+// notice to listeners show. The count is the field's own limit, so nothing
+// typed is cut on the way.
+.studio-publish__note {
+  display: grid;
+  grid-area: note;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+
+  textarea {
+    width: 100%;
+    min-height: 58px;
+    resize: vertical;
+  }
+}
+
+.studio-publish__note-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-s;
+}
+
+.studio-publish__note-count {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
 }
 
 // ---------------------------------------------------------------- stage

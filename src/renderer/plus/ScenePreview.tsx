@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
+import reportRefusedSceneSource from '../graph/sceneRefusalReport';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
@@ -83,8 +84,12 @@ export default function ScenePreview({
       name: packRef.current.names.en,
       load: () => Promise.resolve(packRef.current),
       block: () => troubleRef.current('unavailable'),
-      reportFailure: (reason) =>
-        troubleRef.current(reason === 'compile' ? 'compile' : 'unavailable'),
+      // Kept by its source, so the page opened again, the graph and the lamps
+      // do not run it again either (`sceneRefusals.ts`).
+      reportFailure: (reason) => {
+        reportRefusedSceneSource(packRef.current.source, reason);
+        troubleRef.current(reason === 'compile' ? 'compile' : 'unavailable');
+      },
       tooSlow: () => troubleRef.current('heavy'),
       createLadder: createWarmupLadder,
       createGuard: createFlashGuard,

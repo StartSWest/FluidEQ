@@ -1,6 +1,16 @@
+import { sceneIconSwatch } from '../utils/sceneTint';
+import { useRememberedSceneSky } from '../utils/sceneTintStore';
+
 interface ISceneLookIconProps {
   /** Two to four hex colours the pack declares for itself. */
   swatch: readonly string[];
+  /**
+   * The look it stands for. Once that scene has been drawn and its colours
+   * measured, the icon is painted in those instead of the pack's: several
+   * packs' hand-picked colours no longer matched their scenes, and
+   * Floración's icon was green and teal beside a pink flower.
+   */
+  lookId?: string;
   className?: string;
 }
 
@@ -16,13 +26,15 @@ interface ISceneLookIconProps {
  */
 export default function SceneLookIcon({
   swatch,
+  lookId,
   className,
 }: ISceneLookIconProps) {
+  const sky = useRememberedSceneSky(lookId ?? '');
+  const declared =
+    swatch.length >= 2 ? swatch : ['#00e5cf', '#9cfff4', '#ff3cac'];
   // De-duplicated: a repeated colour adds nothing to a gradient, and it is
   // what lets each stop be keyed by its own value.
-  const colours = Array.from(
-    new Set(swatch.length >= 2 ? swatch : ['#00e5cf', '#9cfff4', '#ff3cac']),
-  );
+  const colours = Array.from(new Set(sky ? sceneIconSwatch(sky) : declared));
   const stops = colours.map((colour, index) => (
     <stop
       key={colour}

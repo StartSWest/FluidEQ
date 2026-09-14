@@ -16,8 +16,8 @@ import { MIN_GRAPH_WAVE_HEIGHT } from '../utils/graphViewSettings';
  * On the graph those two settings reach a Plus scene as the band its spectrum
  * is drawn in: the height is how tall the band is, the position lifts its
  * floor from the bottom edge toward the middle. A scene that reserves its own
- * band (`spectrumRange` in its pack) is handed that band instead and the two
- * settings do nothing to it. The Studio's stage used to be handed the whole
+ * band (`spectrumRange` in its pack) has the two settings act inside that
+ * band instead of the whole frame. The Studio's stage used to be handed the whole
  * frame always, so a scene that fell apart under a low or lifted wave looked
  * fine right up until somebody used it.
  */
@@ -42,12 +42,13 @@ export const studioSpectrumRect = (
   pack: Pick<IScenePack, 'spectrumRange'>,
   wave: IStudioWave,
 ): readonly [number, number, number, number] => {
-  if (pack.spectrumRange) {
-    const [bottom, top] = pack.spectrumRange;
-    return [0, 1, bottom, top];
-  }
-  // A plot one unit tall, measured from the top as the graph measures it:
-  // the loudest reading at 0, the quietest at 1.
+  // The plot, or the scene's own band, measured from the top as the graph
+  // measures it: the loudest reading at its top, the quietest at its bottom.
+  // In thousandths: the transform works in pixels and treats a plot less
+  // than one deep as one deep, which would shrink a band 0.39 tall to 0.15.
+  const [bottom, top] = pack.spectrumRange ?? [0, 1];
+  const plotTop = (1 - top) * 1000;
+  const plotBottom = (1 - bottom) * 1000;
   const { translateY, scaleY } = getWaveTransform(
     {
       isFlipped: false,
@@ -56,10 +57,10 @@ export const studioSpectrumRect = (
       heightScale: wave.height,
       verticalPosition: wave.position,
     },
-    1,
-    0,
+    plotBottom,
+    plotTop,
   );
-  const quietest = translateY + scaleY;
-  const loudest = translateY;
+  const quietest = (translateY + scaleY * plotBottom) / 1000;
+  const loudest = (translateY + scaleY * plotTop) / 1000;
   return [0, 1, 1 - quietest, 1 - loudest];
 };

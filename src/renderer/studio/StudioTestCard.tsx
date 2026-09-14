@@ -17,8 +17,6 @@ interface IStudioTestCardProps {
   onSize: (size: TStudioSize) => void;
   wave: IStudioWave;
   onWave: (wave: IStudioWave) => void;
-  /** The scene reserves its own band for the spectrum. */
-  isWaveFixed: boolean;
   /** Nothing is on the stage: the controls stay where they will be, unlit. */
   idle: boolean;
   /** How the scene is running, when it is. */
@@ -46,7 +44,6 @@ export default function StudioTestCard({
   onSize,
   wave,
   onWave,
-  isWaveFixed,
   idle,
   cost,
   percent,
@@ -109,12 +106,7 @@ export default function StudioTestCard({
           </button>
         ))}
       </div>
-      <StudioWaveControls
-        wave={wave}
-        onWave={onWave}
-        isFixedByScene={isWaveFixed}
-        idle={idle}
-      />
+      <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
       <StudioGridSwitch />
       <StudioTintSwitch />
       {cost && (

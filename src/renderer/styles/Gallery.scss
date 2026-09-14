@@ -408,6 +408,36 @@ $gallery-card-lead: 120ms;
 
 // The maker's name and, for FluidEQ's own, the Official tag after it. The name
 // gives way first: the tag is short and says the more useful thing.
+// A version that changed this week, on the picture's other corner from its
+// category: the one mark on a card that is news rather than a label.
+.gallery-card__new {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $black 55%, transparent);
+  color: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  backdrop-filter: blur(6px);
+}
+
+.gallery-card__version {
+  display: block;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  @include truncate;
+}
+
+.gallery-card__version-yours::before {
+  content: '·';
+  margin-inline: 6px;
+}
+
 .gallery-card__byline {
   display: flex;
   align-items: center;
@@ -887,6 +917,43 @@ $gallery-card-lead: 120ms;
 .gallery-preview__veil--failed {
   color: $text-muted;
   background: color-mix(in srgb, $surface-plot 78%, transparent);
+}
+
+// The scene on its way down, in the Studio stage's loader. Darker in the
+// middle than at the edges: the ring's faint trace has to hold against
+// whatever the picture is brightest at there — Aurora's curtain, Bloom's
+// petals — while the edges keep enough of the picture to say which scene.
+.gallery-preview__downloading {
+  gap: 8px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, $surface-plot 82%, transparent),
+    color-mix(in srgb, $surface-plot 50%, transparent) 75%
+  );
+  @include animate(fade-in, $motion-base, $ease-out);
+}
+
+.gallery-preview__download-mark {
+  @include loading-ring($secondary-light, 48px);
+  margin-bottom: 4px;
+  color: $secondary-light;
+
+  > svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.gallery-preview__download-title {
+  color: $text-primary;
+  font-size: $text-body;
+}
+
+.gallery-preview__download-name {
+  max-width: 100%;
+  color: $text-dim;
+  font-size: $text-small;
+  @include truncate;
 }
 
 // The scene before and after this one, on the stage's two edges: glass over
@@ -1813,4 +1880,112 @@ $gallery-card-lead: 120ms;
         color-mix(in srgb, $secondary-default 60%, transparent);
     }
   }
+}
+
+// A scene's versions on its page (`SceneVersions.tsx`): the one showing, what
+// changed in it, and the earlier ones folded away.
+.gallery-versions {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gallery-versions__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-versions__new {
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+  border-radius: $radius-pill;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.gallery-versions__note {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $lift-rest;
+
+  p {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-small;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  &.is-new {
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+  }
+}
+
+.gallery-versions__note-title {
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+.gallery-versions__history {
+  summary {
+    color: $text-faint;
+    font-size: $text-small;
+    cursor: pointer;
+  }
+
+  summary:hover {
+    color: $text-primary;
+  }
+}
+
+.gallery-versions__list {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 3.2em minmax(0, 1fr);
+    gap: 8px;
+    font-size: $text-small;
+  }
+}
+
+.gallery-versions__number {
+  color: $text-primary;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-versions__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: $text-muted;
+  overflow-wrap: anywhere;
+
+  time {
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+}
+
+.gallery-versions__quiet {
+  color: $text-dim;
 }

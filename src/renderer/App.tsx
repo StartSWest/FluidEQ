@@ -60,6 +60,7 @@ import {
 } from './account/accountPanel';
 import CommunityPanel from './community/CommunityPanel';
 import showGalleryGraph from './plus/showGalleryGraph';
+import { subscribePlusTabRequests } from './plus/plusTabRequest';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
@@ -170,6 +171,7 @@ import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
 import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import ScenePulse from './components/ScenePulse';
+import SceneAmbient from './ambient/SceneAmbient';
 import SceneTint from './components/SceneTint';
 import {
   createPreset,
@@ -885,6 +887,12 @@ const AppContent = () => {
         }
       }),
     [],
+  );
+  // The graph's notice that its look has a new version opens that scene's
+  // page in the Plus tab (`GraphUpdateNotice.tsx`).
+  useEffect(
+    () => subscribePlusTabRequests(() => selectTopWorkspaceTab('community')),
+    [selectTopWorkspaceTab],
   );
   const [showProcessesDialog, setShowProcessesDialog] = useState(false);
   // What the last import did. Reported the same way as a recoverable failure —
@@ -2862,6 +2870,9 @@ export default function App() {
             {/* The window beating with that visualizer, when its mode asks
                 for it; nothing in the page otherwise. */}
             <ScenePulse />
+            {/* That visualizer's own elements — birds, petals, stars — faintly
+                over the window in the same mode; nothing in the page otherwise. */}
+            <SceneAmbient />
             {/* Counts listening while music plays. Renders nothing, sends
                 nothing anywhere unless the person joined the leaderboard. */}
             <UsageMeter />

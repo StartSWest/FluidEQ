@@ -5,6 +5,7 @@ import {
   sanitizeDisplayText,
 } from './memberScenes';
 import { premiumLookId, type TLocalizedName } from './scenePacks';
+import { readVersionNote } from './sceneVersionNote';
 
 /** Reserved catalogue identity, never a member account or leaderboard entry. */
 export const FLUIDEQ_CREATOR_ID = '00000000-0000-4000-8000-000000000001';
@@ -91,6 +92,20 @@ export interface IGalleryScene {
   updatedAt: string;
   liked: boolean;
   added: boolean;
+  /** What its maker wrote about the current version (fluideq-premium 0026). */
+  versionNote?: string;
+  /**
+   * The first version it was published at. A current version past it is an
+   * update rather than the scene arriving; absent from a server before 0026.
+   */
+  firstVersion?: number;
+}
+
+/** One earlier version of a scene, as `scene_version_history` lists it. */
+export interface IGalleryVersion {
+  version: number;
+  note?: string;
+  publishedAt: string;
 }
 
 export interface IPublishedScene {
@@ -238,7 +253,37 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
     updatedAt,
     liked: value.liked === true,
     added: value.added === true,
+    ...readVersionFields(value, version),
   };
+};
+
+/** The version columns 0026 adds, kept only when they make sense together. */
+const readVersionFields = (
+  value: Record<string, unknown>,
+  version: number,
+): Pick<IGalleryScene, 'versionNote' | 'firstVersion'> => {
+  const note = readVersionNote(value.version_note);
+  const first = readCount(value.first_version);
+  return {
+    ...(note ? { versionNote: note } : {}),
+    ...(first && first <= version ? { firstVersion: first } : {}),
+  };
+};
+
+/** One row of `scene_version_history`, or nothing when it is not right. */
+export const parseVersionRow = (
+  value: unknown,
+): IGalleryVersion | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const version = readCount(value.version);
+  const publishedAt = readDate(value.published_at);
+  const note = readVersionNote(value.note);
+  if (!version || !publishedAt || note === undefined) {
+    return undefined;
+  }
+  return { version, publishedAt, ...(note ? { note } : {}) };
 };
 
 /** One row of `my_published_scenes`. */

@@ -28,6 +28,7 @@ import type { ISceneFrame } from './sceneGl';
 import SceneLoading from './SceneLoading';
 import { createCostLadder } from './sceneHealth';
 import { createWarmupLadder } from './sceneWarmup';
+import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 
@@ -140,9 +141,20 @@ export default function SceneCanvas({
     () => (chosen ? { response: chosen } : undefined),
     [chosen],
   );
+  const authorId = isMemberScene(scene) ? scene.authorId : undefined;
   const onLoaded = useCallback(
-    (pack: IScenePack) => reportOwnResponse(lookId, pack.response),
-    [lookId],
+    (pack: IScenePack) => {
+      reportOwnResponse(lookId, pack.response);
+      // Every version that becomes the drawn one, an update swapped in place
+      // included: the picker's "new" marks and the graph's one notice.
+      reportScenePlayed({
+        lookId,
+        version: pack.version,
+        names: pack.names,
+        ...(authorId ? { authorId } : {}),
+      }).catch(() => undefined);
+    },
+    [lookId, authorId],
   );
 
   const sceneRef = useSceneRunner({
