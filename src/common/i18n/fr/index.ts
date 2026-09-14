@@ -41,6 +41,7 @@ import engineHealth from './engineHealth';
 import dspOff from './dspOff';
 import engineUpdate from './engineUpdate';
 import lighting from './lighting';
+import bugReport from './bugReport';
 
 const fr: Partial<Dictionary> = {
   ...karaoke,
@@ -66,6 +67,7 @@ const fr: Partial<Dictionary> = {
   ...dspOff,
   ...engineUpdate,
   ...lighting,
+  ...bugReport,
 };
 
 export default fr;

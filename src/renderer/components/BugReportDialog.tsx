@@ -25,12 +25,38 @@ import {
   REPORT_EMAIL,
 } from 'common/bugReport';
 import { PRODUCT_NAME } from 'common/branding';
-import { gatherBugReport } from '../utils/equalizerApi';
+import Glyph from '../community/Glyph';
+import { gatherBugReport, openSupportEmail } from '../utils/equalizerApi';
+import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from './DialogHeader';
 import '../styles/BugReport.scss';
 
 interface IBugReportDialogProps {
   onClose: () => void;
+}
+
+/**
+ * What each thing the dialog can say back is.
+ *
+ * `done` leaves on its own once the line along its foot has drained. `waiting`
+ * is replaced by the answer it waits for, and `problem` stays: it carries what
+ * to do instead, and a notice that left before it was read would be no answer.
+ */
+const NOTICE_TONES = {
+  copied: 'done',
+  issuePaste: 'done',
+  emailOpening: 'waiting',
+  emailOpened: 'done',
+  emailOpenedPartial: 'done',
+  emailNotOpened: 'problem',
+} as const;
+
+type TNoticeKind = keyof typeof NOTICE_TONES;
+
+interface INotice {
+  /** Remounts the notice, so a new one starts its own line from full. */
+  id: number;
+  kind: TNoticeKind;
 }
 
 /**
@@ -43,15 +69,18 @@ interface IBugReportDialogProps {
  * Nothing here sends anything on its own.
  */
 export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
+  const { t } = useTranslation();
   const [description, setDescription] = useState('');
   const [facts, setFacts] = useState<IGatheredFacts>();
   const [failed, setFailed] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState<INotice>();
+  const [isEmailing, setIsEmailing] = useState(false);
   // Undefined means the preview is still following the generated report.
   // Once the user edits it, their redactions become the source used by every
   // action below instead of being silently rebuilt away.
   const [reportOverride, setReportOverride] = useState<string>();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const noticeCount = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -101,14 +130,14 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
       });
   const report = reportOverride ?? generatedReport;
 
-  const say = useCallback((message: string) => {
-    setNotice(message);
-    setTimeout(() => setNotice(''), 2600);
+  const say = useCallback((kind: TNoticeKind) => {
+    noticeCount.current += 1;
+    setNotice({ id: noticeCount.current, kind });
   }, []);
 
   const copy = useCallback(async () => {
     await navigator.clipboard.writeText(report);
-    say('Report copied.');
+    say('copied');
   }, [report, say]);
 
   /**
@@ -119,20 +148,30 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
    * many Windows machines with no desktop mail client the link does nothing at
    * all — so the clipboard is the part that always works, and the mail window
    * is the convenience on top of it.
+   *
+   * The email is said to have opened only once main answers that the operating
+   * system took the link. It used to be said before anything was tried, and
+   * the link went through `window.open`, whose handler opens only the web — so
+   * every press announced an email that never appeared.
    */
   const sendEmail = useCallback(async () => {
     await navigator.clipboard.writeText(report);
     const { url, isTruncated } = buildMailtoUrl(report, facts?.appVersion);
-    say(
-      isTruncated
-        ? 'Report copied — paste it into the email, which only carries the start.'
-        : 'Report copied, and an email opened. No mail app? Just paste it.',
-    );
-    // `_blank`, never `_self`. Main installs a window-open handler that passes
-    // the URL to the operating system and denies the navigation; `_self` does
-    // not reach that handler at all — it navigates this window, and the app
-    // would disappear behind a mailto the renderer cannot load.
-    window.open(url, '_blank', 'noopener');
+    setIsEmailing(true);
+    say('emailOpening');
+    let opened: boolean;
+    try {
+      opened = await openSupportEmail(url);
+    } catch {
+      // The bridge would not send it, so nothing reached a mail app either.
+      opened = false;
+    }
+    setIsEmailing(false);
+    if (opened) {
+      say(isTruncated ? 'emailOpenedPartial' : 'emailOpened');
+    } else {
+      say('emailNotOpened');
+    }
   }, [facts?.appVersion, report, say]);
 
   const openIssue = useCallback(async () => {
@@ -141,10 +180,12 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
       // Too long to travel in a URL. Copied instead, and said out loud —
       // opening an empty issue without explaining why would look broken.
       await navigator.clipboard.writeText(report);
-      say('Report copied — paste it into the issue that just opened.');
+      say('issuePaste');
     }
     window.open(url, '_blank', 'noopener');
   }, [report, say]);
+
+  const tone = notice ? NOTICE_TONES[notice.kind] : undefined;
 
   return (
     <div
@@ -164,21 +205,21 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
       >
         <DialogHeader
           eyebrow={PRODUCT_NAME}
-          title="Report a problem"
+          title={t('bugReport.title')}
           titleId="bug-report-title"
-          closeLabel="Close"
+          closeLabel={t('support.close')}
           onClose={onClose}
           closeRef={closeRef}
         />
 
         <div className="bug-report__body-wrap">
           <label className="bug-report__field" htmlFor="bug-report-description">
-            <span>What went wrong?</span>
+            <span>{t('bugReport.descriptionLabel')}</span>
             <textarea
               id="bug-report-description"
               value={description}
               rows={3}
-              placeholder="What were you doing, and what happened instead?"
+              placeholder={t('bugReport.descriptionPlaceholder')}
               onChange={(event) => setDescription(event.target.value)}
             />
           </label>
@@ -187,10 +228,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
               the buttons below copy it or hand it to a browser, and the person
               reading it is the last line of defence that no rule can replace. */}
           <label className="bug-report__field" htmlFor="bug-report-body">
-            <span>
-              This is exactly what will be sent. Read it, and delete anything
-              you would rather not share.
-            </span>
+            <span>{t('bugReport.reportLabel')}</span>
             <textarea
               id="bug-report-body"
               className="bug-report__body"
@@ -202,27 +240,57 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
           </label>
 
           {failed && (
-            <p className="bug-report__warn">
-              The logs could not be read, so this report has none. It is still
-              worth sending.
-            </p>
+            <p className="bug-report__warn">{t('bugReport.logsUnreadable')}</p>
           )}
 
           <p className="bug-report__privacy">
-            Account names, paths and email addresses are removed automatically.
-            Nothing is sent until you press one of these.
             {REPORT_EMAIL
-              ? ' The email goes only to the developer; the issue is public.'
-              : ' The issue is public.'}
+              ? t('bugReport.privacyWithEmail')
+              : t('bugReport.privacy')}
           </p>
         </div>
 
         <div className="bug-report__footer">
-          {notice && (
-            <p className="bug-report__notice" role="status">
-              {notice}
-            </p>
-          )}
+          {/* The live region stays mounted and only what is inside it changes,
+              which is what a screen reader needs to announce each notice. */}
+          <div className="bug-report__notice-slot" role="status">
+            {notice && tone && (
+              <p
+                key={notice.id}
+                className={`bug-report__notice bug-report__notice--${tone}`}
+              >
+                <span className="bug-report__notice-mark" aria-hidden="true">
+                  {tone !== 'waiting' && (
+                    <Glyph name={tone === 'problem' ? 'alert' : 'check'} />
+                  )}
+                </span>
+                <span className="bug-report__notice-text">
+                  {t(`bugReport.${notice.kind}`)}
+                  {notice.kind === 'emailNotOpened' && (
+                    <>
+                      {' '}
+                      <span className="bug-report__address is-selectable">
+                        {REPORT_EMAIL}
+                      </span>
+                    </>
+                  )}
+                </span>
+                {tone === 'done' && (
+                  <span
+                    className="bug-report__notice-life"
+                    aria-hidden="true"
+                    // Nothing inside it animates, so every end heard here is
+                    // its own line running out.
+                    onAnimationEnd={() =>
+                      setNotice((current) =>
+                        current?.id === notice.id ? undefined : current,
+                      )
+                    }
+                  />
+                )}
+              </p>
+            )}
+          </div>
 
           <div className="bug-report__actions">
             <button
@@ -230,18 +298,23 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
               className="bug-report__primary"
               onClick={openIssue}
             >
-              Open a GitHub issue
+              {t('bugReport.openIssue')}
             </button>
             {/* Only when this build has an address. A mailto with none opens an
                 empty compose window, which looks like it worked and is a report
                 nobody ever receives. */}
             {REPORT_EMAIL && (
-              <button type="button" onClick={sendEmail}>
-                Email it privately
+              <button
+                type="button"
+                onClick={sendEmail}
+                disabled={isEmailing}
+                aria-busy={isEmailing}
+              >
+                {t('bugReport.email')}
               </button>
             )}
             <button type="button" onClick={copy}>
-              Copy
+              {t('bugReport.copy')}
             </button>
           </div>
         </div>

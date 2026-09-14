@@ -257,8 +257,15 @@ export const buildMailtoUrl = (
 ): { url: string; isTruncated: boolean } => {
   const subject = `${PRODUCT_NAME} bug report${version ? ` (${version})` : ''}`;
   const isTruncated = report.length > MAX_MAILTO_BODY;
+  // Never between the two halves of an emoji: `encodeURIComponent` throws on
+  // the half left behind, and the email would not open at all.
+  const lastKept = report.charCodeAt(MAX_MAILTO_BODY - 1);
+  const cut =
+    lastKept >= 0xd800 && lastKept <= 0xdbff
+      ? MAX_MAILTO_BODY - 1
+      : MAX_MAILTO_BODY;
   const body = isTruncated
-    ? `${report.slice(0, MAX_MAILTO_BODY)}\n\n[...] The full report is on your clipboard — paste it here.`
+    ? `${report.slice(0, cut)}\n\n[...] The full report is on your clipboard — paste it here.`
     : report;
   return {
     url: `mailto:${REPORT_EMAIL}?subject=${encodeURIComponent(
@@ -266,4 +273,45 @@ export const buildMailtoUrl = (
     )}&body=${encodeURIComponent(body)}`,
     isTruncated,
   };
+};
+
+/**
+ * Whether a link is one `buildMailtoUrl` could have made, and so may be handed
+ * to the operating system by the report's email route.
+ *
+ * `shell.openExternal` starts whatever Windows has registered for a scheme,
+ * which is why the general link gate opens only the web. The email route needs
+ * `mailto:`, and widening that gate would let every link the window shows — a
+ * lyric sheet, a profile name, changelog markdown — open a compose window to
+ * anyone, carrying anything. So this accepts exactly one shape: this build's
+ * own address, then nothing but a subject and a body.
+ *
+ * `to`, `cc` and `bcc` are refused because each adds a recipient. A raw space,
+ * quote, comma, `#`, second `?` or malformed escape is refused because
+ * `encodeURIComponent` never leaves one, so any of them is text that was not
+ * built here.
+ */
+export const isSupportMailto = (url: string, address = REPORT_EMAIL) => {
+  const prefix = `mailto:${address}?`;
+  if (!address || !url.startsWith(prefix)) {
+    return false;
+  }
+  const named = new Set<string>();
+  return url
+    .slice(prefix.length)
+    .split('&')
+    .every((field) => {
+      const match = /^(subject|body)=([\w.!~*'()%-]*)$/.exec(field);
+      if (!match || named.has(match[1])) {
+        return false;
+      }
+      named.add(match[1]);
+      try {
+        decodeURIComponent(match[2]);
+        return true;
+      } catch {
+        // A `%` with no escape after it, or one that is not UTF-8.
+        return false;
+      }
+    });
 };

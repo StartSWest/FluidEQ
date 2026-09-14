@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { shell } from 'electron';
+import log from 'electron-log';
+import { isSupportMailto } from '../common/bugReport';
 
 /**
  * Hand a URL to the user's browser, or refuse it.
@@ -56,6 +58,37 @@ const openExternalIfSafe = (url: string): boolean => {
     // The OS refused to open it; there is nothing useful to say about that.
   });
   return true;
+};
+
+/**
+ * Hand the bug report's email to the user's mail app, or refuse it.
+ *
+ * A door of its own beside the one above, not a wider one. The report dialog
+ * used to `window.open` its `mailto:`, which reached the gate above and was
+ * dropped for not being the web — so no mail app ever opened while the dialog
+ * said one had. Letting `mailto:` through there would have opened it to every
+ * link the window shows; here only a link `isSupportMailto` recognises as the
+ * report to this build's own address gets as far as the operating system.
+ *
+ * Resolves whether the operating system took the link, so the dialog says an
+ * email opened only when one did. Waited on for that reason, where the gate
+ * above does not wait.
+ */
+export const openSupportEmail = async (url: string): Promise<boolean> => {
+  if (!isSupportMailto(url)) {
+    return false;
+  }
+  try {
+    await shell.openExternal(url);
+    return true;
+  } catch (error) {
+    // The message only: the link carries the report, which does not belong in
+    // the log the next report is made from.
+    log.warn(
+      `No email app could be opened: ${error instanceof Error ? error.message : 'unknown reason'}`,
+    );
+    return false;
+  }
 };
 
 export default openExternalIfSafe;

@@ -109,6 +109,27 @@ export const gatherBugReport = (): Promise<IGatheredFacts> => {
 };
 
 /**
+ * Hand the report's email link to the user's mail app.
+ *
+ * Through main, which opens it only when it is addressed to this build's own
+ * support address. Not `window.open`: the window's link handler opens the web
+ * and nothing else, so a `mailto:` sent that way was dropped without a word.
+ *
+ * No deadline. Main answers the moment Windows does, refused or not, and a
+ * mail app that is slow to start has not failed.
+ * @returns { Promise<boolean> } whether a mail app was handed the link
+ */
+export const openSupportEmail = (url: string): Promise<boolean> => {
+  const channel = ChannelEnum.OPEN_SUPPORT_EMAIL;
+  return sendRequest<boolean>(
+    channel,
+    [url],
+    buildResponseHandler<boolean>((result, resolve) => resolve(result)),
+    { timeout: null },
+  );
+};
+
+/**
  * Load preset into backend state
  * @param {string} presetName - name of preset to load
  * @returns { Promise<void> } exception if failed

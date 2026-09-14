@@ -92,6 +92,7 @@ import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import gatherBugReportFacts from './bugReportFacts';
+import { openSupportEmail } from './safeExternal';
 import ChannelEnum from '../common/channels';
 import { compressChainToLimit } from '../common/response';
 import {
@@ -2181,6 +2182,14 @@ onWindowMessage(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
     log.error('Could not gather a bug report', e);
     handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
+});
+
+// Always answered, refused or not: the dialog waits on this with no deadline,
+// because a mail app can take a while to start and that is not a failure.
+onWindowMessage(ChannelEnum.OPEN_SUPPORT_EMAIL, async (event, args) => {
+  const [url] = Array.isArray(args) ? args : [];
+  const opened = typeof url === 'string' && (await openSupportEmail(url));
+  event.reply(ChannelEnum.OPEN_SUPPORT_EMAIL, { result: opened });
 });
 
 /**

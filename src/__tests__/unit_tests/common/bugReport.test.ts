@@ -23,9 +23,34 @@ import {
   REPORT_EMAIL,
   buildBugReport,
   buildIssueUrl,
+  isSupportMailto,
   redact,
   takeLogTail,
 } from 'common/bugReport';
+
+const SUPPORT = 'support@fluideq.example';
+
+/** The module as a build with a support address sees it. */
+const withSupportAddress = (): typeof import('common/bugReport') => {
+  const before = process.env.FLUIDEQ_SUPPORT_EMAIL;
+  process.env.FLUIDEQ_SUPPORT_EMAIL = SUPPORT;
+  let built: typeof import('common/bugReport') | undefined;
+  jest.isolateModules(() => {
+    // eslint-disable-next-line global-require -- the address is read when the module loads, so a copy loaded under this one is the only way to see it
+    built = require('common/bugReport');
+  });
+  // Deleted rather than assigned when there was none: `process.env` turns an
+  // assigned `undefined` into the string "undefined".
+  if (before === undefined) {
+    delete process.env.FLUIDEQ_SUPPORT_EMAIL;
+  } else {
+    process.env.FLUIDEQ_SUPPORT_EMAIL = before;
+  }
+  if (!built) {
+    throw new Error('common/bugReport did not load');
+  }
+  return built;
+};
 
 describe('redacting a report', () => {
   it('takes the account name out of a Windows path', () => {
@@ -201,5 +226,98 @@ describe('the email link', () => {
     );
     expect(isTruncated).toBe(true);
     expect(decodeURIComponent(url)).toContain('on your clipboard');
+  });
+
+  it('cuts a long report beside an emoji, never through it', () => {
+    // Half an emoji is a lone surrogate, and `encodeURIComponent` throws on
+    // one — the email would not open at all, for a report that only had the
+    // bad luck of a smiley at character fifteen hundred.
+    const report = `${'x'.repeat(MAX_MAILTO_BODY - 1)}😀 and the rest`;
+    const { url } = buildMailtoUrl(report);
+    expect(decodeURIComponent(url)).toContain(
+      `${'x'.repeat(MAX_MAILTO_BODY - 1)}\n\n[...]`,
+    );
+  });
+});
+
+/**
+ * The email route is the one way a `mailto:` reaches the operating system, so
+ * what it accepts is the whole of what the window can open that way.
+ */
+describe('recognising the report email', () => {
+  const link = `mailto:${SUPPORT}?subject=Bug%20report&body=It%20crashed`;
+
+  it('accepts a link to the support address carrying a subject and a body', () => {
+    expect(isSupportMailto(link, SUPPORT)).toBe(true);
+    expect(isSupportMailto(`mailto:${SUPPORT}?body=x`, SUPPORT)).toBe(true);
+  });
+
+  it('accepts whatever the email button builds, however odd the report', () => {
+    // The positive control for every refusal below: a validator that refused
+    // everything would pass all of them. Quotes, ampersands, a `#`, a `?`,
+    // line breaks, another script and a long report cut at an emoji all have
+    // to survive, because a person's own words carry any of them.
+    const { buildMailtoUrl: build, isSupportMailto: recognise } =
+      withSupportAddress();
+    [
+      'short',
+      `He said "it's broken" & left #1 ?\r\nC:\\Users\\<user>\\x 100%`,
+      'ध्वनि बंद हो गई — 音が出ない — звук пропал',
+      `${'x'.repeat(MAX_MAILTO_BODY - 1)}😀${'y'.repeat(4000)}`,
+    ].forEach((report) => {
+      const { url } = build(report, '1.2.3');
+      expect(url.startsWith(`mailto:${SUPPORT}?`)).toBe(true);
+      expect(recognise(url)).toBe(true);
+    });
+  });
+
+  it('refuses a link to any other address', () => {
+    [
+      'mailto:someone@else.example?subject=a&body=b',
+      // The support address as the start of a longer one.
+      `mailto:${SUPPORT}.attacker.example?subject=a&body=b`,
+      `mailto:${SUPPORT},someone@else.example?subject=a&body=b`,
+      `mailto:${SUPPORT}%2Csomeone@else.example?subject=a&body=b`,
+      `mailto:SUPPORT@FLUIDEQ.EXAMPLE?subject=a&body=b`,
+    ].forEach((url) => expect(isSupportMailto(url, SUPPORT)).toBe(false));
+  });
+
+  it('refuses a recipient added in the query', () => {
+    ['to', 'cc', 'bcc'].forEach((field) => {
+      expect(
+        isSupportMailto(`${link}&${field}=someone@else.example`, SUPPORT),
+      ).toBe(false);
+    });
+    expect(isSupportMailto(`${link}&attach=C:/secrets.txt`, SUPPORT)).toBe(
+      false,
+    );
+    expect(isSupportMailto(`${link}&body=again`, SUPPORT)).toBe(false);
+  });
+
+  it('refuses every other scheme, and anything the builder never writes', () => {
+    /* eslint-disable no-script-url -- the hostile input is the subject here */
+    [
+      `javascript:alert(1)//mailto:${SUPPORT}?body=x`,
+      `file:///C:/Windows/System32/cmd.exe?mailto:${SUPPORT}`,
+      `ms-settings:mailto:${SUPPORT}?body=x`,
+      `https://attacker.example/mailto:${SUPPORT}?body=x`,
+      `MAILTO:${SUPPORT}?body=x`,
+      ` mailto:${SUPPORT}?body=x`,
+      `mailto:${SUPPORT}`,
+      `mailto:${SUPPORT}?`,
+      `mailto:${SUPPORT}?body=a b`,
+      `mailto:${SUPPORT}?body="%20--flag`,
+      `mailto:${SUPPORT}?body=x#fragment`,
+      `mailto:${SUPPORT}?body=x?to=someone@else.example`,
+      `mailto:${SUPPORT}?body=%zz`,
+      `mailto:${SUPPORT}?body=%E0%A4`,
+      '',
+    ].forEach((url) => expect(isSupportMailto(url, SUPPORT)).toBe(false));
+    /* eslint-enable no-script-url */
+  });
+
+  it('refuses everything when the build has no support address', () => {
+    expect(isSupportMailto('mailto:?subject=a&body=b', '')).toBe(false);
+    expect(isSupportMailto(link, '')).toBe(false);
   });
 });

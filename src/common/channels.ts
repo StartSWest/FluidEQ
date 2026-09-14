@@ -193,6 +193,10 @@ enum ChannelEnum {
   // Everything a bug report needs, already redacted. Gathered in main because
   // the logs and the registry are not reachable from the renderer.
   GATHER_BUG_REPORT = 'gatherBugReport',
+  // The report's private route: its email, handed to the mail app. A channel
+  // of its own because the window's link handler opens only the web, and main
+  // opens this one only when it is addressed to this build's support address.
+  OPEN_SUPPORT_EMAIL = 'openSupportEmail',
   // The built-in player's ad blocker. The window owns the switch and remembers
   // it; the main process holds the live value and pushes it to each player.
   SET_VIDEO_AD_BLOCK = 'setVideoAdBlock',

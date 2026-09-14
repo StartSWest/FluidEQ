@@ -57,6 +57,7 @@ import engineHealth from './engineHealth';
 import dspOff from './dspOff';
 import engineUpdate from './engineUpdate';
 import lighting from './lighting';
+import bugReport from './bugReport';
 
 const en = {
   ...karaoke,
@@ -82,6 +83,7 @@ const en = {
   ...dspOff,
   ...engineUpdate,
   ...lighting,
+  ...bugReport,
 };
 
 export type TranslationKey = keyof typeof en;
