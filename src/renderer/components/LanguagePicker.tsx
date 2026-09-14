@@ -19,12 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useMemo } from 'react';
 import { LOCALES, LocaleCode } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
-import MenuIcon from '../icons/MenuIcon';
 import Dropdown from '../widgets/Dropdown';
 import '../styles/LanguagePicker.scss';
 
 /**
- * Language chooser, living at the bottom of the actions menu.
+ * Language chooser, the last row of the actions menu's settings tray.
  *
  * The app's own Dropdown, not a native select. A select was used here for a
  * while on the theory that the platform's own font fallback was needed to draw
@@ -55,20 +54,26 @@ const LanguagePicker = () => {
   );
 
   return (
-    <div className="language-picker">
-      <MenuIcon name="language" />
-      <Dropdown
-        name={t('language.aria')}
-        menuClassName="language-picker-menu"
-        options={options}
-        value={locale}
-        handleChange={(newValue) => setLocale(newValue as LocaleCode)}
-        isDisabled={false}
-        // Downward. The menu hangs off the titlebar at the top of the window,
-        // so there is a whole screen below and almost nothing above — opening
-        // up put the list over the menu it belongs to.
-        placement="down"
-      />
+    <div className="menu-preference">
+      {/* Named in the language the app is in, like the rows beside it; the
+          choices themselves are each in their own. */}
+      <span className="menu-preference__label" aria-hidden="true">
+        {t('app.menu.language')}
+      </span>
+      <div className="menu-preference__control">
+        <Dropdown
+          name={t('language.aria')}
+          menuClassName="language-picker-menu"
+          options={options}
+          value={locale}
+          handleChange={(newValue) => setLocale(newValue as LocaleCode)}
+          isDisabled={false}
+          // Downward. The menu hangs off the titlebar at the top of the
+          // window, so there is a whole screen below and almost nothing
+          // above — opening up put the list over the menu it belongs to.
+          placement="down"
+        />
+      </div>
     </div>
   );
 };

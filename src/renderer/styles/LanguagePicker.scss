@@ -9,85 +9,20 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'theme' as *;
 
-// Sits in the actions menu, laid out on the same glyph-then-content grid as
-// the buttons above it so the globe lines up with the other icons.
-.language-picker {
-  display: grid;
-  align-items: center;
-  gap: 9px;
-  grid-template-columns: 16px minmax(0, 1fr);
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px solid rgba($edge-tint, 0.14);
-
-  .menu-icon {
-    width: 16px;
-    height: 16px;
-    color: $text-accent;
-    transition: color 160ms ease;
-  }
-
-  // The trigger is sized and coloured off the menu buttons directly above it
-  // rather than off the generic field surface the Dropdown ships with. In this
-  // context it is one more row of the menu; the taller, lighter field used
-  // elsewhere in the app read as a stray input that had wandered in.
-  .dropdown > [role='menu'] {
-    // 36px, matching a menu button exactly: those are a grid around a 16px
-    // glyph, so they clear their text by a pixel and a row of text alone does
-    // not.
-    min-height: 36px;
-    padding: 9px 10px;
-    color: rgba($white, 0.88);
-    // $radius-xs like the buttons, not the $radius-s a field would take.
-    border-color: transparent;
-    border-radius: $radius-xs;
-    background: rgba($white, 0.035);
-    box-shadow: none;
-    font-size: $text-body;
-
-    &:hover:not([aria-disabled='true']),
-    &:focus-visible {
-      color: $white;
-      border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-      background: color-mix(in srgb, $secondary-default 16%, transparent);
-    }
-
-    .arrow {
-      color: $text-accent;
-    }
-  }
-
-  // The glyph and the arrow brighten together, the same way the menu buttons
-  // brighten their own icon.
-  &:hover .menu-icon,
-  &:focus-within .menu-icon,
-  &:hover .dropdown > [role='menu'] .arrow,
-  &:focus-within .dropdown > [role='menu'] .arrow {
-    color: $secondary-light;
-  }
-}
-
-// Under the motion choice, while it differs from the running window: the
-// switch is how the window launches, so a new choice needs a restart.
-.motion-picker__restart {
-  grid-column: 2;
-  margin-top: -4px;
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.35;
-}
-
+// The row itself is laid out by the actions menu's settings tray
+// (`ActionsMenu.scss`); what is here is the list it drops.
+//
 // The list is sized for the menu, not for the catalogues the Dropdown was built
 // for. Those hold tens of thousands of entries and earn their roomy rows; this
 // holds ten short words, and at the default size it came out taller than the
 // menu it drops out of and needed a scrollbar to show a list that fits on any
 // screen.
 //
-// Rows match the menu buttons above: same height, same type, same radius.
+// Rows match the menu's own rows: same type, same radius.
 //
-// At the top level because the menu is portalled to the body — `.language-picker`
-// is not one of its ancestors any more, and the class below is what the call
-// site hands it instead.
+// At the top level because the menu is portalled to the body — the tray is
+// not one of its ancestors any more, and the class below is what the call site
+// hands it instead.
 .language-picker-menu .list-wrapper {
   min-width: var(--dropdown-trigger-width);
   border-radius: $radius-xs;

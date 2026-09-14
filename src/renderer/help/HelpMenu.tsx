@@ -71,13 +71,15 @@ export default function HelpMenu({
   }, [open]);
 
   // The Forum sits with the other ways to get help, after reporting a
-  // problem: the place to ask people rather than the app. It wears its own
-  // picture because, unlike the rest, it opens a place and not a dialog.
+  // problem: the place to ask people rather than the app. Every row wears a
+  // picture of its own — five of the six used to share the circled i — and
+  // fixing audio wears the spanner it wears in the actions menu beside this
+  // one, because it is the same action.
   const actions: { label: string; run: () => void; icon: MenuIconName }[] = [
-    { label: t('help.title'), run: () => setShowGuide(true), icon: 'info' },
-    { label: t('app.menu.whatsNew'), run: onTour, icon: 'info' },
-    { label: t('app.menu.fixAudio'), run: onTroubleshoot, icon: 'info' },
-    { label: t('app.menu.reportProblem'), run: onReport, icon: 'info' },
+    { label: t('help.title'), run: () => setShowGuide(true), icon: 'guide' },
+    { label: t('app.menu.whatsNew'), run: onTour, icon: 'gift' },
+    { label: t('app.menu.fixAudio'), run: onTroubleshoot, icon: 'wrench' },
+    { label: t('app.menu.reportProblem'), run: onReport, icon: 'flag' },
     { label: t('tabs.forum'), run: onForum, icon: 'forum' },
     {
       label: t('app.menu.about', { product: PRODUCT_NAME }),
@@ -155,6 +157,7 @@ export default function HelpMenu({
               key={action.label}
               type="button"
               role="menuitem"
+              className="workspace-header__menu-item"
               aria-keyshortcuts={index === 0 ? 'F1' : undefined}
               onClick={() => {
                 setOpen(false);

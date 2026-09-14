@@ -95,7 +95,6 @@ const app: Partial<Dictionary> = {
     'ज़रूरत पड़ने पर शुरू होने वाली Chromium सेवा। FluidEQ इसे कभी नाम लेकर नहीं माँगता।',
   'app.menu.reinstallApp': '{product} फिर स्थापित करें…',
   'app.menu.fixAudio': 'ऑडियो समस्याएँ ठीक करें…',
-  'app.menu.audioEngine': 'ऑडियो इंजन…',
   'engine.apo.reinstall': 'Equalizer APO फिर स्थापित करें…',
   'engine.title': 'FluidEQ आपकी आवाज़ को कैसे प्रोसेस करे?',
   'engine.subtitle':
@@ -334,8 +333,6 @@ const app: Partial<Dictionary> = {
   'language.aria': 'इंटरफ़ेस की भाषा',
   'theme.aria': 'थीम',
   'motion.aria': 'एनिमेशन',
-  'motion.full': 'एनिमेशन चालू',
-  'motion.reduced': 'कम गति',
   'motion.restart': 'लागू करने के लिए FluidEQ फिर से शुरू करें',
   'theme.ocean': 'महासागर',
   'theme.black': 'काला',

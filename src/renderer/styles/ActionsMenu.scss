@@ -1,0 +1,363 @@
+/* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The actions menu: the engine, the commands, then the settings tray.
+//
+// One column, as wide as its longest label and never narrower than the tray
+// needs. It was two columns at a fixed 440px, and in French and Russian the
+// imports wrapped onto second lines inside them.
+// Doubled up with the surface's own class so it outranks it rather than tying
+// with it, which would leave the padding to stylesheet order.
+.workspace-header__menu.actions-menu__panel {
+  width: max-content;
+  min-width: 296px;
+  max-width: calc(100vw - 24px);
+  // The menu hangs 77px below the top of the window (the titlebar's own
+  // offset, the 36px trigger and the 10px under it); this leaves it an 11px
+  // gutter above the bottom. A window at its 620px minimum then holds the
+  // whole menu, restart note included, which measured 532px — at 96px it
+  // scrolled by eight. Anything taller scrolls rather than running its tray
+  // off the bottom.
+  max-height: calc(100vh - 88px);
+  gap: 2px;
+  padding: 8px;
+}
+
+// *** The engine *************************************************************
+//
+// The one lit thing in the menu, because it is what the button's status dot
+// is about. It wears the trigger's pulse and dot, so the menu reads as the
+// button opened up.
+
+.actions-menu__engine {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  margin-bottom: 6px;
+  padding: 9px 12px 9px 9px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
+  border-radius: $radius-s;
+  background:
+    radial-gradient(
+      130% 150% at 0% 0%,
+      color-mix(in srgb, $secondary-default 17%, transparent),
+      transparent 64%
+    ),
+    color-mix(in srgb, $secondary-default 4%, transparent);
+  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  font-family: inherit;
+  text-align: left;
+  transition: $transition-control;
+
+  // A button everywhere but while the engine is still being asked.
+  &:is(button) {
+    cursor: pointer;
+  }
+
+  &:is(button):hover,
+  &:is(button):focus-visible {
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
+    background:
+      radial-gradient(
+        130% 150% at 0% 0%,
+        color-mix(in srgb, $secondary-default 26%, transparent),
+        transparent 64%
+      ),
+      color-mix(in srgb, $secondary-default 9%, transparent);
+    outline: none;
+  }
+}
+
+.actions-menu__badge {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, $secondary-default 26%, transparent),
+    color-mix(in srgb, $secondary-default 7%, transparent)
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, $secondary-light 30%, transparent),
+    0 0 16px color-mix(in srgb, $secondary-default 14%, transparent);
+
+  svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  // Set into the corner, ringed in the menu's own colour so it reads as a
+  // light on the badge rather than a dot stuck over it.
+  .status-dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 8px;
+    height: 8px;
+    outline: 2px solid $surface-menu-face;
+  }
+}
+
+.actions-menu__engine-text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.actions-menu__engine-title {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+}
+
+.actions-menu__engine-detail {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.3;
+}
+
+// Pointing on, not down: it opens the engine's dialog, not a list.
+.actions-menu__engine-go.chevron {
+  width: 13px;
+  height: 13px;
+  color: $text-faint;
+  rotate: -90deg;
+  transition:
+    translate 160ms ease,
+    color 160ms ease;
+
+  // `translate` is applied before `rotate`, in the menu's own axes, so this
+  // is a nudge to the right whichever way the glyph was turned.
+  .actions-menu__engine:hover &,
+  .actions-menu__engine:focus-visible & {
+    color: $secondary-light;
+    translate: 2px 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    .actions-menu__engine:hover &,
+    .actions-menu__engine:focus-visible & {
+      translate: none;
+    }
+  }
+}
+
+// Failing: the fault in the app's red, and a label that says the card is a
+// control, because a row that happens to be clickable and does not look it
+// gets clicked by nobody.
+.actions-menu__engine.is-failing {
+  border-color: rgba($red, 0.34);
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba($red, 0.15), transparent 64%),
+    rgba($red, 0.04);
+
+  .actions-menu__badge {
+    color: $red;
+    background: linear-gradient(160deg, rgba($red, 0.24), rgba($red, 0.06));
+    box-shadow:
+      inset 0 0 0 1px rgba($red, 0.42),
+      0 0 16px rgba($red, 0.14);
+  }
+
+  .actions-menu__engine-title {
+    font-size: $text-body;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($red, 0.62);
+    background:
+      radial-gradient(130% 150% at 0% 0%, rgba($red, 0.22), transparent 64%),
+      rgba($red, 0.07);
+
+    .actions-menu__engine-fix {
+      color: $white;
+      border-color: rgba($red, 0.75);
+      background: rgba($red, 0.2);
+    }
+  }
+}
+
+.actions-menu__engine-fix {
+  padding: 2px 8px;
+  color: $red;
+  border: 1px solid rgba($red, 0.45);
+  border-radius: $radius-pill;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+  white-space: nowrap;
+  transition: $transition-control;
+}
+
+// Still asking: the badge unlit and without its light, and the sentence saying
+// what is being waited on.
+.actions-menu__engine.is-checking {
+  border-color: rgba($edge-tint, 0.1);
+  background: rgba($edge-tint, 0.03);
+
+  .actions-menu__badge {
+    color: $text-faint;
+    background: rgba($edge-tint, 0.04);
+    box-shadow: inset 0 0 0 1px rgba($edge-tint, 0.14);
+  }
+
+  .actions-menu__engine-title {
+    color: $text-muted;
+    font-size: $text-body;
+    font-weight: $weight-regular;
+  }
+}
+
+// *** The commands ***********************************************************
+
+// Groups are parted by a hairline that starts where the labels do, so the
+// glyphs run down the left edge unbroken: 10px of row padding, the 16px glyph
+// and the 9px after it.
+.actions-menu__rule {
+  height: 0;
+  margin: 4px 0 4px 35px;
+  border: 0;
+  border-top: 1px solid rgba($edge-tint, 0.1);
+}
+
+// *** The settings tray ******************************************************
+//
+// Settings rather than commands, so a different material: recessed into the
+// menu, each named on the left with its control on the right. One grid for
+// all three rows, so the theme's two buttons and the language list come out
+// the same width and their edges line up.
+
+.actions-menu__prefs {
+  display: grid;
+  align-items: center;
+  column-gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  // As far from the last command as one group of commands is from the next.
+  margin-top: 8px;
+  // 10px in from the left, like a row's glyph, so the three names stand in
+  // the same column as the glyphs above them.
+  padding: 3px 6px 3px 10px;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-well 40%, transparent);
+  box-shadow:
+    inset 0 1px 3px rgba($black, 0.22),
+    inset 0 0 0 1px rgba($edge-tint, 0.045);
+}
+
+// Each picker is one row of the tray's grid rather than a box inside it.
+.menu-preference {
+  display: contents;
+}
+
+// 38px rows: a 28px control with five pixels of well above and below it.
+.menu-preference__label {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+.actions-menu__prefs .menu-preference__control {
+  min-width: 0;
+  justify-self: stretch;
+}
+
+.menu-preference__switch {
+  display: flex;
+  justify-self: end;
+
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
+  }
+}
+
+// Under the switch while the choice and the running window differ: it is how
+// the window launches, so a new choice needs a restart, and that is an
+// instruction, not decoration — readable ink, not the disabled grey.
+.menu-preference__note {
+  grid-column: 1 / -1;
+  margin: -6px 0 8px;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.35;
+}
+
+// Both themes, each with a swatch of itself. 22px tall, so the control comes
+// out at the language list's 28.
+.actions-menu__prefs .theme-picker__option {
+  display: inline-flex;
+  min-height: 22px;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+// A window in miniature, in the theme's own colours from the declarations
+// `App.scss` makes for `data-theme-swatch`: its ground, a pane down the left
+// and a stroke of the accent. The themes share an accent and differ in what
+// things stand on, so the ground has to be most of the picture. A circle
+// split with the accent read as the same teal dot twice, and one with a dot
+// in its middle read as two radio buttons, both on.
+.theme-picker__swatch {
+  width: 16px;
+  height: 12px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  background:
+    linear-gradient(var(--surface-panel) 0 0) 2px 2px / 5px 8px no-repeat,
+    linear-gradient(var(--accent) 0 0) 9px 7px / 5px 2px no-repeat,
+    var(--surface-base);
+  box-shadow: 0 0 0 1px rgba($edge-tint, 0.34);
+}
+
+// The language list's trigger, drawn as the theme's sibling rather than as a
+// field that wandered in: the segmented control's edge, radius and height.
+// Regular weight like the theme's names: a field's value is set bold, and
+// beside the segmented control that made the language the loudest word in
+// the tray.
+.actions-menu__prefs .menu-preference__control .dropdown > [role='menu'] {
+  min-height: 28px;
+  padding: 4px 8px 4px 10px;
+  color: $text-primary;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-xs;
+  background: $track-well;
+  box-shadow: none;
+  font-size: $text-body;
+  font-weight: $weight-regular;
+
+  &:hover:not([aria-disabled='true']),
+  &:focus-visible {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, $track-well);
+  }
+
+  .arrow {
+    margin-left: 8px;
+    color: $text-accent;
+  }
+}

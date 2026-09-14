@@ -95,7 +95,6 @@ const app: Partial<Dictionary> = {
     'Ein Chromium-Dienst, der bei Bedarf startet. FluidEQ fordert diesen nie namentlich an.',
   'app.menu.reinstallApp': '{product} neu installieren…',
   'app.menu.fixAudio': 'Audioprobleme beheben…',
-  'app.menu.audioEngine': 'Audio-Engine…',
   'engine.apo.reinstall': 'Equalizer APO neu installieren…',
   'engine.title': 'Wie soll FluidEQ deinen Ton verarbeiten?',
   'engine.subtitle':
@@ -342,8 +341,6 @@ const app: Partial<Dictionary> = {
   'language.aria': 'Sprache der Oberfläche',
   'theme.aria': 'Design',
   'motion.aria': 'Animationen',
-  'motion.full': 'Animationen an',
-  'motion.reduced': 'Weniger Bewegung',
   'motion.restart': 'Starten Sie FluidEQ neu, um es anzuwenden',
   'theme.ocean': 'Ozean',
   'theme.black': 'Schwarz',

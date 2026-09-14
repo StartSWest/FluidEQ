@@ -1498,8 +1498,9 @@ select option {
   right: 0;
   display: grid;
   gap: 6px;
-  // Two columns of items now, so it is wider than a single stack needed.
-  width: 440px;
+  // No width here: each menu on this surface says its own (`HelpGuide.scss`,
+  // `ActionsMenu.scss`). Hung from a 52px button with `right: 0`, one that
+  // said none would shrink to that button's width.
   padding: 10px;
   // The menu surface's own colour. This had a diagonal ramp of its own that
   // ran off to rgb(8,23,37) in the bottom corner — darker than the shell — so
@@ -1514,7 +1515,10 @@ select option {
   // subpixel antialiasing.
   -webkit-app-region: no-drag;
 
-  button {
+  // A class, not every `button`: the actions menu also holds the engine card
+  // and the settings tray's own controls, and a rule for every button inside
+  // it restyled those as rows too.
+  .workspace-header__menu-item {
     // Glyph column then label, so the labels line up with each other however
     // wide the icons draw.
     display: grid;
@@ -1522,7 +1526,9 @@ select option {
     align-items: center;
     gap: 9px;
     grid-template-columns: 16px minmax(0, 1fr);
-    padding: 9px 10px;
+    // 32px rows. They were 36, which at 11.5px type made eight commands read
+    // as a phone's settings page rather than a desktop menu.
+    padding: 7px 10px;
     // Rows, like every other menu's: nothing painted at rest, the accent
     // tint under the pointer. Each entry used to be a boxed button with its
     // own grey fill and border, which made the menu a grid of grey tiles on
@@ -1558,70 +1564,6 @@ select option {
       color: $secondary-light;
     }
   }
-}
-
-// Separated from the audio actions above it: it is an aside, not a tool.
-// Scoped under the menu so it outranks the generic `menu button` rule without
-// reaching for !important.
-.workspace-header__menu .workspace-header__menu-support {
-  margin-top: 4px;
-  padding-top: 11px;
-  color: $secondary-light;
-  border-top-color: rgba($edge-tint, 0.14);
-  border-radius: 0 0 $radius-xs $radius-xs;
-  background: transparent;
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-    border-radius: $radius-xs;
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-  }
-}
-
-.workspace-header__menu-status {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 4px 8px;
-  color: $text-muted;
-  border: 0;
-  border-bottom: 1px solid rgba($edge-tint, 0.12);
-  background: none;
-  font-family: inherit;
-  font-size: $text-small;
-  text-align: left;
-}
-
-// Reporting a fault and offering nothing to do about it is a dead end, so when
-// it is a real one the line becomes a control. Marked as one: a row that
-// happens to be clickable and does not look it gets clicked by nobody.
-.workspace-header__menu-status.is-actionable {
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-
-    .workspace-header__menu-status-hint {
-      border-color: rgba($red, 0.75);
-      background: rgba($red, 0.18);
-    }
-  }
-}
-
-.workspace-header__menu-status-hint {
-  margin-left: auto;
-  padding: 1px 7px;
-  color: $red;
-  border: 1px solid rgba($red, 0.45);
-  border-radius: $radius-pill;
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.04em);
-  white-space: nowrap;
 }
 
 .window-control {
@@ -1798,7 +1740,12 @@ textarea,
 //
 // `data-theme` is set on the document element by `renderer/utils/theme.ts`,
 // which is also where the choice is remembered.
-:root {
+//
+// Each block is declared for `data-theme-swatch` as well: the theme picker's
+// swatch of a theme is painted from these, inside a window wearing the other
+// one, so a swatch is the theme itself and not a copy of its colours.
+:root,
+[data-theme-swatch='ocean'] {
   --text-primary: #{$text-primary};
   --text-muted: #{$text-muted};
   --text-faint: #{$text-faint};
@@ -1865,7 +1812,8 @@ textarea,
 // The accent is a green-cyan, taken from the Maker's own waveform: the same
 // family as the ocean theme's cyan so the two are plainly one app, softer so
 // it does not glow on black. The rainbow stays — it is the music.
-:root[data-theme='black'] {
+:root[data-theme='black'],
+[data-theme-swatch='black'] {
   --surface-base: #050608;
   --surface-panel: #0c0e12;
   --surface-block: #12151a;
@@ -3874,65 +3822,6 @@ button.graph-legend {
 // Short windows used to cap the graph at 240px so the even split could not
 // starve the EQ editor. There is no split any more and no fixed page height to
 // ration, so the cap only made the chart harder to read. Deliberately absent.
-
-// The actions menu, in two columns.
-//
-// It had grown to nine unlabelled rows in one stack — importing a WAV sat four
-// places above reinstalling the audio engine, in the order each had happened to
-// be added. Two rows said "Equalizer APO" and two more were about it without
-// saying so, which is the point where people stop reading a menu and start
-// hunting through it.
-//
-// Split by what each thing BELONGS to rather than by how often it is used,
-// because that is the distinction that predicts where somebody looks: is this
-// about FluidEQ, or about the engine underneath it?
-.workspace-header__menu-columns {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr 1fr;
-}
-
-.workspace-header__menu-column {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 4px;
-}
-
-// Quiet. It names the column rather than competing with the items in it — a
-// heading as loud as its contents just adds two more things to read.
-.workspace-header__menu-heading {
-  margin: 0 0 2px;
-  padding-inline: 6px;
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-}
-
-// Doing something, above; fixing something, below.
-.workspace-header__menu-rule {
-  width: 100%;
-  height: 0;
-  margin: 5px 0;
-  border: 0;
-  border-top: 1px solid rgba($edge-tint, 0.1);
-}
-
-// Narrow windows cannot hold two columns beside the titlebar controls, so it
-// falls back to the stack it used to be — with the headings still doing their
-// job, which is most of what was gained.
-@media (max-width: 720px) {
-  .workspace-header__menu {
-    width: 250px;
-  }
-
-  .workspace-header__menu-columns {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-}
 
 // *** The equaliser's five, as a rail *****************************************
 //

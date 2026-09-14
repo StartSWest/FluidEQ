@@ -6,41 +6,56 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useMemo } from 'react';
-import MenuIcon from '../icons/MenuIcon';
+import { useId } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { THEMES, TTheme, setTheme, useTheme } from '../utils/theme';
-import Dropdown from '../widgets/Dropdown';
+import { THEMES, setTheme, useTheme } from '../utils/theme';
+import '../styles/Dsp.scss';
 
 /**
- * The theme, chosen from the tools menu the same way the language is: an
- * icon and a select on one row, above the language row it mirrors.
+ * The theme, in the actions menu's settings tray: both of them side by side,
+ * each with a swatch of itself.
+ *
+ * Two choices do not need a list that has to be opened to find out what the
+ * other one is — the reason the app has the segmented control at all. The
+ * swatch is painted from the theme's own surface and accent, which
+ * `App.scss` declares for `data-theme-swatch` beside the theme itself, so it
+ * shows Ocean while Black is on and cannot drift from what picking it does.
  */
 const ThemePicker = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-
-  const options = useMemo(
-    () =>
-      THEMES.map((entry) => {
-        const label = t(`theme.${entry}`);
-        return { value: entry, label, display: label };
-      }),
-    [t],
-  );
+  const labelId = useId();
 
   return (
-    <div className="language-picker theme-picker">
-      <MenuIcon name="theme" />
-      <Dropdown
-        name={t('theme.aria')}
-        menuClassName="language-picker-menu"
-        options={options}
-        value={theme}
-        handleChange={(next) => setTheme(next as TTheme)}
-        isDisabled={false}
-        placement="down"
-      />
+    <div className="menu-preference">
+      <span id={labelId} className="menu-preference__label">
+        {t('theme.aria')}
+      </span>
+      <div
+        role="group"
+        aria-labelledby={labelId}
+        className="segmented menu-preference__control"
+      >
+        {THEMES.map((entry) => (
+          <button
+            key={entry}
+            type="button"
+            role="menuitemradio"
+            aria-checked={entry === theme}
+            className={`segmented__option theme-picker__option${
+              entry === theme ? ' is-selected' : ''
+            }`}
+            onClick={() => setTheme(entry)}
+          >
+            <span
+              className="theme-picker__swatch"
+              data-theme-swatch={entry}
+              aria-hidden="true"
+            />
+            {t(`theme.${entry}`)}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

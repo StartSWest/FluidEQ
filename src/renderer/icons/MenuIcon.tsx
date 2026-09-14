@@ -42,6 +42,25 @@ const PATHS: Record<string, string> = {
   // Arrow coming up out of a tray: bring a file in.
   import:
     'M12 15V5m0 0L8.5 8.5M12 5l3.5 3.5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3',
+  // The same tray with the arrow going down into it: fetch the installer.
+  // Shorter than `import`'s, so the two read as opposite directions rather
+  // than as one glyph drawn twice.
+  download:
+    'M12 4v9m0 0l-3.5-3.5M12 13l3.5-3.5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3',
+  // An open-ended spanner: put something right. A ring with the jaw cut out
+  // of its upper right and a round-ended handle to the lower left.
+  wrench:
+    'M17.44 4.44L15.29 6.59l2.12 2.12 2.15-2.15A4.5 4.5 0 0 1 13.66 12.61L7.13 19.13A1.6 1.6 0 0 1 4.87 16.87L11.4 10.35A4.5 4.5 0 0 1 17.44 4.44z',
+  // A chip with its pins: what the computer is spending on the app.
+  chip: 'M8 7h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3',
+  // An open book: the user guide. The Help menu drew the circled i on five of
+  // its six rows, which left nothing to recognise any of them by.
+  guide:
+    'M12 7c-2-1.5-5-2-8-1.5V18c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5.5c-3-.5-6 0-8 1.5zM12 7v12.5',
+  // A wrapped present: what is new in this version.
+  gift: 'M4.5 9.5h15V13h-15zM6 13h12v7H6zM12 9.5V20M12 9.5C11 7 7.5 6 7.5 8c0 1.5 3 1.5 4.5 1.5zM12 9.5c1-2.5 4.5-3.5 4.5-1.5 0 1.5-3 1.5-4.5 1.5z',
+  // A flag on its pole: raise a problem with us.
+  flag: 'M6 20.5V4M6 4.5h10.5l-2.2 3.75L16.5 12H6',
   // Speaker with one wave: an impulse response is still just sound.
   waveform: 'M4 9v6h3l4 3.5V5.5L7 9H4M15.5 9.5a4 4 0 0 1 0 5',
   // Heart.

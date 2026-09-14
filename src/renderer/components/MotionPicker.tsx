@@ -6,15 +6,12 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { IMotionPreferenceState } from 'main/ipc/motionPreference';
 import type { TMotionPreference } from 'main/motionPreference';
-import MenuIcon from '../icons/MenuIcon';
 import { prefersReducedMotion } from '../utils/bandReveal';
 import { useTranslation } from '../utils/I18nContext';
-import Dropdown from '../widgets/Dropdown';
-
-const CHOICES: readonly TMotionPreference[] = ['full', 'reduced'];
+import Switch from '../widgets/Switch';
 
 const bridge = () => window.electron?.ipcRenderer;
 
@@ -34,17 +31,21 @@ const running = (): IMotionPreferenceState => {
 };
 
 /**
- * Whether the app animates, in the tools menu beside the theme and the
- * language: the app's own choice rather than Windows' "Animation effects",
- * which turned every motion here off for everybody who had switched it off
- * for a faster desktop (`main/motionPreference.ts`). Reduced is there for the
- * people motion troubles.
+ * Whether the app animates, in the actions menu's settings tray beside the
+ * theme and the language: the app's own choice rather than Windows'
+ * "Animation effects", which turned every motion here off for everybody who
+ * had switched it off for a faster desktop (`main/motionPreference.ts`). Off
+ * is reduced motion, there for the people motion troubles.
+ *
+ * A switch, because it is one yes-or-no: it was a select whose list held the
+ * two sentences "Animations on" and "Reduced motion".
  *
  * It takes effect from the next start — it is how the window is launched —
  * and says so while the choice and the running window disagree.
  */
 const MotionPicker = () => {
   const { t } = useTranslation();
+  const switchId = useId();
   const [state, setState] = useState<IMotionPreferenceState>(
     () => known ?? running(),
   );
@@ -66,38 +67,35 @@ const MotionPicker = () => {
     };
   }, []);
 
-  const options = useMemo(
-    () =>
-      CHOICES.map((entry) => {
-        const label = t(`motion.${entry}`);
-        return { value: entry, label, display: label };
-      }),
-    [t],
-  );
+  const choose = (next: TMotionPreference) => {
+    bridge()
+      ?.setMotionPreference?.(next)
+      .then((saved) => {
+        known = saved;
+        setState(saved);
+        return undefined;
+      })
+      .catch(() => undefined);
+  };
 
   return (
-    <div className="language-picker motion-picker">
-      <MenuIcon name="motion" />
-      <Dropdown
-        name={t('motion.aria')}
-        menuClassName="language-picker-menu"
-        options={options}
-        value={state.chosen}
-        handleChange={(next) => {
-          bridge()
-            ?.setMotionPreference?.(next as TMotionPreference)
-            .then((saved) => {
-              known = saved;
-              setState(saved);
-              return undefined;
-            })
-            .catch(() => undefined);
-        }}
-        isDisabled={false}
-        placement="down"
-      />
+    <div className="menu-preference">
+      <label htmlFor={switchId} className="menu-preference__label">
+        {t('motion.aria')}
+      </label>
+      <span className="menu-preference__switch">
+        <Switch
+          id={switchId}
+          isOn={state.chosen === 'full'}
+          isDisabled={false}
+          handleToggle={() =>
+            choose(state.chosen === 'full' ? 'reduced' : 'full')
+          }
+          ariaLabel={t('motion.aria')}
+        />
+      </span>
       {state.chosen !== state.atLaunch && (
-        <span className="motion-picker__restart" role="status">
+        <span className="menu-preference__note" role="status">
           {t('motion.restart')}
         </span>
       )}

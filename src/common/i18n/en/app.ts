@@ -93,7 +93,6 @@ const app = {
     'A Chromium service started on demand. FluidEQ never asks for this one by name.',
   'app.menu.reinstallApp': 'Reinstall {product}…',
   'app.menu.fixAudio': 'Fix audio problems…',
-  'app.menu.audioEngine': 'Audio engine…',
   'engine.apo.reinstall': 'Reinstall Equalizer APO…',
   'engine.title': 'How should FluidEQ process your sound?',
   'engine.subtitle':
@@ -329,8 +328,6 @@ const app = {
   'language.aria': 'Interface language',
   'theme.aria': 'Theme',
   'motion.aria': 'Animations',
-  'motion.full': 'Animations on',
-  'motion.reduced': 'Reduced motion',
   'motion.restart': 'Restart FluidEQ to apply',
   'theme.ocean': 'Ocean',
   'theme.black': 'Black',

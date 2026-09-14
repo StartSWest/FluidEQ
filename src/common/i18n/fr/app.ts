@@ -96,7 +96,6 @@ const app: Partial<Dictionary> = {
     'Un service Chromium démarré à la demande. FluidEQ ne le réclame jamais par son nom.',
   'app.menu.reinstallApp': 'Réinstaller {product}…',
   'app.menu.fixAudio': 'Résoudre les problèmes audio…',
-  'app.menu.audioEngine': 'Moteur audio…',
   'engine.apo.reinstall': 'Réinstaller Equalizer APO…',
   'engine.title': 'Comment FluidEQ doit-il traiter votre son ?',
   'engine.subtitle':
@@ -344,8 +343,6 @@ const app: Partial<Dictionary> = {
   'language.aria': 'Langue de l’interface',
   'theme.aria': 'Thème',
   'motion.aria': 'Animations',
-  'motion.full': 'Animations activées',
-  'motion.reduced': 'Mouvements réduits',
   'motion.restart': 'Redémarrez FluidEQ pour l’appliquer',
   'theme.ocean': 'Océan',
   'theme.black': 'Noir',

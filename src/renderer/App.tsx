@@ -36,7 +36,6 @@ import {
   shouldShowFeatureTour,
 } from 'common/featureTour';
 import {
-  LATEST_RELEASE_URL,
   OFFICIAL_SITE_URL,
   PRODUCT_NAME,
   PRODUCT_VERSION,
@@ -149,9 +148,7 @@ import useEngineTrouble from './audio/useEngineTrouble';
 import useRestartWhenEngineOff from './utils/useRestartWhenEngineOff';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
-import LanguagePicker from './components/LanguagePicker';
-import ThemePicker from './components/ThemePicker';
-import MotionPicker from './components/MotionPicker';
+import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
@@ -870,7 +867,6 @@ const AppContent = () => {
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
-  const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
   // Which page of the Account panel is open, or none. A page rather than a
   // flag because the leaderboard's guide opens it straight on the terms.
@@ -1587,39 +1583,6 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
-    if (!showAudioToolsMenu) {
-      return undefined;
-    }
-
-    const closeMenu = (event: Event) => {
-      const target = event.target as HTMLElement;
-      // The language list is portalled to document.body so it can escape the
-      // titlebar menu without being clipped. It still belongs to this menu:
-      // closing the parent on the option's pointerdown unmounts the picker
-      // before List can deliver its click and the locale never changes.
-      if (
-        !target.closest(
-          '.workspace-header__tools:not(.help-menu), .language-picker-menu',
-        )
-      ) {
-        setShowAudioToolsMenu(false);
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setShowAudioToolsMenu(false);
-      }
-    };
-
-    document.addEventListener('pointerdown', closeMenu);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeMenu);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [showAudioToolsMenu]);
-
-  useEffect(() => {
     if (globalError?.code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED) {
       localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
       return;
@@ -2029,17 +1992,17 @@ const AppContent = () => {
     isBlockingError && globalError?.code === ErrorCode.AUDIO_ENGINE_NOT_CHOSEN;
 
   // Undefined until main answers, and while no engine has been chosen — the
-  // menu heading falls back to naming what the column does rather than
-  // guessing at an engine.
+  // actions menu then shows the status alone rather than guessing at an
+  // engine.
   const engineName = engineStatus?.engine
     ? engineDisplayName(engineStatus.engine, t)
     : undefined;
 
-  let connectionStatus = t('app.status.ready');
-  if (isLoading) {
-    connectionStatus = t('app.status.checking');
-  } else if (isBlockingError) {
-    connectionStatus = t('app.status.error');
+  let engineState: TEngineState = 'ready';
+  if (isBlockingError) {
+    engineState = 'failing';
+  } else if (isLoading) {
+    engineState = 'checking';
   }
 
   return (
@@ -2137,272 +2100,23 @@ const AppContent = () => {
             onAbout={() => setShowAbout(true)}
             forumOpen={isForumTab}
           />
-          <div className="workspace-header__tools">
-            <button
-              type="button"
-              className="workspace-header__tools-trigger"
-              aria-label={t('app.actions')}
-              aria-expanded={showAudioToolsMenu}
-              title={t('app.actions.title')}
-              onClick={() => setShowAudioToolsMenu((current) => !current)}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 12h3l2-6 4 12 2-6h5" />
-              </svg>
-              <span
-                className={`status-dot${isBlockingError ? ' error' : ''}`}
-              />
-            </button>
-            {showAudioToolsMenu && (
-              <div className="workspace-header__menu" role="menu">
-                {/* A status line that says something is wrong and offers no
-                    way to act on it is a dead end. When it is reporting a real
-                    fault it becomes the way back to the notice that carries
-                    the Install and Retry buttons — which is otherwise
-                    unreachable once dismissed. */}
-                {isBlockingError ? (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="workspace-header__menu-status is-actionable"
-                    onClick={() => {
-                      setShowAudioToolsMenu(false);
-                      setPrereqNonce((n) => n + 1);
-                    }}
-                  >
-                    <span className="status-dot error" />
-                    <span>{connectionStatus}</span>
-                    <span className="workspace-header__menu-status-hint">
-                      {t('app.menu.fix')}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="workspace-header__menu-status">
-                    <span className="status-dot" />
-                    <span>{connectionStatus}</span>
-                  </div>
-                )}
-                {!isLoading && !isBlockingError && (
-                  <>
-                    {/* Two columns, split by what each thing belongs to.
-                       
-                        The menu had grown to nine unlabelled rows in one
-                        stack — everything from importing a WAV to reinstalling
-                        the audio engine, in the order each had been added. Two
-                        of them said "Equalizer APO" and two more were about it
-                        without saying so, which is the state where people stop
-                        reading a menu and start hunting through it.
-                       
-                        Split by owner rather than by frequency, because that
-                        is the distinction that actually predicts where
-                        somebody will look: is this about FluidEQ, or about the
-                        engine underneath it? Within each column a rule
-                        separates doing something from fixing something. */}
-                    <div className="workspace-header__menu-columns">
-                      <div className="workspace-header__menu-column">
-                        <p className="workspace-header__menu-heading">
-                          {PRODUCT_NAME}
-                        </p>
-                        {/* Bringing your own files in belongs at the top: it
-                            is the only thing here that changes what you
-                            hear. */}
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleImportEq();
-                          }}
-                        >
-                          <MenuIcon name="import" />
-                          {t('app.menu.importEq')}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleImportConvolution();
-                          }}
-                        >
-                          <MenuIcon name="waveform" />
-                          {t('app.menu.importConvolution')}
-                        </button>
-
-                        <hr className="workspace-header__menu-rule" />
-
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            // The tour is what "what's new" means; its
-                            // release-notes link is the way to the changelog.
-                            setShowFeatureTour(true);
-                          }}
-                        >
-                          <MenuIcon name="info" />
-                          {t('app.menu.whatsNew')}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            setShowBugReport(true);
-                          }}
-                        >
-                          <MenuIcon name="info" />
-                          {t('app.menu.reportProblem')}
-                        </button>
-                        {/* Beside the release notes rather than at the bottom
-                            of the column: both answer "what is this copy of
-                            the app", and the licence should not read as a
-                            footnote to reinstalling. */}
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            setShowAbout(true);
-                          }}
-                        >
-                          <MenuIcon name="info" />
-                          {t('app.menu.about', { product: PRODUCT_NAME })}
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            window.open(
-                              LATEST_RELEASE_URL,
-                              '_blank',
-                              'noopener',
-                            );
-                          }}
-                        >
-                          <MenuIcon name="restart" />
-                          {t('app.menu.reinstallApp', {
-                            product: PRODUCT_NAME,
-                          })}
-                        </button>
-                      </div>
-
-                      {/* The engine underneath, whichever one it is. The
-                          heading used to be the literal "Equalizer APO" over
-                          three Equalizer APO repairs; under the FluidEQ Engine
-                          all three are meaningless, and a menu offering them
-                          anyway reads as three broken items rather than as one
-                          engine not being in use. They live in the engine
-                          dialog now, which renders them only under APO. */}
-                      <div className="workspace-header__menu-column">
-                        <p className="workspace-header__menu-heading">
-                          {engineName ?? t('app.actions.title')}
-                        </p>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleOpenEngineDialog();
-                          }}
-                        >
-                          <MenuIcon name="configure" />
-                          {t('app.menu.audioEngine')}
-                        </button>
-
-                        <hr className="workspace-header__menu-rule" />
-
-                        {/* First, above the individual repairs, because it is
-                            the one to open when you do not already know which
-                            of them you need — which is everybody whose audio
-                            has just stopped. The one below is the same action,
-                            for anyone who does know. */}
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            setShowTroubleshooter(true);
-                          }}
-                        >
-                          <MenuIcon name="configure" />
-                          {t('app.menu.fixAudio')}
-                        </button>
-
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            setShowAudioToolsMenu(false);
-                            handleRestartWindowsAudio();
-                          }}
-                        >
-                          <MenuIcon name="restart" />
-                          {t('app.menu.restartAudio')}
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {/* A full row rather than a column entry: it answers which of
-                    the identical FluidEQ rows is using memory, in every build
-                    where that question can matter. */}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="workspace-header__menu-support"
-                  onClick={() => {
-                    setShowAudioToolsMenu(false);
-                    setShowProcessesDialog(true);
-                  }}
-                >
-                  <MenuIcon name="restart" />
-                  {t('app.processes.menu')}
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="workspace-header__menu-support"
-                  onClick={() => {
-                    setShowAudioToolsMenu(false);
-                    setShowSupportDialog(true);
-                  }}
-                >
-                  <MenuIcon name="support" />
-                  {t('app.menu.support')}
-                </button>
-                {/* Absent entirely from a build with no backend configured,
-                    which is every fork and every checkout without a .env. A
-                    row that opens a panel offering a sign-in that cannot
-                    complete is worse than no row. */}
-                {isAccountConfigured() && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="workspace-header__menu-support"
-                    onClick={() => {
-                      setShowAudioToolsMenu(false);
-                      setAccountDialogPage('home');
-                    }}
-                  >
-                    <MenuIcon name="artist" />
-                    {t('account.menu')}
-                  </button>
-                )}
-                {/* The theme, above the language it sits beside: one row per
-                    thing that changes how the whole window looks. */}
-                <ThemePicker />
-                {/* Whether the app animates, chosen here rather than taken
-                    from Windows' animation effects. */}
-                <MotionPicker />
-                {/* Last, and always available: someone who cannot read the
-                    rest of this menu needs to be able to reach it. */}
-                <LanguagePicker />
-              </div>
-            )}
-          </div>
+          <ActionsMenu
+            engineState={engineState}
+            engineName={engineName}
+            onFix={() => setPrereqNonce((n) => n + 1)}
+            onOpenEngine={handleOpenEngineDialog}
+            onTroubleshoot={() => setShowTroubleshooter(true)}
+            onRestartAudio={handleRestartWindowsAudio}
+            onImportEq={handleImportEq}
+            onImportImpulse={handleImportConvolution}
+            onProcesses={() => setShowProcessesDialog(true)}
+            onSupport={() => setShowSupportDialog(true)}
+            onAccount={
+              isAccountConfigured()
+                ? () => setAccountDialogPage('home')
+                : undefined
+            }
+          />
           <div
             className="window-titlebar__controls"
             onDoubleClick={(event) => event.stopPropagation()}

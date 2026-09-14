@@ -95,7 +95,6 @@ const app: Partial<Dictionary> = {
     '必要に応じて起動する Chromium のサービスです。FluidEQ が名前を指定して求めることはありません。',
   'app.menu.reinstallApp': '{product} を再インストール…',
   'app.menu.fixAudio': 'オーディオの問題を修復…',
-  'app.menu.audioEngine': 'オーディオエンジン…',
   'engine.apo.reinstall': 'Equalizer APO を再インストール…',
   'engine.title': 'FluidEQ で音をどう処理しますか？',
   'engine.subtitle':
@@ -340,8 +339,6 @@ const app: Partial<Dictionary> = {
   'language.aria': '表示言語',
   'theme.aria': 'テーマ',
   'motion.aria': 'アニメーション',
-  'motion.full': 'アニメーションあり',
-  'motion.reduced': '動きを減らす',
   'motion.restart': 'FluidEQ を再起動すると反映されます',
   'theme.ocean': 'オーシャン',
   'theme.black': 'ブラック',
