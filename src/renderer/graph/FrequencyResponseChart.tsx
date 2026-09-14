@@ -135,6 +135,7 @@ import GraphAutoCycle from './GraphAutoCycle';
 import SceneLikeButton from './SceneLikeButton';
 import SceneTintToggle from './SceneTintToggle';
 import GraphUpdateNotice from './GraphUpdateNotice';
+import GraphWallpaperToggle from './GraphWallpaperToggle';
 import LightingToggle from './LightingToggle';
 import GraphViewMenu from './GraphViewMenu';
 import LookPicker from './LookPicker';
@@ -1822,6 +1823,9 @@ const FrequencyResponseChart = ({
             {/* The desk lights follow a Plus scene, so their switch is here
                 only while one is on the graph. */}
             {isPremiumSceneSelected && <LightingToggle />}
+            {/* And the desktop background, for the scene actually drawn: a
+                fallback or a draft has nothing to put there. */}
+            {drawnScene && <GraphWallpaperToggle lookId={drawnScene.lookId} />}
             {/* Solo — the wave with every curve dropped — had a button here and
               no longer does. It is the last stop of Ctrl+W, and as a control
               of its own it was the odd one in a row where everything else names
