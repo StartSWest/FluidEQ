@@ -41,7 +41,25 @@ import { isSupportMailto } from '../common/bugReport';
  * Returns whether it was allowed, so a caller that wants to tell the user why
  * nothing happened can.
  */
+/**
+ * The one address outside the web this gate opens: Windows' Sound page.
+ *
+ * An exact string, not a scheme. `ms-settings:` as a whole would be a way to
+ * send the user to any of a hundred system pages from anything that can open
+ * a link; this is the single page the app has a reason to offer — the one
+ * with the "Audio enhancements" switch, which is the one thing that can stop
+ * either engine being loaded and the one thing FluidEQ cannot change itself.
+ */
+const WINDOWS_SOUND_SETTINGS = 'ms-settings:sound';
+
 const openExternalIfSafe = (url: string): boolean => {
+  if (url === WINDOWS_SOUND_SETTINGS && process.platform === 'win32') {
+    shell.openExternal(url).catch(() => {
+      // Settings refused to open; the notice already says where the switch is.
+    });
+    return true;
+  }
+
   let protocol: string;
   try {
     protocol = new URL(url).protocol;

@@ -268,6 +268,10 @@ const eq: Partial<Dictionary> = {
   'output.noEffectsTitle': 'इस आउटपुट तक कोई EQ नहीं पहुँच सकता',
   'output.noEffectsBody':
     'Windows {device} पर कोई ऑडियो इफ़ेक्ट नहीं चलाता, इसलिए कोई भी इक्वलाइज़र उसे नहीं बदल सकता — रिमोट डेस्कटॉप ऑडियो ऐसा ही एक आउटपुट है। अपना EQ सुनने के लिए PC के अपने स्पीकर या हेडफ़ोन से चलाएँ।',
+  'output.effectsOffTitle': 'Windows इस आउटपुट पर इफ़ेक्ट छोड़ रहा है',
+  'output.effectsOffBody':
+    '{device} के लिए ऑडियो एन्हांसमेंट बंद हैं, इसलिए Windows उस पर कोई भी इफ़ेक्ट नहीं चलाता — FluidEQ इंजन भी नहीं, चाहे वह कितनी भी सही तरह सेट हो। Windows साउंड सेटिंग्स में इस आउटपुट के लिए उन्हें फिर से चालू करें, आपका EQ वापस आ जाएगा।',
+  'output.openSoundSettings': 'साउंड सेटिंग्स खोलें',
   'output.gotIt': 'ठीक है',
   'output.none': 'कोई चालू आउटपुट नहीं मिला',
   'output.mapping': 'स्वचालित जोड़',

@@ -121,6 +121,8 @@ const app = {
   'engine.fluid.l1': 'Your sound card’s own effects and panel keep working',
   'engine.fluid.l2': 'EQ and the DSP rack apply to everything, no restart',
   'engine.fluid.l3': 'Custom APO commands, Peace and VST plugins do not run',
+  'engine.fluid.l4':
+    'Equalizer APO is switched off while this runs, and put back exactly as it was if you switch to it',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Custom commands, Peace, VST plugins',
   'engine.apo.l2':

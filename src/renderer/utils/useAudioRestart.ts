@@ -20,7 +20,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useCallback, useRef, useState } from 'react';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
-import { reportError } from './logger';
+import { reportError, reportInfo } from './logger';
 
 export type TRestartPhase = 'ask' | 'running' | 'done' | 'failed';
 
@@ -78,6 +78,16 @@ export const useAudioRestart = (
     } finally {
       running.current = false;
     }
+    // In the log either way. A restart of Windows audio is the loudest thing
+    // the app does to the machine — every stream stops for a moment — and it
+    // now also happens without anybody pressing anything
+    // (`useRestartWhenEngineOff`), so a log that does not mention it cannot
+    // explain what a listener heard.
+    reportInfo(
+      `Windows audio restart: ok=${result.ok}` +
+        `${result.declined ? ' (consent declined)' : ''}` +
+        `${result.detail ? ` — ${result.detail}` : ''}`,
+    );
     setOutcome(result);
     setPhase(result.ok ? 'done' : 'failed');
     if (!result.ok) {

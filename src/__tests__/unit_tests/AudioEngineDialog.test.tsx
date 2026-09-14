@@ -36,6 +36,25 @@ describe('AudioEngineDialog', () => {
     expect(radios[1]).toHaveTextContent(en['engine.apo.l3']);
   });
 
+  it('says what happens to Equalizer APO, but only where there is one', () => {
+    render(<AudioEngineDialog status={status()} onApply={jest.fn()} />);
+    expect(screen.getAllByRole('radio')[0]).toHaveTextContent(
+      en['engine.fluid.l4'],
+    );
+  });
+
+  it('says nothing about Equalizer APO on a machine without it', () => {
+    render(
+      <AudioEngineDialog
+        status={status({ apo: { installed: false } })}
+        onApply={jest.fn()}
+      />,
+    );
+    expect(screen.getAllByRole('radio')[0]).not.toHaveTextContent(
+      en['engine.fluid.l4'],
+    );
+  });
+
   it('will not apply the engine that is already running', () => {
     render(<AudioEngineDialog status={status()} onApply={jest.fn()} />);
 

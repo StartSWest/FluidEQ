@@ -170,6 +170,7 @@ import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
+import { isApoOnAnyOutput, isApoSwitchedOff } from './apoSwitchOff';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
@@ -1630,7 +1631,14 @@ const handleError = (
     ...(detail ? { detail } : {}),
     ...(action ? { action } : {}),
   };
-  log.info(channel);
+  // The whole failure, not just where it came from. This logged the channel
+  // name alone until 1.7.1, so any request that failed without logging for
+  // itself left a bug report with one word about it: the user saw an error
+  // on screen and the log said `audio-engine`.
+  log.error(
+    `Request failed on ${channel}: ${errorCode}`,
+    ...(detail ? [detail] : []),
+  );
   event.reply(channel, reply);
 };
 
@@ -2331,6 +2339,8 @@ registerAudioEngineIpc({
   neutraliseEngine: (other) =>
     neutraliseEngine(other, deviceProfileSettings, presetDirForDevice),
   writeSystemDspChain,
+  isApoOnAnyOutput,
+  isApoSwitchedOff,
 });
 
 /**
@@ -3395,6 +3405,13 @@ const setUpCrashLogging = () => {
   // being built. Everything logged before that point was going to the console
   // and no further — including, by definition, every failure to get that far.
   log.transports.file.level = 'info';
+
+  // Without this, `electron-log/renderer` has no way back to the file: the
+  // modules that use it — the DSP diagnostics and the taskbar transport —
+  // wrote their lines to a devtools console nobody has open and reported
+  // "logger isn't initialized" instead. Everything the window logs has to
+  // reach the file, because the file is what a bug report carries.
+  log.initialize();
 
   installMainFailureRecovery();
 

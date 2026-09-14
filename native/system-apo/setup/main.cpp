@@ -103,6 +103,8 @@ const char kUsage[] =
     "  attach <output-id>... [--slot efx|mfx] [--restart-audio]\n"
     "  detach <output-id>... [--restart-audio]\n"
     "  uninstall [--purge]\n"
+    "  suspend-apo [--restart-audio]\n"
+    "  restore-apo [--restart-audio]\n"
     "  restart-audio\n"
     "  status\n"
     "  settle\n"
@@ -135,6 +137,7 @@ bool parse(int argc, wchar_t** argv, Options& options) {
       options.command == L"attach" || options.command == L"detach";
   if (options.command != L"install" && !takes_guids &&
       options.command != L"uninstall" &&
+      options.command != L"suspend-apo" && options.command != L"restore-apo" &&
       options.command != L"restart-audio" && options.command != L"status" &&
       options.command != L"settle") {
     return false;

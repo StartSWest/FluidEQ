@@ -200,6 +200,34 @@ const MAX_OUTPUT_BYTES = 1024 * 1024;
  * because the app cannot tell those two apart from here and must not treat
  * one of them as a reason to stop working.
  */
+/**
+ * What the helper answered, written down once and again whenever it changes.
+ *
+ * The probe runs whenever the window asks about the engine, which is often,
+ * so this says only what a reader of the log needs: which build is installed
+ * and which outputs it is on. Without it a log could not answer the first
+ * question asked of every "the engine does nothing" report — whether the
+ * engine was on the output at all.
+ */
+let lastStatusSummary: string | undefined;
+
+const logEngineStatusChange = (status: IFluidEngineStatus): void => {
+  const attached = status.endpoints.filter((endpoint) => endpoint.attached);
+  // Guids, not names: the helper's status does not carry names, and the
+  // report's own outputs section pairs each guid with what Windows calls it.
+  const names = attached.map((endpoint) => endpoint.guid).join(', ');
+  const summary =
+    `FluidEQ Engine: installed=${status.installed}` +
+    `${status.dllVersion ? ` build=${status.dllVersion}` : ''}` +
+    `, on ${attached.length} of ${status.endpoints.length} outputs` +
+    `${names ? `: ${names}` : ''}`;
+  if (summary === lastStatusSummary) {
+    return;
+  }
+  lastStatusSummary = summary;
+  log.info(summary);
+};
+
 export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
   new Promise((resolve) => {
     let stdout = '';
@@ -266,6 +294,7 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         return;
       }
       const status = parseFluidEngineStatus(stdout);
+      logEngineStatusChange(status);
       // Only the helper's own yes or no reaches the flush gate. Its
       // `{"error":…}` document (exit 3: the audio stack could not be asked,
       // which happens mid-restart and at login before Audiosrv is up) also

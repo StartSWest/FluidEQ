@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import type { TEngineTrouble } from '../audio/engineTrouble';
 import type { IAudioRestart } from './useAudioRestart';
+import { reportInfo } from './logger';
 
 const useRestartWhenEngineOff = (
   trouble: TEngineTrouble | undefined,
@@ -38,6 +39,12 @@ const useRestartWhenEngineOff = (
       return;
     }
     tried.current = true;
+    // What follows is a restart of Windows audio nobody asked for; the log
+    // has to say who asked and why. `useAudioRestart` logs how it went.
+    reportInfo(
+      'Restarting Windows audio: the engine is on the output being listened ' +
+        'to and Windows is not running it',
+    );
     restart.current.open();
     restart.current.run().catch(() => undefined);
   }, [isOff, isSuppressed]);

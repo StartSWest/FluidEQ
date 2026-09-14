@@ -126,6 +126,8 @@ const app: Partial<Dictionary> = {
   'engine.fluid.l2':
     'Эквалайзер и стойка DSP применяются ко всему, без перезапуска',
   'engine.fluid.l3': 'Свои команды APO, Peace и плагины VST не работают',
+  'engine.fluid.l4':
+    'Equalizer APO отключается, пока работает этот движок, и возвращается ровно таким же, если переключиться на него',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Свои команды, Peace, плагины VST',
   'engine.apo.l2':

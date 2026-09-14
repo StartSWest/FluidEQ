@@ -130,6 +130,50 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
 /** Whether `clsid` appears in any of the three composite lists. */
 bool is_attached(const FxValues& values, std::wstring_view clsid);
 
+/**
+ * Equalizer APO's own class ids, as its Device Selector registers them.
+ *
+ * Two, because APO registers a different one depending on which slot it was
+ * put in, and a machine can carry both at once. Kept beside the plans that
+ * use them rather than in the app, which has its own copy for reading the
+ * registry (`windows-audio-devices.ps1`); the two lists must agree.
+ */
+extern const wchar_t* const kEqualizerApoClsids[];
+constexpr int kEqualizerApoClsidCount = 2;
+
+/**
+ * The values `before` should become with Equalizer APO taken out of them.
+ *
+ * Why this exists: both engines can be registered on the same output at the
+ * same time, and then what a listener hears depends on which slot each one
+ * landed in and which processing mode the stream uses — on one machine APO's
+ * entry ran and FluidEQ's never did, with both reported as attached and
+ * neither reporting a fault. Choosing an engine has to mean the other one is
+ * not in the chain.
+ *
+ * The removal is the same shape as our own detach: the composite lists are
+ * the only thing edited, and the single values (pids 5, 6, 7) and the legacy
+ * pair are left exactly as found — but they are mirrored forward first, so
+ * that the lists Windows now reads still carry whatever the machine's own
+ * audio vendor registered. Taking APO out of a list nobody reads would not
+ * disable it; creating a list without the vendor in it would disable the
+ * vendor.
+ */
+FxPlan plan_suspend_apo(const FxValues& before);
+
+/**
+ * The values `current` should become with `saved`'s registration back.
+ *
+ * `saved` is what the endpoint looked like before Equalizer APO was taken out
+ * of it, so putting it back is simply writing it again — with one exception:
+ * whatever slot FluidEQ's own effect occupies right now, it keeps. Somebody
+ * switching back to Equalizer APO has not asked for the FluidEQ Engine to be
+ * unregistered, and an engine silently detached here would need its Windows
+ * prompt again the next time they switched back.
+ */
+FxPlan plan_restore_apo(const FxValues& current, const FxValues& saved,
+                        std::wstring_view keep);
+
 /** `values` as one line of JSON — what a backup file holds. */
 std::wstring to_json(const FxValues& values);
 

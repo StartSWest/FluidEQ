@@ -134,6 +134,8 @@ public static class AquaAudioDevices
         [FieldOffset(8)] public IntPtr pointerValue;
         // VT_BLOB: a byte count, then a pointer on its own 8-byte boundary.
         [FieldOffset(8)] public uint blobSize;
+        // VT_UI4 / VT_I4: the number itself, in the same first eight bytes.
+        [FieldOffset(8)] public uint uint32Value;
         [FieldOffset(16)] public IntPtr blobData;
         public string AsString() { return valueType == 31 ? Marshal.PtrToStringUni(pointerValue) : ""; }
     }
@@ -148,6 +150,40 @@ public static class AquaAudioDevices
         formatId = new Guid("F19F064D-082C-4E27-BC73-6882A1BB8E4C"),
         propertyId = 0
     };
+
+    // PKEY_AudioEndpoint_Disable_SysFx: Windows' own "Audio enhancements"
+    // switch for one output — Off in Sound settings, "Disable all
+    // enhancements" in the old panel. While it is set, Windows loads no
+    // system effect on that output at all, so an engine that is installed,
+    // attached, healthy and correct is still never heard, with nothing
+    // anywhere to say why. This is the question the app could not ask.
+    private static readonly PROPERTYKEY DisableSysFxKey = new PROPERTYKEY {
+        formatId = new Guid("1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E"),
+        propertyId = 5
+    };
+
+    private static Nullable<bool> ReadEffectsEnabled(IPropertyStore store)
+    {
+        var key = DisableSysFxKey;
+        PROPVARIANT value;
+        if (store.GetValue(ref key, out value) != 0)
+            return null;
+        try
+        {
+            // VT_EMPTY is the normal case on a machine nobody has switched
+            // this on: never written means never disabled.
+            if (value.valueType == 0)
+                return true;
+            // VT_UI4 and VT_I4 are the two ways Windows has written it.
+            if (value.valueType != 19 && value.valueType != 3)
+                return null;
+            return value.uint32Value == 0;
+        }
+        finally
+        {
+            PropVariantClear(ref value);
+        }
+    }
 
     private static Nullable<int> ReadSampleRate(IPropertyStore store)
     {
@@ -181,6 +217,7 @@ public static class AquaAudioDevices
         public Nullable<bool> isEqualizerApoAttached { get; set; }
         public Nullable<bool> isFluidEngineAttached { get; set; }
         public Nullable<bool> canHostEffects { get; set; }
+        public Nullable<bool> effectsEnabled { get; set; }
         public Nullable<int> sampleRate { get; set; }
     }
 
@@ -361,6 +398,7 @@ public static class AquaAudioDevices
                 isEqualizerApoAttached = IsEqualizerApoAttached(guid),
                 isFluidEngineAttached = IsFluidEngineAttached(guid),
                 canHostEffects = CanHostEffects(guid),
+                effectsEnabled = ReadEffectsEnabled(store),
                 sampleRate = ReadSampleRate(store)
             });
         }

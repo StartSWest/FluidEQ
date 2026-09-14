@@ -122,6 +122,7 @@ const app: Partial<Dictionary> = {
   'engine.fluid.l1': '声卡自带的音效和控制面板继续可用',
   'engine.fluid.l2': '均衡器和 DSP 机架作用于所有声音，无需重启',
   'engine.fluid.l3': 'APO 自定义命令、Peace 和 VST 插件无法运行',
+  'engine.fluid.l4': '使用此引擎期间会关闭 Equalizer APO，切换回去时原样恢复',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': '自定义命令、Peace、VST 插件',
   'engine.apo.l2': '占用声卡的音效插槽；厂商面板可能失去部分控制项',

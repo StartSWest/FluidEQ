@@ -124,6 +124,8 @@ const app: Partial<Dictionary> = {
   'engine.fluid.l2':
     'EQ और DSP रैक हर आवाज़ पर लागू होते हैं, बिना पुनः शुरू किए',
   'engine.fluid.l3': 'APO के कस्टम कमांड, Peace और VST प्लगइन नहीं चलते',
+  'engine.fluid.l4':
+    'यह इंजन चलने के दौरान Equalizer APO बंद रहता है, और उस पर लौटने पर ठीक वैसा ही वापस आ जाता है',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'कस्टम कमांड, Peace, VST प्लगइन',
   'engine.apo.l2':

@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "fx_list.h"
 
@@ -37,6 +38,27 @@ std::optional<FxValues> load_backup(const std::wstring& guid);
 
 /** Forgets an endpoint, once it has been put back the way it was found. */
 void remove_backup(const std::wstring& guid);
+
+/**
+ * The same, for the state an output was in before Equalizer APO was switched
+ * off on it — `<engine root>\apo-off\<guid>.json`.
+ *
+ * A second store rather than a second use of the one above, because the two
+ * answer different questions and are taken back at different times: the
+ * backup above says how to leave the machine when FluidEQ is uninstalled and
+ * must survive every attach and detach in between, while this one says how to
+ * put Equalizer APO back and is consumed the moment somebody switches to it.
+ * Sharing one file would mean an uninstall restoring a state with APO already
+ * removed from it — this program turning off somebody else's equalizer
+ * permanently, on its way out.
+ */
+bool apo_off_saved(const std::wstring& guid);
+bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
+                       std::wstring& error);
+std::optional<FxValues> load_apo_off(const std::wstring& guid);
+void remove_apo_off(const std::wstring& guid);
+/** Every endpoint currently recorded as having Equalizer APO switched off. */
+std::vector<std::wstring> apo_off_endpoints();
 
 }  // namespace fluideq_engine::setup
 

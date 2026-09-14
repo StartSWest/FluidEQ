@@ -496,6 +496,41 @@ Out-String` (or any other capture) is what actually waits for it and shows
   once a session, never during the engine update. A declined prompt or a
   failure leaves the notice and its reason; nothing asks again on its own,
   or the device list's refresh would put the prompt back up every few seconds.
+- **One engine in Windows' effect lists at a time.** Both engines are ordinary
+  system effects and a machine can carry both registrations on the same
+  output; which one a stream then goes through depends on the slot each landed
+  in and the mode the stream uses, and on a user's machine Equalizer APO's
+  entry ran while the FluidEQ Engine's never did — both reported attached,
+  neither reporting a fault. So switching to the engine runs `suspend-apo`,
+  which takes Equalizer APO's class ids out of the composite lists after
+  mirroring the vendor's own entries forward, recording each output exactly as
+  it was under `<engine root>\apo-off`; switching back runs `restore-apo`,
+  which writes that state again and re-applies our own attach if it is still
+  there. `uninstall` restores it too — leaving somebody else's equalizer
+  disabled by a program that is gone is not a thing an uninstaller may do.
+  Neither command runs unless there is something to do
+  (`apoSwitchOff.ts`), because each costs a Windows prompt, and a refusal
+  leaves the switch made and the other engine registered, which is where every
+  version before this left it. The APO class ids are written down twice — in
+  `fx_list.cpp` and in `windows-audio-devices.ps1` — and must agree.
+- **Windows' "Audio enhancements" switch beats everything either engine does.**
+  Off (per output, `PKEY_AudioEndpoint_Disable_SysFx`), Windows loads no
+  system effect there at all: the registry still says attached, the engine is
+  never loaded so writes no status, and the app used to call that output
+  processed. The device list now reads that property (`effectsEnabled`), the
+  output panel says so and offers Windows' own Sound page, and the engine
+  trouble card stays away — restarting Windows audio cannot help.
+- **A bug report has to be able to answer "the engine is on and I hear
+  nothing".** Reports could not: the app threw away the engine's own `reason`
+  for passing an output through, logged nothing about the engine at all, and
+  attached a hundred and twenty lines of whatever had happened last. The
+  report now carries an Outputs section built from all three sources
+  (`common/engineReport.ts`: Windows' device list, the setup helper, the
+  engine's statuses) and the tail of the engine's own `engine.log`, and main
+  logs every engine status change, every helper command and result, the
+  automatic enable and the automatic restart. Anything added to that section
+  is somebody's machine in a public issue: keep it to what a diagnosis needs,
+  and it goes through `redact` like the logs.
 
 ## Equalizer APO is bundled
 

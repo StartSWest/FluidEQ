@@ -106,10 +106,16 @@ export const engineTrouble = ({
     // Attached, and able to host effects at all: an output the engine was
     // never put on has its own notice, and one Windows runs no effects on
     // has another. Neither is the engine failing.
+    //
+    // An output whose "Audio enhancements" are switched off is the same kind
+    // of thing and worse to get wrong: Windows loads nothing there, so this
+    // card would offer to restart Windows audio — which changes nothing — as
+    // often as sound was heard. The output panel says what the switch is.
     if (
       device !== undefined &&
       isAttached(device.guid) &&
       device.canHostEffects !== false &&
+      device.effectsEnabled !== false &&
       (!status?.locked || !status.owner)
     ) {
       return {

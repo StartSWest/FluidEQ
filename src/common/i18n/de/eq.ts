@@ -273,6 +273,10 @@ const eq: Partial<Dictionary> = {
   'output.noEffectsTitle': 'Kein EQ erreicht diesen Ausgang',
   'output.noEffectsBody':
     'Windows führt auf {device} keine Audioeffekte aus, daher kann kein Equalizer ihn verändern – Remotedesktop-Audio ist so ein Ausgang. Um deinen EQ zu hören, spiele über die eigenen Lautsprecher oder Kopfhörer des PCs ab.',
+  'output.effectsOffTitle': 'Windows überspringt Effekte auf diesem Ausgang',
+  'output.effectsOffBody':
+    'Die Audioverbesserungen sind für {device} ausgeschaltet, daher führt Windows dort überhaupt keine Effekte aus – auch die FluidEQ-Engine nicht, so gut sie auch eingerichtet ist. Schalte sie in den Windows-Soundeinstellungen für diesen Ausgang wieder ein, dann ist dein EQ zurück.',
+  'output.openSoundSettings': 'Soundeinstellungen öffnen',
   'output.gotIt': 'Verstanden',
   'output.none': 'Keine aktiven Ausgänge gefunden',
   'output.mapping': 'Automatische Zuordnung',

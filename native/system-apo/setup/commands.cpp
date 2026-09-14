@@ -187,6 +187,118 @@ void attach_all_endpoints(const std::vector<std::wstring>& guids, Slot slot,
   }
 }
 
+/**
+ * Takes Equalizer APO out of one endpoint, recording what it looked like.
+ *
+ * Recorded before anything is written, like the attach above, so that a run
+ * that dies between the two leaves a machine whose Equalizer APO can still be
+ * put back. `attached` reports whether APO is still in the lists afterwards,
+ * which is what the app shows.
+ */
+bool suspend_apo_one(const std::wstring& guid, bool& attached,
+                     std::wstring& error) {
+  FxValues before;
+  if (!read_fx_values(guid, before, error)) {
+    return false;
+  }
+  const FxPlan plan = plan_suspend_apo(before);
+  if (!plan.changed) {
+    // Equalizer APO is not in this output's registration. Nothing is written
+    // and nothing is recorded: a record here would restore, on the way back,
+    // a state this program never changed.
+    attached = false;
+    return true;
+  }
+  if (!save_apo_off_once(guid, before, error)) {
+    return false;
+  }
+  if (!write_fx_values(guid, before, plan.after, error)) {
+    return false;
+  }
+  attached = false;
+  return true;
+}
+
+/**
+ * Puts it back on one endpoint, and forgets it.
+ *
+ * An endpoint with nothing recorded is not an error: it is every output the
+ * machine has that Equalizer APO was never on.
+ */
+bool restore_apo_one(const std::wstring& guid, bool& attached,
+                     std::wstring& error) {
+  const std::optional<FxValues> saved = load_apo_off(guid);
+  if (!saved.has_value()) {
+    attached = false;
+    return true;
+  }
+  FxValues current;
+  if (!read_fx_values(guid, current, error)) {
+    return false;
+  }
+  const FxPlan plan = plan_restore_apo(current, *saved, kEngineClsid);
+  if (plan.changed && !write_fx_values(guid, current, plan.after, error)) {
+    return false;
+  }
+  // Only once it is actually back. A record kept after a failed write is what
+  // gives the next switch another chance at it.
+  remove_apo_off(guid);
+  attached = true;
+  return true;
+}
+
+/**
+ * Every output, and the loop finishes.
+ *
+ * Same rule as `--attach-all` and for the same reason: one output whose key
+ * an OEM locked down must not stop Equalizer APO being switched off on the
+ * one being listened to. The failures are reported per endpoint.
+ */
+void suspend_apo_all(CommandResult& result) {
+  std::vector<Endpoint> endpoints;
+  if (!list_render_endpoints(endpoints, result.error)) {
+    result.ok = false;
+    return;
+  }
+  for (const Endpoint& endpoint : endpoints) {
+    EndpointResult one;
+    one.guid = endpoint.guid;
+    if (!endpoint_key_exists(endpoint.guid)) {
+      continue;
+    }
+    if (!suspend_apo_one(endpoint.guid, one.attached, one.error)) {
+      if (one.error.empty()) {
+        one.error = L"Equalizer APO could not be switched off on this output";
+      }
+      result.endpoints.push_back(one);
+      continue;
+    }
+    result.endpoints.push_back(one);
+  }
+}
+
+/**
+ * Every output this program has a record for, plus any the machine still has.
+ *
+ * The records are the authority — an output that has since been unplugged is
+ * still restored, because its registration is still in the registry and will
+ * be read again the moment it comes back.
+ */
+void restore_apo_all(CommandResult& result) {
+  for (const std::wstring& guid : apo_off_endpoints()) {
+    EndpointResult one;
+    one.guid = guid;
+    if (!restore_apo_one(guid, one.attached, one.error)) {
+      if (one.error.empty()) {
+        one.error = L"Equalizer APO could not be put back on this output";
+      }
+      result.endpoints.push_back(one);
+      continue;
+    }
+    result.endpoints.push_back(one);
+  }
+}
+
 void detach_each(const std::vector<std::wstring>& guids,
                  CommandResult& result) {
   for (const std::wstring& guid : guids) {
@@ -279,6 +391,15 @@ void run_uninstall(const Options& options, CommandResult& result) {
   if (!result.ok) {
     return;
   }
+  // Whatever was switched off to make room for this engine goes back on the
+  // way out. Leaving Equalizer APO disabled by a program that is no longer on
+  // the machine — with the record of how to put it back deleted by `--purge`
+  // moments later — would be this installer silently breaking somebody else's
+  // equalizer for good.
+  restore_apo_all(result);
+  if (!result.ok) {
+    return;
+  }
   if (!unregister_engine(result.error)) {
     result.ok = false;
     return;
@@ -356,6 +477,16 @@ void run_command(const Options& options, CommandResult& result) {
     attach_each(options.guids, options.slot, result);
   } else if (options.command == L"detach") {
     detach_each(options.guids, result);
+  } else if (options.command == L"suspend-apo") {
+    // The tree, because the record of what was switched off lives in it and
+    // this command can be the first thing that ever writes there.
+    if (!ensure_engine_tree(result.error)) {
+      result.ok = false;
+      return;
+    }
+    suspend_apo_all(result);
+  } else if (options.command == L"restore-apo") {
+    restore_apo_all(result);
   } else {
     // The command line parser accepts a closed set and this function handles
     // all of it, so getting here means the two lists have drifted apart. Named

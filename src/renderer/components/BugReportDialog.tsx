@@ -127,6 +127,8 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         description,
         appLog: '',
         installLog: '',
+        engineReport: '',
+        engineLog: '',
       });
   const report = reportOverride ?? generatedReport;
 

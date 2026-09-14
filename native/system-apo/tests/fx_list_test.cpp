@@ -38,6 +38,8 @@ using fluideq_engine::setup::kMfx;
 using fluideq_engine::setup::kSfx;
 using fluideq_engine::setup::plan_attach;
 using fluideq_engine::setup::plan_detach;
+using fluideq_engine::setup::plan_restore_apo;
+using fluideq_engine::setup::plan_suspend_apo;
 using fluideq_engine::setup::to_json;
 
 namespace {
@@ -71,6 +73,10 @@ constexpr wchar_t kLegacyGfx[] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0005}";
 // A processing mode that is not DEFAULT — RAW, MOVIE and COMMUNICATIONS are
 // all real, and a vendor that named one of them meant it.
 constexpr wchar_t kVendorMode[] = L"{9CF2A70B-F377-403B-BD6B-360863E0355C}";
+// Equalizer APO's own, as its Device Selector writes it. Spelled out here for
+// the same reason ours is: it is the published contract with another program,
+// and a test that read it from the source it checks would prove nothing.
+constexpr wchar_t kApoMfx[] = L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}";
 
 std::vector<std::wstring> list(std::initializer_list<const wchar_t*> items) {
   std::vector<std::wstring> result;
@@ -461,6 +467,101 @@ void json_round_trip() {
              .has_value());
 }
 
+/**
+ * Switching to the FluidEQ Engine takes Equalizer APO out of the lists.
+ *
+ * The case that made this necessary: both engines registered on the same
+ * output, APO in MFX and ours in EFX, and which one a stream actually went
+ * through depended on its processing mode. Both reported attached, neither
+ * reported a fault, and the sound went through the wrong one.
+ */
+void suspend_removes_apo_and_keeps_everyone_else() {
+  std::printf("suspend removes Equalizer APO\n");
+  FxValues before;
+  before.composite[kMfx] = list({kApoMfx, kVendorMfx});
+  before.composite[kEfx] = list({kVendorEfx, kOurs});
+  before.modes[kEfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_suspend_apo(before);
+  CHECK(plan.changed);
+
+  FxValues expected = before;
+  expected.composite[kMfx] = list({kVendorMfx});
+  expect_values(plan.after, expected, "suspend");
+}
+
+/**
+ * Equalizer APO registered the old way — one class id in pid 6 and no lists.
+ *
+ * Removing it means creating the list Windows reads instead, which must carry
+ * every other single forward or the machine's own effects go with it.
+ */
+void suspend_mirrors_singles_before_removing() {
+  std::printf("suspend mirrors singles first\n");
+  FxValues before;
+  before.single[kSfx] = kVendorSfx;
+  before.single[kMfx] = kApoMfx;
+
+  const FxPlan plan = plan_suspend_apo(before);
+  CHECK(plan.changed);
+
+  FxValues expected = before;
+  expected.composite[kSfx] = list({kVendorSfx});
+  expected.composite[kMfx] = std::vector<std::wstring>();
+  expect_values(plan.after, expected, "suspend from singles");
+}
+
+/** An output Equalizer APO was never on is not touched at all. */
+void suspend_leaves_an_output_without_apo_alone() {
+  std::printf("suspend leaves other outputs alone\n");
+  FxValues before;
+  before.single[kEfx] = kVendorEfx;
+  before.legacy[0] = kLegacyLfx;
+
+  const FxPlan plan = plan_suspend_apo(before);
+  CHECK(!plan.changed);
+  expect_values(plan.after, before, "untouched");
+}
+
+/**
+ * Switching back puts Equalizer APO exactly where it was, and leaves the
+ * FluidEQ Engine registered — nobody asked for that to come off, and taking
+ * it off would need another Windows prompt to put back.
+ */
+void restore_puts_apo_back_and_keeps_ours() {
+  std::printf("restore puts Equalizer APO back\n");
+  FxValues saved;
+  saved.composite[kMfx] = list({kApoMfx, kVendorMfx});
+  saved.composite[kEfx] = list({kVendorEfx});
+
+  FxValues current;
+  current.composite[kMfx] = list({kVendorMfx});
+  current.composite[kEfx] = list({kVendorEfx, kOurs});
+  current.modes[kEfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_restore_apo(current, saved, kOurs);
+  CHECK(plan.changed);
+
+  FxValues expected = saved;
+  expected.composite[kEfx] = list({kVendorEfx, kOurs});
+  expected.modes[kEfx] = list({kDefaultProcessingMode});
+  expect_values(plan.after, expected, "restore");
+}
+
+/** With our own effect gone from the machine, the saved state is the answer. */
+void restore_without_our_effect_is_the_saved_state() {
+  std::printf("restore without our effect\n");
+  FxValues saved;
+  saved.single[kMfx] = kApoMfx;
+
+  FxValues current;
+  current.composite[kMfx] = std::vector<std::wstring>();
+
+  const FxPlan plan = plan_restore_apo(current, saved, kOurs);
+  CHECK(plan.changed);
+  expect_values(plan.after, saved, "restore to singles");
+}
+
 }  // namespace
 
 int main() {
@@ -477,6 +578,11 @@ int main() {
   detach_restores_sz_type();
   case_insensitive_match();
   json_round_trip();
+  suspend_removes_apo_and_keeps_everyone_else();
+  suspend_mirrors_singles_before_removing();
+  suspend_leaves_an_output_without_apo_alone();
+  restore_puts_apo_back_and_keeps_ours();
+  restore_without_our_effect_is_the_saved_state();
 
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");

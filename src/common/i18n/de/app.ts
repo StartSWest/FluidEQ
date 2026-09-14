@@ -124,6 +124,8 @@ const app: Partial<Dictionary> = {
     'Die Effekte und das Bedienfeld deiner Soundkarte laufen weiter',
   'engine.fluid.l2': 'EQ und DSP-Rack gelten für alles, ohne Neustart',
   'engine.fluid.l3': 'Eigene APO-Befehle, Peace und VST-Plugins laufen nicht',
+  'engine.fluid.l4':
+    'Equalizer APO wird ausgeschaltet, solange diese Engine läuft, und genau so wiederhergestellt, wenn du zurückwechselst',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Eigene Befehle, Peace, VST-Plugins',
   'engine.apo.l2':

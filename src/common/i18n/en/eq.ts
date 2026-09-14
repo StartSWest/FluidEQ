@@ -273,6 +273,10 @@ const eq = {
   'output.noEffectsTitle': 'No EQ can reach this output',
   'output.noEffectsBody':
     'Windows runs no audio effects on {device}, so no equalizer can change it — Remote Desktop audio is one such output. To hear your EQ, play through the PC’s own speakers or headphones.',
+  'output.effectsOffTitle': 'Windows is skipping effects on this output',
+  'output.effectsOffBody':
+    'Audio enhancements are turned off for {device}, so Windows runs no effects on it at all — the FluidEQ Engine included, however well it is set up. Turn them back on for this output in Windows sound settings and your EQ comes back.',
+  'output.openSoundSettings': 'Open sound settings',
   'output.gotIt': 'Got it',
   'output.none': 'No active outputs found',
   'output.mapping': 'Automatic mapping',

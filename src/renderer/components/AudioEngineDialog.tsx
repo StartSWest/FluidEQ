@@ -247,11 +247,21 @@ const AudioEngineDialog = ({
           name: t('engine.fluid.name'),
           recommended: t('engine.recommended'),
           isDisabled: !status.fluidSupported,
-          lines: [
-            [t('engine.fluid.l1'), 'yes'],
-            [t('engine.fluid.l2'), 'yes'],
-            [t('engine.fluid.l3'), 'no'],
-          ] as const,
+          // The fourth line only on a machine that has Equalizer APO: it is
+          // what this engine does to it, and on a machine without it the
+          // sentence would be about software the reader has never installed.
+          lines: (status.apo.installed
+            ? [
+                [t('engine.fluid.l1'), 'yes'],
+                [t('engine.fluid.l2'), 'yes'],
+                [t('engine.fluid.l4'), 'yes'],
+                [t('engine.fluid.l3'), 'no'],
+              ]
+            : [
+                [t('engine.fluid.l1'), 'yes'],
+                [t('engine.fluid.l2'), 'yes'],
+                [t('engine.fluid.l3'), 'no'],
+              ]) as readonly (readonly [string, 'yes' | 'no'])[],
         },
         {
           engine: 'apo' as TAudioEngine,
@@ -265,7 +275,7 @@ const AudioEngineDialog = ({
           ] as const,
         },
       ] as const,
-    [status.fluidSupported, t],
+    [status.apo.installed, status.fluidSupported, t],
   );
 
   const moveSelection = (event: KeyboardEvent<HTMLDivElement>) => {

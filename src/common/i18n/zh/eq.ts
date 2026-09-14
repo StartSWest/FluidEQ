@@ -256,6 +256,10 @@ const eq: Partial<Dictionary> = {
   'output.noEffectsTitle': '均衡器无法作用于此输出',
   'output.noEffectsBody':
     'Windows 不会在 {device} 上运行音频效果，因此任何均衡器都无法更改它——远程桌面音频就是这样的输出。要听到你的 EQ，请通过电脑自带的扬声器或耳机播放。',
+  'output.effectsOffTitle': 'Windows 正在跳过此输出上的效果',
+  'output.effectsOffBody':
+    '{device} 的音频增强已关闭，因此 Windows 不会在该输出上运行任何效果——包括 FluidEQ 引擎，无论它设置得多正确。在 Windows 声音设置中为此输出重新打开音频增强，你的 EQ 就会回来。',
+  'output.openSoundSettings': '打开声音设置',
   'output.gotIt': '知道了',
   'output.none': '未找到活动的输出设备',
   'output.mapping': '自动绑定',

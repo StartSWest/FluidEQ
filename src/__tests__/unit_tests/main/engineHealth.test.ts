@@ -123,6 +123,24 @@ describe('parseEngineStatus', () => {
     expect(parseEngineStatus(status({ extra: 1 }))?.locked).toBe(true);
   });
 
+  it("keeps the engine's own reason for passing an output through", () => {
+    // Written by every engine since status files existed and thrown away
+    // until 1.7.1 — the one line that says which of five failures it is.
+    expect(
+      parseEngineStatus(status({ reason: 'FluidEQ is not running' }))?.reason,
+    ).toBe('FluidEQ is not running');
+    // Empty means it is processing, and is left out rather than carried.
+    expect(parseEngineStatus(status({ reason: '' }))?.reason).toBeUndefined();
+    expect(parseEngineStatus(status({ reason: 7 }))?.reason).toBeUndefined();
+  });
+
+  it('bounds a reason from an engine newer than this app', () => {
+    const long = 'x'.repeat(500);
+    expect(parseEngineStatus(status({ reason: long }))?.reason).toHaveLength(
+      200,
+    );
+  });
+
   it.each([
     ['not JSON', 'status'],
     ['an array', '[]'],

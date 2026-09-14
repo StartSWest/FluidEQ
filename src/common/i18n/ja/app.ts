@@ -124,6 +124,8 @@ const app: Partial<Dictionary> = {
   'engine.fluid.l2': 'EQ と DSP ラックがすべての音に適用され、再起動は不要です',
   'engine.fluid.l3':
     'APO のカスタムコマンド、Peace、VST プラグインは動きません',
+  'engine.fluid.l4':
+    'このエンジンの使用中は Equalizer APO をオフにし、切り替えて戻すと元どおりにします',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'カスタムコマンド、Peace、VST プラグイン',
   'engine.apo.l2':

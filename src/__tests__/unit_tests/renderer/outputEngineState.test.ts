@@ -55,6 +55,30 @@ describe('outputEngineState', () => {
     ).toBe('no-effects');
   });
 
+  it('puts enhancements being switched off ahead of the attached flag', () => {
+    // The state that read as `processed` while nothing was processed: the
+    // engine really is attached, and Windows runs no effect on the output.
+    const enhancementsOff: IAudioDevice = {
+      ...speakers,
+      effectsEnabled: false,
+    };
+    expect(outputEngineState(enhancementsOff, 'fluid')).toBe('effects-off');
+    expect(outputEngineState(enhancementsOff, 'apo')).toBe('effects-off');
+    // An output with no effect slots at all keeps its own, worse answer.
+    expect(
+      outputEngineState({ ...remoteAudio, effectsEnabled: false }, 'fluid'),
+    ).toBe('no-effects');
+  });
+
+  it('treats an unreadable enhancements answer as no answer', () => {
+    expect(
+      outputEngineState({ ...speakers, effectsEnabled: null }, 'fluid'),
+    ).toBe('processed');
+    expect(
+      outputEngineState({ ...speakers, effectsEnabled: true }, 'fluid'),
+    ).toBe('processed');
+  });
+
   it('says nothing on a guess', () => {
     expect(
       outputEngineState({ ...speakers, isFluidEngineAttached: null }, 'fluid'),
@@ -79,6 +103,7 @@ describe('isOutputOff', () => {
   it('is off whenever the output is not being processed, and only then', () => {
     expect(isOutputOff('engine-missing')).toBe(true);
     expect(isOutputOff('no-effects')).toBe(true);
+    expect(isOutputOff('effects-off')).toBe(true);
     expect(isOutputOff('processed')).toBe(false);
     expect(isOutputOff('unknown')).toBe(false);
   });

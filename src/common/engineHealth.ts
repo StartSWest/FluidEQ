@@ -54,6 +54,18 @@ export interface IEngineOutputHealth {
   /** `TEngineProblem` codes, or codes from an engine newer than this app. */
   problems: string[];
   /**
+   * The engine's own sentence for why it is passing this output through —
+   * "FluidEQ is not running", "no config.txt in the configuration directory",
+   * and three more (`watcher_log.cpp`). Empty while it is processing.
+   *
+   * Written by the engine since the first status file and thrown away by the
+   * app until 1.7.1, which is why a machine where the engine was attached and
+   * silent produced a bug report that could not say why. It is English, from
+   * the engine, so it is logged and reported rather than shown: the window
+   * says what it means in the user's own language (`engineTrouble.ts`).
+   */
+  reason?: string;
+  /**
    * The last named song live leveling finished on this output, from an
    * engine new enough to level by song. Absent otherwise.
    */

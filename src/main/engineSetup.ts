@@ -40,7 +40,19 @@ import { IFluidEngineEndpoint } from '../common/audioEngine';
  * Every other command is tried up to three times inside its elevated run.
  */
 export type TEngineSetupCommand =
-  'install' | 'uninstall' | 'attach' | 'detach' | 'restart-audio' | 'settle';
+  | 'install'
+  | 'uninstall'
+  | 'attach'
+  | 'detach'
+  // Equalizer APO out of every output's effect list, and back again. One
+  // engine at a time is the rule both of these serve: with both registered,
+  // which one a stream goes through is decided by the slot each landed in
+  // and the mode the stream uses, and on one machine that meant Equalizer
+  // APO ran and the FluidEQ Engine never did, with both reported as on.
+  | 'suspend-apo'
+  | 'restore-apo'
+  | 'restart-audio'
+  | 'settle';
 
 export interface IEngineSetupResult {
   ok: boolean;
@@ -301,6 +313,17 @@ export const runEngineSetup = (
         return;
       }
       const result = parseEngineSetupOutput(stdout, code);
+      // Every engine command, with what came of it. These are the moments a
+      // machine's engine changes — installed, attached, switched, restarted —
+      // and until 1.7.1 only the failures were written down, so a log from a
+      // machine where the engine was silently doing nothing could not even
+      // show whether anything had asked it to do something.
+      log.info(
+        `FluidEQ Engine Setup (${command}) exited ${code}: ` +
+          `ok=${result.ok}${result.declined ? ' (consent declined)' : ''}` +
+          `${result.error ? ` error=${result.error}` : ''}` +
+          `${result.endpoints.length ? ` outputs=${result.endpoints.length}` : ''}`,
+      );
       // A partial `--attach-all` reports `ok: true` — one usable engine is
       // enough — so a failed endpoint's guid and reason would otherwise never
       // reach anywhere a user or a bug report could find them.

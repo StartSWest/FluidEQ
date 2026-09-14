@@ -163,6 +163,19 @@ describe('engineTrouble', () => {
     ).toBeUndefined();
   });
 
+  it('leaves an output with its enhancements switched off to the same notice', () => {
+    // Restarting Windows audio cannot help here — Windows loads no effect on
+    // that output at all — and this card's own button offers exactly that.
+    expect(
+      engineTrouble(
+        facts({
+          heardGuid: '{AAAA}',
+          devices: [{ ...speakers, effectsEnabled: false }],
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
   it('says nothing at all under Equalizer APO', () => {
     expect(
       engineTrouble(facts({ engine: 'apo', heardGuid: '{AAAA}' })),

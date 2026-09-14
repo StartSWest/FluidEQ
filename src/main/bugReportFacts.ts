@@ -34,9 +34,20 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { app } from 'electron';
-import { IGatheredFacts, takeLogTail } from '../common/bugReport';
-import { TAudioEngine } from '../common/audioEngine';
-import { isEngineInstalled, isEqualizerAPOInstalled } from './registry';
+import log from 'electron-log';
+import { IGatheredFacts, redact, takeLogTail } from '../common/bugReport';
+import { TAudioEngine, IFluidEngineStatus } from '../common/audioEngine';
+import { IEngineHealth, NO_ENGINE_HEALTH } from '../common/engineHealth';
+import { IAudioDevice } from '../common/constants';
+import { describeAudioEngine } from '../common/engineReport';
+import { discoverAudioDevices } from './audioDevices';
+import { readEngineHealth } from './engineHealth';
+import { readFluidEngineStatus } from './engineStatus';
+import {
+  getFluidEngineConfigDir,
+  isEngineInstalled,
+  isEqualizerAPOInstalled,
+} from './registry';
 
 /** Both logs sit together, which is why the installer writes where it does. */
 const getLogDirectory = () => path.join(app.getPath('userData'), 'logs');
@@ -63,6 +74,50 @@ const getAccountName = (): string | undefined => {
   } catch {
     return undefined;
   }
+};
+
+/**
+ * What Windows, the setup helper and the engine each say about the outputs.
+ *
+ * Every one of the three is allowed to fail on its own: a report about a
+ * crash must not be lost because the helper could not be run, and a machine
+ * with no engine answers two of the three with nothing. Anything that does
+ * fail is logged — this runs while the user is filing a report about exactly
+ * this area, so a failure here is itself evidence.
+ */
+const gatherEngineReport = async (
+  audioEngine: TAudioEngine | null,
+): Promise<{ engineReport: string; engineLog: string }> => {
+  if (process.platform !== 'win32') {
+    return { engineReport: '', engineLog: '' };
+  }
+  const engineRoot = path.dirname(getFluidEngineConfigDir());
+  const failed = (what: string) => (error: unknown) => {
+    log.warn(`Bug report could not read ${what}`, error);
+    return undefined;
+  };
+
+  const [devices, fluid, health] = await Promise.all([
+    discoverAudioDevices().catch(failed('the output list')) as Promise<
+      IAudioDevice[] | undefined
+    >,
+    readFluidEngineStatus().catch(failed('the engine setup helper')) as Promise<
+      IFluidEngineStatus | undefined
+    >,
+    readEngineHealth(engineRoot).catch(
+      failed("the engine's status files"),
+    ) as Promise<IEngineHealth | undefined>,
+  ]);
+
+  return {
+    engineReport: describeAudioEngine({
+      engine: audioEngine,
+      devices: devices ?? [],
+      fluid,
+      health: health ?? NO_ENGINE_HEALTH,
+    }),
+    engineLog: readIfPresent(path.join(engineRoot, 'engine.log')),
+  };
 };
 
 /**
@@ -93,6 +148,8 @@ const gatherBugReportFacts = async (
     // silent audio has to answer.
   }
 
+  const { engineReport, engineLog } = await gatherEngineReport(audioEngine);
+
   return {
     audioEngine,
     fluidEngineInstalled,
@@ -110,6 +167,11 @@ const gatherBugReportFacts = async (
       readIfPresent(path.join(logs, 'install.log')),
       accountName,
     ),
+    // Redacted like the logs — an output can be named after whoever owns it.
+    engineReport: redact(engineReport, accountName),
+    // Shorter than the app's tail: the engine writes a line when something
+    // about an output changes, so its last forty are usually its whole life.
+    engineLog: takeLogTail(engineLog, accountName, 40),
   };
 };
 

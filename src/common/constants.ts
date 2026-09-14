@@ -843,6 +843,18 @@ export interface IAudioDevice {
    */
   canHostEffects?: boolean | null;
   /**
+   * Whether Windows is set to run the effects it has on this output.
+   *
+   * This is the "Audio enhancements" switch in Sound settings (the old
+   * panel's "Disable all enhancements"). Turned off, Windows loads no system
+   * effect on that output — ours included — while the registry still says
+   * the engine is attached and the engine itself, never loaded, has nothing
+   * to report. That combination is silent in every direction, which is what
+   * made it worth asking Windows directly. `null`/missing means Windows did
+   * not answer, the same convention as the flags above.
+   */
+  effectsEnabled?: boolean | null;
+  /**
    * The rate Windows runs this output at in shared mode — its "Default
    * Format" in Sound settings, and so the rate every system effect on it,
    * the FluidEQ Engine included, processes at. Missing when Windows did not

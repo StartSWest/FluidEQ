@@ -268,6 +268,10 @@ const eq: Partial<Dictionary> = {
   'output.noEffectsTitle': 'この出力には EQ をかけられません',
   'output.noEffectsBody':
     'Windows は {device} でオーディオ効果を実行しないため、どのイコライザーでも変更できません（リモート デスクトップの音声がこの例です）。EQ を聴くには、PC 本体のスピーカーやヘッドホンで再生してください。',
+  'output.effectsOffTitle': 'Windows がこの出力の効果をスキップしています',
+  'output.effectsOffBody':
+    '{device} のオーディオ拡張機能がオフになっているため、Windows はこの出力でどの効果も実行しません。どれだけ正しく設定されていても、FluidEQ エンジンも同じです。Windows のサウンド設定でこの出力の拡張機能をオンに戻すと、EQ が戻ります。',
+  'output.openSoundSettings': 'サウンド設定を開く',
   'output.gotIt': 'OK',
   'output.none': '有効な出力が見つかりません',
   'output.mapping': '自動割り当て',

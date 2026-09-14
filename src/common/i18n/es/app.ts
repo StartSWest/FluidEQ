@@ -125,6 +125,8 @@ const app: Partial<Dictionary> = {
   'engine.fluid.l2': 'El EQ y el rack DSP se aplican a todo, sin reiniciar',
   'engine.fluid.l3':
     'Los comandos personalizados de APO, Peace y los plugins VST no funcionan',
+  'engine.fluid.l4':
+    'Equalizer APO se desactiva mientras este motor funciona y se restaura tal cual si vuelves a él',
   'engine.apo.name': 'Equalizer APO',
   'engine.apo.l1': 'Comandos personalizados, Peace, plugins VST',
   'engine.apo.l2':

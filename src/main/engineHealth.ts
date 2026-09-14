@@ -96,6 +96,12 @@ export const parseEngineStatus = (
     return undefined;
   }
   const lastSong = parseFinishedSong(value.lastSong);
+  // Bounded: it crosses to the window and into bug reports, and the engine's
+  // own sentences are short. A longer one from some future engine is kept as
+  // much of as is useful rather than dropped.
+  const reason = isString(value.reason)
+    ? value.reason.trim().slice(0, 200)
+    : '';
   return {
     endpoint: normaliseEndpointGuid(endpoint),
     pid,
@@ -103,6 +109,7 @@ export const parseEngineStatus = (
     processing,
     owner,
     problems: problems.filter(isString),
+    ...(reason ? { reason } : {}),
     ...(lastSong ? { lastSong } : {}),
   };
 };

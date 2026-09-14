@@ -129,6 +129,17 @@ export interface IGatheredFacts {
   /** Already tailed and redacted, in main, before crossing the bridge. */
   appLog: string;
   installLog: string;
+  /**
+   * Every output, what Windows allows on it, and what the engine says from
+   * inside it — `describeAudioEngine`. Empty where it could not be read.
+   *
+   * Placed above the logs on purpose: it is the answer to the question most
+   * reports are about, and the logs below it are a tail that a busy minute of
+   * playback can push the engine's own lines out of.
+   */
+  engineReport: string;
+  /** The engine's own log, which is not the app's and lives elsewhere. */
+  engineLog: string;
 }
 
 export interface IBugReportFacts extends IGatheredFacts {
@@ -155,6 +166,8 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     description,
     appLog,
     installLog,
+    engineReport,
+    engineLog,
   } = facts;
 
   // Which engine, spelled the way the dialog spells it. "none chosen" is a
@@ -182,6 +195,12 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     `| ${PRODUCT_NAME} Engine | ${fluidEngineInstalled ? 'installed' : 'NOT installed'} |`,
   ];
 
+  if (engineReport.trim()) {
+    sections.push('', '### Outputs', '', '```', engineReport.trim(), '```');
+  }
+  if (engineLog.trim()) {
+    sections.push('', '### Engine log', '', '```', engineLog.trim(), '```');
+  }
   if (installLog.trim()) {
     sections.push('', '### Setup log', '', '```', installLog.trim(), '```');
   }

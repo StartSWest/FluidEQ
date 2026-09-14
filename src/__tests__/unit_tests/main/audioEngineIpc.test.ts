@@ -94,6 +94,10 @@ describe('the audio engine channels', () => {
   let runEngineSetup: jest.Mock;
   let readAudioEngineStatus: jest.Mock;
   let writeSystemDspChain: jest.Mock;
+  // Equalizer APO nowhere by default, so the plain switch cases stay about
+  // switching. The cases that are about Equalizer APO set these themselves.
+  let isApoOnAnyOutput: jest.Mock;
+  let isApoSwitchedOff: jest.Mock;
   let getConfigPath: jest.Mock;
 
   const fire = async (channel: ChannelEnum, arg: unknown) => {
@@ -142,6 +146,8 @@ describe('the audio engine channels', () => {
     });
     writeSystemDspChain = jest.fn(async () => undefined);
     getConfigPath = jest.fn(async () => path.join(userDataDir, 'config'));
+    isApoOnAnyOutput = jest.fn(async () => false);
+    isApoSwitchedOff = jest.fn(async () => false);
 
     registerAudioEngineIpc({
       userDataDir,
@@ -156,6 +162,8 @@ describe('the audio engine channels', () => {
       readAudioEngineStatus,
       neutraliseEngine,
       writeSystemDspChain,
+      isApoOnAnyOutput,
+      isApoSwitchedOff,
     });
   });
 
@@ -334,6 +342,103 @@ describe('the audio engine channels', () => {
 
       expect(replied(reply)).toEqual({ result: undefined });
       expect(switching).toBe(false);
+    });
+  });
+
+  /**
+   * One engine in Windows' effect lists at a time.
+   *
+   * Both engines can be registered on the same output, and then which one a
+   * stream goes through depends on the slot each landed in and the mode the
+   * stream uses — the case that reached a user was Equalizer APO's entry
+   * running while the FluidEQ Engine's never did, both reported as attached.
+   */
+  describe('Equalizer APO while the FluidEQ Engine is chosen', () => {
+    it('switches it off when it is on an output', async () => {
+      isApoOnAnyOutput.mockResolvedValue(true);
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(runEngineSetup).toHaveBeenCalledWith('suspend-apo', [
+        '--restart-audio',
+      ]);
+      expect(replied(reply)).toEqual({ result: undefined });
+    });
+
+    it('leaves it alone when it is on no output', async () => {
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(runEngineSetup).not.toHaveBeenCalledWith(
+        'suspend-apo',
+        expect.anything(),
+      );
+      expect(replied(reply)).toEqual({ result: undefined });
+    });
+
+    it('puts it back when Equalizer APO is chosen again', async () => {
+      engine = 'fluid';
+      isApoSwitchedOff.mockResolvedValue(true);
+
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['apo']);
+
+      expect(runEngineSetup).toHaveBeenCalledWith('restore-apo', [
+        '--restart-audio',
+      ]);
+    });
+
+    it('asks for nothing when this app never switched it off', async () => {
+      engine = 'fluid';
+
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['apo']);
+
+      expect(runEngineSetup).not.toHaveBeenCalledWith(
+        'restore-apo',
+        expect.anything(),
+      );
+    });
+
+    it('is not asked for once per try of a switch that had to be retried', async () => {
+      isApoOnAnyOutput.mockResolvedValue(true);
+      reflush
+        .mockResolvedValueOnce({
+          ok: false,
+          error: { errorCode: ErrorCode.FLUID_ENGINE_NOT_INSTALLED },
+        })
+        .mockResolvedValue({ ok: true });
+
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(
+        runEngineSetup.mock.calls.filter(
+          ([command]) => command === 'suspend-apo',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('keeps the switch when the Windows prompt is declined', async () => {
+      isApoOnAnyOutput.mockResolvedValue(true);
+      runEngineSetup.mockResolvedValue(DECLINED);
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      // The engine the user asked for, with the other one still registered:
+      // exactly the state every version before this was in.
+      expect(loadAudioEnginePreference(userDataDir).engine).toBe('fluid');
+      expect(replied(reply)).toEqual({ result: undefined });
+    });
+
+    it('keeps the switch when the helper cannot be run at all', async () => {
+      isApoOnAnyOutput.mockResolvedValue(true);
+      runEngineSetup.mockImplementation(async (command: string) => {
+        if (command === 'suspend-apo') {
+          throw new Error('the helper is missing');
+        }
+        return OK;
+      });
+
+      const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+
+      expect(replied(reply)).toEqual({ result: undefined });
     });
   });
 

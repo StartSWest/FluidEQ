@@ -23,6 +23,8 @@ import { IOptionEntry } from './widgets/List';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { isOutputOff, outputEngineState } from './utils/outputEngineState';
+import { openWindowsSoundSettings } from './utils/soundSettings';
+import { reportError, reportInfo } from './utils/logger';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -163,6 +165,7 @@ const DeviceProfiles = ({
   // see `outputEngineState`.
   const engineState = outputEngineState(selectedDevice, engine);
   const cannotHostEffects = engineState === 'no-effects';
+  const effectsTurnedOff = engineState === 'effects-off';
   const showEngineNotice =
     !isNoticeHidden &&
     isOutputOff(engineState) &&
@@ -262,7 +265,17 @@ const DeviceProfiles = ({
       return;
     }
     autoEnabledRef.current.add(selectedId);
-    enableEngineRef.current().catch(() => undefined);
+    // Written down because it is the app acting on its own: a Windows prompt
+    // appears and the sound stops for a moment with nobody having pressed
+    // anything, and a report about that moment should say what asked for it.
+    reportInfo(
+      'Enabling the FluidEQ Engine on the output being played through, unasked',
+    );
+    enableEngineRef
+      .current()
+      .catch((error) =>
+        reportError('Enabling the engine on the playing output failed', error),
+      );
   }, [playingOutputMissing, isNoticeHidden, selectedId]);
 
   /** The notice's words for the output it is about. */
@@ -271,6 +284,12 @@ const DeviceProfiles = ({
       return {
         title: t('output.noEffectsTitle'),
         body: t('output.noEffectsBody', { device: device.name }),
+      };
+    }
+    if (effectsTurnedOff) {
+      return {
+        title: t('output.effectsOffTitle'),
+        body: t('output.effectsOffBody', { device: device.name }),
       };
     }
     return isFluid
@@ -391,7 +410,35 @@ const DeviceProfiles = ({
                 >
                   {t('output.gotIt')}
                 </Button>
-              ) : (
+              ) : null}
+              {/* The one switch nothing in FluidEQ can reach: it is Windows'
+                  own, it needs the machine's administrator, and while it is
+                  off no engine is ever loaded. So the notice takes them to
+                  the page that has it rather than offering a repair here
+                  that would do nothing. */}
+              {effectsTurnedOff ? (
+                <>
+                  <Button
+                    ariaLabel={t('output.openSoundSettings')}
+                    isDisabled={false}
+                    className="small"
+                    handleChange={openWindowsSoundSettings}
+                  >
+                    {t('output.openSoundSettings')}
+                  </Button>
+                  <Button
+                    ariaLabel={t('output.notNow')}
+                    isDisabled={false}
+                    className="small subtle"
+                    handleChange={() =>
+                      setDismissedApoDeviceId(selectedDevice.id)
+                    }
+                  >
+                    {t('output.notNow')}
+                  </Button>
+                </>
+              ) : null}
+              {cannotHostEffects || effectsTurnedOff ? null : (
                 <>
                   {isFluid ? (
                     // Not disabled while it works, as in the engine update

@@ -142,6 +142,8 @@ describe('composing the report', () => {
     description: 'The graph stays blank.',
     appLog: 'something went wrong',
     installLog: 'Equalizer APO not found in the registry.',
+    engineReport: 'Engine in use: fluid\nOutputs:\n- Speakers (playing now)',
+    engineLog: 'pass-through: FluidEQ is not running',
   };
 
   it('leads with what the person said', () => {

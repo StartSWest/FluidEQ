@@ -302,6 +302,92 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
   return plan;
 }
 
+const wchar_t* const kEqualizerApoClsids[] = {
+    L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}",
+    L"{EC1CC9CE-FAED-4822-828A-82A81A6F018F}"};
+
+FxPlan plan_suspend_apo(const FxValues& before) {
+  FxPlan plan;
+  plan.after = before;
+  FxValues& after = plan.after;
+
+  // The same mirroring the attach does, and for the same reason: Windows
+  // reads the composite list when there is one, so APO registered in pid 5
+  // alone is only really removed once a list exists that does not name it.
+  for (int at = 0; at < kSlotCount; ++at) {
+    if (!after.composite[at].has_value() && before.single[at].has_value() &&
+        !before.single[at]->empty()) {
+      after.composite[at] = std::vector<std::wstring>{*before.single[at]};
+    }
+  }
+  if (!has_modern_values(before)) {
+    for (int at = 0; at < kLegacyCount; ++at) {
+      if (before.legacy[at].has_value() && !before.legacy[at]->empty()) {
+        after.composite[at] = std::vector<std::wstring>{*before.legacy[at]};
+      }
+    }
+  }
+
+  bool removed = false;
+  for (int at = 0; at < kSlotCount; ++at) {
+    if (!after.composite[at].has_value()) {
+      continue;
+    }
+    std::vector<std::wstring>& entries = *after.composite[at];
+    const size_t was = entries.size();
+    entries.erase(std::remove_if(entries.begin(), entries.end(),
+                                 [](const std::wstring& entry) {
+                                   for (int id = 0;
+                                        id < kEqualizerApoClsidCount; ++id) {
+                                     if (equal_ci(entry,
+                                                  kEqualizerApoClsids[id])) {
+                                       return true;
+                                     }
+                                   }
+                                   return false;
+                                 }),
+                  entries.end());
+    if (entries.size() != was) {
+      removed = true;
+      // A list this program has edited cannot go back as the vendor's single
+      // string — same rule as the attach, and what the saved state restores.
+      after.composite_was_sz[at] = false;
+    }
+  }
+
+  // Nothing of APO's was in the key: the mirroring is then a change nobody
+  // asked for, so it is dropped rather than written. Mirroring is only ever
+  // justified by the removal it makes real.
+  if (!removed) {
+    plan.after = before;
+    plan.changed = false;
+    return plan;
+  }
+  plan.changed = after != before;
+  return plan;
+}
+
+FxPlan plan_restore_apo(const FxValues& current, const FxValues& saved,
+                        std::wstring_view keep) {
+  FxPlan plan;
+  // What it was before APO was taken out, exactly — including value types and
+  // which keys existed at all.
+  plan.after = saved;
+  // And then our own effect put back wherever it is now, if it is anywhere.
+  // `plan_attach` is the one description of what "attached" means, so the
+  // engine ends up registered the same way it would be by an ordinary attach.
+  if (current.composite[kMfx].has_value() &&
+      contains_ci(*current.composite[kMfx], keep)) {
+    plan.after = plan_attach(plan.after, keep, Slot::Mfx).after;
+  }
+  if (current.composite[kEfx].has_value() &&
+      contains_ci(*current.composite[kEfx], keep)) {
+    plan.after = plan_attach(plan.after, keep, Slot::Efx).after;
+  }
+  plan.changed = plan.after != current;
+  return plan;
+}
+
 bool is_attached(const FxValues& values, std::wstring_view clsid) {
   for (int at = 0; at < kSlotCount; ++at) {
     if (values.composite[at].has_value() &&

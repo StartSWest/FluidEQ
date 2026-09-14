@@ -124,6 +124,18 @@ export interface IAudioEngineIpcDeps {
   neutraliseEngine: (
     other: TAudioEngine,
   ) => Promise<'written' | 'not-installed'>;
+  /**
+   * Whether Equalizer APO is on any output right now, and whether this app
+   * has switched it off on any — the two questions that decide whether a
+   * switch has to touch Windows' effect lists at all.
+   *
+   * Asked before the helper is run, not instead of it: both answers come
+   * from reads that need no administrator, and running the helper to find
+   * out there was nothing to do would put a Windows prompt in front of
+   * somebody who has never had Equalizer APO.
+   */
+  isApoOnAnyOutput: () => Promise<boolean>;
+  isApoSwitchedOff: () => Promise<boolean>;
   writeSystemDspChain: (
     configDirPath: string,
     values: number[],
@@ -143,6 +155,8 @@ export const registerAudioEngineIpc = ({
   readAudioEngineStatus,
   neutraliseEngine,
   writeSystemDspChain,
+  isApoOnAnyOutput,
+  isApoSwitchedOff,
 }: IAudioEngineIpcDeps) => {
   /**
    * The same reply shape main.ts's `handleError` builds, rebuilt here because
@@ -218,6 +232,58 @@ export const registerAudioEngineIpc = ({
       return;
     }
 
+    /**
+     * One engine in the chain, not two.
+     *
+     * Both engines are ordinary Windows effects, and a machine can carry both
+     * registrations on the same output at once. What a listener then hears
+     * depends on which slot each landed in and which processing mode the
+     * stream uses: on one machine Equalizer APO's entry ran and the FluidEQ
+     * Engine's never did, with both reported as attached and neither
+     * reporting anything wrong. Choosing an engine has to mean the other one
+     * is out of the way.
+     *
+     * So the switch takes Equalizer APO out of Windows' effect lists and puts
+     * it back, recording each output's registration exactly as it was
+     * (`suspend-apo` / `restore-apo`) — never uninstalling anything, and
+     * never touching the outputs it was not on.
+     *
+     * After the switch rather than inside it: a switch is retried up to three
+     * times, and this asks for administrator rights, which nobody should be
+     * asked for three times. A refusal leaves the switch made and the other
+     * engine where it was, which is the state the app was always in before —
+     * so it is logged, not raised as a failed switch.
+     */
+    const alignEqualizerApo = async (engine: TAudioEngine): Promise<void> => {
+      if (process.platform !== 'win32') {
+        return;
+      }
+      try {
+        const wanted =
+          engine === 'fluid'
+            ? await isApoOnAnyOutput()
+            : await isApoSwitchedOff();
+        if (!wanted) {
+          return;
+        }
+        const command = engine === 'fluid' ? 'suspend-apo' : 'restore-apo';
+        // Restarted here, because Windows reads an endpoint's effect list
+        // once and holds it: without it the change is on disk and not in the
+        // sound until something else restarts the audio stack.
+        const result = await runEngineSetup(command, ['--restart-audio']);
+        log.info(
+          `Equalizer APO ${engine === 'fluid' ? 'switched off' : 'put back'}: ` +
+            `ok=${result.ok}${result.declined ? ' (consent declined)' : ''}` +
+            `${result.error ? ` error=${result.error}` : ''}`,
+        );
+      } catch (error) {
+        log.error(
+          `Could not change Equalizer APO's registration while switching to ${engine}`,
+          error,
+        );
+      }
+    };
+
     const switchOnce = async (): Promise<TEngineStepOutcome> => {
       try {
         // Cleared in `finally` and not after `setEngine`: a neutralise that
@@ -259,6 +325,7 @@ export const registerAudioEngineIpc = ({
       },
     });
     if (outcome.ok) {
+      await alignEqualizerApo(next);
       succeed(event, channel, undefined);
     } else {
       replyError(event, channel, outcome.error);
