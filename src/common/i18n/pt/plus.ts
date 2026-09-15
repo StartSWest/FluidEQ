@@ -302,11 +302,12 @@ const plus = {
 
   'plus.welcome.title': 'Entre e veja o que os membros criam',
   'plus.welcome.body':
-    'Com uma conta você pode explorar a galeria e assistir a demonstrações breves. É necessário Plus para baixar e guardar cenas, reproduzi-las por completo, adicioná-las aos seus estilos e criar as suas no Estúdio.',
+    'Com uma conta você pode explorar a galeria, assistir a demonstrações breves e fazer uma cena no Estúdio. É necessário Plus para baixar e guardar cenas, reproduzi-las por completo, adicioná-las aos seus estilos e levar o que você faz para qualquer lugar.',
   'plus.welcome.browse': 'Explore todas as cenas que os membros publicam',
   'plus.welcome.play':
     'Toque-as com a sua música e adicione-as aos seus visuais',
-  'plus.welcome.studio': 'Crie as suas no Estúdio com a sua IA',
+  'plus.welcome.studio':
+    'Leve o que você faz no Estúdio para os seus estilos, a área de trabalho e a galeria',
   'plus.welcome.board': 'Suba na classificação com as curtidas das suas cenas',
   'plus.welcome.account.label': 'Conta',
   'plus.welcome.account.access': 'Explora a galeria e vê demonstrações breves.',

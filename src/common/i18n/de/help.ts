@@ -257,7 +257,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'FluidEQ Plus und dein Konto',
   'help.plus.intro':
-    'Ein Konto ist freiwillig: Alles, was kostenlos war, läuft auch ohne Konto auf diesem Computer. FluidEQ Plus, monatlich oder jährlich, fügt Visualizer, das Studio, die Rangliste, Dynamische Beleuchtung und den Desktop-Visualizer hinzu.',
+    'Ein Konto ist freiwillig: Alles, was kostenlos war, läuft auch ohne Konto auf diesem Computer, und mit jedem Konto lässt sich eine Szene im Studio bauen. FluidEQ Plus, monatlich oder jährlich, fügt Visualizer, die Rangliste, Dynamische Beleuchtung und den Desktop-Visualizer hinzu und bringt, was das Studio baut, in deine Darstellungen, in die Galerie und zu anderen Mitgliedern.',
   'help.plus.steps':
     'Öffne Konto im Aktionsmenü. Melde dich an, oder erstelle ein Konto und gib den sechsstelligen Code ein, der an deine E-Mail-Adresse geschickt wurde.\nDrücke Auf Plus umsteigen, lies die Bedingungen, setze das Häkchen, dass du zustimmst, und bezahle in deinem Browser bei Buy Me a Coffee mit derselben E-Mail-Adresse.\nÖffne den Tab Plus. In seiner Seitenleiste findest du Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
   'help.plus.tip':
@@ -319,7 +319,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'Das Studio macht aus einer Beschreibung einen Visualizer. Dein eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu deiner Musik ab, sobald sie gespeichert ist.',
   'help.studio.steps':
-    'Öffne Plus → Studio und drücke Neues Projekt…. Gib ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreibe deine Idee, öffne den Ordner in deinem KI-Assistenten und füge den Prompt aus KI-Prompt kopieren ein.\nBeobachte die Bühne, während Dateien gespeichert werden, und probiere die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
+    'Öffne Plus → Studio und drücke Neues Projekt…. Gib ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreibe deine Idee, öffne den Ordner in deinem KI-Assistenten und füge den Prompt aus KI-Prompt kopieren ein.\nBeobachte die Bühne, während Dateien gespeichert werden, und probiere die Testsignale aus. Dann, mit Plus, Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
     'Doppelklicke auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten.',
   'help.studio.project': 'Deine Projekte und FluidEQ-Szenen zum Hineinschauen.',

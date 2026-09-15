@@ -26,8 +26,9 @@ const studio = {
   'studio.plus.title': 'С Plus',
   'studio.plus.body':
     'Ваша сцена остаётся на этом компьютере. С Plus она попадёт на график, на рабочий стол, в галерею или в файл, который можно отправить.',
-  'studio.plus.cta': 'Узнать о Plus',
   'studio.plus.locked': 'Только с Plus',
+  'studio.plus.oneFolder':
+    'Без Plus открывайте по одной папке сцены; в этой их несколько.',
   'studio.plus.oneProject':
     'Без Plus Студия хранит один проект. С Plus ограничений нет.',
 

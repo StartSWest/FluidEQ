@@ -27,8 +27,9 @@ const studio = {
   'studio.plus.title': 'Avec Plus',
   'studio.plus.body':
     'Votre scène reste sur cet ordinateur. Avec Plus, elle va sur le graphique, sur votre bureau, dans la galerie, ou dans un fichier à envoyer.',
-  'studio.plus.cta': 'Découvrir Plus',
   'studio.plus.locked': 'Seulement avec Plus',
+  'studio.plus.oneFolder':
+    'Sans Plus, ouvrez un dossier de scène à la fois ; celui-ci en contient plusieurs.',
   'studio.plus.oneProject':
     'Sans Plus, le Studio garde un projet. Avec Plus, il n’y a pas de limite.',
 

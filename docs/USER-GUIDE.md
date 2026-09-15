@@ -368,7 +368,7 @@ Standard styles are free drawings of the live sound that you can colour and desi
 
 ## FluidEQ Plus and your account
 
-An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Studio, the Leaderboard, Dynamic lighting and the desktop visualizer.
+An account is optional: everything that was free runs on this computer without one, and any account can make one scene in the Studio. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, Dynamic lighting and the desktop visualizer, and takes what the Studio makes to your looks, the gallery and other members.
 
 ![FluidEQ Plus and your account](25-plus-visualizers.png)
 
@@ -462,7 +462,7 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 
 1. Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.
 2. Describe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.
-3. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
+3. Watch the stage as files are saved and try the test signals. Then, with Plus, Add to my looks, Publish… or Export….
 
 > **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back.
 

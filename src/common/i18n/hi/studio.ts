@@ -26,8 +26,9 @@ const studio = {
   'studio.plus.title': 'Plus के साथ',
   'studio.plus.body':
     'आपका सीन इसी कंप्यूटर पर रहता है। Plus के साथ वह ग्राफ़ पर, डेस्कटॉप पर, गैलरी में या भेजने लायक फ़ाइल में जाता है।',
-  'studio.plus.cta': 'Plus देखें',
   'studio.plus.locked': 'सिर्फ़ Plus के साथ',
+  'studio.plus.oneFolder':
+    'Plus के बिना एक बार में एक ही सीन फ़ोल्डर खोलें; इसमें कई हैं।',
   'studio.plus.oneProject':
     'Plus के बिना स्टूडियो एक प्रोजेक्ट रखता है। Plus के साथ कोई सीमा नहीं।',
 

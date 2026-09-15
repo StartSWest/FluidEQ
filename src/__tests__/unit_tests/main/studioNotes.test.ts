@@ -17,15 +17,16 @@ import { registerStudioNotesIpc } from '../../../main/ipc/studioNotes';
 
 it('keeps notes with the correct project and refuses unknown paths, invalid data and lapsed access', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-notes-'));
-  let mayEdit = true;
   const folders = {
     first: path.join(root, 'first'),
     second: path.join(root, 'second'),
   };
   Object.values(folders).forEach((folder) => fs.mkdirSync(folder));
+  // The resolver is the gate: a project the member may not use has no folder.
+  let usable = true;
   const dispose = registerStudioNotesIpc({
-    mayEdit: () => mayEdit,
-    folderFor: (id) => folders[id as keyof typeof folders],
+    folderFor: (id) =>
+      usable ? folders[id as keyof typeof folders] : undefined,
   });
   const call = (channel: string, ...args: unknown[]) =>
     handlers.get(channel)?.({}, ...args);
@@ -54,7 +55,7 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
       'utf8',
     );
     expect(saved).not.toContain('source');
-    mayEdit = false;
+    usable = false;
     expect(call('studio-notes-save', 'first', notes)).toBe(false);
     expect(call('studio-notes-read', 'first')).toBeUndefined();
     expect(

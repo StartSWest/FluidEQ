@@ -32,9 +32,17 @@ export interface IStudioSettingsDeps {
   /**
    * Whether the open project may be worked on: Plus, or the one project the
    * Studio keeps without it. Asked fresh on every call, as everything in the
-   * Studio is. The look below is only ever one Plus already saved.
+   * Studio is.
    */
   mayEdit: () => boolean;
+  /**
+   * Whether the member's look of the open project may be saved again with
+   * the settings. The save writes the whole pack, code included, which is
+   * "Add to my looks" done again — so it is Plus's, and never done for a
+   * FluidEQ scene opened to look inside. A member whose Plus has lapsed
+   * keeps editing the project; the look they added stays as it was.
+   */
+  mayUpdateLook: () => boolean;
   activeFolder: () => string | undefined;
   accountId: () => string | undefined;
   store: IMemberSceneStore;
@@ -77,6 +85,7 @@ const readSettings = (raw: unknown): IProjectSettings => {
 /** Registers the handler; the returned function takes it away. */
 export const registerStudioSettingsIpc = ({
   mayEdit,
+  mayUpdateLook,
   activeFolder,
   accountId,
   store,
@@ -87,12 +96,15 @@ export const registerStudioSettingsIpc = ({
     'studio-write-settings',
     async (_event, raw: unknown): Promise<IStudioSettingsOutcome> => {
       const folder = activeFolder();
+      // The account as it is now, held for the whole save: a sign-out or a
+      // switch landing between the two writes must not put one account's
+      // project among another's looks.
+      const me = accountId();
       if (!mayEdit() || !folder) {
         return { written: 'failed', lookUpdated: false };
       }
       const written = await writeProjectSettings(folder, readSettings(raw));
-      const me = accountId();
-      if (written !== 'written' || !me) {
+      if (written !== 'written' || !me || !mayUpdateLook()) {
         return { written, lookUpdated: false };
       }
       const build = await readProject(folder);
@@ -106,7 +118,15 @@ export const registerStudioSettingsIpc = ({
               scene.authorId === me &&
               scene.packId === build.pack.id,
           );
-      if (!build.ok || !isLook) {
+      // Asked again after the reads: Plus, the project on the bench and the
+      // account can all have changed while they ran.
+      if (
+        !build.ok ||
+        !isLook ||
+        !mayUpdateLook() ||
+        activeFolder() !== folder ||
+        accountId() !== me
+      ) {
         return { written, lookUpdated: false };
       }
       try {

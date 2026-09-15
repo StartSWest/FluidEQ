@@ -277,10 +277,10 @@ const plus = {
 
   'plus.welcome.title': '登录，看看会员们创作了什么',
   'plus.welcome.body':
-    '有账户即可浏览图库并观看简短演示。下载并保留场景、完整播放、添加到样式和在工作室中创建自己的场景都需要Plus。',
+    '有账户即可浏览图库、观看简短演示，并在工作室里创作一个场景。下载并保留场景、完整播放、添加到样式，以及把你创作的场景带到任何地方，都需要 Plus。',
   'plus.welcome.browse': '浏览会员发布的每一个场景',
   'plus.welcome.play': '用你的音乐播放它们，并添加到你的外观',
-  'plus.welcome.studio': '用你的 AI 在工作室里创作自己的场景',
+  'plus.welcome.studio': '把在工作室里创作的场景带到你的外观、桌面和画廊',
   'plus.welcome.board': '凭借场景获得的点赞登上排行榜',
   'plus.welcome.account.label': '账户',
   'plus.welcome.account.access': '浏览图库并观看简短演示。',

@@ -317,7 +317,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // A row the member may look at but not use yet — the Studio's Plus-only ways
-// to another project. Still a button, and still pressed: it opens Plus. The
+// to another project. Still a button, and still pressed: it opens Plus, and
+// lights up under the pointer and the keyboard like every other row. The
 // lock sits at the end of the row, in the third column this adds.
 .rich-pick__action.is-locked {
   grid-template-columns: 18px minmax(0, 1fr) auto;
@@ -325,6 +326,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .rich-pick__action-lock {
     color: $text-dim;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+
+    .rich-pick__action-lock {
+      color: inherit;
+    }
   }
 }
 

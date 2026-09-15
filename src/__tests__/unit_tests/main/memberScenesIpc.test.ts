@@ -29,9 +29,11 @@ jest.mock('electron', () => ({
 // eslint-disable-next-line import/first -- the electron mock must be installed first
 import {
   registerMemberScenesIpc,
+  type ILinkFolderResult,
   type IMemberScenesListing,
   type IStudioState,
   type TAddOutcome,
+  type TNewProjectResult,
 } from '../../../main/ipc/memberScenes';
 // eslint-disable-next-line import/first -- as above
 import { writeStarterProject } from '../../../main/memberScenes/project';
@@ -133,6 +135,10 @@ afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
+/** "Open a folder…", answered with the list as it is after. */
+const link = async () =>
+  (await invoke<Promise<ILinkFolderResult>>('studio-link-folder')).state;
+
 const project = async () => {
   const folder = path.join(root, 'my-scene');
   fs.mkdirSync(folder);
@@ -149,7 +155,7 @@ describe('member scenes over IPC', () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
-    const state = await invoke<Promise<IStudioState>>('studio-link-folder');
+    const state = await link();
     expect(state.projects.map((entry) => entry.folderName)).toEqual([
       'my-scene',
     ]);
@@ -174,7 +180,7 @@ describe('member scenes over IPC', () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
@@ -208,7 +214,7 @@ describe('member scenes over IPC', () => {
     const registration = setup({ logger: { info: jest.fn(), warn } });
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
@@ -268,7 +274,7 @@ describe('member scenes over IPC', () => {
   it('opens "Open a folder" on the projects folder, made if it is not there', async () => {
     const registration = setup();
     const studioFolder = path.join(root, 'Documents', 'FluidEQ Studio');
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     expect(dialogOpenedAt).toBe(studioFolder);
     expect(fs.existsSync(studioFolder)).toBe(true);
     // Once the member has chosen another, that is where it opens.
@@ -276,7 +282,7 @@ describe('member scenes over IPC', () => {
     fs.mkdirSync(chosen);
     await invoke<Promise<IStudioState>>('studio-choose-root');
     chosen = undefined;
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     expect(dialogOpenedAt).toBe(path.join(root, 'My scenes'));
     registration.dispose();
   });
@@ -316,9 +322,9 @@ describe('member scenes over IPC', () => {
     );
     await invoke<Promise<IStudioState>>('studio-open');
     chosen = city;
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     chosen = sea;
-    const both = await invoke<Promise<IStudioState>>('studio-link-folder');
+    const both = await link();
 
     // Most recent first, named by what the scene is called, the new one open.
     expect(both.projects.map((entry) => entry.names?.en)).toEqual([
@@ -364,7 +370,7 @@ describe('member scenes over IPC', () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     // Break the folder after linking: the add reads it afresh and refuses.
     fs.writeFileSync(path.join(chosen, 'scene.frag'), '#define BROKEN 1\n');
     expect(await invoke('studio-add-to-looks')).toEqual({
@@ -379,7 +385,7 @@ describe('member scenes over IPC', () => {
     chosen = await project();
     const file = path.join(chosen, 'scene.frag');
     await invoke<Promise<IStudioState>>('studio-open');
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     await expect(sentOn('studio-source-changed')).resolves.toEqual({
       file: 'scene.frag',
       text: fs.readFileSync(file, 'utf8'),
@@ -428,11 +434,9 @@ describe('member scenes over IPC', () => {
     expect(state.mayAddProject).toBe(false);
     expect(await invoke('studio-create-project', 'Deep Sea')).toBe('plus-only');
     chosen = await project();
-    expect(
-      (await invoke<Promise<IStudioState>>('studio-link-folder')).projects.map(
-        (entry) => entry.names?.en,
-      ),
-    ).toEqual(['Neon City']);
+    expect((await link()).projects.map((entry) => entry.names?.en)).toEqual([
+      'Neon City',
+    ]);
     expect(await invoke('studio-add-to-looks')).toEqual({
       ok: false,
       reason: 'not-entitled',
@@ -443,7 +447,7 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('opens a folder of several projects without Plus as the one it keeps', async () => {
+  it('takes none of a folder of several projects without Plus, and says so', async () => {
     status = { state: 'none' };
     const registration = setup();
     const many = path.join(root, 'many');
@@ -457,9 +461,105 @@ describe('member scenes over IPC', () => {
     );
     await invoke<Promise<IStudioState>>('studio-open');
     chosen = many;
-    const state = await invoke<Promise<IStudioState>>('studio-link-folder');
+    const refused =
+      await invoke<Promise<ILinkFolderResult>>('studio-link-folder');
+    expect(refused.outcome).toBe('plus-only');
+    expect(refused.state.projects).toEqual([]);
+    expect(refused.state.mayAddProject).toBe(true);
+    // One folder that is one project is taken; a cancelled dialog says so.
+    chosen = path.join(many, 'two');
+    const linked =
+      await invoke<Promise<ILinkFolderResult>>('studio-link-folder');
+    expect(linked.outcome).toBe('linked');
+    expect(linked.state.projects.map((entry) => entry.folderName)).toEqual([
+      'two',
+    ]);
+    chosen = undefined;
+    status = { state: 'active' };
+    expect(
+      (await invoke<Promise<ILinkFolderResult>>('studio-link-folder')).outcome,
+    ).toBe('cancelled');
+    registration.dispose();
+  });
+
+  it('makes one project at a time: two asked for together leave one without Plus', async () => {
+    status = { state: 'none' };
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    const results = await Promise.all([
+      invoke<Promise<TNewProjectResult>>('studio-create-project', 'One'),
+      invoke<Promise<TNewProjectResult>>('studio-create-project', 'Two'),
+    ]);
+    expect(results).toEqual(['written', 'plus-only']);
+    const state = await invoke<Promise<IStudioState>>('studio-open');
     expect(state.projects).toHaveLength(1);
-    expect(state.mayAddProject).toBe(false);
+    expect(
+      fs.existsSync(path.join(root, 'Documents', 'FluidEQ Studio', 'Two')),
+    ).toBe(false);
+    registration.dispose();
+  });
+
+  it('moves the bench off a FluidEQ scene when Plus lapses, and keeps its mark for when it returns', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    chosen = await project();
+    const mine = (await link()).projects[0];
+    const aurora = memberPack({ id: 'aurora', names: { en: 'Aurora' } });
+    await registration.openInspection(aurora);
+    const withPlus = await invoke<Promise<IStudioState>>('studio-open');
+    const official = withPlus.projects.find((entry) => entry.official);
+    expect(withPlus.activeId).toBe(official?.id);
+
+    status = { state: 'none' };
+    listeners.forEach((listener) => listener(status));
+    const lapsed = await invoke<Promise<IStudioState>>('studio-open');
+    // Off the page's list and off the bench: the member's own project opens.
+    expect(lapsed.projects.map((entry) => entry.id)).toEqual([mine?.id]);
+    expect(lapsed.activeId).toBe(mine?.id);
+    expect(registration.activeIsInspection()).toBe(false);
+    // Not to be picked, read, or let go of — letting go would drop the mark,
+    // and the folder opened again would come back as the member's own.
+    expect(
+      (
+        await invoke<Promise<IStudioState>>(
+          'studio-select-project',
+          official?.id,
+        )
+      ).activeId,
+    ).toBe(mine?.id);
+    const notes = { description: 'mine', prompt: 'a scene of my own' };
+    expect(invoke('studio-notes-save', official?.id, notes)).toBe(false);
+    expect(invoke('studio-notes-save', mine?.id, notes)).toBe(true);
+    await invoke<Promise<IStudioState>>('studio-forget-project', official?.id);
+
+    status = { state: 'active' };
+    listeners.forEach((listener) => listener(status));
+    const back = await invoke<Promise<IStudioState>>('studio-open');
+    expect(back.projects.find((entry) => entry.official)?.id).toBe(
+      official?.id,
+    );
+    registration.dispose();
+  });
+
+  it('refreshes a look from a settings save only with Plus', async () => {
+    const registration = setup();
+    await invoke<Promise<IStudioState>>('studio-open');
+    chosen = await project();
+    await link();
+    await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
+    const settings = { params: { glow: 0.25 } };
+    expect(await invoke('studio-write-settings', settings)).toEqual({
+      written: 'written',
+      lookUpdated: true,
+    });
+
+    status = { state: 'none' };
+    listeners.forEach((listener) => listener(status));
+    // The project is still theirs to edit; the look they added stays as it
+    // was, since saving it again is adding it, and adding is Plus's.
+    expect(
+      await invoke('studio-write-settings', { params: { glow: 0.5 } }),
+    ).toEqual({ written: 'written', lookUpdated: false });
     registration.dispose();
   });
 
@@ -496,7 +596,7 @@ describe('member scenes over IPC', () => {
 
     // The control: the member's own project beside it is added as ever.
     chosen = await project();
-    await invoke<Promise<IStudioState>>('studio-link-folder');
+    await link();
     expect(registration.activeIsInspection()).toBe(false);
     expect(await invoke('studio-add-to-looks')).toMatchObject({ ok: true });
     registration.dispose();

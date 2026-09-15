@@ -14,6 +14,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudioShipCard from '../../../renderer/studio/StudioShipCard';
+import StudioShipInspect from '../../../renderer/studio/StudioShipInspect';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({ locale: 'en', t: (key: string) => key }),
@@ -23,7 +24,6 @@ const card = (
   overrides: Partial<Parameters<typeof StudioShipCard>[0]> = {},
 ) => {
   const props = {
-    inspecting: false,
     unfit: false,
     onAdd: jest.fn(),
     publishing: false,
@@ -36,7 +36,6 @@ const card = (
   };
   render(
     <StudioShipCard
-      inspecting={props.inspecting}
       unfit={props.unfit}
       onAdd={props.onAdd}
       publishing={props.publishing}
@@ -98,7 +97,7 @@ it('shows the desktop being prepared, and does not start it twice', async () => 
 });
 
 it('says what an inspected FluidEQ scene is for, in place of every action', () => {
-  card({ inspecting: true });
+  render(<StudioShipInspect />);
   expect(screen.queryAllByRole('button')).toHaveLength(0);
   expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();
 });

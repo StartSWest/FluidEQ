@@ -46,6 +46,7 @@ import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
 import type { IScenePacksListing } from './ipc/scenePacks';
 import type {
+  ILinkFolderResult,
   IMemberScenesListing,
   IStudioState,
   TAddOutcome,
@@ -907,7 +908,7 @@ const openStudio = () =>
 const closeStudio = () => ipcRenderer.invoke('studio-close') as Promise<void>;
 
 const linkStudioFolder = () =>
-  ipcRenderer.invoke('studio-link-folder') as Promise<IStudioState>;
+  ipcRenderer.invoke('studio-link-folder') as Promise<ILinkFolderResult>;
 
 const selectStudioProject = (id: string) =>
   ipcRenderer.invoke('studio-select-project', id) as Promise<IStudioState>;

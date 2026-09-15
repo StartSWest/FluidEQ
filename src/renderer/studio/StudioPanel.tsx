@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect } from 'react';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import StudioBench from './StudioBench';
@@ -28,7 +28,7 @@ export default function StudioPanel() {
   useEffect(() => openStudioSession(), []);
 
   // A moment, the first time only: the store keeps what it last heard.
-  const body: ReactNode = view.loaded ? <StudioBench view={view} /> : null;
+  const body = view.loaded ? <StudioBench view={view} /> : null;
 
   return (
     <>

@@ -138,6 +138,7 @@ describe("the Studio's list of projects", () => {
       <StudioProjects
         state={state}
         onNewProject={jest.fn()}
+        onLinkFolder={jest.fn()}
         onOpenFile={jest.fn()}
       />,
     );
@@ -159,6 +160,7 @@ describe("the Studio's list of projects", () => {
       <StudioProjects
         state={state}
         onNewProject={jest.fn()}
+        onLinkFolder={jest.fn()}
         onOpenFile={jest.fn()}
       />,
     );

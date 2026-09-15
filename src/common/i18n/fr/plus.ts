@@ -308,11 +308,12 @@ const plus = {
 
   'plus.welcome.title': 'Connectez-vous pour voir ce que créent les membres',
   'plus.welcome.body':
-    'Un compte permet de parcourir la galerie et de regarder de courtes démonstrations. Plus est nécessaire pour télécharger et conserver les scènes, les lire intégralement, les ajouter à vos styles et créer les vôtres dans le Studio.',
+    'Un compte permet de parcourir la galerie, de regarder de courtes démonstrations et de créer une scène dans le Studio. Plus est nécessaire pour télécharger et conserver les scènes, les lire intégralement, les ajouter à vos styles et emmener ce que vous créez partout.',
   'plus.welcome.browse': 'Parcourez toutes les scènes publiées par les membres',
   'plus.welcome.play':
     'Lancez-les sur votre musique et ajoutez-les à vos styles',
-  'plus.welcome.studio': 'Créez les vôtres dans le Studio avec votre IA',
+  'plus.welcome.studio':
+    'Emmenez ce que vous créez dans le Studio vers vos styles, votre bureau et la galerie',
   'plus.welcome.board': 'Grimpez au classement grâce aux j’aime de vos scènes',
   'plus.welcome.account.label': 'Compte',
   'plus.welcome.account.access':

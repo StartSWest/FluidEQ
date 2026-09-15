@@ -307,11 +307,12 @@ const plus = {
 
   'plus.welcome.title': 'Accedi e guarda cosa creano i membri',
   'plus.welcome.body':
-    'Con un account puoi esplorare la galleria e vedere brevi dimostrazioni. Serve Plus per scaricare e conservare le scene, riprodurle per intero, aggiungerle ai tuoi stili e crearne di nuove nello Studio.',
+    'Con un account puoi esplorare la galleria, vedere brevi dimostrazioni e creare una scena nello Studio. Serve Plus per scaricare e conservare le scene, riprodurle per intero, aggiungerle ai tuoi stili e portare ciò che crei ovunque.',
   'plus.welcome.browse': 'Sfoglia tutte le scene che i membri pubblicano',
   'plus.welcome.play':
     'Riproducile con la tua musica e aggiungile ai tuoi aspetti',
-  'plus.welcome.studio': 'Crea le tue nello Studio con la tua IA',
+  'plus.welcome.studio':
+    'Porta ciò che crei nello Studio nei tuoi stili, sul desktop e nella galleria',
   'plus.welcome.board': 'Scala la classifica con i mi piace delle tue scene',
   'plus.welcome.account.label': 'Account',
   'plus.welcome.account.access':

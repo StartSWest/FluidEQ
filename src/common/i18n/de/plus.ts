@@ -313,12 +313,13 @@ const plus = {
   'plus.welcome.title':
     'Melden Sie sich an und sehen Sie, was Mitglieder bauen',
   'plus.welcome.body':
-    'Mit einem Konto kannst du die Galerie erkunden und kurze Demos ansehen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu deinen Looks hinzuzufügen und eigene im Studio zu erstellen.',
+    'Mit einem Konto kannst du die Galerie erkunden, kurze Demos ansehen und eine Szene im Studio bauen. Plus ist erforderlich, um Szenen dauerhaft herunterzuladen, vollständig abzuspielen, zu deinen Looks hinzuzufügen und das, was du baust, überallhin mitzunehmen.',
   'plus.welcome.browse':
     'Alle Szenen durchstöbern, die Mitglieder veröffentlichen',
   'plus.welcome.play':
     'Sie zu Ihrer Musik abspielen und zu Ihren Darstellungen hinzufügen',
-  'plus.welcome.studio': 'Eigene im Studio mit Ihrer KI bauen',
+  'plus.welcome.studio':
+    'Was Sie im Studio bauen, in Ihre Darstellungen, auf den Desktop und in die Galerie bringen',
   'plus.welcome.board':
     'Mit den Likes Ihrer Szenen in der Rangliste aufsteigen',
   'plus.welcome.account.label': 'Konto',

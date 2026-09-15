@@ -30,6 +30,14 @@ import { SCENE_CONTRACT_VERSION } from './sceneUniformContract';
 /** Alongside `custom:` and `premium:`; never a member of `GraphStyle`. */
 export const MEMBER_LOOK_PREFIX = 'member:';
 
+/**
+ * How many projects the Studio keeps for a member without Plus. Enforced in
+ * the main process (`ipc/memberScenes.ts`); the ten `studio.plus.oneProject`
+ * and `studio.plus.oneFolder` strings spell the number out in words, so a
+ * change here is a change to them too.
+ */
+export const STUDIO_TRIAL_PROJECTS = 1;
+
 /** Half the official limit: a member's name sits beside its author's. */
 export const MAX_MEMBER_NAME_LENGTH = 40;
 

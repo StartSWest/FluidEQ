@@ -253,7 +253,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'FluidEQ Plus y tu cuenta',
   'help.plus.intro':
-    'La cuenta es opcional: todo lo que era gratis funciona en este ordenador sin ella. FluidEQ Plus, mensual o anual, añade Visualizadores, el Estudio, la Clasificación, la Iluminación dinámica y el visualizador de escritorio.',
+    'La cuenta es opcional: todo lo que era gratis funciona en este ordenador sin ella, y con cualquier cuenta puedes hacer una escena en el Estudio. FluidEQ Plus, mensual o anual, añade Visualizadores, la Clasificación, la Iluminación dinámica y el visualizador de escritorio, y lleva lo que haces en el Estudio a tus estilos, a la galería y a otros miembros.',
   'help.plus.steps':
     'Abre Cuenta en el menú de acciones. Inicia sesión, o crea una cuenta y escribe el código de seis dígitos que llega a tu correo.\nPulsa Pasar a Plus, lee las condiciones, marca que las aceptas y paga en Buy Me a Coffee, en tu navegador, con el mismo correo.\nAbre la pestaña Plus. Su barra lateral lleva a Clasificación, Visualizadores, Estudio e Iluminación dinámica.',
   'help.plus.tip':
@@ -314,7 +314,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'El Estudio convierte una descripción en un visualizador. Tu propio asistente de IA escribe la escena en una carpeta de proyecto, y FluidEQ reproduce cada versión con tu música en cuanto se guarda.',
   'help.studio.steps':
-    'Abre Plus → Estudio, pulsa Proyecto nuevo… y ponle un nombre; FluidEQ crea su carpeta con una escena que ya se mueve.\nDescribe tu idea, abre la carpeta en tu asistente de IA y pega el prompt que copias con Copiar prompt para IA.\nMira el escenario mientras se guardan los archivos y usa las señales de prueba. Después, pulsa Añadir a mis estilos, Publicar… o Exportar…',
+    'Abre Plus → Estudio, pulsa Proyecto nuevo… y ponle un nombre; FluidEQ crea su carpeta con una escena que ya se mueve.\nDescribe tu idea, abre la carpeta en tu asistente de IA y pega el prompt que copias con Copiar prompt para IA.\nMira el escenario mientras se guardan los archivos y usa las señales de prueba. Después, con Plus, pulsa Añadir a mis estilos, Publicar… o Exportar…',
   'help.studio.tip':
     'Haz doble clic en el escenario para verlo a pantalla completa. Ver por dentro una escena de FluidEQ… abre una de las escenas de FluidEQ para aprender de ella; no se puede publicar. Las escenas que parpadean demasiado o son demasiado pesadas quedan bloqueadas.',
   'help.studio.project':

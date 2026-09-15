@@ -254,7 +254,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'FluidEQ Plus e il tuo account',
   'help.plus.intro':
-    'Un account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. FluidEQ Plus, mensile o annuale, aggiunge Visualizzatori, lo Studio, la Classifica, l’Illuminazione dinamica e il visualizzatore del desktop.',
+    'Un account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza, e con qualsiasi account puoi creare una scena nello Studio. FluidEQ Plus, mensile o annuale, aggiunge Visualizzatori, la Classifica, l’Illuminazione dinamica e il visualizzatore del desktop, e porta ciò che lo Studio crea nei tuoi aspetti, nella galleria e agli altri membri.',
   'help.plus.steps':
     'Apri Account nel menu delle azioni. Accedi, oppure crea un account e inserisci il codice di sei cifre inviato alla tua email.\nPremi Passa a Plus, leggi le condizioni, spunta la casella per accettarle e paga su Buy Me a Coffee nel browser con la stessa email.\nApri la scheda Plus. La sua barra laterale porta a Classifica, Visualizzatori, Studio e Illuminazione dinamica.',
   'help.plus.tip':
@@ -315,7 +315,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'Lo Studio trasforma una descrizione in un visualizzatore. Il tuo assistente IA scrive la scena in una cartella di progetto, e FluidEQ riproduce ogni versione con la tua musica non appena viene salvata.',
   'help.studio.steps':
-    'Apri Plus → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi Aggiungi ai miei aspetti, Pubblica… o Esporta….',
+    'Apri Plus → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi, con Plus, Aggiungi ai miei aspetti, Pubblica… o Esporta….',
   'help.studio.tip':
     'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate.',
   'help.studio.project':

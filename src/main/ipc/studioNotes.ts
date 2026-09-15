@@ -23,19 +23,21 @@ export const readStudioNotes = (folder: string): IStudioNotes | undefined => {
 
 export const registerStudioNotesIpc = ({
   folderFor,
-  mayEdit,
 }: {
+  /**
+   * The folder of the project the page names, or nothing when there is no
+   * such project or the member may not use it. The one decision, made where
+   * the projects are known: a yes-or-no asked here about some other project
+   * — the open one — answered for the wrong folder.
+   */
   folderFor: (id: string) => string | undefined;
-  mayEdit: () => boolean;
 }) => {
   ipcMain.handle('studio-notes-read', (_event, id: unknown) => {
-    const folder =
-      typeof id === 'string' && mayEdit() ? folderFor(id) : undefined;
+    const folder = typeof id === 'string' ? folderFor(id) : undefined;
     return folder ? readStudioNotes(folder) : undefined;
   });
   ipcMain.handle('studio-notes-save', (_event, id: unknown, raw: unknown) => {
-    const folder =
-      typeof id === 'string' && mayEdit() ? folderFor(id) : undefined;
+    const folder = typeof id === 'string' ? folderFor(id) : undefined;
     const notes = parseStudioNotes(raw);
     if (!folder || !notes) {
       return false;

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import type {
+  ILinkFolderResult,
   IStudioState,
   TAddOutcome,
   TNewProjectResult,
@@ -143,11 +144,16 @@ export const useStudio = (): IStudioView =>
     () => INITIAL,
   );
 
-export const linkStudioFolder = async () => {
-  const state = await bridge()?.linkStudioFolder?.();
-  if (state) {
-    adopt(state);
+/** Opens the system's folder dialog; says how that went. */
+export const linkStudioFolder = async (): Promise<
+  ILinkFolderResult['outcome']
+> => {
+  const result = await bridge()?.linkStudioFolder?.();
+  if (!result) {
+    return 'cancelled';
   }
+  adopt(result.state);
+  return result.outcome;
 };
 
 /** Puts another project on the bench; the one there stops being watched. */
@@ -200,7 +206,7 @@ export const publishStudioScene = async (
 export const createStudioProject = async (
   name: string,
 ): Promise<TNewProjectResult> =>
-  (await bridge()?.createStudioProject?.(name)) ?? 'refused';
+  (await bridge()?.createStudioProject?.(name)) ?? 'failed';
 
 /** Asks, in the system dialog, where new projects should go from now on. */
 export const chooseStudioProjectsRoot = async () => {

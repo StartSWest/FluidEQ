@@ -26,8 +26,9 @@ const studio = {
   'studio.plus.title': 'Con Plus',
   'studio.plus.body':
     'Tu escena se queda en este equipo. Con Plus la pones en la gráfica, en tu escritorio, en la galería o en un archivo para enviar.',
-  'studio.plus.cta': 'Ver Plus',
   'studio.plus.locked': 'Solo con Plus',
+  'studio.plus.oneFolder':
+    'Sin Plus, abre una carpeta de escena a la vez; esa contiene varias.',
   'studio.plus.oneProject':
     'Sin Plus el Estudio guarda un proyecto. Con Plus no hay límite.',
 

@@ -34,8 +34,9 @@ const studio = {
   'studio.plus.title': 'With Plus',
   'studio.plus.body':
     'Your scene stays on this computer. Plus puts it on the graph, on your desktop, in the gallery, or in a file you can send.',
-  'studio.plus.cta': 'See Plus',
   'studio.plus.locked': 'Only with Plus',
+  'studio.plus.oneFolder':
+    'Without Plus, open one scene folder at a time; that one holds several.',
   'studio.plus.oneProject':
     'The Studio keeps one project without Plus. With Plus there is no limit.',
 

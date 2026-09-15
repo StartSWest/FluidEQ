@@ -2,8 +2,6 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 
 interface IStudioShipCardProps {
-  /** A FluidEQ scene opened to look inside: nothing here is offered for it. */
-  inspecting: boolean;
   /** No scene that plays and passes, so nothing can be kept or sent yet. */
   unfit: boolean;
   onAdd: () => void;
@@ -19,13 +17,10 @@ interface IStudioShipCardProps {
 /**
  * What to do with the scene once it plays: keep it in the member's looks,
  * publish it to the gallery, send it as a file, play it on the desktop.
- *
- * For one of FluidEQ's scenes opened to look inside, the card says what that
- * project is instead, so the missing buttons are explained rather than
- * refused when pressed.
+ * With Plus; the bench shows `StudioShipLocked` without it, and
+ * `StudioShipInspect` for one of FluidEQ's scenes opened to look inside.
  */
 export default function StudioShipCard({
-  inspecting,
   unfit,
   onAdd,
   publishing,
@@ -36,19 +31,6 @@ export default function StudioShipCard({
   settingDesktop,
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
-  if (inspecting) {
-    return (
-      <div className="studio-card studio-ship studio-ship--inspect">
-        <span className="studio-ship__inspect-title">
-          <Glyph name="looks" />
-          {t('studio.inspect.title')}
-        </span>
-        <span className="studio-ship__inspect-body">
-          {t('studio.inspect.body')}
-        </span>
-      </div>
-    );
-  }
   return (
     <div className="studio-card studio-ship">
       <button

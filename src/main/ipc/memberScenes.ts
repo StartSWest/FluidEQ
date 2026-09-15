@@ -2,7 +2,10 @@ import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { registerStudioNotesIpc } from './studioNotes';
-import { parseMemberLookId } from '../../common/memberScenes';
+import {
+  parseMemberLookId,
+  STUDIO_TRIAL_PROJECTS,
+} from '../../common/memberScenes';
 import type { IScenePack, TLocalizedName } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
@@ -44,6 +47,7 @@ import {
   withRoot,
   writeProjectList,
   type IProjectList,
+  type IStoredProject,
 } from '../memberScenes/studioProjects';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import { registerStudioPicturesIpc } from './studioPictures';
@@ -124,8 +128,16 @@ export type TNewProjectResult =
   | 'invalid'
   | 'failed'
   /** The one project the Studio keeps without Plus is already there. */
-  | 'plus-only'
-  | 'refused';
+  | 'plus-only';
+
+/**
+ * What "Open a folder…" did. `plus-only`: without Plus the Studio keeps one
+ * project, and the member has it, or the folder chosen holds several.
+ */
+export interface ILinkFolderResult {
+  state: IStudioState;
+  outcome: 'linked' | 'cancelled' | 'plus-only';
+}
 
 export type TAddOutcome =
   | { ok: true; scene: IMemberSceneSummary }
@@ -192,7 +204,7 @@ export interface IMemberScenesIpcRegistration {
 
 /**
  * How renaming a project went. `exists`: a folder of that name is already
- * beside it. `refused`: no Plus, or a FluidEQ scene opened to look inside.
+ * beside it. `refused`: a FluidEQ scene opened to look inside.
  */
 export type TRenameProjectResult =
   'renamed' | 'exists' | 'invalid' | 'failed' | 'refused';
@@ -251,7 +263,8 @@ export const registerMemberScenesIpc = ({
 
   /**
    * The Studio without Plus: one project, made and edited here like any
-   * other, and nothing that leaves this window.
+   * other, and nothing that leaves this window. A member, still: signed in,
+   * as the Plus tab requires before it shows the Studio at all.
    *
    * Every refusal below is this process's, not the page's — the page is
    * source anybody can change, and it only draws what it is told. The two
@@ -262,20 +275,64 @@ export const registerMemberScenesIpc = ({
    * a changed build could do is play its own scene on its own machine, which
    * is true of every local feature on a computer somebody owns.
    */
-  const TRIAL_PROJECTS = 1;
+  const member = () => accountId() !== undefined;
 
   const ownProjects = () =>
     projects.projects.filter((project) => !project.official);
 
   const mayAddProject = () =>
-    entitled() || ownProjects().length < TRIAL_PROJECTS;
+    entitled() || (member() && ownProjects().length < STUDIO_TRIAL_PROJECTS);
 
   /**
-   * Whether the open project may be built, played and edited. FluidEQ's own
-   * scenes, opened to look inside, are Plus's alone; a member's own project
-   * is theirs with or without it.
+   * Whether `project` may be built, played and edited: any with Plus, a
+   * member's own without it. FluidEQ's own scenes, opened to look inside,
+   * are Plus's alone. Asked of the project a call is about — the open one
+   * for the stage, the code pane, pictures and settings, the one named for
+   * notes — never of one project on behalf of another.
    */
-  const mayUseActive = () => entitled() || !activeIsInspection();
+  const usable = (project: IStoredProject | undefined) =>
+    project !== undefined &&
+    (entitled() || (member() && project.official === undefined));
+
+  const mayUseActive = () => usable(activeProject());
+
+  /**
+   * The list with an open project the member may use: the most recent such
+   * one when the open one is not — a FluidEQ scene left open as Plus lapsed,
+   * or promoted by `without` — and none when there is none. What the page is
+   * sent is what it may act on, so it never draws a stage that cannot build
+   * or a row that cannot be picked.
+   */
+  const settled = (list: IProjectList): IProjectList => {
+    const active = list.projects.find((project) => project.id === list.active);
+    if (!list.active || usable(active)) {
+      return list;
+    }
+    const fallback = byRecent(list).find(usable);
+    if (fallback) {
+      return withActive(list, fallback.id, Date.now());
+    }
+    return {
+      projects: list.projects,
+      ...(list.root ? { root: list.root } : {}),
+    };
+  };
+
+  /**
+   * Adding a project runs one call at a time. The limit is read before the
+   * folder is made or chosen and the list is written after, and two calls in
+   * flight together both read a list with room in it: a page that sent them
+   * both in one tick ended up with two projects without Plus.
+   */
+  let adding: Promise<unknown> = Promise.resolve();
+  const oneAtATime = <T>(work: () => Promise<T>): Promise<T> => {
+    const run = adding.then(work, work);
+    adding = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
 
   /**
    * This account's scenes and the ones other members sent it. Scenes another
@@ -312,21 +369,25 @@ export const registerMemberScenesIpc = ({
 
   const projectsRoot = () => projects.root ?? defaultProjectsRoot(documentsDir);
 
+  // Only what the member may use: FluidEQ's scenes opened to look inside
+  // are left off the page's list, and off the bench, while there is no Plus.
   const studioState = (): IStudioState => ({
     entitled: entitled(),
     mayAddProject: mayAddProject(),
     projectsRoot: projectsRoot(),
-    projects: byRecent(projects).map((project) => {
-      const names = projectNames.get(project.id);
-      return {
-        id: project.id,
-        folderName: path.basename(project.folder),
-        path: project.folder,
-        ...(names ? { names } : {}),
-        ...(project.official ? { official: true as const } : {}),
-      };
-    }),
-    ...(projects.active ? { activeId: projects.active } : {}),
+    projects: byRecent(projects)
+      .filter(usable)
+      .map((project) => {
+        const names = projectNames.get(project.id);
+        return {
+          id: project.id,
+          folderName: path.basename(project.folder),
+          path: project.folder,
+          ...(names ? { names } : {}),
+          ...(project.official ? { official: true as const } : {}),
+        };
+      }),
+    ...(projects.active && mayUseActive() ? { activeId: projects.active } : {}),
     ...(studioOpen && lastBuild ? { build: lastBuild } : {}),
   });
 
@@ -388,7 +449,8 @@ export const registerMemberScenesIpc = ({
     announceStudio();
   };
 
-  const adopt = (next: IProjectList) => {
+  const adopt = (list: IProjectList) => {
+    const next = settled(list);
     const switched = next.active !== projects.active;
     projects = next;
     writeProjectList(studioPath, next);
@@ -469,8 +531,10 @@ export const registerMemberScenesIpc = ({
   };
 
   const unsubscribe = entitlement.subscribe(() => {
-    // Losing Plus stops the watcher; gaining it (with the Studio open)
-    // starts it. Either way both views are told.
+    // Losing Plus moves the bench off a FluidEQ scene opened to look inside
+    // and stops its watcher; gaining it (with the Studio open) starts one.
+    // Either way both views are told.
+    adopt(projects);
     startWatching();
     announceScenes();
     announceStudio();
@@ -515,6 +579,8 @@ export const registerMemberScenesIpc = ({
 
   ipcMain.handle('studio-open', () => {
     studioOpen = true;
+    // The list as saved may open on a project Plus has since left behind.
+    adopt(projects);
     startWatching();
     refreshNames().catch(() => undefined);
     return studioState();
@@ -525,39 +591,51 @@ export const registerMemberScenesIpc = ({
     stopWatching();
   });
 
-  ipcMain.handle('studio-link-folder', async () => {
-    if (!mayAddProject()) {
-      return studioState();
-    }
-    const folder = await chooseFolder(['openDirectory']);
-    if (folder) {
-      // A folder of scene folders lists every one of them, the first open —
-      // one of them without Plus, which keeps a single project.
+  ipcMain.handle('studio-link-folder', (): Promise<ILinkFolderResult> =>
+    oneAtATime(async () => {
+      if (!mayAddProject()) {
+        return { state: studioState(), outcome: 'plus-only' };
+      }
+      const folder = await chooseFolder(['openDirectory']);
+      if (!folder) {
+        return { state: studioState(), outcome: 'cancelled' };
+      }
+      // A folder of scene folders lists every one of them, the first open.
+      // Without Plus only a folder that is itself one project is taken:
+      // keeping one of several, chosen by name, and saying nothing about
+      // the rest is not a thing to do to somebody.
       const found = await findProjectFolders(folder);
-      adopt(
-        withFolders(
-          projects,
-          entitled() ? found : found.slice(0, TRIAL_PROJECTS),
-          Date.now(),
-        ),
-      );
+      if (!mayAddProject()) {
+        return { state: studioState(), outcome: 'plus-only' };
+      }
+      if (!entitled() && found.length > STUDIO_TRIAL_PROJECTS) {
+        return { state: studioState(), outcome: 'plus-only' };
+      }
+      adopt(withFolders(projects, found, Date.now()));
       await refreshNames();
-    }
-    return studioState();
-  });
+      return { state: studioState(), outcome: 'linked' };
+    }),
+  );
 
   ipcMain.handle('studio-select-project', (_event, id: unknown) => {
     const wanted = projects.projects.find((project) => project.id === id);
-    if (typeof id === 'string' && wanted && (entitled() || !wanted.official)) {
+    if (typeof id === 'string' && usable(wanted)) {
       adopt(withActive(projects, id, Date.now()));
     }
     return studioState();
   });
 
   // Takes the project off the list. Its folder, and every file in it, stays
-  // exactly where it is.
+  // exactly where it is. A FluidEQ scene opened to look inside is Plus's to
+  // let go of: its mark lives on this list, and a project forgotten and then
+  // opened again from its folder would come back as the member's own.
   ipcMain.handle('studio-forget-project', (_event, id: unknown) => {
-    if (typeof id === 'string') {
+    const project = projects.projects.find((entry) => entry.id === id);
+    if (
+      typeof id === 'string' &&
+      project &&
+      (entitled() || !project.official)
+    ) {
       adopt(without(projects, id));
       projectNames.delete(id);
     }
@@ -629,26 +707,27 @@ export const registerMemberScenesIpc = ({
 
   ipcMain.handle(
     'studio-create-project',
-    async (_event, name: unknown): Promise<TNewProjectResult> => {
-      if (!mayAddProject()) {
-        return 'plus-only';
-      }
-      if (typeof name !== 'string') {
-        return 'invalid';
-      }
-      const made = await createProjectFolder(projectsRoot(), name).catch(
-        (error: unknown) => {
-          logger?.warn(`A new Studio project failed: ${String(error)}`);
-          return { ok: false, reason: 'failed' } as const;
-        },
-      );
-      if (!made.ok) {
-        return made.reason;
-      }
-      adopt(withFolder(projects, made.folder, Date.now()));
-      await refreshNames();
-      return 'written';
-    },
+    (_event, name: unknown): Promise<TNewProjectResult> =>
+      oneAtATime(async () => {
+        if (!mayAddProject()) {
+          return 'plus-only';
+        }
+        if (typeof name !== 'string') {
+          return 'invalid';
+        }
+        const made = await createProjectFolder(projectsRoot(), name).catch(
+          (error: unknown) => {
+            logger?.warn(`A new Studio project failed: ${String(error)}`);
+            return { ok: false, reason: 'failed' } as const;
+          },
+        );
+        if (!made.ok) {
+          return made.reason;
+        }
+        adopt(withFolder(projects, made.folder, Date.now()));
+        await refreshNames();
+        return 'written';
+      }),
   );
 
   ipcMain.handle('studio-add-to-looks', async (): Promise<TAddOutcome> => {
@@ -681,7 +760,7 @@ export const registerMemberScenesIpc = ({
 
   ipcMain.handle('studio-show-folder', async () => {
     const folder = activeFolder();
-    if (folder) {
+    if (folder && mayUseActive()) {
       await openPath(folder);
     }
   });
@@ -701,9 +780,12 @@ export const registerMemberScenesIpc = ({
 
   // The Pictures card, and the scene's settings.
   const disposeNotes = registerStudioNotesIpc({
-    mayEdit: mayUseActive,
-    folderFor: (id) =>
-      projects.projects.find((project) => project.id === id)?.folder,
+    // The folder of the project named, when that project may be used: the
+    // notes are about one project, whichever is on the bench.
+    folderFor: (id) => {
+      const project = projects.projects.find((entry) => entry.id === id);
+      return usable(project) ? project?.folder : undefined;
+    },
   });
   const disposePictures = registerStudioPicturesIpc({
     getMainWindow,
@@ -714,6 +796,9 @@ export const registerMemberScenesIpc = ({
   });
   const disposeSettings = registerStudioSettingsIpc({
     mayEdit: mayUseActive,
+    // The look a settings save refreshes is one Plus added; refreshing it is
+    // adding it again, and adding is Plus's.
+    mayUpdateLook: () => entitled() && !activeIsInspection(),
     activeFolder,
     accountId,
     store,

@@ -366,38 +366,10 @@ $studio-scrollbar: 8px;
   gap: 5px;
 }
 
-.studio-ship__inspect-title {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: $text-primary;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
-
-  svg {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    color: $secondary-light;
-  }
-}
-
-.studio-ship__inspect-body {
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.45;
-  text-wrap: pretty;
-}
-
-// Without Plus, where the four actions would be: the same four, each shown
-// locked, over the one button that opens them (`StudioShipLocked.tsx`). The
-// quiet style on all four and the loud one on Plus, since taking Plus is the
-// only thing this card can actually do.
-.studio-ship--locked {
-  display: grid;
-  gap: $spacing-s;
-}
-
+// The title and the line under it are one treatment on both cards that
+// stand in for the actions: the one for a FluidEQ scene opened to look
+// inside, and the one without Plus.
+.studio-ship__inspect-title,
 .studio-ship__locked-title {
   display: flex;
   align-items: center;
@@ -414,6 +386,23 @@ $studio-scrollbar: 8px;
   }
 }
 
+.studio-ship__inspect-body,
+.studio-ship__locked-body {
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+// Without Plus, where the actions would be: the same ones, each shown
+// locked, over the one button that opens them (`StudioShipLocked.tsx`). The
+// quiet style on the locked ones and the loud one on Plus, since taking
+// Plus is the only thing this card can actually do.
+.studio-ship--locked {
+  display: grid;
+  gap: $spacing-s;
+}
+
 .studio-ship__locked-list {
   display: grid;
   gap: 6px;
@@ -428,7 +417,10 @@ $studio-scrollbar: 8px;
 // The name wraps rather than holding one line: in Russian the four names are
 // long enough that a row which cannot wrap makes the whole side column nine
 // pixels wider than it has, and a column that wide crushes the cards under it.
-.studio-ship__locked-action {
+// Doubled with `.button` on purpose: that class sets the three things undone
+// here, at the same weight, and which stylesheet the bundle writes last is
+// not a thing to lean on.
+.button.studio-ship__locked-action {
   width: 100%;
   min-width: 0;
   justify-content: flex-start;
@@ -444,13 +436,6 @@ $studio-scrollbar: 8px;
 .studio-ship__locked-mark {
   flex: 0 0 auto;
   color: $text-dim;
-}
-
-.studio-ship__locked-body {
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.45;
-  text-wrap: pretty;
 }
 
 // ---------------------------------------------------------------- projects

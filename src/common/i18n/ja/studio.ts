@@ -26,8 +26,9 @@ const studio = {
   'studio.plus.title': 'Plus なら',
   'studio.plus.body':
     'シーンはこのコンピューターに残ります。Plus ならグラフやデスクトップ、ギャラリー、送れるファイルにできます。',
-  'studio.plus.cta': 'Plus を見る',
   'studio.plus.locked': 'Plus のみ',
+  'studio.plus.oneFolder':
+    'Plus なしではシーンのフォルダーを1つずつ開けます。このフォルダーには複数あります。',
   'studio.plus.oneProject':
     'Plus なしではスタジオはプロジェクトを1つ保持します。Plus なら制限はありません。',
 

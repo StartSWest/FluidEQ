@@ -18,6 +18,7 @@ import StudioProjects from './StudioProjects';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
+import StudioShipInspect from './StudioShipInspect';
 import StudioShipLocked from './StudioShipLocked';
 import StudioTestCard from './StudioTestCard';
 import useStudioStageRatio from './useStudioStageRatio';
@@ -180,6 +181,40 @@ export default function StudioBench({ view }: IStudioBenchProps) {
 
   const keeping = useStudioKeep(name, wave, setNotice);
 
+  // "Open a folder…" from the bar and from the empty stage: a folder of
+  // several scenes is Plus's to take in whole, and the member is told so.
+  const linkFolder = () => {
+    linkStudioFolder()
+      .then((outcome) => {
+        if (outcome === 'plus-only') {
+          setNotice({ ok: false, key: 'studio.plus.oneFolder' });
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+  };
+
+  // Where keeping, publishing and sending go: a FluidEQ scene opened to look
+  // inside says what it is for instead; without Plus the same actions are
+  // shown locked. Three cards, chosen here, rather than one with two flags.
+  let shipCard = <StudioShipLocked />;
+  if (project?.official) {
+    shipCard = <StudioShipInspect />;
+  } else if (state.entitled) {
+    shipCard = (
+      <StudioShipCard
+        unfit={unfit}
+        onAdd={keeping.add}
+        publishing={publishing.preparing}
+        onPublish={publishing.begin}
+        exporting={sharing.exporting}
+        onExport={sharing.startExport}
+        onSetDesktop={keeping.setDesktop}
+        settingDesktop={keeping.settingDesktop}
+      />
+    );
+  }
+
   let stage = (
     <div className="studio-stage__well studio-stage__well--empty">
       <span className="studio-stage__empty">
@@ -215,9 +250,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <button
             type="button"
             className="button small subtle"
-            onClick={() => {
-              linkStudioFolder().catch(() => undefined);
-            }}
+            onClick={linkFolder}
           >
             <Glyph name="folder" />
             {t('studio.project.add')}
@@ -253,6 +286,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         <StudioProjects
           state={state}
           onNewProject={newProject}
+          onLinkFolder={linkFolder}
           onOpenFile={sharing.openFile}
         />
         {project && <span className="studio-bench__status">{t(status)}</span>}
@@ -394,21 +428,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onResetResponse={tuner.resetResponse}
             ambient={ambient}
           />
-          {state.entitled ? (
-            <StudioShipCard
-              inspecting={project?.official === true}
-              unfit={unfit}
-              onAdd={keeping.add}
-              publishing={publishing.preparing}
-              onPublish={publishing.begin}
-              exporting={sharing.exporting}
-              onExport={sharing.startExport}
-              onSetDesktop={keeping.setDesktop}
-              settingDesktop={keeping.settingDesktop}
-            />
-          ) : (
-            <StudioShipLocked />
-          )}
+          {shipCard}
         </div>
       </div>
 

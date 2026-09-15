@@ -70,6 +70,7 @@ describe('the Studio’s projects', () => {
     const { rerender } = render(
       <StudioProjects
         onNewProject={props.onNewProject}
+        onLinkFolder={jest.fn()}
         onOpenFile={props.onOpenFile}
         state={{ ...state, projects: [...state.projects, forest] }}
       />,
@@ -81,6 +82,7 @@ describe('the Studio’s projects', () => {
     rerender(
       <StudioProjects
         onNewProject={props.onNewProject}
+        onLinkFolder={jest.fn()}
         onOpenFile={props.onOpenFile}
         state={{
           ...state,
@@ -96,6 +98,7 @@ describe('the Studio’s projects', () => {
     rerender(
       <StudioProjects
         onNewProject={props.onNewProject}
+        onLinkFolder={jest.fn()}
         onOpenFile={props.onOpenFile}
         state={{
           ...state,
@@ -111,6 +114,7 @@ describe('the Studio’s projects', () => {
     rerender(
       <StudioProjects
         onNewProject={props.onNewProject}
+        onLinkFolder={jest.fn()}
         onOpenFile={props.onOpenFile}
         state={{ ...state, projects: [...state.projects, forest] }}
       />,
@@ -126,6 +130,7 @@ describe('the Studio’s projects', () => {
       <StudioProjects
         state={{ ...state, projects: state.projects.slice(0, length) }}
         onNewProject={jest.fn()}
+        onLinkFolder={jest.fn()}
         onOpenFile={jest.fn()}
       />,
     );
@@ -143,6 +148,7 @@ describe('the Studio’s projects', () => {
       <StudioProjects
         state={state}
         onNewProject={jest.fn()}
+        onLinkFolder={jest.fn()}
         onOpenFile={jest.fn()}
       />,
     );
@@ -159,10 +165,12 @@ describe('the Studio’s projects', () => {
 
   it('starts a new project or adds a folder from under the list', async () => {
     const onNewProject = jest.fn();
+    const onLinkFolder = jest.fn();
     render(
       <StudioProjects
         state={state}
         onNewProject={onNewProject}
+        onLinkFolder={onLinkFolder}
         onOpenFile={jest.fn()}
       />,
     );
@@ -182,7 +190,9 @@ describe('the Studio’s projects', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.project.add' }),
     );
-    expect(bridge.linkStudioFolder).toHaveBeenCalled();
+    // The bench opens the folder, so it can say what came of it.
+    expect(onLinkFolder).toHaveBeenCalled();
+    expect(bridge.linkStudioFolder).not.toHaveBeenCalled();
   });
 });
 
