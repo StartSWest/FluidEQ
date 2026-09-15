@@ -19,15 +19,15 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 /**
- * The aurora behind the title.
+ * The aurora under the stage.
  *
- * Two lights that drift across each other, slowly and by a few percent — the
- * app's own visual language, which is scenes, said in CSS rather than on the
- * GPU: a dialog that has to appear the moment somebody pays cannot depend on
- * a shader compiling. Only the band moves, never a box holding text: an
- * element with a running animation is promoted to its own compositor layer,
- * and text painted into a layer that is not opaque loses subpixel
- * antialiasing (see the note in `_motion.scss`).
+ * What a machine that cannot draw a scene is left with, and what covers the
+ * moment before the scene's first frame — a stage that began as a black
+ * rectangle and filled in afterwards read as a picture that had failed to
+ * load. Two lights drifting across each other over twenty-six seconds. Only
+ * this band animates, never a box holding text: an element with a running
+ * animation is promoted to its own compositor layer, and text painted into a
+ * layer that is not opaque loses subpixel antialiasing (see `_motion.scss`).
  */
 @keyframes plus-welcome-aurora {
   0% {
@@ -43,22 +43,46 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Wide, because what is in it is five places to go and a scene playing, and
+// both of those are landscape. 920px is the width at which the five cards sit
+// in one row at the size the gallery draws its own cards.
 .plus-member-welcome {
-  @include dialog.surface(520px, 760px);
+  @include dialog.surface(920px, 760px);
   grid-template-rows: auto minmax(0, 1fr) auto;
-  // The band is clipped to the dialog and stays under everything in it.
-  isolation: isolate;
+}
 
-  // The band itself: over the title, gone by the first row. Three lights
-  // rather than one, so the colour moves through the accent, the "on" colour
-  // and a violet instead of being one wash getting lighter and darker.
+/**
+ * The scene, playing.
+ *
+ * What somebody has just bought is visualizers, so the welcome is one rather
+ * than a drawing of one: the Studio's starter — which ships inside the app,
+ * so it needs no network and no gallery — on whatever they have playing.
+ * `ScenePreview` fills this box; it is `position: absolute; inset: 0` and
+ * measures whatever it is given.
+ */
+.plus-member-welcome__stage {
+  position: relative;
+  // Tall enough for a scene to be watched; a third of that where there is no
+  // scene, because the rest would be an empty gradient asking to be looked at.
+  height: 156px;
+  overflow: hidden;
+  background: $surface-plot;
+
+  &.is-playing {
+    height: 244px;
+
+    @media (max-height: 760px) {
+      height: 196px;
+    }
+  }
+
   &::before {
     position: absolute;
     z-index: 0;
     top: -22%;
     left: -10%;
     width: 120%;
-    height: 210px;
+    height: 118%;
     animation: plus-welcome-aurora 26s ease-in-out infinite;
     background:
       radial-gradient(
@@ -78,138 +102,211 @@ it under the terms of the GNU General Public License version 3 or later.
       );
     content: '';
     filter: blur(6px);
-    opacity: 0.86;
     pointer-events: none;
 
     @media (prefers-reduced-motion: reduce) {
       animation: none;
     }
   }
+}
 
-  // Everything sits over the band.
-  > * {
-    position: relative;
-    z-index: 1;
+// Under the words and over the scene: enough ground for white text on a
+// bright frame, and none in the middle, where the scene is.
+.plus-member-welcome__scrim {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $surface-menu-top 52%, transparent) 0%,
+    transparent 34%,
+    color-mix(in srgb, $surface-menu-top 62%, transparent) 72%,
+    color-mix(in srgb, $surface-menu-top 90%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+.plus-member-welcome__titles {
+  position: absolute;
+  z-index: 2;
+  bottom: $spacing-m;
+  left: $spacing-l;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  max-width: calc(100% - #{$spacing-l} * 2 - 44px);
+}
+
+.plus-member-welcome__brand {
+  width: 38px;
+  height: 38px;
+  grid-row: span 2;
+}
+
+.plus-member-welcome__eyebrow {
+  align-self: end;
+  color: $secondary-light;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: tracking(0.14em);
+  text-transform: uppercase;
+}
+
+.plus-member-welcome__title {
+  align-self: start;
+  margin: 0;
+  color: $white;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  letter-spacing: tracking(-0.01em);
+  line-height: 1.12;
+}
+
+.plus-member-welcome__close {
+  position: absolute;
+  z-index: 2;
+  top: $spacing-m;
+  right: $spacing-m;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.14);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-menu-top 62%, transparent);
+  cursor: pointer;
+  place-items: center;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
   }
 
-  // The shared header paints its own lift, which is what the band would
-  // otherwise be hidden behind — and the title is the one place the
-  // celebration belongs. Its bottom border still divides the dialog, so
-  // nothing else is needed to mark where the band ends.
-  .dialog-header {
-    background: transparent;
+  &:hover {
+    color: $text-primary;
+    border-color: rgba($white, 0.3);
   }
 }
 
-// Scrolls on a window too short for the five — where the last row would
-// otherwise be cut by the footer with nothing saying there is more.
 .plus-member-welcome__body {
   display: grid;
   gap: $spacing-m;
-  padding: 0 $spacing-l $spacing-m;
+  padding: $spacing-m $spacing-l;
   overflow-y: auto;
   overscroll-behavior: contain;
   @include slim-scrollbar;
 }
 
 .plus-member-welcome__lead {
+  // Narrow enough that the last line is never one word on its own.
+  max-width: 62ch;
+  text-wrap: pretty;
   margin: 0;
-  color: $text-primary;
+  color: $text-muted;
   font-size: $text-lead;
   line-height: 1.5;
 }
 
-.plus-member-welcome__opened {
+/**
+ * The five, as cards across — the shape fluideq.com gives its visualizers.
+ *
+ * `auto-fit` rather than a fixed five: the dialog is 920px at its widest and
+ * the width of the window at its narrowest, and the row becomes three and
+ * then two by itself rather than at a breakpoint somebody has to maintain.
+ */
+.plus-member-welcome__cards {
   display: grid;
-  gap: 7px;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/**
- * One of the five, each in a colour of its own.
- *
- * The app's rainbow accents rather than the theme's one: five rows in the
- * single accent read as one thing listed five times, which is what a settings
- * page looks like, and these are five different things. The hue is set once
- * per row here and used three times inside it, so a row is written as a
- * colour rather than as three matching declarations.
- */
-.plus-member-welcome__item {
+.plus-member-welcome__card {
   display: grid;
-  // The mark's column is fixed; the text takes the rest and wraps in it, so
-  // no translation decides the dialog's width.
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--row-hue) 22%, transparent);
-  border-left: 2px solid color-mix(in srgb, var(--row-hue) 62%, transparent);
-  border-radius: $radius-s;
-  background:
-    linear-gradient(
-      100deg,
-      color-mix(in srgb, var(--row-hue) 13%, transparent),
-      transparent 62%
-    ),
-    rgba($white, 0.028);
-  @include stagger-in($count: 5, $step: 44ms, $offset: 90ms);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--card-hue) 24%, transparent);
+  border-radius: $radius-m;
+  background: $surface-field-end;
+  @include stagger-in($count: 5, $step: 46ms, $offset: 110ms);
 
   &:nth-child(1) {
-    --row-hue: #{$neon-cyan};
+    --card-hue: #{$neon-cyan};
   }
 
   &:nth-child(2) {
-    --row-hue: #{$neon-purple};
+    --card-hue: #{$neon-purple};
   }
 
   &:nth-child(3) {
-    --row-hue: #{$neon-pink};
+    --card-hue: #{$neon-pink};
   }
 
   &:nth-child(4) {
-    --row-hue: #{$neon-yellow};
+    --card-hue: #{$neon-yellow};
   }
 
   &:nth-child(5) {
-    --row-hue: #{$neon-lime};
+    --card-hue: #{$neon-lime};
   }
 }
 
-.plus-member-welcome__mark {
+// The card's picture. There is no artwork for a feature, so the colour is
+// the artwork: the hue laid over the panel with its glyph in the middle, at
+// the same 16:9 the gallery's own cards use.
+.plus-member-welcome__art {
   display: grid;
-  width: 38px;
-  height: 38px;
-  border: 1px solid color-mix(in srgb, var(--row-hue) 38%, transparent);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--row-hue) 15%, transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--row-hue) 16%, transparent);
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px solid color-mix(in srgb, var(--card-hue) 20%, transparent);
+  background:
+    radial-gradient(
+      88% 108% at 26% 0%,
+      color-mix(in srgb, var(--card-hue) 34%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--card-hue) 16%, transparent),
+      transparent 64%
+    ),
+    $surface-plot;
   place-items: center;
 
   svg {
-    width: 18px;
-    height: 18px;
-    color: var(--row-hue);
+    width: 26px;
+    height: 26px;
+    color: var(--card-hue);
+    filter: drop-shadow(
+      0 0 14px color-mix(in srgb, var(--card-hue) 48%, transparent)
+    );
   }
 }
 
-.plus-member-welcome__text {
+.plus-member-welcome__label {
   display: grid;
-  gap: 2px;
-  min-width: 0;
-}
+  align-content: start;
+  gap: 3px;
+  padding: 10px 12px 12px;
 
-.plus-member-welcome__item-title {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-}
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    text-wrap: balance;
+  }
 
-.plus-member-welcome__item-line {
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.45;
+  small {
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.4;
+  }
 }
 
 // The one practical line, under the five: marked as reassurance rather than
@@ -222,7 +319,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.45;
-  @include animate(fade-in, $motion-slow, $ease-out, 330ms);
+  @include animate(fade-in, $motion-slow, $ease-out, 340ms);
 
   svg {
     flex: 0 0 auto;

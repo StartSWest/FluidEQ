@@ -4,24 +4,31 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import {
   markPlusWelcomeSeen,
   usePlusWelcome,
 } from '../account/plusWelcomeStore';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
+import { isSceneRenderingAvailable } from '../graph/sceneHealth';
+import BrandMark from '../icons/BrandMark';
+import ScenePreview from '../plus/ScenePreview';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
-import DialogHeader from './DialogHeader';
 import '../styles/PlusMemberWelcome.scss';
 
 /**
  * What a membership opens, in the order somebody would meet it: the scenes
- * first, because they are what the gallery is full of and what the tab this
- * dialog leads to shows; then making one; then the two places a scene can go
+ * first, because they are what the gallery is full of and what the button
+ * under them leads to; then making one; then the two places a scene can go
  * that are not the graph; the board last, which is the only one that needs
  * other people.
+ *
+ * Five cards across, the way fluideq.com lays its visualizers out, rather
+ * than five rows down a narrow panel: they are five places to go, and a
+ * column of bordered rows is the shape of a settings page.
  */
 const OPENED: readonly {
   glyph: TCommunityGlyph;
@@ -56,24 +63,64 @@ const OPENED: readonly {
 ];
 
 /**
+ * The scene the welcome plays: the Studio's starter, the same one the
+ * Dynamic lighting page uses.
+ *
+ * It ships inside the app, so it needs no network, no membership and nothing
+ * downloaded — this dialog appears the instant a payment lands and cannot
+ * wait for a gallery scene to arrive. Asked for once, while the welcome is
+ * up; a window whose bridge predates it, or a machine that cannot draw a
+ * scene at all, simply keeps the aurora behind the title.
+ */
+const useWelcomeScene = (wanted: boolean) => {
+  const [pack, setPack] = useState<IScenePack>();
+
+  useEffect(() => {
+    if (!wanted || !isSceneRenderingAvailable()) {
+      return undefined;
+    }
+    let cancelled = false;
+    const asked = window.electron?.ipcRenderer?.lightingDemoScene?.();
+    if (!asked) {
+      return undefined;
+    }
+    asked
+      .then((scene) => {
+        if (!cancelled && scene) {
+          setPack(scene);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [wanted]);
+
+  return pack;
+};
+
+/**
  * The moment a membership turns on, said out loud.
  *
  * Paying happens at the merchant, in a browser, so the app hears of it when
  * the membership check comes back — and until this, nothing marked it: the
- * locks simply stopped being locks, and somebody who had just paid was left
- * to find out what they had bought. A dialog rather than a corner notice
- * because it happens once and it is the only thing worth looking at when it
- * does; the gallery is the recommendation and wears the loud button.
+ * locks simply stopped being locks. What somebody has just bought is scenes,
+ * so the welcome is one: the starter playing on whatever they have on, with
+ * the words over it. A row of icons describing visualizers, in an app whose
+ * whole product is visualizers, was the wrong thing to show them.
  *
- * Whether it shows is decided in the main process, which holds both facts it
- * rests on (`ipc/plusWelcome.ts`). Either button closes it for good — being
- * welcomed twice is worse than not being welcomed at all.
+ * Whether it shows at all is decided in the main process, which holds both
+ * facts it rests on (`ipc/plusWelcome.ts`). Either button closes it for good —
+ * being welcomed twice is worse than not being welcomed at all.
  */
 export default function PlusWelcomeDialog() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const welcome = usePlusWelcome();
   const openRef = useRef<HTMLButtonElement>(null);
   const edition = welcome?.edition;
+  const [trouble, setTrouble] = useState(false);
+  const pack = useWelcomeScene(edition !== undefined && !trouble);
 
   useEffect(() => {
     if (edition === undefined) {
@@ -97,6 +144,7 @@ export default function PlusWelcomeDialog() {
   const close = () => {
     markPlusWelcomeSeen(edition).catch(() => undefined);
   };
+  const playing = pack !== undefined && !trouble;
 
   return (
     <div className="plus-member-welcome-backdrop" role="presentation">
@@ -106,30 +154,54 @@ export default function PlusWelcomeDialog() {
         aria-modal="true"
         aria-labelledby="plus-welcome-title"
       >
-        <DialogHeader
-          eyebrow={t('plusWelcome.eyebrow')}
-          title={t('plusWelcome.title')}
-          titleId="plus-welcome-title"
-          closeLabel={t('plusWelcome.later')}
-          onClose={close}
-        />
+        {/* The stage. Its own aurora underneath, which is what a machine
+            that cannot draw a scene is left with, and what covers the
+            moment before the first frame. */}
+        <div
+          className={`plus-member-welcome__stage${playing ? ' is-playing' : ''}`}
+        >
+          {playing && (
+            <ScenePreview
+              identity="plus-welcome"
+              pack={pack}
+              label={resolveSceneName(pack, locale)}
+              onTrouble={() => setTrouble(true)}
+            />
+          )}
+          <span className="plus-member-welcome__scrim" aria-hidden="true" />
+
+          <div className="plus-member-welcome__titles">
+            <BrandMark className="plus-member-welcome__brand" />
+            <span className="plus-member-welcome__eyebrow">
+              {t('plusWelcome.eyebrow')}
+            </span>
+            <h2 id="plus-welcome-title" className="plus-member-welcome__title">
+              {t('plusWelcome.title')}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            className="plus-member-welcome__close"
+            aria-label={t('plusWelcome.later')}
+            onClick={close}
+          >
+            <Glyph name="close" />
+          </button>
+        </div>
 
         <div className="plus-member-welcome__body">
           <p className="plus-member-welcome__lead">{t('plusWelcome.lead')}</p>
 
-          <ul className="plus-member-welcome__opened">
+          <ul className="plus-member-welcome__cards">
             {OPENED.map((item) => (
-              <li key={item.title} className="plus-member-welcome__item">
-                <span className="plus-member-welcome__mark" aria-hidden="true">
+              <li key={item.title} className="plus-member-welcome__card">
+                <span className="plus-member-welcome__art" aria-hidden="true">
                   <Glyph name={item.glyph} />
                 </span>
-                <span className="plus-member-welcome__text">
-                  <span className="plus-member-welcome__item-title">
-                    {t(item.title)}
-                  </span>
-                  <span className="plus-member-welcome__item-line">
-                    {t(item.line)}
-                  </span>
+                <span className="plus-member-welcome__label">
+                  <strong>{t(item.title)}</strong>
+                  <small>{t(item.line)}</small>
                 </span>
               </li>
             ))}
