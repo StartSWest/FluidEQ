@@ -125,6 +125,27 @@ describe('useRepairWhenEngineNeverRan', () => {
     expect(repair).toHaveBeenCalledTimes(2);
   });
 
+  it('waits for the trouble to go away before asking for a new slot', async () => {
+    // The status carrying the new slot can reach the window while the
+    // trouble from before the restart is still on screen. Asking on that
+    // would walk the whole ladder without listening once.
+    const { repair, rerender, result } = setup({
+      trouble: neverRan,
+      isSuppressed: false,
+      slot: 'efx',
+    });
+    await flush();
+    rerender({ trouble: neverRan, isSuppressed: false, slot: 'mfx' });
+    await flush();
+    expect(repair).toHaveBeenCalledTimes(1);
+    // Still silent: nothing has been judged.
+    expect(result.current.isTryingSlots).toBe(true);
+    rerender({ trouble: undefined, isSuppressed: false, slot: 'mfx' });
+    rerender({ trouble: neverRan, isSuppressed: false, slot: 'mfx' });
+    await flush();
+    expect(repair).toHaveBeenCalledTimes(2);
+  });
+
   it('shows the notice once a change did not help and the same slot failed again', async () => {
     const { result, rerender } = setup({
       trouble: neverRan,

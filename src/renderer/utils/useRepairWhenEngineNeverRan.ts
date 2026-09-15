@@ -121,6 +121,12 @@ const useRepairWhenEngineNeverRan = (
   };
 
   const state = key === undefined ? undefined : memory[key];
+  // Whether the trouble has been away since the last ask. A move changes the
+  // slot the helper reports, and the status carrying it can reach the window
+  // while the trouble from before the restart is still on screen; asking for
+  // the new slot on that would run the whole ladder without listening once.
+  // Only a trouble that went away and came back is the next sound's verdict.
+  const heardAgain = useRef(true);
 
   // The trouble gone — the capture rebuilt after the restart, or the page
   // left — is what arms a change to be judged, and what lets a skipped ask
@@ -129,6 +135,7 @@ const useRepairWhenEngineNeverRan = (
     if (key !== undefined) {
       return;
     }
+    heardAgain.current = true;
     setMemory((current) => {
       const entries = Object.entries(current);
       if (!entries.some(([, at]) => at === 'changed' || at === 'skipped')) {
@@ -156,9 +163,10 @@ const useRepairWhenEngineNeverRan = (
       remember(key, 'settled');
       return;
     }
-    if (state !== undefined) {
+    if (state !== undefined || !heardAgain.current) {
       return;
     }
+    heardAgain.current = false;
     remember(key, 'running');
     reportInfo(
       `Repairing the engine on ${guid}: sound played on it and Windows ` +

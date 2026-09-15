@@ -4,7 +4,7 @@ const engineHealth = {
     '此输出正在播放没有 EQ 的声音。重启 Windows 音频通常能让引擎恢复，在此期间 FluidEQ 的其他功能照常可用。',
   'engineHealth.neverRanTitle': 'Windows 从未启动过 FluidEQ 引擎',
   'engineHealth.neverRanBody':
-    '引擎已安装并已用于 {device}，但 Windows 在这台电脑上一次也没有加载过它，所以重启音频不会把它带回来。FluidEQ 已经修好了它能触及的一切；如果情况依旧，那是你的安全软件或声卡驱动在阻止它。这段时间由 Equalizer APO 处理你的声音。',
+    '引擎已安装并已用于 {device}，但 Windows 在那里一次也没有加载过它，所以重启音频不会把它带回来。FluidEQ 已经修好了它能触及的一切；如果情况依旧，那是你的安全软件或声卡驱动在阻止它。这段时间由 Equalizer APO 处理你的声音。',
   'engineHealth.partlyOff': '部分关闭',
   'engineHealth.problemsTitle': '你的部分声音未到达 {device}',
   'engineHealth.problem.convolution':

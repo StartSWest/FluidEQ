@@ -108,6 +108,20 @@ describe('useRestartWhenEngineOff', () => {
     expect(audioRestart.run).toHaveBeenCalledTimes(1);
   });
 
+  it('never restarts an output the engine was never created on', () => {
+    // The engine ran elsewhere on the machine and wrote no status for this
+    // output: the slot ladder's case, and a restart beside it would be a
+    // second elevated run for one silence.
+    const { audioRestart, rerender } = setup({
+      trouble: { ...off, key: 'off:never:{SPEAKERS}', neverRan: true },
+      isSuppressed: false,
+      hasEverRun: true,
+    });
+    expect(audioRestart.run).not.toHaveBeenCalled();
+    rerender({ trouble: off, isSuppressed: false, hasEverRun: true });
+    expect(audioRestart.run).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves everything else to the notice', () => {
     const { audioRestart, rerender } = setup({
       trouble: undefined,

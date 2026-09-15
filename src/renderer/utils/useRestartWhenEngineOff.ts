@@ -69,7 +69,14 @@ const useRestartWhenEngineOff = (
   hasEverRun?: boolean,
 ): void => {
   const tried = useRef(false);
-  const isOff = trouble?.kind === 'off' && hasEverRun !== false;
+  // Neither kind of "never created": on the whole machine, as the helper
+  // says, nor on this output, as the trouble says (no status ever written
+  // there). Both are the slot ladder's, and a restart beside it would be a
+  // second elevated run for one silence.
+  const isOff =
+    trouble?.kind === 'off' &&
+    hasEverRun !== false &&
+    trouble.neverRan !== true;
   // The latest pair, read when it is time; the object is rebuilt every render.
   const restart = useRef(audioRestart);
   restart.current = audioRestart;

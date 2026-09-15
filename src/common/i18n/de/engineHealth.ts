@@ -4,7 +4,7 @@ const engineHealth = {
     'Auf diesem Ausgang läuft Ton ohne deinen EQ. Ein Neustart von Windows-Audio holt die Engine meist zurück, und alles andere in FluidEQ funktioniert währenddessen weiter.',
   'engineHealth.neverRanTitle': 'Windows hat die FluidEQ-Engine nie gestartet',
   'engineHealth.neverRanBody':
-    'Die Engine ist installiert und auf {device} eingerichtet, und Windows hat sie auf diesem PC kein einziges Mal geladen – ein Neustart des Audios holt sie also nicht zurück. FluidEQ hat bereits alles in Ordnung gebracht, woran es herankommt; bleibt es dabei, hält deine Sicherheitssoftware oder der Treiber deiner Soundkarte sie auf. Equalizer APO verarbeitet deinen Klang in der Zwischenzeit.',
+    'Die Engine ist installiert und auf {device} eingerichtet, und Windows hat sie dort kein einziges Mal geladen – ein Neustart des Audios holt sie also nicht zurück. FluidEQ hat bereits alles in Ordnung gebracht, woran es herankommt; bleibt es dabei, hält deine Sicherheitssoftware oder der Treiber deiner Soundkarte sie auf. Equalizer APO verarbeitet deinen Klang in der Zwischenzeit.',
   'engineHealth.partlyOff': 'TEILWEISE AUS',
   'engineHealth.problemsTitle':
     'Ein Teil deines Klangs erreicht {device} nicht',

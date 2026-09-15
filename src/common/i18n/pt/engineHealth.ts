@@ -4,7 +4,7 @@ const engineHealth = {
     'Esta saída está a tocar sem o seu EQ. Reiniciar o áudio do Windows costuma trazer o motor de volta, e tudo o resto no FluidEQ continua a funcionar entretanto.',
   'engineHealth.neverRanTitle': 'O Windows nunca iniciou o motor do FluidEQ',
   'engineHealth.neverRanBody':
-    'O motor está instalado e colocado em {device}, e o Windows não o carregou uma única vez neste PC — por isso reiniciar o áudio não o trará de volta. O FluidEQ já corrigiu tudo o que consegue alcançar; se continuar assim, é o seu software de segurança ou o controlador da placa de som que o está a impedir. Entretanto, o Equalizer APO processa o seu som.',
+    'O motor está instalado e colocado em {device}, e o Windows não o carregou uma única vez aí — por isso reiniciar o áudio não o trará de volta. O FluidEQ já corrigiu tudo o que consegue alcançar; se continuar assim, é o seu software de segurança ou o controlador da placa de som que o está a impedir. Entretanto, o Equalizer APO processa o seu som.',
   'engineHealth.partlyOff': 'EM PARTE DESLIG.',
   'engineHealth.problemsTitle': 'Parte do seu som não está a chegar a {device}',
   'engineHealth.problem.convolution':

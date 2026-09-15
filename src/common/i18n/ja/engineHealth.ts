@@ -2,9 +2,10 @@ const engineHealth = {
   'engineHealth.offTitle': 'FluidEQ エンジンが {device} で動作していません',
   'engineHealth.offBody':
     'この出力では EQ なしで音が再生されています。Windows オーディオを再起動すると通常はエンジンが戻ります。その間も FluidEQ のほかの機能はそのまま使えます。',
-  'engineHealth.neverRanTitle': 'Windows は FluidEQ エンジンを一度も起動していません',
+  'engineHealth.neverRanTitle':
+    'Windows は FluidEQ エンジンを一度も起動していません',
   'engineHealth.neverRanBody':
-    'エンジンはインストール済みで {device} に設定されていますが、この PC で Windows は一度も読み込んでいません。音声を再起動しても戻りません。FluidEQ が手の届く範囲はすべて直しました。それでも変わらない場合は、セキュリティソフトかサウンドカードのドライバーが妨げています。その間は Equalizer APO が音を処理します。',
+    'エンジンはインストール済みで {device} に設定されていますが、そこで Windows は一度も読み込んでいません。音声を再起動しても戻りません。FluidEQ が手の届く範囲はすべて直しました。それでも変わらない場合は、セキュリティソフトかサウンドカードのドライバーが妨げています。その間は Equalizer APO が音を処理します。',
   'engineHealth.partlyOff': '一部オフ',
   'engineHealth.problemsTitle': 'サウンドの一部が {device} に届いていません',
   'engineHealth.problem.convolution':

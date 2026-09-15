@@ -4,7 +4,7 @@ const engineHealth = {
     'Cette sortie joue du son sans votre EQ. Redémarrer l’audio de Windows ramène généralement le moteur, et tout le reste de FluidEQ continue de fonctionner en attendant.',
   'engineHealth.neverRanTitle': 'Windows n’a jamais démarré le moteur FluidEQ',
   'engineHealth.neverRanBody':
-    'Le moteur est installé et placé sur {device}, et Windows ne l’a pas chargé une seule fois sur ce PC : redémarrer l’audio ne le ramènera donc pas. FluidEQ a déjà corrigé tout ce qu’il peut atteindre ; si cela persiste, c’est votre logiciel de sécurité ou le pilote de votre carte son qui l’en empêche. Equalizer APO traite votre son en attendant.',
+    'Le moteur est installé et placé sur {device}, et Windows ne l’y a pas chargé une seule fois : redémarrer l’audio ne le ramènera donc pas. FluidEQ a déjà corrigé tout ce qu’il peut atteindre ; si cela persiste, c’est votre logiciel de sécurité ou le pilote de votre carte son qui l’en empêche. Equalizer APO traite votre son en attendant.',
   'engineHealth.partlyOff': 'EN PARTIE DÉSACT.',
   'engineHealth.problemsTitle':
     'Une partie de votre son n’atteint pas {device}',

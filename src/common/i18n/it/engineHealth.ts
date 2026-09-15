@@ -4,7 +4,7 @@ const engineHealth = {
     'Questa uscita sta suonando senza il tuo EQ. Riavviare l’audio di Windows di solito fa ripartire il motore, e nel frattempo tutto il resto di FluidEQ continua a funzionare.',
   'engineHealth.neverRanTitle': 'Windows non ha mai avviato il motore FluidEQ',
   'engineHealth.neverRanBody':
-    'Il motore è installato e attivo su {device}, e Windows non lo ha caricato nemmeno una volta su questo PC: riavviare l’audio non lo riporterà indietro. FluidEQ ha già sistemato tutto quello a cui può arrivare; se resta così, è il tuo software di sicurezza o il driver della scheda audio a impedirlo. Nel frattempo Equalizer APO elabora il tuo suono.',
+    'Il motore è installato e attivo su {device}, e Windows non lo ha caricato nemmeno una volta lì: riavviare l’audio non lo riporterà indietro. FluidEQ ha già sistemato tutto quello a cui può arrivare; se resta così, è il tuo software di sicurezza o il driver della scheda audio a impedirlo. Nel frattempo Equalizer APO elabora il tuo suono.',
   'engineHealth.partlyOff': 'IN PARTE DISATT.',
   'engineHealth.problemsTitle': 'Parte del tuo suono non arriva a {device}',
   'engineHealth.problem.convolution':
