@@ -88,7 +88,6 @@ export const FAMILY_KEYS: Record<TGraphStyleFamily, TranslationKey> = {
   bars: 'graph.family.bars',
   points: 'graph.family.points',
   scenes: 'graph.family.scenes',
-  wave: 'graph.family.wave',
 };
 
 export const categoryName = (t: TTranslate, category: TPlusCategory) =>

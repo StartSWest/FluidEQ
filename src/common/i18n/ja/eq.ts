@@ -166,7 +166,6 @@ const eq: Partial<Dictionary> = {
   'graph.family.bars': 'バー',
   'graph.family.points': 'ドット',
   'graph.family.scenes': 'シーン',
-  'graph.family.wave': 'ウェーブ',
   'graph.seeThrough': '透明度',
   'graph.seeThroughHint': 'グラフ越しにページが見える度合い',
   'graph.blur': 'ぼかし',

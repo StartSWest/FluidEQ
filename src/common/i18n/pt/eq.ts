@@ -165,7 +165,6 @@ const eq: Partial<Dictionary> = {
   'graph.family.bars': 'Barras',
   'graph.family.points': 'Pontos',
   'graph.family.scenes': 'Cenas',
-  'graph.family.wave': 'Onda',
   'graph.seeThrough': 'Transparência',
   'graph.seeThroughHint': 'Quanto da página aparece através do gráfico',
   'graph.blur': 'Desfoque',

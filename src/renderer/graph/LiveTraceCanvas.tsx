@@ -286,12 +286,14 @@ import {
 } from './liveTracePaint';
 import {
   SPECTRUM_HUE_BY_PALETTE,
+  SPECTRUM_HUE_FLAT,
   advanceSpectrumBars,
   advanceWaveform,
   paintSpectrumBars,
   spectrumBarsPath,
 } from '../waveformPaint';
 import { readAccentLight } from '../utils/theme';
+import { tintedSpectrumHue } from '../utils/sceneAccentRamp';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { GraphLookTransition } from './graphLookTransition';
 import getGraphMotionDelta from './graphMotionPacing';
@@ -365,16 +367,6 @@ const GLOW_RELEASE_MS = 260;
  * of this file that is a reimplementation rather than a move.
  */
 const PRESENTATION_SETTLE_MS = 120;
-
-/**
- * How much brighter the fluid's bars are drawn here than in the titlebar.
- *
- * The plot is several times deeper, so the same alphas cover far more area
- * and the drawing reads as a ghost — barely there in a screen recording.
- * This lifts the LIT TOP and leaves the fade alone, because the fade is the
- * effect: raising the foot instead flattens every bar into a slab.
- */
-const GRAPH_BAR_LIFT = 1.7;
 
 /** Below these the eased presentation values have arrived and are snapped. */
 const OPACITY_EPSILON = 0.002;
@@ -2090,6 +2082,7 @@ const LiveTraceCanvas = ({
       const stormOwnColours = ownColours && chosen === 'rain';
       const fenceOwnColours = ownColours && chosen === 'fence';
       const cityOwnColours = ownColours && chosen === 'skyline';
+      const fluidOwnColours = ownColours && isFluidForm;
       let paintColours = resolveLookColours(
         paintPalette,
         lookRef.current.colours,
@@ -3594,25 +3587,31 @@ const LiveTraceCanvas = ({
             fluidBarsRef.current,
             isEuphoric,
             /**
-             * All three keep the form's treatment and differ in what the
-             * hue is taken FROM — position at two widths, or the bar's own
-             * loudness. A palette that filled flat instead stopped being
-             * this drawing.
+             * Under Auto these are the titlebar's bars in the titlebar's own
+             * colour — the short cyan-to-violet sweep it was drawn with, and
+             * the accent's tint over it where the window is tinted. Not one
+             * of the palettes: the fluid is the titlebar's drawing, and run
+             * through the rainbow map its bars came out as a second spectrum
+             * competing with the wave over them.
+             *
+             * Choose a palette and it is honoured, as everywhere else: the
+             * hue then comes from position or from the bar's own loudness.
              */
-            SPECTRUM_HUE_BY_PALETTE[paintPalette],
+            fluidOwnColours
+              ? tintedSpectrumHue(SPECTRUM_HUE_FLAT)
+              : SPECTRUM_HUE_BY_PALETTE[paintPalette],
             tuning.gap,
-            // Brighter at the top than the titlebar, and faded identically —
-            // see the constant's own note.
-            GRAPH_BAR_LIFT,
             // Level is a meter: the ramp is pinned to the plot and each bar
             // shows its own slice of it, so a colour is a decibel.
-            createFluidBarPaint(
-              context,
-              paintPalette,
-              paintColours,
-              sceneTop,
-              sceneBase,
-            ),
+            fluidOwnColours
+              ? undefined
+              : createFluidBarPaint(
+                  context,
+                  paintPalette,
+                  paintColours,
+                  sceneTop,
+                  sceneBase,
+                ),
           );
         } else if (isFilled && piecePaths) {
           /**

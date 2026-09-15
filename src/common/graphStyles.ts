@@ -187,6 +187,10 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'rain') {
     return 'area';
   }
+  // Canyon: the overhanging rock, dropped after its gorge was built for it.
+  if (style === 'canyon') {
+    return 'area';
+  }
   if (style === 'caps' || style === 'crown' || style === 'diamonds') {
     return 'dots';
   }
@@ -199,8 +203,39 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'honeycomb' || style === 'matrix') {
     return 'blocks';
   }
-  if (style === 'wave-ribbon') {
-    return 'wave-filled';
+  /**
+   * The ten wave forms, retired together: every one of them had a free form
+   * already drawing the same figure, and the picker was carrying both.
+   *
+   * Each goes to the one it doubled, so a saved custom look lands on the
+   * drawing it was choosing rather than on the first form in the list. None
+   * of this touches the titlebar's wave, which keeps its own ten styles and
+   * its own picker.
+   */
+  if (style === 'wave-line' || style === 'wave-outline') {
+    return 'line';
+  }
+  if (style === 'wave-filled' || style === 'wave-ribbon') {
+    return 'area';
+  }
+  if (style === 'wave-bars') {
+    return 'bars';
+  }
+  if (style === 'wave-dots') {
+    return 'dots';
+  }
+  if (style === 'wave-spikes') {
+    return 'spikes';
+  }
+  if (style === 'wave-blocks') {
+    return 'blocks';
+  }
+  if (style === 'wave-lattice') {
+    return 'hatch';
+  }
+  // The mirrored wave: the graph mirrors any form on its own, from the menu.
+  if (style === 'wave-mirror') {
+    return 'line';
   }
   return style;
 };
@@ -800,16 +835,16 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   stitch: 38,
 
   /**
-   * The fluid is the dense one, and its default has to be a real number.
+   * The titlebar's own bar COUNT, not its pixel spacing.
    *
-   * The titlebar draws this form at a bar every eleven pixels, which is a
-   * rule rather than a count and cannot be written here — this table is read
-   * without knowing how wide the plot is. On a typical graph pane that rule
-   * lands near a hundred and thirty, so that is what it starts at: close
-   * enough that the shipped look matches the titlebar, and an ordinary
-   * number the Pieces control can move like any other form's.
+   * The titlebar draws a bar every eleven pixels, and copying that rule onto
+   * a plot three to five times wider gave a hundred and twenty-eight hair-thin
+   * bars: the same spacing, a completely different picture — a dense comb
+   * instead of the titlebar's row of fat bars. Its strip holds about forty of
+   * them; forty on a plot this wide was too fat, so this sits between that and
+   * the comb, and the Pieces control moves it like any other form's.
    */
-  fluid: 128,
+  fluid: 72,
 
   /**
    * The wave family's own band count, which is the titlebar's forty-eight.

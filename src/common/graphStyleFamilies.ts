@@ -15,8 +15,9 @@ import type { GraphStyle } from './graphStyles';
  * By what the eye takes in first, not by how a style is built: Pulse and Echo
  * are traces, so they are lines, whatever they draw with; Skyline and Dancing
  * flames are pictures, so they are scenes. The titlebar wave's own drawings
- * are a family of their own because they are one idea drawn nine ways, and
- * somebody who likes the titlebar goes looking for that set.
+ * The titlebar wave's own drawings had a family here while they were in the
+ * picker; retired, they file under the kind of drawing each one is, because a
+ * look somebody saved on one still has to belong somewhere.
  */
 export const GRAPH_STYLE_FAMILIES = [
   'lines',
@@ -24,7 +25,6 @@ export const GRAPH_STYLE_FAMILIES = [
   'bars',
   'points',
   'scenes',
-  'wave',
 ] as const;
 
 export type TGraphStyleFamily = (typeof GRAPH_STYLE_FAMILIES)[number];
@@ -82,16 +82,16 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   stitch: 'points',
   canyon: 'fills',
   fluid: 'fills',
-  'wave-line': 'wave',
-  'wave-filled': 'wave',
-  'wave-bars': 'wave',
-  'wave-mirror': 'wave',
-  'wave-dots': 'wave',
-  'wave-ribbon': 'wave',
-  'wave-spikes': 'wave',
-  'wave-blocks': 'wave',
-  'wave-outline': 'wave',
-  'wave-lattice': 'wave',
+  'wave-line': 'lines',
+  'wave-filled': 'fills',
+  'wave-bars': 'bars',
+  'wave-mirror': 'lines',
+  'wave-dots': 'points',
+  'wave-ribbon': 'fills',
+  'wave-spikes': 'bars',
+  'wave-blocks': 'bars',
+  'wave-outline': 'lines',
+  'wave-lattice': 'fills',
 };
 
 export const graphStyleFamily = (style: GraphStyle): TGraphStyleFamily =>

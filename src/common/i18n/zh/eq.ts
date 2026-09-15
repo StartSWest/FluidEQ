@@ -154,7 +154,6 @@ const eq: Partial<Dictionary> = {
   'graph.family.bars': '柱条',
   'graph.family.points': '点',
   'graph.family.scenes': '场景',
-  'graph.family.wave': '波形',
   'graph.seeThrough': '透明度',
   'graph.seeThroughHint': '页面透过图表显示的程度',
   'graph.blur': '模糊',

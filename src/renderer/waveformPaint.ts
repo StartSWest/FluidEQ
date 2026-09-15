@@ -372,25 +372,6 @@ export const paintSpectrumBars = (
   hueAt: SpectrumHue,
   gap: number,
   /**
-   * How much brighter the TOP of a bar is drawn, as a multiple.
-   *
-   * The fade from a lit top to an almost-clear foot is the effect — it is
-   * what makes these read as a spectrum rather than as a bar chart — so
-   * making them more visible has to raise the top rather than lift the foot.
-   * Lifting the foot was tried and it flattens the gradient into a slab,
-   * which is not a brighter version of the drawing but a different one.
-   *
-   * One on the titlebar, where the numbers were chosen. The graph asks for
-   * more because its plot is several times deeper and the same alphas over
-   * that much more area read as a ghost.
-   *
-   * Optional rather than defaulted in the list, because the parameter after it
-   * is optional too and a default in front of one is the shape `default-param-
-   * last` exists to stop: the caller that wants only the later argument has to
-   * pass `undefined` for this one, which is the same thing said twice.
-   */
-  lift?: number,
-  /**
    * Replaces the sweep, for the palette that is a meter rather than a map.
    *
    * `level` runs its ramp UP the plot and is pinned to the plot, so a colour
@@ -401,7 +382,18 @@ export const paintSpectrumBars = (
    */
   paint?: string | CanvasGradient | SpectrumBarPaint,
 ) => {
-  const topAlpha = Math.min(1, (isRainbow ? 0.5 : 0.42) * (lift ?? 1));
+  /**
+   * The lit top of a bar, fading to an almost-clear foot — that fade is the
+   * effect, and it is what makes these read as a spectrum rather than as a
+   * bar chart.
+   *
+   * One set of numbers for both places it is drawn. The graph used to lift
+   * this by 1.7 on the argument that its plot is deeper and the same alphas
+   * over more area read as a ghost; with the two side by side on screen,
+   * what it actually did was bring the bars forward until they fought the
+   * wave over them. The titlebar's fluid is the reference for this form.
+   */
+  const topAlpha = isRainbow ? 0.5 : 0.42;
   forEachSpectrumBar(box, bars, gap, (x, y, width, height, across, energy) => {
     if (typeof paint === 'function') {
       context.fillStyle = paint(across, energy, y, height, topAlpha);

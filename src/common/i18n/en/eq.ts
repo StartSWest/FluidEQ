@@ -169,7 +169,6 @@ const eq = {
   'graph.family.bars': 'Bars',
   'graph.family.points': 'Points',
   'graph.family.scenes': 'Scenes',
-  'graph.family.wave': 'Wave',
   'graph.seeThrough': 'See through',
   'graph.seeThroughHint': 'How much of the page shows through the graph',
   'graph.blur': 'Blur',

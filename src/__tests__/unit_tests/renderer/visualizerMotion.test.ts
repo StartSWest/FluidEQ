@@ -316,9 +316,10 @@ describe('peak animation', () => {
 
 describe('curated forms and settings', () => {
   it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
-    // Four more retired in the September review: Warp speed, Stalactites,
-    // Road trip and Rainfall.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(38);
+    // The September review also retired Warp speed, Stalactites, Road trip,
+    // Rainfall and Canyon, and then all ten wave forms at once: each of
+    // those was a second copy of a free form already in the list.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(28);
     expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
     (
