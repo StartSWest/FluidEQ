@@ -275,6 +275,15 @@ void suspend_apo_all(CommandResult& result) {
     }
     result.endpoints.push_back(one);
   }
+  // The verdict, which the loop above deliberately does not decide per
+  // output: like `--attach-all`, one output done is a command that did
+  // something, and only every output refusing is a failure. Without this the
+  // exit code said "ok" for a run that changed nothing, and the app logged a
+  // success over an Equalizer APO still fully registered.
+  const AttachOutcome outcome = summarise_attach_all(result.endpoints);
+  if (!outcome.ok) {
+    fail(result, outcome.error);
+  }
 }
 
 /**
@@ -296,6 +305,21 @@ void restore_apo_all(CommandResult& result) {
       continue;
     }
     result.endpoints.push_back(one);
+  }
+  // Stricter than the switch-off: ANY output Equalizer APO could not be put
+  // back on is a failure, because this is somebody else's equaliser and the
+  // record of how to restore it is all that is left. Reported as one, the
+  // record stays for the next attempt; reported as success, it would read as
+  // done and the output would stay broken for good.
+  size_t failed = 0;
+  for (const EndpointResult& one : result.endpoints) {
+    if (!one.error.empty()) {
+      ++failed;
+    }
+  }
+  if (failed != 0) {
+    fail(result, L"Equalizer APO could not be put back on " +
+                     std::to_wstring(failed) + L" output(s)");
   }
 }
 
@@ -393,12 +417,22 @@ void run_uninstall(const Options& options, CommandResult& result) {
   }
   // Whatever was switched off to make room for this engine goes back on the
   // way out. Leaving Equalizer APO disabled by a program that is no longer on
-  // the machine — with the record of how to put it back deleted by `--purge`
-  // moments later — would be this installer silently breaking somebody else's
+  // the machine would be this installer silently breaking somebody else's
   // equalizer for good.
-  restore_apo_all(result);
-  if (!result.ok) {
-    return;
+  //
+  // Into its own result, and the uninstall goes on regardless: an uninstall
+  // that stopped here would leave the engine registered and its files in
+  // place, and the next attempt would stop at the same output — a machine
+  // that can never be rid of FluidEQ is worse than one output Equalizer APO
+  // has to be put back on by hand. What does not go on is the purge below,
+  // because the records under `apo-off\` are the only way that hand repair
+  // can be exact. The failure is reported all the same: the uninstaller logs
+  // the exit code, and the app logs the per-output reasons.
+  CommandResult restored;
+  restore_apo_all(restored);
+  const bool apo_left_off = !restored.ok;
+  for (const EndpointResult& one : restored.endpoints) {
+    result.endpoints.push_back(one);
   }
   if (!unregister_engine(result.error)) {
     result.ok = false;
@@ -408,11 +442,14 @@ void run_uninstall(const Options& options, CommandResult& result) {
   if (!target.empty()) {
     remove_install_tree(target);
   }
-  if (options.purge) {
+  if (options.purge && !apo_left_off) {
     const std::wstring root = engine_root();
     if (!root.empty()) {
       delete_directory_tree(root);
     }
+  }
+  if (apo_left_off) {
+    fail(result, restored.error);
   }
 }
 

@@ -134,10 +134,16 @@ export const installFluidEngine = (): Promise<IEngineSetupResult> =>
  * leaves behind — and restart Windows audio onto it. `ok` only once the
  * engine installed is this app's; `declined` is the prompt answered no.
  */
-export const updateFluidEngine = (): Promise<IAudioRestartOutcome> =>
+export const updateFluidEngine = (
+  /**
+   * True when the app is doing this by itself, so main can refuse it if an
+   * automatic repair already ran this session; a press is never refused.
+   */
+  automatic = false,
+): Promise<IAudioRestartOutcome> =>
   promptedCall<IAudioRestartOutcome>(
     ChannelEnum.UPDATE_FLUID_ENGINE,
-    [],
+    automatic ? [true] : [],
     (detail) => ({ ok: false, declined: false, detail }),
   );
 

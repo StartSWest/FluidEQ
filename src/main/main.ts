@@ -177,6 +177,7 @@ import {
   isApoSwitchedOff,
 } from './apoSwitchOff';
 import { createEngineLoadRepair } from './engineLoadRepair';
+import { createAutomaticSetup } from './automaticSetup';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
@@ -2307,9 +2308,17 @@ onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
  * re-reads every few seconds, so Equalizer APO's Device Selector being run
  * while FluidEQ is open is noticed like anything else.
  */
+/**
+ * The one gate every automatic elevated run passes through: the two halves
+ * of the Equalizer APO switch-off and both engine repairs, so no two of them
+ * put two Windows prompts up for one thing (`automaticSetup.ts`).
+ */
+const automaticSetup = createAutomaticSetup();
+
 const apoGuard = createApoGuard({
   getEngine: () => session.audioEngine,
   runEngineSetup,
+  automatic: automaticSetup,
 });
 
 registerProfilesIpc({
@@ -2375,7 +2384,9 @@ registerAudioEngineIpc({
   repairEngineLoading: createEngineLoadRepair({
     getEngine: () => session.audioEngine,
     runEngineSetup,
+    automatic: automaticSetup,
   }).check,
+  automatic: automaticSetup,
 });
 
 /**

@@ -1922,8 +1922,10 @@ const AppContent = () => {
    * the health check. The status is read again whatever the answer, so the
    * notice is offered only while there is still an engine to install.
    */
-  const performEngineUpdate = async (): Promise<IAudioRestartOutcome> => {
-    const outcome = await updateFluidEngine();
+  const performEngineUpdate = async (
+    automatic = false,
+  ): Promise<IAudioRestartOutcome> => {
+    const outcome = await updateFluidEngine(automatic);
     if (outcome.ok) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
@@ -1939,6 +1941,7 @@ const AppContent = () => {
       engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
       performWindowsAudioRestart,
       performEngineUpdate,
+      () => performEngineUpdate(true),
     );
   const handleRestartWindowsAudio = audioRestart.open;
   useRestartWhenEngineOff(

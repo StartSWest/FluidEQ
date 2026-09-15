@@ -62,8 +62,9 @@ const useRestartWhenEngineOff = (
    * Whether the engine has ever run on this machine, as the setup helper
    * reports it. `false` means Windows has never once created it — on that
    * machine a restart cannot help, because there is nothing to restart into
-   * the chain, and the install repair in main is what answers it. Undefined
-   * from an older helper, which is treated as "may help", the old behaviour.
+   * the chain; `useRepairWhenEngineNeverRan` answers it instead, with a
+   * re-install once sound has been heard. Undefined from an older helper is
+   * treated as "may help", the old behaviour.
    */
   hasEverRun?: boolean,
 ): void => {

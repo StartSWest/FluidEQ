@@ -162,6 +162,15 @@ bool service_can_write(const std::wstring& directory) {
     if (!allows && !refuses) {
       continue;
     }
+    // An entry marked inherit-only ("subfolders and files only" in the
+    // security dialog) says nothing about this directory itself — it exists
+    // to be handed down. Read as if it applied here, a hardening tool's
+    // inherit-only deny would call a writable folder closed and raise a
+    // repair on a healthy machine, and an inherit-only allow would hide a
+    // real block.
+    if ((header->AceFlags & INHERIT_ONLY_ACE) != 0) {
+      continue;
+    }
     // Both shapes put the mask and the SID in the same place; the type is
     // the only thing that differs, and it has already been read.
     const auto* ace = static_cast<const ACCESS_ALLOWED_ACE*>(raw);

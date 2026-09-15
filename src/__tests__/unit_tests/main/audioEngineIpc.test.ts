@@ -31,6 +31,15 @@ import type { IEngineSetupResult } from '../../../main/engineSetup';
 import { encodeChainSettings } from '../../../common/dsp/chainWire';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 
+// Imports come after jest.mock on purpose: the module under test reads the
+// mocked dependency at import time, so hoisting the import above the mock
+// would bind it to the real one and the test would exercise nothing.
+// eslint-disable-next-line import/first
+import { registerAudioEngineIpc } from '../../../main/ipc/audioEngine';
+// eslint-disable-next-line import/first
+import { loadAudioEnginePreference } from '../../../main/audioEngineStore';
+import { createAutomaticSetup } from '../../../main/automaticSetup';
+
 type THandler = (
   event: { reply: jest.Mock },
   arg: unknown,
@@ -46,14 +55,6 @@ jest.mock('electron', () => ({
     },
   },
 }));
-
-// Imports come after jest.mock on purpose: the module under test reads the
-// mocked dependency at import time, so hoisting the import above the mock
-// would bind it to the real one and the test would exercise nothing.
-// eslint-disable-next-line import/first
-import { registerAudioEngineIpc } from '../../../main/ipc/audioEngine';
-// eslint-disable-next-line import/first
-import { loadAudioEnginePreference } from '../../../main/audioEngineStore';
 
 const STATUS: IAudioEngineStatus = {
   engine: 'apo',
@@ -165,6 +166,7 @@ describe('the audio engine channels', () => {
       isApoOnAnyOutput,
       isApoSwitchedOff,
       repairEngineLoading: async () => undefined,
+      automatic: createAutomaticSetup(),
     });
   });
 
@@ -440,6 +442,49 @@ describe('the audio engine channels', () => {
       const reply = await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
 
       expect(replied(reply)).toEqual({ result: undefined });
+    });
+  });
+
+  /**
+   * One gate for everything automatic: main's own install repair and the
+   * window's each kept a private "once", and a prompt declined on the first
+   * was no defence against the second.
+   */
+  describe('the automatic gate', () => {
+    const installs = () =>
+      runEngineSetup.mock.calls.filter(([command]) => command === 'install');
+
+    it("refuses the window's own repair once an automatic install ran", async () => {
+      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
+      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
+      expect(installs()).toHaveLength(1);
+      expect(replied(reply)).toEqual({
+        result: {
+          ok: false,
+          declined: false,
+          detail: 'an automatic repair already ran this session',
+        },
+      });
+    });
+
+    it('never refuses a pressed update', async () => {
+      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
+      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
+      expect(installs()).toHaveLength(3);
+    });
+
+    it('switches Equalizer APO off again after a switch back put it on', async () => {
+      isApoOnAnyOutput.mockResolvedValue(true);
+      isApoSwitchedOff.mockResolvedValue(true);
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['apo']);
+      await fire(ChannelEnum.SET_AUDIO_ENGINE, ['fluid']);
+      expect(
+        runEngineSetup.mock.calls
+          .map(([command]) => command)
+          .filter((command) => command !== 'settle'),
+      ).toEqual(['suspend-apo', 'restore-apo', 'suspend-apo']);
     });
   });
 

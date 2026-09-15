@@ -20,6 +20,12 @@ export const useEngineMaintenance = (
   updateReady: boolean,
   restart: () => Promise<IAudioRestartOutcome>,
   update: () => Promise<IAudioRestartOutcome>,
+  /**
+   * The same re-install, marked as the app's own doing, so main can refuse
+   * it when an automatic repair already ran this session. Defaults to
+   * `update` for callers with no such distinction.
+   */
+  repair: () => Promise<IAudioRestartOutcome> = update,
 ) => {
   const audioRestart = useAudioRestart(restart);
   const engineUpdate = useEngineUpdate(updateReady, update);
@@ -65,7 +71,7 @@ export const useEngineMaintenance = (
     }
     owner.current = 'update';
     try {
-      await update();
+      await repair();
     } finally {
       owner.current = undefined;
     }

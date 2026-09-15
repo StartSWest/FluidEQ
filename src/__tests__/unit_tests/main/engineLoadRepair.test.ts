@@ -16,6 +16,7 @@ import {
   whatStopsTheEngineLoading,
 } from 'main/engineLoadRepair';
 import type { IAudioEngineStatus } from 'common/audioEngine';
+import { createAutomaticSetup } from 'main/automaticSetup';
 
 const status = (
   fluid: Partial<IAudioEngineStatus['fluid']> = {},
@@ -103,6 +104,7 @@ describe('createEngineLoadRepair', () => {
       repair: createEngineLoadRepair({
         getEngine: () => engine,
         runEngineSetup,
+        automatic: createAutomaticSetup(),
       }),
     };
   };
@@ -140,6 +142,7 @@ describe('createEngineLoadRepair', () => {
       runEngineSetup: async () => {
         throw new Error('the helper is missing');
       },
+      automatic: createAutomaticSetup(),
     });
     await expect(
       repair.check(status({ unsignedAllowed: false })),

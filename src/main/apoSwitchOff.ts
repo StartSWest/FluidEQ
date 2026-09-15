@@ -24,6 +24,7 @@ import log from 'electron-log';
 import type { IAudioDevice } from '../common/constants';
 import type { TAudioEngine } from '../common/audioEngine';
 import { discoverAudioDevices } from './audioDevices';
+import type { IAutomaticSetup } from './automaticSetup';
 import { getFluidEngineConfigDir } from './registry';
 
 /** `%ProgramData%\FluidEQ\engine\apo-off`. */
@@ -76,6 +77,12 @@ export interface IApoGuardDeps {
     command: 'suspend-apo',
     args: string[],
   ) => Promise<{ ok: boolean; declined: boolean; error?: string }>;
+  /**
+   * The one gate every automatic elevated run passes through
+   * (`automaticSetup.ts`): the engine switch runs the same switch-off, and
+   * without a shared "once" the two put two prompts up for one action.
+   */
+  automatic: IAutomaticSetup;
 }
 
 export interface IApoGuard {
@@ -86,41 +93,42 @@ export interface IApoGuard {
 export const createApoGuard = ({
   getEngine,
   runEngineSetup,
-}: IApoGuardDeps): IApoGuard => {
-  let tried = false;
-  return {
-    check: async (devices) => {
-      // Chosen is not enough: the engine has to actually be on an output.
-      // A machine whose setup picked the FluidEQ Engine and then declined
-      // the Windows prompt has the preference and no engine, and taking
-      // Equalizer APO off such a machine leaves it with nothing processing
-      // at all — worse than the state it was in.
-      if (
-        tried ||
-        process.platform !== 'win32' ||
-        getEngine() !== 'fluid' ||
-        !devices.some((device) => device.isFluidEngineAttached === true) ||
-        !devices.some((device) => device.isEqualizerApoAttached === true)
-      ) {
-        return;
-      }
-      tried = true;
-      try {
-        // Restarted in the same elevated run: Windows reads an output's
-        // effect list once and holds it, so without the restart the change
-        // is on disk and not in the sound.
-        const result = await runEngineSetup('suspend-apo', ['--restart-audio']);
+  automatic,
+}: IApoGuardDeps): IApoGuard => ({
+  check: async (devices) => {
+    // Chosen is not enough: the engine has to actually be on an output.
+    // A machine whose setup picked the FluidEQ Engine and then declined
+    // the Windows prompt has the preference and no engine, and taking
+    // Equalizer APO off such a machine leaves it with nothing processing
+    // at all — worse than the state it was in.
+    if (
+      process.platform !== 'win32' ||
+      getEngine() !== 'fluid' ||
+      !automatic.wanted('suspend-apo') ||
+      !devices.some((device) => device.isFluidEngineAttached === true) ||
+      !devices.some((device) => device.isEqualizerApoAttached === true)
+    ) {
+      return;
+    }
+    try {
+      // Restarted in the same elevated run: Windows reads an output's
+      // effect list once and holds it, so without the restart the change
+      // is on disk and not in the sound.
+      const result = await automatic.attempt('suspend-apo', () =>
+        runEngineSetup('suspend-apo', ['--restart-audio']),
+      );
+      if (result) {
         log.info(
           `Equalizer APO switched off so the FluidEQ Engine can run: ` +
             `ok=${result.ok}${result.declined ? ' (consent declined)' : ''}` +
             `${result.error ? ` error=${result.error}` : ''}`,
         );
-      } catch (error) {
-        log.error('Equalizer APO could not be switched off', error);
       }
-    },
-  };
-};
+    } catch (error) {
+      log.error('Equalizer APO could not be switched off', error);
+    }
+  },
+});
 
 /** Whether this app has Equalizer APO switched off on any output. */
 export const isApoSwitchedOff = async (): Promise<boolean> => {

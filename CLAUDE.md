@@ -578,6 +578,25 @@ Out-String` (or any other capture) is what actually waits for it and shows
   processed. The device list now reads that property (`effectsEnabled`), the
   output panel says so and offers Windows' own Sound page, and the engine
   trouble card stays away — restarting Windows audio cannot help.
+- **Every automatic elevated run goes through one gate** (`automaticSetup.ts`,
+  created once in main). Four things run the helper with nobody pressing
+  anything — Equalizer APO switched off after a switch and again from the
+  output list, the install repaired from a status read, and repaired again
+  from the window once sound was heard past an engine that never ran — and
+  with a private "once" each, two of them reached the same conclusion from
+  the same facts seconds apart: two prompts, two audio restarts, for one
+  action, and a declined first prompt no defence against the second. The
+  gate's rules: nothing automatic starts while another automatic run is in
+  flight, and each kind runs once a session, except that `suspend-apo` and
+  `restore-apo` undo each other's "once" (a user may switch engines twice in
+  one sitting). The window marks its own repair with `[true]` on
+  `UPDATE_FLUID_ENGINE` so main can refuse it through the gate; a press
+  carries no mark and is never refused. `suspend-apo` fails like
+  `--attach-all` (every output refusing), `restore-apo` fails on ANY output
+  it could not put back — that record is all that is left of somebody
+  else's equaliser — and `uninstall` carries on past a failed restore but
+  reports it and never purges the `apo-off\` records then. The DACL reader
+  skips inherit-only entries, which say nothing about the folder itself.
 - **A bug report carries everything since the previous one, never a tail.**
   A user's report held a hundred and twenty lines of the playback host and
   nothing about an engine that had failed an hour earlier. Main now takes

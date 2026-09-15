@@ -37,6 +37,8 @@ import {
 } from 'main/apoSwitchOff';
 // eslint-disable-next-line import/first
 import type { IAudioDevice } from 'common/constants';
+// eslint-disable-next-line import/first
+import { createAutomaticSetup } from 'main/automaticSetup';
 
 const device = (fields: Record<string, unknown>) => ({
   id: 'x',
@@ -105,7 +107,11 @@ describe('createApoGuard', () => {
     }));
     return {
       runEngineSetup,
-      guard: createApoGuard({ getEngine: () => engine, runEngineSetup }),
+      guard: createApoGuard({
+        getEngine: () => engine,
+        runEngineSetup,
+        automatic: createAutomaticSetup(),
+      }),
     };
   };
 
@@ -150,6 +156,7 @@ describe('createApoGuard', () => {
     const guard = createApoGuard({
       getEngine: () => 'fluid',
       runEngineSetup,
+      automatic: createAutomaticSetup(),
     });
     await expect(guard.check(withApo)).resolves.toBeUndefined();
   });

@@ -45,6 +45,7 @@ import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 import { saveAudioEnginePreference } from '../audioEngineStore';
 import { IEngineSetupResult, TEngineSetupCommand } from '../engineSetup';
 import { TEngineStepOutcome, retryEngineStep } from '../engineRetry';
+import type { IAutomaticSetup } from '../automaticSetup';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -143,6 +144,12 @@ export interface IAudioEngineIpcDeps {
    * matters.
    */
   repairEngineLoading: (status: IAudioEngineStatus) => Promise<void>;
+  /**
+   * The one gate every automatic elevated run passes through
+   * (`automaticSetup.ts`): the switch-off of Equalizer APO after a switch
+   * and the window's own repair both ask it before running the helper.
+   */
+  automatic: IAutomaticSetup;
   writeSystemDspChain: (
     configDirPath: string,
     values: number[],
@@ -165,6 +172,7 @@ export const registerAudioEngineIpc = ({
   isApoOnAnyOutput,
   isApoSwitchedOff,
   repairEngineLoading,
+  automatic,
 }: IAudioEngineIpcDeps) => {
   /**
    * The same reply shape main.ts's `handleError` builds, rebuilt here because
@@ -279,8 +287,15 @@ export const registerAudioEngineIpc = ({
         const command = engine === 'fluid' ? 'suspend-apo' : 'restore-apo';
         // Restarted here, because Windows reads an endpoint's effect list
         // once and holds it: without it the change is on disk and not in the
-        // sound until something else restarts the audio stack.
-        const result = await runEngineSetup(command, ['--restart-audio']);
+        // sound until something else restarts the audio stack. Through the
+        // gate, so the output-list guard cannot run the same switch-off
+        // moments later and put a second prompt up.
+        const result = await automatic.attempt(command, () =>
+          runEngineSetup(command, ['--restart-audio']),
+        );
+        if (!result) {
+          return;
+        }
         log.info(
           `Equalizer APO ${engine === 'fluid' ? 'switched off' : 'put back'}: ` +
             `ok=${result.ok}${result.declined ? ' (consent declined)' : ''}` +
@@ -413,10 +428,28 @@ export const registerAudioEngineIpc = ({
    * which offers no update either — leaves the helper's word standing; the
    * next launch compares again.
    */
-  onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
+  onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event, arg) => {
     const channel = ChannelEnum.UPDATE_FLUID_ENGINE;
+    // `[true]` marks the window's own repair, which goes through the gate
+    // every automatic run shares: refused, quietly, when an install already
+    // ran this session — a declined prompt from main's repair must not be
+    // followed by a second one from the window. A press carries no mark
+    // and is never refused.
+    const isAutomatic = Array.isArray(arg) && arg[0] === true;
     try {
-      const result = await runEngineSetup('install', ['--restart-audio']);
+      const result = isAutomatic
+        ? await automatic.attempt('install', () =>
+            runEngineSetup('install', ['--restart-audio']),
+          )
+        : await runEngineSetup('install', ['--restart-audio']);
+      if (!result) {
+        succeed<IAudioRestartOutcome>(event, channel, {
+          ok: false,
+          declined: false,
+          detail: 'an automatic repair already ran this session',
+        });
+        return;
+      }
       if (!result.ok) {
         succeed<IAudioRestartOutcome>(event, channel, {
           ok: false,

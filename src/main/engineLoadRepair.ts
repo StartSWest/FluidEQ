@@ -32,6 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import log from 'electron-log';
 import type { IAudioEngineStatus, TAudioEngine } from '../common/audioEngine';
+import type { IAutomaticSetup } from './automaticSetup';
 
 export interface IEngineLoadRepairDeps {
   getEngine: () => TAudioEngine | null;
@@ -39,6 +40,13 @@ export interface IEngineLoadRepairDeps {
     command: 'install',
     args: string[],
   ) => Promise<{ ok: boolean; declined: boolean; error?: string }>;
+  /**
+   * The one gate every automatic elevated run passes through
+   * (`automaticSetup.ts`). The window asks for the same re-install once it
+   * has heard sound past an engine that never ran; without a shared "once"
+   * a declined prompt here was followed by a second one from there.
+   */
+  automatic: IAutomaticSetup;
 }
 
 export interface IEngineLoadRepair {
@@ -83,33 +91,38 @@ export const whatStopsTheEngineLoading = (
 export const createEngineLoadRepair = ({
   getEngine,
   runEngineSetup,
-}: IEngineLoadRepairDeps): IEngineLoadRepair => {
-  let tried = false;
-  return {
-    check: async (status) => {
-      if (tried || process.platform !== 'win32' || getEngine() !== 'fluid') {
-        return;
-      }
-      const wrong = whatStopsTheEngineLoading(status);
-      if (!wrong) {
-        return;
-      }
-      tried = true;
-      log.info(`The FluidEQ Engine cannot be loaded by Windows: ${wrong}`);
-      try {
-        // No `--attach-all`: which outputs the engine is on is the user's,
-        // and this is repairing the machine, not changing their choice.
-        const result = await runEngineSetup('install', ['--restart-audio']);
+  automatic,
+}: IEngineLoadRepairDeps): IEngineLoadRepair => ({
+  check: async (status) => {
+    if (
+      process.platform !== 'win32' ||
+      getEngine() !== 'fluid' ||
+      !automatic.wanted('install')
+    ) {
+      return;
+    }
+    const wrong = whatStopsTheEngineLoading(status);
+    if (!wrong) {
+      return;
+    }
+    log.info(`The FluidEQ Engine cannot be loaded by Windows: ${wrong}`);
+    try {
+      // No `--attach-all`: which outputs the engine is on is the user's,
+      // and this is repairing the machine, not changing their choice.
+      const result = await automatic.attempt('install', () =>
+        runEngineSetup('install', ['--restart-audio']),
+      );
+      if (result) {
         log.info(
           `Repairing the engine's install: ok=${result.ok}` +
             `${result.declined ? ' (consent declined)' : ''}` +
             `${result.error ? ` error=${result.error}` : ''}`,
         );
-      } catch (error) {
-        log.error("The engine's install could not be repaired", error);
       }
-    },
-  };
-};
+    } catch (error) {
+      log.error("The engine's install could not be repaired", error);
+    }
+  },
+});
 
 export default createEngineLoadRepair;
