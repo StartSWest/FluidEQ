@@ -15,6 +15,12 @@ import { createAccountVersions } from './accountVersions';
  * must be. One number rather than a flag, because the store only ever raises
  * one — a welcome that is reworded later can be given again by raising this,
  * and putting an old one away can never bring it back.
+ *
+ * Unlike the terms notice, this record is forgotten when the membership goes
+ * (`forgetPlusWelcomeSeen`): it belongs to a membership rather than to the
+ * account, so somebody who leaves and comes back a year later is welcomed
+ * again, and the development pair — pretend a payment, pretend a
+ * cancellation — walks the whole path every time rather than once.
  */
 
 const SEEN_FILE = 'plus-welcome.json';
@@ -35,3 +41,6 @@ export const writePlusWelcomeSeen = (
   accountId: string,
   edition: number,
 ) => seenIn(userDataDir).write(accountId, edition);
+
+export const forgetPlusWelcomeSeen = (userDataDir: string, accountId: string) =>
+  seenIn(userDataDir).forget(accountId);

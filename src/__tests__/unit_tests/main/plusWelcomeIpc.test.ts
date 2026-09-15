@@ -151,6 +151,47 @@ describe('the welcome to Plus', () => {
     expect(shown()).toEqual({ edition: 1 });
   });
 
+  /**
+   * The record belongs to the membership, not to the account. This is also
+   * the development pair — pretend a payment, pretend a cancellation — which
+   * exists to walk the real path and would otherwise show the welcome once
+   * ever and never again.
+   */
+  it('welcomes again after a membership ends and another begins', () => {
+    membership = ACTIVE;
+    register();
+    invoke('plus-welcome-seen', 1);
+    expect(shown()).toBeNull();
+
+    membership = NONE;
+    membershipListener(NONE);
+    expect(readPlusWelcomeSeen(root, 'member-1')).toBe(0);
+
+    membership = ACTIVE;
+    membershipListener(ACTIVE);
+    expect(shown()).toEqual({ edition: 1 });
+  });
+
+  /**
+   * Signing out reads as no membership from here, and must not be mistaken
+   * for one ending: the same person signing back in has been welcomed.
+   */
+  it('keeps the record when the account merely signs out', () => {
+    membership = ACTIVE;
+    register();
+    invoke('plus-welcome-seen', 1);
+
+    account = undefined;
+    membership = NONE;
+    membershipListener(NONE);
+    expect(readPlusWelcomeSeen(root, 'member-1')).toBe(1);
+
+    account = 'member-1';
+    membership = ACTIVE;
+    membershipListener(ACTIVE);
+    expect(shown()).toBeNull();
+  });
+
   it('welcomes the next account to sign in here on its own merits', () => {
     membership = ACTIVE;
     register();

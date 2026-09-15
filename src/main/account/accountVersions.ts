@@ -21,6 +21,14 @@ export interface IAccountVersions {
   read(accountId: string): number;
   /** Records `version` for the account, unless it already has one as high. */
   write(accountId: string, version: number): void;
+  /**
+   * Drops what was recorded for the account, so the next `read` says none.
+   *
+   * For a record that belongs to something an account can lose and get again
+   * — a membership — rather than to something it only ever gains. An
+   * agreement to the terms never uses this.
+   */
+  forget(accountId: string): void;
 }
 
 /** More accounts than one computer ever signs into; a bound, not a feature. */
@@ -77,6 +85,16 @@ export const createAccountVersions = (filePath: string): IAccountVersions => {
       writeFileAtomically(
         filePath,
         JSON.stringify(Object.fromEntries([...versions].slice(-MAX_ACCOUNTS))),
+      );
+    },
+    forget: (accountId) => {
+      const versions = readAll();
+      if (!versions.delete(accountId)) {
+        return;
+      }
+      writeFileAtomically(
+        filePath,
+        JSON.stringify(Object.fromEntries(versions)),
       );
     },
   };

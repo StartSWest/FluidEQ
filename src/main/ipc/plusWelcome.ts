@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { app, ipcMain, type BrowserWindow } from 'electron';
 import type { IEntitlement } from '../account/entitlement';
 import {
+  forgetPlusWelcomeSeen,
   PLUS_WELCOME_EDITION,
   readPlusWelcomeSeen,
   writePlusWelcomeSeen,
@@ -106,10 +107,36 @@ export const registerPlusWelcomeIpc = ({
     return state();
   });
 
+  /**
+   * A membership that has gone takes its welcome with it.
+   *
+   * The record belongs to the membership, not to the account: somebody who
+   * cancels and comes back a year later is arriving at Plus again and is
+   * welcomed again, and the development pair — pretend a payment, pretend a
+   * cancellation — walks the whole path each time instead of once ever. Only
+   * while somebody is signed in, so signing out (which reads as no membership
+   * from here) never clears anybody's.
+   */
+  const forgetIfMembershipGone = () => {
+    const id = accountId();
+    if (!id || entitlement.status().state !== 'none') {
+      return;
+    }
+    closedNow.delete(id);
+    try {
+      forgetPlusWelcomeSeen(userDataDir, id);
+    } catch (error) {
+      logger?.warn(`The Plus welcome could not be forgotten: ${error}`);
+    }
+  };
+
   // Signing in, signing out, and a membership starting or ending all arrive
   // here as a change of membership — including the one that lands when
   // somebody comes back from paying.
-  const unsubscribe = entitlement.subscribe(() => announce());
+  const unsubscribe = entitlement.subscribe(() => {
+    forgetIfMembershipGone();
+    announce();
+  });
   // `ready` rather than now, for the reason `ipc/account.ts` gives: before it
   // the stored session cannot be read, and nobody would seem signed in.
   app
