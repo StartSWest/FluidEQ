@@ -21,6 +21,11 @@ const account = {
     'उस पते पर छह अंकों का कोड जाएगा। पूरा करने के लिए उसे यहाँ लिखें।',
   'account.working': 'एक क्षण…',
   'account.signOut': 'साइन आउट',
+  'account.name.change': 'नाम बदलें',
+  'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
+  'account.name.changeBody':
+    'लीडरबोर्ड और आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
+  'account.name.cancel': 'रद्द करें',
   'account.signedIn': 'साइन इन किया गया',
   'account.backToSignIn': 'साइन इन पर वापस',
 

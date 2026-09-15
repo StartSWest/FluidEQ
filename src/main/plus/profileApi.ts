@@ -85,6 +85,12 @@ export interface IProfileApi {
   /** This account's profile, or undefined when it has not chosen a name. */
   mine(): Promise<IPlusProfile | undefined>;
   create(handle: string, displayName: string): Promise<IPlusProfile>;
+  /**
+   * Changes the name already chosen. The board, the gallery's credits and
+   * every scene page read the profile when they are asked, so the new name
+   * is everywhere at once; the same rules and refusals as choosing it.
+   */
+  update(handle: string, displayName: string): Promise<IPlusProfile>;
 }
 
 export const createProfileApi = ({
@@ -101,7 +107,7 @@ export const createProfileApi = ({
   };
 
   const request = async (
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PATCH',
     path: string,
     body?: unknown,
   ): Promise<unknown> => {
@@ -183,6 +189,22 @@ export const createProfileApi = ({
         throw new ProfileError('rejected', 'The profile did not come back.');
       }
       return created;
+    },
+
+    update: async (handle, displayName) => {
+      // Only this account's row: the policy refuses any other, and the
+      // filter keeps a wrong-account answer from reading as success.
+      const changed = readProfile(
+        await request(
+          'PATCH',
+          `profiles?select=${COLUMNS}&user_id=eq.${await whoAmI()}`,
+          { handle, display_name: displayName },
+        ),
+      );
+      if (!changed) {
+        throw new ProfileError('rejected', 'The profile did not come back.');
+      }
+      return changed;
     },
   };
 };

@@ -96,6 +96,39 @@ describe('the member’s name, in the main process', () => {
     ]);
   });
 
+  it('changes only the token’s own row, and reads the row back', async () => {
+    fetchImpl.mockResolvedValue(json([{ ...ROW, display_name: 'Ivan' }]));
+    expect((await api().update('ivan_c', 'Ivan')).displayName).toBe('Ivan');
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe(
+      'https://project.supabase.co/rest/v1/profiles?select=user_id,handle,display_name,role&user_id=eq.me',
+    );
+    expect(init.method).toBe('PATCH');
+    expect(init.headers.Prefer).toBe('return=representation');
+    expect(JSON.parse(init.body)).toEqual({
+      handle: 'ivan_c',
+      display_name: 'Ivan',
+    });
+    // No row came back: the policy let nothing through, which is not a change.
+    fetchImpl.mockResolvedValueOnce(json([]));
+    await expect(api().update('ivan_c', 'Ivan')).rejects.toMatchObject({
+      failure: 'rejected',
+    });
+    // A handle somebody else has, and a name the server's rules refuse.
+    fetchImpl.mockResolvedValueOnce(
+      json({ code: '23505', message: 'duplicate key' }, 409),
+    );
+    await expect(api().update('ada', 'Ivan')).rejects.toMatchObject({
+      failure: 'handle_taken',
+    });
+    fetchImpl.mockResolvedValueOnce(
+      json({ code: '22023', message: 'reserved_name' }, 400),
+    );
+    await expect(api().update('admin', 'Ivan')).rejects.toMatchObject({
+      failure: 'name_reserved',
+    });
+  });
+
   it('names a taken handle as taken, and every other refusal as refused', async () => {
     fetchImpl.mockResolvedValueOnce(
       json({ code: '23505', message: 'duplicate key' }, 409),
@@ -188,10 +221,36 @@ describe('the member’s name, in the main process', () => {
       expect(body[0].display_name).toBe('n'.repeat(40));
     });
 
-    it('takes both handlers down on dispose', () => {
+    // The same door as choosing: a change is checked the same way before
+    // it costs a request, and sent as a change of this account's row.
+    it('changes the name through the same checks as choosing it', async () => {
+      await expect(
+        invoke('plus-update-profile', 'no spaces!', 'Name'),
+      ).resolves.toEqual({ ok: false, failure: 'rejected' });
+      await expect(
+        invoke('plus-update-profile', 'fine_one', 'Ada‮'),
+      ).resolves.toEqual({ ok: false, failure: 'name_unreadable' });
+      expect(fetchImpl).not.toHaveBeenCalled();
+
+      fetchImpl.mockResolvedValue(json([{ ...ROW, display_name: 'Ivan' }]));
+      await expect(
+        invoke('plus-update-profile', ' Ivan_C ', '  Ivan  '),
+      ).resolves.toMatchObject({ ok: true, value: { displayName: 'Ivan' } });
+      const [url, init] = fetchImpl.mock.calls[0];
+      expect(url).toContain('profiles?select=');
+      expect(url).toContain('&user_id=eq.me');
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body)).toEqual({
+        handle: 'ivan_c',
+        display_name: 'Ivan',
+      });
+    });
+
+    it('takes every handler down on dispose', () => {
       dispose();
       expect(handlers.has('plus-profile')).toBe(false);
       expect(handlers.has('plus-create-profile')).toBe(false);
+      expect(handlers.has('plus-update-profile')).toBe(false);
     });
   });
 });

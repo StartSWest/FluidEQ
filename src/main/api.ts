@@ -1202,14 +1202,19 @@ const deleteAccount = (email: string) =>
     email,
   ) as Promise<TDeleteAccountOutcome>;
 
-// The member's name on the board and in the gallery: read it, or choose it.
-// A result rather than a throw, so "that handle is taken" survives the bridge.
+// The member's name on the board and in the gallery: read it, choose it, or
+// change it. A result rather than a throw, so "that handle is taken" survives
+// the bridge.
 const plusProfile = () =>
   ipcRenderer.invoke('plus-profile') as Promise<
     TPlusProfileResult<IPlusProfile | null>
   >;
 const plusCreateProfile = (handle: string, displayName: string) =>
   ipcRenderer.invoke('plus-create-profile', handle, displayName) as Promise<
+    TPlusProfileResult<IPlusProfile>
+  >;
+const plusUpdateProfile = (handle: string, displayName: string) =>
+  ipcRenderer.invoke('plus-update-profile', handle, displayName) as Promise<
     TPlusProfileResult<IPlusProfile>
   >;
 
@@ -1471,6 +1476,7 @@ export default {
     likeMemberScene,
     plusProfile,
     plusCreateProfile,
+    plusUpdateProfile,
     usageAccrue,
     leaderboardStatus,
     leaderboardOptIn,

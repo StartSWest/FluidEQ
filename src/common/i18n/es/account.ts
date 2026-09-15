@@ -21,6 +21,11 @@ const account = {
     'Enviaremos un código de seis dígitos a esa dirección. Escríbelo aquí para terminar.',
   'account.working': 'Un momento…',
   'account.signOut': 'Cerrar sesión',
+  'account.name.change': 'Cambiar nombre',
+  'account.name.changeTitle': 'Cambia cómo te ven',
+  'account.name.changeBody':
+    'Tu apodo y tu nombre en la clasificación y en las escenas que has publicado. Cambian en todas partes a la vez; tu correo sigue siendo privado.',
+  'account.name.cancel': 'Cancelar',
   'account.signedIn': 'Sesión iniciada',
   'account.backToSignIn': 'Volver a iniciar sesión',
 

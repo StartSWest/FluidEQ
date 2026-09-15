@@ -22,6 +22,11 @@ const account = {
     'An diese Adresse geht ein sechsstelliger Code. Geben Sie ihn hier ein, um abzuschließen.',
   'account.working': 'Einen Moment…',
   'account.signOut': 'Abmelden',
+  'account.name.change': 'Namen ändern',
+  'account.name.changeTitle': 'Ändern, wie Sie erscheinen',
+  'account.name.changeBody':
+    'Ihr Handle und Ihr Name in der Rangliste und auf den Szenen, die Sie veröffentlicht haben. Sie ändern sich überall zugleich; Ihre E-Mail-Adresse bleibt privat.',
+  'account.name.cancel': 'Abbrechen',
   'account.signedIn': 'Angemeldet',
   'account.backToSignIn': 'Zurück zur Anmeldung',
 

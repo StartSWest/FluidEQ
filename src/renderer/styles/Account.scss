@@ -122,6 +122,28 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
 }
 
+// The @handle the board and the gallery show, in the same accent the board
+// draws it in, so the name here reads as the same name as there.
+.account__handle {
+  color: $secondary-light;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+}
+
+.account__name-link {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+// The board's own name form, under the person it is about. The form lays
+// itself out by the `leaderboard` container it expects on the board; here the
+// wrapper is that container, so the narrow layout applies at the same width.
+.account__name-form {
+  container: leaderboard / inline-size;
+  margin-top: $spacing-m;
+}
+
 .account__chips {
   display: flex;
   flex-wrap: wrap;

@@ -20,6 +20,11 @@ const account = {
   'account.signUpHint': '一个六位数验证码将发送到该地址。在此输入即可完成。',
   'account.working': '请稍候…',
   'account.signOut': '退出登录',
+  'account.name.change': '更改名字',
+  'account.name.changeTitle': '更改你的显示方式',
+  'account.name.changeBody':
+    '你在排行榜和已发布场景上的昵称与名字。改动会同时在所有地方生效；你的邮箱仍然保密。',
+  'account.name.cancel': '取消',
   'account.signedIn': '已登录',
   'account.backToSignIn': '返回登录',
 

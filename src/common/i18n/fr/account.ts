@@ -21,6 +21,11 @@ const account = {
     'Un code à six chiffres est envoyé à cette adresse. Saisissez-le ici pour terminer.',
   'account.working': 'Un instant…',
   'account.signOut': 'Se déconnecter',
+  'account.name.change': 'Changer de nom',
+  'account.name.changeTitle': 'Changer la façon dont vous apparaissez',
+  'account.name.changeBody':
+    'Votre pseudo et votre nom au classement et sur les scènes que vous avez publiées. Ils changent partout à la fois ; votre e-mail reste privé.',
+  'account.name.cancel': 'Annuler',
   'account.signedIn': 'Connecté',
   'account.backToSignIn': 'Retour à la connexion',
 

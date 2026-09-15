@@ -6,7 +6,15 @@ import { PLUS_TERMS_EDITION } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from '../components/DialogHeader';
 import Glyph from '../community/Glyph';
+import LeaderboardName from '../community/LeaderboardName';
 import { identityStyle } from '../community/identity';
+import {
+  createProfile,
+  forgetProfile,
+  loadProfile,
+  updateProfile,
+  useProfile,
+} from '../plus/profileStore';
 import { useLeaderboard } from '../usage/leaderboardStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { signOutAccount, useAccount } from './accountStore';
@@ -104,8 +112,23 @@ export default function AccountDialog({
 
   const { identity, status } = account;
   const signedIn = status === 'signed-in' && identity !== undefined;
-  const displayName = identity?.name ?? identity?.email ?? '';
   const termsOffered = isCheckoutConfigured();
+
+  // The name the board and the gallery show, when one has been chosen: it is
+  // what the panel leads with, and what "Change name" edits. The provider's
+  // name stands in until then.
+  const { profile, loaded: profileLoaded } = useProfile();
+  const accountId = signedIn ? identity.id : undefined;
+  useEffect(() => {
+    if (accountId) {
+      loadProfile(accountId).catch(() => undefined);
+    } else {
+      forgetProfile();
+    }
+  }, [accountId]);
+  const [editingName, setEditingName] = useState(false);
+  const displayName =
+    profile?.displayName ?? identity?.name ?? identity?.email ?? '';
 
   // Paying needs an account with nothing to pay for yet: signed out, the
   // panel asks for the account first; already a member, there is nothing to
@@ -224,6 +247,9 @@ export default function AccountDialog({
                 </span>
                 <div className="account__who">
                   <span className="account__name">{displayName}</span>
+                  {profile && (
+                    <span className="account__handle">@{profile.handle}</span>
+                  )}
                   {identity.email && identity.email !== displayName && (
                     <span className="account__email">{identity.email}</span>
                   )}
@@ -245,6 +271,22 @@ export default function AccountDialog({
                       </span>
                     )}
                   </div>
+                  {/* Only once the server has said whether there is a name:
+                      "choose" offered to somebody who has one would create a
+                      second row and fail on the first. */}
+                  {profileLoaded && !editingName && (
+                    <button
+                      type="button"
+                      className="account-link account__name-link"
+                      onClick={() => setEditingName(true)}
+                    >
+                      {t(
+                        profile
+                          ? 'account.name.change'
+                          : 'leaderboard.name.choose',
+                      )}
+                    </button>
+                  )}
                 </div>
                 {/* The quiet style: signing out is not what anybody opened
                     this panel to be encouraged into. */}
@@ -260,6 +302,24 @@ export default function AccountDialog({
               </section>
 
               {errorLine}
+
+              {editingName && (
+                <div className="account__name-form">
+                  <LeaderboardName
+                    initial={
+                      profile
+                        ? {
+                            handle: profile.handle,
+                            displayName: profile.displayName,
+                          }
+                        : undefined
+                    }
+                    save={profile ? updateProfile : createProfile}
+                    onSaved={() => setEditingName(false)}
+                    onCancel={() => setEditingName(false)}
+                  />
+                </div>
+              )}
 
               <div className="account__cards">
                 <PlusCard

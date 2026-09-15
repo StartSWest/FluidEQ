@@ -21,6 +21,11 @@ const account = {
     'На этот адрес придёт шестизначный код. Введите его здесь, чтобы завершить.',
   'account.working': 'Секунду…',
   'account.signOut': 'Выйти',
+  'account.name.change': 'Изменить имя',
+  'account.name.changeTitle': 'Измените, как вас видят',
+  'account.name.changeBody':
+    'Ваш ник и имя в таблице лидеров и на опубликованных вами сценах. Они меняются везде сразу; ваш адрес почты остаётся скрытым.',
+  'account.name.cancel': 'Отмена',
   'account.signedIn': 'Вход выполнен',
   'account.backToSignIn': 'Назад ко входу',
 

@@ -30,6 +30,13 @@ const account = {
     'A six-digit code goes to that address. Type it here to finish.',
   'account.working': 'One moment…',
   'account.signOut': 'Sign out',
+  // The name on the board and on published scenes, changed from here. The
+  // fields and their refusals are the board's own (leaderboard.name.*).
+  'account.name.change': 'Change name',
+  'account.name.changeTitle': 'Change how you appear',
+  'account.name.changeBody':
+    'Your handle and name on the board and on the scenes you have published. They change everywhere at once; your email stays private.',
+  'account.name.cancel': 'Cancel',
   'account.signedIn': 'Signed in',
   'account.backToSignIn': 'Back to sign in',
 

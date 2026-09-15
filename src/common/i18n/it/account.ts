@@ -21,6 +21,11 @@ const account = {
     'A quell’indirizzo arriva un codice di sei cifre. Inseriscilo qui per completare.',
   'account.working': 'Un momento…',
   'account.signOut': 'Esci',
+  'account.name.change': 'Cambia nome',
+  'account.name.changeTitle': 'Cambia come appari',
+  'account.name.changeBody':
+    'Il tuo handle e il tuo nome in classifica e sulle scene che hai pubblicato. Cambiano ovunque nello stesso momento; la tua email resta privata.',
+  'account.name.cancel': 'Annulla',
   'account.signedIn': 'Accesso effettuato',
   'account.backToSignIn': 'Torna all’accesso',
 

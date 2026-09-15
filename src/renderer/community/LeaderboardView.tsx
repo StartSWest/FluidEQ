@@ -7,7 +7,7 @@ import type {
 } from 'main/usage/leaderboardApi';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useEntitlement } from '../account/entitlementStore';
-import { useProfile } from '../plus/profileStore';
+import { createProfile, useProfile } from '../plus/profileStore';
 import { useTranslation } from '../utils/I18nContext';
 import { loadLeaderboard, useLeaderboard } from '../usage/leaderboardStore';
 import Avatar from './Avatar';
@@ -132,6 +132,7 @@ export default function LeaderboardView() {
 
           {needsName && (
             <LeaderboardName
+              save={createProfile}
               onSaved={() => {
                 loadLeaderboard(period).catch(() => undefined);
               }}

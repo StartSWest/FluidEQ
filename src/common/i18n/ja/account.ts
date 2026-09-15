@@ -21,6 +21,11 @@ const account = {
     'そのアドレスに6桁のコードを送ります。ここに入力して完了してください。',
   'account.working': 'しばらくお待ちください…',
   'account.signOut': 'サインアウト',
+  'account.name.change': '名前を変更',
+  'account.name.changeTitle': '表示のされ方を変える',
+  'account.name.changeBody':
+    'ランキングと、あなたが公開したシーンに表示されるハンドルと名前です。変更はすべての場所に同時に反映されます。メールアドレスは公開されません。',
+  'account.name.cancel': 'キャンセル',
   'account.signedIn': 'サインイン済み',
   'account.backToSignIn': 'サインインに戻る',
 

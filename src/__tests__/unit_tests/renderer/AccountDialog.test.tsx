@@ -9,6 +9,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import AccountDialog from '../../../renderer/account/AccountDialog';
+import { resetProfileStore } from '../../../renderer/plus/profileStore';
 
 let mockAccountState: IAccountState = { status: 'signed-out' };
 const mockSignUp = jest.fn((_details: unknown) => Promise.resolve());
@@ -332,5 +333,115 @@ describe('the account panel', () => {
 
     await userEvent.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * The name the board ranks and the gallery credits, changed from the panel.
+ * The provider's name stands in until one is chosen; once there is one, it
+ * is what the panel leads with, and "Change name" edits it in place.
+ */
+describe('the name on the board, from the account panel', () => {
+  const NAMED = {
+    userId: 'u-1',
+    handle: 'ivan_c',
+    displayName: 'Ivan C',
+    role: 'member',
+  };
+  const bridge = {
+    plusProfile: jest.fn(),
+    plusCreateProfile: jest.fn(),
+    plusUpdateProfile: jest.fn(),
+  };
+  const signedIn = () =>
+    renderDialog({
+      status: 'signed-in',
+      identity: { id: 'u-1', name: 'Ada Lovelace', email: 'ada@example.com' },
+    });
+
+  beforeEach(() => {
+    resetProfileStore();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      value: { ipcRenderer: bridge },
+    });
+  });
+  afterEach(() => {
+    Reflect.deleteProperty(window, 'electron');
+  });
+
+  it('leads with the chosen name, and changes it in place', async () => {
+    bridge.plusProfile.mockResolvedValue({ ok: true, value: NAMED });
+    bridge.plusUpdateProfile.mockResolvedValue({
+      ok: true,
+      value: { ...NAMED, displayName: 'Ivan' },
+    });
+    signedIn();
+
+    expect(await screen.findByText('@ivan_c')).toBeInTheDocument();
+    expect(screen.getByText('Ivan C')).toHaveClass('account__name');
+    expect(screen.queryByText('Ada Lovelace')).toBeNull();
+
+    await userEvent.click(button('account.name.change'));
+    const handle = screen.getByLabelText(/leaderboard\.name\.handle/);
+    const name = screen.getByLabelText('leaderboard.name.name');
+    const save = button('leaderboard.name.save');
+    expect(handle).toHaveValue('ivan_c');
+    expect(name).toHaveValue('Ivan C');
+    expect(screen.getByText('account.name.changeTitle')).toBeInTheDocument();
+    // Nothing to save until something differs from the name there is.
+    expect(save).toBeDisabled();
+
+    await userEvent.clear(name);
+    await userEvent.type(name, ' Ivan ');
+    expect(save).toBeEnabled();
+    await userEvent.click(save);
+
+    expect(bridge.plusUpdateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan');
+    expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
+    expect(screen.getByText('Ivan')).toHaveClass('account__name');
+  });
+
+  it('offers to choose a name where there is none, and puts the form away on cancel', async () => {
+    bridge.plusProfile.mockResolvedValue({ ok: true, value: null });
+    bridge.plusCreateProfile.mockResolvedValue({ ok: true, value: NAMED });
+    signedIn();
+
+    // The provider's name until one is chosen, and no handle to show.
+    expect(screen.getByText('Ada Lovelace')).toHaveClass('account__name');
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'leaderboard.name.choose',
+      }),
+    );
+    expect(screen.getByText('leaderboard.name.title')).toBeInTheDocument();
+    await userEvent.click(button('account.name.cancel'));
+    expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
+    expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
+
+    await userEvent.click(button('leaderboard.name.choose'));
+    await userEvent.type(
+      screen.getByLabelText(/leaderboard\.name\.handle/),
+      'ivan_c',
+    );
+    await userEvent.type(
+      screen.getByLabelText('leaderboard.name.name'),
+      'Ivan C',
+    );
+    await userEvent.click(button('leaderboard.name.save'));
+    expect(bridge.plusCreateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan C');
+    expect(await screen.findByText('@ivan_c')).toBeInTheDocument();
+  });
+
+  it('offers neither until the server has said whether there is a name', () => {
+    bridge.plusProfile.mockReturnValue(new Promise(() => {}));
+    signedIn();
+    expect(
+      screen.queryByRole('button', { name: 'account.name.change' }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'leaderboard.name.choose' }),
+    ).toBeNull();
   });
 });

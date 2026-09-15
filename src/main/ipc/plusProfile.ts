@@ -11,7 +11,7 @@ import type { IAccountSession } from '../account/session';
 import { createProfileApi, ProfileError } from '../plus/profileApi';
 
 /**
- * The member's name, as the renderer sees it: read it, or choose it once.
+ * The member's name, as the renderer sees it: read it, choose it, change it.
  *
  * Every call answers `{ ok, value }` or `{ ok: false, failure }` rather than
  * throwing across the bridge, so "that handle is taken" survives the trip as
@@ -27,7 +27,34 @@ export interface IPlusProfileIpcDeps {
 export type TPlusProfileResult<T> =
   { ok: true; value: T } | { ok: false; failure: TProfileFailure };
 
-const CHANNELS = ['plus-profile', 'plus-create-profile'] as const;
+const CHANNELS = [
+  'plus-profile',
+  'plus-create-profile',
+  'plus-update-profile',
+] as const;
+
+/**
+ * The name as the server will take it, or the refusal the form has a sentence
+ * for — before anything costs a request. The set of invisible characters is
+ * the server's (migration 0022), checked here so the form can say so at once.
+ */
+const wantedName = (
+  handle: unknown,
+  displayName: unknown,
+): { handle: string; displayName: string } => {
+  const wanted = typeof handle === 'string' ? handle.trim().toLowerCase() : '';
+  const name =
+    typeof displayName === 'string'
+      ? displayName.trim().slice(0, MAX_DISPLAY_NAME)
+      : '';
+  if (!HANDLE_PATTERN.test(wanted) || name.length === 0) {
+    throw new ProfileError('rejected', 'Handle or name malformed.');
+  }
+  if (hasInvisibleCharacters(name)) {
+    throw new ProfileError('name_unreadable', 'Name has invisible characters.');
+  }
+  return { handle: wanted, displayName: name };
+};
 
 const guard = async <T>(
   work: () => Promise<T>,
@@ -65,24 +92,17 @@ export const registerPlusProfileIpc = ({
     'plus-create-profile',
     (_event, handle: unknown, displayName: unknown) =>
       guard(async () => {
-        const wanted =
-          typeof handle === 'string' ? handle.trim().toLowerCase() : '';
-        const name =
-          typeof displayName === 'string'
-            ? displayName.trim().slice(0, MAX_DISPLAY_NAME)
-            : '';
-        if (!HANDLE_PATTERN.test(wanted) || name.length === 0) {
-          throw new ProfileError('rejected', 'Handle or name malformed.');
-        }
-        // The set the server refuses too (server migration 0022), checked
-        // here so the form can say so without a round trip.
-        if (hasInvisibleCharacters(name)) {
-          throw new ProfileError(
-            'name_unreadable',
-            'Name has invisible characters.',
-          );
-        }
-        return api.create(wanted, name);
+        const wanted = wantedName(handle, displayName);
+        return api.create(wanted.handle, wanted.displayName);
+      }),
+  );
+
+  ipcMain.handle(
+    'plus-update-profile',
+    (_event, handle: unknown, displayName: unknown) =>
+      guard(async () => {
+        const wanted = wantedName(handle, displayName);
+        return api.update(wanted.handle, wanted.displayName);
       }),
   );
 

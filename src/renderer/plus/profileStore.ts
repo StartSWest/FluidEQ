@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { IPlusProfile, TProfileFailure } from 'common/plusProfile';
+import type { TPlusProfileResult } from 'main/ipc/plusProfile';
 
 /**
  * The member's name — the @handle and display name the leaderboard ranks and
@@ -71,8 +72,18 @@ export const forgetProfile = () => {
   }
 };
 
-/** Chooses the name, once. Resolves whether it was taken. */
-export const createProfile = async (
+type TSave = (
+  handle: string,
+  displayName: string,
+) => Promise<TPlusProfileResult<IPlusProfile>> | undefined;
+
+/**
+ * One request to the server about the name, kept to the account that made
+ * it. Resolves whether the name was taken; a failure stays on `error` until
+ * the next attempt.
+ */
+const save = async (
+  request: TSave,
   handle: string,
   displayName: string,
 ): Promise<boolean> => {
@@ -81,7 +92,7 @@ export const createProfile = async (
     return false;
   }
   publish({ saving: true, error: undefined });
-  const result = await bridge()?.plusCreateProfile?.(handle, displayName);
+  const result = await request(handle, displayName);
   if (state.accountId !== accountId) {
     return false;
   }
@@ -96,6 +107,28 @@ export const createProfile = async (
   publish({ saving: false, profile: result.value, loaded: true });
   return true;
 };
+
+/** Chooses the name, once. Resolves whether it was taken. */
+export const createProfile = (
+  handle: string,
+  displayName: string,
+): Promise<boolean> =>
+  save(
+    (wanted, name) => bridge()?.plusCreateProfile?.(wanted, name),
+    handle,
+    displayName,
+  );
+
+/** Changes the name already chosen. Resolves whether the change was taken. */
+export const updateProfile = (
+  handle: string,
+  displayName: string,
+): Promise<boolean> =>
+  save(
+    (wanted, name) => bridge()?.plusUpdateProfile?.(wanted, name),
+    handle,
+    displayName,
+  );
 
 export const clearProfileError = () => {
   if (state.error) {

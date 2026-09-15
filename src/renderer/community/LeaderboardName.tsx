@@ -7,11 +7,7 @@ import {
   type TProfileFailure,
 } from 'common/plusProfile';
 import { useTranslation } from '../utils/I18nContext';
-import {
-  clearProfileError,
-  createProfile,
-  useProfile,
-} from '../plus/profileStore';
+import { clearProfileError, useProfile } from '../plus/profileStore';
 import Avatar from './Avatar';
 import { identityStyle } from './identity';
 import '../styles/LeaderboardName.scss';
@@ -27,12 +23,22 @@ const ERROR_KEYS: Record<TProfileFailure, TranslationKey> = {
 };
 
 interface ILeaderboardNameProps {
+  /**
+   * The name as it is now, when one has been chosen: the form starts from it
+   * and says it is a change, and nothing is sent until something differs.
+   */
+  initial?: { handle: string; displayName: string };
+  /** Sends the name; resolves whether the server took it. */
+  save: (handle: string, displayName: string) => Promise<boolean>;
   /** The name was saved; the board can be asked for again, now with them in it. */
   onSaved: () => void;
+  /** Offered only where the form can be put away without a name being saved. */
+  onCancel?: () => void;
 }
 
 /**
- * Choosing the name the board ranks — once, before a member can be on it.
+ * Choosing the name the board ranks — once, before a member can be on it —
+ * and changing it later from the account panel.
  *
  * The server keeps each computer's listening under the member's profile, so
  * without one there is nothing to rank; and the handle and name are what the
@@ -41,23 +47,34 @@ interface ILeaderboardNameProps {
  * @handle — and redraws it with every key, so the choice is made looking at
  * the result rather than at two empty boxes.
  */
-export default function LeaderboardName({ onSaved }: ILeaderboardNameProps) {
+export default function LeaderboardName({
+  initial,
+  save,
+  onSaved,
+  onCancel,
+}: ILeaderboardNameProps) {
   const { t } = useTranslation();
   const { saving, error } = useProfile();
-  const [handle, setHandle] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [handle, setHandle] = useState(initial?.handle ?? '');
+  const [displayName, setDisplayName] = useState(initial?.displayName ?? '');
   const handleId = useId();
   const nameId = useId();
 
-  const valid = HANDLE_PATTERN.test(handle) && displayName.trim().length > 0;
-  const shownName = displayName.trim() || t('leaderboard.name.previewName');
+  const trimmedName = displayName.trim();
+  const unchanged =
+    initial !== undefined &&
+    handle === initial.handle &&
+    trimmedName === initial.displayName;
+  const valid =
+    HANDLE_PATTERN.test(handle) && trimmedName.length > 0 && !unchanged;
+  const shownName = trimmedName || t('leaderboard.name.previewName');
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!valid || saving) {
       return;
     }
-    if (await createProfile(handle, displayName.trim())) {
+    if (await save(handle, trimmedName)) {
       onSaved();
     }
   };
@@ -82,10 +99,10 @@ export default function LeaderboardName({ onSaved }: ILeaderboardNameProps) {
 
       <div className="leaderboard-name__body">
         <span id={`${handleId}-title`} className="leaderboard-name__title">
-          {t('leaderboard.name.title')}
+          {t(initial ? 'account.name.changeTitle' : 'leaderboard.name.title')}
         </span>
         <span className="leaderboard-name__lead">
-          {t('leaderboard.name.body')}
+          {t(initial ? 'account.name.changeBody' : 'leaderboard.name.body')}
         </span>
 
         <div className="leaderboard-name__fields">
@@ -139,6 +156,18 @@ export default function LeaderboardName({ onSaved }: ILeaderboardNameProps) {
           >
             {t('leaderboard.name.save')}
           </button>
+          {onCancel && (
+            <button
+              type="button"
+              className="button small subtle leaderboard-name__cancel"
+              onClick={() => {
+                clearProfileError();
+                onCancel();
+              }}
+            >
+              {t('account.name.cancel')}
+            </button>
+          )}
         </div>
 
         {error && (
