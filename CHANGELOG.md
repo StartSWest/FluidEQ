@@ -54,7 +54,26 @@ duplicated another, and the guide gets a chapter on what your PC needs.
 - **Bug reports say why the engine is attached and silent.** A new Outputs
   section lists what Windows allows on each output, what the setup helper
   and the engine itself report, and the engine's own reason for passing
-  sound through unprocessed — with the tail of its own log.
+  sound through unprocessed — with the tail of its own log. It also says
+  whether Windows is allowing the engine to load at all, whether the
+  runtime it needs is in place, and whether the engine has ever run on that
+  PC.
+- **The engine can be installed, attached and still never loaded by
+  Windows — and FluidEQ now repairs that itself.** Two machine-wide Windows
+  settings decide whether it may run, and a Windows update, a driver's
+  installer or an audio "repair" tool can undo either of them long after
+  setup. Until now everything looked healthy and the EQ simply did nothing.
+  FluidEQ checks both, puts them right with one Windows permission prompt,
+  and restarts the audio so the engine is loaded.
+- **The card asking to restart Windows audio stops coming back.** Returning
+  to the DSP page with music playing showed it again every single time;
+  it is now put away for the rest of the session.
+- **Windows audio is no longer restarted with a dialog appearing on its
+  own.** It happens quietly, once per run of FluidEQ even if the window
+  reloads, and never on a PC where the engine has never loaded — a restart
+  cannot help there. The card still appears by itself if the restart fails.
+- **The EQ and the DSP rack are verified at 44.1, 48, 96 and 192 kHz**, so a
+  high-rate DAC gets the same sound as any other output.
 - **Windows' own "Audio enhancements" switch is no longer invisible to the
   app.** Turned off for an output, FluidEQ now says so and offers Windows'
   own Sound page instead of a Restart Windows audio button that cannot help.
