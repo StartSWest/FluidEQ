@@ -402,7 +402,8 @@ subscribeCustomLooks(() => {
 });
 
 // A scene can stop being usable underneath the selection — the subscription
-// lapsed, the pack was quarantined, a new version arrived without it. The
+// lapsed, this session blocked the pack after it failed, a new version
+// arrived without it. The
 // selection then lands on THAT SCENE'S fallback form, not on Fluid: somebody
 // who chose an aurora should get the nearest free form, not the first one.
 //
@@ -421,8 +422,9 @@ subscribeScenePacks(() => {
   refresh();
 });
 
-// The same for a member's scene: removed, quarantined, or Plus lapsed. Its own
-// fallback form, and only once the list has arrived.
+// The same for a member's scene: removed, blocked this session after it
+// failed, or Plus lapsed. Its own fallback form, and only once the list has
+// arrived.
 subscribeMemberScenes(() => {
   if (
     isMemberLookId(selectedId) &&

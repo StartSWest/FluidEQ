@@ -10,8 +10,9 @@ import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
- * Visualizers gallery, the leaderboard or the Studio — and in the gallery,
- * which page.
+ * Visualizers gallery, the leaderboard, the Studio, the lighting, or the
+ * admin's own place — in the gallery which page, and in the admin's place
+ * which of its pages.
  *
  * Kept outside the components so it outlives them. The tab unmounts whenever
  * another one is chosen in the title bar, and coming back should find the
@@ -29,8 +30,17 @@ export const PLUS_PLACES = [
   'board',
   'studio',
   'lighting',
+  'admin',
 ] as const;
 export type TPlusPlace = (typeof PLUS_PLACES)[number];
+
+/**
+ * The admin's pages: every account, the Plus given away, and the scenes
+ * members reported. Only the admin is offered the place; the server refuses
+ * anybody else on every call regardless.
+ */
+export const ADMIN_SECTIONS = ['accounts', 'gifts', 'reported'] as const;
+export type TAdminSection = (typeof ADMIN_SECTIONS)[number];
 
 const PLACE_KEY = 'fluideq.plusPlace';
 
@@ -64,13 +74,7 @@ export type TGalleryPage =
       report?: IReportedScene;
     }
   | { kind: 'maker'; maker: IMakerRef }
-  | { kind: 'mine' }
-  /** The admin's queue of reported scenes. */
-  | { kind: 'reported' }
-  /** The admin's Plus gifts: addresses that count as paying. */
-  | { kind: 'gifts' }
-  /** The admin's account deletion: an account found by address, deleted. */
-  | { kind: 'accounts' };
+  | { kind: 'mine' };
 
 /** A page's own name, for what is remembered about it. */
 export const galleryPageKey = (page: TGalleryPage) => {
@@ -95,12 +99,14 @@ interface IPlusNavigation {
   place: TPlusPlace;
   page: TGalleryPage;
   filters: IBrowseFilters;
+  admin: TAdminSection;
 }
 
 const INITIAL: IPlusNavigation = {
   place: 'visualizers',
   page: { kind: 'browse' },
   filters: { sort: 'liked', text: '' },
+  admin: 'accounts',
 };
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
@@ -138,6 +144,10 @@ export const openPlusPlace = (place: TPlusPlace) => {
 export const openGalleryPage = (page: TGalleryPage) =>
   publish({ ...navigation, place: 'visualizers', page });
 
+/** Shows one of the admin's pages. */
+export const openAdminSection = (admin: TAdminSection) =>
+  publish({ ...navigation, place: 'admin', admin });
+
 /**
  * How far down each page was scrolled, by page, so Back lands where the
  * member left the gallery rather than at its top.
@@ -162,9 +172,20 @@ export const setBrowseFilters = (filters: IBrowseFilters) => {
  * which after a few arrows and a maker or two meant pressing it over and
  * over to get anywhere (Ivan: "tiene que ir al root siempre de una sola
  * vez"). The gallery reopens where it was scrolled to.
+ *
+ * A scene the admin opened from the reported queue goes back to that queue:
+ * the admin came from there, not from the gallery.
  */
-export const goBackInGallery = () =>
-  publish({ ...navigation, page: { kind: 'browse' } });
+export const goBackInGallery = () => {
+  const { page } = navigation;
+  publish({
+    ...navigation,
+    page: { kind: 'browse' },
+    ...(page.kind === 'scene' && page.report
+      ? { place: 'admin', admin: 'reported' }
+      : {}),
+  });
+};
 
 /** For tests: a clean module between runs. */
 export const resetPlusNavigation = () => {

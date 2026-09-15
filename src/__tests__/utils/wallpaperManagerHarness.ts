@@ -182,7 +182,6 @@ export const setup = (stored?: IWallpaperArrangement) => {
       sceneListeners.add(listener);
       return () => sceneListeners.delete(listener);
     }),
-    isSceneRefused: jest.fn((_lookId: string) => false),
     reportSceneFailure: jest.fn(),
   };
   const deps: IWallpaperDeps = {

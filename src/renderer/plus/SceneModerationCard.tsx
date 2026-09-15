@@ -3,7 +3,7 @@ import type { IReportedScene, TModerationAction } from 'common/plusModeration';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { moderateReportedScene } from './moderationStore';
-import { openGalleryPage } from './plusNavigation';
+import { openAdminSection } from './plusNavigation';
 import { REASON_LABELS, reportedReasons } from './ReportedSceneRow';
 import '../styles/GalleryModeration.scss';
 
@@ -39,7 +39,7 @@ export default function SceneModerationCard({
       .then((done) => {
         setWorking(undefined);
         if (done) {
-          openGalleryPage({ kind: 'reported' });
+          openAdminSection('reported');
         }
         return undefined;
       })

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../common/memberScenes';
-import { writeStarterProject } from './project';
+import { MANIFEST_FILE, writeStarterProject } from './project';
 
 /**
  * New Studio projects, made where the member keeps them.
@@ -68,6 +68,53 @@ export const sceneIdFor = (name: string): string => {
     .slice(0, 48)
     .replace(/-+$/, '');
   return slug.length >= 2 ? slug : 'my-scene';
+};
+
+/** Whether `folder` holds a scene: a plain `pack.json` of its own. */
+const holdsScene = async (folder: string): Promise<boolean> => {
+  try {
+    return (await fs.promises.lstat(path.join(folder, MANIFEST_FILE))).isFile();
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The projects a folder the member opened stands for: the folder itself when
+ * it holds a scene, or when nothing in it does (an empty folder is where a
+ * chat's files get saved); otherwise every folder directly inside it that
+ * holds one, in name order. Opened as one project, a folder of scenes showed
+ * nothing but "pack.json is missing".
+ *
+ * One level down, and never through a link: a junction in a projects folder
+ * can point anywhere, the folder itself included.
+ */
+export const findProjectFolders = async (folder: string): Promise<string[]> => {
+  if (await holdsScene(folder)) {
+    return [folder];
+  }
+  let entries: fs.Dirent[];
+  try {
+    entries = await fs.promises.readdir(folder, { withFileTypes: true });
+  } catch {
+    return [folder];
+  }
+  const inside = entries
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+    )
+    .map((name) => path.join(folder, name));
+  const scenes = await Promise.all(
+    inside.map(async (candidate) =>
+      (await holdsScene(candidate)) ? candidate : undefined,
+    ),
+  );
+  const found = scenes.filter(
+    (candidate): candidate is string => candidate !== undefined,
+  );
+  return found.length > 0 ? found : [folder];
 };
 
 export type TNewProjectOutcome =

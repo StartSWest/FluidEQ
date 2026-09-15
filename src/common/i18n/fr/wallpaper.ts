@@ -59,7 +59,7 @@ const wallpaper = {
   'wallpaper.error.missingScene':
     "Ce visualiseur n'est plus installé. Ajoutez-le à nouveau et réessayez.",
   'wallpaper.error.refused':
-    'Ce visualiseur a échoué avec les graphismes de cet ordinateur ; il ne sera plus lu ici.',
+    'Ce visualiseur a échoué avec les graphismes de cet ordinateur. Remettez-le pour réessayer.',
   'wallpaper.error.missingDisplay':
     'Cet écran est déconnecté. Son arrière-plan revient dès que vous le rebranchez.',
   'wallpaper.error.host':

@@ -12,12 +12,11 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
  * source crosses from the main process when a scene is about to be drawn, and
  * not before — the picker does not need sixty kilobytes of GLSL to draw a row.
  *
- * "Usable" is decided here, once, from three facts: the account is entitled,
- * the main process has not quarantined the pack, and this machine can run a
- * scene at all. Everything that offers a premium look — the picker, the
- * arrows, Space, the click on the plot and the auto-cycle — reads that one list
- * through `getSelectableLooks`, so a look that cannot draw is never offered
- * anywhere.
+ * "Usable" is decided here, once, from two facts: the account is entitled,
+ * and this machine can run a scene at all. Everything that offers a premium
+ * look — the picker, the arrows, Space, the click on the plot and the
+ * auto-cycle — reads that one list through `getSelectableLooks`, so a look
+ * that cannot draw is never offered anywhere.
  */
 
 export interface IUsableScene {
@@ -53,8 +52,10 @@ let listing: IScenePacksListing = EMPTY;
 let loaded = false;
 /**
  * Scenes this renderer found it could not run — a context lost, a compile
- * that failed — kept here until the main process confirms a quarantine or a
- * new version arrives. Renderer-local so the fallback is immediate.
+ * that failed — kept here only until the next fresh listing: nothing on disk
+ * remembers a failure, so every `adopt()` of a listing is a clean slate for
+ * whatever this session had blocked. Renderer-local so the fallback is
+ * immediate.
  */
 const blocked = new Set<string>();
 let subscribed = false;
@@ -71,7 +72,7 @@ const recompute = () => {
   usable =
     listing.entitled && canDraw
       ? listing.packs
-          .filter((pack) => !pack.quarantined && !blocked.has(pack.id))
+          .filter((pack) => !blocked.has(pack.id))
           .map((pack) => ({
             id: pack.id,
             version: pack.version,
@@ -105,13 +106,9 @@ const publish = () => {
 const adopt = (next: IScenePacksListing) => {
   listing = next;
   loaded = true;
-  // A new version of a pack gets its chance again; the main process has
-  // already released its quarantine on adopt.
-  next.packs.forEach((pack) => {
-    if (!pack.quarantined) {
-      blocked.delete(pack.id);
-    }
-  });
+  // Nothing on disk remembers a failure any more, so a fresh listing is a
+  // clean slate: every pack this session had blocked gets another try.
+  blocked.clear();
   publish();
 };
 

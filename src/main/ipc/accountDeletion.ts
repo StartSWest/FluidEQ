@@ -4,23 +4,28 @@ import {
   isAccountAddress,
   type IAccountToDelete,
 } from '../../common/accountDeletion';
+import { readAccountListRequest } from '../../common/adminAccounts';
 import {
   deleteAccount,
   findAccounts,
   type TAccountDeletionFailure,
   type TDeleteAccountFailure,
 } from '../plus/accountDeletionApi';
+import {
+  listAccounts,
+  type TAccountListOutcome,
+} from '../plus/adminAccountsApi';
 import type { IGalleryAccess } from '../plus/galleryAccess';
 
 /**
- * The admin's account deletion, over IPC: finding the account behind an
- * address, and deleting it.
+ * The admin's accounts, over IPC: every account a page at a time, the account
+ * behind an address, and deleting it.
  *
- * Offering the page is a courtesy and nothing more: a member who rebuilt the
+ * Offering the pages is a courtesy and nothing more: a member who rebuilt the
  * app without the admin check still gets `admin_required` from the server,
- * because that is where the rule lives. The address is checked here the way
- * the server checks it, so a mistyped one is said on the page rather than as
- * a server failure.
+ * because that is where the rule lives. Requests are checked here the way the
+ * server checks them, so a mistyped one is said on the page rather than as a
+ * server failure.
  */
 
 export type TFindAccountsOutcome =
@@ -30,7 +35,13 @@ export type TFindAccountsOutcome =
 export type TDeleteAccountOutcome =
   { ok: true; files: number } | { ok: false; reason: TDeleteAccountFailure };
 
-const CHANNELS = ['account-deletion-find', 'account-deletion-delete'] as const;
+export type { TAccountListOutcome };
+
+const CHANNELS = [
+  'account-list',
+  'account-deletion-find',
+  'account-deletion-delete',
+] as const;
 
 export const registerAccountDeletionIpc = ({
   access,
@@ -42,6 +53,26 @@ export const registerAccountDeletionIpc = ({
     const auth = me ? await access.auth() : undefined;
     return auth && access.accountId() === me ? auth : undefined;
   };
+
+  ipcMain.handle(
+    'account-list',
+    async (_event, raw: unknown): Promise<TAccountListOutcome> => {
+      const request = readAccountListRequest(raw);
+      if (!request) {
+        return { ok: false, reason: 'invalid' };
+      }
+      const me = access.accountId();
+      const auth = await authFor(me);
+      if (!auth) {
+        return { ok: false, reason: 'signed-out' };
+      }
+      const outcome = await listAccounts(auth, request);
+      // Another account signed in while it was asked: this answer is not theirs.
+      return access.accountId() === me
+        ? outcome
+        : { ok: false, reason: 'signed-out' };
+    },
+  );
 
   ipcMain.handle(
     'account-deletion-find',

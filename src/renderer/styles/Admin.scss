@@ -1,0 +1,437 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The admin's place in the Plus tab (`AdminView.tsx`, `AdminAccounts.tsx`).
+// It wears the admin's own colour — the complementary one on the admin's name
+// tag — wherever it marks the place, so it never reads as a member's page;
+// everything else is the gallery's furniture.
+
+.community__head-mark.admin-head__mark {
+  color: color-mix(in srgb, $complementary 78%, $white);
+  background: color-mix(in srgb, $complementary 16%, transparent);
+  box-shadow: 0 0 18px -4px color-mix(in srgb, $complementary 45%, transparent);
+}
+
+// ---------------------------------------------------------------- pages
+
+// The place's pages as tabs in one track under its head; the open one lit.
+.admin-sections {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
+  display: flex;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  gap: 2px;
+  max-width: 100%;
+  margin: $spacing-xs 4px 0;
+  padding: 3px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background: $block-lift;
+}
+
+.admin-sections__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: $control-height-sm;
+  padding: 0 14px 0 10px;
+  color: $text-muted;
+  border: 0;
+  border-radius: $radius-m;
+  background: transparent;
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    color: $text-faint;
+    transition: color $motion-fast $ease-out;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 5%, transparent);
+  }
+
+  &.is-active {
+    color: $text-primary;
+    background: color-mix(in srgb, $complementary 17%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $complementary 38%, transparent);
+
+    svg {
+      color: color-mix(in srgb, $complementary 78%, $white);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 2px;
+  }
+}
+
+// ---------------------------------------------------------------- accounts
+
+.admin-accounts__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+
+  .gallery-search {
+    max-width: 440px;
+  }
+}
+
+.admin-accounts__refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// How many accounts there are, with Plus and without — and the filter, in the
+// same three tiles: pressing a count lists the accounts it counts.
+.admin-accounts__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: $spacing-s;
+}
+
+.admin-accounts__stat {
+  --stat-tone: #{$secondary-default};
+  position: relative;
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 11px 14px 12px;
+  color: $text-muted;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--stat-tone) 9%, transparent),
+      transparent 62%
+    ),
+    $block-lift;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  &.is-plus {
+    --stat-tone: #{$active};
+  }
+
+  &.is-free {
+    --stat-tone: #{$text-faint};
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--stat-tone) 42%, transparent);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--stat-tone) 62%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--stat-tone) 22%, transparent),
+      0 12px 28px -18px color-mix(in srgb, var(--stat-tone) 75%, transparent);
+
+    // A short bar of the tile's colour along its top edge: the list below is
+    // this count's.
+    &::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      right: 14px;
+      left: 14px;
+      height: 2px;
+      border-radius: 0 0 2px 2px;
+      background: var(--stat-tone);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 2px;
+  }
+}
+
+.admin-accounts__stat-label {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+  @include truncate;
+}
+
+.admin-accounts__stat-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+
+.admin-accounts__stat-value {
+  color: $text-primary;
+  font-size: calc(#{$text-title} * 1.4);
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+
+  &.is-waiting {
+    display: block;
+    width: 64px;
+    height: calc(#{$text-title} * 1.4);
+    border-radius: $radius-xs;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $white 4%, transparent) 0%,
+      color-mix(in srgb, $white 9%, transparent) 50%,
+      color-mix(in srgb, $white 4%, transparent) 100%
+    );
+    background-size: 200% 100%;
+    animation: gallery-shimmer 1.6s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+.admin-accounts__stat-share {
+  color: color-mix(in srgb, var(--stat-tone) 80%, $white);
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  font-variant-numeric: tabular-nums;
+}
+
+// A search on its way leaves the last answer on screen, dimmed, rather than
+// blanking the list at every letter.
+.admin-accounts__rows {
+  transition: opacity $motion-fast $ease-out;
+
+  &.is-dimmed {
+    opacity: 0.55;
+  }
+}
+
+.admin-accounts__shown {
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------- one account
+
+.admin-account {
+  @include animate(rise-in, $motion-base, $ease-out);
+  min-width: 0;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: $block-lift;
+  transition:
+    border-color $motion-fast $ease-out,
+    box-shadow $motion-fast $ease-out;
+
+  &.is-open {
+    border-color: color-mix(in srgb, $secondary-default 38%, transparent);
+    box-shadow: 0 14px 32px -22px
+      color-mix(in srgb, $secondary-default 70%, transparent);
+  }
+
+  // The second press is the one that deletes: the whole account says so.
+  &:has(.account-deletion__body.is-confirming) {
+    border-color: color-mix(in srgb, $red 52%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, $red 16%, transparent),
+      0 10px 28px -14px color-mix(in srgb, $red 45%, transparent);
+  }
+}
+
+.admin-account--skeleton {
+  display: block;
+  height: 56px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent) 0%,
+    color-mix(in srgb, $white 7%, transparent) 50%,
+    color-mix(in srgb, $white 3%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation:
+    fade-in $motion-slow ease-out backwards,
+    gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.admin-account__head {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto 12px;
+  align-items: center;
+  gap: $spacing-m;
+  width: 100%;
+  padding: 9px 14px 9px 12px;
+  color: inherit;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background $motion-fast $ease-out;
+
+  &:hover {
+    background: color-mix(in srgb, $white 3.5%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: -2px;
+  }
+
+  // The tags under the name when there is no room beside it: the name and
+  // the address are the things to read.
+  @container plus (max-width: 560px) {
+    grid-template-columns: 34px minmax(0, 1fr) 12px;
+
+    .admin-account__tags {
+      grid-row: 2;
+      grid-column: 2;
+      justify-content: flex-start;
+    }
+
+    .admin-account__chevron {
+      grid-row: 1;
+      grid-column: 3;
+    }
+  }
+}
+
+.admin-account__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: $secondary-light;
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  font-size: $text-body;
+  font-weight: $weight-bold;
+
+  .is-plus & {
+    color: $active;
+    background: color-mix(in srgb, $active 14%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, $active 38%, transparent);
+  }
+}
+
+.admin-account__who {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.admin-account__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.admin-account__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px 10px;
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+
+  > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.admin-account__unconfirmed {
+  color: color-mix(in srgb, $amber 80%, $white);
+}
+
+.admin-account__tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-account__tag {
+  padding: 3px 9px;
+  color: $text-faint;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 6%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.is-plus {
+    color: $active;
+    background: color-mix(in srgb, $active 14%, transparent);
+  }
+
+  &.is-admin {
+    color: color-mix(in srgb, $complementary 80%, $white);
+    background: color-mix(in srgb, $complementary 15%, transparent);
+  }
+}
+
+// Points down while closed and up while open.
+.admin-account__chevron {
+  justify-self: end;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid $text-faint;
+  border-bottom: 1.5px solid $text-faint;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform $motion-fast $ease-out;
+
+  .is-open & {
+    transform: translateY(2px) rotate(-135deg);
+  }
+}
+
+.admin-account__body {
+  padding: 2px 14px 14px;
+}

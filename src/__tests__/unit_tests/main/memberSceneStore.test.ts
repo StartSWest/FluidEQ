@@ -18,7 +18,6 @@ import {
   memberSceneFingerprint,
 } from '../../../main/memberScenes/store';
 import { memberLookId } from '../../../common/memberScenes';
-import { createSceneRefusals } from '../../../main/sceneRefusals';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import {
@@ -71,22 +70,19 @@ describe('the member scene store', () => {
       ],
       response: { sensitivity: 1.5, threshold: 0.2, attack: 40, release: 100 },
     });
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, tuned);
     store.saveImported(
       signedEnvelope(memberPayload({ pack: tuned, author: SOMEONE })),
     );
-    const reopened = createMemberSceneStore({
-      userDataDir,
-      appVersion: '1.0.0',
-    });
+    const reopened = createMemberSceneStore({ userDataDir });
     expect(reopened.load(ME, tuned.id)).toEqual(tuned);
     expect(reopened.load(SOMEONE, tuned.id)).toEqual(tuned);
   });
 
   // The control: everything below is a departure from this round trip.
   it('keeps a saved scene and gives it back whole', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     const summary = store.save(ME, pack());
     expect(summary).toMatchObject({
       lookId: memberLookId(ME, 'neon-city'),
@@ -100,16 +96,13 @@ describe('the member scene store', () => {
   });
 
   it('survives a restart', () => {
-    createMemberSceneStore({ userDataDir, appVersion: '1.0.0' }).save(
-      ME,
-      pack(),
-    );
-    const again = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    createMemberSceneStore({ userDataDir }).save(ME, pack());
+    const again = createMemberSceneStore({ userDataDir });
     expect(again.load(ME, 'neon-city')).toEqual(pack());
   });
 
   it('refuses to save a scene that breaks a rule', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     expect(() =>
       store.save(ME, pack({ source: `#define X 1\n${SOURCE}` })),
     ).toThrow();
@@ -117,7 +110,7 @@ describe('the member scene store', () => {
   });
 
   it('checks a scene again on every load, and keeps the file', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, pack());
     const stored = JSON.parse(fs.readFileSync(sceneFile('neon-city'), 'utf8'));
     const record = JSON.parse(
@@ -135,7 +128,7 @@ describe('the member scene store', () => {
   });
 
   it('ignores files that are not scenes', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, pack());
     fs.writeFileSync(sceneFile('broken'), '{ nope');
     fs.writeFileSync(
@@ -146,14 +139,14 @@ describe('the member scene store', () => {
   });
 
   it('refuses ids that are not ids', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     expect(() => store.save('not-an-account', pack())).toThrow();
     expect(store.load(ME, '../neon-city')).toBeUndefined();
     expect(store.load('../../etc', 'neon-city')).toBeUndefined();
   });
 
   it('removes a scene when its author asks', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, pack());
     expect(store.remove(ME, 'neon-city')).toBe(true);
     expect(store.list()).toEqual([]);
@@ -161,7 +154,7 @@ describe('the member scene store', () => {
   });
 
   it('keeps a scene another member sent, verified on every load', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     const summary = store.saveImported(signedEnvelope(memberPayload()));
     expect(summary).toMatchObject({
       lookId: memberLookId(SOMEONE, 'neon-city'),
@@ -198,7 +191,7 @@ describe('the member scene store', () => {
   });
 
   it('refuses to keep a file FluidEQ never signed', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     expect(() =>
       store.saveImported(signedEnvelope(memberPayload(), { trusted: false })),
     ).toThrow();
@@ -206,7 +199,7 @@ describe('the member scene store', () => {
   });
 
   it('stops listing and loading a blocked scene of either kind', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, pack());
     store.saveImported(signedEnvelope(memberPayload()));
     expect(store.list()).toHaveLength(2);
@@ -225,70 +218,23 @@ describe('the member scene store', () => {
   });
 
   it('removes a scene somebody sent, when asked', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
+    const store = createMemberSceneStore({ userDataDir });
     store.saveImported(signedEnvelope(memberPayload()));
     expect(store.remove(SOMEONE, 'neon-city')).toBe(true);
     expect(store.list()).toEqual([]);
   });
 
-  it('quarantines for this build only, and only the member lifts it', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
-    store.save(ME, pack());
-    store.quarantine(ME, 'neon-city', 'compile');
-    expect(store.load(ME, 'neon-city')).toBeUndefined();
-    expect(store.list()[0].quarantined).toBe('compile');
-    // Another build of the app gets a fresh chance.
-    const next = createMemberSceneStore({ userDataDir, appVersion: '1.0.1' });
-    expect(next.load(ME, 'neon-city')).toEqual(pack());
-    // A new version arriving by itself — the gallery's quiet sync saves it
-    // exactly this way — stays quarantined: a scene that reset the driver
-    // would otherwise run again with every upload.
-    store.save(ME, pack({ version: 2 }));
-    expect(store.load(ME, 'neon-city')).toBeUndefined();
-    // Something the member did lifts it.
-    store.release(ME, 'neon-city');
-    expect(store.load(ME, 'neon-city')).toEqual(pack({ version: 2 }));
-  });
-
-  it('keeps a quarantine for a blamed driver reset across builds, and a plain loss for this one', () => {
-    const store = createMemberSceneStore({ userDataDir, appVersion: '1.0.0' });
-    store.save(ME, pack());
-    store.save(ME, pack({ id: 'bloom', source: `${SOURCE}// bloom\n` }));
-    store.quarantine(ME, 'neon-city', 'gpu-reset');
-    store.quarantine(ME, 'bloom', 'context-lost');
-    const next = createMemberSceneStore({ userDataDir, appVersion: '1.0.1' });
-    expect(next.load(ME, 'neon-city')).toBeUndefined();
-    expect(
-      next.list().find((scene) => scene.packId === 'neon-city')?.quarantined,
-    ).toBe('gpu-reset');
-    // Sleep and driver updates lose every context too: not the scene's.
-    expect(next.load(ME, 'bloom')?.id).toBe('bloom');
-  });
-
-  it('holds back a scene whose code was refused wherever it ran', () => {
-    const refusals = createSceneRefusals({ userDataDir, appVersion: '1.0.0' });
-    const store = createMemberSceneStore({
-      userDataDir,
-      appVersion: '1.0.0',
-      refusals,
-    });
-    // The member's own scene and the one somebody sent carry the same code.
+  // The disk-based quarantine and cross-source refusal this store used to
+  // keep are gone entirely: a scene's runtime failure is reported and
+  // logged upstream (`ipc/memberScenes.ts`), never withheld here. Reopening
+  // the store — the same thing a relaunch does — finds every saved scene
+  // exactly as it was left, whatever ran badly on the machine last time.
+  it('never withholds a saved scene for a runtime failure — nothing here records one', () => {
+    const store = createMemberSceneStore({ userDataDir });
     store.save(ME, pack());
     store.saveImported(signedEnvelope(memberPayload()));
-    store.save(ME, pack({ id: 'bloom', source: `${SOURCE}// bloom\n` }));
-    refusals.refuse(SOURCE, 'gpu-reset');
-
-    // Refused by what runs, so every copy of that code is held back, under
-    // whichever identity it is kept.
-    expect(store.load(SOMEONE, 'neon-city')).toBeUndefined();
-    expect(store.load(ME, 'neon-city')).toBeUndefined();
-    const quarantined = Object.fromEntries(
-      store.list().map((scene) => [scene.lookId, scene.quarantined]),
-    );
-    expect(quarantined[memberLookId(SOMEONE, 'neon-city')]).toBe('gpu-reset');
-    expect(quarantined[memberLookId(ME, 'neon-city')]).toBe('gpu-reset');
-    // The control: other code still plays.
-    expect(quarantined[memberLookId(ME, 'bloom')]).toBeUndefined();
-    expect(store.load(ME, 'bloom')?.id).toBe('bloom');
+    const next = createMemberSceneStore({ userDataDir });
+    expect(next.load(ME, 'neon-city')).toEqual(pack());
+    expect(next.load(SOMEONE, 'neon-city')).toEqual(pack());
   });
 });

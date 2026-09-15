@@ -161,6 +161,13 @@ export const forgetStudioProject = async (id: string) => {
   }
 };
 
+/**
+ * Renames a project's scene and its folder, where it is, and opens it again;
+ * the new state arrives through the session like every other change.
+ */
+export const renameStudioProject = async (id: string, name: string) =>
+  (await bridge()?.renameStudioProject?.(id, name)) ?? ('failed' as const);
+
 export const publishStudioScene = async (
   termsVersion: number,
   category: TPlusCategory,

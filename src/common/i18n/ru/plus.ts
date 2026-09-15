@@ -102,8 +102,6 @@ const plus = {
     'Эта сцена не прошла проверку FluidEQ и не будет запущена.',
   'plus.scene.heavy': 'Эта сцена слишком тяжела для этого компьютера.',
   'plus.scene.broken': 'Эта сцена не работает на этом компьютере.',
-  'plus.scene.quarantined':
-    'Эта сцена уже вызывала сбой графики на этом компьютере, поэтому здесь она больше не воспроизводится.',
   'plus.scene.cannotDraw': 'Этот компьютер сейчас не может рисовать сцены.',
   'plus.scene.likes': 'Лайки',
   'plus.scene.week': 'За неделю',
@@ -218,14 +216,36 @@ const plus = {
 
   'plus.gallery.accounts': 'Аккаунты',
   'plus.accounts.title': 'Аккаунты',
-  'plus.accounts.hint':
-    'Когда кто-то просит удалить свой аккаунт, найдите его здесь по адресу почты и удалите. Он исчезнет навсегда вместе со всем, что обещают условия Plus: профилем, днями в таблице лидеров, подпиской, записями о согласии с условиями, лайками, добавлениями, жалобами и опубликованными сценами с их файлами.',
-  'plus.accounts.field.email': 'Адрес почты',
-  'plus.accounts.find': 'Найти аккаунт',
-  'plus.accounts.searchHint':
-    'Ничего не удаляется, пока вы не подтвердите это в карточке аккаунта.',
-  'plus.accounts.none': 'Нет аккаунта с адресом {email}',
-  'plus.accounts.noneHint': 'Сверьте его с адресом, с которого вам написали.',
+  'plus.admin.title': 'Управление',
+  'plus.admin.blurb': 'Аккаунты, подарки и жалобы',
+  'plus.admin.description':
+    'Это видите только вы: все аккаунты, Plus, который вы дарите, и сцены, на которые жалуются участники',
+  'plus.accounts.listHint':
+    'Сначала новые. Нажмите на аккаунт, чтобы увидеть, что в нём есть, и удалить его навсегда, когда владелец об этом попросит.',
+  'plus.accounts.search': 'Поиск по почте, нику или имени',
+  'plus.accounts.refresh': 'Обновить',
+  'plus.accounts.filter': 'Показать аккаунты',
+  'plus.accounts.filter.all': 'Все аккаунты',
+  'plus.accounts.filter.plus': 'С Plus',
+  'plus.accounts.filter.free': 'Без Plus',
+  'plus.accounts.admin': 'Админ',
+  'plus.accounts.loading': 'Загрузка аккаунтов…',
+  'plus.accounts.shown': 'Показано {shown} из {total}',
+  'plus.accounts.empty.none': 'Аккаунтов пока нет',
+  'plus.accounts.empty.search': 'Нет аккаунтов по запросу {query}',
+  'plus.accounts.empty.plus': 'Ни у одного из этих аккаунтов нет Plus',
+  'plus.accounts.empty.free': 'У всех этих аккаунтов есть Plus',
+  'plus.accounts.moreError':
+    'Не удалось загрузить больше аккаунтов. Попробуйте ещё раз.',
+  'plus.accounts.error.offline':
+    'Для списка аккаунтов нужно подключение. Попробуйте ещё раз онлайн.',
+  'plus.accounts.error.signedOut': 'Войдите снова, чтобы увидеть аккаунты.',
+  'plus.accounts.error.server':
+    'Не удалось загрузить аккаунты. Попробуйте ещё раз.',
+  'plus.accounts.error.list':
+    'Аккаунты может видеть только администратор FluidEQ.',
+  'plus.accounts.error.notDeployed':
+    'Сервер ещё не обновлён для списка аккаунтов.',
   'plus.accounts.noName': 'Имя не выбрано',
   'plus.accounts.joined': 'Зарегистрирован {date}',
   'plus.accounts.unconfirmed': 'Адрес не подтверждён',

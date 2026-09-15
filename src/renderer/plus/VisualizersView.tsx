@@ -5,11 +5,7 @@ import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { WallpaperStatus } from '../wallpaper/WallpaperControls';
-import {
-  setGalleryNotice,
-  useGalleryNotice,
-  type IGalleryNotice,
-} from './galleryActions';
+import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { usePlusEntitled } from './GalleryParts';
 import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
@@ -23,10 +19,6 @@ import {
   usePlusNavigation,
   type TGalleryPage,
 } from './plusNavigation';
-import { refreshModeration } from './moderationStore';
-import ReportedScenes from './ReportedScenes';
-import PlusGifts from './PlusGifts';
-import AccountDeletion from './AccountDeletion';
 import ScenePage from './ScenePage';
 import YourScenes from './YourScenes';
 import '../styles/Gallery.scss';
@@ -68,13 +60,7 @@ function PageBar({
 }) {
   const { t, locale } = useTranslation();
   let title = t('plus.mine.title');
-  if (page.kind === 'reported') {
-    title = t('plus.moderation.title');
-  } else if (page.kind === 'gifts') {
-    title = t('plus.gifts.title');
-  } else if (page.kind === 'accounts') {
-    title = t('plus.accounts.title');
-  } else if (page.kind === 'scene') {
+  if (page.kind === 'scene') {
     title = resolveSceneName(page.scene, locale);
   } else if (page.kind === 'maker') {
     title = page.maker.name ?? page.maker.handle ?? t('plus.card.anonymous');
@@ -115,16 +101,11 @@ export default function VisualizersView({
 
   // Coming here is when the gallery is worth asking again, once what it
   // shows is a minute old; what was on screen stays there while it does.
+  // What the gallery said back is cleared by the tab, which also knows when
+  // a page sent the admin to the reported queue with its answer to show.
   useEffect(() => {
     refreshGalleryOnShow();
-    return () => setGalleryNotice(undefined);
   }, []);
-
-  // Whether to offer the reported scenes, asked on the same occasion and
-  // again whenever a different account signs in.
-  useEffect(() => {
-    refreshModeration(me).catch(() => undefined);
-  }, [me]);
 
   // Each page opens where it was left — the gallery at the card that was
   // opened, a page never seen at its top. Before paint, so it never shows
@@ -154,12 +135,6 @@ export default function VisualizersView({
   } else if (page.kind === 'mine') {
     // Taking one's own scene down needs no Plus.
     content = <YourScenes me={me} />;
-  } else if (page.kind === 'reported') {
-    content = <ReportedScenes me={me} />;
-  } else if (page.kind === 'gifts') {
-    content = <PlusGifts />;
-  } else if (page.kind === 'accounts') {
-    content = <AccountDeletion />;
   }
 
   return (
@@ -192,11 +167,7 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {!entitled &&
-          page.kind !== 'mine' &&
-          page.kind !== 'reported' &&
-          page.kind !== 'gifts' &&
-          page.kind !== 'accounts' && <PlusBar />}
+        {!entitled && page.kind !== 'mine' && <PlusBar />}
         {content}
       </div>
     </>

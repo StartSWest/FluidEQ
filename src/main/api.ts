@@ -50,6 +50,7 @@ import type {
   IStudioState,
   TAddOutcome,
   TNewProjectResult,
+  TRenameProjectResult,
 } from './ipc/memberScenes';
 import type {
   IPictureKeepRequest,
@@ -88,9 +89,11 @@ import type {
   TPlusGiftsListOutcome,
 } from './ipc/plusGifts';
 import type {
+  TAccountListOutcome,
   TDeleteAccountOutcome,
   TFindAccountsOutcome,
 } from './ipc/accountDeletion';
+import type { IAccountListRequest } from '../common/adminAccounts';
 import type {
   TModerationAction,
   TModerationList,
@@ -114,7 +117,6 @@ import type {
   TForumResult,
 } from '../common/forum/forumTypes';
 import type { TSceneFailure } from './scenePackStore';
-import type { TSceneRefusal } from './sceneRefusals';
 import type { IScenePack } from '../common/scenePacks';
 import type { TBillingOutcome } from './ipc/account';
 import type {
@@ -888,13 +890,6 @@ const reportMemberSceneFailure = (lookId: string, reason: TSceneFailure) =>
     reason,
   ) as Promise<void>;
 
-/**
- * A scene's code would not run, wherever it ran it — the gallery's preview,
- * the lamps, a picture. Sent as the source, which the main process hashes.
- */
-const reportSceneSourceRefused = (source: string, reason: TSceneRefusal) =>
-  ipcRenderer.invoke('scene-source-refused', source, reason) as Promise<void>;
-
 const onMemberScenesChanged = (
   listener: (listing: IMemberScenesListing) => void,
 ) => {
@@ -919,6 +914,14 @@ const selectStudioProject = (id: string) =>
 
 const forgetStudioProject = (id: string) =>
   ipcRenderer.invoke('studio-forget-project', id) as Promise<IStudioState>;
+
+/** The project by its id and the name wanted: the new folder is made in main. */
+const renameStudioProject = (id: string, name: string) =>
+  ipcRenderer.invoke(
+    'studio-rename-project',
+    id,
+    name,
+  ) as Promise<TRenameProjectResult>;
 
 /** Only the name goes: the folder is made from it in the main process. */
 const createStudioProject = (name: string) =>
@@ -1182,8 +1185,11 @@ const takeBackPlus = (email: string) =>
     email,
   ) as Promise<TPlusGiftActOutcome>;
 
-// The admin's account deletion: the account behind an address, then
-// deleting it for good. The server decides who the admin is.
+// The admin's accounts: every one a page at a time, the account behind an
+// address, then deleting it for good. The server decides who the admin is.
+const listAccounts = (request: IAccountListRequest) =>
+  ipcRenderer.invoke('account-list', request) as Promise<TAccountListOutcome>;
+
 const findAccountsToDelete = (email: string) =>
   ipcRenderer.invoke(
     'account-deletion-find',
@@ -1416,13 +1422,13 @@ export default {
     loadMemberScene,
     removeMemberScene,
     reportMemberSceneFailure,
-    reportSceneSourceRefused,
     onMemberScenesChanged,
     openStudio,
     closeStudio,
     linkStudioFolder,
     selectStudioProject,
     forgetStudioProject,
+    renameStudioProject,
     publishStudioScene,
     listGallery,
     galleryPicture,
@@ -1439,6 +1445,7 @@ export default {
     listPlusGifts,
     givePlus,
     takeBackPlus,
+    listAccounts,
     findAccountsToDelete,
     deleteAccount,
     createStudioProject,

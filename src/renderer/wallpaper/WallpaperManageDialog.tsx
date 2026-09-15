@@ -22,12 +22,21 @@ import {
 import '../styles/Button.scss';
 import '../styles/WallpaperControls.scss';
 
-/** Failures another try can fix; the rest need something else to change. */
+/**
+ * Failures another try can fix; the rest need something else to change.
+ *
+ * `refused` is one of them now. Nothing on disk remembers a scene that failed
+ * on this computer's graphics any more, so pressing this actually runs it
+ * again instead of meeting a refusal; a monitor still never retries one by
+ * itself, which is what kept a driver-resetting scene from resetting it again
+ * and again.
+ */
 const RETRYABLE: readonly TWallpaperError[] = [
   'unavailable',
   'host',
   'renderer',
   'audio',
+  'refused',
 ];
 
 /** What every monitor shows, and a Stop for each of them. */

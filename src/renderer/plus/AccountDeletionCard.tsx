@@ -11,6 +11,7 @@ import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import type { TDeleteAccountFailure } from 'main/plus/accountDeletionApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import '../styles/AccountDeletion.scss';
 
 const DELETE_ERRORS: Record<TDeleteAccountFailure, TranslationKey> = {
   offline: 'plus.accounts.error.failed',
@@ -23,7 +24,7 @@ const DELETE_ERRORS: Record<TDeleteAccountFailure, TranslationKey> = {
   unfinished: 'plus.accounts.error.unfinished',
 };
 
-interface IAccountDeletionCardProps {
+interface IAccountDeletionProps {
   account: IAccountToDelete;
   /** The account is gone, with this many files. */
   onDeleted: (files: number) => void;
@@ -31,40 +32,47 @@ interface IAccountDeletionCardProps {
 
 const bridge = () => window.electron?.ipcRenderer;
 
+/** The name an account goes by: its chosen name, its handle, or its address. */
+export const accountName = (account: IAccountToDelete) =>
+  account.displayName ?? account.handle ?? account.email;
+
+/** An account's Plus in words: paid until a date, given, or none. */
+export const useAccountPlan = (account: IAccountToDelete): string => {
+  const { t, locale } = useTranslation();
+  if (account.plusUntil === undefined) {
+    return t('plus.accounts.plan.none');
+  }
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+    account.plusUntil,
+  );
+  if (account.plan !== GIFT_PLAN) {
+    return t('plus.accounts.plan.paid', { date });
+  }
+  return account.plusUntil < GIFT_FOREVER_AFTER
+    ? t('plus.accounts.plan.giftUntil', { date })
+    : t('plus.accounts.plan.gift');
+};
+
 /**
- * One account the address found: who it is, what goes with it, and Delete
- * behind a second press that names who is about to go.
+ * What goes with an account, and Delete behind a second press that names who
+ * is about to go: under the account's row in the admin's list, and inside the
+ * card of an account already gone.
  */
-export default function AccountDeletionCard({
+export function AccountDeletionBody({
   account,
   onDeleted,
-}: IAccountDeletionCardProps) {
+}: IAccountDeletionProps) {
   const { t, locale } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const [working, setWorking] = useState(false);
   const [failure, setFailure] = useState<TranslationKey>();
-  // A Delete that stopped part way on this page is as unfinished as one the
-  // server reported when the account was found.
+  // A Delete that stopped part way here is as unfinished as one the server
+  // reported when the account was found.
   const [unfinished, setUnfinished] = useState(account.deleting);
 
-  const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   const numbers = new Intl.NumberFormat(locale);
   const gone = account.createdAt === undefined;
-  const name = account.displayName ?? account.handle ?? account.email;
-
-  let plan = t('plus.accounts.plan.none');
-  if (account.plan === GIFT_PLAN && account.plusUntil !== undefined) {
-    plan =
-      account.plusUntil < GIFT_FOREVER_AFTER
-        ? t('plus.accounts.plan.giftUntil', {
-            date: dates.format(account.plusUntil),
-          })
-        : t('plus.accounts.plan.gift');
-  } else if (account.plusUntil !== undefined) {
-    plan = t('plus.accounts.plan.paid', {
-      date: dates.format(account.plusUntil),
-    });
-  }
+  const name = accountName(account);
 
   const facts: Array<{ key: TranslationKey; value: number }> = [
     { key: 'plus.accounts.fact.published', value: account.published },
@@ -112,53 +120,15 @@ export default function AccountDeletionCard({
   } else if (gone) {
     note = { tone: 'warning', key: 'plus.accounts.note.gone' };
   } else if (account.deleting) {
-    // What an earlier attempt left; this page's own attempt says so in its
+    // What an earlier attempt left; an attempt made here says so in its
     // failure line instead.
     note = { tone: 'warning', key: 'plus.accounts.note.deleting' };
   }
 
   return (
-    <article
-      className={`account-deletion__card${confirming ? ' is-confirming' : ''}${account.admin ? ' is-admin' : ''}`}
-      aria-label={name}
+    <div
+      className={`account-deletion__body${confirming ? ' is-confirming' : ''}`}
     >
-      <header className="account-deletion__who">
-        <span className="account-deletion__avatar" aria-hidden="true">
-          {name.charAt(0).toUpperCase()}
-        </span>
-        <span className="account-deletion__identity">
-          <span className="account-deletion__name">
-            {gone ? account.email : name}
-          </span>
-          <span className="account-deletion__meta">
-            {!gone && account.handle && <span>@{account.handle}</span>}
-            {!gone && !account.handle && (
-              <span>{t('plus.accounts.noName')}</span>
-            )}
-            {!gone && account.email !== name && <span>{account.email}</span>}
-            {account.createdAt !== undefined && (
-              <span>
-                {t('plus.accounts.joined', {
-                  date: dates.format(account.createdAt),
-                })}
-              </span>
-            )}
-            {!gone && !account.confirmed && (
-              <span className="account-deletion__unconfirmed">
-                {t('plus.accounts.unconfirmed')}
-              </span>
-            )}
-          </span>
-        </span>
-        {!gone && (
-          <span
-            className={`account-deletion__plan${account.plusUntil !== undefined ? ' is-plus' : ''}`}
-          >
-            {plan}
-          </span>
-        )}
-      </header>
-
       {!gone && !account.admin && (
         <section className="account-deletion__goes">
           <h3 className="account-deletion__eyebrow">
@@ -249,6 +219,68 @@ export default function AccountDeletionCard({
           )}
         </footer>
       )}
+    </div>
+  );
+}
+
+/**
+ * One account as a card of its own: who it is, then what goes with it and
+ * Delete. What the admin's list shows for an account that is already gone but
+ * whose deletion did not finish — the list is built from the accounts that
+ * exist, so it has no row for one.
+ */
+export default function AccountDeletionCard({
+  account,
+  onDeleted,
+}: IAccountDeletionProps) {
+  const { t, locale } = useTranslation();
+  const plan = useAccountPlan(account);
+  const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+  const gone = account.createdAt === undefined;
+  const name = accountName(account);
+
+  return (
+    <article
+      className={`account-deletion__card${account.admin ? ' is-admin' : ''}`}
+      aria-label={name}
+    >
+      <header className="account-deletion__who">
+        <span className="account-deletion__avatar" aria-hidden="true">
+          {name.charAt(0).toUpperCase()}
+        </span>
+        <span className="account-deletion__identity">
+          <span className="account-deletion__name">
+            {gone ? account.email : name}
+          </span>
+          <span className="account-deletion__meta">
+            {!gone && account.handle && <span>@{account.handle}</span>}
+            {!gone && !account.handle && (
+              <span>{t('plus.accounts.noName')}</span>
+            )}
+            {!gone && account.email !== name && <span>{account.email}</span>}
+            {account.createdAt !== undefined && (
+              <span>
+                {t('plus.accounts.joined', {
+                  date: dates.format(account.createdAt),
+                })}
+              </span>
+            )}
+            {!gone && !account.confirmed && (
+              <span className="account-deletion__unconfirmed">
+                {t('plus.accounts.unconfirmed')}
+              </span>
+            )}
+          </span>
+        </span>
+        {!gone && (
+          <span
+            className={`account-deletion__plan${account.plusUntil !== undefined ? ' is-plus' : ''}`}
+          >
+            {plan}
+          </span>
+        )}
+      </header>
+      <AccountDeletionBody account={account} onDeleted={onDeleted} />
     </article>
   );
 }

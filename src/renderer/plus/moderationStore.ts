@@ -5,25 +5,33 @@ import type {
   IReportedScene,
   TModerationAction,
 } from 'common/plusModeration';
-import type { TModerationActOutcome } from 'main/ipc/plusModeration';
+import type {
+  TModerationActOutcome,
+  TModerationStatusOutcome,
+} from 'main/ipc/plusModeration';
 import { setGalleryNotice } from './galleryActions';
 import { markGalleryStale } from './galleryStore';
 
 /**
  * Whether this account is the admin, and how many reported scenes wait —
- * what the gallery needs to offer the queue at all, with its count.
+ * what the tab needs to offer the admin's place at all, with its count.
  *
  * Kept per account, like the profile: an answer for one account is never
  * shown for another, and one arriving after a different account signed in is
- * dropped. A member is simply never offered the queue; the server would
- * refuse it anyway.
+ * dropped. A member is simply never offered the place; the server would
+ * refuse its pages anyway.
  */
 
 interface IModerationState extends IModerationStatus {
   accountId?: string;
+  /**
+   * Whether this account has been answered for, or the asking failed. Until
+   * then a place that is the admin's alone waits instead of guessing.
+   */
+  known: boolean;
 }
 
-const NONE: IModerationState = { admin: false, open: 0 };
+const NONE: IModerationState = { admin: false, open: 0, known: false };
 
 let state: IModerationState = NONE;
 const listeners = new Set<() => void>();
@@ -50,7 +58,7 @@ export const useModeration = (): IModerationState =>
 /**
  * Asks again for this account. What is on screen stays while it asks; a
  * failure keeps the last answer for the same account rather than taking the
- * queue away because the network blinked.
+ * admin's place away because the network blinked.
  */
 export const refreshModeration = async (accountId: string | undefined) => {
   if (!accountId) {
@@ -62,13 +70,20 @@ export const refreshModeration = async (accountId: string | undefined) => {
   if (state.accountId !== accountId) {
     publish({ ...NONE, accountId });
   }
+  let outcome: TModerationStatusOutcome | undefined;
   try {
-    const outcome = await bridge()?.moderationStatus?.();
-    if (outcome?.ok && state.accountId === accountId) {
-      publish({ ...outcome.status, accountId });
-    }
+    outcome = await bridge()?.moderationStatus?.();
   } catch {
     // Offline or no handler: the account keeps whatever it was last told.
+    outcome = undefined;
+  }
+  if (state.accountId !== accountId) {
+    return;
+  }
+  if (outcome?.ok) {
+    publish({ ...outcome.status, accountId, known: true });
+  } else if (!state.known) {
+    publish({ ...state, known: true });
   }
 };
 

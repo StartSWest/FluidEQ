@@ -70,6 +70,17 @@ const studio = {
   'studio.project.new': 'Neues Projekt…',
   'studio.project.forgetHint':
     'Der Ordner und seine Dateien bleiben auf Ihrem Computer.',
+  'studio.project.rename': '{name} umbenennen…',
+  'studio.rename.title': 'Projekt umbenennen',
+  'studio.rename.lead':
+    'Die Szene und ihr Ordner erhalten den neuen Namen. FluidEQ gibt die Dateien frei, während der Ordner umbenannt wird, und öffnet die Szene danach wieder.',
+  'studio.rename.where': 'Ordner',
+  'studio.rename.save': 'Umbenennen',
+  'studio.rename.saving': 'Wird umbenannt …',
+  'studio.rename.exists':
+    'Daneben gibt es bereits einen Ordner namens {name}. Wählen Sie einen anderen Namen.',
+  'studio.rename.failed':
+    'Der Ordner konnte nicht umbenannt werden. Schließen Sie alles, was seine Dateien verwendet, und versuchen Sie es erneut.',
 
   'studio.new.title': 'Neues Projekt',
   'studio.new.lead':
@@ -231,22 +242,22 @@ const studio = {
 
   'studio.idea.pet.label': 'Mein Haustier, lebendig',
   'studio.idea.pet.text':
-    'Das Foto meines Haustiers, lebendig zur Musik. Es atmet mit dem Bass, ein sanftes Leuchten zeichnet bei jedem Schlag seine Umrisse nach, die Farben werden mit den Mitten wärmer und Funken steigen mit den Höhen auf.',
+    'Das Foto meines Haustiers, lebendig zur Musik. Es atmet sanft mit dem Bass, bei jedem Schlag zieht ein feiner Lichtsaum seine Umrisse nach, seine Farben werden mit den Mitten wärmer und kleine Funken steigen mit den Höhen um es herum auf. Bei jedem großen Moment platzt hinter ihm eine Konfettiwolke, jedes Mal in einer neuen Farbe. In der Stille atmet es nur, ganz langsam. Regler für Leuchten, Funken und wie stark es sich bewegt. Rund um die App im Ambiente-Modus: kleine Pfotenabdrücke und Herzen, die vorbeischweben.',
   'studio.idea.city.label': 'Neonstadt',
   'studio.idea.city.text':
-    'Eine Neonstadt bei Nacht. Jedes Gebäude ist ein Band des Spektrums, die Fenster leuchten mit den Mitten und bei jedem musikalischen Akzent fährt ein Zug über die Skyline.',
+    'Eine Neonstadt bei Nacht, nach dem Regen. Die Skyline ist mein Spektrum: Jeder Turm wächst mit seinem eigenen Teil der Musik, der Bass links und die Höhen rechts, dort, wo Wellenhöhe und Wellenposition sie hinstellen. Fenster gehen mit den Mitten an, Leuchtfeuer auf den Dächern blinken bei jedem Schlag, und bei jedem großen Moment fährt ein Zug über die Brücke im Vordergrund. Die nasse Straße spiegelt alles und kräuselt sich mit der Wellenform. In der Stille kriecht nur der Verkehr. Regler für Regen, Fenster und Neonglanz. Rund um die App im Ambiente-Modus: weiche Stadtlichter, die wie Bokeh schweben.',
   'studio.idea.sea.label': 'Tiefsee',
   'studio.idea.sea.text':
-    'Tiefsee. Quallen pulsieren mit dem Bass, Plankton funkelt mit den Höhen und Lichtstrahlen wiegen sich mit dem Gesamtpegel.',
+    'Tief im Ozean bei Nacht. Eine leuchtende Qualle schwebt in meiner Welle: Ihr Schirm pulsiert mit dem Bass, ihre langen Tentakel wiegen sich mit den Mitten, während Plankton mit den Höhen funkelt und schwache Lichtstrahlen von oben herabsinken. Ein kleiner Fischschwarm huscht bei jedem Schlag vorbei, und bei jedem großen Moment gleitet der Schatten eines Wals durch den Hintergrund. In der Stille wird alles zu einem ruhigen Treiben. Regler für Leuchten, Tiefe und die Zahl der Quallen. Rund um die App im Ambiente-Modus: langsam aufsteigende Blasen.',
   'studio.idea.vinyl.label': 'Vinyl',
   'studio.idea.vinyl.text':
-    'Eine sich drehende Schallplatte von oben. Die Rillen leuchten mit der Wellenform und die Nadel sprüht bei jedem Schlag Funken.',
+    'Ein Plattenspieler von oben, in einem gedämpft warmen Zimmer. Die Platte dreht sich gleichmäßig und ihre Rillen leuchten in Ringen auf, der Bass nahe am Etikett und die Höhen am Rand. Die Nadel glüht und sprüht bei jedem Schlag kleine Funken, die Farben des Etiketts wandeln sich mit den Mitten und Staub schwebt mit den Höhen im Licht der Lampe. Bei jedem großen Moment läuft ein Lichtring über die Platte nach außen. In der Stille dreht sie sich weiter, sanft beleuchtet. Regler für Drehtempo, Leuchten und Staub. Rund um die App im Ambiente-Modus: Musiknoten, die nach oben schweben.',
   'studio.idea.fire.label': 'Lagerfeuer',
   'studio.idea.fire.text':
-    'Ein Lagerfeuer unter Sternen. Die Flammen sind das Spektrum, Glut steigt mit den Becken auf und die Sterne funkeln mit den Höhen.',
-  'studio.idea.aurora.label': 'Polarlichter',
-  'studio.idea.aurora.text':
-    'Polarlichter über einem See. Die Schleier folgen dem langsamen Spektrum, ihr Spiegelbild kräuselt sich mit der Wellenform und bei jedem Akzent zieht eine Sternschnuppe vorbei.',
+    'Ein Lagerfeuer in einem Kiefernwald unter den Sternen. Die Flammen sind mein Spektrum und stehen in meiner Welle: Jede Flammenzunge springt mit ihrem eigenen Teil der Musik. Glut fliegt mit den Becken auf, die Scheite glühen mit dem Bass tiefer rot, die Bäume ringsum fangen mit den Mitten den Feuerschein ein, und die Sterne funkeln mit den Höhen. Bei jedem großen Moment steigt eine Funkenspirale in die Nacht. In der Stille brennt es niedrig und ruhig. Regler für Feuergröße, Glut und Rauch. Rund um die App im Ambiente-Modus: umherstreifende Glühwürmchen und ein paar aufsteigende Funken.',
+  'studio.idea.sunset.label': 'Goldene Stunde',
+  'studio.idea.sunset.text':
+    'Ein Bergtal zur goldenen Stunde. Die fernen Grate sind mein Spektrum: Sie heben und senken sich mit ihrem eigenen Teil der Musik in meiner Welle und verschwimmen mit der Entfernung im Dunst. Die tiefe Sonne schwillt sanft mit dem Bass, die Wolken erröten mit den Mitten und der Fluss unten glitzert mit den Höhen. Bei jedem großen Moment zieht ein Vogelschwarm vor der Sonne vorbei, jedes Mal auf einem anderen Weg. In der Stille ziehen nur die Wolken. Regler für Sonnenstand, Dunst und Wolken. Rund um die App im Ambiente-Modus: ab und zu ein paar gleitende Vögel.',
 
   'studio.prompt.label': 'Der KI-Prompt',
   'studio.prompt.ideaHere': '← hier kommt Ihre Idee hin',

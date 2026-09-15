@@ -59,7 +59,7 @@ const wallpaper = {
   'wallpaper.error.missingScene':
     'Este visualizador já não está instalado. Adicione-o novamente e tente de novo.',
   'wallpaper.error.refused':
-    'Este visualizador falhou com os gráficos deste computador, então não será reproduzido aqui novamente.',
+    'Este visualizador falhou com os gráficos deste computador. Defina-o novamente para tentar outra vez.',
   'wallpaper.error.missingDisplay':
     'Esse monitor está desligado. O fundo volta quando o ligar novamente.',
   'wallpaper.error.host':

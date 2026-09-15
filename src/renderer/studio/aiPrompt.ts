@@ -48,9 +48,21 @@ already holds a working pack.json and scene.frag; read both first. If
 scene.frag starts with "// My first FluidEQ scene", it is only FluidEQ's
 starter: rewrite both for my idea. Otherwise the scene is mine: change what
 my idea asks for and keep everything else as it is - its look, its sliders
-and their values, its response and its photos. Keep the file names and save
-them there. FluidEQ plays every save at once,
-and if it shows me a problem I will paste it to you; fix exactly that. If you
+and their values, its response and its photos. Keep the file names.
+
+WORK IN PLACE. FluidEQ is showing this folder on my screen and plays every
+save of scene.frag and pack.json the moment it lands, so I watch the scene
+come together while you write it. These two files are the work itself, not
+temporary files: write straight into them, here. Never draft in a temporary,
+scratch or copied folder, never write new files to copy or rename over them
+at the end, and never hold the work back until you are finished. Save a first
+rough version of the whole idea early, then improve it in place, saving after
+each meaningful step, and keep each save a whole scene where you can. A save
+that does not compile does no harm: FluidEQ keeps playing the last version
+that worked and shows me the problem. There is nothing to run or test outside
+FluidEQ; its stage is the test.
+
+If FluidEQ shows me a problem I will paste it to you; fix exactly that. If you
 cannot edit files, reply with the complete contents of each file and nothing
 else: first pack.json, then scene.frag. If my idea is about photos of mine,
 write the scene for them (see ARTWORK) and tell me in one line to choose
@@ -205,8 +217,8 @@ RULES (FluidEQ refuses the scene otherwise)
   whole monitor as my desktop background, so it has to stay cheap at 4K. Keep
   loops short, never nest loops that sample textures or noise, skip work
   early for pixels it cannot touch, and prefer smooth maths to many layers.
-  A frame so heavy that the graphics driver resets gets the scene refused on
-  that computer for good.
+  A frame so heavy that the graphics driver resets stops the scene wherever it
+  was playing, every time it is played.
 
 HELPERS YOU MAY COPY
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -307,7 +319,7 @@ export const AI_IDEAS: ReadonlyArray<{
   { label: 'studio.idea.sea.label', idea: 'studio.idea.sea.text' },
   { label: 'studio.idea.vinyl.label', idea: 'studio.idea.vinyl.text' },
   { label: 'studio.idea.fire.label', idea: 'studio.idea.fire.text' },
-  { label: 'studio.idea.aurora.label', idea: 'studio.idea.aurora.text' },
+  { label: 'studio.idea.sunset.label', idea: 'studio.idea.sunset.text' },
 ];
 
 /** The prompt with an idea written after its last line. */

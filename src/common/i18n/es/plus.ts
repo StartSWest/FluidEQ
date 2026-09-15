@@ -104,8 +104,6 @@ const plus = {
     'Esta escena no pasó la comprobación de FluidEQ, así que no se reproducirá.',
   'plus.scene.heavy': 'Esta escena es demasiado pesada para este equipo.',
   'plus.scene.broken': 'Esta escena no se reproduce en este equipo.',
-  'plus.scene.quarantined':
-    'Esta escena ya falló con los gráficos de este equipo, así que no se volverá a reproducir aquí.',
   'plus.scene.cannotDraw': 'Este equipo no puede dibujar escenas ahora mismo.',
   'plus.scene.likes': 'Me gusta',
   'plus.scene.week': 'Esta semana',
@@ -219,15 +217,37 @@ const plus = {
 
   'plus.gallery.accounts': 'Cuentas',
   'plus.accounts.title': 'Cuentas',
-  'plus.accounts.hint':
-    'Cuando alguien pida que se borre su cuenta, búscala aquí por su correo y bórrala. Desaparece para siempre con todo lo que prometen las condiciones de Plus: perfil, días en la clasificación, membresía, aceptaciones de las condiciones, me gusta, añadidos, denuncias y escenas publicadas con sus archivos.',
-  'plus.accounts.field.email': 'Correo',
-  'plus.accounts.find': 'Buscar cuenta',
-  'plus.accounts.searchHint':
-    'No se borra nada hasta que lo confirmes en la cuenta.',
-  'plus.accounts.none': 'Ninguna cuenta tiene {email}',
-  'plus.accounts.noneHint':
-    'Compáralo con el correo desde el que te escribieron.',
+  'plus.admin.title': 'Administración',
+  'plus.admin.blurb': 'Cuentas, regalos y denuncias',
+  'plus.admin.description':
+    'Solo tú ves esto: todas las cuentas, el Plus que regalas y las escenas que denuncian los miembros',
+  'plus.accounts.listHint':
+    'Las más nuevas primero. Pulsa una cuenta para ver lo que tiene y borrarla para siempre cuando su dueño lo pida.',
+  'plus.accounts.search': 'Buscar por correo, usuario o nombre',
+  'plus.accounts.refresh': 'Actualizar',
+  'plus.accounts.filter': 'Mostrar cuentas',
+  'plus.accounts.filter.all': 'Todas las cuentas',
+  'plus.accounts.filter.plus': 'Con Plus',
+  'plus.accounts.filter.free': 'Sin Plus',
+  'plus.accounts.admin': 'Admin',
+  'plus.accounts.loading': 'Cargando cuentas…',
+  'plus.accounts.shown': 'Mostrando {shown} de {total}',
+  'plus.accounts.empty.none': 'Todavía no hay cuentas',
+  'plus.accounts.empty.search': 'Ninguna cuenta coincide con {query}',
+  'plus.accounts.empty.plus': 'Ninguna de estas cuentas tiene Plus',
+  'plus.accounts.empty.free': 'Todas estas cuentas tienen Plus',
+  'plus.accounts.moreError':
+    'No se pudieron cargar más cuentas. Vuelve a intentarlo.',
+  'plus.accounts.error.offline':
+    'La lista de cuentas necesita conexión. Vuelve a intentarlo con conexión.',
+  'plus.accounts.error.signedOut':
+    'Vuelve a iniciar sesión para ver las cuentas.',
+  'plus.accounts.error.server':
+    'No se pudieron cargar las cuentas. Vuelve a intentarlo.',
+  'plus.accounts.error.list':
+    'Solo el administrador de FluidEQ puede ver las cuentas.',
+  'plus.accounts.error.notDeployed':
+    'El servidor aún no está actualizado para la lista de cuentas.',
   'plus.accounts.noName': 'Sin nombre elegido',
   'plus.accounts.joined': 'Se unió el {date}',
   'plus.accounts.unconfirmed': 'Correo sin confirmar',

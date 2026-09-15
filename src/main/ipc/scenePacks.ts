@@ -19,7 +19,6 @@ import {
   type TSceneFailure,
   isSceneFailure,
 } from '../scenePackStore';
-import type { ISceneRefusals } from '../sceneRefusals';
 
 /**
  * Premium looks, as the renderer sees them.
@@ -44,8 +43,6 @@ export interface IScenePacksIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
-  /** Scene code refused wherever it ran (`sceneRefusals.ts`). */
-  refusals?: ISceneRefusals;
   /**
    * The scenes added from the gallery, asked about when the looks are opened
    * (`scene-packs-refresh`), so a member's republished scene arrives the same
@@ -73,13 +70,12 @@ export interface IScenePacksIpcRegistration {
   subscribeScenes(listener: () => void): () => void;
   announce(): void;
   /**
-   * A look would not run here: quarantined, its code refused wherever else it
-   * runs, and every look list told. The graph reports through its channel; a
-   * desktop background, whose page has no such channel, through main.
+   * A look would not run here, right now: the graph reports through its
+   * channel, a desktop background (whose page has no such channel) through
+   * main. Logged for operator visibility only — it does not stop a later
+   * attempt at the same scene.
    */
   reportFailure(id: string, reason: TSceneFailure): void;
-  /** Whether a held look is kept from running, by quarantine or refusal. */
-  isRefused(id: string): boolean;
   /**
    * Announce an event. An entitled account asks which scenes changed every
    * time; the catalogue for one that is not is fetched only when stale.
@@ -131,12 +127,11 @@ export const registerScenePacksIpc = ({
   session,
   entitlement,
   logger,
-  refusals,
   refreshGalleryScenes,
   now = Date.now,
   fetchImpl = fetch,
 }: IScenePacksIpcDeps): IScenePacksIpcRegistration => {
-  const store = createScenePackStore({ userDataDir, logger, refusals });
+  const store = createScenePackStore({ userDataDir, logger });
   const catalogue = createScenePackCatalogue({
     userDataDir,
     config,
@@ -349,14 +344,8 @@ export const registerScenePacksIpc = ({
   });
 
   const reportFailure = (id: string, reason: TSceneFailure) => {
-    // Its source too, read before the quarantine hides it: the gallery's
-    // preview, the lamps and its picture run the same code elsewhere.
-    const pack = store.load(id);
-    if (pack) {
-      refusals?.refuse(pack.source, reason);
-    }
-    store.quarantine(id, reason);
-    announce();
+    // Diagnostic only: nothing here gates a later attempt at the same scene.
+    logger?.warn(`Scene pack ${id} failed to run here: ${reason}.`);
   };
 
   ipcMain.handle(
@@ -378,10 +367,6 @@ export const registerScenePacksIpc = ({
     },
     announce,
     reportFailure,
-    isRefused: (id) =>
-      store
-        .list()
-        .some((pack) => pack.id === id && pack.quarantined !== undefined),
     refreshIfDue: async () => {
       // Not logged: for an entitled account this is every focus of the
       // window. A download says so when one happens.

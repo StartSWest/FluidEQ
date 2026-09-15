@@ -532,8 +532,8 @@ export default function useSceneRunner({
           return undefined;
         }
         if (!pack) {
-          // Entitlement lapsed between the list and the load, or the pack was
-          // quarantined meanwhile. Session-only; nothing is written down.
+          // Entitlement lapsed between the list and the load, or the scene
+          // was removed meanwhile. Session-only; nothing is written down.
           setWaiting(false);
           sourceRef.current.block();
           return undefined;

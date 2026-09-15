@@ -208,10 +208,10 @@ describe('bringing installed scenes up to date', () => {
   });
 });
 
-/** A registration whose store holds Aurora, with its refusals recorded. */
+/** A registration whose store holds Aurora. */
 const withAuroraHeld = () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scene-failure-'));
-  const refusals = { refuse: jest.fn(() => true), refusalOf: jest.fn() };
+  const warn = jest.fn();
   const registration = registerScenePacksIpc({
     getMainWindow: () => null,
     userDataDir: root,
@@ -226,7 +226,7 @@ const withAuroraHeld = () => {
       status: () => ({ state: 'active' }),
       subscribe: () => () => {},
     } as unknown as IScenePacksIpcDeps['entitlement'],
-    refusals,
+    logger: { info: jest.fn(), warn },
   });
   const source = 'vec4 sceneColour(vec2 uv) { return vec4(1.0); }';
   jest
@@ -234,47 +234,35 @@ const withAuroraHeld = () => {
     .mockReturnValue({ id: 'aurora', source } as ReturnType<
       typeof registration.store.load
     >);
-  const quarantine = jest.spyOn(registration.store, 'quarantine');
-  return { root, refusals, registration, source, quarantine };
+  return { root, registration, warn };
 };
 
 // A desktop background's page has no channel of its own to report on, so
-// main hands its scene's failure to the same record the graph's goes into.
-it('takes a failure main reports into the same record, and says which looks it keeps', () => {
-  const { root, refusals, registration, source, quarantine } = withAuroraHeld();
-  const announced = jest.fn();
-  registration.subscribeScenes(announced);
+// main hands its scene's failure to the same handler the graph's goes into.
+// Nothing about it is written to disk any more: it is logged for an
+// operator to see, and the scene still loads on the very next attempt.
+it('logs a failure main reports, without gating a later load of the same pack', () => {
+  const { root, registration, warn } = withAuroraHeld();
   try {
     registration.reportFailure('aurora', 'context-lost');
-    expect(refusals.refuse).toHaveBeenCalledWith(source, 'context-lost');
-    expect(quarantine).toHaveBeenCalledWith('aurora', 'context-lost');
-    expect(announced).toHaveBeenCalledTimes(1);
-
-    jest
-      .spyOn(registration.store, 'list')
-      .mockReturnValue([
-        { id: 'aurora', quarantined: 'context-lost' },
-        { id: 'alpine' },
-      ] as ReturnType<typeof registration.store.list>);
-    expect(registration.isRefused('aurora')).toBe(true);
-    expect(registration.isRefused('alpine')).toBe(false);
-    expect(registration.isRefused('bloom')).toBe(false);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('aurora'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('context-lost'));
+    expect(registration.store.load('aurora')).toBeDefined();
   } finally {
     registration.dispose();
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
-it('keeps a failure by the scene’s code as well as by the look, and takes no made-up reason', () => {
-  const { root, refusals, registration, source, quarantine } = withAuroraHeld();
+it('logs whatever reason is reported, over the IPC channel too', () => {
+  const { root, registration, warn } = withAuroraHeld();
   try {
     handlers.get('scene-packs-report-failure')?.({}, 'aurora', 'gpu-reset');
-    // Read from the store before the quarantine hides it.
-    expect(refusals.refuse).toHaveBeenCalledWith(source, 'gpu-reset');
-    expect(quarantine).toHaveBeenCalledWith('aurora', 'gpu-reset');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('gpu-reset'));
     handlers.get('scene-packs-report-failure')?.({}, 'aurora', 'everything');
-    expect(refusals.refuse).toHaveBeenCalledTimes(1);
-    expect(quarantine).toHaveBeenCalledTimes(1);
+    // A reason that is not one of the three real ones is not taken at all.
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(registration.store.load('aurora')).toBeDefined();
   } finally {
     registration.dispose();
     fs.rmSync(root, { recursive: true, force: true });

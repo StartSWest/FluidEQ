@@ -107,7 +107,6 @@ export const registerStudioSettingsIpc = ({
       }
       try {
         store.save(me, build.pack);
-        store.release(me, build.pack.id);
         announceScenes();
         return { written, lookUpdated: true };
       } catch (error) {

@@ -80,29 +80,30 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'Worker');
 });
 
-it.each([
-  ['gpu-reset', 1],
-  ['too-heavy', 0],
-] as const)(
-  'keeps a scene refused as %s beyond this session only when the reset was its own',
-  async (reason, reports) => {
-    const reportSceneSourceRefused = jest.fn(() => Promise.resolve());
-    window.electron = {
-      ipcRenderer: { reportSceneSourceRefused },
-    } as unknown as typeof window.electron;
-    const { createLightingScene } = load()();
-    const lamps = createLightingScene(jest.fn(), jest.fn());
-    lamps.load(packOf('storm'), true);
-    await settle();
-    FakeWorker.made[0].reply({ kind: 'failed', packId: 'storm', reason });
-    // Too heavy for the lamps is not too heavy for the graph.
-    expect(reportSceneSourceRefused.mock.calls).toEqual(
-      reports > 0 ? [['// storm', 'gpu-reset']] : [],
-    );
-    lamps.close();
-    Reflect.deleteProperty(window, 'electron');
-  },
-);
+// A blamed reset used to be written to disk (`sceneRefusals.ts`) so no
+// surface ran the scene again even after a relaunch. That record is gone
+// entirely: a fresh module load — what every relaunch gives — has never
+// heard of the scene, blamed reset or not.
+it('forgets a gpu-reset refusal on a fresh module load; nothing is written anywhere for it to read back', async () => {
+  const first = load()();
+  const lamps = first.createLightingScene(jest.fn(), jest.fn());
+  lamps.load(packOf('storm'), true);
+  await settle();
+  expect(loadsSent()).toHaveLength(1);
+  FakeWorker.made[0].reply({
+    kind: 'failed',
+    packId: 'storm',
+    reason: 'gpu-reset',
+  });
+  lamps.close();
+
+  const again = load()();
+  const relaunched = again.createLightingScene(jest.fn(), jest.fn());
+  relaunched.load(packOf('storm'), true);
+  await settle();
+  expect(loadsSent()).toHaveLength(2);
+  relaunched.close();
+});
 
 it('draws a scene again once a lost context it was not blamed for comes back', async () => {
   const { createLightingScene } = load()();

@@ -69,6 +69,17 @@ const studio = {
   'studio.project.new': 'Novo projeto…',
   'studio.project.forgetHint':
     'A pasta e os arquivos dela continuam no seu computador.',
+  'studio.project.rename': 'Renomear {name}…',
+  'studio.rename.title': 'Renomear projeto',
+  'studio.rename.lead':
+    'A cena e a pasta dela recebem o novo nome. O FluidEQ solta os arquivos enquanto renomeia a pasta e depois abre a cena de novo.',
+  'studio.rename.where': 'Pasta',
+  'studio.rename.save': 'Renomear',
+  'studio.rename.saving': 'Renomeando…',
+  'studio.rename.exists':
+    'Já existe uma pasta chamada {name} ao lado. Escolha outro nome.',
+  'studio.rename.failed':
+    'Não foi possível renomear a pasta. Feche o que estiver usando os arquivos dela e tente de novo.',
 
   'studio.new.title': 'Novo projeto',
   'studio.new.lead':
@@ -222,22 +233,22 @@ const studio = {
 
   'studio.idea.pet.label': 'Meu pet, vivo',
   'studio.idea.pet.text':
-    'A foto do meu pet, viva com a música. Ela respira com os graves, um brilho suave contorna a silhueta a cada batida, as cores esquentam com os médios e faíscas sobem com os agudos.',
+    'A foto do meu pet, viva com a música: ele respira suave com os graves, uma borda de luz contorna sua silhueta a cada batida, suas cores esquentam com os médios e pequenas faíscas sobem ao redor com os agudos. A cada grande momento, uma chuva de confete explode atrás dele, cada vez de uma cor. No silêncio ele só respira, devagar. Controles para o brilho, as faíscas e o quanto ele se mexe. Ao redor do app, no modo Ambiente: pegadinhas de patas e corações passando devagar.',
   'studio.idea.city.label': 'Cidade neon',
   'studio.idea.city.text':
-    'Uma cidade neon à noite. Cada prédio é uma faixa do espectro, as janelas acendem com os médios e um trem cruza o horizonte a cada acento musical.',
+    'Uma cidade neon à noite, depois da chuva. O horizonte de prédios é o meu espectro: cada torre sobe com a sua parte da música, os graves à esquerda e os agudos à direita, onde a altura e a posição da minha onda o colocam. As janelas acendem com os médios, as luzes dos telhados piscam a cada batida e a cada grande momento um trem cruza a ponte da frente. A rua molhada reflete tudo e ondula com a forma de onda. No silêncio só o trânsito anda, devagar. Controles para a chuva, as janelas e o brilho do neon. Ao redor do app, no modo Ambiente: luzes suaves da cidade flutuando como bokeh.',
   'studio.idea.sea.label': 'Mar profundo',
   'studio.idea.sea.text':
-    'Mar profundo. Águas-vivas pulsam com os graves, o plâncton cintila com os agudos e os raios de luz balançam com o nível geral.',
+    'O fundo do oceano à noite. Uma água-viva luminosa flutua dentro da minha onda: o corpo pulsa com os graves e os longos tentáculos balançam com os médios, enquanto o plâncton cintila com os agudos e raios de luz fracos descem lá de cima. Um pequeno cardume passa rápido a cada batida e a cada grande momento a sombra de uma baleia desliza ao fundo. No silêncio tudo fica calmo e lento. Controles para o brilho, a profundidade e quantas águas-vivas aparecem. Ao redor do app, no modo Ambiente: bolhas subindo devagar.',
   'studio.idea.vinyl.label': 'Vinil',
   'studio.idea.vinyl.text':
-    'Um disco de vinil girando visto de cima. Os sulcos brilham com a forma de onda e a agulha solta faíscas nas batidas.',
+    'Uma vitrola vista de cima, num quarto quente e na penumbra. O disco gira em velocidade constante e os sulcos acendem em anéis: os graves perto do selo e os agudos na borda. A agulha brilha e solta faisquinhas a cada batida, as cores do selo mudam com os médios e a poeira flutua na luz do abajur com os agudos. A cada grande momento um anel de luz corre pelo disco para fora. No silêncio ele continua girando, com uma luz suave. Controles para a velocidade, o brilho e a poeira. Ao redor do app, no modo Ambiente: notas musicais subindo devagar.',
   'studio.idea.fire.label': 'Fogueira',
   'studio.idea.fire.text':
-    'Uma fogueira sob as estrelas. As chamas são o espectro, as brasas sobem com os pratos e as estrelas cintilam com os agudos.',
-  'studio.idea.aurora.label': 'Aurora boreal',
-  'studio.idea.aurora.text':
-    'Aurora boreal sobre um lago. As cortinas seguem o espectro lento, o reflexo ondula com a forma de onda e uma estrela cadente cruza a cada acento.',
+    'Uma fogueira numa floresta de pinheiros sob as estrelas. As chamas são o meu espectro, de pé dentro da minha onda: cada língua de fogo salta com a sua parte da música. As brasas voam com os pratos, as toras ficam mais vermelhas com os graves, as árvores ao redor pegam o brilho do fogo com os médios e as estrelas cintilam com os agudos. A cada grande momento uma espiral de faíscas sobe para a noite. No silêncio ela queima baixa e tranquila. Controles para o tamanho do fogo, as brasas e a fumaça. Ao redor do app, no modo Ambiente: vaga-lumes passeando e algumas faíscas subindo.',
+  'studio.idea.sunset.label': 'Hora dourada',
+  'studio.idea.sunset.text':
+    'Um vale entre montanhas na hora dourada. As cristas ao longe são o meu espectro: sobem e descem com a sua parte da música dentro da minha onda e se perdem na névoa com a distância. O sol baixo cresce suave com os graves, as nuvens coram com os médios e o rio lá embaixo cintila com os agudos. A cada grande momento um bando de pássaros cruza na frente do sol, cada vez por um caminho diferente. No silêncio só as nuvens se movem. Controles para a altura do sol, a névoa e as nuvens. Ao redor do app, no modo Ambiente: alguns pássaros planando de vez em quando.',
 
   'studio.prompt.label': 'O prompt para IA',
   'studio.prompt.ideaHere': '← sua ideia vai aqui',

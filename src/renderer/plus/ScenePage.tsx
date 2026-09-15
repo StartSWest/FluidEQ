@@ -42,9 +42,7 @@ import SceneVersions from './SceneVersions';
 const MORE_BY = 4;
 
 const PREVIEW_FAILURES: Record<
-  | Exclude<TGallerySceneFailure, 'not-entitled'>
-  | TPreviewTrouble
-  | 'quarantined',
+  Exclude<TGallerySceneFailure, 'not-entitled'> | TPreviewTrouble,
   TranslationKey
 > = {
   unavailable: 'plus.scene.unavailable',
@@ -52,7 +50,6 @@ const PREVIEW_FAILURES: Record<
   changed: 'plus.scene.changed',
   heavy: 'plus.scene.heavy',
   compile: 'plus.scene.broken',
-  quarantined: 'plus.scene.quarantined',
 };
 
 type TPreview =

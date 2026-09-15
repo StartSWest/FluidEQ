@@ -58,7 +58,7 @@ const wallpaper = {
   'wallpaper.error.missingScene':
     'このビジュアライザーはインストールされていません。もう一度追加してお試しください。',
   'wallpaper.error.refused':
-    'このビジュアライザーはこのコンピューターのグラフィックスで問題を起こしたため、ここでは再生されません。',
+    'このビジュアライザーはこのコンピューターのグラフィックスで問題を起こしました。もう一度設定すると再試行できます。',
   'wallpaper.error.missingDisplay':
     'そのモニターは切断されています。再接続すると背景が戻ります。',
   'wallpaper.error.host':

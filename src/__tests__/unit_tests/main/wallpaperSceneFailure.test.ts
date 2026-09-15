@@ -88,7 +88,12 @@ describe('a scene failing on the desktop', () => {
     );
   });
 
-  it('stops the same visualizer on every other monitor once the refusal is announced', () => {
+  // The disk record that used to make a look "refused" everywhere the moment
+  // any one monitor's copy failed is gone: when the store can no longer hand
+  // a scene back, another monitor showing it sees the ordinary
+  // missing-scene outcome, exactly as if it had been removed or lost
+  // entitlement — never a stale refusal from somewhere else.
+  it('shows a missing scene, not a refusal, on another monitor when the store cannot load it any more', () => {
     const { deps, owner, scenes, announceScenes } = setup();
     registerWallpaperIpc(deps);
     setThrough(owner, { displayIds: [2, 3] });
@@ -96,12 +101,11 @@ describe('a scene failing on the desktop', () => {
 
     pageFails(onTwo, 'context-lost');
     scenes.loadScene.mockReturnValue(undefined);
-    scenes.isSceneRefused.mockReturnValue(true);
     announceScenes();
     expect(onThree.release).toHaveBeenCalled();
     expect(screensThrough(owner)).toEqual([
       expect.objectContaining({ displayId: 2, error: 'refused' }),
-      expect.objectContaining({ displayId: 3, error: 'refused' }),
+      expect.objectContaining({ displayId: 3, error: 'missing-scene' }),
     ]);
   });
 
@@ -139,23 +143,26 @@ describe('a scene failing on the desktop', () => {
   });
 });
 
-describe('a refused visualizer set or remembered', () => {
-  it('says it was refused, rather than not installed, when it is set again', () => {
+describe('a look that cannot be loaded at start time', () => {
+  // The old cross-launch refusal record used to make a look that had failed
+  // before appear "refused" the moment somebody set it again, rather than
+  // "missing" like any other pack the store cannot hand over. That record is
+  // gone entirely: a look the store cannot load is always missing-scene at
+  // start. 'refused' is reserved for a live attempt failing right now
+  // (`surfaceFailed`), never a stale memory of an earlier one.
+  it('is shown as missing, never refused, whatever failed on it before', () => {
     const { deps, scenes } = setup();
     const manager = createWallpaperManager(deps);
     scenes.loadScene.mockReturnValue(undefined);
-    scenes.isSceneRefused.mockImplementation(
-      (lookId) => lookId === 'premium:alpine',
-    );
     manager.start(request({ displayIds: [2] }));
     manager.start(request({ lookId: 'premium:gone', displayIds: [3] }));
     expect(manager.state().screens).toEqual([
-      expect.objectContaining({ displayId: 2, error: 'refused' }),
+      expect.objectContaining({ displayId: 2, error: 'missing-scene' }),
       expect.objectContaining({ displayId: 3, error: 'missing-scene' }),
     ]);
   });
 
-  it('says so at launch instead of starting it', async () => {
+  it('is shown the same way at launch, before anything is even tried', async () => {
     const { deps, scenes } = setup({
       pauseOnBattery: true,
       screens: [
@@ -171,13 +178,12 @@ describe('a refused visualizer set or remembered', () => {
       ],
     });
     scenes.loadScene.mockReturnValue(undefined);
-    scenes.isSceneRefused.mockReturnValue(true);
     const manager = createWallpaperManager(deps);
     await flush();
     manager.restoreSaved();
     expect(mockSurfaces).toHaveLength(0);
     expect(manager.state().screens).toEqual([
-      expect.objectContaining({ displayId: 2, error: 'refused' }),
+      expect.objectContaining({ displayId: 2, error: 'missing-scene' }),
     ]);
   });
 });

@@ -19,7 +19,6 @@ import {
   verifyScenePackEnvelope,
 } from '../../../main/scenePackVerify';
 import { createScenePackStore } from '../../../main/scenePackStore';
-import { createSceneRefusals } from '../../../main/sceneRefusals';
 
 jest.mock('electron', () => ({
   safeStorage: jest.requireActual('../../utils/sceneStorageCipher')
@@ -291,113 +290,19 @@ describe('the scene pack store', () => {
     expect(store.load('future')).toBeUndefined();
   });
 
-  it('quarantines a pack the renderer could not run, and releases it on a new version', () => {
+  // The disk-based quarantine and cross-pack refusal this store used to
+  // keep are gone entirely: a scene's runtime failure is reported and
+  // logged upstream (`ipc/scenePacks.ts`), never withheld here. Reopening
+  // the store — the same thing a relaunch does — finds every downloaded
+  // pack exactly as it was left, whatever ran badly on the machine last
+  // time.
+  it('never withholds a downloaded pack for a runtime failure — nothing here records one', () => {
     const store = build();
     store.adopt([
       { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
     ]);
-    store.quarantine('aurora', 'compile');
-
-    expect(store.list()[0].quarantined).toBe('compile');
-    expect(store.load('aurora')).toBeUndefined();
-    // Survives a restart.
-    expect(build().load('aurora')).toBeUndefined();
-
-    store.adopt([
-      { id: 'aurora', version: 2, envelope: seal(payloadFor('aurora', 2)) },
-    ]);
-    expect(store.list()[0].quarantined).toBeUndefined();
-    expect(store.load('aurora')?.version).toBe(2);
-  });
-
-  /**
-   * A shader that would not compile on one build's driver bundle may compile
-   * on the next. An entry that outlived its reason would hide a working look.
-   */
-  it('honours a quarantine only under the app version that wrote it', () => {
-    const first = createScenePackStore({
-      userDataDir: directory,
-      appVersion: '1.6.5',
-    });
-    first.adopt([
-      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
-    ]);
-    first.quarantine('aurora', 'compile');
-    expect(first.load('aurora')).toBeUndefined();
-
-    const next = createScenePackStore({
-      userDataDir: directory,
-      appVersion: '1.6.6',
-    });
-    expect(next.load('aurora')?.id).toBe('aurora');
-    expect(next.list()[0].quarantined).toBeUndefined();
-  });
-
-  /**
-   * No build changes what a scene asks of the GPU, so a reset the scene was
-   * blamed for is not forgotten at an update; a loss nothing was blamed for
-   * is, because sleep and driver updates lose every context too.
-   */
-  it('keeps a quarantine for a blamed driver reset across app versions, and only that one', () => {
-    const first = createScenePackStore({
-      userDataDir: directory,
-      appVersion: '1.6.5',
-    });
-    first.adopt([
-      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
-      { id: 'bloom', version: 1, envelope: seal(payloadFor('bloom')) },
-    ]);
-    first.quarantine('aurora', 'gpu-reset');
-    first.quarantine('bloom', 'context-lost');
-
-    const next = createScenePackStore({
-      userDataDir: directory,
-      appVersion: '1.6.6',
-    });
-    expect(next.load('aurora')).toBeUndefined();
-    expect(next.list().find((pack) => pack.id === 'aurora')?.quarantined).toBe(
-      'gpu-reset',
-    );
-    expect(next.load('bloom')?.id).toBe('bloom');
-    // A new version of the pack is still its maker's fix, and lifts it.
-    next.adopt([
-      { id: 'aurora', version: 2, envelope: seal(payloadFor('aurora', 2)) },
-    ]);
-    expect(next.load('aurora')?.version).toBe(2);
-  });
-
-  it('holds back a pack whose code was refused wherever it ran', () => {
-    const refusals = createSceneRefusals({
-      userDataDir: directory,
-      appVersion: '1.6.5',
-    });
-    const store = createScenePackStore({
-      userDataDir: directory,
-      appVersion: '1.6.5',
-      refusals,
-    });
-    store.adopt([
-      { id: 'aurora', version: 1, envelope: seal(payloadFor('aurora')) },
-      {
-        id: 'bloom',
-        version: 1,
-        envelope: seal(payloadFor('bloom', 1, { source: `${SOURCE}// bloom` })),
-      },
-    ]);
-    const aurora = store.load('aurora');
-    expect(aurora).toBeDefined();
-    refusals.refuse(aurora?.source ?? '', 'gpu-reset');
-
-    expect(store.load('aurora')).toBeUndefined();
-    const listed = store.list();
-    expect(listed.find((pack) => pack.id === 'aurora')?.quarantined).toBe(
-      'gpu-reset',
-    );
-    // The control: a pack with other code plays.
-    expect(listed.find((pack) => pack.id === 'bloom')?.quarantined).toBe(
-      undefined,
-    );
-    expect(store.load('bloom')?.id).toBe('bloom');
+    expect(store.load('aurora')?.id).toBe('aurora');
+    expect(build().load('aurora')?.id).toBe('aurora');
   });
 
   it('ignores ids that are not pack ids', () => {

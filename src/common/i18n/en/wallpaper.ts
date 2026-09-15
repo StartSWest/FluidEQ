@@ -58,7 +58,7 @@ const wallpaper = {
   'wallpaper.error.missingScene':
     'This visualizer is no longer installed. Add it again and retry.',
   'wallpaper.error.refused':
-    "This visualizer failed on this computer's graphics, so it won't be played here again.",
+    "This visualizer failed on this computer's graphics. Set it again to try it once more.",
   'wallpaper.error.missingDisplay':
     'That monitor is disconnected. Its background returns when it is plugged back in.',
   'wallpaper.error.host':

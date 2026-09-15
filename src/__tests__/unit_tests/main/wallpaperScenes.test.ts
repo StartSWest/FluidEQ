@@ -17,13 +17,11 @@ const looks = () => {
   const official = {
     store: { load: jest.fn((id: string) => pack(id)) },
     subscribeScenes: jest.fn(() => stopOfficial),
-    isRefused: jest.fn((id: string) => id === 'aurora'),
     reportFailure: jest.fn(),
   };
   const member = {
     loadVisible: jest.fn((lookId: unknown) => pack(String(lookId))),
     subscribeScenes: jest.fn(() => stopMember),
-    isRefused: jest.fn((lookId: string) => lookId === MEMBER),
     reportFailure: jest.fn(),
   };
   return { official, member, stopOfficial, stopMember };
@@ -45,12 +43,12 @@ describe('the looks a desktop background shows', () => {
     expect(member.loadVisible).toHaveBeenCalledWith(MEMBER);
   });
 
-  it('asks and tells the store a look belongs to about its refusal', () => {
+  // Whichever kind of look it is, a live failure is handed to that look's
+  // own store to log — never to a disk record that would keep it from
+  // loading again (`isSceneRefused` and the stores' `isRefused` are gone).
+  it('tells the store a look belongs to about a failure, and only that one', () => {
     const { official, member } = looks();
     const scenes = createWallpaperScenes(official, member);
-    expect(scenes.isSceneRefused('premium:aurora')).toBe(true);
-    expect(scenes.isSceneRefused('premium:alpine')).toBe(false);
-    expect(scenes.isSceneRefused(MEMBER)).toBe(true);
 
     scenes.reportSceneFailure('premium:aurora', 'gpu-reset');
     scenes.reportSceneFailure(MEMBER, 'compile');

@@ -293,15 +293,18 @@ describe('the stage while the scene downloads', () => {
     ).toHaveTextContent('Aurora');
   });
 
-  it('says a scene will not play again here once its code was refused', async () => {
+  // The permanent "won't be played here again" outcome is gone entirely: a
+  // scene is never banned from disk after a failure, so the preview's
+  // failure reasons are only ever the ordinary, retryable ones.
+  it('shows the real reason a scene from the gallery could not be played', async () => {
     bridge.previewGalleryScene.mockResolvedValue({
       ok: false,
-      reason: 'quarantined',
+      reason: 'changed',
     });
     render(<VisualizersView onShowGraph={jest.fn()} />);
     act(() => openGalleryPage({ kind: 'scene', scene: official }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'plus.scene.quarantined',
+      'plus.scene.changed',
     );
   });
 });

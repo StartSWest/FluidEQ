@@ -41,10 +41,6 @@ import {
 } from '../../../main/memberScenes/store';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
-  createSceneRefusals,
-  type ISceneRefusals,
-} from '../../../main/sceneRefusals';
-import {
   fakeResponse,
   ME,
   memberPack,
@@ -132,15 +128,13 @@ const access = (): IGalleryAccess => ({
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 });
 
-const setup = (refusals?: ISceneRefusals) => {
+const setup = () => {
   store = createMemberSceneStore({
     userDataDir: path.join(root, 'userData'),
-    appVersion: '1.0.0',
   });
   return registerPlusGalleryIpc({
     access: access(),
     store,
-    ...(refusals ? { refusals } : {}),
     refreshBlocked: async () => {
       refreshed += 1;
     },
@@ -310,26 +304,24 @@ describe('a scene’s page', () => {
   });
 
   /**
-   * Five driver resets in a minute is a Windows bugcheck, and opening a page
-   * again is the easiest way there is to ask for the next one.
+   * A scene used to be banned from disk, everywhere, after a single failure
+   * — five driver resets in a minute is a Windows bugcheck, and opening a
+   * page again used to be the easiest way there was to ask for the next
+   * one. That disk record (`sceneRefusals.ts`) is gone entirely: nothing a
+   * scene did on a previous attempt stops a fresh one from playing it.
    */
-  it('does not play a scene whose code this computer refused, whoever published it', async () => {
-    const refusals = createSceneRefusals({
-      userDataDir: path.join(root, 'userData'),
-      appVersion: '1.0.0',
-    });
-    setup(refusals);
+  it('plays a scene again after it failed elsewhere, whoever published it', async () => {
+    setup();
     publishScene(SOMEONE);
-    refusals.refuse(memberPack().source, 'gpu-reset');
     expect(
       await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1),
-    ).toEqual({ ok: false, reason: 'quarantined' });
-    // Judged by what arrived, not by the name: the same code published as
-    // another scene is still refused, and other code still plays.
+    ).toMatchObject({ ok: true, pack: { id: 'neon-city' } });
+    // Judged fresh each time, by what the row says now, not by any memory of
+    // a previous run — renamed, or under its original name.
     publishScene(SOMEONE, memberPack({ id: 'renamed' }));
-    expect(await invoke('plus-gallery-preview', SOMEONE, 'renamed', 1)).toEqual(
-      { ok: false, reason: 'quarantined' },
-    );
+    expect(
+      await invoke('plus-gallery-preview', SOMEONE, 'renamed', 1),
+    ).toMatchObject({ ok: true, pack: { id: 'renamed' } });
     publishScene(
       SOMEONE,
       memberPack({ id: 'bloom', source: `${memberPack().source}// bloom\n` }),
@@ -611,7 +603,6 @@ describe('asking the server as little as a page needs', () => {
       access: access(),
       store: createMemberSceneStore({
         userDataDir: path.join(root, 'userData'),
-        appVersion: '1.0.0',
       }),
       refreshBlocked: async () => {
         refreshed += 1;
@@ -638,7 +629,6 @@ describe('pictures kept between sessions', () => {
     handlers.clear();
     store = createMemberSceneStore({
       userDataDir: path.join(root, 'userData'),
-      appVersion: '1.0.0',
     });
     return registerPlusGalleryIpc({
       access: access(),

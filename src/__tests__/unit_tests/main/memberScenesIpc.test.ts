@@ -197,26 +197,25 @@ describe('member scenes over IPC', () => {
   });
 
   // A desktop background's page has no channel of its own to report on, so
-  // main hands its scene's failure to the same record the graph's goes into.
-  it('keeps a scene main reports failing from every place that draws it', async () => {
-    const refusals = { refuse: jest.fn(() => true), refusalOf: jest.fn() };
-    const registration = setup({ refusals });
+  // main hands its scene's failure to the same handler the graph's goes into.
+  // Nothing about the failure is written to disk: it is logged for an
+  // operator to see, and a later attempt at the same scene still succeeds.
+  it('logs a scene failure reported from every place that draws it, without blocking a later attempt', async () => {
+    const warn = jest.fn();
+    const registration = setup({ logger: { info: jest.fn(), warn } });
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
     await invoke<Promise<IStudioState>>('studio-link-folder');
     await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
-    expect(registration.isRefused(lookId)).toBe(false);
 
     registration.reportFailure(lookId, 'gpu-reset');
-    expect(refusals.refuse).toHaveBeenCalledWith(
-      expect.stringContaining('sceneColour'),
-      'gpu-reset',
-    );
-    expect(registration.isRefused(lookId)).toBe(true);
-    expect(invoke('member-scenes-load', lookId)).toBeUndefined();
-    expect(registration.loadVisible(lookId)).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(lookId));
+
+    // Still loads: nothing about the failure was kept from a fresh attempt.
+    expect(invoke('member-scenes-load', lookId)).toBeDefined();
+    expect(registration.loadVisible(lookId)).toBeDefined();
     registration.dispose();
   });
 

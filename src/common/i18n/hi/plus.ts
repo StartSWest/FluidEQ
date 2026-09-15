@@ -100,8 +100,6 @@ const plus = {
     'यह सीन FluidEQ की जाँच में पास नहीं हुआ, इसलिए नहीं चलेगा।',
   'plus.scene.heavy': 'यह सीन इस कंप्यूटर के लिए बहुत भारी है।',
   'plus.scene.broken': 'यह सीन इस कंप्यूटर पर नहीं चलता।',
-  'plus.scene.quarantined':
-    'यह सीन इस कंप्यूटर के ग्राफ़िक्स पर पहले विफल हो चुका है, इसलिए इसे यहाँ फिर से नहीं चलाया जाएगा।',
   'plus.scene.cannotDraw': 'यह कंप्यूटर अभी सीन नहीं बना सकता।',
   'plus.scene.likes': 'पसंद',
   'plus.scene.week': 'इस हफ़्ते',
@@ -214,14 +212,33 @@ const plus = {
 
   'plus.gallery.accounts': 'खाते',
   'plus.accounts.title': 'खाते',
-  'plus.accounts.hint':
-    'जब कोई अपना खाता हटाने को कहे, तो यहाँ उसके ईमेल पते से खाता ढूँढें और हटाएँ। यह हमेशा के लिए मिट जाता है, साथ में वह सब जिसका Plus की शर्तें वादा करती हैं: प्रोफ़ाइल, लीडरबोर्ड के दिन, सदस्यता, शर्तों पर सहमतियाँ, पसंद, सीन जोड़ने के रिकॉर्ड, रिपोर्टें, और प्रकाशित सीन उनकी फ़ाइलों सहित।',
-  'plus.accounts.field.email': 'ईमेल पता',
-  'plus.accounts.find': 'खाता ढूँढें',
-  'plus.accounts.searchHint':
-    'जब तक आप खाते पर पुष्टि न करें, कुछ भी नहीं हटता।',
-  'plus.accounts.none': '{email} वाला कोई खाता नहीं है',
-  'plus.accounts.noneHint': 'इसे उस पते से मिलाएँ जिससे आपको लिखा गया था।',
+  'plus.admin.title': 'एडमिन',
+  'plus.admin.blurb': 'खाते, उपहार और रिपोर्टें',
+  'plus.admin.description':
+    'यह सिर्फ़ आपको दिखता है: सभी खाते, आपके उपहार में दिए Plus, और सदस्यों के रिपोर्ट किए गए सीन',
+  'plus.accounts.listHint':
+    'सबसे नए पहले। किसी खाते को दबाकर देखें कि उसमें क्या है, और मालिक के कहने पर उसे हमेशा के लिए हटाएँ।',
+  'plus.accounts.search': 'ईमेल, हैंडल या नाम से खोजें',
+  'plus.accounts.refresh': 'रीफ़्रेश करें',
+  'plus.accounts.filter': 'खाते दिखाएँ',
+  'plus.accounts.filter.all': 'सभी खाते',
+  'plus.accounts.filter.plus': 'Plus वाले',
+  'plus.accounts.filter.free': 'बिना Plus',
+  'plus.accounts.admin': 'एडमिन',
+  'plus.accounts.loading': 'खाते लोड हो रहे हैं…',
+  'plus.accounts.shown': '{total} में से {shown} दिखाए गए',
+  'plus.accounts.empty.none': 'अभी कोई खाता नहीं है',
+  'plus.accounts.empty.search': '{query} से कोई खाता मेल नहीं खाता',
+  'plus.accounts.empty.plus': 'इनमें से किसी खाते में Plus नहीं है',
+  'plus.accounts.empty.free': 'इन सभी खातों में Plus है',
+  'plus.accounts.moreError': 'और खाते लोड नहीं हो सके। फिर कोशिश करें।',
+  'plus.accounts.error.offline':
+    'खातों की सूची के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
+  'plus.accounts.error.signedOut': 'खाते देखने के लिए फिर से साइन इन करें।',
+  'plus.accounts.error.server': 'खाते लोड नहीं हो सके। फिर कोशिश करें।',
+  'plus.accounts.error.list': 'खाते सिर्फ़ FluidEQ एडमिन देख सकते हैं।',
+  'plus.accounts.error.notDeployed':
+    'सर्वर अभी खातों की सूची के लिए अपडेट नहीं हुआ है।',
   'plus.accounts.noName': 'कोई नाम नहीं चुना',
   'plus.accounts.joined': '{date} को जुड़े',
   'plus.accounts.unconfirmed': 'पते की पुष्टि नहीं हुई',

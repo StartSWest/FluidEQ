@@ -419,6 +419,12 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-s;
 }
 
+// Stopping every monitor sits apart from the choice being made, at the start
+// of the row, so it is never read as this dialog's answer.
+.wallpaper-dialog__stop {
+  margin-inline-end: auto;
+}
+
 .wallpaper-scene-action {
   gap: 6px;
 

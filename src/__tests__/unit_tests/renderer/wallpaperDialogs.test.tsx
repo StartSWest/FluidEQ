@@ -181,8 +181,9 @@ describe('what each monitor shows', () => {
     );
   });
 
-  // Trying again would only run the code that failed on this computer again.
-  it('tells a monitor whose visualizer was refused why, with a Stop and no retry', () => {
+  // Nothing on disk remembers the failure any more, so another try is a real
+  // attempt rather than meeting a refusal: the button has to be there.
+  it('tells a monitor whose visualizer failed why, and offers another try', () => {
     withScreens([showing(3, { phase: 'error', error: 'refused' })]);
     render(<WallpaperManageDialog onClose={jest.fn()} />);
     const row = screen
@@ -190,11 +191,12 @@ describe('what each monitor shows', () => {
       .closest('li');
     expect(row).not.toBeNull();
     expect(
-      screen.queryByRole('button', { name: 'Try again' }),
-    ).not.toBeInTheDocument();
-    expect(
       within(row as HTMLElement).getByRole('button', { name: 'Stop' }),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [3] }),
+    );
   });
 
   it('says Calm on the tile of a monitor playing calm', () => {
@@ -227,11 +229,11 @@ describe('the line beside the Visualizers title', () => {
   });
 
   // The line is cut short on screen, so the whole reason is on hover too.
-  it('says a refused visualizer will not be played here again', () => {
+  it('says a visualizer that failed here can be set again', () => {
     withScreens([showing(2, { phase: 'error', error: 'refused' })]);
     render(<WallpaperStatus />);
     expect(screen.getByRole('alert')).toHaveTextContent(
-      "won't be played here again",
+      'Set it again to try it once more',
     );
     expect(
       screen.getByTitle(/failed on this computer's graphics/),

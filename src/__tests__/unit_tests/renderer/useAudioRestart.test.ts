@@ -18,7 +18,10 @@ import { act, renderHook } from '@testing-library/react';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import { useAudioRestart } from 'renderer/utils/useAudioRestart';
 
-jest.mock('renderer/utils/logger', () => ({ reportError: jest.fn() }));
+jest.mock('renderer/utils/logger', () => ({
+  reportError: jest.fn(),
+  reportInfo: jest.fn(),
+}));
 
 const pending = () => {
   let settle: (outcome: IAudioRestartOutcome) => void = () => undefined;

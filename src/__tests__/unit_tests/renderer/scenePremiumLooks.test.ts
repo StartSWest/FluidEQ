@@ -112,7 +112,7 @@ describe('premium looks in the look store', () => {
     expect(noGpu.scenePacks.getLockedScenes()).toHaveLength(0);
   });
 
-  it('offers nothing premium without a subscription, or without a GPU, or when quarantined', () => {
+  it('offers nothing premium without a subscription, or without a GPU, or once this session has blocked it', () => {
     const noSub = load();
     noSub.scenePacks.adoptScenePackListingForTesting(listing(false));
     expect(noSub.scenePacks.getUsableScenes()).toHaveLength(0);
@@ -122,11 +122,18 @@ describe('premium looks in the look store', () => {
     noGpu.scenePacks.adoptScenePackListingForTesting(listing(true));
     expect(noGpu.scenePacks.getUsableScenes()).toHaveLength(0);
 
-    const quarantined = load();
-    quarantined.scenePacks.adoptScenePackListingForTesting(
-      listing(true, [{ ...AURORA, quarantined: 'compile' }]),
-    );
-    expect(quarantined.scenePacks.getUsableScenes()).toHaveLength(0);
+    // Nothing on disk remembers a failure any more: this session's own block
+    // is the only thing that withholds a pack, and it is a renderer-local
+    // fallback rather than a field the main process sends.
+    const blocked = load();
+    blocked.scenePacks.adoptScenePackListingForTesting(listing(true));
+    expect(blocked.scenePacks.getUsableScenes()).toHaveLength(1);
+    blocked.scenePacks.blockScene('aurora');
+    expect(blocked.scenePacks.getUsableScenes()).toHaveLength(0);
+    // A fresh listing — what a relaunch or a refresh delivers — is a clean
+    // slate: the block does not outlive it.
+    blocked.scenePacks.adoptScenePackListingForTesting(listing(true));
+    expect(blocked.scenePacks.getUsableScenes()).toHaveLength(1);
   });
 
   /**

@@ -38,7 +38,7 @@ import type {
  *
  * A scene that will not compile here is reported and nothing more. The graph
  * has its own judgement of whether a scene works; the lighting falling back to
- * the scene's colours must never quarantine a scene the member can see.
+ * the scene's colours must never stop a scene the member can see.
  */
 
 const scope = globalThis as unknown as {
@@ -217,8 +217,8 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   lastCostMs = performance.now() - started;
   if (gl.isContextLost()) {
     if (lastCostMs > BLAMED_FRAME_MS && pack) {
-      // Lost while its own frame held the GPU: the reset was the scene's,
-      // and the window keeps that beyond this session (`sceneRefusals.ts`).
+      // Lost while its own frame held the GPU: the reset was the scene's.
+      // `lightingSceneClient.ts` keeps this session-only, by program.
       wanted = null;
       fail(pack.id, 'gpu-reset');
     }

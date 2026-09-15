@@ -116,7 +116,6 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 const setup = () => {
   store = createMemberSceneStore({
     userDataDir: path.join(root, 'userData'),
-    appVersion: '1.0.0',
   });
   return registerMemberSharingIpc({
     getMainWindow: () => null,

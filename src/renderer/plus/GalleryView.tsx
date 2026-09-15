@@ -14,7 +14,6 @@ import GalleryCard from './GalleryCard';
 import GalleryList from './GalleryList';
 import { useGalleryList } from './galleryStore';
 import { categoryKey } from './GalleryParts';
-import { useModeration } from './moderationStore';
 import {
   openGalleryPage,
   openPlusPlace,
@@ -45,8 +44,7 @@ interface IGalleryViewProps {
  * not a guess at how fast somebody types.
  */
 export default function GalleryView({ me }: IGalleryViewProps) {
-  const { t, locale } = useTranslation();
-  const moderation = useModeration();
+  const { t } = useTranslation();
   // Kept with the rest of where the member is, so a scene's page and back
   // finds the gallery sorted and filtered as it was left.
   const { filters } = usePlusNavigation();
@@ -129,46 +127,6 @@ export default function GalleryView({ me }: IGalleryViewProps) {
           ))}
         </div>
         <span className="gallery-toolbar__own">
-          {moderation.admin && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => openGalleryPage({ kind: 'gifts' })}
-            >
-              <Glyph name="gift" />
-              {t('plus.gallery.gifts')}
-            </button>
-          )}
-          {moderation.admin && (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => openGalleryPage({ kind: 'accounts' })}
-            >
-              <Glyph name="person" />
-              {t('plus.gallery.accounts')}
-            </button>
-          )}
-          {moderation.admin && (
-            <button
-              type="button"
-              className="button small subtle gallery-toolbar__reported"
-              onClick={() => openGalleryPage({ kind: 'reported' })}
-            >
-              <Glyph name="report" />
-              {t('plus.gallery.reported')}
-              {moderation.open > 0 && (
-                <span
-                  className="gallery-toolbar__badge"
-                  aria-label={t('plus.gallery.reportedOpen', {
-                    count: String(moderation.open),
-                  })}
-                >
-                  {new Intl.NumberFormat(locale).format(moderation.open)}
-                </span>
-              )}
-            </button>
-          )}
           <button
             type="button"
             className="button small subtle"

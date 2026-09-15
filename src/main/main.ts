@@ -193,8 +193,6 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerScenePacksIpc } from './ipc/scenePacks';
-import { registerSceneRefusalsIpc } from './ipc/sceneRefusals';
-import { createSceneRefusals } from './sceneRefusals';
 import registerWallpaperIpc from './wallpaper/register';
 import { createArrangementStore } from './wallpaper/arrangement';
 import { createWallpaperScenes } from './wallpaper/scenes';
@@ -2993,11 +2991,6 @@ const plusTermsNoticeIpc = registerPlusTermsNoticeIpc({
 // The premium looks ride on the account: they are listed only while the
 // subscription is live, and fetched on the same "somebody is back at the
 // machine" events. Registering reads the cache; it contacts nothing.
-//
-// One record of scene code that would not run here, shared by both kinds of
-// look and the gallery, so a scene that reset the graphics driver in one place
-// is not run again from another (`sceneRefusals.ts`).
-const sceneRefusals = createSceneRefusals({ userDataDir, logger: log });
 const scenePacksIpc = registerScenePacksIpc({
   getMainWindow: () => mainWindow,
   userDataDir,
@@ -3005,7 +2998,6 @@ const scenePacksIpc = registerScenePacksIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
-  refusals: sceneRefusals,
   // Late-bound: the gallery is registered further down, and this is only
   // called once the looks are opened.
   refreshGalleryScenes: () => plusGalleryIpc.refreshIfDue(),
@@ -3020,15 +3012,6 @@ const memberScenesIpc = registerMemberScenesIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
-  refusals: sceneRefusals,
-});
-
-const sceneRefusalsIpc = registerSceneRefusalsIpc({
-  refusals: sceneRefusals,
-  announce: () => {
-    scenePacksIpc.announce();
-    memberScenesIpc.announce();
-  },
 });
 
 registerWallpaperIpc({
@@ -3071,7 +3054,6 @@ const plusGalleryIpc = registerPlusGalleryIpc({
   onEntitlementChange: (listener) => accountIpc.entitlement.subscribe(listener),
   officialStore: scenePacksIpc.store,
   announceOfficial: scenePacksIpc.announce,
-  refusals: sceneRefusals,
   logger: log,
   // Gallery pictures kept between sessions, so a card seen before is not
   // downloaded again (`plus/pictureDiskCache.ts`).
@@ -3508,7 +3490,6 @@ app.on('before-quit', (event) => {
   accountIpc.dispose();
   plusTermsNoticeIpc.dispose();
   scenePacksIpc.dispose();
-  sceneRefusalsIpc.dispose();
   plusModerationIpc.dispose();
   plusGiftsIpc.dispose();
   accountDeletionIpc.dispose();

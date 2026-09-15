@@ -77,6 +77,17 @@ const studio = {
   'studio.project.new': 'New project…',
   'studio.project.forgetHint':
     'The folder and its files stay on your computer.',
+  'studio.project.rename': 'Rename {name}…',
+  'studio.rename.title': 'Rename project',
+  'studio.rename.lead':
+    'The scene and its folder both take the new name. FluidEQ lets go of its files while the folder is renamed, then opens the scene again.',
+  'studio.rename.where': 'Folder',
+  'studio.rename.save': 'Rename',
+  'studio.rename.saving': 'Renaming…',
+  'studio.rename.exists':
+    'There is already a folder called {name} beside it. Choose another name.',
+  'studio.rename.failed':
+    'The folder could not be renamed. Close anything using its files, then try again.',
 
   'studio.new.title': 'New project',
   'studio.new.lead':
@@ -231,22 +242,22 @@ const studio = {
 
   'studio.idea.pet.label': 'My pet, alive',
   'studio.idea.pet.text':
-    "My pet's photo, alive with the music. It breathes with the bass, a soft glow traces its outline on every beat, its colours warm with the mids, and sparkles drift up with the treble.",
+    "My pet's photo, alive with the music. It breathes gently with the bass, a soft rim of light traces its outline on every beat, its colours warm with the mids, and tiny sparkles rise around it with the treble. On each big moment, a burst of confetti blooms behind it in a new colour. In silence it only breathes, slowly. Sliders for glow, sparkles and how much it moves. Around the app in Ambient mode: little paw prints and hearts drifting by.",
   'studio.idea.city.label': 'Neon city',
   'studio.idea.city.text':
-    'A neon city at night. Each building is a band of the spectrum, windows light with the mids, and a train crosses the skyline on each musical accent.',
+    "A neon city at night after the rain. The skyline is my spectrum: each tower rises with its own part of the music, bass on the left and treble on the right, standing where my wave's height and position put it. Windows flicker on with the mids, rooftop beacons blink on the beat, and on each big moment a train crosses the bridge in front. The wet street mirrors it all and ripples with the waveform. In silence only the traffic crawls. Sliders for rain, windows and neon glow. Around the app in Ambient mode: soft city lights drifting like bokeh.",
   'studio.idea.sea.label': 'Deep sea',
   'studio.idea.sea.text':
-    'Deep sea. Jellyfish pulse with the bass, plankton sparkle with the treble, and light rays sway with the overall level.',
+    "Deep in the ocean at night. A glowing jellyfish floats inside my wave, its bell pulsing with the bass and its long tentacles swaying with the mids, while plankton sparkles with the treble and faint light rays drift down from above. A small school of fish darts past on the beat, and on each big moment a whale's shadow glides across the back. Everything slows to a calm drift in silence. Sliders for glow, depth and how many jellyfish. Around the app in Ambient mode: bubbles rising slowly.",
   'studio.idea.vinyl.label': 'Vinyl',
   'studio.idea.vinyl.text':
-    'A spinning vinyl record seen from above. The grooves glow from the waveform and the needle throws sparks on beats.',
+    "A record player seen from above, in a dim, warm room. The record spins at a steady speed and its grooves light up in rings, bass near the label and treble at the edge. The stylus glows and throws tiny sparks on every beat, the label's colours shift with the mids, and dust floats in the lamp light with the treble. On each big moment a ring of light sweeps out across the record. In silence it keeps turning, softly lit. Sliders for spin speed, glow and dust. Around the app in Ambient mode: musical notes drifting upward.",
   'studio.idea.fire.label': 'Campfire',
   'studio.idea.fire.text':
-    'A campfire under stars. The flames are the spectrum, embers fly up on hi-hats, the stars twinkle with the treble.',
-  'studio.idea.aurora.label': 'Northern lights',
-  'studio.idea.aurora.text':
-    'Northern lights over a lake. The curtains follow the slow spectrum, their reflection ripples with the waveform, a shooting star crosses on each accent.',
+    'A campfire in a pine forest under the stars. The flames are my spectrum, standing in my wave: each tongue of fire leaps with its own part of the music. Embers fly up on the hi-hats, the logs glow deeper with the bass, the trees around catch the firelight with the mids, and the stars twinkle with the treble. On each big moment a spiral of sparks climbs into the night. In silence it burns low and steady. Sliders for fire size, embers and smoke. Around the app in Ambient mode: fireflies wandering and a few sparks rising.',
+  'studio.idea.sunset.label': 'Golden hour',
+  'studio.idea.sunset.text':
+    'A mountain valley at golden hour. The far ridgelines are my spectrum, rising and settling with their own parts of the music inside my wave, fading into haze with distance. The low sun swells softly with the bass, the clouds blush with the mids, and the river below glitters with the treble. On each big moment a flock of birds sweeps across the sun, a different way each time. In silence only the clouds drift. Sliders for sun height, haze and clouds. Around the app in Ambient mode: a few birds gliding across now and then.',
 
   'studio.prompt.label': 'The AI prompt',
   'studio.prompt.ideaHere': '← your idea goes here',

@@ -84,6 +84,10 @@ export default function WallpaperDialog({
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
   const [attempted, setAttempted] = useState(false);
+  // The stop pressed below, told apart from the one `apply` makes itself for
+  // monitors it takes this visualizer off: that one is part of setting the
+  // background, and must not read as stopping every monitor.
+  const [stoppingAll, setStoppingAll] = useState(false);
   useModalKeys(surfaceRef, focusRef, {
     busy: operation.pending,
     onCancel: onClose,
@@ -134,6 +138,17 @@ export default function WallpaperDialog({
     }
   };
 
+  // Every monitor back to its own background. The dialog stays open, so the
+  // monitors can be seen going back and another choice made.
+  const stopEverywhere = async () => {
+    if (operation.pending) {
+      return;
+    }
+    setStoppingAll(true);
+    await stopWallpaper();
+    setStoppingAll(false);
+  };
+
   const failures = attempted
     ? screens.filter(
         (screen) =>
@@ -142,8 +157,9 @@ export default function WallpaperDialog({
           chosen.includes(screen.displayId),
       )
     : [];
+  const starting = operation.pending && !stoppingAll;
   let startLabel = t('wallpaper.start');
-  if (operation.pending) {
+  if (starting) {
     startLabel = t('wallpaper.status.starting');
   } else if (failures.length > 0) {
     startLabel = t('wallpaper.retry');
@@ -334,6 +350,17 @@ export default function WallpaperDialog({
         )}
 
         <div className="wallpaper-dialog__foot">
+          {screens.length > 0 && (
+            <button
+              type="button"
+              className={`button small subtle wallpaper-dialog__stop${stoppingAll ? ' is-running' : ''}`}
+              disabled={operation.pending}
+              aria-busy={stoppingAll}
+              onClick={stopEverywhere}
+            >
+              {t(screens.length > 1 ? 'wallpaper.stopAll' : 'wallpaper.stop')}
+            </button>
+          )}
           <button
             type="button"
             className="button small subtle"
@@ -344,9 +371,9 @@ export default function WallpaperDialog({
           </button>
           <button
             type="button"
-            className={`button small${operation.pending ? ' is-running' : ''}`}
+            className={`button small${starting ? ' is-running' : ''}`}
             disabled={operation.pending || chosen.length === 0}
-            aria-busy={operation.pending}
+            aria-busy={starting}
             onClick={apply}
           >
             {startLabel}

@@ -53,6 +53,8 @@ const FACTS: IGatheredFacts = {
   fluidEngineInstalled: true,
   appLog: 'Engine started',
   installLog: '',
+  engineReport: '',
+  engineLog: '',
 };
 
 let writeText: jest.Mock<Promise<void>, [string]>;

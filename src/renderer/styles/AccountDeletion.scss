@@ -9,115 +9,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The admin's account deletion (`AccountDeletion.tsx`): the gifts page's
-// furniture — an intro strip, a one-line form — then the account the address
-// found, as a card that says who it is and what goes with it before Delete is
-// offered. Red is kept to the edges of the page and to the moment of
-// confirming, so the card itself reads as information, not as an alarm.
+// The admin's account deletion (`AccountDeletionCard.tsx`): what goes with an
+// account and Delete behind a second press — under the account's row in the
+// admin's list (`Admin.scss`), and in a card of its own for an account already
+// gone. Red is kept to the moment of confirming, so what the account holds
+// reads as information, not as an alarm.
 
-.account-deletion__intro {
-  display: flex;
-  align-items: center;
-  gap: $spacing-m;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, $red 24%, transparent);
-  border-radius: $radius-m;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $red 8%, transparent),
-    color-mix(in srgb, $red 2%, transparent) 70%
-  );
-
-  .gallery-fine {
-    flex: 1 1 260px;
-    color: $text-muted;
-  }
-}
-
-.account-deletion__mark {
+.account-deletion__body {
   display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  color: color-mix(in srgb, $red 70%, $white);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $red 15%, transparent);
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-// ---------------------------------------------------------------- search
-
-.account-deletion__search {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: $spacing-s $spacing-m;
-  padding: 12px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
-  background: $block-lift;
-}
-
-.account-deletion__field {
-  display: grid;
-  flex: 1 1 240px;
+  gap: 14px;
   min-width: 0;
-  max-width: 460px;
-  gap: 5px;
 
-  input {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
+  .button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
     height: $control-height-sm;
-    padding-block: 0;
-    font-size: $text-body;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
   }
 }
 
-.account-deletion__label {
-  color: $text-muted;
-  font-size: $text-small;
-  font-weight: $weight-medium;
-}
-
-.account-deletion__find,
-.account-deletion__card .button {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 6px;
-  height: $control-height-sm;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-}
-
-.account-deletion__search-hint {
-  flex: 1 1 100%;
-  margin: 0;
-  color: $text-faint;
-  font-size: $text-small;
-}
-
-.account-deletion__results {
-  display: grid;
-  gap: $spacing-s;
-}
-
-// ---------------------------------------------------------------- the account
+// ---------------------------------------------------------------- the card
 
 .account-deletion__card {
   @include animate(rise-in, $motion-base, $ease-out);
@@ -140,30 +62,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   // The second press is the one that deletes: the whole card says so, not
   // only the button under the pointer.
-  &.is-confirming {
+  &:has(.account-deletion__body.is-confirming) {
     border-color: color-mix(in srgb, $red 52%, transparent);
     box-shadow:
       0 0 0 1px color-mix(in srgb, $red 16%, transparent),
       0 10px 28px -14px color-mix(in srgb, $red 45%, transparent);
-  }
-}
-
-.account-deletion__card--skeleton {
-  display: block;
-  height: 214px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, $white 3%, transparent) 0%,
-    color-mix(in srgb, $white 7%, transparent) 50%,
-    color-mix(in srgb, $white 3%, transparent) 100%
-  );
-  background-size: 200% 100%;
-  animation:
-    fade-in $motion-slow ease-out backwards,
-    gallery-shimmer 1.6s linear infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
   }
 }
 
@@ -251,8 +154,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// What goes with it: one tile per kind of thing, sharing the card's width
-// between them, and as many to a line as fit when it narrows.
+// ---------------------------------------------------------------- what goes
+
+// One tile per kind of thing, sharing the width between them, and as many to
+// a line as fit when it narrows.
 .account-deletion__goes {
   display: grid;
   gap: 7px;

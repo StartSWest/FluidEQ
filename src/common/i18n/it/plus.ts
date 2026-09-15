@@ -104,8 +104,6 @@ const plus = {
     'Questa scena non ha superato il controllo di FluidEQ, quindi non verrà riprodotta.',
   'plus.scene.heavy': 'Questa scena è troppo pesante per questo computer.',
   'plus.scene.broken': 'Questa scena non funziona su questo computer.',
-  'plus.scene.quarantined':
-    'Questa scena ha già avuto problemi con la grafica di questo computer, quindi non verrà più riprodotta qui.',
   'plus.scene.cannotDraw': 'Questo computer ora non può disegnare scene.',
   'plus.scene.likes': 'Mi piace',
   'plus.scene.week': 'Questa settimana',
@@ -220,15 +218,36 @@ const plus = {
 
   'plus.gallery.accounts': 'Account',
   'plus.accounts.title': 'Account',
-  'plus.accounts.hint':
-    'Quando qualcuno chiede di eliminare il proprio account, trovalo qui con il suo indirizzo email ed eliminalo. Sparisce per sempre, con tutto ciò che promettono le condizioni di Plus: profilo, giorni in classifica, abbonamento, accettazioni delle condizioni, mi piace, aggiunte, segnalazioni e scene pubblicate con i loro file.',
-  'plus.accounts.field.email': 'Indirizzo email',
-  'plus.accounts.find': 'Trova account',
-  'plus.accounts.searchHint':
-    'Non si elimina nulla finché non confermi sull’account.',
-  'plus.accounts.none': 'Nessun account ha {email}',
-  'plus.accounts.noneHint':
-    'Confrontalo con l’indirizzo da cui ti hanno scritto.',
+  'plus.admin.title': 'Amministrazione',
+  'plus.admin.blurb': 'Account, regali e segnalazioni',
+  'plus.admin.description':
+    'Solo tu vedi questa sezione: tutti gli account, il Plus che regali e le scene segnalate dai membri',
+  'plus.accounts.listHint':
+    'Prima i più recenti. Premi un account per vedere cosa contiene ed eliminarlo per sempre quando il titolare lo chiede.',
+  'plus.accounts.search': 'Cerca per email, nome utente o nome',
+  'plus.accounts.refresh': 'Aggiorna',
+  'plus.accounts.filter': 'Mostra account',
+  'plus.accounts.filter.all': 'Tutti gli account',
+  'plus.accounts.filter.plus': 'Con Plus',
+  'plus.accounts.filter.free': 'Senza Plus',
+  'plus.accounts.admin': 'Admin',
+  'plus.accounts.loading': 'Caricamento degli account…',
+  'plus.accounts.shown': '{shown} di {total} mostrati',
+  'plus.accounts.empty.none': 'Ancora nessun account',
+  'plus.accounts.empty.search': 'Nessun account corrisponde a {query}',
+  'plus.accounts.empty.plus': 'Nessuno di questi account ha Plus',
+  'plus.accounts.empty.free': 'Tutti questi account hanno Plus',
+  'plus.accounts.moreError':
+    'Non è stato possibile caricare altri account. Riprova.',
+  'plus.accounts.error.offline':
+    'L’elenco degli account richiede una connessione. Riprova online.',
+  'plus.accounts.error.signedOut': 'Accedi di nuovo per vedere gli account.',
+  'plus.accounts.error.server':
+    'Non è stato possibile caricare gli account. Riprova.',
+  'plus.accounts.error.list':
+    'Solo l’amministratore di FluidEQ può vedere gli account.',
+  'plus.accounts.error.notDeployed':
+    'Il server non è ancora aggiornato per l’elenco degli account.',
   'plus.accounts.noName': 'Nessun nome scelto',
   'plus.accounts.joined': 'Iscrizione del {date}',
   'plus.accounts.unconfirmed': 'Indirizzo non confermato',

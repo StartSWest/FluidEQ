@@ -143,17 +143,13 @@ it('answers everything waiting with nothing when the worker fails, and starts af
   errors.mockRestore();
 });
 
-it.each([
-  ['too-heavy', true],
-  ['gpu-reset', true],
-  ['context-lost', false],
-] as const)(
-  'tells the main process of a scene refused as %s beyond this session: %s',
-  async (reason, kept) => {
-    const reportSceneSourceRefused = jest.fn(() => Promise.resolve());
-    window.electron = {
-      ipcRenderer: { reportSceneSourceRefused },
-    } as unknown as typeof window.electron;
+// A refusal used to be written to disk (`sceneRefusals.ts`) so no worker
+// drew the scene again even after a relaunch, except a loss nothing was
+// blamed for. That record is gone entirely: a fresh module load — what
+// every relaunch gives — has never heard of the scene, whatever the reason.
+it.each(['too-heavy', 'gpu-reset', 'context-lost'] as const)(
+  'forgets a %s refusal on a fresh module load; nothing is written anywhere for it to read back',
+  async (reason) => {
     const client = load()();
     const drawing = client.drawStillInWorker(pack);
     await settle();
@@ -161,11 +157,16 @@ it.each([
     const [request] = worker.sent;
     worker.reply({ kind: 'still', id: request.id, refused: reason });
     await expect(drawing).resolves.toBeUndefined();
-    // A loss nothing was blamed for is not the scene's to keep.
-    expect(reportSceneSourceRefused.mock.calls).toEqual(
-      kept ? [[pack.source, reason]] : [],
-    );
-    Reflect.deleteProperty(window, 'electron');
+
+    const again = load()();
+    const secondDrawing = again.drawStillInWorker(pack);
+    await settle();
+    expect(FakeWorker.made).toHaveLength(2);
+    const [, relaunchedWorker] = FakeWorker.made;
+    const [relaunchedRequest] = relaunchedWorker.sent;
+    const blob = new Blob(['webp'], { type: 'image/webp' });
+    relaunchedWorker.reply({ kind: 'still', id: relaunchedRequest.id, blob });
+    await expect(secondDrawing).resolves.toBe(blob);
   },
 );
 

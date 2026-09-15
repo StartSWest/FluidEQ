@@ -70,6 +70,17 @@ const studio = {
   'studio.project.new': 'Nuovo progetto…',
   'studio.project.forgetHint':
     'La cartella e i suoi file restano sul tuo computer.',
+  'studio.project.rename': 'Rinomina {name}…',
+  'studio.rename.title': 'Rinomina progetto',
+  'studio.rename.lead':
+    'La scena e la sua cartella prendono il nuovo nome. FluidEQ rilascia i file mentre rinomina la cartella, poi riapre la scena.',
+  'studio.rename.where': 'Cartella',
+  'studio.rename.save': 'Rinomina',
+  'studio.rename.saving': 'Rinomina in corso…',
+  'studio.rename.exists':
+    'Accanto c’è già una cartella chiamata {name}. Scegli un altro nome.',
+  'studio.rename.failed':
+    'Non è stato possibile rinominare la cartella. Chiudi ciò che usa i suoi file e riprova.',
 
   'studio.new.title': 'Nuovo progetto',
   'studio.new.lead':
@@ -227,22 +238,22 @@ const studio = {
 
   'studio.idea.pet.label': 'Il mio animale, vivo',
   'studio.idea.pet.text':
-    'La foto del mio animale, viva con la musica. Respira con i bassi, un bagliore morbido ne segue il contorno a ogni battito, i colori si scaldano con i medi e salgono scintille con gli acuti.',
+    'La foto del mio animale, viva con la musica. Respira piano con i bassi, un bordo di luce ne segue il contorno a ogni battito, i suoi colori si scaldano con i medi e piccole scintille salgono intorno con gli acuti. A ogni grande momento, una pioggia di coriandoli esplode alle sue spalle, ogni volta di un colore nuovo. Nel silenzio respira soltanto, lentamente. Cursori per il bagliore, le scintille e quanto si muove. Intorno all’app, in modalità Ambiente: piccole impronte di zampe e cuori che passano fluttuando.',
   'studio.idea.city.label': 'Città al neon',
   'studio.idea.city.text':
-    'Una città al neon di notte. Ogni edificio è una banda dello spettro, le finestre si accendono con i medi e un treno attraversa lo skyline a ogni accento musicale.',
+    'Una città al neon di notte, dopo la pioggia. Lo skyline è il mio spettro: ogni torre sale con la sua parte della musica, i bassi a sinistra e gli acuti a destra, lì dove l’altezza e la posizione della mia onda lo mettono. Le finestre si accendono con i medi, le luci sui tetti lampeggiano a ogni battito e a ogni grande momento un treno attraversa il ponte in primo piano. La strada bagnata riflette tutto e si increspa con la forma d’onda. Nel silenzio si muove solo il traffico, lento. Cursori per la pioggia, le finestre e il bagliore del neon. Intorno all’app, in modalità Ambiente: luci morbide della città che fluttuano come bokeh.',
   'studio.idea.sea.label': 'Mare profondo',
   'studio.idea.sea.text':
-    'Il mare profondo. Le meduse pulsano con i bassi, il plancton scintilla con gli acuti e i raggi di luce ondeggiano con il livello generale.',
+    'Il mare profondo di notte. Una medusa luminosa galleggia dentro la mia onda: la sua campana pulsa con i bassi e i lunghi tentacoli ondeggiano con i medi, mentre il plancton scintilla con gli acuti e deboli raggi di luce scendono dall’alto. Un piccolo banco di pesci sfreccia via a ogni battito e a ogni grande momento l’ombra di una balena scivola sullo sfondo. Nel silenzio tutto rallenta in una deriva calma. Cursori per il bagliore, la profondità e quante meduse ci sono. Intorno all’app, in modalità Ambiente: bolle che salgono lente.',
   'studio.idea.vinyl.label': 'Vinile',
   'studio.idea.vinyl.text':
-    'Un vinile che gira visto dall’alto. I solchi brillano con la forma d’onda e la puntina sprizza scintille sui battiti.',
+    'Un giradischi visto dall’alto, in una stanza calda e in penombra. Il disco gira a velocità costante e i suoi solchi si accendono ad anelli, i bassi vicino all’etichetta e gli acuti sul bordo. La puntina brilla e sprizza piccole scintille a ogni battito, i colori dell’etichetta cambiano con i medi e la polvere fluttua nella luce della lampada con gli acuti. A ogni grande momento un anello di luce corre sul disco verso l’esterno. Nel silenzio continua a girare, illuminato piano. Cursori per la velocità, il bagliore e la polvere. Intorno all’app, in modalità Ambiente: note musicali che salgono fluttuando.',
   'studio.idea.fire.label': 'Falò',
   'studio.idea.fire.text':
-    'Un falò sotto le stelle. Le fiamme sono lo spettro, le braci salgono con i piatti e le stelle scintillano con gli acuti.',
-  'studio.idea.aurora.label': 'Aurora boreale',
-  'studio.idea.aurora.text':
-    'L’aurora boreale su un lago. Le cortine seguono lo spettro lento, il riflesso si increspa con la forma d’onda e una stella cadente passa a ogni accento.',
+    'Un falò in una pineta sotto le stelle. Le fiamme sono il mio spettro e si alzano dentro la mia onda: ogni lingua di fuoco balza con la sua parte della musica. Le braci volano con i piatti, i ciocchi si arrossano con i bassi, gli alberi intorno prendono il riverbero del fuoco con i medi e le stelle brillano con gli acuti. A ogni grande momento una spirale di scintille sale nella notte. Nel silenzio brucia basso e tranquillo. Cursori per la grandezza del fuoco, le braci e il fumo. Intorno all’app, in modalità Ambiente: lucciole che vagano e qualche scintilla che sale.',
+  'studio.idea.sunset.label': 'Ora d’oro',
+  'studio.idea.sunset.text':
+    'Una valle di montagna all’ora d’oro. Le creste lontane sono il mio spettro: salgono e scendono con la loro parte della musica dentro la mia onda e sfumano nella foschia con la distanza. Il sole basso si gonfia piano con i bassi, le nuvole arrossiscono con i medi e il fiume in basso luccica con gli acuti. A ogni grande momento uno stormo di uccelli passa davanti al sole, ogni volta per una strada diversa. Nel silenzio si muovono solo le nuvole. Cursori per l’altezza del sole, la foschia e le nuvole. Intorno all’app, in modalità Ambiente: qualche uccello che plana ogni tanto.',
 
   'studio.prompt.label': 'Il prompt per IA',
   'studio.prompt.ideaHere': '← qui va la tua idea',

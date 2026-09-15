@@ -17,7 +17,9 @@ import { createSourceFeed } from '../memberScenes/sourceFeed';
 import {
   createProjectFolder,
   defaultProjectsRoot,
+  findProjectFolders,
 } from '../memberScenes/projectFolders';
+import { renameProjectFolder } from '../memberScenes/projectRename';
 import {
   folderHoldingScene,
   writeRestoredProject,
@@ -36,13 +38,14 @@ import {
   readProjectList,
   withActive,
   withFolder,
+  withFolders,
+  withProjectFolder,
   without,
   withRoot,
   writeProjectList,
   type IProjectList,
 } from '../memberScenes/studioProjects';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
-import type { ISceneRefusals } from '../sceneRefusals';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioSettingsIpc } from './studioSettings';
 
@@ -133,8 +136,6 @@ export interface IMemberScenesIpcDeps {
   session: IAccountSession;
   entitlement: IEntitlement;
   logger?: { info(message: string): void; warn(message: string): void };
-  /** Scene code refused wherever it ran (`sceneRefusals.ts`). */
-  refusals?: ISceneRefusals;
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
 }
@@ -158,13 +159,11 @@ export interface IMemberScenesIpcRegistration {
   loadVisible(lookId: unknown): IScenePack | undefined;
   subscribeScenes(listener: () => void): () => void;
   /**
-   * A member's look would not run here: quarantined, its code refused
-   * wherever else it runs, and every look list told. The graph reports
-   * through its channel; a desktop background through main.
+   * A member's look would not run here, right now. The graph reports through
+   * its channel; a desktop background through main. Logged for operator
+   * visibility only — it does not stop a later attempt at the same scene.
    */
   reportFailure(lookId: string, reason: TSceneFailure): void;
-  /** Whether a held look is kept from running, by quarantine or refusal. */
-  isRefused(lookId: string): boolean;
   /** The open project's folder, for export and publish. */
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
@@ -181,6 +180,13 @@ export interface IMemberScenesIpcRegistration {
   dispose(): void;
 }
 
+/**
+ * How renaming a project went. `exists`: a folder of that name is already
+ * beside it. `refused`: no Plus, or a FluidEQ scene opened to look inside.
+ */
+export type TRenameProjectResult =
+  'renamed' | 'exists' | 'invalid' | 'failed' | 'refused';
+
 const CHANNELS = [
   'member-scenes-list',
   'member-scenes-load',
@@ -191,6 +197,7 @@ const CHANNELS = [
   'studio-link-folder',
   'studio-select-project',
   'studio-forget-project',
+  'studio-rename-project',
   'studio-choose-root',
   'studio-create-project',
   'studio-add-to-looks',
@@ -207,11 +214,10 @@ export const registerMemberScenesIpc = ({
   session,
   entitlement,
   logger,
-  refusals,
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
-  const store = createMemberSceneStore({ userDataDir, logger, refusals });
+  const store = createMemberSceneStore({ userDataDir, logger });
   const studioPath = path.join(userDataDir, STUDIO_FILE);
 
   let projects: IProjectList = readProjectList(studioPath);
@@ -299,11 +305,18 @@ export const registerMemberScenesIpc = ({
     lastBuild = undefined;
   };
 
+  /**
+   * While a project's folder is being renamed nothing may watch it: a watcher
+   * reads the move as the folder being gone, and the stage said the scene's
+   * files were missing until the project opened again.
+   */
+  let renaming = false;
+
   const startWatching = () => {
     stopWatching();
     const folder = activeFolder();
     const { active } = projects;
-    if (!folder || !active || !studioOpen || !entitled()) {
+    if (!folder || !active || !studioOpen || !entitled() || renaming) {
       return;
     }
     watcher = watchProject(
@@ -448,14 +461,8 @@ export const registerMemberScenesIpc = ({
     if (!ref) {
       return;
     }
-    // Its source too, read before the quarantine hides it: the gallery's
-    // preview, the lamps and its picture run the same code elsewhere.
-    const pack = store.load(ref.authorId, ref.packId);
-    if (pack) {
-      refusals?.refuse(pack.source, reason);
-    }
-    store.quarantine(ref.authorId, ref.packId, reason);
-    announceScenes();
+    // Diagnostic only: nothing here gates a later attempt at the same scene.
+    logger?.warn(`Member scene ${lookId} failed to run here: ${reason}.`);
   };
 
   ipcMain.handle(
@@ -485,7 +492,10 @@ export const registerMemberScenesIpc = ({
     }
     const folder = await chooseFolder(['openDirectory']);
     if (folder) {
-      adopt(withFolder(projects, folder, Date.now()));
+      // A folder of scene folders lists every one of them, the first open.
+      adopt(
+        withFolders(projects, await findProjectFolders(folder), Date.now()),
+      );
       await refreshNames();
     }
     return studioState();
@@ -507,6 +517,53 @@ export const registerMemberScenesIpc = ({
     }
     return studioState();
   });
+
+  // Renames a project's scene and its folder, where the folder already is,
+  // under the same id. The folder is let go of first — its watcher closed and
+  // the build it was reading finished — and the project then opens again from
+  // its new folder, or from the old one when the rename could not happen.
+  ipcMain.handle(
+    'studio-rename-project',
+    async (
+      _event,
+      id: unknown,
+      name: unknown,
+    ): Promise<TRenameProjectResult> => {
+      const project = projects.projects.find((entry) => entry.id === id);
+      if (!entitled() || project?.official) {
+        return 'refused';
+      }
+      if (!project || typeof name !== 'string') {
+        return 'invalid';
+      }
+      if (renaming) {
+        return 'failed';
+      }
+      renaming = true;
+      const holding = project.id === projects.active ? watcher : undefined;
+      if (holding) {
+        stopWatching();
+        await holding.settled();
+      }
+      try {
+        const renamed = await renameProjectFolder(project.folder, name);
+        if (!renamed.ok) {
+          return renamed.reason;
+        }
+        adopt(withProjectFolder(projects, project.id, renamed.folder));
+        return 'renamed';
+      } catch (error) {
+        logger?.warn(`Renaming a Studio project failed: ${String(error)}`);
+        return 'failed';
+      } finally {
+        renaming = false;
+        if (!watcher) {
+          startWatching();
+        }
+        await refreshNames();
+      }
+    },
+  );
 
   // Where new projects go: chosen once, in the system dialog, opening on
   // the folder in use now.
@@ -566,7 +623,6 @@ export const registerMemberScenesIpc = ({
     }
     try {
       const scene = store.save(me, build.pack);
-      store.release(me, build.pack.id);
       announceScenes();
       return { ok: true, scene };
     } catch (error) {
@@ -627,12 +683,6 @@ export const registerMemberScenesIpc = ({
       };
     },
     reportFailure,
-    isRefused: (lookId) =>
-      store
-        .list()
-        .some(
-          (scene) => scene.lookId === lookId && scene.quarantined !== undefined,
-        ),
     activeFolder,
     activeIsInspection,
     restoreOwnProject,

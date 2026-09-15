@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioState } from 'main/ipc/memberScenes';
@@ -7,6 +7,7 @@ import Chevron from '../icons/Chevron';
 import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { type IRichPickEntry } from '../widgets/RichPick';
+import StudioRenameProjectDialog from './StudioRenameProjectDialog';
 import {
   forgetStudioProject,
   linkStudioFolder,
@@ -51,6 +52,13 @@ export default function StudioProjects({
   const { t, locale } = useTranslation();
   const [switching, setSwitching] = useState(false);
   const picking = useRef(false);
+  // The project being renamed, as it was when Rename was pressed.
+  const [renaming, setRenaming] = useState<{
+    id: string;
+    name: string;
+    path: string;
+  }>();
+  const closeRename = useCallback(() => setRenaming(undefined), []);
 
   const entries = useMemo<IRichPickEntry[]>(
     // The server returns recency order after every selection. A fixed folder
@@ -175,6 +183,33 @@ export default function StudioProjects({
               <Glyph name="looks" />
               {t('studio.project.inspect')}
             </button>
+            {active &&
+              state.projects.some(
+                (project) => project.id === active.id && !project.official,
+              ) && (
+                // A FluidEQ scene opened to look inside is not renamed: it is
+                // theirs to take ideas from, not the member's to keep.
+                <button
+                  type="button"
+                  className="rich-pick__action"
+                  onClick={() => {
+                    close();
+                    const project = state.projects.find(
+                      (entry) => entry.id === active.id,
+                    );
+                    if (project) {
+                      setRenaming({
+                        id: project.id,
+                        name: active.name,
+                        path: project.path,
+                      });
+                    }
+                  }}
+                >
+                  <Glyph name="studio" />
+                  {t('studio.project.rename', { name: active.name })}
+                </button>
+              )}
             {active && (
               <button
                 type="button"
@@ -220,6 +255,14 @@ export default function StudioProjects({
       >
         <Chevron />
       </button>
+      {renaming && (
+        <StudioRenameProjectDialog
+          id={renaming.id}
+          name={renaming.name}
+          path={renaming.path}
+          onClose={closeRename}
+        />
+      )}
     </div>
   );
 }

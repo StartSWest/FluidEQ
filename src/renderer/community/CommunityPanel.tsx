@@ -11,6 +11,9 @@ import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
 import { identityStyle } from './identity';
 import LeaderboardView from './LeaderboardView';
+import AdminView from '../plus/AdminView';
+import { setGalleryNotice } from '../plus/galleryActions';
+import { refreshModeration, useModeration } from '../plus/moderationStore';
 import {
   openPlusPlace,
   usePlusNavigation,
@@ -46,7 +49,7 @@ interface IPlace {
 /**
  * The rail, top to bottom: leaderboard, visualizers, Studio, then dynamic
  * lighting — the places that make scenes before the one that takes them off
- * the screen.
+ * the screen. The admin's place follows, under a rule, for the admin alone.
  */
 const PLACES: readonly IPlace[] = [
   {
@@ -90,12 +93,13 @@ export default function CommunityPanel({
   onSignIn,
   onShowGraph,
 }: ICommunityPanelProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const account = useAccount();
   const accountKnown = useAccountKnown();
   const entitlement = useEntitlement();
   const entitlementKnown = useEntitlementKnown();
   const { profile, loaded } = useProfile();
+  const moderation = useModeration();
   const signedIn = account.status === 'signed-in';
   const entitled = entitlement.state !== 'none';
   const { place: view } = usePlusNavigation();
@@ -109,6 +113,17 @@ export default function CommunityPanel({
       forgetProfile();
     }
   }, [accountId]);
+
+  // Whether this account is the admin, for the admin's place and the count
+  // on it: asked whenever the tab opens and whenever another account signs in.
+  useEffect(() => {
+    refreshModeration(accountId).catch(() => undefined);
+  }, [accountId]);
+
+  // What a place said back under its head belongs to the tab's visit. Cleared
+  // here, not by each place as it closes: a scene answered from its own page
+  // sends the admin back to the reported queue, and the answer goes along.
+  useEffect(() => () => setGalleryNotice(undefined), []);
 
   // Neither version of the tab until the main process has said which one is
   // true: the stores start signed out and unsubscribed, and drawing that
@@ -134,6 +149,23 @@ export default function CommunityPanel({
 
   const pinLabel = t(pinned ? 'plus.rail.collapse' : 'plus.rail.pin');
 
+  // An answer about another account says nothing about this one.
+  const answered = moderation.accountId === accountId;
+  const isAdmin = answered && moderation.admin;
+  const adminKnown = answered && moderation.known;
+  // The admin's place is the admin's alone. Until the server has said whether
+  // this account is the admin it waits; told no, the gallery stands in, and
+  // the place is kept in case the answer was only the network failing.
+  const shown: TPlusPlace =
+    view === 'admin' && adminKnown && !isAdmin ? 'visualizers' : view;
+
+  const openPlace = (place: TPlusPlace) => {
+    if (place !== shown) {
+      setGalleryNotice(undefined);
+    }
+    openPlusPlace(place);
+  };
+
   return (
     <div
       className={`community community--plus${pinned ? '' : ' community--rail-folded'}`}
@@ -158,14 +190,14 @@ export default function CommunityPanel({
 
           <div className="community__channels">
             {PLACES.map((entry) => {
-              const isActive = view === entry.place;
+              const isActive = shown === entry.place;
               return (
                 <button
                   key={entry.place}
                   type="button"
                   className={`community__channel${isActive ? ' is-active' : ''}`}
                   aria-current={isActive ? 'true' : undefined}
-                  onClick={() => openPlusPlace(entry.place)}
+                  onClick={() => openPlace(entry.place)}
                 >
                   <span className="community__channel-mark">
                     <Glyph name={entry.glyph} />
@@ -181,6 +213,39 @@ export default function CommunityPanel({
                 </button>
               );
             })}
+            {isAdmin && (
+              <>
+                <span className="community__rail-rule" aria-hidden="true" />
+                <button
+                  type="button"
+                  className={`community__channel community__channel--admin${shown === 'admin' ? ' is-active' : ''}`}
+                  aria-current={shown === 'admin' ? 'true' : undefined}
+                  onClick={() => openPlace('admin')}
+                >
+                  <span className="community__channel-mark">
+                    <Glyph name="shield" />
+                    {moderation.open > 0 && (
+                      <span
+                        className="community__channel-count"
+                        aria-label={t('plus.gallery.reportedOpen', {
+                          count: String(moderation.open),
+                        })}
+                      >
+                        {new Intl.NumberFormat(locale).format(moderation.open)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="community__channel-text">
+                    <span className="community__channel-name">
+                      {t('plus.admin.title')}
+                    </span>
+                    <span className="community__channel-blurb">
+                      {t('plus.admin.blurb')}
+                    </span>
+                  </span>
+                </button>
+              </>
+            )}
           </div>
 
           <div className="community__foot">
@@ -224,7 +289,7 @@ export default function CommunityPanel({
               <button
                 type="button"
                 className="community__link community__choose"
-                onClick={() => openPlusPlace('board')}
+                onClick={() => openPlace('board')}
               >
                 <Glyph name="mention" />
                 {t('leaderboard.name.choose')}
@@ -235,12 +300,24 @@ export default function CommunityPanel({
       </div>
 
       <section className="community__main">
-        {view === 'visualizers' && (
+        {shown === 'visualizers' && (
           <VisualizersView onShowGraph={onShowGraph} />
         )}
-        {view === 'studio' && <StudioPanel />}
-        {view === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
-        {view === 'board' && (
+        {shown === 'studio' && <StudioPanel />}
+        {shown === 'lighting' && <LightingPanel onShowGraph={onShowGraph} />}
+        {shown === 'admin' &&
+          (adminKnown ? (
+            <AdminView />
+          ) : (
+            <div
+              className="community__place-checking"
+              role="status"
+              aria-label={t('account.checking')}
+            >
+              <span className="gallery-preview__spinner" aria-hidden="true" />
+            </div>
+          ))}
+        {shown === 'board' && (
           <>
             {/* The same head the Visualizers place has: the name, and a
                 line saying what the place is. */}

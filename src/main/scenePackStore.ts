@@ -8,8 +8,6 @@ import {
   type IScenePackEnvelope,
 } from '../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../common/sceneUniformContract';
-import { PRODUCT_VERSION } from '../common/branding';
-import type { ISceneRefusals, TSceneRefusal } from './sceneRefusals';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 
@@ -36,7 +34,6 @@ import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 const DIRECTORY = 'scene-packs';
 const PACKS_DIRECTORY = 'packs';
 const REJECTED_FILE = 'rejected.json';
-const QUARANTINE_FILE = 'quarantine.json';
 const REMOVED_FILE = 'removed.json';
 
 /**
@@ -58,11 +55,6 @@ export interface IScenePackSummary {
   fallbackStyle: IScenePack['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
-  /**
-   * Set when the renderer has reported this pack cannot run on this machine,
-   * or its source was refused wherever it ran (`sceneRefusals.ts`).
-   */
-  quarantined?: TSceneRefusal;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -81,19 +73,11 @@ export interface IScenePackStore {
   adopt(listings: readonly IScenePackListing[], explicit?: boolean): number;
   /** Remove locally and keep background refreshes from adding it again. */
   remove(id: string): boolean;
-  /** The renderer found this one cannot run here. Stop offering it. */
-  quarantine(id: string, reason: TSceneFailure): void;
-  /** Forget a quarantine — a new version of the pack may have fixed it. */
-  release(id: string): void;
 }
 
 export interface IScenePackStoreOptions {
   userDataDir: string;
   logger?: { info(message: string): void; warn(message: string): void };
-  /** The build every quarantine but `gpu-reset` is kept for. Defaults to this. */
-  appVersion?: string;
-  /** Scene code refused wherever it ran; a pack carrying it is not offered. */
-  refusals?: ISceneRefusals;
 }
 
 const ID = /^[a-z][a-z0-9-]{1,47}$/;
@@ -132,20 +116,15 @@ const readJsonRecord = (filePath: string): Record<string, string> => {
 export const createScenePackStore = ({
   userDataDir,
   logger,
-  appVersion = PRODUCT_VERSION,
-  refusals,
 }: IScenePackStoreOptions): IScenePackStore => {
   const root = path.join(userDataDir, DIRECTORY);
   const packsDir = path.join(root, PACKS_DIRECTORY);
   const rejectedPath = path.join(root, REJECTED_FILE);
-  const quarantinePath = path.join(root, QUARANTINE_FILE);
   const removedPath = path.join(root, REMOVED_FILE);
   let removed = readJsonRecord(removedPath);
 
   /** Pack id → rejected bytes; a corrected republication can use the same version. */
   let rejected = readJsonRecord(rejectedPath);
-  /** Pack id → why the renderer could not run it. */
-  let quarantine = readJsonRecord(quarantinePath);
 
   // Older builds delete anything they cannot parse at *.pack.json. Keep new
   // ciphertext outside that namespace, including when upgrading the first
@@ -214,35 +193,6 @@ export const createScenePackStore = ({
     }
   };
 
-  /**
-   * A quarantine is written as `reason@appVersion`. A failed compile, or a
-   * context lost with nothing to blame, is honoured only under the version
-   * that wrote it: a shader that failed on one build's program may compile on
-   * the next, and an entry that outlived the reason for it would hide a
-   * working look forever. A driver reset the scene is blamed for is honoured
-   * under every build, because no build changes what a scene asks of the GPU
-   * — scoped too, every update re-ran each scene that had reset it. A new
-   * version of the pack lifts any of them (`adopt`).
-   */
-  const quarantineOf = (id: string): TSceneFailure | undefined => {
-    const entry = quarantine[id];
-    if (typeof entry !== 'string') {
-      return undefined;
-    }
-    const at = entry.lastIndexOf('@');
-    const reason = at >= 0 ? entry.slice(0, at) : entry;
-    const version = at >= 0 ? entry.slice(at + 1) : '';
-    if (reason === 'gpu-reset') {
-      return reason;
-    }
-    return (reason === 'compile' || reason === 'context-lost') &&
-      version === appVersion
-      ? reason
-      : undefined;
-  };
-
-  const saveQuarantine = () =>
-    writeAtomically(quarantinePath, JSON.stringify(quarantine));
   const saveRejected = () =>
     writeAtomically(rejectedPath, JSON.stringify(rejected));
 
@@ -263,20 +213,14 @@ export const createScenePackStore = ({
           fallbackStyle: pack.fallbackStyle,
           swatch: pack.swatch,
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
-          quarantined:
-            quarantineOf(pack.id) ?? refusals?.refusalOf(pack.source),
         })),
 
     load: (id) => {
-      if (!ID.test(id) || removed[id] || quarantineOf(id)) {
+      if (!ID.test(id) || removed[id]) {
         return undefined;
       }
       const pack = readVerified(id);
-      return pack &&
-        pack.contract <= SCENE_CONTRACT_VERSION &&
-        !refusals?.refusalOf(pack.source)
-        ? pack
-        : undefined;
+      return pack && pack.contract <= SCENE_CONTRACT_VERSION ? pack : undefined;
     },
 
     adopt: (listings, explicit = false) => {
@@ -328,13 +272,6 @@ export const createScenePackStore = ({
           writeAtomically(removedPath, JSON.stringify(rest));
           removed = rest;
         }
-        // A new version may well have fixed whatever made the old one fail
-        // here, so it gets one more chance.
-        if (quarantine[pack.id]) {
-          const { [pack.id]: _released, ...rest } = quarantine;
-          quarantine = rest;
-          saveQuarantine();
-        }
         changed += 1;
         logger?.info(`Scene pack ${pack.id} v${pack.version} stored.`);
       });
@@ -351,25 +288,6 @@ export const createScenePackStore = ({
       fs.rmSync(packPath(id), { force: true });
       fs.rmSync(legacyPath(id), { force: true });
       return true;
-    },
-
-    quarantine: (id, reason) => {
-      const entry = `${reason}@${appVersion}`;
-      if (!ID.test(id) || quarantine[id] === entry) {
-        return;
-      }
-      quarantine = { ...quarantine, [id]: entry };
-      saveQuarantine();
-      logger?.warn(`Scene pack ${id} quarantined: ${reason}.`);
-    },
-
-    release: (id) => {
-      if (!quarantine[id]) {
-        return;
-      }
-      const { [id]: _released, ...rest } = quarantine;
-      quarantine = rest;
-      saveQuarantine();
     },
   };
 };

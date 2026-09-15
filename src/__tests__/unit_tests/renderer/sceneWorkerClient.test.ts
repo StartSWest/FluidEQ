@@ -110,8 +110,8 @@ it('hides the canvas while its context is lost and shows it once restored', () =
 });
 
 it('names a fatal loss after its own long frame a reset, and any other a loss', () => {
-  // Sleep and a driver update lose every context too; only a loss right after
-  // the scene held the GPU is kept beyond this build (`sceneRefusals.ts`).
+  // Sleep and a driver update lose every context too, so only a loss right
+  // after the scene held the GPU is reported as the scene's own fault.
   const unblamed = jest.fn();
   createSceneWorkerClient(document.createElement('div'), unblamed, jest.fn());
   reply({ kind: 'lost', fatal: false, blamed: false });

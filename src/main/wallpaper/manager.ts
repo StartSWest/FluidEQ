@@ -147,10 +147,6 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     });
   };
 
-  /** Why a look does not load: kept from running here, or not there at all. */
-  const unloadable = (lookId: string): TWallpaperError =>
-    deps.isSceneRefused(lookId) ? 'refused' : 'missing-scene';
-
   /** Starts what a monitor was set to show, or says why it cannot. */
   const restore = (display: Display, choice: IWallpaperChoice) => {
     const scene = entitled() ? deps.loadScene(choice.lookId) : undefined;
@@ -160,7 +156,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       backgrounds.fail(
         display.id,
         choice,
-        entitled() ? unloadable(choice.lookId) : 'not-entitled',
+        entitled() ? 'missing-scene' : 'not-entitled',
       );
     }
   };
@@ -258,7 +254,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       } else if (!owner) {
         reason = 'audio';
       } else {
-        reason = unloadable(lookId);
+        reason = 'missing-scene';
       }
       displayIds.forEach((id) => backgrounds.fail(id, choice, reason));
     } else {
@@ -339,11 +335,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     backgrounds.surfaces().forEach((surface) => {
       const next = deps.loadScene(surface.lookId);
       if (!next) {
-        backgrounds.fail(
-          surface.displayId,
-          surface.choice(),
-          unloadable(surface.lookId),
-        );
+        backgrounds.fail(surface.displayId, surface.choice(), 'missing-scene');
         changed = true;
         return;
       }

@@ -5,26 +5,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The admin's queue of reported scenes, as the admin meets it: the toolbar's
- * Reported button with its count, the two lists, and an answer leaving its
- * row. A member is never offered it — the server refuses them regardless.
+ * The admin's queue of reported scenes: the two lists, taking one down or
+ * dismissing it, and a row that stays when the server refuses the answer.
+ * Who is offered the page at all is the admin place's own gate
+ * (`CommunityPanel`/`AdminView`, tested there); this component only draws
+ * the queue it is handed.
  */
 
 import '@testing-library/jest-dom';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IGalleryScene } from '../../../common/plusGallery';
 import type { IReportedScene } from '../../../common/plusModeration';
-import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
-import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
-import { resetModerationStore } from '../../../renderer/plus/moderationStore';
 import {
-  openGalleryPage,
-  resetPlusNavigation,
-} from '../../../renderer/plus/plusNavigation';
-import VisualizersView from '../../../renderer/plus/VisualizersView';
-import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
-import { resetScenePackStore } from '../../../renderer/utils/scenePacks';
+  refreshModeration,
+  resetModerationStore,
+} from '../../../renderer/plus/moderationStore';
+import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
+import ReportedScenes from '../../../renderer/plus/ReportedScenes';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -33,30 +31,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
       vars ? `${key}:${Object.values(vars).join(',')}` : key,
   }),
 }));
-jest.mock('../../../renderer/account/entitlementStore', () => ({
-  useEntitlement: () => ({ state: 'active' }),
-}));
-jest.mock('../../../renderer/account/accountStore', () => ({
-  useAccount: () => ({
-    status: 'signed-in',
-    identity: { id: 'admin-account' },
-  }),
-}));
-jest.mock('../../../renderer/graph/sceneHealth', () => ({
-  isSceneRenderingAvailable: () => true,
-}));
-jest.mock('../../../renderer/utils/graphStyle', () => ({
-  setGraphLook: () => undefined,
-}));
-jest.mock('../../../renderer/plus/ScenePreview', () => ({
-  __esModule: true,
-  default: () => <div data-testid="scene-preview" />,
-}));
-jest.mock('../../../renderer/plus/scenePictures', () => ({
-  useScenePicture: () => ({ state: 'none' }),
-}));
 
 const AUTHOR = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
+const ADMIN = 'admin-account';
 
 const sceneNamed = (sceneId: string, name: string): IGalleryScene => ({
   lookId: `member:${AUTHOR}:${sceneId}`,
@@ -86,37 +63,15 @@ const reported = (sceneId: string, name: string): IReportedScene => ({
 });
 
 const bridge = {
-  listGallery: jest.fn(),
-  listMemberScenes: jest.fn(),
-  onMemberScenesChanged: jest.fn(),
-  listScenePacks: jest.fn(),
-  onScenePacksChanged: jest.fn(),
   moderationStatus: jest.fn(),
   listReportedScenes: jest.fn(),
   moderateScene: jest.fn(),
 };
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.resetAllMocks();
   resetPlusNavigation();
-  resetGalleryStore();
-  resetGalleryActions();
-  resetMemberSceneStore();
-  resetScenePackStore();
   resetModerationStore();
-  bridge.listGallery.mockResolvedValue({ ok: true, scenes: [], more: false });
-  bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
-    scenes: [],
-    locked: [],
-  });
-  bridge.listScenePacks.mockResolvedValue({
-    entitled: true,
-    packs: [],
-    locked: [],
-  });
-  bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
-  bridge.onScenePacksChanged.mockReturnValue(() => undefined);
   bridge.moderationStatus.mockResolvedValue({
     ok: true,
     status: { admin: true, open: 2 },
@@ -133,36 +88,15 @@ beforeEach(() => {
     configurable: true,
     value: { ipcRenderer: bridge },
   });
+  // The badge the queue updates (`setOpenReports`) only takes while the
+  // store already knows this account is the admin — the same gate
+  // CommunityPanel asks before ReportedScenes is ever mounted.
+  await refreshModeration(ADMIN);
 });
 
-const reportedButton = () =>
-  screen.findByRole('button', { name: /plus\.gallery\.reported/ });
-
 describe('the queue for the admin', () => {
-  it('offers the admin the Reported button with the count waiting', async () => {
-    render(<VisualizersView onShowGraph={jest.fn()} />);
-    const button = await reportedButton();
-    expect(
-      within(button).getByLabelText('plus.gallery.reportedOpen:2'),
-    ).toHaveTextContent('2');
-  });
-
-  it('offers a member nothing', async () => {
-    bridge.moderationStatus.mockResolvedValue({
-      ok: true,
-      status: { admin: false, open: 0 },
-    });
-    render(<VisualizersView onShowGraph={jest.fn()} />);
-    await waitFor(() => expect(bridge.moderationStatus).toHaveBeenCalled());
-    await screen.findByRole('button', { name: /plus\.gallery\.mine/ });
-    expect(
-      screen.queryByRole('button', { name: /plus\.gallery\.reported/ }),
-    ).toBeNull();
-  });
-
   it('takes a scene down only once confirmed, then drops its row and the count with it', async () => {
-    render(<VisualizersView onShowGraph={jest.fn()} />);
-    await userEvent.click(await reportedButton());
+    render(<ReportedScenes me={ADMIN} />);
     const row = (await screen.findByText('Neon City')).closest('li');
     if (!row) {
       throw new Error('the reported scene has no row');
@@ -190,8 +124,7 @@ describe('the queue for the admin', () => {
 
   it('keeps the row when the server does not take the answer', async () => {
     bridge.moderateScene.mockResolvedValue({ ok: false, reason: 'offline' });
-    render(<VisualizersView onShowGraph={jest.fn()} />);
-    act(() => openGalleryPage({ kind: 'reported' }));
+    render(<ReportedScenes me={ADMIN} />);
     const row = (await screen.findByText('Storm')).closest('li');
     if (!row) {
       throw new Error('the reported scene has no row');
@@ -201,5 +134,44 @@ describe('the queue for the admin', () => {
     );
     await waitFor(() => expect(bridge.moderateScene).toHaveBeenCalled());
     expect(screen.getByText('Storm')).toBeInTheDocument();
+  });
+
+  it('switches to the taken-down list and back, asking the server each time', async () => {
+    render(<ReportedScenes me={ADMIN} />);
+    await screen.findByText('Neon City');
+    expect(bridge.listReportedScenes).toHaveBeenCalledWith('open');
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /plus\.moderation\.list\.takenDown/ }),
+    );
+    await waitFor(() =>
+      expect(bridge.listReportedScenes).toHaveBeenCalledWith('taken-down'),
+    );
+    expect(screen.queryByText('Neon City')).toBeNull();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /plus\.moderation\.list\.open/ }),
+    );
+    await screen.findByText('Neon City');
+  });
+
+  it('says why the list could not be read, and tries again', async () => {
+    bridge.listReportedScenes.mockResolvedValueOnce({
+      ok: false,
+      reason: 'forbidden',
+    });
+    render(<ReportedScenes me={ADMIN} />);
+    expect(
+      await screen.findByText('plus.moderation.forbidden'),
+    ).toBeInTheDocument();
+
+    bridge.listReportedScenes.mockResolvedValueOnce({
+      ok: true,
+      scenes: [reported('neon-city', 'Neon City')],
+    });
+    await userEvent.click(
+      screen.getByRole('button', { name: 'plus.gallery.retry' }),
+    );
+    expect(await screen.findByText('Neon City')).toBeInTheDocument();
   });
 });

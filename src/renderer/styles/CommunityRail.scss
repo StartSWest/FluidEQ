@@ -306,6 +306,68 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The admin's place, below a rule of its own under the members' places: it is
+// not one of them. Its tile wears the admin's colour, the one on the admin's
+// name tag, and carries the count of reported scenes waiting.
+.community__rail-rule {
+  height: 1px;
+  margin: 5px 8px;
+  background: $border-subtle;
+
+  @container eq-panel (max-width: 600px) {
+    display: none;
+  }
+}
+
+.community__channel--admin .community__channel-mark {
+  position: relative;
+  color: color-mix(in srgb, $complementary 65%, $text-faint);
+}
+
+.community__channel--admin.is-active {
+  background: color-mix(in srgb, $complementary 13%, transparent);
+
+  &::before {
+    background: $complementary;
+    box-shadow: 0 0 8px color-mix(in srgb, $complementary 60%, transparent);
+  }
+
+  .community__channel-mark {
+    color: color-mix(in srgb, $complementary 80%, $white);
+    background: color-mix(in srgb, $complementary 22%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, $complementary 30%, transparent);
+  }
+}
+
+.community__channel-count {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  color: $white;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $red 78%, $surface-base);
+  box-shadow: 0 0 0 2px $block-lift;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// The admin's place while the server has not yet said whether this account
+// is the admin: the ring the tab shows while the account is checked, late on
+// purpose for the same reason.
+.community__place-checking {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  @include animate(fade-in, $motion-base, ease-out, 180ms);
+}
+
 // The Plus tab's foot: the member's own card, which opens their account, and
 // under it — until they have one — the way to choose the name the board
 // ranks. The card wears the member's colour as a wash from the left, the

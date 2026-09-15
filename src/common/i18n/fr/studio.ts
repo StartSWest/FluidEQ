@@ -71,6 +71,17 @@ const studio = {
   'studio.project.new': 'Nouveau projet…',
   'studio.project.forgetHint':
     'Le dossier et ses fichiers restent sur votre ordinateur.',
+  'studio.project.rename': 'Renommer {name}…',
+  'studio.rename.title': 'Renommer le projet',
+  'studio.rename.lead':
+    'La scène et son dossier prennent le nouveau nom. FluidEQ libère ses fichiers le temps de renommer le dossier, puis rouvre la scène.',
+  'studio.rename.where': 'Dossier',
+  'studio.rename.save': 'Renommer',
+  'studio.rename.saving': 'Renommage…',
+  'studio.rename.exists':
+    'Un dossier nommé {name} existe déjà à côté. Choisissez un autre nom.',
+  'studio.rename.failed':
+    'Le dossier n’a pas pu être renommé. Fermez ce qui utilise ses fichiers, puis réessayez.',
 
   'studio.new.title': 'Nouveau projet',
   'studio.new.lead':
@@ -227,22 +238,22 @@ const studio = {
 
   'studio.idea.pet.label': 'Mon animal, vivant',
   'studio.idea.pet.text':
-    'La photo de mon animal, vivante avec la musique. Elle respire avec les basses, une douce lueur suit sa silhouette à chaque temps, ses couleurs se réchauffent avec les médiums et des étincelles montent avec les aigus.',
+    'La photo de mon animal, vivante avec la musique. Il respire doucement avec les basses, un liseré de lumière suit sa silhouette à chaque temps, ses couleurs se réchauffent avec les médiums et de petites étincelles montent autour de lui avec les aigus. À chaque grand moment, une pluie de confettis éclate derrière lui, d’une couleur nouvelle à chaque fois. Dans le silence, il ne fait que respirer, lentement. Des réglages pour la lueur, les étincelles et l’ampleur de ses mouvements. Autour de l’appli, en mode Ambiance : de petites empreintes de pattes et des cœurs qui passent en flottant.',
   'studio.idea.city.label': 'Ville néon',
   'studio.idea.city.text':
-    'Une ville néon la nuit. Chaque immeuble est une bande du spectre, les fenêtres s’allument avec les médiums et un train traverse l’horizon à chaque accent musical.',
+    'Une ville néon la nuit, après la pluie. Les toits de la ville sont mon spectre : chaque tour monte avec sa propre partie de la musique, les basses à gauche et les aigus à droite, là où la hauteur et la position de mon onde la placent. Les fenêtres s’allument avec les médiums, les balises des toits clignotent à chaque temps et, à chaque grand moment, un train traverse le pont au premier plan. La rue mouillée reflète tout et ondule avec la forme d’onde. Dans le silence, seule la circulation avance au ralenti. Des réglages pour la pluie, les fenêtres et l’éclat du néon. Autour de l’appli, en mode Ambiance : de douces lumières de ville qui flottent comme un bokeh.',
   'studio.idea.sea.label': 'Grands fonds',
   'studio.idea.sea.text':
-    'Les grands fonds. Les méduses pulsent avec les basses, le plancton scintille avec les aigus et les rayons de lumière ondulent avec le niveau général.',
+    'Les grands fonds, la nuit. Une méduse lumineuse flotte dans mon onde : son ombrelle pulse avec les basses et ses longs tentacules ondulent avec les médiums, tandis que le plancton scintille avec les aigus et que de faibles rayons de lumière descendent d’en haut. Un petit banc de poissons file à chaque temps et, à chaque grand moment, l’ombre d’une baleine glisse au fond. Dans le silence, tout ralentit et dérive calmement. Des réglages pour la lueur, la profondeur et le nombre de méduses. Autour de l’appli, en mode Ambiance : des bulles qui montent lentement.',
   'studio.idea.vinyl.label': 'Vinyle',
   'studio.idea.vinyl.text':
-    'Un vinyle qui tourne, vu de dessus. Les sillons s’illuminent avec la forme d’onde et le diamant lance des étincelles sur les temps.',
+    'Une platine vue de dessus, dans une pièce chaleureuse et tamisée. Le disque tourne à vitesse constante et ses sillons s’allument en anneaux, les basses près de l’étiquette et les aigus sur le bord. Le diamant brille et lance de petites étincelles à chaque temps, les couleurs de l’étiquette changent avec les médiums et la poussière flotte dans la lumière de la lampe avec les aigus. À chaque grand moment, un anneau de lumière parcourt le disque vers l’extérieur. Dans le silence, il continue de tourner, doucement éclairé. Des réglages pour la vitesse, la lueur et la poussière. Autour de l’appli, en mode Ambiance : des notes de musique qui s’élèvent.',
   'studio.idea.fire.label': 'Feu de camp',
   'studio.idea.fire.text':
-    'Un feu de camp sous les étoiles. Les flammes sont le spectre, les braises s’envolent sur les cymbales et les étoiles scintillent avec les aigus.',
-  'studio.idea.aurora.label': 'Aurores boréales',
-  'studio.idea.aurora.text':
-    'Des aurores boréales sur un lac. Les voiles suivent le spectre lent, leur reflet ondule avec la forme d’onde et une étoile filante passe à chaque accent.',
+    'Un feu de camp dans une forêt de pins, sous les étoiles. Les flammes sont mon spectre et se dressent dans mon onde : chaque langue de feu bondit avec sa propre partie de la musique. Les braises s’envolent sur les cymbales, les bûches rougeoient plus fort avec les basses, les arbres alentour prennent la lueur du feu avec les médiums et les étoiles scintillent avec les aigus. À chaque grand moment, une spirale d’étincelles monte dans la nuit. Dans le silence, il brûle bas et régulier. Des réglages pour la taille du feu, les braises et la fumée. Autour de l’appli, en mode Ambiance : des lucioles qui vagabondent et quelques étincelles qui montent.',
+  'studio.idea.sunset.label': 'Heure dorée',
+  'studio.idea.sunset.text':
+    'Une vallée de montagne à l’heure dorée. Les crêtes lointaines sont mon spectre : elles montent et redescendent avec leur propre partie de la musique dans mon onde, et se perdent dans la brume avec la distance. Le soleil bas grossit doucement avec les basses, les nuages rosissent avec les médiums et la rivière en contrebas scintille avec les aigus. À chaque grand moment, une volée d’oiseaux passe devant le soleil, par un chemin différent à chaque fois. Dans le silence, seuls les nuages dérivent. Des réglages pour la hauteur du soleil, la brume et les nuages. Autour de l’appli, en mode Ambiance : quelques oiseaux qui planent de temps en temps.',
 
   'studio.prompt.label': 'Le prompt IA',
   'studio.prompt.ideaHere': '← votre idée ici',

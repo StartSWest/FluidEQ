@@ -178,7 +178,8 @@ const attach = (target: OffscreenCanvas) => {
     scope.postMessage({
       kind: 'lost',
       fatal: losses >= 2,
-      // Whether the scene is refused beyond this build (`sceneRefusals.ts`).
+      // Whether this frame's own scene is why the context was lost, which the
+      // client reports as a `gpu-reset` rather than a plain `context-lost`.
       blamed: pack !== null && blamedSource === pack.source,
     });
   });

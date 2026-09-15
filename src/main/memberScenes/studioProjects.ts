@@ -170,6 +170,39 @@ export const withFolder = (
   return { ...list, projects, active: id };
 };
 
+/**
+ * The list with every one of `folders` in it and the first of them open. A
+ * folder already there is reopened rather than listed twice, and keeps its
+ * mark. Each is dated a millisecond behind the one before it, so the list
+ * leads with the one that opened and the rest follow in the order given; past
+ * `MAX_STUDIO_PROJECTS` the least recent fall off, as they always have.
+ */
+export const withFolders = (
+  list: IProjectList,
+  folders: readonly string[],
+  now: number,
+): IProjectList => {
+  const [first] = folders;
+  if (first === undefined) {
+    return list;
+  }
+  const projects = folders.reduce<IStoredProject[]>((kept, folder, index) => {
+    const openedAt = now - index;
+    const known = kept.find((project) => sameFolder(project.folder, folder));
+    return known
+      ? kept.map((project) =>
+          project.id === known.id ? { ...project, openedAt } : project,
+        )
+      : [...kept, { id: randomUUID(), folder, openedAt }];
+  }, list.projects);
+  const opened = projects.find((project) => sameFolder(project.folder, first));
+  return {
+    ...list,
+    projects: byRecent({ projects }).slice(0, MAX_STUDIO_PROJECTS),
+    ...(opened ? { active: opened.id } : {}),
+  };
+};
+
 /** The list with `id` open, or unchanged when there is no such project. */
 export const withActive = (
   list: IProjectList,
@@ -203,6 +236,22 @@ export const without = (list: IProjectList, id: string): IProjectList => {
   };
   return next ? { ...kept, active: next.id } : kept;
 };
+
+/**
+ * The list with project `id` in `folder`: the same project, its folder renamed
+ * on disk, keeping its id, its place in the list, its mark and whether it is
+ * the open one.
+ */
+export const withProjectFolder = (
+  list: IProjectList,
+  id: string,
+  folder: string,
+): IProjectList => ({
+  ...list,
+  projects: list.projects.map((project) =>
+    project.id === id ? { ...project, folder } : project,
+  ),
+});
 
 /** The list with its projects folder set to `root`. */
 export const withRoot = (list: IProjectList, root: string): IProjectList => ({

@@ -182,6 +182,102 @@ describe('finding the account behind an address', () => {
   });
 });
 
+describe('listing accounts, for the admin', () => {
+  /** Answers `admin_list_accounts` and `admin_account_totals` differently,
+   *  the way the server's two functions do — `listAccounts` calls both at
+   *  once, so one `answer` cannot serve both. */
+  const listReply = (
+    rows: Record<string, unknown>[],
+    totals: { matched: number; paying: number },
+  ) => {
+    answer = async () => {
+      const last = calls[calls.length - 1];
+      return fakeResponse(
+        200,
+        last.url.endsWith('/admin_account_totals') ? [totals] : rows,
+      );
+    };
+  };
+
+  it('asks both functions with the request, and reads the page back', async () => {
+    listReply([{ ...row, listed_count: 1 }], { matched: 1, paying: 0 });
+    const found = await invoke('account-list', {
+      query: 'leaving',
+      plan: 'all',
+      offset: 0,
+    });
+    expect(calls).toEqual([
+      {
+        url: 'https://project.supabase.co/rest/v1/rpc/admin_list_accounts',
+        headers: expect.objectContaining({ Authorization: 'Bearer token' }),
+        body: { p_query: 'leaving', p_plan: 'all', p_limit: 50, p_offset: 0 },
+      },
+      {
+        url: 'https://project.supabase.co/rest/v1/rpc/admin_account_totals',
+        headers: expect.objectContaining({ Authorization: 'Bearer token' }),
+        body: { p_query: 'leaving' },
+      },
+    ]);
+    expect(found).toEqual({
+      ok: true,
+      page: {
+        accounts: [expect.objectContaining({ userId: SOMEONE })],
+        matched: 1,
+        paying: 0,
+        listed: 1,
+      },
+    });
+  });
+
+  it('sends an empty search as null, not as an empty string', async () => {
+    listReply([], { matched: 0, paying: 0 });
+    await invoke('account-list', { query: '', plan: 'all', offset: 0 });
+    expect(calls[0].body).toEqual({
+      p_query: null,
+      p_plan: 'all',
+      p_limit: 50,
+      p_offset: 0,
+    });
+  });
+
+  it('refuses a request the server would not take, without asking it', async () => {
+    expect(
+      await invoke('account-list', { query: '', plan: 'anything', offset: 0 }),
+    ).toEqual({ ok: false, reason: 'invalid' });
+    expect(await invoke('account-list', 'not an object')).toEqual({
+      ok: false,
+      reason: 'invalid',
+    });
+    account = undefined;
+    expect(
+      await invoke('account-list', { query: '', plan: 'all', offset: 0 }),
+    ).toEqual({ ok: false, reason: 'signed-out' });
+    expect(calls).toEqual([]);
+  });
+
+  it.each([
+    [403, { code: '42501' }, 'forbidden'],
+    [400, { code: '22023' }, 'invalid'],
+    [404, { code: 'PGRST202' }, 'not-deployed'],
+    [500, {}, 'server'],
+  ])('reads %s from the server as %s', async (status, body, reason) => {
+    answer = async () => fakeResponse(status, body);
+    expect(
+      await invoke('account-list', { query: '', plan: 'all', offset: 0 }),
+    ).toEqual({ ok: false, reason });
+  });
+
+  it('drops an answer that arrives after a different account signed in', async () => {
+    answer = async () => {
+      account = SOMEONE;
+      return fakeResponse(200, [{ ...row, listed_count: 1 }]);
+    };
+    expect(
+      await invoke('account-list', { query: '', plan: 'all', offset: 0 }),
+    ).toEqual({ ok: false, reason: 'signed-out' });
+  });
+});
+
 describe('deleting it', () => {
   it('sends the address to the delete-account function with the account token', async () => {
     reply(200, { deleted: true, files: 12 });
@@ -248,6 +344,7 @@ describe('deleting it', () => {
     expect([...handlers.keys()].sort()).toEqual([
       'account-deletion-delete',
       'account-deletion-find',
+      'account-list',
     ]);
     registered.dispose();
     expect(handlers.size).toBe(0);

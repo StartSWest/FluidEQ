@@ -10,12 +10,9 @@ import type { IWallpaperScene } from './surface';
 export interface IWallpaperScenes {
   loadScene(lookId: string): IWallpaperScene | undefined;
   subscribeScenes(listener: () => void): () => void;
-  /** Whether a look that will not load is one kept from running here. */
-  isSceneRefused(lookId: string): boolean;
   /**
-   * A background's scene failed on this computer's graphics. Written where
-   * the graph, the gallery and the lamps read it (`sceneRefusals.ts`), so no
-   * place runs that code again.
+   * A background's scene failed on this computer's graphics, right now.
+   * Logged for operator visibility only — it does not stop a later attempt.
    */
   reportSceneFailure(lookId: string, reason: TSceneFailure): void;
 }
@@ -24,7 +21,6 @@ export interface IWallpaperScenes {
 export interface IOfficialLooks {
   store: { load(id: string): IScenePack | undefined };
   subscribeScenes(listener: () => void): () => void;
-  isRefused(id: string): boolean;
   reportFailure(id: string, reason: TSceneFailure): void;
 }
 
@@ -32,7 +28,6 @@ export interface IOfficialLooks {
 export interface IMemberLooks {
   loadVisible(lookId: unknown): IScenePack | undefined;
   subscribeScenes(listener: () => void): () => void;
-  isRefused(lookId: string): boolean;
   reportFailure(lookId: string, reason: TSceneFailure): void;
 }
 
@@ -60,10 +55,6 @@ export const createWallpaperScenes = (
       stopMember();
     };
   },
-  isSceneRefused: (lookId) =>
-    isPremiumLookId(lookId)
-      ? official.isRefused(packIdOfLook(lookId))
-      : member.isRefused(lookId),
   reportSceneFailure: (lookId, reason) => {
     if (isPremiumLookId(lookId)) {
       official.reportFailure(packIdOfLook(lookId), reason);

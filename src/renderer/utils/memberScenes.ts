@@ -11,9 +11,9 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
  *
  * The same shape as the Plus looks' store beside it, and for the same reasons:
  * summaries only until a scene is about to draw, and "usable" decided here,
- * once — the account has Plus, the main process has not quarantined it, this
- * renderer has not blocked it, and this machine can run a scene at all — so a
- * scene that cannot draw is never offered anywhere a look is offered.
+ * once — the account has Plus, this renderer has not blocked it, and this
+ * machine can run a scene at all — so a scene that cannot draw is never
+ * offered anywhere a look is offered.
  */
 
 export interface IUsableMemberScene {
@@ -63,7 +63,7 @@ const recompute = () => {
   usable =
     listing.entitled && canDraw
       ? listing.scenes
-          .filter((scene) => !scene.quarantined && !blocked.has(scene.lookId))
+          .filter((scene) => !blocked.has(scene.lookId))
           .map((scene) => ({
             kind: 'member' as const,
             lookId: scene.lookId,
@@ -104,13 +104,9 @@ const publish = () => {
 const adopt = (next: IMemberScenesListing) => {
   listing = next;
   loaded = true;
-  // A new save lifts a quarantine in the main process; lift the local block
-  // with it, so the fix is tried.
-  next.scenes.forEach((scene) => {
-    if (!scene.quarantined) {
-      blocked.delete(scene.lookId);
-    }
-  });
+  // Nothing on disk remembers a failure any more, so a fresh listing is a
+  // clean slate: every scene this session had blocked gets another try.
+  blocked.clear();
   publish();
 };
 

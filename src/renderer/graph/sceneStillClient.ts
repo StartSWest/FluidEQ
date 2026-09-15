@@ -1,7 +1,6 @@
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from './sceneGl';
 import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
-import reportRefusedSceneSource from './sceneRefusalReport';
 import type {
   TSceneStillReply,
   TSceneStillRequest,
@@ -135,10 +134,6 @@ const ask = <K extends TSceneStillRequest['kind']>(
     waiting.set(id, (reply) => {
       if (reply?.refused) {
         refusedScenes.add(key);
-        // Beyond this session as well, except a loss nothing was blamed for.
-        if (reply.refused !== 'context-lost') {
-          reportRefusedSceneSource(request.pack.source, reply.refused);
-        }
       }
       resolve(
         reply?.kind === request.kind ? (reply as TReplyOf<K>) : undefined,

@@ -106,8 +106,6 @@ const plus = {
     'このシーンは FluidEQ のチェックを通らなかったため、再生されません。',
   'plus.scene.heavy': 'このシーンはこのコンピューターには重すぎます。',
   'plus.scene.broken': 'このシーンはこのコンピューターでは再生できません。',
-  'plus.scene.quarantined':
-    'このシーンは以前このコンピューターのグラフィックスで問題を起こしたため、ここでは再生されません。',
   'plus.scene.cannotDraw': 'このコンピューターは今はシーンを描画できません。',
   'plus.scene.likes': 'いいね',
   'plus.scene.week': '今週',
@@ -220,14 +218,37 @@ const plus = {
 
   'plus.gallery.accounts': 'アカウント',
   'plus.accounts.title': 'アカウント',
-  'plus.accounts.hint':
-    'アカウントの削除を依頼されたら、ここでメールアドレスから探して削除します。Plus の規約が約束するすべて（プロフィール、ランキングの記録、メンバーシップ、規約への同意、いいね、追加、報告、公開したシーンとそのファイル）とともに、完全に削除されます。',
-  'plus.accounts.field.email': 'メールアドレス',
-  'plus.accounts.find': 'アカウントを探す',
-  'plus.accounts.searchHint':
-    'アカウント上で確認するまで、何も削除されません。',
-  'plus.accounts.none': '{email} のアカウントはありません',
-  'plus.accounts.noneHint': '連絡をくれたアドレスと見比べてください。',
+  'plus.admin.title': '管理',
+  'plus.admin.blurb': 'アカウント、ギフト、報告',
+  'plus.admin.description':
+    '管理者だけに表示されます：すべてのアカウント、贈った Plus、メンバーが報告したシーン',
+  'plus.accounts.listHint':
+    '新しい順に表示します。アカウントを押すと中身を確認でき、本人から依頼があれば完全に削除できます。',
+  'plus.accounts.search': 'メール、ハンドル、名前で検索',
+  'plus.accounts.refresh': '更新',
+  'plus.accounts.filter': '表示するアカウント',
+  'plus.accounts.filter.all': 'すべてのアカウント',
+  'plus.accounts.filter.plus': 'Plus あり',
+  'plus.accounts.filter.free': 'Plus なし',
+  'plus.accounts.admin': '管理者',
+  'plus.accounts.loading': 'アカウントを読み込み中…',
+  'plus.accounts.shown': '{total} 件中 {shown} 件を表示',
+  'plus.accounts.empty.none': 'まだアカウントはありません',
+  'plus.accounts.empty.search': '{query} に一致するアカウントはありません',
+  'plus.accounts.empty.plus': 'これらのアカウントに Plus はありません',
+  'plus.accounts.empty.free': 'これらのアカウントはすべて Plus です',
+  'plus.accounts.moreError':
+    'これ以上のアカウントを読み込めませんでした。もう一度お試しください。',
+  'plus.accounts.error.offline':
+    'アカウント一覧には接続が必要です。オンラインでもう一度お試しください。',
+  'plus.accounts.error.signedOut':
+    'アカウントを表示するには、もう一度サインインしてください。',
+  'plus.accounts.error.server':
+    'アカウントを読み込めませんでした。もう一度お試しください。',
+  'plus.accounts.error.list':
+    'アカウントを表示できるのは FluidEQ の管理者だけです。',
+  'plus.accounts.error.notDeployed':
+    'サーバーはまだアカウント一覧に対応していません。',
   'plus.accounts.noName': '名前は未設定',
   'plus.accounts.joined': '{date} に登録',
   'plus.accounts.unconfirmed': 'アドレス未確認',

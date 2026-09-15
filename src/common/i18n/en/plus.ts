@@ -105,8 +105,6 @@ const plus = {
     'This scene did not pass FluidEQ’s check, so it will not play.',
   'plus.scene.heavy': 'This scene is too heavy for this computer.',
   'plus.scene.broken': 'This scene does not play on this computer.',
-  'plus.scene.quarantined':
-    "This scene failed on this computer's graphics before, so it won't be played here again.",
   'plus.scene.cannotDraw': 'This computer can’t draw scenes right now.',
   'plus.scene.likes': 'Likes',
   'plus.scene.week': 'This week',
@@ -219,14 +217,33 @@ const plus = {
 
   'plus.gallery.accounts': 'Accounts',
   'plus.accounts.title': 'Accounts',
-  'plus.accounts.hint':
-    'When somebody asks for their account to be deleted, find it here by its email address and delete it. It goes for good, with everything the Plus terms promise: profile, leaderboard days, membership, agreements, likes, adds, reports, and published scenes with their files.',
-  'plus.accounts.field.email': 'Email address',
-  'plus.accounts.find': 'Find account',
-  'plus.accounts.searchHint':
-    'Nothing is deleted until you confirm it on the account.',
-  'plus.accounts.none': 'No account has {email}',
-  'plus.accounts.noneHint': 'Check it against the address they wrote from.',
+  'plus.admin.title': 'Admin',
+  'plus.admin.blurb': 'Accounts, gifts and reports',
+  'plus.admin.description':
+    'Only you see this: every account, the Plus you give away, and the scenes members report',
+  'plus.accounts.listHint':
+    'Newest first. Press an account to see what it holds, and to delete it for good when its owner asks.',
+  'plus.accounts.search': 'Search by email, handle or name',
+  'plus.accounts.refresh': 'Refresh',
+  'plus.accounts.filter': 'Show accounts',
+  'plus.accounts.filter.all': 'All accounts',
+  'plus.accounts.filter.plus': 'With Plus',
+  'plus.accounts.filter.free': 'Without Plus',
+  'plus.accounts.admin': 'Admin',
+  'plus.accounts.loading': 'Loading accounts…',
+  'plus.accounts.shown': 'Showing {shown} of {total}',
+  'plus.accounts.empty.none': 'No accounts yet',
+  'plus.accounts.empty.search': 'No account matches {query}',
+  'plus.accounts.empty.plus': 'None of these accounts has Plus',
+  'plus.accounts.empty.free': 'Every one of these accounts has Plus',
+  'plus.accounts.moreError': 'Couldn’t load more accounts. Try again.',
+  'plus.accounts.error.offline':
+    'The account list needs a connection. Try again online.',
+  'plus.accounts.error.signedOut': 'Sign in again to see the accounts.',
+  'plus.accounts.error.server': 'The accounts could not be loaded. Try again.',
+  'plus.accounts.error.list': 'Only the FluidEQ admin can see accounts.',
+  'plus.accounts.error.notDeployed':
+    'The server has not been updated for the account list yet.',
   'plus.accounts.noName': 'No name chosen',
   'plus.accounts.joined': 'Joined {date}',
   'plus.accounts.unconfirmed': 'Address not confirmed',

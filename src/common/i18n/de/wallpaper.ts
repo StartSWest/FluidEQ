@@ -59,7 +59,7 @@ const wallpaper = {
   'wallpaper.error.missingScene':
     'Dieser Visualizer ist nicht mehr installiert. Füge ihn erneut hinzu und versuche es wieder.',
   'wallpaper.error.refused':
-    'Dieser Visualizer ist mit der Grafik dieses Computers gescheitert und wird hier nicht mehr abgespielt.',
+    'Dieser Visualizer ist mit der Grafik dieses Computers gescheitert. Lege ihn erneut fest, um es noch einmal zu versuchen.',
   'wallpaper.error.missingDisplay':
     'Dieser Monitor ist getrennt. Sein Hintergrund kehrt zurück, sobald er wieder angeschlossen ist.',
   'wallpaper.error.host':

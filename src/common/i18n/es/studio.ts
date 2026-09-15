@@ -70,6 +70,17 @@ const studio = {
   'studio.project.new': 'Proyecto nuevo…',
   'studio.project.forgetHint':
     'La carpeta y sus archivos se quedan en tu equipo.',
+  'studio.project.rename': 'Renombrar {name}…',
+  'studio.rename.title': 'Renombrar proyecto',
+  'studio.rename.lead':
+    'La escena y su carpeta toman el nuevo nombre. FluidEQ suelta sus archivos mientras renombra la carpeta y luego vuelve a abrir la escena.',
+  'studio.rename.where': 'Carpeta',
+  'studio.rename.save': 'Renombrar',
+  'studio.rename.saving': 'Renombrando…',
+  'studio.rename.exists':
+    'Ya hay una carpeta llamada {name} a su lado. Elige otro nombre.',
+  'studio.rename.failed':
+    'No se pudo renombrar la carpeta. Cierra lo que esté usando sus archivos y vuelve a intentarlo.',
 
   'studio.new.title': 'Proyecto nuevo',
   'studio.new.lead':
@@ -226,22 +237,22 @@ const studio = {
 
   'studio.idea.pet.label': 'Mi mascota, viva',
   'studio.idea.pet.text':
-    'La foto de mi mascota, viva con la música. Respira con los graves, un brillo suave recorre su silueta en cada golpe, sus colores se calientan con los medios y suben chispas con los agudos.',
+    'La foto de mi mascota, viva con la música. Respira suave con los graves, un borde de luz recorre su silueta en cada golpe, sus colores se calientan con los medios y pequeñas chispas suben a su alrededor con los agudos. En cada gran momento, una lluvia de confeti estalla detrás de ella, de un color distinto cada vez. En silencio solo respira, despacio. Controles para el brillo, las chispas y cuánto se mueve. Alrededor de la app, en modo Ambiente: pequeñas huellas de patas y corazones que pasan flotando.',
   'studio.idea.city.label': 'Ciudad de neón',
   'studio.idea.city.text':
-    'Una ciudad de neón de noche. Cada edificio es una banda del espectro, las ventanas se encienden con los medios y un tren cruza el horizonte en cada acento musical.',
+    'Una ciudad de neón de noche, después de la lluvia. El horizonte de edificios es mi espectro: cada torre sube con su propia parte de la música, los graves a la izquierda y los agudos a la derecha, justo donde lo ponen la altura y la posición de mi onda. Las ventanas se encienden con los medios, las balizas de las azoteas parpadean con cada golpe y en cada gran momento un tren cruza el puente de delante. La calle mojada lo refleja todo y ondula con la forma de onda. En silencio solo avanza lento el tráfico. Controles para la lluvia, las ventanas y el brillo del neón. Alrededor de la app, en modo Ambiente: luces suaves de la ciudad flotando como bokeh.',
   'studio.idea.sea.label': 'Mar profundo',
   'studio.idea.sea.text':
-    'Mar profundo. Las medusas laten con los graves, el plancton destella con los agudos y los rayos de luz se mecen con el nivel general.',
+    'Lo profundo del océano de noche. Una medusa luminosa flota dentro de mi onda: su campana late con los graves y sus largos tentáculos se mecen con los medios, mientras el plancton destella con los agudos y tenues rayos de luz bajan desde lo alto. Un pequeño banco de peces pasa rápido con cada golpe y en cada gran momento la sombra de una ballena cruza al fondo. En silencio todo se calma y flota despacio. Controles para el brillo, la profundidad y cuántas medusas hay. Alrededor de la app, en modo Ambiente: burbujas que suben despacio.',
   'studio.idea.vinyl.label': 'Vinilo',
   'studio.idea.vinyl.text':
-    'Un vinilo girando visto desde arriba. Los surcos brillan con la forma de onda y la aguja lanza chispas con cada golpe.',
+    'Un tocadiscos visto desde arriba, en una habitación cálida y en penumbra. El disco gira a velocidad constante y sus surcos se encienden en anillos: los graves cerca de la etiqueta y los agudos en el borde. La aguja brilla y lanza chispitas en cada golpe, los colores de la etiqueta cambian con los medios y el polvo flota en la luz de la lámpara con los agudos. En cada gran momento un anillo de luz recorre el disco hacia fuera. En silencio sigue girando, con una luz suave. Controles para la velocidad de giro, el brillo y el polvo. Alrededor de la app, en modo Ambiente: notas musicales que suben flotando.',
   'studio.idea.fire.label': 'Fogata',
   'studio.idea.fire.text':
-    'Una fogata bajo las estrellas. Las llamas son el espectro, las brasas suben con los platillos y las estrellas titilan con los agudos.',
-  'studio.idea.aurora.label': 'Auroras boreales',
-  'studio.idea.aurora.text':
-    'Auroras boreales sobre un lago. Las cortinas siguen el espectro lento, su reflejo ondula con la forma de onda y una estrella fugaz cruza en cada acento.',
+    'Una fogata en un bosque de pinos bajo las estrellas. Las llamas son mi espectro y se alzan dentro de mi onda: cada lengua de fuego salta con su propia parte de la música. Las brasas vuelan con los platillos, los troncos brillan más rojos con los graves, los árboles de alrededor reciben el resplandor con los medios y las estrellas titilan con los agudos. En cada gran momento una espiral de chispas sube hacia la noche. En silencio arde bajo y sereno. Controles para el tamaño del fuego, las brasas y el humo. Alrededor de la app, en modo Ambiente: luciérnagas que vagan y algunas chispas que suben.',
+  'studio.idea.sunset.label': 'Hora dorada',
+  'studio.idea.sunset.text':
+    'Un valle entre montañas a la hora dorada. Las crestas lejanas son mi espectro: suben y bajan con su propia parte de la música dentro de mi onda y se funden en la bruma con la distancia. El sol bajo se hincha suavemente con los graves, las nubes se sonrojan con los medios y el río de abajo centellea con los agudos. En cada gran momento una bandada de pájaros cruza delante del sol, cada vez por un camino distinto. En silencio solo se mueven las nubes. Controles para la altura del sol, la bruma y las nubes. Alrededor de la app, en modo Ambiente: algunos pájaros que planean de vez en cuando.',
 
   'studio.prompt.label': 'El prompt para IA',
   'studio.prompt.ideaHere': '← tu idea va aquí',

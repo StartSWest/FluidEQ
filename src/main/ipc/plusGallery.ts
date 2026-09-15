@@ -36,7 +36,6 @@ import {
 import { fetchOfficialScene } from '../plus/officialGallery';
 import { fetchTasteSamples } from '../plus/tasteSamples';
 import type { IScenePackStore } from '../scenePackStore';
-import type { ISceneRefusals } from '../sceneRefusals';
 import { createGallerySceneSync } from '../plus/syncGalleryScenes';
 import { createGalleryRefresh } from '../plus/galleryRefresh';
 
@@ -77,11 +76,7 @@ export type TGallerySceneFailure =
 
 export type TGalleryPreviewOutcome =
   | { ok: true; pack: IScenePack; own: boolean }
-  /**
-   * `quarantined`: downloaded, and its code is code this computer refused —
-   * it reset the graphics driver, or would not draw at all, wherever it ran.
-   */
-  | { ok: false; reason: TGallerySceneFailure | 'quarantined' };
+  | { ok: false; reason: TGallerySceneFailure };
 
 export type TGalleryAddOutcome =
   | { ok: true; lookId: string }
@@ -98,8 +93,6 @@ export interface IPlusGalleryIpcDeps {
   onEntitlementChange: (listener: () => void) => () => void;
   officialStore?: IScenePackStore;
   announceOfficial?: () => void;
-  /** Scene code refused wherever it ran; a preview of it is not played. */
-  refusals?: ISceneRefusals;
   logger?: { warn(message: string): void };
   /** The clock the list's block-list check reads; replaced in tests. */
   now?: () => number;
@@ -211,7 +204,6 @@ export const registerPlusGalleryIpc = ({
   onEntitlementChange,
   officialStore,
   announceOfficial,
-  refusals,
   logger,
   now = Date.now,
   pictureDir,
@@ -473,9 +465,7 @@ export const registerPlusGalleryIpc = ({
         if (!pack || me !== access.accountId()) {
           return { ok: false, reason: 'unavailable' };
         }
-        return refusals?.refusalOf(pack.source)
-          ? { ok: false, reason: 'quarantined' }
-          : { ok: true, pack, own: false };
+        return { ok: true, pack, own: false };
       }
       // A member's scene file is Plus's and its author's (server migration
       // 0023); asking for it without either is a refusal already known.
@@ -496,12 +486,6 @@ export const registerPlusGalleryIpc = ({
       }
       if (access.accountId() !== previewAccount || !signedIn()) {
         return { ok: false, reason: 'not-entitled' };
-      }
-      // Checked after the download, by what arrived: five driver resets in a
-      // minute is a Windows bugcheck, and a page opened again is the easiest
-      // way there is to ask for the next one.
-      if (refusals?.refusalOf(fetched.payload.pack.source)) {
-        return { ok: false, reason: 'quarantined' };
       }
       return {
         ok: true,
@@ -587,7 +571,6 @@ export const registerPlusGalleryIpc = ({
         } else {
           store.saveImported(fetched.envelope);
         }
-        store.release(ref.authorId, ref.packId);
       } catch (error) {
         logger?.warn(`Adding a gallery scene failed: ${String(error)}`);
         return { ok: false, reason: 'refused' };

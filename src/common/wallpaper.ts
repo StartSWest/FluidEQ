@@ -61,8 +61,10 @@ export interface IWallpaperStart extends IWallpaperChoice {
 }
 
 /**
- * `refused`: the scene's own code failed on this computer's graphics — here or
- * wherever else it ran — and is kept from running again, as the graph keeps it.
+ * `refused`: the scene's own code failed on this computer's graphics while it
+ * was drawing here. Nothing is written down, so setting the background again —
+ * or the next launch — tries it again; what it does not do is start itself
+ * again unasked, which on a scene that resets the driver is a reset a minute.
  */
 export type TWallpaperError =
   | 'unsupported'
