@@ -18,94 +18,179 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.backdrop(1500);
 }
 
+/**
+ * The aurora behind the title.
+ *
+ * Two lights that drift across each other, slowly and by a few percent — the
+ * app's own visual language, which is scenes, said in CSS rather than on the
+ * GPU: a dialog that has to appear the moment somebody pays cannot depend on
+ * a shader compiling. Only the band moves, never a box holding text: an
+ * element with a running animation is promoted to its own compositor layer,
+ * and text painted into a layer that is not opaque loses subpixel
+ * antialiasing (see the note in `_motion.scss`).
+ */
+@keyframes plus-welcome-aurora {
+  0% {
+    transform: translate3d(-3%, 0, 0) scale(1.06);
+  }
+
+  50% {
+    transform: translate3d(3%, 1.5%, 0) scale(1.14);
+  }
+
+  100% {
+    transform: translate3d(-3%, 0, 0) scale(1.06);
+  }
+}
+
 .plus-member-welcome {
   @include dialog.surface(520px, 760px);
   grid-template-rows: auto minmax(0, 1fr) auto;
+  // The band is clipped to the dialog and stays under everything in it.
+  isolation: isolate;
 
-  // The accent, once, behind the header — the only celebration in the
-  // dialog. A still gradient rather than anything moving: it is read for two
-  // seconds and then closed, and a machine drawing a scene on the graph
-  // behind it has better uses for the frame.
+  // The band itself: over the title, gone by the first row. Three lights
+  // rather than one, so the colour moves through the accent, the "on" colour
+  // and a violet instead of being one wash getting lighter and darker.
   &::before {
     position: absolute;
     z-index: 0;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: -22%;
+    left: -10%;
+    width: 120%;
     height: 210px;
+    animation: plus-welcome-aurora 26s ease-in-out infinite;
     background:
       radial-gradient(
-        124% 104% at 14% -8%,
-        color-mix(in srgb, $secondary-default 52%, transparent),
-        transparent 62%
+        54% 66% at 20% 46%,
+        color-mix(in srgb, $secondary-default 74%, transparent),
+        transparent 68%
       ),
       radial-gradient(
-        104% 96% at 96% -6%,
-        color-mix(in srgb, $active 38%, transparent),
-        transparent 66%
+        50% 62% at 78% 34%,
+        color-mix(in srgb, $active 58%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        46% 58% at 52% 62%,
+        color-mix(in srgb, $neon-purple 46%, transparent),
+        transparent 72%
       );
     content: '';
+    filter: blur(6px);
+    opacity: 0.86;
     pointer-events: none;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 
-  // Everything sits over that wash.
+  // Everything sits over the band.
   > * {
     position: relative;
     z-index: 1;
   }
+
+  // The shared header paints its own lift, which is what the band would
+  // otherwise be hidden behind — and the title is the one place the
+  // celebration belongs. Its bottom border still divides the dialog, so
+  // nothing else is needed to mark where the band ends.
+  .dialog-header {
+    background: transparent;
+  }
 }
 
+// Scrolls on a window too short for the five — where the last row would
+// otherwise be cut by the footer with nothing saying there is more.
 .plus-member-welcome__body {
   display: grid;
   gap: $spacing-m;
   padding: 0 $spacing-l $spacing-m;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
 }
 
 .plus-member-welcome__lead {
   margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
+  color: $text-primary;
+  font-size: $text-lead;
   line-height: 1.5;
 }
 
 .plus-member-welcome__opened {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/**
+ * One of the five, each in a colour of its own.
+ *
+ * The app's rainbow accents rather than the theme's one: five rows in the
+ * single accent read as one thing listed five times, which is what a settings
+ * page looks like, and these are five different things. The hue is set once
+ * per row here and used three times inside it, so a row is written as a
+ * colour rather than as three matching declarations.
+ */
 .plus-member-welcome__item {
   display: grid;
   // The mark's column is fixed; the text takes the rest and wraps in it, so
   // no translation decides the dialog's width.
-  grid-template-columns: 34px minmax(0, 1fr);
-  align-items: start;
-  gap: $spacing-s;
-  padding: 9px 11px;
-  border: 1px solid rgba($white, 0.05);
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--row-hue) 22%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--row-hue) 62%, transparent);
   border-radius: $radius-s;
-  // Each on its own ground, all alike: five plain lines read as one paragraph
-  // broken up, and striping alternate ones reads as a table of two kinds.
-  // These are five separate things of one kind.
-  background: rgba($white, 0.035);
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--row-hue) 13%, transparent),
+      transparent 62%
+    ),
+    rgba($white, 0.028);
+  @include stagger-in($count: 5, $step: 44ms, $offset: 90ms);
+
+  &:nth-child(1) {
+    --row-hue: #{$neon-cyan};
+  }
+
+  &:nth-child(2) {
+    --row-hue: #{$neon-purple};
+  }
+
+  &:nth-child(3) {
+    --row-hue: #{$neon-pink};
+  }
+
+  &:nth-child(4) {
+    --row-hue: #{$neon-yellow};
+  }
+
+  &:nth-child(5) {
+    --row-hue: #{$neon-lime};
+  }
 }
 
 .plus-member-welcome__mark {
   display: grid;
-  width: 34px;
-  height: 34px;
-  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--row-hue) 38%, transparent);
   border-radius: 50%;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  background: color-mix(in srgb, var(--row-hue) 15%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--row-hue) 16%, transparent);
   place-items: center;
 
   svg {
-    width: 17px;
-    height: 17px;
-    color: $secondary-light;
+    width: 18px;
+    height: 18px;
+    color: var(--row-hue);
   }
 }
 
@@ -127,11 +212,24 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.45;
 }
 
+// The one practical line, under the five: marked as reassurance rather than
+// as a sixth thing they have been given.
 .plus-member-welcome__note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0;
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.45;
+  @include animate(fade-in, $motion-slow, $ease-out, 330ms);
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $active;
+  }
 }
 
 .plus-member-welcome__footer {

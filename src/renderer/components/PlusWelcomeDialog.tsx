@@ -135,7 +135,10 @@ export default function PlusWelcomeDialog() {
             ))}
           </ul>
 
-          <p className="plus-member-welcome__note">{t('plusWelcome.note')}</p>
+          <p className="plus-member-welcome__note">
+            <Glyph name="shield" />
+            {t('plusWelcome.note')}
+          </p>
         </div>
 
         <div className="plus-member-welcome__footer">
