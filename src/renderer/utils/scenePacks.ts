@@ -39,6 +39,8 @@ export interface IUsableScene {
  */
 export interface ILockedScene {
   id: string;
+  /** Its published version: what its picture and a taste of it are asked by. */
+  version: number;
   lookId: string;
   names: IScenePackCatalogueEntry['names'];
   fallbackStyle: IScenePackCatalogueEntry['fallbackStyle'];
@@ -90,6 +92,7 @@ const recompute = () => {
     !listing.entitled && canDraw
       ? listing.locked.map((entry) => ({
           id: entry.id,
+          version: entry.version,
           lookId: lockedLookId(entry.id),
           names: entry.names,
           fallbackStyle: entry.fallbackStyle,

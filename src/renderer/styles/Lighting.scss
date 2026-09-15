@@ -32,6 +32,156 @@ $windows-blue: #8ec5ff;
   @include slim-scrollbar;
 }
 
+// ------------------------------------------------------- without Plus
+
+// The way in, above the page it belongs to: the desk below is lit and every
+// control is there to be read, so the offer is a strip and not a wall.
+.lighting-unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, $secondary-default 32%, transparent);
+  border-radius: $radius-s;
+  background:
+    radial-gradient(
+      90% 160% at 0% 50%,
+      color-mix(in srgb, $secondary-default 18%, transparent),
+      transparent 70%
+    ),
+    $block-lift;
+
+  > .button {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+}
+
+.lighting-unlock__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: $secondary-light;
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 20%, transparent);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.lighting-unlock__text {
+  display: grid;
+  // Narrower than the strip, so the button keeps its own line before the
+  // text has to wrap to three.
+  flex: 1 1 260px;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    text-wrap: balance;
+  }
+  small {
+    color: $text-muted;
+    font-size: $text-micro;
+    line-height: 1.45;
+  }
+}
+
+.lighting-status--preview {
+  color: $secondary-light;
+  border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+
+  &::before {
+    background: $secondary-light;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 70%, transparent);
+  }
+}
+
+.lighting-demo {
+  position: relative;
+  display: grid;
+}
+
+// The line under the desk once the scene has had its turn there.
+.lighting-held {
+  color: $text-muted;
+  font-size: $text-small;
+
+  > span {
+    flex: 1 1 200px;
+    min-width: 0;
+    text-wrap: pretty;
+  }
+}
+
+// In the desk's corner while the one scene plays.
+.lighting-taste {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 5px 11px;
+  color: $text-primary;
+  font-size: $text-micro;
+  border: 1px solid rgba($white, 0.12);
+  border-radius: $radius-pill;
+  background: rgba(#060c12, 0.72);
+  backdrop-filter: blur(6px);
+  text-wrap: balance;
+}
+
+.lighting-taste__live {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $active;
+  box-shadow: 0 0 8px $active;
+  animation: lighting-live 2.4s $ease-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes lighting-live {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+// What the card below it is: read before the controls, not after them.
+.lighting-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 8px 10px;
+  color: $secondary-light;
+  font-size: $text-micro;
+  border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
 // ---------------------------------------------------------------- hero
 
 .lighting-hero {

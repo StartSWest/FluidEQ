@@ -53,6 +53,16 @@ const lighting = {
     'ダイナミック ライティングは FluidEQ Plus の機能です。デバイスがグラフ上のシーンの色をまとい、ビートに合わせて脈打ちます。',
   'lighting.gate.cta': 'Plus を見る',
 
+  'lighting.preview.status':
+    'プレビュー：デバイスは自分のライティングのままです',
+  'lighting.preview.oneScene': '何ができるかを見せる 1 つのシーン',
+  'lighting.preview.noScene': 'デスクに映る Plus のシーン',
+  'lighting.preview.moreScenes': 'すべてのシーンは Plus で',
+  'lighting.preview.taste': '{seconds} 秒間再生中',
+  'lighting.preview.held':
+    'Plus なら、どのシーンでもデスクが音楽に合わせて光り続けます。',
+  'lighting.preview.locked': '明るさ、スタイル、位置合わせは Plus で使えます。',
+
   'lighting.unsupported.title':
     'ダイナミック ライティングは Windows で使えます',
   'lighting.unsupported.body':

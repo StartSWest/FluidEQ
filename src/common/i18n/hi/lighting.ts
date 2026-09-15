@@ -53,6 +53,15 @@ const lighting = {
     'डायनेमिक लाइटिंग FluidEQ Plus का हिस्सा है। आपके डिवाइस ग्राफ़ पर चल रहे दृश्य के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
   'lighting.gate.cta': 'Plus देखें',
 
+  'lighting.preview.status': 'प्रीव्यू: आपके डिवाइस अपनी लाइटिंग रखते हैं',
+  'lighting.preview.oneScene': 'यह क्या करता है, दिखाने के लिए एक सीन',
+  'lighting.preview.noScene': 'आपकी डेस्क पर एक Plus सीन',
+  'lighting.preview.moreScenes': 'हर सीन Plus के साथ',
+  'lighting.preview.taste': '{seconds} सेकंड तक चल रहा है',
+  'lighting.preview.held':
+    'Plus के साथ आपकी डेस्क हर सीन में संगीत के साथ चलती रहती है।',
+  'lighting.preview.locked': 'चमक, स्टाइल और अलाइनमेंट Plus के साथ आते हैं।',
+
   'lighting.unsupported.title': 'डायनेमिक लाइटिंग Windows पर काम करती है',
   'lighting.unsupported.body':
     'यह Windows Dynamic Lighting और Razer Chroma के ज़रिए डिवाइस जगमगाती है, और ये दोनों सिर्फ़ Windows पर हैं।',

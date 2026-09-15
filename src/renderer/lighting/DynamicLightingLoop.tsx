@@ -5,11 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
-import {
-  LIGHTING_GRID_HEIGHT,
-  LIGHTING_GRID_WIDTH,
-  type ILightingFrame,
-} from 'common/lighting/lightingModel';
 import { isMemberLookId } from 'common/memberScenes';
 import type { IScenePack } from 'common/scenePacks';
 import { lightingProfile } from 'common/lighting/lightingProfiles';
@@ -18,7 +13,6 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import type { TDrawableScene } from '../graph/SceneCanvas';
-import { parseAccent } from '../graph/sceneUniforms';
 import { usePlusEntitled } from '../plus/GalleryParts';
 import { useSceneLook } from '../utils/graphStyle';
 import {
@@ -26,15 +20,9 @@ import {
   type IUsableMemberScene,
 } from '../utils/memberScenes';
 import { loadScenePack } from '../utils/scenePacks';
-import {
-  startLightingListener,
-  type ILightingListener,
-} from './lightingListener';
+import { playLampScene } from './lampScenePlay';
 import { publishLightingPreview } from './lightingPreview';
-import { createLightingScene } from './lightingSceneClient';
 import { useLighting } from './lightingStore';
-import { fillSwatchGrid, swatchColours } from './swatchGrid';
-import { createLightingAtmosphere } from './lightingAtmosphere';
 
 const isMemberScene = (scene: TDrawableScene): scene is IUsableMemberScene =>
   'kind' in scene && scene.kind === 'member';
@@ -148,123 +136,25 @@ export default function DynamicLightingLoop() {
       publishLightingPreview(undefined);
       return undefined;
     }
-    let closed = false;
-    const abort = new AbortController();
-    let listener: ILightingListener | undefined;
-    let failed = false;
-    const atmosphere = createLightingAtmosphere();
     const { sceneId, pack } = loadedScene;
-    const colours = swatchColours(swatchRef.current ?? []);
-    const fallback = new Uint8Array(
-      LIGHTING_GRID_WIDTH * LIGHTING_GRID_HEIGHT * 3,
-    );
-
-    const send = (frame: ILightingFrame, image?: ImageBitmap) => {
-      api.sendLightingFrame(frame);
-      publishLightingPreview(frame, image);
-    };
-    const player = createLightingScene(
-      (grid) => {
-        if (closed) {
-          grid.preview.close();
-          return;
-        }
-        send(
-          {
-            width: LIGHTING_GRID_WIDTH,
-            height: LIGHTING_GRID_HEIGHT,
-            rgb: grid.rgb,
-            level: grid.level,
-            beat: grid.beat,
-            bass: grid.bass,
-            mid: grid.mid,
-            treble: grid.treble,
-            deltaMs: grid.deltaMs,
-            sceneId,
-            timeSeconds: grid.timeSeconds,
-            activity: grid.activity,
-            ambient: grid.activity < 0.05,
-          },
-          grid.preview,
-        );
-      },
-      () => {
-        failed = true;
-      },
-      () => {
-        failed = false;
-      },
-    );
-    player.load(pack, isMemberLookId(sceneId));
-
-    const accent = parseAccent(
-      getComputedStyle(document.documentElement).getPropertyValue('--accent'),
-    );
-    startLightingListener(
+    const player = playLampScene({
+      pack,
+      sceneId,
+      guarded: isMemberLookId(sceneId),
       capture,
-      accent,
-      () => pausedRef.current,
-      (heard) => {
-        if (closed) {
-          return;
-        }
-        const frame = atmosphere(heard, profileRef.current);
-        if (!failed) {
-          player.draw(frame);
-          return;
-        }
-        send({
-          width: LIGHTING_GRID_WIDTH,
-          height: LIGHTING_GRID_HEIGHT,
-          rgb: fillSwatchGrid(
-            colours,
-            frame.spectrum,
-            LIGHTING_GRID_WIDTH,
-            LIGHTING_GRID_HEIGHT,
-            fallback,
-          ),
-          level: frame.level,
-          beat: frame.beat,
-          bass: frame.bands[0],
-          mid: frame.bands[1],
-          treble: frame.bands[2],
-          deltaMs: frame.deltaMs,
-          sceneId,
-          timeSeconds: frame.timeSeconds,
-          activity: frame.activity,
-          ambient: (frame.activity ?? 1) < 0.05,
-        });
+      isPaused: () => pausedRef.current,
+      profile: () => profileRef.current,
+      swatch: swatchRef.current ?? [],
+      onFrame: (frame, image) => {
+        api.sendLightingFrame(frame);
+        publishLightingPreview(frame, image);
       },
-      abort.signal,
-    )
-      .then((started) => {
-        if (closed) {
-          started.close();
-          return undefined;
-        }
-        listener = started;
-        return undefined;
-      })
-      .catch((error: unknown) => {
-        if (closed) {
-          return;
-        }
+      onCannotHear: () => {
         api.releaseLighting?.();
         publishLightingPreview(undefined);
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          console.error(
-            'Dynamic lighting could not listen to the output:',
-            error,
-          );
-        }
-      });
-
-    return () => {
-      closed = true;
-      abort.abort();
-      listener?.close();
-      player.close();
-    };
+      },
+    });
+    return () => player.close();
   }, [wanted, capture, loadedScene]);
 
   return null;

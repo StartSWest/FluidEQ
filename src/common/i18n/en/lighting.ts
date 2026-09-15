@@ -65,6 +65,15 @@ const lighting = {
     'Dynamic lighting is part of FluidEQ Plus. Your devices take the colours of the scene on the graph and pulse with its beat.',
   'lighting.gate.cta': 'See Plus',
 
+  'lighting.preview.status': 'Preview — your devices keep their own lighting',
+  'lighting.preview.oneScene': 'One scene to show what it does',
+  'lighting.preview.noScene': 'A Plus scene on your desk',
+  'lighting.preview.moreScenes': 'Every scene with Plus',
+  'lighting.preview.taste': 'Playing for {seconds} seconds',
+  'lighting.preview.held':
+    'With Plus your desk keeps following the music, on every scene.',
+  'lighting.preview.locked': 'Brightness, style and alignment come with Plus.',
+
   'lighting.unsupported.title': 'Dynamic lighting works on Windows',
   'lighting.unsupported.body':
     'It lights devices through Windows Dynamic Lighting and Razer Chroma, and both are only on Windows.',

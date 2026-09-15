@@ -53,6 +53,16 @@ const lighting = {
     'Динамическая подсветка входит в FluidEQ Plus. Ваши устройства берут цвета сцены на графике и пульсируют в её ритме.',
   'lighting.gate.cta': 'Узнать о Plus',
 
+  'lighting.preview.status':
+    'Предпросмотр: устройства сохраняют свою подсветку',
+  'lighting.preview.oneScene': 'Одна сцена, чтобы показать, как это работает',
+  'lighting.preview.noScene': 'Сцена Plus на вашем столе',
+  'lighting.preview.moreScenes': 'Все сцены — с Plus',
+  'lighting.preview.taste': 'Играет {seconds} секунд',
+  'lighting.preview.held':
+    'С Plus ваш стол продолжает следовать музыке в любой сцене.',
+  'lighting.preview.locked': 'Яркость, стиль и выравнивание — с Plus.',
+
   'lighting.unsupported.title': 'Динамическая подсветка работает в Windows',
   'lighting.unsupported.body':
     'Она управляет устройствами через Windows Dynamic Lighting и Razer Chroma, а они есть только в Windows.',

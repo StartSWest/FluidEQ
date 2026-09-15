@@ -14,7 +14,6 @@ import {
   deviceLightingGroup,
   lightingProfile,
 } from 'common/lighting/lightingProfiles';
-import { requestAccountPanel } from '../../account/accountPanel';
 import Glyph from '../../community/Glyph';
 import { setLightingSettings, useLighting } from '../../lighting/lightingStore';
 import { useTranslation } from '../../utils/I18nContext';
@@ -26,6 +25,7 @@ import { createDeskColourFeed, type IDeskColourFeed } from './deskColours';
 import LightingDevices from './LightingDevices';
 import LightingNotices from './LightingNotices';
 import LightingStage from './LightingStage';
+import LightingPlusPreview from './LightingPlusPreview';
 import LightingProfileTuning from './LightingProfileTuning';
 import LightingSlider from './LightingSlider';
 import LightingSceneSwatch from './LightingSceneSwatch';
@@ -115,37 +115,17 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
   }
 
   if (!entitled) {
+    // The same page, with one scene lighting the drawn desk and nothing to
+    // change: what Plus does, on their own devices, before they are asked.
     return (
       <>
         {head}
-        <div className="lighting">
-          <div className="studio-gate">
-            <span className="studio-gate__mark" aria-hidden="true">
-              <Glyph name="lighting" />
-            </span>
-            <span className="studio-gate__eyebrow">
-              {t('account.plus.eyebrow')}
-            </span>
-            <h3 className="studio-gate__title">{t('lighting.gate.title')}</h3>
-            <p className="studio-gate__body">{t('lighting.gate.body')}</p>
-            <button
-              type="button"
-              className="button small"
-              onClick={() => requestAccountPanel('subscribe')}
-            >
-              {t('lighting.gate.cta')}
-            </button>
-          </div>
-          <section className="studio-card lighting-devices">
-            <span className="studio-card__eyebrow">
-              {t('lighting.devices.found')}
-            </span>
-            <LightingDevices
-              devices={state.devices}
-              searching={state.searching}
-            />
-          </section>
-        </div>
+        <LightingPlusPreview
+          devices={state.devices}
+          searching={state.searching}
+          feed={feed}
+          brightness={state.settings.brightness}
+        />
       </>
     );
   }
