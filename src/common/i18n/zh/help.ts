@@ -39,6 +39,14 @@ const help: Record<keyof typeof en, string> = {
   'help.start.tip':
     '系统级 EQ 需要 Windows 和一个音频引擎：FluidEQ 引擎或 Equalizer APO。在 macOS 和 Linux 上，应用显示的是演示输出设备，因此那里的图表在动并不能证明有任何声音被处理。',
 
+  'help.requirements.title': '你的电脑需要什么',
+  'help.requirements.intro':
+    'FluidEQ 能在近十年的任何 Windows 电脑上运行。只有两部分要求更高：Plus 可视化效果由显卡绘制，AI 卡拉 OK 会在你第一次使用时下载它的模型。',
+  'help.requirements.steps':
+    '先看看你的 Windows：64 位的 Windows 10 1803 版或更高，或 Windows 11，4 GB 内存，约 600 MB 磁盘空间。要处理电脑播放的所有声音，需要 FluidEQ 引擎或 Equalizer APO，安装时 Windows 会请求一次权限。\n打开一个可视化效果：2013 年以后的任何显卡或核显。1080p 用核显就够；4K，或同时在多块屏幕上做桌面背景，独立显卡更合适。显卡繁忙时，FluidEQ 会把场景画得更小，并放开你看不到的场景。\n试一次 AI 卡拉 OK：分离人声第一次会下载 713 MB 的模型，音高模型再加约 180 MB，降噪模型 11 MB。有支持 DirectX 12 的显卡时，四分钟的歌大约半分钟就能分离；只用处理器则约需四分钟。处理期间请留出 2 GB 内存。\n条件允许就照这个来：Windows 11、8 GB 内存、2018 年以后的显卡；如果使用 AI 功能，再留出 3 GB 磁盘空间。',
+  'help.requirements.tip':
+    '除了 AI 模型，其余都在安装程序里；模型只在你第一次使用该功能时下载。操作菜单中的“进程”会显示 FluidEQ 的每个部分此刻在你电脑上占用了什么。',
+
   'help.engine.title': 'FluidEQ 引擎',
   'help.engine.intro':
     'FluidEQ 可以用自己的引擎或 Equalizer APO 处理你的声音。FluidEQ 引擎在 Windows 音频服务内部、声卡音效之后运行，让电脑播放的一切声音都经过你的 EQ 和 DSP 机架，并在 FluidEQ 关闭的那一刻停止介入。',

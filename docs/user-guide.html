@@ -382,37 +382,38 @@
         <nav aria-label="In this guide">
           <span class="part">Get started</span
           ><a href="#start">01 &nbsp; Your first five minutes</a
-          ><a href="#engine">02 &nbsp; The FluidEQ Engine</a
+          ><a href="#requirements">02 &nbsp; What your PC needs</a
+          ><a href="#engine">03 &nbsp; The FluidEQ Engine</a
           ><span class="part">Shape your sound</span
-          ><a href="#eq">03 &nbsp; Shape your sound with EQ</a
-          ><a href="#eqmode">04 &nbsp; EQ mode and band designs</a
-          ><a href="#headphones">05 &nbsp; Headphone correction &amp; imports</a
-          ><a href="#convolution">06 &nbsp; Use an impulse response</a
+          ><a href="#eq">04 &nbsp; Shape your sound with EQ</a
+          ><a href="#eqmode">05 &nbsp; EQ mode and band designs</a
+          ><a href="#headphones">06 &nbsp; Headphone correction &amp; imports</a
+          ><a href="#convolution">07 &nbsp; Use an impulse response</a
           ><a href="#profiles"
-            >07 &nbsp; Devices, profiles &amp; second output</a
-          ><a href="#config">08 &nbsp; Inspect &amp; back up a chain</a
-          ><a href="#dsp">09 &nbsp; Explore the DSP rack</a
-          ><a href="#denoise">10 &nbsp; Denoise &amp; source analysis</a
+            >08 &nbsp; Devices, profiles &amp; second output</a
+          ><a href="#config">09 &nbsp; Inspect &amp; back up a chain</a
+          ><a href="#dsp">10 &nbsp; Explore the DSP rack</a
+          ><a href="#denoise">11 &nbsp; Denoise &amp; source analysis</a
           ><span class="part">See your music</span
-          ><a href="#graph">11 &nbsp; The graph and its controls</a
-          ><a href="#looks">12 &nbsp; Styles and Plus visualizers</a
+          ><a href="#graph">12 &nbsp; The graph and its controls</a
+          ><a href="#looks">13 &nbsp; Styles and Plus visualizers</a
           ><span class="part">FluidEQ Plus</span
-          ><a href="#plus">13 &nbsp; FluidEQ Plus and your account</a
-          ><a href="#gallery">14 &nbsp; The Visualizers gallery</a
-          ><a href="#leaderboard">15 &nbsp; The Leaderboard</a
-          ><a href="#studio">16 &nbsp; Make scenes in the Studio</a
-          ><a href="#desktop">17 &nbsp; The desktop visualizer</a
-          ><a href="#lighting">18 &nbsp; Dynamic lighting (beta)</a
+          ><a href="#plus">14 &nbsp; FluidEQ Plus and your account</a
+          ><a href="#gallery">15 &nbsp; The Visualizers gallery</a
+          ><a href="#leaderboard">16 &nbsp; The Leaderboard</a
+          ><a href="#studio">17 &nbsp; Make scenes in the Studio</a
+          ><a href="#desktop">18 &nbsp; The desktop visualizer</a
+          ><a href="#lighting">19 &nbsp; Dynamic lighting (beta)</a
           ><span class="part">Listen, sing and share</span
-          ><a href="#online">19 &nbsp; Listen with Online Media</a
-          ><a href="#library">20 &nbsp; Build your local library</a
-          ><a href="#queue">21 &nbsp; Albums &amp; your play queue</a
-          ><a href="#karaoke">22 &nbsp; Sing with Karaoke</a
-          ><a href="#maker">23 &nbsp; Create in Karaoke Maker</a
-          ><a href="#share">24 &nbsp; Share audio between computers</a
+          ><a href="#online">20 &nbsp; Listen with Online Media</a
+          ><a href="#library">21 &nbsp; Build your local library</a
+          ><a href="#queue">22 &nbsp; Albums &amp; your play queue</a
+          ><a href="#karaoke">23 &nbsp; Sing with Karaoke</a
+          ><a href="#maker">24 &nbsp; Create in Karaoke Maker</a
+          ><a href="#share">25 &nbsp; Share audio between computers</a
           ><span class="part">When you need help</span
-          ><a href="#trouble">25 &nbsp; When something sounds wrong</a
-          ><a href="#forum">26 &nbsp; Ask in the Forum</a>
+          ><a href="#trouble">26 &nbsp; When something sounds wrong</a
+          ><a href="#forum">27 &nbsp; Ask in the Forum</a>
         </nav>
       </aside>
       <main>
@@ -425,7 +426,7 @@
             the app at your own pace.
           </p>
           <span class="badge"
-            >26 chapters · 29 real interface captures · Offline</span
+            >27 chapters · 29 real interface captures · Offline</span
           >
           <p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p>
           <button type="button" id="print">Print / Save as PDF</button>
@@ -501,9 +502,58 @@
             </p>
           </aside>
         </section>
-        <section id="engine">
+        <section id="requirements">
           <header class="chapter-heading">
             <span class="number">02</span>
+            <h2>What your PC needs</h2>
+          </header>
+          <p>
+            FluidEQ runs on any Windows PC of the last ten years. Two parts ask
+            for more than the rest: the Plus visualizers draw on the graphics
+            card, and the karaoke AI downloads its models the first time you use
+            it.
+          </p>
+
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Check your Windows: Windows 10 version 1803 or later, or Windows
+              11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing
+              everything the PC plays needs the FluidEQ Engine or Equalizer APO,
+              and Windows asks for permission once while it installs.
+            </li>
+            <li>
+              Look at a visualizer: any graphics card or built-in graphics from
+              2013 onwards. At 1080p built-in graphics are enough; 4K, or a
+              desktop background on several screens at once, is happier with a
+              dedicated card. On a busy card FluidEQ draws the scene smaller and
+              lets go of the ones you cannot see.
+            </li>
+            <li>
+              Try the karaoke AI: separating a voice downloads a 713 MB model
+              the first time, the pitch model adds about 180 MB, and noise
+              removal 11 MB. With a DirectX 12 graphics card a four-minute song
+              separates in around half a minute; on the processor alone it takes
+              about four minutes. Keep 2 GB of memory free while it works.
+            </li>
+            <li>
+              Aim for this if you can: Windows 11, 8 GB of memory, graphics from
+              2018 onwards, and 3 GB of disk free if you use the AI features.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Everything but the AI models is in the installer, and those
+              download only when you first use the feature. Processes, in the
+              actions menu, shows what each part of FluidEQ is using on your
+              machine right now.
+            </p>
+          </aside>
+        </section>
+        <section id="engine">
+          <header class="chapter-heading">
+            <span class="number">03</span>
             <h2>The FluidEQ Engine</h2>
           </header>
           <p>
@@ -600,7 +650,7 @@
         <section id="eq">
           <span class="eyebrow part">Shape your sound</span>
           <header class="chapter-heading">
-            <span class="number">03</span>
+            <span class="number">04</span>
             <h2>Shape your sound with EQ</h2>
           </header>
           <p>
@@ -956,7 +1006,7 @@
         </section>
         <section id="eqmode">
           <header class="chapter-heading">
-            <span class="number">04</span>
+            <span class="number">05</span>
             <h2>EQ mode and band designs</h2>
           </header>
           <p>
@@ -1113,7 +1163,7 @@
         </section>
         <section id="headphones">
           <header class="chapter-heading">
-            <span class="number">05</span>
+            <span class="number">06</span>
             <h2>Headphone correction &amp; imports</h2>
           </header>
           <p>
@@ -1179,7 +1229,7 @@
         </section>
         <section id="convolution">
           <header class="chapter-heading">
-            <span class="number">06</span>
+            <span class="number">07</span>
             <h2>Use an impulse response</h2>
           </header>
           <p>
@@ -1241,7 +1291,7 @@
         </section>
         <section id="profiles">
           <header class="chapter-heading">
-            <span class="number">07</span>
+            <span class="number">08</span>
             <h2>Devices, profiles &amp; second output</h2>
           </header>
           <p>
@@ -1308,7 +1358,7 @@
         </section>
         <section id="config">
           <header class="chapter-heading">
-            <span class="number">08</span>
+            <span class="number">09</span>
             <h2>Inspect &amp; back up a chain</h2>
           </header>
           <p>
@@ -1372,7 +1422,7 @@
         </section>
         <section id="dsp">
           <header class="chapter-heading">
-            <span class="number">09</span>
+            <span class="number">10</span>
             <h2>Explore the DSP rack</h2>
           </header>
           <p>
@@ -1651,7 +1701,7 @@
         </section>
         <section id="denoise">
           <header class="chapter-heading">
-            <span class="number">10</span>
+            <span class="number">11</span>
             <h2>Denoise &amp; source analysis</h2>
           </header>
           <p>
@@ -1715,7 +1765,7 @@
         <section id="graph">
           <span class="eyebrow part">See your music</span>
           <header class="chapter-heading">
-            <span class="number">11</span>
+            <span class="number">12</span>
             <h2>The graph and its controls</h2>
           </header>
           <p>
@@ -2383,7 +2433,7 @@
         </section>
         <section id="looks">
           <header class="chapter-heading">
-            <span class="number">12</span>
+            <span class="number">13</span>
             <h2>Styles and Plus visualizers</h2>
           </header>
           <p>
@@ -2486,7 +2536,7 @@
         <section id="plus">
           <span class="eyebrow part">FluidEQ Plus</span>
           <header class="chapter-heading">
-            <span class="number">13</span>
+            <span class="number">14</span>
             <h2>FluidEQ Plus and your account</h2>
           </header>
           <p>
@@ -2648,7 +2698,7 @@
         </section>
         <section id="gallery">
           <header class="chapter-heading">
-            <span class="number">14</span>
+            <span class="number">15</span>
             <h2>The Visualizers gallery</h2>
           </header>
           <p>
@@ -2897,7 +2947,7 @@
         </section>
         <section id="leaderboard">
           <header class="chapter-heading">
-            <span class="number">15</span>
+            <span class="number">16</span>
             <h2>The Leaderboard</h2>
           </header>
           <p>
@@ -2976,7 +3026,7 @@
         </section>
         <section id="studio">
           <header class="chapter-heading">
-            <span class="number">16</span>
+            <span class="number">17</span>
             <h2>Make scenes in the Studio</h2>
           </header>
           <p>
@@ -3132,7 +3182,7 @@
         </section>
         <section id="desktop">
           <header class="chapter-heading">
-            <span class="number">17</span>
+            <span class="number">18</span>
             <h2>The desktop visualizer</h2>
           </header>
           <p>
@@ -3239,7 +3289,7 @@
         </section>
         <section id="lighting">
           <header class="chapter-heading">
-            <span class="number">18</span>
+            <span class="number">19</span>
             <h2>Dynamic lighting (beta)</h2>
           </header>
           <p>
@@ -3383,7 +3433,7 @@
         <section id="online">
           <span class="eyebrow part">Listen, sing and share</span>
           <header class="chapter-heading">
-            <span class="number">19</span>
+            <span class="number">20</span>
             <h2>Listen with Online Media</h2>
           </header>
           <p>
@@ -3446,7 +3496,7 @@
         </section>
         <section id="library">
           <header class="chapter-heading">
-            <span class="number">20</span>
+            <span class="number">21</span>
             <h2>Build your local library</h2>
           </header>
           <p>
@@ -3509,7 +3559,7 @@
         </section>
         <section id="queue">
           <header class="chapter-heading">
-            <span class="number">21</span>
+            <span class="number">22</span>
             <h2>Albums &amp; your play queue</h2>
           </header>
           <p>
@@ -3571,7 +3621,7 @@
         </section>
         <section id="karaoke">
           <header class="chapter-heading">
-            <span class="number">22</span>
+            <span class="number">23</span>
             <h2>Sing with Karaoke</h2>
           </header>
           <p>
@@ -3635,7 +3685,7 @@
         </section>
         <section id="maker">
           <header class="chapter-heading">
-            <span class="number">23</span>
+            <span class="number">24</span>
             <h2>Create in Karaoke Maker</h2>
           </header>
           <p>
@@ -3698,7 +3748,7 @@
         </section>
         <section id="share">
           <header class="chapter-heading">
-            <span class="number">24</span>
+            <span class="number">25</span>
             <h2>Share audio between computers</h2>
           </header>
           <p>
@@ -3765,7 +3815,7 @@
         <section id="trouble">
           <span class="eyebrow part">When you need help</span>
           <header class="chapter-heading">
-            <span class="number">25</span>
+            <span class="number">26</span>
             <h2>When something sounds wrong</h2>
           </header>
           <p>
@@ -3832,7 +3882,7 @@
         </section>
         <section id="forum">
           <header class="chapter-heading">
-            <span class="number">26</span>
+            <span class="number">27</span>
             <h2>Ask in the Forum</h2>
           </header>
           <p>

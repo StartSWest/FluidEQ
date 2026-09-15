@@ -40,6 +40,14 @@ const help: Record<keyof typeof en, string> = {
   'help.start.tip':
     'Systemweiter EQ braucht Windows und eine Audio-Engine: die FluidEQ-Engine oder Equalizer APO. Unter macOS und Linux zeigt die App Demonstrationsausgänge, ein bewegtes Diagramm ist dort also kein Beweis, dass etwas verarbeitet wird.',
 
+  'help.requirements.title': 'Was Ihr PC braucht',
+  'help.requirements.intro':
+    'FluidEQ läuft auf jedem Windows-PC der letzten zehn Jahre. Zwei Teile verlangen mehr als der Rest: die Plus-Visualizer zeichnen auf der Grafikkarte, und die Karaoke-KI lädt ihre Modelle beim ersten Mal herunter.',
+  'help.requirements.steps':
+    'Prüfen Sie Ihr Windows: Windows 10 Version 1803 oder neuer oder Windows 11, 64 Bit, 4 GB Arbeitsspeicher und rund 600 MB Festplatte. Damit alles verarbeitet wird, was der PC abspielt, braucht es die FluidEQ-Engine oder Equalizer APO; Windows fragt einmal nach der Erlaubnis, während sie installiert wird.\nÖffnen Sie einen Visualizer: jede Grafikkarte oder integrierte Grafik ab 2013. Bei 1080p genügt die integrierte Grafik; für 4K oder einen Desktop-Hintergrund auf mehreren Bildschirmen zugleich ist eine eigene Karte besser. Ist die Karte ausgelastet, zeichnet FluidEQ die Szene kleiner und gibt die Szenen frei, die Sie nicht sehen.\nProbieren Sie das Karaoke mit KI: Das Trennen der Stimme lädt beim ersten Mal ein Modell von 713 MB, das Tonhöhenmodell kommt mit etwa 180 MB dazu und die Rauschentfernung mit 11 MB. Mit einer Grafikkarte mit DirectX 12 ist ein vierminütiges Lied in etwa einer halben Minute getrennt; allein mit dem Prozessor dauert es rund vier Minuten. Halten Sie währenddessen 2 GB Arbeitsspeicher frei.\nStreben Sie das an, wenn es geht: Windows 11, 8 GB Arbeitsspeicher, Grafik ab 2018 und 3 GB freier Speicher, wenn Sie die KI-Funktionen nutzen.',
+  'help.requirements.tip':
+    'Alles außer den KI-Modellen steckt im Installationsprogramm, und die Modelle laden erst beim ersten Einsatz der Funktion. Prozesse im Aktionsmenü zeigt, was jeder Teil von FluidEQ auf Ihrem Rechner gerade benutzt.',
+
   'help.engine.title': 'Die FluidEQ-Engine',
   'help.engine.intro':
     'FluidEQ verarbeitet deinen Ton mit seiner eigenen Engine oder mit Equalizer APO. Die FluidEQ-Engine läuft im Audiodienst von Windows nach den Effekten deiner Soundkarte, wendet deinen EQ und das DSP-Rack auf alles an, was der PC abspielt, und zieht sich zurück, sobald FluidEQ geschlossen wird.',

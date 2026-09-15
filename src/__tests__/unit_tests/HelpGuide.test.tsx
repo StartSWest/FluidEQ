@@ -9,6 +9,11 @@ import {
   within,
 } from '@testing-library/react';
 import HelpMenu from 'renderer/help/HelpMenu';
+import { HELP_CHAPTERS } from 'common/helpGuide';
+
+// Counted from the guide itself: a chapter added to it used to fail these two
+// cases on the number alone, which says nothing about what broke.
+const CHAPTERS = HELP_CHAPTERS.length;
 
 // jsdom has no native dialog or scrolling implementation. Keep these shims
 // local to the guide tests; the real focus trap is checked in Electron.
@@ -155,7 +160,7 @@ it('wears the selected look on the Help button while the Forum is open', () => {
 it('filters chapters, clears an empty result, and marks only the current chapter', () => {
   openGuide();
   const contents = screen.getByRole('navigation', { name: 'In this guide' });
-  expect(within(contents).getAllByRole('button')).toHaveLength(26);
+  expect(within(contents).getAllByRole('button')).toHaveLength(CHAPTERS);
   fireEvent.change(screen.getByRole('searchbox'), {
     target: { value: 'between computers' },
   });
@@ -172,7 +177,7 @@ it('filters chapters, clears an empty result, and marks only the current chapter
   });
   expect(within(contents).queryAllByRole('button')).toHaveLength(0);
   fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
-  expect(within(contents).getAllByRole('button')).toHaveLength(26);
+  expect(within(contents).getAllByRole('button')).toHaveLength(CHAPTERS);
   expect(screen.getByRole('searchbox')).toHaveFocus();
 });
 
@@ -239,7 +244,7 @@ it('follows the reading position down and up, including the final short chapter'
   expectCurrent(8);
   viewport.scrollTop = 15400;
   fireEvent.scroll(viewport);
-  expectCurrent(25);
+  expectCurrent(CHAPTERS - 1);
   viewport.scrollTop = 1100;
   fireEvent.scroll(viewport);
   expectCurrent(1);

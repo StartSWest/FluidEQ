@@ -13,46 +13,47 @@ Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control pos
 **Get started**
 
 1. [Your first five minutes](#start)
-2. [The FluidEQ Engine](#engine)
+2. [What your PC needs](#requirements)
+3. [The FluidEQ Engine](#engine)
 
 **Shape your sound**
 
-3. [Shape your sound with EQ](#eq)
-4. [EQ mode and band designs](#eqmode)
-5. [Headphone correction & imports](#headphones)
-6. [Use an impulse response](#convolution)
-7. [Devices, profiles & second output](#profiles)
-8. [Inspect & back up a chain](#config)
-9. [Explore the DSP rack](#dsp)
-10. [Denoise & source analysis](#denoise)
+4. [Shape your sound with EQ](#eq)
+5. [EQ mode and band designs](#eqmode)
+6. [Headphone correction & imports](#headphones)
+7. [Use an impulse response](#convolution)
+8. [Devices, profiles & second output](#profiles)
+9. [Inspect & back up a chain](#config)
+10. [Explore the DSP rack](#dsp)
+11. [Denoise & source analysis](#denoise)
 
 **See your music**
 
-11. [The graph and its controls](#graph)
-12. [Styles and Plus visualizers](#looks)
+12. [The graph and its controls](#graph)
+13. [Styles and Plus visualizers](#looks)
 
 **FluidEQ Plus**
 
-13. [FluidEQ Plus and your account](#plus)
-14. [The Visualizers gallery](#gallery)
-15. [The Leaderboard](#leaderboard)
-16. [Make scenes in the Studio](#studio)
-17. [The desktop visualizer](#desktop)
-18. [Dynamic lighting (beta)](#lighting)
+14. [FluidEQ Plus and your account](#plus)
+15. [The Visualizers gallery](#gallery)
+16. [The Leaderboard](#leaderboard)
+17. [Make scenes in the Studio](#studio)
+18. [The desktop visualizer](#desktop)
+19. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-19. [Listen with Online Media](#online)
-20. [Build your local library](#library)
-21. [Albums & your play queue](#queue)
-22. [Sing with Karaoke](#karaoke)
-23. [Create in Karaoke Maker](#maker)
-24. [Share audio between computers](#share)
+20. [Listen with Online Media](#online)
+21. [Build your local library](#library)
+22. [Albums & your play queue](#queue)
+23. [Sing with Karaoke](#karaoke)
+24. [Create in Karaoke Maker](#maker)
+25. [Share audio between computers](#share)
 
 **When you need help**
 
-25. [When something sounds wrong](#trouble)
-26. [Ask in the Forum](#forum)
+26. [When something sounds wrong](#trouble)
+27. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -69,6 +70,21 @@ Start with a familiar song at a comfortable volume. The left rail switches Fluid
 3. Play a song, open EQ → Bands, make a small change, and compare with System EQ off and on.
 
 > **Good to know:** System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.
+
+<a id="requirements"></a>
+
+## What your PC needs
+
+FluidEQ runs on any Windows PC of the last ten years. Two parts ask for more than the rest: the Plus visualizers draw on the graphics card, and the karaoke AI downloads its models the first time you use it.
+
+### Try it
+
+1. Check your Windows: Windows 10 version 1803 or later, or Windows 11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing everything the PC plays needs the FluidEQ Engine or Equalizer APO, and Windows asks for permission once while it installs.
+2. Look at a visualizer: any graphics card or built-in graphics from 2013 onwards. At 1080p built-in graphics are enough; 4K, or a desktop background on several screens at once, is happier with a dedicated card. On a busy card FluidEQ draws the scene smaller and lets go of the ones you cannot see.
+3. Try the karaoke AI: separating a voice downloads a 713 MB model the first time, the pitch model adds about 180 MB, and noise removal 11 MB. With a DirectX 12 graphics card a four-minute song separates in around half a minute; on the processor alone it takes about four minutes. Keep 2 GB of memory free while it works.
+4. Aim for this if you can: Windows 11, 8 GB of memory, graphics from 2018 onwards, and 3 GB of disk free if you use the AI features.
+
+> **Good to know:** Everything but the AI models is in the installer, and those download only when you first use the feature. Processes, in the actions menu, shows what each part of FluidEQ is using on your machine right now.
 
 <a id="engine"></a>
 

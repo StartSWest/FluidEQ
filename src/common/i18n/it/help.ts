@@ -40,6 +40,14 @@ const help: Record<keyof typeof en, string> = {
   'help.start.tip':
     'L’EQ di sistema richiede Windows e un motore audio: il motore FluidEQ o Equalizer APO. Su macOS e Linux l’app mostra uscite dimostrative, quindi lì un grafico in movimento non prova che venga elaborato qualcosa.',
 
+  'help.requirements.title': 'Che cosa serve al tuo PC',
+  'help.requirements.intro':
+    'FluidEQ gira su qualsiasi PC Windows degli ultimi dieci anni. Due parti chiedono più delle altre: i visualizzatori Plus disegnano sulla scheda grafica e il karaoke con IA scarica i suoi modelli la prima volta che lo usi.',
+  'help.requirements.steps':
+    'Controlla il tuo Windows: Windows 10 versione 1803 o successiva, oppure Windows 11, a 64 bit, 4 GB di memoria e circa 600 MB di disco. Per elaborare tutto ciò che il PC riproduce serve il motore FluidEQ o Equalizer APO, e Windows chiede il permesso una volta durante l’installazione.\nApri un visualizzatore: qualsiasi scheda grafica o grafica integrata dal 2013 in poi. A 1080p la grafica integrata basta; per il 4K, o uno sfondo del desktop su più schermi insieme, è meglio una scheda dedicata. Se la scheda è occupata, FluidEQ disegna la scena più piccola e lascia andare quelle che non stai guardando.\nProva il karaoke con IA: separare la voce scarica un modello da 713 MB la prima volta, quello dell’intonazione aggiunge circa 180 MB e la rimozione del rumore 11 MB. Con una scheda grafica con DirectX 12 un brano di quattro minuti si separa in circa mezzo minuto; con il solo processore servono circa quattro minuti. Tieni liberi 2 GB di memoria mentre lavora.\nPunta a questo se puoi: Windows 11, 8 GB di memoria, grafica dal 2018 in poi e 3 GB di disco liberi se usi le funzioni con IA.',
+  'help.requirements.tip':
+    'Tutto tranne i modelli di IA è nell’installatore, e quelli si scaricano solo al primo uso della funzione. Processi, nel menu delle azioni, mostra che cosa sta usando ogni parte di FluidEQ sulla tua macchina in questo momento.',
+
   'help.engine.title': 'Il motore FluidEQ',
   'help.engine.intro':
     'FluidEQ elabora il suono con il proprio motore o con Equalizer APO. Il motore FluidEQ gira dentro il servizio audio di Windows dopo gli effetti della tua scheda audio, applica il tuo EQ e il rack DSP a tutto ciò che il PC riproduce e si fa da parte appena FluidEQ si chiude.',

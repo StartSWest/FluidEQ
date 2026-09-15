@@ -122,6 +122,14 @@ const CHAPTERS = [
     ],
   },
   {
+    // What a machine needs, before anything is installed on it. The only
+    // chapter with no capture: a list of numbers has nothing to point at, and
+    // a screenshot of the window here would be one already shown above.
+    id: 'requirements',
+    group: 'start',
+    figures: [],
+  },
+  {
     id: 'engine',
     group: 'start',
     figures: [
