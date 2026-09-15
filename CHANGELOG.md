@@ -59,12 +59,22 @@ duplicated another, and the guide gets a chapter on what your PC needs.
   runtime it needs is in place, and whether the engine has ever run on that
   PC.
 - **The engine can be installed, attached and still never loaded by
-  Windows — and FluidEQ now repairs that itself.** Two machine-wide Windows
-  settings decide whether it may run, and a Windows update, a driver's
-  installer or an audio "repair" tool can undo either of them long after
-  setup. Until now everything looked healthy and the EQ simply did nothing.
-  FluidEQ checks both, puts them right with one Windows permission prompt,
-  and restarts the audio so the engine is loaded.
+  Windows — and FluidEQ now repairs that itself.** Several machine-wide
+  things decide whether it may run at all, and a Windows update, a driver's
+  installer, an audio "repair" tool or a disk cleaner can undo any of them
+  long after setup. Until now everything looked healthy and the EQ simply
+  did nothing. FluidEQ now puts them all back in a single pass — the setting
+  that lets the engine load, its registration, the runtime it needs beside
+  it, and the permissions on its own folder — with one Windows prompt, once
+  per run, and restarts the audio so the engine is loaded. It does this even
+  when every one of those checks passes and the engine has still never run
+  on that PC, which is the case that looked healthiest of all and was the
+  hardest to see.
+- **An engine that could not write in its own folder passed every output
+  through in silence.** Nothing had ever checked that. The engine loaded,
+  then could neither read its settings nor report how it was doing, which
+  from the outside looked exactly like it never loading at all. It is
+  checked and repaired now, and a bug report says which of the two it was.
 - **The card asking to restart Windows audio stops coming back.** Returning
   to the DSP page with music playing showed it again every single time;
   it is now put away for the rest of the session.
@@ -72,6 +82,12 @@ duplicated another, and the guide gets a chapter on what your PC needs.
   own.** It happens quietly, once per run of FluidEQ even if the window
   reloads, and never on a PC where the engine has never loaded — a restart
   cannot help there. The card still appears by itself if the restart fails.
+- **Where Windows has never once started the engine, FluidEQ says so
+  instead of offering a restart that cannot help.** The notice now says
+  what it has already put right by itself, and names what is left to look
+  at — security software, or the sound card's own driver. Meanwhile it
+  offers Equalizer APO, which on such a machine is the only thing there
+  that will process any sound. In all ten languages.
 - **The EQ and the DSP rack are verified at 44.1, 48, 96 and 192 kHz**, so a
   high-rate DAC gets the same sound as any other output.
 - **Windows' own "Audio enhancements" switch is no longer invisible to the
