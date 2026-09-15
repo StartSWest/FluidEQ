@@ -219,6 +219,15 @@ $windows-blue: #8ec5ff;
   cursor: pointer;
 }
 
+// Without Plus the switch is live and leads to Plus, so its label says so.
+.lighting-switch__lock {
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  color: $secondary-light;
+  vertical-align: -2px;
+}
+
 // The desk: its own dark ground edge to edge, the drawing centred in it at a
 // width that keeps it from towering on a wide window.
 .lighting-stage {

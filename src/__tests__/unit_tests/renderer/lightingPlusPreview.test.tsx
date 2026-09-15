@@ -77,10 +77,14 @@ it('shows the whole page with nothing to work, and Plus above it', () => {
   expect(
     document.querySelector('.lighting > :first-child')?.contains(buttons[0]),
   ).toBe(true);
-  // The switch is there and out of reach.
-  expect(
-    screen.getByRole('checkbox', { name: 'lighting.switch' }),
-  ).toBeDisabled();
+  // The switch is there, off, and pressing it opens the way to Plus rather
+  // than doing nothing: a dead switch read as broken.
+  const toggle = screen.getByRole('checkbox', { name: 'lighting.switch' });
+  expect(toggle).toBeEnabled();
+  expect(toggle).not.toBeChecked();
+  fireEvent.click(toggle);
+  expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
+  expect(toggle).not.toBeChecked();
   expect(screen.getByText('lighting.preview.status')).toBeVisible();
   // One scene, named, and every other one behind Plus.
   expect(

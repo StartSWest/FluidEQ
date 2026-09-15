@@ -86,16 +86,20 @@ export default function LightingPlusPreview({
 
       <section className="lighting-hero">
         <div className="lighting-hero__bar">
-          <div className="lighting-switch">
+          {/* Not disabled: a switch that does nothing when pressed reads as
+              broken ("it won't let me turn it on"). Like every lock in the
+              Studio, pressing it opens the way to Plus, and it stays off. */}
+          <div className="lighting-switch is-locked">
             <Switch
               id={switchId}
               isOn={false}
-              isDisabled
+              isDisabled={false}
               ariaLabel={t('lighting.switch')}
               handleToggle={unlock}
             />
             <label className="lighting-switch__label" htmlFor={switchId}>
               {t('lighting.switch')}
+              <Glyph name="lock" className="lighting-switch__lock" />
             </label>
           </div>
           <span
