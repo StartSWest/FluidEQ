@@ -438,7 +438,7 @@ The Leaderboard ranks the Plus members who join it, by how much they listen and 
 2. Open Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.
 3. To stop, press Leave the leaderboard. Remove all my data deletes everything you sent.
 
-> **Good to know:** One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server.
+> **Good to know:** One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.
 
 <a id="studio"></a>
 

@@ -307,7 +307,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Öffne Konto und drücke Der Rangliste beitreten.\nÖffne Plus → Rangliste. Wähle das Kürzel und den Namen, die die Rangliste zeigt, und wechsle dann zwischen Gesamt und Dieser Monat.\nZum Aufhören drücke Rangliste verlassen. Alle meine Daten löschen entfernt alles, was du gesendet hast.',
   'help.leaderboard.tip':
-    'Eine Zahl pro Tag verlässt deinen Computer – die Minuten Musik, die gelaufen sind – und nie, was du abspielst. Jede Zahl wird auf dem Server geprüft.',
+    'Eine Zahl pro Tag verlässt deinen Computer – die Minuten Musik, die gelaufen sind – und nie, was du abspielst. Jede Zahl wird auf dem Server geprüft. Handle und Name lassen sich später unter Konto → Namen ändern anpassen; Rangliste und veröffentlichte Szenen ziehen mit.',
   'help.leaderboard.periodName': 'Gesamt oder Dieser Monat',
   'help.leaderboard.period': 'Der gesamte Verlauf oder nur dieser Monat.',
   'help.leaderboard.standing':

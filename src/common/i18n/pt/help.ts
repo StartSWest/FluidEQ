@@ -302,7 +302,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de utilizador e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
   'help.leaderboard.tip':
-    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor.',
+    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu identificador e seu nome podem ser mudados depois em Conta → Mudar nome; o ranking e suas cenas publicadas acompanham.',
   'help.leaderboard.periodName': 'Desde sempre ou Este mês',
   'help.leaderboard.period': 'Todo o histórico, ou só este mês.',
   'help.leaderboard.standing':

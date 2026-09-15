@@ -303,7 +303,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Apri Account e premi Partecipa alla classifica.\nApri Plus → Classifica. Scegli il nickname e il nome che mostra la classifica, poi scegli tra Sempre e Questo mese.\nPer smettere, premi Esci dalla classifica. Rimuovi tutti i miei dati cancella tutto ciò che hai inviato.',
   'help.leaderboard.tip':
-    'Dal tuo computer parte un solo numero al giorno (i minuti di musica riprodotta) e mai cosa ascolti. Ogni numero viene controllato sul server.',
+    'Dal tuo computer parte un solo numero al giorno (i minuti di musica riprodotta) e mai cosa ascolti. Ogni numero viene controllato sul server. Handle e nome si possono cambiare in seguito da Account → Cambia nome; la classifica e le scene pubblicate si aggiornano.',
   'help.leaderboard.periodName': 'Sempre o Questo mese',
   'help.leaderboard.period': 'Tutta la cronologia, o solo questo mese.',
   'help.leaderboard.standing':

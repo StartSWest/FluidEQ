@@ -294,7 +294,7 @@ const help = {
   'help.leaderboard.steps':
     'Open Account and press Join the leaderboard.\nOpen Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.\nTo stop, press Leave the leaderboard. Remove all my data deletes everything you sent.',
   'help.leaderboard.tip':
-    'One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server.',
+    'One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.',
   'help.leaderboard.periodName': 'All time or This month',
   'help.leaderboard.period': 'The whole history, or this month only.',
   'help.leaderboard.standing':

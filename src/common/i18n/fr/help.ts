@@ -307,7 +307,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Ouvrez le panneau Compte et appuyez sur Rejoindre le classement.\nOuvrez Plus → Classement. Choisissez le pseudo et le nom affichés au classement, puis basculez entre Depuis toujours et Ce mois-ci.\nPour arrêter, appuyez sur Quitter le classement. Supprimer toutes mes données efface tout ce que vous avez envoyé.',
   'help.leaderboard.tip':
-    'Un seul nombre par jour quitte votre ordinateur — les minutes de musique jouées — et jamais ce que vous écoutez. Chaque nombre est vérifié sur le serveur.',
+    'Un seul nombre par jour quitte votre ordinateur — les minutes de musique jouées — et jamais ce que vous écoutez. Chaque nombre est vérifié sur le serveur. Votre pseudo et votre nom se changent plus tard depuis Compte → Changer de nom ; le classement et vos scènes publiées suivent.',
   'help.leaderboard.periodName': 'Depuis toujours ou Ce mois-ci',
   'help.leaderboard.period': 'Tout l’historique, ou ce mois-ci seulement.',
   'help.leaderboard.standing':

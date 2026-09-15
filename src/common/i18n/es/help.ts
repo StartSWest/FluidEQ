@@ -302,7 +302,7 @@ const help: Record<keyof typeof en, string> = {
   'help.leaderboard.steps':
     'Abre Cuenta y pulsa Unirme a la clasificación.\nAbre Plus → Clasificación. Elige el alias y el nombre con los que apareces en la clasificación, y cambia entre Histórico y Este mes.\nPara dejarlo, pulsa Salir de la clasificación. Eliminar todos mis datos borra todo lo que has enviado.',
   'help.leaderboard.tip':
-    'De tu ordenador sale un solo número al día, los minutos de música que han sonado, y nunca lo que escuchas. Cada número se comprueba en el servidor.',
+    'De tu ordenador sale un solo número al día, los minutos de música que han sonado, y nunca lo que escuchas. Cada número se comprueba en el servidor. Tu apodo y tu nombre se pueden cambiar después desde Cuenta → Cambiar nombre; la clasificación y tus escenas publicadas lo siguen.',
   'help.leaderboard.periodName': 'Histórico o Este mes',
   'help.leaderboard.period': 'Todo el historial, o solo este mes.',
   'help.leaderboard.standing':
