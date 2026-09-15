@@ -87,10 +87,15 @@ describe('isApoOnAnyOutput', () => {
  */
 describe('createApoGuard', () => {
   const withApo = [
-    device({ isEqualizerApoAttached: true }),
+    device({ isEqualizerApoAttached: true, isFluidEngineAttached: true }),
   ] as unknown as IAudioDevice[];
   const withoutApo = [
-    device({ isEqualizerApoAttached: false }),
+    device({ isEqualizerApoAttached: false, isFluidEngineAttached: true }),
+  ] as unknown as IAudioDevice[];
+  // Chosen and never installed — setup picked the engine, the Windows prompt
+  // was declined — so Equalizer APO is all that machine has.
+  const withoutEngine = [
+    device({ isEqualizerApoAttached: true, isFluidEngineAttached: false }),
   ] as unknown as IAudioDevice[];
 
   const guardFor = (engine: 'fluid' | 'apo' | null) => {
@@ -123,6 +128,12 @@ describe('createApoGuard', () => {
   it('does nothing under Equalizer APO, which is then the engine', async () => {
     const { guard, runEngineSetup } = guardFor('apo');
     await guard.check(withApo);
+    expect(runEngineSetup).not.toHaveBeenCalled();
+  });
+
+  it('leaves Equalizer APO alone where the engine itself is on no output', async () => {
+    const { guard, runEngineSetup } = guardFor('fluid');
+    await guard.check(withoutEngine);
     expect(runEngineSetup).not.toHaveBeenCalled();
   });
 

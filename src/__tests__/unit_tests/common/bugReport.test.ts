@@ -25,6 +25,7 @@ import {
   buildIssueUrl,
   isSupportMailto,
   redact,
+  takeLogSince,
   takeLogTail,
 } from 'common/bugReport';
 
@@ -130,6 +131,56 @@ describe('taking the tail of a log', () => {
   });
 });
 
+describe('taking everything since the previous report', () => {
+  const appLines = [
+    '[2026-09-15 07:00:00.000] [info]  engine: no output is going through it',
+    '[2026-09-15 08:00:00.000] [error] Request failed on audio-engine: FAILURE',
+    '  detail: the helper was missing',
+    '[2026-09-15 09:00:00.000] [info]  FluidEQ Engine Setup (install) exited 0: ok=true',
+  ].join('\n');
+
+  it('keeps every entry from the mark on, continuation lines included', () => {
+    // The mark is the previous report's gather moment, in UTC; the app log
+    // is in local time with no zone, so the two are compared as instants.
+    const since = new Date('2026-09-15T08:00:00.000').toISOString();
+    const text = takeLogSince(appLines, since);
+    expect(text).not.toContain('07:00:00');
+    expect(text).toContain('08:00:00');
+    expect(text).toContain('detail: the helper was missing');
+    expect(text).toContain('09:00:00');
+  });
+
+  it('keeps everything when there has been no report yet', () => {
+    expect(takeLogSince(appLines, undefined).split('\n')).toHaveLength(4);
+  });
+
+  it("reads the engine's and the helper's UTC lines by the same clock", () => {
+    const engine = [
+      '2026-09-15T05:00:00.000Z pid=1 {A} pass-through: FluidEQ is not running',
+      '2026-09-15T10:00:00.000Z pid=1 {A} processing this endpoint',
+    ].join('\n');
+    const text = takeLogSince(engine, '2026-09-15T09:00:00.000Z');
+    expect(text).not.toContain('05:00:00');
+    expect(text).toContain('10:00:00');
+  });
+
+  it('caps at the newest lines and says how many older ones it left out', () => {
+    const many = Array.from(
+      { length: 6 },
+      (_, at) => `[2026-09-15 0${at}:00:00.000] [info]  line ${at}`,
+    ).join('\n');
+    const text = takeLogSince(many, undefined, undefined, 4);
+    expect(text).toContain('2 older line(s) not included');
+    expect(text).not.toContain('line 1');
+    expect(text).toContain('line 5');
+  });
+
+  it('redacts like the tail does', () => {
+    const line = '[2026-09-15 09:00:00.000] [info]  C:\\Users\\ivan\\file.wav';
+    expect(takeLogSince(line, undefined, 'ivan')).not.toContain('ivan');
+  });
+});
+
 describe('composing the report', () => {
   const facts = {
     appVersion: '0.8.2',
@@ -144,6 +195,8 @@ describe('composing the report', () => {
     installLog: 'Equalizer APO not found in the registry.',
     engineReport: 'Engine in use: fluid\nOutputs:\n- Speakers (playing now)',
     engineLog: 'pass-through: FluidEQ is not running',
+    helperLog: '',
+    gatheredAt: '2026-09-15T12:00:00.000Z',
   };
 
   it('leads with what the person said', () => {

@@ -69,17 +69,14 @@ export const whatStopsTheEngineLoading = (
   if (fluid.serviceCanWrite === false) {
     return 'the engine may not write in its own folder';
   }
-  // And the state that says something is wrong without saying what: the
-  // engine is on an output, and has never once run on this machine. It
-  // writes its own log the first time Windows creates it, so on a machine
-  // that has been playing sound an absent log is not a gap in the evidence,
-  // it IS the evidence. Re-installing is the one action that puts back
-  // everything the three checks above cover and the permissions besides, so
-  // it is worth the single prompt rather than leaving a user with an engine
-  // that reports healthy and does nothing — which is where this began.
-  if (fluid.everRan === false && fluid.endpoints.some((one) => one.attached)) {
-    return 'it is on an output and has never once run here';
-  }
+  // "Attached and never once run" is deliberately NOT one of these, even
+  // though it is the state a user's machine was in. From here it cannot be
+  // told apart from a machine where setup finished a minute ago and nothing
+  // has played yet — the engine writes nothing until Windows first creates
+  // it — and a Windows permission prompt seconds after an install nobody has
+  // even heard yet is its own bug. The window asks for that repair instead,
+  // once it has heard sound go past an engine that wrote nothing
+  // (`useRepairWhenEngineNeverRan`), which is the evidence this read lacks.
   return undefined;
 };
 

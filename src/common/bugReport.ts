@@ -101,6 +101,81 @@ export const redact = (text: string, userName?: string): string => {
   return cleaned.replace(new RegExp(escaped, 'gi'), '<user>');
 };
 
+/**
+ * The most lines a report carries from one log.
+ *
+ * A report is meant to hold everything since the previous one, and on a
+ * machine nobody has reported from that is the whole log — two files of a
+ * megabyte each. The cap keeps the newest, says how many older lines it
+ * dropped, and is large enough that "everything since yesterday's report"
+ * fits whole on any ordinary day.
+ */
+export const MAX_REPORT_LOG_LINES = 2000;
+
+/**
+ * When a log line was written, from its own leading timestamp.
+ *
+ * Two shapes, because two programs write the logs a report carries: the
+ * app's (`[2026-09-15 07:37:15.947] [info] …`, local time, no zone) and the
+ * engine's and its setup helper's (`2026-09-14T23:21:45.296Z …`, UTC). Both
+ * parse to the same clock, so a mark taken from one applies to the other.
+ * A line with neither is a continuation of the entry above it.
+ */
+const lineTime = (line: string): number | undefined => {
+  const app = /^\[(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d{3})\]/.exec(line);
+  if (app) {
+    return new Date(`${app[1]}T${app[2]}`).getTime();
+  }
+  const iso = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/.exec(line);
+  if (iso) {
+    return Date.parse(iso[1]);
+  }
+  return undefined;
+};
+
+/**
+ * Everything a log says since `since` — every entry from that moment on,
+ * continuation lines included — redacted, and capped to the newest
+ * `maxLines` with a note saying what was left out.
+ *
+ * Why not a tail: a user's report carried a hundred and twenty lines of the
+ * playback host reopening a device, and nothing about the engine that had
+ * failed an hour earlier. What a report needs is the whole stretch since the
+ * last time anybody looked, which is what `since` is — the moment the
+ * previous report's logs were gathered. Without one (no report yet) it is
+ * the whole log, capped.
+ */
+export const takeLogSince = (
+  contents: string,
+  since: string | undefined,
+  userName?: string,
+  maxLines = MAX_REPORT_LOG_LINES,
+): string => {
+  const sinceMs = since === undefined ? undefined : Date.parse(since);
+  const cutoff =
+    sinceMs !== undefined && !Number.isNaN(sinceMs) ? sinceMs : undefined;
+  const kept: string[] = [];
+  // Whether the entry the current line belongs to is inside the window. A
+  // line without a timestamp inherits the answer of the line that had one.
+  let keeping = cutoff === undefined;
+  contents
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0)
+    .forEach((line) => {
+      const at = lineTime(line);
+      if (at !== undefined) {
+        keeping = cutoff === undefined || at >= cutoff;
+      }
+      if (keeping) {
+        kept.push(line);
+      }
+    });
+  const omitted = Math.max(0, kept.length - maxLines);
+  const lines = omitted > 0 ? kept.slice(omitted) : kept;
+  const note = omitted > 0 ? [`… ${omitted} older line(s) not included …`] : [];
+  return redact([...note, ...lines].join('\n'), userName);
+};
+
 /** The tail of a log, redacted. */
 export const takeLogTail = (
   contents: string,
@@ -140,6 +215,25 @@ export interface IGatheredFacts {
   engineReport: string;
   /** The engine's own log, which is not the app's and lives elsewhere. */
   engineLog: string;
+  /**
+   * The setup helper's own log: one line per elevated run — install, attach,
+   * the switch-off of Equalizer APO, a repair — with what it did to which
+   * output and how it ended. The app log only has what the helper printed
+   * back; this is what it saw while it had administrator rights.
+   */
+  helperLog: string;
+  /**
+   * When these logs were gathered, ISO. The next report's logs start here,
+   * once this one has been delivered — so nothing that happens between two
+   * reports is ever left out of both.
+   */
+  gatheredAt: string;
+  /**
+   * When the previous delivered report's logs were gathered, ISO, or
+   * undefined for the first report from this machine. Every log section
+   * covers this moment to `gatheredAt`.
+   */
+  since?: string;
 }
 
 export interface IBugReportFacts extends IGatheredFacts {
@@ -168,7 +262,24 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     installLog,
     engineReport,
     engineLog,
+    helperLog,
+    gatheredAt,
+    since,
   } = facts;
+
+  // What stretch of time the logs below cover, said once in the words a
+  // reader needs: "since the previous report" is why an old failure is
+  // there, and "everything kept" is why the section is long.
+  const shortTime = (iso: string): string => {
+    const at = new Date(iso);
+    return Number.isNaN(at.getTime()) ? iso : at.toISOString().slice(0, 16);
+  };
+  const window =
+    since === undefined
+      ? `everything kept, up to ${shortTime(gatheredAt)}`
+      : `since the previous report at ${shortTime(since)}, up to ${shortTime(
+          gatheredAt,
+        )}`;
 
   // Which engine, spelled the way the dialog spells it. "none chosen" is a
   // real answer and a different bug from either engine being missing.
@@ -198,8 +309,19 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
   if (engineReport.trim()) {
     sections.push('', '### Outputs', '', '```', engineReport.trim(), '```');
   }
+  sections.push('', `_Logs below: ${window}._`);
   if (engineLog.trim()) {
     sections.push('', '### Engine log', '', '```', engineLog.trim(), '```');
+  }
+  if (helperLog.trim()) {
+    sections.push(
+      '',
+      '### Engine setup helper log',
+      '',
+      '```',
+      helperLog.trim(),
+      '```',
+    );
   }
   if (installLog.trim()) {
     sections.push('', '### Setup log', '', '```', installLog.trim(), '```');

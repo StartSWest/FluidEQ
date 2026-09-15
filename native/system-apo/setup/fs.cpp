@@ -175,6 +175,25 @@ bool write_utf8(const std::wstring& path, std::wstring_view text) {
   return ok != 0 && written == bytes.size();
 }
 
+bool append_utf8(const std::wstring& path, std::wstring_view text) {
+  const std::string bytes = utf8_from_wide(text);
+  // FILE_APPEND_DATA alone: every write lands at the end whatever another
+  // process — the effect inside audiodg.exe, another run of this program —
+  // has written meanwhile, and nothing already there can be overwritten.
+  const HANDLE file =
+      CreateFileW(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                  nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (file == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  DWORD written = 0;
+  const BOOL ok = WriteFile(file, bytes.data(),
+                            static_cast<DWORD>(bytes.size()), &written,
+                            nullptr);
+  CloseHandle(file);
+  return ok != 0 && written == bytes.size();
+}
+
 std::optional<std::wstring> read_utf8(const std::wstring& path) {
   const HANDLE file =
       CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,

@@ -212,6 +212,10 @@ enum ChannelEnum {
   // error handling that can itself fail is not error handling.
   LOG_ERROR = 'logError',
   LOG_INFO = 'logInfo',
+  // The report the dialog just built left the machine (clipboard, mail app
+  // or browser). Carries the moment its logs were gathered, which is where
+  // the next report's logs begin. One way, no reply, like the two above.
+  BUG_REPORT_DELIVERED = 'bugReportDelivered',
   RECOVER_WINDOW = 'recoverWindow',
   RECOVERY_STATUS = 'recoveryStatus',
 }

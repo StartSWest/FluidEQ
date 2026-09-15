@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
 import {
   IEngineHealth,
   IEngineOutputHealth,
@@ -26,6 +27,28 @@ import {
 } from '../common/engineHealth';
 
 const STATUS_FILE = /^status-(\{[0-9A-Fa-f-]+\})\.json$/;
+
+/**
+ * A complaint about one status file, once for the life of the process.
+ *
+ * The directory is re-read on every change the engine makes, several times a
+ * minute while music plays, and a file that cannot be read stays unreadable
+ * across all of them; one line per read would bury the log a report is made
+ * from under the very line meant to help. The engine rewrites the file in
+ * place, so a later good read needs no reset — it simply stops complaining.
+ */
+const complained = new Set<string>();
+const complainOnce = (name: string, message: string, error?: unknown) => {
+  if (complained.has(name)) {
+    return;
+  }
+  complained.add(name);
+  if (error === undefined) {
+    log.warn(message);
+  } else {
+    log.warn(message, error);
+  }
+};
 
 /** One file, as written — before the writing process is checked. */
 export interface IEngineStatusRecord extends IEngineOutputHealth {
@@ -157,10 +180,24 @@ export const readEngineHealth = async (
       .filter((name) => STATUS_FILE.test(name))
       .map(async (name) => {
         try {
-          return parseEngineStatus(
-            await fs.promises.readFile(path.join(root, name), 'utf8'),
+          const text = await fs.promises.readFile(
+            path.join(root, name),
+            'utf8',
           );
-        } catch {
+          const record = parseEngineStatus(text);
+          if (record === undefined) {
+            // A status the app cannot read is an output it will call "never
+            // loaded": the difference between a broken engine and a broken
+            // file has to be in the log, once per file rather than per read.
+            complainOnce(name, `The engine status ${name} could not be read`);
+          }
+          return record;
+        } catch (error) {
+          complainOnce(
+            name,
+            `The engine status ${name} could not be opened`,
+            error,
+          );
           return undefined;
         }
       }),
@@ -247,13 +284,23 @@ export const createEngineHealthMonitor = (
         }
         readInOrder().catch(() => undefined);
       });
-    } catch {
-      // The root does not exist yet; the next `read` tries again.
+    } catch (error) {
+      // The root does not exist yet — the next `read` tries again — and that
+      // is silent. Anything else means the engine's statuses will only ever
+      // be seen when the window asks, never as they change: worth a line.
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        complainOnce(
+          'watch',
+          "The engine's status folder could not be watched",
+          error,
+        );
+      }
       return;
     }
-    watcher.on('error', () => {
+    watcher.on('error', (error) => {
       // The root went away — an uninstall. Forget the watcher, so a later
       // `read` can start another once the engine is back.
+      log.warn("The engine's status folder stopped being watchable", error);
       watcher?.close();
       watcher = undefined;
     });

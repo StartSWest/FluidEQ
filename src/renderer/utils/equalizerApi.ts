@@ -119,6 +119,22 @@ export const gatherBugReport = (): Promise<IGatheredFacts> => {
  * mail app that is slow to start has not failed.
  * @returns { Promise<boolean> } whether a mail app was handed the link
  */
+/**
+ * Says a report gathered at `gatheredAt` has left the machine, so the next
+ * report's logs begin there. Fire and forget, like the loggers: the report
+ * is already delivered, and a failure to note it only makes the next one
+ * longer.
+ */
+export const markBugReportDelivered = (gatheredAt: string): void => {
+  try {
+    window.electron.ipcRenderer.sendMessage(ChannelEnum.BUG_REPORT_DELIVERED, [
+      gatheredAt,
+    ]);
+  } catch {
+    // The preload is missing; the next report simply starts earlier.
+  }
+};
+
 export const openSupportEmail = (url: string): Promise<boolean> => {
   const channel = ChannelEnum.OPEN_SUPPORT_EMAIL;
   return sendRequest<boolean>(

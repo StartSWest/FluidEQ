@@ -35,7 +35,13 @@ import os from 'os';
 import path from 'path';
 import { app } from 'electron';
 import log from 'electron-log';
-import { IGatheredFacts, redact, takeLogTail } from '../common/bugReport';
+import {
+  IGatheredFacts,
+  redact,
+  takeLogSince,
+  takeLogTail,
+} from '../common/bugReport';
+import { readBugReportMark } from './bugReportMark';
 import { TAudioEngine, IFluidEngineStatus } from '../common/audioEngine';
 import { IEngineHealth, NO_ENGINE_HEALTH } from '../common/engineHealth';
 import { IAudioDevice } from '../common/constants';
@@ -87,9 +93,9 @@ const getAccountName = (): string | undefined => {
  */
 const gatherEngineReport = async (
   audioEngine: TAudioEngine | null,
-): Promise<{ engineReport: string; engineLog: string }> => {
+): Promise<{ engineReport: string; engineLog: string; helperLog: string }> => {
   if (process.platform !== 'win32') {
-    return { engineReport: '', engineLog: '' };
+    return { engineReport: '', engineLog: '', helperLog: '' };
   }
   const engineRoot = path.dirname(getFluidEngineConfigDir());
   const failed = (what: string) => (error: unknown) => {
@@ -117,8 +123,25 @@ const gatherEngineReport = async (
       health: health ?? NO_ENGINE_HEALTH,
     }),
     engineLog: readIfPresent(path.join(engineRoot, 'engine.log')),
+    helperLog: readIfPresent(path.join(engineRoot, 'setup.log')),
   };
 };
+
+/**
+ * Both halves of the app log, oldest first.
+ *
+ * The log rotates at a megabyte into `main.old.log`, and a report that read
+ * only the live file lost everything before the rotation — on a busy day,
+ * most of the stretch since the previous report. Read together they are the
+ * whole record the machine still has.
+ */
+const readAppLog = (logs: string): string =>
+  [
+    readIfPresent(path.join(logs, 'main.old.log')),
+    readIfPresent(path.join(logs, 'main.log')),
+  ]
+    .filter((part) => part.length > 0)
+    .join('\n');
 
 /**
  * `audioEngine` is passed in rather than read here, because the live answer
@@ -127,9 +150,14 @@ const gatherEngineReport = async (
  */
 const gatherBugReportFacts = async (
   audioEngine: TAudioEngine | null,
+  userDataDir: string = app.getPath('userData'),
 ): Promise<IGatheredFacts> => {
   const accountName = getAccountName();
   const logs = getLogDirectory();
+  // Taken before any log is read, so a line written while this gathers is
+  // the next report's rather than lost between the two.
+  const gatheredAt = new Date().toISOString();
+  const since = await readBugReportMark(userDataDir);
 
   let apoInstalled = false;
   try {
@@ -148,7 +176,8 @@ const gatherBugReportFacts = async (
     // silent audio has to answer.
   }
 
-  const { engineReport, engineLog } = await gatherEngineReport(audioEngine);
+  const { engineReport, engineLog, helperLog } =
+    await gatherEngineReport(audioEngine);
 
   return {
     audioEngine,
@@ -159,19 +188,21 @@ const gatherBugReportFacts = async (
     arch: os.arch(),
     electron: process.versions.electron,
     isEqualizerApoInstalled: apoInstalled,
-    appLog: takeLogTail(
-      readIfPresent(path.join(logs, 'main.log')),
-      accountName,
-    ),
+    // Everything since the previous delivered report, from every log the
+    // machine keeps — never a tail. The install log is the exception: the
+    // installer appends one short block per install, so its tail is its
+    // whole recent history and it carries no timestamps to cut at.
+    appLog: takeLogSince(readAppLog(logs), since, accountName),
     installLog: takeLogTail(
       readIfPresent(path.join(logs, 'install.log')),
       accountName,
     ),
     // Redacted like the logs — an output can be named after whoever owns it.
     engineReport: redact(engineReport, accountName),
-    // Shorter than the app's tail: the engine writes a line when something
-    // about an output changes, so its last forty are usually its whole life.
-    engineLog: takeLogTail(engineLog, accountName, 40),
+    engineLog: takeLogSince(engineLog, since, accountName),
+    helperLog: takeLogSince(helperLog, since, accountName),
+    gatheredAt,
+    ...(since === undefined ? {} : { since }),
   };
 };
 

@@ -229,6 +229,14 @@ const DeviceProfiles = ({
       setDismissedApoDeviceId(selectedDevice.id);
     } else {
       setAttachFailure(result.declined ? 'declined' : 'failed');
+      // Main logs what the helper said; this is which output it was for and
+      // whether it was a refusal or a failure, which the helper's line lacks.
+      reportError(
+        `Enabling the engine on ${selectedDevice.name} ${
+          result.declined ? 'was declined' : 'failed'
+        }`,
+        result.error ?? 'no reason given',
+      );
     }
     setIsAttaching(false);
   };

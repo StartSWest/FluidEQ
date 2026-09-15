@@ -19,6 +19,7 @@ import { IGatheredFacts, isSupportMailto } from 'common/bugReport';
 import BugReportDialog from '../../../renderer/components/BugReportDialog';
 import {
   gatherBugReport,
+  markBugReportDelivered,
   openSupportEmail,
 } from '../../../renderer/utils/equalizerApi';
 
@@ -37,6 +38,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/utils/equalizerApi', () => ({
   gatherBugReport: jest.fn(),
+  markBugReportDelivered: jest.fn(),
   openSupportEmail: jest.fn(),
 }));
 
@@ -55,6 +57,8 @@ const FACTS: IGatheredFacts = {
   installLog: '',
   engineReport: '',
   engineLog: '',
+  helperLog: '',
+  gatheredAt: '2026-09-15T12:00:00.000Z',
 };
 
 let writeText: jest.Mock<Promise<void>, [string]>;
@@ -73,6 +77,7 @@ afterEach(() => {
   jest.restoreAllMocks();
   gather.mockReset();
   handOver.mockReset();
+  jest.mocked(markBugReportDelivered).mockReset();
 });
 
 const openDialog = async () => {
@@ -93,6 +98,46 @@ const pressEmail = async () => {
 /** The notice's own line, which is what takes a notice that went well away. */
 const lifeLine = () =>
   screen.getByRole('status').querySelector('.bug-report__notice-life');
+
+describe('where the next report begins', () => {
+  // Every route delivers by way of the clipboard, so the clipboard write is
+  // the moment the report has left — and the mark it sends is the gather
+  // time this report carried, never "now": lines written while the dialog
+  // was open belong to the next report.
+  it('marks the gather moment delivered on copy', async () => {
+    await openDialog();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'bugReport.copy' }));
+    });
+    expect(jest.mocked(markBugReportDelivered)).toHaveBeenCalledWith(
+      FACTS.gatheredAt,
+    );
+  });
+
+  it('marks it on email too, even when no mail app opened', async () => {
+    handOver.mockResolvedValue(false);
+    await openDialog();
+    await pressEmail();
+    // The clipboard still has it, which is delivery.
+    expect(jest.mocked(markBugReportDelivered)).toHaveBeenCalledWith(
+      FACTS.gatheredAt,
+    );
+  });
+
+  it('marks nothing while the facts are still being gathered', async () => {
+    // Never resolves: the dialog is stuck on its placeholder facts.
+    gather.mockReturnValue(
+      new Promise(() => {
+        // Left pending on purpose.
+      }),
+    );
+    await openDialog();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'bugReport.copy' }));
+    });
+    expect(jest.mocked(markBugReportDelivered)).not.toHaveBeenCalled();
+  });
+});
 
 describe('emailing a report', () => {
   it('copies it first, and says the email opened only once the mail app has it', async () => {

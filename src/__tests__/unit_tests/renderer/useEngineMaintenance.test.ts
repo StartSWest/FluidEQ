@@ -98,4 +98,34 @@ describe('engine maintenance owns its audio restart', () => {
     await act(() => result.current.engineUpdate.run());
     expect(update).toHaveBeenCalledTimes(1);
   });
+
+  it('repairs silently under the same lock, and refuses a restart meanwhile', async () => {
+    // The repair the app runs by itself for an engine Windows has never
+    // created: no card of its own, but the same elevated helper as an update,
+    // so it holds the same lock — a restart from the actions menu during it
+    // would be a second helper on the same services.
+    const pending = pendingOutcome();
+    const update = jest.fn(() => pending.promise);
+    const restart = jest.fn(async () => success);
+    const { result } = renderHook(() =>
+      useEngineMaintenance(false, restart, update),
+    );
+    let running!: Promise<void>;
+    act(() => {
+      running = result.current.repairEngine();
+      result.current.repairEngine();
+      result.current.audioRestart.run();
+    });
+    expect(update).toHaveBeenCalledTimes(1);
+    expect(restart).not.toHaveBeenCalled();
+    // Silent: nothing opened, nothing suppressed.
+    expect(result.current.engineUpdate.isOpen).toBe(false);
+    expect(result.current.suppressAudioNotices).toBe(false);
+    await act(async () => {
+      pending.finish(success);
+      await running;
+    });
+    await act(() => result.current.audioRestart.run());
+    expect(restart).toHaveBeenCalledTimes(1);
+  });
 });

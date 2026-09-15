@@ -95,6 +95,7 @@ import { getEngineSetupPath, runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import gatherBugReportFacts from './bugReportFacts';
+import { writeBugReportMark } from './bugReportMark';
 import { openSupportEmail } from './safeExternal';
 import ChannelEnum from '../common/channels';
 import { compressChainToLimit } from '../common/response';
@@ -175,7 +176,7 @@ import {
   isApoOnAnyOutput,
   isApoSwitchedOff,
 } from './apoSwitchOff';
-import createEngineLoadRepair from './engineLoadRepair';
+import { createEngineLoadRepair } from './engineLoadRepair';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
@@ -2193,10 +2194,25 @@ function startApoConfigWatcher() {
   }
 }
 
+// The report went out: its gather moment is where the next one's logs start.
+// Written only on delivery — a dialog closed without copying, mailing or
+// opening an issue must not move it, or the lines it showed would be in no
+// report at all. Nothing waits on this.
+onWindowMessage(ChannelEnum.BUG_REPORT_DELIVERED, (_event, args) => {
+  const gatheredAt = Array.isArray(args) ? args[0] : undefined;
+  if (typeof gatheredAt !== 'string') {
+    log.warn('A bug report delivery carried no gather time');
+    return;
+  }
+  writeBugReportMark(userDataDir, gatheredAt).catch((error) =>
+    log.warn('The bug report mark could not be written', error),
+  );
+});
+
 onWindowMessage(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
   const channel = ChannelEnum.GATHER_BUG_REPORT;
   try {
-    const facts = await gatherBugReportFacts(session.audioEngine);
+    const facts = await gatherBugReportFacts(session.audioEngine, userDataDir);
     event.reply(channel, { result: facts });
   } catch (e) {
     log.error('Could not gather a bug report', e);

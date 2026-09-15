@@ -54,29 +54,18 @@ describe('whatStopsTheEngineLoading', () => {
     ).toMatch(/write/);
   });
 
-  it('names an engine that is on an output and has never run here', () => {
-    // The user's machine: every check above passes and Windows has still
-    // never created it. Re-installing puts back everything those checks
-    // cover plus the permissions, so it is worth the one prompt.
+  it('says nothing about an engine that has simply never run yet', () => {
+    // Deliberately silent, even attached: from this read a machine where
+    // Windows has never created the engine is identical to one where setup
+    // finished a minute ago and nothing has played. A Windows permission
+    // prompt seconds after an install is its own bug, so the window asks for
+    // that repair instead, once it has heard sound go past
+    // (`useRepairWhenEngineNeverRan`).
     expect(
       whatStopsTheEngineLoading(
         status({
           everRan: false,
           endpoints: [{ guid: '{A}', attached: true, backupExists: true }],
-        }),
-      ),
-    ).toMatch(/never once run/);
-  });
-
-  it('says nothing about an engine that has run, or is on no output', () => {
-    expect(
-      whatStopsTheEngineLoading(status({ everRan: true })),
-    ).toBeUndefined();
-    expect(
-      whatStopsTheEngineLoading(
-        status({
-          everRan: false,
-          endpoints: [{ guid: '{A}', attached: false, backupExists: false }],
         }),
       ),
     ).toBeUndefined();

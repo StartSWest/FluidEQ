@@ -149,6 +149,7 @@ import {
 } from './dsp/store';
 import useEngineTrouble from './audio/useEngineTrouble';
 import useRestartWhenEngineOff from './utils/useRestartWhenEngineOff';
+import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
@@ -1933,7 +1934,7 @@ const AppContent = () => {
     return outcome;
   };
 
-  const { audioRestart, engineUpdate, suppressAudioNotices } =
+  const { audioRestart, engineUpdate, repairEngine, suppressAudioNotices } =
     useEngineMaintenance(
       engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
       performWindowsAudioRestart,
@@ -1945,6 +1946,13 @@ const AppContent = () => {
     suppressAudioNotices,
     audioRestart,
     engineStatus?.fluid.everRan,
+  );
+  // The other half of that pair: where Windows has never once created the
+  // engine, a restart cannot help and putting its installation back can.
+  useRepairWhenEngineNeverRan(
+    engineTrouble,
+    suppressAudioNotices,
+    repairEngine,
   );
 
   const dismissAudioRestartRecommendation = () => {

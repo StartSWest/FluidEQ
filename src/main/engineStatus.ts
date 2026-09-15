@@ -230,6 +230,42 @@ const MAX_OUTPUT_BYTES = 1024 * 1024;
  */
 let lastStatusSummary: string | undefined;
 
+/**
+ * The helper's own reason for having no answer, written down.
+ *
+ * `{"error":…}` with exit 3 is the audio stack refusing to be asked — during
+ * a restart, at login before the service is up — and the parser folds it into
+ * "not installed" on purpose. That is the right answer for the window and the
+ * wrong one for a log: a machine on which the engine kept reading as absent
+ * had every one of those refusals thrown away.
+ */
+let lastHelperError: string | undefined;
+
+const logHelperError = (stdout: string, code: number | null): void => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stdout.trim());
+  } catch {
+    if (stdout.trim().length > 0) {
+      log.warn(
+        `FluidEQ Engine status probe answered something that is not JSON (exit ${code})`,
+      );
+    }
+    return;
+  }
+  const error =
+    typeof parsed === 'object' && parsed !== null
+      ? (parsed as IRawStatus).error
+      : undefined;
+  if (typeof error !== 'string' || error === lastHelperError) {
+    return;
+  }
+  lastHelperError = error;
+  log.warn(
+    `FluidEQ Engine status probe could not answer (exit ${code}): ${error}`,
+  );
+};
+
 const logEngineStatusChange = (status: IFluidEngineStatus): void => {
   const attached = status.endpoints.filter((endpoint) => endpoint.attached);
   // Guids, not names: the helper's status does not carry names, and the
@@ -313,6 +349,7 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         return;
       }
       const status = parseFluidEngineStatus(stdout);
+      logHelperError(stdout, code);
       logEngineStatusChange(status);
       // Only the helper's own yes or no reaches the flush gate. Its
       // `{"error":…}` document (exit 3: the audio stack could not be asked,

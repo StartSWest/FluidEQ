@@ -331,7 +331,15 @@ export const registerAudioEngineIpc = ({
         // Fresh, so the flush gate's cached "installed" is not the answer
         // from before Windows settled.
         await readAudioEngineStatus(userDataDir, getEngine());
-        return isEngineInstalled(next).catch(() => false);
+        return isEngineInstalled(next).catch((error) => {
+          // Read as "not there", which ends the retries — the log has to say
+          // it was the probe that failed, not the engine that was missing.
+          log.error(
+            `Could not tell whether the ${next} engine is installed`,
+            error,
+          );
+          return false;
+        });
       },
     });
     if (outcome.ok) {

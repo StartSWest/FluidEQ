@@ -132,35 +132,70 @@ bool service_can_write(const std::wstring& directory) {
   }
   // A directory with no list at all is open to everyone, which is a yes.
   bool allowed = dacl == nullptr;
+  bool denied = false;
+  // The four trustees that can carry the right on a machine this program did
+  // not set up: the account itself, and the three groups it belongs to that
+  // an installer or an administrator might have granted instead.
   WellKnownSid service;
   WellKnownSid users;
-  const bool known =
-      service.make(WinLocalServiceSid) && users.make(WinBuiltinUsersSid);
-  for (WORD at = 0; known && dacl != nullptr && !allowed && at < dacl->AceCount;
+  WellKnownSid authenticated;
+  WellKnownSid everyone;
+  const bool known = service.make(WinLocalServiceSid) &&
+                     users.make(WinBuiltinUsersSid) &&
+                     authenticated.make(WinAuthenticatedUserSid) &&
+                     everyone.make(WinWorldSid);
+  if (!known) {
+    // The names could not be built, so nothing here can be compared: no
+    // verdict, for the same reason an unreadable list gives none.
+    LocalFree(descriptor);
+    return true;
+  }
+  for (WORD at = 0; known && dacl != nullptr && !denied && at < dacl->AceCount;
        ++at) {
     LPVOID raw = nullptr;
     if (GetAce(dacl, at, &raw) == 0) {
       continue;
     }
     const auto* header = static_cast<const ACE_HEADER*>(raw);
-    if (header->AceType != ACCESS_ALLOWED_ACE_TYPE) {
+    const bool allows = header->AceType == ACCESS_ALLOWED_ACE_TYPE;
+    const bool refuses = header->AceType == ACCESS_DENIED_ACE_TYPE;
+    if (!allows && !refuses) {
       continue;
     }
+    // Both shapes put the mask and the SID in the same place; the type is
+    // the only thing that differs, and it has already been read.
     const auto* ace = static_cast<const ACCESS_ALLOWED_ACE*>(raw);
     // `const_cast` because the SID field is an inline array the ACE owns and
     // every SID function takes a non-const pointer to it.
     PSID who = const_cast<PSID>(static_cast<const void*>(&ace->SidStart));
-    if (EqualSid(who, service.get()) == 0 && EqualSid(who, users.get()) == 0) {
+    if (EqualSid(who, service.get()) == 0 && EqualSid(who, users.get()) == 0 &&
+        EqualSid(who, authenticated.get()) == 0 &&
+        EqualSid(who, everyone.get()) == 0) {
       continue;
     }
     // Anything that can create a file here is enough: the effect writes its
     // own status and log and reads the configuration beside them.
-    allowed = (ace->Mask & FILE_GENERIC_WRITE) == FILE_GENERIC_WRITE ||
-              (ace->Mask & GENERIC_WRITE) == GENERIC_WRITE ||
-              (ace->Mask & FILE_ALL_ACCESS) == FILE_ALL_ACCESS;
+    const bool writes =
+        (ace->Mask & FILE_GENERIC_WRITE) == FILE_GENERIC_WRITE ||
+        (ace->Mask & GENERIC_WRITE) == GENERIC_WRITE ||
+        (ace->Mask & FILE_ALL_ACCESS) == FILE_ALL_ACCESS ||
+        (ace->Mask & FILE_WRITE_DATA) == FILE_WRITE_DATA;
+    if (!writes) {
+      continue;
+    }
+    // A refusal anywhere in the list settles it. Windows evaluates deny
+    // entries first and one of them is what a locked-down machine carries;
+    // reading only the allow entries would call such a machine writable and
+    // leave its silent engine unexplained — the failure this whole check
+    // exists to catch.
+    if (refuses) {
+      denied = true;
+    } else {
+      allowed = true;
+    }
   }
   LocalFree(descriptor);
-  return allowed;
+  return allowed && !denied;
 }
 
 }  // namespace fluideq_engine::setup

@@ -90,10 +90,16 @@ export const createApoGuard = ({
   let tried = false;
   return {
     check: async (devices) => {
+      // Chosen is not enough: the engine has to actually be on an output.
+      // A machine whose setup picked the FluidEQ Engine and then declined
+      // the Windows prompt has the preference and no engine, and taking
+      // Equalizer APO off such a machine leaves it with nothing processing
+      // at all — worse than the state it was in.
       if (
         tried ||
         process.platform !== 'win32' ||
         getEngine() !== 'fluid' ||
+        !devices.some((device) => device.isFluidEngineAttached === true) ||
         !devices.some((device) => device.isEqualizerApoAttached === true)
       ) {
         return;

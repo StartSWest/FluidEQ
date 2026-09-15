@@ -54,6 +54,9 @@ bool ensure_directory(const std::wstring& path);
 /** UTF-8, no byte order mark: the TypeScript side reads these with `utf8`. */
 bool write_utf8(const std::wstring& path, std::wstring_view text);
 
+/** Adds `text` to the end of `path`, creating it; the file is never truncated. */
+bool append_utf8(const std::wstring& path, std::wstring_view text);
+
 std::optional<std::wstring> read_utf8(const std::wstring& path);
 
 /** Every file in `directory` matching `pattern`, names only, in any order. */

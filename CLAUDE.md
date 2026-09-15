@@ -534,14 +534,32 @@ Out-String` (or any other capture) is what actually waits for it and shows
   then everything reports healthy — installed, registered, attached on every
   output — while the EQ does nothing, because an effect that is never created
   writes no status and no log. `status` now answers `unsignedAllowed`,
-  `runtimeBeside` and `everRan`; the report carries all three, and
-  `engineLoadRepair.ts` re-runs `install --restart-audio` once a session when
-  either of the first two is explicitly false (never on an unknown from an
-  older helper, which would raise a permission prompt on a healthy machine).
-  `useRestartWhenEngineOff` does not restart at all when `everRan` is false —
-  there is nothing to restart into the chain — and its "once" lives in
-  `sessionStorage`, not a ref, so a crash-recovery reload cannot reach it
-  again. It no longer opens the restart card either: a dialog nobody asked
+  `runtimeBeside`, `serviceCanWrite` (the engine root's DACL grants write to
+  LOCAL SERVICE / Users / Authenticated Users / Everyone, deny entries
+  honoured — without it the engine loads into a folder it can neither read a
+  configuration from nor write a status to, and passes everything through)
+  and `everRan` (engine.log OR any `status-*.json`: a swept `%ProgramData%`
+  has no log and has certainly run). The report carries all four.
+  `engineLoadRepair.ts` re-runs `install --restart-audio` once a session
+  when any of the first three is explicitly false — never on an unknown from
+  an older helper, and never on "attached and never ran", because from that
+  read a machine Windows has never created the engine on is identical to one
+  where setup finished a minute ago and nothing has played; a prompt seconds
+  after an install is its own bug. That case is the window's
+  (`useRepairWhenEngineNeverRan`): once the live capture has heard sound go
+  past an attached engine that wrote nothing, it runs the same re-install
+  once per run of FluidEQ, silently, under `useEngineMaintenance`'s lock
+  (`repairEngine`) so a manual restart cannot overlap it. `createApoGuard`
+  likewise requires the FluidEQ Engine to be attached somewhere, not merely
+  chosen: a machine that picked it in setup and declined the prompt has the
+  preference and no engine, and taking Equalizer APO off it leaves nothing
+  processing. `useRestartWhenEngineOff` does not restart at all when
+  `everRan` is false — there is nothing to restart into the chain — and its
+  "once" lives in `sessionStorage`, not a ref, so a crash-recovery reload
+  cannot reach it again. The trouble card for that state (`neverRan`, its own
+  key) drops the restart button, says what FluidEQ already repaired and what
+  is left — security software or the sound card's driver — and leads with
+  Equalizer APO, the only thing on it that processes sound there. It no longer opens the restart card either: a dialog nobody asked
   for, in the middle of listening, is noise when the restart works; the card
   appears by itself when it fails. The trouble notice is now dismissed for
   the rest of the session per trouble, because the live capture stops with
@@ -560,6 +578,21 @@ Out-String` (or any other capture) is what actually waits for it and shows
   processed. The device list now reads that property (`effectsEnabled`), the
   output panel says so and offers Windows' own Sound page, and the engine
   trouble card stays away — restarting Windows audio cannot help.
+- **A bug report carries everything since the previous one, never a tail.**
+  A user's report held a hundred and twenty lines of the playback host and
+  nothing about an engine that had failed an hour earlier. Main now takes
+  every entry from the last delivered report's gather moment onward
+  (`takeLogSince`, capped at 2000 newest lines with a count of what was
+  left out) from both halves of the app log (`main.log` rotates into
+  `main.old.log` at a megabyte), the engine's own `engine.log`, and the
+  helper's `setup.log` — one line per elevated run, appended by the helper
+  itself (`note_run`), including a declined prompt. The mark is
+  `bug-report-mark.json` in userData, written only when the window says the
+  report left (`BUG_REPORT_DELIVERED`, sent on copy, mail and issue) with the
+  `gatheredAt` that report carried — a dialog closed without sending must not
+  move it, or the lines it showed are in no report at all. The app log is
+  local time without a zone and the native logs are UTC; `lineTime` reads
+  both as instants, and a line with no timestamp belongs to the entry above.
 - **A bug report has to be able to answer "the engine is on and I hear
   nothing".** Reports could not: the app threw away the engine's own `reason`
   for passing an output through, logged nothing about the engine at all, and

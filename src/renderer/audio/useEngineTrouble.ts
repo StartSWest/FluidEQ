@@ -17,6 +17,7 @@ import {
   type IEngineHealth,
 } from 'common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
+import { reportError } from '../utils/logger';
 import { engineTrouble, type TEngineTrouble } from './engineTrouble';
 import { useLiveAudioControl } from './LiveAudioContext';
 import { OUTPUT_SIGNAL_EVENT, type IOutputSignalDetail } from './outputSignal';
@@ -87,7 +88,9 @@ const useEngineTrouble = (
         setHealth(first);
       }
     };
-    readFirst().catch(() => undefined); // No backend: nothing to say, as now.
+    readFirst().catch((error) =>
+      reportError("The engine's health could not be read", error),
+    );
     return () => {
       isLive = false;
       stop();
@@ -107,7 +110,13 @@ const useEngineTrouble = (
       }
     };
     const refresh = () => {
-      read().catch(() => undefined); // The list stays as it was.
+      // The list stays as it was, and the log says why it is stale.
+      read().catch((error) =>
+        reportError(
+          'The output list could not be read for the engine notice',
+          error,
+        ),
+      );
     };
     refresh();
     window.addEventListener('fluideq-output-changed', refresh);
@@ -134,7 +143,13 @@ const useEngineTrouble = (
     };
     const binding: ICaptureBinding = {
       context,
-      guid: lookUp().catch(() => undefined),
+      guid: lookUp().catch((error) => {
+        // Without the default output the capture cannot be matched to an
+        // engine status, so no trouble will ever be reported for it — worth
+        // knowing when a machine says nothing while its EQ does nothing.
+        reportError('The capture could not be matched to an output', error);
+        return undefined;
+      }),
     };
     bindingRef.current = binding;
     setHeardGuid(undefined);
@@ -177,7 +192,12 @@ const useEngineTrouble = (
       // The capture's first frames can beat the effect above that records it
       // starting, and an edge dropped here would not come again until the
       // sound had stopped and started over.
-      hear(bindTo(detail.context)).catch(() => undefined); // Nothing said.
+      hear(bindTo(detail.context)).catch((error) =>
+        reportError(
+          'Sound was heard but the engine could not be checked',
+          error,
+        ),
+      );
     };
     window.addEventListener(OUTPUT_SIGNAL_EVENT, onSignal);
     return () => {

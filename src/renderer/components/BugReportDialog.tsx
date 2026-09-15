@@ -26,7 +26,11 @@ import {
 } from 'common/bugReport';
 import { PRODUCT_NAME } from 'common/branding';
 import Glyph from '../community/Glyph';
-import { gatherBugReport, openSupportEmail } from '../utils/equalizerApi';
+import {
+  gatherBugReport,
+  markBugReportDelivered,
+  openSupportEmail,
+} from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from './DialogHeader';
 import '../styles/BugReport.scss';
@@ -129,6 +133,8 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         installLog: '',
         engineReport: '',
         engineLog: '',
+        helperLog: '',
+        gatheredAt: '',
       });
   const report = reportOverride ?? generatedReport;
 
@@ -137,10 +143,21 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     setNotice({ id: noticeCount.current, kind });
   }, []);
 
+  // Every route delivers by way of the clipboard first, so the clipboard
+  // write is the moment the report has left: what happens next is the next
+  // report's. Only a report built from real facts moves the mark — the
+  // fallback used while facts are still loading carries no gather time.
+  const delivered = useCallback(() => {
+    if (facts) {
+      markBugReportDelivered(facts.gatheredAt);
+    }
+  }, [facts]);
+
   const copy = useCallback(async () => {
     await navigator.clipboard.writeText(report);
+    delivered();
     say('copied');
-  }, [report, say]);
+  }, [delivered, report, say]);
 
   /**
    * The private route, for anyone who would rather not post in public.
@@ -158,6 +175,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
    */
   const sendEmail = useCallback(async () => {
     await navigator.clipboard.writeText(report);
+    delivered();
     const { url, isTruncated } = buildMailtoUrl(report, facts?.appVersion);
     setIsEmailing(true);
     say('emailOpening');
@@ -174,7 +192,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     } else {
       say('emailNotOpened');
     }
-  }, [facts?.appVersion, report, say]);
+  }, [delivered, facts?.appVersion, report, say]);
 
   const openIssue = useCallback(async () => {
     const { url, needsPaste } = buildIssueUrl(report);
@@ -184,8 +202,9 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
       await navigator.clipboard.writeText(report);
       say('issuePaste');
     }
+    delivered();
     window.open(url, '_blank', 'noopener');
-  }, [report, say]);
+  }, [delivered, report, say]);
 
   const tone = notice ? NOTICE_TONES[notice.kind] : undefined;
 

@@ -75,6 +75,7 @@ using fluideq_engine::setup::borrow_caller_console;
 using fluideq_engine::setup::config_dir;
 using fluideq_engine::setup::engine_root;
 using fluideq_engine::setup::ensure_engine_tree;
+using fluideq_engine::setup::files_matching;
 using fluideq_engine::setup::installed_dll_path;
 using fluideq_engine::setup::apo_record_present;
 using fluideq_engine::setup::service_can_write;
@@ -98,6 +99,8 @@ using fluideq_engine::setup::run_with_retries;
 using fluideq_engine::setup::utf8_from_wide;
 using fluideq_engine::setup::wait_audio_settled;
 using fluideq_engine::setup::write_utf8;
+using fluideq_engine::setup::append_utf8;
+using fluideq_engine::setup::EndpointResult;
 
 const char kUsage[] =
     "FluidEQ-Engine-Setup <command> [options]\n"
@@ -236,6 +239,26 @@ bool runtime_beside(const std::wstring& dll_path) {
   return true;
 }
 
+/**
+ * Whether the effect has ever been created by Windows on this machine.
+ *
+ * Two kinds of evidence, because either alone is wrong. The log is what it
+ * writes the first time it is created — but a machine whose `%ProgramData%`
+ * has been swept, or one that ran an engine from before the log existed, has
+ * none and has certainly run. The status files are what it writes per output
+ * inside the lock, and one of those is proof too. Only with neither is "never"
+ * the honest answer, and it has to be honest: it decides whether the window
+ * tells somebody Windows has never started their engine.
+ */
+bool engine_has_run() {
+  const std::wstring root = engine_root();
+  if (root.empty()) {
+    return false;
+  }
+  return path_exists(root + L"\\engine.log") ||
+         !files_matching(root, L"status-*.json").empty();
+}
+
 int print_status() {
   std::vector<Endpoint> endpoints;
   // Enumerated before anything is printed. An empty output list and an audio
@@ -285,7 +308,7 @@ int print_status() {
   // the first time Windows creates it, so an absent log on a machine that has
   // been playing sound is itself the answer.
   out += L",\"everRan\":";
-  out += path_exists(engine_root() + L"\\engine.log") ? L"true" : L"false";
+  out += engine_has_run() ? L"true" : L"false";
   // And whether the account the effect runs as may write there at all: the
   // tree can exist, be named correctly and still be closed to LOCAL SERVICE,
   // which loads the effect into a folder it can neither read a configuration
@@ -335,12 +358,57 @@ int print_settled() {
  * Runs the command here, having already established it may — up to three
  * times, in this one elevated process (`retry.h`).
  */
-int run_elevated(const Options& options) {
+/**
+ * One line per elevated run, appended to `<engine root>\setup.log`.
+ *
+ * `last-setup.json` holds only the most recent run and the app log only what
+ * this program printed back to it. Neither says what the run before that
+ * did, and a machine that has been installed, attached, repaired and had
+ * Equalizer APO switched off over a week is a sequence, not a state. The
+ * line carries the command as it was given, how it ended, and each output it
+ * touched with the error it met there — and it is dated the way the effect's
+ * own log is (UTC, ISO), so a report can cut both at the same moment.
+ */
+void note_run(const std::vector<std::wstring>& arguments,
+              const CommandResult& result, int code) {
+  const std::wstring root = engine_root();
+  if (root.empty() || !path_exists(root)) {
+    return;  // A purge, or a machine the engine was never put on.
+  }
+  SYSTEMTIME now = {};
+  GetSystemTime(&now);
+  wchar_t stamp[32] = {};
+  swprintf_s(stamp, L"%04u-%02u-%02uT%02u:%02u:%02u.%03uZ", now.wYear,
+             now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond,
+             now.wMilliseconds);
+  std::wstring line = stamp;
+  line += L" setup";
+  for (const std::wstring& argument : arguments) {
+    line += L' ';
+    line += argument;
+  }
+  line += result.ok ? L" -> ok" : L" -> FAILED";
+  line += L" (exit " + std::to_wstring(code) + L")";
+  if (!result.error.empty()) {
+    line += L": " + result.error;
+  }
+  for (const EndpointResult& one : result.endpoints) {
+    line += L"\n    " + one.guid + (one.attached ? L" attached" : L" not attached");
+    if (!one.error.empty()) {
+      line += L": " + one.error;
+    }
+  }
+  line += L"\n";
+  append_utf8(root + L"\\setup.log", line);
+}
+
+int run_elevated(const Options& options, const std::vector<std::wstring>& arguments) {
   const CommandResult result = run_with_retries(
       kCommandTries,
       [&options](CommandResult& attempt) { run_command(options, attempt); },
       wait_audio_settled);
   const std::wstring json = result_json(options.command, result);
+  note_run(arguments, result, result.ok ? 0 : 3);
   // `uninstall --purge` has just deleted this tree on purpose. Recreating it
   // to drop a result file in would leave behind exactly the directory the
   // user asked to be rid of, so that run reports through its exit code alone
@@ -381,6 +449,16 @@ int run_through_elevation(int argc, wchar_t** argv, const Options& options) {
   const std::vector<std::wstring> arguments(argv + 1, argv + argc);
   std::wstring error;
   const int code = relaunch_elevated(arguments, error);
+  if (code == 2) {
+    // The elevated half never ran, so nothing wrote the line above; the
+    // refusal itself is the fact worth keeping — a machine whose engine was
+    // never repaired because every prompt was declined looks, from the app
+    // log alone, like one where the repair was never tried.
+    CommandResult declined;
+    declined.ok = false;
+    declined.error = L"the Windows permission prompt was declined";
+    note_run(arguments, declined, code);
+  }
   const std::optional<std::wstring> reported =
       (code == 2 || path.empty()) ? std::nullopt : read_utf8(path);
   if (reported.has_value() && !reported->empty()) {
@@ -425,7 +503,8 @@ int run_main(int argc, wchar_t** argv) {
   } else if (options.command == L"settle") {
     code = print_settled();
   } else if (is_elevated()) {
-    code = run_elevated(options);
+    code = run_elevated(options,
+                        std::vector<std::wstring>(argv + 1, argv + argc));
   } else {
     code = run_through_elevation(argc, argv, options);
   }

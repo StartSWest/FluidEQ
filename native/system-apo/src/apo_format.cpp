@@ -137,6 +137,20 @@ STDMETHODIMP Apo::IsInputFormatSupported(IAudioMediaType* opposite,
   const ConnectionFormat output = describe_format(
       opposite == nullptr ? nullptr : opposite->GetAudioFormat());
   if (opposite != nullptr && !output.acceptable) {
+    // Written down, because a refusal here is the one way this effect ends
+    // up never loaded on an output with no other sign of why: Windows takes
+    // the answer and quietly builds the chain without it.
+    trace_built(endpoint_.guid, [&] {
+      const WAVEFORMATEX* other = opposite->GetAudioFormat();
+      return "format refused: the other side is " +
+             std::to_string(other == nullptr ? 0u : other->nChannels) +
+             " ch, " +
+             std::to_string(other == nullptr ? 0u : other->nSamplesPerSec) +
+             " Hz, " +
+             std::to_string(other == nullptr ? 0u : other->wBitsPerSample) +
+             " bits, tag " +
+             std::to_string(other == nullptr ? 0u : other->wFormatTag);
+    });
     return APOERR_FORMAT_NOT_SUPPORTED;
   }
   if (input.acceptable &&
@@ -158,9 +172,24 @@ STDMETHODIMP Apo::IsInputFormatSupported(IAudioMediaType* opposite,
     opposite->AddRef();
     return S_FALSE;
   }
+  // A format this effect will not take as offered, answered with float32 of
+  // the same shape. Logged with what was asked, so an output the engine is
+  // never loaded on can be matched to the format Windows offered it there.
+  trace_built(endpoint_.guid, [&] {
+    return "format not taken as offered: " +
+           std::to_string(format == nullptr ? 0u : format->nChannels) +
+           " ch, " +
+           std::to_string(format == nullptr ? 0u : format->nSamplesPerSec) +
+           " Hz, " +
+           std::to_string(format == nullptr ? 0u : format->wBitsPerSample) +
+           " bits, tag " +
+           std::to_string(format == nullptr ? 0u : format->wFormatTag) +
+           "; float32 suggested";
+  });
   IAudioMediaType* suggestion = nullptr;
   const HRESULT made = suggest_float(format, &suggestion);
   if (FAILED(made)) {
+    trace(endpoint_.guid, "format refused: no float32 alternative could be built");
     return APOERR_FORMAT_NOT_SUPPORTED;
   }
   *supported = suggestion;

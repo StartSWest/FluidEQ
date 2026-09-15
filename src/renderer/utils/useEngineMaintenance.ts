@@ -50,6 +50,27 @@ export const useEngineMaintenance = (
     }
   };
 
+  /**
+   * The engine's installation put back, silently, under the same lock.
+   *
+   * The same helper run as an update, without the update card: this is the
+   * app repairing a machine by itself, and the notice that made it necessary
+   * is still on screen saying what it found. The lock is the point — a
+   * manual restart of Windows audio started from the actions menu while this
+   * runs would be a second elevated helper on the same services.
+   */
+  const runRepair = async (): Promise<void> => {
+    if (owner.current) {
+      return;
+    }
+    owner.current = 'update';
+    try {
+      await update();
+    } finally {
+      owner.current = undefined;
+    }
+  };
+
   const openAudioRestart = () => {
     if (owner.current === 'update') {
       engineUpdate.open();
@@ -67,6 +88,7 @@ export const useEngineMaintenance = (
   return {
     audioRestart: { ...audioRestart, open: openAudioRestart, run: runRestart },
     engineUpdate: { ...engineUpdate, run: runUpdate },
+    repairEngine: runRepair,
     suppressAudioNotices: isUpdating || hasUpdateResult,
   };
 };
