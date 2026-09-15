@@ -237,7 +237,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Gli stili standard sono disegni gratuiti del suono dal vivo che puoi colorare e personalizzare tu: Linea e Area per una traccia pulita, Blocchi LED e Picchi per l’impatto, Traliccio, Profilo urbano e Fiamme danzanti per scene intere. I visualizzatori Plus sono scene disegnate dalla scheda grafica, come Alpino, Aurora, Fioritura e Città al neon, in cui bassi, battito e acuti muovono ognuno qualcosa di diverso.',
   'help.looks.steps':
-    'Fai clic sul nome dell’aspetto sul grafico. Cerca, oppure filtra gli stili per Linee, Riempimenti, Barre, Punti, Scene o Onda.\nScegli un visualizzatore Plus sulla destra. Senza Plus è bloccato, e se lo scegli scopri come ottenerlo.\nSu uno stile standard, premi Nuovo aspetto per cambiarne colori, movimento e picchi, poi salvalo: compare in Tuoi.',
+    'Fai clic sul nome dell’aspetto sul grafico. Cerca, oppure filtra gli stili per Linee, Riempimenti, Barre, Punti o Scene.\nScegli un visualizzatore Plus sulla destra. Senza Plus è bloccato, e se lo scegli scopri come ottenerlo.\nSu uno stile standard, premi Nuovo aspetto per cambiarne colori, movimento e picchi, poi salvalo: compare in Tuoi.',
   'help.looks.tip':
     'Un visualizzatore Plus porta i suoi colori: regolane attacco e rilascio in Vista. Se una scena non può girare su questo computer, il grafico disegna uno stile gratuito invece di restare vuoto.',
   'help.looks.searchName': 'Cerca',
@@ -246,8 +246,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.styles':
     'Stili gratuiti disegnati da FluidEQ e gli aspetti che hai salvato.',
   'help.looks.familiesName': 'Filtri degli stili',
-  'help.looks.families':
-    'Linee, Riempimenti, Barre, Punti, Scene, Onda e Tuoi.',
+  'help.looks.families': 'Linee, Riempimenti, Barre, Punti, Scene e Tuoi.',
   'help.looks.plus': 'Scene di FluidEQ e dei membri, ognuna con un’immagine.',
   'help.looks.categoriesName': 'Categorie',
   'help.looks.categories': 'Natura, Città, Astratto e altro.',

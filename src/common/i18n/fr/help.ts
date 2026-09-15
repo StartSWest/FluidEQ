@@ -238,7 +238,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Ligne et Aire pour un tracé net, Blocs LED et Pics pour du punch, Treillis, Horizon et Flammes dansantes pour des scènes entières. Les visualiseurs Plus sont des scènes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',
   'help.looks.steps':
-    'Sur le graphique, cliquez sur le nom du style. Recherchez, ou filtrez les styles par Lignes, Remplissages, Barres, Points, Scènes ou Onde.\nChoisissez un visualiseur Plus à droite. Sans Plus, il est verrouillé, et le choisir explique comment l’obtenir.\nSur un style standard, appuyez sur Nouveau style pour changer ses couleurs, son mouvement et ses crêtes, puis enregistrez-le ; il apparaît sous Les vôtres.',
+    'Sur le graphique, cliquez sur le nom du style. Recherchez, ou filtrez les styles par Lignes, Remplissages, Barres, Points ou Scènes.\nChoisissez un visualiseur Plus à droite. Sans Plus, il est verrouillé, et le choisir explique comment l’obtenir.\nSur un style standard, appuyez sur Nouveau style pour changer ses couleurs, son mouvement et ses crêtes, puis enregistrez-le ; il apparaît sous Les vôtres.',
   'help.looks.tip':
     'Un visualiseur Plus apporte ses propres couleurs : réglez son attaque et son relâchement dans Affichage. Si une scène ne peut pas tourner sur cet ordinateur, le graphique dessine un style gratuit au lieu d’un tracé vide.',
   'help.looks.searchName': 'Recherche',
@@ -248,7 +248,7 @@ const help: Record<keyof typeof en, string> = {
     'Les styles gratuits dessinés par FluidEQ, et les styles que vous avez enregistrés.',
   'help.looks.familiesName': 'Filtres de style',
   'help.looks.families':
-    'Lignes, Remplissages, Barres, Points, Scènes, Onde et Les vôtres.',
+    'Lignes, Remplissages, Barres, Points, Scènes et Les vôtres.',
   'help.looks.plus':
     'Des scènes de FluidEQ et des membres, chacune avec une image.',
   'help.looks.categoriesName': 'Catégories',

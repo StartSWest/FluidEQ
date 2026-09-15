@@ -84,7 +84,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'Plus-Visualizer sind lebendige Szenen – Berge unter dem Sternenhimmel, Vorhänge aus Polarlicht, eine Neonstadt –, die auf Ihrer Grafikkarte unter Ihren EQ-Kurven gezeichnet werden. Bass, Beat und Höhen bewegen jeweils etwas anderes, und das Fenster um sie herum kann ihre Farben annehmen.',
   'tour.visualizers.point1':
-    'Eine Auswahl für alles: 38 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualisierungen nach Kategorien.',
+    'Eine Auswahl für alles: 28 kostenlose Stile zum Formen und Einfärben, dazu Plus-Visualisierungen nach Kategorien.',
   'tour.visualizers.point2':
     'Stöbern Sie in der Galerie, testen Sie zehn Sekunden lang die Kostproben von FluidEQ und fügen Sie die Szenen hinzu, die Ihnen gefallen.',
   'tour.visualizers.point3':
@@ -237,11 +237,11 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für den Graphen',
-  'tour.looks.subtitle': 'Achtunddreißig Formen, Ihre Farben, Ihre Bewegung',
+  'tour.looks.subtitle': 'Achtundzwanzig Formen, Ihre Farben, Ihre Bewegung',
   'tour.looks.lead':
-    'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von achtunddreißig Formen, von schlichten Balken und Linien bis zu Terrassen, Skylines und einer nächtlichen Brücke mit Verkehr; färben Sie sie in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen oder Wellen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
+    'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von achtundzwanzig Formen, von schlichten Balken und Linien bis zu Terrassen, Skylines und einer nächtlichen Brücke mit Verkehr; färben Sie sie in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen oder Wellen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
   'tour.looks.point1':
-    'Achtunddreißig Formen, jede mit eigenen Reglern: Teile, Abstand, Füllung, Stärke und ob sie gefüllt oder als Kontur gezeichnet wird.',
+    'Achtundzwanzig Formen, jede mit eigenen Reglern: Teile, Abstand, Füllung, Stärke und ob sie gefüllt oder als Kontur gezeichnet wird.',
   'tour.looks.point2':
     'Färben Sie jede Form in ihrer eigenen Auto-Färbung, nach Frequenz, Pegel oder Hitze mit einem Verlauf aus Ihren eigenen Farben oder in einer einheitlichen Farbe.',
   'tour.looks.point3':

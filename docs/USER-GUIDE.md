@@ -352,13 +352,13 @@ Standard styles are free drawings of the live sound that you can colour and desi
 
 - **Search** — Finds styles and visualizers by name, maker or category.
 - **Styles** — Free styles drawn by FluidEQ, and the looks you saved.
-- **Style filters** — Lines, Fills, Bars, Points, Scenes, Wave and Yours.
+- **Style filters** — Lines, Fills, Bars, Points, Scenes and Yours.
 - **Plus visualizers** — Scenes from FluidEQ and from members, each with a picture.
 - **Categories** — Nature, Cities, Abstract and more.
 
 ### Try it
 
-1. Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points, Scenes or Wave.
+1. Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.
 2. Choose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.
 3. On a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.
 

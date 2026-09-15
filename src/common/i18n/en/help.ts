@@ -232,7 +232,7 @@ const help = {
   'help.looks.intro':
     'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Plus visualizers are scenes drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
   'help.looks.steps':
-    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points, Scenes or Wave.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
+    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
   'help.looks.tip':
     'A Plus visualizer brings its own colours: set its attack and release in View. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
   'help.looks.searchName': 'Search',
@@ -240,7 +240,7 @@ const help = {
     'Finds styles and visualizers by name, maker or category.',
   'help.looks.styles': 'Free styles drawn by FluidEQ, and the looks you saved.',
   'help.looks.familiesName': 'Style filters',
-  'help.looks.families': 'Lines, Fills, Bars, Points, Scenes, Wave and Yours.',
+  'help.looks.families': 'Lines, Fills, Bars, Points, Scenes and Yours.',
   'help.looks.plus':
     'Scenes from FluidEQ and from members, each with a picture.',
   'help.looks.categoriesName': 'Categories',

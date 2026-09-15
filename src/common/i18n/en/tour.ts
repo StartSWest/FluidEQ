@@ -95,7 +95,7 @@ const tour = {
   'tour.visualizers.lead':
     'Plus visualizers are living scenes — mountains under the stars, curtains of aurora, a neon city — drawn on your graphics card under your EQ curves. The bass, the beat and the treble each move something different, and the window around them can take on their colours.',
   'tour.visualizers.point1':
-    'One picker for everything: 38 free styles to shape and colour, and Plus visualizers by category.',
+    'One picker for everything: 28 free styles to shape and colour, and Plus visualizers by category.',
   'tour.visualizers.point2':
     'Browse the gallery, try FluidEQ’s samples for ten seconds, and add the scenes you like.',
   'tour.visualizers.point3':
@@ -248,11 +248,11 @@ const tour = {
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',
-  'tour.looks.subtitle': 'Thirty-eight forms, your colours, your motion',
+  'tour.looks.subtitle': 'Twenty-eight forms, your colours, your motion',
   'tour.looks.lead':
-    'The spectrum under the EQ can be drawn any way you like. Pick one of thirty-eight forms, from plain bars and lines to terraces, skylines and a night bridge with traffic, then colour it in its own Auto colouring, by frequency, by level or by heat, set how fast it attacks and how long a peak hangs, and mark the peaks with sparks, comets or ripples. Save it as a look of your own, and share it as a file.',
+    'The spectrum under the EQ can be drawn any way you like. Pick one of twenty-eight forms, from plain bars and lines to terraces, skylines and a night bridge with traffic, then colour it in its own Auto colouring, by frequency, by level or by heat, set how fast it attacks and how long a peak hangs, and mark the peaks with sparks, comets or ripples. Save it as a look of your own, and share it as a file.',
   'tour.looks.point1':
-    'Thirty-eight forms, each with its own controls: pieces, gap, fill, weight, and whether it is filled or stroked.',
+    'Twenty-eight forms, each with its own controls: pieces, gap, fill, weight, and whether it is filled or stroked.',
   'tour.looks.point2':
     'Colour each form in its own Auto colouring, by frequency, level or heat with a ramp of your own colours, or in one flat colour.',
   'tour.looks.point3':

@@ -235,7 +235,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Los estilos estándar son dibujos gratuitos del sonido en directo que puedes colorear y diseñar a tu gusto: Línea y Área para un trazo limpio, Bloques LED y Picos para dar pegada, y Cercha, Horizonte y Llamas danzantes para escenas completas. Los visualizadores Plus son escenas dibujadas en la tarjeta gráfica, como Alpino, Aurora, Floración y Ciudad de neón, en las que los graves, el ritmo y los agudos mueven cada uno algo distinto.',
   'help.looks.steps':
-    'Haz clic en el nombre del estilo que hay sobre la gráfica. Busca, o filtra los estilos por Líneas, Rellenos, Barras, Puntos, Escenas u Onda.\nElige un visualizador Plus a la derecha. Sin Plus aparece bloqueado, y al elegirlo se explica cómo conseguirlo.\nCon un estilo estándar, pulsa Nuevo estilo para cambiar sus colores, su movimiento y sus picos, y guárdalo; aparecerá en Tuyos.',
+    'Haz clic en el nombre del estilo que hay sobre la gráfica. Busca, o filtra los estilos por Líneas, Rellenos, Barras, Puntos o Escenas.\nElige un visualizador Plus a la derecha. Sin Plus aparece bloqueado, y al elegirlo se explica cómo conseguirlo.\nCon un estilo estándar, pulsa Nuevo estilo para cambiar sus colores, su movimiento y sus picos, y guárdalo; aparecerá en Tuyos.',
   'help.looks.tip':
     'Un visualizador Plus trae sus propios colores: ajusta su ataque y su liberación en Vista. Si una escena no puede funcionar en este ordenador, la gráfica dibuja un estilo gratuito en lugar de quedarse en blanco.',
   'help.looks.searchName': 'Buscar',
@@ -244,8 +244,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.styles':
     'Estilos gratuitos que dibuja FluidEQ y los estilos que has guardado.',
   'help.looks.familiesName': 'Filtros de estilo',
-  'help.looks.families':
-    'Líneas, Rellenos, Barras, Puntos, Escenas, Onda y Tuyos.',
+  'help.looks.families': 'Líneas, Rellenos, Barras, Puntos, Escenas y Tuyos.',
   'help.looks.plus':
     'Escenas de FluidEQ y de los miembros, cada una con su imagen.',
   'help.looks.categoriesName': 'Categorías',

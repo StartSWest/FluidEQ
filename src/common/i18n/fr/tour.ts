@@ -84,7 +84,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'Les visualiseurs Plus sont des scènes vivantes — des montagnes sous les étoiles, des rideaux d’aurore boréale, une ville néon — dessinées par votre carte graphique sous vos courbes d’EQ. Les basses, le rythme et les aigus font chacun bouger quelque chose de différent, et la fenêtre autour d’elles peut prendre leurs couleurs.',
   'tour.visualizers.point1':
-    'Un seul sélecteur pour tout : 38 styles gratuits à façonner et à colorer, et les visualiseurs Plus par catégorie.',
+    'Un seul sélecteur pour tout : 28 styles gratuits à façonner et à colorer, et les visualiseurs Plus par catégorie.',
   'tour.visualizers.point2':
     'Parcourez la galerie, essayez dix secondes les scènes d’exemple de FluidEQ et ajoutez celles qui vous plaisent.',
   'tour.visualizers.point3':
@@ -237,11 +237,11 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphe',
-  'tour.looks.subtitle': 'Trente-huit formes, vos couleurs, votre mouvement',
+  'tour.looks.subtitle': 'Vingt-huit formes, vos couleurs, votre mouvement',
   'tour.looks.lead':
-    'Le spectre sous l’EQ se dessine comme vous voulez. Choisissez une des trente-huit formes, des simples barres et lignes aux terrasses, aux silhouettes de villes et à un pont nocturne avec sa circulation ; colorez-la avec sa propre coloration Auto, par fréquence, par niveau ou par chaleur ; réglez la vitesse d’attaque et la durée de maintien d’un pic ; marquez les pics d’étincelles, de comètes ou d’ondes. Enregistrez-le comme style à vous, et partagez-le en fichier.',
+    'Le spectre sous l’EQ se dessine comme vous voulez. Choisissez une des vingt-huit formes, des simples barres et lignes aux terrasses, aux silhouettes de villes et à un pont nocturne avec sa circulation ; colorez-la avec sa propre coloration Auto, par fréquence, par niveau ou par chaleur ; réglez la vitesse d’attaque et la durée de maintien d’un pic ; marquez les pics d’étincelles, de comètes ou d’ondes. Enregistrez-le comme style à vous, et partagez-le en fichier.',
   'tour.looks.point1':
-    'Trente-huit formes, chacune avec ses réglages : éléments, écart, remplissage, épaisseur, et remplie ou en contour.',
+    'Vingt-huit formes, chacune avec ses réglages : éléments, écart, remplissage, épaisseur, et remplie ou en contour.',
   'tour.looks.point2':
     'Colorez chaque forme avec sa propre coloration Auto, par fréquence, niveau ou chaleur avec un dégradé de vos propres couleurs, ou d’une seule couleur uniforme.',
   'tour.looks.point3':

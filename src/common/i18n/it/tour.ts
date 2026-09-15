@@ -84,7 +84,7 @@ const tour: Partial<Dictionary> = {
   'tour.visualizers.lead':
     'I visualizzatori Plus sono scene vive (montagne sotto le stelle, cortine d’aurora, una città al neon) disegnate dalla tua scheda grafica sotto le curve del tuo EQ. Bassi, battito e acuti muovono ognuno qualcosa di diverso, e la finestra intorno può prenderne i colori.',
   'tour.visualizers.point1':
-    'Un solo selettore per tutto: 38 stili gratuiti da modellare e colorare, e i visualizzatori Plus per categoria.',
+    'Un solo selettore per tutto: 28 stili gratuiti da modellare e colorare, e i visualizzatori Plus per categoria.',
   'tour.visualizers.point2':
     'Sfoglia la galleria, prova per dieci secondi gli esempi di FluidEQ e aggiungi le scene che ti piacciono.',
   'tour.visualizers.point3':
@@ -236,11 +236,11 @@ const tour: Partial<Dictionary> = {
 
   'tour.looks.kicker': 'IL TUO VISUALIZZATORE',
   'tour.looks.title': 'Aspetti personalizzati per il grafico',
-  'tour.looks.subtitle': 'Trentotto forme, i tuoi colori, il tuo movimento',
+  'tour.looks.subtitle': 'Ventotto forme, i tuoi colori, il tuo movimento',
   'tour.looks.lead':
-    'Lo spettro sotto l’EQ si può disegnare come vuoi. Scegli una delle trentotto forme, dalle semplici barre e linee a terrazze, profili urbani e un ponte notturno con il traffico; coloralo con la sua colorazione Auto, per frequenza, per livello o per calore; decidi quanto in fretta attacca e quanto resta un picco; segna i picchi con scintille, comete o increspature. Salvalo come aspetto tuo e condividilo come file.',
+    'Lo spettro sotto l’EQ si può disegnare come vuoi. Scegli una delle ventotto forme, dalle semplici barre e linee a terrazze, profili urbani e un ponte notturno con il traffico; coloralo con la sua colorazione Auto, per frequenza, per livello o per calore; decidi quanto in fretta attacca e quanto resta un picco; segna i picchi con scintille, comete o increspature. Salvalo come aspetto tuo e condividilo come file.',
   'tour.looks.point1':
-    'Trentotto forme, ognuna con i suoi controlli: elementi, spaziatura, riempimento, spessore, e se è riempita o a contorno.',
+    'Ventotto forme, ognuna con i suoi controlli: elementi, spaziatura, riempimento, spessore, e se è riempita o a contorno.',
   'tour.looks.point2':
     'Colora ogni forma con la sua colorazione Auto, per frequenza, livello o calore con una sfumatura dei tuoi colori, oppure con un solo colore uniforme.',
   'tour.looks.point3':

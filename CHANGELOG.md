@@ -6,26 +6,39 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
-## 1.7.1
+## 1.7.2
 
-Bug reports finally say why the FluidEQ Engine is attached and silent, the
-app now switches Equalizer APO off by itself wherever it finds it registered,
-and Studio projects can be renamed. The look picker loses ten forms that
-duplicated another, and the guide gets a chapter on what your PC needs.
+Any account can now make a scene of its own in the Studio, and the Dynamic
+lighting page lights the devices on your desk while it is open. Most of the
+rest answers one report — the FluidEQ Engine installed, attached and silent:
+FluidEQ now works out why on the machine itself, puts right what it can with
+one Windows prompt, tries every place a sound card's driver may load the
+engine from, and a bug report says what it found.
 
 ### New
 
-- **A place of its own for account management,** with a live, searchable list
-  of every account instead of a page that only found one by its exact
-  address — filter to Plus or free, see the share of each, and open a row
-  onto what it holds and Delete.
+- **The Studio is open to every account.** Without Plus, make one scene of
+  your own: your AI assistant writes it, and it plays on the stage with
+  everything the Studio has — test signals, the code pane, pictures and
+  settings. What Plus adds is shown where you would press it, with a lock
+  that leads to Plus: more projects, keeping a scene in your looks,
+  publishing it, sharing it as a file and putting it on your desktop.
+- **Dynamic lighting without Plus.** The page shows your own desk and
+  devices, and while it is open your keyboard, mouse and the rest light up
+  with the Studio's starter scene, moving with your music. With Plus they
+  follow any visualizer on the graph, page open or not, each device tuned
+  on its own.
+- **Change your name on the board** from the Account panel: **Change name**
+  edits the name and its @handle in place, under the same rules as choosing
+  them.
 - **A Studio project can be renamed** from its menu, without losing its place
   on your desktop or in the Plus tab.
 - **A new Studio project starts life as a scene**, "Hanami at night," instead
   of a blank one — something to see and hear right away, and a clearer
   starting point to describe changes from.
 - **Opening a folder of scene folders lists every one of them**, not only the
-  first.
+  first. Without Plus the first one opens, and the others wait in the
+  project menu with a lock.
 - **Stop all** joins Stop in the desktop background dialog, for turning off
   every monitor's visualizer at once.
 - **The user guide says what your PC needs** for FluidEQ, the visualizers and
@@ -35,19 +48,31 @@ duplicated another, and the guide gets a chapter on what your PC needs.
 
 - **Choosing the FluidEQ Engine switches Equalizer APO off by itself**,
   wherever it is registered — not only at the moment you switch, but
-  whenever its own Device Selector puts it back. One Windows prompt, once a
-  session; nothing else on the output is touched, and your own audio
-  vendor's registration (THX, Nahimic, Realtek, or another) is mirrored
-  forward untouched either way.
-- **The look picker drops ten forms that duplicated a plainer one**, and
-  Canyon. A look you saved on one of them keeps playing, on the form it was
-  closest to. The now-empty Wave category is gone with them.
+  whenever its own Device Selector puts it back — once the engine is
+  actually on one of your outputs. One Windows prompt, once a session;
+  nothing else on the output is touched, and your own audio vendor's
+  registration (THX, Nahimic, Realtek, or another) is mirrored forward
+  untouched either way. Switching back to Equalizer APO, or uninstalling
+  FluidEQ, puts it back as it was.
+- **One Windows prompt for one repair.** Two of FluidEQ's automatic repairs
+  could reach the same conclusion seconds apart, asking twice and restarting
+  your audio twice. They now run one at a time, and never twice for the same
+  thing.
+- **Ten styles leave the look picker**: nine wave forms that drew the same
+  figure as a plainer style, and Canyon. A look you saved on one of them
+  keeps playing, on the style it was closest to, and the now-empty Wave
+  filter is gone with them. 28 free styles remain.
 - **Fluid, the titlebar's own drawing on the graph, now matches the
   titlebar**: the same colours under Auto, the same brightness, and the same
   bar count.
 - **A visualizer that fails to draw is offered again the next time**, rather
   than held back until a new version of it arrives. If a scene keeps
   resetting your graphics driver, avoid it by hand from the picker.
+- **Sample scenes say what they are.** Their gallery cards read "10-second
+  preview" instead of "free to try": any account can watch them for ten
+  seconds, and Plus plays them in full.
+- **The Studio's example ideas are new**, and FluidEQ's prompt asks your AI
+  assistant to write a scene's files in place.
 
 ### Fixed
 
@@ -58,6 +83,11 @@ duplicated another, and the guide gets a chapter on what your PC needs.
   whether Windows is allowing the engine to load at all, whether the
   runtime it needs is in place, and whether the engine has ever run on that
   PC.
+- **A bug report carries everything since the previous one**, instead of the
+  last hundred and twenty lines of whatever happened most recently:
+  FluidEQ's own log, the engine's, and a new one kept by the engine's setup,
+  which notes every Windows prompt it raised, a declined one included. The
+  engine failures FluidEQ used to pass over in silence are written down too.
 - **The engine can be installed, attached and still never loaded by
   Windows — and FluidEQ now repairs that itself.** Several machine-wide
   things decide whether it may run at all, and a Windows update, a driver's
@@ -66,10 +96,17 @@ duplicated another, and the guide gets a chapter on what your PC needs.
   did nothing. FluidEQ now puts them all back in a single pass — the setting
   that lets the engine load, its registration, the runtime it needs beside
   it, and the permissions on its own folder — with one Windows prompt, once
-  per run, and restarts the audio so the engine is loaded. It does this even
-  when every one of those checks passes and the engine has still never run
-  on that PC, which is the case that looked healthiest of all and was the
-  hardest to see.
+  per run, and restarts the audio so the engine is loaded.
+- **Where a sound card's driver never starts the engine, FluidEQ finds the
+  place it will.** Windows can load an effect from five different places,
+  and which one a driver actually reads is written down nowhere. When sound
+  goes past an engine that has never run on an output, FluidEQ moves it to
+  the next place, newest to oldest, restarts Windows audio and listens
+  again, and keeps the first place that works — quietly, with no notice
+  while it tries. A driver that reads only the places older versions of
+  Windows used gets the engine there, in place of Windows' own default
+  effect, which comes back if the engine is removed. Your sound card maker's
+  own effects are never replaced.
 - **An engine that could not write in its own folder passed every output
   through in silence.** Nothing had ever checked that. The engine loaded,
   then could neither read its settings nor report how it was doing, which
@@ -80,14 +117,23 @@ duplicated another, and the guide gets a chapter on what your PC needs.
   it is now put away for the rest of the session.
 - **Windows audio is no longer restarted with a dialog appearing on its
   own.** It happens quietly, once per run of FluidEQ even if the window
-  reloads, and never on a PC where the engine has never loaded — a restart
-  cannot help there. The card still appears by itself if the restart fails.
-- **Where Windows has never once started the engine, FluidEQ says so
-  instead of offering a restart that cannot help.** The notice now says
-  what it has already put right by itself, and names what is left to look
-  at — security software, or the sound card's own driver. Meanwhile it
+  reloads, and never where the engine has never run — a restart cannot help
+  there. The card still appears by itself if the restart fails.
+- **Where Windows has never once started the engine on an output, FluidEQ
+  says so instead of offering a restart that cannot help.** The notice now
+  says what it has already put right by itself, and names what is left to
+  look at — security software, or the sound card's own driver. Meanwhile it
   offers Equalizer APO, which on such a machine is the only thing there
   that will process any sound. In all ten languages.
+- **Putting Equalizer APO back says when it could not.** It used to report
+  success whatever happened; an output it could not restore is now
+  reported, and uninstalling FluidEQ keeps what is needed to restore it.
+- **The "Equalizer APO is not enabled for this output" notice no longer
+  flashes up** for a few seconds after switching to Equalizer APO.
+- **The desktop background button on a visualizer's page is a lock without
+  Plus.** It used to open the monitors dialog only to refuse at the end; it
+  now leads to Plus. Its label also fits the panel in German, Russian,
+  French and Portuguese, where it ran past the edge.
 - **The EQ and the DSP rack are verified at 44.1, 48, 96 and 192 kHz**, so a
   high-rate DAC gets the same sound as any other output.
 - **Windows' own "Audio enhancements" switch is no longer invisible to the

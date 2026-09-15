@@ -744,7 +744,7 @@ See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 ## User guide
 
 Open **Help → User guide** in FluidEQ, or press **F1**, for the searchable
-offline handbook: 26 practical chapters in six parts, from your first five
+offline handbook: 27 practical chapters in six parts, from your first five
 minutes to FluidEQ Plus, illustrated with 29 real interface captures. Beside
 each capture a legend names its controls, with the icon you will see and the
 shortcut; point at a line and the control is ringed on the capture. Click any

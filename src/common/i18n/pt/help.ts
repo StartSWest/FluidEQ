@@ -235,7 +235,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa gráfica, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
-    'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos, Cenas ou Onda.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
+    'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
   'help.looks.tip':
     'Um visualizador Plus traz as próprias cores: ajuste o ataque e a liberação dele em Visualização. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
   'help.looks.searchName': 'Pesquisar',
@@ -245,7 +245,7 @@ const help: Record<keyof typeof en, string> = {
     'Estilos gratuitos desenhados pelo FluidEQ e os visuais que você salvou.',
   'help.looks.familiesName': 'Filtros de estilos',
   'help.looks.families':
-    'Linhas, Preenchimentos, Barras, Pontos, Cenas, Onda e Seus.',
+    'Linhas, Preenchimentos, Barras, Pontos, Cenas e Seus.',
   'help.looks.plus': 'Cenas do FluidEQ e dos membros, cada uma com uma imagem.',
   'help.looks.categoriesName': 'Categorias',
   'help.looks.categories': 'Natureza, Cidades, Abstrato e mais.',

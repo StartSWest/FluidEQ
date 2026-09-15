@@ -239,7 +239,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.intro':
     'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die du selbst einfärben und gestalten kannst: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Plus-Visualisierungen sind auf der Grafikkarte gezeichnete Szenen wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
   'help.looks.steps':
-    'Klicke im Diagramm auf den Namen der Darstellung. Suche oder filtere die Stile über Linien, Flächen, Balken, Punkte, Szenen oder Welle.\nWähle rechts eine Plus-Visualisierung. Ohne Plus ist sie gesperrt, und wenn du sie wählst, erfährst du, wie du sie bekommst.\nDrücke bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichere sie dann; sie erscheint unter dem Filter Deine.',
+    'Klicke im Diagramm auf den Namen der Darstellung. Suche oder filtere die Stile über Linien, Flächen, Balken, Punkte oder Szenen.\nWähle rechts eine Plus-Visualisierung. Ohne Plus ist sie gesperrt, und wenn du sie wählst, erfährst du, wie du sie bekommst.\nDrücke bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichere sie dann; sie erscheint unter dem Filter Deine.',
   'help.looks.tip':
     'Eine Plus-Visualisierung bringt ihre eigenen Farben mit: Attack und Release stellst du unter Ansicht ein. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
   'help.looks.searchName': 'Suche',
@@ -248,8 +248,7 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.styles':
     'Kostenlose Stile, die FluidEQ zeichnet, und die Darstellungen, die du gespeichert hast.',
   'help.looks.familiesName': 'Stilfilter',
-  'help.looks.families':
-    'Linien, Flächen, Balken, Punkte, Szenen, Welle und Deine.',
+  'help.looks.families': 'Linien, Flächen, Balken, Punkte, Szenen und Deine.',
   'help.looks.plus':
     'Szenen von FluidEQ und von Mitgliedern, jede mit einem Bild.',
   'help.looks.categoriesName': 'Kategorien',
