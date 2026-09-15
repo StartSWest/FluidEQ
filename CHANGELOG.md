@@ -6,6 +6,61 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 1.7.1
+
+Bug reports finally say why the FluidEQ Engine is attached and silent, the
+app now switches Equalizer APO off by itself wherever it finds it registered,
+and Studio projects can be renamed. The look picker loses ten forms that
+duplicated another, and the guide gets a chapter on what your PC needs.
+
+### New
+
+- **A place of its own for account management,** with a live, searchable list
+  of every account instead of a page that only found one by its exact
+  address — filter to Plus or free, see the share of each, and open a row
+  onto what it holds and Delete.
+- **A Studio project can be renamed** from its menu, without losing its place
+  on your desktop or in the Plus tab.
+- **A new Studio project starts life as a scene**, "Hanami at night," instead
+  of a blank one — something to see and hear right away, and a clearer
+  starting point to describe changes from.
+- **Opening a folder of scene folders lists every one of them**, not only the
+  first.
+- **Stop all** joins Stop in the desktop background dialog, for turning off
+  every monitor's visualizer at once.
+- **The user guide says what your PC needs** for FluidEQ, the visualizers and
+  the karaoke AI's downloads, in a new chapter under Get started.
+
+### Improved
+
+- **Choosing the FluidEQ Engine switches Equalizer APO off by itself**,
+  wherever it is registered — not only at the moment you switch, but
+  whenever its own Device Selector puts it back. One Windows prompt, once a
+  session; nothing else on the output is touched, and your own audio
+  vendor's registration (THX, Nahimic, Realtek, or another) is mirrored
+  forward untouched either way.
+- **The look picker drops ten forms that duplicated a plainer one**, and
+  Canyon. A look you saved on one of them keeps playing, on the form it was
+  closest to. The now-empty Wave category is gone with them.
+- **Fluid, the titlebar's own drawing on the graph, now matches the
+  titlebar**: the same colours under Auto, the same brightness, and the same
+  bar count.
+- **A visualizer that fails to draw is offered again the next time**, rather
+  than held back until a new version of it arrives. If a scene keeps
+  resetting your graphics driver, avoid it by hand from the picker.
+
+### Fixed
+
+- **Bug reports say why the engine is attached and silent.** A new Outputs
+  section lists what Windows allows on each output, what the setup helper
+  and the engine itself report, and the engine's own reason for passing
+  sound through unprocessed — with the tail of its own log.
+- **Windows' own "Audio enhancements" switch is no longer invisible to the
+  app.** Turned off for an output, FluidEQ now says so and offers Windows'
+  own Sound page instead of a Restart Windows audio button that cannot help.
+
+---
+
 ## 1.7.0
 
 FluidEQ now has an audio engine of its own. Your EQ and the whole DSP rack
