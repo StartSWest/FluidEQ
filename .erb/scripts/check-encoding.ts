@@ -93,18 +93,31 @@ const ALLOWED = new Map<string, string>([
   ],
 ]);
 
-const tracked = execFileSync('git', ['ls-files', '-z'], {
-  cwd: REPO_ROOT,
-  encoding: 'utf8',
-  maxBuffer: 32 * 1024 * 1024,
-})
-  .split('\0')
-  .filter(
-    (name) =>
-      name !== '' &&
-      (TEXT_EXTENSIONS.has(path.extname(name)) ||
-        TEXT_BASENAMES.has(path.basename(name))),
-  );
+const listFiles = (flags: string[]) =>
+  execFileSync('git', ['ls-files', '-z', ...flags], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  })
+    .split('\0')
+    .filter((name) => name !== '');
+
+/**
+ * Tracked files deleted in the working tree but not yet in a commit.
+ *
+ * `git ls-files` still lists them, and reading one threw ENOENT: the check
+ * exited 1 having checked nothing whenever anyone's uncommitted deletion sat
+ * in the shared checkout. They are left out, and counted in the report, so a
+ * short list is never mistaken for a clean one.
+ */
+const deleted = new Set(listFiles(['--deleted']));
+
+const tracked = listFiles([]).filter(
+  (name) =>
+    !deleted.has(name) &&
+    (TEXT_EXTENSIONS.has(path.extname(name)) ||
+      TEXT_BASENAMES.has(path.basename(name))),
+);
 
 const offences: string[] = [];
 
@@ -146,5 +159,5 @@ if (offences.length > 0) {
 }
 
 console.log(
-  `${tracked.length} text files are UTF-8, unmangled and BOM-free (${ALLOWED.size} allowed by name).`,
+  `${tracked.length} text files are UTF-8, unmangled and BOM-free (${ALLOWED.size} allowed by name; ${deleted.size} tracked file(s) deleted in the working tree, not read).`,
 );
