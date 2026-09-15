@@ -58,9 +58,8 @@ const lighting = {
   'lighting.preview.oneScene': '何ができるかを見せる 1 つのシーン',
   'lighting.preview.noScene': 'デスクに映る Plus のシーン',
   'lighting.preview.moreScenes': 'すべてのシーンは Plus で',
-  'lighting.preview.taste': '{seconds} 秒間再生中',
   'lighting.preview.held':
-    'Plus なら、どのシーンでもデスクが音楽に合わせて光り続けます。',
+    'Plus なら、どのシーンでもあなたのデバイスがこのように光ります。',
   'lighting.preview.locked': '明るさ、スタイル、位置合わせは Plus で使えます。',
 
   'lighting.unsupported.title':

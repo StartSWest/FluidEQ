@@ -33,10 +33,7 @@ jest.mock('renderer/plus/scenePictures', () => ({
   useScenePicture: () => ({ state: 'none' }),
 }));
 
-let demo: { state: string; tasted?: boolean } = {
-  state: 'still',
-  tasted: false,
-};
+let demo: { state: string } = { state: 'still' };
 jest.mock('renderer/plus/lighting/lightingDemo', () => ({
   useDemoScene: () => ({
     id: 'alpine',
@@ -62,7 +59,7 @@ const keyboard: ILightingDevice = {
 
 beforeEach(() => {
   requestAccountPanel.mockClear();
-  demo = { state: 'still', tasted: false };
+  demo = { state: 'still' };
 });
 
 it('shows the whole page with nothing to work, and Plus above it', () => {
@@ -136,7 +133,7 @@ it('opens the way to Plus from the strip, the scene row and the line under the d
   expect(screen.getByText('lighting.preview.held')).toBeVisible();
 });
 
-it('says the scene is playing while it is, and nothing else over the desk', () => {
+it('names the scene playing on the desk, with the line under it either way', () => {
   demo = { state: 'playing' };
   render(
     <LightingPlusPreview
@@ -147,11 +144,11 @@ it('says the scene is playing while it is, and nothing else over the desk', () =
     />,
   );
   expect(
-    screen.getByText('lighting.preview.taste {"seconds":10}'),
+    screen.getByText('lighting.status.live {"scene":"Alpine"}'),
   ).toBeVisible();
-  expect(screen.queryByText('lighting.preview.held')).toBeNull();
-  // The strip at the top stays: it is the page's way in, whatever plays.
+  expect(screen.getByText('lighting.preview.held')).toBeVisible();
+  // The strip at the top and the line under the desk both lead to Plus.
   expect(
     screen.getAllByRole('button', { name: 'lighting.gate.cta' }),
-  ).toHaveLength(1);
+  ).toHaveLength(2);
 });

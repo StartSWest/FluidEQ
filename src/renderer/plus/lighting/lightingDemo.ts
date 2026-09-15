@@ -12,7 +12,6 @@ import {
 } from 'common/lighting/lightingModel';
 import { DEFAULT_LIGHTING_PROFILE } from 'common/lighting/lightingProfiles';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
-import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import { premiumLookId, type IScenePack } from 'common/scenePacks';
 import {
   useLiveAudioCapture,
@@ -29,10 +28,13 @@ import { useTasteSamples } from '../tasteSamples';
  * without Plus: the same page the member gets, drawn with one scene so what
  * Plus does is on screen rather than described.
  *
- * The scene plays for the taste every sample scene gets, and then its picture
- * holds the desk — the server decides which official scenes may play at all
- * (`tasteSamples`), and a machine that is offline or signed out still sees a
- * lit desk, because the picture needs neither.
+ * The scene plays on the desk for as long as the page is open, with the
+ * music — Ivan's call over the ten-second taste the scene pages give: the
+ * desk is the argument, and a desk that stops is an argument that stops. The
+ * server decides which official scenes may play at all (`tasteSamples`); the
+ * scene's picture holds the desk until it plays and whenever it cannot, and a
+ * machine that is offline or signed out still sees a lit desk, because the
+ * picture needs neither.
  *
  * Nothing here reaches a device. The frames go to the page's own feed only;
  * lighting a keyboard is what the membership buys.
@@ -42,18 +44,18 @@ import { useTasteSamples } from '../tasteSamples';
 const PREFERRED = 'alpine';
 
 export type TLightingDemo =
-  /** Nothing to show yet: no scene listed, or its picture has not arrived. */
+  /** Nothing to show yet: no scene listed. */
   | { state: 'dark' }
-  /** The scene itself, drawn on the audio clock for the taste. */
+  /** The scene itself, drawn on the audio clock. */
   | { state: 'playing' }
-  /** Its picture, before the taste and after it. */
-  | { state: 'still'; tasted: boolean };
+  /** Its picture, or its colours: before it plays, and when it cannot. */
+  | { state: 'still' };
 
 /**
  * The scene a page without Plus shows. One object for one scene: the listing
- * is rebuilt on every refresh, and a taste keyed on a fresh object would
- * start over — another ten seconds — each time the app looked for new scenes.
- * A republished scene carries a new version, so it is a new object.
+ * is rebuilt on every refresh, and a scene keyed on a fresh object would be
+ * fetched and started again each time the app looked for new scenes. A
+ * republished scene carries a new version, so it is a new object.
  */
 export const useDemoScene = (): ILockedScene | undefined => {
   const locked = useLockedScenes();
@@ -184,30 +186,33 @@ export const useLightingDemo = (
   const { capture, isPaused } = useLiveAudioControl();
   const pausedRef = useRef(isPaused);
   pausedRef.current = isPaused;
-  const [pack, setPack] = useState<{ pack: IScenePack; sceneId: string }>();
-  const [tasted, setTasted] = useState(false);
   /**
-   * Seconds of the scene already shown by earlier runs of it on this page:
-   * the output can go away and come back mid-taste, and each run starts its
-   * own clock, so the taste is counted across them or it would start over.
+   * The scene as fetched, with everything its run needs: a run keyed on the
+   * scene object as well would start once more, with the old pack, in the
+   * render where the scene changes and the pack has not yet been let go.
    */
-  const shownRef = useRef(0);
+  const [pack, setPack] = useState<{
+    pack: IScenePack;
+    sceneId: string;
+    swatch: readonly string[];
+  }>();
+  /** The output could not be listened to: the scene has nothing to follow. */
+  const [unheard, setUnheard] = useState(false);
   const [still, setStill] = useState<{
     frame: ILightingFrame;
     source: ImageBitmap;
   }>();
   // Nothing to hear is nothing to draw with: the picture holds the desk
   // rather than the page claiming a scene is playing on an empty stage.
-  const playing = Boolean(pack) && !tasted && Boolean(capture);
-  useLiveAudioCapture(Boolean(pack) && !tasted, 'display');
+  const playing = Boolean(pack) && !unheard && Boolean(capture);
+  useLiveAudioCapture(Boolean(pack) && !unheard, 'display');
 
   const sceneId = scene ? premiumLookId(scene.id) : undefined;
   const sample = scene !== undefined && samples.has(scene.id);
 
   useEffect(() => {
     setPack(undefined);
-    setTasted(false);
-    shownRef.current = 0;
+    setUnheard(false);
     if (!scene || !sample) {
       return undefined;
     }
@@ -216,7 +221,11 @@ export const useLightingDemo = (
       ?.previewGalleryScene?.(FLUIDEQ_CREATOR_ID, scene.id, scene.version)
       .then((outcome) => {
         if (!cancelled && outcome.ok) {
-          setPack({ pack: outcome.pack, sceneId: premiumLookId(scene.id) });
+          setPack({
+            pack: outcome.pack,
+            sceneId: premiumLookId(scene.id),
+            swatch: scene.swatch,
+          });
         }
         return undefined;
       })
@@ -302,11 +311,9 @@ export const useLightingDemo = (
   useEffect(() => () => publishLightingPreview(undefined), []);
 
   useEffect(() => {
-    if (!pack || tasted || !capture) {
+    if (!pack || unheard || !capture) {
       return undefined;
     }
-    let started: number | undefined;
-    let shown = 0;
     const player = playLampScene({
       pack: pack.pack,
       sceneId: pack.sceneId,
@@ -314,28 +321,15 @@ export const useLightingDemo = (
       capture,
       isPaused: () => pausedRef.current,
       profile: () => DEFAULT_LIGHTING_PROFILE,
-      swatch: scene?.swatch ?? [],
-      onFrame: (frame, image) => {
-        publishLightingPreview(frame, image);
-        // The scene's own clock, like every other taste: a window put away
-        // half way through does not use the rest of it up.
-        const now = frame.timeSeconds ?? 0;
-        started = started ?? now;
-        shown = now - started;
-        if (shownRef.current + shown >= PLUS_TASTE_SECONDS) {
-          setTasted(true);
-        }
-      },
-      onCannotHear: () => setTasted(true),
+      swatch: pack.swatch,
+      onFrame: publishLightingPreview,
+      onCannotHear: () => setUnheard(true),
     });
-    return () => {
-      shownRef.current += shown;
-      player.close();
-    };
-  }, [pack, tasted, capture, scene]);
+    return () => player.close();
+  }, [pack, unheard, capture]);
 
   if (playing) {
     return { state: 'playing' };
   }
-  return sceneId === undefined ? { state: 'dark' } : { state: 'still', tasted };
+  return sceneId === undefined ? { state: 'dark' } : { state: 'still' };
 };

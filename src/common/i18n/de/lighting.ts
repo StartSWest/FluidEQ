@@ -58,9 +58,8 @@ const lighting = {
   'lighting.preview.oneScene': 'Eine Szene, die zeigt, was es kann',
   'lighting.preview.noScene': 'Eine Plus-Szene auf Ihrem Schreibtisch',
   'lighting.preview.moreScenes': 'Alle Szenen mit Plus',
-  'lighting.preview.taste': 'Läuft {seconds} Sekunden',
   'lighting.preview.held':
-    'Mit Plus folgt Ihr Schreibtisch der Musik – in jeder Szene.',
+    'Mit Plus leuchten Ihre Geräte genau so – in jeder Szene.',
   'lighting.preview.locked':
     'Helligkeit, Stil und Ausrichtung gibt es mit Plus.',
 

@@ -111,7 +111,7 @@ $windows-blue: #8ec5ff;
   display: grid;
 }
 
-// The line under the desk once the scene has had its turn there.
+// The line under the desk: what the lit desk above it would be with Plus.
 .lighting-held {
   color: $text-muted;
   font-size: $text-small;
@@ -123,7 +123,7 @@ $windows-blue: #8ec5ff;
   }
 }
 
-// In the desk's corner while the one scene plays.
+// In the desk's corner while the one scene plays on it.
 .lighting-taste {
   position: absolute;
   top: 12px;

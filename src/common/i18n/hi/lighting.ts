@@ -57,9 +57,8 @@ const lighting = {
   'lighting.preview.oneScene': 'यह क्या करता है, दिखाने के लिए एक सीन',
   'lighting.preview.noScene': 'आपकी डेस्क पर एक Plus सीन',
   'lighting.preview.moreScenes': 'हर सीन Plus के साथ',
-  'lighting.preview.taste': '{seconds} सेकंड तक चल रहा है',
   'lighting.preview.held':
-    'Plus के साथ आपकी डेस्क हर सीन में संगीत के साथ चलती रहती है।',
+    'Plus के साथ आपके डिवाइस हर सीन में ऐसे ही जगमगाते हैं।',
   'lighting.preview.locked': 'चमक, स्टाइल और अलाइनमेंट Plus के साथ आते हैं।',
 
   'lighting.unsupported.title': 'डायनेमिक लाइटिंग Windows पर काम करती है',

@@ -69,9 +69,8 @@ const lighting = {
   'lighting.preview.oneScene': 'One scene to show what it does',
   'lighting.preview.noScene': 'A Plus scene on your desk',
   'lighting.preview.moreScenes': 'Every scene with Plus',
-  'lighting.preview.taste': 'Playing for {seconds} seconds',
   'lighting.preview.held':
-    'With Plus your desk keeps following the music, on every scene.',
+    'With Plus your devices light up like this, on every scene.',
   'lighting.preview.locked': 'Brightness, style and alignment come with Plus.',
 
   'lighting.unsupported.title': 'Dynamic lighting works on Windows',

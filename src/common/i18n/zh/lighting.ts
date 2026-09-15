@@ -55,8 +55,7 @@ const lighting = {
   'lighting.preview.oneScene': '用一个场景展示它的效果',
   'lighting.preview.noScene': '桌面上的 Plus 场景',
   'lighting.preview.moreScenes': '所有场景都在 Plus 中',
-  'lighting.preview.taste': '播放 {seconds} 秒',
-  'lighting.preview.held': '有了 Plus，任何场景都能让你的桌面持续跟着音乐走。',
+  'lighting.preview.held': '有了 Plus，任何场景都能让你的设备这样亮起来。',
   'lighting.preview.locked': '亮度、风格和对齐随 Plus 提供。',
 
   'lighting.unsupported.title': '动态灯效仅适用于 Windows',

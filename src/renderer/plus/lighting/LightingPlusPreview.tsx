@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId, useState } from 'react';
 import type { ILightingDevice } from 'common/lighting/lightingModel';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
-import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import { resolveSceneName } from 'common/scenePacks';
 import { requestAccountPanel } from '../../account/accountPanel';
 import Glyph from '../../community/Glyph';
@@ -132,27 +131,25 @@ export default function LightingPlusPreview({
             across the middle of it covered the very keyboard being sold. */}
         <div className="lighting-demo" ref={setStage}>
           <LightingStage devices={devices} feed={feed} />
-          {demo.state === 'playing' && (
+          {demo.state === 'playing' && sceneName && (
             <span className="lighting-taste">
               <span className="lighting-taste__live" aria-hidden="true" />
-              {t('lighting.preview.taste', { seconds: PLUS_TASTE_SECONDS })}
+              {t('lighting.status.live', { scene: sceneName })}
             </span>
           )}
         </div>
-        {demo.state !== 'playing' && (
-          <div className="lighting-scene-bar lighting-held">
-            <span>{t('lighting.preview.held')}</span>
-            {/* Quiet: the loud one is the strip at the top of the page, and
-                two of them competing is neither recommending anything. */}
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={unlock}
-            >
-              {t('lighting.gate.cta')}
-            </button>
-          </div>
-        )}
+        <div className="lighting-scene-bar lighting-held">
+          <span>{t('lighting.preview.held')}</span>
+          {/* Quiet: the loud one is the strip at the top of the page, and
+              two of them competing is neither recommending anything. */}
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={unlock}
+          >
+            {t('lighting.gate.cta')}
+          </button>
+        </div>
       </section>
 
       <div className="lighting-columns">

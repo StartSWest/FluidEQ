@@ -58,9 +58,8 @@ const lighting = {
   'lighting.preview.oneScene': 'Одна сцена, чтобы показать, как это работает',
   'lighting.preview.noScene': 'Сцена Plus на вашем столе',
   'lighting.preview.moreScenes': 'Все сцены — с Plus',
-  'lighting.preview.taste': 'Играет {seconds} секунд',
   'lighting.preview.held':
-    'С Plus ваш стол продолжает следовать музыке в любой сцене.',
+    'С Plus ваши устройства светятся так же — в любой сцене.',
   'lighting.preview.locked': 'Яркость, стиль и выравнивание — с Plus.',
 
   'lighting.unsupported.title': 'Динамическая подсветка работает в Windows',
