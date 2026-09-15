@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import foldForSearch from '../utils/foldForSearch';
+import Glyph from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import AnchoredMenu, { isInsideAnchoredMenu } from './AnchoredMenu';
 import '../styles/RichPick.scss';
@@ -32,6 +33,12 @@ export interface IRichPickEntry {
    */
   group: string;
   icon: ReactNode;
+  /**
+   * Why the row is there to be seen but not chosen yet — shown as its title,
+   * with a lock at the row's end. Still picked: the caller answers a locked
+   * pick with whatever unlocks it, rather than the row doing nothing.
+   */
+  locked?: string;
 }
 
 interface IRichPickProps {
@@ -381,7 +388,8 @@ const RichPick = ({
                   aria-checked={entry.id === activeId}
                   className={`rich-pick__item${
                     entry.id === activeId ? ' is-active' : ''
-                  }`}
+                  }${entry.locked ? ' is-locked' : ''}`}
+                  title={entry.locked}
                   onClick={() => pick(entry.id)}
                 >
                   {entry.icon}
@@ -389,6 +397,9 @@ const RichPick = ({
                     <strong>{entry.name}</strong>
                     <small>{entry.hint}</small>
                   </span>
+                  {entry.locked && (
+                    <Glyph name="lock" className="rich-pick__item-lock" />
+                  )}
                 </button>
               </Fragment>
             );

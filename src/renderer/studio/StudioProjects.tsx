@@ -145,16 +145,26 @@ export default function StudioProjects({
               className="rich-pick__glyph"
             />
           ),
+          ...(project.locked ? { locked: t('studio.plus.lockedProject') } : {}),
         })),
-    [state.projects, locale],
+    [state.projects, locale, t],
   );
   const active = entries.find((entry) => entry.id === state.activeId);
-  const at = entries.findIndex((entry) => entry.id === state.activeId);
-  const previous = entries[(at > 0 ? at : entries.length) - 1];
-  const next = entries[(at + 1) % entries.length];
-  const canStep = entries.length > 1 && !switching;
+  // The arrows walk the projects the bench can hold; a locked one is in the
+  // menu to be seen, and stepping onto it would only open Plus.
+  const openable = entries.filter((entry) => !entry.locked);
+  const at = openable.findIndex((entry) => entry.id === state.activeId);
+  const previous = openable[(at > 0 ? at : openable.length) - 1];
+  const next = openable[(at + 1) % openable.length];
+  const canStep = openable.length > 1 && !switching;
   const pick = async (id: string) => {
     if (picking.current) {
+      return;
+    }
+    // A locked project is Plus's to open; the main process would refuse the
+    // pick, and the member is shown what opens it instead.
+    if (entries.some((entry) => entry.id === id && entry.locked)) {
+      requestAccountPanel('subscribe');
       return;
     }
     picking.current = true;

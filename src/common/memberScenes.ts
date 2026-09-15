@@ -33,8 +33,8 @@ export const MEMBER_LOOK_PREFIX = 'member:';
 /**
  * How many projects the Studio keeps for a member without Plus. Enforced in
  * the main process (`ipc/memberScenes.ts`); the ten `studio.plus.oneProject`
- * and `studio.plus.oneFolder` strings spell the number out in words, so a
- * change here is a change to them too.
+ * `studio.plus.oneFolder` and `studio.plus.lockedProject` strings spell the
+ * number out in words, so a change here is a change to them too.
  */
 export const STUDIO_TRIAL_PROJECTS = 1;
 

@@ -253,6 +253,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: $secondary-light;
     }
   }
+
+  // A project listed for when there is Plus: named and placed like the
+  // others, in the muted ink, with the lock in a third column at the row's
+  // end. Pressed, it opens Plus, so it lights up like every other row.
+  &.is-locked {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+
+    strong,
+    .rich-pick__glyph {
+      color: $text-muted;
+    }
+
+    .rich-pick__item-lock {
+      color: $text-dim;
+    }
+
+    &:hover,
+    &:focus-visible {
+      strong {
+        color: $white;
+      }
+
+      .rich-pick__item-lock {
+        color: $text-muted;
+      }
+    }
+  }
 }
 
 // Actions under the list, apart from it: they make or bring a new entry

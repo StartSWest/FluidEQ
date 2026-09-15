@@ -181,13 +181,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
 
   const keeping = useStudioKeep(name, wave, setNotice);
 
-  // "Open a folder…" from the bar and from the empty stage: a folder of
-  // several scenes is Plus's to take in whole, and the member is told so.
+  // "Open a folder…" from the bar and from the empty stage: without Plus a
+  // folder of several scenes puts the first on the bench and lists the rest
+  // locked, and the member is told so.
   const linkFolder = () => {
     linkStudioFolder()
       .then((outcome) => {
-        if (outcome === 'plus-only') {
-          setNotice({ ok: false, key: 'studio.plus.oneFolder' });
+        if (outcome === 'one-opened') {
+          setNotice({ ok: true, key: 'studio.plus.oneFolder' });
         }
         return undefined;
       })

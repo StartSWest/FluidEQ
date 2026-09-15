@@ -99,6 +99,13 @@ export interface IStudioProject {
    * to looks, exported or published.
    */
   official?: true;
+  /**
+   * Listed, and Plus's to open. Without Plus the Studio keeps one project on
+   * the bench; the rest of a folder of several, the others of a Plus that
+   * lapsed and FluidEQ's scenes opened to look inside wait here, in the
+   * menu, with a lock.
+   */
+  locked?: true;
 }
 
 export interface IStudioState {
@@ -131,12 +138,14 @@ export type TNewProjectResult =
   | 'plus-only';
 
 /**
- * What "Open a folder…" did. `plus-only`: without Plus the Studio keeps one
- * project, and the member has it, or the folder chosen holds several.
+ * What "Open a folder…" did. `one-opened`: the folder held several projects
+ * and, without Plus, the first is on the bench and the rest are listed
+ * locked. `plus-only`: without Plus the Studio keeps one project, and the
+ * member has it.
  */
 export interface ILinkFolderResult {
   state: IStudioState;
-  outcome: 'linked' | 'cancelled' | 'plus-only';
+  outcome: 'linked' | 'one-opened' | 'cancelled' | 'plus-only';
 }
 
 export type TAddOutcome =
@@ -277,22 +286,38 @@ export const registerMemberScenesIpc = ({
    */
   const member = () => accountId() !== undefined;
 
-  const ownProjects = () =>
-    projects.projects.filter((project) => !project.official);
+  const own = (project: IStoredProject) => project.official === undefined;
+
+  const ownProjects = () => projects.projects.filter(own);
 
   const mayAddProject = () =>
     entitled() || (member() && ownProjects().length < STUDIO_TRIAL_PROJECTS);
 
   /**
-   * Whether `project` may be built, played and edited: any with Plus, a
-   * member's own without it. FluidEQ's own scenes, opened to look inside,
-   * are Plus's alone. Asked of the project a call is about — the open one
-   * for the stage, the code pane, pictures and settings, the one named for
+   * Without Plus, the one project of the member's own the Studio keeps on
+   * the bench: the open one, else the most recently opened. Every other
+   * project stays listed, locked, for when there is Plus — the rest of a
+   * folder of several, the others of a Plus that lapsed. Derived from the
+   * list rather than stored, so letting the kept one go moves the bench to
+   * the next: one at a time, never none while there is one to open.
+   */
+  const kept = (list: IProjectList): IStoredProject | undefined => {
+    const active = list.projects.find((project) => project.id === list.active);
+    return active && own(active) ? active : byRecent(list).find(own);
+  };
+
+  const mayUse = (project: IStoredProject, list: IProjectList) =>
+    entitled() || (member() && project.id === kept(list)?.id);
+
+  /**
+   * Whether `project` may be built, played and edited: any with Plus, the
+   * kept one without it. FluidEQ's own scenes, opened to look inside, are
+   * Plus's alone. Asked of the project a call is about — the open one for
+   * the stage, the code pane, pictures and settings, the one named for
    * notes — never of one project on behalf of another.
    */
   const usable = (project: IStoredProject | undefined) =>
-    project !== undefined &&
-    (entitled() || (member() && project.official === undefined));
+    project !== undefined && mayUse(project, projects);
 
   const mayUseActive = () => usable(activeProject());
 
@@ -300,15 +325,14 @@ export const registerMemberScenesIpc = ({
    * The list with an open project the member may use: the most recent such
    * one when the open one is not — a FluidEQ scene left open as Plus lapsed,
    * or promoted by `without` — and none when there is none. What the page is
-   * sent is what it may act on, so it never draws a stage that cannot build
-   * or a row that cannot be picked.
+   * sent is what it may act on, so it never draws a stage that cannot build.
    */
   const settled = (list: IProjectList): IProjectList => {
     const active = list.projects.find((project) => project.id === list.active);
-    if (!list.active || usable(active)) {
+    if (!list.active || (active && mayUse(active, list))) {
       return list;
     }
-    const fallback = byRecent(list).find(usable);
+    const fallback = byRecent(list).find((project) => mayUse(project, list));
     if (fallback) {
       return withActive(list, fallback.id, Date.now());
     }
@@ -369,24 +393,23 @@ export const registerMemberScenesIpc = ({
 
   const projectsRoot = () => projects.root ?? defaultProjectsRoot(documentsDir);
 
-  // Only what the member may use: FluidEQ's scenes opened to look inside
-  // are left off the page's list, and off the bench, while there is no Plus.
+  // Every project, the ones the member may not use marked locked: they are
+  // in the menu to be seen, and Plus's to open. The bench never holds one.
   const studioState = (): IStudioState => ({
     entitled: entitled(),
     mayAddProject: mayAddProject(),
     projectsRoot: projectsRoot(),
-    projects: byRecent(projects)
-      .filter(usable)
-      .map((project) => {
-        const names = projectNames.get(project.id);
-        return {
-          id: project.id,
-          folderName: path.basename(project.folder),
-          path: project.folder,
-          ...(names ? { names } : {}),
-          ...(project.official ? { official: true as const } : {}),
-        };
-      }),
+    projects: byRecent(projects).map((project) => {
+      const names = projectNames.get(project.id);
+      return {
+        id: project.id,
+        folderName: path.basename(project.folder),
+        path: project.folder,
+        ...(names ? { names } : {}),
+        ...(project.official ? { official: true as const } : {}),
+        ...(usable(project) ? {} : { locked: true as const }),
+      };
+    }),
     ...(projects.active && mayUseActive() ? { activeId: projects.active } : {}),
     ...(studioOpen && lastBuild ? { build: lastBuild } : {}),
   });
@@ -601,19 +624,22 @@ export const registerMemberScenesIpc = ({
         return { state: studioState(), outcome: 'cancelled' };
       }
       // A folder of scene folders lists every one of them, the first open.
-      // Without Plus only a folder that is itself one project is taken:
-      // keeping one of several, chosen by name, and saying nothing about
-      // the rest is not a thing to do to somebody.
+      // Without Plus the first is the one the Studio keeps and the rest are
+      // listed locked — seen, named, and Plus's to open — rather than
+      // dropped by name with nothing said about them.
       const found = await findProjectFolders(folder);
       if (!mayAddProject()) {
         return { state: studioState(), outcome: 'plus-only' };
       }
-      if (!entitled() && found.length > STUDIO_TRIAL_PROJECTS) {
-        return { state: studioState(), outcome: 'plus-only' };
-      }
       adopt(withFolders(projects, found, Date.now()));
       await refreshNames();
-      return { state: studioState(), outcome: 'linked' };
+      return {
+        state: studioState(),
+        outcome:
+          !entitled() && found.length > STUDIO_TRIAL_PROJECTS
+            ? 'one-opened'
+            : 'linked',
+      };
     }),
   );
 

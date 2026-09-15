@@ -27,7 +27,9 @@ const studio = {
     '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、画廊里，或导出成可发送的文件。',
   'studio.plus.locked': '仅限 Plus',
   'studio.plus.oneFolder':
-    '没有 Plus 时一次只能打开一个场景文件夹；这个文件夹里有多个。',
+    '没有 Plus 时只打开第一个；其余的带锁留在列表中，有 Plus 即可打开。',
+  'studio.plus.lockedProject':
+    '有 Plus 也能打开这个项目；没有 Plus 时工作室保留一个。',
   'studio.plus.oneProject':
     '没有 Plus 时工作室保留一个项目。有 Plus 则没有限制。',
 

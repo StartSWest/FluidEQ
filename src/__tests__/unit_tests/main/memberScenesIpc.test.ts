@@ -447,13 +447,13 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('takes none of a folder of several projects without Plus, and says so', async () => {
+  it('opens the first of a folder of several without Plus, and lists the rest locked', async () => {
     status = { state: 'none' };
     const registration = setup();
     const many = path.join(root, 'many');
     fs.mkdirSync(many);
     await Promise.all(
-      ['one', 'two'].map(async (name) => {
+      ['one', 'two', 'three'].map(async (name) => {
         const folder = path.join(many, name);
         fs.mkdirSync(folder);
         await writeStarterProject(folder, { name, id: name });
@@ -461,19 +461,55 @@ describe('member scenes over IPC', () => {
     );
     await invoke<Promise<IStudioState>>('studio-open');
     chosen = many;
-    const refused =
-      await invoke<Promise<ILinkFolderResult>>('studio-link-folder');
-    expect(refused.outcome).toBe('plus-only');
-    expect(refused.state.projects).toEqual([]);
-    expect(refused.state.mayAddProject).toBe(true);
-    // One folder that is one project is taken; a cancelled dialog says so.
-    chosen = path.join(many, 'two');
     const linked =
       await invoke<Promise<ILinkFolderResult>>('studio-link-folder');
-    expect(linked.outcome).toBe('linked');
-    expect(linked.state.projects.map((entry) => entry.folderName)).toEqual([
-      'two',
-    ]);
+    expect(linked.outcome).toBe('one-opened');
+    const byName = (state: IStudioState) =>
+      [...state.projects]
+        .sort((a, b) => a.folderName.localeCompare(b.folderName))
+        .map((entry) => `${entry.folderName}${entry.locked ? ':locked' : ''}`);
+    // All three listed, the first by name on the bench, the others locked.
+    expect(byName(linked.state)).toEqual(['one', 'three:locked', 'two:locked']);
+    const one = linked.state.projects.find(
+      (entry) => entry.folderName === 'one',
+    );
+    const two = linked.state.projects.find(
+      (entry) => entry.folderName === 'two',
+    );
+    expect(linked.state.activeId).toBe(one?.id);
+    expect(linked.state.mayAddProject).toBe(false);
+    // A locked one is not picked, and its notes are not read or written.
+    expect(
+      (await invoke<Promise<IStudioState>>('studio-select-project', two?.id))
+        .activeId,
+    ).toBe(one?.id);
+    const notes = { description: 'two', prompt: 'the second scene' };
+    expect(invoke('studio-notes-save', two?.id, notes)).toBe(false);
+    // Letting the open one go moves the bench to the next: one at a time.
+    const after = await invoke<Promise<IStudioState>>(
+      'studio-forget-project',
+      one?.id,
+    );
+    expect(after.projects.map((entry) => entry.locked)).toContain(undefined);
+    expect(after.activeId).toBeDefined();
+    expect(
+      after.projects.find((entry) => entry.id === after.activeId)?.locked,
+    ).toBeUndefined();
+    // With Plus every one of them opens, and lapsing keeps the open one.
+    status = { state: 'active' };
+    listeners.forEach((listener) => listener(status));
+    const opened = await invoke<Promise<IStudioState>>(
+      'studio-select-project',
+      two?.id,
+    );
+    expect(opened.activeId).toBe(two?.id);
+    expect(opened.projects.every((entry) => !entry.locked)).toBe(true);
+    status = { state: 'none' };
+    listeners.forEach((listener) => listener(status));
+    const lapsed = await invoke<Promise<IStudioState>>('studio-open');
+    expect(lapsed.activeId).toBe(two?.id);
+    expect(byName(lapsed)).toEqual(['three:locked', 'two']);
+    // A cancelled dialog says so.
     chosen = undefined;
     status = { state: 'active' };
     expect(
@@ -513,8 +549,13 @@ describe('member scenes over IPC', () => {
     status = { state: 'none' };
     listeners.forEach((listener) => listener(status));
     const lapsed = await invoke<Promise<IStudioState>>('studio-open');
-    // Off the page's list and off the bench: the member's own project opens.
-    expect(lapsed.projects.map((entry) => entry.id)).toEqual([mine?.id]);
+    // Listed with a lock and off the bench: the member's own project opens.
+    expect(
+      lapsed.projects.map((entry) => [entry.id, entry.locked ?? false]),
+    ).toEqual([
+      [mine?.id, false],
+      [official?.id, true],
+    ]);
     expect(lapsed.activeId).toBe(mine?.id);
     expect(registration.activeIsInspection()).toBe(false);
     // Not to be picked, read, or let go of — letting go would drop the mark,

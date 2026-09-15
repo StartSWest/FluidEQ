@@ -28,7 +28,9 @@ const studio = {
     'Sua cena fica neste computador. Com o Plus ela vai para o gráfico, para a área de trabalho, para a galeria ou para um arquivo para enviar.',
   'studio.plus.locked': 'Só com o Plus',
   'studio.plus.oneFolder':
-    'Sem o Plus, abra uma pasta de cena por vez; essa contém várias.',
+    'Sem o Plus abre-se a primeira; as outras ficam na lista com um cadeado, para o Plus.',
+  'studio.plus.lockedProject':
+    'Com o Plus este projeto também abre; sem o Plus o Estúdio guarda um.',
   'studio.plus.oneProject':
     'Sem o Plus o Estúdio guarda um projeto. Com o Plus não há limite.',
 

@@ -73,6 +73,9 @@ const view = (over: Partial<IStudioView['state']> = {}): IStudioView => ({
   },
 });
 
+/** The bridge's project pick: never reached for a locked project. */
+const selectStudioProject = jest.fn(async () => undefined);
+
 beforeEach(() => {
   resetStudioStore();
   jest.clearAllMocks();
@@ -85,6 +88,7 @@ beforeEach(() => {
         onStudioChanged: jest.fn(() => () => undefined),
         readStudioNotes: jest.fn(async () => ({ description: '', prompt: '' })),
         saveStudioNotes: jest.fn(async () => true),
+        selectStudioProject,
       },
     },
   });
@@ -164,8 +168,33 @@ it('says what a FluidEQ scene opened to look inside is for, whatever the members
   ).toBeNull();
 });
 
-it('says so when a folder of several scenes is opened without Plus', async () => {
-  jest.mocked(linkStudioFolder).mockResolvedValue('plus-only');
+it('lists a project Plus would open with a lock, and opens Plus when it is picked', async () => {
+  const aurora: IStudioProject = {
+    id: '22222222-2222-4222-8222-222222222222',
+    folderName: 'Aurora',
+    path: 'D:\\Studio\\Aurora',
+    locked: true,
+  };
+  render(<StudioBench view={view({ projects: [project, aurora] })} />);
+  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  // One project to step to: the arrows have nowhere to go.
+  expect(
+    screen.getByRole('button', { name: 'studio.project.next' }),
+  ).toBeDisabled();
+  const menu = await openMenu();
+  const row = menu.getByRole('menuitemradio', { name: /Aurora/ });
+  expect(row).toHaveAttribute('title', 'studio.plus.lockedProject');
+  expect(row).toHaveClass('is-locked');
+  expect(
+    menu.getByRole('menuitemradio', { name: /Neon City/ }),
+  ).not.toHaveAttribute('title');
+  await userEvent.click(row);
+  expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
+  expect(selectStudioProject).not.toHaveBeenCalled();
+});
+
+it('says so when the first of a folder of several opens without Plus', async () => {
+  jest.mocked(linkStudioFolder).mockResolvedValue('one-opened');
   render(
     <StudioBench
       view={view({ mayAddProject: true, projects: [], activeId: undefined })}
