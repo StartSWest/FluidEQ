@@ -143,9 +143,10 @@ extern const wchar_t kDefaultProcessingMode[];
  * the endpoint worse than a clean uninstall would.
  *
  * For a legacy slot — pid 1 or 2, a single value that can hold one class id
- * — ours goes in only where nothing is registered: the plan is `refused`
- * when the value already names another effect, because replacing it would
- * switch that effect off, and there is no way to chain two in one value.
+ * — ours goes in only where nothing is registered or where Windows' own
+ * default effect is (`is_windows_default_apo`): the plan is `refused` when
+ * the value names any other effect, because replacing a vendor's would
+ * switch it off, and there is no way to chain two in one value.
  */
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot);
 
@@ -203,6 +204,36 @@ constexpr int kEqualizerApoClsidCount = 2;
 
 /** Whether `clsid` is one of them. */
 bool is_equalizer_apo(std::wstring_view clsid);
+
+/**
+ * Windows' own two legacy effects — "WM LFX APO" and "WM GFX APO", the
+ * inbox enhancements `wdmaudio.inf` registers in pids 1 and 2 on every
+ * endpoint whose driver brings no effects of its own. They are the one
+ * thing a legacy value may hold that this program will replace with its
+ * own class id: they are Windows', not the sound card vendor's, the backup
+ * keeps them and the detach puts them back, and a driver that reads only
+ * pids 1 and 2 leaves no other place for the engine to go. A user's RME DAC
+ * had exactly this shape and never created the engine in any list.
+ */
+extern const wchar_t* const kWindowsDefaultApoClsids[];
+constexpr int kWindowsDefaultApoClsidCount = 2;
+
+bool is_windows_default_apo(std::wstring_view clsid);
+
+/**
+ * Whether the endpoint's driver registered effects only the pre-8.1 way:
+ * something in pid 1 or 2, and none of the modern values at all. Such an
+ * endpoint is read the old way by Windows, whatever lists are added later.
+ */
+bool is_legacy_only(const FxValues& values);
+
+/**
+ * Where an attach with no slot named goes on an endpoint first found as
+ * `original`: GFX where the driver registered only the legacy values and
+ * that value can be taken, MFX where Windows has combined the output with
+ * another (`combined`), EFX otherwise.
+ */
+Slot default_slot_for(const FxValues& original, bool combined);
 
 /**
  * The values `before` should become with Equalizer APO taken out of them.

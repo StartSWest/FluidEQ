@@ -585,14 +585,26 @@ Out-String` (or any other capture) is what actually waits for it and shows
   in the slot asked for (a move into a legacy value also takes away the
   lists the first attach created, because a driver that reads the old
   values may only do so while no list exists; the vendor's own lists stay);
-  the two legacy values are taken only where nothing is registered, and
-  `write_fx_values` admits our own class id there and nothing else — a
-  vendor's registration is never replaced. A slot named on the command line
-  is remembered per output under `<engine root>\slots`, so the next attach
-  with no slot named (the app enabling the output again, an install with
-  `--attach-all`) does not put the engine back where it was never loaded;
-  an attach with no memory goes to MFX on an output Windows has combined
-  (Equalizer APO's rule, the same property) and to EFX otherwise. Bounded:
+  the two legacy values are taken only where nothing is registered or where
+  Windows' own default effect is ("WM LFX APO" / "WM GFX APO", the two
+  `wdmaudio.inf` registers on every endpoint whose driver brings none —
+  `kWindowsDefaultApoClsids`), and `write_fx_values` admits our own class
+  id and those two there and nothing else — a vendor's registration is
+  never replaced, and the backup puts Windows' effect back on detach. That
+  is the RME case exactly: the driver registered only pids 1 and 2, holding
+  Windows' two defaults, Windows read only those whatever lists were added,
+  and Equalizer APO installed "as LFX/GFX" worked there while nothing in a
+  list ever ran. A slot named on the command line is remembered per output
+  under `<engine root>\slots`, so the next attach with no slot named (the
+  app enabling the output again, an install with `--attach-all`) does not
+  put the engine back where it was never loaded; an attach with no memory
+  goes straight to GFX on an endpoint first found legacy-only with a
+  takeable GFX (`default_slot_for`, read from the backup — the first attach
+  adds lists), to MFX on an output Windows has combined (Equalizer APO's
+  rule, the same property) and to EFX otherwise. The device list's probe
+  reads all five values for the engine's id (`windows-audio-devices.ps1`,
+  `EngineSlotValues`); reading only ,15 and ,14 called a moved engine "not
+  attached" and enabled it again on every launch. Bounded:
   each step is to the rung after the one the helper reports, the gate
   allows `move-slot` four runs a session, and the window asks once per
   (output, slot), in `sessionStorage`. Silent: the trouble notice for that

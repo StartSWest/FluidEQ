@@ -227,12 +227,14 @@ FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
   FxValues& after = plan.after;
 
   if (is_legacy_slot(slot)) {
-    // One value, one class id: ours goes in only where nothing is. A vendor
-    // registered there would be switched off by the write, and this program
-    // never switches anybody's effect off to make room for its own.
+    // One value, one class id: ours goes in where nothing is, or where
+    // Windows' own default effect is. A vendor registered there would be
+    // switched off by the write, and this program never switches anybody's
+    // effect off to make room for its own.
     const int at = legacy_index_of(slot);
     if (holds_effect(before.legacy[at]) &&
-        !equal_ci(*before.legacy[at], clsid)) {
+        !equal_ci(*before.legacy[at], clsid) &&
+        !is_windows_default_apo(*before.legacy[at])) {
       plan.refused = std::wstring(slot == Slot::Lfx ? L"LFX" : L"GFX") +
                      L" already holds another effect, " + *before.legacy[at];
       return plan;
@@ -342,12 +344,11 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
   }
 
   // Ours out of a legacy value goes back to what the value was when first
-  // found: absent, or the empty string a driver left there. Never anything
-  // else, because ours only ever went in where nothing was.
+  // found: absent, the empty string a driver left there, or Windows' own
+  // default effect. Never a vendor's, because ours never went in over one.
   for (int at = 0; at < kLegacyCount; ++at) {
     if (holds_effect(after.legacy[at]) && equal_ci(*after.legacy[at], clsid)) {
-      after.legacy[at] =
-          holds_effect(backup.legacy[at]) ? std::nullopt : backup.legacy[at];
+      after.legacy[at] = backup.legacy[at];
     }
   }
 
@@ -366,6 +367,43 @@ bool is_equalizer_apo(std::wstring_view clsid) {
     }
   }
   return false;
+}
+
+// `FX_PREMIX_CLSID` and `FX_POSTMIX_CLSID` from wdmaudio.inf: the LFX and
+// GFX Windows registers itself, named "WM LFX APO" and "WM GFX APO".
+const wchar_t* const kWindowsDefaultApoClsids[] = {
+    L"{62DC1A93-AE24-464C-A43E-452F824C4250}",
+    L"{637C490D-EEE3-4C0A-973F-371958802DA2}"};
+
+bool is_windows_default_apo(std::wstring_view clsid) {
+  for (int at = 0; at < kWindowsDefaultApoClsidCount; ++at) {
+    if (equal_ci(clsid, kWindowsDefaultApoClsids[at])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool is_legacy_only(const FxValues& values) {
+  if (has_modern_values(values)) {
+    return false;
+  }
+  for (int at = 0; at < kLegacyCount; ++at) {
+    if (holds_effect(values.legacy[at])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+Slot default_slot_for(const FxValues& original, bool combined) {
+  if (is_legacy_only(original)) {
+    const std::optional<std::wstring>& gfx = original.legacy[kGfx];
+    if (!holds_effect(gfx) || is_windows_default_apo(*gfx)) {
+      return Slot::Gfx;
+    }
+  }
+  return combined ? Slot::Mfx : Slot::Efx;
 }
 
 FxPlan plan_suspend_apo(const FxValues& before) {

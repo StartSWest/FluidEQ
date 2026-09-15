@@ -17,22 +17,22 @@ public static class AquaAudioDevices
     // FLUID_ENGINE_CLSID, which this must be kept equal to).
     private const string FluidEngineClsid = "{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}";
 
-    // FxProperties stores the two composite effect lists (endpoint and mode)
-    // under value names shaped like "{format-guid},pid" rather than a plain
-    // name — these are PKEY_FX_EndpointEffectClsid (,15) and
-    // PKEY_FX_ModeEffectClsid (,14). Unlike the APO probe, which scans every
-    // value present, the engine's effect is only ever listed in one of these
-    // two, so only they are read.
-    //
-    // The helper checks three (,13 as well, PKEY_FX_StreamEffectClsid) and
-    // this probe checks two, and they agree on the only question this one
-    // asks. `plan_attach` in native/system-apo/setup/fx_list.cpp appends OUR
-    // class id to the EFX or the MFX list and to no other, so an attached
-    // endpoint always names the engine in ,15 or ,14. The helper reads ,13
-    // because it also has to carry a vendor's own stream effects across when
-    // it edits — never because the engine can be found there.
-    private const string CompositeEndpointEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15";
-    private const string CompositeModeEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14";
+    // FxProperties stores the effect registrations under value names shaped
+    // like "{format-guid},pid" rather than a plain name. The engine can sit
+    // in any of five: the three composite lists — PKEY_FX_EndpointEffectClsid
+    // (,15), PKEY_FX_ModeEffectClsid (,14), PKEY_FX_StreamEffectClsid (,13)
+    // — and the two pre-8.1 single values, GFX (,2) and LFX (,1), which are
+    // where the helper's slot ladder puts it on an output whose driver reads
+    // only those (`plan_attach` in native/system-apo/setup/fx_list.cpp). A
+    // probe that read only ,15 and ,14 called such an output "not attached"
+    // after every move, and the panel enabled it again on every launch.
+    private static readonly string[] EngineSlotValues = new string[] {
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},13",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},2",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},1",
+    };
 
     // Where Windows keeps each output that audio effects can run on, and the
     // only place either engine attaches: the helper looks nowhere else, and
@@ -316,9 +316,9 @@ public static class AquaAudioDevices
         return text.IndexOf(clsid, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    // Reads only the two named composite effect lists rather than every
-    // FxProperties value, because the engine's CLSID is only ever placed in
-    // one of those two REG_MULTI_SZ values, never under an arbitrary name.
+    // Reads the five values the engine can be registered in rather than
+    // every FxProperties value: the class id is only ever placed in one of
+    // those, never under an arbitrary name.
     private static Nullable<bool> IsFluidEngineAttached(string deviceGuid)
     {
         try
@@ -331,16 +331,16 @@ public static class AquaAudioDevices
             {
                 if (properties == null)
                     return false;
-                var endpointEffects = properties.GetValue(
-                    CompositeEndpointEffectsValue,
-                    null,
-                    RegistryValueOptions.DoNotExpandEnvironmentNames);
-                var modeEffects = properties.GetValue(
-                    CompositeModeEffectsValue,
-                    null,
-                    RegistryValueOptions.DoNotExpandEnvironmentNames);
-                return ContainsClsid(endpointEffects, FluidEngineClsid) ||
-                    ContainsClsid(modeEffects, FluidEngineClsid);
+                foreach (var valueName in EngineSlotValues)
+                {
+                    var effects = properties.GetValue(
+                        valueName,
+                        null,
+                        RegistryValueOptions.DoNotExpandEnvironmentNames);
+                    if (ContainsClsid(effects, FluidEngineClsid))
+                        return true;
+                }
+                return false;
             }
         }
         catch

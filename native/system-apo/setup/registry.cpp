@@ -298,13 +298,14 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
     return false;
   };
   // And one for the two legacy values only: our own class id may go into a
-  // value that holds nothing, and come out of one again, leaving nothing.
-  // That is the oldest rung of the slot ladder, for a driver that reads
-  // pids 1 and 2 and never a list. Either side naming any other effect is
-  // refused: ours never replaces a vendor's, and never becomes one.
+  // value that holds nothing or Windows' own default effect, and come out
+  // of one again, leaving what was there. That is the oldest rung of the
+  // slot ladder, for a driver that reads pids 1 and 2 and never a list.
+  // Either side naming any other effect is refused: ours never replaces a
+  // vendor's, and never becomes one.
   const auto empty_or_ours = [](const std::optional<std::wstring>& value) {
     return !value.has_value() || value->empty() ||
-           equal_ci(*value, kEngineClsid);
+           equal_ci(*value, kEngineClsid) || is_windows_default_apo(*value);
   };
   const auto ours_only = [empty_or_ours](
                              const std::optional<std::wstring>& was,

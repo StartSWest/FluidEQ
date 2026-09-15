@@ -36,14 +36,17 @@ void fail(CommandResult& result, std::wstring message) {
 
 /**
  * The slot one output gets when none was named: what was learned about it,
- * then what Windows says about it, then the default.
+ * then what the endpoint's own registration says (`default_slot_for`, read
+ * from how it was first found — the backup — because the first attach may
+ * since have added lists to an endpoint whose driver reads only the old
+ * values), then what Windows says about it.
  */
-Slot slot_for(const std::wstring& guid) {
+Slot slot_for(const std::wstring& guid, const FxValues& original) {
   const std::optional<Slot> learned = remembered_slot(guid);
   if (learned.has_value()) {
     return *learned;
   }
-  return endpoint_is_combined(guid) ? Slot::Mfx : Slot::Efx;
+  return default_slot_for(original, endpoint_is_combined(guid));
 }
 
 /**
@@ -66,7 +69,6 @@ bool attach_one(const std::wstring& guid, std::optional<Slot> named,
   if (!read_fx_values(guid, before, error)) {
     return false;
   }
-  const Slot slot = named.has_value() ? *named : slot_for(guid);
   // Not when the effect is already on this endpoint. Its backup either exists
   // — in which case `save_backup_once` would do nothing anyway — or somebody
   // deleted it by hand, and recreating it now would record the endpoint with
@@ -77,6 +79,8 @@ bool attach_one(const std::wstring& guid, std::optional<Slot> named,
     return false;
   }
   const std::optional<FxValues> saved = load_backup(guid);
+  const Slot slot =
+      named.has_value() ? *named : slot_for(guid, saved.value_or(before));
   // Moving needs the backup, which says which lists were the vendor's; with
   // none, the current values stand in for it and nothing is deleted, exactly
   // as a detach would do.

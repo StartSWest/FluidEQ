@@ -31,7 +31,9 @@ using fluideq_engine::setup::FxPlan;
 using fluideq_engine::setup::FxValues;
 using fluideq_engine::setup::Slot;
 using fluideq_engine::setup::from_json;
+using fluideq_engine::setup::default_slot_for;
 using fluideq_engine::setup::is_attached;
+using fluideq_engine::setup::is_legacy_only;
 using fluideq_engine::setup::kDefaultProcessingMode;
 using fluideq_engine::setup::kEfx;
 using fluideq_engine::setup::kGfx;
@@ -82,6 +84,11 @@ constexpr wchar_t kVendorMode[] = L"{9CF2A70B-F377-403B-BD6B-360863E0355C}";
 // and a test that read it from the source it checks would prove nothing.
 constexpr wchar_t kApoMfx[] = L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}";
 constexpr wchar_t kApoEfx[] = L"{EC1CC9CE-FAED-4822-828A-82A81A6F018F}";
+// Windows' own two legacy effects, as wdmaudio.inf registers them (the
+// published contract again; a test reading them from the source proves
+// nothing).
+constexpr wchar_t kWindowsLfx[] = L"{62dc1a93-ae24-464c-a43e-452f824c4250}";
+constexpr wchar_t kWindowsGfx[] = L"{637C490D-EEE3-4C0A-973F-371958802DA2}";
 
 std::vector<std::wstring> list(std::initializer_list<const wchar_t*> items) {
   std::vector<std::wstring> result;
@@ -410,7 +417,8 @@ void legacy_slot_is_never_taken_from_a_vendor() {
   const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Gfx);
   CHECK(!plan.refused.empty());
   CHECK(!plan.changed);
-  expect_values(plan.after, attached, "legacy_slot_is_never_taken_from_a_vendor");
+  expect_values(plan.after, attached,
+                "legacy_slot_is_never_taken_from_a_vendor");
   CHECK(slot_of(plan.after, kOurs) == Slot::Efx);
 
   // An empty string a driver left there is not an effect, and is taken.
@@ -423,6 +431,52 @@ void legacy_slot_is_never_taken_from_a_vendor() {
   const FxPlan out = plan_detach(into_empty.after, emptied, kOurs);
   expect_values(out.after, emptied,
                 "legacy_slot_is_never_taken_from_a_vendor/empty");
+}
+
+/**
+ * A user's RME DAC: the driver registered only the pre-8.1 values, and they
+ * hold Windows' own two default effects. Windows reads only those there,
+ * whatever lists are added, so the engine goes into GFX over Windows' own
+ * effect — and the detach puts Windows' effect back.
+ */
+void windows_default_gfx_is_taken_and_given_back() {
+  std::printf("windows default gfx is taken and given back\n");
+  FxValues backup;
+  backup.legacy[kLfx] = kWindowsLfx;
+  backup.legacy[kGfx] = kWindowsGfx;
+  CHECK(is_legacy_only(backup));
+  CHECK(default_slot_for(backup, false) == Slot::Gfx);
+  CHECK(default_slot_for(backup, true) == Slot::Gfx);
+
+  // The ladder had already put it in the lists, mirroring Windows' effects
+  // forward: the move takes those lists away again.
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Sfx).after;
+  CHECK(!is_legacy_only(attached));
+  FxValues expected = backup;
+  expected.legacy[kGfx] = kOurs;
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Gfx);
+  CHECK(plan.refused.empty());
+  expect_values(plan.after, expected,
+                "windows_default_gfx_is_taken_and_given_back");
+
+  const FxPlan gone = plan_detach(plan.after, backup, kOurs);
+  expect_values(gone.after, backup,
+                "windows_default_gfx_is_taken_and_given_back/detach");
+}
+
+/** An endpoint with nothing at all still starts at the top of the ladder. */
+void bare_endpoint_starts_at_efx() {
+  std::printf("bare endpoint starts at efx\n");
+  const FxValues bare;
+  CHECK(!is_legacy_only(bare));
+  CHECK(default_slot_for(bare, false) == Slot::Efx);
+  CHECK(default_slot_for(bare, true) == Slot::Mfx);
+  // A vendor's own legacy GFX: read the old way, but not ours to take, so
+  // the ladder starts at the top and ends with a refusal.
+  FxValues vendor;
+  vendor.legacy[kGfx] = kLegacyGfx;
+  CHECK(is_legacy_only(vendor));
+  CHECK(default_slot_for(vendor, false) == Slot::Efx);
 }
 
 /**
@@ -807,6 +861,8 @@ int main() {
   legacy_slot_is_never_taken_from_a_vendor();
   move_to_legacy_keeps_vendor_lists();
   move_to_sfx();
+  windows_default_gfx_is_taken_and_given_back();
+  bare_endpoint_starts_at_efx();
   detach_restores_created_keys();
   detach_keeps_others_in_list();
   detach_restores_sz_type();
