@@ -63,7 +63,13 @@ const view = (): IStudioView => ({
   loaded: true,
   serial: 1,
   pack,
-  state: { entitled: true, activeId: 'city', projectsRoot: '', projects: [] },
+  state: {
+    entitled: true,
+    mayAddProject: true,
+    activeId: 'city',
+    projectsRoot: '',
+    projects: [],
+  },
 });
 const bridge = {
   onAccountState: jest.fn(),

@@ -23,10 +23,13 @@ const studio = {
   'studio.description': 'AI でシーンを作り、ライブで確かめる',
   'studio.rail.blurb': '自分だけのシーンを作る',
 
-  'studio.gate.title': '自分のシーンを作り、ほかのメンバーの作品も再生',
-  'studio.gate.body':
-    'スタジオは FluidEQ Plus の機能です。AI にシーンを説明すると、AI が書いている間にもあなたの音楽に合わせて動き出します。',
-  'studio.gate.cta': 'Plus を見る',
+  'studio.plus.title': 'Plus なら',
+  'studio.plus.body':
+    'シーンはこのコンピューターに残ります。Plus ならグラフやデスクトップ、ギャラリー、送れるファイルにできます。',
+  'studio.plus.cta': 'Plus を見る',
+  'studio.plus.locked': 'Plus のみ',
+  'studio.plus.oneProject':
+    'Plus なしではスタジオはプロジェクトを1つ保持します。Plus なら制限はありません。',
 
   'studio.maker.title': 'AI と作る',
   'studio.maker.describe': 'シーンを説明する',

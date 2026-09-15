@@ -1,8 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import type { TranslationKey } from 'common/i18n';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioState } from 'main/ipc/memberScenes';
-import Glyph from '../community/Glyph';
+import { requestAccountPanel } from '../account/accountPanel';
+import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
 import { useTranslation } from '../utils/I18nContext';
@@ -26,6 +28,47 @@ const FLUIDEQ_MAKER: IMakerRef = {
   name: 'FluidEQ',
   handle: 'fluideq',
 };
+
+/**
+ * A row in the menu's footer. Locked, it says what Plus would open and goes
+ * there instead of doing nothing — the main process refuses these anyway, so
+ * the lock is what the member is told, not what stops them.
+ */
+function MenuAction({
+  glyph,
+  label,
+  lockedHint,
+  onPick,
+  close,
+}: {
+  glyph: TCommunityGlyph;
+  label: TranslationKey;
+  /** Absent when the member may do it; otherwise what Plus adds. */
+  lockedHint: TranslationKey | undefined;
+  onPick: () => void;
+  close: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      className={`rich-pick__action${lockedHint ? ' is-locked' : ''}`}
+      title={lockedHint ? t(lockedHint) : undefined}
+      onClick={() => {
+        if (lockedHint) {
+          close();
+          requestAccountPanel('subscribe');
+          return;
+        }
+        onPick();
+      }}
+    >
+      <Glyph name={glyph} />
+      {t(label)}
+      {lockedHint && <Glyph name="lock" className="rich-pick__action-lock" />}
+    </button>
+  );
+}
 
 interface IStudioProjectsProps {
   state: IStudioState;
@@ -92,9 +135,9 @@ export default function StudioProjects({
   const at = entries.findIndex((entry) => entry.id === state.activeId);
   const previous = entries[(at > 0 ? at : entries.length) - 1];
   const next = entries[(at + 1) % entries.length];
-  const canStep = state.entitled && entries.length > 1 && !switching;
+  const canStep = entries.length > 1 && !switching;
   const pick = async (id: string) => {
-    if (picking.current || !state.entitled) {
+    if (picking.current) {
       return;
     }
     picking.current = true;
@@ -115,7 +158,7 @@ export default function StudioProjects({
         className="studio-projects"
         menuClassName="studio-projects-menu"
         menuMaxHeight={520}
-        disabled={!state.entitled || switching}
+        disabled={switching}
         entries={entries}
         groupLabel={(group) =>
           t(
@@ -139,50 +182,50 @@ export default function StudioProjects({
         }
         renderFooter={(close) => (
           <>
-            <button
-              type="button"
-              className="rich-pick__action"
-              onClick={() => {
+            <MenuAction
+              glyph="studio"
+              label="studio.project.new"
+              lockedHint={
+                state.mayAddProject ? undefined : 'studio.plus.oneProject'
+              }
+              onPick={() => {
                 close();
                 onNewProject();
               }}
-            >
-              <Glyph name="studio" />
-              {t('studio.project.new')}
-            </button>
-            <button
-              type="button"
-              className="rich-pick__action"
-              onClick={() => {
+              close={close}
+            />
+            <MenuAction
+              glyph="folder"
+              label="studio.project.add"
+              lockedHint={
+                state.mayAddProject ? undefined : 'studio.plus.oneProject'
+              }
+              onPick={() => {
                 close();
                 linkStudioFolder().catch(() => undefined);
               }}
-            >
-              <Glyph name="folder" />
-              {t('studio.project.add')}
-            </button>
-            <button
-              type="button"
-              className="rich-pick__action"
-              onClick={() => {
+              close={close}
+            />
+            <MenuAction
+              glyph="download"
+              label="studio.action.import"
+              lockedHint={state.entitled ? undefined : 'studio.plus.locked'}
+              onPick={() => {
                 close();
                 onOpenFile();
               }}
-            >
-              <Glyph name="download" />
-              {t('studio.action.import')}
-            </button>
-            <button
-              type="button"
-              className="rich-pick__action"
-              onClick={() => {
+              close={close}
+            />
+            <MenuAction
+              glyph="looks"
+              label="studio.project.inspect"
+              lockedHint={state.entitled ? undefined : 'studio.plus.locked'}
+              onPick={() => {
                 close();
                 openGalleryPage({ kind: 'maker', maker: FLUIDEQ_MAKER });
               }}
-            >
-              <Glyph name="looks" />
-              {t('studio.project.inspect')}
-            </button>
+              close={close}
+            />
             {active &&
               state.projects.some(
                 (project) => project.id === active.id && !project.official,

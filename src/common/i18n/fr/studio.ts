@@ -24,11 +24,13 @@ const studio = {
     'Créez des scènes avec votre IA et regardez-les en direct',
   'studio.rail.blurb': 'Créez vos propres scènes',
 
-  'studio.gate.title':
-    'Créez vos propres scènes et jouez celles des autres membres',
-  'studio.gate.body':
-    'Le Studio fait partie de FluidEQ Plus. Décrivez une scène à votre IA et regardez-la prendre vie sur votre musique pendant qu’elle l’écrit.',
-  'studio.gate.cta': 'Découvrir Plus',
+  'studio.plus.title': 'Avec Plus',
+  'studio.plus.body':
+    'Votre scène reste sur cet ordinateur. Avec Plus, elle va sur le graphique, sur votre bureau, dans la galerie, ou dans un fichier à envoyer.',
+  'studio.plus.cta': 'Découvrir Plus',
+  'studio.plus.locked': 'Seulement avec Plus',
+  'studio.plus.oneProject':
+    'Sans Plus, le Studio garde un projet. Avec Plus, il n’y a pas de limite.',
 
   'studio.maker.title': 'Créez-la avec votre IA',
   'studio.maker.describe': 'Décrivez votre scène',

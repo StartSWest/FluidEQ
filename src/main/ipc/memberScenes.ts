@@ -66,8 +66,9 @@ import { registerStudioSettingsIpc } from './studioSettings';
  * can see which is which; it cannot send one.
  *
  * Only the open project is watched, and only while the Studio is open.
- * Switching projects, closing the Studio, losing Plus, or quitting stops the
- * watcher; the projects not open are a line in a list and cost nothing.
+ * Switching projects, closing the Studio or quitting stops the watcher, and
+ * so does losing Plus on one of FluidEQ's own scenes opened to look inside;
+ * the projects not open are a line in a list and cost nothing.
  */
 
 export interface IMemberScenesListing {
@@ -98,6 +99,13 @@ export interface IStudioProject {
 
 export interface IStudioState {
   entitled: boolean;
+  /**
+   * Whether another project may be started or opened. Plus has no limit;
+   * without it the Studio keeps one project (`TRIAL_PROJECTS`), so the page
+   * shows the ways to a second one locked rather than refusing on the press.
+   * Decided here: the page is told, never asked.
+   */
+  mayAddProject: boolean;
   /** Where "New project" makes its folders, for display only. */
   projectsRoot: string;
   /** Most recently opened first. */
@@ -115,6 +123,8 @@ export type TNewProjectResult =
   /** Nothing of the name is usable as a folder name. */
   | 'invalid'
   | 'failed'
+  /** The one project the Studio keeps without Plus is already there. */
+  | 'plus-only'
   | 'refused';
 
 export type TAddOutcome =
@@ -240,6 +250,34 @@ export const registerMemberScenesIpc = ({
     entitlement.status().state !== 'none' && accountId() !== undefined;
 
   /**
+   * The Studio without Plus: one project, made and edited here like any
+   * other, and nothing that leaves this window.
+   *
+   * Every refusal below is this process's, not the page's — the page is
+   * source anybody can change, and it only draws what it is told. The two
+   * things that reach other people are refused by the server as well: a
+   * scene file is only importable once the server has signed it, and the
+   * gallery checks the membership on the token it is given, so a changed
+   * build can neither make a file another FluidEQ accepts nor publish. What
+   * a changed build could do is play its own scene on its own machine, which
+   * is true of every local feature on a computer somebody owns.
+   */
+  const TRIAL_PROJECTS = 1;
+
+  const ownProjects = () =>
+    projects.projects.filter((project) => !project.official);
+
+  const mayAddProject = () =>
+    entitled() || ownProjects().length < TRIAL_PROJECTS;
+
+  /**
+   * Whether the open project may be built, played and edited. FluidEQ's own
+   * scenes, opened to look inside, are Plus's alone; a member's own project
+   * is theirs with or without it.
+   */
+  const mayUseActive = () => entitled() || !activeIsInspection();
+
+  /**
    * This account's scenes and the ones other members sent it. Scenes another
    * account on this computer made are theirs, and not listed here.
    */
@@ -276,6 +314,7 @@ export const registerMemberScenesIpc = ({
 
   const studioState = (): IStudioState => ({
     entitled: entitled(),
+    mayAddProject: mayAddProject(),
     projectsRoot: projectsRoot(),
     projects: byRecent(projects).map((project) => {
       const names = projectNames.get(project.id);
@@ -316,7 +355,7 @@ export const registerMemberScenesIpc = ({
     stopWatching();
     const folder = activeFolder();
     const { active } = projects;
-    if (!folder || !active || !studioOpen || !entitled() || renaming) {
+    if (!folder || !active || !studioOpen || !mayUseActive() || renaming) {
       return;
     }
     watcher = watchProject(
@@ -487,14 +526,20 @@ export const registerMemberScenesIpc = ({
   });
 
   ipcMain.handle('studio-link-folder', async () => {
-    if (!entitled()) {
+    if (!mayAddProject()) {
       return studioState();
     }
     const folder = await chooseFolder(['openDirectory']);
     if (folder) {
-      // A folder of scene folders lists every one of them, the first open.
+      // A folder of scene folders lists every one of them, the first open —
+      // one of them without Plus, which keeps a single project.
+      const found = await findProjectFolders(folder);
       adopt(
-        withFolders(projects, await findProjectFolders(folder), Date.now()),
+        withFolders(
+          projects,
+          entitled() ? found : found.slice(0, TRIAL_PROJECTS),
+          Date.now(),
+        ),
       );
       await refreshNames();
     }
@@ -502,7 +547,8 @@ export const registerMemberScenesIpc = ({
   });
 
   ipcMain.handle('studio-select-project', (_event, id: unknown) => {
-    if (typeof id === 'string' && entitled()) {
+    const wanted = projects.projects.find((project) => project.id === id);
+    if (typeof id === 'string' && wanted && (entitled() || !wanted.official)) {
       adopt(withActive(projects, id, Date.now()));
     }
     return studioState();
@@ -529,8 +575,10 @@ export const registerMemberScenesIpc = ({
       id: unknown,
       name: unknown,
     ): Promise<TRenameProjectResult> => {
+      // A member's own project is theirs to rename with or without Plus;
+      // FluidEQ's own, opened to look inside, is nobody's to rename.
       const project = projects.projects.find((entry) => entry.id === id);
-      if (!entitled() || project?.official) {
+      if (project?.official) {
         return 'refused';
       }
       if (!project || typeof name !== 'string') {
@@ -568,7 +616,7 @@ export const registerMemberScenesIpc = ({
   // Where new projects go: chosen once, in the system dialog, opening on
   // the folder in use now.
   ipcMain.handle('studio-choose-root', async () => {
-    if (!entitled()) {
+    if (!mayAddProject()) {
       return studioState();
     }
     const root = await chooseFolder(['openDirectory', 'createDirectory']);
@@ -582,8 +630,8 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle(
     'studio-create-project',
     async (_event, name: unknown): Promise<TNewProjectResult> => {
-      if (!entitled()) {
-        return 'refused';
+      if (!mayAddProject()) {
+        return 'plus-only';
       }
       if (typeof name !== 'string') {
         return 'invalid';
@@ -644,7 +692,7 @@ export const registerMemberScenesIpc = ({
     'studio-write-source',
     async (_event, text: unknown): Promise<TSourceWrite> => {
       const folder = activeFolder();
-      if (!entitled() || !folder || typeof text !== 'string') {
+      if (!mayUseActive() || !folder || typeof text !== 'string') {
         return 'failed';
       }
       return writeProjectSource(folder, text);
@@ -653,19 +701,19 @@ export const registerMemberScenesIpc = ({
 
   // The Pictures card, and the scene's settings.
   const disposeNotes = registerStudioNotesIpc({
-    entitled,
+    mayEdit: mayUseActive,
     folderFor: (id) =>
       projects.projects.find((project) => project.id === id)?.folder,
   });
   const disposePictures = registerStudioPicturesIpc({
     getMainWindow,
-    entitled,
+    mayEdit: mayUseActive,
     activeFolder,
     dialogImpl,
     ...(logger ? { logger } : {}),
   });
   const disposeSettings = registerStudioSettingsIpc({
-    entitled,
+    mayEdit: mayUseActive,
     activeFolder,
     accountId,
     store,

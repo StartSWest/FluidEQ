@@ -127,6 +127,7 @@ describe('"Open in Studio" on a FluidEQ scene', () => {
 describe("the Studio's list of projects", () => {
   const state: IStudioState = {
     entitled: true,
+    mayAddProject: true,
     projectsRoot: 'D:\\Studio',
     activeId: MINE.id,
     projects: [FLUIDEQS, MINE],
@@ -186,6 +187,7 @@ describe('the share card', () => {
     pack: memberPack(),
     state: {
       entitled: true,
+      mayAddProject: true,
       projectsRoot: 'D:\\Studio',
       projects: [active],
       activeId: active.id,

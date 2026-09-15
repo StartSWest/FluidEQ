@@ -23,10 +23,13 @@ const studio = {
   'studio.description': 'अपने AI के साथ दृश्य बनाएँ और उन्हें लाइव देखें',
   'studio.rail.blurb': 'अपने खुद के दृश्य बनाएँ',
 
-  'studio.gate.title': 'अपने दृश्य बनाएँ, और दूसरे सदस्यों के बनाए दृश्य चलाएँ',
-  'studio.gate.body':
-    'स्टूडियो FluidEQ Plus का हिस्सा है। अपने AI को एक दृश्य बताइए और देखिए कि वह लिखते-लिखते आपके संगीत पर कैसे जीवंत हो उठता है।',
-  'studio.gate.cta': 'Plus देखें',
+  'studio.plus.title': 'Plus के साथ',
+  'studio.plus.body':
+    'आपका सीन इसी कंप्यूटर पर रहता है। Plus के साथ वह ग्राफ़ पर, डेस्कटॉप पर, गैलरी में या भेजने लायक फ़ाइल में जाता है।',
+  'studio.plus.cta': 'Plus देखें',
+  'studio.plus.locked': 'सिर्फ़ Plus के साथ',
+  'studio.plus.oneProject':
+    'Plus के बिना स्टूडियो एक प्रोजेक्ट रखता है। Plus के साथ कोई सीमा नहीं।',
 
   'studio.maker.title': 'अपने AI के साथ बनाइए',
   'studio.maker.describe': 'अपना सीन बताइए',

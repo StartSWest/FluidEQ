@@ -316,6 +316,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A row the member may look at but not use yet — the Studio's Plus-only ways
+// to another project. Still a button, and still pressed: it opens Plus. The
+// lock sits at the end of the row, in the third column this adds.
+.rich-pick__action.is-locked {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  color: $text-muted;
+
+  .rich-pick__action-lock {
+    color: $text-dim;
+  }
+}
+
 // Collapsing to the glyph in a narrow window is NOT part of this pattern; it
 // is a decision about how crowded the band toolbar gets, and it lives in
 // `VoicingQuickPick.scss` with the rest of what belongs to that one control.

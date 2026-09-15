@@ -84,73 +84,6 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.45;
 }
 
-// ---------------------------------------------------------------- gate
-
-.studio-gate {
-  display: grid;
-  justify-items: center;
-  gap: $spacing-s;
-  max-width: 440px;
-  margin: $spacing-l auto;
-  padding: $spacing-l $spacing-m;
-  text-align: center;
-  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
-  border-radius: $radius-xl;
-  background:
-    radial-gradient(
-      120% 90% at 100% 0%,
-      color-mix(in srgb, $secondary-default 16%, transparent),
-      transparent 60%
-    ),
-    $block-lift;
-  box-shadow: 0 18px 48px rgba($black, 0.35);
-}
-
-.studio-gate__mark {
-  display: grid;
-  place-items: center;
-  width: 60px;
-  height: 60px;
-  color: $secondary-light;
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 50% 40%,
-      color-mix(in srgb, $secondary-default 30%, transparent),
-      transparent 70%
-    ),
-    color-mix(in srgb, $secondary-default 8%, transparent);
-  box-shadow: 0 0 34px color-mix(in srgb, $secondary-default 22%, transparent);
-
-  svg {
-    width: 28px;
-    height: 28px;
-  }
-}
-
-.studio-gate__eyebrow {
-  color: $secondary-light;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.14em);
-  text-transform: uppercase;
-}
-
-.studio-gate__title {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-title;
-  font-weight: $weight-semibold;
-  text-wrap: balance;
-}
-
-.studio-gate__body {
-  margin: 0 0 $spacing-xs;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.6;
-}
-
 // ---------------------------------------------------------------- bench
 
 // Two panes side by side, each scrolling on its own under the project bar:
@@ -450,6 +383,70 @@ $studio-scrollbar: 8px;
 }
 
 .studio-ship__inspect-body {
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+// Without Plus, where the four actions would be: the same four, each shown
+// locked, over the one button that opens them (`StudioShipLocked.tsx`). The
+// quiet style on all four and the loud one on Plus, since taking Plus is the
+// only thing this card can actually do.
+.studio-ship--locked {
+  display: grid;
+  gap: $spacing-s;
+}
+
+.studio-ship__locked-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+}
+
+.studio-ship__locked-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The name on the left, the lock on the right: a row that reads as a thing
+// that would be pressed, rather than as a line of text with an icon.
+//
+// The name wraps rather than holding one line: in Russian the four names are
+// long enough that a row which cannot wrap makes the whole side column nine
+// pixels wider than it has, and a column that wide crushes the cards under it.
+.studio-ship__locked-action {
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
+  white-space: normal;
+}
+
+.studio-ship__locked-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.studio-ship__locked-mark {
+  flex: 0 0 auto;
+  color: $text-dim;
+}
+
+.studio-ship__locked-body {
   color: $text-dim;
   font-size: $text-micro;
   line-height: 1.45;

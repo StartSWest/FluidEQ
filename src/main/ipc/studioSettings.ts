@@ -29,8 +29,12 @@ export interface IStudioSettingsOutcome {
 const CHANNELS = ['studio-write-settings'] as const;
 
 export interface IStudioSettingsDeps {
-  /** Asked fresh on every call, as everything in the Studio is. */
-  entitled: () => boolean;
+  /**
+   * Whether the open project may be worked on: Plus, or the one project the
+   * Studio keeps without it. Asked fresh on every call, as everything in the
+   * Studio is. The look below is only ever one Plus already saved.
+   */
+  mayEdit: () => boolean;
   activeFolder: () => string | undefined;
   accountId: () => string | undefined;
   store: IMemberSceneStore;
@@ -72,7 +76,7 @@ const readSettings = (raw: unknown): IProjectSettings => {
 
 /** Registers the handler; the returned function takes it away. */
 export const registerStudioSettingsIpc = ({
-  entitled,
+  mayEdit,
   activeFolder,
   accountId,
   store,
@@ -83,7 +87,7 @@ export const registerStudioSettingsIpc = ({
     'studio-write-settings',
     async (_event, raw: unknown): Promise<IStudioSettingsOutcome> => {
       const folder = activeFolder();
-      if (!entitled() || !folder) {
+      if (!mayEdit() || !folder) {
         return { written: 'failed', lookUpdated: false };
       }
       const written = await writeProjectSettings(folder, readSettings(raw));

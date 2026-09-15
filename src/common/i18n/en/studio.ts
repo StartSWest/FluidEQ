@@ -31,11 +31,13 @@ const studio = {
   'studio.description': 'Make scenes with your AI and watch them live',
   'studio.rail.blurb': 'Build your own scenes',
 
-  'studio.gate.title':
-    'Build your own scenes, and play the ones other members make',
-  'studio.gate.body':
-    'The Studio is part of FluidEQ Plus. Describe a scene to your AI and watch it come alive on your music while it writes it.',
-  'studio.gate.cta': 'See Plus',
+  'studio.plus.title': 'With Plus',
+  'studio.plus.body':
+    'Your scene stays on this computer. Plus puts it on the graph, on your desktop, in the gallery, or in a file you can send.',
+  'studio.plus.cta': 'See Plus',
+  'studio.plus.locked': 'Only with Plus',
+  'studio.plus.oneProject':
+    'The Studio keeps one project without Plus. With Plus there is no limit.',
 
   'studio.maker.title': 'Make it with your AI',
   'studio.maker.describe': 'Describe your scene',

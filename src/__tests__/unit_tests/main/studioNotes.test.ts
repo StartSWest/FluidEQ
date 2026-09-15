@@ -17,14 +17,14 @@ import { registerStudioNotesIpc } from '../../../main/ipc/studioNotes';
 
 it('keeps notes with the correct project and refuses unknown paths, invalid data and lapsed access', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'studio-notes-'));
-  let entitled = true;
+  let mayEdit = true;
   const folders = {
     first: path.join(root, 'first'),
     second: path.join(root, 'second'),
   };
   Object.values(folders).forEach((folder) => fs.mkdirSync(folder));
   const dispose = registerStudioNotesIpc({
-    entitled: () => entitled,
+    mayEdit: () => mayEdit,
     folderFor: (id) => folders[id as keyof typeof folders],
   });
   const call = (channel: string, ...args: unknown[]) =>
@@ -54,7 +54,7 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
       'utf8',
     );
     expect(saved).not.toContain('source');
-    entitled = false;
+    mayEdit = false;
     expect(call('studio-notes-save', 'first', notes)).toBe(false);
     expect(call('studio-notes-read', 'first')).toBeUndefined();
     expect(

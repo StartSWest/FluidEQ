@@ -23,11 +23,13 @@ const studio = {
   'studio.description': 'Создавайте сцены с вашим ИИ и смотрите их вживую',
   'studio.rail.blurb': 'Создавайте свои сцены',
 
-  'studio.gate.title':
-    'Создавайте свои сцены и включайте сцены других участников',
-  'studio.gate.body':
-    'Студия входит в FluidEQ Plus. Опишите сцену своему ИИ и смотрите, как она оживает под вашу музыку, пока ИИ её пишет.',
-  'studio.gate.cta': 'Узнать о Plus',
+  'studio.plus.title': 'С Plus',
+  'studio.plus.body':
+    'Ваша сцена остаётся на этом компьютере. С Plus она попадёт на график, на рабочий стол, в галерею или в файл, который можно отправить.',
+  'studio.plus.cta': 'Узнать о Plus',
+  'studio.plus.locked': 'Только с Plus',
+  'studio.plus.oneProject':
+    'Без Plus Студия хранит один проект. С Plus ограничений нет.',
 
   'studio.maker.title': 'Создайте её с вашим ИИ',
   'studio.maker.describe': 'Опишите сцену',

@@ -15,6 +15,7 @@ const REFUSALS: Record<
   exists: 'studio.new.exists',
   invalid: 'studio.new.invalid',
   failed: 'studio.new.failed',
+  'plus-only': 'studio.plus.oneProject',
   refused: 'studio.new.failed',
 };
 

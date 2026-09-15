@@ -53,7 +53,7 @@ describe('saving a copy of a Studio image', () => {
     });
     stop = registerStudioPictureCopy({
       getMainWindow: () => null,
-      entitled: () => paid,
+      mayEdit: () => paid,
       activeFolder: () => folder,
       dialogImpl: { showSaveDialog: choose },
     });

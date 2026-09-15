@@ -22,10 +22,13 @@ const studio = {
   'studio.description': '用你的 AI 创作场景，并实时观看',
   'studio.rail.blurb': '创作你自己的场景',
 
-  'studio.gate.title': '创作你自己的场景，播放其他会员的作品',
-  'studio.gate.body':
-    '工作室是 FluidEQ Plus 的一部分。向你的 AI 描述一个场景，看着它在 AI 编写时随你的音乐活起来。',
-  'studio.gate.cta': '了解 Plus',
+  'studio.plus.title': '有 Plus 时',
+  'studio.plus.body':
+    '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、画廊里，或导出成可发送的文件。',
+  'studio.plus.cta': '了解 Plus',
+  'studio.plus.locked': '仅限 Plus',
+  'studio.plus.oneProject':
+    '没有 Plus 时工作室保留一个项目。有 Plus 则没有限制。',
 
   'studio.maker.title': '用你的 AI 来做',
   'studio.maker.describe': '描述你的场景',

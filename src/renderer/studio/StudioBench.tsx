@@ -18,6 +18,7 @@ import StudioProjects from './StudioProjects';
 import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
+import StudioShipLocked from './StudioShipLocked';
 import StudioTestCard from './StudioTestCard';
 import useStudioStageRatio from './useStudioStageRatio';
 import StudioFramingDialog from './StudioFramingDialog';
@@ -393,17 +394,21 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onResetResponse={tuner.resetResponse}
             ambient={ambient}
           />
-          <StudioShipCard
-            inspecting={project?.official === true}
-            unfit={unfit}
-            onAdd={keeping.add}
-            publishing={publishing.preparing}
-            onPublish={publishing.begin}
-            exporting={sharing.exporting}
-            onExport={sharing.startExport}
-            onSetDesktop={keeping.setDesktop}
-            settingDesktop={keeping.settingDesktop}
-          />
+          {state.entitled ? (
+            <StudioShipCard
+              inspecting={project?.official === true}
+              unfit={unfit}
+              onAdd={keeping.add}
+              publishing={publishing.preparing}
+              onPublish={publishing.begin}
+              exporting={sharing.exporting}
+              onExport={sharing.startExport}
+              onSetDesktop={keeping.setDesktop}
+              settingDesktop={keeping.settingDesktop}
+            />
+          ) : (
+            <StudioShipLocked />
+          )}
         </div>
       </div>
 

@@ -53,7 +53,12 @@ export interface IStudioView {
 
 const INITIAL: IStudioView = {
   loaded: false,
-  state: { entitled: false, projectsRoot: '', projects: [] },
+  state: {
+    entitled: false,
+    mayAddProject: false,
+    projectsRoot: '',
+    projects: [],
+  },
   serial: 0,
 };
 

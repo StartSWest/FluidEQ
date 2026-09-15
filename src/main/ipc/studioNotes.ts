@@ -23,19 +23,19 @@ export const readStudioNotes = (folder: string): IStudioNotes | undefined => {
 
 export const registerStudioNotesIpc = ({
   folderFor,
-  entitled,
+  mayEdit,
 }: {
   folderFor: (id: string) => string | undefined;
-  entitled: () => boolean;
+  mayEdit: () => boolean;
 }) => {
   ipcMain.handle('studio-notes-read', (_event, id: unknown) => {
     const folder =
-      typeof id === 'string' && entitled() ? folderFor(id) : undefined;
+      typeof id === 'string' && mayEdit() ? folderFor(id) : undefined;
     return folder ? readStudioNotes(folder) : undefined;
   });
   ipcMain.handle('studio-notes-save', (_event, id: unknown, raw: unknown) => {
     const folder =
-      typeof id === 'string' && entitled() ? folderFor(id) : undefined;
+      typeof id === 'string' && mayEdit() ? folderFor(id) : undefined;
     const notes = parseStudioNotes(raw);
     if (!folder || !notes) {
       return false;

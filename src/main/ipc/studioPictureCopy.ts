@@ -7,12 +7,12 @@ export type TPictureCopyOutcome = 'saved' | 'cancelled' | 'failed';
 /** Only image bytes go to a path selected in the native save dialog. */
 export const registerStudioPictureCopy = ({
   getMainWindow,
-  entitled,
+  mayEdit,
   activeFolder,
   dialogImpl = dialog,
 }: {
   getMainWindow: () => BrowserWindow | null;
-  entitled: () => boolean;
+  mayEdit: () => boolean;
   activeFolder: () => string | undefined;
   dialogImpl?: Pick<typeof dialog, 'showSaveDialog'>;
 }) => {
@@ -26,7 +26,7 @@ export const registerStudioPictureCopy = ({
       const folder = activeFolder();
       if (
         !folder ||
-        !entitled() ||
+        !mayEdit() ||
         !(raw instanceof Uint8Array) ||
         raw.byteLength > 40 * 1024 * 1024
       ) {
@@ -60,7 +60,7 @@ export const registerStudioPictureCopy = ({
         if (chosen.canceled || !chosen.filePath) {
           return 'cancelled';
         }
-        if (!entitled() || activeFolder() !== folder) {
+        if (!mayEdit() || activeFolder() !== folder) {
           return 'failed';
         }
         await fs.promises.writeFile(chosen.filePath, bytes);

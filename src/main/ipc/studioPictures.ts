@@ -88,8 +88,12 @@ const bytesOf = (value: unknown): Uint8Array | undefined => {
 
 export interface IStudioPicturesDeps {
   getMainWindow: () => BrowserWindow | null;
-  /** Asked fresh on every call, as everything in the Studio is. */
-  entitled: () => boolean;
+  /**
+   * Whether the open project may be worked on: Plus, or the one project the
+   * Studio keeps without it. Asked fresh on every call, as everything in the
+   * Studio is.
+   */
+  mayEdit: () => boolean;
   activeFolder: () => string | undefined;
   dialogImpl: Pick<typeof dialog, 'showOpenDialog'>;
   logger?: { warn(message: string): void };
@@ -98,14 +102,14 @@ export interface IStudioPicturesDeps {
 /** Registers the three handlers; the returned function takes them away. */
 export const registerStudioPicturesIpc = ({
   getMainWindow,
-  entitled,
+  mayEdit,
   activeFolder,
   dialogImpl,
   logger,
 }: IStudioPicturesDeps): (() => void) => {
   const stopCopies = registerStudioPictureCopy({
     getMainWindow,
-    entitled,
+    mayEdit,
     activeFolder,
   });
   // Read fresh on every ask: the member's AI rewrites pack.json whenever it
@@ -113,7 +117,7 @@ export const registerStudioPicturesIpc = ({
   // regions.
   ipcMain.handle('studio-pictures', async (): Promise<TStudioPictures> => {
     const folder = activeFolder();
-    if (!entitled() || !folder) {
+    if (!mayEdit() || !folder) {
       return { kind: 'none' };
     }
     const read = await readPictureAtlas(folder);
@@ -151,7 +155,7 @@ export const registerStudioPicturesIpc = ({
     'studio-picture-photo',
     async (_event, id: unknown): Promise<Uint8Array | undefined> => {
       const folder = activeFolder();
-      if (!entitled() || !folder || typeof id !== 'string') {
+      if (!mayEdit() || !folder || typeof id !== 'string') {
         return undefined;
       }
       const read = await readPictureAtlas(folder);
@@ -166,7 +170,7 @@ export const registerStudioPicturesIpc = ({
   ipcMain.handle(
     'studio-choose-picture',
     async (_event, label: unknown): Promise<TPictureChoice> => {
-      if (!entitled() || !activeFolder()) {
+      if (!mayEdit() || !activeFolder()) {
         return { ok: false, reason: 'failed' };
       }
       const window = getMainWindow();
@@ -215,7 +219,7 @@ export const registerStudioPicturesIpc = ({
     async (_event, picture: unknown, keep: unknown): Promise<TArtworkWrite> => {
       const folder = activeFolder();
       const bytes = bytesOf(picture);
-      if (!entitled() || !folder || !bytes) {
+      if (!mayEdit() || !folder || !bytes) {
         return 'failed';
       }
       const written = await writePictureImage(folder, bytes);

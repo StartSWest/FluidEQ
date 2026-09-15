@@ -52,6 +52,7 @@ const view: IStudioView = {
   pack: memberPack(),
   state: {
     entitled: true,
+    mayAddProject: true,
     projectsRoot: 'D:\\Studio',
     projects: [project],
     activeId: project.id,

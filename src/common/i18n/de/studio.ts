@@ -23,11 +23,13 @@ const studio = {
   'studio.description': 'Szenen mit Ihrer KI bauen und live ansehen',
   'studio.rail.blurb': 'Eigene Szenen bauen',
 
-  'studio.gate.title':
-    'Bauen Sie eigene Szenen und spielen Sie die Szenen anderer Mitglieder',
-  'studio.gate.body':
-    'Das Studio gehört zu FluidEQ Plus. Beschreiben Sie Ihrer KI eine Szene und sehen Sie zu, wie sie zu Ihrer Musik lebendig wird, während die KI sie schreibt.',
-  'studio.gate.cta': 'Plus ansehen',
+  'studio.plus.title': 'Mit Plus',
+  'studio.plus.body':
+    'Ihre Szene bleibt auf diesem Computer. Mit Plus kommt sie ins Diagramm, auf Ihren Desktop, in die Galerie oder in eine Datei zum Senden.',
+  'studio.plus.cta': 'Plus ansehen',
+  'studio.plus.locked': 'Nur mit Plus',
+  'studio.plus.oneProject':
+    'Ohne Plus behält das Studio ein Projekt. Mit Plus gibt es keine Grenze.',
 
   'studio.maker.title': 'Mit Ihrer KI erstellen',
   'studio.maker.describe': 'Beschreiben Sie Ihre Szene',

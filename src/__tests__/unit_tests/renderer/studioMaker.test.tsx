@@ -127,6 +127,7 @@ describe('making a scene with your AI', () => {
       pack: memberPack(),
       state: {
         entitled: true,
+        mayAddProject: true,
         projectsRoot: 'D:\\Studio',
         projects: [project, other],
         activeId: project.id,
@@ -287,7 +288,7 @@ describe('opening the Studio', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('studio.stage.empty')).not.toBeInTheDocument();
   });
-  it('shows no Plus offer while it is still asking whether there is Plus', async () => {
+  it('draws nothing at all until the main process has answered', async () => {
     let answer: (value: unknown) => void = () => undefined;
     bridge.openStudio.mockReturnValue(
       new Promise((resolve) => {
@@ -295,12 +296,18 @@ describe('opening the Studio', () => {
       }),
     );
     render(<StudioPanel />);
-    expect(screen.queryByText('studio.gate.title')).not.toBeInTheDocument();
-    answer({ entitled: true, projectsRoot: 'D:\\Studio', projects: [] });
-    // With Plus and no project yet: the stage says how to start one.
+    expect(
+      screen.queryByText('studio.stage.startTitle'),
+    ).not.toBeInTheDocument();
+    answer({
+      entitled: true,
+      mayAddProject: true,
+      projectsRoot: 'D:\\Studio',
+      projects: [],
+    });
+    // With no project yet: the stage says how to start one.
     expect(
       await screen.findByText('studio.stage.startTitle'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('studio.gate.title')).not.toBeInTheDocument();
   });
 });

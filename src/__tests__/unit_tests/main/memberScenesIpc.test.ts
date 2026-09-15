@@ -170,7 +170,7 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('refuses every making and drawing call without Plus', async () => {
+  it('refuses every drawing and sharing call without Plus, and keeps the one project', async () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
@@ -182,7 +182,10 @@ describe('member scenes over IPC', () => {
     status = { state: 'none' };
     listeners.forEach((listener) => listener(status));
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
-    expect(await invoke('studio-create-project', 'Neon City')).toBe('refused');
+    // The project they have stays; a second one is Plus's.
+    expect(await invoke('studio-create-project', 'Neon City')).toBe(
+      'plus-only',
+    );
     expect(await invoke('studio-add-to-looks')).toEqual({
       ok: false,
       reason: 'not-entitled',
@@ -392,13 +395,71 @@ describe('member scenes over IPC', () => {
       'failed',
     );
 
-    // And only with Plus.
+    // Their own project is theirs to work on with or without Plus.
     status = { state: 'none' };
     listeners.forEach((listener) => listener(status));
     expect(await invoke('studio-write-source', '// without Plus')).toBe(
-      'failed',
+      'written',
     );
-    expect(fs.readFileSync(file, 'utf8')).toBe('// from the pane');
+    expect(fs.readFileSync(file, 'utf8')).toBe('// without Plus');
+    registration.dispose();
+  });
+
+  it('gives a member without Plus one project, made and worked on here', async () => {
+    status = { state: 'none' };
+    const registration = setup();
+    const opened = await invoke<Promise<IStudioState>>('studio-open');
+    expect(opened).toMatchObject({ entitled: false, mayAddProject: true });
+
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
+    const state = await invoke<Promise<IStudioState>>('studio-open');
+    expect(state.projects.map((entry) => entry.names?.en)).toEqual([
+      'Neon City',
+    ]);
+    // It plays and is edited like any other: the source is written, its
+    // settings and notes are saved, and the folder is watched.
+    expect(await invoke('studio-write-source', '// mine')).toBe('written');
+    const folder = state.projects[0]?.path ?? '';
+    expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
+      '// mine',
+    );
+
+    // The second one, and every other way to one, is Plus's.
+    expect(state.mayAddProject).toBe(false);
+    expect(await invoke('studio-create-project', 'Deep Sea')).toBe('plus-only');
+    chosen = await project();
+    expect(
+      (await invoke<Promise<IStudioState>>('studio-link-folder')).projects.map(
+        (entry) => entry.names?.en,
+      ),
+    ).toEqual(['Neon City']);
+    expect(await invoke('studio-add-to-looks')).toEqual({
+      ok: false,
+      reason: 'not-entitled',
+    });
+    expect(invoke<IMemberScenesListing>('member-scenes-list').scenes).toEqual(
+      [],
+    );
+    registration.dispose();
+  });
+
+  it('opens a folder of several projects without Plus as the one it keeps', async () => {
+    status = { state: 'none' };
+    const registration = setup();
+    const many = path.join(root, 'many');
+    fs.mkdirSync(many);
+    await Promise.all(
+      ['one', 'two'].map(async (name) => {
+        const folder = path.join(many, name);
+        fs.mkdirSync(folder);
+        await writeStarterProject(folder, { name, id: name });
+      }),
+    );
+    await invoke<Promise<IStudioState>>('studio-open');
+    chosen = many;
+    const state = await invoke<Promise<IStudioState>>('studio-link-folder');
+    expect(state.projects).toHaveLength(1);
+    expect(state.mayAddProject).toBe(false);
     registration.dispose();
   });
 
