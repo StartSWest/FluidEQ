@@ -164,6 +164,7 @@ describe('the audio engine channels', () => {
       writeSystemDspChain,
       isApoOnAnyOutput,
       isApoSwitchedOff,
+      repairEngineLoading: async () => undefined,
     });
   });
 

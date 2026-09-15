@@ -76,6 +76,7 @@ using fluideq_engine::setup::engine_root;
 using fluideq_engine::setup::ensure_engine_tree;
 using fluideq_engine::setup::installed_dll_path;
 using fluideq_engine::setup::apo_record_present;
+using fluideq_engine::setup::unsigned_effects_enabled;
 using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::is_elevated;
 using fluideq_engine::setup::is_valid_endpoint_guid;
@@ -207,6 +208,32 @@ std::wstring dll_version(const std::wstring& path) {
  * using a feature. Returns the process exit code: 0, or 3 when the audio
  * stack could not be asked at all.
  */
+/**
+ * Whether the C++ runtime the effect is linked against sits beside it.
+ *
+ * `audiodg.exe` searches its own directory and the system directory, never
+ * ours, so these three have to be in the engine's own folder. `install`
+ * copies every DLL next to the helper, which is where they ship — but a
+ * folder left behind by an older version, or a cleaner, can leave the effect
+ * on disk with nothing to load it against, and the failure is silent: the
+ * class is registered, the endpoint names it, and Windows creates nothing.
+ */
+bool runtime_beside(const std::wstring& dll_path) {
+  const size_t slash = dll_path.find_last_of(L'\\');
+  if (slash == std::wstring::npos) {
+    return false;
+  }
+  const std::wstring directory = dll_path.substr(0, slash);
+  const wchar_t* const names[] = {L"msvcp140.dll", L"vcruntime140.dll",
+                                  L"vcruntime140_1.dll"};
+  for (const wchar_t* name : names) {
+    if (!path_exists(directory + L"\\" + name)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int print_status() {
   std::vector<Endpoint> endpoints;
   // Enumerated before anything is printed. An empty output list and an audio
@@ -241,7 +268,23 @@ int print_status() {
   out += json_escape(installed ? dll_version(registered) : std::wstring());
   out += L"\",\"configDir\":\"";
   out += json_escape(config_dir());
-  out += L"\",\"endpoints\":[";
+  // The three machine-wide facts that decide whether audiodg.exe can load
+  // this effect at all. Every one of them can be true at install time and
+  // false later, and while any is false the engine reports as installed and
+  // attached on every output and is never once loaded — the state a user's
+  // machine was in with nothing anywhere to say why.
+  out += L"\",\"unsignedAllowed\":";
+  out += unsigned_effects_enabled() ? L"true" : L"false";
+  out += L",\"runtimeBeside\":";
+  out += runtime_beside(installed ? registered : installed_dll_path())
+             ? L"true"
+             : L"false";
+  // And whether it has ever run here: the effect writes a line to its own log
+  // the first time Windows creates it, so an absent log on a machine that has
+  // been playing sound is itself the answer.
+  out += L",\"everRan\":";
+  out += path_exists(engine_root() + L"\\engine.log") ? L"true" : L"false";
+  out += L",\"endpoints\":[";
   for (size_t at = 0; at < endpoints.size(); ++at) {
     if (at != 0) {
       out += L',';

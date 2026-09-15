@@ -125,6 +125,32 @@ describe('parsing the status document', () => {
     });
   });
 
+  it('reads what stops Windows loading the engine, when the helper says', () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [],
+        unsignedAllowed: false,
+        runtimeBeside: true,
+        everRan: false,
+      }),
+    );
+    expect(status.unsignedAllowed).toBe(false);
+    expect(status.runtimeBeside).toBe(true);
+    expect(status.everRan).toBe(false);
+  });
+
+  it('leaves them unknown for a helper too old to answer', () => {
+    // Unknown must never read as "wrong": that would put a Windows
+    // permission prompt in front of a machine where nothing is broken.
+    const status = parseFluidEngineStatus(
+      JSON.stringify({ installed: true, endpoints: [] }),
+    );
+    expect(status.unsignedAllowed).toBeUndefined();
+    expect(status.runtimeBeside).toBeUndefined();
+    expect(status.everRan).toBeUndefined();
+  });
+
   it('reads an enumeration failure as not installed with no endpoints', () => {
     expect(parseFluidEngineStatus('{"error":"boom"}')).toEqual({
       installed: false,

@@ -129,7 +129,7 @@ describe('EngineTroubleNotice', () => {
     ).toEqual([en['output.gotIt'], en['engineHealth.useApo']]);
   });
 
-  it('stays put away for this trouble, and comes back for the next one', () => {
+  it('stays put away for this trouble, even after it goes and returns', () => {
     const { rerender } = renderNotice({ trouble: off });
 
     fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));
@@ -138,9 +138,19 @@ describe('EngineTroubleNotice', () => {
     rerender({ trouble: off });
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
 
-    // It ended, and then it happened again: that is worth saying again.
+    // The live capture stops with the DSP page and starts with it, so this
+    // pair happens on every visit to that page while music plays. A user
+    // reported exactly that as the card coming back every single time.
     rerender({ trouble: undefined });
     rerender({ trouble: off });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('still speaks up for a different trouble on the same output', () => {
+    const { rerender } = renderNotice({ trouble: off });
+    fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));
+
+    rerender({ trouble: problems(['convolution']) });
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 

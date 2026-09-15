@@ -90,6 +90,21 @@ export interface IFluidEngineStatus {
   dllVersion?: string;
   configDir?: string;
   endpoints: IFluidEngineEndpoint[];
+  /**
+   * Whether Windows is set to load effects it has not signed itself
+   * (`DisableProtectedAudioDG`). Nothing keeps it: a feature update, a
+   * driver's installer or a "repair audio" tool can clear it, and from then
+   * on Windows refuses to load this engine on every output while everything
+   * else still reports it as installed and attached.
+   */
+  unsignedAllowed?: boolean;
+  /**
+   * Whether the C++ runtime the engine needs sits beside it. Windows looks
+   * for it in the engine's own folder and in its own, never in ours.
+   */
+  runtimeBeside?: boolean;
+  /** Whether the engine has ever run on this machine — it keeps its own log. */
+  everRan?: boolean;
 }
 
 export interface IAudioEngineStatus {

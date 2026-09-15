@@ -84,6 +84,14 @@ target_link_libraries(fluideq-engine-dsp-chain-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
 
+# The EQ and the rack measured at 44.1, 48, 96 and 192 kHz: every other
+# measured test builds its graph at 48 kHz, so a rate assumption would pass
+# all of them and be heard only on somebody's 96 kHz DAC.
+add_executable(fluideq-engine-rate-sweep-test tests/rate_sweep_test.cpp)
+target_link_libraries(fluideq-engine-rate-sweep-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-rate-sweep COMMAND fluideq-engine-rate-sweep-test)
+
 # Song leveling on the engine side: the programme file the app writes, the
 # memory an output keeps across locks, and the song each announcement ends.
 add_executable(fluideq-engine-leveling-test tests/leveling_board_test.cpp)

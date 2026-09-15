@@ -78,6 +78,20 @@ describe('describeAudioEngine', () => {
     expect(text).toContain('passing through: FluidEQ is not running');
   });
 
+  it('says what stops Windows loading the engine at all', () => {
+    // The state a user's machine was in: installed, attached, enhancements
+    // on, and never once created — where the answer is machine-wide, not
+    // about the output.
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: { ...installed, unsignedAllowed: false, everRan: false },
+      health: health(),
+    });
+    expect(text).toContain('Windows allows it to load: no');
+    expect(text).toContain('has ever run here: no');
+  });
+
   it('shows Windows skipping effects on the output', () => {
     const text = describeAudioEngine({
       engine: 'fluid',

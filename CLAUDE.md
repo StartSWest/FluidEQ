@@ -525,6 +525,34 @@ Out-String` (or any other capture) is what actually waits for it and shows
   leaves the switch made and the other engine registered, which is where every
   version before this left it. The APO class ids are written down twice — in
   `fx_list.cpp` and in `windows-audio-devices.ps1` — and must agree.
+- **Installed, attached, and never once created by Windows is its own state,
+  and the app repairs it.** Two machine-wide things decide whether
+  `audiodg.exe` will load this effect at all: `DisableProtectedAudioDG`, and
+  the C++ runtime sitting in the engine's own folder (Windows searches there
+  and in its own directory, never ours). A feature update, a driver's
+  installer or an audio "repair" tool can undo either long after setup, and
+  then everything reports healthy — installed, registered, attached on every
+  output — while the EQ does nothing, because an effect that is never created
+  writes no status and no log. `status` now answers `unsignedAllowed`,
+  `runtimeBeside` and `everRan`; the report carries all three, and
+  `engineLoadRepair.ts` re-runs `install --restart-audio` once a session when
+  either of the first two is explicitly false (never on an unknown from an
+  older helper, which would raise a permission prompt on a healthy machine).
+  `useRestartWhenEngineOff` does not restart at all when `everRan` is false —
+  there is nothing to restart into the chain — and its "once" lives in
+  `sessionStorage`, not a ref, so a crash-recovery reload cannot reach it
+  again. It no longer opens the restart card either: a dialog nobody asked
+  for, in the middle of listening, is noise when the restart works; the card
+  appears by itself when it fails. The trouble notice is now dismissed for
+  the rest of the session per trouble, because the live capture stops with
+  the DSP page and starts with it, so the same trouble ended and began on
+  every visit and the card came back every time.
+- **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
+  (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
+  at 48 kHz, so a coefficient or a stage that assumed one rate would pass all
+  of them and be heard only on somebody's 96 kHz DAC. Measured: the same
+  −20 dB peak, the same shelf and preamp, and the rack within 0.2 dB across
+  all four.
 - **Windows' "Audio enhancements" switch beats everything either engine does.**
   Off (per output, `PKEY_AudioEndpoint_Disable_SysFx`), Windows loads no
   system effect there at all: the registry still says attached, the engine is

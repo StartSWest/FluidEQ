@@ -102,6 +102,12 @@ export const describeAudioEngine = (facts: IEngineReportFacts): string => {
     `Engine in use: ${engine ?? 'none chosen'}`,
     `FluidEQ Engine installed: ${yesNo(fluid?.installed)}` +
       `${fluid?.dllVersion ? ` (build ${fluid.dllVersion})` : ''}`,
+    // The three that decide whether Windows will load it at all. An engine
+    // installed and attached on every output and never once created is what
+    // these answer, and every one of them can turn false long after setup.
+    `Windows allows it to load: ${yesNo(fluid?.unsignedAllowed)}, ` +
+      `runtime beside it: ${yesNo(fluid?.runtimeBeside)}, ` +
+      `has ever run here: ${yesNo(fluid?.everRan)}`,
   ];
   if (fluid?.configDir) {
     header.push(`Engine configuration: ${fluid.configDir}`);

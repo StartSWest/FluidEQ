@@ -67,14 +67,23 @@ const EngineTroubleNotice = ({
   onUseApo,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
-  // Put away for as long as this trouble lasts: one that ends and comes back
-  // later is a new one, and is worth saying again.
-  const [dismissedKey, setDismissedKey] = useState<string | undefined>();
+  // Put away for the rest of the session, per trouble.
+  //
+  // It used to be put away only for as long as that trouble lasted, on the
+  // reasoning that one which ends and returns is worth saying again. In
+  // practice it does not end: the live capture that hears the sound starts
+  // with the DSP page and stops with it, so leaving the page and coming back
+  // ended the trouble and began an identical one, and the card came up on
+  // every visit — with a user reporting exactly that, every time he returned
+  // to the page with music playing. Nothing has changed between those two
+  // moments, so there is nothing new to say.
+  const [dismissed, setDismissed] = useState<readonly string[]>([]);
   const key = trouble?.key;
-  useEffect(() => {
-    setDismissedKey((current) => (current === key ? current : undefined));
-  }, [key]);
-  const isShown = key !== undefined && !isHidden && key !== dismissedKey;
+  const putAway = (which: string) =>
+    setDismissed((current) =>
+      current.includes(which) ? current : [...current, which],
+    );
+  const isShown = key !== undefined && !isHidden && !dismissed.includes(key);
 
   useEffect(() => {
     if (!isShown) {
@@ -88,7 +97,7 @@ const EngineTroubleNotice = ({
       ) {
         return;
       }
-      setDismissedKey(key);
+      putAway(key);
     };
     window.addEventListener('keydown', dismissOnEscape);
     return () => window.removeEventListener('keydown', dismissOnEscape);
@@ -100,7 +109,7 @@ const EngineTroubleNotice = ({
 
   const isOff = trouble.kind === 'off';
   const canRestartHelp = isOff || trouble.canRestartHelp;
-  const dismiss = () => setDismissedKey(trouble.key);
+  const dismiss = () => putAway(trouble.key);
   const useApo = (
     <Button
       ariaLabel={t('engineHealth.useApo')}

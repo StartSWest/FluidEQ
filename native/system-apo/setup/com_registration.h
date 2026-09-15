@@ -41,6 +41,19 @@ bool unregister_engine(std::wstring& error);
  */
 bool enable_unsigned_effects(std::wstring& error);
 
+/**
+ * Whether it is set right now.
+ *
+ * Read rather than assumed because it is machine-wide and nothing keeps it:
+ * a Windows feature update, a driver's own installer or a "repair audio" tool
+ * can put it back to zero, and from that moment audiodg.exe silently refuses
+ * to load this effect on every output. Everything else still says the engine
+ * is installed and attached — the DLL is there, the class is registered, the
+ * endpoint names it — so without this the app had no way to tell that state
+ * apart from one where Windows simply was not playing anything.
+ */
+bool unsigned_effects_enabled();
+
 /** The DLL path the COM registration names, or empty when not registered. */
 std::wstring registered_dll_path();
 

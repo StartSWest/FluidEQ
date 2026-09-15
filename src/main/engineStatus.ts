@@ -113,6 +113,9 @@ interface IRawStatus {
   configDir?: unknown;
   endpoints?: unknown;
   error?: unknown;
+  unsignedAllowed?: unknown;
+  runtimeBeside?: unknown;
+  everRan?: unknown;
 }
 
 /**
@@ -152,6 +155,18 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
   }
   if (typeof raw.configDir === 'string') {
     status.configDir = raw.configDir;
+  }
+  // Only when the helper actually answered: an older helper says nothing
+  // about these, and "missing" must not read as "wrong" — that would offer a
+  // repair for a machine where nothing is broken.
+  if (typeof raw.unsignedAllowed === 'boolean') {
+    status.unsignedAllowed = raw.unsignedAllowed;
+  }
+  if (typeof raw.runtimeBeside === 'boolean') {
+    status.runtimeBeside = raw.runtimeBeside;
+  }
+  if (typeof raw.everRan === 'boolean') {
+    status.everRan = raw.everRan;
   }
   return status;
 };

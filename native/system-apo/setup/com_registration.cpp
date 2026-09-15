@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "com_registration.h"
 
+#include <cstring>
 #include <string>
 #include <utility>
 #include <vector>
@@ -160,6 +161,24 @@ bool enable_unsigned_effects(std::wstring& error) {
     return false;
   }
   return true;
+}
+
+bool unsigned_effects_enabled() {
+  RegKey audio;
+  if (open_read(kAudioPath, audio) != ERROR_SUCCESS) {
+    return false;
+  }
+  DWORD type = 0;
+  std::vector<BYTE> bytes;
+  bool present = false;
+  if (!query_value(audio.get(), L"DisableProtectedAudioDG", type, bytes,
+                   present) ||
+      !present || type != REG_DWORD || bytes.size() < sizeof(DWORD)) {
+    return false;
+  }
+  DWORD value = 0;
+  std::memcpy(&value, bytes.data(), sizeof(value));
+  return value != 0;
 }
 
 std::wstring registered_dll_path() {

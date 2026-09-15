@@ -5,8 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Windows audio restarted by itself, once a session, when the FluidEQ Engine
- * is on the output being listened to and Windows is not running it.
+ * Windows audio restarted by itself, once for the life of the window, when
+ * the FluidEQ Engine is on the output being listened to and Windows is not
+ * running it.
+ *
+ * Twice in these cases matters more than once: a restart stops every stream
+ * on the machine, so it must not be reachable again by a shell that was
+ * rebuilt, nor on a machine where it provably cannot help.
  */
 
 import { renderHook } from '@testing-library/react';
@@ -34,6 +39,7 @@ const problems: TEngineTrouble = {
 interface IProps {
   trouble: TEngineTrouble | undefined;
   isSuppressed: boolean;
+  hasEverRun?: boolean;
 }
 
 const setup = (initial: IProps) => {
@@ -41,28 +47,64 @@ const setup = (initial: IProps) => {
     open: jest.fn(),
     run: jest.fn(async () => undefined),
   };
-  const view = renderHook(
-    ({ trouble, isSuppressed }: IProps) =>
-      useRestartWhenEngineOff(trouble, isSuppressed, audioRestart),
-    { initialProps: initial },
-  );
-  return { ...view, audioRestart };
+  const render = (props: IProps) =>
+    renderHook(
+      ({ trouble, isSuppressed, hasEverRun }: IProps) =>
+        useRestartWhenEngineOff(
+          trouble,
+          isSuppressed,
+          audioRestart,
+          hasEverRun,
+        ),
+      { initialProps: props },
+    );
+  const view = render(initial);
+  return { ...view, audioRestart, render };
 };
 
 describe('useRestartWhenEngineOff', () => {
-  it('shows the restart and runs it when the engine is off', () => {
+  // The once-per-run memory lives in session storage, so each case starts
+  // from a FluidEQ that has not restarted anything yet.
+  beforeEach(() => window.sessionStorage.clear());
+
+  it('runs the restart without putting a dialog in the way', () => {
     const { audioRestart } = setup({ trouble: off, isSuppressed: false });
-    expect(audioRestart.open).toHaveBeenCalledTimes(1);
     expect(audioRestart.run).toHaveBeenCalledTimes(1);
+    // The card is for a restart that failed, or one somebody asked for.
+    expect(audioRestart.open).not.toHaveBeenCalled();
   });
 
-  it('does it once a session, however often the engine is off again', () => {
+  it('does it once, however often the engine is off again', () => {
     const { audioRestart, rerender } = setup({
       trouble: off,
       isSuppressed: false,
     });
     rerender({ trouble: undefined, isSuppressed: false });
     rerender({ trouble: off, isSuppressed: false });
+    expect(audioRestart.run).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not come back when the shell itself is rebuilt', () => {
+    const { audioRestart, unmount, render } = setup({
+      trouble: off,
+      isSuppressed: false,
+    });
+    expect(audioRestart.run).toHaveBeenCalledTimes(1);
+    // What a crash recovery reload does: the component and its refs are new.
+    unmount();
+    render({ trouble: off, isSuppressed: false });
+    expect(audioRestart.run).toHaveBeenCalledTimes(1);
+  });
+
+  it('never restarts on a machine the engine has never run on', () => {
+    const { audioRestart, rerender } = setup({
+      trouble: off,
+      isSuppressed: false,
+      hasEverRun: false,
+    });
+    expect(audioRestart.run).not.toHaveBeenCalled();
+    // Positive control: the same hook restarts where it can help.
+    rerender({ trouble: off, isSuppressed: false, hasEverRun: true });
     expect(audioRestart.run).toHaveBeenCalledTimes(1);
   });
 

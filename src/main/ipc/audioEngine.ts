@@ -136,6 +136,13 @@ export interface IAudioEngineIpcDeps {
    */
   isApoOnAnyOutput: () => Promise<boolean>;
   isApoSwitchedOff: () => Promise<boolean>;
+  /**
+   * Given a status just read, puts right whatever stops Windows loading the
+   * engine at all — `createEngineLoadRepair`. Here because this is where the
+   * status is read for the window, which is often and at every moment that
+   * matters.
+   */
+  repairEngineLoading: (status: IAudioEngineStatus) => Promise<void>;
   writeSystemDspChain: (
     configDirPath: string,
     values: number[],
@@ -157,6 +164,7 @@ export const registerAudioEngineIpc = ({
   writeSystemDspChain,
   isApoOnAnyOutput,
   isApoSwitchedOff,
+  repairEngineLoading,
 }: IAudioEngineIpcDeps) => {
   /**
    * The same reply shape main.ts's `handleError` builds, rebuilt here because
@@ -190,10 +198,12 @@ export const registerAudioEngineIpc = ({
   onWindowMessage(ChannelEnum.GET_AUDIO_ENGINE_STATUS, async (event) => {
     const channel = ChannelEnum.GET_AUDIO_ENGINE_STATUS;
     try {
-      succeed(
-        event,
-        channel,
-        await readAudioEngineStatus(userDataDir, getEngine()),
+      const status = await readAudioEngineStatus(userDataDir, getEngine());
+      succeed(event, channel, status);
+      // After the reply: this can ask Windows for permission and restart the
+      // audio stack, and the window is waiting for the status.
+      repairEngineLoading(status).catch((error) =>
+        log.error("The engine's install check failed", error),
       );
     } catch (error) {
       log.error('Could not read the audio engine status', error);

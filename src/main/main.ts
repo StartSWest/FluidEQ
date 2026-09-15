@@ -175,6 +175,7 @@ import {
   isApoOnAnyOutput,
   isApoSwitchedOff,
 } from './apoSwitchOff';
+import createEngineLoadRepair from './engineLoadRepair';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
@@ -2355,6 +2356,10 @@ registerAudioEngineIpc({
   writeSystemDspChain,
   isApoOnAnyOutput,
   isApoSwitchedOff,
+  repairEngineLoading: createEngineLoadRepair({
+    getEngine: () => session.audioEngine,
+    runEngineSetup,
+  }).check,
 });
 
 /**

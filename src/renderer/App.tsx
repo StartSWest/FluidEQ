@@ -1940,7 +1940,12 @@ const AppContent = () => {
       performEngineUpdate,
     );
   const handleRestartWindowsAudio = audioRestart.open;
-  useRestartWhenEngineOff(engineTrouble, suppressAudioNotices, audioRestart);
+  useRestartWhenEngineOff(
+    engineTrouble,
+    suppressAudioNotices,
+    audioRestart,
+    engineStatus?.fluid.everRan,
+  );
 
   const dismissAudioRestartRecommendation = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
