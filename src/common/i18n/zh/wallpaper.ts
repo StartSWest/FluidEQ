@@ -1,5 +1,6 @@
 const wallpaper = {
   'wallpaper.action': '设为桌面背景',
+  'wallpaper.actionPlus': '设为桌面背景（FluidEQ Plus）',
   'wallpaper.title': '桌面背景',
   'wallpaper.description':
     '让此可视化效果显示在桌面图标后方，随音乐而动，或独自平静地播放。',

@@ -1,5 +1,7 @@
 const wallpaper = {
   'wallpaper.action': 'Definir como fundo do ambiente de trabalho',
+  'wallpaper.actionPlus':
+    'Definir como fundo do ambiente de trabalho, com FluidEQ Plus',
   'wallpaper.title': 'Fundo do ambiente de trabalho',
   'wallpaper.description':
     'Mantenha este visualizador atrás dos ícones do ambiente de trabalho, a mover-se com a sua música ou calmamente por si só.',

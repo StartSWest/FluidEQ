@@ -1,5 +1,6 @@
 const wallpaper = {
   'wallpaper.action': 'デスクトップの背景に設定',
+  'wallpaper.actionPlus': 'デスクトップの背景に設定（FluidEQ Plus）',
   'wallpaper.title': 'デスクトップの背景',
   'wallpaper.description':
     'このビジュアライザーをデスクトップアイコンの背面に表示し、音楽に合わせて、または穏やかに単独で動かします。',

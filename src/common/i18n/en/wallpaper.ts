@@ -1,5 +1,6 @@
 const wallpaper = {
   'wallpaper.action': 'Set as desktop background',
+  'wallpaper.actionPlus': 'Set as desktop background, with FluidEQ Plus',
   'wallpaper.title': 'Desktop background',
   'wallpaper.description':
     'Keep this visualizer behind your desktop icons, moving with your music or calmly on its own.',

@@ -1,5 +1,6 @@
 const wallpaper = {
   'wallpaper.action': 'Usar como fondo de escritorio',
+  'wallpaper.actionPlus': 'Usar como fondo de escritorio, con FluidEQ Plus',
   'wallpaper.title': 'Fondo de escritorio',
   'wallpaper.description':
     'Mantén este visualizador detrás de los iconos del escritorio, moviéndose con tu música o con calma por su cuenta.',

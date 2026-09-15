@@ -425,12 +425,34 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-inline-end: auto;
 }
 
+// Full width of the scene's panel, which is 228px of content at its
+// narrowest. The label is a sentence, and `.button` holds every button open
+// at `max-content` and never wraps: measured in that column, German, Russian,
+// French and Portuguese all ran past the panel's edge — Portuguese by 58px —
+// and out of the page. Here alone the label wraps and the button grows
+// downwards instead, so no language decides the column's width.
 .wallpaper-scene-action {
+  min-width: 0;
   gap: 6px;
+  white-space: normal;
+  // Two even lines rather than a full one and a single word hanging under it.
+  text-wrap: balance;
 
   svg {
+    flex: 0 0 auto;
     width: 15px;
     height: 15px;
+  }
+
+  // Without Plus the button is live and leads to Plus, so it says so before
+  // the press: smaller than the monitor at the other end, and in the accent
+  // rather than the label's own colour. Nested, or the rule above it — one
+  // class and an element — would win and paint it at the monitor's size.
+  .wallpaper-scene-action__lock {
+    width: 13px;
+    height: 13px;
+    margin-left: 2px;
+    color: $secondary-light;
   }
 }
 

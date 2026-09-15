@@ -1,5 +1,7 @@
 const wallpaper = {
   'wallpaper.action': 'डेस्कटॉप बैकग्राउंड के रूप में सेट करें',
+  'wallpaper.actionPlus':
+    'डेस्कटॉप बैकग्राउंड के रूप में सेट करें, FluidEQ Plus के साथ',
   'wallpaper.title': 'डेस्कटॉप बैकग्राउंड',
   'wallpaper.description':
     'इस विज़ुअलाइज़र को डेस्कटॉप आइकन के पीछे रखें — आपके संगीत के साथ या अपने आप शांति से चलता हुआ।',

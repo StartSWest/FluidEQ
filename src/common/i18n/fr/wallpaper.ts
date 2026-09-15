@@ -1,5 +1,7 @@
 const wallpaper = {
   'wallpaper.action': 'Définir comme arrière-plan du Bureau',
+  'wallpaper.actionPlus':
+    'Définir comme arrière-plan du Bureau, avec FluidEQ Plus',
   'wallpaper.title': 'Arrière-plan du Bureau',
   'wallpaper.description':
     'Gardez ce visualiseur derrière les icônes du Bureau, animé par votre musique ou calmement de lui-même.',
