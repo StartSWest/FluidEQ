@@ -21,11 +21,11 @@ export const useEngineMaintenance = (
   restart: () => Promise<IAudioRestartOutcome>,
   update: () => Promise<IAudioRestartOutcome>,
   /**
-   * The same re-install, marked as the app's own doing, so main can refuse
-   * it when an automatic repair already ran this session. Defaults to
-   * `update` for callers with no such distinction.
+   * The app's own repair of one output the engine never ran on, which main
+   * decides the shape of (`engineOutputRepair.ts`) and which ends, like an
+   * update, in a restart of Windows audio.
    */
-  repair: () => Promise<IAudioRestartOutcome> = update,
+  repair: (guid: string) => Promise<IAudioRestartOutcome>,
 ) => {
   const audioRestart = useAudioRestart(restart);
   const engineUpdate = useEngineUpdate(updateReady, update);
@@ -65,13 +65,16 @@ export const useEngineMaintenance = (
    * manual restart of Windows audio started from the actions menu while this
    * runs would be a second elevated helper on the same services.
    */
-  const runRepair = async (): Promise<void> => {
+  const runRepair = async (
+    guid: string,
+  ): Promise<IAudioRestartOutcome | undefined> => {
     if (owner.current) {
-      return;
+      // Not tried: the caller may ask again once the lock is free.
+      return undefined;
     }
     owner.current = 'update';
     try {
-      await repair();
+      return await repair(guid);
     } finally {
       owner.current = undefined;
     }

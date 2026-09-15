@@ -35,10 +35,12 @@ export type TEngineTrouble =
       device: IAudioDevice;
       key: string;
       /**
-       * The engine has never once run on this machine, as the setup helper
-       * reports it — so this is not an engine that stopped, it is one
-       * Windows has never created. Restarting Windows audio cannot mend
-       * that, and the notice must not offer it as though it could.
+       * Windows has never created the engine here — on the whole machine,
+       * as the setup helper reports it, or on this output, which the engine
+       * has never written a status for — so this is not an engine that
+       * stopped. Restarting Windows audio cannot mend that, and the notice
+       * must not offer it as though it could; the slot ladder is asked
+       * instead (`useRepairWhenEngineNeverRan`).
        */
       neverRan?: boolean;
     }
@@ -88,7 +90,7 @@ const CONTENT_PROBLEMS: readonly string[] = [
   'eq-phase',
 ];
 
-const sameEndpoint = (a: string, b: string) =>
+export const sameEndpoint = (a: string, b: string) =>
   normaliseEndpointGuid(a) === normaliseEndpointGuid(b);
 
 export const engineTrouble = ({
@@ -132,7 +134,12 @@ export const engineTrouble = ({
       device.effectsEnabled !== false &&
       (!status?.locked || !status.owner)
     ) {
-      const neverRan = hasEverRun === false;
+      // Never created: on the whole machine, as the helper reports it, or on
+      // this output — an output the engine has never written a status for
+      // is one Windows has never built it on, and the read this trouble is
+      // made from started after the sound was heard there. A restart cannot
+      // help either way; the slot ladder can.
+      const neverRan = hasEverRun === false || status === undefined;
       return {
         kind: 'off',
         device,

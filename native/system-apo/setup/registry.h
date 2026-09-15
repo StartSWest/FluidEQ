@@ -39,6 +39,16 @@ bool is_valid_endpoint_guid(std::wstring_view guid);
 bool endpoint_key_exists(const std::wstring& guid);
 
 /**
+ * Whether Windows 11 has folded this endpoint together with another — the
+ * one Bluetooth headset that is both a stereo output and a hands-free
+ * device, shown as one. Windows creates no endpoint effect on such an
+ * output at all, so the engine has to go in as a mode effect there. The
+ * same property Equalizer APO's installer reads for the same decision.
+ * Unreadable reads as "no".
+ */
+bool endpoint_is_combined(const std::wstring& guid);
+
+/**
  * Reads one endpoint's `FxProperties`. An absent key reads as empty.
  *
  * A composite value found as a `REG_SZ` reads as a one-entry list, with

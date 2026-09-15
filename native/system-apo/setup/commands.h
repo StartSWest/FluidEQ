@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_SETUP_COMMANDS_H
 #define FLUIDEQ_ENGINE_SETUP_COMMANDS_H
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,13 @@ struct Options {
   bool attach_all = false;
   bool restart_audio = false;
   bool purge = false;
-  Slot slot = Slot::Efx;
+  /**
+   * The slot named on the command line, or none: then each output gets the
+   * slot it was last attached to by name, failing that a mode effect where
+   * Windows has combined the output with another (it creates no endpoint
+   * effect there), failing that an endpoint effect.
+   */
+  std::optional<Slot> slot;
 };
 
 struct CommandResult {

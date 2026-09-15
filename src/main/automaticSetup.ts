@@ -30,7 +30,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import log from 'electron-log';
 
-export type TAutomaticSetup = 'suspend-apo' | 'restore-apo' | 'install';
+export type TAutomaticSetup =
+  | 'suspend-apo'
+  | 'restore-apo'
+  | 'install'
+  /** One output's engine moved from the endpoint slot to the mode slot. */
+  | 'move-slot';
 
 /** What makes one kind of run possible again. */
 const UNDONE_BY: Partial<Record<TAutomaticSetup, TAutomaticSetup>> = {
@@ -52,12 +57,26 @@ export interface IAutomaticSetup {
   wanted: (kind: TAutomaticSetup) => boolean;
 }
 
+/**
+ * How many times a kind may run in one session. Once, except the slot
+ * ladder: it has four rungs below the first and needs to be able to take
+ * them all in one sitting, each after the sound has been heard again —
+ * and it can take no more than that, because each step is to the rung
+ * after the one the helper reports, so the count is the bound.
+ */
+const RUNS_ALLOWED: Partial<Record<TAutomaticSetup, number>> = {
+  'move-slot': 4,
+};
+
 export const createAutomaticSetup = (): IAutomaticSetup => {
   let inFlight: TAutomaticSetup | undefined;
-  const done = new Set<TAutomaticSetup>();
+  const runs = new Map<TAutomaticSetup, number>();
+
+  const exhausted = (kind: TAutomaticSetup): boolean =>
+    (runs.get(kind) ?? 0) >= (RUNS_ALLOWED[kind] ?? 1);
 
   const wanted = (kind: TAutomaticSetup): boolean =>
-    inFlight === undefined && !done.has(kind);
+    inFlight === undefined && !exhausted(kind);
 
   return {
     wanted,
@@ -73,10 +92,10 @@ export const createAutomaticSetup = (): IAutomaticSetup => {
         return undefined;
       }
       inFlight = kind;
-      done.add(kind);
+      runs.set(kind, (runs.get(kind) ?? 0) + 1);
       const undone = UNDONE_BY[kind];
       if (undone) {
-        done.delete(undone);
+        runs.delete(undone);
       }
       try {
         return await work();

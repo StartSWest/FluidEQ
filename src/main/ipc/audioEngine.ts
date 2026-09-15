@@ -145,9 +145,15 @@ export interface IAudioEngineIpcDeps {
    */
   repairEngineLoading: (status: IAudioEngineStatus) => Promise<void>;
   /**
+   * Sound went past the engine on this output and the engine wrote nothing
+   * — `createEngineOutputRepair`. The window asks once it has heard that,
+   * which is the evidence a status read alone does not have.
+   */
+  repairEngineOutput: (guid: string) => Promise<IAudioRestartOutcome>;
+  /**
    * The one gate every automatic elevated run passes through
    * (`automaticSetup.ts`): the switch-off of Equalizer APO after a switch
-   * and the window's own repair both ask it before running the helper.
+   * asks it before running the helper.
    */
   automatic: IAutomaticSetup;
   writeSystemDspChain: (
@@ -172,6 +178,7 @@ export const registerAudioEngineIpc = ({
   isApoOnAnyOutput,
   isApoSwitchedOff,
   repairEngineLoading,
+  repairEngineOutput,
   automatic,
 }: IAudioEngineIpcDeps) => {
   /**
@@ -428,28 +435,12 @@ export const registerAudioEngineIpc = ({
    * which offers no update either — leaves the helper's word standing; the
    * next launch compares again.
    */
-  onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event, arg) => {
+  onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
     const channel = ChannelEnum.UPDATE_FLUID_ENGINE;
-    // `[true]` marks the window's own repair, which goes through the gate
-    // every automatic run shares: refused, quietly, when an install already
-    // ran this session — a declined prompt from main's repair must not be
-    // followed by a second one from the window. A press carries no mark
-    // and is never refused.
-    const isAutomatic = Array.isArray(arg) && arg[0] === true;
+    // A press, never refused: the automatic repairs have their own channel
+    // below, and go through the gate every automatic run shares.
     try {
-      const result = isAutomatic
-        ? await automatic.attempt('install', () =>
-            runEngineSetup('install', ['--restart-audio']),
-          )
-        : await runEngineSetup('install', ['--restart-audio']);
-      if (!result) {
-        succeed<IAudioRestartOutcome>(event, channel, {
-          ok: false,
-          declined: false,
-          detail: 'an automatic repair already ran this session',
-        });
-        return;
-      }
+      const result = await runEngineSetup('install', ['--restart-audio']);
       if (!result.ok) {
         succeed<IAudioRestartOutcome>(event, channel, {
           ok: false,
@@ -477,6 +468,37 @@ export const registerAudioEngineIpc = ({
       refuse(event, channel, ErrorCode.FAILURE);
     }
   });
+
+  /**
+   * The window heard sound go past the engine on one output and the engine
+   * wrote nothing. Main decides what that is worth trying — the install, or
+   * the next slot down (`engineOutputRepair.ts`) — and the outputs are
+   * rebuilt with the engine in them, so the state is read again and the
+   * chain flushed, as after an update. Refused through the gate rather
+   * than here: the reply says so and the window shows the notice.
+   */
+  onWindowMessage(
+    ChannelEnum.REPAIR_FLUID_ENGINE_OUTPUT,
+    async (event, arg) => {
+      const channel = ChannelEnum.REPAIR_FLUID_ENGINE_OUTPUT;
+      const guid: unknown = Array.isArray(arg) ? arg[0] : undefined;
+      if (typeof guid !== 'string' || !ENDPOINT_GUID.test(guid)) {
+        refuse(event, channel, ErrorCode.INVALID_PARAMETER);
+        return;
+      }
+      try {
+        const outcome = await repairEngineOutput(guid);
+        if (outcome.ok) {
+          await readAudioEngineStatus(userDataDir, getEngine());
+          await reflush();
+        }
+        succeed<IAudioRestartOutcome>(event, channel, outcome);
+      } catch (error) {
+        log.error(`The engine on ${guid} could not be repaired`, error);
+        refuse(event, channel, ErrorCode.FAILURE);
+      }
+    },
+  );
 
   const endpointCommand = async (
     event: Electron.IpcMainEvent,

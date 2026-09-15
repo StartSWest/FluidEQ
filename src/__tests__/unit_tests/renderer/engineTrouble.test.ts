@@ -55,11 +55,30 @@ const facts = (fields: Partial<IEngineTroubleFacts>): IEngineTroubleFacts => ({
 
 describe('engineTrouble', () => {
   it('says the engine is off where sound was heard and the engine is not running', () => {
-    expect(engineTrouble(facts({ heardGuid: '{AAAA}' }))).toEqual({
+    expect(
+      engineTrouble(
+        facts({
+          heardGuid: '{AAAA}',
+          health: { outputs: [running({ locked: false })] },
+        }),
+      ),
+    ).toEqual({
       kind: 'off',
       device: speakers,
       key: 'off:{AAAA}',
     });
+  });
+
+  it('marks an output the engine has never written a status for as never created there', () => {
+    // The engine writes a status the moment Windows builds it on an output,
+    // before any sound passes; sound heard and no status is an output the
+    // driver never built it on — whatever it did elsewhere — and a restart
+    // cannot help, only a different slot can.
+    const trouble = engineTrouble(
+      facts({ heardGuid: '{AAAA}', hasEverRun: true }),
+    );
+    expect(trouble?.kind === 'off' && trouble.neverRan).toBe(true);
+    expect(trouble?.key).toBe('off:never:{AAAA}');
   });
 
   it('says nothing about an engine too old to report what it is doing', () => {

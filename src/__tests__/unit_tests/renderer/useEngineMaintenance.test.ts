@@ -4,6 +4,8 @@ import { useEngineMaintenance } from 'renderer/utils/useEngineMaintenance';
 
 const success: IAudioRestartOutcome = { ok: true, declined: false };
 const failure: IAudioRestartOutcome = { ok: false, declined: false };
+/** The output repair, for the cases that are not about it. */
+const repair = async (): Promise<IAudioRestartOutcome> => success;
 
 const pendingOutcome = () => {
   let finish!: (outcome: IAudioRestartOutcome) => void;
@@ -19,7 +21,7 @@ describe('engine maintenance owns its audio restart', () => {
     const update = jest.fn(() => pending.promise);
     const restart = jest.fn(async () => success);
     const { result } = renderHook(() =>
-      useEngineMaintenance(true, restart, update),
+      useEngineMaintenance(true, restart, update, repair),
     );
     expect(result.current.suppressAudioNotices).toBe(false);
     act(() => result.current.audioRestart.open());
@@ -61,7 +63,7 @@ describe('engine maintenance owns its audio restart', () => {
   it('shows an update failure before restoring genuine trouble notices', async () => {
     const update = jest.fn(async () => failure);
     const { result } = renderHook(() =>
-      useEngineMaintenance(true, async () => success, update),
+      useEngineMaintenance(true, async () => success, update, repair),
     );
     await act(() => result.current.engineUpdate.run());
     expect(result.current.engineUpdate.phase).toBe('failed');
@@ -83,7 +85,7 @@ describe('engine maintenance owns its audio restart', () => {
     const pending = pendingOutcome();
     const update = jest.fn(async () => success);
     const { result } = renderHook(() =>
-      useEngineMaintenance(true, () => pending.promise, update),
+      useEngineMaintenance(true, () => pending.promise, update, repair),
     );
     let running!: Promise<void>;
     act(() => {
@@ -105,25 +107,31 @@ describe('engine maintenance owns its audio restart', () => {
     // so it holds the same lock — a restart from the actions menu during it
     // would be a second helper on the same services.
     const pending = pendingOutcome();
-    const update = jest.fn(() => pending.promise);
+    const update = jest.fn(async () => success);
+    const outputRepair = jest.fn(() => pending.promise);
     const restart = jest.fn(async () => success);
     const { result } = renderHook(() =>
-      useEngineMaintenance(false, restart, update),
+      useEngineMaintenance(false, restart, update, outputRepair),
     );
-    let running!: Promise<void>;
+    let running!: Promise<IAudioRestartOutcome | undefined>;
+    let refused!: Promise<IAudioRestartOutcome | undefined>;
     act(() => {
-      running = result.current.repairEngine();
-      result.current.repairEngine();
+      running = result.current.repairEngine('{SPEAKERS}');
+      refused = result.current.repairEngine('{SPEAKERS}');
       result.current.audioRestart.run();
     });
-    expect(update).toHaveBeenCalledTimes(1);
+    expect(outputRepair).toHaveBeenCalledTimes(1);
+    expect(outputRepair).toHaveBeenCalledWith('{SPEAKERS}');
+    expect(update).not.toHaveBeenCalled();
     expect(restart).not.toHaveBeenCalled();
+    // The second ask while the first runs is not tried, and says so.
+    await expect(refused).resolves.toBeUndefined();
     // Silent: nothing opened, nothing suppressed.
     expect(result.current.engineUpdate.isOpen).toBe(false);
     expect(result.current.suppressAudioNotices).toBe(false);
     await act(async () => {
       pending.finish(success);
-      await running;
+      await expect(running).resolves.toEqual(success);
     });
     await act(() => result.current.audioRestart.run());
     expect(restart).toHaveBeenCalledTimes(1);

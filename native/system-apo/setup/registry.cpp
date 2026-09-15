@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string_view>
 #include <vector>
 
+#include "com_paths.h"
 #include "fs.h"
 #include "multi_sz.h"
 #include "reg_key.h"
@@ -206,6 +207,26 @@ bool endpoint_key_exists(const std::wstring& guid) {
   return open_read(endpoint_path(guid), key) == ERROR_SUCCESS;
 }
 
+bool endpoint_is_combined(const std::wstring& guid) {
+  if (!is_valid_endpoint_guid(guid)) {
+    return false;
+  }
+  RegKey key;
+  if (open_read(endpoint_path(guid) + L"\\Properties", key) != ERROR_SUCCESS) {
+    return false;
+  }
+  // `PKEY_Device_...`, member 41 of the device property set: written by the
+  // audio endpoint builder on the outputs it combined, absent everywhere
+  // else. Presence is the answer; the value's type and content are not read.
+  DWORD type = 0;
+  std::vector<BYTE> bytes;
+  bool present = false;
+  return query_value(key.get(),
+                     L"{b3f8fa53-0004-438e-9003-51a46e139bfc},41", type,
+                     bytes, present) &&
+         present;
+}
+
 bool read_fx_values(const std::wstring& guid, FxValues& out,
                     std::wstring& error) {
   if (!is_valid_endpoint_guid(guid)) {
@@ -276,6 +297,20 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
     }
     return false;
   };
+  // And one for the two legacy values only: our own class id may go into a
+  // value that holds nothing, and come out of one again, leaving nothing.
+  // That is the oldest rung of the slot ladder, for a driver that reads
+  // pids 1 and 2 and never a list. Either side naming any other effect is
+  // refused: ours never replaces a vendor's, and never becomes one.
+  const auto empty_or_ours = [](const std::optional<std::wstring>& value) {
+    return !value.has_value() || value->empty() ||
+           equal_ci(*value, kEngineClsid);
+  };
+  const auto ours_only = [empty_or_ours](
+                             const std::optional<std::wstring>& was,
+                             const std::optional<std::wstring>& now) {
+    return empty_or_ours(was) && empty_or_ours(now);
+  };
   for (int slot = 0; slot < kSlotCount; ++slot) {
     if (before.single[slot] != after.single[slot] &&
         !apo_only(before.single[slot], after.single[slot])) {
@@ -285,7 +320,8 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
   }
   for (int slot = 0; slot < kLegacyCount; ++slot) {
     if (before.legacy[slot] != after.legacy[slot] &&
-        !apo_only(before.legacy[slot], after.legacy[slot])) {
+        !apo_only(before.legacy[slot], after.legacy[slot]) &&
+        !ours_only(before.legacy[slot], after.legacy[slot])) {
       error = L"refusing to change the legacy effect values of " + guid;
       return false;
     }

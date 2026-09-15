@@ -34,6 +34,7 @@ import path from 'path';
 import log from 'electron-log';
 import {
   IAudioEngineStatus,
+  IEndpointEffect,
   IFluidEngineEndpoint,
   IFluidEngineStatus,
   TAudioEngine,
@@ -77,13 +78,29 @@ interface IRawStatusEndpoint {
   name?: unknown;
   attached?: unknown;
   backupExists?: unknown;
+  effects?: unknown;
+  emptySlots?: unknown;
 }
 
 interface IGuardedStatusEndpoint {
   guid: string;
   attached: boolean;
   backupExists?: unknown;
+  effects?: unknown;
+  emptySlots?: unknown;
+  slot?: unknown;
 }
+
+const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
+  'efx',
+  'mfx',
+  'sfx',
+  'gfx',
+  'lfx',
+];
+
+const parseSlot = (value: unknown): IFluidEngineEndpoint['slot'] | undefined =>
+  SLOT_NAMES.find((name) => name === value);
 
 const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
   typeof value === 'object' &&
@@ -97,13 +114,66 @@ const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
  * helper's contract guarantees, so a document missing the third one is still
  * a real endpoint, not a malformed one.
  */
+const SLOTS: readonly IEndpointEffect['slot'][] = [
+  'sfx',
+  'mfx',
+  'efx',
+  'lfx',
+  'gfx',
+];
+const SOURCES: readonly IEndpointEffect['from'][] = [
+  'list',
+  'single',
+  'legacy',
+];
+
+/** The helper's effect entries, with anything not of the documented shape dropped. */
+const parseEffects = (value: unknown): IEndpointEffect[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value.flatMap((entry): IEndpointEffect[] => {
+    if (typeof entry !== 'object' || entry === null) {
+      return [];
+    }
+    const { slot, from, clsid, name } = entry as Record<string, unknown>;
+    if (
+      typeof slot !== 'string' ||
+      !(SLOTS as readonly string[]).includes(slot) ||
+      typeof from !== 'string' ||
+      !(SOURCES as readonly string[]).includes(from) ||
+      typeof clsid !== 'string'
+    ) {
+      return [];
+    }
+    return [
+      {
+        slot: slot as IEndpointEffect['slot'],
+        from: from as IEndpointEffect['from'],
+        clsid,
+        name: typeof name === 'string' ? name : '',
+      },
+    ];
+  });
+};
+
 const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
   Array.isArray(value)
-    ? value.filter(isRawStatusEndpoint).map((endpoint) => ({
-        guid: endpoint.guid,
-        attached: endpoint.attached,
-        backupExists: endpoint.backupExists === true,
-      }))
+    ? value.filter(isRawStatusEndpoint).map((endpoint) => {
+        const effects = parseEffects(endpoint.effects);
+        const { emptySlots } = endpoint;
+        const slot = parseSlot(endpoint.slot);
+        return {
+          guid: endpoint.guid,
+          attached: endpoint.attached,
+          backupExists: endpoint.backupExists === true,
+          ...(slot ? { slot } : {}),
+          ...(effects ? { effects } : {}),
+          ...(typeof emptySlots === 'number' && Number.isInteger(emptySlots)
+            ? { emptySlots }
+            : {}),
+        };
+      })
     : [];
 
 interface IRawStatus {
@@ -270,7 +340,24 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
   const attached = status.endpoints.filter((endpoint) => endpoint.attached);
   // Guids, not names: the helper's status does not carry names, and the
   // report's own outputs section pairs each guid with what Windows calls it.
-  const names = attached.map((endpoint) => endpoint.guid).join(', ');
+  // Beside each attached guid, who else is in its slots and how many are
+  // free — the log's own copy of what the report shows per output, because
+  // a sound card that filled every slot is why an engine was "attached"
+  // beside three other effects and never heard.
+  const names = attached
+    .map((endpoint) => {
+      const others = (endpoint.effects ?? [])
+        .filter((effect) => effect.from === 'list')
+        .map((effect) => `${effect.slot}=${effect.name || effect.clsid}`);
+      const free =
+        endpoint.emptySlots === undefined
+          ? ''
+          : `, ${endpoint.emptySlots} free`;
+      return others.length
+        ? `${endpoint.guid} [${others.join(', ')}${free}]`
+        : endpoint.guid;
+    })
+    .join('; ');
   const summary =
     `FluidEQ Engine: installed=${status.installed}` +
     `${status.dllVersion ? ` build=${status.dllVersion}` : ''}` +

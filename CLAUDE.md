@@ -547,8 +547,10 @@ Out-String` (or any other capture) is what actually waits for it and shows
   where setup finished a minute ago and nothing has played; a prompt seconds
   after an install is its own bug. That case is the window's
   (`useRepairWhenEngineNeverRan`): once the live capture has heard sound go
-  past an attached engine that wrote nothing, it runs the same re-install
-  once per run of FluidEQ, silently, under `useEngineMaintenance`'s lock
+  past an attached engine that wrote nothing — on this output, which is an
+  output the engine has never written a status for, whatever it did
+  elsewhere — it asks main (`REPAIR_FLUID_ENGINE_OUTPUT`,
+  `engineOutputRepair.ts`), silently, under `useEngineMaintenance`'s lock
   (`repairEngine`) so a manual restart cannot overlap it. `createApoGuard`
   likewise requires the FluidEQ Engine to be attached somewhere, not merely
   chosen: a machine that picked it in setup and declined the prompt has the
@@ -565,6 +567,38 @@ Out-String` (or any other capture) is what actually waits for it and shows
   the rest of the session per trouble, because the live capture stops with
   the DSP page and starts with it, so the same trouble ended and began on
   every visit and the card came back every time.
+- **Which slot a driver builds is not written down anywhere, so the app
+  tries them, newest to oldest, on the machine itself — the slot ladder.**
+  An effect can be registered in five places: the EFX, MFX and SFX lists
+  (pids 15, 14, 13) Windows 8.1 and later read, and the GFX and LFX single
+  values (pids 2, 1) everything before that read. The RME DAC a user tested
+  on never created the engine in the EFX list, enhancements on, every
+  machine-wide fact in order; Equalizer APO's own installer carries rules
+  for the same thing (a mode effect where Windows 11 combined a Bluetooth
+  output, the old values where a driver registered only those) and still
+  has users for whom only the old values work. There is no rule that covers
+  every driver, so `engineOutputRepair.ts` moves the engine one rung down
+  each time the window hears sound go past a silent engine on that output
+  (`attach <guid> --slot <next> --restart-audio`), after first re-installing
+  where a machine-wide fact is false. The helper's `status` reports each
+  output's `slot`; `plan_move` takes ours out of wherever it is and puts it
+  in the slot asked for (a move into a legacy value also takes away the
+  lists the first attach created, because a driver that reads the old
+  values may only do so while no list exists; the vendor's own lists stay);
+  the two legacy values are taken only where nothing is registered, and
+  `write_fx_values` admits our own class id there and nothing else — a
+  vendor's registration is never replaced. A slot named on the command line
+  is remembered per output under `<engine root>\slots`, so the next attach
+  with no slot named (the app enabling the output again, an install with
+  `--attach-all`) does not put the engine back where it was never loaded;
+  an attach with no memory goes to MFX on an output Windows has combined
+  (Equalizer APO's rule, the same property) and to EFX otherwise. Bounded:
+  each step is to the rung after the one the helper reports, the gate
+  allows `move-slot` four runs a session, and the window asks once per
+  (output, slot), in `sessionStorage`. Silent: the trouble notice for that
+  state stays away (`isTryingSlots`) until an ask has come back with nothing
+  done, or a change was followed by the same slot heard failing again; only
+  then does the card say what is left. The first rung that is heard stays.
 - **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
   (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
   at 48 kHz, so a coefficient or a stage that assumed one rate would pass all
@@ -589,9 +623,11 @@ Out-String` (or any other capture) is what actually waits for it and shows
   gate's rules: nothing automatic starts while another automatic run is in
   flight, and each kind runs once a session, except that `suspend-apo` and
   `restore-apo` undo each other's "once" (a user may switch engines twice in
-  one sitting). The window marks its own repair with `[true]` on
-  `UPDATE_FLUID_ENGINE` so main can refuse it through the gate; a press
-  carries no mark and is never refused. `suspend-apo` fails like
+  one sitting), and that `move-slot` — the slot ladder — may run four times,
+  one per rung below the first. The window's own repair goes through
+  `REPAIR_FLUID_ENGINE_OUTPUT`, where main decides and the gate refuses; a
+  pressed update on `UPDATE_FLUID_ENGINE` is never refused. `suspend-apo`
+  fails like
   `--attach-all` (every output refusing), `restore-apo` fails on ANY output
   it could not put back — that record is all that is left of somebody
   else's equaliser — and `uninstall` carries on past a failed restore but

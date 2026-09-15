@@ -88,13 +88,41 @@ inline bool operator!=(const FxValues& left, const FxValues& right) {
   return !(left == right);
 }
 
-/** Which slot the effect is attached to. EFX unless the gate asks otherwise. */
-enum class Slot { Efx, Mfx };
+/** `legacy[]` is subscripted by these: pid 1 (LFX) and pid 2 (GFX). */
+constexpr int kLfx = 0;
+constexpr int kGfx = 1;
+
+/**
+ * Where the effect can be attached, newest first: the three modern lists,
+ * then the two pre-8.1 single values.
+ *
+ * Which of these an output's driver actually creates is not written down
+ * anywhere Windows will say, so the app tries them in this order on an
+ * output where the engine is registered and never created, and keeps the
+ * first that is heard. EFX is where an attach with no slot named goes.
+ */
+enum class Slot { Efx, Mfx, Sfx, Gfx, Lfx };
+
+/** Whether `slot` is one of the two single values rather than a list. */
+bool is_legacy_slot(Slot slot);
+
+/**
+ * Two class ids the same, case-insensitively over ASCII — the audio stack
+ * and its vendors write them in whatever case they like.
+ */
+bool equal_ci(std::wstring_view left, std::wstring_view right);
 
 struct FxPlan {
   FxValues after;
   /** False when `after` is byte-for-byte the input: nothing to write. */
   bool changed = false;
+  /**
+   * Non-empty when the plan could not be made without touching somebody
+   * else's registration — a legacy value already holding another effect —
+   * and `after` is then the input, untouched. The one reason an attach can
+   * be refused before the registry is opened.
+   */
+  std::wstring refused;
 };
 
 /**
@@ -109,10 +137,15 @@ extern const wchar_t kDefaultProcessingMode[];
 /**
  * The values `before` should become once `clsid` is attached to `slot`.
  *
- * Four steps, in this order, and none of them ever writes pids 1, 2, 5, 6 or
- * 7: whatever the vendor registered in the older generations is left exactly
- * as found so that removing FluidEQ cannot leave the endpoint worse than a
- * clean uninstall would.
+ * For a list slot, four steps, in this order, and none of them ever writes
+ * pids 1, 2, 5, 6 or 7: whatever the vendor registered in the older
+ * generations is left exactly as found so that removing FluidEQ cannot leave
+ * the endpoint worse than a clean uninstall would.
+ *
+ * For a legacy slot — pid 1 or 2, a single value that can hold one class id
+ * — ours goes in only where nothing is registered: the plan is `refused`
+ * when the value already names another effect, because replacing it would
+ * switch that effect off, and there is no way to chain two in one value.
  */
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot);
 
@@ -127,8 +160,35 @@ FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot);
 FxPlan plan_detach(const FxValues& current, const FxValues& backup,
                    std::wstring_view clsid);
 
-/** Whether `clsid` appears in any of the three composite lists. */
+/** Whether `clsid` appears in any composite list or either legacy value. */
 bool is_attached(const FxValues& values, std::wstring_view clsid);
+
+/**
+ * Which slot holds `clsid` — the first in the order Windows prefers them
+ * when it is somehow in more than one — or nothing when it is attached
+ * nowhere.
+ */
+std::optional<Slot> slot_of(const FxValues& values, std::wstring_view clsid);
+
+/**
+ * `clsid` taken out of wherever it is and put into `slot`: a detach against
+ * `backup` followed by an attach, so the vendor's lists come out of it
+ * exactly as an attach into `slot` on the original endpoint would have left
+ * them. The same as `plan_attach` when the effect is not attached at all,
+ * and no change at all when it is already in `slot`.
+ *
+ * A move into a legacy slot also takes away every list the first attach
+ * created (the ones not in `backup`): a driver that reads the old values
+ * may read them only while no list exists, and the lists were only ever
+ * there to carry ours. Lists the vendor had are kept.
+ *
+ * This is how an output whose driver never creates an endpoint effect gets
+ * the engine somewhere it is created: Equalizer APO's own installer keeps
+ * a rule for such drivers, and a user's machine sat with the engine
+ * registered in the EFX list, enhancements on, and never once loaded.
+ */
+FxPlan plan_move(const FxValues& before, const FxValues& backup,
+                 std::wstring_view clsid, Slot slot);
 
 /**
  * Equalizer APO's own class ids, as its Device Selector registers them.

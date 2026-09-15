@@ -62,6 +62,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "registry.h"
 #include "retry.h"
 #include "services.h"
+#include "slot_memory.h"
+#include "slot_report.h"
 
 namespace {
 
@@ -101,12 +103,16 @@ using fluideq_engine::setup::wait_audio_settled;
 using fluideq_engine::setup::write_utf8;
 using fluideq_engine::setup::append_utf8;
 using fluideq_engine::setup::EndpointResult;
+using fluideq_engine::setup::describe_slots;
+using fluideq_engine::setup::slot_from_name;
+using fluideq_engine::setup::slot_name;
+using fluideq_engine::setup::slot_of;
 
 const char kUsage[] =
     "FluidEQ-Engine-Setup <command> [options]\n"
     "\n"
     "  install [--attach-all] [--restart-audio]\n"
-    "  attach <output-id>... [--slot efx|mfx] [--restart-audio]\n"
+    "  attach <output-id>... [--slot efx|mfx|sfx|gfx|lfx] [--restart-audio]\n"
     "  detach <output-id>... [--restart-audio]\n"
     "  uninstall [--purge]\n"
     "  suspend-apo [--restart-audio]\n"
@@ -164,12 +170,8 @@ bool parse(int argc, wchar_t** argv, Options& options) {
       if (at + 1 >= argc) {
         return false;
       }
-      const std::wstring value = argv[++at];
-      if (value == L"efx") {
-        options.slot = Slot::Efx;
-      } else if (value == L"mfx") {
-        options.slot = Slot::Mfx;
-      } else {
+      options.slot = slot_from_name(argv[++at]);
+      if (!options.slot.has_value()) {
         return false;
       }
     } else if (takes_guids && is_valid_endpoint_guid(argument)) {
@@ -259,6 +261,38 @@ bool engine_has_run() {
          !files_matching(root, L"status-*.json").empty();
 }
 
+/**
+ * The name a class id was registered under, or empty.
+ *
+ * `HKCR\CLSID\{…}` carries a default value that is the effect's own name as
+ * its installer wrote it — "THX Spatial Audio APO", "Equalizer APO", ours —
+ * and it is the only human-readable thing about a class id on the machine.
+ * Read for the report only; nothing here is written.
+ */
+std::wstring registered_class_name(const std::wstring& clsid) {
+  HKEY raw = nullptr;
+  const std::wstring path = L"CLSID\\" + clsid;
+  if (RegOpenKeyExW(HKEY_CLASSES_ROOT, path.c_str(), 0,
+                    KEY_READ | KEY_WOW64_64KEY, &raw) != ERROR_SUCCESS) {
+    return std::wstring();
+  }
+  std::wstring name;
+  DWORD type = 0;
+  DWORD size = 0;
+  if (RegQueryValueExW(raw, nullptr, nullptr, &type, nullptr, &size) ==
+          ERROR_SUCCESS &&
+      type == REG_SZ && size >= sizeof(wchar_t)) {
+    std::vector<wchar_t> buffer(size / sizeof(wchar_t) + 1, L'\0');
+    if (RegQueryValueExW(raw, nullptr, nullptr, &type,
+                         reinterpret_cast<BYTE*>(buffer.data()),
+                         &size) == ERROR_SUCCESS) {
+      name.assign(buffer.data());
+    }
+  }
+  RegCloseKey(raw);
+  return name;
+}
+
 int print_status() {
   std::vector<Endpoint> endpoints;
   // Enumerated before anything is printed. An empty output list and an audio
@@ -333,6 +367,21 @@ int print_status() {
     out += attached ? L"true" : L"false";
     out += L",\"backupExists\":";
     out += backup_exists(endpoints[at].guid) ? L"true" : L"false";
+    // Which slot it sits in, because that is the one thing the app can
+    // change about an output where the engine is attached and never loaded:
+    // a driver that creates no endpoint effect still creates a mode effect.
+    const std::optional<Slot> slot = slot_of(values, kEngineClsid);
+    out += L",\"slot\":";
+    out += slot.has_value() ? L"\"" + std::wstring(slot_name(*slot)) + L"\""
+                            : L"null";
+    // Everything in the output's effect slots, named, and how many are
+    // free: "attached" is one bit about a structure a sound card's own
+    // effects can fill, and which slot this engine sits in — and beside
+    // whom — is the question on a machine where it is attached and never
+    // heard. Read again here rather than reused: a read that failed above
+    // reported "not attached", and this says what it could see.
+    out += L',';
+    out += describe_slots(values, registered_class_name);
     out += L'}';
   }
   out += L"]}";
@@ -393,7 +442,8 @@ void note_run(const std::vector<std::wstring>& arguments,
     line += L": " + result.error;
   }
   for (const EndpointResult& one : result.endpoints) {
-    line += L"\n    " + one.guid + (one.attached ? L" attached" : L" not attached");
+    line += L"\n    " + one.guid +
+            (one.attached ? L" attached" : L" not attached");
     if (!one.error.empty()) {
       line += L": " + one.error;
     }

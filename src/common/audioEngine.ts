@@ -71,10 +71,44 @@ export interface IAudioEnginePreference {
   engine: TAudioEngine | null;
 }
 
+/**
+ * One effect registered on an output, as the setup helper read it.
+ *
+ * `slot` is where Windows would run it — the three modern slots, or the
+ * legacy pair it reads only when those are absent — and `from` says whether
+ * it came from the list Windows reads, the old single value beside it, or
+ * the legacy value. `name` is what its installer registered it as, or empty.
+ */
+export interface IEndpointEffect {
+  slot: 'sfx' | 'mfx' | 'efx' | 'lfx' | 'gfx';
+  from: 'list' | 'single' | 'legacy';
+  clsid: string;
+  name: string;
+}
+
 export interface IFluidEngineEndpoint {
   guid: string;
   attached: boolean;
   backupExists: boolean;
+  /**
+   * Everything in the output's effect slots, in the order Windows runs
+   * them, and how many of the three modern slots hold nothing. Absent from
+   * an older helper. A sound card that filled all three is a machine where
+   * this engine had to be added beside somebody's effect, and which slot it
+   * landed in is the question on a machine where it is attached and never
+   * heard.
+   */
+  effects?: IEndpointEffect[];
+  emptySlots?: number;
+  /**
+   * Which slot this engine sits in on the output, when it is attached: the
+   * endpoint, mode or stream effect lists, or one of the two pre-8.1 single
+   * values. Absent from an older helper. This is the one thing the app can
+   * change about an output where the engine is attached and Windows never
+   * creates it — which slot a driver builds is not written down anywhere,
+   * so the app tries them newest to oldest (`engineOutputRepair.ts`).
+   */
+  slot?: 'efx' | 'mfx' | 'sfx' | 'gfx' | 'lfx';
   /**
    * Set only by `--attach-all`, on the endpoints it could not attach — an
    * explicit `attach <guid>` reports its one failure as the command's own

@@ -148,6 +148,7 @@ import {
   useDspSettings,
 } from './dsp/store';
 import useEngineTrouble from './audio/useEngineTrouble';
+import { sameEndpoint } from './audio/engineTrouble';
 import useRestartWhenEngineOff from './utils/useRestartWhenEngineOff';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import VoicingPanel from './VoicingPanel';
@@ -208,6 +209,7 @@ import {
   isAwaitingApoInstall,
   prereqBannerEngine,
   setAudioEngine,
+  repairFluidEngineOutput,
   updateFluidEngine,
 } from './utils/audioEngineApi';
 
@@ -1922,10 +1924,7 @@ const AppContent = () => {
    * the health check. The status is read again whatever the answer, so the
    * notice is offered only while there is still an engine to install.
    */
-  const performEngineUpdate = async (
-    automatic = false,
-  ): Promise<IAudioRestartOutcome> => {
-    const outcome = await updateFluidEngine(automatic);
+  const afterEngineChanged = async (outcome: IAudioRestartOutcome) => {
     if (outcome.ok) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
@@ -1935,13 +1934,20 @@ const AppContent = () => {
     await refreshEngineStatus();
     return outcome;
   };
+  const performEngineUpdate = async (): Promise<IAudioRestartOutcome> =>
+    afterEngineChanged(await updateFluidEngine());
+  // Main's own repair of one output, which ends the way an update does.
+  const performEngineRepair = async (
+    guid: string,
+  ): Promise<IAudioRestartOutcome> =>
+    afterEngineChanged(await repairFluidEngineOutput(guid));
 
   const { audioRestart, engineUpdate, repairEngine, suppressAudioNotices } =
     useEngineMaintenance(
       engineStatus?.engine === 'fluid' && engineStatus.fluidUpdateReady,
       performWindowsAudioRestart,
       performEngineUpdate,
-      () => performEngineUpdate(true),
+      performEngineRepair,
     );
   const handleRestartWindowsAudio = audioRestart.open;
   useRestartWhenEngineOff(
@@ -1950,12 +1956,21 @@ const AppContent = () => {
     audioRestart,
     engineStatus?.fluid.everRan,
   );
-  // The other half of that pair: where Windows has never once created the
-  // engine, a restart cannot help and putting its installation back can.
-  useRepairWhenEngineNeverRan(
+  // The other half of that pair: where Windows has never created the engine
+  // on the output, a restart cannot help; putting the install back, or
+  // moving the engine to a slot the driver builds, can. Keyed by the slot
+  // the helper reports, so each rung is asked for once.
+  const troubledSlot =
+    engineTrouble?.kind === 'off'
+      ? engineStatus?.fluid.endpoints.find((endpoint) =>
+          sameEndpoint(endpoint.guid, engineTrouble.device.guid),
+        )?.slot
+      : undefined;
+  const { isTryingSlots } = useRepairWhenEngineNeverRan(
     engineTrouble,
     suppressAudioNotices,
     repairEngine,
+    troubledSlot,
   );
 
   const dismissAudioRestartRecommendation = () => {
@@ -2701,6 +2716,7 @@ const AppContent = () => {
           trouble={engineTrouble}
           isHidden={
             suppressAudioNotices ||
+            isTryingSlots ||
             audioRestart.isOpen ||
             showEngineDialog ||
             isEngineUnchosen ||

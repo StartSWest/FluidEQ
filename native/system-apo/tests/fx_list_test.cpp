@@ -34,12 +34,16 @@ using fluideq_engine::setup::from_json;
 using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::kDefaultProcessingMode;
 using fluideq_engine::setup::kEfx;
+using fluideq_engine::setup::kGfx;
+using fluideq_engine::setup::kLfx;
 using fluideq_engine::setup::kMfx;
 using fluideq_engine::setup::kSfx;
 using fluideq_engine::setup::plan_attach;
 using fluideq_engine::setup::plan_detach;
+using fluideq_engine::setup::plan_move;
 using fluideq_engine::setup::plan_restore_apo;
 using fluideq_engine::setup::plan_suspend_apo;
+using fluideq_engine::setup::slot_of;
 using fluideq_engine::setup::to_json;
 
 namespace {
@@ -301,6 +305,174 @@ void mfx_slot() {
   const FxPlan plan = plan_attach(before, kOurs, Slot::Mfx);
   CHECK(plan.changed);
   expect_values(plan.after, expected, "mfx_slot");
+}
+
+/**
+ * The move a driver that never creates an endpoint effect needs: ours out of
+ * the EFX list and into the MFX one, with everything else — the vendor's own
+ * entries, the EFX list that was there first, the mode list beside it — as
+ * an attach into MFX on the original endpoint would have left it.
+ */
+void move_from_efx_to_mfx() {
+  std::printf("move from efx to mfx\n");
+  FxValues backup;
+  backup.composite[kSfx] = list({kVendorSfx});
+  backup.composite[kMfx] = list({kVendorMfx});
+  backup.composite[kEfx] = list({kVendorEfx});
+  backup.modes[kEfx] = list({kDefaultProcessingMode});
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+  CHECK(slot_of(attached, kOurs) == Slot::Efx);
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Mfx);
+  CHECK(plan.changed);
+  expect_values(plan.after, plan_attach(backup, kOurs, Slot::Mfx).after,
+                "move_from_efx_to_mfx");
+  CHECK(slot_of(plan.after, kOurs) == Slot::Mfx);
+  // Once, not beside itself: one registration of the engine per output.
+  CHECK(plan.after.composite[kEfx] == list({kVendorEfx}));
+}
+
+/**
+ * The same move on an output that had no lists at all: the EFX list and its
+ * mode list were ours, so both go away, and only the MFX pair remains.
+ */
+void move_takes_created_keys_with_it() {
+  std::printf("move takes created keys with it\n");
+  const FxValues backup;
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+
+  FxValues expected;
+  expected.composite[kMfx] = list({kOurs});
+  expected.modes[kMfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Mfx);
+  CHECK(plan.changed);
+  expect_values(plan.after, expected, "move_takes_created_keys_with_it");
+}
+
+/**
+ * A move to the slot the effect is already in writes nothing — and in
+ * particular does not take it out of the middle of a list and put it back
+ * at the end, which a detach-then-attach would do on every attach.
+ */
+void move_to_the_same_slot_is_no_change() {
+  std::printf("move to the same slot is no change\n");
+  FxValues backup;
+  backup.composite[kEfx] = list({kVendorEfx});
+  FxValues before = plan_attach(backup, kOurs, Slot::Efx).after;
+  // A vendor's driver update appended behind us since.
+  before.composite[kEfx]->push_back(kVendorMfx);
+
+  const FxPlan plan = plan_move(before, backup, kOurs, Slot::Efx);
+  CHECK(!plan.changed);
+  expect_values(plan.after, before, "move_to_the_same_slot_is_no_change");
+}
+
+/**
+ * The oldest rung: a driver that reads only the pre-8.1 values, on an output
+ * where nothing was registered at all. Ours goes into GFX, and the lists the
+ * first attach created go away with it — a driver reading pids 1 and 2 may
+ * only do so while no list exists.
+ */
+void move_to_gfx_on_a_bare_output() {
+  std::printf("move to gfx on a bare output\n");
+  const FxValues backup;
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+
+  FxValues expected;
+  expected.legacy[kGfx] = kOurs;
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Gfx);
+  CHECK(plan.refused.empty());
+  CHECK(plan.changed);
+  expect_values(plan.after, expected, "move_to_gfx_on_a_bare_output");
+  CHECK(slot_of(plan.after, kOurs) == Slot::Gfx);
+  CHECK(is_attached(plan.after, kOurs));
+
+  // And out again: exactly the bare output.
+  const FxPlan gone = plan_detach(plan.after, backup, kOurs);
+  CHECK(gone.changed);
+  expect_values(gone.after, backup, "move_to_gfx_on_a_bare_output/detach");
+  CHECK(!is_attached(gone.after, kOurs));
+}
+
+/**
+ * A legacy value that already names somebody's effect is never replaced: the
+ * plan is refused, nothing changes, and the engine stays where it was.
+ */
+void legacy_slot_is_never_taken_from_a_vendor() {
+  std::printf("legacy slot is never taken from a vendor\n");
+  FxValues backup;
+  backup.legacy[kLfx] = kLegacyLfx;
+  backup.legacy[kGfx] = kLegacyGfx;
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Gfx);
+  CHECK(!plan.refused.empty());
+  CHECK(!plan.changed);
+  expect_values(plan.after, attached, "legacy_slot_is_never_taken_from_a_vendor");
+  CHECK(slot_of(plan.after, kOurs) == Slot::Efx);
+
+  // An empty string a driver left there is not an effect, and is taken.
+  FxValues emptied = backup;
+  emptied.legacy[kGfx] = std::wstring();
+  const FxPlan into_empty = plan_attach(emptied, kOurs, Slot::Gfx);
+  CHECK(into_empty.refused.empty());
+  CHECK(into_empty.after.legacy[kGfx] == std::wstring(kOurs));
+  // And comes out as the empty string it was, not deleted.
+  const FxPlan out = plan_detach(into_empty.after, emptied, kOurs);
+  expect_values(out.after, emptied,
+                "legacy_slot_is_never_taken_from_a_vendor/empty");
+}
+
+/**
+ * A move into a legacy slot keeps the lists the vendor had: only the ones the
+ * first attach created are taken away.
+ */
+void move_to_legacy_keeps_vendor_lists() {
+  std::printf("move to legacy keeps vendor lists\n");
+  FxValues backup;
+  backup.composite[kSfx] = list({kVendorSfx});
+  backup.modes[kSfx] = list({kVendorMode});
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+  CHECK(attached.composite[kEfx] == list({kOurs}));
+
+  FxValues expected = backup;
+  expected.legacy[kLfx] = kOurs;
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Lfx);
+  CHECK(plan.refused.empty());
+  expect_values(plan.after, expected, "move_to_legacy_keeps_vendor_lists");
+}
+
+/** The third rung, SFX, is a list like the other two. */
+void move_to_sfx() {
+  std::printf("move to sfx\n");
+  FxValues backup;
+  backup.composite[kMfx] = list({kVendorMfx});
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Mfx).after;
+
+  FxValues expected = backup;
+  expected.composite[kSfx] = list({kOurs});
+  expected.modes[kSfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::Sfx);
+  CHECK(plan.changed);
+  expect_values(plan.after, expected, "move_to_sfx");
+  CHECK(slot_of(plan.after, kOurs) == Slot::Sfx);
+}
+
+/** Not attached anywhere: a move is a plain attach into the slot asked for. */
+void move_of_an_unattached_effect_is_an_attach() {
+  std::printf("move of an unattached effect is an attach\n");
+  FxValues before;
+  before.composite[kMfx] = list({kVendorMfx});
+  CHECK(!slot_of(before, kOurs).has_value());
+
+  const FxPlan plan = plan_move(before, before, kOurs, Slot::Mfx);
+  expect_values(plan.after, plan_attach(before, kOurs, Slot::Mfx).after,
+                "move_of_an_unattached_effect_is_an_attach");
+  CHECK(plan.changed);
 }
 
 /**
@@ -627,6 +799,14 @@ int main() {
   legacy_only();
   already_attached();
   mfx_slot();
+  move_from_efx_to_mfx();
+  move_takes_created_keys_with_it();
+  move_to_the_same_slot_is_no_change();
+  move_of_an_unattached_effect_is_an_attach();
+  move_to_gfx_on_a_bare_output();
+  legacy_slot_is_never_taken_from_a_vendor();
+  move_to_legacy_keeps_vendor_lists();
+  move_to_sfx();
   detach_restores_created_keys();
   detach_keeps_others_in_list();
   detach_restores_sz_type();

@@ -181,6 +181,10 @@ enum ChannelEnum {
   // never replaces. Keeps every output as it is; answered like "Restart
   // Windows audio", because that is how it ends.
   UPDATE_FLUID_ENGINE = 'updateFluidEngine',
+  // Sound went past the engine on one output and the engine wrote nothing:
+  // main puts right what it can — the install, or the slot the engine is
+  // registered in, one rung at a time — and answers like a restart.
+  REPAIR_FLUID_ENGINE_OUTPUT = 'repairFluidEngineOutput',
   // One output on or off the engine, by endpoint GUID. Attaching is what the
   // "not enabled for this output" notice offers under the FluidEQ Engine, in
   // place of Equalizer APO's Device Selector.

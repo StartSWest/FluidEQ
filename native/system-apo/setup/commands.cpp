@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "json.h"
 #include "registry.h"
 #include "services.h"
+#include "slot_memory.h"
 
 namespace fluideq_engine::setup {
 
@@ -34,18 +35,38 @@ void fail(CommandResult& result, std::wstring message) {
 }
 
 /**
+ * The slot one output gets when none was named: what was learned about it,
+ * then what Windows says about it, then the default.
+ */
+Slot slot_for(const std::wstring& guid) {
+  const std::optional<Slot> learned = remembered_slot(guid);
+  if (learned.has_value()) {
+    return *learned;
+  }
+  return endpoint_is_combined(guid) ? Slot::Mfx : Slot::Efx;
+}
+
+/**
  * Adds our class id to one endpoint, recording what was there first.
  *
  * The backup is written before anything is planned, not after: an attach that
  * crashed between the write and the backup would leave an endpoint carrying
  * our effect with no record of how to take it off again.
+ *
+ * An effect already on the endpoint in a different slot than asked for is
+ * moved, not added beside itself: two registrations of one engine would
+ * process the sound twice wherever both were created. And a slot named on
+ * the command line is remembered for this output, so that the next attach
+ * with no slot named — the app enabling it again, an install with
+ * `--attach-all` — does not put the engine back where it was never loaded.
  */
-bool attach_one(const std::wstring& guid, Slot slot, bool& attached,
-                std::wstring& error) {
+bool attach_one(const std::wstring& guid, std::optional<Slot> named,
+                bool& attached, std::wstring& error) {
   FxValues before;
   if (!read_fx_values(guid, before, error)) {
     return false;
   }
+  const Slot slot = named.has_value() ? *named : slot_for(guid);
   // Not when the effect is already on this endpoint. Its backup either exists
   // — in which case `save_backup_once` would do nothing anyway — or somebody
   // deleted it by hand, and recreating it now would record the endpoint with
@@ -55,9 +76,25 @@ bool attach_one(const std::wstring& guid, Slot slot, bool& attached,
       !save_backup_once(guid, before, error)) {
     return false;
   }
-  const FxPlan plan = plan_attach(before, kEngineClsid, slot);
+  const std::optional<FxValues> saved = load_backup(guid);
+  // Moving needs the backup, which says which lists were the vendor's; with
+  // none, the current values stand in for it and nothing is deleted, exactly
+  // as a detach would do.
+  const FxPlan plan = plan_move(before, saved.value_or(before), kEngineClsid,
+                                slot);
+  if (!plan.refused.empty()) {
+    // A legacy value already registered to somebody else. Nothing written,
+    // and the effect stays wherever it was — the app reads the answer and
+    // stops trying slots on this output.
+    error = L"cannot attach to " + std::wstring(slot_name(slot)) + L" on " +
+            guid + L": " + plan.refused;
+    return false;
+  }
   if (plan.changed && !write_fx_values(guid, before, plan.after, error)) {
     return false;
+  }
+  if (named.has_value()) {
+    remember_slot(guid, slot);
   }
   attached = is_attached(plan.after, kEngineClsid);
   return true;
@@ -138,7 +175,8 @@ std::vector<std::wstring> endpoints_with_backups() {
  * A user who asked for a specific output and did not get it must be told so;
  * there is no "most of it worked" here to fall back on.
  */
-void attach_each(const std::vector<std::wstring>& guids, Slot slot,
+void attach_each(const std::vector<std::wstring>& guids,
+                 std::optional<Slot> slot,
                  CommandResult& result) {
   for (const std::wstring& guid : guids) {
     if (!endpoint_key_exists(guid)) {
@@ -167,7 +205,8 @@ void attach_each(const std::vector<std::wstring>& guids, Slot slot,
  * `summarise_attach_all`'s, which is the pure half of this and the tested
  * one.
  */
-void attach_all_endpoints(const std::vector<std::wstring>& guids, Slot slot,
+void attach_all_endpoints(const std::vector<std::wstring>& guids,
+                          std::optional<Slot> slot,
                           CommandResult& result) {
   for (const std::wstring& guid : guids) {
     EndpointResult one;

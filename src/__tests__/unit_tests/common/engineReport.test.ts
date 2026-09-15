@@ -92,6 +92,60 @@ describe('describeAudioEngine', () => {
     expect(text).toContain('has ever run here: no');
   });
 
+  it('says who sits in each effect slot, and how many are free', () => {
+    // Ivan's own machine: THX in SFX and MFX, FluidEQ alone in EFX, and
+    // Equalizer APO in the old single values Windows ignores.
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: {
+        ...installed,
+        endpoints: [
+          {
+            guid: output.guid,
+            attached: true,
+            backupExists: true,
+            effects: [
+              {
+                slot: 'sfx',
+                from: 'list',
+                clsid: '{THX}',
+                name: 'THX Spatial',
+              },
+              {
+                slot: 'mfx',
+                from: 'list',
+                clsid: '{THX2}',
+                name: 'THX Spatial',
+              },
+              {
+                slot: 'efx',
+                from: 'list',
+                clsid: '{OURS}',
+                name: 'FluidEQ Engine',
+              },
+              {
+                slot: 'sfx',
+                from: 'single',
+                clsid: '{APO}',
+                name: 'Equalizer APO',
+              },
+              { slot: 'efx', from: 'single', clsid: '{APO2}', name: '' },
+            ],
+            emptySlots: 0,
+          },
+        ],
+      },
+      health: health(),
+    });
+    expect(text).toContain(
+      'Slots: SFX: THX Spatial · MFX: THX Spatial · EFX: FluidEQ Engine — 0 of 3 slots free',
+    );
+    expect(text).toContain(
+      'old single values: SFX: Equalizer APO, EFX: {APO2}',
+    );
+  });
+
   it('shows Windows skipping effects on the output', () => {
     const text = describeAudioEngine({
       engine: 'fluid',

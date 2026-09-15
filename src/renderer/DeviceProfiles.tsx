@@ -25,6 +25,7 @@ import { useTranslation } from './utils/I18nContext';
 import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 import { openWindowsSoundSettings } from './utils/soundSettings';
 import { reportError, reportInfo } from './utils/logger';
+import { subscribeAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -166,8 +167,24 @@ const DeviceProfiles = ({
   const engineState = outputEngineState(selectedDevice, engine);
   const cannotHostEffects = engineState === 'no-effects';
   const effectsTurnedOff = engineState === 'effects-off';
+  // The list is re-read the moment the engine changes, and the notice waits
+  // for that read: switching engines puts the other engine's effect back on
+  // every output, and until the next read the list still described the
+  // outputs as the engine being left had them — so "Equalizer APO is not
+  // enabled for this output" showed for a few seconds after every switch to
+  // Equalizer APO, and went away by itself.
+  const [isRereadingAfterSwitch, setIsRereadingAfterSwitch] = useState(false);
+  useEffect(
+    () =>
+      subscribeAudioEngineChanged(() => {
+        setIsRereadingAfterSwitch(true);
+        refresh().finally(() => setIsRereadingAfterSwitch(false));
+      }),
+    [refresh],
+  );
   const showEngineNotice =
     !isNoticeHidden &&
+    !isRereadingAfterSwitch &&
     isOutputOff(engineState) &&
     dismissedApoDeviceId !== selectedDevice?.id;
 

@@ -1,10 +1,17 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import type { TAudioEngine } from 'common/audioEngine';
 import en from 'common/i18n/en';
 import DeviceProfiles from 'renderer/DeviceProfiles';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import { notifyAudioEngineChanged } from 'renderer/utils/audioEngineEvents';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -85,6 +92,53 @@ describe('DeviceProfiles Equalizer APO attachment', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     rerender(profiles(false));
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+
+  it('holds its notice from the moment the engine changes until the list is re-read', async () => {
+    // Switching engines puts the other engine's effect back on every output,
+    // and the list still described the outputs as the engine being left had
+    // them: "Equalizer APO is not enabled for this output" showed for a few
+    // seconds after every switch to Equalizer APO, then went away by itself.
+    let release!: () => void;
+    (getAudioDevices as jest.Mock)
+      .mockResolvedValueOnce([missingApoDevice])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = () =>
+              resolve([{ ...missingApoDevice, isEqualizerApoAttached: true }]);
+          }),
+      );
+    (getDeviceProfileSettings as jest.Mock).mockResolvedValue({
+      version: 1,
+      assignments: {},
+    });
+    render(
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
+        <DeviceProfiles
+          engine="apo"
+          onConfigureApo={jest.fn()}
+          onAttachFluidEngine={jest.fn()}
+        />
+      </FluidEqProviderWrapper>,
+    );
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    act(() => notifyAudioEngineChanged());
+    // Away at once, on the old list, and still away while the read runs.
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    await act(async () => {
+      release();
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+    );
+    // Positive control: the same read answering "still not attached" brings
+    // the notice back.
+    (getAudioDevices as jest.Mock).mockResolvedValue([missingApoDevice]);
+    await act(async () => {
+      notifyAudioEngineChanged();
+    });
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
   });
 
   it('keeps the missing badge but lets Not now dismiss the device notice', async () => {

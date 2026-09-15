@@ -61,6 +61,25 @@ describe('the automatic setup gate', () => {
     expect(on).toHaveBeenCalledTimes(1);
   });
 
+  it('lets the slot ladder take its four steps in a session, and no more', async () => {
+    // Five slots, newest to oldest; the first is where an attach goes, so
+    // there are four moves at most — each after the sound was heard again.
+    const gate = createAutomaticSetup();
+    const move = jest.fn(async () => 'moved');
+    for (let step = 0; step < 4; step += 1) {
+      expect(gate.wanted('move-slot')).toBe(true);
+      // eslint-disable-next-line no-await-in-loop -- one rung after another
+      await expect(gate.attempt('move-slot', move)).resolves.toBe('moved');
+    }
+    expect(gate.wanted('move-slot')).toBe(false);
+    await expect(gate.attempt('move-slot', move)).resolves.toBeUndefined();
+    expect(move).toHaveBeenCalledTimes(4);
+    // Still once for the others.
+    const install = jest.fn(async () => 'installed');
+    await gate.attempt('install', install);
+    await expect(gate.attempt('install', install)).resolves.toBeUndefined();
+  });
+
   it('frees the gate when the work throws', async () => {
     const gate = createAutomaticSetup();
     await expect(

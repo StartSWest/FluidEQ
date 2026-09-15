@@ -99,6 +99,7 @@ describe('the audio engine channels', () => {
   // switching. The cases that are about Equalizer APO set these themselves.
   let isApoOnAnyOutput: jest.Mock;
   let isApoSwitchedOff: jest.Mock;
+  let repairEngineOutput: jest.Mock;
   let getConfigPath: jest.Mock;
 
   const fire = async (channel: ChannelEnum, arg: unknown) => {
@@ -149,6 +150,7 @@ describe('the audio engine channels', () => {
     getConfigPath = jest.fn(async () => path.join(userDataDir, 'config'));
     isApoOnAnyOutput = jest.fn(async () => false);
     isApoSwitchedOff = jest.fn(async () => false);
+    repairEngineOutput = jest.fn(async () => ({ ok: true, declined: false }));
 
     registerAudioEngineIpc({
       userDataDir,
@@ -166,6 +168,7 @@ describe('the audio engine channels', () => {
       isApoOnAnyOutput,
       isApoSwitchedOff,
       repairEngineLoading: async () => undefined,
+      repairEngineOutput,
       automatic: createAutomaticSetup(),
     });
   });
@@ -446,34 +449,55 @@ describe('the audio engine channels', () => {
   });
 
   /**
-   * One gate for everything automatic: main's own install repair and the
-   * window's each kept a private "once", and a prompt declined on the first
-   * was no defence against the second.
+   * The window heard sound go past a silent engine on one output: main
+   * decides what to try (`engineOutputRepair.ts`), and the state is read
+   * again and flushed only when something changed.
    */
-  describe('the automatic gate', () => {
-    const installs = () =>
-      runEngineSetup.mock.calls.filter(([command]) => command === 'install');
+  describe('repairing one output', () => {
+    it('asks the repair for the output, and reflushes when it changed something', async () => {
+      const reply = await fire(ChannelEnum.REPAIR_FLUID_ENGINE_OUTPUT, [GUID]);
+      expect(repairEngineOutput).toHaveBeenCalledWith(GUID);
+      expect(replied(reply)).toEqual({ result: { ok: true, declined: false } });
+      expect(order).toEqual(['status', 'reflush']);
+    });
 
-    it("refuses the window's own repair once an automatic install ran", async () => {
-      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
-      const reply = await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
-      expect(installs()).toHaveLength(1);
+    it('reads nothing again when nothing was done', async () => {
+      repairEngineOutput.mockResolvedValue({
+        ok: false,
+        declined: false,
+        detail: 'every slot has been tried',
+      });
+      const reply = await fire(ChannelEnum.REPAIR_FLUID_ENGINE_OUTPUT, [GUID]);
       expect(replied(reply)).toEqual({
         result: {
           ok: false,
           declined: false,
-          detail: 'an automatic repair already ran this session',
+          detail: 'every slot has been tried',
         },
+      });
+      expect(order).toEqual([]);
+    });
+
+    it('refuses anything but an output id', async () => {
+      const reply = await fire(ChannelEnum.REPAIR_FLUID_ENGINE_OUTPUT, [
+        '..\\..\\elsewhere',
+      ]);
+      expect(repairEngineOutput).not.toHaveBeenCalled();
+      expect(replied(reply)).toEqual({
+        errorCode: ErrorCode.INVALID_PARAMETER,
       });
     });
 
     it('never refuses a pressed update', async () => {
-      await fire(ChannelEnum.UPDATE_FLUID_ENGINE, [true]);
       await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
       await fire(ChannelEnum.UPDATE_FLUID_ENGINE, []);
-      expect(installs()).toHaveLength(3);
+      expect(
+        runEngineSetup.mock.calls.filter(([command]) => command === 'install'),
+      ).toHaveLength(2);
     });
+  });
 
+  describe('the automatic gate', () => {
     it('switches Equalizer APO off again after a switch back put it on', async () => {
       isApoOnAnyOutput.mockResolvedValue(true);
       isApoSwitchedOff.mockResolvedValue(true);

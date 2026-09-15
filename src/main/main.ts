@@ -177,6 +177,7 @@ import {
   isApoSwitchedOff,
 } from './apoSwitchOff';
 import { createEngineLoadRepair } from './engineLoadRepair';
+import { createEngineOutputRepair } from './engineOutputRepair';
 import { createAutomaticSetup } from './automaticSetup';
 import { registerCurveComparisonIpc } from './ipc/curveComparison';
 import { registerUpdatesIpc } from './ipc/updates';
@@ -2386,6 +2387,12 @@ registerAudioEngineIpc({
     runEngineSetup,
     automatic: automaticSetup,
   }).check,
+  repairEngineOutput: createEngineOutputRepair({
+    getEngine: () => session.audioEngine,
+    readStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
+    runEngineSetup,
+    automatic: automaticSetup,
+  }).repair,
   automatic: automaticSetup,
 });
 

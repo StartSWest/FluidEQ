@@ -173,7 +173,7 @@ add_test(NAME engine-dll-aggregation
 add_library(fluideq-engine-setup-core STATIC
   setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
-  setup/retry.cpp)
+  setup/retry.cpp setup/slot_report.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
 
 # How often a failed engine command is tried, and that each try after the
@@ -221,6 +221,13 @@ add_test(NAME engine-attach-outcome
 # is odd, is a heap over-read rather than a wrong effect list. Separate binary
 # because the fixtures are byte buffers rather than endpoint shapes, and one
 # file holding both was past the 500-line limit.
+# Who sits in which effect slot, named, and how many are free — the report
+# line that says whether the engine was added beside somebody's effect.
+add_executable(fluideq-engine-slot-report-test tests/slot_report_test.cpp)
+target_link_libraries(fluideq-engine-slot-report-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-slot-report COMMAND fluideq-engine-slot-report-test)
+
 add_executable(fluideq-engine-multi-sz-test tests/multi_sz_test.cpp)
 target_link_libraries(fluideq-engine-multi-sz-test
   PRIVATE fluideq-engine-setup-core feq_strict)
@@ -233,6 +240,7 @@ add_executable(fluideq-engine-setup
   setup/main.cpp setup/commands.cpp setup/registry.cpp
   setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
+  setup/slot_memory.cpp
   setup/fs.cpp setup/console.cpp
   # The version resource is what the consent prompt shows the user before
   # they decide whether to let this program change their machine.

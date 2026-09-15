@@ -36,6 +36,8 @@ wchar_t fold(wchar_t symbol) {
   return symbol;
 }
 
+}  // namespace
+
 bool equal_ci(std::wstring_view left, std::wstring_view right) {
   if (left.size() != right.size()) {
     return false;
@@ -47,6 +49,8 @@ bool equal_ci(std::wstring_view left, std::wstring_view right) {
   }
   return true;
 }
+
+namespace {
 
 bool contains_ci(const std::vector<std::wstring>& list,
                  std::wstring_view value) {
@@ -66,7 +70,25 @@ bool has_modern_values(const FxValues& values) {
   return false;
 }
 
-int index_of(Slot slot) { return slot == Slot::Mfx ? kMfx : kEfx; }
+/** The `composite[]`/`modes[]` index of a list slot; never a legacy one. */
+int index_of(Slot slot) {
+  switch (slot) {
+    case Slot::Sfx:
+      return kSfx;
+    case Slot::Mfx:
+      return kMfx;
+    default:
+      return kEfx;
+  }
+}
+
+/** The `legacy[]` index of a legacy slot; never a list one. */
+int legacy_index_of(Slot slot) { return slot == Slot::Lfx ? kLfx : kGfx; }
+
+/** Whether a single value holds a class id at all. */
+bool holds_effect(const std::optional<std::wstring>& value) {
+  return value.has_value() && !value->empty();
+}
 
 // ---------------------------------------------------------------------------
 // JSON, in the one shape a backup file is ever written in.
@@ -195,10 +217,31 @@ bool operator==(const FxValues& left, const FxValues& right) {
   return true;
 }
 
+bool is_legacy_slot(Slot slot) {
+  return slot == Slot::Gfx || slot == Slot::Lfx;
+}
+
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
   FxPlan plan;
   plan.after = before;
   FxValues& after = plan.after;
+
+  if (is_legacy_slot(slot)) {
+    // One value, one class id: ours goes in only where nothing is. A vendor
+    // registered there would be switched off by the write, and this program
+    // never switches anybody's effect off to make room for its own.
+    const int at = legacy_index_of(slot);
+    if (holds_effect(before.legacy[at]) &&
+        !equal_ci(*before.legacy[at], clsid)) {
+      plan.refused = std::wstring(slot == Slot::Lfx ? L"LFX" : L"GFX") +
+                     L" already holds another effect, " + *before.legacy[at];
+      return plan;
+    }
+    after.legacy[at] = std::wstring(clsid);
+    plan.changed = after != before;
+    return plan;
+  }
+
   const int index = index_of(slot);
 
   // 1. Mirror the singles into the composites. Windows reads the composite
@@ -295,6 +338,16 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
         backup.composite[at].has_value() &&
         *after.composite[at] == *backup.composite[at]) {
       after.composite_was_sz[at] = true;
+    }
+  }
+
+  // Ours out of a legacy value goes back to what the value was when first
+  // found: absent, or the empty string a driver left there. Never anything
+  // else, because ours only ever went in where nothing was.
+  for (int at = 0; at < kLegacyCount; ++at) {
+    if (holds_effect(after.legacy[at]) && equal_ci(*after.legacy[at], clsid)) {
+      after.legacy[at] =
+          holds_effect(backup.legacy[at]) ? std::nullopt : backup.legacy[at];
     }
   }
 
@@ -400,26 +453,81 @@ FxPlan plan_restore_apo(const FxValues& current, const FxValues& saved,
   // And then our own effect put back wherever it is now, if it is anywhere.
   // `plan_attach` is the one description of what "attached" means, so the
   // engine ends up registered the same way it would be by an ordinary attach.
-  if (current.composite[kMfx].has_value() &&
-      contains_ci(*current.composite[kMfx], keep)) {
-    plan.after = plan_attach(plan.after, keep, Slot::Mfx).after;
-  }
-  if (current.composite[kEfx].has_value() &&
-      contains_ci(*current.composite[kEfx], keep)) {
-    plan.after = plan_attach(plan.after, keep, Slot::Efx).after;
+  const std::optional<Slot> ours = slot_of(current, keep);
+  if (ours.has_value()) {
+    const FxPlan again = plan_attach(plan.after, keep, *ours);
+    // A refusal here means the saved state has another effect in the single
+    // value ours moved into since; Equalizer APO's state wins — it is what
+    // this command exists to put back — and ours is simply not re-applied.
+    if (again.refused.empty()) {
+      plan.after = again.after;
+    }
   }
   plan.changed = plan.after != current;
   return plan;
 }
 
 bool is_attached(const FxValues& values, std::wstring_view clsid) {
-  for (int at = 0; at < kSlotCount; ++at) {
+  return slot_of(values, clsid).has_value();
+}
+
+std::optional<Slot> slot_of(const FxValues& values, std::wstring_view clsid) {
+  // The order Windows prefers them: it reads the lists whenever any exists,
+  // and the two single values only when none does.
+  const Slot lists[] = {Slot::Efx, Slot::Mfx, Slot::Sfx};
+  for (const Slot slot : lists) {
+    const int at = index_of(slot);
     if (values.composite[at].has_value() &&
         contains_ci(*values.composite[at], clsid)) {
-      return true;
+      return slot;
     }
   }
-  return false;
+  const Slot singles[] = {Slot::Gfx, Slot::Lfx};
+  for (const Slot slot : singles) {
+    const int at = legacy_index_of(slot);
+    if (holds_effect(values.legacy[at]) &&
+        equal_ci(*values.legacy[at], clsid)) {
+      return slot;
+    }
+  }
+  return std::nullopt;
+}
+
+FxPlan plan_move(const FxValues& before, const FxValues& backup,
+                 std::wstring_view clsid, Slot slot) {
+  // Already where it is wanted: the plain attach, which writes nothing. Not
+  // the detach-and-attach below, which would take it out of the middle of a
+  // list a vendor has since appended to and put it back at the end — a
+  // reordering nobody asked for, on every attach.
+  const std::optional<Slot> current = slot_of(before, clsid);
+  if (!current.has_value() || *current == slot) {
+    return plan_attach(before, clsid, slot);
+  }
+  FxValues cleared = plan_detach(before, backup, clsid).after;
+  if (is_legacy_slot(slot)) {
+    // The lists the first attach created carried the vendor's single values
+    // forward so ours could sit beside them. On the way to a single value
+    // they are taken away again: a driver that reads pids 1 and 2 may only
+    // do so while no list exists, and a list that only repeats what the
+    // singles say costs nothing to lose. A list the vendor had stays.
+    for (int at = 0; at < kSlotCount; ++at) {
+      if (!backup.composite[at].has_value()) {
+        cleared.composite[at].reset();
+        cleared.composite_was_sz[at] = false;
+      }
+      if (!backup.modes[at].has_value()) {
+        cleared.modes[at].reset();
+      }
+    }
+  }
+  FxPlan plan = plan_attach(cleared, clsid, slot);
+  if (!plan.refused.empty()) {
+    plan.after = before;
+    plan.changed = false;
+    return plan;
+  }
+  plan.changed = plan.after != before;
+  return plan;
 }
 
 std::wstring to_json(const FxValues& values) {

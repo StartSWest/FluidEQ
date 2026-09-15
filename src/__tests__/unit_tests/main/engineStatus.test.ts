@@ -140,6 +140,64 @@ describe('parsing the status document', () => {
     expect(status.everRan).toBe(false);
   });
 
+  it("reads who sits in an output's effect slots, and how many are free", () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [
+          {
+            guid: '{A}',
+            attached: true,
+            backupExists: true,
+            effects: [
+              { slot: 'sfx', from: 'list', clsid: '{THX}', name: 'THX' },
+              {
+                slot: 'efx',
+                from: 'list',
+                clsid: '{OURS}',
+                name: 'FluidEQ Engine',
+              },
+              { slot: 'sfx', from: 'single', clsid: '{APO}', name: '' },
+              // Not of the documented shape: dropped, the rest kept.
+              { slot: 'zzz', from: 'list', clsid: '{X}', name: 'x' },
+              'junk',
+            ],
+            emptySlots: 1,
+          },
+        ],
+      }),
+    );
+    expect(status.endpoints[0].effects).toEqual([
+      { slot: 'sfx', from: 'list', clsid: '{THX}', name: 'THX' },
+      { slot: 'efx', from: 'list', clsid: '{OURS}', name: 'FluidEQ Engine' },
+      { slot: 'sfx', from: 'single', clsid: '{APO}', name: '' },
+    ]);
+    expect(status.endpoints[0].emptySlots).toBe(1);
+  });
+
+  it('reads which slot the engine sits in on each output', () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [
+          { guid: '{A}', attached: true, slot: 'mfx' },
+          { guid: '{B}', attached: true, slot: 'lfx' },
+          { guid: '{C}', attached: false, slot: null },
+          // Not a slot this app knows: dropped, never passed through.
+          { guid: '{D}', attached: true, slot: 'xfx' },
+          { guid: '{E}', attached: true },
+        ],
+      }),
+    );
+    expect(status.endpoints.map((endpoint) => endpoint.slot)).toEqual([
+      'mfx',
+      'lfx',
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
   it('leaves them unknown for a helper too old to answer', () => {
     // Unknown must never read as "wrong": that would put a Windows
     // permission prompt in front of a machine where nothing is broken.

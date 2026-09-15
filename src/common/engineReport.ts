@@ -31,7 +31,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { IAudioDevice } from './constants';
-import type { TAudioEngine, IFluidEngineStatus } from './audioEngine';
+import type {
+  IEndpointEffect,
+  IFluidEngineEndpoint,
+  IFluidEngineStatus,
+  TAudioEngine,
+} from './audioEngine';
 import { normaliseEndpointGuid, type IEngineHealth } from './engineHealth';
 
 export interface IEngineReportFacts {
@@ -85,8 +90,40 @@ const describeOutput = (
     `  Attached: FluidEQ Engine=${yesNo(
       attached ? attached.attached : device.isFluidEngineAttached,
     )}, Equalizer APO=${yesNo(device.isEqualizerApoAttached)}`,
+    ...(attached?.effects ? [describeSlots(attached)] : []),
     `  Engine says: ${engineLine}`,
   ];
+};
+
+/**
+ * Who sits in which effect slot, and how many are free.
+ *
+ * `SFX: THX Spatial Audio · MFX: THX Spatial Audio · EFX: FluidEQ Engine —
+ * 0 of 3 slots free; old single values: SFX: Equalizer APO, EFX: Equalizer
+ * APO`. The lists are what Windows runs, in order; the old values are shown
+ * apart because Windows ignores them wherever a list exists — which is how
+ * an engine reported as attached beside a registered Equalizer APO was the
+ * only one of the two actually running.
+ */
+const describeSlots = (endpoint: IFluidEngineEndpoint): string => {
+  const label = (effect: IEndpointEffect) => effect.name || effect.clsid;
+  const inLists = (['sfx', 'mfx', 'efx'] as const).map((slot) => {
+    const held = (endpoint.effects ?? [])
+      .filter((effect) => effect.slot === slot && effect.from === 'list')
+      .map(label);
+    return `${slot.toUpperCase()}: ${held.length ? held.join(' → ') : '(empty)'}`;
+  });
+  const elsewhere = (endpoint.effects ?? [])
+    .filter((effect) => effect.from !== 'list')
+    .map((effect) => `${effect.slot.toUpperCase()}: ${label(effect)}`);
+  const free =
+    endpoint.emptySlots === undefined
+      ? ''
+      : ` — ${endpoint.emptySlots} of 3 slots free`;
+  return (
+    `  Slots: ${inLists.join(' · ')}${free}` +
+    `${elsewhere.length ? `; old single values: ${elsewhere.join(', ')}` : ''}`
+  );
 };
 
 /**
