@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Plus を見る',
 
   'lighting.preview.status':
-    'プレビュー：デバイスは自分のライティングのままです',
+    'プレビュー：このページを開いている間、デバイスが光ります',
+  'lighting.preview.lit': 'シーンでデバイスを光らせています',
   'lighting.preview.oneScene': '何ができるかを見せる 1 つのシーン',
   'lighting.preview.noScene': 'デスクに映る Plus のシーン',
   'lighting.preview.moreScenes': 'すべてのシーンは Plus で',
   'lighting.preview.held':
-    'Plus なら、どのシーンでもあなたのデバイスがこのように光ります。',
+    'Plus なら、どのシーンでもデバイスがこのまま光り続けます。',
   'lighting.preview.locked': '明るさ、スタイル、位置合わせは Plus で使えます。',
 
   'lighting.unsupported.title':

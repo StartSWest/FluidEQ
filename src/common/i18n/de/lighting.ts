@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Plus ansehen',
 
   'lighting.preview.status':
-    'Vorschau – Ihre Geräte behalten ihre eigene Beleuchtung',
+    'Vorschau – Ihre Geräte leuchten, solange diese Seite offen ist',
+  'lighting.preview.lit': 'Ihre Geräte leuchten mit der Szene',
   'lighting.preview.oneScene': 'Eine Szene, die zeigt, was es kann',
   'lighting.preview.noScene': 'Eine Plus-Szene auf Ihrem Schreibtisch',
   'lighting.preview.moreScenes': 'Alle Szenen mit Plus',
   'lighting.preview.held':
-    'Mit Plus leuchten Ihre Geräte genau so – in jeder Szene.',
+    'Mit Plus bleiben Ihre Geräte so beleuchtet – in jeder Szene.',
   'lighting.preview.locked':
     'Helligkeit, Stil und Ausrichtung gibt es mit Plus.',
 

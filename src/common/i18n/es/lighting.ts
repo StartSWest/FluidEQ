@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Ver Plus',
 
   'lighting.preview.status':
-    'Vista previa: tus dispositivos mantienen su propia luz',
+    'Vista previa: tus dispositivos se iluminan mientras esta página está abierta',
+  'lighting.preview.lit': 'Iluminando tus dispositivos con la escena',
   'lighting.preview.oneScene': 'Una escena para ver lo que hace',
   'lighting.preview.noScene': 'Una escena Plus en tu escritorio',
   'lighting.preview.moreScenes': 'Todas las escenas con Plus',
   'lighting.preview.held':
-    'Con Plus tus dispositivos se iluminan así, con cualquier escena.',
+    'Con Plus tus dispositivos siguen iluminados así, con cualquier escena.',
   'lighting.preview.locked':
     'El brillo, el estilo y la alineación vienen con Plus.',
 

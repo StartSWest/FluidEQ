@@ -4,67 +4,55 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, useState } from 'react';
-import type { ILightingDevice } from 'common/lighting/lightingModel';
-import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
+import { useId } from 'react';
+import type { ILightingState } from 'common/lighting/lightingModel';
 import { resolveSceneName } from 'common/scenePacks';
 import { requestAccountPanel } from '../../account/accountPanel';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import Switch from '../../widgets/Switch';
-import { useScenePicture } from '../scenePictures';
 import type { IDeskColourFeed } from './deskColours';
 import LightingDevices from './LightingDevices';
+import LightingNotices from './LightingNotices';
 import LightingProfileTuning from './LightingProfileTuning';
 import LightingSceneSwatch from './LightingSceneSwatch';
 import LightingSlider from './LightingSlider';
 import LightingStage from './LightingStage';
-import { useDemoScene, useLightingDemo } from './lightingDemo';
+import { useLightingDemo } from './lightingDemo';
 
 interface ILightingPreviewProps {
-  devices: readonly ILightingDevice[];
-  searching: boolean;
+  state: ILightingState;
   feed: IDeskColourFeed | undefined;
-  /** What the member's own settings would look like, shown and not editable. */
-  brightness: number;
 }
 
 /**
  * Dynamic lighting as an account without Plus sees it: the whole page, with
- * the member's own devices on the drawn desk and one scene lighting them, and
- * every control there to be looked at rather than used.
+ * the member's own devices on the drawn desk and one scene lighting them —
+ * the real devices too, ten seconds at a time — and every control there to
+ * be looked at rather than used.
  *
  * It is the page and not a poster because the page is the argument: a desk
- * with their own keyboard and headset on it, taking a scene's colours, says
- * what dynamic lighting is in a way a paragraph cannot. What Plus adds is
- * what is locked here — every other scene, the tuning, and the devices
- * themselves actually lighting up.
+ * with their own keyboard and headset on it, taking a scene's colours, and
+ * the keyboard itself lighting up under their hands, say what dynamic
+ * lighting is in a way a paragraph cannot. What Plus adds is what is locked
+ * here — every other scene, the tuning, and the devices staying lit.
  */
 export default function LightingPlusPreview({
-  devices,
-  searching,
+  state,
   feed,
-  brightness,
 }: ILightingPreviewProps) {
   const { t, locale } = useTranslation();
   const switchId = useId();
-  const [stage, setStage] = useState<HTMLDivElement | null>(null);
-  const scene = useDemoScene();
-  const picture = useScenePicture(
-    {
-      lookId: scene?.lookId ?? '',
-      authorId: FLUIDEQ_CREATOR_ID,
-      sceneId: scene?.id ?? '',
-      version: scene?.version ?? 0,
-    },
-    scene ? stage : null,
-  );
-  const demo = useLightingDemo(
-    scene,
-    picture.state === 'ready' ? picture.url : undefined,
-  );
+  const demo = useLightingDemo();
   const unlock = () => requestAccountPanel('subscribe');
-  const sceneName = scene ? resolveSceneName(scene, locale) : undefined;
+  const sceneName =
+    demo.state === 'dark' ? undefined : resolveSceneName(demo.pack, locale);
+
+  // What the real devices are doing, as the main process says: `live` is it
+  // sending them this page's frames.
+  const status = state.live
+    ? { tone: 'live', text: t('lighting.preview.lit') }
+    : { tone: 'preview', text: t('lighting.preview.status') };
 
   return (
     <div className="lighting">
@@ -103,12 +91,11 @@ export default function LightingPlusPreview({
             </label>
           </div>
           <span
-            className="lighting-status lighting-status--preview"
+            className={`lighting-status lighting-status--${status.tone}`}
             role="status"
+            title={status.text}
           >
-            <span className="lighting-status__text">
-              {t('lighting.preview.status')}
-            </span>
+            <span className="lighting-status__text">{status.text}</span>
           </span>
         </div>
         <div className="lighting-scene-bar">
@@ -131,10 +118,13 @@ export default function LightingPlusPreview({
             {t('lighting.preview.moreScenes')}
           </button>
         </div>
+        {/* The devices are really lit here, so what keeps them from being lit
+            — Windows holding them, Razer Chroma not running — is said. */}
+        <LightingNotices state={state} />
         {/* The tag sits in the corner and the line under the desk: a banner
             across the middle of it covered the very keyboard being sold. */}
-        <div className="lighting-demo" ref={setStage}>
-          <LightingStage devices={devices} feed={feed} />
+        <div className="lighting-demo">
+          <LightingStage devices={state.devices} feed={feed} />
           {demo.state === 'playing' && sceneName && (
             <span className="lighting-taste">
               <span className="lighting-taste__live" aria-hidden="true" />
@@ -164,8 +154,8 @@ export default function LightingPlusPreview({
             </span>
           </div>
           <LightingDevices
-            devices={devices}
-            searching={searching}
+            devices={state.devices}
+            searching={state.searching}
             feed={feed}
           />
           {/* Disabled as a set, so every control inside is out of reach of the
@@ -176,7 +166,7 @@ export default function LightingPlusPreview({
           >
             <LightingSlider
               label={t('lighting.tuning.master')}
-              value={brightness}
+              value={state.settings.brightness}
               min={0.1}
               onCommit={() => undefined}
             />
@@ -188,13 +178,7 @@ export default function LightingPlusPreview({
             {t('lighting.preview.locked')}
           </p>
           <LightingProfileTuning
-            settings={{
-              enabled: false,
-              brightness,
-              pulse: 'gentle',
-              muted: [],
-              profiles: {},
-            }}
+            settings={state.settings}
             target="all"
             targetName={t('lighting.target.all')}
           />

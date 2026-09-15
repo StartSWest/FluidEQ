@@ -7,13 +7,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type {
   IWindowsHold,
   TLightingVendor,
+  TSynapseState,
   TWindowsBackground,
   TWindowsHoldReason,
 } from '../../common/lighting/lightingModel';
+import { describeRazer } from '../../common/lighting/razerDevices';
+import {
+  lightsThroughWindows,
+  rowKeyOfWindowsDevice,
+  type IWindowsDevice,
+} from './lightingDevices';
 import type { TIdentityOutcome } from './lightingIdentity';
 import type {
   IDeviceLightingSettings,
   ILightingSettingsEvent,
+  IRazerEvent,
 } from './lightingWire';
 
 /**
@@ -52,6 +60,37 @@ export interface IHeldDevice {
   id: string;
   vendorId: number;
 }
+
+/**
+ * The devices Windows is keeping from FluidEQ while frames are being sent:
+ * listed by Windows as not available, lit through Windows rather than Razer,
+ * and not switched off by the member. Named as the page names them — a
+ * Razer device by Razer's name for it.
+ */
+export const heldWindowsDevices = (
+  windows: ReadonlyMap<number, IWindowsDevice>,
+  razer: ReadonlyMap<string, IRazerEvent>,
+  synapse: TSynapseState,
+  muted: readonly string[],
+): IHeldDevice[] =>
+  [...windows.values()]
+    .filter(
+      (device) =>
+        device.available === false &&
+        lightsThroughWindows(device, razer, synapse) &&
+        !muted.includes(rowKeyOfWindowsDevice(device, razer)),
+    )
+    .map((device) => {
+      const rowKey = rowKeyOfWindowsDevice(device, razer);
+      const twin = rowKey.startsWith('razer:')
+        ? razer.get(rowKey.slice('razer:'.length))
+        : undefined;
+      return {
+        name: twin ? describeRazer(twin).name : device.event.name,
+        id: device.event.id,
+        vendorId: device.event.vendorId,
+      };
+    });
 
 const VENDOR_IDS: Readonly<Record<number, TLightingVendor>> = {
   0x1532: 'razer',

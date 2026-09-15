@@ -51,11 +51,12 @@ const lighting = {
     '动态灯效是 FluidEQ Plus 的一部分。你的设备会采用图表上场景的颜色，并随节拍律动。',
   'lighting.gate.cta': '了解 Plus',
 
-  'lighting.preview.status': '预览：你的设备保持自己的灯效',
+  'lighting.preview.status': '预览：打开此页面期间，你的设备会亮起',
+  'lighting.preview.lit': '正在用场景点亮你的设备',
   'lighting.preview.oneScene': '用一个场景展示它的效果',
   'lighting.preview.noScene': '桌面上的 Plus 场景',
   'lighting.preview.moreScenes': '所有场景都在 Plus 中',
-  'lighting.preview.held': '有了 Plus，任何场景都能让你的设备这样亮起来。',
+  'lighting.preview.held': '有了 Plus，任何场景都能让你的设备一直这样亮着。',
   'lighting.preview.locked': '亮度、风格和对齐随 Plus 提供。',
 
   'lighting.unsupported.title': '动态灯效仅适用于 Windows',

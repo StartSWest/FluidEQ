@@ -53,12 +53,14 @@ const lighting = {
     'डायनेमिक लाइटिंग FluidEQ Plus का हिस्सा है। आपके डिवाइस ग्राफ़ पर चल रहे दृश्य के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
   'lighting.gate.cta': 'Plus देखें',
 
-  'lighting.preview.status': 'प्रीव्यू: आपके डिवाइस अपनी लाइटिंग रखते हैं',
+  'lighting.preview.status':
+    'प्रीव्यू: यह पेज खुला रहने तक आपके डिवाइस जगमगाते हैं',
+  'lighting.preview.lit': 'सीन से आपके डिवाइस जगमगा रहे हैं',
   'lighting.preview.oneScene': 'यह क्या करता है, दिखाने के लिए एक सीन',
   'lighting.preview.noScene': 'आपकी डेस्क पर एक Plus सीन',
   'lighting.preview.moreScenes': 'हर सीन Plus के साथ',
   'lighting.preview.held':
-    'Plus के साथ आपके डिवाइस हर सीन में ऐसे ही जगमगाते हैं।',
+    'Plus के साथ आपके डिवाइस हर सीन में ऐसे ही जगमगाते रहते हैं।',
   'lighting.preview.locked': 'चमक, स्टाइल और अलाइनमेंट Plus के साथ आते हैं।',
 
   'lighting.unsupported.title': 'डायनेमिक लाइटिंग Windows पर काम करती है',

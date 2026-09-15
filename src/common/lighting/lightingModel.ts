@@ -295,6 +295,13 @@ export const LIGHTING_STATE_CHANGED_CHANNEL = 'lighting-state-changed';
 export const LIGHTING_SETTINGS_CHANNEL = 'lighting-settings';
 /** The page is open: find devices even while lighting is off. */
 export const LIGHTING_WATCH_CHANNEL = 'lighting-watch';
+/**
+ * Main ← window: a frame of the page's demo without Plus, fire-and-forget.
+ * On the devices for as long as the page sends them, never with Plus.
+ */
+export const LIGHTING_DEMO_FRAME_CHANNEL = 'lighting-demo-frame';
+/** Main → window: the scene the demo without Plus plays, as a pack. */
+export const LIGHTING_DEMO_SCENE_CHANNEL = 'lighting-demo-scene';
 export const LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL =
   'lighting-open-windows-settings';
 /** Answers whether Razer Chroma's launcher was found and started. */

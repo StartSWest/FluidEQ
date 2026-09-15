@@ -5,7 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
+import type { IScenePack } from '../common/scenePacks';
 import {
+  LIGHTING_DEMO_FRAME_CHANNEL,
+  LIGHTING_DEMO_SCENE_CHANNEL,
   LIGHTING_FRAME_CHANNEL,
   LIGHTING_OPEN_RAZER_CHROMA_CHANNEL,
   LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL,
@@ -42,6 +45,15 @@ export const lightingBridge = {
   sendLightingFrame: (frame: ILightingFrame) =>
     ipcRenderer.send(LIGHTING_FRAME_CHANNEL, frame),
   releaseLighting: () => ipcRenderer.send(LIGHTING_RELEASE_CHANNEL),
+  /**
+   * Without Plus: a frame of the page's one scene, fire-and-forget. Main
+   * lights the devices with it in turns, or not at all.
+   */
+  sendLightingDemoFrame: (frame: ILightingFrame) =>
+    ipcRenderer.send(LIGHTING_DEMO_FRAME_CHANNEL, frame),
+  /** The scene that page plays: the Studio's starter, shipped in the app. */
+  lightingDemoScene: (): Promise<IScenePack | null> =>
+    ipcRenderer.invoke(LIGHTING_DEMO_SCENE_CHANNEL),
   watchLighting: (open: boolean) =>
     ipcRenderer.send(LIGHTING_WATCH_CHANNEL, open),
   /** `developers` opens Windows' developer page instead of Dynamic Lighting. */

@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Ver o Plus',
 
   'lighting.preview.status':
-    'Prévia — seus dispositivos mantêm a própria iluminação',
+    'Prévia — seus dispositivos acendem enquanto esta página estiver aberta',
+  'lighting.preview.lit': 'Iluminando seus dispositivos com a cena',
   'lighting.preview.oneScene': 'Uma cena para mostrar o que ela faz',
   'lighting.preview.noScene': 'Uma cena Plus na sua mesa',
   'lighting.preview.moreScenes': 'Todas as cenas com o Plus',
   'lighting.preview.held':
-    'Com o Plus seus dispositivos acendem assim, em qualquer cena.',
+    'Com o Plus seus dispositivos ficam acesos assim, em qualquer cena.',
   'lighting.preview.locked': 'Brilho, estilo e alinhamento vêm com o Plus.',
 
   'lighting.unsupported.title': 'A iluminação dinâmica funciona no Windows',

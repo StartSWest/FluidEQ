@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Découvrir Plus',
 
   'lighting.preview.status':
-    'Aperçu — vos appareils gardent leur propre éclairage',
+    'Aperçu — vos appareils s’allument tant que cette page est ouverte',
+  'lighting.preview.lit': 'Vos appareils s’allument avec la scène',
   'lighting.preview.oneScene': 'Une scène pour montrer ce que ça donne',
   'lighting.preview.noScene': 'Une scène Plus sur votre bureau',
   'lighting.preview.moreScenes': 'Toutes les scènes avec Plus',
   'lighting.preview.held':
-    'Avec Plus, vos appareils s’allument comme ça, sur toutes les scènes.',
+    'Avec Plus, vos appareils restent allumés comme ça, sur toutes les scènes.',
   'lighting.preview.locked':
     'La luminosité, le style et l’alignement arrivent avec Plus.',
 

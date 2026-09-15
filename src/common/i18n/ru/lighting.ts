@@ -54,12 +54,13 @@ const lighting = {
   'lighting.gate.cta': 'Узнать о Plus',
 
   'lighting.preview.status':
-    'Предпросмотр: устройства сохраняют свою подсветку',
+    'Предпросмотр: устройства светятся, пока открыта эта страница',
+  'lighting.preview.lit': 'Подсвечиваем ваши устройства сценой',
   'lighting.preview.oneScene': 'Одна сцена, чтобы показать, как это работает',
   'lighting.preview.noScene': 'Сцена Plus на вашем столе',
   'lighting.preview.moreScenes': 'Все сцены — с Plus',
   'lighting.preview.held':
-    'С Plus ваши устройства светятся так же — в любой сцене.',
+    'С Plus ваши устройства светятся так постоянно — в любой сцене.',
   'lighting.preview.locked': 'Яркость, стиль и выравнивание — с Plus.',
 
   'lighting.unsupported.title': 'Динамическая подсветка работает в Windows',

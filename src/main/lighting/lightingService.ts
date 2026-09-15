@@ -11,6 +11,7 @@ import {
   readLightingSettings,
   type ILamp,
   type ILightingDevice,
+  type ILightingFrame,
   type ILightingSettings,
   type ILightingState,
   type TSynapseState,
@@ -19,9 +20,7 @@ import { createChromaClient, type IChromaClient } from './chromaClient';
 import { loadChromaKeyboard } from './chromaKeyboard';
 import {
   buildDeviceList,
-  lightsThroughWindows,
   razerCandidates,
-  rowKeyOfWindowsDevice,
   toWindowsDevice,
   type IWindowsDevice,
 } from './lightingDevices';
@@ -43,6 +42,7 @@ import type {
 } from './lightingWire';
 import {
   describeWindowsHold,
+  heldWindowsDevices,
   windowsBackgroundOf,
   type IHeldDevice,
 } from './windowsControl';
@@ -84,6 +84,12 @@ export interface ILightingService {
   /** The page opened (true) or closed (false). */
   watch(open: boolean): void;
   frame(raw: unknown): void;
+  /**
+   * A frame of the page's demo without Plus: on the devices for as long as
+   * they keep coming — the page is open — and never with Plus, where the
+   * switch decides.
+   */
+  demoFrame(raw: unknown): void;
   release(): void;
   /** The window reloaded or went away without saying so. */
   windowGone(): void;
@@ -113,6 +119,8 @@ export const createLightingService = (
   let watchers = 0;
   let live = false;
   let ambient = false;
+  /** The page's demo without Plus is what is lighting the devices. */
+  let demoLit = false;
   let host: ILightingHost | undefined;
   let hostIdentity = false;
   // What the running helper reported: FluidEQ's package family name while it
@@ -142,24 +150,7 @@ export const createLightingService = (
 
   const heldDevices = (): IHeldDevice[] =>
     live
-      ? [...windows.values()]
-          .filter(
-            (device) =>
-              device.available === false &&
-              lightsThroughWindows(device, razer, chroma.state()) &&
-              !settings.muted.includes(rowKeyOfWindowsDevice(device, razer)),
-          )
-          .map((device) => {
-            const rowKey = rowKeyOfWindowsDevice(device, razer);
-            const twin = rowKey.startsWith('razer:')
-              ? razer.get(rowKey.slice('razer:'.length))
-              : undefined;
-            return {
-              name: twin ? describeRazer(twin).name : device.event.name,
-              id: device.event.id,
-              vendorId: device.event.vendorId,
-            };
-          })
+      ? heldWindowsDevices(windows, razer, chroma.state(), settings.muted)
       : [];
 
   const heldByWindows = (): string[] =>
@@ -348,7 +339,7 @@ export const createLightingService = (
     // to have worked.
     if (
       !deps.supported ||
-      !settings.enabled ||
+      !(settings.enabled || demoLit) ||
       (identity !== undefined && identity !== 'developer-mode-off')
     ) {
       return;
@@ -375,6 +366,7 @@ export const createLightingService = (
   };
 
   const release = () => {
+    demoLit = false;
     if (!live) {
       return;
     }
@@ -385,6 +377,39 @@ export const createLightingService = (
     router.clear();
     startHelper();
     publish();
+  };
+
+  /** A frame that reaches the devices, the member's or the demo's. */
+  const deliver = (frame: ILightingFrame) => {
+    if (!live) {
+      live = true;
+      startHelper();
+      publish();
+    } else if (!host) {
+      // Ended by itself mid-song; within its failure budget it comes back.
+      startHelper();
+    }
+    if (ambient !== (frame.ambient ?? false)) {
+      ambient = frame.ambient ?? false;
+      publish();
+    }
+    router.route(frame, {
+      settings,
+      chroma,
+      razer,
+      hasRazer,
+      keyboards,
+      windows,
+      heldWindows,
+      razerPending: pending.razer,
+      host: () => host,
+      restartHelper: () => {
+        stopHelper();
+        startHelper();
+      },
+    });
+    // No publish here: nothing the page lists changes with a frame. What
+    // does — a device held back, Razer's answer — arrives as its own event.
   };
 
   checkIdentity();
@@ -422,35 +447,20 @@ export const createLightingService = (
         release();
         return;
       }
-      if (!live) {
-        live = true;
-        startHelper();
-        publish();
-      } else if (!host) {
-        // Ended by itself mid-song; within its failure budget it comes back.
-        startHelper();
+      deliver(frame);
+    },
+    demoFrame: (raw) => {
+      const frame = readLightingFrame(raw);
+      // With Plus the switch decides, and a page with Plus sends no demo.
+      if (!frame || !deps.supported || deps.entitled()) {
+        return;
       }
-      if (ambient !== (frame.ambient ?? false)) {
-        ambient = frame.ambient ?? false;
-        publish();
+      if (!demoLit) {
+        demoLit = true;
+        // Windows lends its lamps to an app it can identify, demo or not.
+        checkIdentity();
       }
-      router.route(frame, {
-        settings,
-        chroma,
-        razer,
-        hasRazer,
-        keyboards,
-        windows,
-        heldWindows,
-        razerPending: pending.razer,
-        host: () => host,
-        restartHelper: () => {
-          stopHelper();
-          startHelper();
-        },
-      });
-      // No publish here: nothing the page lists changes with a frame. What
-      // does — a device held back, Razer's answer — arrives as its own event.
+      deliver(frame);
     },
     release,
     windowGone: () => {

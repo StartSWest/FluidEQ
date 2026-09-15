@@ -15,6 +15,8 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import {
+  LIGHTING_DEMO_FRAME_CHANNEL,
+  LIGHTING_DEMO_SCENE_CHANNEL,
   LIGHTING_FRAME_CHANNEL,
   LIGHTING_OPEN_RAZER_CHROMA_CHANNEL,
   LIGHTING_OPEN_WINDOWS_SETTINGS_CHANNEL,
@@ -24,6 +26,7 @@ import {
   LIGHTING_STATE_CHANNEL,
   LIGHTING_WATCH_CHANNEL,
 } from '../../common/lighting/lightingModel';
+import { lightingDemoScene } from '../lighting/lightingDemoScene';
 import {
   createLightingService,
   type ILightingService,
@@ -122,11 +125,17 @@ export const registerLightingIpc = (
       service.frame(frame);
     }
   });
+  onWindowMessage(LIGHTING_DEMO_FRAME_CHANNEL, (event, frame: unknown) => {
+    if (fromOwner(event.sender)) {
+      service.demoFrame(frame);
+    }
+  });
   onWindowMessage(LIGHTING_RELEASE_CHANNEL, (event) => {
     if (fromOwner(event.sender)) {
       service.release();
     }
   });
+  ipcMain.handle(LIGHTING_DEMO_SCENE_CHANNEL, () => lightingDemoScene());
   onWindowMessage(LIGHTING_WATCH_CHANNEL, (event, open: unknown) => {
     if (typeof open === 'boolean' && fromOwner(event.sender)) {
       service.watch(open);

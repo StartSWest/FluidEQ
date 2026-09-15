@@ -120,12 +120,7 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
     return (
       <>
         {head}
-        <LightingPlusPreview
-          devices={state.devices}
-          searching={state.searching}
-          feed={feed}
-          brightness={state.settings.brightness}
-        />
+        <LightingPlusPreview state={state} feed={feed} />
       </>
     );
   }

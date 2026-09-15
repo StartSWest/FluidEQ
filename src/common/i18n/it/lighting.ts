@@ -53,12 +53,13 @@ const lighting = {
   'lighting.gate.cta': 'Scopri Plus',
 
   'lighting.preview.status':
-    'Anteprima — i tuoi dispositivi mantengono la loro luce',
+    'Anteprima — i tuoi dispositivi si illuminano finché questa pagina è aperta',
+  'lighting.preview.lit': 'Sto illuminando i tuoi dispositivi con la scena',
   'lighting.preview.oneScene': 'Una scena per mostrare come funziona',
   'lighting.preview.noScene': 'Una scena Plus sulla tua scrivania',
   'lighting.preview.moreScenes': 'Tutte le scene con Plus',
   'lighting.preview.held':
-    'Con Plus i tuoi dispositivi si illuminano così, con ogni scena.',
+    'Con Plus i tuoi dispositivi restano illuminati così, con ogni scena.',
   'lighting.preview.locked':
     'Luminosità, stile e allineamento arrivano con Plus.',
 
