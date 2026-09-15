@@ -155,6 +155,12 @@ export interface IEntitlement {
   checkIfDue(reason: string): Promise<void>;
   /** A check regardless of when the last one was — for a Refresh button. */
   checkNow(): Promise<IEntitlementStatus>;
+  /**
+   * Somebody has been sent to the merchant's own page to pay or to cancel.
+   * Until the answer moves, every event checks: staleness is the wrong
+   * question at the one moment the answer is known to be about to change.
+   */
+  expectChange(): void;
   /** The account is gone; there is nothing to be entitled through. */
   forget(): void;
   /**
@@ -252,6 +258,20 @@ export const createEntitlement = (
   // next event rather than waiting four hours for one that might work.
   let lastCheckedAt = 0;
   let inFlight: Promise<IEntitlementStatus> | undefined;
+  /**
+   * The status as it read when somebody was sent to the merchant, while that
+   * answer is still owed.
+   *
+   * Paying is the one event this app cannot hear about. The merchant's notice
+   * reaches the server, not the machine, so the only moment the app can learn
+   * of it is the person coming back to the window — and that is exactly when
+   * the four-hour staleness test refused to ask, because the check made
+   * minutes earlier, before they paid, still counted as recent. Plus stayed
+   * off until the app was started again, over a message promising it would
+   * turn on. So while an answer is owed, every event asks, and the wait ends
+   * the moment the answer differs from the one they left with.
+   */
+  let awaiting: string | undefined;
 
   const stored = (): IEntitlementRecord | undefined => {
     if (!loaded && store.available()) {
@@ -354,6 +374,9 @@ export const createEntitlement = (
       return status();
     }
     remember(readRow(body, identity.id, now()));
+    if (awaiting !== undefined && JSON.stringify(status()) !== awaiting) {
+      awaiting = undefined;
+    }
     return status();
   };
 
@@ -382,14 +405,21 @@ export const createEntitlement = (
       if (session.state().status !== 'signed-in') {
         return;
       }
-      if (now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS) {
+      if (
+        awaiting === undefined &&
+        now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS
+      ) {
         return;
       }
       logger?.info(`Checking the subscription after ${reason}.`);
       await checkNow();
     },
+    expectChange: () => {
+      awaiting = JSON.stringify(status());
+    },
     forget: () => {
       lastCheckedAt = 0;
+      awaiting = undefined;
       remember(undefined);
     },
     releaseDevelopmentOverride: () => {

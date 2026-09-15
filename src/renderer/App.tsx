@@ -158,6 +158,7 @@ import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
 import PlusTermsNotice from './components/PlusTermsNotice';
+import PlusWelcomeDialog from './components/PlusWelcomeDialog';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
@@ -2792,6 +2793,10 @@ const AppContent = () => {
         {/* Here too: the terms promise that the app tells a member when they
             change, and a member need never open the Plus tab to use Plus. */}
         <PlusTermsNotice />
+        {/* The one moment a membership turning on is marked. Here rather than
+            in the Plus tab, because paying is done from the account panel and
+            the answer can land with any tab open. */}
+        <PlusWelcomeDialog />
         {showFeatureTour && (
           <FeatureTour
             version={APP_VERSION}

@@ -287,9 +287,15 @@ export const registerAccountIpc = ({
     }
     try {
       const url = await mint(token);
-      return openExternalIfSafe(url)
-        ? { ok: true }
-        : { ok: false, failure: 'rejected' };
+      if (!openExternalIfSafe(url)) {
+        return { ok: false, failure: 'rejected' };
+      }
+      // They are at the merchant now. Whatever they do there — pay, or stop
+      // paying — reaches the server and never this machine, so the window
+      // coming back is the only news the app will get, and it must be
+      // believed rather than judged recent enough to skip.
+      entitled.expectChange();
+      return { ok: true };
     } catch (error) {
       logger?.warn(`Billing page could not be opened: ${error}`);
       return {

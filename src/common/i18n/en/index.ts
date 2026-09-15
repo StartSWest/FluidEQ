@@ -52,6 +52,7 @@ import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
 import plus from './plus';
+import plusWelcome from './plusWelcome';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
@@ -79,6 +80,7 @@ const en = {
   ...terms,
   ...studio,
   ...plus,
+  ...plusWelcome,
   ...termsNotice,
   ...engineHealth,
   ...dspOff,

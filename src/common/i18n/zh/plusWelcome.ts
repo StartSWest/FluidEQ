@@ -1,0 +1,23 @@
+const plusWelcome = {
+  'plusWelcome.eyebrow': 'FluidEQ Plus',
+  'plusWelcome.title': '欢迎加入 Plus',
+  'plusWelcome.lead':
+    '会员已开通。谢谢你，FluidEQ 正是靠这些支持才能继续做下去。以下是刚刚为你打开的内容。',
+  'plusWelcome.scenes.title': '全部可视化场景',
+  'plusWelcome.scenes.line':
+    'FluidEQ 自己的场景，以及成员发布的一切，随你的音乐播放。',
+  'plusWelcome.studio.title': 'Creator Studio',
+  'plusWelcome.studio.line': '制作自己的场景，并发布到画廊。',
+  'plusWelcome.desktop.title': '你的桌面',
+  'plusWelcome.desktop.line':
+    '把可视化场景放到图标后面，单个显示器或全部显示器。',
+  'plusWelcome.lighting.title': '动态灯光',
+  'plusWelcome.lighting.line': '灯光随音乐律动，用当前场景的颜色。',
+  'plusWelcome.board.title': '排行榜',
+  'plusWelcome.board.line': '用你的收听时长和场景获得的喜欢往上爬。',
+  'plusWelcome.note': 'Plus 最多可用于五台你的电脑，原本免费的一切仍然免费。',
+  'plusWelcome.open': '打开可视化',
+  'plusWelcome.later': '稍后',
+};
+
+export default plusWelcome;

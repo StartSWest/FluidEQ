@@ -481,6 +481,49 @@ describe('the entitlement controller', () => {
   });
 
   /**
+   * Paying happens at the merchant, in a browser: the server hears of it and
+   * this machine does not, so the person coming back to the window is the
+   * only news the app gets. The check made minutes earlier — before they
+   * paid — is exactly the answer that is now wrong, and counting it as recent
+   * enough left Plus off until the app was started again.
+   */
+  it('asks on every event after somebody is sent to pay, however recent the last answer', async () => {
+    fetchImpl.mockResolvedValue(jsonResponse([]));
+    const entitlement = build();
+
+    await entitlement.checkIfDue('launch');
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    await entitlement.checkIfDue('window focused');
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    entitlement.expectChange();
+    await entitlement.checkIfDue('window focused');
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    // Still nothing paid: the next come-back asks again rather than giving up
+    // on somebody who is still filling in a card.
+    await entitlement.checkIfDue('window focused');
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(entitlement.status().state).toBe('none');
+  });
+
+  it('goes back to asking only when stale once the answer has moved', async () => {
+    fetchImpl.mockResolvedValue(jsonResponse([]));
+    const entitlement = build();
+    entitlement.expectChange();
+
+    await entitlement.checkIfDue('window focused');
+    expect(entitlement.status().state).toBe('none');
+
+    fetchImpl.mockResolvedValue(jsonResponse(row()));
+    await entitlement.checkIfDue('window focused');
+    expect(entitlement.status().state).toBe('active');
+    const asked = fetchImpl.mock.calls.length;
+
+    await entitlement.checkIfDue('window focused');
+    expect(fetchImpl).toHaveBeenCalledTimes(asked);
+  });
+
+  /**
    * A failed attempt does not count as a check. Being offline should retry on
    * the next event, not wait four hours for one that might have worked.
    */

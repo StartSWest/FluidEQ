@@ -196,6 +196,7 @@ import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
+import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import registerWallpaperIpc from './wallpaper/register';
 import { createArrangementStore } from './wallpaper/arrangement';
@@ -3027,6 +3028,16 @@ const plusTermsNoticeIpc = registerPlusTermsNoticeIpc({
   logger: log,
 });
 
+// Paying happens in a browser, so the membership turning on is the only
+// news the app gets of it. This marks that moment once per account.
+const plusWelcomeIpc = registerPlusWelcomeIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  logger: log,
+});
+
 // The premium looks ride on the account: they are listed only while the
 // subscription is live, and fetched on the same "somebody is back at the
 // machine" events. Registering reads the cache; it contacts nothing.
@@ -3528,6 +3539,7 @@ app.on('before-quit', (event) => {
   // the old listener is still holding a port nobody is going to answer on.
   accountIpc.dispose();
   plusTermsNoticeIpc.dispose();
+  plusWelcomeIpc.dispose();
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
   plusGiftsIpc.dispose();

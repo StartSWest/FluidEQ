@@ -1,0 +1,154 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Above the account panel it can appear over: paying is done from there, and
+// the welcome arrives while it is still open.
+.plus-member-welcome-backdrop {
+  @include dialog.backdrop(1500);
+}
+
+.plus-member-welcome {
+  @include dialog.surface(520px, 760px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  // The accent, once, behind the header — the only celebration in the
+  // dialog. A still gradient rather than anything moving: it is read for two
+  // seconds and then closed, and a machine drawing a scene on the graph
+  // behind it has better uses for the frame.
+  &::before {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 210px;
+    background:
+      radial-gradient(
+        124% 104% at 14% -8%,
+        color-mix(in srgb, $secondary-default 52%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        104% 96% at 96% -6%,
+        color-mix(in srgb, $active 38%, transparent),
+        transparent 66%
+      );
+    content: '';
+    pointer-events: none;
+  }
+
+  // Everything sits over that wash.
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.plus-member-welcome__body {
+  display: grid;
+  gap: $spacing-m;
+  padding: 0 $spacing-l $spacing-m;
+  overflow-y: auto;
+}
+
+.plus-member-welcome__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.plus-member-welcome__opened {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plus-member-welcome__item {
+  display: grid;
+  // The mark's column is fixed; the text takes the rest and wraps in it, so
+  // no translation decides the dialog's width.
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+  gap: $spacing-s;
+  padding: 9px 11px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: $radius-s;
+  // Each on its own ground, all alike: five plain lines read as one paragraph
+  // broken up, and striping alternate ones reads as a table of two kinds.
+  // These are five separate things of one kind.
+  background: rgba($white, 0.035);
+}
+
+.plus-member-welcome__mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  place-items: center;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    color: $secondary-light;
+  }
+}
+
+.plus-member-welcome__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plus-member-welcome__item-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.plus-member-welcome__item-line {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.plus-member-welcome__note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.plus-member-welcome__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  padding: $spacing-m $spacing-l $spacing-l;
+  border-top: 1px solid rgba($white, 0.06);
+
+  // Narrow: the pair stacks with the recommendation on top, rather than two
+  // half-width buttons with the quiet one leading.
+  @media (max-width: 420px) {
+    flex-direction: column-reverse;
+
+    .button {
+      width: 100%;
+    }
+  }
+}

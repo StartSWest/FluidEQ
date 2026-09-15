@@ -144,6 +144,7 @@ import { engineHealthBridge } from './engineHealthBridge';
 import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
+import { plusWelcomeBridge } from './plusWelcomeBridge';
 
 export type Channels = string;
 
@@ -1506,6 +1507,7 @@ export default {
     ...dspHostBridge,
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
+    ...plusWelcomeBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,
