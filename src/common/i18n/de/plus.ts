@@ -6,7 +6,7 @@ const plus = {
   'plus.card.remove': 'Entfernen',
   'plus.official.author': 'FluidEQ · Offiziell',
   'plus.official.included': 'In Plus enthalten',
-  'plus.official.sample': 'Kostenlos testen',
+  'plus.official.sample': '{seconds}-Sekunden-Vorschau',
   'plus.official.badge': 'Offiziell',
   'plus.official.fine':
     'Teil der FluidEQ-Sammlung: läuft aus Ihren Darstellungen, solange Sie Plus haben.',

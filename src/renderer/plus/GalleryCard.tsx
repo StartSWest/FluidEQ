@@ -1,4 +1,5 @@
 import type { IGalleryScene } from 'common/plusGallery';
+import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import { resolveSceneName } from 'common/scenePacks';
 import { isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime, relativeTime } from '../forum/forumTime';
@@ -51,7 +52,14 @@ export default function GalleryCard({
   const { t, locale } = useTranslation();
   const entitled = usePlusEntitled();
   const samples = useTasteSamples();
-  const freeTaste = !entitled && scene.official && samples.has(scene.sceneId);
+  // A sample is a taste, not a gift: the card promises the ten seconds its
+  // page plays and nothing more, or "Free to try" reads as a scene given
+  // away (Ivan, 2026-09-15). The number is the taste's own, so the promise
+  // cannot drift from the page.
+  const taste = !entitled && scene.official && samples.has(scene.sceneId);
+  const officialLabel = taste
+    ? t('plus.official.sample', { seconds: PLUS_TASTE_SECONDS })
+    : t('plus.official.included');
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
@@ -143,7 +151,7 @@ export default function GalleryCard({
         <div className="gallery-card__foot">
           <span className="gallery-card__adds">
             {scene.official
-              ? t(freeTaste ? 'plus.official.sample' : 'plus.official.included')
+              ? officialLabel
               : t('plus.card.adds', { count: adds })}
           </span>
           <SceneHeart scene={scene} name={name} own={own} />
