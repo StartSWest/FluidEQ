@@ -107,6 +107,7 @@ export const describeAudioEngine = (facts: IEngineReportFacts): string => {
     // these answer, and every one of them can turn false long after setup.
     `Windows allows it to load: ${yesNo(fluid?.unsignedAllowed)}, ` +
       `runtime beside it: ${yesNo(fluid?.runtimeBeside)}, ` +
+      `can write its own folder: ${yesNo(fluid?.serviceCanWrite)}, ` +
       `has ever run here: ${yesNo(fluid?.everRan)}`,
   ];
   if (fluid?.configDir) {

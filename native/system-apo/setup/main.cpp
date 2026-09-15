@@ -49,6 +49,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
+#include "acl.h"
 #include "backup.h"
 #include "com_registration.h"
 #include "commands.h"
@@ -76,6 +77,7 @@ using fluideq_engine::setup::engine_root;
 using fluideq_engine::setup::ensure_engine_tree;
 using fluideq_engine::setup::installed_dll_path;
 using fluideq_engine::setup::apo_record_present;
+using fluideq_engine::setup::service_can_write;
 using fluideq_engine::setup::unsigned_effects_enabled;
 using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::is_elevated;
@@ -284,6 +286,12 @@ int print_status() {
   // been playing sound is itself the answer.
   out += L",\"everRan\":";
   out += path_exists(engine_root() + L"\\engine.log") ? L"true" : L"false";
+  // And whether the account the effect runs as may write there at all: the
+  // tree can exist, be named correctly and still be closed to LOCAL SERVICE,
+  // which loads the effect into a folder it can neither read a configuration
+  // from nor write a status to. From outside, identical to never loading.
+  out += L",\"serviceCanWrite\":";
+  out += service_can_write(engine_root()) ? L"true" : L"false";
   out += L",\"endpoints\":[";
   for (size_t at = 0; at < endpoints.size(); ++at) {
     if (at != 0) {

@@ -108,18 +108,43 @@ const EngineTroubleNotice = ({
   }
 
   const isOff = trouble.kind === 'off';
-  const canRestartHelp = isOff || trouble.canRestartHelp;
+  // An engine Windows has never once created is not an engine that stopped.
+  // Offering "Restart Windows audio" there — the loud button, under a line
+  // saying a restart usually brings it back — promised a user something that
+  // could not happen, over and over.
+  const neverRan = trouble.kind === 'off' && trouble.neverRan === true;
+  const canRestartHelp =
+    trouble.kind === 'off' ? !neverRan : trouble.canRestartHelp;
   const dismiss = () => putAway(trouble.key);
+  // Loud where it is the way out, quiet where it is the alternative: with an
+  // engine Windows has never created, Equalizer APO is the only thing on this
+  // card that processes any sound at all.
   const useApo = (
     <Button
       ariaLabel={t('engineHealth.useApo')}
       isDisabled={false}
-      className="small subtle"
+      className={neverRan ? 'small' : 'small subtle'}
       handleChange={onUseApo}
     >
       {t('engineHealth.useApo')}
     </Button>
   );
+  const notNow = (
+    <Button
+      ariaLabel={t('output.notNow')}
+      isDisabled={false}
+      className="small subtle"
+      handleChange={dismiss}
+    >
+      {t('output.notNow')}
+    </Button>
+  );
+  let titleKey: TranslationKey = 'engineHealth.problemsTitle';
+  if (isOff) {
+    titleKey = neverRan
+      ? 'engineHealth.neverRanTitle'
+      : 'engineHealth.offTitle';
+  }
 
   return createPortal(
     <aside
@@ -135,12 +160,14 @@ const EngineTroubleNotice = ({
           {isOff ? t('output.off') : t('engineHealth.partlyOff')}
         </span>
         <h2 id="engine-trouble-notice-title">
-          {isOff
-            ? t('engineHealth.offTitle', { device: trouble.device.name })
-            : t('engineHealth.problemsTitle', { device: trouble.device.name })}
+          {t(titleKey, { device: trouble.device.name })}
         </h2>
         {isOff ? (
-          <p id="engine-trouble-notice-body">{t('engineHealth.offBody')}</p>
+          <p id="engine-trouble-notice-body">
+            {neverRan
+              ? t('engineHealth.neverRanBody', { device: trouble.device.name })
+              : t('engineHealth.offBody')}
+          </p>
         ) : (
           <ul
             id="engine-trouble-notice-body"
@@ -164,28 +191,32 @@ const EngineTroubleNotice = ({
               {t('app.menu.restartAudio')}
             </Button>
             {useApo}
-            <Button
-              ariaLabel={t('output.notNow')}
-              isDisabled={false}
-              className="small subtle"
-              handleChange={dismiss}
-            >
-              {t('output.notNow')}
-            </Button>
+            {notNow}
           </>
         ) : (
           <>
-            {/* Nothing here mends a file the engine could not read; the
-                answer is a different file, chosen where it was chosen. */}
-            <Button
-              ariaLabel={t('output.gotIt')}
-              isDisabled={false}
-              className="small"
-              handleChange={dismiss}
-            >
-              {t('output.gotIt')}
-            </Button>
-            {useApo}
+            {/* An engine Windows has never created: Equalizer APO is the way
+                to have any processing at all, so it leads. Otherwise nothing
+                here mends a file the engine could not read — the answer is a
+                different file, chosen where it was chosen. */}
+            {neverRan ? (
+              <>
+                {useApo}
+                {notNow}
+              </>
+            ) : (
+              <>
+                <Button
+                  ariaLabel={t('output.gotIt')}
+                  isDisabled={false}
+                  className="small"
+                  handleChange={dismiss}
+                >
+                  {t('output.gotIt')}
+                </Button>
+                {useApo}
+              </>
+            )}
           </>
         )}
       </div>

@@ -30,7 +30,18 @@ import {
  * Nothing at all under Equalizer APO, which says nothing about itself.
  */
 export type TEngineTrouble =
-  | { kind: 'off'; device: IAudioDevice; key: string }
+  | {
+      kind: 'off';
+      device: IAudioDevice;
+      key: string;
+      /**
+       * The engine has never once run on this machine, as the setup helper
+       * reports it — so this is not an engine that stopped, it is one
+       * Windows has never created. Restarting Windows audio cannot mend
+       * that, and the notice must not offer it as though it could.
+       */
+      neverRan?: boolean;
+    }
   | {
       kind: 'problems';
       device: IAudioDevice;
@@ -62,6 +73,8 @@ export interface IEngineTroubleFacts {
    * after the sound began: see `useEngineTrouble`.
    */
   heardGuid: string | undefined;
+  /** What the helper says about the engine ever having run here. */
+  hasEverRun?: boolean;
 }
 
 /**
@@ -85,6 +98,7 @@ export const engineTrouble = ({
   reportsStatus,
   health,
   heardGuid,
+  hasEverRun,
 }: IEngineTroubleFacts): TEngineTrouble | undefined => {
   if (engine !== 'fluid') {
     return undefined;
@@ -118,10 +132,17 @@ export const engineTrouble = ({
       device.effectsEnabled !== false &&
       (!status?.locked || !status.owner)
     ) {
+      const neverRan = hasEverRun === false;
       return {
         kind: 'off',
         device,
-        key: `off:${normaliseEndpointGuid(device.guid)}`,
+        // In the key, so the card speaks again if this ever changes from one
+        // to the other: they say different things and offer different
+        // buttons, and the second is not the one that was put away.
+        key: `off${neverRan ? ':never' : ''}:${normaliseEndpointGuid(
+          device.guid,
+        )}`,
+        ...(neverRan ? { neverRan } : {}),
       };
     }
   }

@@ -146,6 +146,23 @@ describe('EngineTroubleNotice', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
+  it('offers Equalizer APO, not a restart, when Windows never started the engine', () => {
+    // A user's machine: installed, attached, and never once created by
+    // Windows. The old card led with "Restart Windows audio" under a line
+    // saying a restart usually brings it back — neither was true there.
+    renderNotice({ trouble: { ...off, neverRan: true } });
+
+    expect(
+      screen.getByText(en['engineHealth.neverRanTitle']),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en['app.menu.restartAudio'] }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button').map((button) => button.textContent),
+    ).toEqual([en['engineHealth.useApo'], en['output.notNow']]);
+  });
+
   it('still speaks up for a different trouble on the same output', () => {
     const { rerender } = renderNotice({ trouble: off });
     fireEvent.click(screen.getByRole('button', { name: en['output.notNow'] }));

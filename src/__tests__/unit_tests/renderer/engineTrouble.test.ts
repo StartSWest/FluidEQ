@@ -163,6 +163,17 @@ describe('engineTrouble', () => {
     ).toBeUndefined();
   });
 
+  it('marks an engine Windows has never created, so the card can say so', () => {
+    const trouble = engineTrouble(
+      facts({ heardGuid: '{AAAA}', hasEverRun: false }),
+    );
+    expect(trouble?.kind).toBe('off');
+    expect(trouble?.kind === 'off' && trouble.neverRan).toBe(true);
+    // Its own key: the two cards say different things and offer different
+    // buttons, so putting one away must not silence the other.
+    expect(trouble?.key).toContain('never');
+  });
+
   it('leaves an output with its enhancements switched off to the same notice', () => {
     // Restarting Windows audio cannot help here — Windows loads no effect on
     // that output at all — and this card's own button offers exactly that.

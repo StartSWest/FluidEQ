@@ -54,6 +54,23 @@ bool apply_engine_acl(const std::wstring& directory, std::wstring& error);
  */
 bool apply_backup_acl(const std::wstring& directory, std::wstring& error);
 
+/**
+ * Whether the account the effect runs as can write in `directory`.
+ *
+ * The one permission everything depends on and nothing reports. Inside
+ * audiodg.exe the effect is LOCAL SERVICE, and it writes its status and its
+ * log into this tree before any audio passes; without that right it loads,
+ * finds nothing it may read or write, and passes every output through in
+ * silence — which from outside is indistinguishable from an effect Windows
+ * never created at all. A tree left behind by an older install, or one whose
+ * inherited permissions somebody tightened, is exactly that machine.
+ *
+ * Asked of the directory's own access list rather than by trying a write:
+ * this program does not run as LOCAL SERVICE and cannot try. LOCAL SERVICE is
+ * a member of BUILTIN\Users, so either trustee answering yes is the answer.
+ */
+bool service_can_write(const std::wstring& directory);
+
 }  // namespace fluideq_engine::setup
 
 #endif  // FLUIDEQ_ENGINE_SETUP_ACL_H

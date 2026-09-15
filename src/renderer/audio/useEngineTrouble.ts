@@ -195,8 +195,17 @@ const useEngineTrouble = (
         reportsStatus,
         health,
         heardGuid,
+        hasEverRun: fluid?.everRan,
       }),
-    [engine, devices, fluidEndpoints, reportsStatus, health, heardGuid],
+    [
+      engine,
+      devices,
+      fluidEndpoints,
+      reportsStatus,
+      health,
+      heardGuid,
+      fluid?.everRan,
+    ],
   );
 };
 

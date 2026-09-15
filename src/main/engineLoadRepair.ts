@@ -57,13 +57,28 @@ export const whatStopsTheEngineLoading = (
   if (!fluid.installed) {
     return undefined;
   }
-  // Explicit `false` only. An older helper answers neither, and unknown must
-  // never raise a permission prompt for a machine where nothing is broken.
+  // Explicit `false` only, throughout. An older helper answers none of these,
+  // and unknown must never raise a permission prompt for a machine where
+  // nothing is broken.
   if (fluid.unsignedAllowed === false) {
     return 'Windows is set to refuse effects it did not sign itself';
   }
   if (fluid.runtimeBeside === false) {
     return 'the C++ runtime is missing from the engine folder';
+  }
+  if (fluid.serviceCanWrite === false) {
+    return 'the engine may not write in its own folder';
+  }
+  // And the state that says something is wrong without saying what: the
+  // engine is on an output, and has never once run on this machine. It
+  // writes its own log the first time Windows creates it, so on a machine
+  // that has been playing sound an absent log is not a gap in the evidence,
+  // it IS the evidence. Re-installing is the one action that puts back
+  // everything the three checks above cover and the permissions besides, so
+  // it is worth the single prompt rather than leaving a user with an engine
+  // that reports healthy and does nothing — which is where this began.
+  if (fluid.everRan === false && fluid.endpoints.some((one) => one.attached)) {
+    return 'it is on an output and has never once run here';
   }
   return undefined;
 };

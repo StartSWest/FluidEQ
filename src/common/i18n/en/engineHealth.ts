@@ -10,6 +10,9 @@ const engineHealth = {
   'engineHealth.offTitle': 'The FluidEQ Engine isn’t running on {device}',
   'engineHealth.offBody':
     'Sound is playing on this output without your EQ. Restarting Windows audio usually brings the engine back, and everything else in FluidEQ keeps working meanwhile.',
+  'engineHealth.neverRanTitle': 'Windows has never started the FluidEQ Engine',
+  'engineHealth.neverRanBody':
+    'The engine is installed and on {device}, and Windows has not once loaded it on this PC — so restarting the audio won’t bring it back. FluidEQ has already put right everything it can reach; if this stays, your security software or your sound card’s driver is stopping it. Equalizer APO processes your sound meanwhile.',
   'engineHealth.partlyOff': 'PARTLY OFF',
   'engineHealth.problemsTitle': 'Part of your sound isn’t reaching {device}',
   'engineHealth.problem.convolution':

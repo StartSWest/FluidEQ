@@ -116,6 +116,7 @@ interface IRawStatus {
   unsignedAllowed?: unknown;
   runtimeBeside?: unknown;
   everRan?: unknown;
+  serviceCanWrite?: unknown;
 }
 
 /**
@@ -167,6 +168,9 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
   }
   if (typeof raw.everRan === 'boolean') {
     status.everRan = raw.everRan;
+  }
+  if (typeof raw.serviceCanWrite === 'boolean') {
+    status.serviceCanWrite = raw.serviceCanWrite;
   }
   return status;
 };

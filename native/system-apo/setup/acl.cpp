@@ -120,4 +120,47 @@ bool apply_backup_acl(const std::wstring& directory, std::wstring& error) {
   return apply_acl(directory, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE, error);
 }
 
+bool service_can_write(const std::wstring& directory) {
+  PACL dacl = nullptr;
+  PSECURITY_DESCRIPTOR descriptor = nullptr;
+  if (GetNamedSecurityInfoW(directory.c_str(), SE_FILE_OBJECT,
+                            DACL_SECURITY_INFORMATION, nullptr, nullptr, &dacl,
+                            nullptr, &descriptor) != ERROR_SUCCESS) {
+    // Unreadable permissions are not a verdict: answering "cannot write"
+    // here would raise a repair prompt on a machine with nothing wrong.
+    return true;
+  }
+  // A directory with no list at all is open to everyone, which is a yes.
+  bool allowed = dacl == nullptr;
+  WellKnownSid service;
+  WellKnownSid users;
+  const bool known =
+      service.make(WinLocalServiceSid) && users.make(WinBuiltinUsersSid);
+  for (WORD at = 0; known && dacl != nullptr && !allowed && at < dacl->AceCount;
+       ++at) {
+    LPVOID raw = nullptr;
+    if (GetAce(dacl, at, &raw) == 0) {
+      continue;
+    }
+    const auto* header = static_cast<const ACE_HEADER*>(raw);
+    if (header->AceType != ACCESS_ALLOWED_ACE_TYPE) {
+      continue;
+    }
+    const auto* ace = static_cast<const ACCESS_ALLOWED_ACE*>(raw);
+    // `const_cast` because the SID field is an inline array the ACE owns and
+    // every SID function takes a non-const pointer to it.
+    PSID who = const_cast<PSID>(static_cast<const void*>(&ace->SidStart));
+    if (EqualSid(who, service.get()) == 0 && EqualSid(who, users.get()) == 0) {
+      continue;
+    }
+    // Anything that can create a file here is enough: the effect writes its
+    // own status and log and reads the configuration beside them.
+    allowed = (ace->Mask & FILE_GENERIC_WRITE) == FILE_GENERIC_WRITE ||
+              (ace->Mask & GENERIC_WRITE) == GENERIC_WRITE ||
+              (ace->Mask & FILE_ALL_ACCESS) == FILE_ALL_ACCESS;
+  }
+  LocalFree(descriptor);
+  return allowed;
+}
+
 }  // namespace fluideq_engine::setup

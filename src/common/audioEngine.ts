@@ -105,6 +105,15 @@ export interface IFluidEngineStatus {
   runtimeBeside?: boolean;
   /** Whether the engine has ever run on this machine — it keeps its own log. */
   everRan?: boolean;
+  /**
+   * Whether the account the engine runs as may write in its own folder.
+   *
+   * Without it the engine loads into a folder it can neither read a
+   * configuration from nor write a status to, and passes every output through
+   * in silence — which from outside looks exactly like an engine Windows
+   * never created.
+   */
+  serviceCanWrite?: boolean;
 }
 
 export interface IAudioEngineStatus {
