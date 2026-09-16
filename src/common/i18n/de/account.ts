@@ -21,6 +21,7 @@ const account = {
   'account.signUpHint':
     'An diese Adresse geht ein sechsstelliger Code. Geben Sie ihn hier ein, um abzuschließen.',
   'account.working': 'Einen Moment…',
+  'account.standing.free': 'Kostenloses Konto',
   'account.signOut': 'Abmelden',
   'account.name.change': 'Namen ändern',
   'account.name.changeTitle': 'Ändern, wie Sie erscheinen',

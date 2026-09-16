@@ -19,6 +19,7 @@ const account = {
     '你的密码直接发送到账户服务，不会保存在应用的任何地方。',
   'account.signUpHint': '一个六位数验证码将发送到该地址。在此输入即可完成。',
   'account.working': '请稍候…',
+  'account.standing.free': '免费账户',
   'account.signOut': '退出登录',
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',

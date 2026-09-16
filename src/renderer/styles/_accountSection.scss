@@ -1,0 +1,29 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+
+/**
+ * A section of the account's profile: the membership and the board, one
+ * under the other, as text under a hairline.
+ *
+ * They were two bordered cards, each with an emblem in its own hue, and two
+ * boxes inside a profile card were what made every earlier version read as
+ * a settings page. A profile is one surface (Ivan, 2026-09-15, choosing the
+ * Discord pattern); the sections keep everything they do — the states, the
+ * buttons, the confirmation, the errors — and are told apart by their labels.
+ *
+ * A partial with nothing but the mixin in it, so both sheets can reach the
+ * shape without either of them emitting the other's rules.
+ */
+@mixin account-section {
+  display: grid;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba($white, 0.08);
+}

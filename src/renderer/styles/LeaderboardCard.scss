@@ -6,17 +6,16 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-@use 'accountCard' as *;
+@use 'accountSection' as *;
 @use 'color' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The card in the Account panel: the same object as the Plus card, in a hue
-// of its own — the shape is shared (`account-card` in Account.scss) so the two
-// read as a pair, and the colour is what tells them apart.
+// The board's section of the account's profile: the same shape as the
+// membership's above it (`_accountSection.scss`), told apart by its label.
 .leaderboard-card {
-  @include account-card($neon-lime);
+  @include account-section;
 }
 
 .leaderboard-card__head {
@@ -27,10 +26,6 @@ it under the terms of the GNU General Public License version 3 or later.
   .plus-card__badge {
     margin-left: auto;
   }
-}
-
-.leaderboard-card__mark {
-  @include account-card-mark;
 }
 
 // Today's tally as a ring filling toward the sixteen-hour cap.

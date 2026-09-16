@@ -20,6 +20,7 @@ const account = {
   'account.signUpHint':
     'Um código de seis dígitos segue para esse endereço. Escreve-o aqui para terminar.',
   'account.working': 'Um momento…',
+  'account.standing.free': 'Conta gratuita',
   'account.signOut': 'Terminar sessão',
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',

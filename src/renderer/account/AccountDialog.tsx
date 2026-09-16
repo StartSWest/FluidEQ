@@ -16,10 +16,10 @@ import {
   updateProfile,
   useProfile,
 } from '../plus/profileStore';
-import { useLeaderboard } from '../usage/leaderboardStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { signOutAccount, useAccount } from './accountStore';
 import { useEntitlement } from './entitlementStore';
+import SceneBand from '../plus/SceneBand';
 import PlusCard from './PlusCard';
 import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
@@ -97,7 +97,6 @@ export default function AccountDialog({
   const termsRef = useRef<HTMLDivElement>(null);
   const account = useAccount();
   const entitlement = useEntitlement();
-  const { status: board } = useLeaderboard();
   const [page, setPage] = useState<TAccountPanelPage>(initialPage);
   const [checkoutOpened, setCheckoutOpened] = useState(false);
 
@@ -154,6 +153,8 @@ export default function AccountDialog({
     return page;
   })();
   const onTerms = shown === 'terms' || shown === 'subscribe';
+  // The front page with somebody signed in: the person, as a profile.
+  const onProfile = signedIn && !onTerms;
 
   // The forms take the caret themselves; the close button gets it only when
   // there is nothing to type into. The terms take it on their own page, so
@@ -193,20 +194,25 @@ export default function AccountDialog({
       }}
     >
       <div
-        className="about account"
+        className={`about account${onProfile ? ' account--profile' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="account-title"
       >
-        <DialogHeader
-          eyebrow={onTerms ? t('terms.eyebrow') : t('account.eyebrow')}
-          title={onTerms ? t('terms.title') : t('account.title')}
-          titleId="account-title"
-          version={onTerms ? String(PLUS_TERMS_EDITION) : undefined}
-          closeLabel={t('account.close')}
-          onClose={onClose}
-          closeRef={closeRef}
-        />
+        {/* Signed in, the banner is the top of the panel and the person's
+            name is its title; the standard header would be a second top over
+            it. Every other page keeps the header. */}
+        {!onProfile && (
+          <DialogHeader
+            eyebrow={onTerms ? t('terms.eyebrow') : t('account.eyebrow')}
+            title={onTerms ? t('terms.title') : t('account.title')}
+            titleId="account-title"
+            version={onTerms ? String(PLUS_TERMS_EDITION) : undefined}
+            closeLabel={t('account.close')}
+            onClose={onClose}
+            closeRef={closeRef}
+          />
+        )}
 
         {onTerms && (
           <>
@@ -242,90 +248,117 @@ export default function AccountDialog({
           </>
         )}
 
+        {/* A profile card, the way Discord draws one — the pattern Ivan chose
+            from the references (2026-09-15): a wide banner, the avatar cut
+            into its lower-left edge with a ring in the panel's own colour,
+            the name under it, and the sections as text under hairlines
+            rather than as boxes. A member's banner is the scene, playing;
+            without Plus it is a flat field in the person's colour, the way a
+            profile with no banner takes the account colour there.
+
+            The banner, the avatar and the name are the panel's top, in the
+            row the header would take, and only the sections under them
+            scroll: the avatar hangs over the banner's edge, and a scrolling
+            body would clip the half of it that hangs out. Hidden, not
+            unmounted, on the terms page, like the body under it. */}
+        {signedIn && (
+          <div
+            className="account__top"
+            hidden={onTerms}
+            style={identityStyle(identity.email ?? identity.id)}
+          >
+            <SceneBand
+              playsScene={entitlement.state !== 'none'}
+              className="account__banner"
+            >
+              <button
+                ref={closeRef}
+                type="button"
+                className="account__banner-close"
+                aria-label={t('account.close')}
+                onClick={onClose}
+              >
+                <Glyph name="close" />
+              </button>
+            </SceneBand>
+
+            <div className="account__head">
+              <span className="account__avatar" aria-hidden="true">
+                {initialsOf(identity.name, identity.email)}
+              </span>
+              {entitlement.state === 'none' ? (
+                <span className="account__standing account__standing--free">
+                  {t('account.standing.free')}
+                </span>
+              ) : (
+                <span className="account__standing">
+                  <BrandMark />
+                  {t('account.plus.eyebrow')}
+                </span>
+              )}
+            </div>
+
+            <div className="account__who">
+              <h2 id="account-title" className="account__name">
+                {displayName}
+              </h2>
+              <p className="account__line">
+                {profile && (
+                  <span className="account__handle">@{profile.handle}</span>
+                )}
+                {profile && identity.email && (
+                  <span className="account__dot" aria-hidden="true">
+                    ·
+                  </span>
+                )}
+                {identity.email && identity.email !== displayName && (
+                  <span className="account__email">{identity.email}</span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="about__body account__body" hidden={onTerms}>
           {signedIn && (
             <>
-              {/* The person on the left as a card they own, the two things
-                  that happen to an account stacked beside it. A band across
-                  the top with everything under it was a header over a
-                  settings page; this is somebody's account. */}
-              <div className="account__grid">
-                <section
-                  className="account__member"
-                  style={identityStyle(identity.email ?? identity.id)}
+              <PlusCard
+                entitlement={entitlement}
+                onUpgrade={() => setPage('subscribe')}
+                checkoutOpened={checkoutOpened}
+              />
+              <LeaderboardCard />
+
+              {/* The account's own actions, in a row under a hairline like
+                  the sections above them. Quiet: neither is what anybody
+                  opened this panel to be encouraged into; signing out stands
+                  apart at the far end. */}
+              <div className="account__hero-actions">
+                {/* Only once the server has said whether there is a name:
+                    "choose" offered to somebody who has one would create a
+                    second row and fail on the first. */}
+                {profileLoaded && !editingName && (
+                  <button
+                    type="button"
+                    className="button small subtle account__name-link"
+                    onClick={() => setEditingName(true)}
+                  >
+                    {t(
+                      profile
+                        ? 'account.name.change'
+                        : 'leaderboard.name.choose',
+                    )}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="button small subtle account__sign-out"
+                  onClick={() => {
+                    signOutAccount().catch(() => undefined);
+                  }}
                 >
-                  <div className="account__member-top">
-                    <BrandMark className="account__member-brand" />
-                    <span className="account__member-kind">
-                      {entitlement.state === 'none'
-                        ? t('account.title')
-                        : t('account.plus.eyebrow')}
-                    </span>
-                  </div>
-
-                  <span className="account__avatar" aria-hidden="true">
-                    {initialsOf(identity.name, identity.email)}
-                  </span>
-
-                  <div className="account__who">
-                    <span className="account__name">{displayName}</span>
-                    {profile && (
-                      <span className="account__handle">@{profile.handle}</span>
-                    )}
-                    {identity.email && identity.email !== displayName && (
-                      <span className="account__email">{identity.email}</span>
-                    )}
-                  </div>
-
-                  {board.optedIn && (
-                    <div className="account__chips">
-                      <span className="account__chip">
-                        <Glyph name="board" />
-                        {t('leaderboard.card.title')}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Both of the account's own actions together, at the foot
-                      of the card they belong to. Quiet: neither is what
-                      anybody opened this panel to be encouraged into. */}
-                  <div className="account__hero-actions">
-                    {/* Only once the server has said whether there is a name:
-                        "choose" offered to somebody who has one would create
-                        a second row and fail on the first. */}
-                    {profileLoaded && !editingName && (
-                      <button
-                        type="button"
-                        className="button small subtle account__name-link"
-                        onClick={() => setEditingName(true)}
-                      >
-                        {t(
-                          profile
-                            ? 'account.name.change'
-                            : 'leaderboard.name.choose',
-                        )}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className="button small subtle account__sign-out"
-                      onClick={() => {
-                        signOutAccount().catch(() => undefined);
-                      }}
-                    >
-                      {t('account.signOut')}
-                    </button>
-                  </div>
-                </section>
-
-                <div className="account__cards">
-                  <PlusCard
-                    entitlement={entitlement}
-                    onUpgrade={() => setPage('subscribe')}
-                    checkoutOpened={checkoutOpened}
-                  />
-                  <LeaderboardCard />
-                </div>
+                  {t('account.signOut')}
+                </button>
               </div>
 
               {errorLine}

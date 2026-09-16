@@ -29,6 +29,7 @@ const account = {
   'account.signUpHint':
     'A six-digit code goes to that address. Type it here to finish.',
   'account.working': 'One moment…',
+  'account.standing.free': 'Free account',
   'account.signOut': 'Sign out',
   // The name on the board and on published scenes, changed from here. The
   // fields and their refusals are the board's own (leaderboard.name.*).

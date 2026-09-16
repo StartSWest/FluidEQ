@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { PART_POINTS } from 'common/leaderboardScore';
 import type { TLeaderboardFailure } from 'main/usage/leaderboardApi';
-import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import {
   refreshLeaderboardStatus,
@@ -60,9 +59,6 @@ export default function LeaderboardCard() {
       aria-labelledby="leaderboard-card-title"
     >
       <div className="leaderboard-card__head">
-        <span className="leaderboard-card__mark" aria-hidden="true">
-          <Glyph name="board" />
-        </span>
         <span id="leaderboard-card-title" className="plus-card__eyebrow">
           {t('leaderboard.card.title')}
         </span>

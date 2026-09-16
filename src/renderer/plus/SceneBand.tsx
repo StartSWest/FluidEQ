@@ -25,7 +25,14 @@ export const useHouseScene = (wanted: boolean) => {
   const [pack, setPack] = useState<IScenePack>();
 
   useEffect(() => {
-    if (!wanted || !isSceneRenderingAvailable()) {
+    if (!wanted) {
+      // Let go of it, not merely stop asking: a membership that ends while
+      // the band is up (the simulator's "pretend none", a real lapse) has
+      // to take the scene with it, and a pack kept from before played on.
+      setPack(undefined);
+      return undefined;
+    }
+    if (!isSceneRenderingAvailable()) {
       return undefined;
     }
     let cancelled = false;
@@ -53,11 +60,12 @@ interface ISceneBandProps {
   /**
    * Whether a scene may play in it, rather than the aurora alone.
    *
-   * Off by default, and on in one place: the welcome to Plus (Ivan,
+   * Off by default, and on in two places: the welcome to Plus, and the
+   * banner of a member's own profile in the Account panel (Ivan,
    * 2026-09-15). A scene is what Plus is, so it belongs to the moment
-   * somebody joins and not to a panel anybody opens — and a band that draws
-   * on the graphics card every time the account is looked at is a cost for
-   * decoration.
+   * somebody joins and to the panel that says they have — never to an
+   * account without it, where a band drawing on the graphics card would be
+   * a cost for decoration.
    */
   playsScene?: boolean;
   /** Extra classes: the caller's own name for its band, and any modifier. */

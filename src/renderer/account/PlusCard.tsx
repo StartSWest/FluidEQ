@@ -5,7 +5,6 @@ import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
-import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import plusPriceText from './plusPrice';
 import {
@@ -132,11 +131,6 @@ export default function PlusCard({
       aria-labelledby="plus-card-title"
     >
       <div className="plus-card__head">
-        {/* The same emblem the board's card carries, so the pair reads as two
-            of one kind rather than as a titled box beside a marked one. */}
-        <span className="plus-card__mark" aria-hidden="true">
-          <Glyph name="plus" />
-        </span>
         <span id="plus-card-title" className="plus-card__eyebrow">
           {t('account.plus.eyebrow')}
         </span>

@@ -20,6 +20,7 @@ const account = {
   'account.signUpHint':
     'उस पते पर छह अंकों का कोड जाएगा। पूरा करने के लिए उसे यहाँ लिखें।',
   'account.working': 'एक क्षण…',
+  'account.standing.free': 'मुफ़्त खाता',
   'account.signOut': 'साइन आउट',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',

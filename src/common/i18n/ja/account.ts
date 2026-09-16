@@ -20,6 +20,7 @@ const account = {
   'account.signUpHint':
     'そのアドレスに6桁のコードを送ります。ここに入力して完了してください。',
   'account.working': 'しばらくお待ちください…',
+  'account.standing.free': '無料アカウント',
   'account.signOut': 'サインアウト',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',

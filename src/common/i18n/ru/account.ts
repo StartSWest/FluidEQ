@@ -20,6 +20,7 @@ const account = {
   'account.signUpHint':
     'На этот адрес придёт шестизначный код. Введите его здесь, чтобы завершить.',
   'account.working': 'Секунду…',
+  'account.standing.free': 'Бесплатный аккаунт',
   'account.signOut': 'Выйти',
   'account.name.change': 'Изменить имя',
   'account.name.changeTitle': 'Измените, как вас видят',
