@@ -9,6 +9,7 @@ import { createAccountCredentialStore } from '../accountCredentials';
 import { createEncryptedJsonStore } from '../encryptedJsonStore';
 import openExternalIfSafe from '../safeExternal';
 import { setClientAgent } from '../account/clientAgent';
+import { appVersion } from '../appVersion';
 import {
   createAccountSession,
   type IAccountSession,
@@ -147,7 +148,7 @@ export const registerAccountIpc = ({
   // Before the first request: the sign-in service stamps the session it makes
   // with whatever the app calls itself, and that stamp is what the admin's
   // account list reads a FluidEQ version out of.
-  setClientAgent(app.getVersion(), process.platform);
+  setClientAgent(appVersion(), process.platform);
 
   const session = createAccountSession({
     config: ACCOUNT_CONFIG,

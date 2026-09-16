@@ -50,12 +50,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export const PRODUCT_NAME = 'FluidEQ';
 
 /**
- * The shipped version, or an empty string outside the renderer.
+ * The shipped version.
  *
- * Substituted into the renderer bundle from the same version the installer
- * takes its own number from, so what the UI shows cannot disagree with what a
- * user actually has. Only the renderer defines it; the main process has
- * `app.getVersion()` and should use that.
+ * Substituted from the same version the installer takes its own number from,
+ * so what the UI shows cannot disagree with what a user actually has. Both
+ * halves of the app have it: webpack's `EnvironmentPlugin` when packaged, and
+ * `dev-main.cjs` filling `process.env` before main loads in development.
+ *
+ * The main process reads it through `main/appVersion.ts` rather than
+ * `app.getVersion()`, which is Electron's own version under `pnpm dev` — that
+ * had the bug report, the unattended updater's restart marker, the lighting
+ * helper's Razer package and the account service all calling the app 43.2.0
+ * while the About dialog beside them said 1.7.2.
  */
 export const PRODUCT_VERSION = process.env.FLUIDEQ_VERSION || '';
 

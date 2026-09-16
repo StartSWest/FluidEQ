@@ -35,6 +35,7 @@ import os from 'os';
 import path from 'path';
 import { app } from 'electron';
 import log from 'electron-log';
+import { appVersion } from './appVersion';
 import {
   IGatheredFacts,
   redact,
@@ -182,7 +183,7 @@ const gatherBugReportFacts = async (
   return {
     audioEngine,
     fluidEngineInstalled,
-    appVersion: app.getVersion(),
+    appVersion: appVersion(),
     // A version, never a machine name. `os.hostname()` is deliberately absent.
     platform: `${os.type()} ${os.release()}`,
     arch: os.arch(),

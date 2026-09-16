@@ -228,6 +228,7 @@ import {
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
+import { appVersion } from './appVersion';
 import {
   assignDeviceProfile,
   flushDeviceProfiles,
@@ -627,10 +628,7 @@ const setUpAutoUpdates = async () => {
     isPlayingAudio: isDspHostPlaying,
     isWindowOnScreen: () => isWindowOnScreen(mainWindow),
     rememberRestart: () =>
-      rememberUnattendedRestart(
-        UNATTENDED_RESTART_MARKER_PATH,
-        app.getVersion(),
-      ),
+      rememberUnattendedRestart(UNATTENDED_RESTART_MARKER_PATH, appVersion()),
     logger: log,
   });
 
@@ -929,7 +927,7 @@ const UNATTENDED_RESTART_MARKER_PATH = path.join(
  */
 const didRestartForUnattendedUpdate = consumeUnattendedRestart(
   UNATTENDED_RESTART_MARKER_PATH,
-  app.getVersion(),
+  appVersion(),
 );
 
 const presetPath = path.join(userDataDir, PRESETS_DIR);
@@ -3207,7 +3205,7 @@ registerDspHostIpc({ getMainWindow: () => mainWindow });
 // wait for a member to switch it on.
 const lighting = registerLightingIpc({
   userDataDir,
-  appVersion: app.getVersion(),
+  appVersion: appVersion(),
   getMainWindow: () => mainWindow,
   entitled: () => accountIpc.entitlement.status().state !== 'none',
 });
