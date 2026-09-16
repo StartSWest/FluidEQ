@@ -18,6 +18,7 @@ const live = (seconds: number): ISceneFrame => ({
   level: 0.61,
   beat: 0.2,
   bands: [0.5, 0.4, 0.3],
+  musicAccent: [0, 0],
   accent: [0, 0.9, 0.8],
   fade: 1,
   spectrum: new Uint8Array(512).fill(99),
@@ -43,6 +44,7 @@ describe("the Studio's test signals", () => {
       level: 0,
       beat: 0,
       bands: [0, 0, 0],
+      musicAccent: [0, 0],
       timeSeconds: 3,
       params: { glow: 0.4 },
     });
@@ -127,17 +129,31 @@ describe("the Studio's test signals", () => {
 
   it('beats on a kick in the bass, and not on the hi-hats the bass does not have', () => {
     const buffers = createStudioSignalBuffers();
-    const shaped = (frame: number, bass: number, treble: number) =>
-      shapeStudioFrame(
-        playing(frame / 60, song(bass, 40, treble)),
-        'bass',
-        buffers,
-      );
-    shaped(0, 20, 20);
-    // A hat: loud in the treble only.
-    expect(shaped(30, 20, 250).beat).toBe(0);
-    // A kick.
-    expect(shaped(60, 240, 20).beat).toBe(1);
+    // Frame by frame, as the scene is given them: the listener keeps the pulse
+    // it has been hearing and will not call two onsets inside a quarter of a
+    // second, so three frames stepped thirty apart are, to it, three frames in
+    // a twentieth of a second.
+    const play = (
+      from: number,
+      count: number,
+      bass: number,
+      treble: number,
+    ) => {
+      let last = 0;
+      for (let frame = from; frame < from + count; frame += 1) {
+        last = shapeStudioFrame(
+          playing(frame / 60, song(bass, 40, treble)),
+          'bass',
+          buffers,
+        ).beat;
+      }
+      return last;
+    };
+    play(0, 30, 20, 20);
+    // A hat: loud in the treble only, and the bass signal has no treble.
+    expect(play(30, 30, 20, 250)).toBe(0);
+    // A kick, which the bass does have.
+    expect(play(60, 1, 240, 20)).toBe(1);
   });
 
   it('takes the waveform down by as much of the level as is left', () => {

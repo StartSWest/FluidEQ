@@ -23,6 +23,7 @@ interface IMomentSlot {
   level: number;
   beat: number;
   bands: readonly [number, number, number];
+  musicAccent: readonly [number, number];
   accent: readonly [number, number, number];
   fade: number;
   spectrum: Uint8Array;

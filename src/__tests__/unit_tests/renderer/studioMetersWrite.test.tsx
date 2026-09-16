@@ -34,6 +34,7 @@ const frame = (level: number): ISceneFrame => ({
   level,
   beat: 0,
   bands: [0, 0, 0],
+  musicAccent: [0, 0],
   accent: [0, 0, 0],
   fade: 1,
   spectrum: new Uint8Array(SPECTRUM_TEXELS),

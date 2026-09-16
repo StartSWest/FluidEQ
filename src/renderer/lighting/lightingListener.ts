@@ -165,6 +165,7 @@ export const startLightingListener = async (
         level: heard.level,
         beat: heard.beat,
         bands: [heard.bass, heard.mid, heard.treble],
+        musicAccent: [heard.accent, heard.accentSerial],
         accent,
         fade,
         spectrum,

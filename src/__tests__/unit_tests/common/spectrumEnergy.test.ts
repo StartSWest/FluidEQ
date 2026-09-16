@@ -140,6 +140,109 @@ describe('spectrum energy', () => {
       FRAME,
       true,
     );
-    expect(energy).toEqual({ level: 0, bass: 0, mid: 0, treble: 0, beat: 0 });
+    expect(energy).toEqual({
+      level: 0,
+      bass: 0,
+      mid: 0,
+      treble: 0,
+      beat: 0,
+      accent: 0,
+      accentSerial: 0,
+    });
+  });
+
+  // What the old detector got wrong, measured over a minute of each of five
+  // tracks: it called 192 to 287 beats a minute, two or three times a pulse.
+  it('calls one onset a kick, not three', () => {
+    const state = createEnergyState();
+    const step = 1000 / 60;
+    let beats = 0;
+    let previous = 0;
+    // Ten kicks half a second apart - 120 a minute - each three frames long.
+    for (let frame = 0; frame < 300; frame += 1) {
+      const kicking = frame % 30 < 3;
+      const energy = advanceEnergy(
+        state,
+        kicking ? lowOnly(160) : flat(MIN + 4),
+        MIN,
+        MAX,
+        step,
+        true,
+      );
+      if (energy.beat > 0.85 && previous < 0.65) {
+        beats += 1;
+      }
+      previous = energy.beat;
+    }
+    expect(beats).toBeGreaterThanOrEqual(9);
+    expect(beats).toBeLessThanOrEqual(11);
+  });
+
+  // The other half of that: a band with hardly anything in it measured 0.00 to
+  // 0.04 over a minute of one track, so a scene asking for treble got nothing.
+  it('shows what a quiet band is doing rather than leaving it at the floor', () => {
+    const state = createEnergyState();
+    const step = 1000 / 60;
+    const highAt = (db: number) =>
+      flat(MIN).map((point) =>
+        point.x >= 2_000 ? { ...point, y: db } : point,
+      );
+    let low = 1;
+    let high = 0;
+    // A top end that lives in the bottom tenth of the scale and moves there.
+    for (let frame = 0; frame < 600; frame += 1) {
+      const swing = frame % 60 < 30 ? MIN + 1 : MIN + 4;
+      const energy = advanceEnergy(state, highAt(swing), MIN, MAX, step, true);
+      if (frame > 240) {
+        low = Math.min(low, energy.treble);
+        high = Math.max(high, energy.treble);
+      }
+    }
+    // A tenth of the scale, from three decibels of swing at the bottom of it:
+    // the same band measured 0.00 to 0.04 over a whole minute of a real track
+    // before. Not more, because the range follows a swing this slow and takes
+    // some of it back - which is what keeps a steady tone from reading as a
+    // drum.
+    expect(high - low).toBeGreaterThan(0.1);
+  });
+
+  it('keeps accents apart, and brings each one in over more than a frame', () => {
+    const state = createEnergyState();
+    const step = 1000 / 60;
+    const run = (frames: number, points: ISpectrumPoint[]) => {
+      let last = advanceEnergy(state, points, MIN, MAX, step, true);
+      for (let frame = 1; frame < frames; frame += 1) {
+        last = advanceEnergy(state, points, MIN, MAX, step, true);
+      }
+      return last;
+    };
+    // A steady kick pattern is beats, and no moments.
+    let previousSerial = 0;
+    for (let frame = 0; frame < 300; frame += 1) {
+      const kicking = frame % 30 < 3;
+      const energy = advanceEnergy(
+        state,
+        kicking ? lowOnly(160) : flat(MIN + 4),
+        MIN,
+        MAX,
+        step,
+        true,
+      );
+      previousSerial = energy.accentSerial;
+    }
+    expect(previousSerial).toBe(0);
+
+    // Everything at once, after the gap: that is a moment.
+    const arriving = run(1, flat(MAX));
+    expect(arriving.accent).toBeLessThan(0.7);
+    // Up over about a fifth of a second, not in one frame: a scene is free to
+    // put this in an angle, and a jump there is a jerk.
+    const settled = run(12, flat(MAX));
+    expect(settled.accent).toBeGreaterThan(0.75);
+    expect(settled.accentSerial).toBe(1);
+
+    // And the next one has to wait, however loud the music stays.
+    const again = run(120, flat(MAX));
+    expect(again.accentSerial).toBe(1);
   });
 });

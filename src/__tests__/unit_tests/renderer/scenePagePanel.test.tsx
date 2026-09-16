@@ -75,6 +75,7 @@ const frame = (fade: number): ISceneFrame => ({
   level: 0,
   beat: 0,
   bands: [0, 0, 0],
+  musicAccent: [0, 0],
   accent: [0, 0, 0],
   fade,
   spectrum: new Uint8Array(0),

@@ -53,6 +53,7 @@ const frame: ISceneFrame = {
   level: 0.5,
   beat: 0,
   bands: [0, 0, 0],
+  musicAccent: [0, 0],
   accent: [1, 1, 1],
   fade: 1,
   spectrum: new Uint8Array(4),

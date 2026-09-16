@@ -222,6 +222,7 @@ export default function useSceneRunner({
         level: energy.level,
         beat: energy.beat,
         bands: [energy.bass, energy.mid, energy.treble],
+        musicAccent: [energy.accent, energy.accentSerial],
         accent: accentRef.current,
         fade: fadeRef.current,
         spectrum: spectrumRef.current,

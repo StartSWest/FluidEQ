@@ -24,6 +24,8 @@ export interface ILightingSceneFrame {
   level: number;
   beat: number;
   bands: [number, number, number];
+  /** The big moment and its number, as the listener heard them. */
+  musicAccent: [number, number];
   accent: [number, number, number];
   fade: number;
   spectrum: Uint8Array;

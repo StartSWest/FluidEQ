@@ -41,6 +41,7 @@ const heardFrame = (seconds: number, beat = 0.9): ISceneFrame => ({
   level: 0.7,
   beat,
   bands: [0.8, 0.5, 0.3],
+  musicAccent: [0, 0],
   accent: [0, 0.9, 0.8],
   fade: 1,
   spectrum: new Uint8Array(SPECTRUM_TEXELS).fill(200),

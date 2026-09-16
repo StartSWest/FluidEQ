@@ -10,6 +10,7 @@ const heard = (silent: boolean): IHeardFrame => ({
     level: silent ? 0 : 0.7,
     beat: 0,
     bands: silent ? [0, 0, 0] : [0.8, 0.6, 0.4],
+    musicAccent: [0, 0],
     accent: [1, 0, 1],
     fade: 1,
     spectrum: new Uint8Array(256),

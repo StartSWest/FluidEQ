@@ -36,6 +36,20 @@ export const STILL_FRAME_MS = 1000 / 30;
 const MAX_STILL_FRAMES = 30 * 3;
 
 /**
+ * The showcase carries one big moment of its own, half a second in and gone
+ * a second and a half later, so a scene that answers a musical accent is
+ * caught answering it rather than waiting for one.
+ */
+const SHOWCASE_ACCENT_AT_S = 0.6;
+const showcaseAccent = (seconds: number): number => {
+  const since = seconds - SHOWCASE_ACCENT_AT_S;
+  if (since < 0) {
+    return 0;
+  }
+  return Math.max(0, 1 - since / 1.5);
+};
+
+/**
  * A run may reuse one set of buffers from frame to frame: each frame is drawn
  * before the next is asked for, and a run that is over hands out nothing
  * rather than touching them again.
@@ -80,6 +94,7 @@ export const showcaseRun = (
         level: 0,
         beat: 0,
         bands: [0, 0, 0],
+        musicAccent: [showcaseAccent(seconds), 1],
         accent,
         fade: 1,
         spectrum: buffers.spectrum,

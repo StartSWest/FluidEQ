@@ -27,6 +27,13 @@ export interface ISceneFrame {
   level: number;
   beat: number;
   bands: readonly [number, number, number];
+  /**
+   * The big musical moment as the listener heard it: its envelope 0..1 and
+   * the number of the moment, for a scene that wants a fresh seed each time.
+   * Derived here from beats once, which made it a beat every five seconds
+   * rather than a moment.
+   */
+  musicAccent: readonly [number, number];
   accent: readonly [number, number, number];
   fade: number;
   spectrum: Uint8Array;
@@ -183,10 +190,8 @@ export const compileScene = async (
   const slowBytes = new Uint8Array(SPECTRUM_TEXELS);
   let previousTime: number | undefined;
   let settled = true;
-  let accentEnvelope = 0;
-  let accentSerial = 0;
-  let accentWaitMs = 1500;
-  let previousBeat = 0;
+  // What the scene was last given, for the runner's own checks.
+  let lastAccent = 0;
 
   return {
     ok: true,
@@ -196,24 +201,13 @@ export const compileScene = async (
         gl.useProgram(program);
         gl.bindVertexArray(vao);
 
+        [lastAccent] = frame.musicAccent;
         if (uniforms.musicAccent) {
-          const elapsed = Math.max(0, Math.min(100, frame.deltaMs ?? 0));
-          accentWaitMs = Math.max(0, accentWaitMs - elapsed);
-          accentEnvelope = Math.max(0, accentEnvelope - elapsed / 320);
-          // Count beat onsets, never every frame of a held beat. The gap
-          // only admits an event; its expiry cannot cause a clock-only flash.
-          if (
-            frame.beat > 0.85 &&
-            previousBeat < 0.65 &&
-            accentWaitMs === 0 &&
-            (frame.bands[0] > 0.08 || frame.bands[1] > 0.12)
-          ) {
-            accentSerial = (accentSerial + 1) % 4096;
-            accentEnvelope = 1;
-            accentWaitMs = 4800 + ((accentSerial * 0.61803398875) % 1) * 2400;
-          }
-          previousBeat = frame.beat;
-          gl.uniform2f(uniforms.musicAccent, accentEnvelope, accentSerial);
+          gl.uniform2f(
+            uniforms.musicAccent,
+            frame.musicAccent[0],
+            frame.musicAccent[1],
+          );
         }
 
         gl.activeTexture(gl.TEXTURE0);
@@ -334,8 +328,8 @@ export const compileScene = async (
         gl.deleteTexture(slowTexture);
         gl.deleteProgram(program);
       },
-      isSettled: () => settled && accentEnvelope === 0,
-      musicAccent: () => accentEnvelope,
+      isSettled: () => settled,
+      musicAccent: () => lastAccent,
     },
   };
 };
