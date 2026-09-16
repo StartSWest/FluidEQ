@@ -65,6 +65,8 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
 import onWindowMessage from './windowMessages';
 import { IOutputFormatChange, createOutputFormats } from '../outputFormat';
+import { readRoomHeadText } from '../roomHead';
+import { ROOM_HEADS } from '../../common/dsp/chain';
 
 /**
  * Everything the profile handlers may touch, stated rather than implied.
@@ -681,6 +683,23 @@ export const registerProfilesIpc = ({
       notifyOutputStateChanged();
     } catch (e) {
       log.error('Failed to put an output format back', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+
+  /** A shipped head's text, for the window's own listening test (Fit). */
+  onWindowMessage(ChannelEnum.READ_ROOM_HEAD, async (event, arg) => {
+    const channel = ChannelEnum.READ_ROOM_HEAD;
+    const head = ROOM_HEADS.find((id) => id === arg[0]);
+    if (!head) {
+      handleError(event, channel, ErrorCode.FAILURE);
+      return;
+    }
+    try {
+      const result = await readRoomHeadText(head);
+      event.reply(channel, { result });
+    } catch (e) {
+      log.error('Failed to read a room head', e);
       handleError(event, channel, ErrorCode.FAILURE);
     }
   });

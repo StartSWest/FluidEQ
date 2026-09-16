@@ -359,6 +359,12 @@ export const setOutputSevenOne = (
   );
 };
 
+/** A shipped head's text, for the Fit dialog to render its pairs through. */
+export const readRoomHeadText = (head: string): Promise<string> => {
+  const channel = ChannelEnum.READ_ROOM_HEAD;
+  return sendRequest(channel, [head], simpleResponseHandler<string>());
+};
+
 /** Undo: the output goes back to what it was before the press. */
 export const restoreOutputFormat = (
   deviceId: string,

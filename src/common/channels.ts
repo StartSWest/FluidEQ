@@ -164,6 +164,7 @@ enum ChannelEnum {
   READ_OUTPUT_FORMAT = 'readOutputFormat',
   SET_OUTPUT_SEVEN_ONE = 'setOutputSevenOne',
   RESTORE_OUTPUT_FORMAT = 'restoreOutputFormat',
+  READ_ROOM_HEAD = 'readRoomHead',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',
   GET_DEVICE_PROFILE_SETTINGS = 'getDeviceProfileSettings',
   ASSIGN_DEVICE_PROFILE = 'assignDeviceProfile',

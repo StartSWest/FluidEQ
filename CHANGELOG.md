@@ -9,10 +9,10 @@ link brings you here. **Help → What's new** opens the tour again any time.
 ## 1.7.3
 
 The FluidEQ Engine learns surround: the DSP rack runs on every channel of a
-5.1 or 7.1 output, and underneath it the Room is being built — a listening
-room on headphones, rendered through a measured head. The engine side of
-the Room is in this version; its card, the one-press 7.1 and the head fit
-come next.
+5.1 or 7.1 output, and on top of it comes the Room — a listening room on
+headphones, rendered through a measured head, with its card on the DSP
+page, one press to 7.1 where the driver takes it, a listening test that
+picks the head for your ears, and the same room on the Library's player.
 
 ### New
 
@@ -45,6 +45,17 @@ come next.
   "Set to 7.1" — no administrator prompt, no virtual cable — and Undo puts
   the output back exactly as it was. A headset whose driver takes stereo
   only gets no offer; the room is the front stage there.
+- **Fit: the head chosen by ear.** Heads differ, and the one that puts
+  sounds in front of you is not the same for everyone. The Room card's Fit
+  button (Plus) plays a short sound that walks around you — front, right,
+  behind, left — through two heads at a time, and asks which one sounds more
+  around you. Five pairs, the two strongest heard again with the sides
+  swapped, and the room takes the head that won; Head on the card can still
+  change it any time.
+- **The Room on the Library's player.** The Library plays music through its
+  own copy of the rack, and that copy left the room out. Now it runs the
+  same room with the same head, so a song in the Library and the same song
+  from a browser sit in the same room.
 
 ### Fixed
 

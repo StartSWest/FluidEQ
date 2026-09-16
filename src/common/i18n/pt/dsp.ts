@@ -607,6 +607,24 @@ const dsp = {
   'dsp.room.live.on': 'Sala ligada',
   'dsp.room.live.idle': 'Nada a passar pelo motor',
   'dsp.room.live.unknown': 'Só com o motor',
+  'dsp.room.fit': 'Ajustar…',
+  'dsp.roomFit.title': 'Ajusta a sala à tua cabeça',
+  'dsp.roomFit.hint':
+    'Um som breve gira à tua volta — à frente, direita, atrás, esquerda — por duas cabeças. Carrega na que soa mais à tua volta.',
+  'dsp.roomFit.pair': 'Par {n} de {total}',
+  'dsp.roomFit.playA': 'Ouvir A',
+  'dsp.roomFit.playB': 'Ouvir B',
+  'dsp.roomFit.chooseA': 'A soa mais à minha volta',
+  'dsp.roomFit.chooseB': 'B soa mais à minha volta',
+  'dsp.roomFit.same': 'Soam igual',
+  'dsp.roomFit.loading': 'A preparar os sons…',
+  'dsp.roomFit.error': 'Não foi possível carregar as cabeças.',
+  'dsp.roomFit.resultTitle': 'A tua cabeça: {head}',
+  'dsp.roomFit.resultBody':
+    'A sala passa a usá-la; muda-a quando quiseres em Cabeça.',
+  'dsp.roomFit.use': 'Usar',
+  'dsp.roomFit.again': 'Repetir',
+  'dsp.roomFit.cancel': 'Cancelar',
   'dsp.master.limit.limiting':
     'Eram precisos {requested} dB — {room} dB de folga de pico mais a limitação permitida.',
   'dsp.master.limit.maxGain':

@@ -592,6 +592,24 @@ const dsp = {
   'dsp.room.live.on': 'ルーム オン',
   'dsp.room.live.idle': 'エンジンを通る音がありません',
   'dsp.room.live.unknown': 'エンジンでのみ',
+  'dsp.room.fit': 'フィット…',
+  'dsp.roomFit.title': 'ルームを自分の頭に合わせる',
+  'dsp.roomFit.hint':
+    '短い音が前・右・後ろ・左と周りを回ります。2 つの頭で聴き比べ、より周りから聞こえる方を押してください。',
+  'dsp.roomFit.pair': 'ペア {n} / {total}',
+  'dsp.roomFit.playA': 'A を再生',
+  'dsp.roomFit.playB': 'B を再生',
+  'dsp.roomFit.chooseA': 'A の方が周りから聞こえる',
+  'dsp.roomFit.chooseB': 'B の方が周りから聞こえる',
+  'dsp.roomFit.same': '同じに聞こえる',
+  'dsp.roomFit.loading': '音を準備しています…',
+  'dsp.roomFit.error': '頭を読み込めませんでした。',
+  'dsp.roomFit.resultTitle': 'あなたの頭：{head}',
+  'dsp.roomFit.resultBody':
+    'ルームは今後これを使います。「頭」でいつでも変更できます。',
+  'dsp.roomFit.use': '使う',
+  'dsp.roomFit.again': 'もう一度',
+  'dsp.roomFit.cancel': 'キャンセル',
   'dsp.master.limit.limiting':
     '{requested} dB 必要 — ピークの余裕 {room} dB と許可されたリミッティングまで。',
   'dsp.master.limit.maxGain':

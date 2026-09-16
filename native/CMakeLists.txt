@@ -258,8 +258,11 @@ add_executable(fluideq-dsp-host
   dsp-host/src/decoders/compressed_decoder.cpp
   dsp-host/src/decoders/vendor/vendor.cpp
   dsp-host/src/parent_watch.cpp
+  # The room's head file, the same text the engine reads.
+  system-apo/src/room_head.cpp
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
+target_include_directories(fluideq-dsp-host PRIVATE system-apo/src)
 
 # Warnings-as-errors, off for the vendored decoders and nowhere else — on
 # GCC and Clang. The diagnostic pragmas in `vendor.cpp` cover -Wall and

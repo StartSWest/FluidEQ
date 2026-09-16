@@ -605,6 +605,24 @@ const dsp = {
   'dsp.room.live.on': 'Stanza accesa',
   'dsp.room.live.idle': 'Niente passa dal motore',
   'dsp.room.live.unknown': 'Solo con il motore',
+  'dsp.room.fit': 'Adatta…',
+  'dsp.roomFit.title': 'Adatta la stanza alla tua testa',
+  'dsp.roomFit.hint':
+    'Un suono breve gira intorno a te — davanti, destra, dietro, sinistra — attraverso due teste. Premi quella che suona più intorno a te.',
+  'dsp.roomFit.pair': 'Coppia {n} di {total}',
+  'dsp.roomFit.playA': 'Ascolta A',
+  'dsp.roomFit.playB': 'Ascolta B',
+  'dsp.roomFit.chooseA': 'A suona più intorno a me',
+  'dsp.roomFit.chooseB': 'B suona più intorno a me',
+  'dsp.roomFit.same': 'Suonano uguali',
+  'dsp.roomFit.loading': 'Preparazione dei suoni…',
+  'dsp.roomFit.error': 'Non è stato possibile caricare le teste.',
+  'dsp.roomFit.resultTitle': 'La tua testa: {head}',
+  'dsp.roomFit.resultBody':
+    'La stanza la usa da ora; cambiala quando vuoi sotto Testa.',
+  'dsp.roomFit.use': 'Usala',
+  'dsp.roomFit.again': 'Riprova',
+  'dsp.roomFit.cancel': 'Annulla',
   'dsp.master.limit.limiting':
     'Servivano {requested} dB — {room} dB di margine di picco più la limitazione consentita.',
   'dsp.master.limit.maxGain':

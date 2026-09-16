@@ -612,6 +612,24 @@ const dsp = {
   'dsp.room.live.on': 'Raum an',
   'dsp.room.live.idle': 'Nichts läuft über die Engine',
   'dsp.room.live.unknown': 'Nur mit der Engine',
+  'dsp.room.fit': 'Anpassen…',
+  'dsp.roomFit.title': 'Den Raum an deinen Kopf anpassen',
+  'dsp.roomFit.hint':
+    'Ein kurzer Klang wandert um dich herum — vorn, rechts, hinten, links — durch zwei Köpfe. Drück den, der mehr um dich herum klingt.',
+  'dsp.roomFit.pair': 'Paar {n} von {total}',
+  'dsp.roomFit.playA': 'A abspielen',
+  'dsp.roomFit.playB': 'B abspielen',
+  'dsp.roomFit.chooseA': 'A klingt mehr um mich herum',
+  'dsp.roomFit.chooseB': 'B klingt mehr um mich herum',
+  'dsp.roomFit.same': 'Sie klingen gleich',
+  'dsp.roomFit.loading': 'Klänge werden vorbereitet…',
+  'dsp.roomFit.error': 'Die Köpfe konnten nicht geladen werden.',
+  'dsp.roomFit.resultTitle': 'Dein Kopf: {head}',
+  'dsp.roomFit.resultBody':
+    'Der Raum verwendet ihn ab jetzt; unter Kopf lässt er sich jederzeit ändern.',
+  'dsp.roomFit.use': 'Verwenden',
+  'dsp.roomFit.again': 'Noch einmal',
+  'dsp.roomFit.cancel': 'Abbrechen',
   'dsp.master.limit.limiting':
     '{requested} dB nötig — {room} dB Spitzenreserve plus die erlaubte Begrenzung.',
   'dsp.master.limit.maxGain':

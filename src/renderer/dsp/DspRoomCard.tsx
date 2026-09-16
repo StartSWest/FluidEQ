@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useState } from 'react';
 import {
   DSP_DEFAULTS,
   IRoomSettings,
@@ -20,6 +21,7 @@ import { usePlusEntitled } from '../plus/GalleryParts';
 import { useTranslation } from '../utils/I18nContext';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { Dial, ProcessorCard } from './DspControls';
+import DspRoomFitDialog from './DspRoomFitDialog';
 import DspRoomGraph from './DspRoomGraph';
 import { IRoomLive } from './useRoomLive';
 import '../styles/LookPicker.scss';
@@ -56,6 +58,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const { t } = useTranslation();
   const isPlus = usePlusEntitled();
   const canShape = isPlus && room.enabled;
+  const [isFitOpen, setFitOpen] = useState(false);
 
   /** Any change to the room's shape makes the result Custom. */
   const shape = (next: Partial<IRoomSettings>) =>
@@ -159,6 +162,18 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
         <div className="dsp-band">
           <div className="dsp-band-head">
             <span className="dsp-band-title">{t('dsp.room.groupHead')}</span>
+            {/* The listening test that picks the head. Plus, like shaping:
+                quiet, because the segment beside it already answers most
+                people; the badge says where the button leads without it. */}
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={!isPlus || !room.enabled}
+              title={isPlus ? undefined : t('dsp.room.plusHint')}
+              onClick={() => setFitOpen(true)}
+            >
+              {t('dsp.room.fit')}
+            </button>
           </div>
           <SegmentedControl
             name={t('dsp.room.groupHead')}
@@ -201,6 +216,16 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           <p className="dsp-band-hint">{t('dsp.room.headphonesHint')}</p>
         </div>
       </div>
+      {isFitOpen ? (
+        <DspRoomFitDialog
+          onPick={(head) => {
+            onPatch({ ...room, head });
+            onCommit();
+            setFitOpen(false);
+          }}
+          onClose={() => setFitOpen(false)}
+        />
+      ) : undefined}
     </ProcessorCard>
   );
 };

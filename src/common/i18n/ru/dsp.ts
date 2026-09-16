@@ -602,6 +602,24 @@ const dsp = {
   'dsp.room.live.on': 'Комната включена',
   'dsp.room.live.idle': 'Через движок ничего не играет',
   'dsp.room.live.unknown': 'Только с движком',
+  'dsp.room.fit': 'Подобрать…',
+  'dsp.roomFit.title': 'Подобрать комнату под вашу голову',
+  'dsp.roomFit.hint':
+    'Короткий звук обходит вас — спереди, справа, сзади, слева — через две головы. Нажмите ту, с которой он звучит больше вокруг вас.',
+  'dsp.roomFit.pair': 'Пара {n} из {total}',
+  'dsp.roomFit.playA': 'Слушать A',
+  'dsp.roomFit.playB': 'Слушать B',
+  'dsp.roomFit.chooseA': 'A звучит больше вокруг меня',
+  'dsp.roomFit.chooseB': 'B звучит больше вокруг меня',
+  'dsp.roomFit.same': 'Звучат одинаково',
+  'dsp.roomFit.loading': 'Готовим звуки…',
+  'dsp.roomFit.error': 'Не удалось загрузить головы.',
+  'dsp.roomFit.resultTitle': 'Ваша голова: {head}',
+  'dsp.roomFit.resultBody':
+    'Комната использует её с этого момента; изменить можно в любое время в разделе «Голова».',
+  'dsp.roomFit.use': 'Использовать',
+  'dsp.roomFit.again': 'Ещё раз',
+  'dsp.roomFit.cancel': 'Отмена',
   'dsp.master.limit.limiting':
     'Требовалось {requested} дБ — {room} дБ пикового запаса плюс разрешённое ограничение.',
   'dsp.master.limit.maxGain':

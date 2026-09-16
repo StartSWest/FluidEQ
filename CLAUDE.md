@@ -643,6 +643,28 @@ Out-String` (or any other capture) is what actually waits for it and shows
   walls leave nothing after the direct path, a wall change mid-stream
   makes no step beyond either steady room's) and `chain_surround_test.cpp`
   (a six-channel chain folds and reports +512 frames).
+- **The Library's DSP host reads the room's head from the shipped folder,
+  not from the wire.** The host is spawned with `--room-heads <dir>`
+  (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's
+  `main.cpp` parses `<dir>/<small|medium|large>.txt` with the engine's own
+  `room_head.cpp` (shared through the `fluideq-dsp-host` target's sources)
+  whenever the settings arrive with the room on and a head it has not
+  loaded; a head file that cannot be read leaves the room inactive and a
+  line on stderr. The head text travels twice — main writes it beside the
+  engine's rack, the host reads it from assets — because the engine reloads
+  every output on any write in its folder and the host has no folder.
+- **Fit renders its listening pairs in the window, offline, never through
+  either engine.** `DspRoomFitDialog` reads each shipped head's text over
+  `READ_ROOM_HEAD` (`roomHeadText.ts` parses the 48 kHz block), renders one
+  buffer per head with `OfflineAudioContext` — the same pink burst at 0°,
+  90°, 180°, 270° through a two-channel `ConvolverNode` (`roomFitAudio.ts`)
+  — and plays the buffers through one `AudioContext` opened on the first
+  press. Which pairs are asked and who wins is `roomFit.ts` (three opening
+  pairs, then the top two again with the sides swapped, medium on a tie),
+  pinned by `roomFit.test.ts`; the dialog's own test mocks the audio. The
+  heads load once per opening: the card hands the dialog a new close
+  callback every render, so the loading effect reads it through a ref
+  rather than depending on it.
 - **An output's format is set to 7.1 for the Room through PolicyConfig, not
   the registry, and only where the driver takes it.**
   `windows-audio-format.ps1` reads an output's shared-mode format, asks the

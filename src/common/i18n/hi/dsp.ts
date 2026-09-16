@@ -597,6 +597,24 @@ const dsp = {
   'dsp.room.live.on': 'कमरा चालू',
   'dsp.room.live.idle': 'इंजन से कुछ नहीं बज रहा',
   'dsp.room.live.unknown': 'सिर्फ़ इंजन के साथ',
+  'dsp.room.fit': 'फ़िट करें…',
+  'dsp.roomFit.title': 'कमरे को अपने सिर के हिसाब से फ़िट करें',
+  'dsp.roomFit.hint':
+    'एक छोटी आवाज़ आपके चारों ओर घूमती है — सामने, दाएँ, पीछे, बाएँ — दो सिरों से होकर। जो आपके चारों ओर ज़्यादा लगे, उसे दबाएँ।',
+  'dsp.roomFit.pair': 'जोड़ी {n}/{total}',
+  'dsp.roomFit.playA': 'A सुनें',
+  'dsp.roomFit.playB': 'B सुनें',
+  'dsp.roomFit.chooseA': 'A मेरे चारों ओर ज़्यादा लगता है',
+  'dsp.roomFit.chooseB': 'B मेरे चारों ओर ज़्यादा लगता है',
+  'dsp.roomFit.same': 'दोनों एक जैसे लगते हैं',
+  'dsp.roomFit.loading': 'आवाज़ें तैयार हो रही हैं…',
+  'dsp.roomFit.error': 'सिर लोड नहीं हो सके।',
+  'dsp.roomFit.resultTitle': 'आपका सिर: {head}',
+  'dsp.roomFit.resultBody':
+    'कमरा अब से इसे इस्तेमाल करेगा; सिर के नीचे इसे कभी भी बदल सकते हैं।',
+  'dsp.roomFit.use': 'इसे इस्तेमाल करें',
+  'dsp.roomFit.again': 'फिर से',
+  'dsp.roomFit.cancel': 'रद्द करें',
   'dsp.master.limit.limiting':
     '{requested} dB चाहिए थे — {room} dB पीक जगह और अनुमत लिमिटिंग तक ही।',
   'dsp.master.limit.maxGain':

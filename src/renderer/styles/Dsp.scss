@@ -3658,6 +3658,50 @@ $dsp-pane-columns: 6;
   }
 }
 
+// The fit dialog: the import dialog's frame with a progress line, the two
+// play buttons side by side, and the three answers wrapping under them.
+.dsp-room-fit__progress {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba($white, 0.08);
+  overflow: hidden;
+
+  > i {
+    display: block;
+    height: 100%;
+    background: $secondary-default;
+    transition: width $motion-base $ease-out;
+  }
+}
+
+.dsp-room-fit__pair {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.dsp-room-fit__plays {
+  display: flex;
+  gap: 8px;
+
+  > .button {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+.dsp-room-fit__choices {
+  flex-wrap: wrap;
+}
+
+// Cancel keeps to the right edge of whichever line it lands on: a spacer
+// would take the first line's slack and leave a wrapped Cancel at the left.
+.dsp-room-fit__cancel {
+  margin-left: auto;
+}
+
 // What the room is doing this second, beside the power switch: quiet while
 // nothing is folding, the accent once it is.
 .dsp-room-live {

@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * cannot.
  */
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { roomHeadsDir } from '../roomHead';
 import { ANALYSIS_HEADER_BYTES } from '../../common/dsp/analysisWire';
 import {
   DSP_DIAGNOSTIC_CODES,
@@ -58,6 +59,8 @@ export interface IDspHostLifecycleEvent {
 
 export interface IDspHostOptions {
   executablePath: string;
+  /** Where the room's heads are; the shipped folder unless a test says. */
+  roomHeadsDir?: string;
   /** How many parameters this build of the renderer knows about. */
   expectedParameterCount: number;
   onTelemetry?: (telemetry: IHostTelemetry) => void;
@@ -772,7 +775,15 @@ export class DspHostSupervisor {
        */
       child = spawn(
         this.options.executablePath,
-        ['--parent-pid', String(process.pid)],
+        // The heads for the room: the host reads the one the rack names from
+        // this folder, so Library music gets the same room the engine gives
+        // everything else.
+        [
+          '--parent-pid',
+          String(process.pid),
+          '--room-heads',
+          this.options.roomHeadsDir ?? roomHeadsDir(),
+        ],
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           windowsHide: true,

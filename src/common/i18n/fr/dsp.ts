@@ -607,6 +607,24 @@ const dsp = {
   'dsp.room.live.on': 'Salle allumée',
   'dsp.room.live.idle': 'Rien ne passe par le moteur',
   'dsp.room.live.unknown': 'Moteur seulement',
+  'dsp.room.fit': 'Ajuster…',
+  'dsp.roomFit.title': 'Ajuster la salle à votre tête',
+  'dsp.roomFit.hint':
+    'Un son bref tourne autour de vous — devant, à droite, derrière, à gauche — à travers deux têtes. Appuyez sur celle qui sonne le plus autour de vous.',
+  'dsp.roomFit.pair': 'Paire {n} sur {total}',
+  'dsp.roomFit.playA': 'Écouter A',
+  'dsp.roomFit.playB': 'Écouter B',
+  'dsp.roomFit.chooseA': 'A sonne plus autour de moi',
+  'dsp.roomFit.chooseB': 'B sonne plus autour de moi',
+  'dsp.roomFit.same': 'Elles sonnent pareil',
+  'dsp.roomFit.loading': 'Préparation des sons…',
+  'dsp.roomFit.error': 'Les têtes n’ont pas pu être chargées.',
+  'dsp.roomFit.resultTitle': 'Votre tête : {head}',
+  'dsp.roomFit.resultBody':
+    'La salle l’utilise dès maintenant ; changez-la quand vous voulez sous Tête.',
+  'dsp.roomFit.use': 'L’utiliser',
+  'dsp.roomFit.again': 'Recommencer',
+  'dsp.roomFit.cancel': 'Annuler',
   'dsp.master.limit.limiting':
     '{requested} dB nécessaires — {room} dB de marge de crête plus la limitation autorisée.',
   'dsp.master.limit.maxGain':

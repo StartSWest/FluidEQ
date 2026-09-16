@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dsp.h"
 #include "fluideq/player.h"
 #include "fluideq/parameters.h"
+#include "room_head.h"
 #include "wire.h"
 
 #include <atomic>
@@ -41,6 +42,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iterator>
 #include <mutex>
 // For `std::bad_alloc`, which the offline render refuses rather than dies of.
 #include <new>
@@ -164,6 +167,14 @@ struct HostState {
    */
   std::string voice_model_path;
   std::string voice_runtime_path;
+  /**
+   * Where the shipped heads for the room are (`--room-heads`), and which
+   * one the current chain was given, so a slider drag — a reconfigure per
+   * frame — does not re-read half a megabyte each time. -1 is none yet; a
+   * rebuild starts a chain with no head and sets this back.
+   */
+  std::string room_heads_dir;
+  int room_head_loaded = -1;
   /**
    * The listener's fader, 0 to 1, and where the ramp has reached.
    *
@@ -817,6 +828,47 @@ bool rebuild_engine(HostState& state,
  * rebuilds, and only then does `start` let a callback in. That ordering is the
  * whole reason `open` and `start` are separate calls.
  */
+/**
+ * The room's head and layout for the Library player's chain.
+ *
+ * The player is stereo, so the two channels are the front pair of the ring
+ * and the room is the front stage; the head comes from the shipped set the
+ * app names in `--room-heads`, the same files it writes beside the engine's
+ * rack. Read once per chain per head: the chain keeps it across reconfigures.
+ */
+void apply_room_head(HostState& state, FeqChain* chain) {
+  static const int kFrontPair[FEQ_CHAIN_MAX_CHANNELS] = {0,  1,  -1, -1,
+                                                          -1, -1, -1, -1};
+  static const char* const kNames[] = {"small", "medium", "large"};
+  feq_chain_set_room_layout(chain, kFrontPair);
+  const int head = state.chain_settings.room.head;
+  if (state.room_heads_dir.empty() || state.chain_settings.room.enabled == 0 ||
+      head < 0 || head > 2 || head == state.room_head_loaded) {
+    return;
+  }
+  const std::string path = state.room_heads_dir + "/" + kNames[head] + ".txt";
+  std::ifstream file(path, std::ios::binary);
+  if (!file) {
+    std::fprintf(stderr, "FluidEQ-DSP: no room head at %s\n", path.c_str());
+    return;
+  }
+  std::string text((std::istreambuf_iterator<char>(file)),
+                   std::istreambuf_iterator<char>());
+  const auto parsed = fluideq_engine::parse_room_head(
+      text, static_cast<double>(state.sample_rate));
+  if (!parsed) {
+    std::fprintf(stderr, "FluidEQ-DSP: room head %s has no %u Hz block\n",
+                 kNames[head], state.sample_rate);
+    return;
+  }
+  feq_chain_set_room_head(chain, parsed->left.data(), parsed->right.data(),
+                          parsed->directions, parsed->taps,
+                          parsed->needs_doubling ? 1 : 0);
+  state.room_head_loaded = head;
+  std::fprintf(stderr, "FluidEQ-DSP: room head %s loaded (%u directions)\n",
+               kNames[head], parsed->directions);
+}
+
 bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
   FeqChain* chain = feq_chain_create(static_cast<double>(state.sample_rate),
                                      state.channels, state.block_frames);
@@ -824,6 +876,8 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
     return false;
   }
   feq_chain_configure(chain, &state.chain_settings);
+  state.room_head_loaded = -1;
+  apply_room_head(state, chain);
   if (!state.voice_model_path.empty() &&
       feq_chain_load_voice_model(chain, state.voice_model_path.c_str(),
                                  state.voice_runtime_path.c_str()) == 0) {
@@ -1012,6 +1066,16 @@ void release_device_on_parent_exit() {
   }
 }
 
+/** `--room-heads <dir>`, or empty when nobody said: then there is no room. */
+std::string room_heads_from(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::strcmp(argv[index], "--room-heads") == 0) {
+      return argv[index + 1];
+    }
+  }
+  return std::string();
+}
+
 /** `--parent-pid <n>`, or zero when nobody said. */
 uint32_t parent_pid_from(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
@@ -1080,6 +1144,7 @@ int main(int argc, char** argv) {
   // per-file state lives behind the handle it returns.
   const FeqDecoderOps decoder_ops = feq_decoder_ops();
   feq_chain_settings_defaults(&state.chain_settings);
+  state.room_heads_dir = room_heads_from(argc, argv);
   /**
    * Built before any device exists, at the fallback rate.
    *
@@ -1473,6 +1538,7 @@ int main(int argc, char** argv) {
         state.chain_settings = settings;
         if (state.chain != nullptr) {
           feq_chain_configure(state.chain, &state.chain_settings);
+          apply_room_head(state, state.chain);
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);

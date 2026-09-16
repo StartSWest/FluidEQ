@@ -23,23 +23,29 @@ import { scheduleWrite } from './asyncWriter';
 
 export const ROOM_HEAD_FILENAME = 'fluideq-room-head.txt';
 
-const assetPath = (head: TRoomHead): string => {
-  // `resourcesPath` is Electron's; under plain Node (the tests) there is
-  // none, and the checkout's own assets are the ones to read.
+/**
+ * Where the shipped heads are: beside the packaged app's resources, or the
+ * checkout's own assets under `pnpm dev` and the tests. `resourcesPath` is
+ * Electron's; under plain Node there is none.
+ */
+export const roomHeadsDir = (): string => {
   const resources: string | undefined = process.resourcesPath;
   const packaged =
     resources === undefined
       ? undefined
-      : path.join(resources, 'assets', 'room', 'heads', `${head}.txt`);
-  const development = path.join(
-    __dirname,
-    '../../assets/room/heads',
-    `${head}.txt`,
-  );
+      : path.join(resources, 'assets', 'room', 'heads');
+  const development = path.join(__dirname, '../../assets/room/heads');
   return packaged !== undefined && fs.existsSync(packaged)
     ? packaged
     : development;
 };
+
+const assetPath = (head: TRoomHead): string =>
+  path.join(roomHeadsDir(), `${head}.txt`);
+
+/** The shipped head's text, for the window's own listening test. */
+export const readRoomHeadText = (head: TRoomHead): Promise<string> =>
+  fs.promises.readFile(assetPath(head), 'utf8');
 
 /** Per config folder, which head its file carries — after the write. */
 const written = new Map<string, TRoomHead>();
