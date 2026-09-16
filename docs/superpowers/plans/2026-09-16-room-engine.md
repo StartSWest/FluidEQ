@@ -25,11 +25,13 @@
 ### Task 1: The head file format and its parser (engine side)
 
 **Files:**
+
 - Create: `native/system-apo/src/room_head.h`, `native/system-apo/src/room_head.cpp`
 - Test: `native/system-apo/tests/room_head_test.cpp`
 - Modify: `native/system-apo/CMakeLists.txt` (test target + source in the DLL)
 
 **Interfaces:**
+
 - Produces: `struct RoomHead { uint32_t directions; uint32_t taps; double sample_rate; std::vector<float> left; std::vector<float> right; }` (ring order: azimuth 0°, 15°, … 345° clockwise seen from above, left ear then right ear per direction, `taps` floats each); `std::optional<RoomHead> parse_room_head(const std::string& text, double stream_rate)` picks the block whose rate matches `stream_rate` (44100, 48000, 96000; 192000 takes the 96000 block and marks `needs_doubling = true`).
 
 The file the app writes (`fluideq-room-head.txt`):
@@ -211,10 +213,12 @@ Message: `Read the room's head file: a ring of directions per rate, refused when
 ### Task 2: Speaker positions from the channel mask
 
 **Files:**
+
 - Modify: `native/system-apo/src/channel_layout.h`, `native/system-apo/src/channel_layout.cpp`
 - Test: `native/system-apo/tests/channel_layout_test.cpp`
 
 **Interfaces:**
+
 - Produces: `int speaker_of_channel(unsigned long mask, unsigned short channels, unsigned channel)` → the room's speaker index for that channel: 0 FL, 1 FR, 2 C, 3 SL, 4 SR, 5 RL, 6 RR, or -1 (the LFE, a channel past the mask, or a position the room has no speaker for). With `mask == 0`: 2 channels → FL, FR; 6 → FL FR C LFE(-1) RL RR; 8 → FL FR C LFE RL RR SL SR; else -1 everywhere. Mask bits (mmreg.h): FL 0x1, FR 0x2, FC 0x4, LFE 0x8, BL 0x10, BR 0x20, SL 0x200, SR 0x400; back and side map to RL/RR and SL/SR; any other set bit (front-left-of-centre, top, …) counts as a channel position with no speaker (-1) but still shifts the index.
 
 - [ ] **Step 1: Write the failing tests** (append to `channel_layout_test.cpp` before the summary)
@@ -286,11 +290,13 @@ int speaker_of_channel(unsigned long mask, unsigned short channels,
 ### Task 3: `FeqRoom` — kernels from a head and a room
 
 **Files:**
+
 - Create: `native/dsp-core/include/fluideq/room.h`, `native/dsp-core/src/room.cpp`, `native/dsp-core/src/room_kernels.cpp`, `native/dsp-core/src/room_internal.h`
 - Test: `native/dsp-core/tests/room_test.cpp`
 - Modify: `native/CMakeLists.txt` (sources + test target)
 
 **Interfaces:**
+
 - Produces (C API, `extern "C"`):
 
 ```c
@@ -330,12 +336,14 @@ void feq_room_settings_defaults(FeqRoomSettings* settings);
 Defaults: enabled 0, size 4.2, walls 0.55, distance 1.8, centre 0, sub 0, head_scale 1, angles {-30, 30, 0, -100, 100, -140, 140}, levels all 0.
 
 Kernel building (`room_kernels.cpp`, control thread, allocates):
+
 - For speaker `s` at angle `a` and distance `d`, listener at the room's centre `(0,0)`, room `[-L/2, L/2]²` with `L = size_m`: speaker position `p = (d·sin a, d·cos a)`. Direct path: HRIR pair of the ring direction nearest to `a`, gain `1/d` normalised so `d = distance_m` gives 0 dB, delay 0.
 - Four first-order images: mirror `p` across each wall (`x → L - x`, `x → -L - x`, same for y). Each image at direction `atan2(x, y)` and distance `r`: gain `(1 - walls) · d / r`, delay `(r - d) / 343 · rate` frames, HRIR pair of the nearest ring direction. Dropped when the delay would fall past `FEQ_ROOM_KERNEL_TAPS - taps`.
 - Head scale: the right-ear kernel of a speaker on the left (and vice versa) is shifted by `round((head_scale - 1) · itd_frames)`, where `itd_frames = 0.00065 · |sin a| · rate` (Woodworth, head radius 8.75 cm); a shift of 0 frames leaves the measured head as measured.
 - Sum into `left[s]`, `right[s]` of `FEQ_ROOM_KERNEL_TAPS` floats, then `feq_convolver_kernel_create` each. Level: `10^(level_db/20)`, centre also `10^(centre_db/20)`.
 
 Processing (`room.cpp`, audio thread, no allocation):
+
 - Scratch: `mix_left`, `mix_right` (max_frames), one `input_copy` per channel (max_frames), a one-pole low-pass state for the sub, a `FeqConvolver*` per (channel, ear) with `_next` and `blend` per pair, exactly the chain's kernel-handoff pattern (`std::atomic<Handoff*>`).
 - For each channel with a speaker: copy input to `input_copy`, convolve into left (in place on a copy) and right, accumulate. LFE: one-pole at 120 Hz on the input, times `10^(sub_db/20)`, added to both. Write `mix_left → channels[0]`, `mix_right → channels[1]`, zero channels 2…N-1.
 - Inactive (disabled, no head, `channels < 2`, or no channel has a speaker): return without touching the buffers.
@@ -508,6 +516,7 @@ Every `std::vector` sized in `create`; `process` indexes only.
 ### Task 4: The room in the chain and on the wire
 
 **Files:**
+
 - Modify: `native/dsp-core/include/fluideq/chain.h` (`FeqChainRoomSettings room;` = the fields of `FeqRoomSettings` minus `head_scale`, plus `int head;` 0/1/2; `FEQ_CHAIN_PARAM_LEAD 136`; `feq_chain_set_room_head`, `feq_chain_set_room_layout`), `native/dsp-core/src/chain_internal.h` (`FeqRoom* room`), `native/dsp-core/src/chain.cpp` (create/destroy/configure/reset/latency/process after `chain_process_bass_punch`), `native/dsp-core/src/chain_decode.cpp` (decode the 21 scalars before `surround_all_channels`), `src/common/dsp/chain.ts` (`IRoomSettings`, `DSP_DEFAULTS.room`, clamp), `src/common/dsp/chainWire.ts` (`CHAIN_PARAM_LEAD = 136`, encode before the surround flag), `native/system-apo/tests/dsp_chain_fixture.h` (regenerated line, `kRoomEnabled = FEQ_CHAIN_PARAM_LEAD - 23`), `native/system-apo/src/dsp_chain.cpp` (pass layout: `speaker_of_channel` for each channel, `lfe_channel`), `native/system-apo/src/apo.h` + `apo_format.cpp` (`ConnectionFormat.mask`), `native/system-apo/src/watcher.cpp` (read `fluideq-room-head.txt` on reload with `parse_room_head`, call `feq_chain_set_room_head`; log `room on …` / `room off: …`; problem `room-head` when enabled and no head).
 - Test: `native/dsp-core/tests/chain_surround_test.cpp` (new case: room on a six-channel chain leaves channels 2–5 silent and reports `+512` latency; room off is unchanged from today), `src/__tests__/unit_tests/dspChainWire.test.ts` (slice reads the room block ahead of the surround flag), `native/system-apo/tests/dsp_chain_test.cpp` (room fields decoded).
 
@@ -530,6 +539,7 @@ Set `FEQ_CHAIN_PARAM_LEAD 138` and `CHAIN_PARAM_LEAD = 138` everywhere in this t
 ### Task 5: The head sets and the app that writes them
 
 **Files:**
+
 - Create: `.erb/scripts/build-room-heads.ts` (from three extracted SADIE II subject folders — `--small <dir> --medium <dir> --large <dir>` — reads `48K_24bit/azi_<a>,0_ele_0,0.wav` and the 44.1 K and 96 K siblings for `a` in 0, 15, …, 345; fails listing the folder when a name does not match; trims each HRIR to 256 taps from its onset (first sample above -40 dBFS, minus 8), applies a 32-tap half-Hann tail, normalises the set so the loudest direct pair peaks at -3 dBFS; writes `assets/room/heads/<size>.txt` in the Task 1 format, and `assets/room/heads/LICENSES.md` with the Apache 2.0 notice, the SADIE II citation and the MIT KEMAR citation), `src/main/roomHead.ts` (reads `assets/room/heads/<size>.txt` and writes it to the engine's config folder as `fluideq-room-head.txt` through `asyncWriter` when `settings.room.head` changes or the folder is (re)created; deletes it on quit with the rack), `src/__tests__/unit_tests/main/roomHead.test.ts`.
 - Modify: `package.json` (`"build:room-heads": "ts-node ./.erb/scripts/build-room-heads.ts"`), `src/main/dspHost/wire.ts` or wherever `publishSystemDspChain` reaches main (call `writeRoomHead(settings.room.head)` alongside the rack write), `assets.d.ts` if text assets need a declaration.
 
@@ -543,6 +553,7 @@ Set `FEQ_CHAIN_PARAM_LEAD 138` and `CHAIN_PARAM_LEAD = 138` everywhere in this t
 ### Task 6: Status fields for the card's chip
 
 **Files:**
+
 - Modify: `native/system-apo/src/status_file.h` (`uint32_t channels`, `std::string room` — one of `off`, `front-stage`, `5.1`, `7.1`, `no-head`), `status_json.cpp`, `watcher_log.cpp` (fill from the graph), `src/common/engineHealth.ts` + `src/main/engineHealth.ts` (parse `channels`, `room`), tests `status_test.cpp`, `engineHealth.test.ts`.
 - [ ] **Step 1: Failing tests** — status JSON text gains `"channels":8,"room":"7.1"` after `problems` (pinned string in both tests).
 - [ ] **Step 2: Implement both sides; `ENGINE_STATUS_SINCE` unchanged (fields optional on read).**
