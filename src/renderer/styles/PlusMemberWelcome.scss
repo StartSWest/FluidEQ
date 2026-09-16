@@ -18,31 +18,6 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.backdrop(1500);
 }
 
-/**
- * The aurora under the stage.
- *
- * What a machine that cannot draw a scene is left with, and what covers the
- * moment before the scene's first frame — a stage that began as a black
- * rectangle and filled in afterwards read as a picture that had failed to
- * load. Two lights drifting across each other over twenty-six seconds. Only
- * this band animates, never a box holding text: an element with a running
- * animation is promoted to its own compositor layer, and text painted into a
- * layer that is not opaque loses subpixel antialiasing (see `_motion.scss`).
- */
-@keyframes plus-welcome-aurora {
-  0% {
-    transform: translate3d(-3%, 0, 0) scale(1.06);
-  }
-
-  50% {
-    transform: translate3d(3%, 1.5%, 0) scale(1.14);
-  }
-
-  100% {
-    transform: translate3d(-3%, 0, 0) scale(1.06);
-  }
-}
-
 // Wide, because what is in it is five places to go and a scene playing, and
 // both of those are landscape. 920px is the width at which the five cards sit
 // in one row at the size the gallery draws its own cards.
@@ -51,79 +26,12 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-/**
- * The scene, playing.
- *
- * What somebody has just bought is visualizers, so the welcome is one rather
- * than a drawing of one: the Studio's starter — which ships inside the app,
- * so it needs no network and no gallery — on whatever they have playing.
- * `ScenePreview` fills this box; it is `position: absolute; inset: 0` and
- * measures whatever it is given.
- */
+// How tall the shared band may be here; everything else about it — the
+// scene, the aurora under it and the scrim over it — is `SceneBand`.
 .plus-member-welcome__stage {
-  position: relative;
-  // Tall enough for a scene to be watched; a third of that where there is no
-  // scene, because the rest would be an empty gradient asking to be looked at.
-  height: 156px;
-  overflow: hidden;
-  background: $surface-plot;
-
-  &.is-playing {
-    height: 244px;
-
-    @media (max-height: 760px) {
-      height: 196px;
-    }
-  }
-
-  &::before {
-    position: absolute;
-    z-index: 0;
-    top: -22%;
-    left: -10%;
-    width: 120%;
-    height: 118%;
-    animation: plus-welcome-aurora 26s ease-in-out infinite;
-    background:
-      radial-gradient(
-        54% 66% at 20% 46%,
-        color-mix(in srgb, $secondary-default 74%, transparent),
-        transparent 68%
-      ),
-      radial-gradient(
-        50% 62% at 78% 34%,
-        color-mix(in srgb, $active 58%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        46% 58% at 52% 62%,
-        color-mix(in srgb, $neon-purple 46%, transparent),
-        transparent 72%
-      );
-    content: '';
-    filter: blur(6px);
-    pointer-events: none;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
-  }
-}
-
-// Under the words and over the scene: enough ground for white text on a
-// bright frame, and none in the middle, where the scene is.
-.plus-member-welcome__scrim {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $surface-menu-top 52%, transparent) 0%,
-    transparent 34%,
-    color-mix(in srgb, $surface-menu-top 62%, transparent) 72%,
-    color-mix(in srgb, $surface-menu-top 90%, transparent) 100%
-  );
-  pointer-events: none;
+  --band-short: 156px;
+  --band-tall: 244px;
+  --band-tall-short: 196px;
 }
 
 .plus-member-welcome__titles {

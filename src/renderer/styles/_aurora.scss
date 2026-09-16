@@ -1,0 +1,74 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+
+/**
+ * The drift under a scene band and under the member card.
+ *
+ * Two lights crossing each other over twenty-six seconds. Only the layer this
+ * is applied to may move, never a box holding text: an element with a running
+ * animation is promoted to its own compositor layer, and text painted into a
+ * layer that is not opaque loses subpixel antialiasing (see `_motion.scss`).
+ */
+@keyframes fluid-aurora-drift {
+  0% {
+    transform: translate3d(-3%, 0, 0) scale(1.06);
+  }
+
+  50% {
+    transform: translate3d(3%, 1.5%, 0) scale(1.14);
+  }
+
+  100% {
+    transform: translate3d(-3%, 0, 0) scale(1.06);
+  }
+}
+
+/**
+ * Three lights on a pseudo-element that fills its positioned parent.
+ *
+ * The leading one is the caller's to colour through `--band-light`; the two
+ * behind it are the app's, so every aurora reads as the same app whoever is
+ * signed into it.
+ */
+@mixin aurora($seconds: 26s) {
+  position: absolute;
+  z-index: 0;
+  top: -22%;
+  left: -10%;
+  width: 120%;
+  height: 144%;
+  animation: fluid-aurora-drift $seconds ease-in-out infinite;
+  background:
+    radial-gradient(
+      54% 66% at 20% 46%,
+      var(
+        --band-light,
+        #{color-mix(in srgb, $secondary-default 74%, transparent)}
+      ),
+      transparent 68%
+    ),
+    radial-gradient(
+      50% 62% at 78% 34%,
+      color-mix(in srgb, $active 58%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46% 58% at 52% 62%,
+      color-mix(in srgb, $neon-purple 46%, transparent),
+      transparent 72%
+    );
+  content: '';
+  filter: blur(6px);
+  pointer-events: none;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

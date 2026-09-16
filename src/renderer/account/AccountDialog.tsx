@@ -4,6 +4,7 @@ import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
+import BrandMark from '../icons/BrandMark';
 import DialogHeader from '../components/DialogHeader';
 import Glyph from '../community/Glyph';
 import LeaderboardName from '../community/LeaderboardName';
@@ -244,74 +245,88 @@ export default function AccountDialog({
         <div className="about__body account__body" hidden={onTerms}>
           {signedIn && (
             <>
-              <section
-                className="account__hero"
-                style={identityStyle(identity.email ?? identity.id)}
-              >
-                <span className="account__avatar" aria-hidden="true">
-                  {initialsOf(identity.name, identity.email)}
-                </span>
-                <div className="account__who">
-                  <span className="account__name">{displayName}</span>
-                  {profile && (
-                    <span className="account__handle">@{profile.handle}</span>
-                  )}
-                  {identity.email && identity.email !== displayName && (
-                    <span className="account__email">{identity.email}</span>
-                  )}
-                  <div className="account__chips">
-                    {entitlement.state === 'active' && (
-                      <span className="account__chip account__chip--plus">
-                        {t('account.plus.eyebrow')}
-                      </span>
+              {/* The person on the left as a card they own, the two things
+                  that happen to an account stacked beside it. A band across
+                  the top with everything under it was a header over a
+                  settings page; this is somebody's account. */}
+              <div className="account__grid">
+                <section
+                  className="account__member"
+                  style={identityStyle(identity.email ?? identity.id)}
+                >
+                  <div className="account__member-top">
+                    <BrandMark className="account__member-brand" />
+                    <span className="account__member-kind">
+                      {entitlement.state === 'none'
+                        ? t('account.title')
+                        : t('account.plus.eyebrow')}
+                    </span>
+                  </div>
+
+                  <span className="account__avatar" aria-hidden="true">
+                    {initialsOf(identity.name, identity.email)}
+                  </span>
+
+                  <div className="account__who">
+                    <span className="account__name">{displayName}</span>
+                    {profile && (
+                      <span className="account__handle">@{profile.handle}</span>
                     )}
-                    {entitlement.state === 'grace' && (
-                      <span className="account__chip account__chip--grace">
-                        {t('account.plus.eyebrow')}
-                      </span>
+                    {identity.email && identity.email !== displayName && (
+                      <span className="account__email">{identity.email}</span>
                     )}
-                    {board.optedIn && (
+                  </div>
+
+                  {board.optedIn && (
+                    <div className="account__chips">
                       <span className="account__chip">
                         <Glyph name="board" />
                         {t('leaderboard.card.title')}
                       </span>
+                    </div>
+                  )}
+
+                  {/* Both of the account's own actions together, at the foot
+                      of the card they belong to. Quiet: neither is what
+                      anybody opened this panel to be encouraged into. */}
+                  <div className="account__hero-actions">
+                    {/* Only once the server has said whether there is a name:
+                        "choose" offered to somebody who has one would create
+                        a second row and fail on the first. */}
+                    {profileLoaded && !editingName && (
+                      <button
+                        type="button"
+                        className="button small subtle account__name-link"
+                        onClick={() => setEditingName(true)}
+                      >
+                        {t(
+                          profile
+                            ? 'account.name.change'
+                            : 'leaderboard.name.choose',
+                        )}
+                      </button>
                     )}
-                  </div>
-                </div>
-                {/* Both of the account's own actions together, rather than a
-                    link hanging under the chips and a button across the row
-                    from it: they are the two things this header is for, and
-                    split apart they left the left column ragged. Both quiet —
-                    neither is what anybody opened the panel to be encouraged
-                    into. */}
-                <div className="account__hero-actions">
-                  {/* Only once the server has said whether there is a name:
-                      "choose" offered to somebody who has one would create a
-                      second row and fail on the first. */}
-                  {profileLoaded && !editingName && (
                     <button
                       type="button"
-                      className="button small subtle account__name-link"
-                      onClick={() => setEditingName(true)}
+                      className="button small subtle account__sign-out"
+                      onClick={() => {
+                        signOutAccount().catch(() => undefined);
+                      }}
                     >
-                      {t(
-                        profile
-                          ? 'account.name.change'
-                          : 'leaderboard.name.choose',
-                      )}
+                      {t('account.signOut')}
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="button small subtle account__sign-out"
-                    onClick={() => {
-                      signOutAccount().catch(() => undefined);
-                    }}
-                  >
-                    {t('account.signOut')}
-                  </button>
+                  </div>
+                </section>
+
+                <div className="account__cards">
+                  <PlusCard
+                    entitlement={entitlement}
+                    onUpgrade={() => setPage('subscribe')}
+                    checkoutOpened={checkoutOpened}
+                  />
+                  <LeaderboardCard />
                 </div>
-              </section>
+              </div>
 
               {errorLine}
 
@@ -332,15 +347,6 @@ export default function AccountDialog({
                   />
                 </div>
               )}
-
-              <div className="account__cards">
-                <PlusCard
-                  entitlement={entitlement}
-                  onUpgrade={() => setPage('subscribe')}
-                  checkoutOpened={checkoutOpened}
-                />
-                <LeaderboardCard />
-              </div>
 
               <div className="account__foot">
                 <p className="account__optional account__optional--foot">

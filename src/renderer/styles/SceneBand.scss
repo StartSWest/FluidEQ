@@ -1,0 +1,64 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'aurora' as *;
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+/**
+ * A band with a scene playing in it: the top of the welcome and the top of
+ * the account panel, which are the same thing said twice.
+ *
+ * `--band-tall` is what it grows to once a scene is actually drawing; without
+ * one it stays short, because the rest would be an empty gradient asking to
+ * be looked at. `--band-light` colours the leading light of the aurora — the
+ * account paints it in the person's own colour, the welcome leaves it in the
+ * app's accent.
+ */
+.scene-band {
+  position: relative;
+  height: var(--band-short, 156px);
+  overflow: hidden;
+  background: $surface-plot;
+
+  &.is-playing {
+    height: var(--band-tall, 244px);
+
+    @media (max-height: 760px) {
+      height: var(--band-tall-short, 196px);
+    }
+  }
+
+  &::before {
+    @include aurora;
+  }
+}
+
+// Under the words and over the scene: ground enough for white text on a
+// bright frame, and none across the middle, where the scene is.
+.scene-band__scrim {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $surface-menu-top 52%, transparent) 0%,
+    transparent 34%,
+    color-mix(in srgb, $surface-menu-top 62%, transparent) 72%,
+    color-mix(in srgb, $surface-menu-top 90%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+// Everything the caller puts over the scene.
+.scene-band__over {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+}

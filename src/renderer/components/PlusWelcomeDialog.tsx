@@ -4,17 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import {
   markPlusWelcomeSeen,
   usePlusWelcome,
 } from '../account/plusWelcomeStore';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
-import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import BrandMark from '../icons/BrandMark';
-import ScenePreview from '../plus/ScenePreview';
+import SceneBand from '../plus/SceneBand';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/PlusMemberWelcome.scss';
@@ -63,44 +61,6 @@ const OPENED: readonly {
 ];
 
 /**
- * The scene the welcome plays: the Studio's starter, the same one the
- * Dynamic lighting page uses.
- *
- * It ships inside the app, so it needs no network, no membership and nothing
- * downloaded — this dialog appears the instant a payment lands and cannot
- * wait for a gallery scene to arrive. Asked for once, while the welcome is
- * up; a window whose bridge predates it, or a machine that cannot draw a
- * scene at all, simply keeps the aurora behind the title.
- */
-const useWelcomeScene = (wanted: boolean) => {
-  const [pack, setPack] = useState<IScenePack>();
-
-  useEffect(() => {
-    if (!wanted || !isSceneRenderingAvailable()) {
-      return undefined;
-    }
-    let cancelled = false;
-    const asked = window.electron?.ipcRenderer?.lightingDemoScene?.();
-    if (!asked) {
-      return undefined;
-    }
-    asked
-      .then((scene) => {
-        if (!cancelled && scene) {
-          setPack(scene);
-        }
-        return undefined;
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [wanted]);
-
-  return pack;
-};
-
-/**
  * The moment a membership turns on, said out loud.
  *
  * Paying happens at the merchant, in a browser, so the app hears of it when
@@ -115,12 +75,10 @@ const useWelcomeScene = (wanted: boolean) => {
  * being welcomed twice is worse than not being welcomed at all.
  */
 export default function PlusWelcomeDialog() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const welcome = usePlusWelcome();
   const openRef = useRef<HTMLButtonElement>(null);
   const edition = welcome?.edition;
-  const [trouble, setTrouble] = useState(false);
-  const pack = useWelcomeScene(edition !== undefined && !trouble);
 
   useEffect(() => {
     if (edition === undefined) {
@@ -144,7 +102,6 @@ export default function PlusWelcomeDialog() {
   const close = () => {
     markPlusWelcomeSeen(edition).catch(() => undefined);
   };
-  const playing = pack !== undefined && !trouble;
 
   return (
     <div className="plus-member-welcome-backdrop" role="presentation">
@@ -154,22 +111,7 @@ export default function PlusWelcomeDialog() {
         aria-modal="true"
         aria-labelledby="plus-welcome-title"
       >
-        {/* The stage. Its own aurora underneath, which is what a machine
-            that cannot draw a scene is left with, and what covers the
-            moment before the first frame. */}
-        <div
-          className={`plus-member-welcome__stage${playing ? ' is-playing' : ''}`}
-        >
-          {playing && (
-            <ScenePreview
-              identity="plus-welcome"
-              pack={pack}
-              label={resolveSceneName(pack, locale)}
-              onTrouble={() => setTrouble(true)}
-            />
-          )}
-          <span className="plus-member-welcome__scrim" aria-hidden="true" />
-
+        <SceneBand playsScene className="plus-member-welcome__stage">
           <div className="plus-member-welcome__titles">
             <BrandMark className="plus-member-welcome__brand" />
             <span className="plus-member-welcome__eyebrow">
@@ -188,7 +130,7 @@ export default function PlusWelcomeDialog() {
           >
             <Glyph name="close" />
           </button>
-        </div>
+        </SceneBand>
 
         <div className="plus-member-welcome__body">
           <p className="plus-member-welcome__lead">{t('plusWelcome.lead')}</p>
