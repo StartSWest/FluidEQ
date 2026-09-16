@@ -861,6 +861,13 @@ export interface IAudioDevice {
    * say.
    */
   sampleRate?: number;
+  /**
+   * How many channels that format has — 2 for stereo, 6 for 5.1, 8 for 7.1.
+   * Windows sends a game's or a film's surround only to an output with that
+   * many, which is what the Room's one-press 7.1 changes. Missing when
+   * Windows did not say.
+   */
+  channels?: number;
 }
 
 export interface IDeviceProfileAssignment {

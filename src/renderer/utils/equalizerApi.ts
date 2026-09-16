@@ -48,6 +48,7 @@ import { IChainImport } from 'common/chainBundle';
 // pure implementation by accident.
 import type { ISongEqEntry } from 'common/songEq';
 import type { ISongIdentity } from 'common/songIdentity';
+import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 
 import {
   buildResponseHandler,
@@ -334,6 +335,40 @@ export const getAudioDevices = coalesceRequests((): Promise<IAudioDevice[]> => {
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
   return sendRequest(channel, [deviceId], setterResponseHandler);
+};
+
+/** One output's shared-mode format, and whether its driver takes 7.1. */
+export const readOutputFormat = (deviceId: string): Promise<IOutputFormat> => {
+  const channel = ChannelEnum.READ_OUTPUT_FORMAT;
+  return sendRequest(
+    channel,
+    [deviceId],
+    simpleResponseHandler<IOutputFormat>(),
+  );
+};
+
+/** The Room's one press: the output becomes 7.1, its old format remembered. */
+export const setOutputSevenOne = (
+  deviceId: string,
+): Promise<IOutputFormatChange> => {
+  const channel = ChannelEnum.SET_OUTPUT_SEVEN_ONE;
+  return sendRequest(
+    channel,
+    [deviceId],
+    simpleResponseHandler<IOutputFormatChange>(),
+  );
+};
+
+/** Undo: the output goes back to what it was before the press. */
+export const restoreOutputFormat = (
+  deviceId: string,
+): Promise<IOutputFormatChange> => {
+  const channel = ChannelEnum.RESTORE_OUTPUT_FORMAT;
+  return sendRequest(
+    channel,
+    [deviceId],
+    simpleResponseHandler<IOutputFormatChange>(),
+  );
 };
 
 export const activateAudioDeviceProfile = (deviceId: string): Promise<void> => {

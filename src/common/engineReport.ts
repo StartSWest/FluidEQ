@@ -86,7 +86,8 @@ const describeOutput = (
     `- ${device.name}${device.isDefault ? ' (playing now)' : ''}`,
     `  Windows: effects possible=${yesNo(device.canHostEffects)}, ` +
       `enhancements on=${yesNo(device.effectsEnabled)}` +
-      `${device.sampleRate ? `, ${device.sampleRate} Hz` : ''}`,
+      `${device.sampleRate ? `, ${device.sampleRate} Hz` : ''}` +
+      `${device.channels ? `, ${device.channels} channels` : ''}`,
     `  Attached: FluidEQ Engine=${yesNo(
       attached ? attached.attached : device.isFluidEngineAttached,
     )}, Equalizer APO=${yesNo(device.isEqualizerApoAttached)}`,

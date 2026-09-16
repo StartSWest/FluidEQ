@@ -148,6 +148,39 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTiming': '元のタイミングを使う',
   'graph.scene.ownTimingHint':
     'このビジュアライザーに元々設定されたアタックとリリースに戻します',
+  'graph.scene.frameRate': 'フレームレート',
+  'graph.scene.frameRateHint':
+    'ビジュアライザーを描く頻度：ディスプレイの全フレーム、または GPU を休ませるための上限付き',
+  'graph.scene.frameRate.display': 'ディスプレイと同じ',
+  'graph.scene.frameRate.sixty': '毎秒 60',
+  'graph.scene.frameRate.thirty': '毎秒 30',
+  'graph.scene.resolution': '解像度',
+  'graph.scene.frameRate.displayBattery':
+    'ディスプレイと同じ · バッテリー時は 60',
+  'graph.scene.resolutionHint':
+    '自動は GPU が追いつかないときだけ小さく描いて拡大します。フルは常にそのままの大きさで描きます。品質・バランス・パフォーマンスは常にその割合で描いて拡大します（ゲームの DLSS や FSR と同じ）',
+  'graph.scene.resolution.auto': '自動',
+  'graph.scene.resolution.native': 'フル',
+  'graph.scene.resolution.quality': '品質 (77%)',
+  'graph.scene.resolution.balanced': 'バランス (67%)',
+  'graph.scene.resolution.performance': 'パフォーマンス (50%)',
+  'graph.scene.scaler': 'スケーラー',
+  'graph.scene.scalerHint':
+    '小さく描いた絵を元の大きさに戻す方法：AMD FSR は輪郭をシャープに保ち、シンプルは GPU に負担のない柔らかな引き伸ばしです',
+  'graph.scene.scaler.fsr': 'AMD FSR',
+  'graph.scene.scaler.simple': 'シンプル',
+  'graph.scene.smoothing': '輪郭を滑らかに',
+  'graph.scene.smoothingHint':
+    'アンチエイリアス：高速は軽い 1 パスで輪郭を滑らかにし、最高はシーンを大きく描いて平均します（余裕のある GPU 向け）',
+  'graph.scene.smoothing.off': 'オフ',
+  'graph.scene.smoothing.fast': '高速',
+  'graph.scene.smoothing.best': '最高',
+  'graph.scene.gpu': 'グラフィックカード',
+  'graph.scene.gpuHint':
+    'グラフィックカードが 2 枚あるノート PC で FluidEQ を速い方で動かします。次回起動から有効です',
+  'graph.scene.gpu.auto': 'Windows に任せる',
+  'graph.scene.gpu.high': '高パフォーマンス',
+  'graph.scene.gpu.restart': '再起動後',
   'graph.scene.locked':
     'FluidEQ Plus の一部です。選ぶと解除する方法が表示されます。',
   'graph.style.next': '次のスタイル',
@@ -272,6 +305,18 @@ const eq: Partial<Dictionary> = {
     '{device} のオーディオ拡張機能がオフになっているため、Windows はこの出力でどの効果も実行しません。どれだけ正しく設定されていても、FluidEQ エンジンも同じです。Windows のサウンド設定でこの出力の拡張機能をオンに戻すと、EQ が戻ります。',
   'output.openSoundSettings': 'サウンド設定を開く',
   'output.gotIt': 'OK',
+  'output.roomBadge': 'ルーム',
+  'output.roomStereoTitle': '{device} はステレオに設定されています',
+  'output.roomStereoBody':
+    '7.1 に設定すると、ゲームや映画のすべてのチャンネルがルームに届きます。音楽は今とまったく同じ：ステレオはフロント 2 本のスピーカーに行きます。',
+  'output.setSevenOne': '7.1 に設定',
+  'output.settingSevenOne': '設定中…',
+  'output.roomSevenOneTitle': '{device} は 7.1 出力になりました',
+  'output.roomSevenOneBody':
+    'ルームに 8 チャンネルすべてが届いています。元に戻すと出力は以前の設定に戻ります。',
+  'output.undoSevenOne': '元に戻す',
+  'output.sevenOneFailed':
+    'Windows はこの出力で 7.1 フォーマットを受け付けませんでした。',
   'output.none': '有効な出力が見つかりません',
   'output.mapping': '自動割り当て',
   'output.mapping.neutral': '無処理の出力',

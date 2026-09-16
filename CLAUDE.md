@@ -643,6 +643,21 @@ Out-String` (or any other capture) is what actually waits for it and shows
   walls leave nothing after the direct path, a wall change mid-stream
   makes no step beyond either steady room's) and `chain_surround_test.cpp`
   (a six-channel chain folds and reports +512 frames).
+- **An output's format is set to 7.1 for the Room through PolicyConfig, not
+  the registry, and only where the driver takes it.**
+  `windows-audio-format.ps1` reads an output's shared-mode format, asks the
+  driver in exclusive mode whether it takes a 7.1 format at the output's own
+  depth or the three common ones (or whether Windows already knows the
+  output as six or more physical speakers), and sets or restores the format
+  through `IPolicyConfig::SetDeviceFormat` — the call Sound settings makes,
+  no administrator, Windows restarts the streams itself. `outputFormat.ts`
+  remembers the first "before" per output in `output-formats.json` under
+  userData so Undo puts back exactly that; `RoomOutputNotice` offers the
+  press only when the engine's status says the room is folding a stereo
+  stream on the output being played through (`front-stage`) and the driver
+  said yes, and steps aside for the engine notice. Ivan's outputs all say no
+  (a USB headset dongle and a Realtek jack), so the notice was tested and
+  not seen; it reuses the engine notice's layout.
 - **The rack runs on every channel of a surround output, up to eight, and
   the front pair stays bit-for-bit the stereo chain.** `FEQ_CHAIN_MAX_CHANNELS`
   is 8; `FEQ_CHAIN_CHANNELS` (2) now means "the front pair", not the width.

@@ -185,6 +185,29 @@ public static class AquaAudioDevices
         }
     }
 
+    // nChannels sits two bytes in: how many channels Windows mixes this
+    // output to, which is what a game's or a film's surround reaches only
+    // when it is six or eight.
+    private static Nullable<int> ReadChannels(IPropertyStore store)
+    {
+        var key = DeviceFormatKey;
+        PROPVARIANT value;
+        if (store.GetValue(ref key, out value) != 0)
+            return null;
+        try
+        {
+            if (value.valueType != 65 || value.blobSize < 4 ||
+                value.blobData == IntPtr.Zero)
+                return null;
+            var channels = Marshal.ReadInt16(value.blobData, 2);
+            return channels > 0 ? (Nullable<int>)channels : null;
+        }
+        finally
+        {
+            PropVariantClear(ref value);
+        }
+    }
+
     private static Nullable<int> ReadSampleRate(IPropertyStore store)
     {
         var key = DeviceFormatKey;
@@ -219,6 +242,7 @@ public static class AquaAudioDevices
         public Nullable<bool> canHostEffects { get; set; }
         public Nullable<bool> effectsEnabled { get; set; }
         public Nullable<int> sampleRate { get; set; }
+        public Nullable<int> channels { get; set; }
     }
 
     // The two probes below answer "not attached" for an output with no key
@@ -399,7 +423,8 @@ public static class AquaAudioDevices
                 isFluidEngineAttached = IsFluidEngineAttached(guid),
                 canHostEffects = CanHostEffects(guid),
                 effectsEnabled = ReadEffectsEnabled(store),
-                sampleRate = ReadSampleRate(store)
+                sampleRate = ReadSampleRate(store),
+                channels = ReadChannels(store)
             });
         }
         return result;

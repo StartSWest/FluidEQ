@@ -146,6 +146,39 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTiming': 'Usa i suoi tempi',
   'graph.scene.ownTimingHint':
     'Torna all’attacco e al rilascio con cui è arrivata questa visualizzazione',
+  'graph.scene.frameRate': 'Frequenza',
+  'graph.scene.frameRateHint':
+    'Ogni quanto vengono disegnate le visualizzazioni: a ogni fotogramma dello schermo, o limitate per non affaticare la GPU',
+  'graph.scene.frameRate.display': 'Quella dello schermo',
+  'graph.scene.frameRate.sixty': '60 al secondo',
+  'graph.scene.frameRate.thirty': '30 al secondo',
+  'graph.scene.resolution': 'Risoluzione',
+  'graph.scene.frameRate.displayBattery':
+    'Quella dello schermo · 60 a batteria',
+  'graph.scene.resolutionHint':
+    'Automatica disegna più piccolo e ingrandisce solo quando la GPU non tiene il passo; Piena non disegna mai più piccolo; Qualità, Bilanciata e Prestazioni disegnano sempre a quella frazione del pannello e ingrandiscono, come DLSS e FSR nei giochi',
+  'graph.scene.resolution.auto': 'Automatica',
+  'graph.scene.resolution.native': 'Piena',
+  'graph.scene.resolution.quality': 'Qualità (77%)',
+  'graph.scene.resolution.balanced': 'Bilanciata (67%)',
+  'graph.scene.resolution.performance': 'Prestazioni (50%)',
+  'graph.scene.scaler': 'Scaler',
+  'graph.scene.scalerHint':
+    'Cosa porta un’immagine più piccola a dimensione: AMD FSR mantiene i bordi nitidi; Semplice è uno stiramento morbido che non costa nulla alla GPU',
+  'graph.scene.scaler.fsr': 'AMD FSR',
+  'graph.scene.scaler.simple': 'Semplice',
+  'graph.scene.smoothing': 'Bordi lisci',
+  'graph.scene.smoothingHint':
+    'Antialiasing: Veloce leviga i bordi in un passaggio economico; Massimo disegna la scena più grande e ne fa la media, per GPU con margine',
+  'graph.scene.smoothing.off': 'Spento',
+  'graph.scene.smoothing.fast': 'Veloce',
+  'graph.scene.smoothing.best': 'Massimo',
+  'graph.scene.gpu': 'Scheda grafica',
+  'graph.scene.gpuHint':
+    'Su un portatile con due schede grafiche, esegui FluidEQ su quella veloce; vale dal prossimo avvio',
+  'graph.scene.gpu.auto': 'Decide Windows',
+  'graph.scene.gpu.high': 'Prestazioni elevate',
+  'graph.scene.gpu.restart': 'dopo il riavvio',
   'graph.scene.locked':
     'Parte di FluidEQ Plus. Scegli questo look per vedere come sbloccarlo.',
   'graph.style.next': 'Stile successivo',
@@ -272,6 +305,18 @@ const eq: Partial<Dictionary> = {
     'I miglioramenti audio sono disattivati per {device}, quindi Windows non esegue alcun effetto su di essa — motore FluidEQ incluso, per quanto sia configurato bene. Riattivali per questa uscita nelle impostazioni audio di Windows e il tuo EQ torna.',
   'output.openSoundSettings': 'Apri le impostazioni audio',
   'output.gotIt': 'Ho capito',
+  'output.roomBadge': 'STANZA',
+  'output.roomStereoTitle': '{device} è impostata in stereo',
+  'output.roomStereoBody':
+    'Impostala in 7.1 perché giochi e film arrivino nella stanza con tutti i canali. La musica continua esattamente come ora: lo stereo va ai due diffusori frontali.',
+  'output.setSevenOne': 'Imposta 7.1',
+  'output.settingSevenOne': 'Impostazione…',
+  'output.roomSevenOneTitle': '{device} ora è un’uscita 7.1',
+  'output.roomSevenOneBody':
+    'La stanza ha tutti gli otto canali. Annulla riporta l’uscita com’era.',
+  'output.undoSevenOne': 'Annulla',
+  'output.sevenOneFailed':
+    'Windows non ha accettato il formato 7.1 su questa uscita.',
   'output.none': 'Nessuna uscita attiva trovata',
   'output.mapping': 'Associazione automatica',
   'output.mapping.neutral': 'Uscita neutra',

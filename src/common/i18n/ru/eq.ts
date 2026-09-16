@@ -146,6 +146,38 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTiming': 'Вернуть его собственный ритм',
   'graph.scene.ownTimingHint':
     'Вернуться к атаке и спаду, с которыми пришёл этот визуализатор',
+  'graph.scene.frameRate': 'Частота кадров',
+  'graph.scene.frameRateHint':
+    'Как часто рисуются визуализаторы: в каждом кадре экрана или с ограничением, чтобы разгрузить GPU',
+  'graph.scene.frameRate.display': 'Как у экрана',
+  'graph.scene.frameRate.sixty': '60 в секунду',
+  'graph.scene.frameRate.thirty': '30 в секунду',
+  'graph.scene.resolution': 'Разрешение',
+  'graph.scene.frameRate.displayBattery': 'Как у экрана · 60 от батареи',
+  'graph.scene.resolutionHint':
+    'Автоматически рисует меньше и увеличивает только когда GPU не успевает; Полное никогда не рисует меньше; Качество, Баланс и Производительность всегда рисуют в этой доле панели и увеличивают, как DLSS и FSR в играх',
+  'graph.scene.resolution.auto': 'Автоматически',
+  'graph.scene.resolution.native': 'Полное',
+  'graph.scene.resolution.quality': 'Качество (77 %)',
+  'graph.scene.resolution.balanced': 'Баланс (67 %)',
+  'graph.scene.resolution.performance': 'Производительность (50 %)',
+  'graph.scene.scaler': 'Масштабатор',
+  'graph.scene.scalerHint':
+    'Что доводит уменьшенную картинку до размера: AMD FSR сохраняет чёткие края; Простой — мягкое растяжение, которое ничего не стоит GPU',
+  'graph.scene.scaler.fsr': 'AMD FSR',
+  'graph.scene.scaler.simple': 'Простой',
+  'graph.scene.smoothing': 'Гладкие края',
+  'graph.scene.smoothingHint':
+    'Сглаживание: Быстрое сглаживает края одним дешёвым проходом; Лучшее рисует сцену крупнее и усредняет, для GPU с запасом',
+  'graph.scene.smoothing.off': 'Выкл.',
+  'graph.scene.smoothing.fast': 'Быстрое',
+  'graph.scene.smoothing.best': 'Лучшее',
+  'graph.scene.gpu': 'Видеокарта',
+  'graph.scene.gpuHint':
+    'На ноутбуке с двумя видеокартами запускать FluidEQ на быстрой; вступает в силу со следующего запуска',
+  'graph.scene.gpu.auto': 'Решает Windows',
+  'graph.scene.gpu.high': 'Высокая производительность',
+  'graph.scene.gpu.restart': 'после перезапуска',
   'graph.scene.locked':
     'Входит в FluidEQ Plus. Выберите, чтобы узнать, как открыть доступ.',
   'graph.style.next': 'Следующий стиль',
@@ -272,6 +304,17 @@ const eq: Partial<Dictionary> = {
     'Улучшения звука отключены для {device}, поэтому Windows не выполняет на нём никаких эффектов — в том числе движок FluidEQ, как бы хорошо он ни был настроен. Включите их для этого выхода в параметрах звука Windows, и эквалайзер вернётся.',
   'output.openSoundSettings': 'Открыть параметры звука',
   'output.gotIt': 'Понятно',
+  'output.roomBadge': 'КОМНАТА',
+  'output.roomStereoTitle': '{device} настроен на стерео',
+  'output.roomStereoBody':
+    'Переключите его на 7.1, чтобы игры и фильмы доходили до комнаты со всеми каналами. Музыка играет ровно как сейчас: стерео идёт на две передние колонки.',
+  'output.setSevenOne': 'Переключить на 7.1',
+  'output.settingSevenOne': 'Переключаем…',
+  'output.roomSevenOneTitle': '{device} теперь выход 7.1',
+  'output.roomSevenOneBody':
+    'У комнаты есть все восемь каналов. «Отменить» вернёт выход к прежней настройке.',
+  'output.undoSevenOne': 'Отменить',
+  'output.sevenOneFailed': 'Windows не принял формат 7.1 на этом выходе.',
   'output.none': 'Активные выходы не найдены',
   'output.mapping': 'Автоматическая привязка',
   'output.mapping.neutral': 'Нейтральный выход',

@@ -38,6 +38,7 @@ import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
+import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type { IBandDesign } from 'common/bandDesigns';
 import type {
@@ -275,6 +276,8 @@ export const buildResponseHandler = <
     | IOpraProduct[]
     | IOpraCurve[]
     | IConvolutionCatalogEntry[]
+    | IOutputFormat
+    | IOutputFormatChange
     | IConvolutionProfile
     | IGatheredFacts
     | IApoConfigTree
@@ -329,6 +332,8 @@ export const simpleResponseHandler = <
     | IOpraProduct[]
     | IOpraCurve[]
     | IConvolutionCatalogEntry[]
+    | IOutputFormat
+    | IOutputFormatChange
     | IConvolutionProfile
     | IGatheredFacts
     | IApoConfigTree

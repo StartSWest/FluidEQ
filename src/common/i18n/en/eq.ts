@@ -151,6 +151,38 @@ const eq = {
   'graph.scene.ownTiming': 'Use its own timing',
   'graph.scene.ownTimingHint':
     'Back to the attack and release this visualizer came with',
+  'graph.scene.frameRate': 'Frame rate',
+  'graph.scene.frameRateHint':
+    'How often visualizers are drawn: every frame your display shows, or capped to spare the GPU',
+  'graph.scene.frameRate.display': 'Display rate',
+  'graph.scene.frameRate.sixty': '60 a second',
+  'graph.scene.frameRate.thirty': '30 a second',
+  'graph.scene.resolution': 'Resolution',
+  'graph.scene.frameRate.displayBattery': 'Display rate · 60 on battery',
+  'graph.scene.resolutionHint':
+    'Automatic draws smaller and upscales only when the GPU cannot keep the frame rate; Full never draws smaller; Quality, Balanced and Performance always draw at that share of the panel and upscale, as DLSS and FSR do in games',
+  'graph.scene.resolution.auto': 'Automatic',
+  'graph.scene.resolution.native': 'Full',
+  'graph.scene.resolution.quality': 'Quality (77%)',
+  'graph.scene.resolution.balanced': 'Balanced (67%)',
+  'graph.scene.resolution.performance': 'Performance (50%)',
+  'graph.scene.scaler': 'Scaler',
+  'graph.scene.scalerHint':
+    'What brings a smaller picture up to size: AMD FSR keeps edges sharp; Plain is a soft stretch that costs the GPU nothing',
+  'graph.scene.scaler.fsr': 'AMD FSR',
+  'graph.scene.scaler.simple': 'Plain',
+  'graph.scene.smoothing': 'Smooth edges',
+  'graph.scene.smoothingHint':
+    'Anti-aliasing: Fast smooths edges in one cheap pass; Best draws the scene larger and averages it down, for GPUs with room to spare',
+  'graph.scene.smoothing.off': 'Off',
+  'graph.scene.smoothing.fast': 'Fast',
+  'graph.scene.smoothing.best': 'Best',
+  'graph.scene.gpu': 'Graphics card',
+  'graph.scene.gpuHint':
+    'On a laptop with two graphics cards, run FluidEQ on the fast one; takes effect at the next start',
+  'graph.scene.gpu.auto': 'Windows decides',
+  'graph.scene.gpu.high': 'High performance',
+  'graph.scene.gpu.restart': 'after restart',
   'graph.scene.locked':
     'Part of FluidEQ Plus. Choose it to see how to unlock it.',
   'graph.style.next': 'Next style',
@@ -277,6 +309,18 @@ const eq = {
     'Audio enhancements are turned off for {device}, so Windows runs no effects on it at all — the FluidEQ Engine included, however well it is set up. Turn them back on for this output in Windows sound settings and your EQ comes back.',
   'output.openSoundSettings': 'Open sound settings',
   'output.gotIt': 'Got it',
+  'output.roomBadge': 'ROOM',
+  'output.roomStereoTitle': '{device} is set to stereo',
+  'output.roomStereoBody':
+    'Set it to 7.1 so games and films reach the room with all their channels. Music keeps playing exactly as it does now: stereo goes to the two front speakers.',
+  'output.setSevenOne': 'Set to 7.1',
+  'output.settingSevenOne': 'Setting…',
+  'output.roomSevenOneTitle': '{device} is a 7.1 output now',
+  'output.roomSevenOneBody':
+    'The room has all eight channels. Undo puts the output back to what it was.',
+  'output.undoSevenOne': 'Undo',
+  'output.sevenOneFailed':
+    'Windows did not take the 7.1 format on this output.',
   'output.none': 'No active outputs found',
   'output.mapping': 'Automatic mapping',
   'output.mapping.neutral': 'Neutral output',

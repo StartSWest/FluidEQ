@@ -57,6 +57,25 @@ describe('describeAudioEngine', () => {
     expect(text).toContain('build 1.7.0.0');
   });
 
+  it('names the output’s channel count when Windows said it', () => {
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [{ ...output, channels: 8 }],
+      fluid: installed,
+      health: health(),
+    });
+    expect(text).toContain('96000 Hz, 8 channels');
+    // And says nothing about it when Windows did not: no "0 channels".
+    expect(
+      describeAudioEngine({
+        engine: 'fluid',
+        devices: [output],
+        fluid: installed,
+        health: health(),
+      }),
+    ).not.toContain('channels');
+  });
+
   it("carries the engine's own reason for passing sound through", () => {
     const text = describeAudioEngine({
       engine: 'fluid',

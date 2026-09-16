@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
@@ -64,6 +64,7 @@ import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
 import onWindowMessage from './windowMessages';
+import { IOutputFormatChange, createOutputFormats } from '../outputFormat';
 
 /**
  * Everything the profile handlers may touch, stated rather than implied.
@@ -633,6 +634,53 @@ export const registerProfilesIpc = ({
       event.reply(channel, reply);
     } catch (e) {
       log.error('Failed to change the Windows audio output', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+
+  /**
+   * The Room's one press: an output's format read, set to 7.1, or put back.
+   * Each is logged by `outputFormat.ts`; a refusal is an answer, not an
+   * error, because the window has words for a driver that takes no 7.1.
+   */
+  const outputFormats = createOutputFormats(app.getPath('userData'));
+  onWindowMessage(ChannelEnum.READ_OUTPUT_FORMAT, async (event, arg) => {
+    const channel = ChannelEnum.READ_OUTPUT_FORMAT;
+    try {
+      const result = await outputFormats.read(arg[0] as string);
+      event.reply(channel, { result });
+    } catch (e) {
+      log.error('Failed to read an output format', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+  onWindowMessage(ChannelEnum.SET_OUTPUT_SEVEN_ONE, async (event, arg) => {
+    const channel = ChannelEnum.SET_OUTPUT_SEVEN_ONE;
+    try {
+      let result: IOutputFormatChange = { ok: false, error: 'not run' };
+      // Windows restarts the output's streams for the format change; the
+      // mirrors are stopped around it as they are around a switch of output.
+      await withOutputMirrorsStopped(async () => {
+        result = await outputFormats.setSevenOne(arg[0] as string);
+      });
+      event.reply(channel, { result });
+      notifyOutputStateChanged();
+    } catch (e) {
+      log.error('Failed to set an output to 7.1', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+  onWindowMessage(ChannelEnum.RESTORE_OUTPUT_FORMAT, async (event, arg) => {
+    const channel = ChannelEnum.RESTORE_OUTPUT_FORMAT;
+    try {
+      let result: IOutputFormatChange = { ok: false, error: 'not run' };
+      await withOutputMirrorsStopped(async () => {
+        result = await outputFormats.restore(arg[0] as string);
+      });
+      event.reply(channel, { result });
+      notifyOutputStateChanged();
+    } catch (e) {
+      log.error('Failed to put an output format back', e);
       handleError(event, channel, ErrorCode.FAILURE);
     }
   });

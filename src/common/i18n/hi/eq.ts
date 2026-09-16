@@ -146,6 +146,38 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ownTiming': 'इसकी अपनी टाइमिंग इस्तेमाल करें',
   'graph.scene.ownTimingHint':
     'उसी अटैक और रिलीज़ पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',
+  'graph.scene.frameRate': 'फ़्रेम दर',
+  'graph.scene.frameRateHint':
+    'विज़ुअलाइज़र कितनी बार बनाए जाएँ: डिस्प्ले के हर फ़्रेम पर, या GPU को राहत देने के लिए सीमित',
+  'graph.scene.frameRate.display': 'डिस्प्ले जितनी',
+  'graph.scene.frameRate.sixty': '60 प्रति सेकंड',
+  'graph.scene.frameRate.thirty': '30 प्रति सेकंड',
+  'graph.scene.resolution': 'रिज़ॉल्यूशन',
+  'graph.scene.frameRate.displayBattery': 'डिस्प्ले जितनी · बैटरी पर 60',
+  'graph.scene.resolutionHint':
+    'स्वचालित: GPU फ़्रेम दर न संभाल पाए तभी छोटा बनाकर बड़ा करता है; पूर्ण: कभी छोटा नहीं बनाता; गुणवत्ता, संतुलित और प्रदर्शन: हमेशा पैनल के उसी हिस्से पर बनाकर बड़ा करते हैं, जैसे गेम में DLSS और FSR',
+  'graph.scene.resolution.auto': 'स्वचालित',
+  'graph.scene.resolution.native': 'पूर्ण',
+  'graph.scene.resolution.quality': 'गुणवत्ता (77%)',
+  'graph.scene.resolution.balanced': 'संतुलित (67%)',
+  'graph.scene.resolution.performance': 'प्रदर्शन (50%)',
+  'graph.scene.scaler': 'स्केलर',
+  'graph.scene.scalerHint':
+    'छोटी तस्वीर को पूरे आकार में लाने वाला: AMD FSR किनारे तीखे रखता है; सादा एक नरम खिंचाव है जिसका GPU पर कोई भार नहीं',
+  'graph.scene.scaler.fsr': 'AMD FSR',
+  'graph.scene.scaler.simple': 'सादा',
+  'graph.scene.smoothing': 'चिकने किनारे',
+  'graph.scene.smoothingHint':
+    'एंटी-एलियासिंग: तेज़ एक हल्के पास में किनारे चिकने करता है; सर्वोत्तम दृश्य को बड़ा बनाकर औसत निकालता है, जिन GPU में गुंजाइश हो उनके लिए',
+  'graph.scene.smoothing.off': 'बंद',
+  'graph.scene.smoothing.fast': 'तेज़',
+  'graph.scene.smoothing.best': 'सर्वोत्तम',
+  'graph.scene.gpu': 'ग्राफ़िक्स कार्ड',
+  'graph.scene.gpuHint':
+    'दो ग्राफ़िक्स कार्ड वाले लैपटॉप पर FluidEQ को तेज़ वाले पर चलाएँ; अगली बार शुरू होने पर लागू',
+  'graph.scene.gpu.auto': 'Windows तय करे',
+  'graph.scene.gpu.high': 'उच्च प्रदर्शन',
+  'graph.scene.gpu.restart': 'पुनः आरंभ के बाद',
   'graph.scene.locked':
     'FluidEQ Plus का हिस्सा। इसे चुनकर देखें कि इसे कैसे खोलें।',
   'graph.style.next': 'अगली शैली',
@@ -272,6 +304,18 @@ const eq: Partial<Dictionary> = {
     '{device} के लिए ऑडियो एन्हांसमेंट बंद हैं, इसलिए Windows उस पर कोई भी इफ़ेक्ट नहीं चलाता — FluidEQ इंजन भी नहीं, चाहे वह कितनी भी सही तरह सेट हो। Windows साउंड सेटिंग्स में इस आउटपुट के लिए उन्हें फिर से चालू करें, आपका EQ वापस आ जाएगा।',
   'output.openSoundSettings': 'साउंड सेटिंग्स खोलें',
   'output.gotIt': 'ठीक है',
+  'output.roomBadge': 'कमरा',
+  'output.roomStereoTitle': '{device} स्टीरियो पर सेट है',
+  'output.roomStereoBody':
+    'इसे 7.1 पर सेट करें ताकि गेम और फ़िल्में सभी चैनलों के साथ कमरे तक पहुँचें। संगीत बिल्कुल अभी जैसा ही चलता रहेगा: स्टीरियो सामने के दो स्पीकरों पर जाता है।',
+  'output.setSevenOne': '7.1 पर सेट करें',
+  'output.settingSevenOne': 'सेट हो रहा है…',
+  'output.roomSevenOneTitle': '{device} अब 7.1 आउटपुट है',
+  'output.roomSevenOneBody':
+    'कमरे को सभी आठ चैनल मिल रहे हैं। पूर्ववत करने से आउटपुट पहले जैसा हो जाएगा।',
+  'output.undoSevenOne': 'पूर्ववत करें',
+  'output.sevenOneFailed':
+    'Windows ने इस आउटपुट पर 7.1 फ़ॉर्मैट स्वीकार नहीं किया।',
   'output.none': 'कोई चालू आउटपुट नहीं मिला',
   'output.mapping': 'स्वचालित जोड़',
   'output.mapping.neutral': 'बिना बदलाव वाला आउटपुट',

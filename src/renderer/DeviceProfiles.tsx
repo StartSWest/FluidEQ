@@ -19,6 +19,7 @@ import type { IEngineSetupResult } from 'main/engineSetup';
 import Dropdown from './widgets/Dropdown';
 import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
+import RoomOutputNotice from './components/RoomOutputNotice';
 import { IOptionEntry } from './widgets/List';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
@@ -469,6 +470,15 @@ const DeviceProfiles = ({
           </aside>,
           document.body,
         )}
+      {/* The Room's one press to 7.1, on the output being played through,
+          when the engine reports the room folding a stereo stream there. It
+          steps aside for the engine notice above: an output the engine is
+          not on has nothing to set to 7.1 for. */}
+      <RoomOutputNotice
+        engine={engine}
+        device={selectedDevice}
+        isHidden={isNoticeHidden || showEngineNotice}
+      />
     </SidebarSection>
   );
 };

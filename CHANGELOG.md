@@ -28,13 +28,23 @@ come next.
   many channels there are comes from the output Windows plays through, so
   stereo, 2.1, 5.1 and 7.1 all work without a setting; the DSP page's header
   has a switch to keep the rack on the front pair only.
-- **The Room, engine side.** A new stage in the rack that renders every
-  channel of an output as a speaker in a room around the listener's head, on
-  headphones: each speaker through a measured head (MIT KEMAR, at three head
-  sizes) and the room's own early reflections, out on the front pair. Stereo
-  becomes two speakers in front, 5.1 and 7.1 the whole ring, decided by the
-  stream. It is off until the Room card arrives to switch it on, and it adds
-  about 11 ms when it runs.
+- **The Room.** A listening room on headphones: every channel of the output
+  becomes a speaker around your head, each through a measured head (MIT
+  KEMAR, at three head sizes) and the room's own early reflections. Stereo
+  music becomes two speakers in front of you, a 5.1 film five and the sub, a
+  7.1 game the whole ring, decided by what is playing. The Room card on the
+  DSP page is the room from above: drag a speaker to move it, pick a room
+  (studio, living room, cinema, front stage), set its size, walls, distance,
+  centre and sub, choose the head and whether your headphone profile runs
+  after it; a chip beside the switch says what the room is doing this second.
+  Shaping the room is part of Plus; the room and its presets are for
+  everyone. It adds about 11 ms when it runs.
+- **One press to 7.1.** Games and films send their surround channels only to
+  an output Windows believes has that many speakers. When the room is on and
+  your output is stereo, and its driver takes 7.1, the output panel offers
+  "Set to 7.1" — no administrator prompt, no virtual cable — and Undo puts
+  the output back exactly as it was. A headset whose driver takes stereo
+  only gets no offer; the room is the front stage there.
 
 ### Fixed
 
