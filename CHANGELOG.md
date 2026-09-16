@@ -17,6 +17,18 @@ engine from, and a bug report says what it found.
 
 ### New
 
+- **The DSP rack on 5.1 and 7.1.** Under the FluidEQ Engine the rack used to
+  run on the first two channels of a surround output and leave the rest as
+  they came, so a centre or a rear speaker played without the EQ's effects.
+  Now every channel goes through it: the EQ, the exciter, the compressor and
+  the rest run on each speaker, and the level stages — compressor, maximizer,
+  headroom, the safety limiter — decide once for all of them, so the mix
+  keeps its balance. Stereo-only stages (Dimension, Bass Forge, Bass Punch,
+  Mid/Side) stay on the front pair, the subwoofer feed gets no exciter
+  harmonics, and the surround channels are kept in step with the front. How
+  many channels there are comes from the output Windows plays through, so
+  stereo, 2.1, 5.1 and 7.1 all work without a setting; the Master card has a
+  switch to keep the rack on the front pair only.
 - **The Studio is open to every account.** Without Plus, make one scene of
   your own: your AI assistant writes it, and it plays on the stage with
   everything the Studio has — test signals, the code pane, pictures and
@@ -76,6 +88,12 @@ engine from, and a bug report says what it found.
 
 ### Fixed
 
+- **"The DSP effects are off" no longer offers Equalizer APO.** The card
+  for an engine that could not start its rack, or its linear-phase EQ,
+  offered to switch to Equalizer APO — which has no DSP rack at all, so the
+  switch would have given up the EQ that was working for nothing. Equalizer
+  APO is offered where the engine itself is failing; a DSP problem gets the
+  restart, or just an acknowledgement.
 - **Bug reports say why the engine is attached and silent.** A new Outputs
   section lists what Windows allows on each output, what the setup helper
   and the engine itself report, and the engine's own reason for passing

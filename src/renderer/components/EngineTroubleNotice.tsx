@@ -115,11 +115,15 @@ const EngineTroubleNotice = ({
   const neverRan = trouble.kind === 'off' && trouble.neverRan === true;
   const canRestartHelp =
     trouble.kind === 'off' ? !neverRan : trouble.canRestartHelp;
+  // The engine failing is Equalizer APO's cue; the engine's own DSP failing is
+  // not, because APO has none of it — offering it there is an offer to give
+  // up the EQ that is working for nothing in return.
+  const canApoHelp = trouble.kind === 'off' || trouble.canApoHelp;
   const dismiss = () => putAway(trouble.key);
   // Loud where it is the way out, quiet where it is the alternative: with an
   // engine Windows has never created, Equalizer APO is the only thing on this
   // card that processes any sound at all.
-  const useApo = (
+  const useApo = canApoHelp ? (
     <Button
       ariaLabel={t('engineHealth.useApo')}
       isDisabled={false}
@@ -128,7 +132,7 @@ const EngineTroubleNotice = ({
     >
       {t('engineHealth.useApo')}
     </Button>
-  );
+  ) : null;
   const notNow = (
     <Button
       ariaLabel={t('output.notNow')}

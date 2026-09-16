@@ -33,6 +33,7 @@ const problems: TEngineTrouble = {
   device,
   problems: ['convolution'],
   canRestartHelp: true,
+  canApoHelp: true,
   key: 'problems:speakers',
 };
 

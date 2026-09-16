@@ -240,6 +240,7 @@ describe('engineTrouble', () => {
       device: speakers,
       problems: ['dsp-rack', 'convolution'],
       canRestartHelp: true,
+      canApoHelp: true,
       key: 'problems:{AAAA}:dsp-rack,convolution',
     });
   });
@@ -271,6 +272,38 @@ describe('engineTrouble', () => {
         }),
       ),
     ).toEqual(expect.objectContaining({ canRestartHelp: true }));
+  });
+
+  it('does not send a DSP failure to Equalizer APO, which has no DSP', () => {
+    expect(
+      engineTrouble(
+        facts({ health: { outputs: [running({ problems: ['dsp-rack'] })] } }),
+      ),
+    ).toEqual(expect.objectContaining({ canApoHelp: false }));
+    expect(
+      engineTrouble(
+        facts({
+          health: {
+            outputs: [running({ problems: ['dsp-rack', 'eq-phase'] })],
+          },
+        }),
+      ),
+    ).toEqual(expect.objectContaining({ canApoHelp: false }));
+  });
+
+  it('offers Equalizer APO for what is the engine itself failing', () => {
+    [
+      'reload-failed',
+      'unwatched',
+      'convolution',
+      'from-a-newer-engine',
+    ].forEach((code) => {
+      expect(
+        engineTrouble(
+          facts({ health: { outputs: [running({ problems: [code] })] } }),
+        ),
+      ).toEqual(expect.objectContaining({ canApoHelp: true }));
+    });
   });
 
   it('puts the output being listened to ahead of another', () => {

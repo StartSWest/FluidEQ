@@ -26,11 +26,16 @@ const off: TEngineTrouble = {
   key: 'off:{AAAA}',
 };
 
-const problems = (codes: string[], canRestartHelp = true): TEngineTrouble => ({
+const problems = (
+  codes: string[],
+  canRestartHelp = true,
+  canApoHelp = true,
+): TEngineTrouble => ({
   kind: 'problems',
   device: speakers,
   problems: codes,
   canRestartHelp,
+  canApoHelp,
   key: `problems:{AAAA}:${codes.join(',')}`,
 });
 
@@ -127,6 +132,22 @@ describe('EngineTroubleNotice', () => {
     expect(
       screen.getAllByRole('button').map((button) => button.textContent),
     ).toEqual([en['output.gotIt'], en['engineHealth.useApo']]);
+  });
+
+  it('does not offer Equalizer APO for a DSP failure it has no answer to', () => {
+    // The rack could not start: a restart may bring it back, and Equalizer
+    // APO — which has no rack — is not an alternative to it.
+    renderNotice({ trouble: problems(['dsp-rack'], true, false) });
+    expect(
+      screen.getAllByRole('button').map((button) => button.textContent),
+    ).toEqual([en['app.menu.restartAudio'], en['output.notNow']]);
+  });
+
+  it('leaves only an acknowledgement for a DSP failure nothing here mends', () => {
+    renderNotice({ trouble: problems(['eq-phase'], false, false) });
+    expect(
+      screen.getAllByRole('button').map((button) => button.textContent),
+    ).toEqual([en['output.gotIt']]);
   });
 
   it('stays put away for this trouble, even after it goes and returns', () => {

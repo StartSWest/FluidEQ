@@ -50,6 +50,13 @@ export type TEngineTrouble =
       problems: string[];
       /** Whether restarting Windows audio, which restarts the engine, can help. */
       canRestartHelp: boolean;
+      /**
+       * Whether Equalizer APO would do what is missing. False when every
+       * problem is the engine's own DSP — a rack, a linear-phase design —
+       * which APO does not have: offering it there trades a working EQ for
+       * nothing.
+       */
+      canApoHelp: boolean;
       key: string;
     };
 
@@ -89,6 +96,16 @@ const CONTENT_PROBLEMS: readonly string[] = [
   'graphic-eq',
   'eq-phase',
 ];
+
+/**
+ * What Equalizer APO has no equivalent of, so switching to it mends nothing:
+ * the DSP rack runs only in the FluidEQ Engine, and a linear-phase EQ it
+ * could not design leaves the ordinary filters running, which APO would run
+ * the same way. The card used to offer APO under "the DSP effects are off"
+ * — an offer to give up the EQ that was working for an engine that has no
+ * DSP at all.
+ */
+const NOT_IN_APO: readonly string[] = ['dsp-rack', 'eq-phase'];
 
 export const sameEndpoint = (a: string, b: string) =>
   normaliseEndpointGuid(a) === normaliseEndpointGuid(b);
@@ -175,6 +192,7 @@ export const engineTrouble = ({
     canRestartHelp: first.problems.some(
       (code) => !CONTENT_PROBLEMS.includes(code),
     ),
+    canApoHelp: first.problems.some((code) => !NOT_IN_APO.includes(code)),
     key: `problems:${first.endpoint}:${first.problems.join(',')}`,
   };
 };
