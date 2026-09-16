@@ -251,63 +251,41 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
-  // A freshly installed engine that was not put on the output in use stayed
-  // silent until somebody found the Enable button.
-  it('enables the output Windows is playing through by itself', async () => {
-    let finish: (result: typeof attached) => void = () => undefined;
-    const onAttachFluidEngine = jest.fn(
-      () =>
-        new Promise<typeof attached>((resolve) => {
-          finish = resolve;
-        }),
-    );
+  // The app used to enable the output Windows plays through by itself, and
+  // every change of output — or an output unplugged — put an administrator
+  // prompt up with nobody having asked. The notice asks; only a press acts.
+  it('never enables the output Windows is playing through by itself', async () => {
+    const onAttachFluidEngine = jest.fn(async () => attached);
     renderProfiles({
       engine: 'fluid',
       device: detachedDevice,
       onAttachFluidEngine,
     });
 
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+      en['output.engineMissingTitle'],
+    );
+    // The device list refreshes while the window is open; a change of
+    // default output arrives the same way.
+    fireEvent(document, new Event('visibilitychange'));
+    await screen.findByText('USB Speakers');
+    expect(onAttachFluidEngine).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: en['output.enable'] }),
+    ).not.toHaveClass('is-running');
+
+    // Positive control: the press is what asks.
+    fireEvent.click(screen.getByRole('button', { name: en['output.enable'] }));
     await waitFor(() =>
       expect(onAttachFluidEngine).toHaveBeenCalledWith('{SPEAKERS}'),
     );
-    // The notice says it is being done while the Windows prompt is up.
-    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: en['output.enable'] }),
-    ).toHaveClass('is-running');
-
-    finish(attached);
     await waitFor(() =>
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
     );
     expect(onAttachFluidEngine).toHaveBeenCalledTimes(1);
   });
 
-  it('tries by itself once, and leaves a declined prompt on screen', async () => {
-    const onAttachFluidEngine = jest.fn(async () => ({
-      ok: false,
-      declined: true,
-      endpoints: [],
-    }));
-    renderProfiles({
-      engine: 'fluid',
-      device: detachedDevice,
-      onAttachFluidEngine,
-    });
-
-    expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
-    // The device list refreshes while the window is open; a prompt on every
-    // refresh would be the Windows dialog coming back every few seconds.
-    fireEvent(document, new Event('visibilitychange'));
-    await screen.findByText('USB Speakers');
-    expect(onAttachFluidEngine).toHaveBeenCalledTimes(1);
-
-    // Positive control: the listener can still ask.
-    fireEvent.click(screen.getByRole('button', { name: en['output.enable'] }));
-    await waitFor(() => expect(onAttachFluidEngine).toHaveBeenCalledTimes(2));
-  });
-
-  it('waits to enable anything while maintenance owns the spot', async () => {
+  it('keeps the notice away while maintenance owns the spot, and asks nothing when it is back', async () => {
     (getAudioDevices as jest.Mock).mockResolvedValue([detachedDevice]);
     (getDeviceProfileSettings as jest.Mock).mockResolvedValue({
       version: 1,
@@ -326,10 +304,12 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
     );
     const { rerender } = render(profiles(true));
     await screen.findByText('USB Speakers');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(onAttachFluidEngine).not.toHaveBeenCalled();
 
     rerender(profiles(false));
-    await waitFor(() => expect(onAttachFluidEngine).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(onAttachFluidEngine).not.toHaveBeenCalled();
   });
 
   it('ignores the Equalizer APO endpoint answer entirely', async () => {

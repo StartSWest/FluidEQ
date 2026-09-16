@@ -487,15 +487,18 @@ Out-String` (or any other capture) is what actually waits for it and shows
   would hang the wait. Only the last failure reaches the window, so the
   switch and status requests carry no deadline. Ivan chose this over a fixed
   pause on 2026-09-13; do not add one.
-- **Under the FluidEQ Engine the app fixes the two "not working the first
-  time" states by itself, once.** The output Windows plays through, read as
-  not attached, is enabled without a press (`DeviceProfiles`: one Windows
-  prompt, audio restarted onto it) — once per output a session. The engine on
-  the output being listened to but not running, which a restart fixes, gets
-  Windows audio restarted with its card showing (`useRestartWhenEngineOff`) —
-  once a session, never during the engine update. A declined prompt or a
-  failure leaves the notice and its reason; nothing asks again on its own,
-  or the device list's refresh would put the prompt back up every few seconds.
+- **Under the FluidEQ Engine the app restarts Windows audio by itself,
+  once, and never enables an output by itself.** The engine on the output
+  being listened to but not running, which a restart fixes, gets Windows
+  audio restarted (`useRestartWhenEngineOff`) — once a session, never during
+  the engine update, and only from a status read after sound was heard. The
+  output Windows plays through, read as not attached, gets the notice and
+  its Enable button and nothing else: it used to be enabled without a press
+  (one Windows prompt, audio restarted onto it, once per output a session),
+  and every change of output and every output unplugged then put an
+  administrator prompt up with nobody having asked — Ivan took it out on
+  2026-09-16; do not put it back. A declined prompt or a failure leaves the
+  notice and its reason; nothing asks again on its own.
 - **One engine in Windows' effect lists at a time.** Both engines are ordinary
   system effects and a machine can carry both registrations on the same
   output; which one a stream then goes through depends on the slot each landed

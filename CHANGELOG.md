@@ -88,6 +88,19 @@ engine from, and a bug report says what it found.
 
 ### Fixed
 
+- **Changing outputs no longer puts up an administrator prompt by itself.**
+  Under the FluidEQ Engine, switching to an output the engine was not on, or
+  unplugging one, made FluidEQ enable the engine there on its own — a Windows
+  prompt with nobody having asked. Now the output panel says the engine is
+  not on that output, and only its Enable button asks.
+- **A launch no longer restarts Windows audio for an engine that is
+  running.** The engine writes what it is doing on each output to a small
+  file the app reads, and at launch the app's first read met the engine's
+  first write: the write failed against the reader, the file kept saying
+  what the previous stream had left in it, and the app restarted Windows
+  audio to mend an engine that was working. The write now lands over a file
+  being read, and the engine's log says which step failed and why when one
+  cannot.
 - **"The DSP effects are off" no longer offers Equalizer APO.** The card
   for an engine that could not start its rack, or its linear-phase EQ,
   offered to switch to Equalizer APO — which has no DSP rack at all, so the

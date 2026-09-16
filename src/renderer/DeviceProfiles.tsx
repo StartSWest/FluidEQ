@@ -24,7 +24,7 @@ import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { isOutputOff, outputEngineState } from './utils/outputEngineState';
 import { openWindowsSoundSettings } from './utils/soundSettings';
-import { reportError, reportInfo } from './utils/logger';
+import { reportError } from './utils/logger';
 import { subscribeAudioEngineChanged } from './utils/audioEngineEvents';
 import {
   getAudioDevices,
@@ -258,50 +258,14 @@ const DeviceProfiles = ({
     setIsAttaching(false);
   };
 
-  /**
-   * The output Windows is playing through, enabled without being asked.
-   *
-   * Under the FluidEQ Engine an output the engine is not on plays untouched,
-   * and waiting for the listener to find the Enable button is how a freshly
-   * installed engine "did not work the first time": setup had put it on the
-   * outputs that were there, and the one in use was not among them. So the
-   * app enables it itself — the Windows prompt, then audio restarted onto it
-   * — with the notice showing that it is being done.
-   *
-   * Once per output a session. A declined prompt or a failure leaves the
-   * notice and its reason in place, and asking again every time the device
-   * list refreshed would put the prompt back up every few seconds.
+  /*
+   * Never enabled without a press. The app used to enable the output Windows
+   * plays through by itself the moment the list showed the engine was not on
+   * it — one Windows prompt, audio restarted — and every change of output,
+   * and every output unplugged, then put an administrator prompt up with
+   * nobody having asked for anything. The notice below says the engine is
+   * not on this output and its Enable button is the one thing that asks.
    */
-  const autoEnabledRef = useRef(new Set<string>());
-  const enableEngineRef = useRef(handleEnableEngine);
-  enableEngineRef.current = handleEnableEngine;
-  const playingOutputMissing =
-    isFluid &&
-    engineState === 'engine-missing' &&
-    selectedDevice?.isDefault === true;
-  const selectedId = selectedDevice?.id;
-  useEffect(() => {
-    if (
-      !playingOutputMissing ||
-      isNoticeHidden ||
-      !selectedId ||
-      autoEnabledRef.current.has(selectedId)
-    ) {
-      return;
-    }
-    autoEnabledRef.current.add(selectedId);
-    // Written down because it is the app acting on its own: a Windows prompt
-    // appears and the sound stops for a moment with nobody having pressed
-    // anything, and a report about that moment should say what asked for it.
-    reportInfo(
-      'Enabling the FluidEQ Engine on the output being played through, unasked',
-    );
-    enableEngineRef
-      .current()
-      .catch((error) =>
-        reportError('Enabling the engine on the playing output failed', error),
-      );
-  }, [playingOutputMissing, isNoticeHidden, selectedId]);
 
   /** The notice's words for the output it is about. */
   const noticeCopy = (device: IAudioDevice) => {
