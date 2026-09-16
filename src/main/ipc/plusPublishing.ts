@@ -1,9 +1,15 @@
 import { ipcMain } from 'electron';
 import { isPlusCategory, type IPublishedScene } from '../../common/plusGallery';
+import {
+  settingsOfPack,
+  type ISceneSettings,
+} from '../../common/sceneSettings';
 import { readVersionNote } from '../../common/sceneVersionNote';
 import { readProject } from '../memberScenes/project';
+import { openMemberEnvelope } from '../memberScenes/sharing';
 import { writeAgreedTerms } from '../memberScenes/termsAgreement';
 import {
+  fetchEnvelope,
   isCardPicture,
   listPublished,
   MAX_PICTURE_BYTES,
@@ -39,6 +45,18 @@ export type TPublishOutcome =
 export type TUnpublishOutcome =
   { ok: true } | { ok: false; reason: TPublishFailure };
 
+/**
+ * Where the open project's settings stood when it was last published.
+ *
+ * `ok` with no `published` is a scene that has never been published, which is
+ * a real answer. `ok: false` is "could not ask" — signed out, offline, a file
+ * whose signature does not verify — and the Studio then resets to the scene's
+ * own settings rather than pretending it was never published.
+ */
+export type TPublishedSettingsOutcome =
+  | { ok: true; published?: { version: number; settings: ISceneSettings } }
+  | { ok: false };
+
 export interface IPlusPublishingIpcDeps {
   access: IGalleryAccess;
   userDataDir: string;
@@ -55,6 +73,7 @@ const CHANNELS = [
   'plus-gallery-mine',
   'plus-gallery-unpublish',
   'studio-publish',
+  'studio-published-settings',
 ] as const;
 
 /** The page's picture as bytes, whether it arrived as a view or a buffer. */
@@ -89,6 +108,57 @@ export const registerPlusPublishingIpc = ({
       ? outcome
       : { ok: false, reason: 'signed-out' };
   });
+
+  /**
+   * What the open project looked like when it was last published — the one
+   * thing the Studio's Reset goes back to.
+   *
+   * The pack id comes off the folder on disk rather than from the page, as
+   * publishing does: this only ever reads the caller's own published scene,
+   * but the two should not disagree about which project is open. The file is
+   * opened through the same door as every shared scene, so a settings value
+   * only reaches a slider from a signature that verifies.
+   */
+  ipcMain.handle(
+    'studio-published-settings',
+    async (): Promise<TPublishedSettingsOutcome> => {
+      const me = access.accountId();
+      const folder = activeFolder();
+      if (!me || !folder || activeIsInspection()) {
+        return { ok: false };
+      }
+      const build = await readProject(folder);
+      if (!build.ok) {
+        return { ok: false };
+      }
+      const auth = await access.auth();
+      if (!auth || access.accountId() !== me) {
+        return { ok: false };
+      }
+      const mine = await listPublished(auth);
+      if (!mine.ok) {
+        return { ok: false };
+      }
+      const scene = mine.scenes.find(
+        (entry) => !entry.official && entry.sceneId === build.pack.id,
+      );
+      if (!scene) {
+        return { ok: true };
+      }
+      const envelope = await fetchEnvelope(auth, me, scene.sceneId);
+      const payload = envelope ? openMemberEnvelope(envelope) : null;
+      if (!payload || payload.pack.id !== build.pack.id) {
+        return { ok: false };
+      }
+      return {
+        ok: true,
+        published: {
+          version: payload.pack.version,
+          settings: settingsOfPack(payload.pack),
+        },
+      };
+    },
+  );
 
   ipcMain.handle(
     'plus-gallery-unpublish',

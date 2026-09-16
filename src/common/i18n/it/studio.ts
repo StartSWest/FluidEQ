@@ -290,6 +290,8 @@ const studio = {
   'studio.meter.treble': 'Acuti',
   'studio.meter.accent': 'Accento',
 
+  'studio.test.title': 'Provare la scena',
+  'studio.ship.title': 'Quando è pronta',
   'studio.signals.title': 'Audio dell’anteprima',
   'studio.signals.hint':
     'La scena reagisce sempre alla musica di ogni utente. I segnali di prova animano solo questa anteprima: non vengono salvati né pubblicati e non modificano mai il tuo audio.',
@@ -342,6 +344,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Ripristina',
+  'studio.settings.resetsToScene':
+    'Reimposta li riporta alle impostazioni della scena stessa.',
+  'studio.settings.resetsToPublished':
+    'Reimposta li riporta alla versione {version}, quella che hai pubblicato.',
   'studio.settings.carries':
     'Salvato nella scena quando lasci: anche i tuoi stili e la galleria lo ricevono.',
   'studio.settings.saving': 'Salvataggio nella scena…',

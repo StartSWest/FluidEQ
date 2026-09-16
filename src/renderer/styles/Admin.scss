@@ -387,6 +387,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
   color: color-mix(in srgb, $amber 80%, $white);
 }
 
+// Whether the account's FluidEQ has been in touch within the hour. The dot
+// carries the answer at a glance down a long list; the words carry it for
+// anybody who cannot see the colour.
+.admin-account__seen {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+
+  &.is-online {
+    color: color-mix(in srgb, $active 75%, $white);
+  }
+}
+
+.admin-account__dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, $text-faint 60%, transparent);
+
+  .is-online & {
+    background: $active;
+    box-shadow: 0 0 0 3px color-mix(in srgb, $active 18%, transparent);
+  }
+}
+
 .admin-account__tags {
   display: flex;
   flex-wrap: wrap;
@@ -414,6 +441,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   &.is-admin {
     color: color-mix(in srgb, $complementary 80%, $white);
     background: color-mix(in srgb, $complementary 15%, transparent);
+  }
+
+  // A version number is read, not shouted: the figures stay as they are and
+  // the pill stays quieter than the two that say what the account can do.
+  &.is-version {
+    color: $text-muted;
+    background: color-mix(in srgb, $white 4%, transparent);
+    font-weight: $weight-semibold;
+    @include tracking(0.01em);
+    text-transform: none;
   }
 }
 

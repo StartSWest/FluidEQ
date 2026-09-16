@@ -113,6 +113,35 @@ describe('an account row', () => {
     expect(parseAccountRow(row(over))).toBeUndefined();
   });
 
+  it('reads the FluidEQ and the last sign-in when the list sends them', () => {
+    expect(
+      parseAccountRow(
+        row({
+          app_version: '1.7.2',
+          seen_at: '2026-09-15T21:30:00+00:00',
+        }),
+      ),
+    ).toMatchObject({
+      appVersion: '1.7.2',
+      seenAt: Date.parse('2026-09-15T21:30:00+00:00'),
+    });
+  });
+
+  it('keeps the account when the server says nothing about either', () => {
+    // A server that has not been migrated sends neither column, and every
+    // other page reading these rows must still get its account.
+    const found = parseAccountRow(row());
+    expect(found?.email).toBe('Marisol@Example.com');
+    expect(found?.appVersion).toBeUndefined();
+    expect(found?.seenAt).toBeUndefined();
+
+    // Nulls, which is what an account with no session answers.
+    const never = parseAccountRow(row({ app_version: null, seen_at: null }));
+    expect(never?.email).toBe('Marisol@Example.com');
+    expect(never?.appVersion).toBeUndefined();
+    expect(never?.seenAt).toBeUndefined();
+  });
+
   it('is nothing for what is not a row at all', () => {
     expect(parseAccountRow(null)).toBeUndefined();
     expect(parseAccountRow([row()])).toBeUndefined();

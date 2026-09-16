@@ -288,6 +288,8 @@ const studio = {
   'studio.meter.treble': 'Agudos',
   'studio.meter.accent': 'Acento',
 
+  'studio.test.title': 'Probar la escena',
+  'studio.ship.title': 'Cuando esté lista',
   'studio.signals.title': 'Audio de la vista previa',
   'studio.signals.hint':
     'Los usuarios siempre ven la escena reaccionar a su propia música. Las señales de prueba solo mueven esta vista previa: no se guardan ni se publican y nunca cambian tu audio.',
@@ -341,6 +343,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Restablecer',
+  'studio.settings.resetsToScene':
+    'Restablecer los devuelve a los ajustes propios de la escena.',
+  'studio.settings.resetsToPublished':
+    'Restablecer los devuelve a la versión {version}, la que publicaste.',
   'studio.settings.carries':
     'Se guarda en la escena al soltar: tus estilos y la galería también lo reciben.',
   'studio.settings.saving': 'Guardando en la escena…',

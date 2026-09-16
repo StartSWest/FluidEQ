@@ -35,6 +35,18 @@ export interface IAccountToDelete {
   gifted: boolean;
   /** An earlier Delete stopped part way; Delete again finishes it. */
   deleting: boolean;
+  /**
+   * The FluidEQ this account's newest computer signed in with, when one of
+   * them said. Absent for an account whose every sign-in came from a build
+   * too old to name itself, and for a server that does not answer it yet.
+   */
+  appVersion?: string;
+  /**
+   * When a computer of this account last asked the sign-in service for
+   * anything — signing in, or renewing its hour-long token. "Last used
+   * FluidEQ signed in", to within about an hour; nothing reports a heartbeat.
+   */
+  seenAt?: number;
 }
 
 const ACCOUNT_ID =
@@ -101,6 +113,12 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
   const handle = textOf(row.handle);
   const displayName = textOf(row.display_name);
   const plan = textOf(row.plan);
+  // Both are read leniently on purpose: they arrive only from
+  // `admin_list_accounts`, and a server that has not been migrated yet — or a
+  // row for an account already gone, which has no session — simply says
+  // nothing about either. A row is never dropped for their sake.
+  const appVersion = textOf(row.app_version)?.slice(0, 32);
+  const seenAt = timeOf(row.seen_at);
   return {
     userId: row.user_id,
     email: row.email,
@@ -117,5 +135,7 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     reports,
     gifted: row.gifted,
     deleting: row.deleting,
+    ...(appVersion ? { appVersion } : {}),
+    ...(seenAt ? { seenAt } : {}),
   };
 };

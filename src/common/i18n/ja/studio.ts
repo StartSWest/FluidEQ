@@ -291,6 +291,8 @@ const studio = {
   'studio.meter.treble': '高音',
   'studio.meter.accent': 'アクセント',
 
+  'studio.test.title': 'シーンを試す',
+  'studio.ship.title': '仕上がったら',
   'studio.signals.title': 'プレビューの音声',
   'studio.signals.hint':
     'シーンは各ユーザー自身の音楽に反応します。テスト信号はこのプレビュー専用で、保存・公開されず、再生中の音声も変えません。',
@@ -342,6 +344,9 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'リセット',
+  'studio.settings.resetsToScene': '「リセット」でシーン本来の設定に戻ります。',
+  'studio.settings.resetsToPublished':
+    '「リセット」で公開したバージョン {version} に戻ります。',
   'studio.settings.carries':
     '手を離すとシーンに保存されます。スタイルとギャラリーにも反映されます。',
   'studio.settings.saving': 'シーンに保存しています…',

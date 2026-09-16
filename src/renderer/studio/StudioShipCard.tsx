@@ -32,7 +32,7 @@ export default function StudioShipCard({
 }: IStudioShipCardProps) {
   const { t } = useTranslation();
   return (
-    <div className="studio-card studio-ship">
+    <div className="studio-ship">
       <button
         type="button"
         className="button small studio-ship__add"

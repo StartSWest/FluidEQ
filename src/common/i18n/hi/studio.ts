@@ -282,6 +282,8 @@ const studio = {
   'studio.meter.treble': 'ट्रेबल',
   'studio.meter.accent': 'उभार',
 
+  'studio.test.title': 'सीन आज़माएँ',
+  'studio.ship.title': 'जब तैयार हो',
   'studio.signals.title': 'प्रीव्यू का ऑडियो',
   'studio.signals.hint':
     'दृश्य हमेशा हर उपयोगकर्ता के अपने संगीत पर प्रतिक्रिया करता है। परीक्षण संकेत केवल इस प्रीव्यू को चलाते हैं: वे सहेजे या प्रकाशित नहीं होते और आपका ऑडियो नहीं बदलते।',
@@ -334,6 +336,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'रीसेट करें',
+  'studio.settings.resetsToScene':
+    '“रीसेट” इन्हें सीन की अपनी सेटिंग पर लौटा देता है।',
+  'studio.settings.resetsToPublished':
+    '“रीसेट” इन्हें संस्करण {version} पर लौटाता है, जो आपने प्रकाशित किया।',
   'studio.settings.carries':
     'छोड़ते ही सीन में सहेजा जाता है: आपकी शैलियों और गैलरी को भी यही मिलता है।',
   'studio.settings.saving': 'सीन में सहेजा जा रहा है…',

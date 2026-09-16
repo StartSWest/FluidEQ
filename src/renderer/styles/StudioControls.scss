@@ -66,12 +66,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // ---------------------------------------------------------------- settings
 
 .studio-settings {
-  gap: 12px;
   container: settings / inline-size;
 
-  // Waiting for a scene, not broken: the settings still show, unlit.
-  &.is-idle .studio-settings__group {
-    opacity: $disabled-opacity;
+  // The card folds (`StudioFoldCard.tsx`), so the rhythm between the groups
+  // and the two lines under them belongs to what folds, not to the card.
+  .studio-fold__body {
+    gap: 12px;
   }
 
   // Under the stage, where the column's cards pair up, the settings take a
@@ -200,4 +200,13 @@ it under the terms of the GNU General Public License version 3 or later.
   &.is-failed {
     color: $amber;
   }
+}
+
+// Under the saved line and quieter than it: where Reset goes is worth knowing
+// before it is pressed, but it is not news the way a save is.
+.studio-settings__resets {
+  margin-top: -4px;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.45;
 }

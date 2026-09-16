@@ -105,6 +105,8 @@ export default function useStudioPublish(
   view: IStudioView,
   playing: boolean,
   name: string,
+  /** A publication landed: what the settings go back to has just moved. */
+  onPublished: () => void,
 ) {
   const [preparing, setPreparing] = useState(false);
   const [draft, showDraft] = useState<IPublishDraft>();
@@ -364,9 +366,11 @@ export default function useStudioPublish(
         note,
       )
         .then((outcome) => {
-          // Even a publication whose dialog has gone away changed the gallery.
+          // Even a publication whose dialog has gone away changed the gallery,
+          // and moved the settings the Studio's Reset goes back to.
           if (outcome.ok) {
             markGalleryStale();
+            onPublished();
           }
           if (!isCurrent(started)) {
             return undefined;
@@ -398,7 +402,14 @@ export default function useStudioPublish(
           }
         });
     },
-    [name, view.state.entitled, view.problems, isCurrent, setDraft],
+    [
+      name,
+      view.state.entitled,
+      view.problems,
+      isCurrent,
+      setDraft,
+      onPublished,
+    ],
   );
 
   return {

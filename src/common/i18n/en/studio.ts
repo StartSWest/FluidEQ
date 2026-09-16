@@ -293,6 +293,8 @@ const studio = {
   'studio.meter.treble': 'Treble',
   'studio.meter.accent': 'Accent',
 
+  'studio.test.title': 'Trying the scene',
+  'studio.ship.title': 'When it’s ready',
   'studio.signals.title': 'Preview audio',
   'studio.signals.hint':
     'Listeners always see the scene react to their own music. Test signals only drive this preview: they are not saved or published and never change your audio.',
@@ -348,6 +350,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Reset',
+  'studio.settings.resetsToScene':
+    'Reset puts these back to the scene’s own settings.',
+  'studio.settings.resetsToPublished':
+    'Reset puts these back to version {version}, the one you published.',
   'studio.settings.carries':
     'Saved into the scene when you let go: your looks and the gallery get it too.',
   'studio.settings.saving': 'Saving into the scene…',

@@ -9,7 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 export default function StudioShipInspect() {
   const { t } = useTranslation();
   return (
-    <div className="studio-card studio-ship studio-ship--inspect">
+    <div className="studio-ship studio-ship--inspect">
       <span className="studio-ship__inspect-title">
         <Glyph name="looks" />
         {t('studio.inspect.title')}

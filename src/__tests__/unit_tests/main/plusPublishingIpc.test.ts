@@ -25,6 +25,7 @@ jest.mock('electron', () => ({
 import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   registerPlusPublishingIpc,
+  type TPublishedSettingsOutcome,
   type TPublishOutcome,
 } from '../../../main/ipc/plusPublishing';
 import { writeStarterProject } from '../../../main/memberScenes/project';
@@ -35,6 +36,9 @@ import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import {
   fakeResponse,
   ME,
+  memberPack,
+  memberPayload,
+  signedEnvelope,
   SOMEONE,
   webpBytes,
 } from '../../utils/memberSceneFixtures';
@@ -64,7 +68,8 @@ let signedInAs: string;
 let switchDuringAuth: boolean;
 let duringAuth: (() => void) | undefined;
 let duringFetch: (() => void) | undefined;
-let answer: Response;
+/** One reply for every request, or one chosen by the URL asked for. */
+let answer: Response | ((url: string) => Response);
 let calls: Array<{ url: string; body: Record<string, unknown> }>;
 
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
@@ -73,7 +78,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
     body: JSON.parse(String(init?.body ?? '{}')),
   });
   duringFetch?.();
-  return answer;
+  return typeof answer === 'function' ? answer(String(input)) : answer;
 }) as unknown as typeof fetch;
 
 const access = (): IGalleryAccess => ({
@@ -125,6 +130,104 @@ beforeEach(async () => {
 afterEach(() => {
   jest.restoreAllMocks();
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+describe('what the open project was published as', () => {
+  /** The gallery's list of my scenes, then my scene's own signed file. */
+  const serving = (scenes: unknown[], pack?: ReturnType<typeof memberPack>) => {
+    answer = (url: string) => {
+      if (url.includes('/object/')) {
+        return fakeResponse(
+          200,
+          pack ? signedEnvelope(memberPayload({ author: ME, pack })) : {},
+        );
+      }
+      return fakeResponse(200, scenes);
+    };
+  };
+
+  const listed = (over: Record<string, unknown> = {}) => ({
+    scene_id: 'my-first-scene',
+    version: 5,
+    category: 'space',
+    names: { en: 'My First Scene' },
+    swatch: ['#112233', '#445566'],
+    likes: 0,
+    adds: 0,
+    published_at: '2026-09-01T00:00:00+00:00',
+    updated_at: '2026-09-02T00:00:00+00:00',
+    blocked: false,
+    ...over,
+  });
+
+  it('answers with the settings the published version carries', async () => {
+    serving(
+      [listed()],
+      memberPack({
+        id: 'my-first-scene',
+        version: 5,
+        params: [
+          { id: 'glow', names: { en: 'Glow' }, min: 0, max: 1, value: 0.2 },
+        ],
+      }),
+    );
+    setup();
+    const outcome = await invoke<Promise<TPublishedSettingsOutcome>>(
+      'studio-published-settings',
+    );
+    expect(outcome).toEqual({
+      ok: true,
+      published: {
+        version: 5,
+        settings: { params: { glow: 0.2 }, ambient: {} },
+      },
+    });
+  });
+
+  it('says a scene that has never been published, which is not a failure', async () => {
+    serving([]);
+    setup();
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: true });
+  });
+
+  it('asks nothing for a FluidEQ scene opened to look inside, or signed out', async () => {
+    inspecting = true;
+    setup();
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: false });
+    expect(calls).toHaveLength(0);
+
+    inspecting = false;
+    signedIn = false;
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: false });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('refuses a file whose signature does not verify', async () => {
+    answer = (url: string) =>
+      url.includes('/object/')
+        ? fakeResponse(200, { schema: 1, payload: 'nope' })
+        : fakeResponse(200, [listed()]);
+    setup();
+    // Not "never published": the Studio must not quietly reset to the scene
+    // as though the published one had no settings.
+    expect(
+      await invoke<Promise<TPublishedSettingsOutcome>>(
+        'studio-published-settings',
+      ),
+    ).toEqual({ ok: false });
+  });
 });
 
 describe('publishing from the Studio', () => {

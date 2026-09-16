@@ -72,6 +72,7 @@ import type {
 } from './ipc/plusGallery';
 import type {
   TMineOutcome,
+  TPublishedSettingsOutcome,
   TPublishOutcome,
   TUnpublishOutcome,
 } from './ipc/plusPublishing';
@@ -1144,6 +1145,12 @@ const galleryVersions = (authorId: string, sceneId: string) =>
 const myPublishedScenes = () =>
   ipcRenderer.invoke('plus-gallery-mine') as Promise<TMineOutcome>;
 
+/** Where the open Studio project's settings stood when it was last published. */
+const publishedStudioSettings = () =>
+  ipcRenderer.invoke(
+    'studio-published-settings',
+  ) as Promise<TPublishedSettingsOutcome>;
+
 const unpublishScene = (sceneId: string) =>
   ipcRenderer.invoke(
     'plus-gallery-unpublish',
@@ -1445,6 +1452,7 @@ export default {
     reportGalleryScene,
     galleryVersions,
     myPublishedScenes,
+    publishedStudioSettings,
     unpublishScene,
     moderationStatus,
     listReportedScenes,

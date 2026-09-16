@@ -38,7 +38,7 @@ export default function StudioShipLocked() {
   const desktop = useCanSetDesktop();
   const actions = desktop ? [...LOCKED, DESKTOP] : LOCKED;
   return (
-    <div className="studio-card studio-ship studio-ship--locked">
+    <div className="studio-ship studio-ship--locked">
       <span className="studio-ship__locked-title">
         <Glyph name="lock" />
         {t('studio.plus.title')}

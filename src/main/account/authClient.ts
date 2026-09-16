@@ -1,4 +1,5 @@
 import type { IAccountConfig } from 'common/accountConfig';
+import { clientAgent } from './clientAgent';
 
 /**
  * The account backend, spoken to directly over its REST interface.
@@ -209,6 +210,9 @@ const request = async (
       headers: {
         apikey: config.supabaseAnonKey,
         'Content-Type': 'application/json',
+        // The sign-in service writes this onto the session it makes or
+        // renews; without it every session said `node` (see `clientAgent.ts`).
+        'User-Agent': clientAgent(),
         ...(options.accessToken
           ? { Authorization: `Bearer ${options.accessToken}` }
           : {}),
@@ -365,6 +369,7 @@ export const revokeSession = async (
       headers: {
         apikey: config.supabaseAnonKey,
         Authorization: `Bearer ${accessToken}`,
+        'User-Agent': clientAgent(),
       },
       signal,
     });

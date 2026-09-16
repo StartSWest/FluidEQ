@@ -8,6 +8,7 @@ import {
   responseFromPosition as fromPosition,
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
+import StudioFoldCard from './StudioFoldCard';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -91,12 +92,15 @@ function Group({
   title,
   lead,
   canReset,
+  resetsTo,
   onReset,
   children,
 }: {
   title: string;
   lead: string;
   canReset: boolean;
+  /** Where Reset puts these, said on the button so it is read before it is pressed. */
+  resetsTo: string;
   onReset: () => void;
   children: ReactNode;
 }) {
@@ -108,6 +112,7 @@ function Group({
         <button
           type="button"
           className="studio-settings__reset"
+          title={resetsTo}
           disabled={!canReset}
           onClick={onReset}
         >
@@ -148,6 +153,11 @@ interface IStudioSettingsProps {
   idle: boolean;
   canResetParams: boolean;
   canResetResponse: boolean;
+  /**
+   * The published version Reset goes back to, when the scene has one. Absent
+   * means Reset goes back to the scene's own settings instead.
+   */
+  publishedVersion?: number;
   onParam: (id: string, value: number) => void;
   onResponse: (key: keyof ISceneResponse, value: number) => void;
   onCommit: () => void;
@@ -176,6 +186,7 @@ export default function StudioSettings({
   idle,
   canResetParams,
   canResetResponse,
+  publishedVersion,
   onParam,
   onResponse,
   onCommit,
@@ -185,6 +196,10 @@ export default function StudioSettings({
 }: IStudioSettingsProps) {
   const { t, locale } = useTranslation();
   const controls = movable(params);
+  const resetsTo =
+    publishedVersion === undefined
+      ? t('studio.settings.resetsToScene')
+      : t('studio.settings.resetsToPublished', { version: publishedVersion });
 
   const responseValue = (key: keyof ISceneResponse) => {
     const value = response[key];
@@ -195,18 +210,19 @@ export default function StudioSettings({
   };
 
   return (
-    <div
-      className={`studio-card studio-settings${idle ? ' is-idle' : ''}`}
-      aria-disabled={idle}
+    <StudioFoldCard
+      fold="settings"
+      title={t('studio.settings.title')}
+      className="studio-settings"
+      idle={idle}
     >
-      <span className="studio-card__eyebrow">{t('studio.settings.title')}</span>
-
       <div className="studio-settings__groups">
         {controls.length > 0 && (
           <Group
             title={t('studio.settings.controls')}
             lead={t('studio.settings.controlsLead')}
             canReset={canResetParams && !idle}
+            resetsTo={resetsTo}
             onReset={onResetParams}
           >
             {controls.map((param) => {
@@ -236,6 +252,7 @@ export default function StudioSettings({
           title={t('studio.settings.response')}
           lead={t('studio.settings.responseLead')}
           canReset={canResetResponse && !idle}
+          resetsTo={resetsTo}
           onReset={onResetResponse}
         >
           {RESPONSE_KEYS.map((key) => (
@@ -259,6 +276,7 @@ export default function StudioSettings({
             title={t('studio.settings.ambient')}
             lead={t('studio.settings.ambientLead')}
             canReset={ambient.canReset && !idle}
+            resetsTo={resetsTo}
             onReset={ambient.reset}
           >
             {ambient.params.map((param) => {
@@ -289,6 +307,9 @@ export default function StudioSettings({
       >
         {saved ? t(SAVED_KEYS[saved]) : t('studio.settings.carries')}
       </span>
-    </div>
+      {/* Said once, under all three groups: the same Reset serves them all,
+          and where it goes is the thing worth knowing before pressing it. */}
+      <span className="studio-settings__resets">{resetsTo}</span>
+    </StudioFoldCard>
   );
 }

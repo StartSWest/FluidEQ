@@ -8,6 +8,7 @@ import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import { createAccountCredentialStore } from '../accountCredentials';
 import { createEncryptedJsonStore } from '../encryptedJsonStore';
 import openExternalIfSafe from '../safeExternal';
+import { setClientAgent } from '../account/clientAgent';
 import {
   createAccountSession,
   type IAccountSession,
@@ -142,6 +143,11 @@ export const registerAccountIpc = ({
   // it; the entitlement itself takes the session, which is why both cannot be
   // built in one expression.
   let entitlement: IEntitlement | undefined;
+
+  // Before the first request: the sign-in service stamps the session it makes
+  // with whatever the app calls itself, and that stamp is what the admin's
+  // account list reads a FluidEQ version out of.
+  setClientAgent(app.getVersion(), process.platform);
 
   const session = createAccountSession({
     config: ACCOUNT_CONFIG,

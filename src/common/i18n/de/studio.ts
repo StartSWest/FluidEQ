@@ -293,6 +293,8 @@ const studio = {
   'studio.meter.treble': 'Höhen',
   'studio.meter.accent': 'Akzent',
 
+  'studio.test.title': 'Szene ausprobieren',
+  'studio.ship.title': 'Wenn sie fertig ist',
   'studio.signals.title': 'Audio für die Vorschau',
   'studio.signals.hint':
     'Die Szene reagiert bei allen Nutzern auf deren eigene Musik. Testsignale steuern nur diese Vorschau: Sie werden weder gespeichert noch veröffentlicht und verändern Ihren Ton nicht.',
@@ -347,6 +349,10 @@ const studio = {
   'studio.settings.percent': '{percent} %',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Zurücksetzen',
+  'studio.settings.resetsToScene':
+    'Zurücksetzen bringt sie auf die eigenen Einstellungen der Szene.',
+  'studio.settings.resetsToPublished':
+    'Zurücksetzen bringt sie auf Version {version}, die du veröffentlicht hast.',
   'studio.settings.carries':
     'Beim Loslassen in der Szene gespeichert: Ihre Darstellungen und die Galerie bekommen es auch.',
   'studio.settings.saving': 'Wird in der Szene gespeichert…',

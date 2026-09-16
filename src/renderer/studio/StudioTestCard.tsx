@@ -1,5 +1,6 @@
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
+import StudioFoldCard from './StudioFoldCard';
 import type { TStudioSize } from './StudioStage';
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
 import { SIGNAL_ICONS, SIZE_ICONS } from './studioTestIcons';
@@ -54,7 +55,21 @@ export default function StudioTestCard({
   const sizeName = (entry: TStudioSize) =>
     t(`studio.size.${entry}` as TranslationKey);
   return (
-    <div className="studio-card studio-test">
+    <StudioFoldCard
+      fold="test"
+      title={t('studio.test.title')}
+      className="studio-test"
+      // How the scene is keeping up never folds away: it is the one live
+      // reading on this card, and it is why somebody looks at it at all.
+      aside={
+        cost && (
+          <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
+            <span className="studio-cost__dot" aria-hidden="true" />
+            {t(cost, { percent })}
+          </span>
+        )
+      }
+    >
       <span className="studio-card__eyebrow">{t('studio.signals.title')}</span>
       <div
         className="studio-tiles"
@@ -109,12 +124,6 @@ export default function StudioTestCard({
       <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
       <StudioGridSwitch />
       <StudioTintSwitch />
-      {cost && (
-        <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
-          <span className="studio-cost__dot" aria-hidden="true" />
-          {t(cost, { percent })}
-        </span>
-      )}
-    </div>
+    </StudioFoldCard>
   );
 }

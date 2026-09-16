@@ -97,7 +97,7 @@ describe('making a scene with your AI', () => {
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(project.id, {
         description: 'A mountain lake at night',
-        prompt: promptWithIdea('A mountain lake at night'),
+        prompt: promptWithIdea('A mountain lake at night', project.path),
       }),
     );
     view.rerender(
@@ -114,7 +114,7 @@ describe('making a scene with your AI', () => {
     // The app's own prompt with the idea on screen, never the prompt the
     // folder saved: a folder from anywhere could have written anything there
     // for the member's AI to follow.
-    expect(clipboard).toBe(promptWithIdea('A neon city'));
+    expect(clipboard).toBe(promptWithIdea('A neon city', project.path));
     expect(clipboard).not.toContain('Saved editing prompt');
     expect(save).not.toHaveBeenCalledWith('second', expect.anything());
   });
@@ -171,7 +171,12 @@ describe('making a scene with your AI', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.action.copyPrompt' }),
     );
-    expect(clipboard).toBe(promptWithIdea('studio.idea.city.text With rain.'));
+    expect(clipboard).toBe(
+      promptWithIdea('studio.idea.city.text With rain.', project.path),
+    );
+    // The folder FluidEQ made is named in it, so the member's AI writes where
+    // FluidEQ is watching rather than into a folder of its own choosing.
+    expect(clipboard).toContain(project.path);
     // Copying took nothing away: the idea is still there, and the button
     // says it worked until the idea changes.
     expect(idea).toHaveValue('studio.idea.city.text With rain.');

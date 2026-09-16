@@ -11,6 +11,7 @@ import PaneResizer from '../components/PaneResizer';
 import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
 import StudioCode, { problemLinesOf } from './StudioCode';
+import StudioFoldCard from './StudioFoldCard';
 import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
@@ -26,6 +27,7 @@ import StudioFramingDialog from './StudioFramingDialog';
 import StudioPictures, { pictureName } from './StudioPictures';
 import StudioSettings from './StudioSettings';
 import useStudioAmbientTuning from './useStudioAmbientTuning';
+import useStudioBaseline from './useStudioBaseline';
 import useStudioKeep from './useStudioKeep';
 import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
@@ -125,8 +127,12 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const feed = useRef<TStageDrawn | undefined>(undefined);
   const sharing = useStudioSharing();
   const picture = useScenePictures(t('studio.picture.files'), view);
-  const tuner = useStudioTuning(pack, state.activeId);
-  const ambient = useStudioAmbientTuning(pack, state.activeId);
+  // How many times this bench has published, so the scene just published
+  // becomes what Reset goes back to without reopening the project.
+  const [publications, setPublications] = useState(0);
+  const baseline = useStudioBaseline(state.activeId, publications);
+  const tuner = useStudioTuning(pack, state.activeId, baseline);
+  const ambient = useStudioAmbientTuning(pack, state.activeId, baseline);
 
   // A new version is a new chance: whatever went wrong with the last one is
   // forgotten until this one says otherwise.
@@ -148,7 +154,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const folderName = project?.folderName;
   const name = pack ? resolveSceneName(pack, locale) : (folderName ?? '');
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
-  const publishing = useStudioPublish(view, playing, name);
+  const onPublished = useCallback(
+    () => setPublications((count) => count + 1),
+    [],
+  );
+  const publishing = useStudioPublish(view, playing, name, onPublished);
   const unfit = !pack || Boolean(problems) || trouble !== undefined;
   // The Publish dialog plays the scene itself, so the stage behind it stops:
   // two copies of one scene would halve what a slow machine can give either.
@@ -197,7 +207,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
 
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
   // inside says what it is for instead; without Plus the same actions are
-  // shown locked. Three cards, chosen here, rather than one with two flags.
+  // shown locked. Three insides, chosen here, rather than one with two flags;
+  // the folding card around them is the same for all three.
   let shipCard = <StudioShipLocked />;
   if (project?.official) {
     shipCard = <StudioShipInspect />;
@@ -422,6 +433,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             idle={!(pack && playing)}
             canResetParams={tuner.canResetParams}
             canResetResponse={tuner.canResetResponse}
+            publishedVersion={tuner.publishedVersion}
             onParam={tuner.setParam}
             onResponse={tuner.setResponse}
             onCommit={tuner.commit}
@@ -429,7 +441,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onResetResponse={tuner.resetResponse}
             ambient={ambient}
           />
-          {shipCard}
+          <StudioFoldCard
+            fold="ship"
+            title={t('studio.ship.title')}
+            className="studio-ship-card"
+          >
+            {shipCard}
+          </StudioFoldCard>
         </div>
       </div>
 

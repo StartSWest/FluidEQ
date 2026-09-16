@@ -259,6 +259,8 @@ const studio = {
   'studio.meter.treble': '高音',
   'studio.meter.accent': '重音',
 
+  'studio.test.title': '试听场景',
+  'studio.ship.title': '完成之后',
   'studio.signals.title': '预览音频',
   'studio.signals.hint':
     '场景始终随每位用户自己的音乐变化。测试信号仅用于当前预览，不会保存或发布，也不会改变你的音频。',
@@ -304,6 +306,8 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} 毫秒',
   'studio.settings.reset': '重置',
+  'studio.settings.resetsToScene': '“重置”会恢复为场景自身的设置。',
+  'studio.settings.resetsToPublished': '“重置”会恢复为你发布的版本 {version}。',
   'studio.settings.carries': '松开时保存到场景里：你的外观和图库也会一起更新。',
   'studio.settings.saving': '正在保存到场景…',
   'studio.settings.saved': '已保存到场景。',

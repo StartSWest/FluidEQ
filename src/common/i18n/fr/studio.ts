@@ -289,6 +289,8 @@ const studio = {
   'studio.meter.treble': 'Aigus',
   'studio.meter.accent': 'Accent',
 
+  'studio.test.title': 'Essayer la scène',
+  'studio.ship.title': 'Quand elle est prête',
   'studio.signals.title': 'Audio de l’aperçu',
   'studio.signals.hint':
     'La scène réagit toujours à la musique de chaque utilisateur. Les signaux de test animent seulement cet aperçu : ils ne sont ni enregistrés ni publiés et ne modifient jamais votre audio.',
@@ -343,6 +345,10 @@ const studio = {
   'studio.settings.percent': '{percent} %',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Réinitialiser',
+  'studio.settings.resetsToScene':
+    'Réinitialiser les ramène aux réglages propres à la scène.',
+  'studio.settings.resetsToPublished':
+    'Réinitialiser les ramène à la version {version}, celle que vous avez publiée.',
   'studio.settings.carries':
     'Enregistré dans la scène quand vous relâchez : vos looks et la galerie le reçoivent aussi.',
   'studio.settings.saving': 'Enregistrement dans la scène…',

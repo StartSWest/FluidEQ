@@ -101,9 +101,12 @@ beforeEach(() => {
 
 afterEach(resetAccountStore);
 
+const published = jest.fn();
+
 const setup = () =>
   renderHook(
-    (current: IStudioView) => useStudioPublish(current, true, 'Neon City'),
+    (current: IStudioView) =>
+      useStudioPublish(current, true, 'Neon City', published),
     { initialProps: view() },
   );
 

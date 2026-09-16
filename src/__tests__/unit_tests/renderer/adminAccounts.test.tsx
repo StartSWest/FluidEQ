@@ -305,6 +305,35 @@ describe('the Accounts page', () => {
     expect(await screen.findByText('Leaving One')).toBeInTheDocument();
   });
 
+  it('says which FluidEQ each account runs and whether it is there now', async () => {
+    bridge.listAccounts.mockResolvedValue({
+      ok: true,
+      page: page([
+        account({ appVersion: '1.7.2', seenAt: Date.now() - 4 * 60_000 }),
+        account({
+          userId: 'b',
+          displayName: 'Second',
+          appVersion: '1.6.0',
+          seenAt: Date.now() - 3 * DAY,
+        }),
+        account({ userId: 'c', displayName: 'Third' }),
+      ]),
+    });
+    render(<AdminAccounts />);
+    const rows = await screen.findAllByRole('listitem');
+
+    // Within the hour, so it is here now; three days ago, so it is not.
+    expect(within(rows[0]).getByText('plus.accounts.online')).toBeVisible();
+    expect(within(rows[0]).getByText('1.7.2')).toBeVisible();
+    expect(within(rows[1]).getByText(/^plus.accounts.lastSeen:/)).toBeVisible();
+    expect(within(rows[1]).getByText('1.6.0')).toBeVisible();
+
+    // An account the server says nothing about claims nothing: a row with no
+    // session must not read as one that has never been used.
+    expect(within(rows[2]).queryByText('plus.accounts.online')).toBeNull();
+    expect(within(rows[2]).queryByText(/^plus.accounts.lastSeen:/)).toBeNull();
+  });
+
   it('loads more accounts and adds them below the first page', async () => {
     bridge.listAccounts.mockResolvedValue({
       ok: true,

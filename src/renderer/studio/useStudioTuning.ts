@@ -8,6 +8,7 @@ import {
   type ISceneResponse,
 } from 'common/sceneResponse';
 import type { ISceneTuning } from '../graph/useSceneRunner';
+import type { IStudioBaseline } from './useStudioBaseline';
 
 /** What the last save came to, for the card's line under its sliders. */
 export type TTuningSaved = 'saving' | 'saved' | 'look' | 'failed' | undefined;
@@ -28,6 +29,29 @@ const sameResponse = (a: ISceneResponse, b: ISceneResponse) =>
   RESPONSE_KEYS.every((key) => Math.abs(a[key] - b[key]) < 1e-6);
 
 /**
+ * Where each control goes when Reset is pressed: the published version's
+ * value for it, or — for a scene never published, and for a control the
+ * published version did not have — the value the project was opened with.
+ *
+ * Clamped, because the two can disagree: an AI that narrowed a slider's range
+ * since the scene was published would otherwise put a value outside it and
+ * the slider would sit against one end showing a figure it cannot reach.
+ */
+const resetValues = (
+  pack: IScenePack | undefined,
+  published: Readonly<Record<string, number>> | undefined,
+  opened: Readonly<Record<string, number>>,
+): Record<string, number> =>
+  Object.fromEntries(
+    (pack?.params ?? []).map((param) => {
+      const wanted = published?.[param.id] ?? opened[param.id] ?? param.value;
+      const low = Math.min(param.min, param.max);
+      const high = Math.max(param.min, param.max);
+      return [param.id, Math.min(high, Math.max(low, wanted))];
+    }),
+  );
+
+/**
  * The open scene's settings in the Studio: its own controls and how it
  * answers the music, live on the stage while a slider moves and written into
  * the scene's `pack.json` when it is let go — from where they reach the
@@ -39,14 +63,19 @@ const sameResponse = (a: ISceneResponse, b: ISceneResponse) =>
  * forward, and a value the member's AI changed in the meantime shows as the
  * AI left it.
  *
- * "Reset" on the scene's controls goes back to where they were when the
- * project was opened in this session; on the response, to neutral — as the
+ * "Reset" goes back to the scene as it was last published — the version
+ * listeners already have — so tuning a new one can always be undone to the
+ * released look. With nothing published to go back to (`useStudioBaseline`),
+ * it goes to the scene's own settings as the project was opened: its
+ * controls where its author left them, and the response at neutral, as the
  * engine hears it.
  */
 export default function useStudioTuning(
   pack: IScenePack | undefined,
   /** The open project: another starts from nothing unsaved. */
   project: string | undefined,
+  /** What Reset goes back to, when the scene has been published. */
+  baseline: IStudioBaseline,
 ) {
   const [pending, setPending] = useState<IPending>(NOTHING_PENDING);
   const [saved, setSaved] = useState<TTuningSaved>();
@@ -153,23 +182,33 @@ export default function useStudioTuning(
 
   const commit = useCallback(() => write(pending), [pending, write]);
 
+  const published = baseline.settings;
+  // Recomputed every render rather than memoised: it reads the values the
+  // project was opened with, which live in a ref that a memo cannot watch,
+  // and it is at most eight numbers.
+  const paramsAtReset = resetValues(
+    pack,
+    published?.params,
+    opened.current.values,
+  );
+  const responseAtReset = published?.response ?? NEUTRAL_RESPONSE;
+
   const resetParams = useCallback(() => {
-    const next = { ...pending, params: { ...opened.current.values } };
+    const next = { ...pending, params: { ...paramsAtReset } };
     setPending(next);
     write(next);
-  }, [pending, write]);
+  }, [pending, paramsAtReset, write]);
 
   const resetResponse = useCallback(() => {
-    const next = { ...pending, response: NEUTRAL_RESPONSE };
+    const next = { ...pending, response: responseAtReset };
     setPending(next);
     write(next);
-  }, [pending, write]);
+  }, [pending, responseAtReset, write]);
 
   const paramsMoved = (pack?.params ?? []).some(
     (param) =>
-      Math.abs(
-        (opened.current.values[param.id] ?? param.value) - values[param.id],
-      ) > 1e-6,
+      Math.abs((paramsAtReset[param.id] ?? param.value) - values[param.id]) >
+      1e-6,
   );
 
   return {
@@ -179,7 +218,9 @@ export default function useStudioTuning(
     response,
     saved,
     canResetParams: paramsMoved,
-    canResetResponse: !isNeutralResponse(response),
+    canResetResponse: !sameResponse(response, responseAtReset),
+    /** The published version Reset goes back to, when there is one. */
+    publishedVersion: baseline.version,
     setParam,
     setResponse,
     commit,

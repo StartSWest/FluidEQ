@@ -16,7 +16,9 @@ jest.mock('electron', () => ({
     ) => mockHandlers.set(name, handler),
     removeHandler: jest.fn(),
   },
-  app: { whenReady: () => Promise.resolve() },
+  // The version goes into what the app calls itself to the account service,
+  // which is where the admin's account list reads it back from.
+  app: { whenReady: () => Promise.resolve(), getVersion: () => '1.7.2' },
 }));
 jest.mock('../../../common/accountConfig', () => ({
   ACCOUNT_CONFIG: {},

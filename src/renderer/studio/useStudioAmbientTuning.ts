@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IAmbientParam } from 'common/sceneAmbient';
 import type { IScenePack } from 'common/scenePacks';
 import { setStudioAmbientValues } from '../ambient/ambientStore';
+import type { IStudioBaseline } from './useStudioBaseline';
 
 const valuesOf = (pack: IScenePack | undefined): Record<string, number> =>
   Object.fromEntries(
@@ -32,11 +33,14 @@ export interface IStudioAmbientTuning {
  * letting go writes them into the scene's `pack.json` beside its own
  * controls — the same way, and through the same write, as those.
  *
- * "Reset" goes back to where they stood when the project was opened.
+ * "Reset" goes back to the scene as it was last published, and to where they
+ * stood when the project was opened for a scene that never was — the same
+ * thing its own controls go back to (`useStudioTuning.ts`).
  */
 export default function useStudioAmbientTuning(
   pack: IScenePack | undefined,
   project: string | undefined,
+  baseline: IStudioBaseline,
 ): IStudioAmbientTuning {
   const [pending, setPending] = useState<Record<string, number>>({});
   const opened = useRef<{ project?: string; values: Record<string, number> }>({
@@ -98,18 +102,30 @@ export default function useStudioAmbientTuning(
   );
 
   const commit = useCallback(() => write(pending), [pending, write]);
-  const reset = useCallback(() => {
-    const next = { ...opened.current.values };
-    setPending(next);
-    write(next);
-  }, [write]);
 
   const params = pack?.ambient?.params ?? [];
+  const published = baseline.settings?.ambient;
+  // Every one of these is 0..1, so the published value needs no clamping the
+  // way a scene's own control does.
+  const atReset = Object.fromEntries(
+    params.map((param) => [
+      param.id,
+      published?.[param.id] ?? opened.current.values[param.id] ?? param.value,
+    ]),
+  );
+
+  // Not memoised: `atReset` is a fresh object on every render, so a memo
+  // would be rebuilt every render anyway.
+  const reset = () => {
+    setPending(atReset);
+    write(atReset);
+  };
+
   return {
     params,
     values,
     canReset: params.some((param) =>
-      differs(opened.current.values[param.id], values[param.id] ?? param.value),
+      differs(atReset[param.id], values[param.id] ?? param.value),
     ),
     setValue,
     commit,

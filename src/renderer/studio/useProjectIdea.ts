@@ -21,6 +21,9 @@ export default function useProjectIdea(project?: IStudioProject) {
     undefined,
   );
   const projectId = project?.id;
+  // The folder FluidEQ made and is watching, named in the prompt so the
+  // member's AI writes into it rather than guessing at one of its own.
+  const folder = project?.path;
   const save = useCallback(() => {
     if (!projectId || !pending.current) {
       return;
@@ -69,7 +72,10 @@ export default function useProjectIdea(project?: IStudioProject) {
     if (!project) {
       setStudioIdea(text);
     } else {
-      pending.current = { description: text, prompt: promptWithIdea(text) };
+      pending.current = {
+        description: text,
+        prompt: promptWithIdea(text, folder),
+      };
     }
   };
   return {
@@ -78,6 +84,6 @@ export default function useProjectIdea(project?: IStudioProject) {
     save,
     loading,
     failed,
-    prompt: promptWithIdea(idea),
+    prompt: promptWithIdea(idea, folder),
   };
 }

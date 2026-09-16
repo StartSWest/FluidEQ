@@ -286,6 +286,8 @@ const studio = {
   'studio.meter.treble': 'Высокие',
   'studio.meter.accent': 'Акцент',
 
+  'studio.test.title': 'Проверка сцены',
+  'studio.ship.title': 'Когда готова',
   'studio.signals.title': 'Звук для предпросмотра',
   'studio.signals.hint':
     'У каждого пользователя сцена реагирует на его собственную музыку. Тестовые сигналы работают только в предпросмотре: они не сохраняются, не публикуются и не меняют ваш звук.',
@@ -339,6 +341,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} мс',
   'studio.settings.reset': 'Сбросить',
+  'studio.settings.resetsToScene':
+    '«Сбросить» вернёт их к собственным настройкам сцены.',
+  'studio.settings.resetsToPublished':
+    '«Сбросить» вернёт их к версии {version} — той, которую вы опубликовали.',
   'studio.settings.carries':
     'Сохраняется в сцене, когда вы отпускаете: ваши стили и галерея тоже это получат.',
   'studio.settings.saving': 'Сохраняем в сцене…',

@@ -29,6 +29,13 @@ import type { TranslationKey } from 'common/i18n';
  * project's folder, which edits the files there and needs no copying back,
  * and a chat, which answers with the files for the member to save.
  *
+ * It names the project's folder when there is one, because FluidEQ made that
+ * folder and knows exactly where it is: an assistant told the path writes
+ * into the folder FluidEQ is watching, and every save appears on the stage a
+ * second later. Without it, the same assistant guesses — and a scene written
+ * into a folder nothing is watching looks, from this side, like an AI that
+ * did nothing at all.
+ *
  * English on purpose, in every language the app speaks: it is read by a
  * model, not by the member, and every current model follows English
  * instructions best. The member writes their idea after the last line in any
@@ -39,28 +46,38 @@ import type { TranslationKey } from 'common/i18n';
  * and changes in the same commit as either. A prompt that promises a uniform
  * the app does not upload produces scenes that fail for reasons nobody can see.
  */
-export const AI_PROMPT = `You are writing a visualizer for FluidEQ Plus, a music app. The visualizer is a
+const promptFor = (
+  folder?: string,
+) => `You are writing a visualizer for FluidEQ Plus, a music app. The visualizer is a
 GLSL ES 3.00 fragment-shader body that FluidEQ runs on the listener's GPU while
 music plays.
 
-If you can edit files, you are working in my FluidEQ project folder. It
-already holds a working pack.json and scene.frag; read both first. If
+${
+  folder
+    ? `THE FOLDER TO WORK IN, which already exists:
+  ${folder}
+Every file named below is in it, and nothing you write belongs anywhere else.
+Start by reading the pack.json and scene.frag that are already there.`
+    : `If you can edit files, you are working in my FluidEQ project folder. It
+already holds a working pack.json and scene.frag; read both first.`
+} If
 scene.frag starts with "// My first FluidEQ scene", it is only FluidEQ's
 starter: rewrite both for my idea. Otherwise the scene is mine: change what
 my idea asks for and keep everything else as it is - its look, its sliders
 and their values, its response and its photos. Keep the file names.
 
-WORK IN PLACE. FluidEQ is showing this folder on my screen and plays every
+WORK IN PLACE. FluidEQ is showing ${folder ? 'that folder' : 'this folder'} on my screen and plays every
 save of scene.frag and pack.json the moment it lands, so I watch the scene
-come together while you write it. These two files are the work itself, not
-temporary files: write straight into them, here. Never draft in a temporary,
-scratch or copied folder, never write new files to copy or rename over them
-at the end, and never hold the work back until you are finished. Save a first
-rough version of the whole idea early, then improve it in place, saving after
-each meaningful step, and keep each save a whole scene where you can. A save
-that does not compile does no harm: FluidEQ keeps playing the last version
-that worked and shows me the problem. There is nothing to run or test outside
-FluidEQ; its stage is the test.
+come together while you write it - each save is on screen in a second or two.
+These two files are the work itself, not temporary files: write straight into
+them, there. Never draft in a temporary, scratch or copied folder, never
+write new files to copy or rename over them at the end, and never hold the
+work back until you are finished. Save a first rough version of the whole
+idea early, then improve it in place, saving after each meaningful step, and
+keep each save a whole scene where you can. A save that does not compile does
+no harm: FluidEQ keeps playing the last version that worked and shows me the
+problem. There is nothing to run or test outside FluidEQ; its stage is the
+test.
 
 If FluidEQ shows me a problem I will paste it to you; fix exactly that. If you
 cannot edit files, reply with the complete contents of each file and nothing
@@ -306,6 +323,14 @@ is code. Add them when the idea has something that belongs around it:
 - They are the background, never the point. FluidEQ keeps them faint and out
   of the scene's own panel; choose soft colours, modest counts and slow speeds
   so they read as the room the music is playing in.
+- ASK ME WHICH ONES, AND SUGGEST THEM YOURSELF. These fly around the whole
+  app, not inside the scene, so they are mine to choose and I will not know
+  they are possible unless you say so. Name the two or three that belong to
+  my idea and ask me in one line which I want - "gulls, sea spray or a slow
+  drift of cloud?" for a coast, lanterns or moths for a night garden, sparks
+  for a fire. Do not wait for the answer: put your own suggestion in now, and
+  change it when I answer. Skip the question only if my idea already said
+  which, and leave "ambient" out altogether if I say none.
 
 MY IDEA:`;
 
@@ -323,5 +348,7 @@ export const AI_IDEAS: ReadonlyArray<{
 ];
 
 /** The prompt with an idea written after its last line. */
-export const promptWithIdea = (idea: string): string =>
-  idea.trim() ? `${AI_PROMPT} ${idea.trim()}\n` : `${AI_PROMPT}\n`;
+export const promptWithIdea = (idea: string, folder?: string): string => {
+  const prompt = promptFor(folder);
+  return idea.trim() ? `${prompt} ${idea.trim()}\n` : `${prompt}\n`;
+};

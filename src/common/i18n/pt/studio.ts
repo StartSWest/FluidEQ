@@ -284,6 +284,8 @@ const studio = {
   'studio.meter.treble': 'Agudos',
   'studio.meter.accent': 'Acento',
 
+  'studio.test.title': 'Testar a cena',
+  'studio.ship.title': 'Quando estiver pronta',
   'studio.signals.title': 'Áudio da prévia',
   'studio.signals.hint':
     'Os usuários sempre veem a cena reagir à própria música. Os sinais de teste só movem esta prévia: não são salvos nem publicados e nunca alteram seu áudio.',
@@ -336,6 +338,10 @@ const studio = {
   'studio.settings.percent': '{percent}%',
   'studio.settings.ms': '{ms} ms',
   'studio.settings.reset': 'Redefinir',
+  'studio.settings.resetsToScene':
+    'Repor devolve-os às definições da própria cena.',
+  'studio.settings.resetsToPublished':
+    'Repor devolve-os à versão {version}, a que publicaste.',
   'studio.settings.carries':
     'Salvo na cena ao soltar: seus estilos e a galeria recebem também.',
   'studio.settings.saving': 'Salvando na cena…',
