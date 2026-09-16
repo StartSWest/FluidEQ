@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - No `setTimeout`/`setInterval` anywhere; no allocation on the audio thread; every buffer allocated in `create`.
-- `FEQ_CHAIN_PARAM_LEAD` moves from 115 to 136: regenerate `kReferenceLine` in `native/system-apo/tests/dsp_chain_fixture.h` from the real encoder in the same commit; `dspChainWire.test.ts` reads the header.
+- `FEQ_CHAIN_PARAM_LEAD` moves from 115 to 138 (twenty-three room scalars): regenerate `kReferenceLine` in `native/system-apo/tests/dsp_chain_fixture.h` from the real encoder in the same commit; `dspChainWire.test.ts` reads the header.
 - Files under 500 lines; comments state constraints and measured numbers, never what the next line does.
 - Every user-facing string in ten locales (none in this sub-project: no UI).
 - Status text pinned on both sides: `status_test.cpp` and `engineHealth.test.ts` in the same commit when fields are added.
