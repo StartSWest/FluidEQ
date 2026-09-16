@@ -6,14 +6,13 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
-## 1.7.2
+## 1.7.3
 
-Any account can now make a scene of its own in the Studio, and the Dynamic
-lighting page lights the devices on your desk while it is open. Most of the
-rest answers one report — the FluidEQ Engine installed, attached and silent:
-FluidEQ now works out why on the machine itself, puts right what it can with
-one Windows prompt, tries every place a sound card's driver may load the
-engine from, and a bug report says what it found.
+The FluidEQ Engine learns surround: the DSP rack runs on every channel of a
+5.1 or 7.1 output, and underneath it the Room is being built — a listening
+room on headphones, rendered through a measured head. The engine side of
+the Room is in this version; its card, the one-press 7.1 and the head fit
+come next.
 
 ### New
 
@@ -27,8 +26,49 @@ engine from, and a bug report says what it found.
   Mid/Side) stay on the front pair, the subwoofer feed gets no exciter
   harmonics, and the surround channels are kept in step with the front. How
   many channels there are comes from the output Windows plays through, so
-  stereo, 2.1, 5.1 and 7.1 all work without a setting; the Master card has a
-  switch to keep the rack on the front pair only.
+  stereo, 2.1, 5.1 and 7.1 all work without a setting; the DSP page's header
+  has a switch to keep the rack on the front pair only.
+- **The Room, engine side.** A new stage in the rack that renders every
+  channel of an output as a speaker in a room around the listener's head, on
+  headphones: each speaker through a measured head (MIT KEMAR, at three head
+  sizes) and the room's own early reflections, out on the front pair. Stereo
+  becomes two speakers in front, 5.1 and 7.1 the whole ring, decided by the
+  stream. It is off until the Room card arrives to switch it on, and it adds
+  about 11 ms when it runs.
+
+### Fixed
+
+- **Changing outputs no longer puts up an administrator prompt by itself.**
+  Under the FluidEQ Engine, switching to an output the engine was not on, or
+  unplugging one, made FluidEQ enable the engine there on its own — a Windows
+  prompt with nobody having asked. Now the output panel says the engine is
+  not on that output, and only its Enable button asks.
+- **A launch no longer restarts Windows audio for an engine that is
+  running.** The engine writes what it is doing on each output to a small
+  file the app reads, and at launch the app's first read met the engine's
+  first write: the write failed against the reader, the file kept saying
+  what the previous stream had left in it, and the app restarted Windows
+  audio to mend an engine that was working. The write now lands over a file
+  being read, and the engine's log says which step failed and why when one
+  cannot.
+- **"The DSP effects are off" no longer offers Equalizer APO.** The card
+  for an engine that could not start its rack, or its linear-phase EQ,
+  offered to switch to Equalizer APO — which has no DSP rack at all, so the
+  switch would have given up the EQ that was working for nothing. Equalizer
+  APO is offered where the engine itself is failing; a DSP problem gets the
+  restart, or just an acknowledgement.
+
+## 1.7.2
+
+Any account can now make a scene of its own in the Studio, and the Dynamic
+lighting page lights the devices on your desk while it is open. Most of the
+rest answers one report — the FluidEQ Engine installed, attached and silent:
+FluidEQ now works out why on the machine itself, puts right what it can with
+one Windows prompt, tries every place a sound card's driver may load the
+engine from, and a bug report says what it found.
+
+### New
+
 - **The Studio is open to every account.** Without Plus, make one scene of
   your own: your AI assistant writes it, and it plays on the stage with
   everything the Studio has — test signals, the code pane, pictures and
@@ -88,25 +128,6 @@ engine from, and a bug report says what it found.
 
 ### Fixed
 
-- **Changing outputs no longer puts up an administrator prompt by itself.**
-  Under the FluidEQ Engine, switching to an output the engine was not on, or
-  unplugging one, made FluidEQ enable the engine there on its own — a Windows
-  prompt with nobody having asked. Now the output panel says the engine is
-  not on that output, and only its Enable button asks.
-- **A launch no longer restarts Windows audio for an engine that is
-  running.** The engine writes what it is doing on each output to a small
-  file the app reads, and at launch the app's first read met the engine's
-  first write: the write failed against the reader, the file kept saying
-  what the previous stream had left in it, and the app restarted Windows
-  audio to mend an engine that was working. The write now lands over a file
-  being read, and the engine's log says which step failed and why when one
-  cannot.
-- **"The DSP effects are off" no longer offers Equalizer APO.** The card
-  for an engine that could not start its rack, or its linear-phase EQ,
-  offered to switch to Equalizer APO — which has no DSP rack at all, so the
-  switch would have given up the EQ that was working for nothing. Equalizer
-  APO is offered where the engine itself is failing; a DSP problem gets the
-  restart, or just an acknowledgement.
 - **Bug reports say why the engine is attached and silent.** A new Outputs
   section lists what Windows allows on each output, what the setup helper
   and the engine itself report, and the engine's own reason for passing

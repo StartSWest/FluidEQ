@@ -39,6 +39,7 @@
     "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",
     "build:native-dsp:clean": "ts-node ./.erb/scripts/build-native-dsp.ts --clean",
+    "build:room-heads": "ts-node ./.erb/scripts/build-room-heads.ts",
     "fixtures:codecs": "ts-node ./.erb/scripts/make-codec-fixtures.ts",
     "test:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts --test && ts-node ./.erb/scripts/smoke-native-dsp.ts && cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/smoke-wire-bounds.ts && ts-node ./.erb/scripts/smoke-supervisor.ts && ts-node ./.erb/scripts/smoke-orphan.ts && ts-node ./.erb/scripts/smoke-playback.ts && ts-node ./.erb/scripts/smoke-decoders.ts && cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/smoke-presets.ts && cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/smoke-device.ts && cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/smoke-analysis.ts && cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/smoke-crossfade.ts",
     "tone:native-dsp": "ts-node ./.erb/scripts/tone-native-dsp.ts",

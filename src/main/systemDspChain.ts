@@ -34,7 +34,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
+import { roomHeadOnWire } from '../common/dsp/chainWire';
 import { scheduleWrite } from './asyncWriter';
+import { writeRoomHead } from './roomHead';
 
 /** CRLF, like every other file in the config directory. */
 const CRLF = '\r\n';
@@ -59,12 +61,18 @@ export const formatSystemDspChain = (values: number[]): string =>
  * change and a rack change is a slider being dragged. The engine reloads on
  * every write it sees in this directory, so a write per drag frame would
  * reconfigure the chain per frame on every output on the machine.
+ *
+ * The room's head goes beside it, from the same message: the rack names
+ * which head it wants, and the engine reads both on the same notification.
+ * The head is written only when it changes (`roomHead.ts`).
  */
-export const writeSystemDspChain = (
+export const writeSystemDspChain = async (
   configDirPath: string,
   values: number[],
-): Promise<void> =>
-  scheduleWrite(
+): Promise<void> => {
+  await writeRoomHead(configDirPath, roomHeadOnWire(values));
+  await scheduleWrite(
     path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME),
     formatSystemDspChain(values),
   );
+};

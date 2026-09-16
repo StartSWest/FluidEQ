@@ -614,6 +614,35 @@ Out-String` (or any other capture) is what actually waits for it and shows
   state stays away (`isTryingSlots`) until an ask has come back with nothing
   done, or a change was followed by the same slot heard failing again; only
   then does the card say what is left. The first rung that is heard stays.
+- **The Room is a stage of the rack that folds every channel onto the
+  front pair, and it needs a head file to do anything.** `FeqRoom`
+  (`room.h`, `room.cpp`, `room_kernels.cpp`) runs after Bass Punch and
+  before Dimension: each channel with a speaker on the ring goes through
+  the head's ear responses for its direction plus four image-source wall
+  reflections, the LFE is low-passed into both ears, and channels 2 and up
+  leave silent; everything below it then runs on the binaural pair. The
+  kernels are built on the control thread and adopted through an atomic
+  exchange, warmed for the convolver's warm-up and faded in over its
+  blend, and the sets the audio thread finishes with are handed back to be
+  freed (`retired`), never freed on the audio thread. Which channel is
+  which speaker comes from the stream's mask (`speaker_of_channel`), the
+  head from `fluideq-room-head.txt` beside the rack (`room_head.h`, written
+  by main from the rack message itself — `roomHeadOnWire` — only when the
+  head changes, because the engine reloads every output on any write in
+  that folder), and the twenty-three room scalars ride the wire before the
+  surround switch (`FEQ_CHAIN_PARAM_LEAD` is 138). No head, or a mono
+  stream, or no channel with a speaker, and the room is inactive whatever
+  its switch says — `feq_chain_room_active` says which, the status carries
+  `channels` and `room` (`off`, `no-head`, `front-stage`, `5.1`, `7.1`,
+  `on`) for the card's chip, and the engine log gets one `room on/off:`
+  line per chain build. The shipped heads are MIT KEMAR at three sizes
+  (`build-room-heads.ts` from the compact set, mirrored for the left half;
+  `assets/room/heads/LICENSES.md`), never HeSuVi's recordings. Held by
+  `room_test.cpp` (a synthetic head whose delays are known frame counts:
+  the left speaker reaches the right ear 16 frames later at 48 kHz, dead
+  walls leave nothing after the direct path, a wall change mid-stream
+  makes no step beyond either steady room's) and `chain_surround_test.cpp`
+  (a six-channel chain folds and reports +512 frames).
 - **The rack runs on every channel of a surround output, up to eight, and
   the front pair stays bit-for-bit the stereo chain.** `FEQ_CHAIN_MAX_CHANNELS`
   is 8; `FEQ_CHAIN_CHANNELS` (2) now means "the front pair", not the width.
@@ -630,8 +659,8 @@ Out-String` (or any other capture) is what actually waits for it and shows
   thread is reading), and the exciter skips the LFE — the engine works out
   which channel that is from the stream's channel mask (`lfe_channel_of`)
   and tells the chain (`feq_chain_set_lfe_channel`). The rack's
-  `surround_all_channels` (the Master card's switch, wire slot
-  `FEQ_CHAIN_PARAM_LEAD - 2`, LEAD is 115) turns this off, which is the
+  `surround_all_channels` (the DSP header's switch beside the power switch,
+  wire slot `FEQ_CHAIN_PARAM_LEAD - 2`) turns this off, which is the
   first-two-channels behaviour every version before had. Held by
   `chain_surround_test.cpp`: the six-channel front pair identical to the
   stereo chain, a surround channel identical to the front it copies, one
