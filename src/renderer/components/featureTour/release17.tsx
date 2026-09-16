@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import EngineFlow from './EngineFlow';
 import LightingVisual from './LightingVisual';
+import RoomVisual from './RoomVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import {
   DesktopVisual,
@@ -30,6 +31,17 @@ export function FluidEngineSlide({ actions }: ISlideProps) {
       prefix="tour.engine"
       tab="dsp"
       visual={<EngineFlow />}
+      actions={actions}
+    />
+  );
+}
+
+export function RoomSlide({ actions }: ISlideProps) {
+  return (
+    <ShowcaseSlide
+      prefix="tour.room"
+      tab="dsp"
+      visual={<RoomVisual />}
       actions={actions}
     />
   );

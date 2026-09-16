@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'ヘッドホン',
   'tour.engine.flow.speakers': 'スピーカー',
 
+  'tour.room.kicker': 'ヘッドホンでサラウンド',
+  'tour.room.title': 'ルームに座る',
+  'tour.room.subtitle': 'すべてのチャンネルが頭の周りのスピーカーに',
+  'tour.room.lead':
+    'ルームはヘッドホンをリスニングルームに変えます。音の各チャンネルがあなたの周りに立つスピーカーになり、測定された頭と自分で形づくった部屋の壁を通して描かれるので、映画は頭の中ではなく目の前に現れます。',
+  'tour.room.point1':
+    'ステレオは目の前の 2 本のスピーカーに、5.1 の映画は 5 本とサブに、7.1 のゲームはリング全体に。何が再生されているかで決まります。',
+  'tour.room.point2':
+    '出発点となる 11 のルーム（スタジオ、リビング、映画館、コンサートホール…）と、名前を付けて保存した自分のルーム。',
+  'tour.room.point3':
+    'フィットは 5 組の聴き比べで、音を目の前に置く頭を耳で選びます。',
+  'tour.room.how':
+    'DSP を開き、レールでルームを選んでオンにします。ルームを選び、スピーカーをドラッグするかダイヤルを回し、フィットで自分の頭を選びます。',
+  'tour.room.open': 'ルームを開く',
+  'tour.room.imageAlt':
+    '上から見た部屋：中央の頭の周りに 7 本のスピーカーとサブが立ち、それぞれから耳への経路が伸びています。',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'FluidEQ Plus へようこそ',
   'tour.plus.subtitle': 'ビジュアライザー、スタジオ、ライティングなど',

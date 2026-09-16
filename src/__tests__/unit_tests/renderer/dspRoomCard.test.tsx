@@ -8,6 +8,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DSP_DEFAULTS, IRoomSettings } from '../../../common/dsp/chain';
 import {
+  ROOM_PRESET_LIST,
   ROOM_PRESET_SHAPES,
   roomPresetSettings,
 } from '../../../common/dsp/roomPresets';
@@ -53,14 +54,22 @@ describe('the Room card', () => {
     expect(screen.getByText(en['dsp.room.live.sevenOne'])).toHaveClass('is-on');
   });
 
-  it('applies a preset as a whole room and keeps the head', () => {
+  it('offers the rooms in the header picker, applies one whole and keeps the head', () => {
     const { onPatch, onCommit } = renderCard({
       ...DSP_DEFAULTS.room,
       enabled: true,
       head: 'large',
     });
     fireEvent.click(
-      screen.getByRole('radio', { name: en['dsp.room.preset.cinema'] }),
+      screen.getByRole('button', { name: en['dsp.room.presets'] }),
+    );
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(
+      ROOM_PRESET_LIST.length,
+    );
+    fireEvent.click(
+      screen.getByRole('menuitemradio', {
+        name: new RegExp(en['dsp.room.preset.cinema']),
+      }),
     );
     expect(onPatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -68,9 +77,44 @@ describe('the Room card', () => {
         sizeM: ROOM_PRESET_SHAPES.cinema.sizeM,
         subDb: ROOM_PRESET_SHAPES.cinema.subDb,
         head: 'large',
+        enabled: true,
       }),
     );
     expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads Custom in the picker once the room is shaped, and Reset puts the living room back', () => {
+    const { onPatch } = renderCard({
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      presetId: 'custom',
+      sizeM: 7,
+    });
+    expect(
+      screen.getByRole('button', { name: en['dsp.room.presets'] }),
+    ).toHaveTextContent(en['dsp.eqPreset.custom']);
+    fireEvent.click(
+      screen.getByRole('button', { name: en['dsp.eqPreset.reset'] }),
+    );
+    expect(onPatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        presetId: 'livingRoom',
+        sizeM: ROOM_PRESET_SHAPES.livingRoom.sizeM,
+      }),
+    );
+  });
+
+  it('steps to the next room with the arrow', () => {
+    const { onPatch } = renderCard();
+    const current = ROOM_PRESET_LIST.findIndex(
+      (preset) => preset.id === DSP_DEFAULTS.room.presetId,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: en['dsp.eqPreset.next'] }),
+    );
+    expect(onPatch).toHaveBeenCalledWith(
+      expect.objectContaining({ presetId: ROOM_PRESET_LIST[current + 1].id }),
+    );
   });
 
   it('makes the room custom when a dial moves', () => {
@@ -93,7 +137,12 @@ describe('the Room card', () => {
     expect(screen.getByText(en['dsp.room.plusHint'])).toBeInTheDocument();
     expect(screen.getByText(en['dsp.room.plusDragHint'])).toBeInTheDocument();
     fireEvent.click(
-      screen.getByRole('radio', { name: en['dsp.room.preset.studio'] }),
+      screen.getByRole('button', { name: en['dsp.room.presets'] }),
+    );
+    fireEvent.click(
+      screen.getByRole('menuitemradio', {
+        name: new RegExp(en['dsp.room.preset.studio']),
+      }),
     );
     expect(onPatch).toHaveBeenCalledWith(
       expect.objectContaining({ presetId: 'studio' }),
@@ -109,6 +158,47 @@ describe('the Room card', () => {
   it('names what is playing when nothing is, and the missing head', () => {
     renderCard(undefined, { state: 'idle', channels: undefined });
     expect(screen.getByText(en['dsp.room.live.idle'])).not.toHaveClass('is-on');
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.is-asleep'),
+    ).toHaveLength(0);
+  });
+
+  it('puts the speakers a stereo stream cannot reach to sleep, and says so', () => {
+    renderCard(undefined, { state: 'front-stage', channels: 2 });
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.is-asleep'),
+    ).toHaveLength(5);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      en['dsp.room.fedFrontStage'],
+    );
+    // Asleep ones cannot be taken; the two awake still can.
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.is-asleep.can-drag'),
+    ).toHaveLength(0);
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.can-drag'),
+    ).toHaveLength(2);
+    // No subwoofer feed either: the sub sleeps and its dial, and the
+    // centre's, rest disabled; the room's own dials still turn.
+    expect(document.querySelector('.dsp-room-sub')).toHaveClass('is-asleep');
+    expect(screen.getByLabelText(en['dsp.room.sub'])).toBeDisabled();
+    expect(screen.getByLabelText(en['dsp.room.centre'])).toBeDisabled();
+    expect(screen.getByLabelText(en['dsp.room.size'])).not.toBeDisabled();
+  });
+
+  it('wakes the sub and its dial on 7.1', () => {
+    renderCard();
+    expect(document.querySelector('.dsp-room-sub')).not.toHaveClass(
+      'is-asleep',
+    );
+    expect(screen.getByLabelText(en['dsp.room.sub'])).not.toBeDisabled();
+  });
+
+  it('leaves the rear pair asleep on 5.1', () => {
+    renderCard(undefined, { state: '5.1', channels: 6 });
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.is-asleep'),
+    ).toHaveLength(2);
   });
 });
 

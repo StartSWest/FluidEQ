@@ -333,6 +333,107 @@ it under the terms of the GNU General Public License version 3 or later.
 // ---------------------------------------------------------------------------
 // The desktop: Alpine behind the icons, and the monitor map under it.
 
+// THE ROOM SLIDE: the card's picture, drawn for the tour. The speakers wear
+// the accent's glow, the head the primary, the floor pools the accent under
+// the listener — the same palette the card uses, so the slide and the page
+// it opens read as one thing.
+.room-visual {
+  width: 100%;
+  max-width: calc(var(--tour-unit) * 34);
+  height: auto;
+  aspect-ratio: 1;
+  @include animate(rise-in, $motion-slow);
+}
+
+.room-visual__floor-in {
+  stop-color: $secondary-default;
+  stop-opacity: 0.18;
+}
+
+.room-visual__floor-out {
+  stop-color: $surface-well;
+  stop-opacity: 1;
+}
+
+.room-visual__shine {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 3;
+  stroke-opacity: 0.14;
+  filter: blur(3px);
+}
+
+.room-visual__walls {
+  fill: none;
+  stroke: $edge-tint;
+  stroke-width: 2;
+  stroke-opacity: 0.45;
+}
+
+.room-visual__front {
+  fill: $text-faint;
+  font-size: 9px;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+}
+
+.room-visual__ring {
+  fill: none;
+  stroke: rgba($white, 0.1);
+  stroke-dasharray: 3 5;
+}
+
+.room-visual__path {
+  stroke: $secondary-default;
+  stroke-width: 1;
+  stroke-opacity: 0.22;
+}
+
+.room-visual__glow {
+  fill: $secondary-default;
+  opacity: 0.45;
+}
+
+.room-visual__box {
+  fill: $surface-block;
+  stroke: $secondary-default;
+  stroke-width: 1.2;
+}
+
+.room-visual__driver {
+  fill: $surface-well;
+  stroke: $secondary-default;
+  stroke-width: 1;
+}
+
+.room-visual__tweeter {
+  fill: $secondary-default;
+}
+
+.room-visual__name {
+  fill: $text-faint;
+  font-size: 10px;
+  @include tracking(0.1em);
+}
+
+.room-visual__head {
+  ellipse {
+    fill: $primary-lighter;
+    opacity: 0.9;
+  }
+
+  path {
+    fill: none;
+    stroke: $primary-lighter;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  circle {
+    fill: $text-faint;
+  }
+}
+
 .desktop-visual {
   display: grid;
   width: 100%;

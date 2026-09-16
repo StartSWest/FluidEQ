@@ -26,6 +26,7 @@ import {
   DynamicLightingSlide,
   FluidEngineSlide,
   PlusSlide,
+  RoomSlide,
   VisualizersSlide,
 } from './release17';
 
@@ -96,6 +97,12 @@ const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
       titleKey: 'tour.engine.title',
       subtitleKey: 'tour.engine.subtitle',
       Body: FluidEngineSlide,
+    },
+    {
+      id: 'room',
+      titleKey: 'tour.room.title',
+      subtitleKey: 'tour.room.subtitle',
+      Body: RoomSlide,
     },
     {
       id: 'fluideq-plus',

@@ -365,6 +365,46 @@ const CHAPTERS = [
     ],
   },
   {
+    // The Room card alone, clipped from a 1372px window at 1.5 device pixels
+    // per CSS pixel, with the living room chosen and stereo playing so five
+    // speakers and the sub are drawn asleep, as the chapter describes.
+    id: 'room',
+    group: 'sound',
+    figures: [
+      {
+        image: '32-dsp-room.png',
+        width: 2129,
+        height: 1501,
+        controls: [
+          whole([101, 47, 315, 48], 'dsp.room.presets', 'help.room.picker'),
+          {
+            box: [34, 152, 769, 769],
+            name: 'dsp.room.graphLabel',
+            text: 'help.room.picture',
+          },
+          {
+            box: [834, 195, 533, 125],
+            name: 'help.room.dialsName',
+            text: 'help.room.dials',
+          },
+          whole([1262, 429, 106, 48], 'dsp.room.fit', 'help.room.fit'),
+          whole([834, 486, 287, 41], 'dsp.room.groupHead', 'help.room.head'),
+          whole(
+            [834, 653, 306, 41],
+            'dsp.room.groupHeadphones',
+            'help.room.headphones',
+          ),
+          whole([1217, 342, 150, 48], 'dsp.room.saveRoom', 'help.room.saved'),
+          {
+            box: [916, 60, 262, 21],
+            name: 'help.room.liveName',
+            text: 'help.room.live',
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'denoise',
     group: 'sound',
     figures: [{ image: '13-dsp-denoise-and-source-analysis.png', ...WINDOW }],

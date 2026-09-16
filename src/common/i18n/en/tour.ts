@@ -65,6 +65,23 @@ const tour = {
   'tour.engine.flow.headphones': 'Headphones',
   'tour.engine.flow.speakers': 'Speakers',
 
+  'tour.room.kicker': 'SURROUND ON HEADPHONES',
+  'tour.room.title': 'Sit in the Room',
+  'tour.room.subtitle': 'Every channel a speaker around your head',
+  'tour.room.lead':
+    'The Room turns your headphones into a listening room. Each channel of the sound becomes a speaker standing around you, rendered through a measured head and the walls of a room you shape yourself, so a film sits in front of you instead of inside your head.',
+  'tour.room.point1':
+    'Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring, decided by what is playing.',
+  'tour.room.point2':
+    'Eleven rooms to start from — studio, living room, cinema, concert hall — plus your own, saved under a name.',
+  'tour.room.point3':
+    'Fit picks the head that puts sounds in front of you, by ear, in five pairs.',
+  'tour.room.how':
+    'Open DSP, choose Room in the rail and switch it on. Pick a room, then drag a speaker or turn a dial; press Fit to choose your head.',
+  'tour.room.open': 'Open the Room',
+  'tour.room.imageAlt':
+    'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Welcome to FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',

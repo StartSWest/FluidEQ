@@ -928,7 +928,8 @@ $dsp-rail-offset: 110ms;
   gap: 8px;
 }
 
-.dsp-crossfade-library__list {
+.dsp-crossfade-library__list,
+.dsp-room-library__list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -947,7 +948,8 @@ $dsp-rail-offset: 110ms;
 // four-track grid for a swatch, an icon, a label and a name; here it is the
 // state dot and the name, and a child with no track of its own lands on an
 // implicit second row.
-.dsp-crossfade-curve .active-layer__body {
+.dsp-crossfade-curve .active-layer__body,
+.dsp-room-saved .active-layer__body {
   grid-template-columns: auto minmax(0, 1fr);
 
   &:disabled {
@@ -959,7 +961,8 @@ $dsp-rail-offset: 110ms;
 // WHICH SHAPE IS IN THE FADE, and only one can be: the crossfade holds a
 // single shape, so the dot is filled on the pill whose own handles are that
 // shape and hollow on every other.
-.dsp-crossfade-curve__pip {
+.dsp-crossfade-curve__pip,
+.dsp-room-saved__pip {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
@@ -975,7 +978,8 @@ $dsp-rail-offset: 110ms;
 
 // Carries the same fade as the pip inside it, so the chip and its mark light
 // together. This is the applied state changing hands, not an arrival.
-.dsp-crossfade-curve {
+.dsp-crossfade-curve,
+.dsp-room-saved {
   transition:
     border-color 140ms ease,
     background 140ms ease;
@@ -1006,11 +1010,13 @@ $dsp-rail-offset: 110ms;
 
 // The lit treatment `.segmented__option.is-selected` gives the curve switch
 // directly above, so "this is the one chosen" looks the same twice on one card.
-.dsp-crossfade-curve.is-applied {
+.dsp-crossfade-curve.is-applied,
+.dsp-room-saved.is-applied {
   border-color: color-mix(in srgb, $secondary-default 55%, transparent);
   background: color-mix(in srgb, $secondary-default 20%, transparent);
 
-  .dsp-crossfade-curve__pip {
+  .dsp-crossfade-curve__pip,
+  .dsp-room-saved__pip {
     border-color: $secondary-default;
     background: $secondary-default;
   }
@@ -3532,11 +3538,18 @@ $dsp-pane-columns: 6;
 
 // The Room: the picture, then three surfaces — the room, the head, the
 // headphones — that wrap like the Master card's do.
+// The room is the page: it takes the width beside the controls, three parts
+// to their one, and the two sit side by side from about 800px of card and
+// stack below it (the card body wraps). The square is capped at 640px: a
+// Full HD window never reaches the cap (its card leaves the room 657px, so
+// the controls stay beside it above the fold), a 2560 one fills the space.
 .dsp-room-graph {
   display: grid;
+  flex: 3 1 400px;
   justify-items: center;
-  gap: 4px;
-  width: 100%;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
   transition: opacity $motion-base $ease-out;
 
   &.is-off {
@@ -3544,14 +3557,55 @@ $dsp-pane-columns: 6;
   }
 }
 
-// Square, and never taller than the graphs beside it in the rail: the room
-// reads at 220px and a full-height square would push the surfaces below the
-// fold on a Full HD window.
 .dsp-room-svg {
-  width: min(100%, 300px);
+  width: min(100%, 640px);
   height: auto;
   aspect-ratio: 1;
   touch-action: none;
+}
+
+// Hard walls throw the room's accent back a little inside the wall line;
+// the opacity is set inline from the Walls dial and reaches zero when dead.
+.dsp-room-shine {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 3;
+  filter: blur(3px);
+  transition: stroke-opacity $motion-base $ease-out;
+}
+
+.dsp-room-front {
+  fill: $text-faint;
+  font-size: 9px;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+}
+
+// The two measurements: a hairline with the number in the app's figures, so
+// the picture says the same metres the dials do.
+.dsp-room-measure {
+  line {
+    stroke: rgba($white, 0.22);
+    stroke-width: 1;
+  }
+
+  text {
+    fill: $text-faint;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.dsp-room-measure-size {
+  paint-order: stroke;
+  stroke: $surface-block;
+  stroke-width: 6px;
+}
+
+.dsp-room-path {
+  stroke: $secondary-default;
+  stroke-width: 1;
+  pointer-events: none;
 }
 
 // The floor: the accent pooled under the listener, dark at the walls.
@@ -3605,13 +3659,50 @@ $dsp-pane-columns: 6;
 
 .dsp-room-speaker-name {
   fill: $text-faint;
-  font-size: 9px;
-  @include tracking(0.08em);
+  font-size: 10px;
+  @include tracking(0.1em);
   pointer-events: none;
 }
 
 .dsp-room-speaker.can-drag {
   cursor: grab;
+}
+
+// A speaker the playing stream does not reach: drawn asleep, in outline,
+// so nobody drags it expecting to hear it move. The sub the same way.
+.dsp-room-speaker.is-asleep,
+.dsp-room-sub.is-asleep {
+  // Never in the pointer's way: an awake speaker dragged across an asleep
+  // one must stay in hand, whichever is drawn on top.
+  pointer-events: none;
+  .dsp-room-speaker-box {
+    fill: transparent;
+    stroke: rgba($white, 0.22);
+    stroke-dasharray: 3 3;
+  }
+
+  .dsp-room-speaker-driver {
+    stroke: rgba($white, 0.22);
+    fill: transparent;
+  }
+
+  .dsp-room-speaker-tweeter {
+    fill: rgba($white, 0.22);
+  }
+
+  .dsp-room-speaker-name {
+    fill: rgba($white, 0.3);
+  }
+}
+
+// Why some are asleep: one quiet line under the drag hint, sentence case.
+.dsp-room-graph-fed {
+  margin: 0;
+  max-width: 560px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .dsp-room-head {
@@ -3640,15 +3731,17 @@ $dsp-pane-columns: 6;
   text-transform: uppercase;
 }
 
+// The controls stand in one column beside the room — room, head, headphones,
+// top to bottom — and take the whole width once the room has wrapped above.
 .dsp-room-controls {
   display: flex;
-  flex-wrap: wrap;
+  flex: 1 1 340px;
+  flex-direction: column;
   gap: 12px;
-  width: 100%;
+  min-width: 0;
 
   > .dsp-band {
-    flex-basis: 280px;
-    align-self: stretch;
+    flex: 0 0 auto;
   }
 
   .segmented {
@@ -3694,6 +3787,36 @@ $dsp-pane-columns: 6;
 
 .dsp-room-fit__choices {
   flex-wrap: wrap;
+}
+
+// The saved rooms, under the dials in the Room band: a title with the Save
+// button at its right, then the chips wrapping below. Left-aligned like the
+// band it sits in; the chips themselves are the crossfade's saved-shape
+// chips (their rules carry both class names).
+.dsp-room-library {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba($white, 0.08);
+}
+
+.dsp-room-library__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dsp-band-subtitle {
+  color: $text-faint;
+  font-size: $text-micro;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.dsp-room-library__list {
+  justify-content: flex-start;
 }
 
 // Cancel keeps to the right edge of whichever line it lands on: a spacer

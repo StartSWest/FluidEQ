@@ -393,27 +393,28 @@
             >08 &nbsp; Devices, profiles &amp; second output</a
           ><a href="#config">09 &nbsp; Inspect &amp; back up a chain</a
           ><a href="#dsp">10 &nbsp; Explore the DSP rack</a
-          ><a href="#denoise">11 &nbsp; Denoise &amp; source analysis</a
+          ><a href="#room">11 &nbsp; The Room: surround on headphones</a
+          ><a href="#denoise">12 &nbsp; Denoise &amp; source analysis</a
           ><span class="part">See your music</span
-          ><a href="#graph">12 &nbsp; The graph and its controls</a
-          ><a href="#looks">13 &nbsp; Styles and Plus visualizers</a
+          ><a href="#graph">13 &nbsp; The graph and its controls</a
+          ><a href="#looks">14 &nbsp; Styles and Plus visualizers</a
           ><span class="part">FluidEQ Plus</span
-          ><a href="#plus">14 &nbsp; FluidEQ Plus and your account</a
-          ><a href="#gallery">15 &nbsp; The Visualizers gallery</a
-          ><a href="#leaderboard">16 &nbsp; The Leaderboard</a
-          ><a href="#studio">17 &nbsp; Make scenes in the Studio</a
-          ><a href="#desktop">18 &nbsp; The desktop visualizer</a
-          ><a href="#lighting">19 &nbsp; Dynamic lighting (beta)</a
+          ><a href="#plus">15 &nbsp; FluidEQ Plus and your account</a
+          ><a href="#gallery">16 &nbsp; The Visualizers gallery</a
+          ><a href="#leaderboard">17 &nbsp; The Leaderboard</a
+          ><a href="#studio">18 &nbsp; Make scenes in the Studio</a
+          ><a href="#desktop">19 &nbsp; The desktop visualizer</a
+          ><a href="#lighting">20 &nbsp; Dynamic lighting (beta)</a
           ><span class="part">Listen, sing and share</span
-          ><a href="#online">20 &nbsp; Listen with Online Media</a
-          ><a href="#library">21 &nbsp; Build your local library</a
-          ><a href="#queue">22 &nbsp; Albums &amp; your play queue</a
-          ><a href="#karaoke">23 &nbsp; Sing with Karaoke</a
-          ><a href="#maker">24 &nbsp; Create in Karaoke Maker</a
-          ><a href="#share">25 &nbsp; Share audio between computers</a
+          ><a href="#online">21 &nbsp; Listen with Online Media</a
+          ><a href="#library">22 &nbsp; Build your local library</a
+          ><a href="#queue">23 &nbsp; Albums &amp; your play queue</a
+          ><a href="#karaoke">24 &nbsp; Sing with Karaoke</a
+          ><a href="#maker">25 &nbsp; Create in Karaoke Maker</a
+          ><a href="#share">26 &nbsp; Share audio between computers</a
           ><span class="part">When you need help</span
-          ><a href="#trouble">26 &nbsp; When something sounds wrong</a
-          ><a href="#forum">27 &nbsp; Ask in the Forum</a>
+          ><a href="#trouble">27 &nbsp; When something sounds wrong</a
+          ><a href="#forum">28 &nbsp; Ask in the Forum</a>
         </nav>
       </aside>
       <main>
@@ -426,7 +427,7 @@
             the app at your own pace.
           </p>
           <span class="badge"
-            >27 chapters · 29 real interface captures · Offline</span
+            >28 chapters · 30 real interface captures · Offline</span
           >
           <p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p>
           <button type="button" id="print">Print / Save as PDF</button>
@@ -1699,9 +1700,219 @@
             </p>
           </aside>
         </section>
-        <section id="denoise">
+        <section id="room">
           <header class="chapter-heading">
             <span class="number">11</span>
+            <h2>The Room: surround on headphones</h2>
+          </header>
+          <p>
+            The Room turns headphones into a listening room. Every channel of
+            the sound becomes a speaker standing around your head, rendered
+            through a measured head and the reflections of a room you shape
+            yourself, so a film sits in front of you and a game surrounds you.
+            It needs the FluidEQ Engine and headphones; on speakers it does
+            nothing useful.
+          </p>
+          <div class="figure-body">
+            <figure
+              style="
+                flex-basis: min(
+                  100%,
+                  1419.3333333333333px,
+                  72vh * 1.418387741505663
+                );
+                max-width: min(
+                  100%,
+                  1419.3333333333333px,
+                  72vh * 1.418387741505663
+                );
+              "
+            >
+              <a
+                href="32-dsp-room.png"
+                aria-label="Enlarge screenshot: The Room: surround on headphones"
+                ><img
+                  src="32-dsp-room.png"
+                  width="2129"
+                  height="1501"
+                  alt="The Room: surround on headphones"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                The Room: surround on headphones · FluidEQ
+              </figcaption>
+            </figure>
+            <ul class="controls">
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 168px;
+                      height: 25.6px;
+                      background-image: url('32-dsp-room.png');
+                      background-size: 1135.4666666666667px 800.5333333333333px;
+                      background-position: -53.86666666666667px -25.066666666666666px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Room preset</strong></span
+                  ><span class="text"
+                    >The rooms to start from, grouped like every other
+                    stage&#39;s profiles; Custom once you shape one.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"><strong>The room from above</strong></span
+                  ><span class="text"
+                    >The room from above: walls that fade as they absorb, the
+                    speakers on their ring, the head in the middle. Drag a
+                    speaker to move it.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>Size, Walls, Distance, Centre, Sub</strong></span
+                  ><span class="text"
+                    >The room&#39;s side in metres, how much its walls absorb,
+                    how far the speakers stand, and the centre&#39;s and the
+                    sub&#39;s level.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 97.16666666666666px;
+                      height: 44px;
+                      background-image: url('32-dsp-room.png');
+                      background-size: 1951.5833333333333px 1375.9166666666665px;
+                      background-position: -1156.8333333333333px -393.25px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Fit…</strong></span
+                  ><span class="text"
+                    >Five listening pairs that pick the head for your
+                    ears.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 168px;
+                      height: 24px;
+                      background-image: url('32-dsp-room.png');
+                      background-size: 1246.2439024390244px 878.6341463414634px;
+                      background-position: -488.1951219512195px -284.4878048780488px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Head</strong></span
+                  ><span class="text"
+                    >The measured head the room renders through: small, medium
+                    or large.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 168.00000000000003px;
+                      height: 22.50980392156863px;
+                      background-image: url('32-dsp-room.png');
+                      background-size: 1168.8627450980393px 824.0784313725491px;
+                      background-position: -457.8823529411765px -358.5098039215687px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Headphones</strong></span
+                  ><span class="text"
+                    >Whether your headphone profile from the EQ page runs after
+                    the room, so the speakers sound like speakers.</span
+                  ></span
+                >
+              </li>
+              <li>
+                <span class="well"
+                  ><span
+                    class="piece"
+                    style="
+                      width: 137.5px;
+                      height: 44px;
+                      background-image: url('32-dsp-room.png');
+                      background-size: 1951.5833333333333px 1375.9166666666665px;
+                      background-position: -1115.5833333333333px -313.5px;
+                    "
+                  ></span></span
+                ><span
+                  ><span class="name"><strong>Save room…</strong></span
+                  ><span class="text"
+                    >Name the room as it stands; it comes back with a
+                    press.</span
+                  ></span
+                >
+              </li>
+              <li class="plain">
+                <span
+                  ><span class="name"
+                    ><strong>What the room is doing</strong></span
+                  ><span class="text"
+                    >Read from the engine: which speakers the playing stream
+                    reaches, or why the room is idle.</span
+                  ></span
+                >
+              </li>
+            </ul>
+          </div>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open DSP, choose Room in the rail and switch it on. Stereo becomes
+              two speakers in front of you; a 5.1 film five and the sub; a 7.1
+              game the whole ring. The chip beside the switch says which.
+            </li>
+            <li>
+              Pick a room at the top — studio, living room, cinema, concert hall
+              and more — or turn Size, Walls and Distance yourself and drag a
+              speaker around the ring. Speakers the playing stream cannot reach
+              are drawn asleep.
+            </li>
+            <li>
+              Press Fit and answer five short listening pairs: the room takes
+              the head that puts sounds in front of you. Small, Medium and Large
+              can be chosen by hand too.
+            </li>
+            <li>
+              Save a room you like under a name; a saved room comes back with a
+              press and never changes your head.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Shaping the room — the dials, dragging a speaker, Fit and saving —
+              is part of Plus; the rooms and the head choice are for everyone.
+              Games and films only send their surround channels to an output
+              Windows believes has that many speakers: when the driver takes it,
+              the output panel offers one press to 7.1.
+            </p>
+          </aside>
+        </section>
+        <section id="denoise">
+          <header class="chapter-heading">
+            <span class="number">12</span>
             <h2>Denoise &amp; source analysis</h2>
           </header>
           <p>
@@ -1765,7 +1976,7 @@
         <section id="graph">
           <span class="eyebrow part">See your music</span>
           <header class="chapter-heading">
-            <span class="number">12</span>
+            <span class="number">13</span>
             <h2>The graph and its controls</h2>
           </header>
           <p>
@@ -2433,7 +2644,7 @@
         </section>
         <section id="looks">
           <header class="chapter-heading">
-            <span class="number">13</span>
+            <span class="number">14</span>
             <h2>Styles and Plus visualizers</h2>
           </header>
           <p>
@@ -2536,7 +2747,7 @@
         <section id="plus">
           <span class="eyebrow part">FluidEQ Plus</span>
           <header class="chapter-heading">
-            <span class="number">14</span>
+            <span class="number">15</span>
             <h2>FluidEQ Plus and your account</h2>
           </header>
           <p>
@@ -2699,7 +2910,7 @@
         </section>
         <section id="gallery">
           <header class="chapter-heading">
-            <span class="number">15</span>
+            <span class="number">16</span>
             <h2>The Visualizers gallery</h2>
           </header>
           <p>
@@ -2948,7 +3159,7 @@
         </section>
         <section id="leaderboard">
           <header class="chapter-heading">
-            <span class="number">16</span>
+            <span class="number">17</span>
             <h2>The Leaderboard</h2>
           </header>
           <p>
@@ -3028,7 +3239,7 @@
         </section>
         <section id="studio">
           <header class="chapter-heading">
-            <span class="number">17</span>
+            <span class="number">18</span>
             <h2>Make scenes in the Studio</h2>
           </header>
           <p>
@@ -3184,7 +3395,7 @@
         </section>
         <section id="desktop">
           <header class="chapter-heading">
-            <span class="number">18</span>
+            <span class="number">19</span>
             <h2>The desktop visualizer</h2>
           </header>
           <p>
@@ -3291,7 +3502,7 @@
         </section>
         <section id="lighting">
           <header class="chapter-heading">
-            <span class="number">19</span>
+            <span class="number">20</span>
             <h2>Dynamic lighting (beta)</h2>
           </header>
           <p>
@@ -3435,7 +3646,7 @@
         <section id="online">
           <span class="eyebrow part">Listen, sing and share</span>
           <header class="chapter-heading">
-            <span class="number">20</span>
+            <span class="number">21</span>
             <h2>Listen with Online Media</h2>
           </header>
           <p>
@@ -3498,7 +3709,7 @@
         </section>
         <section id="library">
           <header class="chapter-heading">
-            <span class="number">21</span>
+            <span class="number">22</span>
             <h2>Build your local library</h2>
           </header>
           <p>
@@ -3561,7 +3772,7 @@
         </section>
         <section id="queue">
           <header class="chapter-heading">
-            <span class="number">22</span>
+            <span class="number">23</span>
             <h2>Albums &amp; your play queue</h2>
           </header>
           <p>
@@ -3623,7 +3834,7 @@
         </section>
         <section id="karaoke">
           <header class="chapter-heading">
-            <span class="number">23</span>
+            <span class="number">24</span>
             <h2>Sing with Karaoke</h2>
           </header>
           <p>
@@ -3687,7 +3898,7 @@
         </section>
         <section id="maker">
           <header class="chapter-heading">
-            <span class="number">24</span>
+            <span class="number">25</span>
             <h2>Create in Karaoke Maker</h2>
           </header>
           <p>
@@ -3750,7 +3961,7 @@
         </section>
         <section id="share">
           <header class="chapter-heading">
-            <span class="number">25</span>
+            <span class="number">26</span>
             <h2>Share audio between computers</h2>
           </header>
           <p>
@@ -3817,7 +4028,7 @@
         <section id="trouble">
           <span class="eyebrow part">When you need help</span>
           <header class="chapter-heading">
-            <span class="number">26</span>
+            <span class="number">27</span>
             <h2>When something sounds wrong</h2>
           </header>
           <p>
@@ -3884,7 +4095,7 @@
         </section>
         <section id="forum">
           <header class="chapter-heading">
-            <span class="number">27</span>
+            <span class="number">28</span>
             <h2>Ask in the Forum</h2>
           </header>
           <p>

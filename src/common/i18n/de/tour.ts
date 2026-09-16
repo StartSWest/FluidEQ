@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'Kopfhörer',
   'tour.engine.flow.speakers': 'Lautsprecher',
 
+  'tour.room.kicker': 'SURROUND AUF KOPFHÖRERN',
+  'tour.room.title': 'Nimm im Raum Platz',
+  'tour.room.subtitle': 'Jeder Kanal ein Lautsprecher um deinen Kopf',
+  'tour.room.lead':
+    'Der Raum macht aus deinen Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um dich herum, gerendert durch einen vermessenen Kopf und die Wände eines Raums, den du selbst formst — so sitzt ein Film vor dir statt in deinem Kopf.',
+  'tour.room.point1':
+    'Stereo wird zu zwei Lautsprechern vor dir; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring, je nachdem, was läuft.',
+  'tour.room.point2':
+    'Elf Räume zum Anfangen — Studio, Wohnzimmer, Kino, Konzertsaal — und deine eigenen, unter Namen gespeichert.',
+  'tour.room.point3':
+    'Anpassen wählt nach Gehör den Kopf, der die Klänge vor dich setzt, in fünf Paaren.',
+  'tour.room.how':
+    'Öffne DSP, wähle Raum in der Leiste und schalte ihn ein. Wähle einen Raum, dann zieh einen Lautsprecher oder dreh einen Regler; drück Anpassen, um deinen Kopf zu wählen.',
+  'tour.room.open': 'Den Raum öffnen',
+  'tour.room.imageAlt':
+    'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Willkommen bei FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',

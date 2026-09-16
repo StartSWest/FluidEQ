@@ -20,6 +20,7 @@ import type { ISlideActions, TTourTab } from './slides';
 interface IShowcaseSlideProps {
   prefix:
     | 'tour.engine'
+    | 'tour.room'
     | 'tour.plus'
     | 'tour.visualizers'
     | 'tour.desktop'

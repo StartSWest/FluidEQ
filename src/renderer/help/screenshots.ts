@@ -18,6 +18,7 @@ import bandMenu from '../../../docs/17-band-menu.png';
 import eqMode from '../../../docs/18-eq-mode.png';
 import bandDesigns from '../../../docs/19-band-designs.png';
 import dsp from '../../../docs/20-dsp.png';
+import room from '../../../docs/32-dsp-room.png';
 import strip from '../../../docs/21-graph-strip.png';
 import stripPlus from '../../../docs/22-graph-strip-plus.png';
 import viewMenu from '../../../docs/23-graph-view-menu.png';
@@ -51,6 +52,7 @@ const screenshots: Record<THelpImage, string> = {
   '18-eq-mode.png': eqMode,
   '19-band-designs.png': bandDesigns,
   '20-dsp.png': dsp,
+  '32-dsp-room.png': room,
   '21-graph-strip.png': strip,
   '22-graph-strip-plus.png': stripPlus,
   '23-graph-view-menu.png': viewMenu,

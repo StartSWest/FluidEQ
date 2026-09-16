@@ -172,6 +172,31 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.scope':
     'Onde o rack está funcionando e qualquer atraso que a fase linear acrescente.',
 
+  'help.room.title': 'A Sala: surround nos auscultadores',
+  'help.room.intro':
+    'A Sala transforma os auscultadores numa sala de escuta. Cada canal do som passa a ser uma coluna à volta da tua cabeça, renderizada através de uma cabeça medida e das reflexões de uma sala que tu próprio moldas, e um filme fica à tua frente e um jogo rodeia-te. Precisa do FluidEQ Engine e de auscultadores; em colunas não serve para nada.',
+  'help.room.steps':
+    'Abre DSP, escolhe Sala na barra e liga-a. O estéreo passa a duas colunas à tua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolhe uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou roda Tamanho, Paredes e Distância tu próprio e arrasta uma coluna pelo anel. As colunas que o fluxo em reprodução não alcança são desenhadas a dormir.\nCarrega em Ajustar e responde a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à tua frente. Pequena, Média e Grande também se escolhem à mão.\nGuarda uma sala de que gostes com um nome; uma sala guardada volta com um toque e nunca muda a tua cabeça.',
+  'help.room.tip':
+    'Moldar a sala — os botões, arrastar uma coluna, Ajustar e guardar — faz parte do Plus; as salas e a escolha da cabeça são para todos. Jogos e filmes só enviam os canais surround para uma saída que o Windows julga ter tantas colunas: quando o controlador o aceita, o painel de saída oferece a passagem a 7.1 com um toque.',
+  'help.room.picker':
+    'As salas de partida, agrupadas como os perfis de cada outro andar; Personalizada assim que moldas uma.',
+  'help.room.picture':
+    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Arrasta uma coluna para a mover.',
+  'help.room.dialsName': 'Tamanho, Paredes, Distância, Central, Sub',
+  'help.room.dials':
+    'O lado da sala em metros, quanto as paredes absorvem, a que distância estão as colunas e o nível do central e do sub.',
+  'help.room.fit':
+    'Cinco pares de escuta que escolhem a cabeça para os teus ouvidos.',
+  'help.room.head':
+    'A cabeça medida através da qual a sala é renderizada: pequena, média ou grande.',
+  'help.room.headphones':
+    'Se o teu perfil de auscultadores da página EQ corre depois da sala, para que as colunas soem como colunas.',
+  'help.room.saved': 'Dá um nome à sala tal como está; volta com um toque.',
+  'help.room.liveName': 'O que a sala está a fazer',
+  'help.room.live':
+    'Lido do motor: que colunas o fluxo em reprodução alcança, ou porque é que a sala está parada.',
+
   'help.denoise.title': 'Redução de ruído e análise',
   'help.denoise.intro':
     'A Redução de ruído diminui chiado, zumbido da rede elétrica e estalos. Com o Motor FluidEQ, ela funciona ao vivo em tudo o que o PC toca; o limpador de voz neural e o piso de ruído analisado são para faixas da Biblioteca. Redução mais forte não é automaticamente melhor.',

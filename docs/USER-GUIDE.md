@@ -25,35 +25,36 @@ Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control pos
 8. [Devices, profiles & second output](#profiles)
 9. [Inspect & back up a chain](#config)
 10. [Explore the DSP rack](#dsp)
-11. [Denoise & source analysis](#denoise)
+11. [The Room: surround on headphones](#room)
+12. [Denoise & source analysis](#denoise)
 
 **See your music**
 
-12. [The graph and its controls](#graph)
-13. [Styles and Plus visualizers](#looks)
+13. [The graph and its controls](#graph)
+14. [Styles and Plus visualizers](#looks)
 
 **FluidEQ Plus**
 
-14. [FluidEQ Plus and your account](#plus)
-15. [The Visualizers gallery](#gallery)
-16. [The Leaderboard](#leaderboard)
-17. [Make scenes in the Studio](#studio)
-18. [The desktop visualizer](#desktop)
-19. [Dynamic lighting (beta)](#lighting)
+15. [FluidEQ Plus and your account](#plus)
+16. [The Visualizers gallery](#gallery)
+17. [The Leaderboard](#leaderboard)
+18. [Make scenes in the Studio](#studio)
+19. [The desktop visualizer](#desktop)
+20. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-20. [Listen with Online Media](#online)
-21. [Build your local library](#library)
-22. [Albums & your play queue](#queue)
-23. [Sing with Karaoke](#karaoke)
-24. [Create in Karaoke Maker](#maker)
-25. [Share audio between computers](#share)
+21. [Listen with Online Media](#online)
+22. [Build your local library](#library)
+23. [Albums & your play queue](#queue)
+24. [Sing with Karaoke](#karaoke)
+25. [Create in Karaoke Maker](#maker)
+26. [Share audio between computers](#share)
 
 **When you need help**
 
-26. [When something sounds wrong](#trouble)
-27. [Ask in the Forum](#forum)
+27. [When something sounds wrong](#trouble)
+28. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -267,6 +268,32 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 3. Save a rack you like, and use Export and Import to share it.
 
 > **Good to know:** Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.
+
+<a id="room"></a>
+
+## The Room: surround on headphones
+
+The Room turns headphones into a listening room. Every channel of the sound becomes a speaker standing around your head, rendered through a measured head and the reflections of a room you shape yourself, so a film sits in front of you and a game surrounds you. It needs the FluidEQ Engine and headphones; on speakers it does nothing useful.
+
+![The Room: surround on headphones](32-dsp-room.png)
+
+- **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
+- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it.
+- **Size, Walls, Distance, Centre, Sub** — The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.
+- **Fit…** — Five listening pairs that pick the head for your ears.
+- **Head** — The measured head the room renders through: small, medium or large.
+- **Headphones** — Whether your headphone profile from the EQ page runs after the room, so the speakers sound like speakers.
+- **Save room…** — Name the room as it stands; it comes back with a press.
+- **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
+
+### Try it
+
+1. Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.
+2. Pick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.
+3. Press Fit and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.
+4. Save a room you like under a name; a saved room comes back with a press and never changes your head.
+
+> **Good to know:** Shaping the room — the dials, dragging a speaker, Fit and saving — is part of Plus; the rooms and the head choice are for everyone. Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.
 
 <a id="denoise"></a>
 

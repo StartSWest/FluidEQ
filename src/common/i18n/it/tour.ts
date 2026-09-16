@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'Cuffie',
   'tour.engine.flow.speakers': 'Altoparlanti',
 
+  'tour.room.kicker': 'SURROUND IN CUFFIA',
+  'tour.room.title': 'Siediti nella Stanza',
+  'tour.room.subtitle': 'Ogni canale un diffusore intorno alla tua testa',
+  'tour.room.lead':
+    'La Stanza trasforma le tue cuffie in una sala d’ascolto. Ogni canale del suono diventa un diffusore intorno a te, reso attraverso una testa misurata e le pareti di una stanza che modelli tu stesso, così un film sta davanti a te e non dentro la tua testa.',
+  'tour.room.point1':
+    'Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello, a seconda di cosa suona.',
+  'tour.room.point2':
+    'Undici stanze da cui partire — studio, salotto, cinema, sala da concerto — più le tue, salvate con un nome.',
+  'tour.room.point3':
+    'Adatta sceglie a orecchio la testa che mette i suoni davanti a te, in cinque coppie.',
+  'tour.room.how':
+    'Apri DSP, scegli Stanza nella barra e accendila. Scegli una stanza, poi trascina un diffusore o gira una manopola; premi Adatta per scegliere la tua testa.',
+  'tour.room.open': 'Apri la Stanza',
+  'tour.room.imageAlt':
+    'Una stanza vista dall’alto: sette diffusori e un sub intorno a una testa al centro, ognuno con il suo percorso verso le orecchie.',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Benvenuto in FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',

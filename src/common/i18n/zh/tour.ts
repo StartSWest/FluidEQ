@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': '耳机',
   'tour.engine.flow.speakers': '音箱',
 
+  'tour.room.kicker': '耳机上的环绕声',
+  'tour.room.title': '坐进房间',
+  'tour.room.subtitle': '每个声道都是你头部周围的一只音箱',
+  'tour.room.lead':
+    '房间把你的耳机变成一间听音室。声音的每个声道都成为站在你周围的一只音箱，经由测量得到的头部模型和你亲手塑造的房间墙壁渲染，于是电影出现在你面前，而不是在你头颅之内。',
+  'tour.room.point1':
+    '立体声变成你面前的两只音箱；5.1 电影是五只加低音炮；7.1 游戏是整个环绕圈——由正在播放的内容决定。',
+  'tour.room.point2':
+    '十一个起点房间——录音室、客厅、影院、音乐厅——再加上你自己命名保存的房间。',
+  'tour.room.point3':
+    '“适配”用五组听感对比，凭耳朵选出把声音放到你面前的那个头部模型。',
+  'tour.room.how':
+    '打开 DSP，在侧栏选择“房间”并开启。选一个房间，然后拖动音箱或转动旋钮；按“适配”选择你的头部。',
+  'tour.room.open': '打开房间',
+  'tour.room.imageAlt':
+    '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
+
   'tour.plus.kicker': 'FluidEQ Plus',
   'tour.plus.title': '欢迎来到 FluidEQ Plus',
   'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',

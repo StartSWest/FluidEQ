@@ -11,18 +11,16 @@ import {
   ROOM_HEADS,
   TRoomHead,
 } from '../../common/dsp/chain';
-import {
-  isRoomPresetId,
-  roomPresetSettings,
-} from '../../common/dsp/roomPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { LockBadge } from '../graph/lookPickerParts';
 import { usePlusEntitled } from '../plus/GalleryParts';
 import { useTranslation } from '../utils/I18nContext';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { Dial, ProcessorCard } from './DspControls';
+import DspRoomBar from './DspRoomBar';
 import DspRoomFitDialog from './DspRoomFitDialog';
 import DspRoomGraph from './DspRoomGraph';
+import DspRoomLibrary from './DspRoomLibrary';
 import { IRoomLive } from './useRoomLive';
 import '../styles/LookPicker.scss';
 
@@ -33,8 +31,6 @@ interface IDspRoomCardProps {
   onCommit: () => void;
 }
 
-const PRESET_IDS = ['studio', 'livingRoom', 'cinema', 'frontStage'] as const;
-
 const LIVE_TEXT: Record<IRoomLive['state'], TranslationKey> = {
   off: 'dsp.room.live.off',
   'no-head': 'dsp.room.live.noHead',
@@ -44,6 +40,27 @@ const LIVE_TEXT: Record<IRoomLive['state'], TranslationKey> = {
   on: 'dsp.room.live.on',
   idle: 'dsp.room.live.idle',
   unknown: 'dsp.room.live.unknown',
+};
+
+const ALL_FED = [true, true, true, true, true, true, true] as const;
+const FRONT_FED = [true, true, false, false, false, false, false] as const;
+const FIVE_FED = [true, true, true, true, true, false, false] as const;
+
+/**
+ * Which speakers the stream the engine reports right now can reach. Only
+ * the two states that leave speakers out say anything; every other state
+ * lights all seven, because "nothing playing" is not "these get nothing".
+ */
+const fedBy = (
+  state: IRoomLive['state'],
+): { fed: readonly boolean[]; subFed: boolean; hintKey?: TranslationKey } => {
+  if (state === 'front-stage') {
+    return { fed: FRONT_FED, subFed: false, hintKey: 'dsp.room.fedFrontStage' };
+  }
+  if (state === '5.1') {
+    return { fed: FIVE_FED, subFed: true, hintKey: 'dsp.room.fedFiveOne' };
+  }
+  return { fed: ALL_FED, subFed: true };
 };
 
 /**
@@ -59,6 +76,14 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const isPlus = usePlusEntitled();
   const canShape = isPlus && room.enabled;
   const [isFitOpen, setFitOpen] = useState(false);
+  const { fed, subFed, hintKey: fedHintKey } = fedBy(live.state);
+  /**
+   * The centre and the sub are dials on channels: while the stream has no
+   * such channel they change nothing, so they rest disabled with their
+   * speaker asleep rather than turn for nothing.
+   */
+  const fedDial = (key: 'centreDb' | 'subDb') =>
+    key === 'centreDb' ? fed[2] : subFed;
 
   /** Any change to the room's shape makes the result Custom. */
   const shape = (next: Partial<IRoomSettings>) =>
@@ -80,7 +105,9 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
       step={step}
       unit={unit}
       defaultValue={DSP_DEFAULTS.room[key]}
-      isDisabled={!canShape}
+      isDisabled={
+        !canShape || ((key === 'centreDb' || key === 'subDb') && !fedDial(key))
+      }
       onChange={(value) => shape({ [key]: value })}
       onCommit={onCommit}
     />
@@ -96,6 +123,9 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
         onPatch({ ...room, enabled: !room.enabled });
         onCommit();
       }}
+      toolbar={
+        <DspRoomBar room={room} onChange={onPatch} onCommit={onCommit} />
+      }
       beforePower={
         <span
           className={`dsp-room-live${
@@ -114,6 +144,9 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
     >
       <DspRoomGraph
         room={room}
+        fed={fed}
+        subFed={subFed}
+        fedHintKey={room.enabled ? fedHintKey : undefined}
         isDisabled={!room.enabled}
         canDrag={isPlus}
         onAngle={(speaker, angleDeg) =>
@@ -132,21 +165,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             <span className="dsp-band-title">{t('dsp.room.groupRoom')}</span>
             {!isPlus ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
           </div>
-          <SegmentedControl
-            name={t('dsp.room.presets')}
-            value={room.presetId}
-            isDisabled={!room.enabled}
-            options={PRESET_IDS.map((id) => ({
-              value: id,
-              label: t(`dsp.room.preset.${id}` as TranslationKey),
-            }))}
-            onChange={(id) => {
-              if (isRoomPresetId(id)) {
-                onPatch(roomPresetSettings(room, id));
-                onCommit();
-              }
-            }}
-          />
           <div className="dsp-band-dials">
             {dial('sizeM', 'dsp.room.size', 2, 12, 0.1, 'm')}
             {dial('walls', 'dsp.room.walls', 0, 1, 0.01, '')}
@@ -157,6 +175,14 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           {!isPlus ? (
             <p className="dsp-band-hint">{t('dsp.room.plusHint')}</p>
           ) : undefined}
+          <DspRoomLibrary
+            room={room}
+            isDisabled={!canShape}
+            onApply={(saved) => {
+              onPatch({ ...room, ...saved, presetId: 'custom' });
+              onCommit();
+            }}
+          />
         </div>
 
         <div className="dsp-band">

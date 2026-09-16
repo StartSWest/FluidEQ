@@ -176,6 +176,32 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.scope':
     'Où le rack fonctionne, et la latence qu’ajoute la phase linéaire.',
 
+  'help.room.title': 'La Salle : le surround au casque',
+  'help.room.intro':
+    'La Salle fait d’un casque une salle d’écoute. Chaque canal du son devient une enceinte autour de votre tête, rendue à travers une tête mesurée et les réflexions d’une salle que vous façonnez vous-même : un film se tient devant vous et un jeu vous entoure. Elle demande le FluidEQ Engine et un casque ; sur des enceintes elle ne sert à rien.',
+  'help.room.steps':
+    'Ouvrez DSP, choisissez Salle dans le rail et activez-la. La stéréo devient deux enceintes devant vous ; un film 5.1, cinq et le sub ; un jeu 7.1, tout l’anneau. La puce à côté de l’interrupteur dit lequel.\nChoisissez une salle en haut — studio, salon, cinéma, salle de concert et plus — ou tournez Taille, Murs et Distance vous-même et faites glisser une enceinte sur l’anneau. Les enceintes que le flux en lecture n’atteint pas sont dessinées endormies.\nAppuyez sur Ajuster et répondez à cinq courtes paires d’écoute : la salle prend la tête qui place les sons devant vous. Petite, Moyenne et Grande se choisissent aussi à la main.\nEnregistrez une salle qui vous plaît sous un nom ; une salle enregistrée revient d’une pression et ne change jamais votre tête.',
+  'help.room.tip':
+    'Façonner la salle — les boutons, faire glisser une enceinte, Ajuster et enregistrer — fait partie de Plus ; les salles et le choix de la tête sont pour tous. Les jeux et les films n’envoient leurs canaux surround qu’à une sortie que Windows croit dotée d’autant d’enceintes : quand le pilote l’accepte, le panneau de sortie propose de passer en 7.1 d’une pression.',
+  'help.room.picker':
+    'Les salles de départ, groupées comme les profils de chaque autre étage ; Personnalisée dès que vous en façonnez une.',
+  'help.room.picture':
+    'La salle vue de dessus : des murs qui s’effacent en absorbant, les enceintes sur leur anneau, la tête au milieu. Faites glisser une enceinte pour la déplacer.',
+  'help.room.dialsName': 'Taille, Murs, Distance, Centre, Sub',
+  'help.room.dials':
+    'Le côté de la salle en mètres, ce que ses murs absorbent, la distance des enceintes, et le niveau du centre et du sub.',
+  'help.room.fit':
+    'Cinq paires d’écoute qui choisissent la tête pour vos oreilles.',
+  'help.room.head':
+    'La tête mesurée à travers laquelle la salle est rendue : petite, moyenne ou grande.',
+  'help.room.headphones':
+    'Si votre profil de casque de la page EQ s’applique après la salle, pour que les enceintes sonnent comme des enceintes.',
+  'help.room.saved':
+    'Nommez la salle telle qu’elle est ; elle revient d’une pression.',
+  'help.room.liveName': 'Ce que fait la salle',
+  'help.room.live':
+    'Lu depuis le moteur : quelles enceintes le flux en lecture atteint, ou pourquoi la salle est au repos.',
+
   'help.denoise.title': 'Réduction du bruit et analyse',
   'help.denoise.intro':
     'Débruitage réduit le souffle, le ronflement secteur et les craquements. Avec le moteur FluidEQ, il agit en direct sur tout ce que joue le PC ; le nettoyeur de voix neuronal et le plancher de bruit analysé sont réservés aux pistes de la Bibliothèque. Une réduction plus forte n’est pas forcément meilleure.',

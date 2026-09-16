@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'Auriculares',
   'tour.engine.flow.speakers': 'Altavoces',
 
+  'tour.room.kicker': 'SURROUND EN LOS AURICULARES',
+  'tour.room.title': 'Siéntate en la Sala',
+  'tour.room.subtitle': 'Cada canal, un altavoz alrededor de tu cabeza',
+  'tour.room.lead':
+    'La Sala convierte tus auriculares en una sala de escucha. Cada canal del sonido pasa a ser un altavoz a tu alrededor, renderizado a través de una cabeza medida y de las paredes de una sala a la que tú mismo das forma, así que una película se sitúa delante de ti y no dentro de tu cabeza.',
+  'tour.room.point1':
+    'El estéreo son dos altavoces delante de ti; una película 5.1, cinco y el sub; un juego 7.1, el anillo entero, según lo que suena.',
+  'tour.room.point2':
+    'Once salas para empezar — estudio, salón, cine, sala de conciertos — y las tuyas, guardadas con nombre.',
+  'tour.room.point3':
+    'Ajustar elige de oído la cabeza que pone los sonidos delante de ti, en cinco pares.',
+  'tour.room.how':
+    'Abre DSP, elige Sala en el carril y actívala. Elige una sala, luego arrastra un altavoz o gira un dial; pulsa Ajustar para elegir tu cabeza.',
+  'tour.room.open': 'Abrir la Sala',
+  'tour.room.imageAlt':
+    'Una sala vista desde arriba: siete altavoces y un sub alrededor de una cabeza en el centro, cada uno con su camino hasta los oídos.',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Te damos la bienvenida a FluidEQ Plus',
   'tour.plus.subtitle': 'Visualizadores, Estudio, iluminación y más',

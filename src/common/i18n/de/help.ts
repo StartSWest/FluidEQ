@@ -177,6 +177,31 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.scope':
     'Wo das Rack läuft und welche Verzögerung lineare Phase hinzufügt.',
 
+  'help.room.title': 'Der Raum: Surround auf Kopfhörern',
+  'help.room.intro':
+    'Der Raum macht aus Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um deinen Kopf, gerendert durch einen vermessenen Kopf und die Reflexionen eines Raums, den du selbst formst — so sitzt ein Film vor dir und ein Spiel umgibt dich. Er braucht die FluidEQ Engine und Kopfhörer; auf Lautsprechern bringt er nichts.',
+  'help.room.steps':
+    'Öffne DSP, wähle Raum in der Leiste und schalte ihn ein. Stereo wird zu zwei Lautsprechern vor dir; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring. Der Chip neben dem Schalter sagt, was gerade gilt.\nWähle oben einen Raum — Studio, Wohnzimmer, Kino, Konzertsaal und mehr — oder dreh Größe, Wände und Abstand selbst und zieh einen Lautsprecher um den Ring. Lautsprecher, die der laufende Stream nicht erreicht, werden schlafend gezeichnet.\nDrück Anpassen und beantworte fünf kurze Hörpaare: der Raum nimmt den Kopf, der die Klänge vor dich setzt. Klein, Mittel und Groß lassen sich auch von Hand wählen.\nSpeichere einen Raum, der dir gefällt, unter einem Namen; ein gespeicherter Raum kommt mit einem Druck zurück und ändert nie deinen Kopf.',
+  'help.room.tip':
+    'Den Raum zu formen — die Regler, das Ziehen eines Lautsprechers, Anpassen und Speichern — gehört zu Plus; die Räume und die Kopfwahl sind für alle. Spiele und Filme schicken ihre Surround-Kanäle nur an einen Ausgang, der laut Windows so viele Lautsprecher hat: wenn der Treiber es annimmt, bietet das Ausgabefeld einen Druck auf 7.1 an.',
+  'help.room.picker':
+    'Die Räume zum Anfangen, gruppiert wie die Profile jeder anderen Stufe; Eigene, sobald du einen formst.',
+  'help.room.picture':
+    'Der Raum von oben: Wände, die beim Absorbieren verblassen, die Lautsprecher auf ihrem Ring, der Kopf in der Mitte. Zieh einen Lautsprecher, um ihn zu verschieben.',
+  'help.room.dialsName': 'Größe, Wände, Abstand, Center, Sub',
+  'help.room.dials':
+    'Die Seite des Raums in Metern, wie stark seine Wände absorbieren, wie weit die Lautsprecher stehen, und der Pegel von Center und Sub.',
+  'help.room.fit': 'Fünf Hörpaare, die den Kopf für deine Ohren wählen.',
+  'help.room.head':
+    'Der vermessene Kopf, durch den der Raum gerendert wird: klein, mittel oder groß.',
+  'help.room.headphones':
+    'Ob dein Kopfhörerprofil von der EQ-Seite nach dem Raum läuft, damit Lautsprecher wie Lautsprecher klingen.',
+  'help.room.saved':
+    'Gib dem Raum, wie er ist, einen Namen; er kommt mit einem Druck zurück.',
+  'help.room.liveName': 'Was der Raum gerade tut',
+  'help.room.live':
+    'Von der Engine gelesen: welche Lautsprecher der laufende Stream erreicht, oder warum der Raum ruht.',
+
   'help.denoise.title': 'Entrauschen und Quellenanalyse',
   'help.denoise.intro':
     'Rauschentfernung verringert Rauschen, Netzbrummen und Knackser. Unter der FluidEQ-Engine arbeitet sie live an allem, was der PC abspielt; der neuronale Stimmreiniger und der gemessene Rauschteppich sind für Titel der Bibliothek. Stärkere Reduktion ist nicht automatisch besser.',

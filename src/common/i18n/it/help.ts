@@ -174,6 +174,32 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.scope':
     'Dove sta lavorando il rack e l’eventuale ritardo aggiunto dalla fase lineare.',
 
+  'help.room.title': 'La Stanza: surround in cuffia',
+  'help.room.intro':
+    'La Stanza trasforma le cuffie in una sala d’ascolto. Ogni canale del suono diventa un diffusore intorno alla tua testa, reso attraverso una testa misurata e le riflessioni di una stanza che modelli tu stesso, così un film sta davanti a te e un gioco ti circonda. Richiede il FluidEQ Engine e le cuffie; sui diffusori non serve a nulla.',
+  'help.room.steps':
+    'Apri DSP, scegli Stanza nella barra e accendila. Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello. Il chip accanto all’interruttore dice quale.\nScegli una stanza in alto — studio, salotto, cinema, sala da concerto e altre — oppure gira Dimensione, Pareti e Distanza da solo e trascina un diffusore lungo l’anello. I diffusori che il flusso in riproduzione non raggiunge sono disegnati addormentati.\nPremi Adatta e rispondi a cinque brevi coppie d’ascolto: la stanza prende la testa che mette i suoni davanti a te. Piccola, Media e Grande si scelgono anche a mano.\nSalva una stanza che ti piace con un nome; una stanza salvata torna con una pressione e non cambia mai la tua testa.',
+  'help.room.tip':
+    'Modellare la stanza — le manopole, trascinare un diffusore, Adatta e il salvataggio — fa parte di Plus; le stanze e la scelta della testa sono per tutti. Giochi e film mandano i canali surround solo a un’uscita che Windows crede abbia tanti diffusori: quando il driver lo accetta, il pannello dell’uscita offre il passaggio a 7.1 con una pressione.',
+  'help.room.picker':
+    'Le stanze da cui partire, raggruppate come i profili di ogni altro stadio; Personalizzata appena ne modelli una.',
+  'help.room.picture':
+    'La stanza vista dall’alto: pareti che sbiadiscono assorbendo, i diffusori sul loro anello, la testa al centro. Trascina un diffusore per spostarlo.',
+  'help.room.dialsName': 'Dimensione, Pareti, Distanza, Centrale, Sub',
+  'help.room.dials':
+    'Il lato della stanza in metri, quanto assorbono le pareti, a che distanza stanno i diffusori e il livello del centrale e del sub.',
+  'help.room.fit':
+    'Cinque coppie d’ascolto che scelgono la testa per le tue orecchie.',
+  'help.room.head':
+    'La testa misurata attraverso cui la stanza viene resa: piccola, media o grande.',
+  'help.room.headphones':
+    'Se il tuo profilo cuffie della pagina EQ viene applicato dopo la stanza, così i diffusori suonano come diffusori.',
+  'help.room.saved':
+    'Dai un nome alla stanza così com’è; torna con una pressione.',
+  'help.room.liveName': 'Cosa sta facendo la stanza',
+  'help.room.live':
+    'Letto dal motore: quali diffusori il flusso in riproduzione raggiunge, o perché la stanza è ferma.',
+
   'help.denoise.title': 'Riduzione rumore e analisi',
   'help.denoise.intro':
     'Riduzione del rumore attenua fruscio, ronzio di rete e click. Con il motore FluidEQ lavora dal vivo su qualsiasi cosa il PC riproduca; il pulitore vocale neurale e il rumore di fondo analizzato sono per i brani della Libreria. Una riduzione più forte non è automaticamente migliore.',

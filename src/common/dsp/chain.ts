@@ -973,12 +973,34 @@ export interface IDspSettings {
  */
 /** A whole room each; `custom` once any dial or speaker has been moved. */
 export type TRoomPreset =
-  'studio' | 'livingRoom' | 'cinema' | 'frontStage' | 'custom';
+  | 'studio'
+  | 'livingRoom'
+  | 'cinema'
+  | 'frontStage'
+  | 'nearField'
+  | 'homeTheatre'
+  | 'gaming'
+  | 'concertHall'
+  | 'jazzClub'
+  | 'club'
+  | 'openAir'
+  | 'custom';
+/**
+ * In wire order: the engine logs the index, and the first four stood before
+ * the rest were added, so new rooms go before `custom` and never between.
+ */
 export const ROOM_PRESETS: readonly TRoomPreset[] = [
   'studio',
   'livingRoom',
   'cinema',
   'frontStage',
+  'nearField',
+  'homeTheatre',
+  'gaming',
+  'concertHall',
+  'jazzClub',
+  'club',
+  'openAir',
   'custom',
 ];
 /** The three shipped heads, by the head width each was measured on. */

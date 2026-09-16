@@ -56,6 +56,23 @@ const tour: Partial<Dictionary> = {
   'tour.engine.flow.headphones': 'Casque',
   'tour.engine.flow.speakers': 'Enceintes',
 
+  'tour.room.kicker': 'SURROUND AU CASQUE',
+  'tour.room.title': 'Prenez place dans la Salle',
+  'tour.room.subtitle': 'Chaque canal, une enceinte autour de votre tête',
+  'tour.room.lead':
+    'La Salle fait de votre casque une salle d’écoute. Chaque canal du son devient une enceinte autour de vous, rendue à travers une tête mesurée et les murs d’une salle que vous façonnez vous-même : un film se tient devant vous, et non dans votre tête.',
+  'tour.room.point1':
+    'La stéréo devient deux enceintes devant vous ; un film 5.1, cinq et le sub ; un jeu 7.1, tout l’anneau, selon ce qui joue.',
+  'tour.room.point2':
+    'Onze salles pour commencer — studio, salon, cinéma, salle de concert — et les vôtres, enregistrées sous un nom.',
+  'tour.room.point3':
+    'Ajuster choisit à l’oreille la tête qui place les sons devant vous, en cinq paires.',
+  'tour.room.how':
+    'Ouvrez DSP, choisissez Salle dans le rail et activez-la. Choisissez une salle, puis faites glisser une enceinte ou tournez un bouton ; appuyez sur Ajuster pour choisir votre tête.',
+  'tour.room.open': 'Ouvrir la Salle',
+  'tour.room.imageAlt':
+    'Une salle vue de dessus : sept enceintes et un sub autour d’une tête au centre, chacune avec son chemin vers les oreilles.',
+
   'tour.plus.kicker': 'FLUIDEQ PLUS',
   'tour.plus.title': 'Bienvenue dans FluidEQ Plus',
   'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',

@@ -213,6 +213,12 @@ add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
 target_link_libraries(fluideq-room-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room COMMAND fluideq-room-test)
 
+# The card's eleven rooms through the engine's room: no clipping, walls that
+# come back when and only when the room says, a louder sub that is louder.
+add_executable(fluideq-room-presets-test dsp-core/tests/room_presets_test.cpp)
+target_link_libraries(fluideq-room-presets-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-presets COMMAND fluideq-room-presets-test)
+
 add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
 target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)
 # Every cross-family pair is owned by its first family in catalogue order;
