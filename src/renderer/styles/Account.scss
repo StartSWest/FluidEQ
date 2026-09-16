@@ -187,33 +187,35 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 /**
- * What the account is, beside the avatar.
+ * What the account is, in the banner's top corner.
  *
- * A member's is a badge and not a button: it was an outlined pill the size
- * and shape of every quiet button in the app, and read as one somebody had
- * forgotten to make pressable (Ivan, 2026-09-16). This is lit from inside —
- * the accent laid across it, a bright hairline over the top edge, the app's
- * own glow under it — and the word is set in caps like a stamp. Nothing in
- * the panel outshines the name above it except this.
+ * Dark glass, not a filled pill: the pill was the size and shape of every
+ * quiet button in the app, and lighting it in the accent put near-black
+ * letters on the brightest colour this app owns — unreadable at the size a
+ * badge wants to be (Ivan, 2026-09-16, twice). Smoked glass carries white
+ * text over any frame of any scene, and the only colour on it is the mark.
+ *
+ * In the banner rather than under it because it is a property of the person
+ * the banner belongs to, the way a profile's badges sit on the banner
+ * itself; under it, it was a loose object floating beside the avatar.
  */
 .account__standing {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 14px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 10px;
   padding: 5px 13px 5px 6px;
-  color: $surface-base;
+  color: $white;
   border-radius: $radius-pill;
-  background: linear-gradient(
-    130deg,
-    $secondary-light,
-    $secondary-default 46%,
-    color-mix(in srgb, $neon-purple 62%, $secondary-default) 100%
-  );
+  background: color-mix(in srgb, $surface-menu-top 52%, transparent);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, $secondary-light 40%, transparent),
-    0 6px 20px color-mix(in srgb, $secondary-default 42%, transparent),
-    inset 0 1px 0 rgba($white, 0.42);
+    0 0 0 1px rgba($white, 0.14),
+    0 6px 18px rgba($black, 0.32);
   font-size: $text-micro;
   font-weight: $weight-bold;
   @include tracking(0.1em);
@@ -221,13 +223,11 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 
   // Without a membership there is nothing to celebrate and nothing to sell
-  // here — the section below does the selling. A quiet outline.
+  // here — the section below does the selling. The same glass, quieter.
   &--free {
     padding: 5px 12px;
     color: $text-faint;
-    background: none;
-    box-shadow: inset 0 0 0 1px rgba($white, 0.16);
-    text-shadow: none;
+    box-shadow: 0 0 0 1px rgba($white, 0.1);
   }
 }
 
@@ -237,20 +237,20 @@ it under the terms of the GNU General Public License version 3 or later.
 // full size, spilling out of the badge it was meant to sit inside.
 .account__standing .brand-mark {
   flex: 0 0 auto;
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   border: 0;
   border-radius: 50%;
-  background: rgba($surface-base, 0.22);
+  background: color-mix(in srgb, $secondary-default 28%, transparent);
   box-shadow: none;
 
   svg {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
   }
 
   path {
-    stroke: $white;
+    stroke: $secondary-light;
     stroke-width: 4;
   }
 }
@@ -538,6 +538,15 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-bold;
   @include tracking(0.06em);
   text-transform: uppercase;
+
+  // A membership that is ending: outlined rather than filled, and in amber
+  // like everything else in this app that is true but not what you want.
+  // Not red — nothing has gone wrong and the membership is still running.
+  &--ending {
+    color: $amber;
+    background: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, $amber 45%, transparent);
+  }
 }
 
 .plus-card__pitch {

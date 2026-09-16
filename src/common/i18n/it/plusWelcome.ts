@@ -17,6 +17,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'La classifica',
   'plusWelcome.board.line':
     'Sali con le ore di ascolto e i mi piace che guadagnano le tue scene.',
+  'plusWelcome.where':
+    'Il tuo abbonamento è nel menu {menu}, sotto {account}: aprilo quando vuoi per vederlo, cambiare nome o gestirlo.',
   'plusWelcome.note':
     'Plus vale su un massimo di cinque dei tuoi computer, e tutto ciò che era gratuito resta gratuito.',
   'plusWelcome.open': 'Apri i visualizzatori',

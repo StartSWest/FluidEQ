@@ -80,6 +80,7 @@ const account = {
   'account.plus.checkoutHint':
     '在浏览器中打开 Buy Me a Coffee。请使用与此账户相同的邮箱付款，以便 FluidEQ 识别；应用永远不会看到你的银行卡。',
   'account.plus.active': '已激活',
+  'account.plus.ending': '不再续订',
   'account.plus.renews': '{date} 续订',
   'account.plus.sorry': '很遗憾你要离开。',
   'account.plus.until': 'Plus 会用到 {date}，之后不再扣费。',

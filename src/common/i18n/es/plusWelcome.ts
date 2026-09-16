@@ -18,6 +18,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'La clasificación',
   'plusWelcome.board.line':
     'Sube con las horas que escuchas y los me gusta que ganan tus escenas.',
+  'plusWelcome.where':
+    'Tu membresía vive en el menú {menu}, en {account}: ábrelo cuando quieras para verla, cambiar tu nombre o gestionarla.',
   'plusWelcome.note':
     'Plus funciona en hasta cinco de tus equipos, y todo lo que era gratis sigue siendo gratis.',
   'plusWelcome.open': 'Abrir Visualizadores',

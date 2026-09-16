@@ -134,8 +134,22 @@ export default function PlusCard({
         <span id="plus-card-title" className="plus-card__eyebrow">
           {t('account.plus.eyebrow')}
         </span>
+        {/* A cancelled membership is still active, and saying "Active" over
+            "Sorry to see you go" read as the cancellation not having taken
+            (Ivan, 2026-09-16). It says what is true of it instead: it is not
+            renewing, and the line under says until when. */}
         {entitlement.state === 'active' && (
-          <span className="plus-card__badge">{t('account.plus.active')}</span>
+          <span
+            className={`plus-card__badge${
+              entitlement.renewing === false ? ' plus-card__badge--ending' : ''
+            }`}
+          >
+            {t(
+              entitlement.renewing === false
+                ? 'account.plus.ending'
+                : 'account.plus.active',
+            )}
+          </span>
         )}
       </div>
 

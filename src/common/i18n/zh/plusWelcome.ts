@@ -15,6 +15,8 @@ const plusWelcome = {
   'plusWelcome.lighting.line': '灯光随音乐律动，用当前场景的颜色。',
   'plusWelcome.board.title': '排行榜',
   'plusWelcome.board.line': '用你的收听时长和场景获得的喜欢往上爬。',
+  'plusWelcome.where':
+    '你的会员资格在{menu}菜单的{account}里，随时可以打开查看、改名或管理。',
   'plusWelcome.note': 'Plus 最多可用于五台你的电脑，原本免费的一切仍然免费。',
   'plusWelcome.open': '打开可视化',
   'plusWelcome.later': '稍后',

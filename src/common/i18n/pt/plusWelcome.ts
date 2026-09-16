@@ -18,6 +18,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'A classificação',
   'plusWelcome.board.line':
     'Sobe com as horas que ouves e os gostos que as tuas cenas ganham.',
+  'plusWelcome.where':
+    'A tua subscrição vive no menu {menu}, em {account} — abre-o quando quiseres para a ver, mudar o teu nome ou geri-la.',
   'plusWelcome.note':
     'O Plus funciona em até cinco dos teus computadores, e tudo o que era gratuito continua gratuito.',
   'plusWelcome.open': 'Abrir Visualizadores',

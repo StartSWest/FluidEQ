@@ -273,6 +273,21 @@ export default function AccountDialog({
               playsScene={entitlement.state !== 'none'}
               className="account__banner"
             >
+              {/* What the account is, in the banner's own corner (Ivan,
+                  2026-09-16): a plate of dark glass over the scene rather
+                  than a filled pill under it, which read as a button and
+                  put dark letters on the app's brightest colour. */}
+              {entitlement.state === 'none' ? (
+                <span className="account__standing account__standing--free">
+                  {t('account.standing.free')}
+                </span>
+              ) : (
+                <span className="account__standing">
+                  <BrandMark />
+                  {t('account.plus.eyebrow')}
+                </span>
+              )}
+
               <button
                 ref={closeRef}
                 type="button"
@@ -292,16 +307,6 @@ export default function AccountDialog({
               <span className="account__avatar" aria-hidden="true">
                 {initialsOf(displayName, identity.email)}
               </span>
-              {entitlement.state === 'none' ? (
-                <span className="account__standing account__standing--free">
-                  {t('account.standing.free')}
-                </span>
-              ) : (
-                <span className="account__standing">
-                  <BrandMark />
-                  {t('account.plus.eyebrow')}
-                </span>
-              )}
             </div>
 
             <div className="account__who">
@@ -384,15 +389,12 @@ export default function AccountDialog({
         <div className="about__body account__body" hidden={onTerms}>
           {signedIn && (
             <>
-              <PlusCard
-                entitlement={entitlement}
-                onUpgrade={() => setPage('subscribe')}
-                checkoutOpened={checkoutOpened}
-              />
-              <LeaderboardCard />
-
-              {errorLine}
-
+              {/* First in the body, which is directly under the link that
+                  opens it: the form used to appear at the foot, below both
+                  sections, where pressing "Change name" looked like it had
+                  done nothing (Ivan, 2026-09-16). The body scrolls, and the
+                  header above it does not, which is why it is here rather
+                  than inside that header. */}
               {editingName && (
                 <div className="account__name-form">
                   <LeaderboardName
@@ -410,6 +412,15 @@ export default function AccountDialog({
                   />
                 </div>
               )}
+
+              <PlusCard
+                entitlement={entitlement}
+                onUpgrade={() => setPage('subscribe')}
+                checkoutOpened={checkoutOpened}
+              />
+              <LeaderboardCard />
+
+              {errorLine}
 
               <div className="account__foot">
                 <p className="account__optional account__optional--foot">

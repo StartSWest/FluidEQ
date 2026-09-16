@@ -18,6 +18,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'Le classement',
   'plusWelcome.board.line':
     "Montez-y avec vos heures d'écoute et les j'aime que vos scènes récoltent.",
+  'plusWelcome.where':
+    'Votre abonnement se trouve dans le menu {menu}, à {account} : ouvrez-le quand vous voulez pour le voir, changer votre nom ou le gérer.',
   'plusWelcome.note':
     'Plus fonctionne sur cinq de vos ordinateurs au maximum, et tout ce qui était gratuit le reste.',
   'plusWelcome.open': 'Ouvrir les visualiseurs',

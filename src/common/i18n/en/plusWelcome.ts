@@ -18,6 +18,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'The leaderboard',
   'plusWelcome.board.line':
     'Climb it with the hours you listen and the likes your scenes earn.',
+  'plusWelcome.where':
+    'Your membership lives in the {menu} menu, under {account} — open it any time to see it, change your name or manage it.',
   'plusWelcome.note':
     'Plus works on up to five of your computers, and everything that was free stays free.',
   'plusWelcome.open': 'Open Visualizers',

@@ -42,13 +42,13 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  column-gap: 12px;
+  column-gap: 14px;
   max-width: calc(100% - #{$spacing-l} * 2 - 44px);
 }
 
 .plus-member-welcome__brand {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   grid-row: span 2;
 }
 
@@ -58,17 +58,23 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: tracking(0.14em);
+  text-shadow: 0 1px 12px rgba($black, 0.55);
   text-transform: uppercase;
 }
 
+// The one line somebody reads the instant a payment lands, over the scene
+// they just bought: at the panel's title size it read as a section heading
+// on a picture. The shadow is what keeps it legible over the bright frames
+// of a scene that is moving under it.
 .plus-member-welcome__title {
   align-self: start;
   margin: 0;
   color: $white;
-  font-size: $text-title;
+  font-size: 1.5rem;
   font-weight: $weight-bold;
-  letter-spacing: tracking(-0.01em);
-  line-height: 1.12;
+  letter-spacing: tracking(-0.02em);
+  line-height: 1.08;
+  text-shadow: 0 2px 18px rgba($black, 0.6);
 }
 
 .plus-member-welcome__close {
@@ -217,23 +223,38 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The one practical line, under the five: marked as reassurance rather than
-// as a sixth thing they have been given.
+/**
+ * The two practical lines, under the five: where the membership lives from
+ * now on, and what it covers. Marked as footnotes rather than as two more
+ * things they have been given — a rule down the side, the way the account
+ * panel marks its own aside, and the glyph in the app's colour.
+ */
 .plus-member-welcome__note {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  align-items: flex-start;
+  gap: 9px;
   margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, $secondary-default 40%, transparent);
   color: $text-faint;
   font-size: $text-small;
-  line-height: 1.45;
+  line-height: 1.5;
   @include animate(fade-in, $motion-slow, $ease-out, 340ms);
 
   svg {
     flex: 0 0 auto;
     width: 15px;
     height: 15px;
-    color: $active;
+    // Optical: the glyph's own drawing sits a shade high against a line of
+    // text, and centred on the first line it reads as floating.
+    margin-top: 1px;
+    color: $secondary-light;
+  }
+
+  // The two of them together read as one aside, so only the first carries
+  // the space above it.
+  & + & {
+    margin-top: -8px;
   }
 }
 

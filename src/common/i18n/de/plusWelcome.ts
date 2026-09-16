@@ -18,6 +18,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'Die Bestenliste',
   'plusWelcome.board.line':
     'Steig auf mit deinen Hörstunden und den Likes deiner Szenen.',
+  'plusWelcome.where':
+    'Deine Mitgliedschaft liegt im Menü {menu} unter {account} — dort kannst du sie jederzeit ansehen, deinen Namen ändern oder sie verwalten.',
   'plusWelcome.note':
     'Plus gilt für bis zu fünf deiner Computer, und alles bisher Kostenlose bleibt kostenlos.',
   'plusWelcome.open': 'Visualizer öffnen',

@@ -149,6 +149,16 @@ export default function PlusWelcomeDialog() {
             ))}
           </ul>
 
+          {/* Where the membership lives once this is closed (Ivan,
+              2026-09-16): the panel it was bought from is closed behind
+              this, and nothing else in the app says where it went. */}
+          <p className="plus-member-welcome__note">
+            <Glyph name="person" />
+            {t('plusWelcome.where', {
+              menu: t('app.actions'),
+              account: t('account.menu'),
+            })}
+          </p>
           <p className="plus-member-welcome__note">
             <Glyph name="shield" />
             {t('plusWelcome.note')}

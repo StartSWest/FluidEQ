@@ -17,6 +17,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'लीडरबोर्ड',
   'plusWelcome.board.line':
     'सुनने के घंटों और अपने दृश्यों को मिले लाइक से ऊपर चढ़िए।',
+  'plusWelcome.where':
+    'आपकी सदस्यता {menu} मेन्यू में {account} के नीचे रहती है — इसे कभी भी खोलकर देखें, नाम बदलें या प्रबंधित करें।',
   'plusWelcome.note':
     'Plus आपके अधिकतम पाँच कंप्यूटरों पर चलता है, और जो मुफ़्त था वह मुफ़्त ही रहेगा।',
   'plusWelcome.open': 'विज़ुअलाइज़र खोलें',

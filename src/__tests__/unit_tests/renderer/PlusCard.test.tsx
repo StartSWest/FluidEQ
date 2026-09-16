@@ -218,6 +218,10 @@ describe('the Plus card', () => {
     );
     expect(screen.getByText('account.plus.sorry')).toBeInTheDocument();
     expect(screen.getByText(/account\.plus\.until:/)).toBeInTheDocument();
+    // The state it is in, not the state it was: "Active" over "Sorry to see
+    // you go" read as the cancellation not having taken.
+    expect(screen.getByText('account.plus.ending')).toBeInTheDocument();
+    expect(screen.queryByText('account.plus.active')).toBeNull();
     expect(screen.queryByText(/account\.plus\.refund/)).toBeNull();
     expect(screen.queryByText(/account\.plus\.computers/)).toBeNull();
     // Still manageable: this is where somebody changes their mind.
@@ -240,6 +244,7 @@ describe('the Plus card', () => {
     );
     expect(screen.getByText(/account\.plus\.renews:/)).toBeInTheDocument();
     expect(screen.getByText(/account\.plus\.computers:/)).toBeInTheDocument();
+    expect(screen.getByText('account.plus.active')).toBeInTheDocument();
     expect(screen.queryByText('account.plus.sorry')).toBeNull();
     expect(screen.queryByText(/account\.plus\.refund/)).toBeNull();
   });

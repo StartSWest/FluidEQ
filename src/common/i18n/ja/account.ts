@@ -91,6 +91,7 @@ const account = {
   'account.plus.checkoutHint':
     'ブラウザで Buy Me a Coffee を開きます。FluidEQ が認識できるよう、このアカウントと同じメールアドレスで支払ってください。アプリがカード情報を見ることはありません。',
   'account.plus.active': '有効',
+  'account.plus.ending': '更新なし',
   'account.plus.renews': '{date} に更新',
   'account.plus.sorry': 'ご利用ありがとうございました。',
   'account.plus.until': '{date} まで Plus は使えます。以降の請求はありません。',

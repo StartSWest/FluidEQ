@@ -90,6 +90,7 @@ const account = {
   'account.plus.checkoutHint':
     'Apre Buy Me a Coffee nel browser. Paga con la stessa email di questo account così FluidEQ la riconosce; l’app non vede mai la tua carta.',
   'account.plus.active': 'Attivo',
+  'account.plus.ending': 'Non si rinnova',
   'account.plus.renews': 'Si rinnova il {date}',
   'account.plus.sorry': 'Ci dispiace vederti andare via.',
   'account.plus.until':

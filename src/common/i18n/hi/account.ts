@@ -91,6 +91,7 @@ const account = {
   'account.plus.checkoutHint':
     'आपके ब्राउज़र में Buy Me a Coffee खुलेगा। इसी खाते वाले ईमेल से भुगतान करें ताकि FluidEQ उसे पहचान सके; ऐप कभी आपका कार्ड नहीं देखता।',
   'account.plus.active': 'सक्रिय',
+  'account.plus.ending': 'नवीनीकरण नहीं',
   'account.plus.renews': '{date} को नवीनीकरण',
   'account.plus.sorry': 'आपका जाना अच्छा नहीं लगा।',
   'account.plus.until':

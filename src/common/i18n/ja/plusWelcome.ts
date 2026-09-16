@@ -17,6 +17,8 @@ const plusWelcome = {
   'plusWelcome.board.title': 'ランキング',
   'plusWelcome.board.line':
     '聴いた時間と、あなたのシーンが集めたいいねで上がっていきます。',
+  'plusWelcome.where':
+    'メンバーシップは{menu}メニューの{account}にあります。いつでも開いて確認・名前の変更・管理ができます。',
   'plusWelcome.note':
     'Plus は最大 5 台まで使えます。これまで無料だったものは無料のままです。',
   'plusWelcome.open': 'ビジュアライザーを開く',
