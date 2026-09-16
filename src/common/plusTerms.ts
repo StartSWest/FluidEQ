@@ -60,21 +60,24 @@
  * Plus (its days kept), and Report a problem gained a private email to the
  * maker. Raised again because the server already held an agreement to 6; still
  * the first public edition, and the first public revision moves with it.
+ *
+ * 8: the fourteen-day refund is withdrawn (Ivan, 2026-09-15). The terms now
+ * say nothing about refunds rather than promising or refusing one: what a
+ * payment can do is the merchant's own policy, and this is the first
+ * published edition to take something away, so it is edition 2 and every
+ * member who agreed to 7 is told.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  */
-export const PLUS_TERMS_VERSION = 7;
+export const PLUS_TERMS_VERSION = 8;
 
-/** First published edition. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 1;
+/** Published editions. Pre-release acceptance revisions are not editions. */
+export const PLUS_TERMS_EDITION = 2;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-14';
-
-/** Days after a charge within which it is refunded on request, in full. */
-export const PLUS_REFUND_DAYS = 14;
+export const PLUS_TERMS_EFFECTIVE = '2026-09-15';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

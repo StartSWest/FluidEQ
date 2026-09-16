@@ -16,6 +16,8 @@ const termsNotice = {
     'Die Bedingungen behandeln jetzt auch, was ein kostenloses Konto ausprobieren kann – die Beispielszenen von FluidEQ, nicht die Szenen von Mitgliedern –, Meldungen und Entfernungen, Grenzen für das Teilen, die Prüfung auf Kopien der Szenen von FluidEQ, Versionsnotizen, Plus-Geschenke und jede andere Stelle, mit der sich FluidEQ verbindet.',
   'termsNotice.change.7':
     'Die Rangliste führt ein Konto jetzt nur noch, solange es Plus hat, und „Problem melden“ kann auch eine private E-Mail an den Macher von FluidEQ öffnen.',
+  'termsNotice.change.8':
+    'Die vierzehntägige Erstattung entfällt. Nach einer Kündigung bleibt Plus bis zum Ende des bezahlten Zeitraums aktiv, und es wird nichts mehr berechnet.',
 } as const;
 
 export default termsNotice;

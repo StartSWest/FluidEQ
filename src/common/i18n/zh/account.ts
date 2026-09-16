@@ -81,8 +81,6 @@ const account = {
   'account.plus.renews': '{date} 续订',
   'account.plus.sorry': '很遗憾你要离开。',
   'account.plus.until': 'Plus 会用到 {date}，之后不再扣费。',
-  'account.plus.refund':
-    '如果最近 {days} 天内有扣费并希望退款，请写信到 {contact}，我们全额退还。',
   'account.plus.gift': '来自 FluidEQ 的赠礼',
   'account.plus.giftUntil': '来自 FluidEQ 的赠礼，至 {date}',
   'account.plus.computers': '最多可同时在 {count} 台电脑上登录。',

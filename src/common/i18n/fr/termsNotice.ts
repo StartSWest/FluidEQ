@@ -16,6 +16,8 @@ const termsNotice = {
     'Les conditions couvrent désormais aussi ce qu’un compte gratuit peut essayer (les scènes de FluidEQ proposées en essai gratuit, pas celles des membres), les signalements et les retraits de scènes, les limites de partage, la vérification qui repère les copies des scènes de FluidEQ, les notes de version, les cadeaux de Plus, et tous les autres endroits auxquels FluidEQ se connecte.',
   'termsNotice.change.7':
     'Le classement ne classe désormais un compte que tant qu’il a Plus, et Signaler un problème peut aussi ouvrir un e-mail privé au créateur de FluidEQ.',
+  'termsNotice.change.8':
+    'Le remboursement sous quatorze jours est retiré. En cas de résiliation, Plus reste actif jusqu’à la fin de la période payée et rien de plus n’est prélevé.',
 } as const;
 
 export default termsNotice;

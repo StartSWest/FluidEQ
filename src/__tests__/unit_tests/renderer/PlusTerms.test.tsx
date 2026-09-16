@@ -11,6 +11,7 @@ import type { IAccountState } from '../../../main/account/session';
 import type { TBillingOutcome } from '../../../main/ipc/account';
 import {
   PLUS_MINIMUM_AGE,
+  PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
 } from '../../../common/plusTerms';
 import { LOCALES, translate } from '../../../common/i18n';
@@ -101,8 +102,12 @@ describe('the Plus terms', () => {
     expect(
       screen.getByRole('heading', { name: 'terms.title' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('v1')).toBeInTheDocument();
-    expect(screen.getByText(/^terms\.meta:1,/)).toBeInTheDocument();
+    // The published edition, from the constant, so raising one does not send
+    // somebody hunting for a hard-coded number in a test.
+    expect(screen.getByText(`v${PLUS_TERMS_EDITION}`)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(`^terms\\.meta:${PLUS_TERMS_EDITION},`)),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText(`v${PLUS_TERMS_VERSION}`),
     ).not.toBeInTheDocument();
@@ -190,9 +195,10 @@ describe('the Plus terms', () => {
       expect(item.getByText(new RegExp(`^${row.who}`))).toBeInTheDocument();
     });
     // The numbers are filled from the code that keeps them, not typed in.
-    expect(
-      screen.getByText(/^terms\.membership\.p3:.*\b14\b/),
-    ).toBeInTheDocument();
+    // The refund paragraph that used to be checked here went in revision 8:
+    // the terms say nothing about refunds now, so there is nothing to assert
+    // but its absence.
+    expect(screen.queryByText(/^terms\.membership\.p3/)).toBeNull();
     expect(
       screen.getByText(
         new RegExp(`^terms\\.account\\.p1:.*\\b${PLUS_MINIMUM_AGE}\\b`),

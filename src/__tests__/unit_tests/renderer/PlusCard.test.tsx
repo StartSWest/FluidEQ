@@ -199,9 +199,10 @@ describe('the Plus card', () => {
 
   /**
    * A cancellation is somebody leaving, and the card answers what they are
-   * owed: that they are not being thrown out today, until when, and that a
-   * recent charge can still come back. The computer allowance belongs to a
-   * membership that is going on, not to one that is ending.
+   * owed: that they are not being thrown out today, and until when. Nothing
+   * about refunds — the terms stopped offering one in revision 8 — and not
+   * the computer allowance either, which belongs to a membership that is
+   * going on rather than to one that is ending.
    */
   it('sees a cancelled subscription out, and says what is left of it', () => {
     render(
@@ -217,7 +218,7 @@ describe('the Plus card', () => {
     );
     expect(screen.getByText('account.plus.sorry')).toBeInTheDocument();
     expect(screen.getByText(/account\.plus\.until:/)).toBeInTheDocument();
-    expect(screen.getByText(/account\.plus\.refund:/)).toBeInTheDocument();
+    expect(screen.queryByText(/account\.plus\.refund/)).toBeNull();
     expect(screen.queryByText(/account\.plus\.computers/)).toBeNull();
     // Still manageable: this is where somebody changes their mind.
     expect(
@@ -225,7 +226,7 @@ describe('the Plus card', () => {
     ).toHaveClass('subtle');
   });
 
-  it('tells a renewing member the computers it covers, and no refund line', () => {
+  it('tells a renewing member the computers it covers', () => {
     render(
       <PlusCard
         entitlement={{

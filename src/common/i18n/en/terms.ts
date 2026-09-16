@@ -36,8 +36,6 @@ const terms = {
     'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
-  'terms.membership.p3':
-    'If a charge was a mistake, or Plus is not for you, ask within {refundDays} days of that charge and it is refunded in full, no questions asked.',
   'terms.membership.p4':
     'When a membership ends, the Plus looks and the scenes members made lock again and FluidEQ goes back to its free looks; nothing you made is deleted. Without a connection, Plus keeps working until the end of the period you paid for, and for up to {graceDays} days after it if the app could not confirm a renewal. Nothing that is free is ever affected.',
   'terms.membership.p5':
@@ -246,7 +244,7 @@ const terms = {
 
   'terms.contact.title': 'Contact',
   'terms.contact.p1':
-    'Questions, refunds, deleting your account, or reporting a scene that uses your work: {contact}.',
+    'Questions, deleting your account, or reporting a scene that uses your work: {contact}.',
 
   'terms.agree.check':
     'I have read these terms, including what the app sends, and I agree to them.',

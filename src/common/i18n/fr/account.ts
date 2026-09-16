@@ -93,8 +93,6 @@ const account = {
   'account.plus.sorry': 'Dommage de vous voir partir.',
   'account.plus.until':
     'Plus reste actif jusqu’au {date}, et rien de plus ne sera prélevé.',
-  'account.plus.refund':
-    'Débité ces {days} derniers jours et vous préférez être remboursé ? Écrivez à {contact} : le montant est remboursé en entier.',
   'account.plus.gift': 'Un cadeau de FluidEQ',
   'account.plus.giftUntil': 'Un cadeau de FluidEQ, jusqu’au {date}',
   'account.plus.computers':

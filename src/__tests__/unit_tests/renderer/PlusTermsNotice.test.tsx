@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import {
   PLUS_TERMS_VERSION,
   PLUS_TERMS_EDITION,
+  PLUS_TERMS_FIRST_PUBLIC_REVISION,
 } from '../../../common/plusTerms';
 import type { TPlusTermsNoticeState } from '../../../main/ipc/plusTermsNotice';
 import { subscribeAccountPanelRequests } from '../../../renderer/account/accountPanel';
@@ -80,19 +81,20 @@ describe('the Plus terms notice', () => {
   });
 
   it('does not present pre-release revisions as published editions', async () => {
-    // A member who agreed to a pre-release text is told what the first public
-    // edition is — never the internal revisions that led to it.
+    // A member who agreed to a pre-release text is told about the published
+    // revisions — never the internal ones that led to the first of them.
     await showing({
       version: CURRENT,
-      changes: [CURRENT, CURRENT - 1, 5, 4, 3, 2],
+      changes: [CURRENT, PLUS_TERMS_FIRST_PUBLIC_REVISION, 5, 4, 3, 2],
     });
     const notice = await screen.findByRole('dialog');
     expect(notice).toHaveTextContent(`termsNotice.change.${CURRENT}`);
-    expect(notice).not.toHaveTextContent(`termsNotice.change.${CURRENT - 1}`);
     expect(notice).not.toHaveTextContent('termsNotice.change.5');
     expect(notice).not.toHaveTextContent('termsNotice.change.4');
     expect(notice).not.toHaveTextContent(`termsNotice.version:${CURRENT}`);
-    expect(screen.getByText(/^terms\.meta:1,/)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(`^terms\\.meta:${PLUS_TERMS_EDITION},`)),
+    ).toBeInTheDocument();
   });
 
   it('draws nothing when there is nothing to tell', async () => {

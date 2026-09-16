@@ -16,6 +16,8 @@ const termsNotice = {
     '条款现在还涵盖：免费账户可以试用的内容（FluidEQ 的示例场景，而非会员的场景）、举报与下架、分享限制、针对复制 FluidEQ 场景的检查、版本说明、赠送 Plus，以及 FluidEQ 连接的所有其他地方。',
   'termsNotice.change.7':
     '排行榜现在只在账户拥有 Plus 期间对其排名，“报告问题”也可以打开一封发给 FluidEQ 作者的私密邮件。',
+  'termsNotice.change.8':
+    '十四天退款已取消。取消订阅后，Plus 仍可用到已付费周期结束，之后不再扣费。',
 } as const;
 
 export default termsNotice;

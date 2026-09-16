@@ -170,7 +170,9 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     lines: [
       'terms.membership.p1',
       'terms.membership.p2',
-      'terms.membership.p3',
+      // p3 was a fourteen-day refund. Withdrawn in revision 8 (Ivan,
+      // 2026-09-15); the keys after it keep their numbers, which are
+      // identifiers rather than an order to be tidied.
       'terms.membership.p4',
       'terms.membership.p5',
     ],

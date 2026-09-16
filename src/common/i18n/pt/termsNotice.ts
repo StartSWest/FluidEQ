@@ -16,6 +16,8 @@ const termsNotice = {
     'Os termos passam também a abranger o que uma conta gratuita pode experimentar — as cenas de amostra do FluidEQ, não as cenas dos membros —, as denúncias e as retiradas de cenas, os limites de partilha, a verificação de cópias das cenas do FluidEQ, as notas de versão, o Plus oferecido como presente e todos os outros sítios a que o FluidEQ se liga.',
   'termsNotice.change.7':
     'A classificação passa a incluir uma conta só enquanto ela tiver Plus, e Relatar um problema também pode abrir um e-mail privado para o criador do FluidEQ.',
+  'termsNotice.change.8':
+    'O reembolso de catorze dias é retirado. Ao cancelar, o Plus fica activo até ao fim do período pago e não é cobrado mais nada.',
 } as const;
 
 export default termsNotice;

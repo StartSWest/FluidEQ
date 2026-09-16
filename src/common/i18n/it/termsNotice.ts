@@ -16,6 +16,8 @@ const termsNotice = {
     'Ora le condizioni coprono anche ciò che un account gratuito può provare — le scene di prova di FluidEQ, non quelle dei membri — le segnalazioni e le rimozioni, i limiti di condivisione, il controllo sulle copie delle scene di FluidEQ, le note di versione, Plus in regalo e ogni altra destinazione a cui FluidEQ si collega.',
   'termsNotice.change.7':
     'Ora la classifica include un account solo finché ha Plus, e Segnala un problema può anche aprire un’email privata al creatore di FluidEQ.',
+  'termsNotice.change.8':
+    'Il rimborso entro quattordici giorni viene ritirato. Disdicendo, Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro.',
 } as const;
 
 export default termsNotice;

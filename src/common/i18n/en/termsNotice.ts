@@ -26,6 +26,8 @@ const termsNotice = {
     'The terms now also cover what a free account can try — FluidEQ’s sample scenes, not members’ scenes — reports and takedowns, sharing limits, the check against copies of FluidEQ’s scenes, version notes, gifts of Plus, and every other place FluidEQ connects to.',
   'termsNotice.change.7':
     'The leaderboard now ranks an account only while it has Plus, and Report a problem can also open a private email to FluidEQ’s maker.',
+  'termsNotice.change.8':
+    'The fourteen-day refund is withdrawn. Cancelling still keeps Plus on to the end of the period you paid for, and nothing more is charged.',
 } as const;
 
 export default termsNotice;

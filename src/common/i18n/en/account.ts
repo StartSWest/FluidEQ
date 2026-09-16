@@ -105,8 +105,6 @@ const account = {
   'account.plus.sorry': 'Sorry to see you go.',
   'account.plus.until':
     'Plus stays on until {date}, and nothing more is charged.',
-  'account.plus.refund':
-    'Charged in the last {days} days and would rather have it back? Write to {contact} and it is refunded in full.',
   'account.plus.gift': 'A gift from FluidEQ',
   'account.plus.giftUntil': 'A gift from FluidEQ, until {date}',
   'account.plus.computers': 'Signed in on up to {count} computers at a time.',

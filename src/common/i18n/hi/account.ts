@@ -93,8 +93,6 @@ const account = {
   'account.plus.sorry': 'आपका जाना अच्छा नहीं लगा।',
   'account.plus.until':
     '{date} तक Plus चालू रहेगा, और इसके बाद कोई शुल्क नहीं।',
-  'account.plus.refund':
-    'पिछले {days} दिनों में शुल्क लिया गया और वापस चाहिए? {contact} पर लिखिए, पूरी राशि लौटा दी जाती है।',
   'account.plus.gift': 'FluidEQ की ओर से उपहार',
   'account.plus.giftUntil': 'FluidEQ की ओर से उपहार, {date} तक',
   'account.plus.computers': 'एक साथ अधिकतम {count} कंप्यूटरों पर साइन इन।',

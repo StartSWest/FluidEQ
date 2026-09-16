@@ -25,8 +25,6 @@ const terms = {
     'Con una cuenta gratuita puedes explorar Visualizadores, ver la imagen y los detalles de cada escena publicada, probar durante {tasteSeconds} segundos cada una de las escenas de muestra gratuitas de FluidEQ y ver la clasificación. Plus desbloquea los looks Plus y te permite reproducir y añadir todas las escenas, crear escenas en el Estudio y exportarlas o publicarlas, unirte a la clasificación y llevar escenas a tu escritorio y a tus luces RGB. Cuesta {price} y se renueva al final de cada periodo pagado hasta que lo canceles.',
   'terms.membership.p2':
     'El pago lo gestiona Buy Me a Coffee, con sus propias condiciones. FluidEQ nunca ve tu tarjeta ni tus datos bancarios. Puedes cancelar cuando quieras en Buy Me a Coffee: Plus sigue activo hasta el final del periodo que pagaste y no se cobra nada más.',
-  'terms.membership.p3':
-    'Si un cobro fue un error, o Plus no es para ti, pídelo dentro de los {refundDays} días siguientes a ese cobro y se te devuelve íntegro, sin preguntas.',
   'terms.membership.p4':
     'Cuando termina una membresía, los looks Plus y las escenas de los miembros vuelven a bloquearse y FluidEQ vuelve a sus looks gratuitos; nada de lo que creaste se borra. Sin conexión, Plus sigue funcionando hasta el final del periodo que pagaste y, si la aplicación no pudo confirmar una renovación, hasta {graceDays} días más. Nada de lo gratuito se ve afectado, nunca.',
   'terms.membership.p5':
@@ -236,7 +234,7 @@ const terms = {
 
   'terms.contact.title': 'Contacto',
   'terms.contact.p1':
-    'Preguntas, reembolsos, borrar tu cuenta o denunciar una escena que usa tu trabajo: {contact}.',
+    'Preguntas, borrar tu cuenta o denunciar una escena que usa tu trabajo: {contact}.',
 
   'terms.agree.check':
     'He leído estas condiciones, incluido lo que envía la aplicación, y las acepto.',

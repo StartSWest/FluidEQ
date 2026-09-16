@@ -25,8 +25,6 @@ const terms = {
     'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Looks nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und danach wird nichts mehr abgebucht.',
-  'terms.membership.p3':
-    'War eine Abbuchung ein Versehen, oder ist Plus nichts für Sie, melden Sie sich innerhalb von {refundDays} Tagen nach dieser Abbuchung, und sie wird ohne Rückfragen vollständig erstattet.',
   'terms.membership.p4':
     'Endet eine Mitgliedschaft, werden die Plus-Looks und die Szenen, die Mitglieder erstellt haben, wieder gesperrt und FluidEQ kehrt zu seinen kostenlosen Looks zurück; nichts, was Sie erstellt haben, wird gelöscht. Ohne Verbindung funktioniert Plus bis zum Ende des bezahlten Zeitraums weiter und danach noch bis zu {graceDays} Tage, falls die App keine Verlängerung bestätigen konnte. Nichts Kostenloses ist jemals betroffen.',
   'terms.membership.p5':
@@ -236,7 +234,7 @@ const terms = {
 
   'terms.contact.title': 'Kontakt',
   'terms.contact.p1':
-    'Fragen, Erstattungen, das Löschen Ihres Kontos oder die Meldung einer Szene, die Ihr Werk verwendet: {contact}.',
+    'Fragen, das Löschen Ihres Kontos oder die Meldung einer Szene, die Ihr Werk verwendet: {contact}.',
 
   'terms.agree.check':
     'Ich habe diese Bedingungen gelesen, einschließlich dessen, was die App sendet, und stimme ihnen zu.',

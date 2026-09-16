@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { IEntitlementStatus } from 'main/account/entitlement';
 import type { TBillingFailure } from 'main/account/billingClient';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
-import { PLUS_MAX_COMPUTERS, PLUS_REFUND_DAYS } from 'common/plusTerms';
-import { OFFICIAL_SITE_URL } from 'common/branding';
-import { REPORT_EMAIL } from 'common/bugReport';
+import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import Glyph from '../community/Glyph';
@@ -25,14 +23,6 @@ interface IPlusCardProps {
   /** The checkout was opened from the terms and is waiting in the browser. */
   checkoutOpened: boolean;
 }
-
-/**
- * Where a refund is asked for: the same address the Plus terms name, resolved
- * the same way, so the card and the document can never send somebody to two
- * different places. A build with no support address falls back to the site,
- * as the terms do.
- */
-const REFUND_CONTACT = REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host;
 
 const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
   network: 'account.error.network',
@@ -215,27 +205,20 @@ export default function PlusCard({
                   )}
                 </p>
               )}
-              {/* While it renews, the one rule a member can walk into, from
-                  the constant the server enforces it with. No price:
+              {/* The one rule a member can walk into, from the constant the
+                  server enforces it with — and only while the membership is
+                  going on, since it is no use to somebody leaving. No price:
                   `plusPriceText` is the offer — both plans, or the monthly
                   one — and somebody paying yearly would read it as their own
                   bill. What they pay is behind the button, on the merchant's
-                  own page.
-
-                  Once it is cancelled, the refund instead: the terms promise
-                  it in every language and this is the moment it is worth
-                  anything, so it is said here rather than left for somebody
-                  to go and find. */}
-              <p className="plus-card__hint">
-                {entitlement.renewing === false
-                  ? t('account.plus.refund', {
-                      days: String(PLUS_REFUND_DAYS),
-                      contact: REFUND_CONTACT,
-                    })
-                  : t('account.plus.computers', {
-                      count: String(PLUS_MAX_COMPUTERS),
-                    })}
-              </p>
+                  own page. */}
+              {entitlement.renewing !== false && (
+                <p className="plus-card__hint">
+                  {t('account.plus.computers', {
+                    count: String(PLUS_MAX_COMPUTERS),
+                  })}
+                </p>
+              )}
               <div className="plus-card__actions">{manage}</div>
             </>
           )}

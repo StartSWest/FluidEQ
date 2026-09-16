@@ -90,8 +90,6 @@ const account = {
   'account.plus.renews': 'Продлится {date}',
   'account.plus.sorry': 'Жаль, что вы уходите.',
   'account.plus.until': 'Plus работает до {date}, и больше ничего не спишется.',
-  'account.plus.refund':
-    'Списание было в последние {days} дней и вы хотите вернуть деньги? Напишите на {contact} — вернём полностью.',
   'account.plus.gift': 'Подарок от FluidEQ',
   'account.plus.giftUntil': 'Подарок от FluidEQ, до {date}',
   'account.plus.computers':

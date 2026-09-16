@@ -23,8 +23,6 @@ const terms = {
     '使用免费账户，你可以浏览“可视化”，查看每个已发布场景的图片和详情，试用 FluidEQ 的每个免费示例场景各 {tasteSeconds} 秒，并查看排行榜。Plus 可以播放和添加每一个场景，解锁 Plus 样式，让你在工作室中创作场景并导出或发布，让你加入排行榜，还能把场景放到你的桌面和 RGB 灯光上。价格为 {price}，在每个已付费周期结束时自动续订，直到你取消。',
   'terms.membership.p2':
     '付款由 Buy Me a Coffee 按其自身条款处理。FluidEQ 从不接触你的银行卡或银行信息。你可以随时在 Buy Me a Coffee 上取消：Plus 会保持到已付费周期结束，之后不再扣费。',
-  'terms.membership.p3':
-    '如果某次扣款是误操作，或者 Plus 不适合你，请在该次扣款后 {refundDays} 天内提出，将全额退款，不问原因。',
   'terms.membership.p4':
     '会员结束后，Plus 样式和会员创作的场景会重新锁定，FluidEQ 回到免费样式；你创作的内容不会被删除。没有网络连接时，Plus 仍可使用到已付费周期结束；如果应用未能确认续订，在此之后最多还可使用 {graceDays} 天。免费的一切永远不受影响。',
   'terms.membership.p5':
@@ -224,8 +222,7 @@ const terms = {
     '在法律允许的范围内，FluidEQ 和 Plus 按现状提供，不附带任何保证。作者承担的责任不超过你过去十二个月为 Plus 支付的金额。这里的任何内容都不会剥夺法律赋予你作为消费者的权利。',
 
   'terms.contact.title': '联系方式',
-  'terms.contact.p1':
-    '问题、退款、删除账户，或举报使用了你作品的场景：{contact}。',
+  'terms.contact.p1': '问题、删除账户，或举报使用了你作品的场景：{contact}。',
 
   'terms.agree.check': '我已阅读这些条款（包括应用会发送的内容），并同意。',
   'terms.agree.continue': '同意并前往付款',

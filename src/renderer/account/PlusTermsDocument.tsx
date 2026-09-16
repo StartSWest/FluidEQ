@@ -15,7 +15,6 @@ import {
   PLUS_MAX_PUBLISHED_SCENES,
   PLUS_MINIMUM_AGE,
   PLUS_OFFLINE_GRACE_DAYS,
-  PLUS_REFUND_DAYS,
   PLUS_SHARES_PER_HOUR,
   PLUS_TAKEDOWN_PAUSE_DAYS,
   PLUS_TASTE_SECONDS,
@@ -46,7 +45,6 @@ export const termsValues = (
   price: string,
 ): Record<string, string | number> => ({
   price,
-  refundDays: PLUS_REFUND_DAYS,
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
   age: PLUS_MINIMUM_AGE,

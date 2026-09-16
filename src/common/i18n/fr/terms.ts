@@ -25,8 +25,6 @@ const terms = {
     'Avec un compte gratuit, vous pouvez parcourir Visualiseurs, voir l’image et les détails de chaque scène publiée, essayer chacune des scènes de FluidEQ proposées en essai gratuit pendant {tasteSeconds} secondes et voir le classement. Plus lance et ajoute toutes les scènes, débloque les styles Plus, vous permet de créer des scènes dans le Studio et de les exporter ou de les publier, vous permet de rejoindre le classement, et met des scènes sur votre Bureau et sur vos éclairages RGB. Il coûte {price} et se renouvelle à la fin de chaque période payée jusqu’à ce que vous le résiliiez.',
   'terms.membership.p2':
     'Le paiement est géré par Buy Me a Coffee, selon ses propres conditions. FluidEQ ne voit jamais votre carte ni vos coordonnées bancaires. Vous pouvez résilier à tout moment sur Buy Me a Coffee : Plus reste actif jusqu’à la fin de la période payée, et rien d’autre n’est prélevé.',
-  'terms.membership.p3':
-    'Si un prélèvement était une erreur, ou si Plus n’est pas pour vous, demandez-le dans les {refundDays} jours qui suivent ce prélèvement et il est remboursé intégralement, sans question.',
   'terms.membership.p4':
     'Quand un abonnement prend fin, les styles Plus et les scènes des membres se verrouillent à nouveau et FluidEQ revient à ses styles gratuits ; rien de ce que vous avez créé n’est supprimé. Sans connexion, Plus continue de fonctionner jusqu’à la fin de la période payée, et encore jusqu’à {graceDays} jours après celle-ci si l’application n’a pas pu confirmer un renouvellement. Rien de gratuit n’est jamais touché.',
   'terms.membership.p5':
@@ -239,7 +237,7 @@ const terms = {
 
   'terms.contact.title': 'Contact',
   'terms.contact.p1':
-    'Questions, remboursements, suppression de votre compte ou signalement d’une scène qui utilise votre travail : {contact}.',
+    'Questions, suppression de votre compte ou signalement d’une scène qui utilise votre travail : {contact}.',
 
   'terms.agree.check':
     'J’ai lu ces conditions, y compris ce que l’application envoie, et je les accepte.',

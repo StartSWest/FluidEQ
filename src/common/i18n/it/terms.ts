@@ -25,8 +25,6 @@ const terms = {
     'Con un account gratuito puoi esplorare Visualizzatori, vedere l’immagine e i dettagli di ogni scena pubblicata, provare per {tasteSeconds} secondi ciascuna delle scene di prova gratuite di FluidEQ e vedere la classifica. Plus ti permette di riprodurre e aggiungere ogni scena, sblocca i look Plus, ti permette di creare scene nello Studio ed esportarle o pubblicarle e di partecipare alla classifica, e porta le scene sul tuo desktop e sulle tue luci RGB. Costa {price} e si rinnova alla fine di ogni periodo pagato finché non disdici.',
   'terms.membership.p2':
     'Il pagamento è gestito da Buy Me a Coffee, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari. Puoi disdire in qualsiasi momento su Buy Me a Coffee: Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro.',
-  'terms.membership.p3':
-    'Se un addebito è stato un errore, o Plus non fa per te, chiedilo entro {refundDays} giorni da quell’addebito e viene rimborsato per intero, senza domande.',
   'terms.membership.p4':
     'Quando un abbonamento finisce, i look Plus e le scene dei membri tornano bloccati e FluidEQ torna ai suoi look gratuiti; nulla di ciò che hai creato viene eliminato. Senza connessione, Plus continua a funzionare fino alla fine del periodo pagato, e fino a {graceDays} giorni dopo se l’app non è riuscita a confermare un rinnovo. Nulla di gratuito viene mai toccato.',
   'terms.membership.p5':
@@ -236,7 +234,7 @@ const terms = {
 
   'terms.contact.title': 'Contatti',
   'terms.contact.p1':
-    'Domande, rimborsi, eliminazione dell’account o segnalazione di una scena che usa il tuo lavoro: {contact}.',
+    'Domande, eliminazione dell’account o segnalazione di una scena che usa il tuo lavoro: {contact}.',
 
   'terms.agree.check':
     'Ho letto queste condizioni, compreso ciò che l’app invia, e le accetto.',
