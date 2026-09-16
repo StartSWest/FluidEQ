@@ -35,6 +35,7 @@ export const AMBIENT_SHAPES = [
   'firefly',
   'bubble',
   'snow',
+  'gem',
   'path',
   'picture',
 ] as const;

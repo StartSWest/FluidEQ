@@ -138,6 +138,18 @@ describe('normalizeSceneAmbient', () => {
     ).toHaveLength(1);
   });
 
+  it('takes a cut stone as a shape of its own, and still nothing else', () => {
+    // Crystal sends little stones out into the window; the shape has to reach
+    // the player through this, or a published scene loses them silently.
+    expect(
+      normalizeSceneAmbient({ elements: [{ ...gulls, shape: 'gem' }] })
+        ?.elements[0].shape,
+    ).toBe('gem');
+    expect(
+      normalizeSceneAmbient({ elements: [{ ...gulls, shape: 'diamond' }] }),
+    ).toBeUndefined();
+  });
+
   it('keeps at most five controls, each moving elements that exist', () => {
     const param = (index: number) => ({
       id: `control_${index}`,

@@ -136,6 +136,69 @@ const drawShape = (
     }
     return;
   }
+  if (shape === 'gem') {
+    // A cut stone from above: an eight-sided girdle, a table in the middle
+    // and the kite facets between them, each a shade apart so the thing reads
+    // as cut and not as a coin. The light is taken as coming from the upper
+    // left, the same corner the window's own light comes from.
+    // From the side, leaning: the table across the top, the crown down to the
+    // girdle, and the pavilion to its point - the outline anybody draws when
+    // they draw a diamond. From above it was an octagon, which reads as a nut
+    // or a stop sign at this size.
+    context.save();
+    context.rotate(-0.17);
+    const outline = () => {
+      context.beginPath();
+      context.moveTo(-0.5, -0.5);
+      context.lineTo(0.5, -0.5);
+      context.lineTo(0.95, -0.06);
+      context.lineTo(0.0, 0.9);
+      context.lineTo(-0.95, -0.06);
+      context.closePath();
+    };
+    // Drawn rather than filled: the outline, the girdle and the facet edges
+    // over the faintest wash inside. Filled solid, these sat on the window's
+    // own panels as blobs; as lines they read as glass.
+    context.globalAlpha = 0.14;
+    outline();
+    context.fill();
+    context.lineWidth = Math.max(1.1 / radius, 0.045);
+    context.lineJoin = 'round';
+    context.globalAlpha = 0.9;
+    outline();
+    context.stroke();
+    context.globalAlpha = 0.55;
+    context.beginPath();
+    // The girdle, the two crown facets and the three the pavilion shows.
+    context.moveTo(-0.95, -0.06);
+    context.lineTo(0.95, -0.06);
+    context.moveTo(-0.5, -0.5);
+    context.lineTo(-0.42, -0.06);
+    context.moveTo(0.5, -0.5);
+    context.lineTo(0.42, -0.06);
+    context.moveTo(-0.42, -0.06);
+    context.lineTo(0.0, 0.9);
+    context.moveTo(0.42, -0.06);
+    context.lineTo(0.0, 0.9);
+    context.moveTo(0.0, -0.06);
+    context.lineTo(0.0, 0.9);
+    context.stroke();
+    context.restore();
+    // The glint off the table, and the cross of light a cut stone throws.
+    // At the sizes these drift at - ten pixels and up - the cross is what
+    // says diamond; the facets only tell at the larger end.
+    context.globalAlpha = 0.75;
+    context.fillStyle = '#ffffff';
+    context.save();
+    context.translate(-0.16, -0.18);
+    context.scale(0.3, 0.3);
+    light(context, '#ffffff', 0.3, 0.5);
+    context.restore();
+    context.globalAlpha = 0.5;
+    context.fillRect(-1.45, -0.03, 2.9, 0.06);
+    context.fillRect(-0.03, -1.45, 0.06, 2.9);
+    return;
+  }
   if (shape === 'blossom') {
     const petal = outline(OUTLINES.petal ?? '');
     for (let leaf = 0; leaf < 5; leaf += 1) {
