@@ -55,7 +55,7 @@ const RoomOutputNotice = ({
   const deviceId = device?.id;
   const isStereoRoom =
     engine === 'fluid' &&
-    live.state === 'front-stage' &&
+    (live.state === 'front-stage' || live.state === 'music') &&
     device?.isDefault === true;
 
   // Asked once per output the room is folding: the answer needs the

@@ -51,6 +51,29 @@ typedef struct FeqRoomSettings {
   /** Gain on the LFE's feed to both ears, dB. */
   double sub_db;
   /**
+   * Bass management, as a receiver does it: everything below `crossover_hz`
+   * leaves every speaker channel (a Linkwitz-Riley 4th-order high-pass) and
+   * goes, summed and low-passed the same way, to the sub's path — both ears
+   * alike, at unity, beside the LFE. Bass then never goes through the walls'
+   * reflections, where its comb filtering is heard as boom, and a stereo
+   * mix's bass stays in the middle.
+   */
+  int bass_management;
+  /** 40 to 200 Hz; 80 is what receivers ship with. */
+  double crossover_hz;
+  /**
+   * Music upmix: a stereo stream fills the whole ring instead of standing
+   * on the front pair. The front pair is left as it is; the centre gets
+   * what both sides share; what they do not share — the side signal,
+   * high-passed so bass stays put — goes to the sides a moment later and
+   * to the rears later still, softened, each pair in opposite polarity, the
+   * way a passive surround decoder derives its ambience. `upmix_amount`
+   * (0 to 1) scales the three derived feeds; the fronts never change. Only a
+   * two-channel stream on the front pair is upmixed.
+   */
+  int music_upmix;
+  double upmix_amount;
+  /**
    * Scales the head's interaural delay: 1 is the measured head, 1.06 a
    * wider one. The contralateral ear is delayed by the difference, never
    * advanced, so a scale below 1 delays the near ear instead.

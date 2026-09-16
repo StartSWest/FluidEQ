@@ -582,6 +582,23 @@ const dsp = {
   'dsp.room.headphones.leave': '保持原样',
   'dsp.room.headphonesHint':
     'EQ 页面里的耳机配置在房间之后生效，所以音箱听起来像音箱，而不像这副耳机。',
+  'dsp.room.groupBass': '低音',
+  'dsp.room.bass.sub': '送到低音炮',
+  'dsp.room.bass.full': '全频',
+  'dsp.room.crossover': '分频点',
+  'dsp.room.bassHint':
+    '分频点以下的一切都离开音箱送往低音炮，双耳相同，就像功放接收器那样：低音不再在墙壁间反射，立体声混音的低音保持在中央。',
+  'dsp.room.groupMusic': '音乐',
+  'dsp.room.music.front': '前方声场',
+  'dsp.room.music.fill': '填满房间',
+  'dsp.room.music.amount': '强度',
+  'dsp.room.musicHint':
+    '立体声音乐可以填满整个房间：前置一对保持不变，中置取左右共有的部分，左右不共有的部分稍后到达侧置、再稍后到达后置，就像环绕声解码器那样。电影和游戏不受影响。',
+  'dsp.room.live.music': '立体声 → 整个房间',
+  'dsp.room.groupListener': '聆听者',
+  'dsp.room.groupSound': '声音',
+  'dsp.room.soundHint':
+    '低音管理和音乐上混是你的设置，不属于房间：预设和已保存的房间不会改动它们。将鼠标悬停在名称上可查看说明。',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     '调整房间形状和移动音箱是 Plus 功能。房间及其预设无论如何都可以使用。',

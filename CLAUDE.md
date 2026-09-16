@@ -638,9 +638,27 @@ Out-String` (or any other capture) is what actually waits for it and shows
   them: retune a room on both sides in one commit. `ROOM_PRESETS` in
   `chain.ts` is wire order (the engine logs the index), so a new room goes
   before `custom`, never between. Saved rooms (`savedRooms.ts`) keep the
-  shape and never the head, like the presets. The engine's room has no bass
-  management: every speaker channel reaches the ears full range and only
-  the LFE is low-passed (120 Hz). Which channel is
+  shape and never the head, like the presets. Bass management
+  (`bass_management`, `crossover_hz`, the last two of the room's twenty-five
+  wire scalars, `FEQ_CHAIN_PARAM_LEAD` 140) is a Linkwitz-Riley 4th-order
+  high-pass on every speaker channel and the same low-pass on their sum
+  into the sub's path, both ears alike at unity; its coefficients ride the
+  kernel set (so a crossover change lands with the set), its histories live
+  on the room and cross a handover; the LFE keeps its own 120 Hz one-pole.
+  Like the head it is the listener's: no preset or saved room touches it.
+  The music upmix (`music_upmix`, `upmix_amount`, the two scalars after
+  those; LEAD 142) applies only to a two-channel stream on the front pair:
+  the kernel set then holds a kernel for every speaker at the speaker's own
+  index, and `feq_room_process` derives seven feeds from the pair — the
+  fronts untouched, the centre `0.25·amount·(L+R)`, the side signal
+  `0.5·(L−R)` high-passed at 150 Hz through a ring to the sides (10 ms,
+  `0.8·amount`, opposite polarities) and the rears (22 ms, `0.6·amount`,
+  low-passed at 6 kHz) — and renders each through `render_source`, which
+  is also the surround path. The engine reports the state as `music`
+  (`ROOM_STATES` on the app side), and the 7.1 offer treats it as a stereo
+  fold like `front-stage`. Held by `room_test.cpp`: nothing after the direct
+  sound on a dead-walled front stage, a later ring with the upmix, no side
+  signal from a mono record. Which channel is
   which speaker comes from the stream's mask (`speaker_of_channel`), the
   head from `fluideq-room-head.txt` beside the rack (`room_head.h`, written
   by main from the rack message itself — `roomHeadOnWire` — only when the

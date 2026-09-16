@@ -618,6 +618,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'Deixá-los',
   'dsp.room.headphonesHint':
     'O teu perfil de auscultadores da página EQ aplica-se depois da sala, para que as colunas soem como colunas e não como estes auscultadores.',
+  'dsp.room.groupBass': 'Graves',
+  'dsp.room.bass.sub': 'Para o sub',
+  'dsp.room.bass.full': 'Gama completa',
+  'dsp.room.crossover': 'Cruzamento',
+  'dsp.room.bassHint':
+    'Tudo o que fica abaixo do cruzamento sai das colunas e vai para o sub, igual nos dois ouvidos, como faz um receiver: os graves nunca batem nas paredes e uma mistura estéreo mantém os graves ao centro.',
+  'dsp.room.groupMusic': 'Música',
+  'dsp.room.music.front': 'Palco frontal',
+  'dsp.room.music.fill': 'Encher a sala',
+  'dsp.room.music.amount': 'Quantidade',
+  'dsp.room.musicHint':
+    'A música estéreo pode encher toda a sala: o par frontal fica como está, o central recebe o que os dois lados partilham, e o que não partilham chega aos laterais um instante depois e aos traseiros a seguir, como faz um descodificador surround. Filmes e jogos nunca são tocados.',
+  'dsp.room.live.music': 'Estéreo → sala inteira',
+  'dsp.room.groupListener': 'Ouvinte',
+  'dsp.room.groupSound': 'Som',
+  'dsp.room.soundHint':
+    'A gestão de graves e a mistura para música são tuas, não da sala: os ajustes e as salas guardadas não lhes tocam. Passa o rato por um nome para ver o que faz.',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Moldar a sala e mover as suas colunas faz parte do Plus. A sala e as suas predefinições são tuas de qualquer forma.',

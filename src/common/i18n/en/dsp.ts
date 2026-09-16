@@ -623,6 +623,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'Leave them',
   'dsp.room.headphonesHint':
     'Your headphone profile from the EQ page runs after the room, so the speakers sound like speakers, not like these headphones.',
+  'dsp.room.groupBass': 'Bass',
+  'dsp.room.bass.sub': 'To the sub',
+  'dsp.room.bass.full': 'Full range',
+  'dsp.room.crossover': 'Crossover',
+  'dsp.room.bassHint':
+    'Everything under the crossover leaves the speakers and goes to the sub, both ears alike, as a receiver does it: bass never bounces off the walls, and a stereo mix keeps its bass in the middle.',
+  'dsp.room.groupMusic': 'Music',
+  'dsp.room.music.front': 'Front stage',
+  'dsp.room.music.fill': 'Fill the room',
+  'dsp.room.music.amount': 'Amount',
+  'dsp.room.musicHint':
+    'Stereo music can fill the whole room: the front pair stays as it is, the centre takes what both sides share, and what they do not share reaches the sides a moment later and the rears after that, the way a surround decoder does. Films and games are never touched.',
+  'dsp.room.live.music': 'Stereo → whole room',
+  'dsp.room.groupListener': 'Listener',
+  'dsp.room.groupSound': 'Sound',
+  'dsp.room.soundHint':
+    'Bass management and the music upmix are yours, not the room’s: presets and saved rooms leave them alone. Hover a name for what it does.',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Shaping the room and moving its speakers are part of Plus. The room and its presets are yours either way.',

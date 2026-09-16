@@ -603,6 +603,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'そのまま',
   'dsp.room.headphonesHint':
     'EQ ページのヘッドホンプロファイルはルームの後に適用されるので、スピーカーはこのヘッドホンではなくスピーカーらしく鳴ります。',
+  'dsp.room.groupBass': '低音',
+  'dsp.room.bass.sub': 'サブへ',
+  'dsp.room.bass.full': 'フルレンジ',
+  'dsp.room.crossover': 'クロスオーバー',
+  'dsp.room.bassHint':
+    'クロスオーバーより下の帯域はスピーカーから離れ、レシーバーと同じように両耳に等しくサブへ送られます。低音が壁で反射することはなく、ステレオの低音は中央に留まります。',
+  'dsp.room.groupMusic': '音楽',
+  'dsp.room.music.front': 'フロントステージ',
+  'dsp.room.music.fill': 'ルーム全体に広げる',
+  'dsp.room.music.amount': '量',
+  'dsp.room.musicHint':
+    'ステレオ音楽をルーム全体に広げられます。フロントの 2 本はそのまま、センターは左右に共通する成分を受け取り、共通しない成分は少し遅れてサイドへ、さらに遅れてリアへ届きます。サラウンドデコーダーと同じ仕組みです。映画やゲームには影響しません。',
+  'dsp.room.live.music': 'ステレオ → ルーム全体',
+  'dsp.room.groupListener': 'リスナー',
+  'dsp.room.groupSound': 'サウンド',
+  'dsp.room.soundHint':
+    '低音管理と音楽アップミックスはルームではなくあなたの設定です。プリセットや保存したルームは変更しません。名前にカーソルを合わせると説明が表示されます。',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'ルームの形とスピーカーの移動は Plus の機能です。ルームとそのプリセットはどちらにしても使えます。',

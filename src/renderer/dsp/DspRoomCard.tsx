@@ -19,6 +19,7 @@ import SegmentedControl from '../widgets/SegmentedControl';
 import { Dial, ProcessorCard } from './DspControls';
 import DspRoomBar from './DspRoomBar';
 import DspRoomFitDialog from './DspRoomFitDialog';
+import { RoomCrossoverGlyph, RoomRingGlyph } from './DspRoomGlyphs';
 import DspRoomGraph from './DspRoomGraph';
 import DspRoomLibrary from './DspRoomLibrary';
 import { IRoomLive } from './useRoomLive';
@@ -35,6 +36,7 @@ const LIVE_TEXT: Record<IRoomLive['state'], TranslationKey> = {
   off: 'dsp.room.live.off',
   'no-head': 'dsp.room.live.noHead',
   'front-stage': 'dsp.room.live.frontStage',
+  music: 'dsp.room.live.music',
   '5.1': 'dsp.room.live.fiveOne',
   '7.1': 'dsp.room.live.sevenOne',
   on: 'dsp.room.live.on',
@@ -130,6 +132,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
         <span
           className={`dsp-room-live${
             live.state === 'front-stage' ||
+            live.state === 'music' ||
             live.state === '5.1' ||
             live.state === '7.1' ||
             live.state === 'on'
@@ -185,61 +188,166 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           />
         </div>
 
-        <div className="dsp-band">
-          <div className="dsp-band-head">
-            <span className="dsp-band-title">{t('dsp.room.groupHead')}</span>
-            {/* The listening test that picks the head. Plus, like shaping:
-                quiet, because the segment beside it already answers most
-                people; the badge says where the button leads without it. */}
-            <button
-              type="button"
-              className="button small subtle"
-              disabled={!isPlus || !room.enabled}
-              title={isPlus ? undefined : t('dsp.room.plusHint')}
-              onClick={() => setFitOpen(true)}
-            >
-              {t('dsp.room.fit')}
-            </button>
-          </div>
-          <SegmentedControl
-            name={t('dsp.room.groupHead')}
-            value={room.head}
-            isDisabled={!room.enabled}
-            options={ROOM_HEADS.map((head) => ({
-              value: head,
-              label: t(`dsp.room.head.${head}` as TranslationKey),
-            }))}
-            onChange={(head) => {
-              const chosen = ROOM_HEADS.find((id) => id === head);
-              if (chosen !== undefined) {
-                onPatch({ ...room, head: chosen as TRoomHead });
-                onCommit();
-              }
-            }}
-          />
-          <p className="dsp-band-hint">{t('dsp.room.headHint')}</p>
-        </div>
-
+        {/* The listener: the head and the headphones, one row each. Neither
+            is the room's, so neither is under the Plus lock; Fit is. */}
         <div className="dsp-band">
           <div className="dsp-band-head">
             <span className="dsp-band-title">
-              {t('dsp.room.groupHeadphones')}
+              {t('dsp.room.groupListener')}
             </span>
           </div>
-          <SegmentedControl
-            name={t('dsp.room.groupHeadphones')}
-            value={room.correctHeadphones ? 'correct' : 'leave'}
-            isDisabled={!room.enabled}
-            options={[
-              { value: 'correct', label: t('dsp.room.headphones.correct') },
-              { value: 'leave', label: t('dsp.room.headphones.leave') },
-            ]}
-            onChange={(choice) => {
-              onPatch({ ...room, correctHeadphones: choice === 'correct' });
-              onCommit();
-            }}
-          />
-          <p className="dsp-band-hint">{t('dsp.room.headphonesHint')}</p>
+          <div className="dsp-room-row">
+            <span className="dsp-room-row__label">
+              {t('dsp.room.groupHead')}
+            </span>
+            <div className="dsp-room-row__controls">
+              <SegmentedControl
+                name={t('dsp.room.groupHead')}
+                value={room.head}
+                isDisabled={!room.enabled}
+                options={ROOM_HEADS.map((head) => ({
+                  value: head,
+                  label: t(`dsp.room.head.${head}` as TranslationKey),
+                }))}
+                onChange={(head) => {
+                  const chosen = ROOM_HEADS.find((id) => id === head);
+                  if (chosen !== undefined) {
+                    onPatch({ ...room, head: chosen as TRoomHead });
+                    onCommit();
+                  }
+                }}
+              />
+              {/* The listening test that picks the head. Plus, like shaping:
+                  quiet, because the segment beside it already answers most
+                  people. */}
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={!isPlus || !room.enabled}
+                title={isPlus ? undefined : t('dsp.room.plusHint')}
+                onClick={() => setFitOpen(true)}
+              >
+                {t('dsp.room.fit')}
+              </button>
+            </div>
+          </div>
+          <div className="dsp-room-row">
+            <span
+              className="dsp-room-row__label"
+              title={t('dsp.room.headphonesHint')}
+            >
+              {t('dsp.room.groupHeadphones')}
+            </span>
+            <div className="dsp-room-row__controls">
+              <SegmentedControl
+                name={t('dsp.room.groupHeadphones')}
+                value={room.correctHeadphones ? 'correct' : 'leave'}
+                isDisabled={!room.enabled}
+                options={[
+                  { value: 'correct', label: t('dsp.room.headphones.correct') },
+                  { value: 'leave', label: t('dsp.room.headphones.leave') },
+                ]}
+                onChange={(choice) => {
+                  onPatch({ ...room, correctHeadphones: choice === 'correct' });
+                  onCommit();
+                }}
+              />
+            </div>
+          </div>
+          <p className="dsp-band-hint">{t('dsp.room.headHint')}</p>
+        </div>
+
+        {/* The sound: bass management and the music upmix, one row each, a
+            small dial and a picture of what the dial does beside the switch.
+            The listener's too — outside the presets, the saved rooms and the
+            Plus lock. The long explanation of each sits on its label. */}
+        <div className="dsp-band">
+          <div className="dsp-band-head">
+            <span className="dsp-band-title">{t('dsp.room.groupSound')}</span>
+          </div>
+          <div className="dsp-room-row">
+            <span
+              className="dsp-room-row__label"
+              title={t('dsp.room.bassHint')}
+            >
+              {t('dsp.room.groupBass')}
+            </span>
+            <div className="dsp-room-row__controls">
+              <SegmentedControl
+                name={t('dsp.room.groupBass')}
+                value={room.bassManagement ? 'sub' : 'full'}
+                isDisabled={!room.enabled}
+                options={[
+                  { value: 'sub', label: t('dsp.room.bass.sub') },
+                  { value: 'full', label: t('dsp.room.bass.full') },
+                ]}
+                onChange={(choice) => {
+                  onPatch({ ...room, bassManagement: choice === 'sub' });
+                  onCommit();
+                }}
+              />
+              <RoomCrossoverGlyph
+                crossoverHz={room.crossoverHz}
+                isManaged={room.bassManagement}
+              />
+              <div className="dsp-room-row__dial">
+                <Dial
+                  labelKey="dsp.room.crossover"
+                  value={room.crossoverHz}
+                  min={40}
+                  max={200}
+                  step={5}
+                  unit="Hz"
+                  defaultValue={DSP_DEFAULTS.room.crossoverHz}
+                  isDisabled={!room.enabled || !room.bassManagement}
+                  onChange={(crossoverHz) => onPatch({ ...room, crossoverHz })}
+                  onCommit={onCommit}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="dsp-room-row">
+            <span
+              className="dsp-room-row__label"
+              title={t('dsp.room.musicHint')}
+            >
+              {t('dsp.room.groupMusic')}
+            </span>
+            <div className="dsp-room-row__controls">
+              <SegmentedControl
+                name={t('dsp.room.groupMusic')}
+                value={room.musicUpmix ? 'fill' : 'front'}
+                isDisabled={!room.enabled}
+                options={[
+                  { value: 'front', label: t('dsp.room.music.front') },
+                  { value: 'fill', label: t('dsp.room.music.fill') },
+                ]}
+                onChange={(choice) => {
+                  onPatch({ ...room, musicUpmix: choice === 'fill' });
+                  onCommit();
+                }}
+              />
+              <RoomRingGlyph
+                isFilled={room.musicUpmix}
+                amount={room.upmixAmount}
+              />
+              <div className="dsp-room-row__dial">
+                <Dial
+                  labelKey="dsp.room.music.amount"
+                  value={room.upmixAmount}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  unit=""
+                  defaultValue={DSP_DEFAULTS.room.upmixAmount}
+                  isDisabled={!room.enabled || !room.musicUpmix}
+                  onChange={(upmixAmount) => onPatch({ ...room, upmixAmount })}
+                  onCommit={onCommit}
+                />
+              </div>
+            </div>
+          </div>
+          <p className="dsp-band-hint">{t('dsp.room.soundHint')}</p>
         </div>
       </div>
       {isFitOpen ? (

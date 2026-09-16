@@ -618,6 +618,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'Le laisser',
   'dsp.room.headphonesHint':
     'Votre profil de casque de la page EQ s’applique après la salle, pour que les enceintes sonnent comme des enceintes et non comme ce casque.',
+  'dsp.room.groupBass': 'Graves',
+  'dsp.room.bass.sub': 'Vers le sub',
+  'dsp.room.bass.full': 'Pleine bande',
+  'dsp.room.crossover': 'Coupure',
+  'dsp.room.bassHint':
+    'Tout ce qui est sous la coupure quitte les enceintes et va au sub, pareil dans les deux oreilles, comme le fait un ampli : les graves ne rebondissent jamais sur les murs, et un mixage stéréo garde ses graves au centre.',
+  'dsp.room.groupMusic': 'Musique',
+  'dsp.room.music.front': 'Scène frontale',
+  'dsp.room.music.fill': 'Remplir la salle',
+  'dsp.room.music.amount': 'Quantité',
+  'dsp.room.musicHint':
+    'La musique stéréo peut remplir toute la salle : la paire avant reste telle quelle, le centre prend ce que les deux côtés partagent, et ce qu’ils ne partagent pas atteint les côtés un instant plus tard et l’arrière ensuite, comme le fait un décodeur surround. Les films et les jeux ne sont jamais touchés.',
+  'dsp.room.live.music': 'Stéréo → toute la salle',
+  'dsp.room.groupListener': 'Auditeur',
+  'dsp.room.groupSound': 'Son',
+  'dsp.room.soundHint':
+    'La gestion des graves et le mixage musique sont à vous, pas à la salle : les réglages et les salles enregistrées n’y touchent pas. Survolez un nom pour savoir ce qu’il fait.',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Façonner la salle et déplacer ses enceintes font partie de Plus. La salle et ses préréglages sont à vous quoi qu’il arrive.',

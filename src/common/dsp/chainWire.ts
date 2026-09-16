@@ -39,13 +39,13 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 138;
+export const CHAIN_PARAM_LEAD = 142;
 
 /**
  * Where the room's head sits in the lead: the eighth of the room's
- * twenty-three scalars, which end two before the band count.
+ * twenty-seven scalars, which end two before the band count.
  */
-const ROOM_HEAD_SLOT = CHAIN_PARAM_LEAD - 25 + 7;
+const ROOM_HEAD_SLOT = CHAIN_PARAM_LEAD - 29 + 7;
 
 /**
  * Which shipped head a rack on the wire asks for.
@@ -215,7 +215,7 @@ export const encodeChainSettings = (
     bassPunch.bloomDecayMs,
     bassPunch.duck,
     bassPunch.mix,
-    // The room, twenty-three scalars in the decoder's order: the switch, the
+    // The room, twenty-seven scalars in the decoder's order: the switch, the
     // preset, five dials, the head, the headphone switch, then every
     // speaker's angle and then every speaker's level.
     room.enabled ? 1 : 0,
@@ -229,6 +229,12 @@ export const encodeChainSettings = (
     room.correctHeadphones ? 1 : 0,
     ...room.angles,
     ...room.levels,
+    // Bass management and its crossover, then the music upmix and its
+    // amount, last of the room's scalars.
+    room.bassManagement ? 1 : 0,
+    room.crossoverHz,
+    room.musicUpmix ? 1 : 0,
+    room.upmixAmount,
     // Surround, in the same place and for the same reason as the bass stages.
     settings.surround.allChannels ? 1 : 0,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and

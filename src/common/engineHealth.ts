@@ -76,7 +76,8 @@ export interface IEngineOutputHealth {
    */
   channels?: number;
   /**
-   * What the room does with them — `off`, `no-head`, `front-stage`, `5.1`,
+   * What the room does with them — `off`, `no-head`, `front-stage`, `music`
+   * (a stereo stream upmixed to the whole ring), `5.1`,
    * `7.1`, `on` — in the engine's words; the card's chip translates. Absent
    * from older engines.
    */
@@ -87,6 +88,7 @@ export const ROOM_STATES = [
   'off',
   'no-head',
   'front-stage',
+  'music',
   '5.1',
   '7.1',
   'on',

@@ -85,6 +85,63 @@ void adopt(FeqRoom* room) {
 
 }  // namespace
 
+namespace {
+
+/**
+ * One source into the mix through the kernels at `slot`: the channel's
+ * own slot on a surround stream, the speaker's index under the music
+ * upmix. With bass management, the speaker gets what is above the
+ * crossover and what is below joins the sub's sum — two Butterworth
+ * stages each side make the pair a Linkwitz-Riley 4th order, which sums
+ * flat. Nothing here allocates.
+ */
+void render_source(FeqRoom* room, FeqRoomKernels* live, FeqRoomKernels* next,
+                   uint32_t slot, const float* input, uint32_t frames,
+                   float* const* mix, float* low_sum, double* blend_after) {
+  if (live->convolver[slot][0] == nullptr) {
+    return;
+  }
+  if (live->bass_management != 0) {
+    float* band = room->band.data();
+    std::copy(input, input + frames, band);
+    for (uint32_t at = 0; at < frames; ++at) {
+      low_sum[at] += input[at];
+    }
+    feq_biquad_process(&room->bass_high[slot][0], band, frames,
+                       &live->crossover_high);
+    feq_biquad_process(&room->bass_high[slot][1], band, frames,
+                       &live->crossover_high);
+    input = band;
+  }
+  for (int ear = 0; ear < 2; ++ear) {
+    float* copy = room->copy.data();
+    std::copy(input, input + frames, copy);
+    FeqConvolver* replacement =
+        next != nullptr ? next->convolver[slot][ear] : nullptr;
+    if (replacement != nullptr && room->warmup > 0) {
+      // Both run, one is heard: the replacement fills its partitions.
+      std::copy(input, input + frames, room->scratch.begin());
+      feq_convolve(replacement, room->scratch.data(), frames);
+      feq_convolve(live->convolver[slot][ear], copy, frames);
+    } else if (replacement != nullptr) {
+      // Every pair in the block starts from the same blend and lands on
+      // the same one, so the two ears and every speaker fade together.
+      *blend_after = feq_convolve_blend(live->convolver[slot][ear],
+                                        replacement, copy,
+                                        room->scratch.data(), frames,
+                                        room->blend, kBlendStep);
+    } else {
+      feq_convolve(live->convolver[slot][ear], copy, frames);
+    }
+    float* into = mix[ear];
+    for (uint32_t at = 0; at < frames; ++at) {
+      into[at] += copy[at];
+    }
+  }
+}
+
+}  // namespace
+
 extern "C" {
 
 void feq_room_settings_defaults(FeqRoomSettings* settings) {
@@ -96,6 +153,10 @@ void feq_room_settings_defaults(FeqRoomSettings* settings) {
   settings->walls = 0.55;
   settings->distance_m = 1.8;
   settings->head_scale = 1.0;
+  settings->bass_management = 1;
+  settings->crossover_hz = 80.0;
+  settings->music_upmix = 0;
+  settings->upmix_amount = 0.6;
   const double angles[FEQ_ROOM_SPEAKERS] = {-30, 30, 0, -100, 100, -140, 140};
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     settings->angle_deg[speaker] = angles[speaker];
@@ -122,6 +183,13 @@ FeqRoom* feq_room_create(double sample_rate, uint32_t channels,
   room->copy.assign(max_frames, 0.0f);
   room->scratch.assign(max_frames, 0.0f);
   room->sub.assign(max_frames, 0.0f);
+  room->band.assign(max_frames, 0.0f);
+  room->feeds.assign(static_cast<size_t>(max_frames) * FEQ_ROOM_SPEAKERS, 0.0f);
+  room->ambience_line.assign(
+      static_cast<size_t>(std::lround(kRoomUpmixMaxDelaySeconds * sample_rate)) +
+          max_frames,
+      0.0f);
+  feq_room_reset(room);
   room->sub_coefficient =
       1.0 - std::exp(-2.0 * kPi * kSubCornerHz / sample_rate);
   return room;
@@ -197,49 +265,101 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
   float* mix[2] = {room->mix_left.data(), room->mix_right.data()};
   std::fill(mix[0], mix[0] + frames, 0.0f);
   std::fill(mix[1], mix[1] + frames, 0.0f);
+  // The bass taken off every speaker, summed here and sent to the sub's path
+  // once, after the sources; the live set's crossover, so a moved dial
+  // arrives with the set it was published with.
+  const bool managed = live->bass_management != 0;
+  float* const low_sum = room->sub.data();
+  if (managed) {
+    std::fill(low_sum, low_sum + frames, 0.0f);
+  }
   double blend_after = room->blend;
-  for (uint32_t channel = 0; channel < room->channels; ++channel) {
-    const float* input = channels[channel];
-    if (static_cast<int>(channel) == room->lfe_channel) {
-      // Low-passed and to both ears alike: a subwoofer has no direction.
-      double state = room->sub_state;
-      const double coefficient = room->sub_coefficient;
-      const auto gain = static_cast<float>(live->sub_gain);
-      for (uint32_t at = 0; at < frames; ++at) {
-        state += coefficient * (static_cast<double>(input[at]) - state);
-        const auto sample = static_cast<float>(state) * gain;
-        mix[0][at] += sample;
-        mix[1][at] += sample;
-      }
-      room->sub_state = state;
-      continue;
+  if (live->upmix != 0) {
+    // The music upmix: seven feeds from the pair, each through its own
+    // speaker. The fronts are the pair itself; the centre is what both
+    // sides share; the side signal, high-passed, goes to the sides a moment
+    // later and to the rears later still and softer, each pair in opposite
+    // polarity. A mono record makes no side signal and so no ambience.
+    const float* left = channels[0];
+    const float* right = channels[1];
+    float* const feeds = room->feeds.data();
+    const size_t stride = room->max_frames;
+    float* const centre = feeds + 2 * stride;
+    float* const side_left = feeds + 3 * stride;
+    float* const side_right = feeds + 4 * stride;
+    float* const rear_left = feeds + 5 * stride;
+    float* const rear_right = feeds + 6 * stride;
+    const auto centre_gain = static_cast<float>(live->centre_gain * 0.5);
+    float* const ambience = room->band.data();
+    for (uint32_t at = 0; at < frames; ++at) {
+      centre[at] = (left[at] + right[at]) * centre_gain;
+      ambience[at] = (left[at] - right[at]) * 0.5f;
     }
-    if (live->convolver[channel][0] == nullptr) {
-      continue;
+    feq_biquad_process(&room->ambience_high[0], ambience, frames,
+                       &live->ambience_high);
+    feq_biquad_process(&room->ambience_high[1], ambience, frames,
+                       &live->ambience_high);
+    float* const line = room->ambience_line.data();
+    const size_t length = room->ambience_line.size();
+    const size_t cursor = room->ambience_cursor;
+    for (uint32_t at = 0; at < frames; ++at) {
+      line[(cursor + at) % length] = ambience[at];
     }
-    for (int ear = 0; ear < 2; ++ear) {
-      float* copy = room->copy.data();
-      std::copy(input, input + frames, copy);
-      FeqConvolver* replacement =
-          next != nullptr ? next->convolver[channel][ear] : nullptr;
-      if (replacement != nullptr && room->warmup > 0) {
-        // Both run, one is heard: the replacement fills its partitions.
-        std::copy(input, input + frames, room->scratch.begin());
-        feq_convolve(replacement, room->scratch.data(), frames);
-        feq_convolve(live->convolver[channel][ear], copy, frames);
-      } else if (replacement != nullptr) {
-        // Every pair in the block starts from the same blend and lands on
-        // the same one, so the two ears and every speaker fade together.
-        blend_after = feq_convolve_blend(
-            live->convolver[channel][ear], replacement, copy,
-            room->scratch.data(), frames, room->blend, kBlendStep);
-      } else {
-        feq_convolve(live->convolver[channel][ear], copy, frames);
+    const size_t side_back = length - (live->side_frames % length);
+    const size_t rear_back = length - (live->rear_frames % length);
+    const auto side_gain = static_cast<float>(live->side_gain);
+    const auto rear_gain = static_cast<float>(live->rear_gain);
+    for (uint32_t at = 0; at < frames; ++at) {
+      const float side = line[(cursor + at + side_back) % length];
+      const float rear = line[(cursor + at + rear_back) % length];
+      side_left[at] = side * side_gain;
+      side_right[at] = -side * side_gain;
+      rear_left[at] = rear * rear_gain;
+      rear_right[at] = -rear * rear_gain;
+    }
+    room->ambience_cursor = (cursor + frames) % length;
+    // The rears softened together: one filter pair on the shared signal,
+    // which the two rears then take in opposite polarity.
+    feq_biquad_process(&room->rear_low[0], rear_left, frames, &live->rear_low);
+    feq_biquad_process(&room->rear_low[1], rear_left, frames, &live->rear_low);
+    for (uint32_t at = 0; at < frames; ++at) {
+      rear_right[at] = -rear_left[at];
+    }
+    std::copy(left, left + frames, feeds);
+    std::copy(right, right + frames, feeds + stride);
+    for (uint32_t slot = 0; slot < FEQ_ROOM_SPEAKERS; ++slot) {
+      render_source(room, live, next, slot, feeds + slot * stride, frames,
+                    mix, low_sum, &blend_after);
+    }
+  } else {
+    for (uint32_t channel = 0; channel < room->channels; ++channel) {
+      const float* input = channels[channel];
+      if (static_cast<int>(channel) == room->lfe_channel) {
+        // Low-passed and to both ears alike: a subwoofer has no direction.
+        double state = room->sub_state;
+        const double coefficient = room->sub_coefficient;
+        const auto gain = static_cast<float>(live->sub_gain);
+        for (uint32_t at = 0; at < frames; ++at) {
+          state += coefficient * (static_cast<double>(input[at]) - state);
+          const auto sample = static_cast<float>(state) * gain;
+          mix[0][at] += sample;
+          mix[1][at] += sample;
+        }
+        room->sub_state = state;
+        continue;
       }
-      float* into = mix[ear];
-      for (uint32_t at = 0; at < frames; ++at) {
-        into[at] += copy[at];
-      }
+      render_source(room, live, next, channel, input, frames, mix, low_sum,
+                    &blend_after);
+    }
+  }
+  if (managed) {
+    feq_biquad_process(&room->bass_low[0], low_sum, frames,
+                       &live->crossover_low);
+    feq_biquad_process(&room->bass_low[1], low_sum, frames,
+                       &live->crossover_low);
+    for (uint32_t at = 0; at < frames; ++at) {
+      mix[0][at] += low_sum[at];
+      mix[1][at] += low_sum[at];
     }
   }
   if (next != nullptr && room->warmup > 0) {
@@ -307,6 +427,21 @@ void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
   prepared->blend = previous->blend;
   prepared->warmup = previous->warmup;
   prepared->sub_state = previous->sub_state;
+  for (uint32_t channel = 0; channel < FEQ_ROOM_MAX_CHANNELS; ++channel) {
+    prepared->bass_high[channel][0] = previous->bass_high[channel][0];
+    prepared->bass_high[channel][1] = previous->bass_high[channel][1];
+  }
+  prepared->bass_low[0] = previous->bass_low[0];
+  prepared->bass_low[1] = previous->bass_low[1];
+  prepared->ambience_high[0] = previous->ambience_high[0];
+  prepared->ambience_high[1] = previous->ambience_high[1];
+  prepared->rear_low[0] = previous->rear_low[0];
+  prepared->rear_low[1] = previous->rear_low[1];
+  // Same rate and block size, so the rings are the same length: the side
+  // signal in flight to the rears goes with the tail.
+  std::copy(previous->ambience_line.begin(), previous->ambience_line.end(),
+            prepared->ambience_line.begin());
+  prepared->ambience_cursor = previous->ambience_cursor;
   previous->live = nullptr;
   previous->next = nullptr;
   previous->blend = 1.0;
@@ -320,6 +455,18 @@ void feq_room_reset(FeqRoom* room) {
     return;
   }
   room->sub_state = 0.0;
+  for (uint32_t channel = 0; channel < FEQ_ROOM_MAX_CHANNELS; ++channel) {
+    feq_biquad_reset(&room->bass_high[channel][0]);
+    feq_biquad_reset(&room->bass_high[channel][1]);
+  }
+  feq_biquad_reset(&room->bass_low[0]);
+  feq_biquad_reset(&room->bass_low[1]);
+  feq_biquad_reset(&room->ambience_high[0]);
+  feq_biquad_reset(&room->ambience_high[1]);
+  feq_biquad_reset(&room->rear_low[0]);
+  feq_biquad_reset(&room->rear_low[1]);
+  std::fill(room->ambience_line.begin(), room->ambience_line.end(), 0.0f);
+  room->ambience_cursor = 0;
   std::fill(room->mix_left.begin(), room->mix_left.end(), 0.0f);
   std::fill(room->mix_right.begin(), room->mix_right.end(), 0.0f);
 }

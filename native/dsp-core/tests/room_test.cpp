@@ -79,6 +79,10 @@ struct Fixture {
     feq_room_settings_defaults(&settings);
     settings.enabled = 1;
     settings.walls = 1.0;
+    // Off here: these tests count frames through the head and the walls,
+    // and a crossover in the way would put its own ringing on every impulse.
+    // The bass management test switches it on itself.
+    settings.bass_management = 0;
     feq_room_configure(room, &settings);
     feq_room_reset(room);
   }
@@ -197,6 +201,136 @@ void the_sub_reaches_both_ears_equally() {
         "the LFE lands in both ears the same, in phase");
 }
 
+/**
+ * Bass management: a 40 Hz tone on the front left leaves through the sub's
+ * path — both ears the same, in phase — and not through the speaker, whose
+ * head would have put it in one ear first; a 2 kHz tone on the same speaker
+ * is untouched by the crossover and still lands in the near ear first. Off,
+ * the 40 Hz tone goes the speaker's way like anything else.
+ */
+void bass_management_sends_the_bass_to_the_sub() {
+  std::printf("bass management sends the bass to the sub\n");
+  const int speakers[6] = {0, 1, 2, -1, 5, 6};
+  const auto tone = [](Planar& b, uint32_t channel, double hz) {
+    for (size_t at = 0; at < b[channel].size(); ++at) {
+      b[channel][at] = static_cast<float>(std::sin(2.0 * kPi * hz * at / kRate));
+    }
+  };
+  const auto settled = [](const std::vector<float>& v) {
+    return energy(v, v.size() / 2);
+  };
+  {
+    Fixture f(6, speakers, 3);
+    f.settings.bass_management = 1;
+    f.settings.crossover_hz = 80.0;
+    feq_room_configure(f.room, &f.settings);
+    Planar b = planar(6, 32);
+    tone(b, 0, 40.0);
+    run(f.room, b);
+    const double left = settled(b[0]);
+    const double right = settled(b[1]);
+    double difference = 0.0;
+    for (size_t at = b[0].size() / 2; at < b[0].size(); ++at) {
+      difference = std::max(
+          difference, static_cast<double>(std::fabs(b[0][at] - b[1][at])));
+    }
+    std::printf("  40 Hz managed: left %.3f right %.3f, ear difference %.4f\n",
+                left, right, difference);
+    check(left > 1.0, "the bass is heard (positive control)");
+    // Within a tenth of each other: the sub's path is the same in both
+    // ears, and what is left of 40 Hz above an 80 Hz crossover — 24 dB
+    // down — is all the head can tell apart.
+    check(std::fabs(left - right) < left * 0.1,
+          "the bass lands in both ears alike: the sub's path");
+  }
+  {
+    Fixture f(6, speakers, 3);
+    f.settings.bass_management = 1;
+    f.settings.crossover_hz = 80.0;
+    feq_room_configure(f.room, &f.settings);
+    Planar b = planar(6, 32);
+    tone(b, 0, 2000.0);
+    run(f.room, b);
+    const double left = settled(b[0]);
+    const double right = settled(b[1]);
+    std::printf("  2 kHz managed: left %.3f right %.3f\n", left, right);
+    check(left > 1.0, "the tone is heard (positive control)");
+    check(right < left * 0.5,
+          "a tone above the crossover still comes from the left speaker");
+  }
+  {
+    Fixture f(6, speakers, 3);
+    f.settings.bass_management = 0;
+    feq_room_configure(f.room, &f.settings);
+    Planar b = planar(6, 32);
+    tone(b, 0, 40.0);
+    run(f.room, b);
+    const double left = settled(b[0]);
+    const double right = settled(b[1]);
+    std::printf("  40 Hz unmanaged: left %.3f right %.3f\n", left, right);
+    check(right < left * 0.5,
+          "without bass management the bass takes the speaker's way (control)");
+  }
+}
+
+/**
+ * The music upmix on a stereo stream. Dead walls and the synthetic head, so
+ * the only thing after the direct sound is what the upmix adds: with it on,
+ * an impulse on the left alone reaches the ears again later — the side
+ * signal on the sides and the rears — where the front stage alone put
+ * nothing; a mono impulse (left and right alike) has no side signal, so
+ * only the centre joins it and the ears stay equal; and with the upmix off
+ * the same left impulse leaves exactly one arrival per ear.
+ */
+void the_music_upmix_fills_the_ring() {
+  std::printf("the music upmix fills the ring\n");
+  const int speakers[2] = {0, 1};
+  const uint32_t latency = feq_convolver_latency();
+  const size_t after = latency + 10 + interaural_frames(30.0) + 4;
+  const auto run_left = [&](int upmix, Planar& b) {
+    Fixture f(2, speakers, -1);
+    f.settings.music_upmix = upmix;
+    f.settings.upmix_amount = 1.0;
+    feq_room_configure(f.room, &f.settings);
+    run(f.room, b);
+  };
+  Planar off = planar(2, 16);
+  off[0][10] = 1.0f;
+  run_left(0, off);
+  Planar on = planar(2, 16);
+  on[0][10] = 1.0f;
+  run_left(1, on);
+  const double off_tail = energy(off[0], after) + energy(off[1], after);
+  const double on_tail = energy(on[0], after) + energy(on[1], after);
+  std::printf("  after the direct sound: off %.4g, on %.4g\n", off_tail,
+              on_tail);
+  check(off_tail < 1e-9, "the front stage alone puts nothing after (control)");
+  check(on_tail > 1e-3, "the upmix brings the sound back from the ring");
+  // The rears trail the sides: the last arrival lands past the rear delay.
+  size_t last = 0;
+  for (size_t at = 0; at < on[0].size(); ++at) {
+    if (std::fabs(on[0][at]) > 1e-4f || std::fabs(on[1][at]) > 1e-4f) {
+      last = at;
+    }
+  }
+  const auto rear = static_cast<size_t>(std::lround(0.022 * kRate));
+  std::printf("  last arrival at %zu, rear delay %zu\n", last, latency + 10 + rear);
+  check(last >= latency + 10 + rear, "the rears arrive after their delay");
+
+  Planar mono = planar(2, 16);
+  mono[0][10] = 1.0f;
+  mono[1][10] = 1.0f;
+  run_left(1, mono);
+  double difference = 0.0;
+  for (size_t at = 0; at < mono[0].size(); ++at) {
+    difference = std::max(
+        difference, static_cast<double>(std::fabs(mono[0][at] - mono[1][at])));
+  }
+  std::printf("  mono: ear difference %.4g\n", difference);
+  check(difference < 1e-6, "a mono record makes no side signal: ears equal");
+  check(energy(mono[0]) > 1.0, "the mono record is heard (control)");
+}
+
 void hard_walls_add_reflections_and_dead_walls_none() {
   std::printf("hard walls add reflections, dead walls none\n");
   const int speakers[2] = {0, 1};
@@ -271,6 +405,8 @@ int main() {
   stereo_becomes_a_front_stage();
   seven_one_folds_to_the_pair();
   the_sub_reaches_both_ears_equally();
+  bass_management_sends_the_bass_to_the_sub();
+  the_music_upmix_fills_the_ring();
   hard_walls_add_reflections_and_dead_walls_none();
   a_dial_moves_without_a_step();
   return finish();

@@ -623,6 +623,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'So lassen',
   'dsp.room.headphonesHint':
     'Dein Kopfhörerprofil von der EQ-Seite läuft nach dem Raum, damit die Lautsprecher wie Lautsprecher klingen und nicht wie dieser Kopfhörer.',
+  'dsp.room.groupBass': 'Bass',
+  'dsp.room.bass.sub': 'Zum Sub',
+  'dsp.room.bass.full': 'Volles Band',
+  'dsp.room.crossover': 'Trennfrequenz',
+  'dsp.room.bassHint':
+    'Alles unter der Trennfrequenz verlässt die Lautsprecher und geht zum Sub, in beide Ohren gleich, wie bei einem Receiver: Bass prallt nie von den Wänden ab, und eine Stereomischung behält ihren Bass in der Mitte.',
+  'dsp.room.groupMusic': 'Musik',
+  'dsp.room.music.front': 'Bühne vorn',
+  'dsp.room.music.fill': 'Den Raum füllen',
+  'dsp.room.music.amount': 'Anteil',
+  'dsp.room.musicHint':
+    'Stereomusik kann den ganzen Raum füllen: das vordere Paar bleibt, wie es ist, der Center nimmt, was beide Seiten teilen, und was sie nicht teilen erreicht die Seiten einen Moment später und die hinteren danach, wie ein Surround-Decoder es macht. Filme und Spiele bleiben unberührt.',
+  'dsp.room.live.music': 'Stereo → ganzer Raum',
+  'dsp.room.groupListener': 'Hörer',
+  'dsp.room.groupSound': 'Klang',
+  'dsp.room.soundHint':
+    'Bassmanagement und der Musik-Upmix gehören dir, nicht dem Raum: Voreinstellungen und gespeicherte Räume lassen sie in Ruhe. Fahr über einen Namen, um zu sehen, was er tut.',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Den Raum formen und seine Lautsprecher verschieben gehört zu Plus. Der Raum und seine Vorgaben gehören dir so oder so.',

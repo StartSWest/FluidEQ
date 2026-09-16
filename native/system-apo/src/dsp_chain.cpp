@@ -100,7 +100,9 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
     if (feq_chain_room_active(built.chain.get()) != 0) {
       static const char* const kHeads[] = {"small", "medium", "large"};
       const int head = settings.room.head;
-      built.room_state = wanted == 2   ? "front-stage"
+      built.room_state = wanted == 2   ? (settings.room.music_upmix != 0
+                                             ? "music"
+                                             : "front-stage")
                          : wanted == 6 ? "5.1"
                          : wanted == 8 ? "7.1"
                                        : "on";

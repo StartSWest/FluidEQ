@@ -152,16 +152,55 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
     return nullptr;
   }
   set->sub_gain = db_to_gain(room->settings.sub_db);
+  // Two cascaded Butterworth stages make one Linkwitz-Riley 4th order, whose
+  // high-pass and low-pass sum flat: what leaves the speakers arrives at
+  // the sub's path with nothing lost or doubled at the crossover.
+  constexpr double kButterworthQ = 0.70710678118654752440;
+  const double crossover =
+      room->settings.crossover_hz < 40.0
+          ? 40.0
+          : (room->settings.crossover_hz > 200.0 ? 200.0
+                                                  : room->settings.crossover_hz);
+  set->bass_management = room->settings.bass_management != 0 ? 1 : 0;
+  set->crossover_high = feq_biquad_coefficients(
+      FEQ_FILTER_HPQ, crossover, 0.0, kButterworthQ, room->sample_rate);
+  set->crossover_low = feq_biquad_coefficients(
+      FEQ_FILTER_LPQ, crossover, 0.0, kButterworthQ, room->sample_rate);
   const bool has_head = room->directions > 0 && room->taps > 0;
   if (room->settings.enabled == 0 || !has_head || room->channels < 2) {
     return set;
+  }
+  // The music upmix: a two-channel stream on the front pair gets a kernel
+  // for every speaker, at the speaker's own index, and the five derived
+  // feeds are shaped here so a dial lands with the set.
+  const bool upmix = room->settings.music_upmix != 0 && room->channels == 2 &&
+                     room->speaker[0] == 0 && room->speaker[1] == 1;
+  if (upmix) {
+    const double amount =
+        room->settings.upmix_amount < 0.0
+            ? 0.0
+            : (room->settings.upmix_amount > 1.0 ? 1.0
+                                                 : room->settings.upmix_amount);
+    set->upmix = 1;
+    set->centre_gain = 0.5 * amount;
+    set->side_gain = 0.8 * amount;
+    set->rear_gain = 0.6 * amount;
+    set->side_frames =
+        static_cast<uint32_t>(std::lround(0.010 * room->sample_rate));
+    set->rear_frames =
+        static_cast<uint32_t>(std::lround(0.022 * room->sample_rate));
+    set->ambience_high = feq_biquad_coefficients(
+        FEQ_FILTER_HPQ, 150.0, 0.0, kButterworthQ, room->sample_rate);
+    set->rear_low = feq_biquad_coefficients(FEQ_FILTER_LPQ, 6000.0, 0.0,
+                                            kButterworthQ, room->sample_rate);
   }
   std::vector<float> left(FEQ_ROOM_KERNEL_TAPS);
   std::vector<float> right(FEQ_ROOM_KERNEL_TAPS);
   std::vector<float> response;
   Arrival arrivals[5];
-  for (uint32_t channel = 0; channel < room->channels; ++channel) {
-    const int speaker = room->speaker[channel];
+  const uint32_t slots = upmix ? FEQ_ROOM_SPEAKERS : room->channels;
+  for (uint32_t channel = 0; channel < slots; ++channel) {
+    const int speaker = upmix ? static_cast<int>(channel) : room->speaker[channel];
     if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS) {
       continue;
     }

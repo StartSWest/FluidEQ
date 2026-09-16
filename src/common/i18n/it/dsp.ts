@@ -616,6 +616,23 @@ const dsp = {
   'dsp.room.headphones.leave': 'Lasciale',
   'dsp.room.headphonesHint':
     'Il tuo profilo cuffie della pagina EQ si applica dopo la stanza, così i diffusori suonano come diffusori e non come queste cuffie.',
+  'dsp.room.groupBass': 'Bassi',
+  'dsp.room.bass.sub': 'Al sub',
+  'dsp.room.bass.full': 'Gamma intera',
+  'dsp.room.crossover': 'Crossover',
+  'dsp.room.bassHint':
+    'Tutto ciò che sta sotto il crossover lascia i diffusori e va al sub, uguale nelle due orecchie, come fa un ricevitore: i bassi non rimbalzano mai sulle pareti e un mix stereo tiene i bassi al centro.',
+  'dsp.room.groupMusic': 'Musica',
+  'dsp.room.music.front': 'Palco frontale',
+  'dsp.room.music.fill': 'Riempire la stanza',
+  'dsp.room.music.amount': 'Quantità',
+  'dsp.room.musicHint':
+    'La musica stereo può riempire tutta la stanza: la coppia frontale resta com’è, il centrale prende ciò che i due lati condividono, e ciò che non condividono raggiunge i laterali un istante dopo e i posteriori dopo ancora, come fa un decoder surround. Film e giochi non vengono toccati.',
+  'dsp.room.live.music': 'Stereo → tutta la stanza',
+  'dsp.room.groupListener': 'Ascoltatore',
+  'dsp.room.groupSound': 'Suono',
+  'dsp.room.soundHint':
+    'La gestione dei bassi e l’upmix per la musica sono tuoi, non della stanza: preset e stanze salvate non li toccano. Passa sopra un nome per sapere cosa fa.',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Modellare la stanza e spostare i suoi diffusori fa parte di Plus. La stanza e i suoi preset sono tuoi in ogni caso.',

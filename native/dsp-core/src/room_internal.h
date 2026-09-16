@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/room.h"
 
+#include "fluideq/biquad.h"
 #include "fluideq/convolver.h"
 
 #include <atomic>
@@ -24,6 +25,23 @@ struct FeqRoomKernels {
   FeqConvolverKernel* kernel[FEQ_ROOM_MAX_CHANNELS][2] = {};
   FeqConvolver* convolver[FEQ_ROOM_MAX_CHANNELS][2] = {};
   double sub_gain = 1.0;
+  /* Bass management, with the set so a crossover change lands atomically. */
+  int bass_management = 0;
+  FeqBiquadCoefficients crossover_high{};
+  FeqBiquadCoefficients crossover_low{};
+  /*
+   * The music upmix: kernels for all seven speakers sit at the speaker's
+   * own index (a stereo stream has slots to spare), and these are how the
+   * five derived feeds are made from the pair.
+   */
+  int upmix = 0;
+  double centre_gain = 0.0;
+  double side_gain = 0.0;
+  double rear_gain = 0.0;
+  uint32_t side_frames = 0;
+  uint32_t rear_frames = 0;
+  FeqBiquadCoefficients ambience_high{};
+  FeqBiquadCoefficients rear_low{};
   int active = 0;
 };
 
@@ -72,7 +90,26 @@ struct FeqRoom {
   std::vector<float> sub;
   double sub_state = 0.0;
   double sub_coefficient = 0.0;
+  /* Bass management: a speaker's band above the crossover, and the filters'
+   * histories — two high-pass stages per channel, two low-pass on the sum —
+   * which outlive any kernel set and cross a chain handover. */
+  std::vector<float> band;
+  FeqBiquadState bass_high[FEQ_ROOM_MAX_CHANNELS][2] = {};
+  FeqBiquadState bass_low[2] = {};
+  /*
+   * The music upmix: seven feeds of `max_frames` each, the side signal's
+   * ring (long enough for the rears' delay plus a block) with its cursor,
+   * and the ambience filters' histories.
+   */
+  std::vector<float> feeds;
+  std::vector<float> ambience_line;
+  size_t ambience_cursor = 0;
+  FeqBiquadState ambience_high[2] = {};
+  FeqBiquadState rear_low[2] = {};
 };
+
+/** The longest the rears trail the fronts by, in seconds; sizes the ring. */
+constexpr double kRoomUpmixMaxDelaySeconds = 0.03;
 
 /** Build a set from the room's head, layout and settings. Allocates. */
 FeqRoomKernels* room_build_kernels(const FeqRoom* room);

@@ -185,6 +185,12 @@ typedef struct FeqChainSettings {
     int correct_headphones;
     double angle_deg[FEQ_ROOM_SPEAKERS];
     double level_db[FEQ_ROOM_SPEAKERS];
+    /* Bass management and its crossover — see `FeqRoomSettings`. */
+    int bass_management;
+    double crossover_hz;
+    /* The music upmix and its amount — see `FeqRoomSettings`. */
+    int music_upmix;
+    double upmix_amount;
   } room;
   /**
    * The two bass stages, carried as the chain's own copies of their settings.
@@ -277,12 +283,13 @@ typedef struct FeqChainSettings {
 /*
  * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass
  * Punch added seven each, then 114 before the surround switch added one, then
- * 115 before the room added twenty-three. All of them are appended
- * immediately before the band count — which has to stay last, because both
- * `isChainWirePayload` and the decoder read the tail's length from
- * `FEQ_CHAIN_PARAM_LEAD - 1`.
+ * 115 before the room added twenty-three, then 138 before the room's bass
+ * management added two, then 140 before the music upmix added two. All of
+ * them are appended immediately before the
+ * band count — which has to stay last, because both `isChainWirePayload`
+ * and the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 138
+#define FEQ_CHAIN_PARAM_LEAD 142
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

@@ -188,6 +188,10 @@ int feq_chain_settings_decode(const double* values,
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     out->room.level_db[speaker] = next();
   }
+  out->room.bass_management = flag();
+  out->room.crossover_hz = next();
+  out->room.music_upmix = flag();
+  out->room.upmix_amount = next();
 
   out->surround_all_channels = flag();
 

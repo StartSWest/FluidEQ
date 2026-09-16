@@ -1033,6 +1033,20 @@ export interface IRoomSettings {
   /** Each speaker's azimuth, degrees clockwise from straight ahead. */
   angles: number[];
   levels: number[];
+  /**
+   * Everything under the crossover leaves the speakers for the sub's path,
+   * as a receiver does it; the listener's, like the head, so no preset or
+   * saved room touches it.
+   */
+  bassManagement: boolean;
+  crossoverHz: number;
+  /**
+   * Stereo music fills the whole ring instead of standing on the front
+   * pair; the amount scales the derived feeds. The listener's, like the
+   * head and bass management.
+   */
+  musicUpmix: boolean;
+  upmixAmount: number;
 }
 
 export interface ISurroundSettings {
@@ -1215,6 +1229,8 @@ const RANGES = {
   roomDb: { min: -12, max: 12 },
   roomAngleDeg: { min: -180, max: 180 },
   roomLevelDb: { min: -24, max: 12 },
+  roomCrossoverHz: { min: 40, max: 200 },
+  roomUpmixAmount: { min: 0, max: 1 },
 } as const satisfies Record<string, IRange>;
 
 const clampNumber = (
@@ -1712,6 +1728,10 @@ export const DSP_DEFAULTS: IDspSettings = {
     correctHeadphones: true,
     angles: [-30, 30, 0, -100, 100, -140, 140],
     levels: [0, 0, 0, 0, 0, 0, 0],
+    bassManagement: true,
+    crossoverHz: 80,
+    musicUpmix: false,
+    upmixAmount: 0.6,
   },
   // On by default: a 5.1 or 7.1 output follows what Windows is set to, and
   // the rack on two of its channels was a surprise on every one of them.
@@ -2418,6 +2438,21 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         room.levels,
         RANGES.roomLevelDb,
         DSP_DEFAULTS.room.levels,
+      ),
+      bassManagement: clampBoolean(
+        room.bassManagement,
+        DSP_DEFAULTS.room.bassManagement,
+      ),
+      crossoverHz: clampNumber(
+        room.crossoverHz,
+        RANGES.roomCrossoverHz,
+        DSP_DEFAULTS.room.crossoverHz,
+      ),
+      musicUpmix: clampBoolean(room.musicUpmix, DSP_DEFAULTS.room.musicUpmix),
+      upmixAmount: clampNumber(
+        room.upmixAmount,
+        RANGES.roomUpmixAmount,
+        DSP_DEFAULTS.room.upmixAmount,
       ),
     },
     surround: {

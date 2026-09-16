@@ -194,6 +194,39 @@ describe('the Room card', () => {
     expect(screen.getByLabelText(en['dsp.room.sub'])).not.toBeDisabled();
   });
 
+  it('offers bass management with its crossover, off the Plus lock', () => {
+    entitled = false;
+    const { onPatch, onCommit } = renderCard();
+    expect(screen.getByLabelText(en['dsp.room.crossover'])).not.toBeDisabled();
+    fireEvent.click(
+      screen.getByRole('radio', { name: en['dsp.room.bass.full'] }),
+    );
+    expect(onPatch).toHaveBeenCalledWith(
+      expect.objectContaining({ bassManagement: false }),
+    );
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it('fills the room with stereo music on request, and lights every speaker', () => {
+    const { onPatch } = renderCard(undefined, { state: 'music', channels: 2 });
+    expect(screen.getByText(en['dsp.room.live.music'])).toHaveClass('is-on');
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.is-asleep'),
+    ).toHaveLength(0);
+    expect(screen.getByLabelText(en['dsp.room.music.amount'])).toBeDisabled();
+    fireEvent.click(
+      screen.getByRole('radio', { name: en['dsp.room.music.fill'] }),
+    );
+    expect(onPatch).toHaveBeenCalledWith(
+      expect.objectContaining({ musicUpmix: true }),
+    );
+  });
+
+  it('rests the crossover dial while the bass runs full range', () => {
+    renderCard({ ...DSP_DEFAULTS.room, enabled: true, bassManagement: false });
+    expect(screen.getByLabelText(en['dsp.room.crossover'])).toBeDisabled();
+  });
+
   it('leaves the rear pair asleep on 5.1', () => {
     renderCard(undefined, { state: '5.1', channels: 6 });
     expect(

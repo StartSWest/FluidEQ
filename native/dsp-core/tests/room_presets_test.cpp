@@ -91,6 +91,9 @@ struct Fixture {
     settings.distance_m = shape.distance_m;
     settings.centre_db = shape.centre_db;
     settings.sub_db = shape.sub_db;
+    // The listener's, not the room's: off, so the walls are timed on the
+    // impulse itself and not on what a crossover leaves of it.
+    settings.bass_management = 0;
     feq_room_configure(room, &settings);
     feq_room_reset(room);
   }

@@ -3789,6 +3789,104 @@ $dsp-pane-columns: 6;
   flex-wrap: wrap;
 }
 
+// A row of the Listener and Sound bands: a small label in its own column,
+// then the controls — a switch, a picture of what the dial does, the dial —
+// which wrap among themselves when the column is narrow, so nothing clips.
+.dsp-room-row {
+  display: grid;
+  grid-template-columns: minmax(84px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 12px;
+  padding: 4px 0;
+
+  & + & {
+    border-top: 1px solid rgba($white, 0.05);
+  }
+}
+
+.dsp-room-row__label {
+  color: $text-faint;
+  font-size: $text-micro;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+  cursor: default;
+}
+
+.dsp-room-row__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+// The dial in a row: smaller than the room's own, so it reads as the
+// setting's number and not a fourth room dial.
+.dsp-room-row__dial {
+  --dsp-knob: 54px;
+}
+
+// The two pictures beside the switches. Both take their colours from the
+// accent so they read as the same object as the switch and the dial.
+.dsp-room-glyph {
+  flex: 0 0 auto;
+  height: 30px;
+  width: auto;
+}
+
+.dsp-room-glyph--ring {
+  height: 34px;
+}
+
+.dsp-room-glyph__floor {
+  stroke: rgba($white, 0.12);
+  stroke-width: 1;
+}
+
+.dsp-room-glyph__low {
+  fill: none;
+  stroke: $primary-lighter;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.dsp-room-glyph__high {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.dsp-room-glyph__mark {
+  stroke: rgba($white, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.dsp-room-glyph__ring {
+  fill: none;
+  stroke: rgba($white, 0.12);
+  stroke-dasharray: 2 3;
+}
+
+.dsp-room-glyph__dot {
+  fill: none;
+  stroke: rgba($white, 0.3);
+  stroke-width: 1;
+  transition:
+    fill 140ms ease,
+    opacity 140ms ease;
+
+  &.is-lit {
+    fill: $secondary-default;
+    stroke: $secondary-default;
+  }
+}
+
+.dsp-room-glyph__head {
+  fill: $primary-lighter;
+}
+
 // The saved rooms, under the dials in the Room band: a title with the Save
 // button at its right, then the chips wrapping below. Left-aligned like the
 // band it sits in; the chips themselves are the crossfade's saved-shape

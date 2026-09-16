@@ -47,13 +47,13 @@ inline const char* const kReferenceLine =
     "950 0.3 2 0.2 0.18 1 7700 0.23727782085891017 2.6 0.38 0.6 0 0 0 1 0 0 0 "
     "0 1 0 0 0 200 3000 -18 2 10 120 0 -18 2 10 120 0 -18 2 10 120 0 0 0.9 "
     "1.05 1.25 200 3000 0.25 0 0 -1 5 100 0 0 0 -14 -1 200 0 0 0 0 1 0.15 -6 "
-    "-1 0.95 0 0 6 24 30 0 0.5 32 0 0 1 0 0 90 0 0 0 0.8 0 0 0 120 0.65 -0.3 0 "
-    "80 0 1 0 1 4.2 0.55 1.8 0 0 1 1 -30 30 0 -100 100 -140 140 0 0 0 0 0 0 0 "
-    "1 15 1 2 32 0 0.7 0 -24 1 0 50 0 1.4 0 -24 1 0 80 0 1.4 0 -24 1 0 125 0 "
-    "1.4 0 -24 1 0 200 0 1.4 0 -24 1 0 315 0 1.4 0 -24 1 0 500 0 1.4 0 -24 1 0 "
-    "800 0 1.4 0 -24 1 0 1250 0 1.4 0 -24 1 0 2000 0 1.4 0 -24 1 0 3150 0 1.4 "
-    "0 -24 1 0 5000 0 1.4 0 -24 1 0 8000 0 1.4 0 -24 1 0 12500 0 1.4 0 -24 1 3 "
-    "16000 0 0.7 0 -24 1 -1 -14";
+    "-1 0.95 0 0 6 24 30 0 0.5 32 0 0 1 0 0 90 0 0 0 0.8 0 0 0 120 0.65 -0.3 "
+    "0 80 0 1 0 1 4.2 0.55 1.8 0 0 1 1 -30 30 0 -100 100 -140 140 0 0 0 0 0 0 "
+    "0 1 80 0 0.6 1 15 1 2 32 0 0.7 0 -24 1 0 50 0 1.4 0 -24 1 0 80 0 1.4 0 "
+    "-24 1 0 125 0 1.4 0 -24 1 0 200 0 1.4 0 -24 1 0 315 0 1.4 0 -24 1 0 500 "
+    "0 1.4 0 -24 1 0 800 0 1.4 0 -24 1 0 1250 0 1.4 0 -24 1 0 2000 0 1.4 0 "
+    "-24 1 0 3150 0 1.4 0 -24 1 0 5000 0 1.4 0 -24 1 0 8000 0 1.4 0 -24 1 0 "
+    "12500 0 1.4 0 -24 1 3 16000 0 0.7 0 -24 1 -1 -14";
 
 // Positions in that array, counted off `encodeChainSettings`. Named rather
 // than spelled inline because every one of them is a place a reader has to be
@@ -67,9 +67,9 @@ inline constexpr size_t kMaximizerEnabled = 65;
 inline constexpr size_t kMaximizerDriveDb = 66;
 inline constexpr size_t kMaximizerCeilingDb = 67;
 inline constexpr size_t kDenoiseEnabled = 77;
-// The room's switch, first of its twenty-three scalars, which sit just
+// The room's switch, first of its twenty-seven scalars, which sit just
 // before the surround switch.
-inline constexpr size_t kRoomEnabled = FEQ_CHAIN_PARAM_LEAD - 25;
+inline constexpr size_t kRoomEnabled = FEQ_CHAIN_PARAM_LEAD - 29;
 // The rack's surround switch, the last scalar before the band count.
 inline constexpr size_t kSurroundAllChannels = FEQ_CHAIN_PARAM_LEAD - 2;
 // `CHAIN_PARAM_LEAD - 1`, which both sides read the tail's length from.

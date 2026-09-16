@@ -65,6 +65,17 @@ picks the head for your ears, and the same room on the Library's player.
   run through the engine's room by a test: nothing clips, the walls come
   back later in a bigger room and not at all in the open air, a louder sub is
   louder. The What's new tour and the guide have a Room chapter each.
+- **Bass management.** As a receiver does it: everything under the
+  crossover (80 Hz to start, 40 to 200 on the dial) leaves every speaker and
+  goes to the sub's path, both ears alike, so bass never bounces off the
+  room's walls and a stereo mix keeps its bass in the middle. On by default;
+  Full range puts it back the way it was.
+- **Music that fills the room.** Stereo music can take the whole ring
+  instead of standing on the front pair: the front pair stays as it is, the
+  centre takes what both sides share, and what they do not share reaches the
+  sides a moment later and the rears after that, the way a surround decoder
+  derives its ambience; the Amount dial sets how much. The chip says
+  "Stereo → whole room" while it runs; films and games are never touched.
 - **The Room on the Library's player.** The Library plays music through its
   own copy of the rack, and that copy left the room out. Now it runs the
   same room with the same head, so a song in the Library and the same song

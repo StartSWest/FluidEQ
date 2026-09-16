@@ -147,6 +147,10 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->room.distance_m = room.distance_m;
   settings->room.head = 1;
   settings->room.correct_headphones = 1;
+  settings->room.bass_management = room.bass_management;
+  settings->room.crossover_hz = room.crossover_hz;
+  settings->room.music_upmix = room.music_upmix;
+  settings->room.upmix_amount = room.upmix_amount;
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     settings->room.angle_deg[speaker] = room.angle_deg[speaker];
     settings->room.level_db[speaker] = room.level_db[speaker];
@@ -470,6 +474,10 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
     room.distance_m = chain->settings.room.distance_m;
     room.centre_db = chain->settings.room.centre_db;
     room.sub_db = chain->settings.room.sub_db;
+    room.bass_management = chain->settings.room.bass_management;
+    room.crossover_hz = chain->settings.room.crossover_hz;
+    room.music_upmix = chain->settings.room.music_upmix;
+    room.upmix_amount = chain->settings.room.upmix_amount;
     // The three shipped heads, small to large, and the interaural delay
     // each is scaled to: the fit test will refine these per listener.
     const double scales[3] = {0.94, 1.0, 1.06};
