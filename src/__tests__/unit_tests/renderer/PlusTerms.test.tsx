@@ -168,9 +168,10 @@ describe('the Plus terms', () => {
     render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
     await userEvent.click(screen.getByRole('button', { name: 'terms.back' }));
     expect(mockOpenCheckout).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole('heading', { name: 'account.title' }),
-    ).toBeInTheDocument();
+    // Back to the person: signed in, the panel's front page is their profile
+    // and its heading is their name, where it used to be a dialog header
+    // saying "Account".
+    expect(screen.getByRole('heading', { name: 'Ada' })).toBeInTheDocument();
   });
 
   /** Every section, and every thing the app sends with when and who sees it. */

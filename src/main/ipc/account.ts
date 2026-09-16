@@ -375,11 +375,19 @@ export const registerAccountIpc = ({
           failure: error instanceof BillingError ? error.failure : 'network',
         };
       }
-      // The webhook has written the row; read it back the way a real payment
-      // is read back, through the same check every other event triggers. A
-      // window started with FLUIDEQ_DEV_ENTITLED=1 stops pinning Plus on
-      // first, or the server's answer would never reach the screen.
+      // The webhook has written the row; read it back exactly the way a real
+      // payment is read back. A window started with FLUIDEQ_DEV_ENTITLED=1
+      // stops pinning Plus on first, or the server's answer would never
+      // reach the screen.
       entitled.releaseDevelopmentOverride();
+      // The same sentence the merchant's own page gets (`openBillingPage`):
+      // the answer is about to change, so nothing may decide a check is too
+      // recent to bother with. Without it, a read that began before the
+      // webhook landed — one already in flight — answered this one with the
+      // old row, and the membership then sat unnoticed until the four-hour
+      // staleness gate opened. Pretending a payment has to walk the path a
+      // real one walks, or it tests something nobody ships.
+      entitled.expectChange();
       await entitled.checkNow();
       return { ok: true };
     },
