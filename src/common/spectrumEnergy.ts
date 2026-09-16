@@ -108,7 +108,17 @@ export const ACCENT_GAP_MS = 7_000;
 /** And the music has to be somewhere near its own loudest, not merely busy. */
 export const ACCENT_LEVEL = 0.55;
 export const ACCENT_FALL_MS = 1_500;
-export const ACCENT_RISE_MS = 90;
+/**
+ * How long the moment takes to arrive. Measured against the brightness
+ * limiter every member's scene is drawn through: a scene may move the average
+ * brightness of a quarter of the frame by half of full scale per second, and
+ * a moment that fills a third of a cell with light has to take at least a
+ * fifth of a second to do it or the limiter blends the picture into the last
+ * one and the scene smears. At 90 ms, Crystal's band of light across the
+ * floor measured seven times over that limit and only a seventh of each new
+ * frame reached the panel.
+ */
+export const ACCENT_RISE_MS = 300;
 
 /**
  * How quickly the four levels fall away. They do not rise slowly at all.

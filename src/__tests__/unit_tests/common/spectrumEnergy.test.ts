@@ -235,11 +235,18 @@ describe('spectrum energy', () => {
     // Everything at once, after the gap: that is a moment.
     const arriving = run(1, flat(MAX));
     expect(arriving.accent).toBeLessThan(0.7);
-    // Up over about a fifth of a second, not in one frame: a scene is free to
-    // put this in an angle, and a jump there is a jerk.
-    const settled = run(12, flat(MAX));
-    expect(settled.accent).toBeGreaterThan(0.75);
-    expect(settled.accentSerial).toBe(1);
+    // It has to take longer than a fifth of a second to arrive. A scene is
+    // free to put this in an angle or in a light across half the picture, and
+    // the brightness limiter every member's scene is drawn through blends the
+    // frame into the one before it whenever a quarter of the frame changes
+    // faster than half of full scale a second. Crystal's band of light was
+    // measured at seven times that with the moment arriving in 90 ms, and the
+    // stone came out looking painted.
+    const partWay = run(12, flat(MAX));
+    expect(partWay.accent).toBeLessThan(0.8);
+    expect(partWay.accentSerial).toBe(1);
+    const settled = run(48, flat(MAX));
+    expect(settled.accent).toBeGreaterThan(0.85);
 
     // And the next one has to wait, however loud the music stays.
     const again = run(120, flat(MAX));
