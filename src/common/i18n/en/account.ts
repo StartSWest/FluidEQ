@@ -105,6 +105,7 @@ const account = {
   'account.plus.ends': 'Ends {date}',
   'account.plus.gift': 'A gift from FluidEQ',
   'account.plus.giftUntil': 'A gift from FluidEQ, until {date}',
+  'account.plus.computers': 'Signed in on up to {count} computers at a time.',
   'account.plus.manage': 'Manage subscription',
   'account.plus.grace':
     'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',

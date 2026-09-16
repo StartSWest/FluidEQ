@@ -1,0 +1,59 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+/**
+ * The two cards in the Account panel: the membership and the leaderboard.
+ *
+ * Two of one kind — an emblem in the card's own colour, that hue on the
+ * border and washed across the top, the state on the right — because a
+ * hairline down one card's left and a plain box for the other read as a sold
+ * thing beside an afterthought, which is not what either of them is.
+ *
+ * A partial with nothing but mixins in it, so both sheets can reach the shape
+ * without either of them emitting the other's rules.
+ */
+@mixin account-card($hue) {
+  --card-hue: #{$hue};
+  position: relative;
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-s ($spacing-s + 2px) ($spacing-s + 2px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--card-hue) 26%, transparent);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      86% 60% at 14% 0%,
+      color-mix(in srgb, var(--card-hue) 15%, transparent),
+      transparent 68%
+    ),
+    color-mix(in srgb, $surface-block 60%, transparent);
+}
+
+/** The emblem: the same disc in both cards, painted in the card's own hue. */
+@mixin account-card-mark {
+  display: grid;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--card-hue) 40%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card-hue) 16%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--card-hue) 18%, transparent);
+  place-items: center;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    color: var(--card-hue);
+  }
+}

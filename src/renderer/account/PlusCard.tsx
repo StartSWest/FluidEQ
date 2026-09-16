@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import type { IEntitlementStatus } from 'main/account/entitlement';
 import type { TBillingFailure } from 'main/account/billingClient';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
+import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import plusPriceText from './plusPrice';
 import {
@@ -130,6 +132,11 @@ export default function PlusCard({
       aria-labelledby="plus-card-title"
     >
       <div className="plus-card__head">
+        {/* The same emblem the board's card carries, so the pair reads as two
+            of one kind rather than as a titled box beside a marked one. */}
+        <span className="plus-card__mark" aria-hidden="true">
+          <Glyph name="plus" />
+        </span>
         <span id="plus-card-title" className="plus-card__eyebrow">
           {t('account.plus.eyebrow')}
         </span>
@@ -190,10 +197,17 @@ export default function PlusCard({
                   )}
                 </p>
               )}
-              {/* No price here, though the card has the room: `plusPriceText`
-                  is the offer — both plans, or the monthly one — and a member
-                  paying yearly would read it as their own bill. What they pay
-                  is on the merchant's page, behind the button. */}
+              {/* The one rule of a membership that a member can walk into,
+                  from the constant the server enforces it with. No price:
+                  `plusPriceText` is the offer — both plans, or the monthly
+                  one — and somebody paying yearly would read it as their own
+                  bill. What they pay is behind the button, on the merchant's
+                  own page. */}
+              <p className="plus-card__hint">
+                {t('account.plus.computers', {
+                  count: String(PLUS_MAX_COMPUTERS),
+                })}
+              </p>
               <div className="plus-card__actions">{manage}</div>
             </>
           )}

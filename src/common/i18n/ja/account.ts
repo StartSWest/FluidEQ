@@ -93,6 +93,7 @@ const account = {
   'account.plus.ends': '{date} に終了',
   'account.plus.gift': 'FluidEQ からのギフト',
   'account.plus.giftUntil': 'FluidEQ からのギフト（{date} まで）',
+  'account.plus.computers': '同時に最大 {count} 台までサインインできます。',
   'account.plus.manage': 'サブスクリプションを管理',
   'account.plus.grace':
     'サブスクリプションを確認できませんでした。{date} まで有効です。それまでにインターネットに接続すると維持されます。',

@@ -6,6 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+@use 'accountCard' as *;
 @use 'color' as *;
 @use 'dialog' as dialog;
 @use 'motion' as *;
@@ -16,7 +17,30 @@ it under the terms of the GNU General Public License version 3 or later.
 // happens to emit first. Both are single classes on their own, and equal
 // specificity would leave this panel's width decided by import order.
 .about.account {
-  @include dialog.surface(780px, 680px);
+  @include dialog.surface(900px, 760px);
+}
+
+/**
+ * The identity band's aurora.
+ *
+ * The same idea as the welcome's stage, in the person's own colour rather
+ * than the app's: two lights drifting across each other so the top of the
+ * panel belongs to whoever is signed into it. Only the band moves — a box
+ * holding text on a compositor layer of its own loses subpixel antialiasing
+ * (see `_motion.scss`).
+ */
+@keyframes account-hero-drift {
+  0% {
+    transform: translate3d(-2.5%, 0, 0) scale(1.05);
+  }
+
+  50% {
+    transform: translate3d(2.5%, 1.5%, 0) scale(1.12);
+  }
+
+  100% {
+    transform: translate3d(-2.5%, 0, 0) scale(1.05);
+  }
 }
 
 .account__body {
@@ -52,20 +76,53 @@ it under the terms of the GNU General Public License version 3 or later.
  * to them rather than to the app.
  */
 .account__hero {
+  position: relative;
+  // Edge to edge, out through the body's own padding: a band, like the
+  // welcome's stage, rather than a bordered box floating inside one. The
+  // numbers are `.about__body`'s padding and have to follow it.
+  margin: -18px -20px 0;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: $spacing-m;
-  padding: $spacing-m;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
-  background:
-    linear-gradient(
-      100deg,
-      hsl(var(--identity-hue, 170deg) 55% 45% / 16%),
-      transparent 55%
-    ),
-    $block-lift;
+  padding: $spacing-l $spacing-l ($spacing-l - 2px);
+  overflow: hidden;
+  border-bottom: 1px solid $border-subtle;
+  background: $block-lift;
+
+  // The person's colour, moving. Bounded by the band, under everything in it.
+  &::before {
+    position: absolute;
+    z-index: 0;
+    top: -40%;
+    left: -8%;
+    width: 116%;
+    height: 180%;
+    animation: account-hero-drift 30s ease-in-out infinite;
+    background:
+      radial-gradient(
+        52% 74% at 16% 44%,
+        hsl(var(--identity-hue, 170deg) 72% 52% / 42%),
+        transparent 70%
+      ),
+      radial-gradient(
+        46% 66% at 72% 30%,
+        color-mix(in srgb, $secondary-default 30%, transparent),
+        transparent 72%
+      );
+    content: '';
+    filter: blur(6px);
+    pointer-events: none;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   @media (max-width: 620px) {
     grid-template-columns: auto minmax(0, 1fr);
@@ -88,14 +145,15 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  color: hsl(var(--identity-hue, 170deg) 85% 78%);
+  width: 68px;
+  height: 68px;
+  color: hsl(var(--identity-hue, 170deg) 88% 82%);
   border-radius: $radius-pill;
-  background: hsl(var(--identity-hue, 170deg) 55% 21%);
+  background: hsl(var(--identity-hue, 170deg) 58% 19%);
   box-shadow:
-    0 0 0 2px $surface-panel,
-    0 0 0 4px hsl(var(--identity-hue, 170deg) 70% 55% / 60%);
+    0 0 0 2px hsl(var(--identity-hue, 170deg) 40% 10% / 70%),
+    0 0 0 4px hsl(var(--identity-hue, 170deg) 72% 58% / 70%),
+    0 0 28px hsl(var(--identity-hue, 170deg) 72% 52% / 28%);
   font-size: $text-title;
   font-weight: $weight-semibold;
   @include tracking(0.02em);
@@ -190,12 +248,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The two cards side by side; one under the other once the dialog is
-// squeezed to the point where a card would be narrower than its buttons.
-// The two cards side by side, and the same height. `start` left the shorter
-// one floating over a hole the height of the longer: a membership is three
-// lines and the board's card is a dozen, and nothing about the pair says one
-// matters less than the other.
+// The two cards side by side and the same height; one under the other once
+// the dialog is squeezed to the point where a card would be narrower than its
+// buttons. `start` left the shorter one floating over a hole the height of
+// the longer: a membership is three lines and the board's card is a dozen,
+// and nothing about the pair says one matters less than the other.
 .account__cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -375,49 +432,32 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.55;
 }
 
-/**
- * The subscription card.
- *
- * A gradient hairline down the left is the one flourish: it is the only thing
- * in this panel that is sold, and it should read as a distinct object without
- * shouting — the loud element inside it is the button, not the box.
- */
+// The subscription card: the shared shape (`_accountCard.scss`), in the
+// app's accent, and in amber while a renewal is unconfirmed.
 .plus-card {
-  position: relative;
-  display: grid;
-  gap: $spacing-xs;
-  padding: $spacing-s $spacing-s $spacing-s ($spacing-s + 6px);
-  border: 1px solid rgba($white, 0.07);
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-block 60%, transparent);
-  overflow: hidden;
+  @include account-card($secondary-light);
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 3px;
-    background: linear-gradient(
-      180deg,
-      $secondary-light,
-      $secondary-default 55%,
-      $complementary
-    );
-  }
-
-  &--grace::before {
-    background: $amber;
+  &--grace {
+    --card-hue: #{$amber};
   }
 }
 
+.plus-card__mark {
+  @include account-card-mark;
+}
+
+// `space-between` was right while the row held a title and a state; with the
+// emblem in front of them it spread three things and hung the title in the
+// middle of the card. The state goes to the far end on its own instead.
 .plus-card__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: $spacing-xs;
+  gap: 8px;
+
+  .plus-card__badge {
+    margin-left: auto;
+  }
 }
 
 .plus-card__eyebrow {

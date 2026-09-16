@@ -6,20 +6,17 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+@use 'accountCard' as *;
 @use 'color' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The card in the Account panel: the same object as the Plus card, quieter —
-// it is an offer to send something, and it has to read as one to be declined.
+// The card in the Account panel: the same object as the Plus card, in a hue
+// of its own — the shape is shared (`account-card` in Account.scss) so the two
+// read as a pair, and the colour is what tells them apart.
 .leaderboard-card {
-  display: grid;
-  gap: $spacing-xs;
-  padding: $spacing-s;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-block 60%, transparent);
+  @include account-card($neon-lime);
 }
 
 .leaderboard-card__head {
@@ -33,18 +30,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .leaderboard-card__mark {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: $secondary-light;
-  border-radius: 7px;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-
-  svg {
-    width: 15px;
-    height: 15px;
-  }
+  @include account-card-mark;
 }
 
 // Today's tally as a ring filling toward the sixteen-hour cap.

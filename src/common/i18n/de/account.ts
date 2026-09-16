@@ -95,6 +95,8 @@ const account = {
   'account.plus.ends': 'Endet am {date}',
   'account.plus.gift': 'Ein Geschenk von FluidEQ',
   'account.plus.giftUntil': 'Ein Geschenk von FluidEQ, bis {date}',
+  'account.plus.computers':
+    'Auf bis zu {count} Computern gleichzeitig angemeldet.',
   'account.plus.manage': 'Abonnement verwalten',
   'account.plus.grace':
     'Ihr Abonnement konnte nicht bestätigt werden. Es bleibt bis zum {date} aktiv – gehen Sie vorher online, um es zu behalten.',
