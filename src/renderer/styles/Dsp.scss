@@ -130,9 +130,20 @@ $dsp-rail-offset: 110ms;
     line-height: $control-height;
   }
 
-  > .dsp-global-power {
+  > .dsp-header-switches {
     min-height: $control-height;
   }
+}
+
+// The rack's two switches — surround and power — as one flex item, so they
+// wrap off the first row together and keep the right edge; the `auto`
+// margin that pushes them there belongs to the group, not to either switch,
+// or two of them split the row's free space and float one mid-row.
+.dsp-header-switches {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
 }
 
 .dsp-title {
@@ -297,17 +308,8 @@ $dsp-rail-offset: 110ms;
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-left: auto;
   padding-left: 14px;
   border-left: 1px solid rgba($white, 0.1);
-}
-
-// The surround switch shares the power switch's look and sits just before
-// it. Only the first of the two takes the row's free space: two `auto`
-// margins would split it between them and float the surround switch in the
-// middle of the row.
-.dsp-surround + .dsp-global-power {
-  margin-left: 0;
 }
 
 .dsp-global-power-state {
