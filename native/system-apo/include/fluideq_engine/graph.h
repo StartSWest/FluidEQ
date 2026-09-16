@@ -36,6 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 class OutputGuard;
+struct RoomHead;
 
 namespace detail {
 
@@ -74,14 +75,15 @@ class Graph {
    * to the rack's live leveling so what it learned outlives this graph. Null
    * runs leveling that forgets with the chain, which is what a test wants.
    *
-   * `lfe_channel` is the subwoofer feed's index in the stream, or -1 — from
-   * the stream's channel mask (`describe_format`). The rack's exciter leaves
-   * that channel alone; nothing else in the graph treats it differently.
+   * `channel_mask` is the stream's (`describe_format`; 0 for a plain
+   * format): the rack reads the subwoofer feed and the room's speakers from
+   * it. `room_head` is the head the app wrote for the room, or null for
+   * none, which leaves the room inactive whatever the rack asks.
    */
   Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         uint32_t max_frames,
         std::shared_ptr<FeqLevelingMemory> leveling = nullptr,
-        int lfe_channel = -1);
+        unsigned long channel_mask = 0, const RoomHead* room_head = nullptr);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;
@@ -235,6 +237,15 @@ class Graph {
   const std::vector<std::string>& problems() const noexcept;
 
   /**
+   * One line about the room for the log — what it folds, through which
+   * head, at what cost — or empty when the rack has no room to speak of.
+   */
+  const std::string& room_note() const noexcept;
+
+  /** `EngineStatus::room`'s words for this graph's rack. */
+  const std::string& room_state() const noexcept;
+
+  /**
    * Blocks this graph had to silence because they came out with a sample
    * that was not a real number — see the end of `process`. Any thread; the
    * watcher reads it once the graph is being replaced, for the log.
@@ -328,6 +339,8 @@ class Graph {
 
   std::vector<std::string> warnings_;
   std::vector<std::string> problems_;
+  std::string room_note_;
+  std::string room_state_ = "off";
 };
 
 }  // namespace fluideq_engine

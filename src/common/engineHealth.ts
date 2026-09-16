@@ -70,7 +70,33 @@ export interface IEngineOutputHealth {
    * engine new enough to level by song. Absent otherwise.
    */
   lastSong?: IFinishedSong;
+  /**
+   * How many channels the stream Windows locked has, from an engine that
+   * has the room (1.9 and up). Absent from older engines.
+   */
+  channels?: number;
+  /**
+   * What the room does with them — `off`, `no-head`, `front-stage`, `5.1`,
+   * `7.1`, `on` — in the engine's words; the card's chip translates. Absent
+   * from older engines.
+   */
+  room?: TRoomState;
 }
+
+export const ROOM_STATES = [
+  'off',
+  'no-head',
+  'front-stage',
+  '5.1',
+  '7.1',
+  'on',
+] as const;
+
+export type TRoomState = (typeof ROOM_STATES)[number];
+
+export const isRoomState = (value: unknown): value is TRoomState =>
+  typeof value === 'string' &&
+  (ROOM_STATES as readonly string[]).includes(value);
 
 /** What live leveling learned about one song — see `songLevels.ts`. */
 export interface IFinishedSong {

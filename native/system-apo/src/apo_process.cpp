@@ -124,7 +124,7 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
     watcher_ = std::make_unique<Watcher>(
         slot_, *log_, endpoint_, config_dir(),
         sample_rate_.load(std::memory_order_relaxed), channels_, max_frames_,
-        input_format.lfe_channel);
+        input_format.mask);
   } catch (const std::bad_alloc&) {
     release_locked_state();
     return E_OUTOFMEMORY;

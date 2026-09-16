@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/chain.h"
 #include "fluideq_engine/graph.h"
+#include "room_head.h"
 
 namespace fluideq_engine {
 
@@ -54,6 +55,12 @@ struct RackBuild {
   bool failed = false;
   uint32_t channels = 0;
   uint32_t latency = 0;
+  /** The rack asks for the room and no head file was there to build it. */
+  bool room_without_head = false;
+  /** For the log: what the room folds and through what, or empty. */
+  std::string room_note;
+  /** For the status: `EngineStatus::room`'s words. */
+  std::string room_state = "off";
 };
 
 /**
@@ -72,15 +79,17 @@ struct RackBuild {
  * `leveling` is attached to the chain's live leveling once priming is over,
  * so the silent priming block neither adopts nor publishes anything.
  *
- * `lfe_channel` is the subwoofer feed's index in the stream, or -1: read
- * from the stream's channel mask by the effect, and the one channel the
- * exciter leaves alone.
+ * `channel_mask` is the stream's, 0 for a plain format: it names the
+ * subwoofer feed, which the exciter leaves alone, and which speaker of the
+ * room each channel is. `room_head` is the head the app wrote for the room,
+ * or null for none — the room then stays inactive and the build says so.
  */
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
                      FeqLevelingMemory* leveling = nullptr,
-                     int lfe_channel = -1);
+                     unsigned long channel_mask = 0,
+                     const RoomHead* room_head = nullptr);
 
 }  // namespace fluideq_engine
 

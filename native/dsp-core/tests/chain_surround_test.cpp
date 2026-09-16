@@ -316,10 +316,66 @@ void lfe_is_left_alone_by_the_exciter() {
   check(!identical(a[2], b[2]), "the centre was excited (positive control)");
 }
 
+/**
+ * The room inside the chain: with a head and a layout it folds a six-channel
+ * chain onto the pair and adds one partition of latency; without a head it
+ * is inactive whatever its switch says, and the chain is what it was.
+ */
+void the_room_folds_the_chain() {
+  std::printf("the room folds the chain\n");
+  FeqChainSettings settings = settings_for(false);
+  settings.room.enabled = 1;
+  Chain surround = make_chain(kSurround, settings);
+  Chain plain = make_chain(kSurround, settings);
+  check(surround != nullptr && plain != nullptr, "both chains built");
+  if (!surround || !plain) {
+    return;
+  }
+  check(feq_chain_room_active(surround.get()) == 0,
+        "no head, no room, however the switch is set");
+  const uint32_t without = feq_chain_latency_frames(surround.get());
+  // A head of unit impulses: every direction reaches both ears at once.
+  constexpr uint32_t directions = 24;
+  constexpr uint32_t taps = 64;
+  std::vector<float> ring(directions * taps, 0.0f);
+  for (uint32_t direction = 0; direction < directions; ++direction) {
+    ring[direction * taps] = 1.0f;
+  }
+  const int speakers[FEQ_CHAIN_MAX_CHANNELS] = {0, 1, 2, -1, 5, 6, -1, -1};
+  feq_chain_set_room_layout(surround.get(), speakers);
+  feq_chain_set_lfe_channel(surround.get(), 3);
+  feq_chain_set_room_head(surround.get(), ring.data(), ring.data(),
+                          directions, taps, 0);
+  check(feq_chain_room_active(surround.get()) == 1, "head and layout: active");
+  check(feq_chain_latency_frames(surround.get()) == without + 512,
+        "the room adds one partition of latency");
+  auto a = planar(kSurround);
+  auto b = planar(kSurround);
+  const std::vector<float> programme = pink(61u, 0.6);
+  for (auto& channel : a) {
+    channel = programme;
+  }
+  for (auto& channel : b) {
+    channel = programme;
+  }
+  run(surround.get(), a);
+  run(plain.get(), b);
+  bool silent = true;
+  for (uint32_t channel = 2; channel < kSurround; ++channel) {
+    for (const float sample : a[channel]) {
+      silent = silent && sample == 0.0f;
+    }
+  }
+  check(silent, "the channels beyond the pair leave silent");
+  check(!identical(a[0], b[0]), "the front pair carries the room (control)");
+  check(identical(b[2], b[0]), "the chain without a head is unchanged");
+}
+
 }  // namespace
 
 int main() {
   std::printf("chain surround\n\n");
+  the_room_folds_the_chain();
   width_limits();
   front_pair_is_the_stereo_chain();
   surround_channel_matches_the_front();

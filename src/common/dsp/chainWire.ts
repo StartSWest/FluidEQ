@@ -30,13 +30,32 @@ import {
   EQ_PHASE_MODES,
   EQ_STEREO_MODES,
   IDspSettings,
+  ROOM_HEADS,
+  ROOM_PRESETS,
+  TRoomHead,
 } from './chain';
 
 /**
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 115;
+export const CHAIN_PARAM_LEAD = 138;
+
+/**
+ * Where the room's head sits in the lead: the eighth of the room's
+ * twenty-three scalars, which end two before the band count.
+ */
+const ROOM_HEAD_SLOT = CHAIN_PARAM_LEAD - 25 + 7;
+
+/**
+ * Which shipped head a rack on the wire asks for.
+ *
+ * Main writes the head file beside the rack from the same message the rack
+ * arrives in, so the two never disagree; anything out of range reads as the
+ * medium head, which is what a rack from before the room means.
+ */
+export const roomHeadOnWire = (values: readonly number[]): TRoomHead =>
+  ROOM_HEADS[values[ROOM_HEAD_SLOT]] ?? 'medium';
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -79,6 +98,7 @@ export const encodeChainSettings = (
     compressor,
     maximizer,
     master,
+    room,
     denoise,
   } = settings;
   const values: number[] = [
@@ -195,6 +215,20 @@ export const encodeChainSettings = (
     bassPunch.bloomDecayMs,
     bassPunch.duck,
     bassPunch.mix,
+    // The room, twenty-three scalars in the decoder's order: the switch, the
+    // preset, five dials, the head, the headphone switch, then every
+    // speaker's angle and then every speaker's level.
+    room.enabled ? 1 : 0,
+    ROOM_PRESETS.indexOf(room.presetId),
+    room.sizeM,
+    room.walls,
+    room.distanceM,
+    room.centreDb,
+    room.subDb,
+    ROOM_HEADS.indexOf(room.head),
+    room.correctHeadphones ? 1 : 0,
+    ...room.angles,
+    ...room.levels,
     // Surround, in the same place and for the same reason as the bass stages.
     settings.surround.allChannels ? 1 : 0,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and

@@ -43,13 +43,19 @@ void a_processing_output() {
   status.endpoint = L"{947B0242-A1CF-4483-A44E-B72DA462C901}";
   status.locked = true;
   status.processing = true;
+  status.channels = 2;
   const std::string text =
       status_json(status, 4242, "2026-09-11T12:00:00.000Z");
   CHECK(text ==
         "{\"version\":1,\"endpoint\":\"{947B0242-A1CF-4483-A44E-B72DA462C901}\","
         "\"pid\":4242,\"locked\":true,\"processing\":true,\"owner\":true,"
-        "\"reason\":\"\",\"problems\":[],"
+        "\"reason\":\"\",\"problems\":[],\"channels\":2,\"room\":\"off\","
         "\"at\":\"2026-09-11T12:00:00.000Z\"}\r\n");
+  // The room's state rides with the count the card needs to name it.
+  status.channels = 8;
+  status.room = "7.1";
+  CHECK(status_json(status, 4242, "t").find(
+            "\"channels\":8,\"room\":\"7.1\",\"at\"") != std::string::npos);
 }
 
 void a_pass_through_with_problems() {
@@ -81,7 +87,8 @@ void a_finished_song() {
         "{\"version\":1,\"endpoint\":\"{AAAA}\",\"pid\":7,\"locked\":true,"
         "\"processing\":true,\"owner\":true,\"reason\":\"\",\"problems\":[],"
         "\"lastSong\":{\"id\":\"00000000000a11ce\",\"level\":-11.84,"
-        "\"peak\":-0.63,\"seconds\":184.25},\"at\":\"t\"}\r\n");
+        "\"peak\":-0.63,\"seconds\":184.25},\"channels\":0,\"room\":\"off\","
+        "\"at\":\"t\"}\r\n");
   // Positive control for the field being optional: without a song the text
   // is exactly what every earlier engine wrote.
   status.last_song.reset();

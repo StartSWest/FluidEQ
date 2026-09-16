@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <algorithm>
 #include <exception>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -18,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "chain_signature.h"
 #include "config_file.h"
 #include "paths.h"
+#include "room_head.h"
 
 namespace fluideq_engine {
 
@@ -80,7 +82,8 @@ void log_owner(std::string_view message) noexcept {
 
 Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
                  std::wstring config_dir, uint32_t sample_rate,
-                 uint32_t channels, uint32_t max_frames, int lfe_channel)
+                 uint32_t channels, uint32_t max_frames,
+                 unsigned long channel_mask)
     : slot_(slot),
       log_(log),
       endpoint_(std::move(endpoint)),
@@ -88,7 +91,7 @@ Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
       sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
-      lfe_channel_(lfe_channel) {}
+      channel_mask_(channel_mask) {}
 
 Watcher::~Watcher() { stop(); }
 
@@ -390,9 +393,21 @@ void Watcher::reload(Carry carry) {
       return;
     }
 
+    // The room's head, beside the rack file: read with the rest of the
+    // configuration, so a head written after the rack is picked up by the
+    // same notification. No file is no head, which the rack reports.
+    std::optional<RoomHead> head;
+    if (const auto text =
+            read_config_file(config_dir_ + L"\\" + kRoomHeadFileName)) {
+      head = parse_room_head(*text, static_cast<double>(sample_rate_));
+    }
     auto graph = std::make_unique<Graph>(
         chain, sample_rate_, channels_, max_frames_,
-        leveling_ ? leveling_->memory() : nullptr, lfe_channel_);
+        leveling_ ? leveling_->memory() : nullptr, channel_mask_,
+        head ? &*head : nullptr);
+    if (!graph->room_note().empty()) {
+      log_.write(graph->room_note());
+    }
     if (stop_requested()) {
       // The half-built graph dies with the `unique_ptr`, having never been
       // reachable from the slot. Recording the signature is left undone with
@@ -414,6 +429,7 @@ void Watcher::reload(Carry carry) {
     log_chain(chain, *graph, owner);
     const bool processing = !graph->is_passthrough();
     std::vector<std::string> problems = graph->problems();
+    room_state_ = graph->room_state();
     publish(std::move(graph));
     signature_.swap(next);
     have_signature_ = true;

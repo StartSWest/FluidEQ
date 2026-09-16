@@ -31,6 +31,20 @@ namespace fluideq_engine {
  */
 int lfe_channel_of(unsigned long mask, unsigned short channels);
 
+/** How many speakers the room has, and their order in every array of them. */
+constexpr unsigned kRoomSpeakers = 7;
+
+/**
+ * The room's speaker a channel feeds — 0 FL, 1 FR, 2 C, 3 SL, 4 SR, 5 RL,
+ * 6 RR — or -1: the LFE, a channel past the stream's count, or a position
+ * the room has no speaker for (front left of centre, the heights), which
+ * still takes its place in the channel order. Without a mask the stream is
+ * in Windows' own order for two, six and eight channels, and any other count
+ * without one names nothing.
+ */
+int speaker_of_channel(unsigned long mask, unsigned short channels,
+                       unsigned channel);
+
 }  // namespace fluideq_engine
 
 #endif  // FLUIDEQ_ENGINE_CHANNEL_LAYOUT_H

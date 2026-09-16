@@ -113,6 +113,19 @@ void the_encoder_s_own_line_decodes() {
   CHECK(settings.normalizer.mode == 1);
   CHECK(settings.normalizer.ceiling_db == -1);
   CHECK(settings.normalizer.target_lufs == -14);
+  // The room's block, read where the encoder put it: off, the living room,
+  // its dials, and the seventh speaker's angle as the last angle before
+  // the levels — one value out and this reads a level as an angle.
+  CHECK(settings.room.enabled == 0);
+  CHECK(settings.room.preset == 1);
+  CHECK(settings.room.size_m == 4.2);
+  CHECK(settings.room.walls == 0.55);
+  CHECK(settings.room.distance_m == 1.8);
+  CHECK(settings.room.head == 1);
+  CHECK(settings.room.correct_headphones == 1);
+  CHECK(settings.room.angle_deg[0] == -30 && settings.room.angle_deg[6] == 140);
+  CHECK(settings.room.level_db[6] == 0);
+  CHECK(settings.surround_all_channels == 1);
   auto legacy = values;
   legacy.resize(legacy.size() - 3);
   CHECK(decode_dsp_chain(legacy, &settings));

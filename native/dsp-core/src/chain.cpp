@@ -139,6 +139,18 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->enabled = 1;
   settings->output_safety_enabled = 1;
   settings->surround_all_channels = 1;
+  FeqRoomSettings room{};
+  feq_room_settings_defaults(&room);
+  settings->room.preset = 1;  // Living room, the one the dials describe.
+  settings->room.size_m = room.size_m;
+  settings->room.walls = room.walls;
+  settings->room.distance_m = room.distance_m;
+  settings->room.head = 1;
+  settings->room.correct_headphones = 1;
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    settings->room.angle_deg[speaker] = room.angle_deg[speaker];
+    settings->room.level_db[speaker] = room.level_db[speaker];
+  }
   settings->normalizer.ceiling_db = -1;
   settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
@@ -363,8 +375,14 @@ FeqChain* feq_chain_create(double sample_rate,
   // half-built rack waiting to be swapped in.
   chain_refresh_eq(chain);
   chain_refresh_eq(chain);
+  // The room, for whatever width this chain has; a mono chain's stays
+  // inactive. Created last, so a failure here has a whole chain to free.
+  chain->room = feq_room_create(sample_rate, channels, frames);
+  if (chain->room == nullptr) {
+    feq_chain_destroy(chain);
+    return nullptr;
+  }
   return chain;
-
 }
 
 void feq_chain_destroy(FeqChain* chain) {
@@ -396,6 +414,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain_release_kernel_handoff(chain);
   feq_loudness_meter_destroy(chain->loudness_meter);
   feq_live_normalizer_destroy(chain->live_normalizer);
+  feq_room_destroy(chain->room);
+  chain->room = nullptr;
   feq_denoise_destroy(chain->denoise);
   chain->denoise = nullptr;
   delete chain;
@@ -441,6 +461,26 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // After the restoration, whose modules decide how far behind the front
   // pair now runs — and so how far the other channels must be held back.
   chain_apply_denoise_alignment(chain);
+  {
+    FeqRoomSettings room{};
+    feq_room_settings_defaults(&room);
+    room.enabled = chain->settings.room.enabled;
+    room.size_m = chain->settings.room.size_m;
+    room.walls = chain->settings.room.walls;
+    room.distance_m = chain->settings.room.distance_m;
+    room.centre_db = chain->settings.room.centre_db;
+    room.sub_db = chain->settings.room.sub_db;
+    // The three shipped heads, small to large, and the interaural delay
+    // each is scaled to: the fit test will refine these per listener.
+    const double scales[3] = {0.94, 1.0, 1.06};
+    const int head = chain->settings.room.head;
+    room.head_scale = head >= 0 && head < 3 ? scales[head] : 1.0;
+    for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+      room.angle_deg[speaker] = chain->settings.room.angle_deg[speaker];
+      room.level_db[speaker] = chain->settings.room.level_db[speaker];
+    }
+    feq_room_configure(chain->room, &room);
+  }
   chain_refresh_eq(chain);
   // After the bands, because it is built from the same settings and the guard
   // inside it decides whether anything is done at all. This is what makes
@@ -459,6 +499,30 @@ void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
       channel >= 0 && static_cast<uint32_t>(channel) < chain->channels
           ? channel
           : -1;
+  feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
+}
+
+void feq_chain_set_room_head(FeqChain* chain, const float* left,
+                             const float* right, uint32_t directions,
+                             uint32_t taps, int doubling) {
+  if (chain == nullptr) {
+    return;
+  }
+  feq_room_set_head(chain->room, left, right, directions, taps, doubling);
+}
+
+void feq_chain_set_room_layout(FeqChain* chain, const int* speaker) {
+  if (chain == nullptr) {
+    return;
+  }
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
+    chain->room_speakers[channel] = speaker != nullptr ? speaker[channel] : -1;
+  }
+  feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
+}
+
+int feq_chain_room_active(const FeqChain* chain) {
+  return chain == nullptr ? 0 : feq_room_active(chain->room);
 }
 
 void feq_chain_set_track_level_gains(FeqChain* chain,
@@ -545,6 +609,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     feq_loudness_meter_reset(chain->loudness_meter);
   }
 
+  feq_room_reset(chain->room);
   if (reason == FEQ_CHAIN_RESET_SOURCE_CHANGE) {
     /**
      * A source boundary empties every delayed sample.
@@ -584,6 +649,7 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   // deck's crossfade out by that much on every handoff.
   latency += feq_denoise_latency_frames(chain->denoise);
   latency += feq_live_normalizer_latency(chain->live_normalizer);
+  latency += feq_room_latency_frames(chain->room);
   if (chain->channels >= 2) {
     // Bass Punch keeps this alignment under bypass, so only the rack bypass
     // removes it. Account for it when aligning deck transitions.
@@ -744,6 +810,13 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                 feq_bass_punch_transient_db(&chain->bass_punch),
                                 feq_bass_punch_sustain_db(&chain->bass_punch),
                                 feq_bass_punch_duck_db(&chain->bass_punch));
+
+  /**
+   * The room, after everything that is per channel and before everything
+   * that is about the pair: from here on the front pair carries the two
+   * ears and the stages below run on that, as they run on any stereo mix.
+   */
+  feq_room_process(chain->room, channels, frames);
 
   /**
    * Width before the dynamics, and that position is forced rather than chosen.

@@ -91,7 +91,9 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
          ",\"processing\":" + (status.processing ? "true" : "false") +
          ",\"owner\":" + (status.owner ? "true" : "false") +
          ",\"reason\":" + quoted(status.reason) +
-         ",\"problems\":" + problems + last_song + ",\"at\":" + quoted(at) +
+         ",\"problems\":" + problems + last_song +
+         ",\"channels\":" + std::to_string(status.channels) +
+         ",\"room\":" + quoted(status.room) + ",\"at\":" + quoted(at) +
          "}\r\n";
 }
 

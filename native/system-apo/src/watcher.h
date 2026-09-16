@@ -152,7 +152,7 @@ class Watcher {
  public:
   Watcher(GraphSlot& slot, Log& log, Endpoint endpoint, std::wstring config_dir,
           uint32_t sample_rate, uint32_t channels, uint32_t max_frames,
-          int lfe_channel = -1);
+          unsigned long channel_mask = 0);
   ~Watcher();
 
   Watcher(const Watcher&) = delete;
@@ -249,8 +249,12 @@ class Watcher {
   const uint32_t sample_rate_;
   const uint32_t channels_;
   const uint32_t max_frames_;
-  /** The subwoofer feed's index, or -1; every graph this builds is told. */
-  const int lfe_channel_;
+  /**
+   * The stream's channel mask (0 for a plain format); every graph this
+   * builds is told, and reads the subwoofer feed and the room's speakers
+   * from it.
+   */
+  const unsigned long channel_mask_;
   std::unique_ptr<AnalysisLink> analysis_;
   // The output's, shared with every instance locked on it and kept across
   // locks (`leveling_board.h`). Null only if it could not be allocated, and
@@ -272,6 +276,8 @@ class Watcher {
   bool last_processing_ = false;
   bool last_owner_ = true;
   std::vector<std::string> graph_problems_;
+  /** The last graph's `room_state()`, for the status. */
+  std::string room_state_ = "off";
   // The watcher's own problems: a reload that threw (the previous graph
   // keeps running) until one works again, and a directory it cannot watch.
   bool reload_failed_ = false;

@@ -105,7 +105,7 @@ ConnectionFormat describe_format(const WAVEFORMATEX* format) {
   }
   if (format->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
     described.acceptable = true;
-    described.lfe_channel = lfe_channel_of(0, format->nChannels);
+    described.mask = 0;
     return described;
   }
   if (format->wFormatTag != WAVE_FORMAT_EXTENSIBLE ||
@@ -114,8 +114,7 @@ ConnectionFormat describe_format(const WAVEFORMATEX* format) {
   }
   const auto* extensible =
       reinterpret_cast<const WAVEFORMATEXTENSIBLE*>(format);
-  described.lfe_channel =
-      lfe_channel_of(extensible->dwChannelMask, format->nChannels);
+  described.mask = extensible->dwChannelMask;
   // A 32-bit container carrying fewer valid bits is a padded integer format
   // wearing a float's clothes; those samples would not be floats.
   if (extensible->Samples.wValidBitsPerSample != 32 &&

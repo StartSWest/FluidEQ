@@ -72,7 +72,7 @@ bool all_finite(float* const* planar, uint32_t channels,
 
 Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
              uint32_t max_frames, std::shared_ptr<FeqLevelingMemory> leveling,
-             int lfe_channel)
+             unsigned long channel_mask, const RoomHead* room_head)
     : sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
@@ -94,14 +94,19 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    */
   RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
                               max_frames_, warnings_, leveling_.get(),
-                              lfe_channel);
+                              channel_mask, room_head);
   rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
   dsp_values_ = chain.dsp_values;
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
+  room_note_ = rack.room_note;
+  room_state_ = rack.room_state;
   if (rack.failed) {
     problems_.push_back("dsp-rack");
+  }
+  if (rack.room_without_head) {
+    problems_.push_back("room-head");
   }
 
   // An endpoint the config never named gets no EQ at all, not even a
@@ -424,5 +429,9 @@ const std::vector<std::string>& Graph::warnings() const noexcept {
 const std::vector<std::string>& Graph::problems() const noexcept {
   return problems_;
 }
+
+const std::string& Graph::room_note() const noexcept { return room_note_; }
+
+const std::string& Graph::room_state() const noexcept { return room_state_; }
 
 }  // namespace fluideq_engine

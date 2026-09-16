@@ -50,6 +50,14 @@ struct EngineStatus {
    * plus the watcher's own: "reload-failed", "unwatched".
    */
   std::vector<std::string> problems;
+  /** How many channels the stream Windows locked has. */
+  unsigned channels = 0;
+  /**
+   * What the room does with them: `off`, `no-head` (asked for, no head
+   * file), `front-stage` (two channels), `5.1`, `7.1`, or `on` for another
+   * width. The card's chip reads this.
+   */
+  std::string room = "off";
   /**
    * The last named song live leveling finished on this output: sixteen hex
    * digits of the app's own hash, the loudest settled level and peak it

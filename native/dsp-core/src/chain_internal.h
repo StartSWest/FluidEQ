@@ -150,6 +150,10 @@ struct FeqChain {
   std::vector<float> punch_align_line[FEQ_CHAIN_MAX_CHANNELS];
   /** Which channel feeds the subwoofer, or -1: `feq_chain_set_lfe_channel`. */
   int lfe_channel = -1;
+  /* ------------------------------------------------------------- room -- */
+  /** Owned; created with the chain. Its head and layout come from the host. */
+  FeqRoom* room = nullptr;
+  int room_speakers[FEQ_CHAIN_MAX_CHANNELS] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
   /* -------------------------------------------------------------- EQ -- */
   /**

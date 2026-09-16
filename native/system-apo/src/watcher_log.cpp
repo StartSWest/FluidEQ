@@ -127,6 +127,8 @@ void Watcher::report_status(bool locked) noexcept {
       status.owner = last_owner_;
       status.reason = passthrough_reason_;
       status.problems = graph_problems_;
+      status.channels = channels_;
+      status.room = room_state_;
       if (reload_failed_) {
         status.problems.push_back("reload-failed");
       }

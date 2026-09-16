@@ -173,6 +173,22 @@ int feq_chain_settings_decode(const double* values,
   out->bass_punch.duck = next();
   out->bass_punch.mix = next();
 
+  out->room.enabled = flag();
+  out->room.preset = static_cast<int>(next());
+  out->room.size_m = next();
+  out->room.walls = next();
+  out->room.distance_m = next();
+  out->room.centre_db = next();
+  out->room.sub_db = next();
+  out->room.head = static_cast<int>(next());
+  out->room.correct_headphones = flag();
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    out->room.angle_deg[speaker] = next();
+  }
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    out->room.level_db[speaker] = next();
+  }
+
   out->surround_all_channels = flag();
 
   out->eq.band_count = static_cast<uint32_t>(next());

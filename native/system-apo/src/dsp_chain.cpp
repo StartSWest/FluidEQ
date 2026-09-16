@@ -6,6 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "dsp_chain.h"
 
+#include "channel_layout.h"
+#include "fluideq/convolver.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -39,7 +42,8 @@ bool decode_dsp_chain(const std::vector<double>& values,
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
-                     FeqLevelingMemory* leveling, int lfe_channel) {
+                     FeqLevelingMemory* leveling, unsigned long channel_mask,
+                     const RoomHead* room_head) {
   RackBuild built;
   if (values.empty()) {
     return built;  // No rack file, which is the ordinary state under APO.
@@ -77,8 +81,49 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   }
   built.channels = wanted;
   feq_chain_configure(built.chain.get(), &settings);
-  // Before the chain is published, like everything else about its shape.
-  feq_chain_set_lfe_channel(built.chain.get(), lfe_channel);
+  // Before the chain is published, like everything else about its shape:
+  // the subwoofer feed, each channel's speaker in the room, and the head.
+  const auto count = static_cast<unsigned short>(channels);
+  int speakers[FEQ_CHAIN_MAX_CHANNELS] = {-1, -1, -1, -1, -1, -1, -1, -1};
+  for (uint32_t channel = 0; channel < wanted; ++channel) {
+    speakers[channel] = speaker_of_channel(channel_mask, count, channel);
+  }
+  feq_chain_set_room_layout(built.chain.get(), speakers);
+  feq_chain_set_lfe_channel(built.chain.get(),
+                            lfe_channel_of(channel_mask, count));
+  if (room_head != nullptr) {
+    feq_chain_set_room_head(built.chain.get(), room_head->left.data(),
+                            room_head->right.data(), room_head->directions,
+                            room_head->taps, room_head->needs_doubling ? 1 : 0);
+  }
+  if (settings.room.enabled != 0) {
+    if (feq_chain_room_active(built.chain.get()) != 0) {
+      static const char* const kHeads[] = {"small", "medium", "large"};
+      const int head = settings.room.head;
+      built.room_state = wanted == 2   ? "front-stage"
+                         : wanted == 6 ? "5.1"
+                         : wanted == 8 ? "7.1"
+                                       : "on";
+      built.room_note =
+          "room on: " + std::to_string(wanted) + " channels folded to the "
+          "front pair through the " +
+          (head >= 0 && head < 3 ? kHeads[head] : "unknown") + " head (" +
+          std::to_string(room_head->directions) + " directions, " +
+          std::to_string(room_head->taps) + " taps), preset " +
+          std::to_string(settings.room.preset) + ", +" +
+          std::to_string(feq_convolver_latency()) + " frames";
+    } else if (room_head == nullptr) {
+      built.room_without_head = true;
+      built.room_state = "no-head";
+      warnings.push_back(
+          "The room is on but no head file was found beside the rack; the "
+          "room is off until the app writes one.");
+    } else {
+      built.room_note =
+          "room off: " + std::to_string(wanted) +
+          " channel(s), none with a speaker on the ring";
+    }
+  }
   if (feq_chain_enable_live_normalizer(built.chain.get()) == 0) {
     built.failed = true;
     built.chain.reset();

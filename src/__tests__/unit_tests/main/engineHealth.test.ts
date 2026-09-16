@@ -26,7 +26,8 @@ import {
 const ENGINE_TEXT =
   '{"version":1,"endpoint":"{947B0242-A1CF-4483-A44E-B72DA462C901}",' +
   '"pid":4242,"locked":true,"processing":true,"owner":true,' +
-  '"reason":"","problems":[],"at":"2026-09-11T12:00:00.000Z"}\r\n';
+  '"reason":"","problems":[],"channels":2,"room":"off",' +
+  '"at":"2026-09-11T12:00:00.000Z"}\r\n';
 
 const status = (fields: Record<string, unknown>) =>
   `${JSON.stringify({
@@ -54,6 +55,26 @@ afterEach(() => {
 });
 
 describe('parseEngineStatus', () => {
+  it('reads the channel count and the room state, and leaves out what it does not know', () => {
+    expect(parseEngineStatus(ENGINE_TEXT)).toEqual(
+      expect.objectContaining({ channels: 2, room: 'off' }),
+    );
+    expect(parseEngineStatus(status({ channels: 8, room: '7.1' }))).toEqual(
+      expect.objectContaining({ channels: 8, room: '7.1' }),
+    );
+    // An engine from before the room says neither; a newer engine's word
+    // this app does not know is not guessed at.
+    const older = parseEngineStatus(status({}));
+    expect(older).not.toHaveProperty('channels');
+    expect(older).not.toHaveProperty('room');
+    expect(parseEngineStatus(status({ room: 'atmos', channels: -1 }))).toEqual(
+      expect.not.objectContaining({ room: 'atmos' }),
+    );
+    expect(parseEngineStatus(status({ channels: -1 }))).not.toHaveProperty(
+      'channels',
+    );
+  });
+
   it('reads the phase fallback written by the native engine', () => {
     expect(
       parseEngineStatus(status({ problems: ['eq-phase'] }))?.problems,
@@ -68,6 +89,8 @@ describe('parseEngineStatus', () => {
       processing: true,
       owner: true,
       problems: [],
+      channels: 2,
+      room: 'off',
     });
   });
 

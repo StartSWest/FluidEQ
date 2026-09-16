@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/eq.h"
 #include "fluideq/meters.h"
 #include "fluideq/live_normalizer.h"
+#include "fluideq/room.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -165,6 +166,27 @@ typedef struct FeqChainSettings {
     double decorrelation;
   } dimension;
   /**
+   * The Room: every channel a speaker around the head, rendered on the
+   * front pair (`room.h`). The head itself is not a setting — the host hands
+   * it over with `feq_chain_set_room_head` — and `head` names which of the
+   * shipped ones the app wrote, so the engine can scale the interaural delay
+   * to it. `preset` and `correct_headphones` are the app's, carried here so
+   * the whole rack is one line on the wire.
+   */
+  struct {
+    int enabled;
+    int preset;
+    double size_m;
+    double walls;
+    double distance_m;
+    double centre_db;
+    double sub_db;
+    int head;
+    int correct_headphones;
+    double angle_deg[FEQ_ROOM_SPEAKERS];
+    double level_db[FEQ_ROOM_SPEAKERS];
+  } room;
+  /**
    * The two bass stages, carried as the chain's own copies of their settings.
    *
    * Not `FeqBassForgeSettings` and `FeqBassPunchSettings` directly: this header
@@ -254,12 +276,13 @@ typedef struct FeqChainSettings {
  */
 /*
  * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass
- * Punch added seven each, then 114 before the surround switch added one. All
- * of them are appended immediately before the band count — which has to stay
- * last, because both `isChainWirePayload` and the decoder read the tail's
- * length from `FEQ_CHAIN_PARAM_LEAD - 1`.
+ * Punch added seven each, then 114 before the surround switch added one, then
+ * 115 before the room added twenty-three. All of them are appended
+ * immediately before the band count — which has to stay last, because both
+ * `isChainWirePayload` and the decoder read the tail's length from
+ * `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 115
+#define FEQ_CHAIN_PARAM_LEAD 138
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
@@ -308,6 +331,24 @@ int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
  * LFE, which is right for every stereo stream.
  */
 void feq_chain_set_lfe_channel(FeqChain* chain, int channel);
+
+/**
+ * The room's head — see `feq_room_set_head`. Copied; the chain keeps it
+ * across reconfigures. CONTROL thread. A null or empty head is "no head",
+ * which leaves the room inactive whatever its switch says.
+ */
+void feq_chain_set_room_head(FeqChain* chain, const float* left,
+                             const float* right, uint32_t directions,
+                             uint32_t taps, int doubling);
+
+/**
+ * Which room speaker each channel feeds (`FEQ_CHAIN_MAX_CHANNELS` entries,
+ * 0..6 or -1), as the host reads it from the stream's mask. CONTROL thread.
+ */
+void feq_chain_set_room_layout(FeqChain* chain, const int* speaker);
+
+/** Whether the room is folding this chain's channels right now. */
+int feq_chain_room_active(const FeqChain* chain);
 
 /**
  * Hand over a linear-phase kernel, or null to leave linear phase.

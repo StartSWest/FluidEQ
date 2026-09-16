@@ -24,7 +24,7 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 add_library(fluideq-engine-dsp STATIC
   src/wav.cpp src/graphic_eq.cpp src/curve_phase.cpp src/dsp_chain.cpp src/graph.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
-  src/leveling_board.cpp)
+  src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -105,7 +105,7 @@ add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 # module list of a process they did not start.
 add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
-  src/apo_format.cpp src/apo_process.cpp src/channel_layout.cpp
+  src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/watcher_log.cpp src/owner_link.cpp src/config_file.cpp
   src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
@@ -150,6 +150,13 @@ add_executable(fluideq-engine-channel-layout-test
 target_link_libraries(fluideq-engine-channel-layout-test PRIVATE feq_strict)
 add_test(NAME engine-channel-layout
   COMMAND fluideq-engine-channel-layout-test)
+
+# The head file the app writes for the room: a missing block or a short one
+# must read as "no head", never as a head of zeros.
+add_executable(fluideq-engine-room-head-test
+  tests/room_head_test.cpp src/room_head.cpp)
+target_link_libraries(fluideq-engine-room-head-test PRIVATE feq_strict)
+add_test(NAME engine-room-head COMMAND fluideq-engine-room-head-test)
 
 # The DLL tests load the built module directly, so they take the path
 # CMake put it at rather than one spelled out here.

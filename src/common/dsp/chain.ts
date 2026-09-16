@@ -957,6 +957,7 @@ export interface IDspSettings {
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
   master: IMasterSettings;
+  room: IRoomSettings;
   surround: ISurroundSettings;
 }
 
@@ -970,6 +971,48 @@ export interface IDspSettings {
  * through it untouched, which is how every version before this behaved.
  * The Library player is stereo either way.
  */
+/** A whole room each; `custom` once any dial or speaker has been moved. */
+export type TRoomPreset =
+  'studio' | 'livingRoom' | 'cinema' | 'frontStage' | 'custom';
+export const ROOM_PRESETS: readonly TRoomPreset[] = [
+  'studio',
+  'livingRoom',
+  'cinema',
+  'frontStage',
+  'custom',
+];
+/** The three shipped heads, by the head width each was measured on. */
+export type TRoomHead = 'small' | 'medium' | 'large';
+export const ROOM_HEADS: readonly TRoomHead[] = ['small', 'medium', 'large'];
+/** FL, FR, C, SL, SR, RL, RR: the order of `angles` and `levels`. */
+export const ROOM_SPEAKERS = 7;
+
+/**
+ * The Room: every channel of the output a speaker around the listener's
+ * head, rendered on headphones through a measured head and the room's own
+ * early reflections. Stereo is two speakers in front, 5.1 and 7.1 the ring,
+ * decided by the stream, not by a setting here. The engine runs it on
+ * system audio and the Library player on Library music.
+ */
+export interface IRoomSettings {
+  enabled: boolean;
+  presetId: TRoomPreset;
+  /** The shoebox's side in metres, 2 to 12; the listener sits in the middle. */
+  sizeM: number;
+  /** 0 hard walls (full reflections) to 1 dead walls (none). */
+  walls: number;
+  /** Listener to every speaker, metres. */
+  distanceM: number;
+  centreDb: number;
+  subDb: number;
+  head: TRoomHead;
+  /** Whether the headphone profile is assumed to run after the room. */
+  correctHeadphones: boolean;
+  /** Each speaker's azimuth, degrees clockwise from straight ahead. */
+  angles: number[];
+  levels: number[];
+}
+
 export interface ISurroundSettings {
   allChannels: boolean;
 }
@@ -1144,6 +1187,12 @@ const RANGES = {
   eqFrequency: { min: 20, max: 20_000 },
   eqGainDb: { min: -24, max: 24 },
   eqQuality: { min: 0.1, max: 18 },
+  roomSizeM: { min: 2, max: 12 },
+  roomWalls: { min: 0, max: 1 },
+  roomDistanceM: { min: 0.5, max: 6 },
+  roomDb: { min: -12, max: 12 },
+  roomAngleDeg: { min: -180, max: 180 },
+  roomLevelDb: { min: -24, max: 12 },
 } as const satisfies Record<string, IRange>;
 
 const clampNumber = (
@@ -1626,6 +1675,22 @@ export const DSP_DEFAULTS: IDspSettings = {
     peakLimitingDb: 9,
     matchedBypass: false,
   },
+  // Off until it is asked for: it folds every output onto the front pair,
+  // which is only right on headphones. The living room is the room the
+  // dials describe when it is switched on.
+  room: {
+    enabled: false,
+    presetId: 'livingRoom',
+    sizeM: 4.2,
+    walls: 0.55,
+    distanceM: 1.8,
+    centreDb: 0,
+    subDb: 0,
+    head: 'medium',
+    correctHeadphones: true,
+    angles: [-30, 30, 0, -100, 100, -140, 140],
+    levels: [0, 0, 0, 0, 0, 0, 0],
+  },
   // On by default: a 5.1 or 7.1 output follows what Windows is set to, and
   // the rack on two of its channels was a surprise on every one of them.
   surround: {
@@ -1763,7 +1828,15 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
   const master = isRecord(value.master) ? value.master : {};
+  const room = isRecord(value.room) ? value.room : {};
   const surround = isRecord(value.surround) ? value.surround : {};
+  const roomPreset = ROOM_PRESETS.find((id) => id === room.presetId);
+  const roomHead = ROOM_HEADS.find((id) => id === room.head);
+  // Seven of each, one per speaker, whatever a stored array holds.
+  const perSpeaker = (stored: unknown, range: IRange, fallback: number[]) =>
+    fallback.map((value, at) =>
+      clampNumber(Array.isArray(stored) ? stored[at] : undefined, range, value),
+    );
   const storedBands = Array.isArray(compressor.bands) ? compressor.bands : [];
   const storedCorners = Array.isArray(compressor.crossoverHz)
     ? compressor.crossoverHz
@@ -2291,6 +2364,38 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       matchedBypass: clampBoolean(
         master.matchedBypass,
         DSP_DEFAULTS.master.matchedBypass,
+      ),
+    },
+    room: {
+      enabled: clampBoolean(room.enabled, DSP_DEFAULTS.room.enabled),
+      presetId: roomPreset ?? DSP_DEFAULTS.room.presetId,
+      sizeM: clampNumber(room.sizeM, RANGES.roomSizeM, DSP_DEFAULTS.room.sizeM),
+      walls: clampNumber(room.walls, RANGES.roomWalls, DSP_DEFAULTS.room.walls),
+      distanceM: clampNumber(
+        room.distanceM,
+        RANGES.roomDistanceM,
+        DSP_DEFAULTS.room.distanceM,
+      ),
+      centreDb: clampNumber(
+        room.centreDb,
+        RANGES.roomDb,
+        DSP_DEFAULTS.room.centreDb,
+      ),
+      subDb: clampNumber(room.subDb, RANGES.roomDb, DSP_DEFAULTS.room.subDb),
+      head: roomHead ?? DSP_DEFAULTS.room.head,
+      correctHeadphones: clampBoolean(
+        room.correctHeadphones,
+        DSP_DEFAULTS.room.correctHeadphones,
+      ),
+      angles: perSpeaker(
+        room.angles,
+        RANGES.roomAngleDeg,
+        DSP_DEFAULTS.room.angles,
+      ),
+      levels: perSpeaker(
+        room.levels,
+        RANGES.roomLevelDb,
+        DSP_DEFAULTS.room.levels,
       ),
     },
     surround: {

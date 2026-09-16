@@ -97,6 +97,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
+  dsp-core/src/room.cpp
+  dsp-core/src/room_kernels.cpp
   dsp-core/src/bass_forge.cpp
   dsp-core/src/bass_forge_meters.cpp
   dsp-core/src/bass_punch.cpp
@@ -205,6 +207,11 @@ add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 add_executable(fluideq-chain-surround-test dsp-core/tests/chain_surround_test.cpp)
 target_link_libraries(fluideq-chain-surround-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-surround COMMAND fluideq-chain-surround-test)
+
+# The room through a synthetic head whose delays are known frame counts.
+add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
+target_link_libraries(fluideq-room-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room COMMAND fluideq-room-test)
 
 add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
 target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)

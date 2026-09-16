@@ -75,6 +75,36 @@ int main() {
   // FC | LFE alone on a one-channel stream.
   CHECK(lfe_channel_of(0xC, 1) == -1);
 
+  std::printf("each channel's speaker in the room, from the mask\n");
+  using fluideq_engine::speaker_of_channel;
+  // 7.1 in mask order: FL FR C LFE BL BR SL SR.
+  const int seven[8] = {0, 1, 2, -1, 5, 6, 3, 4};
+  for (unsigned channel = 0; channel < 8; ++channel) {
+    CHECK(speaker_of_channel(k7point1, 8, channel) == seven[channel]);
+  }
+  // 5.1 with back surrounds and with side surrounds both land on the ring.
+  CHECK(speaker_of_channel(k5point1, 6, 4) == 5);
+  CHECK(speaker_of_channel(k5point1, 6, 5) == 6);
+  CHECK(speaker_of_channel(k5point1Side, 6, 4) == 3);
+  CHECK(speaker_of_channel(k5point1Side, 6, 5) == 4);
+  CHECK(speaker_of_channel(kStereo, 2, 0) == 0);
+  CHECK(speaker_of_channel(kStereo, 2, 1) == 1);
+  CHECK(speaker_of_channel(k2point1, 3, 2) == -1);
+  // A position the room has no speaker for still takes its place: FL FR FC
+  // FLC FRC — the fourth channel is front-left-of-centre, the fifth
+  // front-right-of-centre, neither on the ring.
+  CHECK(speaker_of_channel(0xC7, 5, 3) == -1);
+  CHECK(speaker_of_channel(0xC7, 5, 4) == -1);
+  CHECK(speaker_of_channel(0xC7, 5, 2) == 2);
+
+  std::printf("no mask: Windows' own order for two, six and eight\n");
+  CHECK(speaker_of_channel(0, 2, 1) == 1);
+  CHECK(speaker_of_channel(0, 6, 3) == -1);
+  CHECK(speaker_of_channel(0, 6, 5) == 6);
+  CHECK(speaker_of_channel(0, 8, 7) == 4);
+  CHECK(speaker_of_channel(0, 4, 2) == -1);
+  CHECK(speaker_of_channel(kStereo, 2, 2) == -1);
+
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

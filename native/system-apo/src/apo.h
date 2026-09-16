@@ -63,11 +63,11 @@ struct ConnectionFormat {
   uint32_t channels = 0;
   uint32_t rate = 0;
   /**
-   * Which channel feeds the subwoofer, or -1. From the extensible format's
-   * channel mask when it carries one; a plain format with six or more
-   * channels is in Windows' own order, where the LFE is the fourth.
+   * The extensible format's channel mask, or 0 for a plain format — which
+   * `channel_layout.h` reads as Windows' own order for the count. It names
+   * the subwoofer feed and, for the room, which speaker each channel is.
    */
-  int lfe_channel = -1;
+  unsigned long mask = 0;
 };
 
 /**

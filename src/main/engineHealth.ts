@@ -24,6 +24,7 @@ import {
   IEngineOutputHealth,
   IFinishedSong,
   normaliseEndpointGuid,
+  isRoomState,
 } from '../common/engineHealth';
 
 const STATUS_FILE = /^status-(\{[0-9A-Fa-f-]+\})\.json$/;
@@ -134,6 +135,14 @@ export const parseEngineStatus = (
     problems: problems.filter(isString),
     ...(reason ? { reason } : {}),
     ...(lastSong ? { lastSong } : {}),
+    // Both from an engine with the room; a word this app does not know is
+    // a state from a newer engine and is left out rather than guessed at.
+    ...(typeof value.channels === 'number' &&
+    Number.isInteger(value.channels) &&
+    value.channels >= 0
+      ? { channels: value.channels }
+      : {}),
+    ...(isRoomState(value.room) ? { room: value.room } : {}),
   };
 };
 
