@@ -61,6 +61,7 @@ import {
 import CommunityPanel from './community/CommunityPanel';
 import showGalleryGraph from './plus/showGalleryGraph';
 import { subscribePlusTabRequests } from './plus/plusTabRequest';
+import { usePlusWelcome } from './account/plusWelcomeStore';
 import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
@@ -895,11 +896,30 @@ const AppContent = () => {
     [],
   );
   // The graph's notice that its look has a new version opens that scene's
-  // page in the Plus tab (`GraphUpdateNotice.tsx`).
+  // page in the Plus tab (`GraphUpdateNotice.tsx`), and the welcome to Plus
+  // opens the tab itself. Whoever asks wants to SEE it, so the Account panel
+  // — open in front of the tab whenever this comes from paying — closes with
+  // the request; "See the visualizers" used to land on the panel that had
+  // sent the person to pay.
   useEffect(
-    () => subscribePlusTabRequests(() => selectTopWorkspaceTab('community')),
+    () =>
+      subscribePlusTabRequests(() => {
+        setAccountDialogPage(undefined);
+        selectTopWorkspaceTab('community');
+      }),
     [selectTopWorkspaceTab],
   );
+  // The welcome takes the Account panel's place the moment a membership
+  // lands: it is the panel's own "you are Plus now", said larger, and the
+  // panel underneath it was what the person had left to go and pay from.
+  // Closing the welcome returns to the app, with nothing in front of it; the
+  // panel, opened again, is the member's profile with the scene in it.
+  const plusWelcome = usePlusWelcome();
+  useEffect(() => {
+    if (plusWelcome) {
+      setAccountDialogPage(undefined);
+    }
+  }, [plusWelcome]);
   const [showProcessesDialog, setShowProcessesDialog] = useState(false);
   // What the last import did. Reported the same way as a recoverable failure —
   // in the corner, dismissable — rather than as a modal alert, because there
