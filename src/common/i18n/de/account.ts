@@ -92,7 +92,11 @@ const account = {
     'Öffnet Buy Me a Coffee in Ihrem Browser. Zahlen Sie mit derselben E-Mail-Adresse wie dieses Konto, damit FluidEQ sie erkennt; die App sieht Ihre Karte nie.',
   'account.plus.active': 'Aktiv',
   'account.plus.renews': 'Verlängert sich am {date}',
-  'account.plus.ends': 'Endet am {date}',
+  'account.plus.sorry': 'Schade, dass du gehst.',
+  'account.plus.until':
+    'Plus bleibt bis zum {date} aktiv, und es wird nichts mehr berechnet.',
+  'account.plus.refund':
+    'In den letzten {days} Tagen abgebucht und lieber zurück? Schreib an {contact}, dann wird der Betrag voll erstattet.',
   'account.plus.gift': 'Ein Geschenk von FluidEQ',
   'account.plus.giftUntil': 'Ein Geschenk von FluidEQ, bis {date}',
   'account.plus.computers':

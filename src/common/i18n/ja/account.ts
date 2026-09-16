@@ -90,7 +90,10 @@ const account = {
     'ブラウザで Buy Me a Coffee を開きます。FluidEQ が認識できるよう、このアカウントと同じメールアドレスで支払ってください。アプリがカード情報を見ることはありません。',
   'account.plus.active': '有効',
   'account.plus.renews': '{date} に更新',
-  'account.plus.ends': '{date} に終了',
+  'account.plus.sorry': 'ご利用ありがとうございました。',
+  'account.plus.until': '{date} まで Plus は使えます。以降の請求はありません。',
+  'account.plus.refund':
+    '過去 {days} 日以内の請求を返金してほしい場合は {contact} までご連絡ください。全額返金します。',
   'account.plus.gift': 'FluidEQ からのギフト',
   'account.plus.giftUntil': 'FluidEQ からのギフト（{date} まで）',
   'account.plus.computers': '同時に最大 {count} 台までサインインできます。',

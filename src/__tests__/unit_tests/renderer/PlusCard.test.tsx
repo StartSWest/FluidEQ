@@ -197,7 +197,13 @@ describe('the Plus card', () => {
     ).toBeInTheDocument();
   });
 
-  it('says a cancelled subscription ends rather than renews', () => {
+  /**
+   * A cancellation is somebody leaving, and the card answers what they are
+   * owed: that they are not being thrown out today, until when, and that a
+   * recent charge can still come back. The computer allowance belongs to a
+   * membership that is going on, not to one that is ending.
+   */
+  it('sees a cancelled subscription out, and says what is left of it', () => {
     render(
       <PlusCard
         entitlement={{
@@ -209,11 +215,32 @@ describe('the Plus card', () => {
         checkoutOpened={false}
       />,
     );
-    expect(screen.getByText(/account\.plus\.ends:/)).toBeInTheDocument();
+    expect(screen.getByText('account.plus.sorry')).toBeInTheDocument();
+    expect(screen.getByText(/account\.plus\.until:/)).toBeInTheDocument();
+    expect(screen.getByText(/account\.plus\.refund:/)).toBeInTheDocument();
+    expect(screen.queryByText(/account\.plus\.computers/)).toBeNull();
     // Still manageable: this is where somebody changes their mind.
     expect(
       screen.getByRole('button', { name: 'account.plus.manage' }),
     ).toHaveClass('subtle');
+  });
+
+  it('tells a renewing member the computers it covers, and no refund line', () => {
+    render(
+      <PlusCard
+        entitlement={{
+          state: 'active',
+          renewing: true,
+          periodEndsAt: JUNE_FIRST,
+        }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
+    expect(screen.getByText(/account\.plus\.renews:/)).toBeInTheDocument();
+    expect(screen.getByText(/account\.plus\.computers:/)).toBeInTheDocument();
+    expect(screen.queryByText('account.plus.sorry')).toBeNull();
+    expect(screen.queryByText(/account\.plus\.refund/)).toBeNull();
   });
 
   it('explains a grace period, names its end, and offers to check again', async () => {

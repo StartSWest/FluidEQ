@@ -562,3 +562,13 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-self: start;
   font-size: $text-small;
 }
+
+// The line a cancellation opens with. Warmer than the rest of the card and
+// not an alarm: the membership has not ended, and nothing here is a problem
+// to be fixed.
+.plus-card__sorry {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}

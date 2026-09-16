@@ -89,7 +89,11 @@ const account = {
     'Abre o Buy Me a Coffee no teu navegador. Paga com o mesmo email desta conta para que o FluidEQ o reconheça; a aplicação nunca vê o teu cartão.',
   'account.plus.active': 'Ativa',
   'account.plus.renews': 'Renova a {date}',
-  'account.plus.ends': 'Termina a {date}',
+  'account.plus.sorry': 'É pena vê-lo partir.',
+  'account.plus.until':
+    'O Plus fica activo até {date}, e não é cobrado mais nada.',
+  'account.plus.refund':
+    'Cobrado nos últimos {days} dias e prefere reavê-lo? Escreva para {contact} e é devolvido por inteiro.',
   'account.plus.gift': 'Um presente do FluidEQ',
   'account.plus.giftUntil': 'Um presente do FluidEQ, até {date}',
   'account.plus.computers':
