@@ -1,0 +1,29 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+/**
+ * The frame a scene is drawn in, wherever one is previewed.
+ *
+ * These two rules lived in `Gallery.scss` beside the scene page's own
+ * picture, so a preview only had a size where the gallery had been opened:
+ * `ScenePreview` measures this frame and gives the worker its canvas size,
+ * and an unsized frame measures zero — the scene runs, draws nothing, and
+ * what shows is whatever is behind it. That is what the account's banner and
+ * the welcome to Plus were showing instead of their scene. A component that
+ * draws with a class has to ask for the sheet that defines it.
+ */
+.gallery-preview__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-preview__canvas {
+  display: block;
+}

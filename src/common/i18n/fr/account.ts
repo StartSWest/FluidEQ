@@ -22,6 +22,7 @@ const account = {
   'account.working': 'Un instant…',
   'account.standing.free': 'Compte gratuit',
   'account.signOut': 'Se déconnecter',
+  'account.signOut.confirm': 'Se déconnecter de ce compte ?',
   'account.name.change': 'Changer de nom',
   'account.name.changeTitle': 'Changer la façon dont vous apparaissez',
   'account.name.changeBody':

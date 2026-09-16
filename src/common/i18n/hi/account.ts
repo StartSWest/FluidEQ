@@ -22,6 +22,7 @@ const account = {
   'account.working': 'एक क्षण…',
   'account.standing.free': 'मुफ़्त खाता',
   'account.signOut': 'साइन आउट',
+  'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':

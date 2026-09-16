@@ -27,7 +27,10 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow: hidden;
   background: $surface-plot;
 
-  &.is-playing {
+  // Tall from the moment a scene is coming — the still is already showing
+  // it — rather than when the drawing starts, which moved the panel under
+  // it a second after it opened.
+  &.is-scene {
     height: var(--band-tall, 244px);
 
     @media (max-height: 760px) {
@@ -38,6 +41,24 @@ it under the terms of the GNU General Public License version 3 or later.
   &::before {
     @include aurora;
   }
+}
+
+/**
+ * The scene's first frame, under the drawing of it.
+ *
+ * Captured at 1280×400 — the account banner's own proportion — so the handover
+ * is invisible: a picture cropped differently from the way the scene draws
+ * itself moved the moon and the lanterns the moment the drawing started,
+ * which is the jump this was added to remove. A band of another shape (the
+ * welcome's) crops it evenly from the centre, the way the scene composes.
+ */
+.scene-band__still {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 // Under the words and over the scene: ground enough for white text on a

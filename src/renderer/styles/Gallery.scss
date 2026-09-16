@@ -811,16 +811,15 @@ $gallery-card-lead: 120ms;
   box-shadow: 0 16px 40px rgba($black, 0.38);
 }
 
-.gallery-preview__frame,
+// The frame and the canvas inside it are `ScenePreview`'s own, and moved to
+// its sheet: they were only present where this one had been imported, which
+// left a preview outside the gallery — the account's banner, the welcome to
+// Plus — measuring zero and drawing nothing.
 .gallery-preview__still {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.gallery-preview__canvas {
-  display: block;
 }
 
 .gallery-preview__tag {

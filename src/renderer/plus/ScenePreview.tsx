@@ -8,6 +8,7 @@ import useSceneRunner, {
   type ISceneSource,
   type ISceneTuning,
 } from '../graph/useSceneRunner';
+import '../styles/ScenePreview.scss';
 
 export type TPreviewTrouble = 'heavy' | 'unavailable' | 'compile';
 

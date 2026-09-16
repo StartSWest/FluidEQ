@@ -21,6 +21,7 @@ const account = {
   'account.working': '请稍候…',
   'account.standing.free': '免费账户',
   'account.signOut': '退出登录',
+  'account.signOut.confirm': '要退出这个账户吗？',
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',
   'account.name.changeBody':

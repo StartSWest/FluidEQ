@@ -22,6 +22,7 @@ const account = {
   'account.working': 'Un momento…',
   'account.standing.free': 'Cuenta gratuita',
   'account.signOut': 'Cerrar sesión',
+  'account.signOut.confirm': '¿Cerrar la sesión de esta cuenta?',
   'account.name.change': 'Cambiar nombre',
   'account.name.changeTitle': 'Cambia cómo te ven',
   'account.name.changeBody':

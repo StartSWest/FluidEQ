@@ -22,6 +22,7 @@ const account = {
   'account.working': 'しばらくお待ちください…',
   'account.standing.free': '無料アカウント',
   'account.signOut': 'サインアウト',
+  'account.signOut.confirm': 'このアカウントからサインアウトしますか？',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',
   'account.name.changeBody':

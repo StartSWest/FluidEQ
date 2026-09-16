@@ -9,6 +9,17 @@ import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { useTranslation } from '../utils/I18nContext';
 import ScenePreview from './ScenePreview';
+/**
+ * The starter scene at rest, as a picture, at the band's own proportion.
+ *
+ * What the band showed while its scene was being fetched, compiled and warmed
+ * up was the aurora underneath — a coloured blur, then a night sky, which
+ * reads as the picture having changed its mind. This is the same scene's
+ * first frame, so the band is that scene from the moment it appears and the
+ * drawing simply starts moving. Captured from the scene itself in the
+ * component harness; if the scene is ever retuned, capture it again.
+ */
+import houseSceneStill from '../../../assets/plus/lantern-night-band.jpg';
 import '../styles/SceneBand.scss';
 
 /**
@@ -100,12 +111,26 @@ export default function SceneBand({
   const [trouble, setTrouble] = useState(false);
   const pack = useHouseScene(playsScene && !trouble);
   const playing = pack !== undefined && !trouble;
+  // A scene is coming or already here. It is what decides the band's height,
+  // not `playing`: the still is up from the first frame, and growing the
+  // band a second later — once the scene had been fetched and compiled —
+  // moved everything under it down the panel while somebody was reading it.
+  const scened = playsScene && !trouble;
 
   return (
     <div
-      className={`scene-band${playing ? ' is-playing' : ''} ${className}`.trim()}
+      className={`scene-band${scened ? ' is-scene' : ''}${
+        playing ? ' is-playing' : ''
+      } ${className}`.trim()}
       style={style}
     >
+      {/* Under the scene and over the aurora: the scene's own first frame,
+          held until the drawing paints over it — and left there for good on
+          a machine whose scene never starts, which is a still picture of the
+          right thing rather than a coloured blur. */}
+      {scened && (
+        <img className="scene-band__still" src={houseSceneStill} alt="" />
+      )}
       {playing && (
         <ScenePreview
           identity="scene-band"

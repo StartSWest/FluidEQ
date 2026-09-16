@@ -133,6 +133,8 @@ export default function AccountDialog({
     }
   }, [accountId]);
   const [editingName, setEditingName] = useState(false);
+  // Whether signing out is being asked about rather than done.
+  const [signingOut, setSigningOut] = useState(false);
   const displayName =
     profile?.displayName ?? identity?.name ?? identity?.email ?? '';
 
@@ -283,8 +285,12 @@ export default function AccountDialog({
             </SceneBand>
 
             <div className="account__head">
+              {/* The initials of the name shown under them, not of the one
+                  the sign-in provider holds: a board name of "Ivan" over an
+                  account registered as something else drew that something
+                  else's letter, and the avatar and the name disagreed. */}
               <span className="account__avatar" aria-hidden="true">
-                {initialsOf(identity.name, identity.email)}
+                {initialsOf(displayName, identity.email)}
               </span>
               {entitlement.state === 'none' ? (
                 <span className="account__standing account__standing--free">
@@ -315,6 +321,62 @@ export default function AccountDialog({
                   <span className="account__email">{identity.email}</span>
                 )}
               </p>
+
+              {/* The two things you can do to the account itself, as links
+                  under the name they are about rather than as a row of
+                  buttons at the foot: neither is what anybody opened this
+                  panel to be encouraged into, and a button says press me.
+                  Signing out asks first — it is one click from losing a
+                  half-written scene's home and every Plus lock closing. */}
+              {signingOut ? (
+                <p className="account__ask" role="alertdialog">
+                  <span className="account__ask-title">
+                    {t('account.signOut.confirm')}
+                  </span>
+                  <button
+                    type="button"
+                    className="account-link account__ask-yes"
+                    onClick={() => {
+                      signOutAccount().catch(() => undefined);
+                    }}
+                  >
+                    {t('account.signOut')}
+                  </button>
+                  <button
+                    type="button"
+                    className="account-link"
+                    onClick={() => setSigningOut(false)}
+                  >
+                    {t('account.name.cancel')}
+                  </button>
+                </p>
+              ) : (
+                <p className="account__links">
+                  {/* Only once the server has said whether there is a name:
+                      "choose" offered to somebody who has one would fail on
+                      the first press. */}
+                  {profileLoaded && !editingName && (
+                    <button
+                      type="button"
+                      className="account-link"
+                      onClick={() => setEditingName(true)}
+                    >
+                      {t(
+                        profile
+                          ? 'account.name.change'
+                          : 'leaderboard.name.choose',
+                      )}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="account-link"
+                    onClick={() => setSigningOut(true)}
+                  >
+                    {t('account.signOut')}
+                  </button>
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -328,38 +390,6 @@ export default function AccountDialog({
                 checkoutOpened={checkoutOpened}
               />
               <LeaderboardCard />
-
-              {/* The account's own actions, in a row under a hairline like
-                  the sections above them. Quiet: neither is what anybody
-                  opened this panel to be encouraged into; signing out stands
-                  apart at the far end. */}
-              <div className="account__hero-actions">
-                {/* Only once the server has said whether there is a name:
-                    "choose" offered to somebody who has one would create a
-                    second row and fail on the first. */}
-                {profileLoaded && !editingName && (
-                  <button
-                    type="button"
-                    className="button small subtle account__name-link"
-                    onClick={() => setEditingName(true)}
-                  >
-                    {t(
-                      profile
-                        ? 'account.name.change'
-                        : 'leaderboard.name.choose',
-                    )}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="button small subtle account__sign-out"
-                  onClick={() => {
-                    signOutAccount().catch(() => undefined);
-                  }}
-                >
-                  {t('account.signOut')}
-                </button>
-              </div>
 
               {errorLine}
 

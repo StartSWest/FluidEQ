@@ -66,9 +66,11 @@ it under the terms of the GNU General Public License version 3 or later.
  * 640px is the width at which Discord's own 600×240 banner proportion holds.
  */
 .about.account.account--profile {
-  // Taller than the other pages, so a profile with a scene in its banner
-  // stands on an ordinary screen without its sections scrolling under it.
-  @include dialog.surface(640px, 900px);
+  // Shorter than it was (Ivan, 2026-09-16): the two account links moved up
+  // beside the name, which took a whole row of buttons and its hairline out
+  // of the foot, and the banner lost forty pixels. Nothing here scrolls on
+  // an ordinary screen.
+  @include dialog.surface(640px, 780px);
 }
 
 // The banner, the avatar and the name: the panel's top, in the row the
@@ -96,16 +98,16 @@ it under the terms of the GNU General Public License version 3 or later.
  * button — the scene is the point and is not to be dimmed.
  */
 .account__banner {
-  --band-short: 150px;
-  --band-tall: 236px;
-  --band-tall-short: 196px;
+  --band-short: 132px;
+  --band-tall: 196px;
+  --band-tall-short: 168px;
 
   // Without a scene: the app's own aurora, still and at half its light. It
   // was a flat field in the person's colour, which for a green account was
   // a green wall (Ivan, 2026-09-15: "that green sucks" — the app's colour,
   // and subtle). The avatar keeps the person's colour; the banner is the
   // app's.
-  &:not(.is-playing)::before {
+  &:not(.is-scene)::before {
     animation: none;
     opacity: 0.45;
   }
@@ -155,7 +157,7 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: space-between;
   gap: $spacing-m;
   // Half the avatar over the banner's edge, past the top's own row gap.
-  margin-top: calc(-52px - 4px);
+  margin-top: calc(-44px - 4px);
   padding: 0 20px;
 }
 
@@ -172,51 +174,74 @@ it under the terms of the GNU General Public License version 3 or later.
 .account__avatar {
   display: grid;
   flex: 0 0 auto;
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   color: hsl(var(--identity-hue, 170deg) 90% 86%);
-  border: 6px solid $surface-field-end;
+  border: 5px solid $surface-field-end;
   border-radius: 50%;
   background: hsl(var(--identity-hue, 170deg) 60% 26%);
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: $weight-bold;
   place-items: center;
   @include tracking(0.02em);
 }
 
-// "FluidEQ Plus" with the mark, or "Free account" outlined, beside the avatar.
+/**
+ * What the account is, beside the avatar.
+ *
+ * A member's is a badge and not a button: it was an outlined pill the size
+ * and shape of every quiet button in the app, and read as one somebody had
+ * forgotten to make pressable (Ivan, 2026-09-16). This is lit from inside —
+ * the accent laid across it, a bright hairline over the top edge, the app's
+ * own glow under it — and the word is set in caps like a stamp. Nothing in
+ * the panel outshines the name above it except this.
+ */
 .account__standing {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin-bottom: 10px;
-  padding: 5px 12px 5px 8px;
-  color: $white;
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  padding: 5px 13px 5px 6px;
+  color: $surface-base;
   border-radius: $radius-pill;
-  background: color-mix(in srgb, $secondary-default 22%, transparent);
-  font-size: $text-small;
+  background: linear-gradient(
+    130deg,
+    $secondary-light,
+    $secondary-default 46%,
+    color-mix(in srgb, $neon-purple 62%, $secondary-default) 100%
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, $secondary-light 40%, transparent),
+    0 6px 20px color-mix(in srgb, $secondary-default 42%, transparent),
+    inset 0 1px 0 rgba($white, 0.42);
+  font-size: $text-micro;
   font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+  white-space: nowrap;
 
+  // Without a membership there is nothing to celebrate and nothing to sell
+  // here — the section below does the selling. A quiet outline.
   &--free {
     padding: 5px 12px;
-    color: $text-muted;
-    border-color: rgba($white, 0.16);
-    background: transparent;
+    color: $text-faint;
+    background: none;
+    box-shadow: inset 0 0 0 1px rgba($white, 0.16);
+    text-shadow: none;
   }
 }
 
 // NESTED, so it outranks `.brand-mark` in App.scss (44px, a 30px stroke and
 // a 38px shadow) rather than racing it on import order — the same reason
 // the dialog header nests its own copy. A flat class here left the mark at
-// full size, spilling out of the pill it was meant to sit inside.
+// full size, spilling out of the badge it was meant to sit inside.
 .account__standing .brand-mark {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, $secondary-light 22%, transparent);
+  background: rgba($surface-base, 0.22);
   box-shadow: none;
 
   svg {
@@ -225,6 +250,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   path {
+    stroke: $white;
     stroke-width: 4;
   }
 }
@@ -277,8 +303,38 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-body;
 }
 
-.account__name-link {
-  flex: 0 0 auto;
+// The account's own two actions, as links under the name they are about:
+// they were a row of buttons at the foot of the panel, which put the two
+// quietest things in it at the end of the longest scroll and added a row the
+// panel had to be tall enough for.
+.account__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 2px 0 0;
+}
+
+// Signing out asks first, in place of the links, so the answer is where the
+// question was asked rather than in a dialog over the panel.
+.account__ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 2px 0 0;
+}
+
+.account__ask-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+// Red like every other point of no return in this app, and still a link:
+// the loud style belongs to what is being recommended, which this is not.
+.account-link.account__ask-yes {
+  color: $red;
 }
 
 // The board's own name form, under the person it is about. The form lays
@@ -286,21 +342,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // wrapper is that container, so the narrow layout applies at the same width.
 .account__name-form {
   container: leaderboard / inline-size;
-}
-
-// The account's own two actions, under a hairline like the sections above
-// them; signing out stands apart at the far end.
-.account__hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-xs;
-  padding-top: 16px;
-  border-top: 1px solid rgba($white, 0.08);
-
-  .account__sign-out {
-    margin-left: auto;
-  }
 }
 
 

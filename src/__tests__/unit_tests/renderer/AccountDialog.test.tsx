@@ -122,8 +122,11 @@ describe('the account panel', () => {
     expect(button('account.forgot.link')).toHaveClass('account-link');
     unmount();
 
+    // Signed in, neither of the account's own two actions is recommended —
+    // they are links beside the name, not buttons under it.
     renderDialog({ status: 'signed-in', identity: { id: 'u' } });
-    expect(button('account.signOut')).toHaveClass('subtle');
+    expect(button('account.signOut')).toHaveClass('account-link');
+    expect(button('account.signOut')).not.toHaveClass('button');
   });
 
   it('creates an account with a short enough password refused before it is sent', async () => {
@@ -273,6 +276,17 @@ describe('the account panel', () => {
     expect(screen.getByText('ada@example.com')).toBeInTheDocument();
     expect(screen.queryByLabelText('account.field.email')).toBeNull();
 
+    // Signing out asks first: one press away from every Plus lock closing
+    // and a half-written scene losing its home.
+    await userEvent.click(button('account.signOut'));
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(screen.getByText('account.signOut.confirm')).toBeInTheDocument();
+
+    await userEvent.click(button('account.name.cancel'));
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(screen.queryByText('account.signOut.confirm')).toBeNull();
+
+    await userEvent.click(button('account.signOut'));
     await userEvent.click(button('account.signOut'));
     expect(mockSignOut).toHaveBeenCalled();
   });
@@ -401,6 +415,23 @@ describe('the name on the board, from the account panel', () => {
     expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
     expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
     expect(screen.getByText('Ivan')).toHaveClass('account__name');
+  });
+
+  /**
+   * The avatar is the initials of the name shown under it, not of the one the
+   * sign-in provider holds. A board name of "Ivan" over an account registered
+   * as somebody else drew that somebody else's letter, and the picture and
+   * the name in the same panel disagreed about who was signed in.
+   */
+  it('draws the initials of the name it shows, not the provider’s', async () => {
+    bridge.plusProfile.mockResolvedValue({
+      ok: true,
+      value: { ...NAMED, displayName: 'Ivan' },
+    });
+    const { container } = signedIn();
+
+    expect(await screen.findByText('Ivan')).toHaveClass('account__name');
+    expect(container.querySelector('.account__avatar')).toHaveTextContent('I');
   });
 
   it('offers to choose a name where there is none, and puts the form away on cancel', async () => {
