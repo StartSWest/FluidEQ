@@ -22,6 +22,7 @@ export type TDspSection =
   | 'bassForge'
   | 'bassPunch'
   | 'dimension'
+  | 'room'
   | 'compressor'
   | 'maximizer'
   | 'master';
@@ -51,6 +52,11 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // then re-times underneath it.
   { id: 'bassPunch', labelKey: 'dsp.bassPunch.title' },
   { id: 'dimension', labelKey: 'dsp.dimension.title' },
+  // After Dimension in the list, before it in the audio: the room folds a
+  // surround stream onto the front pair right after Bass Punch, and Dimension
+  // then widens the binaural pair like any stereo mix. Listed here because
+  // the page reads as "shape the stereo picture, then put it in a room".
+  { id: 'room', labelKey: 'dsp.room.title' },
   // Keep the processor in the DSP chain, but hide its editor until it is ready.
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },

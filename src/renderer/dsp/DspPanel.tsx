@@ -24,6 +24,8 @@ import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
+import DspRoomCard from './DspRoomCard';
+import { useRoomLive } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
 import DspScopeNotice from './DspScopeNotice';
 import DspSideTabs from './DspSideTabs';
@@ -179,7 +181,9 @@ const DspPanel = ({
     compressor,
     maximizer,
     master,
+    room,
   } = settings;
+  const roomLive = useRoomLive(isSystemWide);
   /**
    * The rate the filters will actually run at, from the engine.
    *
@@ -534,6 +538,7 @@ const DspPanel = ({
             bassForge: bassForge.enabled,
             bassPunch: bassPunch.enabled,
             dimension: dimension.enabled,
+            room: room.enabled,
             compressor: compressor.enabled,
             maximizer: maximizer.enabled,
             master: master.enabled,
@@ -793,6 +798,15 @@ const DspPanel = ({
             <DspDimensionCard
               dimension={dimension}
               onPatch={(next) => patch({ dimension: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'room' && (
+            <DspRoomCard
+              room={room}
+              live={roomLive}
+              onPatch={(next) => patch({ room: next })}
               onCommit={onCommit}
             />
           )}

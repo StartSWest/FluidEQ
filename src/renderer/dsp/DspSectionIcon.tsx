@@ -72,6 +72,13 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M3 4.5 V15.5 M17 4.5 V15.5',
     accent: 'M6 10 H14 M8.4 7.6 L6 10 L8.4 12.4 M11.6 7.6 L14 10 L11.6 12.4',
   },
+  // A head from above between two speakers' sound: the picture of the stage
+  // is the listener in the middle, which no other icon on the rail has.
+  room: {
+    frame: 'M10 10 m-3.6 0 a3.6 3.6 0 1 0 7.2 0 a3.6 3.6 0 1 0 -7.2 0',
+    accent:
+      'M4.2 6.2 A6.4 6.4 0 0 0 4.2 13.8 M15.8 6.2 A6.4 6.4 0 0 1 15.8 13.8',
+  },
   compressor: {
     frame: 'M3 17 L17 3',
     accent: 'M3 17 L8.5 11.5 C10.5 9.4 12 8.8 17 8.4',

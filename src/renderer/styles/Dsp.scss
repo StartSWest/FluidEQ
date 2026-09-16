@@ -76,7 +76,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // several entries arriving together. That is exactly what happened when Bass
 // Forge and Bass Punch took the list from eight entries to ten and the count
 // stayed at nine: the Maximizer and the Master flew in on the same beat.
-$dsp-rail-filters: 9;
+$dsp-rail-filters: 10;
 $dsp-rail-step: 26ms;
 $dsp-rail-offset: 110ms;
 
@@ -2112,6 +2112,7 @@ $dsp-pane-columns: 6;
 .dsp-exciter-band-row,
 .dsp-exciter-global-row,
 .dsp-dimension-controls,
+.dsp-room-controls,
 .dsp-maximizer-controls,
 .dsp-crossfade-layout,
 .dsp-crossovers {
@@ -2134,6 +2135,7 @@ $dsp-pane-columns: 6;
 .dsp-exciter-global-row > *,
 .dsp-eq-bottom > *,
 .dsp-dimension-controls > *,
+.dsp-room-controls > *,
 .dsp-maximizer-controls > *,
 .dsp-crossfade-layout > *,
 .dsp-crossovers > * {
@@ -2154,6 +2156,7 @@ $dsp-pane-columns: 6;
     .dsp-exciter-controls,
     .dsp-eq,
     .dsp-dimension-controls,
+    .dsp-room-controls,
     .dsp-maximizer-controls,
     .dsp-crossfade-layout,
     .dsp-crossovers
@@ -3525,6 +3528,148 @@ $dsp-pane-columns: 6;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
   width: 100%;
+}
+
+// The Room: the picture, then three surfaces — the room, the head, the
+// headphones — that wrap like the Master card's do.
+.dsp-room-graph {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+  transition: opacity $motion-base $ease-out;
+
+  &.is-off {
+    opacity: 0.45;
+  }
+}
+
+// Square, and never taller than the graphs beside it in the rail: the room
+// reads at 220px and a full-height square would push the surfaces below the
+// fold on a Full HD window.
+.dsp-room-svg {
+  width: min(100%, 300px);
+  height: auto;
+  aspect-ratio: 1;
+  touch-action: none;
+}
+
+// The floor: the accent pooled under the listener, dark at the walls.
+.dsp-room-floor-in {
+  stop-color: $secondary-default;
+  stop-opacity: 0.16;
+}
+
+.dsp-room-floor-out {
+  stop-color: $surface-well;
+  stop-opacity: 1;
+}
+
+.dsp-room-walls {
+  fill: none;
+  stroke: $edge-tint;
+  stroke-width: 2;
+  transition: stroke-opacity $motion-base $ease-out;
+}
+
+.dsp-room-speaker-driver {
+  fill: $surface-well;
+  stroke: $secondary-default;
+  stroke-width: 1;
+}
+
+.dsp-room-speaker-tweeter {
+  fill: $secondary-default;
+}
+
+.dsp-room-ring {
+  fill: none;
+  stroke: rgba($white, 0.08);
+  stroke-dasharray: 3 5;
+}
+
+.dsp-room-axis {
+  stroke: rgba($white, 0.06);
+}
+
+.dsp-room-speaker-glow {
+  fill: $secondary-default;
+  filter: blur(5px);
+}
+
+.dsp-room-speaker-box {
+  fill: $surface-block;
+  stroke: $secondary-default;
+  stroke-width: 1.2;
+}
+
+.dsp-room-speaker-name {
+  fill: $text-faint;
+  font-size: 9px;
+  @include tracking(0.08em);
+  pointer-events: none;
+}
+
+.dsp-room-speaker.can-drag {
+  cursor: grab;
+}
+
+.dsp-room-head {
+  ellipse {
+    fill: $primary-lighter;
+    opacity: 0.9;
+  }
+
+  path {
+    fill: none;
+    stroke: $primary-lighter;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  circle {
+    fill: $text-faint;
+  }
+}
+
+.dsp-room-graph-hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.dsp-room-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+
+  > .dsp-band {
+    flex-basis: 280px;
+    align-self: stretch;
+  }
+
+  .segmented {
+    align-self: flex-start;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+// What the room is doing this second, beside the power switch: quiet while
+// nothing is folding, the accent once it is.
+.dsp-room-live {
+  color: $text-faint;
+  font-size: $text-small;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+  transition: color 140ms ease;
+
+  &.is-on {
+    color: $secondary-default;
+  }
 }
 
 .dsp-dimension-group {
