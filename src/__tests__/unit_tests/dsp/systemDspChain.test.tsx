@@ -333,6 +333,45 @@ describe('what the DSP page says its scope is', () => {
   });
 });
 
+describe('the surround switch', () => {
+  it('sits in the header beside the rack switch, and is not on the Master card', async () => {
+    // A setting of the whole rack — which channels of a 5.1 output it runs
+    // on — so it lives with the rack's own switch, where a card being off
+    // cannot take it away.
+    const onChange = jest.fn();
+    render(
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, isEnabled: true }}
+      >
+        <DspPanel
+          settings={DSP_DEFAULTS}
+          onChange={onChange}
+          onCommit={() => undefined}
+          engineState="running"
+          onOpenEngineDialog={() => undefined}
+        />
+      </FluidEqProviderWrapper>,
+    );
+    expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
+    const toggle = screen.getByRole('checkbox', { name: 'Surround' });
+    expect(document.querySelector('.dsp-header')).toContainElement(toggle);
+    expect(toggle).toBeChecked();
+    expect(
+      screen.getByText('All channels', { selector: '.dsp-global-power-state' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ surround: { allChannels: false } }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Master/i }));
+    expect(screen.getAllByRole('checkbox', { name: 'Surround' })).toHaveLength(
+      1,
+    );
+  });
+});
+
 describe('the rack under the engine with nothing playing at all', () => {
   it('is live, because the engine runs it independent of the Library deck', async () => {
     // The exact situation the pill promises and the controls used to deny:

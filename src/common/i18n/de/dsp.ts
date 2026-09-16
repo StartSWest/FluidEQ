@@ -571,6 +571,8 @@ const dsp = {
     'Lässt das Rack auf jedem Kanal eines 5.1- oder 7.1-Ausgangs laufen, so wie Windows eingestellt ist, mit einer Pegelentscheidung für alle.',
   'dsp.surround.offHint':
     'Nur das vordere Paar: die übrigen Kanäle eines Surround-Ausgangs laufen unverändert durch das Rack.',
+  'dsp.surround.allChannels': 'Alle Kanäle',
+  'dsp.surround.frontPair': 'Vorderes Paar',
   'dsp.master.limit.limiting':
     '{requested} dB nötig — {room} dB Spitzenreserve plus die erlaubte Begrenzung.',
   'dsp.master.limit.maxGain':

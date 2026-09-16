@@ -418,6 +418,43 @@ const DspPanel = ({
             onChange={onChange}
             onCommit={onCommit}
           />
+          {/* Beside the rack's own switch, not on the Master card: it is a
+              setting of the whole rack — which channels of a surround output
+              it runs on — and a card that is switched off with its stage
+              would have taken it off with it. Its two words say which
+              channels, the way the power's say on or off; the longer
+              sentence is the tooltip. */}
+          <div
+            className="dsp-global-power dsp-surround"
+            title={
+              settings.surround.allChannels
+                ? t('dsp.surround.onHint')
+                : t('dsp.surround.offHint')
+            }
+          >
+            <span
+              className={`dsp-global-power-state${
+                settings.surround.allChannels ? ' is-on' : ''
+              }`}
+              aria-hidden="true"
+            >
+              {settings.surround.allChannels
+                ? t('dsp.surround.allChannels')
+                : t('dsp.surround.frontPair')}
+            </span>
+            <Switch
+              id="dsp-surround-all-channels"
+              isOn={settings.surround.allChannels}
+              isDisabled={!isRackEngaged}
+              handleToggle={() => {
+                patch({
+                  surround: { allChannels: !settings.surround.allChannels },
+                });
+                onCommit();
+              }}
+              ariaLabel={t('dsp.surround.title')}
+            />
+          </div>
           <div className="dsp-global-power">
             <span
               className={`dsp-global-power-state${isRackLive ? ' is-on' : ''}`}
@@ -771,13 +808,6 @@ const DspPanel = ({
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)
               }
-              surroundAllChannels={settings.surround.allChannels}
-              onSurroundToggle={() => {
-                patch({
-                  surround: { allChannels: !settings.surround.allChannels },
-                });
-                onCommit();
-              }}
               onPatch={(next) => patch({ master: next })}
               onCommit={onCommit}
             />

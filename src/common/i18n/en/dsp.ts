@@ -571,6 +571,8 @@ const dsp = {
     'Runs the rack on every channel of a 5.1 or 7.1 output, following what Windows is set to, with one level decision for all of them.',
   'dsp.surround.offHint':
     'Front pair only: the other channels of a surround output pass through the rack untouched.',
+  'dsp.surround.allChannels': 'All channels',
+  'dsp.surround.frontPair': 'Front pair',
   'dsp.master.limit.limiting':
     'Needed {requested} dB — {room} dB of peak room plus the limiting allowed.',
   'dsp.master.limit.maxGain':

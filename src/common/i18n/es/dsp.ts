@@ -563,6 +563,8 @@ const dsp = {
     'Pasa el rack por todos los canales de una salida 5.1 o 7.1, según lo que tenga configurado Windows, con una sola decisión de nivel para todos.',
   'dsp.surround.offHint':
     'Solo el par frontal: los demás canales de una salida surround atraviesan el rack sin tocarse.',
+  'dsp.surround.allChannels': 'Todos los canales',
+  'dsp.surround.frontPair': 'Par frontal',
   'dsp.master.limit.limiting':
     'Se necesitaban {requested} dB — {room} dB de margen de pico más la limitación permitida.',
   'dsp.master.limit.maxGain':

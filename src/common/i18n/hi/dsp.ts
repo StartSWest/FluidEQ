@@ -556,6 +556,8 @@ const dsp = {
     '5.1 या 7.1 आउटपुट के हर चैनल पर रैक चलाता है, जैसा Windows में सेट है, और सबके लिए एक ही लेवल का फ़ैसला लेता है।',
   'dsp.surround.offHint':
     'सिर्फ़ सामने की जोड़ी: सराउंड आउटपुट के बाकी चैनल रैक से अछूते गुज़रते हैं।',
+  'dsp.surround.allChannels': 'सभी चैनल',
+  'dsp.surround.frontPair': 'सामने की जोड़ी',
   'dsp.master.limit.limiting':
     '{requested} dB चाहिए थे — {room} dB पीक जगह और अनुमत लिमिटिंग तक ही।',
   'dsp.master.limit.maxGain':

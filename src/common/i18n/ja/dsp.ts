@@ -551,6 +551,8 @@ const dsp = {
     'Windows の設定に従い、5.1 / 7.1 出力のすべてのチャンネルにラックをかけ、レベル判定は全チャンネルで一つにします。',
   'dsp.surround.offHint':
     'フロント 2ch のみ：サラウンド出力の他のチャンネルはラックをそのまま通過します。',
+  'dsp.surround.allChannels': '全チャンネル',
+  'dsp.surround.frontPair': 'フロント 2ch',
   'dsp.master.limit.limiting':
     '{requested} dB 必要 — ピークの余裕 {room} dB と許可されたリミッティングまで。',
   'dsp.master.limit.maxGain':

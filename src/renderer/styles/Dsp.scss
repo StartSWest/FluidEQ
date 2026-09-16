@@ -302,6 +302,14 @@ $dsp-rail-offset: 110ms;
   border-left: 1px solid rgba($white, 0.1);
 }
 
+// The surround switch shares the power switch's look and sits just before
+// it. Only the first of the two takes the row's free space: two `auto`
+// margins would split it between them and float the surround switch in the
+// middle of the row.
+.dsp-surround + .dsp-global-power {
+  margin-left: 0;
+}
+
 .dsp-global-power-state {
   color: $text-faint;
   font-size: $text-small;
