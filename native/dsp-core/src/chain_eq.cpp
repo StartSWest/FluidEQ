@@ -277,8 +277,13 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
 
   // The other domains' detectors mirror the first: one decision was made, and
   // a meter showing several would suggest the band opened on one side only.
+  // At the band stride, which is where every other reader of a channel's
+  // detectors looks — the per-domain path, the refresh. Stepping by the live
+  // band count instead wrote the mirror into the first channel's spare slots
+  // and left the real ones stale, so a switch from stereo to a mid/side mode
+  // resumed the side's envelope from wherever it had been left.
   for (uint32_t channel = 1; channel < channel_count; ++channel) {
-    const size_t base = static_cast<size_t>(channel) * live;
+    const size_t base = static_cast<size_t>(channel) * FeqChain::kBandStride;
     for (uint32_t index = 0; index < live; ++index) {
       chain->band_dynamics[base + index].envelope =
           chain->band_dynamics[index].envelope;

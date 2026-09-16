@@ -179,6 +179,57 @@ void instances_share_an_output() {
   SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_ROOT", nullptr);
 }
 
+/**
+ * The app reads the file at the moments the engine writes it — its first
+ * read at launch met the engine's first write, and the plain rename failed
+ * against the reader's handle. The reader is Node, which opens with every
+ * share mode; the write has to land over that handle, and a write that
+ * cannot land has to say why.
+ */
+void a_reader_does_not_stop_the_write() {
+  std::printf("a status is written over a file the app is reading\n");
+  wchar_t temp[MAX_PATH] = {};
+  const DWORD length = GetTempPathW(MAX_PATH, temp);
+  CHECK(length > 0 && length < MAX_PATH);
+  const std::wstring root = std::wstring(temp) + L"fluideq-engine-status-r" +
+                            std::to_wstring(GetCurrentProcessId());
+  CHECK(CreateDirectoryW(root.c_str(), nullptr) != 0);
+  CHECK(SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_ROOT", root.c_str()) != 0);
+  const std::wstring path = root + L"\\status-{CCCC}.json";
+
+  EngineStatus status;
+  status.endpoint = L"{CCCC}";
+  status.locked = false;
+  CHECK(fluideq_engine::write_status(status));
+  CHECK(says_locked(path, false));
+
+  // Held open exactly as Node's `fs.readFile` holds it (libuv's share mode).
+  const HANDLE reader = CreateFileW(
+      path.c_str(), GENERIC_READ,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+  CHECK(reader != INVALID_HANDLE_VALUE);
+  status.locked = true;
+  status.processing = true;
+  std::string why;
+  const bool written = fluideq_engine::write_status(status, &why);
+  CHECK(written);
+  if (!written) {
+    std::printf("  why: %s\n", why.c_str());
+  }
+  CloseHandle(reader);
+  CHECK(says_locked(path, true));
+  CHECK(!leftover_temporaries(root));
+
+  // Positive control for the reason: a root that is not there names itself.
+  DeleteFileW(path.c_str());
+  CHECK(RemoveDirectoryW(root.c_str()) != 0);
+  why.clear();
+  CHECK(!fluideq_engine::write_status(status, &why));
+  CHECK(why.find("engine root") != std::string::npos);
+  SetEnvironmentVariableW(L"FLUIDEQ_ENGINE_ROOT", nullptr);
+}
+
 }  // namespace
 
 int main() {
@@ -189,6 +240,7 @@ int main() {
   text_is_escaped();
   linear_phase_fallback_is_reported();
   instances_share_an_output();
+  a_reader_does_not_stop_the_write();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

@@ -105,7 +105,7 @@ add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 # module list of a process they did not start.
 add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
-  src/apo_format.cpp src/apo_process.cpp
+  src/apo_format.cpp src/apo_process.cpp src/channel_layout.cpp
   src/watcher.cpp src/watcher_log.cpp src/owner_link.cpp src/config_file.cpp
   src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
@@ -142,6 +142,14 @@ add_executable(fluideq-engine-status-test
 target_link_libraries(fluideq-engine-status-test
   PRIVATE feq_strict shell32 ole32)
 add_test(NAME engine-status COMMAND fluideq-engine-status-test)
+
+# Which channel is the subwoofer feed, from the stream's mask: the exciter
+# leaves that one alone, and a rule off by one buzzes a subwoofer.
+add_executable(fluideq-engine-channel-layout-test
+  tests/channel_layout_test.cpp src/channel_layout.cpp)
+target_link_libraries(fluideq-engine-channel-layout-test PRIVATE feq_strict)
+add_test(NAME engine-channel-layout
+  COMMAND fluideq-engine-channel-layout-test)
 
 # The DLL tests load the built module directly, so they take the path
 # CMake put it at rather than one spelled out here.

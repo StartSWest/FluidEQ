@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "apo.h"
+#include "channel_layout.h"
 #include "log.h"
 
 // After `apo.h`, which is what pulls in `windows.h`: mmreg.h is one of the
@@ -87,32 +88,6 @@ HRESULT suggest_float(const WAVEFORMATEX* requested,
 }
 
 }  // namespace
-
-/**
- * Where the subwoofer feed sits in the stream, or -1.
- *
- * The channels of a stream are in the order of the mask's set bits, so the
- * LFE's index is how many speaker bits sit below `SPEAKER_LOW_FREQUENCY`.
- * A stream with no mask — a plain format, or an extensible one that says 0 —
- * is in Windows' own order for its count, which for six channels and up is
- * 5.1's and 7.1's with the LFE fourth; fewer than six without a mask says
- * nothing, and a quad or a 2.1 without one is left alone rather than guessed.
- */
-int lfe_channel_of(DWORD mask, WORD channels) {
-  if (mask == 0) {
-    return channels >= 6 ? 3 : -1;
-  }
-  if ((mask & SPEAKER_LOW_FREQUENCY) == 0) {
-    return -1;
-  }
-  int index = 0;
-  for (DWORD bit = 1; bit < SPEAKER_LOW_FREQUENCY; bit <<= 1) {
-    if ((mask & bit) != 0) {
-      ++index;
-    }
-  }
-  return index < channels ? index : -1;
-}
 
 ConnectionFormat describe_format(const WAVEFORMATEX* format) {
   ConnectionFormat described;

@@ -79,9 +79,6 @@ struct ConnectionFormat {
  */
 ConnectionFormat describe_format(const WAVEFORMATEX* format);
 
-/** `ConnectionFormat::lfe_channel` from a channel mask and a count. */
-int lfe_channel_of(DWORD mask, WORD channels);
-
 // Effects discovery and processing are separate host operations. Offering
 // IAudioSystemEffects3 supports discovery; it does not prove that Windows
 // has initialized or connected this object to a processing graph.

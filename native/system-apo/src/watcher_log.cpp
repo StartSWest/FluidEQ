@@ -116,8 +116,9 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph,
 void Watcher::report_status(bool locked) noexcept {
   try {
     bool written = true;
+    std::string why;
     if (!locked) {
-      written = status_.leave();
+      written = status_.leave(&why);
     } else if (!endpoint_.guid.empty()) {  // Else nothing to match it to.
       EngineStatus status;
       status.endpoint = endpoint_.guid;
@@ -139,11 +140,19 @@ void Watcher::report_status(bool locked) noexcept {
         status.last_song = EngineStatus::FinishedSong{
             id, song->level_lufs, song->peak_db, song->seconds};
       }
-      written = status_.publish(status);
+      written = status_.publish(status, &why);
     }
-    if (!written && !status_failure_logged_) {
+    // Once per run of failures, with the step and Windows' error: the line
+    // used to say only that it failed, and a launch where the app restarted
+    // Windows audio over a status this could not write left nothing to read
+    // but the fact. A later success re-arms it, so the next failure is a
+    // line of its own rather than silence.
+    if (written) {
+      status_failure_logged_ = false;
+    } else if (!status_failure_logged_) {
       status_failure_logged_ = true;
-      log_.write("could not write this output's status for the app");
+      log_.write("could not write this output's status for the app (" + why +
+                 ")");
     }
   } catch (...) {
     // A status the app never sees costs its notice, not the audio.

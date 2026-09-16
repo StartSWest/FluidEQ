@@ -77,9 +77,18 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
 /**
  * Writes `status_json` for this process, now, replacing any previous file
  * whole — written aside and renamed into place, so the app never reads half
- * of one. False when it could not; never throws.
+ * of one. False when it could not, with which step and Windows' error code
+ * in `why` when one is given; never throws.
+ *
+ * The rename is made with POSIX semantics where Windows offers them (1607
+ * and later): the app reads this file at the same moments the engine writes
+ * it — its first read at launch landed on the engine's first write — and an
+ * ordinary `MoveFileEx` over a file somebody holds open fails, which left
+ * the app a status from an earlier stream and had it restart Windows audio
+ * to mend an engine that was running.
  */
-bool write_status(const EngineStatus& status) noexcept;
+bool write_status(const EngineStatus& status,
+                  std::string* why = nullptr) noexcept;
 
 /**
  * One engine instance's say in its output's status file.
@@ -104,15 +113,17 @@ class StatusShare {
    * Writes `status`, which must be a locked one, and counts this instance
    * among the output's the first time. False when the file could not be
    * written — the instance is counted in all the same, because it is running
-   * the output whether or not the app has been told.
+   * the output whether or not the app has been told. `why` as `write_status`.
    */
-  bool publish(const EngineStatus& status) noexcept;
+  bool publish(const EngineStatus& status,
+               std::string* why = nullptr) noexcept;
 
   /**
    * Counts this instance out. The last one out on its output writes "not
-   * locked"; the others write nothing. False only when that write failed.
+   * locked"; the others write nothing. False only when that write failed,
+   * `why` as `write_status`.
    */
-  bool leave() noexcept;
+  bool leave(std::string* why = nullptr) noexcept;
 
  private:
   // The output this instance is counted on; empty while it is not.
