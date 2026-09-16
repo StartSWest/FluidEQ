@@ -1,5 +1,6 @@
 #include "chain_internal.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace {
@@ -90,6 +91,31 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);
+
+  // The room's tail and the surround channels' alignment lines: both are
+  // delayed audio, and a line that starts empty at a handover is a hole in
+  // every channel behind the front pair. The lines are sized once at
+  // create to the most either stage can need, so the copy fits; the delay
+  // each is set to stays the prepared chain's own.
+  feq_room_transfer(prepared.room, previous.room);
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
+    if (prepared.denoise_align_line[channel].size() ==
+        previous.denoise_align_line[channel].size()) {
+      std::copy(previous.denoise_align_line[channel].begin(),
+                previous.denoise_align_line[channel].end(),
+                prepared.denoise_align_line[channel].begin());
+      prepared.denoise_align[channel].cursor =
+          previous.denoise_align[channel].cursor;
+    }
+    if (prepared.punch_align_line[channel].size() ==
+        previous.punch_align_line[channel].size()) {
+      std::copy(previous.punch_align_line[channel].begin(),
+                previous.punch_align_line[channel].end(),
+                prepared.punch_align_line[channel].begin());
+      prepared.punch_align[channel].cursor =
+          previous.punch_align[channel].cursor;
+    }
+  }
 
   swap(prepared.dimension, previous.dimension);
   swap(prepared.dimension_side, previous.dimension_side);

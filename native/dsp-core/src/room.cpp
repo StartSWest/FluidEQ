@@ -268,6 +268,53 @@ uint32_t feq_room_latency_frames(const FeqRoom* room) {
   return feq_room_active(room) != 0 ? feq_convolver_latency() : 0u;
 }
 
+void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
+  if (prepared == nullptr || previous == nullptr || prepared == previous ||
+      prepared->sample_rate != previous->sample_rate ||
+      prepared->channels != previous->channels ||
+      prepared->max_frames != previous->max_frames) {
+    return;
+  }
+  // Whatever the previous room was handed and has not run yet is newer than
+  // its live set and older than the prepared room's: take it now, so the
+  // tail carried over is the latest one heard.
+  adopt(previous);
+  if (previous->live == nullptr) {
+    return;
+  }
+  // The prepared room's own set: still in `handoff` when the chain has not
+  // processed a block yet (the engine's handover), already live when it
+  // has (a host that primed it). Either way it goes back into `handoff`,
+  // and the first block adopts it as the replacement over the tail taken.
+  FeqRoomKernels* own = prepared->handoff.exchange(nullptr,
+                                                    std::memory_order_acq_rel);
+  if (own == nullptr) {
+    own = prepared->live;
+    prepared->live = nullptr;
+  } else {
+    retire(prepared, prepared->live);
+    prepared->live = nullptr;
+  }
+  if (own == nullptr) {
+    // A room with no set of its own (its kernels could not be built) has
+    // nothing to fade to, and must not go on playing the previous room's
+    // set as if it were its own: it stays as it was built, inactive.
+    return;
+  }
+  retire(prepared, prepared->next);
+  prepared->live = previous->live;
+  prepared->next = previous->next;
+  prepared->blend = previous->blend;
+  prepared->warmup = previous->warmup;
+  prepared->sub_state = previous->sub_state;
+  previous->live = nullptr;
+  previous->next = nullptr;
+  previous->blend = 1.0;
+  previous->warmup = 0;
+  room_destroy_kernels(
+      prepared->handoff.exchange(own, std::memory_order_acq_rel));
+}
+
 void feq_room_reset(FeqRoom* room) {
   if (room == nullptr) {
     return;

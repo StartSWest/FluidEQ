@@ -103,6 +103,18 @@ int feq_room_active(const FeqRoom* room);
 uint32_t feq_room_latency_frames(const FeqRoom* room);
 
 /**
+ * AUDIO thread, at a chain handover: `prepared` takes over what `previous`
+ * is playing — its live set, the convolvers' tails, a fade in progress and
+ * the sub's filter — and its own published set becomes the replacement,
+ * warmed and faded in like any dial change. Without this a rebuilt chain's
+ * room started from empty convolvers: one partition of silence, heard as
+ * the sound cutting for an instant on every change to a room dial.
+ * Allocates nothing; refused unless both rooms share rate, width and
+ * block size. `previous` is left with no set to play.
+ */
+void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous);
+
+/**
  * The sub's filter state and the mixes. The convolvers keep their tails —
  * at most the blend's 21 ms — because emptying them would mean re-creating
  * them, and this may be called from the audio thread on a seek.

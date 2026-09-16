@@ -211,6 +211,126 @@ void changed_settings_arrive_without_a_silent_block() {
   }
 }
 
+/**
+ * The room across a handover. The engine rebuilds the rack on every change
+ * to a room dial, and a room that started its convolvers empty put one
+ * partition of silence into every such change — heard as the sound cutting
+ * for an instant. With the same settings the handover must be inaudible;
+ * with a changed room the old room must keep playing until the new one is
+ * warm, and the new one must actually arrive.
+ */
+void the_room_keeps_its_tail_across_a_handover() {
+  constexpr uint32_t directions = 24;
+  constexpr uint32_t taps = 64;
+  // A head that reaches both ears eight frames late, at less than unity, so
+  // the room is audibly a filter and not a wire.
+  std::vector<float> ring(directions * taps, 0.0f);
+  for (uint32_t direction = 0; direction < directions; ++direction) {
+    ring[direction * taps + 8] = 0.7f;
+  }
+  const int speakers[FEQ_CHAIN_MAX_CHANNELS] = {0, 1, -1, -1, -1, -1, -1, -1};
+  // Primed with one silent block and reset, as the engine's `build_rack`
+  // does: that adopts the published kernels, which a transfer refuses to
+  // find pending, and makes the room's set live before the handover.
+  const auto with_room = [&](const FeqChainSettings& settings) {
+    Rack rack(feq_chain_create(kRate, 2, kFrames), &feq_chain_destroy);
+    feq_chain_configure(rack.get(), &settings);
+    feq_chain_set_room_layout(rack.get(), speakers);
+    feq_chain_set_room_head(rack.get(), ring.data(), ring.data(), directions,
+                            taps, 0);
+    std::vector<float> silence(static_cast<size_t>(kFrames) * 2);
+    float* planes[2] = {silence.data(), silence.data() + kFrames};
+    feq_chain_process(rack.get(), planes, kFrames);
+    feq_chain_reset(rack.get(), FEQ_CHAIN_RESET_STREAM_START);
+    return rack;
+  };
+  auto settings = settings_for(false);
+  settings.room.enabled = 1;
+  auto reference = with_room(settings);
+  auto running = with_room(settings);
+  check(feq_chain_room_active(running.get()) == 1, "the room is folding");
+
+  double maximum_error = 0.0;
+  double audible_peak = 0.0;
+  for (uint32_t block = 0; block < 500; ++block) {
+    if (block >= 300 && block % 7 == 0) {
+      auto next = with_room(settings);
+      check(transfer(next.get(), running.get()) == 1, "room chains transfer");
+      running = std::move(next);
+    }
+    auto expected = signal(block);
+    auto actual = expected;
+    process(reference.get(), expected);
+    track_heap = true;
+    process(running.get(), actual);
+    track_heap = false;
+    for (uint32_t channel = 0; channel < 2; ++channel) {
+      for (uint32_t frame = 0; frame < kFrames; ++frame) {
+        maximum_error = std::max(maximum_error,
+            std::fabs(static_cast<double>(actual[channel][frame]) -
+                      expected[channel][frame]));
+      }
+    }
+    if (block >= 300) {
+      audible_peak = std::max(audible_peak, peak(actual));
+    }
+  }
+  std::printf("room unchanged: maximum error %.9g, peak %.4f\n",
+              maximum_error, audible_peak);
+  check(maximum_error < 1e-6, "an unchanged room hands over inaudibly");
+  check(audible_peak > 0.02, "the room comparison contains real audio");
+
+  // A changed room: the first partition after the handover is still the old
+  // room, sample for sample, and nothing in it is a hole.
+  auto changed = settings;
+  changed.room.distance_m = 3.5;
+  changed.room.walls = 0.1;
+  auto next = with_room(changed);
+  check(transfer(next.get(), running.get()) == 1, "a changed room transfers");
+  running = std::move(next);
+  double warm_error = 0.0;
+  double minimum_block_peak = 1.0;
+  constexpr uint32_t warm_blocks = 512 / kFrames;
+  for (uint32_t block = 500; block < 500 + warm_blocks; ++block) {
+    auto expected = signal(block);
+    auto actual = expected;
+    process(reference.get(), expected);
+    track_heap = true;
+    process(running.get(), actual);
+    track_heap = false;
+    for (uint32_t channel = 0; channel < 2; ++channel) {
+      for (uint32_t frame = 0; frame < kFrames; ++frame) {
+        warm_error = std::max(warm_error,
+            std::fabs(static_cast<double>(actual[channel][frame]) -
+                      expected[channel][frame]));
+      }
+    }
+    minimum_block_peak = std::min(minimum_block_peak, peak(actual));
+  }
+  std::printf("room changed: warm-up error %.9g, quietest block %.4f\n",
+              warm_error, minimum_block_peak);
+  check(warm_error < 1e-6, "the old room plays on while the new one warms");
+  check(minimum_block_peak > 0.02, "no block after the change is a hole");
+  double drift = 0.0;
+  for (uint32_t block = 500 + warm_blocks; block < 900; ++block) {
+    auto expected = signal(block);
+    auto actual = expected;
+    process(reference.get(), expected);
+    track_heap = true;
+    process(running.get(), actual);
+    track_heap = false;
+    if (block >= 850) {
+      for (uint32_t frame = 0; frame < kFrames; ++frame) {
+        drift = std::max(drift,
+            std::fabs(static_cast<double>(actual[0][frame]) -
+                      expected[0][frame]));
+      }
+    }
+  }
+  std::printf("room changed: settled difference %.6f\n", drift);
+  check(drift > 1e-4, "the changed room really arrives (control)");
+}
+
 void incompatible_streams_and_pending_configs_are_refused() {
   const auto settings = settings_for(true);
   auto running = prepare(settings);
@@ -342,6 +462,7 @@ int main() {
   changed_settings_arrive_without_a_silent_block();
   dynamic_edits_keep_new_configuration();
   edits_during_audible_fades_keep_the_fade();
+  the_room_keeps_its_tail_across_a_handover();
   check(allocations == 0, "engine audio handover and processing allocate nothing");
   check(releases == 0, "engine audio handover and processing free nothing");
   incompatible_streams_and_pending_configs_are_refused();

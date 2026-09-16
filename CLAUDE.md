@@ -624,7 +624,23 @@ Out-String` (or any other capture) is what actually waits for it and shows
   kernels are built on the control thread and adopted through an atomic
   exchange, warmed for the convolver's warm-up and faded in over its
   blend, and the sets the audio thread finishes with are handed back to be
-  freed (`retired`), never freed on the audio thread. Which channel is
+  freed (`retired`), never freed on the audio thread. The engine rebuilds
+  the whole chain on every rack change and `feq_chain_transfer_state` runs
+  on the audio thread at the swap, so the room is part of that handover
+  (`feq_room_transfer`: the previous room's live set and tail move to the
+  prepared one, whose own set goes back into `handoff` to be adopted as the
+  replacement) — without it every dial move put one partition of silence
+  into the sound, and the surround alignment lines (`denoise_align`,
+  `punch_align`) emptied the same way; `chain_transfer_test.cpp` and
+  `chain_surround_test.cpp` hold both. The card's eleven rooms
+  (`roomPresets.ts`) are pinned by value in `dspRoomPresets.test.ts` and
+  again in `room_presets_test.cpp`, which runs the engine's room through
+  them: retune a room on both sides in one commit. `ROOM_PRESETS` in
+  `chain.ts` is wire order (the engine logs the index), so a new room goes
+  before `custom`, never between. Saved rooms (`savedRooms.ts`) keep the
+  shape and never the head, like the presets. The engine's room has no bass
+  management: every speaker channel reaches the ears full range and only
+  the LFE is low-passed (120 Hz). Which channel is
   which speaker comes from the stream's mask (`speaker_of_channel`), the
   head from `fluideq-room-head.txt` beside the rack (`room_head.h`, written
   by main from the rack message itself — `roomHeadOnWire` — only when the

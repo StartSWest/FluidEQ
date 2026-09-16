@@ -37,6 +37,11 @@ picks the head for your ears, and the same room on the Library's player.
   (studio, living room, cinema, front stage), set its size, walls, distance,
   centre and sub, choose the head and whether your headphone profile runs
   after it; a chip beside the switch says what the room is doing this second.
+  The room takes the page beside its controls, measured in metres along its
+  wall and to its speakers, and the speakers the playing stream cannot
+  reach — five of them while stereo plays — are drawn asleep, with a line
+  saying why. A room you shaped can be saved under a name and put back with
+  a press; the head stays yours.
   Shaping the room is part of Plus; the room and its presets are for
   everyone. It adds about 11 ms when it runs.
 - **One press to 7.1.** Games and films send their surround channels only to
@@ -52,6 +57,14 @@ picks the head for your ears, and the same room on the Library's player.
   around you. Five pairs, the two strongest heard again with the sides
   swapped, and the room takes the head that won; Head on the card can still
   change it any time.
+- **Eleven rooms, and yours.** The Room's presets sit in the same picker
+  the other stages use, grouped and with each room's numbers under its name:
+  Studio, Living room and Front stage; Home theatre, Cinema, Gaming, Concert
+  hall, Jazz club and Club; Near field and Open air. Every one is a place
+  someone has sat in, with its speakers inside its walls, and every one is
+  run through the engine's room by a test: nothing clips, the walls come
+  back later in a bigger room and not at all in the open air, a louder sub is
+  louder. The What's new tour and the guide have a Room chapter each.
 - **The Room on the Library's player.** The Library plays music through its
   own copy of the rack, and that copy left the room out. Now it runs the
   same room with the same head, so a song in the Library and the same song
@@ -59,6 +72,14 @@ picks the head for your ears, and the same room on the Library's player.
 
 ### Fixed
 
+- **Turning a Room dial no longer cuts the sound for an instant.** Every
+  change to the rack makes the engine build it afresh and hand the playing
+  state across, and the room was left out of that handover: its new
+  convolvers started empty, which was heard as a tiny hole on every dial
+  move and every dragged speaker. The room now hands its tail over and the
+  new setting fades in over it, like any other stage. The surround
+  channels' alignment lines were left out the same way and are carried
+  over too.
 - **Changing outputs no longer puts up an administrator prompt by itself.**
   Under the FluidEQ Engine, switching to an output the engine was not on, or
   unplugging one, made FluidEQ enable the engine there on its own — a Windows

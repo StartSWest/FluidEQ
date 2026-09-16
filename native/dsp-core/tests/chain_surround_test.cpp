@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/chain.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <memory>
@@ -79,10 +80,20 @@ FeqChainSettings settings_for(bool stereo_stages) {
   return settings;
 }
 
+/**
+ * Built as the engine builds its rack: configured, run for one silent block
+ * so the published kernels are adopted, then reset to a stream's start.
+ */
 Chain make_chain(uint32_t channels, const FeqChainSettings& settings) {
   Chain chain(feq_chain_create(kRate, channels, kFrames));
   if (chain) {
     feq_chain_configure(chain.get(), &settings);
+    std::vector<float> silence(static_cast<size_t>(kFrames) * channels);
+    std::vector<float*> planes(channels);
+    for (uint32_t at = 0; at < channels; ++at) {
+      planes[at] = silence.data() + static_cast<size_t>(at) * kFrames;
+    }
+    feq_chain_process(chain.get(), planes.data(), kFrames);
     feq_chain_reset(chain.get(), FEQ_CHAIN_RESET_STREAM_START);
   }
   return chain;
@@ -272,6 +283,61 @@ void channels_stay_aligned() {
 }
 
 /**
+ * The alignment lines across a handover: the engine rebuilds the rack on
+ * every change, and a line that started empty put a hole into every channel
+ * behind the front pair each time. Same settings both sides, so the run
+ * with a handover in the middle must equal the run without one.
+ */
+void alignment_survives_a_handover() {
+  std::printf("alignment survives a handover\n");
+  FeqChainSettings settings = settings_for(true);
+  settings.bass_punch.enabled = 1;
+  Chain reference = make_chain(kSurround, settings);
+  Chain running = make_chain(kSurround, settings);
+  Chain next = make_chain(kSurround, settings);
+  check(reference != nullptr && running != nullptr && next != nullptr,
+        "chains built");
+  if (!reference || !running || !next) {
+    return;
+  }
+  auto a = planar(kSurround);
+  auto b = planar(kSurround);
+  const std::vector<float> programme = pink(17u, 0.5);
+  for (auto& channel : a) {
+    channel = programme;
+  }
+  for (auto& channel : b) {
+    channel = programme;
+  }
+  std::vector<float*> pointers(kSurround);
+  const auto block_of = [&](std::vector<std::vector<float>>& buffers,
+                            size_t block) {
+    for (size_t channel = 0; channel < kSurround; ++channel) {
+      pointers[channel] = buffers[channel].data() + block * kFrames;
+    }
+    return pointers.data();
+  };
+  for (size_t block = 0; block < kBlocks; ++block) {
+    if (block == kBlocks / 2) {
+      check(feq_chain_transfer_state(next.get(), running.get()) == 1,
+            "the surround chain transfers");
+      running = std::move(next);
+    }
+    feq_chain_process(reference.get(), block_of(a, block), kFrames);
+    feq_chain_process(running.get(), block_of(b, block), kFrames);
+  }
+  for (uint32_t channel = 0; channel < kSurround; ++channel) {
+    double error = 0.0;
+    for (size_t at = 0; at < a[channel].size(); ++at) {
+      error = std::max(error, std::fabs(static_cast<double>(a[channel][at]) -
+                                        b[channel][at]));
+    }
+    std::printf("  channel %u: handover error %.9g\n", channel, error);
+    check(error < 1e-6, "a handover leaves the channel as it was");
+  }
+}
+
+/**
  * The subwoofer feed gets no harmonics, and the channel beside it does.
  *
  * Against a chain with the exciter off rather than against the input: the
@@ -381,6 +447,7 @@ int main() {
   surround_channel_matches_the_front();
   level_is_decided_once();
   channels_stay_aligned();
+  alignment_survives_a_handover();
   lfe_is_left_alone_by_the_exciter();
   return finish();
 }
