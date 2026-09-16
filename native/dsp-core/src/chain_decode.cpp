@@ -173,6 +173,8 @@ int feq_chain_settings_decode(const double* values,
   out->bass_punch.duck = next();
   out->bass_punch.mix = next();
 
+  out->surround_all_channels = flag();
+
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {
     return 0;

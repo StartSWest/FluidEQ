@@ -294,6 +294,43 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
   settings.mix = chain->settings.bass_punch.mix;
   feq_bass_punch_process(&chain->bass_punch, channels, chain->channels, frames,
                          &settings, chain->sample_rate);
+  // The pair has just been delayed by the FIR, on or off; the channels
+  // beyond it are delayed by the same amount or the image smears.
+  chain_process_punch_align(chain, channels, frames);
+}
+
+void chain_process_denoise_align(FeqChain* chain, float* const* channels,
+                                 uint32_t frames) {
+  for (uint32_t channel = FEQ_CHAIN_CHANNELS; channel < chain->channels;
+       ++channel) {
+    feq_delay_line_process(&chain->denoise_align[channel], channels[channel],
+                           frames);
+  }
+}
+
+void chain_process_punch_align(FeqChain* chain, float* const* channels,
+                               uint32_t frames) {
+  for (uint32_t channel = FEQ_CHAIN_CHANNELS; channel < chain->channels;
+       ++channel) {
+    feq_delay_line_process(&chain->punch_align[channel], channels[channel],
+                           frames);
+  }
+}
+
+void chain_apply_denoise_alignment(FeqChain* chain) {
+  const uint32_t latency = feq_denoise_latency_frames(chain->denoise);
+  for (uint32_t channel = FEQ_CHAIN_CHANNELS; channel < chain->channels;
+       ++channel) {
+    FeqDelayLine& line = chain->denoise_align[channel];
+    if (line.buffer == nullptr) {
+      continue;
+    }
+    // One integer the next sample reads; the audio already in the line stays
+    // where it is. The front pair's own restoration ring moves by the same
+    // step at the same moment, which is a step in both rather than a drift
+    // between them.
+    line.delay = latency < line.capacity ? latency : line.capacity - 1;
+  }
 }
 
 void chain_process_maximizer(FeqChain* chain, float* const* channels,

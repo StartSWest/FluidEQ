@@ -83,7 +83,7 @@ constexpr double kDenoiseSilenceDb = -120.0;
  * reallocates a buffer the callback is reading; a value too small does not
  * fail loudly, it silently wraps the ring and returns the wrong sample.
  */
-constexpr uint32_t kDenoiseMaxLatencyFrames = 32768;
+constexpr uint32_t kDenoiseMaxLatencyFrames = FEQ_DENOISE_MAX_LATENCY_FRAMES;
 
 /**
  * One channel's short-time transform state.

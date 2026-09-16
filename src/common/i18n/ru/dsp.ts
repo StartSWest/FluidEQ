@@ -556,6 +556,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'Выравнивание уровня',
   'dsp.master.matchedBypassHint':
     'Снимает с выхода {gain} дБ подъёма, поэтому включение и выключение Master сравнивает звук, а не громкость. Ограничение в обоих случаях одинаковое — меняется только уровень.',
+  'dsp.surround.title': 'Surround',
+  'dsp.surround.onHint':
+    'Прогоняет рэк по каждому каналу выхода 5.1 или 7.1, как настроено в Windows, с одним решением по уровню для всех.',
+  'dsp.surround.offHint':
+    'Только передняя пара: остальные каналы surround-выхода проходят через рэк нетронутыми.',
   'dsp.master.limit.limiting':
     'Требовалось {requested} дБ — {room} дБ пикового запаса плюс разрешённое ограничение.',
   'dsp.master.limit.maxGain':

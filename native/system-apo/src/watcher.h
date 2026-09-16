@@ -151,7 +151,8 @@ class GraphSlot {
 class Watcher {
  public:
   Watcher(GraphSlot& slot, Log& log, Endpoint endpoint, std::wstring config_dir,
-          uint32_t sample_rate, uint32_t channels, uint32_t max_frames);
+          uint32_t sample_rate, uint32_t channels, uint32_t max_frames,
+          int lfe_channel = -1);
   ~Watcher();
 
   Watcher(const Watcher&) = delete;
@@ -248,6 +249,8 @@ class Watcher {
   const uint32_t sample_rate_;
   const uint32_t channels_;
   const uint32_t max_frames_;
+  /** The subwoofer feed's index, or -1; every graph this builds is told. */
+  const int lfe_channel_;
   std::unique_ptr<AnalysisLink> analysis_;
   // The output's, shared with every instance locked on it and kept across
   // locks (`leveling_board.h`). Null only if it could not be allocated, and

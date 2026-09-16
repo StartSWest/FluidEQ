@@ -771,6 +771,13 @@ const DspPanel = ({
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)
               }
+              surroundAllChannels={settings.surround.allChannels}
+              onSurroundToggle={() => {
+                patch({
+                  surround: { allChannels: !settings.surround.allChannels },
+                });
+                onCommit();
+              }}
               onPatch={(next) => patch({ master: next })}
               onCommit={onCommit}
             />

@@ -36,7 +36,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 114;
+export const CHAIN_PARAM_LEAD = 115;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -195,6 +195,8 @@ export const encodeChainSettings = (
     bassPunch.bloomDecayMs,
     bassPunch.duck,
     bassPunch.mix,
+    // Surround, in the same place and for the same reason as the bass stages.
+    settings.surround.allChannels ? 1 : 0,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and
     // `feq_chain_settings_decode` both read the band count from
     // `CHAIN_PARAM_LEAD - 1` to know how long the tail is. A scalar appended

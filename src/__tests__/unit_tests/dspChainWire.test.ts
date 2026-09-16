@@ -120,10 +120,10 @@ describe('the chain wire layout', () => {
     );
     // A length check alone passes whether or not the seventeen scalars are on
     // the wire at all, so read them where the decoder reads them: the last
-    // eighteen lead slots are Forge's eight, Punch's nine, and the band
-    // count.
-    expect(encoded.slice(CHAIN_PARAM_LEAD - 18, CHAIN_PARAM_LEAD - 1)).toEqual([
-      1, 1, 90, 0, 0, 0, 0.8, 0.7, 1, 0, 120, 0.65, -0.3, 0, 80, 0.4, 1.75,
+    // nineteen lead slots are Forge's eight, Punch's nine, the rack's
+    // surround switch, and the band count.
+    expect(encoded.slice(CHAIN_PARAM_LEAD - 19, CHAIN_PARAM_LEAD - 1)).toEqual([
+      1, 1, 90, 0, 0, 0, 0.8, 0.7, 1, 0, 120, 0.65, -0.3, 0, 80, 0.4, 1.75, 1,
     ]);
     // The band count stays in the last lead slot. If the new scalars were
     // appended after it instead of before, this reads 0.7 and every band that

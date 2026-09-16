@@ -70,7 +70,7 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
     return;
   }
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-    if (chain->channels == 2 &&
+    if (chain->channels >= 2 &&
         ((chain->settings.eq.stereo == FEQ_STEREO_MID && channel == 1) ||
          (chain->settings.eq.stereo == FEQ_STEREO_SIDE && channel == 0))) {
       continue;
@@ -79,7 +79,7 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
       return;
     }
   }
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     if (chain->defer_convolver_retirement) {
       chain->retired_convolvers[chain->retired_count][channel] =
           chain->convolvers[channel];
@@ -99,7 +99,7 @@ void chain_settle_convolvers(FeqChain* chain, uint32_t frames) {
   if (chain->queued_kernel != nullptr) {
     chain->kernel_next = chain->queued_kernel;
     chain->queued_kernel = nullptr;
-    for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+    for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
       chain->convolvers_next[channel] = chain->queued_convolvers[channel];
       chain->queued_convolvers[channel] = nullptr;
       chain->convolver_blend[channel] = 0.0;
@@ -154,7 +154,7 @@ void discard_handoff(FeqChain::KernelHandoff* handoff) {
   if (handoff == nullptr) {
     return;
   }
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     feq_convolver_destroy(handoff->convolvers[channel]);
   }
   feq_convolver_kernel_destroy(handoff->kernel);
@@ -185,7 +185,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
   if (taken->kernel == nullptr) {
     // Linear phase switched off, or the rack emptied. Everything goes,
     // including anything mid-handover: there is no filter to fade towards.
-    for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+    for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
       feq_convolver_destroy(chain->convolvers[channel]);
       feq_convolver_destroy(chain->convolvers_next[channel]);
       chain->convolvers[channel] = nullptr;
@@ -205,7 +205,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
     // Nothing playing through one yet, so there is nothing to fade from.
     feq_convolver_kernel_destroy(chain->kernel);
     chain->kernel = taken->kernel;
-    for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+    for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
       chain->convolvers[channel] = taken->convolvers[channel];
     }
     chain->convolver_priming = feq_linear_phase_latency();
@@ -215,7 +215,7 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
   // A replacement was already on its way and has now been overtaken. It never
   // reached the blend, so it is dropped rather than faded away from.
   feq_convolver_kernel_destroy(chain->kernel_next);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     feq_convolver_destroy(chain->convolvers_next[channel]);
     chain->convolvers_next[channel] = taken->convolvers[channel];
     chain->convolver_blend[channel] = 0.0;
@@ -301,7 +301,9 @@ void feq_chain_set_eq_kernel(FeqChain* chain,
     return;
   }
   fresh->kernel = prepared;
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  // One per channel the chain has, and no more: a partitioned convolver is
+  // the largest thing in the chain, and six idle ones would be six spares.
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
     fresh->convolvers[channel] = feq_convolver_create(prepared);
   }
   publish_handoff(chain, fresh);

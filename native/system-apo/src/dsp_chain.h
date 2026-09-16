@@ -71,11 +71,16 @@ struct RackBuild {
  *
  * `leveling` is attached to the chain's live leveling once priming is over,
  * so the silent priming block neither adopts nor publishes anything.
+ *
+ * `lfe_channel` is the subwoofer feed's index in the stream, or -1: read
+ * from the stream's channel mask by the effect, and the one channel the
+ * exciter leaves alone.
  */
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
-                     FeqLevelingMemory* leveling = nullptr);
+                     FeqLevelingMemory* leveling = nullptr,
+                     int lfe_channel = -1);
 
 }  // namespace fluideq_engine
 

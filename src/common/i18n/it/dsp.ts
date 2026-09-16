@@ -559,6 +559,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'Pareggia guadagno',
   'dsp.master.matchedBypassHint':
     "Toglie dall'uscita i {gain} dB di compensazione, così accendere e spegnere Master confronta il suono e non il volume. La limitazione è identica nei due casi: cambia solo il livello.",
+  'dsp.surround.title': 'Surround',
+  'dsp.surround.onHint':
+    "Applica il rack a ogni canale di un'uscita 5.1 o 7.1, seguendo l'impostazione di Windows, con una sola decisione di livello per tutti.",
+  'dsp.surround.offHint':
+    "Solo la coppia frontale: gli altri canali di un'uscita surround attraversano il rack intatti.",
   'dsp.master.limit.limiting':
     'Servivano {requested} dB — {room} dB di margine di picco più la limitazione consentita.',
   'dsp.master.limit.maxGain':

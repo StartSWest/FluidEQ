@@ -957,6 +957,21 @@ export interface IDspSettings {
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
   master: IMasterSettings;
+  surround: ISurroundSettings;
+}
+
+/**
+ * What the rack does with an output that has more than two channels.
+ *
+ * Windows hands the system-wide engine whatever the output is set to — 2.1,
+ * quad, 5.1, 7.1 — and with this on the rack runs on every one of those
+ * channels, with one level decision for all of them so the mix never pumps
+ * out of balance. Off keeps the rack on the front pair and passes the rest
+ * through it untouched, which is how every version before this behaved.
+ * The Library player is stereo either way.
+ */
+export interface ISurroundSettings {
+  allChannels: boolean;
 }
 
 interface IRange {
@@ -1611,6 +1626,11 @@ export const DSP_DEFAULTS: IDspSettings = {
     peakLimitingDb: 9,
     matchedBypass: false,
   },
+  // On by default: a 5.1 or 7.1 output follows what Windows is set to, and
+  // the rack on two of its channels was a surprise on every one of them.
+  surround: {
+    allChannels: true,
+  },
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -1743,6 +1763,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
   const master = isRecord(value.master) ? value.master : {};
+  const surround = isRecord(value.surround) ? value.surround : {};
   const storedBands = Array.isArray(compressor.bands) ? compressor.bands : [];
   const storedCorners = Array.isArray(compressor.crossoverHz)
     ? compressor.crossoverHz
@@ -2270,6 +2291,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       matchedBypass: clampBoolean(
         master.matchedBypass,
         DSP_DEFAULTS.master.matchedBypass,
+      ),
+    },
+    surround: {
+      allChannels: clampBoolean(
+        surround.allChannels,
+        DSP_DEFAULTS.surround.allChannels,
       ),
     },
   };

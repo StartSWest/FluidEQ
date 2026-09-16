@@ -5,10 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The chain's own state, shared between its three translation units.
- *
- * Private to `chain*.cpp`: nothing outside dsp-core sees a `FeqChain`'s
- * insides, which is what lets the layout change without an ABI bump.
+ * The chain's own state, shared between its translation units and private to
+ * `chain*.cpp`: nothing outside dsp-core sees a `FeqChain`'s insides, which
+ * is what lets the layout change without an ABI bump.
  *
  * Every buffer here is allocated once by `feq_chain_create` and every stage is
  * handed a pointer into it. That is not tidiness — the block loop may not
@@ -42,8 +41,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <atomic>
 #include <vector>
 
-/** L, R, Mid and Side each need their own histories. */
-constexpr uint32_t kExciterPaths = 4;
+/** One exciter path per channel (own histories each), plus Mid and Side. */
+constexpr uint32_t kExciterPaths = FEQ_CHAIN_MAX_CHANNELS + 2;
+/** Where the front pair's Mid and Side paths live, after the channels'. */
+constexpr uint32_t kExciterMidPath = FEQ_CHAIN_MAX_CHANNELS;
 constexpr double kExciterSmoothingMs = 18.0;
 constexpr double kEqIsolateSmoothingMs = 18.0;
 /** Background analysis settles Normalizer and Master LUFS together over 2 s. */
@@ -132,8 +133,23 @@ struct FeqChain {
    */
   FeqDenoise* denoise = nullptr;
 
-  ChainEqSlot slots[FEQ_CHAIN_CHANNELS];
+  ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
+
+  /* ------------------------------------------------- surround alignment -- */
+  /**
+   * The channels beyond the front pair, held back by what the pair's own
+   * stages delay it — the restoration's modules and Bass Punch's FIR — or a
+   * centre would run ahead of the front. One line at each of the two points,
+   * so every level stage between them sees channels in step. Empty on a
+   * mono or stereo chain.
+   */
+  FeqDelayLine denoise_align[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> denoise_align_line[FEQ_CHAIN_MAX_CHANNELS];
+  FeqDelayLine punch_align[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> punch_align_line[FEQ_CHAIN_MAX_CHANNELS];
+  /** Which channel feeds the subwoofer, or -1: `feq_chain_set_lfe_channel`. */
+  int lfe_channel = -1;
 
   /* -------------------------------------------------------------- EQ -- */
   /**
@@ -229,29 +245,29 @@ struct FeqChain {
   std::vector<float> eq_dry_doubled;
   std::vector<float> eq_wet_doubled;
   std::vector<float> eq_middle;
-  std::vector<float> linked_dry[FEQ_CHAIN_CHANNELS];
-  std::vector<float> linked_wet[FEQ_CHAIN_CHANNELS];
-  std::vector<float> linked_doubled[FEQ_CHAIN_CHANNELS];
-  std::vector<float> linked_dry_doubled[FEQ_CHAIN_CHANNELS];
-  std::vector<float> linked_wet_doubled[FEQ_CHAIN_CHANNELS];
-  std::vector<float> linked_middle[FEQ_CHAIN_CHANNELS];
+  std::vector<float> linked_dry[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> linked_wet[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> linked_doubled[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> linked_dry_doubled[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> linked_wet_doubled[FEQ_CHAIN_MAX_CHANNELS];
+  std::vector<float> linked_middle[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float> fuzz_oversampled;
   std::vector<float> fuzz_middle;
 
   /* ------------------------------------------------------ linear phase -- */
   FeqConvolverKernel* kernel = nullptr;
   FeqConvolverKernel* kernel_next = nullptr;
-  FeqConvolver* convolvers[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
-  FeqConvolver* convolvers_next[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+  FeqConvolver* convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
+  FeqConvolver* convolvers_next[FEQ_CHAIN_MAX_CHANNELS] = {};
   std::vector<float> convolver_scratch;
-  double convolver_blend[FEQ_CHAIN_CHANNELS] = {0.0, 0.0};
+  double convolver_blend[FEQ_CHAIN_MAX_CHANNELS] = {};
   int64_t convolver_warmup = 0;
   int64_t convolver_priming = 0;
   bool defer_convolver_retirement = false;
   FeqConvolverKernel* queued_kernel = nullptr;
-  FeqConvolver* queued_convolvers[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+  FeqConvolver* queued_convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
   FeqConvolverKernel* retired_kernels[2] = {nullptr, nullptr};
-  FeqConvolver* retired_convolvers[2][FEQ_CHAIN_CHANNELS] = {};
+  FeqConvolver* retired_convolvers[2][FEQ_CHAIN_MAX_CHANNELS] = {};
   uint32_t retired_count = 0;
 
   /**
@@ -277,7 +293,7 @@ struct FeqChain {
    */
   struct KernelHandoff {
     FeqConvolverKernel* kernel = nullptr;
-    FeqConvolver* convolvers[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+    FeqConvolver* convolvers[FEQ_CHAIN_MAX_CHANNELS] = {};
   };
   std::atomic<KernelHandoff*> kernel_handoff{nullptr};
 
@@ -299,15 +315,15 @@ struct FeqChain {
   FeqLinearPhaseBand kernel_bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
 
   /* -------------------------------------------------------- compressor -- */
-  FeqCrossover crossovers[FEQ_CHAIN_CHANNELS];
+  FeqCrossover crossovers[FEQ_CHAIN_MAX_CHANNELS];
   FeqCompressor compressors[FEQ_CHAIN_COMPRESSOR_BANDS];
-  std::vector<float> compressor_bands[FEQ_CHAIN_CHANNELS]
+  std::vector<float> compressor_bands[FEQ_CHAIN_MAX_CHANNELS]
                                      [FEQ_CHAIN_COMPRESSOR_BANDS];
 
   /* --------------------------------------------------------- maximizer -- */
   FeqLinkedLimiter maximizer{};
   std::vector<FeqTruePeak> maximizer_detectors;
-  std::vector<float> maximizer_delay[FEQ_CHAIN_CHANNELS];
+  std::vector<float> maximizer_delay[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float*> maximizer_delay_pointers;
   /* --------------------------------------------------------- bass forge -- */
   FeqBassForge bass_forge{};
@@ -355,7 +371,7 @@ struct FeqChain {
   /* ------------------------------------------------------ auto headroom -- */
   FeqPostFilterNormalizer post_normalizer{};
   std::vector<FeqTruePeak> post_detectors;
-  std::vector<float> post_delay[FEQ_CHAIN_CHANNELS];
+  std::vector<float> post_delay[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float*> post_delay_pointers;
   std::vector<float> post_reduction;
 
@@ -375,7 +391,7 @@ struct FeqChain {
   FeqOutputSafety safety{};
   std::vector<FeqDcBlock> safety_dc;
   std::vector<FeqTruePeak> safety_detectors;
-  std::vector<float> safety_delay[FEQ_CHAIN_CHANNELS];
+  std::vector<float> safety_delay[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float*> safety_delay_pointers;
   std::vector<float> safety_reduction;
 
@@ -392,10 +408,10 @@ struct FeqChain {
   double master_gain_now = 1.0;
 
   /** Scratch for the block's pointer arrays, so the loop allocates none. */
-  float* pointers_a[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
-  float* pointers_b[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
-  float* pointers_c[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
-  float* pointers_d[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+  float* pointers_a[FEQ_CHAIN_MAX_CHANNELS] = {};
+  float* pointers_b[FEQ_CHAIN_MAX_CHANNELS] = {};
+  float* pointers_c[FEQ_CHAIN_MAX_CHANNELS] = {};
+  float* pointers_d[FEQ_CHAIN_MAX_CHANNELS] = {};
 };
 
 /** The stages that are one call each, from `chain_stages.cpp`. */
@@ -413,6 +429,20 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
                              uint32_t frames);
 void chain_process_master_output(FeqChain* chain, float* const* channels,
                                  uint32_t frames);
+
+/* --- the surround channels kept in step with the front pair ------------ */
+
+/** Hold the channels beyond the pair back by what the restoration delays it. */
+void chain_process_denoise_align(FeqChain* chain, float* const* channels,
+                                 uint32_t frames);
+
+/** The same, by Bass Punch's FIR — called by the punch stage itself. */
+void chain_process_punch_align(FeqChain* chain, float* const* channels,
+                               uint32_t frames);
+
+/** Point the alignment lines at the restoration's current latency. CONTROL
+    thread, after `feq_denoise_configure`; the lines themselves never move. */
+void chain_apply_denoise_alignment(FeqChain* chain);
 
 void chain_encode_mid_side(float* const* channels, uint32_t frames);
 

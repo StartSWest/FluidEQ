@@ -611,6 +611,31 @@ Out-String` (or any other capture) is what actually waits for it and shows
   state stays away (`isTryingSlots`) until an ask has come back with nothing
   done, or a change was followed by the same slot heard failing again; only
   then does the card say what is left. The first rung that is heard stays.
+- **The rack runs on every channel of a surround output, up to eight, and
+  the front pair stays bit-for-bit the stereo chain.** `FEQ_CHAIN_MAX_CHANNELS`
+  is 8; `FEQ_CHAIN_CHANNELS` (2) now means "the front pair", not the width.
+  Per-channel stages (EQ, exciter, compressor, maximizer, restoration) run
+  on each channel; every level stage links its detector across all of them
+  so the mix keeps its balance; the stereo-only stages (Dimension, Bass
+  Forge and Punch, Mid/Side) touch the front pair alone. Two things that
+  are not obvious: the pair's own stages delay it (the restoration's
+  modules, Punch's FIR), so the channels beyond it are held back by the
+  same amount at each of those two points (`denoise_align`, `punch_align`
+  in `chain_internal.h`; the restoration's delay line has to be sized for
+  `FEQ_DENOISE_MAX_LATENCY_FRAMES` because its latency changes with the
+  settings, and a line resized on the control thread is one the audio
+  thread is reading), and the exciter skips the LFE — the engine works out
+  which channel that is from the stream's channel mask (`lfe_channel_of`)
+  and tells the chain (`feq_chain_set_lfe_channel`). The rack's
+  `surround_all_channels` (the Master card's switch, wire slot
+  `FEQ_CHAIN_PARAM_LEAD - 2`, LEAD is 115) turns this off, which is the
+  first-two-channels behaviour every version before had. Held by
+  `chain_surround_test.cpp`: the six-channel front pair identical to the
+  stereo chain, a surround channel identical to the front it copies, one
+  gain decision, impulses aligned across channels, the LFE unexcited —
+  measured against a chain with no exciter and every linked stage off,
+  because a linked limiter passing the centre's harmonics on to the LFE
+  is the design, not the exciter.
 - **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
   (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
   at 48 kHz, so a coefficient or a stage that assumed one rate would pass all

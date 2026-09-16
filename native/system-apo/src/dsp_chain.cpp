@@ -39,7 +39,7 @@ bool decode_dsp_chain(const std::vector<double>& values,
 RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
-                     FeqLevelingMemory* leveling) {
+                     FeqLevelingMemory* leveling, int lfe_channel) {
   RackBuild built;
   if (values.empty()) {
     return built;  // No rack file, which is the ordinary state under APO.
@@ -60,11 +60,14 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
     return built;
   }
 
-  // Stereo, and never wider: `FEQ_CHAIN_CHANNELS` is 2 and the stages behind
-  // it are written for one or two. A mono stream runs the chain with one
-  // channel, which `feq_chain_create` accepts and every stage guards for.
-  const uint32_t wanted =
-      channels < FEQ_CHAIN_CHANNELS ? channels : FEQ_CHAIN_CHANNELS;
+  // As wide as the stream, up to the chain's own limit, when the rack is set
+  // to run on every channel; the front pair otherwise, with the rest passed
+  // through it untouched. A mono stream runs the chain with one channel,
+  // which `feq_chain_create` accepts and every stage guards for.
+  const uint32_t limit = settings.surround_all_channels != 0
+                             ? FEQ_CHAIN_MAX_CHANNELS
+                             : FEQ_CHAIN_CHANNELS;
+  const uint32_t wanted = channels < limit ? channels : limit;
   built.chain.reset(
       feq_chain_create(static_cast<double>(sample_rate), wanted, max_frames));
   if (!built.chain) {
@@ -74,6 +77,8 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   }
   built.channels = wanted;
   feq_chain_configure(built.chain.get(), &settings);
+  // Before the chain is published, like everything else about its shape.
+  feq_chain_set_lfe_channel(built.chain.get(), lfe_channel);
   if (feq_chain_enable_live_normalizer(built.chain.get()) == 0) {
     built.failed = true;
     built.chain.reset();
@@ -110,8 +115,11 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   if (channels > wanted) {
     warnings.push_back(
         "Stream has " + std::to_string(channels) +
-        " channels; the DSP rack runs on the first two and the rest pass "
-        "through it untouched.");
+        " channels; the DSP rack runs on the first " + std::to_string(wanted) +
+        (settings.surround_all_channels != 0
+             ? " and the rest pass through it untouched."
+             : " (surround is switched off) and the rest pass through it "
+               "untouched."));
   }
   return built;
 }

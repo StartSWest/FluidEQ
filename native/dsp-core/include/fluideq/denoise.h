@@ -42,6 +42,12 @@ extern "C" {
 #define FEQ_DENOISE_MAX_HUM_PARTIALS 10
 /** Stereo. A third channel would reuse the second one's state. */
 #define FEQ_DENOISE_CHANNELS 2
+/**
+ * The most delay the stage ever adds, whatever its modules are set to. Public
+ * because a chain wider than `FEQ_DENOISE_CHANNELS` has to hold the channels
+ * this stage does not touch back by the same amount, and sizes that line once.
+ */
+#define FEQ_DENOISE_MAX_LATENCY_FRAMES 32768
 
 /** Matches `DENOISE_PROFILE_SOURCES`; the wire carries the index. */
 typedef enum FeqDenoiseProfileSource {

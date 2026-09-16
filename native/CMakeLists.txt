@@ -199,6 +199,13 @@ add_executable(fluideq-chain-transfer-test dsp-core/tests/chain_transfer_test.cp
 target_link_libraries(fluideq-chain-transfer-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 
+# The chain on six channels: the front pair bit-identical to stereo, the
+# surrounds identical to the front under the same programme, one level
+# decision across all of them, and every channel leaving on the same frame.
+add_executable(fluideq-chain-surround-test dsp-core/tests/chain_surround_test.cpp)
+target_link_libraries(fluideq-chain-surround-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-surround COMMAND fluideq-chain-surround-test)
+
 add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
 target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)
 # Every cross-family pair is owned by its first family in catalogue order;

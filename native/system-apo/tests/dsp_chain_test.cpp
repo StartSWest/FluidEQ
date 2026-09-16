@@ -40,6 +40,7 @@ using fluideq_engine_test::endpoint;
 using fluideq_engine_test::Files;
 using fluideq_engine_test::join;
 using fluideq_engine_test::kBandCount;
+using fluideq_engine_test::kSurroundAllChannels;
 using fluideq_engine_test::kConfigDir;
 using fluideq_engine_test::kConfigPath;
 using fluideq_engine_test::kDenoiseEnabled;
@@ -274,12 +275,25 @@ void linear_phase_latency_is_known_before_the_first_block() {
   CHECK(plain.latency_frames() < feq_linear_phase_latency());
 }
 
+/**
+ * A 5.1 stream runs the rack on all six channels by default, and on the
+ * front pair alone once the rack's surround switch is off — which is the
+ * one thing the app can change about it, and the wire slot that carries it.
+ */
 void channels_beyond_two_pass_the_rack_by() {
-  std::printf("a surround stream runs the rack on the front pair only\n");
-  const Chain chain = chain_with(reference_values());
-  Graph graph(chain, kRate, 6, 480);
-  CHECK(mentions(graph.warnings(), "first two"));
-  CHECK(!graph.is_passthrough());
+  std::printf("a surround stream runs the rack on every channel, or the pair\n");
+  const Chain all = chain_with(reference_values());
+  Graph wide(all, kRate, 6, 480);
+  CHECK(wide.warnings().empty());
+  CHECK(!wide.is_passthrough());
+
+  std::vector<double> values = reference_values();
+  values[kSurroundAllChannels] = 0.0;
+  const Chain pair = chain_with(values);
+  Graph narrow(pair, kRate, 6, 480);
+  CHECK(mentions(narrow.warnings(), "first 2"));
+  CHECK(mentions(narrow.warnings(), "surround is switched off"));
+  CHECK(!narrow.is_passthrough());
 }
 
 void a_rack_alone_is_not_a_pass_through() {

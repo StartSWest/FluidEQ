@@ -566,6 +566,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'Gain match',
   'dsp.master.matchedBypassHint':
     'Takes the {gain} dB of makeup back off the output, so turning Master on and off compares the sound rather than the volume. The limiting is identical either way — only the level changes.',
+  'dsp.surround.title': 'Surround',
+  'dsp.surround.onHint':
+    'Runs the rack on every channel of a 5.1 or 7.1 output, following what Windows is set to, with one level decision for all of them.',
+  'dsp.surround.offHint':
+    'Front pair only: the other channels of a surround output pass through the rack untouched.',
   'dsp.master.limit.limiting':
     'Needed {requested} dB — {room} dB of peak room plus the limiting allowed.',
   'dsp.master.limit.maxGain':

@@ -11,6 +11,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 extern "C" {
 #endif
 typedef struct FeqLiveNormalizer FeqLiveNormalizer;
+/* One chain's worth (`FEQ_CHAIN_MAX_CHANNELS`, held equal by chain.cpp). The
+   loudness it listens to is BS.1770 over the front pair; the gain it decides
+   is applied to every channel, which is what keeps a surround mix level as one
+   thing rather than six. */
+#define FEQ_LIVE_NORMALIZER_MAX_CHANNELS 8
 typedef struct FeqNormalizerSettings {
   int mode; /* 0 off, 1 true peak, 2 loudness */
   double ceiling_db;

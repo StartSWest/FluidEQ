@@ -546,6 +546,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'ゲインマッチ',
   'dsp.master.matchedBypassHint':
     '{gain} dB のメイクアップを出力から差し引くので、Master のオンオフで音量ではなく音そのものを比較できます。リミッティングはどちらでも同じで、変わるのはレベルだけです。',
+  'dsp.surround.title': 'サラウンド',
+  'dsp.surround.onHint':
+    'Windows の設定に従い、5.1 / 7.1 出力のすべてのチャンネルにラックをかけ、レベル判定は全チャンネルで一つにします。',
+  'dsp.surround.offHint':
+    'フロント 2ch のみ：サラウンド出力の他のチャンネルはラックをそのまま通過します。',
   'dsp.master.limit.limiting':
     '{requested} dB 必要 — ピークの余裕 {room} dB と許可されたリミッティングまで。',
   'dsp.master.limit.maxGain':

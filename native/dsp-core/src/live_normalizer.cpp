@@ -260,7 +260,7 @@ int level(FeqLiveNormalizer& state, const FeqLoudnessReading& measured, double p
 extern "C" {
 FeqLiveNormalizer* feq_live_normalizer_create(double rate, uint32_t channels) {
   if (!std::isfinite(rate) || rate < 8000 || rate > 384000 ||
-      channels == 0 || channels > 2) return nullptr;
+      channels == 0 || channels > FEQ_LIVE_NORMALIZER_MAX_CHANNELS) return nullptr;
   auto state = std::make_unique<FeqLiveNormalizer>();
   state->rate = rate;
   state->channels = channels;

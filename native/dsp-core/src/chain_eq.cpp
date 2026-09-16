@@ -43,7 +43,7 @@ uint32_t dynamic_band_count(const FeqChain* chain) {
 /** Copy the dynamic bands' shared state into the contiguous scratch. */
 void gather_dynamic(FeqChain* chain) {
   const uint32_t count = dynamic_band_count(chain);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     for (uint32_t index = 0; index < count; ++index) {
       const size_t from = static_cast<size_t>(channel) * FeqChain::kBandStride +
                           chain->active->dynamic_slots[index];
@@ -57,7 +57,7 @@ void gather_dynamic(FeqChain* chain) {
 /** And back, so a phase change resumes the envelope rather than restarting it. */
 void scatter_dynamic(FeqChain* chain) {
   const uint32_t count = dynamic_band_count(chain);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     for (uint32_t index = 0; index < count; ++index) {
       const size_t to = static_cast<size_t>(channel) * FeqChain::kBandStride +
                         chain->active->dynamic_slots[index];
@@ -191,13 +191,17 @@ void process_eq_channel(FeqChain* chain,
   finish_eq_channel(chain, target, frames, slot_index);
 }
 
-/** Stereo mode: one dynamic amount per band, applied to both domains. */
+/**
+ * Stereo mode: one dynamic amount per band, applied to every domain.
+ *
+ * Every channel the chain has, not the pair: a dynamic band that opened on
+ * the front and not on the centre would move a voice between speakers on
+ * every syllable, which is the surround form of the stereo image moving.
+ */
 void process_eq_stereo(FeqChain* chain, float* const* channels,
                        uint32_t frames) {
   const FeqChainEqSettings& eq = chain->settings.eq;
-  const uint32_t channel_count = chain->channels < FEQ_CHAIN_CHANNELS
-                                     ? chain->channels
-                                     : FEQ_CHAIN_CHANNELS;
+  const uint32_t channel_count = chain->channels;
   if (eq.enabled == 0 || channel_count < 2) {
     return;
   }
@@ -243,8 +247,10 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
         chain->pointers_c[channel] = chain->linked_wet_doubled[channel].data();
         chain->pointers_d[channel] = chain->linked_middle[channel].data();
       }
-      FeqOversampler oversamplers[FEQ_CHAIN_CHANNELS] = {
-          chain->slots[0].eq_oversampler, chain->slots[1].eq_oversampler};
+      FeqOversampler oversamplers[FEQ_CHAIN_MAX_CHANNELS] = {};
+      for (uint32_t channel = 0; channel < channel_count; ++channel) {
+        oversamplers[channel] = chain->slots[channel].eq_oversampler;
+      }
       feq_eq_process_oversampled_linked(
           chain->band_states.data(), FeqChain::kBandStride,
           chain->active->bands.data(), live, channels,
@@ -252,8 +258,9 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
           chain->pointers_a, chain->pointers_b, chain->pointers_c,
           chain->pointers_d,
           live == 0 ? nullptr : chain->band_dynamics.data());
-      chain->slots[0].eq_oversampler = oversamplers[0];
-      chain->slots[1].eq_oversampler = oversamplers[1];
+      for (uint32_t channel = 0; channel < channel_count; ++channel) {
+        chain->slots[channel].eq_oversampler = oversamplers[channel];
+      }
     } else {
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         chain->pointers_a[channel] = chain->linked_dry[channel].data();
@@ -268,13 +275,16 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
     }
   }
 
-  // The second domain's detectors mirror the first: one decision was made, and
-  // a meter showing two would suggest the band opened on one side only.
-  for (uint32_t index = 0; index < live; ++index) {
-    chain->band_dynamics[static_cast<size_t>(live) + index].envelope =
-        chain->band_dynamics[index].envelope;
-    chain->band_dynamics[static_cast<size_t>(live) + index].amount =
-        chain->band_dynamics[index].amount;
+  // The other domains' detectors mirror the first: one decision was made, and
+  // a meter showing several would suggest the band opened on one side only.
+  for (uint32_t channel = 1; channel < channel_count; ++channel) {
+    const size_t base = static_cast<size_t>(channel) * live;
+    for (uint32_t index = 0; index < live; ++index) {
+      chain->band_dynamics[base + index].envelope =
+          chain->band_dynamics[index].envelope;
+      chain->band_dynamics[base + index].amount =
+          chain->band_dynamics[index].amount;
+    }
   }
   for (uint32_t channel = 0; channel < channel_count; ++channel) {
     finish_eq_channel(chain, channels[channel], frames, channel);
@@ -355,7 +365,7 @@ void chain_refresh_eq(FeqChain* chain) {
    * segfault. Those are not the same hazard and do not need the same cure.
    */
   const size_t count = live.size();
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < FEQ_CHAIN_MAX_CHANNELS; ++channel) {
     for (size_t index = 0; index < count; ++index) {
       feq_band_dynamics_refresh(
           &chain->band_dynamics[static_cast<size_t>(channel) *
@@ -392,15 +402,16 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
     process_eq_stereo(chain, channels, frames);
   } else {
     for (uint32_t channel = 0; channel < chain->channels; ++channel) {
-      // In mid/side the two slots are no longer left and right: slot 0 carries
-      // the middle and slot 1 the difference, and only the chosen one is
-      // filtered. The other passes untouched, which is what makes this a tool
-      // rather than a different way of spelling stereo.
+      // In mid/side the front pair's two slots are no longer left and right:
+      // slot 0 carries the middle and slot 1 the difference, and only the
+      // chosen one is filtered. The other passes untouched, which is what
+      // makes this a tool rather than a different way of spelling stereo.
+      // Any channel beyond the pair has no side to speak of and is filtered
+      // plainly, in its own slot.
       const bool skip =
           mid_side && ((eq.stereo == FEQ_STEREO_MID && channel == 1) ||
                        (eq.stereo == FEQ_STEREO_SIDE && channel == 0));
-      const uint32_t slot_index =
-          channel < FEQ_CHAIN_CHANNELS ? channel : FEQ_CHAIN_CHANNELS - 1;
+      const uint32_t slot_index = channel;
       if (!skip) {
         process_eq_channel(chain, channels[channel], frames, slot_index);
         continue;

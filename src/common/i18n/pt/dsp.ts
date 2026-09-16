@@ -561,6 +561,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'Igualar ganho',
   'dsp.master.matchedBypassHint':
     'Retira da saída os {gain} dB de compensação, por isso ligar e desligar o Master compara o som e não o volume. A limitação é idêntica nos dois casos — só o nível muda.',
+  'dsp.surround.title': 'Surround',
+  'dsp.surround.onHint':
+    'Passa o rack por todos os canais de uma saída 5.1 ou 7.1, conforme o Windows está definido, com uma única decisão de nível para todos.',
+  'dsp.surround.offHint':
+    'Só o par frontal: os restantes canais de uma saída surround atravessam o rack intactos.',
   'dsp.master.limit.limiting':
     'Eram precisos {requested} dB — {room} dB de folga de pico mais a limitação permitida.',
   'dsp.master.limit.maxGain':

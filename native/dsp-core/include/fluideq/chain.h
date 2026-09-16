@@ -43,8 +43,25 @@ extern "C" {
 #define FEQ_CHAIN_MAX_EQ_BANDS 64
 #define FEQ_CHAIN_EXCITER_BANDS 3
 #define FEQ_CHAIN_COMPRESSOR_BANDS 3
-/** Stereo. A third channel reuses the second one's filter state. */
+/**
+ * The stereo pair: the two channels the width, bass and mid/side stages work
+ * on, and the pair a Library track has.
+ */
 #define FEQ_CHAIN_CHANNELS 2
+/**
+ * How many channels one chain can carry — 7.1, which is what Windows hands a
+ * system-wide effect on an output configured that way.
+ *
+ * Every channel gets the EQ, the exciter, the restoration's alignment and
+ * every level stage, and the level stages make ONE decision for all of them:
+ * the compressor, the maximizer, the headroom and the safety limiter each
+ * listen across every channel and apply the same gain to each, so a surround
+ * mix never pumps out of balance. The stages that are stereo by nature —
+ * width, both bass stages, mid/side — work on the front pair and leave the
+ * rest alone, and the rest are delayed to stay in step with it. A channel
+ * count of one or two is bit-for-bit what it was.
+ */
+#define FEQ_CHAIN_MAX_CHANNELS 8
 
 /** `EQ_STEREO_MODES`, and the exciter's selector shares it. */
 typedef enum FeqStereoMode {
@@ -215,6 +232,15 @@ typedef struct FeqChainSettings {
    * switching while the same audio plays.
    */
   int output_safety_enabled;
+  /**
+   * Whether a host with more than two channels runs the rack on all of them.
+   *
+   * The chain itself takes whatever width it is created with; this is the
+   * host's instruction for how wide to create it — every channel Windows
+   * hands over, or the front pair with the rest passed through. Carried in
+   * the snapshot so it lives with the rack it belongs to.
+   */
+  int surround_all_channels;
 } FeqChainSettings;
 
 /**
@@ -228,11 +254,12 @@ typedef struct FeqChainSettings {
  */
 /*
  * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass
- * Punch added seven each. All of them are appended immediately before the band
- * count — which has to stay last, because both `isChainWirePayload` and the
- * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
+ * Punch added seven each, then 114 before the surround switch added one. All
+ * of them are appended immediately before the band count — which has to stay
+ * last, because both `isChainWirePayload` and the decoder read the tail's
+ * length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 114
+#define FEQ_CHAIN_PARAM_LEAD 115
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
@@ -248,6 +275,8 @@ typedef struct FeqChain FeqChain;
  *
  * `maximum_block_frames` is a ceiling and not a promise: a device hands over
  * partial blocks routinely, and the chain is written for that.
+ *
+ * `channels` is one to `FEQ_CHAIN_MAX_CHANNELS`; anything wider is refused.
  */
 FeqChain* feq_chain_create(double sample_rate,
                            uint32_t channels,
@@ -267,6 +296,18 @@ void feq_chain_settings_defaults(FeqChainSettings* settings);
 void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings);
 
 int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous);
+
+/**
+ * Which channel is the subwoofer feed, or -1 for none — the LFE of a 2.1,
+ * 5.1 or 7.1 stream, as the host reads it from the stream's channel mask.
+ *
+ * It gets the EQ and every level stage like any other channel, and not the
+ * exciter: harmonics added to a subwoofer feed are heard as the subwoofer
+ * buzzing, and the stage exists to add presence, which a subwoofer has none
+ * of. Set before the chain is published; a chain that is never told has no
+ * LFE, which is right for every stereo stream.
+ */
+void feq_chain_set_lfe_channel(FeqChain* chain, int channel);
 
 /**
  * Hand over a linear-phase kernel, or null to leave linear phase.

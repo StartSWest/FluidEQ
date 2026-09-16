@@ -73,10 +73,15 @@ class Graph {
    * `leveling` is the output's leveling memory (`leveling_board.h`), handed
    * to the rack's live leveling so what it learned outlives this graph. Null
    * runs leveling that forgets with the chain, which is what a test wants.
+   *
+   * `lfe_channel` is the subwoofer feed's index in the stream, or -1 — from
+   * the stream's channel mask (`describe_format`). The rack's exciter leaves
+   * that channel alone; nothing else in the graph treats it differently.
    */
   Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         uint32_t max_frames,
-        std::shared_ptr<FeqLevelingMemory> leveling = nullptr);
+        std::shared_ptr<FeqLevelingMemory> leveling = nullptr,
+        int lfe_channel = -1);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;

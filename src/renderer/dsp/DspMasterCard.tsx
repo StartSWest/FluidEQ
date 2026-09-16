@@ -27,6 +27,13 @@ interface IDspMasterCardProps {
    */
   loudness: IMasterLoudnessBreakdown;
   onSafetyToggle: () => void;
+  /**
+   * Whether the rack runs on every channel of a surround output, which is
+   * the rack's own setting rather than the Master stage's — it lives on this
+   * card because this is the card about what leaves for the device.
+   */
+  surroundAllChannels: boolean;
+  onSurroundToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
 }
@@ -37,6 +44,8 @@ const DspMasterCard = ({
   safetyEnabled,
   loudness,
   onSafetyToggle,
+  surroundAllChannels,
+  onSurroundToggle,
   onPatch,
   onCommit,
 }: IDspMasterCardProps) => {
@@ -210,6 +219,28 @@ const DspMasterCard = ({
           {t('dsp.master.matchedBypassHint', {
             gain: loudnessGainDb.toFixed(1),
           })}
+        </p>
+      </div>
+
+      {/* A third surface in the same row as the two above: it wraps as a
+          whole on a narrow card like they do. Not disabled with the stage —
+          it is about the whole rack, and the rack on a 5.1 output is still
+          the rack with Master off. */}
+      <div className="dsp-band dsp-master-option">
+        <div className="dsp-band-head">
+          <span className="dsp-band-title">{t('dsp.surround.title')}</span>
+          <Switch
+            id="dsp-surround-all-channels"
+            isOn={surroundAllChannels}
+            isDisabled={false}
+            handleToggle={onSurroundToggle}
+            ariaLabel={t('dsp.surround.title')}
+          />
+        </div>
+        <p className="dsp-band-hint">
+          {surroundAllChannels
+            ? t('dsp.surround.onHint')
+            : t('dsp.surround.offHint')}
         </p>
       </div>
 

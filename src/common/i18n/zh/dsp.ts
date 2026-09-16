@@ -526,6 +526,10 @@ const dsp = {
   'dsp.master.matchedBypass': '增益匹配',
   'dsp.master.matchedBypassHint':
     '把 {gain} dB 的补偿从输出端扣回去，这样开关 Master 比较的是声音而不是音量。两种状态下的限制完全相同，只有电平不同。',
+  'dsp.surround.title': '环绕声',
+  'dsp.surround.onHint':
+    '按 Windows 的设置，在 5.1 或 7.1 输出的每个声道上运行机架，所有声道共用一个电平决策。',
+  'dsp.surround.offHint': '仅前置声道对：环绕声输出的其他声道原样通过机架。',
   'dsp.master.limit.limiting':
     '需要 {requested} dB — 只有 {room} dB 峰值余量加上允许的限制量。',
   'dsp.master.limit.maxGain': '需要 {requested} dB — 已达本级的最大校正量。',

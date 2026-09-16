@@ -62,6 +62,12 @@ struct ConnectionFormat {
   bool acceptable = false;
   uint32_t channels = 0;
   uint32_t rate = 0;
+  /**
+   * Which channel feeds the subwoofer, or -1. From the extensible format's
+   * channel mask when it carries one; a plain format with six or more
+   * channels is in Windows' own order, where the LFE is the fourth.
+   */
+  int lfe_channel = -1;
 };
 
 /**
@@ -72,6 +78,9 @@ struct ConnectionFormat {
  * around a chain whose whole point is that it does not quantise.
  */
 ConnectionFormat describe_format(const WAVEFORMATEX* format);
+
+/** `ConnectionFormat::lfe_channel` from a channel mask and a count. */
+int lfe_channel_of(DWORD mask, WORD channels);
 
 // Effects discovery and processing are separate host operations. Offering
 // IAudioSystemEffects3 supports discovery; it does not prove that Windows

@@ -181,10 +181,20 @@ void chain_process_exciter(FeqChain* chain, float* const* channels,
   }
 
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    // Mid/side is the front pair's affair: a channel beyond it has no side
+    // and takes the ordinary path, whatever the selector says.
+    const bool in_pair = channel < FEQ_CHAIN_CHANNELS;
     const bool selected =
-        !mid_side || (settings.stereo == FEQ_STEREO_MID ? channel == 0
-                                                        : channel == 1);
-    const uint32_t path = mid_side ? channel + 2 : channel;
+        !mid_side || !in_pair ||
+        (settings.stereo == FEQ_STEREO_MID ? channel == 0 : channel == 1);
+    const uint32_t path =
+        mid_side && in_pair ? kExciterMidPath + channel : channel;
+    if (chain->lfe_channel >= 0 &&
+        static_cast<uint32_t>(chain->lfe_channel) == channel) {
+      // Harmonics added to the subwoofer feed are heard as the subwoofer
+      // buzzing: the stage exists to add presence, and the LFE has none.
+      continue;
+    }
     if (selected && (settings.enabled != 0 || path_is_active(chain, path))) {
       process_path(chain, channels[channel], frames, path);
     } else if (!selected && settings.enabled != 0 && settings.isolate != 0) {

@@ -566,6 +566,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'Pegelabgleich',
   'dsp.master.matchedBypassHint':
     'Nimmt die {gain} dB Anhebung am Ausgang wieder zurück, sodass Master ein- und ausschalten den Klang vergleicht und nicht die Lautstärke. Die Begrenzung bleibt in beiden Fällen gleich — nur der Pegel ändert sich.',
+  'dsp.surround.title': 'Surround',
+  'dsp.surround.onHint':
+    'Lässt das Rack auf jedem Kanal eines 5.1- oder 7.1-Ausgangs laufen, so wie Windows eingestellt ist, mit einer Pegelentscheidung für alle.',
+  'dsp.surround.offHint':
+    'Nur das vordere Paar: die übrigen Kanäle eines Surround-Ausgangs laufen unverändert durch das Rack.',
   'dsp.master.limit.limiting':
     '{requested} dB nötig — {room} dB Spitzenreserve plus die erlaubte Begrenzung.',
   'dsp.master.limit.maxGain':

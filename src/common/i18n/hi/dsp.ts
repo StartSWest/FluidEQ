@@ -551,6 +551,11 @@ const dsp = {
   'dsp.master.matchedBypass': 'गेन मिलान',
   'dsp.master.matchedBypassHint':
     'आउटपुट से {gain} dB की बढ़त वापस हटा देता है, इसलिए Master को चालू-बंद करने पर आवाज़ नहीं, ध्वनि की तुलना होती है। लिमिटिंग दोनों में एक जैसी रहती है — बदलता सिर्फ़ स्तर है।',
+  'dsp.surround.title': 'सराउंड',
+  'dsp.surround.onHint':
+    '5.1 या 7.1 आउटपुट के हर चैनल पर रैक चलाता है, जैसा Windows में सेट है, और सबके लिए एक ही लेवल का फ़ैसला लेता है।',
+  'dsp.surround.offHint':
+    'सिर्फ़ सामने की जोड़ी: सराउंड आउटपुट के बाकी चैनल रैक से अछूते गुज़रते हैं।',
   'dsp.master.limit.limiting':
     '{requested} dB चाहिए थे — {room} dB पीक जगह और अनुमत लिमिटिंग तक ही।',
   'dsp.master.limit.maxGain':

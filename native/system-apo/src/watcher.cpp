@@ -80,14 +80,15 @@ void log_owner(std::string_view message) noexcept {
 
 Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
                  std::wstring config_dir, uint32_t sample_rate,
-                 uint32_t channels, uint32_t max_frames)
+                 uint32_t channels, uint32_t max_frames, int lfe_channel)
     : slot_(slot),
       log_(log),
       endpoint_(std::move(endpoint)),
       config_dir_(std::move(config_dir)),
       sample_rate_(sample_rate),
       channels_(channels),
-      max_frames_(max_frames) {}
+      max_frames_(max_frames),
+      lfe_channel_(lfe_channel) {}
 
 Watcher::~Watcher() { stop(); }
 
@@ -391,7 +392,7 @@ void Watcher::reload(Carry carry) {
 
     auto graph = std::make_unique<Graph>(
         chain, sample_rate_, channels_, max_frames_,
-        leveling_ ? leveling_->memory() : nullptr);
+        leveling_ ? leveling_->memory() : nullptr, lfe_channel_);
     if (stop_requested()) {
       // The half-built graph dies with the `unique_ptr`, having never been
       // reachable from the slot. Recording the signature is left undone with

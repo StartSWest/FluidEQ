@@ -10,6 +10,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <cstring>
 
+// The live normalizer is created with the chain's channel count and applies
+// its one gain to every channel it was given; a chain wider than it takes
+// would come up with no leveling at all, silently.
+static_assert(FEQ_CHAIN_MAX_CHANNELS <= FEQ_LIVE_NORMALIZER_MAX_CHANNELS,
+              "the live normalizer must take a full chain's channels");
+
 namespace {
 
 constexpr uint32_t kMaxOversample = 4;
@@ -132,6 +138,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   *settings = FeqChainSettings{};
   settings->enabled = 1;
   settings->output_safety_enabled = 1;
+  settings->surround_all_channels = 1;
   settings->normalizer.ceiling_db = -1;
   settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
@@ -167,7 +174,7 @@ FeqChain* feq_chain_create(double sample_rate,
                            uint32_t channels,
                            uint32_t maximum_block_frames) {
   if (!(sample_rate > 0.0) || channels == 0 ||
-      channels > FEQ_CHAIN_CHANNELS || maximum_block_frames == 0) {
+      channels > FEQ_CHAIN_MAX_CHANNELS || maximum_block_frames == 0) {
     return nullptr;
   }
   auto* chain = new FeqChain();
@@ -181,8 +188,11 @@ FeqChain* feq_chain_create(double sample_rate,
   const uint32_t latency = feq_linear_phase_latency();
   const size_t wide = static_cast<size_t>(frames) * kMaxOversample;
 
-  for (auto& slot : chain->slots) {
-    resize_slot(slot, frames, latency);
+  // Only the channels this chain has: a slot holds two lines the length of
+  // the linear-phase latency, and a stereo chain buying six more of them
+  // would be half a megabyte for channels it will never see.
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    resize_slot(chain->slots[channel], frames, latency);
   }
   chain->eq_dry.assign(frames, 0.0f);
   chain->eq_wet.assign(frames, 0.0f);
@@ -193,7 +203,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->fuzz_oversampled.assign(wide, 0.0f);
   chain->fuzz_middle.assign(static_cast<size_t>(frames) * 2, 0.0f);
   chain->convolver_scratch.assign(frames, 0.0f);
-  for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
+  for (uint32_t channel = 0; channel < channels; ++channel) {
     chain->linked_dry[channel].assign(frames, 0.0f);
     chain->linked_wet[channel].assign(frames, 0.0f);
     chain->linked_doubled[channel].assign(wide, 0.0f);
@@ -210,8 +220,39 @@ FeqChain* feq_chain_create(double sample_rate,
     feq_compressor_reset(&state);
   }
   feq_biquad_reset(&chain->side_highpass);
-  for (uint32_t path = 0; path < kExciterPaths; ++path) {
+  // One path per channel, and Mid and Side only where there is a pair to
+  // encode: each path is twenty-odd blocks of scratch, so the ones a chain
+  // cannot reach are left unallocated rather than bought for nothing.
+  for (uint32_t path = 0; path < channels; ++path) {
     chain_prepare_exciter_path(chain, path);
+  }
+  if (channels >= 2) {
+    chain_prepare_exciter_path(chain, kExciterMidPath);
+    chain_prepare_exciter_path(chain, kExciterMidPath + 1);
+  }
+
+  /**
+   * The surround channels' alignment with the front pair — see
+   * `denoise_align` in `chain_internal.h`. Sized once, here, at the most the
+   * restoration can ever delay and at Bass Punch's fixed FIR, because
+   * `feq_chain_configure` runs with no lock: a line resized there is freed
+   * under the audio thread, the lesson the Maximizer's ring paid for. The
+   * restoration's line changes only its read distance when its modules do.
+   */
+  if (channels > FEQ_CHAIN_CHANNELS) {
+    const uint32_t punch = feq_bass_punch_latency_frames(sample_rate);
+    for (uint32_t channel = FEQ_CHAIN_CHANNELS; channel < channels; ++channel) {
+      chain->punch_align_line[channel].assign(
+          static_cast<size_t>(punch) + 1, 0.0f);
+      feq_delay_line_init(&chain->punch_align[channel],
+                          chain->punch_align_line[channel].data(), punch + 1,
+                          punch);
+      chain->denoise_align_line[channel].assign(
+          static_cast<size_t>(FEQ_DENOISE_MAX_LATENCY_FRAMES) + 1, 0.0f);
+      feq_delay_line_init(&chain->denoise_align[channel],
+                          chain->denoise_align_line[channel].data(),
+                          FEQ_DENOISE_MAX_LATENCY_FRAMES + 1, 0);
+    }
   }
 
   /**
@@ -298,7 +339,7 @@ FeqChain* feq_chain_create(double sample_rate,
    * on the first block for no reason.
    */
   const size_t histories =
-      static_cast<size_t>(FeqChain::kBandStride) * FEQ_CHAIN_CHANNELS;
+      static_cast<size_t>(FeqChain::kBandStride) * FEQ_CHAIN_MAX_CHANNELS;
   chain->band_states.resize(histories);
   chain->band_dynamics.resize(histories);
   // Sized with the rack, so publishing activity allocates nothing per block.
@@ -397,6 +438,9 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   }
   apply_maximizer_look_ahead(chain);
   feq_denoise_configure(chain->denoise, &chain->settings.denoise);
+  // After the restoration, whose modules decide how far behind the front
+  // pair now runs — and so how far the other channels must be held back.
+  chain_apply_denoise_alignment(chain);
   chain_refresh_eq(chain);
   // After the bands, because it is built from the same settings and the guard
   // inside it decides whether anything is done at all. This is what makes
@@ -405,6 +449,16 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // life of the chain, and `chain_linear_running` answers 0 to every block
   // while the panel goes on offering the mode.
   chain_refresh_eq_kernel(chain);
+}
+
+void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
+  if (chain == nullptr) {
+    return;
+  }
+  chain->lfe_channel =
+      channel >= 0 && static_cast<uint32_t>(channel) < chain->channels
+          ? channel
+          : -1;
 }
 
 void feq_chain_set_track_level_gains(FeqChain* chain,
@@ -506,6 +560,13 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
                 chain->post_delay[channel].end(), 0.0f);
       std::fill(chain->maximizer_delay[channel].begin(),
                 chain->maximizer_delay[channel].end(), 0.0f);
+      // The surround channels' alignment lines are delayed audio too, and
+      // the front pair's own delays (the restoration's ring, Punch's FIR)
+      // are emptied by the resets above this block.
+      std::fill(chain->denoise_align_line[channel].begin(),
+                chain->denoise_align_line[channel].end(), 0.0f);
+      std::fill(chain->punch_align_line[channel].begin(),
+                chain->punch_align_line[channel].end(), 0.0f);
     }
     feq_post_filter_normalizer_rebase(&chain->post_normalizer);
   }
@@ -566,6 +627,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * harmonics from hiss and then trying to remove the result.
    */
   feq_denoise_process(chain->denoise, channels, frames);
+  // The restoration works on the front pair and delays it by its modules;
+  // the channels beyond the pair are held back by the same amount here, so
+  // the exciter and everything after it see all of them in step.
+  chain_process_denoise_align(chain, channels, frames);
   if (chain->meters != nullptr) {
     FeqDenoiseReport report{};
     // Read on the producer thread: the estimator's arrays are mutable audio
