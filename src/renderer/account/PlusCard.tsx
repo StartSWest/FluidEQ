@@ -190,6 +190,10 @@ export default function PlusCard({
                   )}
                 </p>
               )}
+              {/* No price here, though the card has the room: `plusPriceText`
+                  is the offer — both plans, or the monthly one — and a member
+                  paying yearly would read it as their own bill. What they pay
+                  is on the merchant's page, behind the button. */}
               <div className="plus-card__actions">{manage}</div>
             </>
           )}

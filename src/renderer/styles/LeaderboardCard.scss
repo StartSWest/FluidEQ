@@ -136,3 +136,51 @@ it under the terms of the GNU General Public License version 3 or later.
     background: color-mix(in srgb, $red 22%, transparent);
   }
 }
+
+/**
+ * What the board sends, folded away.
+ *
+ * The promise has to stay reachable — it is the one place the app says what
+ * leaves the machine — but open by default it was six lines of prose in a
+ * panel of buttons and made this card three times the height of the
+ * membership beside it.
+ */
+.leaderboard-card__what {
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: max-content;
+    color: $text-faint;
+    font-size: $text-small;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    // The app's own chevron, turned down when the fold is open.
+    &::before {
+      width: 0;
+      height: 0;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 5px solid currentcolor;
+      content: '';
+      transition: transform 150ms ease;
+    }
+
+    &:hover {
+      color: $text-muted;
+    }
+  }
+
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .leaderboard-card__body {
+    margin-top: 6px;
+  }
+}

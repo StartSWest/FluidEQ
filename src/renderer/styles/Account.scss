@@ -70,7 +70,7 @@ it under the terms of the GNU General Public License version 3 or later.
   @media (max-width: 620px) {
     grid-template-columns: auto minmax(0, 1fr);
 
-    .account__sign-out {
+    .account__hero-actions {
       grid-column: 2;
       justify-self: start;
     }
@@ -99,6 +99,15 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-title;
   font-weight: $weight-semibold;
   @include tracking(0.02em);
+}
+
+// The account's two actions, together at the end of the header row. They
+// wrap under the name on a panel too narrow to hold all three across.
+.account__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
 }
 
 .account__who {
@@ -132,8 +141,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .account__name-link {
-  justify-self: start;
-  margin-top: 6px;
+  flex: 0 0 auto;
 }
 
 // The board's own name form, under the person it is about. The form lays
@@ -184,14 +192,29 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The two cards side by side; one under the other once the dialog is
 // squeezed to the point where a card would be narrower than its buttons.
+// The two cards side by side, and the same height. `start` left the shorter
+// one floating over a hole the height of the longer: a membership is three
+// lines and the board's card is a dozen, and nothing about the pair says one
+// matters less than the other.
 .account__cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: $spacing-m;
 
   @media (max-width: 720px) {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  // Each card fills the row's height and keeps its content at the top. The
+  // buttons were pushed to the floor for a while so the two rows of them
+  // would line up, and that put eighty pixels of nothing between a
+  // membership's one line and its only button — a hole inside a card reads
+  // worse than air under one.
+  > * {
+    display: flex;
+    flex-direction: column;
+    align-content: start;
   }
 }
 

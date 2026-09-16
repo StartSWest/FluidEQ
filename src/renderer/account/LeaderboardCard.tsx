@@ -100,7 +100,14 @@ export default function LeaderboardCard() {
         </p>
       </div>
 
-      <p className="leaderboard-card__body">{t('leaderboard.card.body')}</p>
+      {/* Folded away, not cut: what the board sends is a privacy promise and
+          has to stay reachable, but six lines of it made this card three
+          times the height of the one beside it and read as terms rather than
+          as a panel. */}
+      <details className="leaderboard-card__what">
+        <summary>{t('leaderboard.card.whatSummary')}</summary>
+        <p className="leaderboard-card__body">{t('leaderboard.card.body')}</p>
+      </details>
       {/* The numbers come from the scoring itself, so the sentence cannot
           drift from the board it explains in any of the ten languages. */}
       <p className="leaderboard-card__note">

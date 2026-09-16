@@ -25,6 +25,12 @@ import LeaderboardCard from './LeaderboardCard';
 import SignInForms from './SignInForms';
 import SubscribeAgreement from './SubscribeAgreement';
 import initialsOf from './initials';
+// The panel is an `about` surface with an `account` body inside it, so it
+// depends on both sheets. About's came in only because `App.tsx` imports the
+// About dialog too — a component that draws with a class has to ask for the
+// sheet that defines it, or it is one import away from losing its width, its
+// padding and its scrolling.
+import '../styles/About.scss';
 import '../styles/Account.scss';
 
 interface IAccountDialogProps {
@@ -271,13 +277,21 @@ export default function AccountDialog({
                       </span>
                     )}
                   </div>
+                </div>
+                {/* Both of the account's own actions together, rather than a
+                    link hanging under the chips and a button across the row
+                    from it: they are the two things this header is for, and
+                    split apart they left the left column ragged. Both quiet —
+                    neither is what anybody opened the panel to be encouraged
+                    into. */}
+                <div className="account__hero-actions">
                   {/* Only once the server has said whether there is a name:
                       "choose" offered to somebody who has one would create a
                       second row and fail on the first. */}
                   {profileLoaded && !editingName && (
                     <button
                       type="button"
-                      className="account-link account__name-link"
+                      className="button small subtle account__name-link"
                       onClick={() => setEditingName(true)}
                     >
                       {t(
@@ -287,18 +301,16 @@ export default function AccountDialog({
                       )}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    className="button small subtle account__sign-out"
+                    onClick={() => {
+                      signOutAccount().catch(() => undefined);
+                    }}
+                  >
+                    {t('account.signOut')}
+                  </button>
                 </div>
-                {/* The quiet style: signing out is not what anybody opened
-                    this panel to be encouraged into. */}
-                <button
-                  type="button"
-                  className="button small subtle account__sign-out"
-                  onClick={() => {
-                    signOutAccount().catch(() => undefined);
-                  }}
-                >
-                  {t('account.signOut')}
-                </button>
               </section>
 
               {errorLine}
