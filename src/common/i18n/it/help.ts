@@ -184,7 +184,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.picker':
     'Le stanze da cui partire, raggruppate come i profili di ogni altro stadio; Personalizzata appena ne modelli una.',
   'help.room.picture':
-    'La stanza vista dall’alto: pareti che sbiadiscono assorbendo, i diffusori sul loro anello, la testa al centro. Trascina un diffusore per spostarlo.',
+    'La stanza vista dall’alto: pareti che sbiadiscono assorbendo, i diffusori sul loro anello, la testa al centro. Trascina un diffusore per spostarlo. Premi un diffusore per regolarlo da solo: il suo livello, la sua distanza, il suo angolo in gradi, e Muto e Solo per ascoltarlo da solo.',
   'help.room.dialsName': 'Dimensione, Pareti, Distanza, Centrale, Sub',
   'help.room.dials':
     'Il lato della stanza in metri, quanto assorbono le pareti, a che distanza stanno i diffusori e il livello del centrale e del sub.',

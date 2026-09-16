@@ -573,7 +573,8 @@ const dsp = {
     'Une salle d’écoute au casque : chaque canal de la sortie est une enceinte autour de votre tête.',
   'dsp.room.graphLabel': 'La salle vue de dessus',
   'dsp.room.front': 'Devant',
-  'dsp.room.dragHint': 'Faites glisser une enceinte pour la déplacer.',
+  'dsp.room.dragHint':
+    'Faites glisser une enceinte et sa paire suit ; maintenez Maj ou Ctrl pour la déplacer seule ; appuyez dessus pour la régler.',
   'dsp.room.fedFrontStage':
     'Lecture stéréo : seules FL et FR portent du son. Les autres attendent un flux 5.1 ou 7.1.',
   'dsp.room.fedFiveOne': 'Lecture 5.1 : la paire arrière ne porte rien.',
@@ -635,6 +636,20 @@ const dsp = {
   'dsp.room.groupSound': 'Son',
   'dsp.room.soundHint':
     'La gestion des graves et le mixage musique sont à vous, pas à la salle : les réglages et les salles enregistrées n’y touchent pas. Survolez un nom pour savoir ce qu’il fait.',
+  'dsp.room.speaker.level': 'Niveau',
+  'dsp.room.speaker.distance': 'Distance',
+  'dsp.room.speaker.angle': 'Angle',
+  'dsp.room.speaker.mute': 'Muet',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Fermer',
+  'dsp.room.speakerName.FL': 'Avant gauche',
+  'dsp.room.speakerName.FR': 'Avant droite',
+  'dsp.room.speakerName.C': 'Centre',
+  'dsp.room.speakerName.SL': 'Côté gauche',
+  'dsp.room.speakerName.SR': 'Côté droit',
+  'dsp.room.speakerName.RL': 'Arrière gauche',
+  'dsp.room.speakerName.RR': 'Arrière droite',
+  'dsp.room.speakerName.sub': 'Caisson de basses',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Façonner la salle et déplacer ses enceintes font partie de Plus. La salle et ses préréglages sont à vous quoi qu’il arrive.',

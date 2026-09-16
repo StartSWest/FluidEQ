@@ -578,7 +578,8 @@ const dsp = {
     'Ein Hörraum auf dem Kopfhörer: jeder Kanal des Ausgangs ist ein Lautsprecher rund um deinen Kopf.',
   'dsp.room.graphLabel': 'Der Raum von oben',
   'dsp.room.front': 'Vorn',
-  'dsp.room.dragHint': 'Zieh einen Lautsprecher, um ihn zu verschieben.',
+  'dsp.room.dragHint':
+    'Zieh einen Lautsprecher, und sein Partner geht mit; mit Umschalt oder Strg bewegt er sich allein; tipp ihn an, um ihn einzustellen.',
   'dsp.room.fedFrontStage':
     'Es läuft Stereo: nur FL und FR führen Ton. Die anderen warten auf einen 5.1- oder 7.1-Stream.',
   'dsp.room.fedFiveOne': 'Es läuft 5.1: das hintere Paar führt nichts.',
@@ -640,6 +641,20 @@ const dsp = {
   'dsp.room.groupSound': 'Klang',
   'dsp.room.soundHint':
     'Bassmanagement und der Musik-Upmix gehören dir, nicht dem Raum: Voreinstellungen und gespeicherte Räume lassen sie in Ruhe. Fahr über einen Namen, um zu sehen, was er tut.',
+  'dsp.room.speaker.level': 'Pegel',
+  'dsp.room.speaker.distance': 'Abstand',
+  'dsp.room.speaker.angle': 'Winkel',
+  'dsp.room.speaker.mute': 'Stumm',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Schließen',
+  'dsp.room.speakerName.FL': 'Vorn links',
+  'dsp.room.speakerName.FR': 'Vorn rechts',
+  'dsp.room.speakerName.C': 'Center',
+  'dsp.room.speakerName.SL': 'Seite links',
+  'dsp.room.speakerName.SR': 'Seite rechts',
+  'dsp.room.speakerName.RL': 'Hinten links',
+  'dsp.room.speakerName.RR': 'Hinten rechts',
+  'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Den Raum formen und seine Lautsprecher verschieben gehört zu Plus. Der Raum und seine Vorgaben gehören dir so oder so.',

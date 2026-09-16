@@ -563,7 +563,8 @@ const dsp = {
     'हेडफ़ोन में एक सुनने का कमरा: आउटपुट का हर चैनल आपके सिर के चारों ओर एक स्पीकर है।',
   'dsp.room.graphLabel': 'ऊपर से कमरा',
   'dsp.room.front': 'सामने',
-  'dsp.room.dragHint': 'स्पीकर को खींचकर हिलाएँ।',
+  'dsp.room.dragHint':
+    'स्पीकर को खींचें तो उसका जोड़ीदार भी साथ चलता है; अकेले हिलाने के लिए Shift या Ctrl दबाए रखें; सेट करने के लिए उसे दबाएँ।',
   'dsp.room.fedFrontStage':
     'स्टीरियो चल रहा है: सिर्फ़ FL और FR में आवाज़ है। बाकी 5.1 या 7.1 स्ट्रीम का इंतज़ार कर रहे हैं।',
   'dsp.room.fedFiveOne': '5.1 चल रहा है: पीछे की जोड़ी में कुछ नहीं है।',
@@ -625,6 +626,20 @@ const dsp = {
   'dsp.room.groupSound': 'ध्वनि',
   'dsp.room.soundHint':
     'बास प्रबंधन और संगीत अपमिक्स आपके हैं, कमरे के नहीं: प्रीसेट और सहेजे गए कमरे इन्हें नहीं छूते। किसी नाम पर माउस रखकर देखें कि वह क्या करता है।',
+  'dsp.room.speaker.level': 'स्तर',
+  'dsp.room.speaker.distance': 'दूरी',
+  'dsp.room.speaker.angle': 'कोण',
+  'dsp.room.speaker.mute': 'म्यूट',
+  'dsp.room.speaker.solo': 'सोलो',
+  'dsp.room.speaker.close': 'बंद करें',
+  'dsp.room.speakerName.FL': 'सामने बायाँ',
+  'dsp.room.speakerName.FR': 'सामने दायाँ',
+  'dsp.room.speakerName.C': 'सेंटर',
+  'dsp.room.speakerName.SL': 'साइड बायाँ',
+  'dsp.room.speakerName.SR': 'साइड दायाँ',
+  'dsp.room.speakerName.RL': 'पीछे बायाँ',
+  'dsp.room.speakerName.RR': 'पीछे दायाँ',
+  'dsp.room.speakerName.sub': 'सबवूफ़र',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'कमरे का आकार बदलना और स्पीकर हिलाना Plus का हिस्सा है। कमरा और उसके प्रीसेट वैसे भी आपके हैं।',

@@ -558,7 +558,8 @@ const dsp = {
     'ヘッドホンの中のリスニングルーム：出力の各チャンネルが、頭の周りのスピーカーになります。',
   'dsp.room.graphLabel': '上から見たルーム',
   'dsp.room.front': '前',
-  'dsp.room.dragHint': 'スピーカーをドラッグして動かします。',
+  'dsp.room.dragHint':
+    'スピーカーをドラッグすると対になるスピーカーも一緒に動きます。Shift または Ctrl を押しながらだと単独で動き、押すと設定できます。',
   'dsp.room.fedFrontStage':
     'ステレオ再生中：音を出すのは FL と FR だけです。ほかは 5.1 か 7.1 のストリームを待っています。',
   'dsp.room.fedFiveOne': '5.1 再生中：リアの 2 本は音を出しません。',
@@ -620,6 +621,20 @@ const dsp = {
   'dsp.room.groupSound': 'サウンド',
   'dsp.room.soundHint':
     '低音管理と音楽アップミックスはルームではなくあなたの設定です。プリセットや保存したルームは変更しません。名前にカーソルを合わせると説明が表示されます。',
+  'dsp.room.speaker.level': 'レベル',
+  'dsp.room.speaker.distance': '距離',
+  'dsp.room.speaker.angle': '角度',
+  'dsp.room.speaker.mute': 'ミュート',
+  'dsp.room.speaker.solo': 'ソロ',
+  'dsp.room.speaker.close': '閉じる',
+  'dsp.room.speakerName.FL': 'フロント左',
+  'dsp.room.speakerName.FR': 'フロント右',
+  'dsp.room.speakerName.C': 'センター',
+  'dsp.room.speakerName.SL': 'サイド左',
+  'dsp.room.speakerName.SR': 'サイド右',
+  'dsp.room.speakerName.RL': 'リア左',
+  'dsp.room.speakerName.RR': 'リア右',
+  'dsp.room.speakerName.sub': 'サブウーファー',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'ルームの形とスピーカーの移動は Plus の機能です。ルームとそのプリセットはどちらにしても使えます。',

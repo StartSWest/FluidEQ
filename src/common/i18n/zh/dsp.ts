@@ -537,7 +537,8 @@ const dsp = {
     '耳机里的聆听室：输出的每个声道都是你头部周围的一只音箱。',
   'dsp.room.graphLabel': '俯视的房间',
   'dsp.room.front': '前方',
-  'dsp.room.dragHint': '拖动音箱可移动它。',
+  'dsp.room.dragHint':
+    '拖动音箱时，与它成对的音箱会一起移动；按住 Shift 或 Ctrl 可单独移动；按下可进行设置。',
   'dsp.room.fedFrontStage':
     '正在播放立体声：只有 FL 和 FR 有声音。其余音箱等待 5.1 或 7.1 音频流。',
   'dsp.room.fedFiveOne': '正在播放 5.1：后置一对没有声音。',
@@ -599,6 +600,20 @@ const dsp = {
   'dsp.room.groupSound': '声音',
   'dsp.room.soundHint':
     '低音管理和音乐上混是你的设置，不属于房间：预设和已保存的房间不会改动它们。将鼠标悬停在名称上可查看说明。',
+  'dsp.room.speaker.level': '电平',
+  'dsp.room.speaker.distance': '距离',
+  'dsp.room.speaker.angle': '角度',
+  'dsp.room.speaker.mute': '静音',
+  'dsp.room.speaker.solo': '独奏',
+  'dsp.room.speaker.close': '关闭',
+  'dsp.room.speakerName.FL': '前左',
+  'dsp.room.speakerName.FR': '前右',
+  'dsp.room.speakerName.C': '中置',
+  'dsp.room.speakerName.SL': '侧左',
+  'dsp.room.speakerName.SR': '侧右',
+  'dsp.room.speakerName.RL': '后左',
+  'dsp.room.speakerName.RR': '后右',
+  'dsp.room.speakerName.sub': '低音炮',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     '调整房间形状和移动音箱是 Plus 功能。房间及其预设无论如何都可以使用。',

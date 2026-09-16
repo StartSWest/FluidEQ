@@ -182,7 +182,7 @@ const help = {
   'help.room.picker':
     "The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.",
   'help.room.picture':
-    'The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it.',
+    'The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it. Press one to set it by itself: its level, its own distance, its angle by number, and Mute and Solo to hear it alone.',
   'help.room.dialsName': 'Size, Walls, Distance, Centre, Sub',
   'help.room.dials':
     "The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.",

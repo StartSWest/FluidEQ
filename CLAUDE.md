@@ -639,8 +639,9 @@ Out-String` (or any other capture) is what actually waits for it and shows
   `chain.ts` is wire order (the engine logs the index), so a new room goes
   before `custom`, never between. Saved rooms (`savedRooms.ts`) keep the
   shape and never the head, like the presets. Bass management
-  (`bass_management`, `crossover_hz`, the last two of the room's twenty-five
-  wire scalars, `FEQ_CHAIN_PARAM_LEAD` 140) is a Linkwitz-Riley 4th-order
+  (`bass_management`, `crossover_hz`, the twenty-fourth and twenty-fifth of
+  the room's forty-two wire scalars; `FEQ_CHAIN_PARAM_LEAD` was 140 when
+  they landed and is 157 now) is a Linkwitz-Riley 4th-order
   high-pass on every speaker channel and the same low-pass on their sum
   into the sub's path, both ears alike at unity; its coefficients ride the
   kernel set (so a crossover change lands with the set), its histories live
@@ -656,7 +657,20 @@ Out-String` (or any other capture) is what actually waits for it and shows
   low-passed at 6 kHz) — and renders each through `render_source`, which
   is also the surround path. The engine reports the state as `music`
   (`ROOM_STATES` on the app side), and the 7.1 offer treats it as a stereo
-  fold like `front-stage`. Held by `room_test.cpp`: nothing after the direct
+  fold like `front-stage`. After the upmix's two come each speaker's own
+  distance (`speaker_distance_m[7]`, 0 meaning the ring's) and eight mutes
+  (`mute[8]`, the sub's last; LEAD 157). The nearest speaker that will be
+  heard is the kernel's origin: it arrives at once and at unity, every
+  other speaker later by its extra path and quieter by inverse distance
+  (`arrivals_for`'s `reference`, capped at half the kernel so a far
+  speaker never falls off its end), and the reflections keep their
+  geometry from that origin — with every speaker on the ring nothing
+  changes, which is what keeps `room_presets_test.cpp` true. A muted
+  speaker gets no kernel and the muted sub a zero gain; a room with every
+  speaker muted is still active (latency, status). On the card the panel
+  under the picture (`DspRoomSpeakerPanel`) opens on a press without
+  travel (`PRESS_TRAVEL_PX`); Solo is spelled as mutes on the other six
+  and never the sub, whose path carries every speaker's managed bass. Held by `room_test.cpp`: nothing after the direct
   sound on a dead-walled front stage, a later ring with the upmix, no side
   signal from a mono record. Which channel is
   which speaker comes from the stream's mask (`speaker_of_channel`), the

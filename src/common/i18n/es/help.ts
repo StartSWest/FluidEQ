@@ -182,7 +182,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.picker':
     'Las salas de partida, agrupadas como los perfiles de las demás etapas; Personalizada en cuanto das forma a una.',
   'help.room.picture':
-    'La sala vista desde arriba: paredes que se apagan al absorber, los altavoces en su anillo, la cabeza en el centro. Arrastra un altavoz para moverlo.',
+    'La sala vista desde arriba: paredes que se apagan al absorber, los altavoces en su anillo, la cabeza en el centro. Arrastra un altavoz para moverlo. Púlsalo para ajustarlo por separado: su nivel, su propia distancia, su ángulo en grados, y Silenciar y Solo para oírlo a solas.',
   'help.room.dialsName': 'Tamaño, Paredes, Distancia, Central, Sub',
   'help.room.dials':
     'El lado de la sala en metros, cuánto absorben sus paredes, a qué distancia están los altavoces y el nivel del central y del sub.',

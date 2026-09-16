@@ -568,7 +568,8 @@ const dsp = {
     'Комната прослушивания в наушниках: каждый канал выхода — колонка вокруг вашей головы.',
   'dsp.room.graphLabel': 'Комната сверху',
   'dsp.room.front': 'Перед',
-  'dsp.room.dragHint': 'Перетащите колонку, чтобы переставить её.',
+  'dsp.room.dragHint':
+    'Перетащите колонку — её пара двинется вместе с ней; удерживайте Shift или Ctrl, чтобы двигать её одну; нажмите, чтобы настроить.',
   'dsp.room.fedFrontStage':
     'Играет стерео: звук несут только FL и FR. Остальные ждут поток 5.1 или 7.1.',
   'dsp.room.fedFiveOne': 'Играет 5.1: задняя пара ничего не несёт.',
@@ -630,6 +631,20 @@ const dsp = {
   'dsp.room.groupSound': 'Звук',
   'dsp.room.soundHint':
     'Управление басом и апмикс музыки — ваши, а не комнаты: пресеты и сохранённые комнаты их не трогают. Наведите на название, чтобы узнать, что оно делает.',
+  'dsp.room.speaker.level': 'Уровень',
+  'dsp.room.speaker.distance': 'Расстояние',
+  'dsp.room.speaker.angle': 'Угол',
+  'dsp.room.speaker.mute': 'Без звука',
+  'dsp.room.speaker.solo': 'Соло',
+  'dsp.room.speaker.close': 'Закрыть',
+  'dsp.room.speakerName.FL': 'Передняя левая',
+  'dsp.room.speakerName.FR': 'Передняя правая',
+  'dsp.room.speakerName.C': 'Центр',
+  'dsp.room.speakerName.SL': 'Боковая левая',
+  'dsp.room.speakerName.SR': 'Боковая правая',
+  'dsp.room.speakerName.RL': 'Задняя левая',
+  'dsp.room.speakerName.RR': 'Задняя правая',
+  'dsp.room.speakerName.sub': 'Сабвуфер',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Форма комнаты и перестановка колонок — часть Plus. Сама комната и её пресеты ваши в любом случае.',

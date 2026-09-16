@@ -161,7 +161,10 @@ void feq_room_settings_defaults(FeqRoomSettings* settings) {
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     settings->angle_deg[speaker] = angles[speaker];
     settings->level_db[speaker] = 0.0;
+    settings->speaker_distance_m[speaker] = 0.0;
+    settings->mute[speaker] = 0;
   }
+  settings->mute[FEQ_ROOM_SPEAKERS] = 0;
 }
 
 FeqRoom* feq_room_create(double sample_rate, uint32_t channels,

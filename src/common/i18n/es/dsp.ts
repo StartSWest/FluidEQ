@@ -570,7 +570,8 @@ const dsp = {
     'Una sala de escucha en los auriculares: cada canal de la salida es un altavoz alrededor de tu cabeza.',
   'dsp.room.graphLabel': 'La sala vista desde arriba',
   'dsp.room.front': 'Frente',
-  'dsp.room.dragHint': 'Arrastra un altavoz para moverlo.',
+  'dsp.room.dragHint':
+    'Arrastra un altavoz y su pareja se mueve con él; mantén Mayús o Ctrl para moverlo solo; púlsalo para ajustarlo.',
   'dsp.room.fedFrontStage':
     'Suena estéreo: solo FL y FR llevan sonido. Los demás esperan una señal 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suena 5.1: el par trasero no lleva nada.',
@@ -632,6 +633,20 @@ const dsp = {
   'dsp.room.groupSound': 'Sonido',
   'dsp.room.soundHint':
     'La gestión de graves y la mezcla para música son tuyas, no de la sala: los ajustes y las salas guardadas no las tocan. Pasa el ratón por un nombre para ver qué hace.',
+  'dsp.room.speaker.level': 'Nivel',
+  'dsp.room.speaker.distance': 'Distancia',
+  'dsp.room.speaker.angle': 'Ángulo',
+  'dsp.room.speaker.mute': 'Silenciar',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Cerrar',
+  'dsp.room.speakerName.FL': 'Frontal izquierdo',
+  'dsp.room.speakerName.FR': 'Frontal derecho',
+  'dsp.room.speakerName.C': 'Central',
+  'dsp.room.speakerName.SL': 'Lateral izquierdo',
+  'dsp.room.speakerName.SR': 'Lateral derecho',
+  'dsp.room.speakerName.RL': 'Trasero izquierdo',
+  'dsp.room.speakerName.RR': 'Trasero derecho',
+  'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Dar forma a la sala y mover sus altavoces es parte de Plus. La sala y sus preajustes son tuyos de todos modos.',

@@ -186,7 +186,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.picker':
     'Les salles de départ, groupées comme les profils de chaque autre étage ; Personnalisée dès que vous en façonnez une.',
   'help.room.picture':
-    'La salle vue de dessus : des murs qui s’effacent en absorbant, les enceintes sur leur anneau, la tête au milieu. Faites glisser une enceinte pour la déplacer.',
+    'La salle vue de dessus : des murs qui s’effacent en absorbant, les enceintes sur leur anneau, la tête au milieu. Faites glisser une enceinte pour la déplacer. Appuyez sur une enceinte pour la régler seule : son niveau, sa propre distance, son angle en degrés, et Muet et Solo pour l’écouter seule.',
   'help.room.dialsName': 'Taille, Murs, Distance, Centre, Sub',
   'help.room.dials':
     'Le côté de la salle en mètres, ce que ses murs absorbent, la distance des enceintes, et le niveau du centre et du sub.',

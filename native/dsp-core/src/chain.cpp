@@ -154,7 +154,10 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     settings->room.angle_deg[speaker] = room.angle_deg[speaker];
     settings->room.level_db[speaker] = room.level_db[speaker];
+    settings->room.speaker_distance_m[speaker] = room.speaker_distance_m[speaker];
+    settings->room.mute[speaker] = room.mute[speaker];
   }
+  settings->room.mute[FEQ_ROOM_SPEAKERS] = room.mute[FEQ_ROOM_SPEAKERS];
   settings->normalizer.ceiling_db = -1;
   settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
@@ -486,7 +489,11 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
     for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
       room.angle_deg[speaker] = chain->settings.room.angle_deg[speaker];
       room.level_db[speaker] = chain->settings.room.level_db[speaker];
+      room.speaker_distance_m[speaker] =
+          chain->settings.room.speaker_distance_m[speaker];
+      room.mute[speaker] = chain->settings.room.mute[speaker];
     }
+    room.mute[FEQ_ROOM_SPEAKERS] = chain->settings.room.mute[FEQ_ROOM_SPEAKERS];
     feq_room_configure(chain->room, &room);
   }
   chain_refresh_eq(chain);

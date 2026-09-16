@@ -278,7 +278,7 @@ The Room turns headphones into a listening room. Every channel of the sound beco
 ![The Room: surround on headphones](32-dsp-room.png)
 
 - **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
-- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it.
+- **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it. Press one to set it by itself: its level, its own distance, its angle by number, and Mute and Solo to hear it alone.
 - **Size, Walls, Distance, Centre, Sub** — The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.
 - **Fit…** — Five listening pairs that pick the head for your ears.
 - **Head** — The measured head the room renders through: small, medium or large.

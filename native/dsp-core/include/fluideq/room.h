@@ -82,6 +82,14 @@ typedef struct FeqRoomSettings {
   /** Each speaker's azimuth, degrees clockwise from straight ahead. */
   double angle_deg[FEQ_ROOM_SPEAKERS];
   double level_db[FEQ_ROOM_SPEAKERS];
+  /**
+   * Each speaker's own distance in metres, or 0 to stand on the ring at
+   * `distance_m`: a room is not round, and a receiver takes each distance
+   * so a nearer speaker arrives when it should.
+   */
+  double speaker_distance_m[FEQ_ROOM_SPEAKERS];
+  /** Seven speakers then the sub: a muted one builds no kernel and is silent. */
+  int mute[FEQ_ROOM_SPEAKERS + 1];
 } FeqRoomSettings;
 
 typedef struct FeqRoom FeqRoom;

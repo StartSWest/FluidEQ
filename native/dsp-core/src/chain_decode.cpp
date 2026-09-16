@@ -192,6 +192,12 @@ int feq_chain_settings_decode(const double* values,
   out->room.crossover_hz = next();
   out->room.music_upmix = flag();
   out->room.upmix_amount = next();
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    out->room.speaker_distance_m[speaker] = next();
+  }
+  for (int slot = 0; slot < FEQ_ROOM_SPEAKERS + 1; ++slot) {
+    out->room.mute[slot] = flag();
+  }
 
   out->surround_all_channels = flag();
 

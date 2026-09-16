@@ -3695,6 +3695,114 @@ $dsp-pane-columns: 6;
   }
 }
 
+// A muted speaker: a stroke through it, its glow gone; a selected one: a
+// ring in the accent around it, the same ring the panel below answers to.
+.dsp-room-speaker-mute {
+  fill: none;
+  stroke: $red;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.dsp-room-speaker.is-muted .dsp-room-speaker-box,
+.dsp-room-sub.is-muted .dsp-room-speaker-box {
+  stroke: rgba($white, 0.3);
+}
+
+.dsp-room-speaker-select {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.dsp-room-speaker,
+.dsp-room-sub {
+  cursor: pointer;
+}
+
+// The pressed speaker's panel, under the picture: its code and name, the
+// listening buttons at the right, then the dials and the angle on one line
+// that wraps when the column is narrow.
+.dsp-room-speaker-panel {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 640px);
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
+  border-radius: $radius-s;
+  background: $surface-plot;
+}
+
+.dsp-room-speaker-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.dsp-room-speaker-panel__code {
+  color: $secondary-default;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+}
+
+.dsp-room-speaker-panel__name {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.dsp-room-speaker-panel__close {
+  padding-inline: 8px;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+}
+
+.dsp-room-speaker-panel__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.dsp-room-speaker-panel__angle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-small;
+
+  input {
+    width: 64px;
+    padding: 6px 8px;
+    border: 1px solid rgba($white, 0.1);
+    border-radius: $radius-xs;
+    background: $surface-well;
+    color: $white;
+    font-size: $text-body;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+
+    &:focus {
+      border-color: color-mix(in srgb, $secondary-default 50%, transparent);
+      outline: none;
+    }
+
+    &:disabled {
+      opacity: $disabled-opacity;
+    }
+  }
+}
+
 // Why some are asleep: one quiet line under the drag hint, sentence case.
 .dsp-room-graph-fed {
   margin: 0;

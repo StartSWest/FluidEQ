@@ -187,7 +187,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.picker':
     'Die Räume zum Anfangen, gruppiert wie die Profile jeder anderen Stufe; Eigene, sobald du einen formst.',
   'help.room.picture':
-    'Der Raum von oben: Wände, die beim Absorbieren verblassen, die Lautsprecher auf ihrem Ring, der Kopf in der Mitte. Zieh einen Lautsprecher, um ihn zu verschieben.',
+    'Der Raum von oben: Wände, die beim Absorbieren verblassen, die Lautsprecher auf ihrem Ring, der Kopf in der Mitte. Zieh einen Lautsprecher, um ihn zu verschieben. Tipp einen an, um ihn für sich einzustellen: Pegel, eigener Abstand, Winkel als Zahl, und Stumm und Solo, um ihn allein zu hören.',
   'help.room.dialsName': 'Größe, Wände, Abstand, Center, Sub',
   'help.room.dials':
     'Die Seite des Raums in Metern, wie stark seine Wände absorbieren, wie weit die Lautsprecher stehen, und der Pegel von Center und Sub.',

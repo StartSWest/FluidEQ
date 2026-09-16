@@ -56,6 +56,10 @@ describe('room presets', () => {
       }).toEqual({ id: preset.id, inside: true });
       expect(preset.shape.angles).toHaveLength(7);
       expect(preset.shape.levels).toHaveLength(7);
+      // A preset stands every speaker on its ring.
+      expect(preset.shape.distances).toEqual(
+        Array.from({ length: 7 }, () => preset.shape.distanceM),
+      );
       // Left speakers on the left, right on the right, centre ahead.
       expect(preset.shape.angles[0]).toBeLessThan(0);
       expect(preset.shape.angles[1]).toBeGreaterThan(0);

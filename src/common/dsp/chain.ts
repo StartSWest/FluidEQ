@@ -1047,6 +1047,10 @@ export interface IRoomSettings {
    */
   musicUpmix: boolean;
   upmixAmount: number;
+  /** Each speaker's own distance in metres; the Distance dial sets all seven. */
+  distances: number[];
+  /** FL FR C SL SR RL RR then the sub: a muted one is silent. */
+  mutes: boolean[];
 }
 
 export interface ISurroundSettings {
@@ -1732,6 +1736,8 @@ export const DSP_DEFAULTS: IDspSettings = {
     crossoverHz: 80,
     musicUpmix: false,
     upmixAmount: 0.6,
+    distances: [1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8],
+    mutes: [false, false, false, false, false, false, false, false],
   },
   // On by default: a 5.1 or 7.1 output follows what Windows is set to, and
   // the rack on two of its channels was a surprise on every one of them.
@@ -2453,6 +2459,17 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         room.upmixAmount,
         RANGES.roomUpmixAmount,
         DSP_DEFAULTS.room.upmixAmount,
+      ),
+      distances: perSpeaker(
+        room.distances,
+        RANGES.roomDistanceM,
+        DSP_DEFAULTS.room.distances,
+      ),
+      mutes: DSP_DEFAULTS.room.mutes.map((fallback, at) =>
+        clampBoolean(
+          Array.isArray(room.mutes) ? room.mutes[at] : undefined,
+          fallback,
+        ),
       ),
     },
     surround: {

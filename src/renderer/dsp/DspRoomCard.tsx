@@ -20,7 +20,8 @@ import { Dial, ProcessorCard } from './DspControls';
 import DspRoomBar from './DspRoomBar';
 import DspRoomFitDialog from './DspRoomFitDialog';
 import { RoomCrossoverGlyph, RoomRingGlyph } from './DspRoomGlyphs';
-import DspRoomGraph from './DspRoomGraph';
+import DspRoomGraph, { TRoomPick } from './DspRoomGraph';
+import DspRoomSpeakerPanel from './DspRoomSpeakerPanel';
 import DspRoomLibrary from './DspRoomLibrary';
 import { IRoomLive } from './useRoomLive';
 import '../styles/LookPicker.scss';
@@ -73,11 +74,19 @@ const fedBy = (
  * says what Plus adds where it would be pressed. The head and the headphone
  * switch are the listener's, not the room's, and stay outside the lock.
  */
+/**
+ * Each speaker's mirror across the front: left with right, the centre with
+ * nobody. A plain drag moves the pair, so a layout stays symmetric without
+ * a second drag that never quite lands on the same angle.
+ */
+const ROOM_MIRROR = [1, 0, -1, 4, 3, 6, 5];
+
 const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const { t } = useTranslation();
   const isPlus = usePlusEntitled();
   const canShape = isPlus && room.enabled;
   const [isFitOpen, setFitOpen] = useState(false);
+  const [picked, setPicked] = useState<TRoomPick | null>(null);
   const { fed, subFed, hintKey: fedHintKey } = fedBy(live.state);
   /**
    * The centre and the sub are dials on channels: while the stream has no
@@ -110,7 +119,15 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
       isDisabled={
         !canShape || ((key === 'centreDb' || key === 'subDb') && !fedDial(key))
       }
-      onChange={(value) => shape({ [key]: value })}
+      onChange={(value) =>
+        shape(
+          key === 'distanceM'
+            ? // The ring: every speaker steps with it, its own distance
+              // included, so the picture and the engine agree.
+              { distanceM: value, distances: room.distances.map(() => value) }
+            : { [key]: value },
+        )
+      }
       onCommit={onCommit}
     />
   );
@@ -152,15 +169,34 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
         fedHintKey={room.enabled ? fedHintKey : undefined}
         isDisabled={!room.enabled}
         canDrag={isPlus}
-        onAngle={(speaker, angleDeg) =>
+        mutes={room.mutes}
+        selected={picked}
+        onSelect={setPicked}
+        onAngle={(speaker, angleDeg, mirrored) => {
+          const pair = mirrored ? ROOM_MIRROR[speaker] : -1;
           shape({
-            angles: room.angles.map((angle, at) =>
-              at === speaker ? angleDeg : angle,
-            ),
-          })
-        }
+            angles: room.angles.map((angle, at) => {
+              if (at === speaker) {
+                return angleDeg;
+              }
+              return at === pair ? -angleDeg : angle;
+            }),
+          });
+        }}
         onCommit={onCommit}
-      />
+      >
+        {picked !== null ? (
+          <DspRoomSpeakerPanel
+            room={room}
+            which={picked}
+            canShape={canShape}
+            isDisabled={!room.enabled}
+            onChange={onPatch}
+            onCommit={onCommit}
+            onClose={() => setPicked(null)}
+          />
+        ) : undefined}
+      </DspRoomGraph>
 
       <div className="dsp-room-controls">
         <div className="dsp-band">

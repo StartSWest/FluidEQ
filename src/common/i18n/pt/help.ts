@@ -182,7 +182,7 @@ const help: Record<keyof typeof en, string> = {
   'help.room.picker':
     'As salas de partida, agrupadas como os perfis de cada outro andar; Personalizada assim que moldas uma.',
   'help.room.picture':
-    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Arrasta uma coluna para a mover.',
+    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Arrasta uma coluna para a mover. Carrega numa coluna para a ajustar sozinha: o nível, a própria distância, o ângulo em graus, e Silenciar e Solo para a ouvir sozinha.',
   'help.room.dialsName': 'Tamanho, Paredes, Distância, Central, Sub',
   'help.room.dials':
     'O lado da sala em metros, quanto as paredes absorvem, a que distância estão as colunas e o nível do central e do sub.',

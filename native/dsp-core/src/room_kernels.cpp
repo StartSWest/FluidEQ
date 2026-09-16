@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "room_internal.h"
 
+#include <algorithm>
 #include <cmath>
 #include <new>
 
@@ -69,16 +70,45 @@ void head_response(const FeqRoom* room, uint32_t direction, int ear,
   }
 }
 
-/** Direct path first, then the four wall images. */
-void arrivals_for(const FeqRoom* room, double angle_deg, Arrival* out,
-                  uint32_t* count) {
+/** A speaker's own distance, or the ring's where it has none. */
+double speaker_distance(const FeqRoomSettings& s, int speaker) {
+  const double own = speaker >= 0 && speaker < FEQ_ROOM_SPEAKERS
+                         ? s.speaker_distance_m[speaker]
+                         : 0.0;
+  return own > 0.0 ? own : s.distance_m;
+}
+
+/**
+ * The farthest a speaker's direct sound may be pushed down its kernel, in
+ * frames: the head's taps, twice interpolated, still have to fit after it.
+ * At 48 kHz that is 7.3 m of extra path — the whole 0.5 m to 6 m spread —
+ * and at 192 kHz 1.8 m; a speaker beyond the cap arrives at the cap rather
+ * than falling off the end of the kernel and going silent.
+ */
+constexpr uint32_t kDirectDelayCap = FEQ_ROOM_KERNEL_TAPS / 2;
+
+/**
+ * Direct path first, then the four wall images, for a speaker at ,
+ *  metres away. The nearest speaker of the room is the
+ * kernel's origin: it arrives at once and at unity, and every other speaker
+ * arrives later by its extra path and quieter by its extra distance, the
+ * way a receiver's distance settings sound. The reflections keep their
+ * geometry from the same origin.
+ */
+void arrivals_for(const FeqRoom* room, double angle_deg, double distance,
+                  double reference, Arrival* out, uint32_t* count) {
   const FeqRoomSettings& s = room->settings;
   const double radians = angle_deg * kPi / 180.0;
-  const double x = s.distance_m * std::sin(radians);
-  const double y = s.distance_m * std::cos(radians);
+  const double x = distance * std::sin(radians);
+  const double y = distance * std::cos(radians);
   const double half = s.size_m / 2.0;
+  const auto frames_beyond = [&](double path) {
+    const double extra = (path - reference) / kSpeedOfSound * room->sample_rate;
+    return static_cast<uint32_t>(std::lround(std::max(0.0, extra)));
+  };
   *count = 0;
-  out[(*count)++] = Arrival{angle_deg, 1.0, 0};
+  out[(*count)++] = Arrival{angle_deg, reference / distance,
+                            std::min(kDirectDelayCap, frames_beyond(distance))};
   const double absorbed = s.walls < 0.0 ? 0.0 : (s.walls > 1.0 ? 1.0 : s.walls);
   if (absorbed >= 1.0) {
     return;
@@ -88,14 +118,12 @@ void arrivals_for(const FeqRoom* room, double angle_deg, Arrival* out,
       {x, 2.0 * half - y}, {x, -2.0 * half - y}};
   for (const auto& image : images) {
     const double r = std::sqrt(image[0] * image[0] + image[1] * image[1]);
-    if (r <= s.distance_m) {
+    if (r <= distance) {
       continue;
     }
-    const double extra = (r - s.distance_m) / kSpeedOfSound * room->sample_rate;
-    out[(*count)++] = Arrival{
-        std::atan2(image[0], image[1]) * 180.0 / kPi,
-        (1.0 - absorbed) * (s.distance_m / r),
-        static_cast<uint32_t>(std::lround(extra))};
+    out[(*count)++] = Arrival{std::atan2(image[0], image[1]) * 180.0 / kPi,
+                              (1.0 - absorbed) * (reference / r),
+                              frames_beyond(r)};
   }
 }
 
@@ -151,7 +179,9 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   if (set == nullptr) {
     return nullptr;
   }
-  set->sub_gain = db_to_gain(room->settings.sub_db);
+  set->sub_gain = room->settings.mute[FEQ_ROOM_SPEAKERS] != 0
+                      ? 0.0
+                      : db_to_gain(room->settings.sub_db);
   // Two cascaded Butterworth stages make one Linkwitz-Riley 4th order, whose
   // high-pass and low-pass sum flat: what leaves the speakers arrives at
   // the sub's path with nothing lost or doubled at the crossover.
@@ -198,10 +228,27 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   std::vector<float> right(FEQ_ROOM_KERNEL_TAPS);
   std::vector<float> response;
   Arrival arrivals[5];
+  // Active from here: a room whose every speaker is muted is a silent room,
+  // not a room switched off — the latency and the status stay the room's.
+  set->active = 1;
   const uint32_t slots = upmix ? FEQ_ROOM_SPEAKERS : room->channels;
+  // The nearest speaker that will be heard is on time; the ring where none.
+  double nearest = room->settings.distance_m;
+  bool any = false;
   for (uint32_t channel = 0; channel < slots; ++channel) {
     const int speaker = upmix ? static_cast<int>(channel) : room->speaker[channel];
-    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS) {
+    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS ||
+        room->settings.mute[speaker] != 0) {
+      continue;
+    }
+    const double own = speaker_distance(room->settings, speaker);
+    nearest = any ? std::min(nearest, own) : own;
+    any = true;
+  }
+  for (uint32_t channel = 0; channel < slots; ++channel) {
+    const int speaker = upmix ? static_cast<int>(channel) : room->speaker[channel];
+    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS ||
+        room->settings.mute[speaker] != 0) {
       continue;
     }
     std::fill(left.begin(), left.end(), 0.0f);
@@ -215,7 +262,8 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
     uint32_t shift_right = 0;
     ear_shifts(room, angle, &shift_left, &shift_right);
     uint32_t count = 0;
-    arrivals_for(room, angle, arrivals, &count);
+    arrivals_for(room, angle, speaker_distance(room->settings, speaker),
+                 nearest, arrivals, &count);
     for (uint32_t at = 0; at < count; ++at) {
       add_arrival(room, arrivals[at], gain, shift_left, shift_right, response,
                   left.data(), right.data());
@@ -234,7 +282,6 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
       set->kernel[channel][ear] = kernel;
       set->convolver[channel][ear] = convolver;
     }
-    set->active = 1;
   }
   return set;
 }

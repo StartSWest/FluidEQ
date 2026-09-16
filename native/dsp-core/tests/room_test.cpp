@@ -167,6 +167,62 @@ void stereo_becomes_a_front_stage() {
         "right ear hears the left speaker later by the head's delay");
 }
 
+/**
+ * A speaker's own distance and its mute. Farther is later: the left
+ * speaker moved from the ring's 1.8 m to 3 m arrives the extra path later,
+ * frame for frame, and the right one on the ring does not move. Muted is
+ * silent: the left muted leaves the left impulse nowhere while the right
+ * speaker is still heard.
+ */
+void a_speaker_has_its_own_distance_and_can_be_muted() {
+  std::printf("a speaker has its own distance and can be muted\n");
+  const int speakers[2] = {0, 1};
+  // One speaker fed at a time: the left ear hears the right speaker too,
+  // and its crosstalk would be the first thing counted.
+  const auto arrival = [&](double left_distance, int mute_left,
+                           bool feed_right) {
+    Fixture f(2, speakers, -1);
+    f.settings.speaker_distance_m[0] = left_distance;
+    f.settings.mute[0] = mute_left;
+    feq_room_configure(f.room, &f.settings);
+    Planar b = planar(2);
+    b[0][10] = 1.0f;
+    if (feed_right) {
+      b[1][40] = 1.0f;
+    }
+    run(f.room, b);
+    return b;
+  };
+  const Planar ring = arrival(0.0, 0, false);
+  const Planar far = arrival(3.0, 0, false);
+  const size_t ring_left = first_nonzero(ring[0]);
+  const size_t far_left = first_nonzero(far[0]);
+  const auto extra = static_cast<size_t>(
+      std::lround((3.0 - 1.8) / 343.0 * kRate));
+  std::printf("  left speaker at 1.8 m: %zu; at 3 m: %zu; extra %zu frames\n",
+              ring_left, far_left, extra);
+  check(far_left == ring_left + extra,
+        "a farther speaker arrives later by its extra path");
+  check(energy(far[0]) < energy(ring[0]) * 0.5,
+        "and quieter: 3 m against 1.8 m is under half the power");
+  const Planar muted = arrival(0.0, 1, true);
+  std::printf("  left muted: left ear %.4g, right ear %.4g\n",
+              energy(muted[0]), energy(muted[1]));
+  check(first_nonzero(muted[0]) ==
+            40 + feq_convolver_latency() + interaural_frames(30.0),
+        "a muted speaker leaves nothing of its own: the left ear's first sound "
+        "is the right speaker's crosstalk");
+  check(energy(muted[1]) > 0.0, "the right speaker is still heard");
+  {
+    Fixture f(2, speakers, -1);
+    f.settings.mute[0] = 1;
+    f.settings.mute[1] = 1;
+    feq_room_configure(f.room, &f.settings);
+    check(feq_room_active(f.room) == 1,
+          "a room with every speaker muted is a silent room, not one switched off");
+  }
+}
+
 void seven_one_folds_to_the_pair() {
   std::printf("7.1 folds to the pair\n");
   const int speakers[8] = {0, 1, 2, -1, 5, 6, 3, 4};
@@ -405,6 +461,7 @@ int main() {
   stereo_becomes_a_front_stage();
   seven_one_folds_to_the_pair();
   the_sub_reaches_both_ears_equally();
+  a_speaker_has_its_own_distance_and_can_be_muted();
   bass_management_sends_the_bass_to_the_sub();
   the_music_upmix_fills_the_ring();
   hard_walls_add_reflections_and_dead_walls_none();

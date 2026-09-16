@@ -54,6 +54,7 @@ export const roomShapeOf = (room: unknown): TRoomShape => {
     subDb: clamped.subDb,
     angles: [...clamped.angles],
     levels: [...clamped.levels],
+    distances: [...clamped.distances],
   };
 };
 
@@ -70,7 +71,9 @@ export const roomShapesMatch = (
   shape.angles.length === room.angles.length &&
   shape.angles.every((angle, at) => angle === room.angles[at]) &&
   shape.levels.length === room.levels.length &&
-  shape.levels.every((level, at) => level === room.levels[at]);
+  shape.levels.every((level, at) => level === room.levels[at]) &&
+  shape.distances.length === room.distances.length &&
+  shape.distances.every((distance, at) => distance === room.distances[at]);
 
 /**
  * Everything readable out of storage, clamped on the way in: this is JSON

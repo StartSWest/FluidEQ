@@ -76,6 +76,15 @@ picks the head for your ears, and the same room on the Library's player.
   sides a moment later and the rears after that, the way a surround decoder
   derives its ambience; the Amount dial sets how much. The chip says
   "Stereo → whole room" while it runs; films and games are never touched.
+- **Every speaker set by itself.** Press a speaker in the picture and its
+  panel opens under it: its level, its own distance, its angle as a number,
+  and Mute and Solo — the walk-through a receiver does with a test tone.
+  A speaker moved farther away now arrives later and quieter than the
+  nearest one, the way it would in the room; the Distance dial still moves
+  the whole ring. Solo shuts the other six and leaves the sub, which
+  carries every speaker's bass; a muted speaker wears a stroke in the
+  picture. Mute and Solo are for everyone; the rest shapes the room and is
+  Plus, like the dials.
 - **The Room on the Library's player.** The Library plays music through its
   own copy of the rack, and that copy left the room out. Now it runs the
   same room with the same head, so a song in the Library and the same song

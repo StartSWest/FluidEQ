@@ -571,7 +571,8 @@ const dsp = {
     "Una stanza d'ascolto in cuffia: ogni canale dell'uscita è un diffusore intorno alla tua testa.",
   'dsp.room.graphLabel': "La stanza vista dall'alto",
   'dsp.room.front': 'Davanti',
-  'dsp.room.dragHint': 'Trascina un diffusore per spostarlo.',
+  'dsp.room.dragHint':
+    'Trascina un diffusore e il suo compagno si muove con lui; tieni premuto Maiusc o Ctrl per muoverlo da solo; premilo per regolarlo.',
   'dsp.room.fedFrontStage':
     'Suona stereo: solo FL e FR portano suono. Gli altri aspettano un flusso 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suona 5.1: la coppia posteriore non porta nulla.',
@@ -633,6 +634,20 @@ const dsp = {
   'dsp.room.groupSound': 'Suono',
   'dsp.room.soundHint':
     'La gestione dei bassi e l’upmix per la musica sono tuoi, non della stanza: preset e stanze salvate non li toccano. Passa sopra un nome per sapere cosa fa.',
+  'dsp.room.speaker.level': 'Livello',
+  'dsp.room.speaker.distance': 'Distanza',
+  'dsp.room.speaker.angle': 'Angolo',
+  'dsp.room.speaker.mute': 'Muto',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Chiudi',
+  'dsp.room.speakerName.FL': 'Anteriore sinistro',
+  'dsp.room.speakerName.FR': 'Anteriore destro',
+  'dsp.room.speakerName.C': 'Centrale',
+  'dsp.room.speakerName.SL': 'Laterale sinistro',
+  'dsp.room.speakerName.SR': 'Laterale destro',
+  'dsp.room.speakerName.RL': 'Posteriore sinistro',
+  'dsp.room.speakerName.RR': 'Posteriore destro',
+  'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Modellare la stanza e spostare i suoi diffusori fa parte di Plus. La stanza e i suoi preset sono tuoi in ogni caso.',

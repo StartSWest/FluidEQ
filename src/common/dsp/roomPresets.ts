@@ -17,7 +17,14 @@ import { DSP_DEFAULTS, IRoomSettings, TRoomPreset } from './chain';
 
 export type TRoomShape = Pick<
   IRoomSettings,
-  'sizeM' | 'walls' | 'distanceM' | 'centreDb' | 'subDb' | 'angles' | 'levels'
+  | 'sizeM'
+  | 'walls'
+  | 'distanceM'
+  | 'centreDb'
+  | 'subDb'
+  | 'angles'
+  | 'levels'
+  | 'distances'
 >;
 
 /** The same groups the other stages' pickers use, so the menu reads alike. */
@@ -60,6 +67,9 @@ const shape = (
   subDb,
   angles: [...angles],
   levels: [...levels],
+  // A preset stands its speakers on the ring; a distance of its own is a
+  // custom room's.
+  distances: Array.from({ length: angles.length }, () => distanceM),
 });
 
 /**
@@ -192,6 +202,7 @@ export const roomPresetSettings = (
     ...preset,
     angles: [...preset.angles],
     levels: [...preset.levels],
+    distances: [...preset.distances],
     presetId: id,
   };
 };

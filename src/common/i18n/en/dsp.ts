@@ -578,7 +578,8 @@ const dsp = {
     'A listening room on headphones: every channel of the output is a speaker around your head.',
   'dsp.room.graphLabel': 'The room from above',
   'dsp.room.front': 'Front',
-  'dsp.room.dragHint': 'Drag a speaker to move it.',
+  'dsp.room.dragHint':
+    'Drag a speaker and its pair moves with it; hold Shift or Ctrl to move it alone; press it to set it.',
   'dsp.room.fedFrontStage':
     'Stereo is playing: only FL and FR carry sound. The others wait for a 5.1 or 7.1 stream.',
   'dsp.room.fedFiveOne': '5.1 is playing: the rear pair carries nothing.',
@@ -640,6 +641,20 @@ const dsp = {
   'dsp.room.groupSound': 'Sound',
   'dsp.room.soundHint':
     'Bass management and the music upmix are yours, not the room’s: presets and saved rooms leave them alone. Hover a name for what it does.',
+  'dsp.room.speaker.level': 'Level',
+  'dsp.room.speaker.distance': 'Distance',
+  'dsp.room.speaker.angle': 'Angle',
+  'dsp.room.speaker.mute': 'Mute',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Close',
+  'dsp.room.speakerName.FL': 'Front left',
+  'dsp.room.speakerName.FR': 'Front right',
+  'dsp.room.speakerName.C': 'Centre',
+  'dsp.room.speakerName.SL': 'Side left',
+  'dsp.room.speakerName.SR': 'Side right',
+  'dsp.room.speakerName.RL': 'Rear left',
+  'dsp.room.speakerName.RR': 'Rear right',
+  'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Shaping the room and moving its speakers are part of Plus. The room and its presets are yours either way.',

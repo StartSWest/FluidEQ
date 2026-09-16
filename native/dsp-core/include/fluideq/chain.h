@@ -191,6 +191,9 @@ typedef struct FeqChainSettings {
     /* The music upmix and its amount — see `FeqRoomSettings`. */
     int music_upmix;
     double upmix_amount;
+    /* Each speaker's own distance (0: the ring) and mutes, the sub last. */
+    double speaker_distance_m[FEQ_ROOM_SPEAKERS];
+    int mute[FEQ_ROOM_SPEAKERS + 1];
   } room;
   /**
    * The two bass stages, carried as the chain's own copies of their settings.
@@ -284,12 +287,13 @@ typedef struct FeqChainSettings {
  * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass
  * Punch added seven each, then 114 before the surround switch added one, then
  * 115 before the room added twenty-three, then 138 before the room's bass
- * management added two, then 140 before the music upmix added two. All of
- * them are appended immediately before the
+ * management added two, then 140 before the music upmix added two, then
+ * 142 before each speaker's distance and the eight mutes added fifteen. All
+ * of them are appended immediately before the
  * band count — which has to stay last, because both `isChainWirePayload`
  * and the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 142
+#define FEQ_CHAIN_PARAM_LEAD 157
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

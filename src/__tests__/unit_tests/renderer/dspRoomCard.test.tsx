@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { DSP_DEFAULTS, IRoomSettings } from '../../../common/dsp/chain';
 import {
   ROOM_PRESET_LIST,
@@ -232,6 +232,296 @@ describe('the Room card', () => {
     expect(
       document.querySelectorAll('.dsp-room-speaker.is-asleep'),
     ).toHaveLength(2);
+  });
+});
+
+describe('a pressed speaker', () => {
+  // jsdom has no pointer capture; the graph takes it on every press.
+  beforeAll(() => {
+    Element.prototype.setPointerCapture = jest.fn();
+    Element.prototype.releasePointerCapture = jest.fn();
+    Element.prototype.hasPointerCapture = jest.fn(() => true);
+  });
+  beforeEach(() => {
+    entitled = true;
+  });
+
+  // By the label in the picture: the open panel repeats the code as text.
+  const groupOf = (name: string) => {
+    const label = Array.from(
+      document.querySelectorAll('.dsp-room-speaker-name'),
+    ).find((text) => text.textContent === name);
+    const group = label?.closest('g') ?? null;
+    if (group === null) {
+      throw new Error(`no speaker ${name}`);
+    }
+    return group;
+  };
+  const press = (name: string) => {
+    const speaker = groupOf(name);
+    fireEvent.pointerDown(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
+    fireEvent.pointerUp(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
+    return speaker;
+  };
+  const panelOf = (name: string) => within(screen.getByRole('group', { name }));
+
+  it('opens its panel with level, distance and angle, and closes it', () => {
+    renderCard();
+    expect(
+      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
+    ).not.toBeInTheDocument();
+    const speaker = press('FL');
+    expect(speaker).toHaveClass('is-selected');
+    const panel = panelOf(en['dsp.room.speakerName.FL']);
+    expect(
+      panel.getByLabelText(en['dsp.room.speaker.level']),
+    ).toBeInTheDocument();
+    expect(
+      panel.getByLabelText(en['dsp.room.speaker.distance']),
+    ).toBeInTheDocument();
+    expect(panel.getByLabelText(en['dsp.room.speaker.angle'])).toHaveValue(
+      DSP_DEFAULTS.room.angles[0],
+    );
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.close'] }),
+    );
+    expect(
+      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
+    ).not.toBeInTheDocument();
+    // Pressing the speaker again toggles it off too.
+    press('FL');
+    press('FL');
+    expect(
+      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('sets its own level, distance and angle, which makes the room custom', () => {
+    const { onPatch, onCommit } = renderCard();
+    press('SR');
+    const panel = panelOf(en['dsp.room.speakerName.SR']);
+    fireEvent.change(panel.getByLabelText(en['dsp.room.speaker.level']), {
+      target: { value: '0.25' },
+    });
+    let [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.presetId).toBe('custom');
+    expect(patched.levels[4]).not.toBe(0);
+    expect(patched.levels[0]).toBe(0);
+    fireEvent.change(panel.getByLabelText(en['dsp.room.speaker.distance']), {
+      target: { value: '0.9' },
+    });
+    [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.distances[4]).not.toBe(DSP_DEFAULTS.room.distanceM);
+    expect(patched.distances[0]).toBe(DSP_DEFAULTS.room.distanceM);
+    fireEvent.change(panel.getByLabelText(en['dsp.room.speaker.angle']), {
+      target: { value: '75' },
+    });
+    [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.angles[4]).toBe(75);
+    fireEvent.blur(panel.getByLabelText(en['dsp.room.speaker.angle']));
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('mutes and solos without Plus, and the picture shows the mute', () => {
+    entitled = false;
+    const { onPatch, onCommit } = renderCard({
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      mutes: [false, false, false, false, false, false, true, false],
+    });
+    expect(groupOf('RR')).toHaveClass('is-muted');
+    press('C');
+    const panel = panelOf(en['dsp.room.speakerName.C']);
+    expect(panel.getByLabelText(en['dsp.room.speaker.level'])).toBeDisabled();
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.mute'] }),
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [false, false, true, false, false, false, true, false],
+        presetId: DSP_DEFAULTS.room.presetId,
+      }),
+    );
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    );
+    // Solo shuts the other six and leaves the sub alone.
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [true, true, false, true, true, true, true, false],
+      }),
+    );
+  });
+
+  it('un-solos a soloed speaker with the same button', () => {
+    const { onPatch } = renderCard({
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      mutes: [true, true, false, true, true, true, true, true],
+    });
+    press('C');
+    const panel = panelOf(en['dsp.room.speakerName.C']);
+    expect(
+      panel.getByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [false, false, false, false, false, false, false, true],
+      }),
+    );
+  });
+
+  it('gives the sub a level and a mute, no distance, angle or solo', () => {
+    const { onPatch } = renderCard();
+    expect(press('SUB')).toHaveClass('is-selected');
+    const panel = panelOf(en['dsp.room.speakerName.sub']);
+    expect(
+      panel.getByLabelText(en['dsp.room.speaker.level']),
+    ).toBeInTheDocument();
+    expect(
+      panel.queryByLabelText(en['dsp.room.speaker.distance']),
+    ).not.toBeInTheDocument();
+    expect(
+      panel.queryByLabelText(en['dsp.room.speaker.angle']),
+    ).not.toBeInTheDocument();
+    expect(
+      panel.queryByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.mute'] }),
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [false, false, false, false, false, false, false, true],
+      }),
+    );
+  });
+
+  it('moves every speaker with the ring dial', () => {
+    const { onPatch } = renderCard({
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      distances: [1, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8],
+    });
+    fireEvent.change(screen.getByLabelText(en['dsp.room.distance']), {
+      target: { value: '0.9' },
+    });
+    const [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.distances).toEqual(Array(7).fill(patched.distanceM));
+    expect(patched.distanceM).not.toBe(DSP_DEFAULTS.room.distanceM);
+  });
+});
+
+describe('a dragged speaker', () => {
+  // jsdom lays nothing out and has no PointerEvent: the picture is given
+  // its 400-unit square so a pointer position becomes an angle, pointer
+  // events are mouse events with a pointer id, and capture is stubbed.
+  beforeAll(() => {
+    class TestPointerEvent extends MouseEvent {
+      pointerId: number;
+
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type, init);
+        this.pointerId = init.pointerId ?? 0;
+      }
+    }
+    Object.defineProperty(window, 'PointerEvent', {
+      configurable: true,
+      writable: true,
+      value: TestPointerEvent,
+    });
+    Element.prototype.setPointerCapture = jest.fn();
+    Element.prototype.releasePointerCapture = jest.fn();
+    Element.prototype.hasPointerCapture = jest.fn(() => true);
+    jest.spyOn(SVGElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 400,
+      height: 400,
+      right: 400,
+      bottom: 400,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+  });
+  beforeEach(() => {
+    entitled = true;
+  });
+
+  const groupOf = (name: string) => {
+    const label = Array.from(
+      document.querySelectorAll('.dsp-room-speaker-name'),
+    ).find((text) => text.textContent === name);
+    const group = label?.closest('g') ?? null;
+    if (group === null) {
+      throw new Error(`no speaker ${name}`);
+    }
+    return group;
+  };
+  // From the centre to the upper right: 45° from the front.
+  const drag = (
+    name: string,
+    init: { shiftKey?: boolean; ctrlKey?: boolean },
+  ) => {
+    const speaker = groupOf(name);
+    fireEvent.pointerDown(speaker, {
+      clientX: 200,
+      clientY: 200,
+      pointerId: 1,
+    });
+    fireEvent.pointerMove(speaker, {
+      clientX: 300,
+      clientY: 100,
+      pointerId: 1,
+      ...init,
+    });
+    fireEvent.pointerUp(speaker, { clientX: 300, clientY: 100, pointerId: 1 });
+  };
+
+  it('takes its pair with it, mirrored across the front', () => {
+    const { onPatch, onCommit } = renderCard();
+    drag('FL', {});
+    const [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.angles[0]).toBe(45);
+    expect(patched.angles[1]).toBe(-45);
+    expect(patched.angles.slice(2)).toEqual(DSP_DEFAULTS.room.angles.slice(2));
+    expect(patched.presetId).toBe('custom');
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('moves alone with Shift or Ctrl held', () => {
+    const { onPatch } = renderCard();
+    drag('RR', { shiftKey: true });
+    let [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.angles[6]).toBe(45);
+    expect(patched.angles[5]).toBe(DSP_DEFAULTS.room.angles[5]);
+    drag('SL', { ctrlKey: true });
+    [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.angles[3]).toBe(45);
+    expect(patched.angles[4]).toBe(DSP_DEFAULTS.room.angles[4]);
+  });
+
+  it('leaves the centre, which has no pair, on its own', () => {
+    const { onPatch } = renderCard();
+    drag('C', {});
+    const [[patched]] = onPatch.mock.calls.slice(-1) as [[IRoomSettings]];
+    expect(patched.angles[2]).toBe(45);
+    expect(patched.angles.filter((_angle, at) => at !== 2)).toEqual(
+      DSP_DEFAULTS.room.angles.filter((_angle, at) => at !== 2),
+    );
+  });
+
+  it('does not open the panel after a drag', () => {
+    renderCard();
+    drag('FR', {});
+    expect(
+      screen.queryByRole('group', { name: en['dsp.room.speakerName.FR'] }),
+    ).not.toBeInTheDocument();
   });
 });
 

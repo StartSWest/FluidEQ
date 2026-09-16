@@ -573,7 +573,8 @@ const dsp = {
     'Uma sala de escuta nos auscultadores: cada canal da saída é uma coluna à volta da tua cabeça.',
   'dsp.room.graphLabel': 'A sala vista de cima',
   'dsp.room.front': 'Frente',
-  'dsp.room.dragHint': 'Arrasta uma coluna para a mover.',
+  'dsp.room.dragHint':
+    'Arrasta uma coluna e o seu par move-se com ela; mantém Shift ou Ctrl para a mover sozinha; carrega nela para a ajustar.',
   'dsp.room.fedFrontStage':
     'Está a tocar estéreo: só FL e FR levam som. Os outros esperam por um fluxo 5.1 ou 7.1.',
   'dsp.room.fedFiveOne': 'Está a tocar 5.1: o par traseiro não leva nada.',
@@ -635,6 +636,20 @@ const dsp = {
   'dsp.room.groupSound': 'Som',
   'dsp.room.soundHint':
     'A gestão de graves e a mistura para música são tuas, não da sala: os ajustes e as salas guardadas não lhes tocam. Passa o rato por um nome para ver o que faz.',
+  'dsp.room.speaker.level': 'Nível',
+  'dsp.room.speaker.distance': 'Distância',
+  'dsp.room.speaker.angle': 'Ângulo',
+  'dsp.room.speaker.mute': 'Silenciar',
+  'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.close': 'Fechar',
+  'dsp.room.speakerName.FL': 'Frontal esquerda',
+  'dsp.room.speakerName.FR': 'Frontal direita',
+  'dsp.room.speakerName.C': 'Central',
+  'dsp.room.speakerName.SL': 'Lateral esquerda',
+  'dsp.room.speakerName.SR': 'Lateral direita',
+  'dsp.room.speakerName.RL': 'Traseira esquerda',
+  'dsp.room.speakerName.RR': 'Traseira direita',
+  'dsp.room.speakerName.sub': 'Subwoofer',
   'dsp.room.plus': 'Plus',
   'dsp.room.plusHint':
     'Moldar a sala e mover as suas colunas faz parte do Plus. A sala e as suas predefinições são tuas de qualquer forma.',
