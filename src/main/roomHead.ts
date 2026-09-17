@@ -24,12 +24,24 @@ import { scheduleWrite } from './asyncWriter';
 export const ROOM_HEAD_FILENAME = 'fluideq-room-head.txt';
 
 /**
+ * `resourcesPath` is Electron's addition to `process`, and this file is one of
+ * the few in main that is also loaded by plain Node: the playback host's
+ * supervisor asks it where the heads are, and `smoke-supervisor.ts` runs that
+ * through ts-node with its type checking on. Electron's own types are not in
+ * scope there, so naming the property directly compiled everywhere except the
+ * one place the code already said it had to work — `pnpm test` failed on it
+ * while `pnpm typecheck` was clean. Said as what it is instead: a property
+ * Electron adds and Node does not have.
+ */
+type TProcessWithResources = NodeJS.Process & { resourcesPath?: string };
+
+/**
  * Where the shipped heads are: beside the packaged app's resources, or the
- * checkout's own assets under `pnpm dev` and the tests. `resourcesPath` is
- * Electron's; under plain Node there is none.
+ * checkout's own assets under `pnpm dev` and the tests. Under plain Node there
+ * is no `resourcesPath`, and the checkout's own assets are the answer.
  */
 export const roomHeadsDir = (): string => {
-  const resources: string | undefined = process.resourcesPath;
+  const { resourcesPath: resources } = process as TProcessWithResources;
   const packaged =
     resources === undefined
       ? undefined
