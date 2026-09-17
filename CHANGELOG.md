@@ -38,7 +38,10 @@ picks the head for your ears, and the same room on the Library's player.
   centre and sub, choose the head and whether your headphone profile runs
   after it; a chip beside the switch says what the room is doing this second.
   The room takes the page beside its controls, measured in metres along its
-  wall and to its speakers, and the speakers the playing stream cannot
+  wall and to its speakers; the walls are drawn to the room's size, so a
+  12 m hall fills the picture with the speakers well inside it and a 2 m
+  booth stands small with the speakers at its walls — Size moves the walls,
+  Distance moves the speakers within them. The speakers the playing stream cannot
   reach — five of them while stereo plays — are drawn asleep, with a line
   saying why. A room you shaped can be saved under a name and put back with
   a press; the head stays yours.

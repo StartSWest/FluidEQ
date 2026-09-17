@@ -51,16 +51,27 @@ const PRESS_TRAVEL_PX = 4;
 const SIZE = 400;
 const CENTRE = SIZE / 2;
 /**
- * The walls always frame the picture; the room's size sets how far the ring
- * sits from them. The margin outside holds the size's dimension line.
+ * The walls grow with the room. A 12 m room fills the frame and a 2 m room
+ * stands well inside it, and the ring keeps its true proportion between
+ * the head and the walls — so Size and Distance no longer look like the
+ * same dial: one moves the walls, the other moves the speakers within them.
+ * Square-root rather than straight, so the small rooms, which are the ones
+ * people sit in, keep enough wall to hold seven speakers and their names;
+ * the margin outside the largest holds the size's dimension line.
  */
-const WALL_HALF = CENTRE - 26;
+const WALL_MAX = CENTRE - 26;
+const WALL_MIN = 104;
+const SIZE_MIN_M = 2;
+const SIZE_MAX_M = 12;
 const RING_MIN = 58;
-/** Leaves the labels outside the ring their own room inside the wall. */
-const RING_MAX = WALL_HALF - 40;
 
 const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
+
+const wallHalfOf = (sizeM: number) =>
+  WALL_MIN +
+  (WALL_MAX - WALL_MIN) *
+    Math.sqrt(clamp((sizeM - SIZE_MIN_M) / (SIZE_MAX_M - SIZE_MIN_M), 0, 1));
 
 const metres = (value: number) => `${value.toFixed(1)} m`;
 
@@ -85,10 +96,10 @@ const emptiestAngle = (angles: readonly number[]): number => {
 };
 
 /**
- * The room from above: the walls frame the picture, the listener sits in the
- * middle, and the speakers stand on a ring whose distance from the walls is
- * the room's size against the speakers' distance — a big room puts the ring
- * well inside the walls, a small one puts the speakers against them. The
+ * The room from above: the walls are drawn to the room's size, the listener
+ * sits in the middle, and the speakers stand on a ring at their distance in
+ * the same scale — a big room fills the frame with the ring well inside its
+ * walls, a small one stands inside the frame with the speakers near them. The
  * walls fade as they absorb and shine a little while they are hard; the
  * room's side is measured along the bottom wall and the speakers' distance
  * behind the listener, in metres, so the dials and the picture agree. Every
@@ -116,9 +127,17 @@ const DspRoomGraph = ({
     null,
   );
   const moved = useRef(false);
-  /** A distance in metres to a radius in the picture. */
+  const wallHalf = wallHalfOf(room.sizeM);
+  /**
+   * A distance in metres to a radius in the picture, in the room's own
+   * scale, kept between the head and the labels' room inside the wall.
+   */
   const radiusOf = (distanceM: number) =>
-    clamp((distanceM / (room.sizeM / 2)) * WALL_HALF, RING_MIN, RING_MAX);
+    clamp(
+      (distanceM / (room.sizeM / 2)) * wallHalf,
+      RING_MIN,
+      Math.max(RING_MIN, wallHalf - 40),
+    );
   const ring = radiusOf(room.distanceM);
   const wallAlpha = 0.16 + (1 - room.walls) * 0.6;
   const shineAlpha = (1 - room.walls) * 0.3;
@@ -200,10 +219,13 @@ const DspRoomGraph = ({
     }
   };
 
-  const wallLeft = CENTRE - WALL_HALF;
-  const wallRight = CENTRE + WALL_HALF;
-  const wallTop = CENTRE - WALL_HALF;
-  const wallBottom = CENTRE + WALL_HALF;
+  const wallLeft = CENTRE - wallHalf;
+  const wallRight = CENTRE + wallHalf;
+  const wallTop = CENTRE - wallHalf;
+  const wallBottom = CENTRE + wallHalf;
+  // The sub keeps to its corner: deeper in a big room, tucked right into it
+  // in a small one, where the front-left speaker stands at the wall.
+  const subInset = clamp(wallHalf * 0.25, 30, 44);
   const sizeLineY = wallBottom + 14;
   const subGlow = subFed ? clamp((room.subDb + 12) / 24, 0, 1) : 0;
   const distanceAngle = emptiestAngle(room.angles);
@@ -244,8 +266,8 @@ const DspRoomGraph = ({
           className="dsp-room-floor"
           x={wallLeft}
           y={wallTop}
-          width={WALL_HALF * 2}
-          height={WALL_HALF * 2}
+          width={wallHalf * 2}
+          height={wallHalf * 2}
           rx={16}
           fill="url(#dsp-room-floor)"
         />
@@ -254,8 +276,8 @@ const DspRoomGraph = ({
           className="dsp-room-shine"
           x={wallLeft + 5}
           y={wallTop + 5}
-          width={WALL_HALF * 2 - 10}
-          height={WALL_HALF * 2 - 10}
+          width={wallHalf * 2 - 10}
+          height={wallHalf * 2 - 10}
           rx={12}
           style={{ strokeOpacity: shineAlpha }}
         />
@@ -263,8 +285,8 @@ const DspRoomGraph = ({
           className="dsp-room-walls"
           x={wallLeft}
           y={wallTop}
-          width={WALL_HALF * 2}
-          height={WALL_HALF * 2}
+          width={wallHalf * 2}
+          height={wallHalf * 2}
           rx={16}
           style={{ strokeOpacity: wallAlpha }}
         />
@@ -409,7 +431,7 @@ const DspRoomGraph = ({
           className={`dsp-room-sub${subFed ? '' : ' is-asleep'}${
             mutes[ROOM_SPEAKERS] ? ' is-muted' : ''
           }${selected === 'sub' ? ' is-selected' : ''}`}
-          transform={`translate(${wallLeft + 44} ${wallTop + 44})`}
+          transform={`translate(${wallLeft + subInset} ${wallTop + subInset})`}
           onPointerDown={onPointerDown('sub')}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
