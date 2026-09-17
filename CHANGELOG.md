@@ -177,12 +177,16 @@ it, and the beat they move to is the one in the music.
   audio to mend an engine that was working. The write now lands over a file
   being read, and the engine's log says which step failed and why when one
   cannot.
-- **"The DSP effects are off" no longer offers Equalizer APO.** The card
-  for an engine that could not start its rack, or its linear-phase EQ,
-  offered to switch to Equalizer APO — which has no DSP rack at all, so the
-  switch would have given up the EQ that was working for nothing. Equalizer
-  APO is offered where the engine itself is failing; a DSP problem gets the
-  restart, or just an acknowledgement.
+- **"The DSP effects are off" now offers the repair that works.** The card
+  for an engine that could not start its effects led with "Restart Windows
+  audio", which starts the same engine again and changes nothing — one
+  person pressed it over and over on a fresh install before finding the real
+  fix by hand in Help. It now leads with **Update engine**, which puts this
+  version's own engine on the machine, and says so outright when the
+  installed one is not the engine this version carries. Restarting Windows
+  audio stays beside it as the quiet second choice. Equalizer APO is gone
+  from that card: it has no DSP effects at all, so switching to it there
+  gave up the very effects the other button can bring back.
 - **Fast scenes no longer smear into their own past.** The protection that
   keeps a visualizer from flashing was holding back any quick change in
   brightness, not just a flashing one — so anything bright moving quickly
@@ -197,9 +201,10 @@ it, and the beat they move to is the one in the music.
   installed, switched on, locked and processing while not one sample went
   through it — healthy in every reading the app had, and silent to the
   listener. The engine now counts the audio that actually reaches it. When
-  none does, the card says the music is going past FluidEQ and offers one
-  press to move it, at the cost of one Windows permission and a second of
-  silence. In ten languages.
+  none does, the card says the music is going past FluidEQ and offers **Try
+  another place**, which moves it to another of that output's effect slots,
+  at the cost of one Windows permission and a second of silence. In ten
+  languages.
 - **Share Audio no longer stops the music it just started.** Only one
   computer plays at a time, and the rule crossed the wire and came back: a
   pause sent from here returned a moment later looking like somebody over
