@@ -688,7 +688,15 @@ Out-String` (or any other capture) is what actually waits for it and shows
   `on`) for the card's chip, and the engine log gets one `room on/off:`
   line per chain build. The shipped heads are MIT KEMAR at three sizes
   (`build-room-heads.ts` from the compact set, mirrored for the left half;
-  `assets/room/heads/LICENSES.md`), never HeSuVi's recordings. Held by
+  `assets/room/heads/LICENSES.md`), never HeSuVi's recordings, and
+  diffuse-field equalised at build: the raw measurement carries the dummy
+  head's ear-canal resonance (+9 dB at 2.5 kHz, -7 dB at 100 Hz on the
+  average over the ring), headphones deliver to the listener's own ear
+  canal, and the room sounded "mid-like" with it counted twice. The
+  average over every direction and ear is inverted (third-octave smoothed,
+  80 Hz to 16 kHz, ±12 dB, minimum phase) and `roomHeadsDiffuseField.test.ts`
+  holds each head flat within 2.5 dB on that average — rebuild the heads
+  with the script, never edit the files. Held by
   `room_test.cpp` (a synthetic head whose delays are known frame counts:
   the left speaker reaches the right ear 16 frames later at 48 kHz, dead
   walls leave nothing after the direct path, a wall change mid-stream

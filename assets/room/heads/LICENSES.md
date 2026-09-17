@@ -16,7 +16,10 @@ Microphone_, Bill Gardner and Keith Martin, MIT Media Laboratory, 1994
 
 `medium.txt` is the measured head; `small.txt` and `large.txt` are the same
 responses scaled 6% shorter and 6% longer in time, one measured head standing
-in for three sizes.
+in for three sizes. All three are diffuse-field equalised: the response the
+measurement has in common across every direction and both ears — the dummy
+head's own ear-canal resonance, which headphones would count a second time —
+is taken out, leaving what each direction has of its own.
 
 ## Not included
 

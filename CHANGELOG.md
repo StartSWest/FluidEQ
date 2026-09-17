@@ -92,6 +92,13 @@ picks the head for your ears, and the same room on the Library's player.
 
 ### Fixed
 
+- **The Room no longer sounds boxed into the midrange.** The head it
+  renders through was the dummy head's measurement as taken at the ear
+  canal, with that ear's own resonance in every direction of it: nine
+  decibels up at 2.5 kHz, seven down at 100 Hz. Your headphones deliver to
+  your own ear canal, so the resonance was heard twice. The heads are now
+  equalised so that what every direction shares is taken out and only what
+  each direction has of its own is left; the bass comes back with it.
 - **Changing output no longer puts a Windows prompt up by itself.** When
   the output you switched to had the engine on it but Windows had not
   started it there, FluidEQ restarted Windows audio on its own the moment
