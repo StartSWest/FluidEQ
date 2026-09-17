@@ -608,6 +608,41 @@ Maker turns your audio into an editable karaoke project. Its timeline brings tog
 
 ![Create in Karaoke Maker](12-karaoke-maker-pitch-and-lyrics.png)
 
+### The tools along the top of the maker
+
+![The tools along the top of the maker](35-karaoke-maker-toolbar.png)
+
+- **Import karaoke** — Opens a karaoke file or a saved project, and keeps the audio already loaded.
+- **Lyrics** — The words and their timing, in one window.
+- **Lyrics timing** — Moves the words and notes together, for a song that runs early or late from the first second.
+- **Hand · pan timeline** — Drag anywhere on the timeline to travel through the song without changing anything.
+- **Lyrics language** — Which language the words are in, and a second one beside it so the song can be sung in either.
+- **Record line entries** — Play the song and press a key as each line starts and ends. The timing comes from your presses.
+- **Select notes** — Draw a box around notes to move or delete them as one.
+- **Paint notes** — Draw the melody straight onto the pitch grid.
+- **Split** — Cuts a word into syllables, so a long word can carry a note on each one.
+- **Repair tools** — The tools that listen for you, and the models they need.
+- **Export** — Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.
+
+### The words, and when each one is sung
+
+![The words, and when each one is sung](34-karaoke-maker-lyrics.png)
+
+- **Reference lyrics** — The whole song as text, one line per row. Paste it or load a file; FluidEQ finds the timing from it.
+- **Word timing** — Every word, in order, with how many are timed so far. Press one to work on it.
+- **Selected word** — Where the chosen word starts and how long it lasts. Moving its edge gives or takes time from the word beside it; the line keeps its length.
+
+### The AI tools, and the models they need
+
+![The AI tools, and the models they need](33-karaoke-maker-tools.png)
+
+- **Separate voice from music** — Splits the recording into voice and music, so the karaoke can play without the singer.
+- **Load vocal-only track** — Use a vocal-only file you already have, instead of separating one here.
+- **Re-detect lyric timing** — Listens to the voice again and re-times the words you already have.
+- **Re-detect melody notes** — Listens again for the melody and rewrites the notes under the words.
+- **AI model memory** — What each model needs and whether it is on this computer. They are downloaded the first time you use one.
+- **When it is idle** — Whether a model stays in memory between uses, and for how long. Releasing it frees memory; keeping it makes the next run start at once.
+
 ### Try it
 
 1. Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.

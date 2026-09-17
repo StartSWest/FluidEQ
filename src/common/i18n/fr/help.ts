@@ -436,6 +436,56 @@ const help: Record<keyof typeof en, string> = {
     'Maker transforme l’audio en projet modifiable avec paroles et notes sur la timeline. Vérifiez toujours les mots et les temps générés automatiquement.',
   'help.maker.steps':
     'Ouvrez Créer depuis Karaoke et chargez l’audio. Choisissez les outils de séparation ou transcription nécessaires.\nSuivez la progression ; la première utilisation de l’IA peut télécharger des modèles. Vérifiez paroles et notes.\nÉcoutez de courts passages, corrigez texte et temps, sauvegardez le projet puis exportez les fichiers.',
+
+  'help.maker.lyricsCaption':
+    'Les paroles, et le moment où chaque mot est chanté',
+  'help.maker.referenceName': 'Paroles de référence',
+  'help.maker.reference':
+    'La chanson entière en texte, une ligne par rangée. Collez-la ou chargez un fichier ; FluidEQ en tire la synchronisation.',
+  'help.maker.timingName': 'Minutage des mots',
+  'help.maker.timing':
+    'Tous les mots dans l’ordre, avec le nombre déjà minuté. Appuyez sur l’un d’eux pour le travailler.',
+  'help.maker.wordName': 'Mot sélectionné',
+  'help.maker.word':
+    'Où commence le mot choisi et combien de temps il dure. Déplacer son bord donne ou prend du temps au mot voisin ; la ligne garde sa durée.',
+  'help.maker.toolsCaption': 'Les outils d’IA et les modèles qu’ils demandent',
+  'help.maker.separate':
+    'Sépare l’enregistrement en voix et musique, pour que le karaoké joue sans le chanteur.',
+  'help.maker.loadVocals':
+    'Utilisez un fichier de voix seule que vous avez déjà, au lieu d’en séparer un ici.',
+  'help.maker.redetectTiming':
+    'Réécoute la voix et recalcule le minutage des mots déjà présents.',
+  'help.maker.redetectNotes':
+    'Réécoute la mélodie et réécrit les notes sous les mots.',
+  'help.maker.modelsName': 'Mémoire des modèles d’IA',
+  'help.maker.models':
+    'Ce dont chaque modèle a besoin et s’il est sur cet ordinateur. Ils sont téléchargés à la première utilisation.',
+  'help.maker.idleName': 'Au repos',
+  'help.maker.idle':
+    'Si un modèle reste en mémoire entre deux usages, et combien de temps. Le libérer rend de la mémoire ; le garder fait démarrer la fois suivante aussitôt.',
+
+  'help.makerBar.caption': 'Les outils en haut du maker',
+  'help.makerBar.import':
+    'Ouvre un fichier karaoké ou un projet enregistré, en gardant l’audio déjà chargé.',
+  'help.makerBar.lyrics': 'Les mots et leur minutage, dans une seule fenêtre.',
+  'help.makerBar.timing':
+    'Déplace les mots et les notes ensemble, pour une chanson en avance ou en retard dès la première seconde.',
+  'help.makerBar.pan':
+    'Faites glisser la frise pour parcourir la chanson sans rien modifier.',
+  'help.makerBar.language':
+    'La langue des paroles, et une seconde à côté pour la chanter dans l’une ou l’autre.',
+  'help.makerBar.record':
+    'Lancez la chanson et appuyez sur une touche au début et à la fin de chaque ligne. Le minutage vient de vos appuis.',
+  'help.makerBar.select':
+    'Tracez un cadre autour des notes pour les déplacer ou les supprimer ensemble.',
+  'help.makerBar.paint':
+    'Dessinez la mélodie directement sur la grille des hauteurs.',
+  'help.makerBar.split':
+    'Coupe un mot en syllabes, pour qu’un mot long porte une note sur chacune.',
+  'help.makerBar.repair':
+    'Les outils qui écoutent à votre place, et les modèles dont ils ont besoin.',
+  'help.makerBar.export':
+    'Écrit le karaoké terminé en projet FluidEQ, UltraStar TXT, LRC ou LRC enrichi.',
   'help.maker.tip':
     'Les modèles nécessitent connexion et espace disque. La durée dépend du matériel et du morceau. Utilisez de l’audio autorisé et vérifiez avant de partager.',
 

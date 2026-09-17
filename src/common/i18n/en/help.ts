@@ -416,6 +416,52 @@ const help = {
     'Maker turns your audio into an editable karaoke project. Its timeline brings together audio, lyrics and pitch notes. Automatic results are a starting point: check words, timing and notes against the recording.',
   'help.maker.steps':
     'Open Make from Karaoke and load the source audio. Choose the available separation or transcription tools you need.\nWatch progress; first use of an AI tool may require a model download. Review the resulting lyrics and notes in the timeline.\nPlay short passages, correct the timing and text, save the project for later editing, then export the karaoke files.',
+  'help.maker.lyricsCaption': 'The words, and when each one is sung',
+  'help.maker.referenceName': 'Reference lyrics',
+  'help.maker.reference':
+    'The whole song as text, one line per row. Paste it or load a file; FluidEQ finds the timing from it.',
+  'help.maker.timingName': 'Word timing',
+  'help.maker.timing':
+    'Every word, in order, with how many are timed so far. Press one to work on it.',
+  'help.maker.wordName': 'Selected word',
+  'help.maker.word':
+    'Where the chosen word starts and how long it lasts. Moving its edge gives or takes time from the word beside it; the line keeps its length.',
+  'help.maker.toolsCaption': 'The AI tools, and the models they need',
+  'help.maker.separate':
+    'Splits the recording into voice and music, so the karaoke can play without the singer.',
+  'help.maker.loadVocals':
+    'Use a vocal-only file you already have, instead of separating one here.',
+  'help.maker.redetectTiming':
+    'Listens to the voice again and re-times the words you already have.',
+  'help.maker.redetectNotes':
+    'Listens again for the melody and rewrites the notes under the words.',
+  'help.maker.modelsName': 'AI model memory',
+  'help.maker.models':
+    'What each model needs and whether it is on this computer. They are downloaded the first time you use one.',
+  'help.maker.idleName': 'When it is idle',
+  'help.maker.idle':
+    'Whether a model stays in memory between uses, and for how long. Releasing it frees memory; keeping it makes the next run start at once.',
+  'help.makerBar.caption': 'The tools along the top of the maker',
+  'help.makerBar.import':
+    'Opens a karaoke file or a saved project, and keeps the audio already loaded.',
+  'help.makerBar.lyrics': 'The words and their timing, in one window.',
+  'help.makerBar.timing':
+    'Moves the words and notes together, for a song that runs early or late from the first second.',
+  'help.makerBar.pan':
+    'Drag anywhere on the timeline to travel through the song without changing anything.',
+  'help.makerBar.language':
+    'Which language the words are in, and a second one beside it so the song can be sung in either.',
+  'help.makerBar.record':
+    'Play the song and press a key as each line starts and ends. The timing comes from your presses.',
+  'help.makerBar.select':
+    'Draw a box around notes to move or delete them as one.',
+  'help.makerBar.paint': 'Draw the melody straight onto the pitch grid.',
+  'help.makerBar.split':
+    'Cuts a word into syllables, so a long word can carry a note on each one.',
+  'help.makerBar.repair':
+    'The tools that listen for you, and the models they need.',
+  'help.makerBar.export':
+    'Writes the finished karaoke out as a FluidEQ project, UltraStar TXT, LRC or enhanced LRC.',
   'help.maker.tip':
     'Model downloads need a connection and free disk space. Processing time depends on your hardware and song length. Use audio you are permitted to work with and review exports before sharing.',
 

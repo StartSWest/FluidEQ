@@ -386,6 +386,46 @@ const help: Record<keyof typeof en, string> = {
     'Maker 将音频转换成可编辑项目，在时间线上组织歌词与音符。自动生成的文字和时间需要人工核对。',
   'help.maker.steps':
     '从 Karaoke 打开制作并载入音频，选择需要的分离或转录工具。\n查看进度；首次使用 AI 可能需要下载模型。检查时间线上的歌词和音符。\n逐段试听，修正文字与时间，保存项目后导出卡拉 OK 文件。',
+
+  'help.maker.lyricsCaption': '歌词，以及每个词何时唱出',
+  'help.maker.referenceName': '参考歌词',
+  'help.maker.reference':
+    '整首歌的文字，一行一句。粘贴进来或载入文件，FluidEQ 会据此找出时间点。',
+  'help.maker.timingName': '逐词时间',
+  'help.maker.timing':
+    '按顺序排列的所有词，并显示已定时的数量。点一个即可调整它。',
+  'help.maker.wordName': '选中的词',
+  'help.maker.word':
+    '所选词从哪里开始、持续多久。移动它的边界会把时间让给或取自旁边的词，整行长度不变。',
+  'help.maker.toolsCaption': 'AI 工具，以及它们需要的模型',
+  'help.maker.separate': '把录音分成人声与伴奏，让卡拉OK不带原唱播放。',
+  'help.maker.loadVocals': '使用你已有的纯人声文件，而不在这里做分离。',
+  'help.maker.redetectTiming': '重新聆听人声，为已有的词重新定时。',
+  'help.maker.redetectNotes': '重新聆听旋律，改写词下方的音符。',
+  'help.maker.modelsName': 'AI 模型内存',
+  'help.maker.models':
+    '每个模型需要什么，以及是否已在这台电脑上。首次使用时会自动下载。',
+  'help.maker.idleName': '闲置时',
+  'help.maker.idle':
+    '模型在两次使用之间是否留在内存中，以及保留多久。释放可腾出内存；保留则下次立即开始。',
+
+  'help.makerBar.caption': '制作器顶部的工具',
+  'help.makerBar.import':
+    '打开卡拉OK文件或已保存的项目，并保留当前已载入的音频。',
+  'help.makerBar.lyrics': '歌词和它们的时间，都在同一个窗口里。',
+  'help.makerBar.timing':
+    '把词与音符一起移动，适合整首从第一秒起就偏早或偏晚的歌。',
+  'help.makerBar.pan': '在时间轴上拖动，即可浏览整首歌而不改动任何东西。',
+  'help.makerBar.language':
+    '歌词用的是哪种语言，以及旁边的第二种，两种都能唱。',
+  'help.makerBar.record':
+    '播放歌曲，在每行开始和结束时按键。时间由你的按键决定。',
+  'help.makerBar.select': '框选音符，一起移动或删除。',
+  'help.makerBar.paint': '直接在音高网格上画出旋律。',
+  'help.makerBar.split': '把一个词切成音节，让长词的每个音节各带一个音符。',
+  'help.makerBar.repair': '替你聆听的工具，以及它们需要的模型。',
+  'help.makerBar.export':
+    '把做好的卡拉OK导出为 FluidEQ 项目、UltraStar TXT、LRC 或增强 LRC。',
   'help.maker.tip':
     '下载模型需要联网与磁盘空间，处理时间取决于硬件和歌曲长度。使用你有权处理的音频，分享前检查导出结果。',
 

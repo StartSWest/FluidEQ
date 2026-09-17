@@ -419,6 +419,53 @@ const help: Record<keyof typeof en, string> = {
     'Maker は音声を編集可能なプロジェクトにし、タイムラインに歌詞と音符を配置します。自動生成された言葉と時刻を確認しましょう。',
   'help.maker.steps':
     'Karaoke から作成を開いて音声を読み込み、必要な分離や文字起こしツールを選びます。\n進行状況を確認します。初回の AI 使用ではモデルの取得が必要な場合があります。歌詞と音符を見直します。\n短い区間を聴き、時刻と言葉を修正し、プロジェクトを保存してから書き出します。',
+
+  'help.maker.lyricsCaption': '歌詞と、各語が歌われるタイミング',
+  'help.maker.referenceName': '参照歌詞',
+  'help.maker.reference':
+    '曲全体をテキストで、1 行ずつ。貼り付けるかファイルを読み込むと、FluidEQ がそこからタイミングを見つけます。',
+  'help.maker.timingName': '語ごとのタイミング',
+  'help.maker.timing':
+    'すべての語を順に並べ、タイミング済みの数を表示します。押すとその語を調整できます。',
+  'help.maker.wordName': '選択中の語',
+  'help.maker.word':
+    '選んだ語の開始位置と長さです。端を動かすと隣の語との間で時間をやり取りし、行の長さは変わりません。',
+  'help.maker.toolsCaption': 'AI ツールと、必要なモデル',
+  'help.maker.separate':
+    '録音を歌声と伴奏に分け、カラオケが歌い手なしで鳴るようにします。',
+  'help.maker.loadVocals':
+    'ここで分離せず、すでにある歌声のみのファイルを使います。',
+  'help.maker.redetectTiming':
+    '歌声をもう一度聴き、既存の語のタイミングを取り直します。',
+  'help.maker.redetectNotes':
+    'メロディをもう一度聴き、語の下の音符を書き直します。',
+  'help.maker.modelsName': 'AI モデルのメモリ',
+  'help.maker.models':
+    '各モデルに必要なものと、このコンピューターにあるかどうか。初回利用時にダウンロードされます。',
+  'help.maker.idleName': '待機中の扱い',
+  'help.maker.idle':
+    'モデルを使用の合間もメモリに残すか、残すならどれだけか。解放すればメモリが空き、保持すれば次回すぐ始まります。',
+
+  'help.makerBar.caption': 'メーカー上部のツール',
+  'help.makerBar.import':
+    'カラオケファイルや保存済みのプロジェクトを開き、読み込み済みの音声はそのまま残します。',
+  'help.makerBar.lyrics': '歌詞とそのタイミングを、ひとつの窓で。',
+  'help.makerBar.timing':
+    '語と音符をまとめて動かします。最初から全体が早い、または遅い曲に。',
+  'help.makerBar.pan':
+    'タイムラインをドラッグすると、何も変えずに曲の中を移動できます。',
+  'help.makerBar.language':
+    '歌詞がどの言語か、そして隣にもうひとつ。どちらでも歌えます。',
+  'help.makerBar.record':
+    '曲を流し、各行の始まりと終わりでキーを押します。タイミングはその打鍵から決まります。',
+  'help.makerBar.select': '音符を枠で囲み、まとめて動かしたり消したりします。',
+  'help.makerBar.paint': '音高グリッドの上に、メロディを直接描きます。',
+  'help.makerBar.split':
+    '語を音節に分け、長い語がひとつずつ音符を持てるようにします。',
+  'help.makerBar.repair':
+    'あなたの代わりに聴くツールと、それが必要とするモデル。',
+  'help.makerBar.export':
+    '仕上がったカラオケを FluidEQ プロジェクト、UltraStar TXT、LRC、拡張 LRC として書き出します。',
   'help.maker.tip':
     'モデルには通信と空き容量が必要です。処理時間は機器性能と曲の長さに依存します。扱う権利のある音声を使い、共有前に確認してください。',
 

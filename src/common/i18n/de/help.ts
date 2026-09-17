@@ -436,6 +436,55 @@ const help: Record<keyof typeof en, string> = {
     'Maker macht Audio zu einem bearbeitbaren Projekt mit Texten und Noten auf der Zeitleiste. Prüfe automatisch erzeugte Wörter und Zeiten immer nach.',
   'help.maker.steps':
     'Öffne Erstellen in Karaoke und lade Audio. Wähle benötigte Trennungs- oder Transkriptionswerkzeuge.\nBeobachte den Fortschritt; beim ersten KI-Einsatz können Modelle geladen werden. Prüfe Texte und Noten.\nHöre kurze Stellen, korrigiere Zeiten und Text, speichere das Projekt und exportiere die Dateien.',
+
+  'help.maker.lyricsCaption': 'Der Text, und wann jedes Wort gesungen wird',
+  'help.maker.referenceName': 'Referenztext',
+  'help.maker.reference':
+    'Das ganze Lied als Text, eine Zeile pro Reihe. Einfügen oder eine Datei laden; FluidEQ entnimmt daraus das Timing.',
+  'help.maker.timingName': 'Wort-Timing',
+  'help.maker.timing':
+    'Alle Wörter der Reihe nach, mit der Zahl der bereits getimten. Ein Druck öffnet eines zum Bearbeiten.',
+  'help.maker.wordName': 'Gewähltes Wort',
+  'help.maker.word':
+    'Wo das gewählte Wort beginnt und wie lange es dauert. Seine Kante zu verschieben gibt oder nimmt dem Nachbarwort Zeit; die Zeile behält ihre Länge.',
+  'help.maker.toolsCaption':
+    'Die KI-Werkzeuge und die Modelle, die sie brauchen',
+  'help.maker.separate':
+    'Trennt die Aufnahme in Stimme und Musik, damit das Karaoke ohne den Sänger läuft.',
+  'help.maker.loadVocals':
+    'Nutzen Sie eine Nur-Gesang-Datei, die Sie schon haben, statt hier eine zu trennen.',
+  'help.maker.redetectTiming':
+    'Hört die Stimme erneut ab und timet die vorhandenen Wörter neu.',
+  'help.maker.redetectNotes':
+    'Hört die Melodie erneut ab und schreibt die Noten unter den Wörtern neu.',
+  'help.maker.modelsName': 'Speicher der KI-Modelle',
+  'help.maker.models':
+    'Was jedes Modell braucht und ob es auf diesem Rechner liegt. Sie werden beim ersten Gebrauch geladen.',
+  'help.maker.idleName': 'Im Leerlauf',
+  'help.maker.idle':
+    'Ob ein Modell zwischen zwei Läufen im Speicher bleibt, und wie lange. Freigeben schafft Speicher; Behalten lässt den nächsten Lauf sofort beginnen.',
+
+  'help.makerBar.caption': 'Die Werkzeuge oben im Maker',
+  'help.makerBar.import':
+    'Öffnet eine Karaoke-Datei oder ein gespeichertes Projekt und behält das bereits geladene Audio.',
+  'help.makerBar.lyrics': 'Die Wörter und ihr Timing, in einem Fenster.',
+  'help.makerBar.timing':
+    'Verschiebt Wörter und Noten gemeinsam, für ein Lied, das von der ersten Sekunde an zu früh oder zu spät läuft.',
+  'help.makerBar.pan':
+    'Ziehen Sie irgendwo auf der Zeitleiste, um durch das Lied zu fahren, ohne etwas zu ändern.',
+  'help.makerBar.language':
+    'In welcher Sprache die Wörter stehen, und eine zweite daneben, damit beide gesungen werden können.',
+  'help.makerBar.record':
+    'Lassen Sie das Lied laufen und drücken Sie am Anfang und Ende jeder Zeile eine Taste. Das Timing kommt aus Ihren Anschlägen.',
+  'help.makerBar.select':
+    'Ziehen Sie einen Rahmen um Noten, um sie gemeinsam zu verschieben oder zu löschen.',
+  'help.makerBar.paint': 'Zeichnen Sie die Melodie direkt auf das Tonraster.',
+  'help.makerBar.split':
+    'Teilt ein Wort in Silben, damit ein langes Wort auf jeder eine Note trägt.',
+  'help.makerBar.repair':
+    'Die Werkzeuge, die für Sie hinhören, und die Modelle, die sie brauchen.',
+  'help.makerBar.export':
+    'Schreibt das fertige Karaoke als FluidEQ-Projekt, UltraStar TXT, LRC oder erweitertes LRC.',
   'help.maker.tip':
     'Modelle benötigen Verbindung und Speicherplatz. Die Dauer hängt von Hardware und Liedlänge ab. Verwende zulässiges Audio und prüfe vor dem Teilen.',
 

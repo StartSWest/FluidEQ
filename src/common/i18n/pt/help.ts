@@ -431,6 +431,56 @@ const help: Record<keyof typeof en, string> = {
     'Maker transforma áudio em um projeto editável com letras e notas na linha do tempo. Confira palavras e tempos gerados automaticamente.',
   'help.maker.steps':
     'Abra Criar em Karaoke e carregue o áudio. Escolha as ferramentas de separação ou transcrição necessárias.\nAcompanhe o progresso; o primeiro uso de IA pode baixar modelos. Revise letras e notas.\nOuça pequenos trechos, corrija texto e tempos, salve o projeto e exporte os arquivos.',
+
+  'help.maker.lyricsCaption': 'A letra, e quando cada palavra é cantada',
+  'help.maker.referenceName': 'Letra de referência',
+  'help.maker.reference':
+    'A canção inteira como texto, uma linha por fila. Cole-a ou carregue um ficheiro; o FluidEQ tira daí os tempos.',
+  'help.maker.timingName': 'Tempo por palavra',
+  'help.maker.timing':
+    'Todas as palavras por ordem, com quantas já têm tempo. Carregue numa para a trabalhar.',
+  'help.maker.wordName': 'Palavra selecionada',
+  'help.maker.word':
+    'Onde começa a palavra escolhida e quanto dura. Mover a sua margem dá ou tira tempo à palavra ao lado; a linha mantém a duração.',
+  'help.maker.toolsCaption':
+    'As ferramentas de IA e os modelos de que precisam',
+  'help.maker.separate':
+    'Separa a gravação em voz e música, para o karaoke tocar sem o cantor.',
+  'help.maker.loadVocals':
+    'Use um ficheiro só de voz que já tenha, em vez de o separar aqui.',
+  'help.maker.redetectTiming':
+    'Volta a ouvir a voz e recalcula os tempos das palavras que já tem.',
+  'help.maker.redetectNotes':
+    'Volta a ouvir a melodia e reescreve as notas sob as palavras.',
+  'help.maker.modelsName': 'Memória dos modelos de IA',
+  'help.maker.models':
+    'O que cada modelo precisa e se está neste computador. São descarregados na primeira vez que usa um.',
+  'help.maker.idleName': 'Quando está parado',
+  'help.maker.idle':
+    'Se um modelo fica em memória entre utilizações, e por quanto tempo. Libertá-lo deixa memória livre; mantê-lo faz a próxima vez arrancar de imediato.',
+
+  'help.makerBar.caption': 'As ferramentas no topo do maker',
+  'help.makerBar.import':
+    'Abre um ficheiro de karaoke ou um projeto guardado, e mantém o áudio já carregado.',
+  'help.makerBar.lyrics': 'As palavras e os seus tempos, numa só janela.',
+  'help.makerBar.timing':
+    'Move palavras e notas em conjunto, para uma canção adiantada ou atrasada desde o primeiro segundo.',
+  'help.makerBar.pan':
+    'Arraste pela linha do tempo para percorrer a canção sem mudar nada.',
+  'help.makerBar.language':
+    'Em que língua estão as palavras, e uma segunda ao lado para a cantar em qualquer uma.',
+  'help.makerBar.record':
+    'Ponha a canção e carregue numa tecla ao início e ao fim de cada linha. O tempo vem das suas teclas.',
+  'help.makerBar.select':
+    'Desenhe uma caixa à volta das notas para as mover ou apagar juntas.',
+  'help.makerBar.paint':
+    'Desenhe a melodia diretamente sobre a grelha de tons.',
+  'help.makerBar.split':
+    'Corta uma palavra em sílabas, para que uma palavra longa leve uma nota em cada uma.',
+  'help.makerBar.repair':
+    'As ferramentas que ouvem por si, e os modelos de que precisam.',
+  'help.makerBar.export':
+    'Guarda o karaoke pronto como projeto FluidEQ, UltraStar TXT, LRC ou LRC melhorado.',
   'help.maker.tip':
     'Modelos exigem conexão e espaço. O tempo depende do computador e da música. Use áudio autorizado e revise antes de compartilhar.',
 
