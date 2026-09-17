@@ -21,21 +21,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * The pure halves of the two hooks: what a sender's bar becomes on the wire,
  * how the listener's state carries it per sender, which sender gets the one
- * bar, and which senders count as having just pressed play — the transition
- * the one-player rule acts on.
+ * bar, and what counts as somebody pressing play on the sending machine —
+ * the one thing the one-player rule acts on across the wire.
  */
 
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import type { ITransportSource } from 'renderer/audio/transportSource';
 import listenerState from 'renderer/remoteAudio/listenerState';
+import type { TPlaybackOwner } from 'renderer/audio/playbackOwner';
 import {
   describeForRemote,
   pickSourceForRemote,
+  startedHere,
 } from 'renderer/remoteAudio/useRemoteNowPlayingBroadcast';
-import {
-  pickRemoteNowPlaying,
-  startedSenders,
-} from 'renderer/remoteAudio/useRemoteNowPlayingSource';
+import { pickRemoteNowPlaying } from 'renderer/remoteAudio/useRemoteNowPlayingSource';
 
 const playing = (isPlaying: boolean): IRemoteNowPlaying => ({
   title: 'Song',
@@ -173,13 +172,47 @@ describe('pickRemoteNowPlaying', () => {
   });
 });
 
-describe('startedSenders', () => {
-  it('is the transition, not the state', () => {
-    // A sender still playing since last time is not a press of play; the
-    // one-player rule acting on the state made two players take turns
-    // stopping each other.
-    expect(startedSenders(new Set(['a']), ['a', 'b'])).toEqual(['b']);
-    expect(startedSenders(new Set(['a', 'b']), ['a', 'b'])).toEqual([]);
-    expect(startedSenders(new Set(), [])).toEqual([]);
+describe('startedHere', () => {
+  const source = (
+    owner: TPlaybackOwner,
+    isPlaying: boolean,
+  ): ITransportSource => ({
+    owner,
+    title: 'Song',
+    isPlaying,
+    positionMs: 0,
+    durationMs: 0,
+    toggle: () => undefined,
+  });
+  const seen = (entries: [TPlaybackOwner, boolean][]) =>
+    new Map<TPlaybackOwner, boolean>(entries);
+
+  it('is this player going from paused to playing', () => {
+    expect(
+      startedHere(seen([['library', false]]), source('library', true)),
+    ).toBe(true);
+  });
+
+  it('is not a player that was already playing', () => {
+    // The loop: the listener pauses the library here, the bar falls through
+    // to the browser tab that was already going on this machine, and the
+    // description flips to playing with nobody at the keyboard. Called a
+    // press, it stopped the listener's own music and paused this one again.
+    expect(startedHere(seen([['system', true]]), source('system', true))).toBe(
+      false,
+    );
+  });
+
+  it('is not a player this end has never seen', () => {
+    // What a reconnection re-announces, and what the first description of a
+    // session says. Neither is somebody pressing play.
+    expect(startedHere(seen([]), source('library', true))).toBe(false);
+  });
+
+  it('is nothing at all while nothing plays', () => {
+    expect(
+      startedHere(seen([['library', false]]), source('library', false)),
+    ).toBe(false);
+    expect(startedHere(seen([['library', false]]), undefined)).toBe(false);
   });
 });

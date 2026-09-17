@@ -215,7 +215,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     phase,
     senderPeerIdRef,
   );
-  useRemoteNowPlayingSource(role, connectedComputers);
+  const acceptRemoteStart = useRemoteNowPlayingSource(role, connectedComputers);
   const acceptSignal = useCallback(
     ({ peerId, signal }: ILanRemoteAudioSignal) => {
       const activeRole = roleRef.current;
@@ -236,6 +236,14 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
             peerNowPlayingRef.current.delete(peerId);
           }
           publishListenerState();
+          // The press, acted on as it arrives and never stored: a description
+          // kept in state gets re-read every time anything else changes, and
+          // reading a press twice is what stopping the music twice looks
+          // like. `started` is the sender's word that somebody pressed play
+          // there — see `startedHere`.
+          if (signal.started === true && signal.playing?.isPlaying === true) {
+            acceptRemoteStart(peerId);
+          }
         }
         return;
       }
@@ -283,6 +291,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       }
     },
     [
+      acceptRemoteStart,
       performRemoteTransport,
       publishListenerState,
       reconnectSender,

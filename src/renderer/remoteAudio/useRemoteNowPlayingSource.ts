@@ -35,14 +35,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   plays it is registered as a player, so `claimPlayback` from the library
  *   and `stopAllPlayback` from a browser tab starting reach it exactly as they
  *   reach each other. It never claims playback itself.
- * - A sender starts, and everything here stops: the app's own players
- *   through the register, the machine's own player by name, and every OTHER
- *   sender that is playing — with three computers sending, the one whose
- *   user just pressed play is the one anybody wants to hear. On the
- *   TRANSITION to playing, never on the state — see `shouldYieldToSystem` for
- *   the second in between where reading the state made two players take
- *   turns stopping each other. And before the remote is registered for this
- *   round, or "everything of ours" would have paused the sender right back.
+ * - A sender says somebody pressed play over there, and everything here
+ *   stops: the app's own players through the register, the machine's own
+ *   player by name, and every OTHER sender that is playing — with three
+ *   computers sending, the one whose user just pressed play is the one
+ *   anybody wants to hear.
+ *
+ * THE PRESS IS A MESSAGE, NOT SOMETHING THIS END WORKS OUT. This end used to
+ * compare each round of descriptions with the last and call a sender that had
+ * appeared among the playing ones "started". Three ordinary things look
+ * exactly like that and none of them is a press — a reconnection, which gives
+ * the sender a brand new peer id; the sender's bar falling through to a
+ * player that was already going on that machine, which is what the pause sent
+ * from here CAUSES; and Windows' polled session list flapping. So the pause
+ * this end sent came back one description later as a start, and the rule
+ * stopped the very music whose user had just pressed play. `startedHere` on
+ * the sender answers the question where it can be answered, and this end acts
+ * on the answer and on nothing else.
+ *
+ * The stop spares the register's own `remote` entry, whose stopper is a pause
+ * going back out over the wire — including to the computer that just pressed
+ * play.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -75,12 +88,6 @@ export const pickRemoteNowPlaying = (
   computers.find((computer) => computer.nowPlaying?.isPlaying === true) ??
   computers.find((computer) => computer.nowPlaying !== undefined);
 
-/** Which senders have just gone from paused to playing, in list order. */
-export const startedSenders = (
-  known: ReadonlySet<string>,
-  playing: readonly string[],
-): string[] => playing.filter((id) => !known.has(id));
-
 const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
   window.electron.ipcRenderer
     .sendRemoteAudioLanSignal({
@@ -93,7 +100,7 @@ const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
 const useRemoteNowPlayingSource = (
   role: TRemoteAudioRole | undefined,
   computers: IRemoteAudioComputer[],
-): void => {
+): ((peerId: string) => void) => {
   const singlePlayer = useSinglePlayer();
   const [lastStartedId, setLastStartedId] = useState<string | undefined>(
     undefined,
@@ -162,36 +169,14 @@ const useRemoteNowPlayingSource = (
     });
   }, [computer, peerId, playing]);
 
-  const knownPlayingRef = useRef<ReadonlySet<string>>(new Set());
+  // While a sender plays, the sound arriving is a player of this machine's as
+  // far as the one-player rule is concerned — it just is not one this app can
+  // pause except by asking. Registered only while something is actually
+  // playing, so a connected but silent computer is not a player.
   useEffect(() => {
-    const now = playingIdsRef.current;
-    const started = startedSenders(knownPlayingRef.current, now);
-    knownPlayingRef.current = new Set(now);
-    if (started.length > 0) {
-      setLastStartedId(started[started.length - 1]);
-    }
-    if (!singlePlayer || now.length === 0) {
+    if (!singlePlayer || playingIdsRef.current.length === 0) {
       return undefined;
     }
-    if (started.length > 0) {
-      // A sender pressed play. Ours stops, the way it stops when a browser
-      // tab here starts; the machine's own player is asked by name because a
-      // toggle sent to something paused would start it; and so is every other
-      // sender still playing, the newest press being the one that counts.
-      const winner = started[started.length - 1];
-      stopAllPlayback();
-      if (isTransportPlaying('system')) {
-        window.electron?.ipcRenderer
-          .sendSystemMediaCommand('pause')
-          .catch(() => undefined);
-      }
-      now
-        .filter((id) => id !== winner)
-        .forEach((id) => sendTransport(id, { command: 'pause' }));
-    }
-    // Registered after the stop above, never before it: `stopAllPlayback`
-    // reaches every registered player, and this one would have paused the
-    // sender that just pressed play.
     return registerPlayer('remote', () =>
       playingIdsRef.current.forEach((id) =>
         sendTransport(id, { command: 'pause' }),
@@ -199,7 +184,33 @@ const useRemoteNowPlayingSource = (
     );
   }, [playingKey, singlePlayer]);
 
+  const singlePlayerRef = useRef(singlePlayer);
+  singlePlayerRef.current = singlePlayer;
+  // Stable, and reads everything through refs: the signal handler that calls
+  // it must not have to re-subscribe on every description a sender sends.
+  const acceptStart = useRef((startedPeerId: string) => {
+    setLastStartedId(startedPeerId);
+    if (!singlePlayerRef.current) {
+      return;
+    }
+    // Ours stops, the way it stops when a browser tab here starts — but never
+    // the wire itself, or the pause would go to the computer that just
+    // pressed play and to the others twice. The machine's own player is asked
+    // by name because a toggle sent to something paused would start it, and
+    // every other sender is asked in so many words.
+    stopAllPlayback('remote');
+    if (isTransportPlaying('system')) {
+      window.electron?.ipcRenderer
+        .sendSystemMediaCommand('pause')
+        .catch(() => undefined);
+    }
+    playingIdsRef.current
+      .filter((id) => id !== startedPeerId)
+      .forEach((id) => sendTransport(id, { command: 'pause' }));
+  });
+
   useEffect(() => () => clearTransportSource('remote'), []);
+  return acceptStart.current;
 };
 
 export default useRemoteNowPlayingSource;

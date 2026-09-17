@@ -58,8 +58,23 @@ export const REMOTE_NUDGE_LIMIT_MS = 60_000;
 export type TRemoteAudioSignal =
   | { kind: 'peer-ready'; deviceName: string; address?: string }
   | { kind: 'stream-mode'; mode: TRemoteAudioStreamMode }
-  /** Sender → listener. Absent `playing` means the sender's bar is empty. */
-  | { kind: 'now-playing'; playing?: IRemoteNowPlaying }
+  /**
+   * Sender → listener. Absent `playing` means the sender's bar is empty.
+   *
+   * `started` is the one-player rule's only trigger, and it is an EVENT: a
+   * player on the sending machine went from paused to playing while the
+   * sender knew it was paused. Everything else about this message is a
+   * description, and a description that happens to be playing is not somebody
+   * pressing play — it is also what a reconnection re-announces, what a
+   * sender says when its bar falls through to a player that was already
+   * playing, and what Windows' polled session list says when it flaps. The
+   * listener used to work the trigger out by diffing those descriptions, so
+   * the pause it sent for one of them came back as the next "start" and
+   * silenced the music its own user had just started. A pause can never raise
+   * it — a pause starts nothing, and the player its sender's bar falls
+   * through to was playing already — so a pause cannot travel in a circle.
+   */
+  | { kind: 'now-playing'; playing?: IRemoteNowPlaying; started?: boolean }
   /** Listener → sender: a press on the listener's bar, carried out there. */
   | ({ kind: 'transport' } & TRemoteTransportCommand)
   | { kind: 'stop' };
@@ -182,7 +197,8 @@ export const isRemoteAudioSignal = (
   isRecord(value) &&
   (value.kind === 'stop' ||
     (value.kind === 'now-playing' &&
-      (value.playing === undefined || isRemoteNowPlaying(value.playing))) ||
+      (value.playing === undefined || isRemoteNowPlaying(value.playing)) &&
+      (value.started === undefined || typeof value.started === 'boolean')) ||
     (value.kind === 'transport' && isRemoteTransportCommand(value)) ||
     (value.kind === 'stream-mode' &&
       (value.mode === 'music' || value.mode === 'video')) ||

@@ -137,9 +137,21 @@ export const releasePlayback = (id: TPlaybackOwner): void => {
  * says the honest thing instead: nothing of ours is playing. The bar goes to
  * the machine's own transport by the ordinary rule, because that is what is
  * making the sound.
+ *
+ * `except` is for the one that is the reason: sound arriving over the LAN
+ * link registers here so that a library track started on this machine
+ * silences it, and the `remote` entry's stopper is a pause travelling back
+ * down the wire. Stopping "everything of ours" because a sending computer
+ * just pressed play would send that pause to the computer that pressed it.
+ * That used to be avoided by the order the effects happened to run in; it is
+ * named here instead, because an ordering nobody can see is not a guarantee.
  */
-export const stopAllPlayback = (): void => {
-  stoppers.forEach((stop) => stop());
+export const stopAllPlayback = (except?: TPlaybackOwner): void => {
+  stoppers.forEach((stop, held) => {
+    if (held !== except) {
+      stop();
+    }
+  });
   publish(undefined);
 };
 

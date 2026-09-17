@@ -21,6 +21,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * play state, the length or the whole second of position moves, and again
  * when a listener (re)connects, because a listener that joined mid-song has
  * not heard the description yet.
+ *
+ * AND ONE OF THOSE MESSAGES SAYS SOMEBODY PRESSED PLAY HERE. That is the only
+ * thing the listener's one-player rule acts on, and it is raised here because
+ * this is the only end that can tell a press from a description: see
+ * `startedHere`.
  */
 
 import { useEffect, useRef } from 'react';
@@ -91,6 +96,40 @@ export const pickSourceForRemote = (
   return owner === undefined ? sources.system : sources[owner];
 };
 
+/**
+ * Whether this description is somebody pressing play ON THIS MACHINE.
+ *
+ * The listener stops its own music for this, so it has to mean a press and
+ * nothing else. Three things that are not a press all look identical in a
+ * description that says "playing", and each of them silenced a listener that
+ * was happily playing its own album:
+ *
+ * - THE BAR CHANGING WHAT IT POINTS AT. The listener pauses this machine's
+ *   library, the bar falls through to the browser tab that was already
+ *   playing here, and the description goes from paused to playing with nobody
+ *   near the keyboard. That is the pause coming back as a start, which is the
+ *   loop: the listener stops its own player for it and pauses this one again.
+ * - A RECONNECTION. The link drops, the peer is new, and the sender
+ *   re-announces the song it has been playing all along.
+ * - WINDOWS' POLLED SESSION LIST FLAPPING, which republishes a player's state
+ *   without the player having done anything.
+ *
+ * So the question is asked of the PLAYER, not of the bar: this exact player
+ * was known to be paused a moment ago and is playing now. `seen` carries what
+ * each of this machine's players was last doing, which is why a player the
+ * bar has only just noticed — the case every one of the three above reduces
+ * to — is not a press. The cost is the one case where nobody pressed anything
+ * we could see: a program launched straight into playing publishes its
+ * session already playing, and the listener keeps its own music instead of
+ * yielding. Two things audible is a thing a user can hear and fix; music
+ * stopping by itself is the fault being fixed here.
+ */
+export const startedHere = (
+  seen: ReadonlyMap<TPlaybackOwner, boolean>,
+  source: ITransportSource | undefined,
+): boolean =>
+  source !== undefined && source.isPlaying && seen.get(source.owner) === false;
+
 /** Everything a message would say, so two that say the same are one. */
 const wireKey = (playing: IRemoteNowPlaying | undefined): string =>
   playing
@@ -125,6 +164,18 @@ const useRemoteNowPlayingBroadcast = (
   const playingRef = useRef(playing);
   playingRef.current = playing;
 
+  /**
+   * What each of this machine's players was last seen doing.
+   *
+   * Every player, not only the one on the bar: the fall-through that made the
+   * loop is the bar moving to a player it was not describing, and the answer
+   * to "was that one already playing?" has to have been recorded while
+   * something else held the bar.
+   */
+  const seenRef = useRef(new Map<TPlaybackOwner, boolean>());
+  const startedRef = useRef(false);
+  startedRef.current = startedHere(seenRef.current, source);
+
   const connected =
     role === 'sender' && (phase === 'connecting' || phase === 'connected');
   useEffect(() => {
@@ -135,12 +186,34 @@ const useRemoteNowPlayingBroadcast = (
     window.electron.ipcRenderer
       .sendRemoteAudioLanSignal({
         peerId,
-        signal: { kind: 'now-playing', playing: playingRef.current },
+        signal: {
+          kind: 'now-playing',
+          playing: playingRef.current,
+          // Absent unless it is true: a listener two versions older reads a
+          // message it does not understand the same way it always has, and a
+          // message that says nothing about a press is the safe one.
+          ...(startedRef.current ? { started: true } : {}),
+        },
       })
       .catch(() => undefined);
     // `key` is the message; `connected` is the listener arriving. Both are
-    // reasons to send, and nothing else is.
+    // reasons to send, and nothing else is. A reconnection therefore
+    // re-announces the description and never the press — `startedHere` has
+    // seen this player playing since, so it answers no.
   }, [connected, key, senderPeerIdRef]);
+
+  // After the send, and on every render rather than on a change: a player
+  // that starts while another holds the bar sends no message, and it is
+  // exactly that player's state the next press test is asked about.
+  useEffect(() => {
+    const seen = seenRef.current;
+    (Object.keys(sources) as TPlaybackOwner[]).forEach((owner) => {
+      const entry = sources[owner];
+      if (entry) {
+        seen.set(owner, entry.isPlaying);
+      }
+    });
+  });
 
   const performRef = useRef<(command: TRemoteTransportCommand) => void>(
     () => undefined,
@@ -196,7 +269,10 @@ const useRemoteNowPlayingBroadcast = (
         .catch(() => undefined);
       return;
     }
-    stopAllPlayback();
+    // Never the wire: a pause that arrived over the link must not leave by
+    // it. This end registers no `remote` player today, and that is exactly
+    // the kind of fact that stops being true one feature later.
+    stopAllPlayback('remote');
   };
   // Stable, so the signal handler that calls it need not re-subscribe.
   const performTransportRef = useRef((command: TRemoteTransportCommand) =>
