@@ -170,10 +170,18 @@ export default function StudioTestCard({
       <span className="studio-test__hint">{t('studio.performance.hint')}</span>
       {/* The menu's own rows, in the card rather than floating out of it:
           see `.studio-performance__rows`, which takes the floating surface
-          off the list they need for their own styling. */}
+          off the list they need for their own styling.
+
+          A group and not a menu. Nothing here floats over anything — these
+          are settings in a card, like the sliders above them — and the app
+          draws an edge round every dialog and every `[role="menu"]` there
+          is (`Rainbow.scss`: `html body :is([role="dialog"], …,
+          [role="menu"]…)`, which out-weighs three classes, and its rainbow
+          twin in euphoria). Declaring a menu here is what drew the box
+          round these rows that Ivan asked to have taken off. */}
       <div
         className="graph-view-menu__list studio-performance__rows"
-        role="menu"
+        role="group"
         aria-label={t('studio.performance.title')}
       >
         <ScenePerformanceMenu />

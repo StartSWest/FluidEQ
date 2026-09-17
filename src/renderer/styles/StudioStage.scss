@@ -738,17 +738,21 @@ $stage-edge: $border-menu;
 // of floating under a trigger. Its width is the card's, so a long answer
 // wraps in the value column as it does in the menu.
 //
-// The class is doubled on purpose. `.graph-view-menu__list` is a floating
-// menu surface — absolutely positioned, with a menu's face, border, shadow
-// and opening motion — and it weighs exactly as much as a single class here
-// while being loaded after this file: measured in the running window, the
-// rows computed `position: absolute; inset: 894px 0 -175px; z-index: 60` and
-// were painted seven hundred pixels below the card, 1713px wide, across the
-// whole app. The card stood 72px tall with nothing in it, which read as a
-// Studio with no performance settings at all. Everything that makes the list
-// a floating surface is taken off here; what is kept is the row styling,
-// which is why the list class is still on the element.
-.studio-performance__rows.studio-performance__rows {
+// The card's own class and the doubled one on purpose, three classes deep.
+// `.graph-view-menu__list` is a floating menu surface — absolutely
+// positioned, with a menu's face, its lit border, its drop shadow and its
+// opening motion — and this file is loaded before the one that carries it,
+// so an override has to out-weigh it rather than merely follow it. Measured
+// in the running window, at one class the rows computed `position: absolute;
+// inset: 894px 0 -175px; z-index: 60` and were painted seven hundred pixels
+// below the card, 1713px wide, across the whole app, leaving the card 72px
+// tall with nothing in it; at two, euphoria mode's own rule
+// (`.is-euphoric .graph-view-menu__list`, the same weight and later) put the
+// rainbow edge, the radius and the drop shadow back, and Ivan: "put it flat
+// like the other settings". Everything that makes the list a surface is
+// taken off here — in euphoria as well — and what is kept is the row
+// styling, which is why the list class is still on the element.
+.studio-test .studio-performance__rows.studio-performance__rows {
   position: static;
   z-index: auto;
   width: 100%;
@@ -758,10 +762,16 @@ $stage-edge: $border-menu;
   padding: 0;
   border: 0;
   border-radius: 0;
+  // Flat, like every other group on the card: no face, no lit edge in the
+  // border area, no rainbow, no shadow. `background` alone would leave the
+  // clip and origin the surface set for its border-area layer, which paints
+  // whatever background comes next as an edge rather than as a fill.
   background: none;
+  background-clip: border-box;
+  background-origin: padding-box;
   box-shadow: none;
-  // The menu's own arrival, which belongs to something that opens: inside a
-  // card it played every time the card was drawn.
+  // The menu's own arrival, and euphoria's drift: both belong to something
+  // that opens over the window. Inside a card they played on every draw.
   animation: none;
   overflow: visible;
   container-type: inline-size;

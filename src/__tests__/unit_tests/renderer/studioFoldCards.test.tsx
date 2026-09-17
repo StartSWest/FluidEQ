@@ -89,7 +89,9 @@ it('carries how the scene is drawn on the same card as what it is played with', 
   // with the signals, the size and the wave, above the reading that says how
   // the scene is keeping up under them.
   const rows = within(
-    screen.getByRole('menu', { name: 'studio.performance.title' }),
+    // A group, not a menu: nothing in this card floats, and everything the
+    // app calls a menu is given a surface of its own to float on.
+    screen.getByRole('group', { name: 'studio.performance.title' }),
   ).getAllByRole('menuitem');
   expect(rows.length).toBeGreaterThan(3);
 });
