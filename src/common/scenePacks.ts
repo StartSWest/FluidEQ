@@ -48,13 +48,21 @@ export const PREMIUM_LOOK_PREFIX = 'premium:';
 /**
  * Bounds on what the driver is asked to compile.
  *
- * ANGLE translates GLSL to HLSL before Direct3D compiles it, and that pipeline
- * is superlinear in source length — a 300 KB shader can take seconds and does
- * so on the render thread. Sixty-four kilobytes is an order of magnitude past
- * anything a scene needs, and it also bounds what a compromised server could
- * hand the GPU.
+ * This was 64 KB, on the belief that compile time is superlinear in source
+ * length. Measured on 2026-09-17, against Alpine through ANGLE on this
+ * machine, that belief is wrong: 51 KB compiled in 11.32 s and the same scene
+ * at 64 KB in 11.29 s — a quarter more text, no change at all. What actually
+ * cost the time was seven CALL SITES of two big functions, because a driver
+ * compiles a fresh copy of a body at each one: calling each once took the
+ * same scene to 4.7 s, and with both removed it was 1.2 s.
+ *
+ * So length is a poor proxy and the old number mostly stopped authors being
+ * ambitious. A quarter of a megabyte still bounds what a compromised server
+ * could hand the GPU, which is the one thing a size cap is good for; what a
+ * scene actually costs is held by the loop and pixel-work rules in
+ * `memberSceneRules.ts`, which measure the work rather than the letters.
  */
-export const MAX_SHADER_BYTES = 64 * 1024;
+export const MAX_SHADER_BYTES = 256 * 1024;
 export const MAX_SCENE_PARAMS = 8;
 /** The furthest a control's range may reach either side of zero. */
 export const MAX_PARAM_MAGNITUDE = 1e6;

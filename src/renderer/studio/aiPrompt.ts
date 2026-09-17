@@ -252,7 +252,8 @@ RULES (FluidEQ refuses the scene otherwise)
 - Loops inside loops multiply, and a function called in a loop costs all of
   its own loops on every turn: counting every turn and every call of your
   own functions, one pixel may do at most ${MAX_MEMBER_PIXEL_WORK}.
-- Plain ASCII outside comments. At most 64 KB.
+- Plain ASCII outside comments. At most 256 KB, which is far more than any
+  scene needs: length is not what costs.
 - In silence the scene must be calm: only slow drift from uTime. Every bright,
   fast or big movement must come from the music.
 - Nothing flashes. No region bigger than a small detail may swing between
@@ -268,6 +269,34 @@ RULES (FluidEQ refuses the scene otherwise)
   early for pixels it cannot touch, and prefer smooth maths to many layers.
   A frame so heavy that the graphics driver resets stops the scene wherever it
   was playing, every time it is played.
+
+HOW TO KEEP IT QUICK TO BUILD
+A scene has to be compiled on the machine that plays it - there is no way to
+ship it ready-made, because a compiled shader belongs to one graphics card and
+one driver version. FluidEQ builds it once, in the background, the moment
+somebody adds it, and every play after that is instant. But a scene that takes
+half a minute to build is half a minute of somebody's machine, and if they open
+it before that is done they watch a still picture until it finishes. These are
+measured on my own scenes, not guessed, and they matter far more than length:
+
+- CALL AN EXPENSIVE FUNCTION ONCE. A driver compiles a FRESH COPY of a
+  function's body at EVERY place it is called from. Drawing five boats by
+  calling one boat function five times compiles five boats. Measured: five
+  boat calls and two whale calls in one scene cost eleven seconds of building;
+  calling each body once took the same scene to four and a half.
+- So when several things share a drawing, first work out CHEAPLY which one
+  this pixel belongs to - a few compares, no textures, no sprite work - and
+  then call the expensive body once, with that one's index. A small function
+  called from several places is fine; a big one is not.
+- A loop whose bound is a plain number may be unrolled into that many copies
+  of its body, which costs the same way. Keep a loop's BODY small; put the
+  heavy work after the loop, once, on what the loop picked.
+- Length itself is nearly free: the same scene at 51 KB and at 64 KB built in
+  11.32 and 11.29 seconds. Do not contort the scene to be short. Do not split
+  one body into many small ones either, if that means calling them from many
+  places.
+- Ask yourself, before you finish: which of my functions is the biggest, and
+  how many places call it? If the answer is more than one, change it.
 
 HELPERS YOU MAY COPY
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }

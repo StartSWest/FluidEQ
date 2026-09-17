@@ -41,7 +41,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * why it is one file past the usual length: a second file would be an import.
  */
 
-export const MAX_MEMBER_SOURCE_BYTES = 64 * 1024;
+/**
+ * A quarter of a megabyte of source, not the 64 KB this was. Measured, the
+ * old number bought nothing: the same scene at 51 KB and at 64 KB compiled in
+ * 11.32 s and 11.29 s, while the seven call sites inside it were ten of those
+ * seconds — a driver compiles a fresh copy of a function at each call site.
+ * See `MAX_SHADER_BYTES`. What a scene costs is held below, by the loop
+ * bounds and the pixel-work budget, which measure the work itself.
+ */
+export const MAX_MEMBER_SOURCE_BYTES = 256 * 1024;
 export const MAX_MEMBER_LOOP_ITERATIONS = 128;
 /**
  * The work one pixel may do: every loop turn, and every call of the scene's

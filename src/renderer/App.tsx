@@ -200,6 +200,7 @@ import { useAudioEngineStatus } from './utils/useAudioEngineStatus';
 import { useEngineMaintenance } from './utils/useEngineMaintenance';
 import { AudioEngineContext } from './utils/audioEngineContext';
 import { notifyAudioEngineChanged } from './utils/audioEngineEvents';
+import { startScenePrebuild } from './graph/scenePrebuild';
 import {
   attachFluidEngine,
   detachFluidEngine,
@@ -967,6 +968,13 @@ const AppContent = () => {
       publishSystemDspChain();
     }
   }, [runningEngine]);
+  useEffect(() => {
+    // A scene has to be compiled on the machine that plays it, so it is
+    // compiled the moment it arrives rather than the first time somebody
+    // watches it: measured at eleven seconds for one of the big ones, which
+    // was eleven seconds of a still picture in the window.
+    return startScenePrebuild();
+  }, []);
   const [showEngineDialog, setShowEngineDialog] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and

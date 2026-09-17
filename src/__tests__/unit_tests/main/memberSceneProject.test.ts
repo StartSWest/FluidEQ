@@ -225,7 +225,9 @@ describe('reading a project folder', () => {
 
   it('refuses a shader too large to read, before reading it', async () => {
     write('pack.json', JSON.stringify(manifest()));
-    write('scene.frag', `// ${'x'.repeat(70 * 1024)}\n${SOURCE}`);
+    // Past MAX_MEMBER_SOURCE_BYTES, which is 256 KB since the 64 it used to
+    // be was measured to buy nothing (see scenePacks.ts).
+    write('scene.frag', `// ${'x'.repeat(260 * 1024)}\n${SOURCE}`);
     expect(await codes()).toEqual(['file-too-large']);
   });
 
