@@ -20,6 +20,13 @@ import { DefineStepFunction } from 'jest-cucumber';
 import { checkConfigFile, updateConfig } from 'main/flush';
 import { getConfigPath, isEqualizerAPOInstalled } from 'main/registry';
 
+/**
+ * The config directory stopped being one place when the FluidEQ Engine
+ * arrived and each engine got its own, so which one has to be said. Every step
+ * here is about Equalizer APO by name.
+ */
+const ENGINE_UNDER_TEST = 'apo';
+
 export const givenEqualizerApoIsInstalled = (given: DefineStepFunction) => {
   given('EqualizerAPO is installed', async () => {
     if (!(await isEqualizerAPOInstalled())) {
@@ -44,7 +51,7 @@ export const givenEqualizerApoIsInstalled = (given: DefineStepFunction) => {
  */
 export const givenCanWriteToFluidEqConfig = (given: DefineStepFunction) => {
   given('FluidEQ can write to its config', async () => {
-    const configDirPath = await getConfigPath();
+    const configDirPath = await getConfigPath(ENGINE_UNDER_TEST);
     updateConfig(configDirPath);
     if (!checkConfigFile(configDirPath)) {
       throw new Error('FluidEQ could not write to the Equalizer APO config');

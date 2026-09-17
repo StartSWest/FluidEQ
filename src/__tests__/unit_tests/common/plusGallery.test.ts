@@ -156,7 +156,11 @@ describe('the versions a row carries', () => {
 
   it('drops a first version later than the current one, and a note it cannot keep', () => {
     const scene = parseGalleryRow(
-      row({ version: 2, version_note: 'x'.repeat(MAX_VERSION_NOTE + 1), first_version: 5 }),
+      row({
+        version: 2,
+        version_note: 'x'.repeat(MAX_VERSION_NOTE + 1),
+        first_version: 5,
+      }),
     );
     expect(scene).toBeDefined();
     expect(scene).not.toHaveProperty('versionNote');

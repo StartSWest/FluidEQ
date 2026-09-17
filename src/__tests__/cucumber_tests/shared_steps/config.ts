@@ -24,6 +24,15 @@ import { DefineStepFunction } from 'jest-cucumber';
 import { IDriverSession, requireDriver } from '__tests__/utils/webdriver';
 import { getConfigPath } from 'main/registry';
 
+/**
+ * Every step in this file reads the file Equalizer APO itself parses. The
+ * config directory stopped being one place when the FluidEQ Engine arrived
+ * and each engine got its own, so which one has to be said rather than
+ * assumed — and it is APO's, because `readFluidEqConfig` below reads APO's
+ * `config.txt` syntax.
+ */
+const ENGINE_UNDER_TEST = 'apo';
+
 interface FilterSettings {
   on: boolean | null;
   type: string | null;
@@ -124,7 +133,7 @@ export const thenConfigFile = (then: DefineStepFunction) => {
     /^FluidEQ config file should be (empty|non-empty)$/,
     async (state: string) => {
       const isEmpty = state === 'empty';
-      const configPath = await getConfigPath();
+      const configPath = await getConfigPath(ENGINE_UNDER_TEST);
       const config = readFluidEqConfig(configPath);
       const matchObject = isEmpty
         ? {
@@ -148,7 +157,7 @@ export const thenBandCount = (then: DefineStepFunction) => {
   then(
     /^FluidEQ config file should show (\d+) frequency bands$/,
     async (count: string) => {
-      const configPath = await getConfigPath();
+      const configPath = await getConfigPath(ENGINE_UNDER_TEST);
       const config = readFluidEqConfig(configPath);
       expect(Object.keys(config.filters).length).toBe(parseInt(count, 10));
     },
@@ -173,7 +182,7 @@ export const thenFrequencyGain = (
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
-          const configPath = await getConfigPath();
+          const configPath = await getConfigPath(ENGINE_UNDER_TEST);
           const config = readFluidEqConfig(configPath);
           expect(config.filters[i].gain).toBe(parseInt(gain, 10));
           return;
@@ -202,7 +211,7 @@ export const thenFrequencyQuality = (
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
-          const configPath = await getConfigPath();
+          const configPath = await getConfigPath(ENGINE_UNDER_TEST);
           const config = readFluidEqConfig(configPath);
           expect(config.filters[i].quality).toBe(parseFloat(quality));
           return;
@@ -231,7 +240,7 @@ export const thenFrequencyFilterType = (
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
-          const configPath = await getConfigPath();
+          const configPath = await getConfigPath(ENGINE_UNDER_TEST);
           const config = readFluidEqConfig(configPath);
           expect(config.filters[i].type).toBe(filterType);
           return;
@@ -246,7 +255,7 @@ export const thenBandFrequency = (then: DefineStepFunction) => {
   then(
     /^FluidEQ config file should show a frequency of (\d+)Hz for band (\d+)$/,
     async (frequency: string, bandIndex: number) => {
-      const configPath = await getConfigPath();
+      const configPath = await getConfigPath(ENGINE_UNDER_TEST);
       const config = readFluidEqConfig(configPath);
       expect(config.filters[bandIndex - 1].freq).toBe(parseInt(frequency, 10));
     },
@@ -257,7 +266,7 @@ export const thenPreAmpGain = (then: DefineStepFunction) => {
   then(
     /^FluidEQ config should show a preamp gain of (-?\d+(\.\d+)?)dB$/,
     async (gain: string) => {
-      const configPath = await getConfigPath();
+      const configPath = await getConfigPath(ENGINE_UNDER_TEST);
       const config = readFluidEqConfig(configPath);
       expect(config.preamp).toBe(parseFloat(gain));
     },

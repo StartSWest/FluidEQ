@@ -6,6 +6,82 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 1.7.4
+
+A smaller release than the one before it, and most of it is about scenes: a
+new version of one now arrives with a line saying what changed, written by the
+assistant that changed it, and a scene is compiled the moment it is added
+rather than the first time somebody plays it — Alpine used to stand still for
+eleven seconds before it moved.
+
+The rest is the rule that only one thing plays at a time, which turns out to
+have been about FluidEQ and everything else rather than about the machine: a
+video started over a playing album left both going.
+
+### New
+
+- **A new version of a scene says what changed.** The update notice and the
+  versions page are both built around one line — "the peaks no longer get cut
+  on wide panels" — and it was optional, so a listener was often asked to take
+  a new version on trust. It is now required when a scene already exists, and
+  it arrives written: the prompt the Studio gives your assistant asks it, every
+  time it changes a scene, for one line about what a listener would notice. It
+  holds two sentences rather than the one an old tweet's worth allowed, it sits
+  across the full width of the publish dialog where the eye already is on its
+  way to Publish, and pressing Publish with it empty turns the field red and
+  puts the cursor in it rather than doing nothing.
+- **The Studio says which version is on the bench.** The number that decides
+  what a publication is called was readable only on the gallery's own page, so
+  an author tuning a scene could not tell an unpublished version from the
+  released one without leaving the surface they were working on. It sits in the
+  pinned bar beside the project, and takes the app's own accent while it is
+  ahead of what anybody has.
+- **The monitors show the visualizer that will be on them.** Choosing where a
+  desktop background plays was a choice between two coloured glass tiles. Each
+  monitor now carries a frame of the scene itself, cropped to that monitor's
+  own shape — the one its maker published, or one drawn here from the installed
+  scene — and how it will move is a mark in the corner. The Manage list carries
+  the same frame beside each monitor's line.
+- **A scene is ready before anybody plays it.** Alpine took eleven seconds to
+  compile, and that was eleven seconds of a still picture the first time it was
+  chosen. A scene is now built the moment it is added or updated, in the
+  background. None of that time was ever about length: the same scene at 51 KB
+  and at 64 KB compiled within 0.3% of each other, and what cost it was one
+  shape in the code that the two heaviest scenes shared.
+- **A vote in the Forum can be cast from inside FluidEQ.** The vote pill could
+  only fail: GitHub refuses that mutation to every token an app hands out, and
+  has since it shipped. A vote is now the 👍 on the post — the same one
+  github.com shows — so one cast in the app is a vote anybody there can see,
+  and one left on the site lights the pill here.
+
+### Fixed
+
+- **One thing plays at a time, whichever two programs they are.** Start a video
+  behind a playing album and both kept going: the rule was written as FluidEQ
+  against everything else, so two programs that were both somebody else's were
+  on nobody's register and neither stopped. It could not have noticed in any
+  case — it was told about one program, the one Windows lists first among those
+  playing, which with two of them is as likely to be the one that was already
+  going. It now sees every program that is playing, and a song started here
+  stops all of them rather than whichever was listed first.
+- **Share Audio no longer leaves two machines audible at once.** A program that
+  launched straight into playing was not counted as somebody pressing play, so
+  the listener's own music kept running beside it. What a machine hears now
+  decides what it asks the other to do, and nothing a description says can
+  silence what is playing at this end.
+- **A scene's own page draws its wave where every other surface does.** The
+  gallery's page handed each scene the whole panel as the band for its wave, so
+  a scene framed for part of the picture drew it somewhere else entirely:
+  Alpine's aurora crossed the sky on the graph and came down among the
+  mountains on its own page. That page is where somebody decides whether to add
+  a scene, so it is the one place it may not be wrong.
+- **A launch that closes itself says so.** There were three ways FluidEQ could
+  end without writing a single line anywhere, so a window somebody saw appear
+  and go left nothing behind to explain it. Every launch now says it started,
+  and every refusal to run a second copy says what it saw.
+
+---
+
 ## 1.7.3
 
 Two large pieces of work. The FluidEQ Engine learns surround: the DSP rack
