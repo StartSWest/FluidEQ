@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import type { ISceneResponse } from '../../common/sceneResponse';
+import { readSceneWave, type ISceneWave } from '../../common/sceneWave';
 import { readProject } from '../memberScenes/project';
 import {
   writeProjectSettings,
@@ -75,10 +76,19 @@ const readSettings = (raw: unknown): IProjectSettings => {
   } else if (isRecord(raw.response)) {
     response = raw.response as unknown as ISceneResponse;
   }
+  // `null` says the scene wants no wave of its own; anything else is read
+  // for its two numbers and kept in range (`sceneWave.ts`).
+  let wave: ISceneWave | null | undefined;
+  if (raw.wave === null) {
+    wave = null;
+  } else if (raw.wave !== undefined) {
+    wave = readSceneWave(raw.wave) ?? null;
+  }
   return {
     ...(params ? { params } : {}),
     ...(ambient ? { ambient } : {}),
     ...(response !== undefined ? { response } : {}),
+    ...(wave !== undefined ? { wave } : {}),
   };
 };
 

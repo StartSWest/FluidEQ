@@ -7,8 +7,12 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import {
+  DEFAULT_SCENE_WAVE,
+  MIN_SCENE_WAVE_HEIGHT,
+  type ISceneWave,
+} from 'common/sceneWave';
 import { getWaveTransform } from '../graph/liveTracePaint';
-import { MIN_GRAPH_WAVE_HEIGHT } from '../utils/graphViewSettings';
 
 /**
  * The graph's wave height and position, as the Studio tries them on a scene.
@@ -21,17 +25,17 @@ import { MIN_GRAPH_WAVE_HEIGHT } from '../utils/graphViewSettings';
  * frame always, so a scene that fell apart under a low or lifted wave looked
  * fine right up until somebody used it.
  */
-export interface IStudioWave {
-  /** 0.05 to 1, as the graph's slider. */
-  height: number;
-  /** 0 (the bottom edge) to 1 (the middle), as the graph's slider. */
-  position: number;
-}
+/**
+ * The scene's own (`common/sceneWave.ts`), under the name the Studio has
+ * always used for it: it stopped being a thing only tried here the moment it
+ * began to be saved into the scene and published with it.
+ */
+export type IStudioWave = ISceneWave;
 
 /** What the graph starts with: the full height, standing on the bottom. */
-export const DEFAULT_STUDIO_WAVE: IStudioWave = { height: 1, position: 0 };
+export const DEFAULT_STUDIO_WAVE = DEFAULT_SCENE_WAVE;
 
-export const STUDIO_WAVE_MIN_HEIGHT = MIN_GRAPH_WAVE_HEIGHT;
+export const STUDIO_WAVE_MIN_HEIGHT = MIN_SCENE_WAVE_HEIGHT;
 
 /**
  * The band `pack` is handed on a stage with no gutters — `[left, right,

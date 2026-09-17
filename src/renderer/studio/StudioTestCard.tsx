@@ -21,6 +21,11 @@ interface IStudioTestCardProps {
   onSize: (size: TStudioSize) => void;
   wave: IStudioWave;
   onWave: (wave: IStudioWave) => void;
+  /** Letting a wave slider go saves it into the scene, as every setting does. */
+  onWaveCommit: () => void;
+  /** Back to the wave the scene was published with, or opened with. */
+  onWaveReset: () => void;
+  canResetWave: boolean;
   /** Nothing is on the stage: the controls stay where they will be, unlit. */
   idle: boolean;
   /** How the scene is running, when it is. */
@@ -74,6 +79,9 @@ export default function StudioTestCard({
   onSize,
   wave,
   onWave,
+  onWaveCommit,
+  onWaveReset,
+  canResetWave,
   idle,
   cost,
   percent,
@@ -157,7 +165,14 @@ export default function StudioTestCard({
       </StudioCardGroup>
       <StudioCardGroup group="picture" title={t(SETTINGS_GROUP_TITLE.picture)}>
         <StudioGridSwitch />
-        <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
+        <StudioWaveControls
+          wave={wave}
+          onWave={onWave}
+          onCommit={onWaveCommit}
+          onReset={onWaveReset}
+          canReset={canResetWave}
+          idle={idle}
+        />
       </StudioCardGroup>
       <StudioCardGroup
         group="visualizer"

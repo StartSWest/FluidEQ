@@ -4,6 +4,11 @@ import {
   RESPONSE_KEYS,
   type ISceneResponse,
 } from '../../common/sceneResponse';
+import {
+  isDefaultSceneWave,
+  readSceneWave,
+  type ISceneWave,
+} from '../../common/sceneWave';
 import { MANIFEST_FILE, readManifest, writeInside } from './project';
 import { queueSettingsWrite } from './settingsWrites';
 
@@ -13,7 +18,9 @@ import { queueSettingsWrite } from './settingsWrites';
  * made from the project — the stage, their looks, an export, the gallery —
  * carries what they settled on, and so their AI sees it next time.
  *
- * Only those two things change. Every other field of `pack.json` is the AI's
+ * Only what a member tunes changes — the controls, the response, the
+ * ambient elements and where the scene wants the wave. Every other field of
+ * `pack.json` is the AI's
  * and is written back as it was read; a control this scene does not have is
  * ignored rather than added, and each value is kept inside its control's own
  * range. A neutral response is taken out rather than written, so a scene
@@ -26,6 +33,12 @@ export interface IProjectSettings {
   ambient?: Readonly<Record<string, number>>;
   /** `null` takes the scene's response out: as the engine hears it. */
   response?: ISceneResponse | null;
+  /**
+   * Where the scene wants the wave (`sceneWave.ts`), which travels with it to
+   * a look, an export and the gallery. `null` takes it out: the listener's
+   * graph then stands wherever they left it, as it did before.
+   */
+  wave?: ISceneWave | null;
 }
 
 export type TSettingsWrite = 'written' | 'unchanged' | 'failed';
@@ -82,6 +95,23 @@ const writeSettings = async (
           : entry;
       }),
     };
+  }
+
+  if (settings.wave !== undefined) {
+    // The wave the scene is built around, published with it. `null` — the
+    // graph's own full height on the bottom — takes it out again, so a scene
+    // that asks for nothing in particular is a scene with no `wave` in its
+    // pack rather than one that pins the listener to the default.
+    const wave =
+      settings.wave === null ? undefined : readSceneWave(settings.wave);
+    if (!wave || isDefaultSceneWave(wave)) {
+      delete manifest.wave;
+    } else {
+      manifest.wave = {
+        height: tidy(wave.height),
+        position: tidy(wave.position),
+      };
+    }
   }
 
   if (settings.response !== undefined) {

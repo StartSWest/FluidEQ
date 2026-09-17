@@ -388,7 +388,7 @@ const studio = {
   'studio.size.exit': 'Exit fullscreen',
   'studio.wave.title': 'Wave on the graph',
   'studio.wave.hint':
-    'Anyone using the scene can change these under View on the graph. Try the extremes: a low wave, or one lifted to the middle.',
+    'Saved into the scene and published with it, so it opens as you left it. Anyone using it can still change these under View on the graph, and put yours back. Try the extremes: a low wave, or one lifted to the middle.',
 
   // A switch under the size: the whole app in the colour of the scene on the
   // stage, for judging it as a theme without leaving the Studio.

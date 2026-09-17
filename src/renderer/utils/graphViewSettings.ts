@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import { MIN_SCENE_WAVE_HEIGHT } from 'common/sceneWave';
 import {
   VIEW_KEYS,
   createFlagSetting,
@@ -1219,8 +1220,13 @@ export const useTitlebarWaveHidden = () =>
     () => false,
   );
 
-/** The wave never disappears completely under its own height control. */
-export const MIN_GRAPH_WAVE_HEIGHT = 0.05;
+/**
+ * The wave never disappears completely under its own height control. The
+ * scene's own copy of this setting lives in `common/sceneWave.ts` — a scene
+ * is published with the wave its author built it around — and there is one
+ * bottom end for both.
+ */
+export const MIN_GRAPH_WAVE_HEIGHT = MIN_SCENE_WAVE_HEIGHT;
 
 const clampWaveHeight = (value: number) =>
   Math.max(MIN_GRAPH_WAVE_HEIGHT, Math.min(1, value));

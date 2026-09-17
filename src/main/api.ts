@@ -65,6 +65,7 @@ import type {
 } from './ipc/studioPictures';
 import type { IStudioSettingsOutcome } from './ipc/studioSettings';
 import type { ISceneResponse } from '../common/sceneResponse';
+import type { ISceneWave } from '../common/sceneWave';
 import type { TExportOutcome, TImportOutcome } from './ipc/memberSharing';
 import type { IProjectSource, TSourceWrite } from './memberScenes/project';
 import type { TInspectOutcome } from './ipc/studioInspect';
@@ -979,6 +980,8 @@ const writeStudioSettings = (settings: {
   params?: Record<string, number>;
   ambient?: Record<string, number>;
   response?: ISceneResponse | null;
+  /** Where the scene wants the wave; `null` takes it out (`sceneWave.ts`). */
+  wave?: ISceneWave | null;
 }) =>
   ipcRenderer.invoke(
     'studio-write-settings',

@@ -33,7 +33,6 @@ import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import useStudioTint from './useStudioTint';
-import { DEFAULT_STUDIO_WAVE, type IStudioWave } from './studioWave';
 import { createStudioReadingSettler } from './studioReading';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
@@ -105,7 +104,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
   const { size, choose, exitFullscreen, toggleFullscreen } = useStudioSize();
-  const [wave, setWave] = useState<IStudioWave>(DEFAULT_STUDIO_WAVE);
   const isGridShown = useStudioGridShown();
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
@@ -222,7 +220,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const newProject = () => setNaming(true);
   const closeNaming = useCallback(() => setNaming(false), []);
 
-  const keeping = useStudioKeep(name, wave, setNotice);
+  const keeping = useStudioKeep(name, tuner.wave, setNotice);
 
   // "Open a folder…" from the bar and from the empty stage: without Plus a
   // folder of several scenes puts the first on the bench and lists the rest
@@ -314,7 +312,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         serial={serial}
         signal={signal}
         size={size}
-        wave={wave}
+        wave={tuner.wave}
         isGridShown={isGridShown}
         tuning={tuner.tuning}
         onTrouble={setTrouble}
@@ -453,8 +451,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             onSignal={setSignal}
             size={size}
             onSize={choose}
-            wave={wave}
-            onWave={setWave}
+            wave={tuner.wave}
+            onWave={tuner.setWave}
+            onWaveCommit={tuner.commit}
+            onWaveReset={tuner.resetWave}
+            canResetWave={tuner.canResetWave}
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}

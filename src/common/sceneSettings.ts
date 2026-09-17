@@ -5,13 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { isNeutralResponse, type ISceneResponse } from './sceneResponse';
+import { isDefaultSceneWave, type ISceneWave } from './sceneWave';
 import type { IScenePack } from './scenePacks';
 
 /**
- * Where a scene's settings stand: its own controls, its ambient controls, and
- * how it answers the music.
+ * Where a scene's settings stand: its own controls, its ambient controls, how
+ * it answers the music, and where it wants the wave.
  *
- * The same three things `projectSettings.ts` writes into a `pack.json`, read
+ * The same things `projectSettings.ts` writes into a `pack.json`, read
  * back out of a pack instead. The Studio uses it for one thing: what Reset
  * goes back to, which is the scene as it was last published (see
  * `useStudioBaseline.ts`).
@@ -21,6 +22,8 @@ export interface ISceneSettings {
   ambient: Readonly<Record<string, number>>;
   /** Absent for a scene that hears the music as the engine hears it. */
   response?: ISceneResponse;
+  /** Absent for a scene that asks nothing of the wave (`sceneWave.ts`). */
+  wave?: ISceneWave;
 }
 
 const valuesOf = (
@@ -35,4 +38,5 @@ export const settingsOfPack = (pack: IScenePack): ISceneSettings => ({
   ...(pack.response && !isNeutralResponse(pack.response)
     ? { response: pack.response }
     : {}),
+  ...(pack.wave && !isDefaultSceneWave(pack.wave) ? { wave: pack.wave } : {}),
 });

@@ -383,7 +383,7 @@ const studio = {
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':
-    'Qui utilise la scène peut les changer dans Vue, sur le graphique. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
+    'Enregistré dans la scène et publié avec elle : elle s’ouvre comme vous l’avez laissée. Qui l’utilise peut les changer dans Vue, sur le graphique, et revenir à la vôtre. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.tint.label': 'FluidEQ avec cette scène',
   'studio.tint.hint':
     'Pendant que vous travaillez ici, toute l’application peut prendre les couleurs de la scène, ou briller doucement autour d’elle avec la musique, pour la voir et la sentir en thème.',

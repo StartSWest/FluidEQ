@@ -382,7 +382,7 @@ const studio = {
   'studio.size.exit': 'Esci da schermo intero',
   'studio.wave.title': 'Onda sul grafico',
   'studio.wave.hint':
-    'Chi usa la scena può cambiarle in Vista, sul grafico. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
+    'Si salva nella scena e viene pubblicata con essa, così si apre come l’hai lasciata. Chi la usa può cambiarle in Vista, sul grafico, e rimettere la tua. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
   'studio.tint.label': 'FluidEQ con questa scena',
   'studio.tint.hint':
     'Mentre lavori qui, tutta l’app può prendere i colori della scena, o illuminarsi piano intorno a lei con la musica, così la vedi e la senti come tema.',

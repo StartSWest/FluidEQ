@@ -7,6 +7,12 @@ import {
   isNeutralResponse,
   type ISceneResponse,
 } from 'common/sceneResponse';
+import {
+  DEFAULT_SCENE_WAVE,
+  isDefaultSceneWave,
+  sameSceneWave,
+  type ISceneWave,
+} from 'common/sceneWave';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import type { IStudioBaseline } from './useStudioBaseline';
 
@@ -16,6 +22,7 @@ export type TTuningSaved = 'saving' | 'saved' | 'look' | 'failed' | undefined;
 interface IPending {
   params: Record<string, number>;
   response?: ISceneResponse;
+  wave?: ISceneWave;
 }
 
 const NOTHING_PENDING: IPending = { params: {} };
@@ -107,7 +114,16 @@ export default function useStudioTuning(
         current.response && !sameResponse(current.response, packResponse)
           ? current.response
           : undefined;
-      return { params, ...(response ? { response } : {}) };
+      const packWave = pack.wave ?? DEFAULT_SCENE_WAVE;
+      const wave =
+        current.wave && !sameSceneWave(current.wave, packWave)
+          ? current.wave
+          : undefined;
+      return {
+        params,
+        ...(response ? { response } : {}),
+        ...(wave ? { wave } : {}),
+      };
     });
   }, [pack, project]);
 
@@ -116,6 +132,9 @@ export default function useStudioTuning(
     [pack, pending.params],
   );
   const response = pending.response ?? pack?.response ?? NEUTRAL_RESPONSE;
+  // Where the scene wants the wave: the member's unsaved choice, else what
+  // the scene carries, else the graph's own full height on the bottom.
+  const wave = pending.wave ?? pack?.wave ?? DEFAULT_SCENE_WAVE;
   const tuning = useMemo<ISceneTuning>(
     () => ({ params: values, response }),
     [values, response],
@@ -127,6 +146,11 @@ export default function useStudioTuning(
       params: { ...current.params, [id]: value },
     }));
   }, []);
+
+  const setWave = useCallback(
+    (next: ISceneWave) => setPending((current) => ({ ...current, wave: next })),
+    [],
+  );
 
   const setResponse = useCallback(
     (key: keyof ISceneResponse, value: number) => {
@@ -154,8 +178,14 @@ export default function useStudioTuning(
       const responseChanged =
         next.response !== undefined &&
         !sameResponse(next.response, packResponse);
+      const packWave = pack?.wave ?? DEFAULT_SCENE_WAVE;
+      const waveChanged =
+        next.wave !== undefined && !sameSceneWave(next.wave, packWave);
       const send = window.electron?.ipcRenderer?.writeStudioSettings;
-      if ((!Object.keys(params).length && !responseChanged) || !send) {
+      if (
+        (!Object.keys(params).length && !responseChanged && !waveChanged) ||
+        !send
+      ) {
         return;
       }
       setSaved('saving');
@@ -164,6 +194,13 @@ export default function useStudioTuning(
         ...(responseChanged && next.response
           ? {
               response: isNeutralResponse(next.response) ? null : next.response,
+            }
+          : {}),
+        // The full height on the bottom is what the graph does anyway: a
+        // scene that asks for it asks for nothing, and says nothing.
+        ...(waveChanged && next.wave
+          ? {
+              wave: isDefaultSceneWave(next.wave) ? null : next.wave,
             }
           : {}),
       })
@@ -192,6 +229,7 @@ export default function useStudioTuning(
     opened.current.values,
   );
   const responseAtReset = published?.response ?? NEUTRAL_RESPONSE;
+  const waveAtReset = published?.wave ?? pack?.wave ?? DEFAULT_SCENE_WAVE;
 
   const resetParams = useCallback(() => {
     const next = { ...pending, params: { ...paramsAtReset } };
@@ -205,6 +243,12 @@ export default function useStudioTuning(
     write(next);
   }, [pending, responseAtReset, write]);
 
+  const resetWave = useCallback(() => {
+    const next = { ...pending, wave: waveAtReset };
+    setPending(next);
+    write(next);
+  }, [pending, waveAtReset, write]);
+
   const paramsMoved = (pack?.params ?? []).some(
     (param) =>
       Math.abs((paramsAtReset[param.id] ?? param.value) - values[param.id]) >
@@ -216,16 +260,20 @@ export default function useStudioTuning(
     params: pack?.params ?? [],
     values,
     response,
+    wave,
     saved,
     canResetParams: paramsMoved,
     canResetResponse: !sameResponse(response, responseAtReset),
+    canResetWave: !sameSceneWave(wave, waveAtReset),
     /** The published version Reset goes back to, when there is one. */
     publishedVersion: baseline.version,
     setParam,
     setResponse,
+    setWave,
     commit,
     resetParams,
     resetResponse,
+    resetWave,
   };
 }
 

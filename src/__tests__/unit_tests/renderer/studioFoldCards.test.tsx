@@ -56,6 +56,9 @@ const testCard = () =>
       onSize={jest.fn()}
       wave={DEFAULT_STUDIO_WAVE}
       onWave={jest.fn()}
+      onWaveCommit={jest.fn()}
+      onWaveReset={jest.fn()}
+      canResetWave={false}
       idle={false}
       cost="studio.cost.full"
       percent={100}

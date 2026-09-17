@@ -376,7 +376,7 @@ const studio = {
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':
-    'Quem usar a cena pode alterá-las em Visualização, no gráfico. Teste os extremos: uma onda baixa ou elevada até o centro.',
+    'Fica guardado na cena e é publicado com ela, por isso abre como você deixou. Quem a usar pode alterá-las em Visualização, no gráfico, e voltar à sua. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.tint.label': 'O FluidEQ com esta cena',
   'studio.tint.hint':
     'Enquanto você trabalha aqui, todo o app pode assumir as cores da cena, ou brilhar suavemente ao redor dela com a música, para ver e sentir como fica como tema.',

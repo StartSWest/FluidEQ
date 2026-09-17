@@ -388,7 +388,7 @@ const studio = {
   'studio.size.exit': 'Vollbild beenden',
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':
-    'Wer die Szene nutzt, kann beides unter Ansicht im Diagramm ändern. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
+    'Wird in der Szene gespeichert und mit ihr veröffentlicht, also öffnet sie sich, wie Sie sie gelassen haben. Wer sie nutzt, kann beides unter Ansicht im Diagramm ändern und Ihre Einstellung zurückholen. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
   'studio.tint.label': 'FluidEQ mit dieser Szene',
   'studio.tint.hint':
     'Solange Sie hier arbeiten, kann die ganze App die Farben der Szene annehmen oder mit der Musik sanft um sie herum leuchten – so sehen und spüren Sie sie als Design.',

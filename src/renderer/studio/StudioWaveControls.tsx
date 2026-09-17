@@ -9,39 +9,43 @@ it under the terms of the GNU General Public License version 3 or later.
 import { snapPercent } from '../graph/GraphViewMenu';
 import { useTranslation } from '../utils/I18nContext';
 import { Setting } from './StudioSettings';
-import {
-  DEFAULT_STUDIO_WAVE,
-  STUDIO_WAVE_MIN_HEIGHT,
-  type IStudioWave,
-} from './studioWave';
+import { STUDIO_WAVE_MIN_HEIGHT, type IStudioWave } from './studioWave';
 
 interface IStudioWaveControlsProps {
   wave: IStudioWave;
   onWave: (wave: IStudioWave) => void;
+  /** Letting the slider go: saved into the scene, like every other setting. */
+  onCommit: () => void;
+  /** Back to the wave the scene was published with, or opened with. */
+  onReset: () => void;
+  canReset: boolean;
   /** Nothing is on the stage: the sliders wait, unlit, where they will be. */
   idle: boolean;
 }
 
 /**
- * The graph's wave height and position, tried on the scene on the stage.
+ * Where the scene wants the wave: its height and its position, set on the
+ * stage and saved into the scene.
  *
  * The same two sliders as the graph's View menu, with its range and its
  * quarters on the height, because they are the settings a member's audience
  * will actually move — full screen over a film, a low wave under the bands —
- * and a scene has to hold its shape under all of them. Only tried here, never
- * saved: they belong to whoever watches the scene, not to the scene.
+ * and a scene has to hold its shape under all of them. What is settled on
+ * here is published with the scene (`sceneWave.ts`), so a listener sees it as
+ * its author meant it; their own change still wins, and is remembered for
+ * that scene alone.
  */
 export default function StudioWaveControls({
   wave,
   onWave,
+  onCommit,
+  onReset,
+  canReset,
   idle,
 }: IStudioWaveControlsProps) {
   const { t } = useTranslation();
   const disabled = idle;
   const heightSpan = 1 - STUDIO_WAVE_MIN_HEIGHT;
-  const isDefault =
-    wave.height === DEFAULT_STUDIO_WAVE.height &&
-    wave.position === DEFAULT_STUDIO_WAVE.position;
   const percent = (value: number) =>
     t('studio.settings.percent', { percent: Math.round(value * 100) });
 
@@ -52,8 +56,8 @@ export default function StudioWaveControls({
         <button
           type="button"
           className="studio-settings__reset"
-          disabled={disabled || isDefault}
-          onClick={() => onWave(DEFAULT_STUDIO_WAVE)}
+          disabled={disabled || !canReset}
+          onClick={onReset}
         >
           {t('studio.settings.reset')}
         </button>
@@ -64,6 +68,7 @@ export default function StudioWaveControls({
         value={percent(wave.height)}
         position={(wave.height - STUDIO_WAVE_MIN_HEIGHT) / heightSpan}
         disabled={disabled}
+        onCommit={onCommit}
         onPosition={(position) =>
           onWave({
             ...wave,
@@ -82,6 +87,7 @@ export default function StudioWaveControls({
         value={percent(wave.position)}
         position={wave.position}
         disabled={disabled}
+        onCommit={onCommit}
         onPosition={(position) =>
           onWave({ ...wave, position: Math.round(position * 100) / 100 })
         }

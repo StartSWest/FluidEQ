@@ -6,6 +6,7 @@ import {
 import type { LocaleCode } from './i18n';
 import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
+import { readSceneWave, type ISceneWave } from './sceneWave';
 import {
   isNeutralResponse,
   readResponse,
@@ -103,6 +104,14 @@ export interface IScenePack {
    * tuned it. Absent means as the engine hears it.
    */
   response?: ISceneResponse;
+  /**
+   * The wave's height and position the author built the scene around, set on
+   * the Studio's stage and published with the scene: the listener sees it as
+   * its author meant it, rather than under whatever the graph happened to be
+   * left on. Their own change wins over it and is remembered per scene, with
+   * a way back to this. Absent means the graph's own setting, as before.
+   */
+  wave?: ISceneWave;
   /**
    * Its elements in the window around it, drawn in Ambient mode
    * (`sceneAmbient.ts`). Absent means none.
@@ -291,6 +300,9 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
   if (artwork === null || (artwork && readNumber(raw.contract, 1) < 2)) {
     return null;
   }
+  // Kept in range rather than refused, like a response: a wave outside the
+  // sliders' own ends is still a scene, and the ends are what it is drawn in.
+  const wave = readSceneWave(raw.wave);
   let spectrumRange: readonly [number, number] | undefined;
   if (raw.spectrumRange !== undefined) {
     const range = raw.spectrumRange;
@@ -342,6 +354,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     ...(artwork ? { artwork } : {}),
     ...(spectrumRange ? { spectrumRange } : {}),
     ...(response && !isNeutralResponse(response) ? { response } : {}),
+    ...(wave ? { wave } : {}),
     ...(ambient ? { ambient } : {}),
   };
 };
