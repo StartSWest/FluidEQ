@@ -89,13 +89,39 @@ it('follows a real change, and settles within a tenth of it', () => {
 
 // The half-life is wall-clock, so the same wobble is ignored and the same
 // change arrives at 30, 60 and 144 frames a second.
-it.each([30, 60, 144])('reads the same at %i frames a second', (fps) => {
+it.each([
+  [30, 30],
+  [60, 60],
+  // Past a hundred the rate is shown in fives, so 144 reads as 145: a frame
+  // either way there is a fifth of a percent, and the rate wanders by more.
+  [144, 145],
+])('reads the same at %i frames a second', (fps, shown) => {
   const settler = createStudioReadingSettler();
   run(settler, { seconds: 1, fps, costMs: 4, wobble: 0.3 });
   const { last } = run(settler, { seconds: 2, fps, costMs: 8, wobble: 0.3 });
   expect(last.costMs ?? 0).toBeGreaterThanOrEqual(7.9);
   expect(last.costMs ?? 0).toBeLessThanOrEqual(8.1);
-  expect(last.fps).toBe(fps);
+  expect(last.fps).toBe(shown);
+});
+
+it('keeps the GPU time through the frames its timer does not answer', () => {
+  const settler = createStudioReadingSettler();
+  const intervalMs = 1000 / 120;
+  run(settler, { seconds: 1, fps: 120, costMs: 1.2 });
+  // The timer answers one frame in four. In between the line has to stay as
+  // it is: dropping the milliseconds changed its shape sixty times a second.
+  const lines = new Set<string>();
+  for (let frame = 0; frame < 240; frame += 1) {
+    const reading = settler.frame({
+      intervalMs,
+      scale: 1,
+      ...(frame % 4 === 0 ? { costMs: 1.2 } : {}),
+    });
+    lines.add(
+      `${reading.costMs === undefined ? 'none' : reading.costMs.toFixed(1)}`,
+    );
+  }
+  expect([...lines]).toEqual(['1.2']);
 });
 
 it('counts the frames that arrive, not the speed of the quick ones', () => {

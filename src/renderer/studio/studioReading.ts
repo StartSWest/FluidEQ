@@ -32,7 +32,9 @@ import { getEaseFactor } from 'common/smoothing';
  *
  * The size is not eased at all: it is the controller's own choice from a
  * fixed ladder, a step rather than a measurement, and easing it would put
- * sizes on the card that the scene was never drawn at.
+ * sizes on the card that the scene was never drawn at. And the GPU's time is
+ * kept through the frames that carry none — its timer answers every few
+ * frames — so the line does not change shape while it waits.
  */
 
 /** How long a change takes to travel half the way to the new reading. */
@@ -45,11 +47,16 @@ const SETTLE_HALF_LIFE_MS = 320;
  */
 const HOLD = 0.35;
 
-/** Frames a second, shown whole. */
-const FPS_STEP = 1;
+/**
+ * Frames a second, shown whole up to a hundred and in fives above it: at 120
+ * a frame either way is a fifth of a percent, and the rate wanders by more
+ * than that on its own — 121, 120, 119, 118 in three seconds, each one a
+ * rewrite. Below a hundred a single frame is worth seeing.
+ */
+const fpsStep = (fps: number) => (fps >= 100 ? 5 : 1);
 
 /** The GPU's time for a frame, shown in tenths of a millisecond. */
-const MS_STEP = 0.1;
+const msStep = () => 0.1;
 
 export interface IStudioReading {
   /** The GPU's own time for a frame, absent where it cannot be timed. */
@@ -86,20 +93,27 @@ const ease = () => {
             (sample - value) * getEaseFactor(deltaMs, SETTLE_HALF_LIFE_MS);
       return value;
     },
-    forget() {
-      value = undefined;
-    },
   };
 };
 
 /** A figure shown in steps, which it leaves only once clear of the one it is on. */
-const hold = (step: number) => {
+const hold = (stepOf: (value: number) => number) => {
   let shown: number | undefined;
-  return (value: number): number => {
-    if (shown === undefined || Math.abs(value - shown) > step * (0.5 + HOLD)) {
-      shown = Math.round(value / step) * step;
-    }
-    return shown;
+  return {
+    of(value: number): number {
+      const step = stepOf(value);
+      if (
+        shown === undefined ||
+        Math.abs(value - shown) > step * (0.5 + HOLD)
+      ) {
+        shown = Math.round(value / step) * step;
+      }
+      return shown;
+    },
+    /** What it last showed, or nothing if it has never been given a value. */
+    last(): number | undefined {
+      return shown;
+    },
   };
 };
 
@@ -110,17 +124,23 @@ const hold = (step: number) => {
  */
 export const createStudioReadingSettler = (): IStudioReadingSettler => {
   const cost = ease();
-  const showCost = hold(MS_STEP);
+  const showCost = hold(msStep);
   const rate = ease();
-  const showRate = hold(FPS_STEP);
+  const showRate = hold(fpsStep);
   return {
     frame({ costMs, intervalMs, scale }) {
       // A frame reported as instant says nothing about the rate, and
       // dividing by it would put an infinity on the card.
       const interval = Math.max(1, intervalMs);
-      if (costMs === undefined) {
-        cost.forget();
-      }
+      // A frame carrying no GPU time is not a machine that cannot time
+      // frames: the timer answers every few frames, so the figure is kept as
+      // it was in between. Dropping it made the line change shape — with the
+      // milliseconds, then without them — several times a second, and start
+      // the easing again each time it came back.
+      const settled =
+        costMs === undefined
+          ? showCost.last()
+          : showCost.of(cost.of(costMs, interval));
       // The rate is what is eased, not the interval. Easing by half-life
       // weights each sample by the time it stood for, and a time-weighted
       // mean of 1/interval is exactly the frames drawn over the time they
@@ -128,10 +148,8 @@ export const createStudioReadingSettler = (): IStudioReadingSettler => {
       // frames — a run alternating 8 ms and 24 ms reads as 50 a second when
       // 62 of them arrive.
       return {
-        ...(costMs === undefined
-          ? {}
-          : { costMs: showCost(cost.of(costMs, interval)) }),
-        fps: showRate(rate.of(1000 / interval, interval)),
+        ...(settled === undefined ? {} : { costMs: settled }),
+        fps: showRate.of(rate.of(1000 / interval, interval)),
         size: Math.round(scale * 100),
       };
     },
