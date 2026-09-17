@@ -13,6 +13,10 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { MAX_MEMBER_NAME_LENGTH } from '../../../common/memberScenes';
+import {
+  normalizeSceneAmbient,
+  type ISceneAmbient,
+} from '../../../common/sceneAmbient';
 import type { IScenePack } from '../../../common/scenePacks';
 import { readProject } from '../../../main/memberScenes/project';
 import {
@@ -48,9 +52,50 @@ const webp = (width: number, height: number) => {
 
 const PICTURE = webp(4, 2);
 
-/** A pack using every part the manifest has to carry. */
+/**
+ * The flying things, as the app keeps them. Normalized here rather than
+ * written by hand so the round trip below compares a pack against itself:
+ * what it proves is the manifest carrying the field, not the shape.
+ */
+const ambient = () =>
+  normalizeSceneAmbient({
+    elements: [
+      {
+        id: 'gulls',
+        shape: 'bird',
+        colours: ['#dfe9ff'],
+        count: 6,
+        size: [14, 24],
+        opacity: 0.7,
+        motion: 'fly',
+        speed: 0.35,
+        area: 'top',
+        flap: 0.7,
+        turn: 0.3,
+        music: 'mid',
+        react: 0.3,
+      },
+    ],
+    params: [
+      {
+        id: 'ambient_amount',
+        names: { en: 'Birds', es: 'Aves' },
+        value: 0.6,
+        targets: [{ element: 'gulls', field: 'count', min: 2, max: 10 }],
+      },
+    ],
+  }) as ISceneAmbient;
+
+/**
+ * A pack using every part the manifest has to carry. Every optional field
+ * belongs here: a manifest that quietly dropped one still built a pack, and
+ * the round trip below could only see the fields this fixture has — which is
+ * how the wave and the flying things were lost without a test noticing.
+ */
 const fullPack = (): IScenePack =>
   memberPack({
+    wave: { height: 0.4, position: 0.3 },
+    ambient: ambient(),
     version: 3,
     names: { en: 'Neon City', es: 'Ciudad de neón' },
     swatch: ['#050a1a', '#00e5cf', '#ff3d7f'],

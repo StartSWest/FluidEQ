@@ -49,6 +49,12 @@ export const restoredManifest = (pack: IScenePack) =>
         : {}),
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
       ...(pack.response ? { response: pack.response } : {}),
+      // Everything the pack carries is written back, or restoring a scene
+      // hands its author a folder that builds a different scene: without
+      // these two, a restored copy lost its flying things and stood in a
+      // different room from the one it was published in.
+      ...(pack.wave ? { wave: pack.wave } : {}),
+      ...(pack.ambient ? { ambient: pack.ambient } : {}),
     },
     null,
     2,

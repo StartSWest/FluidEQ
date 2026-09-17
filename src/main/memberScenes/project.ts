@@ -256,6 +256,11 @@ const buildRawPack = async (folder: string) => {
       ...(manifest.response === undefined
         ? {}
         : { response: manifest.response }),
+      // The wave the author framed the scene in travels with it, like the
+      // response: without this the Studio saved it into pack.json and read
+      // back a pack that had never heard of it, and a published scene stood
+      // in whatever room the listener's own wave made.
+      ...(manifest.wave === undefined ? {} : { wave: manifest.wave }),
       ...(manifest.ambient === undefined ? {} : { ambient: manifest.ambient }),
     },
     artworkHash,

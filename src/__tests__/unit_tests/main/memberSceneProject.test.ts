@@ -69,6 +69,23 @@ describe('reading a project folder', () => {
     });
   });
 
+  // The Studio saves the author's wave into pack.json, and the pack built
+  // from that folder is what is published: dropped here, a scene reached the
+  // gallery standing in a different room from the one it was framed in, and
+  // the Studio's own controls read back a pack that had never heard of it.
+  it('carries the wave its pack.json names', async () => {
+    write(
+      'pack.json',
+      JSON.stringify(manifest({ wave: { height: 0.4, position: 0.3 } })),
+    );
+    write('scene.frag', SOURCE);
+    const build = await readProject(project);
+    expect(build).toMatchObject({
+      ok: true,
+      pack: { wave: { height: 0.4, position: 0.3 } },
+    });
+  });
+
   it('says so when there is no pack.json', async () => {
     write('scene.frag', SOURCE);
     expect(await codes()).toEqual(['missing-file']);
