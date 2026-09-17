@@ -143,6 +143,18 @@ export const sanitizeDisplayText = (value: unknown): string | undefined => {
 
 export type TMemberSceneFile = 'pack.json' | 'source' | 'artwork';
 
+/**
+ * The picture FluidEQ writes into a project folder after each build, for the
+ * member's AI to look at (`main/ipc/studioPreview.ts`).
+ *
+ * Here rather than beside the main process's other project file names because
+ * three places need it and one of them is the window: the AI prompt names the
+ * file so the assistant knows to open it, main writes it, and the folder
+ * watcher ignores it. A renderer importing it from main would pull `fs` into
+ * the window's bundle behind it.
+ */
+export const PREVIEW_FILE = 'preview.png';
+
 export type TMemberProblemCode =
   | TMemberRuleCode
   | 'not-a-pack'

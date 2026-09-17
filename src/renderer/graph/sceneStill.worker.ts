@@ -162,6 +162,15 @@ const encodeStill = async (
     : encodeStill(still, rest);
 };
 
+/**
+ * A PNG, at whatever size it comes to: no ladder and no cap, because this one
+ * is written next to the project on the member's own disk rather than sent
+ * anywhere, and a quality ladder would be trading away the detail the picture
+ * exists to show.
+ */
+const encodePreview = (still: OffscreenCanvas) =>
+  still.convertToBlob({ type: 'image/png' });
+
 const pixel = new Uint8Array(4);
 
 /** The postage stamps' own warm-up is a single tiny draw before the run. */
@@ -275,6 +284,7 @@ const drawInBands = (
 const renderStill = async (
   pack: IScenePack,
   run: TFrameRun,
+  format?: 'png',
 ): Promise<Blob | undefined> => {
   const built = await build(pack);
   if (!built) {
@@ -306,7 +316,10 @@ const renderStill = async (
   } finally {
     program.dispose();
   }
-  return still ? encodeStill(still) : undefined;
+  if (!still) {
+    return undefined;
+  }
+  return format === 'png' ? encodePreview(still) : encodeStill(still);
 };
 
 /** The showcase's frames drawn small and read back, as premultiplied RGBA. */
@@ -382,7 +395,9 @@ const answer = async (request: TSceneStillRequest) => {
   const run = request.frames
     ? capturedRun(request.frames)
     : showcaseRun(request.pack, request.accent);
-  const blob = await renderStill(request.pack, run).catch(() => undefined);
+  const blob = await renderStill(request.pack, run, request.format).catch(
+    () => undefined,
+  );
   scope.postMessage({
     kind: 'still',
     id: request.id,

@@ -38,6 +38,20 @@ export const blobAsDataUrl = (blob: Blob) =>
 export const renderSceneStill = (pack: IScenePack) => drawStillInWorker(pack);
 
 /**
+ * The same picture, as a PNG, for the file written beside a project so the
+ * member's AI can see what it just made.
+ *
+ * The assistant writing the shader never sees it: it works on the files and
+ * the member is its only pair of eyes, which is why a scene can go several
+ * rounds with its subject a grey smudge in a corner. FluidEQ is the one thing
+ * here that can draw the scene, so it is FluidEQ that hands the picture over
+ * — written into the folder the assistant is already editing, not reached for
+ * through any door into the app.
+ */
+export const renderScenePreview = (pack: IScenePack) =>
+  drawStillInWorker(pack, undefined, 'png');
+
+/**
  * `pack`'s picture at the moment a member caught on screen: `frames` are what
  * the scene heard over the last few seconds before it, oldest first, replayed
  * so everything the scene eases is where it was, and the last one is the

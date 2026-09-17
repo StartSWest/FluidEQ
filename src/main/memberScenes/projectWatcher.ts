@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
+import { PREVIEW_FILE } from '../../common/memberScenes';
 import { readProject, type TProjectBuild } from './project';
 
 /**
@@ -121,7 +122,17 @@ export const watchProject = (
 
   try {
     watcher = watch(folder);
-    watcher.on('change', () => request());
+    watcher.on('change', (_type, file) => {
+      // The picture FluidEQ itself writes after every build is the one change
+      // in this folder that cannot mean the scene changed. A rebuild from it
+      // would read the whole folder for nothing — and be answered by a build
+      // identical to the last, which `send` drops anyway, so this is not what
+      // stops a loop; it is what stops the pointless read.
+      if (typeof file === 'string' && file === PREVIEW_FILE) {
+        return;
+      }
+      request();
+    });
     watcher.on('error', () => {
       // The folder was deleted, renamed or unplugged. Say so once, and stop:
       // a watcher on a path that no longer exists never recovers by itself.

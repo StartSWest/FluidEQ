@@ -1033,6 +1033,10 @@ const readStudioNotes = (id: string) =>
 const saveStudioNotes = (id: string, notes: IStudioNotes) =>
   ipcRenderer.invoke('studio-notes-save', id, notes) as Promise<boolean>;
 
+/** A picture of the scene beside its files, for the member's AI to look at. */
+const writeStudioPreview = (id: string, bytes: Uint8Array) =>
+  ipcRenderer.invoke('studio-write-preview', id, bytes) as Promise<boolean>;
+
 const studioTermsAgreed = () =>
   ipcRenderer.invoke('studio-terms-agreed') as Promise<number>;
 
@@ -1521,6 +1525,7 @@ export default {
     inspectOfficialScene,
     readStudioNotes,
     saveStudioNotes,
+    writeStudioPreview,
     studioTermsAgreed,
     exportStudioScene,
     importMemberScene,

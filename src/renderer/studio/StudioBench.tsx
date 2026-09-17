@@ -32,6 +32,7 @@ import useStudioTuning from './useStudioTuning';
 import useScenePictures from './useScenePictures';
 import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
+import useStudioPreviewFile from './useStudioPreviewFile';
 import useStudioTint from './useStudioTint';
 import { createStudioReadingSettler } from './studioReading';
 import { useStudioGridShown } from './studioPaper';
@@ -200,6 +201,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // start on a gap in the music.
   useLiveAudioCapture(playing);
   useStudioTint(pack, state.activeId, serial, playing);
+  // A picture of the scene beside its files, so the member's AI can look at
+  // what it just made. Not while the Publish dialog has the stage: it is
+  // drawing the same scene for a cover at that moment.
+  useStudioPreviewFile(
+    pack,
+    state.activeId,
+    serial,
+    playing && !pausedForPublish,
+  );
 
   let status: TranslationKey = 'studio.status.waiting';
   if (pack && (problems || trouble?.kind === 'compile')) {

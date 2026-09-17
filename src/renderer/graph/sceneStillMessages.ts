@@ -15,6 +15,13 @@ export type TSceneStillRequest =
       pack: IScenePack;
       accent: readonly [number, number, number];
       frames?: readonly ISceneFrame[];
+      /**
+       * PNG instead of the gallery's WebP, for the picture written beside a
+       * project so the member's AI can look at what it just made: it is read
+       * by whatever assistant they use, and PNG is the one every one of them
+       * opens. It never travels, so the size a WebP saves buys nothing here.
+       */
+      format?: 'png';
     }
   | {
       kind: 'sample';

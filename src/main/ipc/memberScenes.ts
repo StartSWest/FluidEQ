@@ -50,6 +50,7 @@ import {
   type IStoredProject,
 } from '../memberScenes/studioProjects';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
+import { registerStudioPreviewIpc } from './studioPreview';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioSettingsIpc } from './studioSettings';
 
@@ -820,6 +821,22 @@ export const registerMemberScenesIpc = ({
     dialogImpl,
     ...(logger ? { logger } : {}),
   });
+  // A picture of the scene beside its files, for the member's AI to look at.
+  // Only into a project that may be edited: one of FluidEQ's own, opened to
+  // look inside, gains no file from being watched.
+  const disposePreview = registerStudioPreviewIpc({
+    // Decided about the project NAMED, never about the open one: asking
+    // whether the OPEN project is an inspection would answer for the wrong
+    // folder the moment the page names another, which is the same mistake
+    // the notes reader carries a comment about.
+    folderFor: (id) => {
+      const project = projects.projects.find((entry) => entry.id === id);
+      return usable(project) && project?.official === undefined
+        ? project?.folder
+        : undefined;
+    },
+    ...(logger ? { logger } : {}),
+  });
   const disposeSettings = registerStudioSettingsIpc({
     mayEdit: mayUseActive,
     // The look a settings save refreshes is one Plus added; refreshing it is
@@ -852,6 +869,7 @@ export const registerMemberScenesIpc = ({
       stopWatching();
       disposeNotes();
       disposePictures();
+      disposePreview();
       disposeSettings();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },

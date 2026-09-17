@@ -147,6 +147,7 @@ const ask = <K extends TSceneStillRequest['kind']>(
 export const drawStillInWorker = async (
   pack: IScenePack,
   frames?: readonly ISceneFrame[],
+  format?: 'png',
 ): Promise<Blob | undefined> => {
   // After the graph's own compile of this scene, if one is under way, so this
   // one is the GPU process's cached copy (`sceneLinkTurns.ts`).
@@ -157,6 +158,7 @@ export const drawStillInWorker = async (
       pack,
       accent: pageAccent(),
       ...(frames ? { frames } : {}),
+      ...(format ? { format } : {}),
     })
   )?.blob;
 };
