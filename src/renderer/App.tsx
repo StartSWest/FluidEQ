@@ -150,7 +150,6 @@ import {
 } from './dsp/store';
 import useEngineTrouble from './audio/useEngineTrouble';
 import { sameEndpoint } from './audio/engineTrouble';
-import useRestartWhenEngineOff from './utils/useRestartWhenEngineOff';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
@@ -1971,15 +1970,16 @@ const AppContent = () => {
       performEngineRepair,
     );
   const handleRestartWindowsAudio = audioRestart.open;
-  useRestartWhenEngineOff(
-    engineTrouble,
-    suppressAudioNotices,
-    audioRestart,
-    engineStatus?.fluid.everRan,
-  );
-  // The other half of that pair: where Windows has never created the engine
-  // on the output, a restart cannot help; putting the install back, or
-  // moving the engine to a slot the driver builds, can. Keyed by the slot
+  // Never restarted by itself. The engine on the output being listened to
+  // and Windows not running it used to get Windows audio restarted the
+  // moment sound was heard — once a session, without a press — and that
+  // restart is an elevated run of the setup helper, so every change of
+  // output to one Windows had built before the engine was on it put a
+  // Windows prompt up with nobody having asked. The trouble card asks
+  // instead: its Restart button is the one thing that runs it.
+  // Where Windows has never created the engine on the output, a restart
+  // cannot help; putting the install back, or moving the engine to a slot
+  // the driver builds, can — the slot ladder, bounded and silent by design. Keyed by the slot
   // the helper reports, so each rung is asked for once.
   const troubledSlot =
     engineTrouble?.kind === 'off'

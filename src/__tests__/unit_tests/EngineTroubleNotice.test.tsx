@@ -99,6 +99,11 @@ describe('EngineTroubleNotice', () => {
     expect(buttons[1]).toHaveClass('subtle');
     expect(buttons[2]).toHaveClass('subtle');
 
+    // The card asks; nothing ran on its own while it was shown. The restart
+    // is an elevated run of the setup helper, and it used to happen without
+    // a press the moment sound was heard — a Windows prompt on every change
+    // of output to one Windows had built before the engine was on it.
+    expect(onRestartAudio).not.toHaveBeenCalled();
     fireEvent.click(buttons[0]);
     fireEvent.click(buttons[1]);
     expect(onRestartAudio).toHaveBeenCalledTimes(1);

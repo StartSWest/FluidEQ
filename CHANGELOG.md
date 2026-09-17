@@ -92,6 +92,13 @@ picks the head for your ears, and the same room on the Library's player.
 
 ### Fixed
 
+- **Changing output no longer puts a Windows prompt up by itself.** When
+  the output you switched to had the engine on it but Windows had not
+  started it there, FluidEQ restarted Windows audio on its own the moment
+  sound was heard — and that restart asks Windows for permission, so a
+  prompt appeared with nobody having asked for anything. Now the card
+  says the engine is not running on that output and asks; its Restart
+  button is the only thing that runs it.
 - **Turning a Room dial no longer cuts the sound for an instant.** Every
   change to the rack makes the engine build it afresh and hand the playing
   state across, and the room was left out of that handover: its new

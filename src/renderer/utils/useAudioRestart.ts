@@ -79,10 +79,8 @@ export const useAudioRestart = (
       running.current = false;
     }
     // In the log either way. A restart of Windows audio is the loudest thing
-    // the app does to the machine — every stream stops for a moment — and it
-    // now also happens without anybody pressing anything
-    // (`useRestartWhenEngineOff`), so a log that does not mention it cannot
-    // explain what a listener heard.
+    // the app does to the machine — every stream stops for a moment — so a
+    // log that does not mention it cannot explain what a listener heard.
     reportInfo(
       `Windows audio restart: ok=${result.ok}` +
         `${result.declined ? ' (consent declined)' : ''}` +

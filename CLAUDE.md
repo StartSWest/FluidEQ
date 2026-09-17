@@ -487,11 +487,17 @@ Out-String` (or any other capture) is what actually waits for it and shows
   would hang the wait. Only the last failure reaches the window, so the
   switch and status requests carry no deadline. Ivan chose this over a fixed
   pause on 2026-09-13; do not add one.
-- **Under the FluidEQ Engine the app restarts Windows audio by itself,
-  once, and never enables an output by itself.** The engine on the output
-  being listened to but not running, which a restart fixes, gets Windows
-  audio restarted (`useRestartWhenEngineOff`) — once a session, never during
-  the engine update, and only from a status read after sound was heard. The
+- **Under the FluidEQ Engine the app never restarts Windows audio by
+  itself, and never enables an output by itself.** The engine on the output
+  being listened to but not running, which a restart fixes, gets the trouble
+  card ("The FluidEQ Engine isn't running on …") and its Restart button,
+  and nothing else. It used to be restarted without a press, once a session
+  (`useRestartWhenEngineOff`, gone) — and that restart is an elevated run
+  of the setup helper, so every change of output to one Windows had built
+  before the engine was on it put an administrator prompt up with nobody
+  having asked; Ivan took it out on 2026-09-16 evening ("when changing
+  output, if the engine is not activated for that output it needs to ask
+  the user"). Do not put it back. The
   output Windows plays through, read as not attached, gets the notice and
   its Enable button and nothing else: it used to be enabled without a press
   (one Windows prompt, audio restarted onto it, once per output a session),
@@ -558,10 +564,7 @@ Out-String` (or any other capture) is what actually waits for it and shows
   likewise requires the FluidEQ Engine to be attached somewhere, not merely
   chosen: a machine that picked it in setup and declined the prompt has the
   preference and no engine, and taking Equalizer APO off it leaves nothing
-  processing. `useRestartWhenEngineOff` does not restart at all when
-  `everRan` is false — there is nothing to restart into the chain — and its
-  "once" lives in `sessionStorage`, not a ref, so a crash-recovery reload
-  cannot reach it again. The trouble card for that state (`neverRan`, its own
+  processing. The trouble card for that state (`neverRan`, its own
   key) drops the restart button, says what FluidEQ already repaired and what
   is left — security software or the sound card's driver — and leads with
   Equalizer APO, the only thing on it that processes sound there. It no longer opens the restart card either: a dialog nobody asked
