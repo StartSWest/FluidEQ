@@ -81,6 +81,17 @@ it('folds a card by its own title, and folds its contents away with it', async (
   expect(foldedAway(head)).toBe(true);
 });
 
+it('carries how the scene is drawn on the same card as what it is played with', () => {
+  testCard();
+  // One card, not two: the rows that decide how hard the GPU is driven sit
+  // with the signals, the size and the wave, above the reading that says how
+  // the scene is keeping up under them.
+  const rows = within(
+    screen.getByRole('menu', { name: 'studio.performance.title' }),
+  ).getAllByRole('menuitem');
+  expect(rows.length).toBeGreaterThan(3);
+});
+
 it('keeps how the scene is running on screen while the card is folded', async () => {
   testCard();
   await userEvent.click(

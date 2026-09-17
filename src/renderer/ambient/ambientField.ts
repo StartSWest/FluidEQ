@@ -9,7 +9,7 @@ import type {
   TAmbientArea,
   TAmbientMusic,
 } from 'common/sceneAmbient';
-import { MAX_AMBIENT_TOTAL } from 'common/sceneAmbient';
+import { AMBIENT_CEILING, MAX_AMBIENT_TOTAL } from 'common/sceneAmbient';
 import { pictureBearing, picturePoses } from './ambientPictureMotion';
 
 /**
@@ -81,12 +81,6 @@ export interface IAmbientDraw {
   poses?: readonly (readonly [number, number])[];
 }
 
-/**
- * The most any element shows, as opacity over the window. Screened over it
- * (`SceneAmbient.scss`) this lifts a dark pane by a sixth at the very most —
- * a shape seen from the corner of the eye, never one that covers a word.
- */
-export const AMBIENT_CEILING = 0.42;
 /** The brightest a musical swell can take it, whatever the scene asks. */
 const MAX_ALPHA = 0.62;
 /**

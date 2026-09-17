@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import ScenePerformanceMenu from '../graph/ScenePerformanceMenu';
 import { useTranslation } from '../utils/I18nContext';
 import StudioFoldCard from './StudioFoldCard';
 import type { TStudioSize } from './StudioStage';
@@ -32,8 +33,17 @@ interface IStudioTestCardProps {
 }
 
 /**
- * What to play the scene with, at which size and under which wave, and how
- * well it keeps up — everything that judges the scene rather than changes it.
+ * What to play the scene with, at which size, under which wave and drawn how
+ * hard — everything that judges the scene rather than changes it, on one
+ * card with the reading that says how it is keeping up.
+ *
+ * One card and not two: how the scene is drawn (the frame rate, the size and
+ * its floor, the scaler, the edge smoothing, the graphics card) is read
+ * against that reading, and a member watching the stage should not have to
+ * hunt through a second card — or go out to the graph's own menu — to change
+ * it. These are the graph's View menu's own rows, on the same choice
+ * (`common/scenePerformance.ts`), so a choice made here is the graph's and
+ * the desktop's too.
  *
  * The choices are tiles in a fixed grid of four, each drawing what it is over
  * its name. They were pills that wrapped: eight of different widths broke
@@ -132,6 +142,20 @@ export default function StudioTestCard({
       <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
       <StudioGridSwitch />
       <StudioTintSwitch />
+      <span className="studio-card__eyebrow">
+        {t('studio.performance.title')}
+      </span>
+      <span className="studio-test__hint">{t('studio.performance.hint')}</span>
+      {/* The menu's own rows, in the card rather than floating out of it:
+          see `.studio-performance__rows`, which takes the floating surface
+          off the list they need for their own styling. */}
+      <div
+        className="graph-view-menu__list studio-performance__rows"
+        role="menu"
+        aria-label={t('studio.performance.title')}
+      >
+        <ScenePerformanceMenu />
+      </div>
     </StudioFoldCard>
   );
 }

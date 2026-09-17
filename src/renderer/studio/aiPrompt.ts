@@ -4,8 +4,10 @@ import {
 } from 'common/memberSceneRules';
 import {
   AMBIENT_AREAS,
+  AMBIENT_CEILING,
   AMBIENT_FIELDS,
   AMBIENT_MUSIC,
+  AMBIENT_OPACITY_ADVISED,
   AMBIENT_SHAPES,
   MAX_AMBIENT_COLOURS,
   MAX_AMBIENT_COUNT,
@@ -278,10 +280,13 @@ warming with uBands.y, particles in front with uBands.z. Keep each photo
 recognisable: light and move parts of it, never wash it out.
 
 AMBIENT (optional, in pack.json)
-The scene's own elements in the window around it, drawn faintly over the app
-when I choose the Ambient mode: birds for a mountain scene, petals for a
-flower, stars for a city. FluidEQ draws them from this description; none of it
-is code. Add them when the idea has something that belongs around it:
+The scene's own elements floating in the window around it, drawn faintly over
+the app when I choose the Ambient mode: birds for a mountain scene, petals for
+a flower, stars for a city. They float over FluidEQ itself - across its
+buttons, sliders, lists and words, not inside the scene's panel - so they are
+the one part of a scene that can get in the way of using the app, and they are
+kept faint for that reason. FluidEQ draws them from this description; none of
+it is code. Add them when the idea has something that belongs around it:
   "ambient": {
     "elements": [
       { "id": "gulls", "shape": "bird", "colours": ["#dfe9ff"], "count": 6,
@@ -313,16 +318,25 @@ is code. Add them when the idea has something that belongs around it:
   slow wind), wander (turns on a walk of its own), twinkle (stays put and
   breathes), fall, rise, sway (bobs where it stands).
   colours: 1 to ${MAX_AMBIENT_COLOURS} like #rrggbb, from the scene. count: 1 to ${MAX_AMBIENT_COUNT} each, ${MAX_AMBIENT_TOTAL}
-  in all. size: [smallest, largest] in pixels, ${MIN_AMBIENT_SIZE} to ${MAX_AMBIENT_SIZE}. opacity, speed, flap (wing
+  in all. size: [smallest, largest] in pixels, ${MIN_AMBIENT_SIZE} to ${MAX_AMBIENT_SIZE}. opacity: keep it
+  between ${AMBIENT_OPACITY_ADVISED[0]} and ${AMBIENT_OPACITY_ADVISED[1]} (see the last two rules below). speed, flap (wing
   beat, flutter or twinkle), turn (how much each turns and differs) and react:
   0 to 1. area: ${AMBIENT_AREAS.join(', ')}. music: ${AMBIENT_MUSIC.join(', ')}.
 - params: up to ${MAX_AMBIENT_PARAMS} sliders for these elements, which FluidEQ shows me.
   Each moves its targets - a field (${AMBIENT_FIELDS.join(', ')}) of an
   element - from its min to its max as the slider goes from 0 to 1. "value"
   is where it stands, 0 to 1; I tune it in FluidEQ, so keep it unless I ask.
-- They are the background, never the point. FluidEQ keeps them faint and out
-  of the scene's own panel; choose soft colours, modest counts and slow speeds
-  so they read as the room the music is playing in.
+- They are the background, never the point, and they are over everything I am
+  reading. Keep every element's opacity between ${AMBIENT_OPACITY_ADVISED[0]} and ${AMBIENT_OPACITY_ADVISED[1]}, with soft
+  colours, modest counts and slow speeds, so they read as the room the music
+  is playing in. FluidEQ never draws them stronger than ${Math.round(AMBIENT_CEILING * 100)}% over the window
+  whatever the number says, so a higher opacity makes nothing stronger: it
+  only spends the whole of that allowance on one element and leaves the rest
+  invisible.
+- If I ask for them heavier than that - a thick flock, a veil over the app,
+  something that has to be noticed - say in one line, before you write it,
+  that it will sit over FluidEQ's buttons and words and make them harder to
+  read, and what the quieter version would be. Then do whichever I choose.
 - ASK ME WHICH ONES, AND SUGGEST THEM YOURSELF. These fly around the whole
   app, not inside the scene, so they are mine to choose and I will not know
   they are possible unless you say so. Name the two or three that belong to

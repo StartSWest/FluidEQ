@@ -90,6 +90,25 @@ export type TAmbientField = (typeof AMBIENT_FIELDS)[number];
 
 export const MAX_AMBIENT_ELEMENTS = 4;
 export const MAX_AMBIENT_COUNT = 16;
+
+/**
+ * The most any element shows over the window, whatever its `opacity` asks
+ * for. Screened over the app (`SceneAmbient.scss`) this lifts a dark pane by
+ * a sixth at the very most — a shape seen from the corner of the eye, never
+ * one that covers a word. Applied in `ambientField.ts` and quoted to the
+ * member's AI in `aiPrompt.ts`, which is why it lives here: these elements
+ * float over FluidEQ's own buttons, sliders and text, and a scene that could
+ * darken them would make the app unusable while it plays.
+ */
+export const AMBIENT_CEILING = 0.42;
+
+/**
+ * What an element's own `opacity` is worth asking for, as the prompt puts it
+ * to the member's AI. Anything above the top of this is not stronger — the
+ * ceiling above holds it — it only spends the scene's whole allowance on one
+ * element, and anything under the bottom is invisible on a bright desktop.
+ */
+export const AMBIENT_OPACITY_ADVISED: readonly [number, number] = [0.2, 0.7];
 /** Across every element: past this, counts are brought down in proportion. */
 export const MAX_AMBIENT_TOTAL = 40;
 export const MIN_AMBIENT_SIZE = 4;

@@ -27,11 +27,14 @@ import { createFlagSetting } from '../utils/graphStorage';
  */
 
 /** Which cards fold, and where each one's state is kept. */
-export type TStudioFold = 'test' | 'performance' | 'settings' | 'ship';
+export type TStudioFold = 'test' | 'settings' | 'ship';
 
 const SETTINGS: Record<TStudioFold, ReturnType<typeof createFlagSetting>> = {
-  test: createFlagSetting('fluideq.studioFold.test', true),
-  performance: createFlagSetting('fluideq.studioFold.performance', true),
+  // A key of its own, because this card is no longer the one that was
+  // folded: it took in the performance rows, which were a card beside it, so
+  // a member who had folded the test signals away would have folded away
+  // settings they never put there. It opens once, then remembers again.
+  test: createFlagSetting('fluideq.studioFold.trying', true),
   settings: createFlagSetting('fluideq.studioFold.settings', true),
   ship: createFlagSetting('fluideq.studioFold.ship', true),
 };

@@ -21,7 +21,6 @@ import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
 import StudioShipLocked from './StudioShipLocked';
-import StudioPerformanceCard from './StudioPerformanceCard';
 import StudioTestCard from './StudioTestCard';
 import useStudioStageRatio from './useStudioStageRatio';
 import StudioFramingDialog from './StudioFramingDialog';
@@ -36,6 +35,7 @@ import useStudioPublish from './useStudioPublish';
 import useStudioSharing, { type ISharingNotice } from './useStudioSharing';
 import useStudioTint from './useStudioTint';
 import { DEFAULT_STUDIO_WAVE, type IStudioWave } from './studioWave';
+import { createStudioReadingSettler } from './studioReading';
 import { useStudioGridShown } from './studioPaper';
 import useStudioSize from './useStudioSize';
 import StudioStage, {
@@ -143,24 +143,25 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }, [serial, state.activeId]);
 
   // What the frames cost, under the cost line: the GPU's own time for a
-  // frame and the rate they are drawn at. Written to the element straight
-  // from the frame callback, and only when the rounded figures change — the
-  // rate to the nearest five, or the jitter between frames would rewrite it
-  // every frame for nobody.
+  // frame, the rate they are drawn at, and the size the controller has the
+  // scene at — what Automatic is doing, which nothing else on the stage
+  // says. Written to the element straight from the frame callback, never
+  // through React, and settled first (`studioReading.ts`) so the figures can
+  // be read instead of blurring.
   const readingRef = useRef<HTMLSpanElement>(null);
   const lastReading = useRef('');
+  const settler = useRef(createStudioReadingSettler());
   const onDrawn = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard, report) => {
       feed.current?.(frame, drawnScale, accent, heard, report);
-      const fps = String(Math.round(1000 / report.intervalMs / 5) * 5);
-      // The size the controller has the scene at, as a share of the stage:
-      // what Automatic is doing, which nothing else on the stage says.
-      const size = String(Math.round(report.scale * 100));
+      const settled = settler.current.frame(report);
+      const fps = String(settled.fps);
+      const size = String(settled.size);
       const reading =
-        report.costMs === undefined
+        settled.costMs === undefined
           ? t('studio.cost.readingRate', { fps, size })
           : t('studio.cost.reading', {
-              ms: report.costMs.toFixed(1),
+              ms: settled.costMs.toFixed(1),
               fps,
               size,
             });
@@ -450,7 +451,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             cost={cost}
             percent={Math.round(scale * 100)}
           />
-          <StudioPerformanceCard />
           <StudioSettings
             params={tuner.params}
             values={tuner.values}
