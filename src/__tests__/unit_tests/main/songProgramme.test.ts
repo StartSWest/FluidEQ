@@ -34,6 +34,7 @@ const snapshot = (
   canNext: true,
   canPrevious: true,
   canSeek: true,
+  playing: ['Spotify.exe'],
   ...fields,
 });
 

@@ -264,15 +264,17 @@ const useRemoteNowPlayingBroadcast = (
     }
     // The listener started something of its own and its one-player rule says
     // this must stop. Never a toggle: whatever is described here may already
-    // be paused, and a toggle would start it. The machine's own player is
-    // asked by name, as `useSystemMediaSource` asks it; a player of ours is
-    // stopped through the register, the way another of ours would stop it.
+    // be paused, and a toggle would start it. The machine's own programs are
+    // asked to pause — all of them, because the listener wants this machine
+    // quiet and the bar names only the one Windows listed first; a player of
+    // ours is stopped through the register, the way another of ours would
+    // stop it.
     if (!current.isPlaying) {
       return;
     }
     if (current.owner === 'system') {
       window.electron?.ipcRenderer
-        .sendSystemMediaCommand('pause')
+        .pauseOtherSystemPlayers()
         .catch(() => undefined);
       return;
     }

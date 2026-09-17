@@ -247,6 +247,7 @@ import {
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
 import {
+  pauseOtherSystemPlayers,
   sendSystemMediaCommand,
   stopWatchingSystemMedia,
   watchSystemMedia,
@@ -2957,6 +2958,32 @@ ipcMain.handle(
         ? positionMs
         : undefined,
     );
+  },
+);
+
+/**
+ * Quieten every program that is playing, sparing the one named.
+ *
+ * One player at a time, whoever the players are: two of somebody else's —
+ * Spotify and a Netflix tab — with the one that just started spared, or all
+ * of them when this app has taken the sound itself. The window decides,
+ * because whether the rule is on at all is its switch ("Plays in two
+ * places"); this only carries it out.
+ *
+ * A name is bounded here and never put inside a script: it is an app id that
+ * came from Windows, went to a window, and came back, and text from a window
+ * that reached a PowerShell script would be a window writing PowerShell.
+ */
+ipcMain.handle(
+  'system-media-pause-others',
+  async (_event, exceptApp: unknown) => {
+    if (
+      exceptApp !== undefined &&
+      (typeof exceptApp !== 'string' || exceptApp.length > 256)
+    ) {
+      return;
+    }
+    await pauseOtherSystemPlayers(exceptApp ?? '');
   },
 );
 

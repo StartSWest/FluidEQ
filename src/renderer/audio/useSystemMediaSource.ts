@@ -31,21 +31,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * keeps the bar on every page until it stops, and then the page's own player
  * has it back — the same thing a library track does when it is paused.
  *
- * ONE OF THEM AT A TIME, in both directions. This app is the equaliser
- * everything on the machine runs through, so a browser tab playing over a
- * library song is two things at once through one curve — the same fault as
- * two of this app's own players at once, and it reads the same way. Start
- * something here and the machine's player is asked to pause; start something
- * out there and ours stops.
+ * ONE OF THEM AT A TIME, IN EVERY DIRECTION AND WHOEVER THEY ARE. This app is
+ * the equaliser everything on the machine runs through, so a browser tab
+ * playing over a library song is two things at once through one curve — the
+ * same fault as two of this app's own players at once, and it reads the same
+ * way. Start something here and every program out there is asked to pause;
+ * start something out there and ours stops; and start a video over a playing
+ * album, neither of them ours, and the album stops for the video. That last
+ * one was missing for the life of the feature, because the rule was written
+ * as "ours against theirs" and asked only about the single session on the
+ * bar — which with two programs playing is as likely to be the one that was
+ * already going.
  *
  * The bar's play/pause button goes out as a media key rather than through the
  * session: the key is the one transport command that reaches every player on
  * Windows, including those that never registered a session, and it is already
  * how the titlebar's buttons work.
  *
- * The pause sent when one of our own players starts is the exception, and has
- * to be: a toggle would have started whatever was sitting there paused. That
- * one is asked of the session by name.
+ * Every pause this rule sends is a pause and never that key, and has to be: a
+ * toggle would have started whatever was sitting there paused, which is this
+ * app turning somebody's music on for them.
  */
 
 import { useEffect, useRef } from 'react';
@@ -75,6 +80,12 @@ const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
  * separates "somebody pressed play in a browser" from "the thing we just
  * paused has not stopped yet", and it needs no clock to do it.
  *
+ * ANY of the machine's programs starting, not the one on the bar. The bar
+ * shows whichever session Windows listed first among those playing, which
+ * with two of them is as likely to be the one that was already going: a
+ * Netflix tab started behind a playing Spotify changed nothing the bar's own
+ * session was doing, so a song of ours played straight through it.
+ *
  * The other half is the same rule from the other side, and it lives in the
  * hook: when a player of ours starts, the machine's player is asked to pause.
  * One of the two is always making the sound.
@@ -86,16 +97,47 @@ const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
  * player while it plays — see `useRemoteNowPlayingSource`.
  */
 export const shouldYieldToSystem = (
-  wasPlaying: boolean,
-  isPlaying: boolean,
+  somethingStarted: boolean,
   appOwner: TPlaybackOwner | undefined,
   isSinglePlayer: boolean,
   remotePlaying = false,
 ): boolean =>
   isSinglePlayer &&
-  isPlaying &&
-  !wasPlaying &&
+  somethingStarted &&
   (appOwner !== undefined || remotePlaying);
+
+/**
+ * The program that just started over another that was already playing, if
+ * that is what happened — the one that keeps the sound while the rest are
+ * asked to stop.
+ *
+ * The rule had a hole the size of the machine: it was always "ours against
+ * theirs", so a Netflix tab started over a playing Spotify was two programs
+ * at once through one curve and nothing stopped either. Both are somebody
+ * else's and neither is on this app's register, so the only thing that can
+ * separate them is which one just started.
+ *
+ * A TRANSITION, for the reason the rest of this rule is one: Windows
+ * republishes a player's state when nothing has happened, and a list read as
+ * a state would stop the album somebody is listening to because the app
+ * blinked.
+ *
+ * AND NOTHING WHEN EVERY PLAYER IS NEW TO US, which is what the first reading
+ * after this app opens looks like. Two programs found already playing is not
+ * somebody pressing play — nobody pressed anything, which of them is the
+ * newer is not knowable from here, and silencing one of them for opening an
+ * equaliser would be the app taking a decision it was never asked for.
+ */
+export const startedOverOthers = (
+  known: ReadonlySet<string>,
+  playing: readonly string[],
+): string | undefined => {
+  const started = playing.filter((app) => !known.has(app));
+  if (started.length === 0 || started.length === playing.length) {
+    return undefined;
+  }
+  return started[started.length - 1];
+};
 
 export const useSystemMediaSource = (): void => {
   const playingOwner = usePlaybackOwner();
@@ -107,6 +149,9 @@ export const useSystemMediaSource = (): void => {
    * and put it back several times a second.
    */
   const lastSnapshotRef = useRef<ISystemMediaSnapshot | undefined>(undefined);
+  /** Which of the machine's programs were playing at the last reading, so a
+   * start can be told from a state republished unchanged. */
+  const knownPlayingAppsRef = useRef<ReadonlySet<string>>(new Set());
   const playingOwnerRef = useRef<TPlaybackOwner | undefined>(undefined);
   playingOwnerRef.current = playingOwner;
 
@@ -121,12 +166,24 @@ export const useSystemMediaSource = (): void => {
     }
 
     const unsubscribe = bridge.onSystemMedia((snapshot) => {
-      const wasPlaying = lastSnapshotRef.current?.isPlaying === true;
       lastSnapshotRef.current = snapshot;
+      // Who is playing out there, and who of them has just started. Both
+      // questions are asked of the whole machine rather than of the one
+      // session on the bar — see `startedOverOthers`.
+      const playingApps = snapshot?.playing ?? [];
+      const known = knownPlayingAppsRef.current;
+      const started = playingApps.some((app) => !known.has(app));
+      const winner = startedOverOthers(known, playingApps);
+      knownPlayingAppsRef.current = new Set(playingApps);
+      // One player at a time between two programs that are both somebody
+      // else's. The one that just started keeps the sound and the rest are
+      // asked to stop, while the switch is on.
+      if (winner !== undefined && isSinglePlayerEnabled()) {
+        bridge.pauseOtherSystemPlayers(winner).catch(() => undefined);
+      }
       if (
         shouldYieldToSystem(
-          wasPlaying,
-          snapshot?.isPlaying === true,
+          started,
           playingOwnerRef.current,
           isSinglePlayerEnabled(),
           isTransportPlaying('remote'),
@@ -215,21 +272,26 @@ export const useSystemMediaSource = (): void => {
   /**
    * And the same rule from our side: what we start, we start alone.
    *
+   * EVERY program that is playing, not one of them. This used to pause the
+   * session on the bar, which is whichever Windows listed first: press play
+   * here with Spotify and a video both going and one of the two carried on
+   * over the song.
+   *
    * Sent on the change of owner rather than on every snapshot, so it is one
-   * command per press of play. A pause asked of the session by name and never
-   * the play/pause key — a toggle sent to something already paused would
-   * start it, which is this app turning somebody's music on for them.
+   * command per press of play. Pauses, never the play/pause key — a toggle
+   * sent to something already paused would start it, which is this app
+   * turning somebody's music on for them.
    */
   useEffect(() => {
     if (
       !isSinglePlayerEnabled() ||
       playingOwner === undefined ||
-      !lastSnapshotRef.current?.isPlaying
+      (lastSnapshotRef.current?.playing.length ?? 0) === 0
     ) {
       return;
     }
     window.electron?.ipcRenderer
-      .sendSystemMediaCommand('pause')
+      .pauseOtherSystemPlayers()
       .catch(() => undefined);
   }, [playingOwner]);
 };

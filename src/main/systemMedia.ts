@@ -114,6 +114,20 @@ export interface ISystemMediaSnapshot {
   canNext: boolean;
   canPrevious: boolean;
   canSeek: boolean;
+  /**
+   * Every OTHER program on the machine that is playing right now, by app id,
+   * this app's own left out.
+   *
+   * The bar shows one of them; this is the whole list, and it is here because
+   * one player at a time has to hold between two programs that are both
+   * somebody else's. Spotify playing and a Netflix tab started over it is two
+   * things at once through one curve — the same fault as two of this app's
+   * own players at once — and neither of them is a player this app could
+   * notice starting from the single session it used to be told about: the one
+   * it was told about is whichever Windows listed first, which is as likely
+   * to be the one that was already going.
+   */
+  playing: string[];
 }
 
 /**
@@ -167,6 +181,13 @@ while ($true) {
   try {
     $session = Select-OtherSession $manager
     if ($session) {
+      # Everything else that is playing, for the rule that stops one program
+      # when another starts. Read in the same pass as the description, or the
+      # two would be answers to different moments.
+      $playing = @(@($manager.GetSessions() | Where-Object {
+        $_.SourceAppUserModelId -ne $selfId -and
+        "$($_.GetPlaybackInfo().PlaybackStatus)" -eq 'Playing'
+      }) | ForEach-Object { [string]$_.SourceAppUserModelId })
       $info = $session.GetPlaybackInfo()
       $props = Await ($session.TryGetMediaPropertiesAsync()) $propsType
       $timeline = $session.GetTimelineProperties()
@@ -181,6 +202,7 @@ while ($true) {
         canNext = [bool]$controls.IsNextEnabled
         canPrevious = [bool]$controls.IsPreviousEnabled
         canSeek = [bool]$controls.IsPlaybackPositionEnabled
+        playing = $playing
       }
       $line = $payload | ConvertTo-Json -Compress
     }
@@ -193,7 +215,10 @@ while ($true) {
   $shape = $line
   if ($line -ne 'null') {
     $parsed = $line | ConvertFrom-Json
-    $shape = "$($parsed.app)|$($parsed.title)|$($parsed.artist)|$($parsed.isPlaying)|$([int]($parsed.positionMs / 1000))|$($parsed.durationMs)|$($parsed.canNext)$($parsed.canPrevious)$($parsed.canSeek)"
+    # The list of who is playing is part of the shape, or a second program
+    # starting behind the one on the bar would change nothing this loop
+    # prints, and the rule that stops it would never be told.
+    $shape = "$($parsed.app)|$($parsed.title)|$($parsed.artist)|$($parsed.isPlaying)|$([int]($parsed.positionMs / 1000))|$($parsed.durationMs)|$($parsed.canNext)$($parsed.canPrevious)$($parsed.canSeek)|$(@($parsed.playing) -join ',')"
   }
   if ($shape -ne $last) {
     $last = $shape
@@ -228,6 +253,20 @@ let child: ChildProcess | undefined;
  */
 let notify: ((snapshot: ISystemMediaSnapshot | undefined) => void) | undefined;
 let lastSnapshot: ISystemMediaSnapshot | undefined;
+
+/** The playing list as it survives PowerShell's JSON: a list, a bare string
+ * where there was one of them, or missing from an older watcher. */
+const playingApps = (value: unknown): string[] => {
+  if (typeof value === 'string') {
+    return value ? [value] : [];
+  }
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(
+    (entry): entry is string => typeof entry === 'string' && entry.length > 0,
+  );
+};
 
 /** Parse one line of the watcher's output. Anything unrecognised is nothing
  * playing, which is also what the script prints when a session throws. */
@@ -269,6 +308,12 @@ export const parseSystemMediaLine = (
       canNext: record.canNext === true,
       canPrevious: record.canPrevious === true,
       canSeek: record.canSeek === true,
+      // One app id comes back as a bare string rather than a list of one:
+      // PowerShell's own JSON does that to a single-element array, and a
+      // reader that only understood the list would go blind exactly when one
+      // program is playing — which is every ordinary moment before a second
+      // one starts.
+      playing: playingApps(record.playing),
     };
   } catch {
     return undefined;
@@ -434,6 +479,83 @@ ${commandScript}
     // Resolved either way. Windows answers a refused command with `false` and
     // a session that has gone with nothing at all, and neither is something
     // the window could show or act on.
+    runner.on('exit', () => resolve());
+    runner.on('error', () => resolve());
+  });
+};
+
+/**
+ * Quieten every program that is playing, sparing the one named — or all of
+ * them, when nothing is named.
+ *
+ * ONE PLAYER AT A TIME, WHOEVER THE PLAYERS ARE. The rule used to reach only
+ * as far as this app's own: start a song here and ONE of the machine's
+ * players was asked to stop, start something out there and ours stopped.
+ * Spotify playing while a Netflix tab starts is the same fault — two things
+ * at once through one curve — with neither of them ours, and nothing stopped
+ * either; and a song started here with two of them already playing stopped
+ * whichever one Windows happened to list first.
+ *
+ * One run for the whole round rather than one per program: each of these is a
+ * PowerShell process, and a machine with four players would otherwise pay
+ * four of them for one press of play.
+ *
+ * THE APP ID TRAVELS IN THE ENVIRONMENT, NEVER IN THE SCRIPT. It is Windows'
+ * own string, but it reaches here from the window, and a window that could
+ * put text inside this script would be a window writing PowerShell. Nothing
+ * quotes an environment variable wrong. An empty one spares nobody, which no
+ * real app id can be.
+ */
+export const pauseOtherSystemPlayers = async (
+  exceptApp: string,
+): Promise<void> => {
+  const script = `
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Runtime.WindowsRuntime | Out-Null
+$asTask = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+  $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and
+  $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1'
+})[0]
+function Await($op, $type) {
+  $task = $asTask.MakeGenericMethod($type).Invoke($null, @($op))
+  if (-not $task.Wait(4000)) { return $null }
+  $task.Result
+}
+$managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]
+$manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
+if (-not $manager) { exit 1 }
+$selfId = '${APP_ID}'
+$except = [string]$env:FLUIDEQ_MEDIA_EXCEPT
+foreach ($candidate in @($manager.GetSessions())) {
+  try {
+    $id = [string]$candidate.SourceAppUserModelId
+    if ($id -eq $selfId -or $id -eq $except) { continue }
+    if ("$($candidate.GetPlaybackInfo().PlaybackStatus)" -ne 'Playing') { continue }
+    Await ($candidate.TryPauseAsync()) ([bool]) | Out-Null
+  } catch {
+  }
+}
+`;
+
+  await new Promise<void>((resolve) => {
+    const runner = spawn(
+      POWERSHELL_PATH,
+      [
+        '-NoProfile',
+        '-NonInteractive',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        script,
+      ],
+      {
+        windowsHide: true,
+        env: { ...process.env, FLUIDEQ_MEDIA_EXCEPT: exceptApp },
+      },
+    );
+    // Same as every command here: a player that refuses, or one that has gone
+    // between the reading and the asking, is not something a window could act
+    // on.
     runner.on('exit', () => resolve());
     runner.on('error', () => resolve());
   });

@@ -70,6 +70,8 @@ describe('what the machine is playing', () => {
       canNext: false,
       canPrevious: false,
       canSeek: true,
+      // Nothing said about who else is playing is nobody else playing.
+      playing: [],
     });
   });
 
@@ -116,6 +118,7 @@ describe('what the machine is playing', () => {
       canNext: false,
       canPrevious: false,
       canSeek: false,
+      playing: [],
     });
   });
 
@@ -216,5 +219,34 @@ describe('watching across a reload', () => {
     child.emit('exit');
 
     expect(listener).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe('who else is playing', () => {
+  it('reads the list the watcher prints', () => {
+    expect(
+      parseSystemMediaLine(
+        '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":["Chrome","Spotify.exe"]}',
+      )?.playing,
+    ).toEqual(['Chrome', 'Spotify.exe']);
+  });
+
+  it('reads one of them, which PowerShell writes as a bare string', () => {
+    // Its own JSON collapses a list of one, and a reader that only took the
+    // list would go blind in every ordinary moment before a second program
+    // starts — which is exactly the reading the next one is compared against.
+    expect(
+      parseSystemMediaLine(
+        '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":"Chrome"}',
+      )?.playing,
+    ).toEqual(['Chrome']);
+  });
+
+  it('takes nothing believable as nobody', () => {
+    expect(
+      parseSystemMediaLine(
+        '{"app":"Chrome","title":"Song","isPlaying":true,"positionMs":0,"durationMs":0,"playing":[1,"",null,"Chrome"]}',
+      )?.playing,
+    ).toEqual(['Chrome']);
   });
 });

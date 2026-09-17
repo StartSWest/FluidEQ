@@ -254,13 +254,14 @@ const useRemoteNowPlayingSource = (
     }
     // Ours stops, the way it stops when a browser tab here starts — but never
     // the wire itself, or the pause would go to the computer that just
-    // pressed play and to the others twice. The machine's own player is asked
-    // by name because a toggle sent to something paused would start it, and
-    // every other sender is asked in so many words.
+    // pressed play and to the others twice. The machine's own programs are
+    // asked to pause, all of them and never with a toggle, which sent to
+    // something paused would start it. Every other sender is asked in so many
+    // words.
     stopAllPlayback('remote');
     if (isTransportPlaying('system')) {
       window.electron?.ipcRenderer
-        .sendSystemMediaCommand('pause')
+        .pauseOtherSystemPlayers()
         .catch(() => undefined);
     }
     playingIdsRef.current

@@ -27,35 +27,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * to stop each other, with no clock involved either way.
  */
 
-import { shouldYieldToSystem } from '../../../renderer/audio/useSystemMediaSource';
+import {
+  shouldYieldToSystem,
+  startedOverOthers,
+} from '../../../renderer/audio/useSystemMediaSource';
 
 describe('yielding to the machine’s own player', () => {
-  it('stops ours when something out there starts', () => {
-    expect(shouldYieldToSystem(false, true, 'library', true)).toBe(true);
+  it('stops ours when any program out there starts', () => {
+    expect(shouldYieldToSystem(true, 'library', true)).toBe(true);
   });
 
-  it('leaves ours alone while nothing out there is playing', () => {
-    expect(shouldYieldToSystem(false, false, 'library', true)).toBe(false);
+  it('leaves ours alone while nothing out there starts', () => {
+    expect(shouldYieldToSystem(false, 'library', true)).toBe(false);
   });
 
-  it('does not act twice on one start', () => {
-    // The watcher reports every change — a position moving, a queue's next
-    // track — and every one of those readings still says "playing". Only the
-    // first is somebody pressing play.
-    expect(shouldYieldToSystem(true, true, 'library', true)).toBe(false);
-  });
-
-  it('does not stop ours for the pause we just sent', () => {
-    // A player of ours starts, the machine's player is asked to pause, and
-    // for one reading it is still playing. Read as state, that says "outside
-    // is playing and we are playing" and stops the song that just started;
-    // read as a change, it says nothing happened.
-    expect(shouldYieldToSystem(true, true, 'karaoke', true)).toBe(false);
+  it('does not act on a reading where nothing started', () => {
+    // Two readings this covers, and both used to stop the song that had just
+    // started here: the watcher repeating a player's state when a position
+    // moved, and the one reading after we asked that player to pause where
+    // it has not stopped yet. Which programs are new is the whole question —
+    // see the hook, where the two readings are played out.
+    expect(shouldYieldToSystem(false, 'karaoke', true)).toBe(false);
   });
 
   it('has nothing to stop when this app is silent', () => {
     // The ordinary case: a browser starts and the bar simply shows it.
-    expect(shouldYieldToSystem(false, true, undefined, true)).toBe(false);
+    expect(shouldYieldToSystem(true, undefined, true)).toBe(false);
   });
 
   it('leaves both alone when the setting is off', () => {
@@ -63,6 +60,50 @@ describe('yielding to the machine’s own player', () => {
     // is somebody's deliberate arrangement, and stopping either is this app
     // breaking a setup it cannot see. The switch lives on the card where the
     // second output is chosen — see `singlePlayer`.
-    expect(shouldYieldToSystem(false, true, 'library', false)).toBe(false);
+    expect(shouldYieldToSystem(true, 'library', false)).toBe(false);
+  });
+});
+
+describe('one of the machine’s own programs at a time', () => {
+  const playing = (...apps: string[]) => new Set(apps);
+
+  it('is the one that started over what was already playing', () => {
+    // Spotify going, a Netflix tab clicked: the tab keeps the sound and
+    // Spotify is asked to stop. Neither of them is this app's, which is why
+    // nothing stopped either of them before.
+    expect(
+      startedOverOthers(playing('Spotify.exe'), ['Spotify.exe', 'Chrome']),
+    ).toBe('Chrome');
+  });
+
+  it('is nobody while the same programs keep playing', () => {
+    // Windows republishes a player's state when nothing has happened. Read as
+    // a state rather than a change, that stops the album somebody is
+    // listening to because the app blinked.
+    expect(
+      startedOverOthers(playing('Spotify.exe', 'Chrome'), [
+        'Spotify.exe',
+        'Chrome',
+      ]),
+    ).toBeUndefined();
+  });
+
+  it('is nobody when one program starts with nothing to stop', () => {
+    expect(startedOverOthers(playing(), ['Spotify.exe'])).toBeUndefined();
+  });
+
+  it('is nobody for what was already going when this app opened', () => {
+    // The first reading of the machine: two programs playing, nobody having
+    // pressed anything, and no way to tell which is the newer. Silencing one
+    // of them for opening an equaliser is a decision nobody asked for.
+    expect(
+      startedOverOthers(playing(), ['Spotify.exe', 'Chrome']),
+    ).toBeUndefined();
+  });
+
+  it('is nobody when a program stops', () => {
+    expect(
+      startedOverOthers(playing('Spotify.exe', 'Chrome'), ['Chrome']),
+    ).toBeUndefined();
   });
 });

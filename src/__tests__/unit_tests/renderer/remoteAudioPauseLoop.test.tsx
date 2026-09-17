@@ -156,6 +156,7 @@ describe('a sending computer announcing a press', () => {
 describe('a listening computer told of a press', () => {
   const sendRemoteAudioLanSignal = jest.fn();
   const sendSystemMediaCommand = jest.fn();
+  const pauseOtherSystemPlayers = jest.fn();
 
   const pausedPeers = () =>
     sendRemoteAudioLanSignal.mock.calls
@@ -165,11 +166,16 @@ describe('a listening computer told of a press', () => {
   beforeEach(() => {
     sendRemoteAudioLanSignal.mockReset().mockResolvedValue(undefined);
     sendSystemMediaCommand.mockReset().mockResolvedValue(undefined);
+    pauseOtherSystemPlayers.mockReset().mockResolvedValue(undefined);
     resetTransportSource();
     resetPlaybackOwner();
     Object.assign(window, {
       electron: {
-        ipcRenderer: { sendRemoteAudioLanSignal, sendSystemMediaCommand },
+        ipcRenderer: {
+          sendRemoteAudioLanSignal,
+          sendSystemMediaCommand,
+          pauseOtherSystemPlayers,
+        },
       },
     });
   });

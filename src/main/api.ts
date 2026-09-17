@@ -355,6 +355,26 @@ const sendSystemMediaCommand = (
     positionMs,
   ) as Promise<void>;
 
+/**
+ * Quieten every program playing on this machine, sparing the one named.
+ *
+ * One player at a time, whoever the players are. With a name it is two
+ * programs that are both somebody else's — a Netflix tab started over a
+ * Spotify album — and the one that just started is spared. With no name it is
+ * this app taking the sound: a song started here, or a computer sending over
+ * the LAN link, and everything on this machine gets out of the way.
+ *
+ * This app's own players are never among them: they are stopped through the
+ * register, which knows how, and Windows would only be asked about a session
+ * they might not even have.
+ *
+ * Sent only while the "one player at a time" switch is on, and for another
+ * program only when it has just gone from silent to playing — one that was
+ * already playing is not somebody pressing play.
+ */
+const pauseOtherSystemPlayers = (exceptApp?: string) =>
+  ipcRenderer.invoke('system-media-pause-others', exceptApp) as Promise<void>;
+
 /** Whatever the machine is playing now, or nothing. */
 const onSystemMedia = (
   listener: (snapshot: ISystemMediaSnapshot | undefined) => void,
@@ -1375,6 +1395,7 @@ export default {
     onTaskbarTransport,
     watchSystemMedia,
     sendSystemMediaCommand,
+    pauseOtherSystemPlayers,
     onSystemMedia,
     getPathForFile,
     saveKaraokeSession,
