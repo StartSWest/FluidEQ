@@ -8,7 +8,6 @@ import {
 } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import { createFlashGuard } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
 import { createWarmupLadder } from '../graph/sceneWarmup';
@@ -72,8 +71,10 @@ interface IStudioStageProps {
 
 /**
  * The Studio's live stage: the member's scene, on their music, through the
- * same runner the graph uses — the warm-up ladder and the brightness limiter
- * included, because this is where a scene nobody has watched is watched first.
+ * same runner the graph uses, with the warm-up ladder — a scene nobody has
+ * watched may be heavy enough to reset a display driver — and WITHOUT the
+ * brightness limiter, because this is the watching, and what the author sees
+ * has to be the scene itself (see the source below).
  *
  * It holds the live capture open while it is on screen, as the graph does:
  * the Plus tab is a whole view of its own, and a stage that listened to
@@ -192,7 +193,18 @@ export default function StudioStage({
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
       createLadder: createWarmupLadder,
-      createGuard: createFlashGuard,
+      // No brightness limiter here, unlike every surface that shows somebody
+      // else's scene. It exists because a member's scene reaches other people
+      // without anyone having watched it first, and this stage IS that
+      // watching: the author is at the machine, looking at their own work,
+      // and what they see has to be what the scene draws. Its remedy is to
+      // blend the last picture shown into the new one, which on a scene
+      // moving fast paints the previous frame's detail over this one — a gem
+      // with two sets of facets on it at once, reported here as a ghost and
+      // measured at a tenth of the picture wrong. Judging a scene through
+      // that is judging the wrong picture, and a scene slowed down to escape
+      // it is slowed for everyone. The graph, the desktop and the gallery's
+      // previews all keep it for a member's scene.
     }),
     [identity, serial],
   );
