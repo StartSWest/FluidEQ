@@ -34,6 +34,8 @@ export interface ISceneFrame {
    * rather than a moment.
    */
   musicAccent: readonly [number, number];
+  /** The flywheel the music winds: turns (inside one), and turns a second. */
+  musicRun: readonly [number, number];
   accent: readonly [number, number, number];
   fade: number;
   spectrum: Uint8Array;
@@ -170,6 +172,7 @@ export const compileScene = async (
     level: location('uLevel'),
     beat: location('uBeat'),
     musicAccent: location('uMusicAccent'),
+    musicRun: location('uMusicRun'),
     bands: location('uBands'),
     accent: location('uAccent'),
     fade: location('uSceneFade'),
@@ -208,6 +211,9 @@ export const compileScene = async (
             frame.musicAccent[0],
             frame.musicAccent[1],
           );
+        }
+        if (uniforms.musicRun) {
+          gl.uniform2f(uniforms.musicRun, frame.musicRun[0], frame.musicRun[1]);
         }
 
         gl.activeTexture(gl.TEXTURE0);

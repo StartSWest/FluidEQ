@@ -8,6 +8,7 @@ const frame = (timeSeconds: number, deltaMs: number = 10): ISceneFrame => ({
   beat: 1,
   bands: [0.2, 0.4, 0.6],
   musicAccent: [0, 0],
+  musicRun: [0, 0],
   accent: [0.1, 0.3, 0.5],
   fade: 0.8,
   spectrumRect: [0, 0, 1, 1],

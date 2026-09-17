@@ -19,6 +19,7 @@ const live = (seconds: number): ISceneFrame => ({
   beat: 0.2,
   bands: [0.5, 0.4, 0.3],
   musicAccent: [0, 0],
+  musicRun: [0, 0],
   accent: [0, 0.9, 0.8],
   fade: 1,
   spectrum: new Uint8Array(512).fill(99),
@@ -45,6 +46,7 @@ describe("the Studio's test signals", () => {
       beat: 0,
       bands: [0, 0, 0],
       musicAccent: [0, 0],
+      musicRun: [0, 0],
       timeSeconds: 3,
       params: { glow: 0.4 },
     });
