@@ -1,10 +1,9 @@
-import type { ReactNode, RefObject } from 'react';
+import { useId, type ReactNode, type RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import ScenePerformanceMenu from '../graph/ScenePerformanceMenu';
 import { useTranslation } from '../utils/I18nContext';
 import StudioCardGroup from './StudioCardGroup';
-import StudioFoldCard from './StudioFoldCard';
 import type { TStudioSize } from './StudioStage';
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
 import { SIGNAL_ICONS, SIZE_ICONS } from './studioTestIcons';
@@ -82,27 +81,24 @@ export default function StudioTestCard({
   settings,
 }: IStudioTestCardProps) {
   const { t } = useTranslation();
+  const titleId = useId();
   const signalName = (entry: TStudioSignal) =>
     t(`studio.signal.${entry}` as TranslationKey);
   const sizeName = (entry: TStudioSize) =>
     t(`studio.size.${entry}` as TranslationKey);
   return (
-    <StudioFoldCard
-      fold="test"
-      title={t('studio.test.title')}
-      className="studio-test"
-      // How the scene is keeping up never folds away: it is the one live
-      // reading on this card, and it is why somebody looks at it at all.
-      aside={
-        cost && (
-          <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
-            <span className="studio-cost__dot" aria-hidden="true" />
-            {t(cost, { percent })}
-            <span className="studio-cost__reading" ref={readingRef} />
-          </span>
-        )
-      }
+    // A card that does not fold, holding four groups that do. It folded as a
+    // whole while it was one list of controls; with the groups inside taking
+    // themselves away, a fold around all of them is a second way to do the
+    // same thing — Ivan: "since we have more collapsibles inside, let's not
+    // put that one either, the root one no".
+    <section
+      className={`studio-card studio-test${idle ? ' is-idle' : ''}`}
+      aria-labelledby={titleId}
     >
+      <span className="studio-card__eyebrow" id={titleId}>
+        {t('studio.test.title')}
+      </span>
       <StudioCardGroup group="own" title={t(OWN_GROUP_TITLE.studio)}>
         <span className="studio-card__eyebrow">
           {t('studio.signals.title')}
@@ -192,6 +188,15 @@ export default function StudioTestCard({
           <ScenePerformanceMenu />
         </div>
       </StudioCardGroup>
-    </StudioFoldCard>
+      {/* Under the groups, never inside one: how the scene is keeping up is
+          the card's one live reading, and the reason somebody looks at it. */}
+      {cost && (
+        <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
+          <span className="studio-cost__dot" aria-hidden="true" />
+          {t(cost, { percent })}
+          <span className="studio-cost__reading" ref={readingRef} />
+        </span>
+      )}
+    </section>
   );
 }

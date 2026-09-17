@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type {
   IMemberSceneProblem,
@@ -11,7 +11,6 @@ import PaneResizer from '../components/PaneResizer';
 import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
 import StudioCode, { problemLinesOf } from './StudioCode';
-import StudioFoldCard from './StudioFoldCard';
 import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
@@ -141,6 +140,9 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setStageProblem(undefined);
     setNotice(undefined);
   }, [serial, state.activeId]);
+
+  /** Names the card of actions at the foot of the column, for its region. */
+  const shipTitleId = useId();
 
   // What the frames cost, under the cost line: the GPU's own time for a
   // frame, the rate they are drawn at, and the size the controller has the
@@ -469,13 +471,19 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               />
             }
           />
-          <StudioFoldCard
-            fold="ship"
-            title={t('studio.ship.title')}
-            className="studio-ship-card"
+          {/* Pinned to the foot of the column and never folded: these are
+              the actions a scene ends at, and one of the two folds in the
+              column was a way of hiding them. What folds is a group of
+              settings inside the card above (`StudioCardGroup.tsx`). */}
+          <section
+            className="studio-card studio-ship-card"
+            aria-labelledby={shipTitleId}
           >
+            <span className="studio-card__eyebrow" id={shipTitleId}>
+              {t('studio.ship.title')}
+            </span>
             {shipCard}
-          </StudioFoldCard>
+          </section>
         </div>
       </div>
 

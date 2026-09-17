@@ -5,26 +5,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Studio's side column folds away everything but its meter, and what it
- * holds is arranged as the graph's View menu arranges the same settings.
+ * The Studio's card folds a group at a time, and holds them in the order the
+ * graph's View menu holds the same settings in.
  *
- * The cards at once do not fit on a laptop: reaching the response sliders
- * took the scene being tuned off the top of the screen. What it hears now
- * stays open whatever happens — a meter nobody can see is a meter that was
- * not consulted — and the rest remember how they were left.
+ * Everything a scene is tried and tuned with is one card, which is taller
+ * than the column it stands in: reaching the response sliders took the scene
+ * being tuned off the top of the screen. A group is the useful thing to put
+ * away — somebody tuning the response wants the sliders and nothing else —
+ * and each remembers how it was left. Nothing else in the column folds: a
+ * fold around all four groups was a second way to do the same thing, and the
+ * card of actions at the foot is the one thing that must never be hidden.
  *
  * The fold is CSS — the contents stay in the page, because the height
- * transition needs them there — so what a test can hold is that a folded card
- * says so, that Tab and a screen reader are kept out of it, that the reading
- * on the test card survives its own fold, and that each card remembers how it
- * was left.
+ * transition needs them there — so what a test can hold is that a folded
+ * group says so, that Tab and a screen reader are kept out of it, that the
+ * live reading survives a fold, and that each group remembers how it was
+ * left.
  */
 
 import '@testing-library/jest-dom';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudioTestCard from '../../../renderer/studio/StudioTestCard';
-import StudioFoldCard from '../../../renderer/studio/StudioFoldCard';
 import { DEFAULT_STUDIO_WAVE } from '../../../renderer/studio/studioWave';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -66,9 +68,29 @@ beforeEach(() => {
   window.localStorage.clear();
 });
 
-it('folds a card by its own title, and folds its contents away with it', async () => {
+// First in the file on purpose: a fold is remembered in the module as well
+// as in storage, so a group folded by any test below stays folded for the
+// rest of the file whatever storage says. This is the one case that needs
+// every group as a fresh window finds it.
+it('opens every group the first time, so nothing has to be found', () => {
   testCard();
-  const head = screen.getByRole('button', { name: /studio\.test\.title/ });
+  ['studioOnly', 'picture', 'visualizer', 'drawing'].forEach((group) => {
+    expect(
+      screen.getByRole('button', { name: `settings.group.${group}` }),
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+  expect(
+    within(
+      screen.getByRole('region', { name: 'settings.group.drawing' }),
+    ).getByRole('group', { name: 'studio.performance.title' }),
+  ).toBeInTheDocument();
+});
+
+it('folds a group by its own name, and folds its rows away with it', async () => {
+  testCard();
+  const head = screen.getByRole('button', {
+    name: 'settings.group.studioOnly',
+  });
   expect(head).toHaveAttribute('aria-expanded', 'true');
   expect(
     screen.getByRole('group', { name: 'studio.signals.title' }),
@@ -81,6 +103,19 @@ it('folds a card by its own title, and folds its contents away with it', async (
   // Folded, its contents are still in the page for the height transition to
   // work on — but nothing can tab into them or read them out.
   expect(foldedAway(head)).toBe(true);
+});
+
+it('gives the card no fold of its own, now that every group has one', () => {
+  testCard();
+  // Four groups that put themselves away, and no fifth control that puts all
+  // four away at once — Ivan, once the groups could fold: "the root one no".
+  expect(
+    screen.queryByRole('button', { name: /studio\.test\.title/ }),
+  ).toBeNull();
+  expect(screen.getByText('studio.test.title')).toBeInTheDocument();
+  expect(
+    screen.getAllByRole('button', { name: /^settings\.group\./ }),
+  ).toHaveLength(4);
 });
 
 it('carries how the scene is drawn on the same card as what it is played with', () => {
@@ -98,17 +133,13 @@ it('carries how the scene is drawn on the same card as what it is played with', 
 
 it('folds one group away without touching the rest', async () => {
   testCard();
-  const card = screen.getByRole('button', { name: /studio\.test\.title/ });
-  const cardWas = card.getAttribute('aria-expanded');
   const head = screen.getByRole('button', { name: 'settings.group.picture' });
   expect(head).toHaveAttribute('aria-expanded', 'true');
   await userEvent.click(head);
   expect(head).toHaveAttribute('aria-expanded', 'false');
   expect(foldedAway(head)).toBe(true);
-  // The card itself, and every other group, stay exactly as they were: the
-  // card holds all four groups, so folding it away is not the way to reach
-  // past one of them.
-  expect(card.getAttribute('aria-expanded')).toBe(cardWas);
+  // Every other group stays exactly as it was: a group is the useful size to
+  // put away, which is why the card around them has no fold of its own.
   expect(
     foldedAway(
       screen.getByRole('button', { name: 'settings.group.visualizer' }),
@@ -134,59 +165,40 @@ it('reads down in the order both surfaces share', () => {
   expect(screen.getByText('the settings of the scene')).toBeInTheDocument();
 });
 
-it('keeps how the scene is running on screen while the card is folded', async () => {
+it('keeps how the scene is running on screen while a group is folded', async () => {
   testCard();
   await userEvent.click(
-    screen.getByRole('button', { name: /studio\.test\.title/ }),
+    screen.getByRole('button', { name: 'settings.group.drawing' }),
   );
-  // The one live reading on the card: folding the controls is not a reason to
-  // lose it.
+  // The one live reading on the card, under every group: putting the rows it
+  // describes away is not a reason to lose it.
   expect(screen.getByText('studio.cost.full:100')).toBeVisible();
 });
 
-it('remembers each card on its own, across a fresh page', async () => {
-  const { unmount } = render(
-    <>
-      <StudioFoldCard fold="test" title="Settings">
-        <p>the sliders</p>
-      </StudioFoldCard>
-      <StudioFoldCard fold="ship" title="Ready">
-        <p>the actions</p>
-      </StudioFoldCard>
-    </>,
+it('remembers each group on its own, across a fresh page', async () => {
+  const { unmount } = testCard();
+  const otherWas = foldedAway(
+    screen.getByRole('button', { name: 'settings.group.drawing' }),
   );
-  await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
-  expect(foldedAway(screen.getByRole('button', { name: 'Settings' }))).toBe(
-    true,
+  await userEvent.click(
+    screen.getByRole('button', { name: 'settings.group.visualizer' }),
   );
-  expect(foldedAway(screen.getByRole('button', { name: 'Ready' }))).toBe(false);
+  expect(
+    foldedAway(
+      screen.getByRole('button', { name: 'settings.group.visualizer' }),
+    ),
+  ).toBe(true);
+  // Folding one says nothing about any other.
+  expect(
+    foldedAway(screen.getByRole('button', { name: 'settings.group.drawing' })),
+  ).toBe(otherWas);
   unmount();
 
-  render(
-    <StudioFoldCard fold="test" title="Settings">
-      <p>the sliders</p>
-    </StudioFoldCard>,
-  );
-  expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
-});
-
-it('opens every card the first time, so nothing has to be found', () => {
-  render(
-    // A fold nothing above has closed: the setting is remembered in the
-    // module as well as in storage, so a card folded by an earlier test is
-    // folded for the rest of the file whatever storage says.
-    <StudioFoldCard fold="ship" title="Trying it">
-      <p>what it plays</p>
-    </StudioFoldCard>,
-  );
-  const card = screen.getByRole('button', { name: 'Trying it' });
-  expect(card).toHaveAttribute('aria-expanded', 'true');
+  testCard();
   expect(
-    within(screen.getByRole('region', { name: 'Trying it' })).getByText(
-      'what it plays',
-    ),
-  ).toBeInTheDocument();
+    screen.getByRole('button', { name: 'settings.group.visualizer' }),
+  ).toHaveAttribute('aria-expanded', 'false');
+  expect(
+    foldedAway(screen.getByRole('button', { name: 'settings.group.drawing' })),
+  ).toBe(otherWas);
 });
