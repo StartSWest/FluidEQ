@@ -358,7 +358,17 @@ it is code. Add them when the idea has something that belongs around it:
     ]
   }
 - elements: up to ${MAX_AMBIENT_ELEMENTS}. id: a-z, 0-9 and _, starting with a letter.
-  shape: ${AMBIENT_SHAPES.join(', ')}. For path, add "path": an outline
+  shape: ${AMBIENT_SHAPES.join(', ')}.
+  THE NAMED ONES ARE SHORTCUTS, NOT THE CHOICE. They are the handful that
+  come up often, and picking from them because they are written down is how
+  every scene ends up with the same stars and sparks. Start from what my idea
+  actually has flying, falling or drifting around it - a kite, a paper plane,
+  a koi, a moth, a music note, an ember, a bat, a jellyfish, a snowflake with
+  its own arms, a leaf from THIS tree - and only then see whether one of the
+  names above happens to be it. If none is, "path" draws whatever you like
+  and "picture" flies the scene's own artwork; both are below, and both are
+  the normal answer rather than the advanced one.
+  For path, add "path": an outline
   in a box from -1 to 1, only the commands M L H V C S Q T Z and numbers from
   -2 to 2, at most ${MAX_AMBIENT_PATH_LENGTH} characters.
   For picture, the element is drawn from artwork.webp itself - the scene's
@@ -414,9 +424,12 @@ it is code. Add them when the idea has something that belongs around it:
   they are possible unless you say so. Name the two or three that belong to
   my idea and ask me in one line which I want - "gulls, sea spray or a slow
   drift of cloud?" for a coast, lanterns or moths for a night garden, sparks
-  for a fire. Do not wait for the answer: put your own suggestion in now, and
-  change it when I answer. Skip the question only if my idea already said
-  which, and leave "ambient" out altogether if I say none.
+  for a fire, koi or dragonflies for a pond, ash and cinders for a volcano,
+  paper planes for a desk. Name the things MY scene has, in my own words, not
+  the shapes on the list: two scenes of different worlds should never be
+  offered the same three. Do not wait for the answer: put your own suggestion
+  in now, and change it when I answer. Skip the question only if my idea
+  already said which, and leave "ambient" out altogether if I say none.
 
 MY IDEA:`;
 
