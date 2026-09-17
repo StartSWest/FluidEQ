@@ -534,6 +534,26 @@ $studio-scrollbar: 8px;
       grid-column: 1 / -1;
     }
   }
+
+  // "When it's ready" stays at the foot of the column, whatever is above it.
+  //
+  // Everything a scene is tried and tuned with is one card now, and open it
+  // stands taller than the column: the actions that take a finished scene
+  // out of the Studio — to the looks, the gallery, a file — ended up
+  // seventeen hundred pixels down a scroller, which is a set of actions
+  // nobody can find. Pinned, they are where they always were, last, and
+  // always in reach; everything else scrolls behind them. The bleed the
+  // pane scrolls under is why the offset is not zero: at zero the card
+  // stopped a few pixels short of the foot and the rows slid into the gap.
+  .studio-ship-card {
+    position: sticky;
+    bottom: -$studio-pane-bleed;
+    z-index: 1;
+    // The card brings its own face; this is what separates it from the rows
+    // passing under it, so the pinning reads as depth rather than as a
+    // drawing mistake.
+    box-shadow: 0 -12px 20px -6px rgba($black, 0.45);
+  }
 }
 
 .studio-bench__maker {
