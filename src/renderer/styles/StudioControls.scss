@@ -204,9 +204,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Under the saved line and quieter than it: where Reset goes is worth knowing
 // before it is pressed, but it is not news the way a save is.
+// Under the saved line, and no louder than it: where Reset goes is worth
+// knowing before it is pressed, but it is not news the way a save is.
+//
+// `$text-dim` and not `$text-faint`: faint is the third step of the scale and
+// dim the fourth, so asking for "faint" made this the brightest of the three
+// small lines in the card instead of the quietest — louder than the saved
+// line above it and louder than the lead under every group title, which are
+// both dim. Measured in the window: it read #bfd3e3 against their 38% white.
 .studio-settings__resets {
   margin-top: -4px;
-  color: $text-faint;
+  color: $text-dim;
   font-size: $text-micro;
   line-height: 1.45;
 }
