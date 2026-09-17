@@ -141,6 +141,7 @@ const studio = {
   'studio.publish.category': 'Categories',
   'studio.publish.categoryHint': 'Up to two. Its card shows the first.',
   'studio.publish.pickCategory': 'Choose a category first',
+  'studio.publish.needNote': 'Say what is new in this version first',
   'studio.publish.point1':
     'Anyone signed in can see it in Visualizers. Plus members can play it, add it to their looks and like it.',
   'studio.publish.point2': 'Each like earns you points on the leaderboard.',

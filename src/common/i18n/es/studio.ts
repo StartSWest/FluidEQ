@@ -134,6 +134,7 @@ const studio = {
   'studio.publish.category': 'Categorías',
   'studio.publish.categoryHint': 'Hasta dos. Su tarjeta muestra la primera.',
   'studio.publish.pickCategory': 'Elige primero una categoría',
+  'studio.publish.needNote': 'Di primero qué hay de nuevo en esta versión',
   'studio.publish.point1':
     'Cualquiera con sesión iniciada la verá en Visualizadores. Los miembros Plus podrán reproducirla, añadirla a sus estilos y darle me gusta.',
   'studio.publish.point2': 'Cada me gusta te da puntos en la clasificación.',

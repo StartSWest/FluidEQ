@@ -22,6 +22,7 @@ import {
   MIN_AMBIENT_SIZE,
 } from 'common/sceneAmbient';
 import { SCENE_CONTRACT_VERSION } from 'common/sceneUniformContract';
+import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 
 /**
@@ -104,11 +105,18 @@ pack.json:
   "params": []
 }
 - id: 2-48 characters, a-z, 0-9 and dashes, starting with a letter.
-- version: raise it by one every time you change the scene. When you change a
-  scene that already existed, also give me one line of at most 140
-  characters saying what changed, as a listener would notice it ("the peaks
-  no longer get cut on wide panels"): FluidEQ shows it as the version's
-  "What's new" when I publish. If you reply with the files, put it after them.
+- version: raise it by one every time you change the scene. Every time you
+  change a scene that already existed, WRITE ME THE LINE THAT GOES WITH IT.
+  One line, at most ${MAX_VERSION_NOTE} characters, saying what changed as a listener
+  would notice it - "the peaks no longer get cut on wide panels", not "fixed
+  the uv clamp". FluidEQ asks me for that line before it will publish an
+  update, and by then I have forgotten what you changed; you have not.
+  Put it in studio-notes.json beside the scene, as "whatsNew", and change
+  NOTHING else in that file - it also holds my description and the prompt,
+  and rewriting the whole file loses them. If the file is not there yet,
+  make it with just that one key. FluidEQ fills the "What's new" box with
+  it, for me to edit or replace. If you reply with the files instead of
+  writing them, put the line after them.
 - names: English required; add es, pt, fr, de, it, ru, zh, ja, hi if you can.
   At most 40 characters each.
 - swatch: 2 to 4 colours that represent the scene.

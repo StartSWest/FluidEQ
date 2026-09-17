@@ -78,7 +78,10 @@ export default function StudioPublishDialog({
     ),
   );
   const [category, category2] = categories;
-  const [note, setNote] = useState('');
+  // Opens on the line the member's AI wrote about its own change, when there
+  // is one: the assistant that made the change remembers it and the member,
+  // three days later, does not. Theirs to edit or replace.
+  const [note, setNote] = useState(draft.suggestedNote ?? '');
   const noteId = useId();
   const pick = (entry: TPlusCategory) =>
     setCategories((current) => {
@@ -91,9 +94,20 @@ export default function StudioPublishDialog({
   useModalKeys(surfaceRef, firstRef, { busy: running, onCancel: cancel });
 
   const update = draft.published !== undefined;
+  // A new version people already have goes out with a line saying what
+  // changed, always: the update notice and the versions page are built around
+  // it, and without one a listener is asked to take a new version on trust.
+  // A first publication has nothing to be new against, so it is not asked.
+  const needsNote = update && note.trim().length === 0;
   let go = update ? t('studio.publish.goUpdate') : t('studio.publish.go');
   if (!draft.agreed) {
     go = t('studio.publish.agree');
+  }
+  let stopped: string | undefined;
+  if (!category) {
+    stopped = t('studio.publish.pickCategory');
+  } else if (needsNote) {
+    stopped = t('studio.publish.needNote');
   }
 
   return createPortal(
@@ -207,6 +221,8 @@ export default function StudioPublishDialog({
                 rows={2}
                 maxLength={MAX_VERSION_NOTE}
                 disabled={running}
+                required
+                aria-required="true"
                 placeholder={t('studio.publish.notePlaceholder')}
                 onChange={(event) =>
                   // One line: what a card and a notice have room for.
@@ -253,10 +269,10 @@ export default function StudioPublishDialog({
             type="button"
             className={`button small${running ? ' is-running' : ''}`}
             aria-busy={running}
-            disabled={!category}
-            title={category ? undefined : t('studio.publish.pickCategory')}
+            disabled={!category || needsNote}
+            title={stopped}
             onClick={() => {
-              if (category && !running) {
+              if (category && !needsNote && !running) {
                 onPublish(category, category2, update ? note : undefined);
               }
             }}

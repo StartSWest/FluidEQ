@@ -134,6 +134,7 @@ const studio = {
   'studio.publish.category': 'Kategorien',
   'studio.publish.categoryHint': 'Bis zu zwei. Die Karte zeigt die erste.',
   'studio.publish.pickCategory': 'Wählen Sie zuerst eine Kategorie',
+  'studio.publish.needNote': 'Sagen Sie zuerst, was in dieser Version neu ist',
   'studio.publish.point1':
     'Alle Angemeldeten sehen sie unter „Visualizer“. Plus-Mitglieder können sie abspielen, zu ihren Darstellungen hinzufügen und liken.',
   'studio.publish.point2': 'Jedes Like bringt Ihnen Punkte in der Rangliste.',

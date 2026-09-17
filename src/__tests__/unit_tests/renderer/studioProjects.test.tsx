@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IStudioState } from '../../../main/ipc/memberScenes';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
@@ -411,8 +411,63 @@ describe('the publish dialog', () => {
     expect(
       screen.getByRole('button', { name: 'plus.category.cities' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(
-      screen.getByRole('button', { name: 'studio.publish.agree' }),
-    ).toBeEnabled();
+    // A new version of a scene people already have goes out with a line
+    // saying what changed, always: the update notice and the versions page
+    // are built around it, and without one a listener is asked to take a new
+    // version on trust. Both categories are already chosen above, so the
+    // note is the only thing holding the button.
+    const go = screen.getByRole('button', { name: 'studio.publish.agree' });
+    expect(go).toBeDisabled();
+    expect(go).toHaveAttribute('title', 'studio.publish.needNote');
+    fireEvent.change(screen.getByLabelText('studio.publish.note'), {
+      target: { value: 'the peaks no longer get cut on wide panels' },
+    });
+    expect(go).toBeEnabled();
+  });
+
+  // The line the member's AI wrote about its own change, offered as the note.
+  // Nobody remembers what changed three days later; the assistant that
+  // changed it does, and it writes the line beside the scene.
+  it('opens the note on what the AI wrote, and publishes with it', () => {
+    const onPublish = jest.fn();
+    render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({
+          suggestedNote: 'the rain falls behind the signs now',
+          published: {
+            sceneId: 'neon-city',
+            version: 2,
+            category: 'cities',
+            names: { en: 'Neon City' },
+            swatch: ['#050a1a', '#00e5cf'],
+            likes: 1,
+            adds: 1,
+            publishedAt: '2026-09-01T00:00:00Z',
+            updatedAt: '2026-09-01T00:00:00Z',
+            blocked: false,
+          },
+        })}
+        running={false}
+        onPublish={onPublish}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByLabelText('studio.publish.note')).toHaveValue(
+      'the rain falls behind the signs now',
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'studio.publish.goUpdate' }),
+    );
+    expect(onPublish).toHaveBeenCalledWith(
+      'cities',
+      undefined,
+      'the rain falls behind the signs now',
+    );
   });
 });

@@ -131,6 +131,7 @@ const studio = {
   'studio.publish.category': 'Категории',
   'studio.publish.categoryHint': 'Не больше двух. На карточке видна первая.',
   'studio.publish.pickCategory': 'Сначала выберите категорию',
+  'studio.publish.needNote': 'Сначала напишите, что нового в этой версии',
   'studio.publish.point1':
     'Её увидит в «Визуализаторах» любой, кто вошёл в FluidEQ. Участники Plus смогут запускать её, добавлять в свои оформления и лайкать.',
   'studio.publish.point2': 'Каждый лайк приносит вам очки в таблице лидеров.',

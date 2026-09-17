@@ -59,6 +59,12 @@ export interface IPublishDraft {
   chosen: number;
   /** This scene as it is already published, when it is. */
   published?: IPublishedScene;
+  /**
+   * What the member's AI wrote about its own change, read from the project as
+   * the dialog opens so it is the line for THIS version rather than one left
+   * over in the field from the last publication.
+   */
+  suggestedNote?: string;
   /** Whether the Plus terms this app carries were agreed on this computer. */
   agreed: boolean;
   /** The last capture could not be drawn. */
@@ -197,8 +203,15 @@ export default function useStudioPublish(
     const still = renderSceneStill(pack).then((blob) =>
       blob ? readStill(blob) : undefined,
     );
-    Promise.all([still, published, studioTermsAgreed()])
-      .then(([picture, alreadyPublished, agreed]) => {
+    const projectId = view.state.activeId;
+    const suggested = projectId
+      ? (window.electron?.ipcRenderer
+          ?.readStudioNotes?.(projectId)
+          .then((notes) => notes?.whatsNew)
+          .catch(() => undefined) ?? Promise.resolve(undefined))
+      : Promise.resolve(undefined);
+    Promise.all([still, published, studioTermsAgreed(), suggested])
+      .then(([picture, alreadyPublished, agreed, suggestedNote]) => {
         if (!isCurrent(started)) {
           return undefined;
         }
@@ -216,6 +229,7 @@ export default function useStudioPublish(
           agreed: agreed >= PLUS_TERMS_VERSION,
           missed: false,
           ...(alreadyPublished ? { published: alreadyPublished } : {}),
+          ...(suggestedNote ? { suggestedNote } : {}),
         });
         return undefined;
       })
@@ -231,6 +245,7 @@ export default function useStudioPublish(
     playing,
     pack,
     packId,
+    view.state.activeId,
     view.state.entitled,
     view.problems,
     isCurrent,

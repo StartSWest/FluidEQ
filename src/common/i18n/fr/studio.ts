@@ -135,6 +135,8 @@ const studio = {
   'studio.publish.category': 'Catégories',
   'studio.publish.categoryHint': 'Jusqu’à deux. Sa carte affiche la première.',
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
+  'studio.publish.needNote':
+    'Dites d’abord ce qui est nouveau dans cette version',
   'studio.publish.point1':
     'Toute personne connectée la verra dans Visualiseurs. Les membres Plus pourront la lancer, l’ajouter à leurs styles et l’aimer.',
   'studio.publish.point2':

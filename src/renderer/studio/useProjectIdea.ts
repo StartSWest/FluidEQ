@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IStudioProject } from 'main/ipc/memberScenes';
+import type { IStudioNotes } from 'common/studioNotes';
 import { promptWithIdea } from './aiPrompt';
 import { setStudioIdea, useStudioIdea } from './studioIdea';
 
@@ -17,9 +18,12 @@ export default function useProjectIdea(project?: IStudioProject) {
   const [idea, setIdea] = useState(project ? '' : draft);
   const [loading, setLoading] = useState(!!project);
   const [failed, setFailed] = useState(false);
-  const pending = useRef<{ description: string; prompt: string } | undefined>(
-    undefined,
-  );
+  const pending = useRef<IStudioNotes | undefined>(undefined);
+  // What the member's AI last wrote about its own change, carried through
+  // every save of this file. Rebuilding the notes from the two fields this
+  // hook owns dropped it, which is the same defect as a pack rebuilt field by
+  // field: the line was written, and saving the idea threw it away.
+  const written = useRef<string | undefined>(undefined);
   const projectId = project?.id;
   // The folder FluidEQ made and is watching, named in the prompt so the
   // member's AI writes into it rather than guessing at one of its own.
@@ -46,6 +50,9 @@ export default function useProjectIdea(project?: IStudioProject) {
       window.electron?.ipcRenderer
         ?.readStudioNotes?.(projectId)
         .then((notes) => {
+          if (!disposed) {
+            written.current = notes?.whatsNew;
+          }
           if (!disposed && !pending.current) {
             setIdea(notes?.description ?? '');
             setLoading(false);
@@ -75,6 +82,7 @@ export default function useProjectIdea(project?: IStudioProject) {
       pending.current = {
         description: text,
         prompt: promptWithIdea(text, folder),
+        ...(written.current ? { whatsNew: written.current } : {}),
       };
     }
   };
