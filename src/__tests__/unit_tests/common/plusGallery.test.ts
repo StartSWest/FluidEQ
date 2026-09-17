@@ -12,6 +12,7 @@ import {
   parseVersionRow,
   parsePublishedRow,
 } from '../../../common/plusGallery';
+import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
 
 const AUTHOR = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 
@@ -155,7 +156,7 @@ describe('the versions a row carries', () => {
 
   it('drops a first version later than the current one, and a note it cannot keep', () => {
     const scene = parseGalleryRow(
-      row({ version: 2, version_note: 'x'.repeat(141), first_version: 5 }),
+      row({ version: 2, version_note: 'x'.repeat(MAX_VERSION_NOTE + 1), first_version: 5 }),
     );
     expect(scene).toBeDefined();
     expect(scene).not.toHaveProperty('versionNote');

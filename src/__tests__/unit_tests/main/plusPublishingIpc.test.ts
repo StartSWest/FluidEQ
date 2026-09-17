@@ -23,6 +23,7 @@ jest.mock('electron', () => ({
 
 /* eslint-disable import/first -- the electron mock must be installed first */
 import type { IAccountConfig } from '../../../common/accountConfig';
+import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
 import {
   registerPlusPublishingIpc,
   type TPublishedSettingsOutcome,
@@ -367,7 +368,7 @@ describe('publishing from the Studio', () => {
         'space',
         webpBytes(),
         undefined,
-        'x'.repeat(141),
+        'x'.repeat(MAX_VERSION_NOTE + 1),
       ),
     ).toEqual({ ok: false, reason: 'refused' });
     expect(calls).toEqual([]);

@@ -12,6 +12,7 @@ import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
 import type { IScenePack } from '../../../common/scenePacks';
+import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
 
 // The camera owns WebGL; these tests exercise the dialog and real cover list.
 jest.mock('../../../renderer/studio/StudioPublishCamera', () => () => null);
@@ -274,7 +275,7 @@ describe('the publish dialog', () => {
       />,
     );
     const note = screen.getByLabelText('studio.publish.note');
-    expect(note).toHaveAttribute('maxLength', '140');
+    expect(note).toHaveAttribute('maxLength', String(MAX_VERSION_NOTE));
     await userEvent.type(note, 'The peaks stay whole');
     await userEvent.click(
       screen.getByRole('button', { name: 'studio.publish.goUpdate' }),

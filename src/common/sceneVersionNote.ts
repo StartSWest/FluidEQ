@@ -14,8 +14,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * are cleaned by the same bytes.
  */
 
-/** Characters, as a text field counts them: one line, a tweet's worth. */
-export const MAX_VERSION_NOTE = 140;
+/**
+ * Characters, as a text field counts them.
+ *
+ * Was 140 — one line, an old tweet's worth — and the line a maker's AI writes
+ * about what it changed kept running into it, so a real answer had to be cut
+ * to a headline. Two hundred and eighty holds two sentences, which is what
+ * "the mountains are no longer cut on wide panels, and the fog is off the
+ * music" actually takes. Nothing breaks at that length: the look picker
+ * truncates this line with an ellipsis, and the versions list wraps it.
+ */
+export const MAX_VERSION_NOTE = 280;
 
 /** A version is shown as new to listeners for this long after it is published. */
 export const NEW_VERSION_DAYS = 7;
