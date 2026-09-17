@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import { createFlashGuard } from '../graph/sceneFlashGuard';
+import { flashGuardFor } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
@@ -91,7 +91,8 @@ export default function ScenePreview({
       },
       tooSlow: () => troubleRef.current('heavy'),
       createLadder: createWarmupLadder,
-      createGuard: createFlashGuard,
+      // The gallery shows what other members made: never the viewer own.
+      createGuard: flashGuardFor(false),
     }),
     [identity],
   );

@@ -24,7 +24,7 @@ import {
   reportMemberSceneFailure,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
-import { createFlashGuard } from './sceneFlashGuard';
+import { flashGuardFor } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
@@ -75,6 +75,8 @@ export default function SceneCanvas({
   spectrumRect,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
+  // A scene this listener made is one they have watched; see flashGuardFor.
+  const own = member && scene.own;
   const key = member ? scene.lookId : scene.id;
   const version = scene.revision ?? String(scene.version);
   const name = scene.names.en;
@@ -92,7 +94,7 @@ export default function SceneCanvas({
             },
             tooSlow: () => blockMemberScene(key),
             createLadder: createWarmupLadder,
-            createGuard: createFlashGuard,
+            createGuard: flashGuardFor(own),
             restsInSilence: true,
           }
         : {
@@ -111,7 +113,7 @@ export default function SceneCanvas({
             warmWhenUnseen: true,
             restsInSilence: true,
           },
-    [member, key, version, name],
+    [member, own, key, version, name],
   );
 
   // Which scene has drawn its first frame. Kept by identity, because the

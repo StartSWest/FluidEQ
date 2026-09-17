@@ -12,7 +12,7 @@ import {
 import { SceneAudioProvider } from '../audio/SceneAudioContext';
 import { createCostLadder } from '../graph/sceneHealth';
 import { createWarmupLadder } from '../graph/sceneWarmup';
-import { createFlashGuard } from '../graph/sceneFlashGuard';
+import { flashGuardFor } from '../graph/sceneFlashGuard';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
 import { studioSpectrumRect } from '../studio/studioWave';
 import { createCalmShaper } from './calmMotion';
@@ -52,7 +52,9 @@ function Scene({
       reportFailure: (reason) => bridge.failed(reason),
       tooSlow: () => bridge.failed(),
       createLadder: bootstrap.member ? createWarmupLadder : createCostLadder,
-      createGuard: bootstrap.member ? createFlashGuard : undefined,
+      // Main tells this page whether the scene is a member one, not whose
+      // it is, so a background keeps the limiter on any of them.
+      createGuard: bootstrap.member ? flashGuardFor(false) : undefined,
       restsInSilence: true,
     }),
     [bootstrap, bridge],

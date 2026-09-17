@@ -10,6 +10,7 @@ import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
+import { flashGuardFor } from '../graph/sceneFlashGuard';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
   type ISceneSource,
@@ -193,18 +194,10 @@ export default function StudioStage({
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
       createLadder: createWarmupLadder,
-      // No brightness limiter here, unlike every surface that shows somebody
-      // else's scene. It exists because a member's scene reaches other people
-      // without anyone having watched it first, and this stage IS that
-      // watching: the author is at the machine, looking at their own work,
-      // and what they see has to be what the scene draws. Its remedy is to
-      // blend the last picture shown into the new one, which on a scene
-      // moving fast paints the previous frame's detail over this one — a gem
-      // with two sets of facets on it at once, reported here as a ghost and
-      // measured at a tenth of the picture wrong. Judging a scene through
-      // that is judging the wrong picture, and a scene slowed down to escape
-      // it is slowed for everyone. The graph, the desktop and the gallery's
-      // previews all keep it for a member's scene.
+      // The author is at the machine looking at their own work, which is
+      // the watching the limiter exists for: the same rule every other
+      // surface asks answers no limiter here (`flashGuardFor`).
+      createGuard: flashGuardFor(true),
     }),
     [identity, serial],
   );

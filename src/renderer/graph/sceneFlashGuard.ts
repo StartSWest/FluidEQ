@@ -382,6 +382,25 @@ const link = (gl: WebGL2RenderingContext, fragmentSource: string) => {
   return program;
 };
 
+/**
+ * Which scenes are drawn through the limiter, in one place because it was in
+ * four and they disagreed: the Studio's stage showed a scene as it is while
+ * the graph showed the same scene ghosted, and the listener had made it.
+ *
+ * A scene the listener made themselves is one they have watched — they built
+ * it, and the Studio's stage is where they watched it. The limiter is for the
+ * others: a scene that arrives from another member, or from the gallery, and
+ * reaches somebody's eyes with nobody having seen it first.
+ *
+ * Holding a flash back means blending the last picture shown into the new
+ * one, so on a scene moving fast it paints the previous frame's detail over
+ * this one — a gem at full speed carrying two sets of facets, a tenth of the
+ * picture wrong. That is a price worth paying against a stranger's scene and
+ * not against your own.
+ */
+export const flashGuardFor = (own: boolean) =>
+  own ? undefined : createFlashGuard;
+
 /** `null` when the GPU cannot give it what it needs — the scene then must not run. */
 export const createFlashGuard = (
   gl: WebGL2RenderingContext,
