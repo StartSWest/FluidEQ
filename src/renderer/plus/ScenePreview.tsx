@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
+import { DEFAULT_SCENE_WAVE } from 'common/sceneWave';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
+import { studioSpectrumRect } from '../studio/studioWave';
 import useSceneRunner, {
   type ISceneSource,
   type ISceneTuning,
@@ -110,11 +112,27 @@ export default function ScenePreview({
     [],
   );
 
+  // Where this scene's wave stands, worked out the way the graph, the stage
+  // and the desktop background all work it out. It was [0, 1, 0, 1] - the
+  // whole panel - so every scene that asks for a band of it was told its wave
+  // fills the picture, and drew it somewhere else entirely: Alpine's curtain
+  // came down among the mountains here while it crossed the sky everywhere
+  // else, which is a scene a listener cannot judge from its own page. The
+  // author's wave, because this is the scene as its maker framed it; a
+  // listener's own choice belongs to the graph they play it on.
+  const wave = pack.wave ?? DEFAULT_SCENE_WAVE;
+  const { height: waveHeight, position: wavePosition } = wave;
+  const spectrumRect = useMemo(
+    () =>
+      studioSpectrumRect(pack, { height: waveHeight, position: wavePosition }),
+    [pack, waveHeight, wavePosition],
+  );
+
   const sceneRef = useSceneRunner({
     source,
     width: box.width,
     height: box.height,
-    spectrumRect: [0, 1, 0, 1],
+    spectrumRect,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
     onDrawn: drawn,
