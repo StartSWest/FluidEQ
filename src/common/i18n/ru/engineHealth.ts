@@ -25,6 +25,10 @@ const engineHealth = {
     'Движок не видит изменений, которые вы вносите для этого выхода.',
   'engineHealth.problem.other':
     'Что-то ещё, что должен был выполнять движок, не работает.',
+  'engineHealth.engineIsOld':
+    'Установленный на этом ПК движок FluidEQ — не тот, который несёт эта версия FluidEQ.',
+  'engineHealth.rackNeedsEngine':
+    'Эффекты DSP работают внутри самого движка, поэтому перезапуск звука Windows заново запускает тот же движок. Помогает установка собственного движка FluidEQ — одно разрешение Windows и секунда тишины.',
   'engineHealth.useApo': 'Использовать Equalizer APO…',
 } as const;
 

@@ -56,6 +56,12 @@ interface IEngineTroubleNoticeProps {
    * do this on its own.
    */
   onTryAnotherSlot: (guid: string) => void;
+  /**
+   * Put this app's own engine in place — the same step the help page's
+   * troubleshooter offers. The one repair for a rack the engine could not
+   * start, because a restart starts the same engine again.
+   */
+  onInstallEngine: () => void;
 }
 
 /**
@@ -73,6 +79,7 @@ const EngineTroubleNotice = ({
   onRestartAudio,
   onUseApo,
   onTryAnotherSlot,
+  onInstallEngine,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
   // Put away for the rest of the session, per trouble.
@@ -131,6 +138,15 @@ const EngineTroubleNotice = ({
   // not, because APO has none of it — offering it there is an offer to give
   // up the EQ that is working for nothing in return.
   const canApoHelp = trouble.kind === 'off' || trouble.canApoHelp;
+  // The rack is the one part of the engine a restart cannot mend: it runs
+  // inside the engine, so the same engine comes back and fails the same way.
+  // Putting this app's own engine in place is the repair, and a user who hit
+  // this found it by himself on the help page after the card's restart did
+  // nothing for him. So it leads here, and the restart goes quiet beside it.
+  const newEngineHelps = trouble.kind === 'problems' && trouble.canInstallHelp;
+  // And when the installed engine is known not to be the one this app
+  // carries, the card says so rather than only offering the button.
+  const engineIsOld = trouble.kind === 'problems' && trouble.updateReady;
   const dismiss = () => putAway(trouble.key);
   // Loud where it is the way out, quiet where it is the alternative: with an
   // engine Windows has never created, Equalizer APO is the only thing on this
@@ -155,6 +171,16 @@ const EngineTroubleNotice = ({
       {t('output.notNow')}
     </Button>
   );
+  const restart = (
+    <Button
+      ariaLabel={t('app.menu.restartAudio')}
+      isDisabled={false}
+      className={newEngineHelps ? 'small subtle' : 'small'}
+      handleChange={onRestartAudio}
+    >
+      {t('app.menu.restartAudio')}
+    </Button>
+  );
   let titleKey: TranslationKey = 'engineHealth.problemsTitle';
   if (isOff) {
     if (bypassed) {
@@ -173,7 +199,11 @@ const EngineTroubleNotice = ({
       }`}
       role="alertdialog"
       aria-labelledby="engine-trouble-notice-title"
-      aria-describedby="engine-trouble-notice-body"
+      aria-describedby={
+        newEngineHelps
+          ? 'engine-trouble-notice-body engine-trouble-notice-repair'
+          : 'engine-trouble-notice-body'
+      }
     >
       <div className="device-apo-notice__copy">
         <span className="apo-badge">
@@ -200,22 +230,42 @@ const EngineTroubleNotice = ({
             ))}
           </ul>
         )}
+        {/* Sits under the list rather than in it: the list is what is off,
+            this is what mends it. */}
+        {newEngineHelps && (
+          <p id="engine-trouble-notice-repair">
+            {engineIsOld ? `${t('engineHealth.engineIsOld')} ` : ''}
+            {t('engineHealth.rackNeedsEngine')}
+          </p>
+        )}
       </div>
       <div className="device-apo-notice__actions">
-        {canRestartHelp ? (
+        {/* A fresh engine first, the restart demoted beside it: the restart
+            is still worth a press for whatever else on the card a restart
+            does mend, but it is no longer the answer being recommended. */}
+        {newEngineHelps && (
           <>
             <Button
-              ariaLabel={t('app.menu.restartAudio')}
+              ariaLabel={t('engineUpdate.action')}
               isDisabled={false}
               className="small"
-              handleChange={onRestartAudio}
+              handleChange={onInstallEngine}
             >
-              {t('app.menu.restartAudio')}
+              {t('engineUpdate.action')}
             </Button>
+            {canRestartHelp && restart}
             {useApo}
             {notNow}
           </>
-        ) : (
+        )}
+        {!newEngineHelps && canRestartHelp && (
+          <>
+            {restart}
+            {useApo}
+            {notNow}
+          </>
+        )}
+        {!newEngineHelps && !canRestartHelp && (
           <>
             {/* Windows is playing this output through a chain the engine is
                 not in. Moving it to another of the output's effect slots is

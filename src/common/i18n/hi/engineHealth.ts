@@ -26,6 +26,10 @@ const engineHealth = {
   'engineHealth.problem.unwatched':
     'इस आउटपुट के लिए आप जो बदलाव करते हैं, वे इंजन को नहीं दिखते।',
   'engineHealth.problem.other': 'इंजन से कहा गया कोई और काम नहीं चल रहा।',
+  'engineHealth.engineIsOld':
+    'इस PC पर लगा FluidEQ इंजन वह नहीं है जो FluidEQ का यह संस्करण साथ लाता है।',
+  'engineHealth.rackNeedsEngine':
+    'DSP प्रभाव इंजन के भीतर ही चलते हैं, इसलिए Windows ऑडियो दोबारा शुरू करने से वही इंजन फिर चालू हो जाता है। इसे ठीक करता है FluidEQ का अपना इंजन लगाना — एक Windows अनुमति और एक पल की ख़ामोशी।',
   'engineHealth.useApo': 'Equalizer APO इस्तेमाल करें…',
 } as const;
 

@@ -285,9 +285,73 @@ describe('engineTrouble', () => {
       device: speakers,
       problems: ['dsp-rack', 'convolution'],
       canRestartHelp: true,
-      canApoHelp: true,
+      // Equalizer APO stays off a card that offers a fresh engine: it would
+      // give up the rack for certain, and the offer above it can bring the
+      // rack back.
+      canApoHelp: false,
+      canInstallHelp: true,
+      updateReady: false,
       key: 'problems:{AAAA}:dsp-rack,convolution',
     });
+  });
+
+  it('sends a rack that would not start to a fresh engine, not to a restart', () => {
+    // The rack is the one part of the engine the app talks to over a wire
+    // both sides have to agree on, so an engine older than the app cannot
+    // start it. A user with a half-installed engine had the EQ playing and
+    // every DSP effect off; the card's restart brought the same engine back
+    // and failed the same way, and putting this app's own engine in place
+    // is what mended it.
+    expect(
+      engineTrouble(
+        facts({
+          health: { outputs: [running({ problems: ['dsp-rack'] })] },
+          engineUpdateReady: true,
+        }),
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        canInstallHelp: true,
+        updateReady: true,
+        // And Equalizer APO is not offered beside it: there is no rack in it
+        // at all, so it is strictly less than the action being recommended.
+        canApoHelp: false,
+      }),
+    );
+  });
+
+  it('keeps a fresh engine out of troubles a fresh engine does not mend', () => {
+    // The positive control for the case above: everything else on this card
+    // is the engine's own state or a file it could not read, and swapping
+    // the engine for an identical one changes neither.
+    [
+      'convolution',
+      'graphic-eq',
+      'eq-phase',
+      'reload-failed',
+      'unwatched',
+    ].forEach((code) => {
+      expect(
+        engineTrouble(
+          facts({
+            health: { outputs: [running({ problems: [code] })] },
+            engineUpdateReady: true,
+          }),
+        ),
+      ).toEqual(expect.objectContaining({ canInstallHelp: false }));
+    });
+  });
+
+  it('claims the engine is out of date only where that was established', () => {
+    // `updateReady` is main's comparison of the two engines by content. An
+    // engine it could not compare must not be called old on the card.
+    expect(
+      engineTrouble(
+        facts({ health: { outputs: [running({ problems: ['dsp-rack'] })] } }),
+      ),
+    ).toEqual(
+      expect.objectContaining({ canInstallHelp: true, updateReady: false }),
+    );
   });
 
   it('does not offer a restart for a file the engine could not read', () => {

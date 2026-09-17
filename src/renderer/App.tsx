@@ -946,6 +946,7 @@ const AppContent = () => {
   const engineTrouble = useEngineTrouble(
     runningEngine ?? null,
     engineStatus?.fluid,
+    engineStatus?.fluidUpdateReady === true,
   );
   const isEngineOff = engineTrouble?.kind === 'off';
   useEffect(() => {
@@ -1992,6 +1993,21 @@ const AppContent = () => {
     );
   };
 
+  /**
+   * The rack card's own button: put this app's engine in place.
+   *
+   * A rack the engine could not start is the one trouble a restart of
+   * Windows audio cannot mend — it brings back the same engine, which fails
+   * the same way. A user with a half-installed engine hit exactly that: the
+   * EQ played, every DSP effect was off, the card's restart did nothing, and
+   * what mended it was this same step found by hand on the help page.
+   */
+  const handleInstallEngineForTrouble = () => {
+    handleTroubleshootEnableEngine().catch((error) =>
+      reportError('The engine could not be put in place', error),
+    );
+  };
+
   // Where Windows has never created the engine on the output, a restart
   // cannot help; putting the install back, or moving the engine to a slot
   // the driver builds, can — the slot ladder, bounded and silent by design. Keyed by the slot
@@ -2761,6 +2777,7 @@ const AppContent = () => {
           onRestartAudio={handleRestartWindowsAudio}
           onUseApo={handleOpenEngineDialog}
           onTryAnotherSlot={handleTryAnotherSlot}
+          onInstallEngine={handleInstallEngineForTrouble}
         />
         {/* Waits for the same things, for the troubleshooter, and for the
             tour and the release notes that open on the first launch after an

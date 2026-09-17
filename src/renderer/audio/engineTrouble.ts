@@ -71,6 +71,18 @@ export type TEngineTrouble =
        * nothing.
        */
       canApoHelp: boolean;
+      /**
+       * Whether putting this app's own engine in place would mend it —
+       * see `ONLY_A_NEW_ENGINE`. Restarting Windows audio starts the same
+       * engine again, so the card leads with this one instead.
+       */
+      canInstallHelp: boolean;
+      /**
+       * The engine beside this app is not the one installed, by the
+       * comparison of their contents that the update notice already makes.
+       * Then the offer above is not a guess and the card says so.
+       */
+      updateReady: boolean;
       key: string;
     };
 
@@ -104,6 +116,12 @@ export interface IEngineTroubleFacts {
    * audio has come, rather than an engine that never says.
    */
   reportsCarried?: boolean;
+  /**
+   * This app carries an engine the machine does not have installed, as the
+   * update notice's own comparison by content says. It is the usual reason
+   * a rack will not start.
+   */
+  engineUpdateReady?: boolean;
 }
 
 /**
@@ -127,6 +145,20 @@ const CONTENT_PROBLEMS: readonly string[] = [
  */
 const NOT_IN_APO: readonly string[] = ['dsp-rack', 'eq-phase'];
 
+/**
+ * What only a fresh engine mends: the rack.
+ *
+ * The rack is the one part of the engine the app talks to over a wire both
+ * sides have to agree on, so an engine older than the app cannot start it —
+ * and on a machine where setup left an older or half-installed engine, the
+ * EQ still worked while every DSP effect was silently off. Restarting
+ * Windows audio starts the same engine again and fails the same way, which
+ * is what a user hit: the restart the card offered changed nothing, and
+ * what mended it was putting this app's own engine in place from the help
+ * page. So the card offers that, and leads with it.
+ */
+const ONLY_A_NEW_ENGINE: readonly string[] = ['dsp-rack'];
+
 export const sameEndpoint = (a: string, b: string) =>
   normaliseEndpointGuid(a) === normaliseEndpointGuid(b);
 
@@ -139,6 +171,7 @@ export const engineTrouble = ({
   heardGuid,
   hasEverRun,
   reportsCarried,
+  engineUpdateReady,
 }: IEngineTroubleFacts): TEngineTrouble | undefined => {
   if (engine !== 'fluid') {
     return undefined;
@@ -224,6 +257,9 @@ export const engineTrouble = ({
   if (!first || !device) {
     return undefined;
   }
+  const canInstallHelp = first.problems.some((code) =>
+    ONLY_A_NEW_ENGINE.includes(code),
+  );
   return {
     kind: 'problems',
     device,
@@ -231,7 +267,16 @@ export const engineTrouble = ({
     canRestartHelp: first.problems.some(
       (code) => !CONTENT_PROBLEMS.includes(code),
     ),
-    canApoHelp: first.problems.some((code) => !NOT_IN_APO.includes(code)),
+    // Never beside the offer of a fresh engine: moving to Equalizer APO
+    // there gives up the whole rack for certain, while the action above it
+    // is the one thing that can bring the rack back. An offer of strictly
+    // less than the recommendation is a fourth button for nothing — and the
+    // four of them spill onto a second line in French and Russian.
+    canApoHelp:
+      !canInstallHelp &&
+      first.problems.some((code) => !NOT_IN_APO.includes(code)),
+    canInstallHelp,
+    updateReady: engineUpdateReady === true,
     key: `problems:${first.endpoint}:${first.problems.join(',')}`,
   };
 };

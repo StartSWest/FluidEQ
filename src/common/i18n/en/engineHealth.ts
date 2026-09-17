@@ -34,6 +34,10 @@ const engineHealth = {
     'The engine can’t see the changes you make for this output.',
   'engineHealth.problem.other':
     'Something else the engine was asked to run isn’t running.',
+  'engineHealth.engineIsOld':
+    'The FluidEQ Engine installed on this PC isn’t the one this version of FluidEQ carries.',
+  'engineHealth.rackNeedsEngine':
+    'The DSP effects run inside the engine itself, so restarting Windows audio starts the same one again. Putting FluidEQ’s own engine in place is what mends this — one Windows permission and a second of silence.',
   'engineHealth.useApo': 'Use Equalizer APO…',
 } as const;
 

@@ -26,6 +26,10 @@ const engineHealth = {
     'この出力に対して行った変更がエンジンに伝わりません。',
   'engineHealth.problem.other':
     'エンジンに依頼したほかの処理が実行されていません。',
+  'engineHealth.engineIsOld':
+    'この PC に入っている FluidEQ エンジンは、このバージョンの FluidEQ が持っているものとは違います。',
+  'engineHealth.rackNeedsEngine':
+    'DSP エフェクトはエンジンの中で動くので、Windows のオーディオを再起動しても同じエンジンが立ち上がるだけです。直せるのは FluidEQ 自身のエンジンを入れること — Windows の許可が一度と、一瞬の無音です。',
   'engineHealth.useApo': 'Equalizer APO を使う…',
 } as const;
 

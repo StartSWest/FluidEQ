@@ -26,6 +26,10 @@ const engineHealth = {
     'El motor no ve los cambios que haces para esta salida.',
   'engineHealth.problem.other':
     'Otra cosa que se pidió al motor no se está ejecutando.',
+  'engineHealth.engineIsOld':
+    'El motor FluidEQ instalado en este PC no es el que trae esta versión de FluidEQ.',
+  'engineHealth.rackNeedsEngine':
+    'Los efectos DSP se ejecutan dentro del propio motor, así que reiniciar el audio de Windows vuelve a arrancar el mismo. Lo que lo arregla es poner el motor propio de FluidEQ: un permiso de Windows y un segundo de silencio.',
   'engineHealth.useApo': 'Usar Equalizer APO…',
 } as const;
 

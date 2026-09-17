@@ -26,16 +26,29 @@ const off: TEngineTrouble = {
   key: 'off:{AAAA}',
 };
 
+interface IWhatHelps {
+  canRestartHelp?: boolean;
+  canApoHelp?: boolean;
+  canInstallHelp?: boolean;
+  updateReady?: boolean;
+}
+
 const problems = (
   codes: string[],
-  canRestartHelp = true,
-  canApoHelp = true,
+  {
+    canRestartHelp = true,
+    canApoHelp = true,
+    canInstallHelp = false,
+    updateReady = false,
+  }: IWhatHelps = {},
 ): TEngineTrouble => ({
   kind: 'problems',
   device: speakers,
   problems: codes,
   canRestartHelp,
   canApoHelp,
+  canInstallHelp,
+  updateReady,
   key: `problems:{AAAA}:${codes.join(',')}`,
 });
 
@@ -48,6 +61,7 @@ const renderNotice = ({ trouble, isHidden = false }: IShown) => {
   const onRestartAudio = jest.fn();
   const onUseApo = jest.fn();
   const onTryAnotherSlot = jest.fn();
+  const onInstallEngine = jest.fn();
   const notice = (shown: IShown) => (
     <EngineTroubleNotice
       trouble={shown.trouble}
@@ -55,11 +69,18 @@ const renderNotice = ({ trouble, isHidden = false }: IShown) => {
       onRestartAudio={onRestartAudio}
       onUseApo={onUseApo}
       onTryAnotherSlot={onTryAnotherSlot}
+      onInstallEngine={onInstallEngine}
     />
   );
   const view = render(notice({ trouble, isHidden }));
   const rerender = (shown: IShown) => view.rerender(notice(shown));
-  return { onRestartAudio, onUseApo, onTryAnotherSlot, rerender };
+  return {
+    onRestartAudio,
+    onUseApo,
+    onTryAnotherSlot,
+    onInstallEngine,
+    rerender,
+  };
 };
 
 const title = (
@@ -71,7 +92,9 @@ const title = (
 
 describe('EngineTroubleNotice', () => {
   it('explains a refused linear filter without claiming the original EQ stopped', () => {
-    renderNotice({ trouble: problems(['eq-phase'], false) });
+    renderNotice({
+      trouble: problems(['eq-phase'], { canRestartHelp: false }),
+    });
     expect(screen.getByRole('alertdialog')).toHaveTextContent(
       en['engineHealth.problem.eq-phase'],
     );
@@ -139,23 +162,82 @@ describe('EngineTroubleNotice', () => {
   });
 
   it('does not offer a restart that cannot mend a file', () => {
-    renderNotice({ trouble: problems(['convolution'], false) });
+    renderNotice({
+      trouble: problems(['convolution'], { canRestartHelp: false }),
+    });
     expect(
       screen.getAllByRole('button').map((button) => button.textContent),
     ).toEqual([en['output.gotIt'], en['engineHealth.useApo']]);
   });
 
-  it('does not offer Equalizer APO for a DSP failure it has no answer to', () => {
-    // The rack could not start: a restart may bring it back, and Equalizer
-    // APO — which has no rack — is not an alternative to it.
-    renderNotice({ trouble: problems(['dsp-rack'], true, false) });
-    expect(
-      screen.getAllByRole('button').map((button) => button.textContent),
-    ).toEqual([en['app.menu.restartAudio'], en['output.notNow']]);
+  it('leads with a fresh engine, not a restart, when the rack would not start', () => {
+    // A user installed FluidEQ on a second PC: the EQ played, every DSP
+    // effect was off, and this card offered "Restart Windows audio" — which
+    // starts the same engine again and failed the same way, every time. What
+    // mended it was putting this app's own engine in place, which he found
+    // by hand on the help page. So that leads here now, and it says why.
+    // Equalizer APO has no rack at all, so it is not offered either.
+    const { onInstallEngine, onRestartAudio } = renderNotice({
+      trouble: problems(['dsp-rack'], {
+        canApoHelp: false,
+        canInstallHelp: true,
+      }),
+    });
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      en['engineUpdate.action'],
+      en['app.menu.restartAudio'],
+      en['output.notNow'],
+    ]);
+    // The recommendation wears the loud style; the restart is demoted, not
+    // removed — it still mends whatever else on the card a restart mends.
+    expect(buttons[0]).not.toHaveClass('subtle');
+    expect(buttons[1]).toHaveClass('subtle');
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      en['engineHealth.rackNeedsEngine'],
+    );
+    // Nothing runs until it is pressed: this is an elevated run of the
+    // setup helper, so it is one Windows prompt the user asked for.
+    expect(onInstallEngine).not.toHaveBeenCalled();
+    fireEvent.click(buttons[0]);
+    expect(onInstallEngine).toHaveBeenCalledTimes(1);
+    expect(onRestartAudio).not.toHaveBeenCalled();
+  });
+
+  it('says outright when the installed engine is not the one this app carries', () => {
+    // The extra sentence is only shown where it is known to be true — the
+    // comparison of the two engines by content, which main already makes for
+    // the update notice. Without it the card offers the button and no claim.
+    const { rerender } = renderNotice({
+      trouble: problems(['dsp-rack'], {
+        canApoHelp: false,
+        canInstallHelp: true,
+      }),
+    });
+    expect(screen.getByRole('alertdialog')).not.toHaveTextContent(
+      en['engineHealth.engineIsOld'],
+    );
+
+    rerender({
+      trouble: problems(['dsp-rack'], {
+        canApoHelp: false,
+        canInstallHelp: true,
+        updateReady: true,
+      }),
+    });
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      en['engineHealth.engineIsOld'],
+    );
   });
 
   it('leaves only an acknowledgement for a DSP failure nothing here mends', () => {
-    renderNotice({ trouble: problems(['eq-phase'], false, false) });
+    renderNotice({
+      trouble: problems(['eq-phase'], {
+        canRestartHelp: false,
+        canApoHelp: false,
+      }),
+    });
     expect(
       screen.getAllByRole('button').map((button) => button.textContent),
     ).toEqual([en['output.gotIt']]);

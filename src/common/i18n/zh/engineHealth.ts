@@ -20,6 +20,10 @@ const engineHealth = {
     '你最近的更改未能加载，因此仍在播放之前的设置。',
   'engineHealth.problem.unwatched': '引擎看不到你为此输出所做的更改。',
   'engineHealth.problem.other': '引擎被要求运行的其他内容未在运行。',
+  'engineHealth.engineIsOld':
+    '这台电脑上装的 FluidEQ 引擎，不是本版 FluidEQ 自带的那一个。',
+  'engineHealth.rackNeedsEngine':
+    'DSP 效果运行在引擎内部，重启 Windows 音频只会再启动同一个引擎。能修好的是装上 FluidEQ 自带的引擎——一次 Windows 授权，一秒钟的静音。',
   'engineHealth.useApo': '使用 Equalizer APO…',
 } as const;
 

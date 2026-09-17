@@ -27,6 +27,10 @@ const engineHealth = {
     'Die Engine sieht die Änderungen nicht, die du für diesen Ausgang machst.',
   'engineHealth.problem.other':
     'Etwas anderes, das die Engine ausführen sollte, läuft nicht.',
+  'engineHealth.engineIsOld':
+    'Die auf diesem PC installierte FluidEQ Engine ist nicht die, die diese Version von FluidEQ mitbringt.',
+  'engineHealth.rackNeedsEngine':
+    'Die DSP-Effekte laufen in der Engine selbst – ein Neustart des Windows-Audios startet also dieselbe Engine erneut. Was hilft, ist FluidEQs eigene Engine einzusetzen: eine Windows-Berechtigung und eine Sekunde Stille.',
   'engineHealth.useApo': 'Equalizer APO verwenden…',
 } as const;
 

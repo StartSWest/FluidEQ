@@ -63,6 +63,13 @@ interface ICaptureBinding {
 const useEngineTrouble = (
   engine: TAudioEngine | null,
   fluid: IFluidEngineStatus | undefined,
+  /**
+   * Whether this app carries an engine the machine does not have installed
+   * (`IAudioEngineStatus.fluidUpdateReady`), which is the usual reason its
+   * DSP rack will not start. It sits beside the engine's own status rather
+   * than in it: the comparison is main's, between two sets of files.
+   */
+  engineUpdateReady: boolean,
 ): TEngineTrouble | undefined => {
   const { capture } = useLiveAudioControl();
   const isFluid = engine === 'fluid';
@@ -219,6 +226,7 @@ const useEngineTrouble = (
         heardGuid,
         hasEverRun: fluid?.everRan,
         reportsCarried,
+        engineUpdateReady,
       }),
     [
       engine,
@@ -229,6 +237,7 @@ const useEngineTrouble = (
       heardGuid,
       fluid?.everRan,
       reportsCarried,
+      engineUpdateReady,
     ],
   );
 };

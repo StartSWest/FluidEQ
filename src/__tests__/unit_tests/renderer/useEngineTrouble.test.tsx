@@ -134,7 +134,9 @@ describe('createSignalEdge', () => {
 describe('useEngineTrouble', () => {
   it('says nothing about an output that is not playing, running or not', async () => {
     withCapture(fakeContext());
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
     await waitFor(() => expect(reads).toBe(1));
     expect(result.current).toBeUndefined();
   });
@@ -142,7 +144,9 @@ describe('useEngineTrouble', () => {
   it('asks the disk again when sound starts, and says the engine is off', async () => {
     const context = fakeContext();
     withCapture(context);
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
     await waitFor(() => expect(reads).toBe(1));
 
     await hear(context);
@@ -161,7 +165,7 @@ describe('useEngineTrouble', () => {
     const seen: (string | undefined)[] = [];
     const { result, rerender } = renderHook(
       ({ installed }: { installed: IFluidEngineStatus }) => {
-        const trouble = useEngineTrouble('fluid', installed);
+        const trouble = useEngineTrouble('fluid', installed, false);
         seen.push(trouble?.kind);
         return trouble;
       },
@@ -192,7 +196,9 @@ describe('useEngineTrouble', () => {
     const context = fakeContext();
     withCapture(context);
     const unread: IFluidEngineStatus = { ...fluid, dllVersion: undefined };
-    const { result } = renderHook(() => useEngineTrouble('fluid', unread));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', unread, false),
+    );
     await hear(context);
     await waitFor(() => expect(reads).toBe(2));
 
@@ -206,7 +212,7 @@ describe('useEngineTrouble', () => {
     withCapture(context);
     const seen: (string | undefined)[] = [];
     const { result } = renderHook(() => {
-      const trouble = useEngineTrouble('fluid', fluid);
+      const trouble = useEngineTrouble('fluid', fluid, false);
       seen.push(trouble?.kind);
       return trouble;
     });
@@ -238,7 +244,9 @@ describe('useEngineTrouble', () => {
     // PowerShell: sound starting costs one read of the disk and nothing else.
     const context = fakeContext();
     withCapture(context);
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
     await waitFor(() => expect(reads).toBe(1));
     await hear(context);
     await waitFor(() => expect(result.current?.kind).toBe('off'));
@@ -254,7 +262,9 @@ describe('useEngineTrouble', () => {
   it('takes the notice down when the engine comes back', async () => {
     const context = fakeContext();
     withCapture(context);
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
     await hear(context);
     await waitFor(() => expect(result.current?.kind).toBe('off'));
 
@@ -267,7 +277,7 @@ describe('useEngineTrouble', () => {
     const first = fakeContext();
     withCapture(first);
     const { result, rerender } = renderHook(() =>
-      useEngineTrouble('fluid', fluid),
+      useEngineTrouble('fluid', fluid, false),
     );
     await hear(first);
     await waitFor(() => expect(result.current?.kind).toBe('off'));
@@ -283,7 +293,9 @@ describe('useEngineTrouble', () => {
   it('counts sound heard before the capture was recorded as started', async () => {
     // The capture's first frames can beat the effect that records it.
     withCapture(undefined);
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
 
     await hear(fakeContext());
 
@@ -292,7 +304,9 @@ describe('useEngineTrouble', () => {
 
   it('ignores an event that names no capture', async () => {
     withCapture(fakeContext());
-    const { result } = renderHook(() => useEngineTrouble('fluid', fluid));
+    const { result } = renderHook(() =>
+      useEngineTrouble('fluid', fluid, false),
+    );
     await waitFor(() => expect(reads).toBe(1));
 
     await act(async () => {
@@ -306,7 +320,7 @@ describe('useEngineTrouble', () => {
   it('asks nothing at all under Equalizer APO', async () => {
     const context = fakeContext();
     withCapture(context);
-    const { result } = renderHook(() => useEngineTrouble('apo', fluid));
+    const { result } = renderHook(() => useEngineTrouble('apo', fluid, false));
 
     await hear(context);
 

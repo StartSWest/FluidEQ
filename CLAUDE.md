@@ -585,6 +585,25 @@ Out-String` (or any other capture) is what actually waits for it and shows
   the rest of the session per trouble, because the live capture stops with
   the DSP page and starts with it, so the same trouble ended and began on
   every visit and the card came back every time.
+- **A DSP rack the engine could not start is mended by a fresh engine, never
+  by a restart.** The rack is the one part of the engine the app talks to
+  over a wire both sides have to agree on (`fluideq-dsp.txt`), so an engine
+  older than the app cannot start it — and on a machine where setup left an
+  older or half-installed engine, the EQ played while every DSP effect was
+  silently off. Restarting Windows audio starts the same engine again and
+  fails the same way; a user hit exactly that, and what mended it was the
+  help page's own "put the engine in place" step, found by hand.
+  `dsp-rack` is therefore `ONLY_A_NEW_ENGINE` in `engineTrouble.ts`, and
+  the card leads with "Update engine" (`handleTroubleshootEnableEngine`,
+  the same step) with the restart demoted to the quiet style beside it. It
+  adds `engineHealth.engineIsOld` only where main's comparison of the two
+  engines by content says so (`IAudioEngineStatus.fluidUpdateReady`, which
+  the trouble hook now takes as its third argument) — an engine it could
+  not compare is not called old. Equalizer APO comes off that card
+  entirely: it has no rack at all, so beside the offer that can bring the
+  rack back it is strictly less, and a fourth button spilled the row onto a
+  second line in French and Russian (measured in the window at the card's
+  620px).
 - **Which slot a driver builds is not written down anywhere, so the app
   tries them, newest to oldest, on the machine itself — the slot ladder.**
   An effect can be registered in five places: the EFX, MFX and SFX lists
