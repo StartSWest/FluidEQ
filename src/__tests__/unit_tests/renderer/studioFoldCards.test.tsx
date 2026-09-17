@@ -96,6 +96,26 @@ it('carries how the scene is drawn on the same card as what it is played with', 
   expect(rows.length).toBeGreaterThan(3);
 });
 
+it('folds one group away without touching the rest', async () => {
+  testCard();
+  const card = screen.getByRole('button', { name: /studio\.test\.title/ });
+  const cardWas = card.getAttribute('aria-expanded');
+  const head = screen.getByRole('button', { name: 'settings.group.picture' });
+  expect(head).toHaveAttribute('aria-expanded', 'true');
+  await userEvent.click(head);
+  expect(head).toHaveAttribute('aria-expanded', 'false');
+  expect(foldedAway(head)).toBe(true);
+  // The card itself, and every other group, stay exactly as they were: the
+  // card holds all four groups, so folding it away is not the way to reach
+  // past one of them.
+  expect(card.getAttribute('aria-expanded')).toBe(cardWas);
+  expect(
+    foldedAway(
+      screen.getByRole('button', { name: 'settings.group.visualizer' }),
+    ),
+  ).toBe(false);
+});
+
 it('reads down in the order both surfaces share', () => {
   const { container } = testCard();
   // The graph's menu and this card name and order the same groups

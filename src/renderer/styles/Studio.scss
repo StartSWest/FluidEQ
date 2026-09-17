@@ -74,22 +74,92 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // One of the four groups the settings are arranged in, here and in the
-// graph's View menu (`common/settingsGroups.ts`). It stands above the
-// labels inside it — brighter, with the card's own hairline over it — so
-// that reading down the column gives the four groups first and their
-// contents second, which is what makes the two surfaces read alike.
+// graph's View menu (`common/settingsGroups.ts`). Its name stands above the
+// labels inside it — brighter than they are — so that reading down the
+// column gives the four groups first and their contents second, which is
+// what makes the two surfaces read alike.
 .studio-card__eyebrow--group {
-  margin-top: $spacing-s;
-  padding-top: 11px;
-  border-top: 1px solid $border-subtle;
   color: $text-muted;
+  transition: color $motion-fast $ease-out;
+}
 
-  // The first group opens the card, under its own title: no rule over it.
-  &:first-child {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
+// Each group folds on its own (`StudioCardGroup.tsx`). The card holds all
+// four, which is taller than a laptop screen: folding the whole card away is
+// no answer to that, since somebody tuning the response wants the sliders
+// and nothing else rather than everything or nothing.
+.studio-group {
+  display: grid;
+  min-width: 0;
+
+  // Parted by a hairline, not boxed: they are four parts of one card.
+  & + & {
+    margin-top: 2px;
+    border-top: 1px solid $border-subtle;
   }
+}
+
+.studio-group__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  width: 100%;
+  padding: 10px 0 8px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  &:hover .studio-card__eyebrow--group,
+  &:focus-visible .studio-card__eyebrow--group {
+    color: $white;
+  }
+
+  // The first group's head opens the card body, which already has the
+  // card's own padding over it.
+  .studio-group:first-child & {
+    padding-top: 0;
+  }
+}
+
+.studio-group__chevron {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: $text-dim;
+  transition: transform $motion-fast $ease-out;
+
+  .studio-group.is-open & {
+    transform: rotate(180deg);
+  }
+}
+
+// The card's own height transition, borrowed: 0fr to 1fr needs no measured
+// pixel value, so a group can hold anything — a scene's own sliders, which
+// grow with the scene — and still open smoothly.
+.studio-group__reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows $motion-slow cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.studio-group.is-open .studio-group__reveal {
+  grid-template-rows: 1fr;
+}
+
+.studio-group__body {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+  min-height: 0;
+  // The child of a 0fr row still paints unless it is told not to.
+  overflow: hidden;
+}
+
+.studio-group.is-open .studio-group__body {
+  // Only once open, or a group clips what opens inside it.
+  padding-bottom: 3px;
+  overflow: visible;
 }
 
 // A card that folds away (`StudioFoldCard.tsx`). Its own eyebrow is the

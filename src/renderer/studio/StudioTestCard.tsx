@@ -3,6 +3,7 @@ import type { TranslationKey } from 'common/i18n';
 import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import ScenePerformanceMenu from '../graph/ScenePerformanceMenu';
 import { useTranslation } from '../utils/I18nContext';
+import StudioCardGroup from './StudioCardGroup';
 import StudioFoldCard from './StudioFoldCard';
 import type { TStudioSize } from './StudioStage';
 import { STUDIO_SIGNALS, type TStudioSignal } from './studioSignals';
@@ -81,12 +82,6 @@ export default function StudioTestCard({
   settings,
 }: IStudioTestCardProps) {
   const { t } = useTranslation();
-  /** A group of the shared arrangement, named as the graph's menu names it. */
-  const group = (key: TranslationKey) => (
-    <span className="studio-card__eyebrow studio-card__eyebrow--group">
-      {t(key)}
-    </span>
-  );
   const signalName = (entry: TStudioSignal) =>
     t(`studio.signal.${entry}` as TranslationKey);
   const sizeName = (entry: TStudioSize) =>
@@ -108,67 +103,77 @@ export default function StudioTestCard({
         )
       }
     >
-      {group(OWN_GROUP_TITLE.studio)}
-      <span className="studio-card__eyebrow">{t('studio.signals.title')}</span>
-      <div
-        className="studio-tiles"
-        role="group"
-        aria-label={t('studio.signals.title')}
+      <StudioCardGroup group="own" title={t(OWN_GROUP_TITLE.studio)}>
+        <span className="studio-card__eyebrow">
+          {t('studio.signals.title')}
+        </span>
+        <div
+          className="studio-tiles"
+          role="group"
+          aria-label={t('studio.signals.title')}
+        >
+          {STUDIO_SIGNALS.map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              className="studio-tile"
+              aria-pressed={signal === entry}
+              aria-label={signalName(entry)}
+              title={`${signalName(entry)}: ${t(
+                `studio.signalHint.${entry}` as TranslationKey,
+              )}`}
+              disabled={idle}
+              onClick={() => onSignal(entry)}
+            >
+              {SIGNAL_ICONS[entry]}
+              <span className="studio-tile__name">{signalName(entry)}</span>
+            </button>
+          ))}
+        </div>
+        <span className="studio-test__now" role="status">
+          <span className="studio-test__now-name">{signalName(signal)}</span>
+          {t(`studio.signalHint.${signal}` as TranslationKey)}
+        </span>
+        <span className="studio-test__hint">{t('studio.signals.hint')}</span>
+        <span className="studio-card__eyebrow">{t('studio.size.title')}</span>
+        <div
+          className="studio-tiles studio-tiles--sizes"
+          role="group"
+          aria-label={t('studio.size.title')}
+        >
+          {SIZES.map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              className="studio-tile"
+              aria-pressed={size === entry}
+              aria-label={sizeName(entry)}
+              title={sizeName(entry)}
+              disabled={idle}
+              onClick={() => onSize(entry)}
+            >
+              {SIZE_ICONS[entry]}
+              <span className="studio-tile__name">{sizeName(entry)}</span>
+            </button>
+          ))}
+        </div>
+        <StudioTintSwitch />
+      </StudioCardGroup>
+      <StudioCardGroup group="picture" title={t(SETTINGS_GROUP_TITLE.picture)}>
+        <StudioGridSwitch />
+        <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
+      </StudioCardGroup>
+      <StudioCardGroup
+        group="visualizer"
+        title={t(SETTINGS_GROUP_TITLE.visualizer)}
       >
-        {STUDIO_SIGNALS.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            className="studio-tile"
-            aria-pressed={signal === entry}
-            aria-label={signalName(entry)}
-            title={`${signalName(entry)}: ${t(
-              `studio.signalHint.${entry}` as TranslationKey,
-            )}`}
-            disabled={idle}
-            onClick={() => onSignal(entry)}
-          >
-            {SIGNAL_ICONS[entry]}
-            <span className="studio-tile__name">{signalName(entry)}</span>
-          </button>
-        ))}
-      </div>
-      <span className="studio-test__now" role="status">
-        <span className="studio-test__now-name">{signalName(signal)}</span>
-        {t(`studio.signalHint.${signal}` as TranslationKey)}
-      </span>
-      <span className="studio-test__hint">{t('studio.signals.hint')}</span>
-      <span className="studio-card__eyebrow">{t('studio.size.title')}</span>
-      <div
-        className="studio-tiles studio-tiles--sizes"
-        role="group"
-        aria-label={t('studio.size.title')}
-      >
-        {SIZES.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            className="studio-tile"
-            aria-pressed={size === entry}
-            aria-label={sizeName(entry)}
-            title={sizeName(entry)}
-            disabled={idle}
-            onClick={() => onSize(entry)}
-          >
-            {SIZE_ICONS[entry]}
-            <span className="studio-tile__name">{sizeName(entry)}</span>
-          </button>
-        ))}
-      </div>
-      <StudioTintSwitch />
-      {group(SETTINGS_GROUP_TITLE.picture)}
-      <StudioGridSwitch />
-      <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
-      {group(SETTINGS_GROUP_TITLE.visualizer)}
-      {settings}
-      {group(SETTINGS_GROUP_TITLE.drawing)}
-      <span className="studio-test__hint">{t('studio.performance.hint')}</span>
-      {/* The menu's own rows, in the card rather than floating out of it:
+        {settings}
+      </StudioCardGroup>
+      <StudioCardGroup group="drawing" title={t(SETTINGS_GROUP_TITLE.drawing)}>
+        <span className="studio-test__hint">
+          {t('studio.performance.hint')}
+        </span>
+        {/* The menu's own rows, in the card rather than floating out of it:
           see `.studio-performance__rows`, which takes the floating surface
           off the list they need for their own styling.
 
@@ -179,13 +184,14 @@ export default function StudioTestCard({
           [role="menu"]…)`, which out-weighs three classes, and its rainbow
           twin in euphoria). Declaring a menu here is what drew the box
           round these rows that Ivan asked to have taken off. */}
-      <div
-        className="graph-view-menu__list studio-performance__rows"
-        role="group"
-        aria-label={t('studio.performance.title')}
-      >
-        <ScenePerformanceMenu />
-      </div>
+        <div
+          className="graph-view-menu__list studio-performance__rows"
+          role="group"
+          aria-label={t('studio.performance.title')}
+        >
+          <ScenePerformanceMenu />
+        </div>
+      </StudioCardGroup>
     </StudioFoldCard>
   );
 }

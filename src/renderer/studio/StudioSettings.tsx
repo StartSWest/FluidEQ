@@ -65,7 +65,13 @@ export function Setting({
     <div className="studio-setting" title={hint}>
       <label className="studio-setting__head" htmlFor={id}>
         <span className="studio-setting__label">{label}</span>
-        <span className="studio-setting__value">{value}</span>
+        {/* Out of the name and left to `aria-valuetext`: a reading inside
+            the label makes the slider's accessible name "Glow 0.50", which
+            is read out again the moment the value changes, and changes the
+            control's own name every time it is dragged. */}
+        <span className="studio-setting__value" aria-hidden="true">
+          {value}
+        </span>
       </label>
       <input
         id={id}
@@ -75,6 +81,7 @@ export function Setting({
         max={STEPS}
         step={1}
         value={Math.round(position * STEPS)}
+        aria-label={label}
         aria-valuetext={value}
         disabled={disabled}
         style={{ '--fill': `${position * 100}%` } as CSSProperties}
