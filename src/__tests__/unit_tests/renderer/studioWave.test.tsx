@@ -120,9 +120,27 @@ describe('the stage', () => {
 });
 
 describe('the wave sliders', () => {
-  const controls = (wave: IStudioWave, onWave: (next: IStudioWave) => void) => (
-    <StudioWaveControls wave={wave} onWave={onWave} idle={false} />
+  const onCommit = jest.fn();
+  const onReset = jest.fn();
+  const controls = (
+    wave: IStudioWave,
+    onWave: (next: IStudioWave) => void,
+    canReset = true,
+  ) => (
+    <StudioWaveControls
+      wave={wave}
+      onWave={onWave}
+      onCommit={onCommit}
+      onReset={onReset}
+      canReset={canReset}
+      idle={false}
+    />
   );
+
+  beforeEach(() => {
+    onCommit.mockClear();
+    onReset.mockClear();
+  });
 
   it('snaps the height to the graph’s quarters and leaves other values alone', () => {
     const onWave = jest.fn();
@@ -136,16 +154,31 @@ describe('the wave sliders', () => {
     expect(onWave).toHaveBeenLastCalledWith({ height: 0.62, position: 0 });
   });
 
-  it('offers reset only once the wave has moved, and resets to the graph’s default', () => {
+  // The wave is saved into the scene now, so Reset is the card's own — back
+  // to what the scene was published with — rather than the graph's default,
+  // and it is offered exactly when there is something to go back to.
+  it('offers reset only when the scene has something to go back to', () => {
     const onWave = jest.fn();
-    const { rerender } = render(controls(DEFAULT_STUDIO_WAVE, onWave));
+    const { rerender } = render(controls(DEFAULT_STUDIO_WAVE, onWave, false));
     expect(
       screen.getByRole('button', { name: 'studio.settings.reset' }),
     ).toBeDisabled();
-    rerender(controls(LOW_LIFTED, onWave));
+    rerender(controls(LOW_LIFTED, onWave, true));
     fireEvent.click(
       screen.getByRole('button', { name: 'studio.settings.reset' }),
     );
-    expect(onWave).toHaveBeenCalledWith(DEFAULT_STUDIO_WAVE);
+    expect(onReset).toHaveBeenCalled();
+    expect(onWave).not.toHaveBeenCalled();
+  });
+
+  it('saves the wave into the scene when a slider is let go', () => {
+    const onWave = jest.fn();
+    render(controls(DEFAULT_STUDIO_WAVE, onWave));
+    const height = screen.getByRole('slider', { name: /graph.waveHeight/ });
+    fireEvent.change(height, { target: { value: '600' } });
+    // Moving it shows on the stage; letting go is what writes it.
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.pointerUp(height);
+    expect(onCommit).toHaveBeenCalled();
   });
 });
