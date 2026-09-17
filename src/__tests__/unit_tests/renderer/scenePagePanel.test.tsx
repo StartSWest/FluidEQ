@@ -76,6 +76,7 @@ const frame = (fade: number): ISceneFrame => ({
   beat: 0,
   bands: [0, 0, 0],
   musicAccent: [0, 0],
+  musicRun: [0, 0],
   accent: [0, 0, 0],
   fade,
   spectrum: new Uint8Array(0),
@@ -261,7 +262,14 @@ describe('the picture while the scene starts', () => {
     const still = container.querySelector('.gallery-preview__still');
     expect(still).not.toBeNull();
     expect(still).not.toHaveClass('is-behind');
-    expect(screen.getByRole('status')).toHaveTextContent('plus.scene.starting');
+    // The same loader the download wears, in the middle of the stage: one
+    // wait in two parts, not two different things happening.
+    const starting = screen.getByRole('status');
+    expect(starting).toHaveTextContent('plus.scene.starting');
+    expect(starting).toHaveClass('gallery-preview__wait');
+    expect(
+      starting.querySelector('.gallery-preview__wait-mark svg'),
+    ).not.toBeNull();
     expect(screen.queryByText('plus.scene.playing')).toBeNull();
 
     // A frame drawn at no strength is not on screen yet.
@@ -284,13 +292,13 @@ describe('the stage while the scene downloads', () => {
     const { container } = render(<VisualizersView onShowGraph={jest.fn()} />);
     act(() => openGalleryPage({ kind: 'scene', scene: official }));
     const loader = await screen.findByText('plus.scene.loading');
-    const veil = loader.closest('.gallery-preview__downloading');
+    const veil = loader.closest('.gallery-preview__wait');
     expect(veil).toHaveAttribute('role', 'status');
     expect(
-      veil?.querySelector('.gallery-preview__download-mark svg'),
+      veil?.querySelector('.gallery-preview__wait-mark svg'),
     ).not.toBeNull();
     expect(
-      container.querySelector('.gallery-preview__download-name'),
+      container.querySelector('.gallery-preview__wait-name'),
     ).toHaveTextContent('Aurora');
   });
 

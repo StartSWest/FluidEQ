@@ -882,47 +882,26 @@ $gallery-card-lead: 120ms;
   transition: opacity $motion-slow $ease-out $motion-slow;
 }
 
-// The scene is here and is being prepared for the screen: said in a small
-// glass line over its picture, not with a veil over it, because the picture
-// is the thing to look at meanwhile.
-.gallery-preview__starting {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  max-width: calc(100% - 24px);
-  padding: 5px 12px 5px 7px;
-  color: $text-primary;
-  border: 1px solid rgba($white, 0.12);
-  border-radius: $radius-pill;
-  background: rgba($black, 0.55);
-  font-size: $text-small;
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
-  transform: translateX(-50%);
-  pointer-events: none;
-  @include animate(fade-in, $motion-base, $ease-out);
-
-  .gallery-preview__spinner {
-    flex: 0 0 auto;
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-  }
-}
-
 .gallery-preview__veil--failed {
   color: $text-muted;
   background: color-mix(in srgb, $surface-plot 78%, transparent);
 }
 
-// The scene on its way down, in the Studio stage's loader. Darker in the
-// middle than at the edges: the ring's faint trace has to hold against
-// whatever the picture is brightest at there — Aurora's curtain, Bloom's
-// petals — while the edges keep enough of the picture to say which scene.
-.gallery-preview__downloading {
+/**
+ * Waiting for a scene, in the Studio stage's loader: coming down, and then
+ * being built for the screen.
+ *
+ * One shape for both halves, in the middle of the stage. The second used to
+ * be a small line at the foot of the picture while the first was a ring in
+ * the middle, and two shapes in two places read as two different things
+ * happening rather than as one wait in two parts.
+ *
+ * Darker in the middle than at the edges: the ring's faint trace has to hold
+ * against whatever the picture is brightest at there — Aurora's curtain,
+ * Bloom's petals — while the edges keep enough of the picture to say which
+ * scene is coming.
+ */
+.gallery-preview__wait {
   gap: 8px;
   background: radial-gradient(
     ellipse at center,
@@ -932,7 +911,9 @@ $gallery-card-lead: 120ms;
   @include animate(fade-in, $motion-base, $ease-out);
 }
 
-.gallery-preview__download-mark {
+// The ring, with what is happening drawn inside it: the download's arrow
+// while it comes down, the visualizer's own mark while it is started.
+.gallery-preview__wait-mark {
   @include loading-ring($secondary-light, 48px);
   margin-bottom: 4px;
   color: $secondary-light;
@@ -943,12 +924,12 @@ $gallery-card-lead: 120ms;
   }
 }
 
-.gallery-preview__download-title {
+.gallery-preview__wait-title {
   color: $text-primary;
   font-size: $text-body;
 }
 
-.gallery-preview__download-name {
+.gallery-preview__wait-name {
   max-width: 100%;
   color: $text-dim;
   font-size: $text-small;

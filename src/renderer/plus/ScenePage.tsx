@@ -302,10 +302,26 @@ export default function ScenePage({
               onOver={() => setPreview({ state: 'plus', tasted: true })}
             />
           )}
+          {/* The second half of one wait, in the shape of the first: the
+              scene has arrived and is being built for the screen. It was a
+              small line at the foot of the picture while the download was a
+              ring in the middle, which read as two different things
+              happening rather than one wait in two parts (Ivan,
+              2026-09-17). Same ring, same words underneath, and the
+              visualizer's own mark in place of the download arrow. */}
           {playing !== undefined && !live && (
-            <span className="gallery-preview__starting" role="status">
-              <span className="gallery-preview__spinner" aria-hidden="true" />
-              {t('plus.scene.starting')}
+            <span
+              className="gallery-preview__veil gallery-preview__wait"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="gallery-preview__wait-mark" aria-hidden="true">
+                <Glyph name="looks" />
+              </span>
+              <span className="gallery-preview__wait-title">
+                {t('plus.scene.starting')}
+              </span>
+              <span className="gallery-preview__wait-name">{name}</span>
             </span>
           )}
           {preview.state === 'ready' && live && (
@@ -319,20 +335,17 @@ export default function ScenePage({
               way, over the scene's own picture. */}
           {preview.state === 'loading' && (
             <span
-              className="gallery-preview__veil gallery-preview__downloading"
+              className="gallery-preview__veil gallery-preview__wait"
               role="status"
               aria-live="polite"
             >
-              <span
-                className="gallery-preview__download-mark"
-                aria-hidden="true"
-              >
+              <span className="gallery-preview__wait-mark" aria-hidden="true">
                 <Glyph name="download" />
               </span>
-              <span className="gallery-preview__download-title">
+              <span className="gallery-preview__wait-title">
                 {t('plus.scene.loading')}
               </span>
-              <span className="gallery-preview__download-name">{name}</span>
+              <span className="gallery-preview__wait-name">{name}</span>
             </span>
           )}
           {preview.state === 'failed' && (
