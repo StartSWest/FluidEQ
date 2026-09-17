@@ -210,7 +210,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'La gráfica de respuesta dibuja tus curvas de EQ sobre el sonido en directo. La barra que tiene encima elige qué se dibuja y cómo, y cambia según lo que haya en la gráfica: un estilo estándar o un visualizador Plus.',
   'help.graph.steps':
-    'Haz clic en el nombre del estilo actual para elegir otro estilo o un visualizador. Las flechas de al lado, Espacio y Ctrl+Espacio pasan de uno a otro.\nAbre Vista para cambiar el tamaño de la gráfica, lo que muestra y la altura y la posición de la onda.\nHaz doble clic en la gráfica para verla a pantalla completa. Un solo clic oculta o muestra la barra.',
+    'Haz clic en el nombre del estilo actual para elegir otro estilo o un visualizador. Las flechas de al lado, Espacio y Ctrl+Espacio pasan de uno a otro.\nAbre Vista para cambiar el tamaño de la gráfica, lo que muestra y la altura y la posición de la onda. La velocidad de fotogramas también está ahí: todos los fotogramas que ofrezca tu pantalla, o 60 o 30, y 60 con batería.\nUn visualizador Plus añade sus propios controles a Vista —lo que su autor te dejó ajustar— y Restaurar devuelve la onda a la altura y la posición que eligió ese autor.\nHaz doble clic en la gráfica para verla a pantalla completa. Un solo clic oculta o muestra la barra.',
   'help.graph.tip':
     'Todo esto cambia solo el dibujo, nunca tu sonido. Esc sale de las vistas ampliada y de pantalla completa.',
   'help.graph.stripCaption': 'Con un estilo estándar',
@@ -256,7 +256,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.release': 'Lo despacio que vuelve a bajar tras cada golpe.',
   'help.graph.ownTiming':
     'Vuelve a los tiempos con los que venía el visualizador.',
-
   'help.looks.title': 'Estilos y visualizadores Plus',
   'help.looks.intro':
     'Los estilos estándar son dibujos gratuitos del sonido en directo que puedes colorear y diseñar a tu gusto: Línea y Área para un trazo limpio, Bloques LED y Picos para dar pegada, y Cercha, Horizonte y Llamas danzantes para escenas completas. Los visualizadores Plus son escenas dibujadas en la tarjeta gráfica, como Alpino, Aurora, Floración y Ciudad de neón, en las que los graves, el ritmo y los agudos mueven cada uno algo distinto.',
@@ -447,7 +446,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Empieza por la fuente y la salida, y después aísla la capa. Una gráfica, un preset guardado o un interruptor activado no demuestran por sí solos que el sonido llegue al dispositivo previsto. El menú Ayuda también lleva a la solución de problemas de audio, al informe de problemas y al Foro.',
   'help.trouble.steps':
-    'Sin sonido: comprueba reproducción, salida, volumen y conexión. La opción Un solo reproductor puede haber pausado otra fuente.\nSin cambio de EQ: confirma que EQ del sistema está activado y que la salida no muestra DESACT.; si lo muestra, pulsa Activar. Si un aviso dice que el motor no está funcionando, pulsa Reiniciar el audio de Windows.\nDistorsión o graves excesivos: deja activado Normalizar automáticamente, reduce las ganancias y desactiva las capas de una en una. Si persiste, usa Informar de un problema y revisa el informe antes de enviarlo.',
+    'Sin sonido: comprueba reproducción, salida, volumen y conexión. La opción Un solo reproductor puede haber pausado otra fuente.\nSin cambio de EQ: confirma que EQ del sistema está activado y que la salida no muestra DESACT.; si lo muestra, pulsa Activar. Si un aviso dice que el motor no está funcionando, pulsa Reiniciar el audio de Windows.\nTodo parece correcto y el EQ sigue sin hacer nada: puede que Windows esté reproduciendo la música por fuera del motor. El aviso lo dice y ofrece moverlo de un toque a donde Windows sí lo use; cuesta un permiso y un segundo de silencio.\nDistorsión o graves excesivos: deja activado Normalizar automáticamente, reduce las ganancias y desactiva las capas de una en una. Si persiste, usa Informar de un problema y revisa el informe antes de enviarlo.',
   'help.trouble.tip':
     'F1 abre esta guía. Esc cierra primero la captura ampliada y después la guía. Si la interfaz se ve demasiado grande, Ctrl + 0 restablece el zoom. Procesos, en el menú de acciones, muestra qué está haciendo cada parte de FluidEQ.',
 

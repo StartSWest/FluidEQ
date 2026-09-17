@@ -8,11 +8,20 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ## 1.7.3
 
-The FluidEQ Engine learns surround: the DSP rack runs on every channel of a
-5.1 or 7.1 output, and on top of it comes the Room — a listening room on
-headphones, rendered through a measured head, with its card on the DSP
-page, one press to 7.1 where the driver takes it, a listening test that
-picks the head for your ears, and the same room on the Library's player.
+Two large pieces of work. The FluidEQ Engine learns surround: the DSP rack
+runs on every channel of a 5.1 or 7.1 output, and on top of it comes the
+Room — a listening room on headphones, rendered through a measured head,
+with its card on the DSP page, one press to 7.1 where the driver takes it,
+a listening test that picks the head for your ears, and the same room on
+the Library's player.
+
+And the visualizers were rebuilt underneath. They now draw on your display's
+own beat instead of a fixed thirty frames a second, sized by what your
+graphics card can actually keep up with rather than by a guess — which ends
+the ghosting that smeared every fast scene, and lets scenes run smoothly on
+far more machines than before. Scenes also carry the wave their author built
+them around, so a visualizer now looks the way the person who made it framed
+it, and the beat they move to is the one in the music.
 
 ### New
 
@@ -92,6 +101,44 @@ picks the head for your ears, and the same room on the Library's player.
   own copy of the rack, and that copy left the room out. Now it runs the
   same room with the same head, so a song in the Library and the same song
   from a browser sit in the same room.
+- **Visualizers draw on your screen's own beat.** They were held at thirty
+  frames a second whatever your monitor could do. Now they draw every frame
+  the display offers — on a 120 Hz or 144 Hz screen, four times the frames
+  of before — with 60 and 30 still there in the View menu under "Frame
+  rate", and sixty held on battery so a laptop is not drained by a picture.
+- **A scene is sized to what your graphics card can really do.** FluidEQ now
+  times the card itself while it draws. A scene that is too heavy is stepped
+  down to the size that measurably fits and stepped back up once it is
+  comfortable again, instead of being left stretched or stuttering; AMD's
+  FSR and FXAA smooth the result, so a scene running below full size still
+  looks sharp rather than soft. This is what lets the heavier visualizers
+  run on laptop graphics at all.
+- **A scene carries the wave it was built around.** The waveform's height
+  and where its floor sits are part of the scene now: an author sets them in
+  the Studio and they are published with it, so you see the visualizer
+  standing in the room it was framed in. You can still move the wave for any
+  scene — that is remembered per scene — and a Restore button puts the
+  author's back.
+- **The beat is the one in the music.** Scenes were driven by a level gate on
+  the bass, which counted a long kick as three beats and a steady bass line
+  as a beat held down — 192 to 287 beats a minute where the music had 120 to 170. It now hears where the music actually puts the beat, reads the treble
+  against what the track really has rather than the whole scale, and lets a
+  chorus carry a scene along and a quiet bar let it settle, instead of
+  inventing a "big moment" on a five-second timer.
+- **The View menu and the Studio's column now match.** Same order, same group
+  names, each group folding on its own, and the sliders lined up in a wider
+  menu. A Plus visualizer's own controls — the ones its author exposed — can
+  now be set by a listener from the View menu, not only in the Studio.
+- **The Graphics card row says which card is drawing.** The card in use and
+  the card chosen can differ for a whole session — Remote Desktop can start
+  the app on a laptop's integrated chip and coming back to the real machine
+  does not move it — and nothing said so. The card's own name now sits under
+  the choice.
+- **Welcome to Plus, as a moment.** Paying now turns Plus on when you come
+  back, and the welcome is a wide card with a scene playing behind it rather
+  than five grey boxes. The Account panel was rebuilt with it: a profile card
+  with your scene as its banner, your membership badge on it, and your links
+  beside your name.
 
 ### Fixed
 
@@ -136,6 +183,39 @@ picks the head for your ears, and the same room on the Library's player.
   switch would have given up the EQ that was working for nothing. Equalizer
   APO is offered where the engine itself is failing; a DSP problem gets the
   restart, or just an acknowledgement.
+- **Fast scenes no longer smear into their own past.** The protection that
+  keeps a visualizer from flashing was holding back any quick change in
+  brightness, not just a flashing one — so anything bright moving quickly
+  was blended with the frame before it. A bright bar sweeping the picture
+  was being held on every single frame. It now acts only where the
+  brightness actually reverses, and only fast enough to matter, so fast
+  scenes are sharp while a real flash is still stopped. Two scenes had been
+  slowed down by hand to work around this and can go back to their own pace.
+- **Windows playing the music past the engine is now named and repaired.**
+  An output has several places an effect can sit and Windows picks a
+  different one depending on the kind of stream, so the engine could be
+  installed, switched on, locked and processing while not one sample went
+  through it — healthy in every reading the app had, and silent to the
+  listener. The engine now counts the audio that actually reaches it. When
+  none does, the card says the music is going past FluidEQ and offers one
+  press to move it, at the cost of one Windows permission and a second of
+  silence. In ten languages.
+- **Share Audio no longer stops the music it just started.** Only one
+  computer plays at a time, and the rule crossed the wire and came back: a
+  pause sent from here returned a moment later looking like somebody over
+  there pressing play, so the music of whoever had just pressed play was
+  stopped. A press is now sent as a press rather than guessed at from a
+  description, and a reconnection or a paused player falling through can no
+  longer be mistaken for one.
+- **A scene published by a newer FluidEQ plays instead of vanishing.** The
+  number a scene records is what it was written against, not a list of what
+  it needs — but it was read as the second, so a scene from a newer build
+  disappeared from the looks, the gallery and the Studio even when it used
+  nothing this build lacks. Such a scene now plays; one that genuinely needs
+  something newer falls back to the plainer drawing its author chose for
+  exactly that case.
+- **FluidEQ says its own version again.** In a few places the app named the
+  framework's version instead of its own.
 
 ## 1.7.2
 

@@ -208,7 +208,7 @@ const help = {
   'help.graph.intro':
     'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a Plus visualizer.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position.\nDouble-click the plot for full screen. A single click hides or shows the strip.',
+    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Restore puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen. A single click hides or shows the strip.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound. Esc leaves the expanded and full-screen views.',
   'help.graph.stripCaption': 'With a standard style',
@@ -431,7 +431,7 @@ const help = {
   'help.trouble.intro':
     'Start with the source and output, then isolate the layer. A graph, a saved preset or an enabled switch alone cannot prove that sound reached the intended device. The Help menu also leads to audio troubleshooting, problem reporting and the Forum.',
   'help.trouble.steps':
-    'No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.\nNo EQ change: confirm System EQ is on and the output shows no OFF badge; press Enable if it does. If a notice says the engine is not running, press Restart Windows audio.\nDistortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.',
+    'No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.\nNo EQ change: confirm System EQ is on and the output shows no OFF badge; press Enable if it does. If a notice says the engine is not running, press Restart Windows audio.\nEverything looks right and the EQ still does nothing: Windows may be playing the music past the engine. The notice says so and offers one press to move the engine somewhere Windows will use; it costs a permission prompt and a second of silence.\nDistortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.',
   'help.trouble.tip':
     'F1 opens this guide. Esc closes an enlarged capture, then the guide. If the interface is too large, Ctrl + 0 resets zoom. Processes in the actions menu shows what each part of FluidEQ is doing.',
 

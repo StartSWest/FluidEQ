@@ -364,8 +364,9 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 ### Try it
 
 1. Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.
-2. Open View for the graph’s size, what it shows, and the wave’s height and position.
-3. Double-click the plot for full screen. A single click hides or shows the strip.
+2. Open View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.
+3. A Plus visualizer adds its own controls to View — whatever its author left for you to set — and Restore puts the wave back to the height and position that author chose.
+4. Double-click the plot for full screen. A single click hides or shows the strip.
 
 > **Good to know:** Everything here changes only the drawing, never your sound. Esc leaves the expanded and full-screen views.
 
@@ -646,7 +647,8 @@ Start with the source and output, then isolate the layer. A graph, a saved prese
 
 1. No sound: confirm playback is running, the expected output is selected, volume is up, and the device is connected. Check whether One player at a time paused another source.
 2. No EQ change: confirm System EQ is on and the output shows no OFF badge; press Enable if it does. If a notice says the engine is not running, press Restart Windows audio.
-3. Distortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.
+3. Everything looks right and the EQ still does nothing: Windows may be playing the music past the engine. The notice says so and offers one press to move the engine somewhere Windows will use; it costs a permission prompt and a second of silence.
+4. Distortion or excessive bass: leave Auto normalize on, reduce boosts and bypass layers one at a time. If it persists, use Report a problem and review the report before sending.
 
 > **Good to know:** F1 opens this guide. Esc closes an enlarged capture, then the guide. If the interface is too large, Ctrl + 0 resets zoom. Processes in the actions menu shows what each part of FluidEQ is doing.
 

@@ -212,7 +212,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Il grafico di risposta disegna le curve del tuo EQ sopra il suono dal vivo. La barra sopra il grafico sceglie cosa viene disegnato e come, e cambia con l’aspetto: uno stile standard o un visualizzatore Plus.',
   'help.graph.steps':
-    'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Space e Ctrl+Space li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda.\nFai doppio clic sul grafico per lo schermo intero. Un clic singolo nasconde o mostra la barra.',
+    'Fai clic sul nome dell’aspetto per scegliere uno stile o un visualizzatore. Le frecce accanto, Space e Ctrl+Space li scorrono.\nApri Vista per la dimensione del grafico, ciò che mostra e l’altezza e la posizione dell’onda. Anche la frequenza dei fotogrammi è lì: tutti i fotogrammi che offre il tuo schermo, oppure 60 o 30, e 60 a batteria.\nUn visualizzatore Plus aggiunge a Vista i propri comandi — quello che il suo autore ti ha lasciato regolare — e Ripristina riporta l’onda all’altezza e alla posizione scelte da quell’autore.\nFai doppio clic sul grafico per lo schermo intero. Un clic singolo nasconde o mostra la barra.',
   'help.graph.tip':
     'Tutto qui cambia solo il disegno, mai il suono. Esc esce dalla vista espansa e dallo schermo intero.',
   'help.graph.stripCaption': 'Con uno stile standard',
@@ -258,7 +258,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.release': 'Quanto lentamente ricade dopo ogni colpo.',
   'help.graph.ownTiming':
     'Torna ai tempi con cui è arrivato il visualizzatore.',
-
   'help.looks.title': 'Stili e visualizzatori Plus',
   'help.looks.intro':
     'Gli stili standard sono disegni gratuiti del suono dal vivo che puoi colorare e personalizzare tu: Linea e Area per una traccia pulita, Blocchi LED e Picchi per l’impatto, Traliccio, Profilo urbano e Fiamme danzanti per scene intere. I visualizzatori Plus sono scene disegnate dalla scheda grafica, come Alpino, Aurora, Fioritura e Città al neon, in cui bassi, battito e acuti muovono ognuno qualcosa di diverso.',
@@ -447,7 +446,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Inizia da sorgente e uscita, poi isola il livello. Un grafico, un preset salvato o un interruttore attivo da soli non provano che il suono abbia raggiunto il dispositivo giusto. Il menu Aiuto porta anche alla risoluzione dei problemi audio, alle segnalazioni e al Forum.',
   'help.trouble.steps':
-    'Nessun suono: verifica riproduzione, uscita, volume e collegamento. Un solo lettore potrebbe aver messo in pausa un’altra sorgente.\nL’EQ non cambia nulla: verifica che EQ di sistema sia attivo e che l’uscita non mostri l’etichetta DISATT., altrimenti premi Attiva. Se un avviso dice che il motore non è in funzione, premi Riavvia l’audio di Windows.\nDistorsione o bassi eccessivi: lascia attivo Normalizza automaticamente, riduci i rinforzi e spegni un livello alla volta. Se persiste, usa Segnala un problema e rivedi la segnalazione prima di inviarla.',
+    "Nessun suono: verifica riproduzione, uscita, volume e collegamento. Un solo lettore potrebbe aver messo in pausa un’altra sorgente.\nL’EQ non cambia nulla: verifica che EQ di sistema sia attivo e che l’uscita non mostri l’etichetta DISATT., altrimenti premi Attiva. Se un avviso dice che il motore non è in funzione, premi Riavvia l’audio di Windows.\nSembra tutto a posto e l'EQ continua a non fare nulla: Windows potrebbe riprodurre la musica fuori dal motore. L'avviso lo dice e propone di spostarlo con un tocco dove Windows lo userà; costa un permesso e un secondo di silenzio.\nDistorsione o bassi eccessivi: lascia attivo Normalizza automaticamente, riduci i rinforzi e spegni un livello alla volta. Se persiste, usa Segnala un problema e rivedi la segnalazione prima di inviarla.",
   'help.trouble.tip':
     'F1 apre questa guida. Esc chiude prima la schermata ingrandita, poi la guida. Se l’interfaccia è troppo grande, Ctrl + 0 azzera lo zoom. Processi, nel menu delle azioni, mostra cosa sta facendo ogni parte di FluidEQ.',
 

@@ -214,7 +214,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Das Frequenzgangdiagramm zeichnet deine EQ-Kurven über den Live-Klang. Die Leiste darüber bestimmt, was und wie gezeichnet wird, und sie ändert sich mit der Darstellung: ein Standardstil oder eine Plus-Visualisierung.',
   'help.graph.steps':
-    'Klicke auf den Namen der Darstellung, um einen Stil oder eine Visualisierung zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffne Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle.\nDoppelklicke auf das Diagramm für Vollbild. Ein einfacher Klick blendet die Leiste aus oder ein.',
+    'Klicke auf den Namen der Darstellung, um einen Stil oder eine Visualisierung zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffne Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. Die Bildrate steht ebenfalls dort: jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Zurücksetzen bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicke auf das Diagramm für Vollbild. Ein einfacher Klick blendet die Leiste aus oder ein.',
   'help.graph.tip':
     'Alles hier ändert nur, was gezeichnet wird, nie deinen Klang. Esc verlässt die erweiterte Ansicht und das Vollbild.',
   'help.graph.stripCaption': 'Mit einem Standardstil',
@@ -259,7 +259,6 @@ const help: Record<keyof typeof en, string> = {
     'Wie schnell eine Plus-Visualisierung zur Musik ansteigt.',
   'help.graph.release': 'Wie langsam sie nach jedem Schlag wieder fällt.',
   'help.graph.ownTiming': 'Zurück zum Timing, mit dem die Visualisierung kam.',
-
   'help.looks.title': 'Stile und Plus-Visualisierungen',
   'help.looks.intro':
     'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die du selbst einfärben und gestalten kannst: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Plus-Visualisierungen sind auf der Grafikkarte gezeichnete Szenen wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
@@ -452,7 +451,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Beginne bei Quelle und Ausgang und isoliere dann die Ebene. Ein Diagramm, ein gespeichertes Preset oder ein eingeschalteter Schalter allein beweist nicht, dass der Ton das gewünschte Gerät erreicht hat. Das Menü Hilfe führt außerdem zur Audioreparatur, zu Problemberichten und zum Forum.',
   'help.trouble.steps':
-    'Kein Ton: Prüfe, ob die Wiedergabe läuft, der erwartete Ausgang gewählt ist, die Lautstärke aufgedreht und das Gerät verbunden ist. Prüfe, ob Nur ein Player eine andere Quelle pausiert hat.\nKeine EQ-Wirkung: Prüfe, ob System-EQ eingeschaltet ist und beim Ausgang nicht AUS steht; falls doch, drücke Aktivieren. Meldet ein Hinweis, dass die Engine nicht läuft, drücke Windows-Audio neu starten.\nVerzerrung oder zu viel Bass: Lass Automatisch normalisieren eingeschaltet, reduziere Anhebungen und umgehe Ebenen einzeln. Falls es bleibt, nutze Problem melden und prüfe den Bericht vor dem Senden.',
+    'Kein Ton: Prüfe, ob die Wiedergabe läuft, der erwartete Ausgang gewählt ist, die Lautstärke aufgedreht und das Gerät verbunden ist. Prüfe, ob Nur ein Player eine andere Quelle pausiert hat.\nKeine EQ-Wirkung: Prüfe, ob System-EQ eingeschaltet ist und beim Ausgang nicht AUS steht; falls doch, drücke Aktivieren. Meldet ein Hinweis, dass die Engine nicht läuft, drücke Windows-Audio neu starten.\nAlles sieht richtig aus und der EQ tut trotzdem nichts: Windows spielt die Musik möglicherweise an der Engine vorbei. Der Hinweis sagt das und bietet an, sie mit einem Druck dorthin zu verschieben, wo Windows sie nutzt; das kostet eine Berechtigung und eine Sekunde Stille.\nVerzerrung oder zu viel Bass: Lass Automatisch normalisieren eingeschaltet, reduziere Anhebungen und umgehe Ebenen einzeln. Falls es bleibt, nutze Problem melden und prüfe den Bericht vor dem Senden.',
   'help.trouble.tip':
     'F1 öffnet dieses Handbuch. Esc schließt zuerst eine vergrößerte Aufnahme, dann das Handbuch. Ist die Oberfläche zu groß, setzt Strg + 0 den Zoom zurück. Prozesse im Aktionsmenü zeigt, was jeder Teil von FluidEQ gerade tut.',
 

@@ -214,7 +214,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Le graphique de réponse trace vos courbes d’EQ sur le son en direct. La barre au-dessus choisit ce qui est dessiné et comment, et elle change selon le style choisi : style standard ou visualiseur Plus.',
   'help.graph.steps':
-    'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Space et Ctrl+Space les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde.\nDouble-cliquez sur le tracé pour passer en plein écran. Un simple clic masque ou affiche la barre.',
+    'Cliquez sur le nom du style pour choisir un style ou un visualiseur. Les flèches à côté, Space et Ctrl+Space les font défiler.\nOuvrez Affichage pour la taille du graphique, ce qu’il montre, et la hauteur et la position de l’onde. La fréquence d’images s’y trouve aussi : toutes les images que votre écran propose, ou 60 ou 30, et 60 sur batterie.\nUn visualiseur Plus ajoute ses propres réglages à Affichage — ce que son auteur vous a laissé régler — et Rétablir ramène l’onde à la hauteur et à la position choisies par cet auteur.\nDouble-cliquez sur le tracé pour passer en plein écran. Un simple clic masque ou affiche la barre.',
   'help.graph.tip':
     'Tout ceci ne change que le dessin, jamais votre son. Échap quitte la vue agrandie et le plein écran.',
   'help.graph.stripCaption': 'Avec un style standard',
@@ -259,7 +259,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.release':
     'La lenteur avec laquelle il redescend après chaque coup.',
   'help.graph.ownTiming': 'Revient au rythme fourni avec le visualiseur.',
-
   'help.looks.title': 'Styles et visualiseurs Plus',
   'help.looks.intro':
     'Les styles standard sont des dessins gratuits du son en direct, que vous pouvez colorer et concevoir vous-même : Ligne et Aire pour un tracé net, Blocs LED et Pics pour du punch, Treillis, Horizon et Flammes dansantes pour des scènes entières. Les visualiseurs Plus sont des scènes dessinées par la carte graphique, comme Alpin, Aurore, Floraison et Ville néon, où les basses, le rythme et les aigus font chacun bouger quelque chose de différent.',
@@ -452,7 +451,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Commencez par la source et la sortie, puis isolez la couche en cause. Un graphique, un préréglage enregistré ou un interrupteur activé ne suffit pas à prouver que le son atteint l’appareil voulu. Le menu Aide mène aussi au dépannage audio, au signalement de problèmes et au Forum.',
   'help.trouble.steps':
-    'Aucun son : vérifiez que la lecture est en cours, que la bonne sortie est sélectionnée, que le volume est monté et que l’appareil est connecté. Vérifiez si Un seul lecteur a mis une autre source en pause.\nAucun effet de l’EQ : vérifiez que l’Égaliseur système est activé et que la sortie n’affiche pas le badge DÉSACT. ; si c’est le cas, appuyez sur Activer. Si un avis indique que le moteur ne tourne pas, appuyez sur Redémarrer l’audio de Windows.\nDistorsion ou basses excessives : laissez la Normalisation auto activée, réduisez les amplifications et contournez les couches une à une. Si cela persiste, utilisez Signaler un problème et relisez le rapport avant de l’envoyer.',
+    "Aucun son : vérifiez que la lecture est en cours, que la bonne sortie est sélectionnée, que le volume est monté et que l’appareil est connecté. Vérifiez si Un seul lecteur a mis une autre source en pause.\nAucun effet de l’EQ : vérifiez que l’Égaliseur système est activé et que la sortie n’affiche pas le badge DÉSACT. ; si c’est le cas, appuyez sur Activer. Si un avis indique que le moteur ne tourne pas, appuyez sur Redémarrer l’audio de Windows.\nTout semble correct et l'EQ ne fait toujours rien : Windows joue peut-être la musique en dehors du moteur. L'avis le dit et propose de le déplacer d'une pression là où Windows l'utilisera ; cela coûte une autorisation et une seconde de silence.\nDistorsion ou basses excessives : laissez la Normalisation auto activée, réduisez les amplifications et contournez les couches une à une. Si cela persiste, utilisez Signaler un problème et relisez le rapport avant de l’envoyer.",
   'help.trouble.tip':
     'F1 ouvre ce guide. Échap ferme d’abord la capture agrandie, puis le guide. Si l’interface est trop grande, Ctrl + 0 réinitialise le zoom. Processus, dans le menu des actions, montre ce que fait chaque partie de FluidEQ.',
 

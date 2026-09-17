@@ -209,7 +209,7 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou um visualizador Plus.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Space e Ctrl+Space percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda.\nClique duas vezes no gráfico para tela inteira. Um clique simples oculta ou mostra a barra.',
+    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Space e Ctrl+Space percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. A taxa de quadros também está lá: todos os quadros que o seu ecrã oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controlos a Ver — o que o autor lhe deixou ajustar — e Restaurar devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela inteira. Um clique simples oculta ou mostra a barra.',
   'help.graph.tip':
     'Tudo aqui muda só o desenho, nunca o seu som. Esc sai das visualizações expandida e em tela inteira.',
   'help.graph.stripCaption': 'Com um estilo padrão',
@@ -255,7 +255,6 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.release':
     'Com que lentidão ele volta a cair depois de cada batida.',
   'help.graph.ownTiming': 'Volta ao ritmo original do visualizador.',
-
   'help.looks.title': 'Estilos e visualizadores Plus',
   'help.looks.intro':
     'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa gráfica, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
@@ -447,7 +446,7 @@ const help: Record<keyof typeof en, string> = {
   'help.trouble.intro':
     'Comece pela fonte e pela saída, depois isole a camada. Um gráfico, um preset salvo ou um interruptor ativado não provam, sozinhos, que o som chegou ao dispositivo certo. O menu Ajuda também leva à solução de problemas de áudio, ao relato de problemas e ao Fórum.',
   'help.trouble.steps':
-    'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado e que a saída não mostra o selo DESLIG. Se mostrar, pressione Ativar. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
+    'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado e que a saída não mostra o selo DESLIG. Se mostrar, pressione Ativar. Se um aviso disser que o motor não está funcionando, pressione Reiniciar o áudio do Windows.\nEstá tudo certo e o EQ continua sem fazer nada: o Windows pode estar a tocar a música por fora do motor. O aviso di-lo e oferece movê-lo com um toque para onde o Windows o use; custa uma permissão e um segundo de silêncio.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
   'help.trouble.tip':
     'F1 abre este guia. Esc fecha uma captura ampliada e depois o guia. Se a interface estiver grande demais, Ctrl + 0 restaura o zoom. Processos, no menu de ações, mostra o que cada parte do FluidEQ está fazendo.',
 
