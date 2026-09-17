@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
-import { flashGuardFor } from '../graph/sceneFlashGuard';
+import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
@@ -15,6 +15,12 @@ export type TPreviewTrouble = 'heavy' | 'unavailable' | 'compile';
 interface IScenePreviewProps {
   /** The scene and its version: a new one starts it from the top. */
   identity: string;
+  /**
+   * Who made the scene being shown. The gallery shows FluidEQ's own scenes,
+   * other members' work, and the viewer's own published scenes, and the
+   * brightness limiter is only for the middle one.
+   */
+  madeBy: TSceneMaker;
   pack: IScenePack;
   label: string;
   onTrouble: (trouble: TPreviewTrouble) => void;
@@ -39,6 +45,7 @@ interface IScenePreviewProps {
  */
 export default function ScenePreview({
   identity,
+  madeBy,
   pack,
   label,
   onTrouble,
@@ -91,10 +98,9 @@ export default function ScenePreview({
       },
       tooSlow: () => troubleRef.current('heavy'),
       createLadder: createWarmupLadder,
-      // The gallery shows what other members made: never the viewer own.
-      createGuard: flashGuardFor(false),
+      madeBy,
     }),
-    [identity],
+    [identity, madeBy],
   );
 
   const drawnRef = useRef(onDrawn);

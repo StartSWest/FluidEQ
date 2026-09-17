@@ -10,7 +10,6 @@ import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
-import { flashGuardFor } from '../graph/sceneFlashGuard';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
   type ISceneSource,
@@ -194,10 +193,9 @@ export default function StudioStage({
         ),
       tooSlow: () => troubleRef.current({ kind: 'heavy' }),
       createLadder: createWarmupLadder,
-      // The author is at the machine looking at their own work, which is
-      // the watching the limiter exists for: the same rule every other
-      // surface asks answers no limiter here (`flashGuardFor`).
-      createGuard: flashGuardFor(true),
+      // The author is at the machine looking at their own work, which is the
+      // watching the brightness limiter exists for (`limiterIsFor`).
+      madeBy: 'listener',
     }),
     [identity, serial],
   );

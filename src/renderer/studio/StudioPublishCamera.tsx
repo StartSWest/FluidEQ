@@ -134,6 +134,8 @@ export default function StudioPublishCamera({
           </p>
         ) : (
           <ScenePreview
+            // The member's own work, on its way to the gallery.
+            madeBy="listener"
             identity={`publish:${identity}`}
             pack={pack}
             label={t('studio.stage.label', { name })}

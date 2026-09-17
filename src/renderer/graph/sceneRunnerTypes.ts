@@ -2,7 +2,7 @@ import type { IScenePack } from 'common/scenePacks';
 import type { IScenePerformance } from 'common/scenePerformance';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
-import type { IFlashGuard } from './sceneFlashGuard';
+import type { TSceneMaker } from './sceneFlashGuard';
 import type { ICostLadder } from './sceneHealth';
 import type { ISceneTuning } from './sceneTuner';
 
@@ -62,7 +62,7 @@ export interface ISceneSource {
    */
   createLadder(top: number, floor: number): ICostLadder;
   /** Present only for scenes drawn through the brightness limiter. */
-  createGuard?: (gl: WebGL2RenderingContext) => IFlashGuard | null;
+  madeBy: TSceneMaker;
   /**
    * Compile the scene's program while it is out of sight, so it is ready the
    * moment it is shown (`warmSceneProgram`). The graph's look, which somebody

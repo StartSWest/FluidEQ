@@ -398,8 +398,9 @@ const link = (gl: WebGL2RenderingContext, fragmentSource: string) => {
  * picture wrong. That is a price worth paying against a stranger's scene and
  * not against your own.
  */
-export const flashGuardFor = (own: boolean) =>
-  own ? undefined : createFlashGuard;
+export type TSceneMaker = 'fluideq' | 'listener' | 'member';
+
+export const limiterIsFor = (madeBy: TSceneMaker) => madeBy === 'member';
 
 /** `null` when the GPU cannot give it what it needs — the scene then must not run. */
 export const createFlashGuard = (

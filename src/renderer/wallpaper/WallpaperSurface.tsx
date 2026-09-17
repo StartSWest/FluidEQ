@@ -12,7 +12,6 @@ import {
 import { SceneAudioProvider } from '../audio/SceneAudioContext';
 import { createCostLadder } from '../graph/sceneHealth';
 import { createWarmupLadder } from '../graph/sceneWarmup';
-import { flashGuardFor } from '../graph/sceneFlashGuard';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
 import { studioSpectrumRect } from '../studio/studioWave';
 import { createCalmShaper } from './calmMotion';
@@ -54,7 +53,7 @@ function Scene({
       createLadder: bootstrap.member ? createWarmupLadder : createCostLadder,
       // Main tells this page whether the scene is a member one, not whose
       // it is, so a background keeps the limiter on any of them.
-      createGuard: bootstrap.member ? flashGuardFor(false) : undefined,
+      madeBy: bootstrap.member ? 'member' : 'fluideq',
       restsInSilence: true,
     }),
     [bootstrap, bridge],

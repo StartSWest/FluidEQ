@@ -8,66 +8,81 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
   createFlashGuard,
-  flashGuardFor,
+  limiterIsFor,
 } from '../../../renderer/graph/sceneFlashGuard';
 
 /**
- * Which surfaces draw a scene through the brightness limiter, and which show
- * it as it is drawn.
+ * Who a scene is drawn through the brightness limiter for.
  *
  * The limiter holds a flash back by blending the last picture shown into the
  * new one, and on a scene moving fast that paints the previous frame's detail
  * over this one: a gem at full speed came out with two sets of facets on it,
  * which is what a ghost is, measured at a tenth of the picture wrong. That is
- * worth it everywhere somebody meets a scene nobody has watched — the graph,
- * the desktop background, the gallery's previews — and wrong on the Studio's
- * stage, which IS the watching: the author is at the machine looking at their
- * own work, and a scene slowed down to escape the limiter is slowed for
- * everyone.
+ * worth it for a scene another member made, which reaches somebody's eyes
+ * with nobody having watched it first, and wrong for a scene FluidEQ released
+ * — those are watched before release — and wrong for the listener's own,
+ * which they built and watched themselves.
  *
- * Pinned here because nothing else can see it. Whether a scene is guarded is
- * one argument handed to a worker; no test can query it by role, rendering
- * any of these four mounts a page's worth of context and would mock away the
- * one line that matters, and putting it back on the stage would read as a
- * tidy-up. Each file is read instead, and the three that must have it are the
- * control for the one that must not: a wrong path or a renamed symbol fails
- * them together rather than passing silently.
+ * It was written out four times, once per surface, and they disagreed: the
+ * Studio's stage showed a scene as it is while the graph and the gallery
+ * showed the same scene, made by the same listener, ghosted. So a source now
+ * states one fact — who made its scene — and the runner alone decides what
+ * follows. Pinned here because nothing else can see it: the decision ends up
+ * as one argument to a worker, no test can query it by role, and rendering
+ * any of these surfaces mounts a page's worth of context that would mock away
+ * the line that matters.
  */
 
 const wiring = (file: string) =>
   readFileSync(join(__dirname, '../../../renderer', file), 'utf8');
 
-describe('the brightness limiter’s reach', () => {
-  it('is decided in one place, which every surface asks', () => {
-    // Four files once each named the limiter themselves and disagreed: the
-    // Studio's stage showed a scene as it is while the graph showed the same
-    // scene, made by the same listener, ghosted.
-    [
-      'graph/SceneCanvas.tsx',
-      'plus/ScenePreview.tsx',
-      'wallpaper/WallpaperSurface.tsx',
-      'studio/StudioStage.tsx',
-    ].forEach((file) => {
-      expect(wiring(file)).toContain('flashGuardFor');
-      expect(wiring(file)).not.toContain('createGuard: createFlashGuard');
+/** Every surface that draws a scene through the runner. */
+const SURFACES = [
+  'graph/SceneCanvas.tsx',
+  'plus/ScenePreview.tsx',
+  'wallpaper/WallpaperSurface.tsx',
+  'studio/StudioStage.tsx',
+];
+
+describe('who the brightness limiter is for', () => {
+  it('is decided once, by the runner, from a fact the source states', () => {
+    SURFACES.forEach((file) => {
+      expect(wiring(file)).toContain('madeBy');
+      // No surface reaches for the limiter itself any more.
+      expect(wiring(file)).not.toContain('createGuard');
+      expect(wiring(file)).not.toContain('createFlashGuard');
     });
+    expect(wiring('graph/useSceneRunner.ts')).toContain(
+      'limiterIsFor(sourceRef.current.madeBy)',
+    );
   });
 
-  it('spares a scene the listener made and holds one they did not', () => {
-    expect(flashGuardFor(true)).toBeUndefined();
-    expect(flashGuardFor(false)).toBe(createFlashGuard);
+  it('holds another member’s scene and spares the two that were watched', () => {
+    expect(limiterIsFor('member')).toBe(true);
+    // FluidEQ's own are watched before release; the listener's own they made.
+    expect(limiterIsFor('fluideq')).toBe(false);
+    expect(limiterIsFor('listener')).toBe(false);
   });
 
-  it('asks it of the listener’s own scene on the graph, and of nobody’s on the stage', () => {
-    // The graph draws a member's scene whoever made it, so it passes the
-    // answer along; the stage is the author's own work by definition.
-    expect(wiring('graph/SceneCanvas.tsx')).toContain('flashGuardFor(own)');
-    expect(wiring('studio/StudioStage.tsx')).toContain('flashGuardFor(true)');
-    // The gallery shows other members' scenes, and main tells a desktop
-    // background that a scene is a member's without saying whose.
-    expect(wiring('plus/ScenePreview.tsx')).toContain('flashGuardFor(false)');
+  it('tells the listener’s own scene from another member’s, everywhere', () => {
+    // The graph and the scene page both draw a member's scene whoever made
+    // it, so both pass the answer along rather than assuming one.
+    expect(wiring('graph/SceneCanvas.tsx')).toContain(
+      "madeBy: own ? 'listener' : 'member'",
+    );
+    expect(wiring('plus/ScenePage.tsx')).toContain(
+      "madeBy={own ? 'listener' : 'member'}",
+    );
+    // The stage and the publish camera are the author's own work by
+    // definition; a scene FluidEQ released is watched before it ships.
+    expect(wiring('studio/StudioStage.tsx')).toContain("madeBy: 'listener'");
+    expect(wiring('studio/StudioPublishCamera.tsx')).toContain(
+      'madeBy="listener"',
+    );
+    expect(wiring('graph/SceneCanvas.tsx')).toContain("madeBy: 'fluideq'");
+    // A desktop background is told a scene is a member's, never whose.
     expect(wiring('wallpaper/WallpaperSurface.tsx')).toContain(
-      'bootstrap.member ? flashGuardFor(false) : undefined',
+      "madeBy: bootstrap.member ? 'member' : 'fluideq'",
     );
   });
 

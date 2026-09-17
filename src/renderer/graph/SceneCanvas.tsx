@@ -24,7 +24,6 @@ import {
   reportMemberSceneFailure,
   type IUsableMemberScene,
 } from '../utils/memberScenes';
-import { flashGuardFor } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
@@ -75,7 +74,8 @@ export default function SceneCanvas({
   spectrumRect,
 }: ISceneCanvasProps) {
   const member = isMemberScene(scene);
-  // A scene this listener made is one they have watched; see flashGuardFor.
+  // A scene this listener made is one they have watched: the source says so
+  // below, and the runner alone decides what follows (`limiterIsFor`).
   const own = member && scene.own;
   const key = member ? scene.lookId : scene.id;
   const version = scene.revision ?? String(scene.version);
@@ -94,7 +94,7 @@ export default function SceneCanvas({
             },
             tooSlow: () => blockMemberScene(key),
             createLadder: createWarmupLadder,
-            createGuard: flashGuardFor(own),
+            madeBy: own ? 'listener' : 'member',
             restsInSilence: true,
           }
         : {
@@ -110,6 +110,7 @@ export default function SceneCanvas({
             // the pack: fall back until the next launch, write nothing down.
             tooSlow: () => blockScene(key),
             createLadder: createCostLadder,
+            madeBy: 'fluideq',
             warmWhenUnseen: true,
             restsInSilence: true,
           },

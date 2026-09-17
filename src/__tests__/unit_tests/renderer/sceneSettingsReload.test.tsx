@@ -80,6 +80,7 @@ const source = (next: IScenePack, version: number): ISceneSource => ({
   block: jest.fn(),
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
+  madeBy: 'fluideq' as const,
   createLadder: ladder,
 });
 /**

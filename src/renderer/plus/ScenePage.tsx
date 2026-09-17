@@ -283,6 +283,7 @@ export default function ScenePage({
           {preview.state === 'ready' && (
             <ScenePreview
               identity={playing ?? ''}
+              madeBy={own ? 'listener' : 'member'}
               pack={preview.pack}
               label={t('plus.scene.playing')}
               onTrouble={(trouble) =>
@@ -294,6 +295,7 @@ export default function ScenePage({
           {preview.state === 'taste' && (
             <SceneTaste
               identity={playing ?? ''}
+              madeBy={own ? 'listener' : 'member'}
               pack={preview.pack}
               onTrouble={(trouble) =>
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })

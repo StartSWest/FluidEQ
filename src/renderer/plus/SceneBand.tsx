@@ -134,6 +134,8 @@ export default function SceneBand({
       {playing && (
         <ScenePreview
           identity="scene-band"
+          // The starter scene behind a banner is FluidEQ's own.
+          madeBy="fluideq"
           pack={pack}
           label={resolveSceneName(pack, locale)}
           onTrouble={() => setTrouble(true)}

@@ -79,6 +79,7 @@ const source: ISceneSource = {
   block: jest.fn(),
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
+  madeBy: 'fluideq' as const,
   createLadder: () => ({
     frame: mockLadderFrame,
     scale: () => 1,

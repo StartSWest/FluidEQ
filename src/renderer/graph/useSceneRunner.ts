@@ -17,6 +17,7 @@ import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
+import { limiterIsFor } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
 import {
   SCENE_SLOW_FRAMES_TO_STEP,
@@ -599,7 +600,7 @@ export default function useSceneRunner({
         shelvedRef.current = pack;
         setWaiting(true);
         if (sourceRef.current.warmWhenUnseen) {
-          warmSceneProgram(pack, Boolean(sourceRef.current.createGuard));
+          warmSceneProgram(pack, limiterIsFor(sourceRef.current.madeBy));
         }
         return;
       }
@@ -634,7 +635,7 @@ export default function useSceneRunner({
       try {
         result = await renderer.load(
           pack,
-          Boolean(sourceRef.current.createGuard),
+          limiterIsFor(sourceRef.current.madeBy),
         );
       } finally {
         if (generation === generationRef.current) {
