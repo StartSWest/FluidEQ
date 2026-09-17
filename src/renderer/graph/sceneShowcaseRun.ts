@@ -95,6 +95,9 @@ export const showcaseRun = (
         beat: 0,
         bands: [0, 0, 0],
         musicAccent: [showcaseAccent(seconds), 1],
+        // The showcase turns the wheel at a steady half speed, so a scene
+        // that is carried by it is caught moving rather than standing still.
+        musicRun: [(seconds * 0.22) % 1, 0.22],
         accent,
         fade: 1,
         spectrum: buffers.spectrum,

@@ -27,7 +27,7 @@ import type { IScenePack } from './scenePacks';
  */
 
 /** Bumped when a uniform is added, removed or changes meaning. */
-export const SCENE_CONTRACT_VERSION = 6;
+export const SCENE_CONTRACT_VERSION = 7;
 
 /**
  * Texture widths. The 320 log-spaced spectrum points resample to 512 texels;
@@ -90,6 +90,15 @@ uniform sampler2D uSpectrumSlow;
 // Contract 6: occasional qualified musical accent (envelope, event serial).
 // New events require a beat onset with bass/mid energy and 4.8–7.2 s separation.
 uniform vec2 uMusicAccent;
+// Contract 7: a flywheel the music winds, in turns, kept inside one turn so
+// it can be read straight as an angle. Every kick and every loud passage adds
+// to how fast it goes, it coasts down when they stop, and it is capped. A
+// scene is given the music of this frame alone, so it cannot build a speed up
+// itself: a hit in a shader is a nudge that fades, never a chorus carrying
+// the picture along. y is how fast it is going, in turns a second, so a scene
+// can answer its own speed - softening what it flashes as it runs, which is
+// what keeps a bright picture under the brightness limiter.
+uniform vec2 uMusicRun;
 // Waveform envelope: u spans the last window end to end. Red channel, 0..1.
 uniform sampler2D uWaveform;
 // Contract 2: signed colour atlas, bottom-left origin, premultiplied RGBA.
