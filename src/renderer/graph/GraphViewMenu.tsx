@@ -199,23 +199,82 @@ const Icon = ({ children }: { children: ReactNode }) => (
 );
 
 /**
- * What the rows under it are about — the same four names the Studio uses,
- * in the same order (`common/settingsGroups.ts`).
+ * Which groups of the menu are folded away, kept for next time.
+ *
+ * Per group and in `localStorage`, because folding one is a statement about
+ * what you never touch rather than about this opening of the menu — and the
+ * menu is opened dozens of times a session. Storage that refuses leaves
+ * every group open, which is the behaviour before folding existed.
+ */
+const FOLD_KEY = 'fluideq.graphMenuFold';
+
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+const readFolded = (): readonly string[] => {
+  try {
+    const raw = window.localStorage.getItem(FOLD_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(isString) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeFolded = (folded: readonly string[]): void => {
+  try {
+    window.localStorage.setItem(FOLD_KEY, JSON.stringify(folded));
+  } catch {
+    // The fold still holds for as long as the window lives.
+  }
+};
+
+/**
+ * A group of the menu: its name, and the rows under it when it is open.
  *
  * The menu had dividers and no names at all, so which rows belonged together
  * was left for the reader to infer, and the Studio grouped the same settings
  * differently under headings of its own. Ivan, reading the menu: "this is a
- * mess". A name costs one quiet line and makes the arrangement the same
- * arrangement in both places.
+ * mess". The names are the same four the Studio uses, in the same order
+ * (`common/settingsGroups.ts`).
  *
- * Not a menu item: it cannot be pressed and must not be stopped at while the
- * arrow keys walk the rows, so it is presentation to anything reading the
- * menu aloud.
+ * They fold because the menu is long — nine sliders, six choices and a dozen
+ * switches — and most of it is set once. A group folded away is one someone
+ * has said they are done with; the heading stays, so nothing becomes
+ * unreachable, and its arrow says which way it goes.
  */
-const GroupTitle = ({ children }: { children: ReactNode }) => (
-  <div className="graph-view-menu__group" role="presentation">
-    {children}
-  </div>
+const Group = ({
+  title,
+  isOpen,
+  isFirst,
+  onToggle,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  /** The first group needs no line above it: the menu's edge is the line. */
+  isFirst?: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) => (
+  <>
+    {!isFirst && <div className="graph-view-menu__divider" />}
+    <button
+      type="button"
+      className="graph-view-menu__group"
+      aria-expanded={isOpen}
+      onClick={onToggle}
+    >
+      <span>{title}</span>
+      <svg
+        className="graph-view-menu__group-arrow"
+        viewBox="0 0 16 16"
+        aria-hidden
+      >
+        <path d="M4.5 6.5L8 10l3.5-3.5" />
+      </svg>
+    </button>
+    {isOpen && children}
+  </>
 );
 
 const GraphViewMenu = ({
@@ -260,6 +319,21 @@ const GraphViewMenu = ({
   const isWavePositionLocked =
     isWaveHidden || (!sceneLookId && waveOrientation === 'centred');
   const [isOpen, setIsOpen] = useState(false);
+  // Which groups are folded away, kept between openings — see `readFolded`.
+  const [folded, setFolded] = useState<readonly string[]>(readFolded);
+  const toggleGroup = (group: string) =>
+    setFolded((current) => {
+      const next = current.includes(group)
+        ? current.filter((entry) => entry !== group)
+        : [...current, group];
+      writeFolded(next);
+      return next;
+    });
+  const groupProps = (group: string, isFirst?: boolean) => ({
+    isOpen: !folded.includes(group),
+    isFirst,
+    onToggle: () => toggleGroup(group),
+  });
   const [placement, setPlacement] = useState<IPlacement>({
     isAbove: false,
     isLeftAligned: false,
@@ -370,140 +444,159 @@ const GraphViewMenu = ({
           }}
           role="menu"
         >
-          <GroupTitle>{t(OWN_GROUP_TITLE.graph)}</GroupTitle>
-
-          <button
-            type="button"
-            role="menuitemradio"
-            aria-checked={view === 'expanded'}
-            className={view === 'expanded' ? 'is-on' : undefined}
-            onClick={choose(() =>
-              onChangeView(view === 'expanded' ? 'normal' : 'expanded'),
-            )}
+          <Group
+            title={t(OWN_GROUP_TITLE.graph)}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+            {...groupProps('own', true)}
           >
-            <Icon>
-              <path d="M2.5 4.5h11v7h-11z" />
-              <path d="M5.5 7.2L3.6 8l1.9.8M10.5 7.2L12.4 8l-1.9.8" />
-            </Icon>
-            <span>{t('graph.view.expand')}</span>
-            <kbd>Ctrl+S</kbd>
-          </button>
-          <button
-            type="button"
-            role="menuitemradio"
-            aria-checked={view === 'fullscreen'}
-            className={view === 'fullscreen' ? 'is-on' : undefined}
-            onClick={choose(() =>
-              onChangeView(view === 'fullscreen' ? 'normal' : 'fullscreen'),
-            )}
-          >
-            <Icon>
-              <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
-            </Icon>
-            <span>{t('graph.view.fullscreen')}</span>
-            <kbd>Ctrl+F</kbd>
-          </button>
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={view === 'expanded'}
+              className={view === 'expanded' ? 'is-on' : undefined}
+              onClick={choose(() =>
+                onChangeView(view === 'expanded' ? 'normal' : 'expanded'),
+              )}
+            >
+              <Icon>
+                <path d="M2.5 4.5h11v7h-11z" />
+                <path d="M5.5 7.2L3.6 8l1.9.8M10.5 7.2L12.4 8l-1.9.8" />
+              </Icon>
+              <span>{t('graph.view.expand')}</span>
+              <kbd>Ctrl+S</kbd>
+            </button>
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={view === 'fullscreen'}
+              className={view === 'fullscreen' ? 'is-on' : undefined}
+              onClick={choose(() =>
+                onChangeView(view === 'fullscreen' ? 'normal' : 'fullscreen'),
+              )}
+            >
+              <Icon>
+                <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
+              </Icon>
+              <span>{t('graph.view.fullscreen')}</span>
+              <kbd>Ctrl+F</kbd>
+            </button>
 
-          {view !== 'normal' && (
-            <>
-              {/* One switch for the whole bar rather than one per piece. The
+            {view !== 'normal' && (
+              <>
+                {/* One switch for the whole bar rather than one per piece. The
                   parts of it are not independently useful — a waveform with no
                   creature beside it is the same bar with a hole in it.
 
                   Full screen alone, this one: it is the mode that takes the
                   app's own chrome away, so it is the only one with a top bar to
                   argue about. */}
-              {view === 'fullscreen' && (
-                <button
-                  type="button"
-                  role="menuitemcheckbox"
-                  aria-checked={hasTopBar}
-                  onClick={choose(onToggleTopBar)}
+                {view === 'fullscreen' && (
+                  <button
+                    type="button"
+                    role="menuitemcheckbox"
+                    aria-checked={hasTopBar}
+                    onClick={choose(onToggleTopBar)}
+                  >
+                    <Icon>
+                      <path d="M2.5 2.5h11v11h-11z" />
+                      <path d="M2.5 6h11" />
+                    </Icon>
+                    <span>
+                      {t(hasTopBar ? 'graph.hide' : 'graph.show', {
+                        item: t('graph.item.topBar'),
+                      })}
+                    </span>
+                  </button>
+                )}
+
+                <label
+                  className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                  htmlFor="graph-see-through"
+                  title={t('graph.seeThroughHint')}
                 >
                   <Icon>
-                    <path d="M2.5 2.5h11v11h-11z" />
-                    <path d="M2.5 6h11" />
+                    <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
+                    <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
                   </Icon>
-                  <span>
-                    {t(hasTopBar ? 'graph.hide' : 'graph.show', {
-                      item: t('graph.item.topBar'),
+                  <span>{t('graph.seeThrough')}</span>
+                  <span className="graph-view-menu__track">
+                    {PERCENT_SNAPS.map((snap) => (
+                      <i
+                        key={snap}
+                        className="graph-view-menu__snap"
+                        style={{ '--snap-frac': snap / 100 } as CSSProperties}
+                        aria-hidden
+                      />
+                    ))}
+                    <input
+                      id="graph-see-through"
+                      type="range"
+                      aria-label={t('graph.seeThrough')}
+                      min={minOverlayOpacity * 100}
+                      max={100}
+                      step={1}
+                      // Inverted, so right is more see-through. The stored value
+                      // is an opacity because that is what CSS wants; the slider
+                      // is a transparency because that is what the label says.
+                      value={Math.round((1 - overlayOpacity) * 100)}
+                      onChange={(event) =>
+                        onChangeOverlayOpacity(
+                          1 - snapPercent(Number(event.target.value)) / 100,
+                        )
+                      }
+                    />
+                  </span>
+                  <span className="graph-view-menu__value" aria-hidden>
+                    {t('graph.scene.percent', {
+                      percent: String(Math.round((1 - overlayOpacity) * 100)),
                     })}
                   </span>
-                </button>
-              )}
-
-              <label
-                className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                htmlFor="graph-see-through"
-                title={t('graph.seeThroughHint')}
-              >
-                <Icon>
-                  <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
-                  <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
-                </Icon>
-                <span>{t('graph.seeThrough')}</span>
-                <span className="graph-view-menu__track">
-                  {PERCENT_SNAPS.map((snap) => (
-                    <i
-                      key={snap}
-                      className="graph-view-menu__snap"
-                      style={{ '--snap-frac': snap / 100 } as CSSProperties}
-                      aria-hidden
-                    />
-                  ))}
+                </label>
+                <label
+                  className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                  htmlFor="graph-see-through-blur"
+                  title={t('graph.blurHint')}
+                >
+                  <Icon>
+                    <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
+                  </Icon>
+                  <span>{t('graph.blur')}</span>
                   <input
-                    id="graph-see-through"
+                    id="graph-see-through-blur"
                     type="range"
-                    min={minOverlayOpacity * 100}
-                    max={100}
+                    aria-label={t('graph.blur')}
+                    min={0}
+                    max={maxOverlayBlur}
                     step={1}
-                    // Inverted, so right is more see-through. The stored value
-                    // is an opacity because that is what CSS wants; the slider
-                    // is a transparency because that is what the label says.
-                    value={Math.round((1 - overlayOpacity) * 100)}
+                    value={overlayBlur}
                     onChange={(event) =>
-                      onChangeOverlayOpacity(
-                        1 - snapPercent(Number(event.target.value)) / 100,
-                      )
+                      onChangeOverlayBlur(Number(event.target.value))
                     }
                   />
-                </span>
-              </label>
-              <label
-                className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                htmlFor="graph-see-through-blur"
-                title={t('graph.blurHint')}
-              >
-                <Icon>
-                  <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
-                </Icon>
-                <span>{t('graph.blur')}</span>
-                <input
-                  id="graph-see-through-blur"
-                  type="range"
-                  min={0}
-                  max={maxOverlayBlur}
-                  step={1}
-                  value={overlayBlur}
-                  onChange={(event) =>
-                    onChangeOverlayBlur(Number(event.target.value))
-                  }
-                />
-              </label>
-            </>
-          )}
-          {sceneLookId && (
-            <WallpaperMenuAction
-              lookId={sceneLookId}
-              onChoose={() => setIsOpen(false)}
-            />
-          )}
+                  <span className="graph-view-menu__value" aria-hidden>
+                    {t('graph.scene.percent', {
+                      percent: String(
+                        Math.round((overlayBlur / maxOverlayBlur) * 100),
+                      ),
+                    })}
+                  </span>
+                </label>
+              </>
+            )}
+            {sceneLookId && (
+              <WallpaperMenuAction
+                lookId={sceneLookId}
+                onChoose={() => setIsOpen(false)}
+              />
+            )}
+          </Group>
 
-          <div className="graph-view-menu__divider" />
-
-          <GroupTitle>{t(SETTINGS_GROUP_TITLE.picture)}</GroupTitle>
-
-          {/* The key that walks the group, given a row of its own.
+          <Group
+            title={t(SETTINGS_GROUP_TITLE.picture)}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+            {...groupProps('picture')}
+          >
+            {/* The key that walks the group, given a row of its own.
 
               Ctrl+W moves between five arrangements of the switches under it, so
               printing it beside any one of them would promise it did only that
@@ -522,46 +615,46 @@ const GraphViewMenu = ({
               states walked one press at a time is the same comparing gesture
               the style rows make, and closing after each would mean reopening
               the menu four times to see the fourth one. */}
-          <button
-            type="button"
-            disabled={!isResponseAvailable}
-            onClick={onCycleContents}
-          >
-            <Icon>
-              <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
-              <path d="M13.8 2.6v4h-4" />
-            </Icon>
-            <span>
-              {t('graph.showing', { content: t(CONTENT_LABEL[contents]) })}
-            </span>
-            <kbd>Ctrl+W</kbd>
-          </button>
+            <button
+              type="button"
+              disabled={!isResponseAvailable}
+              onClick={onCycleContents}
+            >
+              <Icon>
+                <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
+                <path d="M13.8 2.6v4h-4" />
+              </Icon>
+              <span>
+                {t('graph.showing', { content: t(CONTENT_LABEL[contents]) })}
+              </span>
+              <kbd>Ctrl+W</kbd>
+            </button>
 
-          {/* The same response switches as the strip above the graph, in the
+            {/* The same response switches as the strip above the graph, in the
               same order APO applies them. Keeping the menu data-driven means
               an appearing or bypassed layer changes both surfaces together. */}
-          {curveToggles.map(({ curve, label }) => {
-            const isHidden = hiddenCurves.includes(curve);
-            return (
-              <button
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={isHidden}
-                disabled={!isResponseAvailable}
-                key={curve}
-                onClick={choose(() => onToggleCurve(curve))}
-              >
-                <Icon>
-                  <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
-                </Icon>
-                <span>
-                  {t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
-                </span>
-              </button>
-            );
-          })}
+            {curveToggles.map(({ curve, label }) => {
+              const isHidden = hiddenCurves.includes(curve);
+              return (
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={isHidden}
+                  disabled={!isResponseAvailable}
+                  key={curve}
+                  onClick={choose(() => onToggleCurve(curve))}
+                >
+                  <Icon>
+                    <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+                  </Icon>
+                  <span>
+                    {t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
+                  </span>
+                </button>
+              );
+            })}
 
-          {/* No `is-on` on the drawing switches below, unlike the modes above.
+            {/* No `is-on` on the drawing switches below, unlike the modes above.
               Their labels already flip — "Hide the wave" becomes "Show the
               wave" — so colouring them as well states the same thing twice, and
               it picked out rows in a colour the rest of the menu never uses for
@@ -574,62 +667,62 @@ const GraphViewMenu = ({
               away, and as a switch of its own it was the odd one out: the other
               two say which single drawing they take away, where solo took away
               five of them and was named for the one it kept. */}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isWaveHidden}
-            disabled={!isResponseAvailable}
-            onClick={choose(onToggleWave)}
-          >
-            <Icon>
-              <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
-            </Icon>
-            <span>
-              {t(isWaveHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.wave'),
-              })}
-            </span>
-          </button>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={isWaveHidden}
+              disabled={!isResponseAvailable}
+              onClick={choose(onToggleWave)}
+            >
+              <Icon>
+                <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
+              </Icon>
+              <span>
+                {t(isWaveHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.wave'),
+                })}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isTitlebarWaveHidden}
-            onClick={choose(onToggleTitlebarWave)}
-          >
-            <Icon>
-              <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
-            </Icon>
-            <span>
-              {t(isTitlebarWaveHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.topWave'),
-              })}
-            </span>
-          </button>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={isTitlebarWaveHidden}
+              onClick={choose(onToggleTitlebarWave)}
+            >
+              <Icon>
+                <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
+              </Icon>
+              <span>
+                {t(isTitlebarWaveHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.topWave'),
+                })}
+              </span>
+            </button>
 
-          {/* The paper, rather than what is drawn on it. Solo above hides the
+            {/* The paper, rather than what is drawn on it. Solo above hides the
               other curves and keeps the scale, which is what reading a trace
               needs; this takes the scale away too, for when the graph has
               stopped being a measurement and become a visualiser. */}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isGridHidden}
-            onClick={choose(onToggleGrid)}
-          >
-            <Icon>
-              <path d="M2.5 2.5h11v11h-11z" />
-              <path d="M6.2 2.5v11M9.8 2.5v11M2.5 6.2h11M2.5 9.8h11" />
-            </Icon>
-            <span>
-              {t(isGridHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.grid'),
-              })}
-            </span>
-            <kbd>Ctrl+G</kbd>
-          </button>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={isGridHidden}
+              onClick={choose(onToggleGrid)}
+            >
+              <Icon>
+                <path d="M2.5 2.5h11v11h-11z" />
+                <path d="M6.2 2.5v11M9.8 2.5v11M2.5 6.2h11M2.5 9.8h11" />
+              </Icon>
+              <span>
+                {t(isGridHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.grid'),
+                })}
+              </span>
+              <kbd>Ctrl+G</kbd>
+            </button>
 
-          {/* Beside the grid because it is the same kind of switch: furniture
+            {/* Beside the grid because it is the same kind of switch: furniture
               belonging to the measurement rather than to the sound.
 
               No shortcut of its own, but the cycle above does reach it now —
@@ -646,49 +739,49 @@ const GraphViewMenu = ({
 
               The progress bars along the foot are not covered by this — see
               `useGraphCoverageHidden`. */}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isCoverageHidden}
-            // A Plus visualizer never draws the bands, so over one this has
-            // nothing to switch.
-            disabled={!isResponseAvailable || sceneLookId !== undefined}
-            onClick={choose(onToggleCoverage)}
-          >
-            <Icon>
-              <path d="M2.5 3.5h3v9h-3zM6.5 3.5h3v9h-3zM10.5 3.5h3v9h-3z" />
-            </Icon>
-            <span>
-              {t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.bands'),
-              })}
-            </span>
-          </button>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={isCoverageHidden}
+              // A Plus visualizer never draws the bands, so over one this has
+              // nothing to switch.
+              disabled={!isResponseAvailable || sceneLookId !== undefined}
+              onClick={choose(onToggleCoverage)}
+            >
+              <Icon>
+                <path d="M2.5 3.5h3v9h-3zM6.5 3.5h3v9h-3zM10.5 3.5h3v9h-3z" />
+              </Icon>
+              <span>
+                {t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.bands'),
+                })}
+              </span>
+            </button>
 
-          {/* The meter is not on the plot, and it is here anyway.
+            {/* The meter is not on the plot, and it is here anyway.
               This menu is where every "show me less" switch already lives, and
               a second menu elsewhere for one more toggle is worse than one
               slightly broad menu. It is remembered across every view mode
               rather than per mode: the sidebar is the same in all three, so a
               control that came back on a mode change would only ever be
               surprising. */}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isMeterHidden}
-            onClick={choose(onToggleMeter)}
-          >
-            <Icon>
-              <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" />
-            </Icon>
-            <span>
-              {t(isMeterHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.meter'),
-              })}
-            </span>
-          </button>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={isMeterHidden}
+              onClick={choose(onToggleMeter)}
+            >
+              <Icon>
+                <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" />
+              </Icon>
+              <span>
+                {t(isMeterHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.meter'),
+                })}
+              </span>
+            </button>
 
-          {/* Continuous controls replace the three-stop Ctrl+B size mode. The
+            {/* Continuous controls replace the three-stop Ctrl+B size mode. The
               old control mixed plot margins with wave amplitude, which made
               none of its three labels a complete description of what moved.
               These stay open while dragged so the graph remains the readout.
@@ -703,159 +796,178 @@ const GraphViewMenu = ({
               shared value, so what is set out here is what the pane draws
               with. A visualizer that reserves its own band has both act
               inside that band (`liveLevelScaleFor`). */}
-          {(view !== 'normal' || sceneLookId) && (
-            <>
-              <label
-                className={`graph-view-menu__slider${
-                  isWaveHidden ? ' is-disabled' : ''
-                }`}
-                htmlFor="graph-wave-height"
-                title={t('graph.waveHeightHint')}
-              >
-                <Icon>
-                  <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
-                </Icon>
-                <span>{t('graph.waveHeight')}</span>
-                {/* The three snap points, drawn as ticks on the track so the
+            {(view !== 'normal' || sceneLookId) && (
+              <>
+                <label
+                  className={`graph-view-menu__slider${
+                    isWaveHidden ? ' is-disabled' : ''
+                  }`}
+                  htmlFor="graph-wave-height"
+                  title={t('graph.waveHeightHint')}
+                >
+                  <Icon>
+                    <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
+                  </Icon>
+                  <span>{t('graph.waveHeight')}</span>
+                  {/* The three snap points, drawn as ticks on the track so the
                 thumb is seen to land on something. */}
-                <span className="graph-view-menu__track">
-                  {PERCENT_SNAPS.map((snap) => (
-                    <i
-                      key={snap}
-                      className="graph-view-menu__snap"
-                      style={
-                        {
-                          '--snap-frac':
-                            (snap - MIN_GRAPH_WAVE_HEIGHT * 100) /
-                            (100 - MIN_GRAPH_WAVE_HEIGHT * 100),
-                        } as CSSProperties
+                  <span className="graph-view-menu__track">
+                    {PERCENT_SNAPS.map((snap) => (
+                      <i
+                        key={snap}
+                        className="graph-view-menu__snap"
+                        style={
+                          {
+                            '--snap-frac':
+                              (snap - MIN_GRAPH_WAVE_HEIGHT * 100) /
+                              (100 - MIN_GRAPH_WAVE_HEIGHT * 100),
+                          } as CSSProperties
+                        }
+                        aria-hidden
+                      />
+                    ))}
+                    <input
+                      id="graph-wave-height"
+                      type="range"
+                      // Named here, not by the label around it: the label now
+                      // carries the reading as well, and a slider's name is
+                      // what it is, never what it is set to.
+                      aria-label={t('graph.waveHeight')}
+                      min={MIN_GRAPH_WAVE_HEIGHT * 100}
+                      max={100}
+                      step={1}
+                      value={Math.round(waveHeight * 100)}
+                      disabled={isWaveHidden}
+                      onChange={(event) =>
+                        onChangeWaveHeight(
+                          snapPercent(Number(event.target.value)) / 100,
+                        )
                       }
-                      aria-hidden
                     />
-                  ))}
+                  </span>
+                  <span className="graph-view-menu__value" aria-hidden>
+                    {t('graph.scene.percent', {
+                      percent: String(Math.round(waveHeight * 100)),
+                    })}
+                  </span>
+                </label>
+
+                <label
+                  className={`graph-view-menu__slider${
+                    isWavePositionLocked ? ' is-disabled' : ''
+                  }`}
+                  htmlFor="graph-wave-position"
+                  title={t('graph.wavePositionHint')}
+                >
+                  <Icon>
+                    <path d="M2 3h12M2 8h12M2 13h12M8 12.5V8.8M5.8 11l2.2 2.2 2.2-2.2" />
+                  </Icon>
+                  <span>{t('graph.wavePosition')}</span>
                   <input
-                    id="graph-wave-height"
+                    id="graph-wave-position"
                     type="range"
-                    min={MIN_GRAPH_WAVE_HEIGHT * 100}
+                    aria-label={t('graph.wavePosition')}
+                    min={0}
                     max={100}
                     step={1}
-                    value={Math.round(waveHeight * 100)}
-                    disabled={isWaveHidden}
+                    value={Math.round(wavePosition * 100)}
+                    disabled={isWavePositionLocked}
                     onChange={(event) =>
-                      onChangeWaveHeight(
-                        snapPercent(Number(event.target.value)) / 100,
-                      )
+                      onChangeWavePosition(Number(event.target.value) / 100)
                     }
                   />
-                </span>
-              </label>
+                  <span className="graph-view-menu__value" aria-hidden>
+                    {t('graph.scene.percent', {
+                      percent: String(Math.round(wavePosition * 100)),
+                    })}
+                  </span>
+                </label>
+              </>
+            )}
 
-              <label
-                className={`graph-view-menu__slider${
-                  isWavePositionLocked ? ' is-disabled' : ''
-                }`}
-                htmlFor="graph-wave-position"
-                title={t('graph.wavePositionHint')}
-              >
-                <Icon>
-                  <path d="M2 3h12M2 8h12M2 13h12M8 12.5V8.8M5.8 11l2.2 2.2 2.2-2.2" />
-                </Icon>
-                <span>{t('graph.wavePosition')}</span>
-                <input
-                  id="graph-wave-position"
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={Math.round(wavePosition * 100)}
-                  disabled={isWavePositionLocked}
-                  onChange={(event) =>
-                    onChangeWavePosition(Number(event.target.value) / 100)
-                  }
-                />
-              </label>
-            </>
-          )}
-
-          {/* Four states, so it cycles and names the one it will go to next
+            {/* Four states, so it cycles and names the one it will go to next
               rather than the one you are in. Every look is drawn from the same
               points, so this flips all forty at once. */}
-          {/* Nothing to turn over when there is no wave. Greyed rather than
+            {/* Nothing to turn over when there is no wave. Greyed rather than
               removed, so the row does not appear and vanish as the wave is
               switched — and so the reason it is unavailable is legible from
               the row directly above it. */}
-          {/* Not for a Plus visualizer: it is built around its own band
+            {/* Not for a Plus visualizer: it is built around its own band
               and takes the wave's height and position, never its
               orientation, which turned a scene upside down or halved it. */}
-          {!sceneLookId && (
+            {!sceneLookId && (
+              <button
+                type="button"
+                role="menuitem"
+                disabled={isWaveHidden}
+                onClick={onCycleOrientation}
+              >
+                <Icon>
+                  <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
+                </Icon>
+                <span>{t(ORIENTATION_LABEL[waveOrientation])}</span>
+                <kbd>Ctrl+I</kbd>
+              </button>
+            )}
+          </Group>
+
+          <Group
+            title={t(SETTINGS_GROUP_TITLE.visualizer)}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+            {...groupProps('visualizer')}
+          >
+            {/* Left open on purpose — see `choose` above. */}
             <button
               type="button"
               role="menuitem"
               disabled={isWaveHidden}
-              onClick={onCycleOrientation}
+              onClick={() => onCycleLook(1)}
             >
               <Icon>
-                <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
+                <path d="M6 3.5l4 4.5-4 4.5" />
               </Icon>
-              <span>{t(ORIENTATION_LABEL[waveOrientation])}</span>
-              <kbd>Ctrl+I</kbd>
+              <span>{t('graph.style.next')}</span>
+              <kbd>Space</kbd>
             </button>
-          )}
+            <button
+              type="button"
+              role="menuitem"
+              disabled={isWaveHidden}
+              onClick={() => onCycleLook(-1)}
+            >
+              <Icon>
+                <path d="M10 3.5l-4 4.5 4 4.5" />
+              </Icon>
+              <span>{t('graph.style.previous')}</span>
+              <kbd>Ctrl+Space</kbd>
+            </button>
 
-          <div className="graph-view-menu__divider" />
-
-          <GroupTitle>{t(SETTINGS_GROUP_TITLE.visualizer)}</GroupTitle>
-
-          {/* Left open on purpose — see `choose` above. */}
-          <button
-            type="button"
-            role="menuitem"
-            disabled={isWaveHidden}
-            onClick={() => onCycleLook(1)}
-          >
-            <Icon>
-              <path d="M6 3.5l4 4.5-4 4.5" />
-            </Icon>
-            <span>{t('graph.style.next')}</span>
-            <kbd>Space</kbd>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            disabled={isWaveHidden}
-            onClick={() => onCycleLook(-1)}
-          >
-            <Icon>
-              <path d="M10 3.5l-4 4.5 4 4.5" />
-            </Icon>
-            <span>{t('graph.style.previous')}</span>
-            <kbd>Ctrl+Space</kbd>
-          </button>
-
-          {/* And its own controls, whatever this one declares: the Studio
+            {/* And its own controls, whatever this one declares: the Studio
               side of the glass for whoever is watching. Drawn only for a
               visualizer that has any. */}
-          {sceneLookId && <SceneParamMenu lookId={sceneLookId} />}
+            {sceneLookId && <SceneParamMenu lookId={sceneLookId} />}
 
-          {/* Beside the style rows, because they belong to the visualizer
+            {/* Beside the style rows, because they belong to the visualizer
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
-          {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
+            {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
 
-          {/* And how hard it may drive the GPU: one choice for every
+            {/* And how hard it may drive the GPU: one choice for every
               visualizer, so it sits with the rows for this one.
 
               Heading and divider with it, not around it: a heading over an
               empty stretch of menu is worse than no heading, and there is
               nothing to draw here while the plot carries no visualizer. */}
+          </Group>
+
           {sceneLookId && (
-            <>
-              <div className="graph-view-menu__divider" />
-
-              <GroupTitle>{t(SETTINGS_GROUP_TITLE.drawing)}</GroupTitle>
-
+            <Group
+              title={t(SETTINGS_GROUP_TITLE.drawing)}
+              // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+              {...groupProps('drawing')}
+            >
               <ScenePerformanceMenu />
-            </>
+            </Group>
           )}
 
           {/* Two sliders, in the menu rather than in the strip beside it.

@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import type { ComponentProps } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import en from 'common/i18n/en';
 import {
   OWN_GROUP_TITLE,
@@ -150,11 +150,32 @@ describe('the graph View menu', () => {
     ]);
   });
 
-  it('is not walked into by the keyboard: a heading is not a row', () => {
-    renderMenu();
+  it('folds a group away on its heading, and remembers it', () => {
+    // The menu is long and most of it is set once, so a group somebody is
+    // done with can be put away — and stay away, since the menu is opened
+    // dozens of times a session.
+    // With a visualizer on the plot, so the group has its sliders: they
+    // are the rows a fold has to take away.
+    renderMenu({ sceneLookId: 'aurora' });
     openMenu();
-    document.querySelectorAll('.graph-view-menu__group').forEach((heading) => {
-      expect(heading).toHaveAttribute('role', 'presentation');
+    const heading = screen.getByRole('button', {
+      name: en[SETTINGS_GROUP_TITLE.picture],
     });
+    expect(heading).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(en['graph.waveHeight'])).toBeInTheDocument();
+
+    fireEvent.click(heading);
+    expect(heading).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(en['graph.waveHeight'])).not.toBeInTheDocument();
+    // The heading itself never goes: a folded group must stay reachable.
+    expect(heading).toBeInTheDocument();
+
+    // A second opening of the menu, in a second window, finds it folded.
+    cleanup();
+    renderMenu({ sceneLookId: 'aurora' });
+    openMenu();
+    expect(
+      screen.getByRole('button', { name: en[SETTINGS_GROUP_TITLE.picture] }),
+    ).toHaveAttribute('aria-expanded', 'false');
   });
 });

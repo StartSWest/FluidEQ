@@ -1034,7 +1034,11 @@ it under the terms of the GNU General Public License version 3 or later.
   // about half the time and off the screen the rest of it.
   top: calc(100% + 5px);
   right: 0;
-  min-width: 216px;
+  // Wide enough for the longest label beside a fixed track and value: the
+  // columns are fixed so they line up down the list, so the menu has to
+  // carry the widest label rather than the label giving way. Measured on
+  // the Spanish menu, whose longest is "Posición de la onda" at 140px.
+  min-width: 372px;
   padding: 5px;
 
   &.is-above {
@@ -1122,21 +1126,57 @@ it under the terms of the GNU General Public License version 3 or later.
 // It sits in the icon column's gutter deliberately: the labels beside the
 // icons form a straight edge down the list, and a heading indented to meet it
 // would read as another row. Quiet enough to be scanned past and skipped.
-.graph-view-menu__group {
+// It is a button — pressing it folds the group away, and a folded group is
+// a statement about what you never touch — but it must not read as another
+// row of the menu. So: the list's own button rules are undone here, and what
+// is left is a heading with an arrow at the end of it.
+.graph-view-menu__list button.graph-view-menu__group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   padding: 7px 8px 3px;
+  border: none;
+  background: none;
   color: $text-faint;
   font-size: $text-small;
   font-weight: $weight-medium;
   @include tracking(0.08em);
 
   text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-muted;
+    background: none;
+  }
 }
 
 // No gap above the first one: it is the top of the list, and the padding
 // meant for separating a heading from the rows before it has nothing to
 // separate it from there.
-.graph-view-menu__group:first-child {
+.graph-view-menu__list button.graph-view-menu__group:first-child {
   padding-top: 2px;
+}
+
+// Points down while the group is open, right while it is folded — the
+// direction the rows will go, not the direction they came from.
+.graph-view-menu__group-arrow {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  transition: transform 120ms ease;
+}
+
+.graph-view-menu__group[aria-expanded='false'] .graph-view-menu__group-arrow {
+  transform: rotate(-90deg);
 }
 
 // The two sliders, laid out as menu rows rather than as controls in a strip.
@@ -1146,8 +1186,23 @@ it under the terms of the GNU General Public License version 3 or later.
 // down. It is a `label`, not a `button`, so clicking it does not close the menu;
 // these are adjusted by watching the graph behind, which needs the list to stay
 // open while the thumb is dragged.
+// Four columns, the same four on every slider row in the menu.
+//
+// They were laid out with flex, so each track began wherever its own label
+// happened to end and ran to the right edge: measured in the window, the
+// tracks started anywhere from 107px to 185px in and were between 86px and
+// 124px long, down a single column of nine sliders. Ivan: "make all sliders
+// align well, this is a mess". A grid fixes the two columns that matter —
+// every track starts at the same x and is the same length, and every value
+// is right-aligned under the one before it — while the label column takes
+// whatever is left and truncates rather than pushing the track about.
+//
+// The track stays 86px because the snap ticks are placed against that
+// number (`.graph-view-menu__snap`), and the value column is 6ch, which
+// holds "450 ms" and "100 %" in every language the menu is in.
 .graph-view-menu__slider {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 96px 6ch;
   align-items: center;
   gap: $spacing-s;
   padding: 5px 8px;
@@ -1166,12 +1221,18 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   > span {
-    flex: 1 1 auto;
-    white-space: nowrap;
+    min-width: 0;
+    // Wraps rather than being cut. The columns are fixed so they line up, so
+    // a label longer than its column has to give somewhere — and a menu that
+    // clips the end of a word is a menu that cannot be read. The width above
+    // is set so that no label in any of the ten languages needs this; it is
+    // here for the one that some day will.
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 
   input[type='range'] {
-    width: 86px;
+    width: 100%;
     height: 3px;
     flex: 0 0 auto;
     padding: 0;
@@ -1199,20 +1260,29 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-view-menu__track {
   position: relative;
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
+  // The grid's third column, whether the row wraps its input in one of these
+  // or hands the grid a bare input.
+  grid-column: 3;
 
   input[type='range'] {
     position: relative;
   }
 }
 
+// A bare input goes in the same column, so a row with ticks and a row
+// without still line up.
+.graph-view-menu__slider > input[type='range'] {
+  grid-column: 3;
+}
+
 .graph-view-menu__snap {
   position: absolute;
   top: 50%;
-  // The value's fraction of the thumb's travel: 5.5px in from each end of
-  // an 86px track, 75px between.
-  left: calc(5.5px + var(--snap-frac, 0) * 75px);
+  // The value's fraction of the thumb's travel: half a thumb in from each
+  // end, whatever the track is wide. It was written against an 86px track,
+  // which stopped being true the moment the track became a grid column.
+  left: calc(5.5px + var(--snap-frac, 0) * (100% - 11px));
   // A hair the height of the track and a little over, faint: a hint of
   // where the thumb will settle, not a scale.
   width: 1px;
@@ -1228,8 +1298,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // as a number, where a height is judged by eye — and a mark on the track where
 // the visualizer's own value sits, which the thumb falls onto.
 .graph-view-menu__slider > .graph-view-menu__value {
-  min-width: 6ch;
-  flex: 0 0 auto;
+  grid-column: 4;
   color: $text-faint;
   text-align: right;
 }
