@@ -25,6 +25,7 @@ import {
   type TGpuPreference,
 } from 'common/graphicsPreference';
 import { useTranslation } from '../utils/I18nContext';
+import { sceneGpuName } from './sceneGpuName';
 import { useOnBattery } from '../utils/batteryPower';
 import {
   setGraphicsPreference,
@@ -133,9 +134,12 @@ export default function ScenePerformanceMenu() {
     frameRate === 'display' && onBattery
       ? t('graph.scene.frameRate.displayBattery')
       : t(FRAME_RATE_LABEL[frameRate]);
-  // The choice takes effect at the next start: said under it until then.
+  // What is drawing, under the choice: the two can differ for a whole
+  // session — Remote Desktop starts the app on a laptop's integrated chip and
+  // coming back to the real machine does not move it — and nothing said so.
+  // A pending choice is the more urgent thing to say, so it wins the line.
   const gpuNote =
-    gpu.chosen === gpu.atLaunch ? undefined : t('graph.scene.gpu.restart');
+    gpu.chosen === gpu.atLaunch ? sceneGpuName() : t('graph.scene.gpu.restart');
   return (
     <>
       <CycleRow
