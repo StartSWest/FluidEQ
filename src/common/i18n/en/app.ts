@@ -357,6 +357,13 @@ const app = {
   'motion.restart': 'Restart FluidEQ to apply',
   'theme.ocean': 'Ocean',
   'theme.black': 'Black',
+  // The settings a visualizer has, grouped the same way and in the same
+  // order wherever they are offered — see `common/settingsGroups.ts`.
+  'settings.group.picture': 'The picture',
+  'settings.group.visualizer': 'The visualizer',
+  'settings.group.drawing': 'How it is drawn',
+  'settings.group.thisView': 'This view',
+  'settings.group.studioOnly': 'Only here in the Studio',
 } as const;
 
 export default app;

@@ -362,6 +362,13 @@ const app: Partial<Dictionary> = {
   'motion.restart': 'लागू करने के लिए FluidEQ फिर से शुरू करें',
   'theme.ocean': 'महासागर',
   'theme.black': 'काला',
+  // The settings a visualizer has, grouped the same way and in the same
+  // order wherever they are offered — see `common/settingsGroups.ts`.
+  'settings.group.picture': 'तस्वीर',
+  'settings.group.visualizer': 'विज़ुअलाइज़र',
+  'settings.group.drawing': 'यह कैसे बनता है',
+  'settings.group.thisView': 'यह दृश्य',
+  'settings.group.studioOnly': 'सिर्फ़ यहाँ स्टूडियो में',
 };
 
 export default app;

@@ -345,6 +345,13 @@ const app: Partial<Dictionary> = {
   'motion.restart': '重新启动 FluidEQ 后生效',
   'theme.ocean': '海洋',
   'theme.black': '黑色',
+  // The settings a visualizer has, grouped the same way and in the same
+  // order wherever they are offered — see `common/settingsGroups.ts`.
+  'settings.group.picture': '画面',
+  'settings.group.visualizer': '可视化',
+  'settings.group.drawing': '如何绘制',
+  'settings.group.thisView': '此视图',
+  'settings.group.studioOnly': '仅在工作室中',
 };
 
 export default app;

@@ -24,6 +24,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
@@ -34,6 +35,7 @@ import {
   TGraphView,
   TWaveOrientation,
 } from '../utils/graphStyle';
+import SceneParamMenu from './SceneParamMenu';
 import SceneResponseMenu from './SceneResponseMenu';
 import ScenePerformanceMenu from './ScenePerformanceMenu';
 
@@ -196,6 +198,26 @@ const Icon = ({ children }: { children: ReactNode }) => (
   </svg>
 );
 
+/**
+ * What the rows under it are about — the same four names the Studio uses,
+ * in the same order (`common/settingsGroups.ts`).
+ *
+ * The menu had dividers and no names at all, so which rows belonged together
+ * was left for the reader to infer, and the Studio grouped the same settings
+ * differently under headings of its own. Ivan, reading the menu: "this is a
+ * mess". A name costs one quiet line and makes the arrangement the same
+ * arrangement in both places.
+ *
+ * Not a menu item: it cannot be pressed and must not be stopped at while the
+ * arrow keys walk the rows, so it is presentation to anything reading the
+ * menu aloud.
+ */
+const GroupTitle = ({ children }: { children: ReactNode }) => (
+  <div className="graph-view-menu__group" role="presentation">
+    {children}
+  </div>
+);
+
 const GraphViewMenu = ({
   view,
   onChangeView,
@@ -348,6 +370,8 @@ const GraphViewMenu = ({
           }}
           role="menu"
         >
+          <GroupTitle>{t(OWN_GROUP_TITLE.graph)}</GroupTitle>
+
           <button
             type="button"
             role="menuitemradio"
@@ -380,7 +404,104 @@ const GraphViewMenu = ({
             <kbd>Ctrl+F</kbd>
           </button>
 
+          {view !== 'normal' && (
+            <>
+              {/* One switch for the whole bar rather than one per piece. The
+                  parts of it are not independently useful — a waveform with no
+                  creature beside it is the same bar with a hole in it.
+
+                  Full screen alone, this one: it is the mode that takes the
+                  app's own chrome away, so it is the only one with a top bar to
+                  argue about. */}
+              {view === 'fullscreen' && (
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={hasTopBar}
+                  onClick={choose(onToggleTopBar)}
+                >
+                  <Icon>
+                    <path d="M2.5 2.5h11v11h-11z" />
+                    <path d="M2.5 6h11" />
+                  </Icon>
+                  <span>
+                    {t(hasTopBar ? 'graph.hide' : 'graph.show', {
+                      item: t('graph.item.topBar'),
+                    })}
+                  </span>
+                </button>
+              )}
+
+              <label
+                className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                htmlFor="graph-see-through"
+                title={t('graph.seeThroughHint')}
+              >
+                <Icon>
+                  <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
+                  <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
+                </Icon>
+                <span>{t('graph.seeThrough')}</span>
+                <span className="graph-view-menu__track">
+                  {PERCENT_SNAPS.map((snap) => (
+                    <i
+                      key={snap}
+                      className="graph-view-menu__snap"
+                      style={{ '--snap-frac': snap / 100 } as CSSProperties}
+                      aria-hidden
+                    />
+                  ))}
+                  <input
+                    id="graph-see-through"
+                    type="range"
+                    min={minOverlayOpacity * 100}
+                    max={100}
+                    step={1}
+                    // Inverted, so right is more see-through. The stored value
+                    // is an opacity because that is what CSS wants; the slider
+                    // is a transparency because that is what the label says.
+                    value={Math.round((1 - overlayOpacity) * 100)}
+                    onChange={(event) =>
+                      onChangeOverlayOpacity(
+                        1 - snapPercent(Number(event.target.value)) / 100,
+                      )
+                    }
+                  />
+                </span>
+              </label>
+              <label
+                className="graph-view-menu__slider graph-view-menu__slider--overlay"
+                htmlFor="graph-see-through-blur"
+                title={t('graph.blurHint')}
+              >
+                <Icon>
+                  <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
+                </Icon>
+                <span>{t('graph.blur')}</span>
+                <input
+                  id="graph-see-through-blur"
+                  type="range"
+                  min={0}
+                  max={maxOverlayBlur}
+                  step={1}
+                  value={overlayBlur}
+                  onChange={(event) =>
+                    onChangeOverlayBlur(Number(event.target.value))
+                  }
+                />
+              </label>
+            </>
+          )}
+          {sceneLookId && (
+            <WallpaperMenuAction
+              lookId={sceneLookId}
+              onChoose={() => setIsOpen(false)}
+            />
+          )}
+
           <div className="graph-view-menu__divider" />
+
+          <GroupTitle>{t(SETTINGS_GROUP_TITLE.picture)}</GroupTitle>
 
           {/* The key that walks the group, given a row of its own.
 
@@ -683,6 +804,8 @@ const GraphViewMenu = ({
 
           <div className="graph-view-menu__divider" />
 
+          <GroupTitle>{t(SETTINGS_GROUP_TITLE.visualizer)}</GroupTitle>
+
           {/* Left open on purpose — see `choose` above. */}
           <button
             type="button"
@@ -709,20 +832,30 @@ const GraphViewMenu = ({
             <kbd>Ctrl+Space</kbd>
           </button>
 
+          {/* And its own controls, whatever this one declares: the Studio
+              side of the glass for whoever is watching. Drawn only for a
+              visualizer that has any. */}
+          {sceneLookId && <SceneParamMenu lookId={sceneLookId} />}
+
           {/* Beside the style rows, because they belong to the visualizer
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
           {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
 
           {/* And how hard it may drive the GPU: one choice for every
-              visualizer, so it sits with the rows for this one. */}
-          {sceneLookId && <ScenePerformanceMenu />}
+              visualizer, so it sits with the rows for this one.
 
+              Heading and divider with it, not around it: a heading over an
+              empty stretch of menu is worse than no heading, and there is
+              nothing to draw here while the plot carries no visualizer. */}
           {sceneLookId && (
-            <WallpaperMenuAction
-              lookId={sceneLookId}
-              onChoose={() => setIsOpen(false)}
-            />
+            <>
+              <div className="graph-view-menu__divider" />
+
+              <GroupTitle>{t(SETTINGS_GROUP_TITLE.drawing)}</GroupTitle>
+
+              <ScenePerformanceMenu />
+            </>
           )}
 
           {/* Two sliders, in the menu rather than in the strip beside it.
@@ -750,96 +883,6 @@ const GraphViewMenu = ({
               while the value was shared, because full screen could at least set
               it for both. Now that each mode keeps its own it would be a
               setting expanded has and cannot reach. */}
-          {view !== 'normal' && (
-            <>
-              <div className="graph-view-menu__divider" />
-
-              {/* One switch for the whole bar rather than one per piece. The
-                  parts of it are not independently useful — a waveform with no
-                  creature beside it is the same bar with a hole in it.
-
-                  Full screen alone, this one: it is the mode that takes the
-                  app's own chrome away, so it is the only one with a top bar to
-                  argue about. */}
-              {view === 'fullscreen' && (
-                <button
-                  type="button"
-                  role="menuitemcheckbox"
-                  aria-checked={hasTopBar}
-                  onClick={choose(onToggleTopBar)}
-                >
-                  <Icon>
-                    <path d="M2.5 2.5h11v11h-11z" />
-                    <path d="M2.5 6h11" />
-                  </Icon>
-                  <span>
-                    {t(hasTopBar ? 'graph.hide' : 'graph.show', {
-                      item: t('graph.item.topBar'),
-                    })}
-                  </span>
-                </button>
-              )}
-
-              <label
-                className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                htmlFor="graph-see-through"
-                title={t('graph.seeThroughHint')}
-              >
-                <Icon>
-                  <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
-                  <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
-                </Icon>
-                <span>{t('graph.seeThrough')}</span>
-                <span className="graph-view-menu__track">
-                  {PERCENT_SNAPS.map((snap) => (
-                    <i
-                      key={snap}
-                      className="graph-view-menu__snap"
-                      style={{ '--snap-frac': snap / 100 } as CSSProperties}
-                      aria-hidden
-                    />
-                  ))}
-                  <input
-                    id="graph-see-through"
-                    type="range"
-                    min={minOverlayOpacity * 100}
-                    max={100}
-                    step={1}
-                    // Inverted, so right is more see-through. The stored value
-                    // is an opacity because that is what CSS wants; the slider
-                    // is a transparency because that is what the label says.
-                    value={Math.round((1 - overlayOpacity) * 100)}
-                    onChange={(event) =>
-                      onChangeOverlayOpacity(
-                        1 - snapPercent(Number(event.target.value)) / 100,
-                      )
-                    }
-                  />
-                </span>
-              </label>
-              <label
-                className="graph-view-menu__slider graph-view-menu__slider--overlay"
-                htmlFor="graph-see-through-blur"
-                title={t('graph.blurHint')}
-              >
-                <Icon>
-                  <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
-                </Icon>
-                <span>{t('graph.blur')}</span>
-                <input
-                  id="graph-see-through-blur"
-                  type="range"
-                  min={0}
-                  max={maxOverlayBlur}
-                  step={1}
-                  value={overlayBlur}
-                  onChange={(event) =>
-                    onChangeOverlayBlur(Number(event.target.value))
-                  }
-                />
-              </label>
-            </>
-          )}
         </div>
       )}
     </div>

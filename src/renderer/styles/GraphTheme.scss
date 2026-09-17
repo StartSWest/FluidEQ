@@ -1114,6 +1114,31 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba($edge-tint, 0.1);
 }
 
+// What the rows under it are about. The same four groups, in the same order,
+// as the Studio's own headings (`common/settingsGroups.ts`) — the menu's look
+// rather than the Studio's, because a floating menu and a card in a column
+// are not the same surface.
+//
+// It sits in the icon column's gutter deliberately: the labels beside the
+// icons form a straight edge down the list, and a heading indented to meet it
+// would read as another row. Quiet enough to be scanned past and skipped.
+.graph-view-menu__group {
+  padding: 7px 8px 3px;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  @include tracking(0.08em);
+
+  text-transform: uppercase;
+}
+
+// No gap above the first one: it is the top of the list, and the padding
+// meant for separating a heading from the rows before it has nothing to
+// separate it from there.
+.graph-view-menu__group:first-child {
+  padding-top: 2px;
+}
+
 // The two sliders, laid out as menu rows rather than as controls in a strip.
 //
 // Same three columns as every button in the list — icon, label, control — so

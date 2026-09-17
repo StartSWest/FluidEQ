@@ -368,6 +368,13 @@ const app: Partial<Dictionary> = {
   'motion.restart': 'FluidEQ を再起動すると反映されます',
   'theme.ocean': 'オーシャン',
   'theme.black': 'ブラック',
+  // The settings a visualizer has, grouped the same way and in the same
+  // order wherever they are offered — see `common/settingsGroups.ts`.
+  'settings.group.picture': '画面',
+  'settings.group.visualizer': 'ビジュアライザー',
+  'settings.group.drawing': '描き方',
+  'settings.group.thisView': 'この表示',
+  'settings.group.studioOnly': 'スタジオだけ',
 };
 
 export default app;

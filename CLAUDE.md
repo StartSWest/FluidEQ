@@ -324,6 +324,18 @@ Everything worth knowing about them is available through commands:
   matching. Both fail _quietly_: the replace simply does not happen. Use the
   editing tools for anything containing `$` or a backslash, which means every
   stylesheet and every `.nsh`.
+- **A script that rewrites a source file in place can kill the running app,
+  and the error names neither the file nor the script.** A file is briefly
+  half-written — on Windows it is extended before the bytes land, so it reads
+  as thousands of NUL bytes — and anything that loads it in that instant sees
+  garbage. Main loaded a locale file mid-write and died on
+  `RangeError: Invalid string length`, thrown inside TypeScript's own
+  diagnostic formatter while it tried to render an error for a file of nulls:
+  no filename anywhere in the trace, and by the time anyone looks the file is
+  whole again and the tree type-checks clean. It cost a window and twenty
+  minutes. Anything that edits a source file — a locale script, a codemod —
+  writes to a temp file beside it and renames, the way `asyncWriter` and the
+  Studio's notes writer already do.
 - **`pnpm add` needs `-w`** at the workspace root.
 - **In dev, the renderer hot-reloads and the main process does not.** Main runs
   through `ts-node` on `dev-main.cjs` and is restarted by electronmon, which is

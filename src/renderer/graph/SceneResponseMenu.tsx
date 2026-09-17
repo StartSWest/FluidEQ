@@ -134,7 +134,6 @@ export default function SceneResponseMenu({ lookId }: ISceneResponseMenuProps) {
   const chosen = useListenerResponse(lookId);
   return (
     <>
-      <div className="graph-view-menu__divider" />
       {LISTENER_RESPONSE_KEYS.map((field) => (
         <TimingSlider
           key={field}

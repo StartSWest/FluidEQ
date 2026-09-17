@@ -58,27 +58,24 @@ export function WallpaperMenuAction({
     return null;
   }
   return (
-    <>
-      <div className="graph-view-menu__divider" />
-      <button
-        type="button"
-        role="menuitem"
-        onClick={() => {
-          onChoose();
-          openWallpaperDialog(lookId);
-        }}
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => {
+        onChoose();
+        openWallpaperDialog(lookId);
+      }}
+    >
+      <svg
+        className="graph-view-menu__icon"
+        viewBox="0 0 16 16"
+        aria-hidden="true"
       >
-        <svg
-          className="graph-view-menu__icon"
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-        >
-          <rect x="1.5" y="2.5" width="13" height="9" rx="1.2" />
-          <path d="M5.5 14h5M8 11.5V14" />
-        </svg>
-        <span>{t('wallpaper.action')}</span>
-      </button>
-    </>
+        <rect x="1.5" y="2.5" width="13" height="9" rx="1.2" />
+        <path d="M5.5 14h5M8 11.5V14" />
+      </svg>
+      <span>{t('wallpaper.action')}</span>
+    </button>
   );
 }
 
