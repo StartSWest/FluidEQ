@@ -1325,6 +1325,28 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: normal;
 }
 
+// A fact the row reports, on a full line under it: which graphics card is
+// actually drawing, under the choice of which one to use. Its own line and
+// aligned under the label, because squeezed into the answer's column at the
+// right it was a third line of cramped text spilling out of the column —
+// "NVIDIA GeForce RTX 4080 Laptop GPU" is wider than the answers ever are.
+.graph-view-menu__list button.graph-view-menu__row--reported {
+  flex-wrap: wrap;
+}
+
+.graph-view-menu__list button > .graph-view-menu__report {
+  // A line of its own, indented to the label rather than the icon. Padding
+  // rather than a margin: a margin outside a 100% basis is 24px of overflow,
+  // measured as the menu growing past its own box.
+  flex: 0 0 100%;
+  padding-left: 24px;
+  color: $text-dim;
+  font-size: $text-eyebrow;
+  line-height: 1.3;
+  text-align: left;
+  white-space: normal;
+}
+
 // A choice not yet in force says so under its answer, on a line of its own:
 // "after restart" run on after "High performance" wrapped mid-phrase.
 .graph-view-menu__note {

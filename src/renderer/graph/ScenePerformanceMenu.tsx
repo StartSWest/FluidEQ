@@ -91,6 +91,7 @@ function CycleRow({
   label,
   value,
   note,
+  report,
   icon,
   onCycle,
 }: {
@@ -98,18 +99,27 @@ function CycleRow({
   label: TranslationKey;
   value: string;
   note?: string;
+  /** A fact under the row, on a full line of its own. */
+  report?: string;
   icon: ReactNode;
   onCycle: () => void;
 }) {
   const { t } = useTranslation();
   return (
-    <button type="button" role="menuitem" title={t(hint)} onClick={onCycle}>
+    <button
+      type="button"
+      role="menuitem"
+      title={t(hint)}
+      className={report ? 'graph-view-menu__row--reported' : undefined}
+      onClick={onCycle}
+    >
       <Icon>{icon}</Icon>
       <span>{t(label)}</span>
       <span className="graph-view-menu__value">
         {value}
         {note && <span className="graph-view-menu__note">{note}</span>}
       </span>
+      {report && <span className="graph-view-menu__report">{report}</span>}
     </button>
   );
 }
@@ -139,7 +149,7 @@ export default function ScenePerformanceMenu() {
   // coming back to the real machine does not move it — and nothing said so.
   // A pending choice is the more urgent thing to say, so it wins the line.
   const gpuNote =
-    gpu.chosen === gpu.atLaunch ? sceneGpuName() : t('graph.scene.gpu.restart');
+    gpu.chosen === gpu.atLaunch ? undefined : t('graph.scene.gpu.restart');
   return (
     <>
       <CycleRow
@@ -236,6 +246,7 @@ export default function ScenePerformanceMenu() {
           label="graph.scene.gpu"
           value={t(GPU_LABEL[gpu.chosen])}
           note={gpuNote}
+          report={sceneGpuName()}
           // A card with its fan.
           icon={
             <>
