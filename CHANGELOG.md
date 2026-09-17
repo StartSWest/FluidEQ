@@ -139,6 +139,14 @@ it, and the beat they move to is the one in the music.
   than five grey boxes. The Account panel was rebuilt with it: a profile card
   with your scene as its banner, your membership badge on it, and your links
   beside your name.
+- **The guide shows the Karaoke Maker's own windows.** The chapter had one
+  picture of the whole maker and named none of its tools. It now has the
+  tools along the top with eleven of them explained, the lyrics window —
+  the words, which of them are timed, and where the one in hand starts and
+  ends — and the tools that listen for you with the models behind them:
+  what each needs, whether it is on this computer, and what happens to it
+  while nothing is using it. Every picture in the guide was retaken against
+  the interface as it is now.
 
 ### Fixed
 
