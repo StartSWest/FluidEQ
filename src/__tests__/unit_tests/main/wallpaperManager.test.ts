@@ -164,6 +164,13 @@ describe('stopping', () => {
 describe('coming back at launch', () => {
   const remembered = (): IWallpaperArrangement => ({
     pauseOnBattery: false,
+    performance: {
+      frameRate: 'display',
+      resolution: 'auto',
+      autoFloor: 0.35,
+      upscaler: 'fsr',
+      smoothing: 'off',
+    },
     screens: [
       {
         displayId: 30,

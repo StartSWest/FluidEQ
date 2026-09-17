@@ -82,6 +82,13 @@ const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
   renderGeneration: 1,
   wave: { height: 1, position: 0 },
   motion: 'music' as const,
+  performance: {
+    frameRate: 'display' as const,
+    resolution: 'auto' as const,
+    autoFloor: 0.35 as const,
+    upscaler: 'fsr' as const,
+    smoothing: 'off' as const,
+  },
   ...over,
 });
 

@@ -127,6 +127,45 @@ react-router-dom    Copyright (c) React Training LLC 2015-2019
                     Copyright (c) Shopify Inc. 2022-2023
 regedit             Copyright (c) 2014 ironSource
 uid                 Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
+FidelityFX-FSR 1.0  Copyright (c) 2021 Advanced Micro Devices, Inc.
+
+FidelityFX Super Resolution 1.0 is the pair of filters (EASU and RCAS) that
+bring a visualizer drawn smaller than its panel up to size. They are ported to
+the app's shading language in src/renderer/graph/sceneUpscale.ts, which
+carries the notice; the original is published by AMD at
+https://github.com/GPUOpen-Effects/FidelityFX-FSR.
+
+FXAA 3.11  Copyright (c) 2014, NVIDIA CORPORATION. All rights reserved.
+
+FXAA (Fast Approximate Anti-Aliasing) by Timothy Lottes is the "Fast" edge
+smoothing of a visualizer, ported to the app's shading language in
+src/renderer/graph/scenePost.ts from the copy of Fxaa3_11.h that Intel ships
+inside its CMAA2 sample (https://github.com/GameTechDev/CMAA2), NVIDIA's own
+header intact. It is used under the following licence:
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+ * Neither the name of NVIDIA CORPORATION nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 music-metadata reads the tags, cover art and durations behind the Library tab.
 The three onnxruntime packages are the inference runtime the Karaoke Maker's

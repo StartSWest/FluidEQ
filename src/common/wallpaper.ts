@@ -1,5 +1,6 @@
 import type { TSceneFailure } from '../main/scenePackStore';
 import type { IScenePack } from './scenePacks';
+import type { IScenePerformance } from './scenePerformance';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
 import { parseMemberLookId } from './memberScenes';
 
@@ -16,6 +17,8 @@ export const WALLPAPER = {
   readAudio: 'wallpaper-read-audio',
   audio: 'wallpaper-audio',
   audioReady: 'wallpaper-audio-ready',
+  /** The window's frame rate and resolution choice, for every monitor. */
+  performance: 'wallpaper-performance',
 } as const;
 
 /** More monitors than a desk has; bounds what one request can create. */
@@ -117,6 +120,11 @@ export interface IWallpaperSurfaceState {
   renderGeneration: number;
   wave: IWallpaperWave;
   motion: TWallpaperMotion;
+  /**
+   * How hard the scene may drive the GPU (`scenePerformance.ts`): the
+   * window's choice, kept by main, since this page has no store of its own.
+   */
+  performance: IScenePerformance;
 }
 
 /** Scene source is loaded and authorized by main, never sent back by a page. */

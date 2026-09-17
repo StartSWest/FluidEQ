@@ -1,23 +1,38 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import type { IScenePack } from 'common/scenePacks';
-import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
 import {
-  EUPHORIA_FRAME_MS,
-  SMOOTH_FRAME_MS,
-  getEaseFactor,
-} from 'common/smoothing';
+  SCENE_SUPERSAMPLE,
+  scenePaceMs,
+  scenePinnedScale,
+  type IScenePerformance,
+} from 'common/scenePerformance';
+import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
+import { getEaseFactor } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
+import { isOnBattery } from 'renderer/utils/batteryPower';
 import observeShown from 'renderer/utils/observeShown';
+import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useSceneAudio } from '../audio/SceneAudioContext';
+import { createFrameCadence } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
 import type { ISceneFrame } from './sceneGl';
-import type { ICostLadder } from './sceneHealth';
+import {
+  SCENE_SLOW_FRAMES_TO_STEP,
+  SCENE_SLOW_PACE_MS,
+  type ICostLadder,
+} from './sceneHealth';
+import {
+  createRestWatch,
+  isSilentWaveform,
+  SCENE_REST_PACE_MS,
+  type IRestWatch,
+} from './sceneRest';
 import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import { sameSceneProgramInputs } from './sceneProgramInputs';
-import type { ISceneRunnerOptions } from './sceneRunnerTypes';
+import type { ISceneDrawReport, ISceneRunnerOptions } from './sceneRunnerTypes';
 import {
   createSceneWorkerClient,
   warmSceneProgram,
@@ -33,6 +48,36 @@ import {
 
 export type { ISceneRunnerOptions, ISceneSource } from './sceneRunnerTypes';
 export type { ISceneTuning } from './sceneTuner';
+
+/**
+ * The least time to leave between frames: the listener's choice — every
+ * frame in euphoria, sixty on battery — unless the ladder's slow rung or a
+ * rest in silence holds frames to thirty, because the machine cannot keep
+ * up or nobody is listening.
+ */
+const paceMsOf = (
+  performance: IScenePerformance,
+  ladder: ICostLadder,
+  rest: IRestWatch,
+): number =>
+  Math.max(
+    document.documentElement.classList.contains('is-euphoric')
+      ? 0
+      : scenePaceMs(performance.frameRate, isOnBattery()),
+    ladder.slowed() ? SCENE_SLOW_PACE_MS : 0,
+    rest.resting() ? SCENE_REST_PACE_MS : 0,
+  );
+
+/**
+ * The largest size each program (`ladderProgramRef`'s key) has held for a
+ * run of frames this session, by every runner in the window. A scene built
+ * again — full screen and back, a look put away and taken out, a lost
+ * context restored — starts its ladder there rather than from the bottom.
+ */
+const provenScales = new Map<string, number>();
+
+/** Frames a size has to be held for before it counts as proved. */
+const PROVEN_FRAMES = SCENE_SLOW_FRAMES_TO_STEP;
 
 /**
  * The GPU loop behind every scene: context, program, frame, recovery.
@@ -53,11 +98,21 @@ export default function useSceneRunner({
   spectrumRect,
   shapeFrame,
   tuning,
+  performance: chosenPerformance,
   onDrawn,
   onLoaded,
   onWaiting,
 }: ISceneRunnerOptions): RefObject<HTMLDivElement | null> {
   const { points, waveform, isPaused, readFrame } = useSceneAudio();
+  // The listener's frame rate and resolution, from this window's store unless
+  // the page was handed main's copy (the desktop).
+  const storedPerformance = useScenePerformance();
+  const performance = chosenPerformance ?? storedPerformance;
+  const performanceRef = useRef(performance);
+  performanceRef.current = performance;
+  // How often frames are actually being drawn: the budget a frame's GPU
+  // cost is judged against.
+  const cadenceRef = useRef(createFrameCadence());
   // What the scene is drawn inside: each worker puts a canvas of its own here.
   const hostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<ISceneWorkerClient | undefined>(undefined);
@@ -73,7 +128,18 @@ export default function useSceneRunner({
   const energyRef = useRef(createEnergyState());
   const spectrumRef = useRef(createSpectrumTexels());
   const waveformRef = useRef(createWaveformTexels());
-  const ladderRef = useRef<ICostLadder>(source.createLadder());
+  const ladderRef = useRef<ICostLadder>(
+    source.createLadder(1, performance.autoFloor),
+  );
+  /** The largest scale the ladder was made for: 1, or the supersampled size. */
+  const ladderTopRef = useRef(1);
+  /** The smallest it was made for: the listener's floor at the time. */
+  const ladderFloorRef = useRef<number>(performance.autoFloor);
+  /** Whether nothing has played for a while (`sceneRest.ts`). */
+  const restRef = useRef<IRestWatch>(createRestWatch());
+  /** The size the last frames were drawn at, and for how many in a row. */
+  const heldScaleRef = useRef<number | undefined>(undefined);
+  const heldFramesRef = useRef(0);
   const clockRef = useRef(0);
   const fadeRef = useRef(0);
   const accentRef = useRef(parseAccent(''));
@@ -147,15 +213,19 @@ export default function useSceneRunner({
         document.hidden
       ) {
         drawnAtRef.current = undefined;
+        // The loop is stopping: the worker draws nothing of its own either.
+        renderer?.idle();
         return false;
       }
       if (!renderer.canDraw()) {
         return true;
       }
-      const now = performance.now();
+      const now = window.performance.now();
       const deltaMs =
         drawnAtRef.current === undefined ? elapsedMs : now - drawnAtRef.current;
       drawnAtRef.current = now;
+      cadenceRef.current.note(deltaMs);
+      const intervalMs = cadenceRef.current.intervalMs();
       // The music as it is at this frame, not at the pump's last tick, which
       // was 16 ms stale at the median. Paused, sent from another PC or not
       // capturing, it answers nothing and the React frame stands.
@@ -165,17 +235,25 @@ export default function useSceneRunner({
         ? fresh.waveform
         : waveformSamplesRef.current;
       const isPlaying = currentPoints.length > 0;
-
-      const budget = document.documentElement.classList.contains('is-euphoric')
-        ? EUPHORIA_FRAME_MS
-        : SMOOTH_FRAME_MS;
+      // Resting is judged on what this frame hears, before the pace is read
+      // below: the first frame with sound in it is drawn at full rate.
+      if (sourceRef.current.restsInSilence) {
+        restRef.current.frame(
+          now,
+          !isPlaying || isSilentWaveform(currentWaveform),
+        );
+      }
 
       // Sized inside the loop, as the 2D canvas is, because the pixel ratio is
       // not only a property of the element: dragging the window onto a display
       // with a different scale changes it with nothing to observe. Display
-      // pixels up to a 4K pixel budget; the ladder lowers it when work is slow.
+      // pixels up to a 4K pixel budget are the panel's own; the ladder draws
+      // the scene at a fraction of them when the GPU cannot keep up, and the
+      // worker brings that picture back up to the panel's pixels. A listener
+      // who chose full resolution or a preset is never drawn by the ladder —
+      // it still watches, so a scene too slow even for that is handed over.
       const ratio = Math.min(2, window.devicePixelRatio || 1);
-      const scale = ladderRef.current.scale();
+      const { resolution, smoothing, upscaler } = performanceRef.current;
       const { width: cssWidth, height: cssHeight } = sizeRef.current;
       const pixelCap = Math.min(
         1,
@@ -183,14 +261,53 @@ export default function useSceneRunner({
           (3840 * 2160) / Math.max(1, cssWidth * cssHeight * ratio * ratio),
         ),
       );
-      const backingWidth = Math.max(
-        1,
-        Math.round(cssWidth * ratio * scale * pixelCap),
-      );
-      const backingHeight = Math.max(
-        1,
-        Math.round(cssHeight * ratio * scale * pixelCap),
-      );
+      const output = {
+        width: Math.max(1, Math.round(cssWidth * ratio * pixelCap)),
+        height: Math.max(1, Math.round(cssHeight * ratio * pixelCap)),
+      };
+      // `best` smoothing draws larger than the panel and averages down, within
+      // the same pixel budget: twice each way at 1080p, what fits at 1440p,
+      // nothing at 4K, where FXAA alone is left to do the smoothing.
+      const supersample =
+        smoothing === 'best'
+          ? Math.min(
+              SCENE_SUPERSAMPLE,
+              Math.sqrt((3840 * 2160) / (output.width * output.height)),
+            )
+          : 1;
+      const top = supersample > 1.05 ? supersample : 1;
+      const { autoFloor } = performanceRef.current;
+      if (top !== ladderTopRef.current) {
+        ladderTopRef.current = top;
+        ladderFloorRef.current = autoFloor;
+        ladderRef.current = sourceRef.current.createLadder(top, autoFloor);
+        const proved =
+          ladderProgramRef.current === undefined
+            ? undefined
+            : provenScales.get(ladderProgramRef.current);
+        if (proved !== undefined) {
+          ladderRef.current.resume(proved);
+        }
+      } else if (autoFloor !== ladderFloorRef.current) {
+        // A new floor moves the rungs under the picture, never the picture.
+        ladderFloorRef.current = autoFloor;
+        ladderRef.current.refloor(autoFloor);
+      }
+      const pinned = scenePinnedScale(resolution);
+      let scale = ladderRef.current.scale();
+      if (pinned !== undefined) {
+        scale = resolution === 'native' ? top : pinned;
+      }
+      const drawn = {
+        width: Math.max(1, Math.round(output.width * scale)),
+        height: Math.max(1, Math.round(output.height * scale)),
+      };
+      const finish = {
+        // The plain scaler for good once the FSR passes have proved too dear
+        // for this GPU at this size (`SCENE_FINISH_SHARE`).
+        fsr: upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
+        fxaa: smoothing !== 'off',
+      };
 
       const energy = advanceEnergy(
         energyRef.current,
@@ -208,8 +325,11 @@ export default function useSceneRunner({
       );
       fillWaveformTexels(currentWaveform, waveformRef.current);
 
-      // Ambient travel continues through silence. Energy and beat still
-      // receive actual audio; visibility stops this clock before any work.
+      // The page's own clock, for what the page derives from a frame — the
+      // Studio's signals, a taste's ten seconds, a recorded moment. The clock
+      // the scene is drawn on is the worker's, which keeps running through a
+      // stall of this thread that this one clamps away. Ambient travel
+      // continues through silence; visibility stops it before any work.
       clockRef.current =
         (clockRef.current + Math.min(100, deltaMs) / 1000) % SCENE_TIME_WRAP_S;
       // The scene fades in over its first quarter second rather than popping,
@@ -240,17 +360,24 @@ export default function useSceneRunner({
       );
       const ladder = ladderRef.current;
       const drawnGeneration = readyGenerationRef.current;
+      // The pace this loop is keeping, so the worker can tell a page that
+      // has fallen behind from one drawing every other frame on purpose.
+      const paceMs = paceMsOf(performanceRef.current, ladder, restRef.current);
       renderer.draw(
         frame,
-        backingWidth,
-        backingHeight,
+        drawn,
+        output,
+        finish,
         clipRef.current,
-        (accent, costMs) => {
-          // Judged by what the frame cost the GPU, not by how long the page
-          // took between frames: see the worker's draw.
+        paceMs,
+        (result) => {
+          // Judged by what frames cost the GPU, against the interval they are
+          // drawn at — not by how long the page took between frames: see the
+          // worker's draw.
           if (
             ladder === ladderRef.current &&
-            ladder.frame(costMs, budget, document.hidden) === 'degraded'
+            ladder.frame(result.cost, intervalMs, document.hidden) ===
+              'degraded'
           ) {
             // Too slow even at the floor. The source decides what that means:
             // the graph falls back FOR THIS SESSION — a slow session is a fact
@@ -264,11 +391,39 @@ export default function useSceneRunner({
             sourceRef.current.tooSlow();
             return;
           }
+          // Nothing reached the canvas: the GPU still held two frames.
+          if (result.skipped) {
+            return;
+          }
+          // A size held for a run of frames is one this program draws: the
+          // next ladder made for it starts there, not from the bottom.
+          if (scale === heldScaleRef.current) {
+            heldFramesRef.current += 1;
+          } else {
+            heldScaleRef.current = scale;
+            heldFramesRef.current = 1;
+          }
+          const key = ladderProgramRef.current;
+          if (key !== undefined && heldFramesRef.current >= PROVEN_FRAMES) {
+            provenScales.set(key, Math.max(provenScales.get(key) ?? 0, scale));
+          }
           // Its first frame with anything in it: a fade still at zero is black.
           if (drawnGeneration === generationRef.current && frame.fade > 0) {
             setWaiting(false);
           }
-          drawnRef.current?.(frame, scale, accent, shaped);
+          const report: ISceneDrawReport = {
+            scale,
+            costMs: result.cost.costMs,
+            postMs: result.cost.postMs,
+            intervalMs,
+            drawnWidth: drawn.width,
+            drawnHeight: drawn.height,
+            outputWidth: output.width,
+            outputHeight: output.height,
+            fsr: finish.fsr,
+            fxaa: finish.fxaa,
+          };
+          drawnRef.current?.(frame, scale, result.accent, shaped, report);
         },
       );
       return true;
@@ -276,7 +431,17 @@ export default function useSceneRunner({
     [dropProgram, setWaiting],
   );
 
-  const kick = useSmoothFrames(onFrame, { isEnabled: true });
+  // Every frame the display offers, or the cap the listener chose — sixty on
+  // battery; euphoria has always asked for every frame and still does — or
+  // thirty where the ladder or a rest in silence says so (`paceMsOf`).
+  const scenePace = useCallback(
+    () => paceMsOf(performanceRef.current, ladderRef.current, restRef.current),
+    [],
+  );
+  const kick = useSmoothFrames(onFrame, {
+    isEnabled: true,
+    minFrameMs: scenePace,
+  });
 
   /**
    * The pack a scene put away while nobody could see it, to build again when
@@ -350,11 +515,21 @@ export default function useSceneRunner({
     });
     const resize = new ResizeObserver(measure);
     resize.observe(host);
+    // The frame loop stops itself when the window hides, without a last
+    // frame to say so; the worker is told here, or it would keep drawing
+    // frames of its own into a window nobody can see.
+    const hidden = () => {
+      if (document.hidden) {
+        rendererRef.current?.idle();
+      }
+    };
+    document.addEventListener('visibilitychange', hidden);
     window.addEventListener('scroll', measure, true);
     window.addEventListener('resize', measure);
     return () => {
       stopObserving();
       resize.disconnect();
+      document.removeEventListener('visibilitychange', hidden);
       window.removeEventListener('scroll', measure, true);
       window.removeEventListener('resize', measure);
     };
@@ -384,7 +559,17 @@ export default function useSceneRunner({
         },
         () => {
           drawnAtRef.current = undefined;
-          ladderRef.current = sourceRef.current.createLadder();
+          ladderRef.current = sourceRef.current.createLadder(
+            ladderTopRef.current,
+            ladderFloorRef.current,
+          );
+          const proved =
+            ladderProgramRef.current === undefined
+              ? undefined
+              : provenScales.get(ladderProgramRef.current);
+          if (proved !== undefined) {
+            ladderRef.current.resume(proved);
+          }
           kick();
         },
       );
@@ -479,8 +664,15 @@ export default function useSceneRunner({
         );
         const program = `${sourceRef.current.identity}\n${sceneProgramKey(pack)}`;
         if (result.rebuilt && program !== ladderProgramRef.current) {
-          ladderRef.current = sourceRef.current.createLadder();
+          ladderRef.current = sourceRef.current.createLadder(
+            ladderTopRef.current,
+            ladderFloorRef.current,
+          );
           ladderProgramRef.current = program;
+          const proved = provenScales.get(program);
+          if (proved !== undefined) {
+            ladderRef.current.resume(proved);
+          }
         }
         loadedRef.current?.(pack);
         kick();
@@ -514,6 +706,8 @@ export default function useSceneRunner({
     clockRef.current = 0;
     energyRef.current = createEnergyState();
     tunerRef.current.reset();
+    cadenceRef.current.reset();
+    restRef.current.reset();
     accentRef.current = parseAccent(
       getComputedStyle(document.documentElement).getPropertyValue('--accent'),
     );

@@ -10,6 +10,7 @@ import type { TranslationKey } from 'common/i18n/en';
 import type { IAppProcess, TProcessRole } from '../../main/ipc/processes';
 import { useTranslation } from '../utils/I18nContext';
 import { createProcessReadings } from '../utils/processReadings';
+import { readSceneDraws } from '../utils/sceneDrawStats';
 import DialogHeader from './DialogHeader';
 import '../styles/Processes.scss';
 
@@ -285,6 +286,35 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
               {t('app.processes.unmeasured')}
             </span>
           ) : undefined}
+          {/* The visualizers being drawn, which are not processes but are
+              what the graphics process is spending its share on: read on the
+              same refresh as the table, never per frame. */}
+          {readSceneDraws().map(({ place, name, report }) => {
+            const fps = String(Math.round(1000 / report.intervalMs / 5) * 5);
+            const drawn = `${report.drawnWidth}×${report.drawnHeight}`;
+            const shown = `${report.outputWidth}×${report.outputHeight}`;
+            const placeName = t(`app.processes.place.${place}` as const);
+            return (
+              <span key={place} className="processes__footnote">
+                {report.costMs === undefined
+                  ? t('app.processes.sceneRate', {
+                      place: placeName,
+                      name,
+                      fps,
+                      drawn,
+                      shown,
+                    })
+                  : t('app.processes.scene', {
+                      place: placeName,
+                      name,
+                      ms: report.costMs.toFixed(1),
+                      fps,
+                      drawn,
+                      shown,
+                    })}
+              </span>
+            );
+          })}
           <span className="processes__total">
             {t('app.processes.total', {
               megabytes: String(total),

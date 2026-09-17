@@ -57,6 +57,12 @@ const app: Partial<Dictionary> = {
   'app.processes.thisWindow': '此窗口',
   'app.processes.total': '共 {megabytes} MB，CPU {cpu}%。',
   'app.processes.unmeasured': '短横线表示该数值尚未被测量。',
+  'app.processes.scene':
+    '{place}：{name}，每帧 {ms} ms，{fps} fps，以 {drawn} 绘制、按 {shown} 显示',
+  'app.processes.sceneRate':
+    '{place}：{name}，{fps} fps，以 {drawn} 绘制、按 {shown} 显示',
+  'app.processes.place.graph': '图表可视化效果',
+  'app.processes.place.studio': 'Studio 舞台',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
     '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。Plus 可视化在其中的独立线程上运行，因此繁重的场景不会卡住控件。',

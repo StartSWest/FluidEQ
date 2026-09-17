@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
+import type { ISceneDrawn } from '../../../renderer/graph/sceneWorkerClient';
 import type { TSceneBuildResult } from '../../../renderer/graph/sceneWorkerMessages';
 import StudioStage from '../../../renderer/studio/StudioStage';
 
@@ -23,7 +24,7 @@ interface IMockClient {
     answer: (result: TSceneBuildResult) => void;
     answered: boolean;
   }[];
-  frames: ((accent: number, costMs: number) => void)[];
+  frames: ((drawn: ISceneDrawn) => void)[];
   disposed: boolean;
 }
 
@@ -80,13 +81,16 @@ jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
         client.loads.every((load) => load.answered),
       draw: (
         _frame: unknown,
-        _width: number,
-        _height: number,
+        _drawn: unknown,
+        _output: unknown,
+        _finish: unknown,
         _clip: unknown,
-        shown: (accent: number, costMs: number) => void,
+        _paceMs: number,
+        shown: (drawn: ISceneDrawn) => void,
       ) => {
         client.frames.push(shown);
       },
+      idle: () => undefined,
       // As the real client: a load still running is answered as given up.
       dispose: () => {
         client.disposed = true;
@@ -163,7 +167,11 @@ const sendFrame = (elapsedMs = 16) =>
 /** The oldest frame `client` has in flight, on the canvas. */
 const answerFrame = (client: IMockClient, costMs = 1) =>
   act(() => {
-    client.frames.shift()?.(0, costMs);
+    client.frames.shift()?.({
+      accent: 0,
+      cost: { costMs, behind: 0 },
+      skipped: false,
+    });
   });
 const drawFrame = (costMs = 1) => {
   sendFrame();

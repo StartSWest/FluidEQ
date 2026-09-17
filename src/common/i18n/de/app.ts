@@ -57,6 +57,12 @@ const app: Partial<Dictionary> = {
   'app.processes.thisWindow': 'dieses Fenster',
   'app.processes.total': '{megabytes} MB und {cpu} % CPU insgesamt.',
   'app.processes.unmeasured': 'Ein Strich ist ein noch nicht gemessener Wert.',
+  'app.processes.scene':
+    '{place}: {name}, {ms} ms pro Bild bei {fps} fps, gezeichnet in {drawn} für {shown}',
+  'app.processes.sceneRate':
+    '{place}: {name} bei {fps} fps, gezeichnet in {drawn} für {shown}',
+  'app.processes.place.graph': 'Visualisierung im Graphen',
+  'app.processes.place.studio': 'Studio-Bühne',
   'app.processes.name.window': 'Oberfläche',
   'app.processes.what.window':
     'Das Fenster, das Sie gerade sehen: die Kurve, die Bibliothek, der Player, alle Regler. Ein Prozess pro Fenster, damit ein aufwendiges Neuzeichnen den Ton nicht ausbremst. Die Plus-Visualizer laufen darin in einem eigenen Thread, damit eine aufwendige Szene die Regler nicht aufhält.',

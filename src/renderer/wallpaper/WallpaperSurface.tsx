@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { IScenePerformance } from 'common/scenePerformance';
 import { SMOOTH_FRAME_MS, shouldDrawFrame } from 'common/smoothing';
 import {
   type IWallpaperAudio,
@@ -24,12 +25,15 @@ function Scene({
   generation,
   wave,
   motion,
+  performance,
 }: {
   bootstrap: IWallpaperBootstrap;
   bridge: IWallpaperSurfaceBridge;
   generation: number;
   wave: IWallpaperWave;
   motion: TWallpaperMotion;
+  /** Main's copy of the window's choice: this page has no store of its own. */
+  performance: IScenePerformance;
 }) {
   const [size, setSize] = useState({
     width: window.innerWidth,
@@ -49,6 +53,7 @@ function Scene({
       tooSlow: () => bridge.failed(),
       createLadder: bootstrap.member ? createWarmupLadder : createCostLadder,
       createGuard: bootstrap.member ? createFlashGuard : undefined,
+      restsInSilence: true,
     }),
     [bootstrap, bridge],
   );
@@ -81,6 +86,7 @@ function Scene({
     ...size,
     spectrumRect,
     shapeFrame: shaper.shape,
+    performance,
     onDrawn,
   });
   useEffect(() => {
@@ -190,6 +196,7 @@ export default function WallpaperSurface({
         generation={state.renderGeneration}
         wave={state.wave}
         motion={state.motion}
+        performance={state.performance}
       />
     </SceneAudioProvider>
   ) : null;

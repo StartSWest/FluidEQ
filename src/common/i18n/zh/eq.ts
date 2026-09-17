@@ -152,6 +152,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': '质量 (77%)',
   'graph.scene.resolution.balanced': '平衡 (67%)',
   'graph.scene.resolution.performance': '性能 (50%)',
+  'graph.scene.floor': '最小尺寸',
+  'graph.scene.floorHint': '自动模式在改为降低帧率之前可以缩小到多小',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': '自动模式时',
   'graph.scene.scaler': '缩放器',
   'graph.scene.scalerHint':
     '把缩小的画面放大到原尺寸的方式：AMD FSR 保持边缘锐利；简单是柔和的拉伸，GPU 零开销',

@@ -56,13 +56,23 @@ const getFrameBudget = () =>
  * `target` is what the loop draws on. Given one, the loop also stops while
  * nobody can see that element — the titlebar's wave faded out in full screen,
  * the meter in a drawer parked off the side — and starts again when they can.
+ *
+ * `minFrameMs` is a consumer's own pace, read every frame, in place of the
+ * shell's: a Plus visualizer is drawn by the GPU and costs the page nothing
+ * per frame, so it runs at the display's rate — or at the cap the listener
+ * chose for it — rather than at the thirty the 2D graph is held to.
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
   {
     isEnabled,
     target,
-  }: { isEnabled: boolean; target?: RefObject<Element | null> },
+    minFrameMs,
+  }: {
+    isEnabled: boolean;
+    target?: RefObject<Element | null>;
+    minFrameMs?: () => number;
+  },
 ) => {
   const frameRef = useRef<number | undefined>(undefined);
   const lastDrawRef = useRef(0);
@@ -74,6 +84,8 @@ const useSmoothFrames = (
   onFrameRef.current = onFrame;
   const targetRef = useRef(target);
   targetRef.current = target;
+  const paceRef = useRef(minFrameMs);
+  paceRef.current = minFrameMs;
   const shownRef = useRef(true);
   const watchRef = useRef<{ element: Element; dispose: () => void }>(undefined);
   const kickRef = useRef<() => void>(() => undefined);
@@ -139,7 +151,8 @@ const useSmoothFrames = (
         return;
       }
       const elapsed = now - lastDrawRef.current;
-      if (!shouldDrawFrame(elapsed, getFrameBudget())) {
+      const pace = paceRef.current;
+      if (!shouldDrawFrame(elapsed, pace ? pace() : getFrameBudget())) {
         // Too soon for this mode. Still queued, so the next frame is
         // considered — skipping is how the rate is capped without a timer.
         frameRef.current = requestAnimationFrame(tick);

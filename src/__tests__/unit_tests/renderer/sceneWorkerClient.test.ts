@@ -76,22 +76,57 @@ it('loads in the worker and keeps one drawing in flight until it is committed', 
   await expect(loading).resolves.toEqual({ kind: 'ready', rebuilt: true });
   expect(client?.canDraw()).toBe(true);
   const shown = jest.fn();
-  client?.draw({} as ISceneFrame, 100, 100, [0, 0, 1, 1], shown);
+  client?.draw(
+    {} as ISceneFrame,
+    { width: 50, height: 50 },
+    { width: 100, height: 100 },
+    { fsr: true, fxaa: false },
+    [0, 0, 1, 1],
+    0,
+    shown,
+  );
+  expect(worker.postMessage).toHaveBeenLastCalledWith({
+    kind: 'draw',
+    frame: {},
+    width: 50,
+    height: 50,
+    output: { width: 100, height: 100 },
+    finish: { fsr: true, fxaa: false },
+    clip: [0, 0, 1, 1],
+    paceMs: 0,
+  });
   expect(client?.canDraw()).toBe(false);
-  reply({ kind: 'drawn', accent: 0.5, costMs: 1.5 });
-  expect(shown).toHaveBeenCalledWith(0.5, 1.5);
+  reply({
+    kind: 'drawn',
+    accent: 0.5,
+    cost: { costMs: 1.5, behind: 1 },
+    skipped: false,
+  });
+  expect(shown).toHaveBeenCalledWith({
+    accent: 0.5,
+    cost: { costMs: 1.5, behind: 1 },
+    skipped: false,
+  });
   expect(client?.canDraw()).toBe(true);
 });
 
 it('takes its canvas away with the worker, so the backdrop shows and not white', () => {
   const { host, client } = start();
   const shown = jest.fn();
-  client?.draw({} as ISceneFrame, 100, 100, [0, 0, 1, 1], shown);
+  client?.draw(
+    {} as ISceneFrame,
+    { width: 100, height: 100 },
+    { width: 100, height: 100 },
+    { fsr: false, fxaa: false },
+    [0, 0, 1, 1],
+    0,
+    shown,
+  );
   client?.dispose();
   expect(worker.terminate).toHaveBeenCalledTimes(1);
   expect(host.querySelector('canvas')).toBeNull();
   // A reply already on its way when it was disposed reaches nobody.
-  reply({ kind: 'drawn', accent: 0, costMs: 0 });
+  reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
   expect(shown).not.toHaveBeenCalled();
 });
 

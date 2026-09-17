@@ -55,6 +55,12 @@ const app = {
   'app.processes.thisWindow': 'this window',
   'app.processes.total': '{megabytes} MB and {cpu}% CPU in total.',
   'app.processes.unmeasured': 'A dash is a figure nothing has measured yet.',
+  'app.processes.scene':
+    '{place}: {name}, {ms} ms a frame at {fps} fps, drawn at {drawn} for {shown}',
+  'app.processes.sceneRate':
+    '{place}: {name} at {fps} fps, drawn at {drawn} for {shown}',
+  'app.processes.place.graph': 'Graph visualizer',
+  'app.processes.place.studio': 'Studio stage',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
     'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound. The Plus visualizers run inside it on a thread of their own, so a heavy scene does not hold up the controls.',

@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import StudioFoldCard from './StudioFoldCard';
@@ -23,6 +24,11 @@ interface IStudioTestCardProps {
   /** How the scene is running, when it is. */
   cost?: TranslationKey;
   percent: number;
+  /**
+   * Under the cost line, what the frames are costing right now — written by
+   * the bench after every frame, never through React.
+   */
+  readingRef: RefObject<HTMLSpanElement | null>;
 }
 
 /**
@@ -48,6 +54,7 @@ export default function StudioTestCard({
   idle,
   cost,
   percent,
+  readingRef,
 }: IStudioTestCardProps) {
   const { t } = useTranslation();
   const signalName = (entry: TStudioSignal) =>
@@ -66,6 +73,7 @@ export default function StudioTestCard({
           <span className={`studio-cost studio-cost--${cost.split('.').pop()}`}>
             <span className="studio-cost__dot" aria-hidden="true" />
             {t(cost, { percent })}
+            <span className="studio-cost__reading" ref={readingRef} />
           </span>
         )
       }

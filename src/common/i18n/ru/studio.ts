@@ -387,7 +387,12 @@ const studio = {
   'studio.grid.hint':
     'Линии частот и уровней графика поверх сцены, с теми же полями, что на графике, — чтобы измерить, где оказываются волна и каждая часть сцены.',
 
+  'studio.performance.title': 'Производительность',
+  'studio.performance.hint':
+    'Один выбор для графика, этой сцены и рабочего стола: те же строки, что в меню графика.',
   'studio.cost.full': 'Работает плавно',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size} %',
+  'studio.cost.readingRate': '{fps} fps · {size} %',
   'studio.cost.scaled': 'Рисуется на {percent}% размера',
   'studio.cost.heavy': 'Слишком тяжело для этого компьютера',
   'studio.cost.unavailable': 'Этот компьютер сейчас не может рисовать сцены',

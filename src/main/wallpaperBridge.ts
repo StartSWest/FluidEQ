@@ -1,4 +1,5 @@
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
+import type { IScenePerformance } from '../common/scenePerformance';
 import {
   WALLPAPER,
   type IWallpaperAudio,
@@ -10,6 +11,12 @@ import {
  * Main's replies are `unknown` here on purpose: the window checks their shape.
  */
 const wallpaperBridge = {
+  /**
+   * The window's frame rate and resolution choice for visualizers, so the
+   * monitors' pages — which have no store of their own — draw by it too.
+   */
+  setScenePerformance: (value: IScenePerformance) =>
+    ipcRenderer.send(WALLPAPER.performance, value),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),
   startWallpaper: (request: IWallpaperStart): Promise<unknown> =>

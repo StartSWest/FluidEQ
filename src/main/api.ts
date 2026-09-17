@@ -18,6 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
+import type {
+  IGraphicsPreferenceState,
+  TGpuPreference,
+} from '../common/graphicsPreference';
 import type { IMotionPreferenceState } from './ipc/motionPreference';
 import type { TMotionPreference } from './motionPreference';
 import type { IStudioNotes } from '../common/studioNotes';
@@ -247,6 +251,18 @@ const setMotionPreference = (motion: TMotionPreference) =>
     'motion-preference-set',
     motion,
   ) as Promise<IMotionPreferenceState>;
+
+/** Which graphics card the whole app runs on; applies from the next start. */
+const graphicsPreference = () =>
+  ipcRenderer.invoke(
+    'graphics-preference-get',
+  ) as Promise<IGraphicsPreferenceState>;
+
+const setGraphicsPreference = (gpu: TGpuPreference) =>
+  ipcRenderer.invoke(
+    'graphics-preference-set',
+    gpu,
+  ) as Promise<IGraphicsPreferenceState>;
 
 /**
  * The release notes that shipped with this build.
@@ -1344,6 +1360,8 @@ export default {
     setWindowBackdrop,
     motionPreference,
     setMotionPreference,
+    graphicsPreference,
+    setGraphicsPreference,
     getChangelog,
     installUpdate,
     isWindowMaximized,

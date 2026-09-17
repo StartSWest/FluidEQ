@@ -399,7 +399,12 @@ const studio = {
   'studio.grid.hint':
     'Its frequency and level lines over the scene, with the room they take on the graph, so you can measure where the wave and each part of the scene land.',
 
+  'studio.performance.title': 'Performance',
+  'studio.performance.hint':
+    'One choice for the graph, this stage and the desktop: the same rows as the graph’s menu.',
   'studio.cost.full': 'Runs smoothly',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
+  'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': 'Drawn at {percent}% size',
   'studio.cost.heavy': 'Too heavy for this computer',
   'studio.cost.unavailable': "This computer can't draw scenes right now",

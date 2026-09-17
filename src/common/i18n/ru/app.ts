@@ -58,6 +58,12 @@ const app: Partial<Dictionary> = {
   'app.processes.total': 'Всего {megabytes} МБ и {cpu} % ЦП.',
   'app.processes.unmeasured':
     'Прочерк — величина, которую ещё никто не измерил.',
+  'app.processes.scene':
+    '{place}: {name}, {ms} мс на кадр при {fps} fps, рисуется в {drawn} для {shown}',
+  'app.processes.sceneRate':
+    '{place}: {name} при {fps} fps, рисуется в {drawn} для {shown}',
+  'app.processes.place.graph': 'Визуализатор на графике',
+  'app.processes.place.studio': 'Сцена Studio',
   'app.processes.name.window': 'Интерфейс',
   'app.processes.what.window':
     'Окно, которое вы видите: кривая, библиотека, проигрыватель, все регуляторы. По одному процессу на окно, чтобы тяжёлая перерисовка не тормозила звук. Визуализаторы Plus работают внутри него в собственном потоке, чтобы тяжёлая сцена не задерживала регуляторы.',

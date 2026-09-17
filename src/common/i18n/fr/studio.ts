@@ -391,7 +391,12 @@ const studio = {
   'studio.grid.hint':
     'Ses lignes de fréquence et de niveau sur la scène, avec la place qu’elles prennent sur le graphique, pour mesurer où tombent l’onde et chaque partie de la scène.',
 
+  'studio.performance.title': 'Performance',
+  'studio.performance.hint':
+    'Un seul choix pour le graphique, cette scène et le bureau : les mêmes lignes que le menu du graphique.',
   'studio.cost.full': 'Tourne de façon fluide',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size} %',
+  'studio.cost.readingRate': '{fps} fps · {size} %',
   'studio.cost.scaled': 'Dessinée à {percent} % de sa taille',
   'studio.cost.heavy': 'Trop lourde pour cet ordinateur',
   'studio.cost.unavailable':

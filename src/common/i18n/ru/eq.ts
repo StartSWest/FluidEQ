@@ -161,6 +161,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': 'Качество (77 %)',
   'graph.scene.resolution.balanced': 'Баланс (67 %)',
   'graph.scene.resolution.performance': 'Производительность (50 %)',
+  'graph.scene.floor': 'Минимальный размер',
+  'graph.scene.floorHint':
+    'Насколько «Авто» может уменьшать картинку, прежде чем снизить частоту кадров',
+  'graph.scene.floor.35': '35 %',
+  'graph.scene.floor.50': '50 %',
+  'graph.scene.floor.67': '67 %',
+  'graph.scene.floor.85': '85 %',
+  'graph.scene.floor.whenAuto': 'при «Авто»',
   'graph.scene.scaler': 'Масштабатор',
   'graph.scene.scalerHint':
     'Что доводит уменьшенную картинку до размера: AMD FSR сохраняет чёткие края; Простой — мягкое растяжение, которое ничего не стоит GPU',

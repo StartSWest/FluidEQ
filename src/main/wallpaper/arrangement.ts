@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import {
+  DEFAULT_SCENE_PERFORMANCE,
+  normalizeScenePerformance,
+  type IScenePerformance,
+} from '../../common/scenePerformance';
+import {
   DEFAULT_WALLPAPER_WAVE,
   MAX_WALLPAPER_DISPLAYS,
   isWallpaperLookId,
@@ -31,6 +36,8 @@ export interface ISavedScreen {
 /** What each monitor was last set to show, and the one battery choice. */
 export interface IWallpaperArrangement {
   pauseOnBattery: boolean;
+  /** The window's frame rate and resolution choice, for every monitor. */
+  performance: IScenePerformance;
   screens: ISavedScreen[];
 }
 
@@ -39,7 +46,11 @@ export interface IArrangementStore {
   write(arrangement: IWallpaperArrangement): void;
 }
 
-const EMPTY: IWallpaperArrangement = { pauseOnBattery: true, screens: [] };
+const EMPTY: IWallpaperArrangement = {
+  pauseOnBattery: true,
+  performance: DEFAULT_SCENE_PERFORMANCE,
+  screens: [],
+};
 
 const isRecord = (raw: unknown): raw is Record<string, unknown> =>
   typeof raw === 'object' && raw !== null;
@@ -107,7 +118,13 @@ export const parseArrangement = (
   ) {
     return undefined;
   }
-  return { pauseOnBattery: raw.pauseOnBattery, screens };
+  return {
+    pauseOnBattery: raw.pauseOnBattery,
+    // Files written before the choice existed have none, and meant what a
+    // fresh install means.
+    performance: normalizeScenePerformance(raw.performance),
+    screens,
+  };
 };
 
 const storedScreenOf = ({
@@ -146,11 +163,16 @@ export const createArrangementStore = (
       }
       return parsed;
     },
-    write: ({ pauseOnBattery, screens }) =>
+    write: ({ pauseOnBattery, performance, screens }) =>
       writeFileAtomically(
         filePath,
         `${JSON.stringify(
-          { version: 1, pauseOnBattery, screens: screens.map(storedScreenOf) },
+          {
+            version: 1,
+            pauseOnBattery,
+            performance,
+            screens: screens.map(storedScreenOf),
+          },
           null,
           2,
         )}\n`,

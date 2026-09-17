@@ -10,6 +10,7 @@ import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { createFlashGuard } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
+import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
 import { createWarmupLadder } from '../graph/sceneWarmup';
 import useSceneRunner, {
   type ISceneSource,
@@ -18,6 +19,7 @@ import useSceneRunner, {
 import { useTranslation } from '../utils/I18nContext';
 import StudioGraphPaper from './StudioGraphPaper';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
+import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import StudioStageLoading from './StudioStageLoading';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
@@ -40,6 +42,8 @@ export type TStageDrawn = (
   musicAccent: number,
   /** What the scene heard before its response bent it. */
   heard: ISceneFrame,
+  /** What the frame cost, for the bench's readout. */
+  report: ISceneDrawReport,
 ) => void;
 
 interface IStudioStageProps {
@@ -179,18 +183,28 @@ export default function StudioStage({
   // The element the scene draws in, once the runner has made it: where the
   // window's pulse starts from.
   const hostRef = useRef<RefObject<Element | null>>(undefined);
+  const nameRef = useRef(pack.names.en);
+  nameRef.current = pack.names.en;
   const onFrame = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent, heard) => {
+    (frame, drawnScale, accent, heard, report) => {
       // The window beats on the beats this stage is drawing, when the
       // Studio's mode asks it to (`ScenePulse.tsx`).
       reportSceneBeat('studio', frame, hostRef.current?.current);
-      drawnRef.current(frame, drawnScale, accent, heard);
+      // And the Processes dialog says what it is costing.
+      reportSceneDraw('studio', nameRef.current, report);
+      drawnRef.current(frame, drawnScale, accent, heard, report);
     },
     [],
   );
   // The window's light goes with the stage: the Studio closing, another
   // project taking the bench, the stage stood down for a publish.
-  useEffect(() => () => reportSceneLeft('studio'), []);
+  useEffect(
+    () => () => {
+      reportSceneLeft('studio');
+      forgetSceneDraw('studio');
+    },
+    [],
+  );
 
   const { spectrumRange } = pack;
   const paper = useMemo(

@@ -35,6 +35,7 @@ import {
   TWaveOrientation,
 } from '../utils/graphStyle';
 import SceneResponseMenu from './SceneResponseMenu';
+import ScenePerformanceMenu from './ScenePerformanceMenu';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -712,6 +713,10 @@ const GraphViewMenu = ({
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
           {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
+
+          {/* And how hard it may drive the GPU: one choice for every
+              visualizer, so it sits with the rows for this one. */}
+          {sceneLookId && <ScenePerformanceMenu />}
 
           {sceneLookId && (
             <WallpaperMenuAction

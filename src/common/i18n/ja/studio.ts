@@ -389,7 +389,12 @@ const studio = {
   'studio.grid.hint':
     'グラフと同じ余白で、周波数とレベルの線をシーンに重ねます。波形やシーンの各部分がどこに来るかを測れます。',
 
+  'studio.performance.title': 'パフォーマンス',
+  'studio.performance.hint':
+    'グラフ、このステージ、デスクトップで共通の設定です。グラフのメニューと同じ行です。',
   'studio.cost.full': 'なめらかに動作中',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
+  'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': '{percent}% のサイズで描画中',
   'studio.cost.heavy': 'このコンピューターには重すぎます',
   'studio.cost.unavailable': 'このコンピューターは今シーンを描画できません',

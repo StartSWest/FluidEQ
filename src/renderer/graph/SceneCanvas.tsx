@@ -25,6 +25,8 @@ import {
 } from '../utils/memberScenes';
 import { createFlashGuard } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
+import type { ISceneDrawReport } from './sceneRunnerTypes';
+import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import SceneLoading from './SceneLoading';
 import { createCostLadder } from './sceneHealth';
 import { createWarmupLadder } from './sceneWarmup';
@@ -90,6 +92,7 @@ export default function SceneCanvas({
             tooSlow: () => blockMemberScene(key),
             createLadder: createWarmupLadder,
             createGuard: createFlashGuard,
+            restsInSilence: true,
           }
         : {
             identity: key,
@@ -105,6 +108,7 @@ export default function SceneCanvas({
             tooSlow: () => blockScene(key),
             createLadder: createCostLadder,
             warmWhenUnseen: true,
+            restsInSilence: true,
           },
     [member, key, version, name],
   );
@@ -119,7 +123,13 @@ export default function SceneCanvas({
   // window's pulse starts from.
   const hostRef = useRef<RefObject<Element | null>>(undefined);
   const onDrawn = useCallback(
-    (frame: ISceneFrame) => {
+    (
+      frame: ISceneFrame,
+      _scale: number,
+      _accent: number,
+      _heard: ISceneFrame,
+      report: ISceneDrawReport,
+    ) => {
       if (frame.fade > 0 && drawnRef.current !== key) {
         drawnRef.current = key;
         setDrawnIdentity(key);
@@ -127,13 +137,21 @@ export default function SceneCanvas({
       // The window beats on the beats this scene is drawing, when the
       // graph's mode asks it to (`ScenePulse.tsx`).
       reportSceneBeat('graph', frame, hostRef.current?.current);
+      // And the Processes dialog says what it is costing.
+      reportSceneDraw('graph', name, report);
     },
-    [key],
+    [key, name],
   );
   // The window's light goes with the graph's scene when the graph leaves the
   // screen with its tab. Not when the look changes: the next scene is drawn
   // in this same place and carries the light on.
-  useEffect(() => () => reportSceneLeft('graph'), []);
+  useEffect(
+    () => () => {
+      reportSceneLeft('graph');
+      forgetSceneDraw('graph');
+    },
+    [],
+  );
 
   // The listener's own attack and release for this visualizer, from the
   // graph's menu, over the timing its pack came with.

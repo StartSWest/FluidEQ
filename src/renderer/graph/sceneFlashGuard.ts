@@ -235,8 +235,13 @@ void main() {
 export interface IFlashGuard {
   /** Point drawing at the offscreen frame. Call before the scene draws. */
   begin(width: number, height: number): void;
-  /** Limit what was drawn and put it on the canvas. */
-  end(deltaMs: number): void;
+  /**
+   * Limit what was drawn and put it on `destination` — the canvas when null,
+   * or the upscaler's input when the scene is drawn smaller than its panel
+   * (`sceneUpscale.ts`), so the limiter judges the picture at the size it
+   * was drawn and the upscale reads what was shown.
+   */
+  end(deltaMs: number, destination: WebGLFramebuffer | null): void;
   dispose(): void;
 }
 
@@ -496,9 +501,9 @@ export const createFlashGuard = (
         frames?.[1 - drawn].framebuffer ?? null,
       );
     },
-    end: (deltaMs) => {
+    end: (deltaMs, destination) => {
       if (!frames || !shown || !pressure) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, destination);
         return;
       }
       const current = frames[1 - drawn];
@@ -536,10 +541,10 @@ export const createFlashGuard = (
       gl.uniform1f(where.first, hasShown ? 0 : 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-      // Onto the canvas. The blit honours the same scissor as the scene did,
-      // so only the part of the panel on screen is touched.
+      // Onto the destination. The blit honours the same scissor as the scene
+      // did, so only the part of the panel on screen is touched.
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, next.framebuffer);
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, destination);
       gl.blitFramebuffer(
         0,
         0,

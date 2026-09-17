@@ -162,6 +162,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': 'Qualidade (77%)',
   'graph.scene.resolution.balanced': 'Equilibrada (67%)',
   'graph.scene.resolution.performance': 'Desempenho (50%)',
+  'graph.scene.floor': 'Tamanho mínimo',
+  'graph.scene.floorHint':
+    'Até onde o Automático pode reduzir antes de baixar a taxa de quadros em vez disso',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': 'com Automático',
   'graph.scene.scaler': 'Ampliador',
   'graph.scene.scalerHint':
     'O que traz uma imagem menor ao tamanho: AMD FSR mantém as bordas nítidas; Simples é um esticamento suave que não custa nada à GPU',

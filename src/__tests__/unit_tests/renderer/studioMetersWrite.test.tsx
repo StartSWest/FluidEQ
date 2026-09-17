@@ -64,11 +64,21 @@ it('changes a readout in the text node it already has', () => {
     throw new Error('no level readout');
   }
 
-  draw(frame(0.25), 1, 0, frame(0.25));
+  const report = {
+    scale: 1,
+    intervalMs: 10,
+    drawnWidth: 1460,
+    drawnHeight: 700,
+    outputWidth: 1460,
+    outputHeight: 700,
+    fsr: false,
+    fxaa: false,
+  };
+  draw(frame(0.25), 1, 0, frame(0.25), report);
   const node = value.firstChild;
   expect(value).toHaveTextContent('0.25');
 
-  draw(frame(0.5), 1, 0, frame(0.5));
+  draw(frame(0.5), 1, 0, frame(0.5), report);
   // The control: the number did change, so a kept node is not a stale one.
   expect(value).toHaveTextContent('0.50');
   expect(value.firstChild).toBe(node);

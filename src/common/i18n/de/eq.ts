@@ -165,6 +165,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': 'Qualität (77 %)',
   'graph.scene.resolution.balanced': 'Ausgewogen (67 %)',
   'graph.scene.resolution.performance': 'Leistung (50 %)',
+  'graph.scene.floor': 'Kleinste Größe',
+  'graph.scene.floorHint':
+    'Wie klein Automatisch zeichnen darf, bevor es stattdessen die Bildrate senkt',
+  'graph.scene.floor.35': '35 %',
+  'graph.scene.floor.50': '50 %',
+  'graph.scene.floor.67': '67 %',
+  'graph.scene.floor.85': '85 %',
+  'graph.scene.floor.whenAuto': 'bei Automatisch',
   'graph.scene.scaler': 'Skalierer',
   'graph.scene.scalerHint':
     'Was ein kleineres Bild auf Größe bringt: AMD FSR hält Kanten scharf; Einfach ist ein weiches Strecken, das die GPU nichts kostet',

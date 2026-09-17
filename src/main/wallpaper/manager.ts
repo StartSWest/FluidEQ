@@ -16,6 +16,7 @@ import {
   type IWallpaperState,
   type TWallpaperError,
 } from '../../common/wallpaper';
+import type { IScenePerformance } from '../../common/scenePerformance';
 import type { IEntitlement } from '../account/entitlement';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -54,7 +55,7 @@ const RETRIED_ON_DISPLAY_CHANGE: readonly TWallpaperError[] = [
  */
 export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const remembered = deps.arrangement.read();
-  let { pauseOnBattery } = remembered;
+  let { pauseOnBattery, performance } = remembered;
   // What each monitor was set to show, by the id it is connected under now.
   // A failure or an unplugged cable leaves it here; only Stop takes it away.
   const saved = new Map<number, ISavedScreen>(
@@ -91,6 +92,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     executable: wallpaperHostPath,
     pauseReason: (fullscreen) =>
       wallpaperPauseReason({ ...conditions, pauseOnBattery, fullscreen }),
+    performance: () => performance,
     onEmpty: () => relay.cancel(),
   });
 
@@ -111,10 +113,32 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   const save = () => {
     try {
-      deps.arrangement.write({ pauseOnBattery, screens: [...saved.values()] });
+      deps.arrangement.write({
+        pauseOnBattery,
+        performance,
+        screens: [...saved.values()],
+      });
     } catch (error) {
       log.warn(`Desktop backgrounds could not be remembered: ${error}`);
     }
+  };
+
+  /**
+   * The window's frame rate and resolution choice for visualizers. One
+   * setting for every monitor, kept with the backgrounds so a monitor started
+   * at the next launch draws by it before the window has said a word.
+   */
+  const setPerformance = (next: IScenePerformance) => {
+    if (
+      disposed ||
+      (next.frameRate === performance.frameRate &&
+        next.resolution === performance.resolution)
+    ) {
+      return;
+    }
+    performance = next;
+    save();
+    backgrounds.retunePerformance(next);
   };
 
   const remember = (display: IWallpaperDisplay, choice: IWallpaperChoice) => {
@@ -453,6 +477,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     state,
     start,
     stop,
+    setPerformance,
     restoreSaved,
     failEverywhere,
     surfaceFailed,

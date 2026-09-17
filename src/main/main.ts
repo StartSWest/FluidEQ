@@ -214,6 +214,12 @@ import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
+import {
+  gpuPreferenceSupported,
+  HIGH_PERFORMANCE_GPU_SWITCH,
+  readGpuPreference,
+} from './graphicsPreference';
+import { registerGraphicsPreferenceIpc } from './ipc/graphicsPreference';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
@@ -911,6 +917,14 @@ const userDataDir = app.getPath('userData');
 // motion in the app stood down and came back only when the setting did.
 const motionAtLaunch = readMotionPreference(userDataDir);
 app.commandLine.appendSwitch(MOTION_SWITCHES[motionAtLaunch]);
+
+// On the fast graphics card of a laptop with two, when the listener chose it
+// in the graph's View menu (`graphicsPreference.ts`): Chromium takes the
+// choice for the whole app and only at launch.
+const gpuAtLaunch = readGpuPreference(userDataDir);
+if (gpuAtLaunch === 'high' && gpuPreferenceSupported(process.platform)) {
+  app.commandLine.appendSwitch(HIGH_PERFORMANCE_GPU_SWITCH);
+}
 
 /** Where the "I restarted myself" note lives; see unattendedUpdate.ts. */
 const UNATTENDED_RESTART_MARKER_PATH = path.join(
@@ -3179,6 +3193,15 @@ const motionPreferenceIpc = registerMotionPreferenceIpc({
   logger: log,
 });
 
+// The View menu's graphics card row, the same way: the saved choice and the
+// one this launch was started with.
+const graphicsPreferenceIpc = registerGraphicsPreferenceIpc({
+  userDataDir,
+  atLaunch: gpuAtLaunch,
+  platform: process.platform,
+  logger: log,
+});
+
 // The forum: the project's GitHub Discussions. Independent of the FluidEQ
 // account — reading needs nothing and writing needs a GitHub sign-in — and
 // registering contacts nothing until the Forum tab asks.
@@ -3552,6 +3575,7 @@ app.on('before-quit', (event) => {
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
+  graphicsPreferenceIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows

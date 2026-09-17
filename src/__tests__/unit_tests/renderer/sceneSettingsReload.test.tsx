@@ -66,7 +66,11 @@ const pack: IScenePack = {
 const ladder = jest.fn(() => ({
   frame: jest.fn(),
   scale: () => 1,
+  slowed: () => false,
+  refloor: () => undefined,
+  resume: () => undefined,
   reset: jest.fn(),
+  cheapFinish: () => false,
 }));
 const source = (next: IScenePack, version: number): ISceneSource => ({
   identity: 'project',

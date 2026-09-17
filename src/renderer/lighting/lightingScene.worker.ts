@@ -210,7 +210,7 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   const started = performance.now();
   guard?.begin(width, height);
   program.draw(frame, width, height);
-  guard?.end(request.frame.deltaMs);
+  guard?.end(request.frame.deltaMs, null);
   // One pixel back waits for the GPU to finish this frame, so the time is
   // the GPU's, and each frame reaches it as its own job.
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);

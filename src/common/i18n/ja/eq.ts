@@ -164,6 +164,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': '品質 (77%)',
   'graph.scene.resolution.balanced': 'バランス (67%)',
   'graph.scene.resolution.performance': 'パフォーマンス (50%)',
+  'graph.scene.floor': '最小サイズ',
+  'graph.scene.floorHint':
+    '自動がフレームレートを下げる前に、どこまで縮小してよいか',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': '自動のとき',
   'graph.scene.scaler': 'スケーラー',
   'graph.scene.scalerHint':
     '小さく描いた絵を元の大きさに戻す方法：AMD FSR は輪郭をシャープに保ち、シンプルは GPU に負担のない柔らかな引き伸ばしです',

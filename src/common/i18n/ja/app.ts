@@ -57,6 +57,12 @@ const app: Partial<Dictionary> = {
   'app.processes.thisWindow': 'このウィンドウ',
   'app.processes.total': '合計 {megabytes} MB、CPU {cpu}%。',
   'app.processes.unmeasured': 'ダッシュはまだ計測されていない値です。',
+  'app.processes.scene':
+    '{place}：{name}、1 フレーム {ms} ms・{fps} fps、{drawn} で描いて {shown} に表示',
+  'app.processes.sceneRate':
+    '{place}：{name}、{fps} fps、{drawn} で描いて {shown} に表示',
+  'app.processes.place.graph': 'グラフのビジュアライザー',
+  'app.processes.place.studio': 'Studio のステージ',
   'app.processes.name.window': '画面',
   'app.processes.what.window':
     'いま見ているウィンドウです。カーブ、ライブラリ、プレーヤー、すべての操作部。ウィンドウごとに 1 プロセスなので、重い再描画が音を止めることはありません。Plus のビジュアライザーはこの中の専用スレッドで動くので、重いシーンでも操作部は止まりません。',

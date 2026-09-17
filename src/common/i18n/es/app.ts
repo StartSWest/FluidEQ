@@ -57,6 +57,12 @@ const app: Partial<Dictionary> = {
   'app.processes.thisWindow': 'esta ventana',
   'app.processes.total': '{megabytes} MB y {cpu} % de CPU en total.',
   'app.processes.unmeasured': 'Un guion es un dato que aún nadie ha medido.',
+  'app.processes.scene':
+    '{place}: {name}, {ms} ms por fotograma a {fps} fps, dibujado a {drawn} para {shown}',
+  'app.processes.sceneRate':
+    '{place}: {name} a {fps} fps, dibujado a {drawn} para {shown}',
+  'app.processes.place.graph': 'Visualizador del gráfico',
+  'app.processes.place.studio': 'Escenario del Studio',
   'app.processes.name.window': 'Interfaz',
   'app.processes.what.window':
     'La ventana que estás viendo: la curva, la biblioteca, el reproductor, todos los controles. Un proceso por ventana, para que un redibujado pesado no frene el sonido. Los visualizadores de Plus funcionan dentro, en un hilo propio, para que una escena pesada no frene los controles.',

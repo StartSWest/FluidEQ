@@ -54,7 +54,18 @@ it('shows loading for as long as the runner says a version is on its way', () =>
   );
   expect(screen.getByRole('status')).toHaveTextContent('studio.stage.loading');
   // A frame alone decides nothing here.
-  act(() => current().onDrawn?.(frame(1), 1, 0, frame(1)));
+  act(() =>
+    current().onDrawn?.(frame(1), 1, 0, frame(1), {
+      scale: 1,
+      intervalMs: 10,
+      drawnWidth: 1460,
+      drawnHeight: 700,
+      outputWidth: 1460,
+      outputHeight: 700,
+      fsr: false,
+      fxaa: false,
+    }),
+  );
   expect(screen.getByTestId('studio-stage')).toHaveAttribute(
     'aria-busy',
     'true',

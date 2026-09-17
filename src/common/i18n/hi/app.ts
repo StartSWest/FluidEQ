@@ -57,6 +57,12 @@ const app: Partial<Dictionary> = {
   'app.processes.thisWindow': 'यह विंडो',
   'app.processes.total': 'कुल {megabytes} MB और {cpu}% CPU।',
   'app.processes.unmeasured': 'डैश का मतलब है कि यह आँकड़ा अभी मापा नहीं गया।',
+  'app.processes.scene':
+    '{place}: {name}, प्रति फ़्रेम {ms} ms, {fps} fps, {drawn} पर बनाकर {shown} पर दिखाया',
+  'app.processes.sceneRate':
+    '{place}: {name}, {fps} fps, {drawn} पर बनाकर {shown} पर दिखाया',
+  'app.processes.place.graph': 'ग्राफ़ का विज़ुअलाइज़र',
+  'app.processes.place.studio': 'Studio का मंच',
   'app.processes.name.window': 'इंटरफ़ेस',
   'app.processes.what.window':
     'वही विंडो जो आप देख रहे हैं: कर्व, लाइब्रेरी, प्लेयर और सभी नियंत्रण। हर विंडो के लिए एक प्रोसेस, ताकि भारी री-ड्रॉ आवाज़ को न रोके। Plus विज़ुअलाइज़र इसी के अंदर अपने अलग थ्रेड पर चलते हैं, ताकि भारी दृश्य नियंत्रणों को न रोके।',

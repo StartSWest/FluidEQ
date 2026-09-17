@@ -396,7 +396,12 @@ const studio = {
   'studio.grid.hint':
     'Seine Frequenz- und Pegellinien über der Szene, mit dem Platz, den sie im Diagramm einnehmen – so messen Sie, wo die Welle und jeder Teil der Szene liegen.',
 
+  'studio.performance.title': 'Leistung',
+  'studio.performance.hint':
+    'Eine Wahl für das Diagramm, diese Bühne und den Desktop: dieselben Zeilen wie im Menü des Diagramms.',
   'studio.cost.full': 'Läuft flüssig',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size} %',
+  'studio.cost.readingRate': '{fps} fps · {size} %',
   'studio.cost.scaled': 'In {percent} % Größe gezeichnet',
   'studio.cost.heavy': 'Zu schwer für diesen Computer',
   'studio.cost.unavailable':

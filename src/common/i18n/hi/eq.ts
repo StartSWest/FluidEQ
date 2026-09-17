@@ -161,6 +161,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': 'गुणवत्ता (77%)',
   'graph.scene.resolution.balanced': 'संतुलित (67%)',
   'graph.scene.resolution.performance': 'प्रदर्शन (50%)',
+  'graph.scene.floor': 'न्यूनतम आकार',
+  'graph.scene.floorHint':
+    'फ़्रेम दर घटाने से पहले स्वचालित चित्र को कितना छोटा कर सकता है',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': 'स्वचालित में',
   'graph.scene.scaler': 'स्केलर',
   'graph.scene.scalerHint':
     'छोटी तस्वीर को पूरे आकार में लाने वाला: AMD FSR किनारे तीखे रखता है; सादा एक नरम खिंचाव है जिसका GPU पर कोई भार नहीं',

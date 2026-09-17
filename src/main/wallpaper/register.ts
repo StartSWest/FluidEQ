@@ -4,6 +4,7 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
 } from 'electron';
+import { isScenePerformance } from '../../common/scenePerformance';
 import {
   WALLPAPER,
   isWallpaperStart,
@@ -85,6 +86,11 @@ const registerWallpaperIpc = (deps: IWallpaperDeps): (() => void) => {
   });
 
   const cleanups = [
+    onWindowMessage(WALLPAPER.performance, (event, raw: unknown) => {
+      if (fromOwner(event) && isScenePerformance(raw)) {
+        manager.setPerformance(raw);
+      }
+    }),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {
       if (fromOwner(event)) {
         manager.acceptAudio(raw);

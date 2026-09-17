@@ -58,6 +58,12 @@ const app: Partial<Dictionary> = {
   'app.processes.total': '{megabytes} MB e {cpu}% di CPU in totale.',
   'app.processes.unmeasured':
     'Un trattino indica un valore che nessuno ha ancora misurato.',
+  'app.processes.scene':
+    '{place}: {name}, {ms} ms per fotogramma a {fps} fps, disegnato a {drawn} per {shown}',
+  'app.processes.sceneRate':
+    '{place}: {name} a {fps} fps, disegnato a {drawn} per {shown}',
+  'app.processes.place.graph': 'Visualizzazione del grafico',
+  'app.processes.place.studio': 'Palco dello Studio',
   'app.processes.name.window': 'Interfaccia',
   'app.processes.what.window':
     'La finestra che stai guardando: la curva, la libreria, il lettore, tutti i controlli. Un processo per finestra, così un ridisegno pesante non rallenta il suono. I visualizzatori Plus girano qui dentro su un thread tutto loro, così una scena pesante non blocca i controlli.',

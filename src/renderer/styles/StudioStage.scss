@@ -712,6 +712,16 @@ $stage-edge: $border-menu;
   box-shadow: 0 0 8px color-mix(in srgb, $active 70%, transparent);
 }
 
+// The frame cost and rate, on a line of their own under the words so a
+// narrow side column never has to fit both beside the light. Empty, and so
+// without height, until the first frame is timed.
+.studio-cost__reading {
+  grid-column: 2;
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .studio-cost--scaled .studio-cost__dot {
   background: $amber;
   box-shadow: 0 0 8px color-mix(in srgb, $amber 70%, transparent);
@@ -721,4 +731,43 @@ $stage-edge: $border-menu;
 .studio-cost--unavailable .studio-cost__dot {
   background: $red;
   box-shadow: 0 0 8px color-mix(in srgb, $red 70%, transparent);
+}
+
+// The graph's performance rows on the Studio's own card
+// (`StudioPerformanceCard.tsx`): the menu's list surface, standing in the
+// card instead of floating under a trigger. Its width is the card's, so a
+// long answer wraps in the value column as it does in the menu.
+.studio-performance__rows {
+  position: static;
+  z-index: auto;
+  width: 100%;
+  min-width: 0;
+  margin-top: $spacing-s;
+  container-type: inline-size;
+
+  // The menu grows to fit its longest answer; the card cannot. In the
+  // Studio's narrowest column the Russian "Automatic" and the graphics
+  // card's "after restart" ran past the row's edge, so here a word too long
+  // for the column may break and the note may take a second line.
+  button > .graph-view-menu__value {
+    overflow-wrap: break-word;
+  }
+
+  .graph-view-menu__note {
+    white-space: normal;
+  }
+}
+
+// Narrower than the menu's own minimum, a label like "Минимальный размер"
+// left the answer beside it no room at all — "85 %" broke in two — so there
+// the answer takes a line of its own under the label, still at the right.
+@container (max-width: 230px) {
+  .studio-performance__rows button {
+    flex-wrap: wrap;
+  }
+
+  .studio-performance__rows button > .graph-view-menu__value {
+    flex: 1 0 100%;
+    text-align: right;
+  }
 }

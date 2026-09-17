@@ -346,7 +346,12 @@ const studio = {
   'studio.grid.hint':
     '在场景上叠加图表的频率线和电平线，并保留它们在图表上占用的边距，方便测量波形和场景各部分的位置。',
 
+  'studio.performance.title': '性能',
+  'studio.performance.hint':
+    '图表、此舞台和桌面共用一个选择，与图表菜单中的行相同。',
   'studio.cost.full': '运行流畅',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
+  'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': '以 {percent}% 尺寸绘制',
   'studio.cost.heavy': '对这台电脑来说太重了',
   'studio.cost.unavailable': '这台电脑目前无法绘制场景',

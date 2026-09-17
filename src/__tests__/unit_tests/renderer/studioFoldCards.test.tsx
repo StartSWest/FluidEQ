@@ -56,6 +56,7 @@ const testCard = () =>
       idle={false}
       cost="studio.cost.full"
       percent={100}
+      readingRef={{ current: null }}
     />,
   );
 

@@ -1,9 +1,33 @@
 import type { IScenePack } from 'common/scenePacks';
+import type { IScenePerformance } from 'common/scenePerformance';
 import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
 import type { IFlashGuard } from './sceneFlashGuard';
 import type { ICostLadder } from './sceneHealth';
 import type { ISceneTuning } from './sceneTuner';
+
+/**
+ * What drawing is costing, after every frame: for the Studio's readout and
+ * for anything that wants to say how a scene is keeping up.
+ */
+export interface ISceneDrawReport {
+  /** The scale the scene was drawn at, from the ladder or the listener's preset. */
+  scale: number;
+  /** The GPU's own time for its newest finished frame, where it has a clock. */
+  costMs?: number;
+  /** The finishing passes' share of it (`scenePost.ts`). */
+  postMs?: number;
+  /** The interval frames are being drawn at. */
+  intervalMs: number;
+  /** The pixels the scene was drawn at, and the panel's own. */
+  drawnWidth: number;
+  drawnHeight: number;
+  outputWidth: number;
+  outputHeight: number;
+  /** How the picture was finished: FSR up to size, FXAA over it. */
+  fsr: boolean;
+  fxaa: boolean;
+}
 
 /**
  * Where a scene comes from and what to do when it cannot run — the only thing
@@ -30,7 +54,13 @@ export interface ISceneSource {
   reportFailure(reason: TSceneFailure, log?: string): void;
   /** Too slow even at the ladder's floor. */
   tooSlow(): void;
-  createLadder(): ICostLadder;
+  /**
+   * `top` is the largest scale the ladder may reach: 1 for the panel's own
+   * pixels, more when `best` smoothing draws the scene larger than the panel.
+   * `floor` is the smallest the listener allows (`autoFloor`): below it the
+   * ladder slows the frame rate rather than the picture.
+   */
+  createLadder(top: number, floor: number): ICostLadder;
   /** Present only for scenes drawn through the brightness limiter. */
   createGuard?: (gl: WebGL2RenderingContext) => IFlashGuard | null;
   /**
@@ -42,6 +72,13 @@ export interface ISceneSource {
    * never at launch while the graph sits on another tab.
    */
   warmWhenUnseen?: boolean;
+  /**
+   * Ease to thirty frames a second once nothing has played for a while
+   * (`sceneRest.ts`): the graph's look and the desktop, which are left
+   * running for hours. Not the Studio's stage or a preview, where somebody
+   * is judging the motion of a scene that may have no music at all.
+   */
+  restsInSilence?: boolean;
 }
 
 export interface ISceneRunnerOptions {
@@ -54,6 +91,12 @@ export interface ISceneRunnerOptions {
   shapeFrame?: (frame: ISceneFrame) => ISceneFrame;
   /** Read every frame, so moving a slider moves the scene at once. */
   tuning?: ISceneTuning;
+  /**
+   * The frame rate and resolution to draw at (`common/scenePerformance.ts`).
+   * Absent, the listener's choice from this window's store is read; the
+   * desktop's page has no store and is handed main's copy.
+   */
+  performance?: IScenePerformance;
   /**
    * The pack each time a version of it becomes the one being drawn — the
    * graph's menu starts its attack and release from what the scene came with.
@@ -72,13 +115,15 @@ export interface ISceneRunnerOptions {
   onWaiting?: (waiting: boolean) => void;
   /**
    * After every drawn frame: what the scene got, the ladder's scale, the
-   * musical accent's envelope the scene was given, and what it heard before
-   * its response bent it — the Studio's meters show both.
+   * musical accent's envelope the scene was given, what it heard before its
+   * response bent it — the Studio's meters show both — and what the frame
+   * cost.
    */
   onDrawn?: (
     frame: ISceneFrame,
     scale: number,
     musicAccent: number,
     heard: ISceneFrame,
+    report: ISceneDrawReport,
   ) => void;
 }

@@ -1,5 +1,6 @@
 import type { Display, WebContents } from 'electron';
 import log from 'electron-log';
+import type { IScenePerformance } from '../../common/scenePerformance';
 import type {
   IWallpaperChoice,
   IWallpaperScreen,
@@ -22,6 +23,8 @@ interface IMonitorBackgroundsOptions {
   executable(): string | undefined;
   /** Why a monitor should not play now, given whether an app fills it. */
   pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
+  /** The window's frame rate and resolution choice, as it is now. */
+  performance(): IScenePerformance;
   /** The last surface has gone. */
   onEmpty(): void;
 }
@@ -77,6 +80,7 @@ export const createMonitorBackgrounds = (
         bounds: display.bounds,
         choice,
         scene,
+        performance: options.performance(),
         executable,
         pauseReason: options.pauseReason,
         onChange: () => changed(),
@@ -129,6 +133,9 @@ export const createMonitorBackgrounds = (
     surfaceFor: (contents: WebContents) =>
       [...surfaces.values()].find((surface) => surface.owns(contents)),
     applyPolicy: () => surfaces.forEach((surface) => surface.applyPolicy()),
+    /** The window's choice changed: every monitor playing follows it. */
+    retunePerformance: (next: IScenePerformance) =>
+      surfaces.forEach((surface) => surface.retunePerformance(next)),
     screens: (): IWallpaperScreen[] => [
       ...[...surfaces.values()].map((surface): IWallpaperScreen => ({
         displayId: surface.displayId,

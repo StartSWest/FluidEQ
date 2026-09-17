@@ -21,6 +21,7 @@ import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
 import StudioShipLocked from './StudioShipLocked';
+import StudioPerformanceCard from './StudioPerformanceCard';
 import StudioTestCard from './StudioTestCard';
 import useStudioStageRatio from './useStudioStageRatio';
 import StudioFramingDialog from './StudioFramingDialog';
@@ -141,11 +142,34 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     setNotice(undefined);
   }, [serial, state.activeId]);
 
+  // What the frames cost, under the cost line: the GPU's own time for a
+  // frame and the rate they are drawn at. Written to the element straight
+  // from the frame callback, and only when the rounded figures change — the
+  // rate to the nearest five, or the jitter between frames would rewrite it
+  // every frame for nobody.
+  const readingRef = useRef<HTMLSpanElement>(null);
+  const lastReading = useRef('');
   const onDrawn = useCallback<TStageDrawn>(
-    (frame, drawnScale, accent, heard) => {
-      feed.current?.(frame, drawnScale, accent, heard);
+    (frame, drawnScale, accent, heard, report) => {
+      feed.current?.(frame, drawnScale, accent, heard, report);
+      const fps = String(Math.round(1000 / report.intervalMs / 5) * 5);
+      // The size the controller has the scene at, as a share of the stage:
+      // what Automatic is doing, which nothing else on the stage says.
+      const size = String(Math.round(report.scale * 100));
+      const reading =
+        report.costMs === undefined
+          ? t('studio.cost.readingRate', { fps, size })
+          : t('studio.cost.reading', {
+              ms: report.costMs.toFixed(1),
+              fps,
+              size,
+            });
+      if (reading !== lastReading.current && readingRef.current) {
+        lastReading.current = reading;
+        readingRef.current.textContent = reading;
+      }
     },
-    [],
+    [t],
   );
 
   const project = state.projects.find((entry) => entry.id === state.activeId);
@@ -415,6 +439,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             response={tuner.response}
           />
           <StudioTestCard
+            readingRef={readingRef}
             signal={signal}
             onSignal={setSignal}
             size={size}
@@ -425,6 +450,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             cost={cost}
             percent={Math.round(scale * 100)}
           />
+          <StudioPerformanceCard />
           <StudioSettings
             params={tuner.params}
             values={tuner.values}

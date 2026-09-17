@@ -160,6 +160,13 @@ export const setup = (stored?: IWallpaperArrangement) => {
   const entitlementListeners = new Set<() => void>();
   let file: IWallpaperArrangement = stored ?? {
     pauseOnBattery: true,
+    performance: {
+      frameRate: 'display',
+      resolution: 'auto',
+      autoFloor: 0.35,
+      upscaler: 'fsr',
+      smoothing: 'off',
+    },
     screens: [],
   };
   const arrangement: IArrangementStore = {

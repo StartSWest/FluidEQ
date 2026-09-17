@@ -1215,6 +1215,31 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba($secondary-light, 0.55);
 }
 
+// A row that cycles a choice on each click (`ScenePerformanceMenu.tsx`) shows
+// its current answer where the other rows show their shortcut: at the right,
+// faint, and never sharing the label's room — every span in a button row
+// grows otherwise, and the answer sat halfway across.
+.graph-view-menu__list button > .graph-view-menu__value {
+  // May shrink and wrap: the menu cannot grow past the header that holds
+  // it, and "High performance · after restart" in Russian is wider than the
+  // whole menu. Wrapped at the right it reads as two lines of one answer;
+  // clipped it read as nothing.
+  flex: 0 1 auto;
+  min-width: 0;
+  color: $text-faint;
+  text-align: right;
+  white-space: normal;
+}
+
+// A choice not yet in force says so under its answer, on a line of its own:
+// "after restart" run on after "High performance" wrapped mid-phrase.
+.graph-view-menu__note {
+  display: block;
+  font-size: $text-eyebrow;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;

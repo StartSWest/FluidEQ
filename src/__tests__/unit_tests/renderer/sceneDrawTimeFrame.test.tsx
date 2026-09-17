@@ -70,7 +70,15 @@ const source: ISceneSource = {
   block: jest.fn(),
   reportFailure: jest.fn(),
   tooSlow: jest.fn(),
-  createLadder: () => ({ frame: () => 'ok', scale: () => 1, reset: jest.fn() }),
+  createLadder: () => ({
+    frame: () => 'ok',
+    scale: () => 1,
+    slowed: () => false,
+    refloor: () => undefined,
+    resume: () => undefined,
+    reset: jest.fn(),
+    cheapFinish: () => false,
+  }),
 };
 
 /**

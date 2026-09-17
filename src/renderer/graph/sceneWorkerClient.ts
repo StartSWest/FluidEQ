@@ -1,23 +1,45 @@
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from './sceneGl';
+import type { ISceneCostReading } from './sceneHealth';
 import { sceneProgramKey, takeLinkTurn } from './sceneLinkTurns';
 import type {
+  ISceneDrawSize,
+  ISceneFinish,
   TSceneBuildResult,
   TSceneWorkerReply,
   TSceneWorkerRequest,
 } from './sceneWorkerMessages';
+
+/** What the worker says of a frame it was sent (`TSceneWorkerReply`). */
+export interface ISceneDrawn {
+  accent: number;
+  cost: ISceneCostReading;
+  /** The GPU already held two frames; nothing was drawn this time. */
+  skipped: boolean;
+}
 
 export interface ISceneWorkerClient {
   load(pack: IScenePack, guarded: boolean): Promise<TSceneBuildResult>;
   canDraw(): boolean;
   draw(
     frame: ISceneFrame,
-    width: number,
-    height: number,
+    /** The pixels the scene is drawn at. */
+    drawn: ISceneDrawSize,
+    /** The panel's pixels; the scene is scaled to them when they differ. */
+    output: ISceneDrawSize,
+    /** How the picture is finished on its way to the canvas. */
+    finish: ISceneFinish,
     clip: readonly [number, number, number, number],
-    /** The frame is on the canvas: its musical accent, and its GPU cost. */
-    shown: (accent: number, costMs: number) => void,
+    /** The least time the page leaves between frames; 0 for every frame. */
+    paceMs: number,
+    /** The frame is submitted, or skipped: its accent and what it cost. */
+    shown: (drawn: ISceneDrawn) => void,
   ): void;
+  /**
+   * The page's frame loop has stopped. Until the next `draw` the worker
+   * draws nothing on its own either — see the worker's own pacing.
+   */
+  idle(): void;
   dispose(): void;
 }
 
@@ -144,7 +166,7 @@ export const createSceneWorkerClient = (
     heldTurns.forEach((release) => release());
     heldTurns.clear();
   };
-  let shown: ((accent: number, costMs: number) => void) | undefined;
+  let shown: ((drawn: ISceneDrawn) => void) | undefined;
   const loads = new Map<number, (result: TSceneBuildResult) => void>();
   const send = (request: TSceneWorkerRequest) => worker.postMessage(request);
   const cancelLoads = () => {
@@ -206,7 +228,7 @@ export const createSceneWorkerClient = (
     } else if (data.kind === 'drawn') {
       const notify = shown;
       shown = undefined;
-      notify?.(data.accent, data.costMs);
+      notify?.({ accent: data.accent, cost: data.cost, skipped: data.skipped });
     } else if (data.kind === 'lost') {
       lost = true;
       shown = undefined;
@@ -249,14 +271,35 @@ export const createSceneWorkerClient = (
           .catch((error) => fail(String(error)));
       });
     },
-    // One frame in flight bounds memory and keeps old slider values from
-    // queuing behind a busy GPU. The next frame reads the latest controls.
+    // One message in flight: the worker answers as soon as it has submitted
+    // the frame (it never waits for the GPU; the worker's own clock bounds
+    // what the GPU may hold), so the next frame reads the latest controls
+    // and nothing queues behind a busy worker.
     canDraw: () =>
       !disposed && !lost && loads.size === 0 && shown === undefined,
-    draw: (frame, width, height, clip, notify) => {
+    draw: (frame, drawn, output, finish, clip, paceMs, notify) => {
       shown = notify;
       try {
-        send({ kind: 'draw', frame, width, height, clip });
+        send({
+          kind: 'draw',
+          frame,
+          width: drawn.width,
+          height: drawn.height,
+          output,
+          finish,
+          clip,
+          paceMs,
+        });
+      } catch (error) {
+        fail(String(error));
+      }
+    },
+    idle: () => {
+      if (disposed || lost) {
+        return;
+      }
+      try {
+        send({ kind: 'idle' });
       } catch (error) {
         fail(String(error));
       }

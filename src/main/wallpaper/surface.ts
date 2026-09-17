@@ -1,6 +1,7 @@
 import type { Rectangle, WebContents } from 'electron';
 import log from 'electron-log';
 import type { IScenePack } from '../../common/scenePacks';
+import type { IScenePerformance } from '../../common/scenePerformance';
 import {
   WALLPAPER,
   type IWallpaperChoice,
@@ -21,6 +22,8 @@ interface IDesktopSurfaceOptions {
   bounds: Rectangle;
   choice: IWallpaperChoice;
   scene: IWallpaperScene;
+  /** The window's frame rate and resolution choice when the monitor starts. */
+  performance: IScenePerformance;
   executable: string;
   /** Why this monitor should not play now, given whether an app fills it. */
   pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
@@ -43,6 +46,8 @@ export interface IDesktopSurface {
    * its band or changes what it hears, with no restart and no blink.
    */
   retune(next: Pick<IWallpaperChoice, 'wave' | 'motion'>): void;
+  /** The window's frame rate and resolution choice changed: the page follows. */
+  retunePerformance(next: IScenePerformance): void;
   surfaceState(): IWallpaperSurfaceState;
   owns(contents: WebContents): boolean;
   /** Re-reads the lock, sleep and battery conditions every monitor shares. */
@@ -73,12 +78,14 @@ export const createDesktopSurface = (
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
+  let { performance } = options;
 
   const surfaceState = (): IWallpaperSurfaceState => ({
     phase,
     renderGeneration,
     wave,
     motion,
+    performance,
   });
 
   const release = () => {
@@ -204,6 +211,16 @@ export const createDesktopSurface = (
     phase: () => phase,
     pauseReason: () => pauseReason,
     choice: () => ({ lookId, wave, motion }),
+    retunePerformance: (next) => {
+      if (
+        next.frameRate === performance.frameRate &&
+        next.resolution === performance.resolution
+      ) {
+        return;
+      }
+      performance = next;
+      tellPage();
+    },
     retune: (next) => {
       if (
         next.wave.height === wave.height &&

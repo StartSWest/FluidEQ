@@ -166,6 +166,14 @@ const eq = {
   'graph.scene.resolution.quality': 'Quality (77%)',
   'graph.scene.resolution.balanced': 'Balanced (67%)',
   'graph.scene.resolution.performance': 'Performance (50%)',
+  'graph.scene.floor': 'Smallest size',
+  'graph.scene.floorHint':
+    'How small Automatic may draw before it slows the frame rate instead',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': 'with Automatic',
   'graph.scene.scaler': 'Scaler',
   'graph.scene.scalerHint':
     'What brings a smaller picture up to size: AMD FSR keeps edges sharp; Plain is a soft stretch that costs the GPU nothing',

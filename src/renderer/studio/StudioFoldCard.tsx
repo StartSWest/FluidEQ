@@ -27,10 +27,11 @@ import { createFlagSetting } from '../utils/graphStorage';
  */
 
 /** Which cards fold, and where each one's state is kept. */
-export type TStudioFold = 'test' | 'settings' | 'ship';
+export type TStudioFold = 'test' | 'performance' | 'settings' | 'ship';
 
 const SETTINGS: Record<TStudioFold, ReturnType<typeof createFlagSetting>> = {
   test: createFlagSetting('fluideq.studioFold.test', true),
+  performance: createFlagSetting('fluideq.studioFold.performance', true),
   settings: createFlagSetting('fluideq.studioFold.settings', true),
   ship: createFlagSetting('fluideq.studioFold.ship', true),
 };

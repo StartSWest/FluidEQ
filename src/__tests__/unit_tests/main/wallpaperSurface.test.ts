@@ -59,6 +59,13 @@ const create = (pause: { reason?: TWallpaperPause } = {}) => {
       wave: { height: 1, position: 0 },
       motion: 'music',
     },
+    performance: {
+      frameRate: 'display',
+      resolution: 'auto',
+      autoFloor: 0.35,
+      upscaler: 'fsr',
+      smoothing: 'off',
+    },
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
       member: false,
@@ -165,6 +172,13 @@ describe('a desktop background changing and ending', () => {
         renderGeneration,
         wave: { height: 0.3, position: 0.5 },
         motion: 'calm',
+        performance: {
+          frameRate: 'display',
+          resolution: 'auto',
+          autoFloor: 0.35,
+          upscaler: 'fsr',
+          smoothing: 'off',
+        },
       },
     );
     expect(surface.choice()).toEqual({
@@ -175,6 +189,50 @@ describe('a desktop background changing and ending', () => {
 
     mockWindow.webContents.send.mockClear();
     surface.retune({ wave: { height: 0.3, position: 0.5 }, motion: 'calm' });
+    expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  /** The window's frame rate and resolution choice reaches the page the same way. */
+  it('tells its page the new frame rate and resolution, and only a new one', () => {
+    const { surface } = create();
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    const { renderGeneration } = surface.surfaceState();
+    mockWindow.webContents.send.mockClear();
+
+    surface.retunePerformance({
+      frameRate: 'thirty',
+      resolution: 'native',
+      autoFloor: 0.5,
+      upscaler: 'fsr',
+      smoothing: 'off',
+    });
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      'wallpaper-surface-changed',
+      {
+        phase: 'running',
+        renderGeneration,
+        wave: { height: 1, position: 0 },
+        motion: 'music',
+        performance: {
+          frameRate: 'thirty',
+          resolution: 'native',
+          autoFloor: 0.5,
+          upscaler: 'fsr',
+          smoothing: 'off',
+        },
+      },
+    );
+
+    mockWindow.webContents.send.mockClear();
+    surface.retunePerformance({
+      frameRate: 'thirty',
+      resolution: 'native',
+      autoFloor: 0.5,
+      upscaler: 'fsr',
+      smoothing: 'off',
+    });
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
   });
 

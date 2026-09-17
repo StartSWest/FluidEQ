@@ -162,6 +162,14 @@ const eq: Partial<Dictionary> = {
   'graph.scene.resolution.quality': 'Qualità (77%)',
   'graph.scene.resolution.balanced': 'Bilanciata (67%)',
   'graph.scene.resolution.performance': 'Prestazioni (50%)',
+  'graph.scene.floor': 'Dimensione minima',
+  'graph.scene.floorHint':
+    'Quanto può ridurre Automatico prima di abbassare invece la frequenza dei fotogrammi',
+  'graph.scene.floor.35': '35%',
+  'graph.scene.floor.50': '50%',
+  'graph.scene.floor.67': '67%',
+  'graph.scene.floor.85': '85%',
+  'graph.scene.floor.whenAuto': 'con Automatico',
   'graph.scene.scaler': 'Scaler',
   'graph.scene.scalerHint':
     'Cosa porta un’immagine più piccola a dimensione: AMD FSR mantiene i bordi nitidi; Semplice è uno stiramento morbido che non costa nulla alla GPU',

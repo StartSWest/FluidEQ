@@ -381,7 +381,12 @@ const studio = {
   'studio.grid.hint':
     'सीन के ऊपर ग्राफ़ की आवृत्ति और स्तर की रेखाएँ, ग्राफ़ पर जितनी जगह वे लेती हैं उतनी ही जगह के साथ, ताकि आप माप सकें कि तरंग और सीन का हर हिस्सा कहाँ पड़ता है।',
 
+  'studio.performance.title': 'प्रदर्शन',
+  'studio.performance.hint':
+    'ग्राफ़, इस मंच और डेस्कटॉप के लिए एक ही चुनाव: ग्राफ़ के मेनू वाली पंक्तियाँ।',
   'studio.cost.full': 'सहज चल रहा है',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
+  'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': '{percent}% आकार पर बन रहा है',
   'studio.cost.heavy': 'इस कंप्यूटर के लिए बहुत भारी',
   'studio.cost.unavailable': 'यह कंप्यूटर अभी दृश्य नहीं बना सकता',

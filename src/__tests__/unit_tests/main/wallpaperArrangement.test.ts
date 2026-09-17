@@ -67,6 +67,14 @@ describe('reading back what each monitor was set to show', () => {
   it('takes the file as this app writes it', () => {
     expect(parseArrangement(file)).toEqual({
       pauseOnBattery: false,
+      // A file from before the choice existed means what a fresh install means.
+      performance: {
+        frameRate: 'display',
+        resolution: 'auto',
+        autoFloor: 0.35,
+        upscaler: 'fsr',
+        smoothing: 'fast',
+      },
       screens: [
         {
           displayId: 782843922,
@@ -141,6 +149,13 @@ describe('the file on disk', () => {
   it('is nothing to bring back before a background was ever set, and says nothing about it', () => {
     expect(createArrangementStore(folder, { warn }).read()).toEqual({
       pauseOnBattery: true,
+      performance: {
+        frameRate: 'display',
+        resolution: 'auto',
+        autoFloor: 0.35,
+        upscaler: 'fsr',
+        smoothing: 'fast',
+      },
       screens: [],
     });
     expect(warn).not.toHaveBeenCalled();
@@ -151,6 +166,13 @@ describe('the file on disk', () => {
     const right = display(782843922, 2560, 'Odyssey G5');
     const written = {
       pauseOnBattery: false,
+      performance: {
+        frameRate: 'sixty' as const,
+        resolution: 'native' as const,
+        autoFloor: 0.67 as const,
+        upscaler: 'simple' as const,
+        smoothing: 'best' as const,
+      },
       screens: [
         {
           ...saved(right.id, right),

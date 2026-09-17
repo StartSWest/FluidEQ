@@ -384,7 +384,12 @@ const studio = {
   'studio.grid.hint':
     'As linhas de frequência e de nível do gráfico sobre a cena, com o espaço que ocupam nele, para medir onde a onda e cada parte da cena ficam.',
 
+  'studio.performance.title': 'Desempenho',
+  'studio.performance.hint':
+    'Uma só escolha para o gráfico, este palco e a área de trabalho: as mesmas linhas do menu do gráfico.',
   'studio.cost.full': 'Roda com fluidez',
+  'studio.cost.reading': '{ms} ms · {fps} fps · {size}%',
+  'studio.cost.readingRate': '{fps} fps · {size}%',
   'studio.cost.scaled': 'Desenhado a {percent}% do tamanho',
   'studio.cost.heavy': 'Pesada demais para este computador',
   'studio.cost.unavailable':

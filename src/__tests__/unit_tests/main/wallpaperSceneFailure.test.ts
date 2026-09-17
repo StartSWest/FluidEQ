@@ -165,6 +165,13 @@ describe('a look that cannot be loaded at start time', () => {
   it('is shown the same way at launch, before anything is even tried', async () => {
     const { deps, scenes } = setup({
       pauseOnBattery: true,
+      performance: {
+        frameRate: 'display',
+        resolution: 'auto',
+        autoFloor: 0.35,
+        upscaler: 'fsr',
+        smoothing: 'off',
+      },
       screens: [
         {
           displayId: 2,
