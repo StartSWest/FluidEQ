@@ -224,7 +224,17 @@ export default function StudioPublishDialog({
                 >
                   {t('studio.publish.noteNeeded')}
                 </span>
-                <span className="studio-publish__note-count" aria-hidden="true">
+                {/* Marked at the limit: the field stops taking letters
+                    silently, and a note that ends mid-sentence is one the
+                    author believed they had finished. */}
+                <span
+                  className={`studio-publish__note-count${
+                    note.length >= MAX_VERSION_NOTE
+                      ? ' studio-publish__note-count--full'
+                      : ''
+                  }`}
+                  aria-hidden="true"
+                >
                   {note.length} / {MAX_VERSION_NOTE}
                 </span>
               </span>

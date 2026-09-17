@@ -62,16 +62,24 @@ it under the terms of the GNU General Public License version 3 or later.
 // The scene on the left and what it becomes on the right: the covers caught
 // from it, then the category. The spare height of a scene taller than both
 // goes under the category, so the covers keep their place at the top.
-// Stacked in one column, the covers take a row of four under the scene.
+//
+// The note crosses both columns, under them. It is the only thing here that
+// is WRITTEN — everything else is a picture to catch or a chip to press — and
+// in the right-hand column it had a third of the dialog and two lines, so a
+// full note scrolled inside its own box and its beginning could not be read
+// back before publishing. Across the foot it takes the whole width, holds all
+// of what may be typed at once, and sits where the eye already is on its way
+// to Publish.
 .studio-publish__body {
   display: grid;
   grid-template-areas:
     'camera covers'
     'camera category'
-    'camera note'
+    'camera .'
+    'note note'
     'points points';
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto auto;
   align-items: start;
   gap: $spacing-m $spacing-l;
   min-width: 0;
@@ -137,10 +145,6 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1;
 }
 
-.studio-publish__points {
-  grid-area: points;
-}
-
 // Beside the version it is publishing, the one listeners have now.
 .studio-publish__published::before {
   content: '·';
@@ -159,8 +163,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
   textarea {
     width: 100%;
-    min-height: 58px;
+    // Two lines at the dialog's full width hold the whole of what may be
+    // typed — a note at the limit is one line across and two when the dialog
+    // is in its single column — so a finished note is read back rather than
+    // scrolled through, without a band of empty field under it.
+    min-height: 62px;
     resize: vertical;
+    line-height: 1.5;
 
     // The same red a refused name gets in the app's own fields
     // (`TextInput.scss`), on the same signal: nothing is marked until a press
@@ -206,6 +215,28 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-dim;
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;
+}
+
+// At the limit the field takes no more letters and says nothing about it, so
+// the count says it: amber rather than red, because a full note is finished,
+// not wrong.
+.studio-publish__note-count--full {
+  color: $amber;
+  font-weight: $weight-bold;
+}
+
+// The three sentences about what publishing means are read once and the same
+// every time; the note above them is written now. Tighter here than on the
+// gallery's own cards, so the writing gets the room.
+.studio-publish__points {
+  grid-area: points;
+  gap: 6px;
+  padding: 10px 12px;
+
+  li {
+    font-size: $text-micro;
+    line-height: 1.5;
+  }
 }
 
 // ---------------------------------------------------------------- stage
