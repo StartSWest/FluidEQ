@@ -61,6 +61,10 @@ jest.mock('electron', () => ({
       handlers.set(channel, handler);
     },
   },
+  // Registering the handlers reads userData on the way past, for where the
+  // Room keeps what an output's format was before it was set to 7.1. Without
+  // it every test in this file died on the import, not on anything it tested.
+  app: { getPath: () => '' },
 }));
 
 jest.mock('../../../main/registry', () => ({
