@@ -143,6 +143,12 @@ const eq: Partial<Dictionary> = {
   'graph.scene.releaseHint':
     'Как медленно он опускается после каждого удара. Долго оставляет свечение.',
   'graph.scene.ms': '{ms} мс',
+  'graph.scene.percent': '{percent} %',
+  'graph.scene.controlHint':
+    'Собственный регулятор визуализатора — таким его задал автор',
+  'graph.scene.ownControls': 'Его собственные настройки',
+  'graph.scene.ownControlsHint':
+    'Вернуть настройки, с которыми пришёл визуализатор',
   'graph.scene.ownTiming': 'Вернуть его собственный ритм',
   'graph.scene.ownTimingHint':
     'Вернуться к атаке и спаду, с которыми пришёл этот визуализатор',

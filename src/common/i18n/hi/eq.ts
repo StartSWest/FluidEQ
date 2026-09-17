@@ -143,6 +143,12 @@ const eq: Partial<Dictionary> = {
   'graph.scene.releaseHint':
     'हर चोट के बाद यह कितनी धीरे वापस गिरता है। लंबा हो तो चमक रह जाती है।',
   'graph.scene.ms': '{ms} ms',
+  'graph.scene.percent': '{percent}%',
+  'graph.scene.controlHint':
+    'इस विज़ुअलाइज़र का अपना नियंत्रण, जैसा इसके लेखक ने रखा',
+  'graph.scene.ownControls': 'इसकी अपनी सेटिंग्स',
+  'graph.scene.ownControlsHint':
+    'उन सेटिंग्स पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',
   'graph.scene.ownTiming': 'इसकी अपनी टाइमिंग इस्तेमाल करें',
   'graph.scene.ownTimingHint':
     'उसी अटैक और रिलीज़ पर लौटें जिनके साथ यह विज़ुअलाइज़र आया था',

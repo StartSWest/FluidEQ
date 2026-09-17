@@ -148,6 +148,12 @@ const eq = {
   'graph.scene.releaseHint':
     'How slowly it falls back after each hit. Long leaves a glow.',
   'graph.scene.ms': '{ms} ms',
+  'graph.scene.percent': '{percent}%',
+  'graph.scene.controlHint':
+    "One of this visualizer's own controls, as its author set it",
+  'graph.scene.ownControls': 'Use its own settings',
+  'graph.scene.ownControlsHint':
+    'Back to the settings this visualizer came with',
   'graph.scene.ownTiming': 'Use its own timing',
   'graph.scene.ownTimingHint':
     'Back to the attack and release this visualizer came with',

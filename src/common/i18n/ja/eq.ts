@@ -145,6 +145,12 @@ const eq: Partial<Dictionary> = {
   'graph.scene.releaseHint':
     '打つたびにどれだけゆっくり戻るか。長いと余韻の光が残ります。',
   'graph.scene.ms': '{ms} ms',
+  'graph.scene.percent': '{percent}%',
+  'graph.scene.controlHint':
+    'このビジュアライザー自身のコントロール。作者が決めた値です',
+  'graph.scene.ownControls': '元の設定に戻す',
+  'graph.scene.ownControlsHint':
+    'このビジュアライザーに付属していた設定に戻します',
   'graph.scene.ownTiming': '元のタイミングを使う',
   'graph.scene.ownTimingHint':
     'このビジュアライザーに元々設定されたアタックとリリースに戻します',

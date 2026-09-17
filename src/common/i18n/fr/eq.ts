@@ -146,6 +146,12 @@ const eq: Partial<Dictionary> = {
   'graph.scene.releaseHint':
     'La lenteur avec laquelle il redescend après chaque coup. Long laisse une lueur.',
   'graph.scene.ms': '{ms} ms',
+  'graph.scene.percent': '{percent} %',
+  'graph.scene.controlHint':
+    'Un réglage propre à ce visualiseur, tel que son auteur l’a laissé',
+  'graph.scene.ownControls': 'Utiliser ses propres réglages',
+  'graph.scene.ownControlsHint':
+    'Revenir aux réglages d’origine de ce visualiseur',
   'graph.scene.ownTiming': 'Utiliser son propre rythme',
   'graph.scene.ownTimingHint':
     'Revenir à l’attaque et au relâchement fournis avec ce visualiseur',

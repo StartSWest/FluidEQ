@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from 'react';
 import type { IScenePack } from 'common/scenePacks';
+import { reportOwnParams, useListenerParams } from '../utils/sceneParamStore';
 import {
   reportOwnResponse,
   useListenerResponse,
@@ -157,14 +158,24 @@ export default function SceneCanvas({
   // graph's menu, over the timing its pack came with.
   const { lookId } = scene;
   const chosen = useListenerResponse(lookId);
+  // And the visualizer's own controls, from the same menu.
+  const chosenParams = useListenerParams(lookId);
   const tuning = useMemo(
-    () => (chosen ? { response: chosen } : undefined),
-    [chosen],
+    () =>
+      chosen || chosenParams
+        ? {
+            ...(chosen ? { response: chosen } : {}),
+            ...(chosenParams ? { params: chosenParams } : {}),
+          }
+        : undefined,
+    [chosen, chosenParams],
   );
   const authorId = isMemberScene(scene) ? scene.authorId : undefined;
   const onLoaded = useCallback(
     (pack: IScenePack) => {
       reportOwnResponse(lookId, pack.response);
+      // What the menu draws a row from: the controls this pack declares.
+      reportOwnParams(lookId, pack.params);
       // Every version that becomes the drawn one, an update swapped in place
       // included: the picker's "new" marks and the graph's one notice.
       reportScenePlayed({

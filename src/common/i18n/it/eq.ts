@@ -143,6 +143,12 @@ const eq: Partial<Dictionary> = {
   'graph.scene.releaseHint':
     'Quanto lentamente ricade dopo ogni colpo. Lungo lascia un bagliore.',
   'graph.scene.ms': '{ms} ms',
+  'graph.scene.percent': '{percent} %',
+  'graph.scene.controlHint':
+    'Un comando del visualizzatore stesso, come lo ha impostato il suo autore',
+  'graph.scene.ownControls': 'Usa le sue impostazioni',
+  'graph.scene.ownControlsHint':
+    'Torna alle impostazioni con cui è arrivato questo visualizzatore',
   'graph.scene.ownTiming': 'Usa i suoi tempi',
   'graph.scene.ownTimingHint':
     'Torna all’attacco e al rilascio con cui è arrivata questa visualizzazione',
