@@ -1,5 +1,6 @@
 import {
   canonicalGraphStyle,
+  DEFAULT_GRAPH_LOOK,
   GRAPH_STYLES,
   type GraphStyle,
 } from './graphStyles';
@@ -33,9 +34,10 @@ import {
  * check lives in the main process ahead of it.
  *
  * Everything is clamped and bounded on the way in, exactly as `customLooks.ts`
- * does. The one thing a normalizer cannot repair is refused: a pack with no
- * English name, no id, or a fallback form the app has never heard of is not a
- * pack the app can draw a row for.
+ * does, and everything this version cannot use is dropped rather than refused
+ * — a scene made by a newer FluidEQ has to play here as well as this version
+ * can play it. Only what leaves nothing to draw at all is refused: a pack
+ * with no English name, no id, or no shader.
  */
 
 export const SCENE_PACK_SCHEMA = 1;
@@ -274,11 +276,56 @@ const readSource = (value: unknown): string | null => {
 };
 
 /**
- * A pack from anything, or `null` for the three things clamping cannot repair.
+ * The band the live dB scale is drawn in, or nothing.
+ *
+ * Dropped rather than refused when it cannot be read, and a band narrower
+ * than a fifth of the panel is not a band: the scene then gets the whole
+ * frame, which is exactly what a scene that asks for no band gets.
+ */
+const readSpectrumRange = (
+  value: unknown,
+): readonly [number, number] | undefined => {
+  if (!Array.isArray(value) || value.length !== 2) {
+    return undefined;
+  }
+  const [bottom, top] = value;
+  if (
+    typeof bottom !== 'number' ||
+    typeof top !== 'number' ||
+    !Number.isFinite(bottom) ||
+    !Number.isFinite(top) ||
+    bottom < 0 ||
+    top > 1 ||
+    top - bottom < 0.2
+  ) {
+    return undefined;
+  }
+  return [bottom, top];
+};
+
+/**
+ * A pack from anything, or `null` for the little that leaves nothing to draw.
+ *
+ * READING A PACK IS FORWARD-COMPATIBLE, ON PURPOSE. A scene made by a newer
+ * FluidEQ has to play here as well as this version can play it: a field this
+ * version has never heard of is ignored, a part it cannot use is dropped, and
+ * what is left is still a pack. Crystal, published at contract 7, disappeared
+ * from every copy of the app that spoke contract 6 — it used nothing that
+ * build lacked, and the number alone took it off the picker.
+ *
+ * So `contract` is read as what the scene was WRITTEN AGAINST and never as
+ * what it needs. The app declares every uniform it has whatever a pack says,
+ * so a shader that really does use one this build has not got fails to
+ * compile and is drawn as its own `fallbackStyle` — which is what its author
+ * chose for exactly this case. `schema` is the one number that may still
+ * refuse a pack, because it means "an older reader would get this document
+ * WRONG": bump it for a change in what a field MEANS, never for a new field.
  *
  * The fallback form goes through `canonicalGraphStyle` so a pack naming a form
  * the app has since retired lands on that form's replacement — the same
- * mechanism a saved look from an older version already uses.
+ * mechanism a saved look from an older version already uses — and a form the
+ * app has never heard of, which is a form a newer FluidEQ added, lands on the
+ * default one.
  */
 export const normalizeScenePack = (raw: unknown): IScenePack | null => {
   if (!isRecord(raw)) {
@@ -292,35 +339,23 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
   }
   const names = readNames(raw.names);
   const source = readSource(raw.source);
-  if (!names || !source || !isGraphStyle(raw.fallbackStyle)) {
+  if (!names || !source) {
     return null;
   }
+  const fallbackStyle = isGraphStyle(raw.fallbackStyle)
+    ? canonicalGraphStyle(raw.fallbackStyle)
+    : DEFAULT_GRAPH_LOOK.style;
+  // Dropped rather than refused: the scene draws without its picture, and a
+  // picture this version cannot read is no reason to take the whole scene off
+  // somebody's picker. The Studio names it for its author separately.
   const artwork =
-    raw.artwork === undefined ? undefined : normalizeSceneArtwork(raw.artwork);
-  if (artwork === null || (artwork && readNumber(raw.contract, 1) < 2)) {
-    return null;
-  }
+    raw.artwork === undefined
+      ? undefined
+      : (normalizeSceneArtwork(raw.artwork) ?? undefined);
   // Kept in range rather than refused, like a response: a wave outside the
   // sliders' own ends is still a scene, and the ends are what it is drawn in.
   const wave = readSceneWave(raw.wave);
-  let spectrumRange: readonly [number, number] | undefined;
-  if (raw.spectrumRange !== undefined) {
-    const range = raw.spectrumRange;
-    if (
-      !Array.isArray(range) ||
-      range.length !== 2 ||
-      !range.every(
-        (value) => typeof value === 'number' && Number.isFinite(value),
-      ) ||
-      range[0] < 0 ||
-      range[1] > 1 ||
-      range[1] - range[0] < 0.2 ||
-      readNumber(raw.contract, 1) < 4
-    ) {
-      return null;
-    }
-    spectrumRange = [range[0], range[1]];
-  }
+  const spectrumRange = readSpectrumRange(raw.spectrumRange);
   const params: IScenePackParam[] = [];
   const seen = new Set<string>();
   if (Array.isArray(raw.params)) {
@@ -347,7 +382,7 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     version: Math.max(1, Math.round(readNumber(raw.version, 1))),
     contract: Math.max(1, Math.round(readNumber(raw.contract, 1))),
     names,
-    fallbackStyle: canonicalGraphStyle(raw.fallbackStyle),
+    fallbackStyle,
     swatch: readSwatch(raw.swatch),
     source,
     params,
@@ -365,9 +400,9 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
  * The server decodes the signed payload and hands back the picker's fields in
  * its own column names. Nothing here is signed — it is a list of names and
  * colours, not something the GPU runs — so the checks are the same ones a pack
- * gets on the fields it shares, and a row that fails them is dropped rather
- * than repaired: a locked row with no name or no form to stand in for is not a
- * row the picker can show.
+ * gets on the fields it shares: a row with no name is dropped, because there
+ * is nothing to show, and a form this version has not got becomes the default
+ * one rather than losing the row.
  */
 export const normalizeCatalogueEntry = (
   raw: unknown,
@@ -379,14 +414,16 @@ export const normalizeCatalogueEntry = (
     return null;
   }
   const names = readNames(raw.names);
-  if (!names || !isGraphStyle(raw.fallback_style)) {
+  if (!names) {
     return null;
   }
   return {
     id: raw.id,
     version: Math.max(1, Math.round(readNumber(raw.version, 1))),
     names,
-    fallbackStyle: canonicalGraphStyle(raw.fallback_style),
+    fallbackStyle: isGraphStyle(raw.fallback_style)
+      ? canonicalGraphStyle(raw.fallback_style)
+      : DEFAULT_GRAPH_LOOK.style,
     swatch: readSwatch(raw.swatch),
   };
 };
@@ -410,7 +447,15 @@ const isBase64 = (value: unknown): value is string =>
   value.length > 0 &&
   /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 
-/** The wrapper's shape, before any cryptography is attempted on it. */
+/**
+ * The wrapper's shape, before any cryptography is attempted on it.
+ *
+ * The schema is exact here, and that is the one gate a newer FluidEQ can shut
+ * on an older one: everything else about a pack is read forgivingly (see
+ * `normalizeScenePack`), so this number is only ever bumped when an older
+ * reader would get the document WRONG — never to mark that something was
+ * added to it.
+ */
 export const isScenePackEnvelope = (
   value: unknown,
 ): value is IScenePackEnvelope =>

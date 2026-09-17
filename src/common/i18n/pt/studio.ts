@@ -430,8 +430,6 @@ const studio = {
   'studio.problem.bad-swatch': 'swatch precisa de 2 a 4 cores como #00e5cf.',
   'studio.problem.bad-artwork':
     'A imagem não é um WebP do tamanho que o pack.json informa.',
-  'studio.problem.contract-too-new':
-    'Esta cena foi feita para um FluidEQ mais novo. Atualize o app.',
   'studio.problem.bad-param':
     'Um controle em params precisa de um id com a-z, 0-9 e _, um nome em inglês e um min menor que o max.',
   'studio.problem.too-many-params':

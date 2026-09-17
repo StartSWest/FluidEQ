@@ -12,7 +12,6 @@ import {
   type IScenePack,
   type TLocalizedName,
 } from './scenePacks';
-import { SCENE_CONTRACT_VERSION } from './sceneUniformContract';
 
 /**
  * Scenes made by FluidEQ Plus members, as opposed to the Plus looks FluidEQ
@@ -153,7 +152,6 @@ export type TMemberProblemCode =
   | 'bad-fallback'
   | 'bad-swatch'
   | 'bad-artwork'
-  | 'contract-too-new'
   | 'bad-param'
   | 'too-many-params'
   | 'bad-ambient'
@@ -271,9 +269,21 @@ export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
 /**
  * A member's pack, or every reason it cannot be one.
  *
+ * This is the AUTHOR's check, and only the author's: it is strict so the
+ * Studio can point at the actual mistake while there is still somebody there
+ * to fix it. A scene already out in the world is read by `readMemberScene`
+ * below, which repairs instead of refusing — holding a listener's copy to
+ * this would take a scene off their picker over something they cannot fix and
+ * did not do.
+ *
  * The specific checks run first so the Studio can name the actual mistake;
  * `normalizeScenePack` runs last as the same gate every official pack passes,
  * and anything it still refuses is reported as not a pack at all.
+ *
+ * The contract number is deliberately not checked. It says what the scene was
+ * written against, not what it needs — see `normalizeScenePack` — and refusing
+ * on it is what made Crystal, published at contract 7, unopenable on every app
+ * that spoke contract 6.
  */
 export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
   if (!isRecord(raw)) {
@@ -308,12 +318,6 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
   if (swatch.length < 2 || swatch.length > 4) {
     add('bad-swatch');
   }
-  if (
-    typeof raw.contract === 'number' &&
-    raw.contract > SCENE_CONTRACT_VERSION
-  ) {
-    add('contract-too-new');
-  }
   if (raw.artwork !== undefined && !normalizeSceneArtwork(raw.artwork)) {
     add('bad-artwork', 'artwork');
   }
@@ -334,4 +338,46 @@ export const checkMemberScene = (raw: unknown): TMemberSceneCheck => {
   return pack
     ? { ok: true, pack }
     : { ok: false, problems: [{ code: 'not-a-pack', file: 'pack.json' }] };
+};
+
+/**
+ * A member's scene as this copy of FluidEQ can play it, or nothing.
+ *
+ * The listener's side of `checkMemberScene`. A scene in somebody's looks was
+ * made somewhere else, by a FluidEQ that may be newer than the one reading it
+ * now, and there is nobody at that machine who can correct it — so everything
+ * that can be repaired is repaired rather than refused. A name past the
+ * members' limit is cut, a form this version has not got becomes the default
+ * one, a control it cannot read is left out, and the scene stays in the
+ * picker. Only a document with nothing left to draw gives up.
+ *
+ * The source rules are the one exception, and they are not about versions:
+ * they are what stops a scene holding the graphics card until Windows resets
+ * the display driver for every program on the machine. A source that breaks
+ * them is not run here, whatever wrote it.
+ */
+export const readMemberScene = (raw: unknown): IScenePack | undefined => {
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+  if (
+    typeof raw.source === 'string' &&
+    checkMemberSceneSource(raw.source).length > 0
+  ) {
+    return undefined;
+  }
+  const { names } = cleanNames(raw.names);
+  const cut = Object.fromEntries(
+    Object.entries(names ?? {}).map(([locale, name]) => [
+      locale,
+      name.slice(0, MAX_MEMBER_NAME_LENGTH),
+    ]),
+  );
+  return (
+    normalizeScenePack({
+      ...raw,
+      names: cut,
+      params: cleanParams(raw.params).params,
+    }) ?? undefined
+  );
 };

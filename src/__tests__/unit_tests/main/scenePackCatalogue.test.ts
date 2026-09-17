@@ -9,6 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
 import { normalizeCatalogueEntry } from '../../../common/scenePacks';
 import { createScenePackCatalogue } from '../../../main/scenePackCatalogue';
 
@@ -44,11 +45,18 @@ describe('a row of the public catalogue', () => {
 
   it('drops a row it cannot paint', () => {
     expect(normalizeCatalogueEntry({ ...AURORA, names: {} })).toBeNull();
-    expect(
-      normalizeCatalogueEntry({ ...AURORA, fallback_style: 'hologram' }),
-    ).toBeNull();
     expect(normalizeCatalogueEntry({ ...AURORA, id: 'Not An Id' })).toBeNull();
     expect(normalizeCatalogueEntry('aurora')).toBeNull();
+  });
+
+  // A form a newer FluidEQ added. It is only what the row is painted as
+  // until the scene itself runs, so it stands in for the default one rather
+  // than taking the row out of the picker.
+  it('keeps a row naming a form this version has not got', () => {
+    expect(
+      normalizeCatalogueEntry({ ...AURORA, fallback_style: 'hologram' })
+        ?.fallbackStyle,
+    ).toBe(DEFAULT_GRAPH_LOOK.style);
   });
 });
 

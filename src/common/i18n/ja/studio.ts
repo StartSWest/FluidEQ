@@ -434,8 +434,6 @@ const studio = {
     'swatch には #00e5cf のような色を 2〜4 個入れてください。',
   'studio.problem.bad-artwork':
     '画像が pack.json に書かれたサイズの WebP ではありません。',
-  'studio.problem.contract-too-new':
-    'このシーンは新しい FluidEQ 向けに書かれています。アプリを更新してください。',
   'studio.problem.bad-param':
     'params のコントロールには、a-z・0-9・_ でできた id、英語の名前、max より小さい min が必要です。',
   'studio.problem.too-many-params':

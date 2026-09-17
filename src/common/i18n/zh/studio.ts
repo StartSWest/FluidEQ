@@ -382,8 +382,6 @@ const studio = {
   'studio.problem.bad-fallback': 'fallbackStyle 不是 FluidEQ 已有的外观。',
   'studio.problem.bad-swatch': 'swatch 需要 2 到 4 个颜色，例如 #00e5cf。',
   'studio.problem.bad-artwork': '图片不是 pack.json 所写尺寸的 WebP。',
-  'studio.problem.contract-too-new':
-    '这个场景是为更新版本的 FluidEQ 编写的。请更新应用。',
   'studio.problem.bad-param':
     'params 中的控件需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及小于 max 的 min。',
   'studio.problem.too-many-params': '一个场景的 params 最多只能有 8 个控件。',

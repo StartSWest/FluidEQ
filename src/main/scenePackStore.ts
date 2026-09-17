@@ -8,7 +8,6 @@ import {
   type IScenePackEnvelope,
 } from '../common/scenePacks';
 import type { ISceneWave } from '../common/sceneWave';
-import { SCENE_CONTRACT_VERSION } from '../common/sceneUniformContract';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
 
@@ -138,7 +137,6 @@ export const createScenePackStore = ({
   /**
    * Read, decrypt and verify one cached envelope. Invalid signed content is
    * removed as before; an unavailable OS key never deletes the offline copy.
-   * Newer contracts are encrypted too, but withheld by list/load below.
    */
   const readVerified = (id: string): IScenePack | undefined => {
     const file = fs.existsSync(packPath(id)) ? packPath(id) : legacyPath(id);
@@ -161,9 +159,6 @@ export const createScenePackStore = ({
           fs.rmSync(file, { force: true });
           return undefined;
         }
-        // A pack written for a newer uniform contract would compile against
-        // uniforms this build does not declare. Hold it rather than offer it; the
-        // next app update will speak its contract.
         return pack;
       },
       packPath(id),
@@ -205,7 +200,6 @@ export const createScenePackStore = ({
         .filter((id) => !removed[id])
         .map((id) => readVerified(id))
         .filter((pack): pack is IScenePack => pack !== undefined)
-        .filter((pack) => pack.contract <= SCENE_CONTRACT_VERSION)
         .map((pack) => ({
           id: pack.id,
           version: pack.version,
@@ -223,8 +217,12 @@ export const createScenePackStore = ({
       if (!ID.test(id) || removed[id]) {
         return undefined;
       }
-      const pack = readVerified(id);
-      return pack && pack.contract <= SCENE_CONTRACT_VERSION ? pack : undefined;
+      // Offered whatever contract it names: the number says what the scene was
+      // written against, not what it needs, and one written against a newer
+      // FluidEQ that uses nothing new plays here perfectly. A shader that does
+      // need a uniform this build has not got fails to compile and is drawn as
+      // its own fallbackStyle, which is the author's choice for this case.
+      return readVerified(id);
     },
 
     adopt: (listings, explicit = false) => {

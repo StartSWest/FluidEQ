@@ -1,4 +1,4 @@
-import { checkMemberScene, sanitizeDisplayText } from './memberScenes';
+import { readMemberScene, sanitizeDisplayText } from './memberScenes';
 import { MAX_PACK_BYTES, type IScenePack } from './scenePacks';
 
 /**
@@ -11,8 +11,11 @@ import { MAX_PACK_BYTES, type IScenePack } from './scenePacks';
  * somebody's picker is the name on the author's profile.
  *
  * Parsed only after the envelope's signature verified against the MEMBER key,
- * and the pack is held to every member rule again here: a signature says the
- * server checked it, not that nothing could be wrong with it.
+ * and the pack is held to the rules that keep the graphics driver alive again
+ * here: a signature says the server checked it, not that nothing could be
+ * wrong with it. Everything else about it is repaired rather than refused
+ * (`readMemberScene`), because the FluidEQ that made the scene may be newer
+ * than the one opening the file.
  */
 
 export const MEMBER_SCENE_FILE_EXTENSION = '.fluideq-scene.json';
@@ -52,6 +55,9 @@ export const parseMemberScenePayload = (
   } catch {
     return null;
   }
+  // The file's own format, and the only number here that may refuse a scene:
+  // bump it when an older reader would get the document WRONG, never to mark
+  // that something was added to it. Everything inside is read forgivingly.
   if (!isRecord(raw) || raw.schema !== 1 || raw.kind !== 'member-scene') {
     return null;
   }
@@ -71,8 +77,8 @@ export const parseMemberScenePayload = (
   ) {
     return null;
   }
-  const checked = checkMemberScene(raw.pack);
-  if (!checked.ok) {
+  const pack = readMemberScene(raw.pack);
+  if (!pack) {
     return null;
   }
   return {
@@ -81,7 +87,7 @@ export const parseMemberScenePayload = (
       name: name ? name.slice(0, MAX_AUTHOR_NAME) : null,
     },
     exportedAt: raw.exportedAt,
-    pack: checked.pack,
+    pack,
   };
 };
 

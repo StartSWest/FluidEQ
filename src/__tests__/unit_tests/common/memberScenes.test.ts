@@ -4,12 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
 import {
   checkMemberScene,
   isMemberLookId,
   MAX_MEMBER_NAME_LENGTH,
   memberLookId,
   parseMemberLookId,
+  readMemberScene,
   sanitizeDisplayText,
 } from '../../../common/memberScenes';
 import { SCENE_PACK_SCHEMA } from '../../../common/scenePacks';
@@ -109,11 +111,6 @@ describe('checking a member scene', () => {
     ['an unknown fallback', { fallbackStyle: 'lasers' }, 'bad-fallback'],
     ['one swatch colour', { swatch: ['#000000'] }, 'bad-swatch'],
     [
-      'a contract from the future',
-      { contract: SCENE_CONTRACT_VERSION + 1 },
-      'contract-too-new',
-    ],
-    [
       'broken artwork',
       { artwork: { mime: 'image/png', width: 2, height: 2, data: 'AAAA' } },
       'bad-artwork',
@@ -126,6 +123,19 @@ describe('checking a member scene', () => {
   ])('refuses %s', (_name, over, code) => {
     expect(problemCodes(raw(over))).toContain(code);
     expect(problemCodes(raw())).toEqual([]);
+  });
+
+  // What took Crystal off every copy of the app that spoke the contract
+  // before it: the scene used nothing the older build lacked, and the number
+  // alone refused it.
+  it('opens a scene written by a newer FluidEQ', () => {
+    const result = checkMemberScene(
+      raw({
+        contract: SCENE_CONTRACT_VERSION + 3,
+        somethingAddedLater: { whatever: true },
+      }),
+    );
+    expect(result).toMatchObject({ ok: true, pack: { id: 'neon-city' } });
   });
 
   it('names the line in the shader', () => {
@@ -143,5 +153,79 @@ describe('checking a member scene', () => {
   it('refuses something that is not a pack at all', () => {
     expect(problemCodes('a screenshot')).toEqual(['not-a-pack']);
     expect(problemCodes(null)).toEqual(['not-a-pack']);
+  });
+});
+
+/**
+ * The listener's side. Everything the author's check above refuses outright is
+ * repaired here instead, because the copy on a listener's machine was made
+ * somewhere else — possibly by a newer FluidEQ — and nobody at that machine
+ * can correct it. The one thing that is never repaired is a source breaking
+ * the rules that keep the graphics driver alive.
+ */
+describe('reading a member scene somebody already has', () => {
+  // The positive control: without it, "repaired" and "silently emptied" read
+  // the same in every case below.
+  it('reads an ordinary scene whole', () => {
+    expect(readMemberScene(raw())).toMatchObject({
+      id: 'neon-city',
+      fallbackStyle: 'skyline',
+      names: { en: 'Neon City' },
+      params: [{ id: 'glow' }],
+    });
+  });
+
+  it.each([
+    ['a contract from the future', { contract: SCENE_CONTRACT_VERSION + 4 }],
+    ['a field this version never heard of', { auroraLayers: [1, 2, 3] }],
+    [
+      'a picture it cannot read',
+      { artwork: { mime: 'image/png', data: 'AA' } },
+    ],
+    ['a band it cannot read', { spectrumRange: ['low', 'high'] }],
+    ['a control it cannot read', { params: [{ id: 'Glow!' }] }],
+    ['a colour it cannot read', { swatch: ['not a colour'] }],
+    ['a wave past the sliders', { wave: { height: 40, position: -7 } }],
+  ])('plays a scene with %s', (_name, over) => {
+    expect(readMemberScene(raw(over))).toMatchObject({ id: 'neon-city' });
+  });
+
+  it('stands a form this version has not got in for the default one', () => {
+    // A look a newer FluidEQ added. The form is only what is drawn when the
+    // scene itself cannot run, so it is replaced, never a reason to refuse.
+    const pack = readMemberScene(raw({ fallbackStyle: 'lasers' }));
+    expect(pack?.fallbackStyle).toBe(DEFAULT_GRAPH_LOOK.style);
+  });
+
+  it('cuts a name past the members’ limit instead of losing the scene', () => {
+    const pack = readMemberScene(
+      raw({ names: { en: 'x'.repeat(MAX_MEMBER_NAME_LENGTH + 20) } }),
+    );
+    expect(pack?.names.en).toHaveLength(MAX_MEMBER_NAME_LENGTH);
+  });
+
+  it('never runs a source that breaks the rules the driver depends on', () => {
+    expect(
+      readMemberScene(raw({ source: `#define X 1\n${SOURCE}` })),
+    ).toBeUndefined();
+    expect(
+      readMemberScene(
+        raw({
+          source: `vec4 sceneColour(vec2 uv) {
+  while (true) { }
+  return vec4(0.0);
+}`,
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
+  it('gives up on a document with nothing left to draw', () => {
+    expect(
+      readMemberScene(raw({ source: 'void nothing() {}' })),
+    ).toBeUndefined();
+    expect(readMemberScene(raw({ names: { es: 'Ciudad' } }))).toBeUndefined();
+    expect(readMemberScene(raw({ id: 'Neon City' }))).toBeUndefined();
+    expect(readMemberScene('a screenshot')).toBeUndefined();
   });
 });

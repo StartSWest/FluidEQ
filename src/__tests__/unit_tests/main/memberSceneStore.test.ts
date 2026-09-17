@@ -101,6 +101,40 @@ describe('the member scene store', () => {
     expect(again.load(ME, 'neon-city')).toEqual(pack());
   });
 
+  /**
+   * A scene in somebody's looks was made by whatever FluidEQ its author was
+   * running, which can be newer than the one it lands on. Crystal, published
+   * at contract 7, stopped appearing at all on every copy that spoke contract
+   * 6 — it used nothing that build lacked, and the number alone took it off
+   * the picker.
+   */
+  it('keeps a scene made by a newer FluidEQ, own or downloaded', () => {
+    const ahead = SCENE_CONTRACT_VERSION + 5;
+    const future = {
+      ...pack({ contract: ahead }),
+      somethingAddedLater: { mood: 'warm' },
+    } as IScenePack;
+    const store = createMemberSceneStore({ userDataDir });
+    store.save(ME, future);
+    store.saveImported(
+      signedEnvelope(memberPayload({ pack: future, author: SOMEONE })),
+    );
+    const reopened = createMemberSceneStore({ userDataDir });
+    expect(
+      reopened
+        .list()
+        .map((scene) => scene.lookId)
+        .sort(),
+    ).toEqual(
+      [
+        memberLookId(ME, 'neon-city'),
+        memberLookId(SOMEONE, 'neon-city'),
+      ].sort(),
+    );
+    expect(reopened.load(ME, 'neon-city')?.contract).toBe(ahead);
+    expect(reopened.load(SOMEONE, 'neon-city')?.contract).toBe(ahead);
+  });
+
   it('refuses to save a scene that breaks a rule', () => {
     const store = createMemberSceneStore({ userDataDir });
     expect(() =>

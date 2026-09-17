@@ -7,6 +7,7 @@ import {
   checkMemberScene,
   memberLookId,
   parseMemberLookId,
+  readMemberScene,
 } from '../../common/memberScenes';
 import {
   isScenePackEnvelope,
@@ -136,14 +137,17 @@ export const createMemberSceneStore = ({
         if (!isRecord(record) || record.authorId !== authorId) {
           return undefined;
         }
-        const checked = checkMemberScene(record.pack);
-        if (!checked.ok || checked.pack.id !== packId) {
+        // Read the way a listener's copy is read, not the way the Studio
+        // reads the author's: this file was written by whatever FluidEQ the
+        // member was running then, which may be newer than this one.
+        const pack = readMemberScene(record.pack);
+        if (!pack || pack.id !== packId) {
           logger?.warn(
             `Member scene ${packId} no longer passes the member rules and is not offered.`,
           );
           return undefined;
         }
-        return checked.pack;
+        return pack;
       },
     );
   };

@@ -277,7 +277,12 @@ describe('the scene pack store', () => {
     expect(store.load('aurora')?.version).toBe(3);
   });
 
-  it('holds back a pack written for a newer contract than this build', () => {
+  // This store used to withhold one, which is what took Crystal off every
+  // copy of the app that spoke the contract before it: the number says what
+  // a scene was written against, not what it needs, and one that really does
+  // need a uniform this build has not got fails to compile and is drawn as
+  // its own fallbackStyle.
+  it('offers a pack written for a newer contract than this build', () => {
     const store = build();
     store.adopt([
       {
@@ -286,8 +291,8 @@ describe('the scene pack store', () => {
         envelope: seal(payloadFor('future', 1, { contract: 99 })),
       },
     ]);
-    expect(store.list()).toEqual([]);
-    expect(store.load('future')).toBeUndefined();
+    expect(store.list().map((entry) => entry.id)).toEqual(['future']);
+    expect(store.load('future')?.contract).toBe(99);
   });
 
   // The disk-based quarantine and cross-pack refusal this store used to

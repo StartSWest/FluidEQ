@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { DEFAULT_GRAPH_LOOK } from '../../../common/graphStyles';
 import {
   isPremiumLookId,
   isScenePackEnvelope,
@@ -77,7 +78,6 @@ describe('normalising a scene pack', () => {
   it.each([
     ['no English name', { names: { es: 'Aurora' } }],
     ['no names at all', { names: undefined }],
-    ['an unknown fallback form', { fallbackStyle: 'lasers' }],
     ['a missing id', { id: undefined }],
     ['an id with capitals', { id: 'Aurora' }],
     ['a source with no entry point', { source: 'void main() {}' }],
@@ -105,6 +105,58 @@ describe('normalising a scene pack', () => {
     expect(
       normalizeScenePack(pack({ fallbackStyle: 'ribbon' }))?.fallbackStyle,
     ).toBe('area');
+  });
+
+  /**
+   * A scene made by a newer FluidEQ has to play here as well as this version
+   * can play it. Crystal, published at contract 7, disappeared from every copy
+   * of the app that spoke contract 6 — it used nothing that build lacked, and
+   * the number alone took it off the picker.
+   */
+  describe('a pack from a newer FluidEQ', () => {
+    it('keeps a contract this version has never heard of', () => {
+      const result = normalizeScenePack(pack({ contract: 99 }));
+      expect(result?.id).toBe('aurora');
+      expect(result?.contract).toBe(99);
+    });
+
+    it('ignores fields this version has never heard of', () => {
+      expect(
+        normalizeScenePack(
+          pack({ auroraLayers: [1, 2, 3], mood: { warmth: 0.4 } }),
+        )?.id,
+      ).toBe('aurora');
+    });
+
+    it('stands an unknown form in for the default one', () => {
+      // Only what is drawn when the scene cannot run: replaced, never fatal.
+      expect(
+        normalizeScenePack(pack({ fallbackStyle: 'lasers' }))?.fallbackStyle,
+      ).toBe(DEFAULT_GRAPH_LOOK.style);
+    });
+
+    it.each([
+      [
+        'a picture it cannot read',
+        { artwork: { mime: 'image/png', data: 'A' } },
+      ],
+      ['a band it cannot read', { spectrumRange: [0.9, 0.2] }],
+      ['a band that is not a pair', { spectrumRange: 'the top half' }],
+    ])('drops %s and keeps the scene', (_label, over) => {
+      const result = normalizeScenePack(pack(over));
+      expect(result?.id).toBe('aurora');
+      expect(result?.artwork).toBeUndefined();
+      expect(result?.spectrumRange).toBeUndefined();
+    });
+
+    it('reads a picture and a band whatever contract the pack names', () => {
+      // These two used to be refused outright when the number was lower than
+      // the version that introduced them. The number describes; it never gates.
+      const result = normalizeScenePack(
+        pack({ contract: 1, spectrumRange: [0.55, 0.94] }),
+      );
+      expect(result?.spectrumRange).toEqual([0.55, 0.94]);
+    });
   });
 
   it('clamps what it can rather than refusing', () => {
