@@ -124,11 +124,24 @@ export default function StudioStage({
 
   // Fullscreen is the real thing, not a bigger box: a scene that holds at
   // 1080p and falls apart at 4K is the commonest defect there is.
+  //
+  // Whether the screen is actually full is kept as its own state, read from
+  // the browser rather than assumed from the size. The two can part: leaving
+  // is a promise that can be refused — mid-transition, or by the window
+  // manager — and the refusal was swallowed, which left the screen full with
+  // the size back to windowed and the only way out unrendered. That is Ivan's
+  // "exit button can't click it sometimes": the button was not there to
+  // click, and nothing but Escape was left.
+  const [isFullscreen, setIsFullscreen] = useState(
+    () =>
+      typeof document !== 'undefined' && document.fullscreenElement !== null,
+  );
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) {
       return undefined;
     }
+    setIsFullscreen(document.fullscreenElement === frame);
     if (size === 'full' && document.fullscreenElement !== frame) {
       frame.requestFullscreen().catch(() => onExitFullscreen());
     }
@@ -136,13 +149,28 @@ export default function StudioStage({
       document.exitFullscreen().catch(() => undefined);
     }
     const onChange = () => {
-      if (size === 'full' && document.fullscreenElement !== frame) {
+      const full = document.fullscreenElement === frame;
+      setIsFullscreen(full);
+      if (size === 'full' && !full) {
         onExitFullscreen();
       }
     };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, [size, onExitFullscreen]);
+
+  /**
+   * The way out, from either side: the size goes back to what it was, and
+   * the screen is asked to leave fullscreen even when the size already says
+   * windowed — which is the state the two can be left in, and where a button
+   * that only set the size would do nothing at all.
+   */
+  const leaveFullscreen = useCallback(() => {
+    onExitFullscreen();
+    if (document.fullscreenElement === frameRef.current) {
+      document.exitFullscreen().catch(() => undefined);
+    }
+  }, [onExitFullscreen]);
 
   const packRef = useRef(pack);
   packRef.current = pack;
@@ -258,11 +286,14 @@ export default function StudioStage({
         />
         {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
         {waiting && <StudioStageLoading name={pack.names.en} />}
-        {size === 'full' && (
+        {/* On screen whenever the screen is full, whichever of the two
+            believes it: a way out that depends on the app's own idea of the
+            size is a way out that can go missing. */}
+        {(size === 'full' || isFullscreen) && (
           <button
             type="button"
             className="button small subtle studio-stage__exit"
-            onClick={onExitFullscreen}
+            onClick={leaveFullscreen}
           >
             {t('studio.size.exit')}
           </button>
