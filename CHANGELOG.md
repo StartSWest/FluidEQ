@@ -84,8 +84,8 @@ it, and the beat they move to is the one in the music.
   Full range puts it back the way it was.
 - **Music that fills the room.** Stereo music can take the whole ring
   instead of standing on the front pair: the front pair stays as it is, the
-  centre takes what both sides share, and what they do not share reaches the
-  sides a moment later and the rears after that, the way a surround decoder
+  centre takes what both sides have in common, and what differs between them
+  reaches the sides a moment later and the rears after that, the way a decoder
   derives its ambience; the Amount dial sets how much. The chip says
   "Stereo → whole room" while it runs; films and games are never touched.
 - **Every speaker set by itself.** Press a speaker in the picture and its
