@@ -249,6 +249,32 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
+// The version on the bench, beside the status word. Tabular figures so a
+// scene counting 9 to 10 does not shift the bar it sits in, and a pill
+// rather than plain text because it is a value and the word beside it is a
+// state — two different kinds of thing reading as one line otherwise.
+.studio-bench__version {
+  flex: none;
+  padding: 1px $spacing-xs;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: $hover-lift;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  @include tracking(0.04em);
+  cursor: default;
+}
+
+// Ahead of what is published: work nobody has yet. The app's own accent and
+// its selected tint, so it reads as live rather than as a warning — there is
+// nothing wrong with an unpublished version.
+.studio-bench__version--ahead {
+  background: $selected-accent;
+  color: $text-accent;
+}
+
 // What a pane keeps clear inside its scroll edge, and gives back with its
 // margins so nothing moves: a scroller clips at its own box, and the stage's
 // ring and a focused control's glow both reach a few pixels past theirs.

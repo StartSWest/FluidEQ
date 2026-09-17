@@ -208,6 +208,22 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     status = 'studio.status.live';
   }
 
+  // Which version is on the bench, and whether it is the one listeners have.
+  // The number decides what a publication is called and what an installed
+  // copy compares itself against, and until now it was only readable on the
+  // gallery's own page — so the author tuning a scene could not tell an
+  // unpublished version from the released one without leaving the Studio.
+  const version = pack?.version;
+  const published = tuner.publishedVersion;
+  const isAhead =
+    version !== undefined && published !== undefined && published < version;
+  let versionHint: TranslationKey = 'studio.version.unpublished';
+  if (isAhead) {
+    versionHint = 'studio.version.ahead';
+  } else if (published !== undefined) {
+    versionHint = 'studio.version.live';
+  }
+
   let cost: TranslationKey | undefined;
   if (trouble?.kind === 'heavy') {
     cost = 'studio.cost.heavy';
@@ -332,6 +348,25 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           onLinkFolder={linkFolder}
           onOpenFile={sharing.openFile}
         />
+        {/* Beside the scene it belongs to and ahead of the status sentence:
+            the number is a property of the scene, and after a sentence it
+            read as a trailing afterthought. Short enough to sit in the bar in
+            every language; what it stands for is on the element itself, for a
+            pointer and for a reader alike. */}
+        {project && version !== undefined && (
+          <span
+            className={`studio-bench__version${
+              isAhead ? ' studio-bench__version--ahead' : ''
+            }`}
+            title={t(versionHint, { version, published: published ?? version })}
+            aria-label={t(versionHint, {
+              version,
+              published: published ?? version,
+            })}
+          >
+            {t('studio.version.label', { version })}
+          </span>
+        )}
         {project && <span className="studio-bench__status">{t(status)}</span>}
         {/* In the pinned bar, so what an action says is in view wherever the
             page was scrolled to when it was pressed. */}

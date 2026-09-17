@@ -269,6 +269,13 @@ const studio = {
   'studio.status.live': 'Atualizado com seu último salvamento',
   'studio.status.problem': 'A última versão que funciona continua tocando',
   'studio.status.waiting': 'Aguardando uma versão que toque',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Versão {version} desta cena. Ainda não foi publicada.',
+  'studio.version.live': 'Versão {version} desta cena, e a que as pessoas têm.',
+  'studio.version.ahead':
+    'Versão {version} desta cena. As pessoas têm a versão {published}.',
   'studio.empty': 'Nada para mostrar ainda',
   'studio.stage.label': '{name}, tocando ao vivo',
   'studio.stage.resize': 'Arraste para redimensionar a prévia',

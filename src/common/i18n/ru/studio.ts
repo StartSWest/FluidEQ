@@ -271,6 +271,13 @@ const studio = {
   'studio.status.live': 'Обновлено после последнего сохранения',
   'studio.status.problem': 'Последняя рабочая версия продолжает играть',
   'studio.status.waiting': 'Ждём версию, которая заиграет',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Версия {version} этой сцены. Она ещё не опубликована.',
+  'studio.version.live': 'Версия {version} этой сцены — та, что есть у людей.',
+  'studio.version.ahead':
+    'Версия {version} этой сцены. У людей версия {published}.',
   'studio.empty': 'Пока нечего показать',
   'studio.stage.label': '{name}, вживую',
   'studio.stage.resize': 'Потяните, чтобы изменить размер предпросмотра',

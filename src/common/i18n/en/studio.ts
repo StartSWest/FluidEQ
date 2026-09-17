@@ -278,6 +278,17 @@ const studio = {
   'studio.status.live': 'Updated from your last save',
   'studio.status.problem': 'The last working version is still playing',
   'studio.status.waiting': 'Waiting for a version that plays',
+
+  // The version on the bench, beside the status word. The number is what a
+  // publication is called and what an installed copy compares itself
+  // against, so the author needs it where they are working.
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Version {version} of this scene. It has not been published.',
+  'studio.version.live':
+    'Version {version} of this scene, and the one people have.',
+  'studio.version.ahead':
+    'Version {version} of this scene. Version {published} is the one people have.',
   'studio.empty': 'Nothing to show yet',
   'studio.stage.label': '{name}, playing live',
   'studio.stage.resize': 'Drag to resize the preview',

@@ -275,6 +275,14 @@ const studio = {
   'studio.status.problem':
     'L’ultima versione funzionante è ancora in riproduzione',
   'studio.status.waiting': 'In attesa di una versione che si riproduca',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Versione {version} di questa scena. Non è ancora pubblicata.',
+  'studio.version.live':
+    'Versione {version} di questa scena, e quella che hanno gli altri.',
+  'studio.version.ahead':
+    'Versione {version} di questa scena. Gli altri hanno la versione {published}.',
   'studio.empty': 'Ancora niente da mostrare',
   'studio.stage.label': '{name}, dal vivo',
   'studio.stage.resize': 'Trascina per ridimensionare l’anteprima',

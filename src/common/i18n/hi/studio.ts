@@ -267,6 +267,14 @@ const studio = {
   'studio.status.live': 'आपके पिछले सेव से अपडेट हुआ',
   'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
   'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'इस दृश्य का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',
+  'studio.version.live':
+    'इस दृश्य का संस्करण {version}, और यही लोगों के पास है।',
+  'studio.version.ahead':
+    'इस दृश्य का संस्करण {version}। लोगों के पास संस्करण {published} है।',
   'studio.empty': 'अभी दिखाने को कुछ नहीं',
   'studio.stage.label': '{name}, लाइव चल रहा है',
   'studio.stage.resize': 'प्रीव्यू का आकार बदलने के लिए खींचें',

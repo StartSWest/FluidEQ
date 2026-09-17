@@ -278,6 +278,14 @@ const studio = {
   'studio.status.live': 'Aktualisiert nach Ihrem letzten Speichern',
   'studio.status.problem': 'Die letzte funktionierende Version läuft weiter',
   'studio.status.waiting': 'Wartet auf eine Version, die spielt',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Version {version} dieser Szene. Sie ist noch nicht veröffentlicht.',
+  'studio.version.live':
+    'Version {version} dieser Szene, und die, die andere haben.',
+  'studio.version.ahead':
+    'Version {version} dieser Szene. Andere haben Version {published}.',
   'studio.empty': 'Noch nichts zu zeigen',
   'studio.stage.label': '{name}, live',
   'studio.stage.resize': 'Ziehen, um die Größe der Vorschau zu ändern',

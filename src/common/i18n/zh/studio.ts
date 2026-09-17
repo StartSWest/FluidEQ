@@ -244,6 +244,12 @@ const studio = {
   'studio.status.live': '已按你最近一次保存更新',
   'studio.status.problem': '上一个可用版本仍在播放',
   'studio.status.waiting': '正在等待一个能播放的版本',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished': '这个场景的第 {version} 版，尚未发布。',
+  'studio.version.live': '这个场景的第 {version} 版，也是大家拿到的那一版。',
+  'studio.version.ahead':
+    '这个场景的第 {version} 版。大家拿到的是第 {published} 版。',
   'studio.empty': '暂时没有可显示的内容',
   'studio.stage.label': '{name}，实时播放中',
   'studio.stage.resize': '拖动可调整预览大小',

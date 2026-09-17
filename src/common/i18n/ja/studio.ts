@@ -276,6 +276,14 @@ const studio = {
   'studio.status.live': '最後の保存で更新されました',
   'studio.status.problem': '最後に動いたバージョンを再生中です',
   'studio.status.waiting': '再生できるバージョンを待っています',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'このシーンのバージョン {version} です。まだ公開されていません。',
+  'studio.version.live':
+    'このシーンのバージョン {version} で、みんなが持っているものです。',
+  'studio.version.ahead':
+    'このシーンのバージョン {version} です。みんなが持っているのはバージョン {published} です。',
   'studio.empty': 'まだ表示するものがありません',
   'studio.stage.label': '{name}、ライブ再生中',
   'studio.stage.resize': 'ドラッグしてプレビューの大きさを変更',

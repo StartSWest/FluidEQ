@@ -274,6 +274,14 @@ const studio = {
   'studio.status.live': 'Mis à jour depuis votre dernier enregistrement',
   'studio.status.problem': 'La dernière version qui fonctionne joue toujours',
   'studio.status.waiting': 'En attente d’une version qui joue',
+
+  'studio.version.label': 'v{version}',
+  'studio.version.unpublished':
+    'Version {version} de cette scène. Elle n’est pas encore publiée.',
+  'studio.version.live':
+    'Version {version} de cette scène, et celle que les autres ont.',
+  'studio.version.ahead':
+    'Version {version} de cette scène. Les autres ont la version {published}.',
   'studio.empty': 'Rien à montrer pour l’instant',
   'studio.stage.label': '{name}, en direct',
   'studio.stage.resize': 'Faites glisser pour redimensionner l’aperçu',
