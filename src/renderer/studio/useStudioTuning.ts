@@ -86,7 +86,11 @@ export default function useStudioTuning(
 ) {
   const [pending, setPending] = useState<IPending>(NOTHING_PENDING);
   const [saved, setSaved] = useState<TTuningSaved>();
-  const opened = useRef<{ project?: string; values: Record<string, number> }>({
+  const opened = useRef<{
+    project?: string;
+    values: Record<string, number>;
+    wave?: ISceneWave;
+  }>({
     values: {},
   });
 
@@ -100,7 +104,11 @@ export default function useStudioTuning(
       return;
     }
     if (opened.current.project !== project) {
-      opened.current = { project, values: valuesOf(pack) };
+      opened.current = {
+        project,
+        values: valuesOf(pack),
+        ...(pack.wave ? { wave: pack.wave } : {}),
+      };
     }
     const agreed = valuesOf(pack);
     const packResponse = pack.response ?? NEUTRAL_RESPONSE;
@@ -229,7 +237,12 @@ export default function useStudioTuning(
     opened.current.values,
   );
   const responseAtReset = published?.response ?? NEUTRAL_RESPONSE;
-  const waveAtReset = published?.wave ?? pack?.wave ?? DEFAULT_SCENE_WAVE;
+  // Where Reset puts the wave: the published version's, else the one the
+  // project was opened with — not the pack's own, which is whatever the last
+  // save wrote, so Reset would have had nothing to go back to the moment a
+  // wave was saved. The same rule the controls follow.
+  const waveAtReset =
+    published?.wave ?? opened.current.wave ?? DEFAULT_SCENE_WAVE;
 
   const resetParams = useCallback(() => {
     const next = { ...pending, params: { ...paramsAtReset } };
