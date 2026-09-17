@@ -73,6 +73,25 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
+// One of the four groups the settings are arranged in, here and in the
+// graph's View menu (`common/settingsGroups.ts`). It stands above the
+// labels inside it — brighter, with the card's own hairline over it — so
+// that reading down the column gives the four groups first and their
+// contents second, which is what makes the two surfaces read alike.
+.studio-card__eyebrow--group {
+  margin-top: $spacing-s;
+  padding-top: 11px;
+  border-top: 1px solid $border-subtle;
+  color: $text-muted;
+
+  // The first group opens the card, under its own title: no rule over it.
+  &:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
 // A card that folds away (`StudioFoldCard.tsx`). Its own eyebrow is the
 // control: the whole head is the button, so there is nothing new to learn and
 // nothing extra on the card at rest.

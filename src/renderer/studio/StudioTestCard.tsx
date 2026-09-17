@@ -1,5 +1,6 @@
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { OWN_GROUP_TITLE, SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import ScenePerformanceMenu from '../graph/ScenePerformanceMenu';
 import { useTranslation } from '../utils/I18nContext';
 import StudioFoldCard from './StudioFoldCard';
@@ -30,18 +31,30 @@ interface IStudioTestCardProps {
    * the bench after every frame, never through React.
    */
   readingRef: RefObject<HTMLSpanElement | null>;
+  /**
+   * The scene's own settings (`StudioSettings.tsx`) — its controls, how it
+   * answers the music, its elements in the window — which belong between the
+   * picture and how it is drawn, in the order both surfaces follow.
+   */
+  settings: ReactNode;
 }
 
 /**
- * What to play the scene with, at which size, under which wave and drawn how
- * hard — everything that judges the scene rather than changes it, on one
- * card with the reading that says how it is keeping up.
+ * Everything a scene is tried and tuned with, in one card, in the order both
+ * places show it: what only the Studio has (the preview audio, the stage
+ * size, the app in the scene's colours), the picture (the grid, the wave's
+ * height and position), the visualizer itself (its controls, how it answers
+ * the music, its elements in the window) and how hard it is drawn — with the
+ * reading that says how it is keeping up under all of it.
  *
- * One card and not two: how the scene is drawn (the frame rate, the size and
- * its floor, the scaler, the edge smoothing, the graphics card) is read
- * against that reading, and a member watching the stage should not have to
- * hunt through a second card — or go out to the graph's own menu — to change
- * it. These are the graph's View menu's own rows, on the same choice
+ * The order and the headings are `common/settingsGroups.ts`, which the
+ * graph's View menu follows as well: the same five things sat in a different
+ * order under different names on each surface, so tuning a scene here and
+ * then looking at it on the graph meant finding every control twice. Same
+ * order, same names; two looks, because a menu floating over the graph and a
+ * card in a column are not the same thing.
+ *
+ * How it is drawn is the menu's own rows on the same choice
  * (`common/scenePerformance.ts`), so a choice made here is the graph's and
  * the desktop's too.
  *
@@ -65,8 +78,15 @@ export default function StudioTestCard({
   cost,
   percent,
   readingRef,
+  settings,
 }: IStudioTestCardProps) {
   const { t } = useTranslation();
+  /** A group of the shared arrangement, named as the graph's menu names it. */
+  const group = (key: TranslationKey) => (
+    <span className="studio-card__eyebrow studio-card__eyebrow--group">
+      {t(key)}
+    </span>
+  );
   const signalName = (entry: TStudioSignal) =>
     t(`studio.signal.${entry}` as TranslationKey);
   const sizeName = (entry: TStudioSize) =>
@@ -88,6 +108,7 @@ export default function StudioTestCard({
         )
       }
     >
+      {group(OWN_GROUP_TITLE.studio)}
       <span className="studio-card__eyebrow">{t('studio.signals.title')}</span>
       <div
         className="studio-tiles"
@@ -139,12 +160,13 @@ export default function StudioTestCard({
           </button>
         ))}
       </div>
-      <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
-      <StudioGridSwitch />
       <StudioTintSwitch />
-      <span className="studio-card__eyebrow">
-        {t('studio.performance.title')}
-      </span>
+      {group(SETTINGS_GROUP_TITLE.picture)}
+      <StudioGridSwitch />
+      <StudioWaveControls wave={wave} onWave={onWave} idle={idle} />
+      {group(SETTINGS_GROUP_TITLE.visualizer)}
+      {settings}
+      {group(SETTINGS_GROUP_TITLE.drawing)}
       <span className="studio-test__hint">{t('studio.performance.hint')}</span>
       {/* The menu's own rows, in the card rather than floating out of it:
           see `.studio-performance__rows`, which takes the floating surface

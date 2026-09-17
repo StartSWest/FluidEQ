@@ -450,22 +450,24 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             idle={!(pack && playing)}
             cost={cost}
             percent={Math.round(scale * 100)}
-          />
-          <StudioSettings
-            params={tuner.params}
-            values={tuner.values}
-            response={tuner.response}
-            saved={tuner.saved}
-            idle={!(pack && playing)}
-            canResetParams={tuner.canResetParams}
-            canResetResponse={tuner.canResetResponse}
-            publishedVersion={tuner.publishedVersion}
-            onParam={tuner.setParam}
-            onResponse={tuner.setResponse}
-            onCommit={tuner.commit}
-            onResetParams={tuner.resetParams}
-            onResetResponse={tuner.resetResponse}
-            ambient={ambient}
+            settings={
+              <StudioSettings
+                params={tuner.params}
+                values={tuner.values}
+                response={tuner.response}
+                saved={tuner.saved}
+                idle={!(pack && playing)}
+                canResetParams={tuner.canResetParams}
+                canResetResponse={tuner.canResetResponse}
+                publishedVersion={tuner.publishedVersion}
+                onParam={tuner.setParam}
+                onResponse={tuner.setResponse}
+                onCommit={tuner.commit}
+                onResetParams={tuner.resetParams}
+                onResetResponse={tuner.resetResponse}
+                ambient={ambient}
+              />
+            }
           />
           <StudioFoldCard
             fold="ship"

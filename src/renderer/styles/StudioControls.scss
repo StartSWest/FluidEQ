@@ -65,19 +65,19 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- settings
 
+// A section of the card that tries the scene, between the picture and how it
+// is drawn — not a card of its own any more, so the rhythm between its groups
+// and the two lines under them belongs to the section itself.
 .studio-settings {
   container: settings / inline-size;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
 
-  // The card folds (`StudioFoldCard.tsx`), so the rhythm between the groups
-  // and the two lines under them belongs to what folds, not to the card.
-  .studio-fold__body {
-    gap: 12px;
-  }
-
-  // Under the stage, where the column's cards pair up, the settings take a
-  // row of their own rather than half of one beside nothing.
-  @container studio (min-width: 480px) and (max-width: 760px) {
-    grid-column: 1 / -1;
+  // Nothing on the stage: the sliders wait where they will be, unlit, as the
+  // card around them does.
+  &.is-idle {
+    opacity: $disabled-opacity;
   }
 }
 

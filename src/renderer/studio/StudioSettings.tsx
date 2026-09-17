@@ -8,7 +8,6 @@ import {
   responseFromPosition as fromPosition,
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
-import StudioFoldCard from './StudioFoldCard';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -210,11 +209,13 @@ export default function StudioSettings({
   };
 
   return (
-    <StudioFoldCard
-      fold="settings"
-      title={t('studio.settings.title')}
-      className="studio-settings"
-      idle={idle}
+    // A section of the card that tries the scene, not a card of its own: the
+    // graph's menu and this column show the same settings in the same order
+    // under the same headings (`common/settingsGroups.ts`), and the scene's
+    // own controls come between the picture and how it is drawn.
+    <section
+      className={`studio-settings${idle ? ' is-idle' : ''}`}
+      aria-label={t('studio.settings.title')}
     >
       <div className="studio-settings__groups">
         {controls.length > 0 && (
@@ -310,6 +311,6 @@ export default function StudioSettings({
       {/* Said once, under all three groups: the same Reset serves them all,
           and where it goes is the thing worth knowing before pressing it. */}
       <span className="studio-settings__resets">{resetsTo}</span>
-    </StudioFoldCard>
+    </section>
   );
 }

@@ -5,12 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Studio's side column folds away everything but its meter.
+ * The Studio's side column folds away everything but its meter, and what it
+ * holds is arranged as the graph's View menu arranges the same settings.
  *
- * Four cards at once do not fit on a laptop: reaching the response sliders
+ * The cards at once do not fit on a laptop: reaching the response sliders
  * took the scene being tuned off the top of the screen. What it hears now
  * stays open whatever happens — a meter nobody can see is a meter that was
- * not consulted — and the other three remember how they were left.
+ * not consulted — and the rest remember how they were left.
  *
  * The fold is CSS — the contents stay in the page, because the height
  * transition needs them there — so what a test can hold is that a folded card
@@ -57,6 +58,7 @@ const testCard = () =>
       cost="studio.cost.full"
       percent={100}
       readingRef={{ current: null }}
+      settings={<p>the settings of the scene</p>}
     />,
   );
 
@@ -92,6 +94,24 @@ it('carries how the scene is drawn on the same card as what it is played with', 
   expect(rows.length).toBeGreaterThan(3);
 });
 
+it('reads down in the order both surfaces share', () => {
+  const { container } = testCard();
+  // The graph's menu and this card name and order the same groups
+  // (`common/settingsGroups.ts`); what only the Studio has comes first, and
+  // everything the two share follows in one order.
+  const groups = [
+    ...container.querySelectorAll('.studio-card__eyebrow--group'),
+  ].map((heading) => heading.textContent);
+  expect(groups).toEqual([
+    'settings.group.studioOnly',
+    'settings.group.picture',
+    'settings.group.visualizer',
+    'settings.group.drawing',
+  ]);
+  // And the scene's own settings are inside the card, between the two.
+  expect(screen.getByText('the settings of the scene')).toBeInTheDocument();
+});
+
 it('keeps how the scene is running on screen while the card is folded', async () => {
   testCard();
   await userEvent.click(
@@ -105,7 +125,7 @@ it('keeps how the scene is running on screen while the card is folded', async ()
 it('remembers each card on its own, across a fresh page', async () => {
   const { unmount } = render(
     <>
-      <StudioFoldCard fold="settings" title="Settings">
+      <StudioFoldCard fold="test" title="Settings">
         <p>the sliders</p>
       </StudioFoldCard>
       <StudioFoldCard fold="ship" title="Ready">
@@ -121,7 +141,7 @@ it('remembers each card on its own, across a fresh page', async () => {
   unmount();
 
   render(
-    <StudioFoldCard fold="settings" title="Settings">
+    <StudioFoldCard fold="test" title="Settings">
       <p>the sliders</p>
     </StudioFoldCard>,
   );
@@ -133,7 +153,10 @@ it('remembers each card on its own, across a fresh page', async () => {
 
 it('opens every card the first time, so nothing has to be found', () => {
   render(
-    <StudioFoldCard fold="test" title="Trying it">
+    // A fold nothing above has closed: the setting is remembered in the
+    // module as well as in storage, so a card folded by an earlier test is
+    // folded for the rest of the file whatever storage says.
+    <StudioFoldCard fold="ship" title="Trying it">
       <p>what it plays</p>
     </StudioFoldCard>,
   );

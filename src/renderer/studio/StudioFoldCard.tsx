@@ -11,11 +11,15 @@ import { createFlagSetting } from '../utils/graphStorage';
 /**
  * A card in the Studio's side column that folds away.
  *
- * The column carries four of them and they do not fit on a laptop screen at
- * once: reaching the response sliders meant scrolling the scene being tuned
- * off the top. Folding the ones not in use is what gives the room back, and
- * each stays where it was left — somebody who works on the response all
- * afternoon should not fold the test signals every time they open the Studio.
+ * The column does not fit on a laptop screen: reaching the response sliders
+ * meant scrolling the scene being tuned off the top. Folding a card not in
+ * use is what gives the room back, and each stays where it was left.
+ *
+ * Two of them now. Everything a scene is tried and tuned with — what it is
+ * played with, the picture, the visualizer's own settings and how hard it is
+ * drawn — is one card in one order, the order the graph's View menu shows
+ * the same settings in (`common/settingsGroups.ts`); the other says what to
+ * do with the scene when it is ready.
  *
  * What it hears now is deliberately not one of these: it is the meter the
  * scene is judged by, and a meter nobody can see is a meter that was not
@@ -27,7 +31,7 @@ import { createFlagSetting } from '../utils/graphStorage';
  */
 
 /** Which cards fold, and where each one's state is kept. */
-export type TStudioFold = 'test' | 'settings' | 'ship';
+export type TStudioFold = 'test' | 'ship';
 
 const SETTINGS: Record<TStudioFold, ReturnType<typeof createFlagSetting>> = {
   // A key of its own, because this card is no longer the one that was
@@ -35,7 +39,6 @@ const SETTINGS: Record<TStudioFold, ReturnType<typeof createFlagSetting>> = {
   // a member who had folded the test signals away would have folded away
   // settings they never put there. It opens once, then remembers again.
   test: createFlagSetting('fluideq.studioFold.trying', true),
-  settings: createFlagSetting('fluideq.studioFold.settings', true),
   ship: createFlagSetting('fluideq.studioFold.ship', true),
 };
 
