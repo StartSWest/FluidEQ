@@ -50,8 +50,8 @@ export interface IForumBoards {
 export interface IForumPostViewer {
   canEdit: boolean;
   canDelete: boolean;
-  canUpvote: boolean;
-  hasUpvoted: boolean;
+  canVote: boolean;
+  hasVoted: boolean;
   canMarkAnswer: boolean;
   canUnmarkAnswer: boolean;
 }
@@ -64,7 +64,7 @@ export type TForumAuthorRole = 'maker' | 'maintainer' | 'none';
 
 /** One piece of writing: an opening post, a comment or a reply. */
 export interface IForumPost {
-  /** GitHub's node id; what an edit, a reply or an upvote is addressed to. */
+  /** GitHub's node id; what an edit, a reply or a vote is addressed to. */
   id: string;
   bodyHtml: string;
   /** The markdown source — present only where the reader can edit it. */
@@ -74,7 +74,14 @@ export interface IForumPost {
   url: string;
   author: IForumPerson;
   authorRole: TForumAuthorRole;
-  upvotes: number;
+  /**
+   * How many people voted for it — GitHub's 👍 reaction, not its upvote
+   * arrow. The arrow is closed to apps: GitHub refuses `addUpvote` from a
+   * token an app was given, whatever permissions the app holds, and has
+   * since 2021. The 👍 is the one vote the app can cast, it is the same
+   * count GitHub's own pages show, and everyone can see it.
+   */
+  votes: number;
   /** Hidden by a moderator. Shown folded, and only on request. */
   minimized: boolean;
   viewer?: IForumPostViewer;
@@ -109,7 +116,8 @@ export interface IForumTopicSummary {
   answered: boolean;
   locked: boolean;
   replyCount: number;
-  upvotes: number;
+  /** The topic's own votes; see `IForumPost.votes`. */
+  votes: number;
   author: IForumPerson;
 }
 

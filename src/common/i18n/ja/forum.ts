@@ -58,7 +58,7 @@ const forum = {
   'forum.empty.searchHint': '単語を減らすか、別の言葉で試してください。',
 
   'forum.topic.replies': '返信 {count} 件',
-  'forum.topic.upvotes': '賛成 {count} 票',
+  'forum.topic.votes': '賛成 {count} 票',
   'forum.topic.answered': '回答済み',
   'forum.topic.locked': 'ロック中',
 
@@ -84,8 +84,8 @@ const forum = {
   'forum.post.show': '表示',
   'forum.post.image': '画像を開く',
 
-  'forum.action.upvote': '賛成票を入れる',
-  'forum.action.removeUpvote': '賛成票を取り消す',
+  'forum.action.vote': '賛成票を入れる',
+  'forum.action.removeVote': '賛成票を取り消す',
   'forum.action.reply': '返信',
   'forum.action.edit': '編集',
   'forum.action.delete': '削除',

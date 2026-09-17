@@ -71,6 +71,14 @@ export const textToHtml = (text: string): string =>
 const bodyHtmlOf = (node: Record<string, unknown>): string =>
   str(node.bodyHtml) || textToHtml(str(node.body));
 
+/**
+ * Votes are the 👍 reaction (`votes`). A feed published before the app
+ * counted those carries only GitHub's upvote arrow (`upvotes`), which is what
+ * its readers were shown at the time: better the count they know than a zero.
+ */
+const votesOf = (node: Record<string, unknown>): number =>
+  node.votes === undefined ? num(node.upvotes) : num(node.votes);
+
 const feedPost = (value: unknown): IForumPost => {
   const node = rec(value);
   return {
@@ -80,7 +88,7 @@ const feedPost = (value: unknown): IForumPost => {
     url: httpsUrl(node.url) ?? '',
     author: person(node.author),
     authorRole: roleOf(node.role),
-    upvotes: num(node.upvotes),
+    votes: votesOf(node),
     minimized: bool(node.isMinimized),
   };
 };
@@ -108,7 +116,7 @@ const feedTopic = (value: unknown): IForumTopic | undefined => {
   const url = httpsUrl(node.url) ?? '';
   const author = person(node.author);
   const createdAt = str(node.createdAt);
-  const upvotes = num(node.upvotes);
+  const votes = votesOf(node);
   return {
     id: str(node.id),
     number,
@@ -123,7 +131,7 @@ const feedTopic = (value: unknown): IForumTopic | undefined => {
     answered: bool(node.answered),
     locked: bool(node.locked),
     replyCount: num(node.replies),
-    upvotes,
+    votes,
     author,
     post: {
       id: str(node.postId) || str(node.id),
@@ -132,7 +140,7 @@ const feedTopic = (value: unknown): IForumTopic | undefined => {
       url,
       author,
       authorRole: roleOf(node.role),
-      upvotes,
+      votes,
       minimized: false,
     },
     postKind: bool(node.viaSite) ? 'comment' : 'discussion',

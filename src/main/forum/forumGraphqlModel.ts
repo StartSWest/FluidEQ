@@ -70,11 +70,26 @@ export const readBoardCounts = (
   }));
 };
 
+/** How many people voted: the 👍 reaction's own count. */
+const votesOf = (node: Record<string, unknown>): number =>
+  num(rec(node.votes).totalCount);
+
+/**
+ * Whether this reader's 👍 is among them. GitHub answers with one group per
+ * reaction the post has, so an absent 👍 group means nobody has left one.
+ */
+const hasVotedIn = (groups: unknown): boolean =>
+  arr(groups).some(
+    (group) =>
+      str(rec(group).content) === 'THUMBS_UP' &&
+      bool(rec(group).viewerHasReacted),
+  );
+
 const readViewer = (node: Record<string, unknown>): IForumPostViewer => ({
   canEdit: bool(node.viewerCanUpdate),
   canDelete: bool(node.viewerCanDelete),
-  canUpvote: bool(node.viewerCanUpvote),
-  hasUpvoted: bool(node.viewerHasUpvoted),
+  canVote: bool(node.viewerCanReact),
+  hasVoted: hasVotedIn(node.reactionGroups),
   canMarkAnswer: bool(node.viewerCanMarkAsAnswer),
   canUnmarkAnswer: bool(node.viewerCanUnmarkAsAnswer),
 });
@@ -93,7 +108,7 @@ const readPost = (value: unknown): IForumPost => {
     url: httpsUrl(node.url) ?? '',
     author: person(node.author),
     authorRole: authorRole(node.authorAssociation),
-    upvotes: num(node.upvoteCount),
+    votes: votesOf(node),
     minimized: bool(node.isMinimized),
     viewer,
   };
@@ -139,7 +154,7 @@ export const readTopicSummary = (
       0,
       num(rec(node.comments).totalCount) - (opening ? 1 : 0),
     ),
-    upvotes: num(node.upvoteCount),
+    votes: votesOf(node),
     author: opening ? person(opening.author) : author,
   };
 };
@@ -219,7 +234,7 @@ export const readTopic = (
     url: summary.url,
     author: summary.author,
     authorRole: authorRole(node.authorAssociation),
-    upvotes: summary.upvotes,
+    votes: summary.votes,
     minimized: false,
     viewer: discussionViewer,
   };
@@ -233,14 +248,20 @@ export const readTopic = (
   };
 };
 
-/** The upvote mutations answer with the subject's new state. */
-export const readUpvote = (
+/**
+ * The vote mutations answer with the post's reaction groups. The 👍 group is
+ * missing once the last one is taken away, which is zero and not voted.
+ */
+export const readVote = (
   data: unknown,
-  field: 'addUpvote' | 'removeUpvote',
-): { upvotes: number; hasUpvoted: boolean } => {
-  const subject = rec(rec(rec(data)[field]).subject);
+  field: 'addReaction' | 'removeReaction',
+): { votes: number; hasVoted: boolean } => {
+  const groups = arr(rec(rec(data)[field]).reactionGroups);
+  const thumbsUp = groups.find(
+    (group) => str(rec(group).content) === 'THUMBS_UP',
+  );
   return {
-    upvotes: num(subject.upvoteCount),
-    hasUpvoted: bool(subject.viewerHasUpvoted),
+    votes: num(rec(rec(thumbsUp).reactors).totalCount),
+    hasVoted: bool(rec(thumbsUp).viewerHasReacted),
   };
 };

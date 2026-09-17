@@ -58,7 +58,7 @@ const forum = {
   'forum.empty.searchHint': 'Essayez moins de mots, ou d’autres.',
 
   'forum.topic.replies': 'Réponses : {count}',
-  'forum.topic.upvotes': 'Votes positifs : {count}',
+  'forum.topic.votes': 'Votes positifs : {count}',
   'forum.topic.answered': 'Résolu',
   'forum.topic.locked': 'Verrouillé',
 
@@ -83,8 +83,8 @@ const forum = {
   'forum.post.show': 'Afficher',
   'forum.post.image': 'Ouvrir l’image',
 
-  'forum.action.upvote': 'Voter pour',
-  'forum.action.removeUpvote': 'Retirer mon vote',
+  'forum.action.vote': 'Voter pour',
+  'forum.action.removeVote': 'Retirer mon vote',
   'forum.action.reply': 'Répondre',
   'forum.action.edit': 'Modifier',
   'forum.action.delete': 'Supprimer',

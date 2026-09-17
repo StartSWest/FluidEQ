@@ -17,18 +17,18 @@ import {
   readBoards,
   readTopic,
   readTopicPage,
-  readUpvote,
+  readVote,
 } from './forumGraphqlModel';
 import {
   ADD_COMMENT,
   ADD_REPLY,
-  ADD_UPVOTE,
+  ADD_VOTE,
   BOARDS_QUERY,
   boardCountsQuery,
   CREATE_TOPIC,
   DELETE_COMMENT,
   MARK_ANSWER,
-  REMOVE_UPVOTE,
+  REMOVE_VOTE,
   SEARCH_QUERY,
   TOPIC_QUERY,
   TOPICS_QUERY,
@@ -62,10 +62,8 @@ export interface IForumService {
   editPost(id: string, kind: TForumPostKind, body: string): Promise<void>;
   editTitle(topicId: string, title: string): Promise<void>;
   deletePost(id: string): Promise<void>;
-  upvote(
-    id: string,
-    on: boolean,
-  ): Promise<{ upvotes: number; hasUpvoted: boolean }>;
+  /** Casts this reader's vote, or takes it back; answers with the new count. */
+  vote(id: string, on: boolean): Promise<{ votes: number; hasVoted: boolean }>;
   markAnswer(id: string, on: boolean): Promise<void>;
   preview(text: string): Promise<string>;
   /** Who a freshly minted token belongs to, before the session keeps it. */
@@ -104,7 +102,7 @@ const summaryOf = (topic: IForumTopic): IForumTopicSummary => ({
   answered: topic.answered,
   locked: topic.locked,
   replyCount: topic.replyCount,
-  upvotes: topic.upvotes,
+  votes: topic.votes,
   author: topic.author,
 });
 
@@ -321,10 +319,10 @@ export const createForumService = ({
       await api.graphql(DELETE_COMMENT, { id });
     },
 
-    upvote: async (id, on) =>
-      readUpvote(
-        await api.graphql(on ? ADD_UPVOTE : REMOVE_UPVOTE, { id }),
-        on ? 'addUpvote' : 'removeUpvote',
+    vote: async (id, on) =>
+      readVote(
+        await api.graphql(on ? ADD_VOTE : REMOVE_VOTE, { id }),
+        on ? 'addReaction' : 'removeReaction',
       ),
 
     markAnswer: async (id, on) => {

@@ -153,7 +153,7 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: $text-small;
 }
 
-// The row of what can be done: the upvote pill first, then quiet words, and
+// The row of what can be done: the vote pill first, then quiet words, and
 // GitHub's link pushed to the far end.
 .forum-post__actions {
   display: flex;
@@ -172,7 +172,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.forum-post__upvote {
+.forum-post__vote {
   display: inline-flex;
   align-items: center;
   gap: 4px;

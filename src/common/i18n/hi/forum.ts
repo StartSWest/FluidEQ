@@ -58,7 +58,7 @@ const forum = {
   'forum.empty.searchHint': 'कम शब्द आज़माएँ, या दूसरे शब्द।',
 
   'forum.topic.replies': 'जवाब: {count}',
-  'forum.topic.upvotes': 'अपवोट: {count}',
+  'forum.topic.votes': 'वोट: {count}',
   'forum.topic.answered': 'जवाब मिला',
   'forum.topic.locked': 'लॉक',
 
@@ -83,8 +83,8 @@ const forum = {
   'forum.post.show': 'दिखाएँ',
   'forum.post.image': 'चित्र खोलें',
 
-  'forum.action.upvote': 'अपवोट करें',
-  'forum.action.removeUpvote': 'अपवोट हटाएँ',
+  'forum.action.vote': 'वोट करें',
+  'forum.action.removeVote': 'वोट हटाएँ',
   'forum.action.reply': 'जवाब दें',
   'forum.action.edit': 'संपादित करें',
   'forum.action.delete': 'हटाएँ',

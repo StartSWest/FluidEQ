@@ -68,9 +68,14 @@ jobs:
           };
 
           const PERSON = 'login avatarUrl url';
-          const REPLY = `id bodyText bodyHTML createdAt url isMinimized upvoteCount authorAssociation author { ${PERSON} }`;
+          // A vote in the app is the 👍 reaction: GitHub refuses its upvote
+          // arrow to apps, so that is the count the app can both show and
+          // change. `upvoteCount` stays in the feed for the versions that
+          // shipped reading it.
+          const VOTES = 'votes: reactions(content: THUMBS_UP) { totalCount }';
+          const REPLY = `id bodyText bodyHTML createdAt url isMinimized upvoteCount ${VOTES} authorAssociation author { ${PERSON} }`;
           const COMMENT = `
-            id bodyText bodyHTML createdAt url isAnswer isMinimized upvoteCount authorAssociation
+            id bodyText bodyHTML createdAt url isAnswer isMinimized upvoteCount ${VOTES} authorAssociation
             author { ${PERSON} }
             replies(first: 50) { totalCount nodes { ${REPLY} } }`;
 
@@ -84,7 +89,7 @@ jobs:
                   totalCount
                   pageInfo { hasNextPage endCursor }
                   nodes {
-                    id number title bodyText bodyHTML createdAt updatedAt upvoteCount url locked
+                    id number title bodyText bodyHTML createdAt updatedAt upvoteCount ${VOTES} url locked
                     authorAssociation
                     category { name slug emoji emojiHTML }
                     author { ${PERSON} }
@@ -188,6 +193,7 @@ jobs:
             url: r.url,
             isMinimized: Boolean(r.isMinimized),
             upvotes: r.upvoteCount ?? 0,
+            votes: r.votes?.totalCount ?? 0,
             role: role(r.authorAssociation),
             author: person(r.author),
           });
@@ -241,6 +247,7 @@ jobs:
                 createdAt: node.createdAt,
                 updatedAt: node.updatedAt,
                 upvotes: node.upvoteCount,
+                votes: node.votes?.totalCount ?? 0,
                 url: node.url,
                 locked: Boolean(node.locked),
                 role: role(opening ? opening.authorAssociation : node.authorAssociation),

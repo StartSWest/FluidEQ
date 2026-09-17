@@ -8,7 +8,7 @@ export type TForumGlyph =
   | 'poll'
   | 'question'
   | 'showcase'
-  | 'upvote'
+  | 'vote'
   | 'reply'
   | 'edit'
   | 'answer'
@@ -93,8 +93,16 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <path d="M16.5 2.5v4M14.5 4.5h4M16.8 10.5v2.6M15.5 11.8h2.6" />
           </>
         );
-      case 'upvote':
-        return <path d="M10 4.5 15.5 12H12v4H8v-4H4.5L10 4.5Z" />;
+      case 'vote':
+        // A thumb up, because that is the reaction a vote leaves on GitHub.
+        // A mitten, not a hand with fingers: at the 14px this is drawn at,
+        // knuckle lines close up into a smudge.
+        return (
+          <>
+            <path d="M3.4 8.8h2.2a.9.9 0 0 1 .9.9v5.8a.9.9 0 0 1-.9.9H3.4a.9.9 0 0 1-.9-.9V9.7a.9.9 0 0 1 .9-.9Z" />
+            <path d="M6.5 9.6 10.2 3.4a1.7 1.7 0 0 1 3.15 1.15l-.75 3.2h3.4a1.7 1.7 0 0 1 1.66 2.07l-1.05 4.75a2 2 0 0 1-1.95 1.57H6.5" />
+          </>
+        );
       case 'reply':
         return <path d="M8 5 3.5 9.5 8 14M3.5 9.5h8a5 5 0 0 1 5 5V16" />;
       case 'edit':

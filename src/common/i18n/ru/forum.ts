@@ -58,7 +58,7 @@ const forum = {
   'forum.empty.searchHint': 'Попробуйте меньше слов или другие.',
 
   'forum.topic.replies': 'Ответов: {count}',
-  'forum.topic.upvotes': 'Голосов: {count}',
+  'forum.topic.votes': 'Голосов: {count}',
   'forum.topic.answered': 'Есть ответ',
   'forum.topic.locked': 'Закрыта',
 
@@ -83,8 +83,8 @@ const forum = {
   'forum.post.show': 'Показать',
   'forum.post.image': 'Открыть изображение',
 
-  'forum.action.upvote': 'Проголосовать',
-  'forum.action.removeUpvote': 'Отменить голос',
+  'forum.action.vote': 'Проголосовать',
+  'forum.action.removeVote': 'Отменить голос',
   'forum.action.reply': 'Ответить',
   'forum.action.edit': 'Изменить',
   'forum.action.delete': 'Удалить',

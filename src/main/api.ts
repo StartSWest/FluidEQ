@@ -1339,9 +1339,9 @@ const forumEditTitle = (topicId: string, title: string) =>
   >;
 const forumDelete = (id: string) =>
   ipcRenderer.invoke('forum-delete', id) as Promise<TForumResult<void>>;
-const forumUpvote = (id: string, on: boolean) =>
-  ipcRenderer.invoke('forum-upvote', id, on) as Promise<
-    TForumResult<{ upvotes: number; hasUpvoted: boolean }>
+const forumVote = (id: string, on: boolean) =>
+  ipcRenderer.invoke('forum-vote', id, on) as Promise<
+    TForumResult<{ votes: number; hasVoted: boolean }>
   >;
 const forumMarkAnswer = (id: string, on: boolean) =>
   ipcRenderer.invoke('forum-mark-answer', id, on) as Promise<
@@ -1547,7 +1547,7 @@ export default {
     forumEdit,
     forumEditTitle,
     forumDelete,
-    forumUpvote,
+    forumVote,
     forumMarkAnswer,
     forumPreview,
     onForumState,

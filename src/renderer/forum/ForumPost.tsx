@@ -3,7 +3,7 @@ import type { IForumPost, TForumPostKind } from 'common/forum/forumTypes';
 import { useTranslation } from '../utils/I18nContext';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph from './ForumGlyph';
-import { deletePost, editPost, markAnswer, upvote } from './forumStore';
+import { deletePost, editPost, markAnswer, vote } from './forumStore';
 import { absoluteTime, relativeTime } from './forumTime';
 import GithubHtml from './GithubHtml';
 import PostComposer from './PostComposer';
@@ -119,35 +119,35 @@ export default function ForumPost({
 
       {!editing && (
         <footer className="forum-post__actions">
-          {viewer?.canUpvote ? (
+          {viewer?.canVote ? (
             <button
               type="button"
-              className={`forum-post__upvote${viewer.hasUpvoted ? ' is-on' : ''}`}
-              aria-pressed={viewer.hasUpvoted}
+              className={`forum-post__vote${viewer.hasVoted ? ' is-on' : ''}`}
+              aria-pressed={viewer.hasVoted}
               aria-label={
-                viewer.hasUpvoted
-                  ? t('forum.action.removeUpvote')
-                  : t('forum.action.upvote')
+                viewer.hasVoted
+                  ? t('forum.action.removeVote')
+                  : t('forum.action.vote')
               }
               title={
-                viewer.hasUpvoted
-                  ? t('forum.action.removeUpvote')
-                  : t('forum.action.upvote')
+                viewer.hasVoted
+                  ? t('forum.action.removeVote')
+                  : t('forum.action.vote')
               }
               onClick={() => {
-                upvote(post.id, !viewer.hasUpvoted).catch(() => undefined);
+                vote(post.id, !viewer.hasVoted).catch(() => undefined);
               }}
             >
-              <ForumGlyph name="upvote" />
-              {count.format(post.upvotes)}
+              <ForumGlyph name="vote" />
+              {count.format(post.votes)}
             </button>
           ) : (
             <span
-              className="forum-post__upvote is-static"
-              aria-label={t('forum.topic.upvotes', { count: post.upvotes })}
+              className="forum-post__vote is-static"
+              aria-label={t('forum.topic.votes', { count: post.votes })}
             >
-              <ForumGlyph name="upvote" />
-              {count.format(post.upvotes)}
+              <ForumGlyph name="vote" />
+              {count.format(post.votes)}
             </span>
           )}
           {onReply && (

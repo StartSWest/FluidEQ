@@ -22,7 +22,6 @@ import {
   openForum,
   resetForumStore,
   selectBoard,
-  upvote,
   useForum,
 } from '../../../renderer/forum/forumStore';
 
@@ -54,7 +53,7 @@ const summary = (number: number, board: string): IForumTopicSummary => ({
   answered: false,
   locked: false,
   replyCount: 0,
-  upvotes: 1,
+  votes: 1,
   author: person,
 });
 
@@ -67,13 +66,13 @@ const thread = (number: number): IForumTopic => ({
     url: '',
     author: person,
     authorRole: 'none',
-    upvotes: 1,
+    votes: 1,
     minimized: false,
     viewer: {
       canEdit: false,
       canDelete: false,
-      canUpvote: true,
-      hasUpvoted: false,
+      canVote: true,
+      hasVoted: false,
       canMarkAnswer: false,
       canUnmarkAnswer: false,
     },
@@ -121,8 +120,8 @@ const installBridge = (overrides: Record<string, unknown> = {}) => {
     forumTopic: jest.fn(() => Promise.resolve({ ok: true, value: thread(1) })),
     // The browser never comes back in these tests; the sign-in stays open.
     forumSignIn: jest.fn(() => new Promise<void>(() => {})),
-    forumUpvote: jest.fn(() =>
-      Promise.resolve({ ok: true, value: { upvotes: 2, hasUpvoted: true } }),
+    forumVote: jest.fn(() =>
+      Promise.resolve({ ok: true, value: { votes: 2, hasVoted: true } }),
     ),
     ...overrides,
   };
@@ -234,14 +233,46 @@ describe('the forum store', () => {
     expect(bridge.forumTopics.mock.calls.length).toBe(settled);
   });
 
-  it('patches an upvote in place from GitHub’s answer', async () => {
-    installBridge();
+  it('votes on the post being read, and patches it in place', async () => {
+    const { bridge } = installBridge();
     render(<ForumPanel />);
     fireEvent.click(await screen.findByText('Topic 1 on q-a'));
     await screen.findByText('question');
-    await act(async () => upvote('D1', true));
+
+    fireEvent.click(screen.getByRole('button', { name: 'forum.action.vote' }));
+    await act(async () => {});
+    expect(bridge.forumVote).toHaveBeenCalledWith('D1', true);
+    const voted = screen.getByRole('button', {
+      name: 'forum.action.removeVote',
+    });
+    expect(voted).toHaveTextContent('2');
+    expect(voted).toHaveAttribute('aria-pressed', 'true');
+
+    // Pressing it again takes the vote back, rather than casting a second.
+    fireEvent.click(voted);
+    await act(async () => {});
+    expect(bridge.forumVote).toHaveBeenLastCalledWith('D1', false);
+  });
+
+  it('shows the count with nothing to press when nobody is signed in', async () => {
+    installBridge({
+      forumTopic: jest.fn(() => {
+        const signedOut = thread(1);
+        return Promise.resolve({
+          ok: true,
+          value: {
+            ...signedOut,
+            post: { ...signedOut.post, viewer: undefined },
+          },
+        });
+      }),
+    });
+    render(<ForumPanel />);
+    fireEvent.click(await screen.findByText('Topic 1 on q-a'));
+    await screen.findByText('question');
     expect(
-      screen.getByRole('button', { name: 'forum.action.removeUpvote' }),
-    ).toHaveTextContent('2');
+      screen.queryByRole('button', { name: 'forum.action.vote' }),
+    ).toBeNull();
+    expect(screen.getByLabelText('forum.topic.votes:1')).toBeInTheDocument();
   });
 });

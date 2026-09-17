@@ -54,7 +54,7 @@ const CHANNELS = [
   'forum-edit',
   'forum-edit-title',
   'forum-delete',
-  'forum-upvote',
+  'forum-vote',
   'forum-mark-answer',
   'forum-preview',
 ] as const;
@@ -275,8 +275,8 @@ export const registerForumIpc = ({
     guard(async () => service.deletePost(nodeId(id))),
   );
 
-  ipcMain.handle('forum-upvote', (_event, id: unknown, on: unknown) =>
-    guard(async () => service.upvote(nodeId(id), on === true)),
+  ipcMain.handle('forum-vote', (_event, id: unknown, on: unknown) =>
+    guard(async () => service.vote(nodeId(id), on === true)),
   );
 
   ipcMain.handle('forum-mark-answer', (_event, id: unknown, on: unknown) =>

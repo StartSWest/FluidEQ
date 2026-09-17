@@ -49,7 +49,7 @@ const topic = (
   answered: false,
   locked: false,
   replyCount: 0,
-  upvotes: 0,
+  votes: 0,
   author: { login: 'a', avatarUrl: null, url: null },
   post: {
     id: `D${number}`,
@@ -58,7 +58,7 @@ const topic = (
     url: '',
     author: { login: 'a', avatarUrl: null, url: null },
     authorRole: 'none',
-    upvotes: 0,
+    votes: 0,
     minimized: false,
   },
   postKind: 'discussion',

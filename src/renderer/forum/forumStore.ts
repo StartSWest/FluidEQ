@@ -369,11 +369,11 @@ export const markAnswer = (id: string, on: boolean) =>
   write(() => bridge()?.forumMarkAnswer?.(id, on));
 
 /**
- * An upvote changes one number and one state on one post, so it is patched
- * in place from GitHub's answer rather than reading the whole thread again.
+ * A vote changes one number and one state on one post, so it is patched in
+ * place from GitHub's answer rather than reading the whole thread again.
  */
-export const upvote = async (id: string, on: boolean): Promise<void> => {
-  const result = await call(() => bridge()?.forumUpvote?.(id, on));
+export const vote = async (id: string, on: boolean): Promise<void> => {
+  const result = await call(() => bridge()?.forumVote?.(id, on));
   if (!result.ok) {
     publish({ error: failureOf(result) });
     return;
@@ -383,22 +383,22 @@ export const upvote = async (id: string, on: boolean): Promise<void> => {
     return;
   }
   const patch = <
-    T extends { id: string; upvotes: number; viewer?: { hasUpvoted: boolean } },
+    T extends { id: string; votes: number; viewer?: { hasVoted: boolean } },
   >(
     post: T,
   ): T =>
     post.id === id && post.viewer
       ? {
           ...post,
-          upvotes: result.value.upvotes,
-          viewer: { ...post.viewer, hasUpvoted: result.value.hasUpvoted },
+          votes: result.value.votes,
+          viewer: { ...post.viewer, hasVoted: result.value.hasVoted },
         }
       : post;
   publish({
     topic: {
       ...topic,
       post: patch(topic.post),
-      upvotes: topic.post.id === id ? result.value.upvotes : topic.upvotes,
+      votes: topic.post.id === id ? result.value.votes : topic.votes,
       comments: topic.comments.map((comment) => ({
         ...patch(comment),
         replies: comment.replies.map(patch),

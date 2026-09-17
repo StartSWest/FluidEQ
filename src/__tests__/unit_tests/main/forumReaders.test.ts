@@ -17,7 +17,7 @@ import {
   readTopic,
   readTopicPage,
   readTopicSummary,
-  readUpvote,
+  readVote,
 } from '../../../main/forum/forumGraphqlModel';
 import { excerptOf, person } from '../../../main/forum/forumRead';
 
@@ -68,6 +68,7 @@ describe('the published feed', () => {
         createdAt: '2026-09-01T00:00:00Z',
         updatedAt: '2026-09-02T00:00:00Z',
         upvotes: 3,
+        votes: 4,
         url: 'https://github.com/o/r/discussions/1',
         locked: false,
         role: 'none',
@@ -84,6 +85,7 @@ describe('the published feed', () => {
             url: 'https://github.com/o/r/discussions/1#c1',
             isMinimized: false,
             upvotes: 2,
+            votes: 6,
             role: 'maker',
             isAnswer: true,
             replyTotal: 1,
@@ -120,12 +122,24 @@ describe('the published feed', () => {
     expect(topic.comments[0]).toMatchObject({
       isAnswer: true,
       authorRole: 'maker',
-      upvotes: 2,
+      votes: 6,
       threadId: 'C-1',
       bodyHtml: '<p>An answer</p>',
     });
     expect(topic.comments[0].replies[0].minimized).toBe(true);
     expect(topic.post.viewer).toBeUndefined();
+  });
+
+  it('counts the 👍 as the vote, and the old arrow only where there is no 👍', () => {
+    const [topic] = readFeed(current).topics;
+    expect([topic.votes, topic.comments[0].votes]).toEqual([4, 6]);
+
+    // A feed published before the app counted reactions: its readers were
+    // shown the arrow, and that is still a truer number for them than zero.
+    const older = readFeed({
+      topics: [{ ...current.topics[0], votes: undefined, comments: [] }],
+    });
+    expect(older.topics[0].votes).toBe(3);
   });
 
   it('reads the older feed: boards from its topics, text bodies escaped', () => {
@@ -251,7 +265,7 @@ describe("GitHub's GraphQL answers", () => {
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-03T00:00:00Z',
     url: 'https://github.com/o/r/discussions/9',
-    upvoteCount: 0,
+    votes: { totalCount: 0 },
     locked: false,
     answer: null,
     category: { slug: 'q-a' },
@@ -271,7 +285,13 @@ describe("GitHub's GraphQL answers", () => {
           bodyHTML: '<p>What the person wrote</p>',
           createdAt: '2026-09-01T00:00:00Z',
           url: 'https://github.com/o/r/discussions/9#open',
-          upvoteCount: 1,
+          votes: { totalCount: 2 },
+          viewerCanReact: true,
+          // Any other reaction is not a vote; only the 👍 counts as one.
+          reactionGroups: [
+            { content: 'HEART', viewerHasReacted: true },
+            { content: 'THUMBS_UP', viewerHasReacted: false },
+          ],
           author: author('person'),
           authorAssociation: 'NONE',
           viewerCanUpdate: true,
@@ -347,13 +367,38 @@ describe("GitHub's GraphQL answers", () => {
     ).toBeUndefined();
   });
 
-  it('reads the new upvote state from the mutation', () => {
+  it('counts a post’s votes and this reader’s own, from the 👍 alone', () => {
+    const topic = readTopic(giscusTopic, true);
+    expect(topic?.post.votes).toBe(2);
+    expect(topic?.post.viewer).toMatchObject({
+      canVote: true,
+      hasVoted: false,
+    });
+  });
+
+  it('reads the new vote state from the mutation', () => {
     expect(
-      readUpvote(
-        { addUpvote: { subject: { upvoteCount: 5, viewerHasUpvoted: true } } },
-        'addUpvote',
+      readVote(
+        {
+          addReaction: {
+            reactionGroups: [
+              { content: 'LAUGH', viewerHasReacted: true, reactors: {} },
+              {
+                content: 'THUMBS_UP',
+                viewerHasReacted: true,
+                reactors: { totalCount: 5 },
+              },
+            ],
+          },
+        },
+        'addReaction',
       ),
-    ).toEqual({ upvotes: 5, hasUpvoted: true });
+    ).toEqual({ votes: 5, hasVoted: true });
+
+    // The last vote taken back: GitHub sends no 👍 group at all any more.
+    expect(
+      readVote({ removeReaction: { reactionGroups: [] } }, 'removeReaction'),
+    ).toEqual({ votes: 0, hasVoted: false });
   });
 });
 

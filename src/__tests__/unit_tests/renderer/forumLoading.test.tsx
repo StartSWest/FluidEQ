@@ -139,7 +139,7 @@ const summary = (number: number, board: string): IForumTopicSummary => ({
   answered: false,
   locked: false,
   replyCount: 0,
-  upvotes: 0,
+  votes: 0,
   author: { login: 'asker', avatarUrl: null, url: null },
 });
 

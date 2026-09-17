@@ -56,7 +56,7 @@ const forum = {
   'forum.empty.searchHint': '试试减少关键词，或换个说法。',
 
   'forum.topic.replies': '{count} 条回复',
-  'forum.topic.upvotes': '{count} 个赞同',
+  'forum.topic.votes': '{count} 个赞同',
   'forum.topic.answered': '已解答',
   'forum.topic.locked': '已锁定',
 
@@ -80,8 +80,8 @@ const forum = {
   'forum.post.show': '显示',
   'forum.post.image': '打开图片',
 
-  'forum.action.upvote': '赞同',
-  'forum.action.removeUpvote': '取消赞同',
+  'forum.action.vote': '赞同',
+  'forum.action.removeVote': '取消赞同',
   'forum.action.reply': '回复',
   'forum.action.edit': '编辑',
   'forum.action.delete': '删除',

@@ -313,11 +313,11 @@ function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
         </span>
         <span
           className="forum__stat"
-          aria-label={t('forum.topic.upvotes', { count: topic.upvotes })}
-          title={t('forum.topic.upvotes', { count: topic.upvotes })}
+          aria-label={t('forum.topic.votes', { count: topic.votes })}
+          title={t('forum.topic.votes', { count: topic.votes })}
         >
-          <ForumGlyph name="upvote" />
-          {count.format(topic.upvotes)}
+          <ForumGlyph name="vote" />
+          {count.format(topic.votes)}
         </span>
       </span>
     </button>

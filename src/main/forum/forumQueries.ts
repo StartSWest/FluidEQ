@@ -11,9 +11,25 @@ const PERSON = `
 fragment Person on Actor { login avatarUrl(size: 80) url }
 `;
 
+/**
+ * A vote is the 👍 reaction, counted on its own. GitHub's upvote arrow cannot
+ * be cast by an app on a person's behalf — `addUpvote` answers "Resource not
+ * accessible by integration" for every app token — so the arrow is not read
+ * here either: one number that can be pressed beats two that disagree.
+ */
+const VOTES = `
+  votes: reactions(content: THUMBS_UP) { totalCount }
+`;
+
+/** Which reactions the reader has left, of which only the 👍 is a vote. */
+const VOTE_STATE = `
+  viewerCanReact reactionGroups { content viewerHasReacted }
+`;
+
 const TOPIC_SUMMARY = `
 fragment TopicSummary on Discussion {
-  id number title bodyText createdAt updatedAt url upvoteCount locked
+  id number title bodyText createdAt updatedAt url locked
+  ${VOTES}
   answer { id }
   category { slug }
   author { ...Person }
@@ -23,10 +39,11 @@ fragment TopicSummary on Discussion {
 `;
 
 const POST_FIELDS = `
-  id body bodyHTML createdAt lastEditedAt url upvoteCount isMinimized
+  id body bodyHTML createdAt lastEditedAt url isMinimized
   authorAssociation
   author { ...Person }
-  viewerCanUpdate viewerCanDelete viewerCanUpvote viewerHasUpvoted
+  viewerCanUpdate viewerCanDelete
+  ${VOTES}${VOTE_STATE}
 `;
 
 export const BOARDS_QUERY = `
@@ -98,7 +115,8 @@ query ForumTopic($owner: String!, $name: String!, $number: Int!, $cursor: String
     discussion(number: $number) {
       ...TopicSummary
       body bodyHTML lastEditedAt authorAssociation
-      viewerCanUpdate viewerCanDelete viewerCanUpvote viewerHasUpvoted
+      viewerCanUpdate viewerCanDelete
+      ${VOTE_STATE}
       thread: comments(first: 50, after: $cursor) {
         totalCount
         pageInfo { hasNextPage endCursor }
@@ -168,15 +186,22 @@ mutation ForumDeleteComment($id: ID!) {
 }
 `;
 
-export const ADD_UPVOTE = `
-mutation ForumUpvote($id: ID!) {
-  addUpvote(input: { subjectId: $id }) { subject { upvoteCount viewerHasUpvoted } }
+// Both answer with every reaction group the post has left, which is where the
+// new count and the reader's own state are read from. A post nobody has
+// thumbed up any more carries no 👍 group at all, which reads as zero.
+const VOTE_RESULT = `
+  reactionGroups { content viewerHasReacted reactors(first: 1) { totalCount } }
+`;
+
+export const ADD_VOTE = `
+mutation ForumVote($id: ID!) {
+  addReaction(input: { subjectId: $id, content: THUMBS_UP }) {${VOTE_RESULT}}
 }
 `;
 
-export const REMOVE_UPVOTE = `
-mutation ForumRemoveUpvote($id: ID!) {
-  removeUpvote(input: { subjectId: $id }) { subject { upvoteCount viewerHasUpvoted } }
+export const REMOVE_VOTE = `
+mutation ForumRemoveVote($id: ID!) {
+  removeReaction(input: { subjectId: $id, content: THUMBS_UP }) {${VOTE_RESULT}}
 }
 `;
 
