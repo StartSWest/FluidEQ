@@ -1,6 +1,5 @@
 import type { IScenePack } from 'common/scenePacks';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
-import { shouldDrawFrame } from 'common/smoothing';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { createFlashGuard, type IFlashGuard } from './sceneFlashGuard';
 import { linksSettled } from './sceneCompile';
@@ -34,17 +33,27 @@ const scope = globalThis as unknown as {
 type TDrawRequest = Extract<TSceneWorkerRequest, { kind: 'draw' }>;
 
 /**
- * A page frame older than this many of the intervals the page is pacing at
- * means the page has stalled — a menu opening, the DSP page's re-render, a
- * Library scan — and the worker draws the next ones itself until the page is
- * back. Past two missed frames, not one: a page loop at 94 frames a second
- * on a 100 Hz display misses a single frame every second or so, that frame
- * is invisible on its own, and filling it only put the fill and the page's
- * late frame on the same display frame. The three-quarters is for rAF
- * timestamps and message arrivals being measured a fraction of an interval
- * apart.
+ * How much of a display frame must pass, with nothing drawn, before the
+ * worker draws one itself from what the page last sent.
+ *
+ * Nine tenths, so every frame the display offers gets a picture. The page's
+ * loop shares a thread with the whole interface, and measured in the running
+ * window it was feeding the Studio's stage 65 to 72 frames a second on a
+ * 100 Hz display while the scene cost 0.9 ms of GPU: one refresh in three
+ * showed the frame before it again, which on anything moving fast is seen as
+ * a ghost of where it was. It was a multiple of whole missed frames, which
+ * never fired at that rate — a page steadily a third behind is never late by
+ * a whole frame.
  */
-const PAGE_MISSED_FACTOR = 2.75;
+const FILL_AFTER_TICKS = 0.9;
+
+/**
+ * A page frame arriving this soon after one the worker drew is the same
+ * display frame twice, and only the second would ever be seen. Narrow, so
+ * the page's own frame — the one carrying the newest sound — is what gets
+ * drawn whenever the two are not on top of each other.
+ */
+const SAME_FRAME_TICKS = 0.25;
 
 /**
  * The most the scene's clock advances on one frame. A stall longer than this
@@ -435,13 +444,10 @@ const tick = (now: number) => {
   if (latest === undefined || pageDrawnAt === undefined) {
     return;
   }
-  // What the page leaves between frames: its pace, or the display's beat
-  // when it draws every frame.
-  const expectedMs = Math.max(latest.paceMs, tickMs);
-  if (now - pageDrawnAt <= expectedMs * PAGE_MISSED_FACTOR) {
-    return;
-  }
-  if (drawnAt !== undefined && !shouldDrawFrame(now - drawnAt, latest.paceMs)) {
+  // A display frame has passed with nothing drawn on it, and the listener's
+  // own pace allows another.
+  const dueMs = Math.max(latest.paceMs, tickMs * FILL_AFTER_TICKS);
+  if (drawnAt !== undefined && now - drawnAt < dueMs) {
     return;
   }
   // Nobody is told: the page's next frame reads the clock's newest reading,
@@ -462,7 +468,7 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
   // in: the fill stands, and this one is not drawn on top of it — two frames
   // on one display frame is a frame of GPU time for nothing, and the second
   // still in hand at the next poll read as the GPU falling behind.
-  if (filledAt !== undefined && now - filledAt < tickMs * 0.5) {
+  if (filledAt !== undefined && now - filledAt < tickMs * SAME_FRAME_TICKS) {
     return {
       kind: 'drawn',
       accent: program?.musicAccent() ?? 0,

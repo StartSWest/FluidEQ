@@ -302,11 +302,17 @@ export default function useSceneRunner({
         width: Math.max(1, Math.round(output.width * scale)),
         height: Math.max(1, Math.round(output.height * scale)),
       };
+      // A picture drawn at the full supersample is four samples a pixel,
+      // averaged: its edges are already resolved, and FXAA over it only
+      // softens what is there — measured on Crystal at 1460x567, a third of
+      // a millisecond for a picture no cleaner. FXAA stays wherever the
+      // supersample is partial or absent, which is most panels at 4K.
+      const supersampled = scale >= SCENE_SUPERSAMPLE - 0.05;
       const finish = {
         // The plain scaler for good once the FSR passes have proved too dear
         // for this GPU at this size (`SCENE_FINISH_SHARE`).
         fsr: upscaler === 'fsr' && !ladderRef.current.cheapFinish(),
-        fxaa: smoothing !== 'off',
+        fxaa: smoothing !== 'off' && !supersampled,
       };
 
       const energy = advanceEnergy(
@@ -343,6 +349,7 @@ export default function useSceneRunner({
         beat: energy.beat,
         bands: [energy.bass, energy.mid, energy.treble],
         musicAccent: [energy.accent, energy.accentSerial],
+        musicRun: [energy.run, energy.runSpeed],
         accent: accentRef.current,
         fade: fadeRef.current,
         spectrum: spectrumRef.current,
