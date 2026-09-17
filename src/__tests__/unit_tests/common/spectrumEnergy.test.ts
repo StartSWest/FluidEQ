@@ -8,7 +8,6 @@ import {
   advanceEnergy,
   BEAT_FLASH_MS,
   createEnergyState,
-  RUN_MAX_TURNS,
   type ISpectrumPoint,
 } from '../../../common/spectrumEnergy';
 
@@ -149,8 +148,6 @@ describe('spectrum energy', () => {
       beat: 0,
       accent: 0,
       accentSerial: 0,
-      run: 0,
-      runSpeed: 0,
     });
   });
 
@@ -254,90 +251,5 @@ describe('spectrum energy', () => {
     // And the next one has to wait, however loud the music stays.
     const again = run(120, flat(MAX));
     expect(again.accentSerial).toBe(1);
-  });
-
-  // What this exists for: a scene is handed the music of one frame and
-  // nothing else, so a chorus cannot build anything up inside a shader — the
-  // hits arrive and fade and the picture keeps the same speed all song. The
-  // wheel is where a loud passage accumulates, and it belongs here because
-  // this is the only place that sees one frame after another.
-  it('winds up through a loud passage, holds a cap, and coasts down after', () => {
-    const state = createEnergyState();
-    const step = 1000 / 60;
-    const play = (seconds: number, points: ISpectrumPoint[]) => {
-      let last = advanceEnergy(state, points, MIN, MAX, step, true);
-      for (let frame = 1; frame < seconds * 60; frame += 1) {
-        last = advanceEnergy(state, points, MIN, MAX, step, true);
-      }
-      return last;
-    };
-
-    // Loud music with a kick on the beat, read after one second and after
-    // four.
-    let afterOne = 0;
-    let afterFour = 0;
-    for (let frame = 0; frame < 240; frame += 1) {
-      const energy = advanceEnergy(
-        state,
-        frame % 30 < 3 ? lowOnly(160) : flat(MAX - 2),
-        MIN,
-        MAX,
-        step,
-        true,
-      );
-      if (frame === 59) {
-        afterOne = energy.runSpeed;
-      }
-      afterFour = energy.runSpeed;
-    }
-    // The failure this pins: the first tuning was at the cap before the first
-    // second was out, so every song ran at one speed and the build-up Ivan
-    // asked for was not on screen at all. Four seconds in it is well past one
-    // second in, and still has somewhere to go.
-    expect(afterFour).toBeGreaterThan(afterOne * 1.8);
-    expect(afterFour).toBeLessThan(RUN_MAX_TURNS * 0.75);
-
-    // Held loud with the drums in it, it keeps gaining until it presses the
-    // cap, and however hard it is pushed it never passes it.
-    let chorus = afterFour;
-    for (let frame = 0; frame < 25 * 60; frame += 1) {
-      chorus = advanceEnergy(
-        state,
-        frame % 30 < 3 ? lowOnly(160) : flat(MAX),
-        MIN,
-        MAX,
-        step,
-        true,
-      ).runSpeed;
-    }
-    expect(chorus).toBeGreaterThan(afterFour);
-    expect(chorus).toBeGreaterThan(RUN_MAX_TURNS * 0.9);
-    expect(chorus).toBeLessThanOrEqual(RUN_MAX_TURNS);
-
-    // What separates a chorus from a loud pad: the drums. The same level with
-    // nothing hitting in it settles well short of the cap, which is the range
-    // a listener actually feels.
-    const pad = play(25, flat(MAX)).runSpeed;
-    expect(pad).toBeLessThan(chorus * 0.8);
-    expect(pad).toBeGreaterThan(RUN_MAX_TURNS * 0.5);
-
-    // Silence lets it down over its coast, and it keeps turning while it
-    // slows rather than stopping dead.
-    const before = state.run;
-    const easing = play(3, flat(MIN));
-    expect(easing.runSpeed).toBeLessThan(pad * 0.7);
-    const quiet = play(9, flat(MIN));
-    expect(quiet.runSpeed).toBeLessThan(pad * 0.2);
-    expect(quiet.runSpeed).toBeGreaterThan(0);
-    expect(quiet.run).not.toBe(before);
-
-    // Paused is not silence: everything holds where it is, the wheel with it.
-    const held = advanceEnergy(state, flat(MIN), MIN, MAX, step, false);
-    expect(held.run).toBe(quiet.run);
-    expect(held.runSpeed).toBe(quiet.runSpeed);
-
-    // And it is an angle a scene can read straight: always inside one turn.
-    expect(quiet.run).toBeGreaterThanOrEqual(0);
-    expect(quiet.run).toBeLessThan(1);
   });
 });

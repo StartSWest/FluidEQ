@@ -26,8 +26,6 @@ export interface ILightingSceneFrame {
   bands: [number, number, number];
   /** The big moment and its number, as the listener heard them. */
   musicAccent: [number, number];
-  /** The flywheel the music winds: turns, and turns a second. */
-  musicRun: [number, number];
   accent: [number, number, number];
   fade: number;
   spectrum: Uint8Array;

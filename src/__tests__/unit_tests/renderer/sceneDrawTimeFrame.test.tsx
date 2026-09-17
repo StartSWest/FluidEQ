@@ -4,11 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { act, render } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import type { IScenePack } from '../../../common/scenePacks';
 import { SCENE_CONTRACT_VERSION } from '../../../common/sceneUniformContract';
 import type { ISceneFrame } from '../../../renderer/graph/sceneGl';
 import type { ISceneDrawn } from '../../../renderer/graph/sceneWorkerClient';
+import type { TSceneBuildResult } from '../../../renderer/graph/sceneWorkerMessages';
 import type {
   ISceneDrawReport,
   ISceneRunnerOptions,
@@ -28,6 +29,8 @@ let mockReactPoints = flat(-20);
 let mockFresh:
   { points: { x: number; y: number }[]; waveform: number[] } | undefined;
 const mockDraw = jest.fn();
+/** What the worker answers a load with: ready, or a scene it could not build. */
+let mockLoadResult: TSceneBuildResult = { kind: 'ready', rebuilt: true };
 /** What the size ladder was asked to judge: the reading and the interval. */
 const mockLadderFrame = jest.fn(
   (_reading: unknown, _intervalMs: number, _hidden: boolean) => 'ok' as const,
@@ -53,9 +56,10 @@ jest.mock('../../../renderer/utils/useSmoothFrames', () => ({
 }));
 jest.mock('../../../renderer/graph/sceneWorkerClient', () => ({
   createSceneWorkerClient: () => ({
-    load: () => Promise.resolve({ kind: 'ready', rebuilt: true }),
+    load: () => Promise.resolve(mockLoadResult),
     canDraw: () => true,
     draw: mockDraw,
+    idle: jest.fn(),
     dispose: jest.fn(),
   }),
 }));
@@ -119,6 +123,20 @@ const renderLoaded = async (onDrawn?: ISceneRunnerOptions['onDrawn']) => {
   await act(() => settled);
 };
 
+/** The stage, rendered without waiting to be told a scene is ready. */
+const renderStage = () => {
+  function Stage() {
+    const ref = useSceneRunner({
+      source,
+      width: 480,
+      height: 270,
+      spectrumRect: [0, 1, 0, 1],
+    });
+    return <div ref={ref} />;
+  }
+  render(<Stage />);
+};
+
 /** One frame of the loop, and the bass the scene was handed in it. */
 const drawBass = () => {
   mockDraw.mockClear();
@@ -130,6 +148,7 @@ const drawBass = () => {
 beforeEach(() => {
   jest.clearAllMocks();
   mockReactPoints = flat(-20);
+  mockLoadResult = { kind: 'ready', rebuilt: true };
   mockFresh = undefined;
   // jsdom lays nothing out, and a scene with no box on screen draws nothing.
   jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
@@ -163,6 +182,49 @@ describe('a scene frame', () => {
     mockReactPoints = flat(20);
     await renderLoaded();
     expect(drawBass()).toBe(1);
+  });
+});
+
+/**
+ * A scene this build cannot compile is handed back to the listener as the
+ * scene's own fallback style, and nothing else.
+ *
+ * This is now the ONLY way a scene too new for the app degrades: the loader
+ * stopped refusing a pack by the contract number it was written against
+ * (15a4257f8), because the number said what a scene was written for and not
+ * what it needs, and Crystal would not open on a build one version behind. So
+ * a scene that really does use a uniform this build has never heard of now
+ * reaches the compiler and fails there, which must be an ordinary failure —
+ * reported, the last working version kept, the fallback shown — and never
+ * mistaken for the scene having taken the graphics card down, which is
+ * remembered against its source and would follow it to every other machine.
+ */
+describe('a scene this build cannot compile', () => {
+  it('is reported as a compile failure, with what the driver said', async () => {
+    mockLoadResult = {
+      kind: 'compile',
+      log: "ERROR: 0:42: 'uMusicRun' : undeclared identifier",
+    };
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    renderStage();
+    await waitFor(() => expect(source.reportFailure).toHaveBeenCalled());
+    expect(source.reportFailure).toHaveBeenCalledWith(
+      'compile',
+      expect.stringContaining('undeclared identifier'),
+    );
+    // Not blocked as a machine that cannot run it, which is the other verdict
+    // and the one that stops the scene for the session.
+    expect(source.block).not.toHaveBeenCalled();
+  });
+
+  it('draws nothing rather than a broken frame', async () => {
+    mockLoadResult = { kind: 'compile', log: 'no' };
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    renderStage();
+    await waitFor(() => expect(source.reportFailure).toHaveBeenCalled());
+    mockDraw.mockClear();
+    mockFrameCallback?.(16);
+    expect(mockDraw).not.toHaveBeenCalled();
   });
 });
 

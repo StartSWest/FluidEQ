@@ -52,48 +52,7 @@ export interface ISpectrumEnergy {
   accent: number;
   /** Counts up by one at each accent, for a scene that wants a fresh seed. */
   accentSerial: number;
-  /**
-   * A flywheel the music winds up, as a fraction of a turn: every kick and
-   * every loud passage adds to how fast it is going, it coasts down when they
-   * stop, and it cannot go faster than RUN_MAX_TURNS however hard the music
-   * pushes. A scene that wants to be carried along by a chorus turns by
-   * `uMusicRun` and gets an angle that never jumps, because this is where the
-   * speed is kept between frames - a shader sees only the music of this one
-   * frame, so a hit there is a nudge that fades, never a build-up.
-   *
-   * Kept inside one turn, so reading it as an angle is continuous.
-   */
-  run: number;
-  /** How fast that wheel is going, in turns a second. */
-  runSpeed: number;
 }
-
-/**
- * The fastest the music can wind the wheel, in turns a second: a turn in
- * twelve seconds, which is a stone turning, not a stone spinning.
- */
-export const RUN_MAX_TURNS = 0.085;
-/** What one kick adds to its speed, in turns a second. */
-export const RUN_KICK = 0.03;
-/** What a loud passage adds every second it lasts. */
-export const RUN_DRIVE = 0.01;
-/** Seconds in which it falls to 1/e of its speed with nothing driving it. */
-export const RUN_COAST_S = 6;
-
-/*
- * Why those four numbers. The wheel settles at `drive × RUN_COAST_S`, so the
- * coast is what decides both how long winding up takes and how fast it ends
- * up going. At six seconds a chorus is most of the way there by its twelfth
- * second and a verse has visibly let it down again — the build-up is the
- * point, and the first tuning of this reached the cap in under a second from
- * a standing start, which is a switch and not a flywheel: on screen the
- * picture simply ran at one speed for the whole song.
- *
- * With the kick flash averaging about 0.18 over a bar at 120 bpm, a loud
- * passage with kicks settles just past the cap (0.093) so the loudest music
- * presses against it, a sustained passage with no drums reaches 0.06, and a
- * half-loud verse 0.036. That spread is what is actually felt.
- */
 
 /** A band's own floor and ceiling, which it finds from what it hears. */
 interface IBandRange {
@@ -120,9 +79,6 @@ export interface IEnergyState {
   accent: number;
   sinceAccentMs: number;
   accentSerial: number;
-  /** The flywheel: where it stands, inside one turn, and how fast it goes. */
-  run: number;
-  runSpeed: number;
   /** The ranges the four levels are mapped into. */
   levelRange: IBandRange;
   bassRange: IBandRange;
@@ -221,33 +177,6 @@ const FLUX_HIGH_HZ = 12_000;
 // second of a song read as silence while the range grew to fit it.
 const newRange = (): IBandRange => ({ floor: 0, ceiling: 1 });
 
-/**
- * One frame of the flywheel: the kick and the loudness wind it up, it coasts
- * down, and it never passes RUN_MAX_TURNS however hard the music pushes.
- *
- * This lives here rather than in a scene because a shader is given the music
- * of one frame and nothing else: a hit there can only ever be a nudge that
- * fades, never the build-up through a chorus that anyone watching expects.
- * Kept inside one turn, so a scene reading it as an angle never sees a jump.
- */
-const coast = (
-  state: IEnergyState,
-  elapsedMs: number,
-  kick: number,
-  drive: number,
-) => {
-  const seconds = Math.max(0, Math.min(0.2, elapsedMs / 1000));
-  const wound =
-    state.runSpeed + (kick * RUN_KICK + drive * RUN_DRIVE) * seconds;
-  const speed = Math.min(
-    RUN_MAX_TURNS,
-    wound * Math.exp(-seconds / RUN_COAST_S),
-  );
-  state.runSpeed = speed;
-  state.run = (state.run + speed * seconds) % 1;
-  return { run: state.run, runSpeed: speed };
-};
-
 export const createEnergyState = (): IEnergyState => ({
   level: 0,
   bass: 0,
@@ -262,8 +191,6 @@ export const createEnergyState = (): IEnergyState => ({
   accent: 0,
   sinceAccentMs: ACCENT_GAP_MS,
   accentSerial: 0,
-  run: 0,
-  runSpeed: 0,
   levelRange: newRange(),
   bassRange: newRange(),
   midRange: newRange(),
@@ -373,12 +300,6 @@ export const advanceEnergy = (
       beat: state.flashLeftMs > 0 ? state.flashLeftMs / BEAT_FLASH_MS : 0,
       accent: state.accent,
       accentSerial: state.accentSerial,
-      // Frozen with everything else: a paused song holds its picture, and a
-      // wheel still turning under it would be the one thing still moving.
-      // Silence is not this — that is the playing path with nothing driving
-      // it, where the wheel coasts down as a wheel should.
-      run: state.run,
-      runSpeed: state.runSpeed,
     };
   }
   const step = Math.max(1, Math.min(200, elapsedMs));
@@ -472,23 +393,13 @@ export const advanceEnergy = (
     state.accent = 0;
   }
 
-  const beat = state.flashLeftMs > 0 ? state.flashLeftMs / BEAT_FLASH_MS : 0;
   return {
     level: state.level,
     bass: state.bass,
     mid: state.mid,
     treble: state.treble,
-    beat,
+    beat: state.flashLeftMs > 0 ? state.flashLeftMs / BEAT_FLASH_MS : 0,
     accent: state.accent,
     accentSerial: state.accentSerial,
-    // What winds the wheel: each kick, weighted by the bass actually under it
-    // so a hi-hat does not drive it, and the loudness of the passage itself,
-    // which is what carries a chorus.
-    ...coast(
-      state,
-      elapsedMs,
-      beat * (0.3 + 0.7 * state.bass),
-      state.level * state.level,
-    ),
   };
 };

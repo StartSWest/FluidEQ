@@ -125,16 +125,6 @@ pack.json:
   Each becomes "uniform float uParam_<id>;" automatically. Do not declare it,
   use every one, and keep the scene correct over each slider's whole range:
   no division by zero or vanished picture at either end.
-  EVERY SLIDER HAS TO SHOW. Put it to its bottom, then to its top, and look at
-  the two pictures: if I could not tell them apart across the room, the slider
-  is wrong however honest the number behind it is. The usual mistake is
-  wiring one to a quantity that is real but small - the width of a colour
-  fringe, a coefficient inside a formula - so that the whole travel changes a
-  pixel in a hundred. Wire it to what its name promises, over a range wide
-  enough to reach both extremes of it: a Glow that goes from unlit to
-  blazing, a Fire from silver to full spectrum, a Speed from nearly still to
-  streaking, a Density from a handful to a crowd. The middle of the range is
-  the scene as you would have made it anyway.
   I tune them in FluidEQ, which writes my values back as "value": when you
   rewrite pack.json, keep each existing param's "value" unless I ask.
 - response (optional): how the scene answers the music, which I also tune in
@@ -178,18 +168,6 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
                      least ~5 s apart); y = its event number. Use y as a random
                      seed so each moment looks different (where lightning
                      strikes, which way a comet flies).
-  vec2  uMusicRun    a flywheel the music winds. x = where it stands, in turns,
-                     always inside one turn, so TAU * uMusicRun.x is an angle
-                     that never jumps. y = how fast it is going, in turns a
-                     second. Every kick and every loud passage winds it up, it
-                     coasts down when they stop, and it is capped. THIS IS THE
-                     ONLY WAY TO BE CARRIED ALONG BY THE MUSIC: you are given
-                     the music of one frame, so anything you build from uBeat
-                     or uLevel yourself is a nudge that fades, never a chorus
-                     that speeds the picture up and a quiet bar that lets it
-                     settle. Multiply x by a WHOLE number of turns only, or it
-                     jumps where the wheel wraps. Use y to answer your own
-                     speed - softening or dimming what you flash as you run.
   sampler2D uWaveform  recent waveform envelope: texture(uWaveform, vec2(t, 0.5)).r
   vec3  uAccent      the app's theme colour, if you want to match it.
   vec4  uSpectrumRect  where my wave is drawn: .x = left and .y = right end
@@ -348,19 +326,6 @@ it is code. Add them when the idea has something that belongs around it:
   Each moves its targets - a field (${AMBIENT_FIELDS.join(', ')}) of an
   element - from its min to its max as the slider goes from 0 to 1. "value"
   is where it stands, 0 to 1; I tune it in FluidEQ, so keep it unless I ask.
-  TWO OF THEM ARE ALWAYS THERE, whatever else you add, because they are the
-  two things anyone wants of something flying around their window: how many,
-  and how much it shows. Give every scene with elements both, each targeting
-  EVERY element you declared:
-  { "id": "ambient_amount", "names": { "en": "Things in the window" },
-    "value": 0.5, "targets": [ { "element": "<each>", "field": "count",
-    "min": 0, "max": <that element's own count, doubled> } ] }
-  { "id": "ambient_opacity", "names": { "en": "How much they show" },
-    "value": 0.6, "targets": [ { "element": "<each>", "field": "opacity",
-    "min": 0, "max": ${AMBIENT_OPACITY_ADVISED[1]} } ] }
-  A count of 0 at the bottom is deliberate: somebody who wants their window
-  clear must be able to have it, and the top is where somebody who likes them
-  gets a full sky.
 - They are the background, never the point, and they are over everything I am
   reading. Keep every element's opacity between ${AMBIENT_OPACITY_ADVISED[0]} and ${AMBIENT_OPACITY_ADVISED[1]}, with soft
   colours, modest counts and slow speeds, so they read as the room the music
