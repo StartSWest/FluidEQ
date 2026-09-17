@@ -128,6 +128,38 @@ export const isAnotherInstanceLive = (
 };
 
 /**
+ * What the marker says, as one sentence for the log.
+ *
+ * Both of the one-copy refusals used to end the process without a word — one
+ * of them still does nothing but `app.quit()` — so a launch that ended there
+ * left nothing behind at all: no line, no file touched, and the only evidence
+ * was a window somebody saw appear and go. That is what made "it opens and
+ * closes again after an installer" impossible to answer from a bug report,
+ * and this is what turns it into a fact. Never throws: a sentence about a
+ * marker is not worth failing a launch over.
+ */
+export const describeInstanceMarker = (
+  markerPath: string,
+  {
+    now = Date.now(),
+    isAlive = isProcessAlive,
+  }: {
+    now?: number;
+    isAlive?: (pid: number) => boolean;
+  } = {},
+): string => {
+  const marker = readMarker(markerPath);
+  if (!marker) {
+    return 'No instance marker was there to read.';
+  }
+  const seconds = Math.round((now - marker.at) / 1000);
+  const alive = isAlive(marker.pid)
+    ? 'still resolves to a process'
+    : 'resolves to nothing';
+  return `The instance marker names pid ${marker.pid}, written ${seconds}s ago, and that pid ${alive}.`;
+};
+
+/**
  * Claim the marker for this process and keep it fresh.
  *
  * Returns the release, which is safe to call more than once — quitting runs

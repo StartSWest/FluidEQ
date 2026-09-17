@@ -252,7 +252,11 @@ import {
   stopWatchingSystemMedia,
   watchSystemMedia,
 } from './systemMedia';
-import { claimInstance, isAnotherInstanceLive } from './singleInstance';
+import {
+  claimInstance,
+  describeInstanceMarker,
+  isAnotherInstanceLive,
+} from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import {
@@ -3531,6 +3535,14 @@ const setUpCrashLogging = () => {
 
 setUpCrashLogging();
 
+// The first line of every launch, so a start with no window after it shows in
+// the log as a start with no window after it, rather than as the absence of
+// everything. An installer starts the app itself and passes `--updated`, which
+// is what tells a launch that came out of setup from one somebody made.
+log.info(
+  `FluidEQ ${appVersion()} starting: pid ${process.pid}, packaged=${app.isPackaged}, from setup=${process.argv.includes('--updated')}`,
+);
+
 /**
  * Add event listeners...
  */
@@ -3545,6 +3557,9 @@ app.on('window-all-closed', () => {
   // Quit, the disclaimer gate, an installer replacing the app — and for those
   // quitting is the right answer, which is why the branch is unchanged.
   if (process.platform !== 'darwin') {
+    // Said out loud for the same reason as the launch line above: this is one
+    // of the ways the app can end with nothing else in the log after it.
+    log.info('Every window is closed, so FluidEQ is quitting.');
     app.quit();
   }
 });
@@ -3643,6 +3658,19 @@ const INSTANCE_MARKER_PATH = path.join(
 let releaseInstanceMarker: (() => void) | undefined;
 
 if (!app.requestSingleInstanceLock()) {
+  // Another copy of THIS build holds Electron's lock, so this one hands its
+  // launch over and goes. It used to go without a word, and that is the single
+  // reason "the installer opens FluidEQ and it closes again" could not be
+  // answered from a bug report: this is the one path out of the whole start-up
+  // that wrote nothing anywhere, so the log of such a launch was indis-
+  // tinguishable from the app never having been started at all. What the
+  // marker can see goes with it, because the copy still holding the lock is
+  // usually one an installer has just killed.
+  log.warn(
+    `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${describeInstanceMarker(
+      INSTANCE_MARKER_PATH,
+    )}`,
+  );
   app.quit();
 } else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
   // Electron's lock did not catch this one, so it is the other build: dev
@@ -3650,7 +3678,9 @@ if (!app.requestSingleInstanceLock()) {
   // out loud rather than quitting blankly — a window that never appears is the
   // sort of thing somebody spends an evening on.
   log.warn(
-    'Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config.',
+    `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${describeInstanceMarker(
+      INSTANCE_MARKER_PATH,
+    )}`,
   );
   app.quit();
 } else {

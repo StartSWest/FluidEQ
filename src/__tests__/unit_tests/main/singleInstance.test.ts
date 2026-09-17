@@ -22,6 +22,7 @@ import {
   MARKER_REFRESH_MS,
   MARKER_STALE_MS,
   claimInstance,
+  describeInstanceMarker,
   isAnotherInstanceLive,
 } from '../../../main/singleInstance';
 
@@ -197,6 +198,43 @@ describe('the cross-build instance marker', () => {
       // nothing else.
       const unwritable = path.join(dir, 'no', 'such', 'place.json');
       expect(() => claimInstance(unwritable, { selfPid: 99 })()).not.toThrow();
+    });
+  });
+
+  /**
+   * What the log gets when a launch refuses to start. A launch that ends on
+   * either refusal used to leave nothing behind, so the sentence is the whole
+   * point of it: it has to say the pid, how old the claim is, and whether that
+   * pid still means anything — the three facts that tell a copy an installer
+   * has just killed from a copy that is genuinely running.
+   */
+  describe('the sentence it writes for the log', () => {
+    it('names the pid, the age and whether the pid still resolves', () => {
+      fs.writeFileSync(marker, JSON.stringify({ pid: 4321, at: NOW - 8_000 }));
+
+      expect(
+        describeInstanceMarker(marker, { now: NOW, isAlive: () => true }),
+      ).toBe(
+        'The instance marker names pid 4321, written 8s ago, and that pid still resolves to a process.',
+      );
+      expect(
+        describeInstanceMarker(marker, { now: NOW, isAlive: () => false }),
+      ).toBe(
+        'The instance marker names pid 4321, written 8s ago, and that pid resolves to nothing.',
+      );
+    });
+
+    it('says so plainly when there is no marker at all', () => {
+      expect(describeInstanceMarker(path.join(dir, 'absent.json'))).toBe(
+        'No instance marker was there to read.',
+      );
+    });
+
+    it('never throws on a marker nobody can parse', () => {
+      // It runs on the way out of a launch that is already going wrong. A
+      // sentence for the log is not worth turning that into a crash.
+      fs.writeFileSync(marker, 'not json at all');
+      expect(() => describeInstanceMarker(marker)).not.toThrow();
     });
   });
 });
