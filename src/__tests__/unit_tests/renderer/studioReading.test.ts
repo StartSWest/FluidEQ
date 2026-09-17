@@ -136,6 +136,52 @@ it('counts the frames that arrive, not the speed of the quick ones', () => {
   expect(fps).toBeLessThan(65);
 });
 
+it('counts the frames that really arrive, not the display beat the runner works to', () => {
+  const settler = createStudioReadingSettler();
+  // The runner's own interval is the low quartile of the recent gaps — here
+  // it says 120 a second while the frames are actually 40 ms apart.
+  let last = settler.frame({ intervalMs: 1000 / 120, scale: 1, atMs: 0 });
+  for (let frame = 1; frame <= 120; frame += 1) {
+    last = settler.frame({
+      intervalMs: 1000 / 120,
+      scale: 1,
+      atMs: frame * 40,
+    });
+  }
+  expect(last.fps).toBe(25);
+});
+
+it('leaves a stall out of the rate rather than counting it as a frame', () => {
+  const settler = createStudioReadingSettler();
+  let at = 0;
+  const run = (frames: number, gap: number) => {
+    let last = { fps: 0 };
+    for (let frame = 0; frame < frames; frame += 1) {
+      at += gap;
+      last = settler.frame({ intervalMs: gap, scale: 1, atMs: at });
+    }
+    return last;
+  };
+  run(120, 1000 / 60);
+  // The page was away for four seconds; the next frame is not one a second.
+  at += 4000;
+  settler.frame({ intervalMs: 1000 / 60, scale: 1, atMs: at });
+  expect(run(2, 1000 / 60).fps).toBe(60);
+});
+
+it('says the resolution in the words the rows above it use', () => {
+  const settler = createStudioReadingSettler();
+  // `best` smoothing draws twice the panel each way and averages down. That
+  // is how the edges are finished, not the resolution: full is full, and a
+  // Resolution row that only ever says up to 100% had a reading beside it
+  // that said 200%.
+  expect(settler.frame({ intervalMs: 8, scale: 2 }).size).toBe(100);
+  expect(settler.frame({ intervalMs: 8, scale: 1.4 }).size).toBe(100);
+  // Below the panel, the ladder's own steps, as the menu names them.
+  expect(settler.frame({ intervalMs: 8, scale: 0.67 }).size).toBe(67);
+  expect(settler.frame({ intervalMs: 8, scale: 0.35 }).size).toBe(35);
+});
+
 it('shows the size the controller chose, exactly as it chose it', () => {
   const settler = createStudioReadingSettler();
   const { last } = run(settler, {

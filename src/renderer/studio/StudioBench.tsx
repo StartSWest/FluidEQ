@@ -156,7 +156,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const onDrawn = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard, report) => {
       feed.current?.(frame, drawnScale, accent, heard, report);
-      const settled = settler.current.frame(report);
+      // The clock is read here, at the frame, so the rate on the card is the
+      // rate frames are arriving at rather than the runner's own estimate of
+      // the display's beat.
+      const settled = settler.current.frame({
+        ...report,
+        atMs: performance.now(),
+      });
       const fps = String(settled.fps);
       const size = String(settled.size);
       const reading =

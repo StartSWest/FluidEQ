@@ -58,6 +58,13 @@ const fpsStep = (fps: number) => (fps >= 100 ? 5 : 1);
 /** The GPU's time for a frame, shown in tenths of a millisecond. */
 const msStep = () => 0.1;
 
+/**
+ * A gap this long is not a rate: the page was away, the stage was covered,
+ * or the scene was rebuilt. Left out of the average rather than counted as
+ * one frame a second.
+ */
+const STALL_MS = 1000;
+
 export interface IStudioReading {
   /** The GPU's own time for a frame, absent where it cannot be timed. */
   costMs?: number;
@@ -70,10 +77,19 @@ export interface IStudioReading {
 export interface IStudioFrameCost {
   /** The GPU's own time for the frame, where the card can time it. */
   costMs?: number;
-  /** How long since the frame before it. */
+  /**
+   * The interval the runner works to (`frameCadence.ts`) — the low quartile
+   * of the recent gaps, which is the display's beat and deliberately not the
+   * rate frames are arriving at. Used only until two frames have been seen.
+   */
   intervalMs: number;
-  /** The share of the stage the scene was drawn at, 1 being all of it. */
+  /**
+   * The scale the scene was drawn at, 1 being the panel's own pixels and
+   * more than 1 the `best` smoothing drawing larger to average down.
+   */
   scale: number;
+  /** When this frame was drawn, for the rate it is really arriving at. */
+  atMs?: number;
 }
 
 export interface IStudioReadingSettler {
@@ -127,11 +143,25 @@ export const createStudioReadingSettler = (): IStudioReadingSettler => {
   const showCost = hold(msStep);
   const rate = ease();
   const showRate = hold(fpsStep);
+  let lastAt: number | undefined;
   return {
-    frame({ costMs, intervalMs, scale }) {
+    frame({ costMs, intervalMs, scale, atMs }) {
+      // The gap since the frame before this one, which is the rate the scene
+      // is really being drawn at. The runner's own interval is the low
+      // quartile of the recent gaps — the display's beat, which is what a
+      // frame's cost is judged against, and always the flattering end of
+      // what is actually arriving — so it is used only until there are two
+      // frames to measure between. A gap longer than a second is a stall or
+      // a page that was away, not a rate, and is left out of the average.
+      const gap =
+        atMs !== undefined && lastAt !== undefined ? atMs - lastAt : undefined;
+      lastAt = atMs;
+      const measured = gap !== undefined && gap > 0 && gap <= STALL_MS;
       // A frame reported as instant says nothing about the rate, and
       // dividing by it would put an infinity on the card.
-      const interval = Math.max(1, intervalMs);
+      const interval = measured
+        ? Math.max(1, gap ?? 1)
+        : Math.max(1, intervalMs);
       // A frame carrying no GPU time is not a machine that cannot time
       // frames: the timer answers every few frames, so the figure is kept as
       // it was in between. Dropping it made the line change shape — with the
@@ -150,7 +180,13 @@ export const createStudioReadingSettler = (): IStudioReadingSettler => {
       return {
         ...(settled === undefined ? {} : { costMs: settled }),
         fps: showRate.of(rate.of(1000 / interval, interval)),
-        size: Math.round(scale * 100),
+        // The resolution in the words the rows above it use: 100% is the
+        // panel's own pixels, and the steps below it are the ladder's.
+        // Anything above 1 is `best` smoothing drawing larger to average
+        // down, which is how the edges are finished rather than what the
+        // scene is drawn at — it read as "200 %" beside a Resolution row
+        // that only ever says up to full.
+        size: Math.round(Math.min(1, scale) * 100),
       };
     },
   };
