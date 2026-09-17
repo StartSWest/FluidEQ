@@ -258,8 +258,8 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 - **Maximizer** — Raises the level without letting peaks pass the ceiling.
 - **Master** — Final level, loudness target and peak safety.
 - **Crossfade** — Blends one Library track into the next.
-- **Presets** — Whole-rack chains for genres, devices and repairs.
 - **System-wide** — Where the rack is running, and any delay linear phase adds.
+- **Presets** — Whole-rack chains for genres, devices and repairs.
 
 ### Try it
 
@@ -277,14 +277,14 @@ The Room turns headphones into a listening room. Every channel of the sound beco
 
 ![The Room: surround on headphones](32-dsp-room.png)
 
-- **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
 - **The room from above** — The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it. Press one to set it by itself: its level, its own distance, its angle by number, and Mute and Solo to hear it alone.
 - **Size, Walls, Distance, Centre, Sub** — The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.
+- **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
+- **Room preset** — The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.
 - **Fit…** — Five listening pairs that pick the head for your ears.
 - **Head** — The measured head the room renders through: small, medium or large.
 - **Headphones** — Whether your headphone profile from the EQ page runs after the room, so the speakers sound like speakers.
 - **Save room…** — Name the room as it stands; it comes back with a press.
-- **What the room is doing** — Read from the engine: which speakers the playing stream reaches, or why the room is idle.
 
 ### Try it
 
@@ -322,14 +322,14 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 ![With a standard style](21-graph-strip.png)
 
 - **Live output** — Shows or hides the live wave.
-- **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
+- **Previous style** — Steps back to the previous look.
 - **Styles and visualizers** — Opens every style and visualizer.
-- **Next style** (`Space`) — Steps forward to the next look.
+- **Next style** — Steps forward to the next look.
 - **Auto** — Changes the look every 10 seconds to 2 minutes.
 - **Colouring** — Colours the style: Auto, Flat, Frequency, Level or Heat.
 - **New look** — Designs a look of your own from this style.
 - **Listening bands** — Shades the bands you hear most.
-- **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
+- **Grid** — Shows or hides the grid and scales.
 - **View** — Size, what is drawn, and the wave.
 
 ### With a Plus visualizer
@@ -425,8 +425,8 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 - **Search scenes or makers** — Finds scenes and makers.
 - **Sort** — Most liked, liked this week, or newest.
 - **Categories** — Shows one kind of scene.
-- **Your scenes** — The scenes you published, with their likes.
 - **A scene** — Its picture opens the scene; Add puts it in your looks.
+- **Your scenes** — The scenes you published, with their likes.
 - **Manage** — What each monitor shows as a desktop background.
 - **Stop all** — Stops every desktop background.
 
@@ -434,11 +434,10 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 
 ![A scene's page](26-plus-scene.png)
 
-- **Back** — Back to the gallery, where you left it.
-- **Previous and next** (`← →`) — Steps through the list you opened the scene from.
 - **Play on the graph** — Adds the scene to your looks, or plays it on the graph.
 - **Set as desktop background** — Puts the scene behind your desktop icons.
 - **Open in Studio** — Opens FluidEQ’s scene in the Studio to see how it is made.
+- **Back** — Back to the gallery, where you left it.
 
 ### Try it
 
@@ -477,10 +476,8 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 ![Make scenes in the Studio](31-plus-studio.png)
 
 - **Project** — Your projects, and FluidEQ scenes to look inside.
-- **Previous and next project** — Steps back or forward through your projects.
 - **Stage** — The scene, playing on your music. Double-click for full screen.
 - **Code** — The scene’s code, live, updated as your AI saves it.
-- **Copy AI prompt** — Copies the prompt that tells your AI how scenes are made.
 - **What it hears now** — What the scene receives: level, beat, bass, mids, treble.
 - **Preview audio** — Test signals that drive only this preview.
 - **Size** — Tries the scene on a graph, narrow, wide or full-screen panel.
@@ -525,11 +522,11 @@ Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with t
 ![Dynamic lighting (beta)](29-plus-lighting.png)
 
 - **Light my devices while a Plus scene plays** — Lights your devices while a Plus visualizer plays.
-- **Browse visualizers** — Opens the gallery to choose a visualizer.
 - **Live desk preview** — Your own desk, lit with the colours sent to it.
 - **Your devices** — Every device found. Click one to tune it alone.
-- **All devices** — Back to tuning every device at once.
 - **Lighting style** — Scene, Colour wave, Spectrum or Beat ripple, kept for each visualizer.
+- **Browse visualizers** — Opens the gallery to choose a visualizer.
+- **All devices** — Back to tuning every device at once.
 
 ### Try it
 
