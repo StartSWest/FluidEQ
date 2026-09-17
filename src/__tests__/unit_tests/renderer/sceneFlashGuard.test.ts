@@ -13,8 +13,11 @@ import {
   FLASH_PRESSURE_START,
   FLASH_SWING,
   flashAllowance,
+  flashAlternating,
   flashAreaLod,
   flashBlend,
+  flashCoarseDecay,
+  flashCoarseMemory,
   flashLod,
   flashPressure,
   flashPressureDecay,
@@ -77,6 +80,82 @@ describe('the brightness limiter', () => {
     expect(FLASH_AREA_START).toBeLessThan(0.25);
     expect(FLASH_AREA_FULL).toBeGreaterThan(FLASH_AREA_START);
     expect(FLASH_AREA_FULL).toBeLessThanOrEqual(0.35);
+  });
+});
+
+/**
+ * The frame-wide limit follows reversing brightness only. A flash is a pair
+ * of opposing swings; a cell's average moves just as fast when something
+ * bright crosses it, and limiting that smeared every fast scene.
+ */
+describe('the brightness limiter’s reversal test', () => {
+  const FRAME = 1000 / 60;
+  /** A cell's swings, frame by frame, and how much of the limit each draws. */
+  const applied = (swings: readonly number[]) => {
+    let memory = 0;
+    return swings.map((swing) => {
+      const before = memory;
+      memory = flashCoarseMemory(swing, memory, FRAME);
+      return flashAlternating(memory, before);
+    });
+  };
+
+  it('leaves brightness moving one way alone, however fast', () => {
+    // A cell filling with light over four frames: never limited.
+    expect(applied([0.3, 0.3, 0.3, 0.3])).toEqual([0, 0, 0, 0]);
+    // And emptying again the same way.
+    expect(applied([-0.5, -0.5, -0.5])).toEqual([0, 0, 0]);
+  });
+
+  it('holds every swing of a strobe after the first', () => {
+    const strobe = applied([0.9, -0.9, 0.9, -0.9, 0.9]);
+    expect(strobe[0]).toBe(0);
+    expect(strobe.slice(1)).toEqual([1, 1, 1, 1]);
+  });
+
+  it('holds a pair at the smallest size WCAG counts as a flash', () => {
+    expect(applied([FLASH_SWING, -FLASH_SWING])[1]).toBe(1);
+    // Positive control: just under that size is not a flash and passes.
+    const small = FLASH_SWING * 0.7;
+    expect(applied([small, -small])[1]).toBe(0);
+  });
+
+  it('leaves something crossing the cell alone: in, a while, and out', () => {
+    // A bright thing enters, sits a third of a second, leaves: one pair,
+    // slower than three flashes a second, so nothing is held — however big
+    // the swing is, since what matters is how soon the reversal comes.
+    const quiet = new Array(20).fill(0);
+    const passing = applied([0.6, ...quiet, -0.6]);
+    expect(passing[0]).toBe(0);
+    expect(passing[passing.length - 1]).toBe(0);
+  });
+
+  it('holds three flashes a second and leaves two alone', () => {
+    /** A full swing every `every` frames, the opposite of the one before. */
+    const swinging = (every: number, frames: number) =>
+      applied(
+        Array.from(
+          { length: frames },
+          (_, frame) => 0.9 * alternating(every)(frame),
+        ),
+      );
+    // Every tenth of a second: five flashes a second, over the limit.
+    expect(Math.max(...swinging(6, 30).slice(6))).toBe(1);
+    // Every quarter second: two flashes a second, which WCAG allows. A tenth
+    // rather than nothing, because the boundary is one frame wide.
+    expect(Math.max(...swinging(15, 60))).toBeLessThan(0.1);
+  });
+
+  it('forgets a swing over the period of three flashes a second', () => {
+    // The memory of a swing, a third of a second later.
+    let memory = 0.5;
+    for (let frame = 0; frame < 20; frame += 1) {
+      memory = flashCoarseMemory(0, memory, FRAME);
+    }
+    expect(memory).toBeCloseTo(0.5 * Math.exp(-1), 2);
+    expect(flashCoarseDecay(0)).toBe(1);
+    // A stalled frame forgets no more than a tenth of a second would.
+    expect(flashCoarseDecay(5000)).toBeCloseTo(flashCoarseDecay(100), 9);
   });
 });
 

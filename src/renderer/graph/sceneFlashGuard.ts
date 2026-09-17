@@ -14,10 +14,19 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  *
  * - Across the frame: relative luminance, averaged over cells about a quarter
  *   of the frame across, may move at most half of full scale per second —
- *   below the 0.6 that three flashes need. A beat still reads; a strobe of
- *   the whole picture does not. Averages cannot see a pattern: a checkerboard
- *   of squares an eighth across, inverting every frame, kept every cell's
- *   average where it was and passed untouched.
+ *   below the 0.6 that three flashes need — WHERE IT IS REVERSING. A beat
+ *   still reads; a strobe of the whole picture does not. Averages cannot see
+ *   a pattern: a checkerboard of squares an eighth across, inverting every
+ *   frame, kept every cell's average where it was and passed untouched.
+ *
+ *   Reversing, because a flash is a PAIR of opposing swings and a cell's
+ *   average moves just as fast when something bright simply crosses it.
+ *   Limiting every fast change alike smeared motion badly: measured here,
+ *   Hyperdrive at three times its pace showed 29 % of each new frame and lost
+ *   a third of its picture, Crystal at four times showed half — and Crystal
+ *   was slowed down in its own shader to work around it. Only the second
+ *   swing of a pair is held, so at most one un-opposed swing of a strobe
+ *   reaches the screen: half a flash, where WCAG allows three.
  * - Where it alternates, over enough of the picture: each pixel (at half
  *   resolution) keeps a pressure that every opposing swing of 10 % or more,
  *   in luminance or saturated red, pushes up and time lets down, so six
@@ -65,6 +74,67 @@ export const flashLod = (width: number, height: number): number =>
 
 /** The smallest swing WCAG counts as part of a flash: a tenth of full scale. */
 export const FLASH_SWING = 0.1;
+
+/**
+ * Seconds in which the memory of the last coarse swing falls to 1/e: the
+ * period of three flashes a second, so a reversal slower than the rate WCAG
+ * forbids meets nothing to oppose and is left alone.
+ */
+const COARSE_SECONDS = 1 / 3;
+
+/** What the memory of the last coarse swing is multiplied by over a frame. */
+export const flashCoarseDecay = (deltaMs: number): number =>
+  Math.exp(
+    -Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000 / COARSE_SECONDS,
+  );
+
+/**
+ * Which way the coarse luminance last moved, carried into the next frame:
+ * this frame's direction where the swing is large enough to be part of a
+ * flash, the last direction faded otherwise. The direction only, never the
+ * size: how dangerous a reversal is depends on how soon it comes, not on how
+ * big it is, and a large slow one is ordinary motion. Mirrors the alpha
+ * channel of STATE_SOURCE.
+ */
+export const flashCoarseMemory = (
+  swing: number,
+  lastSwing: number,
+  deltaMs: number,
+): number =>
+  Math.abs(swing) >= FLASH_SWING
+    ? Math.sign(swing)
+    : lastSwing * flashCoarseDecay(deltaMs);
+
+/** How fresh the memory of an opposing swing still is at this flash rate. */
+const freshnessAt = (flashesPerSecond: number) =>
+  Math.exp(-1 / (2 * flashesPerSecond) / COARSE_SECONDS);
+
+/**
+ * Where a reversal starts counting as flashing and where it counts whole:
+ * two flashes a second, which WCAG allows, and three, which it does not.
+ */
+export const FLASH_REVERSAL_START = freshnessAt(2);
+export const FLASH_REVERSAL_FULL = freshnessAt(3);
+
+/**
+ * How much of the coarse limit applies: nothing while the picture moves one
+ * way or reverses slowly, all of it where this swing opposes one recent
+ * enough to make three flashes a second. Smooth rather than a switch, or the
+ * limit would snap on and be seen as a step in the brightness. Mirrors
+ * COMPOSITE_SOURCE.
+ */
+export const flashAlternating = (swing: number, lastSwing: number): number => {
+  const against = Math.max(0, -swing * lastSwing);
+  const t = Math.max(
+    0,
+    Math.min(
+      1,
+      (against - FLASH_REVERSAL_START) /
+        (FLASH_REVERSAL_FULL - FLASH_REVERSAL_START),
+    ),
+  );
+  return t * t * (3 - 2 * t);
+};
 
 /** Pressure one opposing swing adds: six a second, three flashes, hold it at one. */
 export const FLASH_SWING_PRESSURE = 1 / 6;
@@ -163,6 +233,8 @@ uniform sampler2D uCurrent;
 uniform sampler2D uLastFrame;
 uniform sampler2D uState;
 uniform float uDecay;
+uniform float uCoarseDecay;
+uniform float uLod;
 in vec2 vUv;
 out vec4 state;
 ${COLOUR_FUNCTIONS}
@@ -184,7 +256,16 @@ void main() {
   // Blue is whether this spot is flashing, kept apart from the pressure so
   // its mips are the share of an area that is.
   float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);
-  state = vec4(pressure, remembered * 0.5 + 0.5, flashing, 1.0);
+  // Alpha: the same memory over the quarter-frame average the composite
+  // limits, so it can tell a reversal from something crossing the cell. Read
+  // from the scene's own frames, never from the picture shown, or the limit
+  // would keep itself switched on.
+  float coarseSwing = luma(textureLod(uCurrent, vUv, uLod).rgb)
+    - luma(textureLod(uLastFrame, vUv, uLod).rgb);
+  float lastCoarse = old.a * 2.0 - 1.0;
+  float coarse = abs(coarseSwing) >= ${FLASH_SWING.toFixed(3)}
+    ? sign(coarseSwing) : lastCoarse * uCoarseDecay;
+  state = vec4(pressure, remembered * 0.5 + 0.5, flashing, coarse * 0.5 + 0.5);
 }
 `;
 
@@ -193,6 +274,8 @@ precision highp float;
 uniform sampler2D uCurrent;
 uniform sampler2D uPrevious;
 uniform sampler2D uState;
+/** The state as it was before this frame: the swing this one may oppose. */
+uniform sampler2D uWas;
 uniform float uLod;
 uniform float uAreaLod;
 uniform float uAllowance;
@@ -216,7 +299,21 @@ void main() {
   // a fire scene's flames, and smeared them when nothing flashed.
   float coarse = abs(luma(textureLod(uCurrent, vUv, uLod).rgb)
                    - luma(textureLod(uPrevious, vUv, uLod).rgb));
-  float frameBlend = coarse > uAllowance ? uAllowance / coarse : 1.0;
+  // Only where the scene's own coarse luminance is reversing. Its swing this
+  // frame and the one it follows come from the state pass, which reads the
+  // frames as drawn; something merely crossing the cell swings one way and
+  // is left alone however fast it goes.
+  float nowSwing = textureLod(uState, vUv, 0.0).a * 2.0 - 1.0;
+  float beforeSwing = textureLod(uWas, vUv, 0.0).a * 2.0 - 1.0;
+  float against = max(0.0, -nowSwing * beforeSwing);
+  float alternating = smoothstep(
+    ${FLASH_REVERSAL_START.toFixed(4)},
+    ${FLASH_REVERSAL_FULL.toFixed(4)},
+    against);
+  float frameBlend = mix(
+    1.0,
+    coarse > uAllowance ? uAllowance / coarse : 1.0,
+    alternating);
   float pixel = changeOf(current.rgb, previous.rgb);
   float pixelBlend = pixel > uAllowance ? uAllowance / pixel : 1.0;
   vec2 reach = 0.5 * pow(2.0, uAreaLod) / vec2(textureSize(uState, 0));
@@ -299,6 +396,7 @@ export const createFlashGuard = (
     current: gl.getUniformLocation(composite, 'uCurrent'),
     previous: gl.getUniformLocation(composite, 'uPrevious'),
     state: gl.getUniformLocation(composite, 'uState'),
+    was: gl.getUniformLocation(composite, 'uWas'),
     lod: gl.getUniformLocation(composite, 'uLod'),
     areaLod: gl.getUniformLocation(composite, 'uAreaLod'),
     allowance: gl.getUniformLocation(composite, 'uAllowance'),
@@ -309,6 +407,8 @@ export const createFlashGuard = (
     lastFrame: gl.getUniformLocation(stateProgram, 'uLastFrame'),
     state: gl.getUniformLocation(stateProgram, 'uState'),
     decay: gl.getUniformLocation(stateProgram, 'uDecay'),
+    coarseDecay: gl.getUniformLocation(stateProgram, 'uCoarseDecay'),
+    lod: gl.getUniformLocation(stateProgram, 'uLod'),
   };
 
   let width = 0;
@@ -338,6 +438,9 @@ export const createFlashGuard = (
     targetWidth: number,
     targetHeight: number,
     mipmapped: boolean,
+    /** What an untouched texel reads as. The state's two memories mean "no
+     * swing" at a half, not at zero, which would read as a full swing down. */
+    clear: readonly [number, number, number, number] = [0, 0, 0, 0],
   ): ITarget | undefined => {
     const texture = gl.createTexture();
     const framebuffer = gl.createFramebuffer();
@@ -375,7 +478,7 @@ export const createFlashGuard = (
       texture,
       0,
     );
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(clear[0], clear[1], clear[2], clear[3]);
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (mipmapped) {
       gl.generateMipmap(gl.TEXTURE_2D);
@@ -387,9 +490,10 @@ export const createFlashGuard = (
     targetWidth: number,
     targetHeight: number,
     mipmapped: boolean,
+    clear?: readonly [number, number, number, number],
   ): [ITarget, ITarget] | undefined => {
-    const a = makeTarget(targetWidth, targetHeight, mipmapped);
-    const b = makeTarget(targetWidth, targetHeight, mipmapped);
+    const a = makeTarget(targetWidth, targetHeight, mipmapped, clear);
+    const b = makeTarget(targetWidth, targetHeight, mipmapped, clear);
     if (a && b) {
       return [a, b];
     }
@@ -433,6 +537,7 @@ export const createFlashGuard = (
       Math.max(1, Math.ceil(width / 2)),
       Math.max(1, Math.ceil(height / 2)),
       true,
+      [0, 0.5, 0, 0.5],
     );
     // The last picture shown, the last frame and the pressure, scaled into
     // the new size, are what the next frame is limited against; only a guard
@@ -481,6 +586,10 @@ export const createFlashGuard = (
     gl.uniform1i(stateWhere.lastFrame, 1);
     gl.uniform1i(stateWhere.state, 2);
     gl.uniform1f(stateWhere.decay, flashPressureDecay(deltaMs));
+    gl.uniform1f(stateWhere.coarseDecay, flashCoarseDecay(deltaMs));
+    // The frame's own size, not the half-size state's: the coarse level is
+    // read from the frame textures.
+    gl.uniform1f(stateWhere.lod, flashLod(width, height));
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     // Its levels are the share of each area that is flashing.
     gl.bindTexture(gl.TEXTURE_2D, after.texture);
@@ -527,6 +636,10 @@ export const createFlashGuard = (
       }
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, pressure[pressureLatest].texture);
+      // The state before this frame, which `updatePressure` has just left as
+      // the other half of the pair: what this frame's swing may oppose.
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D, pressure[1 - pressureLatest].texture);
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, next.framebuffer);
       gl.viewport(0, 0, width, height);
@@ -535,6 +648,7 @@ export const createFlashGuard = (
       gl.uniform1i(where.current, 0);
       gl.uniform1i(where.previous, 1);
       gl.uniform1i(where.state, 2);
+      gl.uniform1i(where.was, 3);
       gl.uniform1f(where.lod, flashLod(width, height));
       gl.uniform1f(where.areaLod, flashAreaLod(width, height));
       gl.uniform1f(where.allowance, flashAllowance(deltaMs));
