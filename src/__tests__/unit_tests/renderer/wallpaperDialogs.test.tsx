@@ -24,12 +24,24 @@ jest.mock('../../../renderer/wallpaper/wallpaperStore', () => ({
   startWallpaper: jest.fn(async () => ({ screens: [] })),
   stopWallpaper: jest.fn(async () => ({ screens: [] })),
 }));
+// Aurora can be pictured; Alpine is a look with no frame anywhere, which
+// keeps its maker's colours.
 jest.mock('../../../renderer/wallpaper/wallpaperLooks', () => ({
   __esModule: true,
   default: () => (lookId: string) => ({
     name: lookId === 'premium:aurora' ? 'Aurora' : 'Alpine',
     swatch: ['#0b1f2c', '#00e5cf'],
+    picture:
+      lookId === 'premium:aurora'
+        ? { lookId, version: '1' }
+        : { lookId, version: '' },
   }),
+}));
+jest.mock('../../../renderer/graph/lookThumbnails', () => ({
+  useLookThumbnail: (ref: { lookId: string; version: string }) =>
+    ref.version
+      ? { state: 'ready', url: `picture:${ref.lookId}` }
+      : { state: 'none' },
 }));
 jest.mock('../../../renderer/utils/graphViewSettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
@@ -127,6 +139,48 @@ describe('choosing how a background moves', () => {
     );
   });
 
+  // The choice used to be made on two colours on a glass; it is made on a
+  // frame of the scene, on the monitor it will play on.
+  it('shows a frame of the visualizer on the monitor it will play on, and how it will move', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    const dialog = screen.getByRole('dialog');
+    const pictures = [
+      ...dialog.querySelectorAll('.wallpaper-monitor__picture'),
+    ];
+    expect(pictures.map((picture) => picture.getAttribute('src'))).toEqual([
+      'picture:premium:aurora',
+    ]);
+    // The mark in its corner says the motion, in place of the silhouette that
+    // stands in for a scene with no frame — over a picture it read as stripes.
+    expect(dialog.querySelector('.wallpaper-monitor__motion')).toHaveAttribute(
+      'data-motion',
+      'music',
+    );
+    expect(
+      dialog.querySelectorAll('.wallpaper-monitor__glass--pictured'),
+    ).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Calm/ }));
+    expect(dialog.querySelector('.wallpaper-monitor__motion')).toHaveAttribute(
+      'data-motion',
+      'calm',
+    );
+  });
+
+  it('keeps a visualizer’s colours on the monitor when there is no frame of it', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelectorAll('.wallpaper-monitor__picture')).toHaveLength(
+      0,
+    );
+    expect(dialog.querySelectorAll('.wallpaper-monitor__motion')).toHaveLength(
+      0,
+    );
+    expect(dialog.querySelector('.wallpaper-monitor__glass')).toBeTruthy();
+  });
+
   it('opens on Calm when every monitor showing this visualizer is calm', () => {
     withScreens([showing(3), showing(1)]);
     render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
@@ -196,6 +250,21 @@ describe('what each monitor shows', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(startWallpaper).toHaveBeenCalledWith(
       expect.objectContaining({ displayIds: [3] }),
+    );
+  });
+
+  it('carries each visualizer’s frame beside its line as well as on its monitor', () => {
+    withScreens([showing(3), showing(2, { lookId: 'premium:alpine' })]);
+    render(<WallpaperManageDialog onClose={jest.fn()} />);
+    const dialog = screen.getByRole('dialog');
+    const swatches = [...dialog.querySelectorAll('.wallpaper-screen__swatch')];
+    expect(swatches).toHaveLength(2);
+    // Aurora's line carries its frame; Alpine, with none, keeps its colours.
+    expect(
+      swatches.filter((swatch) => swatch.querySelector('img')),
+    ).toHaveLength(1);
+    expect(dialog.querySelectorAll('.wallpaper-monitor__picture')).toHaveLength(
+      1,
     );
   });
 

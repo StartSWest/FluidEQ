@@ -1,9 +1,10 @@
-import { useId, useRef, type CSSProperties } from 'react';
+import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { IWallpaperScreen, TWallpaperError } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
+import LookSwatch from './LookSwatch';
 import {
   MonitorFace,
   MonitorStage,
@@ -134,13 +135,6 @@ export default function WallpaperManageDialog({
             {rows.map((screen) => {
               const placement = placementOf(screen);
               const look = lookOf(screen.lookId);
-              const [first, second = first] = look.swatch;
-              const swatch = first
-                ? ({
-                    '--screen-a': first,
-                    '--screen-b': second,
-                  } as CSSProperties)
-                : undefined;
               return (
                 <li
                   key={screen.displayId}
@@ -149,11 +143,7 @@ export default function WallpaperManageDialog({
                   <span className="wallpaper-screen__number" aria-hidden="true">
                     {placement?.number ?? '–'}
                   </span>
-                  <span
-                    className="wallpaper-screen__swatch"
-                    style={swatch}
-                    aria-hidden="true"
-                  />
+                  <LookSwatch look={look} />
                   <span className="wallpaper-screen__copy">
                     <span className="wallpaper-screen__look">{look.name}</span>
                     <span className="wallpaper-screen__status">

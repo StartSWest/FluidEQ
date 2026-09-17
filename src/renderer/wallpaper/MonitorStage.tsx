@@ -1,9 +1,10 @@
-import { useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import type {
   IWallpaperDisplay,
   IWallpaperScreen,
 } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
+import { useLookThumbnail } from '../graph/lookThumbnails';
 import { useTranslation } from '../utils/I18nContext';
 import {
   layoutMonitors,
@@ -71,8 +72,9 @@ interface IMonitorFaceProps {
 }
 
 /**
- * The picture inside a monitor: its visualizer's own colours on the glass,
- * its number, and in words what it shows and whether that is playing.
+ * The picture inside a monitor: a frame of the visualizer it shows, under its
+ * own colours until that frame is there; its number, and in words what it
+ * shows and whether that is playing.
  */
 export function MonitorFace({
   placement,
@@ -83,6 +85,16 @@ export function MonitorFace({
 }: IMonitorFaceProps) {
   const { t } = useTranslation();
   const { display, number } = placement;
+  const [glassElement, setGlassElement] = useState<HTMLSpanElement | null>(
+    null,
+  );
+  // A monitor's tile is on screen the moment its dialog opens, so the picture
+  // is asked for at once; the cache answers the second opening without work.
+  const picture = useLookThumbnail(
+    look?.picture ?? { lookId: display.id.toString(), version: '' },
+    look?.picture ? glassElement : null,
+  );
+  const shown = picture.state === 'ready' ? picture.url : undefined;
   const [first, second = first, third = second] = look?.swatch ?? [];
   const glass = first
     ? ({
@@ -94,14 +106,36 @@ export function MonitorFace({
   return (
     <>
       <span
+        ref={setGlassElement}
         className={`wallpaper-monitor__glass${
           first ? '' : ' wallpaper-monitor__glass--ordinary'
         }${faded ? ' wallpaper-monitor__glass--faded' : ''}${
           first && calm ? ' wallpaper-monitor__glass--calm' : ''
-        }`}
+        }${shown ? ' wallpaper-monitor__glass--pictured' : ''}`}
         style={glass}
         aria-hidden="true"
-      />
+      >
+        {shown && (
+          <img
+            className="wallpaper-monitor__picture"
+            src={shown}
+            alt=""
+            draggable={false}
+          />
+        )}
+      </span>
+      {/* Over a frame of the scene itself, how it moves is a mark in the
+          corner: the silhouette that says it on a plain glass would lie across
+          the picture as a set of stripes. */}
+      {shown && (
+        <span
+          className="wallpaper-monitor__motion"
+          data-motion={calm ? 'calm' : 'music'}
+          aria-hidden="true"
+        >
+          <Glyph name={calm ? 'calm' : 'music'} />
+        </span>
+      )}
       <span className="wallpaper-monitor__content" aria-hidden="true">
         <span className="wallpaper-monitor__top">
           <span className="wallpaper-monitor__number">{number}</span>
