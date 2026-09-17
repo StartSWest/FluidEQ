@@ -185,6 +185,54 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     120, // bloom decay
     0, // duck
     1, // Bass Punch Mix
+    // The room's forty-two scalars, in the decoder's order, switched off: it
+    // folds every channel onto the front pair through a measured head, which
+    // would have this smoke measuring a room rather than the one EQ band it
+    // exists for. The dials still carry the shipped room, because a wire is
+    // described by what the app really sends over it.
+    0, // room enabled
+    1, // preset: living room
+    4.2, // size
+    0.55, // walls
+    1.8, // distance
+    0, // centre
+    0, // sub
+    1, // head: medium
+    1, // correct headphones
+    -30, // every speaker's angle, from the front pair outwards
+    30,
+    0,
+    -100,
+    100,
+    -140,
+    140,
+    0, // and every speaker's level
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1, // bass management
+    80, // crossover
+    0, // music upmix
+    0.6, // upmix amount
+    1.8, // every speaker's own distance
+    1.8,
+    1.8,
+    1.8,
+    1.8,
+    1.8,
+    1.8,
+    0, // the eight mutes, the sub's last
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1, // the rack on every channel of a surround output
     1, // one EQ band
   );
   if (values.length !== CHAIN_PARAM_LEAD) {
