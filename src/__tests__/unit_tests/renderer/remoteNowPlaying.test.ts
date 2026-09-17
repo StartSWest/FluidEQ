@@ -34,7 +34,10 @@ import {
   pickSourceForRemote,
   startedHere,
 } from 'renderer/remoteAudio/useRemoteNowPlayingBroadcast';
-import { pickRemoteNowPlaying } from 'renderer/remoteAudio/useRemoteNowPlayingSource';
+import {
+  nowPlayingSenders,
+  pickRemoteNowPlaying,
+} from 'renderer/remoteAudio/useRemoteNowPlayingSource';
 
 const playing = (isPlaying: boolean): IRemoteNowPlaying => ({
   title: 'Song',
@@ -172,6 +175,14 @@ describe('pickRemoteNowPlaying', () => {
   });
 });
 
+describe('nowPlayingSenders', () => {
+  it('is who turned up playing, for deciding who to pause and nothing else', () => {
+    expect(nowPlayingSenders(new Set(['a']), ['a', 'b'])).toEqual(['b']);
+    expect(nowPlayingSenders(new Set(['a', 'b']), ['a', 'b'])).toEqual([]);
+    expect(nowPlayingSenders(new Set(), [])).toEqual([]);
+  });
+});
+
 describe('startedHere', () => {
   const source = (
     owner: TPlaybackOwner,
@@ -203,10 +214,15 @@ describe('startedHere', () => {
     );
   });
 
-  it('is not a player this end has never seen', () => {
-    // What a reconnection re-announces, and what the first description of a
-    // session says. Neither is somebody pressing play.
-    expect(startedHere(seen([]), source('library', true))).toBe(false);
+  it('is a player that turns up playing, seen before or not', () => {
+    // One player at a time keeps every case: a program launched straight
+    // into playing publishes its session already playing, and somebody
+    // plainly pressed play on it. Only a player this machine already knew
+    // was playing is excluded, which is what keeps the loop shut.
+    expect(startedHere(seen([]), source('library', true))).toBe(true);
+    expect(startedHere(seen([['system', true]]), source('library', true))).toBe(
+      true,
+    );
   });
 
   it('is nothing at all while nothing plays', () => {

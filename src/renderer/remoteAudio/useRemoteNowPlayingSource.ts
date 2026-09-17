@@ -53,6 +53,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the sender answers the question where it can be answered, and this end acts
  * on the answer and on nothing else.
  *
+ * WHICH WAY ROUND IS THE WHOLE OF IT, and the two directions are not alike.
+ * STOPPING WHAT THIS MACHINE IS PLAYING needs a press, because a description
+ * this end misread is how the music died. PAUSING THE OTHER MACHINE may act
+ * on a description, because a pause cannot come back as a press: it starts
+ * nothing, and a player a sender's bar falls through to was playing already.
+ * So a sender found playing while this machine has sound of its own is paused
+ * — the press that happened here is the most recent thing anybody did, and
+ * the sender is a reconnection whose pause never arrived, or a machine that
+ * came back with its music still running. One player at a time keeps every
+ * case; only the direction that could loop is held to the press.
+ *
  * The stop spares the register's own `remote` entry, whose stopper is a pause
  * going back out over the wire — including to the computer that just pressed
  * play.
@@ -63,7 +74,11 @@ import { buildSongIdentity } from 'common/songIdentity';
 import { REMOTE_NUDGE_LIMIT_MS } from '../../common/remoteAudio';
 import type { TRemoteTransportCommand } from '../../common/remoteAudio';
 import { setAppVolume } from '../audio/appVolume';
-import { registerPlayer, stopAllPlayback } from '../audio/playbackOwner';
+import {
+  getPlaybackOwner,
+  registerPlayer,
+  stopAllPlayback,
+} from '../audio/playbackOwner';
 import {
   clearTransportSource,
   isTransportPlaying,
@@ -87,6 +102,14 @@ export const pickRemoteNowPlaying = (
   ) ??
   computers.find((computer) => computer.nowPlaying?.isPlaying === true) ??
   computers.find((computer) => computer.nowPlaying !== undefined);
+
+/** Which senders have turned up playing since this end last looked. Used for
+ * one thing only — deciding who to pause — and never for deciding whether
+ * anything here should stop; see the direction rule above. */
+export const nowPlayingSenders = (
+  known: ReadonlySet<string>,
+  playing: readonly string[],
+): string[] => playing.filter((id) => !known.has(id));
 
 const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
   window.electron.ipcRenderer
@@ -169,14 +192,49 @@ const useRemoteNowPlayingSource = (
     });
   }, [computer, peerId, playing]);
 
-  // While a sender plays, the sound arriving is a player of this machine's as
-  // far as the one-player rule is concerned — it just is not one this app can
-  // pause except by asking. Registered only while something is actually
-  // playing, so a connected but silent computer is not a player.
+  const knownPlayingRef = useRef<ReadonlySet<string>>(new Set());
+  /** The computer whose user pressed play last. Written as that message
+   * arrives rather than derived from state, because the round of pauses
+   * below runs before any of that state has settled. */
+  const pressedPeerRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (!singlePlayer || playingIdsRef.current.length === 0) {
+    const now = playingIdsRef.current;
+    const appeared = nowPlayingSenders(knownPlayingRef.current, now);
+    knownPlayingRef.current = new Set(now);
+    // Something already making sound here when a sender turns up playing —
+    // a player of ours, the machine's own, or a sender that was playing
+    // before this round — means the sender is the one that stops. What
+    // happened here is the newest thing anybody did.
+    //
+    // NEVER the computer that pressed play, which is held by name rather
+    // than by what has settled by now: its press stopped ours as the message
+    // arrived, but the machine's own session is read from a watcher that
+    // polls, so "something is playing here" can still be true for a moment
+    // after it was asked to stop. Reading that as a reason to pause would be
+    // the press answered with a pause, which is the circle this whole file
+    // is about.
+    const pressed = pressedPeerRef.current;
+    const toPause = appeared.filter((id) => id !== pressed);
+    const soundHere =
+      getPlaybackOwner() !== undefined ||
+      isTransportPlaying('system') ||
+      now.some((id) => !appeared.includes(id));
+    if (singlePlayer && soundHere) {
+      toPause.forEach((id) => sendTransport(id, { command: 'pause' }));
+    }
+    // The exemption lasts as long as that computer is playing and no longer,
+    // or a computer that pressed play an hour ago could come back over this
+    // machine's music and keep it.
+    if (pressed !== undefined && !now.includes(pressed)) {
+      pressedPeerRef.current = undefined;
+    }
+    if (!singlePlayer || now.length === 0) {
       return undefined;
     }
+    // While a sender plays, the sound arriving is a player of this machine's
+    // as far as the one-player rule is concerned — it just is not one this
+    // app can pause except by asking. Registered only while something is
+    // actually playing, so a connected but silent computer is not a player.
     return registerPlayer('remote', () =>
       playingIdsRef.current.forEach((id) =>
         sendTransport(id, { command: 'pause' }),
@@ -190,6 +248,7 @@ const useRemoteNowPlayingSource = (
   // it must not have to re-subscribe on every description a sender sends.
   const acceptStart = useRef((startedPeerId: string) => {
     setLastStartedId(startedPeerId);
+    pressedPeerRef.current = startedPeerId;
     if (!singlePlayerRef.current) {
       return;
     }

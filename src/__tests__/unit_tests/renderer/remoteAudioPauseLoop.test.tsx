@@ -113,7 +113,10 @@ describe('a sending computer announcing a press', () => {
     // back to the tab, which is playing. Called a press, that reply stopped
     // the listener's music and paused this machine again.
     renderSender();
+    // The tab turning up playing is itself a press — one player at a time
+    // covers a program that comes up already going.
     act(() => setTransportSource(source('system', 'Tab', true)));
+    expect(lastMessage()?.started).toBe(true);
     act(() => setTransportSource(source('library', 'Album', false)));
     act(() => {
       setTransportSource(source('library', 'Album', true));
@@ -197,6 +200,7 @@ describe('a listening computer told of a press', () => {
   it('does nothing for a sender that merely appears to be playing', () => {
     // No press message, no press: a peer that reconnects mid-song, or a
     // machine whose Windows session list flapped, arrives exactly like this.
+    // With nothing making sound here, it simply plays.
     const stopLibrary = jest.fn();
     const { rerender } = renderListener([computer('a', false)]);
     act(() => {
@@ -207,11 +211,50 @@ describe('a listening computer told of a press', () => {
     expect(pausedPeers()).toEqual([]);
   });
 
+  it('pauses the newcomer when another sender already had the sound', () => {
+    // Three computers: the one playing keeps it, and the one that turned up
+    // without anybody pressing play over there is the one that stops.
+    const { rerender } = renderListener([computer('a', true)]);
+    act(() => rerender({ list: [computer('a', true), computer('b', true)] }));
+    expect(pausedPeers()).toEqual(['b']);
+  });
+
+  it('pauses a sender that turns up playing over this machine', () => {
+    // The reconnection whose pause never arrived, and the computer that came
+    // back with its music still running. One player at a time still holds —
+    // the press that happened here is the newest thing anybody did, so the
+    // sender stops and this machine keeps playing.
+    const stopLibrary = jest.fn();
+    const { rerender } = renderListener([computer('a', false)]);
+    act(() => {
+      registerPlayer('library', stopLibrary);
+      claimPlayback('library');
+    });
+    act(() => rerender({ list: [computer('a', true)] }));
+    expect(stopLibrary).not.toHaveBeenCalled();
+    expect(pausedPeers()).toEqual(['a']);
+  });
+
+  it('never answers a press with a pause, however slow this end is', () => {
+    // The machine's own session is read from a watcher that polls, so it can
+    // still say "playing" for a moment after the press asked it to stop.
+    // Read as a reason to pause, that is the press answered with a pause.
+    const { rerender, result } = renderListener([computer('a', false)]);
+    act(() => {
+      setTransportSource(source('system', 'Tab', true));
+    });
+    act(() => result.current('a'));
+    sendRemoteAudioLanSignal.mockClear();
+    act(() => rerender({ list: [computer('a', true)] }));
+    expect(pausedPeers()).toEqual([]);
+  });
+
   it('pauses every playing sender when this machine takes the sound', () => {
     // The other direction, unchanged: the register's own entry is how a
     // library track started here reaches the wire at all.
     const { rerender } = renderListener([computer('a', true)]);
     act(() => rerender({ list: [computer('a', true), computer('b', true)] }));
+    sendRemoteAudioLanSignal.mockClear();
     act(() => claimPlayback('library'));
     expect(pausedPeers()).toEqual(['a', 'b']);
   });

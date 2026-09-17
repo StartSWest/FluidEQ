@@ -114,21 +114,28 @@ export const pickSourceForRemote = (
  * - WINDOWS' POLLED SESSION LIST FLAPPING, which republishes a player's state
  *   without the player having done anything.
  *
- * So the question is asked of the PLAYER, not of the bar: this exact player
- * was known to be paused a moment ago and is playing now. `seen` carries what
- * each of this machine's players was last doing, which is why a player the
- * bar has only just noticed — the case every one of the three above reduces
- * to — is not a press. The cost is the one case where nobody pressed anything
- * we could see: a program launched straight into playing publishes its
- * session already playing, and the listener keeps its own music instead of
- * yielding. Two things audible is a thing a user can hear and fix; music
- * stopping by itself is the fault being fixed here.
+ * So the question is asked of the PLAYER, not of the bar: this player was not
+ * playing a moment ago and is playing now. `seen` carries what each of this
+ * machine's players was last doing, and it is what separates the three above
+ * from a press — each of them describes a player this machine already knew
+ * was playing.
+ *
+ * ANYTHING ELSE THAT STARTS IS A PRESS, including a player this end is seeing
+ * for the first time: a program launched straight into playing publishes its
+ * Windows session already playing, and somebody plainly pressed play on it.
+ * One player at a time is the whole point of the rule and it does not get
+ * holes cut in it to make a loop impossible — the loop is stopped by the
+ * clause above, which no starting player can trip.
+ *
+ * `seen` keeps a player that goes away, which is the other half of that: a
+ * Windows session that disappears and comes back playing — the list is
+ * polled, and it flaps — is remembered as the one that was already playing.
  */
 export const startedHere = (
   seen: ReadonlyMap<TPlaybackOwner, boolean>,
   source: ITransportSource | undefined,
 ): boolean =>
-  source !== undefined && source.isPlaying && seen.get(source.owner) === false;
+  source !== undefined && source.isPlaying && seen.get(source.owner) !== true;
 
 /** Everything a message would say, so two that say the same are one. */
 const wireKey = (playing: IRemoteNowPlaying | undefined): string =>

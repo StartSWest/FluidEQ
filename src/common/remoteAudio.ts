@@ -62,12 +62,12 @@ export type TRemoteAudioSignal =
    * Sender → listener. Absent `playing` means the sender's bar is empty.
    *
    * `started` is the one-player rule's only trigger, and it is an EVENT: a
-   * player on the sending machine went from paused to playing while the
-   * sender knew it was paused. Everything else about this message is a
-   * description, and a description that happens to be playing is not somebody
-   * pressing play — it is also what a reconnection re-announces, what a
-   * sender says when its bar falls through to a player that was already
-   * playing, and what Windows' polled session list says when it flaps. The
+   * player on the sending machine that was not playing a moment ago is
+   * playing now. Everything else about this message is a description, and a
+   * description that happens to be playing is not somebody pressing play —
+   * it is also what a reconnection re-announces, what a sender says when its
+   * bar falls through to a player that was already playing, and what
+   * Windows' polled session list says when it flaps. The
    * listener used to work the trigger out by diffing those descriptions, so
    * the pause it sent for one of them came back as the next "start" and
    * silenced the music its own user had just started. A pause can never raise
