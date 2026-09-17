@@ -135,6 +135,7 @@ const studio = {
   'studio.publish.categoryHint': '2つまで。カードには1つ目が表示されます。',
   'studio.publish.pickCategory': '先にカテゴリを選んでください',
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
+  'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':
     'サインインしている人は誰でもビジュアライザーで見られます。Plus メンバーは再生、マイ表示への追加、いいねができます。',
   'studio.publish.point2': 'いいねのたびにランキングのポイントが入ります。',

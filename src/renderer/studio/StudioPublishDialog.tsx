@@ -83,6 +83,14 @@ export default function StudioPublishDialog({
   // three days later, does not. Theirs to edit or replace.
   const [note, setNote] = useState(draft.suggestedNote ?? '');
   const noteId = useId();
+  const noteWrongId = useId();
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  // Said only once the press has been made, never on opening: a dialog that
+  // is already red before anything has been done is shouting at somebody who
+  // has done nothing wrong. A held button with the reason in a tooltip was
+  // the other way round and nobody hovers a disabled button — so the press
+  // goes through, and this is what it lands on.
+  const [noteMissing, setNoteMissing] = useState(false);
   const pick = (entry: TPlusCategory) =>
     setCategories((current) => {
       if (current.includes(entry)) {
@@ -102,12 +110,6 @@ export default function StudioPublishDialog({
   let go = update ? t('studio.publish.goUpdate') : t('studio.publish.go');
   if (!draft.agreed) {
     go = t('studio.publish.agree');
-  }
-  let stopped: string | undefined;
-  if (!category) {
-    stopped = t('studio.publish.pickCategory');
-  } else if (needsNote) {
-    stopped = t('studio.publish.needNote');
   }
 
   return createPortal(
@@ -211,11 +213,23 @@ export default function StudioPublishDialog({
                 <label className="gallery-dialog__label" htmlFor={noteId}>
                   {t('studio.publish.note')}
                 </label>
+                {/* Said before the press as well as after it: the quiet word
+                    is what stops the red one ever being needed. Outside the
+                    label on purpose — the field is already announced as
+                    required, and the marker would otherwise become part of
+                    its name. */}
+                <span
+                  className="studio-publish__note-needed"
+                  aria-hidden="true"
+                >
+                  {t('studio.publish.noteNeeded')}
+                </span>
                 <span className="studio-publish__note-count" aria-hidden="true">
                   {note.length} / {MAX_VERSION_NOTE}
                 </span>
               </span>
               <textarea
+                ref={noteRef}
                 id={noteId}
                 value={note}
                 rows={2}
@@ -223,12 +237,27 @@ export default function StudioPublishDialog({
                 disabled={running}
                 required
                 aria-required="true"
+                aria-invalid={noteMissing}
+                aria-describedby={noteMissing ? noteWrongId : undefined}
                 placeholder={t('studio.publish.notePlaceholder')}
-                onChange={(event) =>
+                onChange={(event) => {
                   // One line: what a card and a notice have room for.
-                  setNote(event.target.value.replace(/\s*\n\s*/g, ' '))
-                }
+                  const line = event.target.value.replace(/\s*\n\s*/g, ' ');
+                  setNote(line);
+                  if (line.trim()) {
+                    setNoteMissing(false);
+                  }
+                }}
               />
+              {noteMissing && (
+                <p
+                  id={noteWrongId}
+                  className="studio-publish__note-wrong"
+                  role="alert"
+                >
+                  {t('studio.publish.needNote')}
+                </p>
+              )}
             </div>
           )}
 
@@ -269,12 +298,18 @@ export default function StudioPublishDialog({
             type="button"
             className={`button small${running ? ' is-running' : ''}`}
             aria-busy={running}
-            disabled={!category || needsNote}
-            title={stopped}
+            disabled={!category}
+            title={category ? undefined : t('studio.publish.pickCategory')}
             onClick={() => {
-              if (category && !needsNote && !running) {
-                onPublish(category, category2, update ? note : undefined);
+              if (!category || running) {
+                return;
               }
+              if (needsNote) {
+                setNoteMissing(true);
+                noteRef.current?.focus();
+                return;
+              }
+              onPublish(category, category2, update ? note : undefined);
             }}
           >
             {running ? t('studio.publish.running') : go}

@@ -137,6 +137,7 @@ const studio = {
   'studio.publish.pickCategory': 'Choisissez d’abord une catégorie',
   'studio.publish.needNote':
     'Dites d’abord ce qui est nouveau dans cette version',
+  'studio.publish.noteNeeded': 'Obligatoire',
   'studio.publish.point1':
     'Toute personne connectée la verra dans Visualiseurs. Les membres Plus pourront la lancer, l’ajouter à leurs styles et l’aimer.',
   'studio.publish.point2':

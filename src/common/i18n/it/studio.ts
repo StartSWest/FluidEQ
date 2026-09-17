@@ -135,6 +135,7 @@ const studio = {
   'studio.publish.categoryHint': 'Fino a due. La scheda mostra la prima.',
   'studio.publish.pickCategory': 'Scegli prima una categoria',
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
+  'studio.publish.noteNeeded': 'Obbligatorio',
   'studio.publish.point1':
     'Chiunque abbia effettuato l’accesso la vedrà in Visualizzatori. I membri Plus potranno riprodurla, aggiungerla ai loro aspetti e metterle mi piace.',
   'studio.publish.point2':

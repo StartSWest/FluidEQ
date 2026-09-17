@@ -133,6 +133,7 @@ const studio = {
   'studio.publish.categoryHint': 'Até duas. O cartão mostra a primeira.',
   'studio.publish.pickCategory': 'Escolha uma categoria primeiro',
   'studio.publish.needNote': 'Diga primeiro o que há de novo nesta versão',
+  'studio.publish.noteNeeded': 'Obrigatório',
   'studio.publish.point1':
     'Qualquer pessoa conectada poderá vê-la em Visualizadores. Membros Plus poderão reproduzi-la, adicioná-la aos visuais e curtir.',
   'studio.publish.point2': 'Cada curtida vale pontos na classificação.',

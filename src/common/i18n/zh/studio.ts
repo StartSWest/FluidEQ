@@ -125,6 +125,7 @@ const studio = {
   'studio.publish.categoryHint': '最多两个。卡片上显示第一个。',
   'studio.publish.pickCategory': '请先选择一个分类',
   'studio.publish.needNote': '请先写下这一版有什么新变化',
+  'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
     '所有已登录的人都能在“可视化”里看到它。Plus 会员可以播放它、把它添加到外观并点赞。',
   'studio.publish.point2': '每个赞都会为你在排行榜上加分。',

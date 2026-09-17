@@ -371,6 +371,7 @@ describe('the publish dialog', () => {
   });
 
   it('asks for the agreement the first time, and starts an update on its category', () => {
+    const onPublish = jest.fn();
     render(
       <StudioPublishDialog
         name="Neon City"
@@ -396,7 +397,7 @@ describe('the publish dialog', () => {
           },
         })}
         running={false}
-        onPublish={jest.fn()}
+        onPublish={onPublish}
         onCancel={jest.fn()}
       />,
     );
@@ -414,15 +415,31 @@ describe('the publish dialog', () => {
     // A new version of a scene people already have goes out with a line
     // saying what changed, always: the update notice and the versions page
     // are built around it, and without one a listener is asked to take a new
-    // version on trust. Both categories are already chosen above, so the
-    // note is the only thing holding the button.
+    // version on trust. The press is what says so — a held button with the
+    // reason in a tooltip is a reason nobody ever reads.
     const go = screen.getByRole('button', { name: 'studio.publish.agree' });
-    expect(go).toBeDisabled();
-    expect(go).toHaveAttribute('title', 'studio.publish.needNote');
-    fireEvent.change(screen.getByLabelText('studio.publish.note'), {
+    const field = screen.getByLabelText('studio.publish.note');
+    expect(go).toBeEnabled();
+    expect(field).not.toHaveAttribute('aria-invalid', 'true');
+    fireEvent.click(go);
+    expect(onPublish).not.toHaveBeenCalled();
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'studio.publish.needNote',
+    );
+    expect(field).toHaveFocus();
+    // And it clears as soon as there is something to publish with.
+    fireEvent.change(field, {
       target: { value: 'the peaks no longer get cut on wide panels' },
     });
-    expect(go).toBeEnabled();
+    expect(field).not.toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    fireEvent.click(go);
+    expect(onPublish).toHaveBeenCalledWith(
+      'water',
+      'cities',
+      'the peaks no longer get cut on wide panels',
+    );
   });
 
   // The line the member's AI wrote about its own change, offered as the note.

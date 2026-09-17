@@ -161,7 +161,38 @@ it under the terms of the GNU General Public License version 3 or later.
     width: 100%;
     min-height: 58px;
     resize: vertical;
+
+    // The same red a refused name gets in the app's own fields
+    // (`TextInput.scss`), on the same signal: nothing is marked until a press
+    // has found it empty, and it clears the moment anything is typed.
+    &[aria-invalid='true'] {
+      border-color: $red;
+
+      &:focus-visible {
+        @include focus-ring($red);
+      }
+    }
   }
+}
+
+// Beside the label, before anything has gone wrong: an update carries a line
+// saying what changed, and knowing that up front is what stops the red one
+// below ever being needed.
+.studio-publish__note-needed {
+  margin-inline-end: auto;
+  margin-inline-start: $spacing-xs;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.1em);
+}
+
+.studio-publish__note-wrong {
+  margin: 0;
+  color: $red;
+  font-size: $text-small;
+  line-height: 1.35;
 }
 
 .studio-publish__note-head {

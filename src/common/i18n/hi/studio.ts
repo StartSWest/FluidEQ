@@ -132,6 +132,7 @@ const studio = {
   'studio.publish.categoryHint': 'अधिकतम दो। इसके कार्ड पर पहली दिखती है।',
   'studio.publish.pickCategory': 'पहले एक श्रेणी चुनें',
   'studio.publish.needNote': 'पहले बताएँ कि इस संस्करण में नया क्या है',
+  'studio.publish.noteNeeded': 'ज़रूरी',
   'studio.publish.point1':
     'साइन-इन किया हर व्यक्ति इसे विज़ुअलाइज़र में देख सकेगा। Plus सदस्य इसे चला, अपने रूपों में जोड़ और पसंद कर सकेंगे।',
   'studio.publish.point2': 'हर पसंद से आपको लीडरबोर्ड पर पॉइंट मिलते हैं।',
