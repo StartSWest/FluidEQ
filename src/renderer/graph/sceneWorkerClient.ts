@@ -16,6 +16,12 @@ export interface ISceneDrawn {
   cost: ISceneCostReading;
   /** The GPU already held two frames; nothing was drawn this time. */
   skipped: boolean;
+  /**
+   * The interval the worker is drawing frames at, on the display's beat at
+   * the listener's pace: what a frame's cost is judged against. Absent until
+   * it has drawn two.
+   */
+  intervalMs?: number;
 }
 
 export interface ISceneWorkerClient {
@@ -228,7 +234,12 @@ export const createSceneWorkerClient = (
     } else if (data.kind === 'drawn') {
       const notify = shown;
       shown = undefined;
-      notify?.({ accent: data.accent, cost: data.cost, skipped: data.skipped });
+      notify?.({
+        accent: data.accent,
+        cost: data.cost,
+        skipped: data.skipped,
+        intervalMs: data.intervalMs,
+      });
     } else if (data.kind === 'lost') {
       lost = true;
       shown = undefined;

@@ -379,11 +379,12 @@ export default function useSceneRunner({
         paceMs,
         (result) => {
           // Judged by what frames cost the GPU, against the interval they are
-          // drawn at — not by how long the page took between frames: see the
-          // worker's draw.
+          // drawn at — the worker's own, on the display's beat, not how long
+          // the page took between frames: see the worker's draw.
+          const drawnIntervalMs = result.intervalMs ?? intervalMs;
           if (
             ladder === ladderRef.current &&
-            ladder.frame(result.cost, intervalMs, document.hidden) ===
+            ladder.frame(result.cost, drawnIntervalMs, document.hidden) ===
               'degraded'
           ) {
             // Too slow even at the floor. The source decides what that means:
@@ -422,7 +423,7 @@ export default function useSceneRunner({
             scale,
             costMs: result.cost.costMs,
             postMs: result.cost.postMs,
-            intervalMs,
+            intervalMs: drawnIntervalMs,
             drawnWidth: drawn.width,
             drawnHeight: drawn.height,
             outputWidth: output.width,

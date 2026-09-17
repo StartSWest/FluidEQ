@@ -1,5 +1,7 @@
 import type { IScenePack } from 'common/scenePacks';
 import { SCENE_TIME_WRAP_S } from 'common/sceneUniformContract';
+import { shouldDrawFrame } from 'common/smoothing';
+import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
 import { createFlashGuard, type IFlashGuard } from './sceneFlashGuard';
 import { linksSettled } from './sceneCompile';
@@ -33,27 +35,13 @@ const scope = globalThis as unknown as {
 type TDrawRequest = Extract<TSceneWorkerRequest, { kind: 'draw' }>;
 
 /**
- * How much of a display frame must pass, with nothing drawn, before the
- * worker draws one itself from what the page last sent.
- *
- * Nine tenths, so every frame the display offers gets a picture. The page's
- * loop shares a thread with the whole interface, and measured in the running
- * window it was feeding the Studio's stage 65 to 72 frames a second on a
- * 100 Hz display while the scene cost 0.9 ms of GPU: one refresh in three
- * showed the frame before it again, which on anything moving fast is seen as
- * a ghost of where it was. It was a multiple of whole missed frames, which
- * never fired at that rate — a page steadily a third behind is never late by
- * a whole frame.
+ * The share of the pace the listener chose that must have passed before the
+ * worker's next animation frame draws. Under one, because animation frames
+ * arrive a fraction of a millisecond either side of the display's beat, and
+ * a pace of exactly one display frame judged against exactly one would skip
+ * every other frame on a jittery one.
  */
-const FILL_AFTER_TICKS = 0.9;
-
-/**
- * A page frame arriving this soon after one the worker drew is the same
- * display frame twice, and only the second would ever be seen. Narrow, so
- * the page's own frame — the one carrying the newest sound — is what gets
- * drawn whenever the two are not on top of each other.
- */
-const SAME_FRAME_TICKS = 0.25;
+const PACE_SLACK = 0.9;
 
 /**
  * The most the scene's clock advances on one frame. A stall longer than this
@@ -110,26 +98,39 @@ let lastCostMs = 0;
  */
 let blamedSource: string | undefined;
 
-// The worker's own pacing. The page hands over one frame per animation
-// frame of its own, and drew nothing at all while its thread was busy: a
-// menu opening, a panel re-rendering, a Library scan, each froze the scene
-// for exactly as long. Measured in a test page stalling its thread for 60 ms
+// The worker's own animation frames are the only thing that draws. The
+// page's frames are the model: each brings the newest sound and sizes, and
+// the worker draws from the latest one on every beat of the display, at the
+// pace the listener chose.
+//
+// Not drawn the moment they arrive, which they used to be. A page frame
+// arrives at any point between two refreshes and is shown at the next one,
+// but the scene's clock moved on by the time since the previous DRAW, so
+// the picture at each refresh stood wherever the page's thread had happened
+// to get round to it: measured in the running window at 65 to 72 page frames
+// a second on a 100 Hz display, refreshes showed steps of 14, 0, 13, 5 and
+// 14 ms of scene time in a row — a repeat, a jump, a half step — and a fast
+// spin was seen as a ghost of itself. Drawn on the display's own beat, every
+// refresh gets a picture and each step is one refresh long. The cost is that
+// the sound reaches the picture up to one refresh later than it did, half a
+// refresh on average: five milliseconds at 100 Hz, far inside what anyone
+// can hear against a picture.
+//
+// It also covers the page's thread being busy at all — a menu opening, a
+// panel re-rendering, a Library scan — which used to freeze the scene for
+// exactly as long: measured in a test page stalling its thread for 60 ms
 // every quarter second, the page-driven loop showed eleven hitches in three
-// seconds and a worker pacing itself none. So the worker keeps its own
-// animation frames going, and on each one asks whether the page has fallen
-// behind its declared pace; only then does it draw a frame itself, from the
-// last thing the page sent, with the clock moved on. The page's frame is
-// still drawn the moment it arrives, so nothing is a frame later than it was.
-/** The page's last frame: what a frame the worker draws itself is made of. */
+// seconds and a worker pacing itself none.
+/** The page's last frame: what every frame drawn here is made of. */
 let latest: TDrawRequest | undefined;
-/** When the page's last frame was drawn. */
-let pageDrawnAt: number | undefined;
-/** When the last frame, the page's or the worker's own, was drawn. */
+/** When the last frame was drawn, by the worker's own animation clock. */
 let drawnAt: number | undefined;
-/** When the worker last drew a frame of its own. */
-let filledAt: number | undefined;
 /** The clock the scene is drawn on, in seconds, wrapped like the page's was. */
 let sceneTimeS = 0;
+/** The interval frames are actually being drawn at: what the page is told. */
+let drawIntervalMs: number | undefined;
+/** The clock's newest reading with a cost in it, and its newest count in hand. */
+let lastReading: ISceneCostReading = { behind: 0 };
 /** The worker's animation frames, running between a `draw` and an `idle`. */
 let pacingFrame: number | undefined;
 /** The last two of the worker's own animation frames: the display's beat. */
@@ -235,7 +236,11 @@ const freeFrameResources = () => {
   post = undefined;
 };
 
-/** The worker draws nothing of its own until the page's next frame. */
+/**
+ * Nothing is drawn until the page's next frame, which is drawn at once: the
+ * page stops sending frames when the scene is out of sight, and a scene
+ * coming back should not wait a refresh for its first picture.
+ */
 const stopPacing = () => {
   if (pacingFrame !== undefined) {
     scope.cancelAnimationFrame(pacingFrame);
@@ -243,8 +248,8 @@ const stopPacing = () => {
   }
   lastTickAt = undefined;
   latest = undefined;
-  pageDrawnAt = undefined;
-  filledAt = undefined;
+  drawnAt = undefined;
+  drawIntervalMs = undefined;
 };
 
 /**
@@ -349,6 +354,9 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   const cost = clock.poll(now);
   if (cost.costMs !== undefined) {
     lastCostMs = cost.costMs;
+    lastReading = cost;
+  } else {
+    lastReading = { ...lastReading, behind: cost.behind };
   }
   // The pipeline is full: a third frame would only wait behind the other
   // two, and the picture would lag the music by that much. On a driver with
@@ -366,13 +374,16 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
   }
 
   // The scene's time moves on by what passed since the last frame drawn
-  // here, the page's or the worker's own, so a stall the worker fills in
-  // advances it smoothly and the page's next frame does not set it back.
+  // here, on the worker's own animation clock: one refresh, or the refreshes
+  // a skipped or held frame spanned, never the page's stumbles.
   const stepMs =
     drawnAt === undefined
       ? Math.min(MAX_TIME_STEP_MS, request.frame.deltaMs ?? 0)
       : Math.min(MAX_TIME_STEP_MS, Math.max(0, now - drawnAt));
   sceneTimeS = (sceneTimeS + stepMs / 1000) % SCENE_TIME_WRAP_S;
+  if (drawnAt !== undefined) {
+    drawIntervalMs = now - drawnAt;
+  }
   drawnAt = now;
   const frame: ISceneFrame = {
     ...request.frame,
@@ -429,8 +440,11 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
 };
 
 /**
- * One of the worker's own animation frames: a frame of its own only where
- * the page has fallen behind the pace it declared, and then at that pace.
+ * One of the worker's own animation frames: the display's beat, on which
+ * every frame is drawn from the page's latest, at the listener's pace. `now`
+ * is the frame's own timestamp, so the scene's clock steps by whole
+ * refreshes. Nobody is told: the page's next frame is answered with the
+ * clock's newest reading, which is this frame's.
  */
 const tick = (now: number) => {
   pacingFrame = scope.requestAnimationFrame(tick);
@@ -441,42 +455,37 @@ const tick = (now: number) => {
     );
   }
   lastTickAt = now;
-  if (latest === undefined || pageDrawnAt === undefined) {
+  if (latest === undefined) {
     return;
   }
-  // A display frame has passed with nothing drawn on it, and the listener's
-  // own pace allows another.
-  const dueMs = Math.max(latest.paceMs, tickMs * FILL_AFTER_TICKS);
-  if (drawnAt !== undefined && now - drawnAt < dueMs) {
+  const dueMs = Math.max(latest.paceMs, tickMs) * PACE_SLACK;
+  if (drawnAt !== undefined && !shouldDrawFrame(now - drawnAt, dueMs)) {
     return;
   }
-  // Nobody is told: the page's next frame reads the clock's newest reading,
-  // which is this frame's, exactly as it reads its own.
-  filledAt = now;
   render(latest, now);
 };
 
-/** The page's frame: drawn at once, and kept as the model for the worker's own. */
+/**
+ * The page's frame: the model the worker draws from on its next animation
+ * frame, answered with the clock's newest reading. Drawn at once only when
+ * nothing has been drawn yet — the scene's first picture, or its first after
+ * being out of sight — so that one is not a refresh late.
+ */
 const draw = (request: TDrawRequest): TSceneWorkerReply => {
-  const now = performance.now();
   latest = request;
-  pageDrawnAt = now;
   if (pacingFrame === undefined) {
     pacingFrame = scope.requestAnimationFrame(tick);
   }
-  // The page's frame arriving on the display frame the worker just filled
-  // in: the fill stands, and this one is not drawn on top of it — two frames
-  // on one display frame is a frame of GPU time for nothing, and the second
-  // still in hand at the next poll read as the GPU falling behind.
-  if (filledAt !== undefined && now - filledAt < tickMs * SAME_FRAME_TICKS) {
-    return {
-      kind: 'drawn',
-      accent: program?.musicAccent() ?? 0,
-      cost: clock?.poll(now) ?? { behind: 0 },
-      skipped: true,
-    };
+  if (drawnAt === undefined) {
+    return render(request, performance.now());
   }
-  return render(request, now);
+  return {
+    kind: 'drawn',
+    accent: program?.musicAccent() ?? 0,
+    cost: lastReading,
+    skipped: false,
+    intervalMs: drawIntervalMs,
+  };
 };
 
 scope.onmessage = ({ data }) => {

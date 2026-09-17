@@ -75,6 +75,13 @@ export type TSceneWorkerReply =
        * queue. The page's next frame tries again.
        */
       skipped: boolean;
+      /**
+       * The interval frames are actually being drawn at, by the worker's own
+       * animation clock — the display's beat at the listener's pace — which
+       * is what a frame's cost is judged against and what the readout says.
+       * Absent until two frames have been drawn.
+       */
+      intervalMs?: number;
     }
   | {
       kind: 'lost';
