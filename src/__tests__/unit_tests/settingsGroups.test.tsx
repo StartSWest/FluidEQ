@@ -150,6 +150,26 @@ describe('the graph View menu', () => {
     ]);
   });
 
+  it('offers the scene its own wave back only when there is one to go back to', () => {
+    // A scene carries the wave its author built it around; the listener may
+    // move it and that is kept for that scene, so the way back has to be on
+    // the menu — and only while it would do something.
+    renderMenu({ sceneLookId: 'aurora' });
+    openMenu();
+    expect(
+      screen.queryByRole('menuitem', { name: en['graph.scene.ownWave'] }),
+    ).not.toBeInTheDocument();
+
+    cleanup();
+    const onRestoreWave = jest.fn();
+    renderMenu({ sceneLookId: 'aurora', onRestoreWave });
+    openMenu();
+    const restore = screen.getByRole('menuitem', {
+      name: en['graph.scene.ownWave'],
+    });
+    fireEvent.click(restore);
+    expect(onRestoreWave).toHaveBeenCalledTimes(1);
+  });
   it('folds a group away on its heading, and remembers it', () => {
     // The menu is long and most of it is set once, so a group somebody is
     // done with can be put away — and stay away, since the menu is opened

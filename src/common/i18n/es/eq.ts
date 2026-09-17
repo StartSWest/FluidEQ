@@ -149,6 +149,9 @@ const eq: Partial<Dictionary> = {
   'graph.scene.percent': '{percent} %',
   'graph.scene.controlHint':
     'Un control propio de este visualizador, como lo dejó su autor',
+  'graph.scene.ownWave': 'Usar su onda original',
+  'graph.scene.ownWaveHint':
+    'Devuelve la onda a donde la dejó quien hizo la escena. Tu altura y posición se guardan para cada escena hasta que lo hagas.',
   'graph.scene.ownControls': 'Usar sus propios ajustes',
   'graph.scene.ownControlsHint':
     'Volver a los ajustes con los que vino este visualizador',

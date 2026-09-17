@@ -148,6 +148,9 @@ const eq: Partial<Dictionary> = {
   'graph.scene.percent': '{percent}%',
   'graph.scene.controlHint':
     'このビジュアライザー自身のコントロール。作者が決めた値です',
+  'graph.scene.ownWave': 'このシーン本来の波形にする',
+  'graph.scene.ownWaveHint':
+    'シーンの作者が決めた位置に波形を戻します。それまで、あなたの高さと位置はシーンごとに保存されます。',
   'graph.scene.ownControls': '元の設定に戻す',
   'graph.scene.ownControlsHint':
     'このビジュアライザーに付属していた設定に戻します',

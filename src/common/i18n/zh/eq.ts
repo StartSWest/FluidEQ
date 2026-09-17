@@ -137,6 +137,9 @@ const eq: Partial<Dictionary> = {
   'graph.scene.ms': '{ms} 毫秒',
   'graph.scene.percent': '{percent}%',
   'graph.scene.controlHint': '此可视化效果自带的控制项，数值来自作者',
+  'graph.scene.ownWave': '使用它自带的波形',
+  'graph.scene.ownWaveHint':
+    '把波形恢复到场景作者设定的位置。在此之前，你自己的高度和位置会按场景保存。',
   'graph.scene.ownControls': '使用它自带的设置',
   'graph.scene.ownControlsHint': '恢复此可视化效果自带的设置',
   'graph.scene.ownTiming': '使用其原始节奏',

@@ -132,6 +132,11 @@ import {
   useOverlayOpacity,
 } from '../utils/graphOverlay';
 import { useCustomLooks } from '../utils/customLooks';
+import {
+  clearListenerWave,
+  setListenerWave,
+  useListenerWave,
+} from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
 import GraphAutoCycle from './GraphAutoCycle';
@@ -626,9 +631,43 @@ const FrequencyResponseChart = ({
   // over a hairline gives nothing back.
   const areHandlesHidden = hiddenCurves.includes('eq') || isEqQuiet;
 
-  const waveHeight = useGraphWaveHeight();
-  const wavePosition = useGraphWavePosition();
+  // The wave the graph itself is set to, which is what everything that is
+  // not a Plus scene is drawn with.
+  const graphWaveHeight = useGraphWaveHeight();
+  const graphWavePosition = useGraphWavePosition();
   const waveOrientation = useWaveOrientation();
+
+  /**
+   * The wave this picture is actually drawn with, and who decided it.
+   *
+   * A Plus scene is composed against a wave and now carries one, so it opens
+   * on its author's rather than on whatever the graph was last left at. The
+   * listener's own wins over that and is kept per scene; Restore gives the
+   * author's back. A scene whose pack names no wave, and everything that is
+   * not a scene at all, is drawn with the graph's own as before.
+   */
+  const sceneLookId = drawnScene?.lookId;
+  const authoredWave = drawnScene?.wave;
+  const listenerWave = useListenerWave(authoredWave ? sceneLookId : undefined);
+  const wave = authoredWave
+    ? (listenerWave ?? authoredWave)
+    : { height: graphWaveHeight, position: graphWavePosition };
+  const waveHeight = wave.height;
+  const wavePosition = wave.position;
+  const setWaveHeight = (height: number) => {
+    if (authoredWave && sceneLookId) {
+      setListenerWave(sceneLookId, { ...wave, height }, authoredWave);
+      return;
+    }
+    setGraphWaveHeight(height);
+  };
+  const setWavePosition = (position: number) => {
+    if (authoredWave && sceneLookId) {
+      setListenerWave(sceneLookId, { ...wave, position }, authoredWave);
+      return;
+    }
+    setGraphWavePosition(position);
+  };
 
   /**
    * A locked row is not a selection. Choosing it asks for the Account panel,
@@ -1927,9 +1966,14 @@ const FrequencyResponseChart = ({
               isTitlebarWaveHidden={isTitlebarWaveHidden}
               onToggleTitlebarWave={toggleTitlebarWave}
               waveHeight={waveHeight}
-              onChangeWaveHeight={setGraphWaveHeight}
+              onChangeWaveHeight={setWaveHeight}
               wavePosition={wavePosition}
-              onChangeWavePosition={setGraphWavePosition}
+              onChangeWavePosition={setWavePosition}
+              onRestoreWave={
+                listenerWave && sceneLookId
+                  ? () => clearListenerWave(sceneLookId)
+                  : undefined
+              }
               waveOrientation={waveOrientation}
               onCycleOrientation={cycleWaveOrientation}
               overlayOpacity={overlayOpacity}

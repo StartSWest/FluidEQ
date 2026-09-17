@@ -92,6 +92,12 @@ interface IGraphViewMenuProps {
   onChangeWaveHeight: (next: number) => void;
   wavePosition: number;
   onChangeWavePosition: (next: number) => void;
+  /**
+   * Put the scene's own wave back, for a Plus scene whose author set one and
+   * whose listener has since moved it. Absent while there is nothing to put
+   * back — a scene with no wave of its own, or one still standing on it.
+   */
+  onRestoreWave?: () => void;
   waveOrientation: TWaveOrientation;
   onCycleOrientation: () => void;
   /**
@@ -301,6 +307,7 @@ const GraphViewMenu = ({
   onChangeWaveHeight,
   wavePosition,
   onChangeWavePosition,
+  onRestoreWave,
   waveOrientation,
   onCycleOrientation,
   overlayOpacity,
@@ -882,6 +889,31 @@ const GraphViewMenu = ({
                     })}
                   </span>
                 </label>
+
+                {/* Back to the wave the scene was built around.
+
+                    A Plus scene is composed against one — the band its
+                    spectrum is drawn in, the room its subject stands in — so
+                    it travels with the scene, and the two sliders above open
+                    on it. A listener's own wins and is kept for that scene
+                    alone; this is the way back, and it is here only while
+                    there is something to go back to. The same shape and the
+                    same wording as the rows that put a scene's own controls
+                    and its own timing back. */}
+                {onRestoreWave && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    title={t('graph.scene.ownWaveHint')}
+                    onClick={onRestoreWave}
+                  >
+                    <Icon>
+                      <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9" />
+                      <path d="M2.2 2.4v3.4h3.4" />
+                    </Icon>
+                    <span>{t('graph.scene.ownWave')}</span>
+                  </button>
+                )}
               </>
             )}
 

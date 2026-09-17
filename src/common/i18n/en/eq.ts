@@ -151,6 +151,9 @@ const eq = {
   'graph.scene.percent': '{percent}%',
   'graph.scene.controlHint':
     "One of this visualizer's own controls, as its author set it",
+  'graph.scene.ownWave': 'Use its own wave',
+  'graph.scene.ownWaveHint':
+    'Put the wave back where the scene’s author set it. Your own height and position are kept per scene until you do.',
   'graph.scene.ownControls': 'Use its own settings',
   'graph.scene.ownControlsHint':
     'Back to the settings this visualizer came with',

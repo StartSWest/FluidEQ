@@ -14,6 +14,7 @@ import {
   type IScenePackEnvelope,
   type TLocalizedName,
 } from '../../common/scenePacks';
+import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
 
@@ -53,6 +54,8 @@ export interface IMemberSceneSummary {
   fallbackStyle: GraphStyle;
   swatch: string[];
   spectrumRange?: readonly [number, number];
+  /** The wave its author built it around, when the pack names one. */
+  wave?: ISceneWave;
   /** Made by the account it is stored under, rather than sent by someone. */
   own: boolean;
   /** For an imported scene: the name on its author's profile, if they had one. */
@@ -189,6 +192,7 @@ export const createMemberSceneStore = ({
       fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,
       ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
+      ...(pack.wave ? { wave: pack.wave } : {}),
       own: !imported,
       ...(imported ? { authorName: imported.authorName } : {}),
     };

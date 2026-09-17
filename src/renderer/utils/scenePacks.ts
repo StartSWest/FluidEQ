@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { IScenePack, IScenePackCatalogueEntry } from 'common/scenePacks';
 import { lockedLookId, premiumLookId } from 'common/scenePacks';
 import type { IScenePacksListing } from 'main/ipc/scenePacks';
+import type { ISceneWave } from 'common/sceneWave';
 import type { IScenePackSummary, TSceneFailure } from 'main/scenePackStore';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 
@@ -28,6 +29,13 @@ export interface IUsableScene {
   fallbackStyle: IScenePackSummary['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
+  /**
+   * The wave its author built it around, when the pack names one: the
+   * listener opens on it, and may set their own over it per scene
+   * (`sceneWaveStore.ts`). Carried on the summary beside the spectrum
+   * range because the graph decides both before the scene has loaded.
+   */
+  wave?: ISceneWave;
 }
 
 /**
@@ -84,6 +92,7 @@ const recompute = () => {
             ...(pack.spectrumRange
               ? { spectrumRange: pack.spectrumRange }
               : {}),
+            ...(pack.wave ? { wave: pack.wave } : {}),
           }))
       : [];
   locked =

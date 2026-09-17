@@ -7,6 +7,7 @@ import {
   type IScenePack,
   type IScenePackEnvelope,
 } from '../common/scenePacks';
+import type { ISceneWave } from '../common/sceneWave';
 import { SCENE_CONTRACT_VERSION } from '../common/sceneUniformContract';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
@@ -55,6 +56,8 @@ export interface IScenePackSummary {
   fallbackStyle: IScenePack['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
+  /** The wave its author built it around, when the pack names one. */
+  wave?: ISceneWave;
 }
 
 /** One row of the server's listing — the envelope, plus what the cache compares. */
@@ -213,6 +216,7 @@ export const createScenePackStore = ({
           fallbackStyle: pack.fallbackStyle,
           swatch: pack.swatch,
           ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
+          ...(pack.wave ? { wave: pack.wave } : {}),
         })),
 
     load: (id) => {

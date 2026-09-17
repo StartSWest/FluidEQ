@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { lockedLookId, type IScenePack } from 'common/scenePacks';
+import type { ISceneWave } from 'common/sceneWave';
 import type { IMemberScenesListing } from 'main/ipc/memberScenes';
 import type { ILikeStatus } from 'main/memberScenes/social';
 import type { IMemberSceneSummary } from 'main/memberScenes/store';
@@ -27,6 +28,13 @@ export interface IUsableMemberScene {
   fallbackStyle: IMemberSceneSummary['fallbackStyle'];
   swatch: string[];
   spectrumRange?: IScenePack['spectrumRange'];
+  /**
+   * The wave its author built it around, when the pack names one: the
+   * listener opens on it, and may set their own over it per scene
+   * (`sceneWaveStore.ts`). Carried on the summary beside the spectrum
+   * range because the graph decides both before the scene has loaded.
+   */
+  wave?: ISceneWave;
   own: boolean;
   /** Who sent it, for a scene another member made. */
   authorName?: string | null;
@@ -79,6 +87,7 @@ const recompute = () => {
             ...(scene.spectrumRange
               ? { spectrumRange: scene.spectrumRange }
               : {}),
+            ...(scene.wave ? { wave: scene.wave } : {}),
           }))
       : [];
   locked =
