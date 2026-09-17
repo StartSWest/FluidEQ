@@ -102,6 +102,30 @@ describe('the member scene store', () => {
   });
 
   /**
+   * The wave is the room the author framed the scene in, and the graph opens
+   * a scene on it — so it has to survive every copy, not just the one written
+   * from the author's own build. Ivan's report of 2026-09-17: the wave came
+   * back on a scene in his own looks and not on the gallery copy of the same
+   * scene, which is the signed one. Both copies are pinned here, so whatever
+   * else drops it, it is not this.
+   */
+  it('carries the author’s wave into both copies and their summaries', () => {
+    const framed = pack({ wave: { height: 0.05, position: 0.05 } });
+    const store = createMemberSceneStore({ userDataDir });
+    store.save(ME, framed);
+    store.saveImported(
+      signedEnvelope(memberPayload({ pack: framed, author: SOMEONE })),
+    );
+    const reopened = createMemberSceneStore({ userDataDir });
+    expect(reopened.list().map((scene) => scene.wave)).toEqual([
+      framed.wave,
+      framed.wave,
+    ]);
+    expect(reopened.load(ME, framed.id)?.wave).toEqual(framed.wave);
+    expect(reopened.load(SOMEONE, framed.id)?.wave).toEqual(framed.wave);
+  });
+
+  /**
    * A scene in somebody's looks was made by whatever FluidEQ its author was
    * running, which can be newer than the one it lands on. Crystal, published
    * at contract 7, stopped appearing at all on every copy that spoke contract
