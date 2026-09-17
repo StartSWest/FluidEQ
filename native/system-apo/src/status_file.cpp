@@ -35,9 +35,18 @@ std::string utc_now() {
 // The instances counted on each output in this process, and the lock every
 // status write in it is made under — which is also what keeps the last one
 // out's "not locked" from landing after a new instance's "locked".
+struct Holder {
+  unsigned instances = 0;
+  // Shared with every instance on the output and stored into from their
+  // audio threads; a `shared_ptr` so an instance that outlives the entry
+  // still has somewhere safe to write.
+  std::shared_ptr<std::atomic<bool>> carried =
+      std::make_shared<std::atomic<bool>>(false);
+};
+
 struct Board {
   std::mutex mutex;
-  std::map<std::wstring, unsigned> holders;
+  std::map<std::wstring, Holder> holders;
 };
 
 Board& board() {
@@ -139,6 +148,20 @@ bool write_status(const EngineStatus& status, std::string* why) noexcept {
   }
 }
 
+std::shared_ptr<std::atomic<bool>> output_carried_flag(
+    const std::wstring& endpoint) {
+  try {
+    Board& shared = board();
+    const std::lock_guard<std::mutex> hold(shared.mutex);
+    return shared.holders[endpoint].carried;
+  } catch (...) {
+    // Nowhere to record it is not a reason to refuse the endpoint: the
+    // status then says nothing has reached the engine, which is what it
+    // said before this field existed.
+    return nullptr;
+  }
+}
+
 StatusShare::~StatusShare() { leave(); }
 
 bool StatusShare::publish(const EngineStatus& status,
@@ -150,7 +173,7 @@ bool StatusShare::publish(const EngineStatus& status,
       // Copied and counted before it is recorded as counted, so an
       // allocation failing in either step leaves nothing to undo.
       std::wstring endpoint = status.endpoint;
-      ++shared.holders[endpoint];
+      ++shared.holders[endpoint].instances;
       endpoint_.swap(endpoint);
     }
     return write_status(status, why);
@@ -169,9 +192,12 @@ bool StatusShare::leave(std::string* why) noexcept {
     std::wstring endpoint;
     endpoint.swap(endpoint_);
     const auto found = shared.holders.find(endpoint);
-    if (found == shared.holders.end() || --found->second > 0) {
+    if (found == shared.holders.end() || --found->second.instances > 0) {
       return true;
     }
+    // The last one out takes the entry away, and with it the flag's memory
+    // of audio having reached this chain: the next one to lock is a chain
+    // Windows has just built, which has carried nothing yet.
     shared.holders.erase(found);
     EngineStatus released;
     released.endpoint = std::move(endpoint);

@@ -13,6 +13,7 @@ import type {
 import type { IAudioDevice } from 'common/constants';
 import {
   NO_ENGINE_HEALTH,
+  engineReportsCarried,
   engineReportsStatus,
   type IEngineHealth,
 } from 'common/engineHealth';
@@ -67,6 +68,7 @@ const useEngineTrouble = (
   const isFluid = engine === 'fluid';
   const fluidEndpoints = fluid?.endpoints ?? NO_ENDPOINTS;
   const reportsStatus = engineReportsStatus(fluid?.dllVersion);
+  const reportsCarried = engineReportsCarried(fluid?.dllVersion);
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [health, setHealth] = useState<IEngineHealth>(NO_ENGINE_HEALTH);
   const [heardGuid, setHeardGuid] = useState<string | undefined>();
@@ -216,6 +218,7 @@ const useEngineTrouble = (
         health,
         heardGuid,
         hasEverRun: fluid?.everRan,
+        reportsCarried,
       }),
     [
       engine,
@@ -225,6 +228,7 @@ const useEngineTrouble = (
       health,
       heardGuid,
       fluid?.everRan,
+      reportsCarried,
     ],
   );
 };

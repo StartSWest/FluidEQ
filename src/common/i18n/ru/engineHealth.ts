@@ -5,6 +5,10 @@ const engineHealth = {
   'engineHealth.neverRanTitle': 'Windows ни разу не запускал движок FluidEQ',
   'engineHealth.neverRanBody':
     'Движок установлен и включён на {device}, но Windows ни разу не загрузил его там — перезапуск звука его не вернёт. FluidEQ уже исправил всё, до чего может дотянуться; если ничего не изменилось, ему мешает ваша защитная программа или драйвер звуковой карты. Тем временем звук обрабатывает Equalizer APO.',
+  'engineHealth.bypassedTitle': 'Звук на «{device}» идёт мимо FluidEQ',
+  'engineHealth.bypassedBody':
+    'Движок установлен и включён для этого выхода, а Windows проигрывает музыку мимо него — до него не дошло ни звука. У выхода есть несколько мест для эффекта, и для каждого вида воспроизведения Windows выбирает своё; FluidEQ стоит в том, через которое эта музыка не идёт. Перенос в другое место потребует разрешения Windows и секунды тишины.',
+  'engineHealth.tryAnotherSlot': 'Попробовать другое место',
   'engineHealth.partlyOff': 'ЧАСТИЧНО ВЫКЛ.',
   'engineHealth.problemsTitle': 'Часть вашего звука не доходит до {device}',
   'engineHealth.problem.convolution':

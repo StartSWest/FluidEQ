@@ -71,8 +71,20 @@ export interface IEngineOutputHealth {
    */
   lastSong?: IFinishedSong;
   /**
+   * Sound has actually reached the engine on this output since Windows built
+   * its chain — from an engine that counts it (`ENGINE_CARRIED_SINCE`).
+   *
+   * False while something is playing there is the one state every other
+   * field calls healthy and a listener calls broken: Windows created the
+   * engine in one of the output's effect slots and plays through a chain
+   * that slot is not in, so `locked`, `processing` and `owner` are all true
+   * and the EQ does nothing. Absent from an older engine, which says
+   * nothing either way and must not be read as false.
+   */
+  carried?: boolean;
+  /**
    * How many channels the stream Windows locked has, from an engine that
-   * has the room (1.9 and up). Absent from older engines.
+   * has the room (1.8 and up). Absent from older engines.
    */
   channels?: number;
   /**
@@ -142,6 +154,31 @@ export const normaliseEndpointGuid = (guid: string): string =>
 export const ENGINE_STATUS_SINCE: readonly [number, number] = [1, 1];
 
 /**
+ * The first engine version whose status says whether sound has reached it —
+ * `IEngineOutputHealth.carried`.
+ *
+ * Its own gate rather than `ENGINE_STATUS_SINCE`, because the two answer
+ * different questions: an engine from 1.1 writes statuses and can be
+ * trusted about being locked, while only 1.9 can be trusted about a missing
+ * `carried` meaning no audio has come rather than an engine that never says.
+ */
+export const ENGINE_CARRIED_SINCE: readonly [number, number] = [1, 9];
+
+/** Whether `dllVersion` is at or past `since`; false when it cannot be read. */
+export const engineAtLeast = (
+  dllVersion: string | undefined,
+  since: readonly [number, number],
+): boolean => {
+  const match = /^(\d+)\.(\d+)(?:\.\d+){0,2}$/.exec(dllVersion?.trim() ?? '');
+  if (!match) {
+    return false;
+  }
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > since[0] || (major === since[0] && minor >= since[1]);
+};
+
+/**
  * Whether the installed engine writes status files, so that one missing
  * while sound plays means the engine is not running there.
  *
@@ -152,15 +189,12 @@ export const ENGINE_STATUS_SINCE: readonly [number, number] = [1, 1];
  * never would. A version that cannot be read is treated the same way: the
  * notice has to be sure before it says the EQ is off.
  */
-export const engineReportsStatus = (
-  dllVersion: string | undefined,
-): boolean => {
-  const match = /^(\d+)\.(\d+)(?:\.\d+){0,2}$/.exec(dllVersion?.trim() ?? '');
-  if (!match) {
-    return false;
-  }
-  const major = Number(match[1]);
-  const minor = Number(match[2]);
-  const [sinceMajor, sinceMinor] = ENGINE_STATUS_SINCE;
-  return major > sinceMajor || (major === sinceMajor && minor >= sinceMinor);
-};
+export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_STATUS_SINCE);
+
+/**
+ * Whether the installed engine says when sound reaches it, so `carried`
+ * being false means no audio has come rather than an engine that never says.
+ */
+export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);

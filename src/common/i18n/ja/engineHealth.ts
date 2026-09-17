@@ -6,6 +6,10 @@ const engineHealth = {
     'Windows は FluidEQ エンジンを一度も起動していません',
   'engineHealth.neverRanBody':
     'エンジンはインストール済みで {device} に設定されていますが、そこで Windows は一度も読み込んでいません。音声を再起動しても戻りません。FluidEQ が手の届く範囲はすべて直しました。それでも変わらない場合は、セキュリティソフトかサウンドカードのドライバーが妨げています。その間は Equalizer APO が音を処理します。',
+  'engineHealth.bypassedTitle': '{device} の音が FluidEQ を通っていません',
+  'engineHealth.bypassedBody':
+    'エンジンはこの出力にインストールされ、有効になっていますが、Windows は音楽をその横を通して再生しています。音はまったく届いていません。出力にはエフェクトが入れる場所がいくつかあり、Windows は再生の種類ごとに別の場所を選びます。FluidEQ はこの音楽が通らない場所にいます。別の場所へ移すには Windows の許可と 1 秒の無音が必要です。',
+  'engineHealth.tryAnotherSlot': '別の場所を試す',
   'engineHealth.partlyOff': '一部オフ',
   'engineHealth.problemsTitle': 'サウンドの一部が {device} に届いていません',
   'engineHealth.problem.convolution':

@@ -5,6 +5,10 @@ const engineHealth = {
   'engineHealth.neverRanTitle': 'Windows 从未启动过 FluidEQ 引擎',
   'engineHealth.neverRanBody':
     '引擎已安装并已用于 {device}，但 Windows 在那里一次也没有加载过它，所以重启音频不会把它带回来。FluidEQ 已经修好了它能触及的一切；如果情况依旧，那是你的安全软件或声卡驱动在阻止它。这段时间由 Equalizer APO 处理你的声音。',
+  'engineHealth.bypassedTitle': '{device} 上的声音没有经过 FluidEQ',
+  'engineHealth.bypassedBody':
+    '引擎已为此输出安装并启用，而 Windows 正绕过它播放音乐——它完全没有收到声音。一个输出有多个可以放置音效的位置，Windows 会为每种播放选择不同的位置；FluidEQ 所在的位置，这段音乐不会经过。换到另一个位置需要一次 Windows 授权和一秒钟的静音。',
+  'engineHealth.tryAnotherSlot': '换个位置试试',
   'engineHealth.partlyOff': '部分关闭',
   'engineHealth.problemsTitle': '你的部分声音未到达 {device}',
   'engineHealth.problem.convolution':

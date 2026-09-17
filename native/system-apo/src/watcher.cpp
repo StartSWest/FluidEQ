@@ -145,6 +145,14 @@ bool Watcher::start() {
                "filter state across a pipeline flush");
     return false;
   }
+  carried_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (carried_event_ == nullptr) {
+    // Not worth refusing the watcher over: everything else goes on, and the
+    // status simply keeps saying nothing has reached the engine until the
+    // next time anything else has it rewritten.
+    log_.write("could not create the carried event; the status will not say "
+               "when sound first reaches this output");
+  }
   if (owner_ != nullptr) {
     owner_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     try {
@@ -172,6 +180,10 @@ bool Watcher::start() {
     stop_event_ = nullptr;
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
+    if (carried_event_ != nullptr) {
+      CloseHandle(carried_event_);
+      carried_event_ = nullptr;
+    }
     if (owner_event_ != nullptr) {
       owner_->unsubscribe(owner_event_);
       CloseHandle(owner_event_);
@@ -205,6 +217,12 @@ void Watcher::stop() noexcept {
   if (reset_event_ != nullptr) {
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
+  }
+  // The audio thread is stopped before `stop()` is reached — Windows does not
+  // call `APOProcess` outside a lock — so nothing can be setting this now.
+  if (carried_event_ != nullptr) {
+    CloseHandle(carried_event_);
+    carried_event_ = nullptr;
   }
   // Unsubscribed before it is closed: the link may be setting it from its own
   // thread right up until `unsubscribe` returns.
@@ -275,11 +293,17 @@ void Watcher::run() {
     }
 
     bool rearm = false;
-    // The link's event last, and only when there is one: a null handle in the
-    // array fails the whole wait.
-    HANDLE handles[4] = {stop_event_, reset_event_, change.get(),
-                         owner_event_};
-    const DWORD count = owner_event_ != nullptr ? 4 : 3;
+    // A null handle anywhere in the array fails the whole wait, so each one
+    // that may be absent is appended rather than left as a hole.
+    HANDLE handles[5] = {stop_event_, reset_event_, change.get(),
+                         carried_event_, owner_event_};
+    DWORD count = carried_event_ != nullptr ? 4 : 3;
+    if (owner_event_ != nullptr) {
+      handles[count] = owner_event_;
+      count += 1;
+    }
+    const DWORD carried_at = carried_event_ != nullptr ? 3u : count;
+    const DWORD owner_at = count - 1;
     while (!rearm) {
       const DWORD woke =
           WaitForMultipleObjects(count, handles, FALSE, INFINITE);
@@ -292,7 +316,14 @@ void Watcher::run() {
         reload(Carry::Nothing);
         continue;
       }
-      if (count == 4 && woke == WAIT_OBJECT_0 + 3) {
+      if (carried_event_ != nullptr && woke == WAIT_OBJECT_0 + carried_at) {
+        // Sound has reached this output's engine for the first time since
+        // Windows built its chain — `say_it_carried`. Nothing about the
+        // audio changes; the app is told, and that is the whole point.
+        report_status(true);
+        continue;
+      }
+      if (owner_event_ != nullptr && woke == WAIT_OBJECT_0 + owner_at) {
         // FluidEQ came or went. The reload reads which, and either builds the
         // configuration's graph or a pass-through one.
         reload(Carry::State);
@@ -329,10 +360,18 @@ void Watcher::run() {
   //
   // The reset event is waited on as well: a pipeline flush must still clear
   // the filter state on an endpoint whose configuration directory has gone.
-  HANDLE idle_handles[2] = {stop_event_, reset_event_};
+  // The carried event is waited on here as well: an output with no
+  // configuration directory still has an app asking whether its sound is
+  // going through the engine at all.
+  HANDLE idle_handles[3] = {stop_event_, reset_event_, carried_event_};
+  const DWORD idle_count = carried_event_ != nullptr ? 3 : 2;
   for (;;) {
     const DWORD woke =
-        WaitForMultipleObjects(2, idle_handles, FALSE, INFINITE);
+        WaitForMultipleObjects(idle_count, idle_handles, FALSE, INFINITE);
+    if (idle_count == 3 && woke == WAIT_OBJECT_0 + 2) {
+      report_status(true);
+      continue;
+    }
     if (woke != WAIT_OBJECT_0 + 1) {
       return;  // Stop, or a wait that cannot be repeated.
     }
@@ -345,6 +384,15 @@ bool Watcher::stop_requested() const noexcept {
   // `load_initial` runs this same path on the caller's thread.
   return stop_event_ != nullptr &&
          WaitForSingleObject(stop_event_, 0) == WAIT_OBJECT_0;
+}
+
+void Watcher::say_it_carried() noexcept {
+  // Null before `start()` and after `stop()`, and the audio thread runs
+  // between the two — see the header for why one `SetEvent` on that thread
+  // is worth it, and why it happens at most once for each lock.
+  if (carried_event_ != nullptr) {
+    SetEvent(carried_event_);
+  }
 }
 
 void Watcher::request_reset() noexcept {

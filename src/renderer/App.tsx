@@ -91,7 +91,7 @@ import {
   useIsPointerNearSideChrome,
   watchChromeIdle,
 } from './utils/idleChrome';
-import { reportError } from './utils/logger';
+import { reportError, reportInfo } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
 import { albumKey } from '../common/library/grouping';
 import { ILibraryTrack } from '../common/library/types';
@@ -1977,6 +1977,21 @@ const AppContent = () => {
   // output to one Windows had built before the engine was on it put a
   // Windows prompt up with nobody having asked. The trouble card asks
   // instead: its Restart button is the one thing that runs it.
+  /**
+   * The bypassed-engine card's own button: move the engine to another of the
+   * output's effect slots, because Windows is playing that output through a
+   * chain it is not in. Pressed, never automatic — one Windows prompt.
+   */
+  const handleTryAnotherSlot = (guid: string) => {
+    reportInfo(
+      `Moving the engine on ${guid} to another slot: it was asked for, on an ` +
+        'output whose sound has never reached the engine',
+    );
+    repairEngine(guid).catch((error) =>
+      reportError('The engine could not be moved to another slot', error),
+    );
+  };
+
   // Where Windows has never created the engine on the output, a restart
   // cannot help; putting the install back, or moving the engine to a slot
   // the driver builds, can — the slot ladder, bounded and silent by design. Keyed by the slot
@@ -2745,6 +2760,7 @@ const AppContent = () => {
           }
           onRestartAudio={handleRestartWindowsAudio}
           onUseApo={handleOpenEngineDialog}
+          onTryAnotherSlot={handleTryAnotherSlot}
         />
         {/* Waits for the same things, for the troubleshooter, and for the
             tour and the release notes that open on the first launch after an

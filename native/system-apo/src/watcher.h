@@ -193,6 +193,21 @@ class Watcher {
    */
   void request_reset() noexcept;
 
+  /**
+   * The audio thread saying sound has reached this instance, so the status
+   * file can carry it — `EngineStatus::carried`.
+   *
+   * Called at most once per lock, from `APOProcess`, and guarded there by a
+   * flag so nothing happens on any block after the first with sound in it.
+   * It is the one call on that thread that reaches the operating system, and
+   * it earns the exception: without it the app can never learn that audio
+   * has come — the status file is rewritten only when the engine is asked to
+   * do something different, and a machine playing music while its engine is
+   * passed over is asked for nothing at all. One `SetEvent` on an auto-reset
+   * event, once, against a block of ten milliseconds.
+   */
+  void say_it_carried() noexcept;
+
  private:
   /** Whether a rebuild carries the running graph's state into its successor. */
   enum class Carry {
@@ -290,6 +305,8 @@ class Watcher {
   // Auto-reset: one wake per request, and a request that arrives while a
   // rebuild is already running is served by the next wait rather than lost.
   HANDLE reset_event_ = nullptr;
+  // Auto-reset, set once per lock by the audio thread — `say_it_carried`.
+  HANDLE carried_event_ = nullptr;
   HANDLE thread_ = nullptr;
 
   // Whether FluidEQ is running — see `owner_link.h`. Without it the engine

@@ -49,6 +49,13 @@ interface IEngineTroubleNoticeProps {
   isHidden: boolean;
   onRestartAudio: () => void;
   onUseApo: () => void;
+  /**
+   * Move the engine to another of the output's effect slots, for an engine
+   * Windows is playing around (`bypassed`). One Windows permission prompt
+   * and a moment of silence, and only ever from a press: the app does not
+   * do this on its own.
+   */
+  onTryAnotherSlot: (guid: string) => void;
 }
 
 /**
@@ -65,6 +72,7 @@ const EngineTroubleNotice = ({
   isHidden,
   onRestartAudio,
   onUseApo,
+  onTryAnotherSlot,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
   // Put away for the rest of the session, per trouble.
@@ -113,8 +121,12 @@ const EngineTroubleNotice = ({
   // saying a restart usually brings it back — promised a user something that
   // could not happen, over and over.
   const neverRan = trouble.kind === 'off' && trouble.neverRan === true;
+  // Windows is playing this output through a chain the engine is not in.
+  // Restarting the audio rebuilds the same chains and changes nothing; the
+  // engine has to be moved to another of the output's slots.
+  const bypassed = trouble.kind === 'off' && trouble.bypassed === true;
   const canRestartHelp =
-    trouble.kind === 'off' ? !neverRan : trouble.canRestartHelp;
+    trouble.kind === 'off' ? !neverRan && !bypassed : trouble.canRestartHelp;
   // The engine failing is Equalizer APO's cue; the engine's own DSP failing is
   // not, because APO has none of it — offering it there is an offer to give
   // up the EQ that is working for nothing in return.
@@ -145,9 +157,13 @@ const EngineTroubleNotice = ({
   );
   let titleKey: TranslationKey = 'engineHealth.problemsTitle';
   if (isOff) {
-    titleKey = neverRan
-      ? 'engineHealth.neverRanTitle'
-      : 'engineHealth.offTitle';
+    if (bypassed) {
+      titleKey = 'engineHealth.bypassedTitle';
+    } else if (neverRan) {
+      titleKey = 'engineHealth.neverRanTitle';
+    } else {
+      titleKey = 'engineHealth.offTitle';
+    }
   }
 
   return createPortal(
@@ -168,9 +184,11 @@ const EngineTroubleNotice = ({
         </h2>
         {isOff ? (
           <p id="engine-trouble-notice-body">
-            {neverRan
-              ? t('engineHealth.neverRanBody', { device: trouble.device.name })
-              : t('engineHealth.offBody')}
+            {bypassed && t('engineHealth.bypassedBody')}
+            {!bypassed &&
+              neverRan &&
+              t('engineHealth.neverRanBody', { device: trouble.device.name })}
+            {!bypassed && !neverRan && t('engineHealth.offBody')}
           </p>
         ) : (
           <ul
@@ -199,16 +217,35 @@ const EngineTroubleNotice = ({
           </>
         ) : (
           <>
+            {/* Windows is playing this output through a chain the engine is
+                not in. Moving it to another of the output's effect slots is
+                the one thing that can put it in the way of the music, and it
+                leads; a restart would rebuild the very same chains. */}
+            {bypassed && (
+              <>
+                <Button
+                  ariaLabel={t('engineHealth.tryAnotherSlot')}
+                  isDisabled={false}
+                  className="small"
+                  handleChange={() => onTryAnotherSlot(trouble.device.guid)}
+                >
+                  {t('engineHealth.tryAnotherSlot')}
+                </Button>
+                {useApo}
+                {notNow}
+              </>
+            )}
             {/* An engine Windows has never created: Equalizer APO is the way
                 to have any processing at all, so it leads. Otherwise nothing
                 here mends a file the engine could not read — the answer is a
                 different file, chosen where it was chosen. */}
-            {neverRan ? (
+            {!bypassed && neverRan ? (
               <>
                 {useApo}
                 {notNow}
               </>
-            ) : (
+            ) : null}
+            {!bypassed && !neverRan ? (
               <>
                 <Button
                   ariaLabel={t('output.gotIt')}
@@ -220,7 +257,7 @@ const EngineTroubleNotice = ({
                 </Button>
                 {useApo}
               </>
-            )}
+            ) : null}
           </>
         )}
       </div>

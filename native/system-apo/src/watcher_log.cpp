@@ -129,6 +129,12 @@ void Watcher::report_status(bool locked) noexcept {
       status.problems = graph_problems_;
       status.channels = channels_;
       status.room = room_state_;
+      // The output's, not this instance's: Windows runs one instance per
+      // signal-processing mode and only the one carrying what is playing
+      // ever sets it.
+      if (const auto carried = output_carried_flag(endpoint_.guid)) {
+        status.carried = carried->load(std::memory_order_relaxed);
+      }
       if (reload_failed_) {
         status.problems.push_back("reload-failed");
       }

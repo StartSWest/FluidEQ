@@ -81,6 +81,51 @@ describe('engineTrouble', () => {
     expect(trouble?.key).toBe('off:never:{AAAA}');
   });
 
+  it('says the sound is going past an engine that is locked and has had none', () => {
+    // Ivan's laptop speaker: locked, owner, saying it was processing, and no
+    // audio ever in its hands, because Windows plays that output through a
+    // chain the engine is not in. Every field but the last says healthy.
+    const trouble = engineTrouble(
+      facts({
+        heardGuid: '{AAAA}',
+        reportsCarried: true,
+        health: { outputs: [running({ carried: false })] },
+      }),
+    );
+    expect(trouble?.kind === 'off' && trouble.bypassed).toBe(true);
+    // Not an engine Windows never created: it ran, and it is running.
+    expect(trouble?.kind === 'off' && trouble.neverRan).toBeUndefined();
+    expect(trouble?.key).toBe('off:bypassed:{AAAA}');
+  });
+
+  it('says nothing when the sound has reached the engine', () => {
+    // The positive control: the same status with audio having arrived.
+    expect(
+      engineTrouble(
+        facts({
+          heardGuid: '{AAAA}',
+          reportsCarried: true,
+          health: { outputs: [running({ carried: true })] },
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
+  it('never calls an older engine passed over for saying nothing', () => {
+    // An engine from before this field writes no answer at all, and a status
+    // without one must not be read as no sound having come — that would put
+    // the card on every output of every machine not yet updated.
+    expect(
+      engineTrouble(
+        facts({
+          heardGuid: '{AAAA}',
+          reportsCarried: false,
+          health: { outputs: [running({ carried: false })] },
+        }),
+      ),
+    ).toBeUndefined();
+  });
+
   it('says nothing about an engine too old to report what it is doing', () => {
     // The case above, through an engine from before status files: it runs
     // every output it is on and never writes a word, and was reported as

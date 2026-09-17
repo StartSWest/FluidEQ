@@ -203,6 +203,17 @@ class Apo final : public IAudioProcessingObject,
   std::vector<float> scratch_;
   std::vector<float*> planes_;
 
+  /**
+   * Where the audio thread records that this output's engine has had the
+   * stream's audio in its hands — `EngineStatus::carried`, shared by every
+   * instance on the output. Taken in `LockForProcess` and dropped in
+   * `release_locked_state`, so the audio thread, which runs only between
+   * those two, never sees it change.
+   */
+  std::shared_ptr<std::atomic<bool>> carried_;
+  /** False until this instance has told the watcher; audio thread only. */
+  bool carried_told_ = false;
+
   GraphSlot slot_;
   std::unique_ptr<Log> log_;
   std::unique_ptr<Watcher> watcher_;

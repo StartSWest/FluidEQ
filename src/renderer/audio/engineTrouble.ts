@@ -43,6 +43,20 @@ export type TEngineTrouble =
        * instead (`useRepairWhenEngineNeverRan`).
        */
       neverRan?: boolean;
+      /**
+       * Windows created the engine here and plays this output through a
+       * chain it is not in: it is locked, it says it is processing, and no
+       * sound has ever reached it (`IEngineOutputHealth.carried`).
+       *
+       * The state every other reading calls healthy. An output has several
+       * effect slots and Windows builds a different chain for each kind of
+       * stream, so an engine sitting in the wrong one for the music is
+       * created, asked for nothing, and passed over — which is a user with
+       * an EQ that does nothing and an app insisting it works. Neither a
+       * restart nor a re-install moves it; another slot might, and that is
+       * what the card offers.
+       */
+      bypassed?: boolean;
     }
   | {
       kind: 'problems';
@@ -84,6 +98,12 @@ export interface IEngineTroubleFacts {
   heardGuid: string | undefined;
   /** What the helper says about the engine ever having run here. */
   hasEverRun?: boolean;
+  /**
+   * The installed engine says whether sound has reached it
+   * (`engineReportsCarried`). Only then does `carried` being false mean no
+   * audio has come, rather than an engine that never says.
+   */
+  reportsCarried?: boolean;
 }
 
 /**
@@ -118,6 +138,7 @@ export const engineTrouble = ({
   health,
   heardGuid,
   hasEverRun,
+  reportsCarried,
 }: IEngineTroubleFacts): TEngineTrouble | undefined => {
   if (engine !== 'fluid') {
     return undefined;
@@ -144,29 +165,47 @@ export const engineTrouble = ({
     // of thing and worse to get wrong: Windows loads nothing there, so this
     // card would offer to restart Windows audio — which changes nothing — as
     // often as sound was heard. The output panel says what the switch is.
+    // Locked, owned, and no sound has ever reached it: Windows plays this
+    // output through a chain the engine is not in. Only from an engine that
+    // counts what reaches it, and only once sound has been heard here — the
+    // status read that made this trouble was started after that sound, so
+    // "none has come" is about the music the listener is hearing now.
+    const bypassed =
+      reportsCarried === true &&
+      status?.locked === true &&
+      status.owner &&
+      status.carried === false;
     if (
       device !== undefined &&
       isAttached(device.guid) &&
       device.canHostEffects !== false &&
       device.effectsEnabled !== false &&
-      (!status?.locked || !status.owner)
+      (bypassed || !status?.locked || !status.owner)
     ) {
       // Never created: on the whole machine, as the helper reports it, or on
       // this output — an output the engine has never written a status for
       // is one Windows has never built it on, and the read this trouble is
       // made from started after the sound was heard there. A restart cannot
       // help either way; the slot ladder can.
-      const neverRan = hasEverRun === false || status === undefined;
+      // An engine Windows is playing around is not one that never ran: it
+      // ran, it is running, and the music is going somewhere else.
+      const neverRan =
+        !bypassed && (hasEverRun === false || status === undefined);
+      let state = '';
+      if (bypassed) {
+        state = ':bypassed';
+      } else if (neverRan) {
+        state = ':never';
+      }
       return {
         kind: 'off',
         device,
         // In the key, so the card speaks again if this ever changes from one
         // to the other: they say different things and offer different
         // buttons, and the second is not the one that was put away.
-        key: `off${neverRan ? ':never' : ''}:${normaliseEndpointGuid(
-          device.guid,
-        )}`,
+        key: `off${state}:${normaliseEndpointGuid(device.guid)}`,
         ...(neverRan ? { neverRan } : {}),
+        ...(bypassed ? { bypassed: true } : {}),
       };
     }
   }

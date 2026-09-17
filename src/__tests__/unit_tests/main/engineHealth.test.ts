@@ -75,6 +75,26 @@ describe('parseEngineStatus', () => {
     );
   });
 
+  it('reads whether sound has reached the engine, and tells silence from an older engine', () => {
+    // The field the bypassed-engine card stands on. False has to survive the
+    // read: it is the one thing that tells an engine Windows is playing
+    // around from one that is working, and every other field agrees with the
+    // working one.
+    expect(parseEngineStatus(status({ carried: false }))).toEqual(
+      expect.objectContaining({ carried: false }),
+    );
+    expect(parseEngineStatus(status({ carried: true }))).toEqual(
+      expect.objectContaining({ carried: true }),
+    );
+    // An engine from before the field says nothing, which is not false: read
+    // as false it would put the card on every output of every machine whose
+    // engine has not been updated.
+    expect(parseEngineStatus(status({}))).not.toHaveProperty('carried');
+    expect(parseEngineStatus(status({ carried: 'yes' }))).not.toHaveProperty(
+      'carried',
+    );
+  });
+
   it('reads the phase fallback written by the native engine', () => {
     expect(
       parseEngineStatus(status({ problems: ['eq-phase'] }))?.problems,

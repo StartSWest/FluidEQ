@@ -5,6 +5,11 @@ const engineHealth = {
   'engineHealth.neverRanTitle': 'Windows nunca ha iniciado el motor de FluidEQ',
   'engineHealth.neverRanBody':
     'El motor está instalado y puesto en {device}, y Windows no lo ha cargado ni una vez ahí, así que reiniciar el audio no va a traerlo. FluidEQ ya ha corregido todo lo que está a su alcance; si sigue así, lo está impidiendo tu antivirus o el driver de tu tarjeta de sonido. Mientras tanto, Equalizer APO sí procesa tu sonido.',
+  'engineHealth.bypassedTitle':
+    'Tu sonido no está pasando por FluidEQ en {device}',
+  'engineHealth.bypassedBody':
+    'El motor está instalado y activado para esta salida, y Windows está reproduciendo la música sin pasarla por él: no le ha llegado ningún sonido. Una salida tiene varios sitios donde puede ir un efecto, y Windows elige uno distinto para cada tipo de reproducción; FluidEQ está en uno por el que esta música no pasa. Moverlo a otro pide un permiso de Windows y un segundo de silencio.',
+  'engineHealth.tryAnotherSlot': 'Probar otro sitio',
   'engineHealth.partlyOff': 'EN PARTE DESACT.',
   'engineHealth.problemsTitle': 'Parte de tu sonido no llega a {device}',
   'engineHealth.problem.convolution':

@@ -15,7 +15,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
-import { ENGINE_STATUS_SINCE, engineReportsStatus } from 'common/engineHealth';
+import {
+  ENGINE_CARRIED_SINCE,
+  ENGINE_STATUS_SINCE,
+  engineReportsCarried,
+  engineReportsStatus,
+} from 'common/engineHealth';
 import {
   supportsCurveComparison,
   supportsEqPhase,
@@ -75,6 +80,18 @@ describe('the engine this tree builds', () => {
     const below =
       minor > 0 ? `${major}.${minor - 1}.0.0` : `${major - 1}.99.0.0`;
     expect(engineReportsStatus(below)).toBe(false);
+  });
+
+  it('carries a version the app trusts to say when sound reaches it', () => {
+    // The gate the bypassed-engine card stands on: without it a status with
+    // no `carried` in it would be read as "no audio has come" on every
+    // machine still running an older engine, and the card would accuse a
+    // working one.
+    expect(engineReportsCarried(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_CARRIED_SINCE;
+    const below =
+      minor > 0 ? `${major}.${minor - 1}.0.0` : `${major - 1}.99.0.0`;
+    expect(engineReportsCarried(below)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

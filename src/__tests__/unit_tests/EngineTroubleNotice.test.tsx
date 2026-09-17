@@ -47,21 +47,27 @@ interface IShown {
 const renderNotice = ({ trouble, isHidden = false }: IShown) => {
   const onRestartAudio = jest.fn();
   const onUseApo = jest.fn();
+  const onTryAnotherSlot = jest.fn();
   const notice = (shown: IShown) => (
     <EngineTroubleNotice
       trouble={shown.trouble}
       isHidden={shown.isHidden ?? false}
       onRestartAudio={onRestartAudio}
       onUseApo={onUseApo}
+      onTryAnotherSlot={onTryAnotherSlot}
     />
   );
   const view = render(notice({ trouble, isHidden }));
   const rerender = (shown: IShown) => view.rerender(notice(shown));
-  return { onRestartAudio, onUseApo, rerender };
+  return { onRestartAudio, onUseApo, onTryAnotherSlot, rerender };
 };
 
-const title = (key: 'engineHealth.offTitle' | 'engineHealth.problemsTitle') =>
-  en[key].replace('{device}', speakers.name);
+const title = (
+  key:
+    | 'engineHealth.offTitle'
+    | 'engineHealth.problemsTitle'
+    | 'engineHealth.bypassedTitle',
+) => en[key].replace('{device}', speakers.name);
 
 describe('EngineTroubleNotice', () => {
   it('explains a refused linear filter without claiming the original EQ stopped', () => {
@@ -187,6 +193,37 @@ describe('EngineTroubleNotice', () => {
     expect(
       screen.getAllByRole('button').map((button) => button.textContent),
     ).toEqual([en['engineHealth.useApo'], en['output.notNow']]);
+  });
+
+  it('offers another slot when Windows is playing the output past the engine', () => {
+    // Ivan's laptop speaker: the engine installed, attached, locked, saying
+    // it was processing — and the music going through a chain it is not in,
+    // so every reading said healthy while the EQ did nothing. A restart
+    // rebuilds the very same chains, so it is not offered.
+    const { onTryAnotherSlot } = renderNotice({
+      trouble: { ...off, bypassed: true },
+    });
+
+    expect(
+      screen.getByText(title('engineHealth.bypassedTitle')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(en['engineHealth.bypassedBody']),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: en['app.menu.restartAudio'] }),
+    ).not.toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      en['engineHealth.tryAnotherSlot'],
+      en['engineHealth.useApo'],
+      en['output.notNow'],
+    ]);
+    // The move is the recommendation, and nothing runs until it is pressed.
+    expect(buttons[0]).not.toHaveClass('subtle');
+    expect(onTryAnotherSlot).not.toHaveBeenCalled();
+    fireEvent.click(buttons[0]);
+    expect(onTryAnotherSlot).toHaveBeenCalledWith(off.device.guid);
   });
 
   it('still speaks up for a different trouble on the same output', () => {

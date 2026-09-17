@@ -135,6 +135,10 @@ export const parseEngineStatus = (
     problems: problems.filter(isString),
     ...(reason ? { reason } : {}),
     ...(lastSong ? { lastSong } : {}),
+    // From an engine that counts the sound reaching it. Absent from an older
+    // one, which is not the same as false: false is that engine saying no
+    // audio has come, and the app acts on it.
+    ...(typeof value.carried === 'boolean' ? { carried: value.carried } : {}),
     // Both from an engine with the room; a word this app does not know is
     // a state from a newer engine and is left out rather than guessed at.
     ...(typeof value.channels === 'number' &&

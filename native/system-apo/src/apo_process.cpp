@@ -32,6 +32,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 
+namespace {
+
+/**
+ * Above this a sample is sound, under it the stream is idle: -90 dBFS.
+ *
+ * An output nobody is playing through still hands its effects valid blocks,
+ * and they are not empty — the machine this was written for measured about
+ * -180 dBFS in them. Music, however quiet, is orders of magnitude above
+ * this; nothing a listener could hear sits under it.
+ */
+constexpr float kSilenceFloor = 3.2e-5f;
+
+}  // namespace
+
 STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
                                  APO_CONNECTION_DESCRIPTOR** inputs,
                                  UINT32 output_count,
@@ -120,6 +134,10 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
                                                max_frames_;
     }
 
+    // Before the watcher, which reads it whenever it writes a status, and
+    // before any audio, which is the only thing that ever sets it.
+    carried_ = output_carried_flag(endpoint_.guid);
+    carried_told_ = false;
     log_ = std::make_unique<Log>(endpoint_.guid);
     watcher_ = std::make_unique<Watcher>(
         slot_, *log_, endpoint_, config_dir(),
@@ -192,6 +210,8 @@ void Apo::release_locked_state() noexcept {
   // and `shrink_to_fit` is allowed to throw.
   std::vector<float*>().swap(planes_);
   std::vector<float>().swap(scratch_);
+  carried_.reset();
+  carried_told_ = false;
   channels_ = 0;
   sample_rate_.store(0, std::memory_order_relaxed);
   max_frames_ = 0;
@@ -239,6 +259,37 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     const auto* input = reinterpret_cast<const float*>(in.pBuffer);
     auto* output = reinterpret_cast<float*>(out.pBuffer);
     const bool bypass = graph == nullptr || graph->is_passthrough();
+
+    // Sound — not merely a block — has reached this instance.
+    //
+    // What this answers is whether the music is coming through the engine at
+    // all (`EngineStatus::carried`), and on the machine that needed it every
+    // other field said yes while the EQ did nothing: Windows had created the
+    // engine in one of the output's effect slots and was playing through a
+    // chain that slot is not in. That instance was handed blocks all the
+    // same, marked valid and holding nothing but the noise of an idle
+    // stream — a peak of about -180 dBFS — so "a block arrived" would have
+    // called it healthy. A sample above -90 dBFS is sound; anything under it
+    // is a stream nobody is playing through.
+    //
+    // Once per lock, and the scan stops at the first sample that settles it,
+    // so the cost falls away as soon as music starts.
+    if (!carried_told_) {
+      const size_t samples = static_cast<size_t>(channels_) * frames;
+      for (size_t at = 0; at < samples; ++at) {
+        const float sample = input[at];
+        if (sample > kSilenceFloor || sample < -kSilenceFloor) {
+          carried_told_ = true;
+          if (carried_ != nullptr) {
+            carried_->store(true, std::memory_order_relaxed);
+          }
+          if (watcher_) {
+            watcher_->say_it_carried();
+          }
+          break;
+        }
+      }
+    }
 
     if (bypass) {
       // The pointers this block was actually handed, not what the connection

@@ -48,7 +48,8 @@ void a_processing_output() {
       status_json(status, 4242, "2026-09-11T12:00:00.000Z");
   CHECK(text ==
         "{\"version\":1,\"endpoint\":\"{947B0242-A1CF-4483-A44E-B72DA462C901}\","
-        "\"pid\":4242,\"locked\":true,\"processing\":true,\"owner\":true,"
+        "\"pid\":4242,\"locked\":true,\"processing\":true,"
+        "\"carried\":false,\"owner\":true,"
         "\"reason\":\"\",\"problems\":[],\"channels\":2,\"room\":\"off\","
         "\"at\":\"2026-09-11T12:00:00.000Z\"}\r\n");
   // The room's state rides with the count the card needs to name it.
@@ -56,6 +57,13 @@ void a_processing_output() {
   status.room = "7.1";
   CHECK(status_json(status, 4242, "t").find(
             "\"channels\":8,\"room\":\"7.1\",\"at\"") != std::string::npos);
+  // Whether sound has reached the engine here: false beside a locked,
+  // processing output is the one state the app calls broken and every
+  // other field calls healthy, so it is written either way rather than
+  // left out when it is false.
+  status.carried = true;
+  CHECK(status_json(status, 4242, "t").find("\"carried\":true,\"owner\"") !=
+        std::string::npos);
 }
 
 void a_pass_through_with_problems() {
@@ -85,7 +93,8 @@ void a_finished_song() {
       EngineStatus::FinishedSong{"00000000000a11ce", -11.844, -0.6251, 184.25};
   CHECK(status_json(status, 7, "t") ==
         "{\"version\":1,\"endpoint\":\"{AAAA}\",\"pid\":7,\"locked\":true,"
-        "\"processing\":true,\"owner\":true,\"reason\":\"\",\"problems\":[],"
+        "\"processing\":true,\"carried\":false,\"owner\":true,"
+        "\"reason\":\"\",\"problems\":[],"
         "\"lastSong\":{\"id\":\"00000000000a11ce\",\"level\":-11.84,"
         "\"peak\":-0.63,\"seconds\":184.25},\"channels\":0,\"room\":\"off\","
         "\"at\":\"t\"}\r\n");

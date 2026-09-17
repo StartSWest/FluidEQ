@@ -22,6 +22,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_STATUS_FILE_H
 #define FLUIDEQ_ENGINE_STATUS_FILE_H
 
+#include <atomic>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -35,6 +37,24 @@ struct EngineStatus {
   bool locked = false;
   /** And the engine is changing it, rather than passing it through. */
   bool processing = false;
+  /**
+   * Some instance on this output has actually had the stream's audio in its
+   * hands since Windows built this output's chain.
+   *
+   * `locked` and `processing` are both about what the engine was asked to do
+   * and both were true on a machine where the EQ did nothing at all: Windows
+   * created the engine in one of the output's effect slots, and the music
+   * went through a chain that slot is not part of. From the app that is
+   * indistinguishable from a working engine — which is how a user sat with
+   * an output whose every reading said healthy and whose sound was
+   * untouched. This is the one fact that tells them apart, and it is worth a
+   * field of its own because no wording of `reason` could: the engine has no
+   * way of knowing it is being passed over, only that no audio has reached
+   * it. Counted for the output rather than the instance, because Windows
+   * runs one instance per signal-processing mode and only one of them
+   * carries what is playing.
+   */
+  bool carried = false;
   /**
    * The engine sees FluidEQ running (`owner_link.h`). False is its own reason
    * to pass the output through, and the one the app must tell apart from an
@@ -97,6 +117,19 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
  */
 bool write_status(const EngineStatus& status,
                   std::string* why = nullptr) noexcept;
+
+/**
+ * The flag that says audio has reached the engine on this output, shared by
+ * every instance running it in this process — see `EngineStatus::carried`.
+ *
+ * Handed out on the control thread, which may allocate; the audio thread
+ * only ever stores `true` through the pointer it was given at lock time. It
+ * goes back to false when the last instance on the output lets go, so it
+ * always means "since Windows built the chain this instance is in" rather
+ * than "ever", which would hide a chain that stopped carrying anything.
+ */
+std::shared_ptr<std::atomic<bool>> output_carried_flag(
+    const std::wstring& endpoint);
 
 /**
  * One engine instance's say in its output's status file.
