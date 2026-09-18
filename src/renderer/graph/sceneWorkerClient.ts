@@ -262,7 +262,24 @@ export const createSceneWorkerClient = (
    * it is a few frames of the panel behind a scene that is already there.
    */
   let settled = true;
+  /**
+   * Bumped every time the box changes, so a frame can be checked against the
+   * box it was actually drawn for.
+   *
+   * A box does not change once. Coming out of full screen, measured in the
+   * window: 2146x1440, then 1602x251, then 1602x175, then back up to
+   * 1602x312 — four shapes over 437ms, because the panel overshoots and
+   * settles. Releasing on the first frame that happened to fit put the scene
+   * back at 175 and the box then moved to 312, showing it 1.78 times out of
+   * shape before hiding it again. That hide-show-hide is what Ivan saw as the
+   * scene blinking on the way back, and why the way IN looked perfect: going
+   * in, the box only grows, and every intermediate shape is close enough to
+   * the last that nothing was released early.
+   */
+  let boxTurn = 0;
+  let drawnForTurn = 0;
   const hold = () => {
+    boxTurn += 1;
     if (settled && !fits()) {
       settled = false;
       canvas.style.transition = 'none';
@@ -270,6 +287,18 @@ export const createSceneWorkerClient = (
     }
   };
   const release = () => {
+    // Only a frame drawn for the box that is still there. A frame drawn for
+    // a shape the panel has already left fits nothing that anybody can see.
+    //
+    // What this costs: while a box keeps moving, a scene that is already
+    // hidden stays hidden until it stops. That is the intended behaviour for
+    // a panel settling over four shapes in 437ms, and it cannot strand a
+    // window edge being dragged, because a drag moves the box a percent or
+    // two a frame and never trips `fits` in the first place — nothing is
+    // hidden, so there is nothing waiting to be released.
+    if (drawnForTurn !== boxTurn) {
+      return;
+    }
     if (!settled && fits()) {
       settled = true;
       canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
@@ -415,6 +444,9 @@ export const createSceneWorkerClient = (
       !disposed && !lost && loads.size === 0 && shown === undefined,
     draw: (frame, drawn, output, finish, clip, paceMs, notify) => {
       shown = notify;
+      // Which box this frame is for, so the answer can be checked against the
+      // box that is there when it arrives.
+      drawnForTurn = boxTurn;
       try {
         send({
           kind: 'draw',
