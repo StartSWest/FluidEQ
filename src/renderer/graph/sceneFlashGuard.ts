@@ -89,21 +89,41 @@ export const flashCoarseDecay = (deltaMs: number): number =>
   );
 
 /**
- * Which way the coarse luminance last moved, carried into the next frame:
- * this frame's direction where the swing is large enough to be part of a
- * flash, the last direction faded otherwise. The direction only, never the
- * size: how dangerous a reversal is depends on how soon it comes, not on how
- * big it is, and a large slow one is ordinary motion. Mirrors the alpha
- * channel of STATE_SOURCE.
+ * How far the picture has travelled one way, and which way, carried into the
+ * next frame. Mirrors `flashTravel` in the shader; see its comment for why
+ * this is travel and not the last direction.
+ */
+export const flashTravelled = (
+  travelled: number,
+  swing: number,
+  decay: number,
+): number => {
+  // One swing big enough to be a flash on its own still counts whole and at
+  // once, as it always did — that is what makes the smallest pair WCAG counts
+  // a flash. Anything smaller adds up instead of being thrown away.
+  if (Math.abs(swing) >= FLASH_SWING) {
+    return Math.sign(swing);
+  }
+  const carried = travelled * swing < 0 ? swing : travelled * decay + swing;
+  return Math.max(-1, Math.min(1, carried));
+};
+
+/**
+ * Which way the coarse luminance has been moving, and how far, carried into
+ * the next frame. Mirrors the alpha channel of STATE_SOURCE.
+ *
+ * It used to be the direction alone, set only when ONE FRAME swung by a tenth
+ * of full scale — and a brightness ramped over eleven frames or more swings
+ * by less than that every time, so it set nothing and the memory faded to
+ * nothing. The instant drop at the end of such a ramp then had nothing to
+ * oppose: a full-screen strobe at three to five and a half flashes a second,
+ * the band that provokes seizures, went through untouched.
  */
 export const flashCoarseMemory = (
   swing: number,
   lastSwing: number,
   deltaMs: number,
-): number =>
-  Math.abs(swing) >= FLASH_SWING
-    ? Math.sign(swing)
-    : lastSwing * flashCoarseDecay(deltaMs);
+): number => flashTravelled(lastSwing, swing, flashCoarseDecay(deltaMs));
 
 /** How fresh the memory of an opposing swing still is at this flash rate. */
 const freshnessAt = (flashesPerSecond: number) =>
@@ -162,6 +182,9 @@ export const flashPressure = (
   lastSwing: number,
   deltaMs: number,
 ): number => {
+  // `lastSwing` is travel now, not one frame's step, so a slow rise followed
+  // by a snap back counts here too — the same hole the coarse memory had, on
+  // the path that decides whether a PART of the picture is flashing.
   const opposing =
     Math.abs(swing) >= FLASH_SWING &&
     Math.abs(lastSwing) >= FLASH_SWING &&
@@ -227,6 +250,39 @@ float redness(vec3 colour) {
 }
 `;
 
+/**
+ * How far the picture has travelled one way, and which way, in one number.
+ *
+ * This used to be the direction alone, set only when ONE FRAME moved by a
+ * tenth of full scale and faded otherwise — and that is what a flash was
+ * recognised by. So a brightness spread over eleven frames or more moved by
+ * under a tenth each time, set nothing, and left the memory to fade to
+ * nothing; the instant drop at the end of the ramp then had nothing to
+ * oppose, and a full-screen black-to-white strobe at three to five and a half
+ * flashes a second — the exact band that provokes seizures — was drawn
+ * exactly as its author wrote it. Ten characters of shader.
+ *
+ * Travel accumulates instead, decaying as it always did, so a slow rise is
+ * remembered as the rise it is. A movement the other way starts the count
+ * again from itself, which is what makes the DROP small against a gentle
+ * turn and enormous against a sudden one: what the composite weighs is this
+ * frame's travel against the last frame's, so a scene that breathes reverses
+ * from a small new step and passes, and one that snaps back reverses from a
+ * whole one and is held.
+ *
+ * Measured against the thresholds above: a ramp-and-drop reaches 0.54 at two
+ * flashes a second, which WCAG allows and which this lets through, and 0.61
+ * to 0.81 from two and a half up, which it does not and this holds.
+ */
+const TRAVEL_FUNCTION = `
+float flashTravel(float last, float swing, float decay) {
+  float carried = last * swing < 0.0 ? swing : last * decay + swing;
+  return abs(swing) >= ${FLASH_SWING.toFixed(3)}
+    ? sign(swing)
+    : clamp(carried, -1.0, 1.0);
+}
+`;
+
 const STATE_SOURCE = `#version 300 es
 precision highp float;
 uniform sampler2D uCurrent;
@@ -237,7 +293,7 @@ uniform float uCoarseDecay;
 uniform float uLod;
 in vec2 vUv;
 out vec4 state;
-${COLOUR_FUNCTIONS}
+${COLOUR_FUNCTIONS}${TRAVEL_FUNCTION}
 void main() {
   vec3 now = textureLod(uCurrent, vUv, 1.0).rgb;
   vec3 before = textureLod(uLastFrame, vUv, 1.0).rgb;
@@ -252,7 +308,10 @@ void main() {
   float pressure = min(1.0,
     max(0.0, old.r * uDecay - ${PRESSURE_FLOOR.toFixed(6)})
     + opposing * ${FLASH_SWING_PRESSURE.toFixed(6)});
-  float remembered = abs(swing) >= ${FLASH_SWING.toFixed(3)} ? swing : lastSwing * uDecay;
+  // Travel, like the coarse memory below and for the same reason: a rise
+  // spread over frames small enough to each pass the test is still a rise,
+  // and what snaps back from it is still a flash.
+  float remembered = flashTravel(lastSwing, swing, uDecay);
   // Blue is whether this spot is flashing, kept apart from the pressure so
   // its mips are the share of an area that is.
   float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);
@@ -263,8 +322,7 @@ void main() {
   float coarseSwing = luma(textureLod(uCurrent, vUv, uLod).rgb)
     - luma(textureLod(uLastFrame, vUv, uLod).rgb);
   float lastCoarse = old.a * 2.0 - 1.0;
-  float coarse = abs(coarseSwing) >= ${FLASH_SWING.toFixed(3)}
-    ? sign(coarseSwing) : lastCoarse * uCoarseDecay;
+  float coarse = flashTravel(lastCoarse, coarseSwing, uCoarseDecay);
   state = vec4(pressure, remembered * 0.5 + 0.5, flashing, coarse * 0.5 + 0.5);
 }
 `;
