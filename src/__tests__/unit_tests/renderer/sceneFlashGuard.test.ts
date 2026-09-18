@@ -38,6 +38,26 @@ describe('the brightness limiter', () => {
     expect(FLASH_LIMIT_PER_SECOND).toBeLessThan(needed);
   });
 
+  /**
+   * Below it by enough, which is a different sum and the one that was wrong.
+   *
+   * A picture that RISES for a whole cycle and snaps back at the end of it
+   * gets its swing from the rise alone — the snap never has to be let through
+   * for the shape to be a flash. So the rise over one cycle, at a rate that
+   * must be held, has to come out under the tenth WCAG counts. At 0.5 a
+   * second it did not: 0.133 at 3.75 flashes a second, and that shape was
+   * measured reaching the screen at 3.2 flashes a second against a bound of
+   * three. At 0.35 it is 0.093.
+   */
+  it('is below it by enough that a whole cycle of rise is not a flash', () => {
+    const riseOverACycle = (flashes: number) =>
+      FLASH_LIMIT_PER_SECOND / flashes;
+    expect(riseOverACycle(3.75)).toBeLessThan(WCAG_SWING);
+    // And not so tight that it holds what WCAG allows: at two a second the
+    // rise may still reach a flash on its own.
+    expect(riseOverACycle(2)).toBeGreaterThan(WCAG_SWING);
+  });
+
   it('allows the same change per second at any frame rate', () => {
     const perSecond = (fps: number) => flashAllowance(1000 / fps) * fps;
     expect(perSecond(30)).toBeCloseTo(FLASH_LIMIT_PER_SECOND, 6);

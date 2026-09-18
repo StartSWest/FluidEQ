@@ -54,25 +54,60 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * REACH THE SCREEN rather than the blend on any one frame — the arithmetic
  * tests measure the snap and cannot see the frames after it. A square strobe
  * at 3.75, 4, 5, 6 and 10 flashes a second came out at 1.6, 1.4, 1.0, 0.8 and
- * 0.8; a ramp that snaps back at the same rates at 3.2, 1.4, 1.0, 0.8 and 0.8.
- * Untouched, as they must be: a square at 3 a second, a ramp at 2, a picture
- * breathing at 1, a bar sweeping across, and a strip a sixteenth and an eighth
- * of the frame flickering at 10 a second, which keep all and 99 % of their
- * swing and are the flame tips and the sparkles.
+ * 0.8; a ramp that snaps back at the same rates at 1.6, 1.4, 1.0, 0.8 and 0.8.
+ * Untouched, as they must be, and at the whole of their own swing: a square at
+ * 3 a second, a ramp at 2, a picture breathing at 1, a bar sweeping across,
+ * and a strip a sixteenth and an eighth of the frame flickering at 10 a
+ * second — 100 % and 97 % — which are the flame tips and the sparkles.
  *
- * The one over the line is a ramp-and-snap at 3.75 a second, at 3.2 where the
- * bound is 3. Its cause is measured and is not a missing rule: the pixel
- * pressure is an exponential whose level encodes the rate, and a sawtooth
- * puts its two opposing swings next to each other, so between them the
- * pressure falls to 0.71 with holding starting at 0.70 and the limit lets go
- * for most of the cycle. Softening `mix(1.0, pixelBlend, flashing)` into
- * `pow(pixelBlend, flashing)` closes it — 1.6 a second — and costs a
- * flickering eighth of the frame a third of its swing, which is the smearing
- * this limiter has twice been sent back for. Left as it is deliberately.
+ * The ramp-and-snap at 3.75 a second used to be over the line at 3.2, and is
+ * 1.6 now: see FLASH_LIMIT_PER_SECOND, which was 0.5 and is 0.35.
+ *
+ * WHAT IS STILL OPEN, and it is the sharpest thing here. A picture can slide
+ * from neutral grey to saturated red and snap back with its relative
+ * luminance PINNED — 0.2126 at every step, which is arithmetic, not luck — and
+ * the frame limit above measures luminance alone, so it sees a still picture.
+ * The per-pixel path does measure red, but its memory is one frame's swing, so
+ * a rise made of steps under a tenth sets nothing there and the snap meets
+ * nothing to oppose. Measured on the driver: 4.6 flashes a second drawn, 4.6
+ * on screen. WCAG counts a red flash exactly as it counts a general one.
+ *
+ * Four repairs were built and measured, and none is worth its cost, which is
+ * why it is still here rather than quietly half-fixed:
+ * - redness in the coarse measure: holds the snap frame only, because
+ *   `alternating` is a product of two consecutive frames and the picture
+ *   arrives on the next one. 4.6 -> 4.5.
+ * - `pow(pixelBlend, flashing)` instead of the mix: closes the old 3.75 case
+ *   but takes a third of the swing off a flickering eighth of the frame,
+ *   which is the flame-tip smearing this has twice been sent back for.
+ * - counting TURNS of the travel rather than opposing swings, so a ramp
+ *   scores two a cycle like a square: fixes red at 4.6 (1.0) and breaks the
+ *   luminance ramp at 3.75 and 4 (3.6, 3.9).
+ * - both of those together: identical to the last one.
+ * The honest next step is the two limits recalibrated together against the
+ * whole sequence set, with the flame tips as the constraint they answer to.
  */
 
-/** Of full relative luminance, per second. Below the 0.6 that three flashes need. */
-export const FLASH_LIMIT_PER_SECOND = 0.5;
+/**
+ * Of full relative luminance, per second, where the picture is reversing.
+ *
+ * 0.35, not the 0.5 this was. Both are under the 0.6 that three flashes a
+ * second need, but 0.5 is not under it by enough: a picture that RISES over a
+ * whole cycle and snaps back is allowed 0.5 x the cycle by the rise alone,
+ * which at 3.75 flashes a second is 0.133 — past the tenth WCAG counts as a
+ * flash, so the shape got its swing without the snap ever being let through.
+ * That was the one rate left over the line in the measurements below, at 3.2
+ * flashes a second against a bound of 3.
+ *
+ * At 0.35 the same rise delivers 0.093 and the shape comes out at 1.6. What it
+ * costs, measured on the driver over every sequence in the header: nothing.
+ * Not one picture that must be left alone moved — a square at three a second,
+ * a ramp at two, a breathing picture, a bar sweeping across and a strip an
+ * eighth of the frame flickering ten times a second all keep exactly the
+ * share of their swing they kept at 0.5, to the percent. A tighter limit only
+ * bites where the guard was already holding.
+ */
+export const FLASH_LIMIT_PER_SECOND = 0.35;
 
 /** A stalled frame earns no extra allowance: the change it permits is capped. */
 const MAX_FRAME_MS = 100;
