@@ -90,17 +90,33 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * dead from about 90 up, and over-eager at 30, where it touches pictures that
  * must be left alone.
  *
- * Three cures were modelled and none works: making the drain per-second dies
- * at 90 and 120 and saturates at 240; no pairing of step size and memory
- * length separates the rates; and even with the drain gone entirely and exact
- * arithmetic, a red slide at 3.5 flashes a second and one at 2.5 sit 0.16
- * against 0.20 — the wrong way round. The 8-bit state is the root of the
- * first two, so the honest fix starts by giving the pressure a half-float
- * target and dropping the floor, after which the economy is frame-rate free
- * by construction and can be re-derived. What is left after that is a product
- * question and not an engineering one: no threshold separates a red slide at
- * 3.5 a second from one at 2.5, so somebody has to choose which of the two to
- * be wrong about.
+ * Half floats for the state DO fix the frame rate — the drain is only there
+ * because eight bits cannot resolve what a pressure loses in one frame, and
+ * without it the decay is per second by construction. That was built, and it
+ * is not enough, which is why this still reads as it does.
+ *
+ * What a pressure LEVEL has to do is three things at once, and it cannot. It
+ * must separate the rates; it must take hold quickly, since the turns before
+ * holding begins are the threshold over the step; and the band between "left
+ * alone" and "held" must be wide compared with that step, or a scene sitting
+ * near the threshold crosses it in a single turn and the limiter toggles —
+ * flicker in the LIMITING, which is the failure this has twice been sent back
+ * for. Searched over every step and memory, with every shape run fifty
+ * seconds so nothing is read before it settles:
+ *
+ *   onset   band    band in turns
+ *      14   0.038   0.4      a switch
+ *      20   0.095   1.2      a switch
+ *      24   0.110   1.7      nearly a switch
+ *      30   0.138   2.5      a ramp, and 1.5 s of onset at ten flashes a
+ *                            second, 4.3 s at three and a half
+ *
+ * Nothing under 14 turns separates at all. So: quick, separating, smooth —
+ * pick two. Integrating turns and reading the level is the wrong instrument
+ * for "more than three a second", which is a statement about the INTERVAL
+ * between turns; measuring that interval directly is the next real step, and
+ * half floats leave room to keep one per pixel. A redesign, not a constant,
+ * and nothing was shipped on the strength of the numbers above.
  *
  * The red slide was open until 2026-09-18 and took four tries to close, all
  * measured, because three of them look obvious and are wrong:
