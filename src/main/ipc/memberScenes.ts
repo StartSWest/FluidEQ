@@ -49,6 +49,12 @@ import {
   type IProjectList,
   type IStoredProject,
 } from '../memberScenes/studioProjects';
+import {
+  mayAddProject as mayAdd,
+  mayUseProject,
+  settledList,
+  type IStudioAccess,
+} from '../memberScenes/projectAccess';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import { registerStudioPreviewIpc } from './studioPreview';
 import { registerStudioPicturesIpc } from './studioPictures';
@@ -287,61 +293,25 @@ export const registerMemberScenesIpc = ({
    */
   const member = () => accountId() !== undefined;
 
-  const own = (project: IStoredProject) => project.official === undefined;
-
-  const ownProjects = () => projects.projects.filter(own);
-
-  const mayAddProject = () =>
-    entitled() || (member() && ownProjects().length < STUDIO_TRIAL_PROJECTS);
-
   /**
-   * Without Plus, the one project of the member's own the Studio keeps on
-   * the bench: the open one, else the most recently opened. Every other
-   * project stays listed, locked, for when there is Plus — the rest of a
-   * folder of several, the others of a Plus that lapsed. Derived from the
-   * list rather than stored, so letting the kept one go moves the bench to
-   * the next: one at a time, never none while there is one to open.
+   * Who is asking, for the access rules in `projectAccess.ts`. They live
+   * there, apart from the IPC, because the entitlement is worth reading
+   * whole: it is the only place the Studio-without-Plus rule is spelled.
    */
-  const kept = (list: IProjectList): IStoredProject | undefined => {
-    const active = list.projects.find((project) => project.id === list.active);
-    return active && own(active) ? active : byRecent(list).find(own);
-  };
+  const asking = (): IStudioAccess => ({
+    entitled: entitled(),
+    member: member(),
+  });
 
-  const mayUse = (project: IStoredProject, list: IProjectList) =>
-    entitled() || (member() && project.id === kept(list)?.id);
-
-  /**
-   * Whether `project` may be built, played and edited: any with Plus, the
-   * kept one without it. FluidEQ's own scenes, opened to look inside, are
-   * Plus's alone. Asked of the project a call is about — the open one for
-   * the stage, the code pane, pictures and settings, the one named for
-   * notes — never of one project on behalf of another.
-   */
   const usable = (project: IStoredProject | undefined) =>
-    project !== undefined && mayUse(project, projects);
+    project !== undefined && mayUseProject(project, projects, asking());
 
   const mayUseActive = () => usable(activeProject());
 
-  /**
-   * The list with an open project the member may use: the most recent such
-   * one when the open one is not — a FluidEQ scene left open as Plus lapsed,
-   * or promoted by `without` — and none when there is none. What the page is
-   * sent is what it may act on, so it never draws a stage that cannot build.
-   */
-  const settled = (list: IProjectList): IProjectList => {
-    const active = list.projects.find((project) => project.id === list.active);
-    if (!list.active || (active && mayUse(active, list))) {
-      return list;
-    }
-    const fallback = byRecent(list).find((project) => mayUse(project, list));
-    if (fallback) {
-      return withActive(list, fallback.id, Date.now());
-    }
-    return {
-      projects: list.projects,
-      ...(list.root ? { root: list.root } : {}),
-    };
-  };
+  const settled = (list: IProjectList): IProjectList =>
+    settledList(list, asking());
+
+  const mayAddProject = () => mayAdd(projects, asking());
 
   /**
    * Adding a project runs one call at a time. The limit is read before the
