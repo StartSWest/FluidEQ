@@ -56,7 +56,12 @@ const MAX_PENDING_SOCKETS = 64;
 const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
 const MAX_AUTHENTICATED_SOCKETS = 32;
 const AUTHENTICATION_TIMEOUT_MS = 5_000;
-const DISCOVERY_RETRY_DELAYS_MS = [0, 1_000, 2_000, 5_000] as const;
+/**
+ * How many times the network is asked who is listening, each sent once the
+ * last has left the socket. A datagram can be dropped; a listener that comes
+ * up later announces itself and is heard without being asked again.
+ */
+const DISCOVERY_QUERIES = 3;
 const WEB_SOCKET_OPEN = 1;
 const WEB_SOCKET_CLOSED = 3;
 
@@ -131,7 +136,6 @@ const createRemoteAudioLan = (
 ): IRemoteAudioLan => {
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
-  let discoveryRetryTimer: NodeJS.Timeout | undefined;
   let rejectDiscovery: ((error: Error) => void) | undefined;
   let rejectHostStart: ((error: Error) => void) | undefined;
   let pendingSocket: WebSocket | undefined;
@@ -149,13 +153,11 @@ const createRemoteAudioLan = (
     const activeServer = server;
     const activePendingSocket = pendingSocket;
     const activeDiscoverySocket = discoverySocket;
-    const activeDiscoveryRetryTimer = discoveryRetryTimer;
     const activeRejectDiscovery = rejectDiscovery;
     const activeRejectHostStart = rejectHostStart;
     server = undefined;
     pendingSocket = undefined;
     discoverySocket = undefined;
-    discoveryRetryTimer = undefined;
     rejectDiscovery = undefined;
     rejectHostStart = undefined;
     key = undefined;
@@ -165,9 +167,6 @@ const createRemoteAudioLan = (
     // join promise from the real close event instead of from a guessed delay.
     if (activePendingSocket) {
       closeWebSocketSafely(activePendingSocket);
-    }
-    if (activeDiscoveryRetryTimer) {
-      clearTimeout(activeDiscoveryRetryTimer);
     }
     if (activeDiscoverySocket) {
       closeDiscoverySocket(activeDiscoverySocket);
@@ -606,7 +605,6 @@ const createRemoteAudioLan = (
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
       let connecting = false;
       let settled = false;
-      let discoveryAttempt = 0;
       const finish = (
         outcome:
           | { computer: ILanRemoteComputer; error?: never }
@@ -616,10 +614,6 @@ const createRemoteAudioLan = (
           return;
         }
         settled = true;
-        if (discoveryRetryTimer) {
-          clearTimeout(discoveryRetryTimer);
-          discoveryRetryTimer = undefined;
-        }
         if (discoverySocket === socket) {
           discoverySocket = undefined;
         }
@@ -632,36 +626,46 @@ const createRemoteAudioLan = (
         }
       };
       rejectDiscovery = (error) => finish({ error });
-      const scheduleQuery = () => {
-        if (
-          settled ||
-          discoveryRetryTimer ||
-          lifecycleGeneration !== operation
-        ) {
+      /**
+       * Asks the network who is listening, a few times over, and then waits.
+       *
+       * It used to ask again on a backoff — 0, 1, 2 then 5 seconds — which is
+       * a `setTimeout` retrying until something is ready, and this project
+       * allows neither. Taking it out costs nothing, because there are two
+       * ways a listener is found and the clock was never either of them:
+       *
+       *  - A listener ALREADY running answers this query. A datagram can be
+       *    dropped, so it goes out `DISCOVERY_QUERIES` times, each sent when
+       *    the last one has actually left the socket — the send callback,
+       *    which is the I/O completing rather than a guess at how long it
+       *    takes.
+       *  - A listener that starts LATER broadcasts an announcement of its own
+       *    the moment it is up (`startHost`), and this socket is bound to the
+       *    discovery port listening for exactly that. Nothing has to ask
+       *    again for it to be heard.
+       *
+       * So the wait after the queries is not idle: it is a socket waiting on
+       * a message that arrives by itself. What bounds it is the caller, which
+       * is the same place that decides to stop looking.
+       */
+      const askWhoIsThere = (asked = 0) => {
+        if (settled || connecting || lifecycleGeneration !== operation) {
           return;
         }
-        const delay =
-          DISCOVERY_RETRY_DELAYS_MS[
-            Math.min(discoveryAttempt, DISCOVERY_RETRY_DELAYS_MS.length - 1)
-          ];
-        discoveryAttempt += 1;
-        discoveryRetryTimer = setTimeout(() => {
-          discoveryRetryTimer = undefined;
-          if (settled || connecting) {
-            scheduleQuery();
-            return;
-          }
-          try {
-            socket.send(
-              encodeDiscoveryQuery(savedPairing.secret),
-              REMOTE_AUDIO_DISCOVERY_PORT,
-              '255.255.255.255',
-              () => scheduleQuery(),
-            );
-          } catch {
-            scheduleQuery();
-          }
-        }, delay);
+        if (asked >= DISCOVERY_QUERIES) {
+          return;
+        }
+        try {
+          socket.send(
+            encodeDiscoveryQuery(savedPairing.secret),
+            REMOTE_AUDIO_DISCOVERY_PORT,
+            '255.255.255.255',
+            () => askWhoIsThere(asked + 1),
+          );
+        } catch {
+          // The adapter went away mid-send. A listener coming up later still
+          // announces itself, and this socket is still listening for it.
+        }
       };
       socket.on('message', (data, sender) => {
         const announcement = decodeDiscoveryAnnouncement(
@@ -684,17 +688,17 @@ const createRemoteAudioLan = (
           .then((computer) => finish({ computer }))
           .catch(() => {
             connecting = false;
-            scheduleQuery();
+            askWhoIsThere();
           });
       });
       socket.on('error', () => {
         // Network adapters can disappear during sleep or boot. Keep the
         // durable pairing alive and let the next backoff tick try again.
-        scheduleQuery();
+        askWhoIsThere();
       });
       socket.once('listening', () => {
         socket.setBroadcast(true);
-        scheduleQuery();
+        askWhoIsThere();
       });
       socket.bind(REMOTE_AUDIO_DISCOVERY_PORT);
     });

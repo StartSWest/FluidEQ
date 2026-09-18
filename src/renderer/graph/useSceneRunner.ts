@@ -14,6 +14,7 @@ import { isOnBattery } from 'renderer/utils/batteryPower';
 import observeShown from 'renderer/utils/observeShown';
 import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
+import { useSceneMotionSpeed } from './sceneMotionSpeed';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import { createFrameCadence, judgedIntervalMs } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
@@ -187,6 +188,12 @@ export default function useSceneRunner({
   sizeRef.current = { width, height };
   const spectrumRectRef = useRef(spectrumRect);
   spectrumRectRef.current = spectrumRect;
+  // How fast the scene's own time runs: one for a listener who wants motion,
+  // `REDUCED_MOTION_SPEED` for one who has asked Windows for less of it. Read
+  // in the frame loop through a ref, and kept current by an effect, because
+  // the setting can change while a scene is playing.
+  const motionRef = useRef(1);
+  motionRef.current = useSceneMotionSpeed();
 
   const playing = !isPaused && points.length > 0;
 
@@ -222,10 +229,26 @@ export default function useSceneRunner({
         return true;
       }
       const now = window.performance.now();
-      const deltaMs =
+      const realDeltaMs =
         drawnAtRef.current === undefined ? elapsedMs : now - drawnAtRef.current;
       drawnAtRef.current = now;
-      cadenceRef.current.note(deltaMs);
+      // Measured on the real clock, always: this is how fast frames are
+      // actually arriving, and the cost ladder and the worker's pacing are
+      // judged against it.
+      cadenceRef.current.note(realDeltaMs);
+      // What the SCENE's own time advances by, which is where reduced motion
+      // lands. A listener who asks Windows for less motion gets a scene whose
+      // drifting, sweeping, spinning and flying run at a quarter speed, while
+      // it still answers the music — the level, the beat and the bands are
+      // read from the sound and are not touched here.
+      //
+      // Not switched off, which is what the ambient layer does. That layer is
+      // decoration over the app and its absence costs nothing; a visualizer
+      // held still is the feature turned off, and "reduce" is not "remove".
+      // Slowing the clock is the one lever that reaches every scene: a member
+      // writes whatever shader they like and the only thing all of them agree
+      // on is that they are handed a time and an elapsed.
+      const deltaMs = realDeltaMs * motionRef.current;
       const intervalMs = cadenceRef.current.intervalMs();
       // The music as it is at this frame, not at the pump's last tick, which
       // was 16 ms stale at the median. Paused, sent from another PC or not
