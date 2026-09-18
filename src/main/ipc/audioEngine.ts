@@ -386,6 +386,34 @@ export const registerAudioEngineIpc = ({
    * shows up as the banner, not as an install that is reported to have
    * failed when it did not.
    */
+  /**
+   * Whether an elevated helper run the window asked for is already in flight.
+   *
+   * Every one of these puts Windows' own administrator prompt on the screen,
+   * and the window may ask for one whenever the person presses. A press is
+   * never refused — but a SECOND press while the first prompt is still open
+   * is not a person pressing twice, it is a caller that does not wait, and
+   * the window in this app runs other people's shaders. Without this, one
+   * line in a loop is an endless run of administrator prompts: consent
+   * fatigue, and a prompt timed to be taken for another program's.
+   *
+   * One at a time, not once a session: the automatic runs have their own gate
+   * (`automaticSetup.ts`) and a person who answered may legitimately press
+   * again.
+   */
+  let elevatedRun = false;
+  const whileAlone = async (run: () => Promise<void>) => {
+    if (elevatedRun) {
+      return;
+    }
+    elevatedRun = true;
+    try {
+      await run();
+    } finally {
+      elevatedRun = false;
+    }
+  };
+
   const runAndReflush = async (
     event: Electron.IpcMainEvent,
     channel: ChannelEnum,
@@ -412,10 +440,12 @@ export const registerAudioEngineIpc = ({
   onWindowMessage(ChannelEnum.INSTALL_FLUID_ENGINE, async (event) => {
     // Attach every endpoint and restart the audio service: an install that
     // attaches nothing looks exactly like an install that did not work.
-    await runAndReflush(event, ChannelEnum.INSTALL_FLUID_ENGINE, 'install', [
-      '--attach-all',
-      '--restart-audio',
-    ]);
+    await whileAlone(() =>
+      runAndReflush(event, ChannelEnum.INSTALL_FLUID_ENGINE, 'install', [
+        '--attach-all',
+        '--restart-audio',
+      ]),
+    );
   });
 
   /**
@@ -437,36 +467,42 @@ export const registerAudioEngineIpc = ({
    */
   onWindowMessage(ChannelEnum.UPDATE_FLUID_ENGINE, async (event) => {
     const channel = ChannelEnum.UPDATE_FLUID_ENGINE;
-    // A press, never refused: the automatic repairs have their own channel
-    // below, and go through the gate every automatic run shares.
-    try {
-      const result = await runEngineSetup('install', ['--restart-audio']);
-      if (!result.ok) {
-        succeed<IAudioRestartOutcome>(event, channel, {
-          ok: false,
-          declined: result.declined,
-          ...(!result.declined && result.error ? { detail: result.error } : {}),
-        });
-        return;
-      }
-      const { fluidUpdateReady } = await readAudioEngineStatus(
-        userDataDir,
-        getEngine(),
-      );
-      await reflush();
-      if (fluidUpdateReady) {
-        log.error(
-          'The engine update reported success, but the installed engine still is not this build.',
+    // A press, never refused — but one at a time, because the prompt it puts
+    // up is Windows' own and a caller that does not wait would put up an
+    // endless run of them (see `whileAlone`). The automatic repairs have
+    // their own channel below and their own gate.
+    await whileAlone(async () => {
+      try {
+        const result = await runEngineSetup('install', ['--restart-audio']);
+        if (!result.ok) {
+          succeed<IAudioRestartOutcome>(event, channel, {
+            ok: false,
+            declined: result.declined,
+            ...(!result.declined && result.error
+              ? { detail: result.error }
+              : {}),
+          });
+          return;
+        }
+        const { fluidUpdateReady } = await readAudioEngineStatus(
+          userDataDir,
+          getEngine(),
         );
+        await reflush();
+        if (fluidUpdateReady) {
+          log.error(
+            'The engine update reported success, but the installed engine still is not this build.',
+          );
+        }
+        succeed<IAudioRestartOutcome>(event, channel, {
+          ok: !fluidUpdateReady,
+          declined: false,
+        });
+      } catch (error) {
+        log.error('The FluidEQ Engine could not be updated', error);
+        refuse(event, channel, ErrorCode.FAILURE);
       }
-      succeed<IAudioRestartOutcome>(event, channel, {
-        ok: !fluidUpdateReady,
-        declined: false,
-      });
-    } catch (error) {
-      log.error('The FluidEQ Engine could not be updated', error);
-      refuse(event, channel, ErrorCode.FAILURE);
-    }
+    });
   });
 
   /**

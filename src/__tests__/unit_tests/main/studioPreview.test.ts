@@ -33,7 +33,33 @@ jest.mock('electron', () => ({
 }));
 
 const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-const png = (extra = 16) => Uint8Array.from([...PNG, ...Array(extra).fill(1)]);
+const IHDR = [0x49, 0x48, 0x44, 0x52];
+const IEND = [0x49, 0x45, 0x4e, 0x44];
+
+/**
+ * A file shaped like a PNG from both ends: the signature, the header chunk
+ * that is always first, and the end chunk that is always last. `extra` pads
+ * the middle, which is where a real one carries its pixels.
+ */
+const png = (extra = 48) =>
+  Uint8Array.from([
+    ...PNG,
+    0,
+    0,
+    0,
+    13,
+    ...IHDR,
+    ...new Array(extra).fill(1),
+    0,
+    0,
+    0,
+    0,
+    ...IEND,
+    0,
+    0,
+    0,
+    0,
+  ]);
 
 let folder: string;
 let dispose: () => void;
@@ -84,6 +110,16 @@ it.each([
     Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8, 9]),
   ],
   ['a PNG signature with nothing after it', Uint8Array.from(PNG)],
+  // The one that matters: the signature is eight bytes anyone can type, so a
+  // payload wearing it as a hat must still be refused.
+  [
+    'a payload behind a PNG signature',
+    Uint8Array.from([...PNG, ...new Array(2048).fill(0x41)]),
+  ],
+  [
+    'a PNG with no end chunk',
+    Uint8Array.from([...PNG, 0, 0, 0, 13, ...IHDR, ...new Array(64).fill(1)]),
+  ],
   ['nothing at all', new Uint8Array(0)],
   ['something that is not bytes', 'preview.png'],
   ['more than the cap', undefined],
@@ -104,9 +140,9 @@ it('refuses an id that is not one', () => {
 // refused. Also the positive control for the two refusals below, which would
 // both pass if nothing were ever written at all.
 it('replaces a picture it wrote before', () => {
-  expect(write('project', png(16))).toBe(true);
   expect(write('project', png(64))).toBe(true);
-  expect(fs.readFileSync(written()).byteLength).toBe(PNG.length + 64);
+  expect(write('project', png(256))).toBe(true);
+  expect(fs.readFileSync(written()).byteLength).toBe(png(256).byteLength);
 });
 
 /**

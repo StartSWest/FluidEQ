@@ -197,13 +197,34 @@ const clamp = (value: number, min: number, max: number) =>
 const readNumber = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 
+/**
+ * A key that could be a language. Anything else is not a name in a language
+ * nobody has: it is weight.
+ *
+ * Without it a pack could carry as many names as its file allowed — measured,
+ * 120,001 of them were accepted, six megabytes that every listing then
+ * stringified for its revision hash and handed to the window. The ambient
+ * elements' own controls already keep exactly this rule.
+ */
+const LOCALE = /^[a-z]{2}$/;
+
+/**
+ * The name in each language. English is required; the rest are taken where
+ * they are usable and dropped where they are not, so a pack that names a
+ * language this version has not heard of keeps every other name it has.
+ */
 const readNames = (value: unknown): TLocalizedName | null => {
   if (!isRecord(value) || typeof value.en !== 'string' || !value.en.trim()) {
     return null;
   }
   const names: Record<string, string> = {};
   Object.entries(value).forEach(([locale, name]) => {
-    if (typeof name === 'string' && name.trim() && name.length <= 80) {
+    if (
+      LOCALE.test(locale) &&
+      typeof name === 'string' &&
+      name.trim() &&
+      name.length <= 80
+    ) {
       names[locale] = name.trim();
     }
   });

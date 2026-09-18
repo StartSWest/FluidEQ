@@ -56,10 +56,32 @@ export const MAX_PREVIEW_BYTES = 8 * 1024 * 1024;
 
 /** The eight bytes every PNG starts with, and nothing else does. */
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+/** The first chunk of a PNG is always the header, and the last always the end. */
+const PNG_HEADER_CHUNK = [0x49, 0x48, 0x44, 0x52];
+const PNG_END_CHUNK = [0x49, 0x45, 0x4e, 0x44];
 
-const isPng = (bytes: Uint8Array) =>
-  bytes.byteLength > PNG_SIGNATURE.length &&
-  PNG_SIGNATURE.every((byte, at) => bytes[at] === byte);
+const matches = (bytes: Uint8Array, at: number, wanted: readonly number[]) =>
+  wanted.every((byte, step) => bytes[at + step] === byte);
+
+/**
+ * A PNG, as far as its shape goes: the signature, the header chunk that must
+ * be first, and the end chunk that must be last.
+ *
+ * The signature alone was eight bytes of agreement and eight megabytes of
+ * anything after it, which is not much of a check on a file written into a
+ * folder somebody syncs and shares. This does not make the bytes a picture —
+ * only a decoder can say that — but it means what is written is shaped like
+ * one from both ends, which is what a file dropped as a payload is not.
+ */
+const isPng = (bytes: Uint8Array) => {
+  const { byteLength } = bytes;
+  return (
+    byteLength > 57 &&
+    matches(bytes, 0, PNG_SIGNATURE) &&
+    matches(bytes, 12, PNG_HEADER_CHUNK) &&
+    matches(bytes, byteLength - 8, PNG_END_CHUNK)
+  );
+};
 
 /**
  * Whether what is already at the picture's name may be replaced: nothing, or
