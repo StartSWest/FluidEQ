@@ -25,18 +25,20 @@ const SETTLE_STRETCH = 1.25;
 /**
  * How long the scene takes to come back once it fits again.
  *
+ * A second, which is Ivan's own number: "0 to 100 in a sec", 2026-09-18. It
+ * was a quarter of that first and he asked for the longer ramp.
+ *
  * The same going in and coming out: full screen and back to the strip are one
  * gesture, and a reveal that took longer in one direction than the other
  * would read as the slower one having gone wrong.
  *
- * The picture itself catches up in 88ms (measured in the window, the graph's
- * strip into full screen), so this is what is added to that — a quarter of a
- * second, over before anybody reads it as the scene having gone away, and
- * the whole thing well inside the one second Ivan set as the limit. What
- * shows underneath for those few frames is the scene's own ground colour,
- * never black: `SceneLoading.tsx` keeps that behind the canvas.
+ * This is a ramp, not a wait. The scene is on screen and climbing from the
+ * moment its picture fits — 161ms after the double click, measured in the
+ * window — so the second is how long it takes to reach full strength, not how
+ * long there is nothing to look at. That distinction is what keeps it inside
+ * the other limit he set, which was never to see an empty panel for a second.
  */
-const SETTLE_FADE_MS = 250;
+const SETTLE_FADE_MS = 1000;
 
 /**
  * Whether the picture on a scene's canvas still fits the box it is drawn
