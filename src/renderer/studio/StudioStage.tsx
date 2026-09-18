@@ -6,6 +6,7 @@ import {
   useState,
   type RefObject,
 } from 'react';
+import type { TranslationKey } from 'common/i18n';
 import type { IScenePack } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -16,6 +17,7 @@ import useSceneRunner, {
   type ISceneTuning,
 } from '../graph/useSceneRunner';
 import { useTranslation } from '../utils/I18nContext';
+import StudioStageReading from './StudioStageReading';
 import StudioGraphPaper from './StudioGraphPaper';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
@@ -62,6 +64,17 @@ interface IStudioStageProps {
   isGridShown: boolean;
   /** The member's settings, live, over the pack's. */
   tuning?: ISceneTuning;
+  /**
+   * How the scene is keeping up, shown in the stage's own corner as well as
+   * on the card down the column: judging a scene means watching it, and the
+   * reading that says whether it is keeping up was too far from the picture
+   * it was about to be seen with it. Absent while nothing is playing.
+   */
+  cost?: TranslationKey;
+  /** The size the controller has the scene at, for the corner's sentence. */
+  percent?: number;
+  /** Written to from the frame callback (`StudioBench.tsx`), never by React. */
+  readingRef: RefObject<HTMLSpanElement | null>;
   onTrouble: (trouble: TStageTrouble) => void;
   onDrawn: TStageDrawn;
   onExitFullscreen: () => void;
@@ -89,6 +102,9 @@ export default function StudioStage({
   wave,
   isGridShown,
   tuning,
+  cost,
+  percent,
+  readingRef,
   onTrouble,
   onDrawn,
   onExitFullscreen,
@@ -288,6 +304,19 @@ export default function StudioStage({
           style={{ width: box.width, height: box.height }}
         />
         {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
+        {/* In the corner of the picture it is about, on exactly the terms the
+            card down the column shows it on. NOT also gated on the stage
+            having settled: frames arrive — and the card reports them — while
+            the runner still says it is waiting, so a corner that waited for
+            that stayed empty over a scene that was plainly playing. The
+            loading card covers this while there is really nothing yet. */}
+        {cost && (
+          <StudioStageReading
+            cost={cost}
+            percent={percent ?? 100}
+            readingRef={readingRef}
+          />
+        )}
         {waiting && <StudioStageLoading name={pack.names.en} />}
         {/* On screen whenever the screen is full, whichever of the two
             believes it: a way out that depends on the app's own idea of the

@@ -96,6 +96,7 @@ const stage = (isGridShown: boolean) => (
     size="graph"
     wave={wave}
     isGridShown={isGridShown}
+    readingRef={{ current: null }}
     onTrouble={jest.fn()}
     onDrawn={jest.fn()}
     onExitFullscreen={jest.fn()}

@@ -150,7 +150,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   // through React, and settled first (`studioReading.ts`) so the figures can
   // be read instead of blurring.
   const readingRef = useRef<HTMLSpanElement>(null);
-  const lastReading = useRef('');
+  // The same figures in the corner of the stage, where the author is already
+  // looking. Its own element rather than one moved about, because the card
+  // keeps its reading whether the stage is showing one or not.
+  const stageReadingRef = useRef<HTMLSpanElement>(null);
   const settler = useRef(createStudioReadingSettler());
   const onDrawn = useCallback<TStageDrawn>(
     (frame, drawnScale, accent, heard, report) => {
@@ -172,10 +175,15 @@ export default function StudioBench({ view }: IStudioBenchProps) {
               fps,
               size,
             });
-      if (reading !== lastReading.current && readingRef.current) {
-        lastReading.current = reading;
-        readingRef.current.textContent = reading;
-      }
+      // Each element against its OWN text, not against one remembered figure:
+      // the stage's corner comes and goes with the stage, and a single
+      // remembered value left a corner that had just appeared blank until the
+      // reading happened to change — over a scene that was plainly playing.
+      [readingRef.current, stageReadingRef.current].forEach((node) => {
+        if (node && node.textContent !== reading) {
+          node.textContent = reading;
+        }
+      });
     },
     [t],
   );
@@ -341,6 +349,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         wave={tuner.wave}
         isGridShown={isGridShown}
         tuning={tuner.tuning}
+        {...(cost ? { cost, percent: Math.round(scale * 100) } : {})}
+        readingRef={stageReadingRef}
         onTrouble={setTrouble}
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}

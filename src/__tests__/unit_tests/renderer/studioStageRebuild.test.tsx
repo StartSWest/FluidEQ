@@ -132,6 +132,7 @@ const stage = (pack: IScenePack, serial: number) => (
     size="graph"
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
+    readingRef={{ current: null }}
     onTrouble={onTrouble}
     onDrawn={onDrawn}
     onExitFullscreen={jest.fn()}
