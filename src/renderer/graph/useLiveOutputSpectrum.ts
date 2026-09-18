@@ -594,6 +594,17 @@ const useLiveOutputSpectrum = () => {
 
       audioContext = new AudioContext();
       const activeAudioContext = audioContext;
+      // A suspended context stops its own clock, and every reader of it then
+      // gets the same frame back for ever: the trace simply stops moving
+      // while everything not fed by it carries on. Windows suspends one on
+      // its own when an output changes underneath it, so the one resume at
+      // startup is not enough - it is resumed again whenever it says it has
+      // stopped, on the context's own event rather than by asking on a timer.
+      activeAudioContext.addEventListener('statechange', () => {
+        if (activeAudioContext.state === 'suspended') {
+          activeAudioContext.resume().catch(() => undefined);
+        }
+      });
       await activeAudioContext.resume();
       // And again, for the same reason: `resume()` is a second await, and the
       // context it just started is a hardware stream nobody would ever close.

@@ -559,6 +559,8 @@ const LiveTraceCanvas = ({
   const chromeRef = useRef<readonly IChromeBox[]>([]);
   const visibleRef = useRef(true);
   const intersectionRef = useRef<IntersectionObserver | null>(null);
+  /** Stops watching the canvas for a lost drawing surface — see `attachCanvas`. */
+  const contextWatchRef = useRef<() => void>(undefined);
   const transitionRef = useRef(new GraphLookTransition());
   // Held rather than fetched per frame: the computed style is a live object
   // bound to the element, and it goes stale with the context if the canvas is
@@ -4470,12 +4472,35 @@ const LiveTraceCanvas = ({
    */
   const attachCanvas = useCallback(
     (canvas: HTMLCanvasElement | null) => {
+      contextWatchRef.current?.();
+      contextWatchRef.current = undefined;
       intersectionRef.current?.disconnect();
       intersectionRef.current = null;
       canvasRef.current = canvas;
       contextRef.current = canvas ? canvas.getContext('2d') : null;
       computedRef.current = canvas ? window.getComputedStyle(canvas) : null;
       if (canvas) {
+        // A 2D canvas can lose its backing store under graphics pressure -
+        // which a visualizer scene on the same window is exactly the source
+        // of - and it fails SILENTLY: the context object stays, every draw
+        // goes nowhere, and the trace freezes on its last pixels while the
+        // scene, which is the one thing in the app that already handles
+        // this, carries on beside it. Prevented, so the browser restores it,
+        // and the context taken again and the loop restarted when it does.
+        const lost = (event: Event) => {
+          event.preventDefault();
+          contextRef.current = null;
+        };
+        const restored = () => {
+          contextRef.current = canvas.getContext('2d');
+          kickFrames();
+        };
+        canvas.addEventListener('contextlost', lost);
+        canvas.addEventListener('contextrestored', restored);
+        contextWatchRef.current = () => {
+          canvas.removeEventListener('contextlost', lost);
+          canvas.removeEventListener('contextrestored', restored);
+        };
         intersectionRef.current = new IntersectionObserver((entries) => {
           visibleRef.current = entries.some((entry) => entry.isIntersecting);
           if (visibleRef.current) {

@@ -159,8 +159,17 @@ const useSmoothFrames = (
         return;
       }
       lastDrawRef.current = now;
-      const moving = onFrameRef.current(elapsed);
-      frameRef.current = moving ? requestAnimationFrame(tick) : undefined;
+      // CLEARED BEFORE THE FRAME IS DRAWN, never after. This handle has
+      // already fired, and a draw that throws would otherwise leave it set:
+      // every later kick then returns at the first line of `kick` and the
+      // loop is wedged for the life of the window - silently, because
+      // nothing catches it and nothing else clears the handle but a hide or
+      // an unmount. That is one frozen wave while the scene, which draws in
+      // a worker, carries on beside it.
+      frameRef.current = undefined;
+      if (onFrameRef.current(elapsed)) {
+        frameRef.current = requestAnimationFrame(tick);
+      }
     };
 
     frameRef.current = requestAnimationFrame(tick);
