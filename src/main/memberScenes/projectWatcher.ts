@@ -53,6 +53,15 @@ const fingerprint = (build: TProjectBuild): string => {
   return `pack:${createHash('sha256').update(described).digest('hex')}`;
 };
 
+/**
+ * A file FluidEQ wrote into the folder on its way to writing something else:
+ * every write it makes here goes to a dot-prefixed temporary and is renamed
+ * over the real name, so the member's own files are never half written. An
+ * editor's own swap file may look like this too, and a rebuild from one is
+ * equally pointless — the rename that follows is the event worth having.
+ */
+const isOurs = (file: string) => file.startsWith('.');
+
 const FOLDER_GONE: TProjectBuild = {
   ok: false,
   problems: [{ code: 'missing-file', file: 'pack.json' }],
@@ -123,12 +132,14 @@ export const watchProject = (
   try {
     watcher = watch(folder);
     watcher.on('change', (_type, file) => {
-      // The picture FluidEQ itself writes after every build is the one change
-      // in this folder that cannot mean the scene changed. A rebuild from it
-      // would read the whole folder for nothing — and be answered by a build
-      // identical to the last, which `send` drops anyway, so this is not what
-      // stops a loop; it is what stops the pointless read.
-      if (typeof file === 'string' && file === PREVIEW_FILE) {
+      // What FluidEQ itself writes into this folder cannot mean the scene
+      // changed: the picture it leaves for the member's AI after every build,
+      // and the dot-prefixed temporary each of its own writes goes through
+      // first. A rebuild from either reads the whole folder for nothing — and
+      // is answered by a build identical to the last, which `send` drops
+      // anyway, so this is not what stops a loop; it is what stops three
+      // pointless reads of a folder for every save of one.
+      if (typeof file === 'string' && (file === PREVIEW_FILE || isOurs(file))) {
         return;
       }
       request();

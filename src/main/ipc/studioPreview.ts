@@ -39,9 +39,13 @@ import { PREVIEW_FILE } from '../../common/memberScenes';
  *   eight megabytes of anything into a folder the member syncs and shares",
  *   which is a foothold on somebody else's machine, not a preview.
  * - NOT follow a link out of the folder. The bytes go to a fresh temporary
- *   name that must not already exist (`wx`), and the rename replaces the
- *   directory entry itself — a `preview.png` that somebody made a symlink is
- *   replaced, never written through.
+ *   name that must not already exist (`wx`), and what is already at the
+ *   picture's name is required to be a plain file before anything replaces
+ *   it — the same `lstat().isFile()` the Pictures card holds its own files to
+ *   (`memberScenes/projectPictures.ts`), under which a symlink is not a file.
+ *   The rename would replace the link's own entry rather than write through
+ *   it in any case; that is a guarantee of the platform's rename, and this is
+ *   the guarantee of ours, written where it can be read.
  * - NOT keep the disk busy. One write at a time per folder; a second while
  *   one is running is dropped rather than queued, because the newest picture
  *   is the only one worth having and a loop of calls must cost one write.
@@ -56,6 +60,20 @@ const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const isPng = (bytes: Uint8Array) =>
   bytes.byteLength > PNG_SIGNATURE.length &&
   PNG_SIGNATURE.every((byte, at) => bytes[at] === byte);
+
+/**
+ * Whether what is already at the picture's name may be replaced: nothing, or
+ * a plain file. A symlink lstats as a link and a folder as a folder, so
+ * neither passes — the same test the Pictures card holds its own files to.
+ */
+const replaceable = (file: string) => {
+  try {
+    return fs.lstatSync(file).isFile();
+  } catch {
+    // Nothing there, which is the ordinary first time.
+    return true;
+  }
+};
 
 export const registerStudioPreviewIpc = ({
   folderFor,
@@ -84,6 +102,13 @@ export const registerStudioPreviewIpc = ({
       ) {
         return false;
       }
+      const picture = path.join(folder, PREVIEW_FILE);
+      if (!replaceable(picture)) {
+        logger?.warn(
+          'The scene preview was not written: something that is not a plain file is in its place.',
+        );
+        return false;
+      }
       writing.add(folder);
       const temporary = path.join(
         folder,
@@ -91,7 +116,7 @@ export const registerStudioPreviewIpc = ({
       );
       try {
         fs.writeFileSync(temporary, bytes, { flag: 'wx' });
-        fs.renameSync(temporary, path.join(folder, PREVIEW_FILE));
+        fs.renameSync(temporary, picture);
         return true;
       } catch (error) {
         logger?.warn(`Could not write the scene preview: ${String(error)}`);

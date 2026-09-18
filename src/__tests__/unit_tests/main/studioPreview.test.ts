@@ -100,13 +100,35 @@ it('refuses an id that is not one', () => {
   expect(fs.readdirSync(folder)).toEqual([]);
 });
 
+// The ordinary second build: the picture is replaced, not appended to or
+// refused. Also the positive control for the two refusals below, which would
+// both pass if nothing were ever written at all.
+it('replaces a picture it wrote before', () => {
+  expect(write('project', png(16))).toBe(true);
+  expect(write('project', png(64))).toBe(true);
+  expect(fs.readFileSync(written()).byteLength).toBe(PNG.length + 64);
+});
+
 /**
- * A `preview.png` somebody replaced with a link to something else must not be
- * written THROUGH: the rename replaces the entry, so the link goes and its
- * target is untouched. Skipped where the platform will not make one without
- * elevation, which is Windows without developer mode.
+ * Anything at the picture's name that is not a plain file is left alone: a
+ * folder stands in for the case that matters and cannot be set up
+ * everywhere — a `preview.png` somebody made a link to a file elsewhere.
+ * Both are refused by the same `lstat().isFile()`, so this holds the rule
+ * that protects both on every platform the suite runs on.
  */
-it('replaces a link rather than writing through it', () => {
+it('writes nothing where something that is not a plain file sits', () => {
+  fs.mkdirSync(written());
+  expect(write('project', png())).toBe(false);
+  expect(fs.lstatSync(written()).isDirectory()).toBe(true);
+  expect(fs.readdirSync(written())).toEqual([]);
+});
+
+/**
+ * The same rule on the real thing, where the platform allows one to be made.
+ * Windows refuses without developer mode, so this asserts nothing there —
+ * which is why the folder above carries the rule and this only confirms it.
+ */
+it('leaves a link and what it points at alone', () => {
   const outside = path.join(folder, 'secret.txt');
   fs.writeFileSync(outside, 'not the picture');
   try {
@@ -114,7 +136,7 @@ it('replaces a link rather than writing through it', () => {
   } catch {
     return;
   }
-  expect(write('project', png())).toBe(true);
+  expect(write('project', png())).toBe(false);
   expect(fs.readFileSync(outside, 'utf8')).toBe('not the picture');
-  expect(fs.lstatSync(written()).isSymbolicLink()).toBe(false);
+  expect(fs.lstatSync(written()).isSymbolicLink()).toBe(true);
 });
