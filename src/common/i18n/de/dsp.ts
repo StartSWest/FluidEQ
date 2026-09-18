@@ -571,7 +571,6 @@ const dsp = {
     'Lässt das Rack auf jedem Kanal eines 5.1- oder 7.1-Ausgangs laufen, so wie Windows eingestellt ist, mit einer Pegelentscheidung für alle.',
   'dsp.surround.offHint':
     'Nur das vordere Paar: die übrigen Kanäle eines Surround-Ausgangs laufen unverändert durch das Rack.',
-  'dsp.surround.heldByRoom': 'Der Raum braucht alle Kanäle',
   'dsp.surround.roomHint':
     'Der Raum stellt jeden Kanal um deinen Kopf herum auf und nimmt deshalb alle, solange er an ist. Deine Wahl kommt zurück, sobald der Raum aus ist.',
   'dsp.surround.allChannels': 'Alle Kanäle',

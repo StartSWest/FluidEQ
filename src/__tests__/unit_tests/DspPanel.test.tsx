@@ -597,6 +597,12 @@ describe('DspPanel', () => {
         name: 'Surround',
       }),
     ).toBeEnabled();
+    // Nothing is holding it, so there is no padlock beside it. Read while it
+    // is still mounted: a detached container answers every query with null,
+    // which is a control that passes whatever the component does.
+    expect(surround(chosen.container).querySelector('.dsp-switch-held')).toBe(
+      null,
+    );
     chosen.unmount();
 
     const withRoom = renderPanel({
@@ -609,12 +615,18 @@ describe('DspPanel', () => {
         name: 'Surround',
       }),
     ).toBeDisabled();
-    // And it says why, on the page rather than in a tooltip: a switch that
-    // will not move with no reason beside it reads as broken.
+    // And it shows that it is being held, inside the group that is held: a
+    // switch that will not move with nothing beside it reads as broken. The
+    // padlock is in the surround group and nowhere else in the header, which
+    // is what stops it reading as the power switch's.
     expect(
-      withRoom.container.querySelector('.dsp-switch-reason')?.textContent,
-    ).toMatch(/Room needs every channel/i);
-    expect(chosen.container.querySelector('.dsp-switch-reason')).toBeNull();
+      surround(withRoom.container).querySelector('.dsp-switch-held'),
+    ).not.toBeNull();
+    expect(
+      withRoom.container.querySelectorAll('.dsp-switch-held'),
+    ).toHaveLength(1);
+    // What holds it is the group's own tooltip, in a sentence.
+    expect(surround(withRoom.container).getAttribute('title')).toMatch(/Room/i);
   });
 
   /**

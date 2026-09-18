@@ -148,17 +148,26 @@ $dsp-rail-offset: 110ms;
   margin-left: auto;
 }
 
-// Why a switch cannot be moved, on its own line under the two of them and
-// aligned with their right edge. A greyed control with nothing beside it
-// reads as broken; the tooltip that carried this reason was a reason nobody
-// saw. Only ever one line of it, so the header does not grow a paragraph.
-.dsp-switch-reason {
-  flex: 1 0 100%;
-  margin: 0;
+// That a switch is being held, inside the group that is held — never on a
+// line of its own under the row, where it read as a caption for the switch
+// beside it and grew the group by 159px, which came off the preset bar and
+// broke the file actions onto a second row. See `DspHeldLock`.
+.dsp-switch-held {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  // Half a step back from the word it qualifies: the group's own 9px gap
+  // between a glyph and a word reads as two separate things.
+  margin-right: -3px;
   color: $text-faint;
-  font-size: $text-micro;
-  line-height: 1.3;
-  text-align: right;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 }
 
 .dsp-title {
@@ -3043,6 +3052,42 @@ $dsp-pane-columns: 6;
   color: $secondary-default;
 }
 
+// THE RACK'S FILE ACTIONS, GLYPHS ALONE, for the reason the rail's names are
+// glyphs alone further down: the words stop fitting first, and the row they do
+// not fit on answers by breaking in two.
+//
+// Measured in the window: with their words the header needs about 1150px of
+// panel and had 1124 of it at a 1707px window, so it stood two rows tall there
+// — before the padlock, before any of this. Everything on that row is a
+// control of a fixed width, so there is nothing to shrink; holding it to one
+// line instead painted Reset over the preset arrows.
+//
+// The rack's own group only. The processor cards carry the same class with ONE
+// button in it, where a lone glyph saves nothing and names nothing, and the EQ
+// card's four sit in a card header with its own spacing tier — that row is
+// worth the same and has not been looked at on screen yet.
+//
+// `font-size: 0` rather than a hidden span: the word is a bare text node in
+// nine of these bars, and collapsing it here leaves it in the button's
+// accessible name instead of taking it out of one. The hover name is the
+// `title` each of them carries.
+@container dsp-panel (max-width: #{$bp-xl}) {
+  .dsp-chain-transfer {
+    .button.small {
+      padding-right: 9px;
+      padding-left: 9px;
+      font-size: 0;
+      letter-spacing: 0;
+    }
+
+    .dsp-bar-icon {
+      width: 15px;
+      height: 15px;
+      margin-right: 0;
+    }
+  }
+}
+
 // A 200px rail beside a graph is most of a narrow panel. Below this the chain
 // reads left to right across the top instead, which costs one row and gives the
 // processor back the width it needs to still be an EQ curve rather than a
@@ -3152,6 +3197,24 @@ $dsp-pane-columns: 6;
   // appears on hover.
   .dsp-rail-name {
     display: none;
+  }
+
+  .dsp-header-line > .dsp-presets {
+    // A word that NAMES a control goes at this width; a word that IS a value
+    // stays. The field below carries the same name on its own `title`, and
+    // the two switches keep theirs — "All channels" against "Front pair" is
+    // what that switch means, and a bare toggle says neither.
+    .dsp-eq-preset-label {
+      display: none;
+    }
+
+    // And the field is narrower: 150px still shows about eighteen characters,
+    // and it is the difference between one row and two from a panel of about
+    // 830px up. Below that the row breaks in two, which is the honest answer
+    // once the words are gone and there is nothing left to give.
+    .dsp-eq-preset-first .rich-pick__trigger {
+      min-width: 150px;
+    }
   }
 }
 

@@ -27,6 +27,7 @@ import DspNormalizerCard from './DspNormalizerCard';
 import DspRoomCard from './DspRoomCard';
 import { useRoomLive } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
+import DspHeldLock from './DspHeldLock';
 import DspScopeNotice from './DspScopeNotice';
 import DspSideTabs from './DspSideTabs';
 import { rackSuspension, useRackGate } from './rackPlacement';
@@ -452,6 +453,10 @@ const DspPanel = ({
               className="dsp-global-power dsp-surround"
               title={t(surroundHint())}
             >
+              {/* Held by the Room, and said inside the group that is held:
+                  see `DspHeldLock` for the two ways a sentence on a line of
+                  its own got this wrong. */}
+              {room.enabled ? <DspHeldLock /> : undefined}
               <span
                 className={`dsp-global-power-state${
                   allChannels ? ' is-on' : ''
@@ -498,16 +503,6 @@ const DspPanel = ({
                 ariaLabel={t('dsp.title')}
               />
             </div>
-            {/* WHY A SWITCH WILL NOT MOVE, UNDER THE SWITCHES THEMSELVES.
-                A greyed control with nothing beside it reads as broken, and a
-                reason that lives in a tooltip is a reason nobody sees. Last
-                in the row so it takes a line of its own beneath both of them
-                rather than pushing the rack's own switch off the first one. */}
-            {room.enabled ? (
-              <p className="dsp-switch-reason">
-                {t('dsp.surround.heldByRoom')}
-              </p>
-            ) : undefined}
           </div>
         </div>
         <DspScopeNotice

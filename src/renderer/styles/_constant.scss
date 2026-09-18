@@ -63,6 +63,15 @@ $bp-desktop: 1920px;
 // never a figure measured off a screenshot.
 $bp-lg: 1024px;
 
+// The next step up of the same scale, needed once: the rack's header carries a
+// title, a preset field with two arrows, four file actions and two switches,
+// and their words stop fitting on one row at about 1150px of panel. Everything
+// there is a control of a fixed width, so there is nothing to shrink and no
+// arrangement that wraps well — the four actions drop their words and keep
+// their glyphs instead, which is a real change of arrangement on a standard
+// width rather than a figure read off a screenshot.
+$bp-xl: 1280px;
+
 // Full HD's height. What a maximised 1080p window has to fit a page into,
 // against a 1440p one: the density tier, never an arrangement.
 $bp-full-hd-height: 1080px;

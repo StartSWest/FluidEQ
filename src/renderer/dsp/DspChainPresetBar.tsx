@@ -277,6 +277,7 @@ const DspChainPresetBar = ({
         <button
           type="button"
           className="button small subtle"
+          title={t('dsp.eqPreset.reset')}
           disabled={disabled}
           onClick={reset}
         >
@@ -306,6 +307,7 @@ const DspChainPresetBar = ({
         <button
           type="button"
           className="button small subtle"
+          title={t('dsp.eqPreset.import')}
           disabled={disabled}
           onClick={() => {
             setNotice('');
@@ -319,6 +321,7 @@ const DspChainPresetBar = ({
           <button
             type="button"
             className="button small subtle"
+            title={t('dsp.eqSave.delete')}
             disabled={disabled}
             onClick={handleDelete}
           >

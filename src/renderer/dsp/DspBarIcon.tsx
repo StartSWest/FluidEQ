@@ -14,9 +14,11 @@ export type TDspBarIcon = 'reset' | 'save' | 'share' | 'import' | 'delete';
  * shape, and the shapes here are the ones these actions have everywhere else:
  * nobody has to learn that an arrow leaving a tray means export.
  *
- * Beside the word rather than instead of it. Icon-only would save the space and
- * cost the meaning: "share" and "import" are two arrows and a box whichever way
- * round they go, and at 14px the difference is a guess.
+ * Beside the word while there is room for the word. "Share" and "import" are
+ * two arrows and a box whichever way round they go, and at 14px the difference
+ * is a guess — so the word goes only where keeping it costs a whole row, which
+ * is a panel of 1024px or less with four of these in a group (`Dsp.scss`).
+ * There they are drawn a step larger and each carries its name on `title`.
  */
 const PATHS: Record<TDspBarIcon, string> = {
   // A circle that does not quite close, with the arrowhead at its opening.

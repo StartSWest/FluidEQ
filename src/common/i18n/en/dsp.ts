@@ -571,7 +571,6 @@ const dsp = {
     'Runs the rack on every channel of a 5.1 or 7.1 output, following what Windows is set to, with one level decision for all of them.',
   'dsp.surround.offHint':
     'Front pair only: the other channels of a surround output pass through the rack untouched.',
-  'dsp.surround.heldByRoom': 'The Room needs every channel',
   'dsp.surround.roomHint':
     'The Room places every channel around your head, so it takes all of them while it is on. Your choice comes back when the Room is switched off.',
   'dsp.surround.allChannels': 'All channels',
