@@ -21,6 +21,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Both what must be held and what must NOT be are measured here, because a
  * limiter that holds everything is not a fix — it is the smearing this file's
  * own header says was sent back twice.
+ *
+ * WHAT THIS FILE CANNOT SEE, and was once read as if it could: it measures
+ * the ONE frame a picture snaps on, through the coarse path alone. It says
+ * nothing about the frames after that snap, on which a picture held for one
+ * frame arrives anyway, and nothing about the per-pixel path that does most
+ * of the holding. Passing here is not "the strobe never reaches the screen";
+ * it is "the frame that snaps is blended away". The rate a viewer's eye
+ * actually receives needs both passes run frame by frame on a GPU, which no
+ * suite here can do — `sceneFlashGuardMemory.test.ts` says what was measured
+ * that way and what it cost to find out the hard way.
  */
 
 import {

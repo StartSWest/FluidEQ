@@ -21,6 +21,7 @@ import {
   flashLod,
   flashPressure,
   flashPressureDecay,
+  flashPressureMemory,
 } from '../../../renderer/graph/sceneFlashGuard';
 
 /**
@@ -173,21 +174,31 @@ const alternating = (every: number) => (frame: number) => {
   return frame % (every * 2) === 0 ? 1 : -1;
 };
 
-/** A pixel's pressure over `frames`, swinging by `swingAt(frame)` each frame. */
+/**
+ * A pixel's pressure over `frames`, swinging by `swingAt(frame)` each frame.
+ *
+ * The memory comes from the guard rather than being spelled again here. It
+ * was spelled again here, and when the shader's copy changed to travel this
+ * kept running the old rule and passed: the suite went on measuring a
+ * limiter the GPU had stopped being.
+ */
 const run = (frames: number, swingAt: (frame: number) => number) => {
   let pressure = 0;
   let lastSwing = 0;
   let highest = 0;
+  let lowest = 1;
   for (let frame = 0; frame < frames; frame += 1) {
     const swing = swingAt(frame);
     pressure = flashPressure(pressure, swing, lastSwing, FRAME_MS);
-    lastSwing =
-      Math.abs(swing) >= FLASH_SWING
-        ? swing
-        : lastSwing * flashPressureDecay(FRAME_MS);
+    lastSwing = flashPressureMemory(swing, lastSwing, FRAME_MS);
     highest = Math.max(highest, pressure);
+    // Once it has run in. The LOWEST it reaches is what decides whether a
+    // picture is held for the whole of a cycle or only part of it.
+    if (frame > frames / 3) {
+      lowest = Math.min(lowest, pressure);
+    }
   }
-  return { pressure, highest };
+  return { pressure, highest, lowest };
 };
 
 describe('the flash guard’s pressure', () => {
@@ -205,6 +216,48 @@ describe('the flash guard’s pressure', () => {
     const tooMany = run(600, alternating(5));
     expect(tooMany.highest).toBeGreaterThanOrEqual(FLASH_PRESSURE_FULL);
   });
+
+  /**
+   * A picture that brightens in steps too small to be a flash and snaps back
+   * in one frame — the shape a scene would be written in to get past this.
+   *
+   * Every step of the rise is a fraction of full scale, so the pressure has
+   * to still remember the drop when the rise finally takes a step big enough
+   * to count against it. It stopped remembering, and the pressure at four and
+   * five flashes a second then never once reached the level where holding
+   * starts: 0.52 and 0.68 against a 0.70 floor, where it should not fall
+   * below 0.81 and 0.88 at any point in the cycle.
+   *
+   * Relative luminance, not brightness — a step near white is worth several
+   * near black, which is why the rise counts at all.
+   */
+  const rampAndSnap = (flashesPerSecond: number) => {
+    const turns = Math.round(60 / flashesPerSecond);
+    const luma = (level: number) => Math.max(0, level) ** 2.2;
+    return (frame: number) => {
+      const at = frame % turns;
+      const was = at === 0 ? 1 : (at - 1) / (turns - 1);
+      return luma(at / (turns - 1)) - luma(was);
+    };
+  };
+
+  it.each([4, 5, 6])(
+    'never lets go of a ramp that snaps back at %s flashes a second',
+    (flashesPerSecond) => {
+      expect(run(600, rampAndSnap(flashesPerSecond)).lowest).toBeGreaterThan(
+        FLASH_PRESSURE_START,
+      );
+    },
+  );
+
+  it.each([2, 2.5])(
+    'never takes hold of one at %s flashes a second, which is allowed',
+    (flashesPerSecond) => {
+      expect(run(600, rampAndSnap(flashesPerSecond)).highest).toBeLessThan(
+        FLASH_PRESSURE_START,
+      );
+    },
+  );
 
   it('leaves something passing by alone: in, a while, and out again', () => {
     const passing = run(120, (frame) => {

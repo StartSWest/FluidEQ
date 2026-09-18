@@ -48,6 +48,27 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * red-grey flash and a quarter-frame strobe (all held), and a moving dot, a
  * jittering edge, sparkles and a beat (all left as drawn), and on FluidEQ's
  * Alpine, Aurora, Jellyfish and Ember, drawn as without it.
+ *
+ * Both passes were then run frame by frame on a real driver (ANGLE, Intel UHD)
+ * over known sequences, counting the opposing swings of a tenth or more that
+ * REACH THE SCREEN rather than the blend on any one frame — the arithmetic
+ * tests measure the snap and cannot see the frames after it. A square strobe
+ * at 3.75, 4, 5, 6 and 10 flashes a second came out at 1.6, 1.4, 1.0, 0.8 and
+ * 0.8; a ramp that snaps back at the same rates at 3.2, 1.4, 1.0, 0.8 and 0.8.
+ * Untouched, as they must be: a square at 3 a second, a ramp at 2, a picture
+ * breathing at 1, a bar sweeping across, and a strip a sixteenth and an eighth
+ * of the frame flickering at 10 a second, which keep all and 99 % of their
+ * swing and are the flame tips and the sparkles.
+ *
+ * The one over the line is a ramp-and-snap at 3.75 a second, at 3.2 where the
+ * bound is 3. Its cause is measured and is not a missing rule: the pixel
+ * pressure is an exponential whose level encodes the rate, and a sawtooth
+ * puts its two opposing swings next to each other, so between them the
+ * pressure falls to 0.71 with holding starting at 0.70 and the limit lets go
+ * for most of the cycle. Softening `mix(1.0, pixelBlend, flashing)` into
+ * `pow(pixelBlend, flashing)` closes it — 1.6 a second — and costs a
+ * flickering eighth of the frame a third of its swing, which is the smearing
+ * this limiter has twice been sent back for. Left as it is deliberately.
  */
 
 /** Of full relative luminance, per second. Below the 0.6 that three flashes need. */
@@ -172,6 +193,36 @@ export const flashPressureDecay = (deltaMs: number): number =>
   );
 
 /**
+ * The swing this pixel's pressure weighs the next one against: the swing
+ * itself while it is big enough to be part of a flash, decaying otherwise.
+ *
+ * Deliberately NOT travel, though the coarse memory below is, and this is the
+ * one thing in the file where the two paths must differ. Travel restarts from
+ * the new step the moment the picture turns, so the memory of a whole drop is
+ * wiped by the first faint step of the rise after it — and a ramp that snaps
+ * back then counts ONE opposing swing a cycle where this counts two, which is
+ * the difference between the pressure settling at 0.9 and at 0.4, and 0.85 is
+ * where it starts holding. Measured on the real shaders on an Intel UHD: with
+ * travel here, a ramp-and-snap at four, five and six flashes a second reached
+ * the screen whole — 3.9, 4.9 and 5.9 flashes a second of it — and without it,
+ * one a second.
+ *
+ * The rule is written twice, here and as GLSL beside it, because the suite
+ * cannot run a shader; `sceneFlashGuardMemory.test.ts` holds the two spellings
+ * to each other, which is what nothing did when they last drifted apart.
+ */
+export const FLASH_PRESSURE_MEMORY_SOURCE = `abs(swing) >= ${FLASH_SWING.toFixed(3)} ? swing : lastSwing * uDecay`;
+
+export const flashPressureMemory = (
+  swing: number,
+  lastSwing: number,
+  deltaMs: number,
+): number =>
+  Math.abs(swing) >= FLASH_SWING
+    ? swing
+    : lastSwing * flashPressureDecay(deltaMs);
+
+/**
  * The pressure after one frame, as the state pass computes it: decayed, less
  * the one step an 8-bit texture needs to fall at all, plus a swing that
  * opposes the last one remembered. Mirrors STATE_SOURCE.
@@ -182,9 +233,6 @@ export const flashPressure = (
   lastSwing: number,
   deltaMs: number,
 ): number => {
-  // `lastSwing` is travel now, not one frame's step, so a slow rise followed
-  // by a snap back counts here too — the same hole the coarse memory had, on
-  // the path that decides whether a PART of the picture is flashing.
   const opposing =
     Math.abs(swing) >= FLASH_SWING &&
     Math.abs(lastSwing) >= FLASH_SWING &&
@@ -273,6 +321,14 @@ float redness(vec3 colour) {
  * Measured against the thresholds above: a ramp-and-drop reaches 0.54 at two
  * flashes a second, which WCAG allows and which this lets through, and 0.61
  * to 0.81 from two and a half up, which it does not and this holds.
+ *
+ * What it holds is the ONE frame the picture turns on, because `against` is a
+ * product of two consecutive frames and is non-zero only where the sign
+ * flips. Driven on a GPU, every sequence in the header comes out the same
+ * with this and with the single-frame direction it replaced: what keeps a
+ * picture held for the LENGTH of a flash is the pressure below, not this.
+ * Worth having for the frame it does hold, worth nobody believing it is the
+ * limiter.
  */
 const TRAVEL_FUNCTION = `
 float flashTravel(float last, float swing, float decay) {
@@ -308,10 +364,9 @@ void main() {
   float pressure = min(1.0,
     max(0.0, old.r * uDecay - ${PRESSURE_FLOOR.toFixed(6)})
     + opposing * ${FLASH_SWING_PRESSURE.toFixed(6)});
-  // Travel, like the coarse memory below and for the same reason: a rise
-  // spread over frames small enough to each pass the test is still a rise,
-  // and what snaps back from it is still a flash.
-  float remembered = flashTravel(lastSwing, swing, uDecay);
+  // NOT travel — see FLASH_PRESSURE_MEMORY_SOURCE, whose text this is, and
+  // which is where the measurement saying so is written down.
+  float remembered = ${FLASH_PRESSURE_MEMORY_SOURCE};
   // Blue is whether this spot is flashing, kept apart from the pressure so
   // its mips are the share of an area that is.
   float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);
