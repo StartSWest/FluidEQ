@@ -27,7 +27,7 @@ constexpr double kRate = 48000;
 constexpr uint32_t kBlock = 480;
 // Stereo 1 kHz tones, the right channel at half the left: 0.04 measures about
 // -30 LUFS, 0.2 about -16, 0.5 about -8.
-constexpr double kVerse = 0.04, kChorus = 0.2, kLoud = 0.5, kQuiet = 0.01;
+constexpr double kVerse = 0.04, kChorus = 0.2, kLoud = 0.5;
 
 struct Leveler {
   FeqLiveNormalizer* processor = feq_live_normalizer_create(kRate, 2);
