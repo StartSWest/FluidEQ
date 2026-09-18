@@ -52,6 +52,13 @@ export type TPublishFailure =
   | 'refused'
   /** Most of the scene is one of FluidEQ's own, which is only to learn from. */
   | 'official-copy'
+  /**
+   * The gallery already holds this version of the scene, and a scene's content
+   * may only change under a higher one. Publishing raises the number itself,
+   * so this is two publications of the same scene crossing — the second read
+   * the gallery before the first wrote to it.
+   */
+  | 'version-not-raised'
   | 'server';
 
 interface IAuthorised {
@@ -372,6 +379,9 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
   const word = await errorWord(response);
   if (response.status === 409 && word === 'terms_outdated') {
     return 'terms';
+  }
+  if (response.status === 409 && word === 'version_not_raised') {
+    return 'version-not-raised';
   }
   if (response.status === 403) {
     return word === 'banned' ? 'banned' : 'not-entitled';

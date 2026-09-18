@@ -172,10 +172,16 @@ describe('listing', () => {
     const gallery = setup();
     store.saveImported(signedEnvelope(memberPayload()));
     const oldRevision = store.list()[0].revision;
+    // A HIGHER version, and the listing says so. A scene's content may only
+    // change under a higher number, so a republication at version 1 with
+    // different source inside is refused — see the case below, which is what
+    // this one is the control for.
     const next = memberPack({
+      version: 2,
       source: 'vec4 sceneColour(vec2 uv) { return vec4(0.5); }',
     });
     publishScene(SOMEONE, next);
+    rows = [row({ version: 2 })];
     await invoke('plus-gallery-list', {});
     // Behind the answer, not before it.
     await gallery.whenSynced();
@@ -186,6 +192,27 @@ describe('listing', () => {
     await invoke('plus-gallery-list', {});
     await gallery.whenSynced();
     expect(store.load(SOMEONE, next.id)?.source).toBe(next.source);
+  });
+
+  /**
+   * The silent swap, end to end through the gallery: a maker republishes
+   * under the version everybody already installed, properly signed, with
+   * different code inside. Signed by the right key, from the right author,
+   * for the right scene — every other check passes. The version is the only
+   * thing that says no.
+   */
+  it('never takes different content under a version already installed', async () => {
+    const gallery = setup();
+    const first = memberPack();
+    store.saveImported(signedEnvelope(memberPayload({ pack: first })));
+    const swapped = memberPack({
+      source: 'vec4 sceneColour(vec2 uv) { return vec4(0.5); }',
+    });
+    expect(swapped.version).toBe(first.version);
+    publishScene(SOMEONE, swapped);
+    await invoke('plus-gallery-list', {});
+    await gallery.whenSynced();
+    expect(store.load(SOMEONE, first.id)?.source).toBe(first.source);
   });
 
   it('never installs an unseen scene or a forged update while browsing', async () => {

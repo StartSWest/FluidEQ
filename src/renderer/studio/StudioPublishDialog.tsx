@@ -2,7 +2,7 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
-import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
+import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -141,7 +141,16 @@ export default function StudioPublishDialog({
                 : t('studio.publish.title', { name })}
             </h2>
             <span className="studio-publish__version">
-              {t('studio.publish.version', { version: String(pack.version) })}
+              {t('studio.publish.version', {
+                // The number this publication will carry, not the one in the
+                // project: a scene's content may only change under a higher
+                // version, so publishing raises it, and the dialog has to say
+                // which one is going out or it names the version being
+                // replaced right beside the one it replaces.
+                version: String(
+                  versionToPublish(pack.version, draft.published?.version),
+                ),
+              })}
               {draft.published && (
                 <span className="studio-publish__published">
                   {t('studio.publish.publishedVersion', {

@@ -96,6 +96,30 @@ const access = (): IGalleryAccess => ({
 
 const userDataDir = () => path.join(root, 'userData');
 
+/**
+ * The publish request itself, whichever position it landed in: publishing
+ * first asks the gallery what this account already has, so it can send a
+ * version above it, and that read is a call too.
+ */
+const publishRequest = () =>
+  calls.find((call) => call.url.includes('/publish-member-scene'));
+
+/** Publications sent, to say that exactly one went out. */
+const publishRequests = () =>
+  calls.filter((call) => call.url.includes('/publish-member-scene'));
+
+/**
+ * The gallery lists nothing for this account; the publication itself is
+ * answered with `refusal`. Refusing every request instead would refuse the
+ * listing publishing reads first, and the test would be proving that.
+ */
+const publishRefusedWith = (refusal: () => Response) => {
+  answer = (url: string) =>
+    url.includes('/rpc/my_published_scenes')
+      ? fakeResponse(200, [])
+      : refusal();
+};
+
 /** The open project is a FluidEQ scene, opened only to look inside. */
 let inspecting: boolean;
 
@@ -123,7 +147,13 @@ beforeEach(async () => {
   switchDuringAuth = false;
   duringAuth = undefined;
   duringFetch = undefined;
-  answer = fakeResponse(200, { published: {} });
+  // Publishing reads this account's gallery listing before it sends, so the
+  // version goes out above the one already there. Nothing published, unless a
+  // test says otherwise.
+  answer = (url: string) =>
+    url.includes('/rpc/my_published_scenes')
+      ? fakeResponse(200, [])
+      : fakeResponse(200, { published: {} });
   calls = [];
   inspecting = false;
 });
@@ -259,11 +289,11 @@ describe('publishing from the Studio', () => {
     );
     await expect(publishing).resolves.toEqual({ ok: true });
     await expect(saving).resolves.toBe('written');
-    expect(calls[0].body.pack).toMatchObject({
+    expect(publishRequest()?.body.pack).toMatchObject({
       response,
       params: [{ id: 'speed', value: 3 }],
     });
-    expect(calls[0].body.pack).not.toHaveProperty('signal');
+    expect(publishRequest()?.body.pack).not.toHaveProperty('signal');
   });
 
   it('keeps the initiating account across the asynchronous project read', async () => {
@@ -326,19 +356,19 @@ describe('publishing from the Studio', () => {
       webpBytes(),
     );
     expect(outcome).toEqual({ ok: true });
-    expect(calls).toHaveLength(1);
-    expect(calls[0]?.url).toBe(
+    expect(publishRequests()).toHaveLength(1);
+    expect(publishRequest()?.url).toBe(
       'https://project.supabase.co/functions/v1/publish-member-scene',
     );
-    expect(calls[0]?.body).toMatchObject({
+    expect(publishRequest()?.body).toMatchObject({
       action: 'publish',
       termsVersion: 4,
       category: 'space',
       pack: { id: 'my-first-scene' },
     });
-    expect(Buffer.from(String(calls[0]?.body.picture), 'base64')).toEqual(
-      Buffer.from(webpBytes()),
-    );
+    expect(
+      Buffer.from(String(publishRequest()?.body.picture), 'base64'),
+    ).toEqual(Buffer.from(webpBytes()));
     // Remembered for the account that published, and for nobody else here.
     expect(readAgreedTerms(userDataDir(), ME)).toBe(4);
     expect(readAgreedTerms(userDataDir(), SOMEONE)).toBe(0);
@@ -356,7 +386,9 @@ describe('publishing from the Studio', () => {
         '  The peaks stay whole\n on wide panels ',
       ),
     ).toEqual({ ok: true });
-    expect(calls[0]?.body.note).toBe('The peaks stay whole on wide panels');
+    expect(publishRequest()?.body.note).toBe(
+      'The peaks stay whole on wide panels',
+    );
   });
 
   it('refuses a note it could not keep, before sending anything', async () => {
@@ -376,7 +408,7 @@ describe('publishing from the Studio', () => {
     expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
       ok: true,
     });
-    expect(calls[0]?.body).not.toHaveProperty('note');
+    expect(publishRequest()?.body).not.toHaveProperty('note');
   });
 
   // The server would record the agreement for whoever the token belongs to;
@@ -399,7 +431,7 @@ describe('publishing from the Studio', () => {
     expect(
       await invoke('studio-publish', 4, 'cities', webpBytes(), 'water'),
     ).toEqual({ ok: true });
-    expect(calls[0]?.body).toMatchObject({
+    expect(publishRequest()?.body).toMatchObject({
       category: 'cities',
       category2: 'water',
     });
@@ -451,12 +483,128 @@ describe('publishing from the Studio', () => {
 
   it('remembers no agreement when the server refused', async () => {
     setup();
-    answer = fakeResponse(409, { error: 'terms_outdated' });
+    publishRefusedWith(() => fakeResponse(409, { error: 'terms_outdated' }));
     expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
       ok: false,
       reason: 'terms',
     });
     expect(readAgreedTerms(userDataDir(), ME)).toBe(0);
+  });
+
+  /**
+   * A scene's content may only change under a higher version, so every
+   * publication goes out above the one the gallery holds — and the number is
+   * written back into the project, or the maker's next build is one behind
+   * and the server refuses it with nothing they can do about it.
+   */
+  describe('the version a publication carries', () => {
+    /** The gallery holds this scene at `version`; publishing is answered ok. */
+    const galleryHolds = (version: number | undefined) => {
+      answer = (url: string) =>
+        url.includes('/rpc/my_published_scenes')
+          ? fakeResponse(
+              200,
+              version === undefined
+                ? []
+                : [
+                    {
+                      scene_id: 'my-first-scene',
+                      version,
+                      category: 'space',
+                      names: { en: 'My First Scene' },
+                      swatch: ['#112233', '#445566'],
+                      likes: 0,
+                      adds: 0,
+                      published_at: '2026-09-01T00:00:00+00:00',
+                      updated_at: '2026-09-02T00:00:00+00:00',
+                      blocked: false,
+                    },
+                  ],
+            )
+          : fakeResponse(200, { published: {} });
+    };
+
+    const manifestPath = () => path.join(String(folder), 'pack.json');
+
+    /** The version in `pack.json` on disk now. */
+    const onDisk = () =>
+      (
+        JSON.parse(fs.readFileSync(manifestPath(), 'utf8')) as {
+          version: number;
+        }
+      ).version;
+
+    /** A maker who has taken their project past the gallery by hand. */
+    const projectAt = (version: number) => {
+      const manifest: unknown = JSON.parse(
+        fs.readFileSync(manifestPath(), 'utf8'),
+      );
+      fs.writeFileSync(
+        manifestPath(),
+        JSON.stringify({ ...(manifest as object), version }, null, 2),
+      );
+    };
+
+    it('clears the one in the gallery when the project has not caught up', async () => {
+      // The silent swap, from the publishing end: the starter project is at
+      // version 1 and the gallery is at 5, so sending 1 — or 5 — would be
+      // content changing under a number listeners already hold.
+      galleryHolds(5);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 6 });
+      expect(onDisk()).toBe(6);
+    });
+
+    it('is the project’s own when it is already past the gallery', async () => {
+      galleryHolds(2);
+      projectAt(40);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 40 });
+      expect(onDisk()).toBe(40);
+    });
+
+    it('is left alone for a scene that has never been published', async () => {
+      galleryHolds(undefined);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 1 });
+      expect(onDisk()).toBe(1);
+    });
+
+    it('says so when the server got there first', async () => {
+      // Two publications of the same scene crossing: the second read the
+      // gallery before the first wrote to it, so the number it raised to was
+      // taken by the time it arrived. The server is what holds the rule; this
+      // is the app saying what happened.
+      publishRefusedWith(() =>
+        fakeResponse(409, { error: 'version_not_raised' }),
+      );
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: false,
+        reason: 'version-not-raised',
+      });
+    });
+
+    it('sends nothing when the gallery cannot be read', async () => {
+      // Without knowing what is published there is no number that is safely
+      // above it, and the server would refuse whatever was guessed.
+      answer = () => fakeResponse(500, {});
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: false,
+        reason: 'server',
+      });
+      expect(publishRequests()).toEqual([]);
+    });
   });
 
   it('never publishes a FluidEQ scene opened to look inside', async () => {
@@ -472,18 +620,20 @@ describe('publishing from the Studio', () => {
     expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
       ok: true,
     });
-    expect(calls).toHaveLength(1);
+    expect(publishRequests()).toHaveLength(1);
   });
 
   it("says so when the server finds the scene is mostly one of FluidEQ's", async () => {
     setup();
-    answer = fakeResponse(422, { error: 'official_copy' });
+    publishRefusedWith(() => fakeResponse(422, { error: 'official_copy' }));
     expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
       ok: false,
       reason: 'official-copy',
     });
     // Any other refusal is still just refused.
-    answer = fakeResponse(422, { error: 'refused', reason: 'while' });
+    publishRefusedWith(() =>
+      fakeResponse(422, { error: 'refused', reason: 'while' }),
+    );
     expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
       ok: false,
       reason: 'refused',

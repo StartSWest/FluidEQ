@@ -166,6 +166,8 @@ const studio = {
     'Cette scène est pour l’essentiel une scène de FluidEQ. Inspirez-vous-en, mais faites-en votre propre scène avant de la publier.',
   'studio.publish.outdated':
     'Les conditions Plus ont une version plus récente. Mettez FluidEQ à jour pour la lire et publier.',
+  'studio.publish.versionTaken':
+    'Cette scène vient d’être publiée à nouveau. Réessayez : elle partira en tant que version suivante.',
 
   'studio.picture.files': 'Images',
   'studio.picture.missing':

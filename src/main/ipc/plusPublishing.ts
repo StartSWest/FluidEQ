@@ -6,6 +6,7 @@ import {
 } from '../../common/sceneSettings';
 import { readVersionNote } from '../../common/sceneVersionNote';
 import { readProject } from '../memberScenes/project';
+import { raiseProjectVersion } from '../memberScenes/projectVersion';
 import { openMemberEnvelope } from '../memberScenes/sharing';
 import { writeAgreedTerms } from '../memberScenes/termsAgreement';
 import {
@@ -228,6 +229,7 @@ export const registerPlusPublishingIpc = ({
       if (!build.ok) {
         return { ok: false, reason: 'no-build' };
       }
+      const sceneId = build.pack.id;
       // The account the server will record the agreement for is the one this
       // token belongs to, so the two are taken together.
       const auth = await access.auth();
@@ -240,11 +242,41 @@ export const registerPlusPublishingIpc = ({
       if (activeFolder() !== folder) {
         return { ok: false, reason: 'no-build' };
       }
+      // A scene's content may only change under a higher version, so every
+      // publication goes out above the one the gallery holds — written into
+      // the project first, then read back, so the pack that gets signed and
+      // the file on disk carry the same number. Sending a raised version
+      // without writing it would leave the maker's next build one behind and
+      // publishing it again would be refused by the server, which is the rule
+      // arriving as a wall.
+      const listed = await listPublished(auth);
+      if (!listed.ok) {
+        return { ok: false, reason: listed.reason };
+      }
+      const held = listed.scenes.find(
+        (entry) => !entry.official && entry.sceneId === sceneId,
+      )?.version;
+      if ((await raiseProjectVersion(folder, held)) === 'failed') {
+        return { ok: false, reason: 'no-build' };
+      }
+      const raised = await readProject(folder);
+      if (!raised.ok || raised.pack.id !== sceneId) {
+        return { ok: false, reason: 'no-build' };
+      }
+      // Deliberately NOT re-asking who is signed in here, though three awaits
+      // have passed. The token was taken for `me` and everything since uses
+      // it: the gallery read is that account's gallery and the publication
+      // goes out on that token, whoever signed in meanwhile. A publication
+      // that completes belongs to the author who started it, which is the
+      // rule the terms agreement below is written under.
+      if (activeFolder() !== folder) {
+        return { ok: false, reason: 'no-build' };
+      }
       const published = await publishScene(auth, {
         termsVersion,
         category,
         ...(category2 !== undefined ? { category2 } : {}),
-        pack: build.pack,
+        pack: raised.pack,
         picture: Buffer.from(picture).toString('base64'),
         ...(note ? { note } : {}),
       });

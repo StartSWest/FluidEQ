@@ -169,6 +169,8 @@ const studio = {
     'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',
   'studio.publish.outdated':
     'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
+  'studio.publish.versionTaken':
+    'This scene was published again a moment ago. Try once more and it will go out as the next version.',
 
   // The pictures a scene asks for: any photo for each, fitted by FluidEQ.
   'studio.picture.files': 'Pictures',

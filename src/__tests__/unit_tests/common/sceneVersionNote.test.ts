@@ -13,8 +13,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   MAX_VERSION_NOTE,
   NEW_VERSION_DAYS,
+  isLaterSceneVersion,
   isNewSceneVersion,
   readVersionNote,
+  versionToPublish,
 } from '../../../common/sceneVersionNote';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -78,5 +80,72 @@ describe('a new version', () => {
         now,
       ),
     ).toBe(false);
+  });
+});
+
+describe('the rule that a scene changes only under a higher version', () => {
+  it('takes a higher version over what is already there', () => {
+    expect(isLaterSceneVersion(4, 3)).toBe(true);
+    expect(isLaterSceneVersion(400, 3)).toBe(true);
+  });
+
+  it('refuses the same version again, which is the whole point', () => {
+    // A maker republishing under the number everybody already installed is
+    // how different code reaches a listener with no update notice, nothing
+    // on the versions page, and one number naming two scenes.
+    expect(isLaterSceneVersion(3, 3)).toBe(false);
+  });
+
+  it('refuses a version that goes backwards', () => {
+    expect(isLaterSceneVersion(2, 3)).toBe(false);
+  });
+
+  it('lets anything fill a place where nothing is published', () => {
+    expect(isLaterSceneVersion(1)).toBe(true);
+    expect(isLaterSceneVersion(97)).toBe(true);
+  });
+
+  it('refuses a version that is not a whole number, rather than comparing it', () => {
+    // Fails CLOSED: a manifest carrying text, a fraction or NaN must not
+    // publish, and NaN compares false against everything either way — which
+    // would read as "refused" here and as "allowed" if the test were written
+    // the other way round.
+    [Number.NaN, 2.5, '4', null, undefined, {}].forEach((bad) => {
+      expect(isLaterSceneVersion(bad, 3)).toBe(false);
+      expect(isLaterSceneVersion(bad)).toBe(false);
+    });
+  });
+
+  it('treats a held version nobody can compare as no version at all', () => {
+    // A row that cannot be read must not lock its own scene out of the
+    // gallery for good.
+    expect(isLaterSceneVersion(3, Number.NaN)).toBe(true);
+  });
+});
+
+describe('the version a publication goes out under', () => {
+  it('is one above the gallery when the project has not caught up', () => {
+    expect(versionToPublish(3, 3)).toBe(4);
+    expect(versionToPublish(1, 8)).toBe(9);
+  });
+
+  it('never drags a maker back below where they have taken it', () => {
+    expect(versionToPublish(12, 3)).toBe(12);
+  });
+
+  it('is the project’s own for a first publication', () => {
+    expect(versionToPublish(5)).toBe(5);
+  });
+
+  it('always clears what is held, whatever the project says', () => {
+    // The property that matters: whatever comes out of this is a version the
+    // rule above accepts. Anything else and publishing refuses its own work.
+    [Number.NaN, 0.5, '2', null, undefined, 1, 4, 99].forEach((local) => {
+      [undefined, 0, 1, 7, 98].forEach((held) => {
+        expect(isLaterSceneVersion(versionToPublish(local, held), held)).toBe(
+          true,
+        );
+      });
+    });
   });
 });

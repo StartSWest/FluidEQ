@@ -28,6 +28,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'no-build': 'studio.export.refused',
   'no-picture': 'studio.publish.noPicture',
   'official-copy': 'studio.publish.officialCopy',
+  'version-not-raised': 'studio.publish.versionTaken',
   'inspect-only': 'studio.inspect.locked',
   server: 'studio.publish.failed',
 };

@@ -149,6 +149,8 @@ const studio = {
   'studio.publish.officialCopy':
     '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',
   'studio.publish.outdated': 'Plus 条款有新版本。请更新 FluidEQ 阅读后再发布。',
+  'studio.publish.versionTaken':
+    '这个场景刚刚又发布了一次。请再试一次，它会以下一个版本发布。',
 
   'studio.picture.files': '图片',
   'studio.picture.missing': '这个场景要用你的图片，但文件夹里还没有。',

@@ -1,5 +1,6 @@
 import type { IGalleryScene } from '../../common/plusGallery';
 import { FLUIDEQ_CREATOR_ID } from '../../common/plusGallery';
+import { isLaterSceneVersion } from '../../common/sceneVersionNote';
 import { openMemberEnvelope } from '../memberScenes/sharing';
 import type { IMemberSceneStore } from '../memberScenes/store';
 import type { IScenePackStore } from '../scenePackStore';
@@ -56,6 +57,23 @@ export const createGallerySceneSync = ({
     if (checked.get(scene.lookId) === stamp) {
       return;
     }
+    // Nothing replaces an installed scene except a HIGHER version of it
+    // (`isLaterSceneVersion`). Read this as the listener's half of that rule:
+    // publishing refuses to change a scene's content without raising its
+    // number, and this refuses to take the change if it ever does — a maker
+    // who republished under the version everybody already had would otherwise
+    // hand different code to every listener who installed it, with no update
+    // notice, nothing on the versions page, and the same number naming two
+    // different scenes.
+    //
+    // It also saves a download. The listing already brings every publication
+    // a session sees, a same-version one included (`ipc/scenePacks.ts`), and
+    // without this each one pulled the whole pack — 11 MB for Alpine — to
+    // find it unchanged.
+    if (!isLaterSceneVersion(scene.version, current.version)) {
+      checked.set(scene.lookId, stamp);
+      return;
+    }
     const auth = await access.auth();
     if (!auth || access.accountId() !== me) {
       return;
@@ -65,19 +83,16 @@ export const createGallerySceneSync = ({
       access.entitled() &&
       !!load() &&
       !store.isBlocked(scene.authorId, scene.sceneId);
+    // The listing is the server's word for what the file holds; the file is
+    // what gets adopted. Both are held to the rule, against the copy on disk
+    // read again rather than the one read before the download — publishing
+    // this member's own scene lands in the same store.
+    const stillLater = (version: number) =>
+      isLaterSceneVersion(version, load()?.version);
     if (official) {
-      // Only a newer version, and never the same one again: the pack listing
-      // already brings every publication of FluidEQ's own scenes, a same-
-      // version one included (`ipc/scenePacks.ts`), and without this every
-      // gallery page seen in a session downloaded each installed one whole —
-      // 11 MB for Alpine — to find it unchanged.
-      if (scene.version <= current.version) {
-        checked.set(scene.lookId, stamp);
-        return;
-      }
       const fetched = await fetchOfficialScene(auth, scene.sceneId);
       const next = typeof fetched === 'object' ? fetched : undefined;
-      if (!next || !stillEligible() || next.pack.version < current.version) {
+      if (!next || !stillEligible() || !stillLater(next.pack.version)) {
         return;
       }
       const changed = officialStore?.adopt(
@@ -101,7 +116,7 @@ export const createGallerySceneSync = ({
         !envelope ||
         next.author.id !== scene.authorId ||
         next.pack.id !== scene.sceneId ||
-        next.pack.version < current.version ||
+        !stillLater(next.pack.version) ||
         !stillEligible()
       ) {
         return;

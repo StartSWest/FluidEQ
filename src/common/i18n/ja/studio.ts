@@ -165,6 +165,8 @@ const studio = {
     'このシーンの大部分は FluidEQ のシーンのひとつと同じです。アイデアは自由に取り入れて、自分のシーンにしてから公開してください。',
   'studio.publish.outdated':
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
+  'studio.publish.versionTaken':
+    'このシーンは少し前に再公開されました。もう一度お試しください。次のバージョンとして公開されます。',
 
   'studio.picture.files': '画像',
   'studio.picture.missing':
