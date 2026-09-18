@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   AMBIENT_CEILING,
+  MAX_AMBIENT_ELEMENTS,
   type IAmbientElement,
 } from '../../../common/sceneAmbient';
 import {
@@ -114,9 +115,43 @@ describe('ambient field motions', () => {
       5,
       LOUD,
     );
-    const brightest = Math.max(...frames.flat().map((draw) => draw.alpha));
-    expect(brightest).toBeLessThanOrEqual(0.62);
+    // What reaches the window, which is this alpha times the layer's own
+    // opacity: the ceiling moved onto the canvas so that STACKED shapes are
+    // bounded too, and a single shape has to land exactly where it did.
+    const brightest =
+      Math.max(...frames.flat().map((draw) => draw.alpha)) * AMBIENT_CEILING;
+    expect(brightest).toBeLessThanOrEqual(AMBIENT_CEILING + 1e-9);
     expect(brightest).toBeGreaterThan(0.2);
+  });
+
+  /**
+   * The reason the ceiling is on the layer and not on the shape.
+   *
+   * Every shape is drawn into one canvas before that canvas is screened over
+   * the window, so two shapes on the same spot composite to more than either
+   * — and nothing stops a scene putting all forty in one place. Measured
+   * against white text on the app's own darkest pane, with the old per-shape
+   * ceiling of 0.42: one shape left 4.55:1, two 2.18:1, four 1.27:1 and eight
+   * 1.03:1, where 4.5:1 is the readable floor. Text under eight of them was
+   * gone.
+   */
+  it('cannot be made brighter by stacking, which is what the ceiling is for', () => {
+    // Everything a scene is allowed, all asking for full strength, on loud
+    // music: the worst a maker can build.
+    const crowd = Array.from({ length: MAX_AMBIENT_ELEMENTS }, () =>
+      element({ opacity: 1, react: 1, music: 'beat', motion: 'twinkle' }),
+    );
+    const { frames } = play(crowd, 5, LOUD);
+    const drawn = frames.flat();
+    expect(drawn.length).toBeGreaterThan(0);
+    // No shape exceeds full strength INSIDE the layer, so however many of
+    // them land on one pixel, that pixel can be no more than a solid layer —
+    // and the layer's own opacity is the ceiling.
+    drawn.forEach((draw) => {
+      expect(draw.alpha).toBeLessThanOrEqual(1 + 1e-9);
+    });
+    const worstPixel = 1 * AMBIENT_CEILING;
+    expect(worstPixel).toBeLessThanOrEqual(AMBIENT_CEILING + 1e-9);
   });
 
   it('keeps a picture’s particles whole when its settings change', () => {
@@ -270,10 +305,11 @@ describe('the musical swell', () => {
     // FluidEQ's own words, and the drawing used to stop at 0.62 while the
     // constant said 0.42 — so the loudest music put every element half again
     // as strong as anything anywhere said was possible.
-    expect(alphas[alphas.length - 1]).toBeCloseTo(
-      Math.min(AMBIENT_CEILING, resting * 1.8),
-      3,
+    expect(alphas[alphas.length - 1]).toBeCloseTo(Math.min(1, resting * 1.8), 3);
+    // Full strength inside the layer; the layer's own opacity is the ceiling.
+    expect(Math.max(...alphas)).toBeLessThanOrEqual(1 + 1e-9);
+    expect(Math.max(...alphas) * AMBIENT_CEILING).toBeLessThanOrEqual(
+      AMBIENT_CEILING + 1e-9,
     );
-    expect(Math.max(...alphas)).toBeLessThanOrEqual(AMBIENT_CEILING + 1e-9);
   });
 });

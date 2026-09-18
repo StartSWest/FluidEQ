@@ -7,7 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { ambientElementsAt, type IAmbientElement } from 'common/sceneAmbient';
+import {
+  AMBIENT_CEILING,
+  ambientElementsAt,
+  type IAmbientElement,
+} from 'common/sceneAmbient';
 import type { IScenePack } from 'common/scenePacks';
 import { getEaseFactor } from 'common/smoothing';
 import { advanceEnergy, createEnergyState } from 'common/spectrumEnergy';
@@ -322,7 +326,23 @@ export default function SceneAmbient() {
     return null;
   }
   return createPortal(
-    <canvas ref={canvasRef} className="scene-ambient" aria-hidden="true" />,
+    // The ceiling lives HERE, on the whole layer, and not on each shape. The
+    // shapes are drawn into this one canvas before it is screened over the
+    // window, so a per-shape limit never bounded what two of them on the same
+    // spot were worth — see `MAX_ALPHA` in `ambientField.ts` for the measured
+    // numbers. Capping the canvas makes any number of shapes worth no more
+    // than a solid one at the ceiling, and leaves a single shape exactly
+    // where it was.
+    //
+    // Inline rather than in the stylesheet because the number is
+    // `AMBIENT_CEILING`, which the rules, the checker and the maker's AI all
+    // read from one place; a copy in SCSS is a copy that drifts.
+    <canvas
+      ref={canvasRef}
+      className="scene-ambient"
+      style={{ opacity: AMBIENT_CEILING }}
+      aria-hidden="true"
+    />,
     document.body,
   );
 }

@@ -223,6 +223,25 @@ const drawShape = (
   if (!drawn) {
     return;
   }
+  if (shape === 'path') {
+    // A MEMBER's path is drawn as a line with the faintest wash inside it,
+    // the same treatment the crystal above gets and for the same reason:
+    // filled solid, these sit on the window's own panels as blobs.
+    //
+    // It also closes what the field's name always promised and the drawing
+    // never kept. This is declared as an OUTLINE, and nothing about the rules
+    // stops one being `M-1 -1 L1 -1 L1 1 L-1 1 Z` — a rectangle filling its
+    // whole box, which filled is a slab laid over FluidEQ's own words. The
+    // shapes FluidEQ ships are drawn by name and keep their own fills; only
+    // what a maker writes is held to the line it says it is.
+    context.globalAlpha *= 0.14;
+    context.fill(drawn);
+    context.globalAlpha /= 0.14;
+    context.lineWidth = Math.max(1.1 / radius, 0.045);
+    context.lineJoin = 'round';
+    context.stroke(drawn);
+    return;
+  }
   context.fill(drawn);
   if (shape === 'star') {
     // A soft core, so a glint this small still reads as a light.

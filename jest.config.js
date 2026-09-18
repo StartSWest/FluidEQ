@@ -40,6 +40,25 @@ module.exports = {
     './.erb/scripts/check-build-exists.ts',
     './.erb/scripts/jest-setup.ts',
   ],
+  // Every test runs here, INCLUDING the sixty-two that open with a licence
+  // comment and then declare `@jest-environment node` underneath it. Jest
+  // reads the first comment in a file and no other, so those declarations are
+  // inert and always have been: main-process code is being tested against
+  // browser globals.
+  //
+  // Moving them was tried on 2026-09-18 and taken back out. Jest's node
+  // environment gives the sandbox a different `ArrayBuffer` from the one
+  // backing typed arrays in it, so `new Float32Array(n).buffer instanceof
+  // ArrayBuffer` is FALSE there — which is nothing to do with this app, and
+  // real Electron main answers true. Thirteen tests across the LAN audio
+  // transport failed on exactly that, all of them for the environment's
+  // reason rather than the code's. jsdom happens to keep one realm, so the
+  // tests that pass here pass for an honest reason even though the
+  // environment is the wrong one on paper.
+  //
+  // So: a pragma under a licence header is a lie, but correcting it needs
+  // each file looked at rather than a sweep. Anything genuinely needing node
+  // has to put the pragma in the FIRST comment and then be run and read.
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {
     url: 'http://localhost/',

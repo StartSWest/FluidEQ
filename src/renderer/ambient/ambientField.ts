@@ -9,7 +9,7 @@ import type {
   TAmbientArea,
   TAmbientMusic,
 } from 'common/sceneAmbient';
-import { AMBIENT_CEILING, MAX_AMBIENT_TOTAL } from 'common/sceneAmbient';
+import { MAX_AMBIENT_TOTAL } from 'common/sceneAmbient';
 import { pictureBearing, picturePoses } from './ambientPictureMotion';
 
 /**
@@ -94,7 +94,26 @@ export interface IAmbientDraw {
  * 0.62 takes the text on a dark pane from 10.8:1 down to 2.0:1, and two
  * overlapping to 1.3:1, where 4.5:1 is the readable floor.
  */
-const MAX_ALPHA = AMBIENT_CEILING;
+/**
+ * The most one shape may be worth INSIDE the layer's own canvas, which is
+ * full strength — the ceiling is on the canvas now, not on the shape.
+ *
+ * It used to be `AMBIENT_CEILING` here, and that protected nothing, because
+ * the shapes are drawn into one canvas before it is screened over the window:
+ * two of them on the same spot composite to far more than either, and nothing
+ * stops a scene putting all forty in the same place. Measured against white
+ * text on the app's own panes, at the old per-shape ceiling of 0.42: one
+ * shape leaves 4.55:1, two leave 2.18:1, four 1.27:1 and eight 1.03:1, where
+ * 4.5:1 is the readable floor. Text under eight of them is gone.
+ *
+ * So the whole canvas carries `AMBIENT_CEILING` as its opacity
+ * (`SceneAmbient.tsx`) and shapes are drawn at their strength relative to it.
+ * A single shape lands exactly where it did — its alpha times the ceiling —
+ * and any number of them stacked can do no more than a solid canvas at the
+ * ceiling, which is the 4.55:1 case. The floor cannot be crossed by adding
+ * shapes any more.
+ */
+const MAX_ALPHA = 1;
 /**
  * The most the musical swell moves in a second, 0 to 1 being none to full.
  * A full swell takes two thirds of a second to arrive and to leave.
@@ -488,13 +507,11 @@ export const stepAmbientField = (
         rotation,
         scaleX: scaleX * swellScale,
         scaleY: scaleY * swellScale,
+        // Relative to the layer, which carries the ceiling itself: this times
+        // `AMBIENT_CEILING` is what reaches the window, exactly as before.
         alpha: Math.min(
           MAX_ALPHA,
-          element.opacity *
-            AMBIENT_CEILING *
-            variety *
-            shimmer *
-            (1 + swell * 0.8),
+          element.opacity * variety * shimmer * (1 + swell * 0.8),
         ),
         ...(poses ? { poses } : {}),
       });
