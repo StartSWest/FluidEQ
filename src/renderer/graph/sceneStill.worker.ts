@@ -103,6 +103,24 @@ const context = () => {
   if (target && !target.gl.isContextLost()) {
     return target;
   }
+  // A fresh context can be a different GPU. Windows moves a window between
+  // them — Remote Desktop puts this app on the integrated chip and hands it
+  // back on disconnect — and the context is lost and remade across that move.
+  //
+  // So "too heavy" is dropped here. It is a judgement about the GPU that was
+  // answering at the time, not about the scene: Crystal cannot be pictured on
+  // an Intel UHD and is 63ms a frame on the card in the same machine. Kept,
+  // it meant one spell of Remote Desktop refused a scene its own maker could
+  // not picture or publish for the rest of the session, on a machine that was
+  // never too slow for it.
+  //
+  // A scene that LOST the context or reset the GPU keeps its refusal across
+  // this, because that is the quarantine and it is about the scene.
+  refused.forEach((reason, key) => {
+    if (reason === 'too-heavy') {
+      refused.delete(key);
+    }
+  });
   const canvas = new OffscreenCanvas(RENDER_WIDTH, RENDER_HEIGHT);
   canvas.addEventListener('webglcontextlost', () => {
     // Blamed already, when a frame of it held the GPU (`watchDraws`).

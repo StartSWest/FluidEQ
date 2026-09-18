@@ -132,7 +132,15 @@ const ask = <K extends TSceneStillRequest['kind']>(
   const id = nextId;
   return new Promise((resolve) => {
     waiting.set(id, (reply) => {
-      if (reply?.refused) {
+      // Only a refusal that is about the SCENE is remembered here. "Too
+      // heavy" is about the GPU that answered — Windows moves this window
+      // between the integrated chip and the card, and Remote Desktop does it
+      // without asking — so keeping it meant one spell on the slow one
+      // refused a scene for the rest of the session on a machine that draws
+      // it in milliseconds. The worker drops those when its context is made
+      // again, which is exactly when the GPU can have changed; this is the
+      // page's half of the same rule.
+      if (reply?.refused && reply.refused !== 'too-heavy') {
         refusedScenes.add(key);
       }
       resolve(

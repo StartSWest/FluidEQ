@@ -177,13 +177,15 @@ it('answers nothing at once where there are no workers at all', async () => {
   await expect(client.sampleSceneInWorker(pack)).resolves.toBeUndefined();
 });
 
-it('never asks again this session for a scene a worker gave up on, even from a new worker', async () => {
+it('never asks again this session for a scene that took the GPU down, even from a new worker', async () => {
   const client = load()();
   const first = client.drawStillInWorker(pack);
   await settle();
   const [worker] = FakeWorker.made;
   const [request] = worker.sent;
-  worker.reply({ kind: 'still', id: request.id, refused: 'too-heavy' });
+  // A refusal about the SCENE — it reset the GPU — which is the quarantine
+  // and is meant to outlive the worker that found it.
+  worker.reply({ kind: 'still', id: request.id, refused: 'gpu-reset' });
   await expect(first).resolves.toBeUndefined();
 
   // The worker is let go, as it is when idle, and forgets what it refused.
@@ -202,4 +204,31 @@ it('never asks again this session for a scene a worker gave up on, even from a n
   await settle();
   expect(FakeWorker.made.flatMap((made) => made.sent)).toHaveLength(2);
   errors.mockRestore();
+});
+
+/**
+ * "Too heavy" is about the GPU that answered, not about the scene.
+ *
+ * Windows moves this window between the integrated chip and the card, and
+ * Remote Desktop does it without asking. Remembering the refusal meant one
+ * spell on the slow one left a maker unable to picture or publish their own
+ * scene for the rest of the session, on a machine that draws it in
+ * milliseconds — Crystal on an Intel UHD against the card in the same laptop.
+ */
+it('asks again for a scene only the GPU of the moment was too slow for', async () => {
+  const client = load()();
+  const first = client.drawStillInWorker(pack);
+  await settle();
+  const [worker] = FakeWorker.made;
+  worker.reply({ kind: 'still', id: worker.sent[0].id, refused: 'too-heavy' });
+  await expect(first).resolves.toBeUndefined();
+
+  const again = client.drawStillInWorker(pack);
+  await settle();
+  const asked = FakeWorker.made.flatMap((made) => made.sent);
+  expect(asked).toHaveLength(2);
+  // And it can succeed the second time, which is the whole point.
+  const blob = new Blob(['webp'], { type: 'image/webp' });
+  worker.reply({ kind: 'still', id: asked[1].id, blob });
+  await expect(again).resolves.toBe(blob);
 });
