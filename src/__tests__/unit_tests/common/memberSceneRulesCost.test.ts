@@ -115,3 +115,41 @@ describe('a comment the compiler ends earlier than we do', () => {
     expect(msToCheck(source).problems).toEqual([]);
   });
 });
+
+/**
+ * What the budget makes of a texture fetch.
+ *
+ * Every call used to weigh the same, so a `texture()` cost what a `+` costs —
+ * a thirty-second of a unit — and a scene could pass the budget while holding
+ * the GPU long enough to reset the driver. A fetch whose address comes from
+ * the fetch before it waits on memory and cannot be hoisted, coalesced, or
+ * run alongside its neighbours.
+ */
+describe('a scene that does nothing but fetch', () => {
+  const fetching = (copies: number) =>
+    `vec4 sceneColour(vec2 uv) {
+  vec2 p = uv; vec4 s = vec4(0.0);
+  for (int i = 0; i < 128; i++) {
+${Array(copies)
+  .fill('    p = texture(uArtwork, p + vec2(p.y, p.x)).rg; s.rg += p;')
+  .join('\n')}
+  }
+  return s;
+}
+`;
+
+  it('refuses the shape that used to be accepted whole', () => {
+    // 369 lines by 128 turns: 47,232 dependent fetches for every pixel, and
+    // about two hundred billion over a 1080p frame.
+    expect(
+      msToCheck(fetching(369)).problems.map((problem) => problem.code),
+    ).toContain('loop-budget');
+  });
+
+  // The control, and the honest limit of this: a sixth of that size is still
+  // accepted, because closing it costs a scene that already exists. See the
+  // comment on COSTLY_CALLS.
+  it('still takes a scene that fetches the way a real one does', () => {
+    expect(msToCheck(fetching(4)).problems).toEqual([]);
+  });
+});

@@ -93,9 +93,19 @@ describe('a picture that flashes is held', () => {
     },
   );
 
-  it.each([4, 6, 10, 30])('holds a square wave at %s a second', (hz) => {
-    expect(shownSwing(square(hz))).toBeLessThan(0.35);
-  });
+  /**
+   * Squares from just over the allowed rate upward. 3.33 is here by name: it
+   * is over the limit and used to show 0.6 of every swing, because the ramp
+   * between "two a second is allowed" and "three is not" left everything just
+   * past three only partly held. Travel closed it without the thresholds
+   * being touched — measured at 0.01 from three a second up.
+   */
+  it.each([3, 3.2, 3.33, 3.5, 4, 6, 10, 30])(
+    'holds a square wave at %s a second',
+    (hz) => {
+      expect(shownSwing(square(hz))).toBeLessThan(0.35);
+    },
+  );
 });
 
 describe('a picture that does not flash is left alone', () => {

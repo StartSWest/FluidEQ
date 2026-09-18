@@ -659,6 +659,45 @@ const OPERATION_MARKS = '+-*/%<>=!&|^?(';
 const OPERATIONS_PER_UNIT = 32;
 
 /**
+ * What a sampler costs, in units, beyond the one bracket mark it already
+ * contributes. A unit is about one turn of noise — arithmetic — and a fetch
+ * from a texture is not arithmetic.
+ *
+ * Every call weighed the same before: a `texture()` cost what a `+` costs, a
+ * thirty-second of a unit. So a scene could pass this budget and still hold
+ * the GPU long enough to reset the driver, and one was built to prove it — a
+ * single 128-turn loop with 369 copies of a fetch whose address comes from
+ * the LAST fetch. Accepted, at 47,232 dependent fetches a pixel. A fetch that
+ * waits on the one before it cannot be hoisted, cannot be coalesced and
+ * cannot run alongside its neighbours.
+ *
+ * ONE, and samplers only, both measured rather than reasoned. Transcendentals
+ * are heavier than arithmetic too and were in this list first; Coral — the
+ * heaviest real scene, and the one `MAX_MEMBER_PIXEL_WORK` is calibrated on —
+ * went over the budget at a weight of one for `sin`, and over it again at a
+ * sampler weight of two. A rule that refuses a scene somebody already made is
+ * worse than the approximation it replaces. One is what all 40 scenes in the
+ * Studio folder pass at.
+ *
+ * It is an improvement and not a wall, and the difference is worth writing
+ * down: the attack above is refused, and the same shape at a sixth of its
+ * size — 7,680 dependent fetches a pixel — is still accepted. Closing that
+ * needs a weight of two, which Coral does not survive. What that really says
+ * is that the budget itself wants measuring again against a GPU rather than
+ * shaving: Coral sits at half of it while fetching inside loops, so the two
+ * numbers are arguing about the same scene. That measurement needs a GPU and
+ * a stopwatch, and is not something this file can decide alone.
+ */
+const COSTLY_CALLS = new Map<string, number>([
+  ['texture', 1],
+  ['textureLod', 1],
+  ['textureProj', 1],
+  ['textureOffset', 1],
+  ['textureGrad', 1],
+  ['texelFetch', 1],
+]);
+
+/**
  * Where the work one pixel can do first goes past the budget, or undefined
  * when it never does.
  *
@@ -684,6 +723,26 @@ const overBudget = (
   }
   const operationsIn = (from: number, to: number) =>
     operationsBefore[to] - operationsBefore[from];
+  // What the samplers before each position come to, counted once in the same
+  // shape as the operations above, so asking a span is two reads.
+  const samplersBefore = new Uint32Array(code.length + 1);
+  const samplerWord = /[A-Za-z_]\w*/g;
+  let samplerFound = samplerWord.exec(code);
+  while (samplerFound) {
+    const weight = COSTLY_CALLS.get(samplerFound[0]);
+    if (
+      weight !== undefined &&
+      code[skipSpace(code, samplerFound.index + samplerFound[0].length)] === '('
+    ) {
+      samplersBefore[samplerFound.index + 1] += weight;
+    }
+    samplerFound = samplerWord.exec(code);
+  }
+  for (let k = 0; k < code.length; k += 1) {
+    samplersBefore[k + 1] += samplersBefore[k];
+  }
+  const samplersIn = (from: number, to: number) =>
+    samplersBefore[to] - samplersBefore[from];
   let over: number | undefined;
   const add = (work: number, more: number, at: number) => {
     const sum = Math.min(work + more, ceiling);
@@ -699,6 +758,7 @@ const overBudget = (
     }
     let work = 0;
     let operations = operationsIn(from, to);
+    let samplers = samplersIn(from, to);
     const word = /[A-Za-z_]\w*/g;
     word.lastIndex = from;
     let found = word.exec(code);
@@ -713,6 +773,7 @@ const overBudget = (
           found.index,
         );
         operations -= operationsIn(loop.from, loop.to);
+        samplers -= samplersIn(loop.from, loop.to);
         word.lastIndex = loop.to;
       } else if (
         bodies.has(name) &&
@@ -734,7 +795,7 @@ const overBudget = (
       }
       found = word.exec(code);
     }
-    return add(work, operations / OPERATIONS_PER_UNIT, from);
+    return add(work, operations / OPERATIONS_PER_UNIT + samplers, from);
   };
 
   const total = Math.max(
