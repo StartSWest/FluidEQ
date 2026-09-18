@@ -102,15 +102,26 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * That was the one rate left over the line in the measurements below, at 3.2
  * flashes a second against a bound of 3.
  *
- * At 0.35 the same rise delivers 0.093 and the shape comes out at 1.6. What it
- * costs, measured on the driver over every sequence in the header: nothing.
- * Not one picture that must be left alone moved — a square at three a second,
- * a ramp at two, a breathing picture, a bar sweeping across and a strip an
- * eighth of the frame flickering ten times a second all keep exactly the
- * share of their swing they kept at 0.5, to the percent. A tighter limit only
- * bites where the guard was already holding.
+ * At 0.35 the same rise delivered 0.093 — and then 0.28, because what this
+ * limiter hands on is not what the listener sees. The picture is judged at the
+ * size the scene drew it and the finishing chain scales it up to the panel
+ * (`scenePost.ts`): EASU, then RCAS, a five-tap sharpen with a negative lobe,
+ * then FXAA. Measured on the real passes at their shipped strength, on a
+ * checkerboard held to exactly 0.093: the sharpen alone returns 0.183, and
+ * after the smoothing that follows it, 0.115 at two-pixel cells and 0.101 at
+ * four and eight — over the tenth WCAG counts, from a swing this file had
+ * called safe. One-pixel cells come out at 0.034; the smoothing eats those.
+ *
+ * So the budget carries the chain's worst measured gain: 0.28 x 0.267 = 0.075
+ * over a cycle at 3.75 flashes a second, x1.24 through the chain, 0.093 on the
+ * glass. What it costs, measured on the driver over every sequence in the
+ * header: nothing. Not one picture that must be left alone moves — a beat at
+ * 150 BPM, a ramp at two a second, a breathing picture, a bar sweeping across
+ * and the strips a sixteenth and an eighth of the frame flickering ten times a
+ * second all keep exactly the share of their swing they kept at 0.5. A tighter
+ * limit only bites where the guard was already holding.
  */
-export const FLASH_LIMIT_PER_SECOND = 0.35;
+export const FLASH_LIMIT_PER_SECOND = 0.28;
 
 /** A stalled frame earns no extra allowance: the change it permits is capped. */
 const MAX_FRAME_MS = 100;

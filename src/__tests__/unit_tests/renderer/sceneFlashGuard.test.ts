@@ -58,6 +58,24 @@ describe('the brightness limiter', () => {
     expect(riseOverACycle(2)).toBeGreaterThan(WCAG_SWING);
   });
 
+  /**
+   * And below it with the FINISHING CHAIN's gain still to come, which is the
+   * sum that was missing entirely. What this limiter hands on is not what the
+   * listener sees: the picture is judged at the size the scene drew it, then
+   * scaled up to the panel through a sharpen with a negative lobe and an
+   * anti-aliasing pass. Measured on those real passes at their shipped
+   * strength, a checkerboard held to 0.093 came back at 0.115 — over the line,
+   * from a swing the guard had called safe.
+   */
+  it('leaves room for the sharpening that runs after it', () => {
+    // The worst measured over checkerboards of one, two, four and eight
+    // pixels: 0.115 out of 0.093 in.
+    const CHAIN_GAIN = 0.115 / 0.093;
+    expect((FLASH_LIMIT_PER_SECOND / 3.75) * CHAIN_GAIN).toBeLessThan(
+      WCAG_SWING,
+    );
+  });
+
   it('allows the same change per second at any frame rate', () => {
     const perSecond = (fps: number) => flashAllowance(1000 / fps) * fps;
     expect(perSecond(30)).toBeCloseTo(FLASH_LIMIT_PER_SECOND, 6);
