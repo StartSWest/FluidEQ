@@ -55,10 +55,19 @@ import {
   settledList,
   type IStudioAccess,
 } from '../memberScenes/projectAccess';
+import {
+  loadVisibleScene,
+  sceneListing,
+  visibleScenes,
+  type IMemberScenesListing,
+  type ISceneViewer,
+} from '../memberScenes/visibleScenes';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
 import { registerStudioPreviewIpc } from './studioPreview';
 import { registerStudioPicturesIpc } from './studioPictures';
 import { registerStudioSettingsIpc } from './studioSettings';
+
+export type { IMemberScenesListing } from '../memberScenes/visibleScenes';
 
 /**
  * Member scenes and the Studio, as the renderer sees them.
@@ -81,17 +90,6 @@ import { registerStudioSettingsIpc } from './studioSettings';
  * so does losing Plus on one of FluidEQ's own scenes opened to look inside;
  * the projects not open are a line in a list and cost nothing.
  */
-
-export interface IMemberScenesListing {
-  entitled: boolean;
-  /**
-   * The member's own scenes and the ones other members sent them, when they
-   * may be drawn.
-   */
-  scenes: IMemberSceneSummary[];
-  /** The same scenes while Plus is off: shown locked, never deleted. */
-  locked: IMemberSceneSummary[];
-}
 
 export interface IStudioProject {
   /** What the page names it by. Its folder is never accepted back. */
@@ -329,37 +327,15 @@ export const registerMemberScenesIpc = ({
     return run;
   };
 
-  /**
-   * This account's scenes and the ones other members sent it. Scenes another
-   * account on this computer made are theirs, and not listed here.
-   */
-  const visible = () => {
-    const me = accountId();
-    return me
-      ? store.list().filter((scene) => !scene.own || scene.authorId === me)
-      : [];
-  };
+  /** Who is asking, for the rules in `visibleScenes.ts`. */
+  const viewer: ISceneViewer = { accountId, entitled };
 
-  const listing = (): IMemberScenesListing => {
-    const scenes = visible();
-    return entitled()
-      ? { entitled: true, scenes, locked: [] }
-      : { entitled: false, scenes: [], locked: scenes };
-  };
+  const visible = () => visibleScenes(store, viewer);
 
-  const isVisible = (authorId: string, packId: string) =>
-    visible().some(
-      (scene) => scene.authorId === authorId && scene.packId === packId,
-    );
+  const listing = (): IMemberScenesListing => sceneListing(store, viewer);
 
-  const loadVisible = (lookId: unknown): IScenePack | undefined => {
-    const ref =
-      typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-    if (!ref || !entitled() || !isVisible(ref.authorId, ref.packId)) {
-      return undefined;
-    }
-    return store.load(ref.authorId, ref.packId);
-  };
+  const loadVisible = (lookId: unknown): IScenePack | undefined =>
+    loadVisibleScene(store, viewer, lookId);
   const sceneListeners = new Set<() => void>();
 
   const projectsRoot = () => projects.root ?? defaultProjectsRoot(documentsDir);
@@ -543,7 +519,14 @@ export const registerMemberScenesIpc = ({
   ipcMain.handle('member-scenes-remove', (_event, lookId: unknown) => {
     const ref =
       typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-    if (!ref || !isVisible(ref.authorId, ref.packId)) {
+    // Only a scene this account can see may be removed by it.
+    const seen =
+      ref !== undefined &&
+      visible().some(
+        (scene) =>
+          scene.authorId === ref.authorId && scene.packId === ref.packId,
+      );
+    if (!ref || !seen) {
       return false;
     }
     const removed = store.remove(ref.authorId, ref.packId);
