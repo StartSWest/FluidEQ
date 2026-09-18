@@ -10,6 +10,78 @@ import type {
   TSceneWorkerRequest,
 } from './sceneWorkerMessages';
 
+/**
+ * How far out of shape a picture may be before it is taken off the screen
+ * rather than stretched, as a ratio of its aspect to its box's.
+ *
+ * A quarter is about where a circle reads as an oval. Below it are the
+ * changes nothing should interrupt for — a pane divider dragged, a window
+ * edge pulled, which move the box by a percent or two a frame. Above it are
+ * the ones worth hiding: the graph's strip into full screen, measured at
+ * 4.8 times out of shape, is the case this exists for.
+ */
+const SETTLE_STRETCH = 1.25;
+
+/**
+ * How long the scene takes to come back once it fits again.
+ *
+ * The same going in and coming out: full screen and back to the strip are one
+ * gesture, and a reveal that took longer in one direction than the other
+ * would read as the slower one having gone wrong.
+ *
+ * The picture itself catches up in 88ms (measured in the window, the graph's
+ * strip into full screen), so this is what is added to that — a quarter of a
+ * second, over before anybody reads it as the scene having gone away, and
+ * the whole thing well inside the one second Ivan set as the limit. What
+ * shows underneath for those few frames is the scene's own ground colour,
+ * never black: `SceneLoading.tsx` keeps that behind the canvas.
+ */
+const SETTLE_FADE_MS = 250;
+
+/**
+ * Whether the picture on a scene's canvas still fits the box it is drawn
+ * into, or is being stretched to fill it.
+ *
+ * The canvas is pulled to its host's size by CSS while the pixels behind it
+ * belong to the worker, so between a box changing shape and the worker's next
+ * frame the browser scales the old picture over the new box. Going from the
+ * graph's strip into full screen, measured in the window on 2026-09-18: the
+ * box went from 2016x214 to 2560x1316 while the picture behind it stayed
+ * 2016x214 for 88ms — a scene nine times wider than tall pulled over a box
+ * not quite two. Five frames, and unmistakable on anything with straight
+ * lines in it; Crystal is where it shows worst.
+ *
+ * Only a mismatch big enough to SEE counts. A pane divider being dragged
+ * moves the box by a percent a frame, and taking the scene away for each of
+ * those would be far worse than the stretch.
+ *
+ * The picture's own RESOLUTION is deliberately not part of this. The cost
+ * ladder draws small on purpose and the worker brings the result back up to
+ * the panel's pixels, so the canvas matches its box at every rung; a blurrier
+ * picture is not a stretched one, and hiding the scene each time the ladder
+ * moved would be a fault of its own.
+ */
+export const sceneFitsItsBox = (
+  pictureWidth: number,
+  pictureHeight: number,
+  boxWidth: number,
+  boxHeight: number,
+): boolean => {
+  if (
+    !(pictureWidth >= 1) ||
+    !(pictureHeight >= 1) ||
+    !(boxWidth >= 1) ||
+    !(boxHeight >= 1)
+  ) {
+    // Nothing drawn yet, or a box with no size: there is no picture being
+    // stretched, and a scene must never be left hidden by a reading that
+    // means "not measurable".
+    return true;
+  }
+  const stretch = (pictureWidth / pictureHeight) * (boxHeight / boxWidth);
+  return Math.max(stretch, 1 / stretch) < SETTLE_STRETCH;
+};
+
 /** What the worker says of a frame it was sent (`TSceneWorkerReply`). */
 export interface ISceneDrawn {
   accent: number;
@@ -156,7 +228,54 @@ export const createSceneWorkerClient = (
   canvas.style.display = 'block';
   canvas.style.width = '100%';
   canvas.style.height = '100%';
+  // Held back while the picture does not fit its box — see `fits` below. The
+  // fade is on the way IN only; going out has to be instantaneous or the
+  // stretched frame is what the fade shows.
+  canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
   host.appendChild(canvas);
+
+  const fits = () => {
+    const box = host.getBoundingClientRect();
+    return sceneFitsItsBox(canvas.width, canvas.height, box.width, box.height);
+  };
+
+  /**
+   * Takes the scene off the screen the moment its box stops fitting, and
+   * fades it back when a frame drawn for the new box has been submitted.
+   *
+   * In the ResizeObserver rather than in the frame loop on purpose: this runs
+   * before the browser paints the frame the box changed in, so the stretched
+   * picture is never shown at all. Noticing it a frame later would still let
+   * one through.
+   *
+   * There is no timer anywhere in this: it hides on a box changing and shows
+   * on a frame arriving. A scene that stops drawing altogether therefore
+   * stays hidden — which is the same place a dropped renderer leaves it, and
+   * the frame loop is kicked on every resize, so the frame always comes.
+   *
+   * What shows through in the meantime is the chart's own dark ground, NOT
+   * the scene's colour: `SceneLoading.tsx` fades its backdrop away once the
+   * scene has first drawn and does not bring it back for a resize. Measured
+   * at 161ms to the first full-screen frame and 440ms to full strength, so
+   * it is a few frames of the panel behind a scene that is already there.
+   */
+  let settled = true;
+  const hold = () => {
+    if (settled && !fits()) {
+      settled = false;
+      canvas.style.transition = 'none';
+      canvas.style.opacity = '0';
+    }
+  };
+  const release = () => {
+    if (!settled && fits()) {
+      settled = true;
+      canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
+      canvas.style.opacity = '1';
+    }
+  };
+  const watchBox = new ResizeObserver(hold);
+  watchBox.observe(host);
   let id = 0;
   let disposed = false;
   let lost = false;
@@ -232,6 +351,10 @@ export const createSceneWorkerClient = (
       loads.get(data.id)?.(data.result);
       loads.delete(data.id);
     } else if (data.kind === 'drawn') {
+      // The worker has submitted this frame, so the canvas now carries the
+      // size it was drawn for: the one moment it is worth asking whether the
+      // picture fits its box again.
+      release();
       const notify = shown;
       shown = undefined;
       notify?.({
@@ -318,6 +441,7 @@ export const createSceneWorkerClient = (
     dispose: () => {
       disposed = true;
       shown = undefined;
+      watchBox.disconnect();
       cancelLoads();
       releaseFrame(true);
       // A load sent and not answered may be linking. Ended now, the worker's
