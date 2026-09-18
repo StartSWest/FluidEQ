@@ -183,26 +183,23 @@ export const blankGlslComments = (source: string): string | null => {
   return out.join('');
 };
 
-/**
- * The source with every comment gone, as a shared scene carries it.
+/*
+ * A `stripGlslComments` used to sit here, and its comment said a shared scene
+ * carried its source with every comment gone — comments being the only free
+ * text a scene has, and a shared scene being read by other people's AIs as
+ * often as by their GPUs. NOTHING EVER CALLED IT. It was written, tested and
+ * never wired to the signing it named, so the protection it described has
+ * never existed and the file claimed it for a fortnight.
  *
- * Comments are the only free text a scene has, and a shared scene is read by
- * other people's AIs as often as by their GPUs; stripping them when a scene
- * is signed leaves nothing a paragraph of instructions could hide in. The
- * author's own folder keeps them. `null` when a block comment never closes.
+ * Taken out rather than wired in, because wiring it in is not this file's
+ * call: it would drop every author's comments out of what they publish, which
+ * is their work and is visible to them. And it would not be a defence anyway —
+ * the brief an author's agent reads is the author's own to edit, so it is not
+ * a boundary, and a member's scene does not become another member's project
+ * (`memberSharing.ts` brings a foreign scene in as a look). Worth doing as
+ * hygiene if somebody decides the authors will not mind; not worth a comment
+ * describing a guard that is not there.
  */
-export const stripGlslComments = (source: string): string | null => {
-  const blanked = blankGlslComments(source);
-  if (blanked === null) {
-    return null;
-  }
-  return `${blanked
-    .split('\n')
-    .map((line) => line.replace(/\s+$/, ''))
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()}\n`;
-};
 
 /** Where each line starts, so finding a line is a search, not a rescan. */
 const lineStarts = (text: string): number[] => {

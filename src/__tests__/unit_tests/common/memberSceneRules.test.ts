@@ -8,7 +8,6 @@ import {
   blankGlslComments,
   checkMemberSceneSource,
   MAX_MEMBER_SOURCE_BYTES,
-  stripGlslComments,
 } from '../../../common/memberSceneRules';
 
 // Every rule below is only meaningful beside this: a realistic scene, with
@@ -39,14 +38,13 @@ describe('member scene rules', () => {
     expect(checkMemberSceneSource(GOOD)).toEqual([]);
   });
 
-  it('strips every comment for sharing, and what is left still passes', () => {
-    const stripped = stripGlslComments(GOOD);
-    expect(stripped).not.toBeNull();
-    expect(stripped).not.toMatch(/\/\/|\/\*|moiré|#define/);
-    expect(stripped).toContain('vec4 sceneColour(vec2 uv) {');
-    expect(checkMemberSceneSource(stripped ?? '')).toEqual([]);
-    expect(stripGlslComments('/* never closed')).toBeNull();
-  });
+  /*
+   * There was a case here for `stripGlslComments`, which is gone: nothing in
+   * the app ever called it, so what it tested was a protection the code
+   * described and did not have. A test of an unused function is what let that
+   * stand for a fortnight — it was green, so the claim beside it read as
+   * kept. See the note where the function was.
+   */
 
   it('blanks comments without moving any line', () => {
     const blanked = blankGlslComments('a // x\n/* y\nz */ b');

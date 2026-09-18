@@ -24,10 +24,25 @@ import { checkMemberSceneSource } from '../../../common/memberSceneRules';
 
 const ENTRY = 'vec4 sceneColour(vec2 uv) { return vec4(0.0); }\n';
 
+/**
+ * The FASTEST of three runs, not one.
+ *
+ * What these cases guard are shapes that are slow every single time — the two
+ * they were written for were quadratic and took 1.8 s and 23 s. A machine
+ * running six hundred suites at once stalls for other reasons entirely, and
+ * one such stall failed two of these once in a full run and never again. The
+ * answer is not a looser bound, which would let a quadratic regression at this
+ * input size through; it is to stop measuring the stall.
+ */
 const msToCheck = (source: string) => {
-  const started = performance.now();
-  const problems = checkMemberSceneSource(source);
-  return { ms: performance.now() - started, problems };
+  let quickest = Infinity;
+  let problems = checkMemberSceneSource(source);
+  for (let run = 0; run < 3; run += 1) {
+    const started = performance.now();
+    problems = checkMemberSceneSource(source);
+    quickest = Math.min(quickest, performance.now() - started);
+  }
+  return { ms: quickest, problems };
 };
 
 /** Generous for a build machine; the defect it guards was 1832 ms. */
