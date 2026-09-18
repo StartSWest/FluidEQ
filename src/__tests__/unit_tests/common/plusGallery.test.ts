@@ -11,6 +11,8 @@ import {
   parseGalleryRow,
   parseVersionRow,
   parsePublishedRow,
+  heldVersionOf,
+  type IPublishedScene,
 } from '../../../common/plusGallery';
 import { MAX_VERSION_NOTE } from '../../../common/sceneVersionNote';
 
@@ -211,5 +213,46 @@ describe('an earlier version', () => {
         published_at: '2026-09-11T02:00:00Z',
       }),
     ).toBeUndefined();
+  });
+});
+
+describe('the version a scene is published under now', () => {
+  const published = (
+    sceneId: string,
+    version: number,
+    official?: boolean,
+  ): IPublishedScene => ({
+    sceneId,
+    version,
+    category: 'space',
+    names: { en: sceneId },
+    swatch: ['#112233'],
+    likes: 0,
+    adds: 0,
+    publishedAt: '2026-09-01T00:00:00Z',
+    updatedAt: '2026-09-02T00:00:00Z',
+    blocked: false,
+    ...(official ? { official: true } : {}),
+  });
+
+  it('is nothing for a scene that has never been published', () => {
+    expect(heldVersionOf([published('other', 9)], 'mine')).toBeUndefined();
+    expect(heldVersionOf([], 'mine')).toBeUndefined();
+  });
+
+  it('reads a member publication', () => {
+    expect(heldVersionOf([published('mine', 7)], 'mine')).toBe(7);
+  });
+
+  it('reads one of FluidEQ’s own', () => {
+    // The bug this exists for: filtered out, an official publisher was told
+    // nothing was published and republished under the number already there.
+    expect(heldVersionOf([published('mine', 51, true)], 'mine')).toBe(51);
+  });
+
+  it('takes the higher where a scene is published as both', () => {
+    const both = [published('mine', 51, true), published('mine', 60)];
+    expect(heldVersionOf(both, 'mine')).toBe(60);
+    expect(heldVersionOf([...both].reverse(), 'mine')).toBe(60);
   });
 });

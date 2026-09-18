@@ -125,6 +125,35 @@ export interface IPublishedScene {
   blocked: boolean;
 }
 
+/**
+ * The number a scene is published under now, from a maker's own list, so the
+ * next publication can go out above it.
+ *
+ * A publication is either a member's or one of FluidEQ's own, and the rule
+ * that a scene's content may only change under a HIGHER number belongs to
+ * both. Asking this with the official rows filtered out was the bug: an
+ * account granted official publishing has its scenes in that half of the list
+ * and a member half that is empty, so the question came back "nothing is
+ * published" every time and every republication went out under the number
+ * already on the shelf — which the listener then refuses, because an official
+ * scene is only taken when its version is strictly greater. The scene looked
+ * published and no machine ever changed.
+ *
+ * The highest of them wins. A maker sees only their own publications here
+ * (the server answers the official half solely to an official publisher), so
+ * this cannot be driven by somebody else's number, and where an id exists as
+ * both kinds neither can be published underneath the other.
+ */
+export const heldVersionOf = (
+  scenes: readonly IPublishedScene[],
+  sceneId: string,
+): number | undefined => {
+  const versions = scenes
+    .filter((scene) => scene.sceneId === sceneId)
+    .map((scene) => scene.version);
+  return versions.length > 0 ? Math.max(...versions) : undefined;
+};
+
 export const REPORT_REASONS = [
   'rights',
   'flashing',

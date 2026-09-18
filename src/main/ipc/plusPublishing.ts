@@ -1,5 +1,9 @@
 import { ipcMain } from 'electron';
-import { isPlusCategory, type IPublishedScene } from '../../common/plusGallery';
+import {
+  heldVersionOf,
+  isPlusCategory,
+  type IPublishedScene,
+} from '../../common/plusGallery';
 import {
   settingsOfPack,
   type ISceneSettings,
@@ -253,9 +257,7 @@ export const registerPlusPublishingIpc = ({
       if (!listed.ok) {
         return { ok: false, reason: listed.reason };
       }
-      const held = listed.scenes.find(
-        (entry) => !entry.official && entry.sceneId === sceneId,
-      )?.version;
+      const held = heldVersionOf(listed.scenes, sceneId);
       if ((await raiseProjectVersion(folder, held)) === 'failed') {
         return { ok: false, reason: 'no-build' };
       }

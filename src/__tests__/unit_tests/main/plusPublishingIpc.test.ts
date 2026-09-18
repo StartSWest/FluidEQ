@@ -579,6 +579,62 @@ describe('publishing from the Studio', () => {
       expect(onDisk()).toBe(1);
     });
 
+    /**
+     * The same scene, listed as one of FluidEQ's own.
+     *
+     * An account granted official publishing has its scenes in that half of
+     * the maker's list and a member half that is empty, so a lookup written
+     * to skip official rows was told nothing was published at all. Every
+     * republication then went out under the number already on the shelf — and
+     * an official scene is only taken by a listener when its version is
+     * strictly greater, so the press reported success, the number never moved
+     * and no machine ever changed.
+     */
+    const galleryHoldsOfficial = (version: number, andMember?: number) => {
+      const row = (at: number, official: boolean) => ({
+        scene_id: 'my-first-scene',
+        version: at,
+        category: 'space',
+        names: { en: 'My First Scene' },
+        swatch: ['#112233', '#445566'],
+        likes: 0,
+        adds: 0,
+        published_at: '2026-09-01T00:00:00+00:00',
+        updated_at: '2026-09-02T00:00:00+00:00',
+        blocked: false,
+        ...(official ? { official: true } : {}),
+      });
+      answer = (url: string) =>
+        url.includes('/rpc/my_published_scenes')
+          ? fakeResponse(200, [
+              row(version, true),
+              ...(andMember === undefined ? [] : [row(andMember, false)]),
+            ])
+          : fakeResponse(200, { published: {} });
+    };
+
+    it('rises above one of FluidEQ’s own publications too', async () => {
+      galleryHoldsOfficial(51);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 52 });
+      expect(onDisk()).toBe(52);
+    });
+
+    it('rises above the higher of the two where a scene is both', async () => {
+      // Neither kind may be published underneath the other: one id, one
+      // number that only ever goes up.
+      galleryHoldsOfficial(51, 60);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 61 });
+      expect(onDisk()).toBe(61);
+    });
+
     it('says so when the server got there first', async () => {
       // Two publications of the same scene crossing: the second read the
       // gallery before the first wrote to it, so the number it raised to was

@@ -197,7 +197,13 @@ export default function useStudioPublish(
       ?.myPublishedScenes?.()
       .then((outcome) =>
         outcome.ok
-          ? outcome.scenes.find((scene) => scene.sceneId === packId)
+          ? // The highest, which is the one the publication will go out
+            // above (`heldVersionOf`): the number shown here and the number
+            // sent have to be the same, or the dialog promises a version the
+            // press does not deliver.
+            outcome.scenes
+              .filter((scene) => scene.sceneId === packId)
+              .sort((one, two) => two.version - one.version)[0]
           : undefined,
       )
       .catch(() => undefined);
