@@ -447,5 +447,11 @@ export const dspPresetSettings = (
     // Crossfade is playback behaviour, not a colour in the DSP rack. A chain
     // choice must never silently start, stop or reshape the next transition.
     crossfade: current?.crossfade ?? preset.settings.crossfade,
+    // And the surround switch is the machine, not the sound: it says which
+    // channels of THIS output the rack runs on. Every recipe is built from
+    // the defaults, so without this a listener who had chosen the front pair
+    // had all six channels back the moment they auditioned a preset — with
+    // nothing on the page saying so.
+    surround: current?.surround ?? preset.settings.surround,
   });
 };

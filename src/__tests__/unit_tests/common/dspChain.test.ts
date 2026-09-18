@@ -319,6 +319,27 @@ describe('dsp chain settings', () => {
     expect(applied?.crossfade).toEqual(current.crossfade);
   });
 
+  /**
+   * Which channels of the output the rack runs on is the machine, not the
+   * sound: every recipe is built from the defaults, so a listener who had
+   * chosen the front pair got all six channels back from auditioning a
+   * preset, with nothing on the page saying so.
+   */
+  it('keeps the surround switch when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      surround: { allChannels: false },
+    };
+    const applied = dspPresetSettings('rock', current);
+    expect(applied?.surround).toEqual({ allChannels: false });
+    // POSITIVE CONTROL: the preset does change the sound around it, and with
+    // no current settings it brings its own switch.
+    expect(applied?.eq).not.toEqual(current.eq);
+    expect(dspPresetSettings('rock')?.surround).toEqual({
+      allChannels: true,
+    });
+  });
+
   it('always returns three compressor bands whatever it was handed', () => {
     const clamped = clampDspSettings({
       ...DSP_DEFAULTS,

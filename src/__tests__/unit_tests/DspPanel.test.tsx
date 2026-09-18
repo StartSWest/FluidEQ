@@ -577,6 +577,34 @@ describe('DspPanel', () => {
     expect(next.crossfade).toEqual(active.crossfade);
   });
 
+  /**
+   * The surround switch says which channels of THIS output the rack runs on,
+   * so it belongs to the machine and not to a recipe — the same rule the
+   * crossfade above follows. Every recipe is built from the defaults, where
+   * the rack runs on all of them, so without this the switch flipped itself
+   * back on the way through a preset or the rack's own Reset.
+   */
+  it('keeps the surround switch through a preset and through Reset', () => {
+    const pair: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true },
+      surround: { allChannels: false },
+    };
+    const { container, onChange } = renderPanel(pair);
+    const rack = within(container.querySelector('.dsp-presets') as HTMLElement);
+    fireEvent.click(rack.getByRole('button', { name: 'Presets' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Rock/i }));
+    const chosen = onChange.mock.calls[0][0] as IDspSettings;
+    expect(chosen.surround).toEqual({ allChannels: false });
+
+    onChange.mockClear();
+    fireEvent.click(rack.getByRole('button', { name: 'Reset' }));
+    const reset = onChange.mock.calls[0][0] as IDspSettings;
+    expect(reset.surround).toEqual({ allChannels: false });
+    // POSITIVE CONTROL: Reset did its job on everything that IS the sound.
+    expect(reset.eq.enabled).toBe(DSP_DEFAULTS.eq.enabled);
+  });
+
   it('keeps the filter preset at the left of its header', () => {
     const { container } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));

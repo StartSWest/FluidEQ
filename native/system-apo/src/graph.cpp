@@ -100,6 +100,19 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
+  // The channels the rack does not cover, put back in step with the ones it
+  // does: see `bypass_align_`. Allocated here because `process` may not.
+  if (rack_ != nullptr && rack_channels_ < channels_ && rack.latency > 0) {
+    const size_t untouched = channels_ - rack_channels_;
+    bypass_align_lines_.assign(
+        untouched, std::vector<float>(static_cast<size_t>(rack.latency) + 1,
+                                      0.0f));
+    bypass_align_.assign(untouched, FeqDelayLine{});
+    for (size_t at = 0; at < untouched; ++at) {
+      feq_delay_line_init(&bypass_align_[at], bypass_align_lines_[at].data(),
+                          rack.latency + 1, rack.latency);
+    }
+  }
   room_note_ = rack.room_note;
   room_state_ = rack.room_state;
   if (rack.failed) {
@@ -255,6 +268,15 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     }
     if (usable) {
       feq_chain_process(rack_.get(), rack_planes_.data(), frames);
+      // In the same block the rack ran, never on one it skipped: a channel
+      // held back while the pair beside it was not would be the very fault
+      // this prevents, with the sign reversed.
+      for (size_t at = 0; at < bypass_align_.size(); ++at) {
+        float* buffer = planar[rack_channels_ + at];
+        if (buffer != nullptr) {
+          feq_delay_line_process(&bypass_align_[at], buffer, frames);
+        }
+      }
     }
   }
 
@@ -366,6 +388,23 @@ void Graph::adopt_state(Graph* previous) noexcept {
   }
   if (rack_ != nullptr && previous->rack_ != nullptr && rack_ != previous->rack_) {
     feq_chain_transfer_state(rack_.get(), previous->rack_.get());
+  }
+  // The untouched channels' alignment is audio in flight like any other
+  // delay line: a fresh one at a settings change would put its own length of
+  // silence into every channel the rack does not run on. Only where the shape
+  // and the delay match, and element-wise, because this runs on the handover.
+  if (bypass_align_.size() == previous->bypass_align_.size()) {
+    for (size_t at = 0; at < bypass_align_.size(); ++at) {
+      std::vector<float>& line = bypass_align_lines_[at];
+      const std::vector<float>& before = previous->bypass_align_lines_[at];
+      if (line.size() != before.size()) {
+        continue;
+      }
+      for (size_t frame = 0; frame < line.size(); ++frame) {
+        line[frame] = before[frame];
+      }
+      bypass_align_[at].cursor = previous->bypass_align_[at].cursor;
+    }
   }
 }
 

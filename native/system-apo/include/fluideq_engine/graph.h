@@ -32,6 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/biquad.h"
 #include "fluideq/chain.h"
 #include "fluideq/convolver.h"
+#include "fluideq/primitives.h"
 #include "fluideq_engine/config.h"
 
 namespace fluideq_engine {
@@ -328,14 +329,37 @@ class Graph {
    * rewrite of identical numbers, which is exactly the case that matters.
    */
   std::vector<double> dsp_values_;
-  // How many of `channels_` the rack actually runs on: 1 or 2, never more.
-  // A stream with more carries the rest past it untouched, because the rack
-  // is a stereo processor (`FEQ_CHAIN_CHANNELS`) and there is no sensible
-  // answer for a centre channel or an LFE.
+  // How many of `channels_` the rack actually runs on: every channel up to
+  // the chain's own eight with the rack set to all channels, the front pair
+  // otherwise. A stream with more carries the rest past it, held back by
+  // `bypass_align_`.
   uint32_t rack_channels_ = 0;
   // `rack_channels_` pointers, filled in `process`. A member because the
   // audio thread may not allocate one per block.
   std::vector<float*> rack_planes_;
+  /**
+   * THE CHANNELS THE RACK DOES NOT RUN ON, HELD BACK BY WHAT IT DELAYS THE
+   * ONES IT DOES.
+   *
+   * Untouched means EARLY. The rack's latency applies to the channels it
+   * processes — Bass Punch's FIR whenever there are two of them, the
+   * restoration's modules, the live leveller, the room, and 8704 frames of a
+   * linear-phase EQ, which is 181 ms. Measured at 645 frames, 13 ms at
+   * 48 kHz, on a rack with nothing but the exciter switched on
+   * (`dsp_chain_test.cpp` prints it). So in front-pair mode a 5.1 stream's
+   * centre reached the speakers ahead of the music the rack had just worked
+   * on, by 13 ms at the very least and by a fifth of a second under linear
+   * phase: dialogue before the scene, and every phantom image between the
+   * front pair and anything else torn apart.
+   *
+   * The chain does exactly this inside itself for the surround channels its
+   * stereo-only stages skip (`denoise_align` in `chain_internal.h`); this is
+   * the same alignment one level up, for the channels the chain never sees.
+   * It adds nothing to what the graph reports: the stream was already this
+   * late, on the channels that matter.
+   */
+  std::vector<FeqDelayLine> bypass_align_;
+  std::vector<std::vector<float>> bypass_align_lines_;
 
   std::vector<std::string> warnings_;
   std::vector<std::string> problems_;

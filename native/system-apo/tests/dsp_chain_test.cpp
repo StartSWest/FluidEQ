@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "../src/dsp_chain.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -309,6 +310,69 @@ void channels_beyond_two_pass_the_rack_by() {
   CHECK(!narrow.is_passthrough());
 }
 
+/** Where a lone impulse on `channel` leaves the graph, or -1. */
+long impulse_frame(Graph& graph, uint32_t channels, uint32_t channel,
+                   uint32_t latency) {
+  const uint32_t block = 480;
+  const uint32_t blocks = latency / block + 3;
+  std::vector<std::vector<float>> audio(channels,
+                                        std::vector<float>(block, 0.0f));
+  std::vector<float*> planes(channels, nullptr);
+  for (uint32_t at = 0; at < channels; ++at) {
+    planes[at] = audio[at].data();
+  }
+  for (uint32_t pass = 0; pass < blocks; ++pass) {
+    for (std::vector<float>& one : audio) {
+      std::fill(one.begin(), one.end(), 0.0f);
+    }
+    if (pass == 0) {
+      audio[channel][0] = 1.0f;
+    }
+    graph.process(planes.data(), block);
+    for (uint32_t frame = 0; frame < block; ++frame) {
+      if (std::fabs(audio[channel][frame]) > 0.5f) {
+        return static_cast<long>(pass) * block + frame;
+      }
+    }
+  }
+  return -1;
+}
+
+/**
+ * A CHANNEL THE RACK SKIPS LEAVES AS LATE AS THE ONES IT PROCESSED.
+ *
+ * Untouched used to mean early. In front-pair mode the rack's own latency
+ * applies to L and R alone — Bass Punch's FIR carries it whatever else is
+ * off, and a linear-phase EQ makes it 8704 frames — while a centre, an LFE
+ * or a surround passed straight through beside them. The line this prints is
+ * the size of it on the plainest rack there is: 645 frames, 13 ms at 48 kHz,
+ * which is dialogue arriving before the scene it belongs to. At 181 ms it is
+ * a different take, and every phantom image between the front pair and
+ * anything else is torn apart.
+ */
+void the_channels_the_rack_skips_stay_in_step() {
+  std::printf("a channel the rack skips is held back by what the rack adds\n");
+  std::vector<double> values = reference_values();
+  values[kSurroundAllChannels] = 0.0;
+  const Chain pair = chain_with(values);
+  Graph narrow(pair, kRate, 6, 480);
+  const uint32_t latency = narrow.latency_frames();
+  // Without a delay of its own to match there is nothing to prove here.
+  CHECK(latency > 0);
+  std::printf("  the front pair is %u frames late at %u Hz\n", latency, kRate);
+  // The centre, which the rack never runs on in this mode.
+  CHECK(impulse_frame(narrow, 6, 2, latency) == static_cast<long>(latency));
+
+  // POSITIVE CONTROL: the same measurement on a rack that is switched off,
+  // where nothing is delayed and the impulse leaves in the block it arrived.
+  std::vector<double> off = reference_values();
+  off[0] = 0.0;
+  const Chain bypassed = chain_with(off);
+  Graph none(bypassed, kRate, 6, 480);
+  CHECK(none.latency_frames() == 0);
+  CHECK(impulse_frame(none, 6, 2, 0) == 0);
+}
+
 void a_rack_alone_is_not_a_pass_through() {
   std::printf("a rack with no EQ configuration still processes\n");
   Files files;
@@ -446,6 +510,7 @@ int main() {
   final_guard_follows_the_rack_and_eq();
   linear_phase_latency_is_known_before_the_first_block();
   channels_beyond_two_pass_the_rack_by();
+  the_channels_the_rack_skips_stay_in_step();
   a_rack_alone_is_not_a_pass_through();
   an_eq_only_edit_keeps_the_rack_running();
   a_changed_rack_is_never_shared();

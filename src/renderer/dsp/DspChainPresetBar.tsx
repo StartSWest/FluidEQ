@@ -115,6 +115,10 @@ const DspChainPresetBar = ({
         enabled: true,
         presetId: preset.id,
         crossfade: settings.crossfade,
+        // Kept for the same reason the crossfade above is: which channels of
+        // this output the rack runs on belongs to the machine, not to a saved
+        // sound. See `dspPresetSettings`.
+        surround: settings.surround,
       }),
     );
     onCommit();
@@ -159,6 +163,10 @@ const DspChainPresetBar = ({
         ...DSP_DEFAULTS,
         enabled: settings.enabled,
         crossfade: settings.crossfade,
+        // Kept beside the rack's own switch above, and for the same reason:
+        // this is which channels of this output the rack runs on, not a
+        // setting of the sound the factory rack starts from.
+        surround: settings.surround,
       }),
     );
     onCommit();
