@@ -347,6 +347,61 @@ export const getResolvedLook = (): IResolvedLook => resolved;
  * Walks the user's own looks too, at the end of the list, so a look somebody
  * made is reachable the same way as one that shipped.
  */
+/**
+ * A look the app may put on by itself, with nobody having pressed anything.
+ *
+ * FluidEQ's own forms and looks, the member's own scenes, and the Plus looks
+ * FluidEQ publishes — all of them reviewed or theirs. NOT a scene somebody
+ * else made: that is a stranger's program, and the difference between a
+ * program you chose to watch and one that starts while you are not looking is
+ * the whole of the difference. Installed scenes stay in the picker and on the
+ * arrows, which are a press; only the unattended cycle skips them.
+ */
+const playsUnattended = (id: string) => {
+  if (!isMemberLookId(id)) {
+    return true;
+  }
+  return getUsableMemberScenes().some(
+    (scene) => scene.lookId === id && scene.own,
+  );
+};
+
+/**
+ * The next look along, skipping any the app may not put on by itself.
+ *
+ * The order is the whole list, so the walk keeps its place and its direction
+ * whatever is skipped, and it gives up after a full turn rather than looping
+ * for ever when nothing in the list qualifies.
+ */
+const stepLook = (direction: 1 | -1, allowed: (id: string) => boolean) => {
+  const ids = getSelectableLooks().map((look) => look.id);
+  const count = ids.length;
+  if (count === 0) {
+    return;
+  }
+  const from = Math.max(0, ids.indexOf(selectedId));
+  for (let step = 1; step <= count; step += 1) {
+    // `+ count` before the remainder, so a backwards walk past the start
+    // lands on the end rather than on a negative index.
+    const at = (((from + direction * step) % count) + count) % count;
+    const next = ids[at];
+    if (next !== undefined && allowed(next)) {
+      selectedId = next;
+      persistSelection();
+      refresh();
+      return;
+    }
+  }
+};
+
+/**
+ * The cycle the app runs on its own, every so often, with nobody watching
+ * (`graphAutoCycle.ts`). It passes over scenes other people made; the arrows
+ * and the picker do not, because those are somebody choosing.
+ */
+export const cycleGraphLookUnattended = (direction: 1 | -1 = 1) =>
+  stepLook(direction, playsUnattended);
+
 export const cycleGraphLook = (direction: 1 | -1 = 1) => {
   // Deliberately live while the designer is open.
   //
@@ -356,14 +411,7 @@ export const cycleGraphLook = (direction: 1 | -1 = 1) => {
   // click on the plot are how the form is chosen while building a look — which
   // is one control doing one job rather than a second form picker inside the
   // panel duplicating the one already in the header.
-  const ids = getSelectableLooks().map((look) => look.id);
-  const index = ids.indexOf(selectedId);
-  const count = ids.length;
-  // An unknown selection cycles from the start rather than from -1, which
-  // would otherwise step backwards into the last entry.
-  selectedId = ids[(Math.max(0, index) + direction + count) % count];
-  persistSelection();
-  refresh();
+  stepLook(direction, () => true);
 };
 
 export const setGraphLook = (id: string) => {

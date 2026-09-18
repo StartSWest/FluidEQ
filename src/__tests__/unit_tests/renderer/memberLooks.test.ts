@@ -139,3 +139,68 @@ describe("a member's scenes in the look store", () => {
     ).not.toContain(LOOK_ID);
   });
 });
+
+/**
+ * A scene somebody else made is a stranger's program. The app may put one on
+ * when its owner asks for it — the picker, the arrows, the click on the plot
+ * — and never by itself: the visualizer changes on its own every couple of
+ * minutes out of the box, and a scene that starts while nobody is looking is
+ * a different proposition from one that was chosen. FluidEQ's own forms, the
+ * Plus looks it publishes and the member's OWN scenes all still come round.
+ */
+describe('what the app may put on with nobody watching', () => {
+  const SOMEONE = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
+  const THEIRS: IMemberSceneSummary = {
+    ...NEON,
+    lookId: `member:${SOMEONE}:sea-glass`,
+    authorId: SOMEONE,
+    packId: 'sea-glass',
+    names: { en: 'Sea Glass' },
+    own: false,
+    authorName: 'Mei Tanaka',
+  };
+
+  /** Puts the selection one step before `id` in the list everything reads. */
+  const standBefore = (graphStyle: TGraphStyleModule, id: string) => {
+    const ids = graphStyle.getSelectableLooks([]).map((look) => look.id);
+    const at = ids.indexOf(id);
+    expect(at).toBeGreaterThan(0);
+    graphStyle.setGraphLook(ids[at - 1]);
+  };
+
+  // The control: the member's own scene is theirs, and still comes round.
+  it('puts on a scene the member made themselves', () => {
+    const { graphStyle, members } = load();
+    members.adoptMemberSceneListingForTesting(listing(true, [NEON]));
+    standBefore(graphStyle, LOOK_ID);
+    graphStyle.cycleGraphLookUnattended(1);
+    expect(graphStyle.getGraphLookId()).toBe(LOOK_ID);
+  });
+
+  it('passes over a scene somebody else made', () => {
+    const { graphStyle, members } = load();
+    members.adoptMemberSceneListingForTesting(listing(true, [NEON, THEIRS]));
+    standBefore(graphStyle, THEIRS.lookId);
+    graphStyle.cycleGraphLookUnattended(1);
+    expect(graphStyle.getGraphLookId()).not.toBe(THEIRS.lookId);
+  });
+
+  it('still lets the member choose that scene themselves', () => {
+    const { graphStyle, members } = load();
+    members.adoptMemberSceneListingForTesting(listing(true, [NEON, THEIRS]));
+    standBefore(graphStyle, THEIRS.lookId);
+    // The arrows, Space and the click on the plot are all this one.
+    graphStyle.cycleGraphLook(1);
+    expect(graphStyle.getGraphLookId()).toBe(THEIRS.lookId);
+    graphStyle.setGraphLook(THEIRS.lookId);
+    expect(graphStyle.getGraphLookId()).toBe(THEIRS.lookId);
+  });
+
+  it('moves on from a stranger’s scene the member had chosen', () => {
+    const { graphStyle, members } = load();
+    members.adoptMemberSceneListingForTesting(listing(true, [NEON, THEIRS]));
+    graphStyle.setGraphLook(THEIRS.lookId);
+    graphStyle.cycleGraphLookUnattended(1);
+    expect(graphStyle.getGraphLookId()).not.toBe(THEIRS.lookId);
+  });
+});

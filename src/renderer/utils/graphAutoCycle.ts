@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { cycleGraphLook } from './graphStyle';
+import { cycleGraphLookUnattended } from './graphStyle';
 
 export const GRAPH_AUTO_CYCLE_INTERVALS = [0, 10, 20, 30, 60, 120] as const;
 const STORAGE_KEY = 'fluideq-graph-auto-cycle-seconds';
@@ -64,7 +64,10 @@ export const useGraphAutoCycle = (
         elapsed += delta;
         if (elapsed >= seconds * 1000) {
           elapsed = 0;
-          cycleGraphLook(1);
+          // Nobody has pressed anything, so a scene somebody else made is
+          // passed over: the app never starts a stranger's program while its
+          // owner is not looking at the screen.
+          cycleGraphLookUnattended(1);
         }
       }
       frame = window.requestAnimationFrame(tick);

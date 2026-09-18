@@ -1,12 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
-import { cycleGraphLook } from 'renderer/utils/graphStyle';
+import { cycleGraphLookUnattended } from 'renderer/utils/graphStyle';
 import {
   readGraphAutoCycle,
   saveGraphAutoCycle,
   useGraphAutoCycle,
 } from 'renderer/utils/graphAutoCycle';
 
-jest.mock('renderer/utils/graphStyle', () => ({ cycleGraphLook: jest.fn() }));
+jest.mock('renderer/utils/graphStyle', () => ({
+  cycleGraphLookUnattended: jest.fn(),
+}));
 
 describe('automatic visualizer switching', () => {
   let now = 0;
@@ -45,16 +47,16 @@ describe('automatic visualizer switching', () => {
       initialProps: { id: 'bars-signal' },
     });
     paintAt(9999);
-    expect(cycleGraphLook).not.toHaveBeenCalled();
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
     paintAt(10000);
-    expect(cycleGraphLook).toHaveBeenCalledTimes(1);
-    expect(cycleGraphLook).toHaveBeenCalledWith(1);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledWith(1);
     paintAt(15000);
     hook.rerender({ id: 'flames-signal' });
     paintAt(24999);
-    expect(cycleGraphLook).toHaveBeenCalledTimes(1);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
     paintAt(25000);
-    expect(cycleGraphLook).toHaveBeenCalledTimes(2);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(2);
     hook.unmount();
     expect(frames.size).toBe(0);
   });
@@ -71,9 +73,9 @@ describe('automatic visualizer switching', () => {
     paintAt(40000);
     hook.rerender({ seconds: 10, editing: false });
     paintAt(49999);
-    expect(cycleGraphLook).not.toHaveBeenCalled();
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
     paintAt(50000);
-    expect(cycleGraphLook).toHaveBeenCalledTimes(1);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
     hook.rerender({ seconds: 0, editing: false });
     expect(frames.size).toBe(0);
   });
@@ -86,12 +88,12 @@ describe('automatic visualizer switching', () => {
       menu.className = className;
       document.body.append(menu);
       paintAt(30000);
-      expect(cycleGraphLook).not.toHaveBeenCalled();
+      expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
       menu.remove();
       paintAt(39999);
-      expect(cycleGraphLook).not.toHaveBeenCalled();
+      expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
       paintAt(40000);
-      expect(cycleGraphLook).toHaveBeenCalledTimes(1);
+      expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -104,9 +106,9 @@ describe('automatic visualizer switching', () => {
     jest.spyOn(document, 'hidden', 'get').mockReturnValue(false);
     act(() => document.dispatchEvent(new Event('visibilitychange')));
     paintAt(89999);
-    expect(cycleGraphLook).not.toHaveBeenCalled();
+    expect(cycleGraphLookUnattended).not.toHaveBeenCalled();
     paintAt(90000);
-    expect(cycleGraphLook).toHaveBeenCalledTimes(1);
+    expect(cycleGraphLookUnattended).toHaveBeenCalledTimes(1);
   });
 
   it('cycles every two minutes until told otherwise, remembers the interval and rejects invalid saved values', () => {
