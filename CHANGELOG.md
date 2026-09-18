@@ -8,18 +8,47 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ## 1.7.4
 
-A smaller release than the one before it, and most of it is about scenes: a
-new version of one now arrives with a line saying what changed, written by the
-assistant that changed it, and a scene is compiled the moment it is added
-rather than the first time somebody plays it — Alpine used to stand still for
-eleven seconds before it moved.
+Most of this release is about what a visualizer somebody else wrote is allowed
+to do on your machine. A scene is a program, the gallery hands you other
+people's, and this is the work of going through that as if the next one were
+written to hurt you: what it may read, what it may reach, how much of your
+graphics card it may spend, and — the part that matters most — how brightly it
+is allowed to flash. Nothing about it is visible when it works. The rest of the
+release is.
 
-The rest is the rule that only one thing plays at a time, which turns out to
-have been about FluidEQ and everything else rather than about the machine: a
-video started over a playing album left both going.
+Scenes also got faster and better behaved. A new version of one arrives with a
+line saying what changed, written by the assistant that changed it; a scene is
+compiled the moment it is added rather than the first time somebody plays it,
+where Alpine used to stand still for eleven seconds; and a scene no longer
+stretches over a window it was not drawn for while you are resizing.
+
+On a surround output the speakers the rack skips now stay in time with the ones
+it runs on — before, a centre or a rear channel could arrive a fifth of a
+second early. And the rule that only one thing plays at a time turns out to
+have been about FluidEQ against everything else rather than about the machine:
+a video started over a playing album left both going.
 
 ### New
 
+- **A scene from the gallery is held to what it may spend and how it may
+  flash.** A visualizer somebody else wrote is a program running on your
+  graphics card, and it is now bounded on every side that matters. How bright
+  and how often it may flash is measured the way the accessibility standard
+  counts it — by the time between one rise and the next, at your screen's real
+  frame rate — which closes a red strobe that read as safe by an older measure
+  and a slow ramp that snapped back. How much of a frame it may cost is a
+  measured ceiling rather than a guessed one, so the scenes that fit stopped
+  being refused. It cannot read a file it names, cannot reach another machine,
+  and never starts while nobody is looking at the screen. None of it applies to
+  a scene you made yourself or one FluidEQ ships: those are drawn exactly as
+  they are.
+- **Your assistant is told which part of a scene is the expensive one**, and is
+  handed a picture of what it built rather than a door to look through. The
+  Studio's corner says how the scene is doing while you watch it.
+- **A scene's content can only change under a higher version.** A publication
+  that changes what plays without saying so is refused, by the Studio, by the
+  server and by the app that receives it — so a scene you have cannot be
+  altered underneath you, and the Studio raises the number for you.
 - **A new version of a scene says what changed.** The update notice and the
   versions page are both built around one line — "the peaks no longer get cut
   on wide panels" — and it was optional, so a listener was often asked to take
@@ -56,6 +85,36 @@ video started over a playing album left both going.
 
 ### Fixed
 
+- **A surround output keeps its speakers in time with each other.** The
+  channels the rack is not processing were passed straight through while the
+  ones it is processing were held back by its own work, so on a 5.1 or 7.1
+  output a centre or a rear speaker could arrive up to a fifth of a second
+  ahead of the front pair. Part of this lives inside the engine, so an
+  installed copy will offer an engine update after this version: the timing is
+  right once that is accepted.
+- **The Room always receives every channel of the output**, and the switch that
+  used to offer a choice the Room overrode now says why it is held instead of
+  pretending the choice is yours.
+- **Choosing a rack preset no longer changes which channels the rack runs on.**
+  A preset, an imported one and Reset all quietly moved that switch.
+- **The live wave no longer freezes while a visualizer keeps moving beside
+  it.** It could stop dead and stay stopped for the rest of the sitting, with
+  only minimising and restoring the window bringing it back. Three ways it
+  could do that are closed: one failed frame no longer wedges its drawing for
+  good, it recovers when the graphics card takes its drawing surface away under
+  the load of a scene, and a sound capture that suspends itself restarts rather
+  than handing back the same frame for ever.
+- **A scene is not stretched over a window it was not drawn for.** While a
+  panel was being resized the last picture was scaled to the new shape, so
+  everything in it leaned until the scene caught up. It now holds still until
+  the box stops moving, and comes back drawn for the size it is.
+- **A slow graphics card no longer refuses a scene for the rest of the
+  session.** The check that gives up on a scene counted the driver's own
+  warm-up as the scene's cost, and the refusal stuck until the app was
+  restarted — which is what a laptop on its built-in chip, or a machine reached
+  over Remote Desktop, met every time.
+- **A listener who asked for less motion gets a slower scene** rather than the
+  same one at full speed.
 - **One thing plays at a time, whichever two programs they are.** Start a video
   behind a playing album and both kept going: the rule was written as FluidEQ
   against everything else, so two programs that were both somebody else's were

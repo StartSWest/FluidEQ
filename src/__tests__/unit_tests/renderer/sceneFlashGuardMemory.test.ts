@@ -137,9 +137,9 @@ describe('what the pressure counts', () => {
     // straight after it is the turn this counts.
     const snapped = flashPressureMemory(-1, memory, FRAME_MS);
     expect(snapped).toBeLessThanOrEqual(-FLASH_SWING);
-    expect(
-      flashStep(FLASH_STATE_REST, 0.02, snapped, FRAME_MS).sinceTurn,
-    ).toBe(0);
+    expect(flashStep(FLASH_STATE_REST, 0.02, snapped, FRAME_MS).sinceTurn).toBe(
+      0,
+    );
   });
 
   it('takes a swing big enough to be a flash whole and at once', () => {

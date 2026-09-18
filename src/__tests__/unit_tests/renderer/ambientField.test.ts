@@ -305,7 +305,10 @@ describe('the musical swell', () => {
     // FluidEQ's own words, and the drawing used to stop at 0.62 while the
     // constant said 0.42 — so the loudest music put every element half again
     // as strong as anything anywhere said was possible.
-    expect(alphas[alphas.length - 1]).toBeCloseTo(Math.min(1, resting * 1.8), 3);
+    expect(alphas[alphas.length - 1]).toBeCloseTo(
+      Math.min(1, resting * 1.8),
+      3,
+    );
     // Full strength inside the layer; the layer's own opacity is the ceiling.
     expect(Math.max(...alphas)).toBeLessThanOrEqual(1 + 1e-9);
     expect(Math.max(...alphas) * AMBIENT_CEILING).toBeLessThanOrEqual(

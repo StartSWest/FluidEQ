@@ -34,7 +34,11 @@ const asking = (reduced: boolean) => {
     value: (text: string) =>
       text.includes('prefers-reduced-motion')
         ? query
-        : { matches: false, addEventListener: () => {}, removeEventListener: () => {} },
+        : {
+            matches: false,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+          },
   });
   return {
     set: (next: boolean) => {

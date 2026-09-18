@@ -338,6 +338,10 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   } else if (pack && playing && pausedForPublish) {
     stage = <div className="studio-stage__well studio-stage__well--empty" />;
   } else if (pack && playing) {
+    // `percent` goes across on every render rather than being paired with
+    // `cost` through a spread: the stage reads it only beside `cost`, so there
+    // is nothing to keep them together for, and a spread is what the lint rule
+    // here exists to refuse — it hides which props a component is really given.
     stage = (
       <StudioStage
         key={`stage:${state.activeId}`}
@@ -349,7 +353,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         wave={tuner.wave}
         isGridShown={isGridShown}
         tuning={tuner.tuning}
-        {...(cost ? { cost, percent: Math.round(scale * 100) } : {})}
+        cost={cost}
+        percent={Math.round(scale * 100)}
         readingRef={stageReadingRef}
         onTrouble={setTrouble}
         onDrawn={onDrawn}
