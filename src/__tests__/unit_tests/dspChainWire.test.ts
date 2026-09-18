@@ -218,6 +218,33 @@ describe('the chain wire layout', () => {
     });
   });
 
+  /**
+   * The Room folds every channel of the output around the listener's head, so
+   * it needs them all: on the front pair alone it has nothing to place, and
+   * the centre, the sub and the rears reach the headphones around it through
+   * whatever Windows does with them.
+   */
+  it('gives the Room every channel whatever the surround switch says', () => {
+    const slot = CHAIN_PARAM_LEAD - 2;
+    const pair = {
+      ...DSP_DEFAULTS,
+      surround: { allChannels: false },
+    };
+
+    // POSITIVE CONTROL: with the Room off the switch is the only voice.
+    expect(encodeChainSettings(pair)[slot]).toBe(0);
+    expect(encodeChainSettings(DSP_DEFAULTS)[slot]).toBe(1);
+
+    const withRoom = {
+      ...pair,
+      room: { ...DSP_DEFAULTS.room, enabled: true },
+    };
+    expect(encodeChainSettings(withRoom)[slot]).toBe(1);
+    // And the stored choice is untouched, so switching the Room off
+    // gives the listener the front pair back.
+    expect(withRoom.surround.allChannels).toBe(false);
+  });
+
   it('carries the output-safety A/B rather than leaving it to a build flag', () => {
     // The whole value of that switch is flipping it while the same audio
     // plays, which a compile-time flag cannot do.

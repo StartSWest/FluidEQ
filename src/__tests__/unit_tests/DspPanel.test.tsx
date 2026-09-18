@@ -578,6 +578,40 @@ describe('DspPanel', () => {
   });
 
   /**
+   * The header says what the rack is doing, not what was asked for: the Room
+   * takes every channel to place them around the head, so while it is on the
+   * switch reads All channels and holds still.
+   */
+  it('shows the Room holding every channel, and holds the switch still', () => {
+    const pair: IDspSettings = {
+      ...DSP_DEFAULTS,
+      surround: { allChannels: false },
+    };
+    const surround = (root: HTMLElement) =>
+      root.querySelector('.dsp-surround') as HTMLElement;
+    const chosen = renderPanel(pair);
+    // POSITIVE CONTROL: with the Room off it is the listener's own choice.
+    expect(surround(chosen.container).textContent).toContain('Front pair');
+    expect(
+      within(surround(chosen.container)).getByRole('checkbox', {
+        name: 'Surround',
+      }),
+    ).toBeEnabled();
+    chosen.unmount();
+
+    const withRoom = renderPanel({
+      ...pair,
+      room: { ...DSP_DEFAULTS.room, enabled: true },
+    });
+    expect(surround(withRoom.container).textContent).toContain('All channels');
+    expect(
+      within(surround(withRoom.container)).getByRole('checkbox', {
+        name: 'Surround',
+      }),
+    ).toBeDisabled();
+  });
+
+  /**
    * The surround switch says which channels of THIS output the rack runs on,
    * so it belongs to the machine and not to a recipe — the same rule the
    * crossfade above follows. Every recipe is built from the defaults, where

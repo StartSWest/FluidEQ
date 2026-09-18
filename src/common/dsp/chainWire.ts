@@ -239,7 +239,14 @@ export const encodeChainSettings = (
     ...room.distances,
     ...room.mutes.map((mute) => (mute ? 1 : 0)),
     // Surround, in the same place and for the same reason as the bass stages.
-    settings.surround.allChannels ? 1 : 0,
+    //
+    // The Room takes every channel whatever the switch says, because folding
+    // the channels around the listener's head IS what it does: on the front
+    // pair alone it has nothing to place, and the centre, the sub and the
+    // rears would reach the headphones around it through whatever Windows
+    // does with them. The stored choice is untouched, so switching the Room
+    // off gives it back.
+    settings.surround.allChannels || settings.room.enabled ? 1 : 0,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and
     // `feq_chain_settings_decode` both read the band count from
     // `CHAIN_PARAM_LEAD - 1` to know how long the tail is. A scalar appended

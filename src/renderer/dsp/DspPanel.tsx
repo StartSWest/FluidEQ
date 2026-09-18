@@ -183,6 +183,22 @@ const DspPanel = ({
     master,
     room,
   } = settings;
+  /**
+   * Which channels the rack is actually on, which is not always the switch.
+   *
+   * The Room folds every channel of the output around the listener's head, so
+   * it takes all of them however the switch is set — see `encodeChainSettings`,
+   * which is where the rack itself is told. The header shows what is
+   * happening rather than what was asked for.
+   */
+  const allChannels = settings.surround.allChannels || room.enabled;
+  /** Why the switch reads as it does: the Room's reason comes first. */
+  const surroundHint = (): TranslationKey => {
+    if (room.enabled) {
+      return 'dsp.surround.roomHint';
+    }
+    return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
+  };
   const roomLive = useRoomLive(isSystemWide);
   /**
    * The rate the filters will actually run at, from the engine.
@@ -434,26 +450,27 @@ const DspPanel = ({
           <div className="dsp-header-switches">
             <div
               className="dsp-global-power dsp-surround"
-              title={
-                settings.surround.allChannels
-                  ? t('dsp.surround.onHint')
-                  : t('dsp.surround.offHint')
-              }
+              title={t(surroundHint())}
             >
               <span
                 className={`dsp-global-power-state${
-                  settings.surround.allChannels ? ' is-on' : ''
+                  allChannels ? ' is-on' : ''
                 }`}
                 aria-hidden="true"
               >
-                {settings.surround.allChannels
+                {allChannels
                   ? t('dsp.surround.allChannels')
                   : t('dsp.surround.frontPair')}
               </span>
               <Switch
                 id="dsp-surround-all-channels"
-                isOn={settings.surround.allChannels}
-                isDisabled={!isRackEngaged}
+                isOn={allChannels}
+                // Held on, and held still, while the Room is running: it takes
+                // every channel to place them around the head, so a switch
+                // that still moved would be saying something the rack is not
+                // doing. The stored choice is untouched and comes back when
+                // the Room goes off.
+                isDisabled={!isRackEngaged || room.enabled}
                 handleToggle={() => {
                   patch({
                     surround: { allChannels: !settings.surround.allChannels },

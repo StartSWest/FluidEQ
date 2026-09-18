@@ -563,6 +563,8 @@ const dsp = {
     'Pasa el rack por todos los canales de una salida 5.1 o 7.1, según lo que tenga configurado Windows, con una sola decisión de nivel para todos.',
   'dsp.surround.offHint':
     'Solo el par frontal: los demás canales de una salida surround atraviesan el rack sin tocarse.',
+  'dsp.surround.roomHint':
+    'La Sala coloca cada canal alrededor de tu cabeza, así que los toma todos mientras está encendida. Tu elección vuelve al apagarla.',
   'dsp.surround.allChannels': 'Todos los canales',
   'dsp.surround.frontPair': 'Par frontal',
   'dsp.room.title': 'Sala',
