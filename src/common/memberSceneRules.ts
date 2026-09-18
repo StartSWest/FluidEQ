@@ -772,6 +772,29 @@ export const checkMemberSceneSource = (
     // check is paced to a source of this size, not to what was sent.
     return [{ code: 'too-large', line: 1 }];
   }
+  // A BACKSLASH IMMEDIATELY BEFORE A NEWLINE, ON THE RAW SOURCE, BEFORE
+  // ANYTHING IS BLANKED. This is the one thing that makes this whole file
+  // decorative, so it is refused first and on the bytes as they arrived.
+  //
+  // The compiler splices those two characters away BEFORE it reads comments.
+  // So `*\` + newline + `/` is `*/` to the compiler and closes a block
+  // comment there, while `blankGlslComments` below is still looking for the
+  // first LITERAL `*/` further down — and blanks everything in between. The
+  // checker and the compiler then read different programs, and everything in
+  // the gap is invisible to every rule here at once: an unbounded loop, a
+  // `while`, a `#define` that redefines the wrapper's own clamp and fade.
+  // Measured: a scene hiding a two-billion-turn loop that way passed with no
+  // violations at all.
+  //
+  // It cannot be caught after blanking, because by then the backslash has
+  // been blanked away with the comment it was smuggled into. The legitimate
+  // use inside a comment — a Windows path — has something after the
+  // backslash, so nothing that reads sensibly is refused.
+  const spliced = /\\(?=\r?\n)/.exec(source);
+  if (spliced) {
+    found.set('preprocessor', lineOf(lineStarts(source), spliced.index));
+    return [...found].map(([rule, line]) => ({ code: rule, line }));
+  }
   const code = blankGlslComments(source);
   if (code === null) {
     found.set(

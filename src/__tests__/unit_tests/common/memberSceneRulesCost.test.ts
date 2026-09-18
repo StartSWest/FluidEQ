@@ -77,3 +77,41 @@ it('still reads a loop whose step is spaced out', () => {
   const source = `${ENTRY}void pad() { for (int i = 0; i < 4;   i++   ) { } }\n`;
   expect(msToCheck(source).problems).toEqual([]);
 });
+
+/**
+ * A backslash immediately before a newline, which the compiler splices away
+ * BEFORE it reads comments.
+ *
+ * `*\` + newline + `/` therefore closes a block comment for the compiler
+ * while the blanker is still looking for the first literal `*​/` further
+ * down — so the checker blanks out code the GPU is going to run, and every
+ * rule in the file is reading a different program from the one that
+ * executes. Anything at all can be hidden in the gap. Written from the
+ * character code so this file carries no line continuation of its own.
+ */
+describe('a comment the compiler ends earlier than we do', () => {
+  const BACKSLASH = String.fromCharCode(92);
+  const hiding = (hidden: string) =>
+    `${ENTRY}void sneak() {\n  /*c*${BACKSLASH}\n/\n  ${hidden}\n  /**/\n}\n`;
+
+  it.each([
+    [
+      'a loop with no bound anyone counted',
+      'for (int i = 0; i < 2000000000; i++) { }',
+    ],
+    ['a while', 'while (uTime >= 0.0) { }'],
+    ['a preprocessor line', '#define REP 90000000'],
+    ['another main', 'void main() { }'],
+  ])('refuses one hiding %s', (_name, hidden) => {
+    expect(msToCheck(hiding(hidden)).problems.map((p) => p.code)).toContain(
+      'preprocessor',
+    );
+  });
+
+  // The control: a backslash inside a comment that is NOT at a line end is an
+  // ordinary Windows path, splices nothing, and stays allowed.
+  it('still allows a path written in a comment', () => {
+    const source = `${ENTRY}/* see C:${BACKSLASH}scenes${BACKSLASH}notes.txt */\n`;
+    expect(msToCheck(source).problems).toEqual([]);
+  });
+});
