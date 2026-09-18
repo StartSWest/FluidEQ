@@ -902,7 +902,16 @@ export const checkMemberSceneSource = (
   // at all when the splice was written with a bare carriage return. The same
   // hole, found and closed twice, which is what a lookahead over a character
   // class rather than a sequence is worth here.
-  const spliced = /\\(?=[\r\n])/.exec(source);
+  // And the END of the source is a line terminator too, because the app puts
+  // one there: `assembleFragmentSource` joins the member's text, a newline and
+  // the wrapper that holds `main` and the clamp-and-fade. A source whose last
+  // byte is a backslash therefore reaches the compiler as a backslash
+  // immediately before a newline and splices, pulling the wrapper's first line
+  // into whatever the source ended in. Today that is harmless by exactly one
+  // character — the wrapper's own text opens with a newline, so the splice
+  // eats an empty line — which is not a thing to leave standing between a
+  // stranger's scene and the fade every scene is drawn through.
+  const spliced = /\\(?=[\r\n]|$)/.exec(source);
   if (spliced) {
     found.set('preprocessor', lineOf(lineStarts(source), spliced.index));
     return [...found].map(([rule, line]) => ({ code: rule, line }));

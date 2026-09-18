@@ -135,6 +135,23 @@ describe('a comment the compiler ends earlier than we do', () => {
     const source = `${ENTRY}/* see C:${BACKSLASH}scenes${BACKSLASH}notes.txt */\n`;
     expect(msToCheck(source).problems).toEqual([]);
   });
+
+  /**
+   * The end of the source is a line end too: the app joins the member's text,
+   * a newline and the wrapper holding `main` and the clamp-and-fade, so a
+   * backslash as the last byte splices the wrapper's first line into whatever
+   * the source ended in.
+   */
+  it('refuses a backslash as the very last byte', () => {
+    const source = `${ENTRY}// see C:${BACKSLASH}`;
+    expect(msToCheck(source).problems.map((p) => p.code)).toContain(
+      'preprocessor',
+    );
+    // The control: the same comment with anything after it is an ordinary path.
+    expect(msToCheck(`${ENTRY}// see C:${BACKSLASH}scenes`).problems).toEqual(
+      [],
+    );
+  });
 });
 
 /**

@@ -72,3 +72,35 @@ export const nextBandRows = (
     ),
   );
 };
+
+/**
+ * Walks the whole picture band by band, asking `drawBand` for each and sizing
+ * the next from what it says that one took. `drawBand` returns the
+ * milliseconds it took, or undefined to stop — a lost context.
+ *
+ * The walk is HERE, and not written out at the call, because writing it out is
+ * what went wrong: advancing by `rows` in a `for` header ran after `rows` had
+ * already been reassigned to the NEXT band's height, so the picture jumped
+ * over a band every time. A tenth of the height of every gallery card, every
+ * Publish cover and every picture written beside a project was simply never
+ * drawn — and the canvas is kept for the session and never cleared, so that
+ * strip carried whatever had been in those pixels before, which could be a
+ * different scene. The test beside this drives THIS function, so it walks the
+ * loop that ships rather than a tidier one written out again.
+ */
+export const walkBands = (
+  totalRows: number,
+  drawBand: (from: number, rows: number) => number | undefined,
+): void => {
+  let at = 0;
+  let rows = firstBandRows(totalRows);
+  while (at < totalRows) {
+    const height = Math.min(rows, totalRows - at);
+    const took = drawBand(at, height);
+    if (took === undefined) {
+      return;
+    }
+    rows = nextBandRows(totalRows, height, took);
+    at += height;
+  }
+};

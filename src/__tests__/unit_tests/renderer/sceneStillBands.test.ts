@@ -30,6 +30,7 @@ import {
   WIDEST_BAND_SHARE,
   firstBandRows,
   nextBandRows,
+  walkBands,
 } from '../../../renderer/graph/sceneStillBands';
 
 /** The kept picture: 1280x720 supersampled by 1.5. */
@@ -83,41 +84,62 @@ describe('the bands a kept picture is drawn in', () => {
   });
 
   /**
+   * Everything below drives `walkBands` — the walk the worker actually runs —
+   * rather than a loop written out again here. Written out again is exactly
+   * how the first version of this shipped broken: the real loop advanced by
+   * the NEXT band's height instead of the one just drawn, so it jumped over a
+   * band every time, and this file's own walk-through was the tidy version and
+   * passed. A tenth of the height of every gallery card and every saved
+   * picture was never drawn.
+   */
+  const walk = (msFor: (rows: number) => number) => {
+    const drawn: { from: number; rows: number }[] = [];
+    walkBands(ROWS, (from, rows) => {
+      drawn.push({ from, rows });
+      return drawn.length > 2000 ? undefined : msFor(rows);
+    });
+    return drawn;
+  };
+
+  /** Every row drawn exactly once, in order, with nothing skipped. */
+  const covers = (drawn: { from: number; rows: number }[]) =>
+    drawn.reduce((at, band) => (at === band.from ? at + band.rows : -1), 0);
+
+  it('draws every row of the picture, and each of them once', () => {
+    expect(covers(walk(() => 4))).toBe(ROWS);
+    expect(covers(walk(worstMs))).toBe(ROWS);
+    expect(covers(walk(() => 0))).toBe(ROWS);
+    expect(covers(walk((rows) => rows * 40))).toBe(ROWS);
+  });
+
+  /**
    * The whole point, walked end to end: the worst source the rules accept,
    * pretending to be free until it is being drawn. No single band may come
-   * near the two seconds that reset the driver, and the picture still finishes.
+   * near the two seconds that reset the driver, and the picture still
+   * finishes.
    */
   it('draws the heaviest accepted scene without one job near a reset', () => {
-    let at = 0;
-    let rows = firstBandRows(ROWS);
-    let worst = 0;
-    let bands = 0;
-    while (at < ROWS && bands < 1000) {
-      const height = Math.min(rows, ROWS - at);
-      worst = Math.max(worst, worstMs(height));
-      rows = nextBandRows(ROWS, height, worstMs(height));
-      at += height;
-      bands += 1;
-    }
-    expect(at).toBe(ROWS);
-    expect(worst).toBeLessThan(DRIVER_RESET_MS / 2);
-    expect(bands).toBeLessThan(40);
+    const drawn = walk(worstMs);
+    expect(covers(drawn)).toBe(ROWS);
+    expect(Math.max(...drawn.map((band) => worstMs(band.rows)))).toBeLessThan(
+      DRIVER_RESET_MS / 2,
+    );
+    expect(drawn.length).toBeLessThan(40);
   });
 
   // The control. A limiter that split everything into single rows would pass
   // every case above and cost a thousand readbacks on every gallery card.
   it('lets an honest cheap scene finish in a handful of bands', () => {
-    let at = 0;
-    let rows = firstBandRows(ROWS);
-    let bands = 0;
-    while (at < ROWS && bands < 1000) {
-      const height = Math.min(rows, ROWS - at);
-      // A whole frame in four milliseconds, most of it the readback.
-      rows = nextBandRows(ROWS, height, 4);
-      at += height;
-      bands += 1;
-    }
-    expect(at).toBe(ROWS);
-    expect(bands).toBeLessThanOrEqual(10);
+    // A whole frame in four milliseconds, most of it the readback.
+    expect(walk(() => 4).length).toBeLessThanOrEqual(10);
+  });
+
+  it('stops where it is when the context goes, rather than looping', () => {
+    const drawn: number[] = [];
+    walkBands(ROWS, (from) => {
+      drawn.push(from);
+      return drawn.length < 3 ? 4 : undefined;
+    });
+    expect(drawn).toHaveLength(3);
   });
 });

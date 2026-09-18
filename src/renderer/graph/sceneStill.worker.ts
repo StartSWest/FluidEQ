@@ -7,7 +7,7 @@ import {
   type ISceneProgram,
 } from './sceneGl';
 import { BLAMED_FRAME_MS, createDrawWatch } from './sceneDrawWatch';
-import { firstBandRows, nextBandRows } from './sceneStillBands';
+import { walkBands } from './sceneStillBands';
 import { sceneProgramKey } from './sceneLinkTurns';
 import { capturedRun, showcaseRun, type TFrameRun } from './sceneShowcaseRun';
 import type {
@@ -254,15 +254,16 @@ const drawInBands = (
 ) => {
   gl.enable(gl.SCISSOR_TEST);
   try {
-    let rows = firstBandRows(RENDER_HEIGHT);
-    for (let y = 0; y < RENDER_HEIGHT && !gl.isContextLost(); y += rows) {
-      const height = Math.min(rows, RENDER_HEIGHT - y);
-      gl.scissor(0, y, RENDER_WIDTH, height);
+    walkBands(RENDER_HEIGHT, (from, rows) => {
+      if (gl.isContextLost()) {
+        return undefined;
+      }
+      gl.scissor(0, from, RENDER_WIDTH, rows);
       const started = performance.now();
       program.draw(frame, RENDER_WIDTH, RENDER_HEIGHT);
-      gl.readPixels(0, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-      rows = nextBandRows(RENDER_HEIGHT, height, performance.now() - started);
-    }
+      gl.readPixels(0, from, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      return performance.now() - started;
+    });
   } finally {
     gl.disable(gl.SCISSOR_TEST);
   }

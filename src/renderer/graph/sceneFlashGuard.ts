@@ -75,6 +75,33 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * a red ramp at 2.2, both with their brightness range untouched: held a little
  * where holding is conservative rather than wrong.
  *
+ * EVERY NUMBER ABOVE IS AT SIXTY FRAMES A SECOND, and the per-pixel half of
+ * this guard does not hold at other rates. It is not a calibration that wants
+ * nudging; it is structural, it predates all of this, and it is the largest
+ * thing still wrong here.
+ *
+ * The pressure gains per FLASH and loses PRESSURE_FLOOR per FRAME — the step
+ * an 8-bit texture needs before rounding lets it fall at all. So the drain is
+ * fps/255 a second while the gain is not, and the rate at which holding begins
+ * moves with the monitor. Measured on the driver at 144 frames a second, with
+ * the same sequences the header lists: eleven of twenty-five come out wrong,
+ * including shapes held completely at 60 — an isoluminant red square at four
+ * flashes a second among them. Modelled over 30 to 240, the per-pixel path is
+ * dead from about 90 up, and over-eager at 30, where it touches pictures that
+ * must be left alone.
+ *
+ * Three cures were modelled and none works: making the drain per-second dies
+ * at 90 and 120 and saturates at 240; no pairing of step size and memory
+ * length separates the rates; and even with the drain gone entirely and exact
+ * arithmetic, a red slide at 3.5 flashes a second and one at 2.5 sit 0.16
+ * against 0.20 — the wrong way round. The 8-bit state is the root of the
+ * first two, so the honest fix starts by giving the pressure a half-float
+ * target and dropping the floor, after which the economy is frame-rate free
+ * by construction and can be re-derived. What is left after that is a product
+ * question and not an engineering one: no threshold separates a red slide at
+ * 3.5 a second from one at 2.5, so somebody has to choose which of the two to
+ * be wrong about.
+ *
  * The red slide was open until 2026-09-18 and took four tries to close, all
  * measured, because three of them look obvious and are wrong:
  * - redness in the coarse measure holds the snap frame ONLY — `alternating` is
