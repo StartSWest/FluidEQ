@@ -121,6 +121,13 @@ const createRemoteAudioLan = (
   emitAudio: (chunk: ILanRemoteAudioChunk) => void,
   emitError: () => void,
   emitNetwork: (stats: ILanRemoteAudioNetworkStats) => void,
+  /**
+   * How the authentication deadline is made. The default is the platform's
+   * own, which is what runs; it is a parameter because `AbortSignal.timeout`
+   * is native and no test clock can reach it, so the tests that prove a
+   * silent client is dropped have to bring a signal they can fire themselves.
+   */
+  deadlineAfter: (ms: number) => AbortSignal = (ms) => AbortSignal.timeout(ms),
 ): IRemoteAudioLan => {
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
@@ -246,10 +253,19 @@ const createRemoteAudioLan = (
       };
       candidate.once('close', releasePending);
       const challenge = createAuthChallenge();
-      const authenticationTimer = setTimeout(() => {
+      // A socket that never authenticates has to be let go of, or an attacker
+      // on the network holds one of the few pending slots open for good. The
+      // deadline is a real one — nothing here is being waited on and guessed
+      // at — and it is spelled as an `AbortSignal`, which is how this project
+      // spells waiting; a hand-rolled `setTimeout` is not allowed anywhere in
+      // it.
+      const deadline = deadlineAfter(AUTHENTICATION_TIMEOUT_MS);
+      const onDeadline = () =>
         closeWebSocketSafely(candidate, 1008, 'Authentication timed out');
-      }, AUTHENTICATION_TIMEOUT_MS);
-      candidate.once('close', () => clearTimeout(authenticationTimer));
+      deadline.addEventListener('abort', onDeadline, { once: true });
+      candidate.once('close', () =>
+        deadline.removeEventListener('abort', onDeadline),
+      );
       const onPendingError = () => {
         closeWebSocketSafely(candidate, 1008, 'Authentication failed');
       };
@@ -293,7 +309,7 @@ const createRemoteAudioLan = (
                 return;
               }
               candidate.removeListener('close', releasePending);
-              clearTimeout(authenticationTimer);
+              deadline.removeEventListener('abort', onDeadline);
               releasePending();
               transport.attach(message.peerId, candidate, sessionKey);
               candidate.removeListener('error', onPendingError);
@@ -474,17 +490,20 @@ const createRemoteAudioLan = (
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
       let challenge: string | undefined;
       let settled = false;
-      const authenticationTimer = setTimeout(() => {
+      // The joining end's half of the same deadline, spelled the same way.
+      const deadline = deadlineAfter(AUTHENTICATION_TIMEOUT_MS);
+      const onDeadline = () => {
         finishError(new Error('LAN authentication timed out.'));
         closeWebSocketSafely(socket, 1008, 'Authentication timed out');
-      }, AUTHENTICATION_TIMEOUT_MS);
+      };
+      deadline.addEventListener('abort', onDeadline, { once: true });
       const releasePendingSocket = () => {
         if (pendingSocket === socket) {
           pendingSocket = undefined;
         }
       };
       const cleanup = () => {
-        clearTimeout(authenticationTimer);
+        deadline.removeEventListener('abort', onDeadline);
         socket.removeListener('close', onClose);
         socket.removeListener('error', onError);
         socket.removeListener('message', onHandshake);

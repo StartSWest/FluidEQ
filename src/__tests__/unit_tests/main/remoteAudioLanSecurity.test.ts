@@ -1,6 +1,14 @@
-/* FluidEQ — GPL-3.0-or-later */
-
-/** @jest-environment node */
+/**
+ * @jest-environment node
+ *
+ * FluidEQ — GPL-3.0-or-later
+ *
+ * The pragma has to be in the FIRST comment in the file. It used to sit in a
+ * second one under the licence line, where Jest never read it, so this ran in
+ * the browser-like environment and tested main-process code against browser
+ * globals — which have no `AbortSignal.timeout`, the deadline this file is
+ * about.
+ */
 
 import { EventEmitter } from 'events';
 
@@ -114,6 +122,28 @@ const fakeSocket = (): IFakeSocket => {
   return socket;
 };
 
+/**
+ * A deadline the test fires itself, in place of the platform's.
+ *
+ * Production uses `AbortSignal.timeout`, which is native and which no test
+ * clock can reach — advancing Jest's timers does nothing to it. So the tests
+ * that prove a silent client is dropped hand the listener a signal of their
+ * own and abort it where they used to advance the clock. It is the same
+ * deadline arriving; only who says "now" has changed.
+ */
+const deadlines = () => {
+  const controllers: AbortController[] = [];
+  return {
+    after: () => {
+      const controller = new AbortController();
+      controllers.push(controller);
+      return controller.signal;
+    },
+    /** Every deadline handed out so far expires at once. */
+    expire: () => controllers.forEach((controller) => controller.abort()),
+  };
+};
+
 describe('LAN listener authentication limits', () => {
   beforeEach(() => {
     mockServers.length = 0;
@@ -133,14 +163,15 @@ describe('LAN listener authentication limits', () => {
   afterEach(() => jest.useRealTimers());
 
   it('limits pending sockets per address and times silent clients out', async () => {
+    const deadline = deadlines();
     const lan = createRemoteAudioLan(
       jest.fn(),
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      deadline.after,
     );
     await lan.startHost();
-    jest.useFakeTimers();
     const server = mockServers[0];
     const candidates = Array.from({ length: 9 }, () => fakeSocket());
 
@@ -157,7 +188,7 @@ describe('LAN listener authentication limits', () => {
       'Too many unauthenticated connections',
     );
 
-    jest.advanceTimersByTime(5_000);
+    deadline.expire();
     expect(candidates[0].close).toHaveBeenCalledWith(
       1008,
       'Authentication timed out',
@@ -313,14 +344,15 @@ describe('LAN listener authentication limits', () => {
 
   it('cannot attach a peer after its acknowledgement timed out', async () => {
     const emitSignal = jest.fn();
+    const deadline = deadlines();
     const lan = createRemoteAudioLan(
       emitSignal,
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      deadline.after,
     );
     const session = await lan.startHost();
-    jest.useFakeTimers();
     const server = mockServers[0];
     const key = keyFromSecret(session.credentials.secret);
     const candidate = fakeSocket();
@@ -343,7 +375,7 @@ describe('LAN listener authentication limits', () => {
       ),
     );
 
-    jest.advanceTimersByTime(5_000);
+    deadline.expire();
     const acknowledge = candidate.send.mock.calls[1][1] as
       ((error?: Error) => void) | undefined;
     acknowledge?.();
@@ -370,7 +402,7 @@ describe('LAN listener authentication limits', () => {
   });
 
   it('can abort a connecting client without an uncaught WebSocket error', async () => {
-    jest.useFakeTimers();
+    const deadline = deadlines();
     const socket = fakeSocket();
     socket.readyState = 0;
     socket.close.mockImplementation((code?: number, reason?: string) => {
@@ -386,6 +418,7 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      deadline.after,
     );
     const pairingCode = encodePairingCode(
       '192.168.1.20',
@@ -395,7 +428,7 @@ describe('LAN listener authentication limits', () => {
     );
 
     const joining = lan.restoreJoin(pairingCode);
-    jest.advanceTimersByTime(5_000);
+    deadline.expire();
     await Promise.resolve();
     lan.stop();
 
