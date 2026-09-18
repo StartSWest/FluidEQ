@@ -295,6 +295,14 @@ RULES (FluidEQ refuses the scene otherwise)
   early for pixels it cannot touch, and prefer smooth maths to many layers.
   A frame so heavy that the graphics driver resets stops the scene wherever it
   was playing, every time it is played.
+- READING A PICTURE IS THE EXPENSIVE PART, not arithmetic, and the budget
+  above cannot tell them apart. Measured on an integrated laptop chip, both
+  at the very limit that budget allows: a loop doing nothing but sums draws a
+  1920x1080 frame in 0.27 seconds, while the same loop spending its budget on
+  texture reads whose position comes from the read before it takes 3.74 - long
+  enough to reset the driver. Reads at positions worked out before the loop
+  runs are nearly free; a chain where each read waits on the last is not.
+  Never feed one read's result into the next one's position inside a loop.
 
 HOW TO KEEP IT QUICK TO BUILD
 A scene has to be compiled on the machine that plays it - there is no way to
