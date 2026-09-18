@@ -24,6 +24,7 @@ import { IDspDiagnosticEvent } from '../../src/common/dsp/diagnostics';
 import {
   IHostAnalysis,
   IHostTelemetry,
+  expectedDeviceBackend,
 } from '../../src/main/dspHost/wire';
 
 let failures = 0;
@@ -85,7 +86,7 @@ const main = async () => {
     'the handshake agrees on the parameter table',
   );
   check(
-    supervisor.getHandshake()?.backend === 'wasapi-shared',
+    supervisor.getHandshake()?.backend === expectedDeviceBackend(),
     `the backend is reported (${supervisor.getHandshake()?.backend})`,
   );
   check(typeof supervisor.getPid() === 'number', 'the host pid is available');

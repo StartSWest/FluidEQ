@@ -126,6 +126,27 @@ export const HOST_STATUS = {
   unsupported: 2,
 } as const;
 
+/**
+ * How the host names its device backend in the handshake, on each platform
+ * it compiles one for. A platform absent here gets the stub, which names
+ * itself "unsupported" and refuses every device.
+ *
+ * Kept beside the wire rather than in each smoke: three scripts each carried
+ * the Windows name as a literal, and the first macOS build passed every
+ * device check by skipping them — a host reporting "coreaudio" read as "no
+ * backend on this platform".
+ */
+export const DEVICE_BACKEND_BY_PLATFORM: Partial<
+  Record<NodeJS.Platform, string>
+> = {
+  win32: 'wasapi-shared',
+  darwin: 'coreaudio',
+};
+
+/** The backend the host built on this machine should report. */
+export const expectedDeviceBackend = (): string =>
+  DEVICE_BACKEND_BY_PLATFORM[process.platform] ?? 'unsupported';
+
 export interface IHostHandshake {
   protocolVersion: number;
   parameterSchemaVersion: number;
@@ -142,7 +163,7 @@ export interface IHostHandshake {
   coreVersion: string;
   architecture: string;
   buildRevision: string;
-  /** "wasapi-shared", or "unsupported" on a platform with no backend yet. */
+  /** One of `DEVICE_BACKEND_BY_PLATFORM`, or "unsupported" from the stub. */
   backend: string;
 }
 
