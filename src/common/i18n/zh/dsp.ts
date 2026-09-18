@@ -530,6 +530,7 @@ const dsp = {
   'dsp.surround.onHint':
     '按 Windows 的设置，在 5.1 或 7.1 输出的每个声道上运行机架，所有声道共用一个电平决策。',
   'dsp.surround.offHint': '仅前置声道对：环绕声输出的其他声道原样通过机架。',
+  'dsp.surround.heldByRoom': '房间需要所有声道',
   'dsp.surround.roomHint':
     '房间会把每个声道摆放在你头部四周，所以开启时会用上全部声道。关闭房间后会恢复你的选择。',
   'dsp.surround.allChannels': '所有声道',

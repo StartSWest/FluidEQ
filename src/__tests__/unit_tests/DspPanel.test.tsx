@@ -609,6 +609,12 @@ describe('DspPanel', () => {
         name: 'Surround',
       }),
     ).toBeDisabled();
+    // And it says why, on the page rather than in a tooltip: a switch that
+    // will not move with no reason beside it reads as broken.
+    expect(
+      withRoom.container.querySelector('.dsp-switch-reason')?.textContent,
+    ).toMatch(/Room needs every channel/i);
+    expect(chosen.container.querySelector('.dsp-switch-reason')).toBeNull();
   });
 
   /**

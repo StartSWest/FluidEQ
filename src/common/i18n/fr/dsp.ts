@@ -566,6 +566,7 @@ const dsp = {
     'Fait passer le rack sur chaque canal d’une sortie 5.1 ou 7.1, selon le réglage de Windows, avec une seule décision de niveau pour tous.',
   'dsp.surround.offHint':
     'Paire avant seulement : les autres canaux d’une sortie surround traversent le rack sans être touchés.',
+  'dsp.surround.heldByRoom': 'La Salle a besoin de tous les canaux',
   'dsp.surround.roomHint':
     'La Salle place chaque canal autour de votre tête : elle les prend donc tous tant qu’elle est active. Votre choix revient dès qu’elle est désactivée.',
   'dsp.surround.allChannels': 'Tous les canaux',

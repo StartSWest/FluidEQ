@@ -141,9 +141,24 @@ $dsp-rail-offset: 110ms;
 // or two of them split the row's free space and float one mid-row.
 .dsp-header-switches {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 18px;
+  justify-content: flex-end;
+  gap: 4px 18px;
   margin-left: auto;
+}
+
+// Why a switch cannot be moved, on its own line under the two of them and
+// aligned with their right edge. A greyed control with nothing beside it
+// reads as broken; the tooltip that carried this reason was a reason nobody
+// saw. Only ever one line of it, so the header does not grow a paragraph.
+.dsp-switch-reason {
+  flex: 1 0 100%;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.3;
+  text-align: right;
 }
 
 .dsp-title {

@@ -564,6 +564,7 @@ const dsp = {
     "Applica il rack a ogni canale di un'uscita 5.1 o 7.1, seguendo l'impostazione di Windows, con una sola decisione di livello per tutti.",
   'dsp.surround.offHint':
     "Solo la coppia frontale: gli altri canali di un'uscita surround attraversano il rack intatti.",
+  'dsp.surround.heldByRoom': 'La Stanza ha bisogno di tutti i canali',
   'dsp.surround.roomHint':
     'La Stanza dispone ogni canale intorno alla tua testa, quindi li prende tutti mentre è accesa. La tua scelta torna quando la spegni.',
   'dsp.surround.allChannels': 'Tutti i canali',
