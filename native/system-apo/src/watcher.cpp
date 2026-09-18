@@ -123,7 +123,7 @@ void Watcher::load_initial() {
     log_.write("cannot tell whether FluidEQ is running; the configuration "
                "applies whether it is or not");
   }
-  reload(Carry::State);
+  reload();
 }
 
 bool Watcher::owner_present() const noexcept {
@@ -289,7 +289,7 @@ void Watcher::run() {
     if (watching_config) {
       // A write that landed between the last resolve and this notification
       // being armed would otherwise never be seen.
-      reload(Carry::State);
+      reload();
     }
 
     bool rearm = false;
@@ -311,9 +311,31 @@ void Watcher::run() {
         return;
       }
       if (woke == WAIT_OBJECT_0 + 1) {
-        // `Reset` asked for it. A fresh graph whatever the configuration says,
-        // and no state carried into it — see `request_reset`.
-        reload(Carry::Nothing);
+        // `Reset` asked for it, and it is answered with a graph that KEEPS
+        // the audio already in flight — see `request_reset`.
+        //
+        // It used to be a fresh graph with nothing carried into it.
+        // That is right for an effect on one stream, whose next samples have
+        // nothing to do with its last ones. This is an endpoint effect: it
+        // processes the mix, and Windows flushes that pipeline whenever any
+        // stream on the output starts, stops or changes format — eight times
+        // in thirteen minutes of ordinary listening — while the music that
+        // was already playing carries straight on through it.
+        //
+        // With the room on that is not a lost effect, it is a hole. Every
+        // channel is folded through the room's convolution, so the room IS
+        // the signal path, and a convolver with no history has nothing to put
+        // out for its first partition: 512 frames, 11 ms at 48 kHz, of
+        // silence in the middle of the music, every time anything on the
+        // machine opened or closed a sound. `dsp_chain_test.cpp` measures
+        // both sides of it: the handover keeps a tone at -0.1 dBFS across
+        // twelve rebuilds in a row, and its positive control — the same room
+        // built without one — is -200 dBFS for its first block.
+        //
+        // And a rebuild short-circuits when the configuration has not
+        // changed, which a flush by itself never does, so the common flush
+        // now costs a directory read instead of a whole graph.
+        reload();
         continue;
       }
       if (carried_event_ != nullptr && woke == WAIT_OBJECT_0 + carried_at) {
@@ -326,7 +348,7 @@ void Watcher::run() {
       if (owner_event_ != nullptr && woke == WAIT_OBJECT_0 + owner_at) {
         // FluidEQ came or went. The reload reads which, and either builds the
         // configuration's graph or a pass-through one.
-        reload(Carry::State);
+        reload();
         continue;
       }
       if (woke != WAIT_OBJECT_0 + 2) {
@@ -341,7 +363,7 @@ void Watcher::run() {
         owner_->retry();
       }
       if (watching_config) {
-        reload(Carry::State);
+        reload();
       } else if (is_directory(config_dir_)) {
         rearm = true;  // It exists now: watch it directly instead.
         break;
@@ -358,8 +380,10 @@ void Watcher::run() {
   // whatever graph was last published rather than silently abandoning the
   // endpoint's ability to be reconfigured without a restart.
   //
-  // The reset event is waited on as well: a pipeline flush must still clear
-  // the filter state on an endpoint whose configuration directory has gone.
+  // The reset event is waited on as well, and answered the same way as above
+  // — the graph keeps what is in flight — on an endpoint whose configuration
+  // directory has gone. There is no rack and no room to keep there, so this
+  // is about the two paths agreeing rather than about the sound.
   // The carried event is waited on here as well: an output with no
   // configuration directory still has an app asking whether its sound is
   // going through the engine at all.
@@ -375,7 +399,7 @@ void Watcher::run() {
     if (woke != WAIT_OBJECT_0 + 1) {
       return;  // Stop, or a wait that cannot be repeated.
     }
-    reload(Carry::Nothing);
+    reload();
   }
 }
 
@@ -406,7 +430,7 @@ void Watcher::request_reset() noexcept {
   }
 }
 
-void Watcher::reload(Carry carry) {
+void Watcher::reload() {
   if (analysis_) analysis_->retry();
   try {
     const FileProvider provider = [](const std::wstring& path) {
@@ -431,10 +455,10 @@ void Watcher::reload(Carry carry) {
     // Before the comparison and outside the signature: a new song is a
     // change worth reading on every wake, and never one worth a new chain.
     const bool finished_song = owner && follow_programme();
-    // A reset rebuilds even when the configuration is byte-for-byte what it
-    // already was: the whole point of the rebuild is the state, not the
-    // chain.
-    if (carry == Carry::State && have_signature_ && next == signature_) {
+    // Nothing to do when the configuration is byte-for-byte what it already
+    // was — which is every flush of the audio pipeline, and most of the wakes
+    // this directory produces, the app's own temporary files included.
+    if (have_signature_ && next == signature_) {
       if (finished_song) {
         report_status(true);
       }
@@ -462,9 +486,7 @@ void Watcher::reload(Carry carry) {
       // it, so an abandoned rebuild cannot be mistaken for a loaded one.
       return;
     }
-    if (carry == Carry::State) {
-      graph->request_state_transfer();
-    }
+    graph->request_state_transfer();
     // Said once, as the graph that did it is replaced: a count that only
     // ever lived on the audio thread, where nothing may write a log line.
     if (const Graph* previous = slot_.active()) {

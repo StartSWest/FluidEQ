@@ -174,7 +174,7 @@ class Watcher {
   void stop() noexcept;
 
   /**
-   * Ask for a graph carrying none of the previous one's state. Any thread.
+   * Ask for the graph to be rebuilt after a pipeline flush. Any thread.
    *
    * This is how `IAudioProcessingObject::Reset` is served. Its contract says
    * only that it "is not real-time compliant and must not be called from a
@@ -185,11 +185,21 @@ class Watcher {
    * that instant, and writing it from another thread is the race this whole
    * two-pointer handover exists to avoid.
    *
-   * A whole new graph is the reset instead — new biquads, new convolvers, a
-   * new rack chain, all at their start-up state — handed over the same way
-   * every other rebuild is. It lands a block or two later than the call
-   * returns, which is what a flush of the audio pipeline can afford; the
+   * So the reset goes through the same rebuild every configuration change
+   * does, handed over the same way, landing a block or two after the call
+   * returns — which is what a flush of the audio pipeline can afford; the
    * alternative lands sooner and corrupts state.
+   *
+   * And it KEEPS what is already in flight. A fresh graph with nothing
+   * carried was the obvious reading of `Reset` and the wrong one here: this
+   * is an endpoint effect, so it processes the output's mix, and Windows
+   * flushes that pipeline whenever any stream on the machine starts, stops or
+   * changes format — while the music that was already playing carries on
+   * through it. With the room on, every channel is folded through its
+   * convolution, so emptying it put 512 frames of silence into the middle of
+   * whatever was playing each time anything opened a sound. Because an
+   * unchanged configuration then short-circuits, the ordinary flush now costs
+   * a directory read rather than a graph.
    */
   void request_reset() noexcept;
 
@@ -209,15 +219,6 @@ class Watcher {
   void say_it_carried() noexcept;
 
  private:
-  /** Whether a rebuild carries the running graph's state into its successor. */
-  enum class Carry {
-    /** An ordinary reload: histories move across so a band drag has no click. */
-    State,
-    /** A reset: nothing moves across, and the rebuild happens even if the
-        configuration is byte-for-byte what it already was. */
-    Nothing,
-  };
-
   /** A graph this object owns, and the block count when it was superseded. */
   struct Retired {
     Graph* graph;
@@ -226,8 +227,16 @@ class Watcher {
 
   static unsigned __stdcall thread_entry(void* self);
   void run();
-  /** Resolve the config and publish a graph if anything actually changed. */
-  void reload(Carry carry);
+  /**
+   * Resolve the config and publish a graph if anything actually changed.
+   *
+   * Every rebuild carries the running graph's state into its successor —
+   * histories, delay lines and the convolvers' pipelines — so a band drag has
+   * no click and a flush of the audio pipeline has no hole. There is no
+   * variant that does not: one existed for `Reset`, and what it produced is
+   * written up on `request_reset`.
+   */
+  void reload();
   /**
    * Whether `stop()` has already been asked for.
    *

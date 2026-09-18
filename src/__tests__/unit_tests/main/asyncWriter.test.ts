@@ -12,6 +12,7 @@ import {
   peekScheduled,
   scheduleWrite,
   scheduleWriteOperation,
+  sweepAbandonedWrites,
 } from '../../../main/asyncWriter';
 import readTextCached from '../../../main/cachedRead';
 
@@ -227,5 +228,37 @@ describe('background file writes', () => {
     await expect(shutdown).resolves.toBe(failure);
     expect(fs.readFileSync(file, 'utf8')).toBe('last edit');
     expect(hasUnsettledWrites()).toBe(false);
+  });
+
+  /**
+   * Every write makes a temporary file beside its target and removes it
+   * again, so the ones that survive are from a run that was killed between
+   * the two. Twenty-five had collected in one listener's engine folder over a
+   * week, and the engine opens what is in that folder whenever anything there
+   * changes.
+   */
+  it('sweeps temporary files an earlier run left behind', async () => {
+    const abandoned = path.join(
+      directory,
+      'profile.txt.4242-2f1d0c6a-1a2b-4c3d-9e8f-0a1b2c3d4e5f.tmp',
+    );
+    const mine = path.join(
+      directory,
+      `profile.txt.${process.pid}-2f1d0c6a-1a2b-4c3d-9e8f-0a1b2c3d4e5f.tmp`,
+    );
+    const theirs = path.join(directory, 'something-else.tmp');
+    fs.writeFileSync(abandoned, 'half a rack');
+    fs.writeFileSync(mine, 'a write in flight');
+    fs.writeFileSync(theirs, 'not this writer s');
+
+    expect(await sweepAbandonedWrites(directory)).toBe(1);
+    expect(fs.existsSync(abandoned)).toBe(false);
+    // POSITIVE CONTROL, both ways: a write this process is in the middle of
+    // is left alone, and so is a `.tmp` this writer did not make — the name
+    // carries the pid for exactly that reason.
+    expect(fs.existsSync(mine)).toBe(true);
+    expect(fs.existsSync(theirs)).toBe(true);
+    // A directory that is not there is nothing to sweep, not a failure.
+    expect(await sweepAbandonedWrites(path.join(directory, 'gone'))).toBe(0);
   });
 });

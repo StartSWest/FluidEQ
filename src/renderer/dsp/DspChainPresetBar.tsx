@@ -119,6 +119,8 @@ const DspChainPresetBar = ({
         // this output the rack runs on belongs to the machine, not to a saved
         // sound. See `dspPresetSettings`.
         surround: settings.surround,
+        // And the Room is the listener's own head, speakers and walls.
+        room: settings.room,
       }),
     );
     onCommit();
@@ -167,6 +169,8 @@ const DspChainPresetBar = ({
         // this is which channels of this output the rack runs on, not a
         // setting of the sound the factory rack starts from.
         surround: settings.surround,
+        // And the Room, which is the listener's own head and speakers.
+        room: settings.room,
       }),
     );
     onCommit();

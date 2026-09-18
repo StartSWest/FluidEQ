@@ -453,5 +453,13 @@ export const dspPresetSettings = (
     // had all six channels back the moment they auditioned a preset — with
     // nothing on the page saying so.
     surround: current?.surround ?? preset.settings.surround,
+    // The Room is the listener's own head, their speakers and their walls —
+    // not a colour a recipe may choose. Every recipe is built from the
+    // defaults, where it is off, so auditioning a preset switched it off; and
+    // switching it off takes 512 frames off what the effect tells Windows it
+    // adds, in the middle of whatever is playing. Measured in the engine's
+    // own log on a listener's machine: 128 of 354 racks arrived with the Room
+    // off while the switch on the page said it was on.
+    room: current?.room ?? preset.settings.room,
   });
 };

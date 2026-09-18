@@ -340,6 +340,27 @@ describe('dsp chain settings', () => {
     });
   });
 
+  /**
+   * The Room is the listener's own head, speakers and walls, and switching it
+   * off changes what the effect tells Windows it adds — 512 frames, in the
+   * middle of whatever is playing. Measured on a listener's machine before
+   * this: 128 of 354 racks reached the engine with the Room off while the
+   * switch on the page said it was on, every one of them from auditioning a
+   * preset.
+   */
+  it('keeps the Room when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      room: { ...DSP_DEFAULTS.room, enabled: true, presetId: 'studio' },
+    };
+    const applied = dspPresetSettings('rock', current);
+    expect(applied?.room).toEqual(current.room);
+    // POSITIVE CONTROL: the recipe still brings its own room when there is no
+    // listener's one to keep, and it is not the one above.
+    expect(dspPresetSettings('rock')?.room.enabled).toBe(false);
+    expect(applied?.eq).not.toEqual(current.eq);
+  });
+
   it('always returns three compressor bands whatever it was handed', () => {
     const clamped = clampDspSettings({
       ...DSP_DEFAULTS,

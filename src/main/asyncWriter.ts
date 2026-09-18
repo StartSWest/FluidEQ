@@ -188,6 +188,57 @@ const drain = (filePath: string, entry: IPathState): void => {
 };
 
 /**
+ * The shape `writeAtomically` gives its temporary files: the target's name,
+ * then the writing process and a fresh id. Named here so the sweep below can
+ * recognise one and nothing else.
+ */
+const TEMPORARY = /\.(\d+)-[0-9a-f-]{36}\.tmp$/i;
+
+/**
+ * Delete temporary files an earlier run of this app left in `directory`.
+ *
+ * Every write makes one and removes it again, so the ones that survive are
+ * from a process that was killed between the two — twenty-five of them had
+ * collected in one listener's engine folder over a week. They change no
+ * sound: nothing reads them. They are swept because the engine opens what is
+ * in that directory whenever anything there changes, and because a folder of
+ * other people's litter is where a real problem goes unnoticed.
+ *
+ * Only this writer's own names, and never one this process is using: a
+ * FluidEQ that is running owns its temporaries, and there is only ever one
+ * (`engineOwnerPipe.ts`). A directory that cannot be read is not an error
+ * worth failing a launch over — there was simply nothing to sweep.
+ */
+export const sweepAbandonedWrites = async (
+  directory: string,
+): Promise<number> => {
+  let names: string[];
+  try {
+    names = await fs.promises.readdir(directory);
+  } catch {
+    return 0;
+  }
+  const mine = String(process.pid);
+  const swept = await Promise.all(
+    names.map(async (name) => {
+      const match = TEMPORARY.exec(name);
+      if (!match || match[1] === mine) {
+        return 0;
+      }
+      try {
+        await fs.promises.rm(path.join(directory, name), { force: true });
+        return 1;
+      } catch {
+        // Somebody else has it open, or it is not ours to remove. Either way
+        // the next launch tries again.
+        return 0;
+      }
+    }),
+  );
+  return swept.reduce((total: number, one) => total + one, 0);
+};
+
+/**
  * Every write asked for on one path, landed. For the moment before a file is
  * deleted or renamed: a write still in flight would otherwise land after the
  * delete and quietly resurrect the file.

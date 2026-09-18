@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <chrono>
 #include <cstdio>
 #include <map>
 #include <string>
@@ -27,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/linear_phase.h"
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
+#include "../src/room_head.h"
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 
@@ -53,6 +55,7 @@ using fluideq_engine_test::kMaximizerCeilingDb;
 using fluideq_engine_test::kMaximizerDriveDb;
 using fluideq_engine_test::kMaximizerEnabled;
 using fluideq_engine_test::kRate;
+using fluideq_engine_test::kRoomEnabled;
 using fluideq_engine_test::kReferenceLine;
 using fluideq_engine_test::reference_values;
 using fluideq_engine_test::mentions;
@@ -467,6 +470,113 @@ void dsp_edits_keep_audio_in_flight() {
   }
 }
 
+/**
+ * A head that renders every direction as a plain impulse.
+ *
+ * The room's geometry is not what the test below is about — its continuity
+ * is — and a flat head keeps the measurement about the handover rather than
+ * about what a measured ear does to a 1 kHz tone.
+ */
+fluideq_engine::RoomHead flat_head() {
+  fluideq_engine::RoomHead head;
+  head.directions = 24;
+  head.taps = 256;
+  head.sample_rate = static_cast<double>(kRate);
+  head.left.assign(head.directions * head.taps, 0.0f);
+  head.right.assign(head.directions * head.taps, 0.0f);
+  for (uint32_t direction = 0; direction < head.directions; ++direction) {
+    head.left[direction * head.taps] = 1.0f;
+    head.right[direction * head.taps] = 1.0f;
+  }
+  return head;
+}
+
+/**
+ * THE SAME, WITH THE ROOM ON, WHICH IS WHERE IT IS AUDIBLE.
+ *
+ * Every other stage is one voice in a mix, so a stage that restarts loses an
+ * effect for a moment. The room is not: every channel is folded through its
+ * convolution, so the room IS the signal path and a handover that leaves it
+ * cold is not a lost effect, it is silence.
+ *
+ * It happens in bursts. Measured in the engine's own log on a listener's
+ * machine: one gesture wrote six different racks in eighty milliseconds, and
+ * the engine built a chain for each — 504 builds in a day, the worst run 52
+ * of them in 7.6 seconds. One hole is a click; a run of them is the sound
+ * going away, which is how it was reported.
+ */
+void a_room_change_keeps_audio_in_flight() {
+  std::printf("rack edits with the room on keep the sound going\n");
+  const fluideq_engine::RoomHead head = flat_head();
+  std::vector<double> values = reference_values();
+  values[kRoomEnabled] = 1.0;
+  auto running = std::make_unique<Graph>(chain_with(values), kRate, 2, 128,
+                                         nullptr, 0, &head);
+  // The room really is running: it costs the convolver's partition, and
+  // without that this test would be measuring a chain with no room in it.
+  CHECK(running->latency_frames() >= feq_convolver_latency());
+  std::vector<std::vector<float>> warm(2, tone(1000.0, 0.5, kRate, 0));
+  run_blocks(*running, warm, 128);
+  CHECK(peak_db(warm[0], kRate - 128, kRate) > -30.0);
+  for (uint32_t edit = 0; edit < 12; ++edit) {
+    values[kMaximizerCeilingDb] = edit % 2 == 0 ? -6.0 : -3.0;
+    auto next = std::make_unique<Graph>(chain_with(values), kRate, 2, 128,
+                                        nullptr, 0, &head);
+    next->request_state_transfer();
+    next->inherit_rack(*running);
+    next->adopt_state(running.get());
+    std::vector<std::vector<float>> block(
+        2, tone(1000.0, 0.5, 128, kRate + edit * 128));
+    run_blocks(*next, block, 128);
+    const double peak = peak_db(block[0], 0, 128);
+    std::printf("       room edit %u: %.1f dBFS\n", edit, peak);
+    CHECK(peak > -30.0);
+    running = std::move(next);
+  }
+  // What one of those rebuilds costs, printed rather than asserted: it is
+  // why the design can afford to answer a settings change with a whole new
+  // graph. The room was the suspect for a listener's dropouts — a kernel set
+  // per speaker, rebuilt inside audiodg.exe on every change in a folder that
+  // saw 504 of them in a day — and the measurement cleared it: about a
+  // millisecond, barely more than the same chain with the room off.
+  {
+    const Chain chain = chain_with(values);
+    const auto started = std::chrono::steady_clock::now();
+    constexpr int kBuilds = 10;
+    for (int at = 0; at < kBuilds; ++at) {
+      Graph timed(chain, kRate, 2, 128, nullptr, 0, &head);
+      CHECK(timed.latency_frames() > 0);
+    }
+    const double ms = std::chrono::duration<double, std::milli>(
+                          std::chrono::steady_clock::now() - started)
+                          .count() /
+                      kBuilds;
+    std::printf("       one graph build with the room on: %.1f ms\n", ms);
+    const auto bare = std::chrono::steady_clock::now();
+    std::vector<double> without = values;
+    without[kRoomEnabled] = 0.0;
+    const Chain plain = chain_with(without);
+    for (int at = 0; at < kBuilds; ++at) {
+      Graph timed(plain, kRate, 2, 128);
+      CHECK(!timed.is_passthrough());
+    }
+    std::printf("       one graph build with it off:      %.1f ms\n",
+                std::chrono::duration<double, std::milli>(
+                    std::chrono::steady_clock::now() - bare)
+                        .count() /
+                    kBuilds);
+  }
+
+  // POSITIVE CONTROL: a room that starts from nothing IS silent for its first
+  // block, which is exactly what the handover above has to prevent.
+  Graph cold(chain_with(values), kRate, 2, 128, nullptr, 0, &head);
+  std::vector<std::vector<float>> control(2, tone(1000.0, 0.5, 128, 0));
+  run_blocks(cold, control, 128);
+  std::printf("       a cold room's first block: %.1f dBFS\n",
+              peak_db(control[0], 0, 128));
+  CHECK(peak_db(control[0], 0, 128) < -60.0);
+}
+
 void a_changed_rack_is_never_shared() {
   std::printf("a rack whose values changed is built fresh\n");
   std::vector<double> values = reference_values();
@@ -515,5 +625,6 @@ int main() {
   an_eq_only_edit_keeps_the_rack_running();
   a_changed_rack_is_never_shared();
   dsp_edits_keep_audio_in_flight();
+  a_room_change_keeps_audio_in_flight();
   return report();
 }

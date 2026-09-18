@@ -25,7 +25,7 @@ import fs from 'fs';
 import net from 'net';
 import path from 'path';
 import log from 'electron-log';
-import { scheduleWrite } from './asyncWriter';
+import { scheduleWrite, sweepAbandonedWrites } from './asyncWriter';
 import { getFluidEngineConfigDir } from './registry';
 
 /** `owner_pipe_name` in `native/system-apo/src/paths.cpp`: the same name. */
@@ -114,6 +114,20 @@ export const startEngineOwnerPipe = (
       settle(NOTHING_TO_CLOSE);
     });
     server.listen(pipePath, () => {
+      // Once per launch, and not waited for: temporary files an earlier run
+      // was killed in the middle of writing collect in the engine's folder —
+      // twenty-five of them in a week on one machine — and the engine opens
+      // what is in that folder every time anything there changes.
+      sweepAbandonedWrites(configDir)
+        .then((swept) => {
+          if (swept > 0) {
+            log.info(
+              `Swept ${swept} unfinished engine write(s) left by an earlier run.`,
+            );
+          }
+          return swept;
+        })
+        .catch(() => undefined);
       wakeEngine(configDir);
       settle({ close: () => closeServer(server) });
     });
