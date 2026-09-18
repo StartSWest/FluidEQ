@@ -578,8 +578,15 @@ export interface IFlashGuard {
    * or the upscaler's input when the scene is drawn smaller than its panel
    * (`sceneUpscale.ts`), so the limiter judges the picture at the size it
    * was drawn and the upscale reads what was shown.
+   *
+   * FALSE when it could not limit the frame, which is a GPU that would not
+   * give it somewhere to draw. Every caller treats that the way it treats a
+   * guard that could not be built at all — a member's scene is not shown. It
+   * used to bind the destination and return, quietly, which put the scene on
+   * the screen with no limiter at all and nothing said: the one place in this
+   * file that failed OPEN, and the only one that mattered.
    */
-  end(deltaMs: number, destination: WebGLFramebuffer | null): void;
+  end(deltaMs: number, destination: WebGLFramebuffer | null): boolean;
   dispose(): void;
 }
 
@@ -866,15 +873,19 @@ export const createFlashGuard = (
       if (nextWidth !== width || nextHeight !== height || !frames) {
         resize(nextWidth, nextHeight);
       }
-      gl.bindFramebuffer(
-        gl.FRAMEBUFFER,
-        frames?.[1 - drawn].framebuffer ?? null,
-      );
+      // Never the canvas as a fallback. Binding `null` where a target is
+      // missing pointed the scene straight at what the listener sees, and
+      // `end` then had nothing to limit: the scene was drawn raw. Where there
+      // is no target the scene draws into no framebuffer at all, and `end`
+      // says below that it could not do its job.
+      const into = frames?.[1 - drawn].framebuffer;
+      if (into) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, into);
+      }
     },
     end: (deltaMs, destination) => {
       if (!frames || !shown || !pressure) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, destination);
-        return;
+        return false;
       }
       const current = frames[1 - drawn];
       const last = frames[drawn];
@@ -938,6 +949,7 @@ export const createFlashGuard = (
       hasShown = true;
       drawn = 1 - drawn;
       hasFrame = true;
+      return true;
     },
     dispose: () => {
       releasePair(frames);

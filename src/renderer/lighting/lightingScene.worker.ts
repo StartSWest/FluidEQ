@@ -210,7 +210,13 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
   const started = performance.now();
   guard?.begin(width, height);
   program.draw(frame, width, height);
-  guard?.end(request.frame.deltaMs, null);
+  // A guard that cannot limit the frame is a guard that is not there, and the
+  // answer is the one this file already gives when it cannot build one: the
+  // swatch, not a stranger's scene on the lamps in the room.
+  if (guard && !guard.end(request.frame.deltaMs, null)) {
+    fail(pack?.id ?? '', 'no-guard');
+    return;
+  }
   // One pixel back waits for the GPU to finish this frame, so the time is
   // the GPU's, and each frame reaches it as its own job.
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);

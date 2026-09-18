@@ -426,7 +426,21 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, target);
   }
   program.draw(frame, width, height);
-  guard?.end(frame.deltaMs ?? 0, target);
+  // A guard that cannot limit the frame is a guard that is not there, and a
+  // member's scene is not shown without one — the same answer as a guard that
+  // could never be built. It happens when the GPU will not give it somewhere
+  // to draw, so the frame just drawn went nowhere and there is nothing to put
+  // on the canvas.
+  if (guard && !guard.end(frame.deltaMs ?? 0, target)) {
+    gl.disable(gl.SCISSOR_TEST);
+    // Out through the same door a lost context uses, and fatally: the page
+    // reports the scene unusable and the chart draws the scene's own fallback
+    // form, which is where every other failure in this worker ends up. Not
+    // blamed on the scene — it did not hold the GPU, the GPU would not give
+    // the limiter anywhere to draw.
+    scope.postMessage({ kind: 'lost', fatal: true, blamed: false });
+    return { kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: true };
+  }
   if (finishing && post) {
     clock.mark();
     post.present({
