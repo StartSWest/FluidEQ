@@ -11,7 +11,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * music, and a picture plays its own poses facing the way it flies.
  */
 
-import type { IAmbientElement } from '../../../common/sceneAmbient';
+import {
+  AMBIENT_CEILING,
+  type IAmbientElement,
+} from '../../../common/sceneAmbient';
 import {
   areaBox,
   createAmbientField,
@@ -262,10 +265,15 @@ describe('the musical swell', () => {
     const resting = play(twinkling(), [false])[0];
     const limit = resting * 0.8 * (MAX_SWELL_PER_SECOND / 60) * 1.05 + 1e-9;
     expect(Math.max(...stepsOf(alphas))).toBeLessThanOrEqual(limit);
-    // Two thirds of a second to arrive: full by the end of a second.
+    // Two thirds of a second to arrive: full by the end of a second, and
+    // never past the ceiling the format declares. These are drawn over
+    // FluidEQ's own words, and the drawing used to stop at 0.62 while the
+    // constant said 0.42 — so the loudest music put every element half again
+    // as strong as anything anywhere said was possible.
     expect(alphas[alphas.length - 1]).toBeCloseTo(
-      Math.min(0.62, resting * 1.8),
+      Math.min(AMBIENT_CEILING, resting * 1.8),
       3,
     );
+    expect(Math.max(...alphas)).toBeLessThanOrEqual(AMBIENT_CEILING + 1e-9);
   });
 });

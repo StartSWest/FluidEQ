@@ -81,8 +81,20 @@ export interface IAmbientDraw {
   poses?: readonly (readonly [number, number])[];
 }
 
-/** The brightest a musical swell can take it, whatever the scene asks. */
-const MAX_ALPHA = 0.62;
+/**
+ * The brightest anything here is ever drawn, whatever the scene asks and
+ * however loud the music: the ceiling `sceneAmbient.ts` declares, and the
+ * same number, because two numbers for one rule means the rule is whichever
+ * one the drawing uses.
+ *
+ * It was 0.62 while the declared ceiling was 0.42, and the swell below
+ * multiplies past the ceiling before reaching it — so on loud music every
+ * element drew half again as strong as the constant said was possible. These
+ * are drawn over FluidEQ's own words: measured in sRGB, one white element at
+ * 0.62 takes the text on a dark pane from 10.8:1 down to 2.0:1, and two
+ * overlapping to 1.3:1, where 4.5:1 is the readable floor.
+ */
+const MAX_ALPHA = AMBIENT_CEILING;
 /**
  * The most the musical swell moves in a second, 0 to 1 being none to full.
  * A full swell takes two thirds of a second to arrive and to leave.
