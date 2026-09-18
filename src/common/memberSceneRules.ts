@@ -58,10 +58,8 @@ export const MAX_MEMBER_LOOP_ITERATIONS = 128;
  *
  * A cap on each loop alone let three nested 128-turn loops run two million
  * turns a pixel, two trillion on a 1920x1080 picture: minutes of GPU time,
- * where Windows resets the driver after two seconds. Measured on an RTX 4080
- * at about 1.3 ms per billion units of scene-like work, and an integrated GPU
- * at twenty to forty times that, this budget keeps a whole 1920x1080 frame
- * under two seconds on the slowest of them.
+ * where Windows resets the driver after two seconds. This cuts that to a
+ * ceiling a scene cannot argue with.
  *
  * A unit is about one noise turn: a turn and every call cost one, and each
  * span's own arithmetic, tests and built-in calls one per
@@ -69,6 +67,37 @@ export const MAX_MEMBER_LOOP_ITERATIONS = 128;
  * of the 77 official scenes and Studio projects on this machine (Coral as a
  * member gets it in the Studio, with its helpers) does 8579, and every one
  * of them passes.
+ *
+ * WHAT THIS NUMBER DOES NOT DO, measured on 2026-09-17 and written here
+ * because it used to claim the opposite. It said this budget keeps a whole
+ * 1920x1080 frame under two seconds on the slowest GPU. It does not. Timed on
+ * this machine's integrated chip, the heaviest thing these rules accept — one
+ * 128-turn loop holding 104 texture fetches, each reading an address the last
+ * one returned, 13,312 a pixel — comes to 3.74 seconds for one 1920x1080
+ * frame. Nothing built of arithmetic gets near it: the same loop full of sums
+ * runs out of MAX_MEMBER_SOURCE_BYTES first, at 0.27 s, and one doing almost
+ * nothing per turn at 0.54 s.
+ *
+ * Nor can the number be shaved until it does. A static count says what a
+ * source COULD run and a GPU runs what its branches allow, and the gap is
+ * enormous in both directions: Coral is charged 8,579 units, over half this
+ * ceiling, and actually draws a 1920x1080 frame in 63 ms — a sixtieth of what
+ * the budget thinks it is buying. Weighing a sampler at two instead of one
+ * refuses Coral AND still leaves 2.05 s on the table; three, four, six and
+ * eight all refuse Coral too. There is no pair of numbers here that admits
+ * the scenes Ivan has already made and refuses this shape.
+ *
+ * So this is a cheap first filter — it costs the signing server nothing and
+ * it turns away the obvious — and it is NOT what keeps somebody's driver
+ * alive. That is done where the work actually happens, by measurement rather
+ * than by counting: a member's scene on the graph starts at an eighth of the
+ * panel and climbs only after twelve smooth frames, never more than four
+ * times the pixels it has already drawn (`sceneWarmup.ts`); a kept picture is
+ * timed small, extrapolated, refused over thirty seconds and otherwise drawn
+ * in bands no longer than a quarter-second each (`sceneStill.worker.ts`); and
+ * a scene whose frame held the GPU past half a second when the context went
+ * is blamed for it and never loaded again. Do not weaken any of those on the
+ * strength of this number.
  */
 export const MAX_MEMBER_PIXEL_WORK = 16384;
 
