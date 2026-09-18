@@ -117,6 +117,46 @@ const ALLOWED = new Map<string, IAllowance>([
   ],
 ]);
 
+/**
+ * Whole programs that exist on one platform and are compiled only there —
+ * each sits under `if(WIN32)` in CMake, either in `native/CMakeLists.txt` or
+ * in a list of its own. They are not the seam: nothing in them is shared, so
+ * there is nothing for a second platform to inherit and no `platform/` split
+ * to make. The FluidEQ Engine loads inside audiodg.exe; a macOS equivalent
+ * is its own program, not a branch of this one.
+ *
+ * Named, with a reason, for the same reason the file allowances are: the
+ * check's job is to notice the NEXT single-platform tree appearing, and a
+ * pattern such as "anything outside dsp-core and dsp-host" would not.
+ */
+const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
+  [
+    'native/system-apo/',
+    'the FluidEQ Engine: an audio processing object that loads inside audiodg.exe',
+  ],
+  [
+    'native/wallpaper/',
+    'the desktop visualizer helper, which parents a window behind Explorer',
+  ],
+  ['native/lighting-host/', 'Windows Dynamic Lighting through C++/WinRT'],
+  ['native/process-meter/', 'the Processes list meter, which reads psapi'],
+  ['native/remote-audio-capture/', 'WASAPI process-loopback capture'],
+]);
+
+/**
+ * Files under one of those trees that the shared host compiles on every
+ * platform as well (`native/CMakeLists.txt` lists them for `fluideq-dsp-host`
+ * outside the platform branches), so they stay held to the rule.
+ */
+const SHARED_WITHIN_PROGRAMS = new Set([
+  'native/system-apo/src/room_head.cpp',
+  'native/system-apo/src/room_head.h',
+]);
+
+const isSinglePlatformProgram = (name: string) =>
+  !SHARED_WITHIN_PROGRAMS.has(name) &&
+  [...SINGLE_PLATFORM_PROGRAMS.keys()].some((dir) => name.startsWith(dir));
+
 const tracked = execFileSync('git', ['ls-files', '-z', 'native'], {
   cwd: REPO_ROOT,
   encoding: 'utf8',
@@ -128,7 +168,8 @@ const tracked = execFileSync('git', ['ls-files', '-z', 'native'], {
       name !== '' &&
       SOURCE_EXTENSIONS.has(path.extname(name)) &&
       !isVendored(name) &&
-      !isPlatformScoped(name),
+      !isPlatformScoped(name) &&
+      !isSinglePlatformProgram(name),
   );
 
 const offences: string[] = [];
@@ -173,5 +214,5 @@ if (offences.length > 0) {
 }
 
 console.log(
-  `${tracked.length} shared native sources are platform-free (${ALLOWED.size} allowed by name).`,
+  `${tracked.length} shared native sources are platform-free (${ALLOWED.size} allowed by name; ${SINGLE_PLATFORM_PROGRAMS.size} single-platform programs are not shared and not checked).`,
 );
