@@ -46,6 +46,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
+#else
+#include <csignal>
 #endif
 
 namespace feq_host {
@@ -112,6 +114,20 @@ int run(int argc, char** argv) {
   // include a newline — that is, most of them, silently and intermittently.
   _setmode(_fileno(stdin), _O_BINARY);
   _setmode(_fileno(stdout), _O_BINARY);
+#else
+  /**
+   * A write to a pipe whose reader has gone raises SIGPIPE, whose default
+   * disposition ends the process where it stands — from whichever thread
+   * wrote, with the device still open. Windows answers the same write with an
+   * error, which `write_frame` already reports and its callers already
+   * tolerate; ignoring the signal makes POSIX say the same thing. The parent
+   * watch is then the one thing that ends an orphan on every platform, and it
+   * releases the endpoint on the way out. Measured on macOS: without this, an
+   * unwatched host died of the signal on its first telemetry frame after the
+   * launcher was killed, so the orphan smoke's control could not stand and
+   * its real check would have passed for a reason that was not the watch.
+   */
+  std::signal(SIGPIPE, SIG_IGN);
 #endif
 
   HostState state;

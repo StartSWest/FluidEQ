@@ -28,7 +28,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * So the control below starts a render that cannot finish inside this test and
  * measures that an unwatched host is still there afterwards.
  */
-import { spawn, spawnSync } from 'child_process';
+import { ChildProcess, spawn, spawnSync } from 'child_process';
+import { once } from 'events';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
@@ -196,15 +197,27 @@ const startPair = async (
       }
     });
   });
-  return { parentPid: parent.pid ?? 0, hostPid };
+  return { parent, hostPid };
 };
 
 /** Kill the launcher and answer whether the host outlived it. */
-const outlivesParent = async (parentPid: number, hostPid: number) => {
+const outlivesParent = async (parent: ChildProcess, hostPid: number) => {
+  const parentPid = parent.pid ?? 0;
   // Long enough for the offline render to have written a pipe's worth of
   // telemetry with nobody reading it.
   await sleep(2_000);
   hardKill(parentPid);
+  /**
+   * The launcher is this script's own child, and on POSIX a killed child is
+   * a zombie until its parent reaps it — which Node does from the event loop,
+   * not inside `kill`. Signal 0 still finds a zombie, so asking straight
+   * after the kill reported the launcher alive on macOS every time. The
+   * host's own parent watch polls the same way, so until the zombie is gone
+   * it, too, would see a living parent. `exit` is the moment it is reaped.
+   */
+  if (parent.exitCode === null && parent.signalCode === null) {
+    await once(parent, 'exit');
+  }
   if (isAlive(parentPid)) {
     throw new Error(`Parent ${parentPid} is still alive after force-kill`);
   }
@@ -240,7 +253,7 @@ const main = async (): Promise<void> => {
    * leaves on its own, the real check has stopped testing anything.
    */
   const control = await startPair(scratch, executable, false);
-  const stranded = await outlivesParent(control.parentPid, control.hostPid);
+  const stranded = await outlivesParent(control.parent, control.hostPid);
   check(stranded, 'an unwatched host is stranded when its parent is killed');
   hardKill(control.hostPid);
 
@@ -248,7 +261,7 @@ const main = async (): Promise<void> => {
   const watched = await startPair(scratch, executable, true);
   check(watched.hostPid > 0, 'the host started');
   check(isAlive(watched.hostPid), 'and is running while its parent is');
-  const survived = await outlivesParent(watched.parentPid, watched.hostPid);
+  const survived = await outlivesParent(watched.parent, watched.hostPid);
   check(!survived, 'a watched host follows its parent out');
   if (survived) {
     // Leaving a stuck host behind would be a worse outcome than the failure.
