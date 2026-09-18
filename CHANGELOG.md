@@ -95,6 +95,15 @@ a video started over a playing album left both going.
 - **The Room always receives every channel of the output**, and the switch that
   used to offer a choice the Room overrode now says why it is held instead of
   pretending the choice is yours.
+- **The rack's header fits on one row again.** The title, the preset field and
+  its arrows, Reset, the four file actions and the two switches needed more
+  width than the panel has at most window sizes, so the row stood two tall with
+  the actions wrapped underneath and Reset painted over the arrows. The four
+  actions now keep their glyphs and drop their words on a narrow panel, each
+  still naming itself when the pointer rests on it. A switch that something
+  else is holding wears a small padlock in front of the words it belongs to,
+  rather than a sentence on its own line that read as a caption for the power
+  switch beside it.
 - **Choosing a rack preset no longer changes which channels the rack runs on.**
   A preset, an imported one and Reset all quietly moved that switch.
 - **The live wave no longer freezes while a visualizer keeps moving beside
