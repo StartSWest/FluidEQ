@@ -439,8 +439,18 @@ interface ILoop {
   to: number;
 }
 
+/**
+ * The step is taken whole, to the end, rather than trimmed by the pattern.
+ *
+ * It used to end `;\s*(.*?)\s*$`, and a lazy group followed by optional
+ * whitespace backtracks once per space: `for (int i=0;i<4;i++` and a quarter
+ * of a million spaces took twenty-three seconds of one frozen main process to
+ * refuse — on every save in the open project, from a file that "came from
+ * wherever their AI or a forum post put it". `readStep` takes the whitespace
+ * out of what it is handed anyway, so the pattern never needed to.
+ */
 const FOR_HEADER =
-  /^\s*int\s+([A-Za-z_]\w*)\s*=\s*(-?\w+)\s*;\s*([A-Za-z_]\w*)\s*(<=|<|>=|>)\s*(-?\w+)\s*;\s*(.*?)\s*$/s;
+  /^\s*int\s+([A-Za-z_]\w*)\s*=\s*(-?\w+)\s*;\s*([A-Za-z_]\w*)\s*(<=|<|>=|>)\s*(-?\w+)\s*;([\s\S]*)$/;
 
 /** The loop whose `for` is at `at`, or the rule its header breaks. */
 const readLoop = (
@@ -509,8 +519,6 @@ const splitArguments = (text: string): string[] => {
   return parts;
 };
 
-const WRITES_BACK = /\b(?:out|inout)\b/;
-
 /**
  * Functions with a parameter they write back to their caller: every name
  * followed by a bracket whose partner closes a list naming `out` or `inout`.
@@ -520,17 +528,38 @@ const WRITES_BACK = /\b(?:out|inout)\b/;
  * pattern held the main process for a second besides.
  */
 const writersIn = (code: string, parens: Int32Array): Set<string> => {
-  const writers = new Set<string>();
+  // How many `out`/`inout` words start before each position, counted once so
+  // that asking whether a parenthesised list holds one is two reads.
+  //
+  // This used to slice the list out and test it, which re-reads the same text
+  // once for every identifier around it — so calls nested inside calls made
+  // it quadratic. A 256 KB source of `a(a(a(...)))`, breaking no rule and so
+  // signable and publishable, took 1.8 seconds of one frozen main process per
+  // check; the check runs again on every read of an installed scene, and
+  // listing the looks reads every one of them. The same prefix count the
+  // pixel-work budget already uses (`operationsBefore`).
+  const marks = new Int32Array(code.length + 1);
+  const names: { name: string; end: number }[] = [];
   const word = /[A-Za-z_]\w*/g;
   let found = word.exec(code);
   while (found) {
-    const open = skipSpace(code, found.index + found[0].length);
-    const close = code[open] === '(' ? parens[open] : -1;
-    if (close > open && WRITES_BACK.test(code.slice(open + 1, close))) {
-      writers.add(found[0]);
+    names.push({ name: found[0], end: found.index + found[0].length });
+    if (found[0] === 'out' || found[0] === 'inout') {
+      marks[found.index + 1] += 1;
     }
     found = word.exec(code);
   }
+  for (let k = 0; k < code.length; k += 1) {
+    marks[k + 1] += marks[k];
+  }
+  const writers = new Set<string>();
+  names.forEach(({ name, end }) => {
+    const open = skipSpace(code, end);
+    const close = code[open] === '(' ? parens[open] : -1;
+    if (close > open && marks[close] - marks[open + 1] > 0) {
+      writers.add(name);
+    }
+  });
   return writers;
 };
 
