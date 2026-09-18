@@ -46,6 +46,7 @@ import {
   trackPathById,
 } from '../library/libraryIndex';
 import scanLibraryRootOffThread from '../library/scanHost';
+import { isLocalRendererPath } from '../rendererPaths';
 import onWindowMessage from './windowMessages';
 
 /**
@@ -538,12 +539,18 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
   });
 
   ipcMain.handle('library-root-add-paths', (_event, rawPaths: unknown) => {
-    // The only channel that takes a path in from the renderer, so it may add
-    // a root and nothing more -- never a way to read an arbitrary file. Each
-    // candidate has to prove it is a real directory before it is accepted;
-    // everything else, a file or a path that no longer exists, is dropped.
+    // The one channel that takes a path in from the window, because a folder
+    // dropped on the Library is a real folder the page learned the path of
+    // (`webUtils.getPathForFile`). Each candidate has to prove it is a real
+    // directory; everything else is dropped.
+    //
+    // A path on ANOTHER MACHINE is refused before the filesystem is asked
+    // anything (`rendererPaths.ts`): `stat` on `\\host\share` authenticates
+    // outbound as this user, which would make this channel a way to post
+    // somebody's credentials to a host of the caller's choosing. A library on
+    // a network share has to be mapped to a drive letter.
     const candidates = Array.isArray(rawPaths)
-      ? rawPaths.filter((value): value is string => typeof value === 'string')
+      ? rawPaths.filter(isLocalRendererPath)
       : [];
     const directories = candidates.filter((candidate) => {
       try {

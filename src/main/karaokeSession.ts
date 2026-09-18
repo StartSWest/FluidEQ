@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { isLocalRendererPath } from './rendererPaths';
 import {
   IKaraokeRestoredFile,
   IKaraokeRestoredFileBytes,
@@ -36,6 +37,14 @@ import { decodeKaraokeText } from '../common/karaoke/textEncoding';
 
 const SESSION_FILENAME = 'karaoke-session.json';
 const MAX_FILES = 5_000;
+
+/**
+ * The largest file handed back whole when a session is restored. The same
+ * bound the Library's own playback blob keeps: past it, a file is long enough
+ * that holding it in the window's heap costs more than it buys, and a path
+ * that turns out to be something else entirely is refused rather than read.
+ */
+const MAX_RESTORED_FILE_BYTES = 96 * 1024 * 1024;
 const MAX_LYRICS_BYTES = 4 * 1024 * 1024;
 /**
  * Taken from the renderer's own list, not copied. A second copy that fell
@@ -166,8 +175,11 @@ const validateStoredFile = (
   localPath: unknown,
   relativePath: unknown,
 ): IKaraokeStoredFile | undefined => {
+  // Not a path on another machine, whatever else it is: `stat` on
+  // `\\host\share` authenticates outbound as this user, and the path arrived
+  // over IPC (`rendererPaths.ts`).
   if (
-    typeof localPath !== 'string' ||
+    !isLocalRendererPath(localPath) ||
     !path.isAbsolute(localPath) ||
     !roleForPath(localPath)
   ) {
@@ -261,7 +273,15 @@ export const saveKaraokeSession = (
   };
   fs.mkdirSync(userDataDir, { recursive: true });
   fs.writeFileSync(sessionPath(userDataDir), JSON.stringify(stored, null, 2));
-  activateTokens(stored.files);
+  // DELIBERATELY NOT `activateTokens(stored.files)`.
+  //
+  // A token is `sha256(path)`, so a caller that names a path can work out its
+  // own token — and activating on save made this pair of channels an arbitrary
+  // read of any media file on the machine in one round trip: save a session
+  // naming somebody's photo, then ask for its bytes. The window has the file
+  // it just saved; it does not need main to read it back. Only a session
+  // RESTORED from disk hands out tokens, which is the case the read-back
+  // exists for: files the window no longer holds because the app was closed.
 };
 
 export const restoreKaraokeSession = (
@@ -322,15 +342,22 @@ export const readRestoredKaraokeFile = (
   if (!localPath || (role !== 'audio' && role !== 'media')) {
     return Promise.resolve(undefined);
   }
-  return Promise.all([
-    fs.promises.stat(localPath),
-    fs.promises.readFile(localPath),
-  ])
-    .then(([stats, data]) => ({
-      data: new Uint8Array(data),
-      lastModified: stats.mtimeMs,
-      type: MIME_TYPES[extensionForPath(localPath)] ?? '',
-    }))
+  return fs.promises
+    .stat(localPath)
+    .then(async (stats) => {
+      // The whole file goes into the window's heap, so the size is asked
+      // before the bytes are: a song is megabytes, and a path that turns out
+      // to be a disc image is refused rather than read into memory.
+      if (stats.size > MAX_RESTORED_FILE_BYTES) {
+        return undefined;
+      }
+      const data = await fs.promises.readFile(localPath);
+      return {
+        data: new Uint8Array(data),
+        lastModified: stats.mtimeMs,
+        type: MIME_TYPES[extensionForPath(localPath)] ?? '',
+      };
+    })
     .catch(() => undefined);
 };
 
