@@ -31,11 +31,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import {
-  FLASH_PRESSURE_FULL,
   FLASH_PRESSURE_MEMORY_SOURCE,
-  FLASH_PRESSURE_START,
   FLASH_SWING,
-  flashPressure,
+  flashStep,
+  FLASH_STATE_REST,
   flashPressureMemory,
 } from '../../../renderer/graph/sceneFlashGuard';
 
@@ -58,7 +57,10 @@ const countsIn = (swings: readonly number[]) => {
   let last = 0;
   let counted = 0;
   swings.forEach((swing) => {
-    if (flashPressure(0, swing, last, FRAME_MS) > 0) {
+    // A turn is what puts the gap back to nothing. Asked of a pixel at rest
+    // each time, so the count is of turns and not of which ones came too soon
+    // after the one before.
+    if (flashStep(FLASH_STATE_REST, swing, last, FRAME_MS).sinceTurn === 0) {
       counted += 1;
     }
     last = flashPressureMemory(swing, last, FRAME_MS);
@@ -66,15 +68,15 @@ const countsIn = (swings: readonly number[]) => {
   return counted;
 };
 
-/** What a series of swings settles the pressure at, running it properly. */
+/** How strongly a series of swings ever reads as flashing, run properly. */
 const settles = (swings: readonly number[]) => {
-  let pressure = 0;
+  let state = FLASH_STATE_REST;
   let last = 0;
   let highest = 0;
   swings.forEach((swing) => {
-    pressure = flashPressure(pressure, swing, last, FRAME_MS);
+    state = flashStep(state, swing, last, FRAME_MS);
     last = flashPressureMemory(swing, last, FRAME_MS);
-    highest = Math.max(highest, pressure);
+    highest = Math.max(highest, state.flashing);
   });
   return highest;
 };
@@ -105,7 +107,7 @@ describe('what the pressure counts', () => {
     expect(guardSource).toContain(
       `float remembered = $\{FLASH_PRESSURE_MEMORY_SOURCE};`,
     );
-    expect(guardSource).toContain('float opposing = remembered * lastSwing');
+    expect(guardSource).toContain('float opposing = remembered > 0.0');
   });
 
   /**
@@ -130,8 +132,14 @@ describe('what the pressure counts', () => {
       memory = flashPressureMemory(0.02, memory, FRAME_MS);
     }
     expect(memory).toBeGreaterThan(FLASH_SWING);
-    // Which is what lets the snap at the end of it be seen as a turn.
-    expect(flashPressure(0, -1, memory, FRAME_MS)).toBeGreaterThan(0);
+    // Which is what lets the snap at the end of it be seen at all: the fall
+    // carries the travel down past a flash's worth, and the rise that starts
+    // straight after it is the turn this counts.
+    const snapped = flashPressureMemory(-1, memory, FRAME_MS);
+    expect(snapped).toBeLessThanOrEqual(-FLASH_SWING);
+    expect(
+      flashStep(FLASH_STATE_REST, 0.02, snapped, FRAME_MS).sinceTurn,
+    ).toBe(0);
   });
 
   it('takes a swing big enough to be a flash whole and at once', () => {
@@ -150,13 +158,15 @@ describe('what the pressure counts', () => {
       frame % 2 === 0 ? 0.02 : -0.02,
     );
     expect(countsIn(jitter)).toBeLessThan(4);
-    expect(settles(jitter)).toBeLessThan(FLASH_PRESSURE_START);
+    expect(settles(jitter)).toBe(0);
     // The positive control: the same frames at a size that IS a flash are a
     // turn every one of them, and hold the pixel completely.
     const strobe = Array.from({ length: 120 }, (_, frame) =>
       frame % 2 === 0 ? 1 : -1,
     );
-    expect(countsIn(strobe)).toBeGreaterThan(100);
-    expect(settles(strobe)).toBeGreaterThanOrEqual(FLASH_PRESSURE_FULL);
+    // Rises only, so one a flash: a strobe turning every frame flashes on
+    // every other one.
+    expect(countsIn(strobe)).toBeGreaterThan(50);
+    expect(settles(strobe)).toBe(1);
   });
 });

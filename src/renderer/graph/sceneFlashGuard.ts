@@ -28,18 +28,19 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  *   swing of a pair is held, so at most one un-opposed swing of a strobe
  *   reaches the screen: half a flash, where WCAG allows three.
  * - Where it alternates, over enough of the picture: each pixel (at half
- *   resolution) keeps a pressure that every TURN of the picture — where how
- *   far it has travelled one way, in luminance or in saturated red, reverses —
- *   pushes up and time lets down. Where pressure is high AND flashing covers a
- *   share of the area around it (`FLASH_AREA_START`), the pixel may change no
- *   faster than the frame limit. A turn and not a swing, because a flash is a
- *   PAIR of changes: see `flashPressure`.
+ *   resolution) keeps the SECONDS SINCE it last rose — since how far it has
+ *   travelled one way, in luminance or in saturated red, turned from falling
+ *   to rising. A rise less than a flash's period behind the last one is a
+ *   flash too soon, and where that is true AND flashing covers a share of the
+ *   area around it (`FLASH_AREA_START`), the pixel may change no faster than
+ *   the frame limit. A rise and not a swing, because a flash is a PAIR of
+ *   changes: see `flashStep`.
  *
  * How: the scene draws into one of two offscreen textures, the other holding
- * its last frame. A state pass compares them and updates the pressure. The
+ * its last frame. A state pass compares them and updates that state. The
  * composite blends the last picture shown toward the new one by just enough
  * for both limits, and the result is copied to the canvas. A new size carries
- * the last picture shown, the last frame and the pressure across, scaled, so
+ * the last picture shown, the last frame and the state across, scaled, so
  * a panel resizing every frame is still limited.
  *
  * Official scenes do not go through this: they are watched before release.
@@ -50,73 +51,70 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * jittering edge, sparkles and a beat (all left as drawn), and on FluidEQ's
  * Alpine, Aurora, Jellyfish and Ember, drawn as without it.
  *
- * Both passes are run frame by frame on a real driver over known sequences,
- * counting the opposing swings of a tenth or more that REACH THE SCREEN rather
- * than the blend on any one frame — the arithmetic tests measure the snap and
- * cannot see the frames after it, which is how this file was once believed to
- * be holding things it was not. Every number below is from that harness.
+ * HELD, every one down to a fifth of a flash a second on screen: a square
+ * strobe and a ramp that snaps back at 3.75, 4, 5, 6 and 10 flashes a second;
+ * an isoluminant slide from grey to saturated red and back — relative
+ * luminance pinned at 0.2126 the whole way, so the frame limit sees a still
+ * picture — at 4.6 and 4 a second; a red square at 4; half the frame
+ * flickering ten times a second.
  *
- * HELD. A square strobe at 3.75, 4, 5, 6 and 10 flashes a second comes out at
- * 1.4, 1.2, 1.0, 1.0 and 0.8. A ramp that rises over a whole cycle and snaps
- * back, at the same rates, at 1.4, 1.2, 1.0, 0.8 and 0.6. An isoluminant slide
- * from grey to saturated red and back — relative luminance pinned at 0.2126
- * the whole way, so the frame limit sees a still picture — at 4.6 and 4 a
- * second, 1.0 and 1.2. A red square at 4, 1.4. Half the frame flickering ten
- * times a second, 0.8.
+ * LEFT ALONE, every one at the whole of its own swing: a square strobe at
+ * exactly three a second, which is WCAG's own boundary and allowed; a beat at
+ * 150 BPM as a square, as a ramp and as a red ramp; a beat pulsing at 2 a
+ * second; a ramp at 2; a picture breathing at 1; a bar sweeping across a dark
+ * frame; and the strips a sixteenth and an eighth of the frame flickering ten
+ * times a second — 100 % and 97 % — which are the flame tips and the sparkles
+ * this has twice been sent back for smearing.
  *
- * LEFT ALONE, every one at the whole of its own swing: a beat at 150 BPM as a
- * square, as a ramp and as a red ramp; a beat pulsing at 2 a second; a ramp at
- * 2; a picture breathing at 1; a bar sweeping across a dark frame; and the
- * strips a sixteenth and an eighth of the frame flickering ten times a second
- * — 100 % and 97 % — which are the flame tips and the sparkles this has twice
- * been sent back for smearing.
+ * NONE OF THAT MOVES WITH THE FRAME RATE. Measured on the driver at 30, 60,
+ * 144 and 240 frames a second: nought of twenty-five wrong at every one of
+ * them. The design before this was right only at 60 — eleven of twenty-five
+ * wrong at 144, including shapes held completely at 60 — and that was the
+ * largest thing wrong in this file for as long as it has existed.
  *
- * At exactly three a second, WCAG's own boundary, a square arrives at 2.4 and
- * a red ramp at 2.2, both with their brightness range untouched: held a little
- * where holding is conservative rather than wrong.
+ * WHAT CHANGED, and why the old shape could not be repaired. The per-pixel
+ * half used to integrate turns into a PRESSURE and read its level. "More than
+ * three flashes a second" is not a level, it is a statement about the time
+ * between flashes, and a level failed in two measured ways:
  *
- * EVERY NUMBER ABOVE IS AT SIXTY FRAMES A SECOND, and the per-pixel half of
- * this guard does not hold at other rates. It is not a calibration that wants
- * nudging; it is structural, it predates all of this, and it is the largest
- * thing still wrong here.
+ * - It gained per flash and lost a fixed step per FRAME, because that step is
+ *   the least an 8-bit channel can fall by. So its drain ran at the monitor's
+ *   rate while its gain did not.
+ * - A level cannot be quick, separating and smooth at once. Searched over
+ *   every step and memory, with every shape run fifty seconds so nothing was
+ *   read before it settled, the widest band between what must be held and what
+ *   must be left alone was 0.038 within fourteen turns — under half a step, a
+ *   switch rather than a ramp — and reached only 0.138 by thirty turns, which
+ *   is 1.5 s of onset at ten flashes a second and 4.3 s at three and a half.
+ *   Nothing under fourteen turns separated the shapes at all.
  *
- * The pressure gains per FLASH and loses PRESSURE_FLOOR per FRAME — the step
- * an 8-bit texture needs before rounding lets it fall at all. So the drain is
- * fps/255 a second while the gain is not, and the rate at which holding begins
- * moves with the monitor. Measured on the driver at 144 frames a second, with
- * the same sequences the header lists: eleven of twenty-five come out wrong,
- * including shapes held completely at 60 — an isoluminant red square at four
- * flashes a second among them. Modelled over 30 to 240, the per-pixel path is
- * dead from about 90 up, and over-eager at 30, where it touches pictures that
- * must be left alone.
+ * So the red channel now counts the SECONDS SINCE the pixel last rose, and a
+ * rise closer than a period behind the last one is a flash too soon. Rises
+ * only, not both ends of the pair: a ramp that snaps back turns at the snap
+ * and again on the very next frame as the rise begins, so measured from turn
+ * to turn that pair is a frame apart at any rate at all, and a shape flashing
+ * twice a second reads as thirty. Counting rises gives one a flash, evenly
+ * spaced, for a strobe and a ramp alike — rise to rise IS the flash period.
  *
- * Half floats for the state DO fix the frame rate — the drain is only there
- * because eight bits cannot resolve what a pressure loses in one frame, and
- * without it the decay is per second by construction. That was built, and it
- * is not enough, which is why this still reads as it does.
+ * The flag HOLDS while the pixel is still inside a period of its last rise
+ * and falls only after a whole one without one. Letting it decay between
+ * rises was measured and is wrong: at 3.75 a second it fell to 0.59 between
+ * them, and the flash arrived in the dip — 3.75, 4 and 5 all reached the
+ * screen at their full rate while 6 and 10 were held.
  *
- * What a pressure LEVEL has to do is three things at once, and it cannot. It
- * must separate the rates; it must take hold quickly, since the turns before
- * holding begins are the threshold over the step; and the band between "left
- * alone" and "held" must be wide compared with that step, or a scene sitting
- * near the threshold crosses it in a single turn and the limiter toggles —
- * flicker in the LIMITING, which is the failure this has twice been sent back
- * for. Searched over every step and memory, with every shape run fifty
- * seconds so nothing is read before it settles:
+ * The state is drawn at HALF FLOAT, and there is no second-best; without the
+ * extension this guard refuses to exist and the scene is not shown. Eight
+ * bits were tried and cannot carry a gap accumulated a frame at a time: at 60
+ * a frame is 4.25 steps of 255 and lands as 4, so a third of a second came out
+ * six per cent short and read three flashes a second as faster than three,
+ * while at 144 a frame is 1.77 steps and rounds up by thirteen. That is the
+ * same frame-rate dependence this replaced, in a new place.
  *
- *   onset   band    band in turns
- *      14   0.038   0.4      a switch
- *      20   0.095   1.2      a switch
- *      24   0.110   1.7      nearly a switch
- *      30   0.138   2.5      a ramp, and 1.5 s of onset at ten flashes a
- *                            second, 4.3 s at three and a half
- *
- * Nothing under 14 turns separates at all. So: quick, separating, smooth —
- * pick two. Integrating turns and reading the level is the wrong instrument
- * for "more than three a second", which is a statement about the INTERVAL
- * between turns; measuring that interval directly is the next real step, and
- * half floats leave room to keep one per pixel. A redesign, not a constant,
- * and nothing was shipped on the strength of the numbers above.
+ * Both passes are run frame by frame on a real driver over the sequences
+ * above, counting the opposing swings of a tenth or more that REACH THE
+ * SCREEN rather than the blend on any one frame — the arithmetic tests
+ * measure the snap and cannot see the frames after it, which is how this file
+ * was once believed to be holding things it was not.
  *
  * The red slide was open until 2026-09-18 and took four tries to close, all
  * measured, because three of them look obvious and are wrong:
@@ -270,50 +268,82 @@ export const flashAlternating = (swing: number, lastSwing: number): number => {
 };
 
 /**
- * Pressure one turn of the picture adds, and how long pressure takes to fall
- * to 1/e. The two are one decision and were searched for together.
+ * Flashes a second WCAG 2.3.1 allows, and the time between them that means.
  *
- * They used to be a sixth and one second, which held a strobe at a hundred
- * per cent and let a ramp-and-snap through — a strobe turns at both its edges
- * and scored two a cycle, a ramp scored one, and nothing distinguishes a
- * forbidden ramp from an allowed strobe when one is counted twice. The turn
- * rule below fixed the counting; these two fix what the count is worth.
+ * ONLY TURNS ONE WAY ARE COUNTED — where the travel reverses from falling to
+ * rising. A flash is a PAIR of opposing changes, so counting both ends of the
+ * pair counts each flash twice, and the two ends are not evenly spaced: a
+ * picture that slides up over a whole cycle and snaps back turns at the snap
+ * and again on the very next frame as the rise begins. Measured from turn to
+ * turn, that pair is a frame apart at any rate at all, and a shape flashing
+ * twice a second — which is allowed — reads as if it were flashing thirty
+ * times. Counting the rises alone gives one count a flash, evenly spaced, for
+ * a strobe and a ramp alike: rise to rise IS the flash period.
  *
- * Slower and smaller, because what decides whether a picture is held is not
- * the pressure's LEVEL but its lowest point: `flashing` is a smoothstep, so
- * wherever the pressure sags between two counts the limit lets go for those
- * frames, and that sag is what every leak measured here turned out to be. A
- * gentler build over a longer memory flattens the sag without moving the
- * average, which is what opens a gap between the rates.
- *
- * Searched over every pairing of seconds and step: at four seconds and a
- * twentieth, EVERY shape that must be held — ramps, squares and isoluminant
- * red ramps at 3.5, 3.75, 4, 5, 6, 8, 10, 15 and 30 flashes a second — keeps
- * its pressure above 0.301 at its lowest, while every shape that must be left
- * alone — the same three at 0.5 to 2.5, and a breathing picture — stays below
- * 0.105 at its highest. That gap is where START and FULL below sit, with room
- * to be a ramp rather than a switch. It is not a knife edge: the ten best
- * pairings are all three and a half to four seconds with steps of a sixteenth
- * to a twentieth.
+ * So the test is the time from one rise to the next, against a whole period.
+ * Strictly shorter, so a picture sitting exactly on three a second is left
+ * alone — the standard allows three.
  */
-export const FLASH_SWING_PRESSURE = 1 / 20;
-
-/** One step of an 8-bit channel: without it, rounding stops a small pressure falling. */
-const PRESSURE_FLOOR = 1 / 255;
+export const FLASHES_ALLOWED_PER_SECOND = 3;
+export const FLASH_PERIOD_S = 1 / FLASHES_ALLOWED_PER_SECOND;
 
 /**
- * Seconds in which pressure, and the travel it is counted from, fall to 1/e.
+ * The longest gap the state can hold, in seconds.
  *
- * The cost of four rather than one, and it is a real one: a picture that
- * flashes and stops stays limited for about four seconds afterwards instead
- * of one.
+ * The red channel counts UP from a turn instead of decaying towards one, and
+ * that is the whole reason this design works in eight bits where the pressure
+ * it replaces did not. A pressure had to lose a little every frame, and at
+ * 144 frames a second a frame's worth of loss is far under one step of 255,
+ * so it was rounded away and the limiter went deaf above about ninety.
+ * Counting up has no such floor: a second spread over 255 steps is 3.9ms a
+ * step, and even at 240 frames a second one frame is 1.06 steps. The number
+ * it has to resolve is a sixth of a second, which is step 43 of 255.
+ *
+ * A second is far more range than the test needs and keeps the arithmetic in
+ * a channel's own 0..1. Anything longer reads as "a second or more ago",
+ * which is every answer this asks.
  */
-const PRESSURE_SECONDS = 4;
+const MAX_GAP_S = 1;
 
-/** What pressure is multiplied by over a frame of `deltaMs`. */
-export const flashPressureDecay = (deltaMs: number): number =>
+/**
+ * How much shorter than a period a gap has to be before it counts.
+ *
+ * A picture at exactly three flashes a second is ALLOWED, and its gap is
+ * exactly one period, so the test sits on a knife edge that any drift falls
+ * off. Eight milliseconds puts the limit at about 3.07 flashes a second
+ * instead of 3.00 — clear of the drift that accumulating a frame at a time
+ * leaves in a half float, and far below the 3.75 that is the slowest thing
+ * this has ever had to hold.
+ *
+ * It is NOT a fudge for the storage. That was tried: with the gap in eight
+ * bits a frame at sixty is 4.25 steps of 255 and lands as 4, so a third of a
+ * second came out six per cent short and no margin fixed it, because at 144 a
+ * frame is 1.77 steps and rounds the other way. See `createFlashGuard`.
+ */
+const GAP_MARGIN_S = 0.008;
+
+/**
+ * Seconds for the flashing flag to fall to 1/e once the flashing stops.
+ *
+ * It rises to full on one qualifying turn — instantly, which is what the
+ * pressure could never do — and only the fall is smoothed. That asymmetry is
+ * the point: a level built up over turns cannot be quick, separating and
+ * smooth at once (measured: within 14 turns the widest band between held and
+ * free shapes was 0.038, less than half one step), and a flag that is set
+ * rather than accumulated is all three.
+ *
+ * Half a second holds through the gaps of anything still flashing — a strobe
+ * at four a second turns every 125ms and never falls below 0.78 — and lets go
+ * about a second and a half after it stops. The pressure it replaces took
+ * four seconds, which is the scene staying dim long after a flash that Ivan
+ * reported seeing.
+ */
+const FLASHING_MEMORY_S = 0.5;
+
+/** What the flashing flag is multiplied by over a frame of `deltaMs`. */
+export const flashingDecay = (deltaMs: number): number =>
   Math.exp(
-    -Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000 / PRESSURE_SECONDS,
+    -Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000 / FLASHING_MEMORY_S,
   );
 
 /**
@@ -333,69 +363,113 @@ export const flashPressureDecay = (deltaMs: number): number =>
  */
 export const FLASH_PRESSURE_MEMORY_SOURCE = `flashTravel(lastSwing, swing, uDecay)`;
 
+/**
+ * Seconds for a pixel's travel — which way it has been going — to fall to
+ * 1/e. Its own memory, not the flashing flag's: this is how long a rise has
+ * to be remembered for the fall after it to count as a turn, and it has to
+ * outlast the slowest pair worth catching.
+ */
+const TRAVEL_SECONDS = 4;
+
+/** What the travel memory is multiplied by over a frame of `deltaMs`. */
+export const flashTravelDecay = (deltaMs: number): number =>
+  Math.exp(
+    -Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000 / TRAVEL_SECONDS,
+  );
+
 export const flashPressureMemory = (
   swing: number,
   lastSwing: number,
   deltaMs: number,
-): number => flashTravelled(lastSwing, swing, flashPressureDecay(deltaMs));
+): number => flashTravelled(lastSwing, swing, flashTravelDecay(deltaMs));
+
+/** A pixel's state after one frame: what the state pass keeps about it. */
+export interface IFlashState {
+  /**
+   * Seconds since this pixel last turned round, capped at `MAX_GAP_S`. A
+   * fresh pixel starts at the cap, so the first turn it ever sees is never
+   * too soon after a turn that never happened.
+   */
+  sinceTurn: number;
+  /** Whether it is flashing: 1 on a turn that came too soon, decaying after. */
+  flashing: number;
+}
 
 /**
- * The pressure after one frame, as the state pass computes it: decayed, less
- * the one step an 8-bit texture needs to fall at all, plus one for a TURN.
- * Mirrors STATE_SOURCE.
+ * One frame of a pixel's state, as the state pass computes it. Mirrors
+ * STATE_SOURCE.
  *
- * A turn, not a swing, and that is the fix rather than the numbers around it.
- * WCAG counts a flash as a PAIR of opposing changes, and counting the changes
- * counts a square wave twice a cycle — it turns at both edges — against once
- * for a picture that slides up and snaps back, whose rise is spread too thin
- * to be a change at all. One shape scored double the other for the same
- * number of flashes, so no step size and no threshold could tell a forbidden
- * ramp from an allowed strobe. Counting where the TRAVEL turns round scores
- * both at two: the strobe at each edge, the ramp at its snap and again on the
- * first step of the rise after it.
+ * MEASURING THE GAP, not building a level. "More than three flashes a second"
+ * is a statement about the INTERVAL between turns, and the pressure this
+ * replaces integrated turns and read a level instead — the wrong instrument,
+ * and it failed in two measured ways. It went deaf above about ninety frames
+ * a second, because it lost a little every frame against a gain taken per
+ * flash and eight bits cannot hold a frame's worth of loss at 144. And a
+ * level cannot be quick, separating and smooth at once: searched over every
+ * step and memory, within fourteen turns the widest band between what must be
+ * held and what must be left alone was 0.038, under half of one step, so it
+ * was either a switch that flickered on and off or a ramp that took seconds
+ * to arrive. Both are gone here, because neither is a property of a gap.
+ *
+ * A TURN, not a swing. WCAG counts a flash as a PAIR of opposing changes, and
+ * counting the changes counts a square wave twice a cycle — it turns at both
+ * edges — against once for a picture that slides up and snaps back, whose
+ * rise is spread too thin to be a change at all. Counting where the TRAVEL
+ * turns round scores both at two: the strobe at each edge, the ramp at its
+ * snap and again on the first step of the rise after it.
  *
  * Restarting the travel from that first step is its own refractory period —
- * after a turn the picture must travel a tenth again before another can
- * count — so a jittering pixel cannot run the pressure up.
+ * after a turn the picture must travel a tenth again before another counts —
+ * so a jittering pixel cannot trip this.
+ *
+ * ONE TURN CANNOT SET IT. The gap from a pixel that has been still is the
+ * cap, which is never under `TURN_GAP_S`, so a single cut on a beat is not a
+ * flash; it takes a second turn close behind the first. That falls out of
+ * measuring the gap and needed no rule of its own.
  */
-export const flashPressure = (
-  pressure: number,
+export const flashStep = (
+  state: IFlashState,
   swing: number,
   lastSwing: number,
   deltaMs: number,
-): number => {
+): IFlashState => {
+  const elapsed = Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000;
   const turned = flashPressureMemory(swing, lastSwing, deltaMs);
-  const opposing = turned * lastSwing < 0 && Math.abs(lastSwing) >= FLASH_SWING;
-  const fallen = Math.max(
-    0,
-    pressure * flashPressureDecay(deltaMs) - PRESSURE_FLOOR,
-  );
-  return Math.min(1, fallen + (opposing ? FLASH_SWING_PRESSURE : 0));
+  // A rise: the travel was falling by at least a flash's worth and is now
+  // going up. One of these a flash, evenly spaced — see FLASH_PERIOD_S.
+  const rose = turned > 0 && lastSwing <= -FLASH_SWING;
+  // The period this rise closes: everything since the last one, this frame
+  // included. Capped, so a pixel that has been still for a minute reads the
+  // same as one still for a second — every answer this asks of it.
+  const gap = Math.min(MAX_GAP_S, state.sinceTurn + elapsed);
+  const tooSoon = rose && gap < FLASH_PERIOD_S - GAP_MARGIN_S;
+  // The flag HOLDS while the pixel is still inside a period of its last
+  // rise, and only starts falling once a whole one has gone by without one.
+  //
+  // Decaying it between rises was measured on the driver and is wrong: a
+  // shape at 3.75 a second rises every 267ms, and over that the flag fell to
+  // 0.59, which is the weight the limit is applied with — so the flash
+  // arrived in the dip, and 3.75, 4 and 5 a second all reached the screen at
+  // their full rate while 6 and 10 were held. Holding it is not a fudge, it
+  // is the question: a pixel whose last rise was less than a period ago is
+  // flashing faster than three a second, and that is true continuously, not
+  // only on the frames it rises.
+  const held =
+    gap < FLASH_PERIOD_S
+      ? state.flashing
+      : state.flashing * flashingDecay(deltaMs);
+  return {
+    sinceTurn: rose ? 0 : gap,
+    // Set outright, and only the fall is smoothed.
+    flashing: Math.max(held, tooSoon ? 1 : 0),
+  };
 };
 
-/**
- * Where pressure starts limiting a pixel, and where the limit is whole: the
- * band the search at FLASH_SWING_PRESSURE found, set inside it rather than at
- * its edges.
- *
- * Nothing that must be left alone reaches 0.105 at its loudest and nothing
- * that must be held falls under 0.301 at its quietest, so these sit at 0.15
- * and 0.28 — clear of both, and far enough apart to come on as a ramp rather
- * than a step in the brightness.
- *
- * Measured end to end on the driver, against the whole sequence list in this
- * file's header: a picture pulsing to a beat at 150 BPM keeps every bit of
- * its swing — a square, a ramp and an isoluminant red ramp at two and a half
- * a second all come out at their own rate and full amplitude, as does a beat
- * at two a second, a breathing picture, a bar sweeping across, and the strips
- * a sixteenth and an eighth of the frame flickering ten times a second that
- * are the flame tips and the sparkles. What moved is at exactly three a
- * second, WCAG's own boundary, where a square now arrives at 2.4 rather than
- * 2.9 with its brightness range untouched: held a little where holding is
- * conservative rather than wrong.
- */
-export const FLASH_PRESSURE_START = 0.15;
-export const FLASH_PRESSURE_FULL = 0.28;
+/** What a pixel nothing has happened to yet holds. */
+export const FLASH_STATE_REST: IFlashState = {
+  sinceTurn: MAX_GAP_S,
+  flashing: 0,
+};
 
 /**
  * How much of the picture has to be flashing together before any of it is
@@ -489,6 +563,10 @@ uniform sampler2D uLastFrame;
 uniform sampler2D uState;
 uniform float uDecay;
 uniform float uCoarseDecay;
+/** Seconds this frame took, for the gap between turns. */
+uniform float uElapsed;
+/** What the flashing flag is multiplied by over this frame. */
+uniform float uFlashDecay;
 uniform float uLod;
 in vec2 vUv;
 out vec4 state;
@@ -505,15 +583,31 @@ void main() {
   float remembered = ${FLASH_PRESSURE_MEMORY_SOURCE};
   // A TURN of that travel, not a swing: a flash is a pair of changes, and
   // counting changes counts a square wave twice a cycle against a ramp's
-  // once. See flashPressure, which is this.
-  float opposing = remembered * lastSwing < 0.0
-    && abs(lastSwing) >= ${FLASH_SWING.toFixed(3)} ? 1.0 : 0.0;
-  float pressure = min(1.0,
-    max(0.0, old.r * uDecay - ${PRESSURE_FLOOR.toFixed(6)})
-    + opposing * ${FLASH_SWING_PRESSURE.toFixed(6)});
-  // Blue is whether this spot is flashing, kept apart from the pressure so
-  // its mips are the share of an area that is.
-  float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);
+  // once. See flashStep, which is this.
+  // A RISE, not either end of the pair: one of these a flash, evenly spaced
+  // for a strobe and for a ramp that snaps back alike. See FLASH_PERIOD_S.
+  float opposing = remembered > 0.0
+    && lastSwing <= ${(-FLASH_SWING).toFixed(3)} ? 1.0 : 0.0;
+  // Red counts the seconds SINCE the last turn, and the gap this turn closes
+  // is everything since it, this frame included. Counting up rather than
+  // decaying down is what lets eight bits hold it at any frame rate: a second
+  // over 255 steps is 3.9 ms, and the number this has to resolve is a sixth
+  // of a second. See flashStep for why the level it replaced could not.
+  float gap = min(${MAX_GAP_S.toFixed(1)}, old.r + uElapsed);
+  float tooSoon = opposing
+    * (gap < ${(FLASH_PERIOD_S - GAP_MARGIN_S).toFixed(6)} ? 1.0 : 0.0);
+  float sinceTurn = opposing > 0.5 ? 0.0 : gap;
+  // Blue is whether this spot is flashing, kept apart from the gap so its
+  // mips are the share of an area that is. Set outright by a turn that came
+  // too soon and only smoothed on the way down, which is what a level built
+  // up over turns could never be.
+  // Holds while the pixel is still inside a period of its last rise, and
+  // falls only once a whole one has gone by without one. Decaying between
+  // rises let 3.75, 4 and 5 a second through in the dip — see flashStep.
+  float held = gap < ${FLASH_PERIOD_S.toFixed(6)}
+    ? old.b
+    : old.b * uFlashDecay;
+  float flashing = max(held, tooSoon);
   // Alpha: the same memory over the quarter-frame average the composite
   // limits, so it can tell a reversal from something crossing the cell. Read
   // from the scene's own frames, never from the picture shown, or the limit
@@ -522,7 +616,7 @@ void main() {
     - luma(textureLod(uLastFrame, vUv, uLod).rgb);
   float lastCoarse = old.a * 2.0 - 1.0;
   float coarse = flashTravel(lastCoarse, coarseSwing, uCoarseDecay);
-  state = vec4(pressure, remembered * 0.5 + 0.5, flashing, coarse * 0.5 + 0.5);
+  state = vec4(sinceTurn, remembered * 0.5 + 0.5, flashing, coarse * 0.5 + 0.5);
 }
 `;
 
@@ -670,6 +764,22 @@ export const limiterIsFor = (madeBy: TSceneMaker) => madeBy === 'member';
 export const createFlashGuard = (
   gl: WebGL2RenderingContext,
 ): IFlashGuard | null => {
+  // The state has to be drawn into at half-float precision, and there is no
+  // second-best. The red channel counts the seconds since a pixel last rose,
+  // a frame at a time, and eight bits cannot carry that: a frame at sixty is
+  // 4.25 steps of 255 and is stored as 4, so a gap of a third of a second
+  // comes out six per cent short — enough to read three flashes a second, the
+  // rate WCAG allows, as faster than three. Worse, the size of that error is
+  // the frame rate: at 144 a frame is 1.77 steps and rounds UP by thirteen
+  // per cent. That is the same frame-rate dependence this design exists to
+  // remove, in a new place. Measured on the driver both ways.
+  //
+  // Refusing here is refusing to draw a member's scene at all, which is what
+  // every other failure in this file does and is the only safe direction: a
+  // scene nobody has watched is not shown without a working limiter.
+  if (!gl.getExtension('EXT_color_buffer_float')) {
+    return null;
+  }
   const composite = link(gl, COMPOSITE_SOURCE);
   const stateProgram = link(gl, STATE_SOURCE);
   const vao = gl.createVertexArray();
@@ -692,6 +802,8 @@ export const createFlashGuard = (
     state: gl.getUniformLocation(stateProgram, 'uState'),
     decay: gl.getUniformLocation(stateProgram, 'uDecay'),
     coarseDecay: gl.getUniformLocation(stateProgram, 'uCoarseDecay'),
+    elapsed: gl.getUniformLocation(stateProgram, 'uElapsed'),
+    flashDecay: gl.getUniformLocation(stateProgram, 'uFlashDecay'),
     lod: gl.getUniformLocation(stateProgram, 'uLod'),
   };
 
@@ -722,6 +834,8 @@ export const createFlashGuard = (
     targetWidth: number,
     targetHeight: number,
     mipmapped: boolean,
+    /** Half floats, for the state, whose gap eight bits cannot carry. */
+    precise: boolean,
     /** What an untouched texel reads as. The state's two memories mean "no
      * swing" at a half, not at zero, which would read as a full swing down. */
     clear: readonly [number, number, number, number] = [0, 0, 0, 0],
@@ -735,12 +849,12 @@ export const createFlashGuard = (
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
-      gl.RGBA8,
+      precise ? gl.RGBA16F : gl.RGBA8,
       targetWidth,
       targetHeight,
       0,
       gl.RGBA,
-      gl.UNSIGNED_BYTE,
+      precise ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE,
       null,
     );
     // Mipmapped: the coarse luminance and the flashing share are read from
@@ -774,10 +888,11 @@ export const createFlashGuard = (
     targetWidth: number,
     targetHeight: number,
     mipmapped: boolean,
+    precise: boolean,
     clear?: readonly [number, number, number, number],
   ): [ITarget, ITarget] | undefined => {
-    const a = makeTarget(targetWidth, targetHeight, mipmapped, clear);
-    const b = makeTarget(targetWidth, targetHeight, mipmapped, clear);
+    const a = makeTarget(targetWidth, targetHeight, mipmapped, precise, clear);
+    const b = makeTarget(targetWidth, targetHeight, mipmapped, precise, clear);
     if (a && b) {
       return [a, b];
     }
@@ -815,13 +930,21 @@ export const createFlashGuard = (
     // Clearing a new target and every carry below must reach every pixel.
     const scissored = gl.isEnabled(gl.SCISSOR_TEST);
     gl.disable(gl.SCISSOR_TEST);
-    frames = makePair(width, height, true);
-    shown = makePair(width, height, true);
+    frames = makePair(width, height, true, false);
+    shown = makePair(width, height, true, false);
     pressure = makePair(
       Math.max(1, Math.ceil(width / 2)),
       Math.max(1, Math.ceil(height / 2)),
       true,
-      [0, 0.5, 0, 0.5],
+      true,
+      // Red starts at the CAP, not at zero: it counts the seconds since the
+      // last turn, and a fresh pixel has never turned. Cleared to zero it
+      // would read as having turned this instant, and the first turn it ever
+      // saw would come "too soon" after one that never happened — one cut on
+      // a beat, on a scene just started, held as a flash. The two travel
+      // memories mean "no swing" at a half, as before; the flashing flag
+      // starts off.
+      [FLASH_STATE_REST.sinceTurn, 0.5, FLASH_STATE_REST.flashing, 0.5],
     );
     // The last picture shown, the last frame and the pressure, scaled into
     // the new size, are what the next frame is limited against; only a guard
@@ -869,7 +992,12 @@ export const createFlashGuard = (
     gl.uniform1i(stateWhere.current, 0);
     gl.uniform1i(stateWhere.lastFrame, 1);
     gl.uniform1i(stateWhere.state, 2);
-    gl.uniform1f(stateWhere.decay, flashPressureDecay(deltaMs));
+    gl.uniform1f(stateWhere.decay, flashTravelDecay(deltaMs));
+    gl.uniform1f(
+      stateWhere.elapsed,
+      Math.max(0, Math.min(MAX_FRAME_MS, deltaMs)) / 1000,
+    );
+    gl.uniform1f(stateWhere.flashDecay, flashingDecay(deltaMs));
     gl.uniform1f(stateWhere.coarseDecay, flashCoarseDecay(deltaMs));
     // The frame's own size, not the half-size state's: the coarse level is
     // read from the frame textures.
