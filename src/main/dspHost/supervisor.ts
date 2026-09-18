@@ -881,6 +881,18 @@ export class DspHostSupervisor {
     child.stderr.on('data', (chunk: Buffer) =>
       this.captureStderr(child, chunk),
     );
+    /**
+     * A command written to a host that has just died fails with EPIPE, and a
+     * stream with no error listener turns that into an uncaught exception —
+     * in main, that is the whole app. The window is real: `stop()` after a
+     * refused handshake writes its shutdown a few microseconds after the
+     * refusal's `kill()`, and the supervisor smoke hit it once in seven runs
+     * on macOS. The request itself needs nothing here: `onExit` rejects every
+     * pending request for this child when its close arrives.
+     */
+    child.stdin.on('error', (error: Error) => {
+      this.trace('stdin-error', child, { message: error.message });
+    });
     child.on('close', (code, signal) => this.onExit(child, code ?? -1, signal));
     child.on('error', (error: Error) => {
       if (this.child !== child) {
