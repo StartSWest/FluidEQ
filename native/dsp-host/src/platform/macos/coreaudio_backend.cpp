@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <CoreAudio/CoreAudio.h>
 
 #include <atomic>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -91,9 +92,23 @@ class CoreAudioBackend final : public IAudioOutputBackend {
 
   ~CoreAudioBackend() override { close(); }
 
+  /**
+   * `FLUIDEQ_DSP_NO_ENDPOINT=1` makes this build take the silent-machine
+   * path on a machine that has a device. It is the positive control for the
+   * smoke's skip: without it, "no endpoint" and "never looked" are the same
+   * green line. The same variable the Windows backend honours, so one smoke
+   * runs the control on both. Deliberately not a build flag — the binary
+   * under test has to be the binary that ships.
+   */
+  static bool forced_absent() {
+    const char* value = std::getenv("FLUIDEQ_DSP_NO_ENDPOINT");
+    return value != nullptr && value[0] == '1';
+  }
+
   bool open(FeqBackendFormat& negotiated, std::string& error) override {
     close();
-    const AudioDeviceID device = default_output_device();
+    const AudioDeviceID device =
+        forced_absent() ? kAudioObjectUnknown : default_output_device();
     if (device == kAudioObjectUnknown) {
       // A fact about the machine, not a defect. A build agent with no output
       // fails here forever and correctly, and reporting that as a refused

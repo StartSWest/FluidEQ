@@ -26,6 +26,7 @@ import {
   decodeTelemetry,
   encodeCommand,
   encodeSnapshotPayload,
+  expectedDeviceBackend,
   frameLengthFor,
 } from '../../src/main/dspHost/wire';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
@@ -332,7 +333,7 @@ const main = async () => {
 
   if (started) {
     check(
-      handshake?.backend === 'wasapi-shared',
+      handshake?.backend === expectedDeviceBackend(),
       `the compiled backend is reported (${handshake?.backend})`,
     );
     const negotiatedRate = acks[5]?.sanitizedValue ?? 0;

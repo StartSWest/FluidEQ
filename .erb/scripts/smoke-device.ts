@@ -34,7 +34,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
-import { IHostTelemetry } from '../../src/main/dspHost/wire';
+import {
+  DEVICE_BACKEND_BY_PLATFORM,
+  IHostTelemetry,
+} from '../../src/main/dspHost/wire';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_DEFAULTS, IEqSettings } from '../../src/common/dsp/chain';
 import { encodeChainSettings } from '../../src/common/dsp/chainWire';
@@ -102,7 +105,8 @@ const main = async (): Promise<void> => {
   check(await host.start(), 'the host starts');
 
   const backend = host.getHandshake()?.backend ?? '';
-  if (backend !== 'wasapi-shared') {
+  const expected = DEVICE_BACKEND_BY_PLATFORM[process.platform];
+  if (expected === undefined) {
     // Not a failure. A platform with no device backend compiled in has nothing
     // to measure here, and saying so beats a red check nobody can act on.
     console.log(`       no device backend on this platform (${backend}),`);
@@ -110,6 +114,9 @@ const main = async (): Promise<void> => {
     await host.stop();
     process.exit(0);
   }
+  // A platform that has a backend must report it: a host that fell through to
+  // the stub here would otherwise skip every measurement below and pass.
+  check(backend === expected, `the compiled backend is reported (${backend})`);
 
   // The chain before the device, the same order the app engages in.
   check(
