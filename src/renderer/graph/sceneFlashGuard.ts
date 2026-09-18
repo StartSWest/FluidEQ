@@ -28,11 +28,12 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  *   swing of a pair is held, so at most one un-opposed swing of a strobe
  *   reaches the screen: half a flash, where WCAG allows three.
  * - Where it alternates, over enough of the picture: each pixel (at half
- *   resolution) keeps a pressure that every opposing swing of 10 % or more,
- *   in luminance or saturated red, pushes up and time lets down, so six
- *   swings a second — three flashes — hold it at full. Where pressure is high
- *   AND flashing covers a share of the area around it (`FLASH_AREA_START`),
- *   the pixel may change no faster than the frame limit.
+ *   resolution) keeps a pressure that every TURN of the picture — where how
+ *   far it has travelled one way, in luminance or in saturated red, reverses —
+ *   pushes up and time lets down. Where pressure is high AND flashing covers a
+ *   share of the area around it (`FLASH_AREA_START`), the pixel may change no
+ *   faster than the frame limit. A turn and not a swing, because a flash is a
+ *   PAIR of changes: see `flashPressure`.
  *
  * How: the scene draws into one of two offscreen textures, the other holding
  * its last frame. A state pass compares them and updates the pressure. The
@@ -49,43 +50,45 @@ import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
  * jittering edge, sparkles and a beat (all left as drawn), and on FluidEQ's
  * Alpine, Aurora, Jellyfish and Ember, drawn as without it.
  *
- * Both passes were then run frame by frame on a real driver (ANGLE, Intel UHD)
- * over known sequences, counting the opposing swings of a tenth or more that
- * REACH THE SCREEN rather than the blend on any one frame — the arithmetic
- * tests measure the snap and cannot see the frames after it. A square strobe
- * at 3.75, 4, 5, 6 and 10 flashes a second came out at 1.6, 1.4, 1.0, 0.8 and
- * 0.8; a ramp that snaps back at the same rates at 1.6, 1.4, 1.0, 0.8 and 0.8.
- * Untouched, as they must be, and at the whole of their own swing: a square at
- * 3 a second, a ramp at 2, a picture breathing at 1, a bar sweeping across,
- * and a strip a sixteenth and an eighth of the frame flickering at 10 a
- * second — 100 % and 97 % — which are the flame tips and the sparkles.
+ * Both passes are run frame by frame on a real driver over known sequences,
+ * counting the opposing swings of a tenth or more that REACH THE SCREEN rather
+ * than the blend on any one frame — the arithmetic tests measure the snap and
+ * cannot see the frames after it, which is how this file was once believed to
+ * be holding things it was not. Every number below is from that harness.
  *
- * The ramp-and-snap at 3.75 a second used to be over the line at 3.2, and is
- * 1.6 now: see FLASH_LIMIT_PER_SECOND, which was 0.5 and is 0.35.
+ * HELD. A square strobe at 3.75, 4, 5, 6 and 10 flashes a second comes out at
+ * 1.4, 1.2, 1.0, 1.0 and 0.8. A ramp that rises over a whole cycle and snaps
+ * back, at the same rates, at 1.4, 1.2, 1.0, 0.8 and 0.6. An isoluminant slide
+ * from grey to saturated red and back — relative luminance pinned at 0.2126
+ * the whole way, so the frame limit sees a still picture — at 4.6 and 4 a
+ * second, 1.0 and 1.2. A red square at 4, 1.4. Half the frame flickering ten
+ * times a second, 0.8.
  *
- * WHAT IS STILL OPEN, and it is the sharpest thing here. A picture can slide
- * from neutral grey to saturated red and snap back with its relative
- * luminance PINNED — 0.2126 at every step, which is arithmetic, not luck — and
- * the frame limit above measures luminance alone, so it sees a still picture.
- * The per-pixel path does measure red, but its memory is one frame's swing, so
- * a rise made of steps under a tenth sets nothing there and the snap meets
- * nothing to oppose. Measured on the driver: 4.6 flashes a second drawn, 4.6
- * on screen. WCAG counts a red flash exactly as it counts a general one.
+ * LEFT ALONE, every one at the whole of its own swing: a beat at 150 BPM as a
+ * square, as a ramp and as a red ramp; a beat pulsing at 2 a second; a ramp at
+ * 2; a picture breathing at 1; a bar sweeping across a dark frame; and the
+ * strips a sixteenth and an eighth of the frame flickering ten times a second
+ * — 100 % and 97 % — which are the flame tips and the sparkles this has twice
+ * been sent back for smearing.
  *
- * Four repairs were built and measured, and none is worth its cost, which is
- * why it is still here rather than quietly half-fixed:
- * - redness in the coarse measure: holds the snap frame only, because
- *   `alternating` is a product of two consecutive frames and the picture
- *   arrives on the next one. 4.6 -> 4.5.
- * - `pow(pixelBlend, flashing)` instead of the mix: closes the old 3.75 case
- *   but takes a third of the swing off a flickering eighth of the frame,
- *   which is the flame-tip smearing this has twice been sent back for.
- * - counting TURNS of the travel rather than opposing swings, so a ramp
- *   scores two a cycle like a square: fixes red at 4.6 (1.0) and breaks the
- *   luminance ramp at 3.75 and 4 (3.6, 3.9).
- * - both of those together: identical to the last one.
- * The honest next step is the two limits recalibrated together against the
- * whole sequence set, with the flame tips as the constraint they answer to.
+ * At exactly three a second, WCAG's own boundary, a square arrives at 2.4 and
+ * a red ramp at 2.2, both with their brightness range untouched: held a little
+ * where holding is conservative rather than wrong.
+ *
+ * The red slide was open until 2026-09-18 and took four tries to close, all
+ * measured, because three of them look obvious and are wrong:
+ * - redness in the coarse measure holds the snap frame ONLY — `alternating` is
+ *   a product of two consecutive frames, so the picture arrives on the next
+ *   one. 4.6 to 4.5.
+ * - `pow(pixelBlend, flashing)` instead of the mix closes the old 3.75 case
+ *   and takes a third of the swing off that flickering eighth of a frame.
+ * - counting turns of the travel, on its own, fixed red and broke the
+ *   luminance ramps at 3.75 and 4.
+ * What closed it was the counting AND what the count is worth, together: see
+ * flashPressure for the first and FLASH_SWING_PRESSURE for the second. The
+ * third piece was already here — FLASH_LIMIT_PER_SECOND had to come down
+ * first, or a ramp gets its whole flash from its rise and the pressure never
+ * gets a say.
  */
 
 /**
@@ -212,14 +215,46 @@ export const flashAlternating = (swing: number, lastSwing: number): number => {
   return t * t * (3 - 2 * t);
 };
 
-/** Pressure one opposing swing adds: six a second, three flashes, hold it at one. */
-export const FLASH_SWING_PRESSURE = 1 / 6;
+/**
+ * Pressure one turn of the picture adds, and how long pressure takes to fall
+ * to 1/e. The two are one decision and were searched for together.
+ *
+ * They used to be a sixth and one second, which held a strobe at a hundred
+ * per cent and let a ramp-and-snap through — a strobe turns at both its edges
+ * and scored two a cycle, a ramp scored one, and nothing distinguishes a
+ * forbidden ramp from an allowed strobe when one is counted twice. The turn
+ * rule below fixed the counting; these two fix what the count is worth.
+ *
+ * Slower and smaller, because what decides whether a picture is held is not
+ * the pressure's LEVEL but its lowest point: `flashing` is a smoothstep, so
+ * wherever the pressure sags between two counts the limit lets go for those
+ * frames, and that sag is what every leak measured here turned out to be. A
+ * gentler build over a longer memory flattens the sag without moving the
+ * average, which is what opens a gap between the rates.
+ *
+ * Searched over every pairing of seconds and step: at four seconds and a
+ * twentieth, EVERY shape that must be held — ramps, squares and isoluminant
+ * red ramps at 3.5, 3.75, 4, 5, 6, 8, 10, 15 and 30 flashes a second — keeps
+ * its pressure above 0.301 at its lowest, while every shape that must be left
+ * alone — the same three at 0.5 to 2.5, and a breathing picture — stays below
+ * 0.105 at its highest. That gap is where START and FULL below sit, with room
+ * to be a ramp rather than a switch. It is not a knife edge: the ten best
+ * pairings are all three and a half to four seconds with steps of a sixteenth
+ * to a twentieth.
+ */
+export const FLASH_SWING_PRESSURE = 1 / 20;
 
 /** One step of an 8-bit channel: without it, rounding stops a small pressure falling. */
 const PRESSURE_FLOOR = 1 / 255;
 
-/** Seconds in which pressure, and the memory of the last swing, fall to 1/e. */
-const PRESSURE_SECONDS = 1;
+/**
+ * Seconds in which pressure, and the travel it is counted from, fall to 1/e.
+ *
+ * The cost of four rather than one, and it is a real one: a picture that
+ * flashes and stops stays limited for about four seconds afterwards instead
+ * of one.
+ */
+const PRESSURE_SECONDS = 4;
 
 /** What pressure is multiplied by over a frame of `deltaMs`. */
 export const flashPressureDecay = (deltaMs: number): number =>
@@ -228,39 +263,46 @@ export const flashPressureDecay = (deltaMs: number): number =>
   );
 
 /**
- * The swing this pixel's pressure weighs the next one against: the swing
- * itself while it is big enough to be part of a flash, decaying otherwise.
+ * How far this pixel has travelled one way, which is what the pressure counts
+ * the turns of. Travel, exactly like the coarse memory: a rise made of steps
+ * each too small to be a flash on its own is still a rise, and that is the
+ * whole reason a picture can slide somewhere and snap back unnoticed.
  *
- * Deliberately NOT travel, though the coarse memory below is, and this is the
- * one thing in the file where the two paths must differ. Travel restarts from
- * the new step the moment the picture turns, so the memory of a whole drop is
- * wiped by the first faint step of the rise after it — and a ramp that snaps
- * back then counts ONE opposing swing a cycle where this counts two, which is
- * the difference between the pressure settling at 0.9 and at 0.4, and 0.85 is
- * where it starts holding. Measured on the real shaders on an Intel UHD: with
- * travel here, a ramp-and-snap at four, five and six flashes a second reached
- * the screen whole — 3.9, 4.9 and 5.9 flashes a second of it — and without it,
- * one a second.
+ * It was one frame's swing, decaying — and then a swing under a tenth set
+ * nothing at all, so an isoluminant slide from grey to saturated red and back
+ * never raised the pressure by a step. Measured on the driver: 4.6 flashes a
+ * second drawn, 4.6 on the screen, at every rate.
  *
  * The rule is written twice, here and as GLSL beside it, because the suite
  * cannot run a shader; `sceneFlashGuardMemory.test.ts` holds the two spellings
  * to each other, which is what nothing did when they last drifted apart.
  */
-export const FLASH_PRESSURE_MEMORY_SOURCE = `abs(swing) >= ${FLASH_SWING.toFixed(3)} ? swing : lastSwing * uDecay`;
+export const FLASH_PRESSURE_MEMORY_SOURCE = `flashTravel(lastSwing, swing, uDecay)`;
 
 export const flashPressureMemory = (
   swing: number,
   lastSwing: number,
   deltaMs: number,
-): number =>
-  Math.abs(swing) >= FLASH_SWING
-    ? swing
-    : lastSwing * flashPressureDecay(deltaMs);
+): number => flashTravelled(lastSwing, swing, flashPressureDecay(deltaMs));
 
 /**
  * The pressure after one frame, as the state pass computes it: decayed, less
- * the one step an 8-bit texture needs to fall at all, plus a swing that
- * opposes the last one remembered. Mirrors STATE_SOURCE.
+ * the one step an 8-bit texture needs to fall at all, plus one for a TURN.
+ * Mirrors STATE_SOURCE.
+ *
+ * A turn, not a swing, and that is the fix rather than the numbers around it.
+ * WCAG counts a flash as a PAIR of opposing changes, and counting the changes
+ * counts a square wave twice a cycle — it turns at both edges — against once
+ * for a picture that slides up and snaps back, whose rise is spread too thin
+ * to be a change at all. One shape scored double the other for the same
+ * number of flashes, so no step size and no threshold could tell a forbidden
+ * ramp from an allowed strobe. Counting where the TRAVEL turns round scores
+ * both at two: the strobe at each edge, the ramp at its snap and again on the
+ * first step of the rise after it.
+ *
+ * Restarting the travel from that first step is its own refractory period —
+ * after a turn the picture must travel a tenth again before another can
+ * count — so a jittering pixel cannot run the pressure up.
  */
 export const flashPressure = (
   pressure: number,
@@ -268,10 +310,8 @@ export const flashPressure = (
   lastSwing: number,
   deltaMs: number,
 ): number => {
-  const opposing =
-    Math.abs(swing) >= FLASH_SWING &&
-    Math.abs(lastSwing) >= FLASH_SWING &&
-    swing * lastSwing < 0;
+  const turned = flashPressureMemory(swing, lastSwing, deltaMs);
+  const opposing = turned * lastSwing < 0 && Math.abs(lastSwing) >= FLASH_SWING;
   const fallen = Math.max(
     0,
     pressure * flashPressureDecay(deltaMs) - PRESSURE_FLOOR,
@@ -280,14 +320,28 @@ export const flashPressure = (
 };
 
 /**
- * Where pressure starts limiting a pixel, and where the limit is whole. With
- * the decay and the 8-bit floor, a pixel swinging steadily settles at about
- * 0.5 for two flashes a second, 0.66 for two and a half, 0.83 for three and 1
- * for a strobe: a picture pulsing to a beat up to about 150 BPM is left alone,
- * and one at three flashes a second or more is held.
+ * Where pressure starts limiting a pixel, and where the limit is whole: the
+ * band the search at FLASH_SWING_PRESSURE found, set inside it rather than at
+ * its edges.
+ *
+ * Nothing that must be left alone reaches 0.105 at its loudest and nothing
+ * that must be held falls under 0.301 at its quietest, so these sit at 0.15
+ * and 0.28 — clear of both, and far enough apart to come on as a ramp rather
+ * than a step in the brightness.
+ *
+ * Measured end to end on the driver, against the whole sequence list in this
+ * file's header: a picture pulsing to a beat at 150 BPM keeps every bit of
+ * its swing — a square, a ramp and an isoluminant red ramp at two and a half
+ * a second all come out at their own rate and full amplitude, as does a beat
+ * at two a second, a breathing picture, a bar sweeping across, and the strips
+ * a sixteenth and an eighth of the frame flickering ten times a second that
+ * are the flame tips and the sparkles. What moved is at exactly three a
+ * second, WCAG's own boundary, where a square now arrives at 2.4 rather than
+ * 2.9 with its brightness range untouched: held a little where holding is
+ * conservative rather than wrong.
  */
-export const FLASH_PRESSURE_START = 0.7;
-export const FLASH_PRESSURE_FULL = 0.85;
+export const FLASH_PRESSURE_START = 0.15;
+export const FLASH_PRESSURE_FULL = 0.28;
 
 /**
  * How much of the picture has to be flashing together before any of it is
@@ -393,15 +447,16 @@ void main() {
   float swing = abs(redSwing) > abs(lumaSwing) ? redSwing : lumaSwing;
   vec4 old = textureLod(uState, vUv, 0.0);
   float lastSwing = old.g * 2.0 - 1.0;
-  float opposing = abs(swing) >= ${FLASH_SWING.toFixed(3)}
-    && abs(lastSwing) >= ${FLASH_SWING.toFixed(3)}
-    && swing * lastSwing < 0.0 ? 1.0 : 0.0;
+  // Travel — see FLASH_PRESSURE_MEMORY_SOURCE, whose text this is.
+  float remembered = ${FLASH_PRESSURE_MEMORY_SOURCE};
+  // A TURN of that travel, not a swing: a flash is a pair of changes, and
+  // counting changes counts a square wave twice a cycle against a ramp's
+  // once. See flashPressure, which is this.
+  float opposing = remembered * lastSwing < 0.0
+    && abs(lastSwing) >= ${FLASH_SWING.toFixed(3)} ? 1.0 : 0.0;
   float pressure = min(1.0,
     max(0.0, old.r * uDecay - ${PRESSURE_FLOOR.toFixed(6)})
     + opposing * ${FLASH_SWING_PRESSURE.toFixed(6)});
-  // NOT travel — see FLASH_PRESSURE_MEMORY_SOURCE, whose text this is, and
-  // which is where the measurement saying so is written down.
-  float remembered = ${FLASH_PRESSURE_MEMORY_SOURCE};
   // Blue is whether this spot is flashing, kept apart from the pressure so
   // its mips are the share of an area that is.
   float flashing = smoothstep(${FLASH_PRESSURE_START.toFixed(2)}, ${FLASH_PRESSURE_FULL.toFixed(2)}, pressure);

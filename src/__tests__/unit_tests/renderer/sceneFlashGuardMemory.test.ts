@@ -5,38 +5,38 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The two memories the brightness limiter keeps, and the fact that they are
- * deliberately not the same one.
+ * What the brightness limiter counts, and why it counts THAT.
  *
- * The limiter carries two: how far the picture has travelled across a quarter
- * of the frame, which decides whether a whole-frame swing is a reversal, and
- * the last swing THIS pixel made, which decides whether it is alternating.
- * The first is travel and the second is not, and the difference is the whole
- * of this file.
+ * WCAG calls a flash a PAIR of opposing changes. The limiter used to count the
+ * changes, and that counts a square wave twice a cycle — it turns at both its
+ * edges — against once for a picture that slides up over the whole cycle and
+ * snaps back, whose rise is spread too thin for any one frame to be a change
+ * at all. One shape scored double the other for the same number of flashes, so
+ * no step size and no threshold could separate a forbidden ramp from an
+ * allowed strobe. Every repair tried on top of that counting failed on a real
+ * driver, and the guard's own header lists the four of them.
  *
- * It exists because they were made the same and it shipped. Travel restarts
- * from the new step the moment a picture turns, so a pixel's memory of a full
- * drop was wiped by the first faint step of the rise after it — and a scene
- * that ramps up and snaps back stopped being recognised as flashing at all.
- * Nothing saw it: the shader was changed, its mirror in the suite was a copy
- * of the rule written out again in the test file, and the copy went on
- * measuring the limiter the GPU had stopped being. Measured afterwards on the
- * real shaders on an Intel UHD, a ramp-and-snap at four, five and six flashes
- * a second reached the screen at 3.9, 4.9 and 5.9 flashes a second — the
- * exact band that provokes seizures, drawn as its author wrote it.
+ * Counting where the TRAVEL turns round scores both at two a cycle: the strobe
+ * at each edge, the ramp at its snap and again on the first step of the rise
+ * after it. That is what this file is about, and the pairing is the case worth
+ * having — it is the property that makes one threshold serve both shapes, and
+ * it is what was false before.
  *
- * So: one spelling of the rule, in the guard, used by the shader and by every
- * test; and the shader text checked here for actually using it.
+ * The rule lives twice, in the guard and as GLSL beside it, because the suite
+ * cannot run a shader. Nothing held the two spellings together once, they
+ * drifted, and the suite went on measuring a limiter the GPU had stopped
+ * being. The text pin below is what stops that happening again.
  */
 
 import fs from 'fs';
 import path from 'path';
 import {
+  FLASH_PRESSURE_FULL,
   FLASH_PRESSURE_MEMORY_SOURCE,
+  FLASH_PRESSURE_START,
   FLASH_SWING,
-  flashPressureDecay,
+  flashPressure,
   flashPressureMemory,
-  flashTravelled,
 } from '../../../renderer/graph/sceneFlashGuard';
 
 const FRAME_MS = 1000 / 60;
@@ -45,49 +45,118 @@ const guardSource = fs.readFileSync(
   'utf8',
 );
 
-describe('the pixel memory the pressure is weighed against', () => {
+/**
+ * How many turns a series of swings is counted as having.
+ *
+ * Asked of the guard rather than spelled out again here — re-spelling the rule
+ * in the test is the mistake that let the two halves drift apart unnoticed.
+ * From a pressure of nothing the answer is the step itself or zero, so this
+ * reads the count without a running pressure that would saturate and stop
+ * showing it.
+ */
+const countsIn = (swings: readonly number[]) => {
+  let last = 0;
+  let counted = 0;
+  swings.forEach((swing) => {
+    if (flashPressure(0, swing, last, FRAME_MS) > 0) {
+      counted += 1;
+    }
+    last = flashPressureMemory(swing, last, FRAME_MS);
+  });
+  return counted;
+};
+
+/** What a series of swings settles the pressure at, running it properly. */
+const settles = (swings: readonly number[]) => {
+  let pressure = 0;
+  let last = 0;
+  let highest = 0;
+  swings.forEach((swing) => {
+    pressure = flashPressure(pressure, swing, last, FRAME_MS);
+    last = flashPressureMemory(swing, last, FRAME_MS);
+    highest = Math.max(highest, pressure);
+  });
+  return highest;
+};
+
+const linear = (level: number) => Math.max(0, level) ** 2.2;
+/** The swings of a whole-frame shape, as the state pass measures them. */
+const swingsOf = (levelAt: (frame: number) => number, frames: number) =>
+  Array.from({ length: frames }, (_, frame) =>
+    frame === 0 ? 0 : linear(levelAt(frame)) - linear(levelAt(frame - 1)),
+  );
+
+/** Rises over a whole cycle in equal steps and snaps back at its end. */
+const ramp = (turns: number) => (frame: number) =>
+  (frame % turns) / (turns - 1);
+const square = (turns: number) => (frame: number) =>
+  Math.floor(frame / (turns / 2)) % 2;
+
+describe('what the pressure counts', () => {
   // Pinning the text is all a suite with no WebGL can do about the GLSL. It
-  // proves the shader reads the exported rule rather than a second copy of
-  // it; the cases below are what say the rule itself is right.
-  it('is the one the state pass is written from', () => {
+  // proves the shader reads the exported rule rather than a second copy of it;
+  // the cases below say the rule itself is right.
+  it('is the rule the state pass is written from', () => {
     expect(FLASH_PRESSURE_MEMORY_SOURCE).toBe(
-      'abs(swing) >= 0.100 ? swing : lastSwing * uDecay',
+      'flashTravel(lastSwing, swing, uDecay)',
     );
     // The hole is escaped so this file carries no template expression of its
     // own; what it spells is the line as the shader text is written.
     expect(guardSource).toContain(
       `float remembered = $\{FLASH_PRESSURE_MEMORY_SOURCE};`,
     );
-    // And that the green channel is not quietly given travel again.
-    expect(guardSource).not.toContain(
-      'float remembered = flashTravel(lastSwing, swing, uDecay);',
-    );
+    expect(guardSource).toContain('float opposing = remembered * lastSwing');
   });
 
-  it('keeps a swing big enough to be part of a flash, whole and signed', () => {
-    expect(flashPressureMemory(0.4, 0, FRAME_MS)).toBe(0.4);
-    expect(flashPressureMemory(-1, 0.9, FRAME_MS)).toBe(-1);
-    expect(flashPressureMemory(FLASH_SWING, 0, FRAME_MS)).toBe(FLASH_SWING);
+  /**
+   * The property the whole design rests on. Sixty frames is four cycles of a
+   * fifteen-frame shape, so two a cycle is eight; the count is allowed to be
+   * a turn out at the ends of the window, never double.
+   */
+  it('scores a ramp that snaps back as often as a strobe', () => {
+    const FRAMES = 240;
+    const strobe = countsIn(swingsOf(square(15), FRAMES));
+    const rampAndSnap = countsIn(swingsOf(ramp(15), FRAMES));
+    expect(strobe).toBeGreaterThan(FRAMES / 15 - 2);
+    expect(rampAndSnap).toBeGreaterThan(FRAMES / 15 - 2);
+    expect(Math.abs(strobe - rampAndSnap)).toBeLessThanOrEqual(2);
   });
 
-  it('lets a smaller one decay the memory rather than replace it', () => {
-    // The defect, as one line: a hundredth of a step must not erase a whole
-    // drop, because what comes after it is the second half of the flash.
-    expect(flashPressureMemory(0.01, -1, FRAME_MS)).toBeCloseTo(
-      -flashPressureDecay(FRAME_MS),
-      6,
-    );
-    expect(flashTravelled(-1, 0.01, flashPressureDecay(FRAME_MS))).toBe(0.01);
-  });
-
-  it('still remembers the drop six frames into the rise after it', () => {
-    let memory = -1;
-    for (let frame = 0; frame < 6; frame += 1) {
+  it('carries a rise made of steps too small to be a flash on their own', () => {
+    // Twelve steps of a fiftieth: not one of them is a change WCAG counts,
+    // and together they are most of the way across the scale.
+    let memory = 0;
+    for (let frame = 0; frame < 12; frame += 1) {
       memory = flashPressureMemory(0.02, memory, FRAME_MS);
     }
-    // Enough to be read as an opposing swing when the rise finally takes one
-    // step big enough to count — which is what makes the pressure rise.
-    expect(Math.abs(memory)).toBeGreaterThanOrEqual(FLASH_SWING);
-    expect(memory).toBeLessThan(0);
+    expect(memory).toBeGreaterThan(FLASH_SWING);
+    // Which is what lets the snap at the end of it be seen as a turn.
+    expect(flashPressure(0, -1, memory, FRAME_MS)).toBeGreaterThan(0);
+  });
+
+  it('takes a swing big enough to be a flash whole and at once', () => {
+    expect(flashPressureMemory(0.4, 0, FRAME_MS)).toBe(1);
+    expect(flashPressureMemory(-1, 0.9, FRAME_MS)).toBe(-1);
+  });
+
+  /**
+   * Turning restarts the travel from the new step, which is a refractory
+   * period without needing a clock: a pixel that jitters cannot run the
+   * pressure up, because after each turn the picture has to travel a tenth
+   * again before another turn can count.
+   */
+  it('will not count a second turn until the picture has travelled again', () => {
+    const jitter = Array.from({ length: 120 }, (_, frame) =>
+      frame % 2 === 0 ? 0.02 : -0.02,
+    );
+    expect(countsIn(jitter)).toBeLessThan(4);
+    expect(settles(jitter)).toBeLessThan(FLASH_PRESSURE_START);
+    // The positive control: the same frames at a size that IS a flash are a
+    // turn every one of them, and hold the pixel completely.
+    const strobe = Array.from({ length: 120 }, (_, frame) =>
+      frame % 2 === 0 ? 1 : -1,
+    );
+    expect(countsIn(strobe)).toBeGreaterThan(100);
+    expect(settles(strobe)).toBeGreaterThanOrEqual(FLASH_PRESSURE_FULL);
   });
 });
