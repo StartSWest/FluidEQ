@@ -1230,10 +1230,19 @@ const FrequencyResponseChart = ({
     if (!element || typeof ResizeObserver === 'undefined') {
       return undefined;
     }
-    const observer = new ResizeObserver(throttle);
+    // Measured as the box reports itself, NOT through the 100ms throttle it
+    // used to go through. A resize observer already fires at most once a
+    // frame, so the throttle bought nothing and cost the graph its shape:
+    // leaving full screen, the plot arrived at its height in 100ms steps —
+    // 251 rows, then 175, then 312 over 437ms, measured in the window — and
+    // the scene inside it re-framed at every one of them. That is what Ivan
+    // saw as the scene resizing inside the graph. A measurement that finds
+    // the same number sets no state and re-renders nothing, so running on
+    // every frame of a divider drag is what this should always have done.
+    const observer = new ResizeObserver(updateDimensions);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [throttle]);
+  }, [updateDimensions]);
 
   useLayoutEffect(() => {
     // Compute dimensions on initial render, when graph view is toggled, when

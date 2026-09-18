@@ -11,78 +11,14 @@ import type {
 } from './sceneWorkerMessages';
 
 /**
- * How far out of shape a picture may be before it is taken off the screen
- * rather than stretched, as a ratio of its aspect to its box's.
+ * How long a scene takes to come back once everything has stopped moving.
  *
- * A quarter is about where a circle reads as an oval. Below it are the
- * changes nothing should interrupt for — a pane divider dragged, a window
- * edge pulled, which move the box by a percent or two a frame. Above it are
- * the ones worth hiding: the graph's strip into full screen, measured at
- * 4.8 times out of shape, is the case this exists for.
+ * A quarter of a second. It was tried at a full second, Ivan's own number,
+ * and that was wrong: the ramp is not the whole wait, so on top of the box
+ * settling it left the strip at less than full strength for a second and a
+ * half.
  */
-const SETTLE_STRETCH = 1.25;
-
-/**
- * How long the scene takes to come back once it fits again.
- *
- * A second, which is Ivan's own number: "0 to 100 in a sec", 2026-09-18. It
- * was a quarter of that first and he asked for the longer ramp.
- *
- * The same going in and coming out: full screen and back to the strip are one
- * gesture, and a reveal that took longer in one direction than the other
- * would read as the slower one having gone wrong.
- *
- * This is a ramp, not a wait. The scene is on screen and climbing from the
- * moment its picture fits — 161ms after the double click, measured in the
- * window — so the second is how long it takes to reach full strength, not how
- * long there is nothing to look at. That distinction is what keeps it inside
- * the other limit he set, which was never to see an empty panel for a second.
- */
-const SETTLE_FADE_MS = 1000;
-
-/**
- * Whether the picture on a scene's canvas still fits the box it is drawn
- * into, or is being stretched to fill it.
- *
- * The canvas is pulled to its host's size by CSS while the pixels behind it
- * belong to the worker, so between a box changing shape and the worker's next
- * frame the browser scales the old picture over the new box. Going from the
- * graph's strip into full screen, measured in the window on 2026-09-18: the
- * box went from 2016x214 to 2560x1316 while the picture behind it stayed
- * 2016x214 for 88ms — a scene nine times wider than tall pulled over a box
- * not quite two. Five frames, and unmistakable on anything with straight
- * lines in it; Crystal is where it shows worst.
- *
- * Only a mismatch big enough to SEE counts. A pane divider being dragged
- * moves the box by a percent a frame, and taking the scene away for each of
- * those would be far worse than the stretch.
- *
- * The picture's own RESOLUTION is deliberately not part of this. The cost
- * ladder draws small on purpose and the worker brings the result back up to
- * the panel's pixels, so the canvas matches its box at every rung; a blurrier
- * picture is not a stretched one, and hiding the scene each time the ladder
- * moved would be a fault of its own.
- */
-export const sceneFitsItsBox = (
-  pictureWidth: number,
-  pictureHeight: number,
-  boxWidth: number,
-  boxHeight: number,
-): boolean => {
-  if (
-    !(pictureWidth >= 1) ||
-    !(pictureHeight >= 1) ||
-    !(boxWidth >= 1) ||
-    !(boxHeight >= 1)
-  ) {
-    // Nothing drawn yet, or a box with no size: there is no picture being
-    // stretched, and a scene must never be left hidden by a reading that
-    // means "not measurable".
-    return true;
-  }
-  const stretch = (pictureWidth / pictureHeight) * (boxHeight / boxWidth);
-  return Math.max(stretch, 1 / stretch) < SETTLE_STRETCH;
-};
+const SETTLE_FADE_MS = 250;
 
 /** What the worker says of a frame it was sent (`TSceneWorkerReply`). */
 export interface ISceneDrawn {
@@ -230,82 +166,58 @@ export const createSceneWorkerClient = (
   canvas.style.display = 'block';
   canvas.style.width = '100%';
   canvas.style.height = '100%';
-  // Held back while the picture does not fit its box — see `fits` below. The
-  // fade is on the way IN only; going out has to be instantaneous or the
-  // stretched frame is what the fade shows.
   canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
   host.appendChild(canvas);
 
-  const fits = () => {
-    const box = host.getBoundingClientRect();
-    return sceneFitsItsBox(canvas.width, canvas.height, box.width, box.height);
-  };
-
   /**
-   * Takes the scene off the screen the moment its box stops fitting, and
-   * fades it back when a frame drawn for the new box has been submitted.
+   * One rule: while the box is moving the scene is off, and it comes back on
+   * the first frame drawn since the box stopped.
    *
-   * In the ResizeObserver rather than in the frame loop on purpose: this runs
-   * before the browser paints the frame the box changed in, so the stretched
-   * picture is never shown at all. Noticing it a frame later would still let
-   * one through.
+   * The canvas is pulled to its host's size by CSS while the pixels behind it
+   * belong to the worker, so every box change leaves the old picture stretched
+   * over the new box until the worker catches up. Going into full screen,
+   * measured in the window, that was 88ms of a strip 214 rows tall pulled over
+   * a box of 1316 — unmistakable on anything with straight lines in it.
    *
-   * There is no timer anywhere in this: it hides on a box changing and shows
-   * on a frame arriving. A scene that stops drawing altogether therefore
-   * stays hidden — which is the same place a dropped renderer leaves it, and
-   * the frame loop is kicked on every resize, so the frame always comes.
+   * Hiding in a ResizeObserver is what makes it invisible rather than shorter:
+   * resize observers run after the frame callbacks and before the paint, so
+   * the hide lands in the same frame the box changed in and the stretched
+   * picture is never painted. Noticing it from the draw loop would let one
+   * frame through.
    *
-   * What shows through in the meantime is the chart's own dark ground, NOT
-   * the scene's colour: `SceneLoading.tsx` fades its backdrop away once the
-   * scene has first drawn and does not bring it back for a resize. Measured
-   * at 161ms to the first full-screen frame and 440ms to full strength, so
-   * it is a few frames of the panel behind a scene that is already there.
+   * Coming back waits for the box to STOP. A box does not change once — the
+   * graph's plot arrived at its height in three steps — and showing the scene
+   * on the first frame that happened to arrive put it back at a size the panel
+   * had already left, only to take it away again. Every box change takes a
+   * turn, a draw records the turn it went out on, and a frame is only allowed
+   * to bring the scene back if its turn is still the current one.
+   *
+   * No timer anywhere: it hides on a box changing and shows on a frame
+   * arriving. A scene drawing nothing stays hidden, which is where a dropped
+   * renderer leaves it too, and the frame loop is kicked on every resize.
    */
   let settled = true;
-  /**
-   * Bumped every time the box changes, so a frame can be checked against the
-   * box it was actually drawn for.
-   *
-   * A box does not change once. Coming out of full screen, measured in the
-   * window: 2146x1440, then 1602x251, then 1602x175, then back up to
-   * 1602x312 — four shapes over 437ms, because the panel overshoots and
-   * settles. Releasing on the first frame that happened to fit put the scene
-   * back at 175 and the box then moved to 312, showing it 1.78 times out of
-   * shape before hiding it again. That hide-show-hide is what Ivan saw as the
-   * scene blinking on the way back, and why the way IN looked perfect: going
-   * in, the box only grows, and every intermediate shape is close enough to
-   * the last that nothing was released early.
-   */
   let boxTurn = 0;
   let drawnForTurn = 0;
   const hold = () => {
     boxTurn += 1;
-    if (settled && !fits()) {
+    if (settled) {
       settled = false;
+      // Instant: a fade out is a slower way of showing the stretched picture.
       canvas.style.transition = 'none';
       canvas.style.opacity = '0';
     }
   };
   const release = () => {
-    // Only a frame drawn for the box that is still there. A frame drawn for
-    // a shape the panel has already left fits nothing that anybody can see.
-    //
-    // What this costs: while a box keeps moving, a scene that is already
-    // hidden stays hidden until it stops. That is the intended behaviour for
-    // a panel settling over four shapes in 437ms, and it cannot strand a
-    // window edge being dragged, because a drag moves the box a percent or
-    // two a frame and never trips `fits` in the first place — nothing is
-    // hidden, so there is nothing waiting to be released.
-    if (drawnForTurn !== boxTurn) {
+    if (settled || drawnForTurn !== boxTurn) {
       return;
     }
-    if (!settled && fits()) {
-      settled = true;
-      canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
-      canvas.style.opacity = '1';
-    }
+    settled = true;
+    canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
+    canvas.style.opacity = '1';
   };
   const watchBox = new ResizeObserver(hold);
+  watchBox.observe(host);
   watchBox.observe(host);
   let id = 0;
   let disposed = false;
