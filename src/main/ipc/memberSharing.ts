@@ -101,8 +101,31 @@ export interface IMemberSharingRegistration {
   dispose(): void;
 }
 
-/** The block list goes stale on the same clock as the Plus looks' list. */
-export const BLOCK_LIST_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
+/**
+ * How long the block list may go unasked-about while somebody is at the
+ * machine.
+ *
+ * It used to be four hours, on the grounds that it went stale on the same
+ * clock as the Plus looks' list. That was the wrong analogy and it is the only
+ * reason this number is small now: the looks' list is a catalogue, and a day
+ * late costs somebody a scene they have not heard of yet. This one is what a
+ * scene is taken down WITH — the answer to a scene that flashes at people, or
+ * that turned out to be something nobody would install knowingly — and until
+ * it is asked for again, every machine that already has that scene keeps
+ * playing it. Four hours of that is not a catalogue being late.
+ *
+ * Fifteen minutes costs nothing: nothing here is on a timer, so this is not a
+ * fetch every fifteen minutes but a ceiling on how stale the answer may be
+ * when somebody wakes the machine, unlocks the screen, or comes back to the
+ * window (`comeBackSignals.ts`). A burst of those still collapses to one
+ * fetch, and the reply is a list of fingerprints. A machine nobody is at
+ * refreshes nothing either way, and is showing nobody anything.
+ *
+ * Bringing a shared scene in does not wait for this at all — that path asks
+ * outright first (`refreshBlocked`), so a scene blocked a moment ago cannot
+ * arrive.
+ */
+export const BLOCK_LIST_STALE_AFTER_MS = 15 * 60 * 1000;
 
 const CHANNELS = [
   'studio-terms-agreed',

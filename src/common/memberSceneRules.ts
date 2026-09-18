@@ -90,14 +90,25 @@ export const MAX_MEMBER_LOOP_ITERATIONS = 128;
  * So this is a cheap first filter — it costs the signing server nothing and
  * it turns away the obvious — and it is NOT what keeps somebody's driver
  * alive. That is done where the work actually happens, by measurement rather
- * than by counting: a member's scene on the graph starts at an eighth of the
- * panel and climbs only after twelve smooth frames, never more than four
- * times the pixels it has already drawn (`sceneWarmup.ts`); a kept picture is
- * timed small, extrapolated, refused over thirty seconds and otherwise drawn
- * in bands no longer than a quarter-second each (`sceneStill.worker.ts`); and
- * a scene whose frame held the GPU past half a second when the context went
- * is blamed for it and never loaded again. Do not weaken any of those on the
- * strength of this number.
+ * than by counting: a member's scene on the graph starts at the smallest
+ * picture the listener allows and climbs only after twelve smooth frames,
+ * never more than four times the pixels it has already drawn
+ * (`sceneWarmup.ts`); a kept picture is timed small, extrapolated, refused
+ * over thirty seconds and otherwise drawn in bands no longer than a
+ * quarter-second each (`sceneStill.worker.ts`); and a scene whose frame held
+ * the GPU past half a second when the context went is blamed for it and never
+ * loaded again. Do not weaken any of those on the strength of this number.
+ *
+ * Two corrections to what that paragraph said when it was written, both from
+ * reading the code rather than trusting it. The climb does NOT start at an
+ * eighth of the panel: it starts at the listener's floor, 0.35 by default
+ * since 2026-09-16, so the worst shape here submits a first frame of about
+ * 1.8 seconds on a 4K panel rather than a tenth of that — inside Windows' two
+ * only on the GPU it was measured on. And the climb's judgement of "smooth"
+ * was, until `judgedIntervalMs` (`frameCadence.ts`), made against the gap
+ * between the frames the scene itself paced, so it read smooth at any cost
+ * and climbed to full size regardless. The bound above is only as good as
+ * that judgement.
  */
 export const MAX_MEMBER_PIXEL_WORK = 16384;
 
@@ -880,7 +891,18 @@ export const checkMemberSceneSource = (
   // been blanked away with the comment it was smuggled into. The legitimate
   // use inside a comment — a Windows path — has something after the
   // backslash, so nothing that reads sensibly is refused.
-  const spliced = /\\(?=\r?\n)/.exec(source);
+  //
+  // EITHER line terminator, not a newline. This read `\r?\n` — a backslash
+  // before a line feed, or before a carriage return AND a line feed — and a
+  // LONE carriage return is neither. GLSL ES ends a line at "a carriage
+  // return or a line feed", each on its own, and deletes a backslash before
+  // either; so the whole bypass above was still open through one byte, and
+  // measured open: a two-billion-turn loop, a `while`, a `#define`, a second
+  // `main` and a loop resetting its own counter all passed with no violations
+  // at all when the splice was written with a bare carriage return. The same
+  // hole, found and closed twice, which is what a lookahead over a character
+  // class rather than a sequence is worth here.
+  const spliced = /\\(?=[\r\n])/.exec(source);
   if (spliced) {
     found.set('preprocessor', lineOf(lineStarts(source), spliced.index));
     return [...found].map(([rule, line]) => ({ code: rule, line }));

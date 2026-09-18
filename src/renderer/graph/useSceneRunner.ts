@@ -15,7 +15,7 @@ import observeShown from 'renderer/utils/observeShown';
 import { useScenePerformance } from 'renderer/utils/scenePerformanceStore';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useSceneAudio } from '../audio/SceneAudioContext';
-import { createFrameCadence } from './frameCadence';
+import { createFrameCadence, judgedIntervalMs } from './frameCadence';
 import { NO_POINTS, NO_WAVEFORM } from './liveSpectrumFrames';
 import { limiterIsFor } from './sceneFlashGuard';
 import type { ISceneFrame } from './sceneGl';
@@ -382,7 +382,23 @@ export default function useSceneRunner({
           // Judged by what frames cost the GPU, against the interval they are
           // drawn at — the worker's own, on the display's beat, not how long
           // the page took between frames: see the worker's draw.
-          const drawnIntervalMs = result.intervalMs ?? intervalMs;
+          //
+          // The TIGHTER of the two, which is the whole of it. The worker's
+          // number is the gap between frames it actually drew, and when the
+          // GPU is the bottleneck the worker skips ticks, so that gap IS the
+          // frame's own cost. Taken alone it made the budget the thing being
+          // measured: cost over budget came out at one however heavy the
+          // scene, so `slow` (three times) could never fire, `hopeless` (ten
+          // times) could never fire, and `smooth` (a quarter over) always
+          // did — a member's scene climbed the warm-up ladder to full size on
+          // twelve "smooth" frames of any cost at all, to a frame big enough
+          // to reset the display driver for every program on the machine.
+          // `judgedIntervalMs` is that rule, and its comment is where this is
+          // written down.
+          const drawnIntervalMs = judgedIntervalMs(
+            intervalMs,
+            result.intervalMs,
+          );
           if (
             ladder === ladderRef.current &&
             ladder.frame(result.cost, drawnIntervalMs, document.hidden) ===

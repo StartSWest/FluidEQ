@@ -28,11 +28,13 @@ jest.mock('electron', () => ({
 import type { IAccountConfig } from '../../../common/accountConfig';
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import {
+  BLOCK_LIST_STALE_AFTER_MS,
   registerMemberSharingIpc,
   type IMemberSharingIpcDeps,
   type TExportOutcome,
   type TImportOutcome,
 } from '../../../main/ipc/memberSharing';
+import { SCENE_PACKS_STALE_AFTER_MS } from '../../../main/ipc/scenePacks';
 import { writeStarterProject } from '../../../main/memberScenes/project';
 import {
   createMemberSceneStore,
@@ -113,7 +115,7 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
   return json(null);
 }) as unknown as typeof fetch;
 
-const setup = () => {
+const setup = (extra: Partial<IMemberSharingIpcDeps> = {}) => {
   store = createMemberSceneStore({
     userDataDir: path.join(root, 'userData'),
   });
@@ -159,6 +161,7 @@ const setup = () => {
           : { canceled: true, filePaths: [] }) as never,
     },
     fetchImpl,
+    ...extra,
   });
 };
 
@@ -432,6 +435,46 @@ describe('opening a scene file', () => {
       reason: 'blocked',
     });
     expect(store.list()).toEqual([]);
+    registration.dispose();
+  });
+
+  /**
+   * How long a taken-down scene may go on playing on a machine that already
+   * has it.
+   *
+   * The block list is the answer to a scene that flashes at people, and it
+   * used to be asked for on the same four-hour clock as the catalogue of Plus
+   * looks — an analogy that reads fine and costs somebody four hours of a
+   * scene that was taken down for hurting them. Nothing pinned the number, so
+   * nothing objected. Its own clock now, and it must stay well under the
+   * catalogue's.
+   */
+  it('asks for the block list on its own clock, not the catalogue’s', () => {
+    expect(BLOCK_LIST_STALE_AFTER_MS).toBeLessThanOrEqual(15 * 60 * 1000);
+    expect(BLOCK_LIST_STALE_AFTER_MS * 4).toBeLessThan(
+      SCENE_PACKS_STALE_AFTER_MS,
+    );
+  });
+
+  it('asks again once that long has passed, and not before', async () => {
+    let clock = 1_000_000;
+    const registration = setup({ now: () => clock });
+    const asked = () =>
+      calls.filter((url) => url.includes('/rest/v1/blocked_scenes')).length;
+    // Registering asks once by itself, and lets go of the promise. Asking
+    // outright settles that and marks the list fetched at this instant, so
+    // what follows is measured from a known moment rather than racing it.
+    await registration.refreshBlocked();
+    const first = asked();
+    expect(first).toBeGreaterThan(0);
+
+    clock += BLOCK_LIST_STALE_AFTER_MS - 1;
+    await registration.refreshIfDue('focus');
+    expect(asked()).toBe(first);
+
+    clock += 1;
+    await registration.refreshIfDue('focus');
+    expect(asked()).toBe(first + 1);
     registration.dispose();
   });
 

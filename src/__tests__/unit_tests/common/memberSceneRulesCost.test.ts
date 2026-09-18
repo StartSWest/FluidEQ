@@ -83,7 +83,7 @@ it('still reads a loop whose step is spaced out', () => {
  * BEFORE it reads comments.
  *
  * `*\` + newline + `/` therefore closes a block comment for the compiler
- * while the blanker is still looking for the first literal `*​/` further
+ * while the blanker is still looking for the first literal star-slash further
  * down — so the checker blanks out code the GPU is going to run, and every
  * rule in the file is reading a different program from the one that
  * executes. Anything at all can be hidden in the gap. Written from the
@@ -91,10 +91,23 @@ it('still reads a loop whose step is spaced out', () => {
  */
 describe('a comment the compiler ends earlier than we do', () => {
   const BACKSLASH = String.fromCharCode(92);
-  const hiding = (hidden: string) =>
-    `${ENTRY}void sneak() {\n  /*c*${BACKSLASH}\n/\n  ${hidden}\n  /**/\n}\n`;
+  /**
+   * EVERY line terminator, not just a line feed. GLSL ES ends a line at "a
+   * carriage return or a line feed" and deletes a backslash before either, so
+   * a lone carriage return splices exactly like a newline — and the guard
+   * was written as a backslash before `\r?\n`, which a lone carriage return
+   * is not. The same total bypass, through one byte, found the second time by
+   * a reviewer who read the spec rather than the fix.
+   */
+  const ENDINGS: readonly [string, string][] = [
+    ['a line feed', '\n'],
+    ['a carriage return and a line feed', `${String.fromCharCode(13)}\n`],
+    ['a bare carriage return', String.fromCharCode(13)],
+  ];
+  const hiding = (hidden: string, ending = '\n') =>
+    `${ENTRY}void sneak() {\n  /*c*${BACKSLASH}${ending}/\n  ${hidden}\n  /**/\n}\n`;
 
-  it.each([
+  const HIDDEN: readonly [string, string][] = [
     [
       'a loop with no bound anyone counted',
       'for (int i = 0; i < 2000000000; i++) { }',
@@ -102,10 +115,18 @@ describe('a comment the compiler ends earlier than we do', () => {
     ['a while', 'while (uTime >= 0.0) { }'],
     ['a preprocessor line', '#define REP 90000000'],
     ['another main', 'void main() { }'],
-  ])('refuses one hiding %s', (_name, hidden) => {
-    expect(msToCheck(hiding(hidden)).problems.map((p) => p.code)).toContain(
-      'preprocessor',
-    );
+    [
+      'a loop resetting its own counter',
+      'for (int i = 0; i < 4; i++) { i = 0; }',
+    ],
+  ];
+
+  describe.each(ENDINGS)('spliced with %s', (_ending, ending) => {
+    it.each(HIDDEN)('refuses one hiding %s', (_name, hidden) => {
+      expect(
+        msToCheck(hiding(hidden, ending)).problems.map((p) => p.code),
+      ).toContain('preprocessor');
+    });
   });
 
   // The control: a backslash inside a comment that is NOT at a line end is an

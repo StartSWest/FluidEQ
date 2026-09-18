@@ -16,6 +16,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * pass. The shortest gaps are the display's true beat.
  */
 
+/**
+ * The interval a frame's GPU cost is judged against, given the display's own
+ * beat and the gap between the frames a worker actually drew.
+ *
+ * The tighter of the two, and the reason this is a named rule rather than a
+ * `??`. A worker that skips ticks because the GPU is still busy reports a gap
+ * equal to the frame's own cost, so judging the cost against it compares a
+ * number with itself and every scene keeps up however heavy it is: a member's
+ * scene climbed the warm-up ladder to full size on twelve "smooth" frames of
+ * any cost, and full size on a 4K panel is where one frame can hold the GPU
+ * long enough for Windows to reset the display for every program running.
+ *
+ * The page's own beat is the display's, because the page is not what waits on
+ * the GPU; it is only distorted when the PAGE stalls, which the low quartile
+ * above is there to shrug off. Taking the smaller keeps that and drops the
+ * other.
+ */
+export const judgedIntervalMs = (
+  displayMs: number,
+  drawnMs: number | undefined,
+): number => Math.min(drawnMs ?? displayMs, displayMs);
+
 /** Gaps remembered. Two dozen is under half a second at any rate that matters. */
 const CADENCE_WINDOW = 24;
 
