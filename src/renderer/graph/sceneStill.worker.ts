@@ -7,6 +7,7 @@ import {
   type ISceneProgram,
 } from './sceneGl';
 import { BLAMED_FRAME_MS, createDrawWatch } from './sceneDrawWatch';
+import { firstBandRows, nextBandRows } from './sceneStillBands';
 import { sceneProgramKey } from './sceneLinkTurns';
 import { capturedRun, showcaseRun, type TFrameRun } from './sceneShowcaseRun';
 import type {
@@ -71,13 +72,6 @@ const SAMPLE_HEIGHT = 54;
  * one vote in nine rather than the whole answer.
  */
 const SAMPLE_EVERY = 10;
-
-/**
- * The longest one band of the kept frame is allowed to hold the GPU. Windows
- * resets the driver when one job runs two seconds; the kept frame is split
- * into bands small enough that none comes near it.
- */
-const BAND_MS = 250;
 
 /** A frame estimated past this is not drawn at all: no picture, no reset. */
 const HOPELESS_STILL_MS = 30_000;
@@ -210,21 +204,27 @@ const watchDraws = (
 };
 
 /**
- * How many bands the kept frame is drawn in, or 0 when it is not to be drawn.
+ * Whether the kept frame is worth starting at all.
  *
  * Timed on the postage stamp at the same instant, with a pixel read back so
- * the time is the GPU's: the fastest of three, times how many more pixels
- * the kept frame has. Most of a stamp's time is the read itself, so this is
- * generous for a light scene — a band or two more than it needs, which costs
- * nothing — and right for a heavy one, which was drawn whole before: a
- * member's scene too heavy for this GPU held it past Windows' two seconds
- * and reset the display for every program on the machine.
+ * the time is the GPU's: the fastest of three, times how many more pixels the
+ * kept frame has. A scene this says would take half a minute is one whose
+ * picture would never arrive, so nothing is drawn and nobody waits.
+ *
+ * This answer is ONLY ever trusted to say no. It used to decide how many
+ * bands the frame was drawn in as well, and that put the scene in charge of
+ * its own limit: every draw here is at the postage stamp's size, and a shader
+ * is handed the size it is drawing at, so `if (uResolution.x > 900.0)` made
+ * the estimate nothing and the frame went to the driver whole. A scene that
+ * lies the other way now buys only that its picture is attempted — and
+ * `drawInBands` below measures what it actually costs, at the size that
+ * matters, before it commits to more than a thirty-second of the frame.
  */
-const keptFrameBands = (
+const keptFrameWorthDrawing = (
   gl: WebGL2RenderingContext,
   program: ISceneProgram,
   last: ISceneFrame,
-): number => {
+): boolean => {
   const stamp = { ...last, deltaMs: 0 };
   const times = [0, 1, 2].map(() => {
     const started = performance.now();
@@ -235,10 +235,7 @@ const keptFrameBands = (
   const estimate =
     Math.min(...times) *
     ((RENDER_WIDTH * RENDER_HEIGHT) / (WARMUP_WIDTH * WARMUP_HEIGHT));
-  if (gl.isContextLost() || estimate > HOPELESS_STILL_MS) {
-    return 0;
-  }
-  return Math.min(RENDER_HEIGHT, Math.max(1, Math.ceil(estimate / BAND_MS)));
+  return !gl.isContextLost() && estimate <= HOPELESS_STILL_MS;
 };
 
 /**
@@ -246,20 +243,25 @@ const keptFrameBands = (
  * next is sent. The scissor keeps every band's pixels where the whole frame
  * puts them, and the frame's zero elapsed time draws the same instant each
  * time, so the bands meet without a seam.
+ *
+ * How tall each band may be is `sceneStillBands.ts`, decided as this goes from
+ * the band before it — never from anything the scene had a say in.
  */
 const drawInBands = (
   gl: WebGL2RenderingContext,
   program: ISceneProgram,
   frame: ISceneFrame,
-  bands: number,
 ) => {
-  const height = Math.ceil(RENDER_HEIGHT / bands);
   gl.enable(gl.SCISSOR_TEST);
   try {
-    for (let y = 0; y < RENDER_HEIGHT && !gl.isContextLost(); y += height) {
-      gl.scissor(0, y, RENDER_WIDTH, Math.min(height, RENDER_HEIGHT - y));
+    let rows = firstBandRows(RENDER_HEIGHT);
+    for (let y = 0; y < RENDER_HEIGHT && !gl.isContextLost(); y += rows) {
+      const height = Math.min(rows, RENDER_HEIGHT - y);
+      gl.scissor(0, y, RENDER_WIDTH, height);
+      const started = performance.now();
       program.draw(frame, RENDER_WIDTH, RENDER_HEIGHT);
       gl.readPixels(0, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+      rows = nextBandRows(RENDER_HEIGHT, height, performance.now() - started);
     }
   } finally {
     gl.disable(gl.SCISSOR_TEST);
@@ -301,9 +303,8 @@ const renderStill = async (
       }
       last = frame;
     }
-    const bands = last ? keptFrameBands(gl, program, last) : 0;
-    if (last && bands > 0) {
-      drawInBands(gl, program, { ...last, deltaMs: 0 }, bands);
+    if (last && keptFrameWorthDrawing(gl, program, last)) {
+      drawInBands(gl, program, { ...last, deltaMs: 0 });
       const scaled = new OffscreenCanvas(STILL_WIDTH, STILL_HEIGHT);
       const flat = scaled.getContext('2d');
       if (flat) {
