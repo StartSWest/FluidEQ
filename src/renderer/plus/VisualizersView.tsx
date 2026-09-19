@@ -1,16 +1,15 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
-import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { WallpaperStatus } from '../wallpaper/WallpaperControls';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
-import { usePlusEntitled } from './GalleryParts';
 import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
+import PlusTrialBanner from './PlusTrialBanner';
 import {
   galleryPageKey,
   galleryScrollOf,
@@ -26,30 +25,6 @@ import '../styles/Gallery.scss';
 interface IVisualizersViewProps {
   /** Shows the graph, for "Play on the graph". */
   onShowGraph: () => void;
-}
-
-/**
- * What a member without Plus reads over the gallery they are browsing: what
- * Plus would let them do with it, and the way in — one line, not a wall in
- * front of the scenes, because the scenes are the best argument for it.
- */
-function PlusBar() {
-  const { t } = useTranslation();
-  return (
-    <div className="gallery-plusbar">
-      <span className="gallery-plusbar__mark" aria-hidden="true">
-        <Glyph name="plus" />
-      </span>
-      <span className="gallery-plusbar__text">{t('plus.browse.text')}</span>
-      <button
-        type="button"
-        className="button small"
-        onClick={() => requestAccountPanel('subscribe')}
-      >
-        {t('plus.gate.cta')}
-      </button>
-    </div>
-  );
 }
 
 /** A gallery page's own line under the head, with the way back. */
@@ -94,7 +69,6 @@ export default function VisualizersView({
   const { page } = usePlusNavigation();
   const account = useAccount();
   const notice = useGalleryNotice();
-  const entitled = usePlusEntitled();
   const me = account.identity?.id;
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageKey = galleryPageKey(page);
@@ -167,7 +141,7 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {!entitled && page.kind !== 'mine' && <PlusBar />}
+        {page.kind === 'browse' && <PlusTrialBanner onKeepFree={onShowGraph} />}
         {content}
       </div>
     </>

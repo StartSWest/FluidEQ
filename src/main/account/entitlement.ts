@@ -1,5 +1,6 @@
 import type { IAccountConfig } from 'common/accountConfig';
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
+import { PLUS_TRIAL_PLAN } from '../../common/plusTrial';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
 import type { IAccountSession } from './session';
 
@@ -126,18 +127,19 @@ export const resolveEntitlementState = (
   // A clock set backwards would otherwise buy another fortnight of grace for
   // free. The confirmation cannot have happened later than now.
   const verifiedAt = Math.min(record.verifiedAt, now);
+  const trial = record.plan === PLUS_TRIAL_PLAN;
   const shared = {
     plan: record.plan,
     periodEndsAt: record.periodEndsAt,
-    renewing: !record.cancelAtPeriodEnd,
+    renewing: !trial && !record.cancelAtPeriodEnd,
   };
   if (record.periodEndsAt > now) {
     return { state: 'active', ...shared };
   }
   // A membership cancelled to end with this period ended with it. The grace
   // below is for a renewal the app may have missed, and this one was never
-  // going to renew.
-  if (record.cancelAtPeriodEnd) {
+  // going to renew. A free trial cannot renew either, whatever flag was stored.
+  if (trial || record.cancelAtPeriodEnd) {
     return NONE;
   }
   // The period we last saw has ended. If the server was heard from recently
@@ -257,7 +259,15 @@ export const createEntitlement = (
   // refusal. A network failure does not count, so being offline retries on the
   // next event rather than waiting four hours for one that might work.
   let lastCheckedAt = 0;
-  let inFlight: Promise<IEntitlementStatus> | undefined;
+  let lastCheckedAccountId: string | undefined;
+  let generation = 0;
+  let inFlight:
+    | {
+        accountId: string | undefined;
+        generation: number;
+        promise: Promise<IEntitlementStatus>;
+      }
+    | undefined;
   /**
    * The status as it read when somebody was sent to the merchant, while that
    * answer is still owed.
@@ -292,18 +302,32 @@ export const createEntitlement = (
   // The development pin holds until the pretend membership releases it.
   let override = options.developmentOverride;
 
-  const status = (): IEntitlementStatus =>
-    override ?? resolveEntitlementState(ownRecord(), now());
+  let lastAnnounced: string | undefined;
+  const status = (): IEntitlementStatus => {
+    const current = override ?? resolveEntitlementState(ownRecord(), now());
+    lastAnnounced ??= JSON.stringify(current);
+    return current;
+  };
 
   const listeners = new Set<(status: IEntitlementStatus) => void>();
 
   const announce = (current: IEntitlementStatus) => {
+    lastAnnounced = JSON.stringify(current);
     onChange(current);
     listeners.forEach((listener) => listener(current));
   };
 
+  // Comparing two reads at the same time misses expiry between events: both
+  // already say "none" while the window is still showing the previous grant.
+  const announceIfChanged = () => {
+    const current = status();
+    if (JSON.stringify(current) !== lastAnnounced) {
+      announce(current);
+    }
+  };
+
   const remember = (next: IEntitlementRecord | undefined) => {
-    const before = JSON.stringify(status());
+    status();
     record = next;
     loaded = true;
     if (next) {
@@ -311,14 +335,17 @@ export const createEntitlement = (
     } else {
       store.clear();
     }
-    if (JSON.stringify(status()) !== before) {
-      announce(status());
-    }
+    announceIfChanged();
   };
 
-  const fetchRecord = async (): Promise<IEntitlementStatus> => {
-    const { identity } = session.state();
-    if (!identity) {
+  const fetchRecord = async (
+    accountId: string | undefined,
+    requestGeneration: number,
+  ): Promise<IEntitlementStatus> => {
+    const current = () =>
+      generation === requestGeneration &&
+      session.state().identity?.id === accountId;
+    if (!accountId) {
       remember(undefined);
       return status();
     }
@@ -330,12 +357,18 @@ export const createEntitlement = (
       // answer stands; the session module owns what to do about the account.
       return status();
     }
+    if (!current()) {
+      return status();
+    }
     if (options.beforeFetch) {
       try {
         await options.beforeFetch(token);
       } catch (error) {
         logger?.warn(`Membership sync did not complete: ${error}`);
       }
+    }
+    if (!current()) {
+      return status();
     }
     let response: Response;
     try {
@@ -347,7 +380,7 @@ export const createEntitlement = (
       // Row security already answers with the caller's row alone; asking by
       // id as well means one mistaken policy on the server can never hand
       // this account somebody else's paid row as its own.
-      url.searchParams.set('user_id', `eq.${identity.id}`);
+      url.searchParams.set('user_id', `eq.${accountId}`);
       url.searchParams.set('limit', '1');
       response = await fetchImpl(url.toString(), {
         headers: {
@@ -360,7 +393,11 @@ export const createEntitlement = (
       logger?.warn(`Entitlement check could not reach the server: ${error}`);
       return status();
     }
+    if (!current()) {
+      return status();
+    }
     lastCheckedAt = now();
+    lastCheckedAccountId = accountId;
     if (!response.ok) {
       // A refusal is the server's to explain and the session's to act on. It
       // is not evidence that the subscription ended.
@@ -373,7 +410,10 @@ export const createEntitlement = (
     } catch {
       return status();
     }
-    remember(readRow(body, identity.id, now()));
+    if (!current()) {
+      return status();
+    }
+    remember(readRow(body, accountId, now()));
     if (awaiting !== undefined && JSON.stringify(status()) !== awaiting) {
       awaiting = undefined;
     }
@@ -381,15 +421,23 @@ export const createEntitlement = (
   };
 
   const checkNow = () => {
-    // One request at a time: a resume and an unlock landing together would
-    // otherwise both ask, and the second answer would overwrite the first with
-    // nothing new.
-    inFlight =
-      inFlight ??
-      fetchRecord().finally(() => {
+    announceIfChanged();
+    const accountId = session.state().identity?.id;
+    if (
+      inFlight &&
+      inFlight.accountId === accountId &&
+      inFlight.generation === generation
+    ) {
+      return inFlight.promise;
+    }
+    const promise = fetchRecord(accountId, generation).finally(() => {
+      if (inFlight?.promise === promise) {
         inFlight = undefined;
-      });
-    return inFlight;
+      }
+      announceIfChanged();
+    });
+    inFlight = { accountId, generation, promise };
+    return promise;
   };
 
   return {
@@ -402,11 +450,13 @@ export const createEntitlement = (
     },
     checkNow,
     checkIfDue: async (reason) => {
+      announceIfChanged();
       if (session.state().status !== 'signed-in') {
         return;
       }
       if (
         awaiting === undefined &&
+        lastCheckedAccountId === session.state().identity?.id &&
         now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS
       ) {
         return;
@@ -416,9 +466,14 @@ export const createEntitlement = (
     },
     expectChange: () => {
       awaiting = JSON.stringify(status());
+      // A check started before an accepted grant cannot satisfy its refresh,
+      // or return later and overwrite the newly confirmed membership.
+      generation += 1;
     },
     forget: () => {
+      generation += 1;
       lastCheckedAt = 0;
+      lastCheckedAccountId = undefined;
       awaiting = undefined;
       remember(undefined);
     },

@@ -3,6 +3,7 @@ import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
+import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import { useTranslation } from '../utils/I18nContext';
 import BrandMark from '../icons/BrandMark';
 import DialogHeader from '../components/DialogHeader';
@@ -25,6 +26,8 @@ import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
 import SignInForms from './SignInForms';
 import SubscribeAgreement from './SubscribeAgreement';
+import PlusTrialAgreement from './PlusTrialAgreement';
+import AccountPitch from './AccountPitch';
 import initialsOf from './initials';
 // The panel is an `about` surface with an `account` body inside it, so it
 // depends on both sheets. About's came in only because `App.tsx` imports the
@@ -143,6 +146,9 @@ export default function AccountDialog({
   // agree to and the terms are simply shown. Without a price configured there
   // is no Plus to describe at all.
   const shown: TAccountPanelPage = (() => {
+    if (page === 'trial') {
+      return signedIn ? 'trial' : 'home';
+    }
     if (!termsOffered) {
       return 'home';
     }
@@ -150,13 +156,20 @@ export default function AccountDialog({
       if (!signedIn) {
         return 'home';
       }
-      return entitlement.state === 'none' ? 'subscribe' : 'terms';
+      return entitlement.state === 'none' ||
+        entitlement.plan === PLUS_TRIAL_PLAN
+        ? 'subscribe'
+        : 'terms';
     }
     return page;
   })();
   const onTerms = shown === 'terms' || shown === 'subscribe';
+  const onTrial = shown === 'trial';
+  const onDocument = onTerms || onTrial;
   // The front page with somebody signed in: the person, as a profile.
-  const onProfile = signedIn && !onTerms;
+  const onProfile = signedIn && !onDocument;
+  const title =
+    page === 'trial' ? t('trial.consent.title') : t('account.title');
 
   // The forms take the caret themselves; the close button gets it only when
   // there is nothing to type into. The terms take it on their own page, so
@@ -207,7 +220,7 @@ export default function AccountDialog({
         {!onProfile && (
           <DialogHeader
             eyebrow={onTerms ? t('terms.eyebrow') : t('account.eyebrow')}
-            title={onTerms ? t('terms.title') : t('account.title')}
+            title={onTerms ? t('terms.title') : title}
             titleId="account-title"
             version={onTerms ? String(PLUS_TERMS_EDITION) : undefined}
             closeLabel={t('account.close')}
@@ -216,6 +229,7 @@ export default function AccountDialog({
           />
         )}
 
+        {onTrial && <PlusTrialAgreement key={accountId} onClose={onClose} />}
         {onTerms && (
           <>
             {/* Keyed on the page so switching between reading and agreeing
@@ -266,7 +280,7 @@ export default function AccountDialog({
         {signedIn && (
           <div
             className="account__top"
-            hidden={onTerms}
+            hidden={onDocument}
             style={identityStyle(identity.email ?? identity.id)}
           >
             <SceneBand
@@ -386,7 +400,7 @@ export default function AccountDialog({
           </div>
         )}
 
-        <div className="about__body account__body" hidden={onTerms}>
+        <div className="about__body account__body" hidden={onDocument}>
           {signedIn && (
             <>
               {/* First in the body, which is directly under the link that
@@ -445,34 +459,13 @@ export default function AccountDialog({
 
           {!signedIn && status !== 'unavailable' && (
             <div className="account__split">
-              <aside className="account__pitch">
-                <p className="account__optional">{t('account.optional')}</p>
-                <ul className="account__perks">
-                  <li>
-                    <span className="account__perk-mark" aria-hidden="true">
-                      <Glyph name="looks" />
-                    </span>
-                    {t('account.perk.looks')}
-                  </li>
-                  <li>
-                    <span className="account__perk-mark" aria-hidden="true">
-                      <Glyph name="studio" />
-                    </span>
-                    {t('account.perk.visualizers')}
-                  </li>
-                  <li>
-                    <span className="account__perk-mark" aria-hidden="true">
-                      <Glyph name="board" />
-                    </span>
-                    {t('account.perk.board')}
-                  </li>
-                </ul>
-                {termsLink}
-              </aside>
+              <AccountPitch trial={page === 'trial'} termsLink={termsLink} />
               <div className="account__form-column">
                 <SignInForms
                   account={account}
-                  initialMode={page === 'signUp' ? 'signUp' : 'signIn'}
+                  initialMode={
+                    page === 'signUp' || page === 'trial' ? 'signUp' : 'signIn'
+                  }
                 />
                 {errorLine}
               </div>

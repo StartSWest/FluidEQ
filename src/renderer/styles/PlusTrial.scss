@@ -1,0 +1,208 @@
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.plus-free-intro {
+  grid-column: 1 / -1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+
+  h2 {
+    margin: 0 0 $spacing-xs;
+    color: $text-primary;
+    font-size: clamp(1.25rem, 3cqi, 1.9rem);
+    font-weight: $weight-bold;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  p {
+    max-width: 75ch;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.65;
+  }
+}
+
+.plus-free-intro--compact h2 {
+  font-size: $text-lead;
+}
+
+.plus-trial {
+  display: flex;
+  flex: 0 0 auto;
+  gap: $spacing-s;
+  width: 100%;
+  box-sizing: border-box;
+  padding: $spacing-m;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, $border-field);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 6%, $surface-block);
+
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    line-height: 1.45;
+  }
+
+  p {
+    margin: $spacing-xs 0 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+}
+
+.plus-trial__mark {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  align-self: flex-start;
+  width: 28px;
+  height: 28px;
+  color: $secondary-light;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.plus-trial__content {
+  min-width: 0;
+  width: 100%;
+}
+.plus-trial .plus-trial__fine {
+  color: $text-faint;
+  font-size: $text-small;
+}
+.plus-trial__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  margin-top: $spacing-s;
+
+  &:empty {
+    display: none;
+  }
+  .button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    height: auto;
+    min-height: $control-height-sm;
+  }
+}
+
+.plus-trial--ended {
+  border-color: $border-field;
+  background: $surface-block;
+}
+.plus-trial-banner {
+  display: grid;
+  gap: $spacing-s;
+  flex: 0 0 auto;
+}
+
+.plus-trial-agreement {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-m;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.65;
+
+  > p {
+    margin: 0;
+  }
+}
+
+.plus-trial-summary {
+  display: grid;
+  gap: $spacing-s;
+  margin: 0;
+  padding: $spacing-m;
+  background: $surface-block;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+
+  dt {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+  dd {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.plus-trial-conditions {
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
+  }
+  p {
+    margin: $spacing-xs 0 0;
+  }
+}
+
+.plus-trial-document {
+  border-top: 1px solid $border-field;
+  padding-top: $spacing-s;
+
+  summary {
+    color: $secondary-light;
+    cursor: pointer;
+    font-weight: $weight-semibold;
+  }
+  &[open] summary {
+    margin-bottom: $spacing-m;
+  }
+}
+
+.plus-trial-settings {
+  display: grid;
+  gap: $spacing-s;
+  padding-bottom: $spacing-m;
+  border-bottom: 1px solid $border-field;
+
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-lead;
+  }
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.6;
+  }
+  label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-s;
+    font-size: $text-body;
+  }
+  .button {
+    justify-self: start;
+  }
+}
+
+.plus-trial-agreement + .plus-terms-agree .plus-terms-agree__buttons {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  .button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    height: auto;
+    min-height: $control-height-sm;
+  }
+}

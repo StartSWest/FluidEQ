@@ -197,19 +197,25 @@ describe('the Plus tab', () => {
   it('asks a visitor to sign in, naming what an account opens and what takes Plus', async () => {
     bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
     await renderPanel();
-    // The page's one call to action, in the full-size filled style (6295944d4),
-    // not the small one of a toolbar.
+    // The free app comes first; sign-in is a quiet independent choice.
     const signIn = screen.getByRole('button', { name: 'account.signIn' });
     expect(signIn).toHaveClass('button', 'plus-welcome__button');
-    expect(signIn).not.toHaveClass('subtle');
-    // Browsing is free; playing, the Studio and the board each carry the Plus
-    // badge.
+    expect(signIn).toHaveClass('subtle');
+    expect(
+      screen.getByRole('heading', { name: 'trial.free.title' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('trial.free.body')).toBeInTheDocument();
+    expect(screen.getByText('trial.browse')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'trial.extras.title' }),
+    ).toBeInTheDocument();
     const perks = within(screen.getByRole('list')).getAllByRole('listitem');
     expect(perks.map((perk) => perk.textContent)).toEqual([
-      'plus.welcome.browse',
-      'plus.welcome.playgraph.scene.badge',
-      'plus.welcome.studiograph.scene.badge',
-      'plus.welcome.boardgraph.scene.badge',
+      'trial.extras.scenes',
+      'trial.extras.studio',
+      'trial.extras.desktop',
+      'trial.extras.room',
+      'trial.extras.board',
     ]);
     expect(bridge.plusProfile).not.toHaveBeenCalled();
   });

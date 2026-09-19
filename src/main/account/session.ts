@@ -133,6 +133,8 @@ export const createAccountSession = (
   // both redeem the refresh token, and a backend that rotates it on use invalidates
   // whichever reply lands second — signing the person out for being asked twice.
   let refreshing: Promise<IAuthSession> | undefined;
+  let refreshController: AbortController | undefined;
+  let generation = 0;
 
   const load = () => {
     if (!loaded && store.available()) {
@@ -164,21 +166,35 @@ export const createAccountSession = (
 
   const publish = () => onState(state());
 
+  const invalidateRefresh = () => {
+    generation += 1;
+    refreshing = undefined;
+    refreshController?.abort();
+    refreshController = undefined;
+  };
+
   const forget = () => {
+    invalidateRefresh();
     session = undefined;
     identity = undefined;
-    refreshing = undefined;
     loaded = true;
     store.clear();
   };
 
-  const adopt = (next: IAuthSession) => {
+  const saveSession = (next: IAuthSession) => {
     session = next;
     identity = next.identity;
     loaded = true;
     pending = undefined;
     lastError = undefined;
     store.write({ refreshToken: next.refreshToken, identity: next.identity });
+  };
+
+  const adopt = (next: IAuthSession) => {
+    // A sign-in replaces the session even when the same account signs back
+    // in. Its previous refresh must not restore old, rotated credentials.
+    invalidateRefresh();
+    saveSession(next);
   };
 
   const failureOf = (error: unknown): TAuthFailure =>
@@ -225,6 +241,11 @@ export const createAccountSession = (
 
   const renew = async (refreshToken: string): Promise<IAuthSession> => {
     const controller = new AbortController();
+    refreshController = controller;
+    const requestGeneration = generation;
+    const accountId = identity?.id;
+    const changed = () =>
+      requestGeneration !== generation || identity?.id !== accountId;
     try {
       const next = await refreshSession(
         config,
@@ -232,10 +253,16 @@ export const createAccountSession = (
         controller.signal,
         now(),
       );
-      adopt(next);
+      if (changed()) {
+        throw new AuthError('expired', 'The session changed during refresh.');
+      }
+      saveSession(next);
       publish();
       return next;
     } catch (error) {
+      if (changed()) {
+        throw new AuthError('expired', 'The session changed during refresh.');
+      }
       // Only a refusal means the credential is dead. A network failure leaves
       // the stored token alone: the machine being offline is not a reason to
       // sign somebody out, and they would have no way to get back in.
@@ -247,7 +274,10 @@ export const createAccountSession = (
       }
       throw error;
     } finally {
-      refreshing = undefined;
+      if (refreshController === controller) {
+        refreshing = undefined;
+        refreshController = undefined;
+      }
     }
   };
 
@@ -374,11 +404,17 @@ export const createAccountSession = (
       if (!refreshToken) {
         throw new AuthError('expired', 'Nobody is signed in.');
       }
+      const requestGeneration = generation;
       refreshing = refreshing ?? renew(refreshToken);
-      return (await refreshing).accessToken;
+      const refreshed = await refreshing;
+      if (requestGeneration !== generation) {
+        throw new AuthError('expired', 'The session changed during refresh.');
+      }
+      return refreshed.accessToken;
     },
 
     dispose: () => {
+      invalidateRefresh();
       inFlight?.abort();
       inFlight = undefined;
     },

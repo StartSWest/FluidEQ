@@ -53,6 +53,7 @@ import terms from './terms';
 import studio from './studio';
 import plus from './plus';
 import plusWelcome from './plusWelcome';
+import trial from './trial';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
@@ -82,6 +83,7 @@ const en = {
   ...studio,
   ...plus,
   ...plusWelcome,
+  ...trial,
   ...termsNotice,
   ...engineHealth,
   ...dspOff,

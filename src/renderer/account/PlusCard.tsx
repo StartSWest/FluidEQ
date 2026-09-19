@@ -3,6 +3,7 @@ import type { IEntitlementStatus } from 'main/account/entitlement';
 import type { TBillingFailure } from 'main/account/billingClient';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
+import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { useTranslation } from '../utils/I18nContext';
@@ -125,6 +126,10 @@ export default function PlusCard({
     </button>
   );
 
+  const activeBadge =
+    entitlement.renewing === false
+      ? 'account.plus.ending'
+      : 'account.plus.active';
   return (
     <section
       className={`plus-card plus-card--${entitlement.state}`}
@@ -145,9 +150,9 @@ export default function PlusCard({
             }`}
           >
             {t(
-              entitlement.renewing === false
-                ? 'account.plus.ending'
-                : 'account.plus.active',
+              entitlement.plan === PLUS_TRIAL_PLAN
+                ? 'trial.active.badge'
+                : activeBadge,
             )}
           </span>
         )}
@@ -184,7 +189,29 @@ export default function PlusCard({
           {/* A gift is not a membership: nothing renews, and there is no
               merchant page to manage it on. An open-ended gift carries a
               far-off date (premium 0021) that is not worth showing. */}
-          {entitlement.plan === GIFT_PLAN ? (
+          {entitlement.plan === PLUS_TRIAL_PLAN && (
+            <>
+              <p className="plus-card__line">
+                {t('trial.active.until', {
+                  date: format(entitlement.periodEndsAt),
+                })}
+              </p>
+              <p className="plus-card__hint">{t('trial.active.body')}</p>
+              <p className="plus-card__hint">{t('trial.offer.fine')}</p>
+              {isCheckoutConfigured() && (
+                <div className="plus-card__actions">
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={onUpgrade}
+                  >
+                    {t('trial.ended.plans')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+          {entitlement.plan === GIFT_PLAN && (
             <p className="plus-card__line">
               {entitlement.periodEndsAt !== undefined &&
               entitlement.periodEndsAt < GIFT_FOREVER_AFTER
@@ -193,43 +220,45 @@ export default function PlusCard({
                   })
                 : t('account.plus.gift')}
             </p>
-          ) : (
-            <>
-              {/* Cancelled, and still paid for. Everything keeps working to
+          )}
+          {entitlement.plan !== GIFT_PLAN &&
+            entitlement.plan !== PLUS_TRIAL_PLAN && (
+              <>
+                {/* Cancelled, and still paid for. Everything keeps working to
                   the end of the period, so the card says that before it says
                   the date — somebody who has just cancelled is owed the
                   answer to "what happens now", and a bare "Ends 14 Oct" is
                   not it. The way back is the same Manage button. */}
-              {entitlement.renewing === false && (
-                <p className="plus-card__sorry">{t('account.plus.sorry')}</p>
-              )}
-              {entitlement.periodEndsAt !== undefined && (
-                <p className="plus-card__line">
-                  {t(
-                    entitlement.renewing
-                      ? 'account.plus.renews'
-                      : 'account.plus.until',
-                    { date: format(entitlement.periodEndsAt) },
-                  )}
-                </p>
-              )}
-              {/* The one rule a member can walk into, from the constant the
+                {entitlement.renewing === false && (
+                  <p className="plus-card__sorry">{t('account.plus.sorry')}</p>
+                )}
+                {entitlement.periodEndsAt !== undefined && (
+                  <p className="plus-card__line">
+                    {t(
+                      entitlement.renewing
+                        ? 'account.plus.renews'
+                        : 'account.plus.until',
+                      { date: format(entitlement.periodEndsAt) },
+                    )}
+                  </p>
+                )}
+                {/* The one rule a member can walk into, from the constant the
                   server enforces it with — and only while the membership is
                   going on, since it is no use to somebody leaving. No price:
                   `plusPriceText` is the offer — both plans, or the monthly
                   one — and somebody paying yearly would read it as their own
                   bill. What they pay is behind the button, on the merchant's
                   own page. */}
-              {entitlement.renewing !== false && (
-                <p className="plus-card__hint">
-                  {t('account.plus.computers', {
-                    count: String(PLUS_MAX_COMPUTERS),
-                  })}
-                </p>
-              )}
-              <div className="plus-card__actions">{manage}</div>
-            </>
-          )}
+                {entitlement.renewing !== false && (
+                  <p className="plus-card__hint">
+                    {t('account.plus.computers', {
+                      count: String(PLUS_MAX_COMPUTERS),
+                    })}
+                  </p>
+                )}
+                <div className="plus-card__actions">{manage}</div>
+              </>
+            )}
         </>
       )}
 

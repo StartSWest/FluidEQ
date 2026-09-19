@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { app, ipcMain, type BrowserWindow } from 'electron';
+import { PLUS_TRIAL_PLAN } from '../../common/plusTrial';
 import type { IEntitlement } from '../account/entitlement';
 import {
   forgetPlusWelcomeSeen,
@@ -66,7 +67,12 @@ export const registerPlusWelcomeIpc = ({
 
   const state = (): TPlusWelcomeState => {
     const id = accountId();
-    if (!id || entitlement.status().state === 'none') {
+    const membership = entitlement.status();
+    if (
+      !id ||
+      membership.state === 'none' ||
+      membership.plan === PLUS_TRIAL_PLAN
+    ) {
       return null;
     }
     if (closedNow.has(id)) {

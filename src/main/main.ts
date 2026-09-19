@@ -197,6 +197,7 @@ import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import { registerAccountIpc } from './ipc/account';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
+import { registerPlusTrialIpc } from './ipc/plusTrial';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import registerWallpaperIpc from './wallpaper/register';
 import { createArrangementStore } from './wallpaper/arrangement';
@@ -3082,6 +3083,13 @@ const plusWelcomeIpc = registerPlusWelcomeIpc({
   logger: log,
 });
 
+const plusTrialIpc = registerPlusTrialIpc({
+  config: ACCOUNT_CONFIG,
+  session: accountIpc.session,
+  entitlement: accountIpc.entitlement,
+  onTermsAgreed: plusTermsNoticeIpc.agreed,
+});
+
 // The premium looks ride on the account: they are listed only while the
 // subscription is live, and fetched on the same "somebody is back at the
 // machine" events. Registering reads the cache; it contacts nothing.
@@ -3632,6 +3640,7 @@ app.on('before-quit', (event) => {
   accountIpc.dispose();
   plusTermsNoticeIpc.dispose();
   plusWelcomeIpc.dispose();
+  plusTrialIpc.dispose();
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
   plusReviewIpc.dispose();
