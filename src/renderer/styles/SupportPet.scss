@@ -277,6 +277,18 @@ $pet-hop-duration: 520ms;
 // can squash to the beat, bob, and sway from the hips all at once without any
 // one animation clobbering the others.
 
+// The creature's body, light at the crown and deep at the feet: its own mint
+// at rest, and the colours a Plus scene lends the window while it lends them -
+// with the rest of the chrome in the scene's colours it was the one cyan thing
+// left in the corner. Two tokens so the gradient keeps its shape in any hue.
+.support-pet__tone-top {
+  stop-color: var(--pet-tone-top);
+}
+
+.support-pet__tone-bottom {
+  stop-color: var(--pet-tone-bottom);
+}
+
 // Breathing when idle.
 .support-pet__body {
   transform-box: fill-box;

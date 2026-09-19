@@ -1864,6 +1864,9 @@ textarea,
   // arrows - were a cyan written into the drawing itself, so they were the one
   // thing left in the window that no scene could reach.
   --arrow-fill: var(--accent);
+  // The pet in the titlebar, light at its crown and deep at its feet.
+  --pet-tone-top: color-mix(in srgb, white 45%, var(--accent));
+  --pet-tone-bottom: var(--accent-dark);
 }
 
 // A Plus visualizer lending the window its colour (`sceneTintStore.ts`)
@@ -1904,6 +1907,9 @@ textarea,
   // The arrow triangles' own cyan at rest, as they were drawn; a scene tinting
   // the window replaces it with its accent (`:root[data-scene-tint]` above).
   --arrow-fill: #4fc3f7;
+  // The pet's own mint and deep cyan, as it was drawn.
+  --pet-tone-top: #7ef7e6;
+  --pet-tone-bottom: #17a5c4;
   // One number for the whole shell, and it is the same 12 the columns are
   // already separated by.
   //

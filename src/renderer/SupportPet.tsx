@@ -338,9 +338,11 @@ export function PetArt() {
       focusable="false"
     >
       <defs>
+        {/* Its colours come from two tokens (`SupportPet.scss`): its own mint
+            at rest, the scene's colours while a Plus scene tints the window. */}
         <linearGradient id="pet-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#7ef7e6" />
-          <stop offset="1" stopColor="#17a5c4" />
+          <stop offset="0" className="support-pet__tone-top" />
+          <stop offset="1" className="support-pet__tone-bottom" />
         </linearGradient>
         {/* The pupils, as clips. The waveform inside each eye runs well past
             the iris so it can scroll without its ends ever coming into view. */}
