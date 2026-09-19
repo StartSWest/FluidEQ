@@ -278,10 +278,16 @@ typedef struct FeqChainSettings {
  * The flat-array layout, and the two numbers that define it.
  *
  * `encodeChainSettings` in `src/common/dsp/chainWire.ts` writes it — the only
- * thing that does, the fixture generator's `chainParams` being a one-line alias
- * to it — and `feq_chain_settings_decode` reads it. Everything before the band
- * array sits at a fixed offset, so adding a scalar cannot silently re-point
- * sixty-four bands: the decoder asserts the lead rather than trusting it.
+ * thing that does — and `feq_chain_settings_decode` reads it. Everything
+ * before the band array sits at a fixed offset, so adding a scalar cannot
+ * silently re-point sixty-four bands: the decoder asserts the lead rather than
+ * trusting it, and `dspChainWire.test.ts` holds the lead equal to the
+ * encoder's `CHAIN_PARAM_LEAD`.
+ *
+ * What holds the decoder to the encoder's own output is `dsp_chain_test.cpp`
+ * in system-apo, on a line frozen from the encoder, and
+ * `preset_safety_test.cpp`, on the whole factory catalogue — never the
+ * whole-chain parity fixtures, which are frozen in an older layout.
  */
 /*
  * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass

@@ -8,12 +8,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * One flat array of doubles into a `FeqChainSettings`.
  *
  * This layout has exactly one writer: `encodeChainSettings` in
- * `src/common/dsp/chainWire.ts`. The fixture generator's `chainParams` is a
- * one-line alias to it rather than a second implementation, which is the point
- * — the fixtures push twenty-seven whole-chain cases through this decoder
- * against the real worklet, so the decoder the app depends on at runtime is the
- * decoder those fixtures exercise, and a field added to the encoder cannot
- * reach the app through a path the fixtures never saw.
+ * `src/common/dsp/chainWire.ts`. A layout the two sides disagree about does
+ * not fail — it decodes a Q as a threshold and still sounds like music — so
+ * this decoder is held to the encoder's own output, never to a hand-written
+ * line. `dsp_chain_test.cpp` in system-apo decodes a line frozen from the
+ * encoder and checks where its fields landed; `preset_safety_test.cpp`
+ * decodes the whole factory catalogue as the encoder writes it before the
+ * suite runs, and fails on any rack that does not decode.
+ *
+ * The whole-chain parity fixtures never reach this decoder: they were frozen
+ * in the layout of 929e5d397, which this one has outgrown, and
+ * `parity_test.cpp` reads them with its own reader of that layout.
  *
  * The variable-length part, the EQ's bands, is last on purpose: everything
  * before it sits at a fixed offset, so adding a scalar cannot silently
