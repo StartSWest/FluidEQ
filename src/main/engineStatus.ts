@@ -408,6 +408,16 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
 
 export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
   new Promise((resolve) => {
+    // The engine is an effect inside Windows' own audio service, and the
+    // helper that reports on it is a Windows program. Anywhere else there is
+    // neither, and asking anyway wrote "status probe could not run … ENOENT"
+    // to the log as an error on every macOS launch — and so into every bug
+    // report gathered there. Answered without asking, with what the failed
+    // spawn already answered.
+    if (process.platform !== 'win32') {
+      resolve({ installed: false, endpoints: [] });
+      return;
+    }
     let stdout = '';
     let stdoutBytes = 0;
     let stdoutOverflowed = false;

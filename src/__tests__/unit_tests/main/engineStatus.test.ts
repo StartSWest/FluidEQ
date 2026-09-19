@@ -69,6 +69,26 @@ import {
 
 const ENGINE_DLL = 'FluidEQ-Engine.dll';
 
+/**
+ * Everything in this file is Windows behaviour — the engine lives inside
+ * Windows' audio service and its helper is a Windows program — so the suite
+ * says which platform it is asking about instead of inheriting the machine it
+ * happens to run on. Run on a Mac, seven of these read `darwin`, were refused
+ * before reaching the code under test, and failed for a reason that had nothing
+ * to do with it.
+ */
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+
+beforeAll(() => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
+});
+
+afterAll(() => {
+  if (hostPlatform) {
+    Object.defineProperty(process, 'platform', hostPlatform);
+  }
+});
+
 beforeEach(() => {
   isEqualizerAPOInstalledSpy.mockClear();
   planEngineUpdateSpy.mockReset();
