@@ -67,6 +67,10 @@ beforeEach(() => {
       listPlusGifts: async () => ({ ok: true, gifts }),
       givePlus,
       takeBackPlus,
+      getPlusTrialSettings: async () => ({
+        ok: true,
+        settings: { enabled: false, days: 30 },
+      }),
     },
   } as unknown as typeof window.electron;
 });

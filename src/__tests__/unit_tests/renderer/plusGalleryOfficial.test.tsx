@@ -11,6 +11,7 @@ import {
   resetGalleryStore,
 } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
+import { resetPlusTrialStore } from '../../../renderer/plus/trialStore';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
 import {
@@ -30,12 +31,18 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: mockEntitled ? 'active' : 'none' }),
+  subscribeEntitlement: () => () => undefined,
 }));
 jest.mock('../../../renderer/account/accountStore', () => ({
   useAccount: () => ({
     status: 'signed-in',
     identity: { id: 'member-account' },
   }),
+  getAccountSnapshot: () => ({
+    status: 'signed-in',
+    identity: { id: 'member-account' },
+  }),
+  subscribeAccount: () => () => undefined,
 }));
 jest.mock('../../../renderer/graph/sceneHealth', () => ({
   isSceneRenderingAvailable: () => true,
@@ -104,11 +111,13 @@ const bridge = {
   refreshScenePacks: jest.fn(),
   onScenePacksChanged: jest.fn(() => () => undefined),
   leaderboardBoard: jest.fn(),
+  getPlusTrialOffer: jest.fn(),
 };
 
 beforeEach(() => {
   jest.resetAllMocks();
   mockEntitled = true;
+  resetPlusTrialStore();
   resetPlusNavigation();
   resetGalleryStore();
   resetGalleryActions();
@@ -143,6 +152,16 @@ beforeEach(() => {
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
   bridge.onScenePacksChanged.mockReturnValue(() => undefined);
   bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
+  bridge.getPlusTrialOffer.mockResolvedValue({
+    ok: true,
+    offer: {
+      enabled: false,
+      days: 30,
+      state: 'unavailable',
+      termsVersion: 8,
+      trialTermsVersion: 1,
+    },
+  });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },

@@ -11,6 +11,7 @@ import type { IGalleryScene } from '../../../common/plusGallery';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
+import { resetPlusTrialStore } from '../../../renderer/plus/trialStore';
 import { resetScenePictures } from '../../../renderer/plus/scenePictures';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import GalleryCard from '../../../renderer/plus/GalleryCard';
@@ -31,6 +32,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: mockEntitled ? 'active' : 'none' }),
+  subscribeEntitlement: () => () => undefined,
 }));
 
 jest.mock('../../../renderer/account/accountStore', () => ({
@@ -38,6 +40,11 @@ jest.mock('../../../renderer/account/accountStore', () => ({
     status: 'signed-in',
     identity: { id: '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30' },
   }),
+  getAccountSnapshot: () => ({
+    status: 'signed-in',
+    identity: { id: '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30' },
+  }),
+  subscribeAccount: () => () => undefined,
 }));
 
 jest.mock('../../../renderer/graph/sceneHealth', () => ({
@@ -115,11 +122,13 @@ const bridge = {
   listScenePacks: jest.fn(),
   onMemberScenesChanged: jest.fn(() => () => undefined),
   leaderboardBoard: jest.fn(),
+  getPlusTrialOffer: jest.fn(),
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockEntitled = true;
+  resetPlusTrialStore();
   resetPlusNavigation();
   resetGalleryStore();
   resetGalleryActions();
@@ -147,6 +156,16 @@ beforeEach(() => {
   });
   bridge.galleryPicture.mockResolvedValue(undefined);
   bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
+  bridge.getPlusTrialOffer.mockResolvedValue({
+    ok: true,
+    offer: {
+      enabled: false,
+      days: 30,
+      state: 'unavailable',
+      termsVersion: 8,
+      trialTermsVersion: 1,
+    },
+  });
   bridge.listMemberScenes.mockResolvedValue({
     entitled: true,
     scenes: [],
@@ -194,7 +213,8 @@ describe('Visualizers', () => {
     expect(
       await screen.findByRole('button', { name: 'Neon City' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('plus.browse.text')).toBeInTheDocument();
+    expect(screen.getByText('trial.free.title')).toBeInTheDocument();
+    expect(screen.getByText('trial.free.body')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'plus.card.add' }),
     ).not.toBeInTheDocument();
@@ -235,10 +255,11 @@ describe('Visualizers', () => {
       await screen.findByText('plus.scene.keepWatching'),
     ).toBeInTheDocument();
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
-    // One over the gallery, and one on the stage where the scene stopped.
+    // The gallery offer stays on Browse; this action belongs to the stage.
     expect(
       screen.getAllByRole('button', { name: 'plus.gate.cta' }),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
+    expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 

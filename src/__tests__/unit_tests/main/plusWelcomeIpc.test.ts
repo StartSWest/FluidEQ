@@ -98,6 +98,20 @@ afterEach(() => {
 });
 
 describe('the welcome to Plus', () => {
+  it('keeps trial activation in Plus and welcomes a later paid membership', async () => {
+    membership = { state: 'active', plan: 'trial' };
+    register();
+    await Promise.resolve();
+    expect(shown()).toBeNull();
+    expect(sent).toEqual([]);
+    expect(readPlusWelcomeSeen(root, 'member-1')).toBe(0);
+
+    membership = ACTIVE;
+    membershipListener(ACTIVE);
+    expect(shown()).toEqual({ edition: 1 });
+    expect(sent).toEqual([{ edition: 1 }]);
+  });
+
   it('says nothing to an account without a membership', () => {
     register();
     expect(shown()).toBeNull();

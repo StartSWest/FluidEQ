@@ -17,6 +17,7 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { setGalleryNotice } from './galleryActions';
 import GalleryListNotice from './GalleryListNotice';
+import PlusTrialSettings from './PlusTrialSettings';
 import '../styles/PlusGifts.scss';
 
 const LIST_ERRORS: Record<TPlusGiftFailure, TranslationKey> = {
@@ -228,6 +229,7 @@ export default function PlusGifts() {
 
   return (
     <div className="gallery-page plus-gifts">
+      <PlusTrialSettings />
       <div className="plus-gifts__intro">
         <span className="plus-gifts__mark" aria-hidden="true">
           <Glyph name="gift" />

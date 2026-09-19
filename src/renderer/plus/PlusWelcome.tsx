@@ -8,6 +8,7 @@ import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import PlusTrialOffer, { PlusFreeIntro } from './PlusTrialCard';
 import '../styles/PlusWelcome.scss';
 
 /**
@@ -28,12 +29,12 @@ const SCENES: readonly { key: TranslationKey; picture: string }[] = [
 const PERKS: readonly {
   glyph: TCommunityGlyph;
   key: TranslationKey;
-  plus: boolean;
 }[] = [
-  { glyph: 'looks', key: 'plus.welcome.browse', plus: false },
-  { glyph: 'headphones', key: 'plus.welcome.play', plus: true },
-  { glyph: 'studio', key: 'plus.welcome.studio', plus: true },
-  { glyph: 'board', key: 'plus.welcome.board', plus: true },
+  { glyph: 'looks', key: 'trial.extras.scenes' },
+  { glyph: 'studio', key: 'trial.extras.studio' },
+  { glyph: 'lighting', key: 'trial.extras.desktop' },
+  { glyph: 'headphones', key: 'trial.extras.room' },
+  { glyph: 'board', key: 'trial.extras.board' },
 ];
 
 /**
@@ -45,6 +46,7 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="plus-welcome">
       <div className="plus-welcome__inner">
+        <PlusFreeIntro />
         <div className="plus-welcome__scenes" aria-hidden="true">
           {/* The scenes' own light on the wall behind them: the lead
               picture again, blown up and blurred to a glow. */}
@@ -63,7 +65,7 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
             </span>
             {t('account.plus.eyebrow')}
           </span>
-          <h2 className="plus-welcome__title">{t('plus.welcome.title')}</h2>
+          <h3 className="plus-welcome__title">{t('trial.extras.title')}</h3>
           <ul className="plus-welcome__perks">
             {PERKS.map((perk) => (
               <li key={perk.key}>
@@ -71,27 +73,14 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
                   <Glyph name={perk.glyph} />
                 </span>
                 <span>{t(perk.key)}</span>
-                {perk.plus && (
-                  <span className="community__role">
-                    {t('graph.scene.badge')}
-                  </span>
-                )}
               </li>
             ))}
           </ul>
-          <dl className="plus-welcome__access">
-            <div>
-              <dt>{t('plus.welcome.account.label')}</dt>
-              <dd>{t('plus.welcome.account.access')}</dd>
-            </div>
-            <div>
-              <dt>{t('plus.welcome.paid.label')}</dt>
-              <dd>{t('plus.welcome.paid.access')}</dd>
-            </div>
-          </dl>
+          <PlusTrialOffer />
+          <p className="gallery-fine">{t('trial.browse')}</p>
           <button
             type="button"
-            className="button plus-welcome__button"
+            className="button subtle plus-welcome__button"
             onClick={onSignIn}
           >
             {t('account.signIn')}
