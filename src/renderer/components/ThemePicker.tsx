@@ -12,19 +12,28 @@ import { THEMES, setTheme, useTheme } from '../utils/theme';
 import '../styles/Dsp.scss';
 
 /**
- * The theme, in the actions menu's settings tray: both of them side by side,
+ * The theme, in the actions menu's settings tray: every one side by side,
  * each with a swatch of itself.
  *
- * Two choices do not need a list that has to be opened to find out what the
- * other one is — the reason the app has the segmented control at all. The
+ * A few choices do not need a list that has to be opened to find out what
+ * the others are — the reason the app has the segmented control at all. The
  * swatch is painted from the theme's own surface and accent, which
  * `App.scss` declares for `data-theme-swatch` beside the theme itself, so it
- * shows Ocean while Black is on and cannot drift from what picking it does.
+ * shows one theme while another is on and cannot drift from what picking it
+ * does.
+ *
+ * Nothing at all while there is only one theme: Ocean was retired to make
+ * room for a light one, and until that arrives a segmented control with a
+ * single segment would be a setting that sets nothing.
  */
 const ThemePicker = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const labelId = useId();
+
+  if ((THEMES as readonly string[]).length < 2) {
+    return null;
+  }
 
   return (
     <div className="menu-preference">
