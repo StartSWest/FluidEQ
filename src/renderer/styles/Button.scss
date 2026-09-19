@@ -119,6 +119,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
+  // The answer that cannot be taken back, once the question has been asked:
+  // delete, refuse, sign out. Filled, because at that moment it is the answer
+  // being given; red, because of what it does.
+  //
+  // It was `.gallery-danger` in `Gallery.scss` until the Account panel's
+  // sign-out needed it too: a page that draws with a class has to be able to
+  // rely on the sheet that defines it, and this is the one every page has
+  // (the `.link-button` note below is the same story). Above the unavailable
+  // and focus blocks, so both still win over it. In the running window the
+  // old rule loaded some fifteen hundred rules after `.button:focus-visible`,
+  // at the same specificity, so its `box-shadow: none` took the focus ring
+  // off every red button; and the base hover, outranking it, turned its label
+  // near-black and lit a cyan glow on the red. It sets both itself now.
+  &.danger {
+    color: $white;
+    border-color: color-mix(in srgb, $red 70%, transparent);
+    background: color-mix(in srgb, $red 62%, $surface-base);
+    box-shadow: none;
+
+    &:hover:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      border-color: $red;
+      background: color-mix(in srgb, $red 78%, $surface-base);
+      box-shadow: 0 0 18px color-mix(in srgb, $red 24%, transparent);
+      filter: none;
+    }
+
+    &:active:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      background: color-mix(in srgb, $red 54%, $surface-base);
+    }
+
+    // Busy breathes in its own colour: the accent's glow on a red button
+    // read as a second control lighting up beside it.
+    &.is-running:not([aria-disabled='true']):not(:disabled) {
+      animation-name: button-running-danger;
+    }
+  }
+
   // Unavailable, in the two spellings this class has to answer to.
   //
   // `Button` is a `div role="button"`, which can only say `aria-disabled`;
@@ -198,6 +237,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   50% {
     box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 42%, transparent);
+  }
+}
+
+@keyframes button-running-danger {
+  0%,
+  100% {
+    box-shadow: 0 0 8px color-mix(in srgb, $red 14%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 22px color-mix(in srgb, $red 44%, transparent);
   }
 }
 

@@ -728,6 +728,8 @@ const dsp = {
   'dsp.room.speaker.angle': 'कोण',
   'dsp.room.speaker.mute': 'म्यूट',
   'dsp.room.speaker.solo': 'सोलो',
+  'dsp.room.speaker.soloUnfed':
+    'जो चल रहा है उसमें से कुछ भी इस स्पीकर तक नहीं पहुँचता, इसलिए अकेले सुनने को कुछ नहीं है।',
   'dsp.room.speaker.close': 'बंद करें',
   'dsp.room.speakerName.FL': 'सामने बायाँ',
   'dsp.room.speakerName.FR': 'सामने दायाँ',

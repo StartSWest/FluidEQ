@@ -40,7 +40,8 @@ export type TCommunityGlyph =
   | 'lighting'
   | 'gift'
   | 'music'
-  | 'calm';
+  | 'calm'
+  | 'sign-out';
 
 interface IGlyphProps {
   name: TCommunityGlyph;
@@ -344,6 +345,14 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M2.5 8.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" />
             <path d="M2.5 13.5c2.5-2.2 5-2.2 7.5 0s5 2.2 7.5 0" opacity="0.7" />
+          </>
+        );
+      case 'sign-out':
+        // Leaving: an arrow out through the open side of a door frame.
+        return (
+          <>
+            <path d="M8 3.5H5A1.5 1.5 0 0 0 3.5 5v10A1.5 1.5 0 0 0 5 16.5h3" />
+            <path d="M8.5 10h8M13.3 6.7 16.5 10l-3.2 3.3" />
           </>
         );
       default:

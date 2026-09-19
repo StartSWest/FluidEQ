@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { PointerEvent as ReactPointerEvent, ReactNode, useRef } from 'react';
 import { IRoomSettings, ROOM_SPEAKERS } from '../../common/dsp/chain';
+import { roomSolo } from '../../common/dsp/roomSpeakers';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -22,8 +23,6 @@ interface IDspRoomGraphProps {
   subFed: boolean;
   /** Said under the room while some speakers are asleep. */
   fedHintKey?: TranslationKey;
-  /** FL FR C SL SR RL RR then the sub: drawn muted, still selectable. */
-  mutes: readonly boolean[];
   /** The speaker whose panel is open, if any; the sub is 'sub'. */
   selected: TRoomPick | null;
   /** A press without a drag: the speaker (or the sub) to set, or nothing. */
@@ -111,7 +110,6 @@ const DspRoomGraph = ({
   fed,
   subFed,
   fedHintKey,
-  mutes,
   selected,
   onSelect,
   children,
@@ -232,6 +230,10 @@ const DspRoomGraph = ({
   const distanceStart = polar(distanceAngle, 24);
   const distanceEnd = polar(distanceAngle, ring - 4);
   const distanceMid = polar(distanceAngle, ring / 2 + 10);
+  const { mutes } = room;
+  // The speaker heard alone, if the mutes spell one: ringed, so a solo reads
+  // as a solo and not as six separate mutes.
+  const solo = roomSolo(mutes);
   const speakers = Array.from({ length: ROOM_SPEAKERS }, (_unused, at) => {
     const angle = room.angles[at];
     return {
@@ -243,6 +245,7 @@ const DspRoomGraph = ({
         fed[at] && !mutes[at] ? clamp((room.levels[at] + 24) / 24, 0, 1) : 0,
       asleep: !fed[at],
       muted: mutes[at] === true,
+      soloed: solo === at,
       isSelected: selected === at,
     };
   });
@@ -358,14 +361,24 @@ const DspRoomGraph = ({
         {[...speakers]
           .sort((a, b) => Number(b.asleep) - Number(a.asleep))
           .map(
-            ({ at, angle, point, label, glow, asleep, muted, isSelected }) => (
+            ({
+              at,
+              angle,
+              point,
+              label,
+              glow,
+              asleep,
+              muted,
+              soloed,
+              isSelected,
+            }) => (
               <g
                 key={SPEAKER_NAMES[at]}
                 className={`dsp-room-speaker${
                   canDrag && !isDisabled && !asleep ? ' can-drag' : ''
                 }${asleep ? ' is-asleep' : ''}${muted ? ' is-muted' : ''}${
-                  isSelected ? ' is-selected' : ''
-                }`}
+                  soloed ? ' is-soloed' : ''
+                }${isSelected ? ' is-selected' : ''}`}
                 onPointerDown={onPointerDown(at)}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
@@ -404,6 +417,14 @@ const DspRoomGraph = ({
                     />
                   ) : undefined}
                 </g>
+                {soloed ? (
+                  <circle
+                    className="dsp-room-speaker-solo"
+                    cx={point.x}
+                    cy={point.y}
+                    r={21}
+                  />
+                ) : undefined}
                 {isSelected ? (
                   <circle
                     className="dsp-room-speaker-select"

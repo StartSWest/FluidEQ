@@ -88,9 +88,21 @@ typedef struct FeqRoomSettings {
    * so a nearer speaker arrives when it should.
    */
   double speaker_distance_m[FEQ_ROOM_SPEAKERS];
-  /** Seven speakers then the sub: a muted one builds no kernel and is silent. */
+  /**
+   * Seven speakers then the sub: a silent one builds no kernel. Two reasons
+   * to be silent, kept apart: `FEQ_ROOM_MUTED` is the speaker's own mute,
+   * `FEQ_ROOM_HUSHED` a solo standing on another speaker (so a solo is the
+   * hush on six and none on the seventh; never on the sub). A solo holds only
+   * while the stream reaches its speaker: a stereo stream on the front stage
+   * feeds the front pair alone, and a solo left on a rear speaker would
+   * silence the two that get sound to play one that gets none. Then the hush
+   * is dropped and the mutes alone stand.
+   */
   int mute[FEQ_ROOM_SPEAKERS + 1];
 } FeqRoomSettings;
+
+#define FEQ_ROOM_MUTED 1
+#define FEQ_ROOM_HUSHED 2
 
 typedef struct FeqRoom FeqRoom;
 

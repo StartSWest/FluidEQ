@@ -23,6 +23,10 @@ const account = {
   'account.standing.free': 'Conta gratuita',
   'account.signOut': 'Terminar sessão',
   'account.signOut.confirm': 'Terminar a sessão desta conta?',
+  'account.signOut.detail': 'Podes voltar a iniciar sessão quando quiseres.',
+  'account.signOut.detailPlus':
+    'O Plus fica bloqueado aqui até voltares a iniciar sessão.',
+  'account.signOut.kept': 'Nada é apagado deste computador.',
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',
   'account.name.changeBody':

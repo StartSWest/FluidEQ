@@ -23,6 +23,9 @@ const account = {
   'account.standing.free': 'मुफ़्त खाता',
   'account.signOut': 'साइन आउट',
   'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
+  'account.signOut.detail': 'आप कभी भी फिर से साइन इन कर सकते हैं।',
+  'account.signOut.detailPlus': 'फिर से साइन इन करने तक Plus यहाँ लॉक रहेगा।',
+  'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':

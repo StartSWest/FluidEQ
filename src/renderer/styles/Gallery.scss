@@ -1646,17 +1646,6 @@ $gallery-card-lead: 120ms;
   border-top: 1px solid $border-subtle;
 }
 
-.gallery-danger.button {
-  color: $white;
-  border-color: color-mix(in srgb, $red 70%, transparent);
-  background: color-mix(in srgb, $red 62%, $surface-base);
-  box-shadow: none;
-
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, $red 78%, $surface-base);
-  }
-}
-
 // ---------------------------------------------------------------- without Plus
 
 // Over the gallery for a member without Plus: one line of what Plus does

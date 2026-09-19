@@ -22,6 +22,9 @@ const account = {
   'account.standing.free': '免费账户',
   'account.signOut': '退出登录',
   'account.signOut.confirm': '要退出这个账户吗？',
+  'account.signOut.detail': '你可以随时重新登录。',
+  'account.signOut.detailPlus': '重新登录之前，Plus 在这里会保持锁定。',
+  'account.signOut.kept': '这台电脑上的任何内容都不会被删除。',
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',
   'account.name.changeBody':

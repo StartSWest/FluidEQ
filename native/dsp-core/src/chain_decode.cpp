@@ -208,7 +208,14 @@ int feq_chain_settings_decode(const double* values,
     out->room.speaker_distance_m[speaker] = next();
   }
   for (int slot = 0; slot < FEQ_ROOM_SPEAKERS + 1; ++slot) {
-    out->room.mute[slot] = flag();
+    // Not a flag: `FEQ_ROOM_MUTED` and `FEQ_ROOM_HUSHED` both ride here.
+    // Anything else is a wire this engine does not know, read as the plain
+    // mute every engine before this made of any value but 0.
+    const double value = next();
+    out->room.mute[slot] = value == 0.0   ? 0
+                           : value == 2.0 ? FEQ_ROOM_HUSHED
+                           : value == 3.0 ? FEQ_ROOM_MUTED | FEQ_ROOM_HUSHED
+                                          : FEQ_ROOM_MUTED;
   }
 
   out->surround_all_channels = flag();

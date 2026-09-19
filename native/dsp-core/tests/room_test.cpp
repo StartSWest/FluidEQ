@@ -453,6 +453,259 @@ void a_dial_moves_without_a_step() {
         "the reflections arrived after the change");
 }
 
+/** A room that keeps playing across calls, so a tone stays one tone. */
+struct Stream {
+  FeqRoom* room;
+  uint32_t channels;
+  size_t clock = 0;
+
+  /** `blocks` more of a 440 Hz tone on each channel in `fed`; both ears. */
+  Planar play(const std::vector<uint32_t>& fed, size_t blocks) {
+    Planar b = planar(channels, blocks);
+    for (const uint32_t channel : fed) {
+      for (size_t at = 0; at < b[channel].size(); ++at) {
+        b[channel][at] = static_cast<float>(
+            0.5 * std::sin(2.0 * kPi * 440.0 * (clock + at) / kRate));
+      }
+    }
+    run(room, b);
+    clock += blocks * kFrames;
+    return b;
+  }
+};
+
+/** Every speaker muted but `open`; -1 opens none. The sub is left alone. */
+void solo(FeqRoomSettings& settings, int open) {
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    settings.mute[speaker] = speaker == open ? 0 : 1;
+  }
+}
+
+/**
+ * A MUTE OR A SOLO CHANGED WHILE THE ROOM PLAYS LANDS, WHATEVER IT LEAVES.
+ *
+ * A new set of kernels is faded in, and the fade's position was whatever the
+ * one crossfade that ran handed back — so it only moved while some speaker
+ * stood in BOTH sets. A solo moved from one speaker to another shares no
+ * speaker with the set before it; neither does the last speaker muted, or
+ * the first one opened again. The fade never moved, the new set was never
+ * heard, and the page showed a solo the sound did not follow: the old
+ * speaker played on, and a room muted to nothing stayed silent after it was
+ * opened again. Every other test here sets its mutes before the first block,
+ * which is a switch and not a fade, and so none of them saw it.
+ *
+ * In both of the room's forms: game mode renders a kernel's first partition
+ * through a direct head beside the convolver, and the head has to follow the
+ * same fade.
+ */
+void a_solo_moves_and_a_silent_room_comes_back(bool game_mode) {
+  std::printf("a solo moves, and a silent room comes back%s\n",
+              game_mode ? " (game mode)" : "");
+  const int speakers[8] = {0, 1, 2, -1, 5, 6, 3, 4};
+  Fixture f(8, speakers, 3);
+  feq_room_set_low_latency(f.room, game_mode ? 1 : 0);
+  solo(f.settings, 0);
+  feq_room_configure(f.room, &f.settings);
+  Stream stream{f.room, 8};
+  constexpr size_t kSettle = 20;  // Warm-up and fade, several times over.
+  const auto heard = [](const Planar& b) {
+    return energy(b[0], b[0].size() / 2) + energy(b[1], b[1].size() / 2);
+  };
+  // The front right's channel alone is fed, all the way through.
+  const double while_left_soloed = heard(stream.play({1}, kSettle));
+  check(while_left_soloed < 1e-9,
+        "the right speaker is silent while the left one is soloed");
+  solo(f.settings, 1);
+  feq_room_configure(f.room, &f.settings);
+  const double right_soloed = heard(stream.play({1}, kSettle));
+  std::printf("  right speaker: %.3g while the left is soloed, %.3g once it is\n",
+              while_left_soloed, right_soloed);
+  check(right_soloed > 1.0, "the solo moved: the right speaker is heard");
+  solo(f.settings, -1);
+  feq_room_configure(f.room, &f.settings);
+  const double all_muted = heard(stream.play({1}, kSettle));
+  check(all_muted < 1e-9, "the last speaker muted goes silent");
+  f.settings.mute[1] = 0;
+  feq_room_configure(f.room, &f.settings);
+  const double opened = heard(stream.play({1}, kSettle));
+  std::printf("  every speaker muted: %.3g; the right one opened again: %.3g\n",
+              all_muted, opened);
+  check(opened > 1.0, "a room muted to nothing comes back when one is opened");
+  // To a hundredth: the two windows catch the tone at different phases.
+  check(std::fabs(opened - right_soloed) / right_soloed < 0.01,
+        "and as loud as it was");
+}
+
+/**
+ * A MUTE FADES, IN AND OUT.
+ *
+ * A speaker the next set does not have played on at full level until the
+ * sets were exchanged and stopped there, mid-wave; one only the next set has
+ * was not run at all until the exchange and started there, cold. Both are a
+ * step in the sound — a click on every press of Mute or Solo. Measured as the
+ * largest jump between neighbouring samples, against the same tone playing
+ * steadily.
+ */
+void a_mute_fades_in_and_out() {
+  std::printf("a mute fades in and out\n");
+  const int speakers[8] = {0, 1, 2, -1, 5, 6, 3, 4};
+  Fixture f(8, speakers, 3);
+  Stream stream{f.room, 8};
+  constexpr size_t kSettle = 20;
+  const Planar steady = stream.play({0, 1}, kSettle);
+  const double usual = worst_step(steady[0], kFrames * 4);
+  f.settings.mute[1] = 1;
+  feq_room_configure(f.room, &f.settings);
+  const Planar muting = stream.play({0, 1}, kSettle);
+  f.settings.mute[1] = 0;
+  feq_room_configure(f.room, &f.settings);
+  const Planar opening = stream.play({0, 1}, kSettle);
+  std::printf("  worst step: steady %.5f, muting %.5f, opening %.5f\n", usual,
+              worst_step(muting[0], 0), worst_step(opening[0], 0));
+  check(worst_step(muting[0], 0) <= usual * 1.05, "muting makes no step");
+  check(worst_step(opening[0], 0) <= usual * 1.05, "opening makes no step");
+  // POSITIVE CONTROL: the mute did land, and did lift.
+  check(energy(muting[1], muting[1].size() / 2) <
+            energy(steady[1], steady[1].size() / 2) * 0.6,
+        "the right speaker left the right ear");
+  check(energy(opening[1], opening[1].size() / 2) >
+            energy(steady[1], steady[1].size() / 2) * 0.99,
+        "and came back whole");
+}
+
+/** A solo as the wire spells it: the hush on every speaker but `on`. */
+void hush_all_but(FeqRoomSettings& settings, int on) {
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    settings.mute[speaker] =
+        (settings.mute[speaker] & FEQ_ROOM_MUTED) |
+        (speaker == on ? 0 : FEQ_ROOM_HUSHED);
+  }
+}
+
+/**
+ * A SOLO HOLDS ONLY WHILE THE STREAM REACHES ITS SPEAKER.
+ *
+ * A stereo stream on the front stage feeds the front pair and nothing else.
+ * A solo left on a side speaker — taken while a 7.1 game played, or while
+ * stereo music filled the room — silenced those two to play one that nothing
+ * fed: a room gone quiet with its switch on. The engine is the only thing
+ * that knows what is playing, so it is the engine that drops the solo, and
+ * the speakers' own mutes stand in its place.
+ */
+void a_solo_nothing_reaches_is_dropped() {
+  std::printf("a solo nothing reaches is dropped\n");
+  const auto ears = [](const Planar& b) { return energy(b[0]) + energy(b[1]); };
+  {
+    // Front stage: the right side speaker soloed, and the front right muted
+    // for good measure. The left front is fed.
+    const int speakers[2] = {0, 1};
+    Fixture f(2, speakers, -1);
+    f.settings.mute[1] = FEQ_ROOM_MUTED;
+    hush_all_but(f.settings, 4);
+    feq_room_configure(f.room, &f.settings);
+    Planar left = planar(2);
+    left[0][10] = 1.0f;
+    run(f.room, left);
+    Planar right = planar(2);
+    right[1][10] = 1.0f;
+    run(f.room, right);
+    std::printf("  front stage, side right soloed: left front %.3g, "
+                "right front (muted) %.3g\n",
+                ears(left), ears(right));
+    check(ears(left) > 0.1, "the front left still plays: the solo is dropped");
+    check(ears(right) == 0.0, "and the front right's own mute still stands");
+  }
+  {
+    // POSITIVE CONTROL: on the same front stage a solo the stream does reach
+    // holds — the left front soloed silences the right.
+    const int speakers[2] = {0, 1};
+    Fixture f(2, speakers, -1);
+    hush_all_but(f.settings, 0);
+    feq_room_configure(f.room, &f.settings);
+    Planar right = planar(2);
+    right[1][10] = 1.0f;
+    run(f.room, right);
+    check(ears(right) == 0.0, "a solo on a fed speaker silences the others");
+  }
+  {
+    // And under the music upmix every speaker is fed, so the side solo holds:
+    // the fronts go, the side stays.
+    const int speakers[2] = {0, 1};
+    Fixture f(2, speakers, -1);
+    f.settings.music_upmix = 1;
+    f.settings.upmix_amount = 1.0;
+    hush_all_but(f.settings, 4);
+    feq_room_configure(f.room, &f.settings);
+    Planar both = planar(2);
+    both[0][10] = 1.0f;  // Left only: a side signal for the ring.
+    run(f.room, both);
+    Fixture whole(2, speakers, -1);
+    whole.settings.music_upmix = 1;
+    whole.settings.upmix_amount = 1.0;
+    feq_room_configure(whole.room, &whole.settings);
+    Planar all = planar(2);
+    all[0][10] = 1.0f;
+    run(whole.room, all);
+    std::printf("  filled room: side right alone %.3g of the whole %.3g\n",
+                ears(both), ears(all));
+    check(ears(both) > 0.0 && ears(both) < ears(all) * 0.5,
+          "with the room filled the side speaker is heard alone");
+  }
+  {
+    // The soloed speaker plays whatever its own mute says.
+    const int speakers[8] = {0, 1, 2, -1, 5, 6, 3, 4};
+    Fixture f(8, speakers, 3);
+    f.settings.mute[1] = FEQ_ROOM_MUTED;
+    hush_all_but(f.settings, 1);
+    feq_room_configure(f.room, &f.settings);
+    Planar right = planar(8);
+    right[1][10] = 1.0f;
+    run(f.room, right);
+    check(ears(right) > 0.1, "a soloed speaker is heard even if it is muted");
+  }
+}
+
+/**
+ * FILL THE ROOM ARRIVES AND LEAVES WITHOUT A STEP.
+ *
+ * Switched on over a stereo stream, the five speakers beyond the front pair
+ * stand only in the replacement set: nothing fed them until the sets were
+ * exchanged, so the whole ring started there at once, cold. Now the feeds
+ * run from the moment the replacement is adopted, and the ring fades in; on
+ * the way out it fades against silence like any speaker being muted.
+ */
+void fill_the_room_arrives_and_leaves_without_a_step() {
+  std::printf("fill the room arrives and leaves without a step\n");
+  const int speakers[2] = {0, 1};
+  Fixture f(2, speakers, -1);
+  Stream stream{f.room, 2};
+  constexpr size_t kSettle = 20;
+  // The left channel alone, so there is a side signal for the ring to carry.
+  const Planar front = stream.play({0}, kSettle);
+  f.settings.music_upmix = 1;
+  f.settings.upmix_amount = 1.0;
+  feq_room_configure(f.room, &f.settings);
+  const Planar arriving = stream.play({0}, kSettle);
+  const Planar filled = stream.play({0}, kSettle);
+  f.settings.music_upmix = 0;
+  feq_room_configure(f.room, &f.settings);
+  const Planar leaving = stream.play({0}, kSettle);
+  const double usual = std::max(worst_step(front[1], kFrames * 4),
+                                worst_step(filled[1], 0));
+  std::printf("  worst step: steady %.5f, arriving %.5f, leaving %.5f\n", usual,
+              worst_step(arriving[1], 0), worst_step(leaving[1], 0));
+  check(worst_step(arriving[1], 0) <= usual * 1.05, "the ring arrives smoothly");
+  check(worst_step(leaving[1], 0) <= usual * 1.05, "and leaves smoothly");
+  // POSITIVE CONTROL: the ring was there — the far ear hears more with it.
+  const double without = energy(front[1], front[1].size() / 2);
+  const double with = energy(filled[1], filled[1].size() / 2);
+  std::printf("  right ear: front stage %.4g, filled %.4g\n", without, with);
+  check(with > without * 1.2, "the ring is heard once it has arrived");
+  check(std::fabs(energy(leaving[1], leaving[1].size() / 2) - without) / without <
+            0.01,
+        "and gone once it has left");
+}
+
 }  // namespace
 
 int main() {
@@ -466,5 +719,10 @@ int main() {
   the_music_upmix_fills_the_ring();
   hard_walls_add_reflections_and_dead_walls_none();
   a_dial_moves_without_a_step();
+  a_solo_moves_and_a_silent_room_comes_back(false);
+  a_solo_moves_and_a_silent_room_comes_back(true);
+  a_mute_fades_in_and_out();
+  a_solo_nothing_reaches_is_dropped();
+  fill_the_room_arrives_and_leaves_without_a_step();
   return finish();
 }

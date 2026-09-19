@@ -18,13 +18,14 @@ import {
   useProfile,
 } from '../plus/profileStore';
 import type { TAccountPanelPage } from './accountPanel';
-import { signOutAccount, useAccount } from './accountStore';
+import { useAccount } from './accountStore';
 import { useEntitlement } from './entitlementStore';
 import SceneBand from '../plus/SceneBand';
 import PlusCard from './PlusCard';
 import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
 import SignInForms from './SignInForms';
+import SignOutConfirm from './SignOutConfirm';
 import SubscribeAgreement from './SubscribeAgreement';
 import PlusTrialAgreement from './PlusTrialAgreement';
 import AccountPitch from './AccountPitch';
@@ -128,16 +129,32 @@ export default function AccountDialog({
   // name stands in until then.
   const { profile, loaded: profileLoaded } = useProfile();
   const accountId = signedIn ? identity.id : undefined;
+  const [editingName, setEditingName] = useState(false);
+  // Whether signing out is being asked about rather than done.
+  const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
+    // A question or a name form belongs to the account it was opened on:
+    // kept, signing out and back in within one opening of the panel came
+    // back to "Sign out of this account?" already asked.
+    setSigningOut(false);
+    setEditingName(false);
     if (accountId) {
       loadProfile(accountId).catch(() => undefined);
     } else {
       forgetProfile();
     }
   }, [accountId]);
-  const [editingName, setEditingName] = useState(false);
-  // Whether signing out is being asked about rather than done.
-  const [signingOut, setSigningOut] = useState(false);
+
+  // Taking the question back returns the caret to the link that asked it,
+  // which is mounted again only once the card has gone.
+  const signOutLinkRef = useRef<HTMLButtonElement>(null);
+  const returnToSignOut = useRef(false);
+  useEffect(() => {
+    if (!signingOut && returnToSignOut.current) {
+      returnToSignOut.current = false;
+      signOutLinkRef.current?.focus();
+    }
+  }, [signingOut]);
   const displayName =
     profile?.displayName ?? identity?.name ?? identity?.email ?? '';
 
@@ -345,30 +362,16 @@ export default function AccountDialog({
                   under the name they are about rather than as a row of
                   buttons at the foot: neither is what anybody opened this
                   panel to be encouraged into, and a button says press me.
-                  Signing out asks first — it is one click from losing a
-                  half-written scene's home and every Plus lock closing. */}
+                  Signing out asks first — it is one click from every Plus
+                  lock closing and the account's scenes leaving the lists. */}
               {signingOut ? (
-                <p className="account__ask" role="alertdialog">
-                  <span className="account__ask-title">
-                    {t('account.signOut.confirm')}
-                  </span>
-                  <button
-                    type="button"
-                    className="account-link account__ask-yes"
-                    onClick={() => {
-                      signOutAccount().catch(() => undefined);
-                    }}
-                  >
-                    {t('account.signOut')}
-                  </button>
-                  <button
-                    type="button"
-                    className="account-link"
-                    onClick={() => setSigningOut(false)}
-                  >
-                    {t('account.name.cancel')}
-                  </button>
-                </p>
+                <SignOutConfirm
+                  member={entitlement.state !== 'none'}
+                  onCancel={() => {
+                    returnToSignOut.current = true;
+                    setSigningOut(false);
+                  }}
+                />
               ) : (
                 <p className="account__links">
                   {/* Only once the server has said whether there is a name:
@@ -388,6 +391,7 @@ export default function AccountDialog({
                     </button>
                   )}
                   <button
+                    ref={signOutLinkRef}
                     type="button"
                     className="account-link"
                     onClick={() => setSigningOut(true)}

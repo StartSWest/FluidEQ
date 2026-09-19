@@ -184,7 +184,7 @@ export function AccountDeletionBody({
                 </button>
                 <button
                   type="button"
-                  className={`button small gallery-danger${working ? ' is-running' : ''}`}
+                  className={`button small danger${working ? ' is-running' : ''}`}
                   aria-busy={working}
                   onClick={remove}
                 >

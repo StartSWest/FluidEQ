@@ -9,7 +9,7 @@ import {
   DSP_DEFAULTS,
   IRoomSettings,
 } from '../../common/dsp/chain';
-import { TRoomShape } from '../../common/dsp/roomPresets';
+import { roomShapeOf, TRoomShape } from '../../common/dsp/roomPresets';
 
 /**
  * Rooms the user shaped and named.
@@ -17,10 +17,11 @@ import { TRoomShape } from '../../common/dsp/roomPresets';
  * The same arrangement as the crossfade's saved curves and for the same
  * reasons: stored whole, kept out of the DSP settings so nothing in the app
  * can overwrite them, not translated because the user named them. A saved
- * room is the room's shape — size, walls, distance, centre, sub, where the
- * speakers stand and how loud each is — and never the head or the headphone
- * switch, which belong to the listener and not to the room, exactly as the
- * built-in presets leave them alone.
+ * room is all of the room (`TRoomShape`) — size, walls, distance, centre,
+ * sub, where the speakers stand, how loud and how far each is, which are
+ * muted, bass management and whether stereo fills it — and never the head or
+ * the headphone switch, which belong to the listener and not to the room,
+ * exactly as the built-in presets leave them alone.
  */
 export interface ISavedRoom {
   id: string;
@@ -39,24 +40,18 @@ export const SAVED_ROOM_PREFIX = 'room:';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-/** The room's shape, clamped through the settings clamp like any room. */
-export const roomShapeOf = (room: unknown): TRoomShape => {
-  const source = isRecord(room) ? room : {};
-  const clamped = clampDspSettings({
-    ...DSP_DEFAULTS,
-    room: { ...DSP_DEFAULTS.room, ...source },
-  }).room;
-  return {
-    sizeM: clamped.sizeM,
-    walls: clamped.walls,
-    distanceM: clamped.distanceM,
-    centreDb: clamped.centreDb,
-    subDb: clamped.subDb,
-    angles: [...clamped.angles],
-    levels: [...clamped.levels],
-    distances: [...clamped.distances],
-  };
-};
+/**
+ * The shape in a blob from storage, clamped through the settings clamp like
+ * any room. A room saved before mutes were part of a shape reads as every
+ * speaker playing, which is what the clamp gives a room with none.
+ */
+const storedShape = (room: unknown): TRoomShape =>
+  roomShapeOf(
+    clampDspSettings({
+      ...DSP_DEFAULTS,
+      room: { ...DSP_DEFAULTS.room, ...(isRecord(room) ? room : {}) },
+    }).room,
+  );
 
 /** Whether a room stands exactly as a saved shape describes. */
 export const roomShapesMatch = (
@@ -73,7 +68,13 @@ export const roomShapesMatch = (
   shape.levels.length === room.levels.length &&
   shape.levels.every((level, at) => level === room.levels[at]) &&
   shape.distances.length === room.distances.length &&
-  shape.distances.every((distance, at) => distance === room.distances[at]);
+  shape.distances.every((distance, at) => distance === room.distances[at]) &&
+  shape.mutes.length === room.mutes.length &&
+  shape.mutes.every((mute, at) => mute === room.mutes[at]) &&
+  shape.bassManagement === room.bassManagement &&
+  shape.crossoverHz === room.crossoverHz &&
+  shape.musicUpmix === room.musicUpmix &&
+  shape.upmixAmount === room.upmixAmount;
 
 /**
  * Everything readable out of storage, clamped on the way in: this is JSON
@@ -96,7 +97,7 @@ export const readSavedRooms = (): ISavedRoom[] => {
         return [];
       }
       return [
-        { id: entry.id, name: entry.name, shape: roomShapeOf(entry.shape) },
+        { id: entry.id, name: entry.name, shape: storedShape(entry.shape) },
       ];
     });
   } catch {
@@ -146,7 +147,7 @@ export const saveRoom = (
   const saved: ISavedRoom = {
     id: match?.id ?? freshId(existing),
     name: trimmed,
-    shape: roomShapeOf(room),
+    shape: storedShape(room),
   };
   const next = match
     ? existing.map((one) => (one.id === match.id ? saved : one))

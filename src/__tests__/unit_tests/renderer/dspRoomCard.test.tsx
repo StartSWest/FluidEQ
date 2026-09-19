@@ -336,10 +336,12 @@ describe('a pressed speaker', () => {
     fireEvent.click(
       panel.getByRole('button', { name: en['dsp.room.speaker.mute'] }),
     );
+    // A mute is the room's, like a speaker's level: the room is no longer
+    // the preset it was, so a saved room can keep it and Reset take it back.
     expect(onPatch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         mutes: [false, false, true, false, false, false, true, false],
-        presetId: DSP_DEFAULTS.room.presetId,
+        presetId: 'custom',
       }),
     );
     expect(onCommit).toHaveBeenCalledTimes(1);
@@ -371,6 +373,93 @@ describe('a pressed speaker', () => {
     expect(onPatch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         mutes: [false, false, false, false, false, false, false, true],
+      }),
+    );
+  });
+
+  /**
+   * ONE STATE. A solo is the other six muted and its own speaker open, so it
+   * can never disagree with the mutes: pressed on another speaker it moves
+   * there, and pressed on a muted one it opens it. The picture rings it.
+   */
+  it('moves the solo to another speaker, and opens a muted one it is asked for', () => {
+    const { onPatch } = renderCard({
+      ...DSP_DEFAULTS.room,
+      enabled: true,
+      // The front right soloed; the sub muted on its own account.
+      mutes: [true, false, true, true, true, true, true, true],
+    });
+    expect(groupOf('FR')).toHaveClass('is-soloed');
+    expect(groupOf('FL')).not.toHaveClass('is-soloed');
+    // The front left is muted — by that solo — and asked for alone.
+    press('FL');
+    const panel = panelOf(en['dsp.room.speakerName.FL']);
+    expect(
+      panel.getByRole('button', { name: en['dsp.room.speaker.mute'] }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      panel.getByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(
+      panel.getByRole('button', { name: en['dsp.room.speaker.solo'] }),
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [false, true, true, true, true, true, true, true],
+      }),
+    );
+  });
+
+  /**
+   * A stereo stream on the front stage reaches the front pair alone. A solo
+   * left on a side speaker mutes those two to play one nothing feeds — a room
+   * gone quiet with its switch on — so it is let go, there and then, and it
+   * cannot be taken while nothing reaches the speaker.
+   */
+  it('lets go of a solo on a speaker nothing reaches', () => {
+    const sideSolo = [true, true, true, true, false, true, true, false];
+    const { onPatch, onCommit } = renderCard(
+      { ...DSP_DEFAULTS.room, enabled: true, mutes: sideSolo },
+      { state: 'front-stage', channels: 2 },
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mutes: [false, false, false, false, false, false, false, false],
+      }),
+    );
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('keeps a solo the stream does reach (control)', () => {
+    const { onPatch } = renderCard(
+      {
+        ...DSP_DEFAULTS.room,
+        enabled: true,
+        mutes: [false, true, true, true, true, true, true, false],
+      },
+      { state: 'front-stage', channels: 2 },
+    );
+    expect(onPatch).not.toHaveBeenCalled();
+  });
+
+  it('lets go of a side solo in the same change that goes back to the front stage', () => {
+    const { onPatch } = renderCard(
+      {
+        ...DSP_DEFAULTS.room,
+        enabled: true,
+        musicUpmix: true,
+        mutes: [true, true, true, true, false, true, true, false],
+      },
+      { state: 'music', channels: 2 },
+    );
+    expect(onPatch).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole('radio', { name: en['dsp.room.music.front'] }),
+    );
+    expect(onPatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        musicUpmix: false,
+        mutes: [false, false, false, false, false, false, false, false],
       }),
     );
   });

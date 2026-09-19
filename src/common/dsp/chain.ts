@@ -1061,7 +1061,12 @@ export interface IRoomSettings {
   upmixAmount: number;
   /** Each speaker's own distance in metres; the Distance dial sets all seven. */
   distances: number[];
-  /** FL FR C SL SR RL RR then the sub: a muted one is silent. */
+  /**
+   * FL FR C SL SR RL RR then the sub: a muted one is silent. The room's, like
+   * every speaker's level and distance: kept by a saved room, and put back by
+   * a preset or Reset. A solo is not a second state beside these — it IS
+   * these: the other six muted and its own speaker open (`roomSpeakers.ts`).
+   */
   mutes: boolean[];
 }
 

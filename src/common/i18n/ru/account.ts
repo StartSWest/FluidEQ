@@ -23,6 +23,10 @@ const account = {
   'account.standing.free': 'Бесплатный аккаунт',
   'account.signOut': 'Выйти',
   'account.signOut.confirm': 'Выйти из этого аккаунта?',
+  'account.signOut.detail': 'Войти снова можно в любой момент.',
+  'account.signOut.detailPlus':
+    'Plus будет заблокирован здесь, пока вы снова не войдёте.',
+  'account.signOut.kept': 'На этом компьютере ничего не удалится.',
   'account.name.change': 'Изменить имя',
   'account.name.changeTitle': 'Измените, как вас видят',
   'account.name.changeBody':

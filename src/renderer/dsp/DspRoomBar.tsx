@@ -9,6 +9,7 @@ import {
   IRoomPreset,
   isRoomPresetId,
   ROOM_PRESET_LIST,
+  resetRoom,
   roomPresetSettings,
 } from '../../common/dsp/roomPresets';
 import { TranslationKey } from '../../common/i18n/en';
@@ -109,14 +110,15 @@ const DspRoomBar = ({ room, onChange, onCommit }: IDspRoomBarProps) => {
         </button>
       </div>
 
-      {/* Reset goes to the living room: the room the dials' defaults describe,
-          and the one the card opens on. */}
+      {/* Reset puts back every option on the card, not only the room's shape:
+          it used to go to the living room and leave the mutes, fill the room
+          and the rest where they were (`resetRoom`). */}
       <div className="dsp-eq-transfer">
         <button
           type="button"
           className="button small subtle"
           onClick={() => {
-            onChange(roomPresetSettings(room, 'livingRoom'));
+            onChange(resetRoom(room));
             onCommit();
           }}
         >

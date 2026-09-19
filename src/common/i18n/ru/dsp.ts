@@ -732,6 +732,8 @@ const dsp = {
   'dsp.room.speaker.angle': 'Угол',
   'dsp.room.speaker.mute': 'Без звука',
   'dsp.room.speaker.solo': 'Соло',
+  'dsp.room.speaker.soloUnfed':
+    'Ничто из того, что играет, не доходит до этой колонки — слушать отдельно нечего.',
   'dsp.room.speaker.close': 'Закрыть',
   'dsp.room.speakerName.FL': 'Передняя левая',
   'dsp.room.speakerName.FR': 'Передняя правая',

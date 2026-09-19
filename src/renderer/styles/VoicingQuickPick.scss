@@ -48,14 +48,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the applied-layer chip resized this button on every step and pushed the rest
 // of the toolbar around — `min-width` alone is not enough, because proportional
 // digits are individually different widths.
+//
+// `inline-block`, because it sits inside the trigger's text span and a plain
+// inline box ignores its width: the reserved cell never existed, and the
+// number ran straight into the name — "Games100%". Drawn as the applied-layer
+// chip draws the same number (`.active-layer__percent`), separator and all,
+// so the two places voicing shows its strength read alike.
 .voicing-pick__strength {
-  width: 3.1em;
-  flex: 0 0 auto;
+  display: inline-block;
+  min-width: 3.8em;
+  margin-left: 5px;
   font-size: 0.9em;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   color: $text-muted;
   text-align: right;
+
+  // In the cell rather than in the name, so it comes and goes with the number
+  // it separates and the cell stays as wide whatever the number is.
+  &::before {
+    margin-right: 5px;
+    content: '·';
+    color: $text-faint;
+  }
 }
 
 // Below this the label is dropped and only the glyph remains.

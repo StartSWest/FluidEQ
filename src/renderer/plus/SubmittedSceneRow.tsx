@@ -124,7 +124,7 @@ export default function SubmittedSceneRow({
             </button>
             <button
               type="button"
-              className={`button small gallery-danger${busy ? ' is-running' : ''}`}
+              className={`button small danger${busy ? ' is-running' : ''}`}
               aria-busy={busy}
               onClick={() => {
                 if (!busy) {

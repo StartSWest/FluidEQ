@@ -32,6 +32,10 @@ const account = {
   'account.standing.free': 'Free account',
   'account.signOut': 'Sign out',
   'account.signOut.confirm': 'Sign out of this account?',
+  'account.signOut.detail': 'You can sign back in whenever you like.',
+  'account.signOut.detailPlus':
+    'Plus stays locked here until you sign back in.',
+  'account.signOut.kept': 'Nothing on this computer is deleted.',
   // The name on the board and on published scenes, changed from here. The
   // fields and their refusals are the board's own (leaderboard.name.*).
   'account.name.change': 'Change name',

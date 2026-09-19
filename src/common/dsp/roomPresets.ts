@@ -7,10 +7,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The rooms the Room card offers, each a whole room.
  *
- * A preset sets the room's shape and where the speakers stand; it leaves the
- * head, the headphone switch and the power switch as they are, because those
- * are about the listener and not the room. Touching any dial or dragging a
- * speaker afterwards makes the result `custom`.
+ * A preset sets ALL of the room: its shape, where the speakers stand,
+ * everything set per speaker — level, distance, mute — and how it sounds:
+ * bass management and its crossover, the front stage or the filled room and
+ * its amount. It used to leave those last four alone as "the listener's", so
+ * "fill the room" switched on in one room followed the listener into every
+ * other, and a preset was a different sound depending on what came before
+ * it. What it leaves is the head and the headphone switch — the listener's
+ * anatomy and machine, which no room can know — and the power switch.
+ * Touching any dial, dragging a speaker or muting one afterwards makes the
+ * result `custom`.
  */
 
 import { DSP_DEFAULTS, IRoomSettings, TRoomPreset } from './chain';
@@ -25,6 +31,11 @@ export type TRoomShape = Pick<
   | 'angles'
   | 'levels'
   | 'distances'
+  | 'mutes'
+  | 'bassManagement'
+  | 'crossoverHz'
+  | 'musicUpmix'
+  | 'upmixAmount'
 >;
 
 /** The same groups the other stages' pickers use, so the menu reads alike. */
@@ -70,6 +81,19 @@ const shape = (
   // A preset stands its speakers on the ring; a distance of its own is a
   // custom room's.
   distances: Array.from({ length: angles.length }, () => distanceM),
+  // And every speaker of a built-in room plays. Everything set per speaker is
+  // the room's: a preset, and Reset with it, puts all of it back — a mute
+  // that outlived Reset left a room reading "Living room" with half its
+  // speakers struck through.
+  mutes: [...DSP_DEFAULTS.room.mutes],
+  // How a built-in room sounds is the card's own defaults, the same for all
+  // eleven: bass to the sub's path at 80 Hz, stereo on the front stage. They
+  // are in the shape so that choosing a room puts them back, and a saved
+  // room keeps whatever they were.
+  bassManagement: DSP_DEFAULTS.room.bassManagement,
+  crossoverHz: DSP_DEFAULTS.room.crossoverHz,
+  musicUpmix: DSP_DEFAULTS.room.musicUpmix,
+  upmixAmount: DSP_DEFAULTS.room.upmixAmount,
 });
 
 /**
@@ -191,18 +215,62 @@ export const ROOM_PRESET_SHAPES: Record<TRoomPresetId, TRoomShape> =
 export const isRoomPresetId = (id: string): id is TRoomPresetId =>
   Object.prototype.hasOwnProperty.call(ROOM_PRESET_BY_ID, id);
 
+/** The shape a room stands in, out of all it holds; copies, not references. */
+export const roomShapeOf = (room: IRoomSettings): TRoomShape => ({
+  sizeM: room.sizeM,
+  walls: room.walls,
+  distanceM: room.distanceM,
+  centreDb: room.centreDb,
+  subDb: room.subDb,
+  angles: [...room.angles],
+  levels: [...room.levels],
+  distances: [...room.distances],
+  mutes: [...room.mutes],
+  bassManagement: room.bassManagement,
+  crossoverHz: room.crossoverHz,
+  musicUpmix: room.musicUpmix,
+  upmixAmount: room.upmixAmount,
+});
+
+/**
+ * The Room card's Reset: every option back to how the card first opens — the
+ * living room, every speaker on its ring at its level and playing, and the
+ * listener's own choices too: the head, the headphone switch, bass
+ * management and its crossover, the front stage and its amount. Only the
+ * power switch stays as it is: Reset is asked of a room that is on, and
+ * switching it off would be the one thing on the card nobody asked for.
+ */
+export const resetRoom = (current: IRoomSettings): IRoomSettings => ({
+  ...DSP_DEFAULTS.room,
+  angles: [...DSP_DEFAULTS.room.angles],
+  levels: [...DSP_DEFAULTS.room.levels],
+  distances: [...DSP_DEFAULTS.room.distances],
+  mutes: [...DSP_DEFAULTS.room.mutes],
+  enabled: current.enabled,
+});
+
+/**
+ * `current` standing in `shape`: a preset's room or a saved one — all of
+ * it, so a mute, a solo or "fill the room" goes with the room it was made
+ * in. Only the head, the headphone switch and the power switch are
+ * `current`'s still.
+ */
+export const roomInShape = (
+  current: IRoomSettings,
+  shape: TRoomShape,
+  presetId: TRoomPreset,
+): IRoomSettings => ({
+  ...current,
+  ...shape,
+  angles: [...shape.angles],
+  levels: [...shape.levels],
+  distances: [...shape.distances],
+  mutes: [...shape.mutes],
+  presetId,
+});
+
 /** `current` with the preset's room, and its name on it. */
 export const roomPresetSettings = (
   current: IRoomSettings,
   id: TRoomPresetId,
-): IRoomSettings => {
-  const preset = ROOM_PRESET_SHAPES[id];
-  return {
-    ...current,
-    ...preset,
-    angles: [...preset.angles],
-    levels: [...preset.levels],
-    distances: [...preset.distances],
-    presetId: id,
-  };
-};
+): IRoomSettings => roomInShape(current, ROOM_PRESET_SHAPES[id], id);

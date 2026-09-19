@@ -34,6 +34,7 @@ import {
   ROOM_PRESETS,
   TRoomHead,
 } from './chain';
+import { roomMuteWire } from './roomSpeakers';
 
 /**
  * Scalars before the variable-length band array. Must equal
@@ -235,9 +236,11 @@ export const encodeChainSettings = (
     room.crossoverHz,
     room.musicUpmix ? 1 : 0,
     room.upmixAmount,
-    // Each speaker's own distance, then the eight mutes, the sub's last.
+    // Each speaker's own distance, then the eight mutes, the sub's last —
+    // with a solo's six marked as such, for the engine to drop where nothing
+    // reaches the soloed speaker (`roomMuteWire`).
     ...room.distances,
-    ...room.mutes.map((mute) => (mute ? 1 : 0)),
+    ...roomMuteWire(room.mutes),
     // Surround, in the same place and for the same reason as the bass stages.
     //
     // The Room takes every channel whatever the switch says, because folding

@@ -343,7 +343,7 @@ export default function YourScenes({ me }: IYourScenesProps) {
                         </button>
                         <button
                           type="button"
-                          className={`button small gallery-danger${busy ? ' is-running' : ''}`}
+                          className={`button small danger${busy ? ' is-running' : ''}`}
                           aria-busy={busy}
                           onClick={() => {
                             if (!busy) {

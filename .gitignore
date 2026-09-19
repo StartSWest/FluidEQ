@@ -74,4 +74,5 @@ presets/**
 # `src/common/dsp/nativeParameters.ts` on every build, so a committed copy
 # could only ever be a second, staler answer to the same question.
 native/.build/
+native/build-remote-playback/
 native/dsp-core/include/fluideq/parameters.h

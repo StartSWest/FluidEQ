@@ -315,27 +315,8 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 2px 0 0;
 }
 
-// Signing out asks first, in place of the links, so the answer is where the
-// question was asked rather than in a dialog over the panel.
-.account__ask {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  margin: 2px 0 0;
-}
-
-.account__ask-title {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-semibold;
-}
-
-// Red like every other point of no return in this app, and still a link:
-// the loud style belongs to what is being recommended, which this is not.
-.account-link.account__ask-yes {
-  color: $red;
-}
+// Signing out asks in place of these links: its card is `SignOutConfirm.scss`,
+// imported by the component that draws it.
 
 // The board's own name form, under the person it is about. The form lays
 // itself out by the `leaderboard` container it expects on the board; here the
@@ -343,7 +324,6 @@ it under the terms of the GNU General Public License version 3 or later.
 .account__name-form {
   container: leaderboard / inline-size;
 }
-
 
 // Signed out: why on the left, how on the right.
 .account__split {

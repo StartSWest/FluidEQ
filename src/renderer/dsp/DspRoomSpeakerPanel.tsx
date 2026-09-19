@@ -10,6 +10,7 @@ import {
   IRoomSettings,
   ROOM_SPEAKERS,
 } from '../../common/dsp/chain';
+import { roomSolo, withSolo, withoutSolo } from '../../common/dsp/roomSpeakers';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial } from './DspControls';
@@ -20,6 +21,12 @@ interface IDspRoomSpeakerPanelProps {
   which: TRoomPick;
   /** Level, distance and angle shape the room: Plus, and the room on. */
   canShape: boolean;
+  /**
+   * Whether what is playing reaches this speaker: a stereo stream on the
+   * front stage reaches the front pair alone. A speaker nothing reaches
+   * cannot be soloed — that would be six speakers silenced to hear nothing.
+   */
+  isFed: boolean;
   isDisabled: boolean;
   onChange: (next: IRoomSettings) => void;
   onCommit: () => void;
@@ -41,14 +48,19 @@ const SPEAKER_NAME_KEYS: TranslationKey[] = [
  * The panel under the picture for the speaker that was pressed: its level,
  * its own distance, its angle by number, and mute and solo — the set-up a
  * receiver walks through with a test tone. Shaping (level, distance,
- * angle) is Plus like the dials; mute and solo are listening tools and
- * stay free. Solo is spelled as mutes on every other speaker, so what it
- * does is on the picture and undone by pressing it again.
+ * angle) is Plus like the dials; mute and solo stay free.
+ *
+ * One state, the mutes (`roomSpeakers.ts`): Solo mutes the other six and
+ * opens this one, muted or not; pressed on another speaker it moves there,
+ * pressed again it lets go and all seven play. They are the room's, like a
+ * speaker's level: they make it Custom, a saved room keeps them, and a
+ * preset or Reset puts them back.
  */
 const DspRoomSpeakerPanel = ({
   room,
   which,
   canShape,
+  isFed,
   isDisabled,
   onChange,
   onCommit,
@@ -61,22 +73,12 @@ const DspRoomSpeakerPanel = ({
   const code = isSub ? 'SUB' : SPEAKER_CODES[which];
   const name = t(isSub ? 'dsp.room.speakerName.sub' : SPEAKER_NAME_KEYS[which]);
   const isMuted = room.mutes[index] === true;
-  // Soloed: this speaker open and the other six shut. The sub is not part of
-  // a solo either way — bass management routes every speaker's bass there,
-  // so a solo that muted it would take the low end out of the very speaker
-  // being listened to.
-  const isSoloed =
-    !isSub &&
-    room.mutes
-      .slice(0, ROOM_SPEAKERS)
-      .every((mute, at) => (at === which ? !mute : mute));
+  const isSoloed = !isSub && roomSolo(room.mutes) === which;
+  // Letting go is always allowed; taking a solo needs sound to reach it.
+  const canSolo = isSoloed || isFed;
 
   const shape = (next: Partial<IRoomSettings>) => {
     onChange({ ...room, ...next, presetId: 'custom' });
-  };
-  const setMutes = (mutes: boolean[]) => {
-    onChange({ ...room, mutes });
-    onCommit();
   };
   const withOne = <T,>(list: readonly T[], at: number, value: T): T[] =>
     list.map((entry, index_) => (index_ === at ? value : entry));
@@ -92,7 +94,10 @@ const DspRoomSpeakerPanel = ({
           className={`button small${isMuted ? '' : ' subtle'}`}
           aria-pressed={isMuted}
           disabled={isDisabled}
-          onClick={() => setMutes(withOne(room.mutes, index, !isMuted))}
+          onClick={() => {
+            shape({ mutes: withOne(room.mutes, index, !isMuted) });
+            onCommit();
+          }}
         >
           {t('dsp.room.speaker.mute')}
         </button>
@@ -101,14 +106,16 @@ const DspRoomSpeakerPanel = ({
             type="button"
             className={`button small${isSoloed ? '' : ' subtle'}`}
             aria-pressed={isSoloed}
-            disabled={isDisabled}
-            onClick={() =>
-              setMutes(
-                room.mutes.map((mute, at) =>
-                  at === ROOM_SPEAKERS ? mute : !isSoloed && at !== which,
-                ),
-              )
-            }
+            disabled={isDisabled || !canSolo}
+            title={canSolo ? undefined : t('dsp.room.speaker.soloUnfed')}
+            onClick={() => {
+              shape({
+                mutes: isSoloed
+                  ? withoutSolo(room.mutes)
+                  : withSolo(room.mutes, which),
+              });
+              onCommit();
+            }}
           >
             {t('dsp.room.speaker.solo')}
           </button>

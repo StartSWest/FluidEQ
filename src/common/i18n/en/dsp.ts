@@ -743,6 +743,8 @@ const dsp = {
   'dsp.room.speaker.angle': 'Angle',
   'dsp.room.speaker.mute': 'Mute',
   'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.soloUnfed':
+    'Nothing that is playing reaches this speaker, so there is nothing to hear alone.',
   'dsp.room.speaker.close': 'Close',
   'dsp.room.speakerName.FL': 'Front left',
   'dsp.room.speakerName.FR': 'Front right',

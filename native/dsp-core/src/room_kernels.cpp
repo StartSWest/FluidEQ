@@ -172,6 +172,42 @@ void add_arrival(const FeqRoom* room, const Arrival& arrival, double gain,
 
 double db_to_gain(double db) { return std::pow(10.0, db / 20.0); }
 
+/**
+ * Which of the seven speakers are silent in this stream: a solo where it
+ * holds, the speakers' own mutes where it does not.
+ *
+ * A solo is the hush on every speaker but one (`FEQ_ROOM_HUSHED`), and it
+ * holds only while something reaches that one — under the music upmix all
+ * seven are fed, otherwise a channel has to stand on it. A stereo stream on
+ * the front stage reaches the front pair alone: a solo left on a rear speaker
+ * used to silence those two to play one nothing fed, a room gone quiet with
+ * its switch on, until the page happened to be opened and the solo lifted.
+ * The soloed speaker plays whatever its own mute says: asking to hear it
+ * alone is asking to hear it.
+ */
+void silent_speakers(const FeqRoom* room, bool upmix,
+                     bool silent[FEQ_ROOM_SPEAKERS]) {
+  const int* mute = room->settings.mute;
+  int solo = -1;
+  bool hushing = false;
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    if ((mute[speaker] & FEQ_ROOM_HUSHED) != 0) {
+      hushing = true;
+    } else if (solo < 0) {
+      solo = speaker;
+    }
+  }
+  bool reached = upmix;
+  for (uint32_t channel = 0; !reached && channel < room->channels; ++channel) {
+    reached = room->speaker[channel] == solo;
+  }
+  const bool holds = hushing && solo >= 0 && reached;
+  for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
+    silent[speaker] = holds ? speaker != solo
+                            : (mute[speaker] & FEQ_ROOM_MUTED) != 0;
+  }
+}
+
 }  // namespace
 
 FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
@@ -179,9 +215,12 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   if (set == nullptr) {
     return nullptr;
   }
-  set->sub_gain = room->settings.mute[FEQ_ROOM_SPEAKERS] != 0
-                      ? 0.0
-                      : db_to_gain(room->settings.sub_db);
+  // The sub's own mute and nothing else: a solo never hushes it, because
+  // bass management sends every speaker's bass down its path.
+  set->sub_gain =
+      (room->settings.mute[FEQ_ROOM_SPEAKERS] & FEQ_ROOM_MUTED) != 0
+          ? 0.0
+          : db_to_gain(room->settings.sub_db);
   // Two cascaded Butterworth stages make one Linkwitz-Riley 4th order, whose
   // high-pass and low-pass sum flat: what leaves the speakers arrives at
   // the sub's path with nothing lost or doubled at the crossover.
@@ -233,13 +272,14 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   // not a room switched off — the latency and the status stay the room's.
   set->active = 1;
   const uint32_t slots = upmix ? FEQ_ROOM_SPEAKERS : room->channels;
+  bool silent[FEQ_ROOM_SPEAKERS] = {};
+  silent_speakers(room, upmix, silent);
   // The nearest speaker that will be heard is on time; the ring where none.
   double nearest = room->settings.distance_m;
   bool any = false;
   for (uint32_t channel = 0; channel < slots; ++channel) {
     const int speaker = upmix ? static_cast<int>(channel) : room->speaker[channel];
-    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS ||
-        room->settings.mute[speaker] != 0) {
+    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS || silent[speaker]) {
       continue;
     }
     const double own = speaker_distance(room->settings, speaker);
@@ -248,8 +288,7 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   }
   for (uint32_t channel = 0; channel < slots; ++channel) {
     const int speaker = upmix ? static_cast<int>(channel) : room->speaker[channel];
-    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS ||
-        room->settings.mute[speaker] != 0) {
+    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS || silent[speaker]) {
       continue;
     }
     std::fill(left.begin(), left.end(), 0.0f);

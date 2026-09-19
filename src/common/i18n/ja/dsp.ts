@@ -723,6 +723,8 @@ const dsp = {
   'dsp.room.speaker.angle': '角度',
   'dsp.room.speaker.mute': 'ミュート',
   'dsp.room.speaker.solo': 'ソロ',
+  'dsp.room.speaker.soloUnfed':
+    '再生中の音はこのスピーカーに届いていないため、単独で聴けるものがありません。',
   'dsp.room.speaker.close': '閉じる',
   'dsp.room.speakerName.FL': 'フロント左',
   'dsp.room.speakerName.FR': 'フロント右',

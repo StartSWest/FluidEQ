@@ -4,13 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IRoomSettings,
   ROOM_HEADS,
   TRoomHead,
 } from '../../common/dsp/chain';
+import { roomInShape } from '../../common/dsp/roomPresets';
+import { withSoloWhileFed } from '../../common/dsp/roomSpeakers';
 import { TranslationKey } from '../../common/i18n/en';
 import { LockBadge } from '../graph/lookPickerParts';
 import { usePlusEntitled } from '../plus/GalleryParts';
@@ -96,6 +98,21 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const fedDial = (key: 'centreDb' | 'subDb') =>
     key === 'centreDb' ? fed[2] : subFed;
 
+  /**
+   * A solo is let go when what is playing stops reaching its speaker — a 7.1
+   * game closed and a stereo video started, say. On the engine's word, which
+   * is the only thing that knows what the stream is; the front-stage switch
+   * below does its own part at once, without waiting for it.
+   */
+  const heldMutes = withSoloWhileFed(room.mutes, fed);
+  useEffect(() => {
+    // The same array back means there was nothing to let go.
+    if (heldMutes !== room.mutes) {
+      onPatch({ ...room, mutes: [...heldMutes], presetId: 'custom' });
+      onCommit();
+    }
+  }, [heldMutes, room, onPatch, onCommit]);
+
   /** Any change to the room's shape makes the result Custom. */
   const shape = (next: Partial<IRoomSettings>) =>
     onPatch({ ...room, ...next, presetId: 'custom' });
@@ -169,7 +186,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
         fedHintKey={room.enabled ? fedHintKey : undefined}
         isDisabled={!room.enabled}
         canDrag={isPlus}
-        mutes={room.mutes}
         selected={picked}
         onSelect={setPicked}
         onAngle={(speaker, angleDeg, mirrored) => {
@@ -190,6 +206,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             room={room}
             which={picked}
             canShape={canShape}
+            isFed={picked === 'sub' ? subFed : fed[picked]}
             isDisabled={!room.enabled}
             onChange={onPatch}
             onCommit={onCommit}
@@ -218,7 +235,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             room={room}
             isDisabled={!canShape}
             onApply={(saved) => {
-              onPatch({ ...room, ...saved, presetId: 'custom' });
+              onPatch(roomInShape(room, saved, 'custom'));
               onCommit();
             }}
           />
@@ -318,7 +335,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
                   { value: 'full', label: t('dsp.room.bass.full') },
                 ]}
                 onChange={(choice) => {
-                  onPatch({ ...room, bassManagement: choice === 'sub' });
+                  shape({ bassManagement: choice === 'sub' });
                   onCommit();
                 }}
               />
@@ -336,7 +353,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
                   unit="Hz"
                   defaultValue={DSP_DEFAULTS.room.crossoverHz}
                   isDisabled={!room.enabled || !room.bassManagement}
-                  onChange={(crossoverHz) => onPatch({ ...room, crossoverHz })}
+                  onChange={(crossoverHz) => shape({ crossoverHz })}
                   onCommit={onCommit}
                 />
               </div>
@@ -359,7 +376,24 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
                   { value: 'fill', label: t('dsp.room.music.fill') },
                 ]}
                 onChange={(choice) => {
-                  onPatch({ ...room, musicUpmix: choice === 'fill' });
+                  // Back to the front stage, only the front pair is fed: a
+                  // solo on any other speaker is let go in the same change,
+                  // not a moment later when the engine reports it
+                  // (`heldMutes`) — that moment would be silence. Unless a
+                  // surround stream is what is playing, which this switch
+                  // does not touch.
+                  const staysFed =
+                    choice === 'fill' ||
+                    live.state === '5.1' ||
+                    live.state === '7.1' ||
+                    live.state === 'on';
+                  const mutes = staysFed
+                    ? room.mutes
+                    : withSoloWhileFed(room.mutes, FRONT_FED);
+                  shape({
+                    musicUpmix: choice === 'fill',
+                    ...(mutes === room.mutes ? {} : { mutes: [...mutes] }),
+                  });
                   onCommit();
                 }}
               />
@@ -377,7 +411,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
                   unit=""
                   defaultValue={DSP_DEFAULTS.room.upmixAmount}
                   isDisabled={!room.enabled || !room.musicUpmix}
-                  onChange={(upmixAmount) => onPatch({ ...room, upmixAmount })}
+                  onChange={(upmixAmount) => shape({ upmixAmount })}
                   onCommit={onCommit}
                 />
               </div>

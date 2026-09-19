@@ -191,7 +191,8 @@ typedef struct FeqChainSettings {
     /* The music upmix and its amount — see `FeqRoomSettings`. */
     int music_upmix;
     double upmix_amount;
-    /* Each speaker's own distance (0: the ring) and mutes, the sub last. */
+    /* Each speaker's own distance (0: the ring) and mutes, the sub last:
+     * `FEQ_ROOM_MUTED`, `FEQ_ROOM_HUSHED` or both — see `FeqRoomSettings`. */
     double speaker_distance_m[FEQ_ROOM_SPEAKERS];
     int mute[FEQ_ROOM_SPEAKERS + 1];
   } room;

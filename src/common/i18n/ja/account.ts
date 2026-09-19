@@ -23,6 +23,10 @@ const account = {
   'account.standing.free': '無料アカウント',
   'account.signOut': 'サインアウト',
   'account.signOut.confirm': 'このアカウントからサインアウトしますか？',
+  'account.signOut.detail': 'いつでもサインインし直せます。',
+  'account.signOut.detailPlus':
+    'もう一度サインインするまで、ここでは Plus がロックされます。',
+  'account.signOut.kept': 'このパソコンのものは何も削除されません。',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',
   'account.name.changeBody':

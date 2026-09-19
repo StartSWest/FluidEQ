@@ -24,6 +24,10 @@ const account = {
   'account.standing.free': 'Kostenloses Konto',
   'account.signOut': 'Abmelden',
   'account.signOut.confirm': 'Von diesem Konto abmelden?',
+  'account.signOut.detail': 'Sie können sich jederzeit wieder anmelden.',
+  'account.signOut.detailPlus':
+    'Plus bleibt hier gesperrt, bis Sie sich wieder anmelden.',
+  'account.signOut.kept': 'Auf diesem Computer wird nichts gelöscht.',
   'account.name.change': 'Namen ändern',
   'account.name.changeTitle': 'Ändern, wie Sie erscheinen',
   'account.name.changeBody':

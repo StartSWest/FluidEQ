@@ -103,7 +103,7 @@ export default function SceneModerationCard({
             </button>
             <button
               type="button"
-              className={`button small gallery-danger${working === confirming ? ' is-running' : ''}`}
+              className={`button small danger${working === confirming ? ' is-running' : ''}`}
               aria-busy={working === confirming}
               onClick={() => {
                 if (!busy) {

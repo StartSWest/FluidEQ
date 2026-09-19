@@ -3782,6 +3782,16 @@ $dsp-pane-columns: 6;
   stroke-linecap: round;
 }
 
+// The speaker being heard alone: a closed ring in the interface's "on", inside
+// the dashed one that marks whichever speaker's panel is open — the two are
+// often the same speaker, and both have to read.
+.dsp-room-speaker-solo {
+  fill: none;
+  stroke: $active;
+  stroke-width: 1.75;
+  pointer-events: none;
+}
+
 .dsp-room-speaker.is-muted .dsp-room-speaker-box,
 .dsp-room-sub.is-muted .dsp-room-speaker-box {
   stroke: rgba($white, 0.3);
