@@ -31,6 +31,7 @@ import {
   stopWatchingSystemMedia,
   watchSystemMedia,
 } from './systemMedia';
+import { macSystemMediaSource } from './systemMediaMac';
 
 export interface ISystemMediaSource {
   /** Start reporting; the subscriber is always answered at least once. */
@@ -65,6 +66,14 @@ const noSource: ISystemMediaSource = {
   sendTransportKey: async () => undefined,
 };
 
+/** macOS: what Music and Spotify broadcast about themselves. */
+const macSource: ISystemMediaSource = macSystemMediaSource;
+
 export const systemMediaSourceFor = (
   platform: NodeJS.Platform,
-): ISystemMediaSource => (platform === 'win32' ? windowsSource : noSource);
+): ISystemMediaSource => {
+  if (platform === 'win32') {
+    return windowsSource;
+  }
+  return platform === 'darwin' ? macSource : noSource;
+};
