@@ -34,6 +34,7 @@ using fluideq_engine::setup::from_json;
 using fluideq_engine::setup::default_slot_for;
 using fluideq_engine::setup::is_attached;
 using fluideq_engine::setup::is_legacy_only;
+using fluideq_engine::setup::is_single_only;
 using fluideq_engine::setup::kDefaultProcessingMode;
 using fluideq_engine::setup::kEfx;
 using fluideq_engine::setup::kGfx;
@@ -464,6 +465,111 @@ void windows_default_gfx_is_taken_and_given_back() {
                 "windows_default_gfx_is_taken_and_given_back/detach");
 }
 
+/**
+ * Ivan's Razer Kaira Pro, over Bluetooth: Windows' own two default effects
+ * in pids 5 and 6, no composite list anywhere on the endpoint, and pid 7
+ * free. The ladder used to step from the lists straight to pids 1 and 2,
+ * walking past the whole generation this endpoint's own defaults are
+ * registered in — and the engine ended up in a value Windows never reads
+ * there, reported attached, never once created.
+ */
+void windows_defaults_in_the_singles_are_the_ladder() {
+  std::printf("windows defaults in the singles are the ladder\n");
+  FxValues backup;
+  backup.single[kSfx] = kWindowsLfx;
+  backup.single[kMfx] = kWindowsGfx;
+
+  CHECK(is_single_only(backup));
+  // Not the pre-8.1 shape: that one is pids 1 and 2, and this endpoint has
+  // nothing in them at all.
+  CHECK(!is_legacy_only(backup));
+  // The free one, newest first, whether or not Windows combined the output.
+  CHECK(default_slot_for(backup, false) == Slot::EfxSingle);
+  CHECK(default_slot_for(backup, true) == Slot::EfxSingle);
+
+  // Straight in: one value written, and no list created — a list is the
+  // newer generation, and creating one is what stops the endpoint being read
+  // from the values being written.
+  FxValues expected = backup;
+  expected.single[kEfx] = kOurs;
+  const FxPlan plan = plan_attach(backup, kOurs, Slot::EfxSingle);
+  CHECK(plan.refused.empty());
+  CHECK(plan.changed);
+  expect_values(plan.after, expected,
+                "windows_defaults_in_the_singles_are_the_ladder");
+  CHECK(slot_of(plan.after, kOurs) == Slot::EfxSingle);
+  CHECK(is_attached(plan.after, kOurs));
+  CHECK(is_single_only(plan.after));
+
+  const FxPlan gone = plan_detach(plan.after, backup, kOurs);
+  CHECK(gone.changed);
+  expect_values(gone.after, backup,
+                "windows_defaults_in_the_singles_are_the_ladder/detach");
+  CHECK(!is_attached(gone.after, kOurs));
+}
+
+/**
+ * The step the machine actually takes: off the list the first attach made,
+ * into pid 7. The lists go with it, the way they do on the way to pid 1 or
+ * 2, because a driver that reads an older generation may only read it while
+ * no newer one exists.
+ */
+void move_from_a_list_into_the_efx_single() {
+  std::printf("move from a list into the efx single\n");
+  FxValues backup;
+  backup.single[kSfx] = kWindowsLfx;
+  backup.single[kMfx] = kWindowsGfx;
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+  // The attach did make lists, carrying Windows' own effects forward.
+  CHECK(attached.composite[kEfx].has_value());
+  CHECK(!is_single_only(attached));
+
+  FxValues expected = backup;
+  expected.single[kEfx] = kOurs;
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::EfxSingle);
+  CHECK(plan.refused.empty());
+  CHECK(plan.changed);
+  expect_values(plan.after, expected,
+                "move_from_a_list_into_the_efx_single");
+  CHECK(slot_of(plan.after, kOurs) == Slot::EfxSingle);
+
+  const FxPlan gone = plan_detach(plan.after, backup, kOurs);
+  expect_values(gone.after, backup,
+                "move_from_a_list_into_the_efx_single/detach");
+}
+
+/**
+ * And never over a vendor's. Pid 7 holding somebody's own effect is refused
+ * exactly as pid 1 or 2 would be, and the engine stays where it was; an
+ * endpoint whose three singles are all taken by vendors falls back to the
+ * top of the ladder rather than to a value it may not write.
+ */
+void an_occupied_single_is_never_taken() {
+  std::printf("an occupied single is never taken\n");
+  FxValues backup;
+  backup.single[kSfx] = kWindowsLfx;
+  backup.single[kEfx] = kLegacyLfx;
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+
+  const FxPlan plan = plan_move(attached, backup, kOurs, Slot::EfxSingle);
+  CHECK(!plan.refused.empty());
+  CHECK(!plan.changed);
+  expect_values(plan.after, attached, "an_occupied_single_is_never_taken");
+  CHECK(slot_of(plan.after, kOurs) == Slot::Efx);
+
+  // The free one below it is still the default, because pid 7 is a vendor's.
+  CHECK(default_slot_for(backup, false) == Slot::MfxSingle);
+
+  // Every single taken: nothing here may be written, so the ladder's own
+  // top rung is where an attach with no slot named goes.
+  FxValues full;
+  full.single[kSfx] = kLegacyLfx;
+  full.single[kMfx] = kLegacyGfx;
+  full.single[kEfx] = kLegacyLfx;
+  CHECK(is_single_only(full));
+  CHECK(default_slot_for(full, false) == Slot::Efx);
+}
+
 /** An endpoint with nothing at all still starts at the top of the ladder. */
 void bare_endpoint_starts_at_efx() {
   std::printf("bare endpoint starts at efx\n");
@@ -862,6 +968,9 @@ int main() {
   move_to_legacy_keeps_vendor_lists();
   move_to_sfx();
   windows_default_gfx_is_taken_and_given_back();
+  windows_defaults_in_the_singles_are_the_ladder();
+  move_from_a_list_into_the_efx_single();
+  an_occupied_single_is_never_taken();
   bare_endpoint_starts_at_efx();
   detach_restores_created_keys();
   detach_keeps_others_in_list();

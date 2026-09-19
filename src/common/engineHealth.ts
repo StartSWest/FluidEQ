@@ -250,6 +250,20 @@ export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
 export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);
 
+/**
+ * The first helper that will put the engine in pids 5, 6 and 7 — the slot
+ * ladder's middle rungs, named `efx-single` and its two neighbours.
+ *
+ * Gated because the name is the command line: an older helper answers
+ * `--slot efx-single` by refusing the whole command, which costs an
+ * administrator prompt and mends nothing. A Bluetooth headset is what these
+ * rungs exist for; see `engineOutputRepair.ts`.
+ */
+export const ENGINE_SINGLE_SLOTS_SINCE: readonly [number, number] = [1, 12];
+export const engineTakesSingleSlots = (
+  dllVersion: string | undefined,
+): boolean => engineAtLeast(dllVersion, ENGINE_SINGLE_SLOTS_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

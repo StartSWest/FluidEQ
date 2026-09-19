@@ -94,17 +94,44 @@ constexpr int kGfx = 1;
 
 /**
  * Where the effect can be attached, newest first: the three modern lists,
- * then the two pre-8.1 single values.
+ * the same three as one class id each, then the two pre-8.1 values.
  *
  * Which of these an output's driver actually creates is not written down
  * anywhere Windows will say, so the app tries them in this order on an
  * output where the engine is registered and never created, and keeps the
  * first that is heard. EFX is where an attach with no slot named goes.
+ *
+ * The middle three were the rung this ladder was missing, and a Bluetooth
+ * headset is what found it: Windows' own two default effects sat in pids 5
+ * and 6 with no list anywhere on the endpoint, the ladder walked past that
+ * whole generation — lists, then straight to pids 1 and 2 — and the engine
+ * ended up in the one value that endpoint is never read from. A generation
+ * an endpoint's own defaults are registered in is the likeliest one its
+ * driver reads.
  */
-enum class Slot { Efx, Mfx, Sfx, Gfx, Lfx };
+enum class Slot {
+  Efx,
+  Mfx,
+  Sfx,
+  EfxSingle,
+  MfxSingle,
+  SfxSingle,
+  Gfx,
+  Lfx,
+};
 
-/** Whether `slot` is one of the two single values rather than a list. */
+/** Whether `slot` is one of the two pre-8.1 values rather than a list. */
 bool is_legacy_slot(Slot slot);
+
+/**
+ * Whether `slot` is one of pids 5, 6 and 7 — one class id each, the
+ * generation between the lists and the pre-8.1 pair.
+ *
+ * They are written under the same rule as the pre-8.1 pair and for the same
+ * reason: one value holds one class id, so ours can only go where nothing is
+ * registered or where Windows' own default effect is. Never over a vendor's.
+ */
+bool is_single_slot(Slot slot);
 
 /**
  * Two class ids the same, case-insensitively over ASCII — the audio stack
@@ -142,11 +169,14 @@ extern const wchar_t kDefaultProcessingMode[];
  * generations is left exactly as found so that removing FluidEQ cannot leave
  * the endpoint worse than a clean uninstall would.
  *
- * For a legacy slot — pid 1 or 2, a single value that can hold one class id
- * — ours goes in only where nothing is registered or where Windows' own
- * default effect is (`is_windows_default_apo`): the plan is `refused` when
- * the value names any other effect, because replacing a vendor's would
- * switch it off, and there is no way to chain two in one value.
+ * For a slot that is one value holding one class id — pids 1 and 2, and
+ * pids 5, 6 and 7 — ours goes in only where nothing is registered or where
+ * Windows' own default effect is (`is_windows_default_apo`): the plan is
+ * `refused` when the value names any other effect, because replacing a
+ * vendor's would switch it off, and there is no way to chain two in one
+ * value. Neither creates a list: a list is the newer generation, and an
+ * endpoint that is read from its single values may only be read from them
+ * while no list exists.
  */
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot);
 
@@ -178,10 +208,11 @@ std::optional<Slot> slot_of(const FxValues& values, std::wstring_view clsid);
  * them. The same as `plan_attach` when the effect is not attached at all,
  * and no change at all when it is already in `slot`.
  *
- * A move into a legacy slot also takes away every list the first attach
- * created (the ones not in `backup`): a driver that reads the old values
- * may read them only while no list exists, and the lists were only ever
- * there to carry ours. Lists the vendor had are kept.
+ * A move into a slot that is one value — pids 1 and 2, or pids 5 to 7 —
+ * also takes away every list the first attach created (the ones not in
+ * `backup`): a driver that reads an older generation may read it only while
+ * no newer one exists, and the lists were only ever there to carry ours.
+ * Lists the vendor had are kept.
  *
  * This is how an output whose driver never creates an endpoint effect gets
  * the engine somewhere it is created: Equalizer APO's own installer keeps
@@ -228,10 +259,21 @@ bool is_windows_default_apo(std::wstring_view clsid);
 bool is_legacy_only(const FxValues& values);
 
 /**
+ * Whether the endpoint's driver registered effects only as pids 5, 6 or 7:
+ * something in one of them, and no composite list anywhere.
+ *
+ * Ivan's Razer Kaira Pro, over Bluetooth, is exactly this shape: Windows'
+ * own "WM LFX APO" and "WM GFX APO" in pids 5 and 6, no list at all, and an
+ * engine added to a list never once created by Windows.
+ */
+bool is_single_only(const FxValues& values);
+
+/**
  * Where an attach with no slot named goes on an endpoint first found as
- * `original`: GFX where the driver registered only the legacy values and
- * that value can be taken, MFX where Windows has combined the output with
- * another (`combined`), EFX otherwise.
+ * `original`: GFX where the driver registered only the pre-8.1 values and
+ * that value can be taken, the newest takeable single where it registered
+ * only pids 5 to 7, MFX where Windows has combined the output with another
+ * (`combined`), EFX otherwise.
  */
 Slot default_slot_for(const FxValues& original, bool combined);
 

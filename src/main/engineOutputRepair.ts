@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * One output on which the engine is attached and Windows never creates it,
  * put right by the app: the slot ladder.
  *
- * Which of the five places an effect can be registered a given driver
+ * Which of the eight places an effect can be registered a given driver
  * actually builds is written down nowhere Windows will say. The endpoint
  * effect is where every attach goes first and where most drivers create it,
  * and a user's machine — an RME DAC, enhancements on, everything reporting
@@ -28,11 +28,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * question first so a move is never tried on a machine that cannot load the
  * engine anywhere.
  *
- * Bounded twice over. Each move goes to the rung after the one the helper
- * reports the engine in, so it can only ever go down the ladder, never
- * round it; and every run passes through the one gate all automatic
- * elevated runs share (`automaticSetup.ts`), which lets the ladder take its
- * four steps in one session and nothing more. Silent: no card of its own —
+ * Bounded twice over. Each move goes to a rung this output has not been put
+ * in before — the helper remembers every one it was asked for by name — so
+ * the ladder can only ever spend rungs, never circle them; and every run
+ * passes through the one gate all automatic elevated runs share
+ * (`automaticSetup.ts`), which lets the ladder take its four steps in one
+ * session and nothing more. Silent: no card of its own —
  * the trouble notice stays away while a rung is being tried, and says what
  * is left only once there is no rung left.
  */
@@ -44,7 +45,10 @@ import type {
   IFluidEngineEndpoint,
   TAudioEngine,
 } from '../common/audioEngine';
-import { normaliseEndpointGuid } from '../common/engineHealth';
+import {
+  engineTakesSingleSlots,
+  normaliseEndpointGuid,
+} from '../common/engineHealth';
 import type { IAutomaticSetup } from './automaticSetup';
 import { whatStopsTheEngineLoading } from './engineLoadRepair';
 
@@ -52,12 +56,39 @@ export type TEngineSlot = NonNullable<IFluidEngineEndpoint['slot']>;
 
 /**
  * Newest to oldest: the endpoint effect, the mode effect and the stream
- * effect are the three lists Windows 8.1 and later read; GFX and LFX are the
- * two single values everything before that read, and that some drivers
- * still do. The last two are only ever taken where nothing is registered —
- * the helper refuses them otherwise, and that refusal ends the ladder.
+ * effect are the three lists Windows 8.1 and later read; the same three as
+ * one class id each are the generation below them; GFX and LFX are the two
+ * values everything before Windows 8.1 read, and that some drivers still do.
+ * Everything below the lists is only ever taken where nothing is registered
+ * or where Windows' own effect is — the helper refuses otherwise, and that
+ * refusal ends the ladder.
+ *
+ * The three `-single` rungs were missing until a Bluetooth headset found
+ * them: Windows' own two effects sat in pids 5 and 6 with no list anywhere
+ * on the endpoint, the ladder stepped from the lists straight past that
+ * whole generation, and the engine came to rest in a value Windows never
+ * reads there — attached on every reading, created by Windows not once.
  */
 export const SLOT_LADDER: readonly TEngineSlot[] = [
+  'efx',
+  'mfx',
+  'sfx',
+  'efx-single',
+  'mfx-single',
+  'sfx-single',
+  'gfx',
+  'lfx',
+];
+
+/** Which rungs an older helper has no name for, so cannot be asked to take. */
+const SINGLE_RUNGS: readonly TEngineSlot[] = [
+  'efx-single',
+  'mfx-single',
+  'sfx-single',
+];
+
+/** The ladder as it was before the single values were part of it. */
+const LADDER_BEFORE_SINGLES: readonly TEngineSlot[] = [
   'efx',
   'mfx',
   'sfx',
@@ -65,9 +96,53 @@ export const SLOT_LADDER: readonly TEngineSlot[] = [
   'lfx',
 ];
 
-/** The rung after `current`, or undefined at the bottom. */
-export const nextSlot = (current: TEngineSlot): TEngineSlot | undefined =>
-  SLOT_LADDER[SLOT_LADDER.indexOf(current) + 1];
+/**
+ * What an output with no recorded history must already have been through.
+ *
+ * The ladder has only ever walked downwards, so an engine resting in a rung
+ * was offered every rung above it and heard in none of them. That is the
+ * whole history for an output whose memory an older helper wrote, and it is
+ * what makes adding rungs to the middle of the ladder safe: the three that
+ * did not exist then are not in it, so they are what comes next rather than
+ * a walk from the top all over again.
+ */
+const historyBehind = (current: TEngineSlot): readonly TEngineSlot[] => {
+  // A rung that existed before the singles did: the walk that reached it can
+  // only have been the old ladder's, so the singles are untried.
+  const before = LADDER_BEFORE_SINGLES.indexOf(current);
+  if (before >= 0) {
+    return LADDER_BEFORE_SINGLES.slice(0, before + 1);
+  }
+  const at = SLOT_LADDER.indexOf(current);
+  return at < 0 ? [current] : SLOT_LADDER.slice(0, at + 1);
+};
+
+/**
+ * The next rung nobody has tried on this output, or undefined once there is
+ * none left.
+ *
+ * `takesSingles` is the installed helper's answer, not this tree's: asking
+ * an older one for a slot name it does not know refuses the whole command,
+ * which costs an administrator prompt and mends nothing. Skipped rather than
+ * stopped at, so such a machine still reaches the oldest rungs it does know.
+ *
+ * `tried` is what the helper remembers for this output, oldest first.
+ * Without it — an older helper, or an output whose slot was never asked for
+ * by name — the history is taken from where the engine is now.
+ */
+export const nextSlot = (
+  current: TEngineSlot,
+  takesSingles = true,
+  tried: readonly TEngineSlot[] = [],
+): TEngineSlot | undefined => {
+  const history = tried.length > 0 ? tried : historyBehind(current);
+  return SLOT_LADDER.find(
+    (rung) =>
+      rung !== current &&
+      !history.includes(rung) &&
+      (takesSingles || !SINGLE_RUNGS.includes(rung)),
+  );
+};
 
 export interface IEngineOutputRepairDeps {
   getEngine: () => TAudioEngine | null;
@@ -118,7 +193,11 @@ export const whatToTry = (status: IAudioEngineStatus, guid: string): TStep => {
       because: 'the setup helper does not report which slot the engine is in',
     };
   }
-  const to = nextSlot(endpoint.slot);
+  const to = nextSlot(
+    endpoint.slot,
+    engineTakesSingleSlots(status.fluid.dllVersion),
+    endpoint.slotsTried,
+  );
   if (!to) {
     return {
       kind: 'nothing',

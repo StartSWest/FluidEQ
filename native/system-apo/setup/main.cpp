@@ -105,6 +105,7 @@ using fluideq_engine::setup::append_utf8;
 using fluideq_engine::setup::EndpointResult;
 using fluideq_engine::setup::describe_slots;
 using fluideq_engine::setup::slot_from_name;
+using fluideq_engine::setup::remembered_slots;
 using fluideq_engine::setup::slot_name;
 using fluideq_engine::setup::slot_of;
 
@@ -112,7 +113,9 @@ const char kUsage[] =
     "FluidEQ-Engine-Setup <command> [options]\n"
     "\n"
     "  install [--attach-all] [--restart-audio]\n"
-    "  attach <output-id>... [--slot efx|mfx|sfx|gfx|lfx] [--restart-audio]\n"
+    "  attach <output-id>... [--slot "
+    "efx|mfx|sfx|efx-single|mfx-single|sfx-single|gfx|lfx] "
+    "[--restart-audio]\n"
     "  detach <output-id>... [--restart-audio]\n"
     "  uninstall [--purge]\n"
     "  suspend-apo [--restart-audio]\n"
@@ -374,6 +377,23 @@ int print_status() {
     out += L",\"slot\":";
     out += slot.has_value() ? L"\"" + std::wstring(slot_name(*slot)) + L"\""
                             : L"null";
+    // And every slot this output has already been put in, oldest first. The
+    // ladder walks newest to oldest, so where the engine is now says only
+    // how far down it got — not which rungs were tried, which is a different
+    // question the moment a rung is added to the middle of the ladder. An
+    // endpoint that had already reached the bottom would otherwise never be
+    // offered the new one.
+    out += L",\"slotsTried\":[";
+    const std::vector<Slot> tried = remembered_slots(endpoints[at].guid);
+    for (size_t step = 0; step < tried.size(); ++step) {
+      if (step != 0) {
+        out += L',';
+      }
+      out += L'"';
+      out += slot_name(tried[step]);
+      out += L'"';
+    }
+    out += L']';
     // Everything in the output's effect slots, named, and how many are
     // free: "attached" is one bit about a structure a sound card's own
     // effects can fill, and which slot this engine sits in — and beside

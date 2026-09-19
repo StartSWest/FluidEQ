@@ -43,10 +43,73 @@ const status = (
 
 describe('the slot ladder', () => {
   it('runs newest to oldest and ends', () => {
-    expect(SLOT_LADDER).toEqual(['efx', 'mfx', 'sfx', 'gfx', 'lfx']);
+    expect(SLOT_LADDER).toEqual([
+      'efx',
+      'mfx',
+      'sfx',
+      'efx-single',
+      'mfx-single',
+      'sfx-single',
+      'gfx',
+      'lfx',
+    ]);
     expect(nextSlot('efx')).toBe('mfx');
-    expect(nextSlot('gfx')).toBe('lfx');
-    expect(nextSlot('lfx')).toBeUndefined();
+    // The generation the ladder used to step straight past, which is where a
+    // Bluetooth headset's own defaults were registered and where Windows was
+    // reading. Without these three the engine went from the lists to a value
+    // that endpoint is never read from.
+    expect(nextSlot('sfx')).toBe('efx-single');
+    expect(nextSlot('sfx-single')).toBe('gfx');
+    expect(
+      nextSlot('lfx', true, [
+        'efx',
+        'mfx',
+        'sfx',
+        'efx-single',
+        'mfx-single',
+        'sfx-single',
+        'gfx',
+        'lfx',
+      ]),
+    ).toBeUndefined();
+  });
+
+  it('skips the rungs an older helper has no name for', () => {
+    // The slot name is the command line, and a helper that does not know it
+    // refuses the whole command — an administrator prompt for nothing. Such
+    // a machine still reaches the rungs it does understand.
+    expect(nextSlot('sfx', false)).toBe('gfx');
+    expect(nextSlot('gfx', false)).toBe('lfx');
+    expect(nextSlot('lfx', false)).toBeUndefined();
+  });
+
+  it('offers a new rung to an output that already walked to the bottom', () => {
+    // The case this is all for. An output that reached the oldest value of
+    // all was offered every rung there was at the time and heard in none of
+    // them — and the three that did not exist then are not among those. It
+    // gets them now rather than starting the whole walk again.
+    expect(nextSlot('lfx')).toBe('efx-single');
+    expect(nextSlot('gfx')).toBe('efx-single');
+    // And once they have been spent, there is genuinely nothing left.
+    expect(
+      nextSlot('lfx', true, [
+        'efx',
+        'mfx',
+        'sfx',
+        'efx-single',
+        'mfx-single',
+        'sfx-single',
+        'gfx',
+        'lfx',
+      ]),
+    ).toBeUndefined();
+  });
+
+  it('never offers a rung this output has already been put in', () => {
+    // What the helper remembers wins over where the engine happens to be:
+    // the ladder spends each rung once, so it can never circle.
+    expect(nextSlot('mfx', true, ['efx', 'mfx'])).toBe('sfx');
+    expect(nextSlot('efx-single', true, ['efx', 'efx-single'])).toBe('mfx');
   });
 });
 

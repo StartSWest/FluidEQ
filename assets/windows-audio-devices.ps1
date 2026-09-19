@@ -19,17 +19,23 @@ public static class AquaAudioDevices
 
     // FxProperties stores the effect registrations under value names shaped
     // like "{format-guid},pid" rather than a plain name. The engine can sit
-    // in any of five: the three composite lists — PKEY_FX_EndpointEffectClsid
-    // (,15), PKEY_FX_ModeEffectClsid (,14), PKEY_FX_StreamEffectClsid (,13)
-    // — and the two pre-8.1 single values, GFX (,2) and LFX (,1), which are
+    // in any of eight: the three composite lists — PKEY_FX_EndpointEffectClsid
+    // (,15), PKEY_FX_ModeEffectClsid (,14), PKEY_FX_StreamEffectClsid (,13) —
+    // the same three as one class id each (,7 ,6 ,5), and the two pre-8.1
+    // single values, GFX (,2) and LFX (,1). Everything below the lists is
     // where the helper's slot ladder puts it on an output whose driver reads
-    // only those (`plan_attach` in native/system-apo/setup/fx_list.cpp). A
-    // probe that read only ,15 and ,14 called such an output "not attached"
-    // after every move, and the panel enabled it again on every launch.
+    // an older generation (`plan_attach` in
+    // native/system-apo/setup/fx_list.cpp). A probe that read only ,15 and
+    // ,14 called such an output "not attached" after every move, and the
+    // panel enabled it again on every launch; ,7 ,6 and ,5 joined the list
+    // when a Bluetooth headset turned out to be read from exactly those.
     private static readonly string[] EngineSlotValues = new string[] {
         "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15",
         "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14",
         "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},13",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},7",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},6",
+        "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},5",
         "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},2",
         "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},1",
     };

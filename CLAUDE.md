@@ -606,9 +606,31 @@ Out-String` (or any other capture) is what actually waits for it and shows
   620px).
 - **Which slot a driver builds is not written down anywhere, so the app
   tries them, newest to oldest, on the machine itself — the slot ladder.**
-  An effect can be registered in five places: the EFX, MFX and SFX lists
-  (pids 15, 14, 13) Windows 8.1 and later read, and the GFX and LFX single
-  values (pids 2, 1) everything before that read. The RME DAC a user tested
+  An effect can be registered in eight places: the EFX, MFX and SFX lists
+  (pids 15, 14, 13) Windows 8.1 and later read, the same three as one class
+  id each (pids 7, 6, 5), and the GFX and LFX values (pids 2, 1) everything
+  before Windows 8.1 read. The middle three joined the ladder on
+  2026-09-19: a Bluetooth headset carried Windows' own two effects in pids
+  5 and 6 with no list anywhere on the endpoint, the ladder stepped from the
+  lists straight to pids 1 and 2, and the engine came to rest in a value
+  that endpoint is never read from — attached on every reading, created by
+  Windows not once. They are written under the same rule as pids 1 and 2
+  (`is_single_slot`, `plan_attach`): only where the value holds nothing or
+  Windows' own default effect, never over a vendor's, and creating no list
+  on the way, because a list is the newer generation and its existence is
+  what stops an endpoint being read from its singles. `write_fx_values`
+  admits them for our own class id on the same terms. And because the ladder
+  only ever walked downwards, an output that had already reached the bottom
+  would never have been offered a rung added to the middle: the helper's
+  per-output memory now holds every slot it was asked for by name, one per
+  line, oldest last (`remembered_slots`), the status reports it as
+  `slotsTried`, and `nextSlot` picks the first rung nobody has tried — with
+  the old ladder's walk implied for a memory written before that. The names
+  are `efx-single`, `mfx-single` and `sfx-single` on the command line and in
+  that file, so the app gates them on the installed helper's version
+  (`ENGINE_SINGLE_SLOTS_SINCE`, engine 1.12): an older one refuses a slot
+  name it does not know, which costs an administrator prompt and mends
+  nothing. The RME DAC a user tested
   on never created the engine in the EFX list, enhancements on, every
   machine-wide fact in order; Equalizer APO's own installer carries rules
   for the same thing (a mode effect where Windows 11 combined a Bluetooth
@@ -637,12 +659,14 @@ Out-String` (or any other capture) is what actually waits for it and shows
   put the engine back where it was never loaded; an attach with no memory
   goes straight to GFX on an endpoint first found legacy-only with a
   takeable GFX (`default_slot_for`, read from the backup — the first attach
-  adds lists), to MFX on an output Windows has combined (Equalizer APO's
-  rule, the same property) and to EFX otherwise. The device list's probe
-  reads all five values for the engine's id (`windows-audio-devices.ps1`,
-  `EngineSlotValues`); reading only ,15 and ,14 called a moved engine "not
-  attached" and enabled it again on every launch. Bounded:
-  each step is to the rung after the one the helper reports, the gate
+  adds lists), to the newest takeable single on one first found with pids 5
+  to 7 and no list (`is_single_only`), to MFX on an output Windows has
+  combined (Equalizer APO's rule, the same property) and to EFX otherwise.
+  The device list's probe reads all eight values for the engine's id
+  (`windows-audio-devices.ps1`, `EngineSlotValues`); reading only ,15 and
+  ,14 called a moved engine "not attached" and enabled it again on every
+  launch, and ,7 ,6 ,5 joined it with the rungs. Bounded:
+  each step is to a rung this output has not been put in before, the gate
   allows `move-slot` four runs a session, and the window asks once per
   (output, slot), in `sessionStorage`. Silent: the trouble notice for that
   state stays away (`isTryingSlots`) until an ask has come back with nothing

@@ -82,6 +82,34 @@ int index_of(Slot slot) {
   }
 }
 
+/** The `single[]` index of one of pids 5, 6 and 7; never any other slot. */
+int single_index_of(Slot slot) {
+  switch (slot) {
+    case Slot::SfxSingle:
+      return kSfx;
+    case Slot::MfxSingle:
+      return kMfx;
+    default:
+      return kEfx;
+  }
+}
+
+/** What to call a one-value slot when saying it already holds something. */
+const wchar_t* one_value_name(Slot slot) {
+  switch (slot) {
+    case Slot::Lfx:
+      return L"LFX";
+    case Slot::Gfx:
+      return L"GFX";
+    case Slot::SfxSingle:
+      return L"the SFX value";
+    case Slot::MfxSingle:
+      return L"the MFX value";
+    default:
+      return L"the EFX value";
+  }
+}
+
 /** The `legacy[]` index of a legacy slot; never a list one. */
 int legacy_index_of(Slot slot) { return slot == Slot::Lfx ? kLfx : kGfx; }
 
@@ -221,25 +249,40 @@ bool is_legacy_slot(Slot slot) {
   return slot == Slot::Gfx || slot == Slot::Lfx;
 }
 
+bool is_single_slot(Slot slot) {
+  return slot == Slot::EfxSingle || slot == Slot::MfxSingle ||
+         slot == Slot::SfxSingle;
+}
+
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
   FxPlan plan;
   plan.after = before;
   FxValues& after = plan.after;
 
-  if (is_legacy_slot(slot)) {
+  if (is_legacy_slot(slot) || is_single_slot(slot)) {
     // One value, one class id: ours goes in where nothing is, or where
     // Windows' own default effect is. A vendor registered there would be
     // switched off by the write, and this program never switches anybody's
     // effect off to make room for its own.
-    const int at = legacy_index_of(slot);
-    if (holds_effect(before.legacy[at]) &&
-        !equal_ci(*before.legacy[at], clsid) &&
-        !is_windows_default_apo(*before.legacy[at])) {
-      plan.refused = std::wstring(slot == Slot::Lfx ? L"LFX" : L"GFX") +
-                     L" already holds another effect, " + *before.legacy[at];
+    //
+    // Nothing is mirrored into a list on the way, unlike the list attach
+    // below: a list is the newer generation, and creating one is what would
+    // stop an endpoint being read from the value being written.
+    const bool legacy = is_legacy_slot(slot);
+    const int at = legacy ? legacy_index_of(slot) : single_index_of(slot);
+    const std::optional<std::wstring>& held =
+        legacy ? before.legacy[at] : before.single[at];
+    if (holds_effect(held) && !equal_ci(*held, clsid) &&
+        !is_windows_default_apo(*held)) {
+      plan.refused = std::wstring(one_value_name(slot)) +
+                     L" already holds another effect, " + *held;
       return plan;
     }
-    after.legacy[at] = std::wstring(clsid);
+    if (legacy) {
+      after.legacy[at] = std::wstring(clsid);
+    } else {
+      after.single[at] = std::wstring(clsid);
+    }
     plan.changed = after != before;
     return plan;
   }
@@ -343,12 +386,17 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
     }
   }
 
-  // Ours out of a legacy value goes back to what the value was when first
+  // Ours out of a one-value slot goes back to what the value was when first
   // found: absent, the empty string a driver left there, or Windows' own
   // default effect. Never a vendor's, because ours never went in over one.
   for (int at = 0; at < kLegacyCount; ++at) {
     if (holds_effect(after.legacy[at]) && equal_ci(*after.legacy[at], clsid)) {
       after.legacy[at] = backup.legacy[at];
+    }
+  }
+  for (int at = 0; at < kSlotCount; ++at) {
+    if (holds_effect(after.single[at]) && equal_ci(*after.single[at], clsid)) {
+      after.single[at] = backup.single[at];
     }
   }
 
@@ -396,11 +444,36 @@ bool is_legacy_only(const FxValues& values) {
   return false;
 }
 
+bool is_single_only(const FxValues& values) {
+  bool any = false;
+  for (int slot = 0; slot < kSlotCount; ++slot) {
+    if (values.composite[slot].has_value()) {
+      return false;
+    }
+    any = any || holds_effect(values.single[slot]);
+  }
+  return any;
+}
+
 Slot default_slot_for(const FxValues& original, bool combined) {
   if (is_legacy_only(original)) {
     const std::optional<std::wstring>& gfx = original.legacy[kGfx];
     if (!holds_effect(gfx) || is_windows_default_apo(*gfx)) {
       return Slot::Gfx;
+    }
+  }
+  // An endpoint whose driver registered only pids 5, 6 and 7 is read from
+  // them, and a list added beside them is what an attach used to make: on a
+  // Bluetooth headset that list was never once created by Windows. Newest
+  // first, and only where the value is free or holds Windows' own effect.
+  if (is_single_only(original)) {
+    const Slot ones[] = {Slot::EfxSingle, Slot::MfxSingle, Slot::SfxSingle};
+    for (const Slot slot : ones) {
+      const std::optional<std::wstring>& held =
+          original.single[single_index_of(slot)];
+      if (!holds_effect(held) || is_windows_default_apo(*held)) {
+        return slot;
+      }
     }
   }
   return combined ? Slot::Mfx : Slot::Efx;
@@ -510,8 +583,8 @@ bool is_attached(const FxValues& values, std::wstring_view clsid) {
 }
 
 std::optional<Slot> slot_of(const FxValues& values, std::wstring_view clsid) {
-  // The order Windows prefers them: it reads the lists whenever any exists,
-  // and the two single values only when none does.
+  // The order Windows prefers them: the lists whenever any exists, then the
+  // singles, then the pre-8.1 pair.
   const Slot lists[] = {Slot::Efx, Slot::Mfx, Slot::Sfx};
   for (const Slot slot : lists) {
     const int at = index_of(slot);
@@ -520,8 +593,17 @@ std::optional<Slot> slot_of(const FxValues& values, std::wstring_view clsid) {
       return slot;
     }
   }
-  const Slot singles[] = {Slot::Gfx, Slot::Lfx};
-  for (const Slot slot : singles) {
+  // Then pids 5, 6 and 7, which Windows reads only when no list exists, and
+  // last the pre-8.1 pair, which it reads only when neither of those does.
+  const Slot ones[] = {Slot::EfxSingle, Slot::MfxSingle, Slot::SfxSingle};
+  for (const Slot slot : ones) {
+    const int at = single_index_of(slot);
+    if (holds_effect(values.single[at]) && equal_ci(*values.single[at], clsid)) {
+      return slot;
+    }
+  }
+  const Slot legacy[] = {Slot::Gfx, Slot::Lfx};
+  for (const Slot slot : legacy) {
     const int at = legacy_index_of(slot);
     if (holds_effect(values.legacy[at]) &&
         equal_ci(*values.legacy[at], clsid)) {
@@ -542,12 +624,12 @@ FxPlan plan_move(const FxValues& before, const FxValues& backup,
     return plan_attach(before, clsid, slot);
   }
   FxValues cleared = plan_detach(before, backup, clsid).after;
-  if (is_legacy_slot(slot)) {
+  if (is_legacy_slot(slot) || is_single_slot(slot)) {
     // The lists the first attach created carried the vendor's single values
-    // forward so ours could sit beside them. On the way to a single value
-    // they are taken away again: a driver that reads pids 1 and 2 may only
-    // do so while no list exists, and a list that only repeats what the
-    // singles say costs nothing to lose. A list the vendor had stays.
+    // forward so ours could sit beside them. On the way to a one-value slot
+    // they are taken away again: a driver that reads an older generation may
+    // only do so while no newer one exists, and a list that only repeats what
+    // the singles say costs nothing to lose. A list the vendor had stays.
     for (int at = 0; at < kSlotCount; ++at) {
       if (!backup.composite[at].has_value()) {
         cleared.composite[at].reset();

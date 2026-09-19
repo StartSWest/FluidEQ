@@ -108,7 +108,31 @@ export interface IFluidEngineEndpoint {
    * creates it — which slot a driver builds is not written down anywhere,
    * so the app tries them newest to oldest (`engineOutputRepair.ts`).
    */
-  slot?: 'efx' | 'mfx' | 'sfx' | 'gfx' | 'lfx';
+  slot?:
+    | 'efx'
+    | 'mfx'
+    | 'sfx'
+    | 'efx-single'
+    | 'mfx-single'
+    | 'sfx-single'
+    | 'gfx'
+    | 'lfx';
+  /**
+   * Every slot this output has already been put in, oldest first, as the
+   * helper remembers it. Absent from an older helper. Where the engine is
+   * now says only how far down the ladder it got; which rungs were tried is
+   * a different question the moment a rung is added to the middle of it.
+   */
+  slotsTried?: (
+    | 'efx'
+    | 'mfx'
+    | 'sfx'
+    | 'efx-single'
+    | 'mfx-single'
+    | 'sfx-single'
+    | 'gfx'
+    | 'lfx'
+  )[];
   /**
    * Set only by `--attach-all`, on the endpoints it could not attach — an
    * explicit `attach <guid>` reports its one failure as the command's own

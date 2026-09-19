@@ -144,9 +144,10 @@ LSTATUS apply_list(HKEY key, const std::wstring& name,
  * Sets one `REG_SZ` effect value, or deletes it when absent.
  *
  * Only ever reached for Equalizer APO's own class id coming out of a slot or
- * going back into it — `write_fx_values` refuses every other change to these
- * values, because they are where a machine's own audio vendor registers its
- * effects and none of that is ours to rewrite.
+ * going back into it, and for our own going into one that holds nothing or
+ * Windows' own default effect — `write_fx_values` refuses every other change
+ * to these values, because they are where a machine's own audio vendor
+ * registers its effects and none of that is ours to rewrite.
  */
 LSTATUS apply_single(HKEY key, const std::wstring& name,
                      const std::optional<std::wstring>& value) {
@@ -297,12 +298,16 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
     }
     return false;
   };
-  // And one for the two legacy values only: our own class id may go into a
-  // value that holds nothing or Windows' own default effect, and come out
-  // of one again, leaving what was there. That is the oldest rung of the
-  // slot ladder, for a driver that reads pids 1 and 2 and never a list.
-  // Either side naming any other effect is refused: ours never replaces a
-  // vendor's, and never becomes one.
+  // And one for the values that hold a single class id — pids 1 and 2, and
+  // pids 5, 6 and 7: our own may go into a value that holds nothing or
+  // Windows' own default effect, and come out of one again, leaving what was
+  // there. Those are the lower rungs of the slot ladder, for a driver that
+  // reads an older generation and never a list. Either side naming any other
+  // effect is refused: ours never replaces a vendor's, and never becomes one.
+  //
+  // Pids 5 to 7 were admitted here for a Bluetooth headset whose endpoint
+  // carried Windows' own two effects in them, no list anywhere, and an
+  // engine Windows never once created in a list added beside them.
   const auto empty_or_ours = [](const std::optional<std::wstring>& value) {
     return !value.has_value() || value->empty() ||
            equal_ci(*value, kEngineClsid) || is_windows_default_apo(*value);
@@ -314,7 +319,8 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
   };
   for (int slot = 0; slot < kSlotCount; ++slot) {
     if (before.single[slot] != after.single[slot] &&
-        !apo_only(before.single[slot], after.single[slot])) {
+        !apo_only(before.single[slot], after.single[slot]) &&
+        !ours_only(before.single[slot], after.single[slot])) {
       error = L"refusing to change the single effect values of " + guid;
       return false;
     }
@@ -335,8 +341,9 @@ bool write_fx_values(const std::wstring& guid, const FxValues& before,
             describe_error(static_cast<unsigned long>(opened));
     return false;
   }
-  // Equalizer APO's own entries leaving the old slots, or going back into
-  // them — the one change the guard above admits, in the one shape it admits.
+  // Equalizer APO's own entries leaving the old slots or going back into
+  // them, and ours going into a free one or coming back out — the only
+  // changes the guard above admits, in the only shapes it admits.
   for (int slot = 0; slot < kSlotCount; ++slot) {
     if (before.single[slot] != after.single[slot]) {
       const std::wstring name = value_name(kFxProperty, kSinglePid[slot]);
