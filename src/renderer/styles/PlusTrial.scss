@@ -104,9 +104,129 @@
   background: $surface-block;
 }
 .plus-trial-banner {
+  @include panel-surface($secondary-default, 4%);
   display: grid;
-  gap: $spacing-s;
+  gap: $spacing-m;
   flex: 0 0 auto;
+  min-width: 0;
+  padding: $spacing-l;
+  border-color: color-mix(in srgb, $secondary-default 24%, $border-field);
+  border-radius: $radius-l;
+  background-image: radial-gradient(
+    ellipse at top left,
+    color-mix(in srgb, $secondary-default 9%, transparent),
+    transparent 65%
+  );
+  container: plus-trial-banner / inline-size;
+
+  > .plus-trial {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .plus-free-intro {
+    grid-column: auto;
+
+    h2 {
+      margin-bottom: $spacing-s;
+      font-size: clamp($text-title, 1.8cqi, 1.15rem);
+      line-height: 1.3;
+      text-wrap: pretty;
+    }
+
+    p {
+      max-width: 76ch;
+      font-size: $text-lead;
+      line-height: 1.6;
+      text-wrap: pretty;
+    }
+  }
+}
+
+.plus-trial-banner__overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-l;
+
+  + .plus-trial {
+    padding-top: $spacing-m;
+    border-top: 1px solid $border-field;
+  }
+
+  @container plus-trial-banner (max-width: 620px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-m;
+  }
+}
+
+.plus-trial-banner__message {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-m;
+  min-width: 0;
+
+  @container plus-trial-banner (max-width: 380px) {
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+}
+
+.plus-trial-banner__mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $secondary-default 11%, $surface-block);
+  color: $secondary-light;
+  box-shadow: 0 0 28px color-mix(in srgb, $secondary-default 8%, transparent);
+
+  svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  @container plus-trial-banner (max-width: 380px) {
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 23px;
+      height: 23px;
+    }
+  }
+}
+
+.plus-trial-banner .button.plus-trial-banner__plans {
+  justify-self: end;
+  gap: $spacing-s;
+  max-width: 100%;
+  height: auto;
+  min-height: $control-height;
+  white-space: normal;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+
+  @container plus-trial-banner (max-width: 620px) {
+    justify-self: start;
+    margin-inline-start: 64px;
+    max-width: calc(100% - 64px);
+  }
+
+  @container plus-trial-banner (max-width: 380px) {
+    margin-inline-start: 52px;
+    max-width: calc(100% - 52px);
+  }
 }
 
 .plus-trial-agreement {
