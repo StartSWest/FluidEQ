@@ -3,11 +3,13 @@ import {
   GALLERY_PAGE_SIZE,
   parseGalleryRow,
   parsePublishedRow,
+  parseVersionFloorRow,
   parseVersionRow,
   type IGalleryQuery,
   type IGalleryScene,
   type IGalleryVersion,
   type IPublishedScene,
+  type IVersionFloor,
   type TPlusCategory,
   type TReportReason,
 } from '../../common/plusGallery';
@@ -191,6 +193,46 @@ export const listPublished = async (
           scenes: rows.flatMap((row) => {
             const scene = parsePublishedRow(row);
             return scene ? [scene] : [];
+          }),
+        }
+      : { ok: false, reason: 'server' };
+  } catch {
+    return { ok: false, reason: 'server' };
+  }
+};
+
+/**
+ * The highest version each of this maker's scenes was ever out at, the
+ * unpublished ones included (server migration 0039), so publishing goes out
+ * above what members may still hold. A server before 0039 has no such
+ * question to answer, which reads as no floors: the live list is then all
+ * there is, as it always was.
+ */
+export const listVersionFloors = async (
+  auth: IAuthorised,
+): Promise<
+  { ok: true; floors: IVersionFloor[] } | { ok: false; reason: TGalleryFailure }
+> => {
+  let response: Response;
+  try {
+    response = await rpc(auth, 'my_scene_version_floors', {});
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
+  if (response.status === 404) {
+    return { ok: true, floors: [] };
+  }
+  if (!response.ok) {
+    return { ok: false, reason: failureOf(response.status) };
+  }
+  try {
+    const rows: unknown = await response.json();
+    return Array.isArray(rows)
+      ? {
+          ok: true,
+          floors: rows.flatMap((row) => {
+            const floor = parseVersionFloorRow(row);
+            return floor ? [floor] : [];
           }),
         }
       : { ok: false, reason: 'server' };

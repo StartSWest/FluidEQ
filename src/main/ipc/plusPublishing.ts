@@ -3,6 +3,7 @@ import {
   heldVersionOf,
   isPlusCategory,
   type IPublishedScene,
+  type IVersionFloor,
 } from '../../common/plusGallery';
 import {
   settingsOfPack,
@@ -17,9 +18,11 @@ import {
   fetchEnvelope,
   isCardPicture,
   listPublished,
+  listVersionFloors,
   MAX_PICTURE_BYTES,
   publishScene,
   unpublishScene,
+  type IAuthorised,
   type TGalleryFailure,
   type TPublishFailure,
 } from '../plus/galleryApi';
@@ -37,7 +40,16 @@ import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
  */
 
 export type TMineOutcome =
-  | { ok: true; scenes: IPublishedScene[] }
+  | {
+      ok: true;
+      scenes: IPublishedScene[];
+      /**
+       * The highest version each of these scenes, and each one unpublished,
+       * was ever out at (server migration 0039): what a publication of it
+       * has to go out above.
+       */
+      floors: IVersionFloor[];
+    }
   | { ok: false; reason: TGalleryFailure };
 
 export type TPublishOutcome =
@@ -86,6 +98,25 @@ const CHANNELS = [
   'studio-published-settings',
 ] as const;
 
+/**
+ * This account's published scenes and its version floors, read together: a
+ * publication's number is decided from both, and the dialog shows the number
+ * the press will send, so the two can never be asked apart.
+ */
+const mineOf = async (auth: IAuthorised): Promise<TMineOutcome> => {
+  const [listed, floors] = await Promise.all([
+    listPublished(auth),
+    listVersionFloors(auth),
+  ]);
+  if (!listed.ok) {
+    return listed;
+  }
+  if (!floors.ok) {
+    return floors;
+  }
+  return { ok: true, scenes: listed.scenes, floors: floors.floors };
+};
+
 /** The page's picture as bytes, whether it arrived as a view or a buffer. */
 const pictureBytes = (value: unknown): Uint8Array | undefined => {
   let bytes: Uint8Array | undefined;
@@ -113,7 +144,7 @@ export const registerPlusPublishingIpc = ({
     if (!auth || access.accountId() !== me) {
       return { ok: false, reason: 'signed-out' };
     }
-    const outcome = await listPublished(auth);
+    const outcome = await mineOf(auth);
     return access.accountId() === me
       ? outcome
       : { ok: false, reason: 'signed-out' };
@@ -257,12 +288,13 @@ export const registerPlusPublishingIpc = ({
       // the file on disk carry the same number. Sending a raised version
       // without writing it would leave the maker's next build one behind and
       // publishing it again would be refused by the server, which is the rule
-      // arriving as a wall.
-      const listed = await listPublished(auth);
+      // arriving as a wall. Above the floors too: a scene unpublished and
+      // published again goes out above what members may still hold.
+      const listed = await mineOf(auth);
       if (!listed.ok) {
         return { ok: false, reason: listed.reason };
       }
-      const held = heldVersionOf(listed.scenes, sceneId);
+      const held = heldVersionOf(listed.scenes, sceneId, listed.floors);
       if ((await raiseProjectVersion(folder, held)) === 'failed') {
         return { ok: false, reason: 'no-build' };
       }

@@ -391,6 +391,43 @@ describe('the publish dialog', () => {
     expect(onPublish).toHaveBeenLastCalledWith('space', undefined, undefined);
   });
 
+  // The number shown is the number the press sends: above what the scene was
+  // ever out at (server migration 0039), not only above a live row — an
+  // unpublished scene has none, and its members still hold its number.
+  it('names the version this publication will go out as', () => {
+    const { rerender } = render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ held: 7 })}
+        running={false}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('studio.publish.version:8')).toBeInTheDocument();
+    rerender(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft()}
+        running={false}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    // Never out: the project's own number.
+    expect(screen.getByText('studio.publish.version:3')).toBeInTheDocument();
+  });
+
   it('selects completed covers and identifies captures still being drawn', async () => {
     const onChoose = jest.fn();
     const { rerender } = render(

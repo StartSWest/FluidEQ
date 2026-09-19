@@ -1,6 +1,10 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import type { IPublishedScene, TPlusCategory } from 'common/plusGallery';
+import {
+  heldVersionOf,
+  type IPublishedScene,
+  type TPlusCategory,
+} from 'common/plusGallery';
 import { PLUS_TERMS_VERSION } from 'common/plusTerms';
 import { requestAccountPanel } from '../account/accountPanel';
 import { getAccountSnapshot, useAccount } from '../account/accountStore';
@@ -62,6 +66,12 @@ export interface IPublishDraft {
   chosen: number;
   /** This scene as it is already published, when it is. */
   published?: IPublishedScene;
+  /**
+   * The number this publication has to go out above: the published one, or
+   * the highest the scene was ever out at when it has been unpublished since
+   * (server migration 0039). The dialog shows the number the press sends.
+   */
+  held?: number;
   /**
    * What the member's AI wrote about its own change, read from the project as
    * the dialog opens so it is the line for THIS version rather than one left
@@ -130,7 +140,6 @@ export default function useStudioPublish(
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
   const { pack } = view;
-  const packId = pack?.id;
 
   // Event handlers can run twice before React commits; refs also keep pending
   // captures and the bytes being published in the same synchronous draft.
@@ -195,17 +204,21 @@ export default function useStudioPublish(
     const started = generation.current;
     preparingRef.current = true;
     setPreparing(true);
+    const sceneId = pack.id;
     const published = window.electron?.ipcRenderer
       ?.myPublishedScenes?.()
       .then((outcome) =>
         outcome.ok
-          ? // The highest, which is the one the publication will go out
-            // above (`heldVersionOf`): the number shown here and the number
-            // sent have to be the same, or the dialog promises a version the
-            // press does not deliver.
-            outcome.scenes
-              .filter((scene) => scene.sceneId === packId)
-              .sort((one, two) => two.version - one.version)[0]
+          ? {
+              scene: outcome.scenes
+                .filter((scene) => scene.sceneId === sceneId)
+                .sort((one, two) => two.version - one.version)[0],
+              // The number the publication will go out above, decided as
+              // the press decides it (`heldVersionOf`, floors included): the
+              // number shown and the number sent have to be the same, or the
+              // dialog promises a version the press does not deliver.
+              held: heldVersionOf(outcome.scenes, sceneId, outcome.floors),
+            }
           : undefined,
       )
       .catch(() => undefined);
@@ -237,7 +250,12 @@ export default function useStudioPublish(
           chosen: id,
           agreed: agreed >= PLUS_TERMS_VERSION,
           missed: false,
-          ...(alreadyPublished ? { published: alreadyPublished } : {}),
+          ...(alreadyPublished?.scene
+            ? { published: alreadyPublished.scene }
+            : {}),
+          ...(alreadyPublished?.held !== undefined
+            ? { held: alreadyPublished.held }
+            : {}),
           ...(suggestedNote ? { suggestedNote } : {}),
         });
         return undefined;
@@ -253,7 +271,6 @@ export default function useStudioPublish(
   }, [
     playing,
     pack,
-    packId,
     view.state.activeId,
     view.state.entitled,
     view.problems,

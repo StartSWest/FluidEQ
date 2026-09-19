@@ -167,10 +167,9 @@ export default function StudioPublishDialog({
                 // project: a scene's content may only change under a higher
                 // version, so publishing raises it, and the dialog has to say
                 // which one is going out or it names the version being
-                // replaced right beside the one it replaces.
-                version: String(
-                  versionToPublish(pack.version, draft.published?.version),
-                ),
+                // replaced right beside the one it replaces. Above what the
+                // scene was ever out at, too, when it was unpublished since.
+                version: String(versionToPublish(pack.version, draft.held)),
               })}
               {draft.published && (
                 <span className="studio-publish__published">

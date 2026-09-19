@@ -11,6 +11,7 @@ import {
   parseGalleryRow,
   parseVersionRow,
   parsePublishedRow,
+  parseVersionFloorRow,
   heldVersionOf,
   type IPublishedScene,
 } from '../../../common/plusGallery';
@@ -254,5 +255,37 @@ describe('the version a scene is published under now', () => {
     const both = [published('mine', 51, true), published('mine', 60)];
     expect(heldVersionOf(both, 'mine')).toBe(60);
     expect(heldVersionOf([...both].reverse(), 'mine')).toBe(60);
+  });
+
+  // Server migration 0039: unpublishing took the row away, and members still
+  // held its number.
+  it('remembers what a scene was ever out at, unpublished since', () => {
+    const floors = [
+      { sceneId: 'mine', version: 9 },
+      { sceneId: 'other', version: 40 },
+    ];
+    expect(heldVersionOf([], 'mine', floors)).toBe(9);
+    // Above the live one when the floor is higher, never below it.
+    expect(heldVersionOf([published('mine', 7)], 'mine', floors)).toBe(9);
+    expect(
+      heldVersionOf([published('mine', 12)], 'mine', [
+        { sceneId: 'mine', version: 9 },
+      ]),
+    ).toBe(12);
+    expect(heldVersionOf([], 'fresh', floors)).toBeUndefined();
+  });
+
+  it('reads a floor row as the server sends it, and nothing that is not one', () => {
+    expect(parseVersionFloorRow({ scene_id: 'lake', version: '7' })).toEqual({
+      sceneId: 'lake',
+      version: 7,
+    });
+    [
+      { scene_id: '../etc', version: 7 },
+      { scene_id: 'lake', version: 0 },
+      { scene_id: 'lake', version: 'seven' },
+      null,
+      ['lake', 7],
+    ].forEach((row) => expect(parseVersionFloorRow(row)).toBeUndefined());
   });
 });
