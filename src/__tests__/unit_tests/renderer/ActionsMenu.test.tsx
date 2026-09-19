@@ -24,7 +24,7 @@ import { getTheme, setTheme } from 'renderer/utils/theme';
 afterEach(() => {
   cleanup();
   jest.restoreAllMocks();
-  setTheme('dark');
+  setTheme('black');
 });
 
 const handlers = () => ({
@@ -200,19 +200,29 @@ describe('the commands of the actions menu', () => {
 });
 
 describe('the settings tray', () => {
-  // Ocean was retired to make room for a light theme, and until that
-  // arrives there is one theme: a segmented control with a single segment
-  // would be a setting that sets nothing, so the tray offers none.
-  it('offers no theme choice while Dark is the only theme', () => {
+  it('shows both themes as a choice, each with a swatch of itself', () => {
     const { trigger } = show('ready');
     open(trigger);
+    const themes = screen.getByRole('group', { name: 'Theme' });
+    const black = within(themes).getByRole('menuitemradio', { name: 'Black' });
+    const ocean = within(themes).getByRole('menuitemradio', { name: 'Ocean' });
 
-    expect(getTheme()).toBe('dark');
+    expect(black).toHaveAttribute('aria-checked', 'true');
     expect(
-      screen.queryByRole('group', { name: 'Theme' }),
-    ).not.toBeInTheDocument();
+      ocean.querySelector('[data-theme-swatch="ocean"]'),
+    ).toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', { name: 'Animations' }),
+      black.querySelector('[data-theme-swatch="black"]'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(ocean);
+
+    expect(getTheme()).toBe('ocean');
+    expect(ocean).toHaveAttribute('aria-checked', 'true');
+    expect(black).toHaveAttribute('aria-checked', 'false');
+    // Choosing a setting is not a command: the menu stays where it is.
+    expect(
+      screen.getByRole('menu', { name: 'FluidEQ actions' }),
     ).toBeInTheDocument();
   });
 });
@@ -242,9 +252,7 @@ describe('opening and closing the actions menu', () => {
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(
-      screen.getByRole('menuitem', { name: 'Support the work' }),
-    ).toHaveFocus();
+    expect(screen.getByRole('menuitemradio', { name: 'Black' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'End' });
     fireEvent.keyDown(menu, { key: 'ArrowDown' });

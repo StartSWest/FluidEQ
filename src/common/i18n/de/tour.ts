@@ -146,6 +146,24 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Eine Tastatur, eine Maus und ein Mauspad, beleuchtet im Pink, Violett und Cyan von Neonstadt.',
 
+  'tour.theme.kicker': 'EIN NEUER LOOK',
+  'tour.theme.title': 'Das Schwarz-Theme',
+  'tour.theme.subtitle': 'Reines Schwarz für lange Nächte und OLED-Bildschirme',
+  'tour.theme.lead':
+    'FluidEQ hat jetzt ein zweites Gesicht. Schwarz entfernt jede Spur des Schieferblaus, mit dem die App geboren wurde: Panels, Menüs und Leisten werden monochrom, der Akzent bleibt, und das Spektrum ist die einzige Farbe im Raum.',
+  'tour.theme.point1':
+    'Echtes Schwarz im Hintergrund: Auf einem OLED-Display schalten sich die Pixel rund um den Graphen ab.',
+  'tour.theme.point2':
+    'Jedes Fenster zieht mit: Menüs, Dialoge, die Karaoke-Bühne und die Bibliothek wechseln gemeinsam.',
+  'tour.theme.point3':
+    'Akzentfarbe und Regenbogenmodus bleiben erhalten. Am Klang ändert sich nichts – nur der Anstrich.',
+  'tour.theme.howTitle': 'So wechseln Sie',
+  'tour.theme.how':
+    'Öffnen Sie das Menü hinter dem Puls-Symbol oben rechts und wählen Sie ganz unten unter Design die Option Schwarz. Ozean ist einen Klick entfernt, wenn Sie zurück wollen.',
+  'tour.theme.tryBlack': 'Jetzt zu Schwarz wechseln',
+  'tour.theme.tryOcean': 'Zurück zu Ozean',
+  'tour.theme.imageAlt':
+    'FluidEQ im Schwarz-Theme: der EQ-Tab mit fünfzehn Bändern und dem Live-Spektrum eines laufenden Songs.',
 
   'tour.share.kicker': 'JEDEN PC HÖREN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',

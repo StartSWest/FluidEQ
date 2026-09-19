@@ -145,6 +145,24 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'ネオンシティのピンク、バイオレット、シアンに光るキーボード、マウス、マウスパッド。',
 
+  'tour.theme.kicker': '新しい外観',
+  'tour.theme.title': 'ブラックテーマの登場',
+  'tour.theme.subtitle': '深夜と OLED 画面のための純黒',
+  'tour.theme.lead':
+    'FluidEQ に第二の顔が加わりました。ブラックは、アプリが生まれたときのスレートブルーを跡形もなく取り除きます。パネル、メニュー、バーはモノクロになり、アクセント色は残り、スペクトラムだけが部屋の色になります。',
+  'tour.theme.point1':
+    '背景は真の黒。OLED ディスプレイではグラフの周りのピクセルが消灯します。',
+  'tour.theme.point2':
+    'すべてのウィンドウが追従します。メニュー、ダイアログ、カラオケのステージ、ライブラリが一緒に切り替わります。',
+  'tour.theme.point3':
+    'アクセント色とレインボーモードはそのまま。音は何も変わりません。変わるのは塗装だけです。',
+  'tour.theme.howTitle': '切り替え方',
+  'tour.theme.how':
+    '右上のパルスアイコンのメニューを開き、いちばん下の「テーマ」で「ブラック」を選びます。「オーシャン」にもワンクリックで戻せます。',
+  'tour.theme.tryBlack': '今すぐブラックに切り替える',
+  'tour.theme.tryOcean': 'オーシャンに戻す',
+  'tour.theme.imageAlt':
+    'ブラックテーマの FluidEQ。15 バンドの EQ タブと、曲を再生中のライブスペクトラム。',
 
   'tour.share.kicker': 'すべての PC を聴く',
   'tour.share.title': 'コンピューター間で音声を共有',

@@ -146,6 +146,24 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
+  'tour.theme.kicker': 'UN NOUVEAU LOOK',
+  'tour.theme.title': 'Voici le thème Noir',
+  'tour.theme.subtitle': 'Noir pur, pour les nuits tardives et les écrans OLED',
+  'tour.theme.lead':
+    'FluidEQ a désormais un second visage. Noir efface toute trace du bleu ardoise d’origine : panneaux, menus et barres passent en monochrome, l’accent reste, et le spectre est la seule couleur de la pièce.',
+  'tour.theme.point1':
+    'Fonds noir absolu : sur un écran OLED, les pixels autour du graphe s’éteignent.',
+  'tour.theme.point2':
+    'Toutes les fenêtres suivent : menus, boîtes de dialogue, la scène karaoké et la Bibliothèque changent ensemble.',
+  'tour.theme.point3':
+    'Votre couleur d’accent et le mode arc-en-ciel sont conservés. Rien ne change dans votre son : seule la peinture.',
+  'tour.theme.howTitle': 'Comment changer',
+  'tour.theme.how':
+    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et, tout en bas, choisissez Noir sous Thème. Océan reste à un clic si vous voulez revenir.',
+  'tour.theme.tryBlack': 'Passer en Noir maintenant',
+  'tour.theme.tryOcean': 'Revenir à Océan',
+  'tour.theme.imageAlt':
+    'FluidEQ en thème Noir : l’onglet EQ avec quinze bandes et le spectre en direct pendant la lecture d’un morceau.',
 
   'tour.share.kicker': 'ÉCOUTEZ TOUS VOS PC',
   'tour.share.title': 'Partagez l’audio entre vos ordinateurs',

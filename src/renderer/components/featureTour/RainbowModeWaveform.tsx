@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../../utils/I18nContext';
+import { useTheme } from '../../utils/theme';
+import oceanWaveformShot from '../../../../assets/tour/rainbow-waveform-ocean.png';
 import blackWaveformShot from '../../../../assets/tour/rainbow-waveform-black.png';
 
 export default function RainbowModeWaveform({
@@ -15,13 +17,14 @@ export default function RainbowModeWaveform({
   onToggle: () => void;
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
     <figure className="tour-slide__art tour-rainbow">
       <span className="tour-slide__kicker">{t('tour.rainbow.waveform')}</span>
       <div className="tour-rainbow__wave">
         <img
-          src={blackWaveformShot}
+          src={theme === 'black' ? blackWaveformShot : oceanWaveformShot}
           alt={t('tour.rainbow.waveform')}
           width={872}
           height={164}

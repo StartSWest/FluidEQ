@@ -10,31 +10,29 @@ import { useSyncExternalStore } from 'react';
 import { readStored, writeStored } from './graphStorage';
 
 /**
- * The themes, and what a theme IS here: a set of surface colours.
+ * The two themes, and what a theme IS here: a set of surface colours.
  *
  * Every pane, block, field, menu and well in the window reads its colour
- * from a custom property on `:root` (see the `:root` block at the head of
+ * from a custom property on `:root` (see the `:root` blocks at the head of
  * App.scss). A theme is that list declared again under `data-theme`, and
  * switching is one attribute on the document element. Text, the accent and
  * the semantic colours are shared — a theme changes what things stand on,
  * not what they say.
  *
- * `dark` needs no attribute: it is what `:root` declares. It was "Black",
- * beside the slate-navy "Ocean" the app was designed on; Ocean was retired to
- * make room for a light theme. A saved `ocean` or `black` is not a theme any
- * more, so it reads as no choice and lands on Dark - nobody is left in a
- * look that no longer exists.
+ * `ocean` is the slate-navy the app was designed on and needs no attribute:
+ * it is what `:root` declares. Anything else is named.
  *
- * Only one for now, which is why the picker hides itself (`ThemePicker`): a
- * choice with one answer is not a choice.
+ * `black` is nonetheless the default. It arrived in 1.6 and is what a fresh
+ * install and an upgrade from anything earlier both open in; Ocean stays one
+ * pick away and, once picked, is remembered like any other choice.
  */
-export const THEMES = ['dark'] as const;
+export const THEMES = ['ocean', 'black'] as const;
 export type TTheme = (typeof THEMES)[number];
 
 const STORAGE_KEY = 'fluideq.theme';
 /** What `:root` paints with no attribute; see the note above. */
-const ROOT_THEME: TTheme = 'dark';
-const DEFAULT_THEME: TTheme = 'dark';
+const ROOT_THEME: TTheme = 'ocean';
+const DEFAULT_THEME: TTheme = 'black';
 
 const isTheme = (value: string | null): value is TTheme =>
   value !== null && (THEMES as readonly string[]).includes(value);
@@ -59,12 +57,11 @@ const applyTheme = (theme: TTheme) => {
   } else {
     root.setAttribute('data-theme', theme);
   }
-  // The native window too: no theme draws the desktop blurred behind it any
-  // more - that was Ocean's, and a window last left in Ocean has to be told.
-  // Every optional link is deliberate — tests stub the bridge with a handful
-  // of methods, and a theme is not worth taking a render down for.
+  // The native window too: black wants no desktop blurred behind it. Every
+  // optional link is deliberate — tests stub the bridge with a handful of
+  // methods, and a theme is not worth taking a render down for.
   window.electron?.ipcRenderer
-    ?.setWindowBackdrop?.(false)
+    ?.setWindowBackdrop?.(theme !== 'black')
     ?.catch(() => undefined);
 };
 

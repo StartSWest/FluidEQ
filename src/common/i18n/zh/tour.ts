@@ -142,6 +142,23 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
+  'tour.theme.kicker': '全新外观',
+  'tour.theme.title': '认识黑色主题',
+  'tour.theme.subtitle': '纯黑，为深夜与 OLED 屏幕而生',
+  'tour.theme.lead':
+    'FluidEQ 现在有了第二副面孔。黑色主题抹去了应用诞生时的石板蓝：面板、菜单和工具栏全部变为单色，强调色保留，频谱成为屋里唯一的色彩。',
+  'tour.theme.point1': '纯黑背景：在 OLED 屏幕上，图表周围的像素会直接熄灭。',
+  'tour.theme.point2':
+    '所有窗口同步：菜单、对话框、卡拉OK 舞台和曲库一起切换。',
+  'tour.theme.point3':
+    '你的强调色和彩虹模式保持不变。声音没有任何变化，只是换了外衣。',
+  'tour.theme.howTitle': '如何切换',
+  'tour.theme.how':
+    '打开右上角脉冲图标后的菜单，在底部的“主题”中选择“黑色”。想换回来时，“海洋”只需一次点击。',
+  'tour.theme.tryBlack': '立即切换为黑色',
+  'tour.theme.tryOcean': '换回海洋',
+  'tour.theme.imageAlt':
+    '黑色主题下的 FluidEQ：EQ 标签页显示十五个频段，实时频谱正在播放一首歌曲。',
 
   'tour.share.kicker': '聆听每一台电脑',
   'tour.share.title': '在你的电脑之间共享音频',

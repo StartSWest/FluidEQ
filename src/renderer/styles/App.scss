@@ -1733,57 +1733,48 @@ textarea,
 // Every surface in the window — floor, pane, block, field, menu, well, the
 // empty-track colour — is one of these, and nothing else in any stylesheet
 // names a slate of its own. The Sass tokens in `_theme.scss` read these by
-// name, so a theme is exactly this list said again with different values
-// under `data-theme`. Text, the accent and the semantic colours (lime, red,
-// amber) are shared; a theme changes what things stand on, not what they say.
+// name, so a theme is exactly this list said again with different values:
+// the second block below is the whole of the black theme. Text, the accent
+// and the semantic colours (lime, red, amber) are shared; a theme changes what
+// things stand on, not what they say.
 //
 // `data-theme` is set on the document element by `renderer/utils/theme.ts`,
-// which is also where the choice is remembered. Dark needs no attribute: it
-// is what this block says.
+// which is also where the choice is remembered.
 //
-// Declared for `data-theme-swatch` as well: the theme picker's swatch of a
-// theme is painted from its own block, inside a window wearing another one,
-// so a swatch is the theme itself and not a copy of its colours.
-//
-// DARK: near-black, cool, and quiet — not a high-contrast theme. It was
-// "Black" beside the slate-navy "Ocean" the app was designed on; Ocean was
-// retired for a light theme, and anyone who had either lands here.
-//
-// The first cut was white on true black with grey hairlines, and it read as
-// an accessibility mode: every edge shouting, every button a white slab. What
-// makes a dark theme feel expensive is the opposite — the surfaces are a few
-// values apart on a faintly cool near-black, the edges are barely there, and
-// the accent is a colour with some restraint in it rather than pure white.
-// The rainbow stays — it is the music.
+// Each block is declared for `data-theme-swatch` as well: the theme picker's
+// swatch of a theme is painted from these, inside a window wearing the other
+// one, so a swatch is the theme itself and not a copy of its colours.
 :root,
-[data-theme-swatch='dark'] {
+[data-theme-swatch='ocean'] {
   --text-primary: #{$text-primary};
   --text-muted: #{$text-muted};
   --text-faint: #{$text-faint};
-  --surface-base: #050608;
-  --surface-panel: #0c0e12;
-  --surface-block: #12151a;
-  --surface-field: #14181d;
-  --surface-field-end: #0f1216;
-  --surface-menu: #0e1116;
-  --surface-menu-top: #13171c;
-  --surface-menu-face: #171c23;
-  --surface-well: #030405;
-  --track-well: #222731;
-  // Cool and faint. The edges only have to hint where a card ends; at the
-  // first cut's alphas they drew a wireframe over the window.
-  --border-subtle: rgba(190, 205, 225, 0.06);
-  --border-panel: rgba(190, 205, 225, 0.08);
-  --border-menu: rgba(190, 205, 225, 0.14);
-  // The accent: the chosen thing, the live thing, the thing to press. A
-  // green-cyan, the one the Maker's song strip has always drawn its waveform
-  // in, which sits on near-black without glowing.
-  --accent: #52e9dc;
-  --accent-light: #b6f7f0;
-  --accent-dark: #2fcfc2;
-  --accent-darker: #1f9e95;
+  // Ocean: the slate-navy the app was designed on. Hue 206 throughout; only
+  // the lightness moves between rungs.
+  --surface-base: #0d2030;
+  --surface-panel: #1a3a4e;
+  --surface-block: #1e4257;
+  --surface-field: #1c3a4e;
+  --surface-field-end: #173245;
+  --surface-menu: #163244;
+  --surface-menu-top: #1a3a52;
+  // The select's own tint over the block it opens on — what
+  // `mix($secondary-default, $surface-block, 7%)` came to.
+  --surface-menu-face: #1c4a5f;
+  --surface-well: #07111a;
+  --track-well: #2e4f63;
+  // The edges, a cool white at a whisper: on slate they only have to part
+  // one pane from the next.
+  --border-subtle: rgba(214, 233, 247, 0.09);
+  --border-panel: rgba(214, 233, 247, 0.11);
+  --border-menu: rgba(156, 255, 244, 0.22);
+  // The accent: the chosen thing, the live thing, the thing to press.
+  --accent: #00e5cf;
+  --accent-light: #9cfff4;
+  --accent-dark: #00a9d6;
+  --accent-darker: #007f95;
   // What says a thing is on: the attached profile, the live output, a project
-  // that saves as it goes. Shared by every theme, and turned to a scene's own
+  // that saves as it goes. Shared by both themes, and turned to a scene's own
   // colour by the tint (`sceneTint.ts`) — never the rainbow the music is
   // drawn in, which stays `$analogous-2` and its neighbours.
   --active: #{$analogous-2};
@@ -1804,12 +1795,54 @@ textarea,
   // The EQ page's live spectrum under its curve.
   --dsp-spectrum: var(--accent);
   // Smart EQ's listening bands: the columns over the plot and the confidence
-  // bar under each. Gray, not the accent. The columns stand at 6-20% opacity
-  // over the whole plot; in the accent they were a green wash behind a green
-  // curve and the two fought. A cool mid gray — the borders' tint, darker
-  // than the light gray first tried, which sat too bright over near-black —
-  // reads as shading on the floor, and leaves the accent to the things that
-  // are chosen or live.
+  // bar under each. Ocean paints them in its accent, as it always has — by
+  // reference, so a Plus scene lending the window its accent recolours these
+  // with it rather than leaving cyan columns under a pink curve.
+  --coverage-band: var(--accent);
+}
+
+// Black: near-black, cool, and quiet — not a high-contrast theme.
+//
+// The first cut was white on true black with grey hairlines, and it read as
+// an accessibility mode: every edge shouting, every button a white slab. What
+// makes a dark theme feel expensive is the opposite — the surfaces are a few
+// values apart on a faintly cool near-black, the edges are barely there, and
+// the accent is a colour with some restraint in it rather than pure white.
+//
+// The accent is a green-cyan, taken from the Maker's own waveform: the same
+// family as the ocean theme's cyan so the two are plainly one app, softer so
+// it does not glow on black. The rainbow stays — it is the music.
+:root[data-theme='black'],
+[data-theme-swatch='black'] {
+  --surface-base: #050608;
+  --surface-panel: #0c0e12;
+  --surface-block: #12151a;
+  --surface-field: #14181d;
+  --surface-field-end: #0f1216;
+  --surface-menu: #0e1116;
+  --surface-menu-top: #13171c;
+  --surface-menu-face: #171c23;
+  --surface-well: #030405;
+  --track-well: #222731;
+  // Cool and faint. The edges only have to hint where a card ends; at the
+  // first cut's alphas they drew a wireframe over the window.
+  --border-subtle: rgba(190, 205, 225, 0.06);
+  --border-panel: rgba(190, 205, 225, 0.08);
+  --border-menu: rgba(190, 205, 225, 0.14);
+  // A green-cyan, the one the Maker's song strip has always drawn its
+  // waveform in — softer and a touch greener than the ocean theme's cyan, so
+  // the two are the same family without being the same colour, and it sits
+  // on near-black without glowing.
+  --accent: #52e9dc;
+  --accent-light: #b6f7f0;
+  --accent-dark: #2fcfc2;
+  --accent-darker: #1f9e95;
+  // Gray, not the accent. The columns stand at 6-20% opacity over the whole
+  // plot; in the accent they were a green wash behind a green curve and
+  // the two fought. A cool mid gray — the borders' tint, darker than the
+  // light gray first tried, which sat too bright over near-black — reads as
+  // shading on the floor, and leaves the accent to the things that are
+  // chosen or live.
   --coverage-band: #7a8594;
 }
 

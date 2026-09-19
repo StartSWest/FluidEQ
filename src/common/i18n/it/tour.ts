@@ -146,6 +146,24 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
+  'tour.theme.kicker': 'UN NUOVO ASPETTO',
+  'tour.theme.title': 'Ecco il tema Nero',
+  'tour.theme.subtitle': 'Nero puro, per le notti tarde e gli schermi OLED',
+  'tour.theme.lead':
+    'FluidEQ ha ora un secondo volto. Nero cancella ogni traccia del blu ardesia con cui l’app è nata: pannelli, menu e barre diventano monocromi, l’accento resta e lo spettro è l’unico colore nella stanza.',
+  'tour.theme.point1':
+    'Sfondi nero assoluto: su uno schermo OLED i pixel intorno al grafico si spengono.',
+  'tour.theme.point2':
+    'Ogni finestra segue: menu, finestre di dialogo, il palco del karaoke e la Libreria cambiano insieme.',
+  'tour.theme.point3':
+    'Il colore d’accento e la modalità arcobaleno restano. Il suono non cambia affatto: è solo la vernice.',
+  'tour.theme.howTitle': 'Come cambiarlo',
+  'tour.theme.how':
+    'Apri il menu dietro l’icona a impulso in alto a destra e, in fondo, scegli Nero in Tema. Oceano è a un clic se vuoi tornare indietro.',
+  'tour.theme.tryBlack': 'Passa a Nero adesso',
+  'tour.theme.tryOcean': 'Torna a Oceano',
+  'tour.theme.imageAlt':
+    'FluidEQ con il tema Nero: la scheda EQ con quindici bande e lo spettro dal vivo mentre suona un brano.',
 
   'tour.share.kicker': 'ASCOLTA OGNI PC',
   'tour.share.title': 'Condividi l’audio tra i tuoi computer',

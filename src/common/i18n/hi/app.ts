@@ -360,7 +360,8 @@ const app: Partial<Dictionary> = {
   'theme.aria': 'थीम',
   'motion.aria': 'एनिमेशन',
   'motion.restart': 'लागू करने के लिए FluidEQ फिर से शुरू करें',
-  'theme.dark': 'गहरा',
+  'theme.ocean': 'महासागर',
+  'theme.black': 'काला',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'तस्वीर',

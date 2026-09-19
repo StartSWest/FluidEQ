@@ -367,7 +367,8 @@ const app: Partial<Dictionary> = {
   'theme.aria': 'Tema',
   'motion.aria': 'Animações',
   'motion.restart': 'Reinicie o FluidEQ para aplicar',
-  'theme.dark': 'Escuro',
+  'theme.ocean': 'Oceano',
+  'theme.black': 'Preto',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'A imagem',

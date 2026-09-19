@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { ComponentType } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
+import BlackThemeSlide from './BlackThemeSlide';
 import ShareAudioSlide from './ShareAudioSlide';
 import RainbowModeSlide from './RainbowModeSlide';
 import {
@@ -58,6 +59,13 @@ const SECOND_OUTPUT: TSlideEntry = {
   Body: SecondOutputSlide,
 };
 
+const BLACK_THEME: TSlideEntry = {
+  id: 'black-theme',
+  titleKey: 'tour.theme.title',
+  subtitleKey: 'tour.theme.subtitle',
+  Body: BlackThemeSlide,
+};
+
 const SHARE_AUDIO: TSlideEntry = {
   id: 'share-audio',
   titleKey: 'tour.share.title',
@@ -82,7 +90,7 @@ const RAINBOW_MODE: TSlideEntry = {
  * everything else plays through it.
  */
 const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
-  '1.6': [SECOND_OUTPUT, SHARE_AUDIO],
+  '1.6': [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO],
   '1.7': [
     {
       id: 'fluideq-engine',
@@ -135,6 +143,7 @@ const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
 const ALWAYS: TSlideEntry[] = [
   RAINBOW_MODE,
   SECOND_OUTPUT,
+  BLACK_THEME,
   SHARE_AUDIO,
   {
     id: 'library',
