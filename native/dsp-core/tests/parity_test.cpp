@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "fluideq/analog_diode.h"
+#include "fluideq/bass_punch.h"
 #include "fluideq/biquad.h"
 #include "fluideq/dsp.h"
 #include "fluideq/dynamics.h"
@@ -48,6 +49,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -204,8 +206,97 @@ Difference compare(const std::vector<float>& actual,
 size_t g_dynamic_fixtures = 0;
 size_t g_dynamic_engaged = 0;
 
-/** Set by `render_chain` when its field list has fallen behind the wire's. */
+/**
+ * Set by `render_chain` when a whole-chain fixture cannot be read in the layout
+ * the corpus was frozen with.
+ */
 bool g_chain_layout_stale = false;
+
+/**
+ * What this engine no longer agrees with the TypeScript rack about, on
+ * purpose, with the reason and where the behaviour that replaced it is held.
+ *
+ * A frozen corpus is a record of what the port produced, not a specification:
+ * when what it recorded has since been changed on purpose — a defect fixed, a
+ * behaviour redesigned — matching it is the failure. But a fixture dropped from
+ * comparison without a word is how a suite ends up green over an engine that
+ * does nothing, so nothing leaves parity except through this table, its
+ * fixtures are still rendered, and every run prints what is no longer being
+ * compared and why.
+ *
+ * An entry names a processor, and covers every fixture of it or only the ones
+ * it lists. A whole-chain fixture carries every stage at once and most of them
+ * have not changed, so it leaves by name — one rack on one signal, for the one
+ * change it reaches.
+ *
+ * An entry that stops matching the fixtures it covers fails the run: it has
+ * outlived the corpus it was written against and its reason belongs in history
+ * rather than in a table that reads as coverage. So does a named fixture that
+ * agrees with its frozen output again: an excuse kept past its need is coverage
+ * given away without a word.
+ */
+struct Superseded {
+  uint32_t processor;
+  /** The fixtures it covers, by name; empty for every fixture of it. */
+  std::span<const char* const> fixtures;
+  const char* reason;
+};
+
+/** Racks with nothing ahead of the final guard, on signals over its ceiling. */
+constexpr const char* kGuardHoldsTheCeiling[] = {
+    "chain/bypass/white-noise",
+    "chain/bypass/transient-then-silence",
+    "chain/eq-stereo/white-noise",
+    "chain/eq-stereo/transient-then-silence",
+    "chain/eq-mid-side/white-noise",
+    "chain/eq-mid-side/transient-then-silence",
+    "chain/eq-oversampled-fuzz/white-noise",
+    "chain/eq-oversampled-fuzz/transient-then-silence",
+    "chain/eq-dynamic/white-noise",
+    "chain/eq-dynamic/transient-then-silence",
+    "chain/exciter/white-noise",
+    "chain/exciter/transient-then-silence",
+};
+
+constexpr const char* kPunchAlignmentMovesTheMaster[] = {
+    "chain/master-headroom/white-noise",
+};
+
+constexpr Superseded kSuperseded[] = {
+    {kChain, kGuardHoldsTheCeiling,
+     "the final guard has held every rack to its -0.1 dBTP ceiling since "
+     "2026-09-04, where it used to arm only above +10 dBTP. Nothing ahead of it "
+     "holds the level on these racks, so the noise and the transients that "
+     "went over the ceiling unchecked are limited now. Held by "
+     "output_quality_test.cpp, on the ceiling and on a limited note staying "
+     "clean, and by preset_safety_test.cpp across the factory catalogue"},
+    {kChain, kPunchAlignmentMovesTheMaster,
+     "Bass Punch has kept its FIR's alignment under bypass since 2026-09-06, "
+     "which puts the programme 549 frames later at 48 kHz — 37 into a "
+     "128-frame block — and the Master decides its loudness gain per block: "
+     "over white noise it lands up to 0.01 dB from where it did. Every rack "
+     "is compared that many frames late, and on every other one that delay "
+     "is all Punch changed; the alignment is held by bass_mix_test.cpp and "
+     "engine_test.cpp"},
+};
+
+/** The entry that takes a fixture out of comparison, or null. */
+const Superseded* superseded_entry(const Fixture& fixture) {
+  for (const auto& entry : kSuperseded) {
+    if (entry.processor != fixture.processor) {
+      continue;
+    }
+    if (entry.fixtures.empty()) {
+      return &entry;
+    }
+    for (const char* name : entry.fixtures) {
+      if (fixture.name == name) {
+        return &entry;
+      }
+    }
+  }
+  return nullptr;
+}
 
 /**
  * One rack, parsed from `[engine, bandCount, (band) * count]` at `offset`.
@@ -1057,24 +1148,67 @@ bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
 }
 
 /**
- * The whole chain, decoded from the flat block `chainParams` writes.
+ * The lead the corpus was frozen with, which is not the wire's lead today.
  *
- * Field for field and in the same order. The variable-length part — the EQ's
- * bands — is last, so everything before it sits at a fixed offset and adding a
- * scalar cannot silently re-point sixty-four bands.
+ * `FEQ_CHAIN_PARAM_LEAD` moves whenever a stage joins the rack; the corpus was
+ * frozen at 929e5d397, when it was 112, and cannot move with it. Read from the
+ * fixtures themselves: each of the twenty-seven is exactly
+ * `112 + 7 * params[111]` doubles long, and no other lead accounts for any of
+ * them. Keyed to the live constant, this reader turned every one away before a
+ * single field was read, from the day the wire's lead first moved past it
+ * (113, 2026-09-03).
  */
-constexpr size_t kChainParamLead = FEQ_CHAIN_PARAM_LEAD;
-constexpr size_t kChainBandParams = 7;
+constexpr size_t kChainFrozenLead = 112;
+constexpr size_t kChainFrozenBandParams = 7;
+constexpr size_t kChainFrozenExciterBands = 3;
+constexpr size_t kChainFrozenCompressorBands = 3;
+static_assert(FEQ_CHAIN_EXCITER_BANDS == kChainFrozenExciterBands &&
+                  FEQ_CHAIN_COMPRESSOR_BANDS == kChainFrozenCompressorBands,
+              "the frozen chain fixtures carry three exciter bands and three "
+              "compressor bands; what they mean to a rack with another number "
+              "is a decision, not something this reader can guess");
 
+/**
+ * Refuses a whole-chain fixture out loud: printed, and the run fails.
+ *
+ * Never a quiet `false`, which `render` counts as "pending — no native
+ * implementation yet" and which never fails a run. The whole chain has had a
+ * native implementation since the day it was ported, so a chain fixture that
+ * is not run is a reader that has stopped matching the corpus.
+ */
+bool refuse_chain(const Fixture& fixture, const char* reason) {
+  g_chain_layout_stale = true;
+  std::printf("  CHAIN LAYOUT STALE %s: %s\n", fixture.name.c_str(), reason);
+  return false;
+}
+
+/**
+ * The whole chain, decoded from the flat block `encodeChainSettings` wrote
+ * when the corpus was frozen.
+ *
+ * Field for field and in that order, which is no longer the wire's. What the
+ * rack gained since is not in the corpus and stays at
+ * `feq_chain_settings_defaults`: the Room and the normalizer off, the surround
+ * switch idle on a stereo chain, and Voice's mode and Punch's mix under stages
+ * no frozen rack turns on. The variable-length part — the EQ's bands — is
+ * last, so everything before it sits at a fixed offset.
+ */
 bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
-  if (fixture.params.size() < kChainParamLead || fixture.channels == 0) {
-    return false;
+  if (fixture.params.size() < kChainFrozenLead) {
+    return refuse_chain(fixture, "its block is shorter than the frozen lead");
   }
-  const auto band_count =
-      static_cast<uint32_t>(fixture.params[kChainParamLead - 1]);
+  const double bands = fixture.params[kChainFrozenLead - 1];
+  if (!(bands >= 0.0 && bands <= FEQ_CHAIN_MAX_EQ_BANDS) ||
+      std::floor(bands) != bands) {
+    return refuse_chain(fixture,
+                        "the frozen lead does not end in a band count");
+  }
+  const auto band_count = static_cast<uint32_t>(bands);
   if (fixture.params.size() !=
-      kChainParamLead + static_cast<size_t>(band_count) * kChainBandParams) {
-    return false;
+      kChainFrozenLead +
+          static_cast<size_t>(band_count) * kChainFrozenBandParams) {
+    return refuse_chain(
+        fixture, "its block is not the frozen lead and that many bands");
   }
 
   FeqChainSettings settings;
@@ -1095,7 +1229,8 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.exciter.organic_amount = next();
   settings.exciter.organic_focus_hz = next();
   settings.exciter.organic_range = next();
-  for (auto& band : settings.exciter.bands) {
+  for (size_t index = 0; index < kChainFrozenExciterBands; ++index) {
+    auto& band = settings.exciter.bands[index];
     band.enabled = flag();
     band.freq_hz = next();
     band.range = next();
@@ -1119,7 +1254,8 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.compressor.enabled = flag();
   settings.compressor.crossover_hz[0] = next();
   settings.compressor.crossover_hz[1] = next();
-  for (auto& band : settings.compressor.bands) {
+  for (size_t index = 0; index < kChainFrozenCompressorBands; ++index) {
+    auto& band = settings.compressor.bands[index];
     band.threshold_db = next();
     band.ratio = next();
     band.attack_ms = next();
@@ -1148,7 +1284,7 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.master.release_ms = next();
   settings.master.matched_bypass = flag();
 
-  // Denoise, in the order `encodeChainSettings` writes it.
+  // Denoise, in the order it was frozen in.
   settings.denoise.enabled = flag();
   settings.denoise.isolate = flag();
   settings.denoise.profile_source =
@@ -1168,6 +1304,9 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.denoise.click.sensitivity = next();
   settings.denoise.click.max_repair_samples = next();
   settings.denoise.voice.enabled = flag();
+  // Adjacent here, and not on today's wire: Voice's mode went between them
+  // after the freeze. Brought in line with `chain_decode.cpp`, this reader
+  // would read every field from here on one slot late.
   settings.denoise.voice.amount = next();
 
   settings.bass_forge.enabled = flag();
@@ -1187,34 +1326,34 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.bass_punch.bloom_amount = next();
   settings.bass_punch.bloom_decay_ms = next();
   settings.bass_punch.duck = next();
+  // Punch's mix, the Room and the surround switch all came after the freeze,
+  // so in this layout the band count follows `duck` directly.
 
   settings.eq.band_count = static_cast<uint32_t>(next());
-  if (at != kChainParamLead) {
+  if (at != kChainFrozenLead) {
     /**
-     * Asserted rather than assumed: a layout the generator and the runner
+     * Asserted rather than assumed: a layout the corpus and the runner
      * disagree about would read a Q as a threshold and still sound plausible.
      *
-     * It is printed, and `g_chain_layout_stale` makes the run FAIL, because the
-     * silent version of this was worse than the bug it guarded against. Falling
-     * out of `render` counts a fixture as "pending — no native implementation
-     * yet", and the whole chain has had one since the first day it was ported;
-     * so when Denoise added eighteen scalars to the lead and the bass stages
-     * added seven each, this reader stopped at 78 of 110, every one of the
-     * twenty-seven whole-chain fixtures quietly became pending, and the suite
-     * kept reporting "parity passed". Those are the only fixtures that test the
-     * orchestration — stage order, the mid/side wrapper, the meter taps — and
-     * for three stages nothing had run them.
+     * Against the frozen lead and never the wire's, and out loud, because the
+     * silent version of this has now hidden these fixtures twice. Falling out
+     * of `render` counts a fixture as "pending", which never fails a run. The
+     * first time, this reader stopped at 78 of the wire's 110 fields while the
+     * corpus was still being generated from the TypeScript rack. The second,
+     * the corpus had been frozen at 112 and the wire had moved on without it,
+     * and the size checks above — keyed to the wire's lead — turned every
+     * fixture away before this check could speak. Both times the suite went
+     * on reporting "parity passed" over the only fixtures that test the
+     * orchestration: stage order, the mid/side wrapper, the meter taps.
      */
-    g_chain_layout_stale = true;
-    std::printf(
-        "  CHAIN LAYOUT STALE: this runner reads %zu of the %zu lead fields "
-        "`encodeChainSettings` writes\n",
-        at, kChainParamLead);
-    return false;
+    char reason[96];
+    std::snprintf(reason, sizeof reason,
+                  "this runner reads %zu of the %zu lead fields the corpus was "
+                  "frozen with",
+                  at, kChainFrozenLead);
+    return refuse_chain(fixture, reason);
   }
-  for (uint32_t band = 0; band < settings.eq.band_count &&
-                          band < FEQ_CHAIN_MAX_EQ_BANDS;
-       ++band) {
+  for (uint32_t band = 0; band < band_count; ++band) {
     settings.eq.bands[band].enabled = flag();
     settings.eq.bands[band].type =
         static_cast<FeqFilterType>(static_cast<int>(next()));
@@ -1240,17 +1379,50 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   }
   feq_chain_configure(chain, &settings);
 
-  actual = fixture.input;
+  /**
+   * Compared late by the delay the chain has gained since the freeze, which
+   * is Bass Punch's.
+   *
+   * Punch has kept its FIR's alignment under bypass since 2026-09-06, so every
+   * rack of two or more channels leaves the chain 549 frames later at 48 kHz
+   * than the frozen rack did, Punch on or off. The input is followed by that
+   * much silence and the output read from that far in, so every frozen frame
+   * is still compared, against the frame that carries it now.
+   *
+   * Punch's latency and not `feq_chain_latency_frames`, which is the chain's
+   * delay for a deck's crossfade: the look-ahead of its final stages is in
+   * every frozen output already, so a chain that counts it there too would be
+   * compensated for it twice.
+   */
+  const uint32_t latency =
+      fixture.channels >= 2 ? feq_bass_punch_latency_frames(
+                                  static_cast<double>(fixture.sample_rate))
+                            : 0u;
+  const uint32_t total = fixture.frames + latency;
+  std::vector<float> rendered(static_cast<size_t>(fixture.channels) * total,
+                              0.0f);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    const float* source = fixture.input.data() +
+                          static_cast<size_t>(channel) * fixture.frames;
+    std::copy(source, source + fixture.frames,
+              channel_at(rendered, channel, total));
+  }
   std::vector<float*> pointers(fixture.channels);
-  for (uint32_t offset = 0; offset < fixture.frames; offset += 128) {
-    const uint32_t span = std::min(128u, fixture.frames - offset);
+  for (uint32_t offset = 0; offset < total; offset += 128) {
+    const uint32_t span = std::min(128u, total - offset);
     for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
-      pointers[channel] =
-          channel_at(actual, channel, fixture.frames) + offset;
+      pointers[channel] = channel_at(rendered, channel, total) + offset;
     }
     feq_chain_process(chain, pointers.data(), span);
   }
   feq_chain_destroy(chain);
+
+  actual.resize(fixture.input.size());
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    const float* delayed = channel_at(rendered, channel, total) + latency;
+    std::copy(delayed, delayed + fixture.frames,
+              channel_at(actual, channel, fixture.frames));
+  }
   return true;
 }
 
@@ -1371,6 +1543,10 @@ int main(int argc, char** argv) {
   size_t failed = 0;
   size_t pending = 0;
   size_t unreadable = 0;
+  size_t superseded = 0;
+  /** How many fixtures each entry of `kSuperseded` took out of comparison. */
+  std::vector<size_t> excused(std::size(kSuperseded), 0);
+  bool superseded_stale = false;
   Fixture control;
   bool have_control = false;
 
@@ -1384,6 +1560,28 @@ int main(int argc, char** argv) {
     std::vector<float> actual;
     if (!render(fixture, actual)) {
       ++pending;
+      continue;
+    }
+    const Superseded* excuse = superseded_entry(fixture);
+    if (excuse != nullptr) {
+      /**
+       * Still rendered, so a crash or a NaN in a processor that has left
+       * parity is still this suite's business; only the comparison against
+       * what the TypeScript rack used to produce is dropped.
+       */
+      const Difference difference = compare(actual, fixture.expected);
+      if (difference.non_finite) {
+        std::printf("  FAIL %s  NON-FINITE OUTPUT\n", fixture.name.c_str());
+        ++failed;
+        continue;
+      }
+      if (!excuse->fixtures.empty() && within_tolerance(fixture, difference)) {
+        std::printf("  SUPERSEDED YET AGREEING %s: nothing left to excuse\n",
+                    fixture.name.c_str());
+        superseded_stale = true;
+      }
+      ++superseded;
+      ++excused[static_cast<size_t>(excuse - kSuperseded)];
       continue;
     }
     const Difference difference = compare(actual, fixture.expected);
@@ -1407,6 +1605,26 @@ int main(int argc, char** argv) {
   std::printf("  verified  %zu\n", verified);
   std::printf("  failed    %zu\n", failed);
   std::printf("  pending   %zu (no native implementation yet)\n", pending);
+  if (superseded > 0) {
+    std::printf("  superseded %zu (changed on purpose since the port)\n",
+                superseded);
+  }
+  for (size_t index = 0; index < std::size(kSuperseded); ++index) {
+    const Superseded& entry = kSuperseded[index];
+    const size_t count = excused[index];
+    if (entry.fixtures.empty()) {
+      std::printf("            processor %u: %zu — %s\n", entry.processor,
+                  count, entry.reason);
+    } else {
+      std::printf("            processor %u: %zu of %zu named — %s\n",
+                  entry.processor, count, entry.fixtures.size(), entry.reason);
+    }
+    // Every fixture of a processor, or exactly the ones an entry names.
+    if (entry.fixtures.empty() ? count == 0
+                               : count != entry.fixtures.size()) {
+      superseded_stale = true;
+    }
+  }
   if (unreadable > 0) {
     std::printf("  unreadable %zu\n", unreadable);
   }
@@ -1449,12 +1667,20 @@ int main(int argc, char** argv) {
 
   if (g_chain_layout_stale) {
     std::printf(
-        "  chain coverage: NONE — the runner's field list is behind "
-        "`encodeChainSettings`, so every whole-chain fixture was skipped\n");
+        "  chain coverage: LOST — the runner no longer reads the layout the "
+        "corpus was frozen with, so the whole-chain fixtures above were not "
+        "run\n");
+  }
+
+  if (superseded_stale) {
+    std::printf(
+        "  superseded coverage: an entry above matched none of its fixtures, "
+        "or names one that is missing or agrees again, so it is excusing "
+        "nothing and belongs in history rather than in this table\n");
   }
 
   if (failed > 0 || unreadable > 0 || !control_ok || !dynamic_covered ||
-      g_chain_layout_stale) {
+      g_chain_layout_stale || superseded_stale) {
     std::printf("\nparity FAILED\n");
     return 1;
   }
