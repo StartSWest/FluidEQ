@@ -282,12 +282,120 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A row that can be starred: the item, and the star beside it — a button
+// cannot hold a button. Only lists that keep favourites are laid out this
+// way, so every other picker keeps the plain row it has always had.
+.rich-pick__row {
+  display: grid;
+  align-items: center;
+  gap: 2px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+// Quiet until it is wanted: an outline that appears with the pointer or the
+// keyboard on its row, because thirty outlined stars down the edge of a list
+// is a column of noise. Lit, it stays, in the Library's own favourite yellow
+// and filled as the Library fills it — the one mark here that has to be
+// found at a glance rather than read.
+.rich-pick__star {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  color: $text-dim;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    $transition-control,
+    opacity 120ms ease;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .rich-pick__row:hover &,
+  .rich-pick__row:focus-within &,
+  &.is-on {
+    opacity: 1;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-on {
+    color: $neon-yellow;
+
+    svg {
+      fill: currentcolor;
+    }
+  }
+}
+
 // Actions under the list, apart from it: they make or bring a new entry
 // rather than choose one, so a hairline separates them and they sit in the
 // quiet accent instead of the rows' white.
 //
 // Held at the foot of the menu however long the list is. They sat after the
 // last row, so with forty projects every one of them was a scroll away.
+.dsp-chain-preset-menu {
+  .rich-pick__row {
+    position: relative;
+    display: block;
+  }
+
+  .rich-pick__item {
+    width: 100%;
+  }
+
+  .rich-pick__star {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .rich-pick__row:hover,
+  .rich-pick__row:focus-within {
+    .rich-pick__item {
+      padding-right: 38px;
+    }
+    .rich-pick__star {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  @media (hover: none) {
+    .rich-pick__item {
+      padding-right: 38px;
+    }
+    .rich-pick__star {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
 .rich-pick__footer {
   position: relative;
   z-index: 1;

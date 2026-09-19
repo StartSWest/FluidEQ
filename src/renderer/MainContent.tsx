@@ -80,6 +80,7 @@ import useIsAutoEqRunning from './utils/autoEqRunning';
 import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
+import ListenedLatency from './components/ListenedLatency';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
 import BandLayoutMenu from './components/BandLayoutMenu';
@@ -947,7 +948,13 @@ const MainContent = () => {
       <div className="main-content-title">
         <div>
           <span className="eyebrow">{t('eq.eyebrow')}</span>
-          <h2>{t('eq.title')}</h2>
+          {/* The page's name and the delay of everything it configures, on
+              one line: a property of the whole path, not one more verb for
+              the toolbar under it. */}
+          <div className="main-content-title__heading">
+            <h2>{t('eq.title')}</h2>
+            <ListenedLatency />
+          </div>
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />

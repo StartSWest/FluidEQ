@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "chain_internal.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace {
@@ -151,7 +152,8 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
 /** The hidden compressor, which stays a linked downstream stage. */
 void chain_process_compressor(FeqChain* chain, float* const* channels,
                         uint32_t frames) {
-  if (chain->settings.compressor.enabled == 0) {
+  const bool wanted = chain->settings.compressor.enabled != 0;
+  if (!wanted && chain->compressor_mix <= 0.0) {
     for (auto& state : chain->compressors) {
       state.gain = 1.0;
     }
@@ -183,17 +185,36 @@ void chain_process_compressor(FeqChain* chain, float* const* channels,
                                   chain->pointers_a, chain->channels,
                                   frames, &setup, chain->sample_rate);
   }
+  /**
+   * The bands go back over the input, through the fade that lets this stage
+   * appear and disappear silently.
+   *
+   * `channels` still holds the dry signal at this point — the split read it
+   * into buffers of its own — so the crossfade costs nothing but the
+   * multiply. Every channel walks the same trajectory, so the mix is advanced
+   * once and each channel starts from where the last one began.
+   */
+  const double step = feq_split_fade_step(chain->sample_rate);
+  const double target = wanted ? 1.0 : 0.0;
+  const double from = chain->compressor_mix;
+  double mix = from;
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    mix = from;
     for (uint32_t at = 0; at < frames; ++at) {
+      mix = target > mix ? std::min(target, mix + step)
+                         : std::max(target, mix - step);
+      const double wet = static_cast<double>(
+                             chain->compressor_bands[channel][0][at]) +
+                         static_cast<double>(
+                             chain->compressor_bands[channel][1][at]) +
+                         static_cast<double>(
+                             chain->compressor_bands[channel][2][at]);
+      const double dry = static_cast<double>(channels[channel][at]);
       channels[channel][at] =
-          static_cast<float>(static_cast<double>(
-                                 chain->compressor_bands[channel][0][at]) +
-                             static_cast<double>(
-                                 chain->compressor_bands[channel][1][at]) +
-                             static_cast<double>(
-                                 chain->compressor_bands[channel][2][at]));
+          static_cast<float>(dry + (wet - dry) * mix);
     }
   }
+  chain->compressor_mix = mix;
 }
 
 /**
@@ -216,14 +237,17 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
   if (chain->channels < 2) {
     return;
   }
-  if (chain->settings.dimension.enabled == 0) {
+  if (chain->settings.dimension.enabled == 0 &&
+      feq_dimension_fade(&chain->dimension) <= 0.0) {
     // Reset every block it is off for, not left settled: switching the stage
     // back on must not replay an all-pass network full of a minute-old signal.
+    // Only once it is all the way out, though — a stage still fading needs the
+    // history it is fading.
     feq_dimension_reset(&chain->dimension);
     return;
   }
   FeqDimensionSettings settings{};
-  settings.enabled = 1;
+  settings.enabled = chain->settings.dimension.enabled;
   settings.low_width = chain->settings.dimension.low_width;
   settings.mid_width = chain->settings.dimension.mid_width;
   settings.high_width = chain->settings.dimension.high_width;
@@ -279,6 +303,21 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
                               uint32_t frames) {
   if (chain->channels < 2) {
     return;
+  }
+  // Game mode, with Punch off: skipped outright, alignment and all. The
+  // standby delay exists only so that switching Punch on never moves the
+  // audio, and a player would rather have the 11 ms than that comfort —
+  // switching Punch on in game mode moves the audio once, and that is the
+  // trade. `feq_chain_latency_frames` leaves the term out on the same test.
+  if (chain_bass_punch_idle(chain)) {
+    chain->bass_punch_skipped = true;
+    return;
+  }
+  if (chain->bass_punch_skipped) {
+    // Its filters last ran before the skip; from silence is the only start
+    // that does not replay a moment of old audio into the new.
+    feq_bass_punch_reset(&chain->bass_punch);
+    chain->bass_punch_skipped = false;
   }
   // Keep dry alignment and histories current under bypass. Skipping this path
   // would jump playback by the FIR delay whenever Bass Punch was toggled.

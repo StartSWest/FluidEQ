@@ -267,6 +267,43 @@ void feq_dft_in_place(FeqDft* plan,
 uint32_t feq_convolver_latency(void) { return kPartition; }
 uint32_t feq_convolver_warmup(void) { return kPartition; }
 
+uint32_t feq_convolver_head_taps(void) { return kPartition; }
+
+void feq_convolver_head_prepare(const float* kernel, uint32_t length,
+                                float* head) {
+  if (head == nullptr) {
+    return;
+  }
+  // Reversed, so the run below is one forward dot product per sample over
+  // two contiguous arrays; a kernel shorter than a partition is padded.
+  for (uint32_t at = 0; at < kPartition; ++at) {
+    const uint32_t tap = kPartition - 1u - at;
+    head[at] = kernel != nullptr && tap < length ? kernel[tap] : 0.0f;
+  }
+}
+
+void feq_convolver_head_run(const float* head, const float* input, float* out,
+                            uint32_t frames) {
+  if (head == nullptr || input == nullptr || out == nullptr) {
+    return;
+  }
+  static_assert(kPartition % 8u == 0u, "the head runs eight lanes at a time");
+  for (uint32_t at = 0; at < frames; ++at) {
+    const float* x = input + at;
+    // Eight independent sums rather than one: under /fp:precise the compiler
+    // may not reorder a single running sum, and one chain of 512 dependent
+    // adds is the slowest way to spend a multiply per tap.
+    float lane[8] = {};
+    for (uint32_t tap = 0; tap < kPartition; tap += 8u) {
+      for (uint32_t one = 0; one < 8u; ++one) {
+        lane[one] += head[tap + one] * x[tap + one];
+      }
+    }
+    out[at] = ((lane[0] + lane[1]) + (lane[2] + lane[3])) +
+              ((lane[4] + lane[5]) + (lane[6] + lane[7]));
+  }
+}
+
 uint64_t feq_convolver_kernel_warmup(const FeqConvolverKernel* kernel) {
   return kernel == nullptr ? 0 :
       (static_cast<uint64_t>(kernel->real.size()) + 1) * kPartition;

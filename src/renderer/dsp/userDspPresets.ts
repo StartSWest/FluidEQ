@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import { portableDspChainSettings } from '../../common/dsp/dspChainPresetFile';
+import { DSP_PRESETS_CHANGED } from './favouriteDspPresets';
 
 export interface IUserDspPreset {
   id: string;
@@ -57,6 +58,7 @@ const write = (presets: readonly IUserDspPreset[]): void => {
   } catch {
     // A disabled or full store costs this convenience, never current audio.
   }
+  window.dispatchEvent(new Event(DSP_PRESETS_CHANGED));
 };
 
 /** Save over a case-insensitive name, matching the EQ preset library. */

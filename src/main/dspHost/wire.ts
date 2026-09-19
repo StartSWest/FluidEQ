@@ -29,6 +29,11 @@ import type {
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
+import {
+  IEngineLatency,
+  TLatencyStage,
+  normaliseEndpointGuid,
+} from '../../common/engineHealth';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import {
   NOISE_PROFILE_BANDS,
@@ -40,12 +45,12 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 7;
+export const HOST_WIRE_PROTOCOL_VERSION = 8;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
 export const ACK_BYTES = 32;
-export const TELEMETRY_BYTES = 112;
+export const TELEMETRY_BYTES = 192;
 export const STATS_BYTES = 24;
 
 export const MAGIC_HANDSHAKE = 0x48514546;
@@ -103,6 +108,7 @@ export const HOST_COMMANDS = {
   setNoiseProfile: 21,
   /** Model path, newline, runtime path, as UTF-8. Empty payload unloads. */
   loadVoiceModel: 22,
+  setRawSharing: 23,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */
@@ -168,6 +174,8 @@ export interface IHostTelemetry {
   appliedRevision: number;
   framesProcessed: number;
   latencyFrames: number;
+  processingLatency?: IEngineLatency;
+  processingEndpoint?: string;
   /**
    * Which endpoint generation this frame belongs to.
    *
@@ -375,6 +383,56 @@ export const decodeStats = (frame: Buffer): IHostStats | undefined => {
   };
 };
 
+const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
+  const rate = view.getUint32(80, true);
+  const frames = view.getUint32(112, true);
+  if (rate < 8000 || rate > 384000 || frames === 0xffffffff) {
+    return undefined;
+  }
+  const delayed: TLatencyStage[] = [
+    'linearEq',
+    'restoration',
+    'leveler',
+    'room',
+    'bassPunch',
+    'maximizer',
+    'headroom',
+    'safety',
+  ];
+  const active: TLatencyStage[] = [
+    'leveler',
+    'restoration',
+    'exciter',
+    'bassForge',
+    'linearEq',
+    'bassPunch',
+    'room',
+    'dimension',
+    'compressor',
+    'maximizer',
+    'headroom',
+    'safety',
+    'master',
+  ];
+  const mask = view.getUint32(148, true);
+  const counts = delayed.map((stage, index) => ({
+    stage,
+    frames: view.getUint32(116 + index * 4, true),
+  }));
+  if (counts.reduce((sum, part) => sum + part.frames, 0) !== frames) {
+    return undefined;
+  }
+  const parts = active.flatMap((stage, index) => {
+    const count = counts.find((part) => part.stage === stage)?.frames ?? 0;
+    // eslint-disable-next-line no-bitwise -- This field is the native active-stage bitmask.
+    const enabled = (mask & (1 << index)) !== 0;
+    return count > 0 || enabled
+      ? [{ stage, frames: count, active: enabled }]
+      : [];
+  });
+  return { rate, frames, parts };
+};
+
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
   if (frame.length < TELEMETRY_BYTES) {
     return undefined;
@@ -388,6 +446,8 @@ export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
     sequence: Number(view.getBigUint64(8, true)),
     framesProcessed: Number(view.getBigUint64(16, true)),
     latencyFrames: view.getUint32(24, true),
+    processingLatency: processingLatencyOf(view),
+    processingEndpoint: normaliseEndpointGuid(readFixedString(view, 152, 40)),
     // Offset 28, the field that used to be reserved. Bumped by the host on
     // every endpoint reopen; see `device_generation` in wire.h.
     deviceGeneration: view.getUint32(28, true),

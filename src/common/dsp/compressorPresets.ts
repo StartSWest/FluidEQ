@@ -28,9 +28,17 @@ const profile = (
 /**
  * Conservative multiband profiles for whole-rack presets.
  *
- * Makeup never exceeds 2 dB in this catalogue. The Maximizer or Master owns
- * final loudness; letting this stage compete with it is how a useful glue
- * compressor becomes three always-on gain boosts before the limiter.
+ * Makeup gives a band back what this stage took out of it, and never more:
+ * the Maximizer or the Master still owns final loudness, and a compressor
+ * competing with one is how a useful glue stage becomes three always-on gain
+ * boosts before the limiter.
+ *
+ * Which is not the same as leaving it at zero, and three of these did until
+ * 2026-09-19. A stage that takes six decibels out and hands none back is not
+ * gentler — it is a chain 6 dB quiet with an EQ above it pushed up to make
+ * that back, which is two stages fighting. Late night measured -6.0 dB, Voice
+ * -2.3, and both curves above them had grown a mid hump to match. The deeper
+ * a profile compresses, the more of it comes back here.
  */
 export const COMPRESSOR_PRESET_BY_ID = {
   gentle: {
@@ -111,9 +119,9 @@ export const COMPRESSOR_PRESET_BY_ID = {
     settings: profile(
       [120, 4_500],
       [
-        band(-18, 2, 15, 150, 0.5),
-        band(-24, 3, 6, 100, 1.5),
-        band(-20, 2.5, 2, 70, 0.5),
+        band(-18, 2, 15, 150, 2.5),
+        band(-24, 3, 6, 100, 3),
+        band(-20, 2.5, 2, 70, 2.5),
       ],
     ),
   },
@@ -124,8 +132,8 @@ export const COMPRESSOR_PRESET_BY_ID = {
       [140, 3_500],
       [
         band(-28, 3, 12, 180, 1),
-        band(-30, 3.5, 6, 120, 1.5),
-        band(-26, 3, 2, 90, 0.75),
+        band(-30, 3.5, 6, 120, 4),
+        band(-26, 3, 2, 90, 3),
       ],
     ),
   },
@@ -135,9 +143,41 @@ export const COMPRESSOR_PRESET_BY_ID = {
     settings: profile(
       [100, 4_000],
       [
-        band(-20, 1.7, 40, 260, 0.5),
-        band(-22, 2.2, 12, 160, 1),
-        band(-18, 1.8, 5, 110, 0.5),
+        band(-20, 1.7, 40, 260, 1.5),
+        band(-22, 2.2, 12, 160, 2),
+        band(-18, 1.8, 5, 110, 1.5),
+      ],
+    ),
+  },
+  /**
+   * Footsteps over explosions, and three bands doing three different jobs.
+   *
+   * The low band holds the blasts and the engine rumble down hard and fast,
+   * so they stop swallowing everything above them; the mids and highs —
+   * steps, reloads, cloth, the clicks a direction is heard by — are brought
+   * up from underneath. It works without a look-ahead, which is why the
+   * Gaming chain uses it instead of a limiter: game mode is the chain giving
+   * up every millisecond it can.
+   *
+   * The upper corner moved from 4 kHz to 2 kHz so the top band IS the cue
+   * band — footsteps, reloads, shell casings — and can be lifted as a whole
+   * rather than half of it sitting in the mid. The low band holds blasts (3.5
+   * to 1 above -26 dB, fast in, slow out); the mid is nearly transparent so
+   * voices keep their body; the top is barely compressed and mostly makeup.
+   *
+   * Measured against the old settings at matched loudness: the same crest,
+   * 4 dB less of the 120-500 Hz an explosion fills, and 3 dB more of the
+   * 2-8 kHz a footstep lives in.
+   */
+  gaming: {
+    id: 'gaming',
+    labelKey: 'dsp.eqPreset.gaming',
+    settings: profile(
+      [180, 2_000],
+      [
+        band(-26, 3.5, 5, 160, 0),
+        band(-20, 1.8, 15, 150, 2),
+        band(-26, 1.6, 4, 120, 2.5),
       ],
     ),
   },

@@ -110,7 +110,7 @@ export const DIMENSION_PRESET_BY_ID = {
     // starts wider than any speaker can make it. Widening further is what
     // makes a record feel like it is happening behind the listener's head;
     // this pulls the top back instead and spends the difference on spread.
-    settings: profile(0.85, 0.95, 1.05, 200, 3_200, 0.4),
+    settings: profile(0.8, 0.9, 0.95, 200, 3_200, 0.4),
   },
   speakers: {
     id: 'speakers',
@@ -144,7 +144,7 @@ export const DIMENSION_PRESET_BY_ID = {
     // Still the widest profile here, but not a phase effect. The former 1.8
     // high width plus 0.75 decorrelation made cymbals and reverb tails grainy
     // in listening even though the samples did not clip.
-    settings: profile(0.85, 1.22, 1.55, 180, 2_600, 0.45),
+    settings: profile(0.8, 1.4, 1.85, 180, 2_600, 0.45),
   },
   vocal: {
     id: 'vocal',

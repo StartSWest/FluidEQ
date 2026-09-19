@@ -74,6 +74,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.side_highpass, previous.side_highpass);
   swap(prepared.crossovers, previous.crossovers);
   swap(prepared.compressors, previous.compressors);
+  swap(prepared.compressor_mix, previous.compressor_mix);
 
   swap(prepared.maximizer, previous.maximizer);
   swap(prepared.maximizer_detectors, previous.maximizer_detectors);
@@ -119,6 +120,7 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
 
   swap(prepared.dimension, previous.dimension);
   swap(prepared.dimension_side, previous.dimension_side);
+  swap(prepared.dimension_centre, previous.dimension_centre);
   swap(prepared.dimension_low, previous.dimension_low);
   swap(prepared.dimension_mid, previous.dimension_mid);
   swap(prepared.dimension_high, previous.dimension_high);
@@ -130,6 +132,10 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.post_delay, previous.post_delay);
   swap(prepared.post_delay_pointers, previous.post_delay_pointers);
   swap(prepared.post_reduction, previous.post_reduction);
+  // The limiter came over with the previous chain's look-ahead; the delay is
+  // this chain's to decide, as the Maximizer's is above.
+  feq_linked_limiter_set_look_ahead(&prepared.post_normalizer.limiter,
+                                    chain_headroom_look_ahead(&prepared));
   swap(prepared.safety, previous.safety);
   swap(prepared.safety_dc, previous.safety_dc);
   swap(prepared.safety_detectors, previous.safety_detectors);
@@ -140,6 +146,10 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
 
   swap(prepared.input_gain_now, previous.input_gain_now);
   swap(prepared.live_normalizer, previous.live_normalizer);
+  // What it learned is the programme's and comes across whole; its standby is
+  // this chain's game mode, not the previous one's.
+  feq_live_normalizer_set_standby(prepared.live_normalizer,
+                                  chain_leveler_idle(&prepared) ? 1 : 0);
   swap(prepared.input_gain_target_db, previous.input_gain_target_db);
   swap(prepared.input_gain_start_db, previous.input_gain_start_db);
   swap(prepared.master_loudness_now_db, previous.master_loudness_now_db);

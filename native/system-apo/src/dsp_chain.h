@@ -61,6 +61,15 @@ struct RackBuild {
   std::string room_note;
   /** For the status: `EngineStatus::room`'s words. */
   std::string room_state = "off";
+  /**
+   * Game mode, from either side: the rack's own last value (the Gaming
+   * preset) or the EQ side's directive (the Games voicing), which the graph
+   * hands in. The graph reads it back for the stages of its own that give
+   * up delay the same way.
+   */
+  bool low_latency = false;
+  /** What each of the rack's stages adds, for the status's breakdown. */
+  FeqChainLatencyParts parts{};
 };
 
 /**
@@ -89,7 +98,8 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      std::vector<std::string>& warnings,
                      FeqLevelingMemory* leveling = nullptr,
                      unsigned long channel_mask = 0,
-                     const RoomHead* room_head = nullptr);
+                     const RoomHead* room_head = nullptr,
+                     bool low_latency = false);
 
 }  // namespace fluideq_engine
 

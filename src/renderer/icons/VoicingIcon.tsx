@@ -127,6 +127,9 @@ const ALIASES: Record<string, string> = {
   movie: 'movies',
   nightMovie: 'movies',
   gaming: 'games',
+  // The rack's copies of those two chains with the Room switched on.
+  'movie-room': 'movies',
+  'gaming-room': 'games',
   vocal: 'speech',
   podcast: 'speech',
   liveVocal: 'speech',

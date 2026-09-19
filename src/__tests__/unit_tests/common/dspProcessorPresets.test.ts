@@ -114,10 +114,31 @@ describe('compressor profiles', () => {
     });
   });
 
+  /**
+   * Makeup gives back what the band took, and never more.
+   *
+   * The rule used to be a flat 2 dB, which is the wrong shape: it let a
+   * profile compressing 6 dB out of the programme hand back two and call the
+   * result gentle. Measured, Late night played 6.0 dB quieter than DSP Off
+   * and Voice 2.3, and both had an EQ curve above them grown into a mid hump
+   * to make that back — two stages fighting, and the curves ended up over the
+   * catalogue's own summed ceiling because of it.
+   *
+   * What is held instead is the honest version: what this band takes out of
+   * ordinary programme at -12 dBFS, which is where music's peaks sit, is the
+   * most it may put back. Anything above that is loudness wearing a
+   * compressor's name, and the Maximizer or the Master owns loudness.
+   */
   it('never hides heavy gain behind automatic makeup', () => {
+    const PROGRAMME_DBFS = -12;
     COMPRESSOR_PRESETS.forEach((preset) => {
       preset.settings.bands.forEach((band) => {
-        expect(band.makeupDb).toBeLessThanOrEqual(2);
+        const over = Math.max(0, PROGRAMME_DBFS - band.thresholdDb);
+        const taken = over * (1 - 1 / band.ratio);
+        expect({
+          id: preset.id,
+          adds: band.makeupDb > taken,
+        }).toEqual({ id: preset.id, adds: false });
       });
     });
   });

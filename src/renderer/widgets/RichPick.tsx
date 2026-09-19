@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/I18nContext';
 import foldForSearch from '../utils/foldForSearch';
 import Glyph from '../community/Glyph';
 import Chevron from '../icons/Chevron';
+import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from './AnchoredMenu';
 import '../styles/RichPick.scss';
 
@@ -72,6 +73,20 @@ interface IRichPickProps {
    * scrolls above them.
    */
   renderFooter?: (close: () => void) => ReactNode;
+  /**
+   * A star at the end of every row, for a caller that keeps favourites: which
+   * rows wear it lit, and what a press does. The caller does the rest — files
+   * its favourites first, under a heading of their own — because the order of
+   * the entries is the caller's, and the arrows beside the pill walk it too.
+   */
+  favourites?: IRichPickFavourites;
+}
+
+export interface IRichPickFavourites {
+  ids: readonly string[];
+  onToggle: (id: string) => void;
+  addLabel: string;
+  removeLabel: string;
 }
 
 /**
@@ -108,7 +123,9 @@ const walkMenu = (event: KeyboardEvent, menu: Element) => {
   if (typeof next.scrollIntoView !== 'function') {
     return;
   }
-  const heading = next.previousElementSibling;
+  // A row with a star is the item and the star in a holder of their own.
+  const heading = (next.closest('.rich-pick__row') ?? next)
+    .previousElementSibling;
   if (heading?.classList.contains('rich-pick__group')) {
     heading.scrollIntoView({ block: 'nearest' });
   }
@@ -147,6 +164,7 @@ const RichPick = ({
   triggerExtra,
   children,
   renderFooter,
+  favourites,
 }: IRichPickProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -369,6 +387,29 @@ const RichPick = ({
 
           {matches.map((entry, index) => {
             const heading = groupLabel(entry.group);
+            const item = (
+              <button
+                ref={entry.id === activeId ? activeRef : undefined}
+                type="button"
+                role="menuitemradio"
+                aria-checked={entry.id === activeId}
+                className={`rich-pick__item${
+                  entry.id === activeId ? ' is-active' : ''
+                }${entry.locked ? ' is-locked' : ''}`}
+                title={entry.locked}
+                onClick={() => pick(entry.id)}
+              >
+                {entry.icon}
+                <span>
+                  <strong>{entry.name}</strong>
+                  <small>{entry.hint}</small>
+                </span>
+                {entry.locked && (
+                  <Glyph name="lock" className="rich-pick__item-lock" />
+                )}
+              </button>
+            );
+            const isFavourite = favourites?.ids.includes(entry.id) === true;
             return (
               <Fragment key={entry.id}>
                 {/* A heading at each change of group, rather than a fixed set
@@ -381,26 +422,35 @@ const RichPick = ({
                     {heading}
                   </span>
                 )}
-                <button
-                  ref={entry.id === activeId ? activeRef : undefined}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={entry.id === activeId}
-                  className={`rich-pick__item${
-                    entry.id === activeId ? ' is-active' : ''
-                  }${entry.locked ? ' is-locked' : ''}`}
-                  title={entry.locked}
-                  onClick={() => pick(entry.id)}
-                >
-                  {entry.icon}
-                  <span>
-                    <strong>{entry.name}</strong>
-                    <small>{entry.hint}</small>
-                  </span>
-                  {entry.locked && (
-                    <Glyph name="lock" className="rich-pick__item-lock" />
-                  )}
-                </button>
+                {favourites ? (
+                  // Beside the row, never inside it: a button cannot hold a
+                  // button, and a press on the star must not choose the row.
+                  // The menu stays open — starring is a thing done to several
+                  // rows in one visit.
+                  <div className="rich-pick__row">
+                    {item}
+                    <button
+                      type="button"
+                      className={`rich-pick__star${isFavourite ? ' is-on' : ''}`}
+                      aria-pressed={isFavourite}
+                      aria-label={`${
+                        isFavourite
+                          ? favourites.removeLabel
+                          : favourites.addLabel
+                      }: ${entry.name}`}
+                      title={
+                        isFavourite
+                          ? favourites.removeLabel
+                          : favourites.addLabel
+                      }
+                      onClick={() => favourites.onToggle(entry.id)}
+                    >
+                      <MenuIcon name="star" />
+                    </button>
+                  </div>
+                ) : (
+                  item
+                )}
               </Fragment>
             );
           })}

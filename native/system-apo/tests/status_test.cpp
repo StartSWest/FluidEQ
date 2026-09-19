@@ -51,12 +51,13 @@ void a_processing_output() {
         "\"pid\":4242,\"locked\":true,\"processing\":true,"
         "\"carried\":false,\"owner\":true,"
         "\"reason\":\"\",\"problems\":[],\"channels\":2,\"room\":\"off\","
+        "\"rate\":0,\"latency\":0,\"latencyParts\":{},\"latencyActive\":[],\"gameMode\":false,"
         "\"at\":\"2026-09-11T12:00:00.000Z\"}\r\n");
   // The room's state rides with the count the card needs to name it.
   status.channels = 8;
   status.room = "7.1";
   CHECK(status_json(status, 4242, "t").find(
-            "\"channels\":8,\"room\":\"7.1\",\"at\"") != std::string::npos);
+            "\"channels\":8,\"room\":\"7.1\",\"rate\"") != std::string::npos);
   // Whether sound has reached the engine here: false beside a locked,
   // processing output is the one state the app calls broken and every
   // other field calls healthy, so it is written either way rather than
@@ -97,11 +98,34 @@ void a_finished_song() {
         "\"reason\":\"\",\"problems\":[],"
         "\"lastSong\":{\"id\":\"00000000000a11ce\",\"level\":-11.84,"
         "\"peak\":-0.63,\"seconds\":184.25},\"channels\":0,\"room\":\"off\","
+        "\"rate\":0,\"latency\":0,\"latencyParts\":{},\"latencyActive\":[],\"gameMode\":false,"
         "\"at\":\"t\"}\r\n");
   // Positive control for the field being optional: without a song the text
   // is exactly what every earlier engine wrote.
   status.last_song.reset();
   CHECK(status_json(status, 7, "t").find("lastSong") == std::string::npos);
+}
+
+/**
+ * The delay, stage by stage, in the exact shape the app parses — and game
+ * mode. What the DSP page shows a listener as their lag; `engineHealth.test`
+ * holds the app to the same text.
+ */
+void the_delay_and_game_mode() {
+  std::printf("the delay stage by stage, and game mode\n");
+  EngineStatus status;
+  status.endpoint = L"{AAAA}";
+  status.locked = true;
+  status.processing = true;
+  status.rate = 48000;
+  status.latency = 3621;
+  status.latency_parts = {{"bassPunch", 549}, {"room", 512}, {"curves", 2560}};
+  status.game_mode = true;
+  const std::string text = status_json(status, 7, "t");
+  CHECK(text.find("\"rate\":48000,\"latency\":3621,"
+                  "\"latencyParts\":{\"bassPunch\":549,\"room\":512,"
+                  "\"curves\":2560},\"latencyActive\":[],\"gameMode\":true,\"at\"") !=
+        std::string::npos);
 }
 
 void text_is_escaped() {
@@ -253,6 +277,7 @@ int main() {
   a_processing_output();
   a_pass_through_with_problems();
   a_finished_song();
+  the_delay_and_game_mode();
   text_is_escaped();
   linear_phase_fallback_is_reported();
   instances_share_an_output();

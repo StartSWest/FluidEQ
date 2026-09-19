@@ -84,6 +84,21 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
                 ",\"peak\":" + decimal(status.last_song->peak_db) +
                 ",\"seconds\":" + decimal(status.last_song->seconds) + "}";
   }
+  std::string parts = "{";
+  for (size_t index = 0; index < status.latency_parts.size(); ++index) {
+    if (index > 0) {
+      parts += ',';
+    }
+    parts += quoted(status.latency_parts[index].first) + ':' +
+             std::to_string(status.latency_parts[index].second);
+  }
+  parts += '}';
+  std::string active = "[";
+  for (size_t index = 0; index < status.latency_active.size(); ++index) {
+    if (index > 0) active += ',';
+    active += quoted(status.latency_active[index]);
+  }
+  active += ']';
   return std::string("{\"version\":1,\"endpoint\":") +
          quoted(narrow_id(status.endpoint)) +
          ",\"pid\":" + std::to_string(pid) +
@@ -94,8 +109,13 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
          ",\"reason\":" + quoted(status.reason) +
          ",\"problems\":" + problems + last_song +
          ",\"channels\":" + std::to_string(status.channels) +
-         ",\"room\":" + quoted(status.room) + ",\"at\":" + quoted(at) +
-         "}\r\n";
+         ",\"room\":" + quoted(status.room) +
+         ",\"rate\":" + std::to_string(status.rate) +
+         ",\"latency\":" + std::to_string(status.latency) +
+         ",\"latencyParts\":" + parts +
+         ",\"latencyActive\":" + active +
+         ",\"gameMode\":" + (status.game_mode ? "true" : "false") +
+         ",\"at\":" + quoted(at) + "}\r\n";
 }
 
 }  // namespace fluideq_engine

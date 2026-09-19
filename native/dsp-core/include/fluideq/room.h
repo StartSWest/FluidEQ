@@ -130,8 +130,16 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames);
  */
 int feq_room_active(const FeqRoom* room);
 
-/** One convolver partition while active, otherwise 0. */
+/** One convolver partition while active, otherwise 0 — and 0 in game mode. */
 uint32_t feq_room_latency_frames(const FeqRoom* room);
+
+/**
+ * CONTROL thread. Game mode: each kernel's first partition runs as a direct
+ * FIR so the room adds no delay of its own (`feq_convolver_head_run`). Read
+ * by the next set built, which `feq_room_configure` publishes; the chain
+ * calls this just before it, on every configure.
+ */
+void feq_room_set_low_latency(FeqRoom* room, int on);
 
 /**
  * AUDIO thread, at a chain handover: `prepared` takes over what `previous`

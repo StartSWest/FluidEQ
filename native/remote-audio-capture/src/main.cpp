@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstring>
 #include <string_view>
 #include "mirror_control.h"
+#include "capture_writer.h"
 
 namespace {
 
@@ -31,30 +32,9 @@ using Microsoft::WRL::Make;
 using Microsoft::WRL::RuntimeClass;
 using Microsoft::WRL::RuntimeClassFlags;
 
-constexpr std::uint32_t kFrameMagic = 0x314e414cU;  // "LAN1" little-endian.
-constexpr std::uint32_t kReadyFrame = 1;
-constexpr std::uint32_t kAudioFrame = 2;
-// Ten milliseconds at the standard 48 kHz mix rate. The previous 1,024-frame
-// block held every sample for another 11 ms before transport could begin.
-// Smaller packets change only delivery cadence; the Float32 samples themselves
-// are copied verbatim.
-constexpr std::uint16_t kChunkFrames = 480;
 constexpr std::uint16_t kMaxChannels = 8;
 constexpr DWORD kActivationTimeoutMilliseconds = 10'000;
 
-#pragma pack(push, 1)
-struct FrameHeader {
-  std::uint32_t magic;
-  std::uint32_t kind;
-  std::uint32_t sequence;
-  std::uint32_t sample_rate;
-  std::uint16_t channels;
-  std::uint16_t frames;
-  std::uint32_t payload_bytes;
-};
-#pragma pack(pop)
-
-static_assert(sizeof(FrameHeader) == 24);
 
 class UniqueHandle final {
  public:
@@ -111,53 +91,9 @@ class ActivationHandler final
   ComPtr<IAudioClient> client_;
 };
 
-[[nodiscard]] bool write_all(HANDLE output, const void* data,
-                             std::uint32_t bytes) {
-  const auto* cursor = static_cast<const std::uint8_t*>(data);
-  std::uint32_t remaining = bytes;
-  while (remaining > 0) {
-    DWORD written = 0;
-    if (WriteFile(output, cursor, remaining, &written, nullptr) == FALSE ||
-        written == 0) {
-      return false;
-    }
-    cursor += written;
-    remaining -= written;
-  }
-  return true;
-}
-
-[[nodiscard]] bool write_header(HANDLE output, std::uint32_t kind,
-                                std::uint32_t sequence,
-                                std::uint32_t sample_rate,
-                                std::uint16_t channels,
-                                std::uint16_t frames) {
-  const FrameHeader header{
-      kFrameMagic,
-      kind,
-      sequence,
-      sample_rate,
-      channels,
-      frames,
-      static_cast<std::uint32_t>(frames) * channels * sizeof(float),
-  };
-  return write_all(output, &header,
-                   static_cast<std::uint32_t>(sizeof(header)));
-}
-
-[[nodiscard]] bool write_audio(HANDLE output, std::uint32_t sequence,
-                               std::uint32_t sample_rate,
-                               std::uint16_t channels, const float* samples) {
-  const std::uint32_t payload_bytes =
-      kChunkFrames * channels * sizeof(float);
-  return write_header(output, kAudioFrame, sequence, sample_rate, channels,
-                      kChunkFrames) &&
-         write_all(output, samples, payload_bytes);
-}
-
+CaptureWriter* reply_writer = nullptr;
 bool mirror_reply(std::uint32_t kind, std::uint32_t id, HRESULT result) {
-  return write_header(GetStdHandle(STD_OUTPUT_HANDLE), kind, id,
-                      static_cast<std::uint32_t>(result), 0, 0);
+  return reply_writer != nullptr && reply_writer->reply(kind, id, result);
 }
 
 [[nodiscard]] bool is_float_mix_format(const WAVEFORMATEX* format) {
@@ -199,7 +135,8 @@ bool mirror_reply(std::uint32_t kind, std::uint32_t id, HRESULT result) {
 }
 
 [[nodiscard]] bool parse_parent_pid(int argc, char** argv, DWORD* parent_pid) {
-  if (argc != 3 || std::string_view(argv[1]) != "--parent-pid") {
+  if (argc != 4 || std::string_view(argv[1]) != "--parent-pid" ||
+      std::string_view(argv[3]) != "--pipe-overlapped") {
     return false;
   }
   const std::string_view text(argv[2]);
@@ -344,8 +281,8 @@ int main(int argc, char** argv) {
   }
 
   const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
-  if (output == nullptr || output == INVALID_HANDLE_VALUE ||
-      !write_header(output, kReadyFrame, 0, sample_rate, channels, 0)) {
+  auto writer = std::make_unique<CaptureWriter>(output, parent.get(), sample_rate, channels);
+  if (!writer->valid()) {
     audio_client->Stop();
     CoUninitialize();
     return fail("capture pipe is unavailable",
@@ -355,9 +292,7 @@ int main(int argc, char** argv) {
   DWORD mmcss_task = 0;
   const HANDLE mmcss =
       AvSetMmThreadCharacteristicsW(L"Pro Audio", &mmcss_task);
-  std::array<float, kChunkFrames * kMaxChannels> chunk{};
-  std::uint16_t filled_frames = 0;
-  std::uint32_t sequence = 0;
+  reply_writer = writer.get();
   bool running = true;
   // One helper serves LAN and local outputs. Its own playback is excluded
   // from process-loopback, while remote audio played by Electron is included.
@@ -369,7 +304,7 @@ int main(int argc, char** argv) {
   }
 
   while (running) {
-    std::vector<HANDLE> wait_handles{sample_event.get(), parent.get(), mirrors->event()};
+    std::vector<HANDLE> wait_handles{sample_event.get(), parent.get(), mirrors->event(), writer->event()};
     mirrors->append_events(wait_handles);
     const DWORD wait_result = WaitForMultipleObjects(
         static_cast<DWORD>(wait_handles.size()), wait_handles.data(), FALSE,
@@ -381,7 +316,11 @@ int main(int argc, char** argv) {
       running = mirrors->commands();
       continue;
     }
-    if (wait_result >= WAIT_OBJECT_0 + 3 &&
+    if (wait_result == WAIT_OBJECT_0 + 3) {
+      running = !writer->failed();
+      break;
+    }
+    if (wait_result >= WAIT_OBJECT_0 + 4 &&
         wait_result < WAIT_OBJECT_0 + wait_handles.size()) {
       mirrors->render(wait_handles[wait_result - WAIT_OBJECT_0]);
       continue;
@@ -415,28 +354,9 @@ int main(int argc, char** argv) {
       const auto* samples = reinterpret_cast<const float*>(data);
       mirrors->push(samples, packet_frames,
                     (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0);
-      UINT32 consumed = 0;
-      while (running && consumed < packet_frames) {
-        const UINT32 capacity = kChunkFrames - filled_frames;
-        const UINT32 available = packet_frames - consumed;
-        const UINT32 copied = capacity < available ? capacity : available;
-        float* destination = chunk.data() + filled_frames * channels;
-        if ((flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0 || samples == nullptr) {
-          std::memset(destination, 0, copied * channels * sizeof(float));
-        } else {
-          std::memcpy(destination, samples + consumed * channels,
-                      copied * channels * sizeof(float));
-        }
-        filled_frames =
-            static_cast<std::uint16_t>(filled_frames + copied);
-        consumed += copied;
-        if (filled_frames == kChunkFrames) {
-          running =
-              write_audio(output, sequence, sample_rate, channels, chunk.data());
-          sequence = sequence == UINT32_MAX ? 0 : sequence + 1;
-          filled_frames = 0;
-        }
-      }
+      writer->push(samples, packet_frames,
+                   (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0,
+                   (flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) != 0);
       const HRESULT release_result = capture_client->ReleaseBuffer(packet_frames);
       if (FAILED(release_result)) {
         running = false;
@@ -445,6 +365,8 @@ int main(int argc, char** argv) {
   }
 
   mirrors.reset();
+  reply_writer = nullptr;
+  writer->stop();
   audio_client->Stop();
   if (mmcss != nullptr) {
     AvRevertMmThreadCharacteristics(mmcss);

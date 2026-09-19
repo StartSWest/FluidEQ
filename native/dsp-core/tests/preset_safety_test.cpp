@@ -248,7 +248,16 @@ int main(int argc, char** argv) {
   for (const auto& preset : presets) {
     (preset.family == "chain" ? chains : locals).push_back(preset);
   }
-  check(chains.size() == 28 && locals.size() > 150,
+  /**
+   * 103 whole chains, including the worldwide genre catalogue.
+   *
+   * A literal rather than a number the generator declares, because the point
+   * is to notice: a catalogue that grows without this file growing with it is
+   * a chain nobody renders at seven sample rates before it reaches anybody.
+   * It sat at 28 through the two Room copies being added, and the miss only
+   * showed when the fixtures were next regenerated.
+   */
+  check(chains.size() == 103 && locals.size() > 150,
         "the complete shipped catalogue is present");
   if (partition == "all" || partition == "individual") {
     check_air(presets);

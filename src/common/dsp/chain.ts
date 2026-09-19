@@ -959,6 +959,18 @@ export interface IDspSettings {
   master: IMasterSettings;
   room: IRoomSettings;
   surround: ISurroundSettings;
+  /**
+   * Game mode: the whole path gives up the delay it only carries for
+   * comfort, so what is heard lands as close to what is seen as it can.
+   *
+   * One shared switch on EQ and DSP. Gaming presets turn it on; other
+   * factory presets turn it off. Manual changes and the rack's power stay
+   * independent of the selected sound, whose saved settings are kept. The
+   * user's own choices (a linear-phase EQ, Bass Punch) are never rewritten:
+   * the engine runs them without the standby delay while this is on, and
+   * exactly as chosen when it is off, so there is nothing to put back.
+   */
+  gameMode: boolean;
 }
 
 /**
@@ -1744,6 +1756,7 @@ export const DSP_DEFAULTS: IDspSettings = {
   surround: {
     allChannels: true,
   },
+  gameMode: false,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -2478,5 +2491,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         DSP_DEFAULTS.surround.allChannels,
       ),
     },
+    gameMode: clampBoolean(value.gameMode, DSP_DEFAULTS.gameMode),
   };
 };

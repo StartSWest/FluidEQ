@@ -21,6 +21,8 @@ import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { getVoicingProfile } from '../../common/voicing';
+import { clampDspSettings } from '../../common/dsp/chain';
+import { dspPresetVoicing } from '../../common/dsp/presetVoicing';
 import { getDriverProfile } from '../../common/driver';
 import { sanitizeSmartEqSettings } from '../../common/smartEq';
 import onWindowMessage from './windowMessages';
@@ -147,7 +149,26 @@ export const registerLayersIpc = ({
     const profileId: string = arg[0];
     const intensity: number = arg[1];
 
+    const dspEq: unknown = arg[2];
+    if (
+      typeof profileId === 'string' &&
+      profileId.startsWith('dsp:') &&
+      profileId.length > 4 &&
+      profileId.length <= 120 &&
+      dspEq !== null &&
+      typeof dspEq === 'object' &&
+      !Array.isArray(dspEq) &&
+      intensity === 1
+    ) {
+      const { eq } = clampDspSettings({ eq: dspEq });
+      applyingLayer('voicing');
+      state.voicing = dspPresetVoicing(profileId.slice(4), eq);
+      await handleUpdate(event, channel, false, true);
+      return;
+    }
+
     const isExistingApoOverride =
+      profileId !== '' &&
       state.voicing?.profileId === profileId &&
       Boolean(state.voicing.apoOverride);
     if (

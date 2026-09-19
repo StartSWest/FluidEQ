@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <memory>
 #include <new>
+#include <vector>
 
 namespace {
 bool track_heap = false;
@@ -448,6 +449,178 @@ void edits_during_audible_fades_keep_the_fade() {
   }
 }
 
+/**
+ * A stage appearing mid-record must not arrive as a step.
+ *
+ * Every stage that splits the signal into bands turns its phase: the bands
+ * have to share one phase or their gains fight where they meet, and the sum of
+ * three in-phase bands is the input with its phase turned (`primitives.h`).
+ * That turn is inaudible while it is running and is a discontinuity at the
+ * instant it starts, which is a click — and a preset switch turns stages on
+ * and off constantly, so this is the ordinary case rather than an edge one.
+ *
+ * Measured against the steepest step the signal itself takes, because that is
+ * what a click has to hide inside, and against a splice of the two steady
+ * streams, which is what an unsmoothed switch would sound like.
+ */
+double worst_step(const std::vector<float>& samples, size_t from, size_t until) {
+  double worst = 0.0;
+  const size_t last = std::min(until, samples.size());
+  for (size_t at = from + 1; at < last; ++at) {
+    worst = std::max(worst, std::fabs(static_cast<double>(samples[at]) -
+                                      static_cast<double>(samples[at - 1])));
+  }
+  return worst;
+}
+
+/**
+ * A tone at the corner these stages split at, which is where the phase they
+ * turn is a whole half cycle — so a switch that arrived unsmoothed would jump
+ * from one end of the waveform to the other, and the measurement has
+ * something to see. Two decisions the first version of this test got wrong:
+ *
+ *  - 1000 Hz at 48 kHz is 48 samples, which divides the 128-sample block
+ *    exactly, so every switch landed on a zero crossing and read as nothing.
+ *  - A tone well above both corners is turned by only twenty degrees or so,
+ *    and at that angle even an unsmoothed switch steps by less than three
+ *    times what the tone itself does between samples. The test would have
+ *    passed over a real click.
+ *
+ * The small tone on top is what the steps are measured against: it is the
+ * fastest thing in the signal, so anything steeper than it is not the music.
+ */
+Audio smooth_signal(uint32_t block) {
+  Audio audio{};
+  for (uint32_t frame = 0; frame < kFrames; ++frame) {
+    const double phase = 2.0 * kPi *
+                         static_cast<double>(block * kFrames + frame) / kRate;
+    const double tone = 0.1 * std::sin(phase * 200.0);
+    const double top = 0.03 * std::sin(phase * 997.0);
+    audio[0][frame] = static_cast<float>(tone + top);
+    audio[1][frame] = static_cast<float>(0.8 * tone - top);
+  }
+  return audio;
+}
+
+/** The left channel of `blocks` blocks, starting at `first`. */
+std::vector<float> run_blocks(FeqChain* rack, uint32_t first, uint32_t blocks) {
+  std::vector<float> out;
+  for (uint32_t block = 0; block < blocks; ++block) {
+    Audio audio = smooth_signal(first + block);
+    process(rack, audio);
+    out.insert(out.end(), audio[0].begin(), audio[0].end());
+  }
+  return out;
+}
+
+void stages_switch_on_without_a_step() {
+  struct Case {
+    const char* name;
+    void (*apply)(FeqChainSettings&);
+  };
+  const Case cases[] = {
+      {"the compressor",
+       [](FeqChainSettings& settings) {
+         settings.compressor.enabled = 1;
+         settings.compressor.crossover_hz[0] = 200.0;
+         settings.compressor.crossover_hz[1] = 3000.0;
+       }},
+      {"Dimension",
+       [](FeqChainSettings& settings) {
+         settings.dimension = {1, 0.9, 1.25, 1.55, 200.0, 3000.0, 0.55};
+       }},
+      {"the exciter's Timing",
+       [](FeqChainSettings& settings) {
+         settings.exciter.enabled = 1;
+         settings.exciter.align_enabled = 1;
+         settings.exciter.align_amount = 0.45;
+         for (auto& band : settings.exciter.bands) {
+           band.enabled = 0;
+         }
+       }},
+  };
+
+  constexpr uint32_t kWarm = 24;
+  constexpr uint32_t kAfter = 24;
+  for (const Case& one : cases) {
+    FeqChainSettings quiet{};
+    feq_chain_settings_defaults(&quiet);
+    quiet.enabled = 1;
+    quiet.normalizer.mode = 0;
+    quiet.master.enabled = 0;
+    quiet.maximizer.enabled = 0;
+    quiet.eq.enabled = 0;
+    quiet.exciter.enabled = 0;
+    FeqChainSettings loud = quiet;
+    one.apply(loud);
+
+    // The host adopts a new snapshot in place; the system-wide engine builds a
+    // chain and hands the state over. A click has to be absent from both.
+    for (const bool in_place : {true, false}) {
+      auto running = prepare(quiet);
+      const std::vector<float> before = run_blocks(running.get(), 0, kWarm);
+      auto next = prepare(loud);
+      if (in_place) {
+        feq_chain_configure(running.get(), &loud);
+      } else {
+        // The prepared chain has to have seen the same past, or the handover
+        // is being asked to hide a discontinuity nothing in the field does.
+        run_blocks(next.get(), 0, kWarm);
+        check(transfer(next.get(), running.get()) == 1,
+              "the prepared chain accepts the handover");
+      }
+      FeqChain* carrying = in_place ? running.get() : next.get();
+      std::vector<float> joined = before;
+      const size_t seam = joined.size();
+      const std::vector<float> after = run_blocks(carrying, kWarm, kAfter);
+      joined.insert(joined.end(), after.begin(), after.end());
+
+      // The signal's own steepest step, taken away from the seam: a fade this
+      // short leaves nothing steeper than the music it arrives in.
+      const double natural =
+          std::max(worst_step(joined, kFrames * 2, seam - kFrames),
+                   worst_step(joined, seam + 480, joined.size()));
+      const double crossing = worst_step(joined, seam - 1, seam + 240);
+      std::printf("  %-22s %-8s step %.5f against the signal's %.5f\n",
+                  one.name, in_place ? "in place" : "handover", crossing,
+                  natural);
+      check(crossing < natural * 3.0,
+            "a stage switched on arrives without a step");
+    }
+
+    /**
+     * What there was to hide, which is what makes the checks above mean
+     * anything.
+     *
+     * The stage running and the stage bypassed are far apart at the corner,
+     * because the split turns the phase of everything through it. A switch
+     * made between one sample and the next would step by that difference, so
+     * these checks are only worth something on a case where the difference
+     * dwarfs the steepest step the signal itself takes — measuring the step at
+     * one splice point instead would depend on where in the waveform the
+     * switch happened to land, and the first version of this test passed for
+     * exactly that reason.
+     */
+    auto quiet_rack = prepare(quiet);
+    auto loud_rack = prepare(loud);
+    const std::vector<float> bypassed = run_blocks(quiet_rack.get(), 0, kWarm);
+    run_blocks(loud_rack.get(), 0, kWarm);
+    const std::vector<float> processed =
+        run_blocks(loud_rack.get(), kWarm, kWarm);
+    double apart = 0.0;
+    for (size_t at = 0; at < processed.size() && at < bypassed.size(); ++at) {
+      apart = std::max(apart, std::fabs(static_cast<double>(processed[at]) -
+                                        static_cast<double>(bypassed[at])));
+    }
+    const double natural = worst_step(bypassed, kFrames * 2, bypassed.size());
+    std::printf("  %-22s %-8s the two states are %.5f apart, and the signal "
+                "steps %.5f\n",
+                one.name, "control", apart, natural);
+    check(apart > natural * 3.0,
+          "and an unfaded switch would have had something to step by");
+  }
+}
+
 }
 
 int main() {
@@ -467,6 +640,7 @@ int main() {
   check(releases == 0, "engine audio handover and processing free nothing");
   incompatible_streams_and_pending_configs_are_refused();
   the_library_kernel_update_also_keeps_audio();
+  stages_switch_on_without_a_step();
   std::printf("chain transfer: %d failures\n", failures);
   return failures == 0 ? 0 : 1;
 }

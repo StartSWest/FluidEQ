@@ -816,9 +816,14 @@ export const clearGains = (): Promise<IFiltersMap> => {
 export const setVoicing = (
   profileId: string,
   intensity: number,
+  dspEq?: import('../../common/dsp/chain').IEqSettings,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_VOICING;
-  return sendRequest(channel, [profileId, intensity], setterResponseHandler);
+  return sendRequest(
+    channel,
+    dspEq ? [profileId, intensity, dspEq] : [profileId, intensity],
+    setterResponseHandler,
+  );
 };
 
 /**

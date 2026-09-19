@@ -47,13 +47,29 @@ import useRemoteAudioSenderActions from './useRemoteAudioSenderActions';
 import useRemoteAudioSenderReconnect from './useRemoteAudioSenderReconnect';
 import useRemoteAudioRecovery from './useRemoteAudioRecovery';
 import useRemoteAudioStreamMode from './useRemoteAudioStreamMode';
+import { updateRackGate } from '../dsp/rackPlacement';
+import { publishSystemDspChain } from '../dsp/store';
 import useRemoteNowPlayingBroadcast from './useRemoteNowPlayingBroadcast';
 import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
 
 const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { capture, setSharingAudio } = useLiveAudioControl();
   const { activeDeviceId } = useFluidEqContext();
-  const [role, setRole] = useState<TRemoteAudioRole | undefined>(undefined);
+  const [role, setRoleState] = useState<TRemoteAudioRole | undefined>(
+    undefined,
+  );
+  const setRole = useCallback((next: TRemoteAudioRole | undefined) => {
+    updateRackGate({ sendingRawAudio: next === 'sender' });
+    publishSystemDspChain();
+    setRoleState(next);
+  }, []);
+  useEffect(
+    () => () => {
+      updateRackGate({ sendingRawAudio: false });
+      publishSystemDspChain();
+    },
+    [],
+  );
   const [phase, setPhase] = useState<TRemoteAudioPhase>('idle');
   useEffect(() => {
     setSharingAudio(
@@ -171,7 +187,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       senderStartingRef.current = false;
     }
-  }, [capture, publishMeter, removeNetworkPeer]);
+  }, [capture, publishMeter, removeNetworkPeer, setRole]);
 
   useEffect(() => {
     startPcmSender().catch(() => undefined);
@@ -405,6 +421,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     publishMeter,
     publishSenderConnection,
     streamModeRef,
+    setRole,
   ]);
 
   const clearConnection = useCallback(
@@ -453,7 +470,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       setError(undefined);
       stoppingRef.current = false;
     },
-    [clearNetworkStats],
+    [clearNetworkStats, setRole],
   );
 
   const startListening = useRemoteAudioListenerActions({

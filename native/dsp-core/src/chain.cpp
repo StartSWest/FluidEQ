@@ -40,6 +40,14 @@ void resize_slot(ChainEqSlot& slot, uint32_t frames, uint32_t latency) {
 
 /** The look-ahead the dial is asking for, in samples, inside the ring. */
 uint32_t maximizer_look_ahead_samples(const FeqChain* chain) {
+  // Game mode with the Maximizer off: it keeps running — its state stays
+  // current and switching it on is not a jump from a stale past — but with
+  // nothing to limit, holding the audio back 5 ms for it is a comfort a
+  // player does not want paid for.
+  if (chain->settings.low_latency != 0 &&
+      chain->settings.maximizer.enabled == 0) {
+    return 0u;
+  }
   const double asked = chain->settings.maximizer.look_ahead_ms;
   const double capped =
       asked > kMaximizerMaxLookAheadMs ? kMaximizerMaxLookAheadMs : asked;
@@ -297,6 +305,7 @@ FeqChain* feq_chain_create(double sample_rate,
   const uint32_t dimension_capacity =
       feq_dimension_allpass_capacity(sample_rate);
   chain->dimension_side.assign(frames, 0.0f);
+  chain->dimension_centre.assign(frames, 0.0f);
   chain->dimension_low.assign(frames, 0.0f);
   chain->dimension_mid.assign(frames, 0.0f);
   chain->dimension_high.assign(frames, 0.0f);
@@ -306,6 +315,7 @@ FeqChain* feq_chain_create(double sample_rate,
     chain->dimension_allpass_pointers[at] = chain->dimension_allpass[at].data();
   }
   feq_dimension_init(&chain->dimension, chain->dimension_side.data(),
+                     chain->dimension_centre.data(),
                      chain->dimension_low.data(), chain->dimension_mid.data(),
                      chain->dimension_high.data(),
                      chain->dimension_allpass_pointers.data(),
@@ -464,6 +474,10 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
     chain->settings.eq.oversample = 1;
   }
   apply_maximizer_look_ahead(chain);
+  feq_linked_limiter_set_look_ahead(&chain->post_normalizer.limiter,
+                                    chain_headroom_look_ahead(chain));
+  feq_live_normalizer_set_standby(chain->live_normalizer,
+                                  chain_leveler_idle(chain) ? 1 : 0);
   feq_denoise_configure(chain->denoise, &chain->settings.denoise);
   // After the restoration, whose modules decide how far behind the front
   // pair now runs — and so how far the other channels must be held back.
@@ -494,6 +508,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
       room.mute[speaker] = chain->settings.room.mute[speaker];
     }
     room.mute[FEQ_ROOM_SPEAKERS] = chain->settings.room.mute[FEQ_ROOM_SPEAKERS];
+    feq_room_set_low_latency(chain->room, chain->settings.low_latency);
     feq_room_configure(chain->room, &room);
   }
   chain_refresh_eq(chain);
@@ -652,25 +667,72 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   }
 }
 
-uint32_t feq_chain_latency_frames(const FeqChain* chain) {
-  if (chain == nullptr || chain->settings.enabled == 0) {
-    return 0;
+void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
+  if (out == nullptr) {
+    return;
   }
-  uint32_t latency =
+  *out = FeqChainLatencyParts{};
+  if (chain == nullptr || chain->settings.enabled == 0) {
+    return;
+  }
+  out->linear_eq =
       chain_linear_running(chain) != 0 ? feq_linear_phase_latency() : 0u;
   // Denoise adds delay only for the modules that are on: the comb is zero
   // latency, the repair costs its lookahead, the spectral module its window
   // less a hop. A stage reporting a latency it is not actually adding puts the
   // deck's crossfade out by that much on every handoff.
-  latency += feq_denoise_latency_frames(chain->denoise);
-  latency += feq_live_normalizer_latency(chain->live_normalizer);
-  latency += feq_room_latency_frames(chain->room);
-  if (chain->channels >= 2) {
+  out->restoration = feq_denoise_latency_frames(chain->denoise);
+  out->leveler = feq_live_normalizer_latency(chain->live_normalizer);
+  out->room = feq_room_latency_frames(chain->room);
+  if (chain->channels >= 2 && !chain_bass_punch_idle(chain)) {
     // Bass Punch keeps this alignment under bypass, so only the rack bypass
-    // removes it. Account for it when aligning deck transitions.
-    latency += feq_bass_punch_latency_frames(chain->sample_rate);
+    // removes it — or game mode, when Punch is off. Account for it when
+    // aligning deck transitions.
+    out->bass_punch = feq_bass_punch_latency_frames(chain->sample_rate);
   }
-  return latency;
+  // The three limiters at the end of the chain hold the audio back by their
+  // look-ahead on every block — the Maximizer and the auto headroom even when
+  // they are off, so that switching them on is never a jump — and for years
+  // none of them was counted here. Read from the limiters themselves, so the
+  // number is whatever they were last set to, game mode's zero included.
+  out->maximizer =
+      chain->maximizer.delay != nullptr ? chain->maximizer.look_ahead : 0u;
+  out->headroom = chain->post_normalizer.limiter.look_ahead;
+  out->safety = chain->settings.output_safety_enabled != 0
+                    ? chain->safety.limiter.look_ahead
+                    : 0u;
+}
+
+uint32_t feq_chain_latency_frames(const FeqChain* chain) {
+  FeqChainLatencyParts parts{};
+  feq_chain_latency_parts(chain, &parts);
+  return parts.linear_eq + parts.restoration + parts.leveler + parts.room +
+         parts.bass_punch + parts.maximizer + parts.headroom + parts.safety;
+}
+
+uint32_t feq_chain_active_stages(const FeqChain* chain) {
+  if (chain == nullptr || chain->settings.enabled == 0) return 0u;
+  const auto& settings = chain->settings;
+  const bool active[] = {
+      settings.normalizer.mode != 0,
+      settings.denoise.enabled != 0,
+      settings.exciter.enabled != 0,
+      settings.bass_forge.enabled != 0,
+      settings.eq.enabled != 0,
+      settings.bass_punch.enabled != 0 && chain->channels >= 2,
+      feq_chain_room_active(chain) != 0,
+      settings.dimension.enabled != 0 && chain->channels >= 2,
+      settings.compressor.enabled != 0,
+      settings.maximizer.enabled != 0,
+      settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
+      settings.output_safety_enabled != 0,
+      settings.master.enabled != 0,
+  };
+  uint32_t mask = 0;
+  for (uint32_t stage = 0; stage < 13u; ++stage) {
+    if (active[stage]) mask |= 1u << stage;
+  }
+  return mask;
 }
 
 void feq_chain_process(FeqChain* chain, float* const* channels,
@@ -943,8 +1005,12 @@ void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {
 
 int feq_chain_enable_live_normalizer(FeqChain* chain) {
   if (chain == nullptr) return 0;
-  if (chain->live_normalizer == nullptr)
+  if (chain->live_normalizer == nullptr) {
     chain->live_normalizer = feq_live_normalizer_create(chain->sample_rate, chain->channels);
+    // Made after the chain was configured, so it learns game mode here.
+    feq_live_normalizer_set_standby(chain->live_normalizer,
+                                    chain_leveler_idle(chain) ? 1 : 0);
+  }
   return chain->live_normalizer != nullptr ? 1 : 0;
 }
 void feq_chain_attach_leveling_memory(FeqChain* chain, FeqLevelingMemory* memory) {

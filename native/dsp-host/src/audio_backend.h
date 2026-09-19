@@ -151,6 +151,8 @@ class IAudioOutputBackend {
 
   /** A human-readable name for the handshake and for support reports. */
   virtual const char* name() const = 0;
+  /** Canonical Windows endpoint GUID; empty where unavailable. Control thread. */
+  virtual std::string endpoint_guid() const { return {}; }
 };
 
 /**

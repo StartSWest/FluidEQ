@@ -29,6 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "decoders/pcm_decoder.h"
 #include "parent_watch.h"
 #include "process_stats.h"
+#include "processing_latency.h"
 #include "fluideq/chain.h"
 #include "fluideq/dsp.h"
 #include "fluideq/player.h"
@@ -134,6 +135,8 @@ struct HostState {
   FeqEngine* engine = nullptr;
   /** The whole signal path. Null until a device has told us its rate. */
   FeqChain* chain = nullptr;
+  ProcessingLatency processing_latency;
+  std::atomic<bool> raw_sharing{false};
   FeqPlayer* player = nullptr;
   /**
    * What the panel draws, owned here rather than by the chain.
@@ -534,6 +537,7 @@ void drain_analysis(HostState& state) {
 }
 
 void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
+  const std::lock_guard<std::mutex> held(state.device_mutex);
   FeqTelemetryV1 record{};
   while (feq_engine_try_read_telemetry(state.engine, &record)) {
     const FeqBackendStats stats = backend.stats();
@@ -562,6 +566,17 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     frame.repaired_samples = record.repaired_samples;
     frame.sample_rate = state.sample_rate;
     frame.channels = state.channels;
+    frame.processing_frames = UINT32_MAX;
+    std::array<uint32_t, 10> processing{};
+    if (backend.is_running() && state.processing_latency.read(processing)) {
+      frame.processing_frames = processing[0];
+      for (size_t i = 0; i < 8; ++i) frame.processing_parts[i] = processing[i + 1];
+      frame.processing_active = processing[9];
+      const std::string endpoint = backend.endpoint_guid();
+      if (endpoint.size() < sizeof(frame.processing_endpoint)) {
+        std::memcpy(frame.processing_endpoint, endpoint.data(), endpoint.size());
+      }
+    }
     /**
      * The transport, read from the player rather than inferred.
      *
@@ -694,9 +709,11 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
     }
   }
 
-  if (state->chain != nullptr) {
+  const bool raw = state->raw_sharing.load(std::memory_order_acquire);
+  if (state->chain != nullptr && !raw) {
     feq_chain_process(state->chain, planar, frames);
   }
+  state->processing_latency.publish(raw ? nullptr : state->chain);
 
   // On the stack, so nothing is allocated: adding const to a pointer array is
   // not an implicit conversion in C++, and the alternative is a cast that
@@ -1302,6 +1319,7 @@ int main(int argc, char** argv) {
                    0, 0, 0.0);
           break;
         }
+        state.processing_latency.clear();
         state.sample_rate = negotiated.sample_rate;
         state.channels =
             negotiated.channels < kEngineChannels ? negotiated.channels
@@ -1692,6 +1710,11 @@ int main(int argc, char** argv) {
                  static_cast<double>(clamped));
         break;
       }
+
+      case FEQ_CMD_SET_RAW_SHARING:
+        state.raw_sharing.store(frame.parameter_id != 0, std::memory_order_release);
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, 0, 0, 0.0);
+        break;
 
       case FEQ_CMD_SET_ANALYSIS: {
         const int wanted = frame.parameter_id != 0 ? 1 : 0;

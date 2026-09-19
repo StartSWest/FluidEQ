@@ -249,6 +249,13 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
   if (const std::optional<std::string> dsp_text =
           read(config_dir + L"\\fluideq-dsp.txt")) {
     chain.dsp_values = parse_dsp_values(*dsp_text);
+    // The mode is metadata so older engines still decode the unchanged rack.
+    // It also applies before config.txt exists and with rack power switched off.
+    for (const Line& line : tokenize(*dsp_text)) {
+      if (detail::iequals(line.command, "FluidEQLowLatency") && line.body == "ON") {
+        chain.low_latency = true;
+      }
+    }
   }
 
   const std::wstring root_path = config_dir + L"\\config.txt";
@@ -333,6 +340,15 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     }
     if (detail::iequals(line.command, "FluidEQCurveStage")) {
       chain.stable_graphic = line.body == "ON";
+      continue;
+    }
+    // Game mode from the EQ side. Only ever switched ON by a line: any block
+    // on the endpoint's path that asks for it gets it, and an OFF elsewhere
+    // cannot take away what another block asked for.
+    if (detail::iequals(line.command, "FluidEQLowLatency")) {
+      if (line.body == "ON") {
+        chain.low_latency = true;
+      }
       continue;
     }
     if (detail::iequals(line.command, "FluidEQCurveLayer")) {

@@ -20,11 +20,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * The whole design here follows from one fact: mid/side is exact, and mono
  * fold-down is the MID. So a stage that only ever touches the side signal
- * cannot change what a mono listener hears — not approximately, exactly. That
- * is why the crossover splits the SIDE only and the mid is passed through
- * untouched rather than filtered and reassembled: the centre keeps its phase,
- * and `(L+R)/2` comes out the way it went in whatever the dials are set to.
- * The test for that is an equality, not a tolerance.
+ * cannot change the LEVEL of anything a mono listener hears — not
+ * approximately, exactly, at every frequency, whatever the dials are set to.
+ * That is why the crossover splits the SIDE only.
+ *
+ * The mid is not filtered, but it does not escape untouched either: the split
+ * turns the side's phase (see `primitives.h` — the bands have to share one
+ * phase or the widths fight each other where they meet), and the mid is put
+ * through that identical turn so the two halves still line up. A phase turn
+ * both halves take together is a phase turn the whole record takes, which is
+ * what every crossover in every speaker does and is not audible; a turn only
+ * one half takes would move a panned guitar into the other channel around the
+ * corner frequency. So `(L+R)/2` comes out at exactly the level it went in,
+ * band for band, and the test for that is an equality against the same turn
+ * rather than a tolerance.
  *
  * Width alone still only scales what the mix already had, so the side also gets
  * an all-pass network. That decorrelates it from the mid — the image widens
@@ -88,9 +97,12 @@ typedef struct FeqDimensionSettings {
 typedef struct FeqDimension {
   /** Splits the SIDE only. The mid is never filtered. */
   FeqCrossover side_crossover;
+  /** The split's own phase, on the mid, so the two halves stay together. */
+  FeqCrossoverPhase centre_phase;
   FeqDimensionAllPass allpasses[FEQ_DIMENSION_ALLPASSES];
   /** Each `frames` long, all caller-owned. */
   float* side;
+  float* centre;
   float* low;
   float* mid_band;
   float* high;
@@ -101,6 +113,8 @@ typedef struct FeqDimension {
   /** Smoothed inter-channel correlation, and the guard it produces. */
   double correlation;
   double guard;
+  /** How far the stage is in: see `FEQ_SPLIT_FADE_MS`. */
+  double stage_mix;
   double sample_rate;
 } FeqDimension;
 
@@ -109,6 +123,7 @@ uint32_t feq_dimension_allpass_capacity(double sample_rate);
 
 void feq_dimension_init(FeqDimension* state,
                         float* side,
+                        float* centre,
                         float* low,
                         float* mid_band,
                         float* high,
@@ -117,11 +132,18 @@ void feq_dimension_init(FeqDimension* state,
 
 void feq_dimension_reset(FeqDimension* state);
 
+/** Nothing of the stage is left in the signal once this reaches zero. */
+double feq_dimension_fade(const FeqDimension* state);
+
 /**
  * Widen in place. `left` and `right` are one block of a stereo pair.
  *
  * A mono chain must not call this: there is no side signal to work on and the
  * stage has nothing to do.
+ *
+ * Called with `enabled` at zero while the fade still has something in it, it
+ * takes the stage out over `FEQ_SPLIT_FADE_MS` and holds the dials where they
+ * were: a stage on its way out is not a stage taking new settings.
  */
 void feq_dimension_process(FeqDimension* state,
                            float* left,

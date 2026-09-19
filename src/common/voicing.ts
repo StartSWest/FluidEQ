@@ -120,6 +120,13 @@ const highPass = (
   reason,
 });
 
+/**
+ * The voicing that is also game mode: while a device's voicing is this one,
+ * the engine gives up the delay the whole path of that output carries for
+ * comfort (`# FluidEQLowLatency: ON` in its configuration).
+ */
+export const GAMES_VOICING = 'games';
+
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │  DO NOT TOUCH THESE CURVES. NOT A DECIBEL, NOT A HERTZ, NOT A Q.         │

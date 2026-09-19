@@ -74,6 +74,43 @@ FeqBiquadCoefficients lowpass(double frequency, double sample_rate) {
   return out;
 }
 
+/** The lowpass's partner: same corner, same Q, and the same phase as it. */
+FeqBiquadCoefficients highpass(double frequency, double sample_rate) {
+  const double omega = (2.0 * kPi * frequency) / sample_rate;
+  const double cosine = std::cos(omega);
+  const double alpha = std::sin(omega) / (2.0 * kButterworthQ);
+  const double a0 = 1.0 + alpha;
+  FeqBiquadCoefficients out;
+  out.b0 = (1.0 + cosine) / 2.0 / a0;
+  out.b1 = -(1.0 + cosine) / a0;
+  out.b2 = (1.0 + cosine) / 2.0 / a0;
+  out.a1 = (-2.0 * cosine) / a0;
+  out.a2 = (1.0 - alpha) / a0;
+  return out;
+}
+
+/**
+ * The two of them added together, in one section.
+ *
+ * Not an approximation of the pair: a Linkwitz-Riley lowpass plus its highpass
+ * is algebraically this all-pass, at the same corner and the same Q, which is
+ * why a band that goes through it lands on exactly the phase of the bands that
+ * were derived from both halves.
+ */
+FeqBiquadCoefficients allpass(double frequency, double sample_rate) {
+  const double omega = (2.0 * kPi * frequency) / sample_rate;
+  const double cosine = std::cos(omega);
+  const double alpha = std::sin(omega) / (2.0 * kButterworthQ);
+  const double a0 = 1.0 + alpha;
+  FeqBiquadCoefficients out;
+  out.b0 = (1.0 - alpha) / a0;
+  out.b1 = (-2.0 * cosine) / a0;
+  out.b2 = 1.0;
+  out.a1 = (-2.0 * cosine) / a0;
+  out.a2 = (1.0 - alpha) / a0;
+  return out;
+}
+
 /** One sample through one stage, state kept in double as the reference does. */
 double run_stage(FeqBiquadState* state,
                  const FeqBiquadCoefficients& coefficients,
@@ -129,8 +166,11 @@ void feq_crossover_reset(FeqCrossover* state) {
   }
   for (int stage = 0; stage < 2; ++stage) {
     feq_biquad_reset(&state->low_stages[stage]);
+    feq_biquad_reset(&state->upper_stages[stage]);
     feq_biquad_reset(&state->mid_stages[stage]);
+    feq_biquad_reset(&state->high_stages[stage]);
   }
+  feq_biquad_reset(&state->low_align);
 }
 
 void feq_crossover_split(FeqCrossover* state,
@@ -146,26 +186,66 @@ void feq_crossover_split(FeqCrossover* state,
       mid == nullptr || high == nullptr) {
     return;
   }
-  const FeqBiquadCoefficients low_coefficients =
-      lowpass(low_corner_hz, sample_rate);
-  const FeqBiquadCoefficients mid_coefficients =
-      lowpass(high_corner_hz, sample_rate);
+  const FeqBiquadCoefficients low_pass = lowpass(low_corner_hz, sample_rate);
+  const FeqBiquadCoefficients low_reject =
+      highpass(low_corner_hz, sample_rate);
+  const FeqBiquadCoefficients mid_pass = lowpass(high_corner_hz, sample_rate);
+  const FeqBiquadCoefficients high_pass =
+      highpass(high_corner_hz, sample_rate);
+  const FeqBiquadCoefficients align = allpass(high_corner_hz, sample_rate);
 
   for (uint32_t at = 0; at < frames; ++at) {
     const double sample = static_cast<double>(input[at]);
     double low_band = sample;
+    double upper = sample;
     for (int stage = 0; stage < 2; ++stage) {
-      low_band = run_stage(&state->low_stages[stage], low_coefficients,
-                           low_band);
+      low_band = run_stage(&state->low_stages[stage], low_pass, low_band);
+      upper = run_stage(&state->upper_stages[stage], low_reject, upper);
     }
-    double below_high = sample;
+    // The low band has not been through the upper corner, so it is the one
+    // that would arrive early; this is the phase the other two carry.
+    low_band = run_stage(&state->low_align, align, low_band);
+    double mid_band = upper;
+    double high_band = upper;
     for (int stage = 0; stage < 2; ++stage) {
-      below_high = run_stage(&state->mid_stages[stage], mid_coefficients,
-                             below_high);
+      mid_band = run_stage(&state->mid_stages[stage], mid_pass, mid_band);
+      high_band = run_stage(&state->high_stages[stage], high_pass, high_band);
     }
     low[at] = static_cast<float>(low_band);
-    mid[at] = static_cast<float>(below_high - low_band);
-    high[at] = static_cast<float>(sample - below_high);
+    mid[at] = static_cast<float>(mid_band);
+    high[at] = static_cast<float>(high_band);
+  }
+}
+
+double feq_split_fade_step(double sample_rate) {
+  const double samples = (FEQ_SPLIT_FADE_MS / 1000.0) * sample_rate;
+  return samples > 1.0 ? 1.0 / samples : 1.0;
+}
+
+void feq_crossover_phase_reset(FeqCrossoverPhase* state) {
+  if (state == nullptr) {
+    return;
+  }
+  feq_biquad_reset(&state->stages[0]);
+  feq_biquad_reset(&state->stages[1]);
+}
+
+void feq_crossover_phase_process(FeqCrossoverPhase* state,
+                                 float* samples,
+                                 uint32_t frames,
+                                 double low_corner_hz,
+                                 double high_corner_hz,
+                                 double sample_rate) {
+  if (state == nullptr || samples == nullptr) {
+    return;
+  }
+  const FeqBiquadCoefficients first = allpass(low_corner_hz, sample_rate);
+  const FeqBiquadCoefficients second = allpass(high_corner_hz, sample_rate);
+  for (uint32_t at = 0; at < frames; ++at) {
+    double sample = static_cast<double>(samples[at]);
+    sample = run_stage(&state->stages[0], first, sample);
+    sample = run_stage(&state->stages[1], second, sample);
+    samples[at] = static_cast<float>(sample);
   }
 }
 

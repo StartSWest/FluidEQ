@@ -25,15 +25,20 @@ import DspMaximizerCard from './DspMaximizerCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspRoomCard from './DspRoomCard';
-import { useRoomLive } from './useRoomLive';
+import { roomLiveOf } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
 import DspHeldLock from './DspHeldLock';
 import DspScopeNotice from './DspScopeNotice';
+import GameModeSwitch from '../components/GameModeSwitch';
 import DspSideTabs from './DspSideTabs';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
 import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import {
+  useListenedDelay,
+  useListenedOutput,
+} from '../utils/useListenedOutput';
 import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
@@ -200,7 +205,9 @@ const DspPanel = ({
     }
     return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
   };
-  const roomLive = useRoomLive(isSystemWide);
+  const listened = useListenedOutput(isSystemWide);
+  const roomLive = roomLiveOf(listened);
+  const delay = useListenedDelay(listened);
   /**
    * The rate the filters will actually run at, from the engine.
    *
@@ -449,6 +456,12 @@ const DspPanel = ({
               with it. Its two words say which channels, the way the power's
               say on or off; the longer sentence is the tooltip. */}
           <div className="dsp-header-switches">
+            {isSystemWide ? (
+              <GameModeSwitch
+                installedVersion={audioEngine?.fluid.dllVersion}
+                reportedGameMode={listened.output?.gameMode}
+              />
+            ) : null}
             <div
               className="dsp-global-power dsp-surround"
               title={t(surroundHint())}
@@ -509,7 +522,8 @@ const DspPanel = ({
           status={audioEngine}
           suspension={suspension}
           isRackEngaged={isRackEngaged}
-          phase={eq.phase}
+          latency={delay?.latency}
+          gameMode={delay?.gameMode ?? false}
           onOpenEngineDialog={onOpenEngineDialog}
         />
         {engineState === 'failed' ? (

@@ -79,6 +79,7 @@ void feq_phase_align_init(FeqPhaseAlign* state,
   state->mid_line.write = 0;
   state->low_delay = 0.0;
   state->mid_delay = 0.0;
+  state->stage_mix = 0.0;
   for (uint32_t at = 0; at < low_capacity; ++at) {
     low_line[at] = 0.0f;
   }
@@ -103,12 +104,17 @@ void feq_phase_align_process(FeqPhaseAlign* state,
 
   // Fully off AND fully settled: the delays are still glided to zero, so
   // returning early while they are non-zero would step the signal instead.
+  // The same goes for the fade that brings the split in and out — the split
+  // turns the phase of everything through it, and that turn has to arrive and
+  // leave gradually or switching the stage is a click (`FEQ_SPLIT_FADE_MS`).
   if (target_low == 0.0 && state->low_delay < 0.0001 &&
-      state->mid_delay < 0.0001) {
+      state->mid_delay < 0.0001 && state->stage_mix <= 0.0) {
     state->low_delay = 0.0;
     state->mid_delay = 0.0;
     return;
   }
+  const double fade_step = feq_split_fade_step(sample_rate);
+  const double fade_target = safe_amount > 0.0 ? 1.0 : 0.0;
 
   feq_crossover_split(&state->crossover, target, state->low, state->mid,
                       state->high, frames, kLowCornerHz, kHighCornerHz,
@@ -125,8 +131,12 @@ void feq_phase_align_process(FeqPhaseAlign* state,
     const double mid = delay_sample(&state->mid_line,
                                     static_cast<double>(state->mid[at]),
                                     state->mid_delay);
-    target[at] =
-        static_cast<float>(low + mid + static_cast<double>(state->high[at]));
+    state->stage_mix = fade_target > state->stage_mix
+                           ? std::fmin(1.0, state->stage_mix + fade_step)
+                           : std::fmax(0.0, state->stage_mix - fade_step);
+    const double dry = static_cast<double>(target[at]);
+    const double wet = low + mid + static_cast<double>(state->high[at]);
+    target[at] = static_cast<float>(dry + (wet - dry) * state->stage_mix);
   }
 }
 

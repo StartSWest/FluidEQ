@@ -48,6 +48,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <map>
 #include <fstream>
 #include <span>
 #include <string>
@@ -262,7 +263,32 @@ constexpr const char* kPunchAlignmentMovesTheMaster[] = {
     "chain/master-headroom/white-noise",
 };
 
+/** The only racks in the corpus that turn the compressor on. */
+constexpr const char* kBandSplitMovesTheCompressor[] = {
+    "chain/compressor-maximizer/sweep",
+    "chain/compressor-maximizer/white-noise",
+    "chain/compressor-maximizer/transient-then-silence",
+    "chain/everything/sweep",
+    "chain/everything/white-noise",
+    "chain/everything/transient-then-silence",
+};
+
 constexpr Superseded kSuperseded[] = {
+    {kCrossover, {},
+     "the three-band split stopped deriving its upper bands by subtraction on "
+     "2026-09-19: subtracted bands sit half a cycle apart at the corner, so "
+     "unequal band gains cancelled there (-10 to -14 dB at 120-250 Hz under "
+     "the Gaming compressor). Held now by crossover_test.cpp, on the response "
+     "of the bands put back together"},
+    {kPhaseAlign, {},
+     "the exciter's Timing delays those same bands, so it inherited the hole: "
+     "six exciter profiles measured a 2-4 dB scoop through 250-1000 Hz that "
+     "nothing in their settings asked for. Same split, same date"},
+    {kChain, kBandSplitMovesTheCompressor,
+     "the compressor divides its three bands with that same split, so the "
+     "only two racks that turn it on moved with it, on the same date; neither "
+     "turns on the exciter's Timing. Held by crossover_test.cpp, like the "
+     "split itself"},
     {kChain, kGuardHoldsTheCeiling,
      "the final guard has held every rack to its -0.1 dBTP ceiling since "
      "2026-09-04, where it used to arm only above +10 dBTP. Nothing ahead of it "
@@ -1544,6 +1570,7 @@ int main(int argc, char** argv) {
   size_t pending = 0;
   size_t unreadable = 0;
   size_t superseded = 0;
+  std::map<uint32_t, size_t> pending_by_processor;
   /** How many fixtures each entry of `kSuperseded` took out of comparison. */
   std::vector<size_t> excused(std::size(kSuperseded), 0);
   bool superseded_stale = false;
@@ -1560,6 +1587,7 @@ int main(int argc, char** argv) {
     std::vector<float> actual;
     if (!render(fixture, actual)) {
       ++pending;
+      ++pending_by_processor[fixture.processor];
       continue;
     }
     const Superseded* excuse = superseded_entry(fixture);
@@ -1605,6 +1633,11 @@ int main(int argc, char** argv) {
   std::printf("  verified  %zu\n", verified);
   std::printf("  failed    %zu\n", failed);
   std::printf("  pending   %zu (no native implementation yet)\n", pending);
+  for (const auto& entry : pending_by_processor) {
+    // Named, because a count alone cannot tell "one processor was never
+    // ported" from "every whole-chain fixture stopped running last month".
+    std::printf("            processor %u: %zu\n", entry.first, entry.second);
+  }
   if (superseded > 0) {
     std::printf("  superseded %zu (changed on purpose since the port)\n",
                 superseded);

@@ -76,6 +76,48 @@ void log_owner(std::string_view message) noexcept {
   trace(no_endpoint(), message);
 }
 
+/**
+ * The graph's delay stage by stage, by the names the app reads, in the order
+ * the audio meets them, and only the stages that add anything.
+ */
+std::vector<std::pair<std::string, unsigned>> latency_parts_of(
+    const Graph& graph) {
+  const Graph::LatencyParts& parts = graph.latency_parts();
+  // In the order the sound meets them — the rack's stages as
+  // `feq_chain_process` runs them, then the graph's as `Graph::process`
+  // does — because the page lists them as they come.
+  const std::pair<const char*, uint32_t> named[] = {
+      {"leveler", parts.rack.leveler},
+      {"restoration", parts.rack.restoration},
+      {"exciter", 0u},
+      {"bassForge", 0u},
+      {"linearEq", parts.rack.linear_eq},
+      {"bassPunch", parts.rack.bass_punch},
+      {"room", parts.rack.room},
+      {"dimension", 0u},
+      {"compressor", 0u},
+      {"maximizer", parts.rack.maximizer},
+      {"headroom", parts.rack.headroom},
+      {"master", 0u},
+      {"safety", parts.rack.safety},
+      {"eqPhase", parts.eq_phase},
+      {"curvePhase", parts.curve_phase},
+      {"convolution", parts.convolution},
+      {"curves", parts.curves},
+      {"guard", parts.guard},
+      {"filters", 0u},
+      {"preamp", 0u},
+  };
+  std::vector<std::pair<std::string, unsigned>> out;
+  for (const auto& one : named) {
+    const auto& active = graph.active_stages();
+    if (one.second > 0u || std::find(active.begin(), active.end(), one.first) != active.end()) {
+      out.emplace_back(one.first, one.second);
+    }
+  }
+  return out;
+}
+
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -500,6 +542,14 @@ void Watcher::reload() {
     const bool processing = !graph->is_passthrough();
     std::vector<std::string> problems = graph->problems();
     room_state_ = graph->room_state();
+    latency_ = processing ? graph->latency_frames() : 0u;
+    latency_active_ = processing ? graph->active_stages() : std::vector<std::string>{};
+    latency_parts_ = processing ? latency_parts_of(*graph)
+                                : std::vector<std::pair<std::string, unsigned>>{};
+    // Like the delay above: passing the sound through, nothing runs in any
+    // mode, and a page saying "game mode" over a chain that is not playing
+    // would be describing the configuration, not the sound.
+    game_mode_ = processing && graph->low_latency();
     publish(std::move(graph));
     signature_.swap(next);
     have_signature_ = true;

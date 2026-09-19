@@ -7,6 +7,7 @@ import type { WebSocket } from 'ws';
 import createRemoteAudioTransport from '../../../main/remoteAudioTransport';
 import {
   PACKET_AUDIO,
+  decodeAudioAsync,
   keyFromSecret,
   openPacket,
   sealAuthChallenge,
@@ -146,3 +147,24 @@ describe('LAN audio transport boundaries', () => {
     transport.closeAll();
   });
 });
+it.each(['music', 'video'] as const)(
+  'sends unchanged PCM immediately for a legacy %s preference',
+  async (mode) => {
+    const { transport } = createTransport();
+    const socket = new FakeSocket();
+    const key = keyFromSecret('raw-session');
+    transport.attach('raw-peer', socket as unknown as WebSocket, key);
+    transport.setStreamMode('raw-peer', mode);
+    const chunk = audioChunk('raw-peer', 42);
+    const samples = new Float32Array(chunk.pcm);
+    samples.set([0.25, -0.25, 1.25, -1.25, 0.00001, -0.00001]);
+    transport.sendAudio(chunk);
+    expect(socket.sent).toHaveLength(1);
+    const packet = openPacket(socket.sent[0], key);
+    expect(packet.kind).toBe(PACKET_AUDIO);
+    const received = await decodeAudioAsync(chunk.peerId, packet.clear);
+    expect(Buffer.from(received.pcm)).toEqual(Buffer.from(chunk.pcm));
+    expect(received.sequence).toBe(42);
+    transport.closeAll();
+  },
+);

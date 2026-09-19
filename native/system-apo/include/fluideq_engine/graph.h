@@ -247,6 +247,31 @@ class Graph {
   const std::string& room_state() const noexcept;
 
   /**
+   * What each stage adds to `latency_frames()`, which is their sum — for the
+   * status, and from there the DSP page, which shows a listener their lag
+   * stage by stage rather than as one number nobody can act on.
+   */
+  struct LatencyParts {
+    /** The rack's own stages, as `feq_chain_latency_parts` reports them. */
+    FeqChainLatencyParts rack{};
+    /** The EQ page's graphic curves: one partition, and the FIR's half. */
+    uint32_t curves = 0;
+    /** The EQ's bands under linear phase. */
+    uint32_t eq_phase = 0;
+    /** The curve layer's bands under linear phase. */
+    uint32_t curve_phase = 0;
+    /** An impulse response the configuration convolves with. */
+    uint32_t convolution = 0;
+    /** The EQ's output guard, which keeps a boost from clipping. */
+    uint32_t guard = 0;
+  };
+  const LatencyParts& latency_parts() const noexcept { return parts_; }
+  const std::vector<std::string>& active_stages() const noexcept { return active_stages_; }
+
+  /** Game mode: the Gaming preset on the rack, or the Games voicing. */
+  bool low_latency() const noexcept { return low_latency_; }
+
+  /**
    * Blocks this graph had to silence because they came out with a sample
    * that was not a real number — see the end of `process`. Any thread; the
    * watcher reads it once the graph is being replaced, for the log.
@@ -270,6 +295,9 @@ class Graph {
   bool passthrough_;
   double preamp_linear_;
   uint32_t latency_frames_;
+  LatencyParts parts_{};
+  std::vector<std::string> active_stages_;
+  bool low_latency_ = false;
 
   // Band types in file order, kept apart from the coefficients so a layout
   // comparison does not have to compare floating-point coefficients that two

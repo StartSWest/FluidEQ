@@ -67,6 +67,29 @@ uint32_t feq_convolver_warmup(void);
 uint64_t feq_convolver_kernel_warmup(const FeqConvolverKernel* kernel);
 
 /**
+ * A KERNEL'S FIRST PARTITION, RUN DIRECTLY: convolution with no latency.
+ *
+ * The partitioned convolver hands everything back one partition late. Run
+ * the first partition as a plain FIR instead, and give the convolver the rest
+ * of the kernel starting one partition in (`kernel + feq_convolver_head_taps()`):
+ * its own partition of delay then puts that tail exactly where it belongs
+ * behind the head, and the sum is the whole convolution arriving on time.
+ * Game mode's room and headphone curve are built this way.
+ *
+ * It costs what a direct FIR costs — `feq_convolver_head_taps()` multiplies a
+ * sample per kernel — which is why it is not how every convolution runs.
+ *
+ * `head` holds the taps reversed, as `feq_convolver_head_prepare` writes
+ * them; `input` holds `feq_convolver_head_taps() - 1` samples of history and
+ * then the block, so the first output reaches back across the boundary.
+ */
+uint32_t feq_convolver_head_taps(void);
+void feq_convolver_head_prepare(const float* kernel, uint32_t length,
+                                float* head);
+void feq_convolver_head_run(const float* head, const float* input,
+                            float* out, uint32_t frames);
+
+/**
  * Transform a kernel into partitioned spectra. Allocates; never on the audio
  * thread. The returned kernel may be shared by several convolvers.
  */

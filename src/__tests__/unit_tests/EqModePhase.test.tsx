@@ -8,6 +8,13 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockError = jest.fn();
 const mockReset = jest.fn().mockResolvedValue(undefined);
 let mockStatus: ICurveComparisonStatus;
+let mockRate = 48000;
+let mockGameMode = false;
+jest.mock('renderer/utils/useListenedOutput', () => ({
+  useListenedOutput: () => ({
+    output: { latency: { rate: mockRate }, gameMode: mockGameMode },
+  }),
+}));
 
 jest.mock('renderer/utils/FluidEqContext', () => ({
   useFluidEqContext: () => ({
@@ -41,6 +48,8 @@ const pick = async (scope: string, phase: string) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockRate = 48000;
+  mockGameMode = false;
   mockSelect.mockResolvedValue(undefined);
   mockStatus = {
     variant: 'B',
@@ -160,4 +169,37 @@ it('does not offer FluidEQ phase controls under Equalizer APO', async () => {
   );
   expect(mockReset).toHaveBeenCalledTimes(1);
   expect(mockSelect).not.toHaveBeenCalled();
+});
+it('forecasts the real FIR delay even before the first EQ band is changed', () => {
+  mockStatus.bandPhaseScopes = { eq: false, curves: false };
+  open();
+  expect(
+    group('Your EQ').getByRole('button', { name: /Linear/ }),
+  ).toHaveTextContent('≈ +352 ms with active EQ');
+  expect(
+    group('Curves').getByRole('button', { name: /Linear/ }),
+  ).toHaveTextContent('≈ +0 ms delay');
+});
+
+it.each([
+  [44100, 383],
+  [48000, 352],
+  [96000, 347],
+])('uses the running output rate of %i Hz for the preview', (rate, delay) => {
+  mockRate = rate;
+  mockStatus.bandPhaseScopes = { eq: true, curves: true };
+  open();
+  ['Your EQ', 'Curves'].forEach((scope) => {
+    expect(
+      group(scope).getByRole('button', { name: /Linear/ }),
+    ).toHaveTextContent(`≈ +${delay} ms delay`);
+  });
+});
+
+it('explains that Game mode keeps Minimum phase instead of promising a linear zero-delay filter', () => {
+  mockGameMode = true;
+  mockStatus.bandPhaseScopes = { eq: true, curves: true };
+  open();
+  expect(screen.getAllByText('Game mode: Minimum')).toHaveLength(2);
+  expect(screen.queryByText(/\+0 ms/)).not.toBeInTheDocument();
 });

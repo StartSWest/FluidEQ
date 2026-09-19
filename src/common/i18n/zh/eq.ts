@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': 'EQ生效时约增加 {ms} ms',
+  'eq.mode.linearDelay': '约增加 {ms} ms 延迟',
+  'eq.mode.gameMinimum': '游戏模式：最小相位',
   'eq.layouts.builtIn': '内置布局',
   'eq.layouts.saved': '我的布局',
   'eq.layouts.empty': '仅保存频段的频率和 Q 值，不保存增益或 EQ 模式。',
@@ -642,6 +645,8 @@ const eq: Partial<Dictionary> = {
     '针对你眼下在做的事调好的目标曲线。每一条都作为独立的一层写在你的频段之后，所以你自己的调音不会被动到，切回“无”就能原样恢复。',
   'voicing.refused': '无法切换音色',
   'voicing.groupPurpose': '用途',
+  'voicing.gameModeHint':
+    '同时也是游戏模式：启用此声音风格期间，FluidEQ 会放弃所有只为舒适而保留的延迟。剩余的延迟显示在 DSP 页面上。',
   'voicing.groupGenre': '流派',
   'voicing.none': '无',
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',

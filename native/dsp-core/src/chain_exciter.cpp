@@ -18,7 +18,7 @@ bool path_is_active(const FeqChain* chain, uint32_t path) {
   const ChainExciterPath& state = chain->paths[path];
   return feq_exciter_channel_is_active(&state.exciter) != 0 ||
          state.organic_mix > 0.0001 || state.aligner.low_delay > 0.0001 ||
-         state.aligner.mid_delay > 0.0001;
+         state.aligner.mid_delay > 0.0001 || state.aligner.stage_mix > 0.0;
 }
 
 FeqExciterSettings exciter_setup(const FeqChainExciterSettings& source) {

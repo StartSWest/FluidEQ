@@ -89,10 +89,14 @@ export const startNativeCaptureProcess = async (
 
   let child: ChildProcessWithoutNullStreams;
   try {
-    child = spawn(executable, ['--parent-pid', String(process.pid)], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
+    child = spawn(
+      executable,
+      ['--parent-pid', String(process.pid), '--pipe-overlapped'],
+      {
+        stdio: ['pipe', 'overlapped', 'pipe'],
+        windowsHide: true,
+      },
+    ) as ChildProcessWithoutNullStreams;
   } catch (error) {
     const detail = error instanceof Error ? ` ${error.message}` : '';
     throw new Error(

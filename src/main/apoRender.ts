@@ -720,6 +720,20 @@ const convolutionModeLines = (state: IState, fileName: string): string[] => {
     : base;
 };
 
+export const bandPhaseScopes = (
+  state: IState,
+): { eq: boolean; curves: boolean } => {
+  const layers = buildLayers(state);
+  return {
+    eq: layers.some(
+      (layer) => layer.feature === 'eq' && layer.filters.length > 0,
+    ),
+    curves: layers.some(
+      (layer) => layer.feature !== 'eq' && layer.filters.length > 0,
+    ),
+  };
+};
+
 export const hasSampledCurveLayers = (state: IState): boolean =>
   state.isEnabled &&
   buildLayers(state).some(

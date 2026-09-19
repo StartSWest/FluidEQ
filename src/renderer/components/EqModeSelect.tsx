@@ -22,6 +22,8 @@ import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
 import '../styles/EqModeSelect.scss';
 import useCurvePhase from '../utils/useCurvePhase';
+import { useListenedOutput } from '../utils/useListenedOutput';
+import { linearPhaseAddedMs } from '../../common/linearPhaseDelay';
 
 const MODES: TEqMode[] = ['normal', 'studio', 'double'];
 const SCOPES: TEqModeScope[] = ['eq', 'curves'];
@@ -38,6 +40,8 @@ export default function EqModeSelect() {
   const { t } = useTranslation();
   const state = useFluidEqContext();
   const phase = useCurvePhase();
+  const listened = useListenedOutput(Boolean(phase.status?.active));
+  const phaseRate = listened.output?.latency?.rate ?? 48000;
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const saving = useRef(false);
@@ -232,6 +236,31 @@ export default function EqModeSelect() {
               >
                 <EqModeIcon kind={icon} />
                 <span>{text}</span>
+                {kind === 'phase' &&
+                  value === 'A' &&
+                  phaseSupported &&
+                  phase.status?.bandPhaseScopes && (
+                    <small className="eq-mode-choice__delay">
+                      {listened.output?.gameMode
+                        ? t('eq.mode.gameMinimum')
+                        : t(
+                            scope === 'eq' && !phase.status.bandPhaseScopes.eq
+                              ? 'eq.mode.linearDelayInactive'
+                              : 'eq.mode.linearDelay',
+                            {
+                              ms: String(
+                                Math.round(
+                                  linearPhaseAddedMs(
+                                    phaseRate,
+                                    scope === 'eq' ||
+                                      phase.status.bandPhaseScopes[scope],
+                                  ),
+                                ),
+                              ),
+                            },
+                          )}
+                    </small>
+                  )}
                 <span className="eq-mode-choice__mark" aria-hidden="true">
                   {isPending && <span className="eq-mode-choice__pending" />}
                   {!isPending && current === value && (

@@ -31,6 +31,10 @@ typedef struct FeqLiveNormalizerReading {
 FeqLiveNormalizer* feq_live_normalizer_create(double rate, uint32_t channels);
 void feq_live_normalizer_destroy(FeqLiveNormalizer* state);
 void feq_live_normalizer_reset(FeqLiveNormalizer* state);
+/* Game mode with the Normalizer off: the peak guard gives up the look-ahead it
+   otherwise keeps under bypass, and `feq_live_normalizer_latency` says so.
+   From the thread that owns the chain, or the audio thread at a handover. */
+void feq_live_normalizer_set_standby(FeqLiveNormalizer* state, int standby);
 /* Audio-thread notification when a host flags silence without sample data. */
 void feq_live_normalizer_silence(FeqLiveNormalizer* state, uint32_t frames);
 /* Before processing, from the thread that owns the chain. Borrowed: the memory

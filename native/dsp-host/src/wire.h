@@ -54,7 +54,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * both sides, so this number is what stands between them and a stale binary.
  * Move it, or the next person debugging silence starts where we started.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 7
+#define FEQ_WIRE_PROTOCOL_VERSION 8
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
@@ -196,7 +196,8 @@ enum FeqWireCommand {
    * module half-pointed at a model is a control that reads as ready while
    * doing nothing. A zero-length payload unloads.
    */
-  FEQ_CMD_LOAD_VOICE_MODEL = 22
+  FEQ_CMD_LOAD_VOICE_MODEL = 22,
+  FEQ_CMD_SET_RAW_SHARING = 23
 };
 
 /** Bands, then floor, fundamental and partial count, then the partials. */
@@ -320,6 +321,11 @@ typedef struct FeqWireTelemetryFrame {
   double deck_position_seconds;
   /** Zero when the decoder could not say, which is legal for some streams. */
   double deck_duration_seconds;
+  /** Processing delay, separate from the device buffer at offset 24. */
+  uint32_t processing_frames;
+  uint32_t processing_parts[8];
+  uint32_t processing_active;
+  char processing_endpoint[40];
 } FeqWireTelemetryFrame;
 
 /**
@@ -522,7 +528,7 @@ typedef struct FeqWireAnalysisFrame {
 static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
-static_assert(sizeof(FeqWireTelemetryFrame) == 112, "telemetry frame size");
+static_assert(sizeof(FeqWireTelemetryFrame) == 192, "telemetry frame size");
 static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
 /*
  * 120, then 136 when Master loudness landed, then Denoise's six words took it

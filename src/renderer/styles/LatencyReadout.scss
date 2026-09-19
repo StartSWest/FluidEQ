@@ -1,0 +1,193 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// The engine's measured delay — beside the pill that says where the rack
+// runs, and beside the EQ page's heading — and the breakdown it opens. See
+// `LatencyReadout.tsx`.
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// A chip: dressed as a field because it is pressed, and exactly as tall as
+// the DSP page's scope pill, so that row keeps one centre line whether the
+// engine has measured anything or not.
+.latency-readout {
+  @include field-interactive;
+  // It appears when sound starts on the output and leaves when it stops;
+  // without an entrance that reads as the header jumping, not as news.
+  @include animate(rise-in, $motion-base, $ease-out);
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  // 18px with its border, the pill's own height: the figure's line and the
+  // glyph are both 14px, and 2px more padding stood it taller than the pill.
+  padding: 1px 10px;
+  border-radius: $radius-pill;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.3;
+  cursor: pointer;
+
+  &[aria-expanded='true'] {
+    border-color: $border-field-hover;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+  }
+
+  &__name {
+    font-weight: $weight-semibold;
+    @include tracking(0.04em);
+    white-space: nowrap;
+  }
+
+  // The face every other measured number in the app is drawn in.
+  &__value {
+    color: $text-primary;
+    font-family: $font-mono;
+    font-size: $text-small;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  // Game mode wears the interface's "on", not its accent: the accent is
+  // already the scope pill's, and this is a state that is switched on.
+  &.is-game {
+    border-color: color-mix(in srgb, $active 40%, transparent);
+    background: color-mix(in srgb, $active 11%, transparent);
+    color: $active;
+
+    .latency-readout__value {
+      color: color-mix(in srgb, $active 55%, $white);
+    }
+
+    &:hover:not(:disabled),
+    &[aria-expanded='true'] {
+      border-color: color-mix(in srgb, $active 65%, transparent);
+      background: color-mix(in srgb, $active 17%, transparent);
+    }
+  }
+}
+
+.latency-readout__glyph {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  // Half a step back from the word, as the padlock on the rack's switch does.
+  margin-left: -2px;
+}
+
+.latency-readout-menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  gap: 12px;
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  padding: 14px 16px;
+
+  &__title {
+    margin: 0;
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    @include tracking(0.1em);
+  }
+
+  // One grid for every row, so the bars and the figures line up down the
+  // list whatever each stage is called in whichever language.
+  &__parts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px auto;
+    gap: 8px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__part {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    color: $text-muted;
+    font-size: $text-small;
+  }
+
+  &__stage {
+    min-width: 0;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  &__buffer {
+    display: block;
+    color: $text-faint;
+    font-size: $text-micro;
+  }
+
+  &__share {
+    height: 4px;
+    overflow: hidden;
+    border-radius: $radius-pill;
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+    > span {
+      display: block;
+      // A stage that adds anything is never drawn as nothing.
+      min-width: 2px;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, $secondary-dark, $secondary-light);
+    }
+  }
+
+  &.is-game &__share > span {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, $active 55%, transparent),
+      $active
+    );
+  }
+
+  &__ms {
+    color: $text-primary;
+    font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  // The receipt's last line: the figure the chip shows, under a rule.
+  &__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid $border-subtle;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+
+    .latency-readout-menu__ms {
+      font-size: $text-lead;
+    }
+  }
+
+  &.is-game &__total .latency-readout-menu__ms {
+    color: $active;
+  }
+
+  &__note {
+    margin: 0;
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.5;
+  }
+}

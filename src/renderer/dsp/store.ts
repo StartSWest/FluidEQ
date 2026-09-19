@@ -227,6 +227,12 @@ export const persistDspSettings = (): void => {
   }
 };
 
+/** Game mode is an output preference, independent of the selected sound. */
+export const setGameMode = (enabled: boolean): void => {
+  applyDspSettings({ ...readDspSettings(), gameMode: enabled });
+  persistDspSettings();
+};
+
 /** Apply and persist in one step, for a control with no drag to protect. */
 
 /** Reported by the engine. Only it may move this off `idle`. */

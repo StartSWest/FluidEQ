@@ -155,6 +155,12 @@ add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dimension COMMAND fluideq-dimension-test)
 
+# The three-band split every multiband stage shares, held to the response of
+# the bands put back together rather than to any one of them.
+add_executable(fluideq-crossover-test dsp-core/tests/crossover_test.cpp)
+target_link_libraries(fluideq-crossover-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME crossover COMMAND fluideq-crossover-test)
+
 add_executable(fluideq-bass-forge-test dsp-core/tests/bass_forge_test.cpp)
 target_link_libraries(fluideq-bass-forge-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-forge COMMAND fluideq-bass-forge-test)
@@ -207,6 +213,9 @@ add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 add_executable(fluideq-chain-surround-test dsp-core/tests/chain_surround_test.cpp)
 target_link_libraries(fluideq-chain-surround-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-surround COMMAND fluideq-chain-surround-test)
+add_executable(fluideq-chain-latency-test dsp-core/tests/chain_latency_test.cpp)
+target_link_libraries(fluideq-chain-latency-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-latency COMMAND fluideq-chain-latency-test)
 
 # The room through a synthetic head whose delays are known frame counts.
 add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
@@ -354,6 +363,8 @@ set_target_properties(fluideq-dsp-host PROPERTIES
 if(WIN32)
   add_executable(fluideq-remote-audio-capture
     remote-audio-capture/src/main.cpp
+    remote-audio-capture/src/capture_queue.cpp
+    remote-audio-capture/src/capture_writer.cpp
     remote-audio-capture/src/mirror_output.cpp
     remote-audio-capture/src/mirror_control.cpp)
   target_link_libraries(fluideq-remote-audio-capture PRIVATE
@@ -365,6 +376,14 @@ if(WIN32)
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
   )
 endif()
+
+add_subdirectory(remote-audio-playback)
+add_executable(fluideq-capture-queue-test
+  remote-audio-capture/tests/capture_queue_test.cpp
+  remote-audio-capture/src/capture_queue.cpp)
+target_link_libraries(fluideq-capture-queue-test PRIVATE feq_strict)
+target_include_directories(fluideq-capture-queue-test PRIVATE remote-audio-capture/src)
+add_test(NAME capture-queue COMMAND fluideq-capture-queue-test)
 
 # The Processes list's meter: private working set and CPU time for each of the
 # app's processes, which Node cannot read (process-meter/src/main.cpp). Runs

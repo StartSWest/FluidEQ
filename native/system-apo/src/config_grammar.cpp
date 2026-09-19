@@ -189,7 +189,8 @@ std::vector<Line> tokenize(std::string_view text) {
     if (raw.find("# FluidEQAutoPreamp: ") == 0 ||
         raw.find("# FluidEQCurveStage: ") == 0 ||
         raw.find("# FluidEQCurveLayer: ") == 0 ||
-        raw.find("# FluidEQEqLayer: ") == 0) {
+        raw.find("# FluidEQEqLayer: ") == 0 ||
+        raw.find("# FluidEQLowLatency: ") == 0) {
       raw.remove_prefix(2);
     }
     const size_t hash = raw.find('#');

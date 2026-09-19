@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
+import { setPlayerProcessingLatency } from './processingLatency';
 import {
   playerRunsRack,
   rackFor,
@@ -296,6 +297,7 @@ export const useNativeTransport = (
   useEffect(() => {
     if (!controller) {
       clearDspNativeTransport();
+      setPlayerProcessingLatency(undefined);
       return undefined;
     }
     const bridge = bridgeOf() as unknown as
@@ -309,6 +311,14 @@ export const useNativeTransport = (
       return undefined;
     }
     const stop = bridge.onDspHostTelemetry((frame) => {
+      setPlayerProcessingLatency(
+        frame.processingLatency && frame.processingEndpoint
+          ? {
+              endpoint: frame.processingEndpoint,
+              latency: frame.processingLatency,
+            }
+          : undefined,
+      );
       setDspNativeTransport({
         hasSource: frame.deckState !== DECK_EMPTY,
         positionSeconds: quantizeTransportPosition(frame.deckPositionSeconds),
@@ -319,6 +329,7 @@ export const useNativeTransport = (
     return () => {
       stop();
       clearDspNativeTransport();
+      setPlayerProcessingLatency(undefined);
     };
   }, [controller]);
 };

@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import TextInput from '../widgets/TextInput';
 import type { IRemoteAudioValue } from './remoteAudioState';
@@ -122,8 +121,6 @@ interface ISenderWorkspaceProps {
   stopSession(): Promise<void>;
 }
 
-const STREAM_MODES = ['video', 'music'] as const;
-
 export const RemoteAudioSenderWorkspace = ({
   pairingCode,
   remote,
@@ -134,41 +131,6 @@ export const RemoteAudioSenderWorkspace = ({
 
   return (
     <div className="remote-audio__role-workspace">
-      <div className="remote-audio__stream-mode">
-        <div className="remote-audio__stream-mode-heading">
-          <strong>{t('remoteAudio.stream.title')}</strong>
-          <span>{t('remoteAudio.stream.lossless')}</span>
-        </div>
-        <div
-          className="remote-audio__stream-options"
-          role="radiogroup"
-          aria-label={t('remoteAudio.stream.title')}
-        >
-          {STREAM_MODES.map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              role="radio"
-              aria-checked={remote.streamMode === mode}
-              className={`remote-audio__stream-option${
-                remote.streamMode === mode ? ' is-selected' : ''
-              }`}
-              onClick={() => remote.setStreamMode(mode)}
-            >
-              <span className="remote-audio__stream-radio" aria-hidden="true" />
-              <span>
-                <span className="remote-audio__stream-title">
-                  <MenuIcon name={mode === 'video' ? 'video' : 'song'} />
-                  <strong>{t(`remoteAudio.stream.${mode}.title`)}</strong>
-                </span>
-                <small>{t(`remoteAudio.stream.${mode}.body`)}</small>
-              </span>
-              <em>{t(`remoteAudio.stream.${mode}.buffer`)}</em>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="remote-audio__sender-connect">
         <div className="remote-audio__field">
           <span>{t('remoteAudio.send.codeLabel')}</span>

@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': 'EQ有効時 約+{ms} ms',
+  'eq.mode.linearDelay': '遅延 約+{ms} ms',
+  'eq.mode.gameMinimum': 'ゲームモード：最小位相',
   'eq.layouts.builtIn': '標準レイアウト',
   'eq.layouts.saved': 'マイレイアウト',
   'eq.layouts.empty':
@@ -681,6 +684,8 @@ const eq: Partial<Dictionary> = {
     'いま実際にやっていることに合わせて調整したターゲットです。どれもあなたのバンドの後ろに独立したレイヤーとして書かれるので、自分の調整は一切触られず、「なし」に戻せばそのまま元通りになります。',
   'voicing.refused': 'ボイシングを切り替えられませんでした',
   'voicing.groupPurpose': '用途',
+  'voicing.gameModeHint':
+    'ゲームモードも兼ねます。この音の傾向を選んでいる間、FluidEQ は快適さのためだけに持っている遅延をすべて手放します。残りは DSP ページに表示されます。',
   'voicing.groupGenre': 'ジャンル',
   'voicing.none': 'なし',
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',

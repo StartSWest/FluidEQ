@@ -1,41 +1,20 @@
 /* FluidEQ — GPL-3.0-or-later */
-
-import { useCallback, useRef, useState } from 'react';
+import { useRef } from 'react';
 import type { TRemoteAudioStreamMode } from '../../common/remoteAudio';
 import type { TRemoteAudioRole } from './remoteAudioState';
 
-const STORAGE_KEY = 'fluideq.remoteAudio.streamMode';
-
-const savedStreamMode = (): TRemoteAudioStreamMode => {
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  return saved === 'video' ? 'video' : 'music';
-};
-
+/** 'video' is the legacy wire name for immediate, lossless PCM. */
 const useRemoteAudioStreamMode = (
-  roleRef: { current?: TRemoteAudioRole },
-  reconnectSenderRef: {
+  _roleRef: { current?: TRemoteAudioRole },
+  _reconnectSenderRef: {
     current?: (mode: TRemoteAudioStreamMode) => Promise<void>;
   },
 ) => {
-  const [streamMode, setStreamModeState] =
-    useState<TRemoteAudioStreamMode>(savedStreamMode);
-  const streamModeRef = useRef(streamMode);
-  const setStreamMode = useCallback(
-    (next: TRemoteAudioStreamMode) => {
-      if (streamModeRef.current === next) {
-        return;
-      }
-      streamModeRef.current = next;
-      setStreamModeState(next);
-      window.localStorage.setItem(STORAGE_KEY, next);
-      if (roleRef.current === 'sender') {
-        reconnectSenderRef.current?.(next).catch(() => undefined);
-      }
-    },
-    [reconnectSenderRef, roleRef],
-  );
-
-  return { setStreamMode, streamMode, streamModeRef };
+  const streamModeRef = useRef<TRemoteAudioStreamMode>('video');
+  return {
+    streamMode: 'video' as const,
+    streamModeRef,
+    setStreamMode: (_next: TRemoteAudioStreamMode) => undefined,
+  };
 };
-
 export default useRemoteAudioStreamMode;

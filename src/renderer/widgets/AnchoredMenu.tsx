@@ -70,6 +70,7 @@ const positionFrom = (
   menuHeight: number,
   menuWidth: number,
   heightLimit = Infinity,
+  align: 'left' | 'right' = 'right',
 ) => {
   const roomAbove = rect.top - OFFSET - MARGIN;
   // The now-playing bar is not room. Without this the menu opened downward
@@ -92,7 +93,7 @@ const positionFrom = (
       : { top: rect.bottom + OFFSET }),
     // And it comes out of that same edge (`menu-motion` in _motion.scss): the
     // corner nearest the trigger, since the menu is right-aligned to it.
-    '--menu-origin': openUpward ? 'bottom right' : 'top right',
+    '--menu-origin': `${openUpward ? 'bottom' : 'top'} ${align}`,
     '--menu-travel': openUpward ? '6px' : '-6px',
     maxHeight: Math.max(
       0,
@@ -106,10 +107,19 @@ const positionFrom = (
     // first part of every row in it was cut off the screen. The second term
     // is the furthest right it can sit before that happens, which is the
     // window less a margin and its own width.
-    right: Math.min(
-      Math.max(MARGIN, window.innerWidth - rect.right),
-      Math.max(MARGIN, window.innerWidth - MARGIN - menuWidth),
-    ),
+    ...(align === 'left'
+      ? {
+          left: Math.max(
+            MARGIN,
+            Math.min(rect.left, window.innerWidth - MARGIN - menuWidth),
+          ),
+        }
+      : {
+          right: Math.min(
+            Math.max(MARGIN, window.innerWidth - rect.right),
+            Math.max(MARGIN, window.innerWidth - MARGIN - menuWidth),
+          ),
+        }),
   };
 };
 
@@ -138,6 +148,7 @@ const AnchoredMenu = ({
   role = 'menu',
   ariaLabel,
   maxHeight,
+  align = 'right',
   children,
 }: {
   /** The control it hangs off. Its position on screen is the whole input. */
@@ -148,6 +159,7 @@ const AnchoredMenu = ({
   ariaLabel?: string;
   /** Optional caller cap, still constrained by the available window space. */
   maxHeight?: number;
+  align?: 'left' | 'right';
   children: ReactNode;
 }) => {
   const [style, setStyle] = useState<CSSProperties>();
@@ -175,6 +187,7 @@ const AnchoredMenu = ({
           // the clamp is inert until the measured pass corrects it.
           menu?.offsetWidth ?? 0,
           maxHeight,
+          align,
         ),
       );
     place();
@@ -188,7 +201,7 @@ const AnchoredMenu = ({
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
-  }, [anchor, isOpen, menu, maxHeight]);
+  }, [anchor, isOpen, menu, maxHeight, align]);
 
   if (!exit.present || !style || typeof document === 'undefined') {
     return null;

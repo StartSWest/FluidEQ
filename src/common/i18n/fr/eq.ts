@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': '≈ +{ms} ms avec EQ actif',
+  'eq.mode.linearDelay': '≈ +{ms} ms de retard',
+  'eq.mode.gameMinimum': 'Mode jeu : minimale',
   'eq.layouts.builtIn': 'Dispositions intégrées',
   'eq.layouts.saved': 'Mes dispositions',
   'eq.layouts.empty':
@@ -692,6 +695,8 @@ const eq: Partial<Dictionary> = {
     'Une cible réglée pour ce que vous êtes en train de faire. Chacune s’écrit comme sa propre couche après vos bandes, votre réglage n’est donc jamais touché et revenir à Aucun le restitue exactement.',
   'voicing.refused': 'Impossible de changer le voicing',
   'voicing.groupPurpose': 'Pour quoi',
+  'voicing.gameModeHint':
+    'C’est aussi le mode jeu : tant que ce caractère est actif, FluidEQ renonce à toute latence gardée seulement par confort. La page DSP montre ce qui reste.',
   'voicing.groupGenre': 'Genre',
   'voicing.none': 'Aucun',
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',

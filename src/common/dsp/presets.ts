@@ -4,61 +4,49 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { DSP_DEFAULTS, IDspSettings, clampDspSettings } from './chain';
 import {
-  TBassForgePresetId,
-  bassForgePresetSettings,
-} from './bassForgePresets';
-import {
-  TBassPunchPresetId,
-  bassPunchPresetSettings,
-} from './bassPunchPresets';
-import {
-  TCompressorPresetId,
-  compressorPresetSettings,
-} from './compressorPresets';
-import { TDenoisePresetId, denoisePresetSettings } from './denoisePresets';
-import {
-  TDimensionPresetId,
-  dimensionPresetSettings,
-} from './dimensionPresets';
+  DSP_DEFAULTS,
+  IDspSettings,
+  IEqSettings,
+  IRoomSettings,
+  clampDspSettings,
+} from './chain';
+import { bassForgePresetSettings } from './bassForgePresets';
+import { bassPunchPresetSettings } from './bassPunchPresets';
+import { compressorPresetSettings } from './compressorPresets';
+import { denoisePresetSettings } from './denoisePresets';
+import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
-import { TExciterPresetId, exciterPresetSettings } from './exciterPresets';
+import { exciterPresetSettings } from './exciterPresets';
 import { TMasterPresetId, masterPresetSettings } from './masterPresets';
 import {
   TMaximizerPresetId,
   maximizerPresetSettings,
 } from './maximizerPresets';
+import {
+  DSP_PRESET_GROUPS,
+  DSP_PRESET_RECIPES,
+  IDspPresetRecipe,
+  TDspPresetGroup,
+} from './presetRecipes';
+import { roomPresetSettings } from './roomPresets';
+import { VOICING_PROFILES } from '../voicing';
+import orderRelatedStyles from './presetOrder';
 
-export const DSP_PRESET_GROUPS = ['basic', 'genre', 'scene', 'repair'] as const;
-export type TDspPresetGroup = (typeof DSP_PRESET_GROUPS)[number];
+export { DSP_PRESET_GROUPS } from './presetRecipes';
+export type { TDspPresetGroup } from './presetRecipes';
 
 export interface IDspPreset {
   id: string;
   labelKey: string;
   group: TDspPresetGroup;
   settings: IDspSettings;
-}
-
-interface IDspPresetRecipe {
-  id: string;
-  labelKey: string;
-  group: TDspPresetGroup;
-  denoise?: TDenoisePresetId;
-  eq?: string;
-  exciter?: TExciterPresetId;
-  bassForge?: TBassForgePresetId;
-  bassPunch?: TBassPunchPresetId;
-  compressor?: TCompressorPresetId;
-  dimension?: TDimensionPresetId;
-  maximizer?: TMaximizerPresetId;
-  /** Keep a limiter profile's timing while calibrating full-rack drive. */
-  maximizerDriveDb?: number;
-  master?: TMasterPresetId;
-  /** Compare the processed chain at its incoming level, without LUFS makeup. */
-  masterGainMatch?: boolean;
-  /** Final calibration for a complete chain that uses Master. */
-  masterOutputTrimDb?: number;
+  /**
+   * A copy of another chain with the Room switched on: named as that chain
+   * plus the Room's own title ("Gaming · Room") rather than by a label of its
+   * own, so the pair reads as a pair in every language.
+   */
+  withRoom: boolean;
 }
 
 /** Fail at startup rather than silently ship a recipe with a misspelled EQ. */
@@ -98,15 +86,46 @@ const maximizerProfile = (id: TMaximizerPresetId, driveDb?: number) => {
  * Starting from the defaults prevents a profile from inheriting one processor
  * from the previous profile and sounding different on its second use.
  */
+const voicingEq = (id: string) => {
+  const profile = VOICING_PROFILES.find((one) => one.id === id);
+  if (!profile) {
+    throw new Error(`DSP preset references unknown voicing ${id}`);
+  }
+  return {
+    ...DSP_DEFAULTS.eq,
+    enabled: true,
+    presetId: '',
+    bands: profile.filters.map((filter) => ({
+      enabled: true,
+      type: filter.type,
+      frequency: filter.frequency,
+      gainDb: filter.gain,
+      quality: filter.quality,
+      dynamic: false,
+      thresholdDb: -24,
+    })),
+  };
+};
+
+const recipeEq = (recipe: IDspPresetRecipe): IEqSettings => {
+  if (recipe.voicing) {
+    return voicingEq(recipe.voicing);
+  }
+  return recipe.eq ? eqProfile(recipe.eq) : DSP_DEFAULTS.eq;
+};
+
 const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
   clampDspSettings({
     ...DSP_DEFAULTS,
     enabled: true,
     presetId: recipe.id,
+    normalizer: recipe.normalizer
+      ? { ...DSP_DEFAULTS.normalizer, mode: recipe.normalizer }
+      : DSP_DEFAULTS.normalizer,
     denoise: recipe.denoise
       ? denoisePresetSettings(recipe.denoise, true)
       : DSP_DEFAULTS.denoise,
-    eq: recipe.eq ? eqProfile(recipe.eq) : DSP_DEFAULTS.eq,
+    eq: recipeEq(recipe),
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,
@@ -132,302 +151,84 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
           recipe.masterOutputTrimDb,
         )
       : DSP_DEFAULTS.master,
+    room: recipe.room
+      ? { ...roomPresetSettings(DSP_DEFAULTS.room, recipe.room), enabled: true }
+      : DSP_DEFAULTS.room,
+    gameMode: recipe.gameMode === true,
   });
 
 /**
- * Twenty-eight complete chains. No recipe stacks Maximizer with Master, and
- * Denoise appears only for a named source problem — cleanup on already-clean
- * music is damage rather than polish.
+ * The Room as a chain leaves it: the chain's own switch, and the room it
+ * stands in where it has one.
+ *
+ * The Room is a stage of the rack like any other, so a chain that does not
+ * use it switches it off — it used to be carried over from whatever was on
+ * before, the one stage a chain did not own, so "Rock" sounded one way after
+ * "Gaming" and another after "Reference". And a chain that does use it sets
+ * ALL of it, as it sets every other stage: the room, every speaker, bass
+ * management and its crossover, the front stage or the filled room and its
+ * amount. Kept for a moment, "fill the room" left on from before made
+ * "Gaming · Room" one sound on Monday and another on Tuesday.
+ *
+ * Two things are nobody's to set but the listener's, and no chain touches
+ * them: the head, which is their own anatomy — Fit is a listening test, and a
+ * chain made on somebody else's head cannot know it — and the headphone
+ * switch, which says what runs after the Room on this machine. And a chain
+ * without the Room only switches it off: the room that was shaped stays as it
+ * was for the next time it is switched on.
  */
-const RECIPES: readonly IDspPresetRecipe[] = [
-  {
-    id: 'reference',
-    labelKey: 'dsp.masterPreset.reference',
-    group: 'basic',
-    master: 'reference',
-    masterGainMatch: true,
-  },
-  {
-    id: 'balanced',
-    labelKey: 'dsp.eqPreset.default',
-    group: 'basic',
-    // Default must be a clean baseline. Enabling Exciter here added fuzz to
-    // every source before the user had chosen any character at all; the
-    // standalone Exciter preset remains available when that colour is wanted.
-    eq: 'flat',
-    compressor: 'gentle',
-    dimension: 'default',
-    master: 'streaming',
-  },
-  {
-    id: 'warm',
-    labelKey: 'dsp.eqPreset.warm',
-    group: 'basic',
-    // Warmth is the broad low-mid tilt. Exciter and Bass Forge both added
-    // harmonics on top of the EQ's own colour, which turned a tonal preset
-    // into audible grit. Keep the chain clean and let its curve own the name.
-    eq: 'warm',
-    compressor: 'gentle',
-    dimension: 'intimate',
-    maximizer: 'transparent',
-  },
-  {
-    id: 'clarity',
-    labelKey: 'dsp.eqPreset.air',
-    group: 'basic',
-    eq: 'air',
-    dimension: 'speakers',
-    maximizer: 'default',
-  },
-  {
-    id: 'punch',
-    labelKey: 'dsp.maximizerPreset.punch',
-    group: 'basic',
-    // One source of punch, not five stacked versions of it. The old chain
-    // boosted both ends, synthesized a sub octave, exaggerated the bass
-    // transient, let another slow compressor accent it, then drove a second
-    // fast punch limiter. Each stage was reasonable alone and their sum was
-    // exactly the overdone sound reported in listening. Bass Punch now owns
-    // the character; the other stages support it without adding another hit.
-    eq: 'flat',
-    bassPunch: 'punch',
-    compressor: 'gentle',
-    maximizer: 'transparent',
-    // Punch already raises the bass hit; avoid pushing it harder into limiting.
-    maximizerDriveDb: 0,
-  },
-  {
-    id: 'expansive',
-    labelKey: 'dsp.dimensionPreset.expansive',
-    group: 'basic',
-    // Width plus space, without exciting and re-limiting the widened side
-    // channel. Those extra stages made the diffuse top sound distorted even
-    // while the final sample peaks remained numerically safe.
-    eq: 'ambient',
-    dimension: 'expansive',
-  },
-  {
-    id: 'late-night',
-    labelKey: 'dsp.eqPreset.lateNight',
-    group: 'basic',
-    eq: 'lateNight',
-    bassPunch: 'lateNight',
-    maximizer: 'lateNight',
-  },
+export const chainRoom = (
+  current: IRoomSettings | undefined,
+  chain: IRoomSettings,
+): IRoomSettings => {
+  const listener = current ?? chain;
+  if (!chain.enabled) {
+    return { ...listener, enabled: false };
+  }
+  return {
+    ...chain,
+    angles: [...chain.angles],
+    levels: [...chain.levels],
+    distances: [...chain.distances],
+    mutes: [...chain.mutes],
+    head: listener.head,
+    correctHeadphones: listener.correctHeadphones,
+    enabled: true,
+  };
+};
 
-  {
-    id: 'pop',
-    labelKey: 'dsp.eqPreset.pop',
+// Every EQ genre is also a complete DSP chain. Detailed recipes above win;
+// the remaining genres use their own EQ with gentle dynamics and final safety.
+const recipes: readonly IDspPresetRecipe[] = [
+  ...DSP_PRESET_RECIPES,
+  ...EQ_PRESETS.filter(
+    (eq) =>
+      eq.group === 'genre' &&
+      !DSP_PRESET_RECIPES.some(
+        (recipe) => recipe.group === 'genre' && recipe.eq === eq.id,
+      ),
+  ).map((eq): IDspPresetRecipe => ({
+    id: eq.id,
+    labelKey: eq.labelKey,
     group: 'genre',
-    eq: 'pop',
-    compressor: 'glue',
-    dimension: 'default',
-    maximizer: 'pop',
-  },
-  {
-    id: 'rock',
-    labelKey: 'dsp.eqPreset.rock',
-    group: 'genre',
-    eq: 'rock',
-    compressor: 'rock',
-    dimension: 'speakers',
-    maximizer: 'rock',
-  },
-  {
-    id: 'hiphop',
-    labelKey: 'dsp.eqPreset.hiphop',
-    group: 'genre',
-    eq: 'hiphop',
-    bassForge: 'hiphop',
-    compressor: 'punch',
-    maximizer: 'hiphop',
-  },
-  {
-    id: 'electronic',
-    labelKey: 'dsp.eqPreset.electronic',
-    group: 'genre',
-    eq: 'electronic',
-    exciter: 'electronic',
-    compressor: 'electronic',
-    dimension: 'expansive',
-    maximizer: 'electronic',
-  },
-  {
-    id: 'jazz',
-    labelKey: 'dsp.eqPreset.jazz',
-    group: 'genre',
-    eq: 'jazz',
-    dimension: 'speakers',
-    maximizer: 'jazz',
-  },
-  {
-    id: 'classical',
-    labelKey: 'dsp.eqPreset.classical',
-    group: 'genre',
-    eq: 'classical',
-    dimension: 'speakers',
-    maximizer: 'classical',
-  },
-  {
-    id: 'acoustic',
-    labelKey: 'dsp.eqPreset.acoustic',
-    group: 'genre',
-    eq: 'acoustic',
+    eq: eq.id,
     compressor: 'gentle',
-    dimension: 'intimate',
-    maximizer: 'acoustic',
-  },
-  {
-    id: 'metal',
-    labelKey: 'dsp.eqPreset.metal',
-    group: 'genre',
-    eq: 'metal',
-    compressor: 'rock',
-    dimension: 'speakers',
-    maximizer: 'metal',
-  },
-  {
-    id: 'reggae',
-    labelKey: 'dsp.eqPreset.reggae',
-    group: 'genre',
-    eq: 'reggae',
-    bassForge: 'dub',
-    compressor: 'glue',
-    maximizer: 'reggae',
-  },
-  {
-    id: 'drum-bass',
-    labelKey: 'dsp.eqPreset.drumBass',
-    group: 'genre',
-    eq: 'drumBass',
-    // D&B has its own short-bloom transient profile. The former Electronic
-    // Bass Forge substitution ignored it and softened the breaks the preset
-    // is named for.
-    bassPunch: 'dnb',
-    compressor: 'electronic',
-    dimension: 'expansive',
-    maximizer: 'default',
-    // Retain a little level compensation for this EQ/compressor combination;
-    // zero drive made the complete preset 2.5 dB quieter in the music audit.
-    maximizerDriveDb: 1.5,
-  },
-
-  {
-    id: 'headphones',
-    labelKey: 'dsp.dimensionPreset.headphones',
-    group: 'scene',
-    eq: 'openBack',
-    bassForge: 'headphones',
-    dimension: 'headphones',
-    maximizer: 'default',
-  },
-  {
-    id: 'speakers',
-    labelKey: 'dsp.dimensionPreset.speakers',
-    group: 'scene',
-    eq: 'flat',
-    dimension: 'speakers',
-    maximizer: 'default',
-  },
-  {
-    id: 'laptop',
-    labelKey: 'dsp.eqPreset.laptop',
-    group: 'scene',
-    eq: 'laptop',
-    compressor: 'gentle',
-    dimension: 'laptop',
-    maximizer: 'default',
-  },
-  {
-    id: 'car',
-    labelKey: 'dsp.eqPreset.car',
-    group: 'scene',
-    eq: 'car',
-    bassForge: 'car',
-    compressor: 'glue',
-    dimension: 'monoSafe',
-    maximizer: 'transparent',
-  },
-  {
-    id: 'gaming',
-    labelKey: 'dsp.eqPreset.gaming',
-    group: 'scene',
-    eq: 'gaming',
-    bassPunch: 'gaming',
-    dimension: 'gaming',
-    maximizer: 'gaming',
-    maximizerDriveDb: 0.5,
-  },
-  {
-    id: 'movie',
-    labelKey: 'dsp.eqPreset.movie',
-    group: 'scene',
-    eq: 'movie',
-    compressor: 'movie',
-    dimension: 'movie',
-    maximizer: 'movie',
-  },
-
-  {
-    id: 'lossy-repair',
-    labelKey: 'dsp.preset.lossyRepair',
-    group: 'repair',
-    eq: 'flat',
-    exciter: 'lossy-repair',
-    // The repair Exciter can reconstruct a peak above unity. This adds no
-    // loudness; it is only the clean final ceiling the repair requires.
-    maximizer: 'safety',
-  },
-  {
-    id: 'vinyl-restore',
-    labelKey: 'dsp.eqPreset.vinyl',
-    group: 'repair',
-    denoise: 'vinyl',
-    eq: 'vinyl',
-    compressor: 'gentle',
-    dimension: 'monoSafe',
-    master: 'vinyl',
-    masterOutputTrimDb: -0.5,
-  },
-  {
-    id: 'tape-restore',
-    labelKey: 'dsp.eqPreset.tape',
-    group: 'repair',
-    denoise: 'tape',
-    eq: 'tape',
-    master: 'reference',
-    // Tape EQ restores lost body and the cached loudness makeup otherwise
-    // adds another four decibels. Calibrate the complete result, not the EQ.
-    masterOutputTrimDb: -4.5,
-  },
-  {
-    id: 'podcast',
-    labelKey: 'dsp.eqPreset.podcast',
-    group: 'repair',
-    denoise: 'podcast',
-    eq: 'podcast',
-    compressor: 'voice',
-    maximizer: 'podcast',
-  },
-  {
-    id: 'audiobook',
-    labelKey: 'dsp.eqPreset.audiobook',
-    group: 'repair',
-    denoise: 'audiobook',
-    eq: 'audiobook',
-    compressor: 'voice',
-    maximizer: 'audiobook',
-  },
+  })),
 ];
 
-export const DSP_PRESETS: readonly IDspPreset[] = DSP_PRESET_GROUPS.flatMap(
-  (group) =>
-    RECIPES.filter((recipe) => recipe.group === group).map((recipe) => ({
-      id: recipe.id,
-      labelKey: recipe.labelKey,
-      group: recipe.group,
-      settings: materialize(recipe),
-    })),
+/** Complete chains in the order the picker shows them. */
+export const DSP_PRESETS: readonly IDspPreset[] = orderRelatedStyles(
+  DSP_PRESET_GROUPS.flatMap((group) =>
+    recipes
+      .filter((recipe) => recipe.group === group)
+      .map((recipe) => ({
+        id: recipe.id,
+        labelKey: recipe.labelKey,
+        group: recipe.group,
+        settings: materialize(recipe),
+        withRoom: recipe.room !== undefined,
+      })),
+  ),
 );
 
 export const isDspPresetId = (id: string): boolean =>
@@ -444,6 +245,9 @@ export const dspPresetSettings = (
   }
   return clampDspSettings({
     ...preset.settings,
+    // Selecting a sound restores its Game mode preference. The independent
+    // switch can then override it without changing the selected sound.
+    gameMode: preset.settings.gameMode,
     // Crossfade is playback behaviour, not a colour in the DSP rack. A chain
     // choice must never silently start, stop or reshape the next transition.
     crossfade: current?.crossfade ?? preset.settings.crossfade,
@@ -453,13 +257,12 @@ export const dspPresetSettings = (
     // had all six channels back the moment they auditioned a preset — with
     // nothing on the page saying so.
     surround: current?.surround ?? preset.settings.surround,
-    // The Room is the listener's own head, their speakers and their walls —
-    // not a colour a recipe may choose. Every recipe is built from the
-    // defaults, where it is off, so auditioning a preset switched it off; and
-    // switching it off takes 512 frames off what the effect tells Windows it
-    // adds, in the middle of whatever is playing. Measured in the engine's
-    // own log on a listener's machine: 128 of 354 racks arrived with the Room
-    // off while the switch on the page said it was on.
-    room: current?.room ?? preset.settings.room,
+    // The Room's switch and shape are the chain's, the head and the rest of
+    // the listener's own are not: see `chainRoom`. (For a day the whole Room
+    // was carried over instead, after presets built from the defaults were
+    // found switching it off unasked. Ivan's call, 2026-09-18: it is a stage
+    // of the rack, a chain that does not use it switches it off, and the
+    // chains that do are offered as copies — "Gaming · Room".)
+    room: chainRoom(current?.room, preset.settings.room),
   });
 };

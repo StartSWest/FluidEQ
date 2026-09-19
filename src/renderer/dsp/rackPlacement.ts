@@ -54,6 +54,7 @@ export interface IRackGate {
   engineOff: boolean;
   /** The Library player is playing through its own engine right now. */
   libraryAudible: boolean;
+  sendingRawAudio?: boolean;
 }
 
 export const OPEN_GATE: IRackGate = {
@@ -65,11 +66,14 @@ export const OPEN_GATE: IRackGate = {
 };
 
 /** Why the rack is off everywhere, or undefined when it is not. */
-export type TRackSuspension = 'switched-off' | 'engine-off';
+export type TRackSuspension = 'switched-off' | 'engine-off' | 'sharing-raw';
 
 export const rackSuspension = (
   gate: IRackGate,
 ): TRackSuspension | undefined => {
+  if (gate.sendingRawAudio) {
+    return 'sharing-raw';
+  }
   if (gate.engine !== 'fluid') {
     return undefined;
   }
@@ -90,7 +94,11 @@ export const rackSuspension = (
  * the switch has been read at all.
  */
 export const engineRunsRack = (gate: IRackGate): boolean =>
-  gate.eqLoaded && gate.eqEnabled && !gate.engineOff && !gate.libraryAudible;
+  gate.eqLoaded &&
+  gate.eqEnabled &&
+  !gate.engineOff &&
+  !gate.libraryAudible &&
+  !gate.sendingRawAudio;
 
 /** Whether the Library player's copy of the rack should run. */
 export const playerRunsRack = (gate: IRackGate): boolean =>
@@ -118,7 +126,8 @@ export const updateRackGate = (patch: Partial<IRackGate>): boolean => {
     next.eqEnabled === gate.eqEnabled &&
     next.eqLoaded === gate.eqLoaded &&
     next.engineOff === gate.engineOff &&
-    next.libraryAudible === gate.libraryAudible
+    next.libraryAudible === gate.libraryAudible &&
+    next.sendingRawAudio === gate.sendingRawAudio
   ) {
     return false;
   }

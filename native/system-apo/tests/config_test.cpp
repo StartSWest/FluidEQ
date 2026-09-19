@@ -284,6 +284,32 @@ void engine_comments_keep_manual_and_custom_preamp_semantics() {
   CHECK(!chain.output_guard && chain.preamp_db == -7);
 }
 
+/**
+ * Game mode from the EQ side: the line the app writes into a device's block
+ * while its voicing is Games. Guarded by the device like every other line,
+ * only ever switched ON by one, and never read from a plain comment.
+ */
+void game_mode_comes_from_the_device_block() {
+  Files files;
+  files[L"C:\\cfg\\config.txt"] =
+      "Device: {AAAA}\nPreamp: -3 dB\n# FluidEQLowLatency: ON\n"
+      "Device: {BBBB}\nPreamp: -3 dB\n";
+  auto games = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Headset"}, provider(files));
+  CHECK(games.matched && games.low_latency);
+  // POSITIVE CONTROL: the other device's block says nothing of it.
+  auto other = resolve_chain(L"C:\\cfg", {L"{BBBB}", L"Speakers"}, provider(files));
+  CHECK(other.matched && !other.low_latency);
+  // An OFF somewhere later cannot take away what a block asked for.
+  files[L"C:\\cfg\\config.txt"] =
+      "Device: all\n# FluidEQLowLatency: ON\n# FluidEQLowLatency: OFF\n";
+  games = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Headset"}, provider(files));
+  CHECK(games.low_latency);
+  // And an ordinary comment that happens to mention it is a comment.
+  files[L"C:\\cfg\\config.txt"] = "Preamp: -3 dB\n# see FluidEQLowLatency: ON\n";
+  games = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Headset"}, provider(files));
+  CHECK(!games.low_latency);
+}
+
 void phase_scopes_follow_includes_without_leaking() {
   Files files;
   files[L"C:\\cfg\\config.txt"] =
@@ -307,6 +333,20 @@ void phase_scopes_follow_includes_without_leaking() {
   CHECK(chain.eq_graphic_curves.size() == 1 && chain.eq_graphic_curves[0][0].gain_db == 2);
   CHECK(chain.comparison_curves.size() == 1 && chain.comparison_curves[0][0].gain_db == -1);
   CHECK(chain.minimum_curve_phase && chain.minimum_eq_phase);
+}
+
+void game_mode_metadata_keeps_the_rack_compatible() {
+  Files files;
+  files[L"C:\\cfg\\fluideq-dsp.txt"] =
+      "# FluidEQ Engine DSP chain v1\n# FluidEQLowLatency: ON\n1 2 3\n";
+  auto chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.low_latency);
+  CHECK(chain.dsp_values == std::vector<double>({1, 2, 3}));
+  files[L"C:\\cfg\\fluideq-dsp.txt"] =
+      "# FluidEQ Engine DSP chain v1\n1 2 3\n";
+  chain = resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(!chain.low_latency);
+  CHECK(chain.dsp_values == std::vector<double>({1, 2, 3}));
 }
 
 void official_phase_files_are_independent_and_default_to_minimum() {
@@ -343,6 +383,8 @@ int main() {
   graphic_and_preamp_grammar();
   utf16_with_bom_is_read();
   engine_comments_keep_manual_and_custom_preamp_semantics();
+  game_mode_comes_from_the_device_block();
+  game_mode_metadata_keeps_the_rack_compatible();
   phase_scopes_follow_includes_without_leaking();
   official_phase_files_are_independent_and_default_to_minimum();
   if (g_failures == 0) {

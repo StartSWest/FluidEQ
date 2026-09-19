@@ -54,6 +54,7 @@ using fluideq_engine_test::kExciterEnabled;
 using fluideq_engine_test::kMaximizerCeilingDb;
 using fluideq_engine_test::kMaximizerDriveDb;
 using fluideq_engine_test::kMaximizerEnabled;
+using fluideq_engine_test::kRackEnabled;
 using fluideq_engine_test::kRate;
 using fluideq_engine_test::kRoomEnabled;
 using fluideq_engine_test::kReferenceLine;
@@ -492,6 +493,94 @@ fluideq_engine::RoomHead flat_head() {
 }
 
 /**
+ * THE WHOLE PATH'S DELAY, REPORTED AS IT IS — AND GAME MODE FROM EITHER SIDE.
+ *
+ * A configuration shaped like a real listener's: bands on the EQ page, the
+ * curve stage held in place for them, the output guard, the rack and its
+ * room. The graph's latency is what `GetLatency` hands Windows and what the
+ * DSP page shows, so it is measured with an impulse; its parts must add up
+ * to it. Then game mode twice — from the rack's own value (the Gaming
+ * preset) and from the EQ side's line (the Games voicing) — each of which
+ * must take the comfort delays out of the WHOLE path, not only its own half.
+ *
+ * Game mode is a shared output preference independent of rack power. It
+ * continues to remove the EQ's optional buffers with the rack bypassed.
+ */
+void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
+  std::printf("the whole path's delay is reported as measured; game mode\n");
+  const fluideq_engine::RoomHead head = flat_head();
+  const std::string eq_page =
+      "Filter: ON PK Fc 1000 Hz Gain 0 dB Q 1\n"
+      "# FluidEQAutoPreamp: ON\n# FluidEQCurveStage: ON\n";
+  std::vector<double> values = reference_values();
+  values[kExciterEnabled] = 0.0;
+  values[kRoomEnabled] = 1.0;
+  const auto sum_of = [](const Graph::LatencyParts& parts) {
+    const FeqChainLatencyParts& rack = parts.rack;
+    return rack.linear_eq + rack.restoration + rack.leveler + rack.room +
+           rack.bass_punch + rack.maximizer + rack.headroom + rack.safety +
+           parts.curves + parts.eq_phase + parts.curve_phase +
+           parts.convolution + parts.guard;
+  };
+
+  Graph normal(chain_with(values, eq_page), kRate, 2, 480, nullptr, 0, &head);
+  std::vector<double> gaming = values;
+  gaming.push_back(1.0);  // The Gaming preset's value, last on the wire.
+  Graph from_rack(chain_with(gaming, eq_page), kRate, 2, 480, nullptr, 0,
+                  &head);
+  Graph from_voicing(
+      chain_with(values, eq_page + "# FluidEQLowLatency: ON\n"), kRate, 2,
+      480, nullptr, 0, &head);
+  // The rack switched off, with and without the Gaming preset on it.
+  std::vector<double> off = values;
+  off[kRackEnabled] = 0.0;
+  std::vector<double> gaming_off = gaming;
+  gaming_off[kRackEnabled] = 0.0;
+  Graph rack_off(chain_with(off, eq_page), kRate, 2, 480, nullptr, 0, &head);
+  Graph gaming_rack_off(chain_with(gaming_off, eq_page), kRate, 2, 480,
+                        nullptr, 0, &head);
+
+  struct Seen {
+    const char* name;
+    Graph* graph;
+  };
+  for (const Seen one : {Seen{"as it runs", &normal},
+                         Seen{"Gaming preset", &from_rack},
+                         Seen{"Games voicing", &from_voicing},
+                         Seen{"Gaming, rack off", &gaming_rack_off}}) {
+    const uint32_t reported = one.graph->latency_frames();
+    const long measured = impulse_frame(*one.graph, 2, 0, reported + 4800);
+    std::printf("  %-14s reported %5u (%.1f ms), measured %5ld\n", one.name,
+                reported, 1000.0 * reported / kRate, measured);
+    CHECK(measured == static_cast<long>(reported));
+    CHECK(sum_of(one.graph->latency_parts()) == reported);
+  }
+  CHECK(!normal.low_latency());
+  CHECK(from_rack.low_latency() && from_voicing.low_latency());
+  // The EQ side's comfort delay: the curve stage held in place with no
+  // curves in it, which game mode will not pay for from either side.
+  CHECK(normal.latency_parts().curves > 0u);
+  CHECK(from_rack.latency_parts().curves == 0u &&
+        from_voicing.latency_parts().curves == 0u);
+  // And the rack's, from either side: its room runs on time.
+  CHECK(normal.latency_parts().rack.room == feq_convolver_latency());
+  CHECK(from_voicing.latency_parts().rack.room == 0u);
+  CHECK(from_rack.latency_frames() == from_voicing.latency_frames());
+  CHECK(from_rack.latency_frames() < normal.latency_frames() / 4);
+  // Game mode belongs to the output, independently of rack power.
+  CHECK(gaming_rack_off.low_latency());
+  CHECK(gaming_rack_off.latency_frames() < rack_off.latency_frames());
+  CHECK(gaming_rack_off.latency_parts().curves == 0u);
+  // POSITIVE CONTROL: the legacy EQ-side directive has the same independent
+  // behavior with the rack off.
+  Graph voicing_rack_off(
+      chain_with(off, eq_page + "# FluidEQLowLatency: ON\n"), kRate, 2, 480,
+      nullptr, 0, &head);
+  CHECK(voicing_rack_off.low_latency());
+  CHECK(voicing_rack_off.latency_parts().curves == 0u);
+}
+
+/**
  * THE SAME, WITH THE ROOM ON, WHICH IS WHERE IT IS AUDIBLE.
  *
  * Every other stage is one voice in a mix, so a stage that restarts loses an
@@ -626,5 +715,6 @@ int main() {
   a_changed_rack_is_never_shared();
   dsp_edits_keep_audio_in_flight();
   a_room_change_keeps_audio_in_flight();
+  the_whole_path_reports_its_delay_and_game_mode_shortens_it();
   return report();
 }

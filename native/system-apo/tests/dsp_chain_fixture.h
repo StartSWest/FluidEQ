@@ -60,6 +60,8 @@ inline const char* const kReferenceLine =
 // than spelled inline because every one of them is a place a reader has to be
 // able to check against the encoder: the wire is a flat list, so an index is
 // the only name a field has.
+// The rack's own power switch, first on the wire.
+inline constexpr size_t kRackEnabled = 0;
 inline constexpr size_t kExciterEnabled = 2;
 inline constexpr size_t kEqEnabled = 29;
 // `EQ_PHASE_MODES.indexOf(phase)`: 0 is minimum, 1 is linear.

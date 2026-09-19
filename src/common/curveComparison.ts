@@ -12,6 +12,8 @@ export interface ICurveComparisonStatus {
   hasSampledCurves: boolean;
   supported: boolean;
   active: boolean;
+  /** Only parametric band groups add a new FIR buffer on selecting Linear. */
+  bandPhaseScopes?: { eq: boolean; curves: boolean };
 }
 
 export const supportsCurveComparison = (version?: string): boolean => {

@@ -38,10 +38,16 @@ struct GraphicDesign {
   uint32_t delay_frames = 0;
 };
 
-/** Every `GraphicEQ:` curve as one FIR at the stream's rate. */
+/**
+ * Every `GraphicEQ:` curve as one FIR at the stream's rate.
+ *
+ * `low_latency` is game mode: every curve minimum phase and none of the
+ * linear-phase design's delay kept — the kernel starts at its first tap and
+ * `delay_frames` is 0, where otherwise it is the FIR's half length.
+ */
 GraphicDesign design_graphic(
     const Chain& chain, uint32_t sample_rate,
-    std::vector<std::string>& warnings);
+    std::vector<std::string>& warnings, bool low_latency = false);
 
 /**
  * One convolver per channel, all or nothing.

@@ -704,6 +704,32 @@ const onLibraryPlaylistsChanged = (
   };
 };
 
+const startRemoteAudioPlayback = (
+  output: string,
+  volume: number,
+): Promise<number> =>
+  ipcRenderer.invoke('remote-audio-playback-open', output, volume);
+const remoteAudioPlaybackCommand = (
+  session: number,
+  action: 'output' | 'volume' | 'remove' | 'close',
+  value?: string | number,
+): Promise<void> =>
+  ipcRenderer.invoke('remote-audio-playback-command', session, action, value);
+const onRemoteAudioPlayback = (
+  listener: (
+    event: import('../common/remoteAudioPlayback').TRemotePlaybackEvent,
+  ) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    value: import('../common/remoteAudioPlayback').TRemotePlaybackEvent,
+  ) => listener(value);
+  ipcRenderer.on('remote-audio-playback-event', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-playback-event', wrapped);
+  };
+};
+
 const startRemoteAudioLanHost = (replaceCode = false) =>
   ipcRenderer.invoke(
     'remote-audio-lan-host',
@@ -1444,6 +1470,9 @@ export default {
     addTracksToLibraryPlaylist,
     removeTracksFromLibraryPlaylist,
     onLibraryPlaylistsChanged,
+    startRemoteAudioPlayback,
+    remoteAudioPlaybackCommand,
+    onRemoteAudioPlayback,
     startRemoteAudioLanHost,
     getSavedRemoteAudioLanRole,
     getSavedRemoteAudioLanSenderCode,

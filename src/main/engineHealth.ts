@@ -21,8 +21,10 @@ import path from 'path';
 import log from 'electron-log';
 import {
   IEngineHealth,
+  IEngineLatency,
   IEngineOutputHealth,
   IFinishedSong,
+  LATENCY_STAGES,
   normaliseEndpointGuid,
   isRoomState,
 } from '../common/engineHealth';
@@ -120,6 +122,12 @@ export const parseEngineStatus = (
     return undefined;
   }
   const lastSong = parseFinishedSong(value.lastSong);
+  const latency = parseLatency(
+    value.rate,
+    value.latency,
+    value.latencyParts,
+    value.latencyActive,
+  );
   // Bounded: it crosses to the window and into bug reports, and the engine's
   // own sentences are short. A longer one from some future engine is kept as
   // much of as is useful rather than dropped.
@@ -147,6 +155,54 @@ export const parseEngineStatus = (
       ? { channels: value.channels }
       : {}),
     ...(isRoomState(value.room) ? { room: value.room } : {}),
+    ...(latency ? { latency } : {}),
+    ...(typeof value.gameMode === 'boolean'
+      ? { gameMode: value.gameMode }
+      : {}),
+  };
+};
+
+/**
+ * The engine's delay for this output, or nothing from an engine that does not
+ * report one. A stage this app has no name for is a stage from a newer
+ * engine: its frames stay in the total and it is left out of the parts,
+ * rather than the whole reading being thrown away. The parts come out in
+ * `LATENCY_STAGES`' order whatever order the text had them in.
+ */
+const parseLatency = (
+  rate: unknown,
+  frames: unknown,
+  parts: unknown,
+  active: unknown,
+): IEngineLatency | undefined => {
+  if (
+    typeof rate !== 'number' ||
+    !Number.isInteger(rate) ||
+    rate <= 0 ||
+    typeof frames !== 'number' ||
+    !Number.isInteger(frames) ||
+    frames < 0 ||
+    !isObject(parts)
+  ) {
+    return undefined;
+  }
+  return {
+    rate,
+    frames,
+    parts: LATENCY_STAGES.flatMap((stage) => {
+      const count = parts[stage];
+      return typeof count === 'number' && Number.isInteger(count) && count >= 0
+        ? [
+            {
+              stage,
+              frames: count,
+              ...(Array.isArray(active)
+                ? { active: active.includes(stage) }
+                : {}),
+            },
+          ]
+        : [];
+    }),
   };
 };
 

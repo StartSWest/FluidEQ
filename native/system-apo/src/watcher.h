@@ -302,6 +302,11 @@ class Watcher {
   std::vector<std::string> graph_problems_;
   /** The last graph's `room_state()`, for the status. */
   std::string room_state_ = "off";
+  /** The last graph's delay, stage by stage, and game mode, for the status. */
+  uint32_t latency_ = 0;
+  std::vector<std::pair<std::string, unsigned>> latency_parts_;
+  std::vector<std::string> latency_active_;
+  bool game_mode_ = false;
   // The watcher's own problems: a reload that threw (the previous graph
   // keeps running) until one works again, and a directory it cannot watch.
   bool reload_failed_ = false;

@@ -278,12 +278,24 @@ export const encodeChainSettings = (
     settings.normalizer.truePeakDbtp,
     settings.normalizer.targetLufs,
   );
+  // Game mode, last of all and ONLY when it is on. An engine older than game
+  // mode refuses a line one value longer than it knows, and a line that does
+  // not ask for game mode has no reason to be one it cannot read — so every
+  // rack but a gaming one is the line it always was, on every engine.
+  if (settings.gameMode) {
+    values.push(1);
+  }
   return values;
 };
 
 /** What a well-formed snapshot for this many bands must be. */
 export const chainWireLength = (bandCount: number): number =>
   CHAIN_PARAM_LEAD + bandCount * CHAIN_BAND_PARAMS + 3;
+
+/** Game mode is the optional final word, after the normalizer trailer. */
+export const gameModeOnWire = (values: readonly number[]): boolean =>
+  values.length === chainWireLength(values[CHAIN_PARAM_LEAD - 1]) + 1 &&
+  values[values.length - 1] === 1;
 
 /**
  * Whether a value could be one, checked at the IPC boundary.
@@ -310,10 +322,15 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
   if (value.length === length - 3) {
     return true;
   }
-  if (value.length !== length) {
+  // Game mode's one value after the normalizer's three: 1, or not there.
+  const gaming = value.length === length + 1;
+  if (value.length !== length && !gaming) {
     return false;
   }
-  const [mode, ceiling, target] = value.slice(-3);
+  if (gaming && value[length] !== 1) {
+    return false;
+  }
+  const [mode, ceiling, target] = value.slice(length - 3, length);
   return (
     Number.isInteger(mode) &&
     mode >= 0 &&

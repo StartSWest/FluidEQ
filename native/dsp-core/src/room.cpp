@@ -58,10 +58,14 @@ void adopt(FeqRoom* room) {
   if (taken == nullptr) {
     return;
   }
-  if (room->live == nullptr || !room->live->active || !taken->active) {
+  if (room->live == nullptr || !room->live->active || !taken->active ||
+      room->live->split != taken->split) {
     // Nothing to fade from, or nothing to fade to: switch outright. A set
     // going inactive leaves the buffers untouched from this block, which is
-    // the same switch every other stage makes when it is turned off.
+    // the same switch every other stage makes when it is turned off. Game
+    // mode going on or off is the same kind of switch: one set is a
+    // partition later than the other, and a fade between them would sound
+    // the same audio twice, a partition apart.
     retire(room, room->live);
     retire(room, room->next);
     room->live = taken;
@@ -94,18 +98,40 @@ namespace {
  * crossover and what is below joins the sub's sum — two Butterworth
  * stages each side make the pair a Linkwitz-Riley 4th order, which sums
  * flat. Nothing here allocates.
+ *
+ * `ramp` is the fade to `next` at each sample of this block, and null
+ * while there is no fade: no replacement, or one still filling its
+ * partitions. A speaker may stand in one set and not the other — muted or
+ * opened by the very change being faded in — and then it fades against
+ * silence: out of the live set, or into the next one. It used to play on at
+ * full level until the sets were exchanged and stop there mid-wave, or not
+ * run at all until the exchange and start there cold; either is a click on
+ * every press of Mute or Solo.
  */
 void render_source(FeqRoom* room, FeqRoomKernels* live, FeqRoomKernels* next,
                    uint32_t slot, const float* input, uint32_t frames,
-                   float* const* mix, float* low_sum, double* blend_after) {
-  if (live->convolver[slot][0] == nullptr) {
+                   float* const* mix, float* low_sum, const double* ramp) {
+  const bool here = live->convolver[slot][0] != nullptr;
+  const bool arriving = next != nullptr && next->convolver[slot][0] != nullptr;
+  if (!here && !arriving) {
     return;
   }
   if (live->bass_management != 0) {
     float* band = room->band.data();
     std::copy(input, input + frames, band);
-    for (uint32_t at = 0; at < frames; ++at) {
-      low_sum[at] += input[at];
+    // Its bass joins the sub's sum by as much as the speaker itself is
+    // heard: by the fade where only one set has it, whole otherwise — and
+    // not at all while a speaker only the next set has is still warming.
+    if (ramp != nullptr && here != arriving) {
+      for (uint32_t at = 0; at < frames; ++at) {
+        const double heard = here ? 1.0 - ramp[at] : ramp[at];
+        low_sum[at] +=
+            static_cast<float>(static_cast<double>(input[at]) * heard);
+      }
+    } else if (here) {
+      for (uint32_t at = 0; at < frames; ++at) {
+        low_sum[at] += input[at];
+      }
     }
     feq_biquad_process(&room->bass_high[slot][0], band, frames,
                        &live->crossover_high);
@@ -113,31 +139,85 @@ void render_source(FeqRoom* room, FeqRoomKernels* live, FeqRoomKernels* next,
                        &live->crossover_high);
     input = band;
   }
+  // The block behind the head's reach of this source's history, so the
+  // direct heads below can read back across the boundary. Both ears and both
+  // sets read the same input, so it is laid out once — and kept up whether
+  // or not game mode is on, so switching it on starts from the real past
+  // rather than from whatever was there the last time it ran.
+  const bool split = live->split != 0;
+  const size_t reach = feq_convolver_head_taps() - 1u;
+  float* const history =
+      room->head_history.data() + static_cast<size_t>(slot) * reach;
+  float* const laid = room->head_input.data();
+  std::copy(history, history + reach, laid);
+  std::copy(input, input + frames, laid + reach);
   for (int ear = 0; ear < 2; ++ear) {
+    // What the live set makes of this source, and what the next one does:
+    // silence from a set the speaker does not stand in. The replacement runs
+    // from the moment it is adopted, heard or not, so its partitions are
+    // full by the time the fade reaches it.
     float* copy = room->copy.data();
-    std::copy(input, input + frames, copy);
-    FeqConvolver* replacement =
-        next != nullptr ? next->convolver[slot][ear] : nullptr;
-    if (replacement != nullptr && room->warmup > 0) {
-      // Both run, one is heard: the replacement fills its partitions.
-      std::copy(input, input + frames, room->scratch.begin());
-      feq_convolve(replacement, room->scratch.data(), frames);
+    float* const scratch = room->scratch.data();
+    if (here) {
+      std::copy(input, input + frames, copy);
       feq_convolve(live->convolver[slot][ear], copy, frames);
-    } else if (replacement != nullptr) {
-      // Every pair in the block starts from the same blend and lands on
-      // the same one, so the two ears and every speaker fade together.
-      *blend_after = feq_convolve_blend(live->convolver[slot][ear],
-                                        replacement, copy,
-                                        room->scratch.data(), frames,
-                                        room->blend, kBlendStep);
     } else {
-      feq_convolve(live->convolver[slot][ear], copy, frames);
+      std::fill(copy, copy + frames, 0.0f);
+    }
+    if (arriving) {
+      std::copy(input, input + frames, scratch);
+      feq_convolve(next->convolver[slot][ear], scratch, frames);
+    } else if (ramp != nullptr) {
+      std::fill(scratch, scratch + frames, 0.0f);
+    }
+    if (ramp != nullptr) {
+      // One walk for the block (`FeqRoom::fade`), so the two ears, every
+      // speaker and the heads below cross over sample for sample.
+      for (uint32_t at = 0; at < frames; ++at) {
+        const double difference = static_cast<double>(scratch[at]) -
+                                  static_cast<double>(copy[at]);
+        copy[at] = static_cast<float>(static_cast<double>(copy[at]) +
+                                      difference * ramp[at]);
+      }
+    }
+    if (split) {
+      // The kernel's first partition, on time, in front of the tail the
+      // convolver just handed back. `adopt` never pairs a split set with a
+      // whole one, so a replacement here is split too. A direct FIR has
+      // nothing to warm: it reads the source's own history.
+      float* const heard = room->head_live.data();
+      if (here) {
+        feq_convolver_head_run(live->head[slot][ear].data(), laid, heard,
+                               frames);
+      } else {
+        std::fill(heard, heard + frames, 0.0f);
+      }
+      if (ramp != nullptr) {
+        float* const incoming = room->head_next.data();
+        if (arriving) {
+          feq_convolver_head_run(next->head[slot][ear].data(), laid, incoming,
+                                 frames);
+        } else {
+          std::fill(incoming, incoming + frames, 0.0f);
+        }
+        for (uint32_t at = 0; at < frames; ++at) {
+          const double difference = static_cast<double>(incoming[at]) -
+                                    static_cast<double>(heard[at]);
+          heard[at] = static_cast<float>(static_cast<double>(heard[at]) +
+                                         difference * ramp[at]);
+        }
+      }
+      for (uint32_t at = 0; at < frames; ++at) {
+        copy[at] += heard[at];
+      }
     }
     float* into = mix[ear];
     for (uint32_t at = 0; at < frames; ++at) {
       into[at] += copy[at];
     }
   }
+  // The newest reach of this source's input, for the next block's heads.
+  std::copy(laid + frames, laid + frames + reach, history);
 }
 
 }  // namespace
@@ -185,6 +265,7 @@ FeqRoom* feq_room_create(double sample_rate, uint32_t channels,
   room->mix_right.assign(max_frames, 0.0f);
   room->copy.assign(max_frames, 0.0f);
   room->scratch.assign(max_frames, 0.0f);
+  room->fade.assign(max_frames, 0.0);
   room->sub.assign(max_frames, 0.0f);
   room->band.assign(max_frames, 0.0f);
   room->feeds.assign(static_cast<size_t>(max_frames) * FEQ_ROOM_SPEAKERS, 0.0f);
@@ -192,6 +273,18 @@ FeqRoom* feq_room_create(double sample_rate, uint32_t channels,
       static_cast<size_t>(std::lround(kRoomUpmixMaxDelaySeconds * sample_rate)) +
           max_frames,
       0.0f);
+  // Sized whether or not game mode is ever used: switching it on is a
+  // settings change, and a settings change may not allocate on the thread
+  // that runs the audio.
+  const size_t reach = feq_convolver_head_taps() - 1u;
+  room->head_history.assign(reach * FEQ_ROOM_MAX_CHANNELS, 0.0f);
+  room->head_input.assign(reach + max_frames, 0.0f);
+  room->head_live.assign(max_frames, 0.0f);
+  room->head_next.assign(max_frames, 0.0f);
+  room->sub_bus.assign(max_frames, 0.0f);
+  room->sub_line_buffer.assign(feq_convolver_latency() + 1u, 0.0f);
+  feq_delay_line_init(&room->sub_line, room->sub_line_buffer.data(),
+                      feq_convolver_latency() + 1u, feq_convolver_latency());
   feq_room_reset(room);
   room->sub_coefficient =
       1.0 - std::exp(-2.0 * kPi * kSubCornerHz / sample_rate);
@@ -276,13 +369,39 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
   if (managed) {
     std::fill(low_sum, low_sum + frames, 0.0f);
   }
+  // Everything the room does not convolve, gathered here and delayed below
+  // by what the convolution costs, so the bass lands with the rest of it.
+  float* const bus = room->sub_bus.data();
+  std::fill(bus, bus + frames, 0.0f);
+  // The fade to the replacement, walked once for the block and for everyone
+  // in it, whether or not any speaker stands in both sets: see
+  // `FeqRoom::fade`. The same walk `feq_convolve_blend` makes.
   double blend_after = room->blend;
-  if (live->upmix != 0) {
-    // The music upmix: seven feeds from the pair, each through its own
-    // speaker. The fronts are the pair itself; the centre is what both
-    // sides share; the side signal, high-passed, goes to the sides a moment
-    // later and to the rears later still and softer, each pair in opposite
-    // polarity. A mono record makes no side signal and so no ambience.
+  const double* ramp = nullptr;
+  if (next != nullptr && room->warmup <= 0) {
+    double* const walk = room->fade.data();
+    for (uint32_t at = 0; at < frames; ++at) {
+      blend_after = blend_after + kBlendStep < 1.0 ? blend_after + kBlendStep
+                                                   : 1.0;
+      walk[at] = blend_after;
+    }
+    ramp = walk;
+  }
+  // The music upmix in either set. Switched on, the ring beyond the front
+  // pair stands only in the replacement, and has to be fed from the moment
+  // that is adopted — warmed, then faded in — rather than start cold at the
+  // exchange; switched off, it stands only in the live set and fades out.
+  // Both are stereo on the front pair, where a feed and its channel are the
+  // same samples, so the fronts cross over as they always did.
+  const FeqRoomKernels* const ring =
+      live->upmix != 0 ? live
+                       : (next != nullptr && next->upmix != 0 ? next : nullptr);
+  if (ring != nullptr) {
+    // Seven feeds from the pair, each through its own speaker. The fronts
+    // are the pair itself; the centre is what both sides share; the side
+    // signal, high-passed, goes to the sides a moment later and to the rears
+    // later still and softer, each pair in opposite polarity. A mono record
+    // makes no side signal and so no ambience.
     const float* left = channels[0];
     const float* right = channels[1];
     float* const feeds = room->feeds.data();
@@ -292,26 +411,26 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
     float* const side_right = feeds + 4 * stride;
     float* const rear_left = feeds + 5 * stride;
     float* const rear_right = feeds + 6 * stride;
-    const auto centre_gain = static_cast<float>(live->centre_gain * 0.5);
+    const auto centre_gain = static_cast<float>(ring->centre_gain * 0.5);
     float* const ambience = room->band.data();
     for (uint32_t at = 0; at < frames; ++at) {
       centre[at] = (left[at] + right[at]) * centre_gain;
       ambience[at] = (left[at] - right[at]) * 0.5f;
     }
     feq_biquad_process(&room->ambience_high[0], ambience, frames,
-                       &live->ambience_high);
+                       &ring->ambience_high);
     feq_biquad_process(&room->ambience_high[1], ambience, frames,
-                       &live->ambience_high);
+                       &ring->ambience_high);
     float* const line = room->ambience_line.data();
     const size_t length = room->ambience_line.size();
     const size_t cursor = room->ambience_cursor;
     for (uint32_t at = 0; at < frames; ++at) {
       line[(cursor + at) % length] = ambience[at];
     }
-    const size_t side_back = length - (live->side_frames % length);
-    const size_t rear_back = length - (live->rear_frames % length);
-    const auto side_gain = static_cast<float>(live->side_gain);
-    const auto rear_gain = static_cast<float>(live->rear_gain);
+    const size_t side_back = length - (ring->side_frames % length);
+    const size_t rear_back = length - (ring->rear_frames % length);
+    const auto side_gain = static_cast<float>(ring->side_gain);
+    const auto rear_gain = static_cast<float>(ring->rear_gain);
     for (uint32_t at = 0; at < frames; ++at) {
       const float side = line[(cursor + at + side_back) % length];
       const float rear = line[(cursor + at + rear_back) % length];
@@ -323,8 +442,8 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
     room->ambience_cursor = (cursor + frames) % length;
     // The rears softened together: one filter pair on the shared signal,
     // which the two rears then take in opposite polarity.
-    feq_biquad_process(&room->rear_low[0], rear_left, frames, &live->rear_low);
-    feq_biquad_process(&room->rear_low[1], rear_left, frames, &live->rear_low);
+    feq_biquad_process(&room->rear_low[0], rear_left, frames, &ring->rear_low);
+    feq_biquad_process(&room->rear_low[1], rear_left, frames, &ring->rear_low);
     for (uint32_t at = 0; at < frames; ++at) {
       rear_right[at] = -rear_left[at];
     }
@@ -332,27 +451,30 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
     std::copy(right, right + frames, feeds + stride);
     for (uint32_t slot = 0; slot < FEQ_ROOM_SPEAKERS; ++slot) {
       render_source(room, live, next, slot, feeds + slot * stride, frames,
-                    mix, low_sum, &blend_after);
+                    mix, low_sum, ramp);
     }
   } else {
     for (uint32_t channel = 0; channel < room->channels; ++channel) {
       const float* input = channels[channel];
       if (static_cast<int>(channel) == room->lfe_channel) {
         // Low-passed and to both ears alike: a subwoofer has no direction.
+        // Its level — the sub's dial, or its mute — follows the same fade
+        // as the speakers, or a mute would cut the bass mid-wave.
         double state = room->sub_state;
         const double coefficient = room->sub_coefficient;
-        const auto gain = static_cast<float>(live->sub_gain);
+        const double gain = live->sub_gain;
+        const double towards = next != nullptr ? next->sub_gain : gain;
         for (uint32_t at = 0; at < frames; ++at) {
           state += coefficient * (static_cast<double>(input[at]) - state);
-          const auto sample = static_cast<float>(state) * gain;
-          mix[0][at] += sample;
-          mix[1][at] += sample;
+          const auto now = static_cast<float>(
+              ramp != nullptr ? gain + (towards - gain) * ramp[at] : gain);
+          bus[at] += static_cast<float>(state) * now;
         }
         room->sub_state = state;
         continue;
       }
       render_source(room, live, next, channel, input, frames, mix, low_sum,
-                    &blend_after);
+                    ramp);
     }
   }
   if (managed) {
@@ -361,9 +483,16 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
     feq_biquad_process(&room->bass_low[1], low_sum, frames,
                        &live->crossover_low);
     for (uint32_t at = 0; at < frames; ++at) {
-      mix[0][at] += low_sum[at];
-      mix[1][at] += low_sum[at];
+      bus[at] += low_sum[at];
     }
+  }
+  // Held back by exactly what the convolution just cost the rest: a
+  // partition, or nothing under game mode's heads. See `sub_line`.
+  room->sub_line.delay = live->split != 0 ? 0u : feq_convolver_latency();
+  feq_delay_line_process(&room->sub_line, bus, frames);
+  for (uint32_t at = 0; at < frames; ++at) {
+    mix[0][at] += bus[at];
+    mix[1][at] += bus[at];
   }
   if (next != nullptr && room->warmup > 0) {
     room->warmup -= static_cast<int64_t>(frames);
@@ -388,7 +517,21 @@ int feq_room_active(const FeqRoom* room) {
 }
 
 uint32_t feq_room_latency_frames(const FeqRoom* room) {
-  return feq_room_active(room) != 0 ? feq_convolver_latency() : 0u;
+  // Game mode's heads put the kernel's first partition out on time, so the
+  // room adds nothing of its own: see `feq_convolver_head_run`.
+  return feq_room_active(room) != 0 && !room->low_latency
+             ? feq_convolver_latency()
+             : 0u;
+}
+
+void feq_room_set_low_latency(FeqRoom* room, int on) {
+  if (room == nullptr) {
+    return;
+  }
+  // Read by the next `room_build_kernels`, which `feq_room_configure`
+  // publishes — and the chain configures the room on every change, right
+  // after this.
+  room->low_latency = on != 0;
 }
 
 void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
@@ -445,6 +588,15 @@ void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
   std::copy(previous->ambience_line.begin(), previous->ambience_line.end(),
             prepared->ambience_line.begin());
   prepared->ambience_cursor = previous->ambience_cursor;
+  // And the heads' reach into the past, which is audio in flight like the
+  // tail: a fresh room would start game mode's first partition from silence.
+  std::copy(previous->head_history.begin(), previous->head_history.end(),
+            prepared->head_history.begin());
+  // The bass in flight on its way to the ears, with where the line is.
+  std::copy(previous->sub_line_buffer.begin(), previous->sub_line_buffer.end(),
+            prepared->sub_line_buffer.begin());
+  prepared->sub_line.cursor = previous->sub_line.cursor;
+  prepared->sub_line.delay = previous->sub_line.delay;
   previous->live = nullptr;
   previous->next = nullptr;
   previous->blend = 1.0;
@@ -472,6 +624,8 @@ void feq_room_reset(FeqRoom* room) {
   room->ambience_cursor = 0;
   std::fill(room->mix_left.begin(), room->mix_left.end(), 0.0f);
   std::fill(room->mix_right.begin(), room->mix_right.end(), 0.0f);
+  std::fill(room->head_history.begin(), room->head_history.end(), 0.0f);
+  std::fill(room->sub_line_buffer.begin(), room->sub_line_buffer.end(), 0.0f);
 }
 
 }  // extern "C"

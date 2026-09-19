@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ attivo',
+  'eq.mode.linearDelay': '≈ +{ms} ms di ritardo',
+  'eq.mode.gameMinimum': 'Modalità gioco: minima',
   'eq.layouts.builtIn': 'Disposizioni integrate',
   'eq.layouts.saved': 'Le mie disposizioni',
   'eq.layouts.empty':
@@ -688,6 +691,8 @@ const eq: Partial<Dictionary> = {
     'Un obiettivo tarato su quello che stai davvero facendo. Ognuno viene scritto come livello a sé dopo le tue bande, quindi la tua taratura non viene mai toccata e tornare a Nessuno la ripristina esattamente.',
   'voicing.refused': 'Impossibile cambiare il voicing',
   'voicing.groupPurpose': 'Per cosa',
+  'voicing.gameModeHint':
+    'È anche la modalità gioco: finché questo carattere è attivo, FluidEQ rinuncia a ogni ritardo tenuto solo per comodità. La pagina DSP mostra quello che resta.',
   'voicing.groupGenre': 'Genere',
   'voicing.none': 'Nessuno',
   'voicing.none.hint': 'Solo le tue bande di EQ, senza nulla sopra',

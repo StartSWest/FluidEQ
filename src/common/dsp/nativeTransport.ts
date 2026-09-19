@@ -16,8 +16,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * judged to change nothing is a song that never advances.
  */
 
+import type { IEngineLatency } from '../engineHealth';
+
 /** The fields of a telemetry frame the player acts on, and no others. */
 export interface INativeTransportFrame {
+  processingLatency?: IEngineLatency;
+  processingEndpoint?: string;
   /** Bumped on every endpoint reopen, which leaves every deck empty. */
   deviceGeneration: number;
   /** `DECK_EMPTY`, `DECK_READY` or `DECK_ENDED` — see `deckState.ts`. */

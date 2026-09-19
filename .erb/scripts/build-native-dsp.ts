@@ -433,6 +433,10 @@ if (!existsSync(hostPath)) {
   fail(`the host was not produced at ${hostPath}`);
 }
 if (isWindows) {
+  const playbackPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Playback.exe');
+  if (!existsSync(playbackPath)) {
+    fail(`the LAN playback helper was not produced at ${playbackPath}`);
+  }
   const capturePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Capture.exe');
   if (!existsSync(capturePath)) {
     fail(`the LAN capture helper was not produced at ${capturePath}`);

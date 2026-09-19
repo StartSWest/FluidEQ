@@ -13,6 +13,7 @@ import type {
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
 import openRemoteAudioPort from './openRemoteAudioPort';
 import workletUrl from './workletUrl';
+import { createNativePcmMixer } from './nativePcmMixer';
 
 interface IAudioSink {
   srcObject: HTMLAudioElement['srcObject'];
@@ -66,6 +67,14 @@ export const createPcmMixer = async (
   onMeter: TRemoteAudioMeterListener,
   initialVolume: number,
 ): Promise<IPcmMixer> => {
+  if (window.electron?.platform === 'win32') {
+    return createNativePcmMixer(
+      outputSinkId,
+      onPlaybackBlocked,
+      onMeter,
+      initialVolume,
+    );
+  }
   const context = new AudioContext({
     latencyHint: 'interactive',
   }) as IRoutableAudioContext;

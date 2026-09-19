@@ -163,6 +163,8 @@ export class DspHostSupervisor {
   /** The whole chain, restored after a restart alongside the snapshot. */
   private lastChain: readonly number[] | undefined;
 
+  private rawSharing = false;
+
   private lastNoiseProfile: readonly number[] | undefined;
 
   private lastVoiceModel: readonly [string, string] | undefined;
@@ -434,6 +436,17 @@ export class DspHostSupervisor {
    * a flat list of scalars cannot hold sixty-four bands without inventing an
    * indexing scheme both sides would then have to agree about forever.
    */
+  async setRawSharing(enabled: boolean): Promise<boolean> {
+    this.rawSharing = enabled;
+    if (this.state !== 'ready') {
+      return true;
+    }
+    const ack = await this.send(HOST_COMMANDS.setRawSharing, {
+      parameterId: enabled ? 1 : 0,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
   async applyChain(values: readonly number[]): Promise<boolean> {
     this.lastChain = values;
     const ack = await this.send(HOST_COMMANDS.applyChain, {
@@ -1135,6 +1148,7 @@ export class DspHostSupervisor {
     if (!(await this.spawnAndHandshake())) {
       return;
     }
+    await this.setRawSharing(this.rawSharing);
     if (this.lastSnapshot) {
       await this.applySnapshot(this.lastSnapshot, this.lastRevision);
     }

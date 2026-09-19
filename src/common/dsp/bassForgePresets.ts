@@ -172,7 +172,7 @@ export const BASS_FORGE_PRESET_BY_ID = {
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
-    settings: profile(100, 3, 0.95, 0.6, 0.75, 0.6),
+    settings: profile(100, 1.5, 0.7, 0.6, 0.75, 0.35),
   },
   electronic: {
     id: 'electronic',
@@ -195,7 +195,7 @@ export const BASS_FORGE_PRESET_BY_ID = {
     // The highest subAmount in the catalogue, against a narrow split: dub's
     // low end is a handful of very low notes, not a wide bassline, and the
     // genre wants the deepest of them made real rather than merely implied.
-    settings: profile(80, 1, 1.25, 0.5, 0.95, 0.6),
+    settings: profile(80, 0.5, 1.2, 0.5, 0.95, 0.35),
   },
   pop: {
     id: 'pop',
@@ -226,7 +226,7 @@ export const BASS_FORGE_PRESET_BY_ID = {
     group: 'scene',
     // A driver this close to the ear already reproduces the real octave
     // cleanly, so presence is a minor top-up rather than the whole effect.
-    settings: profile(80, 0.5, 1, 0.35, 0.85, 0.35),
+    settings: profile(80, 0.5, 0.8, 0.35, 0.85, 0.25),
   },
   car: {
     id: 'car',

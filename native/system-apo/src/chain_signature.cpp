@@ -62,6 +62,7 @@ std::string signature_of(const Chain& chain) {
   out += chain.output_guard ? "|og1" : "|og0";
   out += chain.auto_preamp ? "|ap1" : "|ap0";
   out += chain.stable_graphic ? "|sg1" : "|sg0";
+  out += chain.low_latency ? "|ll1" : "|ll0";
   out += chain.minimum_curve_phase ? "|cmp1" : "|cmp0";
   out += chain.minimum_eq_phase ? "|eqp1" : "|eqp0";
   out += "|eqg=";

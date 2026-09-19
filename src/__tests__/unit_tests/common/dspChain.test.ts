@@ -15,6 +15,7 @@ import {
 import { compressorPresetSettings } from '../../../common/dsp/compressorPresets';
 import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
+import { roomPresetSettings } from '../../../common/dsp/roomPresets';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
@@ -98,11 +99,18 @@ describe('dsp chain settings', () => {
     });
   });
 
-  it('ships 28 uniquely named complete-chain presets', () => {
-    expect(DSP_PRESETS).toHaveLength(28);
+  it('ships the complete, uniquely named DSP preset catalog', () => {
+    expect(DSP_PRESETS).toHaveLength(103);
     expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
       DSP_PRESETS.length,
     );
+    // Uniquely named on the page as well: a copy with the Room shares its
+    // chain's label and is told apart by the Room's title after it.
+    expect(
+      new Set(
+        DSP_PRESETS.map((preset) => `${preset.labelKey}|${preset.withRoom}`),
+      ).size,
+    ).toBe(DSP_PRESETS.length);
     DSP_PRESETS.forEach((preset) => {
       expect(preset.settings.presetId).toBe(preset.id);
     });
@@ -189,7 +197,16 @@ describe('dsp chain settings', () => {
 
   it('keeps Default free of fuzz and harmonic generators', () => {
     const balanced = DSP_PRESETS.find((preset) => preset.id === 'balanced');
-    expect(balanced?.settings.eq.presetId).toBe('flat');
+    /**
+     * A curve, but a quiet one, and no generator behind it.
+     *
+     * Flat until 2026-09-19, which made the default profile measure as doing
+     * nothing at all outside the Library — the Master's loudness makeup is
+     * zero system-wide and there was nothing else in the chain. What it must
+     * not have is anything that invents harmonics, which is what turns a
+     * default into a colour nobody asked for.
+     */
+    expect(balanced?.settings.eq.presetId).toBe('balanced');
     expect(balanced?.settings.eq.fuzzAmount).toBe(0);
     expect(balanced?.settings.exciter.enabled).toBe(false);
     expect(balanced?.settings.bassForge.enabled).toBe(false);
@@ -197,7 +214,20 @@ describe('dsp chain settings', () => {
 
   it('gives Punch one transient character stage instead of stacking them', () => {
     const punch = DSP_PRESETS.find((preset) => preset.id === 'punch');
-    expect(punch?.settings.eq.presetId).toBe('flat');
+    /**
+     * Its EQ shapes the room around the hit and never the hit itself.
+     *
+     * Flat until 2026-09-19, which is why the chain measured as no punch at
+     * all — nothing made the kick READ. What it must not do is lift the band
+     * Bass Punch is working in: raising everything the hit stands out from is
+     * the stacking this whole chain was rebuilt to stop.
+     */
+    expect(punch?.settings.eq.presetId).toBe('punch');
+    const deepest = punch?.settings.eq.bands.slice(0, 3) ?? [];
+    expect(deepest.map((band) => band.frequency)).toEqual([32, 50, 80]);
+    expect(Math.max(...deepest.map((band) => band.gainDb))).toBeLessThanOrEqual(
+      1.5,
+    );
     expect(punch?.settings.bassForge.enabled).toBe(false);
     expect(punch?.settings.bassPunch.presetId).toBe('punch');
     expect(punch?.settings.compressor).toEqual(
@@ -232,8 +262,8 @@ describe('dsp chain settings', () => {
       (preset) => preset.settings.master.enabled,
     );
     expect(mastered.map((preset) => preset.id)).toEqual([
-      'reference',
       'balanced',
+      'reference',
       'vinyl-restore',
       'tape-restore',
     ]);
@@ -270,19 +300,31 @@ describe('dsp chain settings', () => {
     });
   });
 
+  /**
+   * A chain that calibrates a shared limiter keeps its timing and its ceiling
+   * and only ever drives it LESS.
+   *
+   * The drive itself is a measured number — every chain in the catalogue is
+   * levelled against DSP Off — so it is not written down twice; what is held
+   * here is that calibrating a level cannot quietly change the limiter's
+   * character, and cannot turn a shared profile into a louder one.
+   */
   it.each([
-    ['punch', 'transparent', 0],
-    ['drum-bass', 'default', 1.5],
-    ['gaming', 'gaming', 0.5],
+    ['punch', 'transparent'],
+    ['drum-bass', 'default'],
   ] as const)(
     '%s preserves limiter timing and ceiling with reduced drive',
-    (id, profile, driveDb) => {
+    (id, profile) => {
       const chain = DSP_PRESETS.find((preset) => preset.id === id);
+      const named = maximizerPresetSettings(profile, true);
       expect(chain?.settings.maximizer).toEqual({
-        ...maximizerPresetSettings(profile, true),
+        ...named,
         presetId: '',
-        driveDb,
+        driveDb: chain?.settings.maximizer.driveDb,
       });
+      expect(chain?.settings.maximizer.driveDb).toBeLessThanOrEqual(
+        named.driveDb,
+      );
     },
   );
 
@@ -341,24 +383,78 @@ describe('dsp chain settings', () => {
   });
 
   /**
-   * The Room is the listener's own head, speakers and walls, and switching it
-   * off changes what the effect tells Windows it adds — 512 frames, in the
-   * middle of whatever is playing. Measured on a listener's machine before
-   * this: 128 of 354 racks reached the engine with the Room off while the
-   * switch on the page said it was on, every one of them from auditioning a
-   * preset.
+   * GAME MODE IS THE GAMING CHAINS', AND NOBODY ELSE'S. Choosing one is the
+   * whole switch — no limiter or input peak guard in the way, the engine told
+   * to give up its comfort delays — and choosing anything else gives it back.
    */
-  it('keeps the Room when a whole-chain preset is applied', () => {
+  it('puts game mode on the Gaming chains and on no other', () => {
+    DSP_PRESETS.forEach((preset) => {
+      expect({ id: preset.id, gameMode: preset.settings.gameMode }).toEqual({
+        id: preset.id,
+        gameMode: preset.id === 'gaming' || preset.id === 'gaming-room',
+      });
+    });
+    const gaming = DSP_PRESETS.find((preset) => preset.id === 'gaming');
+    expect(gaming?.settings.maximizer.enabled).toBe(false);
+    expect(gaming?.settings.normalizer.mode).toBe('off');
+    expect(dspPresetSettings('rock', gaming?.settings)?.gameMode).toBe(false);
+  });
+
+  /**
+   * The Room is a stage of the rack: a chain that does not use it switches it
+   * off, and the ones that do are copies of a chain that also exists without
+   * it, because the Room is for headphones alone. A chain with the Room sets
+   * ALL of it — "fill the room" left on from before made "Gaming · Room" two
+   * different sounds — except the head and the headphone switch, which are
+   * the listener's anatomy and machine. A chain without it leaves the room
+   * that was shaped as it was, for the next time it is switched on.
+   */
+  it('owns the whole Room like every other stage, and never the head', () => {
     const current: IDspSettings = {
       ...DSP_DEFAULTS,
-      room: { ...DSP_DEFAULTS.room, enabled: true, presetId: 'studio' },
+      room: {
+        ...DSP_DEFAULTS.room,
+        enabled: true,
+        presetId: 'custom',
+        sizeM: 7,
+        head: 'large',
+        correctHeadphones: false,
+        musicUpmix: true,
+        upmixAmount: 1,
+        bassManagement: false,
+        crossoverHz: 120,
+        mutes: [false, false, true, false, false, false, false, true],
+      },
     };
-    const applied = dspPresetSettings('rock', current);
-    expect(applied?.room).toEqual(current.room);
-    // POSITIVE CONTROL: the recipe still brings its own room when there is no
-    // listener's one to keep, and it is not the one above.
-    expect(dspPresetSettings('rock')?.room.enabled).toBe(false);
-    expect(applied?.eq).not.toEqual(current.eq);
+    const without = dspPresetSettings('rock', current);
+    expect(without?.room).toEqual({ ...current.room, enabled: false });
+    const withRoom = dspPresetSettings('movie-room', current);
+    expect(withRoom?.room).toEqual({
+      ...roomPresetSettings(DSP_DEFAULTS.room, 'homeTheatre'),
+      enabled: true,
+      head: 'large',
+      correctHeadphones: false,
+    });
+    // Said out loud, since it is what was reported: fill the room goes.
+    expect(withRoom?.room.musicUpmix).toBe(false);
+    expect(withRoom?.room.mutes.every((mute) => !mute)).toBe(true);
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.room.enabled).map(
+        (preset) => [preset.id, preset.withRoom],
+      ),
+    ).toEqual([
+      ['gaming-room', true],
+      ['movie-room', true],
+    ]);
+    // Each copy stands beside the chain it copies, with no widening after
+    // the Room has placed every speaker.
+    expect(
+      DSP_PRESETS.find((preset) => preset.id === 'movie-room')?.settings
+        .dimension.enabled,
+    ).toBe(false);
+    expect(DSP_PRESETS.map((preset) => preset.id)).toEqual(
+      expect.arrayContaining(['gaming', 'movie']),
+    );
   });
 
   it('always returns three compressor bands whatever it was handed', () => {
@@ -522,4 +618,23 @@ describe('bass stages clamp', () => {
     expect(bassForge).toEqual(DSP_DEFAULTS.bassForge);
     expect(bassPunch).toEqual(DSP_DEFAULTS.bassPunch);
   });
+});
+it('orders the basic presets Default, Reference, Music before the remaining sounds', () => {
+  expect(
+    DSP_PRESETS.filter((preset) => preset.group === 'basic')
+      .slice(0, 3)
+      .map((preset) => preset.id),
+  ).toEqual(['balanced', 'reference', 'music']);
+});
+
+it('keeps traditional Country and modern pop-rock Country as distinct DSP curves', () => {
+  const traditional = DSP_PRESETS.find(
+    (preset) => preset.labelKey === 'dsp.eqPreset.country',
+  );
+  const modern = DSP_PRESETS.find(
+    (preset) => preset.labelKey === 'dsp.eqPreset.modernCountry',
+  );
+  expect(traditional?.settings.eq.enabled).toBe(true);
+  expect(modern?.settings.eq.enabled).toBe(true);
+  expect(modern?.settings.eq.bands).not.toEqual(traditional?.settings.eq.bands);
 });

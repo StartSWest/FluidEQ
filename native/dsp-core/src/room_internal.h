@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/biquad.h"
 #include "fluideq/convolver.h"
+#include "fluideq/primitives.h"
 
 #include <atomic>
 #include <vector>
@@ -24,6 +25,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 struct FeqRoomKernels {
   FeqConvolverKernel* kernel[FEQ_ROOM_MAX_CHANNELS][2] = {};
   FeqConvolver* convolver[FEQ_ROOM_MAX_CHANNELS][2] = {};
+  /*
+   * Game mode: each kernel's first partition, reversed for
+   * `feq_convolver_head_run`, while the convolvers above hold the rest of it
+   * one partition in. Empty, and `split` zero, when the whole kernel runs
+   * through the convolvers and the room hands its output back a partition
+   * late.
+   */
+  std::vector<float> head[FEQ_ROOM_MAX_CHANNELS][2];
+  int split = 0;
   double sub_gain = 1.0;
   /* Bass management, with the set so a crossover change lands atomically. */
   int bass_management = 0;
@@ -87,6 +97,15 @@ struct FeqRoom {
   std::vector<float> mix_right;
   std::vector<float> copy;
   std::vector<float> scratch;
+  /*
+   * Where the fade between two kernel sets stands at every sample of the
+   * block being rendered: walked once, by the room, and read by every
+   * speaker, both ears, the direct heads and the sub. It used to be whatever
+   * the one crossfade that ran handed back, so a change that left no speaker
+   * in both sets — a solo moved to another speaker, the last speaker muted,
+   * the first one opened again — never faded at all, and was never heard.
+   */
+  std::vector<double> fade;
   std::vector<float> sub;
   double sub_state = 0.0;
   double sub_coefficient = 0.0;
@@ -106,6 +125,32 @@ struct FeqRoom {
   size_t ambience_cursor = 0;
   FeqBiquadState ambience_high[2] = {};
   FeqBiquadState rear_low[2] = {};
+  /*
+   * Game mode (`feq_room_set_low_latency`), and what the direct heads need:
+   * the last partition less one of every source's input, which the head
+   * reads back across the block boundary — per source, not per kernel, since
+   * it is the input whatever kernel runs on it, so it outlives a set and
+   * crosses a chain handover — and three blocks of scratch.
+   */
+  bool low_latency = false;
+  std::vector<float> head_history;
+  std::vector<float> head_input;
+  std::vector<float> head_live;
+  std::vector<float> head_next;
+  /*
+   * The bass the room does not convolve — the subwoofer feed and, under bass
+   * management, everything below the crossover — gathered on one bus and held
+   * back by the convolution's own latency before it joins the ears. Without
+   * it the bass left a partition AHEAD of everything it was split from: 512
+   * frames, 10.7 ms at 48 kHz, which at an 80 Hz crossover is most of half a
+   * cycle, and a Linkwitz-Riley pair that far apart does not sum flat — it
+   * digs a hole at the crossover. `chain_latency_test.cpp` found it, as the
+   * difference between the room and game mode's room, which has no latency
+   * for the bass to be ahead of.
+   */
+  std::vector<float> sub_bus;
+  std::vector<float> sub_line_buffer;
+  FeqDelayLine sub_line{};
 };
 
 /** The longest the rears trail the fronts by, in seconds; sizes the ring. */

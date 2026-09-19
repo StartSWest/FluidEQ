@@ -3,53 +3,32 @@
 import { act, renderHook } from '@testing-library/react';
 import useRemoteAudioStreamMode from '../../../renderer/remoteAudio/useRemoteAudioStreamMode';
 
-describe('remote audio stream mode', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-  });
+describe('raw shared-audio mode', () => {
+  beforeEach(() => window.localStorage.clear());
 
-  it('re-handshakes an active sender when its latency profile changes', () => {
-    const reconnect = jest.fn().mockResolvedValue(undefined);
-    const roleRef = { current: 'sender' as const };
-    const reconnectRef = { current: reconnect };
+  it('ignores a saved Music mode and always requests immediate PCM', () => {
+    window.localStorage.setItem('fluideq.remoteAudio.streamMode', 'music');
+    const reconnect = jest.fn();
     const { result } = renderHook(() =>
-      useRemoteAudioStreamMode(roleRef, reconnectRef),
+      useRemoteAudioStreamMode({ current: 'sender' }, { current: reconnect }),
     );
-
-    act(() => result.current.setStreamMode('video'));
-
     expect(result.current.streamMode).toBe('video');
-    expect(window.localStorage.getItem('fluideq.remoteAudio.streamMode')).toBe(
-      'video',
-    );
-    expect(reconnect).toHaveBeenCalledWith('video');
-
-    act(() => result.current.setStreamMode('video'));
-    expect(reconnect).toHaveBeenCalledTimes(1);
-
-    act(() => result.current.setStreamMode('music'));
-    expect(result.current.streamMode).toBe('music');
-    expect(result.current.streamModeRef.current).toBe('music');
-    expect(window.localStorage.getItem('fluideq.remoteAudio.streamMode')).toBe(
-      'music',
-    );
-    expect(reconnect.mock.calls).toEqual([['video'], ['music']]);
+    expect(result.current.streamModeRef.current).toBe('video');
+    expect(reconnect).not.toHaveBeenCalled();
   });
 
-  it('stores an idle or listener preference without starting a connection', () => {
-    const reconnect = jest.fn().mockResolvedValue(undefined);
-    const roleRef: { current?: 'listener' | 'sender' } = {
-      current: 'listener',
-    };
+  it('does not restart a connection or change processing for a legacy mode command', () => {
+    const reconnect = jest.fn();
     const { result } = renderHook(() =>
-      useRemoteAudioStreamMode(roleRef, { current: reconnect }),
+      useRemoteAudioStreamMode({ current: 'listener' }, { current: reconnect }),
     );
-
-    act(() => result.current.setStreamMode('video'));
-    roleRef.current = undefined;
     act(() => result.current.setStreamMode('music'));
-
+    act(() => result.current.setStreamMode('video'));
+    expect(result.current.streamMode).toBe('video');
+    expect(result.current.streamModeRef.current).toBe('video');
     expect(reconnect).not.toHaveBeenCalled();
-    expect(result.current.streamMode).toBe('music');
+    expect(
+      window.localStorage.getItem('fluideq.remoteAudio.streamMode'),
+    ).toBeNull();
   });
 });

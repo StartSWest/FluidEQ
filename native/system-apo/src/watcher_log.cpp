@@ -129,6 +129,11 @@ void Watcher::report_status(bool locked) noexcept {
       status.problems = graph_problems_;
       status.channels = channels_;
       status.room = room_state_;
+      status.rate = sample_rate_;
+      status.latency = latency_;
+      status.latency_parts = latency_parts_;
+      status.latency_active = latency_active_;
+      status.game_mode = game_mode_;
       // The output's, not this instance's: Windows runs one instance per
       // signal-processing mode and only the one carrying what is playing
       // ever sets it.

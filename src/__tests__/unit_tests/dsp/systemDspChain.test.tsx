@@ -293,7 +293,7 @@ describe('what the DSP page says its scope is', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('prints the delay only when linear phase is actually running', async () => {
+  it('does not invent a fixed delay from the selected phase without running-engine telemetry', async () => {
     renderPanel();
     expect(await screen.findByText(/System-wide/)).toBeInTheDocument();
     expect(screen.queryByText(/171 ms delay/)).not.toBeInTheDocument();
@@ -302,7 +302,8 @@ describe('what the DSP page says its scope is', () => {
       ...DSP_DEFAULTS,
       eq: { ...DSP_DEFAULTS.eq, phase: 'linear' },
     });
-    expect(await screen.findByText(/171 ms delay/)).toBeInTheDocument();
+    expect(screen.queryByText(/171 ms delay/)).not.toBeInTheDocument();
+    expect(screen.queryByTitle(en['dsp.latency.hint'])).not.toBeInTheDocument();
   });
 
   it('keeps the Library-only notice, and offers the engine, under APO', async () => {

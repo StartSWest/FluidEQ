@@ -67,6 +67,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The heading and the delay readout beside it (`ListenedLatency`). The
+// heading's own margins move onto the line, so the readout centres on the
+// words rather than on a box 3px taller below them than above; and it wraps
+// under the heading rather than past the card on a narrow panel.
+.main-content-title__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 1px 0 4px;
+
+  > h2 {
+    margin: 0;
+  }
+}
+
 // Placed at the end of the EQ group's section row by
 // `.workspace-section-header > .eq-engine-label` in App.scss.
 .eq-engine-label {

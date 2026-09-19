@@ -168,8 +168,8 @@ export const DENOISE_PRESET_BY_ID = {
       'scanned',
       {
         enabled: true,
-        amount: 0.2,
-        floorDb: -8,
+        amount: 0.12,
+        floorDb: -6,
         sensitivityDb: 0,
         smoothing: 0.95,
       },

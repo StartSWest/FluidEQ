@@ -46,6 +46,8 @@ typedef struct FeqPhaseAlign {
   FeqVariableDelay mid_line;
   double low_delay;
   double mid_delay;
+  /** How far the split is in: see FEQ_SPLIT_FADE_MS in primitives.h. */
+  double stage_mix;
 } FeqPhaseAlign;
 
 /** The delay-line capacity each band needs at this rate, in samples. */

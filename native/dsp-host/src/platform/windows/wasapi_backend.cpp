@@ -248,6 +248,7 @@ class WasapiBackend final : public IAudioOutputBackend {
   }
 
   const char* name() const override { return "wasapi-shared"; }
+  std::string endpoint_guid() const override { return endpoint_guid_; }
 
  private:
   /**
@@ -321,6 +322,19 @@ class WasapiBackend final : public IAudioOutputBackend {
       endpoint_absent_ = endpoint == HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
       error = with_code("no default output device", endpoint);
       return false;
+    }
+    endpoint_guid_.clear();
+    LPWSTR device_id = nullptr;
+    if (SUCCEEDED(device_->GetId(&device_id)) && device_id != nullptr) {
+      const std::wstring id(device_id);
+      CoTaskMemFree(device_id);
+      const auto start = id.rfind(L'{');
+      if (start != std::wstring::npos && id.size() - start == 38) {
+        for (size_t at = start; at < id.size(); ++at) {
+          if (id[at] > 127) { endpoint_guid_.clear(); break; }
+          endpoint_guid_.push_back(static_cast<char>(id[at]));
+        }
+      }
     }
     const HRESULT activated = device_->Activate(
         __uuidof(IAudioClient), CLSCTX_ALL, nullptr, &client_);
@@ -539,6 +553,7 @@ class WasapiBackend final : public IAudioOutputBackend {
   bool owns_com_ = false;
   /** Read only on the control thread, between `open` and its ack. */
   bool endpoint_absent_ = false;
+  std::string endpoint_guid_;
 
   FeqBackendFormat format_;
   std::vector<std::vector<float>> planar_;

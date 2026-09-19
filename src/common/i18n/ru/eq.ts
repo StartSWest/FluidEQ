@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': '≈ +{ms} мс с активным EQ',
+  'eq.mode.linearDelay': '≈ +{ms} мс задержки',
+  'eq.mode.gameMinimum': 'Игровой режим: минимальная',
   'eq.layouts.builtIn': 'Стандартные схемы',
   'eq.layouts.saved': 'Мои схемы',
   'eq.layouts.empty':
@@ -683,6 +686,8 @@ const eq: Partial<Dictionary> = {
     'Подобранная цель под то, чем вы сейчас заняты. Каждая пишется отдельным слоем после ваших полос, поэтому ваша настройка не трогается, а возврат к «Нет» восстанавливает её в точности.',
   'voicing.refused': 'Не удалось сменить воисинг',
   'voicing.groupPurpose': 'Для чего',
+  'voicing.gameModeHint':
+    'Это ещё и игровой режим: пока этот характер включён, FluidEQ отказывается от любой задержки, которая держится только для удобства. Страница DSP показывает, что осталось.',
   'voicing.groupGenre': 'Жанр',
   'voicing.none': 'Нет',
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',

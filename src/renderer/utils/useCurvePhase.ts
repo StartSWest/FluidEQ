@@ -49,6 +49,12 @@ export default function useCurvePhase() {
   }, [
     refresh,
     state.isEnabled,
+    state.filters,
+    state.graphicEq,
+    state.isFlat,
+    state.eqFormat,
+    state.eqMode,
+    state.eqBandQ,
     state.driver,
     state.headphone,
     state.voicing,

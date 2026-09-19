@@ -94,6 +94,57 @@ export interface IEngineOutputHealth {
    * from older engines.
    */
   room?: TRoomState;
+  /**
+   * The delay this output's audio has, as the engine measures it: the frames
+   * it adds, at `rate`, and what each stage contributes (only those that add
+   * anything — see `LATENCY_STAGES`). What the DSP and EQ pages show as the
+   * lag. Absent from an engine older than game mode; nothing (0, no parts)
+   * while the engine passes the sound through.
+   */
+  latency?: IEngineLatency;
+  /**
+   * Game mode: the Gaming chain on the rack, or the Games voicing — and only
+   * while the engine is processing the output.
+   */
+  gameMode?: boolean;
+}
+
+/**
+ * The engine's names for the stages that can delay an output's audio, in
+ * the order the sound meets them.
+ */
+export const LATENCY_STAGES = [
+  'leveler',
+  'restoration',
+  'exciter',
+  'bassForge',
+  'linearEq',
+  'bassPunch',
+  'room',
+  'dimension',
+  'compressor',
+  'maximizer',
+  'headroom',
+  'master',
+  'safety',
+  'eqPhase',
+  'curvePhase',
+  'convolution',
+  'curves',
+  'guard',
+  'filters',
+  'preamp',
+] as const;
+
+export type TLatencyStage = (typeof LATENCY_STAGES)[number];
+
+export interface IEngineLatency {
+  /** The stream's rate, which the frames below are frames of. */
+  rate: number;
+  /** Every stage together: what `GetLatency` hands Windows. */
+  frames: number;
+  /** The stages that add anything, in the order the audio meets them. */
+  parts: { stage: TLatencyStage; frames: number; active?: boolean }[];
 }
 
 export const ROOM_STATES = [
@@ -198,3 +249,15 @@ export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
  */
 export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);
+
+/** The first released engine with Game mode and full processing delay parts. */
+export const ENGINE_GAME_MODE_SINCE: readonly [number, number] = [1, 10];
+
+export const engineSupportsGameMode = (
+  dllVersion: string | undefined,
+  reportedGameMode?: boolean,
+): boolean =>
+  // Development engines shipped this capability before their version changed.
+  // Both true and false prove the field is supported; absent proves nothing.
+  typeof reportedGameMode === 'boolean' ||
+  engineAtLeast(dllVersion, ENGINE_GAME_MODE_SINCE);

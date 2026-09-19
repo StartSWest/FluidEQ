@@ -25,6 +25,13 @@ const DEFAULT_SINK_ID = 'default';
 const resolveSelectedOutputSinkId = async (
   activeDeviceId: string,
 ): Promise<string> => {
+  if (window.electron?.platform === 'win32') {
+    const devices = await getAudioDevices();
+    return (
+      devices.find((device) => device.id === activeDeviceId)?.guid ??
+      DEFAULT_SINK_ID
+    );
+  }
   if (!activeDeviceId || !navigator.mediaDevices?.enumerateDevices) {
     return DEFAULT_SINK_ID;
   }

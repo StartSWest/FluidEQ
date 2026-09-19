@@ -61,6 +61,16 @@ let supervisor: DspHostSupervisor | undefined;
  * nothing about that, since the host plays perfectly well with no window.
  */
 let isHostPlaying = false;
+let rawSharing = false;
+
+/** Main enforces raw Library output before capture; renderer settings cannot
+ * re-enable effects while sharing, including across host restarts. */
+export const setDspHostRawSharing = async (enabled: boolean): Promise<void> => {
+  rawSharing = enabled;
+  if (supervisor && !(await supervisor.setRawSharing(enabled))) {
+    throw new Error('Could not change raw sharing on the Library engine.');
+  }
+};
 
 export interface IDspHostStatus {
   state: TDspHostState | 'unavailable';
@@ -162,6 +172,9 @@ export const registerDspHostIpc = ({
       return unavailable;
     }
     await host.start();
+    if (!(await host.setRawSharing(rawSharing))) {
+      throw new Error('Could not restore raw sharing on the Library engine.');
+    }
     /*
      * A model downloaded in an earlier session has to be handed over here.
      *

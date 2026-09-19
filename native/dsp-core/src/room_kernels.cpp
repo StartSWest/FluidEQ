@@ -192,6 +192,7 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
           : (room->settings.crossover_hz > 200.0 ? 200.0
                                                   : room->settings.crossover_hz);
   set->bass_management = room->settings.bass_management != 0 ? 1 : 0;
+  set->split = room->low_latency ? 1 : 0;
   set->crossover_high = feq_biquad_coefficients(
       FEQ_FILTER_HPQ, crossover, 0.0, kButterworthQ, room->sample_rate);
   set->crossover_low = feq_biquad_coefficients(
@@ -270,8 +271,17 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
     }
     for (int ear = 0; ear < 2; ++ear) {
       const std::vector<float>& taps = ear == 0 ? left : right;
-      FeqConvolverKernel* kernel =
-          feq_convolver_kernel_create(taps.data(), FEQ_ROOM_KERNEL_TAPS);
+      // Game mode splits the kernel: its first partition becomes a direct
+      // head, and the convolver takes the rest from one partition in — see
+      // `feq_convolver_head_run` for why that lands the tail on time.
+      const uint32_t head = room->low_latency ? feq_convolver_head_taps() : 0u;
+      if (head != 0u) {
+        set->head[channel][ear].assign(head, 0.0f);
+        feq_convolver_head_prepare(taps.data(), FEQ_ROOM_KERNEL_TAPS,
+                                   set->head[channel][ear].data());
+      }
+      FeqConvolverKernel* kernel = feq_convolver_kernel_create(
+          taps.data() + head, FEQ_ROOM_KERNEL_TAPS - head);
       FeqConvolver* convolver =
           kernel != nullptr ? feq_convolver_create(kernel) : nullptr;
       if (kernel == nullptr || convolver == nullptr) {

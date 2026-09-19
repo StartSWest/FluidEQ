@@ -48,10 +48,17 @@ int feq_chain_settings_decode(const double* values,
                    static_cast<uint32_t>(band_count) * FEQ_CHAIN_BAND_PARAMS;
   // A trailer leaves every existing band offset intact. Older saved snapshots
   // still decode with the normalizer off instead of shifting their EQ bands.
-  if (count != legacy_count && count != legacy_count + 3) {
+  // And after the normalizer's three, game mode's one — written only when it
+  // is on, so a rack that does not ask for it is the line it always was.
+  if (count != legacy_count && count != legacy_count + 3 &&
+      count != legacy_count + 4) {
     return 0;
   }
-  if (count == legacy_count + 3) {
+  if (count == legacy_count + 4) {
+    const double low_latency = values[legacy_count + 3];
+    if (low_latency != 0.0 && low_latency != 1.0) return 0;
+  }
+  if (count >= legacy_count + 3) {
     const double mode = values[legacy_count];
     const double ceiling = values[legacy_count + 1];
     const double target = values[legacy_count + 2];
@@ -220,13 +227,16 @@ int feq_chain_settings_decode(const double* values,
     out->eq.bands[band].dynamic = flag();
     out->eq.bands[band].threshold_db = next();
   }
-  if (count == legacy_count + 3) {
+  if (count >= legacy_count + 3) {
     const double mode = next();
     const double ceiling = next();
     const double target = next();
     out->normalizer.mode = static_cast<int>(mode);
     out->normalizer.ceiling_db = ceiling;
     out->normalizer.target_lufs = target;
+  }
+  if (count == legacy_count + 4) {
+    out->low_latency = flag();
   }
   return 1;
 }

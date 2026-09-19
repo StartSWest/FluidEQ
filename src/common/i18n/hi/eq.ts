@@ -20,6 +20,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.mode.linearDelayInactive': 'सक्रिय EQ पर ≈ +{ms} ms',
+  'eq.mode.linearDelay': '≈ +{ms} ms देरी',
+  'eq.mode.gameMinimum': 'गेम मोड: न्यूनतम',
   'eq.layouts.builtIn': 'पहले से मौजूद लेआउट',
   'eq.layouts.saved': 'मेरे डिज़ाइन',
   'eq.layouts.empty':
@@ -681,6 +684,8 @@ const eq: Partial<Dictionary> = {
     'आप अभी जो कर रहे हैं उसके हिसाब से तय किया गया लक्ष्य। हर एक आपके बैंड के बाद अपनी अलग परत के रूप में लिखा जाता है, इसलिए आपकी अपनी ट्यूनिंग को कभी छुआ नहीं जाता और “कोई नहीं” पर लौटते ही वह हूबहू वापस आ जाती है।',
   'voicing.refused': 'वॉइसिंग नहीं बदल सका',
   'voicing.groupPurpose': 'किसके लिए',
+  'voicing.gameModeHint':
+    'यह गेम मोड भी है: जब तक यह ध्वनि रंग चालू है, FluidEQ हर वह विलंब छोड़ देता है जो सिर्फ़ सुविधा के लिए रखा जाता है। जो बचता है, वह DSP पेज पर दिखता है।',
   'voicing.groupGenre': 'शैली',
   'voicing.none': 'कोई नहीं',
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',

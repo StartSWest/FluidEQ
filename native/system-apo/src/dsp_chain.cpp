@@ -43,8 +43,11 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
                      FeqLevelingMemory* leveling, unsigned long channel_mask,
-                     const RoomHead* room_head) {
+                     const RoomHead* room_head, bool low_latency) {
   RackBuild built;
+  // The EQ side's game mode holds even with no rack to run: the graph reads
+  // it back for its own stages.
+  built.low_latency = low_latency;
   if (values.empty()) {
     return built;  // No rack file, which is the ordinary state under APO.
   }
@@ -57,12 +60,24 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                        " values); the rack is bypassed.");
     return built;
   }
+  // The shared Game mode switch is independent of the rack's power. Keep
+  // its preference for the EQ even while the rack belongs to the Library or
+  // has been bypassed; no DSP stages are constructed in that case.
+  built.low_latency = low_latency || settings.low_latency != 0;
   if (settings.enabled == 0) {
     // The rack's own power switch. Dropping the chain rather than running a
     // bypassed one costs nothing and keeps `Graph::is_passthrough()` honest:
     // an endpoint with the rack off and no EQ really does leave audio alone.
+    //
     return built;
   }
+  // Game mode from either side: the rack's own value (the Gaming preset) or
+  // the EQ side's directive (the Games voicing). The delay a player feels is
+  // the whole path's, so one asking for it is enough for both halves.
+  if (low_latency) {
+    settings.low_latency = 1;
+  }
+  built.low_latency = settings.low_latency != 0;
 
   // As wide as the stream, up to the chain's own limit, when the rack is set
   // to run on every channel; the front pair otherwise, with the rest passed
@@ -157,6 +172,7 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   feq_chain_process(built.chain.get(), planes.data(), max_frames);
   feq_chain_reset(built.chain.get(), FEQ_CHAIN_RESET_STREAM_START);
   built.latency = feq_chain_latency_frames(built.chain.get());
+  feq_chain_latency_parts(built.chain.get(), &built.parts);
   feq_chain_attach_leveling_memory(built.chain.get(), leveling);
 
   if (channels > wanted) {

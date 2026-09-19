@@ -24,30 +24,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useState } from 'react';
 import type { IAudioDevice } from '../../common/constants';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
-import {
-  LINEAR_PHASE_LATENCY_FRAMES,
-  LINEAR_PHASE_REFERENCE_RATE,
-  TEqPhase,
-} from '../../common/dsp/chain';
+import type { IEngineLatency } from '../../common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
+import LatencyReadout from '../components/LatencyReadout';
 import type { TRackSuspension } from './rackPlacement';
-
-/**
- * The delay linear phase costs, as the page prints it.
- *
- * Against 48 kHz rather than the stream's own rate on purpose: the engine
- * attaches to every output and each one can be running at a different rate,
- * so a single number here would be right for one of them and quietly wrong
- * for the rest. 48 kHz is what Windows shared mode gives on almost every
- * machine, and one honest round number is worth more than four exact ones
- * nobody can tell apart.
- */
-const LINEAR_PHASE_DELAY_MS = Math.round(
-  (LINEAR_PHASE_LATENCY_FRAMES / LINEAR_PHASE_REFERENCE_RATE) * 1000,
-);
 
 interface IDspScopeNoticeProps {
   status: IAudioEngineStatus | undefined;
@@ -59,8 +42,13 @@ interface IDspScopeNoticeProps {
   suspension: TRackSuspension | undefined;
   /** False while nothing is playing through the Library player. */
   isRackEngaged: boolean;
-  /** The rack's own EQ phase mode, which is what costs the delay. */
-  phase: TEqPhase;
+  /**
+   * The delay the engine measures on the output being listened to, stage by
+   * stage; absent while nothing plays there or from an older engine.
+   */
+  latency: IEngineLatency | undefined;
+  /** Whether the engine is running that output in game mode. */
+  gameMode: boolean;
   /** Absent until the engine dialog exists; the link renders only with it. */
   onOpenEngineDialog?: () => void;
 }
@@ -80,7 +68,8 @@ const DspScopeNotice = ({
   status,
   suspension,
   isRackEngaged,
-  phase,
+  latency,
+  gameMode,
   onOpenEngineDialog,
 }: IDspScopeNoticeProps) => {
   const { t } = useTranslation();
@@ -125,15 +114,16 @@ const DspScopeNotice = ({
   }, [isSystemWide, readOutput]);
 
   if (suspension !== undefined) {
+    const suspensionLabel = {
+      'sharing-raw': 'dsp.scope.rawSender',
+      'switched-off': 'dspOff.switchedOff',
+      'engine-off': 'dspOff.engineOff',
+    } as const;
     // Amber, the page's "not now" rather than a fault: the rack is intact and
     // comes back as it was the moment FluidEQ, or the engine, does.
     return (
       <p className="dsp-scope is-idle" role="status">
-        {t(
-          suspension === 'switched-off'
-            ? 'dspOff.switchedOff'
-            : 'dspOff.engineOff',
-        )}
+        {t(suspensionLabel[suspension])}
         {suspension === 'switched-off' ? (
           <button
             type="button"
@@ -170,14 +160,9 @@ const DspScopeNotice = ({
             ? t('dsp.scope.system', { output })
             : t('dsp.scope.systemAll')}
         </span>
-        {/* Only when linear phase is actually running. The minimum-phase
-            cascade this page defaults to adds no delay worth naming, and a
-            latency figure shown beside a chain that is not paying it is the
-            kind of number people plan around. */}
-        {phase === 'linear' ? (
-          <span className="dsp-scope-delay">
-            {t('dsp.scope.systemDelay', { ms: LINEAR_PHASE_DELAY_MS })}
-          </span>
+        {/* Only measured processing buffers; no guessed fallback. */}
+        {latency ? (
+          <LatencyReadout latency={latency} gameMode={gameMode} />
         ) : undefined}
       </div>
     );

@@ -100,9 +100,18 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     id: 'punch',
     labelKey: 'dsp.maximizerPreset.punch',
     group: 'character',
-    // Hard leading edge, short tail: the hit arrives and gets out of its own
-    // way rather than ringing on into the next one.
-    settings: profile(120, 0.85, -0.35, 0, 80, 0),
+    /**
+     * Hard leading edge, short tail: the hit arrives and gets out of its own
+     * way rather than ringing on into the next one.
+     *
+     * Retuned 2026-09-19, when the Punch chain measured as no punch at all:
+     * the attack is at the top of its range, the tail shorter, and the split
+     * moved from 120 Hz down to 95 so the shaper works on the kick rather
+     * than on the bass line above it. Measured on a real programme, the low
+     * band's crest — how far a hit stands above the bass it sits in — went
+     * from 3.2 dB over DSP Off to 4.8.
+     */
+    settings: profile(95, 1, -0.6, 0, 80, 0),
   },
   slam: {
     id: 'slam',
@@ -156,7 +165,7 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     group: 'genre',
     // Breaks move fast; a long bloom would smear one hit into the next, so
     // it is nearly off while attack and duck do the work of cutting through.
-    settings: profile(120, 0.9, -0.5, 0.025, 50, 0.55),
+    settings: profile(120, 0.75, -0.5, 0.025, 50, 0.55),
   },
   pop: {
     id: 'pop',

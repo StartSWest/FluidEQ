@@ -34,9 +34,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
-import { roomHeadOnWire } from '../common/dsp/chainWire';
+import { gameModeOnWire, roomHeadOnWire } from '../common/dsp/chainWire';
 import { scheduleWrite } from './asyncWriter';
 import { writeRoomHead } from './roomHead';
+import { readEngineHealth } from './engineHealth';
 
 /** CRLF, like every other file in the config directory. */
 const CRLF = '\r\n';
@@ -47,12 +48,21 @@ const CRLF = '\r\n';
  */
 export const SYSTEM_DSP_CHAIN_HEADER = '# FluidEQ Engine DSP chain v1';
 
-export const formatSystemDspChain = (values: number[]): string =>
-  [
+export const formatSystemDspChain = (
+  values: number[],
+  acceptsGameWord = false,
+): string => {
+  // Older installed engines reject an extra numeric word and bypass the rack.
+  // A comment carries the new mode without changing the sound they can decode.
+  const gaming = gameModeOnWire(values);
+  const compatible = gaming && !acceptsGameWord ? values.slice(0, -1) : values;
+  return [
     SYSTEM_DSP_CHAIN_HEADER,
-    values.map((value) => String(value)).join(' '),
+    ...(gaming ? ['# FluidEQLowLatency: ON'] : []),
+    compatible.map((value) => String(value)).join(' '),
     '',
   ].join(CRLF);
+};
 
 /**
  * Ask for the rack file to hold `values`.
@@ -66,13 +76,39 @@ export const formatSystemDspChain = (values: number[]): string =>
  * which head it wants, and the engine reads both on the same notification.
  * The head is written only when it changes (`roomHead.ts`).
  */
+const pendingWrites = new Map<string, object>();
+
 export const writeSystemDspChain = async (
   configDirPath: string,
   values: number[],
 ): Promise<void> => {
-  await writeRoomHead(configDirPath, roomHeadOnWire(values));
-  await scheduleWrite(
-    path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME),
-    formatSystemDspChain(values),
-  );
+  const request = {};
+  pendingWrites.set(configDirPath, request);
+  try {
+    const [, health] = await Promise.all([
+      writeRoomHead(configDirPath, roomHeadOnWire(values)),
+      gameModeOnWire(values)
+        ? readEngineHealth(path.dirname(configDirPath))
+        : Promise.resolve(undefined),
+    ]);
+    // A mode change that arrived while the capability read was pending owns
+    // the file. Never let the slower previous request replace that newer sound.
+    if (pendingWrites.get(configDirPath) !== request) {
+      return;
+    }
+    // Early development DLLs understand the numeric word but predate metadata.
+    // A live process reporting the field is proof, even under version 1.9.
+    const acceptsGameWord =
+      health?.outputs.some(
+        (output) => output.locked && typeof output.gameMode === 'boolean',
+      ) ?? false;
+    await scheduleWrite(
+      path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME),
+      formatSystemDspChain(values, acceptsGameWord),
+    );
+  } finally {
+    if (pendingWrites.get(configDirPath) === request) {
+      pendingWrites.delete(configDirPath);
+    }
+  }
 };

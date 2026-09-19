@@ -23,14 +23,15 @@ import createRemoteAudioLan from '../remoteAudioLan';
 import { decodePairingCode } from '../remoteAudioLanProtocol';
 import createRemoteAudioPorts from '../remoteAudioPorts';
 import onWindowMessage from './windowMessages';
+import { registerRemoteAudioPlayback } from './remoteAudioPlayback';
+import { setDspHostRawSharing } from './dspHost';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
 const LAN_NETWORK_CHANNEL = 'remote-audio-lan-network';
 const LAN_ERROR_CHANNEL = 'remote-audio-lan-error';
 
-const asStreamMode = (value: unknown): TRemoteAudioStreamMode =>
-  value === 'video' ? 'video' : 'music';
+const asStreamMode = (_value: unknown): TRemoteAudioStreamMode => 'video';
 
 const asStopMode = (value: unknown): TRemoteAudioStopMode => {
   if (value === 'pause' || value === false) {
@@ -60,12 +61,29 @@ export const registerRemoteAudioIpc = ({
   const ports = createRemoteAudioPorts(getMainWindow, (peerId) =>
     sendToWindow('remote-audio-lan-streaming', peerId),
   );
+  const playback = registerRemoteAudioPlayback(getMainWindow);
+  const streaming = new Set<string>();
   const lan = createRemoteAudioLan(
     (signal) => {
+      if (signal.signal.kind === 'stop') {
+        playback.remove(signal.peerId);
+        streaming.delete(signal.peerId);
+      }
       ports.signal(signal);
       sendToWindow(LAN_SIGNAL_CHANNEL, signal);
     },
-    ports.audio,
+    (chunk) => {
+      if (process.platform !== 'win32') {
+        ports.audio(chunk);
+        return;
+      }
+      playback.push(chunk);
+      ports.analyze(chunk);
+      if (!streaming.has(chunk.peerId)) {
+        streaming.add(chunk.peerId);
+        sendToWindow('remote-audio-lan-streaming', chunk.peerId);
+      }
+    },
     () => sendToWindow(LAN_ERROR_CHANNEL, undefined),
     (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
   );
@@ -77,6 +95,8 @@ export const registerRemoteAudioIpc = ({
   const beginSessionOperation = () => {
     sessionGeneration += 1;
     ports.reset();
+    streaming.clear();
+    playback.reset();
     return sessionGeneration;
   };
   const sessionIsCurrent = (generation: number) =>
@@ -86,11 +106,15 @@ export const registerRemoteAudioIpc = ({
     capture?.close();
     capture = undefined;
     lastMeterAt = 0;
+    setDspHostRawSharing(false).catch(() =>
+      sendToWindow(LAN_ERROR_CHANNEL, undefined),
+    );
   };
   const failCapture = (generation: number) => {
     if (!sessionIsCurrent(generation)) {
       return;
     }
+    sessionGeneration += 1;
     stopCapture();
     lan.stop();
     sendToWindow(LAN_ERROR_CHANNEL, undefined);
@@ -100,34 +124,45 @@ export const registerRemoteAudioIpc = ({
       return sessionIsCurrent(generation);
     }
     stopCapture();
-    const nextCapture = await startRemoteAudioCapture(
-      peerId,
-      (chunk) => {
-        if (!sessionIsCurrent(generation)) {
-          return;
-        }
-        try {
-          // The transport owns the critical path. The visual meter is a
-          // decimated renderer-only mirror and cannot delay a network packet.
-          lan.sendAudio(chunk);
-          ports.analyze(chunk);
-          const now = Date.now();
-          if (now - lastMeterAt >= 33) {
-            lastMeterAt = now;
-            sendToWindow(LAN_AUDIO_CHANNEL, chunk);
+    try {
+      await setDspHostRawSharing(true);
+      if (!sessionIsCurrent(generation)) {
+        return false;
+      }
+      const nextCapture = await startRemoteAudioCapture(
+        peerId,
+        (chunk) => {
+          if (!sessionIsCurrent(generation)) {
+            return;
           }
-        } catch {
-          failCapture(generation);
-        }
-      },
-      () => failCapture(generation),
-    );
-    if (!sessionIsCurrent(generation)) {
-      nextCapture.close();
-      return false;
+          try {
+            // The transport owns the critical path. The visual meter is a
+            // decimated renderer-only mirror and cannot delay a network packet.
+            lan.sendAudio(chunk);
+            ports.analyze(chunk);
+            const now = Date.now();
+            if (now - lastMeterAt >= 33) {
+              lastMeterAt = now;
+              sendToWindow(LAN_AUDIO_CHANNEL, chunk);
+            }
+          } catch {
+            failCapture(generation);
+          }
+        },
+        () => failCapture(generation),
+      );
+      if (!sessionIsCurrent(generation)) {
+        nextCapture.close();
+        return false;
+      }
+      capture = nextCapture;
+      return true;
+    } catch (error) {
+      // Even a refused bypass command owns raw mode until it is explicitly
+      // cleared. A failed start must not strand the Library in pass-through.
+      failCapture(generation);
+      throw error;
     }
-    capture = nextCapture;
-    return true;
   };
   const restoreSavedSender = async (
     requestedMode: unknown,
@@ -284,5 +319,6 @@ export const registerRemoteAudioIpc = ({
     stopCapture();
     lan.stop();
     ports.close();
+    playback.close().catch(() => undefined);
   };
 };

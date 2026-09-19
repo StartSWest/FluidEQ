@@ -79,6 +79,22 @@ struct EngineStatus {
    */
   std::string room = "off";
   /**
+   * The delay this output's audio has — what the DSP page shows a listener
+   * as their lag — as the frames it adds, the rate those are frames of, and
+   * the stages it comes from, by the app's names (`curves`, `guard`,
+   * `eqPhase`, `curvePhase`, `convolution`, `linearEq`, `restoration`,
+   * `leveler`, `room`, `bassPunch`, `maximizer`, `headroom`, `safety`).
+   * A stage that adds nothing is left out. Measured, not estimated: every
+   * part is what that stage holds the audio back by, and the total is the
+   * number `GetLatency` hands Windows.
+   */
+  unsigned rate = 0;
+  unsigned latency = 0;
+  std::vector<std::pair<std::string, unsigned>> latency_parts;
+  std::vector<std::string> latency_active;
+  /** Game mode: the Gaming preset on the rack, or the Games voicing. */
+  bool game_mode = false;
+  /**
    * The last named song live leveling finished on this output: sixteen hex
    * digits of the app's own hash, the loudest settled level and peak it
    * heard, and how many seconds of music that was learned from. A string id

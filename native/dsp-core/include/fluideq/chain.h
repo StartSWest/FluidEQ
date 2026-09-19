@@ -272,6 +272,23 @@ typedef struct FeqChainSettings {
    * the snapshot so it lives with the rack it belongs to.
    */
   int surround_all_channels;
+  /**
+   * Game mode: the rack gives up the delay it only carries for comfort.
+   *
+   * Two stages spend time on something a player does not want paid for.
+   * Bass Punch keeps its FIR's alignment even when it is off, so that
+   * switching it on never moves the audio — 549 frames, 11 ms at 48 kHz, on
+   * every rack whether Punch runs or not. And the room's convolution is
+   * partitioned, so it hands its output back one partition late — 512
+   * frames. With this on, a Punch that is off costs nothing, and the room
+   * runs its first partition as a direct FIR so the rest of it lands exactly
+   * where it belongs: the same sound, with no delay of its own.
+   *
+   * The last value on the wire, after the normalizer's three, and only
+   * written when it is on — so an engine that has never heard of it still
+   * decodes every rack that does not ask for it.
+   */
+  int low_latency;
 } FeqChainSettings;
 
 /**
@@ -433,8 +450,45 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason);
 void feq_chain_process(FeqChain* chain, float* const* channels,
                        uint32_t frames);
 
-/** The chain's total added delay in samples, which linear phase dominates. */
+/**
+ * The chain's total added delay in samples: the sum of the parts below.
+ *
+ * What the engine hands Windows for video sync and what the DSP page shows a
+ * listener as their lag, so it has to be the delay the audio actually has —
+ * `chain_latency_test.cpp` measures every configuration with an impulse. It
+ * was not, for a long time: the three limiters at the end hold the audio
+ * back by their look-ahead whether or not they have anything to do, and
+ * none of them was counted — 432 frames, 9 ms at 48 kHz, on every rack.
+ */
 uint32_t feq_chain_latency_frames(const FeqChain* chain);
+
+/** What each stage adds to that delay, in samples. */
+typedef struct FeqChainLatencyParts {
+  /** The EQ under linear phase: its kernel's half length and a partition. */
+  uint32_t linear_eq;
+  /** The restoration's modules that are on. */
+  uint32_t restoration;
+  /** Live leveling's look-ahead. */
+  uint32_t leveler;
+  /** The room's convolution partition; nothing in game mode. */
+  uint32_t room;
+  /** Bass Punch's FIR, running or on standby; nothing in game mode when off. */
+  uint32_t bass_punch;
+  /** The Maximizer's look-ahead, which runs whether it is on or not. */
+  uint32_t maximizer;
+  /** The Master's auto headroom look-ahead, likewise. */
+  uint32_t headroom;
+  /** The output safety's look-ahead, while the safety is on. */
+  uint32_t safety;
+} FeqChainLatencyParts;
+
+void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
+
+/** Active processors, including those with no fixed buffering. Bit order is
+ * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
+ * compressor, maximizer, headroom, safety, master. Read on the audio thread or
+ * before publishing a prepared chain, like the latency parts above. */
+uint32_t feq_chain_active_stages(const FeqChain* chain);
 
 /**
  * Hand the chain somewhere to report what the panel draws, or null for none.

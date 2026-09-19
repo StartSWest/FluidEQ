@@ -201,7 +201,7 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
 
 GraphicDesign design_graphic(
     const Chain& chain, uint32_t sample_rate,
-    std::vector<std::string>& warnings) {
+    std::vector<std::string>& warnings, bool low_latency) {
   const double scaled = static_cast<double>(kGraphicTapsAt48k) *
                         static_cast<double>(sample_rate) /
                         kGraphicReferenceRate;
@@ -224,10 +224,18 @@ GraphicDesign design_graphic(
   GraphicDesign result;
   result.delay_frames = taps / 2;
   std::vector<std::vector<GraphicPoint>> minimum_curves;
-  if (chain.minimum_curve_phase) minimum_curves = chain.comparison_curves;
-  if (chain.minimum_eq_phase) {
-    minimum_curves.insert(minimum_curves.end(), chain.eq_graphic_curves.begin(),
-                          chain.eq_graphic_curves.end());
+  if (low_latency) {
+    // Game mode: every curve minimum phase, not only the layers the user
+    // asked that of — linear phase is paid for in delay, and a player is
+    // the one listener who would rather not.
+    minimum_curves = chain.graphic_curves;
+  } else {
+    if (chain.minimum_curve_phase) minimum_curves = chain.comparison_curves;
+    if (chain.minimum_eq_phase) {
+      minimum_curves.insert(minimum_curves.end(),
+                            chain.eq_graphic_curves.begin(),
+                            chain.eq_graphic_curves.end());
+    }
   }
   if (!minimum_curves.empty()) {
     const auto curves = design_graphic_kernel(minimum_curves, sample_rate, taps);
@@ -235,6 +243,17 @@ GraphicDesign design_graphic(
   } else {
     reference.resize(static_cast<size_t>(taps) * 2, 0.0f);
     result.samples = std::move(reference);
+  }
+  if (low_latency && !minimum_curves.empty()) {
+    // With every curve minimum phase, the kernel is that response sitting
+    // behind the linear-phase design's own delay, and nothing before it:
+    // take the delay out and the response starts on the first tap.
+    const size_t delay =
+        std::min(static_cast<size_t>(result.delay_frames), result.samples.size());
+    result.samples.erase(result.samples.begin(),
+                         result.samples.begin() +
+                             static_cast<std::ptrdiff_t>(delay));
+    result.delay_frames = 0;
   }
   result.samples.resize(std::min(result.samples.size(),
                                  static_cast<size_t>(kMaxKernelTaps)));

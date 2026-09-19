@@ -1,0 +1,42 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+.game-mode-switch {
+  @include field-interactive;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 4px 10px;
+  border-radius: $radius-pill;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  &.is-on {
+    border-color: color-mix(in srgb, $active 45%, transparent);
+    background: color-mix(in srgb, $active 9%, transparent);
+    color: $active;
+  }
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  &__icon {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+  }
+
+  .switch {
+    --switch-width: 32px;
+    --switch-height: 18px;
+    --switch-thumb: 12px;
+    --switch-inset: 2px;
+  }
+}

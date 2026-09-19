@@ -94,12 +94,23 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    */
   RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
                               max_frames_, warnings_, leveling_.get(),
-                              channel_mask, room_head);
+                              channel_mask, room_head, chain.low_latency);
   rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
   dsp_values_ = chain.dsp_values;
   rack_channels_ = rack.channels;
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack.latency;
+  parts_.rack = rack.parts;
+  const uint32_t active = feq_chain_active_stages(rack_.get());
+  const char* const names[] = {"leveler", "restoration", "exciter", "bassForge",
+      "linearEq", "bassPunch", "room", "dimension", "compressor", "maximizer",
+      "headroom", "safety", "master"};
+  for (uint32_t stage = 0; stage < 13u; ++stage) {
+    if ((active & (1u << stage)) != 0u) active_stages_.emplace_back(names[stage]);
+  }
+  // Game mode, from the rack's own value or the EQ side's directive: the
+  // stages below give up their comfort delay on the same word.
+  low_latency_ = rack.low_latency;
   // The channels the rack does not cover, put back in step with the ones it
   // does: see `bypass_align_`. Allocated here because `process` may not.
   if (rack_ != nullptr && rack_channels_ < channels_ && rack.latency > 0) {
@@ -135,6 +146,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   if (chain.output_guard) {
     output_guard_ = std::make_unique<OutputGuard>(sample_rate_, channels_);
     latency_frames_ += output_guard_->latency();
+    parts_.guard = output_guard_->latency();
+    if (chain.auto_preamp) active_stages_.emplace_back("guard");
   }
 
   layout_.reserve(chain.bands.size());
@@ -155,19 +168,29 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
   states_.assign(static_cast<size_t>(channels_) * coefficients_.size(),
                  FeqBiquadState{});
+  if (!coefficients_.empty()) active_stages_.emplace_back("filters");
+  if (chain.preamp_db != 0.0) active_stages_.emplace_back("preamp");
   for (FeqBiquadState& state : states_) {
     feq_biquad_reset(&state);
   }
+  // Game mode runs every band minimum phase: linear phase is a kernel's half
+  // length of delay — up to 181 ms — spent on a property nobody aims by.
   if (!eq_bands.empty()) {
-    eq_phase_ = std::make_unique<EqPhaseStage>(eq_bands, !chain.minimum_eq_phase,
+    eq_phase_ = std::make_unique<EqPhaseStage>(eq_bands,
+        !chain.minimum_eq_phase && !low_latency_,
         sample_rate_, channels_, max_frames_);
     latency_frames_ += eq_phase_->latency();
+    parts_.eq_phase = eq_phase_->latency();
+    if (!eq_phase_->failed()) active_stages_.emplace_back("eqPhase");
     if (eq_phase_->failed()) problems_.push_back("eq-phase");
   }
   if (!curve_bands.empty()) {
-    curve_phase_ = std::make_unique<EqPhaseStage>(curve_bands, !chain.minimum_curve_phase,
+    curve_phase_ = std::make_unique<EqPhaseStage>(curve_bands,
+        !chain.minimum_curve_phase && !low_latency_,
         sample_rate_, channels_, max_frames_);
     latency_frames_ += curve_phase_->latency();
+    parts_.curve_phase = curve_phase_->latency();
+    if (!curve_phase_->failed()) active_stages_.emplace_back("curvePhase");
     if (curve_phase_->failed()) problems_.push_back("eq-phase");
   }
 
@@ -180,6 +203,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
       if (impulse_kernel_ &&
           build_convolvers(impulse_kernel_.get(), channels_ * chain.convolution_passes, impulse_)) {
         latency_frames_ += feq_convolver_latency() * chain.convolution_passes;
+        parts_.convolution = feq_convolver_latency() * chain.convolution_passes;
+        active_stages_.emplace_back("convolution");
         impulse_identity_ = kernel_identity(std::move(kernel));
       } else {
         warnings_.push_back("Convolution could not be prepared; skipped.");
@@ -189,8 +214,17 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
 
   // One stage for every curve at once, not one per curve: see
   // `Chain::graphic_curves`.
-  if (!chain.graphic_curves.empty() || chain.stable_graphic) {
-    GraphicDesign design = design_graphic(chain, sample_rate_, warnings_);
+  //
+  // `stable_graphic` keeps the stage in place with no curves at all, as a
+  // pure delay, so that adding the first curve never moves the audio — 2560
+  // frames, 53 ms at 48 kHz, of nothing, on every output a curve could ever
+  // reach. Game mode will not pay for that comfort: with no curves there is
+  // no stage, and with curves the stage is minimum phase with no bulk delay
+  // (`design_graphic`).
+  if (!chain.graphic_curves.empty() ||
+      (chain.stable_graphic && !low_latency_)) {
+    GraphicDesign design =
+        design_graphic(chain, sample_rate_, warnings_, low_latency_);
     std::vector<float>& kernel = design.samples;
     if (!kernel.empty()) {
       graphic_kernel_.reset(feq_convolver_kernel_create(
@@ -207,6 +241,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
         // reproducing rather than a filter's phase response.
         latency_frames_ += feq_convolver_latency() +
                            design.delay_frames;
+        parts_.curves = feq_convolver_latency() + design.delay_frames;
+        if (!chain.graphic_curves.empty()) active_stages_.emplace_back("curves");
         graphic_identity_ = kernel_identity(std::move(kernel));
       } else {
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");

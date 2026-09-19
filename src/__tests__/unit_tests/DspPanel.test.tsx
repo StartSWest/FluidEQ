@@ -155,7 +155,10 @@ describe('DspPanel', () => {
     expect(screen.getAllByRole('menuitemradio')).toHaveLength(
       DSP_PRESETS.length,
     );
-    expect(DSP_PRESETS).toHaveLength(28);
+    // Include the new worldwide genre chains; the literal is here so that
+    // a chain added without a row in the menu is a failure
+    // rather than a menu quietly one short.
+    expect(DSP_PRESETS).toHaveLength(103);
     expect(
       screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
     ).toBeInTheDocument();
@@ -571,7 +574,7 @@ describe('DspPanel', () => {
     };
     const { onChange } = renderPanel(active);
     fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /Rock/i }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.presetId).toBe('rock');
     expect(next.crossfade).toEqual(active.crossfade);
@@ -645,7 +648,7 @@ describe('DspPanel', () => {
     const { container, onChange } = renderPanel(pair);
     const rack = within(container.querySelector('.dsp-presets') as HTMLElement);
     fireEvent.click(rack.getByRole('button', { name: 'Presets' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /Rock/i }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /^Rock\s/i }));
     const chosen = onChange.mock.calls[0][0] as IDspSettings;
     expect(chosen.surround).toEqual({ allChannels: false });
 

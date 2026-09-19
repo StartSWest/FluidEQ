@@ -148,6 +148,12 @@ struct FeqChain {
   std::vector<float> denoise_align_line[FEQ_CHAIN_MAX_CHANNELS];
   FeqDelayLine punch_align[FEQ_CHAIN_MAX_CHANNELS];
   std::vector<float> punch_align_line[FEQ_CHAIN_MAX_CHANNELS];
+  /**
+   * Bass Punch was skipped outright on the last block — game mode, Punch
+   * off — so its histories are from before the skip. Read when it runs
+   * again, to start it from silence rather than from a moment long gone.
+   */
+  bool bass_punch_skipped = false;
   /** Which channel feeds the subwoofer, or -1: `feq_chain_set_lfe_channel`. */
   int lfe_channel = -1;
   /* ------------------------------------------------------------- room -- */
@@ -323,6 +329,8 @@ struct FeqChain {
   FeqCompressor compressors[FEQ_CHAIN_COMPRESSOR_BANDS];
   std::vector<float> compressor_bands[FEQ_CHAIN_MAX_CHANNELS]
                                      [FEQ_CHAIN_COMPRESSOR_BANDS];
+  /** How far in the stage is, so switching it on is a fade and not an edge. */
+  double compressor_mix = 0.0;
 
   /* --------------------------------------------------------- maximizer -- */
   FeqLinkedLimiter maximizer{};
@@ -355,6 +363,8 @@ struct FeqChain {
   /* ---------------------------------------------------------- dimension -- */
   FeqDimension dimension{};
   std::vector<float> dimension_side;
+  /** The mid, which the split’s own phase is run over. */
+  std::vector<float> dimension_centre;
   std::vector<float> dimension_low;
   std::vector<float> dimension_mid;
   std::vector<float> dimension_high;
@@ -500,5 +510,43 @@ void chain_process_exciter(FeqChain* chain, float* const* channels,
 
 /** Allocate one path's buffers and point its stages at them. */
 void chain_prepare_exciter_path(FeqChain* chain, uint32_t path);
+
+/**
+ * Game mode with Bass Punch off: the stage runs nothing and delays nothing.
+ * One test, read by the stage that skips and by the latency that leaves the
+ * delay out, so the two can never disagree about which audio is where.
+ */
+inline bool chain_bass_punch_idle(const FeqChain* chain) {
+  return chain->settings.low_latency != 0 &&
+         chain->settings.bass_punch.enabled == 0;
+}
+
+/**
+ * The Master's auto headroom runs its look-ahead whether or not it is on, so
+ * that switching it on never steps the level; game mode takes it away while
+ * it has nothing to do, as it does the Maximizer's.
+ *
+ * Applied at configure AND after a handover: `feq_chain_transfer_state`
+ * swaps in the limiter the previous chain was running, look-ahead and all,
+ * so a chain switched into game mode went on holding the sound back by the
+ * previous chain's 2 ms while reporting none.
+ */
+inline uint32_t chain_headroom_look_ahead(const FeqChain* chain) {
+  const bool idle = chain->settings.low_latency != 0 &&
+                    !(chain->settings.master.enabled != 0 &&
+                      chain->settings.master.loudness_maximize != 0);
+  return idle ? 0u : feq_post_filter_normalizer_look_ahead(chain->sample_rate);
+}
+
+/**
+ * Game mode with the Normalizer off: its peak guard, which keeps its
+ * look-ahead under bypass so that switching it on never shifts the audio,
+ * gives it up. Applied wherever the leveler arrives in a chain — made for it,
+ * or taken over from the previous one at a handover.
+ */
+inline bool chain_leveler_idle(const FeqChain* chain) {
+  return chain->settings.low_latency != 0 &&
+         chain->settings.normalizer.mode == 0;
+}
 
 #endif /* FLUIDEQ_CHAIN_INTERNAL_H */

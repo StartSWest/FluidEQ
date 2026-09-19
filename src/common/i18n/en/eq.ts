@@ -18,6 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.mode.linearDelayInactive': '≈ +{ms} ms with active EQ',
+  'eq.mode.linearDelay': '≈ +{ms} ms delay',
+  'eq.mode.gameMinimum': 'Game mode: Minimum',
   'eq.layouts.builtIn': 'Built-in layouts',
   'eq.layouts.saved': 'My designs',
   'eq.layouts.empty': 'Save band frequencies and Q here—not gains or EQ mode.',
@@ -694,6 +697,8 @@ const eq = {
     'A tuned target for what you are actually doing. Each one is written as its own layer after your EQ bands, so your own tuning is never touched and switching back to None restores it exactly.',
   'voicing.refused': 'Could not switch voicing',
   'voicing.groupPurpose': 'What for',
+  'voicing.gameModeHint':
+    'Also game mode: while this voicing is on, FluidEQ gives up every delay it only keeps for comfort. The DSP page shows what is left.',
   'voicing.groupGenre': 'Genre',
   'voicing.none': 'None',
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',

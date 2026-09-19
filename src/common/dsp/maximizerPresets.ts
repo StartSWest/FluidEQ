@@ -112,7 +112,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'rock',
     labelKey: 'dsp.eqPreset.rock',
     group: 'genre',
-    settings: profile(4.5, -1, 4, 90),
+    settings: profile(1.2, -1, 4, 90),
   },
   metal: {
     id: 'metal',
@@ -120,13 +120,13 @@ export const MAXIMIZER_PRESET_BY_ID = {
     group: 'genre',
     // Five decibels keeps the dense profile distinct without making the full
     // Metal chain three decibels louder than DSP Off.
-    settings: profile(4.5, -0.8, 2.5, 60),
+    settings: profile(1, -0.8, 2.5, 60),
   },
   pop: {
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
     group: 'genre',
-    settings: profile(4, -1, 5, 110),
+    settings: profile(0.5, -1, 5, 110),
   },
   electronic: {
     id: 'electronic',
@@ -137,19 +137,19 @@ export const MAXIMIZER_PRESET_BY_ID = {
     // The release and look-ahead supply the electronic density. Seven
     // decibels of drive made the matching whole chain audibly louder before
     // those timing choices could be heard.
-    settings: profile(3.5, -0.8, 2, 50),
+    settings: profile(0.5, -0.8, 2, 50),
   },
   hiphop: {
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
-    settings: profile(1.25, -1, 2.5, 55),
+    settings: profile(1.1, -1, 2.5, 55),
   },
   jazz: {
     id: 'jazz',
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
-    settings: profile(2, -1.5, 12, 420),
+    settings: profile(0, -1.5, 12, 420),
   },
   classical: {
     id: 'classical',
@@ -157,19 +157,19 @@ export const MAXIMIZER_PRESET_BY_ID = {
     group: 'genre',
     // The quietest profile in the catalogue on purpose: an orchestral crescendo
     // IS the music, and a limiter that holds it down has removed the piece.
-    settings: profile(2.5, -2, 16, 650),
+    settings: profile(0.9, -2, 16, 650),
   },
   acoustic: {
     id: 'acoustic',
     labelKey: 'dsp.eqPreset.acoustic',
     group: 'genre',
-    settings: profile(2.5, -1.5, 10, 300),
+    settings: profile(0, -1.5, 10, 300),
   },
   reggae: {
     id: 'reggae',
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
-    settings: profile(1.5, -1, 6, 140),
+    settings: profile(0, -1, 6, 140),
   },
   ambient: {
     id: 'ambient',
@@ -182,13 +182,13 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
     group: 'voice',
-    settings: profile(4, -1.5, 8, 160),
+    settings: profile(2, -1.5, 8, 160),
   },
   podcast: {
     id: 'podcast',
     labelKey: 'dsp.eqPreset.podcast',
     group: 'voice',
-    settings: profile(2.75, -1.5, 6, 140),
+    settings: profile(1.7, -1.5, 6, 140),
   },
   audiobook: {
     id: 'audiobook',
@@ -197,7 +197,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     // Spoken-word peaks need restraint, not a louder average. The -3 dB
     // ceiling remains the delivery protection; two decibels is enough drive
     // to make narration even without pinning breaths to the limiter.
-    settings: profile(2, -3, 10, 180),
+    settings: profile(0.6, -3, 10, 180),
   },
 
   gaming: {
@@ -210,7 +210,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
-    settings: profile(3, -2, 12, 380),
+    settings: profile(1, -2, 12, 380),
   },
   lateNight: {
     id: 'lateNight',
@@ -219,7 +219,7 @@ export const MAXIMIZER_PRESET_BY_ID = {
     // Deep drive into a low ceiling. Late listening is about the gap between
     // the loudest and quietest moment being small enough that nothing has to be
     // turned up to follow the dialogue and back down for the next explosion.
-    settings: profile(3, -3, 8, 250),
+    settings: profile(2, -3, 8, 250),
   },
   club: {
     id: 'club',

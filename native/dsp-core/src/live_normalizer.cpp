@@ -16,6 +16,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 struct FeqLiveNormalizer {
   double rate;
   uint32_t channels;
+  // What the peak guard's ring is sized for, and what it holds the sound back
+  // by now: the same, except in game mode with the Normalizer off.
+  uint32_t look_ahead;
   uint32_t latency;
   uint64_t samples = 0;  // since the loudness window was last emptied
   uint64_t silent_samples = 0;
@@ -264,16 +267,17 @@ FeqLiveNormalizer* feq_live_normalizer_create(double rate, uint32_t channels) {
   auto state = std::make_unique<FeqLiveNormalizer>();
   state->rate = rate;
   state->channels = channels;
-  state->latency = feq_post_filter_normalizer_look_ahead(rate);
+  state->look_ahead = feq_post_filter_normalizer_look_ahead(rate);
+  state->latency = state->look_ahead;
   state->loudness = feq_loudness_meter_create(rate, channels);
   if (state->loudness == nullptr) return nullptr;
   state->detectors.resize(channels);
   state->input_detectors.resize(channels);
   state->delay.resize(channels);
   state->planes.resize(channels);
-  state->reductions.resize(state->latency + 1);
+  state->reductions.resize(state->look_ahead + 1);
   for (uint32_t channel = 0; channel < channels; ++channel) {
-    state->delay[channel].resize(state->latency + 1);
+    state->delay[channel].resize(state->look_ahead + 1);
     state->planes[channel] = state->delay[channel].data();
   }
   feq_live_normalizer_reset(state.get());
@@ -299,7 +303,12 @@ void feq_live_normalizer_reset(FeqLiveNormalizer* state) {
   std::fill(state->reductions.begin(), state->reductions.end(), 0.0f);
   feq_post_filter_normalizer_init(&state->safety, state->detectors.data(),
       state->planes.data(), state->reductions.data(), state->channels,
-      state->latency + 1, 4);
+      state->look_ahead + 1, 4);
+  feq_linked_limiter_set_look_ahead(&state->safety.limiter, state->latency);
+}
+void feq_live_normalizer_set_standby(FeqLiveNormalizer* state, int standby) {
+  if (state == nullptr) return;
+  state->latency = standby != 0 ? 0 : state->look_ahead;
   feq_linked_limiter_set_look_ahead(&state->safety.limiter, state->latency);
 }
 void feq_live_normalizer_attach_memory(FeqLiveNormalizer* state, FeqLevelingMemory* memory) {

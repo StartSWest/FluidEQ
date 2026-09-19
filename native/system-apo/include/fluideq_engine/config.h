@@ -80,6 +80,14 @@ struct Chain {
   bool output_guard = false;
   bool stable_graphic = false;
   /**
+   * Game mode, asked for by the EQ side: `# FluidEQLowLatency: ON`, which the
+   * app writes into a device's configuration while its voicing is Games. The
+   * rack can ask for the same thing on its own wire (the Gaming preset); the
+   * graph honours either, for the whole path of that output, because the
+   * delay a player feels is the sum of every stage and not any one of them.
+   */
+  bool low_latency = false;
+  /**
    * The DSP rack, exactly as `encodeChainSettings` wrote it.
    *
    * Read from `<config_dir>\fluideq-dsp.txt`, which is not part of the

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IDspSettings,
@@ -17,8 +17,8 @@ import {
 import {
   DSP_PRESETS,
   DSP_PRESET_GROUPS,
-  dspPresetSettings,
-  isDspPresetId,
+  IDspPreset,
+  chainRoom,
 } from '../../common/dsp/presets';
 import { Translate } from '../../common/i18n';
 import { TranslationKey } from '../../common/i18n/en';
@@ -29,7 +29,14 @@ import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
 import DspPresetImportDialog from './DspPresetImportDialog';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
+import {
+  DSP_PRESETS_CHANGED,
+  readFavouriteDspPresets,
+  toggleFavouriteDspPreset,
+} from './favouriteDspPresets';
 import { SAVED_GROUP, eqPresetGroupLabel } from './presetPickEntries';
+import { useDspPresetSelection } from './useDspPresetSelection';
+import { dspPresetHint as chainHint } from './dspPresetCatalog';
 import {
   IUserDspPreset,
   USER_DSP_PRESET_NAME_MAX,
@@ -47,22 +54,18 @@ interface IDspChainPresetBarProps {
   onCommit: () => void;
 }
 
-/** Names the audible stages a complete chain starts. */
-const chainHint = (settings: IDspSettings, t: Translate): string =>
-  [
-    settings.normalizer.mode !== 'off' ? t('dsp.normalizer.title') : '',
-    settings.denoise.enabled ? t('dsp.denoise.title') : '',
-    settings.exciter.enabled ? t('dsp.exciter.title') : '',
-    settings.bassForge.enabled ? t('dsp.bassForge.title') : '',
-    settings.eq.enabled ? t('dsp.eq.title') : '',
-    settings.bassPunch.enabled ? t('dsp.bassPunch.title') : '',
-    settings.dimension.enabled ? t('dsp.dimension.title') : '',
-    settings.compressor.enabled ? t('dsp.compressor.title') : '',
-    settings.maximizer.enabled ? t('dsp.maximizer.title') : '',
-    settings.master.enabled ? t('dsp.master.title') : '',
-  ]
-    .filter(Boolean)
-    .join(' · ');
+/** Where the starred presets file: above the listener's own, above all. */
+const FAVOURITE_GROUP = 'favourites';
+
+/**
+ * A factory chain's name. A copy with the Room says so with the Room's own
+ * title — "Gaming · Room" — so the pair reads as a pair in every language
+ * without a second set of names to translate.
+ */
+const factoryName = (preset: IDspPreset, t: Translate): string =>
+  preset.withRoom
+    ? `${t(preset.labelKey as TranslationKey)} · ${t('dsp.room.title')}`
+    : t(preset.labelKey as TranslationKey);
 
 const DspChainPresetBar = ({
   settings,
@@ -85,7 +88,11 @@ const DspChainPresetBar = ({
     readUserDspPresets(),
   );
 
-  const entries: IRichPickEntry[] = [
+  const [favourites, setFavourites] = useState<string[]>(() =>
+    readFavouriteDspPresets(),
+  );
+
+  const filed: IRichPickEntry[] = [
     ...userPresets.map((preset) => ({
       id: preset.id,
       name: preset.name,
@@ -96,7 +103,7 @@ const DspChainPresetBar = ({
     ...DSP_PRESET_GROUPS.flatMap((group) =>
       DSP_PRESETS.filter((preset) => preset.group === group).map((preset) => ({
         id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
+        name: factoryName(preset, t),
         hint: chainHint(preset.settings, t),
         group,
         icon: (
@@ -105,46 +112,41 @@ const DspChainPresetBar = ({
       })),
     ),
   ];
+  // The starred ones first, in the order they were starred, under a heading
+  // of their own — once each: a preset listed twice is two rows lit at once
+  // and an arrow that visits it twice. `ordered` follows, so the arrows beside
+  // the pill walk what the menu shows.
+  const entries: IRichPickEntry[] = [
+    ...favourites.flatMap((id) => {
+      const entry = filed.find((one) => one.id === id);
+      return entry ? [{ ...entry, group: FAVOURITE_GROUP }] : [];
+    }),
+    ...filed.filter((entry) => !favourites.includes(entry.id)),
+  ];
   const ordered = entries.map((entry) => entry.id);
 
-  const applyUserPreset = (preset: IUserDspPreset) => {
-    setNotice('');
-    onChange(
-      clampDspSettings({
-        ...preset.settings,
-        enabled: true,
-        presetId: preset.id,
-        crossfade: settings.crossfade,
-        // Kept for the same reason the crossfade above is: which channels of
-        // this output the rack runs on belongs to the machine, not to a saved
-        // sound. See `dspPresetSettings`.
-        surround: settings.surround,
-        // And the Room is the listener's own head, speakers and walls.
-        room: settings.room,
-      }),
-    );
-    onCommit();
-  };
-
+  const { apply: selectPreset, selecting } = useDspPresetSelection(
+    settings,
+    onChange,
+    onCommit,
+  );
   const applyPreset = (id: string) => {
-    if (id.startsWith(USER_DSP_PRESET_PREFIX)) {
-      const saved = findUserDspPreset(id);
-      if (saved) {
-        applyUserPreset(saved);
-      }
-      return;
-    }
-    if (!isDspPresetId(id)) {
-      return;
-    }
-    const next = dspPresetSettings(id, settings);
-    if (!next) {
-      return;
-    }
     setNotice('');
-    onChange(next);
-    onCommit();
+    selectPreset(id);
   };
+  const applyUserPreset = (preset: IUserDspPreset) => applyPreset(preset.id);
+  useEffect(() => {
+    const changed = () => {
+      setUserPresets(readUserDspPresets());
+      setFavourites(readFavouriteDspPresets());
+    };
+    window.addEventListener(DSP_PRESETS_CHANGED, changed);
+    window.addEventListener('storage', changed);
+    return () => {
+      window.removeEventListener(DSP_PRESETS_CHANGED, changed);
+      window.removeEventListener('storage', changed);
+    };
+  }, []);
 
   const step = (direction: -1 | 1) => {
     if (ordered.length === 0) {
@@ -169,8 +171,11 @@ const DspChainPresetBar = ({
         // this is which channels of this output the rack runs on, not a
         // setting of the sound the factory rack starts from.
         surround: settings.surround,
-        // And the Room, which is the listener's own head and speakers.
-        room: settings.room,
+        gameMode: settings.gameMode,
+        // The factory rack has no Room in it, so Reset switches it off like
+        // every other stage — and leaves the room that was shaped, and the
+        // listener's head, for when it is switched on again.
+        room: chainRoom(settings.room, DSP_DEFAULTS.room),
       }),
     );
     onCommit();
@@ -192,6 +197,16 @@ const DspChainPresetBar = ({
     }
     removeUserDspPreset(saved.id);
     setUserPresets(readUserDspPresets());
+    // Its star goes with it, rather than waiting in storage for an id that
+    // will never be shown again.
+    if (favourites.includes(saved.id)) {
+      setFavourites(
+        toggleFavouriteDspPreset(
+          saved.id,
+          ordered.filter((id) => id !== saved.id),
+        ),
+      );
+    }
     onChange({ ...settings, presetId: '' });
     onCommit();
     setNotice(t('dsp.eqSave.deleted', { name: saved.name }));
@@ -217,7 +232,7 @@ const DspChainPresetBar = ({
     );
     const name =
       saved?.name ??
-      (factory ? t(factory.labelKey as TranslationKey) : undefined) ??
+      (factory ? factoryName(factory, t) : undefined) ??
       t('dsp.eqPreset.custom');
     setNotice('');
     setIsExporting(true);
@@ -241,22 +256,34 @@ const DspChainPresetBar = ({
       <div className="dsp-eq-preset dsp-eq-preset-first">
         <span className="dsp-eq-preset-label">{t('dsp.presets')}</span>
         <RichPick
+          menuClassName="dsp-chain-preset-menu"
           entries={entries}
-          groupLabel={(group) => eqPresetGroupLabel(group, t)}
+          groupLabel={(group) =>
+            group === FAVOURITE_GROUP
+              ? t('library.playlist.favorites')
+              : eqPresetGroupLabel(group, t)
+          }
+          favourites={{
+            ids: favourites,
+            onToggle: (id) =>
+              setFavourites(toggleFavouriteDspPreset(id, ordered)),
+            addLabel: t('library.playlist.addToFavorites'),
+            removeLabel: t('library.playlist.removeFromFavorites'),
+          }}
           activeId={settings.presetId}
           onPick={applyPreset}
           placeholder={t('dsp.eqPreset.custom')}
           placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
           triggerAriaLabel={t('dsp.presets')}
           triggerTitle={t('dsp.presets')}
-          disabled={disabled}
+          disabled={disabled || selecting}
         />
         <button
           type="button"
           className="dsp-eq-step"
           aria-label={t('dsp.eqPreset.previous')}
           title={t('dsp.eqPreset.previous')}
-          disabled={disabled}
+          disabled={disabled || selecting}
           onClick={() => step(-1)}
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -268,7 +295,7 @@ const DspChainPresetBar = ({
           className="dsp-eq-step"
           aria-label={t('dsp.eqPreset.next')}
           title={t('dsp.eqPreset.next')}
-          disabled={disabled}
+          disabled={disabled || selecting}
           onClick={() => step(1)}
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -282,7 +309,7 @@ const DspChainPresetBar = ({
           type="button"
           className="button small subtle"
           title={t('dsp.eqPreset.reset')}
-          disabled={disabled}
+          disabled={disabled || selecting}
           onClick={reset}
         >
           <DspBarIcon name="reset" />
@@ -292,7 +319,7 @@ const DspChainPresetBar = ({
           type="button"
           className="button small subtle"
           title={t('dsp.chainSave.hint')}
-          disabled={disabled}
+          disabled={disabled || selecting}
           onClick={() => setIsNaming(true)}
         >
           <DspBarIcon name="save" />
@@ -312,7 +339,7 @@ const DspChainPresetBar = ({
           type="button"
           className="button small subtle"
           title={t('dsp.eqPreset.import')}
-          disabled={disabled}
+          disabled={disabled || selecting}
           onClick={() => {
             setNotice('');
             setIsImporting(true);
@@ -326,7 +353,7 @@ const DspChainPresetBar = ({
             type="button"
             className="button small subtle"
             title={t('dsp.eqSave.delete')}
-            disabled={disabled}
+            disabled={disabled || selecting}
             onClick={handleDelete}
           >
             <DspBarIcon name="delete" />

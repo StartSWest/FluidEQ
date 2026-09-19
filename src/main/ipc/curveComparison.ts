@@ -15,7 +15,7 @@ import {
   supportsEqPhase,
 } from '../../common/curveComparison';
 import { ErrorCode } from '../../common/errors';
-import { hasSampledCurveLayers } from '../apoRender';
+import { bandPhaseScopes, hasSampledCurveLayers } from '../apoRender';
 import { scheduleWrite } from '../asyncWriter';
 import onWindowMessage from './windowMessages';
 
@@ -64,6 +64,7 @@ export const registerCurveComparisonIpc = ({
           )
         : DEFAULT_CURVE_COMPARISON,
       hasSampledCurves: hasSampledCurveLayers(state),
+      bandPhaseScopes: bandPhaseScopes(state),
       eqVariant: active
         ? await readVariant(
             path.join(await getConfigPath(), EQ_PHASE_FILENAME),

@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import ChannelEnum from 'common/channels';
-import { getDefaultState } from 'common/constants';
+import { FilterTypeEnum, getDefaultState } from 'common/constants';
 import { IAudioEngineStatus } from 'common/audioEngine';
 import { ErrorCode } from 'common/errors';
 import {
@@ -179,4 +179,24 @@ it('requires the first official phase engine but accepts future versions', () =>
   ['1.6.0.0', '1.7.0.0', '2.0.0.0'].forEach((version) =>
     expect(supportsCurveComparison(version)).toBe(true),
   );
+});
+it('reports parametric phase scopes again after EQ gains change', async () => {
+  deps.state.isEnabled = true;
+  deps.state.isFlat = true;
+  expect(
+    (await fire(ChannelEnum.GET_CURVE_COMPARISON)).result.bandPhaseScopes.eq,
+  ).toBe(false);
+  deps.state.isFlat = false;
+  deps.state.filters = {
+    '0': {
+      id: '0',
+      type: FilterTypeEnum.PK,
+      frequency: 4000,
+      gain: 4.5,
+      quality: 1,
+    },
+  };
+  expect(
+    (await fire(ChannelEnum.GET_CURVE_COMPARISON)).result.bandPhaseScopes.eq,
+  ).toBe(true);
 });

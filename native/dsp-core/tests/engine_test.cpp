@@ -344,6 +344,17 @@ void test_crossfade_mixer() {
 }  // namespace
 
 /**
+ * The linear-phase EQ's own share of the delay. Read from the breakdown rather
+ * than the total, which also carries every other stage's — the limiters'
+ * look-ahead among them, which it now counts.
+ */
+uint32_t linear_part(const FeqChain* chain) {
+  FeqChainLatencyParts parts{};
+  feq_chain_latency_parts(chain, &parts);
+  return parts.linear_eq;
+}
+
+/**
  * Linear phase actually engages, which for a long time it did not.
  *
  * `feq_chain_set_eq_kernel` existed, was correct, and was called by nothing:
@@ -379,31 +390,27 @@ void test_linear_phase_engages() {
 
   // Still nothing: the kernel is built on the control thread and handed over,
   // and the audio thread has not been round yet to take delivery.
-  check(feq_chain_latency_frames(chain) == feq_bass_punch_latency_frames(48000.0),
-        "a kernel in transit is not yet in the path");
+  check(linear_part(chain) == 0u, "a kernel in transit is not yet in the path");
 
   std::vector<float> left(512, 0.0f);
   std::vector<float> right(512, 0.0f);
   float* channels[2] = {left.data(), right.data()};
   feq_chain_process(chain, channels, 512);
 
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
-                                           feq_bass_punch_latency_frames(48000.0),
+  check(linear_part(chain) == feq_linear_phase_latency(),
         "linear phase engages once a block has adopted the kernel");
 
   // And it stands down again, by the same route.
   settings.eq.phase = FEQ_PHASE_MINIMUM;
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_bass_punch_latency_frames(48000.0),
-        "and stands down when the mode leaves linear");
+  check(linear_part(chain) == 0u, "and stands down when the mode leaves linear");
 
   // Isolate wants a kernel too, whatever the phase mode says.
   settings.eq.isolate = 1;
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
-                                           feq_bass_punch_latency_frames(48000.0),
+  check(linear_part(chain) == feq_linear_phase_latency(),
         "Minimum Isolate brings the convolver back on its own");
 
   feq_chain_destroy(chain);
@@ -444,16 +451,14 @@ void test_kernel_handoff_survives_a_drag() {
     feq_chain_configure(chain, &settings);
   }
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
-                                           feq_bass_punch_latency_frames(48000.0),
+  check(linear_part(chain) == feq_linear_phase_latency(),
         "the last kernel of a drag is the one that arrives");
 
   // The same settings again must not rebuild: that guard is the difference
   // between one kernel a frame and one per settings message.
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
-                                           feq_bass_punch_latency_frames(48000.0),
+  check(linear_part(chain) == feq_linear_phase_latency(),
         "and an unchanged rack leaves it alone");
 
   feq_chain_destroy(chain);
