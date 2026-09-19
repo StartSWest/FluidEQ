@@ -251,13 +251,7 @@ import {
   migrateNamedFilesToOutputFolders,
   saveDeviceProfileSettings,
 } from './deviceProfiles';
-import { sendMediaTransportKey } from './mediaKeys';
-import {
-  pauseOtherSystemPlayers,
-  sendSystemMediaCommand,
-  stopWatchingSystemMedia,
-  watchSystemMedia,
-} from './systemMedia';
+import { systemMediaSourceFor } from './systemMediaSource';
 import {
   claimInstance,
   describeInstanceMarker,
@@ -2894,8 +2888,10 @@ ipcMain.handle(
  * Returns nothing on purpose. Windows gives no answer to a media key, so there
  * is nothing honest to hand back and nothing for the window to wait on.
  */
+const systemMedia = systemMediaSourceFor(process.platform);
+
 ipcMain.handle('media-transport', async (_event, action: unknown) => {
-  await sendMediaTransportKey(action);
+  await systemMedia.sendTransportKey(action);
 });
 
 /**
@@ -2930,10 +2926,10 @@ const songProgramme = createSongProgramme({
 
 ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
   if (enabled !== true) {
-    stopWatchingSystemMedia();
+    systemMedia.stopWatching();
     return;
   }
-  watchSystemMedia((snapshot) => {
+  systemMedia.watch((snapshot) => {
     songProgramme.onMedia(snapshot).catch(() => undefined);
     if (!event.sender.isDestroyed()) {
       event.sender.send('system-media-changed', snapshot);
@@ -2961,7 +2957,7 @@ ipcMain.handle(
     ) {
       return;
     }
-    await sendSystemMediaCommand(
+    await systemMedia.sendCommand(
       command,
       typeof positionMs === 'number' && Number.isFinite(positionMs)
         ? positionMs
@@ -2992,14 +2988,14 @@ ipcMain.handle(
     ) {
       return;
     }
-    await pauseOtherSystemPlayers(exceptApp ?? '');
+    await systemMedia.pauseOthers(exceptApp ?? '');
   },
 );
 
 // The child outlives nothing. A window that has gone cannot be told what is
 // playing, and a PowerShell left running after the app closed is a process
 // somebody finds in Task Manager with this app's name on it.
-app.on('will-quit', stopWatchingSystemMedia);
+app.on('will-quit', () => systemMedia.stopWatching());
 
 const sendWindowState = () => {
   if (!mainWindow || mainWindow.isDestroyed()) {

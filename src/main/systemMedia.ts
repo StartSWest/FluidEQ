@@ -376,7 +376,7 @@ export const watchSystemMedia = (
   // `null` for a session it could not read, which is the honest answer and
   // already handled; a machine with the namespace missing would otherwise
   // write a stack trace on every cycle.
-  started.on('exit', () => {
+  const ended = () => {
     // Only the CURRENT watcher's death means anything. A window reload stops
     // this child and starts the next one at once, and this exit is delivered
     // only once the old PowerShell has actually died — after the new one is
@@ -391,7 +391,18 @@ export const watchSystemMedia = (
     child = undefined;
     lastSnapshot = undefined;
     notify?.(undefined);
-  });
+  };
+  started.on('exit', ended);
+  // A child that could not be STARTED never exits: Node reports that as
+  // `error` and nothing else, and an `error` nobody listens for is an uncaught
+  // exception — in main, the whole app. That is what the first macOS launch
+  // died of, where there is no PowerShell to start, and it is the same death
+  // a Windows machine whose policy blocks PowerShell would die. The honest
+  // answer is the one a dead watcher already gives: nothing is known to be
+  // playing. It is held to the same "only the current one" rule: a failed
+  // start is reported after the fact too, and a watcher started since must
+  // not be cleared by it.
+  started.on('error', ended);
 };
 
 /** Stop reporting. The bar has an owner of its own again, or the window has
