@@ -50,8 +50,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
-#include "fluideq/loudness_meter.h"
 #include "fluideq/denoise.h"
+#include "fluideq/loudness_meter.h"
+#include "fluideq/room.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,6 +113,8 @@ typedef enum FeqMeterStage {
 #define FEQ_METER_BASS_FORGE_BANDS 8
 
 typedef struct FeqMeters FeqMeters;
+void feq_meters_publish_room(FeqMeters* meters, const FeqRoomReport* report);
+void feq_meters_read_room(const FeqMeters* meters, FeqRoomReport* report);
 
 FeqMeters* feq_meters_create(uint32_t channels);
 void feq_meters_destroy(FeqMeters* meters);

@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 
 #include "config_internal.h"
+#include "fluideq/chain.h"
 
 namespace fluideq_engine {
 
@@ -346,6 +347,7 @@ std::vector<double> parse_dsp_values(std::string_view text) {
       if (!detail::parse_double(token, value) || !std::isfinite(value)) {
         return {};
       }
+      if (values.size() >= FEQ_CHAIN_MAX_PARAMS) return {};
       values.push_back(value);
     }
   }

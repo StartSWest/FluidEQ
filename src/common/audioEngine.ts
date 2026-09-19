@@ -174,7 +174,7 @@ export interface IAudioEngineStatus {
  * been sent at all — a bug in the window, not a state a user can be in.
  */
 export type TSystemDspChainResult =
-  'written' | 'not-fluid' | 'not-installed' | 'rejected';
+  'written' | 'not-fluid' | 'not-installed' | 'rejected' | 'update-required';
 
 /** Guards a value read off disk before it is trusted as an engine name. */
 export const isAudioEngine = (value: unknown): value is TAudioEngine =>

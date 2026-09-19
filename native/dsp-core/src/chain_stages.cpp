@@ -237,8 +237,9 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
   if (chain->channels < 2) {
     return;
   }
-  if (chain->settings.dimension.enabled == 0 &&
-      feq_dimension_fade(&chain->dimension) <= 0.0) {
+  const bool enabled = chain->settings.dimension.enabled != 0 &&
+                       !feq_room_position_protected(chain->room);
+  if (!enabled && feq_dimension_fade(&chain->dimension) <= 0.0) {
     // Reset every block it is off for, not left settled: switching the stage
     // back on must not replay an all-pass network full of a minute-old signal.
     // Only once it is all the way out, though — a stage still fading needs the
@@ -247,7 +248,7 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
     return;
   }
   FeqDimensionSettings settings{};
-  settings.enabled = chain->settings.dimension.enabled;
+  settings.enabled = enabled ? 1 : 0;
   settings.low_width = chain->settings.dimension.low_width;
   settings.mid_width = chain->settings.dimension.mid_width;
   settings.high_width = chain->settings.dimension.high_width;

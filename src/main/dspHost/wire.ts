@@ -3,6 +3,7 @@
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
+import decodeRoomReport from '../../common/dsp/roomReport';
 
 /**
  * The binary frames the native host speaks, from this side.
@@ -643,6 +644,10 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   }
 
   return {
+    room: decodeRoomReport(
+      view.getUint32(116, true),
+      view.getFloat32(396, true),
+    ),
     sequence: view.getUint32(4, true),
     spectra,
     scatter,

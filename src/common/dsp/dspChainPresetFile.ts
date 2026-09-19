@@ -39,6 +39,11 @@ export const portableDspChainSettings = (
     exciter: { ...settings.exciter, isolate: false },
     bassForge: { ...settings.bassForge, isolate: false },
     bassPunch: { ...settings.bassPunch, isolate: false },
+    room: {
+      ...settings.room,
+      compareOriginal: false,
+      sourceAlreadySpatial: false,
+    },
   });
 
 /** Plain, readable JSON so a chain can be inspected as well as shared. */

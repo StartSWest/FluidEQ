@@ -17,10 +17,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "room_internal.h"
+#include "room_interpolation.h"
 
 #include <algorithm>
 #include <cmath>
 #include <new>
+#include <optional>
 
 namespace {
 
@@ -108,7 +110,7 @@ void arrivals_for(const FeqRoom* room, double angle_deg, double distance,
   };
   *count = 0;
   out[(*count)++] = Arrival{angle_deg, reference / distance,
-                            std::min(kDirectDelayCap, frames_beyond(distance))};
+                            std::min(s.renderer_version == 2 ? room_physical_taps(room->sample_rate) / 2 : kDirectDelayCap, frames_beyond(distance))};
   const double absorbed = s.walls < 0.0 ? 0.0 : (s.walls > 1.0 ? 1.0 : s.walls);
   if (absorbed >= 1.0) {
     return;
@@ -131,14 +133,15 @@ void arrivals_for(const FeqRoom* room, double angle_deg, double distance,
  * How much later the contralateral ear hears a speaker under the head
  * scale, in frames, never negative: a scale below one delays the near ear.
  */
-void ear_shifts(const FeqRoom* room, double angle_deg, uint32_t* left_shift,
-                uint32_t* right_shift) {
+void ear_shifts(const FeqRoom* room, double angle_deg, double* left_shift,
+                double* right_shift) {
   *left_shift = 0;
   *right_shift = 0;
   const double sine = std::sin(angle_deg * kPi / 180.0);
   const double delta = (room->settings.head_scale - 1.0) * kInterauralSeconds *
                        std::fabs(sine) * room->sample_rate;
-  const auto frames = static_cast<uint32_t>(std::lround(std::fabs(delta)));
+  const double frames = room->settings.renderer_version == 2
+                            ? std::fabs(delta) : double(std::lround(std::fabs(delta)));
   if (frames == 0) {
     return;
   }
@@ -153,16 +156,35 @@ void ear_shifts(const FeqRoom* room, double angle_deg, uint32_t* left_shift,
 }
 
 void add_arrival(const FeqRoom* room, const Arrival& arrival, double gain,
-                 uint32_t shift_left, uint32_t shift_right,
-                 std::vector<float>& response, float* left, float* right) {
+                 double shift_left, double shift_right,
+                 std::vector<float>& response, float* left, float* right,
+                 const RoomInterpolation* interpolation, uint32_t budget, bool reflected) {
   const uint32_t direction = nearest_direction(room, arrival.angle_deg);
   for (int ear = 0; ear < 2; ++ear) {
-    head_response(room, direction, ear, response);
-    const uint32_t start = arrival.delay + (ear == 0 ? shift_left : shift_right);
+    if (interpolation != nullptr) {
+      interpolation->response(arrival.angle_deg, ear,
+                              ear == 0 ? shift_left : shift_right, response);
+    } else {
+      head_response(room, direction, ear, response);
+    }
+    if (reflected && interpolation != nullptr) {
+      const auto p = room_ambience_parameters(room->sample_rate, 0, 0.5, 6000, room->settings.walls);
+      // A finite control-thread low-pass impulse, truncated below -240 dB.
+      // It affects reflected HRIRs only, with no callback filter allocation.
+      double state = 0;
+      response.resize(budget, 0.0f);
+      for (float& tap : response) {
+        state += p.wall_damping * (double(tap) - state);
+        if (std::fabs(state) < 1e-12) state = 0;
+        tap = static_cast<float>(state);
+      }
+    }
+    const uint32_t start = arrival.delay + (interpolation != nullptr ? 0u :
+        static_cast<uint32_t>(ear == 0 ? shift_left : shift_right));
     float* into = ear == 0 ? left : right;
     for (size_t tap = 0; tap < response.size(); ++tap) {
       const size_t at = start + tap;
-      if (at >= FEQ_ROOM_KERNEL_TAPS) {
+      if (at >= budget) {
         break;
       }
       into[at] += static_cast<float>(gain * arrival.gain * response[tap]);
@@ -215,6 +237,13 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   if (set == nullptr) {
     return nullptr;
   }
+  set->renderer_version = room->settings.renderer_version;
+  set->comparison_key = room_comparison_key(room);
+  set->preserve_position = room->settings.preserve_position;
+  set->compare_original = room->settings.compare_original;
+  set->source_already_spatial = room->settings.source_already_spatial;
+  std::copy(room->speaker, room->speaker + FEQ_ROOM_MAX_CHANNELS, set->speaker);
+  set->lfe_channel = room->lfe_channel;
   // The sub's own mute and nothing else: a solo never hushes it, because
   // bass management sends every speaker's bass down its path.
   set->sub_gain =
@@ -237,7 +266,24 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
   set->crossover_low = feq_biquad_coefficients(
       FEQ_FILTER_LPQ, crossover, 0.0, kButterworthQ, room->sample_rate);
   const bool has_head = room->directions > 0 && room->taps > 0;
-  if (room->settings.enabled == 0 || !has_head || room->channels < 2) {
+  // Unknown/partial maps must pass through, not silently discard unmapped
+  // audio.
+  bool layout_supported = true, any_speaker = false;
+  unsigned seen = 0;
+  for (uint32_t channel = 0; channel < room->channels; ++channel) {
+    if (static_cast<int>(channel) == room->lfe_channel) continue;
+    int speaker = room->speaker[channel];
+    if (speaker < 0 || speaker >= FEQ_ROOM_SPEAKERS ||
+        (seen & (1u << speaker)) != 0) {
+      layout_supported = false;
+      break;
+    }
+    seen |= 1u << speaker;
+    any_speaker = true;
+  }
+  if (room->settings.enabled == 0 ||
+      room->settings.source_already_spatial != 0 || !has_head ||
+      !layout_supported || !any_speaker || room->channels < 2) {
     return set;
   }
   // The music upmix: a two-channel stream on the front pair gets a kernel
@@ -264,9 +310,17 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
     set->rear_low = feq_biquad_coefficients(FEQ_FILTER_LPQ, 6000.0, 0.0,
                                             kButterworthQ, room->sample_rate);
   }
-  std::vector<float> left(FEQ_ROOM_KERNEL_TAPS);
-  std::vector<float> right(FEQ_ROOM_KERNEL_TAPS);
+  const bool v2 = room->settings.renderer_version == 2;
+  const uint32_t budget = v2 ? room_physical_taps(room->sample_rate) : FEQ_ROOM_KERNEL_TAPS;
+  const double space = !v2 ? 1 : (room->settings.early_reflection_db <= -60 ? 0 : db_to_gain(room->settings.early_reflection_db));
+  if (v2) set->late = room_ambience_parameters(room->sample_rate,
+      room->settings.ambience_mix, room->settings.ambience_decay_s,
+      room->settings.ambience_damping_hz, room->settings.walls);
+  std::vector<float> left(budget);
+  std::vector<float> right(budget);
   std::vector<float> response;
+  std::optional<RoomInterpolation> interpolation;
+  if (room->settings.renderer_version == 2) interpolation.emplace(room);
   Arrival arrivals[5];
   // Active from here: a room whose every speaker is muted is a silent room,
   // not a room switched off — the latency and the status stay the room's.
@@ -298,29 +352,39 @@ FeqRoomKernels* room_build_kernels(const FeqRoom* room) {
     if (speaker == 2) {
       gain *= db_to_gain(room->settings.centre_db);
     }
-    uint32_t shift_left = 0;
-    uint32_t shift_right = 0;
+    double shift_left = 0;
+    double shift_right = 0;
     ear_shifts(room, angle, &shift_left, &shift_right);
     uint32_t count = 0;
     arrivals_for(room, angle, speaker_distance(room->settings, speaker),
                  nearest, arrivals, &count);
     for (uint32_t at = 0; at < count; ++at) {
-      add_arrival(room, arrivals[at], gain, shift_left, shift_right, response,
-                  left.data(), right.data());
+      if (at > 0 && space == 0) continue;
+      add_arrival(room, arrivals[at], gain * (at == 0 ? 1 : space), shift_left, shift_right, response,
+                  left.data(), right.data(), interpolation ? &*interpolation : nullptr, budget, at > 0);
+      if (v2 && at > 0 && arrivals[at].delay < budget) {
+        // Same source, mute, level, image geometry and post-bass band as ears.
+        // A regular convolver emits a partition late; the send must too.
+        set->reflections[channel][at-1] = {arrivals[at].delay +
+            (room->low_latency ? 0u : feq_convolver_latency()),
+            gain * space * arrivals[at].gain / FEQ_ROOM_SPEAKERS};
+      }
     }
     for (int ear = 0; ear < 2; ++ear) {
       const std::vector<float>& taps = ear == 0 ? left : right;
+      uint32_t used = budget;
+      if (v2) while (used > feq_convolver_head_taps() + 1u && taps[used-1] == 0.0f) --used;
       // Game mode splits the kernel: its first partition becomes a direct
       // head, and the convolver takes the rest from one partition in — see
       // `feq_convolver_head_run` for why that lands the tail on time.
       const uint32_t head = room->low_latency ? feq_convolver_head_taps() : 0u;
       if (head != 0u) {
         set->head[channel][ear].assign(head, 0.0f);
-        feq_convolver_head_prepare(taps.data(), FEQ_ROOM_KERNEL_TAPS,
+        feq_convolver_head_prepare(taps.data(), used,
                                    set->head[channel][ear].data());
       }
       FeqConvolverKernel* kernel = feq_convolver_kernel_create(
-          taps.data() + head, FEQ_ROOM_KERNEL_TAPS - head);
+          taps.data() + head, used - head);
       FeqConvolver* convolver =
           kernel != nullptr ? feq_convolver_create(kernel) : nullptr;
       if (kernel == nullptr || convolver == nullptr) {

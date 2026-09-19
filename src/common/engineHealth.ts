@@ -250,6 +250,11 @@ export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
 export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);
 
+/** Versioned Room commands and truthful comparison telemetry. */
+export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
+export const engineSupportsRoomUpgrade = (
+  dllVersion: string | undefined,
+): boolean => engineAtLeast(dllVersion, ENGINE_ROOM_SINCE);
 /** The first released engine with Game mode and full processing delay parts. */
 export const ENGINE_GAME_MODE_SINCE: readonly [number, number] = [1, 10];
 

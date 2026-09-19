@@ -28,6 +28,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+#include "fluideq/room.h"
+
 /* For the profile's band and partial counts, which size its payload. */
 #include "fluideq/denoise.h"
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
@@ -428,8 +430,8 @@ typedef struct FeqWireAnalysisFrame {
   float normalizer_input_peaks[2];
   float normalizer_output_peaks[2];
   float normalizer_applied_gain_db;
-  /** Pads the struct to eight-byte alignment; the assert below names it. */
-  float reserved_tail;
+  /** Tagged Room flags at116; zero means an older writer with no report. */
+  uint32_t reserved_tail;
   /**
    * What the output actually measures, by BS.1770: momentary, short term,
    * integrated, and the loudness range in LU.
@@ -503,6 +505,7 @@ typedef struct FeqWireAnalysisFrame {
    * struct. The compiler would insert this byte-for-byte anyway; spelling it
    * out is what keeps the TypeScript constant derivable by reading this file.
    */
+  /** Room reference gain dB at396; meaningful only with the tag at116. */
   float bass_reserved_tail;
   /**
    * Hiss gain that actually reached the audio, in dB per profile band.
@@ -525,6 +528,15 @@ typedef struct FeqWireAnalysisFrame {
  * garbage telemetry there. If one of these fails, fix the TypeScript to match;
  * do not pad the struct to suit it.
  */
+inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
+                                 const FeqRoomReport& room) {
+  frame.reserved_tail = room.flags;
+  frame.bass_reserved_tail = room.reference_gain_db;
+}
+static_assert(offsetof(FeqWireAnalysisFrame, reserved_tail) == 116,
+              "Room flags offset");
+static_assert(offsetof(FeqWireAnalysisFrame, bass_reserved_tail) == 396,
+              "Room gain offset");
 static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");

@@ -43,6 +43,9 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   feq_meters_read_exciter(meters_, frame.exciter_bands, &frame.exciter_organic);
   feq_meters_read_maximizer(meters_, &frame.maximizer_reduction_db);
   feq_meters_read_dimension(meters_, &frame.dimension_guard);
+  FeqRoomReport room{};
+  feq_meters_read_room(meters_, &room);
+  feq_wire_room_report(frame, room);
   FeqMasterTelemetry master{};
   feq_meters_read_master(meters_, &master);
   frame.auto_headroom_reduction_db = static_cast<float>(master.auto_headroom_reduction_db);

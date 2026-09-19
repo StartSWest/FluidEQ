@@ -31,7 +31,7 @@ import type { IAudioEngineStatus } from 'common/audioEngine';
 import { getAudioEngineStatus } from './audioEngineApi';
 import { reportError } from './logger';
 import { subscribeAudioEngineChanged } from './audioEngineEvents';
-import { resetSystemDspChain } from '../dsp/systemChain';
+import { resetSystemDspChain, retrySystemDspChain } from '../dsp/systemChain';
 
 export interface IAudioEngineStatusHook {
   status: IAudioEngineStatus | undefined;
@@ -71,6 +71,12 @@ const askOnce = async (askedIn: number): Promise<void> => {
     // instead of skipping because the array happens to match last time.
     if (known !== undefined && known.engine !== next.engine) {
       resetSystemDspChain();
+    }
+    if (
+      known !== undefined &&
+      known.fluid?.dllVersion !== next.fluid?.dllVersion
+    ) {
+      retrySystemDspChain();
     }
     // The same answer keeps the same object. Every question re-renders every
     // holder otherwise — the whole shell among them, each time the DSP tab

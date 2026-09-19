@@ -34,8 +34,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        Processes list, and says so in its handshake (bit 2 of byte 39). An
  *        older engine would read the request as "meters off" and never
  *        answer, so the app asks only a connection that set the bit.
+ *   1.9  also reports carried audio.
  *   1.10 supports the shared Game mode control and reports all processing
  *        delay parts, including active stages that add no buffering.
+ *   1.11 supports the versioned Room trailer and comparison telemetry.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -47,8 +49,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 10, 0, 0
-PRODUCTVERSION 1, 10, 0, 0
+FILEVERSION 1, 11, 0, 0
+PRODUCTVERSION 1, 11, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

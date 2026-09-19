@@ -39,6 +39,15 @@ extern "C" {
 #define FEQ_ROOM_KERNEL_TAPS 2048
 
 typedef struct FeqRoomSettings {
+  /* Versioned Room rendering; absent wire trailer means legacy defaults. */
+  int renderer_version;
+  double early_reflection_db;
+  double ambience_mix;
+  double ambience_decay_s;
+  double ambience_damping_hz;
+  int preserve_position;
+  int compare_original;
+  int source_already_spatial;
   int enabled;
   /** The shoebox's side, 2 to 12 m; the listener sits in the middle. */
   double size_m;
@@ -105,6 +114,21 @@ typedef struct FeqRoomSettings {
 #define FEQ_ROOM_HUSHED 2
 
 typedef struct FeqRoom FeqRoom;
+/** Audio-thread snapshot. Prepared-state feq_room_active is for planning only.
+ */
+typedef struct FeqRoomReport {
+  uint32_t flags;
+  float reference_gain_db;
+} FeqRoomReport;
+#define FEQ_ROOM_REPORT_TAG 0x524d0100u
+#define FEQ_ROOM_REPORT_ACTIVE 1u
+#define FEQ_ROOM_REPORT_ORIGINAL 2u
+#define FEQ_ROOM_REPORT_MATCH 4u
+#define FEQ_ROOM_REPORT_FOLD_DOWN 8u
+#define FEQ_ROOM_REPORT_PROTECTED 16u
+#define FEQ_ROOM_REPORT_SOURCE_BYPASS 32u
+void feq_room_report(const FeqRoom* room, FeqRoomReport* out);
+int feq_room_position_protected(const FeqRoom* room);
 
 void feq_room_settings_defaults(FeqRoomSettings* settings);
 
@@ -137,7 +161,9 @@ void feq_room_configure(FeqRoom* room, const FeqRoomSettings* settings);
 void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames);
 
 /**
- * Whether the stage folds right now: enabled, a head loaded, two or more
+ * CONTROL planning state of the latest publication, before audio adoption.
+ * For what was processed use feq_room_report on AUDIO, or its meter snapshot.
+ * Eligible means enabled, a head loaded, two or more
  * channels, and at least one of them with a speaker.
  */
 int feq_room_active(const FeqRoom* room);
@@ -161,16 +187,23 @@ void feq_room_set_low_latency(FeqRoom* room, int on);
  * room started from empty convolvers: one partition of silence, heard as
  * the sound cutting for an instant on every change to a room dial.
  * Allocates nothing; refused unless both rooms share rate, width and
- * block size. `previous` is left with no set to play.
+ * block size. The audio-owned sets/histories are exchanged: `previous` may
+ * own displaced prepared state, reclaimed by its control-thread destructor.
+ * A saturated return channel delays target adoption while the transferred
+ * live audio and any fade in progress continue unchanged; no retry is needed.
+ * A rate/width/block mismatch also keeps ownership and fades the fresh graph.
  */
 void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous);
 
 /**
- * The sub's filter state and the mixes. The convolvers keep their tails —
- * at most the blend's 21 ms — because emptying them would mean re-creating
- * them, and this may be called from the audio thread on a seek.
+ * Clears sub, reflection-send, comparison delay/capture, late-ambience
+ * histories, and the mixes. The convolvers keep their tails — at most the
+ * blend's 21 ms — because emptying them would mean re-creating them, and this
+ * may be called from the audio thread on a seek.
  */
 void feq_room_reset(FeqRoom* room);
+/** Audio owner only: reset all Room history, including partitioned direct tails. */
+void feq_room_reset_route(FeqRoom* room);
 
 #ifdef __cplusplus
 }

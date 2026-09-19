@@ -3,6 +3,7 @@
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
+import { setDspRoomReport } from './roomTelemetry';
 
 /**
  * The panel's displays, fed by the engine that is actually making the sound.
@@ -120,6 +121,7 @@ export const createNativeMeters = (
   binCount: number,
 ): INativeMeters => {
   const owner = {};
+  setDspRoomReport(undefined);
   const analysers: Partial<Record<TAnalysisStage, HostAnalyser>> = {};
   /**
    * Whatever held each slot before, so it can have it back.
@@ -139,6 +141,7 @@ export const createNativeMeters = (
 
   const unsubscribe = bridge.onDspHostAnalysis((frame) => {
     telemetryOwner = owner;
+    setDspRoomReport(frame.room);
     (Object.keys(frame.spectra) as TAnalysisStage[]).forEach((stage) => {
       const bins = frame.spectra[stage];
       if (!bins) {
@@ -265,6 +268,9 @@ export const createNativeMeters = (
   return {
     release: (clearTelemetry = false) => {
       unsubscribe();
+      if (telemetryOwner === owner) {
+        setDspRoomReport(undefined);
+      }
       bridge.setDspHostAnalysis(false).catch(() => undefined);
       if (clearTelemetry && telemetryOwner === owner) {
         telemetryOwner = undefined;

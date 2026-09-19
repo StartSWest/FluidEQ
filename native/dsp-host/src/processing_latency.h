@@ -19,7 +19,7 @@ class ProcessingLatency {
     const uint32_t words[] = {
         feq_chain_latency_frames(chain), parts.linear_eq, parts.restoration,
         parts.leveler, parts.room, parts.bass_punch, parts.maximizer,
-        parts.headroom, parts.safety, feq_chain_active_stages(chain)};
+        parts.headroom, parts.safety, feq_chain_processed_stages(chain)};
     sequence_.fetch_add(1);
     for (size_t i = 0; i < values_.size(); ++i) values_[i].store(words[i]);
     sequence_.fetch_add(1);

@@ -631,6 +631,244 @@ describe('the audio engine channels', () => {
     expect(replied(reply)).toEqual({ result: 'rejected' });
   });
 
+  it.each([
+    ['supported', 'supported', 'older-first', 'written'],
+    ['supported', 'unsupported', 'older-first', 'update-required'],
+    ['failed', 'supported', 'older-first', 'written'],
+    ['failed', 'supported', 'newer-first', 'written'],
+    ['supported', 'failed', 'older-first', 'failure'],
+    ['supported', 'failed', 'newer-first', 'failure'],
+  ])(
+    'uses the latest overlapping capability read: %s then %s, %s',
+    async (older, newer, completionOrder, expected) => {
+      engine = 'fluid';
+      const deferred = <T>() => {
+        let resolve: (value: T) => void = () => {
+          throw new Error('uninitialized');
+        };
+        let reject: (error: Error) => void = () => {
+          throw new Error('uninitialized');
+        };
+        const promise = new Promise<T>((_resolve, _reject) => {
+          resolve = _resolve;
+          reject = _reject;
+        });
+        return { promise, resolve, reject };
+      };
+      const first = deferred<IAudioEngineStatus>();
+      const second = deferred<IAudioEngineStatus>();
+      const started = deferred<void>();
+      const newerStarted = deferred<void>();
+      const supported: IAudioEngineStatus = {
+        ...STATUS,
+        engine: 'fluid',
+        fluid: { installed: true, endpoints: [], dllVersion: '1.11.0.0' },
+      };
+      readAudioEngineStatus
+        .mockImplementationOnce(() => {
+          started.resolve();
+          return first.promise;
+        })
+        .mockImplementationOnce(() => {
+          newerStarted.resolve();
+          return second.promise;
+        });
+      const values = encodeChainSettings({
+        ...DSP_DEFAULTS,
+        room: { ...DSP_DEFAULTS.room, enabled: true, rendererVersion: 2 },
+      });
+      const chain = fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values]);
+      await started.promise;
+      const status = fire(ChannelEnum.GET_AUDIO_ENGINE_STATUS, undefined);
+      await newerStarted.promise;
+      const settle = (read: typeof first, outcome: string) => {
+        if (outcome === 'failed') {
+          read.reject(new Error('status unavailable'));
+        } else {
+          read.resolve(
+            outcome === 'supported'
+              ? supported
+              : {
+                  ...supported,
+                  fluid: {
+                    installed: true,
+                    endpoints: [],
+                    dllVersion: '1.10.0.0',
+                  },
+                },
+          );
+        }
+      };
+      if (completionOrder === 'older-first') {
+        settle(first, older);
+        await first.promise.catch(() => undefined);
+        await Promise.resolve();
+        settle(second, newer);
+      } else {
+        settle(second, newer);
+        await second.promise.catch(() => undefined);
+        await Promise.resolve();
+        settle(first, older);
+      }
+      const [reply] = await Promise.all([chain, status]);
+      expect(replied(reply)).toEqual(
+        expected === 'failure'
+          ? { errorCode: ErrorCode.FAILURE }
+          : { result: expected },
+      );
+      expect(writeSystemDspChain).toHaveBeenCalledTimes(
+        expected === 'written' ? 1 : 0,
+      );
+      expect(readAudioEngineStatus).toHaveBeenCalledTimes(2);
+      readAudioEngineStatus.mockResolvedValue(supported);
+      if (newer !== 'failed') {
+        await fire(ChannelEnum.GET_AUDIO_ENGINE_STATUS, undefined);
+      }
+      expect(
+        replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+      ).toEqual({ result: 'written' });
+      expect(readAudioEngineStatus).toHaveBeenCalledTimes(3);
+      expect(writeSystemDspChain).toHaveBeenCalledTimes(
+        expected === 'written' ? 2 : 1,
+      );
+    },
+  );
+
+  it('shares a failed initial capability read across waiting writes, then retries on a new command', async () => {
+    engine = 'fluid';
+    let reject: (error: Error) => void = () => {
+      throw new Error('uninitialized');
+    };
+    const failed = new Promise<IAudioEngineStatus>((_resolve, _reject) => {
+      reject = _reject;
+    });
+    const supported: IAudioEngineStatus = {
+      ...STATUS,
+      engine: 'fluid',
+      fluid: { installed: true, endpoints: [], dllVersion: '1.11.0.0' },
+    };
+    readAudioEngineStatus
+      .mockReturnValueOnce(failed)
+      .mockResolvedValue(supported);
+    const values = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      room: { ...DSP_DEFAULTS.room, enabled: true, rendererVersion: 2 },
+    });
+    const first = fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values]);
+    const second = fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(readAudioEngineStatus).toHaveBeenCalledTimes(1);
+    reject(new Error('status unavailable'));
+    const replies = await Promise.all([first, second]);
+    replies.forEach((reply) =>
+      expect(replied(reply)).toEqual({ errorCode: ErrorCode.FAILURE }),
+    );
+    expect(readAudioEngineStatus).toHaveBeenCalledTimes(1);
+    expect(writeSystemDspChain).not.toHaveBeenCalled();
+    expect(
+      replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+    ).toEqual({ result: 'written' });
+    expect(readAudioEngineStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([undefined, '1.9.0.0', '1.10.0.0', 'bad'])(
+    'refuses extended Room on unsupported engine %s and recovers after status refresh',
+    async (version) => {
+      engine = 'fluid';
+      readAudioEngineStatus.mockResolvedValue({
+        ...STATUS,
+        engine: 'fluid',
+        fluid: { installed: true, endpoints: [], dllVersion: version },
+      });
+      const values = encodeChainSettings({
+        ...DSP_DEFAULTS,
+        room: { ...DSP_DEFAULTS.room, enabled: true, rendererVersion: 2 },
+      });
+      expect(
+        replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+      ).toEqual({ result: 'update-required' });
+      expect(
+        replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+      ).toEqual({ result: 'update-required' });
+      expect(readAudioEngineStatus).toHaveBeenCalledTimes(1);
+      expect(writeSystemDspChain).not.toHaveBeenCalled();
+      readAudioEngineStatus.mockResolvedValue({
+        ...STATUS,
+        engine: 'fluid',
+        fluid: { installed: true, endpoints: [], dllVersion: '1.11.0.0' },
+      });
+      await fire(ChannelEnum.GET_AUDIO_ENGINE_STATUS, undefined);
+      expect(
+        replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+      ).toEqual({ result: 'written' });
+      expect(writeSystemDspChain).toHaveBeenCalledWith(
+        path.join(userDataDir, 'config'),
+        values,
+      );
+    },
+  );
+
+  it('writes a compatible rack-off command on an old engine when Library takes ownership', async () => {
+    engine = 'fluid';
+    readAudioEngineStatus.mockResolvedValue({
+      ...STATUS,
+      engine: 'fluid',
+      fluid: { installed: true, endpoints: [], dllVersion: '1.9.0.0' },
+    });
+    const settings = {
+      ...DSP_DEFAULTS,
+      enabled: false,
+      room: {
+        ...DSP_DEFAULTS.room,
+        enabled: true,
+        rendererVersion: 2 as const,
+      },
+    };
+    const values = encodeChainSettings(settings);
+    expect(
+      replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+    ).toEqual({ result: 'written' });
+    const written = writeSystemDspChain.mock.calls[0]?.[1] as
+      number[] | undefined;
+    expect(written).toEqual(
+      encodeChainSettings({
+        ...settings,
+        room: { ...settings.room, rendererVersion: 1 },
+      }),
+    );
+    expect(values.length).toBeGreaterThan(written?.length ?? 0);
+  });
+
+  it('keeps other processors when old-engine Room is manually bypassed', async () => {
+    engine = 'fluid';
+    readAudioEngineStatus.mockResolvedValue({
+      ...STATUS,
+      engine: 'fluid',
+      fluid: { installed: true, endpoints: [], dllVersion: '1.9.0.0' },
+    });
+    const values = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      enabled: true,
+      room: {
+        ...DSP_DEFAULTS.room,
+        enabled: true,
+        rendererVersion: 2,
+        sourceAlreadySpatial: true,
+      },
+    });
+    expect(
+      replied(await fire(ChannelEnum.SET_SYSTEM_DSP_CHAIN, [values])),
+    ).toEqual({ result: 'written' });
+    expect(writeSystemDspChain.mock.calls[0]?.[1]).toEqual(
+      encodeChainSettings({
+        ...DSP_DEFAULTS,
+        enabled: true,
+        surround: { ...DSP_DEFAULTS.surround, allChannels: true },
+        room: { ...DSP_DEFAULTS.room, enabled: false },
+      }),
+    );
+  });
   it('writes the rack under the FluidEQ Engine', async () => {
     engine = 'fluid';
     const values = encodeChainSettings(DSP_DEFAULTS);

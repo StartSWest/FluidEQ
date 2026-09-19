@@ -138,6 +138,13 @@ void the_encoder_s_own_line_decodes() {
   CHECK(settings.eq.band_count == 15);
 }
 
+void room_payload_bound_is_shared_with_the_file_parser() {
+  std::string text;
+  for (size_t index = 0; index < FEQ_CHAIN_MAX_PARAMS; ++index) text += "0 ";
+  CHECK(parse_dsp_values(dsp_file(text)).size() == FEQ_CHAIN_MAX_PARAMS);
+  CHECK(parse_dsp_values(dsp_file(text + "0")).empty());
+}
+
 void a_header_only_or_broken_file_is_no_rack() {
   std::printf("a file with no numbers, or a bad token, is no rack\n");
   CHECK(parse_dsp_values("# FluidEQ Engine DSP chain v1\r\n").empty());
@@ -580,6 +587,30 @@ void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
   CHECK(voicing_rack_off.latency_parts().curves == 0u);
 }
 
+void room_protection_is_reflected_in_the_control_stage_plan() {
+  const auto head = flat_head();
+  auto values = reference_values();
+  values[kRoomEnabled] = 1;
+  values[58] = 1;  // Dimension enabled, immediately after compressor's bands.
+  // Fixed Game word followed by the shared Room schema trailer.
+  values.insert(values.end(), {1, FEQ_CHAIN_ROOM_TAG, FEQ_CHAIN_ROOM_SCHEMA,
+      FEQ_CHAIN_ROOM_FIELDS, 2, -18, .2, .8, 6000, 1, 0, 0});
+  const auto contains = [](const Graph& graph, const char* stage) {
+    const auto& stages = graph.active_stages();
+    return std::find(stages.begin(), stages.end(), stage) != stages.end();
+  };
+  // Protection changes Dimension's effective plan only.
+  Graph protected_room(chain_with(values), kRate, 2, 128, nullptr, 0, &head);
+  CHECK(contains(protected_room, "room"));
+  CHECK(!contains(protected_room, "dimension"));
+  CHECK(protected_room.low_latency());
+  values.back() = 1;
+  Graph bypassed(chain_with(values), kRate, 2, 128, nullptr, 0, &head);
+  CHECK(!contains(bypassed, "room"));
+  CHECK(contains(bypassed, "dimension"));
+  CHECK(bypassed.latency_parts().rack.room == 0);
+}
+
 /**
  * THE SAME, WITH THE ROOM ON, WHICH IS WHERE IT IS AUDIBLE.
  *
@@ -700,6 +731,7 @@ int main() {
   std::printf("fluideq engine system-wide DSP rack\n");
   the_encoder_s_own_line_decodes();
   a_header_only_or_broken_file_is_no_rack();
+  room_payload_bound_is_shared_with_the_file_parser();
   denoise_runs_without_the_neural_runtime();
   a_wrong_band_count_is_refused_and_the_eq_still_runs();
   switching_the_rack_off_is_not_a_failure();
@@ -715,6 +747,7 @@ int main() {
   a_changed_rack_is_never_shared();
   dsp_edits_keep_audio_in_flight();
   a_room_change_keeps_audio_in_flight();
+  room_protection_is_reflected_in_the_control_stage_plan();
   the_whole_path_reports_its_delay_and_game_mode_shortens_it();
   return report();
 }

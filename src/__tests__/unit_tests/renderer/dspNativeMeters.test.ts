@@ -1,3 +1,7 @@
+import {
+  readDspRoomReport,
+  subscribeDspRoomReport,
+} from '../../../renderer/dsp/roomTelemetry';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -544,4 +548,38 @@ describe('the Bass Forge and Bass Punch meters', () => {
       duckDb: -4,
     });
   });
+});
+
+it('clears Room reports on native owner changes, legacy frames and releases', () => {
+  const a = fakeBridge();
+  const b = fakeBridge();
+  const first = createNativeMeters(a.bridge, ANALYSIS_BINS);
+  const frame = analysisFrame(STAGES);
+  frame.room = {
+    active: true,
+    original: true,
+    matchAvailable: true,
+    referenceGainDb: -3,
+    conventionalFoldDown: false,
+    positionProtected: true,
+    sourceBypassed: false,
+  };
+  const changed = jest.fn();
+  const stop = subscribeDspRoomReport(changed);
+  a.send(frame);
+  expect(readDspRoomReport()).toEqual(frame.room);
+  expect(changed).toHaveBeenCalledTimes(1);
+  a.send(frame);
+  expect(changed).toHaveBeenCalledTimes(1);
+  const second = createNativeMeters(b.bridge, ANALYSIS_BINS);
+  expect(readDspRoomReport()).toBeUndefined();
+  b.send(frame);
+  first.release(true);
+  expect(readDspRoomReport()).toEqual(frame.room);
+  b.send(analysisFrame(STAGES));
+  expect(readDspRoomReport()).toBeUndefined();
+  b.send(frame);
+  second.release();
+  expect(readDspRoomReport()).toBeUndefined();
+  stop();
 });

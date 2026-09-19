@@ -3,8 +3,9 @@
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
-
 import { useSyncExternalStore } from 'react';
+import { setDspRoomReport } from './roomTelemetry';
+
 import {
   DSP_DEFAULTS,
   IDspSettings,
@@ -1044,6 +1045,7 @@ export const readDspScatter = (): Float32Array => scatter;
 
 /** A stopped source has no current measurements; do not retain its last bars. */
 export const clearDspMeterTelemetry = (): void => {
+  setDspRoomReport(undefined);
   normalizerMeter = {
     inputPeaks: [0, 0],
     outputPeaks: [0, 0],

@@ -50,11 +50,12 @@ int feq_chain_settings_decode(const double* values,
   // still decode with the normalizer off instead of shifting their EQ bands.
   // And after the normalizer's three, game mode's one — written only when it
   // is on, so a rack that does not ask for it is the line it always was.
+  const bool extended_room = count == legacy_count + FEQ_CHAIN_MAX_TRAILER;
   if (count != legacy_count && count != legacy_count + 3 &&
-      count != legacy_count + 4) {
+      count != legacy_count + 4 && !extended_room) {
     return 0;
   }
-  if (count == legacy_count + 4) {
+  if (count == legacy_count + 4 || extended_room) {
     const double low_latency = values[legacy_count + 3];
     if (low_latency != 0.0 && low_latency != 1.0) return 0;
   }
@@ -65,6 +66,23 @@ int feq_chain_settings_decode(const double* values,
     if (!std::isfinite(mode) || mode < 0 || mode > 2 || std::floor(mode) != mode ||
         !std::isfinite(ceiling) || ceiling < -12 || ceiling > -0.1 ||
         !std::isfinite(target) || target < -24 || target > -5) return 0;
+  }
+
+  // Validate before writing out: a refused snapshot leaves the live rack alone.
+  for (uint32_t index = 0; index < count; ++index) {
+    if (!std::isfinite(values[index])) return 0;
+  }
+  if (extended_room) {
+    const double* room = values + legacy_count + 4;
+    if (room[0] != FEQ_CHAIN_ROOM_TAG || room[1] != FEQ_CHAIN_ROOM_SCHEMA ||
+        room[2] != FEQ_CHAIN_ROOM_FIELDS || (room[3] != 1 && room[3] != 2) ||
+        room[4] < -60 || room[4] > 0 || room[5] < 0 || room[5] > 1 ||
+        room[6] < 0.1 || room[6] > 1.8 || room[7] < 1000 || room[7] > 12000) {
+      return 0;
+    }
+    for (uint32_t index = 8; index < FEQ_CHAIN_ROOM_TRAILER; ++index) {
+      if (room[index] != 0 && room[index] != 1) return 0;
+    }
   }
 
   feq_chain_settings_defaults(out);
@@ -242,10 +260,21 @@ int feq_chain_settings_decode(const double* values,
     out->normalizer.ceiling_db = ceiling;
     out->normalizer.target_lufs = target;
   }
-  if (count == legacy_count + 4) {
+  if (count == legacy_count + 4 || extended_room) {
     out->low_latency = flag();
   }
-  return 1;
+  if (extended_room) {
+    at += 3; // validated tag, schema and payload length
+    out->room.renderer_version = static_cast<int>(next());
+    out->room.early_reflection_db = next();
+    out->room.ambience_mix = next();
+    out->room.ambience_decay_s = next();
+    out->room.ambience_damping_hz = next();
+    out->room.preserve_position = flag();
+    out->room.compare_original = flag();
+    out->room.source_already_spatial = flag();
+  }
+  return at == count ? 1 : 0;
 }
 
 }  // extern "C"

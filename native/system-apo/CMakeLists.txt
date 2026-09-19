@@ -11,7 +11,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 add_library(fluideq-engine-config STATIC src/config.cpp src/config_grammar.cpp
   src/programme.cpp)
-target_include_directories(fluideq-engine-config PUBLIC include)
+target_include_directories(fluideq-engine-config PUBLIC include
+  PRIVATE ../dsp-core/include) # Shared chain wire bounds used by the parser.
 target_link_libraries(fluideq-engine-config PRIVATE feq_strict)
 
 add_executable(fluideq-engine-config-test tests/config_test.cpp)

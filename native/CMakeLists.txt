@@ -99,6 +99,9 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/dimension.cpp
   dsp-core/src/room.cpp
   dsp-core/src/room_kernels.cpp
+  dsp-core/src/room_interpolation.cpp
+  dsp-core/src/room_ambience.cpp
+  dsp-core/src/room_comparison.cpp
   dsp-core/src/bass_forge.cpp
   dsp-core/src/bass_forge_meters.cpp
   dsp-core/src/bass_punch.cpp
@@ -221,6 +224,17 @@ add_test(NAME chain-latency COMMAND fluideq-chain-latency-test)
 add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
 target_link_libraries(fluideq-room-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room COMMAND fluideq-room-test)
+
+add_executable(fluideq-room-contract-test dsp-core/tests/room_contract_test.cpp)
+target_link_libraries(fluideq-room-contract-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-contract COMMAND fluideq-room-contract-test)
+
+add_executable(fluideq-room-interpolation-test
+  dsp-core/tests/room_interpolation_test.cpp system-apo/src/room_head.cpp)
+target_link_libraries(fluideq-room-interpolation-test PRIVATE fluideq-dsp-core feq_strict)
+target_compile_definitions(fluideq-room-interpolation-test PRIVATE
+  FEQ_ROOM_HEAD_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/room/heads")
+add_test(NAME room-interpolation COMMAND fluideq-room-interpolation-test)
 
 # The card's eleven rooms through the engine's room: no clipping, walls that
 # come back when and only when the room says, a louder sub that is louder.
@@ -471,3 +485,11 @@ if(WIN32)
   target_link_libraries(fluideq-lighting-wire-test PRIVATE feq_strict)
   add_test(NAME lighting-wire COMMAND fluideq-lighting-wire-test)
 endif()
+
+add_executable(fluideq-room-ambience-test dsp-core/tests/room_ambience_test.cpp)
+target_link_libraries(fluideq-room-ambience-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-ambience COMMAND fluideq-room-ambience-test)
+
+add_executable(fluideq-room-comparison-test dsp-core/tests/room_comparison_test.cpp)
+target_link_libraries(fluideq-room-comparison-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-comparison COMMAND fluideq-room-comparison-test)

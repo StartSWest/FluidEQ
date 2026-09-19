@@ -20,7 +20,11 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../../../common/audioEngine';
-import { encodeChainSettings } from '../../../common/dsp/chainWire';
+import {
+  encodeChainSettings,
+  gameModeOnWire,
+  legacyChainWithoutInactiveRoom,
+} from '../../../common/dsp/chainWire';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 import { readEngineHealth } from '../../../main/engineHealth';
 import { flushPendingWrites, forgetPath } from '../../../main/asyncWriter';
@@ -131,6 +135,84 @@ describe('the system-wide DSP chain file', () => {
       .filter((line) => line && !line.startsWith('#'))
       .join(' ');
     expect(numbers.split(' ').map(Number)).toEqual(values);
+  });
+
+  it.each(['active', 'rack-off', 'room-off', 'source-bypass'])(
+    'preserves Room and Game mode through the actual writer for %s',
+    async (mode) => {
+      const values = encodeChainSettings({
+        ...DSP_DEFAULTS,
+        enabled: mode !== 'rack-off',
+        gameMode: true,
+        room: {
+          ...DSP_DEFAULTS.room,
+          enabled: mode !== 'room-off',
+          rendererVersion: 2,
+          sourceAlreadySpatial: mode === 'source-bypass',
+        },
+      });
+      expect(gameModeOnWire(values)).toBe(true);
+      await writeSystemDspChain(configDir, values);
+      await flushPendingWrites();
+      const written = fs.readFileSync(
+        path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
+        'utf8',
+      );
+      expect(written).toContain('# FluidEQLowLatency: ON');
+      expect(
+        written
+          .split('\r\n')
+          .find((line) => line && !line.startsWith('#'))
+          ?.split(' ')
+          .map(Number),
+      ).toEqual(values);
+    },
+  );
+
+  it.each(['rack-off', 'room-off', 'source-bypass'])(
+    'preserves Game metadata after stripping the inactive Room trailer for %s',
+    (mode) => {
+      const legacy = legacyChainWithoutInactiveRoom(
+        encodeChainSettings({
+          ...DSP_DEFAULTS,
+          enabled: mode !== 'rack-off',
+          gameMode: true,
+          room: {
+            ...DSP_DEFAULTS.room,
+            enabled: mode !== 'room-off',
+            rendererVersion: 2,
+            sourceAlreadySpatial: mode === 'source-bypass',
+          },
+        }),
+      );
+      expect(legacy).toBeDefined();
+      expect(gameModeOnWire(legacy ?? [])).toBe(true);
+      expect(formatSystemDspChain(legacy ?? [])).toContain(
+        '# FluidEQLowLatency: ON',
+      );
+    },
+  );
+
+  it('does not invent Game mode from a Room flag, malformed trailer or short payload', () => {
+    const values = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      room: {
+        ...DSP_DEFAULTS.room,
+        rendererVersion: 2,
+        sourceAlreadySpatial: true,
+      },
+    });
+    expect(gameModeOnWire(values)).toBe(false);
+    expect(formatSystemDspChain(values)).not.toContain('FluidEQLowLatency');
+    const gaming = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      gameMode: true,
+      room: { ...DSP_DEFAULTS.room, rendererVersion: 2 },
+    });
+    gaming[gaming.length - 1] = 99;
+    expect(gameModeOnWire(gaming)).toBe(false);
+    expect(gameModeOnWire(gaming.slice(0, -2))).toBe(false);
+    expect(gameModeOnWire([1])).toBe(false);
   });
 
   it('round-trips through Number back to the same array', () => {

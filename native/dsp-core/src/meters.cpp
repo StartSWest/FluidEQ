@@ -218,6 +218,7 @@ std::vector<double> blackman_window() {
 }  // namespace
 
 struct FeqMeters {
+  std::atomic<uint64_t> room_report{0};
   std::atomic<float> live_input_peak{-120};
   std::atomic<float> live_input_lufs{-120};
   std::atomic<float> live_reference_lufs{-120};
@@ -898,6 +899,23 @@ int feq_meters_read_scope(FeqMeters* meters,
   return 0;
 }
 
+static_assert(std::atomic<uint64_t>::is_always_lock_free,
+              "Room telemetry must be lock-free");
+void feq_meters_publish_room(FeqMeters* meters, const FeqRoomReport* report) {
+  if (!meters || !report) return;
+  uint32_t bits = 0;
+  std::memcpy(&bits, &report->reference_gain_db, sizeof(bits));
+  meters->room_report.store((static_cast<uint64_t>(bits) << 32) | report->flags,
+                            std::memory_order_relaxed);
+}
+void feq_meters_read_room(const FeqMeters* meters, FeqRoomReport* report) {
+  if (!report) return;
+  uint64_t packed =
+      meters ? meters->room_report.load(std::memory_order_relaxed) : 0;
+  report->flags = static_cast<uint32_t>(packed);
+  uint32_t bits = static_cast<uint32_t>(packed >> 32);
+  std::memcpy(&report->reference_gain_db, &bits, sizeof(bits));
+}
 void feq_meters_publish_denoise(FeqMeters* meters, const FeqDenoiseReport* report) {
   if (meters == nullptr || report == nullptr) return;
   meters->denoise_reduction.store(report->reduction_db, std::memory_order_relaxed);

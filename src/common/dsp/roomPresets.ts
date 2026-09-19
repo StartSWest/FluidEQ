@@ -36,6 +36,12 @@ export type TRoomShape = Pick<
   | 'crossoverHz'
   | 'musicUpmix'
   | 'upmixAmount'
+  | 'rendererVersion'
+  | 'earlyReflectionDb'
+  | 'ambienceMix'
+  | 'ambienceDecayS'
+  | 'ambienceDampingHz'
+  | 'preservePosition'
 >;
 
 /** The same groups the other stages' pickers use, so the menu reads alike. */
@@ -94,6 +100,12 @@ const shape = (
   crossoverHz: DSP_DEFAULTS.room.crossoverHz,
   musicUpmix: DSP_DEFAULTS.room.musicUpmix,
   upmixAmount: DSP_DEFAULTS.room.upmixAmount,
+  rendererVersion: DSP_DEFAULTS.room.rendererVersion,
+  earlyReflectionDb: DSP_DEFAULTS.room.earlyReflectionDb,
+  ambienceMix: DSP_DEFAULTS.room.ambienceMix,
+  ambienceDecayS: DSP_DEFAULTS.room.ambienceDecayS,
+  ambienceDampingHz: DSP_DEFAULTS.room.ambienceDampingHz,
+  preservePosition: DSP_DEFAULTS.room.preservePosition,
 });
 
 /**
@@ -230,6 +242,12 @@ export const roomShapeOf = (room: IRoomSettings): TRoomShape => ({
   crossoverHz: room.crossoverHz,
   musicUpmix: room.musicUpmix,
   upmixAmount: room.upmixAmount,
+  rendererVersion: room.rendererVersion,
+  earlyReflectionDb: room.earlyReflectionDb,
+  ambienceMix: room.ambienceMix,
+  ambienceDecayS: room.ambienceDecayS,
+  ambienceDampingHz: room.ambienceDampingHz,
+  preservePosition: room.preservePosition,
 });
 
 /**

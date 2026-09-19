@@ -74,7 +74,13 @@ export const roomShapesMatch = (
   shape.bassManagement === room.bassManagement &&
   shape.crossoverHz === room.crossoverHz &&
   shape.musicUpmix === room.musicUpmix &&
-  shape.upmixAmount === room.upmixAmount;
+  shape.upmixAmount === room.upmixAmount &&
+  shape.rendererVersion === room.rendererVersion &&
+  shape.earlyReflectionDb === room.earlyReflectionDb &&
+  shape.ambienceMix === room.ambienceMix &&
+  shape.ambienceDecayS === room.ambienceDecayS &&
+  shape.ambienceDampingHz === room.ambienceDampingHz &&
+  shape.preservePosition === room.preservePosition;
 
 /**
  * Everything readable out of storage, clamped on the way in: this is JSON

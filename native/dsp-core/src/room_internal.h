@@ -8,14 +8,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ROOM_INTERNAL_H
 #define FLUIDEQ_ROOM_INTERNAL_H
 
-#include "fluideq/room.h"
+#include <atomic>
+#include <vector>
 
 #include "fluideq/biquad.h"
 #include "fluideq/convolver.h"
 #include "fluideq/primitives.h"
-
-#include <atomic>
-#include <vector>
+#include "fluideq/room.h"
+#include "room_ambience.h"
+#include "room_comparison.h"
 
 /**
  * One set of kernels and the convolvers that run them: what the control
@@ -23,6 +24,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * speaker has null entries.
  */
 struct FeqRoomKernels {
+  // Immutable prepared metadata: callback reset policy must not read settings
+  // concurrently being changed by the control thread. Also set when inactive.
+  int renderer_version = 1;
+  uint64_t comparison_key = 0;
+  int preserve_position = 0, compare_original = 0, source_already_spatial = 0;
+  int speaker[FEQ_ROOM_MAX_CHANNELS] = {};
+  int lfe_channel = -1;
   FeqConvolverKernel* kernel[FEQ_ROOM_MAX_CHANNELS][2] = {};
   FeqConvolver* convolver[FEQ_ROOM_MAX_CHANNELS][2] = {};
   /*
@@ -52,6 +60,8 @@ struct FeqRoomKernels {
   uint32_t rear_frames = 0;
   FeqBiquadCoefficients ambience_high{};
   FeqBiquadCoefficients rear_low{};
+  RoomReflection reflections[FEQ_ROOM_MAX_CHANNELS][4] = {};
+  RoomAmbienceParameters late{};
   int active = 0;
 };
 
@@ -74,6 +84,8 @@ struct FeqRoom {
   std::atomic<FeqRoomKernels*> handoff{nullptr};
   FeqRoomKernels* live = nullptr;
   FeqRoomKernels* next = nullptr;
+  // Audio-owned handover replacement; never republished into control handoff.
+  FeqRoomKernels* pending = nullptr;
   double blend = 1.0;
   /**
    * Frames the replacement runs unheard before the fade: a convolver started
@@ -81,16 +93,17 @@ struct FeqRoom {
    */
   int64_t warmup = 0;
   std::atomic<int> active{0};
-  /**
-   * Audio → control: sets the audio thread has finished with, freed by the
-   * control thread at its next publish or at destroy. Freeing is a lock the
-   * audio thread may not take; four slots outlast any drag, and a fifth
-   * retirement before the control thread comes round is freed in place —
-   * the rare case, and the one that costs a lock rather than a leak.
-   */
+  // Single audio producer, single control consumer. Producer reserves empty
+  // slots BEFORE taking ownership; full queue leaves the handoff published.
+  // Control only clears slots. No callback deletes, leaks, or retry loops.
   static constexpr int kRetiredSlots = 4;
   std::atomic<FeqRoomKernels*> retired[kRetiredSlots] = {};
-  int retired_at = 0;
+  RoomAmbience late;
+  RoomComparison comparison;
+  std::vector<float> reflection_history;
+  std::vector<double> reflection_send;
+  size_t reflection_length = 0, reflection_cursor = 0;
+  double handover_gain = 1;
 
   /* Scratch, sized at `create` for `max_frames`. */
   std::vector<float> mix_left;

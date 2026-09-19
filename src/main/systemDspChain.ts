@@ -34,7 +34,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
-import { gameModeOnWire, roomHeadOnWire } from '../common/dsp/chainWire';
+import {
+  gameModeOnWire,
+  hasRoomTrailer,
+  roomHeadOnWire,
+} from '../common/dsp/chainWire';
 import { scheduleWrite } from './asyncWriter';
 import { writeRoomHead } from './roomHead';
 import { readEngineHealth } from './engineHealth';
@@ -55,7 +59,12 @@ export const formatSystemDspChain = (
   // Older installed engines reject an extra numeric word and bypass the rack.
   // A comment carries the new mode without changing the sound they can decode.
   const gaming = gameModeOnWire(values);
-  const compatible = gaming && !acceptsGameWord ? values.slice(0, -1) : values;
+  // A Room-capable engine requires the fixed Game word before its trailer.
+  // Only the legacy optional word may be removed for old engines.
+  const compatible =
+    gaming && !acceptsGameWord && !hasRoomTrailer(values)
+      ? values.slice(0, -1)
+      : values;
   return [
     SYSTEM_DSP_CHAIN_HEADER,
     ...(gaming ? ['# FluidEQLowLatency: ON'] : []),

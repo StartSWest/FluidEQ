@@ -92,7 +92,19 @@ export const ANALYSIS_STAGES = [
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
 
+export interface IHostAnalysisRoom {
+  active: boolean;
+  original: boolean;
+  matchAvailable: boolean;
+  referenceGainDb: number;
+  conventionalFoldDown: boolean;
+  positionProtected: boolean;
+  sourceBypassed: boolean;
+}
+
 export interface IHostAnalysis {
+  /** Absent on older native writers or malformed/unknown report versions. */
+  room?: IHostAnalysisRoom;
   sequence: number;
   /** Only the stages that published a window this frame. */
   spectra: Partial<Record<TAnalysisStage, Float32Array>>;

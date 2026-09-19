@@ -159,6 +159,14 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->room.crossover_hz = room.crossover_hz;
   settings->room.music_upmix = room.music_upmix;
   settings->room.upmix_amount = room.upmix_amount;
+  settings->room.renderer_version = room.renderer_version;
+  settings->room.early_reflection_db = room.early_reflection_db;
+  settings->room.ambience_mix = room.ambience_mix;
+  settings->room.ambience_decay_s = room.ambience_decay_s;
+  settings->room.ambience_damping_hz = room.ambience_damping_hz;
+  settings->room.preserve_position = room.preserve_position;
+  settings->room.compare_original = room.compare_original;
+  settings->room.source_already_spatial = room.source_already_spatial;
   for (int speaker = 0; speaker < FEQ_ROOM_SPEAKERS; ++speaker) {
     settings->room.angle_deg[speaker] = room.angle_deg[speaker];
     settings->room.level_db[speaker] = room.level_db[speaker];
@@ -495,6 +503,14 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
     room.crossover_hz = chain->settings.room.crossover_hz;
     room.music_upmix = chain->settings.room.music_upmix;
     room.upmix_amount = chain->settings.room.upmix_amount;
+    room.renderer_version = chain->settings.room.renderer_version;
+    room.early_reflection_db = chain->settings.room.early_reflection_db;
+    room.ambience_mix = chain->settings.room.ambience_mix;
+    room.ambience_decay_s = chain->settings.room.ambience_decay_s;
+    room.ambience_damping_hz = chain->settings.room.ambience_damping_hz;
+    room.preserve_position = chain->settings.room.preserve_position;
+    room.compare_original = chain->settings.room.compare_original;
+    room.source_already_spatial = chain->settings.room.source_already_spatial;
     // The three shipped heads, small to large, and the interaural delay
     // each is scaled to: the fit test will refine these per listener.
     const double scales[3] = {0.94, 1.0, 1.06};
@@ -588,6 +604,27 @@ void feq_chain_set_track_level_gains(FeqChain* chain,
   }
   chain->input_gain_target_db = input_gain_db;
   chain->master_loudness_target_db = master_loudness_gain_db;
+}
+
+void feq_chain_reset_room(FeqChain* chain) {
+  if (chain == nullptr) return;
+  feq_room_reset_route(chain->room);
+  // Punch's always-running standby alignment feeds the Room reference too.
+  // Without clearing it, regular mode captures the pre-route block on return.
+  feq_bass_punch_reset(&chain->bass_punch);
+  // Room output already queued downstream is stale Room audio too.
+  feq_dimension_reset(&chain->dimension);
+  for (auto& crossover : chain->crossovers) feq_crossover_reset(&crossover);
+  for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+    chain->safety_dc[channel] = {};
+    for (auto* line : {&chain->safety_delay[channel], &chain->post_delay[channel],
+                       &chain->maximizer_delay[channel],
+                       &chain->punch_align_line[channel]}) {
+      std::fill(line->begin(), line->end(), 0.0f);
+    }
+  }
+  const FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
+  feq_meters_publish_room(chain->meters, &inactive);
 }
 
 void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
@@ -721,7 +758,8 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
       settings.eq.enabled != 0,
       settings.bass_punch.enabled != 0 && chain->channels >= 2,
       feq_chain_room_active(chain) != 0,
-      settings.dimension.enabled != 0 && chain->channels >= 2,
+      settings.dimension.enabled != 0 && chain->channels >= 2 &&
+          !(feq_chain_room_active(chain) && settings.room.preserve_position),
       settings.compressor.enabled != 0,
       settings.maximizer.enabled != 0,
       settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
@@ -735,10 +773,27 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
   return mask;
 }
 
+uint32_t feq_chain_processed_stages(const FeqChain* chain) {
+  uint32_t mask = feq_chain_active_stages(chain);
+  if (chain == nullptr || chain->settings.enabled == 0) return mask;
+  FeqRoomReport report{};
+  feq_room_report(chain->room, &report);
+  mask &= ~((1u << 6) | (1u << 7));
+  if ((report.flags & FEQ_ROOM_REPORT_ACTIVE) != 0) mask |= 1u << 6;
+  if (chain->settings.dimension.enabled && chain->channels >= 2 &&
+      (report.flags & FEQ_ROOM_REPORT_PROTECTED) == 0) mask |= 1u << 7;
+  return mask;
+}
+
 void feq_chain_process(FeqChain* chain, float* const* channels,
                        uint32_t frames) {
   if (chain == nullptr || channels == nullptr || frames == 0 ||
-      frames > chain->max_frames || chain->settings.enabled == 0) {
+      frames > chain->max_frames) {
+    return;
+  }
+  if (chain->settings.enabled == 0) {
+    FeqRoomReport inactive{FEQ_ROOM_REPORT_TAG, 0};
+    feq_meters_publish_room(chain->meters, &inactive);
     return;
   }
 
@@ -894,6 +949,9 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * ears and the stages below run on that, as they run on any stereo mix.
    */
   feq_room_process(chain->room, channels, frames);
+  FeqRoomReport room_report{};
+  feq_room_report(chain->room, &room_report);
+  feq_meters_publish_room(chain->meters, &room_report);
 
   /**
    * Width before the dynamics, and that position is forced rather than chosen.

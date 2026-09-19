@@ -1029,6 +1029,18 @@ export const ROOM_SPEAKERS = 7;
  * system audio and the Library player on Library music.
  */
 export interface IRoomSettings {
+  /** Missing versions retain the original renderer and its sound. */
+  rendererVersion: 1 | 2;
+  /** -60 is exact off in renderer 2. */
+  earlyReflectionDb: number;
+  ambienceMix: number;
+  ambienceDecayS: number;
+  ambienceDampingHz: number;
+  preservePosition: boolean;
+  /** Runtime comparison, excluded from room shapes. */
+  compareOriginal: boolean;
+  /** Listener/source preference, preserved when applying a profile. */
+  sourceAlreadySpatial: boolean;
   enabled: boolean;
   presetId: TRoomPreset;
   /** The shoebox's side in metres, 2 to 12; the listener sits in the middle. */
@@ -1252,6 +1264,10 @@ const RANGES = {
   roomLevelDb: { min: -24, max: 12 },
   roomCrossoverHz: { min: 40, max: 200 },
   roomUpmixAmount: { min: 0, max: 1 },
+  roomEarlyReflectionDb: { min: -60, max: 0 },
+  roomAmbienceMix: { min: 0, max: 1 },
+  roomAmbienceDecayS: { min: 0.1, max: 1.8 },
+  roomAmbienceDampingHz: { min: 1000, max: 12000 },
 } as const satisfies Record<string, IRange>;
 
 const clampNumber = (
@@ -1740,6 +1756,14 @@ export const DSP_DEFAULTS: IDspSettings = {
   room: {
     enabled: false,
     presetId: 'livingRoom',
+    rendererVersion: 1,
+    earlyReflectionDb: 0,
+    ambienceMix: 0,
+    ambienceDecayS: 0.5,
+    ambienceDampingHz: 6000,
+    preservePosition: false,
+    compareOriginal: false,
+    sourceAlreadySpatial: false,
     sizeM: 4.2,
     walls: 0.55,
     distanceM: 1.8,
@@ -2435,6 +2459,39 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     room: {
       enabled: clampBoolean(room.enabled, DSP_DEFAULTS.room.enabled),
       presetId: roomPreset ?? DSP_DEFAULTS.room.presetId,
+      rendererVersion: room.rendererVersion === 2 ? 2 : 1,
+      earlyReflectionDb: clampNumber(
+        room.earlyReflectionDb,
+        RANGES.roomEarlyReflectionDb,
+        DSP_DEFAULTS.room.earlyReflectionDb,
+      ),
+      ambienceMix: clampNumber(
+        room.ambienceMix,
+        RANGES.roomAmbienceMix,
+        DSP_DEFAULTS.room.ambienceMix,
+      ),
+      ambienceDecayS: clampNumber(
+        room.ambienceDecayS,
+        RANGES.roomAmbienceDecayS,
+        DSP_DEFAULTS.room.ambienceDecayS,
+      ),
+      ambienceDampingHz: clampNumber(
+        room.ambienceDampingHz,
+        RANGES.roomAmbienceDampingHz,
+        DSP_DEFAULTS.room.ambienceDampingHz,
+      ),
+      preservePosition: clampBoolean(
+        room.preservePosition,
+        DSP_DEFAULTS.room.preservePosition,
+      ),
+      compareOriginal: clampBoolean(
+        room.compareOriginal,
+        DSP_DEFAULTS.room.compareOriginal,
+      ),
+      sourceAlreadySpatial: clampBoolean(
+        room.sourceAlreadySpatial,
+        DSP_DEFAULTS.room.sourceAlreadySpatial,
+      ),
       sizeM: clampNumber(room.sizeM, RANGES.roomSizeM, DSP_DEFAULTS.room.sizeM),
       walls: clampNumber(room.walls, RANGES.roomWalls, DSP_DEFAULTS.room.walls),
       distanceM: clampNumber(

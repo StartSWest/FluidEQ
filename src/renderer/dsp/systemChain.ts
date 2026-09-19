@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * message however often it is asked for.
  */
 
+import type { TSystemDspChainResult } from '../../common/audioEngine';
 import { setSystemDspChain } from '../utils/audioEngineApi';
 import { reportError } from '../utils/logger';
 
@@ -33,6 +34,27 @@ import { reportError } from '../utils/logger';
  * loop with a length check and 219 double comparisons.
  */
 let lastSent: string | null = null;
+let latestValues: number[] | undefined;
+let requestGeneration = 0;
+let lastResult: TSystemDspChainResult | undefined;
+const resultListeners = new Set<() => void>();
+export const readSystemDspChainResult = (): TSystemDspChainResult | undefined =>
+  lastResult;
+export const subscribeSystemDspChainResult = (
+  listener: () => void,
+): (() => void) => {
+  resultListeners.add(listener);
+  return () => {
+    resultListeners.delete(listener);
+  };
+};
+const reportResult = (result: TSystemDspChainResult | undefined): void => {
+  if (lastResult === result) {
+    return;
+  }
+  lastResult = result;
+  resultListeners.forEach((listener) => listener());
+};
 
 /**
  * Let the next call send `key` again, unless something newer already has.
@@ -65,10 +87,18 @@ export const sendSystemDspChain = (values: number[]): void => {
   if (key === lastSent) {
     return;
   }
+  latestValues = values;
   lastSent = key;
+  requestGeneration += 1;
+  const generation = requestGeneration;
+  reportResult(undefined);
   try {
     setSystemDspChain(values).then(
       (result) => {
+        if (generation !== requestGeneration) {
+          return result;
+        }
+        reportResult(result);
         if (result !== 'written') {
           forget(key);
           if (result === 'rejected') {
@@ -83,6 +113,10 @@ export const sendSystemDspChain = (values: number[]): void => {
         return result;
       },
       (error: unknown) => {
+        if (generation !== requestGeneration) {
+          return;
+        }
+        reportResult(undefined);
         forget(key);
         reportError('the system-wide DSP chain could not be sent', error);
       },
@@ -105,5 +139,15 @@ export const sendSystemDspChain = (values: number[]): void => {
  * survives between cases is a test that passes because of the one before it.
  */
 export const resetSystemDspChain = (): void => {
+  requestGeneration += 1;
   lastSent = null;
+  reportResult(undefined);
+};
+
+/** Engine status events retry the current rack after an installed capability changes. */
+export const retrySystemDspChain = (): void => {
+  lastSent = null;
+  if (latestValues) {
+    sendSystemDspChain(latestValues);
+  }
 };

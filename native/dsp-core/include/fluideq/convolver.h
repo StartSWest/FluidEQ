@@ -63,6 +63,8 @@ void feq_dft_in_place(FeqDft* plan,
                       int inverse);
 
 uint32_t feq_convolver_latency(void);
+/** Audio owner only: clear delayed samples without reallocating or changing kernels. */
+void feq_convolver_reset(FeqConvolver* state);
 uint32_t feq_convolver_warmup(void);
 uint64_t feq_convolver_kernel_warmup(const FeqConvolverKernel* kernel);
 

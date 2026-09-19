@@ -30,6 +30,7 @@ import {
   EQ_PHASE_MODES,
   EQ_STEREO_MODES,
   IDspSettings,
+  DSP_DEFAULTS,
   ROOM_HEADS,
   ROOM_PRESETS,
   TRoomHead,
@@ -41,6 +42,22 @@ import { roomMuteWire } from './roomSpeakers';
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
 export const CHAIN_PARAM_LEAD = 157;
+
+/** Tagged optional Room block follows normalizer and explicit game mode. */
+export const CHAIN_ROOM_TAG = 1380929357; // ASCII ROOM
+export const CHAIN_ROOM_SCHEMA = 1;
+export const CHAIN_ROOM_FIELDS = 8;
+export const CHAIN_ROOM_TRAILER = 11;
+const ROOM_WIRE_KEYS = [
+  'rendererVersion',
+  'earlyReflectionDb',
+  'ambienceMix',
+  'ambienceDecayS',
+  'ambienceDampingHz',
+  'preservePosition',
+  'compareOriginal',
+  'sourceAlreadySpatial',
+] as const;
 
 /**
  * Where the room's head sits in the lead: the eighth of the room's
@@ -285,7 +302,23 @@ export const encodeChainSettings = (
   // mode refuses a line one value longer than it knows, and a line that does
   // not ask for game mode has no reason to be one it cannot read — so every
   // rack but a gaming one is the line it always was, on every engine.
-  if (settings.gameMode) {
+  const extendedRoom = ROOM_WIRE_KEYS.some(
+    (key) => (room[key] ?? DSP_DEFAULTS.room[key]) !== DSP_DEFAULTS.room[key],
+  );
+  if (extendedRoom) {
+    // Fixed placement removes ambiguity with the old optional game-mode flag.
+    // Older decoders refuse this length; none can mistake the tag for a band.
+    values.push(
+      settings.gameMode ? 1 : 0,
+      CHAIN_ROOM_TAG,
+      CHAIN_ROOM_SCHEMA,
+      CHAIN_ROOM_FIELDS,
+      ...ROOM_WIRE_KEYS.map((key) => {
+        const value = room[key] ?? DSP_DEFAULTS.room[key];
+        return typeof value === 'boolean' ? Number(value) : value;
+      }),
+    );
+  } else if (settings.gameMode) {
     values.push(1);
   }
   return values;
@@ -294,11 +327,6 @@ export const encodeChainSettings = (
 /** What a well-formed snapshot for this many bands must be. */
 export const chainWireLength = (bandCount: number): number =>
   CHAIN_PARAM_LEAD + bandCount * CHAIN_BAND_PARAMS + 3;
-
-/** Game mode is the optional final word, after the normalizer trailer. */
-export const gameModeOnWire = (values: readonly number[]): boolean =>
-  values.length === chainWireLength(values[CHAIN_PARAM_LEAD - 1]) + 1 &&
-  values[values.length - 1] === 1;
 
 /**
  * Whether a value could be one, checked at the IPC boundary.
@@ -312,10 +340,13 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
   if (!Array.isArray(value) || value.length < CHAIN_PARAM_LEAD) {
     return false;
   }
-  if (
-    !value.every((entry) => typeof entry === 'number' && Number.isFinite(entry))
-  ) {
-    return false;
+  // Visit every index: Array.every skips holes, which the host serializer
+  // otherwise turns into zero-filled scalars instead of rejecting the input.
+  for (let index = 0; index < value.length; index += 1) {
+    const entry = value[index];
+    if (typeof entry !== 'number' || !Number.isFinite(entry)) {
+      return false;
+    }
   }
   const bands = value[CHAIN_PARAM_LEAD - 1];
   if (!Number.isInteger(bands) || bands < 0 || bands > 64) {
@@ -325,13 +356,45 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
   if (value.length === length - 3) {
     return true;
   }
-  // Game mode's one value after the normalizer's three: 1, or not there.
+  const extendedRoom = value.length === length + 1 + CHAIN_ROOM_TRAILER;
   const gaming = value.length === length + 1;
-  if (value.length !== length && !gaming) {
+  if (value.length !== length && !gaming && !extendedRoom) {
     return false;
   }
-  if (gaming && value[length] !== 1) {
+  if ((gaming || extendedRoom) && value[length] !== 0 && value[length] !== 1) {
     return false;
+  }
+  if (extendedRoom) {
+    const [
+      tag,
+      schema,
+      fields,
+      renderer,
+      early,
+      mix,
+      decay,
+      damping,
+      preserve,
+      compare,
+      spatial,
+    ] = value.slice(length + 1);
+    if (
+      tag !== CHAIN_ROOM_TAG ||
+      schema !== CHAIN_ROOM_SCHEMA ||
+      fields !== CHAIN_ROOM_FIELDS ||
+      (renderer !== 1 && renderer !== 2) ||
+      early < -60 ||
+      early > 0 ||
+      mix < 0 ||
+      mix > 1 ||
+      decay < 0.1 ||
+      decay > 1.8 ||
+      damping < 1000 ||
+      damping > 12000 ||
+      ![preserve, compare, spatial].every((flag) => flag === 0 || flag === 1)
+    ) {
+      return false;
+    }
   }
   const [mode, ceiling, target] = value.slice(length - 3, length);
   return (
@@ -343,4 +406,35 @@ export const isChainWirePayload = (value: unknown): value is number[] => {
     target >= -24 &&
     target <= -5
   );
+};
+
+/** Call only after isChainWirePayload at the IPC boundary. */
+export const hasRoomTrailer = (values: readonly number[]): boolean =>
+  values.length ===
+  chainWireLength(values[CHAIN_PARAM_LEAD - 1]) + 1 + CHAIN_ROOM_TRAILER;
+
+/** Game mode follows the normalizer, before any versioned Room trailer. */
+export const gameModeOnWire = (values: readonly number[]): boolean =>
+  isChainWirePayload(values) &&
+  values[chainWireLength(values[CHAIN_PARAM_LEAD - 1])] === 1;
+/** With Room disabled its extended settings are inaudible, so older racks remain usable. */
+export const legacyChainWithoutInactiveRoom = (
+  values: number[],
+): number[] | undefined => {
+  if (!hasRoomTrailer(values)) {
+    return values;
+  }
+  const sourceBypassed = values[values.length - 1] === 1;
+  if (
+    values[0] !== 0 &&
+    values[CHAIN_PARAM_LEAD - 44] !== 0 &&
+    !sourceBypassed
+  ) {
+    return undefined;
+  }
+  const base = values.slice(0, -CHAIN_ROOM_TRAILER);
+  if (sourceBypassed) {
+    base[CHAIN_PARAM_LEAD - 44] = 0;
+  }
+  return base[base.length - 1] === 0 ? base.slice(0, -1) : base;
 };

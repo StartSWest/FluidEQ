@@ -30,6 +30,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "parent_watch.h"
 #include "process_stats.h"
 #include "processing_latency.h"
+#include "chain_route.h"
+#include "analysis_publication.h"
 #include "fluideq/chain.h"
 #include "fluideq/dsp.h"
 #include "fluideq/player.h"
@@ -136,6 +138,8 @@ struct HostState {
   /** The whole signal path. Null until a device has told us its rate. */
   FeqChain* chain = nullptr;
   ProcessingLatency processing_latency;
+  ChainRoute chain_route;
+  AnalysisPublication analysis_publication;
   std::atomic<bool> raw_sharing{false};
   FeqPlayer* player = nullptr;
   /**
@@ -260,12 +264,11 @@ constexpr uint32_t kMaxPathBytes = 32u * 1024u;
  * The longest chain payload the decoder could ever accept, in doubles.
  *
  * `feq_chain_settings_decode` already refuses anything that is not exactly
- * `LEAD + bands * BAND_PARAMS` — but it is handed a vector that has already
+ * `LEAD + bands * BAND_PARAMS` plus a supported trailer — but the vector has already
  * been allocated, so the refusal comes one allocation too late. This is the
  * same arithmetic at its maximum, checked before the memory is asked for.
  */
-constexpr uint32_t kMaxChainParams =
-    FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + 3;
+constexpr uint32_t kMaxChainParams = FEQ_CHAIN_MAX_PARAMS;
 
 /**
  * Whether a length that arrived from the pipe is one this build can hold.
@@ -393,6 +396,7 @@ void send_ack(uint32_t request_id,
  */
 void drain_analysis(HostState& state) {
   if (state.meters == nullptr || feq_meters_enabled(state.meters) == 0) {
+    state.analysis_publication.clear();
     return;
   }
 
@@ -427,7 +431,11 @@ void drain_analysis(HostState& state) {
       state.meters, band_amounts.data(), band_levels.data(),
       FEQ_METER_MAX_BANDS);
 
-  if (stage_mask == 0 && has_scope == 0 && bands == 0) {
+  FeqRoomReport room{};
+  feq_meters_read_room(state.meters, &room);
+  // Raw sharing produces no rack spectrum windows. Its inactive report still
+  // needs one frame, otherwise the display retains the previous active match.
+  if (!state.analysis_publication.take(stage_mask, has_scope != 0, bands, room)) {
     return;
   }
 
@@ -445,6 +453,7 @@ void drain_analysis(HostState& state) {
                           &frame.exciter_organic);
   feq_meters_read_maximizer(state.meters, &frame.maximizer_reduction_db);
   feq_meters_read_dimension(state.meters, &frame.dimension_guard);
+  feq_wire_room_report(frame, room);
   FeqMasterTelemetry master{};
   feq_meters_read_master(state.meters, &master);
   frame.auto_headroom_reduction_db =
@@ -710,10 +719,8 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   }
 
   const bool raw = state->raw_sharing.load(std::memory_order_acquire);
-  if (state->chain != nullptr && !raw) {
-    feq_chain_process(state->chain, planar, frames);
-  }
-  state->processing_latency.publish(raw ? nullptr : state->chain);
+  state->chain_route.process(state->chain, state->meters, raw, planar, frames,
+                             state->processing_latency);
 
   // On the stack, so nothing is allocated: adding const to a pointer array is
   // not an implicit conversion in C++, and the alternative is a cast that

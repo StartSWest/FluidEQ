@@ -376,6 +376,20 @@ FeqConvolver* feq_convolver_create(const FeqConvolverKernel* kernel) {
 
 void feq_convolver_destroy(FeqConvolver* state) { delete state; }
 
+void feq_convolver_reset(FeqConvolver* state) {
+  if (state == nullptr) return;
+  for (auto& block : state->history_real) std::fill(block.begin(), block.end(), 0.0);
+  for (auto& block : state->history_imaginary) std::fill(block.begin(), block.end(), 0.0);
+  for (auto* buffer : {&state->pending, &state->overlap, &state->ready,
+                       &state->transition_overlap, &state->transition_output}) {
+    std::fill(buffer->begin(), buffer->end(), 0.0);
+  }
+  state->cursor = 0;
+  state->filled = 0;
+  state->read = 0;
+  state->write = kPartition;
+}
+
 }  // extern "C"
 
 namespace {

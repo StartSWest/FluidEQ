@@ -183,6 +183,15 @@ typedef struct FeqChainSettings {
     double sub_db;
     int head;
     int correct_headphones;
+    /* Versioned Room rendering; absent wire trailer means legacy defaults. */
+    int renderer_version;
+    double early_reflection_db;
+    double ambience_mix;
+    double ambience_decay_s;
+    double ambience_damping_hz;
+    int preserve_position;
+    int compare_original;
+    int source_already_spatial;
     double angle_deg[FEQ_ROOM_SPEAKERS];
     double level_db[FEQ_ROOM_SPEAKERS];
     /* Bass management and its crossover — see `FeqRoomSettings`. */
@@ -319,6 +328,14 @@ typedef struct FeqChainSettings {
  */
 #define FEQ_CHAIN_PARAM_LEAD 157
 #define FEQ_CHAIN_BAND_PARAMS 7
+/** ROOM tag, schema version, payload size, then eight Room values. */
+#define FEQ_CHAIN_ROOM_TAG 1380929357
+#define FEQ_CHAIN_ROOM_SCHEMA 1
+#define FEQ_CHAIN_ROOM_FIELDS 8
+#define FEQ_CHAIN_ROOM_TRAILER 11
+/** Normalizer (3), explicit low latency (1), tagged Room (11). */
+#define FEQ_CHAIN_MAX_TRAILER 15
+#define FEQ_CHAIN_MAX_PARAMS (FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS + FEQ_CHAIN_MAX_TRAILER)
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
 int feq_chain_settings_decode(const double* values,
@@ -440,6 +457,9 @@ typedef enum FeqChainResetReason {
 
 void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason);
 
+/** Audio owner only. Clear Room's capture/delays at an external route boundary. */
+void feq_chain_reset_room(FeqChain* chain);
+
 /**
  * One block, in place. Planar, `channels` pointers.
  *
@@ -487,9 +507,12 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * compressor, maximizer, headroom, safety, master. Read on the audio thread or
- * before publishing a prepared chain, like the latency parts above. */
+ * compressor, maximizer, headroom, safety, master. CONTROL planning snapshot,
+ * read before publishing a prepared chain. Room protection reflects the planned
+ * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);
+/** AUDIO snapshot: Room and Dimension reflect the last actually processed block. */
+uint32_t feq_chain_processed_stages(const FeqChain* chain);
 
 /**
  * Hand the chain somewhere to report what the panel draws, or null for none.

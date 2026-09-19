@@ -15,6 +15,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+import log from 'electron-log';
+import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
+import {
+  hasRoomTrailer,
+  legacyChainWithoutInactiveRoom,
+  isChainWirePayload,
+} from '../../common/dsp/chainWire';
 
 /**
  * Which engine processes the audio, and everything that follows from
@@ -30,7 +37,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * not also be the module that knows how to spawn it.
  */
 
-import log from 'electron-log';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
 import {
@@ -40,7 +46,6 @@ import {
   TSystemDspChainResult,
   isAudioEngine,
 } from '../../common/audioEngine';
-import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { TError, TSuccess } from '../../renderer/utils/equalizerApi';
 import { saveAudioEnginePreference } from '../audioEngineStore';
 import { IEngineSetupResult, TEngineSetupCommand } from '../engineSetup';
@@ -172,7 +177,7 @@ export const registerAudioEngineIpc = ({
   isEngineInstalled,
   reflush,
   runEngineSetup,
-  readAudioEngineStatus,
+  readAudioEngineStatus: readStatusRaw,
   neutraliseEngine,
   writeSystemDspChain,
   isApoOnAnyOutput,
@@ -181,6 +186,50 @@ export const registerAudioEngineIpc = ({
   repairEngineOutput,
   automatic,
 }: IAudioEngineIpcDeps) => {
+  let statusRead: Promise<IAudioEngineStatus> | undefined;
+  let statusFailed = false;
+  const readAudioEngineStatus = (
+    dir: string,
+    engine: TAudioEngine | null,
+  ): Promise<IAudioEngineStatus> => {
+    // Every refresh replaces the cached promise before it can settle. Keeping
+    // the latest fulfilled read caches capability without a helper per edit.
+    const reading: Promise<IAudioEngineStatus> = Promise.resolve()
+      .then(() => readStatusRaw(dir, engine))
+      .catch((error: unknown) => {
+        if (reading === statusRead) {
+          statusFailed = true;
+        }
+        throw error;
+      });
+    statusFailed = false;
+    statusRead = reading;
+    return reading;
+  };
+  const ensureRoomCapability = async (): Promise<boolean> => {
+    if (statusFailed) {
+      readAudioEngineStatus(userDataDir, getEngine());
+    }
+    // A chain awaiting an older read must follow a refresh that superseded it,
+    // including its failure; an obsolete result is never an unsupported engine.
+    for (;;) {
+      const reading =
+        statusRead ?? readAudioEngineStatus(userDataDir, getEngine());
+      try {
+        // eslint-disable-next-line no-await-in-loop -- each iteration awaits a newer externally requested status read, never polls.
+        const status = await reading;
+        if (reading === statusRead) {
+          return engineSupportsRoomUpgrade(status.fluid?.dllVersion);
+        }
+      } catch (error) {
+        if (reading === statusRead) {
+          // A failed current read is a real failure, not update-required.
+          // Existing waiters share this failure; only a new command retries it.
+          throw error;
+        }
+      }
+    }
+  };
   /**
    * The same reply shape main.ts's `handleError` builds, rebuilt here because
    * that one is not exported. Kept to one place in this file so the two
@@ -615,11 +664,20 @@ export const registerAudioEngineIpc = ({
         succeed<TSystemDspChainResult>(event, channel, 'not-installed');
         return;
       }
+      let supportedValues = values;
+      if (hasRoomTrailer(values) && !(await ensureRoomCapability())) {
+        const legacy = legacyChainWithoutInactiveRoom(values);
+        if (!legacy) {
+          succeed<TSystemDspChainResult>(event, channel, 'update-required');
+          return;
+        }
+        supportedValues = legacy;
+      }
       // Resolved here rather than read off the session, because the session's
       // cached path is empty until the first flush of the launch and the rack
       // can be edited before that ever happens.
       const configDirPath = await getConfigPath('fluid');
-      await writeSystemDspChain(configDirPath, values);
+      await writeSystemDspChain(configDirPath, supportedValues);
       succeed<TSystemDspChainResult>(event, channel, 'written');
     } catch (error) {
       // A disk that would not take the file is a fault, not one of the three

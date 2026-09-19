@@ -20,7 +20,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { act, render } from '@testing-library/react';
 import type { IAudioEngineStatus } from '../../../common/audioEngine';
-import { resetSystemDspChain } from '../../../renderer/dsp/systemChain';
+import {
+  resetSystemDspChain,
+  retrySystemDspChain,
+} from '../../../renderer/dsp/systemChain';
 import { getAudioEngineStatus } from '../../../renderer/utils/audioEngineApi';
 import { notifyAudioEngineChanged } from '../../../renderer/utils/audioEngineEvents';
 import {
@@ -35,6 +38,7 @@ jest.mock('../../../renderer/utils/audioEngineApi', () => ({
 
 jest.mock('../../../renderer/dsp/systemChain', () => ({
   resetSystemDspChain: jest.fn(),
+  retrySystemDspChain: jest.fn(),
 }));
 
 const status = (engine: IAudioEngineStatus['engine']): IAudioEngineStatus => ({
@@ -176,6 +180,31 @@ describe('the engine status the window holds', () => {
     });
     await answer(2, status('fluid'));
     expect(resetSystemDspChain).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries the current rack on an installed capability change without polling', async () => {
+    jest.mocked(retrySystemDspChain).mockClear();
+    render(<Holder seen={[]} />);
+    await answer(0, {
+      ...status('fluid'),
+      fluid: { installed: true, endpoints: [], dllVersion: '1.9.0.0' },
+    });
+    act(() => {
+      refreshAudioEngineStatus();
+    });
+    await answer(1, {
+      ...status('fluid'),
+      fluid: { installed: true, endpoints: [], dllVersion: '1.11.0.0' },
+    });
+    expect(retrySystemDspChain).toHaveBeenCalledTimes(1);
+    act(() => {
+      refreshAudioEngineStatus();
+    });
+    await answer(2, {
+      ...status('fluid'),
+      fluid: { installed: true, endpoints: [], dllVersion: '1.11.0.0' },
+    });
+    expect(retrySystemDspChain).toHaveBeenCalledTimes(1);
   });
 
   it('does not believe a reply to a question asked before a reset', async () => {

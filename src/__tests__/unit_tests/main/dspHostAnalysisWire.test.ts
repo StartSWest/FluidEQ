@@ -1,3 +1,4 @@
+import ROOM_REPORT_NATIVE_FRAME from './roomReportNativeFixture';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -585,4 +586,83 @@ describe('the Bass Forge and Bass Punch meters', () => {
     expect(decoded?.bassForge.outputDb[3]).toBeCloseTo(-22, 6);
     expect(decoded?.bassPunch.duckGainDb).toBeCloseTo(-4, 6);
   });
+});
+
+it('decodes the tagged Room report without changing legacy meter framing', () => {
+  const frame = buildAnalysis({ stages: ['master'], withScope: false });
+  expect(decodeAnalysis(frame)?.room).toBeUndefined();
+  frame.writeUInt32LE(0x524d011f, 116);
+  frame.writeFloatLE(-3, 396);
+  expect(decodeAnalysis(frame)?.room).toEqual({
+    active: true,
+    original: true,
+    matchAvailable: true,
+    referenceGainDb: -3,
+    conventionalFoldDown: true,
+    positionProtected: true,
+    sourceBypassed: false,
+  });
+  [0, 0x524d0201, 0x524d0141].forEach((tag) => {
+    frame.writeUInt32LE(tag, 116);
+    expect(decodeAnalysis(frame)?.room).toBeUndefined();
+    expect(decodeAnalysis(frame)?.spectra.master).toBeDefined();
+  });
+  frame.writeUInt32LE(0x524d0101, 116);
+  [NaN, Infinity, 6.01, -6.01].forEach((gain) => {
+    frame.writeFloatLE(gain, 396);
+    expect(decodeAnalysis(frame)?.room).toBeUndefined();
+  });
+});
+
+it('decodes the actual native meter-to-host/APO encoder fixture', () => {
+  const bytes = Buffer.from(ROOM_REPORT_NATIVE_FRAME, 'base64');
+  expect(bytes.length).toBe(560);
+  expect(decodeAnalysis(bytes)?.room).toEqual({
+    active: true,
+    original: true,
+    matchAvailable: true,
+    referenceGainDb: -3,
+    conventionalFoldDown: true,
+    positionProtected: true,
+    sourceBypassed: false,
+  });
+});
+
+it('accepts inactive and explicit bypass reports and refuses contradictory states', () => {
+  const frame = buildAnalysis({ stages: [], withScope: false });
+  [0x524d0100, 0x524d0120].forEach((flags) => {
+    frame.writeUInt32LE(flags, 116);
+    expect(decodeAnalysis(frame)?.room?.active).toBe(false);
+    expect(decodeAnalysis(frame)?.room?.sourceBypassed).toBe(
+      flags === 0x524d0120,
+    );
+  });
+  [0x524d0102, 0x524d0104, 0x524d0108, 0x524d0110, 0x524d0121].forEach(
+    (flags) => {
+      frame.writeUInt32LE(flags, 116);
+      expect(decodeAnalysis(frame)?.room).toBeUndefined();
+    },
+  );
+});
+
+it('delivers a report-only inactive Room frame through the real transport reader', () => {
+  const { reader, analyses } = collectingReader();
+  const active = buildAnalysis({ stages: ['master'], withScope: false });
+  active.writeUInt32LE(0x524d0117, 116);
+  active.writeFloatLE(-3, 396);
+  const inactive = buildAnalysis({ stages: [], withScope: false });
+  inactive.writeUInt32LE(0x524d0100, 116);
+  reader.push(Buffer.concat([active, inactive]));
+  expect(analyses).toHaveLength(2);
+  expect(analyses[0].room).toMatchObject({
+    active: true,
+    matchAvailable: true,
+  });
+  expect(analyses[1].room).toMatchObject({
+    active: false,
+    original: false,
+    matchAvailable: false,
+    referenceGainDb: 0,
+  });
+  expect(analyses[1].spectra).toEqual({});
 });

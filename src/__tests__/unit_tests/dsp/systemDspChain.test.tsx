@@ -42,6 +42,7 @@ import { resetRackGate } from '../../../renderer/dsp/rackPlacement';
 import en from '../../../common/i18n/en';
 import {
   resetSystemDspChain,
+  readSystemDspChainResult,
   sendSystemDspChain,
 } from '../../../renderer/dsp/systemChain';
 import { notifyAudioEngineChanged } from '../../../renderer/utils/audioEngineEvents';
@@ -227,6 +228,19 @@ describe('the rack on its way to the system-wide engine', () => {
         outputSafetyEnabled: readDspOutputSafetyEnabled(),
       }),
     );
+  });
+
+  it('keeps the capability result when an identical snapshot is deduplicated in flight', async () => {
+    chainAnswer = 'update-required';
+    const values = encodeChainSettings(DSP_DEFAULTS);
+    act(() => {
+      sendSystemDspChain(values);
+      sendSystemDspChain([...values]);
+    });
+    await waitFor(() =>
+      expect(readSystemDspChainResult()).toBe('update-required'),
+    );
+    expect(chainsSent).toHaveLength(1);
   });
 
   it('does not send the same rack twice', async () => {

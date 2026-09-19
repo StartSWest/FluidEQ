@@ -193,6 +193,8 @@ export const chainRoom = (
     mutes: [...chain.mutes],
     head: listener.head,
     correctHeadphones: listener.correctHeadphones,
+    compareOriginal: listener.compareOriginal,
+    sourceAlreadySpatial: listener.sourceAlreadySpatial,
     enabled: true,
   };
 };

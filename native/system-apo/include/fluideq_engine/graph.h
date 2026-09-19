@@ -266,6 +266,8 @@ class Graph {
     uint32_t guard = 0;
   };
   const LatencyParts& latency_parts() const noexcept { return parts_; }
+  // Immutable control-thread plan for this graph, including Room's intended
+  // Dimension protection. Never reads audio-owned Room state during handover.
   const std::vector<std::string>& active_stages() const noexcept { return active_stages_; }
 
   /** Game mode: the Gaming preset on the rack, or the Games voicing. */
