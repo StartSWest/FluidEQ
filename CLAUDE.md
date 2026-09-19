@@ -644,11 +644,18 @@ Out-String` (or any other capture) is what actually waits for it and shows
   in the slot asked for (a move into a legacy value also takes away the
   lists the first attach created, because a driver that reads the old
   values may only do so while no list exists; the vendor's own lists stay);
-  the two legacy values are taken only where nothing is registered or where
-  Windows' own default effect is ("WM LFX APO" / "WM GFX APO", the two
-  `wdmaudio.inf` registers on every endpoint whose driver brings none —
-  `kWindowsDefaultApoClsids`), and `write_fx_values` admits our own class
-  id and those two there and nothing else — a vendor's registration is
+  the one-value slots are taken only where nothing is registered or where
+  Windows' own default effect is ("WM LFX APO" / "WM GFX APO" —
+  `kWindowsDefaultApoClsids`, and there are **four** of those, not two:
+  `wdmaudio.inf`'s `FX_PREMIX_CLSID`/`FX_POSTMIX_CLSID` and a second pair
+  Windows registers beside them, all four resolving to the same
+  `WMALFXGFXDSP.dll` under the same two names, with which pair an endpoint
+  carries varying by machine. Knowing only the first pair refused every
+  one-value rung on a machine carrying the second — "already holds another
+  effect", naming a class id that was Windows' own; verify a new one at
+  `HKLM\SOFTWARE\Classes\CLSID\<id>\InprocServer32` before adding it), and
+  `write_fx_values` admits our own class id and those there and nothing
+  else — a vendor's registration is
   never replaced, and the backup puts Windows' effect back on detach. That
   is the RME case exactly: the driver registered only pids 1 and 2, holding
   Windows' two defaults, Windows read only those whatever lists were added,

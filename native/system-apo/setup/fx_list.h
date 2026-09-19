@@ -237,17 +237,25 @@ constexpr int kEqualizerApoClsidCount = 2;
 bool is_equalizer_apo(std::wstring_view clsid);
 
 /**
- * Windows' own two legacy effects — "WM LFX APO" and "WM GFX APO", the
- * inbox enhancements `wdmaudio.inf` registers in pids 1 and 2 on every
- * endpoint whose driver brings no effects of its own. They are the one
- * thing a legacy value may hold that this program will replace with its
- * own class id: they are Windows', not the sound card vendor's, the backup
- * keeps them and the detach puts them back, and a driver that reads only
- * pids 1 and 2 leaves no other place for the engine to go. A user's RME DAC
- * had exactly this shape and never created the engine in any list.
+ * Windows' own inbox effects — "WM LFX APO" and "WM GFX APO", the
+ * enhancements Windows registers on every endpoint whose driver brings none
+ * of its own. They are the one thing a one-value slot may hold that this
+ * program will replace with its own class id: they are Windows', not the
+ * sound card vendor's, the backup keeps them and the detach puts them back,
+ * and a driver that reads only an older generation leaves no other place for
+ * the engine to go. A user's RME DAC had exactly this shape and never
+ * created the engine in any list.
+ *
+ * FOUR, not two. Windows ships two pairs of these — `FX_PREMIX_CLSID` and
+ * `FX_POSTMIX_CLSID` from `wdmaudio.inf`, and a second pair registered
+ * beside them — and all four resolve to the same `WMALFXGFXDSP.dll` under
+ * the same two names. Which pair an endpoint carries varies by machine.
+ * Knowing only the first pair meant every one-value rung was refused on a
+ * machine carrying the second, with "already holds another effect" naming a
+ * class id that was Windows' own all along.
  */
 extern const wchar_t* const kWindowsDefaultApoClsids[];
-constexpr int kWindowsDefaultApoClsidCount = 2;
+constexpr int kWindowsDefaultApoClsidCount = 4;
 
 bool is_windows_default_apo(std::wstring_view clsid);
 

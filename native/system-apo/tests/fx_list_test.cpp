@@ -85,11 +85,16 @@ constexpr wchar_t kVendorMode[] = L"{9CF2A70B-F377-403B-BD6B-360863E0355C}";
 // and a test that read it from the source it checks would prove nothing.
 constexpr wchar_t kApoMfx[] = L"{EACD2258-FCAC-4FF4-B36D-419E924A6D79}";
 constexpr wchar_t kApoEfx[] = L"{EC1CC9CE-FAED-4822-828A-82A81A6F018F}";
-// Windows' own two legacy effects, as wdmaudio.inf registers them (the
-// published contract again; a test reading them from the source proves
-// nothing).
+// Windows' own inbox effects, as it registers them (the published contract
+// again; a test reading them from the source proves nothing). Two pairs, and
+// knowing only the first is what refused the engine a slot Windows itself
+// was sitting in: all four are named "WM LFX APO" or "WM GFX APO" and all
+// four are served by WMALFXGFXDSP.dll, and which pair an endpoint carries
+// varies by machine.
 constexpr wchar_t kWindowsLfx[] = L"{62dc1a93-ae24-464c-a43e-452f824c4250}";
 constexpr wchar_t kWindowsGfx[] = L"{637C490D-EEE3-4C0A-973F-371958802DA2}";
+constexpr wchar_t kWindowsLfx2[] = L"{C9453E73-8C5C-4463-9984-AF8BAB2F5447}";
+constexpr wchar_t kWindowsGfx2[] = L"{13ab3ebd-137e-4903-9d89-60be8277fd17}";
 
 std::vector<std::wstring> list(std::initializer_list<const wchar_t*> items) {
   std::vector<std::wstring> result;
@@ -570,6 +575,53 @@ void an_occupied_single_is_never_taken() {
   CHECK(default_slot_for(full, false) == Slot::Efx);
 }
 
+/**
+ * Read off a machine, after the ladder stopped one rung in: Windows' own two
+ * effects in pids 5 and 6, and the engine refused the move because "the MFX
+ * value already holds another effect" — naming a class id that is Windows'
+ * own. Windows ships two pairs of them, this endpoint carried the second,
+ * and only the first was written down here.
+ */
+void windows_second_pair_of_defaults_is_also_windows() {
+  std::printf("windows second pair of defaults is also windows\n");
+  // As the endpoint was first found: Windows' own two, and pid 7 free.
+  FxValues backup;
+  backup.single[kSfx] = kWindowsLfx2;
+  backup.single[kMfx] = kWindowsGfx2;
+
+  // Both one-value rungs Windows is sitting in are takeable, in either
+  // spelling, and neither is read as a vendor's.
+  for (const wchar_t* held : {kWindowsLfx, kWindowsGfx, kWindowsLfx2,
+                              kWindowsGfx2}) {
+    FxValues endpoint;
+    endpoint.single[kMfx] = held;
+    const FxPlan plan = plan_attach(endpoint, kOurs, Slot::MfxSingle);
+    CHECK(plan.refused.empty());
+    CHECK(plan.after.single[kMfx] == std::wstring(kOurs));
+    // And Windows' own goes back exactly as it was.
+    const FxPlan gone = plan_detach(plan.after, endpoint, kOurs);
+    expect_values(gone.after, endpoint,
+                  "windows_second_pair_of_defaults_is_also_windows/detach");
+  }
+
+  // The step the machine could not take: off pid 7, where the ladder had
+  // put it, onto pid 6, over the second pair's GFX.
+  const FxValues attached = plan_attach(backup, kOurs, Slot::EfxSingle).after;
+  CHECK(slot_of(attached, kOurs) == Slot::EfxSingle);
+  FxValues expected = backup;
+  expected.single[kMfx] = kOurs;
+  const FxPlan moved = plan_move(attached, backup, kOurs, Slot::MfxSingle);
+  CHECK(moved.refused.empty());
+  expect_values(moved.after, expected,
+                "windows_second_pair_of_defaults_is_also_windows/move");
+
+  // The positive control: a vendor's own effect in the same value is still
+  // refused, whichever generation it sits in.
+  FxValues vendor;
+  vendor.single[kMfx] = kLegacyGfx;
+  CHECK(!plan_attach(vendor, kOurs, Slot::MfxSingle).refused.empty());
+}
+
 /** An endpoint with nothing at all still starts at the top of the ladder. */
 void bare_endpoint_starts_at_efx() {
   std::printf("bare endpoint starts at efx\n");
@@ -971,6 +1023,7 @@ int main() {
   windows_defaults_in_the_singles_are_the_ladder();
   move_from_a_list_into_the_efx_single();
   an_occupied_single_is_never_taken();
+  windows_second_pair_of_defaults_is_also_windows();
   bare_endpoint_starts_at_efx();
   detach_restores_created_keys();
   detach_keeps_others_in_list();

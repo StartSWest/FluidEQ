@@ -417,11 +417,23 @@ bool is_equalizer_apo(std::wstring_view clsid) {
   return false;
 }
 
-// `FX_PREMIX_CLSID` and `FX_POSTMIX_CLSID` from wdmaudio.inf: the LFX and
-// GFX Windows registers itself, named "WM LFX APO" and "WM GFX APO".
+// The LFX and GFX Windows registers itself, named "WM LFX APO" and "WM GFX
+// APO". There are two pairs of them, not one: `FX_PREMIX_CLSID` and
+// `FX_POSTMIX_CLSID` from wdmaudio.inf, and a second pair Windows registers
+// beside them. All four resolve to the same `WMALFXGFXDSP.dll` under the
+// same two names, and which pair an endpoint carries varies by machine.
+//
+// Knowing only the first pair is not a harmless gap: the whole point of this
+// list is that Windows' own effect is the one registration ours may take a
+// one-value slot from, so an endpoint carrying the other pair had every such
+// rung refused — "the MFX value already holds another effect" — and the slot
+// ladder stopped there with rungs to spare. That is what a Bluetooth headset
+// hit; it would have hit the pre-8.1 rungs on any machine with this pair.
 const wchar_t* const kWindowsDefaultApoClsids[] = {
     L"{62DC1A93-AE24-464C-A43E-452F824C4250}",
-    L"{637C490D-EEE3-4C0A-973F-371958802DA2}"};
+    L"{637C490D-EEE3-4C0A-973F-371958802DA2}",
+    L"{C9453E73-8C5C-4463-9984-AF8BAB2F5447}",
+    L"{13AB3EBD-137E-4903-9D89-60BE8277FD17}"};
 
 bool is_windows_default_apo(std::wstring_view clsid) {
   for (int at = 0; at < kWindowsDefaultApoClsidCount; ++at) {
