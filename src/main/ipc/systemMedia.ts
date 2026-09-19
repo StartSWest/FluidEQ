@@ -18,15 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { app, ipcMain } from 'electron';
-import { sendMediaTransportKey } from '../mediaKeys';
-import {
-  getSystemMediaCover,
-  ISystemMediaSnapshot,
-  pauseOtherSystemPlayers,
-  sendSystemMediaCommand,
-  stopWatchingSystemMedia,
-  watchSystemMedia,
-} from '../systemMedia';
+import { ISystemMediaSnapshot } from '../systemMedia';
+import { systemMediaSourceFor } from '../systemMediaSource';
 
 export interface ISystemMediaIpcDeps {
   /**
@@ -39,6 +32,8 @@ export interface ISystemMediaIpcDeps {
 
 /** What the rest of the machine is playing, and its transport. */
 const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
+  const systemMedia = systemMediaSourceFor(process.platform);
+
   /**
    * The titlebar's transport buttons, pressed on behalf of the whole machine.
    *
@@ -52,7 +47,7 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
    * on.
    */
   ipcMain.handle('media-transport', async (_event, action: unknown) => {
-    await sendMediaTransportKey(action);
+    await systemMedia.sendTransportKey(action);
   });
 
   /**
@@ -62,7 +57,7 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
    */
   ipcMain.handle('system-media-cover', (_event, id: unknown) =>
     typeof id === 'string' && /^[0-9a-f]{16}$/.test(id)
-      ? getSystemMediaCover(id)
+      ? systemMedia.cover(id)
       : undefined,
   );
 
@@ -77,10 +72,10 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
    */
   ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
     if (enabled !== true) {
-      stopWatchingSystemMedia();
+      systemMedia.stopWatching();
       return;
     }
-    watchSystemMedia((snapshot) => {
+    systemMedia.watch((snapshot) => {
       onMedia(snapshot).catch(() => undefined);
       if (!event.sender.isDestroyed()) {
         event.sender.send('system-media-changed', snapshot);
@@ -108,7 +103,7 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
       ) {
         return;
       }
-      await sendSystemMediaCommand(
+      await systemMedia.sendCommand(
         command,
         typeof positionMs === 'number' && Number.isFinite(positionMs)
           ? positionMs
@@ -139,14 +134,14 @@ const registerSystemMediaIpc = ({ onMedia }: ISystemMediaIpcDeps) => {
       ) {
         return;
       }
-      await pauseOtherSystemPlayers(exceptApp ?? '');
+      await systemMedia.pauseOthers(exceptApp ?? '');
     },
   );
 
   // The child outlives nothing. A window that has gone cannot be told what is
   // playing, and a PowerShell left running after the app closed is a process
   // somebody finds in Task Manager with this app's name on it.
-  app.on('will-quit', stopWatchingSystemMedia);
+  app.on('will-quit', () => systemMedia.stopWatching());
 };
 
 export default registerSystemMediaIpc;
