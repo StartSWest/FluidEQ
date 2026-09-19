@@ -1,0 +1,2718 @@
+<div id="fluid-room-preview" aria-label="FluidEQ Room design">
+  <style>
+    #fluid-room-preview {
+      --fr-base: light-dark(#e7eef3, #0d2030);
+      --fr-panel: light-dark(#f7fafc, #1a3a4e);
+      --fr-field: light-dark(#eaf1f5, #173245);
+      --fr-well: light-dark(#dce7ee, #0a1b29);
+      --fr-text: light-dark(#153042, #ecf5fb);
+      --fr-muted: light-dark(#526b7b, #a5bdcb);
+      --fr-line: light-dark(#c4d4df, #355366);
+      --fr-accent: light-dark(#007e78, #00e5cf);
+      --fr-accent-ink: light-dark(#ffffff, #042a2b);
+      --fr-lilac: light-dark(#8257ad, #c7a4eb);
+      --fr-highlight: light-dark(#cfe9e8, #164f57);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--fr-text);
+      font-variant-numeric: tabular-nums;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #fluid-room-preview[data-palette='black'] {
+      --fr-base: #080c11;
+      --fr-panel: #111820;
+      --fr-field: #18212a;
+      --fr-well: #0b1016;
+      --fr-line: #2c3b46;
+      --fr-highlight: #153c3a;
+    }
+    #fluid-room-preview * {
+      box-sizing: border-box;
+    }
+    #fluid-room-preview [hidden] {
+      display: none !important;
+    }
+    #fluid-room-preview button,
+    #fluid-room-preview input,
+    #fluid-room-preview select {
+      font: inherit;
+      color: inherit;
+      max-width: 100%;
+    }
+    #fluid-room-preview button {
+      border: 1px solid var(--fr-line);
+      border-radius: 8px;
+      background: var(--fr-field);
+      padding: 7px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      line-height: 1.25;
+    }
+    #fluid-room-preview button:hover:not(:disabled) {
+      border-color: var(--fr-accent);
+      background: var(--fr-highlight);
+    }
+    #fluid-room-preview button:disabled {
+      opacity: 0.48;
+      cursor: default;
+    }
+    #fluid-room-preview button[aria-pressed='true'],
+    #fluid-room-preview button[aria-selected='true'] {
+      color: var(--fr-accent);
+      border-color: var(--fr-accent);
+      background: var(--fr-highlight);
+    }
+    #fluid-room-preview .fr-primary {
+      background: var(--fr-accent);
+      color: var(--fr-accent-ink);
+      border-color: var(--fr-accent);
+      font-weight: 600;
+    }
+    #fluid-room-preview .fr-primary:hover:not(:disabled) {
+      color: var(--fr-text);
+    }
+    #fluid-room-preview input[type='range'] {
+      width: 100%;
+      accent-color: var(--fr-accent);
+      height: 20px;
+      margin: 7px 0 0;
+      background: transparent;
+    }
+    #fluid-room-preview input[type='text'],
+    #fluid-room-preview select {
+      width: 100%;
+      border: 1px solid var(--fr-line);
+      border-radius: 7px;
+      background: var(--fr-well);
+      padding: 8px 9px;
+    }
+    #fluid-room-preview input[type='checkbox'] {
+      accent-color: var(--fr-accent);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+    #fluid-room-preview svg.lucide {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      stroke-width: 1.7;
+    }
+    #fluid-room-preview h2,
+    #fluid-room-preview h3,
+    #fluid-room-preview p {
+      margin: 0;
+    }
+    #fluid-room-preview h2 {
+      font-size: 23px;
+      line-height: 1.2;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+    }
+    #fluid-room-preview h3 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    #fluid-room-preview .fr-muted {
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-small {
+      font-size: 12px;
+    }
+    #fluid-room-preview .fr-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-preview-label {
+      font-size: 11px;
+      color: var(--fr-muted);
+      padding: 0 2px 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    #fluid-room-preview .fr-app {
+      background: var(--fr-base);
+      border: 1px solid var(--fr-line);
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    #fluid-room-preview .fr-app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--fr-line);
+      flex-wrap: wrap;
+    }
+    #fluid-room-preview .fr-brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      font-size: 17px;
+      font-weight: 600;
+    }
+    #fluid-room-preview .fr-brand span {
+      font-size: 12px;
+      color: var(--fr-muted);
+      font-weight: 400;
+      border-left: 1px solid var(--fr-line);
+      padding-left: 13px;
+    }
+    #fluid-room-preview .fr-route {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-layout {
+      display: grid;
+      grid-template-columns: 139px minmax(0, 1fr);
+    }
+    #fluid-room-preview .fr-rail {
+      padding: 18px 9px;
+      border-right: 1px solid var(--fr-line);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    #fluid-room-preview .fr-rail-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 8px;
+      color: var(--fr-muted);
+      font-size: 12px;
+      border-radius: 7px;
+    }
+    #fluid-room-preview .fr-rail-item.fr-current {
+      color: var(--fr-accent);
+      background: var(--fr-highlight);
+      box-shadow: inset 2px 0 var(--fr-accent);
+    }
+    #fluid-room-preview .fr-rail-rule {
+      height: 1px;
+      background: var(--fr-line);
+      margin: 8px;
+    }
+    #fluid-room-preview .fr-main {
+      padding: 20px;
+      min-width: 0;
+    }
+    #fluid-room-preview .fr-titlebar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    #fluid-room-preview .fr-titlebar p {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-title-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    #fluid-room-preview .fr-power {
+      min-width: 66px;
+    }
+    #fluid-room-preview .fr-power-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    #fluid-room-preview .fr-profile-strip {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 15px;
+      border-radius: 10px;
+      background: var(--fr-panel);
+      border: 1px solid var(--fr-line);
+    }
+    #fluid-room-preview .fr-profile-emblem {
+      width: 41px;
+      height: 41px;
+      border-radius: 10px;
+      background: var(--fr-highlight);
+      color: var(--fr-accent);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    #fluid-room-preview .fr-profile-emblem .lucide {
+      width: 21px;
+      height: 21px;
+    }
+    #fluid-room-preview .fr-profile-copy {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    #fluid-room-preview .fr-profile-name {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    #fluid-room-preview .fr-profile-copy p {
+      font-size: 12px;
+      color: var(--fr-muted);
+      margin-top: 3px;
+    }
+    #fluid-room-preview .fr-view-tabs {
+      display: flex;
+      gap: 3px;
+      margin: 15px 0 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--fr-line);
+    }
+    #fluid-room-preview .fr-view-tabs button {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      color: var(--fr-muted);
+      padding: 9px 12px;
+    }
+    #fluid-room-preview .fr-view-tabs button[aria-selected='true'] {
+      border-bottom-color: var(--fr-accent);
+      color: var(--fr-text);
+      background: transparent;
+    }
+    #fluid-room-preview .fr-view-tabs .fr-source {
+      margin-left: auto;
+      padding: 0 0 5px 8px;
+    }
+    #fluid-room-preview .fr-source {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--fr-muted);
+      flex-wrap: wrap;
+    }
+    #fluid-room-preview .fr-source strong {
+      font-weight: 500;
+      color: var(--fr-accent);
+    }
+    #fluid-room-preview .fr-listening {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(215px, 1fr);
+      gap: 12px;
+    }
+    #fluid-room-preview .fr-stage {
+      border: 1px solid var(--fr-line);
+      border-radius: 10px;
+      background: var(--fr-well);
+      min-width: 0;
+      position: relative;
+    }
+    #fluid-room-preview .fr-stage-map {
+      height: 312px;
+      position: relative;
+      isolation: isolate;
+    }
+    #fluid-room-preview .fr-map-lines {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+    }
+    #fluid-room-preview .fr-wall {
+      fill: none;
+      stroke: var(--fr-line);
+      stroke-width: 1.4;
+    }
+    #fluid-room-preview .fr-direct-line {
+      stroke: var(--fr-accent);
+      stroke-width: 1;
+      opacity: 0.25;
+    }
+    #fluid-room-preview .fr-room-fill {
+      fill: var(--fr-accent);
+      opacity: 0.03;
+    }
+    #fluid-room-preview .fr-room-ring {
+      fill: none;
+      stroke: var(--fr-line);
+      stroke-width: 1;
+      opacity: 0.65;
+    }
+    #fluid-room-preview .fr-reflection-line {
+      stroke: var(--fr-accent);
+      stroke-width: 1;
+      fill: none;
+      stroke-dasharray: 3 5;
+      opacity: 0.38;
+    }
+    #fluid-room-preview .fr-map-front {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-listener {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border: 1px solid var(--fr-lilac);
+      border-radius: 50%;
+      color: var(--fr-lilac);
+      background: var(--fr-field);
+      box-shadow: 0 0 0 10px color-mix(in srgb, var(--fr-lilac) 6%, transparent);
+    }
+    #fluid-room-preview .fr-listener .lucide {
+      width: 25px;
+      height: 25px;
+    }
+    #fluid-room-preview .fr-listener-label {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--fr-muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    #fluid-room-preview .fr-speaker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 39px;
+      min-height: 43px;
+      padding: 5px 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border: 1px solid var(--fr-line);
+      background: var(--fr-field);
+      border-radius: 6px;
+      font-size: 11px;
+      z-index: 2;
+      touch-action: none;
+      cursor: grab;
+    }
+    #fluid-room-preview .fr-speaker[data-dragging='true'] {
+      cursor: grabbing;
+    }
+    #fluid-room-preview .fr-speaker .lucide {
+      width: 15px;
+      height: 15px;
+    }
+    #fluid-room-preview .fr-speaker[data-fed='yes'] {
+      color: var(--fr-accent);
+      border-color: color-mix(in srgb, var(--fr-accent) 45%, var(--fr-line));
+    }
+    #fluid-room-preview .fr-speaker[data-derived='yes'] {
+      border-style: dashed;
+    }
+    #fluid-room-preview .fr-speaker[aria-pressed='true'] {
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--fr-accent) 12%, transparent);
+      background: var(--fr-highlight);
+    }
+    #fluid-room-preview .fr-speaker[data-fed='no'] {
+      color: var(--fr-muted);
+      opacity: 0.5;
+    }
+    #fluid-room-preview .fr-sub {
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      font-size: 11px;
+      color: var(--fr-muted);
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    #fluid-room-preview .fr-sub .lucide {
+      width: 13px;
+      height: 13px;
+    }
+    #fluid-room-preview .fr-stage-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-top: 1px solid var(--fr-line);
+      font-size: 11px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-stage-footer strong {
+      color: var(--fr-text);
+      font-weight: 500;
+    }
+    #fluid-room-preview .fr-stage-footer button {
+      font-size: 11px;
+      padding: 5px 7px;
+    }
+    #fluid-room-preview .fr-quick {
+      grid-column: 1/-1;
+      border: 1px solid var(--fr-line);
+      border-radius: 10px;
+      background: var(--fr-panel);
+      padding: 15px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px 20px;
+    }
+    #fluid-room-preview .fr-quick > .fr-section-title,
+    #fluid-room-preview .fr-quick > .fr-quick-foot {
+      grid-column: 1/-1;
+    }
+    #fluid-room-preview .fr-speaker-pane {
+      gap: 12px !important;
+    }
+    #fluid-room-preview .fr-section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    #fluid-room-preview .fr-plus {
+      font-size: 11px;
+      letter-spacing: 0.6px;
+      color: var(--fr-lilac);
+      border: 1px solid color-mix(in srgb, var(--fr-lilac) 40%, var(--fr-line));
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    #fluid-room-preview .fr-control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    #fluid-room-preview .fr-control-head output {
+      color: var(--fr-accent);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    #fluid-room-preview .fr-control-hint {
+      font-size: 11px;
+      color: var(--fr-muted);
+      margin-top: 3px;
+    }
+    #fluid-room-preview .fr-quick-foot {
+      border-top: 1px solid var(--fr-line);
+      padding-top: 11px;
+      margin-top: auto;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-info-line {
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-info-line .lucide {
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    #fluid-room-preview .fr-bottom {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 17px;
+      padding-top: 12px;
+      border-top: 1px solid var(--fr-line);
+    }
+    #fluid-room-preview .fr-head-summary {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-bottom-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    #fluid-room-preview .fr-bottom button {
+      font-size: 11px;
+      padding: 6px 8px;
+    }
+    #fluid-room-preview .fr-browser {
+      padding-top: 17px;
+    }
+    #fluid-room-preview .fr-browser-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    #fluid-room-preview .fr-segments {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      background: var(--fr-well);
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+    #fluid-room-preview .fr-segments button {
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 12px;
+      padding: 6px 10px;
+      flex: 1;
+    }
+    #fluid-room-preview .fr-segments button[aria-pressed='true'] {
+      background: var(--fr-panel);
+      border-color: var(--fr-line);
+      color: var(--fr-text);
+    }
+    #fluid-room-preview .fr-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 12px;
+    }
+    #fluid-room-preview .fr-profile-option {
+      display: block;
+      text-align: left;
+      padding: 14px;
+      background: var(--fr-panel);
+      position: relative;
+      min-height: 125px;
+      overflow-wrap: anywhere;
+    }
+    #fluid-room-preview .fr-profile-option .fr-option-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--fr-text);
+    }
+    #fluid-room-preview .fr-profile-option .fr-option-top .lucide {
+      color: var(--fr-accent);
+      width: 18px;
+      height: 18px;
+    }
+    #fluid-room-preview .fr-profile-option p {
+      font-size: 12px;
+      color: var(--fr-muted);
+      font-weight: 400;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    #fluid-room-preview .fr-profile-option .fr-option-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview[data-density='compact'] .fr-profile-option {
+      min-height: 100px;
+      padding: 11px;
+    }
+    #fluid-room-preview[data-density='compact'] .fr-profile-option p {
+      margin-bottom: 6px;
+    }
+    #fluid-room-preview .fr-classic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+      margin-top: 12px;
+    }
+    #fluid-room-preview .fr-classic-grid button {
+      justify-content: space-between;
+      padding: 11px 13px;
+    }
+    #fluid-room-preview .fr-settings {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    #fluid-room-preview .fr-settings-group {
+      background: var(--fr-panel);
+      border: 1px solid var(--fr-line);
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+    #fluid-room-preview .fr-settings-group label {
+      display: block;
+    }
+    #fluid-room-preview .fr-check-row {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    #fluid-room-preview .fr-speaker-pick {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+    #fluid-room-preview .fr-speaker-pick button {
+      padding: 7px 2px;
+      font-size: 11px;
+    }
+    #fluid-room-preview .fr-fit-choices {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    #fluid-room-preview .fr-fit-choice {
+      flex-direction: column;
+      padding: 17px 5px;
+      gap: 9px;
+    }
+    #fluid-room-preview .fr-fit-choice .lucide {
+      width: 27px;
+      height: 27px;
+    }
+    #fluid-room-preview .fr-fit-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+    #fluid-room-preview .fr-fit-description {
+      font-size: 12px;
+      color: var(--fr-muted);
+      line-height: 1.55;
+    }
+    #fluid-room-preview .fr-fit-callout {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 13px;
+    }
+    #fluid-room-preview .fr-fit-callout > .lucide {
+      width: 27px;
+      height: 27px;
+      color: var(--fr-accent);
+    }
+    #fluid-room-preview .fr-fit-auditions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    #fluid-room-preview .fr-fit-auditions button {
+      min-height: 58px;
+    }
+    #fluid-room-preview .fr-save-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    #fluid-room-preview .fr-save-form label {
+      flex: 1;
+      min-width: 150px;
+      font-size: 11px;
+      color: var(--fr-muted);
+    }
+    #fluid-room-preview .fr-save-form input {
+      margin-top: 4px;
+    }
+    #fluid-room-preview .fr-status {
+      font-size: 11px;
+      color: var(--fr-muted);
+      min-height: 16px;
+      margin-top: 10px;
+    }
+    #fluid-room-preview .fr-bypass-note {
+      margin: 12px 0 0;
+      padding: 9px 12px;
+      background: var(--fr-highlight);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--fr-accent);
+    }
+    #fluid-room-preview[data-bypassed='true'] .fr-stage-map {
+      opacity: 0.4;
+    }
+    #fluid-room-preview .fr-empty {
+      padding: 36px 16px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--fr-muted);
+      border: 1px dashed var(--fr-line);
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 850px) {
+      #fluid-room-preview .fr-layout {
+        grid-template-columns: 110px minmax(0, 1fr);
+      }
+      #fluid-room-preview .fr-main {
+        padding: 16px;
+      }
+      #fluid-room-preview .fr-rail {
+        padding-inline: 5px;
+      }
+      #fluid-room-preview .fr-rail-item {
+        gap: 6px;
+        font-size: 11px;
+        padding: 10px 5px;
+      }
+      #fluid-room-preview .fr-listening {
+        grid-template-columns: minmax(0, 1fr) minmax(195px, 0.85fr);
+      }
+      #fluid-room-preview .fr-stage-map {
+        height: 302px;
+      }
+    }
+    @media (max-width: 670px) {
+      #fluid-room-preview .fr-rail {
+        display: none;
+      }
+      #fluid-room-preview .fr-layout {
+        display: block;
+      }
+      #fluid-room-preview .fr-main {
+        padding: 14px;
+      }
+      #fluid-room-preview .fr-titlebar {
+        margin-bottom: 14px;
+      }
+      #fluid-room-preview .fr-listening {
+        grid-template-columns: minmax(0, 1fr) minmax(185px, 0.8fr);
+      }
+      #fluid-room-preview .fr-view-tabs .fr-source {
+        font-size: 10px;
+      }
+      #fluid-room-preview .fr-title-actions button {
+        font-size: 12px;
+      }
+    }
+    @media (max-width: 530px) {
+      #fluid-room-preview .fr-listening,
+      #fluid-room-preview .fr-settings,
+      #fluid-room-preview .fr-fit-layout {
+        grid-template-columns: 1fr;
+      }
+      #fluid-room-preview .fr-stage-map {
+        height: 310px;
+      }
+      #fluid-room-preview .fr-quick {
+        gap: 15px;
+      }
+      #fluid-room-preview .fr-view-tabs {
+        flex-wrap: wrap;
+      }
+      #fluid-room-preview .fr-view-tabs .fr-source {
+        flex-basis: 100%;
+        margin: 0;
+        padding: 3px 10px 9px;
+        font-size: 11px;
+      }
+      #fluid-room-preview .fr-profile-strip {
+        flex-wrap: wrap;
+        padding: 12px;
+        gap: 10px;
+      }
+      #fluid-room-preview .fr-profile-copy {
+        min-width: 150px;
+      }
+      #fluid-room-preview .fr-profile-strip > button {
+        margin-left: 51px;
+      }
+      #fluid-room-preview .fr-titlebar {
+        align-items: flex-start;
+      }
+      #fluid-room-preview .fr-title-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #fluid-room-preview .fr-app-header {
+        padding: 12px 14px;
+      }
+      #fluid-room-preview .fr-profile-grid {
+        grid-template-columns: 1fr;
+      }
+      #fluid-room-preview .fr-profile-option {
+        min-height: 0;
+      }
+      #fluid-room-preview .fr-classic-grid {
+        grid-template-columns: 1fr;
+      }
+      #fluid-room-preview .fr-titlebar p {
+        max-width: 175px;
+      }
+      #fluid-room-preview input[type='text'],
+      #fluid-room-preview select {
+        font-size: 16px;
+      }
+    }
+    #fluid-room-preview .fr-view-tabs .fr-source {
+      font-size: 11px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #fluid-room-preview * {
+        transition: none !important;
+      }
+    }
+    @media (max-width: 530px) {
+      #fluid-room-preview .fr-quick {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (pointer: coarse) {
+      #fluid-room-preview button {
+        min-height: 44px;
+      }
+      #fluid-room-preview .fr-speaker {
+        width: 44px;
+        min-height: 44px;
+      }
+      #fluid-room-preview input[type='range'] {
+        height: 30px;
+      }
+    }
+  </style>
+  <div class="fr-preview-label">
+    <i data-lucide="pencil-ruler" aria-hidden="true"></i>Interactive design · no
+    audio processing
+  </div>
+  <div class="fr-app">
+    <header class="fr-app-header">
+      <div class="fr-brand">DSP <span>Custom rack</span></div>
+      <div class="fr-route">
+        <i data-lucide="headphones" aria-hidden="true"></i>System-wide ·
+        Headphones
+      </div>
+    </header>
+    <div class="fr-layout">
+      <aside class="fr-rail" aria-label="Processor context">
+        <div class="fr-rail-item">
+          <i data-lucide="audio-lines" aria-hidden="true"></i>Normalizer
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="waves" aria-hidden="true"></i>Denoise
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="activity" aria-hidden="true"></i>Exciter
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="waves" aria-hidden="true"></i>Bass Forge
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="sliders-horizontal" aria-hidden="true"></i>Equaliser
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="audio-waveform" aria-hidden="true"></i>Bass Punch
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="move-horizontal" aria-hidden="true"></i>Dimension
+        </div>
+        <div class="fr-rail-item fr-current" aria-current="page">
+          <i data-lucide="orbit" aria-hidden="true"></i>Room
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="arrow-up-to-line" aria-hidden="true"></i>Maximizer
+        </div>
+        <div class="fr-rail-item">
+          <i data-lucide="gauge" aria-hidden="true"></i>Master
+        </div>
+        <div class="fr-rail-rule"></div>
+        <div class="fr-rail-item">
+          <i data-lucide="shuffle" aria-hidden="true"></i>Crossfade
+        </div>
+      </aside>
+      <main class="fr-main">
+        <div class="fr-titlebar">
+          <div>
+            <h2>Room</h2>
+            <p>A listening space, made for your headphones.</p>
+          </div>
+          <div class="fr-title-actions">
+            <button
+              id="fr-compare"
+              type="button"
+              aria-pressed="false"
+              class="cursor-interaction"
+            >
+              <i data-lucide="split" aria-hidden="true"></i
+              ><span>Compare original</span></button
+            ><button
+              id="fr-power"
+              class="fr-power cursor-interaction"
+              type="button"
+              aria-pressed="true"
+              aria-label="Room enabled"
+            >
+              <span class="fr-power-dot"></span><span>On</span>
+            </button>
+          </div>
+        </div>
+        <div class="fr-profile-strip">
+          <div class="fr-profile-emblem" id="fr-profile-icon">
+            <i data-lucide="clapperboard" aria-hidden="true"></i>
+          </div>
+          <div class="fr-profile-copy">
+            <div class="fr-eyebrow">Listening profile</div>
+            <div class="fr-profile-name" id="fr-profile-name">Cinema</div>
+            <p id="fr-profile-description">
+              A wide screen. A grounded voice. Space around you.
+            </p>
+          </div>
+          <button
+            id="fr-browse"
+            type="button"
+            class="cursor-interaction"
+            aria-expanded="false"
+          >
+            <i data-lucide="layout-grid" aria-hidden="true"></i>Browse
+          </button>
+        </div>
+        <div class="fr-bypass-note" id="fr-bypass-note" hidden></div>
+        <section
+          id="fr-browser"
+          class="fr-browser"
+          hidden
+          aria-label="Profile library"
+        >
+          <div class="fr-browser-title">
+            <h3>Find your space</h3>
+            <button
+              id="fr-close-browser"
+              type="button"
+              class="cursor-interaction"
+              aria-label="Close profile library"
+            >
+              <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="fr-segments" aria-label="Profile collections">
+            <button
+              data-collection="featured"
+              aria-pressed="true"
+              class="cursor-interaction"
+              type="button"
+            >
+              Featured</button
+            ><button
+              data-collection="classic"
+              aria-pressed="false"
+              class="cursor-interaction"
+              type="button"
+            >
+              Classic rooms</button
+            ><button
+              data-collection="saved"
+              aria-pressed="false"
+              class="cursor-interaction"
+              type="button"
+            >
+              Saved
+            </button>
+          </div>
+          <div id="fr-profile-grid" class="fr-profile-grid"></div>
+        </section>
+        <div id="fr-workspace">
+          <nav class="fr-view-tabs" role="tablist" aria-label="Room controls">
+            <button
+              id="fr-tab-room"
+              data-view="room"
+              role="tab"
+              aria-selected="true"
+              aria-controls="fr-room-view"
+              type="button"
+              class="cursor-interaction"
+            >
+              Room</button
+            ><button
+              id="fr-tab-tune"
+              data-view="tune"
+              role="tab"
+              aria-selected="false"
+              aria-controls="fr-tune-view"
+              type="button"
+              class="cursor-interaction"
+            >
+              Tune</button
+            ><button
+              id="fr-tab-fit"
+              data-view="fit"
+              role="tab"
+              aria-selected="false"
+              aria-controls="fr-fit-view"
+              type="button"
+              class="cursor-interaction"
+            >
+              Fit
+            </button>
+            <div class="fr-source">
+              <strong id="fr-source-label">5.1 input</strong
+              ><i data-lucide="arrow-right" aria-hidden="true"></i
+              ><span>Headphones</span>
+            </div>
+          </nav>
+          <section
+            id="fr-room-view"
+            role="tabpanel"
+            aria-labelledby="fr-tab-room"
+          >
+            <div class="fr-listening">
+              <div class="fr-stage">
+                <div
+                  class="fr-stage-map"
+                  id="fr-stage-map"
+                  aria-label="Top-down room with selectable and draggable speakers"
+                >
+                  <svg
+                    class="fr-map-lines"
+                    id="fr-map-lines"
+                    role="img"
+                    aria-label="Speaker paths and early reflections"
+                  ></svg>
+                  <div class="fr-map-front">FRONT</div>
+                  <div class="fr-sub" id="fr-sub">
+                    <i data-lucide="speaker" aria-hidden="true"></i>SUB
+                  </div>
+                  <div class="fr-listener">
+                    <i data-lucide="headphones" aria-hidden="true"></i>
+                  </div>
+                  <div class="fr-listener-label">YOU</div>
+                  <div id="fr-speakers"></div>
+                </div>
+                <div class="fr-stage-footer">
+                  <span id="fr-selected-detail"
+                    ><strong>Front left</strong> · −30° · 2.6 m</span
+                  ><span>Drag to place · Shift/Ctrl for one</span>
+                </div>
+              </div>
+              <div
+                class="fr-settings-group fr-speaker-pane"
+                role="group"
+                aria-labelledby="fr-speaker-title"
+              >
+                <div class="fr-section-title">
+                  <h3 id="fr-speaker-title">Front left</h3>
+                  <span class="fr-plus">PLUS</span>
+                </div>
+                <label
+                  ><span class="fr-control-head"
+                    ><span id="fr-angle-label">Angle</span
+                    ><output id="fr-angle-value">−30°</output></span
+                  ><input
+                    id="fr-angle"
+                    type="range"
+                    min="-180"
+                    max="180"
+                    step="1"
+                    value="-30"
+                    data-shape
+                    aria-label="Selected speaker angle"
+                /></label>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Distance</span
+                    ><output id="fr-speaker-distance-value">2.6 m</output></span
+                  ><input
+                    id="fr-speaker-distance"
+                    type="range"
+                    min="0.5"
+                    max="6"
+                    step="0.1"
+                    value="2.6"
+                    data-shape
+                    aria-label="Selected speaker distance"
+                /></label>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Level</span
+                    ><output id="fr-level-value">0.0 dB</output></span
+                  ><input
+                    id="fr-level"
+                    type="range"
+                    min="-12"
+                    max="6"
+                    step="0.5"
+                    value="0"
+                    data-shape
+                    aria-label="Selected speaker level"
+                /></label>
+                <div class="fr-segments">
+                  <button
+                    id="fr-mute"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="false"
+                  >
+                    Mute</button
+                  ><button
+                    id="fr-solo"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="false"
+                  >
+                    Solo
+                  </button>
+                </div>
+                <p class="fr-control-hint" id="fr-speaker-note">
+                  This speaker receives a discrete input channel.
+                </p>
+              </div>
+              <div class="fr-quick">
+                <div class="fr-section-title">
+                  <span class="fr-eyebrow">Make it yours</span
+                  ><span class="fr-plus">PLUS</span>
+                </div>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Space</span
+                    ><output id="fr-space-value">42%</output></span
+                  ><input
+                    id="fr-space"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="42"
+                    data-key="space"
+                    data-shape
+                    aria-label="Space"
+                  /><span class="fr-control-hint"
+                    >The presence of the room around you.</span
+                  ></label
+                >
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Ambience</span
+                    ><output id="fr-ambience-value">28%</output></span
+                  ><input
+                    id="fr-ambience"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="28"
+                    data-key="ambience"
+                    data-shape
+                    aria-label="Ambience"
+                  /><span class="fr-control-hint"
+                    >A soft tail, beyond the first reflections.</span
+                  ></label
+                >
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Distance</span
+                    ><output id="fr-distance-value">2.6 m</output></span
+                  ><input
+                    id="fr-distance"
+                    type="range"
+                    min="0.8"
+                    max="4"
+                    step="0.1"
+                    value="2.6"
+                    data-key="distance"
+                    data-shape
+                    aria-label="Speaker distance"
+                  /><span class="fr-control-hint"
+                    >Bring the speakers closer or farther away.</span
+                  ></label
+                >
+                <div class="fr-quick-foot">
+                  <i data-lucide="focus" aria-hidden="true"></i
+                  ><span id="fr-position-summary"
+                    >Speaker positions preserved</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="fr-info-line">
+              <i data-lucide="info" aria-hidden="true"></i
+              ><span id="fr-input-note"
+                >Five channels and a sub. Unused rear speakers stay dim.</span
+              >
+            </div>
+          </section>
+          <section
+            id="fr-tune-view"
+            role="tabpanel"
+            aria-labelledby="fr-tab-tune"
+            hidden
+          >
+            <div class="fr-settings">
+              <div class="fr-settings-group">
+                <div class="fr-section-title">
+                  <h3>Room character</h3>
+                  <span class="fr-plus">PLUS</span>
+                </div>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Room size</span
+                    ><output id="fr-size-value">5.5 m</output></span
+                  ><input
+                    id="fr-size"
+                    type="range"
+                    min="2"
+                    max="12"
+                    step="0.1"
+                    value="5.5"
+                    data-key="size"
+                    data-shape
+                    aria-label="Room size"
+                /></label>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Wall absorption</span
+                    ><output id="fr-walls-value">55%</output></span
+                  ><input
+                    id="fr-walls"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="55"
+                    data-key="walls"
+                    data-shape
+                    aria-label="Wall absorption"
+                  /><span class="fr-control-hint"
+                    >Hard and lively → soft and controlled.</span
+                  ></label
+                >
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Ambience decay</span
+                    ><output id="fr-decay-value">0.7 s</output></span
+                  ><input
+                    id="fr-decay"
+                    type="range"
+                    min="0.1"
+                    max="1.8"
+                    step="0.1"
+                    value="0.7"
+                    data-key="decay"
+                    data-shape
+                    aria-label="Ambience decay"
+                /></label>
+                <label class="fr-check-row"
+                  ><input
+                    id="fr-preserve"
+                    type="checkbox"
+                    checked
+                    data-shape
+                  />Preserve speaker positions</label
+                >
+                <p class="fr-control-hint" id="fr-dimension-note">
+                  Dimension widening rests while Room is on. Its settings are
+                  kept.
+                </p>
+              </div>
+              <div class="fr-settings-group">
+                <h3>Bass & centre</h3>
+                <div class="fr-segments" aria-label="Bass routing">
+                  <button
+                    id="fr-bass-sub"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="true"
+                  >
+                    To sub</button
+                  ><button
+                    id="fr-bass-full"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="false"
+                  >
+                    Full range
+                  </button>
+                </div>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Crossover</span
+                    ><output id="fr-cross-value">80 Hz</output></span
+                  ><input
+                    id="fr-cross"
+                    type="range"
+                    min="40"
+                    max="200"
+                    step="5"
+                    value="80"
+                    data-key="cross"
+                    aria-label="Bass crossover"
+                /></label>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Sub level</span
+                    ><output id="fr-subLevel-value">+2.0 dB</output></span
+                  ><input
+                    id="fr-subLevel"
+                    type="range"
+                    min="-6"
+                    max="6"
+                    step="0.5"
+                    value="2"
+                    data-key="subLevel"
+                    data-shape
+                    aria-label="Sub level"
+                /></label>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Centre channel</span
+                    ><output id="fr-centre-value">+1.5 dB</output></span
+                  ><input
+                    id="fr-centre"
+                    type="range"
+                    min="-6"
+                    max="6"
+                    step="0.5"
+                    value="1.5"
+                    data-key="centre"
+                    data-shape
+                    aria-label="Centre channel level"
+                /></label>
+                <p class="fr-control-hint" id="fr-centre-note">
+                  Adjusts the centre signal; it does not isolate voices.
+                </p>
+              </div>
+              <div class="fr-settings-group">
+                <h3>Stereo source</h3>
+                <div class="fr-segments" aria-label="Stereo treatment">
+                  <button
+                    id="fr-upmix-off"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="false"
+                  >
+                    Front stage</button
+                  ><button
+                    id="fr-upmix-on"
+                    type="button"
+                    class="cursor-interaction"
+                    aria-pressed="true"
+                  >
+                    Fill room
+                  </button>
+                </div>
+                <label
+                  ><span class="fr-control-head"
+                    ><span>Expansion amount</span
+                    ><output id="fr-upmix-value">45%</output></span
+                  ><input
+                    id="fr-upmix"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="45"
+                    data-key="upmix"
+                    aria-label="Stereo expansion amount"
+                /></label>
+                <p class="fr-control-hint" id="fr-upmix-note">
+                  Used only for stereo. Discrete surround channels keep their
+                  own positions.
+                </p>
+                <label class="fr-check-row"
+                  ><input id="fr-spatial-source" type="checkbox" />My source is
+                  already spatial</label
+                >
+                <p class="fr-control-hint">
+                  Bypass Room for audio already rendered for headphones.
+                </p>
+              </div>
+            </div>
+          </section>
+          <section
+            id="fr-fit-view"
+            role="tabpanel"
+            aria-labelledby="fr-tab-fit"
+            hidden
+          >
+            <div class="fr-fit-layout">
+              <div class="fr-settings-group">
+                <h3>Your head, your fit</h3>
+                <p class="fr-fit-description">
+                  Choose the size that places voices and sounds most naturally
+                  around you.
+                </p>
+                <div class="fr-fit-choices">
+                  <button
+                    type="button"
+                    data-head="Small"
+                    aria-pressed="false"
+                    class="fr-fit-choice cursor-interaction"
+                  >
+                    <i data-lucide="headphones" aria-hidden="true"></i
+                    >Small</button
+                  ><button
+                    type="button"
+                    data-head="Medium"
+                    aria-pressed="true"
+                    class="fr-fit-choice cursor-interaction"
+                  >
+                    <i data-lucide="headphones" aria-hidden="true"></i
+                    >Medium</button
+                  ><button
+                    type="button"
+                    data-head="Large"
+                    aria-pressed="false"
+                    class="fr-fit-choice cursor-interaction"
+                  >
+                    <i data-lucide="headphones" aria-hidden="true"></i>Large
+                  </button>
+                </div>
+                <p class="fr-control-hint">
+                  Three size variants of the same measured head.
+                </p>
+                <label class="fr-check-row"
+                  ><input id="fr-correction" type="checkbox" checked />Use my
+                  headphone correction</label
+                >
+                <p class="fr-control-hint">
+                  Uses the headphone profile already chosen in EQ.
+                </p>
+              </div>
+              <div class="fr-settings-group fr-fit-callout">
+                <i data-lucide="scan-line" aria-hidden="true"></i>
+                <div class="fr-section-title">
+                  <h3>Find your natural centre</h3>
+                  <span class="fr-plus">PLUS</span>
+                </div>
+                <p class="fr-fit-description">
+                  Compare short sounds. Pick the one that feels more in front of
+                  you, less inside your head.
+                </p>
+                <button
+                  id="fr-start-fit"
+                  type="button"
+                  class="fr-primary cursor-interaction"
+                >
+                  Start listening fit<i
+                    data-lucide="arrow-right"
+                    aria-hidden="true"
+                  ></i></button
+                ><span class="fr-control-hint"
+                  >About 2 minutes · headphones on</span
+                >
+              </div>
+            </div>
+            <div
+              id="fr-fit-flow"
+              class="fr-settings-group"
+              style="margin-top: 12px"
+              hidden
+            >
+              <div class="fr-section-title">
+                <h3 id="fr-fit-step-title">Which sound feels more in front?</h3>
+                <span id="fr-fit-step" class="fr-muted fr-small">1 of 5</span>
+              </div>
+              <div class="fr-fit-auditions">
+                <button
+                  id="fr-audition-a"
+                  type="button"
+                  aria-pressed="false"
+                  class="cursor-interaction"
+                >
+                  <i data-lucide="play" aria-hidden="true"></i>Listen A</button
+                ><button
+                  id="fr-audition-b"
+                  type="button"
+                  aria-pressed="false"
+                  class="cursor-interaction"
+                >
+                  <i data-lucide="play" aria-hidden="true"></i>Listen B
+                </button>
+              </div>
+              <div class="fr-segments">
+                <button
+                  id="fr-choose-a"
+                  type="button"
+                  class="cursor-interaction"
+                >
+                  A is more in front</button
+                ><button
+                  id="fr-choose-b"
+                  type="button"
+                  class="cursor-interaction"
+                >
+                  B is more in front</button
+                ><button
+                  id="fr-choose-same"
+                  type="button"
+                  class="cursor-interaction"
+                >
+                  About the same
+                </button>
+              </div>
+              <span id="fr-fit-preview-note" class="fr-control-hint"
+                >Design preview — the listening samples are not connected.</span
+              >
+            </div>
+          </section>
+          <div class="fr-bottom">
+            <div class="fr-head-summary">
+              <i data-lucide="headphones" aria-hidden="true"></i
+              ><span id="fr-head-summary"
+                >Medium head · Headphone correction on</span
+              >
+            </div>
+            <div class="fr-bottom-actions">
+              <button id="fr-restore" type="button" class="cursor-interaction">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i>Restore
+                profile</button
+              ><button
+                id="fr-save-open"
+                type="button"
+                class="cursor-interaction"
+              >
+                <i data-lucide="bookmark-plus" aria-hidden="true"></i>Save room
+              </button>
+            </div>
+          </div>
+          <div
+            class="fr-save-form"
+            id="fr-save-form"
+            role="group"
+            aria-label="Save room"
+            hidden
+          >
+            <label
+              >Room name<input
+                id="fr-save-name"
+                type="text"
+                maxlength="40"
+                value="My Cinema"
+                autocomplete="off"
+                required /></label
+            ><button
+              id="fr-save-submit"
+              type="button"
+              class="fr-primary cursor-interaction"
+            >
+              Save</button
+            ><button
+              id="fr-save-cancel"
+              type="button"
+              class="cursor-interaction"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+        <div id="fr-status" class="fr-status" role="status" aria-live="polite">
+          Select a speaker, or browse a different listening profile.
+        </div>
+      </main>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('fluid-room-preview');
+      const q = (id) => root.querySelector('#' + id);
+      const all = (selector) => Array.from(root.querySelectorAll(selector));
+      const profiles = [
+        {
+          id: 'reference',
+          name: 'Reference',
+          icon: 'disc-3',
+          desc: 'Close speakers. A steady centre. Just enough room.',
+          tag: 'Natural · near field',
+          space: 16,
+          ambience: 0,
+          distance: 1.3,
+          size: 3.2,
+          walls: 82,
+          decay: 0.2,
+          fill: false,
+          upmix: 20,
+          centre: 0,
+        },
+        {
+          id: 'music',
+          name: 'Music Space',
+          icon: 'music-2',
+          desc: 'An open stage, with the voice still right in front.',
+          tag: 'Music · gentle expansion',
+          space: 30,
+          ambience: 12,
+          distance: 1.9,
+          size: 4.5,
+          walls: 65,
+          decay: 0.3,
+          fill: true,
+          upmix: 28,
+          centre: 0,
+        },
+        {
+          id: 'cinema-v2',
+          name: 'Cinema',
+          icon: 'clapperboard',
+          desc: 'A wide screen. A grounded voice. Space around you.',
+          tag: 'Film · enveloping',
+          space: 42,
+          ambience: 28,
+          distance: 2.6,
+          size: 5.5,
+          walls: 55,
+          decay: 0.7,
+          fill: true,
+          upmix: 45,
+          centre: 1.5,
+        },
+        {
+          id: 'game-world',
+          name: 'Game World',
+          icon: 'gamepad-2',
+          desc: 'Step into the scene without losing the little details.',
+          tag: 'Games · immersive',
+          space: 27,
+          ambience: 10,
+          distance: 2,
+          size: 4.5,
+          walls: 72,
+          decay: 0.3,
+          fill: false,
+          upmix: 25,
+          centre: 0,
+        },
+        {
+          id: 'competitive',
+          name: 'Competitive',
+          icon: 'crosshair',
+          desc: 'A dry, focused space. Direction comes first.',
+          tag: 'Games · precise',
+          space: 8,
+          ambience: 0,
+          distance: 1.6,
+          size: 3.5,
+          walls: 90,
+          decay: 0.1,
+          fill: false,
+          upmix: 0,
+          centre: 0,
+        },
+        {
+          id: 'live',
+          name: 'Live Venue',
+          icon: 'mic-vocal',
+          desc: 'The scale of a performance, with a little air behind it.',
+          tag: 'Live · spacious',
+          space: 50,
+          ambience: 37,
+          distance: 3.2,
+          size: 8,
+          walls: 48,
+          decay: 1.1,
+          fill: true,
+          upmix: 38,
+          centre: 0,
+        },
+      ];
+      const classicNames = [
+        'Studio',
+        'Living room',
+        'Front stage',
+        'Home theatre',
+        'Cinema',
+        'Gaming',
+        'Concert hall',
+        'Jazz club',
+        'Club',
+        'Near field',
+        'Open air',
+      ];
+      const classicShapes = [
+        [3.2, 80, 1.4],
+        [4.2, 55, 1.8],
+        [4.2, 60, 2],
+        [5.5, 45, 2.6],
+        [9, 35, 4],
+        [4.5, 50, 1.8],
+        [12, 20, 5],
+        [5, 40, 2.2],
+        [6, 15, 2.5],
+        [2.4, 90, 0.9],
+        [12, 100, 3],
+      ];
+      const classics = classicNames.map((name, i) => ({
+        id: 'classic-' + i,
+        name,
+        icon: 'box',
+        desc: 'Classic room · your existing sound, kept.',
+        tag: 'Classic',
+        space: 100 - classicShapes[i][1],
+        ambience: 0,
+        distance: Math.min(4, classicShapes[i][2]),
+        size: classicShapes[i][0],
+        walls: classicShapes[i][1],
+        decay: 0.1,
+        fill: false,
+        upmix: 30,
+        centre: 0,
+      }));
+      const speakers = [
+        { id: 'FL', name: 'Front left', angle: -30 },
+        { id: 'FR', name: 'Front right', angle: 30 },
+        { id: 'C', name: 'Centre', angle: 0 },
+        { id: 'SL', name: 'Side left', angle: -100 },
+        { id: 'SR', name: 'Side right', angle: 100 },
+        { id: 'RL', name: 'Rear left', angle: -140 },
+        { id: 'RR', name: 'Rear right', angle: 140 },
+      ];
+      const design = {
+        appearance: 'auto',
+        density: 'comfortable',
+        source: '5.1',
+        access: 'Plus',
+      };
+      const state = {
+        profile: profiles[2],
+        settings: {
+          ...profiles[2],
+          subLevel: 2,
+          cross: 80,
+          bass: true,
+          preserve: true,
+        },
+        view: 'room',
+        collection: 'featured',
+        browser: false,
+        enabled: true,
+        compare: false,
+        head: 'Medium',
+        correction: true,
+        selected: 0,
+        angles: speakers.map((s) => s.angle),
+        distances: speakers.map(() => profiles[2].distance),
+        levels: speakers.map(() => 0),
+        mutes: speakers.map(() => false),
+        solo: null,
+        custom: false,
+        spatialSource: false,
+        saved: [],
+        fitStep: 0,
+      };
+      const fmt = (value, digits = 0) =>
+        Number(value).toFixed(digits).replace('-', '−');
+      const say = (text) => (q('fr-status').textContent = text);
+      const icon = (name) =>
+        '<i data-lucide="' + name + '" aria-hidden="true"></i>';
+      const icons = () => {
+        if (globalThis.lucide)
+          globalThis.lucide.createIcons({ attrs: { width: 16, height: 16 } });
+      };
+      const isFed = (i) =>
+        design.source === '7.1' ||
+        (design.source === '5.1' && i < 5) ||
+        (design.source === 'Stereo' && (i < 2 || state.settings.fill));
+      const isDerived = (i) =>
+        design.source === 'Stereo' && state.settings.fill && i >= 2;
+      const isActive = () =>
+        state.enabled && !state.compare && !state.spatialSource;
+      function point(i) {
+        const a = (state.angles[i] * Math.PI) / 180,
+          r =
+            18 +
+            18 *
+              Math.max(
+                0,
+                Math.min(
+                  1,
+                  (state.distances[i] - 0.5) / (state.settings.size / 2 - 0.5),
+                ),
+              );
+        return { x: 50 + Math.sin(a) * r, y: 52 - Math.cos(a) * r };
+      }
+      const pairs = [1, 0, null, 4, 3, 6, 5];
+      function setAngle(i, angle, paired) {
+        const wrapped = ((((angle + 180) % 360) + 360) % 360) - 180;
+        state.angles[i] = wrapped;
+        if (paired && pairs[i] !== null) state.angles[pairs[i]] = -wrapped;
+        state.custom = true;
+      }
+      let drag = null;
+      speakers.forEach((s, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'fr-speaker cursor-interaction';
+        b.dataset.speaker = String(i);
+        b.setAttribute('aria-label', s.name);
+        b.innerHTML = icon('speaker') + '<span>' + s.id + '</span>';
+        b.addEventListener('click', () => {
+          state.selected = i;
+          render();
+          say(s.name + ' selected.');
+        });
+        q('fr-speakers').append(b);
+        b.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return;
+          state.selected = i;
+          render();
+          if (design.access !== 'Plus' || !isActive() || !isFed(i)) return;
+          drag = {
+            i,
+            pointer: e.pointerId,
+            x: e.clientX,
+            y: e.clientY,
+            angles: [...state.angles],
+            custom: state.custom,
+          };
+          b.setPointerCapture(e.pointerId);
+          b.dataset.dragging = 'true';
+        });
+        b.addEventListener('pointermove', (e) => {
+          if (
+            !drag ||
+            drag.pointer !== e.pointerId ||
+            drag.i !== i ||
+            Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4
+          )
+            return;
+          const box = q('fr-stage-map').getBoundingClientRect();
+          setAngle(
+            i,
+            Math.round(
+              (Math.atan2(
+                (e.clientX - box.left) / box.width - 0.5,
+                0.52 - (e.clientY - box.top) / box.height,
+              ) *
+                180) /
+                Math.PI,
+            ),
+            !(e.shiftKey || e.ctrlKey || e.metaKey),
+          );
+          render();
+        });
+        const end = (e) => {
+          if (!drag || drag.pointer !== e.pointerId || drag.i !== i) return;
+          if (e.type !== 'pointerup') {
+            state.angles = drag.angles;
+            state.custom = drag.custom;
+          }
+          drag = null;
+          delete b.dataset.dragging;
+          if (b.hasPointerCapture(e.pointerId))
+            b.releasePointerCapture(e.pointerId);
+          render();
+          remember();
+        };
+        b.addEventListener('pointerup', end);
+        b.addEventListener('pointercancel', end);
+        b.addEventListener('lostpointercapture', end);
+        b.addEventListener('keydown', (e) => {
+          if (
+            !['ArrowLeft', 'ArrowRight'].includes(e.key) ||
+            design.access !== 'Plus' ||
+            !isActive() ||
+            !isFed(i)
+          )
+            return;
+          e.preventDefault();
+          state.selected = i;
+          setAngle(
+            i,
+            state.angles[i] + (e.key === 'ArrowLeft' ? -1 : 1),
+            !(e.shiftKey || e.ctrlKey || e.metaKey),
+          );
+          render();
+          remember();
+        });
+      });
+      function drawRoom() {
+        const map = q('fr-stage-map'),
+          svg = q('fr-map-lines');
+        const w = map.clientWidth,
+          h = map.clientHeight;
+        if (!w || !h) return;
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        all('[data-speaker]').forEach((b) => {
+          const p = point(Number(b.dataset.speaker));
+          b.style.left = p.x + '%';
+          b.style.top = p.y + '%';
+        });
+        const cx = w * 0.5,
+          cy = h * 0.52;
+        let marks =
+          '<rect class="fr-room-fill" x="' +
+          w * 0.09 +
+          '" y="' +
+          h * 0.08 +
+          '" width="' +
+          w * 0.82 +
+          '" height="' +
+          h * 0.83 +
+          '" rx="24"/><rect class="fr-wall" x="' +
+          w * 0.09 +
+          '" y="' +
+          h * 0.08 +
+          '" width="' +
+          w * 0.82 +
+          '" height="' +
+          h * 0.83 +
+          '" rx="24"/>';
+        for (const r of [0.18, 0.31])
+          marks +=
+            '<ellipse class="fr-room-ring" cx="' +
+            cx +
+            '" cy="' +
+            cy +
+            '" rx="' +
+            w * r +
+            '" ry="' +
+            h * r +
+            '"/>';
+        speakers.forEach((s, i) => {
+          if (isFed(i) && !state.mutes[i]) {
+            const p = point(i);
+            marks +=
+              '<line class="fr-direct-line" x1="' +
+              cx +
+              '" y1="' +
+              cy +
+              '" x2="' +
+              (w * p.x) / 100 +
+              '" y2="' +
+              (h * p.y) / 100 +
+              '"' +
+              (isDerived(i) ? ' stroke-dasharray="3 4"' : '') +
+              '/>';
+          }
+        });
+        if (state.settings.space > 0 && isFed(state.selected)) {
+          const p = point(state.selected);
+          marks +=
+            '<path class="fr-reflection-line" style="opacity:' +
+            state.settings.space / 140 +
+            '" d="M ' +
+            (w * p.x) / 100 +
+            ' ' +
+            (h * p.y) / 100 +
+            ' L ' +
+            w * 0.09 +
+            ' ' +
+            h * 0.31 +
+            ' L ' +
+            cx +
+            ' ' +
+            cy +
+            ' M ' +
+            (w * p.x) / 100 +
+            ' ' +
+            (h * p.y) / 100 +
+            ' L ' +
+            w * 0.91 +
+            ' ' +
+            h * 0.24 +
+            ' L ' +
+            cx +
+            ' ' +
+            cy +
+            '"/>';
+        }
+        if (state.settings.ambience > 0)
+          marks +=
+            '<ellipse cx="' +
+            cx +
+            '" cy="' +
+            cy +
+            '" rx="' +
+            w * 0.38 +
+            '" ry="' +
+            h * 0.39 +
+            '" fill="none" stroke="var(--fr-accent)" stroke-width="' +
+            (4 + state.settings.ambience / 5) +
+            '" opacity=".04"/>';
+        svg.innerHTML = marks;
+      }
+      function chooseProfile(p) {
+        state.profile = p;
+        state.settings = {
+          ...p,
+          subLevel: p.subLevel ?? (p.id === 'cinema-v2' ? 2 : 0),
+          cross: p.cross ?? 80,
+          bass: p.bass ?? true,
+          preserve: p.preserve ?? true,
+        };
+        state.angles = p.angles ? [...p.angles] : speakers.map((s) => s.angle);
+        state.distances = p.distances
+          ? [...p.distances]
+          : speakers.map(() => p.distance);
+        state.levels = p.levels ? [...p.levels] : speakers.map(() => 0);
+        state.mutes = p.mutes ? [...p.mutes] : speakers.map(() => false);
+        state.solo = null;
+        state.custom = false;
+        state.browser = false;
+        state.enabled = true;
+        state.compare = false;
+        q('fr-save-form').hidden = true;
+        render();
+        say(p.name + ' selected. Your head and headphone choices are kept.');
+      }
+      function renderLibrary() {
+        const target = q('fr-profile-grid');
+        target.replaceChildren();
+        target.className =
+          state.collection === 'classic'
+            ? 'fr-classic-grid'
+            : 'fr-profile-grid';
+        const items =
+          state.collection === 'featured'
+            ? profiles
+            : state.collection === 'classic'
+              ? classics
+              : state.saved;
+        if (!items.length) {
+          target.className = 'fr-empty';
+          target.textContent =
+            'Your saved rooms will appear here. Tune a profile, then choose Save room.';
+          return;
+        }
+        items.forEach((p) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className =
+            (state.collection === 'classic' ? '' : 'fr-profile-option ') +
+            'cursor-interaction';
+          b.setAttribute('aria-pressed', String(state.profile.id === p.id));
+          b.setAttribute('aria-label', 'Use ' + p.name);
+          if (state.collection === 'classic') {
+            b.textContent = p.name;
+            const e = document.createElement('span');
+            e.innerHTML = icon('arrow-up-right');
+            b.append(e);
+          } else {
+            const top = document.createElement('span');
+            top.className = 'fr-option-top';
+            top.innerHTML = icon(p.icon);
+            top.append(document.createTextNode(p.name));
+            const desc = document.createElement('p');
+            desc.textContent = p.desc;
+            const tag = document.createElement('span');
+            tag.className = 'fr-option-tag';
+            tag.textContent = p.tag;
+            b.append(top, desc, tag);
+          }
+          b.addEventListener('click', () => chooseProfile(p));
+          target.append(b);
+        });
+        icons();
+      }
+      function render() {
+        root.dataset.palette = design.appearance;
+        root.dataset.density = design.density;
+        root.style.colorScheme = design.appearance === 'auto' ? '' : 'dark';
+        root.dataset.bypassed = String(!isActive());
+        q('fr-profile-name').textContent =
+          state.profile.name + (state.custom ? ' · Custom' : '');
+        q('fr-profile-description').textContent = state.profile.desc;
+        q('fr-profile-icon').innerHTML = icon(state.profile.icon);
+        q('fr-browser').hidden = !state.browser;
+        q('fr-workspace').hidden = state.browser;
+        q('fr-browse').setAttribute('aria-expanded', String(state.browser));
+        all('[data-collection]').forEach((b) =>
+          b.setAttribute(
+            'aria-pressed',
+            String(b.dataset.collection === state.collection),
+          ),
+        );
+        all('[data-view]').forEach((b) => {
+          const selected = b.dataset.view === state.view;
+          b.setAttribute('aria-selected', String(selected));
+          q('fr-' + b.dataset.view + '-view').hidden = !selected;
+        });
+        q('fr-power').setAttribute('aria-pressed', String(state.enabled));
+        q('fr-power').setAttribute(
+          'aria-label',
+          state.enabled ? 'Room enabled' : 'Room disabled',
+        );
+        q('fr-power').lastElementChild.textContent = state.enabled
+          ? 'On'
+          : 'Off';
+        q('fr-compare').setAttribute('aria-pressed', String(state.compare));
+        q('fr-compare').lastElementChild.textContent = state.compare
+          ? 'Back to Room'
+          : 'Compare original';
+        q('fr-compare').disabled = !state.enabled || state.spatialSource;
+        q('fr-bypass-note').hidden = isActive();
+        q('fr-bypass-note').textContent = state.spatialSource
+          ? 'Source already spatial · Room bypassed'
+          : !state.enabled
+            ? 'Room is off'
+            : design.source === 'Stereo'
+              ? 'Comparing the original stereo signal · design preview'
+              : 'Comparing a stereo fold-down · design preview';
+        const stereo = design.source === 'Stereo';
+        q('fr-source-label').textContent = stereo
+          ? state.settings.fill
+            ? 'Stereo · expanded'
+            : 'Stereo · front stage'
+          : design.source + ' input';
+        q('fr-input-note').textContent = stereo
+          ? state.settings.fill
+            ? 'Dashed speakers use stereo-derived sound. These are not original surround channels.'
+            : 'Two speakers in front. A stereo source does not contain discrete surround positions.'
+          : design.source === '5.1'
+            ? 'Five channels and a sub. Unused rear speakers stay dim.'
+            : 'Seven discrete channels and a sub, placed around you.';
+        q('fr-sub').style.color =
+          state.settings.bass || !stereo
+            ? 'var(--fr-accent)'
+            : 'var(--fr-muted)';
+        const values = {
+          space: [state.settings.space + '%'],
+          ambience: [
+            state.settings.ambience === 0
+              ? 'Off'
+              : state.settings.ambience + '%',
+          ],
+          distance: [fmt(state.settings.distance, 1) + ' m'],
+          size: [fmt(state.settings.size, 1) + ' m'],
+          walls: [state.settings.walls + '%'],
+          decay: [fmt(state.settings.decay, 1) + ' s'],
+          cross: [state.settings.cross + ' Hz'],
+          subLevel: [
+            (state.settings.subLevel > 0 ? '+' : '') +
+              fmt(state.settings.subLevel, 1) +
+              ' dB',
+          ],
+          centre: [
+            (state.settings.centre > 0 ? '+' : '') +
+              fmt(state.settings.centre, 1) +
+              ' dB',
+          ],
+          upmix: [state.settings.upmix + '%'],
+        };
+        Object.keys(values).forEach((k) => {
+          q('fr-' + k).value = state.settings[k];
+          q('fr-' + k + '-value').textContent = values[k][0];
+        });
+        all('[data-shape]').forEach((el) => {
+          el.disabled = design.access !== 'Plus' || !isActive();
+        });
+        q('fr-centre').disabled =
+          design.access !== 'Plus' || !isActive() || !isFed(2);
+        q('fr-centre-note').textContent = isFed(2)
+          ? 'Adjusts the centre signal; it does not isolate voices.'
+          : 'No centre signal in this front-stage stereo source.';
+        q('fr-subLevel').disabled =
+          design.access !== 'Plus' ||
+          !isActive() ||
+          (stereo && !state.settings.bass);
+        q('fr-cross').disabled = !state.settings.bass || !isActive();
+        q('fr-upmix').disabled = !stereo || !state.settings.fill || !isActive();
+        q('fr-upmix-off').disabled = !isActive();
+        q('fr-upmix-on').disabled = !isActive();
+        q('fr-bass-sub').disabled = !isActive();
+        q('fr-bass-full').disabled = !isActive();
+        q('fr-bass-sub').setAttribute(
+          'aria-pressed',
+          String(state.settings.bass),
+        );
+        q('fr-bass-full').setAttribute(
+          'aria-pressed',
+          String(!state.settings.bass),
+        );
+        q('fr-upmix-on').setAttribute(
+          'aria-pressed',
+          String(state.settings.fill),
+        );
+        q('fr-upmix-off').setAttribute(
+          'aria-pressed',
+          String(!state.settings.fill),
+        );
+        q('fr-preserve').checked = state.settings.preserve;
+        q('fr-spatial-source').checked = state.spatialSource;
+        q('fr-position-summary').textContent = state.settings.preserve
+          ? 'Speaker positions preserved'
+          : 'Dimension widening available';
+        q('fr-dimension-note').textContent = state.settings.preserve
+          ? 'Dimension widening rests while Room is on. Its settings are kept.'
+          : 'Dimension may widen the ear signals after Room.';
+        all('[data-speaker]').forEach((b) => {
+          const i = Number(b.dataset.speaker),
+            p = point(i);
+          b.style.left = p.x + '%';
+          b.style.top = p.y + '%';
+          b.dataset.fed =
+            isFed(i) &&
+            !state.mutes[i] &&
+            (state.solo === null || state.solo === i)
+              ? 'yes'
+              : 'no';
+          b.dataset.derived = isDerived(i) ? 'yes' : 'no';
+          b.setAttribute('aria-pressed', String(i === state.selected));
+          b.setAttribute(
+            'aria-label',
+            speakers[i].name +
+              (isFed(i)
+                ? isDerived(i)
+                  ? ', stereo-derived'
+                  : ', discrete channel'
+                : ', unused'),
+          );
+        });
+        q('fr-selected-detail').replaceChildren();
+        const strong = document.createElement('strong');
+        strong.textContent = speakers[state.selected].name;
+        q('fr-selected-detail').append(
+          strong,
+          document.createTextNode(
+            ' · ' +
+              fmt(state.angles[state.selected]) +
+              '° · ' +
+              fmt(state.distances[state.selected], 1) +
+              ' m',
+          ),
+        );
+        q('fr-speaker-title').textContent = speakers[state.selected].name;
+        q('fr-angle').value = state.angles[state.selected];
+        q('fr-angle-value').textContent =
+          fmt(state.angles[state.selected]) + '°';
+        q('fr-level').value = state.levels[state.selected];
+        q('fr-level-value').textContent =
+          fmt(state.levels[state.selected], 1) + ' dB';
+        q('fr-mute').setAttribute(
+          'aria-pressed',
+          String(state.mutes[state.selected]),
+        );
+        q('fr-solo').setAttribute(
+          'aria-pressed',
+          String(state.solo === state.selected),
+        );
+        q('fr-distance').max = state.settings.size / 2;
+        q('fr-speaker-distance').max = state.settings.size / 2;
+        q('fr-speaker-distance').value = state.distances[state.selected];
+        q('fr-speaker-distance-value').textContent =
+          fmt(state.distances[state.selected], 1) + ' m';
+        ['fr-angle', 'fr-speaker-distance', 'fr-level'].forEach(
+          (id) =>
+            (q(id).disabled =
+              design.access !== 'Plus' ||
+              !isActive() ||
+              !isFed(state.selected)),
+        );
+        ['fr-mute', 'fr-solo'].forEach(
+          (id) => (q(id).disabled = !isActive() || !isFed(state.selected)),
+        );
+        q('fr-speaker-note').textContent = !isFed(state.selected)
+          ? 'Unused by this source. Its placement is kept for surround.'
+          : isDerived(state.selected)
+            ? 'This speaker uses sound derived from stereo.'
+            : 'This speaker receives a discrete input channel.';
+        q('fr-correction').checked = state.correction;
+        all('[data-head]').forEach((b) =>
+          b.setAttribute('aria-pressed', String(b.dataset.head === state.head)),
+        );
+        q('fr-head-summary').textContent =
+          state.head +
+          ' head · Headphone correction ' +
+          (state.correction ? 'on' : 'off');
+        q('fr-start-fit').disabled = design.access !== 'Plus' || !isActive();
+        q('fr-save-open').disabled = design.access !== 'Plus';
+        if (state.browser) renderLibrary();
+        drawRoom();
+        icons();
+      }
+      function openView(view) {
+        state.view = view;
+        state.browser = false;
+        render();
+      }
+      all('[data-view]').forEach((b) =>
+        b.addEventListener('click', () => openView(b.dataset.view)),
+      );
+      all('[data-collection]').forEach((b) =>
+        b.addEventListener('click', () => {
+          state.collection = b.dataset.collection;
+          render();
+        }),
+      );
+      q('fr-browse').addEventListener('click', () => {
+        state.browser = !state.browser;
+        render();
+        if (state.browser) q('fr-close-browser').focus();
+      });
+      q('fr-close-browser').addEventListener('click', () => {
+        state.browser = false;
+        render();
+        q('fr-browse').focus();
+      });
+      q('fr-power').addEventListener('click', () => {
+        state.enabled = !state.enabled;
+        state.compare = false;
+        render();
+        say(
+          state.enabled
+            ? 'Room enabled in the preview.'
+            : 'Room disabled in the preview.',
+        );
+      });
+      q('fr-compare').addEventListener('click', () => {
+        state.compare = !state.compare;
+        render();
+        say(
+          state.compare
+            ? 'Original comparison shown. This design preview does not play audio.'
+            : 'Room comparison restored.',
+        );
+      });
+      all('[data-key]').forEach((input) =>
+        input.addEventListener('input', () => {
+          state.settings[input.dataset.key] = Number(input.value);
+          if (input.dataset.key === 'distance')
+            state.distances = speakers.map(() => state.settings.distance);
+          if (input.dataset.key === 'size') {
+            state.settings.distance = Math.min(
+              state.settings.distance,
+              state.settings.size / 2,
+            );
+            state.distances = state.distances.map((d) =>
+              Math.min(d, state.settings.size / 2),
+            );
+          }
+          state.custom = true;
+          render();
+        }),
+      );
+      q('fr-angle').addEventListener('input', (e) => {
+        state.angles[state.selected] = Number(e.target.value);
+        state.custom = true;
+        render();
+      });
+      q('fr-level').addEventListener('input', (e) => {
+        state.levels[state.selected] = Number(e.target.value);
+        state.custom = true;
+        render();
+      });
+      q('fr-speaker-distance').addEventListener('input', (e) => {
+        state.distances[state.selected] = Number(e.target.value);
+        state.custom = true;
+        render();
+      });
+      q('fr-mute').addEventListener('click', () => {
+        state.mutes[state.selected] = !state.mutes[state.selected];
+        state.custom = true;
+        render();
+      });
+      q('fr-solo').addEventListener('click', () => {
+        state.solo = state.solo === state.selected ? null : state.selected;
+        render();
+      });
+      for (const [id, key, value] of [
+        ['fr-bass-sub', 'bass', true],
+        ['fr-bass-full', 'bass', false],
+        ['fr-upmix-on', 'fill', true],
+        ['fr-upmix-off', 'fill', false],
+      ])
+        q(id).addEventListener('click', () => {
+          state.settings[key] = value;
+          if (state.solo !== null && !isFed(state.solo)) state.solo = null;
+          state.custom = true;
+          render();
+        });
+      q('fr-preserve').addEventListener('change', (e) => {
+        state.settings.preserve = e.target.checked;
+        state.custom = true;
+        render();
+      });
+      q('fr-spatial-source').addEventListener('change', (e) => {
+        state.spatialSource = e.target.checked;
+        state.compare = false;
+        render();
+      });
+      all('[data-head]').forEach((b) =>
+        b.addEventListener('click', () => {
+          state.head = b.dataset.head;
+          render();
+          say(state.head + ' head selected.');
+        }),
+      );
+      q('fr-correction').addEventListener('change', (e) => {
+        state.correction = e.target.checked;
+        render();
+      });
+      q('fr-restore').addEventListener('click', () => {
+        chooseProfile(state.profile);
+        say(
+          'Profile restored. Your head size and headphone correction are kept.',
+        );
+      });
+      q('fr-save-open').addEventListener('click', () => {
+        q('fr-save-form').hidden = false;
+        q('fr-save-name').value = 'My ' + state.profile.name;
+        q('fr-save-name').focus();
+      });
+      q('fr-save-cancel').addEventListener('click', () => {
+        q('fr-save-form').hidden = true;
+        q('fr-save-open').focus();
+      });
+      function saveRoom() {
+        const name = q('fr-save-name').value.trim();
+        if (!name) {
+          say('Enter a name for this room.');
+          q('fr-save-name').focus();
+          return;
+        }
+        const p = {
+          ...state.settings,
+          id: 'saved-' + state.saved.length,
+          name,
+          icon: 'bookmark',
+          desc: 'Your own listening space.',
+          tag: 'Saved room',
+          angles: [...state.angles],
+          distances: [...state.distances],
+          levels: [...state.levels],
+          mutes: [...state.mutes],
+        };
+        state.saved.push(p);
+        state.profile = p;
+        state.custom = false;
+        q('fr-save-form').hidden = true;
+        render();
+        say(name + ' saved in this preview. Find it under Browse → Saved.');
+      }
+      q('fr-save-submit').addEventListener('click', saveRoom);
+      q('fr-save-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveRoom();
+        }
+      });
+      q('fr-start-fit').addEventListener('click', () => {
+        state.fitStep = 0;
+        q('fr-fit-flow').hidden = false;
+        renderFit();
+        q('fr-audition-a').focus();
+      });
+      function renderFit() {
+        q('fr-fit-step-title').textContent =
+          state.fitStep < 5
+            ? 'Which sound feels more in front?'
+            : 'Preview result: Medium';
+        q('fr-fit-step').textContent =
+          state.fitStep < 5 ? state.fitStep + 1 + ' of 5' : 'Complete';
+        q('fr-fit-preview-note').textContent =
+          state.fitStep < 5
+            ? 'Design preview — the listening samples are not connected.'
+            : 'Example result only. A real fit needs the listening samples.';
+        ['a', 'b'].forEach((k) =>
+          q('fr-audition-' + k).setAttribute('aria-pressed', 'false'),
+        );
+        ['a', 'b', 'same'].forEach(
+          (k) => (q('fr-choose-' + k).disabled = state.fitStep >= 5),
+        );
+      }
+      ['a', 'b'].forEach((k) =>
+        q('fr-audition-' + k).addEventListener('click', () => {
+          ['a', 'b'].forEach((x) =>
+            q('fr-audition-' + x).setAttribute('aria-pressed', String(k === x)),
+          );
+          q('fr-fit-preview-note').textContent =
+            'Previewing choice ' +
+            k.toUpperCase() +
+            ' · no audio in this design.';
+        }),
+      );
+      ['a', 'b', 'same'].forEach((k) =>
+        q('fr-choose-' + k).addEventListener('click', () => {
+          state.fitStep++;
+          renderFit();
+        }),
+      );
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && state.browser) {
+          state.browser = false;
+          render();
+          q('fr-browse').focus();
+        }
+        if (
+          e.target.matches('[data-view]') &&
+          ['ArrowLeft', 'ArrowRight'].includes(e.key)
+        ) {
+          e.preventDefault();
+          const tabs = all('[data-view]'),
+            next =
+              tabs[
+                (tabs.indexOf(e.target) + (e.key === 'ArrowRight' ? 1 : 2)) % 3
+              ];
+          openView(next.dataset.view);
+          next.focus();
+        }
+      });
+      function remember() {
+        if (typeof window.openai?.setWidgetState !== 'function') return;
+        const {
+          view,
+          head,
+          correction,
+          selected,
+          angles,
+          distances,
+          levels,
+          mutes,
+          settings,
+          enabled,
+          custom,
+        } = state;
+        window.openai
+          .setWidgetState({
+            modelContent: {
+              profile: state.profile.name,
+              view,
+              speaker: speakers[selected].name,
+              angle: angles[selected],
+              distanceM: distances[selected],
+            },
+            privateContent: {
+              roomPreview: {
+                version: 2,
+                profileId: state.profile.id,
+                view,
+                head,
+                correction,
+                selected,
+                angles,
+                distances,
+                levels,
+                mutes,
+                settings,
+                enabled,
+                custom,
+              },
+            },
+          })
+          .catch(() => {});
+      }
+      function restorePreview(snapshot) {
+        const s = snapshot?.privateContent?.roomPreview;
+        if (s?.version !== 2) return;
+        const num = (v, lo, hi, fallback) =>
+          typeof v === 'number' && Number.isFinite(v)
+            ? Math.min(hi, Math.max(lo, v))
+            : fallback;
+        const p = profiles.concat(classics).find((p) => p.id === s.profileId);
+        if (p) state.profile = p;
+        const settings = s.settings ?? {};
+        for (const [key, lo, hi] of [
+          ['space', 0, 100],
+          ['ambience', 0, 100],
+          ['size', 2, 12],
+          ['walls', 0, 100],
+          ['decay', 0.1, 1.8],
+          ['cross', 40, 200],
+          ['subLevel', -6, 6],
+          ['centre', -6, 6],
+          ['upmix', 0, 100],
+        ])
+          state.settings[key] = num(settings[key], lo, hi, state.settings[key]);
+        state.settings.distance = num(
+          settings.distance,
+          0.5,
+          state.settings.size / 2,
+          state.settings.distance,
+        );
+        for (const key of ['bass', 'fill', 'preserve'])
+          if (typeof settings[key] === 'boolean')
+            state.settings[key] = settings[key];
+        for (const [key, lo, hi] of [
+          ['angles', -180, 180],
+          ['distances', 0.5, state.settings.size / 2],
+          ['levels', -12, 6],
+        ])
+          if (Array.isArray(s[key]))
+            state[key] = speakers.map((_, i) =>
+              num(s[key][i], lo, hi, state[key][i]),
+            );
+        if (Array.isArray(s.mutes))
+          state.mutes = speakers.map((_, i) => s.mutes[i] === true);
+        if (['room', 'tune', 'fit'].includes(s.view)) state.view = s.view;
+        if (['Small', 'Medium', 'Large'].includes(s.head)) state.head = s.head;
+        for (const key of ['correction', 'enabled', 'custom'])
+          if (typeof s[key] === 'boolean') state[key] = s[key];
+        state.custom = state.custom || !p;
+        state.selected = Math.round(num(s.selected, 0, 6, 0));
+        render();
+      }
+      root.addEventListener('click', remember);
+      root.addEventListener('change', remember);
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drag) {
+          const b = all('[data-speaker]')[drag.i],
+            pointer = drag.pointer;
+          state.angles = drag.angles;
+          state.custom = drag.custom;
+          drag = null;
+          delete b.dataset.dragging;
+          if (b.hasPointerCapture(pointer)) b.releasePointerCapture(pointer);
+          render();
+          remember();
+        }
+      });
+      restorePreview(window.openai?.widgetState);
+      window.addEventListener('openai:set_globals', (e) => {
+        if (e.detail?.globals?.widgetState)
+          restorePreview(e.detail.globals.widgetState);
+      });
+      render();
+      new ResizeObserver(drawRoom).observe(q('fr-stage-map'));
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({
+          container: root,
+          onChange: () => {
+            if (state.solo !== null && !isFed(state.solo)) state.solo = null;
+            render();
+          },
+        });
+        tweak.addSelect(design, 'appearance', {
+          label: 'Appearance',
+          options: [
+            { label: 'Follow appearance', value: 'auto' },
+            { label: 'Ocean', value: 'ocean' },
+            { label: 'Black', value: 'black' },
+          ],
+        });
+        tweak.addSelect(design, 'density', {
+          label: 'Profile cards',
+          options: [
+            { label: 'Comfortable', value: 'comfortable' },
+            { label: 'Compact', value: 'compact' },
+          ],
+        });
+        tweak.addSelect(design, 'source', {
+          label: 'Example input',
+          options: ['Stereo', '5.1', '7.1'],
+        });
+        tweak.addSelect(design, 'access', {
+          label: 'Account preview',
+          options: ['Plus', 'Free'],
+        });
+      }
+    })();
+  </script>
+</div>
