@@ -1,5 +1,6 @@
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { requestAccountPanel } from '../account/accountPanel';
+import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { usePlusEntitled } from './GalleryParts';
 import { PlusFreeIntro, PlusTrialCard } from './PlusTrialCard';
@@ -20,24 +21,30 @@ export default function PlusTrialBanner({
     return null;
   }
   return (
-    <div className="plus-trial-banner">
-      {!entitled && <PlusFreeIntro compact />}
-      {showTrial ? (
-        <PlusTrialCard key={owner} offer={offer} onKeepFree={onKeepFree} />
-      ) : (
-        !entitled &&
-        isCheckoutConfigured() && (
-          <div className="plus-trial__actions">
+    <section className="plus-trial-banner">
+      {!entitled && (
+        <div className="plus-trial-banner__overview">
+          <div className="plus-trial-banner__message">
+            <span className="plus-trial-banner__mark" aria-hidden="true">
+              <Glyph name="headphones" />
+            </span>
+            <PlusFreeIntro compact />
+          </div>
+          {!showTrial && isCheckoutConfigured() && (
             <button
               type="button"
-              className="button small subtle"
+              className="button small subtle plus-trial-banner__plans"
               onClick={() => requestAccountPanel('subscribe')}
             >
-              {t('trial.ended.plans')}
+              <span>{t('trial.ended.plans')}</span>
+              <Glyph name="next" />
             </button>
-          </div>
-        )
+          )}
+        </div>
       )}
-    </div>
+      {showTrial && (
+        <PlusTrialCard key={owner} offer={offer} onKeepFree={onKeepFree} />
+      )}
+    </section>
   );
 }
