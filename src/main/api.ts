@@ -24,6 +24,7 @@ import type {
 } from '../common/graphicsPreference';
 import type { IMotionPreferenceState } from './ipc/motionPreference';
 import type { TMotionPreference } from './motionPreference';
+import type { IStartWithWindows } from './startWithWindows';
 import type { IStudioNotes } from '../common/studioNotes';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
@@ -254,6 +255,16 @@ const setMotionPreference = (motion: TMotionPreference) =>
     'motion-preference-set',
     motion,
   ) as Promise<IMotionPreferenceState>;
+
+/** Whether Windows starts FluidEQ when this person signs in. */
+const startWithWindows = () =>
+  ipcRenderer.invoke('start-with-windows-get') as Promise<IStartWithWindows>;
+
+const setStartWithWindows = (wanted: boolean) =>
+  ipcRenderer.invoke(
+    'start-with-windows-set',
+    wanted,
+  ) as Promise<IStartWithWindows>;
 
 /** Which graphics card the whole app runs on; applies from the next start. */
 const graphicsPreference = () =>
@@ -1415,6 +1426,8 @@ export default {
     setWindowBackdrop,
     motionPreference,
     setMotionPreference,
+    startWithWindows,
+    setStartWithWindows,
     graphicsPreference,
     setGraphicsPreference,
     getChangelog,

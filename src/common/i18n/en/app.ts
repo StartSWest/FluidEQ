@@ -355,6 +355,9 @@ const app = {
   'theme.aria': 'Theme',
   'motion.aria': 'Animations',
   'motion.restart': 'Restart FluidEQ to apply',
+  'startup.label': 'Start with Windows',
+  'startup.blocked': 'Windows has this switched off in Startup apps',
+  'startup.failed': 'Windows would not change this',
   'theme.ocean': 'Ocean',
   'theme.black': 'Black',
   // The settings a visualizer has, grouped the same way and in the same

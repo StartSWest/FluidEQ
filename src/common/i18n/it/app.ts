@@ -369,6 +369,9 @@ const app: Partial<Dictionary> = {
   'theme.aria': 'Tema',
   'motion.aria': 'Animazioni',
   'motion.restart': 'Riavvia FluidEQ per applicarlo',
+  'startup.label': 'Avvia con Windows',
+  'startup.blocked': 'Windows lo ha disattivato in App di avvio',
+  'startup.failed': 'Windows non ha permesso la modifica',
   'theme.ocean': 'Oceano',
   'theme.black': 'Nero',
   // The settings a visualizer has, grouped the same way and in the same

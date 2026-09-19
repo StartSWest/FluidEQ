@@ -360,6 +360,9 @@ const app: Partial<Dictionary> = {
   'theme.aria': 'थीम',
   'motion.aria': 'एनिमेशन',
   'motion.restart': 'लागू करने के लिए FluidEQ फिर से शुरू करें',
+  'startup.label': 'Windows के साथ शुरू करें',
+  'startup.blocked': 'Windows ने इसे स्टार्टअप ऐप्स में बंद कर रखा है',
+  'startup.failed': 'Windows ने यह बदलने नहीं दिया',
   'theme.ocean': 'महासागर',
   'theme.black': 'काला',
   // The settings a visualizer has, grouped the same way and in the same

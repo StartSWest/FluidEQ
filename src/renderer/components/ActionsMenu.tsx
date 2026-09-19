@@ -20,6 +20,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
+import StartupPicker from './StartupPicker';
 import ThemePicker from './ThemePicker';
 import '../styles/ActionsMenu.scss';
 
@@ -351,6 +352,10 @@ const ActionsMenu = ({
           <div className="actions-menu__prefs">
             <ThemePicker />
             <MotionPicker />
+            {/* Under the animations row, where Ivan asked for it
+                (2026-09-19). Nothing else in the app decides this: the answer
+                is Windows' own startup list for this person. */}
+            <StartupPicker />
             <LanguagePicker />
           </div>
         </div>

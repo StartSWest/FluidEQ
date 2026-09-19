@@ -215,6 +215,7 @@ import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
+import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
   gpuPreferenceSupported,
@@ -3260,6 +3261,10 @@ const motionPreferenceIpc = registerMotionPreferenceIpc({
   logger: log,
 });
 
+// The row under it: whether Windows starts FluidEQ at sign-in. Nothing is
+// kept here — Windows holds the answer, in this person's own startup entry.
+const startWithWindowsIpc = registerStartWithWindowsIpc({ logger: log });
+
 // The View menu's graphics card row, the same way: the saved choice and the
 // one this launch was started with.
 const graphicsPreferenceIpc = registerGraphicsPreferenceIpc({
@@ -3656,6 +3661,7 @@ app.on('before-quit', (event) => {
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
+  startWithWindowsIpc.dispose();
   graphicsPreferenceIpc.dispose();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
