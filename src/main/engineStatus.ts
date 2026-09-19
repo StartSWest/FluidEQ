@@ -89,18 +89,52 @@ interface IGuardedStatusEndpoint {
   effects?: unknown;
   emptySlots?: unknown;
   slot?: unknown;
+  slotsTried?: unknown;
 }
 
+/**
+ * Every slot name the helper can report, which is every rung of the ladder.
+ *
+ * A name missing from here is dropped silently and the endpoint reads as one
+ * whose slot the helper "does not report" — which is what the repair says
+ * when it can move nothing. That is exactly what happened when the three
+ * single values joined the ladder and this list did not: the engine was
+ * moved into one of them, the next read threw the answer away, and the walk
+ * stopped one rung in with the card saying nothing more could be tried.
+ * `engineStatusSlots.test.ts` holds it against the wire's own names.
+ */
 const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
   'efx',
   'mfx',
   'sfx',
+  'efx-single',
+  'mfx-single',
+  'sfx-single',
   'gfx',
   'lfx',
 ];
 
 const parseSlot = (value: unknown): IFluidEngineEndpoint['slot'] | undefined =>
   SLOT_NAMES.find((name) => name === value);
+
+/**
+ * Every slot this output has already been put in, as the helper remembers
+ * it. Anything unreadable is dropped entry by entry rather than losing the
+ * whole history: a name this app does not know is one rung it cannot reason
+ * about, not a reason to walk the ladder from the top again.
+ */
+const parseSlotsTried = (
+  value: unknown,
+): NonNullable<IFluidEngineEndpoint['slotsTried']> | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const tried = value.flatMap((entry) => {
+    const slot = parseSlot(entry);
+    return slot ? [slot] : [];
+  });
+  return tried.length > 0 ? tried : undefined;
+};
 
 const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
   typeof value === 'object' &&
@@ -163,11 +197,13 @@ const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
         const effects = parseEffects(endpoint.effects);
         const { emptySlots } = endpoint;
         const slot = parseSlot(endpoint.slot);
+        const slotsTried = parseSlotsTried(endpoint.slotsTried);
         return {
           guid: endpoint.guid,
           attached: endpoint.attached,
           backupExists: endpoint.backupExists === true,
           ...(slot ? { slot } : {}),
+          ...(slotsTried ? { slotsTried } : {}),
           ...(effects ? { effects } : {}),
           ...(typeof emptySlots === 'number' && Number.isInteger(emptySlots)
             ? { emptySlots }
