@@ -4,6 +4,7 @@ import {
   WALLPAPER,
   type IWallpaperAudio,
   type IWallpaperStart,
+  type IWallpaperTuning,
 } from '../common/wallpaper';
 
 /**
@@ -17,6 +18,13 @@ const wallpaperBridge = {
    */
   setScenePerformance: (value: IScenePerformance) =>
     ipcRenderer.send(WALLPAPER.performance, value),
+  /**
+   * What the listener set for each visualizer — its controls, its timing and
+   * the band it is drawn in — so a monitor showing one is drawn as the window
+   * draws it. The whole record, on every change.
+   */
+  setSceneTuning: (value: Record<string, IWallpaperTuning>) =>
+    ipcRenderer.send(WALLPAPER.tuning, value),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),
   startWallpaper: (request: IWallpaperStart): Promise<unknown> =>

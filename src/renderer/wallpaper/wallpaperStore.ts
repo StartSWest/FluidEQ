@@ -3,6 +3,7 @@ import {
   isWallpaperState,
   type IWallpaperStart,
   type IWallpaperState,
+  type IWallpaperTuning,
 } from '../../common/wallpaper';
 
 const INITIAL_STATE: IWallpaperState = {
@@ -21,6 +22,7 @@ interface IWallpaperBridge {
   getWallpaperState?: () => Promise<unknown>;
   startWallpaper?: (request: IWallpaperStart) => Promise<unknown>;
   stopWallpaper?: (displayIds?: number[]) => Promise<unknown>;
+  setSceneTuning?: (tuning: Record<string, IWallpaperTuning>) => void;
   onWallpaperState?: (listener: (state: unknown) => void) => () => void;
 }
 
@@ -137,6 +139,15 @@ const mutate = async (
   } finally {
     publishMutation({ pending: false, kind });
   }
+};
+
+/**
+ * What every visualizer is set to, for the monitors showing one. Nothing to
+ * wait on and nothing to fail: main keeps the last record it was given, and
+ * the window sends the whole thing again whenever any of it moves.
+ */
+export const sendSceneTuning = (tuning: Record<string, IWallpaperTuning>) => {
+  bridge()?.setSceneTuning?.(tuning);
 };
 
 export const startWallpaper = (

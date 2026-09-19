@@ -9,6 +9,7 @@ import {
   WALLPAPER,
   isWallpaperStart,
   isWallpaperStop,
+  isWallpaperTuningMap,
   type IWallpaperBootstrap,
 } from '../../common/wallpaper';
 import onWindowMessage from '../ipc/windowMessages';
@@ -89,6 +90,11 @@ const registerWallpaperIpc = (deps: IWallpaperDeps): (() => void) => {
     onWindowMessage(WALLPAPER.performance, (event, raw: unknown) => {
       if (fromOwner(event) && isScenePerformance(raw)) {
         manager.setPerformance(raw);
+      }
+    }),
+    onWindowMessage(WALLPAPER.tuning, (event, raw: unknown) => {
+      if (fromOwner(event) && isWallpaperTuningMap(raw)) {
+        manager.setTuning(raw);
       }
     }),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {

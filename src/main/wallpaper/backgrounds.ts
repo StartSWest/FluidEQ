@@ -4,6 +4,7 @@ import type { IScenePerformance } from '../../common/scenePerformance';
 import type {
   IWallpaperChoice,
   IWallpaperScreen,
+  IWallpaperTuning,
   TWallpaperError,
   TWallpaperPause,
 } from '../../common/wallpaper';
@@ -25,6 +26,8 @@ interface IMonitorBackgroundsOptions {
   pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
   /** The window's frame rate and resolution choice, as it is now. */
   performance(): IScenePerformance;
+  /** What the listener set for one visualizer, as it is now. */
+  tuning(lookId: string): IWallpaperTuning | undefined;
   /** The last surface has gone. */
   onEmpty(): void;
 }
@@ -81,6 +84,7 @@ export const createMonitorBackgrounds = (
         choice,
         scene,
         performance: options.performance(),
+        tuning: options.tuning(choice.lookId),
         executable,
         pauseReason: options.pauseReason,
         onChange: () => changed(),
@@ -136,6 +140,14 @@ export const createMonitorBackgrounds = (
     /** The window's choice changed: every monitor playing follows it. */
     retunePerformance: (next: IScenePerformance) =>
       surfaces.forEach((surface) => surface.retunePerformance(next)),
+    /**
+     * The listener tuned their visualizers: every monitor takes what belongs
+     * to the look it shows, whichever monitors those are.
+     */
+    applyTuning: (tuningOf: (lookId: string) => IWallpaperTuning | undefined) =>
+      surfaces.forEach((surface) =>
+        surface.applyTuning(tuningOf(surface.lookId)),
+      ),
     screens: (): IWallpaperScreen[] => [
       ...[...surfaces.values()].map((surface): IWallpaperScreen => ({
         displayId: surface.displayId,

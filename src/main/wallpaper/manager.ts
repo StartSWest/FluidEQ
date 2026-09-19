@@ -14,6 +14,7 @@ import {
   type IWallpaperDisplay,
   type IWallpaperStart,
   type IWallpaperState,
+  type IWallpaperTuning,
   type TWallpaperError,
 } from '../../common/wallpaper';
 import {
@@ -58,7 +59,7 @@ const RETRIED_ON_DISPLAY_CHANGE: readonly TWallpaperError[] = [
  */
 export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const remembered = deps.arrangement.read();
-  let { pauseOnBattery, performance } = remembered;
+  let { pauseOnBattery, performance, tuning } = remembered;
   // What each monitor was set to show, by the id it is connected under now.
   // A failure or an unplugged cable leaves it here; only Stop takes it away.
   const saved = new Map<number, ISavedScreen>(
@@ -96,6 +97,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     pauseReason: (fullscreen) =>
       wallpaperPauseReason({ ...conditions, pauseOnBattery, fullscreen }),
     performance: () => performance,
+    tuning: (lookId) => tuning[lookId],
     onEmpty: () => relay.cancel(),
   });
 
@@ -119,6 +121,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       deps.arrangement.write({
         pauseOnBattery,
         performance,
+        tuning,
         screens: [...saved.values()],
       });
     } catch (error) {
@@ -151,6 +154,37 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       choice,
       monitor: savedMonitorOf(display),
     });
+  };
+
+  /**
+   * What the listener set for each visualizer, as the window has it: the
+   * controls, the timing and the band each one is drawn in. Every monitor
+   * showing a look takes its part at once, and the band it lands on is
+   * remembered as that monitor's, so the list and the next launch agree with
+   * the desktop.
+   *
+   * The whole record arrives on any change: a look nobody tuned is absent,
+   * and a monitor showing it goes back to what its maker built in.
+   */
+  const setTuning = (next: Record<string, IWallpaperTuning>) => {
+    if (disposed || JSON.stringify(next) === JSON.stringify(tuning)) {
+      return;
+    }
+    tuning = next;
+    backgrounds.applyTuning((lookId) => tuning[lookId]);
+    backgrounds.surfaces().forEach((surface) => {
+      const entry = saved.get(surface.displayId);
+      const choice = surface.choice();
+      if (
+        entry &&
+        (entry.choice.wave.height !== choice.wave.height ||
+          entry.choice.wave.position !== choice.wave.position)
+      ) {
+        saved.set(surface.displayId, { ...entry, choice });
+      }
+    });
+    save();
+    publish();
   };
 
   const failEverywhere = (error: TWallpaperError) => {
@@ -307,7 +341,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
         // Remembered once it is on the monitor: a request refused outright
         // is not something to bring back at the next launch.
         if (backgrounds.lookOn(id) === lookId) {
-          remember(display, choice);
+          // What it actually draws: a look tuned in the window lands on that
+          // band, and the file has to agree with the desktop.
+          remember(display, backgrounds.surfaceOn(id)?.choice() ?? choice);
         }
       });
     }
@@ -482,6 +518,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     start,
     stop,
     setPerformance,
+    setTuning,
     restoreSaved,
     failEverywhere,
     surfaceFailed,

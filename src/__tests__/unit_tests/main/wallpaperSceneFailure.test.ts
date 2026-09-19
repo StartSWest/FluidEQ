@@ -172,6 +172,7 @@ describe('a look that cannot be loaded at start time', () => {
         upscaler: 'fsr',
         smoothing: 'off',
       },
+      tuning: {},
       screens: [
         {
           displayId: 2,

@@ -9,6 +9,7 @@ import {
   isWallpaperStart,
   isWallpaperState,
   isWallpaperStop,
+  isWallpaperTuningMap,
   wallpaperPauseReason,
   type IWallpaperStart,
   type IWallpaperState,
@@ -74,6 +75,42 @@ describe('what the window may ask main to put on the desktop', () => {
     expect(isWallpaperStop([1, 3])).toBe(true);
     expect(isWallpaperStop([])).toBe(false);
     expect(isWallpaperStop(['1'])).toBe(false);
+  });
+
+  // What each visualizer is set to reaches the monitors through main, and a
+  // page draws by these numbers: every one of them is checked on the way in.
+  it('takes what the listener set for each visualizer, and no other shape', () => {
+    expect(
+      isWallpaperTuningMap({
+        'premium:alpine': {
+          params: { glow: 0.4, snow: 2 },
+          response: { attack: 120, release: 900 },
+          wave: { height: 0.4, position: 0.2 },
+        },
+        [MEMBER_LOOK]: {},
+      }),
+    ).toBe(true);
+    expect(isWallpaperTuningMap({})).toBe(true);
+    expect(isWallpaperTuningMap(undefined)).toBe(false);
+    // Not a look id, and nothing to draw a scene with.
+    expect(isWallpaperTuningMap({ alpine: {} })).toBe(false);
+    expect(
+      isWallpaperTuningMap({ 'premium:alpine': { params: { glow: 'lots' } } }),
+    ).toBe(false);
+    expect(
+      isWallpaperTuningMap({ 'premium:alpine': { params: { glow: NaN } } }),
+    ).toBe(false);
+    // The two timings the graph's menu offers, and only those.
+    expect(
+      isWallpaperTuningMap({
+        'premium:alpine': { response: { sensitivity: 2 } },
+      }),
+    ).toBe(false);
+    expect(
+      isWallpaperTuningMap({
+        'premium:alpine': { wave: { height: 2, position: 0 } },
+      }),
+    ).toBe(false);
   });
 });
 

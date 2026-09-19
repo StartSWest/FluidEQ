@@ -6,6 +6,7 @@ import {
   type IWallpaperBootstrap,
   type IWallpaperSurfaceBridge,
   type IWallpaperSurfaceState,
+  type IWallpaperTuning,
   type IWallpaperWave,
   type TWallpaperMotion,
 } from 'common/wallpaper';
@@ -25,6 +26,7 @@ function Scene({
   wave,
   motion,
   performance,
+  tuning,
 }: {
   bootstrap: IWallpaperBootstrap;
   bridge: IWallpaperSurfaceBridge;
@@ -33,6 +35,8 @@ function Scene({
   motion: TWallpaperMotion;
   /** Main's copy of the window's choice: this page has no store of its own. */
   performance: IScenePerformance;
+  /** And of what the listener set for this visualizer, when they set any. */
+  tuning: IWallpaperTuning | undefined;
 }) {
   const [size, setSize] = useState({
     width: window.innerWidth,
@@ -88,6 +92,9 @@ function Scene({
     spectrumRect,
     shapeFrame: shaper.shape,
     performance,
+    // The listener's own controls and timing for this visualizer, read on the
+    // frames it draws, so moving a slider in the window moves the desktop.
+    ...(tuning ? { tuning } : {}),
     onDrawn,
   });
   useEffect(() => {
@@ -198,6 +205,7 @@ export default function WallpaperSurface({
         wave={state.wave}
         motion={state.motion}
         performance={state.performance}
+        tuning={state.tuning}
       />
     </SceneAudioProvider>
   ) : null;

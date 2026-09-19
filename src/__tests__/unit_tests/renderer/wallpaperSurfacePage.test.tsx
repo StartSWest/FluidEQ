@@ -93,6 +93,27 @@ const running = (over: Partial<IWallpaperSurfaceState> = {}) => ({
 });
 
 describe('a desktop background’s page', () => {
+  // The page has no store of its own: what the listener set for this
+  // visualizer in the window arrives with the rest of its state.
+  it('draws its scene with the controls and timing its visualizer is set to', async () => {
+    const tuning = { params: { glow: 0.4 }, response: { attack: 120 } };
+    const { bridge, push } = pageFor(running({ tuning }));
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    expect(lastRun()?.tuning).toEqual(tuning);
+
+    const moved = { params: { glow: 0.9 }, response: { attack: 120 } };
+    await push(running({ tuning: moved }));
+    expect(lastRun()?.tuning).toEqual(moved);
+  });
+
+  it('draws it as its maker built it when nothing is set', async () => {
+    const { bridge } = pageFor(running());
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    expect(lastRun()?.tuning).toBeUndefined();
+  });
+
   it('asks for the music on its animation frames while it follows the music', async () => {
     const { bridge } = pageFor(running());
     render(<WallpaperSurface bridge={bridge} />);

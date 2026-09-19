@@ -44,11 +44,16 @@ jest.mock('../../../main/wallpaper/nativeHost', () => ({
 }));
 
 /* eslint-disable import/first -- install the mocks first */
-import type { TWallpaperPause } from '../../../common/wallpaper';
+import type {
+  IWallpaperTuning,
+  TWallpaperPause,
+} from '../../../common/wallpaper';
 import { createDesktopSurface } from '../../../main/wallpaper/surface';
 /* eslint-enable import/first */
 
-const create = (pause: { reason?: TWallpaperPause } = {}) => {
+const create = (
+  pause: { reason?: TWallpaperPause; tuning?: IWallpaperTuning } = {},
+) => {
   const onFail = jest.fn();
   const onChange = jest.fn();
   const surface = createDesktopSurface({
@@ -66,6 +71,7 @@ const create = (pause: { reason?: TWallpaperPause } = {}) => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    tuning: pause.tuning,
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
       member: false,
@@ -256,6 +262,51 @@ describe('a desktop background changing and ending', () => {
         },
       }),
     );
+  });
+
+  // The controls and timing the listener set in the window, and the band they
+  // set it in: a page has no store of its own, so main carries all three.
+  it('starts on what its visualizer is set to, and takes a change in place', () => {
+    const { surface } = create({
+      tuning: {
+        params: { glow: 0.4 },
+        response: { attack: 120 },
+        wave: { height: 0.4, position: 0.2 },
+      },
+    });
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    const { renderGeneration } = surface.surfaceState();
+    expect(surface.surfaceState()).toEqual(
+      expect.objectContaining({
+        wave: { height: 0.4, position: 0.2 },
+        tuning: expect.objectContaining({ params: { glow: 0.4 } }),
+      }),
+    );
+    mockWindow.webContents.send.mockClear();
+
+    surface.applyTuning({
+      params: { glow: 0.9 },
+      wave: { height: 0.6, position: 0 },
+    });
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      'wallpaper-surface-changed',
+      expect.objectContaining({
+        renderGeneration,
+        wave: { height: 0.6, position: 0 },
+        tuning: { params: { glow: 0.9 }, wave: { height: 0.6, position: 0 } },
+      }),
+    );
+    // The monitor's own band is what it is drawn with now.
+    expect(surface.choice().wave).toEqual({ height: 0.6, position: 0 });
+
+    mockWindow.webContents.send.mockClear();
+    surface.applyTuning({
+      params: { glow: 0.9 },
+      wave: { height: 0.6, position: 0 },
+    });
+    expect(mockWindow.webContents.send).not.toHaveBeenCalled();
   });
 
   it('lets go of its helper and window once when the helper fails, and says so once', () => {

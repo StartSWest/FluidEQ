@@ -10,9 +10,11 @@ import {
   MAX_WALLPAPER_DISPLAYS,
   isWallpaperLookId,
   isWallpaperMotion,
+  isWallpaperTuningMap,
   isWallpaperWave,
   type IWallpaperChoice,
   type IWallpaperDisplay,
+  type IWallpaperTuning,
 } from '../../common/wallpaper';
 import writeFileAtomically from '../atomicWrite';
 
@@ -38,6 +40,12 @@ export interface IWallpaperArrangement {
   pauseOnBattery: boolean;
   /** The window's frame rate and resolution choice, for every monitor. */
   performance: IScenePerformance;
+  /**
+   * What the listener set for each visualizer, by look id. Kept here so a
+   * background brought back at launch is drawn as they tuned it before the
+   * window has read its own store.
+   */
+  tuning: Record<string, IWallpaperTuning>;
   screens: ISavedScreen[];
 }
 
@@ -49,6 +57,7 @@ export interface IArrangementStore {
 const EMPTY: IWallpaperArrangement = {
   pauseOnBattery: true,
   performance: DEFAULT_SCENE_PERFORMANCE,
+  tuning: {},
   screens: [],
 };
 
@@ -123,6 +132,9 @@ export const parseArrangement = (
     // Files written before the choice existed have none, and meant what a
     // fresh install means.
     performance: normalizeScenePerformance(raw.performance),
+    // A tuning of an unknown shape is nothing tuned, never a reason to drop
+    // every monitor's background with it.
+    tuning: isWallpaperTuningMap(raw.tuning) ? raw.tuning : {},
     screens,
   };
 };
@@ -163,7 +175,7 @@ export const createArrangementStore = (
       }
       return parsed;
     },
-    write: ({ pauseOnBattery, performance, screens }) =>
+    write: ({ pauseOnBattery, performance, tuning, screens }) =>
       writeFileAtomically(
         filePath,
         `${JSON.stringify(
@@ -171,6 +183,7 @@ export const createArrangementStore = (
             version: 1,
             pauseOnBattery,
             performance,
+            tuning,
             screens: screens.map(storedScreenOf),
           },
           null,

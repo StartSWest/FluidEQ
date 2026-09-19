@@ -9,6 +9,7 @@ import {
   WALLPAPER,
   type IWallpaperChoice,
   type IWallpaperSurfaceState,
+  type IWallpaperTuning,
   type TWallpaperError,
   type TWallpaperPause,
 } from '../../common/wallpaper';
@@ -27,6 +28,8 @@ interface IDesktopSurfaceOptions {
   scene: IWallpaperScene;
   /** The window's frame rate and resolution choice when the monitor starts. */
   performance: IScenePerformance;
+  /** What the listener set for this visualizer, when they set anything. */
+  tuning: IWallpaperTuning | undefined;
   executable: string;
   /** Why this monitor should not play now, given whether an app fills it. */
   pauseReason(fullscreen: boolean): TWallpaperPause | undefined;
@@ -51,6 +54,12 @@ export interface IDesktopSurface {
   retune(next: Pick<IWallpaperChoice, 'wave' | 'motion'>): void;
   /** The window's frame rate and resolution choice changed: the page follows. */
   retunePerformance(next: IScenePerformance): void;
+  /**
+   * What the listener set for this visualizer — its controls, its timing and
+   * the band it is drawn in — as the window has it now. The band becomes this
+   * monitor's, so the list and the next launch show what is on the desktop.
+   */
+  applyTuning(next: IWallpaperTuning | undefined): void;
   surfaceState(): IWallpaperSurfaceState;
   owns(contents: WebContents): boolean;
   /** Re-reads the lock, sleep and battery conditions every monitor shares. */
@@ -59,6 +68,16 @@ export interface IDesktopSurface {
   fail(error: TWallpaperError): void;
   release(): void;
 }
+
+/**
+ * The same tuning, field by field: the window sends its whole record whenever
+ * anything in it moves, and a page is told only when this look's part of it
+ * actually changed.
+ */
+const sameTuning = (
+  a: IWallpaperTuning | undefined,
+  b: IWallpaperTuning | undefined,
+): boolean => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 /**
  * One monitor's background: its own window, its own desktop helper and its
@@ -81,7 +100,12 @@ export const createDesktopSurface = (
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
-  let { performance } = options;
+  let { performance, tuning } = options;
+  // A look the listener has tuned is drawn in the band they tuned it in,
+  // whatever band the monitor was set with.
+  if (tuning?.wave) {
+    wave = tuning.wave;
+  }
 
   const surfaceState = (): IWallpaperSurfaceState => ({
     phase,
@@ -89,6 +113,7 @@ export const createDesktopSurface = (
     wave,
     motion,
     performance,
+    ...(tuning ? { tuning } : {}),
   });
 
   const release = () => {
@@ -222,6 +247,19 @@ export const createDesktopSurface = (
         return;
       }
       performance = next;
+      tellPage();
+    },
+    applyTuning: (next) => {
+      const nextWave = next?.wave ?? wave;
+      if (
+        sameTuning(next, tuning) &&
+        nextWave.height === wave.height &&
+        nextWave.position === wave.position
+      ) {
+        return;
+      }
+      tuning = next;
+      wave = nextWave;
       tellPage();
     },
     retune: (next) => {

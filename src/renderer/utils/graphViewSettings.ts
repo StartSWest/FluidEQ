@@ -1360,6 +1360,35 @@ export const getWatchedGraphWave = () => ({
   position: wavePositionSetting.getFor('fullscreen'),
 });
 
+/**
+ * The same two numbers, watched. One object until they actually move, because
+ * a snapshot built afresh on every read would tell React it had changed on
+ * every render.
+ */
+let watchedWave = getWatchedGraphWave();
+const readWatchedWave = () => {
+  const height = waveHeightSetting.getFor('fullscreen');
+  const position = wavePositionSetting.getFor('fullscreen');
+  if (height !== watchedWave.height || position !== watchedWave.position) {
+    watchedWave = { height, position };
+  }
+  return watchedWave;
+};
+
+export const useWatchedGraphWave = () =>
+  useSyncExternalStore(
+    (listener: () => void) => {
+      const stopHeight = waveHeightSetting.subscribe(listener);
+      const stopPosition = wavePositionSetting.subscribe(listener);
+      return () => {
+        stopHeight();
+        stopPosition();
+      };
+    },
+    readWatchedWave,
+    () => watchedWave,
+  );
+
 export const useGraphWavePosition = () =>
   useSyncExternalStore(
     wavePositionSetting.subscribe,

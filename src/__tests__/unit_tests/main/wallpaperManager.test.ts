@@ -192,6 +192,60 @@ describe('how hard the monitors draw', () => {
   });
 });
 
+describe('what each visualizer is set to', () => {
+  const alpine = {
+    params: { glow: 0.4 },
+    response: { attack: 120 },
+    wave: { height: 0.5, position: 0.25 },
+  };
+
+  // A background is the same visualizer the graph draws, so what the listener
+  // set for it there is what it is drawn with here — at once, and at the next
+  // launch, which is why it is written down beside the backgrounds.
+  it('takes the window’s record to every monitor showing that look, and remembers it', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [2, 3] }));
+
+    manager.setTuning({ 'premium:alpine': alpine });
+    expect(
+      mockSurfaces.map((surface) => surface.applyTuning.mock.calls[0][0]),
+    ).toEqual([alpine, alpine]);
+    expect(file().tuning).toEqual({ 'premium:alpine': alpine });
+    // The band it landed on is this monitor's now: the list and the next
+    // launch show what the desktop shows.
+    expect(file().screens[0].choice.wave).toEqual({
+      height: 0.5,
+      position: 0.25,
+    });
+
+    // The same record again is not a change.
+    manager.setTuning({ 'premium:alpine': alpine });
+    expect(mockSurfaces[0].applyTuning).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives a monitor starting later what its look is set to', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.setTuning({ 'premium:alpine': alpine });
+    manager.start(request());
+    expect(mockSurfaces[0].tuning).toEqual(alpine);
+    expect(mockSurfaces[0].choice().wave).toEqual({
+      height: 0.5,
+      position: 0.25,
+    });
+  });
+
+  it('gives a monitor nothing for a look nobody has tuned', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.setTuning({ 'premium:aurora': alpine });
+    manager.start(request());
+    expect(mockSurfaces[0].tuning).toBeUndefined();
+    expect(mockSurfaces[0].choice().wave).toEqual({ height: 1, position: 0 });
+  });
+});
+
 describe('stopping', () => {
   it('forgets a stopped monitor, and Stop all forgets every one', () => {
     const { deps, file } = setup();
@@ -218,6 +272,7 @@ describe('coming back at launch', () => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    tuning: {},
     screens: [
       {
         displayId: 30,

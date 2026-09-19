@@ -19,6 +19,8 @@ export const WALLPAPER = {
   audioReady: 'wallpaper-audio-ready',
   /** The window's frame rate and resolution choice, for every monitor. */
   performance: 'wallpaper-performance',
+  /** What the listener set for each visualizer: its controls and its timing. */
+  tuning: 'wallpaper-tuning',
 } as const;
 
 /** More monitors than a desk has; bounds what one request can create. */
@@ -115,6 +117,27 @@ export interface IWallpaperState {
  * All a desktop surface is told: whether to draw, which drawing is current,
  * where its band goes, and whether it follows the music.
  */
+/**
+ * What the listener set for one visualizer, over what its maker built in: the
+ * values of its own controls and how quickly it rises and falls
+ * (`sceneParamStore.ts`, `sceneResponseStore.ts`). Kept on the graph by look
+ * id; a background shows the same visualizer, so it is drawn the same way.
+ *
+ * Only the two timings the graph's menu offers: what a scene hears at all is
+ * its author's to set in the Studio. The scene's own tuner clamps every value
+ * it is given, and a control the scene does not have is ignored.
+ */
+export interface IWallpaperTuning {
+  params?: Record<string, number>;
+  response?: { attack?: number; release?: number };
+  /**
+   * The band this visualizer is drawn in where the listener watches it: their
+   * own if they moved it, else the one its author built it around, else the
+   * graph's. A monitor showing this look takes it as the window has it.
+   */
+  wave?: IWallpaperWave;
+}
+
 export interface IWallpaperSurfaceState {
   phase: Exclude<TWallpaperPhase, 'error'>;
   renderGeneration: number;
@@ -125,6 +148,8 @@ export interface IWallpaperSurfaceState {
    * window's choice, kept by main, since this page has no store of its own.
    */
   performance: IScenePerformance;
+  /** What the listener set for this visualizer, when they set anything. */
+  tuning?: IWallpaperTuning;
 }
 
 /** Scene source is loaded and authorized by main, never sent back by a page. */
@@ -239,6 +264,50 @@ export const isWallpaperAudio = (raw: unknown): raw is IWallpaperAudio => {
     waveform.every(Number.isFinite)
   );
 };
+
+/** More controls than any scene declares, and more looks than a desk shows. */
+const MAX_TUNED_PARAMS = 64;
+const MAX_TUNED_LOOKS = 256;
+
+const isTunedParams = (raw: unknown): raw is Record<string, number> =>
+  isRecord(raw) &&
+  Object.keys(raw).length <= MAX_TUNED_PARAMS &&
+  Object.entries(raw).every(
+    ([id, value]) =>
+      id.length > 0 &&
+      id.length <= 64 &&
+      typeof value === 'number' &&
+      Number.isFinite(value),
+  );
+
+const isTunedTiming = (raw: unknown): raw is IWallpaperTuning['response'] =>
+  isRecord(raw) &&
+  Object.keys(raw).every((key) => key === 'attack' || key === 'release') &&
+  [raw.attack, raw.release].every(
+    (value) =>
+      value === undefined ||
+      (typeof value === 'number' && Number.isFinite(value)),
+  );
+
+const isWallpaperTuning = (raw: unknown): raw is IWallpaperTuning =>
+  isRecord(raw) &&
+  (raw.params === undefined || isTunedParams(raw.params)) &&
+  (raw.response === undefined || isTunedTiming(raw.response)) &&
+  (raw.wave === undefined || isWallpaperWave(raw.wave));
+
+/**
+ * What the window says the listener set, by look id. Bounded and checked like
+ * every other request: a page draws by these numbers.
+ */
+export const isWallpaperTuningMap = (
+  raw: unknown,
+): raw is Record<string, IWallpaperTuning> =>
+  isRecord(raw) &&
+  Object.keys(raw).length <= MAX_TUNED_LOOKS &&
+  Object.entries(raw).every(
+    ([lookId, tuning]) =>
+      isWallpaperLookId(lookId) && isWallpaperTuning(tuning),
+  );
 
 const isWallpaperDisplay = (raw: unknown): raw is IWallpaperDisplay =>
   isRecord(raw) &&

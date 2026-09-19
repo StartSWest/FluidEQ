@@ -75,6 +75,7 @@ describe('reading back what each monitor was set to show', () => {
         upscaler: 'fsr',
         smoothing: 'fast',
       },
+      tuning: {},
       screens: [
         {
           displayId: 782843922,
@@ -156,6 +157,7 @@ describe('the file on disk', () => {
         upscaler: 'fsr',
         smoothing: 'fast',
       },
+      tuning: {},
       screens: [],
     });
     expect(warn).not.toHaveBeenCalled();
@@ -172,6 +174,13 @@ describe('the file on disk', () => {
         autoFloor: 0.67 as const,
         upscaler: 'simple' as const,
         smoothing: 'best' as const,
+      },
+      tuning: {
+        'premium:aurora': {
+          params: { glow: 0.4 },
+          response: { attack: 120 },
+          wave: { height: 0.35, position: 0.6 },
+        },
       },
       screens: [
         {

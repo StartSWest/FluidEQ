@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePerformance } from '../../common/scenePerformance';
-import type { IWallpaperChoice, IWallpaperStart } from '../../common/wallpaper';
+import type {
+  IWallpaperChoice,
+  IWallpaperStart,
+  IWallpaperTuning,
+} from '../../common/wallpaper';
 import type { IEntitlement } from '../../main/account/entitlement';
 import type {
   IArrangementStore,
@@ -30,6 +34,9 @@ export interface IFakeSurface {
   lookId: string;
   /** What the monitor was started with, for a case about the choice. */
   performance: IScenePerformance;
+  /** What the listener had set for its look when it started. */
+  tuning: IWallpaperTuning | undefined;
+  applyTuning: jest.Mock;
   contents: { mainFrame: object };
   choice(): IWallpaperChoice;
   retune: jest.Mock;
@@ -113,19 +120,29 @@ export const mockSurfaceModule = () => ({
     displayId: number;
     choice: IWallpaperChoice;
     performance: IScenePerformance;
+    tuning: IWallpaperTuning | undefined;
     onFail(error: string): void;
   }) => {
     let { choice } = options;
+    if (options.tuning?.wave) {
+      choice = { ...choice, wave: options.tuning.wave };
+    }
     const surface: IFakeSurface = {
       displayId: options.displayId,
       lookId: options.choice.lookId,
       performance: options.performance,
+      tuning: options.tuning,
       contents: { mainFrame: {} },
       choice: () => choice,
       retune: jest.fn((next: IWallpaperChoice) => {
         choice = { ...choice, wave: next.wave, motion: next.motion };
       }),
       retunePerformance: jest.fn(),
+      applyTuning: jest.fn((next: IWallpaperTuning | undefined) => {
+        if (next?.wave) {
+          choice = { ...choice, wave: next.wave };
+        }
+      }),
       release: jest.fn(),
       applyPolicy: jest.fn(),
       fail: jest.fn((error: string) => options.onFail(error)),
@@ -174,6 +191,7 @@ export const setup = (stored?: IWallpaperArrangement) => {
       upscaler: 'fsr',
       smoothing: 'off',
     },
+    tuning: {},
     screens: [],
   };
   const arrangement: IArrangementStore = {

@@ -72,6 +72,8 @@ const readChoices = (): Map<string, TListenerParams> => {
 
 let choices: Map<string, TListenerParams> | undefined;
 const listeners = new Set<() => void>();
+/** Counts changes, for a reader that wants the whole record. */
+let revision = 0;
 
 const allChoices = () => {
   choices ??= readChoices();
@@ -85,6 +87,7 @@ const save = () => {
   } else {
     writeStored(STORAGE_KEY, JSON.stringify(Object.fromEntries(all)));
   }
+  revision += 1;
   listeners.forEach((listener) => listener());
 };
 
@@ -93,6 +96,24 @@ const subscribe = (listener: () => void) => {
   return () => {
     listeners.delete(listener);
   };
+};
+
+/**
+ * Every visualizer's controls at once, for whoever has to send the lot
+ * somewhere — the desktop's monitors, which have no store of their own. The
+ * map is the store's own and is written in place, so the count of changes is
+ * what a reader subscribes to.
+ */
+export const useAllListenerParams = (): ReadonlyMap<
+  string,
+  TListenerParams
+> => {
+  useSyncExternalStore(
+    subscribe,
+    () => revision,
+    () => 0,
+  );
+  return allChoices();
 };
 
 /** What the listener set for `lookId`, one stable object per change. */
