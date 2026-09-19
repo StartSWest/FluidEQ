@@ -219,7 +219,7 @@ const plus = {
   'plus.admin.title': 'Управление',
   'plus.admin.blurb': 'Аккаунты, подарки и жалобы',
   'plus.admin.description':
-    'Это видите только вы: все аккаунты, Plus, который вы дарите, и сцены, на которые жалуются участники',
+    'Это видите только вы: сцены, ждущие вашего одобрения, сцены, на которые жалуются участники, все аккаунты и Plus, который вы дарите',
   'plus.accounts.listHint':
     'Сначала новые. Нажмите на аккаунт, чтобы увидеть, что в нём есть, и удалить его навсегда, когда владелец об этом попросит.',
   'plus.accounts.search': 'Поиск по почте, нику или имени',
@@ -326,6 +326,11 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Свет рифа',
   'plus.welcome.scene.lanternLake': 'Озеро фонариков',
   'plus.welcome.scene.prismBloom': 'Цветок-призма',
+  'plus.moderation.delete': 'Удалить',
+  'plus.moderation.deleteConfirm':
+    'Удалить насовсем? Сцена исчезнет из галереи и из оформлений всех участников, её файлы будут стёрты, и опубликовать её снова будет нельзя.',
+  'plus.moderation.deleteForGood': 'Удалить насовсем',
+  'plus.moderation.done.deleted': '{name} удалена.',
 } as const;
 
 export default plus;

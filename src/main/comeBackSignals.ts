@@ -64,6 +64,7 @@ export interface IAccountRefreshers {
   scenePacks: { refreshIfDue(reason: string): Promise<void> };
   memberSharing: { refreshIfDue(reason: string): Promise<void> };
   plusGallery: { refreshIfDue(): Promise<void> };
+  sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
   leaderboard: { uploadIfDue(reason: string): Promise<void> };
 }
@@ -83,6 +84,7 @@ export const accountComeBackSteps = ({
   memberSharing,
   plusGallery,
   plusTermsNotice,
+  sceneReviews,
   scenePacks,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
@@ -92,6 +94,8 @@ export const accountComeBackSteps = ({
   },
   { name: 'block list', run: (reason) => memberSharing.refreshIfDue(reason) },
   { name: 'gallery scenes', run: () => plusGallery.refreshIfDue() },
+  // The admin told a scene waits for review, a maker told it was answered.
+  { name: 'scene reviews', run: (reason) => sceneReviews.refreshIfDue(reason) },
   {
     name: 'Plus terms notice',
     run: (reason) => plusTermsNotice.checkIfDue(reason),

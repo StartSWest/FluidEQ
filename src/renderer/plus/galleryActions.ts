@@ -195,8 +195,9 @@ export const removeGalleryScene = async (
   return removed;
 };
 
+/** A scene named by who made it and which it is: the gallery's, or one in the looks. */
 export const reportGalleryScene = async (
-  scene: IGalleryScene,
+  scene: Pick<IGalleryScene, 'authorId' | 'sceneId'>,
   reason: TReportReason,
 ): Promise<boolean> => {
   try {

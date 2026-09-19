@@ -45,25 +45,43 @@ const row = (over: Record<string, unknown> = {}) => ({
 
 describe('whether this account is the admin', () => {
   it('reads the admin and the scenes waiting, counts sent as text included', () => {
-    expect(parseModerationStatus({ admin: true, open: '3' })).toEqual({
+    expect(
+      parseModerationStatus({ admin: true, open: '3', review: '2' }),
+    ).toEqual({
       admin: true,
       open: 3,
+      review: 2,
+    });
+  });
+
+  it('reads no scenes to approve from a server that has no review', () => {
+    expect(parseModerationStatus({ admin: true, open: 1 })).toEqual({
+      admin: true,
+      open: 1,
+      review: 0,
     });
   });
 
   it.each([
-    ['a member', { admin: false, open: 5 }],
+    ['a member', { admin: false, open: 5, review: 4 }],
     ['an answer that is not true but truthy', { admin: 'true', open: 5 }],
     ['nothing', null],
     ['a list', [{ admin: true }]],
   ])('answers not the admin, with nothing waiting, for %s', (_label, value) => {
-    expect(parseModerationStatus(value)).toEqual({ admin: false, open: 0 });
+    expect(parseModerationStatus(value)).toEqual({
+      admin: false,
+      open: 0,
+      review: 0,
+    });
   });
 
-  it('keeps the admin with no count when the count is unreadable', () => {
-    expect(parseModerationStatus({ admin: true, open: -1 })).toEqual({
+  it('keeps the admin with no count when a count is unreadable', () => {
+    expect(
+      parseModerationStatus({ admin: true, open: -1, review: 'many' }),
+    ).toEqual({
       admin: true,
       open: 0,
+      review: 0,
     });
   });
 });
@@ -112,12 +130,12 @@ describe('a reported scene', () => {
 });
 
 describe('what the admin may ask for', () => {
-  it('knows the two lists and the three answers, and nothing else', () => {
+  it('knows the two lists and the four answers, and nothing else', () => {
     expect(['open', 'taken-down'].every(isModerationList)).toBe(true);
     expect(isModerationList('all')).toBe(false);
-    expect(['take-down', 'dismiss', 'restore'].every(isModerationAction)).toBe(
-      true,
-    );
+    expect(
+      ['take-down', 'dismiss', 'restore', 'delete'].every(isModerationAction),
+    ).toBe(true);
     expect(isModerationAction('ban')).toBe(false);
     expect(isModerationAction(undefined)).toBe(false);
   });

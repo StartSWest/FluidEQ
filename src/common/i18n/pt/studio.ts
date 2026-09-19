@@ -163,6 +163,10 @@ const studio = {
     'Os termos do Plus têm uma versão mais nova. Atualize o FluidEQ para ler e publicar.',
   'studio.publish.versionTaken':
     'Esta cena foi publicada de novo há pouco. Tente outra vez e ela sairá como a versão seguinte.',
+  'studio.publish.takenDown':
+    'O FluidEQ retirou esta cena da galeria, então ela não aceita versões novas. Ela só pode voltar como estava, se o FluidEQ a restaurar.',
+  'studio.publish.deleted':
+    'O FluidEQ excluiu esta cena da galeria para sempre, então ela não pode ser publicada de novo.',
 
   'studio.picture.files': 'Imagens',
   'studio.picture.missing':
@@ -477,6 +481,18 @@ const studio = {
   'studio.code.updatedAt': 'Alterado fora às {time}',
   'studio.code.unchanged': '{count} linhas sem alteração',
   'studio.code.delta': '{added} linhas adicionadas, {removed} removidas',
+  'studio.publish.pointReview':
+    'O FluidEQ revisa cada cena antes que ela apareça na galeria. Você será avisado quando for aprovada.',
+  'studio.publish.pointReviewUpdate':
+    'O FluidEQ também revisa cada nova versão. Quem tem a cena continua com a versão atual até esta ser aprovada.',
+  'studio.publish.goReview': 'Enviar para revisão',
+  'studio.publish.goReviewUpdate': 'Enviar atualização para revisão',
+  'studio.publish.agreeReview': 'Aceitar e enviar para revisão',
+  'studio.publish.runningReview': 'Enviando…',
+  'studio.publish.submitted':
+    '{name} foi enviada para revisão. Você será avisado quando for aprovada.',
+  'studio.publish.submittedUpdate':
+    'A nova versão de {name} foi enviada para revisão. Todos continuam com a versão atual até ela ser aprovada.',
 } as const;
 
 export default studio;

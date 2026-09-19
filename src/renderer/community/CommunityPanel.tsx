@@ -224,14 +224,18 @@ export default function CommunityPanel({
                 >
                   <span className="community__channel-mark">
                     <Glyph name="shield" />
-                    {moderation.open > 0 && (
+                    {/* Everything the admin has waiting: scenes to approve
+                        and scenes reported. Each tab inside says which. */}
+                    {moderation.open + moderation.review > 0 && (
                       <span
                         className="community__channel-count"
-                        aria-label={t('plus.gallery.reportedOpen', {
-                          count: String(moderation.open),
+                        aria-label={t('review.badge', {
+                          count: String(moderation.open + moderation.review),
                         })}
                       >
-                        {new Intl.NumberFormat(locale).format(moderation.open)}
+                        {new Intl.NumberFormat(locale).format(
+                          moderation.open + moderation.review,
+                        )}
                       </span>
                     )}
                   </span>

@@ -8,6 +8,7 @@ import {
 } from '../../common/plusModeration';
 import type { IGalleryAuth } from './galleryAccess';
 import { rpc, type TGalleryFailure } from './galleryApi';
+import { deleteScene } from './reviewApi';
 
 /**
  * The admin's queue of reported scenes, spoken to with the account's own
@@ -26,7 +27,7 @@ const failureOf = (status: number): TModerationFailure => {
   return status === 403 ? 'forbidden' : 'server';
 };
 
-const FUNCTIONS: Record<TModerationAction, string> = {
+const FUNCTIONS: Record<Exclude<TModerationAction, 'delete'>, string> = {
   'take-down': 'admin_take_down_scene',
   dismiss: 'admin_dismiss_scene_reports',
   restore: 'admin_restore_scene',
@@ -97,6 +98,26 @@ export const moderateScene = async (
   authorId: string,
   sceneId: string,
 ): Promise<{ ok: true } | { ok: false; reason: TModerationFailure }> => {
+  if (action === 'delete') {
+    // Files go with it, which only the review function can remove (server
+    // migration 0037): SQL cannot delete from the bucket.
+    const deleted = await deleteScene(auth, authorId, sceneId);
+    if (deleted.ok) {
+      return deleted;
+    }
+    // Only the connection, the session and the admin check can refuse a
+    // deletion; every word an approval can be refused with is the server's.
+    const { reason } = deleted;
+    return {
+      ok: false,
+      reason:
+        reason === 'offline' ||
+        reason === 'signed-out' ||
+        reason === 'forbidden'
+          ? reason
+          : 'server',
+    };
+  }
   let response: Response;
   try {
     response = await rpc(auth, FUNCTIONS[action], {

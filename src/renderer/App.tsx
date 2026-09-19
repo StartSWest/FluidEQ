@@ -151,13 +151,14 @@ import {
 import useEngineTrouble from './audio/useEngineTrouble';
 import { sameEndpoint } from './audio/engineTrouble';
 import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
-import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
 import PlusTermsNotice from './components/PlusTermsNotice';
+import SceneReviewNotice from './components/SceneReviewNotice';
+import SceneReportHost from './plus/SceneReportHost';
 import PlusWelcomeDialog from './components/PlusWelcomeDialog';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
@@ -241,7 +242,6 @@ const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
 type TWorkspaceTab =
   | 'eq'
   | 'presets'
-  | 'voicing'
   | 'convolution'
   | 'dsp'
   | 'share'
@@ -280,7 +280,6 @@ const LEGACY_WORKSPACE_TABS: Record<string, TWorkspaceTab> = {
 const WORKSPACE_TABS: TWorkspaceTab[] = [
   'eq',
   'presets',
-  'voicing',
   'convolution',
   'video',
   'library',
@@ -312,7 +311,6 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
 const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
   'eq',
   'presets',
-  'voicing',
   'convolution',
   'config',
 ];
@@ -320,7 +318,6 @@ const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
 const EQ_GROUP_LABEL_KEYS = {
   eq: 'tabs.eqMain',
   presets: 'tabs.presets',
-  voicing: 'tabs.voicing',
   convolution: 'tabs.convolution',
   config: 'tabs.config',
 } as const;
@@ -2406,11 +2403,7 @@ const AppContent = () => {
               // its rainbow animation. Only the scroll content is keyed.
               <div
                 key="eq-workspace"
-                className={`workspace-tab-panel workspace-tab-panel--${
-                  activeWorkspaceTab === 'voicing'
-                    ? 'convolution'
-                    : activeWorkspaceTab
-                }${!isEngineUsable ? ' is-engine-disabled' : ''}`}
+                className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEngineUsable ? ' is-engine-disabled' : ''}`}
                 aria-disabled={
                   activeWorkspaceTab === 'config' ? undefined : !isEngineUsable
                 }
@@ -2422,7 +2415,6 @@ const AppContent = () => {
                 >
                   {activeWorkspaceTab === 'eq' && <MainContent />}
                   {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
-                  {activeWorkspaceTab === 'voicing' && <VoicingPanel />}
                   {activeWorkspaceTab === 'convolution' && <ConvolutionPanel />}
                   {activeWorkspaceTab === 'config' && <ConfigInspector />}
                 </div>
@@ -2854,6 +2846,12 @@ const AppContent = () => {
         {/* Here too: the terms promise that the app tells a member when they
             change, and a member need never open the Plus tab to use Plus. */}
         <PlusTermsNotice />
+        {/* Here for the same reason: a scene waiting for the admin, or a
+            maker's scene approved or not, is news on whichever tab is open. */}
+        <SceneReviewNotice />
+        {/* A scene reported from the looks: the menu it was asked from
+            closes under the dialog, so the dialog lives here. */}
+        <SceneReportHost />
         {/* The one moment a membership turning on is marked. Here rather than
             in the Plus tab, because paying is done from the account panel and
             the answer can land with any tab open. */}

@@ -6,6 +6,7 @@ import type {
   TPlusCategory,
 } from 'common/plusGallery';
 import type { IReportedScene } from 'common/plusModeration';
+import type { IReviewItem } from 'common/plusReview';
 import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
@@ -35,11 +36,20 @@ export const PLUS_PLACES = [
 export type TPlusPlace = (typeof PLUS_PLACES)[number];
 
 /**
- * The admin's pages: every account, the Plus given away, and the scenes
- * members reported. Only the admin is offered the place; the server refuses
- * anybody else on every call regardless.
+ * The admin's pages: the scenes waiting to be approved, the scenes members
+ * reported, every account, and the Plus given away. Only the admin is offered
+ * the place; the server refuses anybody else on every call regardless.
+ *
+ * Approving first, and where the place opens: it is the one page with work
+ * that holds members up — a scene nobody has approved is a scene its maker
+ * is waiting on (server migration 0037).
  */
-export const ADMIN_SECTIONS = ['accounts', 'gifts', 'reported'] as const;
+export const ADMIN_SECTIONS = [
+  'review',
+  'reported',
+  'accounts',
+  'gifts',
+] as const;
 export type TAdminSection = (typeof ADMIN_SECTIONS)[number];
 
 const PLACE_KEY = 'fluideq.plusPlace';
@@ -100,13 +110,22 @@ interface IPlusNavigation {
   page: TGalleryPage;
   filters: IBrowseFilters;
   admin: TAdminSection;
+  /** The scene waiting for review that the admin opened to watch. */
+  reviewing?: IReviewItem;
+  /**
+   * Counts every opening of an admin page, the one already showing included:
+   * a list is read afresh on each, so "Review now" on a notice, or the tab
+   * pressed again, never shows the list as it was before the news.
+   */
+  adminVisit: number;
 }
 
 const INITIAL: IPlusNavigation = {
   place: 'visualizers',
   page: { kind: 'browse' },
   filters: { sort: 'liked', text: '' },
-  admin: 'accounts',
+  admin: 'review',
+  adminVisit: 0,
 };
 
 let navigation: IPlusNavigation = { ...INITIAL, place: storedPlace() };
@@ -144,9 +163,31 @@ export const openPlusPlace = (place: TPlusPlace) => {
 export const openGalleryPage = (page: TGalleryPage) =>
   publish({ ...navigation, place: 'visualizers', page });
 
-/** Shows one of the admin's pages. */
+/** Shows one of the admin's pages, at its list, read afresh. */
 export const openAdminSection = (admin: TAdminSection) =>
-  publish({ ...navigation, place: 'admin', admin });
+  publish({
+    ...navigation,
+    place: 'admin',
+    admin,
+    reviewing: undefined,
+    adminVisit: navigation.adminVisit + 1,
+  });
+
+/** Opens one waiting scene to watch and answer, in the admin's place. */
+export const openReviewItem = (reviewing: IReviewItem) =>
+  publish({ ...navigation, place: 'admin', admin: 'review', reviewing });
+
+/**
+ * Whether this waiting scene is the one on screen. An answer's reply arrives
+ * after the admin may have gone back and opened another: it only moves the
+ * page it was sent from.
+ */
+export const isReviewing = (item: IReviewItem) =>
+  navigation.place === 'admin' &&
+  navigation.admin === 'review' &&
+  navigation.reviewing?.lookId === item.lookId &&
+  navigation.reviewing.version === item.version &&
+  navigation.reviewing.sha256 === item.sha256;
 
 /**
  * How far down each page was scrolled, by page, so Back lands where the
@@ -182,7 +223,11 @@ export const goBackInGallery = () => {
     ...navigation,
     page: { kind: 'browse' },
     ...(page.kind === 'scene' && page.report
-      ? { place: 'admin', admin: 'reported' }
+      ? {
+          place: 'admin',
+          admin: 'reported',
+          adminVisit: navigation.adminVisit + 1,
+        }
       : {}),
   });
 };

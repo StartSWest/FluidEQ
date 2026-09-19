@@ -31,7 +31,12 @@ interface IModerationState extends IModerationStatus {
   known: boolean;
 }
 
-const NONE: IModerationState = { admin: false, open: 0, known: false };
+const NONE: IModerationState = {
+  admin: false,
+  open: 0,
+  review: 0,
+  known: false,
+};
 
 let state: IModerationState = NONE;
 const listeners = new Set<() => void>();
@@ -94,10 +99,24 @@ export const setOpenReports = (accountId: string | undefined, open: number) => {
   }
 };
 
+/**
+ * How many scenes wait for review, as the main process last heard it or the
+ * review queue last listed it: the freshest answer there is, for the badge.
+ */
+export const setReviewWaiting = (
+  accountId: string | undefined,
+  review: number,
+) => {
+  if (state.admin && state.accountId === accountId && state.review !== review) {
+    publish({ ...state, review });
+  }
+};
+
 const DONE: Record<TModerationAction, TranslationKey> = {
   'take-down': 'plus.moderation.done.takenDown',
   dismiss: 'plus.moderation.done.dismissed',
   restore: 'plus.moderation.done.restored',
+  delete: 'plus.moderation.done.deleted',
 };
 
 /**
@@ -137,7 +156,14 @@ export const moderateReportedScene = async (
     // The gallery's lists no longer match the server; the next look asks.
     markGalleryStale();
   }
-  if (action !== 'restore' && state.admin && state.open > 0) {
+  // A scene leaves the open list when it is answered from it; one deleted
+  // from the taken-down list was never counted there.
+  if (
+    action !== 'restore' &&
+    entry.takenDownAt === undefined &&
+    state.admin &&
+    state.open > 0
+  ) {
     publish({ ...state, open: state.open - 1 });
   }
   return true;

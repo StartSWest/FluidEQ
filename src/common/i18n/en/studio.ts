@@ -171,6 +171,10 @@ const studio = {
     'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
   'studio.publish.versionTaken':
     'This scene was published again a moment ago. Try once more and it will go out as the next version.',
+  'studio.publish.takenDown':
+    "FluidEQ took this scene down from the gallery, so it can't take a new version. It can only come back as it was, if FluidEQ restores it.",
+  'studio.publish.deleted':
+    "FluidEQ deleted this scene from the gallery for good, so it can't be published again.",
 
   // The pictures a scene asks for: any photo for each, fitted by FluidEQ.
   'studio.picture.files': 'Pictures',
@@ -493,6 +497,18 @@ const studio = {
   'studio.code.updatedAt': 'Changed outside at {time}',
   'studio.code.unchanged': '{count} unchanged lines',
   'studio.code.delta': '{added} lines added, {removed} removed',
+  'studio.publish.pointReview':
+    'FluidEQ reviews every scene before it appears in the gallery. You will be told when it is approved.',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ reviews every new version too. Everyone who has the scene keeps the current version until this one is approved.',
+  'studio.publish.goReview': 'Send for review',
+  'studio.publish.goReviewUpdate': 'Send update for review',
+  'studio.publish.agreeReview': 'Agree and send for review',
+  'studio.publish.runningReview': 'Sending…',
+  'studio.publish.submitted':
+    '{name} was sent for review. You will be told when it is approved.',
+  'studio.publish.submittedUpdate':
+    'The new version of {name} was sent for review. Everyone keeps the current version until it is approved.',
 } as const;
 
 export default studio;

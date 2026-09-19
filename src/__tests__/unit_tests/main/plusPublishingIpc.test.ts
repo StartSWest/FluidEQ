@@ -71,6 +71,11 @@ let duringAuth: (() => void) | undefined;
 let duringFetch: (() => void) | undefined;
 /** One reply for every request, or one chosen by the URL asked for. */
 let answer: Response | ((url: string) => Response);
+/**
+ * How the account's version floors are answered (server migration 0039):
+ * none, unless a test says otherwise. Asked beside the published list.
+ */
+let floorsAnswer: () => Response;
 let calls: Array<{ url: string; body: Record<string, unknown> }>;
 
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
@@ -79,6 +84,9 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
     body: JSON.parse(String(init?.body ?? '{}')),
   });
   duringFetch?.();
+  if (String(input).includes('/rpc/my_scene_version_floors')) {
+    return floorsAnswer();
+  }
   return typeof answer === 'function' ? answer(String(input)) : answer;
 }) as unknown as typeof fetch;
 
@@ -154,6 +162,7 @@ beforeEach(async () => {
     url.includes('/rpc/my_published_scenes')
       ? fakeResponse(200, [])
       : fakeResponse(200, { published: {} });
+  floorsAnswer = () => fakeResponse(200, []);
   calls = [];
   inspecting = false;
 });
@@ -635,6 +644,34 @@ describe('publishing from the Studio', () => {
       expect(onDisk()).toBe(61);
     });
 
+    // Server migration 0039. Unpublishing took the gallery's row away, so the
+    // Studio proposed the number members still held and the server refused
+    // it: the rule met as a wall.
+    it('rises above what a scene was ever out at, unpublished since', async () => {
+      galleryHolds(undefined);
+      floorsAnswer = () =>
+        fakeResponse(200, [
+          { scene_id: 'my-first-scene', version: 7, official: false },
+        ]);
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: true,
+      });
+      expect(publishRequest()?.body.pack).toMatchObject({ version: 8 });
+      expect(onDisk()).toBe(8);
+    });
+
+    it('sends nothing when the floors cannot be read', async () => {
+      galleryHolds(undefined);
+      floorsAnswer = () => fakeResponse(500, {});
+      setup();
+      expect(await invoke('studio-publish', 5, 'space', webpBytes())).toEqual({
+        ok: false,
+        reason: 'server',
+      });
+      expect(publishRequests()).toEqual([]);
+    });
+
     it('says so when the server got there first', async () => {
       // Two publications of the same scene crossing: the second read the
       // gallery before the first wrote to it, so the number it raised to was
@@ -726,14 +763,49 @@ describe('the member’s own published scenes', () => {
     setup();
     entitled = false;
     answer = fakeResponse(200, []);
-    expect(await invoke('plus-gallery-mine')).toEqual({ ok: true, scenes: [] });
+    expect(await invoke('plus-gallery-mine')).toEqual({
+      ok: true,
+      scenes: [],
+      floors: [],
+    });
     answer = fakeResponse(200, {});
     expect(await invoke('plus-gallery-unpublish', 'neon-city')).toEqual({
       ok: true,
     });
-    expect(calls[1]?.body).toEqual({
+    expect(
+      calls.find((call) => call.url.includes('/publish-member-scene'))?.body,
+    ).toEqual({
       action: 'unpublish',
       sceneId: 'neon-city',
+    });
+  });
+
+  // Server migration 0039: an unpublished scene keeps the highest version it
+  // was ever out at, and the list says so, for the Studio to publish above.
+  it('lists the floors beside the scenes, and fails with them', async () => {
+    setup();
+    answer = fakeResponse(200, []);
+    floorsAnswer = () =>
+      fakeResponse(200, [
+        { scene_id: 'lake', version: 7, official: false },
+        { scene_id: '../etc', version: 3 },
+      ]);
+    expect(await invoke('plus-gallery-mine')).toEqual({
+      ok: true,
+      scenes: [],
+      floors: [{ sceneId: 'lake', version: 7 }],
+    });
+    floorsAnswer = () => fakeResponse(500, {});
+    expect(await invoke('plus-gallery-mine')).toEqual({
+      ok: false,
+      reason: 'server',
+    });
+    // A server from before floors has nothing to say about them.
+    floorsAnswer = () => fakeResponse(404, {});
+    expect(await invoke('plus-gallery-mine')).toEqual({
+      ok: true,
+      scenes: [],
+      floors: [],
     });
   });
 

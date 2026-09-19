@@ -100,7 +100,7 @@ beforeEach(() => {
   signedIn = true;
   signedInAs = ME;
   switchDuringAuth = false;
-  answer = fakeResponse(200, { admin: true, open: 2 });
+  answer = fakeResponse(200, { admin: true, open: 2, review: 1 });
   calls = [];
   onBlockListChanged = jest.fn(async () => undefined);
   registerPlusModerationIpc({ access: access(), onBlockListChanged });
@@ -110,7 +110,10 @@ describe('asking whether this account is the admin', () => {
   it('asks the server, which is where the answer lives', async () => {
     await expect(
       invoke<TModerationStatusOutcome>('plus-moderation-status'),
-    ).resolves.toEqual({ ok: true, status: { admin: true, open: 2 } });
+    ).resolves.toEqual({
+      ok: true,
+      status: { admin: true, open: 2, review: 1 },
+    });
     expect(calls[0].url).toBe(
       'https://project.supabase.co/rest/v1/rpc/moderation_status',
     );
@@ -188,6 +191,40 @@ describe('the answers', () => {
     await invoke('plus-moderation-act', 'restore', SOMEONE, 'neon-city');
     expect(calls[0].url).toMatch(/rpc\/admin_restore_scene$/);
     expect(onBlockListChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes a scene for good through the review function, which takes its files too', async () => {
+    answer = fakeResponse(200, { ok: true });
+    await expect(
+      invoke<TModerationActOutcome>(
+        'plus-moderation-act',
+        'delete',
+        SOMEONE,
+        'neon-city',
+      ),
+    ).resolves.toEqual({ ok: true });
+    expect(calls[0].url).toBe(
+      'https://project.supabase.co/functions/v1/review-member-scene',
+    );
+    expect(calls[0].body).toEqual({
+      action: 'delete',
+      authorId: SOMEONE,
+      sceneId: 'neon-city',
+    });
+    expect(onBlockListChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it('says a refused delete was refused, and refreshes nothing', async () => {
+    answer = fakeResponse(403, { error: 'admin_required' });
+    await expect(
+      invoke<TModerationActOutcome>(
+        'plus-moderation-act',
+        'delete',
+        SOMEONE,
+        'neon-city',
+      ),
+    ).resolves.toEqual({ ok: false, reason: 'forbidden' });
+    expect(onBlockListChanged).not.toHaveBeenCalled();
   });
 
   it.each([

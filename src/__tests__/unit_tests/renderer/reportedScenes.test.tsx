@@ -122,6 +122,41 @@ describe('the queue for the admin', () => {
     ).toHaveTextContent('1');
   });
 
+  it('deletes a scene for good only once confirmed, and drops its row', async () => {
+    render(<ReportedScenes me={ADMIN} />);
+    const row = (await screen.findByText('Neon City')).closest('li');
+    if (!row) {
+      throw new Error('the reported scene has no row');
+    }
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'plus.moderation.delete' }),
+    );
+    expect(bridge.moderateScene).not.toHaveBeenCalled();
+    expect(
+      within(row).getByText('plus.moderation.deleteConfirm'),
+    ).toBeVisible();
+    // Keeping it is always a press away, and sends nothing.
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'plus.moderation.confirmNo' }),
+    );
+    expect(bridge.moderateScene).not.toHaveBeenCalled();
+
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'plus.moderation.delete' }),
+    );
+    await userEvent.click(
+      within(row).getByRole('button', {
+        name: 'plus.moderation.deleteForGood',
+      }),
+    );
+    expect(bridge.moderateScene).toHaveBeenCalledWith(
+      'delete',
+      AUTHOR,
+      'neon-city',
+    );
+    await waitFor(() => expect(screen.queryByText('Neon City')).toBeNull());
+  });
+
   it('keeps the row when the server does not take the answer', async () => {
     bridge.moderateScene.mockResolvedValue({ ok: false, reason: 'offline' });
     render(<ReportedScenes me={ADMIN} />);

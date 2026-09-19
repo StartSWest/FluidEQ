@@ -215,7 +215,7 @@ const plus = {
   'plus.admin.title': 'एडमिन',
   'plus.admin.blurb': 'खाते, उपहार और रिपोर्टें',
   'plus.admin.description':
-    'यह सिर्फ़ आपको दिखता है: सभी खाते, आपके उपहार में दिए Plus, और सदस्यों के रिपोर्ट किए गए सीन',
+    'यह सिर्फ़ आपको दिखता है: आपकी मंज़ूरी का इंतज़ार कर रहे सीन, सदस्यों के रिपोर्ट किए गए सीन, सभी खाते और आपके उपहार में दिए Plus',
   'plus.accounts.listHint':
     'सबसे नए पहले। किसी खाते को दबाकर देखें कि उसमें क्या है, और मालिक के कहने पर उसे हमेशा के लिए हटाएँ।',
   'plus.accounts.search': 'ईमेल, हैंडल या नाम से खोजें',
@@ -316,6 +316,11 @@ const plus = {
   'plus.welcome.scene.reefLight': 'रीफ़ की रोशनी',
   'plus.welcome.scene.lanternLake': 'लालटेनों की झील',
   'plus.welcome.scene.prismBloom': 'प्रिज़्म का फूल',
+  'plus.moderation.delete': 'मिटाएँ',
+  'plus.moderation.deleteConfirm':
+    'हमेशा के लिए मिटाएँ? यह गैलरी से और हर सदस्य के रूपों से हट जाता है, इसकी फ़ाइलें मिटा दी जाती हैं, और इसे फिर कभी प्रकाशित नहीं किया जा सकता।',
+  'plus.moderation.deleteForGood': 'हमेशा के लिए मिटाएँ',
+  'plus.moderation.done.deleted': '{name} मिटा दिया गया।',
 } as const;
 
 export default plus;

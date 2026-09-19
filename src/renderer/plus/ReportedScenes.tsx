@@ -16,7 +16,7 @@ import {
   useModeration,
 } from './moderationStore';
 import { openGalleryPage } from './plusNavigation';
-import ReportedSceneRow from './ReportedSceneRow';
+import ReportedSceneRow, { type TConfirmedAction } from './ReportedSceneRow';
 import '../styles/GalleryModeration.scss';
 
 type TListFailure = Extract<TModerationListOutcome, { ok: false }>['reason'];
@@ -59,7 +59,10 @@ export default function ReportedScenes({ me }: IReportedScenesProps) {
   const moderation = useModeration();
   const [list, setList] = useState<TModerationList>('open');
   const [queue, setQueue] = useState<TQueue>({ state: 'loading' });
-  const [confirming, setConfirming] = useState<string>();
+  const [confirming, setConfirming] = useState<{
+    key: string;
+    action: TConfirmedAction;
+  }>();
   const [working, setWorking] = useState<{
     key: string;
     action: TModerationAction;
@@ -208,8 +211,12 @@ export default function ReportedScenes({ me }: IReportedScenesProps) {
                 key={key}
                 entry={entry}
                 working={working?.key === key ? working.action : undefined}
-                confirming={confirming === key}
-                onConfirm={(next) => setConfirming(next ? key : undefined)}
+                confirming={
+                  confirming?.key === key ? confirming.action : undefined
+                }
+                onConfirm={(next) =>
+                  setConfirming(next ? { key, action: next } : undefined)
+                }
                 onAct={(action) => act(entry, action)}
                 onOpen={() =>
                   openGalleryPage({

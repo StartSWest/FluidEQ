@@ -162,6 +162,10 @@ const studio = {
     'Plus की शर्तों का नया संस्करण है। उसे पढ़ने और प्रकाशित करने के लिए FluidEQ अपडेट करें।',
   'studio.publish.versionTaken':
     'यह दृश्य अभी-अभी दोबारा प्रकाशित हुआ है। फिर से कोशिश करें, यह अगले संस्करण के रूप में जाएगा।',
+  'studio.publish.takenDown':
+    'FluidEQ ने यह दृश्य गैलरी से हटा दिया है, इसलिए इसका नया संस्करण नहीं भेजा जा सकता। यह सिर्फ़ तभी, जैसा था वैसा ही, वापस आ सकता है जब FluidEQ इसे बहाल करे।',
+  'studio.publish.deleted':
+    'FluidEQ ने यह दृश्य गैलरी से हमेशा के लिए मिटा दिया है, इसलिए इसे दोबारा प्रकाशित नहीं किया जा सकता।',
 
   'studio.picture.files': 'चित्र',
   'studio.picture.missing':
@@ -474,6 +478,18 @@ const studio = {
   'studio.code.updatedAt': '{time} पर बाहर बदला गया',
   'studio.code.unchanged': '{count} पंक्तियाँ अपरिवर्तित',
   'studio.code.delta': '{added} पंक्तियाँ जोड़ी गईं, {removed} हटाई गईं',
+  'studio.publish.pointReview':
+    'FluidEQ हर सीन को गैलरी में आने से पहले जाँचता है। मंज़ूर होने पर आपको बताया जाएगा।',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ हर नए संस्करण को भी जाँचता है। जब तक यह मंज़ूर न हो, जिनके पास सीन है उनके पास मौजूदा संस्करण रहता है।',
+  'studio.publish.goReview': 'समीक्षा के लिए भेजें',
+  'studio.publish.goReviewUpdate': 'अपडेट समीक्षा के लिए भेजें',
+  'studio.publish.agreeReview': 'सहमत हों और समीक्षा के लिए भेजें',
+  'studio.publish.runningReview': 'भेजा जा रहा है…',
+  'studio.publish.submitted':
+    '{name} समीक्षा के लिए भेजा गया। मंज़ूर होने पर आपको बताया जाएगा।',
+  'studio.publish.submittedUpdate':
+    '{name} का नया संस्करण समीक्षा के लिए भेजा गया। मंज़ूर होने तक सबके पास मौजूदा संस्करण रहेगा।',
 } as const;
 
 export default studio;

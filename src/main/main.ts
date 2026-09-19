@@ -208,6 +208,7 @@ import { registerPlusGalleryIpc } from './ipc/plusGallery';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
+import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusGiftsIpc } from './ipc/plusGifts';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { createGalleryAccess } from './plus/galleryAccess';
@@ -3160,6 +3161,28 @@ const plusGalleryIpc = registerPlusGalleryIpc({
   // downloaded again (`plus/pictureDiskCache.ts`).
   pictureDir: path.join(userDataDir, 'gallery-pictures'),
 });
+// Scenes under review (premium migration 0037): the admin's queue and
+// answers, a maker's list of what they sent, and the corner notice telling
+// either of them there is news. An approval puts a scene in the gallery.
+// Signing out must take the notice away too, which the membership alone
+// never says (`onIdentityChange`).
+const plusReviewIpc = registerPlusReviewIpc({
+  getMainWindow: () => mainWindow,
+  userDataDir,
+  access: galleryAccess,
+  onGalleryChanged: async () => {
+    await plusGalleryIpc.refreshIfDue(true);
+  },
+  onAccountChange: (listener) => {
+    const offMembership = accountIpc.entitlement.subscribe(listener);
+    const offIdentity = accountIpc.onIdentityChange(listener);
+    return () => {
+      offMembership();
+      offIdentity();
+    };
+  },
+  logger: log,
+});
 const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,
   userDataDir,
@@ -3172,6 +3195,9 @@ const plusPublishingIpc = registerPlusPublishingIpc({
       .catch((error) =>
         log.warn('Gallery refresh after publication failed', error),
       );
+    // A member's publication waits for review now: their list says so, and
+    // the admin's queue grew.
+    plusReviewIpc.refreshNow().catch(() => undefined);
   },
 });
 
@@ -3185,12 +3211,14 @@ const disposeStudioInspect = registerStudioInspectIpc({
 });
 
 // The admin's queue of reported scenes. A takedown or a restore changes the
-// block list, which this computer holds a copy of and the gallery reads.
+// block list, which this computer holds a copy of and the gallery reads; a
+// deletion also takes away whatever the scene had waiting for review.
 const plusModerationIpc = registerPlusModerationIpc({
   access: galleryAccess,
   onBlockListChanged: async () => {
     await memberSharingIpc.refreshBlocked();
     await plusGalleryIpc.refreshIfDue(true);
+    await plusReviewIpc.refreshNow();
   },
   logger: log,
 });
@@ -3463,6 +3491,7 @@ const comeBack = createComeBackWatch({
     scenePacks: scenePacksIpc,
     memberSharing: memberSharingIpc,
     plusGallery: plusGalleryIpc,
+    sceneReviews: plusReviewIpc,
     plusTermsNotice: plusTermsNoticeIpc,
     leaderboard: leaderboardIpc,
   }),
@@ -3614,6 +3643,7 @@ app.on('before-quit', (event) => {
   plusTrialIpc.dispose();
   scenePacksIpc.dispose();
   plusModerationIpc.dispose();
+  plusReviewIpc.dispose();
   plusGiftsIpc.dispose();
   accountDeletionIpc.dispose();
   disposeStudioInspect();

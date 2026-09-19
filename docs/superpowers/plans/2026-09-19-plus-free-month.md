@@ -32,7 +32,7 @@
 
 ## Tasks
 
-- [x] Server: create private migration `0038_plus_trials.sql` and executable PGlite tests. Cover disabled offers, cohort eligibility, mandatory consent versions, duplicate starts, exact expiry, gift/paid priority, merchant refresh and authorization. Leave default disabled.
+- [x] Server: create private migration `0040_plus_trials.sql` and executable PGlite tests. Cover disabled offers, cohort eligibility, mandatory consent versions, duplicate starts, exact expiry, gift/paid priority, merchant refresh and authorization. Leave default disabled.
 - [x] Desktop contract and IPC: create `common/plusTrial.ts`, `main/plus/trialApi.ts`, `main/ipc/plusTrial.ts` and `main/plusTrialBridge.ts`. Validate responses and consent input; reject account-switch races; refresh the entitlement after a successful start.
 - [x] Entitlement: ensure trial expiry is announced on launch/focus/resume even when cached status has just expired or the network is unavailable; keep free access intact. Exclude trials from the global paid-member welcome.
 - [x] Plus UI: build an event-driven trial store and reusable offer/active/ended card, free-first welcome copy and accurate Plus feature list. Add a trial agreement page to Account with an unchecked checkbox and the full terms; distinguish trial access on the Account card.

@@ -5,9 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IStudioState } from '../../../main/ipc/memberScenes';
+import { resetAccountStore } from '../../../renderer/account/accountStore';
+import { refreshModeration } from '../../../renderer/plus/moderationStore';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
 import type { IPublishDraft } from '../../../renderer/studio/useStudioPublish';
@@ -44,20 +46,37 @@ const state: IStudioState = {
   ],
 };
 
+const ADMIN = '33333333-3333-4333-8333-333333333333';
+
 const bridge = {
   selectStudioProject: jest.fn(),
   createStudioStarter: jest.fn(),
   linkStudioFolder: jest.fn(),
+  moderationStatus: jest.fn(),
+  getAccountState: jest.fn(),
+  onAccountState: jest.fn(() => () => {}),
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   bridge.selectStudioProject.mockResolvedValue(state);
   bridge.linkStudioFolder.mockResolvedValue(state);
+  bridge.moderationStatus.mockResolvedValue({
+    ok: true,
+    status: { admin: false, open: 0, review: 0 },
+  });
+  bridge.getAccountState.mockResolvedValue({ status: 'signed-out' });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },
   });
+});
+
+// The admin's answer is kept per account; signed out, every test starts as
+// a member again.
+afterEach(async () => {
+  resetAccountStore();
+  await act(() => refreshModeration(undefined));
 });
 
 describe('the Studio’s projects', () => {
@@ -243,12 +262,53 @@ describe('the publish dialog', () => {
         onCancel={jest.fn()}
       />,
     );
-    const go = screen.getByRole('button', { name: 'studio.publish.go' });
+    // A member's scene goes to the admin first, and the dialog says so
+    // before the press, not after it.
+    expect(screen.getByText('studio.publish.pointReview')).toBeInTheDocument();
+    const go = screen.getByRole('button', { name: 'studio.publish.goReview' });
     expect(go).toBeDisabled();
     await userEvent.click(
       screen.getByRole('button', { name: 'plus.category.space' }),
     );
     expect(go).toBeEnabled();
+    await userEvent.click(go);
+    expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
+  });
+
+  it('publishes straight to the gallery for the admin, who reviews everyone else', async () => {
+    bridge.getAccountState.mockResolvedValue({
+      status: 'signed-in',
+      identity: { id: ADMIN },
+    });
+    bridge.moderationStatus.mockResolvedValue({
+      ok: true,
+      status: { admin: true, open: 0, review: 0 },
+    });
+    const onPublish = jest.fn();
+    render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft()}
+        running={false}
+        onPublish={onPublish}
+        onCancel={jest.fn()}
+      />,
+    );
+    // Asked on opening, for the account signed in: the answer the dialog
+    // opened with may have been a failure read as "not the admin".
+    const go = await screen.findByRole('button', { name: 'studio.publish.go' });
+    expect(bridge.moderationStatus).toHaveBeenCalled();
+    expect(
+      screen.queryByText('studio.publish.pointReview'),
+    ).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'plus.category.space' }),
+    );
     await userEvent.click(go);
     expect(onPublish).toHaveBeenCalledWith('space', undefined, undefined);
   });
@@ -276,9 +336,13 @@ describe('the publish dialog', () => {
     );
     const note = screen.getByLabelText('studio.publish.note');
     expect(note).toHaveAttribute('maxLength', String(MAX_VERSION_NOTE));
+    // An update waits too, while everybody keeps the version they have.
+    expect(
+      screen.getByText('studio.publish.pointReviewUpdate'),
+    ).toBeInTheDocument();
     await userEvent.type(note, 'The peaks stay whole');
     await userEvent.click(
-      screen.getByRole('button', { name: 'studio.publish.goUpdate' }),
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
     );
     expect(onPublish).toHaveBeenLastCalledWith(
       'cities',
@@ -316,15 +380,52 @@ describe('the publish dialog', () => {
     expect(chip('water')).toHaveAttribute('aria-pressed', 'false');
     expect(chip('space')).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(
-      screen.getByRole('button', { name: 'studio.publish.go' }),
+      screen.getByRole('button', { name: 'studio.publish.goReview' }),
     );
     expect(onPublish).toHaveBeenLastCalledWith('cities', 'space', undefined);
     // Unpicking the first moves the second up.
     await userEvent.click(chip('cities'));
     await userEvent.click(
-      screen.getByRole('button', { name: 'studio.publish.go' }),
+      screen.getByRole('button', { name: 'studio.publish.goReview' }),
     );
     expect(onPublish).toHaveBeenLastCalledWith('space', undefined, undefined);
+  });
+
+  // The number shown is the number the press sends: above what the scene was
+  // ever out at (server migration 0039), not only above a live row — an
+  // unpublished scene has none, and its members still hold its number.
+  it('names the version this publication will go out as', () => {
+    const { rerender } = render(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft({ held: 7 })}
+        running={false}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('studio.publish.version:8')).toBeInTheDocument();
+    rerender(
+      <StudioPublishDialog
+        name="Neon City"
+        identity={CITY}
+        pack={pack}
+        tuning={{}}
+        onCapture={jest.fn()}
+        onChoose={jest.fn()}
+        draft={draft()}
+        running={false}
+        onPublish={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    );
+    // Never out: the project's own number.
+    expect(screen.getByText('studio.publish.version:3')).toBeInTheDocument();
   });
 
   it('selects completed covers and identifies captures still being drawn', async () => {
@@ -418,7 +519,9 @@ describe('the publish dialog', () => {
     // are built around it, and without one a listener is asked to take a new
     // version on trust. The press is what says so — a held button with the
     // reason in a tooltip is a reason nobody ever reads.
-    const go = screen.getByRole('button', { name: 'studio.publish.agree' });
+    const go = screen.getByRole('button', {
+      name: 'studio.publish.agreeReview',
+    });
     const field = screen.getByLabelText('studio.publish.note');
     expect(go).toBeEnabled();
     expect(field).not.toHaveAttribute('aria-invalid', 'true');
@@ -480,7 +583,7 @@ describe('the publish dialog', () => {
       'the rain falls behind the signs now',
     );
     fireEvent.click(
-      screen.getByRole('button', { name: 'studio.publish.goUpdate' }),
+      screen.getByRole('button', { name: 'studio.publish.goReviewUpdate' }),
     );
     expect(onPublish).toHaveBeenCalledWith(
       'cities',

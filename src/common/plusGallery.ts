@@ -126,6 +126,17 @@ export interface IPublishedScene {
 }
 
 /**
+ * The highest version one of this maker's scenes was ever in the gallery at
+ * (server migration 0039). Kept when the scene is unpublished: members who
+ * installed it still hold that number, so a publication of it again has to go
+ * out above it.
+ */
+export interface IVersionFloor {
+  sceneId: string;
+  version: number;
+}
+
+/**
  * The number a scene is published under now, from a maker's own list, so the
  * next publication can go out above it.
  *
@@ -143,14 +154,25 @@ export interface IPublishedScene {
  * (the server answers the official half solely to an official publisher), so
  * this cannot be driven by somebody else's number, and where an id exists as
  * both kinds neither can be published underneath the other.
+ *
+ * The floors count too: the highest version each scene was EVER out at, which
+ * outlives unpublishing it (server migration 0039). The live list alone
+ * forgot an unpublished scene, so publishing it again proposed the number
+ * members still held — which the server then refused, the rule met as a wall.
  */
 export const heldVersionOf = (
   scenes: readonly IPublishedScene[],
   sceneId: string,
+  floors: readonly IVersionFloor[] = [],
 ): number | undefined => {
-  const versions = scenes
-    .filter((scene) => scene.sceneId === sceneId)
-    .map((scene) => scene.version);
+  const versions = [
+    ...scenes
+      .filter((scene) => scene.sceneId === sceneId)
+      .map((scene) => scene.version),
+    ...floors
+      .filter((floor) => floor.sceneId === sceneId)
+      .map((floor) => floor.version),
+  ];
   return versions.length > 0 ? Math.max(...versions) : undefined;
 };
 
@@ -183,7 +205,7 @@ export const readCount = (value: unknown): number | undefined => {
     : undefined;
 };
 
-const readNames = (value: unknown): TLocalizedName | undefined => {
+export const readNames = (value: unknown): TLocalizedName | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -197,7 +219,7 @@ const readNames = (value: unknown): TLocalizedName | undefined => {
   return names.en ? (names as TLocalizedName) : undefined;
 };
 
-const readSwatch = (value: unknown): string[] | undefined =>
+export const readSwatch = (value: unknown): string[] | undefined =>
   Array.isArray(value) &&
   value.length >= 2 &&
   value.length <= 4 &&
@@ -210,11 +232,19 @@ const readSwatch = (value: unknown): string[] | undefined =>
  * sends none, and one that is not a category or repeats the first is not a
  * second category, so the row keeps its first alone rather than being lost.
  */
-const readSecondCategory = (
+export const readSecondCategory = (
   value: unknown,
   first: TPlusCategory,
 ): { category2?: TPlusCategory } =>
   isPlusCategory(value) && value !== first ? { category2: value } : {};
+
+/** A maker's display name as a row carries it: cleaned and bounded, or null. */
+export const readAuthorName = (value: unknown): string | null =>
+  sanitizeDisplayText(value)?.slice(0, MAX_AUTHOR_NAME) || null;
+
+/** A maker's handle as a row carries it, or null for one that is not a handle. */
+export const readAuthorHandle = (value: unknown): string | null =>
+  typeof value === 'string' && HANDLE.test(value) ? value : null;
 
 export const readDate = (value: unknown): string | undefined =>
   typeof value === 'string' && !Number.isNaN(Date.parse(value))
@@ -256,20 +286,13 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   ) {
     return undefined;
   }
-  const authorName = sanitizeDisplayText(value.author_name);
-  const authorHandle =
-    typeof value.author_handle === 'string' && HANDLE.test(value.author_handle)
-      ? value.author_handle
-      : null;
   return {
     lookId: official ? premiumLookId(sceneId) : lookId,
     ...(official ? { official: true } : {}),
     authorId,
     sceneId,
-    authorName: official
-      ? 'FluidEQ'
-      : authorName?.slice(0, MAX_AUTHOR_NAME) || null,
-    authorHandle: official ? 'fluideq' : authorHandle,
+    authorName: official ? 'FluidEQ' : readAuthorName(value.author_name),
+    authorHandle: official ? 'fluideq' : readAuthorHandle(value.author_handle),
     version,
     category: value.category,
     ...readSecondCategory(value.category2, value.category),
@@ -313,6 +336,20 @@ export const parseVersionRow = (
     return undefined;
   }
   return { version, publishedAt, ...(note ? { note } : {}) };
+};
+
+/** One row of `my_scene_version_floors`, or nothing when it is not one. */
+export const parseVersionFloorRow = (
+  value: unknown,
+): IVersionFloor | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const sceneId = typeof value.scene_id === 'string' ? value.scene_id : '';
+  const version = readCount(value.version);
+  return /^[a-z][a-z0-9-]{1,47}$/.test(sceneId) && version
+    ? { sceneId, version }
+    : undefined;
 };
 
 /** One row of `my_published_scenes`. */

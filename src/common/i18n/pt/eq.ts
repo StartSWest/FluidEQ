@@ -129,6 +129,7 @@ const eq: Partial<Dictionary> = {
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
   'graph.scene.badge': 'Plus',
+  'graph.scene.report': 'Denunciar {name}',
   'graph.version.new': 'Novo',
   'graph.version.caption': 'v{version} · {note}',
   'graph.version.captionBare': 'Atualizado para v{version}',

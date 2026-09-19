@@ -1,13 +1,15 @@
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLUS_CATEGORIES, type TPlusCategory } from 'common/plusGallery';
 import type { IScenePack } from 'common/scenePacks';
 import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
+import { useAccount } from '../account/accountStore';
 import Glyph from '../community/Glyph';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
 import { categoryKey } from '../plus/GalleryParts';
+import { refreshModeration, useModeration } from '../plus/moderationStore';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import StudioPublishCamera from './StudioPublishCamera';
@@ -70,6 +72,14 @@ export default function StudioPublishDialog({
   onCancel,
 }: IStudioPublishDialogProps) {
   const { t } = useTranslation();
+  const moderation = useModeration();
+  const me = useAccount().identity?.id;
+  // Asked again on opening: an answer that failed earlier — offline at
+  // launch — reads as "not the admin", and the admin would be told their own
+  // scene waits for review. The reply lands while the covers are drawn.
+  useEffect(() => {
+    refreshModeration(me).catch(() => undefined);
+  }, [me]);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
   const [categories, setCategories] = useState<TPlusCategory[]>(() =>
@@ -107,9 +117,20 @@ export default function StudioPublishDialog({
   // it, and without one a listener is asked to take a new version on trust.
   // A first publication has nothing to be new against, so it is not asked.
   const needsNote = update && note.trim().length === 0;
-  let go = update ? t('studio.publish.goUpdate') : t('studio.publish.go');
+  // A member's publication waits for the admin before anybody sees it
+  // (server migration 0037), and the dialog says so before the press rather
+  // than after it: the button sends it for review, and the first point says
+  // what that means. The admin's own goes straight out.
+  const reviewed = !moderation.admin;
+  let go: string;
   if (!draft.agreed) {
-    go = t('studio.publish.agree');
+    go = t(reviewed ? 'studio.publish.agreeReview' : 'studio.publish.agree');
+  } else if (update) {
+    go = t(
+      reviewed ? 'studio.publish.goReviewUpdate' : 'studio.publish.goUpdate',
+    );
+  } else {
+    go = t(reviewed ? 'studio.publish.goReview' : 'studio.publish.go');
   }
 
   return createPortal(
@@ -146,10 +167,9 @@ export default function StudioPublishDialog({
                 // project: a scene's content may only change under a higher
                 // version, so publishing raises it, and the dialog has to say
                 // which one is going out or it names the version being
-                // replaced right beside the one it replaces.
-                version: String(
-                  versionToPublish(pack.version, draft.published?.version),
-                ),
+                // replaced right beside the one it replaces. Above what the
+                // scene was ever out at, too, when it was unpublished since.
+                version: String(versionToPublish(pack.version, draft.held)),
               })}
               {draft.published && (
                 <span className="studio-publish__published">
@@ -281,6 +301,13 @@ export default function StudioPublishDialog({
           )}
 
           <ul className="gallery-points studio-publish__points">
+            {reviewed && (
+              <li>
+                {update
+                  ? t('studio.publish.pointReviewUpdate')
+                  : t('studio.publish.pointReview')}
+              </li>
+            )}
             <li>{t('studio.publish.point1')}</li>
             <li>{t('studio.publish.point2')}</li>
             <li>
@@ -331,7 +358,13 @@ export default function StudioPublishDialog({
               onPublish(category, category2, update ? note : undefined);
             }}
           >
-            {running ? t('studio.publish.running') : go}
+            {running
+              ? t(
+                  reviewed
+                    ? 'studio.publish.runningReview'
+                    : 'studio.publish.running',
+                )
+              : go}
           </button>
         </div>
       </div>

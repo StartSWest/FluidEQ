@@ -168,6 +168,10 @@ const studio = {
     'Les conditions Plus ont une version plus récente. Mettez FluidEQ à jour pour la lire et publier.',
   'studio.publish.versionTaken':
     'Cette scène vient d’être publiée à nouveau. Réessayez : elle partira en tant que version suivante.',
+  'studio.publish.takenDown':
+    'FluidEQ a retiré cette scène de la galerie : elle n’accepte donc aucune nouvelle version. Elle ne peut revenir que telle quelle, si FluidEQ la rétablit.',
+  'studio.publish.deleted':
+    'FluidEQ a supprimé définitivement cette scène de la galerie : elle ne peut plus être publiée.',
 
   'studio.picture.files': 'Images',
   'studio.picture.missing':
@@ -491,6 +495,18 @@ const studio = {
   'studio.code.updatedAt': 'Modifié hors du Studio à {time}',
   'studio.code.unchanged': '{count} lignes inchangées',
   'studio.code.delta': '{added} lignes ajoutées, {removed} retirées',
+  'studio.publish.pointReview':
+    'FluidEQ examine chaque scène avant qu’elle n’apparaisse dans la galerie. Vous serez prévenu quand elle sera approuvée.',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ examine aussi chaque nouvelle version. Ceux qui ont la scène gardent la version actuelle jusqu’à ce que celle-ci soit approuvée.',
+  'studio.publish.goReview': 'Envoyer pour examen',
+  'studio.publish.goReviewUpdate': 'Envoyer la mise à jour pour examen',
+  'studio.publish.agreeReview': 'Accepter et envoyer pour examen',
+  'studio.publish.runningReview': 'Envoi…',
+  'studio.publish.submitted':
+    '{name} a été envoyée pour examen. Vous serez prévenu quand elle sera approuvée.',
+  'studio.publish.submittedUpdate':
+    'La nouvelle version de {name} a été envoyée pour examen. Chacun garde la version actuelle jusqu’à son approbation.',
 } as const;
 
 export default studio;

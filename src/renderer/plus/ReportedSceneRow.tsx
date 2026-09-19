@@ -19,21 +19,28 @@ export const reportedReasons = (entry: IReportedScene): TReportReason[] =>
     (left, right) => entry.reasons[right] - entry.reasons[left],
   );
 
+/** The two answers that ask first: both reach every member who kept the scene. */
+export type TConfirmedAction = Extract<
+  TModerationAction,
+  'take-down' | 'delete'
+>;
+
 interface IReportedSceneRowProps {
   entry: IReportedScene;
   /** Which answer is being sent for this row, if any. */
   working?: TModerationAction;
-  confirming: boolean;
-  onConfirm: (confirming: boolean) => void;
+  /** Which answer the row is asking about, if any. */
+  confirming?: TConfirmedAction;
+  onConfirm: (confirming?: TConfirmedAction) => void;
   onAct: (action: TModerationAction) => void;
   onOpen: () => void;
 }
 
 /**
  * One reported scene: its picture, who made it, what it was reported for and
- * how often, and the answers. Taking down asks first, in the row itself —
- * it reaches every member who kept the scene. Dismissing and restoring do
- * not: both are undone by the other answer.
+ * how often, and the answers. Taking down and deleting ask first, in the row
+ * itself — both reach every member who kept the scene, and deleting has no
+ * way back. Dismissing and restoring do not: each is undone by the other.
  */
 export default function ReportedSceneRow({
   entry,
@@ -119,41 +126,60 @@ export default function ReportedSceneRow({
         {confirming && (
           <>
             <span className="gallery-row__confirm">
-              {t('plus.moderation.confirm')}
+              {t(
+                confirming === 'delete'
+                  ? 'plus.moderation.deleteConfirm'
+                  : 'plus.moderation.confirm',
+              )}
             </span>
             <button
               type="button"
               className="button small subtle"
               disabled={busy}
-              onClick={() => onConfirm(false)}
+              onClick={() => onConfirm(undefined)}
             >
               {t('plus.moderation.confirmNo')}
             </button>
             <button
               type="button"
-              className={`button small gallery-danger${working === 'take-down' ? ' is-running' : ''}`}
-              aria-busy={working === 'take-down'}
+              className={`button small gallery-danger${working === confirming ? ' is-running' : ''}`}
+              aria-busy={working === confirming}
               onClick={() => {
                 if (!busy) {
-                  onAct('take-down');
+                  onAct(confirming);
                 }
               }}
             >
-              {t('plus.moderation.takeDown')}
+              {t(
+                confirming === 'delete'
+                  ? 'plus.moderation.deleteForGood'
+                  : 'plus.moderation.takeDown',
+              )}
             </button>
           </>
         )}
         {!confirming && takenDown && (
-          <button
-            type="button"
-            className={`button small subtle${working === 'restore' ? ' is-running' : ''}`}
-            aria-busy={working === 'restore'}
-            disabled={busy}
-            onClick={() => onAct('restore')}
-          >
-            <Glyph name="refresh" />
-            {t('plus.moderation.restore')}
-          </button>
+          <>
+            <button
+              type="button"
+              className={`button small subtle${working === 'restore' ? ' is-running' : ''}`}
+              aria-busy={working === 'restore'}
+              disabled={busy}
+              onClick={() => onAct('restore')}
+            >
+              <Glyph name="refresh" />
+              {t('plus.moderation.restore')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle gallery-report__take-down"
+              disabled={busy}
+              onClick={() => onConfirm('delete')}
+            >
+              <Glyph name="delete" />
+              {t('plus.moderation.delete')}
+            </button>
+          </>
         )}
         {!confirming && !takenDown && (
           <>
@@ -178,9 +204,18 @@ export default function ReportedSceneRow({
               type="button"
               className="button small subtle gallery-report__take-down"
               disabled={busy}
-              onClick={() => onConfirm(true)}
+              onClick={() => onConfirm('take-down')}
             >
               {t('plus.moderation.takeDown')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle gallery-report__take-down"
+              disabled={busy}
+              onClick={() => onConfirm('delete')}
+            >
+              <Glyph name="delete" />
+              {t('plus.moderation.delete')}
             </button>
           </>
         )}
