@@ -19,7 +19,8 @@ const REASON_KEYS: Record<TReportReason, TranslationKey> = {
 };
 
 interface IReportDialogProps {
-  scene: IGalleryScene;
+  /** Who made it and which it is: from the gallery, or from the looks. */
+  scene: Pick<IGalleryScene, 'authorId' | 'sceneId'>;
   name: string;
   /** `sent` is true once the report reached the server. */
   onClose: (sent: boolean) => void;

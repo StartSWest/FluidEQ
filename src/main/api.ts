@@ -151,6 +151,7 @@ import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 import { plusWelcomeBridge } from './plusWelcomeBridge';
+import { plusReviewBridge } from './plusReviewBridge';
 
 export type Channels = string;
 
@@ -1563,6 +1564,7 @@ export default {
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
     ...plusWelcomeBridge,
+    ...plusReviewBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,

@@ -270,6 +270,18 @@ describe('publishing', () => {
     expect(await publish(500, {})).toEqual({ ok: false, reason: 'server' });
   });
 
+  // Server migration 0038: a scene on the block list takes no new version.
+  it('says a scene taken down or deleted cannot take a new version', async () => {
+    expect(await publish(409, { error: 'scene_taken_down' })).toEqual({
+      ok: false,
+      reason: 'taken-down',
+    });
+    expect(await publish(409, { error: 'scene_deleted' })).toEqual({
+      ok: false,
+      reason: 'deleted',
+    });
+  });
+
   it('sends the action, the terms and the category the member chose', async () => {
     const fetchImpl = answering(fakeResponse(200, {}));
     await publishScene(authWith(fetchImpl), {

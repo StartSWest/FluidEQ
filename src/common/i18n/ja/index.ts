@@ -44,6 +44,7 @@ import engineUpdate from './engineUpdate';
 import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
+import review from './review';
 
 const ja: Partial<Dictionary> = {
   ...karaoke,
@@ -72,6 +73,7 @@ const ja: Partial<Dictionary> = {
   ...lighting,
   ...wallpaper,
   ...bugReport,
+  ...review,
 };
 
 export default ja;

@@ -20,6 +20,7 @@ import {
 import PlusGifts from './PlusGifts';
 import PlusToastStack from './PlusToastStack';
 import ReportedScenes from './ReportedScenes';
+import ReviewQueue from './ReviewQueue';
 import '../styles/Gallery.scss';
 import '../styles/Admin.scss';
 
@@ -30,11 +31,13 @@ const SECTIONS: Record<
   accounts: { glyph: 'person', name: 'plus.gallery.accounts' },
   gifts: { glyph: 'gift', name: 'plus.gallery.gifts' },
   reported: { glyph: 'report', name: 'plus.gallery.reported' },
+  review: { glyph: 'check', name: 'review.tab' },
 };
 
 /**
- * The admin's own place in the Plus tab: every account, the Plus given away,
- * and the scenes members reported, one page at a time under a row of tabs.
+ * The admin's own place in the Plus tab: the scenes waiting to be approved,
+ * the scenes members reported, every account and the Plus given away, one
+ * page at a time under a row of tabs.
  *
  * These pages lived behind three buttons on the gallery's toolbar, where they
  * crowded a member's page with things no member could use. Only the account
@@ -93,6 +96,16 @@ export default function AdminView() {
                   {new Intl.NumberFormat(locale).format(moderation.open)}
                 </span>
               )}
+              {entry === 'review' && moderation.review > 0 && (
+                <span
+                  className="gallery-toolbar__badge"
+                  aria-label={t('review.tabCount', {
+                    count: String(moderation.review),
+                  })}
+                >
+                  {new Intl.NumberFormat(locale).format(moderation.review)}
+                </span>
+              )}
             </button>
           );
         })}
@@ -102,6 +115,7 @@ export default function AdminView() {
         {section === 'accounts' && <AdminAccounts />}
         {section === 'gifts' && <PlusGifts />}
         {section === 'reported' && <ReportedScenes me={account.identity?.id} />}
+        {section === 'review' && <ReviewQueue me={account.identity?.id} />}
       </div>
     </>
   );

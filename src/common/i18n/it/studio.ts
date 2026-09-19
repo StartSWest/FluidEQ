@@ -167,6 +167,10 @@ const studio = {
     'Le condizioni di Plus hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
   'studio.publish.versionTaken':
     'Questa scena è stata pubblicata di nuovo poco fa. Riprova e uscirà come versione successiva.',
+  'studio.publish.takenDown':
+    'FluidEQ ha ritirato questa scena dalla galleria, quindi non accetta nuove versioni. Può tornare solo com’era, se FluidEQ la ripristina.',
+  'studio.publish.deleted':
+    'FluidEQ ha eliminato per sempre questa scena dalla galleria, quindi non può essere pubblicata di nuovo.',
 
   'studio.picture.files': 'Immagini',
   'studio.picture.missing':
@@ -486,6 +490,18 @@ const studio = {
   'studio.code.updatedAt': 'Modificato fuori alle {time}',
   'studio.code.unchanged': '{count} righe invariate',
   'studio.code.delta': '{added} righe aggiunte, {removed} tolte',
+  'studio.publish.pointReview':
+    'FluidEQ esamina ogni scena prima che compaia nella galleria. Ti avviseremo quando sarà approvata.',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ esamina anche ogni nuova versione. Chi ha la scena mantiene la versione attuale finché questa non viene approvata.',
+  'studio.publish.goReview': 'Invia per la revisione',
+  'studio.publish.goReviewUpdate': 'Invia l’aggiornamento per la revisione',
+  'studio.publish.agreeReview': 'Accetta e invia per la revisione',
+  'studio.publish.runningReview': 'Invio…',
+  'studio.publish.submitted':
+    '{name} è stata inviata per la revisione. Ti avviseremo quando sarà approvata.',
+  'studio.publish.submittedUpdate':
+    'La nuova versione di {name} è stata inviata per la revisione. Tutti mantengono la versione attuale finché non viene approvata.',
 } as const;
 
 export default studio;

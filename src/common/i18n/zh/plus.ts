@@ -205,7 +205,7 @@ const plus = {
   'plus.admin.title': '管理',
   'plus.admin.blurb': '账户、赠送和举报',
   'plus.admin.description':
-    '仅管理员可见：所有账户、赠送的 Plus，以及成员举报的场景',
+    '仅管理员可见：等待你审核的场景、成员举报的场景、所有账户，以及赠送的 Plus',
   'plus.accounts.listHint':
     '最新的在前。点按账户可查看其中的内容，并在账户所有者提出要求时将其永久删除。',
   'plus.accounts.search': '按电子邮件、用户名或名称搜索',
@@ -296,6 +296,11 @@ const plus = {
   'plus.welcome.scene.reefLight': '珊瑚礁之光',
   'plus.welcome.scene.lanternLake': '天灯湖',
   'plus.welcome.scene.prismBloom': '棱镜之花',
+  'plus.moderation.delete': '删除',
+  'plus.moderation.deleteConfirm':
+    '要永久删除吗？它会从图库和所有会员的外观中消失，文件也会被清除，并且再也不能发布。',
+  'plus.moderation.deleteForGood': '永久删除',
+  'plus.moderation.done.deleted': '{name} 已删除。',
 } as const;
 
 export default plus;

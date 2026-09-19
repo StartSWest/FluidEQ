@@ -151,6 +151,10 @@ const studio = {
   'studio.publish.outdated': 'Plus 条款有新版本。请更新 FluidEQ 阅读后再发布。',
   'studio.publish.versionTaken':
     '这个场景刚刚又发布了一次。请再试一次，它会以下一个版本发布。',
+  'studio.publish.takenDown':
+    'FluidEQ 已将此场景从图库下架，因此不能提交新版本。只有 FluidEQ 恢复它时，它才能以原样回来。',
+  'studio.publish.deleted':
+    'FluidEQ 已将此场景从图库永久删除，因此不能再次发布。',
 
   'studio.picture.files': '图片',
   'studio.picture.missing': '这个场景要用你的图片，但文件夹里还没有。',
@@ -423,6 +427,17 @@ const studio = {
   'studio.code.updatedAt': '{time} 在外部被修改',
   'studio.code.unchanged': '{count} 行未改动',
   'studio.code.delta': '新增 {added} 行，删除 {removed} 行',
+  'studio.publish.pointReview':
+    'FluidEQ 会在每个场景出现在图库前进行审核。审核通过时会通知你。',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ 也会审核每个新版本。在它通过审核前，拥有这个场景的人保留当前版本。',
+  'studio.publish.goReview': '提交审核',
+  'studio.publish.goReviewUpdate': '提交更新审核',
+  'studio.publish.agreeReview': '同意并提交审核',
+  'studio.publish.runningReview': '正在提交…',
+  'studio.publish.submitted': '{name} 已提交审核。审核通过时会通知你。',
+  'studio.publish.submittedUpdate':
+    '{name} 的新版本已提交审核。在它通过前，所有人保留当前版本。',
 } as const;
 
 export default studio;

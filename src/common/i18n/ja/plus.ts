@@ -221,7 +221,7 @@ const plus = {
   'plus.admin.title': '管理',
   'plus.admin.blurb': 'アカウント、ギフト、報告',
   'plus.admin.description':
-    '管理者だけに表示されます：すべてのアカウント、贈った Plus、メンバーが報告したシーン',
+    '管理者だけに表示されます：承認待ちのシーン、メンバーが報告したシーン、すべてのアカウント、贈った Plus',
   'plus.accounts.listHint':
     '新しい順に表示します。アカウントを押すと中身を確認でき、本人から依頼があれば完全に削除できます。',
   'plus.accounts.search': 'メール、ハンドル、名前で検索',
@@ -327,6 +327,11 @@ const plus = {
   'plus.welcome.scene.reefLight': 'リーフの光',
   'plus.welcome.scene.lanternLake': 'ランタンの湖',
   'plus.welcome.scene.prismBloom': 'プリズムの花',
+  'plus.moderation.delete': '削除',
+  'plus.moderation.deleteConfirm':
+    '完全に削除しますか？ギャラリーとすべてのメンバーの表示から消え、ファイルも消去され、二度と公開できなくなります。',
+  'plus.moderation.deleteForGood': '完全に削除',
+  'plus.moderation.done.deleted': '{name} を削除しました。',
 } as const;
 
 export default plus;

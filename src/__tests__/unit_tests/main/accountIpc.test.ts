@@ -25,16 +25,24 @@ jest.mock('../../../common/accountConfig', () => ({
   isAccountConfigured: () => mockConfigured,
   isCheckoutConfigured: () => false,
 }));
+let mockOnState: (state: unknown) => void = () => {};
 jest.mock('../../../main/account/session', () => ({
-  createAccountSession: () => ({
-    state: () => ({ status: 'signed-out' }),
-    signIn: mockSignIn,
-    signUp: mockSignUp,
-    dispose: jest.fn(),
-  }),
+  createAccountSession: (options: { onState: (state: unknown) => void }) => {
+    mockOnState = options.onState;
+    return {
+      state: () => ({ status: 'signed-out' }),
+      signIn: mockSignIn,
+      signUp: mockSignUp,
+      dispose: jest.fn(),
+    };
+  },
 }));
 jest.mock('../../../main/account/entitlement', () => ({
-  createEntitlement: () => ({ checkIfDue: jest.fn() }),
+  createEntitlement: () => ({
+    checkIfDue: jest.fn(),
+    checkNow: jest.fn(async () => undefined),
+    forget: jest.fn(),
+  }),
 }));
 jest.mock('../../../main/accountCredentials', () => ({
   createAccountCredentialStore: jest.fn(),
@@ -51,10 +59,27 @@ jest.mock('../../../main/safeExternal', () => ({
 }));
 const call = (name: string, value: unknown) =>
   mockHandlers.get(name)!(undefined, value);
+let registration: ReturnType<typeof registerAccountIpc>;
 beforeEach(() => {
   jest.clearAllMocks();
   mockConfigured = true;
-  registerAccountIpc({ getMainWindow: () => null, userDataDir: 'unused' });
+  registration = registerAccountIpc({
+    getMainWindow: () => null,
+    userDataDir: 'unused',
+  });
+});
+// The membership cannot say it: signing out clears the identity before the
+// status is published, so "none" before and after fired nothing, and the
+// signed-out window kept the review notice of the account that had left.
+it('says when somebody signs in, out, or in as somebody else, and only then', () => {
+  const heard = jest.fn();
+  registration.onIdentityChange(heard);
+  mockOnState({ status: 'signed-in', identity: { id: 'first' } });
+  // The same person's session refreshed: not news.
+  mockOnState({ status: 'signed-in', identity: { id: 'first' } });
+  mockOnState({ status: 'signed-out' });
+  mockOnState({ status: 'signed-in', identity: { id: 'second' } });
+  expect(heard).toHaveBeenCalledTimes(3);
 });
 it('keeps short existing passwords valid for login and trims email', () => {
   call('account-sign-in', { email: ' person@example.com ', password: 'pw' });

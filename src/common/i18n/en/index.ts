@@ -60,6 +60,7 @@ import engineUpdate from './engineUpdate';
 import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
+import review from './review';
 
 const en = {
   ...karaoke,
@@ -88,6 +89,7 @@ const en = {
   ...lighting,
   ...wallpaper,
   ...bugReport,
+  ...review,
 };
 
 export type TranslationKey = keyof typeof en;

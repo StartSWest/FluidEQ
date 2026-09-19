@@ -223,7 +223,7 @@ const plus = {
   'plus.admin.title': 'Administration',
   'plus.admin.blurb': 'Comptes, cadeaux et signalements',
   'plus.admin.description':
-    'Visible par vous seulement : tous les comptes, le Plus que vous offrez et les scènes signalées par les membres',
+    'Visible par vous seulement : les scènes qui attendent votre approbation, les scènes signalées par les membres, tous les comptes et le Plus que vous offrez',
   'plus.accounts.listHint':
     'Les plus récents d’abord. Cliquez sur un compte pour voir ce qu’il contient, et supprimez-le définitivement quand son titulaire le demande.',
   'plus.accounts.search': 'Rechercher par e-mail, identifiant ou nom',
@@ -331,6 +331,11 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Lumière du récif',
   'plus.welcome.scene.lanternLake': 'Lac aux lanternes',
   'plus.welcome.scene.prismBloom': 'Fleur de prisme',
+  'plus.moderation.delete': 'Supprimer',
+  'plus.moderation.deleteConfirm':
+    'La supprimer définitivement ? Elle quitte la galerie et les styles de tous les membres, ses fichiers sont effacés et elle ne pourra plus jamais être publiée.',
+  'plus.moderation.deleteForGood': 'Supprimer définitivement',
+  'plus.moderation.done.deleted': '{name} a été supprimée.',
 } as const;
 
 export default plus;

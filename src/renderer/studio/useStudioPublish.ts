@@ -29,6 +29,8 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'no-picture': 'studio.publish.noPicture',
   'official-copy': 'studio.publish.officialCopy',
   'version-not-raised': 'studio.publish.versionTaken',
+  'taken-down': 'studio.publish.takenDown',
+  deleted: 'studio.publish.deleted',
   'inspect-only': 'studio.inspect.locked',
   server: 'studio.publish.failed',
 };
@@ -401,13 +403,18 @@ export default function useStudioPublish(
           setPublishing(false);
           if (outcome.ok) {
             setDraft(undefined);
-            setNotice({
-              ok: true,
-              key: mine.published
-                ? 'studio.publish.updated'
-                : 'studio.publish.done',
-              vars: { name },
-            });
+            // Waiting for the admin is not in the gallery yet, and saying it
+            // was would send the maker looking for a scene nobody can see.
+            const waits = outcome.review === 'pending';
+            let key: TranslationKey = mine.published
+              ? 'studio.publish.updated'
+              : 'studio.publish.done';
+            if (waits) {
+              key = mine.published
+                ? 'studio.publish.submittedUpdate'
+                : 'studio.publish.submitted';
+            }
+            setNotice({ ok: true, key, vars: { name } });
             return undefined;
           }
           if (outcome.reason === 'not-entitled') {

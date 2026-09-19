@@ -1,0 +1,223 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The admin's scenes to approve (`ReviewQueue.tsx`, `ReviewScene.tsx`). The
+// rows are the gallery's own (`.gallery-row`) and the page is a gallery
+// scene's page (`.gallery-scene`), because approving a scene makes it exactly
+// that; what this adds is what a submission is — new or an update of which,
+// when it came, what its maker said about it, and the answer.
+//
+// The reported queue speaks in amber, the colour the app says "look at this"
+// in. Approving is the other kind of work — a maker waiting on a yes — and
+// speaks in the interface's own accent instead, so the two lists never read
+// as the same list at a glance.
+
+.review-queue .gallery-moderation__intro {
+  border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $secondary-default 10%, transparent),
+    color-mix(in srgb, $secondary-default 2%, transparent) 70%
+  );
+}
+
+.review-queue .review-queue__mark {
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+}
+
+.review-row__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 4px;
+}
+
+.review-row__when {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+// What the maker said, as the quote it is, two lines at most in the list —
+// the whole of it is on the scene's page.
+.review-row__note {
+  display: -webkit-box;
+  margin-top: 4px;
+  overflow: hidden;
+  color: $text-muted;
+  font-size: $text-small;
+  font-style: italic;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.review-row__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+// New to the gallery, in the colour the app says "on" in; a new version of a
+// scene members already have, in the accent — with the numbers it goes from
+// and to, which is the first thing worth knowing about an update.
+.review-kind {
+  --kind: #{$active};
+
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 9px;
+  color: color-mix(in srgb, var(--kind) 72%, $white);
+  border: 1px solid color-mix(in srgb, var(--kind) 45%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, var(--kind) 10%, transparent);
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+  white-space: nowrap;
+
+  &--update {
+    --kind: #{$secondary-light};
+  }
+
+  // Not approved, in the amber the app says "look at this" in.
+  &--refused {
+    --kind: #{$amber};
+  }
+}
+
+// On the scene's page: the submission, in a band of its own above the answer.
+.review-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
+  border-radius: $radius-m;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, $secondary-default 10%, transparent),
+    color-mix(in srgb, $secondary-default 2%, transparent) 70%
+  );
+}
+
+.review-card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.review-card__when {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.review-card__note {
+  display: grid;
+  gap: 4px;
+
+  p {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .review-card__none {
+    color: $text-dim;
+    font-style: italic;
+  }
+}
+
+.review-card__label {
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.08em);
+}
+
+.review-card__flags {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    color: color-mix(in srgb, $amber 75%, $white);
+    font-size: $text-small;
+    line-height: 1.4;
+  }
+}
+
+// A row of answers, the recommended one last and loud, wrapping rather than
+// squeezing when the side column is narrow.
+.review-decision {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+// The page's own two answers: stacked and full width, the recommendation on
+// top, as a gallery scene's page puts its main action.
+.review-decision--main {
+  display: grid;
+  // The row's end-packing would put the grid's one column at the end, as
+  // narrow as its widest button.
+  justify-content: stretch;
+
+  .button {
+    width: 100%;
+  }
+}
+
+// Not approving asks why: the refusal takes the answers' place, in the amber
+// of "look at this", and gives them back on Back.
+.review-refusal {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, $amber 30%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $amber 5%, transparent);
+
+  .gallery-fine {
+    margin: 0;
+    color: $text-muted;
+  }
+}
+
+.review-refusal__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.review-refusal__note {
+  width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+  resize: vertical;
+  // A field takes its parent's font (App.scss), and the scene page's side
+  // column sets none at this level: it came out at the root size, twice the
+  // text around it.
+  font-size: $text-body;
+  line-height: 1.5;
+}

@@ -41,7 +41,12 @@ export type TMineOutcome =
   | { ok: false; reason: TGalleryFailure };
 
 export type TPublishOutcome =
-  | { ok: true }
+  /**
+   * `review` when it waits for the admin before anybody else sees it — every
+   * member's publication (fluideq-premium 0037). Absent when it went straight
+   * out: the admin's own, or FluidEQ's.
+   */
+  | { ok: true; review?: 'pending' }
   | {
       ok: false;
       reason: TPublishFailure | 'no-build' | 'no-picture' | 'inspect-only';

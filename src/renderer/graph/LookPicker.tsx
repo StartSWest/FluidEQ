@@ -27,7 +27,7 @@ import {
   useUsableScenes,
 } from '../utils/scenePacks';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
-import GraphSceneRemove from './GraphSceneRemove';
+import LookPickerScene from './LookPickerScene';
 import {
   buildPlusRows,
   buildStyleRows,
@@ -44,7 +44,7 @@ import {
   type TPlusFilter,
   type TStyleFilter,
 } from './lookPickerRows';
-import { LockBadge, PICK, SceneThumbnail, walkPicker } from './lookPickerParts';
+import { PICK, walkPicker } from './lookPickerParts';
 import '../styles/LookPicker.scss';
 
 /**
@@ -276,55 +276,20 @@ const LookPicker = ({ value, disabled, onChoose }: ILookPickerProps) => {
     );
   };
 
-  const renderScene = (row: IPlusRow, index: number) => {
-    const selected = row.id === value;
-    // Changed since it was last played here: marked until it is played again.
-    const fresh = !row.locked && isUnseenSceneVersion(row.id, row.version);
-    const heading =
-      new Set(shownPlus.map((each) => each.maker)).size > 1 &&
-      (index === 0 || shownPlus[index - 1].maker !== row.maker);
-    let caption = row.author
-      ? t('graph.member.by', { name: row.author })
-      : row.categories.map((category) => categoryName(t, category)).join(' · ');
-    if (fresh && row.version !== undefined) {
-      caption = row.versionNote
-        ? t('graph.version.caption', {
-            version: String(row.version),
-            note: row.versionNote,
-          })
-        : t('graph.version.captionBare', { version: String(row.version) });
-    }
-    return [
-      heading && (
-        <p key={`${row.maker}-heading`} className="look-picker__group">
-          {makerName(t, row.maker)}
-        </p>
-      ),
-      <div key={row.id} className="look-picker__item">
-        <button
-          type="button"
-          className={`look-picker__pick look-picker__scene${
-            selected ? ' is-selected' : ''
-          }${row.locked ? ' is-locked' : ''}`}
-          aria-pressed={selected}
-          tabIndex={row.id === plusStop ? 0 : -1}
-          title={row.locked ? t('graph.scene.locked') : row.name}
-          onClick={() => choose(row.id)}
-        >
-          <SceneThumbnail row={row} />
-          <span className="look-picker__scene-text">
-            <span className="look-picker__name">{row.name}</span>
-            {caption && <span className="look-picker__caption">{caption}</span>}
-          </span>
-          {fresh && (
-            <span className="look-picker__new">{t('graph.version.new')}</span>
-          )}
-          {row.locked && <LockBadge label={t('graph.scene.badge')} />}
-        </button>
-        <GraphSceneRemove lookId={row.id} name={row.name} />
-      </div>,
-    ];
-  };
+  // Makers are named over their runs only when more than one is showing.
+  const manyMakers = new Set(shownPlus.map((each) => each.maker)).size > 1;
+  const renderScene = (row: IPlusRow, index: number) => (
+    <LookPickerScene
+      key={row.id}
+      row={row}
+      selected={row.id === value}
+      tabbable={row.id === plusStop}
+      heading={
+        manyMakers && (index === 0 || shownPlus[index - 1].maker !== row.maker)
+      }
+      onChoose={choose}
+    />
+  );
 
   const chips = <T extends string>(
     filters: readonly T[],

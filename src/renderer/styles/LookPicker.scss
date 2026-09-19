@@ -207,8 +207,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
 
   // Over the end of its row, and only with the row: forty trash cans down a
-  // column of pictures is a column of trash cans.
-  .graph-scene-remove {
+  // column of pictures is a column of trash cans. Another member's scene has
+  // its report flag there too, just inside the trash can.
+  .graph-scene-remove,
+  .graph-scene-report {
     position: absolute;
     top: 50%;
     inset-inline-end: 8px;
@@ -217,9 +219,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
     transition: opacity 120ms ease;
   }
 
+  .graph-scene-report {
+    inset-inline-end: 36px;
+  }
+
   &:hover .graph-scene-remove,
-  &:focus-within .graph-scene-remove {
+  &:focus-within .graph-scene-remove,
+  &:hover .graph-scene-report,
+  &:focus-within .graph-scene-report,
+  .graph-scene-report.is-sent {
     opacity: 1;
+  }
+
+  // While the trash can asks its question the row is about removing; the
+  // flag waits until it is answered.
+  &:has(.graph-scene-remove.is-confirming) .graph-scene-report {
+    display: none;
   }
 
   // Its question drops in under the row, in the flow, the way it did in the
@@ -237,6 +252,47 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // Room at the end for the remove button to arrive over, so it never covers
   // the name.
   padding-inline-end: 40px;
+}
+
+// And for the report flag beside it.
+.look-picker__scene--reportable {
+  padding-inline-end: 68px;
+}
+
+// The remove button's open state, as a flag: the same size, the same quiet
+// until hovered, and a tick once this session's report is sent.
+.graph-scene-report {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $amber;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &.is-sent {
+    color: $active;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 // The visualizer itself, at the 16:9 its pictures are taken in.

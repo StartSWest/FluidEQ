@@ -162,6 +162,10 @@ const studio = {
     'У условий Plus есть новая версия. Обновите FluidEQ, чтобы прочитать её и опубликовать.',
   'studio.publish.versionTaken':
     'Эту сцену только что опубликовали снова. Попробуйте ещё раз — она выйдет следующей версией.',
+  'studio.publish.takenDown':
+    'FluidEQ снял эту сцену из галереи, поэтому новую версию отправить нельзя. Она может вернуться только в прежнем виде, если FluidEQ её восстановит.',
+  'studio.publish.deleted':
+    'FluidEQ удалил эту сцену из галереи насовсем, поэтому опубликовать её снова нельзя.',
 
   'studio.picture.files': 'Изображения',
   'studio.picture.missing':
@@ -477,6 +481,18 @@ const studio = {
   'studio.code.updatedAt': 'Изменено извне в {time}',
   'studio.code.unchanged': 'Без изменений строк: {count}',
   'studio.code.delta': 'Добавлено строк: {added}, удалено: {removed}',
+  'studio.publish.pointReview':
+    'FluidEQ проверяет каждую сцену, прежде чем она появится в галерее. Вам сообщат, когда её одобрят.',
+  'studio.publish.pointReviewUpdate':
+    'FluidEQ проверяет и каждую новую версию. У кого есть сцена, остаётся текущая версия, пока эту не одобрят.',
+  'studio.publish.goReview': 'Отправить на проверку',
+  'studio.publish.goReviewUpdate': 'Отправить обновление на проверку',
+  'studio.publish.agreeReview': 'Принять и отправить на проверку',
+  'studio.publish.runningReview': 'Отправка…',
+  'studio.publish.submitted':
+    '{name} отправлена на проверку. Вам сообщат, когда её одобрят.',
+  'studio.publish.submittedUpdate':
+    'Новая версия {name} отправлена на проверку. У всех остаётся текущая версия, пока её не одобрят.',
 } as const;
 
 export default studio;

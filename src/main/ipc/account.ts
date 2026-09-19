@@ -73,6 +73,12 @@ export interface IAccountIpcDeps {
 export interface IAccountIpcRegistration {
   session: IAccountSession;
   entitlement: IEntitlement;
+  /**
+   * Somebody signed in, out, or as somebody else. The entitlement cannot say
+   * so: signing out clears the identity before its status is published, so a
+   * member signing out reads as "none" before and after, and nothing fired.
+   */
+  onIdentityChange: (listener: () => void) => () => void;
   dispose: () => void;
 }
 
@@ -145,6 +151,9 @@ export const registerAccountIpc = ({
   // built in one expression.
   let entitlement: IEntitlement | undefined;
 
+  const identityListeners = new Set<() => void>();
+  let identity: string | undefined;
+
   // Before the first request: the sign-in service stamps the session it makes
   // with whatever the app calls itself, and that stamp is what the admin's
   // account list reads a FluidEQ version out of.
@@ -161,6 +170,11 @@ export const registerAccountIpc = ({
         // A fresh sign-in is the one event where "recent enough" does not
         // apply: whoever just signed in wants to know now.
         entitlement?.checkNow().catch(() => undefined);
+      }
+      const next = state.identity?.id;
+      if (next !== identity) {
+        identity = next;
+        identityListeners.forEach((listener) => listener());
       }
     },
   });
@@ -405,7 +419,14 @@ export const registerAccountIpc = ({
   return {
     session,
     entitlement: entitled,
+    onIdentityChange: (listener) => {
+      identityListeners.add(listener);
+      return () => {
+        identityListeners.delete(listener);
+      };
+    },
     dispose: () => {
+      identityListeners.clear();
       session.dispose();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },

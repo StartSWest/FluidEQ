@@ -4,7 +4,11 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { moderateReportedScene } from './moderationStore';
 import { openAdminSection } from './plusNavigation';
-import { REASON_LABELS, reportedReasons } from './ReportedSceneRow';
+import {
+  REASON_LABELS,
+  reportedReasons,
+  type TConfirmedAction,
+} from './ReportedSceneRow';
 import '../styles/GalleryModeration.scss';
 
 interface ISceneModerationCardProps {
@@ -14,16 +18,16 @@ interface ISceneModerationCardProps {
 
 /**
  * The queue's answers on the scene's own page, for the admin who opened it
- * from the queue to watch it play: what it was reported for, and dismiss or
- * take down without walking back to the list first. Either answer returns to
- * the queue, where the next one waits.
+ * from the queue to watch it play: what it was reported for, and dismiss,
+ * take down or delete without walking back to the list first. Every answer
+ * returns to the queue, where the next one waits.
  */
 export default function SceneModerationCard({
   entry,
   name,
 }: ISceneModerationCardProps) {
   const { t, locale } = useTranslation();
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState<TConfirmedAction>();
   const [working, setWorking] = useState<TModerationAction>();
   const numbers = new Intl.NumberFormat(locale);
   const dates = new Intl.DateTimeFormat(locale, {
@@ -81,27 +85,37 @@ export default function SceneModerationCard({
       )}
       {confirming ? (
         <div className="gallery-scene-moderation__confirm">
-          <p className="gallery-fine">{t('plus.moderation.confirm')}</p>
+          <p className="gallery-fine">
+            {t(
+              confirming === 'delete'
+                ? 'plus.moderation.deleteConfirm'
+                : 'plus.moderation.confirm',
+            )}
+          </p>
           <div className="gallery-scene-moderation__actions">
             <button
               type="button"
               className="button small subtle"
               disabled={busy}
-              onClick={() => setConfirming(false)}
+              onClick={() => setConfirming(undefined)}
             >
               {t('plus.moderation.confirmNo')}
             </button>
             <button
               type="button"
-              className={`button small gallery-danger${working === 'take-down' ? ' is-running' : ''}`}
-              aria-busy={working === 'take-down'}
+              className={`button small gallery-danger${working === confirming ? ' is-running' : ''}`}
+              aria-busy={working === confirming}
               onClick={() => {
                 if (!busy) {
-                  act('take-down');
+                  act(confirming);
                 }
               }}
             >
-              {t('plus.moderation.takeDown')}
+              {t(
+                confirming === 'delete'
+                  ? 'plus.moderation.deleteForGood'
+                  : 'plus.moderation.takeDown',
+              )}
             </button>
           </div>
         </div>
@@ -120,9 +134,18 @@ export default function SceneModerationCard({
             type="button"
             className="button small subtle gallery-report__take-down"
             disabled={busy}
-            onClick={() => setConfirming(true)}
+            onClick={() => setConfirming('take-down')}
           >
             {t('plus.moderation.takeDown')}
+          </button>
+          <button
+            type="button"
+            className="button small subtle gallery-report__take-down"
+            disabled={busy}
+            onClick={() => setConfirming('delete')}
+          >
+            <Glyph name="delete" />
+            {t('plus.moderation.delete')}
           </button>
         </div>
       )}

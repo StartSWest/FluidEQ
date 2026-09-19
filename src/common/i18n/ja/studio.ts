@@ -167,6 +167,10 @@ const studio = {
     'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
   'studio.publish.versionTaken':
     'このシーンは少し前に再公開されました。もう一度お試しください。次のバージョンとして公開されます。',
+  'studio.publish.takenDown':
+    'FluidEQ がこのシーンをギャラリーから取り下げたため、新しいバージョンは送れません。FluidEQ が復元した場合にのみ、元のまま戻ります。',
+  'studio.publish.deleted':
+    'FluidEQ がこのシーンをギャラリーから完全に削除したため、再び公開することはできません。',
 
   'studio.picture.files': '画像',
   'studio.picture.missing':
@@ -482,6 +486,18 @@ const studio = {
   'studio.code.updatedAt': '{time} に外部で変更されました',
   'studio.code.unchanged': '変更のない {count} 行',
   'studio.code.delta': '{added} 行追加、{removed} 行削除',
+  'studio.publish.pointReview':
+    'FluidEQ はすべてのシーンをギャラリーに出る前に審査します。承認されたらお知らせします。',
+  'studio.publish.pointReviewUpdate':
+    '新しいバージョンもすべて審査します。承認されるまで、シーンを持っている人は今のバージョンのままです。',
+  'studio.publish.goReview': '審査に送る',
+  'studio.publish.goReviewUpdate': '更新を審査に送る',
+  'studio.publish.agreeReview': '同意して審査に送る',
+  'studio.publish.runningReview': '送信中…',
+  'studio.publish.submitted':
+    '{name} を審査に送りました。承認されたらお知らせします。',
+  'studio.publish.submittedUpdate':
+    '{name} の新しいバージョンを審査に送りました。承認されるまで、全員が今のバージョンのままです。',
 } as const;
 
 export default studio;

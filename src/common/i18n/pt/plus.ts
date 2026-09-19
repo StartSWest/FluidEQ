@@ -219,7 +219,7 @@ const plus = {
   'plus.admin.title': 'Administração',
   'plus.admin.blurb': 'Contas, presentes e denúncias',
   'plus.admin.description':
-    'Só você vê isto: todas as contas, o Plus que você dá de presente e as cenas que os membros denunciam',
+    'Só você vê isto: as cenas aguardando a sua aprovação, as cenas que os membros denunciam, todas as contas e o Plus que você dá de presente',
   'plus.accounts.listHint':
     'As mais novas primeiro. Clique em uma conta para ver o que ela tem e apagá-la de vez quando o dono pedir.',
   'plus.accounts.search': 'Buscar por e-mail, usuário ou nome',
@@ -324,6 +324,11 @@ const plus = {
   'plus.welcome.scene.reefLight': 'Luz de recife',
   'plus.welcome.scene.lanternLake': 'Lago de lanternas',
   'plus.welcome.scene.prismBloom': 'Flor de prisma',
+  'plus.moderation.delete': 'Excluir',
+  'plus.moderation.deleteConfirm':
+    'Excluir para sempre? Ela sai da galeria e dos visuais de todos os membros, os arquivos são apagados e ela nunca mais poderá ser publicada.',
+  'plus.moderation.deleteForGood': 'Excluir para sempre',
+  'plus.moderation.done.deleted': '{name} foi excluída.',
 } as const;
 
 export default plus;

@@ -202,6 +202,7 @@ describe('accountComeBackSteps', () => {
       scenePacks: { refreshIfDue: jest.fn(record('FluidEQ scenes')) },
       memberSharing: { refreshIfDue: jest.fn(record('block list')) },
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
+      sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
       leaderboard: {
         uploadIfDue: jest.fn(async () => {
@@ -242,6 +243,7 @@ describe('accountComeBackSteps', () => {
       'FluidEQ scenes',
       'block list',
       'gallery scenes',
+      'scene reviews',
       'Plus terms notice',
       'leaderboard upload',
     ]);
@@ -255,6 +257,9 @@ describe('accountComeBackSteps', () => {
       'wake from sleep',
     );
     expect(refreshers.plusGallery.refreshIfDue).toHaveBeenCalledWith();
+    expect(refreshers.sceneReviews.refreshIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
     expect(refreshers.plusTermsNotice.checkIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
@@ -284,6 +289,7 @@ describe('accountComeBackSteps', () => {
     expect(calls).toEqual([
       'membership',
       'block list',
+      'scene reviews',
       'Plus terms notice',
       'leaderboard upload',
     ]);

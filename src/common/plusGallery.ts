@@ -183,7 +183,7 @@ export const readCount = (value: unknown): number | undefined => {
     : undefined;
 };
 
-const readNames = (value: unknown): TLocalizedName | undefined => {
+export const readNames = (value: unknown): TLocalizedName | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -197,7 +197,7 @@ const readNames = (value: unknown): TLocalizedName | undefined => {
   return names.en ? (names as TLocalizedName) : undefined;
 };
 
-const readSwatch = (value: unknown): string[] | undefined =>
+export const readSwatch = (value: unknown): string[] | undefined =>
   Array.isArray(value) &&
   value.length >= 2 &&
   value.length <= 4 &&
@@ -210,11 +210,19 @@ const readSwatch = (value: unknown): string[] | undefined =>
  * sends none, and one that is not a category or repeats the first is not a
  * second category, so the row keeps its first alone rather than being lost.
  */
-const readSecondCategory = (
+export const readSecondCategory = (
   value: unknown,
   first: TPlusCategory,
 ): { category2?: TPlusCategory } =>
   isPlusCategory(value) && value !== first ? { category2: value } : {};
+
+/** A maker's display name as a row carries it: cleaned and bounded, or null. */
+export const readAuthorName = (value: unknown): string | null =>
+  sanitizeDisplayText(value)?.slice(0, MAX_AUTHOR_NAME) || null;
+
+/** A maker's handle as a row carries it, or null for one that is not a handle. */
+export const readAuthorHandle = (value: unknown): string | null =>
+  typeof value === 'string' && HANDLE.test(value) ? value : null;
 
 export const readDate = (value: unknown): string | undefined =>
   typeof value === 'string' && !Number.isNaN(Date.parse(value))
@@ -256,20 +264,13 @@ export const parseGalleryRow = (value: unknown): IGalleryScene | undefined => {
   ) {
     return undefined;
   }
-  const authorName = sanitizeDisplayText(value.author_name);
-  const authorHandle =
-    typeof value.author_handle === 'string' && HANDLE.test(value.author_handle)
-      ? value.author_handle
-      : null;
   return {
     lookId: official ? premiumLookId(sceneId) : lookId,
     ...(official ? { official: true } : {}),
     authorId,
     sceneId,
-    authorName: official
-      ? 'FluidEQ'
-      : authorName?.slice(0, MAX_AUTHOR_NAME) || null,
-    authorHandle: official ? 'fluideq' : authorHandle,
+    authorName: official ? 'FluidEQ' : readAuthorName(value.author_name),
+    authorHandle: official ? 'fluideq' : readAuthorHandle(value.author_handle),
     version,
     category: value.category,
     ...readSecondCategory(value.category2, value.category),

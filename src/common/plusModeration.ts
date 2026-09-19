@@ -24,7 +24,17 @@ export const isModerationList = (value: unknown): value is TModerationList =>
   typeof value === 'string' &&
   (MODERATION_LISTS as readonly string[]).includes(value);
 
-export const MODERATION_ACTIONS = ['take-down', 'dismiss', 'restore'] as const;
+/**
+ * The answers to a reported scene. Delete is the one with no way back: out of
+ * the gallery and out of every member's looks, its files gone — for a scene
+ * reported for something that cannot stay up at all (server migration 0037).
+ */
+export const MODERATION_ACTIONS = [
+  'take-down',
+  'dismiss',
+  'restore',
+  'delete',
+] as const;
 
 export type TModerationAction = (typeof MODERATION_ACTIONS)[number];
 
@@ -38,6 +48,11 @@ export interface IModerationStatus {
   admin: boolean;
   /** Scenes waiting with at least one open report; always 0 for a member. */
   open: number;
+  /**
+   * Scenes waiting for the admin to approve them (server migration 0037);
+   * always 0 for a member, and 0 from a server that has no review.
+   */
+  review: number;
 }
 
 export interface IReportedScene {
@@ -58,9 +73,13 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 export const parseModerationStatus = (value: unknown): IModerationStatus => {
   if (!isRecord(value) || value.admin !== true) {
-    return { admin: false, open: 0 };
+    return { admin: false, open: 0, review: 0 };
   }
-  return { admin: true, open: readCount(value.open) ?? 0 };
+  return {
+    admin: true,
+    open: readCount(value.open) ?? 0,
+    review: readCount(value.review) ?? 0,
+  };
 };
 
 /** One row of `admin_reported_scenes`, or nothing when any part is not right. */

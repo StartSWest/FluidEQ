@@ -59,15 +59,22 @@ export type TPublishFailure =
    * the gallery before the first wrote to it.
    */
   | 'version-not-raised'
+  /**
+   * The admin took this scene down: it takes no new version, and comes back
+   * only as it was, if the admin restores it (server migration 0038).
+   */
+  | 'taken-down'
+  /** The admin deleted this scene for good; it is never published again. */
+  | 'deleted'
   | 'server';
 
-interface IAuthorised {
+export interface IAuthorised {
   config: IAccountConfig;
   accessToken: string;
   fetchImpl?: typeof fetch;
 }
 
-const headers = ({ config, accessToken }: IAuthorised) => ({
+export const headers = ({ config, accessToken }: IAuthorised) => ({
   apikey: config.supabaseAnonKey,
   Authorization: `Bearer ${accessToken}`,
   'Content-Type': 'application/json',
@@ -236,7 +243,7 @@ export const listVersions = async (
   }
 };
 
-const objectUrl = (config: IAccountConfig, path: string) =>
+export const objectUrl = (config: IAccountConfig, path: string) =>
   new URL(
     `/storage/v1/object/authenticated/${SCENE_BUCKET}/${path}`,
     config.supabaseUrl,
@@ -249,7 +256,7 @@ export const publishedPath = (
   file: 'scene.json' | 'picture.webp',
 ) => `${authorId}/${sceneId}/${file}`;
 
-const download = async (
+export const download = async (
   auth: IAuthorised,
   path: string,
   maxBytes: number,
@@ -383,6 +390,12 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
   if (response.status === 409 && word === 'version_not_raised') {
     return 'version-not-raised';
   }
+  if (response.status === 409 && word === 'scene_taken_down') {
+    return 'taken-down';
+  }
+  if (response.status === 409 && word === 'scene_deleted') {
+    return 'deleted';
+  }
   if (response.status === 403) {
     return word === 'banned' ? 'banned' : 'not-entitled';
   }
@@ -432,7 +445,9 @@ export const publishScene = async (
     /** What changed in this version, already cleaned (fluideq-premium 0026). */
     note?: string;
   },
-): Promise<{ ok: true } | { ok: false; reason: TPublishFailure }> => {
+): Promise<
+  { ok: true; review?: 'pending' } | { ok: false; reason: TPublishFailure }
+> => {
   const response = await callPublish(auth, {
     action: 'publish',
     termsVersion,
@@ -445,9 +460,24 @@ export const publishScene = async (
   if (!response) {
     return { ok: false, reason: 'offline' };
   }
-  return response.ok
-    ? { ok: true }
-    : { ok: false, reason: await publishFailure(response) };
+  if (!response.ok) {
+    return { ok: false, reason: await publishFailure(response) };
+  }
+  // A member's publication waits for the admin (fluideq-premium 0037), and
+  // the answer says so; the admin's own goes straight out and says nothing of
+  // the kind. A body that cannot be read is a publication that went through,
+  // which is what the status already said.
+  try {
+    const body: unknown = await response.json();
+    return typeof body === 'object' &&
+      body !== null &&
+      'review' in body &&
+      body.review === 'pending'
+      ? { ok: true, review: 'pending' }
+      : { ok: true };
+  } catch {
+    return { ok: true };
+  }
 };
 
 export const unpublishScene = async (

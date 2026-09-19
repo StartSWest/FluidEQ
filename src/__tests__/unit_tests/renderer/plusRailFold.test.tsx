@@ -87,7 +87,15 @@ afterEach(() => {
 /**
  * The panel from a fresh module registry, so the remembered setting is read
  * the way a launch reads it — once, when the module loads.
+ *
+ * Which makes every test here load the whole Plus tab again — every page of
+ * it, the admin's included — and that grows with the tab. Jest's five
+ * seconds is a bound on a unit, not on a tab: on a full parallel run the
+ * first of these crossed it once the approval pages joined the tab, while it
+ * passed alone in under two. The bound is this file's own, then.
  */
+jest.setTimeout(30_000);
+
 const renderFreshPanel = async () => {
   let Panel: typeof CommunityPanelModule | undefined;
   // React and the renderer come from the same fresh registry as the panel;
