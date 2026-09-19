@@ -1860,6 +1860,10 @@ textarea,
   --dsp-sky: var(--accent-light);
   --dsp-field: var(--active);
   --dsp-spectrum: var(--active);
+  // The little triangles - the Library's Tree menu, the overflow and stepper
+  // arrows - were a cyan written into the drawing itself, so they were the one
+  // thing left in the window that no scene could reach.
+  --arrow-fill: var(--accent);
 }
 
 // A Plus visualizer lending the window its colour (`sceneTintStore.ts`)
@@ -1888,7 +1892,18 @@ textarea,
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,
 // and `NowPlayingBar.scss`, which aligns its card to the same line from
 // outside this element's subtree.
+// The arrow triangles' resting colour, from the token below. A single class,
+// so every state a control already gives its arrow - hovered, pressed, spent
+// (`ArrowButton.scss`) - still outranks it; set inline it outranked them all
+// and a disabled stepper looked live.
+.arrow-icon__shape {
+  fill: var(--arrow-fill);
+}
+
 :root {
+  // The arrow triangles' own cyan at rest, as they were drawn; a scene tinting
+  // the window replaces it with its accent (`:root[data-scene-tint]` above).
+  --arrow-fill: #4fc3f7;
   // One number for the whole shell, and it is the same 12 the columns are
   // already separated by.
   //

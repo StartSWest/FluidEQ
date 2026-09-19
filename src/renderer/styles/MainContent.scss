@@ -101,6 +101,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     );
   }
 
+  // A scene lending the window its colours takes this cyan with it: with a
+  // Plus scene tinting everything else, the label was the one resting cyan
+  // left on the page. The rainbow still wins, and without a tint the label
+  // keeps the cyan that is the app's own signature at rest - the rule the
+  // titlebar wave and the level meter already follow (`sceneAccentRamp.ts`).
+  // Not for Equalizer APO's name, which never borrowed this gradient, and not
+  // under forced colours, where the system paints the text itself.
+  @media (forced-colors: none) {
+    :root[data-scene-tint]:not(.is-euphoric) &:not(.eq-engine-label--apo) {
+      background-image: linear-gradient(
+        90deg,
+        var(--accent),
+        color-mix(in srgb, white 70%, var(--accent)),
+        var(--accent),
+        var(--accent-dark),
+        var(--accent)
+      );
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
