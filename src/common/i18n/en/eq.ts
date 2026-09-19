@@ -66,6 +66,7 @@ const eq = {
   'eq.double': 'EQ ×2',
   'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.engineNotHere': 'FluidEQ isn’t reaching this output',
   'eq.mode': 'EQ mode',
   'eq.mode.normal': 'Normal',
   'eq.mode.studio': 'Studio',

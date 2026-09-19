@@ -70,6 +70,7 @@ const eq: Partial<Dictionary> = {
   'eq.double': 'EQ ×2',
   'eq.apoEngine': 'APO Engine',
   'eq.fluidEngine': 'Fluid EQ Engine',
+  'eq.engineNotHere': 'FluidEQ не доходит до этого выхода',
   'eq.mode': 'Режим EQ',
   'eq.mode.normal': 'Обычный',
   'eq.mode.studio': 'Студийный',

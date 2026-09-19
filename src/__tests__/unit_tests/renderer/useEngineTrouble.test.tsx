@@ -138,7 +138,7 @@ describe('useEngineTrouble', () => {
       useEngineTrouble('fluid', fluid, false),
     );
     await waitFor(() => expect(reads).toBe(1));
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
   });
 
   it('asks the disk again when sound starts, and says the engine is off', async () => {
@@ -151,7 +151,7 @@ describe('useEngineTrouble', () => {
 
     await hear(context);
 
-    await waitFor(() => expect(result.current?.kind).toBe('off'));
+    await waitFor(() => expect(result.current.trouble?.kind).toBe('off'));
     expect(reads).toBe(2);
   });
 
@@ -166,7 +166,7 @@ describe('useEngineTrouble', () => {
     const { result, rerender } = renderHook(
       ({ installed }: { installed: IFluidEngineStatus }) => {
         const trouble = useEngineTrouble('fluid', installed, false);
-        seen.push(trouble?.kind);
+        seen.push(trouble.trouble?.kind);
         return trouble;
       },
       { initialProps: { installed: old } },
@@ -184,12 +184,12 @@ describe('useEngineTrouble', () => {
     await act(async () => release());
     await waitFor(() => expect(seen.length).toBeGreaterThan(rendersBefore));
 
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
     expect(seen).not.toContain('off');
     // Positive control: the same sound, and an engine that does report —
     // so the silence above was the version, not the sound going unheard.
     rerender({ installed: fluid });
-    expect(result.current?.kind).toBe('off');
+    expect(result.current.trouble?.kind).toBe('off');
   });
 
   it('says nothing when the installed engine’s version cannot be read', async () => {
@@ -202,7 +202,7 @@ describe('useEngineTrouble', () => {
     await hear(context);
     await waitFor(() => expect(reads).toBe(2));
 
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
   });
 
   it('believes the read made after the sound, not what it held before', async () => {
@@ -213,7 +213,7 @@ describe('useEngineTrouble', () => {
     const seen: (string | undefined)[] = [];
     const { result } = renderHook(() => {
       const trouble = useEngineTrouble('fluid', fluid, false);
-      seen.push(trouble?.kind);
+      seen.push(trouble.trouble?.kind);
       return trouble;
     });
     await waitFor(() => expect(reads).toBe(1));
@@ -231,12 +231,12 @@ describe('useEngineTrouble', () => {
     await act(async () => release());
     await waitFor(() => expect(seen.length).toBeGreaterThan(rendersBefore));
 
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
     expect(seen).not.toContain('off');
     // Positive control: the same sound, and then the engine letting go of
     // the output — which reads as "off" only because the sound was taken in.
     act(() => pushed?.(nothing));
-    expect(result.current?.kind).toBe('off');
+    expect(result.current.trouble?.kind).toBe('off');
   });
 
   it('lists no devices when sound starts', async () => {
@@ -249,7 +249,7 @@ describe('useEngineTrouble', () => {
     );
     await waitFor(() => expect(reads).toBe(1));
     await hear(context);
-    await waitFor(() => expect(result.current?.kind).toBe('off'));
+    await waitFor(() => expect(result.current.trouble?.kind).toBe('off'));
     const listings = (getAudioDevices as jest.Mock).mock.calls.length;
 
     await hear(context);
@@ -266,11 +266,11 @@ describe('useEngineTrouble', () => {
       useEngineTrouble('fluid', fluid, false),
     );
     await hear(context);
-    await waitFor(() => expect(result.current?.kind).toBe('off'));
+    await waitFor(() => expect(result.current.trouble?.kind).toBe('off'));
 
     act(() => pushed?.(locked));
 
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
   });
 
   it('forgets what was heard when a new capture starts', async () => {
@@ -280,14 +280,14 @@ describe('useEngineTrouble', () => {
       useEngineTrouble('fluid', fluid, false),
     );
     await hear(first);
-    await waitFor(() => expect(result.current?.kind).toBe('off'));
+    await waitFor(() => expect(result.current.trouble?.kind).toBe('off'));
 
     // A capture restarting is bound to whatever the output is now, and has
     // heard nothing on it yet.
     withCapture(fakeContext());
     rerender();
 
-    await waitFor(() => expect(result.current).toBeUndefined());
+    await waitFor(() => expect(result.current.trouble).toBeUndefined());
   });
 
   it('counts sound heard before the capture was recorded as started', async () => {
@@ -299,7 +299,7 @@ describe('useEngineTrouble', () => {
 
     await hear(fakeContext());
 
-    await waitFor(() => expect(result.current?.kind).toBe('off'));
+    await waitFor(() => expect(result.current.trouble?.kind).toBe('off'));
   });
 
   it('ignores an event that names no capture', async () => {
@@ -314,7 +314,7 @@ describe('useEngineTrouble', () => {
     });
 
     expect(reads).toBe(1);
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
   });
 
   it('asks nothing at all under Equalizer APO', async () => {
@@ -326,6 +326,6 @@ describe('useEngineTrouble', () => {
 
     expect(reads).toBe(0);
     expect(getAudioDevices).not.toHaveBeenCalled();
-    expect(result.current).toBeUndefined();
+    expect(result.current.trouble).toBeUndefined();
   });
 });

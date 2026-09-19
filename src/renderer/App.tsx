@@ -660,6 +660,21 @@ const AppContent = () => {
    * re-render the whole player tree on every knob turn.
    */
   const dspSettings = useDspSettings();
+  // Which engine is processing the audio, held once for the whole shell: the
+  // output panels, the troubleshooter and the dialog all read this one answer
+  // rather than each asking main for its own copy.
+  const { status: engineStatus, refresh: refreshEngineStatus } =
+    useAudioEngineStatus();
+  const runningEngine = engineStatus?.engine;
+  // Whether the FluidEQ Engine is failing where it can be heard: for the
+  // notice that says so, and for the DSP rack, which runs nowhere while the
+  // engine is off.
+  const { trouble: engineTrouble, isOnOutput: isEngineOnOutput } =
+    useEngineTrouble(
+      runningEngine ?? null,
+      engineStatus?.fluid,
+      engineStatus?.fluidUpdateReady === true,
+    );
   const dspEngineState = useDspEngineState();
 
   /**
@@ -685,7 +700,7 @@ const AppContent = () => {
         }
       }}
     >
-      <FluidEngineLabel />
+      <FluidEngineLabel isEngineOnOutput={isEngineOnOutput} />
     </WorkspaceSectionTabs>
   );
   const isVideoTab = activeWorkspaceTab === 'video';
@@ -932,20 +947,18 @@ const AppContent = () => {
   // automatic — but reachable, which is the whole point of it existing.
   const [showAbout, setShowAbout] = useState(false);
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
-  // Which engine is processing the audio, held once for the whole shell: the
-  // output panels, the troubleshooter and the dialog all read this one answer
-  // rather than each asking main for its own copy.
-  const { status: engineStatus, refresh: refreshEngineStatus } =
-    useAudioEngineStatus();
-  const runningEngine = engineStatus?.engine;
-  // Whether the FluidEQ Engine is failing where it can be heard: for the
-  // notice that says so, and for the DSP rack, which runs nowhere while the
-  // engine is off.
-  const engineTrouble = useEngineTrouble(
-    runningEngine ?? null,
-    engineStatus?.fluid,
-    engineStatus?.fluidUpdateReady === true,
-  );
+  // Bumped when the engine's card is asked for again — see
+  // `handleAskAboutEngine`. A card put away for the session comes back on a
+  // press rather than staying away because it was dismissed once.
+  const [engineAskCount, setEngineAskCount] = useState(0);
+  // The engine is not running the output being listened to, which takes the
+  // rack with it (`rackPlacement.ts`).
+  //
+  // Deliberately not every `isEngineOnOutput === false`: an output the engine
+  // was never put on is one of those, and this gate also stops the Library
+  // player's own copy of the rack — which processes its own audio and works
+  // perfectly well on an output no engine is attached to. Widening it there
+  // would silence the rack in the Library to describe the engine.
   const isEngineOff = engineTrouble?.kind === 'off';
   useEffect(() => {
     // Before the publish below, so the first rack of a launch already knows
@@ -2007,6 +2020,25 @@ const AppContent = () => {
    * EQ played, every DSP effect was off, the card's restart did nothing, and
    * what mended it was this same step found by hand on the help page.
    */
+  /**
+   * The side bar's switch, pressed back on while it reads off because the
+   * engine is not reaching this output.
+   *
+   * It asks; it never installs. Every repair on the engine's card is an
+   * elevated run of the setup helper, so running one on a switch press would
+   * put a Windows prompt up each time the switch was touched — for nothing,
+   * most times, since the card already offers only the repair that fits the
+   * fault. Where there is no card, the engine's own dialog is where an engine
+   * is installed or swapped, and it says what is on this machine first.
+   */
+  const handleAskAboutEngine = () => {
+    if (engineTrouble !== undefined) {
+      setEngineAskCount((count) => count + 1);
+      return;
+    }
+    handleOpenEngineDialog();
+  };
+
   const handleInstallEngineForTrouble = () => {
     handleTroubleshootEnableEngine().catch((error) =>
       reportError('The engine could not be put in place', error),
@@ -2096,8 +2128,19 @@ const AppContent = () => {
     ? engineDisplayName(engineStatus.engine, t)
     : undefined;
 
+  // The light the titlebar carries, and the one on the engine card the menu
+  // opens onto. It used to go red only on a blocking failure — an engine that
+  // is missing or a config that cannot be read — so an output Windows has
+  // never once loaded the engine on left it green, beside a title saying the
+  // audio engine was connected, while nothing at all was being processed.
+  // Whatever the window knows is wrong on the output being listened to turns
+  // it red now, which is the same answer the side bar's switch gives.
   let engineState: TEngineState = 'ready';
-  if (isBlockingError) {
+  if (
+    isBlockingError ||
+    engineTrouble !== undefined ||
+    isEngineOnOutput === false
+  ) {
     engineState = 'failing';
   } else if (isLoading) {
     engineState = 'checking';
@@ -2350,6 +2393,8 @@ const AppContent = () => {
           showGraphToggle
           isGraphVisible={showsGraph}
           isOpen={topPaneOpen}
+          isEngineOnOutput={isEngineOnOutput}
+          onAskAboutEngine={handleAskAboutEngine}
           onGraphVisibilityChange={setActiveTabGraphVisibility}
         />
 
@@ -2778,6 +2823,7 @@ const AppContent = () => {
           onUseApo={handleOpenEngineDialog}
           onTryAnotherSlot={handleTryAnotherSlot}
           onInstallEngine={handleInstallEngineForTrouble}
+          reopenCount={engineAskCount}
         />
         {/* Waits for the same things, for the troubleshooter, and for the
             tour and the release notes that open on the first launch after an

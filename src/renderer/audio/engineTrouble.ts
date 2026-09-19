@@ -162,6 +162,53 @@ const ONLY_A_NEW_ENGINE: readonly string[] = ['dsp-rack'];
 export const sameEndpoint = (a: string, b: string) =>
   normaliseEndpointGuid(a) === normaliseEndpointGuid(b);
 
+/**
+ * Whether the engine is set up to process the output being listened to.
+ *
+ * The one question the side bar's switch and the titlebar's light answer, and
+ * the app had no single answer to it: the switch read on whenever FluidEQ's
+ * own power was on, whatever the engine was doing, so an output Windows has
+ * never loaded the engine on looked exactly like one it processes.
+ *
+ * `false` only where something is known to be wrong — the engine is not on
+ * this output, Windows hosts no effects there or its enhancements are off, or
+ * the engine is failing on it (`engineTrouble`). `undefined` while the window
+ * cannot tell yet, which is every launch until the outputs have been read:
+ * absence of evidence is not a fault, and a switch that reads off for the
+ * first seconds of every session is a worse lie than the one being fixed.
+ */
+export const engineOnOutput = (
+  facts: IEngineTroubleFacts,
+  trouble: TEngineTrouble | undefined,
+): boolean | undefined => {
+  const { engine, devices, fluidEndpoints, heardGuid } = facts;
+  if (engine !== 'fluid') {
+    // Equalizer APO says nothing about itself, so there is nothing to know.
+    return undefined;
+  }
+  // Only an engine that is not processing at all. A `problems` trouble is an
+  // engine that is running this output and could not start one part of what
+  // it was asked for — the EQ is still playing, so calling the switch off
+  // there would be its own lie, in the other direction.
+  if (trouble?.kind === 'off') {
+    return false;
+  }
+  // The output sound was last heard on, or the one Windows plays through.
+  const device =
+    (heardGuid !== undefined &&
+      devices.find((one) => sameEndpoint(one.guid, heardGuid))) ||
+    devices.find((one) => one.isDefault);
+  if (!device || fluidEndpoints.length === 0) {
+    return undefined;
+  }
+  if (device.canHostEffects === false || device.effectsEnabled === false) {
+    return false;
+  }
+  return fluidEndpoints.some(
+    (endpoint) => endpoint.attached && sameEndpoint(endpoint.guid, device.guid),
+  );
+};
+
 export const engineTrouble = ({
   engine,
   devices,

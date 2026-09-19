@@ -20,7 +20,7 @@ import { ErrorDescription } from 'common/errors';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
-import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
+import SideBarEngine from './components/SideBarEngine';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Knob from './widgets/Knob';
 import NumberInput from './widgets/NumberInput';
@@ -45,6 +45,13 @@ interface SideBarProps {
    * from the side.
    */
   isOpen?: boolean;
+  /**
+   * Whether the engine is set up to process the output being listened to, for
+   * the engine card — see `engineOnOutput`.
+   */
+  isEngineOnOutput?: boolean;
+  /** Ask about the engine again — see the engine card. */
+  onAskAboutEngine: () => void;
   onGraphVisibilityChange?: (next: boolean) => void | Promise<void>;
 }
 
@@ -52,6 +59,8 @@ const SideBar = ({
   showGraphToggle,
   isGraphVisible,
   isOpen,
+  isEngineOnOutput,
+  onAskAboutEngine,
   onGraphVisibilityChange,
 }: SideBarProps) => {
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
@@ -98,11 +107,10 @@ const SideBar = ({
         </div>
       ) : (
         <>
-          <div className="col center side-bar__control-card side-bar__engine">
-            <span className="control-kicker">{t('sidebar.engine')}</span>
-            <h4>{t('sidebar.systemEq')}</h4>
-            <EqualizerEnablerSwitch id="equalizerEnabler" />
-          </div>
+          <SideBarEngine
+            isEngineOnOutput={isEngineOnOutput}
+            onAskAboutEngine={onAskAboutEngine}
+          />
           {/* A dial rather than the fader this was.
               The fader wanted three hundred pixels of a column that is one
               hundred and sixty wide — a track, a ceiling caption, a floor

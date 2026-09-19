@@ -300,27 +300,28 @@ const ActionsMenu = ({
             </div>
           )}
 
-          {engineState === 'ready' && (
-            <>
-              {/* Straight under the engine they repair. The troubleshooter
-                  first: it is the one to open without knowing which repair
-                  is needed, which is everybody whose sound just stopped. */}
-              <Item icon="wrench" onSelect={run(onTroubleshoot)}>
-                {t('app.menu.fixAudio')}
-              </Item>
-              <Item icon="restart" onSelect={run(onRestartAudio)}>
-                {t('app.menu.restartAudio')}
-              </Item>
-              <hr className="actions-menu__rule" />
-              <Item icon="import" onSelect={run(onImportEq)}>
-                {t('app.menu.importEq')}
-              </Item>
-              <Item icon="convolution" onSelect={run(onImportImpulse)}>
-                {t('app.menu.importConvolution')}
-              </Item>
-              <hr className="actions-menu__rule" />
-            </>
-          )}
+          {/* Straight under the engine they repair, and in every state.
+              These four used to appear only while the engine was reported
+              healthy, which put the two repairs — the troubleshooter and the
+              restart — out of reach at the one moment anybody wants them:
+              the menu emptied itself exactly when the light beside it went
+              red. Nothing here needs a working engine. The troubleshooter
+              comes first: it is the one to open without knowing which repair
+              is needed, which is everybody whose sound just stopped. */}
+          <Item icon="wrench" onSelect={run(onTroubleshoot)}>
+            {t('app.menu.fixAudio')}
+          </Item>
+          <Item icon="restart" onSelect={run(onRestartAudio)}>
+            {t('app.menu.restartAudio')}
+          </Item>
+          <hr className="actions-menu__rule" />
+          <Item icon="import" onSelect={run(onImportEq)}>
+            {t('app.menu.importEq')}
+          </Item>
+          <Item icon="convolution" onSelect={run(onImportImpulse)}>
+            {t('app.menu.importConvolution')}
+          </Item>
+          <hr className="actions-menu__rule" />
 
           {/* In every state: neither needs the engine, and reinstalling is
               one way out of an app whose engine will not start. */}

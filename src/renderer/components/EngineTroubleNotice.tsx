@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
@@ -62,6 +62,12 @@ interface IEngineTroubleNoticeProps {
    * start, because a restart starts the same engine again.
    */
   onInstallEngine: () => void;
+  /**
+   * Bumped when the card is asked for again from outside — the side bar
+   * switch pressed back on. A card put away for the session has to come
+   * back on a press, or the press does nothing at all.
+   */
+  reopenCount?: number;
 }
 
 /**
@@ -80,6 +86,7 @@ const EngineTroubleNotice = ({
   onUseApo,
   onTryAnotherSlot,
   onInstallEngine,
+  reopenCount = 0,
 }: IEngineTroubleNoticeProps) => {
   const { t } = useTranslation();
   // Put away for the rest of the session, per trouble.
@@ -99,6 +106,17 @@ const EngineTroubleNotice = ({
       current.includes(which) ? current : [...current, which],
     );
   const isShown = key !== undefined && !isHidden && !dismissed.includes(key);
+
+  // Asked for again from outside: whatever was put away this session comes
+  // back. Not on the first render — the count starts where it starts — so a
+  // card nobody asked for is not raised by the window opening.
+  const asked = useRef(reopenCount);
+  useEffect(() => {
+    if (reopenCount !== asked.current) {
+      asked.current = reopenCount;
+      setDismissed([]);
+    }
+  }, [reopenCount]);
 
   useEffect(() => {
     if (!isShown) {

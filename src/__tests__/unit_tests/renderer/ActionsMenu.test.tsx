@@ -94,7 +94,7 @@ describe('the engine at the head of the actions menu', () => {
     ).toBeInTheDocument();
   });
 
-  it('turns a failing engine into the way back to its fix, and withholds what needs a working engine', () => {
+  it('turns a failing engine into the way back to its fix, and keeps every repair reachable', () => {
     const { actions, trigger, container } = show('failing');
 
     expect(
@@ -111,14 +111,26 @@ describe('the engine at the head of the actions menu', () => {
     expect(actions.onOpenEngine).not.toHaveBeenCalled();
 
     open(trigger);
+    // The two repairs above all: a menu that takes them away when the light
+    // beside it goes red has emptied itself at the one moment anybody opens
+    // it. They used to be drawn only while the engine was reported healthy,
+    // which was survivable while only a blocking failure turned the light
+    // red — the app was unusable anyway — and became a working app with no
+    // way to reach its own troubleshooter the moment the light started
+    // telling the truth about an engine that is simply not reaching the
+    // output. Nothing in this group needs a working engine.
     expect(
-      screen.queryByRole('menuitem', { name: 'Fix audio problems…' }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('menuitem', { name: 'Fix audio problems…' }),
+    ).toBeInTheDocument();
     expect(
-      screen.queryByRole('menuitem', { name: 'Import EQ settings…' }),
-    ).not.toBeInTheDocument();
-    // Neither needs the engine, and reinstalling is a way out of one that
-    // will not start.
+      screen.getByRole('menuitem', { name: 'Restart Windows audio' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Import EQ settings…' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Import impulse response…' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Processes…' }),
     ).toBeInTheDocument();
@@ -132,12 +144,18 @@ describe('the engine at the head of the actions menu', () => {
     const menu = open(trigger);
 
     expect(within(menu).getByText('Checking the audio engine…')).toBeVisible();
+    // The card itself: a line of text, with nothing to press while there is
+    // no answer to act on yet.
     expect(
       screen.queryByRole('menuitem', { name: /Checking the audio engine/ }),
     ).not.toBeInTheDocument();
+    // The rest of the menu is not the card and does not wait on it. The
+    // restart in particular is a repair, and a menu that hides its repairs
+    // while the engine is being asked about hides them for exactly as long
+    // as somebody is most likely to want one.
     expect(
-      screen.queryByRole('menuitem', { name: 'Restart Windows audio' }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('menuitem', { name: 'Restart Windows audio' }),
+    ).toBeInTheDocument();
   });
 });
 

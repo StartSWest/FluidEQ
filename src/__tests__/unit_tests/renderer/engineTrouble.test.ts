@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { IAudioDevice } from 'common/constants';
 import type { IEngineOutputHealth } from 'common/engineHealth';
 import {
+  engineOnOutput,
   engineTrouble,
   type IEngineTroubleFacts,
 } from 'renderer/audio/engineTrouble';
@@ -481,5 +482,64 @@ describe('engineTrouble', () => {
         }),
       ),
     ).toBeUndefined();
+  });
+});
+
+describe('whether the engine is reaching the output being listened to', () => {
+  // What the side bar's switch reads and what the engine's name is lit by.
+  // The switch used to follow FluidEQ's own power and nothing else, so a
+  // Bluetooth headset Windows has never once loaded the engine on showed the
+  // same lit switch, and the same rainbow name, as an output being processed.
+  const asked = (fields: Partial<IEngineTroubleFacts>) => {
+    const all = facts(fields);
+    return engineOnOutput(all, engineTrouble(all));
+  };
+
+  it('says yes for an output the engine is on and nothing is wrong with', () => {
+    expect(
+      asked({ heardGuid: '{AAAA}', health: { outputs: [running()] } }),
+    ).toBe(true);
+  });
+
+  it('says no for an output the engine was never put on', () => {
+    // No sound needed: not being there is not something to be heard.
+    expect(
+      asked({
+        fluidEndpoints: [
+          { guid: '{AAAA}', attached: false, backupExists: false },
+          { guid: '{BBBB}', attached: true, backupExists: true },
+        ],
+      }),
+    ).toBe(false);
+  });
+
+  it('says no where Windows runs no effects at all', () => {
+    expect(asked({ devices: [{ ...speakers, canHostEffects: false }] })).toBe(
+      false,
+    );
+    expect(asked({ devices: [{ ...speakers, effectsEnabled: false }] })).toBe(
+      false,
+    );
+  });
+
+  it('says no once the engine is known not to be running there', () => {
+    // Ivan's Bluetooth headset: attached, and Windows has never loaded it.
+    expect(asked({ heardGuid: '{AAAA}', hasEverRun: false })).toBe(false);
+  });
+
+  it('keeps saying yes while only part of what it was asked for failed', () => {
+    // The engine is running this output; one stage of it would not start.
+    // Calling the switch off there is the same lie in the other direction.
+    expect(
+      asked({ health: { outputs: [running({ problems: ['dsp-rack'] })] } }),
+    ).toBe(true);
+  });
+
+  it('says nothing before the outputs have been read, or under Equalizer APO', () => {
+    // The positive control for every `false` above: no answer is not a fault,
+    // and a switch that read off for the first seconds of every session would
+    // be a worse lie than the one being fixed.
+    expect(asked({ devices: [], fluidEndpoints: [] })).toBeUndefined();
+    expect(asked({ engine: 'apo' })).toBeUndefined();
   });
 });

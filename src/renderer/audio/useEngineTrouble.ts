@@ -19,7 +19,12 @@ import {
 } from 'common/engineHealth';
 import { getAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
-import { engineTrouble, type TEngineTrouble } from './engineTrouble';
+import {
+  engineOnOutput,
+  engineTrouble,
+  type IEngineTroubleFacts,
+  type TEngineTrouble,
+} from './engineTrouble';
 import { useLiveAudioControl } from './LiveAudioContext';
 import { OUTPUT_SIGNAL_EVENT, type IOutputSignalDetail } from './outputSignal';
 
@@ -32,6 +37,17 @@ const NO_ENDPOINTS: readonly IFluidEngineEndpoint[] = [];
 interface ICaptureBinding {
   context: AudioContext;
   guid: Promise<string | undefined>;
+}
+
+/** What the window knows about the engine, from the one set of facts. */
+export interface IEngineWatch {
+  /** The trouble the card speaks about, or nothing to say. */
+  trouble: TEngineTrouble | undefined;
+  /**
+   * Whether the engine is set up to process the output being listened to —
+   * see `engineOnOutput`. Undefined until the window can tell.
+   */
+  isOnOutput: boolean | undefined;
 }
 
 /**
@@ -70,7 +86,7 @@ const useEngineTrouble = (
    * than in it: the comparison is main's, between two sets of files.
    */
   engineUpdateReady: boolean,
-): TEngineTrouble | undefined => {
+): IEngineWatch => {
   const { capture } = useLiveAudioControl();
   const isFluid = engine === 'fluid';
   const fluidEndpoints = fluid?.endpoints ?? NO_ENDPOINTS;
@@ -215,31 +231,31 @@ const useEngineTrouble = (
     };
   }, [bindTo, isFluid]);
 
-  return useMemo(
-    () =>
-      engineTrouble({
-        engine,
-        devices,
-        fluidEndpoints,
-        reportsStatus,
-        health,
-        heardGuid,
-        hasEverRun: fluid?.everRan,
-        reportsCarried,
-        engineUpdateReady,
-      }),
-    [
+  return useMemo(() => {
+    const facts: IEngineTroubleFacts = {
       engine,
       devices,
       fluidEndpoints,
       reportsStatus,
       health,
       heardGuid,
-      fluid?.everRan,
+      hasEverRun: fluid?.everRan,
       reportsCarried,
       engineUpdateReady,
-    ],
-  );
+    };
+    const trouble = engineTrouble(facts);
+    return { trouble, isOnOutput: engineOnOutput(facts, trouble) };
+  }, [
+    engine,
+    devices,
+    fluidEndpoints,
+    reportsStatus,
+    health,
+    heardGuid,
+    fluid?.everRan,
+    reportsCarried,
+    engineUpdateReady,
+  ]);
 };
 
 export default useEngineTrouble;
