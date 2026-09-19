@@ -7,6 +7,7 @@ import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
 import { requestAccountPanel } from '../account/accountPanel';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
+import type { TSceneMaker } from '../graph/sceneFlashGuard';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import BrandMark from '../icons/BrandMark';
@@ -105,6 +106,14 @@ export default function ScenePage({
   const [reported, setReported] = useState(false);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
+  // Who made it decides whether the stranger's-scene brightness limiter runs,
+  // and FluidEQ's own collection is not a stranger's: the graph never limits
+  // it. Asked from the author's account alone, every official scene looked
+  // like a member's to anyone but its publisher, and the limiter - which holds
+  // a fast change back by blending frames - drew ghosts through Aurora's
+  // curtain here and nowhere else in the app.
+  const theirs: TSceneMaker = own ? 'listener' : 'member';
+  const madeBy: TSceneMaker = scene.official ? 'fluideq' : theirs;
   const makerName = own
     ? t('plus.card.byYou')
     : t('plus.card.by', {
@@ -283,7 +292,7 @@ export default function ScenePage({
           {preview.state === 'ready' && (
             <ScenePreview
               identity={playing ?? ''}
-              madeBy={own ? 'listener' : 'member'}
+              madeBy={madeBy}
               pack={preview.pack}
               label={t('plus.scene.playing')}
               onTrouble={(trouble) =>
@@ -295,7 +304,7 @@ export default function ScenePage({
           {preview.state === 'taste' && (
             <SceneTaste
               identity={playing ?? ''}
-              madeBy={own ? 'listener' : 'member'}
+              madeBy={madeBy}
               pack={preview.pack}
               onTrouble={(trouble) =>
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
