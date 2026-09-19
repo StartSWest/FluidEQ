@@ -15,9 +15,7 @@ import {
   OnlineMediaArt,
 } from './artwork';
 import { useTranslation } from '../../utils/I18nContext';
-import { useTheme } from '../../utils/theme';
 import secondOutputShot from '../../../../assets/tour/second-output.png';
-import secondOutputOceanShot from '../../../../assets/tour/second-output-ocean.png';
 import FeatureSlide from './FeatureSlide';
 import type { ISlideActions } from './slides';
 
@@ -59,7 +57,6 @@ export function DspSlide({ actions }: ISlideProps) {
  */
 export function SecondOutputSlide({ actions }: ISlideProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
   return (
     <FeatureSlide
       prefix="tour.output"
@@ -67,7 +64,7 @@ export function SecondOutputSlide({ actions }: ISlideProps) {
       art={
         <img
           className="tour-art tour-art--shot"
-          src={theme === 'ocean' ? secondOutputOceanShot : secondOutputShot}
+          src={secondOutputShot}
           alt={t('tour.output.imageAlt')}
         />
       }

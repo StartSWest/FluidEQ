@@ -355,8 +355,7 @@ const app = {
   'theme.aria': 'Theme',
   'motion.aria': 'Animations',
   'motion.restart': 'Restart FluidEQ to apply',
-  'theme.ocean': 'Ocean',
-  'theme.black': 'Black',
+  'theme.dark': 'Dark',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'The picture',

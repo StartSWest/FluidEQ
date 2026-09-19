@@ -146,24 +146,6 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Um teclado, um mouse e um mousepad iluminados no rosa, violeta e ciano da cena Cidade de neon.',
 
-  'tour.theme.kicker': 'UM NOVO VISUAL',
-  'tour.theme.title': 'Conheça o tema Preto',
-  'tour.theme.subtitle': 'Preto puro, para as madrugadas e telas OLED',
-  'tour.theme.lead':
-    'O FluidEQ agora tem uma segunda cara. O Preto remove todo traço do azul-ardósia com que o app nasceu: painéis, menus e barras ficam monocromáticos, o destaque permanece e o espectro é a única cor na sala.',
-  'tour.theme.point1':
-    'Fundos preto puro: em uma tela OLED os pixels ao redor do gráfico se apagam.',
-  'tour.theme.point2':
-    'Todas as janelas acompanham: menus, diálogos, o palco do karaokê e a Biblioteca mudam juntos.',
-  'tour.theme.point3':
-    'Sua cor de destaque e o modo arco-íris continuam. Nada no seu som muda: é só a pintura.',
-  'tour.theme.howTitle': 'Como trocar',
-  'tour.theme.how':
-    'Abra o menu do ícone de pulso no canto superior direito e, no fundo dele, escolha Preto em Tema. O Oceano fica a um clique se quiser voltar.',
-  'tour.theme.tryBlack': 'Mudar para Preto agora',
-  'tour.theme.tryOcean': 'Voltar ao Oceano',
-  'tour.theme.imageAlt':
-    'FluidEQ no tema Preto: a aba EQ com quinze bandas e o espectro ao vivo tocando uma música.',
 
   'tour.share.kicker': 'OUÇA TODOS OS SEUS PCS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',

@@ -157,24 +157,6 @@ const tour = {
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
-  'tour.theme.kicker': 'A NEW LOOK',
-  'tour.theme.title': 'Meet the Black theme',
-  'tour.theme.subtitle': 'Pure black, for late nights and OLED screens',
-  'tour.theme.lead':
-    'FluidEQ now has a second face. Black drops every trace of the slate-navy the app was born with: panels, menus and bars go monochrome, the accent stays, and the spectrum is the only colour in the room.',
-  'tour.theme.point1':
-    'True black backgrounds. On an OLED display the pixels around the graph switch off.',
-  'tour.theme.point2':
-    'Every window follows: menus, dialogs, the karaoke stage and the Library all change together.',
-  'tour.theme.point3':
-    'Your accent colour and rainbow mode carry over. Nothing about your sound changes. It is only the paint.',
-  'tour.theme.howTitle': 'How to switch',
-  'tour.theme.how':
-    'Open the menu behind the pulse icon in the top-right corner and pick Black under Theme, at the bottom of it. Ocean is one pick away if you want it back.',
-  'tour.theme.tryBlack': 'Switch to Black now',
-  'tour.theme.tryOcean': 'Back to Ocean',
-  'tour.theme.imageAlt':
-    'FluidEQ in the Black theme: the EQ tab with fifteen bands and the live spectrum playing a song.',
 
   'tour.share.kicker': 'LISTEN TO EVERY PC',
   'tour.share.title': 'Share audio between your computers',
