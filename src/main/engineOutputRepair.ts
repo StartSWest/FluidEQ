@@ -135,7 +135,16 @@ export const nextSlot = (
   takesSingles = true,
   tried: readonly TEngineSlot[] = [],
 ): TEngineSlot | undefined => {
-  const history = tried.length > 0 ? tried : historyBehind(current);
+  // What the helper remembers is only what was asked for BY NAME, so the
+  // rung every output starts in — chosen by the attach itself — is never in
+  // it. Taking the record alone as the whole history therefore offered the
+  // top of the ladder again to an output that had walked the whole way
+  // down: the first move it recorded is the proof it was walked to, so the
+  // rungs above that one are spent too.
+  const history =
+    tried.length > 0
+      ? [...new Set([...historyBehind(tried[0]), ...tried])]
+      : historyBehind(current);
   return SLOT_LADDER.find(
     (rung) =>
       rung !== current &&

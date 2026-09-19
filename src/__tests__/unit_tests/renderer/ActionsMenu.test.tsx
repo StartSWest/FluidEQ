@@ -41,14 +41,23 @@ const handlers = () => ({
 
 const show = (
   engineState: TEngineState = 'ready',
-  options: { engineName?: string; hasAccount?: boolean } = {},
+  options: {
+    engineName?: string;
+    engineVersion?: string;
+    hasAccount?: boolean;
+  } = {},
 ) => {
   const actions = handlers();
-  const { hasAccount = true, engineName = 'FluidEQ Engine' } = options;
+  const {
+    hasAccount = true,
+    engineName = 'FluidEQ Engine',
+    engineVersion,
+  } = options;
   const view = render(
     <ActionsMenu
       engineState={engineState}
       engineName={engineName}
+      engineVersion={engineVersion}
       onFix={actions.onFix}
       onOpenEngine={actions.onOpenEngine}
       onTroubleshoot={actions.onTroubleshoot}
@@ -83,6 +92,35 @@ describe('the engine at the head of the actions menu', () => {
     expect(
       screen.queryByRole('menu', { name: 'FluidEQ actions' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('says which engine version is on the machine, beside the status', () => {
+    // It decides what the app can ask of the engine — which effect slots it
+    // will take, whether it counts the sound reaching it, whether its rack
+    // will start — so "which one is installed here" is where a repair and a
+    // bug report both begin, and it was only ever answerable from a report.
+    const { trigger } = show('ready', { engineVersion: '1.12.0.0' });
+    open(trigger);
+
+    expect(
+      screen.getByRole('menuitem', {
+        name: 'FluidEQ Engine Audio engine connected · 1.12.0.0',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows no version where there is none to show', () => {
+    // The positive control: Equalizer APO says nothing about itself, and
+    // main has not answered yet on the first frames of a launch. Neither
+    // gets a separator with nothing after it.
+    const { trigger } = show('ready');
+    open(trigger);
+
+    expect(
+      screen.getByRole('menuitem', {
+        name: 'FluidEQ Engine Audio engine connected',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('says the status alone while no engine has been named, rather than guessing one', () => {

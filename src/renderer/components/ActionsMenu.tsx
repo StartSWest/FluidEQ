@@ -47,6 +47,11 @@ interface IActionsMenuProps {
   engineState: TEngineState;
   /** The engine in use, once main has said which. */
   engineName?: string;
+  /**
+   * The installed FluidEQ Engine's own version, as its setup helper reports
+   * it. Absent under Equalizer APO and until main has answered.
+   */
+  engineVersion?: string;
   /** Back to the notice that carries the Install and Retry buttons. */
   onFix: () => void;
   onOpenEngine: () => void;
@@ -117,6 +122,7 @@ const EngineBadge = ({ state }: { state: TEngineState }) => (
 const ActionsMenu = ({
   engineState,
   engineName,
+  engineVersion,
   onFix,
   onOpenEngine,
   onTroubleshoot,
@@ -216,6 +222,15 @@ const ActionsMenu = ({
     detail = status;
   } else if (engineName && engineState === 'failing') {
     detail = engineName;
+  }
+  // And which engine it is, on the same line. It decides what the app can
+  // ask of it — the slot ladder's newer rungs, whether it counts the sound
+  // reaching it, whether its rack will start at all — so "which version is
+  // on this machine" is a question both a bug report and a repair begin
+  // with, and it was only ever answerable from a report. Not for Equalizer
+  // APO, which says nothing about itself.
+  if (detail && engineVersion) {
+    detail = `${detail} · ${engineVersion}`;
   }
   const engineText = (
     <span className="actions-menu__engine-text">

@@ -66,6 +66,7 @@ import ForumPanel from './forum/ForumPanel';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
 import WallpaperAudio from './wallpaper/WallpaperAudio';
+import WallpaperTuning from './wallpaper/WallpaperTuning';
 import { WallpaperDialogHost } from './wallpaper/WallpaperControls';
 import ProcessesDialog from './components/ProcessesDialog';
 
@@ -2244,6 +2245,11 @@ const AppContent = () => {
           <ActionsMenu
             engineState={engineState}
             engineName={engineName}
+            engineVersion={
+              runningEngine === 'fluid'
+                ? engineStatus?.fluid.dllVersion
+                : undefined
+            }
             onFix={() => setPrereqNonce((n) => n + 1)}
             onOpenEngine={handleOpenEngineDialog}
             onTroubleshoot={() => setShowTroubleshooter(true)}
@@ -3024,9 +3030,11 @@ export default function App() {
                 unless a Plus member switched it on. */}
             <DynamicLightingLoop />
             {/* The desktop background's music, read for its monitors while
-                any plays, and its dialogs, which outlive the menus that
+                any plays; what every visualizer is set to, for the monitors
+                showing one; and its dialogs, which outlive the menus that
                 open them. */}
             <WallpaperAudio />
+            <WallpaperTuning />
             <WallpaperDialogHost />
             <Router>
               <Routes>

@@ -105,6 +105,31 @@ describe('the slot ladder', () => {
     ).toBeUndefined();
   });
 
+  it('does not send an output back up the ladder it has already walked', () => {
+    // Taken from the machine: a Bluetooth headset that had walked to the
+    // oldest value of all, then took the first of the new rungs. The helper
+    // records only the moves it was asked for by name, so the rung the
+    // first attach chose for itself is in no record — and reading the
+    // record as the whole history offered the top of the ladder again, a
+    // place this output had already been heard failing in.
+    expect(nextSlot('efx-single', true, ['lfx', 'efx-single'])).toBe(
+      'mfx-single',
+    );
+    // And on down: the two Windows' own effects sit in are still rungs,
+    // because Windows' own is the one registration ours may replace.
+    expect(
+      nextSlot('mfx-single', true, ['lfx', 'efx-single', 'mfx-single']),
+    ).toBe('sfx-single');
+    expect(
+      nextSlot('sfx-single', true, [
+        'lfx',
+        'efx-single',
+        'mfx-single',
+        'sfx-single',
+      ]),
+    ).toBeUndefined();
+  });
+
   it('never offers a rung this output has already been put in', () => {
     // What the helper remembers wins over where the engine happens to be:
     // the ladder spends each rung once, so it can never circle.
