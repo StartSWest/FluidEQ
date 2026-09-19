@@ -145,6 +145,53 @@ describe('the music a background hears', () => {
   });
 });
 
+describe('how hard the monitors draw', () => {
+  const chosen = {
+    frameRate: 'display',
+    resolution: 'auto',
+    autoFloor: 0.35,
+    upscaler: 'fsr',
+    smoothing: 'off',
+  } as const;
+
+  // The page draws by the scaler and the smoothing as much as by the rate and
+  // the size; comparing two of the five left a background on the scaler it
+  // started with, on the desktop and in the file, until something else moved.
+  it('takes every part of the window’s choice to the monitors and remembers it', () => {
+    const { deps, file } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [2, 3] }));
+
+    manager.setPerformance({ ...chosen, upscaler: 'simple' });
+    expect(
+      mockSurfaces.map((surface) => surface.retunePerformance.mock.calls[0][0]),
+    ).toEqual([
+      { ...chosen, upscaler: 'simple' },
+      { ...chosen, upscaler: 'simple' },
+    ]);
+    expect(file().performance).toEqual({ ...chosen, upscaler: 'simple' });
+
+    manager.setPerformance({ ...chosen, smoothing: 'best' });
+    expect(file().performance).toEqual({ ...chosen, smoothing: 'best' });
+    expect(mockSurfaces[0].retunePerformance).toHaveBeenCalledTimes(2);
+
+    // The same choice again is not a change.
+    manager.setPerformance({ ...chosen, smoothing: 'best' });
+    expect(mockSurfaces[0].retunePerformance).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a monitor with the choice it was left with', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.setPerformance({ ...chosen, resolution: 'balanced' });
+    manager.start(request());
+    expect(mockSurfaces[0].performance).toEqual({
+      ...chosen,
+      resolution: 'balanced',
+    });
+  });
+});
+
 describe('stopping', () => {
   it('forgets a stopped monitor, and Stop all forgets every one', () => {
     const { deps, file } = setup();

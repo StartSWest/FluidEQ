@@ -1,7 +1,10 @@
 import type { Rectangle, WebContents } from 'electron';
 import log from 'electron-log';
 import type { IScenePack } from '../../common/scenePacks';
-import type { IScenePerformance } from '../../common/scenePerformance';
+import {
+  sameScenePerformance,
+  type IScenePerformance,
+} from '../../common/scenePerformance';
 import {
   WALLPAPER,
   type IWallpaperChoice,
@@ -212,10 +215,10 @@ export const createDesktopSurface = (
     pauseReason: () => pauseReason,
     choice: () => ({ lookId, wave, motion }),
     retunePerformance: (next) => {
-      if (
-        next.frameRate === performance.frameRate &&
-        next.resolution === performance.resolution
-      ) {
+      // The whole choice, not the rate and the size alone: the page reads the
+      // scaler, the smoothing and the floor on the frames it draws, so a
+      // listener who only swaps FSR for the plain stretch sees it here too.
+      if (sameScenePerformance(next, performance)) {
         return;
       }
       performance = next;

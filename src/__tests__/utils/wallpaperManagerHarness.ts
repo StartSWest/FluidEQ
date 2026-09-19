@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { IScenePerformance } from '../../common/scenePerformance';
 import type { IWallpaperChoice, IWallpaperStart } from '../../common/wallpaper';
 import type { IEntitlement } from '../../main/account/entitlement';
 import type {
@@ -27,9 +28,12 @@ import type { IWallpaperScene } from '../../main/wallpaper/surface';
 export interface IFakeSurface {
   displayId: number;
   lookId: string;
+  /** What the monitor was started with, for a case about the choice. */
+  performance: IScenePerformance;
   contents: { mainFrame: object };
   choice(): IWallpaperChoice;
   retune: jest.Mock;
+  retunePerformance: jest.Mock;
   release: jest.Mock;
   applyPolicy: jest.Mock;
   fail: jest.Mock;
@@ -108,17 +112,20 @@ export const mockSurfaceModule = () => ({
   createDesktopSurface: (options: {
     displayId: number;
     choice: IWallpaperChoice;
+    performance: IScenePerformance;
     onFail(error: string): void;
   }) => {
     let { choice } = options;
     const surface: IFakeSurface = {
       displayId: options.displayId,
       lookId: options.choice.lookId,
+      performance: options.performance,
       contents: { mainFrame: {} },
       choice: () => choice,
       retune: jest.fn((next: IWallpaperChoice) => {
         choice = { ...choice, wave: next.wave, motion: next.motion };
       }),
+      retunePerformance: jest.fn(),
       release: jest.fn(),
       applyPolicy: jest.fn(),
       fail: jest.fn((error: string) => options.onFail(error)),

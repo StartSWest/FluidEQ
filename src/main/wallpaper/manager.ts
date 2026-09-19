@@ -16,7 +16,10 @@ import {
   type IWallpaperState,
   type TWallpaperError,
 } from '../../common/wallpaper';
-import type { IScenePerformance } from '../../common/scenePerformance';
+import {
+  sameScenePerformance,
+  type IScenePerformance,
+} from '../../common/scenePerformance';
 import type { IEntitlement } from '../account/entitlement';
 import { isSceneFailure } from '../scenePackStore';
 import {
@@ -124,16 +127,17 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   };
 
   /**
-   * The window's frame rate and resolution choice for visualizers. One
-   * setting for every monitor, kept with the backgrounds so a monitor started
-   * at the next launch draws by it before the window has said a word.
+   * The window's performance choice for visualizers — the frame rate, the
+   * resolution and its floor, the scaler and the smoothing. One setting for
+   * every monitor, kept with the backgrounds so a monitor started at the next
+   * launch draws by it before the window has said a word.
+   *
+   * Every field, because the page draws by every field: comparing the rate
+   * and the size alone left a background on the scaler and the smoothing it
+   * started with, on the desktop and in the file, until something else moved.
    */
   const setPerformance = (next: IScenePerformance) => {
-    if (
-      disposed ||
-      (next.frameRate === performance.frameRate &&
-        next.resolution === performance.resolution)
-    ) {
+    if (disposed || sameScenePerformance(next, performance)) {
       return;
     }
     performance = next;

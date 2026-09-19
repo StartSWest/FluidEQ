@@ -234,6 +234,28 @@ describe('a desktop background changing and ending', () => {
       smoothing: 'off',
     });
     expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+
+    // The page draws by the scaler and the smoothing too: a choice that only
+    // swaps FSR for the plain stretch used to stop here.
+    surface.retunePerformance({
+      frameRate: 'thirty',
+      resolution: 'native',
+      autoFloor: 0.5,
+      upscaler: 'simple',
+      smoothing: 'fast',
+    });
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      'wallpaper-surface-changed',
+      expect.objectContaining({
+        performance: {
+          frameRate: 'thirty',
+          resolution: 'native',
+          autoFloor: 0.5,
+          upscaler: 'simple',
+          smoothing: 'fast',
+        },
+      }),
+    );
   });
 
   it('lets go of its helper and window once when the helper fails, and says so once', () => {
