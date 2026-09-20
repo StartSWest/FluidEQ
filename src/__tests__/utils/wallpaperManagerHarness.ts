@@ -44,6 +44,8 @@ export interface IFakeSurface {
   release: jest.Mock;
   applyPolicy: jest.Mock;
   fail: jest.Mock;
+  /** It is on the desktop now: what it replaced may go. */
+  ready(): void;
 }
 
 interface IFakeDisplay {
@@ -121,6 +123,7 @@ export const mockSurfaceModule = () => ({
     choice: IWallpaperChoice;
     performance: IScenePerformance;
     tuning: IWallpaperTuning | undefined;
+    onReady(): void;
     onFail(error: string): void;
   }) => {
     let { choice } = options;
@@ -146,6 +149,7 @@ export const mockSurfaceModule = () => ({
       release: jest.fn(),
       applyPolicy: jest.fn(),
       fail: jest.fn((error: string) => options.onFail(error)),
+      ready: () => options.onReady(),
     };
     Object.assign(surface, {
       scene: { pack: { version: 1, source: 'void main() {}' } },

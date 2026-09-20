@@ -36,6 +36,13 @@ interface IDesktopSurfaceOptions {
    * desktop can still be seen.
    */
   pauseReason(covered: boolean): TWallpaperPause | undefined;
+  /**
+   * Once, as soon as this surface is on the desktop — or has been told the
+   * monitor is covered and it must not be seen at all. Whatever it replaced
+   * can go now, and not before: that is what keeps the wallpaper off the
+   * screen while a scene loads.
+   */
+  onReady(): void;
   /** Something this monitor's status shows has changed. */
   onChange(): void;
   /** At most once, after the surface has let go of its window and helper. */
@@ -98,6 +105,7 @@ export const createDesktopSurface = (
   let coverKnown = false;
   let covered = false;
   let shown = false;
+  let ready = false;
   let frameReady = false;
   let renderGeneration = 1;
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
@@ -176,6 +184,13 @@ export const createDesktopSurface = (
       // it is a child behind the icons, it takes no focus and keeps its place;
       // pauses after this hide it through the helper.
       window.showInactive();
+    }
+    if (!ready) {
+      // The helper has placed this window and said whether the monitor can be
+      // seen, and the page has drawn: from here the desktop shows this one,
+      // or shows nothing because it is covered.
+      ready = true;
+      options.onReady();
     }
     tellPage();
     options.onChange();

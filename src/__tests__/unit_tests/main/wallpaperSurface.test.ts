@@ -56,6 +56,7 @@ const create = (
 ) => {
   const onFail = jest.fn();
   const onChange = jest.fn();
+  const onReady = jest.fn();
   const surface = createDesktopSurface({
     displayId: 2,
     bounds: { x: 0, y: 0, width: 2560, height: 1440 },
@@ -78,10 +79,11 @@ const create = (
     },
     executable: 'FluidEQ-Wallpaper.exe',
     pauseReason: (covered) => (covered ? 'covered' : pause.reason),
+    onReady,
     onChange,
     onFail,
   });
-  return { surface, onFail, onChange };
+  return { surface, onFail, onChange, onReady };
 };
 
 beforeEach(() => {
@@ -125,6 +127,34 @@ describe('a desktop background appearing', () => {
     surface.drawn(surface.surfaceState().renderGeneration);
     expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+  });
+
+  // What it replaced is let go on this word, so it has to come once the
+  // monitor is showing this one — or once it knows nothing is to be shown.
+  it('says it is ready once it is on the desktop, and once only', () => {
+    const { surface, onReady } = create();
+    surface.drawn(1);
+    expect(onReady).not.toHaveBeenCalled();
+    mockHost.report('ready');
+    expect(onReady).not.toHaveBeenCalled();
+
+    mockHost.report('active');
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(surface.phase()).toBe('running');
+
+    mockHost.report('paused');
+    mockHost.report('active');
+    surface.drawn(surface.surfaceState().renderGeneration);
+    expect(onReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('says it is ready when it starts on a monitor nothing of which is in sight', () => {
+    const { surface, onReady } = create();
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('paused');
+    expect(surface.phase()).toBe('paused');
+    expect(onReady).toHaveBeenCalledTimes(1);
   });
 
   it('never shows before the scene has drawn a frame', () => {

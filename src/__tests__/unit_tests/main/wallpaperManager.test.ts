@@ -97,16 +97,53 @@ describe('setting a monitor’s background', () => {
     expect(file().screens[0].choice.motion).toBe('calm');
   });
 
-  it('replaces what a monitor showed when another visualizer is set on it', () => {
+  // Let go first, and the desktop's own wallpaper was on screen for as long
+  // as the new scene took to load and compile — a second of it, on every
+  // visualizer set and every scene brought up to date.
+  it('keeps the visualizer a monitor is playing until its replacement is on the desktop', () => {
     const { deps } = setup();
     const manager = createWallpaperManager(deps);
     manager.start(request());
     manager.start(request({ lookId: 'premium:aurora' }));
+    const [playing, coming] = mockSurfaces;
     expect(mockSurfaces).toHaveLength(2);
-    expect(mockSurfaces[0].release).toHaveBeenCalled();
+    expect(playing.release).not.toHaveBeenCalled();
+    // The list says what the monitor is coming to, and the page that is on
+    // its way out is still answered while it draws.
     expect(manager.state().screens).toEqual([
       expect.objectContaining({ lookId: 'premium:aurora' }),
     ]);
+    expect(manager.surfaceFor(playing.contents as never)).toBe(playing);
+
+    coming.ready();
+    expect(playing.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets the old one go with the new one when the new one cannot start', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request());
+    manager.start(request({ lookId: 'premium:aurora' }));
+    const [playing, coming] = mockSurfaces;
+
+    coming.fail('renderer');
+    expect(playing.release).toHaveBeenCalledTimes(1);
+    expect(manager.state().screens).toEqual([
+      expect.objectContaining({ phase: 'error', error: 'renderer' }),
+    ]);
+  });
+
+  it('stops the one on its way out when the monitor is stopped mid-change', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request());
+    manager.start(request({ lookId: 'premium:aurora' }));
+    const [playing, coming] = mockSurfaces;
+
+    manager.stop(undefined);
+    expect(playing.release).toHaveBeenCalledTimes(1);
+    expect(coming.release).toHaveBeenCalledTimes(1);
+    expect(manager.state().screens).toEqual([]);
   });
 });
 

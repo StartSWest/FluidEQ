@@ -45,11 +45,25 @@ export const createMonitorBackgrounds = (
   options: IMonitorBackgroundsOptions,
 ) => {
   const surfaces = new Map<number, IDesktopSurface>();
+  /**
+   * The background a monitor is still showing while its replacement loads.
+   * It is off the list the window is told about — what that says is what the
+   * monitor is coming to — but it is still drawing, still served its audio,
+   * and still paused with the rest.
+   */
+  const leaving = new Map<number, IDesktopSurface>();
   const failures = new Map<number, IMonitorFailure>();
   // Set once by the owner, which publishes the state these maps make up.
   let changed: () => void = () => undefined;
 
+  const letGo = (displayId: number) => {
+    const surface = leaving.get(displayId);
+    leaving.delete(displayId);
+    surface?.release();
+  };
+
   const remove = (displayId: number) => {
+    letGo(displayId);
     const surface = surfaces.get(displayId);
     surfaces.delete(displayId);
     surface?.release();
@@ -72,10 +86,24 @@ export const createMonitorBackgrounds = (
     choice: IWallpaperChoice,
     scene: IWallpaperScene,
   ) => {
-    remove(display.id);
+    // One visualizer replacing another — a look set again, a scene brought up
+    // to date — used to take the old one off the desktop first, so the plain
+    // wallpaper was on screen for as long as the new scene took to load and
+    // compile. The one playing stays until the new one is on the desktop, or
+    // has learned it must not be seen at all.
+    const playing = surfaces.get(display.id);
+    const handOver = playing?.phase() === 'running' ? playing : undefined;
+    if (handOver) {
+      letGo(display.id);
+      surfaces.delete(display.id);
+      leaving.set(display.id, handOver);
+    } else {
+      remove(display.id);
+    }
     failures.delete(display.id);
     const executable = options.executable();
     if (!executable) {
+      letGo(display.id);
       failures.set(display.id, { choice, error: 'unavailable' });
       return;
     }
@@ -90,6 +118,14 @@ export const createMonitorBackgrounds = (
         tuning: options.tuning(choice.lookId),
         executable,
         pauseReason: options.pauseReason,
+        onReady: () => {
+          // Only what this surface replaced, and only while it is still the
+          // monitor's: a late report from one already replaced again must not
+          // take its successor's predecessor away.
+          if (surfaces.get(display.id) === surface) {
+            letGo(display.id);
+          }
+        },
         onChange: () => changed(),
         onFail: (error) => {
           // A replaced surface reporting late must not remove its successor.
@@ -102,10 +138,12 @@ export const createMonitorBackgrounds = (
       });
     } catch (error) {
       log.warn(`Desktop visualizer start: ${error}`);
+      letGo(display.id);
       failures.set(display.id, { choice, error: 'renderer' });
       return;
     }
-    // A surface that failed while it was being built has recorded why.
+    // A surface that failed while it was being built has recorded why, and
+    // took the one it was replacing with it.
     if (!failures.has(display.id)) {
       surfaces.set(display.id, surface);
     }
@@ -137,9 +175,16 @@ export const createMonitorBackgrounds = (
     failures: () => [...failures],
     failureOn: (displayId: number) => failures.get(displayId),
     ids: () => [...surfaces.keys(), ...failures.keys()],
+    // A background on its way out still draws, so its page is still answered:
+    // the audio it reads, and the frames and failures it reports.
     surfaceFor: (contents: WebContents) =>
-      [...surfaces.values()].find((surface) => surface.owns(contents)),
-    applyPolicy: () => surfaces.forEach((surface) => surface.applyPolicy()),
+      [...surfaces.values(), ...leaving.values()].find((surface) =>
+        surface.owns(contents),
+      ),
+    applyPolicy: () => {
+      surfaces.forEach((surface) => surface.applyPolicy());
+      leaving.forEach((surface) => surface.applyPolicy());
+    },
     /** The window's choice changed: every monitor playing follows it. */
     retunePerformance: (next: IScenePerformance) =>
       surfaces.forEach((surface) => surface.retunePerformance(next)),
@@ -167,6 +212,9 @@ export const createMonitorBackgrounds = (
     ],
     dispose: () => {
       [...surfaces.keys()].forEach(remove);
+      // A hand-over in flight on a monitor with nothing else on it: its window
+      // outlives the app that put it there unless it is let go here too.
+      [...leaving.keys()].forEach(letGo);
       failures.clear();
     },
   };
