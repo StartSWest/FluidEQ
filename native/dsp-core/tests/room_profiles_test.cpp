@@ -537,6 +537,138 @@ void stereo_is_what_the_room_says() {
   }
 }
 
+/** The energy of `b` between two frequencies, third octave by third octave. */
+double span_energy(const Planar& b, double from_hz, double to_hz, double rate) {
+  double total = 0.0;
+  for (double hz = from_hz; hz <= to_hz * 1.01; hz *= std::pow(2.0, 1.0 / 3.0)) {
+    total += band_energy(b, hz, rate, b[0].size());
+  }
+  return total;
+}
+
+/**
+ * What tells one room from another, measured: the rooms were reported as
+ * "sounding the same", and a list of rooms that differ only in numbers
+ * nobody can hear is a list of one room. Four things a listener can point at
+ * — how loud a stereo record leaves, how wide it is at the ears (side against
+ * middle), how its top stands against its bottom, and on a 7.1 stream how
+ * loud a sound behind stands against one in front — and every pair of rooms
+ * has to differ by an audible step in at least one of them; the centre and
+ * the sides of a 7.1 stream are the fifth and sixth, and the air the last:
+ * walls 5 dB apart, or a tail 8 dB apart where the louder one is above
+ * -30 dB. The 7.1 figures are taken above 250 Hz, because the managed bass
+ * goes round a speaker's level and took two thirds of every difference with
+ * it. Two things this measuring found that the table now respects: the sub
+ * dial does nothing to a stereo record (it is the LFE's), and sending the
+ * middle of a record to a raised centre makes it 5.8 dB darker, not closer.
+ *
+ * One pair is the same sound under two names, on purpose and by name below:
+ * Reference and Competitive are both the driest room there is, the one filed
+ * where somebody with a record looks and the other where somebody with a
+ * game does.
+ */
+void no_two_rooms_are_one_room() {
+  std::printf("what tells the rooms apart: a stereo record, and 7.1 rear "
+              "against front\n");
+  std::printf("  %-14s  level  width  top-bottom  centre  side  rear   walls  "
+              "  tail   (dB)\n",
+              "room");
+  const double rate = 48000.0;
+  struct Heard {
+    const char* id;
+    double level;
+    double width;
+    double tilt;
+    double centre;
+    double side;
+    double rear;
+    double walls;
+    double tail;
+  };
+  std::vector<Heard> heard;
+  // The record every room is given: two thirds shared, one third each
+  // side's own, at a level nothing clips at.
+  Planar source = silence(kLayouts[0], static_cast<size_t>(1.5 * rate));
+  {
+    Pink mid;
+    Pink left;
+    Pink right;
+    mid.noise.seed = 11u;
+    left.noise.seed = 23u;
+    right.noise.seed = 37u;
+    for (size_t at = 0; at < source[0].size(); ++at) {
+      const double m = mid.next();
+      source[0][at] = static_cast<float>(0.1 * (0.67 * m + 0.33 * left.next()));
+      source[1][at] =
+          static_cast<float>(0.1 * (0.67 * m + 0.33 * right.next()));
+    }
+  }
+  const double source_top = span_energy(source, 4000.0, 10000.0, rate);
+  const double source_bottom = span_energy(source, 125.0, 400.0, rate);
+  for (const auto& profile : kRoomProfiles) {
+    const FeqRoomSettings s = settings_of(profile);
+    Rendering stereo(s, rate, kLayouts[0], false);
+    Planar played = source;
+    run(stereo.room, played);
+    // Side against middle where the ear tells left from right by level,
+    // 700 Hz to 4 kHz: over the whole band the figure is the bass, which
+    // reaches both ears alike whatever the room, and every room read the
+    // same to a decibel.
+    Planar middle(1, std::vector<float>(played[0].size()));
+    Planar side(1, std::vector<float>(played[0].size()));
+    for (size_t at = 0; at < played[0].size(); ++at) {
+      middle[0][at] = 0.5f * (played[0][at] + played[1][at]);
+      side[0][at] = 0.5f * (played[0][at] - played[1][at]);
+    }
+    const double width = db(span_energy(side, 700.0, 4000.0, rate) /
+                            span_energy(middle, 700.0, 4000.0, rate));
+    const double tilt =
+        db(span_energy(played, 4000.0, 10000.0, rate) / source_top) -
+        db(span_energy(played, 125.0, 400.0, rate) / source_bottom);
+    // 7.1: the same burst in the centre, at the side, behind on the left,
+    // and in front, above the crossover.
+    const auto above = [&](uint32_t channel) {
+      return span_energy(burst(s, rate, kLayouts[2], channel, 0.6), 250.0,
+                         8000.0, rate);
+    };
+    const double front = above(0);
+    const double behind = above(6);
+    const double beside = above(4);
+    const double middle_speaker = above(2);
+    const Parts parts = parts_of(profile, rate, kLayouts[2], 2.6);
+    heard.push_back({profile.id, db(energy(played) / energy(source)),
+                     width, tilt, db(middle_speaker / front),
+                     db(beside / front), db(behind / front),
+                     db(parts.walls / parts.direct),
+                     db(parts.tail / parts.direct)});
+    const Heard& h = heard.back();
+    std::printf("  %-14s  %5.2f  %5.2f  %10.2f  %6.2f  %4.2f  %4.2f  %6.1f  %6.1f\n",
+                h.id, h.level, h.width, h.tilt, h.centre, h.side, h.rear,
+                h.walls, h.tail);
+  }
+  for (size_t a = 0; a < heard.size(); ++a) {
+    for (size_t b = a + 1; b < heard.size(); ++b) {
+      const bool named = std::strcmp(heard[a].id, "referenceV2") == 0 &&
+                         std::strcmp(heard[b].id, "competitiveV2") == 0;
+      const bool apart = named ||
+                         std::fabs(heard[a].level - heard[b].level) >= 0.5 ||
+                         std::fabs(heard[a].width - heard[b].width) >= 1.0 ||
+                         std::fabs(heard[a].tilt - heard[b].tilt) >= 1.0 ||
+                         std::fabs(heard[a].centre - heard[b].centre) >= 1.0 ||
+                         std::fabs(heard[a].walls - heard[b].walls) >= 5.0 ||
+                         (std::max(heard[a].tail, heard[b].tail) > -30.0 &&
+                          std::fabs(heard[a].tail - heard[b].tail) >= 8.0) ||
+                         std::fabs(heard[a].side - heard[b].side) >= 1.0 ||
+                         std::fabs(heard[a].rear - heard[b].rear) >= 1.0;
+      if (!apart) {
+        std::printf("  the same room twice: %s and %s\n", heard[a].id,
+                    heard[b].id);
+      }
+      check(apart, "every two rooms differ by a step somebody can hear");
+    }
+  }
+}
+
 /** How long a 128-frame 7.1 block takes, written down and not judged: the
  *  machine this runs on is doing other things. */
 void what_a_block_costs() {
@@ -658,6 +790,7 @@ int main() {
   the_rooms_are_what_they_are_called();
   no_room_colours_a_speaker_much();
   stereo_is_what_the_room_says();
+  no_two_rooms_are_one_room();
   what_a_block_costs();
   std::printf("\n%d checks\n", g_checks);
   return feq_test::finish();

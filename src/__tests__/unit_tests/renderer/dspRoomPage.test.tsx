@@ -116,7 +116,9 @@ describe('the rooms in the picker', () => {
   });
 
   it('walks featured rooms into classic ones with the arrows', () => {
-    const { last } = renderPage(roomPresetSettings(on(), 'liveVenueV2'));
+    // The last featured room, whichever it is: the next step is a classic.
+    const lastFeatured = ROOM_FEATURED_LIST[ROOM_FEATURED_LIST.length - 1].id;
+    const { last } = renderPage(roomPresetSettings(on(), lastFeatured));
     fireEvent.click(
       screen.getByRole('button', { name: en['dsp.eqPreset.next'] }),
     );
@@ -316,81 +318,12 @@ describe('what is playing, truthfully', () => {
       screen.getByText(en['dsp.room.signal.updateRequired']),
     ).toBeInTheDocument();
   });
-
-  it('says the room is stepping aside once the source is marked as already spatial', () => {
-    const { last } = renderPage(roomPresetSettings(on(), 'cinemaV2'));
-    fireEvent.click(
-      screen.getByRole('checkbox', { name: en['dsp.room.tune.spatial'] }),
-    );
-    // The listener's word about the source: the room keeps its name.
-    expect(last()).toMatchObject({
-      sourceAlreadySpatial: true,
-      presetId: 'cinemaV2',
-    });
-    expect(
-      screen.getByText(en['dsp.room.signal.spatialBypass']),
-    ).toBeInTheDocument();
-  });
 });
 
-describe('comparing with the original', () => {
-  const compare = () =>
-    fireEvent.click(
-      screen.getByRole('button', { name: en['dsp.room.compare.label'] }),
-    );
-
-  it('is a way of listening: it leaves the room and its name alone', () => {
-    const { last } = renderPage(roomPresetSettings(on(), 'cinemaV2'));
-    compare();
-    expect(last()).toMatchObject({
-      compareOriginal: true,
-      presetId: 'cinemaV2',
-    });
-  });
-
-  it('claims nothing while the engine has said nothing', () => {
-    renderPage(roomPresetSettings(on(), 'cinemaV2'));
-    compare();
-    expect(
-      screen.getByText(en['dsp.room.compare.unknown']),
-    ).toBeInTheDocument();
-  });
-
-  it('says matched only when the engine says it matched, and names a fold-down', () => {
-    renderPage(roomPresetSettings(on(), 'cinemaV2'));
-    compare();
-    act(() =>
-      setDspRoomReport({
-        active: true,
-        original: true,
-        matchAvailable: false,
-        referenceGainDb: 0,
-        conventionalFoldDown: true,
-        positionProtected: true,
-        sourceBypassed: false,
-      }),
-    );
-    expect(
-      screen.getByText(new RegExp(en['dsp.room.compare.unmatched'])),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(en['dsp.room.compare.foldDown'])),
-    ).toBeInTheDocument();
-    act(() =>
-      setDspRoomReport({
-        active: true,
-        original: true,
-        matchAvailable: true,
-        referenceGainDb: -1.7,
-        conventionalFoldDown: false,
-        positionProtected: true,
-        sourceBypassed: false,
-      }),
-    );
-    expect(
-      screen.getByText(
-        en['dsp.room.compare.matched'].replace('{gain}', '-1.7'),
-      ),
-    ).toBeInTheDocument();
+describe('what came off the page', () => {
+  it('offers no comparison and no already-spatial switch: each was the power switch by another name', () => {
+    renderPage();
+    expect(screen.queryByRole('button', { name: /compare/i })).toBeNull();
+    expect(screen.queryByRole('checkbox', { name: /spatial/i })).toBeNull();
   });
 });

@@ -748,6 +748,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Игровой мир',
   'dsp.room.profile.competitiveV2': 'Соревнование',
   'dsp.room.profile.liveVenueV2': 'Концертный зал',
+  'dsp.room.profile.closeUpV2': 'Крупный план',
+  'dsp.room.profile.wideStageV2': 'Широкая сцена',
+  'dsp.room.profile.allAroundV2': 'Вокруг',
+  'dsp.room.profile.balconyV2': 'Балкон',
+  'dsp.room.profile.nightCinemaV2': 'Ночное кино',
+  'dsp.room.profile.conductorV2': 'Дирижёр',
+  'dsp.room.profile.rearGuardV2': 'Тыл',
   'dsp.room.profilePurpose.referenceV2':
     'Близкая заглушённая комната. Запись перед вами, ничего лишнего.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -760,6 +767,20 @@ const dsp = {
     'Направление и больше ничего: ни стен, ни хвоста.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Зал вокруг сцены с длинным мягким хвостом.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Голос или гитара на расстоянии вытянутой руки, в заглушённой комнате. Исполнитель и больше ничего.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'Пара расставлена широко, для записи, которая должна выходить за плечи.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Стереозапись разложена по всем колонкам: вы сидите в середине.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Далеко от узкой сцены в большом зале: группа маленькая впереди, зал вокруг.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Диалоги вперёд, сабвуфер и тыловые приглушены, для фильма, когда все спят.',
+  'dsp.room.profilePurpose.conductorV2':
+    'За дирижёрским пультом: музыканты окружают вас от крайнего левого до крайнего правого.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Чтобы слышать то, что позади: боковые и тыловые громче, без стен и без хвоста.',
   'dsp.room.fedExpanded':
     'Играет стерео, разведённое по комнате: пунктирные колонки вычислены из передней пары, это не отдельные каналы.',
   'dsp.room.speaker.isMuted': 'заглушена',
@@ -799,9 +820,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Стереоисточник',
   'dsp.room.tune.stereoHint':
     'Только для стерео. Поток 5.1 или 7.1 оставляет свои каналы на местах.',
-  'dsp.room.tune.spatial': 'Мой источник уже объёмный',
-  'dsp.room.tune.spatialHint':
-    'Для звука, уже сделанного под наушники: собственное 3D-аудио игры, бинауральная запись. Комната отходит в сторону, чтобы не расставлять его дважды. FluidEQ сам этого определить не может, так что решать вам.',
   'dsp.room.fitView.head': 'Ваша голова и наушники',
   'dsp.room.fitView.headHint':
     'Три размера одной измеренной головы: не три человека и не скан ваших ушей. Выберите размер, при котором звуки оказываются перед вами, а не внутри головы.',
@@ -809,20 +827,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Пять коротких пар звуков. Каждый раз выбирайте тот, что звучит больше вокруг вас; победившая голова — ваша.',
   'dsp.room.fitView.start': 'Начать тест на слух',
-  'dsp.room.compare.label': 'Сравнить',
-  'dsp.room.compare.original': 'Звучит оригинал',
-  'dsp.room.compare.hint':
-    'Послушайте то, что играет, без Комнаты: в тот же момент и, после измерения, с той же громкостью. Всё остальное в рэке продолжает играть.',
-  'dsp.room.compare.unknown': 'Движок не сообщил, что он воспроизводит.',
-  'dsp.room.compare.waiting': 'Ждём, пока движок переключится.',
-  'dsp.room.compare.matched': 'Громкость выровнена ({gain} дБ).',
-  'dsp.room.compare.unmatched':
-    'Громкость ещё не выровнена: нужно несколько секунд звука.',
-  'dsp.room.compare.foldDown': 'Оригинал — объёмный микс, сведённый в стерео.',
   'dsp.room.signal.updateRequired':
     'Новому звуку нужен обновлённый аудиодвижок. Эта комната ему не отправлена: обновите движок, чтобы её услышать.',
-  'dsp.room.signal.spatialBypass':
-    'Комната отходит в сторону: источник отмечен как уже объёмный (Стереоисточник, ниже).',
   'dsp.room.featured': 'Избранные',
   'dsp.room.classicRooms': 'Классические комнаты',
   'dsp.room.savedNew': 'Новый звук',

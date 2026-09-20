@@ -24,7 +24,6 @@ interface IDspRoomTuneProps {
   canShape: boolean;
   isLocked: boolean;
   onShape: (next: Partial<IRoomSettings>) => void;
-  onPatch: (next: IRoomSettings) => void;
   onCommit: () => void;
 }
 
@@ -36,10 +35,10 @@ const FRONT_FED = [true, true, false, false, false, false, false] as const;
  * rings and where it darkens; the bass and the centre; and what becomes of a
  * stereo source.
  *
- * Shaping the room is Plus. Bass management, the stereo switch and its amount,
- * keeping the speakers' positions and "already spatial" are free, as they
- * were: they are how the listener's own source and headphones are treated,
- * not the room being redesigned.
+ * Shaping the room is Plus. Bass management, the stereo switch and its amount
+ * and keeping the speakers' positions are free, as they were: they are how
+ * the listener's own source and headphones are treated, not the room being
+ * redesigned.
  */
 const DspRoomTune = ({
   room,
@@ -48,7 +47,6 @@ const DspRoomTune = ({
   canShape,
   isLocked,
   onShape,
-  onPatch,
   onCommit,
 }: IDspRoomTuneProps) => {
   const { t } = useTranslation();
@@ -283,29 +281,6 @@ const DspRoomTune = ({
           </div>
         </div>
         <p className="dsp-band-hint">{t('dsp.room.tune.stereoHint')}</p>
-        <div className="dsp-room-check">
-          <Switch
-            id="dsp-room-spatial"
-            ariaLabel={t('dsp.room.tune.spatial')}
-            isOn={room.sourceAlreadySpatial}
-            isDisabled={!isOn}
-            handleToggle={() => {
-              // The listener's word about the source, not the room's shape:
-              // it leaves the profile's name where it is.
-              onPatch({
-                ...room,
-                sourceAlreadySpatial: !room.sourceAlreadySpatial,
-              });
-              onCommit();
-            }}
-          />
-          <div className="dsp-room-check__text">
-            <span>{t('dsp.room.tune.spatial')}</span>
-            <span className="dsp-band-hint">
-              {t('dsp.room.tune.spatialHint')}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -171,6 +171,15 @@ const ALIASES: Record<string, string> = {
   gameWorldV2: 'games',
   competitiveV2: 'crosshair',
   liveVenueV2: 'stage',
+  closeUpV2: 'speech',
+  // A pair set wide is a V seen from above; all around is what headphones
+  // are; and a film at night is the moon.
+  wideStageV2: 'v-shape',
+  allAroundV2: 'openBack',
+  balconyV2: 'classical',
+  nightCinemaV2: 'loudness',
+  conductorV2: 'classical',
+  rearGuardV2: 'crosshair',
   // And its classic rooms, by the nearest idea already drawn.
   studio: 'monitors',
   nearField: 'laptop',

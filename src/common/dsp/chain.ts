@@ -1002,7 +1002,14 @@ export type TRoomPreset =
   | 'cinemaV2'
   | 'gameWorldV2'
   | 'competitiveV2'
-  | 'liveVenueV2';
+  | 'liveVenueV2'
+  | 'closeUpV2'
+  | 'wideStageV2'
+  | 'allAroundV2'
+  | 'balconyV2'
+  | 'nightCinemaV2'
+  | 'conductorV2'
+  | 'rearGuardV2';
 /**
  * In wire order: the engine logs the index, so an index keeps its meaning for
  * good. The eleven classic rooms and `custom` are the first twelve; the
@@ -1028,6 +1035,13 @@ export const ROOM_PRESETS: readonly TRoomPreset[] = [
   'gameWorldV2',
   'competitiveV2',
   'liveVenueV2',
+  'closeUpV2',
+  'wideStageV2',
+  'allAroundV2',
+  'balconyV2',
+  'nightCinemaV2',
+  'conductorV2',
+  'rearGuardV2',
 ];
 /** The three shipped heads, by the head width each was measured on. */
 export type TRoomHead = 'small' | 'medium' | 'large';
@@ -1051,9 +1065,16 @@ export interface IRoomSettings {
   ambienceDecayS: number;
   ambienceDampingHz: number;
   preservePosition: boolean;
-  /** Runtime comparison, excluded from room shapes. */
+  /**
+   * The engine's comparison with the original, and its stepping aside for a
+   * source marked as already spatial. Both had a control on the Room's page
+   * and both came off it on 2026-09-19 (Ivan: each is the Room's own switch
+   * by another name — "is same as off"). The engine still reads them and
+   * the wire still carries them, so they stay in the shape of a room, and
+   * `clampDspSettings` holds them off: a room saved with one on would
+   * otherwise pass the sound through with nothing on the page to say why.
+   */
   compareOriginal: boolean;
-  /** Listener/source preference, preserved when applying a profile. */
   sourceAlreadySpatial: boolean;
   enabled: boolean;
   presetId: TRoomPreset;
@@ -2498,14 +2519,9 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         room.preservePosition,
         DSP_DEFAULTS.room.preservePosition,
       ),
-      compareOriginal: clampBoolean(
-        room.compareOriginal,
-        DSP_DEFAULTS.room.compareOriginal,
-      ),
-      sourceAlreadySpatial: clampBoolean(
-        room.sourceAlreadySpatial,
-        DSP_DEFAULTS.room.sourceAlreadySpatial,
-      ),
+      // Held off, whatever was stored: see `IRoomSettings`.
+      compareOriginal: false,
+      sourceAlreadySpatial: false,
       sizeM: clampNumber(room.sizeM, RANGES.roomSizeM, DSP_DEFAULTS.room.sizeM),
       walls: clampNumber(room.walls, RANGES.roomWalls, DSP_DEFAULTS.room.walls),
       distanceM: clampNumber(

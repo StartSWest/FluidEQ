@@ -75,6 +75,13 @@ describe('room presets', () => {
       'gameWorldV2',
       'competitiveV2',
       'liveVenueV2',
+      'closeUpV2',
+      'wideStageV2',
+      'allAroundV2',
+      'balconyV2',
+      'nightCinemaV2',
+      'conductorV2',
+      'rearGuardV2',
     ]);
   });
 
@@ -186,15 +193,28 @@ describe('room presets', () => {
     });
   });
 
-  it('puts the six featured rooms on the new renderer, each keeping the speakers in place', () => {
+  it('puts every featured room on the new renderer, each keeping the speakers in place', () => {
+    // The picker's order, which is not the wire's: by what somebody came
+    // for, each room beside the one it is a turn of.
     expect(ROOM_FEATURED_LIST.map((preset) => preset.id)).toEqual([
       'referenceV2',
       'musicSpaceV2',
+      'wideStageV2',
+      'allAroundV2',
+      'closeUpV2',
       'cinemaV2',
+      'nightCinemaV2',
       'gameWorldV2',
       'competitiveV2',
+      'rearGuardV2',
       'liveVenueV2',
+      'balconyV2',
+      'conductorV2',
     ]);
+    // Every featured id is on the wire, once.
+    ROOM_FEATURED_LIST.forEach(({ id }) => {
+      expect(ROOM_PRESETS.filter((wire) => wire === id)).toHaveLength(1);
+    });
     ROOM_FEATURED_LIST.forEach(({ id, shape, purposeKey, collection }) => {
       expect({ id, version: shape.rendererVersion }).toEqual({
         id,

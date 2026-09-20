@@ -744,6 +744,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'गेम वर्ल्ड',
   'dsp.room.profile.competitiveV2': 'कॉम्पिटिटिव',
   'dsp.room.profile.liveVenueV2': 'लाइव वेन्यू',
+  'dsp.room.profile.closeUpV2': 'क्लोज़-अप',
+  'dsp.room.profile.wideStageV2': 'चौड़ा मंच',
+  'dsp.room.profile.allAroundV2': 'चारों ओर',
+  'dsp.room.profile.balconyV2': 'बालकनी',
+  'dsp.room.profile.nightCinemaV2': 'रात का सिनेमा',
+  'dsp.room.profile.conductorV2': 'कंडक्टर',
+  'dsp.room.profile.rearGuardV2': 'पीछे की निगरानी',
   'dsp.room.profilePurpose.referenceV2':
     'पास का, ध्वनि-उपचारित कमरा। रिकॉर्ड आपके सामने, और कुछ भी जोड़ा नहीं।',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -756,6 +763,20 @@ const dsp = {
     'सिर्फ़ दिशा, और कुछ नहीं: न दीवारें, न गूँज की पूँछ।',
   'dsp.room.profilePurpose.liveVenueV2':
     'मंच के चारों ओर एक हॉल, लंबी और नर्म गूँज के साथ।',
+  'dsp.room.profilePurpose.closeUpV2':
+    'हाथ भर की दूरी पर एक आवाज़ या गिटार, बिना गूँज वाले कमरे में। बस कलाकार, और कुछ नहीं।',
+  'dsp.room.profilePurpose.wideStageV2':
+    'जोड़ी दूर-दूर रखी हुई, उस रिकॉर्ड के लिए जिसे आपके कंधों के पार पहुँचना चाहिए।',
+  'dsp.room.profilePurpose.allAroundV2':
+    'स्टीरियो रिकॉर्ड हर स्पीकर पर फैला हुआ: आप उसके बीच में बैठे हैं।',
+  'dsp.room.profilePurpose.balconyV2':
+    'बड़े हॉल में सँकरे मंच से दूर: सामने छोटा-सा बैंड, चारों ओर हॉल।',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'संवाद आगे, सब और सराउंड दबे हुए, जब सब सो चुके हों तब की फ़िल्म के लिए।',
+  'dsp.room.profilePurpose.conductorV2':
+    'पोडियम पर: वादक आपको बिलकुल बाएँ से बिलकुल दाएँ तक घेरे हुए हैं।',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'जो पीछे है उसे सुनने के लिए: सराउंड और रियर ऊपर, न दीवारें, न गूँज।',
   'dsp.room.fedExpanded':
     'स्टीरियो बज रहा है, पूरे कमरे में फैलाकर: बिंदीदार स्पीकर सामने की जोड़ी से निकाले गए हैं, ये अलग चैनल नहीं हैं।',
   'dsp.room.speaker.isMuted': 'म्यूट',
@@ -795,9 +816,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'स्टीरियो स्रोत',
   'dsp.room.tune.stereoHint':
     'सिर्फ़ स्टीरियो के लिए। 5.1 या 7.1 स्ट्रीम अपने चैनल जहाँ हैं वहीं रखती है।',
-  'dsp.room.tune.spatial': 'मेरा स्रोत पहले से स्पेशियल है',
-  'dsp.room.tune.spatialHint':
-    'उस ध्वनि के लिए जो पहले से हेडफ़ोन के लिए बनी है: गेम का अपना 3D ऑडियो, बाइनॉरल रिकॉर्डिंग। कमरा हट जाता है ताकि उसे दो बार न रखा जाए। FluidEQ यह ख़ुद नहीं पहचान सकता, इसलिए फ़ैसला आपका है।',
   'dsp.room.fitView.head': 'आपका सिर और हेडफ़ोन',
   'dsp.room.fitView.headHint':
     'एक ही मापे गए सिर के तीन आकार: न तीन लोग, न आपके कानों का स्कैन। वह आकार चुनें जो आवाज़ों को आपके सिर के अंदर नहीं, सामने रखे।',
@@ -805,21 +823,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'आवाज़ों की पाँच छोटी जोड़ियाँ। हर बार वह चुनें जो आपके चारों ओर ज़्यादा लगे; जो सिर जीतेगा वही आपका है।',
   'dsp.room.fitView.start': 'सुनने का परीक्षण शुरू करें',
-  'dsp.room.compare.label': 'तुलना',
-  'dsp.room.compare.original': 'मूल ध्वनि सुन रहे हैं',
-  'dsp.room.compare.hint':
-    'जो बज रहा है उसे कमरे के बिना सुनें: उसी पल में और, मापने के बाद, उसी ज़ोर पर। रैक का बाक़ी सब कुछ बजता रहता है।',
-  'dsp.room.compare.unknown': 'इंजन ने नहीं बताया कि वह क्या बजा रहा है।',
-  'dsp.room.compare.waiting': 'इंजन के बदलने का इंतज़ार है।',
-  'dsp.room.compare.matched': 'ज़ोर मिलाया गया ({gain} dB)।',
-  'dsp.room.compare.unmatched':
-    'ज़ोर अभी नहीं मिला: इसके लिए कुछ सेकंड की ध्वनि चाहिए।',
-  'dsp.room.compare.foldDown':
-    'मूल ध्वनि, सराउंड मिक्स को स्टीरियो में समेटकर बनी है।',
   'dsp.room.signal.updateRequired':
     'नई ध्वनि के लिए अपडेट किया हुआ ऑडियो इंजन चाहिए। यह कमरा इंजन को नहीं भेजा गया: इसे सुनने के लिए इंजन अपडेट करें।',
-  'dsp.room.signal.spatialBypass':
-    'कमरा हट गया है: स्रोत पहले से स्पेशियल के रूप में चिह्नित है (नीचे, स्टीरियो स्रोत)।',
   'dsp.room.featured': 'चुनिंदा',
   'dsp.room.classicRooms': 'क्लासिक कमरे',
   'dsp.room.savedNew': 'नई ध्वनि',

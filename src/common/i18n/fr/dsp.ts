@@ -754,6 +754,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Monde de jeu',
   'dsp.room.profile.competitiveV2': 'Compétition',
   'dsp.room.profile.liveVenueV2': 'Salle de concert',
+  'dsp.room.profile.closeUpV2': 'Gros plan',
+  'dsp.room.profile.wideStageV2': 'Scène large',
+  'dsp.room.profile.allAroundV2': 'Tout autour',
+  'dsp.room.profile.balconyV2': 'Balcon',
+  'dsp.room.profile.nightCinemaV2': 'Cinéma de nuit',
+  'dsp.room.profile.conductorV2': 'Chef d’orchestre',
+  'dsp.room.profile.rearGuardV2': 'Arrière-garde',
   'dsp.room.profilePurpose.referenceV2':
     'Une salle proche et traitée. Le disque devant vous, rien d’ajouté.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -766,6 +773,20 @@ const dsp = {
     'La direction et rien d’autre : ni murs, ni traîne.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Une salle autour de la scène, avec une traîne longue et douce.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Une voix ou une guitare à portée de bras, dans une pièce mate. L’interprète et rien d’autre.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'La paire très écartée, pour un disque qui doit dépasser vos épaules.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Un disque stéréo réparti sur toutes les enceintes : vous êtes assis au milieu.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Loin d’une scène étroite dans une grande salle : le groupe petit devant, la salle tout autour.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Dialogues en avant, caisson et surrounds retenus, pour un film quand tout le monde dort.',
+  'dsp.room.profilePurpose.conductorV2':
+    'Sur le podium : les musiciens vous entourent de l’extrême gauche à l’extrême droite.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Pour entendre ce qui est derrière vous : surrounds et arrières relevés, ni murs ni queue.',
   'dsp.room.fedExpanded':
     'De la stéréo est jouée, répartie dans la salle : les enceintes en pointillés sont calculées à partir de la paire avant, ce ne sont pas des canaux à part.',
   'dsp.room.speaker.isMuted': 'muette',
@@ -805,9 +826,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Source stéréo',
   'dsp.room.tune.stereoHint':
     'Pour la stéréo seulement. Un flux 5.1 ou 7.1 garde ses canaux où ils sont.',
-  'dsp.room.tune.spatial': 'Ma source est déjà spatialisée',
-  'dsp.room.tune.spatialHint':
-    'Pour un son déjà fait pour le casque : l’audio 3D propre à un jeu, un enregistrement binaural. La Salle s’efface pour ne pas le placer deux fois. FluidEQ ne peut pas le deviner, c’est donc à vous de le dire.',
   'dsp.room.fitView.head': 'Votre tête et votre casque',
   'dsp.room.fitView.headHint':
     'Trois tailles d’une seule tête mesurée : ni trois personnes, ni un scan de vos oreilles. Choisissez la taille qui met les sons devant vous plutôt que dans votre tête.',
@@ -815,21 +833,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Cinq courtes paires de sons. À chaque fois, choisissez celui qui sonne le plus autour de vous ; la tête qui gagne est la vôtre.',
   'dsp.room.fitView.start': 'Lancer le test d’écoute',
-  'dsp.room.compare.label': 'Comparer',
-  'dsp.room.compare.original': 'Vous écoutez l’original',
-  'dsp.room.compare.hint':
-    'Écoutez ce qui est joué sans la Salle, au même instant et, une fois mesuré, au même volume. Tout le reste du rack continue de jouer.',
-  'dsp.room.compare.unknown': 'Le moteur n’a pas dit ce qu’il joue.',
-  'dsp.room.compare.waiting': 'En attente du changement par le moteur.',
-  'dsp.room.compare.matched': 'Volume égalisé ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Volume pas encore égalisé : il faut quelques secondes de son.',
-  'dsp.room.compare.foldDown':
-    'L’original est le mixage surround replié en stéréo.',
   'dsp.room.signal.updateRequired':
     'Le nouveau son demande le moteur audio mis à jour. Cette salle ne lui a pas été envoyée : mettez le moteur à jour pour l’entendre.',
-  'dsp.room.signal.spatialBypass':
-    'La Salle s’efface : la source est marquée comme déjà spatialisée (Source stéréo, plus bas).',
   'dsp.room.featured': 'À la une',
   'dsp.room.classicRooms': 'Salles classiques',
   'dsp.room.savedNew': 'Nouveau son',

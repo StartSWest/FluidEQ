@@ -751,6 +751,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Mundo de juego',
   'dsp.room.profile.competitiveV2': 'Competitivo',
   'dsp.room.profile.liveVenueV2': 'Sala en vivo',
+  'dsp.room.profile.closeUpV2': 'Primer plano',
+  'dsp.room.profile.wideStageV2': 'Escenario ancho',
+  'dsp.room.profile.allAroundV2': 'Todo alrededor',
+  'dsp.room.profile.balconyV2': 'Palco',
+  'dsp.room.profile.nightCinemaV2': 'Cine de noche',
+  'dsp.room.profile.conductorV2': 'Director',
+  'dsp.room.profile.rearGuardV2': 'Retaguardia',
   'dsp.room.profilePurpose.referenceV2':
     'Una sala cercana y tratada. El disco delante de ti, sin nada añadido.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -763,6 +770,20 @@ const dsp = {
     'Dirección y nada más: sin paredes, sin cola.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Una sala alrededor del escenario, con una cola larga y suave.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Una voz o una guitarra a un brazo de distancia, en una sala muerta. El intérprete y nada más.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'El par muy separado, para un disco que debe llegar más allá de tus hombros.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Un disco estéreo repartido por todos los altavoces: te sientas en el centro.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Lejos de un escenario estrecho en una sala grande: la banda pequeña al frente, la sala alrededor.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Diálogos al frente, el sub y los envolventes contenidos, para una película cuando todos duermen.',
+  'dsp.room.profilePurpose.conductorV2':
+    'En el podio: los músicos te rodean de extremo izquierdo a extremo derecho.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Para oír lo que tienes detrás: envolventes y traseros arriba, sin paredes ni cola.',
   'dsp.room.fedExpanded':
     'Suena estéreo repartido por la sala: los altavoces punteados se calculan a partir del par frontal, no son canales aparte.',
   'dsp.room.speaker.isMuted': 'silenciado',
@@ -802,9 +823,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Fuente estéreo',
   'dsp.room.tune.stereoHint':
     'Solo para estéreo. Una señal 5.1 o 7.1 conserva sus canales donde están.',
-  'dsp.room.tune.spatial': 'Mi fuente ya es espacial',
-  'dsp.room.tune.spatialHint':
-    'Para sonido ya hecho para auriculares: el audio 3D propio de un juego, una grabación binaural. La Sala se aparta para no colocarlo dos veces. FluidEQ no puede saberlo solo, así que lo decides tú.',
   'dsp.room.fitView.head': 'Tu cabeza y tus auriculares',
   'dsp.room.fitView.headHint':
     'Tres tamaños de una misma cabeza medida: no son tres personas ni un escaneo de tus orejas. Elige el tamaño que pone los sonidos delante de ti y no dentro de tu cabeza.',
@@ -812,21 +830,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Cinco pares cortos de sonidos. Cada vez, elige el que suena más a tu alrededor; la cabeza que gane es la tuya.',
   'dsp.room.fitView.start': 'Empezar la prueba de escucha',
-  'dsp.room.compare.label': 'Comparar',
-  'dsp.room.compare.original': 'Oyendo el original',
-  'dsp.room.compare.hint':
-    'Oye lo que suena sin la Sala, en el mismo instante y, una vez medido, al mismo volumen. Todo lo demás del rack sigue sonando.',
-  'dsp.room.compare.unknown': 'El motor no ha dicho qué está reproduciendo.',
-  'dsp.room.compare.waiting': 'Esperando a que el motor cambie.',
-  'dsp.room.compare.matched': 'Volumen igualado ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Volumen sin igualar todavía: necesita unos segundos de sonido.',
-  'dsp.room.compare.foldDown':
-    'El original es la mezcla envolvente plegada a estéreo.',
   'dsp.room.signal.updateRequired':
     'El sonido nuevo necesita el motor de audio actualizado. Esta sala no se le ha enviado: actualiza el motor para oírla.',
-  'dsp.room.signal.spatialBypass':
-    'La Sala se aparta: la fuente está marcada como ya espacial (Fuente estéreo, abajo).',
   'dsp.room.featured': 'Destacadas',
   'dsp.room.classicRooms': 'Salas clásicas',
   'dsp.room.savedNew': 'Sonido nuevo',

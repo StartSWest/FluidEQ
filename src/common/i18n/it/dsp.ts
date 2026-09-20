@@ -752,6 +752,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Mondo di gioco',
   'dsp.room.profile.competitiveV2': 'Competitivo',
   'dsp.room.profile.liveVenueV2': 'Sala dal vivo',
+  'dsp.room.profile.closeUpV2': 'Primo piano',
+  'dsp.room.profile.wideStageV2': 'Palco largo',
+  'dsp.room.profile.allAroundV2': 'Tutto intorno',
+  'dsp.room.profile.balconyV2': 'Balconata',
+  'dsp.room.profile.nightCinemaV2': 'Cinema di notte',
+  'dsp.room.profile.conductorV2': 'Direttore',
+  'dsp.room.profile.rearGuardV2': 'Retroguardia',
   'dsp.room.profilePurpose.referenceV2':
     'Una stanza vicina e trattata. Il disco davanti a te, niente di aggiunto.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -764,6 +771,20 @@ const dsp = {
     'Direzione e nient’altro: niente pareti, niente coda.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Una sala intorno al palco, con una coda lunga e morbida.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Una voce o una chitarra a un braccio di distanza, in una stanza sorda. L’interprete e nient’altro.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'La coppia molto aperta, per un disco che deve arrivare oltre le spalle.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Un disco stereo distribuito su tutti i diffusori: sei seduto nel mezzo.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Lontano da un palco stretto in una grande sala: la band piccola davanti, la sala tutt’intorno.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Dialoghi in avanti, sub e surround trattenuti, per un film quando tutti dormono.',
+  'dsp.room.profilePurpose.conductorV2':
+    'Sul podio: i musicisti ti avvolgono dall’estrema sinistra all’estrema destra.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Per sentire cosa c’è dietro di te: surround e posteriori alzati, niente pareti, niente coda.',
   'dsp.room.fedExpanded':
     'Sta suonando stereo, distribuito nella stanza: i diffusori tratteggiati sono ricavati dalla coppia frontale, non sono canali a parte.',
   'dsp.room.speaker.isMuted': 'muto',
@@ -803,9 +824,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Sorgente stereo',
   'dsp.room.tune.stereoHint':
     'Solo per lo stereo. Un flusso 5.1 o 7.1 tiene i suoi canali dove sono.',
-  'dsp.room.tune.spatial': 'La mia sorgente è già spaziale',
-  'dsp.room.tune.spatialHint':
-    'Per un suono già fatto per le cuffie: l’audio 3D di un gioco, una registrazione binaurale. La Stanza si fa da parte per non posizionarlo due volte. FluidEQ non può capirlo da solo, quindi lo decidi tu.',
   'dsp.room.fitView.head': 'La tua testa e le tue cuffie',
   'dsp.room.fitView.headHint':
     'Tre taglie di un’unica testa misurata: non tre persone, e non una scansione delle tue orecchie. Scegli la taglia che mette i suoni davanti a te invece che dentro la testa.',
@@ -813,22 +831,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Cinque brevi coppie di suoni. Ogni volta scegli quello che suona più intorno a te; la testa che vince è la tua.',
   'dsp.room.fitView.start': 'Avvia la prova d’ascolto',
-  'dsp.room.compare.label': 'Confronta',
-  'dsp.room.compare.original': 'Stai ascoltando l’originale',
-  'dsp.room.compare.hint':
-    'Ascolta ciò che suona senza la Stanza, nello stesso istante e, una volta misurato, allo stesso volume. Tutto il resto del rack continua a suonare.',
-  'dsp.room.compare.unknown':
-    'Il motore non ha detto che cosa sta riproducendo.',
-  'dsp.room.compare.waiting': 'In attesa che il motore cambi.',
-  'dsp.room.compare.matched': 'Volume pareggiato ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Volume non ancora pareggiato: servono alcuni secondi di suono.',
-  'dsp.room.compare.foldDown':
-    'L’originale è il mix surround ripiegato in stereo.',
   'dsp.room.signal.updateRequired':
     'Il nuovo suono richiede il motore audio aggiornato. Questa stanza non gli è stata inviata: aggiorna il motore per sentirla.',
-  'dsp.room.signal.spatialBypass':
-    'La Stanza si fa da parte: la sorgente è segnata come già spaziale (Sorgente stereo, più sotto).',
   'dsp.room.featured': 'In evidenza',
   'dsp.room.classicRooms': 'Stanze classiche',
   'dsp.room.savedNew': 'Nuovo suono',

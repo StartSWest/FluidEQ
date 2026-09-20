@@ -22,7 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Two collections. The eleven classic rooms are the ones the card shipped
  * with, on the first renderer, and stay exactly as they sound: their ids,
- * their order and every number. The six featured rooms are on the second
+ * their order and every number. The featured rooms are on the second
  * renderer — speakers placed between the head's measured directions, the
  * walls' level a dial of its own (Space) and a tail after them (Ambience) —
  * and each is a purpose rather than a place.
@@ -66,7 +66,14 @@ export type TRoomFeaturedId =
   | 'cinemaV2'
   | 'gameWorldV2'
   | 'competitiveV2'
-  | 'liveVenueV2';
+  | 'liveVenueV2'
+  | 'closeUpV2'
+  | 'wideStageV2'
+  | 'allAroundV2'
+  | 'balconyV2'
+  | 'nightCinemaV2'
+  | 'conductorV2'
+  | 'rearGuardV2';
 
 export type TRoomClassicId = Exclude<TRoomPresetId, TRoomFeaturedId>;
 
@@ -302,6 +309,28 @@ const ROOM_CLASSIC_BY_ID = {
  * - Live Venue: a hall. The walls at -21 dB, a 1.2 s tail at -26 dB darkened
  *   above 4.5 kHz, the surrounds held back as the room's and not the band's.
  *
+ * Five more, added the same evening at Ivan's asking, and each different
+ * from the rest by where the speakers stand and what is sent to them — never
+ * by more air, see below:
+ *
+ * - Close-up: the pair at 18 degrees and an arm's length away in a dead
+ *   room. A voice or one instrument, with nothing round it.
+ * - Wide Stage: the pair at 45 degrees, the centre up a little to hold the
+ *   middle that a wide pair lets go of.
+ * - All Around: a stereo record spread over every speaker at nearly the
+ *   full amount, the surrounds only a decibel under the fronts. The most a
+ *   full-scale record peaks at in any room here (+3.5 dBFS), which is what
+ *   held it under the full amount.
+ * - Balcony: a narrow stage a long way off in the biggest room there is.
+ *   Distance does what Space would: the further the speakers, the more of
+ *   what arrives is the room's.
+ * - Night Cinema: the centre well up, the sub and the surrounds held down.
+ *   Dialogue without the neighbours.
+ * - Conductor: the pair at 60 degrees with the centre up to hold the middle
+ *   a pair that wide lets go of, and the record spread round.
+ * - Rear Guard: Competitive with the surrounds and the rears turned up: no
+ *   walls, no tail, and what is behind you louder than what is in front.
+ *
  * DO NOT RAISE THE AIR OF THESE ROOMS BY ARITHMETIC. It was tried on
  * 2026-09-19, from a measurement that was right and a conclusion that was
  * not: walls at -28 dB and a tail at -38 dB are, on paper, under anything a
@@ -380,7 +409,15 @@ const ROOM_FEATURED_BY_ID = {
     labelKey: 'dsp.room.profile.gameWorldV2',
     purposeKey: 'dsp.room.profilePurpose.gameWorldV2',
     shape: featured(
-      shape(5, 0.55, 1.6, 0, 0.5, [-30, 30, 0, -95, 95, -140, 140]),
+      shape(
+        5,
+        0.55,
+        1.6,
+        0,
+        0.5,
+        [-30, 30, 0, -95, 95, -140, 140],
+        [0, 0, 0, 1.5, 1.5, 1.5, 1.5],
+      ),
       { fill: false, space: -14, tail: [0.3, 0.25, 8000] },
     ),
   },
@@ -413,11 +450,152 @@ const ROOM_FEATURED_BY_ID = {
       { fill: 0.55, space: -4, tail: [0.6, 1.2, 4500] },
     ),
   },
+  closeUpV2: {
+    id: 'closeUpV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.closeUpV2',
+    purposeKey: 'dsp.room.profilePurpose.closeUpV2',
+    shape: featured(
+      shape(2.8, 0.8, 0.8, 1.5, 0, [-18, 18, 0, -90, 90, -135, 135]),
+      { fill: false, space: -18, tail: [0, 0.2, 8000] },
+    ),
+  },
+  wideStageV2: {
+    id: 'wideStageV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.wideStageV2',
+    purposeKey: 'dsp.room.profilePurpose.wideStageV2',
+    shape: featured(
+      shape(
+        5.5,
+        0.5,
+        2,
+        1,
+        0,
+        [-45, 45, 0, -110, 110, -150, 150],
+        [0, 0, 0, -2, -2, -4, -4],
+      ),
+      { fill: 0.25, space: -12, tail: [0.3, 0.35, 7000] },
+    ),
+  },
+  allAroundV2: {
+    id: 'allAroundV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.allAroundV2',
+    purposeKey: 'dsp.room.profilePurpose.allAroundV2',
+    shape: featured(
+      shape(
+        5,
+        0.5,
+        1.8,
+        0,
+        0,
+        [-30, 30, 0, -90, 90, -150, 150],
+        [0, 0, 0, -1, -1, -2, -2],
+      ),
+      { fill: 0.85, space: -12, tail: [0.3, 0.35, 7000] },
+    ),
+  },
+  balconyV2: {
+    id: 'balconyV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.balconyV2',
+    purposeKey: 'dsp.room.profilePurpose.balconyV2',
+    shape: featured(
+      shape(
+        12,
+        0.3,
+        5.5,
+        0,
+        -1,
+        [-18, 18, 0, -100, 100, -140, 140],
+        [0, 0, 0, -3, -3, -4, -4],
+      ),
+      { fill: 0.5, space: -12, tail: [0.5, 1.4, 4000] },
+    ),
+  },
+  nightCinemaV2: {
+    id: 'nightCinemaV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.nightCinemaV2',
+    purposeKey: 'dsp.room.profilePurpose.nightCinemaV2',
+    shape: featured(
+      shape(
+        6,
+        0.55,
+        2.2,
+        3,
+        -4,
+        [-30, 30, 0, -105, 105, -145, 145],
+        [0, 0, 0, -3, -3, -4, -4],
+      ),
+      { fill: 0.4, space: -12, tail: [0.2, 0.5, 5000] },
+    ),
+  },
+  conductorV2: {
+    id: 'conductorV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.conductorV2',
+    purposeKey: 'dsp.room.profilePurpose.conductorV2',
+    shape: featured(
+      shape(
+        8,
+        0.35,
+        2.5,
+        2,
+        0,
+        [-60, 60, 0, -110, 110, -150, 150],
+        [0, 0, 0, -1, -1, -3, -3],
+      ),
+      { fill: 0.8, space: -10, tail: [0.4, 0.9, 5000] },
+    ),
+  },
+  rearGuardV2: {
+    id: 'rearGuardV2',
+    collection: 'featured',
+    labelKey: 'dsp.room.profile.rearGuardV2',
+    purposeKey: 'dsp.room.profilePurpose.rearGuardV2',
+    shape: featured(
+      shape(
+        3.5,
+        0.85,
+        1.2,
+        0,
+        0,
+        [-30, 30, 0, -90, 90, -140, 140],
+        [0, 0, 0, 2, 2, 3, 3],
+      ),
+      { fill: false, space: -60, tail: [0, 0.1, 10000] },
+    ),
+  },
 } satisfies Record<TRoomFeaturedId, IRoomPreset>;
 
-/** The featured rooms, in the order the browser shows them. */
+/**
+ * The order the picker shows them in, which is not the order they were
+ * written or the wire's: by what somebody came for — a record, a film, a
+ * game, a concert — with each room beside the one it is a turn of (Night
+ * Cinema under Cinema, Ivan's asking). The wire order is `ROOM_PRESETS` and
+ * never changes; this one is free to.
+ */
+const ROOM_FEATURED_ORDER: readonly TRoomFeaturedId[] = [
+  'referenceV2',
+  'musicSpaceV2',
+  'wideStageV2',
+  'allAroundV2',
+  'closeUpV2',
+  'cinemaV2',
+  'nightCinemaV2',
+  'gameWorldV2',
+  'competitiveV2',
+  'rearGuardV2',
+  'liveVenueV2',
+  'balconyV2',
+  'conductorV2',
+];
+
+/** The featured rooms, in the order the picker shows them. */
 export const ROOM_FEATURED_LIST: readonly IRoomPreset[] =
-  Object.values(ROOM_FEATURED_BY_ID);
+  ROOM_FEATURED_ORDER.map((id) => ROOM_FEATURED_BY_ID[id]);
 
 /** The classic rooms in their menu's order: by group, then as written. */
 export const ROOM_CLASSIC_LIST: readonly IRoomPreset[] =

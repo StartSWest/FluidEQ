@@ -715,6 +715,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': '游戏世界',
   'dsp.room.profile.competitiveV2': '竞技',
   'dsp.room.profile.liveVenueV2': '现场场馆',
+  'dsp.room.profile.closeUpV2': '特写',
+  'dsp.room.profile.wideStageV2': '宽舞台',
+  'dsp.room.profile.allAroundV2': '环绕四周',
+  'dsp.room.profile.balconyV2': '楼座',
+  'dsp.room.profile.nightCinemaV2': '夜间影院',
+  'dsp.room.profile.conductorV2': '指挥席',
+  'dsp.room.profile.rearGuardV2': '后方警戒',
   'dsp.room.profilePurpose.referenceV2':
     '一个贴近、经过处理的房间。唱片就在你面前，不添加任何东西。',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -723,6 +730,20 @@ const dsp = {
   'dsp.room.profilePurpose.gameWorldV2': '环绕你的世界，短促的声音依然短促。',
   'dsp.room.profilePurpose.competitiveV2': '只有方向：没有墙面，没有尾音。',
   'dsp.room.profilePurpose.liveVenueV2': '环绕舞台的大厅，尾音悠长柔和。',
+  'dsp.room.profilePurpose.closeUpV2':
+    '一臂之遥的人声或吉他，在没有混响的房间里。只有演奏者。',
+  'dsp.room.profilePurpose.wideStageV2':
+    '左右音箱分得很开，适合应当越过双肩的唱片。',
+  'dsp.room.profilePurpose.allAroundV2':
+    '立体声唱片铺到每一只音箱上：你坐在正中间。',
+  'dsp.room.profilePurpose.balconyV2':
+    '大厅里远离窄舞台的位置：乐队小小地在前方，大厅环绕四周。',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    '对白靠前，低音炮和环绕收住，适合大家都睡了之后看电影。',
+  'dsp.room.profilePurpose.conductorV2':
+    '站在指挥台上：乐手从最左到最右把你围住。',
+  'dsp.room.profilePurpose.rearGuardV2':
+    '为了听清身后：环绕与后置调高，没有墙，没有尾音。',
   'dsp.room.fedExpanded':
     '正在播放立体声，并铺满房间：虚线音箱是由前置一对推算出来的，并非独立声道。',
   'dsp.room.speaker.isMuted': '已静音',
@@ -760,9 +781,6 @@ const dsp = {
   'dsp.room.tune.stereo': '立体声音源',
   'dsp.room.tune.stereoHint':
     '只对立体声有效。5.1 或 7.1 音流会保持各声道原位。',
-  'dsp.room.tune.spatial': '我的音源已是空间音频',
-  'dsp.room.tune.spatialHint':
-    '用于本来就为耳机制作的声音：游戏自带的 3D 音频、双耳录音。房间会让开，避免重复定位。FluidEQ 无法自行判断，所以由你决定。',
   'dsp.room.fitView.head': '你的头型与耳机',
   'dsp.room.fitView.headHint':
     '同一个实测头型的三种尺寸：不是三个人，也不是对你耳朵的扫描。选择让声音出现在你面前、而不是头里的那个尺寸。',
@@ -770,19 +788,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     '五组简短的声音。每次选出更像环绕着你的那个；胜出的头型就是你的。',
   'dsp.room.fitView.start': '开始听音测试',
-  'dsp.room.compare.label': '对比',
-  'dsp.room.compare.original': '正在听原声',
-  'dsp.room.compare.hint':
-    '在同一时刻听不经房间的原声，测量完成后音量也一致。机架里的其他部分照常播放。',
-  'dsp.room.compare.unknown': '引擎尚未报告它在播放什么。',
-  'dsp.room.compare.waiting': '正在等待引擎切换。',
-  'dsp.room.compare.matched': '响度已对齐（{gain} dB）。',
-  'dsp.room.compare.unmatched': '响度尚未对齐：需要几秒钟的声音。',
-  'dsp.room.compare.foldDown': '原声是折叠为立体声的环绕混音。',
   'dsp.room.signal.updateRequired':
     '新声音需要更新后的音频引擎。这个房间尚未发送给引擎：更新引擎后才能听到。',
-  'dsp.room.signal.spatialBypass':
-    '房间已让开：音源被标记为已是空间音频（见下方“立体声音源”）。',
   'dsp.room.featured': '精选',
   'dsp.room.classicRooms': '经典房间',
   'dsp.room.savedNew': '新声音',

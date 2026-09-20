@@ -754,6 +754,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Mundo de jogo',
   'dsp.room.profile.competitiveV2': 'Competitivo',
   'dsp.room.profile.liveVenueV2': 'Sala ao vivo',
+  'dsp.room.profile.closeUpV2': 'Grande plano',
+  'dsp.room.profile.wideStageV2': 'Palco largo',
+  'dsp.room.profile.allAroundV2': 'A toda a volta',
+  'dsp.room.profile.balconyV2': 'Balcão',
+  'dsp.room.profile.nightCinemaV2': 'Cinema à noite',
+  'dsp.room.profile.conductorV2': 'Maestro',
+  'dsp.room.profile.rearGuardV2': 'Retaguarda',
   'dsp.room.profilePurpose.referenceV2':
     'Uma sala próxima e tratada. O disco à tua frente, sem nada acrescentado.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -766,6 +773,20 @@ const dsp = {
     'Direção e mais nada: sem paredes, sem cauda.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Uma sala à volta do palco, com uma cauda longa e suave.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Uma voz ou uma guitarra à distância de um braço, numa sala morta. O intérprete e mais nada.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'O par bem afastado, para um disco que deve passar para lá dos ombros.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Um disco estéreo espalhado por todas as colunas: fica sentado no meio.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Longe de um palco estreito numa sala grande: a banda pequena à frente, a sala a toda a volta.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Diálogos à frente, o sub e os surrounds contidos, para um filme quando todos dormem.',
+  'dsp.room.profilePurpose.conductorV2':
+    'No pódio: os músicos envolvem-no da extrema esquerda à extrema direita.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Para ouvir o que está atrás de si: surrounds e traseiras mais altos, sem paredes nem cauda.',
   'dsp.room.fedExpanded':
     'Está a tocar estéreo, espalhado pela sala: as colunas a tracejado são calculadas a partir do par frontal, não são canais à parte.',
   'dsp.room.speaker.isMuted': 'sem som',
@@ -805,9 +826,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Fonte estéreo',
   'dsp.room.tune.stereoHint':
     'Só para estéreo. Um sinal 5.1 ou 7.1 mantém os seus canais onde estão.',
-  'dsp.room.tune.spatial': 'A minha fonte já é espacial',
-  'dsp.room.tune.spatialHint':
-    'Para som já feito para auscultadores: o áudio 3D do próprio jogo, uma gravação binaural. A Sala afasta-se para não o colocar duas vezes. O FluidEQ não consegue saber sozinho, por isso decides tu.',
   'dsp.room.fitView.head': 'A tua cabeça e os teus auscultadores',
   'dsp.room.fitView.headHint':
     'Três tamanhos de uma única cabeça medida: não são três pessoas nem uma digitalização das tuas orelhas. Escolhe o tamanho que põe os sons à tua frente e não dentro da cabeça.',
@@ -815,21 +833,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Cinco pares curtos de sons. De cada vez, escolhe o que soa mais à tua volta; a cabeça que ganhar é a tua.',
   'dsp.room.fitView.start': 'Começar o teste de escuta',
-  'dsp.room.compare.label': 'Comparar',
-  'dsp.room.compare.original': 'A ouvir o original',
-  'dsp.room.compare.hint':
-    'Ouve o que está a tocar sem a Sala, no mesmo instante e, depois de medido, com o mesmo volume. Tudo o resto do rack continua a tocar.',
-  'dsp.room.compare.unknown': 'O motor não disse o que está a reproduzir.',
-  'dsp.room.compare.waiting': 'À espera que o motor mude.',
-  'dsp.room.compare.matched': 'Volume igualado ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Volume ainda não igualado: precisa de alguns segundos de som.',
-  'dsp.room.compare.foldDown':
-    'O original é a mistura surround dobrada para estéreo.',
   'dsp.room.signal.updateRequired':
     'O som novo precisa do motor de áudio atualizado. Esta sala não lhe foi enviada: atualiza o motor para a ouvires.',
-  'dsp.room.signal.spatialBypass':
-    'A Sala está a afastar-se: a fonte está marcada como já espacial (Fonte estéreo, abaixo).',
   'dsp.room.featured': 'Em destaque',
   'dsp.room.classicRooms': 'Salas clássicas',
   'dsp.room.savedNew': 'Som novo',

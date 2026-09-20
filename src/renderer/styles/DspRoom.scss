@@ -22,16 +22,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'theme' as *;
 
 // ---------------------------------------------------------------------------
-// Under the header: what is playing, and the comparison.
+// Under the header: what is playing. A comparison with the original stood at
+// the other end of this row until 2026-09-19; it was the Room's own switch
+// under another name, and went.
 // ---------------------------------------------------------------------------
 
 .dsp-room-status {
   display: flex;
   flex: 1 1 100%;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px 16px;
   min-width: 0;
 }
 
@@ -65,38 +64,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     opacity: 1;
     box-shadow: 0 0 8px currentColor;
   }
-}
-
-// Original / Room. Its words sit before the button, so the button keeps its
-// place at the row's end whatever they say.
-.dsp-room-compare {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px 10px;
-  margin-left: auto;
-
-  .button {
-    gap: 6px;
-  }
-
-  .button svg {
-    width: 13px;
-    height: 13px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.4;
-    stroke-linecap: round;
-  }
-}
-
-.dsp-room-compare__state {
-  order: -1;
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.3;
-  text-align: right;
 }
 
 .dsp-room-signal {

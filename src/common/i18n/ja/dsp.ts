@@ -739,6 +739,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'ゲームワールド',
   'dsp.room.profile.competitiveV2': 'コンペティティブ',
   'dsp.room.profile.liveVenueV2': 'ライブ会場',
+  'dsp.room.profile.closeUpV2': 'クローズアップ',
+  'dsp.room.profile.wideStageV2': 'ワイドステージ',
+  'dsp.room.profile.allAroundV2': 'オールアラウンド',
+  'dsp.room.profile.balconyV2': 'バルコニー',
+  'dsp.room.profile.nightCinemaV2': 'ナイトシネマ',
+  'dsp.room.profile.conductorV2': '指揮者',
+  'dsp.room.profile.rearGuardV2': 'リアガード',
   'dsp.room.profilePurpose.referenceV2':
     '近くて吸音された部屋。音源が目の前に、何も足さずに。',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -749,6 +756,20 @@ const dsp = {
   'dsp.room.profilePurpose.competitiveV2': '方向だけ。壁も残響もなし。',
   'dsp.room.profilePurpose.liveVenueV2':
     'ステージを囲むホール。長くやわらかな残響。',
+  'dsp.room.profilePurpose.closeUpV2':
+    '腕を伸ばせば届く距離の声やギター。響きのない部屋で、演奏者だけ。',
+  'dsp.room.profilePurpose.wideStageV2':
+    '左右を大きく開いたペア。肩の外まで広がってほしい音源に。',
+  'dsp.room.profilePurpose.allAroundV2':
+    'ステレオ音源をすべてのスピーカーに広げ、その真ん中に座ります。',
+  'dsp.room.profilePurpose.balconyV2':
+    '大きなホールで狭いステージから遠く離れた席。前方に小さなバンド、周りはホール。',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'セリフを前に、サブと周囲のスピーカーを控えめに。みんなが寝たあとの映画に。',
+  'dsp.room.profilePurpose.conductorV2':
+    '指揮台の上。奏者が左端から右端まであなたを囲みます。',
+  'dsp.room.profilePurpose.rearGuardV2':
+    '背後の音を聞くために。サラウンドとリアを上げ、壁も余韻もなし。',
   'dsp.room.fedExpanded':
     'ステレオを部屋全体に広げて再生中：点線のスピーカーは前方ペアから作られたもので、独立したチャンネルではありません。',
   'dsp.room.speaker.isMuted': 'ミュート中',
@@ -788,9 +809,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'ステレオ音源',
   'dsp.room.tune.stereoHint':
     'ステレオ専用です。5.1 や 7.1 のストリームは、チャンネルをそのままの位置に保ちます。',
-  'dsp.room.tune.spatial': '音源はすでに立体音響',
-  'dsp.room.tune.spatialHint':
-    'すでにヘッドホン向けに作られた音のための設定です：ゲーム独自の 3D オーディオやバイノーラル録音など。二重に配置しないよう、ルームは脇に退きます。FluidEQ には自動で判別できないので、ご自身で選んでください。',
   'dsp.room.fitView.head': 'あなたの頭とヘッドホン',
   'dsp.room.fitView.headHint':
     '1 つの測定済みの頭を 3 つのサイズにしたものです。3 人分でも、耳のスキャンでもありません。音が頭の中ではなく前に来るサイズを選んでください。',
@@ -798,21 +816,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     '短い音のペアが 5 組。毎回、より周りから聞こえる方を選んでください。勝ち残った頭があなたのものです。',
   'dsp.room.fitView.start': 'リスニングテストを始める',
-  'dsp.room.compare.label': '比較',
-  'dsp.room.compare.original': 'オリジナルを再生中',
-  'dsp.room.compare.hint':
-    '再生中の音をルームなしで聴きます。同じタイミングで、測定後は同じ音量で。ラックのほかの部分はそのまま鳴り続けます。',
-  'dsp.room.compare.unknown': 'エンジンから再生内容の報告がありません。',
-  'dsp.room.compare.waiting': 'エンジンの切り替えを待っています。',
-  'dsp.room.compare.matched': '音量をそろえました（{gain} dB）。',
-  'dsp.room.compare.unmatched':
-    '音量はまだそろっていません：数秒の音が必要です。',
-  'dsp.room.compare.foldDown':
-    'オリジナルはサラウンドミックスをステレオに畳んだものです。',
   'dsp.room.signal.updateRequired':
     '新しいサウンドには更新されたオーディオエンジンが必要です。このルームはエンジンに送られていません：聴くにはエンジンを更新してください。',
-  'dsp.room.signal.spatialBypass':
-    'ルームは脇に退いています：音源が「すでに立体音響」に設定されています（下の「ステレオ音源」）。',
   'dsp.room.featured': 'おすすめ',
   'dsp.room.classicRooms': 'クラシックルーム',
   'dsp.room.savedNew': '新しいサウンド',

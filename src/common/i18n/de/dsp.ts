@@ -759,6 +759,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Spielwelt',
   'dsp.room.profile.competitiveV2': 'Wettkampf',
   'dsp.room.profile.liveVenueV2': 'Live-Saal',
+  'dsp.room.profile.closeUpV2': 'Nahaufnahme',
+  'dsp.room.profile.wideStageV2': 'Breite Bühne',
+  'dsp.room.profile.allAroundV2': 'Rundherum',
+  'dsp.room.profile.balconyV2': 'Balkon',
+  'dsp.room.profile.nightCinemaV2': 'Nachtkino',
+  'dsp.room.profile.conductorV2': 'Dirigent',
+  'dsp.room.profile.rearGuardV2': 'Rückendeckung',
   'dsp.room.profilePurpose.referenceV2':
     'Ein naher, bedämpfter Raum. Die Aufnahme vor dir, nichts dazu.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -771,6 +778,20 @@ const dsp = {
     'Richtung und sonst nichts: keine Wände, kein Nachhall.',
   'dsp.room.profilePurpose.liveVenueV2':
     'Ein Saal um die Bühne, mit langem, weichem Nachhall.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'Eine Stimme oder Gitarre auf Armlänge, in einem toten Raum. Der Interpret und sonst nichts.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'Das Paar weit auseinander, für eine Aufnahme, die über die Schultern hinausreichen soll.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'Eine Stereoaufnahme auf alle Lautsprecher verteilt: Sie sitzen mittendrin.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Weit weg von einer schmalen Bühne in einem großen Saal: die Band klein vorn, der Saal ringsum.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Dialoge nach vorn, Sub und Surrounds zurückgenommen, für einen Film, wenn alle schlafen.',
+  'dsp.room.profilePurpose.conductorV2':
+    'Auf dem Podium: die Musiker umgeben Sie von ganz links bis ganz rechts.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'Um zu hören, was hinter Ihnen ist: Surrounds und Rücklautsprecher angehoben, keine Wände, kein Nachhall.',
   'dsp.room.fedExpanded':
     'Stereo läuft, im Raum verteilt: Die gestrichelten Lautsprecher sind aus dem vorderen Paar errechnet, keine eigenen Kanäle.',
   'dsp.room.speaker.isMuted': 'stumm',
@@ -810,9 +831,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Stereoquelle',
   'dsp.room.tune.stereoHint':
     'Nur für Stereo. Ein 5.1- oder 7.1-Signal behält seine Kanäle, wo sie sind.',
-  'dsp.room.tune.spatial': 'Meine Quelle ist schon räumlich',
-  'dsp.room.tune.spatialHint':
-    'Für Klang, der schon für Kopfhörer gemacht ist: das eigene 3D-Audio eines Spiels, eine binaurale Aufnahme. Der Raum tritt zur Seite, damit nichts doppelt platziert wird. FluidEQ kann das nicht selbst erkennen, also entscheidest du.',
   'dsp.room.fitView.head': 'Dein Kopf und deine Kopfhörer',
   'dsp.room.fitView.headHint':
     'Drei Größen eines einzigen gemessenen Kopfes: nicht drei Personen und kein Scan deiner Ohren. Wähle die Größe, die Klänge vor dich setzt statt in deinen Kopf.',
@@ -820,21 +838,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Fünf kurze Klangpaare. Wähle jedes Mal den, der mehr um dich herum klingt; der Kopf, der gewinnt, ist deiner.',
   'dsp.room.fitView.start': 'Hörtest starten',
-  'dsp.room.compare.label': 'Vergleichen',
-  'dsp.room.compare.original': 'Du hörst das Original',
-  'dsp.room.compare.hint':
-    'Höre, was läuft, ohne den Raum: im selben Moment und, sobald gemessen, gleich laut. Alles andere im Rack spielt weiter.',
-  'dsp.room.compare.unknown': 'Die Engine hat nicht gemeldet, was sie spielt.',
-  'dsp.room.compare.waiting': 'Warte auf das Umschalten der Engine.',
-  'dsp.room.compare.matched': 'Lautheit angeglichen ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Lautheit noch nicht angeglichen: Dafür braucht es ein paar Sekunden Klang.',
-  'dsp.room.compare.foldDown':
-    'Das Original ist die auf Stereo gefaltete Surround-Mischung.',
   'dsp.room.signal.updateRequired':
     'Der neue Klang braucht die aktualisierte Audio-Engine. Dieser Raum wurde ihr nicht geschickt: Aktualisiere die Engine, um ihn zu hören.',
-  'dsp.room.signal.spatialBypass':
-    'Der Raum tritt zur Seite: Die Quelle ist als schon räumlich markiert (Stereoquelle, unten).',
   'dsp.room.featured': 'Empfohlen',
   'dsp.room.classicRooms': 'Klassische Räume',
   'dsp.room.savedNew': 'Neuer Klang',

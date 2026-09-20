@@ -759,6 +759,13 @@ const dsp = {
   'dsp.room.profile.gameWorldV2': 'Game World',
   'dsp.room.profile.competitiveV2': 'Competitive',
   'dsp.room.profile.liveVenueV2': 'Live Venue',
+  'dsp.room.profile.closeUpV2': 'Close-up',
+  'dsp.room.profile.wideStageV2': 'Wide Stage',
+  'dsp.room.profile.allAroundV2': 'All Around',
+  'dsp.room.profile.balconyV2': 'Balcony',
+  'dsp.room.profile.nightCinemaV2': 'Night Cinema',
+  'dsp.room.profile.conductorV2': 'Conductor',
+  'dsp.room.profile.rearGuardV2': 'Rear Guard',
   'dsp.room.profilePurpose.referenceV2':
     'A close, treated room. The record in front of you, and nothing added.',
   'dsp.room.profilePurpose.musicSpaceV2':
@@ -771,6 +778,20 @@ const dsp = {
     'Direction and nothing else: no walls, no tail.',
   'dsp.room.profilePurpose.liveVenueV2':
     'A hall around the stage, with a long, soft tail.',
+  'dsp.room.profilePurpose.closeUpV2':
+    'A voice or a guitar an arm’s length away, in a dead room. The player and nothing else.',
+  'dsp.room.profilePurpose.wideStageV2':
+    'The pair set wide apart, for a record that should reach past your shoulders.',
+  'dsp.room.profilePurpose.allAroundV2':
+    'A stereo record spread over every speaker: you sit in the middle of it.',
+  'dsp.room.profilePurpose.balconyV2':
+    'Far from a narrow stage in a big hall: the band small in front, the hall all round.',
+  'dsp.room.profilePurpose.nightCinemaV2':
+    'Dialogue forward, the sub and the surrounds held down, for a film after everyone is asleep.',
+  'dsp.room.profilePurpose.conductorV2':
+    'On the podium: the players wrap round you from far left to far right.',
+  'dsp.room.profilePurpose.rearGuardV2':
+    'For hearing what is behind you: the surrounds and rears up, no walls, no tail.',
   'dsp.room.fedExpanded':
     'Stereo is playing, spread round the room: the dashed speakers are worked out from the front pair, not separate channels.',
   'dsp.room.speaker.isMuted': 'muted',
@@ -810,9 +831,6 @@ const dsp = {
   'dsp.room.tune.stereo': 'Stereo source',
   'dsp.room.tune.stereoHint':
     'Only for stereo. A 5.1 or 7.1 stream keeps its own channels where they are.',
-  'dsp.room.tune.spatial': 'My source is already spatial',
-  'dsp.room.tune.spatialHint':
-    'For sound already made for headphones: a game’s own 3D audio, a binaural recording. The Room steps aside so it is not placed twice. FluidEQ cannot tell by itself, so this is your call.',
   'dsp.room.fitView.head': 'Your head and headphones',
   'dsp.room.fitView.headHint':
     'Three sizes of one measured head: not three people, and not a scan of your ears. Pick the size that puts sounds in front of you rather than inside your head.',
@@ -820,21 +838,8 @@ const dsp = {
   'dsp.room.fitView.guidedHint':
     'Five short pairs of sounds. Each time, pick the one that sounds more around you; the head that wins is yours.',
   'dsp.room.fitView.start': 'Start the listening test',
-  'dsp.room.compare.label': 'Compare',
-  'dsp.room.compare.original': 'Hearing the original',
-  'dsp.room.compare.hint':
-    'Hear what is playing without the Room, at the same moment and, once measured, at the same loudness. Everything else in the rack keeps playing.',
-  'dsp.room.compare.unknown': 'The engine has not said what it is playing.',
-  'dsp.room.compare.waiting': 'Waiting for the engine to switch.',
-  'dsp.room.compare.matched': 'Loudness matched ({gain} dB).',
-  'dsp.room.compare.unmatched':
-    'Loudness not matched yet: it needs a few seconds of sound.',
-  'dsp.room.compare.foldDown':
-    'The original is the surround mix folded to stereo.',
   'dsp.room.signal.updateRequired':
     'The new sound needs the updated audio engine. This room has not been sent to it: update the engine to hear it.',
-  'dsp.room.signal.spatialBypass':
-    'The Room is stepping aside: the source is marked as already spatial (Stereo source, below).',
   'dsp.room.featured': 'Featured',
   'dsp.room.classicRooms': 'Classic rooms',
   'dsp.room.savedNew': 'New sound',

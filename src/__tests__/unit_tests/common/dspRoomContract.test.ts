@@ -98,7 +98,14 @@ it('normalizes invalid new fields without turning on the new renderer', () => {
     compareOriginal: false,
     sourceAlreadySpatial: false,
   });
-  expect(clampDspSettings({ room: upgraded }).room).toEqual(upgraded);
+  // Everything a stored room says comes back as it was, but the two switches
+  // that came off the page: they are held off, or a room saved with one on
+  // would pass the sound through with nothing on the page to say why.
+  expect(clampDspSettings({ room: upgraded }).room).toEqual({
+    ...upgraded,
+    compareOriginal: false,
+    sourceAlreadySpatial: false,
+  });
 });
 
 it('saves sound shape, excludes runtime/source preferences and matches every new sound field', () => {

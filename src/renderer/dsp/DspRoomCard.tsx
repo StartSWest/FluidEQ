@@ -19,7 +19,6 @@ import { usePlusEntitled } from '../plus/GalleryParts';
 import { useTranslation } from '../utils/I18nContext';
 import { ProcessorCard } from './DspControls';
 import DspRoomBar from './DspRoomBar';
-import DspRoomCompare from './DspRoomCompare';
 import DspRoomFit from './DspRoomFit';
 import DspRoomGraph from './DspRoomGraph';
 import DspRoomQuick from './DspRoomQuick';
@@ -217,7 +216,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           <span className="dsp-room-source__pip" aria-hidden="true" />
           {t(feed.sourceKey)}
         </p>
-        <DspRoomCompare room={room} onPatch={onPatch} onCommit={onCommit} />
       </div>
       <DspRoomSignal room={room} />
 
@@ -284,7 +282,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             canShape={canShape}
             isLocked={!isPlus}
             onShape={shape}
-            onPatch={onPatch}
             onCommit={onCommit}
           />
           <DspRoomFit
