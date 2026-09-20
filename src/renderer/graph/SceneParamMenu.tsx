@@ -116,12 +116,17 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
   const { t } = useTranslation();
   const own = useOwnParams(lookId);
   const chosen = useListenerParams(lookId);
-  if (!own || own.length === 0) {
+  // The same filter the Studio's copy of this list applies, and for the same
+  // reason: a scene's AI writes these, so a range with no width is possible.
+  // Its slider swept a 0-100% readout while every value it wrote landed back
+  // on the one value the author gave — a control that could only sit still.
+  const movable = own?.filter((param) => param.max - param.min > 0);
+  if (!movable || movable.length === 0) {
     return null;
   }
   return (
     <>
-      {own.map((param) => (
+      {movable.map((param) => (
         <ParamSlider
           key={param.id}
           lookId={lookId}

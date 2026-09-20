@@ -358,33 +358,41 @@ const LibraryToolbar = ({
           </button>
         ))}
       </AnchoredMenu>
-      <div
-        className="library-toolbar__view-modes"
-        role="group"
-        aria-label={t('library.view.aria')}
-      >
-        {VIEW_MODES.map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            aria-pressed={viewMode === mode}
-            className={`library-toolbar__chip${
-              viewMode === mode ? ' is-active' : ''
-            }`}
-            // The label goes at narrow widths and the glyph is all that is
-            // left, so the tooltip is what the word falls back to — the same
-            // lesson the folder controls beside it already learned.
-            title={t(VIEW_LABEL_KEYS[mode])}
-            onClick={() => onViewMode(mode)}
-          >
-            <MenuIcon
-              name={VIEW_ICONS[mode]}
-              className="library-toolbar__action-icon"
-            />
-            <span>{t(VIEW_LABEL_KEYS[mode])}</span>
-          </button>
-        ))}
-      </div>
+      {/* Not on Videos. That shelf is its own section and reads none of
+          these — the three chips lit up, stayed lit, and changed nothing at
+          all. The workspace has said so in a comment since the section was
+          added; the chips were simply left on screen. Not rendered rather
+          than hidden, because the group is a flex row and `hidden` loses to
+          its own `display`. */}
+      {browseMode === 'video' ? undefined : (
+        <div
+          className="library-toolbar__view-modes"
+          role="group"
+          aria-label={t('library.view.aria')}
+        >
+          {VIEW_MODES.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={viewMode === mode}
+              className={`library-toolbar__chip${
+                viewMode === mode ? ' is-active' : ''
+              }`}
+              // The label goes at narrow widths and the glyph is all that is
+              // left, so the tooltip is what the word falls back to — the same
+              // lesson the folder controls beside it already learned.
+              title={t(VIEW_LABEL_KEYS[mode])}
+              onClick={() => onViewMode(mode)}
+            >
+              <MenuIcon
+                name={VIEW_ICONS[mode]}
+                className="library-toolbar__action-icon"
+              />
+              <span>{t(VIEW_LABEL_KEYS[mode])}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {/* On every view, the list included. It was withheld there for a while
           on the grounds that the columns already steer that list — but the
           columns are Title, Artist, Album and Year, and this offers an order

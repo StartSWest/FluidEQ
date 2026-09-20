@@ -50,6 +50,39 @@ describe('the library toolbar', () => {
     expect(onBrowseMode).toHaveBeenCalledWith('artist');
   });
 
+  // The Videos shelf is its own section and reads none of these. The three
+  // chips lit up there, stayed lit, and changed nothing at all.
+  it('offers no way to lay out a shelf that has one layout', () => {
+    const view = (browseMode: 'album' | 'video') => (
+      <LibraryToolbar
+        browseMode={browseMode}
+        viewMode="grid"
+        sort="title"
+        sortDirection="asc"
+        query=""
+        onBrowseMode={jest.fn()}
+        onViewMode={jest.fn()}
+        onSort={jest.fn()}
+        onSortDirection={jest.fn()}
+      />
+    );
+    // The positive control: they are there on every other shelf.
+    const { unmount } = wrap(view('album'));
+    expect(screen.getByRole('button', { name: 'Cover Flow' })).toBeVisible();
+    unmount();
+
+    wrap(view('video'));
+    expect(
+      screen.queryByRole('button', { name: 'Cover Flow' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Grid' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'List' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('carries a chip per shelf, each labelled and wired the same way', async () => {
     const onBrowseMode = jest.fn();
     wrap(

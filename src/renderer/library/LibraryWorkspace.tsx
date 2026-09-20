@@ -1392,13 +1392,22 @@ const LibraryWorkspace = ({
                 // Cover flow is the exception, and the reason is literal: its
                 // panel opens UNDER the row rather than instead of it, so the
                 // carousel this reorders is still there to watch reorder.
+                //
+                // Withheld on Playlists too, for the reason all three shelf
+                // views already give in their own code: a playlist is put in
+                // order by `sortPlaylists` — Favourites first, then by name —
+                // and none of them reads this. The dropdown was on screen
+                // there, opened, and changed nothing, which is exactly the
+                // control the list view refuses to draw a header for.
                 onSort={
-                  isDrilledIn && viewMode !== 'coverflow'
+                  (isDrilledIn && viewMode !== 'coverflow') ||
+                  browseMode === 'playlist'
                     ? undefined
                     : handlePickSort
                 }
                 onSortDirection={
-                  isDrilledIn && viewMode !== 'coverflow'
+                  (isDrilledIn && viewMode !== 'coverflow') ||
+                  browseMode === 'playlist'
                     ? undefined
                     : handleSortDirection
                 }
