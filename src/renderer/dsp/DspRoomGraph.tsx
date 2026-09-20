@@ -52,13 +52,14 @@ interface IDspRoomGraphProps {
   derived: readonly boolean[];
   /** Whether the stream carries a subwoofer feed; drawn asleep without. */
   subFed: boolean;
-  /** The speaker whose pane is open beside the picture; the sub is 'sub'. */
-  selected: TRoomPick;
+  /** The speaker whose pane is open beside the picture; the sub is 'sub',
+   * and nothing at all until one is pressed. */
+  selected: TRoomPick | undefined;
   /**
    * The speaker to show in the pane: on the press itself, before any travel,
    * so the pane is already that speaker's while it is being dragged.
    */
-  onSelect: (which: TRoomPick) => void;
+  onSelect: (which: TRoomPick | undefined) => void;
   /**
    * A speaker moving, by the pointer or the arrow keys; whole degrees, one
    * at a time. `mirrored` is the plain move: the speaker's pair goes with
@@ -327,6 +328,18 @@ const DspRoomGraph = ({
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         role="group"
         aria-label={t('dsp.room.graphLabel')}
+        // A press on the room rather than on a speaker lets the speaker go,
+        // which is how anything selected on a picture is let go of. The
+        // speakers and the sub are `<g>`s inside this, so the press has to be
+        // asked where it landed — the floor, the walls and the listener are
+        // all children of this element too, and `currentTarget` would only
+        // ever catch a press on the bare canvas between them.
+        onPointerDown={(event) => {
+          const landed = event.target as Element | null;
+          if (!landed?.closest('.dsp-room-speaker, .dsp-room-sub')) {
+            onSelect(undefined);
+          }
+        }}
       >
         <RoomBackdrop room={room} frontLabel={t('dsp.room.front')} />
         {/* Each speaker's direct path to the head, brighter the louder it is. */}

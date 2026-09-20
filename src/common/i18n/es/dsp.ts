@@ -718,6 +718,7 @@ const dsp = {
   'dsp.room.speaker.angle': 'Ángulo',
   'dsp.room.speaker.mute': 'Silenciar',
   'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.pick': 'Elige un altavoz para cambiar sus ajustes',
   'dsp.room.speaker.soloUnfed':
     'Nada de lo que suena llega a este altavoz, así que no hay nada que oír por separado.',
   'dsp.room.speakerName.FL': 'Frontal izquierdo',

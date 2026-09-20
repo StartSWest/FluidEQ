@@ -721,6 +721,7 @@ const dsp = {
   'dsp.room.speaker.angle': 'Angle',
   'dsp.room.speaker.mute': 'Muet',
   'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.pick': 'Choisis une enceinte pour régler ses paramètres',
   'dsp.room.speaker.soloUnfed':
     'Rien de ce qui est lu n’atteint cette enceinte : il n’y a rien à écouter seul.',
   'dsp.room.speakerName.FL': 'Avant gauche',

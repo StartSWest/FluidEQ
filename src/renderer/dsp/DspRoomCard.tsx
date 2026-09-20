@@ -79,7 +79,9 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const { t } = useTranslation();
   const isPlus = usePlusEntitled();
   const canShape = isPlus && room.enabled;
-  const [picked, setPicked] = useState<TRoomPick>(0);
+  // Nothing chosen to begin with: the pane beside the picture rests behind a
+  // card asking for a speaker, and a press on the room lets go of one again.
+  const [picked, setPicked] = useState<TRoomPick | undefined>(undefined);
   const [saved, setSaved] = useState<ISavedRoom[]>(() => readSavedRooms());
   /** The room a drag began in, to go back to if it is called off. */
   const dragOrigin = useRef<IRoomSettings | null>(null);
@@ -149,7 +151,9 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
       ? t(restorePreset.labelKey as TranslationKey)
       : restore?.name;
 
-  const pickedIsFed = picked === 'sub' ? feed.subFed : feed.fed[picked];
+  // What the resting pane shows is the front left's, so its note is too.
+  const pickedFor = picked ?? 0;
+  const pickedIsFed = pickedFor === 'sub' ? feed.subFed : feed.fed[pickedFor];
 
   return (
     <ProcessorCard
@@ -262,7 +266,7 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             canShape={canShape}
             isLocked={!isPlus}
             isFed={pickedIsFed}
-            isDerived={picked !== 'sub' && feed.derived[picked]}
+            isDerived={pickedFor !== 'sub' && feed.derived[pickedFor]}
             isDisabled={!room.enabled}
             onChange={edit}
             onCommit={onCommit}

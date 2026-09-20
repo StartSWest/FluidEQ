@@ -23,7 +23,9 @@ import {
 
 interface IDspRoomSpeakerPanelProps {
   room: IRoomSettings;
-  which: TRoomPick;
+  /** Nothing chosen yet, which is where the page starts and where an empty
+   * press in the picture puts it back. */
+  which: TRoomPick | undefined;
   /** Angle, distance and level shape the room: Plus, and the room on. */
   canShape: boolean;
   /** Whether the lock is Plus's and not the room being off. */
@@ -90,11 +92,20 @@ const DspRoomSpeakerPanel = ({
 }: IDspRoomSpeakerPanelProps) => {
   const { t } = useTranslation();
   const angleId = useId();
-  const isSub = which === 'sub';
-  const index = isSub ? ROOM_SPEAKERS : which;
-  const name = t(roomSpeakerNameKey(which));
+  /**
+   * Before a speaker is chosen the pane is still drawn, and it is the front
+   * left's numbers that are drawn — every control resting, behind a card that
+   * says to pick one. An empty pane, or a pane that appears on the first
+   * press, would move everything beside it the moment somebody touched the
+   * picture; this way the page is the shape it will keep.
+   */
+  const isWaiting = which === undefined;
+  const pick = which ?? 0;
+  const isSub = pick === 'sub';
+  const index = isSub ? ROOM_SPEAKERS : pick;
+  const name = t(roomSpeakerNameKey(pick));
   const isMuted = room.mutes[index] === true;
-  const isSoloed = !isSub && roomSolo(room.mutes) === which;
+  const isSoloed = !isSub && roomSolo(room.mutes) === pick;
   // Letting go is always allowed; taking a solo needs sound to reach it.
   const canSolo = isSoloed || isFed;
   // The sub's level and mute act on the stream's subwoofer channel. Without
@@ -108,9 +119,13 @@ const DspRoomSpeakerPanel = ({
     list.map((entry, index_) => (index_ === at ? value : entry));
 
   return (
-    <div className="dsp-band dsp-room-pane" role="group" aria-label={name}>
+    <div
+      className={`dsp-band dsp-room-pane${isWaiting ? ' is-waiting' : ''}`}
+      role="group"
+      aria-label={isWaiting ? t('dsp.room.speaker.pick') : name}
+    >
       <div className="dsp-room-pane__head">
-        <span className="dsp-room-pane__code">{roomSpeakerCode(which)}</span>
+        <span className="dsp-room-pane__code">{roomSpeakerCode(pick)}</span>
         <span className="dsp-room-pane__name">{name}</span>
         {isLocked ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
         <span className="dsp-import__spacer" />
@@ -118,7 +133,7 @@ const DspRoomSpeakerPanel = ({
           type="button"
           className={`button small${isMuted ? '' : ' subtle'}`}
           aria-pressed={isMuted}
-          disabled={isDisabled || !hasChannel}
+          disabled={isDisabled || isWaiting || !hasChannel}
           onClick={() => {
             shape({ mutes: withOne(room.mutes, index, !isMuted) });
             onCommit();
@@ -131,13 +146,13 @@ const DspRoomSpeakerPanel = ({
             type="button"
             className={`button small${isSoloed ? '' : ' subtle'}`}
             aria-pressed={isSoloed}
-            disabled={isDisabled || !canSolo}
+            disabled={isDisabled || isWaiting || !canSolo}
             title={canSolo ? undefined : t('dsp.room.speaker.soloUnfed')}
             onClick={() => {
               shape({
                 mutes: isSoloed
                   ? withoutSolo(room.mutes)
-                  : withSolo(room.mutes, which),
+                  : withSolo(room.mutes, pick),
               });
               onCommit();
             }}
@@ -162,15 +177,15 @@ const DspRoomSpeakerPanel = ({
                   min={-180}
                   max={180}
                   step={1}
-                  value={room.angles[which]}
-                  disabled={!canShape}
+                  value={room.angles[pick]}
+                  disabled={!canShape || isWaiting}
                   onChange={(event) => {
                     const angle = Number(event.target.value);
                     if (Number.isFinite(angle)) {
                       shape({
                         angles: withOne(
                           room.angles,
-                          which,
+                          pick,
                           Math.max(-180, Math.min(180, Math.round(angle))),
                         ),
                       });
@@ -186,15 +201,15 @@ const DspRoomSpeakerPanel = ({
             </div>
             <Dial
               labelKey="dsp.room.speaker.distance"
-              value={room.distances[which]}
+              value={room.distances[pick]}
               min={0.5}
               max={6}
               step={0.1}
               unit="m"
               defaultValue={room.distanceM}
-              isDisabled={!canShape}
+              isDisabled={!canShape || isWaiting}
               onChange={(value) =>
-                shape({ distances: withOne(room.distances, which, value) })
+                shape({ distances: withOne(room.distances, pick, value) })
               }
               onCommit={onCommit}
             />
@@ -202,18 +217,18 @@ const DspRoomSpeakerPanel = ({
         ) : undefined}
         <Dial
           labelKey="dsp.room.speaker.level"
-          value={isSub ? room.subDb : room.levels[which]}
+          value={isSub ? room.subDb : room.levels[pick]}
           min={isSub ? -12 : -24}
           max={12}
           step={0.5}
           unit="dB"
           defaultValue={isSub ? DSP_DEFAULTS.room.subDb : 0}
-          isDisabled={!canShape || !hasChannel}
+          isDisabled={!canShape || isWaiting || !hasChannel}
           onChange={(value) =>
             shape(
               isSub
                 ? { subDb: value }
-                : { levels: withOne(room.levels, which, value) },
+                : { levels: withOne(room.levels, pick, value) },
             )
           }
           onCommit={onCommit}
@@ -222,6 +237,71 @@ const DspRoomSpeakerPanel = ({
       <p className="dsp-band-hint dsp-room-pane__note">
         {t(feedNote(isSub, isFed, isDerived))}
       </p>
+      {/* Over the resting pane rather than instead of it, so nothing on the
+          page moves when a speaker is finally chosen: the card lifts off and
+          the controls under it wake up in place. It is not in the way of
+          anything — every control behind it is already disabled — so it lets
+          the press through to the picture underneath the pane's own edge.
+
+          No `role="status"` on it: the pane's own group label already reads
+          this sentence, and a second live region competed with the picture's
+          note about what is playing. */}
+      {isWaiting ? (
+        <div className="dsp-room-pane__ask">
+          <svg
+            className="dsp-room-pane__ask-art"
+            viewBox="0 0 64 52"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            {/* A speaker on the ring with the pointer arriving at it: the
+                cabinet, its two drivers, and two arcs of sound leaving it. */}
+            <rect
+              className="dsp-room-pane__ask-body"
+              x="12.5"
+              y="6.5"
+              width="25"
+              height="39"
+              rx="4.5"
+            />
+            <circle
+              className="dsp-room-pane__ask-driver"
+              cx="25"
+              cy="18"
+              r="6.2"
+            />
+            <circle
+              className="dsp-room-pane__ask-dot"
+              cx="25"
+              cy="18"
+              r="1.9"
+            />
+            <circle
+              className="dsp-room-pane__ask-driver"
+              cx="25"
+              cy="34"
+              r="3.4"
+            />
+            <path
+              className="dsp-room-pane__ask-wave"
+              d="M44 17a17 17 0 0 1 0 18"
+            />
+            <path
+              className="dsp-room-pane__ask-wave is-far"
+              d="M51 11a27 27 0 0 1 0 30"
+            />
+            <path
+              className="dsp-room-pane__ask-pointer"
+              d="M30 28.5 44.5 43 39 44.5 42.5 50"
+            />
+          </svg>
+          <p className="dsp-room-pane__ask-text">
+            {t('dsp.room.speaker.pick')}
+          </p>
+        </div>
+      ) : undefined}
     </div>
   );
 };

@@ -721,6 +721,7 @@ const dsp = {
   'dsp.room.speaker.angle': 'Ângulo',
   'dsp.room.speaker.mute': 'Silenciar',
   'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.pick': 'Escolhe uma coluna para alterar as definições',
   'dsp.room.speaker.soloUnfed':
     'Nada do que está a tocar chega a esta coluna, por isso não há nada para ouvir a solo.',
   'dsp.room.speakerName.FL': 'Frontal esquerda',

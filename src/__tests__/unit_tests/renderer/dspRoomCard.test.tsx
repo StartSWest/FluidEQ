@@ -277,36 +277,50 @@ describe('a pressed speaker', () => {
   };
   const panelOf = (name: string) => within(screen.getByRole('group', { name }));
 
-  it('has a pane from the start, and the pane follows the speaker that is pressed', () => {
+  it('asks for a speaker first, then follows the one that is pressed', () => {
     renderCard();
-    // The front left's, before anything is pressed: the pane is never empty
-    // and never a press away.
-    const first = panelOf(en['dsp.room.speakerName.FL']);
+    // Nothing is chosen to begin with, and the pane says so rather than
+    // opening on somebody's speaker: it is drawn, at rest, behind a card
+    // asking for one — so the page does not move when one is picked.
+    const waiting = panelOf(en['dsp.room.speaker.pick']);
+    expect(waiting.getByLabelText(en['dsp.room.speaker.level'])).toBeDisabled();
+    expect(waiting.getByLabelText(en['dsp.room.speaker.angle'])).toBeDisabled();
     expect(
-      first.getByLabelText(en['dsp.room.speaker.level']),
-    ).toBeInTheDocument();
-    expect(
-      first.getByLabelText(en['dsp.room.speaker.distance']),
-    ).toBeInTheDocument();
-    expect(
-      first.getByLabelText(en['dsp.room.speaker.angle']),
-    ).toBeInTheDocument();
+      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
+    ).not.toBeInTheDocument();
+
     // On the press itself, not the release: a drag has no release until it is
     // over, and the pane is what shows the angle while it moves.
     const speaker = groupOf('SR');
     fireEvent.pointerDown(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
     expect(speaker).toHaveClass('is-selected');
+    const chosen = panelOf(en['dsp.room.speakerName.SR']);
+    expect(chosen.getByLabelText(en['dsp.room.speaker.level'])).toBeEnabled();
     expect(
-      screen.getByRole('group', { name: en['dsp.room.speakerName.SR'] }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('group', { name: en['dsp.room.speakerName.FL'] }),
+      screen.queryByRole('group', { name: en['dsp.room.speaker.pick'] }),
     ).not.toBeInTheDocument();
     fireEvent.pointerUp(speaker, { clientX: 10, clientY: 10, pointerId: 1 });
-    // Pressing it again keeps it: the pane has no closed state to go back to.
+    // Pressing it again keeps it.
     press('SR');
     expect(
       screen.getByRole('group', { name: en['dsp.room.speakerName.SR'] }),
+    ).toBeInTheDocument();
+  });
+
+  it('lets a speaker go when the room around it is pressed', () => {
+    renderCard();
+    press('SR');
+    expect(
+      screen.getByRole('group', { name: en['dsp.room.speakerName.SR'] }),
+    ).toBeInTheDocument();
+    // The picture itself, away from any speaker — the way anything selected
+    // on a picture is let go of.
+    fireEvent.pointerDown(
+      screen.getByRole('group', { name: en['dsp.room.graphLabel'] }),
+      { clientX: 1, clientY: 1, pointerId: 1 },
+    );
+    expect(
+      screen.getByRole('group', { name: en['dsp.room.speaker.pick'] }),
     ).toBeInTheDocument();
   });
 

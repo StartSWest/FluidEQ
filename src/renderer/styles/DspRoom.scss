@@ -247,7 +247,95 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // The selected speaker's pane.
 .dsp-room-pane {
+  position: relative;
   border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+
+  // While nothing is chosen the pane is still drawn, at rest, and the card
+  // below sits over it. The edge goes quiet with it: a lit border around a
+  // pane nobody has chosen was the one thing on the page asking to be read.
+  &.is-waiting {
+    border-color: $border-subtle;
+  }
+
+  &.is-waiting > *:not(.dsp-room-pane__ask) {
+    opacity: 0.32;
+    // Not `pointer-events: none` — every control under here is disabled in
+    // its own right, and a pane that swallowed the pointer would also
+    // swallow the focus ring that says which one is disabled.
+    filter: saturate(0.4);
+  }
+}
+
+// The card over the resting pane: what to do, and a drawing of it.
+//
+// It covers the pane and nothing else, lifted off it rather than painted on
+// it — a flat panel at this size read as a second card the page had grown,
+// where a shadow reads as one thing in front of another.
+.dsp-room-pane__ask {
+  @include inset-surface;
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  inset: 8px;
+  padding: 12px 18px;
+  background: color-mix(in srgb, $surface-plot 92%, transparent);
+  box-shadow:
+    0 14px 30px rgba($black, 0.45),
+    0 0 0 1px color-mix(in srgb, $secondary-light 8%, transparent);
+  backdrop-filter: blur(3px);
+  text-align: left;
+}
+
+.dsp-room-pane__ask-art {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 50px;
+}
+
+.dsp-room-pane__ask-body {
+  fill: color-mix(in srgb, $secondary-default 12%, transparent);
+  stroke: $secondary-light;
+  stroke-width: 2;
+}
+
+.dsp-room-pane__ask-driver {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-width: 1.8;
+  opacity: 0.85;
+}
+
+.dsp-room-pane__ask-dot {
+  fill: $secondary-light;
+}
+
+.dsp-room-pane__ask-wave {
+  stroke: $secondary-default;
+  stroke-width: 2.2;
+  opacity: 0.55;
+
+  &.is-far {
+    opacity: 0.28;
+  }
+}
+
+// The pointer, drawn as the cursor arriving rather than as a hand: it is the
+// one part of the picture that says "press this".
+.dsp-room-pane__ask-pointer {
+  fill: none;
+  stroke: $text-primary;
+  stroke-width: 2.4;
+}
+
+.dsp-room-pane__ask-text {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  line-height: 1.35;
 }
 
 .dsp-room-pane__head {

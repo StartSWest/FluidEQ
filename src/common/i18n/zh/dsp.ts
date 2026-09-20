@@ -682,6 +682,7 @@ const dsp = {
   'dsp.room.speaker.angle': '角度',
   'dsp.room.speaker.mute': '静音',
   'dsp.room.speaker.solo': '独奏',
+  'dsp.room.speaker.pick': '选择一个音箱以更改其设置',
   'dsp.room.speaker.soloUnfed':
     '正在播放的声音没有到达这只音箱，没有可以单独听的内容。',
   'dsp.room.speakerName.FL': '前左',

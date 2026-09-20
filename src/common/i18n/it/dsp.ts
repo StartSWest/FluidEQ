@@ -719,6 +719,8 @@ const dsp = {
   'dsp.room.speaker.angle': 'Angolo',
   'dsp.room.speaker.mute': 'Muto',
   'dsp.room.speaker.solo': 'Solo',
+  'dsp.room.speaker.pick':
+    'Scegli un diffusore per modificarne le impostazioni',
   'dsp.room.speaker.soloUnfed':
     'Niente di ciò che suona arriva a questo diffusore, quindi non c’è nulla da ascoltare da solo.',
   'dsp.room.speakerName.FL': 'Anteriore sinistro',

@@ -706,6 +706,7 @@ const dsp = {
   'dsp.room.speaker.angle': '角度',
   'dsp.room.speaker.mute': 'ミュート',
   'dsp.room.speaker.solo': 'ソロ',
+  'dsp.room.speaker.pick': 'スピーカーを選ぶと設定を変更できます',
   'dsp.room.speaker.soloUnfed':
     '再生中の音はこのスピーカーに届いていないため、単独で聴けるものがありません。',
   'dsp.room.speakerName.FL': 'フロント左',
