@@ -225,7 +225,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ प्रीसेट',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
-  'tabs.games': 'गेम',
+  'tabs.games': 'गेम प्रीसेट',
   'tabs.config': 'Config',
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',

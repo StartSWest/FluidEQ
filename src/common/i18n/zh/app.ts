@@ -219,7 +219,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ 预设',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
-  'tabs.games': '游戏',
+  'tabs.games': '游戏预设',
   'tabs.config': 'Config',
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',

@@ -222,7 +222,7 @@ const app = {
   'tabs.presets': 'EQ Presets',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
-  'tabs.games': 'Games',
+  'tabs.games': 'Game presets',
   'tabs.config': 'Config',
   'tabs.media': 'Online Media',
   // The same place, named in one word for a titlebar that has run out of

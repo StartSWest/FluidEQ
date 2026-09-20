@@ -233,7 +233,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Preset EQ',
   'tabs.voicing': 'Carattere',
   'tabs.convolution': 'Convoluzione',
-  'tabs.games': 'Giochi',
+  'tabs.games': 'Preset di gioco',
   'tabs.config': 'Config',
   'tabs.media': 'Media online',
   'tabs.mediaShort': 'Media',
