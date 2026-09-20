@@ -176,16 +176,19 @@ const help = {
   'help.room.intro':
     'The Room turns headphones into a listening room. Every channel of the sound becomes a speaker standing around your head, rendered through a measured head and the reflections of a room you shape yourself, so a film sits in front of you and a game surrounds you. It needs the FluidEQ Engine and headphones; on speakers it does nothing useful.',
   'help.room.steps':
-    'Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.\nPick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.\nPress Fit and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.\nSave a room you like under a name; a saved room comes back with a press and never changes your head.',
+    'Open DSP, choose Room in the rail and switch it on. Stereo becomes two speakers in front of you; a 5.1 film five and the sub; a 7.1 game the whole ring. The chip beside the switch says which.\nPick a room at the top — studio, living room, cinema, concert hall and more — or turn Size, Walls and Distance yourself and drag a speaker around the ring. Speakers the playing stream cannot reach are drawn asleep.\nPress Start the listening test and answer five short listening pairs: the room takes the head that puts sounds in front of you. Small, Medium and Large can be chosen by hand too.\nSave a room you like under a name; a saved room comes back with a press and never changes your head.',
   'help.room.tip':
-    'Shaping the room — the dials, dragging a speaker, Fit and saving — is part of Plus; the rooms and the head choice are for everyone. Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.',
+    'Games and films only send their surround channels to an output Windows believes has that many speakers: when the driver takes it, the output panel offers one press to 7.1.',
   'help.room.picker':
     "The rooms to start from, grouped like every other stage's profiles; Custom once you shape one.",
   'help.room.picture':
-    'The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. Drag a speaker to move it. Press one to set it by itself: its level, its own distance, its angle by number, and Mute and Solo to hear it alone.',
-  'help.room.dialsName': 'Size, Walls, Distance, Centre, Sub',
+    'The room from above: walls that fade as they absorb, the speakers on their ring, the head in the middle. All of it is drawn to one scale, so a speaker standing further out than the room is wide is drawn outside its walls. Drag one and its pair moves with it; hold Shift to move it alone.',
+  'help.room.speaker':
+    'Press a speaker in the room and this pane becomes its own: its angle as a number, its own distance, its level, and Mute or Solo to hear it alone.',
+  'help.room.speakerName': 'The chosen speaker',
+  'help.room.dialsName': 'Space, Ambience, Distance',
   'help.room.dials':
-    "The room's side in metres, how much its walls absorb, how far the speakers stand, and the centre's and the sub's level.",
+    "How much of the walls you hear, the soft tail after them, and how far the speakers stand. Size, Walls and the tail's own length and tone are in Room character below.",
   'help.room.fit': 'Five listening pairs that pick the head for your ears.',
   'help.room.head':
     'The measured head the room renders through: small, medium or large.',

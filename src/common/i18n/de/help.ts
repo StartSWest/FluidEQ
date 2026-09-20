@@ -181,16 +181,19 @@ const help: Record<keyof typeof en, string> = {
   'help.room.intro':
     'Der Raum macht aus Kopfhörern einen Hörraum. Jeder Kanal des Klangs wird zu einem Lautsprecher um deinen Kopf, gerendert durch einen vermessenen Kopf und die Reflexionen eines Raums, den du selbst formst — so sitzt ein Film vor dir und ein Spiel umgibt dich. Er braucht die FluidEQ Engine und Kopfhörer; auf Lautsprechern bringt er nichts.',
   'help.room.steps':
-    'Öffne DSP, wähle Raum in der Leiste und schalte ihn ein. Stereo wird zu zwei Lautsprechern vor dir; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring. Der Chip neben dem Schalter sagt, was gerade gilt.\nWähle oben einen Raum — Studio, Wohnzimmer, Kino, Konzertsaal und mehr — oder dreh Größe, Wände und Abstand selbst und zieh einen Lautsprecher um den Ring. Lautsprecher, die der laufende Stream nicht erreicht, werden schlafend gezeichnet.\nDrück Anpassen und beantworte fünf kurze Hörpaare: der Raum nimmt den Kopf, der die Klänge vor dich setzt. Klein, Mittel und Groß lassen sich auch von Hand wählen.\nSpeichere einen Raum, der dir gefällt, unter einem Namen; ein gespeicherter Raum kommt mit einem Druck zurück und ändert nie deinen Kopf.',
+    'Öffne DSP, wähle Raum in der Leiste und schalte ihn ein. Stereo wird zu zwei Lautsprechern vor dir; ein 5.1-Film zu fünf plus Sub; ein 7.1-Spiel zum ganzen Ring. Der Chip neben dem Schalter sagt, was gerade gilt.\nWähle oben einen Raum — Studio, Wohnzimmer, Kino, Konzertsaal und mehr — oder dreh Größe, Wände und Abstand selbst und zieh einen Lautsprecher um den Ring. Lautsprecher, die der laufende Stream nicht erreicht, werden schlafend gezeichnet.\nDrück Hörtest starten und beantworte fünf kurze Hörpaare: der Raum nimmt den Kopf, der die Klänge vor dich setzt. Klein, Mittel und Groß lassen sich auch von Hand wählen.\nSpeichere einen Raum, der dir gefällt, unter einem Namen; ein gespeicherter Raum kommt mit einem Druck zurück und ändert nie deinen Kopf.',
   'help.room.tip':
-    'Den Raum zu formen — die Regler, das Ziehen eines Lautsprechers, Anpassen und Speichern — gehört zu Plus; die Räume und die Kopfwahl sind für alle. Spiele und Filme schicken ihre Surround-Kanäle nur an einen Ausgang, der laut Windows so viele Lautsprecher hat: wenn der Treiber es annimmt, bietet das Ausgabefeld einen Druck auf 7.1 an.',
+    'Spiele und Filme schicken ihre Surround-Kanäle nur an einen Ausgang, der laut Windows so viele Lautsprecher hat: wenn der Treiber es annimmt, bietet das Ausgabefeld einen Druck auf 7.1 an.',
   'help.room.picker':
     'Die Räume zum Anfangen, gruppiert wie die Profile jeder anderen Stufe; Eigene, sobald du einen formst.',
   'help.room.picture':
-    'Der Raum von oben: Wände, die beim Absorbieren verblassen, die Lautsprecher auf ihrem Ring, der Kopf in der Mitte. Zieh einen Lautsprecher, um ihn zu verschieben. Tipp einen an, um ihn für sich einzustellen: Pegel, eigener Abstand, Winkel als Zahl, und Stumm und Solo, um ihn allein zu hören.',
-  'help.room.dialsName': 'Größe, Wände, Abstand, Center, Sub',
+    'Der Raum von oben: Wände, die beim Absorbieren verblassen, die Lautsprecher auf ihrem Ring, der Kopf in der Mitte. Alles ist in einem einzigen Maßstab gezeichnet, ein Lautsprecher weiter draußen als der Raum breit ist steht also außerhalb seiner Wände. Zieh einen, und sein Partner geht mit; halte Umschalt, um ihn allein zu bewegen.',
+  'help.room.speaker':
+    'Tipp einen Lautsprecher im Raum an, und dieses Feld gehört ihm: sein Winkel als Zahl, sein eigener Abstand, sein Pegel, und Stumm oder Solo, um ihn allein zu hören.',
+  'help.room.speakerName': 'Der gewählte Lautsprecher',
+  'help.room.dialsName': 'Raumanteil, Nachhall, Abstand',
   'help.room.dials':
-    'Die Seite des Raums in Metern, wie stark seine Wände absorbieren, wie weit die Lautsprecher stehen, und der Pegel von Center und Sub.',
+    'Wie viel du von den Wänden hörst, die weiche Fahne danach, und wie weit die Lautsprecher stehen. Größe, Wände sowie Länge und Klang der Fahne stehen darunter unter Raumcharakter.',
   'help.room.fit': 'Fünf Hörpaare, die den Kopf für deine Ohren wählen.',
   'help.room.head':
     'Der vermessene Kopf, durch den der Raum gerendert wird: klein, mittel oder groß.',

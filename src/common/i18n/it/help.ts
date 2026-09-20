@@ -178,16 +178,19 @@ const help: Record<keyof typeof en, string> = {
   'help.room.intro':
     'La Stanza trasforma le cuffie in una sala d’ascolto. Ogni canale del suono diventa un diffusore intorno alla tua testa, reso attraverso una testa misurata e le riflessioni di una stanza che modelli tu stesso, così un film sta davanti a te e un gioco ti circonda. Richiede il FluidEQ Engine e le cuffie; sui diffusori non serve a nulla.',
   'help.room.steps':
-    'Apri DSP, scegli Stanza nella barra e accendila. Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello. Il chip accanto all’interruttore dice quale.\nScegli una stanza in alto — studio, salotto, cinema, sala da concerto e altre — oppure gira Dimensione, Pareti e Distanza da solo e trascina un diffusore lungo l’anello. I diffusori che il flusso in riproduzione non raggiunge sono disegnati addormentati.\nPremi Adatta e rispondi a cinque brevi coppie d’ascolto: la stanza prende la testa che mette i suoni davanti a te. Piccola, Media e Grande si scelgono anche a mano.\nSalva una stanza che ti piace con un nome; una stanza salvata torna con una pressione e non cambia mai la tua testa.',
+    'Apri DSP, scegli Stanza nella barra e accendila. Lo stereo diventa due diffusori davanti a te; un film 5.1 cinque e il sub; un gioco 7.1 l’intero anello. Il chip accanto all’interruttore dice quale.\nScegli una stanza in alto — studio, salotto, cinema, sala da concerto e altre — oppure gira Dimensione, Pareti e Distanza da solo e trascina un diffusore lungo l’anello. I diffusori che il flusso in riproduzione non raggiunge sono disegnati addormentati.\nPremi Avvia la prova d’ascolto e rispondi a cinque brevi coppie d’ascolto: la stanza prende la testa che mette i suoni davanti a te. Piccola, Media e Grande si scelgono anche a mano.\nSalva una stanza che ti piace con un nome; una stanza salvata torna con una pressione e non cambia mai la tua testa.',
   'help.room.tip':
-    'Modellare la stanza — le manopole, trascinare un diffusore, Adatta e il salvataggio — fa parte di Plus; le stanze e la scelta della testa sono per tutti. Giochi e film mandano i canali surround solo a un’uscita che Windows crede abbia tanti diffusori: quando il driver lo accetta, il pannello dell’uscita offre il passaggio a 7.1 con una pressione.',
+    "Giochi e film inviano i loro canali surround solo a un'uscita che Windows crede abbia altrettanti altoparlanti: quando il driver lo accetta, il pannello di uscita offre un tocco per passare a 7.1.",
   'help.room.picker':
     'Le stanze da cui partire, raggruppate come i profili di ogni altro stadio; Personalizzata appena ne modelli una.',
   'help.room.picture':
-    'La stanza vista dall’alto: pareti che sbiadiscono assorbendo, i diffusori sul loro anello, la testa al centro. Trascina un diffusore per spostarlo. Premi un diffusore per regolarlo da solo: il suo livello, la sua distanza, il suo angolo in gradi, e Muto e Solo per ascoltarlo da solo.',
-  'help.room.dialsName': 'Dimensione, Pareti, Distanza, Centrale, Sub',
+    "La stanza vista dall'alto: pareti che sbiadiscono assorbendo, gli altoparlanti sul loro anello, la testa al centro. È tutto disegnato in un'unica scala, quindi un altoparlante più lontano di quanto la stanza sia larga viene disegnato fuori dalle sue pareti. Trascinane uno e il suo gemello lo segue; tieni Maiusc per spostarlo da solo.",
+  'help.room.speaker':
+    'Tocca un altoparlante nella stanza e questo riquadro diventa il suo: il suo angolo come numero, la sua distanza, il suo livello, e Muto o Solo per ascoltarlo da solo.',
+  'help.room.speakerName': "L'altoparlante scelto",
+  'help.room.dialsName': 'Spazio, Ambiente, Distanza',
   'help.room.dials':
-    'Il lato della stanza in metri, quanto assorbono le pareti, a che distanza stanno i diffusori e il livello del centrale e del sub.',
+    'Quanto senti delle pareti, la coda morbida che le segue e quanto sono lontani gli altoparlanti. Dimensione, Pareti e la durata e il tono della coda sono in Carattere della stanza, qui sotto.',
   'help.room.fit':
     'Cinque coppie d’ascolto che scelgono la testa per le tue orecchie.',
   'help.room.head':

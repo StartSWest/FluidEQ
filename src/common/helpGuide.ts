@@ -435,55 +435,64 @@ const CHAPTERS = [
     ],
   },
   {
-    // The Room card alone, clipped from a 1372px window at 1.5 device pixels
-    // per CSS pixel, with the living room chosen and stereo playing so five
-    // speakers and the sub are drawn asleep, as the chapter describes.
+    // The Room card alone, at 1372 CSS pixels and 1.5 device pixels to the
+    // pixel like the rest: the Reference room as it ships, stereo playing so
+    // five speakers and the sub are drawn asleep, and the front left chosen
+    // so the pane beside the picture holds a speaker's own controls rather
+    // than the card that asks for one. Every box below is that element's own
+    // rectangle in the capture, measured rather than eyeballed — the page
+    // was rebuilt twice in two days and boxes placed by eye survive neither.
     id: 'room',
     group: 'sound',
     figures: [
       {
         image: '32-dsp-room.png',
-        width: 1762,
-        height: 779,
+        width: 2010,
+        height: 1131,
         controls: [
           {
-            box: [15, 85, 1137, 679],
-            icon: [23, 415, 20, 20],
+            box: [23, 128, 728, 831],
+            icon: [268, 309, 91, 101],
             name: 'dsp.room.graphLabel',
             text: 'help.room.picture',
           },
           {
-            box: [1173, 114, 564, 92],
-            icon: [1181, 150, 20, 20],
+            box: [765, 128, 604, 250],
+            icon: [782, 152, 41, 27],
+            name: 'help.room.speakerName',
+            text: 'help.room.speaker',
+          },
+          {
+            box: [1384, 128, 604, 250],
+            icon: [1507, 171, 117, 138],
             name: 'help.room.dialsName',
             text: 'help.room.dials',
           },
           {
-            box: [1519, 25, 129, 14],
+            box: [23, 92, 164, 21],
             name: 'help.room.liveName',
             text: 'help.room.live',
           },
           {
-            box: [59, 16, 210, 32],
-            icon: [67, 22, 20, 20],
+            box: [89, 24, 315, 48],
+            icon: [105, 37, 23, 23],
             name: 'dsp.room.presets',
             text: 'help.room.picker',
           },
           {
-            box: [1446, 303, 46, 32],
-            icon: [1454, 309, 20, 20],
-            name: 'dsp.room.fit',
+            box: [1579, 988, 213, 48],
+            name: 'dsp.room.fitView.start',
             text: 'help.room.fit',
           },
           {
-            box: [1272, 353, 143, 21],
+            box: [1400, 859, 571, 84],
             name: 'dsp.room.groupHead',
             text: 'help.room.head',
           },
           {
-            box: [1646, 221, 90, 32],
-            icon: [1654, 227, 20, 20],
-            name: 'dsp.room.saveRoom',
+            box: [654, 24, 98, 48],
+            icon: [671, 38, 20, 20],
+            name: 'dsp.eqSave.save',
             text: 'help.room.saved',
           },
         ],

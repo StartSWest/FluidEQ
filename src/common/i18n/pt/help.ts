@@ -176,16 +176,19 @@ const help: Record<keyof typeof en, string> = {
   'help.room.intro':
     'A Sala transforma os auscultadores numa sala de escuta. Cada canal do som passa a ser uma coluna à volta da tua cabeça, renderizada através de uma cabeça medida e das reflexões de uma sala que tu próprio moldas, e um filme fica à tua frente e um jogo rodeia-te. Precisa do FluidEQ Engine e de auscultadores; em colunas não serve para nada.',
   'help.room.steps':
-    'Abre DSP, escolhe Sala na barra e liga-a. O estéreo passa a duas colunas à tua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolhe uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou roda Tamanho, Paredes e Distância tu próprio e arrasta uma coluna pelo anel. As colunas que o fluxo em reprodução não alcança são desenhadas a dormir.\nCarrega em Ajustar e responde a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à tua frente. Pequena, Média e Grande também se escolhem à mão.\nGuarda uma sala de que gostes com um nome; uma sala guardada volta com um toque e nunca muda a tua cabeça.',
+    'Abre DSP, escolhe Sala na barra e liga-a. O estéreo passa a duas colunas à tua frente; um filme 5.1, cinco e o sub; um jogo 7.1, o anel inteiro. O chip ao lado do interruptor diz qual.\nEscolhe uma sala no topo — estúdio, sala de estar, cinema, sala de concertos e mais — ou roda Tamanho, Paredes e Distância tu próprio e arrasta uma coluna pelo anel. As colunas que o fluxo em reprodução não alcança são desenhadas a dormir.\nCarrega em Começar o teste de escuta e responde a cinco pares curtos de escuta: a sala fica com a cabeça que põe os sons à tua frente. Pequena, Média e Grande também se escolhem à mão.\nGuarda uma sala de que gostes com um nome; uma sala guardada volta com um toque e nunca muda a tua cabeça.',
   'help.room.tip':
-    'Moldar a sala — os botões, arrastar uma coluna, Ajustar e guardar — faz parte do Plus; as salas e a escolha da cabeça são para todos. Jogos e filmes só enviam os canais surround para uma saída que o Windows julga ter tantas colunas: quando o controlador o aceita, o painel de saída oferece a passagem a 7.1 com um toque.',
+    'Jogos e filmes só enviam os canais surround para uma saída que o Windows acredita ter esse número de colunas: quando o controlador aceita, o painel de saída oferece um toque para 7.1.',
   'help.room.picker':
     'As salas de partida, agrupadas como os perfis de cada outro andar; Personalizada assim que moldas uma.',
   'help.room.picture':
-    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Arrasta uma coluna para a mover. Carrega numa coluna para a ajustar sozinha: o nível, a própria distância, o ângulo em graus, e Silenciar e Solo para a ouvir sozinha.',
-  'help.room.dialsName': 'Tamanho, Paredes, Distância, Central, Sub',
+    'A sala vista de cima: paredes que se apagam ao absorver, as colunas no seu anel, a cabeça ao centro. Está tudo desenhado numa só escala, por isso uma coluna mais afastada do que a sala é larga fica desenhada fora das suas paredes. Arraste uma e o seu par acompanha-a; mantenha Shift para movê-la sozinha.',
+  'help.room.speaker':
+    'Toque numa coluna da sala e este painel passa a ser dela: o seu ângulo em graus, a sua própria distância, o seu nível, e Silenciar ou Solo para a ouvir sozinha.',
+  'help.room.speakerName': 'A coluna escolhida',
+  'help.room.dialsName': 'Espaço, Ambiente, Distância',
   'help.room.dials':
-    'O lado da sala em metros, quanto as paredes absorvem, a que distância estão as colunas e o nível do central e do sub.',
+    'Quanto ouve das paredes, a cauda suave que vem a seguir e a que distância estão as colunas. Tamanho, Paredes e a duração e o tom da cauda estão em Carácter da sala, abaixo.',
   'help.room.fit':
     'Cinco pares de escuta que escolhem a cabeça para os teus ouvidos.',
   'help.room.head':
