@@ -781,7 +781,7 @@ Out-String` (or any other capture) is what actually waits for it and shows
   48 kHz block is the numbers it shipped as; the doubling halves
   (`head_response`, `RoomInterpolation`). `room_profiles_test.cpp` holds the
   same tone within 0.3 dB across the four rates on both renderers.
-- **The six featured rooms are measured through the shipped head, from the
+- **The featured rooms are measured through the shipped head, from the
   app's own table.** `room_profiles_test.cpp` reads
   `room_profiles_fixture.h`, which `generate-room-profiles-fixture.ts` writes
   out of `roomPresets.ts` and `dspRoomProfiles.test.ts` holds to it byte for
@@ -803,8 +803,12 @@ Out-String` (or any other capture) is what actually waits for it and shows
   them back. The header is the standard `dsp-eq-bar` (`DspRoomBar`: one
   RichPick under three headings — Featured, Classic rooms, Yours — the
   arrows, Reset, Restore profile only while there is one, Save, Delete on a
-  saved room); under it a status line (what is playing on the left, Compare
-  on the right); then the picture on the left, sticky, and six bands beside
+  saved room); under it a status line saying what is playing (Compare stood
+  at its other end, and "My source is already spatial" in the Stereo band,
+  until Ivan took both off on 2026-09-19 — each "is same as off" —
+  and `clampDspSettings` holds both false, because the engine still reads
+  them and a room stored with one on would pass the sound through with
+  nothing on the page to say why); then the picture on the left, sticky, and six bands beside
   it in three, two or one columns and never four (six divides by those; four
   left a hole the size of two bands at a 2560px window), each row's name
   over its controls so nothing breaks in two. The selected speaker's pane is
@@ -817,6 +821,30 @@ Out-String` (or any other capture) is what actually waits for it and shows
   (`roomProfileMemory.ts`); a custom room met after a restart gets none
   rather than a guess. `.claude/harness-room` (launch entry `room-harness`)
   mounts the real card with a simulated source, account and engine report.
+- **Never make the featured rooms wetter by arithmetic, and never add a room
+  that measures as another one.** On 2026-09-19 the four rooms with air were
+  lifted from walls at -28 dB and a tail at -38 dB to about -21 and -22 —
+  still 16 dB under the direct sound, every check green, no third octave
+  moved by more than 1.4 dB — and Ivan heard "too much echo on all those and
+  same sounding... it was so nice before" within minutes; the values went
+  back the same evening. The tail is four delay lines between 30 and 44 ms:
+  raised to where it can be picked out, what is picked out is its repeats,
+  and it is the same four lines in every room. Live Venue (walls -21, tail
+  -26.5) is the wettest room he has called nice and no room exceeds it; a
+  wetter one needs a denser tail in the engine first. What tells rooms apart
+  is where the speakers stand and what is sent to them, and
+  `no_two_rooms_are_one_room` (`room_profiles_test.cpp`) measures it: level,
+  width at the ears from 700 Hz to 4 kHz, top against bottom, and on 7.1 the
+  centre, a side and a rear against the front above 250 Hz. Three rooms
+  written that night measured as copies of others and were taken out again.
+  The same measuring found that the sub dial does nothing to a stereo record
+  (it is the LFE's; managed bass is at unity), that a speaker's level does
+  not reach the managed bass, and that a record leaves every room about 3 dB
+  louder and 3 to 4 dB darker than it came — which the rack's Room copies
+  answer with five EQ bands in front of the Room (`roomTone.ts`, held by
+  `a_room_copy_keeps_its_chains_tone` with the room alone as its control),
+  and the Room switched on by hand does not. The whole answer is a tone hold
+  inside the second renderer, and it wants his ears before it ships.
 - **The Library's DSP host reads the room's head from the shipped folder,
   not from the wire.** The host is spawned with `--room-heads <dir>`
   (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's
