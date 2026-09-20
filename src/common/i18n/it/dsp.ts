@@ -693,7 +693,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Nome della stanza',
   'dsp.room.deleteRoom': 'Elimina stanza',
   'dsp.room.groupHead': 'Testa',
-  'dsp.room.groupHeadphones': 'Cuffie',
   'dsp.room.size': 'Dimensione',
   'dsp.room.walls': 'Pareti',
   'dsp.room.distance': 'Distanza',
@@ -702,10 +701,6 @@ const dsp = {
   'dsp.room.head.small': 'Piccola',
   'dsp.room.head.medium': 'Media',
   'dsp.room.head.large': 'Grande',
-  'dsp.room.headphones.correct': 'Correggi le cuffie',
-  'dsp.room.headphones.leave': 'Lasciale',
-  'dsp.room.headphonesHint':
-    'Il tuo profilo cuffie della pagina EQ si applica dopo la stanza, così i diffusori suonano come diffusori e non come queste cuffie.',
   'dsp.room.groupBass': 'Bassi',
   'dsp.room.bass.sub': 'Al sub',
   'dsp.room.bass.full': 'Gamma intera',
@@ -824,7 +819,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Sorgente stereo',
   'dsp.room.tune.stereoHint':
     'Solo per lo stereo. Un flusso 5.1 o 7.1 tiene i suoi canali dove sono.',
-  'dsp.room.fitView.head': 'La tua testa e le tue cuffie',
+  'dsp.room.fitView.head': 'La tua testa',
   'dsp.room.fitView.headHint':
     'Tre taglie di un’unica testa misurata: non tre persone, e non una scansione delle tue orecchie. Scegli la taglia che mette i suoni davanti a te invece che dentro la testa.',
   'dsp.room.fitView.guided': 'Trova la tua taglia a orecchio',

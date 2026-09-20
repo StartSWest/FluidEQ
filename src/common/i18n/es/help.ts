@@ -190,8 +190,6 @@ const help: Record<keyof typeof en, string> = {
     'Cinco pares de escucha que eligen la cabeza para tus oídos.',
   'help.room.head':
     'La cabeza medida con la que se renderiza la sala: pequeña, mediana o grande.',
-  'help.room.headphones':
-    'Si tu perfil de auriculares de la página EQ se aplica después de la sala, para que los altavoces suenen como altavoces.',
   'help.room.saved':
     'Ponle nombre a la sala tal como está; vuelve con una pulsación.',
   'help.room.liveName': 'Qué está haciendo la sala',

@@ -20,15 +20,23 @@ interface IDspRoomFitProps {
 }
 
 /**
- * Fit: the listener, not the room. Which of the three heads the room is
- * heard through and whether the headphones are corrected after it — both
- * free, both untouched by every profile and saved room — and the listening
- * test that picks the head by ear, which is Plus.
+ * Fit: the listener, not the room. Which of the three heads the room is heard
+ * through — free, and untouched by every profile and saved room — and the
+ * listening test that picks it by ear, which is Plus.
  *
  * It says what the three heads are: one measured head at three sizes, not
  * three people and not a scan of anybody's ears. A page that let "Small,
  * Medium, Large" pass for a measurement of the listener would be selling
  * something the app does not do.
+ *
+ * A "Correct the headphones / Leave them" segment stood beside the head until
+ * 2026-09-20, and had never once changed a sample: the value it wrote was
+ * defaulted, clamped, saved, put on the wire and decoded by the engine, and
+ * then read by nothing — the Room is built from a struct that field is never
+ * copied into. What it pretended to offer already exists and works, on the
+ * headphone profile's own switch on the equaliser's page, and that is where
+ * it belongs: a correction curve is the headset's own signature and no chain
+ * has any business reaching into it.
  */
 const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
   const { t } = useTranslation();
@@ -58,29 +66,6 @@ const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
                   onPatch({ ...room, head: chosen });
                   onCommit();
                 }
-              }}
-            />
-          </div>
-        </div>
-        <div className="dsp-room-row">
-          <span
-            className="dsp-room-row__label"
-            title={t('dsp.room.headphonesHint')}
-          >
-            {t('dsp.room.groupHeadphones')}
-          </span>
-          <div className="dsp-room-row__controls">
-            <SegmentedControl
-              name={t('dsp.room.groupHeadphones')}
-              value={room.correctHeadphones ? 'correct' : 'leave'}
-              isDisabled={!isOn}
-              options={[
-                { value: 'correct', label: t('dsp.room.headphones.correct') },
-                { value: 'leave', label: t('dsp.room.headphones.leave') },
-              ]}
-              onChange={(choice) => {
-                onPatch({ ...room, correctHeadphones: choice === 'correct' });
-                onCommit();
               }}
             />
           </div>

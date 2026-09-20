@@ -656,7 +656,6 @@ const dsp = {
   'dsp.room.savePlaceholder': '房间名称',
   'dsp.room.deleteRoom': '删除房间',
   'dsp.room.groupHead': '头部',
-  'dsp.room.groupHeadphones': '耳机',
   'dsp.room.size': '大小',
   'dsp.room.walls': '墙面',
   'dsp.room.distance': '距离',
@@ -665,10 +664,6 @@ const dsp = {
   'dsp.room.head.small': '小',
   'dsp.room.head.medium': '中',
   'dsp.room.head.large': '大',
-  'dsp.room.headphones.correct': '校正耳机',
-  'dsp.room.headphones.leave': '保持原样',
-  'dsp.room.headphonesHint':
-    'EQ 页面里的耳机配置在房间之后生效，所以音箱听起来像音箱，而不像这副耳机。',
   'dsp.room.groupBass': '低音',
   'dsp.room.bass.sub': '送到低音炮',
   'dsp.room.bass.full': '全频',
@@ -781,7 +776,7 @@ const dsp = {
   'dsp.room.tune.stereo': '立体声音源',
   'dsp.room.tune.stereoHint':
     '只对立体声有效。5.1 或 7.1 音流会保持各声道原位。',
-  'dsp.room.fitView.head': '你的头型与耳机',
+  'dsp.room.fitView.head': '你的头型',
   'dsp.room.fitView.headHint':
     '同一个实测头型的三种尺寸：不是三个人，也不是对你耳朵的扫描。选择让声音出现在你面前、而不是头里的那个尺寸。',
   'dsp.room.fitView.guided': '用耳朵找到适合你的',

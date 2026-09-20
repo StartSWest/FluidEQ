@@ -244,7 +244,15 @@ export const encodeChainSettings = (
     room.centreDb,
     room.subDb,
     ROOM_HEADS.indexOf(room.head),
-    room.correctHeadphones ? 1 : 0,
+    // A retired switch's slot, pinned on. It used to be the Room's "Correct
+    // the headphones", which the engine decodes and has never read: nothing
+    // in the Room was ever built from it, so moving it never changed a
+    // sample. The slot itself stays because every scalar after it is found
+    // by position, and the app has no business reaching into a headphone
+    // profile from a chain anyway — a correction curve is the headset's own
+    // signature, and the one control that may switch it off is the
+    // headphone layer's own, on the equaliser's page.
+    1,
     ...room.angles,
     ...room.levels,
     // Bass management and its crossover, then the music upmix and its

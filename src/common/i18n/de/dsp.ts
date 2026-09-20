@@ -700,7 +700,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Raumname',
   'dsp.room.deleteRoom': 'Raum löschen',
   'dsp.room.groupHead': 'Kopf',
-  'dsp.room.groupHeadphones': 'Kopfhörer',
   'dsp.room.size': 'Größe',
   'dsp.room.walls': 'Wände',
   'dsp.room.distance': 'Abstand',
@@ -709,10 +708,6 @@ const dsp = {
   'dsp.room.head.small': 'Klein',
   'dsp.room.head.medium': 'Mittel',
   'dsp.room.head.large': 'Groß',
-  'dsp.room.headphones.correct': 'Kopfhörer korrigieren',
-  'dsp.room.headphones.leave': 'So lassen',
-  'dsp.room.headphonesHint':
-    'Dein Kopfhörerprofil von der EQ-Seite läuft nach dem Raum, damit die Lautsprecher wie Lautsprecher klingen und nicht wie dieser Kopfhörer.',
   'dsp.room.groupBass': 'Bass',
   'dsp.room.bass.sub': 'Zum Sub',
   'dsp.room.bass.full': 'Volles Band',
@@ -831,7 +826,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Stereoquelle',
   'dsp.room.tune.stereoHint':
     'Nur für Stereo. Ein 5.1- oder 7.1-Signal behält seine Kanäle, wo sie sind.',
-  'dsp.room.fitView.head': 'Dein Kopf und deine Kopfhörer',
+  'dsp.room.fitView.head': 'Dein Kopf',
   'dsp.room.fitView.headHint':
     'Drei Größen eines einzigen gemessenen Kopfes: nicht drei Personen und kein Scan deiner Ohren. Wähle die Größe, die Klänge vor dich setzt statt in deinen Kopf.',
   'dsp.room.fitView.guided': 'Deine Passform nach Gehör finden',

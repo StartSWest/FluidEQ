@@ -700,7 +700,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Room name',
   'dsp.room.deleteRoom': 'Delete room',
   'dsp.room.groupHead': 'Head',
-  'dsp.room.groupHeadphones': 'Headphones',
   'dsp.room.size': 'Size',
   'dsp.room.walls': 'Walls',
   'dsp.room.distance': 'Distance',
@@ -709,10 +708,6 @@ const dsp = {
   'dsp.room.head.small': 'Small',
   'dsp.room.head.medium': 'Medium',
   'dsp.room.head.large': 'Large',
-  'dsp.room.headphones.correct': 'Correct the headphones',
-  'dsp.room.headphones.leave': 'Leave them',
-  'dsp.room.headphonesHint':
-    'Your headphone profile from the EQ page runs after the room, so the speakers sound like speakers, not like these headphones.',
   'dsp.room.groupBass': 'Bass',
   'dsp.room.bass.sub': 'To the sub',
   'dsp.room.bass.full': 'Full range',
@@ -831,7 +826,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Stereo source',
   'dsp.room.tune.stereoHint':
     'Only for stereo. A 5.1 or 7.1 stream keeps its own channels where they are.',
-  'dsp.room.fitView.head': 'Your head and headphones',
+  'dsp.room.fitView.head': 'Your head',
   'dsp.room.fitView.headHint':
     'Three sizes of one measured head: not three people, and not a scan of your ears. Pick the size that puts sounds in front of you rather than inside your head.',
   'dsp.room.fitView.guided': 'Find your fit by ear',

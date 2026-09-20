@@ -680,7 +680,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'ルーム名',
   'dsp.room.deleteRoom': 'ルームを削除',
   'dsp.room.groupHead': '頭',
-  'dsp.room.groupHeadphones': 'ヘッドホン',
   'dsp.room.size': 'サイズ',
   'dsp.room.walls': '壁',
   'dsp.room.distance': '距離',
@@ -689,10 +688,6 @@ const dsp = {
   'dsp.room.head.small': '小',
   'dsp.room.head.medium': '中',
   'dsp.room.head.large': '大',
-  'dsp.room.headphones.correct': 'ヘッドホンを補正する',
-  'dsp.room.headphones.leave': 'そのまま',
-  'dsp.room.headphonesHint':
-    'EQ ページのヘッドホンプロファイルはルームの後に適用されるので、スピーカーはこのヘッドホンではなくスピーカーらしく鳴ります。',
   'dsp.room.groupBass': '低音',
   'dsp.room.bass.sub': 'サブへ',
   'dsp.room.bass.full': 'フルレンジ',
@@ -809,7 +804,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'ステレオ音源',
   'dsp.room.tune.stereoHint':
     'ステレオ専用です。5.1 や 7.1 のストリームは、チャンネルをそのままの位置に保ちます。',
-  'dsp.room.fitView.head': 'あなたの頭とヘッドホン',
+  'dsp.room.fitView.head': 'あなたの頭',
   'dsp.room.fitView.headHint':
     '1 つの測定済みの頭を 3 つのサイズにしたものです。3 人分でも、耳のスキャンでもありません。音が頭の中ではなく前に来るサイズを選んでください。',
   'dsp.room.fitView.guided': '耳でフィットを見つける',

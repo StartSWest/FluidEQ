@@ -639,13 +639,11 @@ describe('the room presets', () => {
       ...DSP_DEFAULTS.room,
       presetId: 'custom',
       head: 'small',
-      correctHeadphones: false,
       angles: [-20, 20, 0, -90, 90, -150, 150],
     };
     const studio = roomPresetSettings(custom, 'studio');
     expect(studio.presetId).toBe('studio');
     expect(studio.head).toBe('small');
-    expect(studio.correctHeadphones).toBe(false);
     expect(studio.angles).toEqual(DSP_DEFAULTS.room.angles);
     expect(studio.sizeM).toBe(ROOM_PRESET_SHAPES.studio.sizeM);
     // Its own arrays: editing the result must not edit the shape table.

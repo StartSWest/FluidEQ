@@ -685,7 +685,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'कमरे का नाम',
   'dsp.room.deleteRoom': 'कमरा हटाएँ',
   'dsp.room.groupHead': 'सिर',
-  'dsp.room.groupHeadphones': 'हेडफ़ोन',
   'dsp.room.size': 'आकार',
   'dsp.room.walls': 'दीवारें',
   'dsp.room.distance': 'दूरी',
@@ -694,10 +693,6 @@ const dsp = {
   'dsp.room.head.small': 'छोटा',
   'dsp.room.head.medium': 'मध्यम',
   'dsp.room.head.large': 'बड़ा',
-  'dsp.room.headphones.correct': 'हेडफ़ोन सुधारें',
-  'dsp.room.headphones.leave': 'जैसे हैं रहने दें',
-  'dsp.room.headphonesHint':
-    'EQ पेज की आपकी हेडफ़ोन प्रोफ़ाइल कमरे के बाद लगती है, ताकि स्पीकर स्पीकर जैसे लगें, इन हेडफ़ोन जैसे नहीं।',
   'dsp.room.groupBass': 'बास',
   'dsp.room.bass.sub': 'सब को',
   'dsp.room.bass.full': 'पूरी रेंज',
@@ -816,7 +811,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'स्टीरियो स्रोत',
   'dsp.room.tune.stereoHint':
     'सिर्फ़ स्टीरियो के लिए। 5.1 या 7.1 स्ट्रीम अपने चैनल जहाँ हैं वहीं रखती है।',
-  'dsp.room.fitView.head': 'आपका सिर और हेडफ़ोन',
+  'dsp.room.fitView.head': 'आपका सिर',
   'dsp.room.fitView.headHint':
     'एक ही मापे गए सिर के तीन आकार: न तीन लोग, न आपके कानों का स्कैन। वह आकार चुनें जो आवाज़ों को आपके सिर के अंदर नहीं, सामने रखे।',
   'dsp.room.fitView.guided': 'कान से अपना फ़िट खोजें',

@@ -176,12 +176,11 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
  * amount. Kept for a moment, "fill the room" left on from before made
  * "Gaming · Room" one sound on Monday and another on Tuesday.
  *
- * Two things are nobody's to set but the listener's, and no chain touches
- * them: the head, which is their own anatomy — Fit is a listening test, and a
- * chain made on somebody else's head cannot know it — and the headphone
- * switch, which says what runs after the Room on this machine. And a chain
- * without the Room only switches it off: the room that was shaped stays as it
- * was for the next time it is switched on.
+ * One thing is nobody's to set but the listener's, and no chain touches it:
+ * the head, which is their own anatomy — Fit is a listening test, and a chain
+ * made on somebody else's head cannot know it. And a chain without the Room
+ * only switches it off: the room that was shaped stays as it was for the next
+ * time it is switched on.
  */
 export const chainRoom = (
   current: IRoomSettings | undefined,
@@ -198,7 +197,6 @@ export const chainRoom = (
     distances: [...chain.distances],
     mutes: [...chain.mutes],
     head: listener.head,
-    correctHeadphones: listener.correctHeadphones,
     compareOriginal: listener.compareOriginal,
     sourceAlreadySpatial: listener.sourceAlreadySpatial,
     enabled: true,

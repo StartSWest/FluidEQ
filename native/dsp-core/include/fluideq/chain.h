@@ -170,8 +170,15 @@ typedef struct FeqChainSettings {
    * front pair (`room.h`). The head itself is not a setting — the host hands
    * it over with `feq_chain_set_room_head` — and `head` names which of the
    * shipped ones the app wrote, so the engine can scale the interaural delay
-   * to it. `preset` and `correct_headphones` are the app's, carried here so
-   * the whole rack is one line on the wire.
+   * to it. `preset` is the app's, carried here so the whole rack is one
+   * line on the wire.
+   *
+   * `correct_headphones` is a retired switch's slot. It was decoded here
+   * from the day it shipped and read by nothing — it is not among the
+   * fields copied into `FeqRoomSettings` below, so moving it never changed
+   * a sample — and the app took its control off the Room's page on
+   * 2026-09-20 and pins the slot to 1. The slot stays because every scalar
+   * after it is found by position.
    */
   struct {
     int enabled;

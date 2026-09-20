@@ -692,7 +692,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Nombre de la sala',
   'dsp.room.deleteRoom': 'Eliminar sala',
   'dsp.room.groupHead': 'Cabeza',
-  'dsp.room.groupHeadphones': 'Auriculares',
   'dsp.room.size': 'Tamaño',
   'dsp.room.walls': 'Paredes',
   'dsp.room.distance': 'Distancia',
@@ -701,10 +700,6 @@ const dsp = {
   'dsp.room.head.small': 'Pequeña',
   'dsp.room.head.medium': 'Mediana',
   'dsp.room.head.large': 'Grande',
-  'dsp.room.headphones.correct': 'Corregir los auriculares',
-  'dsp.room.headphones.leave': 'Dejarlos',
-  'dsp.room.headphonesHint':
-    'Tu perfil de auriculares de la página EQ se aplica después de la sala, así que los altavoces suenan como altavoces y no como estos auriculares.',
   'dsp.room.groupBass': 'Graves',
   'dsp.room.bass.sub': 'Al sub',
   'dsp.room.bass.full': 'Rango completo',
@@ -823,7 +818,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Fuente estéreo',
   'dsp.room.tune.stereoHint':
     'Solo para estéreo. Una señal 5.1 o 7.1 conserva sus canales donde están.',
-  'dsp.room.fitView.head': 'Tu cabeza y tus auriculares',
+  'dsp.room.fitView.head': 'Tu cabeza',
   'dsp.room.fitView.headHint':
     'Tres tamaños de una misma cabeza medida: no son tres personas ni un escaneo de tus orejas. Elige el tamaño que pone los sonidos delante de ti y no dentro de tu cabeza.',
   'dsp.room.fitView.guided': 'Encuentra tu medida de oído',

@@ -172,8 +172,6 @@ const help: Record<keyof typeof en, string> = {
     '房间边长（米）、墙壁的吸音程度、音箱的距离，以及中置和低音炮的电平。',
   'help.room.fit': '五组听感对比，为你的耳朵选出头部模型。',
   'help.room.head': '房间渲染所用的测量头部模型：小、中或大。',
-  'help.room.headphones':
-    '是否在房间之后应用 EQ 页面的耳机配置，让音箱听起来像音箱。',
   'help.room.saved': '为当前房间命名；一按即回。',
   'help.room.liveName': '房间正在做什么',
   'help.room.live':

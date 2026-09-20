@@ -183,8 +183,6 @@ const help: Record<keyof typeof en, string> = {
     '部屋の一辺（m）、壁の吸音量、スピーカーまでの距離、センターとサブのレベル。',
   'help.room.fit': 'あなたの耳に合う頭を選ぶ 5 組の聴き比べ。',
   'help.room.head': 'ルームの描画に使う測定された頭：小・中・大。',
-  'help.room.headphones':
-    'EQ ページのヘッドホンプロファイルをルームの後に適用し、スピーカーがスピーカーらしく聞こえるようにするかどうか。',
   'help.room.saved': '現在のルームに名前を付けます。ワンタッチで戻ります。',
   'help.room.liveName': 'ルームの状態',
   'help.room.live':

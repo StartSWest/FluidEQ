@@ -189,8 +189,6 @@ const help = {
   'help.room.fit': 'Five listening pairs that pick the head for your ears.',
   'help.room.head':
     'The measured head the room renders through: small, medium or large.',
-  'help.room.headphones':
-    'Whether your headphone profile from the EQ page runs after the room, so the speakers sound like speakers.',
   'help.room.saved': 'Name the room as it stands; it comes back with a press.',
   'help.room.liveName': 'What the room is doing',
   'help.room.live':

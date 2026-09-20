@@ -481,11 +481,6 @@ const CHAPTERS = [
             text: 'help.room.head',
           },
           {
-            box: [1272, 353, 143, 21],
-            name: 'dsp.room.groupHeadphones',
-            text: 'help.room.headphones',
-          },
-          {
             box: [1646, 221, 90, 32],
             icon: [1654, 227, 20, 20],
             name: 'dsp.room.saveRoom',

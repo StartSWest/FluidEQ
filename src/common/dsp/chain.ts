@@ -1087,8 +1087,6 @@ export interface IRoomSettings {
   centreDb: number;
   subDb: number;
   head: TRoomHead;
-  /** Whether the headphone profile is assumed to run after the room. */
-  correctHeadphones: boolean;
   /** Each speaker's azimuth, degrees clockwise from straight ahead. */
   angles: number[];
   levels: number[];
@@ -1805,7 +1803,6 @@ export const DSP_DEFAULTS: IDspSettings = {
     centreDb: 0,
     subDb: 0,
     head: 'medium',
-    correctHeadphones: true,
     angles: [-30, 30, 0, -100, 100, -140, 140],
     levels: [0, 0, 0, 0, 0, 0, 0],
     bassManagement: true,
@@ -2536,10 +2533,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       ),
       subDb: clampNumber(room.subDb, RANGES.roomDb, DSP_DEFAULTS.room.subDb),
       head: roomHead ?? DSP_DEFAULTS.room.head,
-      correctHeadphones: clampBoolean(
-        room.correctHeadphones,
-        DSP_DEFAULTS.room.correctHeadphones,
-      ),
       angles: perSpeaker(
         room.angles,
         RANGES.roomAngleDeg,

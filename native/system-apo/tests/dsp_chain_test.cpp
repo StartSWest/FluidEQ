@@ -127,6 +127,9 @@ void the_encoder_s_own_line_decodes() {
   CHECK(settings.room.walls == 0.55);
   CHECK(settings.room.distance_m == 1.8);
   CHECK(settings.room.head == 1);
+  // A retired switch's slot, pinned on by the encoder: nothing reads it, and
+  // what matters is that it still occupies one value, because every angle
+  // and level after it is found by counting from here.
   CHECK(settings.room.correct_headphones == 1);
   CHECK(settings.room.angle_deg[0] == -30 && settings.room.angle_deg[6] == 140);
   CHECK(settings.room.level_db[6] == 0);

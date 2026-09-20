@@ -110,7 +110,6 @@ describe("the room's Reset and presets", () => {
     presetId: 'custom',
     sizeM: 9,
     head: 'large',
-    correctHeadphones: false,
     bassManagement: false,
     crossoverHz: 120,
     musicUpmix: true,
@@ -129,7 +128,6 @@ describe("the room's Reset and presets", () => {
       presetId: 'referenceV2',
       rendererVersion: 2,
       head: DSP_DEFAULTS.room.head,
-      correctHeadphones: DSP_DEFAULTS.room.correctHeadphones,
       musicUpmix: false,
     });
     expect(resetRoom(shaped).mutes.every((mute) => !mute)).toBe(true);
@@ -152,7 +150,6 @@ describe("the room's Reset and presets", () => {
       ...roomPresetSettings(DSP_DEFAULTS.room, 'studio'),
       enabled: true,
       head: 'large',
-      correctHeadphones: false,
     });
     expect(studio.musicUpmix).toBe(false);
     expect(studio.bassManagement).toBe(true);

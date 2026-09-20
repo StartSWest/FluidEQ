@@ -192,8 +192,6 @@ const help: Record<keyof typeof en, string> = {
     'Cinque coppie d’ascolto che scelgono la testa per le tue orecchie.',
   'help.room.head':
     'La testa misurata attraverso cui la stanza viene resa: piccola, media o grande.',
-  'help.room.headphones':
-    'Se il tuo profilo cuffie della pagina EQ viene applicato dopo la stanza, così i diffusori suonano come diffusori.',
   'help.room.saved':
     'Dai un nome alla stanza così com’è; torna con una pressione.',
   'help.room.liveName': 'Cosa sta facendo la stanza',

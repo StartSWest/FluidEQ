@@ -194,8 +194,6 @@ const help: Record<keyof typeof en, string> = {
   'help.room.fit': 'Fünf Hörpaare, die den Kopf für deine Ohren wählen.',
   'help.room.head':
     'Der vermessene Kopf, durch den der Raum gerendert wird: klein, mittel oder groß.',
-  'help.room.headphones':
-    'Ob dein Kopfhörerprofil von der EQ-Seite nach dem Raum läuft, damit Lautsprecher wie Lautsprecher klingen.',
   'help.room.saved':
     'Gib dem Raum, wie er ist, einen Namen; er kommt mit einem Druck zurück.',
   'help.room.liveName': 'Was der Raum gerade tut',

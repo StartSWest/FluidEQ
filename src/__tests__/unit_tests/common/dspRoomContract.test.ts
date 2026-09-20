@@ -138,7 +138,6 @@ it('profiles preserve listener and comparison choices while Reset clears all exc
   const listener = {
     ...upgraded,
     head: 'small' as const,
-    correctHeadphones: false,
   };
   const shaped = roomInShape(
     listener,
@@ -152,7 +151,6 @@ it('profiles preserve listener and comparison choices while Reset clears all exc
   ].forEach((room) => {
     expect(room).toMatchObject({
       head: 'small',
-      correctHeadphones: false,
       compareOriginal: true,
       sourceAlreadySpatial: true,
       rendererVersion: 1,

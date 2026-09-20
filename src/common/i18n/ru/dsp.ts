@@ -689,7 +689,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Название комнаты',
   'dsp.room.deleteRoom': 'Удалить комнату',
   'dsp.room.groupHead': 'Голова',
-  'dsp.room.groupHeadphones': 'Наушники',
   'dsp.room.size': 'Размер',
   'dsp.room.walls': 'Стены',
   'dsp.room.distance': 'Расстояние',
@@ -698,10 +697,6 @@ const dsp = {
   'dsp.room.head.small': 'Маленькая',
   'dsp.room.head.medium': 'Средняя',
   'dsp.room.head.large': 'Большая',
-  'dsp.room.headphones.correct': 'Корректировать наушники',
-  'dsp.room.headphones.leave': 'Оставить как есть',
-  'dsp.room.headphonesHint':
-    'Ваш профиль наушников со страницы EQ применяется после комнаты, чтобы колонки звучали как колонки, а не как эти наушники.',
   'dsp.room.groupBass': 'Бас',
   'dsp.room.bass.sub': 'В саб',
   'dsp.room.bass.full': 'Полный диапазон',
@@ -820,7 +815,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Стереоисточник',
   'dsp.room.tune.stereoHint':
     'Только для стерео. Поток 5.1 или 7.1 оставляет свои каналы на местах.',
-  'dsp.room.fitView.head': 'Ваша голова и наушники',
+  'dsp.room.fitView.head': 'Ваша голова',
   'dsp.room.fitView.headHint':
     'Три размера одной измеренной головы: не три человека и не скан ваших ушей. Выберите размер, при котором звуки оказываются перед вами, а не внутри головы.',
   'dsp.room.fitView.guided': 'Подобрать размер на слух',

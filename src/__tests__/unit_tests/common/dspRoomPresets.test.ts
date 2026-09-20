@@ -129,13 +129,11 @@ describe('room presets', () => {
       enabled: true,
       presetId: 'custom' as const,
       head: 'small' as const,
-      correctHeadphones: false,
       angles: [-20, 20, 0, -90, 90, -150, 150],
     };
     const club = roomPresetSettings(custom, 'club');
     expect(club.presetId).toBe('club');
     expect(club.head).toBe('small');
-    expect(club.correctHeadphones).toBe(false);
     expect(club.subDb).toBe(4);
     // Its own arrays: editing the result must not edit the shape table.
     club.angles[0] = 1;
@@ -248,7 +246,6 @@ describe('room presets', () => {
       ...DSP_DEFAULTS.room,
       enabled: true,
       head: 'large' as const,
-      correctHeadphones: false,
       compareOriginal: true,
       sourceAlreadySpatial: true,
       mutes: [true, false, false, false, false, false, false, false],
@@ -257,7 +254,6 @@ describe('room presets', () => {
     expect(venue).toMatchObject({
       presetId: 'liveVenueV2',
       head: 'large',
-      correctHeadphones: false,
       compareOriginal: true,
       sourceAlreadySpatial: true,
       rendererVersion: 2,

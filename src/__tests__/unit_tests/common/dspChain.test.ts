@@ -423,7 +423,6 @@ describe('dsp chain settings', () => {
         presetId: 'custom',
         sizeM: 7,
         head: 'large',
-        correctHeadphones: false,
         musicUpmix: true,
         upmixAmount: 1,
         bassManagement: false,
@@ -438,7 +437,6 @@ describe('dsp chain settings', () => {
       ...roomPresetSettings(DSP_DEFAULTS.room, 'cinemaV2'),
       enabled: true,
       head: 'large',
-      correctHeadphones: false,
     });
     // Said out loud, since it is what was reported: the fill left on from
     // before goes, and the room's own takes its place.

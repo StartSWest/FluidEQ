@@ -695,7 +695,6 @@ const dsp = {
   'dsp.room.savePlaceholder': 'Nom de la salle',
   'dsp.room.deleteRoom': 'Supprimer la salle',
   'dsp.room.groupHead': 'Tête',
-  'dsp.room.groupHeadphones': 'Casque',
   'dsp.room.size': 'Taille',
   'dsp.room.walls': 'Murs',
   'dsp.room.distance': 'Distance',
@@ -704,10 +703,6 @@ const dsp = {
   'dsp.room.head.small': 'Petite',
   'dsp.room.head.medium': 'Moyenne',
   'dsp.room.head.large': 'Grande',
-  'dsp.room.headphones.correct': 'Corriger le casque',
-  'dsp.room.headphones.leave': 'Le laisser',
-  'dsp.room.headphonesHint':
-    'Votre profil de casque de la page EQ s’applique après la salle, pour que les enceintes sonnent comme des enceintes et non comme ce casque.',
   'dsp.room.groupBass': 'Graves',
   'dsp.room.bass.sub': 'Vers le sub',
   'dsp.room.bass.full': 'Pleine bande',
@@ -826,7 +821,7 @@ const dsp = {
   'dsp.room.tune.stereo': 'Source stéréo',
   'dsp.room.tune.stereoHint':
     'Pour la stéréo seulement. Un flux 5.1 ou 7.1 garde ses canaux où ils sont.',
-  'dsp.room.fitView.head': 'Votre tête et votre casque',
+  'dsp.room.fitView.head': 'Votre tête',
   'dsp.room.fitView.headHint':
     'Trois tailles d’une seule tête mesurée : ni trois personnes, ni un scan de vos oreilles. Choisissez la taille qui met les sons devant vous plutôt que dans votre tête.',
   'dsp.room.fitView.guided': 'Trouver votre taille à l’oreille',
