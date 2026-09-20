@@ -45,6 +45,7 @@ export const myMakerMonth = async (
     : {
         ok: true,
         month: {
+          running: false,
           earnedThisMonth: false,
           waiting: 0,
           submissions: 0,

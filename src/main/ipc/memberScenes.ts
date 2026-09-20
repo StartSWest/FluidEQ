@@ -82,6 +82,13 @@ export interface IMemberScenesIpcRegistration {
   openInspection(pack: IScenePack): Promise<TInspection>;
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
+  /**
+   * The server's answer about this account being a maker changed, which
+   * decides the same thing an entitlement does: which projects may be
+   * opened. Without it the page keeps what it was told when it opened — the
+   * Studio locked to somebody whose first scene has just been approved.
+   */
+  makerChanged(): void;
   dispose(): void;
 }
 
@@ -210,6 +217,8 @@ export const registerMemberScenesIpc = ({
     restoreOwnProject: studio.restoreOwnProject,
     openInspection: studio.openInspection,
     announce: announceScenes,
+    // The same settling as an entitlement change, for the same reason.
+    makerChanged: studio.entitlementChanged,
     dispose: () => {
       unsubscribe();
       studio.dispose();

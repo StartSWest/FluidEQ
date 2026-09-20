@@ -266,6 +266,13 @@ describe('publishing', () => {
       ok: false,
       reason: 'rate-limited',
     });
+    // Two a month is not an hour's wait: told apart, so the answer can say
+    // when it comes back instead of "try again shortly" to somebody who has
+    // to wait weeks (server migration 0041).
+    expect(await publish(429, { error: 'too_many_this_month' })).toEqual({
+      ok: false,
+      reason: 'too-many-this-month',
+    });
     expect(await publish(422, {})).toEqual({ ok: false, reason: 'refused' });
     expect(await publish(500, {})).toEqual({ ok: false, reason: 'server' });
   });

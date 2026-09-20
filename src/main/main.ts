@@ -210,7 +210,7 @@ import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerMakerMonthIpc } from './ipc/makerMonth';
-import { rememberMaker } from './account/knownMakers';
+import { setKnownMaker } from './account/knownMakers';
 import { registerPlusGiftsIpc } from './ipc/plusGifts';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { createGalleryAccess } from './plus/galleryAccess';
@@ -3200,9 +3200,16 @@ const plusReviewIpc = registerPlusReviewIpc({
 // What a maker earned by publishing, for the account panel to count down —
 // and, when the server says this account is one, the note that keeps their
 // single Studio project open after the earned month runs out.
-registerMakerMonthIpc({
+const makerMonthIpc = registerMakerMonthIpc({
   access: galleryAccess,
-  onMaker: (id) => rememberMaker(userDataDir, id),
+  onMaker: (id, maker) => {
+    if (setKnownMaker(userDataDir, id, maker)) {
+      // The Studio is drawn from what it was last told; an answer that
+      // changed has to reach it, or a first approval leaves the page locked
+      // until the window is opened again.
+      memberScenesIpc.makerChanged();
+    }
+  },
 });
 const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,
@@ -3676,6 +3683,7 @@ app.on('before-quit', (event) => {
   plusGalleryIpc.dispose();
   memberSharingIpc.dispose();
   memberScenesIpc.dispose();
+  makerMonthIpc.dispose();
   plusProfileIpc.dispose();
   leaderboardIpc.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.

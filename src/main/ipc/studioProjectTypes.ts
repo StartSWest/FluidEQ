@@ -47,6 +47,15 @@ export interface IStudioProject {
 export interface IStudioState {
   entitled: boolean;
   /**
+   * Whether a scene of theirs has ever been approved. The Studio itself is
+   * Plus's; a maker keeps one project of their own without it, because the
+   * month they earn is earned by publishing and being shut out would make
+   * the rule a trap. Told to the page so it can show the Studio to somebody
+   * who may use it and the offer to somebody who may not, rather than a
+   * bench where every press is refused.
+   */
+  maker: boolean;
+  /**
    * Whether another project may be started or opened. Plus has no limit;
    * without it the Studio keeps one project (`TRIAL_PROJECTS`), so the page
    * shows the ways to a second one locked rather than refusing on the press.
@@ -119,6 +128,7 @@ export const studioStateOf = (
   list: IProjectList,
   seen: {
     entitled: boolean;
+    maker: boolean;
     mayAddProject: boolean;
     projectsRoot: string;
     /** Each project's scene name, read from its `pack.json`, by project id. */
@@ -129,6 +139,7 @@ export const studioStateOf = (
   },
 ): IStudioState => ({
   entitled: seen.entitled,
+  maker: seen.maker,
   mayAddProject: seen.mayAddProject,
   projectsRoot: seen.projectsRoot,
   projects: byRecent(list).map((project) => {

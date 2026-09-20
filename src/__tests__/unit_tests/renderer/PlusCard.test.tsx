@@ -197,6 +197,32 @@ describe('the Plus card', () => {
     ).toBeInTheDocument();
   });
 
+  it('calls an earned month free: no renewal, no merchant page, no "Ending"', () => {
+    // A month earned by publishing (server migration 0041) is the server's
+    // own grant. Read as a subscription it wore "Ending" from its first day
+    // and offered a merchant page that has nothing about it.
+    render(
+      <PlusCard
+        entitlement={{
+          state: 'active',
+          plan: 'maker',
+          renewing: false,
+          periodEndsAt: JUNE_FIRST,
+        }}
+        onUpgrade={onUpgrade}
+        checkoutOpened={false}
+      />,
+    );
+    expect(screen.getByText('account.maker.badge')).toBeInTheDocument();
+    expect(screen.getByText(/account.maker.until:.*2027/)).toBeInTheDocument();
+    expect(screen.queryByText('account.plus.ending')).not.toBeInTheDocument();
+    expect(screen.queryByText(/account.plus.until/)).not.toBeInTheDocument();
+    expect(screen.queryByText('account.plus.sorry')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'account.plus.manage' }),
+    ).not.toBeInTheDocument();
+  });
+
   /**
    * A cancellation is somebody leaving, and the card answers what they are
    * owed: that they are not being thrown out today, and until when. Nothing

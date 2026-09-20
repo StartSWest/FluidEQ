@@ -1,8 +1,29 @@
 import { useEffect, useMemo } from 'react';
-import { makerMonthDaysLeft, makerMonthState } from 'common/makerMonth';
+import type { TranslationKey } from 'common/i18n';
+import {
+  makerMonthDaysLeft,
+  makerMonthEndsToday,
+  makerMonthState,
+  type IMakerMonth,
+} from 'common/makerMonth';
 import { useTranslation } from '../utils/I18nContext';
 import Glyph from '../community/Glyph';
 import { loadMakerMonth, useMakerMonth } from '../plus/makerMonthStore';
+
+/**
+ * What publishing would do next, for somebody with no month running. A maker
+ * whose months are banked behind a membership they pay for does not get
+ * "free again": nothing of theirs stopped, and the next one joins the queue
+ * rather than starting.
+ */
+const nextMonthLine = (month: IMakerMonth): TranslationKey => {
+  if (!month.maker) {
+    return 'account.maker.invite';
+  }
+  return month.waiting > 0
+    ? 'account.maker.againWaiting'
+    : 'account.maker.again';
+};
 
 interface IMakerMonthCardProps {
   /** Whose month this is. A different account starts the read again. */
@@ -42,6 +63,7 @@ export default function MakerMonthCard({ accountId }: IMakerMonthCardProps) {
   const now = Date.now();
   const state = makerMonthState(month, now);
   const days = makerMonthDaysLeft(month, now);
+  const endsToday = makerMonthEndsToday(month, now);
   const ends = month.until ? Date.parse(month.until) : undefined;
   const running =
     ends !== undefined && (state === 'running' || state === 'ending');
@@ -71,18 +93,20 @@ export default function MakerMonthCard({ accountId }: IMakerMonthCardProps) {
           done this month's work, and the line under the waiting months says
           so — inviting them to publish again here read as a contradiction. */}
       {!running && !month.earnedThisMonth && (
-        <p className="plus-card__line">
-          {t(month.maker ? 'account.maker.again' : 'account.maker.invite')}
-        </p>
+        <p className="plus-card__line">{t(nextMonthLine(month))}</p>
       )}
 
       {running && state === 'ending' && (
         <p className="plus-card__line plus-card__line--grace">
-          {/* The last day is said as "tomorrow", which carries no number —
-              "ends in 1 days" is the sentence this avoids. */}
-          {days <= 1
-            ? t('account.maker.endsTomorrow')
-            : t('account.maker.endsDays', { days: String(days) })}
+          {/* The last day is said as "today" or "tomorrow", neither of which
+              carries a number — "ends in 1 days" is the sentence this
+              avoids, and "tomorrow" on the morning it ends is a day that
+              does not exist. */}
+          {endsToday && t('account.maker.endsToday')}
+          {!endsToday &&
+            (days <= 1
+              ? t('account.maker.endsTomorrow')
+              : t('account.maker.endsDays', { days: String(days) }))}
         </p>
       )}
 

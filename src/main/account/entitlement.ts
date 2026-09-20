@@ -1,6 +1,7 @@
 import type { IAccountConfig } from 'common/accountConfig';
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
 import { PLUS_TRIAL_PLAN } from '../../common/plusTrial';
+import { MAKER_PLAN } from '../../common/makerMonth';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
 import type { IAccountSession } from './session';
 
@@ -127,19 +128,23 @@ export const resolveEntitlementState = (
   // A clock set backwards would otherwise buy another fortnight of grace for
   // free. The confirmation cannot have happened later than now.
   const verifiedAt = Math.min(record.verifiedAt, now);
-  const trial = record.plan === PLUS_TRIAL_PLAN;
+  // A trial and a month earned by publishing are both the server's own
+  // grant: no card, no merchant, nothing that could renew them.
+  const granted = record.plan === PLUS_TRIAL_PLAN || record.plan === MAKER_PLAN;
   const shared = {
     plan: record.plan,
     periodEndsAt: record.periodEndsAt,
-    renewing: !trial && !record.cancelAtPeriodEnd,
+    renewing: !granted && !record.cancelAtPeriodEnd,
   };
   if (record.periodEndsAt > now) {
     return { state: 'active', ...shared };
   }
   // A membership cancelled to end with this period ended with it. The grace
   // below is for a renewal the app may have missed, and this one was never
-  // going to renew. A free trial cannot renew either, whatever flag was stored.
-  if (trial || record.cancelAtPeriodEnd) {
+  // going to renew. Neither can a trial or an earned month, whatever flag
+  // was stored: a fortnight of grace over an earned month would leave Plus
+  // on for two weeks after the app had already said it had ended.
+  if (granted || record.cancelAtPeriodEnd) {
     return NONE;
   }
   // The period we last saw has ended. If the server was heard from recently

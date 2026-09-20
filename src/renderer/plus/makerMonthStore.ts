@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { IMakerMonth, TMakerMonthFailure } from 'common/makerMonth';
+import type { IMakerMonth } from 'common/makerMonth';
 
 /**
  * The month a maker earned by publishing, as the account panel sees it.
@@ -13,17 +13,20 @@ import type { IMakerMonth, TMakerMonthFailure } from 'common/makerMonth';
  * panel can ask for another scene before it does.
  */
 
+/**
+ * A month, or none yet. There is deliberately no "loading" and no "failed":
+ * everything built on this draws nothing at all without a month — the card
+ * is absent, the notice is absent — so a failure and a member who has never
+ * published are the same picture, and a state nobody can see is a state
+ * nobody should be keeping.
+ */
 export interface IMakerMonthState {
   /** The account the rest of this is about, or undefined when signed out. */
   accountId?: string;
   month?: IMakerMonth;
-  /** Whether the server has answered for this account at least once. */
-  loaded: boolean;
-  /** The last failure, until the next attempt. */
-  error?: TMakerMonthFailure;
 }
 
-const INITIAL: IMakerMonthState = { loaded: false };
+const INITIAL: IMakerMonthState = {};
 
 let state: IMakerMonthState = INITIAL;
 const listeners = new Set<() => void>();
@@ -58,9 +61,7 @@ export const loadMakerMonth = async (accountId: string) => {
     return;
   }
   if (outcome.ok) {
-    publish({ month: outcome.month, loaded: true, error: undefined });
-  } else {
-    publish({ error: outcome.reason });
+    publish({ month: outcome.month });
   }
 };
 

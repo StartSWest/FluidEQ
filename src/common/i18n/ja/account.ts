@@ -131,6 +131,7 @@ const account = {
   'account.maker.until': '{date} まで Plus は無料です。',
   'account.maker.endsDays':
     'あと {days} 日で終わります。それまでにシーンを公開すると続きます。',
+  'account.maker.endsToday': '今日で終わります。シーンを公開すると続きます。',
   'account.maker.endsTomorrow':
     '明日で終わります。それまでにシーンを公開すると続きます。',
   'account.maker.keep': '今月シーンを公開すれば、来月は無料です。',
@@ -138,6 +139,8 @@ const account = {
     '今月のシーンは届いています。来月もう一度公開すれば続きます。',
   'account.maker.again':
     'シーンを公開すれば、また 1 か月 Plus が無料になります。',
+  'account.maker.againWaiting':
+    'シーンを公開すると、無料の 1 か月が待機列に加わります。',
   'account.maker.invite':
     'スタジオでシーンを作りましょう。月に 1 本承認されれば Plus は無料のままです。',
   'account.maker.waitingOne':
@@ -149,6 +152,7 @@ const account = {
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle':
     '無料の Plus はあと {days} 日で終わります',
+  'account.maker.notice.endingToday': '無料の Plus は今日で終わります',
   'account.maker.notice.endingTomorrow': '無料の Plus は明日で終わります',
   'account.maker.notice.endingBody':
     'それまでにシーンを公開すれば、次の月も無料です。どちらの場合も料金はかかりません。',

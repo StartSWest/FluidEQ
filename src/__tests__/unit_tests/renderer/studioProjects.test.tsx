@@ -32,6 +32,7 @@ const SEA = '22222222-2222-4222-8222-222222222222';
 
 const state: IStudioState = {
   entitled: true,
+  maker: false,
   mayAddProject: true,
   projectsRoot: 'D:\\scenes',
   activeId: CITY,

@@ -4,6 +4,7 @@ import type { TBillingFailure } from 'main/account/billingClient';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
 import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
+import { MAKER_PLAN } from 'common/makerMonth';
 import type { TranslationKey } from 'common/i18n/en';
 import { isCheckoutConfigured } from 'common/accountConfig';
 import { useTranslation } from '../utils/I18nContext';
@@ -126,10 +127,21 @@ export default function PlusCard({
     </button>
   );
 
-  const activeBadge =
-    entitlement.renewing === false
+  // What the badge says while the membership is on. The two the server
+  // grants have their own word for it: neither renews, so "Ending" — which
+  // is what a cancelled subscription says — would be on them from the first
+  // day, and "Active" would invite the reader to look for a bill.
+  const activeBadge = (): TranslationKey => {
+    if (entitlement.plan === PLUS_TRIAL_PLAN) {
+      return 'trial.active.badge';
+    }
+    if (entitlement.plan === MAKER_PLAN) {
+      return 'account.maker.badge';
+    }
+    return entitlement.renewing === false
       ? 'account.plus.ending'
       : 'account.plus.active';
+  };
   return (
     <section
       className={`plus-card plus-card--${entitlement.state}`}
@@ -149,11 +161,7 @@ export default function PlusCard({
               entitlement.renewing === false ? ' plus-card__badge--ending' : ''
             }`}
           >
-            {t(
-              entitlement.plan === PLUS_TRIAL_PLAN
-                ? 'trial.active.badge'
-                : activeBadge,
-            )}
+            {t(activeBadge())}
           </span>
         )}
       </div>
@@ -211,6 +219,18 @@ export default function PlusCard({
               )}
             </>
           )}
+          {/* A month earned by publishing: free, ending on a date, with no
+              merchant page behind it and nothing to manage. What to do
+              before it ends is the maker card's own business, right below
+              this one. */}
+          {entitlement.plan === MAKER_PLAN &&
+            entitlement.periodEndsAt !== undefined && (
+              <p className="plus-card__line">
+                {t('account.maker.until', {
+                  date: format(entitlement.periodEndsAt),
+                })}
+              </p>
+            )}
           {entitlement.plan === GIFT_PLAN && (
             <p className="plus-card__line">
               {entitlement.periodEndsAt !== undefined &&
@@ -222,7 +242,8 @@ export default function PlusCard({
             </p>
           )}
           {entitlement.plan !== GIFT_PLAN &&
-            entitlement.plan !== PLUS_TRIAL_PLAN && (
+            entitlement.plan !== PLUS_TRIAL_PLAN &&
+            entitlement.plan !== MAKER_PLAN && (
               <>
                 {/* Cancelled, and still paid for. Everything keeps working to
                   the end of the period, so the card says that before it says

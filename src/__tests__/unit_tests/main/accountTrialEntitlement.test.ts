@@ -104,6 +104,20 @@ it('never renews a free trial or grants paid grace, even with an incorrect cance
   ).toMatchObject({ state: 'grace', renewing: true });
 });
 
+it('a month earned by publishing ends when it ends, with no paid grace either', () => {
+  // The grace window is for a renewal the app may have missed offline. An
+  // earned month has no renewal to miss, and a fortnight of it would leave
+  // Plus on for two weeks after the app had already said the month ended
+  // (server migration 0041).
+  const earned = record({ plan: 'maker', cancelAtPeriodEnd: false });
+  expect(resolveEntitlementState(earned, END - 1)).toMatchObject({
+    state: 'active',
+    plan: 'maker',
+    renewing: false,
+  });
+  expect(resolveEntitlementState(earned, END)).toEqual({ state: 'none' });
+});
+
 it('announces exact trial expiry on focus even when the server check is still fresh', async () => {
   const entitlement = build();
   await entitlement.checkNow();

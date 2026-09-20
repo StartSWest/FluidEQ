@@ -67,6 +67,7 @@ const view = (): IStudioView => ({
   pack,
   state: {
     entitled: true,
+    maker: false,
     mayAddProject: true,
     activeId: 'city',
     projectsRoot: '',

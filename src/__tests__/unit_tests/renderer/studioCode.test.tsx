@@ -212,6 +212,7 @@ describe('the code pane', () => {
 describe("the Studio's view of the code", () => {
   const state = (activeId: string): IStudioState => ({
     entitled: true,
+    maker: false,
     mayAddProject: true,
     projectsRoot: 'D:\\Studio',
     projects: [

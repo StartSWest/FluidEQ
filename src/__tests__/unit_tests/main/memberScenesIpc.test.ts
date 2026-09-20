@@ -37,7 +37,7 @@ import {
 } from '../../../main/ipc/memberScenes';
 // eslint-disable-next-line import/first -- as above
 import { writeStarterProject } from '../../../main/memberScenes/project';
-import { rememberMaker } from '../../../main/account/knownMakers';
+import { setKnownMaker } from '../../../main/account/knownMakers';
 // eslint-disable-next-line import/first -- as above
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
 // eslint-disable-next-line import/first -- as above
@@ -125,7 +125,7 @@ const setup = (
  * The account has had a scene approved before. That, not merely being
  * signed in, is what keeps one Studio project open without Plus.
  */
-const asMaker = () => rememberMaker(path.join(root, 'userData'), ME);
+const asMaker = () => setKnownMaker(path.join(root, 'userData'), ME, true);
 
 beforeEach(() => {
   handlers.clear();
@@ -454,6 +454,37 @@ describe('member scenes over IPC', () => {
     expect(invoke<IMemberScenesListing>('member-scenes-list').scenes).toEqual(
       [],
     );
+    registration.dispose();
+  });
+
+  it('gives a member with neither Plus nor an approved scene no project at all', async () => {
+    // The Studio is Plus's, reached through the trial (Ivan, 2026-09-20).
+    // The one project above is the maker's way back in — somebody who has
+    // never had a scene approved has nothing to be locked out of, and the
+    // page shows them what the Studio is instead of a bench.
+    status = { state: 'none' };
+    const registration = setup();
+    const opened = await invoke<Promise<IStudioState>>('studio-open');
+    expect(opened).toMatchObject({
+      entitled: false,
+      maker: false,
+      mayAddProject: false,
+    });
+
+    expect(await invoke('studio-create-project', 'Neon City')).toBe(
+      'plus-only',
+    );
+    chosen = await project();
+    expect((await link()).projects).toEqual([]);
+
+    // And the same account, once the server says it is a maker: the state
+    // the page is given says so, and the project can be made. Without this
+    // control the refusals above could be anything at all.
+    asMaker();
+    registration.makerChanged();
+    const asMakerNow = await invoke<Promise<IStudioState>>('studio-open');
+    expect(asMakerNow).toMatchObject({ maker: true, mayAddProject: true });
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
     registration.dispose();
   });
 

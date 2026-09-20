@@ -6,9 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   MAKER_MONTH_WARNING_DAYS,
-  makerMonthCanEarn,
   makerMonthDaysLeft,
-  makerMonthLeft,
+  makerMonthEndsToday,
   makerMonthState,
   parseMakerMonth,
   type IMakerMonth,
@@ -18,6 +17,7 @@ const NOW = Date.parse('2026-10-01T12:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
 
 const month = (over: Partial<IMakerMonth> = {}): IMakerMonth => ({
+  running: true,
   waiting: 0,
   earnedThisMonth: false,
   submissions: 0,
@@ -44,6 +44,7 @@ describe('the server’s answer', () => {
       }),
     ).toEqual({
       until: '2026-11-01T00:00:00.000Z',
+      running: true,
       waiting: 2,
       earnedThisMonth: true,
       scene: 'neon-city',
@@ -121,19 +122,58 @@ describe('how the month reads', () => {
   });
 });
 
-describe('what is left of this month', () => {
-  it('counts the sends left', () => {
-    expect(makerMonthLeft(month({ submissions: 0 }))).toBe(2);
-    expect(makerMonthLeft(month({ submissions: 2 }))).toBe(0);
-    expect(makerMonthLeft(month({ submissions: 5 }))).toBe(0);
+describe('the day it ends', () => {
+  it('says today only on the reader’s own last day', () => {
+    // Half past midnight tonight, local: the month ends today wherever this
+    // is read, and "tomorrow" would be a day that does not exist.
+    const tonight = new Date(NOW);
+    tonight.setHours(23, 30, 0, 0);
+    expect(
+      makerMonthEndsToday(month({ until: tonight.toISOString() }), NOW),
+    ).toBe(true);
+
+    const tomorrow = new Date(NOW);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    expect(
+      makerMonthEndsToday(month({ until: tomorrow.toISOString() }), NOW),
+    ).toBe(false);
+    expect(makerMonthEndsToday(month(), NOW)).toBe(false);
+  });
+});
+
+describe('whose clock decides', () => {
+  it('takes the server’s word that a month is over', () => {
+    // The moment is still ahead by this computer's clock, which is a day
+    // slow. The server says the month is done, and the server is what the
+    // entitlement was written against.
+    const ahead = new Date(NOW + 5 * DAY).toISOString();
+    expect(makerMonthState(month({ until: ahead, running: false }), NOW)).toBe(
+      'ended',
+    );
+    expect(makerMonthState(month({ until: ahead, running: true }), NOW)).toBe(
+      'ending',
+    );
   });
 
-  it('can still earn until the allowance or the refusals are spent', () => {
-    expect(makerMonthCanEarn(month())).toBe(true);
-    expect(makerMonthCanEarn(month({ submissions: 1 }))).toBe(true);
-    expect(makerMonthCanEarn(month({ submissions: 2 }))).toBe(false);
-    expect(makerMonthCanEarn(month({ rejections: 2 }))).toBe(false);
-    // Already earned: another scene this month adds nothing.
-    expect(makerMonthCanEarn(month({ earnedThisMonth: true }))).toBe(false);
+  it('reads a server from before it as a month still going', () => {
+    const answer = parseMakerMonth({
+      until: '2026-11-01T00:00:00.000Z',
+      waiting: 0,
+      maker: true,
+    });
+    expect(answer?.running).toBe(true);
+    // And no month at all is never "running".
+    expect(parseMakerMonth({ waiting: 0, maker: true })?.running).toBe(false);
+  });
+
+  it('refuses a date that is not the one shape the server sends', () => {
+    expect(parseMakerMonth({ until: 'December 17, 1995' })?.until).toBe(
+      undefined,
+    );
+    expect(parseMakerMonth({ until: '2026-11-01' })?.until).toBe(undefined);
+    expect(parseMakerMonth({ until: '2026-11-01T00:00:00+02:00' })?.until).toBe(
+      '2026-11-01T00:00:00+02:00',
+    );
   });
 });

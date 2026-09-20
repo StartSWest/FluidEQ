@@ -195,6 +195,7 @@ export const registerStudioProjectsIpc = ({
     const build = studioOpen ? bench.lastBuild() : undefined;
     return studioStateOf(projects, {
       entitled: entitled(),
+      maker: maker(),
       mayAddProject: mayAddProject(),
       projectsRoot: projectsRoot(),
       names: bench.names,

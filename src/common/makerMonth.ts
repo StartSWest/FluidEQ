@@ -19,8 +19,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 export interface IMakerMonth {
-  /** When the month now running runs out. Absent while none is running. */
+  /**
+   * When the month that was started runs out. A moment in the past is a
+   * month that has ended — the server reports it so the app can say so
+   * rather than showing nothing, which reads as "you never had one".
+   */
   until?: string;
+  /**
+   * Whether that moment is still ahead, by the SERVER's clock. Which is the
+   * one that decides: the entitlement is written against it, and a computer
+   * whose clock is a day out would otherwise be told its month ended while
+   * Plus was still on, or the reverse.
+   */
+  running: boolean;
   /** Months earned and not started yet, because something else covers them. */
   waiting: number;
   /** Whether this calendar month already has its approved scene. */
@@ -46,6 +57,14 @@ export type TMakerMonthFailure = 'signed-out' | 'offline' | 'server';
 export type TMakerMonthOutcome =
   { ok: true; month: IMakerMonth } | { ok: false; reason: TMakerMonthFailure };
 
+/**
+ * What the entitlement's `plan` says when the access is an earned month
+ * (server migration 0041). Like a trial and unlike a subscription: nothing
+ * renews it, there is no merchant page for it, and the app must never offer
+ * to manage it.
+ */
+export const MAKER_PLAN = 'maker';
+
 /** A week's notice, which is also what the account panel counts down. */
 export const MAKER_MONTH_WARNING_DAYS = 7;
 
@@ -59,8 +78,18 @@ const count = (value: unknown): number =>
     ? Math.floor(value)
     : 0;
 
+/**
+ * An instant, spelled the one way the server spells it. `Date.parse` alone
+ * takes "December 17, 1995" and "2026-09-20" — one of them local midnight,
+ * the other implementation's choice — and every date shown here would then
+ * depend on which the server happened to send.
+ */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})$/;
+
 const moment = (value: unknown): string | undefined =>
-  typeof value === 'string' && Number.isFinite(Date.parse(value))
+  typeof value === 'string' &&
+  ISO_INSTANT.test(value) &&
+  Number.isFinite(Date.parse(value))
     ? value
     : undefined;
 
@@ -81,6 +110,9 @@ export const parseMakerMonth = (value: unknown): IMakerMonth | undefined => {
   const until = moment(value.until);
   return {
     ...(until ? { until } : {}),
+    // A server from before this answered no `running` at all, and what it
+    // sent was only ever a month still going.
+    running: until !== undefined && value.running !== false,
     waiting: count(value.waiting),
     earnedThisMonth: value.earnedThisMonth === true,
     ...(scene ? { scene } : {}),
@@ -109,10 +141,33 @@ export const makerMonthState = (
     return 'none';
   }
   const left = Date.parse(month.until) - now;
-  if (left <= 0) {
+  // The server's word on whether it is over; this clock only for how long is
+  // left, where being an hour out changes nothing anybody reads.
+  if (!month.running || left <= 0) {
     return 'ended';
   }
   return left <= MAKER_MONTH_WARNING_DAYS * DAY_MS ? 'ending' : 'running';
+};
+
+/**
+ * Whether the month runs out before tonight — this computer's tonight, which
+ * is the one the reader is living in. "Tomorrow" on the morning of the last
+ * day is a day that does not exist.
+ */
+export const makerMonthEndsToday = (
+  month: IMakerMonth | undefined,
+  now: number,
+): boolean => {
+  if (!month?.until) {
+    return false;
+  }
+  const ends = new Date(Date.parse(month.until));
+  const today = new Date(now);
+  return (
+    ends.getFullYear() === today.getFullYear() &&
+    ends.getMonth() === today.getMonth() &&
+    ends.getDate() === today.getDate()
+  );
 };
 
 /**
@@ -128,16 +183,3 @@ export const makerMonthDaysLeft = (
   }
   return Math.max(0, Math.ceil((Date.parse(month.until) - now) / DAY_MS));
 };
-
-/** Submissions left before the month's allowance is spent. */
-export const makerMonthLeft = (month: IMakerMonth): number =>
-  Math.max(0, month.allowed - month.submissions);
-
-/**
- * Whether this month can still earn the next one. Two refusals cost the
- * month its reward — the rule that stops the queue being used as a lottery.
- */
-export const makerMonthCanEarn = (month: IMakerMonth): boolean =>
-  !month.earnedThisMonth &&
-  month.rejections < month.refusalsAllowed &&
-  makerMonthLeft(month) > 0;

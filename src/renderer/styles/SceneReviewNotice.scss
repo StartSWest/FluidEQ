@@ -166,3 +166,13 @@ body:has(
   .scene-review-notice {
   display: none;
 }
+
+// The month running out borrows this corner and this card
+// (`MakerMonthNotice.tsx`), and the two can want it in the same moment: both
+// are news about a maker's own scenes. They would then stand in exactly the
+// same place, one over the other. A scene just decided is the newer thing
+// and goes first; the month is a week's warning and can wait for the corner
+// to clear, which it does the moment the other is put away.
+body:has(.scene-review-notice:not(.maker-month-notice)) .maker-month-notice {
+  display: none;
+}

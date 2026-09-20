@@ -65,6 +65,7 @@ const view = (over: Partial<IStudioView['state']> = {}): IStudioView => ({
   pack: memberPack(),
   state: {
     entitled: false,
+    maker: true,
     mayAddProject: false,
     projectsRoot: 'D:\\Studio',
     projects: [project],
@@ -156,6 +157,7 @@ it('says what a FluidEQ scene opened to look inside is for, whatever the members
     <StudioBench
       view={view({
         entitled: true,
+        maker: true,
         mayAddProject: true,
         projects: [{ ...project, official: true }],
       })}

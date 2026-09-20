@@ -117,10 +117,12 @@ const account = {
   'account.maker.until': 'Plus 免费至 {date}。',
   'account.maker.endsDays':
     '还有 {days} 天结束：在此之前发布一个场景即可继续。',
+  'account.maker.endsToday': '今天结束 — 发布一个场景即可继续。',
   'account.maker.endsTomorrow': '明天结束：在此之前发布一个场景即可继续。',
   'account.maker.keep': '本月发布一个场景，下个月就免费。',
   'account.maker.kept': '本月的场景已经收到。下个月再发布一个就能继续。',
   'account.maker.again': '发布一个场景，就又有一个月的 Plus 免费。',
+  'account.maker.againWaiting': '发布一个场景，就会再多一个免费月份排队等候。',
   'account.maker.invite':
     '在工作室做一个场景：每月有一个通过审核，Plus 就一直免费。',
   'account.maker.waitingOne':
@@ -131,6 +133,7 @@ const account = {
   // earned month renews itself no more than a gift does, so it has to be
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle': '你的免费 Plus 将在 {days} 天后结束',
+  'account.maker.notice.endingToday': '你的免费 Plus 今天结束',
   'account.maker.notice.endingTomorrow': '你的免费 Plus 明天结束',
   'account.maker.notice.endingBody':
     '在此之前发布一个场景，下个月也免费。两种情况都不会收费。',

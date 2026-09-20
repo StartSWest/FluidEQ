@@ -60,6 +60,7 @@ const month = (over: Record<string, unknown>) => {
   mockMonth.mockResolvedValue({
     ok: true,
     month: {
+      running: true,
       waiting: 0,
       earnedThisMonth: false,
       submissions: 0,

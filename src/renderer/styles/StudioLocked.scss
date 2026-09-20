@@ -1,0 +1,208 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio for somebody who may not use it yet (`StudioLocked.tsx`): what
+// it is on the left, what it does on the right, and the trial card under
+// both.
+//
+// Held to a reading width and laid out in two columns rather than centred in
+// a column of its own: the Plus tab is as wide as the window, and a card of
+// centred lines in the middle of 2560px reads as a dialog somebody forgot to
+// close. The card is the app's own panel face, flat, like every other card
+// in the window.
+.studio-locked {
+  display: grid;
+  gap: $spacing-m;
+  justify-items: center;
+  align-content: start;
+  width: 100%;
+  padding: $spacing-l 0 $spacing-xl;
+  box-sizing: border-box;
+
+  // The trial card is the gallery's, and full width by design there. Held to
+  // the pitch's width so the two pieces share an edge.
+  .plus-trial {
+    width: min(920px, 100%);
+  }
+}
+
+.studio-locked__pitch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  gap: $spacing-l;
+  align-items: center;
+  width: min(920px, 100%);
+  box-sizing: border-box;
+  padding: $spacing-xl;
+  @include panel-surface($secondary-default, 6%);
+
+  // One column before the two would start breaking words: measured in the
+  // window, the German step list is what runs out of room first.
+  @container studio (max-width: 720px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-m;
+    padding: $spacing-l $spacing-m;
+  }
+}
+
+.studio-locked__lead {
+  display: grid;
+  gap: $spacing-s;
+  align-content: start;
+  min-width: 0;
+}
+
+.studio-locked__head {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+// The one accented thing on the card, and the reason the title does not need
+// a heavier face than the app's ceiling: a ring the size of a tab icon rather
+// than a filled disc, which at this size reads as a button that cannot be
+// pressed.
+.studio-locked__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, $border-field);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  color: $secondary-light;
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+// The app's own hero size, in container units, so it grows with the tab
+// rather than with the screen (`plus-free-intro`).
+.studio-locked__title {
+  min-width: 0;
+  margin: 0;
+  color: $text-primary;
+  font-size: clamp(1.05rem, 2.4cqi, 1.5rem);
+  font-weight: $weight-bold;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.studio-locked__body {
+  max-width: 46ch;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+// What makes the Studio free again: the offer under the offer, so it is said
+// once and quietly, on the line before the button rather than as a banner of
+// its own.
+.studio-locked__earn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: $spacing-xxs 0 0;
+  padding: 9px 12px;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.studio-locked__earn-mark {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  color: $secondary-light;
+}
+
+.studio-locked__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  margin-top: $spacing-xxs;
+}
+
+// What the Studio does, one to a row, in the order somebody would do it.
+// Rows rather than three chips side by side: the three sentences are not the
+// same length in any language, and boxes of one height with a sentence in
+// each read as disabled controls.
+.studio-locked__steps {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // The spine through the three marks. These are a sequence — the scene is
+  // written, then heard, then published — and the line is what says so
+  // without numbering rows that are already glyphed. It stops at the first
+  // and last mark's centre, so it never hangs past the list.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    bottom: 25px;
+    left: 26px;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, $secondary-default 30%, transparent),
+      color-mix(in srgb, $secondary-default 12%, transparent)
+    );
+  }
+}
+
+.studio-locked__step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 11px 13px;
+  @include inset-surface;
+}
+
+// Opaque, so the spine passes behind the marks rather than through them.
+.studio-locked__step-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 14%, $surface-block);
+  color: $secondary-light;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.studio-locked__step-text {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+  text-wrap: pretty;
+}

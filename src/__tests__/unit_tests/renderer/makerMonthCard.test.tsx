@@ -38,10 +38,13 @@ beforeEach(() => {
   });
 });
 
-const answer = (over: Partial<TMakerMonthOutcome & { month: unknown }> = {}) => {
+const answer = (
+  over: Partial<TMakerMonthOutcome & { month: unknown }> = {},
+) => {
   mockMonth.mockResolvedValue({
     ok: true,
     month: {
+      running: true,
       waiting: 0,
       earnedThisMonth: false,
       submissions: 0,
@@ -67,7 +70,9 @@ test('a running month says when Plus is free until, and nothing about ending', a
   await waitFor(() =>
     expect(screen.getByText(/account\.maker\.until:/)).toBeInTheDocument(),
   );
-  expect(screen.queryByText(/account\.maker\.endsDays/)).not.toBeInTheDocument();
+  expect(
+    screen.queryByText(/account\.maker\.endsDays/),
+  ).not.toBeInTheDocument();
   expect(screen.getByText('account.maker.keep')).toBeInTheDocument();
 });
 
@@ -124,6 +129,56 @@ test('somebody who has never published is invited, and a past maker is asked aga
   await waitFor(() =>
     expect(screen.getByText('account.maker.again')).toBeInTheDocument(),
   );
+});
+
+test('a month that has ended says so, and asks for the next scene', async () => {
+  // The server reports a month that is over rather than nothing at all, so
+  // the card can tell "your Plus ran out" from "you have never earned one".
+  answer({
+    month: {
+      until: new Date(Date.now() - 2 * DAY).toISOString(),
+      running: false,
+      maker: true,
+    },
+  });
+  await show();
+
+  await waitFor(() =>
+    expect(screen.getByText('account.maker.again')).toBeInTheDocument(),
+  );
+  // Nothing that would read as still running: no badge, no date, no
+  // countdown.
+  expect(screen.queryByText('account.maker.badge')).not.toBeInTheDocument();
+  expect(screen.queryByText(/account\.maker\.until/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/account\.maker\.ends/)).not.toBeInTheDocument();
+});
+
+test('a maker who is paying is told the next month joins the queue', async () => {
+  // Their subscription is untouched and their months are banked, so "free
+  // again" would be describing something that never stopped.
+  answer({ month: { waiting: 2, maker: true } });
+  await show();
+
+  await waitFor(() =>
+    expect(screen.getByText('account.maker.againWaiting')).toBeInTheDocument(),
+  );
+  expect(screen.queryByText('account.maker.again')).not.toBeInTheDocument();
+});
+
+test('the last day is said as today, not as tomorrow', async () => {
+  // Tonight, whatever time this runs: "tomorrow" on the morning a month
+  // ends is a day that does not exist.
+  const tonight = new Date();
+  tonight.setHours(23, 59, 0, 0);
+  answer({ month: { until: tonight.toISOString(), maker: true } });
+  await show();
+
+  await waitFor(() =>
+    expect(screen.getByText('account.maker.endsToday')).toBeInTheDocument(),
+  );
+  expect(
+    screen.queryByText('account.maker.endsTomorrow'),
+  ).not.toBeInTheDocument();
 });
 
 test('a failure shows nothing at all rather than a wrong month', async () => {

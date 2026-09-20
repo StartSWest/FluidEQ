@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
-import { makerMonthDaysLeft, makerMonthState } from 'common/makerMonth';
+import {
+  makerMonthDaysLeft,
+  makerMonthEndsToday,
+  makerMonthState,
+} from 'common/makerMonth';
 import Glyph from '../community/Glyph';
 import { useAccount } from '../account/accountStore';
 import { loadMakerMonth, useMakerMonth } from '../plus/makerMonthStore';
@@ -79,11 +83,15 @@ export default function MakerMonthNotice() {
   }
 
   const days = makerMonthDaysLeft(month, Date.now());
-  // The last day is "tomorrow", which carries no number: "ends in 1 days" is
-  // the sentence this avoids.
+  // The last day is "today" or "tomorrow", neither of which carries a
+  // number: "ends in 1 days" is the sentence this avoids, and so is
+  // "tomorrow" said on the morning it ends.
   const title = () => {
     if (which === 'ended') {
       return t('account.maker.notice.endedTitle');
+    }
+    if (makerMonthEndsToday(month, Date.now())) {
+      return t('account.maker.notice.endingToday');
     }
     return days <= 1
       ? t('account.maker.notice.endingTomorrow')
@@ -101,7 +109,7 @@ export default function MakerMonthNotice() {
 
   return (
     <div
-      className="scene-review-notice scene-review-notice--waiting"
+      className="scene-review-notice scene-review-notice--waiting maker-month-notice"
       role="dialog"
       aria-labelledby="maker-month-notice-title"
     >

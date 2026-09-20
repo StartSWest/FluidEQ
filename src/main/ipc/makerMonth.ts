@@ -19,12 +19,13 @@ const CHANNEL = 'maker-month';
 export interface IMakerMonthIpcDeps {
   access: IGalleryAccess;
   /**
-   * Told when the server says this account has had a scene approved, so the
-   * Studio can keep its single-project bench open to a maker whose earned
-   * month has run out. A convenience: the publication itself is the server's
-   * to accept or refuse.
+   * What the server says about this account having had a scene approved, so
+   * the Studio can keep its single-project bench open to a maker whose
+   * earned month has run out — and close it again if the approval is gone.
+   * A convenience: the publication itself is the server's to accept or
+   * refuse.
    */
-  onMaker?: (accountId: string) => void;
+  onMaker?: (accountId: string, maker: boolean) => void;
 }
 
 export const registerMakerMonthIpc = ({
@@ -42,8 +43,8 @@ export const registerMakerMonthIpc = ({
     if (access.accountId() !== me) {
       return { ok: false, reason: 'signed-out' };
     }
-    if (me && outcome.ok && outcome.month.maker) {
-      onMaker?.(me);
+    if (me && outcome.ok) {
+      onMaker?.(me, outcome.month.maker);
     }
     return outcome;
   });

@@ -131,12 +131,16 @@ const account = {
   'account.maker.until': '{date} तक Plus मुफ़्त है।',
   'account.maker.endsDays':
     '{days} दिनों में खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
+  'account.maker.endsToday':
+    'आज खत्म हो रहा है — इसे बनाए रखने के लिए एक सीन प्रकाशित करें।',
   'account.maker.endsTomorrow':
     'कल खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
   'account.maker.keep': 'इस महीने एक सीन प्रकाशित करें, अगला महीना मुफ़्त है।',
   'account.maker.kept':
     'इस महीने का सीन आ गया। अगले महीने फिर से प्रकाशित करें और चलता रहेगा।',
   'account.maker.again': 'एक सीन प्रकाशित करें और फिर से एक महीना Plus मुफ़्त।',
+  'account.maker.againWaiting':
+    'एक सीन प्रकाशित करें और एक और मुफ़्त महीना कतार में जुड़ जाएगा।',
   'account.maker.invite':
     'स्टूडियो में एक सीन बनाएँ: महीने में एक मंज़ूर सीन Plus को मुफ़्त रखता है।',
   'account.maker.waitingOne':
@@ -148,6 +152,7 @@ const account = {
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle':
     'आपका मुफ़्त Plus {days} दिनों में खत्म हो रहा है',
+  'account.maker.notice.endingToday': 'आपका मुफ़्त Plus आज खत्म हो रहा है',
   'account.maker.notice.endingTomorrow': 'आपका मुफ़्त Plus कल खत्म हो रहा है',
   'account.maker.notice.endingBody':
     'उससे पहले एक सीन प्रकाशित करें और अगला महीना भी मुफ़्त है। किसी भी हाल में कोई शुल्क नहीं लगता।',

@@ -127,6 +127,7 @@ describe('making a scene with your AI', () => {
       pack: memberPack(),
       state: {
         entitled: true,
+        maker: false,
         mayAddProject: true,
         projectsRoot: 'D:\\Studio',
         projects: [project, other],
@@ -283,6 +284,7 @@ describe('opening the Studio', () => {
   it('shows loading, not an empty scene, while the selected project is being read', async () => {
     bridge.openStudio.mockResolvedValue({
       entitled: true,
+      maker: false,
       projects: [project],
       activeId: project.id,
     });
@@ -306,6 +308,7 @@ describe('opening the Studio', () => {
     ).not.toBeInTheDocument();
     answer({
       entitled: true,
+      maker: false,
       mayAddProject: true,
       projectsRoot: 'D:\\Studio',
       projects: [],

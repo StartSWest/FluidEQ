@@ -133,12 +133,16 @@ const account = {
   'account.maker.until': 'Plus es gratis hasta el {date}.',
   'account.maker.endsDays':
     'Termina en {days} días: publica una escena antes para mantenerlo.',
+  'account.maker.endsToday':
+    'Termina hoy: publica una escena para conservarlo.',
   'account.maker.endsTomorrow':
     'Termina mañana: publica una escena antes para mantenerlo.',
   'account.maker.keep': 'Publica una escena este mes y el siguiente es gratis.',
   'account.maker.kept':
     'La escena de este mes ya está. Publica otra el mes que viene para seguir.',
   'account.maker.again': 'Publica una escena y vuelves a tener un mes gratis.',
+  'account.maker.againWaiting':
+    'Publica una escena y otro mes gratis se suma a los que esperan.',
   'account.maker.invite':
     'Haz una escena en el Estudio: una escena aprobada al mes mantiene Plus gratis.',
   'account.maker.waitingOne':
@@ -149,6 +153,7 @@ const account = {
   // earned month renews itself no more than a gift does, so it has to be
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle': 'Tu Plus gratis termina en {days} días',
+  'account.maker.notice.endingToday': 'Tu Plus gratis termina hoy',
   'account.maker.notice.endingTomorrow': 'Tu Plus gratis termina mañana',
   'account.maker.notice.endingBody':
     'Publica una escena antes y el mes siguiente también es gratis. No se cobra nada en ningún caso.',

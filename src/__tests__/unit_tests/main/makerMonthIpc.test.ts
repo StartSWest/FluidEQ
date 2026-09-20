@@ -53,7 +53,7 @@ interface ISetup {
   body?: unknown;
   status?: number;
   onEachCall?: () => void;
-  onMaker?: (id: string) => void;
+  onMaker?: (id: string, maker: boolean) => void;
 }
 
 const setup = ({
@@ -127,6 +127,7 @@ test('it answers with the month the server describes', async () => {
     ok: true,
     month: {
       until: '2026-11-01T00:00:00.000Z',
+      running: true,
       waiting: 2,
       earnedThisMonth: false,
       submissions: 0,
@@ -163,6 +164,7 @@ test('a server from before the earned month reads as an account that never publi
   await expect(ask()).resolves.toEqual({
     ok: true,
     month: {
+      running: false,
       waiting: 0,
       earnedThisMonth: false,
       submissions: 0,
@@ -174,21 +176,44 @@ test('a server from before the earned month reads as an account that never publi
   });
 });
 
-test('the Studio is told only when the server says this account is a maker', async () => {
-  const told: string[] = [];
+test('the Studio is told what the server says, both ways', async () => {
+  const told: [string, boolean][] = [];
   const kit = setup({
     body: answer({ maker: true }),
-    onMaker: (id) => told.push(id),
+    onMaker: (id, maker) => told.push([id, maker]),
   });
   await kit.ask();
-  expect(told).toEqual([ME]);
+  expect(told).toEqual([[ME, true]]);
 
+  // And the no as well. A scene taken down or deleted takes the last
+  // approval with it, and a bench left open on this computer to somebody the
+  // server refuses is the Studio saying one thing and publishing another.
   handlers.clear();
   told.length = 0;
   const notAMaker = setup({
     body: answer({ maker: false }),
-    onMaker: (id) => told.push(id),
+    onMaker: (id, maker) => told.push([id, maker]),
   });
   await notAMaker.ask();
+  expect(told).toEqual([[ME, false]]);
+});
+
+// The bug this is for: an answer is about the account that asked, and the
+// token that fetched it belongs to that account alone. Signing out between
+// the ask and the answer must not tell the Studio about somebody else.
+test('nothing is remembered about an account that has signed out', async () => {
+  const told: [string, boolean][] = [];
+  const kit = setup({
+    body: answer({ maker: true }),
+    onMaker: (id, maker) => told.push([id, maker]),
+  });
+  // Positive control: the same setup tells, when the account stays.
+  await kit.ask();
+  expect(told).toEqual([[ME, true]]);
+
+  told.length = 0;
+  const asked = kit.ask();
+  kit.signIn(SOMEONE);
+  await asked;
   expect(told).toEqual([]);
 });

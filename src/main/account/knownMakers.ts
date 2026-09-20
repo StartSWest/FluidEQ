@@ -34,5 +34,30 @@ const makersIn = (userDataDir: string) =>
 export const isKnownMaker = (userDataDir: string, accountId: string): boolean =>
   makersIn(userDataDir).read(accountId) >= IS_A_MAKER;
 
-export const rememberMaker = (userDataDir: string, accountId: string) =>
-  makersIn(userDataDir).write(accountId, IS_A_MAKER);
+/**
+ * What the server last said about this account, kept for the Studio to ask
+ * offline. Answers whether it changed, so the page is told again only when
+ * there is something new to tell it.
+ *
+ * It goes both ways: a scene taken down or deleted takes the last approval
+ * with it, and `is_scene_maker` then says no. Recording only the yes would
+ * leave the bench open on this computer to somebody the server refuses,
+ * which is the Studio saying one thing and publishing saying another.
+ */
+export const setKnownMaker = (
+  userDataDir: string,
+  accountId: string,
+  maker: boolean,
+): boolean => {
+  const makers = makersIn(userDataDir);
+  const known = makers.read(accountId) >= IS_A_MAKER;
+  if (known === maker) {
+    return false;
+  }
+  if (maker) {
+    makers.write(accountId, IS_A_MAKER);
+  } else {
+    makers.forget(accountId);
+  }
+  return true;
+};

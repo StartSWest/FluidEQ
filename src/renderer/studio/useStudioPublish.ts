@@ -27,6 +27,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   offline: 'studio.publish.offline',
   banned: 'studio.export.banned',
   'rate-limited': 'studio.publish.rateLimited',
+  'too-many-this-month': 'studio.publish.tooManyThisMonth',
   refused: 'studio.export.refused',
   'signed-out': 'studio.publish.signedOut',
   'no-build': 'studio.export.refused',

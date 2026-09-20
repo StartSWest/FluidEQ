@@ -51,6 +51,12 @@ export type TPublishFailure =
   | 'banned'
   | 'terms'
   | 'rate-limited'
+  /**
+   * Two scenes a month is the whole allowance, and it is not a wait of an
+   * hour: told apart from `rate-limited` so the answer can say when it comes
+   * back rather than "try again shortly" to somebody who must wait weeks.
+   */
+  | 'too-many-this-month'
   | 'refused'
   /** Most of the scene is one of FluidEQ's own, which is only to learn from. */
   | 'official-copy'
@@ -442,7 +448,9 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
     return word === 'banned' ? 'banned' : 'not-entitled';
   }
   if (response.status === 429) {
-    return 'rate-limited';
+    return word === 'too_many_this_month'
+      ? 'too-many-this-month'
+      : 'rate-limited';
   }
   if (response.status === 422 && word === 'official_copy') {
     return 'official-copy';

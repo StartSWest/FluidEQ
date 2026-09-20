@@ -135,6 +135,8 @@ const account = {
   'account.maker.until': 'Plus ist bis zum {date} kostenlos.',
   'account.maker.endsDays':
     'Endet in {days} Tagen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
+  'account.maker.endsToday':
+    'Endet heute – veröffentlichen Sie eine Szene, um ihn zu behalten.',
   'account.maker.endsTomorrow':
     'Endet morgen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
   'account.maker.keep':
@@ -143,6 +145,8 @@ const account = {
     'Die Szene dieses Monats ist da. Nächsten Monat wieder eine, dann geht es weiter.',
   'account.maker.again':
     'Veröffentlichen Sie eine Szene, dann ist wieder ein Monat Plus kostenlos.',
+  'account.maker.againWaiting':
+    'Veröffentlichen Sie eine Szene, und ein weiterer freier Monat wartet mit.',
   'account.maker.invite':
     'Machen Sie eine Szene im Studio: eine genehmigte Szene pro Monat hält Plus kostenlos.',
   'account.maker.waitingOne':
@@ -154,6 +158,7 @@ const account = {
   // said out loud rather than simply stop.
   'account.maker.notice.endingTitle':
     'Ihr kostenloses Plus endet in {days} Tagen',
+  'account.maker.notice.endingToday': 'Ihr kostenloses Plus endet heute',
   'account.maker.notice.endingTomorrow': 'Ihr kostenloses Plus endet morgen',
   'account.maker.notice.endingBody':
     'Veröffentlichen Sie vorher eine Szene, dann ist der nächste Monat ebenfalls kostenlos. Berechnet wird so oder so nichts.',
