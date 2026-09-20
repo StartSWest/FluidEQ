@@ -3059,13 +3059,10 @@ const developmentEntitlement =
 // watch the subscription switch on and off. Nothing to configure: the server
 // holds the secret and admits admins only. See `membershipSimulator.ts`.
 const developmentSimulator = !app.isPackaged;
-// A cast of sample people ranked into the leaderboard and credited with
-// scenes in the gallery, so both can be looked at full before there is anyone
-// in them. Nothing is written anywhere; see `samplePeople.ts`. The variable
-// keeps the name it had when the cast also filled the community's channels,
-// so a `.env` that already turns it on keeps working.
-const developmentSamplePeople =
-  !app.isPackaged && process.env.FLUIDEQ_DEV_COMMUNITY_SAMPLE === '1';
+// The leaderboard had a cast of twelve sample people ranked into it in
+// development, for a board with nobody in it. There are real people on it
+// now, and a made-up cast over them hides what is actually happening (Ivan,
+// 2026-09-20): the board is the server's answer, in every build.
 
 const accountIpc = registerAccountIpc({
   getMainWindow: () => mainWindow,
@@ -3277,7 +3274,6 @@ const leaderboardIpc = registerLeaderboardIpc({
   session: accountIpc.session,
   entitlement: accountIpc.entitlement,
   logger: log,
-  sampleContent: developmentSamplePeople,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch

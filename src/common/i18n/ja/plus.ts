@@ -273,12 +273,6 @@ const plus = {
     'このアカウントの以前の削除が途中で止まりました。「削除を完了」で最後まで行います。',
   'plus.accounts.note.gift':
     '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は「Plus のギフト」で取り消してください。',
-  'plus.accounts.give': 'Plus を贈る',
-  'plus.accounts.giveConfirm':
-    '{name} に Plus を贈りますか? 取り消すまで続きます。',
-  'plus.accounts.giving': '{name} に Plus を贈っています…',
-  'plus.accounts.giveYes': 'Plus を贈る',
-  'plus.accounts.giveNo': '今はしない',
   'plus.accounts.delete': 'アカウントを削除',
   'plus.accounts.finish': '削除を完了',
   'plus.accounts.confirm':

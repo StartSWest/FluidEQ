@@ -250,11 +250,6 @@ const plus = {
     '之前对该账户的删除中途停止了。“完成删除”会把它做完。',
   'plus.accounts.note.gift':
     '按照条款，赠送给该地址的 Plus 会保留。如果对方也要求收回，请在“赠送 Plus”中收回。',
-  'plus.accounts.give': '赠送 Plus',
-  'plus.accounts.giveConfirm': '把 Plus 赠给 {name}？在你收回之前一直有效。',
-  'plus.accounts.giving': '正在把 Plus 赠给 {name}…',
-  'plus.accounts.giveYes': '赠送 Plus',
-  'plus.accounts.giveNo': '暂不',
   'plus.accounts.delete': '删除账户',
   'plus.accounts.finish': '完成删除',
   'plus.accounts.confirm': '要永久删除 {name} 的账户吗？此操作无法撤销。',

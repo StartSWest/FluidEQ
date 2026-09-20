@@ -278,12 +278,6 @@ const plus = {
     'Eine frühere Löschung dieses Kontos ist mittendrin stehen geblieben. „Löschung abschließen“ bringt sie zu Ende.',
   'plus.accounts.note.gift':
     'Ein Plus-Geschenk an diese Adresse bleibt bestehen, wie es die Bedingungen sagen. Nehmen Sie es unter Plus-Geschenke zurück, falls auch das gewünscht wurde.',
-  'plus.accounts.give': 'Plus schenken',
-  'plus.accounts.giveConfirm':
-    '{name} Plus schenken? Es gilt, bis Sie es zurücknehmen.',
-  'plus.accounts.giving': '{name} wird Plus geschenkt …',
-  'plus.accounts.giveYes': 'Plus schenken',
-  'plus.accounts.giveNo': 'Jetzt nicht',
   'plus.accounts.delete': 'Konto löschen',
   'plus.accounts.finish': 'Löschung abschließen',
   'plus.accounts.confirm':

@@ -13,7 +13,6 @@ import {
 } from '../usage/leaderboardApi';
 import { createUsageLedger, type IUsageLedger } from '../usage/usageLedger';
 import readComputerId from '../usage/computerId';
-import { sampleBoard } from '../plus/samplePeople';
 
 /**
  * Listening minutes and the board, as the renderer sees them.
@@ -37,11 +36,6 @@ export interface ILeaderboardIpcDeps {
   logger?: { info(message: string): void; warn(message: string): void };
   now?: () => number;
   fetchImpl?: typeof fetch;
-  /**
-   * DEVELOPMENT ONLY: rank a cast of sample people into the real board so
-   * the podium and the rows can be looked at full. See `samplePeople.ts`.
-   */
-  sampleContent?: boolean;
 }
 
 export interface ILeaderboardStatus {
@@ -83,7 +77,6 @@ export const registerLeaderboardIpc = ({
   logger,
   now = Date.now,
   fetchImpl,
-  sampleContent = false,
 }: ILeaderboardIpcDeps) => {
   const ledger: IUsageLedger = createUsageLedger({ userDataDir, now });
   // Read the first time a day is sent, not at startup: somebody who never
@@ -191,9 +184,6 @@ export const registerLeaderboardIpc = ({
         api.fetchBoard(wanted),
         api.fetchMyRank(wanted),
       ]);
-      if (sampleContent) {
-        return { period: wanted, ...sampleBoard(wanted, rows, me) };
-      }
       return { period: wanted, rows, me };
     })(),
   );
