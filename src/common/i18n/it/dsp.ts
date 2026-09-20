@@ -381,6 +381,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Nessuno',
   'dsp.eqModel.proportional': 'Focalizzato',
   'dsp.eqModel.wide': 'Ampio',
+  'dsp.eqModel.asymmetric': 'Asimmetrico',
   'dsp.eqEngine.label': 'Motore',
   'dsp.eqPhase.label': 'Fase',
   'dsp.eqPhase.minimum': 'Minima',
@@ -809,7 +810,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Tono della coda',
   'dsp.room.tune.characterHint':
     'Dimensione e Pareti modellano le prime riflessioni. Lunghezza e Tono modellano l’Ambiente che le segue.',
-  'dsp.room.tune.preserve': 'Tieni i diffusori dove sono',
+  'dsp.room.tune.preserve': 'Mantieni le posizioni',
   'dsp.room.tune.preserveHint':
     'L’allargamento di Dimensione riposa mentre la Stanza è accesa, perché sposterebbe ciò che la Stanza ha appena posizionato. Le sue impostazioni restano.',
   'dsp.room.tune.bassCentre': 'Bassi e centrale',

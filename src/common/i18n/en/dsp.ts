@@ -389,6 +389,7 @@ const dsp = {
   'dsp.eqModel.clean': 'None',
   'dsp.eqModel.proportional': 'Focused',
   'dsp.eqModel.wide': 'Broad',
+  'dsp.eqModel.asymmetric': 'Asymmetric',
   'dsp.eqEngine.label': 'Engine',
   'dsp.eqPhase.label': 'Phase',
   'dsp.eqPhase.minimum': 'Minimum',
@@ -815,7 +816,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Tail tone',
   'dsp.room.tune.characterHint':
     'Size and Walls shape the first reflections. Tail length and Tail tone shape the Ambience after them.',
-  'dsp.room.tune.preserve': 'Keep the speakers where they are',
+  'dsp.room.tune.preserve': 'Keep their positions',
   'dsp.room.tune.preserveHint':
     'Dimension’s widening rests while the Room is on, because it would move what the Room just placed. Its settings are kept.',
   'dsp.room.tune.bassCentre': 'Bass and centre',

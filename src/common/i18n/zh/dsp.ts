@@ -359,6 +359,7 @@ const dsp = {
   'dsp.eqModel.clean': '无',
   'dsp.eqModel.proportional': '聚焦',
   'dsp.eqModel.wide': '宽阔',
+  'dsp.eqModel.asymmetric': '非对称',
   'dsp.eqEngine.label': '引擎',
   'dsp.eqPhase.label': '相位',
   'dsp.eqPhase.minimum': '最小相位',
@@ -765,7 +766,7 @@ const dsp = {
   'dsp.room.tune.damping': '尾音音色',
   'dsp.room.tune.characterHint':
     '大小和墙面塑造最初的反射；尾音长度和音色塑造其后的余韵。',
-  'dsp.room.tune.preserve': '保持音箱位置不变',
+  'dsp.room.tune.preserve': '保持位置',
   'dsp.room.tune.preserveHint':
     '房间开启时，空间感的展宽会暂停，因为它会移动房间刚摆好的位置。它的设置会保留。',
   'dsp.room.tune.bassCentre': '低音与中置',

@@ -383,6 +383,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Nenhum',
   'dsp.eqModel.proportional': 'Focado',
   'dsp.eqModel.wide': 'Amplo',
+  'dsp.eqModel.asymmetric': 'Assimétrico',
   'dsp.eqEngine.label': 'Motor',
   'dsp.eqPhase.label': 'Fase',
   'dsp.eqPhase.minimum': 'Mínima',
@@ -810,7 +811,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Tom da cauda',
   'dsp.room.tune.characterHint':
     'Tamanho e Paredes moldam as primeiras reflexões. Duração e Tom moldam o Ambiente que vem depois.',
-  'dsp.room.tune.preserve': 'Manter as colunas onde estão',
+  'dsp.room.tune.preserve': 'Manter as posições',
   'dsp.room.tune.preserveHint':
     'O alargamento da Dimensão descansa enquanto a Sala está ligada, porque moveria o que a Sala acabou de colocar. As definições dele mantêm-se.',
   'dsp.room.tune.bassCentre': 'Graves e central',

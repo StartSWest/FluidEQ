@@ -382,6 +382,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Aucun',
   'dsp.eqModel.proportional': 'Focalisé',
   'dsp.eqModel.wide': 'Large',
+  'dsp.eqModel.asymmetric': 'Asymétrique',
   'dsp.eqEngine.label': 'Moteur',
   'dsp.eqPhase.label': 'Phase',
   'dsp.eqPhase.minimum': 'Minimale',
@@ -810,7 +811,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Couleur de la traîne',
   'dsp.room.tune.characterHint':
     'Taille et Murs façonnent les premières réflexions. Longueur et Couleur façonnent l’Ambiance qui les suit.',
-  'dsp.room.tune.preserve': 'Garder les enceintes à leur place',
+  'dsp.room.tune.preserve': 'Garder leurs positions',
   'dsp.room.tune.preserveHint':
     'L’élargissement de Dimension se repose tant que la Salle est active, car il déplacerait ce que la Salle vient de placer. Ses réglages sont conservés.',
   'dsp.room.tune.bassCentre': 'Graves et centre',

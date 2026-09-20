@@ -376,6 +376,7 @@ const dsp = {
   'dsp.eqModel.clean': 'なし',
   'dsp.eqModel.proportional': 'フォーカス',
   'dsp.eqModel.wide': 'ワイド',
+  'dsp.eqModel.asymmetric': '非対称',
   'dsp.eqEngine.label': 'エンジン',
   'dsp.eqPhase.label': '位相',
   'dsp.eqPhase.minimum': '最小位相',
@@ -793,7 +794,7 @@ const dsp = {
   'dsp.room.tune.damping': '残響の音色',
   'dsp.room.tune.characterHint':
     'サイズと壁が初期反射を形づくり、残響の長さと音色がそのあとのアンビエンスを形づくります。',
-  'dsp.room.tune.preserve': 'スピーカーの位置を保つ',
+  'dsp.room.tune.preserve': '位置を保つ',
   'dsp.room.tune.preserveHint':
     'ルームがオンの間、ディメンションの広がり処理は休みます。ルームが置いた位置を動かしてしまうためです。設定は保持されます。',
   'dsp.room.tune.bassCentre': '低音とセンター',

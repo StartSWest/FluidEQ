@@ -378,6 +378,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Нет',
   'dsp.eqModel.proportional': 'Узкий',
   'dsp.eqModel.wide': 'Широкий',
+  'dsp.eqModel.asymmetric': 'Асимметричная',
   'dsp.eqEngine.label': 'Движок',
   'dsp.eqPhase.label': 'Фаза',
   'dsp.eqPhase.minimum': 'Минимальная',
@@ -804,7 +805,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Тон хвоста',
   'dsp.room.tune.characterHint':
     'Размер и Стены формируют первые отражения. Длина и Тон формируют Атмосферу после них.',
-  'dsp.room.tune.preserve': 'Оставлять колонки на своих местах',
+  'dsp.room.tune.preserve': 'Сохранять позиции',
   'dsp.room.tune.preserveHint':
     'Расширение в «Пространстве» отдыхает, пока Комната включена, иначе оно сдвинуло бы то, что Комната только что расставила. Его настройки сохраняются.',
   'dsp.room.tune.bassCentre': 'Бас и центр',

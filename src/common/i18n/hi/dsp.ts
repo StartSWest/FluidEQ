@@ -378,6 +378,7 @@ const dsp = {
   'dsp.eqModel.clean': 'कोई नहीं',
   'dsp.eqModel.proportional': 'केंद्रित',
   'dsp.eqModel.wide': 'चौड़ा',
+  'dsp.eqModel.asymmetric': 'असममित',
   'dsp.eqEngine.label': 'इंजन',
   'dsp.eqPhase.label': 'फेज़',
   'dsp.eqPhase.minimum': 'न्यूनतम',
@@ -800,7 +801,7 @@ const dsp = {
   'dsp.room.tune.damping': 'गूँज का स्वर',
   'dsp.room.tune.characterHint':
     'आकार और दीवारें पहली परावर्तनों को गढ़ती हैं। गूँज की लंबाई और स्वर उनके बाद के एम्बिएंस को गढ़ते हैं।',
-  'dsp.room.tune.preserve': 'स्पीकरों को अपनी जगह पर रखें',
+  'dsp.room.tune.preserve': 'जगह बनाए रखें',
   'dsp.room.tune.preserveHint':
     'कमरा चालू रहने पर डाइमेंशन का चौड़ा करना रुका रहता है, क्योंकि वह कमरे की रखी हुई जगहों को हिला देगा। उसकी सेटिंग बनी रहती हैं।',
   'dsp.room.tune.bassCentre': 'बेस और सेंटर',

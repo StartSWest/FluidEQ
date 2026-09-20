@@ -387,6 +387,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Keiner',
   'dsp.eqModel.proportional': 'Fokussiert',
   'dsp.eqModel.wide': 'Breit',
+  'dsp.eqModel.asymmetric': 'Asymmetrisch',
   'dsp.eqEngine.label': 'Engine',
   'dsp.eqPhase.label': 'Phase',
   'dsp.eqPhase.minimum': 'Minimal',
@@ -815,7 +816,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Nachklang-Ton',
   'dsp.room.tune.characterHint':
     'Größe und Wände formen die ersten Reflexionen. Länge und Ton formen den Nachklang danach.',
-  'dsp.room.tune.preserve': 'Lautsprecher an ihrem Platz halten',
+  'dsp.room.tune.preserve': 'Positionen halten',
   'dsp.room.tune.preserveHint':
     'Die Verbreiterung von Dimension ruht, solange der Raum an ist, weil sie verschieben würde, was der Raum gerade platziert hat. Ihre Einstellungen bleiben.',
   'dsp.room.tune.bassCentre': 'Bass und Center',

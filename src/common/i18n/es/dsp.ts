@@ -383,6 +383,7 @@ const dsp = {
   'dsp.eqModel.clean': 'Ninguno',
   'dsp.eqModel.proportional': 'Enfocado',
   'dsp.eqModel.wide': 'Amplio',
+  'dsp.eqModel.asymmetric': 'Asimétrica',
   'dsp.eqEngine.label': 'Motor',
   'dsp.eqPhase.label': 'Fase',
   'dsp.eqPhase.minimum': 'Mínima',
@@ -807,7 +808,7 @@ const dsp = {
   'dsp.room.tune.damping': 'Tono de la cola',
   'dsp.room.tune.characterHint':
     'Tamaño y Paredes dan forma a las primeras reflexiones. Largo y Tono de la cola dan forma al Ambiente que viene después.',
-  'dsp.room.tune.preserve': 'Mantener los altavoces en su sitio',
+  'dsp.room.tune.preserve': 'Mantener sus posiciones',
   'dsp.room.tune.preserveHint':
     'El ensanchado de Dimensión descansa mientras la Sala está encendida, porque movería lo que la Sala acaba de colocar. Sus ajustes se conservan.',
   'dsp.room.tune.bassCentre': 'Graves y central',

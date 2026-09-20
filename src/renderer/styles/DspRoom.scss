@@ -223,9 +223,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // both. Left as a row, the sentence — the longest thing in the band — took
   // every pixel the switch did not, so the switch stood against the left edge
   // with centred text beside it, which read as two things rather than one.
+  //
+  // A row that WRAPS rather than two grid columns, because a name too long
+  // for the line beside the switch has to go somewhere: in two columns it
+  // wrapped inside its own cell, which widened the cell, pushed the switch
+  // off to the left of it and left the last word alone on a line — measured
+  // in the window as "Keep the speakers where they / are". Wrapped, the name
+  // takes a centred line of its own under the switch instead, and the switch
+  // stays where the eye is already looking. The name itself is a name now
+  // rather than a sentence, so at the widths this card is actually used at
+  // the wrap never happens.
   .dsp-room-check {
-    display: grid;
-    grid-template-columns: auto minmax(0, auto);
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 4px 10px;
@@ -234,8 +244,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
       display: contents;
     }
 
+    // Always a line of its own, however short it is: it explains both of the
+    // things above it and reads as a caption under them, never as a third
+    // item in the row.
     .dsp-band-hint {
-      grid-column: 1 / -1;
+      flex: 0 0 100%;
     }
   }
 
