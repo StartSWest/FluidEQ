@@ -14,9 +14,9 @@
   font-weight: $weight-semibold;
 
   &.is-on {
-    border-color: color-mix(in srgb, $active 45%, transparent);
-    background: color-mix(in srgb, $active 9%, transparent);
-    color: $active;
+    border-color: color-mix(in srgb, $secondary-default 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 9%, transparent);
+    color: $secondary-default;
   }
 
   &__label {
