@@ -16,11 +16,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'motion' as *;
 @use 'theme' as *;
 
+// No padding of its own, like the pages either side of it on the same rail:
+// the card is the tab panel's and the air above the first row is the
+// scroller's. It had its own while the panel had no card at all, and once the
+// card arrived the two stacked.
 .games-page {
   display: grid;
   gap: 10px;
   align-content: start;
-  padding: 4px 2px 12px;
 }
 
 // What is in front, and the button that adds it. They share a line until the

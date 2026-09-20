@@ -2408,9 +2408,14 @@ $tab-bar-inset: 8px;
   container-type: inline-size;
 }
 
+// Every tab that is a page. A modifier missing from this list gets no card at
+// all — no surface, no border, no padding — which is how the game presets
+// page shipped: its content sat straight on the shell while the four pages
+// beside it on the same rail each had one.
 .workspace-tab-panel--eq,
 .workspace-tab-panel--presets,
 .workspace-tab-panel--convolution,
+.workspace-tab-panel--games,
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
 .workspace-tab-panel--community,
