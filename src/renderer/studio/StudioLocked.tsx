@@ -34,6 +34,10 @@ const folderHolding = (paths: string[], projectsRoot: string): string => {
   if (paths.length === 1) {
     return first;
   }
+  // The separator this computer's own paths are written with. Splitting on
+  // both and joining with one produced `\home\ivan\Studio` on Linux and
+  // macOS, where the app also ships.
+  const separator = first.includes('\\') ? '\\' : '/';
   const parts = first.split(/[\\/]/);
   const shared = paths.slice(1).reduce((held, path) => {
     const other = path.split(/[\\/]/);
@@ -43,8 +47,14 @@ const folderHolding = (paths: string[], projectsRoot: string): string => {
       .findIndex((part, index) => part !== other[index]);
     return differs === -1 ? upTo : differs;
   }, parts.length);
-  // One part is a bare drive or an empty root: not an answer anybody can use.
-  return shared > 1 ? parts.slice(0, shared).join('\\') : projectsRoot;
+  // What is left has to be somewhere a person can open. A Windows drive is
+  // one part; a network share is four, because `\\server\share` splits to two
+  // empty parts, the server and the share, and stopping at the server names
+  // a machine rather than a folder.
+  const least = first.startsWith('\\\\') || first.startsWith('//') ? 4 : 2;
+  return shared >= least
+    ? parts.slice(0, shared).join(separator)
+    : projectsRoot;
 };
 
 /** What the Studio is, in the order somebody would do it. */

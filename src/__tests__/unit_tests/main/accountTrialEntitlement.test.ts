@@ -118,6 +118,33 @@ it('a month earned by publishing ends when it ends, with no paid grace either', 
   expect(resolveEntitlementState(earned, END)).toEqual({ state: 'none' });
 });
 
+it('asks the server the moment access ends, even at an ordinary launch', async () => {
+  // The launch that matters: the stored record already agrees with the
+  // server, so nothing is announced and nothing is learned from announcing.
+  // A maker with a month banked behind this one, or a subscription that
+  // renewed unseen, is on the other side of that question.
+  stored = record({ plan: 'maker', cancelAtPeriodEnd: false });
+  fetchImpl.mockResolvedValue(
+    reply(row({ plan: 'maker', cancel_at_period_end: false })),
+  );
+  const entitlement = build();
+  expect(entitlement.status().state).toBe('active');
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+  // The month runs out with the window open. The check is fresh, and the
+  // staleness rule must not be what decides here.
+  clock = END;
+  await entitlement.checkIfDue('window focused');
+  expect(changes).toEqual([{ state: 'none' }]);
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+
+  // And only once: a server with nothing more to give is not asked again at
+  // every focus for the rest of the sitting.
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
 it('a gift that ends does not buy a fortnight of grace either', () => {
   // The grace window is for a renewal missed offline. A gift has none, and
   // the card offers a merchant page that has never heard of the account

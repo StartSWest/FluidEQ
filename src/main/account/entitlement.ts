@@ -316,18 +316,26 @@ export const createEntitlement = (
   let override = options.developmentOverride;
 
   let lastAnnounced: string | undefined;
-  /** The plan of what was last announced, for the boundary below. */
-  let lastPlan: string | undefined;
   /**
-   * Something this server granted has just run out, so the next event asks
-   * the server whatever the staleness rule says: an earned month that ended
-   * may have another banked behind it, and a trial that ended may have been
-   * paid for.
+   * The state last seen here, which is not the same as the last ANNOUNCED
+   * one: at an ordinary launch the stored record already agrees with the
+   * server, so nothing is announced all sitting. Seeded with the first read
+   * for exactly that reason — tracked only inside `announce`, this was
+   * `undefined` on the one path the flag below exists for.
    */
-  let grantedEnded = false;
+  let lastState: TEntitlementState | undefined;
+  /**
+   * Access has just ended, so the next event asks the server whatever the
+   * staleness rule says. That moment is when the server's answer is most
+   * likely to have changed: a maker's next banked month starts the moment
+   * the old one stops, a trial that ended may have been paid for, and a
+   * subscription may have renewed while this app was not listening.
+   */
+  let accessEnded = false;
   const status = (): IEntitlementStatus => {
     const current = override ?? resolveEntitlementState(ownRecord(), now());
     lastAnnounced ??= JSON.stringify(current);
+    lastState ??= current.state;
     return current;
   };
 
@@ -335,7 +343,7 @@ export const createEntitlement = (
 
   const announce = (current: IEntitlementStatus) => {
     lastAnnounced = JSON.stringify(current);
-    lastPlan = current.plan;
+    lastState = current.state;
     onChange(current);
     listeners.forEach((listener) => listener(current));
   };
@@ -343,19 +351,19 @@ export const createEntitlement = (
   // Comparing two reads at the same time misses expiry between events: both
   // already say "none" while the window is still showing the previous grant.
   const announceIfChanged = () => {
-    const wasGranted = lastPlan === MAKER_PLAN || lastPlan === PLUS_TRIAL_PLAN;
+    const had = lastState === 'active' || lastState === 'grace';
     const current = status();
     if (JSON.stringify(current) === lastAnnounced) {
       return;
     }
     announce(current);
-    // A maker can have more months banked behind the one that just ran out,
-    // and the server starts the next the moment it is asked — but only when
-    // it is asked. The staleness rule would otherwise sit on "no Plus" for
-    // up to four hours with a month of theirs waiting on the server; the end
-    // of something the server granted is precisely when its answer changes.
-    if (current.state === 'none' && wasGranted) {
-      grantedEnded = true;
+    // Whatever it was. A maker can have another month banked behind the one
+    // that just ran out — and behind a SUBSCRIPTION that just ran out, which
+    // is the commoner of the two — and the server starts it the moment it is
+    // asked. The staleness rule would otherwise sit on "no Plus" for up to
+    // four hours with a month of theirs waiting there.
+    if (current.state === 'none' && had) {
+      accessEnded = true;
     }
   };
 
@@ -488,7 +496,7 @@ export const createEntitlement = (
         return;
       }
       if (
-        !grantedEnded &&
+        !accessEnded &&
         awaiting === undefined &&
         lastCheckedAccountId === session.state().identity?.id &&
         now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS
@@ -497,7 +505,7 @@ export const createEntitlement = (
       }
       // Once. A server with nothing more to give would otherwise be asked
       // again at every event for the rest of the sitting.
-      grantedEnded = false;
+      accessEnded = false;
       logger?.info(`Checking the subscription after ${reason}.`);
       await checkNow();
     },

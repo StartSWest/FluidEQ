@@ -166,6 +166,44 @@ test('projects made before the Studio was Plus’s are not left unmentioned', ()
   expect(one?.textContent).toContain('D:\\Studio\\Neon City');
 });
 
+test.each([
+  [
+    'the separator the computer writes paths with',
+    ['/home/ivan/Studio/Neon City', '/home/ivan/Studio/Deep Sea'],
+    '/home/ivan/Studio',
+  ],
+  [
+    'the share, not the machine it is on',
+    ['\\\\nas\\scenes\\Neon City', '\\\\nas\\backup\\Deep Sea'],
+    'D:\\Documents\\FluidEQ Studio',
+  ],
+  [
+    'a folder on one share',
+    ['\\\\nas\\scenes\\Neon City', '\\\\nas\\scenes\\Deep Sea'],
+    '\\\\nas\\scenes',
+  ],
+  [
+    'nothing shared but the drive',
+    ['D:\\Studio\\Neon City', 'E:\\Elsewhere\\Deep Sea'],
+    'D:\\Documents\\FluidEQ Studio',
+  ],
+])('names %s', (_label, paths, folder) => {
+  // FluidEQ ships on Windows, macOS and Ubuntu, and this line is on the page
+  // a member meets when the Studio locks.
+  shown = view({
+    projects: paths.map((path, index) => ({
+      id: String(index),
+      folderName: `Scene ${index}`,
+      path,
+    })),
+    projectsRoot: 'D:\\Documents\\FluidEQ Studio',
+  });
+  render(<StudioPanel />);
+
+  const kept = document.querySelector('.studio-locked__kept');
+  expect(kept?.textContent).toContain(folder);
+});
+
 test('the loud button is the trial while there is one, and Plus when there is not', async () => {
   const { unmount } = render(<StudioPanel />);
   const plus = screen.getByRole('button', { name: 'plus.gate.cta' });
