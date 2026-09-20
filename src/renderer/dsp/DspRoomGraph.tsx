@@ -25,7 +25,7 @@ import {
   radiusOf,
   ROOM_GRAPH_CENTRE as CENTRE,
   ROOM_GRAPH_SIZE as SIZE,
-  wallHalfOf,
+  roomScaleOf,
   wrapAngle,
 } from './roomGraphGeometry';
 import {
@@ -129,7 +129,10 @@ const DspRoomGraph = ({
     speaker: number | null;
     moved: boolean;
   } | null>(null);
-  const wallHalf = wallHalfOf(room.sizeM);
+  // One scale for the walls, the ring and every speaker, so a speaker that
+  // stands outside a small room is drawn outside it.
+  const scale = roomScaleOf(room);
+  const { wallHalf } = scale;
 
   const angleAt = (event: ReactPointerEvent<SVGElement>): number => {
     const svg = svgRef.current;
@@ -293,7 +296,7 @@ const DspRoomGraph = ({
   const wallTop = CENTRE - wallHalf;
   // The sub keeps to its corner: deeper in a big room, tucked right into it
   // in a small one, where the front-left speaker stands at the wall.
-  const subInset = clamp(wallHalf * 0.25, 30, 44);
+  const subInset = clamp(wallHalf * 0.25, 6, 44);
   const subGlow = subFed ? clamp((room.subDb + 12) / 24, 0, 1) : 0;
   const { mutes } = room;
   // The speaker heard alone, if the mutes spell one: ringed, so a solo reads
@@ -304,8 +307,8 @@ const DspRoomGraph = ({
     return {
       at,
       angle,
-      point: polar(angle, radiusOf(room, room.distances[at])),
-      label: polar(angle, radiusOf(room, room.distances[at]) + 28),
+      point: polar(angle, radiusOf(scale, room.distances[at])),
+      label: polar(angle, radiusOf(scale, room.distances[at]) + 28),
       glow:
         fed[at] && !mutes[at] ? clamp((room.levels[at] + 24) / 24, 0, 1) : 0,
       asleep: !fed[at],
@@ -338,7 +341,11 @@ const DspRoomGraph = ({
           }
         }}
       >
-        <RoomBackdrop room={room} frontLabel={t('dsp.room.front')} />
+        <RoomBackdrop
+          room={room}
+          scale={scale}
+          frontLabel={t('dsp.room.front')}
+        />
         {/* Each speaker's direct path to the head, brighter the louder it is. */}
         {speakers.map(({ at, point, glow, asleep }) => (
           <line
@@ -428,12 +435,13 @@ const DspRoomGraph = ({
         >
           <RoomSubBody
             glow={subGlow}
+            glyph={scale.glyph}
             isLit={subFed && !mutes[ROOM_SPEAKERS]}
             isMuted={mutes[ROOM_SPEAKERS] === true}
             isSelected={selected === 'sub'}
           />
         </g>
-        <RoomListener />
+        <RoomListener glyph={scale.glyph} />
       </svg>
       <p className="dsp-room-graph-hint">{t('dsp.room.dragHint')}</p>
     </div>
