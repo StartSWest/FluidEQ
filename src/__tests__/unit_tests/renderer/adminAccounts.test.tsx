@@ -60,6 +60,7 @@ const bridge = {
   listAccounts: jest.fn(),
   findAccountsToDelete: jest.fn(),
   deleteAccount: jest.fn(),
+  givePlus: jest.fn(),
 };
 
 beforeEach(() => {
@@ -70,6 +71,7 @@ beforeEach(() => {
   });
   bridge.findAccountsToDelete.mockResolvedValue({ ok: true, accounts: [] });
   bridge.deleteAccount.mockResolvedValue({ ok: true, files: 12 });
+  bridge.givePlus.mockResolvedValue({ ok: true });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },
@@ -332,6 +334,57 @@ describe('the Accounts page', () => {
     // session must not read as one that has never been used.
     expect(within(rows[2]).queryByText('plus.accounts.online')).toBeNull();
     expect(within(rows[2]).queryByText(/^plus.accounts.lastSeen:/)).toBeNull();
+  });
+
+  it('gives Plus to the account on the row, behind a second press', async () => {
+    // The address is the row's own: the gifts page asks for one typed out
+    // because a gift can wait for somebody who has not signed up yet, which
+    // is a different job from this one.
+    bridge.listAccounts.mockResolvedValue({
+      ok: true,
+      page: page([account({ plusUntil: undefined })]),
+    });
+    bridge.givePlus.mockResolvedValue({ ok: true });
+    render(<AdminAccounts />);
+    const row = await rowFor('Leaving One');
+    await userEvent.click(within(row).getByRole('button', { name: /Leaving/ }));
+
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'plus.accounts.give' }),
+    );
+    // One question at a time: Delete steps aside rather than standing under
+    // a sentence that asks the opposite.
+    expect(
+      within(row).queryByRole('button', { name: 'plus.accounts.delete' }),
+    ).toBeNull();
+    expect(bridge.givePlus).not.toHaveBeenCalled();
+
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'plus.accounts.giveYes' }),
+    );
+    expect(bridge.givePlus).toHaveBeenCalledWith({
+      email: 'Leaving@Example.com',
+    });
+    // The row is read again, because what the account's plan now says is the
+    // server's to answer.
+    await waitFor(() => expect(bridge.listAccounts).toHaveBeenCalledTimes(2));
+  });
+
+  it('offers no gift to an account that already has Plus', async () => {
+    bridge.listAccounts.mockResolvedValue({
+      ok: true,
+      page: page([account({ plusUntil: Date.now() + 30 * DAY, plan: 'plus' })]),
+    });
+    render(<AdminAccounts />);
+    const row = await rowFor('Leaving One');
+    await userEvent.click(within(row).getByRole('button', { name: /Leaving/ }));
+
+    expect(
+      within(row).queryByRole('button', { name: 'plus.accounts.give' }),
+    ).toBeNull();
+    expect(
+      within(row).getByRole('button', { name: 'plus.accounts.delete' }),
+    ).toBeInTheDocument();
   });
 
   it('loads more accounts and adds them below the first page', async () => {

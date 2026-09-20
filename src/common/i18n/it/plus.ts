@@ -272,6 +272,12 @@ const plus = {
     'Un’eliminazione precedente di questo account si è fermata a metà. Completa eliminazione la porta a termine.',
   'plus.accounts.note.gift':
     'Il Plus regalato a questo indirizzo resta, come dicono le condizioni. Ritiralo in Plus in regalo se è stato chiesto anche questo.',
+  'plus.accounts.give': 'Regala Plus',
+  'plus.accounts.giveConfirm':
+    'Regalare Plus a {name}? Dura finché non lo togli.',
+  'plus.accounts.giving': 'Sto regalando Plus a {name}…',
+  'plus.accounts.giveYes': 'Regala Plus',
+  'plus.accounts.giveNo': 'Non ora',
   'plus.accounts.delete': 'Elimina account',
   'plus.accounts.finish': 'Completa eliminazione',
   'plus.accounts.confirm':

@@ -119,6 +119,8 @@ interface IAdminAccountRowProps {
   open: boolean;
   onToggle: () => void;
   onDeleted: (files: number) => void;
+  /** Plus was given from this row; the list is read again. */
+  onGiven: () => void;
 }
 
 /**
@@ -135,6 +137,7 @@ function AdminAccountRow({
   open,
   onToggle,
   onDeleted,
+  onGiven,
 }: IAdminAccountRowProps) {
   const { t, locale } = useTranslation();
   const plan = useAccountPlan(account);
@@ -226,7 +229,11 @@ function AdminAccountRow({
       </button>
       {open && (
         <div id={bodyId} className="admin-account__body">
-          <AccountDeletionBody account={account} onDeleted={onDeleted} />
+          <AccountDeletionBody
+            account={account}
+            onDeleted={onDeleted}
+            onGiven={onGiven}
+          />
         </div>
       )}
     </li>
@@ -511,6 +518,7 @@ export default function AdminAccounts() {
           key={account.userId}
           account={account}
           onDeleted={(files) => onDeleted(account, files)}
+          onGiven={refresh}
         />
       ))}
 
@@ -561,6 +569,7 @@ export default function AdminAccounts() {
                   )
                 }
                 onDeleted={(files) => onDeleted(account, files)}
+                onGiven={refresh}
               />
             ))}
           </ul>

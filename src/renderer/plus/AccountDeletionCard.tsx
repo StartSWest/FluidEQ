@@ -11,6 +11,7 @@ import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
 import type { TDeleteAccountFailure } from 'main/plus/accountDeletionApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import AccountGiftButton from './AccountGiftButton';
 import '../styles/AccountDeletion.scss';
 
 const DELETE_ERRORS: Record<TDeleteAccountFailure, TranslationKey> = {
@@ -28,6 +29,11 @@ interface IAccountDeletionProps {
   account: IAccountToDelete;
   /** The account is gone, with this many files. */
   onDeleted: (files: number) => void;
+  /**
+   * Plus was given to this account, so whatever holds the row reads it
+   * again: its plan and its gift note are the server's to say.
+   */
+  onGiven?: () => void;
 }
 
 const bridge = () => window.electron?.ipcRenderer;
@@ -61,9 +67,14 @@ export const useAccountPlan = (account: IAccountToDelete): string => {
 export function AccountDeletionBody({
   account,
   onDeleted,
+  onGiven,
 }: IAccountDeletionProps) {
   const { t, locale } = useTranslation();
-  const [confirming, setConfirming] = useState(false);
+  // One question at a time in this footer: two open at once would be two
+  // sentences about the same account asking for opposite things.
+  const [asking, setAsking] = useState<'none' | 'delete' | 'gift'>('none');
+  const confirming = asking === 'delete';
+  const setConfirming = (open: boolean) => setAsking(open ? 'delete' : 'none');
   const [working, setWorking] = useState(false);
   const [failure, setFailure] = useState<TranslationKey>();
   // A Delete that stopped part way here is as unfinished as one the server
@@ -73,6 +84,10 @@ export function AccountDeletionBody({
   const numbers = new Intl.NumberFormat(locale);
   const gone = account.createdAt === undefined;
   const name = accountName(account);
+  // An account that is there, has no Plus of any kind, and is somebody
+  // else's: the admin's own is not gifted from here.
+  const canGive =
+    !gone && !account.admin && account.plusUntil === undefined && !!onGiven;
 
   const facts: Array<{ key: TranslationKey; value: number }> = [
     { key: 'plus.accounts.fact.published', value: account.published },
@@ -200,21 +215,37 @@ export function AccountDeletionBody({
                   {t(failure)}
                 </span>
               )}
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => {
-                  setFailure(undefined);
-                  setConfirming(true);
-                }}
-              >
-                <Glyph name="delete" />
-                {t(
-                  unfinished || gone
-                    ? 'plus.accounts.finish'
-                    : 'plus.accounts.delete',
-                )}
-              </button>
+              {/* Plus given from here rather than by typing the address on
+                  the gifts page. Only to an account that has none: giving a
+                  gift to somebody already paying changes nothing they can
+                  see, and one that already has a gift says so in the note
+                  above — the gifts page is where a gift is taken back. */}
+              {canGive && (
+                <AccountGiftButton
+                  account={account}
+                  name={name}
+                  asking={asking === 'gift'}
+                  onAsk={(open) => setAsking(open ? 'gift' : 'none')}
+                  onGiven={() => onGiven?.()}
+                />
+              )}
+              {asking !== 'gift' && (
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => {
+                    setFailure(undefined);
+                    setConfirming(true);
+                  }}
+                >
+                  <Glyph name="delete" />
+                  {t(
+                    unfinished || gone
+                      ? 'plus.accounts.finish'
+                      : 'plus.accounts.delete',
+                  )}
+                </button>
+              )}
             </>
           )}
         </footer>
@@ -232,6 +263,7 @@ export function AccountDeletionBody({
 export default function AccountDeletionCard({
   account,
   onDeleted,
+  onGiven,
 }: IAccountDeletionProps) {
   const { t, locale } = useTranslation();
   const plan = useAccountPlan(account);
@@ -280,7 +312,11 @@ export default function AccountDeletionCard({
           </span>
         )}
       </header>
-      <AccountDeletionBody account={account} onDeleted={onDeleted} />
+      <AccountDeletionBody
+        account={account}
+        onDeleted={onDeleted}
+        onGiven={onGiven}
+      />
     </article>
   );
 }

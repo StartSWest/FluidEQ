@@ -274,6 +274,12 @@ const plus = {
     'Une suppression précédente de ce compte s’est arrêtée en route. Terminer la suppression la mène au bout.',
   'plus.accounts.note.gift':
     'Le Plus offert à cette adresse reste en place, comme le disent les conditions. Reprenez-le dans Plus offert si cela a aussi été demandé.',
+  'plus.accounts.give': 'Offrir Plus',
+  'plus.accounts.giveConfirm':
+    'Offrir Plus à {name} ? Cela dure jusqu’à ce que vous le repreniez.',
+  'plus.accounts.giving': 'Plus est offert à {name}…',
+  'plus.accounts.giveYes': 'Offrir Plus',
+  'plus.accounts.giveNo': 'Pas maintenant',
   'plus.accounts.delete': 'Supprimer le compte',
   'plus.accounts.finish': 'Terminer la suppression',
   'plus.accounts.confirm':

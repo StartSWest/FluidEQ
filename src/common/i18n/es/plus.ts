@@ -272,6 +272,12 @@ const plus = {
     'Un borrado anterior de esta cuenta se quedó a medias. Terminar de borrar lo completa.',
   'plus.accounts.note.gift':
     'El Plus regalado a este correo se mantiene, como dicen las condiciones. Quítalo en Plus regalado si también lo pidieron.',
+  'plus.accounts.give': 'Dar Plus',
+  'plus.accounts.giveConfirm':
+    '¿Dar Plus a {name}? Dura hasta que se lo quites.',
+  'plus.accounts.giving': 'Dando Plus a {name}…',
+  'plus.accounts.giveYes': 'Dar Plus',
+  'plus.accounts.giveNo': 'Ahora no',
   'plus.accounts.delete': 'Borrar cuenta',
   'plus.accounts.finish': 'Terminar de borrar',
   'plus.accounts.confirm':

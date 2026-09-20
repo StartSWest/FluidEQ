@@ -263,6 +263,12 @@ const plus = {
     'इस खाते को हटाने की पिछली कोशिश बीच में रुक गई थी। “हटाना पूरा करें” उसे पूरा करता है।',
   'plus.accounts.note.gift':
     'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो “उपहार में Plus” पेज पर उसे वापस लें।',
+  'plus.accounts.give': 'Plus दें',
+  'plus.accounts.giveConfirm':
+    '{name} को Plus दें? जब तक आप वापस न लें, यह चलता रहेगा।',
+  'plus.accounts.giving': '{name} को Plus दिया जा रहा है…',
+  'plus.accounts.giveYes': 'Plus दें',
+  'plus.accounts.giveNo': 'अभी नहीं',
   'plus.accounts.delete': 'खाता हटाएँ',
   'plus.accounts.finish': 'हटाना पूरा करें',
   'plus.accounts.confirm':

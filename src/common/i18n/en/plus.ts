@@ -268,6 +268,12 @@ const plus = {
     'An earlier deletion of this account stopped part way. Finish deleting completes it.',
   'plus.accounts.note.gift':
     'A gift of Plus to this address stays, as the terms say. Take it back on Plus gifts if they asked for that too.',
+  'plus.accounts.give': 'Give Plus',
+  'plus.accounts.giveConfirm':
+    'Give Plus to {name}? It lasts until you take it back.',
+  'plus.accounts.giving': 'Giving Plus to {name}…',
+  'plus.accounts.giveYes': 'Give Plus',
+  'plus.accounts.giveNo': 'Not now',
   'plus.accounts.delete': 'Delete account',
   'plus.accounts.finish': 'Finish deleting',
   'plus.accounts.confirm':
