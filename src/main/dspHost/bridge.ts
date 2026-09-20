@@ -258,6 +258,33 @@ const appProcesses = (): Promise<unknown[]> =>
 /** The list closed: its meter, which runs only while it is open, can stop. */
 const appProcessesClosed = (): void => ipcRenderer.send('app-processes-closed');
 
+/**
+ * Game profiles' two questions, beside the processes list for the same
+ * reason: both are answered by a helper of our own that nothing in Electron
+ * knows about.
+ */
+const gamePrograms = (): Promise<unknown> =>
+  ipcRenderer.invoke('game-programs');
+
+/** Watch what Windows puts in front, or stop: nothing runs unwatched. */
+const watchGames = (wanted: boolean): void =>
+  ipcRenderer.send('game-watch', [wanted]);
+
+/** Say on the desktop that a game loaded a sound: main draws the card. */
+const showGameToast = (said: {
+  what: string;
+  game: string;
+  icon?: string;
+}): void => ipcRenderer.send('game-toast', [said]);
+
+/** One of this listener's own games is in front, or has left it. */
+const setGamePlaying = (playing: boolean): void =>
+  ipcRenderer.send('game-playing', [playing]);
+
+/** A program no launcher knows about, pointed at by hand. */
+const chooseGameProgram = (): Promise<unknown> =>
+  ipcRenderer.invoke('game-choose');
+
 export const dspHostBridge = {
   readEnginePreamp: (
     endpoint: string,
@@ -269,6 +296,11 @@ export const dspHostBridge = {
     ipcRenderer.invoke(ENGINE_ANALYSIS_CHANNEL, endpoint),
   appProcesses,
   appProcessesClosed,
+  gamePrograms,
+  watchGames,
+  chooseGameProgram,
+  showGameToast,
+  setGamePlaying,
 
   getDspHostStatus,
   startDspHost,

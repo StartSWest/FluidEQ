@@ -215,6 +215,7 @@ import { createGalleryAccess } from './plus/galleryAccess';
 import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
+import { registerGamesIpc } from './ipc/games';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
@@ -3027,6 +3028,17 @@ const stopRemoteAudioLan = registerRemoteAudioIpc({
 
 const stopOutputMirrors = registerOutputMirrorIpc(() => mainWindow);
 
+// Game profiles: what the launchers have installed, and which program
+// Windows has put in front. The watcher behind it runs only while the window
+// asks for it — see `ipc/games.ts`.
+registerGamesIpc({
+  getMainWindow: () => mainWindow,
+  // A game in front holds the desktop backgrounds still: they and the game
+  // draw on the same graphics card, and the one being played is the one that
+  // matters.
+  onPlaying: (playing) => wallpaperIpc.setGameInFront(playing),
+});
+
 // Registers the channels and reads whatever session is already on disk; it
 // contacts nothing. A build with no backend configured resolves to a store that
 // reports signed out forever, so this costs an unconfigured checkout one file
@@ -3117,7 +3129,7 @@ const memberScenesIpc = registerMemberScenesIpc({
   logger: log,
 });
 
-registerWallpaperIpc({
+const wallpaperIpc = registerWallpaperIpc({
   getMainWindow: () => mainWindow,
   entitlement: accountIpc.entitlement,
   arrangement: createArrangementStore(userDataDir, log),

@@ -189,6 +189,7 @@ describe('why a monitor pauses', () => {
     locked: false,
     suspended: false,
     battery: false,
+    game: false,
     covered: false,
     pauseOnBattery: true,
   };
@@ -203,6 +204,7 @@ describe('why a monitor pauses', () => {
       locked: true,
       suspended: true,
       battery: true,
+      game: true,
       covered: true,
     };
     expect(wallpaperPauseReason(everything)).toBe('locked');
@@ -212,6 +214,26 @@ describe('why a monitor pauses', () => {
     expect(
       wallpaperPauseReason({ ...everything, locked: false, suspended: false }),
     ).toBe('battery');
+    expect(
+      wallpaperPauseReason({
+        ...everything,
+        locked: false,
+        suspended: false,
+        battery: false,
+      }),
+    ).toBe('game');
+  });
+
+  /**
+   * A game takes the whole machine's frames, so every screen holds still —
+   * not only the one the game covers, which is what `covered` answers.
+   */
+  it('holds every screen still while a game is in front', () => {
+    expect(wallpaperPauseReason({ ...quiet, game: true })).toBe('game');
+    expect(wallpaperPauseReason({ ...quiet, game: true, covered: true })).toBe(
+      'game',
+    );
+    expect(wallpaperPauseReason({ ...quiet, covered: true })).toBe('covered');
   });
 
   it('pauses on battery only when that was chosen', () => {

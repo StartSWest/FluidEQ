@@ -72,6 +72,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     suspended: false,
     battery: false,
   };
+  // A game of this listener's own is in front. The window says so, because
+  // the profiles that decide what counts as a game are the window's.
+  let gameInFront = false;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -95,7 +98,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,
     pauseReason: (covered) =>
-      wallpaperPauseReason({ ...conditions, pauseOnBattery, covered }),
+      wallpaperPauseReason({
+        ...conditions,
+        pauseOnBattery,
+        game: gameInFront,
+        covered,
+      }),
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],
     onEmpty: () => relay.cancel(),
@@ -513,10 +521,21 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       log.warn(`Desktop lifecycle unavailable: ${error}`),
     );
 
+  /** Hold every screen still while a game is in front, and let go after. */
+  const setGameInFront = (playing: boolean) => {
+    if (playing === gameInFront) {
+      return;
+    }
+    gameInFront = playing;
+    backgrounds.applyPolicy();
+    publish();
+  };
+
   return {
     state,
     start,
     stop,
+    setGameInFront,
     setPerformance,
     setTuning,
     restoreSaved,

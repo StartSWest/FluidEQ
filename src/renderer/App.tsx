@@ -44,6 +44,8 @@ import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
 import { useTitlebarSideWidth } from './utils/useTitlebarSideWidth';
 import ConfigInspector from './components/ConfigInspector';
+import GamesPanel from './games/GamesPanel';
+import GameSound from './games/GameSound';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
@@ -251,6 +253,7 @@ type TWorkspaceTab =
   | 'karaoke'
   | 'community'
   | 'forum'
+  | 'games'
   | 'config';
 
 /**
@@ -289,6 +292,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'forum',
   'dsp',
   'share',
+  'games',
   'config',
 ];
 
@@ -313,6 +317,7 @@ const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
   'eq',
   'presets',
   'convolution',
+  'games',
   'config',
 ];
 
@@ -320,6 +325,7 @@ const EQ_GROUP_LABEL_KEYS = {
   eq: 'tabs.eqMain',
   presets: 'tabs.presets',
   convolution: 'tabs.convolution',
+  games: 'tabs.games',
   config: 'tabs.config',
 } as const;
 
@@ -2456,7 +2462,10 @@ const AppContent = () => {
                 key="eq-workspace"
                 className={`workspace-tab-panel workspace-tab-panel--${activeWorkspaceTab}${!isEngineUsable ? ' is-engine-disabled' : ''}`}
                 aria-disabled={
-                  activeWorkspaceTab === 'config' ? undefined : !isEngineUsable
+                  activeWorkspaceTab === 'config' ||
+                  activeWorkspaceTab === 'games'
+                    ? undefined
+                    : !isEngineUsable
                 }
               >
                 {eqGroupPills}
@@ -2467,6 +2476,7 @@ const AppContent = () => {
                   {activeWorkspaceTab === 'eq' && <MainContent />}
                   {activeWorkspaceTab === 'presets' && <EqPresetsPanel />}
                   {activeWorkspaceTab === 'convolution' && <ConvolutionPanel />}
+                  {activeWorkspaceTab === 'games' && <GamesPanel />}
                   {activeWorkspaceTab === 'config' && <ConfigInspector />}
                 </div>
               </div>
@@ -2657,6 +2667,12 @@ const AppContent = () => {
                 the measurement has to run wherever the user happens to be, not
                 only where the response graph is. */}
             <SmartHeadroomEngine />
+            {/* And the third, for the same reason spelled out again because it
+                is the one that surprises: a game profile switches the sound
+                while FluidEQ is BEHIND the game. On the Games page it would
+                only ever work with the page open, which is the one moment
+                nobody is playing. */}
+            <GameSound />
           </div>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing

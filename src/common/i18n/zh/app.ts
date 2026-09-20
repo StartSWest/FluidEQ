@@ -219,6 +219,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ 预设',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
+  'tabs.games': '游戏',
   'tabs.config': 'Config',
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',
@@ -346,8 +347,8 @@ const app: Partial<Dictionary> = {
   'startup.label': '随 Windows 启动',
   'startup.blocked': 'Windows 已在“启动应用”中关闭它',
   'startup.failed': 'Windows 不允许更改',
-  'theme.ocean': '海洋',
-  'theme.black': '黑色',
+  'theme.ocean': '浅色',
+  'theme.black': '深色',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',
@@ -355,6 +356,39 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': '如何绘制',
   'settings.group.thisView': '此视图',
   'settings.group.studioOnly': '仅在工作室中',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': '添加游戏',
+  'games.addHint': '从你的启动器中选择游戏，或选择当前已打开的程序。',
+  'games.choose': '选择程序…',
+  'games.group.installed': '已安装',
+  'games.group.running': '当前打开',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': '育碧',
+  'games.source.battlenet': '战网',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': '当前打开',
+  'games.source.file': '你选择的',
+  'games.front.playing': '{name} 在最前面，它的音效已开启。',
+  'games.front.none': '最前面：{name}',
+  'games.front.desktop': 'FluidEQ 不认识的程序',
+  'games.empty':
+    '还没有游戏。添加一个并给它一种音效，游戏到最前面时 FluidEQ 就会切换过去。',
+  'games.toast.loaded': '已加载 {preset}',
+  'games.toast.forGame': '用于 {game}',
+  'games.empty.title': '还没有游戏',
+  'games.empty.more':
+    '添加一个游戏并给它一种音效，游戏到最前面时 FluidEQ 就会切换过去，离开时换回来。',
+  'games.hint':
+    '游戏到最前面时音效切换，离开时换回来。游戏中另选的音效会保留：FluidEQ 只会撤回自己设置的那一个。',
+  'games.preset.none': '保持不变',
+  'games.preset.noneHint': '这个游戏在最前面时什么都不变。',
+  'games.row.inFront': '最前面',
+  'games.row.sound': '{name} 的音效',
+  'games.row.remove': '移除 {name}',
 };
 
 export default app;

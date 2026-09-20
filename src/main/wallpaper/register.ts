@@ -20,7 +20,9 @@ import { createWallpaperManager, type IWallpaperDeps } from './manager';
  * desktop surface may only ask for its own scene and the music, and report
  * that it drew or failed. Every sender is checked against the one it must be.
  */
-const registerWallpaperIpc = (deps: IWallpaperDeps): (() => void) => {
+const registerWallpaperIpc = (
+  deps: IWallpaperDeps,
+): { dispose: () => void; setGameInFront: (playing: boolean) => void } => {
   const manager = createWallpaperManager(deps);
 
   const fromOwner = (event: IpcMainEvent | IpcMainInvokeEvent) =>
@@ -143,7 +145,9 @@ const registerWallpaperIpc = (deps: IWallpaperDeps): (() => void) => {
     ].forEach((channel) => ipcMain.removeHandler(channel));
   };
   app.once('before-quit', dispose);
-  return dispose;
+  // Handed out so game profiles can hold every screen still while somebody
+  // is playing, without the backgrounds knowing what a game is.
+  return { dispose, setGameInFront: manager.setGameInFront };
 };
 
 export default registerWallpaperIpc;

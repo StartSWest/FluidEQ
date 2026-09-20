@@ -222,6 +222,7 @@ const app = {
   'tabs.presets': 'EQ Presets',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
+  'tabs.games': 'Games',
   'tabs.config': 'Config',
   'tabs.media': 'Online Media',
   // The same place, named in one word for a titlebar that has run out of
@@ -358,8 +359,8 @@ const app = {
   'startup.label': 'Start with Windows',
   'startup.blocked': 'Windows has this switched off in Startup apps',
   'startup.failed': 'Windows would not change this',
-  'theme.ocean': 'Ocean',
-  'theme.black': 'Black',
+  'theme.ocean': 'Light',
+  'theme.black': 'Dark',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'The picture',
@@ -367,6 +368,40 @@ const app = {
   'settings.group.drawing': 'How it is drawn',
   'settings.group.thisView': 'This view',
   'settings.group.studioOnly': 'Only here in the Studio',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'Add a game',
+  'games.addHint':
+    'Pick a game from your launchers, or a program that is open now.',
+  'games.choose': 'Choose a program…',
+  'games.group.installed': 'Installed',
+  'games.group.running': 'Open now',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'Open now',
+  'games.source.file': 'Chosen by you',
+  'games.front.playing': '{name} is in front, and its sound is on.',
+  'games.front.none': 'In front: {name}',
+  'games.front.desktop': 'nothing FluidEQ knows',
+  'games.empty':
+    'No games yet. Add one, give it a sound, and FluidEQ will switch to it the moment that game is in front.',
+  'games.toast.loaded': 'Loaded {preset}',
+  'games.toast.forGame': 'for {game}',
+  'games.empty.title': 'No games yet',
+  'games.empty.more':
+    'Add a game, give it a sound, and FluidEQ switches to it the moment that game is in front — and back when you leave it.',
+  'games.hint':
+    'The sound changes when the game comes to the front and goes back when you leave it. Pick another sound while you play and it stays: FluidEQ only puts back what it put on.',
+  'games.preset.none': 'Leave it as it is',
+  'games.preset.noneHint': 'Nothing changes when this game is in front.',
+  'games.row.inFront': 'in front',
+  'games.row.sound': 'Sound for {name}',
+  'games.row.remove': 'Remove {name}',
 } as const;
 
 export default app;

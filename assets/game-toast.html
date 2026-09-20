@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;"
+    />
+    <title>FluidEQ</title>
+    <style>
+      /*
+       * The card that says a game loaded a sound, drawn on the desktop over
+       * the game rather than inside FluidEQ — which is behind it, or
+       * minimised, at the one moment this has anything to say.
+       *
+       * It closes itself when its own line has finished draining. That is a
+       * CSS animation and not a clock: this project has no timers, and a line
+       * somebody can watch is a better promise than a number nobody can see.
+       */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      body {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        width: 100vw;
+        height: 100vh;
+        font-family:
+          -apple-system, 'Segoe UI', Ubuntu, Cantarell, 'Noto Sans',
+          'DejaVu Sans', sans-serif;
+        font-variant-numeric: tabular-nums;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        overflow: hidden;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        padding: 18px 24px 20px;
+        border: 1px solid rgba(125, 233, 255, 0.34);
+        border-radius: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(17, 25, 38, 0.97),
+          rgba(11, 17, 28, 0.97)
+        );
+        box-shadow:
+          0 20px 44px rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        color: #eaf4ff;
+        animation:
+          in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both,
+          out 320ms ease 5.4s both;
+      }
+
+      .badge {
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: rgba(125, 233, 255, 0.14);
+      }
+
+      .badge img,
+      .badge svg {
+        width: 34px;
+        height: 34px;
+      }
+
+      .words {
+        min-width: 0;
+      }
+
+      .what {
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      .game {
+        overflow: hidden;
+        margin-top: 3px;
+        color: #a9c3da;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mark {
+        position: absolute;
+        top: 14px;
+        right: 18px;
+        color: #7de9ff;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        opacity: 0.75;
+      }
+
+      .line {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: #7de9ff;
+        opacity: 0.85;
+        transform-origin: left center;
+        animation: drain 5.4s linear both;
+      }
+
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.98);
+        }
+      }
+
+      @keyframes out {
+        to {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+
+      @keyframes drain {
+        from {
+          transform: scaleX(1);
+        }
+        to {
+          transform: scaleX(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="card">
+      <div class="badge" id="badge">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#7de9ff"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M8 7.5h8a5 5 0 0 1 5 5v1a3.6 3.6 0 0 1-6.3 2.4l-.7-.8h-4l-.7.8A3.6 3.6 0 0 1 3 13.5v-1a5 5 0 0 1 5-5z"
+          />
+          <path d="M7.4 11.4v2.4M6.2 12.6h2.4M15.8 11.6h.01M18 13.4h.01" />
+        </svg>
+      </div>
+      <div class="words">
+        <div class="what" id="what"></div>
+        <div class="game" id="game"></div>
+      </div>
+      <div class="mark">FLUIDEQ</div>
+      <div class="line" id="line"></div>
+    </div>
+    <script>
+      // Everything shown comes in the address, because this page has no
+      // bridge to the app at all: no node, no preload, nothing it could be
+      // asked to do. The policy above lets it draw an icon and nothing else.
+      const said = new URLSearchParams(window.location.search);
+      document.getElementById('what').textContent = said.get('what') || '';
+      document.getElementById('game').textContent = said.get('game') || '';
+      const icon = said.get('icon');
+      if (icon && icon.startsWith('data:image/')) {
+        const picture = document.createElement('img');
+        picture.src = icon;
+        picture.alt = '';
+        document.getElementById('badge').replaceChildren(picture);
+      }
+      // The card leaves when the line it drew has run out.
+      document.getElementById('line').addEventListener('animationend', () => {
+        window.close();
+      });
+    </script>
+  </body>
+</html>

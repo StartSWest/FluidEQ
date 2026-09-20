@@ -49,6 +49,7 @@ const wallpaper = {
   'wallpaper.pause.locked': 'Paused while Windows is locked',
   'wallpaper.pause.suspended': 'Paused while the computer sleeps',
   'wallpaper.pause.battery': 'Paused to save battery',
+  'wallpaper.pause.game': 'Paused while a game is in front',
   'wallpaper.pause.covered': 'Paused while windows cover this monitor',
   'wallpaper.error.unsupported':
     'Desktop backgrounds are available on Windows.',

@@ -230,6 +230,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Пресеты EQ',
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
+  'tabs.games': 'Игры',
   'tabs.config': 'Config',
   'tabs.media': 'Онлайн-медиа',
   'tabs.mediaShort': 'Медиа',
@@ -367,8 +368,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Запускать вместе с Windows',
   'startup.blocked': 'Windows отключил это в «Автозагрузке приложений»',
   'startup.failed': 'Windows не разрешил это изменить',
-  'theme.ocean': 'Океан',
-  'theme.black': 'Чёрная',
+  'theme.ocean': 'Светлая',
+  'theme.black': 'Тёмная',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Картинка',
@@ -376,6 +377,41 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': 'Как это рисуется',
   'settings.group.thisView': 'Этот вид',
   'settings.group.studioOnly': 'Только здесь, в Студии',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'Добавить игру',
+  'games.addHint':
+    'Выберите игру из своих лаунчеров или программу, открытую сейчас.',
+  'games.choose': 'Выбрать программу…',
+  'games.group.installed': 'Установленные',
+  'games.group.running': 'Открыты сейчас',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'Открыта сейчас',
+  'games.source.file': 'Выбрано вами',
+  'games.front.playing': '{name} на переднем плане, её звук включён.',
+  'games.front.none': 'На переднем плане: {name}',
+  'games.front.desktop': 'ничего знакомого FluidEQ',
+  'games.empty':
+    'Игр пока нет. Добавьте одну, дайте ей звук — и FluidEQ переключится на него, как только игра окажется на переднем плане.',
+  'games.toast.loaded': 'Загружено: {preset}',
+  'games.toast.forGame': 'для {game}',
+  'games.empty.title': 'Игр пока нет',
+  'games.empty.more':
+    'Добавьте игру, дайте ей звук — и FluidEQ переключится на него, как только игра выйдет на передний план, и вернётся, когда вы её покинете.',
+  'games.hint':
+    'Звук меняется, когда игра выходит на передний план, и возвращается, когда вы её покидаете. Если во время игры выбрать другой звук, он останется: FluidEQ возвращает только то, что включил сам.',
+  'games.preset.none': 'Оставить как есть',
+  'games.preset.noneHint':
+    'Ничего не меняется, когда эта игра на переднем плане.',
+  'games.row.inFront': 'на переднем плане',
+  'games.row.sound': 'Звук для {name}',
+  'games.row.remove': 'Убрать {name}',
 };
 
 export default app;

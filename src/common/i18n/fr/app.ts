@@ -233,6 +233,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Préréglages EQ',
   'tabs.voicing': 'Caractère',
   'tabs.convolution': 'Convolution',
+  'tabs.games': 'Jeux',
   'tabs.config': 'Config',
   'tabs.media': 'Médias en ligne',
   'tabs.mediaShort': 'Médias',
@@ -373,8 +374,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Démarrer avec Windows',
   'startup.blocked': 'Windows l’a désactivé dans Applications de démarrage',
   'startup.failed': 'Windows a refusé ce changement',
-  'theme.ocean': 'Océan',
-  'theme.black': 'Noir',
+  'theme.ocean': 'Clair',
+  'theme.black': 'Sombre',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'L’image',
@@ -382,6 +383,40 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': 'Comment c’est dessiné',
   'settings.group.thisView': 'Cette vue',
   'settings.group.studioOnly': 'Seulement ici, dans le Studio',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'Ajouter un jeu',
+  'games.addHint':
+    'Choisis un jeu dans tes lanceurs, ou un programme ouvert maintenant.',
+  'games.choose': 'Choisir un programme…',
+  'games.group.installed': 'Installés',
+  'games.group.running': 'Ouverts',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'Ouvert',
+  'games.source.file': 'Choisi par toi',
+  'games.front.playing': '{name} est au premier plan, et son son est activé.',
+  'games.front.none': 'Au premier plan : {name}',
+  'games.front.desktop': 'rien que FluidEQ connaisse',
+  'games.empty':
+    'Pas encore de jeux. Ajoutes-en un, donne-lui un son, et FluidEQ y passera dès que ce jeu sera au premier plan.',
+  'games.toast.loaded': '{preset} chargé',
+  'games.toast.forGame': 'pour {game}',
+  'games.empty.title': 'Aucun jeu pour l’instant',
+  'games.empty.more':
+    'Ajoute un jeu, donne-lui un son, et FluidEQ y passe dès que ce jeu est au premier plan — et revient quand tu le quittes.',
+  'games.hint':
+    'Le son change quand le jeu passe au premier plan et revient quand tu le quittes. Si tu en choisis un autre en jouant, il reste : FluidEQ ne remet que ce qu’il a mis.',
+  'games.preset.none': 'Ne rien changer',
+  'games.preset.noneHint': 'Rien ne change quand ce jeu est au premier plan.',
+  'games.row.inFront': 'au premier plan',
+  'games.row.sound': 'Son pour {name}',
+  'games.row.remove': 'Retirer {name}',
 };
 
 export default app;

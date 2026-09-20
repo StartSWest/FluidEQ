@@ -39,6 +39,7 @@ export const PAUSE_KEYS: Record<TWallpaperPause, TranslationKey> = {
   locked: 'wallpaper.pause.locked',
   suspended: 'wallpaper.pause.suspended',
   battery: 'wallpaper.pause.battery',
+  game: 'wallpaper.pause.game',
   covered: 'wallpaper.pause.covered',
 };
 

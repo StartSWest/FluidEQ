@@ -427,6 +427,25 @@ if(WIN32)
   )
 endif()
 
+# Game profiles' eyes: which program is in front, told by Windows itself
+# (foreground-watch/src/main.cpp). Runs only while there are profiles to
+# match, and exits when its input closes.
+if(WIN32)
+  add_executable(fluideq-foreground-watch
+    foreground-watch/src/main.cpp
+    foreground-watch/src/foreground-watch.rc)
+  target_link_libraries(fluideq-foreground-watch PRIVATE feq_strict psapi version dwmapi)
+  set_source_files_properties(foreground-watch/src/foreground-watch.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_WATCH_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  set_target_properties(fluideq-foreground-watch PROPERTIES
+    OUTPUT_NAME "FluidEQ-Games"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()
+
 # The lighting helper: the app's hands on Windows Dynamic Lighting, and the one
 # executable in the tree with Windows package identity (see
 # lighting-host/src/identity.h for why it needs one and how it gets it).

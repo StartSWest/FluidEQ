@@ -229,6 +229,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ プリセット',
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
+  'tabs.games': 'ゲーム',
   'tabs.config': 'Config',
   'tabs.media': 'オンラインメディア',
   'tabs.mediaShort': 'メディア',
@@ -369,8 +370,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Windows と一緒に起動',
   'startup.blocked': 'Windows の「スタートアップ アプリ」でオフになっています',
   'startup.failed': 'Windows が変更を許可しませんでした',
-  'theme.ocean': 'オーシャン',
-  'theme.black': 'ブラック',
+  'theme.ocean': 'ライト',
+  'theme.black': 'ダーク',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',
@@ -378,6 +379,40 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': '描き方',
   'settings.group.thisView': 'この表示',
   'settings.group.studioOnly': 'スタジオだけ',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'ゲームを追加',
+  'games.addHint':
+    'ランチャーのゲーム、または今開いているプログラムから選びます。',
+  'games.choose': 'プログラムを選ぶ…',
+  'games.group.installed': 'インストール済み',
+  'games.group.running': '今開いている',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': '今開いている',
+  'games.source.file': '自分で選択',
+  'games.front.playing': '{name} が手前にあり、その音が有効です。',
+  'games.front.none': '手前: {name}',
+  'games.front.desktop': 'FluidEQ が知らないもの',
+  'games.empty':
+    'まだゲームがありません。追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替えます。',
+  'games.toast.loaded': '{preset} を読み込みました',
+  'games.toast.forGame': '{game} 用',
+  'games.empty.title': 'まだゲームがありません',
+  'games.empty.more':
+    'ゲームを追加して音を割り当てると、そのゲームが手前に来た瞬間に FluidEQ が切り替え、離れると戻します。',
+  'games.hint':
+    'ゲームが手前に来ると音が切り替わり、離れると戻ります。プレイ中に別の音を選べばそのまま：FluidEQ は自分で設定した音だけを戻します。',
+  'games.preset.none': 'そのままにする',
+  'games.preset.noneHint': 'このゲームが手前でも何も変わりません。',
+  'games.row.inFront': '手前',
+  'games.row.sound': '{name} の音',
+  'games.row.remove': '{name} を削除',
 };
 
 export default app;

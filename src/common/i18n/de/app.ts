@@ -229,6 +229,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ-Presets',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
+  'tabs.games': 'Spiele',
   'tabs.config': 'Config',
   'tabs.media': 'Online-Medien',
   'tabs.mediaShort': 'Medien',
@@ -371,8 +372,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Mit Windows starten',
   'startup.blocked': 'Windows hat das unter Autostart-Apps deaktiviert',
   'startup.failed': 'Windows ließ die Änderung nicht zu',
-  'theme.ocean': 'Ozean',
-  'theme.black': 'Schwarz',
+  'theme.ocean': 'Hell',
+  'theme.black': 'Dunkel',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Das Bild',
@@ -380,6 +381,41 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': 'Wie es gezeichnet wird',
   'settings.group.thisView': 'Diese Ansicht',
   'settings.group.studioOnly': 'Nur hier im Studio',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'Spiel hinzufügen',
+  'games.addHint':
+    'Wähle ein Spiel aus deinen Launchern oder ein gerade geöffnetes Programm.',
+  'games.choose': 'Programm auswählen…',
+  'games.group.installed': 'Installiert',
+  'games.group.running': 'Jetzt offen',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'Jetzt offen',
+  'games.source.file': 'Von dir gewählt',
+  'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
+  'games.front.none': 'Im Vordergrund: {name}',
+  'games.front.desktop': 'nichts, was FluidEQ kennt',
+  'games.empty':
+    'Noch keine Spiele. Füge eines hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist.',
+  'games.toast.loaded': '{preset} geladen',
+  'games.toast.forGame': 'für {game}',
+  'games.empty.title': 'Noch keine Spiele',
+  'games.empty.more':
+    'Füge ein Spiel hinzu, gib ihm einen Klang, und FluidEQ wechselt dorthin, sobald das Spiel im Vordergrund ist — und zurück, wenn du es verlässt.',
+  'games.hint':
+    'Der Klang wechselt, wenn das Spiel in den Vordergrund kommt, und geht zurück, wenn du es verlässt. Wählst du beim Spielen einen anderen, bleibt er: FluidEQ nimmt nur zurück, was es selbst gesetzt hat.',
+  'games.preset.none': 'So lassen, wie es ist',
+  'games.preset.noneHint':
+    'Es ändert sich nichts, wenn dieses Spiel im Vordergrund ist.',
+  'games.row.inFront': 'im Vordergrund',
+  'games.row.sound': 'Klang für {name}',
+  'games.row.remove': '{name} entfernen',
 };
 
 export default app;

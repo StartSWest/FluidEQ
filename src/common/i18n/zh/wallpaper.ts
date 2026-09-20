@@ -45,6 +45,7 @@ const wallpaper = {
   'wallpaper.pause.locked': 'Windows 锁定时已暂停',
   'wallpaper.pause.suspended': '电脑睡眠时已暂停',
   'wallpaper.pause.battery': '为节省电量已暂停',
+  'wallpaper.pause.game': '游戏在最前面时已暂停',
   'wallpaper.pause.covered': '窗口遮住这台显示器时已暂停',
   'wallpaper.error.unsupported': '桌面背景可在 Windows 上使用。',
   'wallpaper.error.unavailable': '无法连接桌面背景。请重试。',

@@ -50,6 +50,7 @@ const wallpaper = {
   'wallpaper.pause.suspended':
     'Pausiert, solange der Computer im Ruhemodus ist',
   'wallpaper.pause.battery': 'Pausiert, um Akku zu sparen',
+  'wallpaper.pause.game': 'Pausiert, solange ein Spiel im Vordergrund ist',
   'wallpaper.pause.covered':
     'Pausiert, solange Fenster diesen Monitor verdecken',
   'wallpaper.error.unsupported':

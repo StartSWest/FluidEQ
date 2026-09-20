@@ -230,6 +230,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'Presets EQ',
   'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
+  'tabs.games': 'Juegos',
   'tabs.config': 'Config',
   'tabs.media': 'Multimedia en línea',
   'tabs.mediaShort': 'Multimedia',
@@ -370,8 +371,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Iniciar con Windows',
   'startup.blocked': 'Windows lo tiene desactivado en Aplicaciones de inicio',
   'startup.failed': 'Windows no permitió cambiarlo',
-  'theme.ocean': 'Océano',
-  'theme.black': 'Negro',
+  'theme.ocean': 'Claro',
+  'theme.black': 'Oscuro',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'La imagen',
@@ -379,6 +380,40 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': 'Cómo se dibuja',
   'settings.group.thisView': 'Esta vista',
   'settings.group.studioOnly': 'Solo aquí en el Estudio',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'Añadir un juego',
+  'games.addHint':
+    'Elige un juego de tus lanzadores, o un programa que esté abierto ahora.',
+  'games.choose': 'Elegir un programa…',
+  'games.group.installed': 'Instalados',
+  'games.group.running': 'Abiertos ahora',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'Abierto ahora',
+  'games.source.file': 'Elegido por ti',
+  'games.front.playing': '{name} está al frente, y su sonido está puesto.',
+  'games.front.none': 'Al frente: {name}',
+  'games.front.desktop': 'nada que FluidEQ conozca',
+  'games.empty':
+    'Aún no hay juegos. Añade uno, dale un sonido y FluidEQ cambiará a él en cuanto ese juego esté al frente.',
+  'games.toast.loaded': '{preset} cargado',
+  'games.toast.forGame': 'para {game}',
+  'games.empty.title': 'Aún no hay juegos',
+  'games.empty.more':
+    'Añade un juego, dale un sonido y FluidEQ cambia a él en cuanto ese juego está al frente, y vuelve cuando lo dejas.',
+  'games.hint':
+    'El sonido cambia cuando el juego pasa al frente y vuelve cuando lo dejas. Si eliges otro sonido mientras juegas, se queda: FluidEQ solo devuelve lo que puso.',
+  'games.preset.none': 'Dejarlo como está',
+  'games.preset.noneHint': 'No cambia nada cuando este juego está al frente.',
+  'games.row.inFront': 'al frente',
+  'games.row.sound': 'Sonido para {name}',
+  'games.row.remove': 'Quitar {name}',
 };
 
 export default app;

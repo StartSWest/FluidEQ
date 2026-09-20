@@ -477,6 +477,12 @@ if (isWindows) {
   if (!existsSync(meterPath)) {
     fail(`the Processes meter was not produced at ${meterPath}`);
   }
+  // Game profiles' watcher, packaged beside them: without it the Games page
+  // has a list to edit and no way to know which game came to the front.
+  const gameWatchPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Games.exe');
+  if (!existsSync(gameWatchPath)) {
+    fail(`the game watcher was not produced at ${gameWatchPath}`);
+  }
   copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

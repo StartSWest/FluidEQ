@@ -50,6 +50,7 @@ const wallpaper = {
   'wallpaper.pause.locked': 'Windows लॉक होने पर रुका हुआ है',
   'wallpaper.pause.suspended': 'कंप्यूटर के सोने पर रुका हुआ है',
   'wallpaper.pause.battery': 'बैटरी बचाने के लिए रुका हुआ है',
+  'wallpaper.pause.game': 'जब कोई गेम सामने हो तब रुका हुआ',
   'wallpaper.pause.covered':
     'जब विंडो इस मॉनिटर को ढक लेती हैं तब रुका रहता है',
   'wallpaper.error.unsupported': 'डेस्कटॉप बैकग्राउंड Windows पर उपलब्ध हैं।',

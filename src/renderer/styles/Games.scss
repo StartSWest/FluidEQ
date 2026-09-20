@@ -1,0 +1,234 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// Game profiles: a row per game, the sound beside it, and a line at the top
+// saying what is in front right now.
+//
+// The page is a list and nothing else, so it borrows the rack's surfaces
+// rather than inventing any: the same card, the same quiet hint, the same
+// picker. What is new here is only the row.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+.games-page {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 4px 2px 12px;
+}
+
+// What is in front, and the button that adds it. They share a line until the
+// line is too narrow for both, which is where the button drops under it.
+.games-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-width: 0;
+}
+
+.games-front {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  transition: color $motion-base $ease-out;
+
+  &.is-on {
+    color: $secondary-default;
+  }
+}
+
+.games-front__pip {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: currentColor;
+  opacity: 0.55;
+
+  .is-on > & {
+    opacity: 1;
+    box-shadow: 0 0 8px currentColor;
+  }
+}
+
+.games-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The game on the left, its sound on the right, and the two meeting in the
+// middle at the width where the name would otherwise be squeezed to nothing.
+.games-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: $radius-s;
+  background: $surface-plot;
+
+  &.is-playing {
+    border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+}
+
+// Windows draws these at 32px; shown smaller they keep their own colours,
+// which is the point of using them. The drawn fallback beside them takes the
+// row's own colour instead, so a list of both does not read as two lists.
+.game-icon {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.games-row__glyph {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  color: $text-faint;
+
+  .is-playing > & {
+    color: $secondary-default;
+  }
+}
+
+.games-row__what {
+  display: grid;
+  flex: 1 1 200px;
+  gap: 1px;
+  min-width: 0;
+}
+
+.games-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.games-row__now {
+  padding: 1px 7px;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
+  color: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-medium;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+// The whole path, cut at the front rather than the end: two games of one
+// launcher differ in their last folder and share every one before it.
+.games-row__where {
+  overflow: hidden;
+  color: $text-faint;
+  font-size: $text-small;
+  direction: rtl;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.games-row__sound {
+  flex: 0 1 240px;
+  min-width: 160px;
+}
+
+.games-row__remove {
+  flex: 0 0 auto;
+}
+
+.games-empty {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+// An empty page that says what the page is for, with room around it: a
+// dashed box holding one sentence read as a form somebody had failed to
+// fill in.
+.games-empty {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 34px 18px 38px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: $radius-s;
+  background: $surface-plot;
+  text-align: center;
+
+  > p {
+    max-width: 46ch;
+    margin: 0;
+  }
+}
+
+// The page's one sentence, said as a heading rather than as small print: an
+// empty page is where somebody decides whether the feature is for them.
+.games-empty__title {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-semibold;
+}
+
+.games-empty__more {
+  max-width: 52ch;
+}
+
+.games-empty__art {
+  width: 168px;
+  height: auto;
+}
+
+// The pad reads as an object rather than a wire drawing: a face the surface
+// under it shows through, and its own outline over that.
+.games-empty__body {
+  fill: color-mix(in srgb, $secondary-default 12%, transparent);
+  stroke: color-mix(in srgb, $secondary-default 45%, transparent);
+  stroke-width: 2.2;
+}
+
+.games-empty__pad {
+  stroke: $text-faint;
+  opacity: 0.8;
+}
+
+// The sound leaving the pad, lit like everything else the app calls live,
+// each arc quieter than the one before it.
+.games-empty__wave {
+  stroke: $secondary-default;
+
+  &:nth-of-type(3) {
+    opacity: 0.9;
+  }
+
+  &:nth-of-type(4) {
+    opacity: 0.6;
+  }
+
+  &:nth-of-type(5) {
+    opacity: 0.32;
+  }
+}

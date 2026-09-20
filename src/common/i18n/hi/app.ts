@@ -225,6 +225,7 @@ const app: Partial<Dictionary> = {
   'tabs.presets': 'EQ प्रीसेट',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
+  'tabs.games': 'गेम',
   'tabs.config': 'Config',
   'tabs.media': 'ऑनलाइन मीडिया',
   'tabs.mediaShort': 'मीडिया',
@@ -363,8 +364,8 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Windows के साथ शुरू करें',
   'startup.blocked': 'Windows ने इसे स्टार्टअप ऐप्स में बंद कर रखा है',
   'startup.failed': 'Windows ने यह बदलने नहीं दिया',
-  'theme.ocean': 'महासागर',
-  'theme.black': 'काला',
+  'theme.ocean': 'हल्का',
+  'theme.black': 'गहरा',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'तस्वीर',
@@ -372,6 +373,39 @@ const app: Partial<Dictionary> = {
   'settings.group.drawing': 'यह कैसे बनता है',
   'settings.group.thisView': 'यह दृश्य',
   'settings.group.studioOnly': 'सिर्फ़ यहाँ स्टूडियो में',
+
+  // Game profiles: the page, its list and what it says.
+  'games.add': 'गेम जोड़ें',
+  'games.addHint': 'अपने लॉन्चर से कोई गेम चुनें, या अभी खुला कोई प्रोग्राम।',
+  'games.choose': 'प्रोग्राम चुनें…',
+  'games.group.installed': 'इंस्टॉल किए हुए',
+  'games.group.running': 'अभी खुले',
+  'games.source.steam': 'Steam',
+  'games.source.epic': 'Epic Games',
+  'games.source.ea': 'EA',
+  'games.source.gog': 'GOG',
+  'games.source.ubisoft': 'Ubisoft',
+  'games.source.battlenet': 'Battle.net',
+  'games.source.xbox': 'Xbox',
+  'games.source.running': 'अभी खुला',
+  'games.source.file': 'आपका चुना हुआ',
+  'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
+  'games.front.none': 'सामने: {name}',
+  'games.front.desktop': 'ऐसा कुछ नहीं जिसे FluidEQ जानता हो',
+  'games.empty':
+    'अभी कोई गेम नहीं है। एक जोड़ें, उसे एक आवाज़ दें, और वह गेम सामने आते ही FluidEQ उस पर चला जाएगा।',
+  'games.toast.loaded': '{preset} लोड किया',
+  'games.toast.forGame': '{game} के लिए',
+  'games.empty.title': 'अभी कोई गेम नहीं',
+  'games.empty.more':
+    'एक गेम जोड़ें, उसे एक आवाज़ दें — वह गेम सामने आते ही FluidEQ उस पर चला जाएगा, और छोड़ने पर वापस आ जाएगा।',
+  'games.hint':
+    'गेम सामने आने पर आवाज़ बदल जाती है और छोड़ने पर वापस आ जाती है। खेलते समय कोई और आवाज़ चुनें तो वही रहती है: FluidEQ सिर्फ़ वही वापस करता है जो उसने लगाया था।',
+  'games.preset.none': 'जैसा है वैसा रहने दें',
+  'games.preset.noneHint': 'यह गेम सामने हो तब कुछ नहीं बदलता।',
+  'games.row.inFront': 'सामने',
+  'games.row.sound': '{name} की आवाज़',
+  'games.row.remove': '{name} हटाएँ',
 };
 
 export default app;

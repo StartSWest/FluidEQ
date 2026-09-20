@@ -87,7 +87,8 @@ export type TWallpaperError =
  * monitor's desktop can be seen: windows over every piece of its work
  * area, not merely an app in front of the background.
  */
-export type TWallpaperPause = 'locked' | 'suspended' | 'battery' | 'covered';
+export type TWallpaperPause =
+  'locked' | 'suspended' | 'battery' | 'game' | 'covered';
 
 /** A monitor as Windows' display settings describe it, in physical pixels. */
 export interface IWallpaperDisplay {
@@ -205,6 +206,7 @@ const WALLPAPER_PAUSES: readonly TWallpaperPause[] = [
   'locked',
   'suspended',
   'battery',
+  'game',
   'covered',
 ];
 
@@ -349,6 +351,8 @@ export const wallpaperPauseReason = (conditions: {
   locked: boolean;
   suspended: boolean;
   battery: boolean;
+  /** A game is in front: every screen holds still, covered or not. */
+  game: boolean;
   covered: boolean;
   pauseOnBattery: boolean;
 }): TWallpaperPause | undefined => {
@@ -360,6 +364,12 @@ export const wallpaperPauseReason = (conditions: {
   }
   if (conditions.battery && conditions.pauseOnBattery) {
     return 'battery';
+  }
+  // Before `covered`, and not per screen: a game takes the whole machine's
+  // frames, and a monitor the game does not cover is still drawing on the
+  // same graphics card it is playing on.
+  if (conditions.game) {
+    return 'game';
   }
   if (conditions.covered) {
     return 'covered';
