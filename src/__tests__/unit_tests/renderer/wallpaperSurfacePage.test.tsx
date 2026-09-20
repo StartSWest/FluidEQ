@@ -154,6 +154,29 @@ describe('a desktop background’s page', () => {
     expect(lastRun()?.source).toBe(source);
   });
 
+  // A paused background is never taken off the desktop, so its scene has to
+  // stay with it: dropping it left the desktop black where the picture was,
+  // and put it back only after a whole build.
+  it('keeps its scene and its last picture while it is paused, drawing nothing', async () => {
+    const { bridge, push } = pageFor(running());
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    const source = lastRun()?.source;
+    expect(lastRun()?.asleep).toBe(false);
+
+    await push(running({ phase: 'paused' }));
+    expect(lastRun()?.asleep).toBe(true);
+    // The same scene, not a new one, and no music read for it meanwhile.
+    expect(lastRun()?.source).toBe(source);
+    (bridge.requestAudio as jest.Mock).mockClear();
+    await runFrames(4);
+    expect(bridge.requestAudio).not.toHaveBeenCalled();
+
+    await push(running());
+    expect(lastRun()?.asleep).toBe(false);
+    expect(lastRun()?.source).toBe(source);
+  });
+
   // Main keeps a scene's code from running again only when told it was the
   // scene; a page or a machine that could not draw is tried again later.
   it('tells main why its scene failed, and gives no reason when the machine did', async () => {

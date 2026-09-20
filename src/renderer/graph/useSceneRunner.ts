@@ -101,6 +101,7 @@ export default function useSceneRunner({
   shapeFrame,
   tuning,
   performance: chosenPerformance,
+  asleep,
   onDrawn,
   onLoaded,
   onWaiting,
@@ -121,6 +122,8 @@ export default function useSceneRunner({
   const packRef = useRef<IScenePack | null>(null);
   const drawnAtRef = useRef<number | undefined>(undefined);
   const visibleRef = useRef(true);
+  const asleepRef = useRef(asleep === true);
+  asleepRef.current = asleep === true;
   const clipRef = useRef<readonly [number, number, number, number]>([
     0, 0, 1, 1,
   ]);
@@ -218,6 +221,7 @@ export default function useSceneRunner({
         !renderer ||
         !packRef.current ||
         !visibleRef.current ||
+        asleepRef.current ||
         document.hidden
       ) {
         drawnAtRef.current = undefined;
@@ -797,10 +801,23 @@ export default function useSceneRunner({
 
   // Audio can wake a ready scene, but cannot restart hidden rendering.
   useEffect(() => {
-    if (playing && visibleRef.current && !document.hidden) {
+    if (
+      playing &&
+      visibleRef.current &&
+      !asleepRef.current &&
+      !document.hidden
+    ) {
       kick();
     }
   }, [playing, kick, points]);
+
+  // Woken: the loop stopped itself on the frame that found the scene asleep,
+  // and nothing else will start it again.
+  useEffect(() => {
+    if (asleep !== true) {
+      kick();
+    }
+  }, [asleep, kick]);
 
   // Redraw the backing buffer when the panel's geometry changes.
   useEffect(() => {

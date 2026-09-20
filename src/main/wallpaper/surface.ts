@@ -107,7 +107,11 @@ export const createDesktopSurface = (
   let shown = false;
   let ready = false;
   let frameReady = false;
-  let renderGeneration = 1;
+  // The page's key for its scene. It stood still through a pause and rose
+  // when one ended, because a background was hidden while it waited and had
+  // to draw afresh before it could be shown again; nothing is hidden now and
+  // the scene it keeps is the one that comes back, so it never moves.
+  const renderGeneration = 1;
   let phase: IWallpaperSurfaceState['phase'] = 'starting';
   let pauseReason: TWallpaperPause | undefined;
   let { wave, motion } = options.choice;
@@ -161,19 +165,19 @@ export const createDesktopSurface = (
       return;
     }
     const reason = options.pauseReason(covered);
-    if (reason && phase !== 'paused') {
-      // A new key makes the page draw afresh on resume even when React
-      // coalesces the pause and the resume into one render.
-      renderGeneration += 1;
-      frameReady = false;
-    }
     if (reason) {
       phase = 'paused';
     } else {
       phase = frameReady ? 'running' : 'starting';
     }
     pauseReason = reason;
-    const visible = !reason && frameReady;
+    // Never hidden once it has drawn — a pause stops the drawing and leaves
+    // the picture where it is. Hiding it was the only part of a pause anybody
+    // could see: Windows gives a window being maximized its final rectangle
+    // before DWM has finished moving it there, so the background went off a
+    // strip of desktop that was still on screen for the length of that
+    // animation, and the plain wallpaper flashed through it.
+    const visible = frameReady;
     host.setVisible(visible);
     if (visible && !shown) {
       shown = true;
@@ -188,7 +192,7 @@ export const createDesktopSurface = (
     if (!ready) {
       // The helper has placed this window and said whether the monitor can be
       // seen, and the page has drawn: from here the desktop shows this one,
-      // or shows nothing because it is covered.
+      // moving or held still on a monitor nothing of which is in sight.
       ready = true;
       options.onReady();
     }

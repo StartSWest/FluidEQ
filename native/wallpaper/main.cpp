@@ -161,8 +161,13 @@ void apply_visibility() {
   if (!state.attached || state.finished) return;
   verify_attachment();
   if (state.finished) return;
-  const UINT visibility_flag = state.requested_visible && !state.paused
-    ? SWP_SHOWWINDOW : SWP_HIDEWINDOW;
+  // Whether the background is on the desktop is the app's to say, and it says
+  // it once: a monitor nothing of whose desktop is in sight is reported as
+  // such and its page stops drawing, but the window stays where it is with
+  // the picture it had. Hiding it here as well took it off a strip of desktop
+  // that was still on screen while DWM animated the window that covered it.
+  const UINT visibility_flag =
+    state.requested_visible ? SWP_SHOWWINDOW : SWP_HIDEWINDOW;
   // Electron's ShowInactive path can restore a cached top-level placement and
   // enter initial-focus bookkeeping. Keep child visibility and z-order here.
   if (!SetWindowPos(state.surface, nullptr, 0, 0, 0, 0,

@@ -27,12 +27,15 @@ function Scene({
   motion,
   performance,
   tuning,
+  asleep,
 }: {
   bootstrap: IWallpaperBootstrap;
   bridge: IWallpaperSurfaceBridge;
   generation: number;
   wave: IWallpaperWave;
   motion: TWallpaperMotion;
+  /** Paused: the picture stays on the desktop and no frame is drawn. */
+  asleep: boolean;
   /** Main's copy of the window's choice: this page has no store of its own. */
   performance: IScenePerformance;
   /** And of what the listener set for this visualizer, when they set any. */
@@ -92,6 +95,7 @@ function Scene({
     spectrumRect,
     shapeFrame: shaper.shape,
     performance,
+    asleep,
     // The listener's own controls and timing for this visualizer, read on the
     // frames it draws, so moving a slider in the window moves the desktop.
     ...(tuning ? { tuning } : {}),
@@ -164,6 +168,11 @@ export default function WallpaperSurface({
     let frameId: number | undefined;
     let requestedAt = 0;
     const pull = (now: number) => {
+      // A frame already granted when the background paused: it must not put
+      // one more read of the music on the wire for a scene that has stopped.
+      if (stopped) {
+        return;
+      }
       if (!shouldDrawFrame(now - requestedAt, SMOOTH_FRAME_MS)) {
         frameId = requestAnimationFrame(pull);
         return;
@@ -193,9 +202,12 @@ export default function WallpaperSurface({
       }
     };
   }, [bridge, listening]);
-  // Offscreen Chromium stays visible to the scheduler. Removing the scene
-  // releases its worker/GPU context as soon as desktop policy pauses it.
-  return bootstrap && state && playing ? (
+  // A paused background keeps its scene and its last frame, and draws
+  // nothing: the window is never hidden, so taking the scene down would
+  // leave the desktop black where its picture was, and bring it back only
+  // after a whole build. Offscreen Chromium stays visible to the scheduler,
+  // so the frames have to be stopped where they are asked for — `asleep`.
+  return bootstrap && state ? (
     <SceneAudioProvider value={audio}>
       <Scene
         key={state.renderGeneration}
@@ -206,6 +218,7 @@ export default function WallpaperSurface({
         motion={state.motion}
         performance={state.performance}
         tuning={state.tuning}
+        asleep={!playing}
       />
     </SceneAudioProvider>
   ) : null;

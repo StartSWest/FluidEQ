@@ -98,6 +98,16 @@ export interface ISceneRunnerOptions {
    */
   performance?: IScenePerformance;
   /**
+   * Stop drawing, and keep everything built and the last frame where it is.
+   * The desktop's own pause: a background on a monitor no part of whose
+   * desktop is in sight draws nothing, reads no music and costs no GPU time,
+   * while the picture it had stays on the desktop. Taking the scene down
+   * instead — which is what a scene nobody can see does on the graph — would
+   * leave the desktop black under the window that covered it, and put the
+   * picture back only after a whole build.
+   */
+  asleep?: boolean;
+  /**
    * The pack each time a version of it becomes the one being drawn — the
    * graph's menu starts its attack and release from what the scene came with.
    */

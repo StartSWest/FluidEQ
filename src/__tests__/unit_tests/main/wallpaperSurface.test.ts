@@ -112,19 +112,20 @@ describe('a desktop background appearing', () => {
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
   });
 
-  it('stays hidden when windows already cover the monitor as it is placed', () => {
+  // Its picture goes up even on a monitor nothing of which is in sight, so
+  // the moment the windows move off it there is already something there.
+  it('goes on the desktop paused when windows already cover the monitor', () => {
     const { surface } = create();
     surface.drawn(1);
     mockHost.report('ready');
     mockHost.report('paused');
     expect(surface.phase()).toBe('paused');
-    expect(mockHost.setVisible).toHaveBeenLastCalledWith(false);
-    expect(mockWindow.showInactive).not.toHaveBeenCalled();
+    expect(surface.pauseReason()).toBe('covered');
+    expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
 
-    // The game closes: still hidden until the scene has drawn afresh.
     mockHost.report('active');
-    expect(mockWindow.showInactive).not.toHaveBeenCalled();
-    surface.drawn(surface.surfaceState().renderGeneration);
+    expect(surface.phase()).toBe('running');
     expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
   });
@@ -164,29 +165,38 @@ describe('a desktop background appearing', () => {
     expect(mockHost.setVisible).not.toHaveBeenCalled();
   });
 
-  it('hides while windows cover it and waits for a fresh frame before showing again', () => {
+  // Hiding was the only part of a pause anybody could see: Windows gives a
+  // window being maximized its final rectangle before DWM has finished
+  // moving it there, so the background came off a strip of desktop that was
+  // still on screen and the plain wallpaper flashed through it.
+  it('is never taken off the desktop while windows cover it, only stopped', () => {
     const { surface } = create();
     surface.drawn(1);
     mockHost.report('ready');
     mockHost.report('active');
-    const before = surface.surfaceState().renderGeneration;
+    const { renderGeneration } = surface.surfaceState();
 
     mockHost.report('paused');
     expect(surface.phase()).toBe('paused');
     expect(surface.pauseReason()).toBe('covered');
-    expect(mockHost.setVisible).toHaveBeenLastCalledWith(false);
-    const pausedGeneration = surface.surfaceState().renderGeneration;
-    expect(pausedGeneration).toBe(before + 1);
+    expect(mockHost.setVisible).not.toHaveBeenCalledWith(false);
+    // The page keeps the scene it has: nothing asks it to draw afresh.
+    expect(surface.surfaceState().renderGeneration).toBe(renderGeneration);
 
     mockHost.report('active');
-    expect(surface.phase()).toBe('starting');
-    expect(mockHost.setVisible).toHaveBeenLastCalledWith(false);
-    // A frame from before the pause does not count.
-    surface.drawn(before);
-    expect(surface.phase()).toBe('starting');
-    surface.drawn(pausedGeneration);
     expect(surface.phase()).toBe('running');
-    expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
+    expect(mockHost.setVisible).not.toHaveBeenCalledWith(false);
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+  });
+
+  it('is not taken off the desktop for the PC being locked either', () => {
+    const { surface } = create({ reason: 'locked' });
+    surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    expect(surface.phase()).toBe('paused');
+    expect(surface.pauseReason()).toBe('locked');
+    expect(mockHost.setVisible).not.toHaveBeenCalledWith(false);
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
   });
 });
