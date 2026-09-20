@@ -187,6 +187,13 @@ test.each([
     ['D:\\Studio\\Neon City', 'E:\\Elsewhere\\Deep Sea'],
     'D:\\Documents\\FluidEQ Studio',
   ],
+  [
+    'a folder whose own name carries a backslash',
+    // Legal on both Linux and macOS, and it used to decide the separator
+    // for the whole path.
+    ['/home/ivan/Studio/Neon\\City', '/home/ivan/Studio/Deep Sea'],
+    '/home/ivan/Studio',
+  ],
 ])('names %s', (_label, paths, folder) => {
   // FluidEQ ships on Windows, macOS and Ubuntu, and this line is on the page
   // a member meets when the Studio locks.

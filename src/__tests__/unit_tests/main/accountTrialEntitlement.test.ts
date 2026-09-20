@@ -124,7 +124,9 @@ it('asks the server the moment access ends, even at an ordinary launch', async (
   // A maker with a month banked behind this one, or a subscription that
   // renewed unseen, is on the other side of that question.
   stored = record({ plan: 'maker', cancelAtPeriodEnd: false });
-  fetchImpl.mockResolvedValue(
+  // A fresh answer each time: one Response can only be read once, and a
+  // shared one makes the second read look like a server that said nothing.
+  fetchImpl.mockImplementation(async () =>
     reply(row({ plan: 'maker', cancel_at_period_end: false })),
   );
   const entitlement = build();
@@ -143,6 +145,40 @@ it('asks the server the moment access ends, even at an ordinary launch', async (
   // every focus for the rest of the sitting.
   await entitlement.checkIfDue('window focused');
   expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+
+it('keeps asking until the server has actually answered since access ended', async () => {
+  // The chance was spent on the asking rather than on the answer: a server
+  // that refused at the boundary left the app waiting out the whole four
+  // hours, which is the wall this exists to skip.
+  stored = record({ plan: 'maker', cancelAtPeriodEnd: false });
+  // A fresh answer each time: one Response can only be read once, and a
+  // shared one makes the second read look like a server that said nothing.
+  fetchImpl.mockImplementation(async () =>
+    reply(row({ plan: 'maker', cancel_at_period_end: false })),
+  );
+  const entitlement = build();
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+  clock = END;
+  fetchImpl.mockImplementation(
+    async () => new Response('busy', { status: 503 }),
+  );
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+
+  // Refused, so nothing has been heard since the month ended: the next
+  // event asks again rather than waiting four hours.
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(3);
+
+  // Answered: the question is settled and the staleness rule holds again.
+  fetchImpl.mockImplementation(async () => reply([]));
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(4);
+  await entitlement.checkIfDue('window focused');
+  expect(fetchImpl).toHaveBeenCalledTimes(4);
 });
 
 it('a gift that ends does not buy a fortnight of grace either', () => {

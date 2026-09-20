@@ -36,8 +36,11 @@ const folderHolding = (paths: string[], projectsRoot: string): string => {
   }
   // The separator this computer's own paths are written with. Splitting on
   // both and joining with one produced `\home\ivan\Studio` on Linux and
-  // macOS, where the app also ships.
-  const separator = first.includes('\\') ? '\\' : '/';
+  // macOS, where the app also ships. Whichever comes FIRST, because a
+  // backslash is a legal character in a folder name on both of them.
+  const slash = first.indexOf('/');
+  const back = first.indexOf('\\');
+  const separator = back !== -1 && (slash === -1 || back < slash) ? '\\' : '/';
   const parts = first.split(/[\\/]/);
   const shared = paths.slice(1).reduce((held, path) => {
     const other = path.split(/[\\/]/);

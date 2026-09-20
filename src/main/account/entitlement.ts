@@ -325,13 +325,20 @@ export const createEntitlement = (
    */
   let lastState: TEntitlementState | undefined;
   /**
-   * Access has just ended, so the next event asks the server whatever the
-   * staleness rule says. That moment is when the server's answer is most
-   * likely to have changed: a maker's next banked month starts the moment
-   * the old one stops, a trial that ended may have been paid for, and a
-   * subscription may have renewed while this app was not listening.
+   * When access ended, while nothing has been heard from the server since.
+   * Until then every event asks, whatever the staleness rule says: that
+   * moment is when the server's answer is most likely to have changed — a
+   * maker's next banked month starts the moment the old one stops, a trial
+   * that ended may have been paid for, and a subscription may have renewed
+   * while this app was not listening.
+   *
+   * A moment rather than a flag, and cleared where an answer is ADOPTED
+   * rather than where one is asked for. Cleared on the ask, a server that
+   * refused — or a request that was already in the air before the ending,
+   * and so answers with the row from before it — spent the one chance and
+   * the wait became the four hours this exists to skip.
    */
-  let accessEnded = false;
+  let accessEndedAt: number | undefined;
   const status = (): IEntitlementStatus => {
     const current = override ?? resolveEntitlementState(ownRecord(), now());
     lastAnnounced ??= JSON.stringify(current);
@@ -363,7 +370,7 @@ export const createEntitlement = (
     // asked. The staleness rule would otherwise sit on "no Plus" for up to
     // four hours with a month of theirs waiting there.
     if (current.state === 'none' && had) {
-      accessEnded = true;
+      accessEndedAt = now();
     }
   };
 
@@ -383,6 +390,9 @@ export const createEntitlement = (
     accountId: string | undefined,
     requestGeneration: number,
   ): Promise<IEntitlementStatus> => {
+    // A request begun before access ended answers with the row from before
+    // it, and settles nothing about what replaced it.
+    const askedAt = now();
     const current = () =>
       generation === requestGeneration &&
       session.state().identity?.id === accountId;
@@ -455,6 +465,9 @@ export const createEntitlement = (
       return status();
     }
     remember(readRow(body, accountId, now()));
+    if (accessEndedAt !== undefined && askedAt >= accessEndedAt) {
+      accessEndedAt = undefined;
+    }
     if (awaiting !== undefined && JSON.stringify(status()) !== awaiting) {
       awaiting = undefined;
     }
@@ -496,16 +509,13 @@ export const createEntitlement = (
         return;
       }
       if (
-        !accessEnded &&
+        accessEndedAt === undefined &&
         awaiting === undefined &&
         lastCheckedAccountId === session.state().identity?.id &&
         now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS
       ) {
         return;
       }
-      // Once. A server with nothing more to give would otherwise be asked
-      // again at every event for the rest of the sitting.
-      accessEnded = false;
       logger?.info(`Checking the subscription after ${reason}.`);
       await checkNow();
     },
