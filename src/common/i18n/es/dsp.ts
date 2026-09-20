@@ -671,7 +671,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Suena estéreo: solo FL y FR llevan sonido. Los demás esperan una señal 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suena 5.1: el par trasero no lleva nada.',
-  'dsp.room.plusDragHint': 'Mover los altavoces es parte de Plus.',
   'dsp.room.presets': 'Sala predefinida',
   'dsp.room.preset.studio': 'Estudio',
   'dsp.room.preset.livingRoom': 'Salón',
@@ -730,9 +729,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Trasero izquierdo',
   'dsp.room.speakerName.RR': 'Trasero derecho',
   'dsp.room.speakerName.sub': 'Subwoofer',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Dar forma a la sala y mover sus altavoces es parte de Plus. La sala y sus preajustes son tuyos de todos modos.',
   'dsp.room.live.off': 'Sala apagada',
   'dsp.room.live.noHead': 'Aún no hay archivo de cabeza',
   'dsp.room.live.frontStage': 'Estéreo → escenario frontal',

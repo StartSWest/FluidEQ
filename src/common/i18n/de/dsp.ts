@@ -679,7 +679,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Es läuft Stereo: nur FL und FR führen Ton. Die anderen warten auf einen 5.1- oder 7.1-Stream.',
   'dsp.room.fedFiveOne': 'Es läuft 5.1: das hintere Paar führt nichts.',
-  'dsp.room.plusDragHint': 'Lautsprecher verschieben gehört zu Plus.',
   'dsp.room.presets': 'Raumvorgabe',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Wohnzimmer',
@@ -738,9 +737,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Hinten links',
   'dsp.room.speakerName.RR': 'Hinten rechts',
   'dsp.room.speakerName.sub': 'Subwoofer',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Den Raum formen und seine Lautsprecher verschieben gehört zu Plus. Der Raum und seine Vorgaben gehören dir so oder so.',
   'dsp.room.live.off': 'Raum aus',
   'dsp.room.live.noHead': 'Noch keine Kopfdatei',
   'dsp.room.live.frontStage': 'Stereo → Bühne vorn',

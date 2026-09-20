@@ -659,7 +659,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'ステレオ再生中：音を出すのは FL と FR だけです。ほかは 5.1 か 7.1 のストリームを待っています。',
   'dsp.room.fedFiveOne': '5.1 再生中：リアの 2 本は音を出しません。',
-  'dsp.room.plusDragHint': 'スピーカーの移動は Plus の機能です。',
   'dsp.room.presets': 'ルームプリセット',
   'dsp.room.preset.studio': 'スタジオ',
   'dsp.room.preset.livingRoom': 'リビング',
@@ -718,9 +717,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'リア左',
   'dsp.room.speakerName.RR': 'リア右',
   'dsp.room.speakerName.sub': 'サブウーファー',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'ルームの形とスピーカーの移動は Plus の機能です。ルームとそのプリセットはどちらにしても使えます。',
   'dsp.room.live.off': 'ルーム オフ',
   'dsp.room.live.noHead': '頭のファイルがまだありません',
   'dsp.room.live.frontStage': 'ステレオ → フロントステージ',

@@ -73,8 +73,6 @@ interface IDspRoomGraphProps {
   onDragCancel: () => void;
   onCommit: () => void;
   isDisabled: boolean;
-  /** Dragging is a Plus thing; the picture is not. */
-  canDrag: boolean;
 }
 
 const SPEAKER_NAMES = ROOM_SPEAKER_CODES;
@@ -117,14 +115,13 @@ const DspRoomGraph = ({
   onDragCancel,
   onCommit,
   isDisabled,
-  canDrag,
 }: IDspRoomGraphProps) => {
   const { t } = useTranslation();
   const svgRef = useRef<SVGSVGElement | null>(null);
   const nodes = useRef(new Map<TRoomPick, SVGGElement>());
   /**
    * The press in hand. `speaker` is set where the press may become a drag —
-   * an awake speaker, with Plus — and `moved` once it has travelled.
+   * an awake speaker — and `moved` once it has travelled.
    */
   const press = useRef<{
     x: number;
@@ -145,9 +142,9 @@ const DspRoomGraph = ({
     return Math.round((Math.atan2(x, -y) * 180) / Math.PI);
   };
 
-  /** Whether this speaker may be moved: Plus, the room on, sound reaching it. */
+  /** Whether this speaker may be moved: the room on, and sound reaching it. */
   const movable = (which: TRoomPick): which is number =>
-    typeof which === 'number' && canDrag && !isDisabled && fed[which];
+    typeof which === 'number' && !isDisabled && fed[which];
 
   const onPointerDown =
     (which: TRoomPick) => (event: ReactPointerEvent<SVGGElement>) => {
@@ -156,8 +153,8 @@ const DspRoomGraph = ({
       }
       // The pane is this speaker's from the press, not from the release: a
       // drag has no release until it is over, and the pane is what shows the
-      // angle while it moves. Only an awake speaker, with Plus, may go on to
-      // be dragged — a drag nobody can hear looks broken.
+      // angle while it moves. Only an awake speaker may go on to be dragged —
+      // a drag nobody can hear looks broken.
       onSelect(which);
       press.current = {
         x: event.clientX,
@@ -375,7 +372,7 @@ const DspRoomGraph = ({
               <g
                 key={SPEAKER_NAMES[at]}
                 className={`dsp-room-speaker${
-                  canDrag && !isDisabled && !asleep ? ' can-drag' : ''
+                  !isDisabled && !asleep ? ' can-drag' : ''
                 }${asleep ? ' is-asleep' : ''}${worked ? ' is-derived' : ''}${
                   muted ? ' is-muted' : ''
                 }${soloed ? ' is-soloed' : ''}${
@@ -438,9 +435,7 @@ const DspRoomGraph = ({
         </g>
         <RoomListener />
       </svg>
-      <p className="dsp-room-graph-hint">
-        {t(canDrag ? 'dsp.room.dragHint' : 'dsp.room.plusDragHint')}
-      </p>
+      <p className="dsp-room-graph-hint">{t('dsp.room.dragHint')}</p>
     </div>
   );
 };

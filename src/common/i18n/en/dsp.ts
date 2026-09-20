@@ -679,7 +679,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Stereo is playing: only FL and FR carry sound. The others wait for a 5.1 or 7.1 stream.',
   'dsp.room.fedFiveOne': '5.1 is playing: the rear pair carries nothing.',
-  'dsp.room.plusDragHint': 'Moving the speakers is part of Plus.',
   'dsp.room.presets': 'Room preset',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Living room',
@@ -738,9 +737,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Rear left',
   'dsp.room.speakerName.RR': 'Rear right',
   'dsp.room.speakerName.sub': 'Subwoofer',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Shaping the room and moving its speakers are part of Plus. The room and its presets are yours either way.',
   'dsp.room.live.off': 'Room off',
   'dsp.room.live.noHead': 'No head file yet',
   'dsp.room.live.frontStage': 'Stereo → front stage',

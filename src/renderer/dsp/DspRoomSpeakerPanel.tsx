@@ -12,7 +12,6 @@ import {
 } from '../../common/dsp/chain';
 import { roomSolo, withSolo, withoutSolo } from '../../common/dsp/roomSpeakers';
 import { TranslationKey } from '../../common/i18n/en';
-import { LockBadge } from '../graph/lookPickerParts';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial } from './DspControls';
 import {
@@ -26,10 +25,8 @@ interface IDspRoomSpeakerPanelProps {
   /** Nothing chosen yet, which is where the page starts and where an empty
    * press in the picture puts it back. */
   which: TRoomPick | undefined;
-  /** Angle, distance and level shape the room: Plus, and the room on. */
+  /** Angle, distance and level shape the room, so they need it on. */
   canShape: boolean;
-  /** Whether the lock is Plus's and not the room being off. */
-  isLocked: boolean;
   /**
    * Whether what is playing reaches this speaker: a stereo stream on the
    * front stage reaches the front pair alone. A speaker nothing reaches
@@ -70,8 +67,6 @@ const feedNote = (
  * 720-pixel window, and a drag — which has no release until it is over —
  * showed nothing at all.
  *
- * Shaping (angle, distance, level) is Plus like the dials; mute and solo stay
- * free.
  *
  * One state, the mutes (`roomSpeakers.ts`): Solo mutes the other six and
  * opens this one, muted or not; pressed on another speaker it moves there,
@@ -83,7 +78,6 @@ const DspRoomSpeakerPanel = ({
   room,
   which,
   canShape,
-  isLocked,
   isFed,
   isDerived,
   isDisabled,
@@ -127,7 +121,6 @@ const DspRoomSpeakerPanel = ({
       <div className="dsp-room-pane__head">
         <span className="dsp-room-pane__code">{roomSpeakerCode(pick)}</span>
         <span className="dsp-room-pane__name">{name}</span>
-        {isLocked ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
         <span className="dsp-import__spacer" />
         <button
           type="button"

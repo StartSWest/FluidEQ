@@ -142,12 +142,19 @@ describe('the Room card', () => {
     expect(patched.sizeM).not.toBe(DSP_DEFAULTS.room.sizeM);
   });
 
-  it('locks the dials and the drag without Plus, and says so, but not the presets or the head', () => {
+  // Every one of these was behind Plus until 2026-09-20 — the dials, the
+  // drag, saved rooms, the listening test — and the locks came off on Ivan's
+  // call: Plus is the visualizers and what the server does for them, and this
+  // page is sound. They could not have held anyway, since all of it runs on
+  // the listener's own machine under a licence that lets them take the check
+  // out and pass the build on.
+  it('shapes the room without asking anybody to pay', () => {
     entitled = false;
     const { onPatch } = renderCard();
-    expect(screen.getByLabelText(en['dsp.room.size'])).toBeDisabled();
-    expect(screen.getByText(en['dsp.room.plusHint'])).toBeInTheDocument();
-    expect(screen.getByText(en['dsp.room.plusDragHint'])).toBeInTheDocument();
+    expect(screen.getByLabelText(en['dsp.room.size'])).toBeEnabled();
+    expect(
+      document.querySelectorAll('.dsp-room-speaker.can-drag').length,
+    ).toBeGreaterThan(0);
     fireEvent.click(
       screen.getByRole('button', { name: en['dsp.room.presets'] }),
     );
@@ -350,8 +357,7 @@ describe('a pressed speaker', () => {
     expect(onCommit).toHaveBeenCalled();
   });
 
-  it('mutes and solos without Plus, and the picture shows the mute', () => {
-    entitled = false;
+  it('mutes and solos, and the picture shows the mute', () => {
     const { onPatch, onCommit } = renderCard({
       ...DSP_DEFAULTS.room,
       enabled: true,
@@ -360,7 +366,7 @@ describe('a pressed speaker', () => {
     expect(groupOf('RR')).toHaveClass('is-muted');
     press('C');
     const panel = panelOf(en['dsp.room.speakerName.C']);
-    expect(panel.getByLabelText(en['dsp.room.speaker.level'])).toBeDisabled();
+    expect(panel.getByLabelText(en['dsp.room.speaker.level'])).toBeEnabled();
     fireEvent.click(
       panel.getByRole('button', { name: en['dsp.room.speaker.mute'] }),
     );

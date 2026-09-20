@@ -15,7 +15,6 @@ import {
 } from '../../common/dsp/roomPresets';
 import { withSoloWhileFed } from '../../common/dsp/roomSpeakers';
 import { TranslationKey } from '../../common/i18n/en';
-import { usePlusEntitled } from '../plus/GalleryParts';
 import { useTranslation } from '../utils/I18nContext';
 import { ProcessorCard } from './DspControls';
 import DspRoomBar from './DspRoomBar';
@@ -69,16 +68,22 @@ const ROOM_MIRROR = [1, 0, -1, 4, 3, 6, 5];
  * the listener. A first version put the last two behind "Tune" and "Fit"
  * tabs and the rooms behind a "Browse" button, and what it hid was not found.
  *
- * Every built-in room is free; shaping — dragging a speaker, its dials, the
- * room's dials, saved rooms — is Plus, shown locked rather than hidden so the
- * page says what Plus adds where it would be pressed. The head, the
- * headphone switch, bass management, the stereo switch, mute and solo stay
- * outside the lock, where they have always been.
+ * All of it is free. Dragging a speaker, its dials, the room's dials, saved
+ * rooms and the listening test were Plus until 2026-09-20, and the locks came
+ * off on Ivan's call: Plus is the visualizers and what the server does for
+ * them, and this page is sound. It also could not have held — every line of
+ * it runs on the listener's own machine under a licence that lets them delete
+ * the check and pass the build on, so the lock was a promise the licence
+ * cannot keep.
  */
 const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
   const { t } = useTranslation();
-  const isPlus = usePlusEntitled();
-  const canShape = isPlus && room.enabled;
+  // The Room is sound, and sound is not Plus. Plus is the visualizers and
+  // what the server does for them; everything on this page runs on the
+  // listener's own machine, where a lock is a line anybody may delete and
+  // share — the licence says so in as many words. Shaping needs the room
+  // switched on and nothing else.
+  const canShape = room.enabled;
   // Nothing chosen to begin with: the pane beside the picture rests behind a
   // card asking for a speaker, and a press on the room lets go of one again.
   const [picked, setPicked] = useState<TRoomPick | undefined>(undefined);
@@ -170,7 +175,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           saved={saved}
           savedHere={savedHere}
           restoreName={restoreName}
-          isPlus={isPlus}
           onPreset={(preset: IRoomPreset) => {
             rememberRoomSource({ presetId: preset.id, shape: preset.shape });
             onPatch({ ...roomPresetSettings(room, preset.id), enabled: true });
@@ -231,7 +235,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             derived={feed.derived}
             subFed={feed.subFed}
             isDisabled={!room.enabled}
-            canDrag={isPlus}
             selected={picked}
             onSelect={setPicked}
             onAngle={turn}
@@ -264,7 +267,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             room={room}
             which={picked}
             canShape={canShape}
-            isLocked={!isPlus}
             isFed={pickedIsFed}
             isDerived={pickedFor !== 'sub' && feed.derived[pickedFor]}
             isDisabled={!room.enabled}
@@ -274,7 +276,6 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
           <DspRoomQuick
             room={room}
             canShape={canShape}
-            isLocked={!isPlus}
             onShape={shape}
             onPatch={edit}
             onCommit={onCommit}
@@ -284,16 +285,10 @@ const DspRoomCard = ({ room, live, onPatch, onCommit }: IDspRoomCardProps) => {
             feed={feed}
             isSurround={isSurround}
             canShape={canShape}
-            isLocked={!isPlus}
             onShape={shape}
             onCommit={onCommit}
           />
-          <DspRoomFit
-            room={room}
-            isPlus={isPlus}
-            onPatch={onPatch}
-            onCommit={onCommit}
-          />
+          <DspRoomFit room={room} onPatch={onPatch} onCommit={onCommit} />
         </div>
       </div>
     </ProcessorCard>

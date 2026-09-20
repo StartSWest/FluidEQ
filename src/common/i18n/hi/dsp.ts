@@ -664,7 +664,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'स्टीरियो चल रहा है: सिर्फ़ FL और FR में आवाज़ है। बाकी 5.1 या 7.1 स्ट्रीम का इंतज़ार कर रहे हैं।',
   'dsp.room.fedFiveOne': '5.1 चल रहा है: पीछे की जोड़ी में कुछ नहीं है।',
-  'dsp.room.plusDragHint': 'स्पीकर हिलाना Plus का हिस्सा है।',
   'dsp.room.presets': 'कमरे का प्रीसेट',
   'dsp.room.preset.studio': 'स्टूडियो',
   'dsp.room.preset.livingRoom': 'बैठक',
@@ -723,9 +722,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'पीछे बायाँ',
   'dsp.room.speakerName.RR': 'पीछे दायाँ',
   'dsp.room.speakerName.sub': 'सबवूफ़र',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'कमरे का आकार बदलना और स्पीकर हिलाना Plus का हिस्सा है। कमरा और उसके प्रीसेट वैसे भी आपके हैं।',
   'dsp.room.live.off': 'कमरा बंद',
   'dsp.room.live.noHead': 'अभी सिर की फ़ाइल नहीं है',
   'dsp.room.live.frontStage': 'स्टीरियो → सामने का मंच',

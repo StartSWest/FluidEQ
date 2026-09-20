@@ -7,22 +7,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useState } from 'react';
 import { IRoomSettings, ROOM_HEADS, TRoomHead } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
-import { LockBadge } from '../graph/lookPickerParts';
 import { useTranslation } from '../utils/I18nContext';
 import SegmentedControl from '../widgets/SegmentedControl';
 import DspRoomFitDialog from './DspRoomFitDialog';
 
 interface IDspRoomFitProps {
   room: IRoomSettings;
-  isPlus: boolean;
   onPatch: (next: IRoomSettings) => void;
   onCommit: () => void;
 }
 
 /**
  * Fit: the listener, not the room. Which of the three heads the room is heard
- * through — free, and untouched by every profile and saved room — and the
- * listening test that picks it by ear, which is Plus.
+ * through — untouched by every profile and saved room — and the listening
+ * test that picks it by ear.
  *
  * It says what the three heads are: one measured head at three sizes, not
  * three people and not a scan of anybody's ears. A page that let "Small,
@@ -38,7 +36,7 @@ interface IDspRoomFitProps {
  * it belongs: a correction curve is the headset's own signature and no chain
  * has any business reaching into it.
  */
-const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
+const DspRoomFit = ({ room, onPatch, onCommit }: IDspRoomFitProps) => {
   const { t } = useTranslation();
   const [isFitOpen, setFitOpen] = useState(false);
   const isOn = room.enabled;
@@ -73,7 +71,7 @@ const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
         {/* The listening test that picks the head: a row of this band and
             not a band of its own, because it answers the same question as
             the segment above it. Quiet, since the segment already answers
-            most people, and Plus like shaping. A band of its own made seven,
+            most people. A band of its own made seven,
             which no number of columns divides: the page ended in a hole. */}
         <div className="dsp-room-row">
           <span className="dsp-room-row__label">
@@ -83,15 +81,12 @@ const DspRoomFit = ({ room, isPlus, onPatch, onCommit }: IDspRoomFitProps) => {
             <button
               type="button"
               className="button small subtle"
-              disabled={!isPlus || !isOn}
-              title={t(
-                isPlus ? 'dsp.room.fitView.guidedHint' : 'dsp.room.plusHint',
-              )}
+              disabled={!isOn}
+              title={t('dsp.room.fitView.guidedHint')}
               onClick={() => setFitOpen(true)}
             >
               {t('dsp.room.fitView.start')}
             </button>
-            {!isPlus ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
           </div>
         </div>
         <p className="dsp-band-hint">{t('dsp.room.fitView.headHint')}</p>

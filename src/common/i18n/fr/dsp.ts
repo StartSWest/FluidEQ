@@ -674,7 +674,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Lecture stéréo : seules FL et FR portent du son. Les autres attendent un flux 5.1 ou 7.1.',
   'dsp.room.fedFiveOne': 'Lecture 5.1 : la paire arrière ne porte rien.',
-  'dsp.room.plusDragHint': 'Déplacer les enceintes fait partie de Plus.',
   'dsp.room.presets': 'Salle prédéfinie',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Salon',
@@ -733,9 +732,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Arrière gauche',
   'dsp.room.speakerName.RR': 'Arrière droite',
   'dsp.room.speakerName.sub': 'Caisson de basses',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Façonner la salle et déplacer ses enceintes font partie de Plus. La salle et ses préréglages sont à vous quoi qu’il arrive.',
   'dsp.room.live.off': 'Salle éteinte',
   'dsp.room.live.noHead': 'Pas encore de fichier de tête',
   'dsp.room.live.frontStage': 'Stéréo → scène avant',

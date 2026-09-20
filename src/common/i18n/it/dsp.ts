@@ -672,7 +672,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Suona stereo: solo FL e FR portano suono. Gli altri aspettano un flusso 5.1 o 7.1.',
   'dsp.room.fedFiveOne': 'Suona 5.1: la coppia posteriore non porta nulla.',
-  'dsp.room.plusDragHint': 'Spostare i diffusori fa parte di Plus.',
   'dsp.room.presets': 'Stanza predefinita',
   'dsp.room.preset.studio': 'Studio',
   'dsp.room.preset.livingRoom': 'Salotto',
@@ -732,9 +731,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Posteriore sinistro',
   'dsp.room.speakerName.RR': 'Posteriore destro',
   'dsp.room.speakerName.sub': 'Subwoofer',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Modellare la stanza e spostare i suoi diffusori fa parte di Plus. La stanza e i suoi preset sono tuoi in ogni caso.',
   'dsp.room.live.off': 'Stanza spenta',
   'dsp.room.live.noHead': 'Nessun file testa ancora',
   'dsp.room.live.frontStage': 'Stereo → palco frontale',

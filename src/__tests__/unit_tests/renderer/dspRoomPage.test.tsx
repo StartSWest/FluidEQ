@@ -125,15 +125,6 @@ describe('the rooms in the picker', () => {
     expect(last().presetId).toBe(ROOM_CLASSIC_LIST[0].id);
   });
 
-  it('shows a saved room to everyone and applies it for Plus alone', () => {
-    saveRoom('Den', on({ walls: 0.2 }));
-    entitled = false;
-    const free = renderPage();
-    openPicker();
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /Den/ }));
-    expect(free.rooms).toHaveLength(0);
-  });
-
   it('stands in a saved room by its name, and offers to delete it', () => {
     saveRoom('Den', on({ walls: 0.2 }));
     const { last } = renderPage();
@@ -256,12 +247,14 @@ describe('saving a room from the bar', () => {
     expect(readSavedRooms()).toEqual([]);
   });
 
-  it('is Plus', () => {
+  // Saving a room was Plus until 2026-09-20. Plus is the visualizers and
+  // what the server does for them; a room lives in this window.
+  it('is offered to everybody', () => {
     entitled = false;
     renderPage();
     expect(
       screen.getByRole('button', { name: en['dsp.eqSave.save'] }),
-    ).toBeDisabled();
+    ).toBeEnabled();
   });
 });
 

@@ -6,16 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { DSP_DEFAULTS, IRoomSettings } from '../../common/dsp/chain';
 import { roomOnNewRenderer } from '../../common/dsp/roomPresets';
-import { LockBadge } from '../graph/lookPickerParts';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial } from './DspControls';
 import { dbOfSpace, spaceOfDb } from './roomView';
 
 interface IDspRoomQuickProps {
   room: IRoomSettings;
-  /** Plus, and the room on. */
+  /** The room has to be on for these to do anything. */
   canShape: boolean;
-  isLocked: boolean;
   onShape: (next: Partial<IRoomSettings>) => void;
   onPatch: (next: IRoomSettings) => void;
   onCommit: () => void;
@@ -35,7 +33,6 @@ interface IDspRoomQuickProps {
 const DspRoomQuick = ({
   room,
   canShape,
-  isLocked,
   onShape,
   onPatch,
   onCommit,
@@ -54,7 +51,6 @@ const DspRoomQuick = ({
     >
       <div className="dsp-band-head">
         <span className="dsp-band-title">{t('dsp.room.quick.title')}</span>
-        {isLocked ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
       </div>
       <div className="dsp-band-dials">
         {isNew ? (
@@ -107,11 +103,6 @@ const DspRoomQuick = ({
           onCommit={onCommit}
         />
       </div>
-      {/* Said on the page, not only in a tooltip: what the lock is, and that
-          the rooms themselves are free either way. */}
-      {isLocked ? (
-        <p className="dsp-band-hint">{t('dsp.room.plusHint')}</p>
-      ) : undefined}
       {isNew ? (
         <p className="dsp-band-hint">{t('dsp.room.quick.hint')}</p>
       ) : (
@@ -121,7 +112,6 @@ const DspRoomQuick = ({
             type="button"
             className="button small"
             disabled={!canShape}
-            title={isLocked ? t('dsp.room.plusHint') : undefined}
             onClick={() => {
               onPatch(roomOnNewRenderer(room));
               onCommit();

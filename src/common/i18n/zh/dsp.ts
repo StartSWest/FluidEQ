@@ -635,7 +635,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     '正在播放立体声：只有 FL 和 FR 有声音。其余音箱等待 5.1 或 7.1 音频流。',
   'dsp.room.fedFiveOne': '正在播放 5.1：后置一对没有声音。',
-  'dsp.room.plusDragHint': '移动音箱是 Plus 功能。',
   'dsp.room.presets': '房间预设',
   'dsp.room.preset.studio': '录音室',
   'dsp.room.preset.livingRoom': '客厅',
@@ -694,9 +693,6 @@ const dsp = {
   'dsp.room.speakerName.RL': '后左',
   'dsp.room.speakerName.RR': '后右',
   'dsp.room.speakerName.sub': '低音炮',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    '调整房间形状和移动音箱是 Plus 功能。房间及其预设无论如何都可以使用。',
   'dsp.room.live.off': '房间已关闭',
   'dsp.room.live.noHead': '还没有头部文件',
   'dsp.room.live.frontStage': '立体声 → 前方舞台',

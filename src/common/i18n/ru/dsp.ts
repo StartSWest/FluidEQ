@@ -668,7 +668,6 @@ const dsp = {
   'dsp.room.fedFrontStage':
     'Играет стерео: звук несут только FL и FR. Остальные ждут поток 5.1 или 7.1.',
   'dsp.room.fedFiveOne': 'Играет 5.1: задняя пара ничего не несёт.',
-  'dsp.room.plusDragHint': 'Перестановка колонок — часть Plus.',
   'dsp.room.presets': 'Готовая комната',
   'dsp.room.preset.studio': 'Студия',
   'dsp.room.preset.livingRoom': 'Гостиная',
@@ -727,9 +726,6 @@ const dsp = {
   'dsp.room.speakerName.RL': 'Задняя левая',
   'dsp.room.speakerName.RR': 'Задняя правая',
   'dsp.room.speakerName.sub': 'Сабвуфер',
-  'dsp.room.plus': 'Plus',
-  'dsp.room.plusHint':
-    'Форма комнаты и перестановка колонок — часть Plus. Сама комната и её пресеты ваши в любом случае.',
   'dsp.room.live.off': 'Комната выключена',
   'dsp.room.live.noHead': 'Файла головы пока нет',
   'dsp.room.live.frontStage': 'Стерео → сцена впереди',

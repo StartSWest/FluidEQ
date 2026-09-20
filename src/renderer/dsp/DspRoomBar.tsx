@@ -33,7 +33,6 @@ interface IDspRoomBarProps {
   /** What Restore would put back, by name; nothing while there is nothing. */
   restoreName: string | undefined;
   /** Saved rooms are the user's shaping: Plus. */
-  isPlus: boolean;
   onPreset: (preset: IRoomPreset) => void;
   onSaved: (saved: ISavedRoom) => void;
   onRestore: () => void;
@@ -79,7 +78,6 @@ const DspRoomBar = ({
   saved,
   savedHere,
   restoreName,
-  isPlus,
   onPreset,
   onSaved,
   onRestore,
@@ -119,7 +117,6 @@ const DspRoomBar = ({
       ),
       group: 'saved',
       icon: <VoicingIcon className="rich-pick__glyph" />,
-      locked: isPlus ? undefined : t('dsp.room.plusHint'),
     })),
   ];
   const groupLabel = (group: string): string => {
@@ -135,7 +132,7 @@ const DspRoomBar = ({
       return;
     }
     const one = saved.find((candidate) => candidate.id === id);
-    if (one !== undefined && isPlus) {
+    if (one !== undefined) {
       onSaved(one);
     }
   };
@@ -223,14 +220,13 @@ const DspRoomBar = ({
           <button
             type="button"
             className="button small subtle"
-            disabled={!isPlus || !room.enabled}
-            title={isPlus ? undefined : t('dsp.room.plusHint')}
+            disabled={!room.enabled}
             onClick={() => setIsNaming(true)}
           >
             <DspBarIcon name="save" />
             {t('dsp.eqSave.save')}
           </button>
-          {savedHere !== undefined && isPlus ? (
+          {savedHere !== undefined ? (
             <button
               type="button"
               className="button small subtle"

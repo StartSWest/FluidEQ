@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { DSP_DEFAULTS, IRoomSettings } from '../../common/dsp/chain';
 import { withSoloWhileFed } from '../../common/dsp/roomSpeakers';
-import { LockBadge } from '../graph/lookPickerParts';
 import { useTranslation } from '../utils/I18nContext';
 import SegmentedControl from '../widgets/SegmentedControl';
 import Switch from '../widgets/Switch';
@@ -22,7 +21,6 @@ interface IDspRoomTuneProps {
   isSurround: boolean;
   /** Plus, and the room on. */
   canShape: boolean;
-  isLocked: boolean;
   onShape: (next: Partial<IRoomSettings>) => void;
   onCommit: () => void;
 }
@@ -45,7 +43,6 @@ const DspRoomTune = ({
   feed,
   isSurround,
   canShape,
-  isLocked,
   onShape,
   onCommit,
 }: IDspRoomTuneProps) => {
@@ -59,7 +56,6 @@ const DspRoomTune = ({
       <div className="dsp-band">
         <div className="dsp-band-head">
           <span className="dsp-band-title">{t('dsp.room.tune.character')}</span>
-          {isLocked ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
         </div>
         <div className="dsp-band-dials">
           <Dial
@@ -217,7 +213,6 @@ const DspRoomTune = ({
                 onCommit={onCommit}
               />
             </div>
-            {isLocked ? <LockBadge label={t('dsp.room.plus')} /> : undefined}
           </div>
         </div>
         <p className="dsp-band-hint">
