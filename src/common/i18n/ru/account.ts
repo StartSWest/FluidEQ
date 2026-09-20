@@ -122,6 +122,42 @@ const account = {
   'account.perk.visualizers':
     '«Визуализаторы»: сцены, которые создают участники, открыты для любого аккаунта.',
   'account.perk.board': 'Рейтинг тех, кто слушает больше всех.',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'Месяц автора',
+  'account.maker.badge': 'Бесплатно',
+  'account.maker.until': 'Plus бесплатен до {date}.',
+  'account.maker.endsDays':
+    'Заканчивается через {days} дн. — опубликуйте сцену до этого, чтобы сохранить.',
+  'account.maker.endsTomorrow':
+    'Заканчивается завтра — опубликуйте сцену до этого, чтобы сохранить.',
+  'account.maker.keep':
+    'Опубликуйте сцену в этом месяце, и следующий будет бесплатным.',
+  'account.maker.kept':
+    'Сцена этого месяца есть. Опубликуйте ещё одну в следующем, чтобы продолжить.',
+  'account.maker.again':
+    'Опубликуйте сцену — и снова получите месяц Plus бесплатно.',
+  'account.maker.invite':
+    'Сделайте сцену в Студии: одна одобренная сцена в месяц оставляет Plus бесплатным.',
+  'account.maker.waitingOne':
+    'Один заработанный месяц ждёт. Он начнётся, когда закончится подписка, — на оплату это не влияет.',
+  'account.maker.waitingMany':
+    'Заработанных месяцев ждёт: {count}. Они начнутся, когда закончится подписка, — на оплату это не влияет.',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle':
+    'Ваш бесплатный Plus заканчивается через {days} дн.',
+  'account.maker.notice.endingTomorrow':
+    'Ваш бесплатный Plus заканчивается завтра',
+  'account.maker.notice.endingBody':
+    'Опубликуйте сцену до этого, и следующий месяц тоже будет бесплатным. Ничего не списывается ни в том, ни в другом случае.',
+  'account.maker.notice.endedTitle': 'Ваш бесплатный Plus закончился',
+  'account.maker.notice.endedBody':
+    'Опубликуйте сцену — и он начнётся снова. Всё купленное остаётся вашим.',
+  'account.maker.notice.open': 'Открыть Студию',
+  'account.maker.notice.later': 'Не сейчас',
 } as const;
 
 export default account;

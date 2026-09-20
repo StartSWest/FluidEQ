@@ -15,6 +15,7 @@ import {
   type ISceneViewer,
 } from '../memberScenes/visibleScenes';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
+import { isKnownMaker } from '../account/knownMakers';
 import { registerStudioProjectsIpc } from './studioProjectsIpc';
 import type { TInspection, TProjectRestore } from './studioProjectTypes';
 
@@ -131,6 +132,10 @@ export const registerMemberScenesIpc = ({
     store,
     accountId,
     entitled,
+    // A maker keeps the single-project bench once the month they earned by
+    // publishing runs out: without it, the one way they earn Plus would be
+    // shut to them (`knownMakers.ts`).
+    isMaker: (id: string) => isKnownMaker(userDataDir, id),
     announceScenes,
     dialogImpl,
     openPath,

@@ -125,6 +125,41 @@ const account = {
   'account.perk.visualizers':
     'Visualiseurs : les scènes créées par les membres, ouvertes à tous les comptes.',
   'account.perk.board': 'Un classement de qui écoute le plus.',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'Mois de créateur',
+  'account.maker.badge': 'Gratuit',
+  'account.maker.until': 'Plus est gratuit jusqu’au {date}.',
+  'account.maker.endsDays':
+    'Se termine dans {days} jours — publiez une scène avant pour le garder.',
+  'account.maker.endsTomorrow':
+    'Se termine demain — publiez une scène avant pour le garder.',
+  'account.maker.keep':
+    'Publiez une scène ce mois-ci et le suivant est gratuit.',
+  'account.maker.kept':
+    'La scène de ce mois-ci est là. Publiez-en une autre le mois prochain pour continuer.',
+  'account.maker.again':
+    'Publiez une scène et vous avez de nouveau un mois de Plus gratuit.',
+  'account.maker.invite':
+    'Faites une scène dans le Studio : une scène approuvée par mois garde Plus gratuit.',
+  'account.maker.waitingOne':
+    'Un mois gagné vous attend. Il commencera à la fin de votre abonnement — rien ici ne change ce que vous payez.',
+  'account.maker.waitingMany':
+    '{count} mois gagnés vous attendent. Ils commenceront à la fin de votre abonnement — rien ici ne change ce que vous payez.',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle':
+    'Votre Plus gratuit se termine dans {days} jours',
+  'account.maker.notice.endingTomorrow': 'Votre Plus gratuit se termine demain',
+  'account.maker.notice.endingBody':
+    'Publiez une scène avant et le mois suivant est gratuit aussi. Rien n’est facturé dans un cas comme dans l’autre.',
+  'account.maker.notice.endedTitle': 'Votre Plus gratuit est terminé',
+  'account.maker.notice.endedBody':
+    'Publiez une scène et il repart. Tout ce que vous avez acheté reste à vous.',
+  'account.maker.notice.open': 'Ouvrir le Studio',
+  'account.maker.notice.later': 'Pas maintenant',
 } as const;
 
 export default account;

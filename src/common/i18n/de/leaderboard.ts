@@ -19,7 +19,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'Meine Daten behalten',
   'leaderboard.card.removeConfirm': 'Alles löschen',
   'leaderboard.card.plusOnly':
-    'Nur Plus-Mitglieder werden gelistet. Ein Beitritt bewirkt vorher nichts.',
+    'Nur Plus-Mitglieder werden gelistet – die Gratis-Testphase zählt nicht. Ihre Tage werden trotzdem gezählt und erscheinen, sobald Sie Mitglied sind.',
   'leaderboard.allTime': 'Gesamt',
   'leaderboard.thisMonth': 'Dieser Monat',
   'leaderboard.hours': '{hours} h',

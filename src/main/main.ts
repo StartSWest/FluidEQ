@@ -209,6 +209,8 @@ import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { registerPlusModerationIpc } from './ipc/plusModeration';
 import { registerPlusReviewIpc } from './ipc/plusReview';
+import { registerMakerMonthIpc } from './ipc/makerMonth';
+import { rememberMaker } from './account/knownMakers';
 import { registerPlusGiftsIpc } from './ipc/plusGifts';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { createGalleryAccess } from './plus/galleryAccess';
@@ -3194,6 +3196,13 @@ const plusReviewIpc = registerPlusReviewIpc({
     };
   },
   logger: log,
+});
+// What a maker earned by publishing, for the account panel to count down —
+// and, when the server says this account is one, the note that keeps their
+// single Studio project open after the earned month runs out.
+registerMakerMonthIpc({
+  access: galleryAccess,
+  onMaker: (id) => rememberMaker(userDataDir, id),
 });
 const plusPublishingIpc = registerPlusPublishingIpc({
   access: galleryAccess,

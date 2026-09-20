@@ -24,6 +24,8 @@ import SceneBand from '../plus/SceneBand';
 import PlusCard from './PlusCard';
 import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
+import MakerMonthCard from './MakerMonthCard';
+import { forgetMakerMonth } from '../plus/makerMonthStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
 import SubscribeAgreement from './SubscribeAgreement';
@@ -142,6 +144,7 @@ export default function AccountDialog({
       loadProfile(accountId).catch(() => undefined);
     } else {
       forgetProfile();
+      forgetMakerMonth();
     }
   }, [accountId]);
 
@@ -436,6 +439,10 @@ export default function AccountDialog({
                 onUpgrade={() => setPage('subscribe')}
                 checkoutOpened={checkoutOpened}
               />
+              {/* Under the membership, because it is where the membership
+                  comes from for a maker: the month their last approved scene
+                  earned, and when it runs out. */}
+              {accountId && <MakerMonthCard accountId={accountId} />}
               <LeaderboardCard />
 
               {errorLine}

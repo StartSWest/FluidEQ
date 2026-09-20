@@ -109,6 +109,36 @@ const account = {
   'account.perk.looks': '由显卡绘制的 Plus 样式。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
   'account.perk.board': '谁听得最多的排行榜。',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': '创作者月份',
+  'account.maker.badge': '免费',
+  'account.maker.until': 'Plus 免费至 {date}。',
+  'account.maker.endsDays':
+    '还有 {days} 天结束：在此之前发布一个场景即可继续。',
+  'account.maker.endsTomorrow': '明天结束：在此之前发布一个场景即可继续。',
+  'account.maker.keep': '本月发布一个场景，下个月就免费。',
+  'account.maker.kept': '本月的场景已经收到。下个月再发布一个就能继续。',
+  'account.maker.again': '发布一个场景，就又有一个月的 Plus 免费。',
+  'account.maker.invite':
+    '在工作室做一个场景：每月有一个通过审核，Plus 就一直免费。',
+  'account.maker.waitingOne':
+    '你有 1 个已获得的月份在等待，会在订阅结束后开始；这不会改变你的付款。',
+  'account.maker.waitingMany':
+    '你有 {count} 个已获得的月份在等待，会在订阅结束后开始；这不会改变你的付款。',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle': '你的免费 Plus 将在 {days} 天后结束',
+  'account.maker.notice.endingTomorrow': '你的免费 Plus 明天结束',
+  'account.maker.notice.endingBody':
+    '在此之前发布一个场景，下个月也免费。两种情况都不会收费。',
+  'account.maker.notice.endedTitle': '你的免费 Plus 已结束',
+  'account.maker.notice.endedBody':
+    '发布一个场景就会重新开始。你买过的东西依然是你的。',
+  'account.maker.notice.open': '打开工作室',
+  'account.maker.notice.later': '暂不',
 } as const;
 
 export default account;

@@ -123,6 +123,40 @@ const account = {
   'account.perk.visualizers':
     'ビジュアライザー：メンバーが作ったシーンを、すべてのアカウントに公開。',
   'account.perk.board': '最もよく聴く人のランキング。',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'メーカーの月',
+  'account.maker.badge': '無料',
+  'account.maker.until': '{date} まで Plus は無料です。',
+  'account.maker.endsDays':
+    'あと {days} 日で終わります。それまでにシーンを公開すると続きます。',
+  'account.maker.endsTomorrow':
+    '明日で終わります。それまでにシーンを公開すると続きます。',
+  'account.maker.keep': '今月シーンを公開すれば、来月は無料です。',
+  'account.maker.kept':
+    '今月のシーンは届いています。来月もう一度公開すれば続きます。',
+  'account.maker.again':
+    'シーンを公開すれば、また 1 か月 Plus が無料になります。',
+  'account.maker.invite':
+    'スタジオでシーンを作りましょう。月に 1 本承認されれば Plus は無料のままです。',
+  'account.maker.waitingOne':
+    '獲得した 1 か月が待機中です。メンバーシップが終わってから始まります。支払いは何も変わりません。',
+  'account.maker.waitingMany':
+    '獲得した {count} か月が待機中です。メンバーシップが終わってから始まります。支払いは何も変わりません。',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle':
+    '無料の Plus はあと {days} 日で終わります',
+  'account.maker.notice.endingTomorrow': '無料の Plus は明日で終わります',
+  'account.maker.notice.endingBody':
+    'それまでにシーンを公開すれば、次の月も無料です。どちらの場合も料金はかかりません。',
+  'account.maker.notice.endedTitle': '無料の Plus が終了しました',
+  'account.maker.notice.endedBody':
+    'シーンを公開すれば、また始まります。購入したものはそのままです。',
+  'account.maker.notice.open': 'スタジオを開く',
+  'account.maker.notice.later': '今はしない',
 } as const;
 
 export default account;

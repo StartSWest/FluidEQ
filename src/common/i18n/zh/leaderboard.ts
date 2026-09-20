@@ -16,7 +16,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': '保留我的数据',
   'leaderboard.card.removeConfirm': '全部删除',
   'leaderboard.card.plusOnly':
-    '只有 Plus 会员会被排名。在此之前，加入不会有任何效果。',
+    '只有 Plus 会员会被排名，免费体验不计入。你的天数仍会保留，成为会员后立即出现。',
   'leaderboard.allTime': '全部时间',
   'leaderboard.thisMonth': '本月',
   'leaderboard.hours': '{hours} 小时',

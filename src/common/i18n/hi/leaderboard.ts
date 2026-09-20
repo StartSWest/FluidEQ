@@ -18,7 +18,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'मेरा डेटा रखें',
   'leaderboard.card.removeConfirm': 'सब हटाएँ',
   'leaderboard.card.plusOnly':
-    'केवल Plus सदस्यों की रैंकिंग होती है। तब तक शामिल होने से कुछ नहीं होता।',
+    'केवल Plus सदस्यों की रैंकिंग होती है — मुफ़्त ट्रायल नहीं गिना जाता। आपके दिन फिर भी सहेजे जाते हैं और सदस्य बनते ही दिख जाते हैं।',
   'leaderboard.allTime': 'अब तक',
   'leaderboard.thisMonth': 'इस महीने',
   'leaderboard.hours': '{hours} घंटे',

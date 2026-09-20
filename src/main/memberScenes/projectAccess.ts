@@ -12,9 +12,12 @@ import type { IProjectList, IStoredProject } from './studioProjects';
  * Which of a member's Studio projects they may actually use, and how many
  * they may have.
  *
- * The Studio without Plus: one project, made and edited like any other, and
- * nothing that leaves the window. A member, still — signed in, as the Plus
- * tab requires before it shows the Studio at all.
+ * The Studio is Plus's, reached first through the free trial (Ivan,
+ * 2026-09-20: "I want them to pay first to access the studio"). The one
+ * exception is the maker who has already had a scene approved: they keep a
+ * single project of their own for good, because a maker earns their Plus by
+ * publishing and would otherwise be locked out of making the very scene that
+ * earns the next month. Being signed in is not enough by itself.
  *
  * Pure, and kept apart from the IPC that asks it, because it is the only
  * place the entitlement is spelled and it is worth being able to read it
@@ -28,10 +31,13 @@ import type { IProjectList, IStoredProject } from './studioProjects';
  * every local feature on a computer somebody owns.
  */
 
-/** Who is asking: whether they have Plus, and whether they are signed in. */
+/**
+ * Who is asking: whether they have Plus (paid, gifted, on trial or on a month
+ * they earned), and whether they have ever had a scene approved.
+ */
 export interface IStudioAccess {
   entitled: boolean;
-  member: boolean;
+  maker: boolean;
 }
 
 /** A project of the member's own, rather than a FluidEQ scene to look inside. */
@@ -43,13 +49,13 @@ export const ownProjects = (list: IProjectList) =>
 
 export const mayAddProject = (list: IProjectList, access: IStudioAccess) =>
   access.entitled ||
-  (access.member && ownProjects(list).length < STUDIO_TRIAL_PROJECTS);
+  (access.maker && ownProjects(list).length < STUDIO_TRIAL_PROJECTS);
 
 /**
- * Without Plus, the one project of the member's own the Studio keeps on the
- * bench: the open one, else the most recently opened. Every other project
- * stays listed, locked, for when there is Plus — the rest of a folder of
- * several, the others of a Plus that lapsed. Derived from the list rather
+ * Without Plus, the one project a maker keeps on the bench: the open one,
+ * else the most recently opened. Every other project stays listed, locked,
+ * for when there is Plus — the rest of a folder of several, the others of a
+ * Plus that lapsed. Derived from the list rather
  * than stored, so letting the kept one go moves the bench to the next: one at
  * a time, never none while there is one to open.
  */
@@ -71,7 +77,7 @@ export const mayUseProject = (
   project: IStoredProject,
   list: IProjectList,
   access: IStudioAccess,
-) => access.entitled || (access.member && project.id === keptProject(list)?.id);
+) => access.entitled || (access.maker && project.id === keptProject(list)?.id);
 
 /**
  * The list with an open project the member may use: the most recent such one

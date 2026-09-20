@@ -318,6 +318,43 @@ it under the terms of the GNU General Public License version 3 or later.
 // Signing out asks in place of these links: its card is `SignOutConfirm.scss`,
 // imported by the component that draws it.
 
+// What publishing earned: a section under the membership, in the same shape
+// (`_accountSection.scss`), because for a maker it is where the membership
+// comes from.
+.maker-card {
+  @include account-section;
+}
+
+.maker-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .plus-card__badge {
+    margin-left: auto;
+  }
+}
+
+// Months earned while a paid membership is still running. Amber like
+// everything else in this app that is true but not what you want yet.
+.maker-card__waiting {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+  }
+}
+
 // The board's own name form, under the person it is about. The form lays
 // itself out by the `leaderboard` container it expects on the board; here the
 // wrapper is that container, so the narrow layout applies at the same width.

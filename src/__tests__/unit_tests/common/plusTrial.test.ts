@@ -5,7 +5,7 @@ import {
 
 const offer = {
   enabled: true,
-  days: 30,
+  days: 15,
   state: 'eligible',
   startedAt: null,
   endsAt: null,
@@ -17,7 +17,7 @@ describe('trial responses from the server', () => {
   it('keeps the configured anonymous offer without inventing a grant', () => {
     expect(parsePlusTrialOffer({ ...offer, state: 'sign-in' })).toEqual({
       enabled: true,
-      days: 30,
+      days: 15,
       state: 'sign-in',
       termsVersion: 8,
       trialTermsVersion: 1,
@@ -35,7 +35,7 @@ describe('trial responses from the server', () => {
       }),
     ).toEqual({
       enabled: false,
-      days: 30,
+      days: 15,
       state: 'active',
       startedAt: 1789819200000,
       endsAt: 1792411200000,
@@ -69,20 +69,20 @@ describe('trial responses from the server', () => {
     expect(
       parsePlusTrialSettings({
         enabled: false,
-        days: 30,
+        days: 15,
         eligibleSince: '2026-09-19T12:00:00Z',
       }),
-    ).toEqual({ enabled: false, days: 30, eligibleSince: 1789819200000 });
+    ).toEqual({ enabled: false, days: 15, eligibleSince: 1789819200000 });
     expect(
-      parsePlusTrialSettings({ enabled: false, days: 30, eligibleSince: null }),
-    ).toEqual({ enabled: false, days: 30 });
+      parsePlusTrialSettings({ enabled: false, days: 15, eligibleSince: null }),
+    ).toEqual({ enabled: false, days: 15 });
   });
 
   it.each([
-    { enabled: true, days: 30, eligibleSince: null },
-    { enabled: true, days: 30, eligibleSince: 'not a date' },
+    { enabled: true, days: 15, eligibleSince: null },
+    { enabled: true, days: 15, eligibleSince: 'not a date' },
     { enabled: false, days: 0, eligibleSince: null },
-    { enabled: 1, days: 30, eligibleSince: null },
+    { enabled: 1, days: 15, eligibleSince: null },
   ])('refuses malformed administrator settings: %j', (value) => {
     expect(parsePlusTrialSettings(value)).toBeUndefined();
   });

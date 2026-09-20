@@ -30,10 +30,10 @@ jest.mock('../../../common/accountConfig', () => ({
 }));
 
 const NOW = Date.parse('2026-09-19T12:00:00Z');
-const END = NOW + 30 * 86_400_000;
+const END = NOW + 15 * 86_400_000;
 const eligible: IPlusTrialOffer = {
   enabled: true,
-  days: 30,
+  days: 15,
   state: 'eligible',
   termsVersion: PLUS_TERMS_VERSION,
   trialTermsVersion: PLUS_TRIAL_TERMS_VERSION,
@@ -68,11 +68,11 @@ beforeEach(() => {
   start.mockResolvedValue({ ok: true, offer: active });
   getSettings.mockResolvedValue({
     ok: true,
-    settings: { enabled: false, days: 30 },
+    settings: { enabled: false, days: 15 },
   });
   setOffer.mockResolvedValue({
     ok: true,
-    settings: { enabled: true, days: 30, eligibleSince: NOW },
+    settings: { enabled: true, days: 15, eligibleSince: NOW },
   });
   window.electron = {
     ipcRenderer: {
@@ -110,7 +110,7 @@ const agreement = async () => {
       <PlusTrialAgreement onClose={close} />
     </I18nProvider>,
   );
-  return screen.findByRole('button', { name: 'Start my free 30 days' });
+  return screen.findByRole('button', { name: 'Start my free 15 days' });
 };
 
 it('requires an unchecked agreement, sends both versions, and never opens billing', async () => {
@@ -130,10 +130,10 @@ it('requires an unchecked agreement, sends both versions, and never opens billin
     trialTermsVersion: PLUS_TRIAL_TERMS_VERSION,
   });
   expect(
-    await screen.findByText('Your free month of Plus is active'),
+    await screen.findByText('Your free trial of Plus is active'),
   ).toBeInTheDocument();
   expect(screen.getByText(/Plus is free until/)).toHaveTextContent(
-    'October 19, 2026',
+    'October 4, 2026',
   );
   expect(checkout).not.toHaveBeenCalled();
 });
@@ -157,7 +157,7 @@ it.each(['terms-outdated', 'ineligible', 'unavailable'] as const)(
     await userEvent.click(button);
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Start my free 30 days' }),
+      screen.queryByRole('button', { name: 'Start my free 15 days' }),
     ).not.toBeInTheDocument();
     expect(checkout).not.toHaveBeenCalled();
   },
@@ -193,14 +193,14 @@ it('coalesces repeated starts while activation is pending', async () => {
   });
   expect(start).toHaveBeenCalledTimes(1);
   expect(
-    screen.getByRole('button', { name: 'Starting your free month…' }),
+    screen.getByRole('button', { name: 'Starting your free trial…' }),
   ).toBeDisabled();
   await act(async () => {
     finish({ ok: true, offer: active });
     await first;
   });
   expect(
-    screen.getByText('Your free month of Plus is active'),
+    screen.getByText('Your free trial of Plus is active'),
   ).toBeInTheDocument();
 });
 
@@ -229,7 +229,7 @@ it('drops an activation reply after changing accounts', async () => {
     offer: { state: 'eligible' },
   });
   expect(
-    screen.queryByText('Your free month of Plus is active'),
+    screen.queryByText('Your free trial of Plus is active'),
   ).not.toBeInTheDocument();
 });
 
@@ -240,14 +240,14 @@ it('shows expiry on a focus event even when the offer cannot be refreshed', asyn
       <PlusTrialOffer />
     </I18nProvider>,
   );
-  await screen.findByText('Your free month of Plus is active');
+  await screen.findByText('Your free trial of Plus is active');
   jest.spyOn(Date, 'now').mockReturnValue(END);
   getOffer.mockResolvedValue({ ok: false, reason: 'offline' });
   await act(async () => {
     window.dispatchEvent(new Event('focus'));
   });
   expect(
-    screen.getByText('Your free month of Plus has ended.'),
+    screen.getByText('Your free trial of Plus has ended.'),
   ).toBeInTheDocument();
   expect(screen.getByText(/FluidEQ still works normally/)).toBeInTheDocument();
   expect(checkout).not.toHaveBeenCalled();
@@ -262,7 +262,7 @@ it.each(['plus', 'gift'])(
         <PlusTrialOffer />
       </I18nProvider>,
     );
-    await screen.findByText('Your free month of Plus is active');
+    await screen.findByText('Your free trial of Plus is active');
     getOffer.mockResolvedValue({ ok: false, reason: 'offline' });
     await act(async () => {
       emitEntitlement({
@@ -272,14 +272,14 @@ it.each(['plus', 'gift'])(
       });
     });
     expect(
-      screen.queryByText('Your free month of Plus is active'),
+      screen.queryByText('Your free trial of Plus is active'),
     ).not.toBeInTheDocument();
     jest.spyOn(Date, 'now').mockReturnValue(END);
     await act(async () => {
       window.dispatchEvent(new Event('focus'));
     });
     expect(
-      screen.queryByText('Your free month of Plus has ended.'),
+      screen.queryByText('Your free trial of Plus has ended.'),
     ).not.toBeInTheDocument();
   },
 );
@@ -312,7 +312,7 @@ it('keeps the admin switch off until an explicit save and never grants a trial',
     </I18nProvider>,
   );
   const checkbox = await screen.findByRole('checkbox', {
-    name: 'Offer 30 days of Plus',
+    name: 'Offer 15 days of Plus',
   });
   expect(checkbox).not.toBeChecked();
   const save = screen.getByRole('button', { name: 'Save offer setting' });

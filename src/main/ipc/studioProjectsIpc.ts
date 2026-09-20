@@ -82,6 +82,12 @@ export interface IStudioProjectsIpcDeps {
   /** Read fresh on every call, exactly as the Plus looks are. */
   accountId: () => string | undefined;
   entitled: () => boolean;
+  /**
+   * Whether this account has had a scene approved before. A maker keeps the
+   * single-project bench once their earned month runs out, or publishing —
+   * the only way they earn Plus — would be closed to them (`knownMakers.ts`).
+   */
+  isMaker: (accountId: string) => boolean;
   /** The member scenes list changed: "Add to my looks" and a settings save. */
   announceScenes: () => void;
   logger?: { info(message: string): void; warn(message: string): void };
@@ -130,6 +136,7 @@ export const registerStudioProjectsIpc = ({
   store,
   accountId,
   entitled,
+  isMaker,
   announceScenes,
   logger,
   dialogImpl = dialog,
@@ -145,12 +152,15 @@ export const registerStudioProjectsIpc = ({
   const activeFolder = () => activeProject()?.folder;
   const activeIsInspection = () => activeProject()?.official !== undefined;
 
-  const member = () => accountId() !== undefined;
+  const maker = () => {
+    const me = accountId();
+    return me !== undefined && isMaker(me);
+  };
 
   /** Who is asking, for the access rules in `projectAccess.ts`. */
   const asking = (): IStudioAccess => ({
     entitled: entitled(),
-    member: member(),
+    maker: maker(),
   });
 
   const usable = (project: IStoredProject | undefined) =>

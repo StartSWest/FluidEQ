@@ -39,9 +39,9 @@ const list = (projects: IStoredProject[], active?: string): IProjectList => ({
   ...(active ? { active } : {}),
 });
 
-const PLUS = { entitled: true, member: true };
-const FREE = { entitled: false, member: true };
-const OUT = { entitled: false, member: false };
+const PLUS = { entitled: true, maker: true };
+const FREE = { entitled: false, maker: true };
+const OUT = { entitled: false, maker: false };
 
 describe('whose project it is', () => {
   it('is the member’s unless it is a FluidEQ scene opened to look inside', () => {

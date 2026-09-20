@@ -127,6 +127,41 @@ const account = {
   'account.perk.visualizers':
     'Visualizer: die Szenen, die Mitglieder erstellen, offen für jedes Konto.',
   'account.perk.board': 'Eine Rangliste, wer am meisten hört.',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'Macher-Monat',
+  'account.maker.badge': 'Gratis',
+  'account.maker.until': 'Plus ist bis zum {date} kostenlos.',
+  'account.maker.endsDays':
+    'Endet in {days} Tagen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
+  'account.maker.endsTomorrow':
+    'Endet morgen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
+  'account.maker.keep':
+    'Veröffentlichen Sie diesen Monat eine Szene, dann ist der nächste kostenlos.',
+  'account.maker.kept':
+    'Die Szene dieses Monats ist da. Nächsten Monat wieder eine, dann geht es weiter.',
+  'account.maker.again':
+    'Veröffentlichen Sie eine Szene, dann ist wieder ein Monat Plus kostenlos.',
+  'account.maker.invite':
+    'Machen Sie eine Szene im Studio: eine genehmigte Szene pro Monat hält Plus kostenlos.',
+  'account.maker.waitingOne':
+    'Ein verdienter Monat wartet. Er beginnt, wenn Ihre Mitgliedschaft endet – an Ihrer Zahlung ändert das nichts.',
+  'account.maker.waitingMany':
+    '{count} verdiente Monate warten. Sie beginnen, wenn Ihre Mitgliedschaft endet – an Ihrer Zahlung ändert das nichts.',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle':
+    'Ihr kostenloses Plus endet in {days} Tagen',
+  'account.maker.notice.endingTomorrow': 'Ihr kostenloses Plus endet morgen',
+  'account.maker.notice.endingBody':
+    'Veröffentlichen Sie vorher eine Szene, dann ist der nächste Monat ebenfalls kostenlos. Berechnet wird so oder so nichts.',
+  'account.maker.notice.endedTitle': 'Ihr kostenloses Plus ist abgelaufen',
+  'account.maker.notice.endedBody':
+    'Veröffentlichen Sie eine Szene, dann beginnt es von Neuem. Alles Gekaufte bleibt Ihnen.',
+  'account.maker.notice.open': 'Studio öffnen',
+  'account.maker.notice.later': 'Jetzt nicht',
 } as const;
 
 export default account;

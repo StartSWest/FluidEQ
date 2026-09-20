@@ -18,7 +18,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'データを残す',
   'leaderboard.card.removeConfirm': 'すべて削除',
   'leaderboard.card.plusOnly':
-    'ランキングに載るのは Plus メンバーだけです。それまで参加しても何も起きません。',
+    'ランキングに載るのは Plus メンバーだけで、無料体験は対象外です。日数は記録され続け、メンバーになった時点で反映されます。',
   'leaderboard.allTime': '全期間',
   'leaderboard.thisMonth': '今月',
   'leaderboard.hours': '{hours} 時間',

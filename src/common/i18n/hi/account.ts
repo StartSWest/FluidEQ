@@ -123,6 +123,39 @@ const account = {
   'account.perk.visualizers':
     'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
   'account.perk.board': 'सबसे ज़्यादा सुनने वालों का लीडरबोर्ड।',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'मेकर का महीना',
+  'account.maker.badge': 'मुफ़्त',
+  'account.maker.until': '{date} तक Plus मुफ़्त है।',
+  'account.maker.endsDays':
+    '{days} दिनों में खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
+  'account.maker.endsTomorrow':
+    'कल खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
+  'account.maker.keep': 'इस महीने एक सीन प्रकाशित करें, अगला महीना मुफ़्त है।',
+  'account.maker.kept':
+    'इस महीने का सीन आ गया। अगले महीने फिर से प्रकाशित करें और चलता रहेगा।',
+  'account.maker.again': 'एक सीन प्रकाशित करें और फिर से एक महीना Plus मुफ़्त।',
+  'account.maker.invite':
+    'स्टूडियो में एक सीन बनाएँ: महीने में एक मंज़ूर सीन Plus को मुफ़्त रखता है।',
+  'account.maker.waitingOne':
+    'कमाया हुआ एक महीना इंतज़ार में है। यह आपकी सदस्यता खत्म होने पर शुरू होगा — इससे आपका भुगतान नहीं बदलता।',
+  'account.maker.waitingMany':
+    'कमाए हुए {count} महीने इंतज़ार में हैं। ये आपकी सदस्यता खत्म होने पर शुरू होंगे — इससे आपका भुगतान नहीं बदलता।',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle':
+    'आपका मुफ़्त Plus {days} दिनों में खत्म हो रहा है',
+  'account.maker.notice.endingTomorrow': 'आपका मुफ़्त Plus कल खत्म हो रहा है',
+  'account.maker.notice.endingBody':
+    'उससे पहले एक सीन प्रकाशित करें और अगला महीना भी मुफ़्त है। किसी भी हाल में कोई शुल्क नहीं लगता।',
+  'account.maker.notice.endedTitle': 'आपका मुफ़्त Plus खत्म हो गया',
+  'account.maker.notice.endedBody':
+    'एक सीन प्रकाशित करें और यह फिर से शुरू हो जाएगा। आपने जो खरीदा है वह आपका ही रहता है।',
+  'account.maker.notice.open': 'स्टूडियो खोलें',
+  'account.maker.notice.later': 'अभी नहीं',
 } as const;
 
 export default account;

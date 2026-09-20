@@ -17,7 +17,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'Conserva i miei dati',
   'leaderboard.card.removeConfirm': 'Rimuovi tutto',
   'leaderboard.card.plusOnly':
-    'Solo i membri Plus vengono classificati. Partecipare non fa nulla fino ad allora.',
+    'Solo i membri Plus vengono classificati: la prova gratuita non conta. I tuoi giorni vengono comunque tenuti e compaiono appena sei membro.',
   'leaderboard.allTime': 'Sempre',
   'leaderboard.thisMonth': 'Questo mese',
   'leaderboard.hours': '{hours} h',

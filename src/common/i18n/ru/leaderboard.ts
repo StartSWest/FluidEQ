@@ -17,7 +17,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'Оставить мои данные',
   'leaderboard.card.removeConfirm': 'Удалить всё',
   'leaderboard.card.plusOnly':
-    'В таблицу попадают только участники Plus. До этого участие ничего не даёт.',
+    'В таблицу попадают только участники Plus — бесплатный период не считается. Ваши дни всё равно сохраняются и появятся, как только вы станете участником.',
   'leaderboard.allTime': 'За всё время',
   'leaderboard.thisMonth': 'За месяц',
   'leaderboard.hours': '{hours} ч',

@@ -25,7 +25,7 @@ const config = {
 };
 const OFFER = {
   enabled: true,
-  days: 30,
+  days: 15,
   state: 'eligible',
   startedAt: null,
   endsAt: null,
@@ -110,7 +110,7 @@ it('loads a generic signed-out offer using only the public API key', async () =>
     ok: true,
     offer: {
       enabled: true,
-      days: 30,
+      days: 15,
       state: 'sign-in',
       termsVersion: 8,
       trialTermsVersion: 1,
@@ -319,20 +319,20 @@ it('reads and changes administrator settings with the caller token', async () =>
   fetchImpl.mockResolvedValueOnce(
     response({
       enabled: true,
-      days: 30,
+      days: 15,
       eligibleSince: '2026-09-19T12:00:00Z',
     }),
   );
   fetchImpl.mockResolvedValueOnce(
     response({
       enabled: false,
-      days: 30,
+      days: 15,
       eligibleSince: '2026-09-19T12:00:00Z',
     }),
   );
   expect(await invoke('plus-trial-settings')).toEqual({
     ok: true,
-    settings: { enabled: true, days: 30, eligibleSince: 1789819200000 },
+    settings: { enabled: true, days: 15, eligibleSince: 1789819200000 },
   });
   expect(await invoke('plus-trial-set-offer', false)).toMatchObject({
     ok: true,
@@ -401,7 +401,7 @@ it('discards administrator settings when the account changes during the request'
   reply.complete(
     response({
       enabled: true,
-      days: 30,
+      days: 15,
       eligibleSince: '2026-09-19T12:00:00Z',
     }),
   );

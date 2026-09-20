@@ -140,6 +140,38 @@ const account = {
   'account.perk.visualizers':
     'Visualizers: the scenes members make, open to every account.',
   'account.perk.board': 'A leaderboard of who listens most.',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'Maker month',
+  'account.maker.badge': 'Free',
+  'account.maker.until': 'Plus is free until {date}.',
+  'account.maker.endsDays':
+    'Ends in {days} days — publish a scene before then to keep it.',
+  'account.maker.endsTomorrow':
+    'Ends tomorrow — publish a scene before then to keep it.',
+  'account.maker.keep': 'Publish a scene this month and the next one is free.',
+  'account.maker.kept':
+    'This month’s scene is in. Publish again next month to keep going.',
+  'account.maker.again': 'Publish a scene and a month of Plus is free again.',
+  'account.maker.invite':
+    'Make a scene in the Studio: one approved scene a month keeps Plus free.',
+  'account.maker.waitingOne':
+    'One earned month is waiting. It starts when your membership ends — nothing here changes what you pay.',
+  'account.maker.waitingMany':
+    '{count} earned months are waiting. They start when your membership ends — nothing here changes what you pay.',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle': 'Your free Plus ends in {days} days',
+  'account.maker.notice.endingTomorrow': 'Your free Plus ends tomorrow',
+  'account.maker.notice.endingBody':
+    'Publish a scene before then and the next month is free too. Nothing is charged either way.',
+  'account.maker.notice.endedTitle': 'Your free Plus has ended',
+  'account.maker.notice.endedBody':
+    'Publish a scene and it starts again. Everything you bought stays yours.',
+  'account.maker.notice.open': 'Open the Studio',
+  'account.maker.notice.later': 'Not now',
 } as const;
 
 export default account;

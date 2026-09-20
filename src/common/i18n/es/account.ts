@@ -125,6 +125,38 @@ const account = {
   'account.perk.visualizers':
     'Visualizadores: las escenas que crean los miembros, abiertas a todas las cuentas.',
   'account.perk.board': 'Una clasificación de quién escucha más.',
+  // What publishing earns: one approved scene a month keeps Plus free
+  // (server migration 0041). Months earned while a paid membership runs
+  // wait for it to end; nothing here changes what anybody pays.
+  'account.maker.title': 'Mes de creador',
+  'account.maker.badge': 'Gratis',
+  'account.maker.until': 'Plus es gratis hasta el {date}.',
+  'account.maker.endsDays':
+    'Termina en {days} días: publica una escena antes para mantenerlo.',
+  'account.maker.endsTomorrow':
+    'Termina mañana: publica una escena antes para mantenerlo.',
+  'account.maker.keep': 'Publica una escena este mes y el siguiente es gratis.',
+  'account.maker.kept':
+    'La escena de este mes ya está. Publica otra el mes que viene para seguir.',
+  'account.maker.again': 'Publica una escena y vuelves a tener un mes gratis.',
+  'account.maker.invite':
+    'Haz una escena en el Estudio: una escena aprobada al mes mantiene Plus gratis.',
+  'account.maker.waitingOne':
+    'Tienes un mes ganado esperando. Empieza cuando termine tu suscripción; esto no cambia lo que pagas.',
+  'account.maker.waitingMany':
+    'Tienes {count} meses ganados esperando. Empiezan cuando termine tu suscripción; esto no cambia lo que pagas.',
+  // The week before an earned month runs out, and the day it does: an
+  // earned month renews itself no more than a gift does, so it has to be
+  // said out loud rather than simply stop.
+  'account.maker.notice.endingTitle': 'Tu Plus gratis termina en {days} días',
+  'account.maker.notice.endingTomorrow': 'Tu Plus gratis termina mañana',
+  'account.maker.notice.endingBody':
+    'Publica una escena antes y el mes siguiente también es gratis. No se cobra nada en ningún caso.',
+  'account.maker.notice.endedTitle': 'Tu Plus gratis ha terminado',
+  'account.maker.notice.endedBody':
+    'Publica una escena y vuelve a empezar. Todo lo que compraste sigue siendo tuyo.',
+  'account.maker.notice.open': 'Abrir el Estudio',
+  'account.maker.notice.later': 'Ahora no',
 } as const;
 
 export default account;

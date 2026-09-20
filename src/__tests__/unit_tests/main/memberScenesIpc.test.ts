@@ -37,6 +37,7 @@ import {
 } from '../../../main/ipc/memberScenes';
 // eslint-disable-next-line import/first -- as above
 import { writeStarterProject } from '../../../main/memberScenes/project';
+import { rememberMaker } from '../../../main/account/knownMakers';
 // eslint-disable-next-line import/first -- as above
 import type { IEntitlementStatus } from '../../../main/account/entitlement';
 // eslint-disable-next-line import/first -- as above
@@ -120,6 +121,12 @@ const setup = (
   });
 };
 
+/**
+ * The account has had a scene approved before. That, not merely being
+ * signed in, is what keeps one Studio project open without Plus.
+ */
+const asMaker = () => rememberMaker(path.join(root, 'userData'), ME);
+
 beforeEach(() => {
   handlers.clear();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-studio-ipc-'));
@@ -186,6 +193,7 @@ describe('member scenes over IPC', () => {
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
 
     status = { state: 'none' };
+    asMaker();
     listeners.forEach((listener) => listener(status));
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
     // The project they have stays; a second one is Plus's.
@@ -403,6 +411,7 @@ describe('member scenes over IPC', () => {
 
     // Their own project is theirs to work on with or without Plus.
     status = { state: 'none' };
+    asMaker();
     listeners.forEach((listener) => listener(status));
     expect(await invoke('studio-write-source', '// without Plus')).toBe(
       'written',
@@ -411,8 +420,9 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('gives a member without Plus one project, made and worked on here', async () => {
+  it('gives a maker without Plus one project, made and worked on here', async () => {
     status = { state: 'none' };
+    asMaker();
     const registration = setup();
     const opened = await invoke<Promise<IStudioState>>('studio-open');
     expect(opened).toMatchObject({ entitled: false, mayAddProject: true });
@@ -449,6 +459,7 @@ describe('member scenes over IPC', () => {
 
   it('opens the first of a folder of several without Plus, and lists the rest locked', async () => {
     status = { state: 'none' };
+    asMaker();
     const registration = setup();
     const many = path.join(root, 'many');
     fs.mkdirSync(many);
@@ -505,6 +516,7 @@ describe('member scenes over IPC', () => {
     expect(opened.activeId).toBe(two?.id);
     expect(opened.projects.every((entry) => !entry.locked)).toBe(true);
     status = { state: 'none' };
+    asMaker();
     listeners.forEach((listener) => listener(status));
     const lapsed = await invoke<Promise<IStudioState>>('studio-open');
     expect(lapsed.activeId).toBe(two?.id);
@@ -520,6 +532,7 @@ describe('member scenes over IPC', () => {
 
   it('makes one project at a time: two asked for together leave one without Plus', async () => {
     status = { state: 'none' };
+    asMaker();
     const registration = setup();
     await invoke<Promise<IStudioState>>('studio-open');
     const results = await Promise.all([
@@ -547,6 +560,7 @@ describe('member scenes over IPC', () => {
     expect(withPlus.activeId).toBe(official?.id);
 
     status = { state: 'none' };
+    asMaker();
     listeners.forEach((listener) => listener(status));
     const lapsed = await invoke<Promise<IStudioState>>('studio-open');
     // Listed with a lock and off the bench: the member's own project opens.
@@ -595,6 +609,7 @@ describe('member scenes over IPC', () => {
     });
 
     status = { state: 'none' };
+    asMaker();
     listeners.forEach((listener) => listener(status));
     // The project is still theirs to edit; the look they added stays as it
     // was, since saving it again is adding it, and adding is Plus's.

@@ -24,7 +24,7 @@ const leaderboard = {
   'leaderboard.card.removeKeep': 'Keep my data',
   'leaderboard.card.removeConfirm': 'Remove everything',
   'leaderboard.card.plusOnly':
-    'Only Plus members are ranked. Joining does nothing until then.',
+    'Only Plus members are ranked — the free trial does not count. Your days are still kept, and they appear the moment you are a member.',
   'leaderboard.allTime': 'All time',
   'leaderboard.thisMonth': 'This month',
   'leaderboard.hours': '{hours} h',

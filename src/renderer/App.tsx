@@ -161,6 +161,7 @@ import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
 import PlusTermsNotice from './components/PlusTermsNotice';
 import SceneReviewNotice from './components/SceneReviewNotice';
+import MakerMonthNotice from './components/MakerMonthNotice';
 import SceneReportHost from './plus/SceneReportHost';
 import PlusWelcomeDialog from './components/PlusWelcomeDialog';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
@@ -707,7 +708,10 @@ const AppContent = () => {
         }
       }}
     >
-      <FluidEngineLabel isEngineOnOutput={isEngineOnOutput} />
+      <FluidEngineLabel
+        isEngineOnOutput={isEngineOnOutput}
+        isPartlyOff={engineTrouble?.kind === 'problems'}
+      />
     </WorkspaceSectionTabs>
   );
   const isVideoTab = activeWorkspaceTab === 'video';
@@ -2917,6 +2921,10 @@ const AppContent = () => {
         {/* Here for the same reason: a scene waiting for the admin, or a
             maker's scene approved or not, is news on whichever tab is open. */}
         <SceneReviewNotice />
+        {/* The week's warning before a maker's earned Plus runs out. Beside
+            the review news, because it is the same kind of thing: something
+            about their scenes that can land on any tab. */}
+        <MakerMonthNotice />
         {/* A scene reported from the looks: the menu it was asked from
             closes under the dialog, so the dialog lives here. */}
         <SceneReportHost />
