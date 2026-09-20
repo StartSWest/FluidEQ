@@ -64,6 +64,8 @@ const library: Partial<Dictionary> = {
   'library.sort.year': '年份',
   'library.sort.added': '最近添加',
   'library.sort.track': '专辑曲序',
+  'library.sort.name': '名称',
+  'library.sort.count': '曲目最多',
 
   'library.column.title': '标题',
   'library.column.artist': '歌手',

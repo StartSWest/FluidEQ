@@ -31,6 +31,21 @@ const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
 const LAN_NETWORK_CHANNEL = 'remote-audio-lan-network';
 const LAN_ERROR_CHANNEL = 'remote-audio-lan-error';
 
+/**
+ * Every listener gets the low-delay buffer, whatever was asked for.
+ *
+ * There was a "Stream priority" choice once — Game/Video against Music, a
+ * short start against a safer one — and nothing is left of it that can change
+ * a sample: the control is gone, this ignores what it is handed, and the
+ * transport's own `setStreamMode` returns without doing anything on both
+ * sides of the link. The request still travels because it is part of a wire
+ * two versions of the app have to agree on; it decides nothing.
+ *
+ * Its six translated strings came off the page on 2026-09-20, so that a
+ * choice nobody can make is not described in ten languages. Re-adding the
+ * control means making the transport honour the mode first, not putting the
+ * words back.
+ */
 const asStreamMode = (_value: unknown): TRemoteAudioStreamMode => 'video';
 
 const asStopMode = (value: unknown): TRemoteAudioStopMode => {

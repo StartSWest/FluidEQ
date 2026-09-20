@@ -65,6 +65,8 @@ const library: Partial<Dictionary> = {
   'library.sort.year': 'वर्ष',
   'library.sort.added': 'हाल ही में जोड़ा गया',
   'library.sort.track': 'एल्बम क्रम',
+  'library.sort.name': 'नाम',
+  'library.sort.count': 'सबसे ज़्यादा ट्रैक',
 
   'library.column.title': 'शीर्षक',
   'library.column.artist': 'कलाकार',

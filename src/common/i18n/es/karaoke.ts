@@ -376,7 +376,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.userAdjustedWords': '{count} ajustadas',
   'karaoke.maker.pendingWords': '{count} pendientes',
   'karaoke.maker.artist': 'Artista',
-  'karaoke.maker.bpm': 'PPM',
   'karaoke.maker.zoom': 'Ampliación',
   'karaoke.maker.songPosition': 'Posición en la canción',
   'karaoke.maker.previousView': 'Sección anterior',

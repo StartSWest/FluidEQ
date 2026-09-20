@@ -368,7 +368,6 @@ const karaoke = {
   'karaoke.maker.userAdjustedWords': '{count} adjusted',
   'karaoke.maker.pendingWords': '{count} pending',
   'karaoke.maker.artist': 'Artist',
-  'karaoke.maker.bpm': 'BPM',
   'karaoke.maker.zoom': 'Zoom',
   'karaoke.maker.songPosition': 'Song position',
   'karaoke.maker.previousView': 'Previous section',

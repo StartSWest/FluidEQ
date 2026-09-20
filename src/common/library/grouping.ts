@@ -577,9 +577,15 @@ export const sortTracks = (
       );
     }
     if (sort === 'album') {
+      // The record, then alphabetically inside it. "Track order" below groups
+      // by record too, and the two were the same comparator character for
+      // character — two options on one menu that could never sort a shelf
+      // differently, so picking either looked like the control was stuck.
+      // This is the one that answers "where is that song on this record",
+      // and the one below the one that answers "play it as it was pressed".
       return (
         (left.album ?? '').localeCompare(right.album ?? '') ||
-        compareTracksInAlbum(left, right)
+        left.title.localeCompare(right.title)
       );
     }
     if (sort === 'year') {

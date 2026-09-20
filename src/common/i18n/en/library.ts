@@ -63,6 +63,8 @@ const library = {
   'library.sort.year': 'Year',
   'library.sort.added': 'Recently added',
   'library.sort.track': 'Track order',
+  'library.sort.name': 'Name',
+  'library.sort.count': 'Most tracks',
 
   'library.column.title': 'Title',
   'library.column.artist': 'Artist',

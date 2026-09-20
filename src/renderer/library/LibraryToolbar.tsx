@@ -147,6 +147,29 @@ const SORT_LABEL_KEYS = {
   added: 'library.sort.added',
 } as const;
 
+/**
+ * The shelves whose rows are not tracks: an artist, a genre, a folder.
+ *
+ * They carry a name, a count and a date, and nothing else — so four of the
+ * six sorts collapsed onto the same name comparator, and "Year", which none
+ * of them has, quietly ordered them by how many tracks were in each. Six
+ * options, three orders, two labels that were not true. These shelves get the
+ * three they actually have, named after what they do.
+ */
+const NAMED_SHELVES: readonly TLibraryBrowseMode[] = [
+  'artist',
+  'genre',
+  'folder',
+];
+
+const NAMED_SHELF_SORTS: readonly TLibrarySort[] = ['title', 'year', 'added'];
+
+const NAMED_SHELF_LABEL_KEYS = {
+  title: 'library.sort.name',
+  year: 'library.sort.count',
+  added: 'library.sort.added',
+} as const;
+
 /** Whichever `useLibrary` roots/actions this row needs live one level up, in
  * `LibraryWorkspace` — this component is a pure controlled toolbar, testable
  * without a `LibraryProvider` above it. */
@@ -209,13 +232,27 @@ const LibraryToolbar = ({
   // The open menu lists the columns; the closed trigger says what it is for.
   // Without the prefix the control reads as a label for whatever it happens
   // to be set to — a box saying "Title" beside a search box saying nothing.
-  const sortOptions: IOptionEntry[] = SORTS.map((value) => ({
+  const isNamedShelf = NAMED_SHELVES.includes(browseMode);
+  const offered = isNamedShelf ? NAMED_SHELF_SORTS : SORTS;
+  const sortLabel = (value: TLibrarySort) =>
+    t(
+      isNamedShelf
+        ? NAMED_SHELF_LABEL_KEYS[value as keyof typeof NAMED_SHELF_LABEL_KEYS]
+        : SORT_LABEL_KEYS[value],
+    );
+  // What the trigger says it is set to. A sort chosen on the songs shelf can
+  // still be the stored one when a named shelf opens, and every sort these
+  // shelves do not offer is the name order here — so the trigger names the
+  // order in force rather than going blank on a value it has no option for.
+  const shown: TLibrarySort =
+    !isNamedShelf || offered.includes(sort) ? sort : 'title';
+  const sortOptions: IOptionEntry[] = offered.map((value) => ({
     value,
-    label: t(SORT_LABEL_KEYS[value]),
+    label: sortLabel(value),
     display:
-      value === sort
-        ? t('library.sortBy', { value: t(SORT_LABEL_KEYS[value]) })
-        : t(SORT_LABEL_KEYS[value]),
+      value === shown
+        ? t('library.sortBy', { value: sortLabel(value) })
+        : sortLabel(value),
   }));
 
   // The options above are the only source of a sort value that reaches this
@@ -406,7 +443,7 @@ const LibraryToolbar = ({
           <Dropdown
             name={t('library.sort')}
             options={sortOptions}
-            value={sort}
+            value={shown}
             isDisabled={false}
             handleChange={(newValue) => {
               if (isLibrarySort(newValue)) {

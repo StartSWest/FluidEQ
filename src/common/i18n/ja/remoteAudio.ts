@@ -20,16 +20,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.activeTitle': 'このコンピューターで受信中',
   'remoteAudio.listen.newCode': '新しいコードを作成',
   'remoteAudio.listen.stop': '受信を停止',
-  'remoteAudio.stream.title': 'ストリーム優先度',
-  'remoteAudio.stream.lossless': 'どちらもロスレス PCM で送信',
-  'remoteAudio.stream.video.title': 'ゲーム/動画',
-  'remoteAudio.stream.video.body':
-    '口の動きに合う最小遅延。混雑した Wi-Fi では途切れやすくなります。',
-  'remoteAudio.stream.video.buffer': '開始時 約100 ms',
-  'remoteAudio.stream.music.title': '音楽',
-  'remoteAudio.stream.music.body':
-    '途切れない再生を優先する大きな安全バッファー。',
-  'remoteAudio.stream.music.buffer': '開始時 約240 ms',
   'remoteAudio.send.kicker': '送信側 · クライアント',
   'remoteAudio.send.title': 'このコンピューターの音声を送信',
   'remoteAudio.send.body':

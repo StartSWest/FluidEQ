@@ -6,9 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useId, useState } from 'react';
 import {
+  LIGHTING_PULSES,
   lightsAnyDevice,
   type ILightingDevice,
 } from 'common/lighting/lightingModel';
+import type { TranslationKey } from 'common/i18n/en';
 import { resolveSceneName } from 'common/scenePacks';
 import {
   deviceLightingGroup,
@@ -18,6 +20,7 @@ import Glyph from '../../community/Glyph';
 import { setLightingSettings, useLighting } from '../../lighting/lightingStore';
 import { useTranslation } from '../../utils/I18nContext';
 import { useSceneLook } from '../../utils/graphStyle';
+import SegmentedControl from '../../widgets/SegmentedControl';
 import Switch from '../../widgets/Switch';
 import { usePlusEntitled } from '../GalleryParts';
 import { openPlusPlace } from '../plusNavigation';
@@ -268,6 +271,14 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
               selectedGroup={target}
               profile={lightingProfile(state.settings.profiles, scene?.lookId)}
             />
+            {/* Brightness and pulse: the two settings that belong to the
+                lamps rather than to a scene, so they sit together under the
+                devices and outside the profile editor.
+
+                The pulse had no control at all. Its three depths were read on
+                every frame, validated on every load and translated into ten
+                languages — and nothing anywhere wrote the value, so every
+                listener sat on Full whatever their music was. */}
             <div className="lighting-master">
               <LightingSlider
                 label={t('lighting.tuning.master')}
@@ -275,6 +286,27 @@ export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
                 min={0.1}
                 onCommit={(brightness) => setLightingSettings({ brightness })}
               />
+              <div className="studio-setting">
+                <div className="studio-setting__head">
+                  <span className="studio-setting__label">
+                    {t('lighting.pulse')}
+                  </span>
+                </div>
+                <SegmentedControl
+                  name={t('lighting.pulse')}
+                  value={state.settings.pulse}
+                  options={LIGHTING_PULSES.map((pulse) => ({
+                    value: pulse,
+                    label: t(`lighting.pulse.${pulse}` as TranslationKey),
+                  }))}
+                  onChange={(next) => {
+                    const chosen = LIGHTING_PULSES.find((one) => one === next);
+                    if (chosen) {
+                      setLightingSettings({ pulse: chosen });
+                    }
+                  }}
+                />
+              </div>
             </div>
           </section>
           <section className="studio-card lighting-editor">

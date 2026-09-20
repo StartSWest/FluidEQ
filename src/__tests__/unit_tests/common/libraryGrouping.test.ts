@@ -179,6 +179,26 @@ describe('sorting', () => {
     ]);
   });
 
+  // The two used to be the same comparator character for character: two
+  // options on one menu that could never sort a shelf differently, so picking
+  // either looked like the control was stuck. Both group by record — that is
+  // the half they share — and inside a record one answers "where is that song
+  // on it" and the other "play it as it was pressed".
+  it('tells Album and Track order apart inside one record', () => {
+    const tracks = [
+      track({ title: 'Zulu', album: 'One', trackNo: 1 }),
+      track({ title: 'Alpha', album: 'One', trackNo: 2 }),
+    ];
+    expect(sortTracks(tracks, 'album').map((entry) => entry.title)).toEqual([
+      'Alpha',
+      'Zulu',
+    ]);
+    expect(sortTracks(tracks, 'track').map((entry) => entry.title)).toEqual([
+      'Zulu',
+      'Alpha',
+    ]);
+  });
+
   it('does not mutate its input', () => {
     const tracks = [track({ title: 'B' }), track({ title: 'A' })];
     sortTracks(tracks, 'title');

@@ -25,16 +25,6 @@ const remoteAudio = {
   'remoteAudio.listen.activeTitle': 'This computer is listening',
   'remoteAudio.listen.newCode': 'Create new code',
   'remoteAudio.listen.stop': 'Stop listening',
-  'remoteAudio.stream.title': 'Stream priority',
-  'remoteAudio.stream.lossless': 'Both send lossless PCM',
-  'remoteAudio.stream.video.title': 'Game/Video',
-  'remoteAudio.stream.video.body':
-    'Lowest delay for lip-sync. May stutter sooner on busy Wi-Fi.',
-  'remoteAudio.stream.video.buffer': '~100 ms start',
-  'remoteAudio.stream.music.title': 'Music',
-  'remoteAudio.stream.music.body':
-    'Larger safety buffer for uninterrupted listening.',
-  'remoteAudio.stream.music.buffer': '~240 ms start',
   'remoteAudio.send.kicker': 'SENDER · CLIENT',
   'remoteAudio.send.title': 'Send audio from this computer',
   'remoteAudio.send.body':

@@ -20,15 +20,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.activeTitle': '此电脑正在接收',
   'remoteAudio.listen.newCode': '创建新连接码',
   'remoteAudio.listen.stop': '停止接收',
-  'remoteAudio.stream.title': '传输优先级',
-  'remoteAudio.stream.lossless': '两种模式都发送无损 PCM',
-  'remoteAudio.stream.video.title': '游戏/视频',
-  'remoteAudio.stream.video.body':
-    '最低延迟以匹配口型。Wi-Fi 繁忙时更容易断续。',
-  'remoteAudio.stream.video.buffer': '起始约 100 ms',
-  'remoteAudio.stream.music.title': '音乐',
-  'remoteAudio.stream.music.body': '使用更大的安全缓冲区以保持连续播放。',
-  'remoteAudio.stream.music.buffer': '起始约 240 ms',
   'remoteAudio.send.kicker': '发送端 · 客户端',
   'remoteAudio.send.title': '发送此电脑的音频',
   'remoteAudio.send.body':

@@ -532,7 +532,11 @@ $windows-blue: #8ec5ff;
 .lighting-devices__head {
   margin-bottom: 12px;
 }
+// The two settings that belong to the lamps rather than to a scene, stacked:
+// how bright they go, and how hard they move with the beat.
 .lighting-master {
+  display: grid;
+  gap: 14px;
   padding-top: 18px;
   margin-top: 14px;
   border-top: 1px solid $border-subtle;

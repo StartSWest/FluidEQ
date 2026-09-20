@@ -2565,8 +2565,13 @@ $tab-bar-inset: 8px;
 // Inheriting `.workspace-tab-panel`'s scroll and its stable gutter puts both
 // tabs on one behaviour, and the gutter is what stops the content shifting
 // sideways as the bar appears.
+// The second list a page has to be named in, and missing from it is how the
+// game presets page came to sit in a card the height of its own rows with the
+// pane empty underneath: the base panel is sized by its content, and this is
+// what makes a page take the room it is given instead.
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--presets,
+.workspace-tab-panel--games,
 .workspace-tab-panel--dsp,
 .workspace-tab-panel--share,
 .workspace-tab-panel--config {
@@ -2588,6 +2593,7 @@ $tab-bar-inset: 8px;
   .workspace-tab-panel__scroll > .convolution-panel,
   .workspace-tab-panel__scroll > .voicing-panel,
   .workspace-tab-panel__scroll > .autoeq-panel,
+  .workspace-tab-panel__scroll > .games-page,
   .workspace-tab-panel__scroll > .remote-audio,
   .workspace-tab-panel__scroll > .config-inspector {
     flex: 1 1 auto;

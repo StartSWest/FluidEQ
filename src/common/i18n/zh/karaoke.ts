@@ -343,7 +343,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.userAdjustedWords': '已调整 {count} 个',
   'karaoke.maker.pendingWords': '待处理 {count} 个',
   'karaoke.maker.artist': '歌手',
-  'karaoke.maker.bpm': 'BPM',
   'karaoke.maker.zoom': '缩放',
   'karaoke.maker.songPosition': '歌曲位置',
   'karaoke.maker.previousView': '上一段',

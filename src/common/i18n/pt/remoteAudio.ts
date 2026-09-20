@@ -20,16 +20,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.activeTitle': 'Este computador está ouvindo',
   'remoteAudio.listen.newCode': 'Criar novo código',
   'remoteAudio.listen.stop': 'Parar de ouvir',
-  'remoteAudio.stream.title': 'Prioridade da transmissão',
-  'remoteAudio.stream.lossless': 'Ambos enviam PCM sem perdas',
-  'remoteAudio.stream.video.title': 'Jogo/Vídeo',
-  'remoteAudio.stream.video.body':
-    'Menor atraso para sincronia labial. Pode falhar antes em Wi-Fi congestionado.',
-  'remoteAudio.stream.video.buffer': 'Início ~100 ms',
-  'remoteAudio.stream.music.title': 'Música',
-  'remoteAudio.stream.music.body':
-    'Buffer de segurança maior para ouvir sem interrupções.',
-  'remoteAudio.stream.music.buffer': 'Início ~240 ms',
   'remoteAudio.send.kicker': 'EMISSOR · CLIENTE',
   'remoteAudio.send.title': 'Enviar o áudio deste computador',
   'remoteAudio.send.body':

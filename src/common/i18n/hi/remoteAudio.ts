@@ -20,16 +20,6 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.activeTitle': 'यह कंप्यूटर सुन रहा है',
   'remoteAudio.listen.newCode': 'नया कोड बनाएँ',
   'remoteAudio.listen.stop': 'सुनना बंद करें',
-  'remoteAudio.stream.title': 'स्ट्रीम प्राथमिकता',
-  'remoteAudio.stream.lossless': 'दोनों लॉसलेस PCM भेजते हैं',
-  'remoteAudio.stream.video.title': 'गेम/वीडियो',
-  'remoteAudio.stream.video.body':
-    'लिप-सिंक के लिए सबसे कम देरी। व्यस्त Wi-Fi पर जल्दी रुक सकता है।',
-  'remoteAudio.stream.video.buffer': 'शुरुआत ~100 ms',
-  'remoteAudio.stream.music.title': 'संगीत',
-  'remoteAudio.stream.music.body':
-    'बिना रुकावट सुनने के लिए बड़ा सुरक्षा बफ़र।',
-  'remoteAudio.stream.music.buffer': 'शुरुआत ~240 ms',
   'remoteAudio.send.kicker': 'सेंडर · क्लाइंट',
   'remoteAudio.send.title': 'इस कंप्यूटर का ऑडियो भेजें',
   'remoteAudio.send.body':

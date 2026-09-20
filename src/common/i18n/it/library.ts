@@ -65,6 +65,8 @@ const library: Partial<Dictionary> = {
   'library.sort.year': 'Anno',
   'library.sort.added': 'Aggiunti di recente',
   'library.sort.track': 'Ordine del disco',
+  'library.sort.name': 'Nome',
+  'library.sort.count': 'Più brani',
 
   'library.column.title': 'Titolo',
   'library.column.artist': 'Artista',

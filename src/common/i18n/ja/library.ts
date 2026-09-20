@@ -65,6 +65,8 @@ const library: Partial<Dictionary> = {
   'library.sort.year': '年',
   'library.sort.added': '最近追加した項目',
   'library.sort.track': 'アルバムの曲順',
+  'library.sort.name': '名前',
+  'library.sort.count': '曲数が多い順',
 
   'library.column.title': '曲名',
   'library.column.artist': 'アーティスト',

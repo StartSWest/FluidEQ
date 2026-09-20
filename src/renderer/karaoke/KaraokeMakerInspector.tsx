@@ -48,27 +48,18 @@ const KaraokeMakerInspector = ({
             }
           />
         </label>
-        <label htmlFor={`${controlId}-bpm`}>
-          {t('karaoke.maker.bpm')}
-          <input
-            id={`${controlId}-bpm`}
-            type="number"
-            min="20"
-            max="400"
-            value={project.meta.bpm ?? ''}
-            onChange={(event) =>
-              commit((current) => ({
-                ...current,
-                meta: {
-                  ...current.meta,
-                  bpm: event.target.value
-                    ? Number(event.target.value)
-                    : undefined,
-                },
-              }))
-            }
-          />
-        </label>
+        {/* A BPM box stood here until 2026-09-20 and had never done anything.
+            The number it wrote went into the project, was saved with it, was
+            copied into the song and read straight back into the project — a
+            closed loop between two spellings of the same thing — and no
+            timing, no drawing and no export ever looked at it. The UltraStar
+            export writes a fixed tempo on purpose, because every note in this
+            editor is held in milliseconds and a tempo would be a second
+            answer to a question already settled.
+
+            The tempo an imported file declares is still kept with the project,
+            because it is a fact about the file somebody handed us; what is
+            gone is the box that invited a musician to correct it. */}
       </div>
       <label className="karaoke-maker__rights" htmlFor={`${controlId}-rights`}>
         <input

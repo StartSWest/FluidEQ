@@ -83,6 +83,33 @@ describe('the library toolbar', () => {
     ).not.toBeInTheDocument();
   });
 
+  // A shelf of artists, genres or folders has a name, a count and a date and
+  // nothing else, so four of the six sorts were the same name order and
+  // "Year" — which none of them has — quietly ordered them by track count.
+  it('names the orders a shelf of names actually has', () => {
+    const view = (browseMode: 'song' | 'artist') => (
+      <LibraryToolbar
+        browseMode={browseMode}
+        viewMode="list"
+        sort="title"
+        sortDirection="asc"
+        query=""
+        onBrowseMode={jest.fn()}
+        onViewMode={jest.fn()}
+        onSort={jest.fn()}
+        onSortDirection={jest.fn()}
+      />
+    );
+    // The control: on a shelf of tracks the first option is still Title.
+    const { unmount } = wrap(view('song'));
+    expect(screen.getByText('Sort: Title')).toBeInTheDocument();
+    unmount();
+
+    wrap(view('artist'));
+    expect(screen.getByText('Sort: Name')).toBeInTheDocument();
+    expect(screen.queryByText('Sort: Title')).not.toBeInTheDocument();
+  });
+
   it('carries a chip per shelf, each labelled and wired the same way', async () => {
     const onBrowseMode = jest.fn();
     wrap(
