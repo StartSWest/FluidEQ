@@ -35,12 +35,21 @@ const studio = {
   'studio.plus.body':
     'Your scene stays on this computer. Plus puts it on the graph, on your desktop, in the gallery, or in a file you can send.',
   'studio.plus.locked': 'Only with Plus',
+  'studio.locked.title': 'The Studio is part of Plus',
+  'studio.locked.body':
+    'This is where FluidEQ’s scenes are made — and where yours can be.',
+  'studio.locked.write':
+    'Write the scene beside a stage that rebuilds as you save',
+  'studio.locked.test': 'Play it against music and see what it costs to draw',
+  'studio.locked.publish': 'Publish it to the gallery for every member',
+  'studio.locked.earn':
+    'Publish one scene a month and the next month of Plus is free.',
   'studio.plus.oneFolder':
     'Without Plus, the first of these opens; the rest are listed with a lock, for Plus.',
   'studio.plus.lockedProject':
     'With Plus this project opens too; without Plus the Studio keeps one.',
   'studio.plus.oneProject':
-    'The Studio keeps one project without Plus. With Plus there is no limit.',
+    'Without Plus the Studio keeps one project. Publish a scene to earn the next month free, or take Plus for as many as you like.',
 
   'studio.maker.title': 'Make it with your AI',
   'studio.maker.describe': 'Describe your scene',
@@ -163,6 +172,8 @@ const studio = {
   'studio.publish.offline': 'Publishing needs a connection. Try again online.',
   'studio.publish.rateLimited':
     'That is a lot of publishing for one hour. Try again later.',
+  'studio.publish.tooManyThisMonth':
+    'That is your two scenes for this month. You can publish again next month.',
   'studio.publish.signedOut': 'Sign in to publish your scene.',
   'studio.publish.failed': 'The scene could not be published. Try again.',
   'studio.publish.officialCopy':
@@ -353,6 +364,8 @@ const studio = {
   'studio.settings.ambient': 'Elements in the window',
   'studio.settings.ambientLead':
     'What this scene adds around the app in the Ambient mode.',
+  'studio.settings.ambientOff':
+    'Switch the window look to Ambient to see them.',
   'studio.settings.sensitivity': 'Sensitivity',
   'studio.settings.sensitivityHint':
     'How strongly it reacts. More for a quiet track, less when a loud one keeps it pinned.',

@@ -27,12 +27,23 @@ const studio = {
   'studio.plus.body':
     'Ihre Szene bleibt auf diesem Computer. Mit Plus kommt sie ins Diagramm, auf Ihren Desktop, in die Galerie oder in eine Datei zum Senden.',
   'studio.plus.locked': 'Nur mit Plus',
+  'studio.locked.title': 'Das Studio gehört zu Plus',
+  'studio.locked.body':
+    'Hier entstehen die Szenen von FluidEQ – und hier kann Ihre stehen.',
+  'studio.locked.write':
+    'Schreiben Sie die Szene neben einer Bühne, die beim Speichern neu baut',
+  'studio.locked.test':
+    'Spielen Sie sie zu Musik und sehen Sie, was das Zeichnen kostet',
+  'studio.locked.publish':
+    'Veröffentlichen Sie sie in der Galerie für alle Mitglieder',
+  'studio.locked.earn':
+    'Veröffentlichen Sie eine Szene pro Monat, und der nächste Monat Plus ist kostenlos.',
   'studio.plus.oneFolder':
     'Ohne Plus öffnet sich die erste; die übrigen stehen mit Schloss in der Liste, für Plus.',
   'studio.plus.lockedProject':
     'Mit Plus öffnet sich auch dieses Projekt; ohne Plus behält das Studio eines.',
   'studio.plus.oneProject':
-    'Ohne Plus behält das Studio ein Projekt. Mit Plus gibt es keine Grenze.',
+    'Ohne Plus behält das Studio ein Projekt. Veröffentlichen Sie eine Szene, um den nächsten Monat frei zu bekommen, oder nehmen Sie Plus für beliebig viele.',
 
   'studio.maker.title': 'Mit Ihrer KI erstellen',
   'studio.maker.describe': 'Beschreiben Sie Ihre Szene',
@@ -157,6 +168,8 @@ const studio = {
     'Veröffentlichen braucht eine Verbindung. Versuchen Sie es online erneut.',
   'studio.publish.rateLimited':
     'Das sind viele Veröffentlichungen in einer Stunde. Versuchen Sie es später.',
+  'studio.publish.tooManyThisMonth':
+    'Das sind Ihre zwei Szenen für diesen Monat. Nächsten Monat können Sie wieder veröffentlichen.',
   'studio.publish.signedOut':
     'Melden Sie sich an, um Ihre Szene zu veröffentlichen.',
   'studio.publish.failed':
@@ -349,6 +362,8 @@ const studio = {
   'studio.settings.ambient': 'Elemente im Fenster',
   'studio.settings.ambientLead':
     'Was diese Szene im Modus Ambiente rund um die App ergänzt.',
+  'studio.settings.ambientOff':
+    'Stelle die Fensteroptik auf Ambiente, um sie zu sehen.',
   'studio.settings.sensitivity': 'Empfindlichkeit',
   'studio.settings.sensitivityHint':
     'Wie stark sie reagiert. Mehr für leise Titel, weniger, wenn ein lauter sie ständig ans Maximum drückt.',

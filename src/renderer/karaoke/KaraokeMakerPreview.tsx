@@ -110,10 +110,14 @@ const KaraokeMakerPreviewNotes = ({
         0,
         width,
       );
-      let noteFill =
-        note.kind === 'golden'
-          ? 'rgba(255, 209, 84, .9)'
-          : readAccent(0.82, 'rgba(61, 225, 217, .82)');
+      let noteFill = readAccent(0.82, 'rgba(61, 225, 217, .82)');
+      if (note.kind === 'golden') {
+        noteFill = 'rgba(255, 209, 84, .9)';
+      } else if (note.kind === 'free') {
+        // Faint here as well: the preview is what the singer sees, and a
+        // note that cannot be missed should not look like one that can.
+        noteFill = readAccent(0.3, 'rgba(61, 225, 217, .3)');
+      }
       if (rainbow) {
         noteFill = `hsl(${(performance.now() / 10 + index * 17) % 360}, 94%, 67%)`;
       }

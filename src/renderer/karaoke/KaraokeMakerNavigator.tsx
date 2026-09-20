@@ -233,10 +233,16 @@ const KaraokeMakerNavigator = ({
     notes.forEach((note) => {
       const left = (note.startMs / durationMs) * width;
       const right = (note.endMs / durationMs) * width;
-      context.fillStyle =
-        note.kind === 'golden'
-          ? 'rgba(255, 207, 87, .78)'
-          : readAccent(0.68, 'rgba(54, 225, 213, .68)');
+      // A free note is faint on the strip too, the way it is hollow on the
+      // canvas: the strip is how a whole song is read at a glance, and a
+      // stretch nobody is scored on should look like one.
+      let tick = readAccent(0.68, 'rgba(54, 225, 213, .68)');
+      if (note.kind === 'golden') {
+        tick = 'rgba(255, 207, 87, .78)';
+      } else if (note.kind === 'free') {
+        tick = readAccent(0.26, 'rgba(54, 225, 213, .26)');
+      }
+      context.fillStyle = tick;
       context.fillRect(left, height - 5, Math.max(1, right - left), 2);
     });
 

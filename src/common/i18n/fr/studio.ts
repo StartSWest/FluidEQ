@@ -28,12 +28,22 @@ const studio = {
   'studio.plus.body':
     'Votre scène reste sur cet ordinateur. Avec Plus, elle va sur le graphique, sur votre bureau, dans la galerie, ou dans un fichier à envoyer.',
   'studio.plus.locked': 'Seulement avec Plus',
+  'studio.locked.title': 'Le Studio fait partie de Plus',
+  'studio.locked.body':
+    'C’est ici que naissent les scènes de FluidEQ — et la vôtre peut y naître.',
+  'studio.locked.write':
+    'Écrivez le code à côté d’un rendu qui se reconstruit à chaque enregistrement',
+  'studio.locked.test':
+    'Jouez-la sur de la musique et voyez ce qu’elle coûte à dessiner',
+  'studio.locked.publish': 'Publiez-la dans la galerie, pour tous les membres',
+  'studio.locked.earn':
+    'Publiez une scène par mois et le mois de Plus suivant est offert.',
   'studio.plus.oneFolder':
     'Sans Plus, la première s’ouvre ; les autres restent dans la liste avec un cadenas, pour Plus.',
   'studio.plus.lockedProject':
     'Avec Plus, ce projet s’ouvre aussi ; sans Plus, le Studio en garde un.',
   'studio.plus.oneProject':
-    'Sans Plus, le Studio garde un projet. Avec Plus, il n’y a pas de limite.',
+    'Sans Plus, le Studio garde un projet. Publiez une scène pour obtenir le mois suivant gratuitement, ou prenez Plus pour en avoir autant que vous voulez.',
 
   'studio.maker.title': 'Créez-la avec votre IA',
   'studio.maker.describe': 'Décrivez votre scène',
@@ -160,6 +170,8 @@ const studio = {
     'La publication demande une connexion. Réessayez en ligne.',
   'studio.publish.rateLimited':
     'Cela fait beaucoup de publications en une heure. Réessayez plus tard.',
+  'studio.publish.tooManyThisMonth':
+    'Ce sont vos deux scènes de ce mois-ci. Vous pourrez publier à nouveau le mois prochain.',
   'studio.publish.signedOut': 'Connectez-vous pour publier votre scène.',
   'studio.publish.failed': 'La scène n’a pas pu être publiée. Réessayez.',
   'studio.publish.officialCopy':
@@ -346,6 +358,8 @@ const studio = {
   'studio.settings.ambient': 'Éléments dans la fenêtre',
   'studio.settings.ambientLead':
     'Ce que cette scène ajoute autour de l’app en mode Ambiance.',
+  'studio.settings.ambientOff':
+    'Passe le style de la fenêtre sur Ambiance pour les voir.',
   'studio.settings.sensitivity': 'Sensibilité',
   'studio.settings.sensitivityHint':
     'Sa force de réaction. Plus pour un morceau doux, moins quand un morceau fort la garde au maximum.',

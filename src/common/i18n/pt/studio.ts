@@ -27,12 +27,21 @@ const studio = {
   'studio.plus.body':
     'Sua cena fica neste computador. Com o Plus ela vai para o gráfico, para a área de trabalho, para a galeria ou para um arquivo para enviar.',
   'studio.plus.locked': 'Só com o Plus',
+  'studio.locked.title': 'O Estúdio faz parte do Plus',
+  'studio.locked.body':
+    'É aqui que nascem as cenas do FluidEQ — e a sua também pode nascer.',
+  'studio.locked.write':
+    'Escreva a cena ao lado de um palco que se reconstrói a cada vez que você salva',
+  'studio.locked.test': 'Toque com música e veja quanto custa desenhá-la',
+  'studio.locked.publish': 'Publique na galeria para todos os membros',
+  'studio.locked.earn':
+    'Publique uma cena por mês e o próximo mês de Plus é grátis.',
   'studio.plus.oneFolder':
     'Sem o Plus abre-se a primeira; as outras ficam na lista com um cadeado, para o Plus.',
   'studio.plus.lockedProject':
     'Com o Plus este projeto também abre; sem o Plus o Estúdio guarda um.',
   'studio.plus.oneProject':
-    'Sem o Plus o Estúdio guarda um projeto. Com o Plus não há limite.',
+    'Sem Plus o Estúdio guarda um projeto. Publique uma cena para ganhar o próximo mês grátis, ou assine o Plus para ter quantos quiser.',
 
   'studio.maker.title': 'Faça com sua IA',
   'studio.maker.describe': 'Descreva sua cena',
@@ -155,6 +164,8 @@ const studio = {
     'Publicar precisa de conexão. Tente de novo online.',
   'studio.publish.rateLimited':
     'São muitas publicações em uma hora. Tente mais tarde.',
+  'studio.publish.tooManyThisMonth':
+    'Estas são suas duas cenas deste mês. Você pode publicar de novo no próximo mês.',
   'studio.publish.signedOut': 'Entre para publicar sua cena.',
   'studio.publish.failed': 'Não foi possível publicar a cena. Tente de novo.',
   'studio.publish.officialCopy':
@@ -337,6 +348,8 @@ const studio = {
   'studio.settings.ambient': 'Elementos na janela',
   'studio.settings.ambientLead':
     'O que esta cena acrescenta ao redor do app no modo Ambiente.',
+  'studio.settings.ambientOff':
+    'Muda o aspeto da janela para Ambiente para os veres.',
   'studio.settings.sensitivity': 'Sensibilidade',
   'studio.settings.sensitivityHint':
     'O quanto reage. Mais para uma música baixa, menos quando uma alta a deixa sempre no máximo.',

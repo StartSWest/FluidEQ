@@ -278,6 +278,27 @@ export const useQueueControls = (options: {
         const context = trackIds.filter(
           (id) => id === playing || !pendingSet.has(id),
         );
+        // THE SAME SHELF ARRIVING AGAIN IS NOT SOMETHING TO RE-AIM AT.
+        //
+        // Re-aiming is for a shelf that CHANGED - another one, or the same one
+        // sorted. This callback also runs on every track change, and rebuilding
+        // the run from the shelf's order there PUT THE SHELF'S ORDER BACK: a
+        // row dragged in Up Next survived until the song ended and then went
+        // home. What a reader adds by hand already survives a rebuild by name,
+        // lifted out above; the order they put the rest in never could, because
+        // it is the thing being rebuilt.
+        //
+        // Compared against what the queue was BUILT from, minus those picks,
+        // and in order — a hand reorder moves `order` and leaves `trackIds`
+        // alone, so an untouched shelf still matches here while a sorted one
+        // does not.
+        const built = current.trackIds.filter((id) => !pendingSet.has(id));
+        if (
+          built.length === context.length &&
+          built.every((id, index) => id === context[index])
+        ) {
+          return current;
+        }
         // A SHUFFLED QUEUE IS NOT RE-AIMED BY A LIST OF THE SAME SONGS.
         //
         // `buildQueue` draws a FRESH random order every time it is asked for a

@@ -26,12 +26,18 @@ const studio = {
   'studio.plus.body':
     '你的场景留在这台电脑上。有 Plus 就能放到图表上、桌面上、画廊里，或导出成可发送的文件。',
   'studio.plus.locked': '仅限 Plus',
+  'studio.locked.title': '工作室属于 Plus',
+  'studio.locked.body': 'FluidEQ 的场景在这里诞生，你的场景也可以。',
+  'studio.locked.write': '在随保存即时重建的舞台旁编写场景',
+  'studio.locked.test': '配上音乐播放，看清绘制的开销',
+  'studio.locked.publish': '发布到画廊，让所有会员都能安装',
+  'studio.locked.earn': '每月发布一个场景，下个月的 Plus 免费。',
   'studio.plus.oneFolder':
     '没有 Plus 时只打开第一个；其余的带锁留在列表中，有 Plus 即可打开。',
   'studio.plus.lockedProject':
     '有 Plus 也能打开这个项目；没有 Plus 时工作室保留一个。',
   'studio.plus.oneProject':
-    '没有 Plus 时工作室保留一个项目。有 Plus 则没有限制。',
+    '没有 Plus，工作室只保留一个项目。发布一个场景可免费获得下个月，或开通 Plus 不限数量。',
 
   'studio.maker.title': '用你的 AI 来做',
   'studio.maker.describe': '描述你的场景',
@@ -144,6 +150,8 @@ const studio = {
   'studio.publish.noPicture': '无法截取图片。请让场景播放后再试。',
   'studio.publish.offline': '发布需要网络连接。请联网后重试。',
   'studio.publish.rateLimited': '一小时内发布次数太多。请稍后再试。',
+  'studio.publish.tooManyThisMonth':
+    '这是你本月的两个场景。下个月可以再次发布。',
   'studio.publish.signedOut': '请登录后发布你的场景。',
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
@@ -306,6 +314,7 @@ const studio = {
     '在它听到之前调整它听到的声音。在 100% 和零时，它听到的就是原本的音乐。',
   'studio.settings.ambient': '窗口中的元素',
   'studio.settings.ambientLead': '这个场景在“氛围”模式下为应用周围添加的内容。',
+  'studio.settings.ambientOff': '将窗口外观切换为氛围模式即可看到。',
   'studio.settings.sensitivity': '灵敏度',
   'studio.settings.sensitivityHint':
     '反应有多强。安静的歌调高，响亮的歌让它一直顶满时调低。',

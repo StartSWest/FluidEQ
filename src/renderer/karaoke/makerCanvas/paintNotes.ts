@@ -191,6 +191,12 @@ export const paintNotes = (
     const noteProgress = active
       ? karaokeMakerNoteProgress(shape.startMs, shape.endMs, visualPlayheadMs)
       : 0;
+    // A free note is sung to no pitch — the scoring skips it and the export
+    // writes it as `F`. It was drawn as a plain note, so choosing "Free" left
+    // the editor pixel-identical and the only way to tell was to press the
+    // note again and read the picker. Hollow says what it is: still a note,
+    // still where it is, with nothing to hit.
+    const isFree = note.kind === 'free';
     let noteShadowColor = readAccent(0.54, 'rgba(43, 216, 255, .54)');
     let noteShadowBlur = 4;
     let noteGradientTop = readAccent(1, '#58bfd7');
@@ -213,6 +219,14 @@ export const paintNotes = (
     if (note.kind === 'golden') {
       noteGradient.addColorStop(0, '#fff484');
       noteGradient.addColorStop(1, '#ffb52d');
+    } else if (isFree) {
+      noteGradient.addColorStop(
+        0,
+        selected
+          ? readAccentLight(0.26, 'rgba(191, 255, 247, .26)')
+          : readAccent(0.24, 'rgba(88, 191, 215, .24)'),
+      );
+      noteGradient.addColorStop(1, 'rgba(49, 111, 159, .2)');
     } else {
       noteGradient.addColorStop(0, noteGradientTop);
       noteGradient.addColorStop(1, noteGradientBottom);
@@ -227,6 +241,18 @@ export const paintNotes = (
       noteHeight / 2,
     );
     context.fill();
+    if (isFree) {
+      // The outline, dashed, over the shape that was just filled faintly.
+      // Drawn inside the same save block so it keeps the note's own glow.
+      context.save();
+      context.setLineDash([4, 3]);
+      context.lineWidth = 1.6;
+      context.strokeStyle = selected
+        ? readAccentLight(0.95, 'rgba(191, 255, 247, .95)')
+        : readAccent(0.85, 'rgba(88, 191, 215, .85)');
+      context.stroke();
+      context.restore();
+    }
     if (active) {
       const progressRight = left + (right - left) * noteProgress;
       const progressGradient = context.createLinearGradient(

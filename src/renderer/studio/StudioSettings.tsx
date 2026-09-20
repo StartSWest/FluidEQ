@@ -8,6 +8,7 @@ import {
   responseFromPosition as fromPosition,
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
+import { useStudioTintMode } from '../utils/sceneTintStore';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -202,6 +203,9 @@ export default function StudioSettings({
 }: IStudioSettingsProps) {
   const { t, locale } = useTranslation();
   const controls = movable(params);
+  // Whether what the ambient sliders set is drawn at all: the scene puts its
+  // elements around the app only while the window's look is on Ambient.
+  const ambientShows = useStudioTintMode() === 'pulse';
   const resetsTo =
     publishedVersion === undefined
       ? t('studio.settings.resetsToScene')
@@ -279,10 +283,19 @@ export default function StudioSettings({
           ))}
         </Group>
 
+        {/* These reach the scene, and the scene draws nothing with them
+            unless the window's look is on Ambient - which it is not by
+            default. A member could drag every one of them, read "Saved into
+            the scene" and see nothing move. They rest until the mode that
+            shows them is on, and the lead says which mode that is. */}
         {ambient && ambient.params.length > 0 && (
           <Group
             title={t('studio.settings.ambient')}
-            lead={t('studio.settings.ambientLead')}
+            lead={
+              ambientShows
+                ? t('studio.settings.ambientLead')
+                : `${t('studio.settings.ambientLead')} ${t('studio.settings.ambientOff')}`
+            }
             canReset={ambient.canReset && !idle}
             resetsTo={resetsTo}
             onReset={ambient.reset}
@@ -297,7 +310,7 @@ export default function StudioSettings({
                     percent: Math.round(value * 100),
                   })}
                   position={value}
-                  disabled={idle}
+                  disabled={idle || !ambientShows}
                   onPosition={(position) =>
                     ambient.setValue(param.id, position)
                   }

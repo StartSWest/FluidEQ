@@ -27,12 +27,20 @@ const studio = {
   'studio.plus.body':
     'シーンはこのコンピューターに残ります。Plus ならグラフやデスクトップ、ギャラリー、送れるファイルにできます。',
   'studio.plus.locked': 'Plus のみ',
+  'studio.locked.title': 'スタジオは Plus の一部です',
+  'studio.locked.body':
+    'FluidEQ のシーンが生まれる場所です。あなたのシーンもここから。',
+  'studio.locked.write': '保存するたびに組み上がるステージの横でシーンを書く',
+  'studio.locked.test': '音楽に合わせて再生し、描画のコストを確かめる',
+  'studio.locked.publish': 'ギャラリーに公開して、すべてのメンバーへ',
+  'studio.locked.earn':
+    '月に 1 つシーンを公開すると、次の 1 か月の Plus は無料です。',
   'studio.plus.oneFolder':
     'Plus なしでは最初の1つが開きます。残りはロック付きで一覧に残り、Plus で開けます。',
   'studio.plus.lockedProject':
     'Plus ならこのプロジェクトも開けます。Plus なしではスタジオは1つを保持します。',
   'studio.plus.oneProject':
-    'Plus なしではスタジオはプロジェクトを1つ保持します。Plus なら制限はありません。',
+    'Plus がないとスタジオはプロジェクトを 1 つだけ保持します。シーンを公開すれば次の 1 か月が無料になり、Plus なら数に制限はありません。',
 
   'studio.maker.title': 'AI と作る',
   'studio.maker.describe': 'シーンを説明する',
@@ -158,6 +166,8 @@ const studio = {
     '公開には接続が必要です。オンラインでもう一度お試しください。',
   'studio.publish.rateLimited':
     '1 時間の公開回数が多すぎます。しばらくしてからお試しください。',
+  'studio.publish.tooManyThisMonth':
+    '今月の 2 つのシーンはこれで終わりです。来月また公開できます。',
   'studio.publish.signedOut': 'シーンを公開するにはサインインしてください。',
   'studio.publish.failed':
     'シーンを公開できませんでした。もう一度お試しください。',
@@ -344,6 +354,8 @@ const studio = {
   'studio.settings.ambient': 'ウィンドウの中の要素',
   'studio.settings.ambientLead':
     '環境光モードで、このシーンがアプリの周りに加えるもの。',
+  'studio.settings.ambientOff':
+    'ウィンドウの見た目をアンビエントにすると表示されます。',
   'studio.settings.sensitivity': '感度',
   'studio.settings.sensitivityHint':
     'どれだけ強く反応するか。静かな曲では上げ、大きな曲で振り切れるなら下げます。',

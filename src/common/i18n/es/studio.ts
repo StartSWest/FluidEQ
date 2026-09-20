@@ -27,12 +27,21 @@ const studio = {
   'studio.plus.body':
     'Tu escena se queda en este equipo. Con Plus la pones en la gráfica, en tu escritorio, en la galería o en un archivo para enviar.',
   'studio.plus.locked': 'Solo con Plus',
+  'studio.locked.title': 'El Taller es parte de Plus',
+  'studio.locked.body':
+    'Aquí se hacen las escenas de FluidEQ, y aquí puede estar la tuya.',
+  'studio.locked.write':
+    'Escribe la escena junto a un escenario que se reconstruye al guardar',
+  'studio.locked.test': 'Pruébala con música y mira cuánto cuesta dibujarla',
+  'studio.locked.publish': 'Publícala en la galería para todos los miembros',
+  'studio.locked.earn':
+    'Publica una escena al mes y el siguiente mes de Plus es gratis.',
   'studio.plus.oneFolder':
     'Sin Plus se abre la primera; las demás quedan en la lista con un candado, para Plus.',
   'studio.plus.lockedProject':
     'Con Plus este proyecto también se abre; sin Plus el Estudio guarda uno.',
   'studio.plus.oneProject':
-    'Sin Plus el Estudio guarda un proyecto. Con Plus no hay límite.',
+    'Sin Plus el Taller conserva un proyecto. Publica una escena para ganar gratis el mes siguiente, o toma Plus para tener los que quieras.',
 
   'studio.maker.title': 'Hazla con tu IA',
   'studio.maker.describe': 'Describe tu escena',
@@ -157,6 +166,8 @@ const studio = {
     'Publicar necesita conexión. Vuelve a intentarlo con internet.',
   'studio.publish.rateLimited':
     'Son muchas publicaciones en una hora. Inténtalo más tarde.',
+  'studio.publish.tooManyThisMonth':
+    'Ya son tus dos escenas de este mes. Podrás publicar de nuevo el mes que viene.',
   'studio.publish.signedOut': 'Inicia sesión para publicar tu escena.',
   'studio.publish.failed':
     'No se pudo publicar la escena. Vuelve a intentarlo.',
@@ -343,6 +354,8 @@ const studio = {
   'studio.settings.ambient': 'Elementos en la ventana',
   'studio.settings.ambientLead':
     'Lo que esta escena añade alrededor de la app en el modo Ambiente.',
+  'studio.settings.ambientOff':
+    'Cambia el aspecto de la ventana a Ambiente para verlos.',
   'studio.settings.sensitivity': 'Sensibilidad',
   'studio.settings.sensitivityHint':
     'Cuánto reacciona. Más para una canción suave, menos si una fuerte la deja siempre al máximo.',

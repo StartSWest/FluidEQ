@@ -27,12 +27,21 @@ const studio = {
   'studio.plus.body':
     'आपका सीन इसी कंप्यूटर पर रहता है। Plus के साथ वह ग्राफ़ पर, डेस्कटॉप पर, गैलरी में या भेजने लायक फ़ाइल में जाता है।',
   'studio.plus.locked': 'सिर्फ़ Plus के साथ',
+  'studio.locked.title': 'स्टूडियो Plus का हिस्सा है',
+  'studio.locked.body':
+    'FluidEQ के सीन यहीं बनते हैं — और आपका भी यहीं बन सकता है।',
+  'studio.locked.write': 'हर सेव पर दोबारा बनने वाले स्टेज के साथ सीन लिखें',
+  'studio.locked.test':
+    'संगीत के साथ चलाकर देखें कि उसे बनाने में कितना खर्च होता है',
+  'studio.locked.publish': 'गैलरी में प्रकाशित करें, सभी सदस्यों के लिए',
+  'studio.locked.earn':
+    'महीने में एक सीन प्रकाशित करें और Plus का अगला महीना मुफ़्त है।',
   'studio.plus.oneFolder':
     'Plus के बिना पहला खुलता है; बाकी सूची में ताले के साथ रहते हैं, Plus के लिए।',
   'studio.plus.lockedProject':
     'Plus के साथ यह प्रोजेक्ट भी खुलता है; Plus के बिना स्टूडियो एक रखता है।',
   'studio.plus.oneProject':
-    'Plus के बिना स्टूडियो एक प्रोजेक्ट रखता है। Plus के साथ कोई सीमा नहीं।',
+    'Plus के बिना स्टूडियो एक प्रोजेक्ट रखता है। अगला महीना मुफ़्त पाने के लिए एक सीन प्रकाशित करें, या जितने चाहें उतने के लिए Plus लें।',
 
   'studio.maker.title': 'अपने AI के साथ बनाइए',
   'studio.maker.describe': 'अपना सीन बताइए',
@@ -154,6 +163,8 @@ const studio = {
     'प्रकाशित करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
   'studio.publish.rateLimited':
     'एक घंटे में यह बहुत ज़्यादा प्रकाशन है। बाद में कोशिश करें।',
+  'studio.publish.tooManyThisMonth':
+    'इस महीने के आपके दोनों सीन हो गए। अगले महीने फिर प्रकाशित कर सकते हैं।',
   'studio.publish.signedOut': 'अपना सीन प्रकाशित करने के लिए साइन इन करें।',
   'studio.publish.failed': 'सीन प्रकाशित नहीं हो सका। फिर कोशिश करें।',
   'studio.publish.officialCopy':
@@ -336,6 +347,8 @@ const studio = {
   'studio.settings.ambient': 'विंडो में तत्व',
   'studio.settings.ambientLead':
     'माहौल मोड में यह दृश्य ऐप के आसपास क्या जोड़ता है।',
+  'studio.settings.ambientOff':
+    'इन्हें देखने के लिए विंडो लुक को एम्बिएंट पर करें।',
   'studio.settings.sensitivity': 'संवेदनशीलता',
   'studio.settings.sensitivityHint':
     'कितनी ज़ोर से प्रतिक्रिया देता है। धीमे गाने के लिए ज़्यादा, और जब तेज़ गाना इसे हमेशा चरम पर रखे तो कम।',
