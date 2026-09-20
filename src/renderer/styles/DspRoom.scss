@@ -93,6 +93,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // ---------------------------------------------------------------------------
 
 .dsp-room-page {
+  container-name: dsp-room-page;
+  container-type: inline-size;
   display: flex;
   flex: 1 1 100%;
   flex-wrap: wrap;
@@ -105,9 +107,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // to 640px and push the selected speaker's pane to 909px down a 720px window
 // — and stays in view while the bands beside it scroll, so a dial that
 // reshapes the room is seen reshaping it.
+//
+// Only while they are beside it. Narrower than the two of them together —
+// the picture's 320 and the bands' 320 with the gap between — the line wraps
+// and the bands scroll UNDER the picture, which then covered half of them:
+// the crossover dial and "To the sub" read through the room from above. The
+// number is where the line wraps and not a breakpoint, so the two cannot
+// drift apart.
 .dsp-room-picture {
-  position: sticky;
-  top: 0;
   display: grid;
   flex: 1 1 320px;
   gap: 6px;
@@ -117,6 +124,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   border: 1px solid rgba($white, 0.05);
   border-radius: $radius-s;
   background: $surface-plot;
+
+  @container dsp-room-page (min-width: 650px) {
+    position: sticky;
+    top: 0;
+  }
 }
 
 .dsp-room-picture .dsp-room-svg {
@@ -173,6 +185,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   // down to a 320px band.
   .dsp-room-row {
     grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
     gap: 5px;
     padding: 6px 0;
   }
@@ -184,8 +197,46 @@ SPDX-License-Identifier: GPL-3.0-or-later
     display: contents;
   }
 
+  // Every band reads down one middle line. The dials were already centred by
+  // `.dsp-band-dials` and everything beside them was not, so a card held a
+  // centred pair of knobs over a sentence starting at the left edge, and the
+  // column of cards stepped raggedly against a picture centred in its own
+  // panel — three segmented controls of three different widths, each starting
+  // at the left. The rule is the band, not the page: the picture's own hint
+  // and the rest of the rack are untouched.
   .dsp-band {
     flex: none;
+    text-align: center;
+  }
+
+  // The speaker's pane keeps its own head — its name at the left, Mute and
+  // Solo at the right — because those two are the header's actions and not a
+  // control in the column.
+  .dsp-band-head,
+  .dsp-room-row__controls,
+  .dsp-room-check,
+  .dsp-room-upgrade {
+    justify-content: center;
+  }
+
+  // The switch and its name on one line in the middle, its sentence under
+  // both. Left as a row, the sentence — the longest thing in the band — took
+  // every pixel the switch did not, so the switch stood against the left edge
+  // with centred text beside it, which read as two things rather than one.
+  .dsp-room-check {
+    display: grid;
+    grid-template-columns: auto minmax(0, auto);
+    align-items: center;
+    justify-content: center;
+    gap: 4px 10px;
+
+    .dsp-room-check__text {
+      display: contents;
+    }
+
+    .dsp-band-hint {
+      grid-column: 1 / -1;
+    }
   }
 
   .segmented {
