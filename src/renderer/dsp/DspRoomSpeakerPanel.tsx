@@ -292,9 +292,15 @@ const DspRoomSpeakerPanel = ({
               className="dsp-room-pane__ask-wave is-far"
               d="M51 11a27 27 0 0 1 0 30"
             />
+            {/* A real cursor, filled, at the cabinet's lower right corner.
+                It was a stroked polyline starting inside the cabinet: it
+                crossed the lower driver and read as clutter rather than as a
+                pointer. Filled with a dark rim it stays legible over the
+                cabinet's own edge, which is the one thing it has to overlap
+                to be pointing AT it. */}
             <path
               className="dsp-room-pane__ask-pointer"
-              d="M30 28.5 44.5 43 39 44.5 42.5 50"
+              d="M32 31v16.6l4.2-3.9 3.2 6.3 2.8-1.4-3.2-6.1 5.6-.2z"
             />
           </svg>
           <p className="dsp-room-pane__ask-text">

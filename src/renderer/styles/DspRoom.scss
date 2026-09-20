@@ -263,49 +263,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
   position: relative;
   border-color: color-mix(in srgb, $secondary-default 32%, transparent);
 
-  // While nothing is chosen the pane is still drawn, at rest, and the card
-  // below sits over it. The edge goes quiet with it: a lit border around a
-  // pane nobody has chosen was the one thing on the page asking to be read.
+  // While nothing is chosen the edge goes quiet: a lit border around a pane
+  // nobody has chosen was the one thing on the page asking to be read. What
+  // is inside it is covered opaquely by `__ask` below, so the controls need
+  // no dimming of their own — they are not on screen at all.
   &.is-waiting {
     border-color: $border-subtle;
   }
-
-  &.is-waiting > *:not(.dsp-room-pane__ask) {
-    opacity: 0.32;
-    // Not `pointer-events: none` — every control under here is disabled in
-    // its own right, and a pane that swallowed the pointer would also
-    // swallow the focus ring that says which one is disabled.
-    filter: saturate(0.4);
-  }
 }
 
-// The card over the resting pane: what to do, and a drawing of it.
+// What the pane says before a speaker is chosen: a drawing and a line, over
+// the controls it is waiting to hand over.
 //
-// It covers the pane and nothing else, lifted off it rather than painted on
-// it — a flat panel at this size read as a second card the page had grown,
-// where a shadow reads as one thing in front of another.
+// A SHADE, not a panel. The first version was a card lifted off the pane —
+// inset a few pixels, shadowed, with a light blur — and it read as something
+// half-loaded: the resting controls showed through it as smears of text and
+// half a dial, and its own edge drew a second border just inside the band's.
+// So it covers the band exactly, corner to corner and radius for radius, and
+// what is underneath is pushed back rather than hidden or half-shown: dark
+// enough that nothing behind competes with the line on top, soft enough that
+// the pane is plainly still there, waiting.
 .dsp-room-pane__ask {
-  @include inset-surface;
   position: absolute;
   z-index: 2;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  inset: 8px;
-  padding: 12px 18px;
-  background: color-mix(in srgb, $surface-plot 92%, transparent);
-  box-shadow:
-    0 14px 30px rgba($black, 0.45),
-    0 0 0 1px color-mix(in srgb, $secondary-light 8%, transparent);
-  backdrop-filter: blur(3px);
-  text-align: left;
+  gap: 12px;
+  inset: 0;
+  padding: 18px;
+  border-radius: $radius-s;
+  // A shade, and the strength is the whole of it: mixed nearly opaque it is a
+  // blackout, which loses the point — the controls are there, they are simply
+  // not yours yet. At this depth, with the blur taking their edges and the
+  // desaturation their glow, a dial behind reads as a shape and never as a
+  // number.
+  background: rgba($black, 0.74);
+  backdrop-filter: blur(5px) saturate(0.45);
+  text-align: center;
 }
 
 .dsp-room-pane__ask-art {
   flex: 0 0 auto;
-  width: 62px;
-  height: 50px;
+  width: 76px;
+  height: 62px;
 }
 
 .dsp-room-pane__ask-body {
@@ -336,11 +338,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 // The pointer, drawn as the cursor arriving rather than as a hand: it is the
-// one part of the picture that says "press this".
+// one part of the picture that says "press this". Filled with a dark rim so
+// it stays a cursor where it crosses the cabinet's own edge.
 .dsp-room-pane__ask-pointer {
-  fill: none;
-  stroke: $text-primary;
-  stroke-width: 2.4;
+  fill: $text-primary;
+  stroke: rgba($black, 0.55);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
 }
 
 .dsp-room-pane__ask-text {
