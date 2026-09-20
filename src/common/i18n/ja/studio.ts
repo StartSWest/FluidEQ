@@ -33,6 +33,9 @@ const studio = {
   'studio.locked.write': '保存するたびに組み上がるステージの横でシーンを書く',
   'studio.locked.test': '音楽に合わせて再生し、描画のコストを確かめる',
   'studio.locked.publish': 'ギャラリーに公開して、すべてのメンバーへ',
+  'studio.locked.keptOne': 'あなたのプロジェクトはそのまま、ここにあります:',
+  'studio.locked.keptMany':
+    '{count} 件のプロジェクトはそのまま、ここにあります:',
   'studio.locked.earn':
     '月に 1 つシーンを公開すると、次の 1 か月の Plus は無料です。',
   'studio.plus.oneFolder':

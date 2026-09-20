@@ -158,10 +158,24 @@ test('a server that refuses is a failure, not an empty month', async () => {
   await expect(other.ask()).resolves.toEqual({ ok: false, reason: 'server' });
 });
 
+test('a server answer that cannot be read is never taken for a no', async () => {
+  // The empty month below is this app's stand-in so the page has something
+  // to draw. Acted on, it says "not a maker" — and the Studio would shut on
+  // somebody the server never mentioned: a rollback, or one new field.
+  const told: [string, boolean][] = [];
+  const { ask } = setup({
+    body: 'no such function',
+    onMaker: (id, maker) => told.push([id, maker]),
+  });
+  const answer = await ask();
+  expect(answer).toMatchObject({ ok: true, guessed: true });
+  expect(told).toEqual([]);
+});
+
 test('a server from before the earned month reads as an account that never published', async () => {
   const { ask } = setup({ body: 'no such function' });
 
-  await expect(ask()).resolves.toEqual({
+  await expect(ask()).resolves.toMatchObject({
     ok: true,
     month: {
       running: false,

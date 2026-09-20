@@ -55,7 +55,19 @@ export interface IMakerMonth {
 export type TMakerMonthFailure = 'signed-out' | 'offline' | 'server';
 
 export type TMakerMonthOutcome =
-  { ok: true; month: IMakerMonth } | { ok: false; reason: TMakerMonthFailure };
+  | {
+      ok: true;
+      month: IMakerMonth;
+      /**
+       * The server answered something this could not read, and the month
+       * below is the app's own stand-in for "nothing to say" rather than
+       * anything the server said. Safe to show; never to act on — taken as
+       * an answer it says this account is not a maker, which would shut the
+       * Studio on one mid-scene.
+       */
+      guessed?: true;
+    }
+  | { ok: false; reason: TMakerMonthFailure };
 
 /**
  * What the entitlement's `plan` says when the access is an earned month

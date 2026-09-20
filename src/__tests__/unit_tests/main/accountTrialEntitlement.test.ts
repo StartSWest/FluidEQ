@@ -118,6 +118,19 @@ it('a month earned by publishing ends when it ends, with no paid grace either', 
   expect(resolveEntitlementState(earned, END)).toEqual({ state: 'none' });
 });
 
+it('a gift that ends does not buy a fortnight of grace either', () => {
+  // The grace window is for a renewal missed offline. A gift has none, and
+  // the card offers a merchant page that has never heard of the account
+  // (premium 0021).
+  const gift = record({ plan: 'gift', cancelAtPeriodEnd: false });
+  expect(resolveEntitlementState(gift, END - 1)).toMatchObject({
+    state: 'active',
+    plan: 'gift',
+    renewing: false,
+  });
+  expect(resolveEntitlementState(gift, END)).toEqual({ state: 'none' });
+});
+
 it('announces exact trial expiry on focus even when the server check is still fresh', async () => {
   const entitlement = build();
   await entitlement.checkNow();
@@ -128,9 +141,15 @@ it('announces exact trial expiry on focus even when the server check is still fr
     { state: 'active', plan: 'trial', periodEndsAt: END, renewing: false },
     { state: 'none' },
   ]);
-  expect(fetchImpl).toHaveBeenCalledTimes(1);
+  // The expiry is announced from the record alone — that is what this is
+  // for. The server is then asked once, despite the check being fresh:
+  // something it granted has just ended, which is exactly when its answer
+  // changes (a trial that was paid for, an earned month with another
+  // banked behind it). Once only — the next event finds nothing new.
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
   await entitlement.checkIfDue('window focused');
   expect(changes).toHaveLength(2);
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
 });
 
 it('publishes elapsed cached trial expiry on an offline refresh without deleting the record', async () => {

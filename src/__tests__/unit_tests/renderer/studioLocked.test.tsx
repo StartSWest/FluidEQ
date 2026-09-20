@@ -25,7 +25,11 @@ import {
 } from '../../../renderer/studio/studioStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
-  useTranslation: () => ({ locale: 'en', t: (key: string) => key }),
+  useTranslation: () => ({
+    locale: 'en',
+    t: (key: string, vars?: Record<string, string>) =>
+      vars ? `${key}:${Object.values(vars).join(',')}` : key,
+  }),
 }));
 
 jest.mock('../../../renderer/account/accountPanel', () => ({
@@ -108,6 +112,58 @@ test.each([
 
   expect(screen.getByTestId('studio-bench')).toBeInTheDocument();
   expect(screen.queryByText('studio.locked.title')).not.toBeInTheDocument();
+});
+
+test('an ended trial is not offered the same press twice', async () => {
+  // The trial card in its ended state already carries "See plans", which is
+  // this page's own button. Both drawn, the duplicate was the louder of the
+  // two — and this is the commonest way to reach the page: the trial ran
+  // out and nothing was published.
+  trial = offer('ended');
+  render(<StudioPanel />);
+
+  expect(screen.getByText('studio.locked.title')).toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: 'plus.gate.cta' }),
+  ).not.toBeInTheDocument();
+});
+
+test('projects made before the Studio was Plus’s are not left unmentioned', () => {
+  // Their folders are untouched on disk. A page that never mentions them
+  // reads as "my work is gone".
+  shown = view({
+    projects: [
+      {
+        id: 'a',
+        folderName: 'Neon City',
+        path: 'D:\\Studio\\Neon City',
+      },
+      {
+        id: 'b',
+        folderName: 'Deep Sea',
+        path: 'D:\\Studio\\Deep Sea',
+      },
+    ],
+  });
+  render(<StudioPanel />);
+
+  // The line is one sentence and a path, in two elements. The path is the
+  // folder that holds them both, not the first one's own.
+  const kept = document.querySelector('.studio-locked__kept');
+  expect(kept?.textContent).toContain('studio.locked.keptMany:2');
+  expect(kept?.textContent).toContain('D:\\Studio');
+  expect(kept?.textContent).not.toContain('Neon City');
+
+  // One project is named by its own folder, since that is where it is.
+  shown = view({
+    projects: [
+      { id: 'a', folderName: 'Neon City', path: 'D:\\Studio\\Neon City' },
+    ],
+  });
+  render(<StudioPanel />);
+  const one = document.querySelectorAll('.studio-locked__kept')[1];
+  expect(one?.textContent).toContain('studio.locked.keptOne:1');
+  expect(one?.textContent).toContain('D:\\Studio\\Neon City');
 });
 
 test('the loud button is the trial while there is one, and Plus when there is not', async () => {

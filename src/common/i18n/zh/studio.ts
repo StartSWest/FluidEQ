@@ -31,6 +31,8 @@ const studio = {
   'studio.locked.write': '在随保存即时重建的舞台旁编写场景',
   'studio.locked.test': '配上音乐播放，看清绘制的开销',
   'studio.locked.publish': '发布到画廊，让所有会员都能安装',
+  'studio.locked.keptOne': '你的项目还在原处:',
+  'studio.locked.keptMany': '你的 {count} 个项目还在原处:',
   'studio.locked.earn': '每月发布一个场景，下个月的 Plus 免费。',
   'studio.plus.oneFolder':
     '没有 Plus 时只打开第一个；其余的带锁留在列表中，有 Plus 即可打开。',

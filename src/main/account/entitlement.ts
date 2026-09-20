@@ -2,6 +2,7 @@ import type { IAccountConfig } from 'common/accountConfig';
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
 import { PLUS_TRIAL_PLAN } from '../../common/plusTrial';
 import { MAKER_PLAN } from '../../common/makerMonth';
+import { GIFT_PLAN } from '../../common/plusGifts';
 import type { IEncryptedJsonStore } from '../encryptedJsonStore';
 import type { IAccountSession } from './session';
 
@@ -128,9 +129,16 @@ export const resolveEntitlementState = (
   // A clock set backwards would otherwise buy another fortnight of grace for
   // free. The confirmation cannot have happened later than now.
   const verifiedAt = Math.min(record.verifiedAt, now);
-  // A trial and a month earned by publishing are both the server's own
-  // grant: no card, no merchant, nothing that could renew them.
-  const granted = record.plan === PLUS_TRIAL_PLAN || record.plan === MAKER_PLAN;
+  // A trial, a gift and a month earned by publishing are all this server's
+  // own grant: no card, no merchant, nothing that could renew them. The
+  // grace below exists for a renewal this app may have missed while it was
+  // offline, and none of the three has one to miss — a gift whose date has
+  // passed kept Plus alive for another fortnight and offered a merchant
+  // page that has never heard of the account.
+  const granted =
+    record.plan === PLUS_TRIAL_PLAN ||
+    record.plan === MAKER_PLAN ||
+    record.plan === GIFT_PLAN;
   const shared = {
     plan: record.plan,
     periodEndsAt: record.periodEndsAt,
@@ -141,9 +149,9 @@ export const resolveEntitlementState = (
   }
   // A membership cancelled to end with this period ended with it. The grace
   // below is for a renewal the app may have missed, and this one was never
-  // going to renew. Neither can a trial or an earned month, whatever flag
-  // was stored: a fortnight of grace over an earned month would leave Plus
-  // on for two weeks after the app had already said it had ended.
+  // going to renew. Nor can anything this server granted, whatever flag was
+  // stored: a fortnight of grace over an earned month would leave Plus on
+  // for two weeks after the app had already said it had ended.
   if (granted || record.cancelAtPeriodEnd) {
     return NONE;
   }
@@ -308,6 +316,15 @@ export const createEntitlement = (
   let override = options.developmentOverride;
 
   let lastAnnounced: string | undefined;
+  /** The plan of what was last announced, for the boundary below. */
+  let lastPlan: string | undefined;
+  /**
+   * Something this server granted has just run out, so the next event asks
+   * the server whatever the staleness rule says: an earned month that ended
+   * may have another banked behind it, and a trial that ended may have been
+   * paid for.
+   */
+  let grantedEnded = false;
   const status = (): IEntitlementStatus => {
     const current = override ?? resolveEntitlementState(ownRecord(), now());
     lastAnnounced ??= JSON.stringify(current);
@@ -318,6 +335,7 @@ export const createEntitlement = (
 
   const announce = (current: IEntitlementStatus) => {
     lastAnnounced = JSON.stringify(current);
+    lastPlan = current.plan;
     onChange(current);
     listeners.forEach((listener) => listener(current));
   };
@@ -325,9 +343,19 @@ export const createEntitlement = (
   // Comparing two reads at the same time misses expiry between events: both
   // already say "none" while the window is still showing the previous grant.
   const announceIfChanged = () => {
+    const wasGranted = lastPlan === MAKER_PLAN || lastPlan === PLUS_TRIAL_PLAN;
     const current = status();
-    if (JSON.stringify(current) !== lastAnnounced) {
-      announce(current);
+    if (JSON.stringify(current) === lastAnnounced) {
+      return;
+    }
+    announce(current);
+    // A maker can have more months banked behind the one that just ran out,
+    // and the server starts the next the moment it is asked — but only when
+    // it is asked. The staleness rule would otherwise sit on "no Plus" for
+    // up to four hours with a month of theirs waiting on the server; the end
+    // of something the server granted is precisely when its answer changes.
+    if (current.state === 'none' && wasGranted) {
+      grantedEnded = true;
     }
   };
 
@@ -460,12 +488,16 @@ export const createEntitlement = (
         return;
       }
       if (
+        !grantedEnded &&
         awaiting === undefined &&
         lastCheckedAccountId === session.state().identity?.id &&
         now() - lastCheckedAt < ENTITLEMENT_STALE_AFTER_MS
       ) {
         return;
       }
+      // Once. A server with nothing more to give would otherwise be asked
+      // again at every event for the rest of the sitting.
+      grantedEnded = false;
       logger?.info(`Checking the subscription after ${reason}.`);
       await checkNow();
     },

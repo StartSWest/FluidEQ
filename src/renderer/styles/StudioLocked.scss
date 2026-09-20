@@ -134,6 +134,35 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $secondary-light;
 }
 
+// Where their own projects are, for somebody who made them while the Studio
+// was open to everybody. Quieter than the earn line and under it: it is
+// reassurance, not an offer.
+.studio-locked__kept {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.studio-locked__kept-mark {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: $text-dim;
+  transform: translateY(2px);
+}
+
+// A path is not prose: it keeps the fixed-width face the rest of the app
+// spells paths in, and breaks anywhere rather than widening the card.
+.studio-locked__kept-path {
+  font-family: $font-mono;
+  overflow-wrap: anywhere;
+}
+
 .studio-locked__actions {
   display: flex;
   flex-wrap: wrap;

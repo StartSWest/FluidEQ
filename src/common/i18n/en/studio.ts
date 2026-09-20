@@ -42,6 +42,8 @@ const studio = {
     'Write the scene beside a stage that rebuilds as you save',
   'studio.locked.test': 'Play it against music and see what it costs to draw',
   'studio.locked.publish': 'Publish it to the gallery for every member',
+  'studio.locked.keptOne': 'Your project is where you left it, in',
+  'studio.locked.keptMany': 'Your {count} projects are where you left them, in',
   'studio.locked.earn':
     'Publish one scene a month and the next month of Plus is free.',
   'studio.plus.oneFolder':

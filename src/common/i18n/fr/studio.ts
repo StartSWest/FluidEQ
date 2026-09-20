@@ -36,6 +36,9 @@ const studio = {
   'studio.locked.test':
     'Jouez-la sur de la musique et voyez ce qu’elle coûte à dessiner',
   'studio.locked.publish': 'Publiez-la dans la galerie, pour tous les membres',
+  'studio.locked.keptOne': 'Votre projet est là où vous l’avez laissé, dans',
+  'studio.locked.keptMany':
+    'Vos {count} projets sont là où vous les avez laissés, dans',
   'studio.locked.earn':
     'Publiez une scène par mois et le mois de Plus suivant est offert.',
   'studio.plus.oneFolder':

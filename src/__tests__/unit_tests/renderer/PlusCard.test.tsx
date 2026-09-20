@@ -175,6 +175,10 @@ describe('the Plus card', () => {
       />,
     );
     expect(screen.getByText('account.plus.gift')).toBeInTheDocument();
+    // A gift no longer renews (the app stopped giving it paid grace), and
+    // that must not turn its badge into the cancelled-subscription amber.
+    const giftBadge = screen.getByText('account.plus.active');
+    expect(giftBadge.className).not.toContain('plus-card__badge--ending');
     expect(screen.queryByText(/account.plus.renews/)).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'account.plus.manage' }),
@@ -213,7 +217,12 @@ describe('the Plus card', () => {
         checkoutOpened={false}
       />,
     );
-    expect(screen.getByText('account.maker.badge')).toBeInTheDocument();
+    const badge = screen.getByText('account.maker.badge');
+    expect(badge).toBeInTheDocument();
+    // And not in the paint a cancelled subscription wears. Nothing renews an
+    // earned month, so the amber would be on it from its first day — the
+    // word was changed once and the colour left behind.
+    expect(badge.className).not.toContain('plus-card__badge--ending');
     expect(screen.getByText(/account.maker.until:.*2027/)).toBeInTheDocument();
     expect(screen.queryByText('account.plus.ending')).not.toBeInTheDocument();
     expect(screen.queryByText(/account.plus.until/)).not.toBeInTheDocument();

@@ -127,16 +127,29 @@ export default function PlusCard({
     </button>
   );
 
-  // What the badge says while the membership is on. The two the server
-  // grants have their own word for it: neither renews, so "Ending" — which
-  // is what a cancelled subscription says — would be on them from the first
-  // day, and "Active" would invite the reader to look for a bill.
+  /**
+   * Access this server granted rather than a merchant: a trial, a gift, a
+   * month earned by publishing. None of them renews, none has a page to
+   * manage it on, and none may wear what a cancelled subscription wears.
+   */
+  const granted =
+    entitlement.plan === PLUS_TRIAL_PLAN ||
+    entitlement.plan === MAKER_PLAN ||
+    entitlement.plan === GIFT_PLAN;
+
+  // What the badge says while the membership is on. Each granted kind has
+  // its own word: "Ending" — the cancelled subscription's — would be on them
+  // from their first day, since nothing renews them, and "Active" would
+  // invite the reader to look for a bill.
   const activeBadge = (): TranslationKey => {
     if (entitlement.plan === PLUS_TRIAL_PLAN) {
       return 'trial.active.badge';
     }
     if (entitlement.plan === MAKER_PLAN) {
       return 'account.maker.badge';
+    }
+    if (entitlement.plan === GIFT_PLAN) {
+      return 'account.plus.active';
     }
     return entitlement.renewing === false
       ? 'account.plus.ending'
@@ -158,7 +171,9 @@ export default function PlusCard({
         {entitlement.state === 'active' && (
           <span
             className={`plus-card__badge${
-              entitlement.renewing === false ? ' plus-card__badge--ending' : ''
+              entitlement.renewing === false && !granted
+                ? ' plus-card__badge--ending'
+                : ''
             }`}
           >
             {t(activeBadge())}

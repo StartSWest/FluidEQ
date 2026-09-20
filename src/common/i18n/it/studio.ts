@@ -34,6 +34,9 @@ const studio = {
     'Scrivi la scena accanto a un palco che si ricostruisce a ogni salvataggio',
   'studio.locked.test': 'Provala sulla musica e guarda quanto costa disegnarla',
   'studio.locked.publish': 'Pubblicala nella galleria per tutti i membri',
+  'studio.locked.keptOne': 'Il tuo progetto è dove l’hai lasciato, in',
+  'studio.locked.keptMany':
+    'I tuoi {count} progetti sono dove li hai lasciati, in',
   'studio.locked.earn':
     'Pubblica una scena al mese e il mese di Plus successivo è gratis.',
   'studio.plus.oneFolder':

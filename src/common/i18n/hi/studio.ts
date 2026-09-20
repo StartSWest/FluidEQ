@@ -34,6 +34,9 @@ const studio = {
   'studio.locked.test':
     'संगीत के साथ चलाकर देखें कि उसे बनाने में कितना खर्च होता है',
   'studio.locked.publish': 'गैलरी में प्रकाशित करें, सभी सदस्यों के लिए',
+  'studio.locked.keptOne': 'आपका प्रोजेक्ट वहीं है जहाँ आपने छोड़ा था,',
+  'studio.locked.keptMany':
+    'आपके {count} प्रोजेक्ट वहीं हैं जहाँ आपने छोड़े थे,',
   'studio.locked.earn':
     'महीने में एक सीन प्रकाशित करें और Plus का अगला महीना मुफ़्त है।',
   'studio.plus.oneFolder':

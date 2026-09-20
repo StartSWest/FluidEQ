@@ -36,6 +36,10 @@ const studio = {
     'Spielen Sie sie zu Musik und sehen Sie, was das Zeichnen kostet',
   'studio.locked.publish':
     'Veröffentlichen Sie sie in der Galerie für alle Mitglieder',
+  'studio.locked.keptOne':
+    'Ihr Projekt liegt dort, wo Sie es gelassen haben, in',
+  'studio.locked.keptMany':
+    'Ihre {count} Projekte liegen dort, wo Sie sie gelassen haben, in',
   'studio.locked.earn':
     'Veröffentlichen Sie eine Szene pro Monat, und der nächste Monat Plus ist kostenlos.',
   'studio.plus.oneFolder':

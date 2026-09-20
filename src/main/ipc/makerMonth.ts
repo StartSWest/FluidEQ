@@ -43,7 +43,10 @@ export const registerMakerMonthIpc = ({
     if (access.accountId() !== me) {
       return { ok: false, reason: 'signed-out' };
     }
-    if (me && outcome.ok) {
+    // Only what the server actually said. A body this could not read comes
+    // back as an empty month so the page has something to draw, and taking
+    // that for a "no" would forget a maker the server never mentioned.
+    if (me && outcome.ok && !outcome.guessed) {
       onMaker?.(me, outcome.month.maker);
     }
     return outcome;

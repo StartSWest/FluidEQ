@@ -136,7 +136,7 @@ const account = {
   'account.maker.endsDays':
     'Endet in {days} Tagen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
   'account.maker.endsToday':
-    'Endet heute – veröffentlichen Sie eine Szene, um ihn zu behalten.',
+    'Endet heute – veröffentlichen Sie eine Szene, um es zu behalten.',
   'account.maker.endsTomorrow':
     'Endet morgen – veröffentlichen Sie vorher eine Szene, um es zu behalten.',
   'account.maker.keep':
