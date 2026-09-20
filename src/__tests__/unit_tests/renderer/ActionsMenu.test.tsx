@@ -16,6 +16,7 @@ import {
   within,
 } from '@testing-library/react';
 import { LATEST_RELEASE_URL } from 'common/branding';
+import en from 'common/i18n/en';
 import ActionsMenu, {
   type TEngineState,
 } from 'renderer/components/ActionsMenu';
@@ -260,8 +261,12 @@ describe('the settings tray', () => {
     const { trigger } = show('ready');
     open(trigger);
     const themes = screen.getByRole('group', { name: 'Theme' });
-    const black = within(themes).getByRole('menuitemradio', { name: 'Black' });
-    const ocean = within(themes).getByRole('menuitemradio', { name: 'Ocean' });
+    const black = within(themes).getByRole('menuitemradio', {
+      name: en['theme.black'],
+    });
+    const ocean = within(themes).getByRole('menuitemradio', {
+      name: en['theme.ocean'],
+    });
 
     expect(black).toHaveAttribute('aria-checked', 'true');
     expect(
@@ -308,7 +313,9 @@ describe('opening and closing the actions menu', () => {
     expect(screen.getByRole('checkbox', { name: 'Animations' })).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    expect(screen.getByRole('menuitemradio', { name: 'Black' })).toHaveFocus();
+    expect(
+      screen.getByRole('menuitemradio', { name: en['theme.black'] }),
+    ).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'End' });
     fireEvent.keyDown(menu, { key: 'ArrowDown' });
